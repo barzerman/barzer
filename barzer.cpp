@@ -2,7 +2,7 @@
 #include <barzer_server.h>
 #include <ay/ay_cmdproc.h>
 #include <iostream>
-
+#include <stdlib.h>
 
 struct TaskEnv {
 	ay::CommandLineArgs cmdlProc;
