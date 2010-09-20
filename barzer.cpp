@@ -4,8 +4,6 @@
 #include <iostream>
 #include <stdlib.h>
 
-/// testing push
-/// testing push2
 struct TaskEnv {
 	ay::CommandLineArgs cmdlProc;
 	barzer::Shell        barzerShell;
