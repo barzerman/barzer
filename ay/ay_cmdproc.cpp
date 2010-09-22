@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 namespace ay {
 
 const char* CommandLineArgs::getArgVal( bool& hasArg, const char* an, int*argPos ) const

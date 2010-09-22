@@ -31,6 +31,6 @@ struct CommandLineArgs {
 	}
 };
 
-}
+} // end of namespace
 
 #endif
