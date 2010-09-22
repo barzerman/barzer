@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdlib.h>
 
+
 struct TaskEnv {
 	ay::CommandLineArgs cmdlProc;
 	barzer::Shell        barzerShell;
