@@ -1,39 +1,55 @@
 #include <ay_shell.h>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 
 namespace ay {
 
-static const CmdData *g_cmd[] = {
-	Shell::CmdData( Shell::cmd_help, L"help", L"get help on a function" ),
-	Shell::CmdData( Shell::cmd_exit, L"exit", L"exit the shell" )
+typedef Shell::CmdData CmdData;
+
+static const CmdData g_cmd[] = {
+	CmdData( Shell::cmd_help, L"help", L"get help on a function" ),
+	CmdData( Shell::cmd_exit, L"exit", L"exit the shell" )
 };
 
-int Shell::setupStream()
+int Shell::setupStreams()
 {
 	/// input stream 
-	if( inStream && inStream != & std::wcin ) 
-		inStream = (delete inStream, 0 );
+	if( inStream && inStream != & std::wcin ) {
+		delete inStream;
+		inStream = 0;
+	} 
+	
 	if( inF.length() ) {
-		inStream = new std::ofstream();
-		ofstr->open( inF.c_str() );
+		std::wifstream* tmp = new std::wifstream();
+		tmp->open( inF.c_str() );
+		inStream = tmp;
 	} else
 		inStream = &std::wcin;
 
 	/// output stream 
-	if( outStream && outStream != & std::wcout ) 
-		outStream = (delete outStream, 0 );
+	if( outStream && outStream != & std::wcout )  {
+		delete outStream;
+		outStream = 0;
+	} 
+	
 	if( outF.length() ) {
-		outStream = new std::ofstream();
-		ofstr->open( outF.c_str() );
+		std::wofstream* tmp = new std::wofstream();
+		tmp->open( outF.c_str() );
+		outStream = tmp;
 	} else
 		outStream = &std::wcout;
 
 	/// error  stream 
-	if( errStream && errStream != & std::wcerr ) 
-		errStream = (delete errStream, 0 );
+	if( errStream && errStream != & std::wcerr ) {
+		delete errStream;
+		errStream = 0 ;
+	}
 	if( errF.length() ) {
-		errStream = new std::ofstream();
-		ofstr->open( errF.c_str() );
+		std::wofstream* tmp = new std::wofstream();
+		tmp->open( errF.c_str() );
+		errStream = tmp;
 	} else
 		errStream = &std::wcerr;
 }
@@ -59,12 +75,12 @@ int Shell::run()
 	setupStreams();
 	std::wstring curStr;
 	while( std::getline( *inStream, curStr ) ) {
-		std::wstringstream sstr( stringstream::in );
+		std::wstringstream sstr;
 		sstr.str() = curStr;
-		std::string cmdStr;
+		std::wstring cmdStr;
 		sstr >> cmdStr;
 		int cmdRc = 0;
-		rc = cmdInvoke( cmdStr.c_str(), sstr );
+		cmdInvoke( rc, cmdStr.c_str(), sstr );
 		if( rc ) 
 			break;
 	}

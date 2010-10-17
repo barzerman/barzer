@@ -5,6 +5,7 @@
 /// command line processor 
 #include <string>
 #include <vector>
+#include <ay_util.h>
 namespace ay {
 
 const int CMDLINE_ARG_NOTFOUND=-1;

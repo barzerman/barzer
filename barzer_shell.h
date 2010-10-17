@@ -2,7 +2,7 @@
 #define BARZER_SHELL_H
 namespace barzer {
 
-struct Shell {
+struct Shell : public ay::Shell {
 int run() { return 0; }	
 };
 

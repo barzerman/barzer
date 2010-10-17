@@ -1,28 +1,32 @@
 #include <ay_util.h>
+#include <string>
 namespace ay {
+
+class Shell;
+typedef int (*Shell_PROCF)( Shell*, wchar_cp cmd, std::wistream& in );
 
 class Shell {
 protected:
 	/// file Names 
 	std::string outF, inF, errF;
 	
-	std::ofstream *outStream, *errStream;
-	std::ifstream *inStream;
+	std::wostream *outStream;
+	std::wostream *errStream;
+	std::wistream *inStream;
 
-	void setUpStreams();
+	int setupStreams();
 public:
 	/// individual commands 
-	int cmd_help( wchar_cp cmd, std::wistream& in );
-	int cmd_exit( wchar_cp cmd, std::wistream& in );
+	static int cmd_help( Shell*, wchar_cp cmd, std::wistream& in );
+	static int cmd_exit( Shell*, wchar_cp cmd, std::wistream& in );
 	// end of commands 
-	typedef int (Shell::*PROCF)( wchar_cp cmd, std::wistream& in );
 
 	/// 
 	struct CmdData {
-		PROCF func;
+		Shell_PROCF func;
 		wchar_cp name; // command name
 		wchar_cp desc; // command description
-		CmdData( PROCF f, wchar_cp n, wchar_cp d) : 
+		CmdData( Shell_PROCF f, wchar_cp n, wchar_cp d) : 
 			func(f), name(n), desc(d) {}
 	};
 
@@ -44,8 +48,8 @@ protected:
 
 	inline int cmdInvoke( int& rc, wchar_cp cmd, std::wistream& in )
 	{
-		const CmdData* cd = getCmdData( cmd );
-		return( cd ? (rc=(this->*(cd->func))( in ), 0) : (rc=0,-1) );
+		const CmdData* cd = getCmdDta( cmd );
+		return( cd ? (rc=cd->func( this, cmd, in ), 0) : (rc=0,-1) );
 	}
 
 	CmdDataRange getProcs() const; // own procedures and fallback ones (BaseProcs)
