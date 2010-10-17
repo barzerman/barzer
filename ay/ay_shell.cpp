@@ -13,6 +13,31 @@ static const CmdData g_cmd[] = {
 	CmdData( Shell::cmd_exit, L"exit", L"exit the shell" )
 };
 
+std::wostream& Shell::CmdData::print( std::wostream& fp ) const
+{
+	fp << name << L" - " << desc;
+}
+
+int Shell::cmd_help( Shell* sh, wchar_cp cmd, std::wistream& in )
+{
+	std::wstring srchStr;
+	std::getline( in, srchStr );
+	wchar_cp srch = srchStr.c_str();
+	for( CmdDataMap::const_iterator i = sh->cmdMap.begin(); i!= sh->cmdMap.end(); ++i ) {
+		const wchar_t *name = i->second->name;
+		const wchar_t *desc = i->second->desc;
+		if( wcsstr( name, srch ) || wcsstr( desc, srch )) {
+			std::wcout << i->second << std::endl;
+		}
+	}
+	return 0;
+}
+
+int Shell::cmd_exit( Shell*, wchar_cp cmd, std::wistream& in )
+{
+	return 1;
+}
+
 int Shell::setupStreams()
 {
 	/// input stream 
@@ -68,11 +93,18 @@ int Shell::indexCmdDataRange( const CmdDataRange& rng )
 	return 0;
 }
 
-int Shell::run()
+int Shell::init()
 {
-	int rc = indexCmdDataRange(CmdDataRange( ARR_BEGIN(g_cmd),ARR_END(g_cmd)));
+	int rc = 0;
+	if( !cmdMap.size() )
+		rc = indexCmdDataRange(CmdDataRange( ARR_BEGIN(g_cmd),ARR_END(g_cmd)));
 
-	setupStreams();
+	return rc;
+}
+int Shell::runCmdLoop()
+{
+	int rc = 0;
+
 	std::wstring curStr;
 	while( std::getline( *inStream, curStr ) ) {
 		std::wstringstream sstr;
@@ -84,6 +116,13 @@ int Shell::run()
 		if( rc ) 
 			break;
 	}
+	return rc;
+}
+int Shell::run()
+{
+	int rc = init();
+	rc = setupStreams();
+	rc = runCmdLoop();
 	return rc;
 }
 

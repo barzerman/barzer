@@ -1,9 +1,12 @@
 #ifndef BARZER_SHELL_H
 #define BARZER_SHELL_H
+
+#include <ay/ay_shell.h>
 namespace barzer {
 
-struct Shell : public ay::Shell {
-int run() { return 0; }	
+struct BarzerShell : public ay::Shell {
+
+virtual int init();
 };
 
 }

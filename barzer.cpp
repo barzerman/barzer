@@ -7,7 +7,7 @@
 
 struct TaskEnv {
 	ay::CommandLineArgs cmdlProc;
-	barzer::Shell        barzerShell;
+	barzer::BarzerShell        barzerShell;
 
 	int init(int argc, char* argv[]);
 	int run();

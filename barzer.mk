@@ -1,7 +1,7 @@
-CFLAGS := -I.
+CFLAGS := -I. -I./ay
 BINARY=barzer.exe
 libs = ay/aylib.a
-objects = barzer.o
+objects = barzer.o barzer_shell.o
 
 all: $(objects)
 	c++ -o  $(BINARY) $(libs) $(objects)

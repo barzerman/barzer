@@ -28,6 +28,7 @@ public:
 		wchar_cp desc; // command description
 		CmdData( Shell_PROCF f, wchar_cp n, wchar_cp d) : 
 			func(f), name(n), desc(d) {}
+		std::wostream& print( std::wostream& ) const;
 	};
 
 	typedef std::pair<const CmdData*,const CmdData*> CmdDataRange;
@@ -37,8 +38,8 @@ public:
 	CmdDataMap cmdMap;
 protected:
 
-	// invoked from constructor . initializes cmdMap
-	int indexCmdDataRange( const CmdDataRange& rng );
+	// invoked from run . initializes cmdMap
+	virtual int indexCmdDataRange( const CmdDataRange& rng );
 
 	inline const CmdData* getCmdDta( wchar_cp cmd ) const
 	{
@@ -54,12 +55,23 @@ protected:
 
 	CmdDataRange getProcs() const; // own procedures and fallback ones (BaseProcs)
 
+private:
+	// generally overloading this shouldn't be needed
+	virtual int runCmdLoop();
+
+	// *OVERLOAD this to run indexCmdDataRange with the right parms
+	// by default called from run
+	virtual int init();
 public:
 	int processOneCmd( std::wistream& in );
 
-	Shell();
+	Shell() {}
 
+	// generally overloading this shouldn't be needed
 	virtual int run();
 };
+
+inline std::wostream& operator <<( std::wostream& fp, const Shell::CmdData& d )
+{ return d.print(fp); }
 
 }
