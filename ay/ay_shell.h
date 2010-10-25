@@ -54,7 +54,7 @@ protected:
 	}
 
 	CmdDataRange getProcs() const; // own procedures and fallback ones (BaseProcs)
-
+	virtual int printPrompt();
 private:
 	// generally overloading this shouldn't be needed
 	virtual int runCmdLoop();
@@ -65,7 +65,11 @@ private:
 public:
 	int processOneCmd( std::wistream& in );
 
-	Shell() {}
+	Shell() : 
+	outStream(0),
+	errStream(0),
+	inStream(0)
+	{}
 
 	// generally overloading this shouldn't be needed
 	virtual int run();

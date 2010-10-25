@@ -2,6 +2,7 @@
 #define BARZER_SHELL_H
 
 #include <ay/ay_shell.h>
+#include <iostream>
 namespace barzer {
 
 struct BarzerShell : public ay::Shell {

@@ -27,7 +27,7 @@ int Shell::cmd_help( Shell* sh, wchar_cp cmd, std::wistream& in )
 		const wchar_t *name = i->second->name;
 		const wchar_t *desc = i->second->desc;
 		if( wcsstr( name, srch ) || wcsstr( desc, srch )) {
-			std::wcout << i->second << std::endl;
+			std::wcout << *(i->second) << std::endl;
 		}
 	}
 	return 0;
@@ -35,7 +35,14 @@ int Shell::cmd_help( Shell* sh, wchar_cp cmd, std::wistream& in )
 
 int Shell::cmd_exit( Shell*, wchar_cp cmd, std::wistream& in )
 {
-	return 1;
+	exit(0);
+	return 0;
+}
+
+int Shell::printPrompt()
+{
+	if( outStream == & std::wcout )
+		std::wcout << L"cmd>";
 }
 
 int Shell::setupStreams()
@@ -106,15 +113,18 @@ int Shell::runCmdLoop()
 	int rc = 0;
 
 	std::wstring curStr;
+	printPrompt();
 	while( std::getline( *inStream, curStr ) ) {
 		std::wstringstream sstr;
-		sstr.str() = curStr;
+		sstr<< curStr;
 		std::wstring cmdStr;
-		sstr >> cmdStr;
+		std::getline( sstr, cmdStr, L' ');
+		// sstr >> cmdStr;
 		int cmdRc = 0;
 		cmdInvoke( rc, cmdStr.c_str(), sstr );
 		if( rc ) 
 			break;
+		printPrompt();
 	}
 	return rc;
 }

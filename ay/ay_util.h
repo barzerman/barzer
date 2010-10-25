@@ -3,6 +3,8 @@
 
 #include <string.h>
 #include <map>
+#include <vector>
+#include <iostream>
 
 namespace ay {
 
@@ -79,6 +81,9 @@ struct char_cp_map {
 	typedef std::map< char_cp, T,char_cp_compare_less> Type;
 };
 
+typedef std::vector<std::wstring> WstringVec;
+/// streaming utilities
+int wstring_vec_read( WstringVec& vec, std::wistream& in );
 
 }
 
