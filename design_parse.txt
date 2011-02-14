@@ -1,0 +1,75 @@
+t0 tN ... - original tokens - collections of input chars
+token t:
+* offset, length 
+
+
+initial classification is "unclassified" 
+C0 ... Ck
+
+bordeaux for under 100 dollars 
+* basic tokens t[5] 
+* initial set of classified tokens is 
+C[0-5] - uncalssified 
+The Parsing state is:
+* The Invariant (input string + collection of invariant tokens)
+* an array of c-tokens
+* final output is a list of P-units (pattern units) 
+
+
+classified token is 
+* one or more ti where i is between 0 and N 
+* class , which can be:
+  * unclassified  
+  * range 
+  * fluff 
+  * spelling corrected
+  * compounded word
+  * special token 
+  * grammatical construct 
+  * punctuation 
+  * space
+  * numeral 
+
+end result: 
+P0 ... Pm 
+
+Pi - pattern unit
+* has a collection of C
+* class: 
+    * range 
+    * entity search 
+    * non-searcheable token 
+    * post search bias pattern
+    * pre-search search bias pattern
+     
+Parsing: 
+
+1. Start with:
+const char* 
+2. produce T-vector (aka vector of t-tokens)
+T-token:
+just a string
+* either an interned id 
+* or char* 
+
+3. Pre-classification
+4. Spelling corrections produces an altered set of C-tokens (mostly unclassified)
+5. Clasification - alters C-toks iterative while applies 
+  - compounded word detection
+  - range and numeral identification
+  - dates
+  - other basic types
+6. Pattern aggregation - 
+  - iteratively lumps C-tokens into P-units  and produces Barz
+Barz has: 
+  array of PUnit sequences
+  
+Classes:
+ TToken 
+ CToken
+ PUnit 
+ Barz (knows PUnit)
+
+ Interner (knows about TTokens and char*)
+ Tokenizer - tokenizes string on spaces produces an array of TTokens
+ SpellCorrector (knows about CToken TToken)
