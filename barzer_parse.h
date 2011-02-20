@@ -1,67 +1,39 @@
+#ifndef BARZER_PARSE_H
+#define BARZER_PARSE_H
+#include <barzer_lexer.h>
 
-struct TToken ;
-struct CToken;
-struct PUnit ;
-struct Barz ;
+namespace barzer {
 
-// global constnts 
-enum {
-	BGC_MAX_TOKLEN = 1024, // maximum length of token
-	BGC_MAX_NUMTOK = 1024 // maximum number of tokens in the question
-}; 
+class QSemanticParser {
+public:
+	struct Error : public QPError { } err;
 
-enum {
+	virtual int semanticize( PUWPVec& , const CTWPVec& );
 };
 
-struct TToken {
-	short  len; 
-	const char* buf;
+/// invokes tokenizer, lex parser and semantical parser 
+/// to produce a valid Barze
+class QParser {
+private:
+	struct Error : public QPError { 
+		int tokRc; // tokenizer rcode 
+		int lexRc; // lexer rcode 
+		int semRc; // semantic rcode 
+
+		void clear() { 
+			tokRc=lexRc=semRc=0;
+			Error::clear();
+		}
+		Error() : tokRc(0), lexRc(0), semRc(0) {}
+	} err;
+public:
+	QTokenizer tokenizer;
+	QLexParser lexer;
+	QSemanticParser semanticizer;
 	
-	TToken( ) : len(0), buf("") {}
-	TToken( const char* s ) : 
-		len( strlen(s) ), buf(s) {}
-	// watch out for data consistency
-	TToken( const char* s, short l ) : 
-		len(l), buf(s) {}
+	int parse( Barz& barz, const char* q );
 };
 
-// Original TToken and the position of this TToken in the original question
-typedef std::pair< TToken, short > TTokenWithPos;
-typedef std::vector< TTokenWithPos > TTWPVec;
+} // barzer namespace ends 
 
-class CTokenClassInfo {
-	/// class bits
-	typedef enum {
-		CLASS_UNCLASSIFIED,
-		CLASS_WORD,
-		CLASS_NUMBER,
-		CLASS_PUNCTUATION,
-		CLASS_SPACE
-	} MainClass_t;
-	MainClass_t theClass;
-	int         subclass; 
-
-	typedef {
-		BIT_COMPOUNDED,
-		BIT_FLUFF,
-	};
-	/// non-mutually exclusive binary properties
-	int 		flags[2]; // bit mask of BIT_XXX
-
-};
-
-// linugistic information - part of speech, directionality etc
-class TokenLinguisticInfo {
-};
-
-class CToken {
-	TTWPVec tVec;
-	CTokenClassInfo cInfo;
-	TokenLinguisticInfo ling; 
-};
-/////
-class PUnit  {
-};
-// collection of punits
-class Barz {
-};
+#endif // BARZER_PARSE_H
