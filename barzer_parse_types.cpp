@@ -1,7 +1,7 @@
 #include <barzer_parse_types.h>
 #include <barzer_parse.h>
 
-using namespace barzer;
+namespace barzer {
 
 std::ostream& TToken::print ( std::ostream& fp ) const
 {
@@ -55,3 +55,5 @@ int Barz::semanticParse( QSemanticParser& sem )
 
 	return sem.semanticize( puVec, ctVec );
 }
+
+} // barzer namespace 

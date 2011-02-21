@@ -5,9 +5,13 @@
 #include <iostream>
 namespace barzer {
 
+struct BarzerShellContext;
 struct BarzerShell : public ay::Shell {
-
 virtual int init();
+virtual ay::ShellContext* mkContext();
+
+BarzerShellContext* getBarzerContext() ;
+	
 };
 
 }

@@ -9,31 +9,31 @@ namespace ay {
 typedef Shell::CmdData CmdData;
 
 static const CmdData g_cmd[] = {
-	CmdData( Shell::cmd_help, L"help", L"get help on a function" ),
-	CmdData( Shell::cmd_exit, L"exit", L"exit the shell" )
+	CmdData( Shell::cmd_help, "help", "get help on a function" ),
+	CmdData( Shell::cmd_exit, "exit", "exit the shell" )
 };
 
-std::wostream& Shell::CmdData::print( std::wostream& fp ) const
+std::ostream& Shell::CmdData::print( std::ostream& fp ) const
 {
-	fp << name << L" - " << desc;
+	fp << name << " - " << desc;
 }
 
-int Shell::cmd_help( Shell* sh, wchar_cp cmd, std::wistream& in )
+int Shell::cmd_help( Shell* sh, char_cp cmd, std::istream& in )
 {
-	std::wstring srchStr;
+	std::string srchStr;
 	std::getline( in, srchStr );
-	wchar_cp srch = srchStr.c_str();
+	char_cp srch = srchStr.c_str();
 	for( CmdDataMap::const_iterator i = sh->cmdMap.begin(); i!= sh->cmdMap.end(); ++i ) {
-		const wchar_t *name = i->second->name;
-		const wchar_t *desc = i->second->desc;
-		if( wcsstr( name, srch ) || wcsstr( desc, srch )) {
-			std::wcout << *(i->second) << std::endl;
+		const char *name = i->second->name;
+		const char *desc = i->second->desc;
+		if( strstr( name, srch ) || strstr( desc, srch )) {
+			std::cout << *(i->second) << std::endl;
 		}
 	}
 	return 0;
 }
 
-int Shell::cmd_exit( Shell*, wchar_cp cmd, std::wistream& in )
+int Shell::cmd_exit( Shell*, char_cp cmd, std::istream& in )
 {
 	exit(0);
 	return 0;
@@ -41,49 +41,46 @@ int Shell::cmd_exit( Shell*, wchar_cp cmd, std::wistream& in )
 
 int Shell::printPrompt()
 {
-	if( outStream == & std::wcout )
-		std::wcout << L"cmd>";
+	if( outStream == & std::cout )
+		std::cout << "cmd>";
 }
 
 int Shell::setupStreams()
 {
 	/// input stream 
-	if( inStream && inStream != & std::wcin ) {
+	if( inStream && inStream != & std::cin ) {
 		delete inStream;
-		inStream = 0;
+		inStream = &std::cin;
 	} 
 	
 	if( inF.length() ) {
-		std::wifstream* tmp = new std::wifstream();
+		std::ifstream* tmp = new std::ifstream();
 		tmp->open( inF.c_str() );
 		inStream = tmp;
-	} else
-		inStream = &std::wcin;
+	}
 
 	/// output stream 
-	if( outStream && outStream != & std::wcout )  {
+	if( outStream && outStream != & std::cout )  {
 		delete outStream;
-		outStream = 0;
+		outStream = &std::cout;
 	} 
 	
 	if( outF.length() ) {
-		std::wofstream* tmp = new std::wofstream();
+		std::ofstream* tmp = new std::ofstream();
 		tmp->open( outF.c_str() );
 		outStream = tmp;
-	} else
-		outStream = &std::wcout;
+	}
 
 	/// error  stream 
-	if( errStream && errStream != & std::wcerr ) {
+	if( errStream && errStream != & std::cerr ) {
 		delete errStream;
-		errStream = 0 ;
+		errStream = &std::cerr;
 	}
 	if( errF.length() ) {
-		std::wofstream* tmp = new std::wofstream();
+		std::ofstream* tmp = new std::ofstream();
 		tmp->open( errF.c_str() );
 		errStream = tmp;
-	} else
-		errStream = &std::wcerr;
+	}
 }
 
 int Shell::indexCmdDataRange( const CmdDataRange& rng )
@@ -93,7 +90,7 @@ int Shell::indexCmdDataRange( const CmdDataRange& rng )
 		if( mi == cmdMap.end() ) {
 			cmdMap.insert( CmdDataMap::value_type( i->name, i ) );
 		} else {
-			std::wcerr << "command #" << i-rng.first << " name " << 
+			std::cerr << "command #" << i-rng.first << " name " << 
 			i->name << " is duplicate" << std::endl;
 		}
 	}
@@ -106,19 +103,25 @@ int Shell::init()
 	if( !cmdMap.size() )
 		rc = indexCmdDataRange(CmdDataRange( ARR_BEGIN(g_cmd),ARR_END(g_cmd)));
 
+	if( context ) {
+		delete context;
+		context = 0;
+	}
+
+	context = mkContext();
 	return rc;
 }
 int Shell::runCmdLoop()
 {
 	int rc = 0;
 
-	std::wstring curStr;
+	std::string curStr;
 	printPrompt();
 	while( std::getline( *inStream, curStr ) ) {
-		std::wstringstream sstr;
+		std::stringstream sstr;
 		sstr<< curStr;
-		std::wstring cmdStr;
-		std::getline( sstr, cmdStr, L' ');
+		std::string cmdStr;
+		std::getline( sstr, cmdStr, ' ');
 		// sstr >> cmdStr;
 		int cmdRc = 0;
 		cmdInvoke( rc, cmdStr.c_str(), sstr );

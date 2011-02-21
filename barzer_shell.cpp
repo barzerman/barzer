@@ -1,28 +1,65 @@
 #include <barzer_shell.h>
+#include <barzer_parse.h>
 
 namespace barzer {
 
-typedef ay::Shell::CmdData CmdData;
-typedef ay::wchar_cp wchar_cp;
-///// specific shell routines
-static int bshf_test( ay::Shell*, wchar_cp cmd, std::wistream& in )
+struct BarzerShellContext : public ay::ShellContext {
+	Barz barz;
+	QParser parser;
+
+	~BarzerShellContext() {}
+};
+
+inline BarzerShellContext* BarzerShell::getBarzerContext()
 {
-	std::wcout << L"command: " << cmd << L";";
-	std::wcout << L"parms: (";
-	std::wstring tmp;
+	return dynamic_cast<BarzerShellContext*>(context);  
+}
+
+
+typedef const char* char_cp;
+typedef ay::Shell::CmdData CmdData;
+///// specific shell routines
+static int bshf_test( ay::Shell*, char_cp cmd, std::istream& in )
+{
+	std::cout << "command: " << cmd << ";";
+	std::cout << "parms: (";
+	std::string tmp;
 	while( in >> tmp ) {
-		std::wcout << tmp << L"|";
+		std::cout << tmp << "|";
 	}
-	std::wcout << L")" << std::endl;
+	std::cout << ")" << std::endl;
+	
+	return 0;
+}
+
+static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext * context = shell->getBarzerContext();
+
+	Barz& barz = context->barz;
+	QParser& parser = context->parser;
+
+	ay::InputLineReader reader( in );
+	while( reader.nextLine() && reader.str.length() ) {
+		int rc = barz.tokenize( parser.tokenizer, reader.str.c_str() );
+		const TTWPVec& ttVec = barz.getTtVec();
+		shell->getOutStream() << ttVec << std::endl;
+	}
 	return 0;
 }
 
 /// end of specific shell routines
 static const CmdData g_cmd[] = {
-	CmdData( ay::Shell::cmd_help, L"help", L"get help on a barzer function" ),
-	CmdData( ay::Shell::cmd_exit, L"exit", L"exit the barzer shell" ),
-	CmdData( bshf_test, L"test", L"just a test" ),
+	CmdData( ay::Shell::cmd_help, "help", "get help on a barzer function" ),
+	CmdData( ay::Shell::cmd_exit, "exit", "exit the barzer shell" ),
+	CmdData( bshf_test, "test", "just a test" ),
+	CmdData( (ay::Shell_PROCF)bshf_tokenize, "tokenize", "tests tokenizer" ),
 };
+
+ay::ShellContext* BarzerShell::mkContext()
+{
+	return new BarzerShellContext();
+}
 
 int BarzerShell::init()
 {
@@ -30,6 +67,10 @@ int BarzerShell::init()
 	if( !cmdMap.size() )
 		rc = indexCmdDataRange(ay::Shell::CmdDataRange( ARR_BEGIN(g_cmd),ARR_END(g_cmd)));
 
+	if( context ) 
+		delete context;
+
+	context = mkContext();
 	return rc;
 }
 

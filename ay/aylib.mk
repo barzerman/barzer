@@ -1,4 +1,4 @@
-CFLAGS := -g -I.
+CFLAGS := -m64 -g -I.
 LIBNAME=aylib.a
 
 objects = ay_cmdproc.o ay_shell.o ay_util.o

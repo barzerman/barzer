@@ -3,37 +3,42 @@
 namespace ay {
 
 class Shell;
-typedef int (*Shell_PROCF)( Shell*, wchar_cp cmd, std::wistream& in );
+typedef int (*Shell_PROCF)( Shell*, char_cp cmd, std::istream& in );
+
+struct ShellContext {
+	virtual ~ShellContext() {}
+};
 
 class Shell {
 protected:
 	/// file Names 
 	std::string outF, inF, errF;
 	
-	std::wostream *outStream;
-	std::wostream *errStream;
-	std::wistream *inStream;
+	std::ostream *outStream;
+	std::ostream *errStream;
+	std::istream *inStream;
+	ShellContext* context;
 
 	int setupStreams();
 public:
 	/// individual commands 
-	static int cmd_help( Shell*, wchar_cp cmd, std::wistream& in );
-	static int cmd_exit( Shell*, wchar_cp cmd, std::wistream& in );
+	static int cmd_help( Shell*, char_cp cmd, std::istream& in );
+	static int cmd_exit( Shell*, char_cp cmd, std::istream& in );
 	// end of commands 
 
 	/// 
 	struct CmdData {
 		Shell_PROCF func;
-		wchar_cp name; // command name
-		wchar_cp desc; // command description
-		CmdData( Shell_PROCF f, wchar_cp n, wchar_cp d) : 
+		char_cp name; // command name
+		char_cp desc; // command description
+		CmdData( Shell_PROCF f, char_cp n, char_cp d) : 
 			func(f), name(n), desc(d) {}
-		std::wostream& print( std::wostream& ) const;
+		std::ostream& print( std::ostream& ) const;
 	};
 
 	typedef std::pair<const CmdData*,const CmdData*> CmdDataRange;
 
-	typedef wchar_cp_map<const CmdData*>::Type CmdDataMap;
+	typedef char_cp_map<const CmdData*>::Type CmdDataMap;
 	
 	CmdDataMap cmdMap;
 protected:
@@ -41,13 +46,13 @@ protected:
 	// invoked from run . initializes cmdMap
 	virtual int indexCmdDataRange( const CmdDataRange& rng );
 
-	inline const CmdData* getCmdDta( wchar_cp cmd ) const
+	inline const CmdData* getCmdDta( char_cp cmd ) const
 	{
 		CmdDataMap::const_iterator i = cmdMap.find( cmd );
 		return( i!= cmdMap.end() ? i->second : 0 );
 	}
 
-	inline int cmdInvoke( int& rc, wchar_cp cmd, std::wistream& in )
+	inline int cmdInvoke( int& rc, char_cp cmd, std::istream& in )
 	{
 		const CmdData* cd = getCmdDta( cmd );
 		return( cd ? (rc=cd->func( this, cmd, in ), 0) : (rc=0,-1) );
@@ -62,20 +67,26 @@ private:
 	// *OVERLOAD this to run indexCmdDataRange with the right parms
 	// by default called from run
 	virtual int init();
+	virtual ShellContext* mkContext() { return 0; }
 public:
-	int processOneCmd( std::wistream& in );
+	int processOneCmd( std::istream& in );
+	ShellContext* getContext() { return context; }
 
 	Shell() : 
-	outStream(0),
-	errStream(0),
-	inStream(0)
+		outStream(&std::cout),
+		errStream(&std::cerr),
+		inStream(&std::cin),
+		context(0)
 	{}
+	std::ostream& getOutStream() { return *outStream; }
+	std::ostream& getErrStream() { return *errStream; }
+	std::istream& getInStream() { return *inStream; }
 
 	// generally overloading this shouldn't be needed
 	virtual int run();
 };
 
-inline std::wostream& operator <<( std::wostream& fp, const Shell::CmdData& d )
+inline std::ostream& operator <<( std::ostream& fp, const Shell::CmdData& d )
 { return d.print(fp); }
 
 }

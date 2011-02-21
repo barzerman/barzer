@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 #include <iostream>
+#include <fstream>
 
 namespace ay {
 
@@ -79,6 +80,23 @@ struct wchar_cp_map {
 template <typename T>
 struct char_cp_map {
 	typedef std::map< char_cp, T,char_cp_compare_less> Type;
+};
+
+/// gets lines one after the other from input stream which 
+/// is either constructed as a file or set to stdin
+struct InputLineReader {
+	std::ifstream fs;
+	std::istream* fp;
+
+	std::string str;
+
+	bool isStdin() const
+		{ return (fp == &std::cin); };
+
+	InputLineReader( std::istream& ss ) ;
+	InputLineReader( const char* s ) ;
+		
+	bool nextLine();
 };
 
 typedef std::vector<std::wstring> WstringVec;

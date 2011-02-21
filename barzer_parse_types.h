@@ -133,6 +133,10 @@ class Barz {
 
 	friend class QParser;
 public:
+	const TTWPVec& getTtVec() const { return  ttVec; }
+	const CTWPVec& getCtVec() const { return ctVec; }
+	const PUWPVec& getPuVec() const { return  puVec; }
+
 	void clear();
 
 	int tokenize( QTokenizer& , const char* q );
