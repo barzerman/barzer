@@ -3,13 +3,14 @@
 
 namespace barzer {
 
-int QLexParser::lex( CTWPVec& cVec, const TTWPVec& tVec)
+int QLexParser::lex( CTWPVec& cVec, const TTWPVec& tVec, const QuestionParm& qparm )
 {
 	err.clear();
+	langLexer.lex( cVec, tVec, qparm );
 	return 0;
 }
 
-int QTokenizer::tokenize( TTWPVec& ttwp, const char* q )
+int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qparm  )
 {
 	err.clear();
 
@@ -19,6 +20,10 @@ int QTokenizer::tokenize( TTWPVec& ttwp, const char* q )
 	const char* s = q;
 	for( s = q; *s; ++s ) {
 		char c = *s;
+		if( !isascii(c) ) {
+			if( !tok ) 
+				tok = s;
+		} else
 		if( isspace(c) ) {
 			if( !lc || lc != c ) {
 				if( tok ) {
@@ -42,6 +47,7 @@ int QTokenizer::tokenize( TTWPVec& ttwp, const char* q )
 			if( !tok ) 
 				tok = s;
 		}
+	    lc=c;
 	}
 	if( tok ) {
 		ttwp.push_back( TTWPVec::value_type( TToken(tok,s-tok), ttwp.size() ));

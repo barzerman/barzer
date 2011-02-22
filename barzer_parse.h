@@ -8,7 +8,7 @@ class QSemanticParser {
 public:
 	struct Error : public QPError { } err;
 
-	virtual int semanticize( PUWPVec& , const CTWPVec& );
+	virtual int semanticize( PUWPVec& , const CTWPVec&, const QuestionParm&  );
 };
 
 /// invokes tokenizer, lex parser and semantical parser 
@@ -31,7 +31,7 @@ public:
 	QLexParser lexer;
 	QSemanticParser semanticizer;
 	
-	int parse( Barz& barz, const char* q );
+	int parse( Barz& barz, const char* q, const QuestionParm& qparm );
 };
 
 } // barzer namespace ends 

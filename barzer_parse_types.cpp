@@ -3,13 +3,21 @@
 
 namespace barzer {
 
+CTokenClassInfo::CTokenClassInfo( ) :
+	theClass(CLASS_UNCLASSIFIED),
+	subclass(0),
+	classFlags(0),
+	spellBit(0)
+{
+	flags[0] = flags[1] = 0;
+}
 std::ostream& TToken::print ( std::ostream& fp ) const
 {
 	if( !buf || !len ) {
-		return ( fp << "" );
+		return ( fp << 0 <<':' );
 	} else {
 		std::string tmp( buf, len );
-		return (fp << tmp);
+		return (fp << len << ':' << tmp);
 	}
 }
 
@@ -20,7 +28,7 @@ std::ostream& operator<<( std::ostream& fp, const TTWPVec& v )
 	return fp;
 }
 
-int Barz::tokenize( QTokenizer& tokenizer, const char* q )
+int Barz::tokenize( QTokenizer& tokenizer, const char* q, const QuestionParm& qparm )
 {
 	/// invalidating all higher order objects
 	puVec.clear();
@@ -28,16 +36,16 @@ int Barz::tokenize( QTokenizer& tokenizer, const char* q )
 	ttVec.clear();
 
 	question.assign(q);
-	return tokenizer.tokenize( ttVec, question.c_str() );
+	return tokenizer.tokenize( ttVec, question.c_str(), qparm );
 }
 
-int Barz::classifyTokens( QLexParser& lexer )
+int Barz::classifyTokens( QLexParser& lexer, const QuestionParm& qparm )
 {
 	/// invalidating all higher order objects
 	puVec.clear();
 	ctVec.clear();
 
-	return lexer.lex( ctVec, ttVec );
+	return lexer.lex( ctVec, ttVec, qparm );
 }
 
 void Barz::clear()
@@ -45,15 +53,16 @@ void Barz::clear()
 	puVec.clear();
 	ctVec.clear();
 	ttVec.clear();
+
 	question.clear();
 }
 
-int Barz::semanticParse( QSemanticParser& sem )
+int Barz::semanticParse( QSemanticParser& sem, const QuestionParm& qparm )
 {
 	/// invalidating all higher order objects
 	puVec.clear();
 
-	return sem.semanticize( puVec, ctVec );
+	return sem.semanticize( puVec, ctVec, qparm );
 }
 
 } // barzer namespace 

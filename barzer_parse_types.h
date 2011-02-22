@@ -49,19 +49,34 @@ class CTokenClassInfo {
 		CLASS_UNCLASSIFIED,
 		CLASS_WORD,
 		CLASS_NUMBER,
-		CLASS_PUNCTUATION,
-		CLASS_SPACE
+		CLASS_PUNCTUATION, // subClass/classFlags ill be always 0
+		CLASS_SPACE // subClass/classFlags ill be always 0 
 	} MainClass_t;
-	MainClass_t theClass;
-	int         subclass; 
 
+	MainClass_t theClass;
+	int         subclass;  // subclass within a given class values are in 
+					       // barzer_parse_type_subclass.h in enums 
+	int         classFlags; // class specific flags  also see subclass.h
 	enum {
+		BIT_NOT_IN_DATASET, // word is matched but it's not in the dataset 
+					        // must be a general english word
 		BIT_COMPOUNDED,
-		BIT_FLUFF,
+		BIT_MIXEDCASE, // token was not all lowercase
+		BIT_ORIGMATCH, // token matched as is without converting to lower case
+		BIT_SPELL_CORRECTED, // token was matched in the dictionary 
+					       // only after spelling correction
+		BIT_STEMMED // was only matched after being stemmed
 	};
 	/// non-mutually exclusive binary properties
 	int 		flags[2]; // bit mask of BIT_XXX
 
+	enum {
+		SPELL_BIT_ALTERED, // simple word alteration (no split or join)
+		SPELL_BIT_SPLIT, // token was split
+		SPELL_BIT_JOINED // tokens were joined
+	};
+	int spellBit; // one of SPELL_BIT_XXX flags
+	CTokenClassInfo();
 };
 
 // linugistic information - part of speech, directionality etc
@@ -116,6 +131,12 @@ typedef std::vector< PUnitWithPos > PUWPVec;
 class QTokenizer;
 class LexParser;
 
+//// comes with every question and is passed to lexers and semanticizers 
+struct QuestionParm {
+	int lang;  // a valid LANG ID see barzer_language.h
+	QuestionParm() : lang(0) {}
+};
+
 // collection of punits and the original question
 class Barz {
 	/// copy of the original question
@@ -139,9 +160,9 @@ public:
 
 	void clear();
 
-	int tokenize( QTokenizer& , const char* q );
-	int classifyTokens( QLexParser& );
-	int semanticParse( QSemanticParser& );
+	int tokenize( QTokenizer& , const char* q, const QuestionParm& );
+	int classifyTokens( QLexParser& , const QuestionParm& );
+	int semanticParse( QSemanticParser&, const QuestionParm& );
 };
 } // barzer  namespace 
 #endif // BARZER_PARSE_TYPES_H
