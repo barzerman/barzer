@@ -137,6 +137,9 @@ struct QuestionParm {
 	QuestionParm() : lang(0) {}
 };
 
+class QSemanticParser;
+class QLexParser;
+class QTokenizer;
 // collection of punits and the original question
 class Barz {
 	/// copy of the original question
