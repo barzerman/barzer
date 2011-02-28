@@ -27,7 +27,7 @@ struct CommandLineArgs {
 	CommandLineArgs() : argc(0), argv(0){}
 	void init( int ac, char* av[] )
 	{
-		agrc = ac; 
+		argc = ac; 
 		argv = av;
 	}
 };
