@@ -10,7 +10,7 @@ namespace barzer {
 
 		Byte type;
 
-		tyoedef enum {
+		typedef enum {
 			PTT_NULL, // unresolved token
 			PTT_TOKEN,
 			PTT_BARZEWORD, // special token (compound or otherwise special)
