@@ -41,17 +41,17 @@ namespace barzer {
         void handle_read(const boost::system::error_code ec, size_t bytes_transferred) {
 
             if (!ec) {
-                std::string request, response;
+                std::string response;
+                char *chunk = new char[bytes_transferred];
                 std::istream is(&data_);
-
-                //is.unsetf(std::ios_base::skipws);
-
-                is >> request;
+                
+                is.readsome(chunk, bytes_transferred);
+                std::string request(chunk);
+                
                 response = process_input(request);
 
                 boost::asio::write(socket_,  boost::asio::buffer("-ok- "));
                 boost::asio::write(socket_,  boost::asio::buffer(response, bytes_transferred));
-                boost::asio::write(socket_,  boost::asio::buffer("\r\n"));
             }
 
             delete this;
