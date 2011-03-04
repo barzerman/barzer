@@ -4,6 +4,7 @@
 #include <iostream>
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
+#include <boost/algorithm/string.hpp>
 
 namespace barzer {
 
@@ -13,8 +14,7 @@ namespace barzer {
 
     private:
         tcp::socket socket_;
-        enum { max_length = 1024 };
-        char data_[max_length];
+        boost::asio::streambuf data_;
 
     public:
         SearchSession(boost::asio::io_service& io_service)
@@ -24,35 +24,37 @@ namespace barzer {
         tcp::socket& socket() {
             return socket_;
         }
-
+        
         void start() {
-            socket_.async_read_some(boost::asio::buffer(data_, max_length),
-                                    boost::bind(&SearchSession::handle_read, this,
-                                                boost::asio::placeholders::error,
-                                                boost::asio::placeholders::bytes_transferred));
+            boost::asio::write(socket_, boost::asio::buffer("-ok- welcome to barzer\n"));
+
+            boost::asio::async_read_until(socket_, data_, "\r\n",
+                                          boost::bind(&SearchSession::handle_read, this,
+                                                      boost::asio::placeholders::error,
+                                                      boost::asio::placeholders::bytes_transferred));
         }
 
-        void handle_read(const boost::system::error_code& error,
-                         size_t bytes_transferred) {
-            if (!error) {
-                boost::asio::async_write(socket_,
-                                         boost::asio::buffer(data_, bytes_transferred),
-                                         boost::bind(&SearchSession::handle_write, this,
-                                                     boost::asio::placeholders::error));
-            } else {
-                delete this;
-            }
+        std::string process_input(std::string input) {
+            return boost::algorithm::to_upper_copy(input);
         }
-    
-        void handle_write(const boost::system::error_code& error) {
-            if (!error) {
-                socket_.async_read_some(boost::asio::buffer(data_, max_length),
-                                        boost::bind(&SearchSession::handle_read, this,
-                                                    boost::asio::placeholders::error,
-                                                    boost::asio::placeholders::bytes_transferred));
-            } else {
-                delete this;
+
+        void handle_read(const boost::system::error_code ec, size_t bytes_transferred) {
+
+            if (!ec) {
+                std::string request, response;
+                std::istream is(&data_);
+
+                //is.unsetf(std::ios_base::skipws);
+
+                is >> request;
+                response = process_input(request);
+
+                boost::asio::write(socket_,  boost::asio::buffer("-ok- "));
+                boost::asio::write(socket_,  boost::asio::buffer(response, bytes_transferred));
+                boost::asio::write(socket_,  boost::asio::buffer("\r\n"));
             }
+
+            delete this;
         }
         
     };

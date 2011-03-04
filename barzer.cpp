@@ -62,10 +62,12 @@ int main( int argc, char * argv[] ) {
                 }
             }
         }
+
+        print_usage(argv[0]);
+        return 0;
+
     } catch (std::exception& e) {
         std::cerr << "Exception: " << e.what() << std::endl;
     }
     
-    print_usage(argv[0]);
-    return 0;
 }
