@@ -1,5 +1,5 @@
 CFLAGS := -I/opt/local/include -Wall -g -I. -I./ay
-LINKFLAGS := -L/opt/local/lib -lboost_system
+LINKFLAGS := -L/opt/local/lib/boost -lboost_system -static
 BINARY=barzer.exe
 libs = ay/aylib.a
 ECHO = echo
@@ -12,7 +12,7 @@ all: $(objects)
 clean: 
 	rm -f $(objects) $(BINARY)
 aylib: 
-	cd ay; make -f aylib32.mk rebuild
+	cd ay; make -f aylib.mk rebuild
 .cpp.o:
 	c++  -c $(CFLAGS) $< -o $@
 rebuild: clean aylib all
