@@ -42,7 +42,7 @@ static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
 	ay::InputLineReader reader( in );
 	QuestionParm qparm;
 	while( reader.nextLine() && reader.str.length() ) {
-		int rc = barz.tokenize( parser.tokenizer, reader.str.c_str(), qparm );
+		barz.tokenize( parser.tokenizer, reader.str.c_str(), qparm );
 		const TTWPVec& ttVec = barz.getTtVec();
 		shell->getOutStream() << ttVec << std::endl;
 	}

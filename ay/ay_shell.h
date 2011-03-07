@@ -78,6 +78,7 @@ public:
 		inStream(&std::cin),
 		context(0)
 	{}
+	virtual ~Shell() {}
 	std::ostream& getOutStream() { return *outStream; }
 	std::ostream& getErrStream() { return *errStream; }
 	std::istream& getInStream() { return *inStream; }

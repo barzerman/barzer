@@ -9,6 +9,7 @@ public:
 	struct Error : public QPError { } err;
 
 	virtual int semanticize( PUWPVec& , const CTWPVec&, const QuestionParm&  );
+	virtual ~QSemanticParser() {}
 };
 
 /// invokes tokenizer, lex parser and semantical parser 

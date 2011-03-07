@@ -22,6 +22,7 @@ class QLexParser {
 public:
 	struct Error : public QPError { } err;
 	virtual int lex( CTWPVec& , const TTWPVec&, const QuestionParm& );
+	virtual ~QLexParser() {}
 };
 }
 

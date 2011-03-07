@@ -27,9 +27,9 @@ QLangLexer::~QLangLexer()
 	}
 }
 
-QSingleLangLexer* QLangLexer::addLang( int lang )
+QSingleLangLexer* QLangLexer::addLang( size_t lang )
 {
-	if( lang>=0 && lang < llVec.size() ) {
+	if( lang < llVec.size() ) {
 		if( !llVec[ lang ] )
 			llVec[ lang ] = QSingleLangLexer::mkLexer( lang );
 		return llVec[ lang ];

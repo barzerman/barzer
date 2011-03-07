@@ -1,7 +1,7 @@
 CFLAGS := -g -I.
 LIBNAME=aylib.a
 
-objects = ay_cmdproc.o ay_shell.o ay_util.o
+objects = ay_cmdproc.o ay_shell.o ay_util.o ay_string_pool.o
 
 all: $(objects)
 	$(AR) -r  $(LIBNAME) $(objects)
