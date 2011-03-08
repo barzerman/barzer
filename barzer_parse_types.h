@@ -5,6 +5,7 @@
 #include <map>
 #include <iostream>
 #include <stdio.h>
+#include <barzer_token.h>
 
 namespace barzer {
 struct TToken ;
@@ -22,9 +23,9 @@ enum {
 };
 
 struct TToken {
-	short  len; 
+	uint16_t  len; 
 	const char* buf;
-	
+			
 	TToken( ) : len(0), buf("") {}
 	TToken( const char* s ) : len( strlen(s) ), buf(s) {}
 	// watch out for data consistency
@@ -36,61 +37,39 @@ struct TToken {
 
 inline std::ostream& operator<<( std::ostream& fp, const TToken& t ) { return (t.print(fp)); }
 // Original TToken and the position of this TToken in the original question
-typedef std::pair< TToken, short > TTokenWithPos;
+typedef std::pair< TToken, uint16_t > TTokenWithPos;
 typedef std::vector< TTokenWithPos > TTWPVec;
 inline std::ostream& operator<<( std::ostream& fp, const TTokenWithPos& t ) { 
 	return ( fp << t.second << "{" << t.first << "}" );
 }
 std::ostream& operator<<( std::ostream& fp, const TTWPVec& v );
-
-class CTokenClassInfo {
-	/// class bits
-	typedef enum {
-		CLASS_UNCLASSIFIED,
-		CLASS_WORD,
-		CLASS_NUMBER,
-		CLASS_PUNCTUATION, // subClass/classFlags ill be always 0
-		CLASS_SPACE // subClass/classFlags ill be always 0 
-	} MainClass_t;
-
-	MainClass_t theClass;
-	int         subclass;  // subclass within a given class values are in 
-					       // barzer_parse_type_subclass.h in enums 
-	int         classFlags; // class specific flags  also see subclass.h
-	enum {
-		BIT_NOT_IN_DATASET, // word is matched but it's not in the dataset 
-					        // must be a general english word
-		BIT_COMPOUNDED,
-		BIT_MIXEDCASE, // token was not all lowercase
-		BIT_ORIGMATCH, // token matched as is without converting to lower case
-		BIT_SPELL_CORRECTED, // token was matched in the dictionary 
-					       // only after spelling correction
-		BIT_STEMMED // was only matched after being stemmed
-	};
-	/// non-mutually exclusive binary properties
-	int 		flags[2]; // bit mask of BIT_XXX
-
-	enum {
-		SPELL_BIT_ALTERED, // simple word alteration (no split or join)
-		SPELL_BIT_SPLIT, // token was split
-		SPELL_BIT_JOINED // tokens were joined
-	};
-	int spellBit; // one of SPELL_BIT_XXX flags
-	CTokenClassInfo();
-};
-
-// linugistic information - part of speech, directionality etc
-class TokenLinguisticInfo {
-};
-
+class StoredToken;
 /// classified token
 struct CToken {
-	TTWPVec tVec;
+	TTWPVec qtVec; // input question tokens corresponding to this CToken 
 	CTokenClassInfo cInfo;
 	TokenLinguisticInfo ling; 
+
+	const StoredToken* storedTok;
+	void setCInfoBit( size_t b ) { cInfo.bitFlags.set(b); }
+
+	/// sets qtVec to a single TToken
+	inline void  setTToken( const TToken& tt, uint16_t pos ) {
+		qtVec.reserve(1);
+		qtVec.resize(1);
+		qtVec[0].first = tt;
+		qtVec[0].second = pos;
+	}
+	
+	/// updates info from currently attached saved token
+	void syncClassInfoFromSavedTok();
+	void setClass(CTokenClassInfo::TokenClass_t c)
+		{ cInfo.theClass = (typeof(cInfo.theClass))(c); } 
+	CToken( ) : 
+		storedTok(0) {}
 };
 
-typedef std::pair< CToken, short > CTokenWithPos;
+typedef std::pair< CToken, uint16_t > CTokenWithPos;
 typedef std::vector< CTokenWithPos > CTWPVec;
 
 struct PUnitClassInfo

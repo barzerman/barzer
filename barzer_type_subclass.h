@@ -3,6 +3,7 @@
 namespace barzer {
 
 namespace ling {
+
 enum {
 	WORD_SUBCLASS_NORMAL,
 	WORD_SUBCLASS_IDSTYLE,     // stuff like BOEING737  or RXV550

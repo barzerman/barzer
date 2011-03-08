@@ -3,9 +3,17 @@ LINKFLAGS :=
 BINARY=barzer.exe
 libs = ay/aylib.a /opt/local/lib/boost/libboost_system.a
 ECHO = echo
-objects = barzer.o barzer_shell.o barzer_parse_types.o \
-barzer_lexer.o barzer_parse.o barzer_language.o barzer_server.o \
-lg_en/barzer_en_lex.o lg_ru/barzer_ru_lex.o
+objects = \
+barzer.o \
+barzer_shell.o\
+barzer_parse_types.o \
+barzer_lexer.o \
+barzer_parse.o \
+barzer_language.o \
+barzer_server.o \
+barzer_token.o \
+lg_en/barzer_en_lex.o \
+lg_ru/barzer_ru_lex.o
 
 all: $(objects)
 	c++ $(LINKFLAGS) -o  $(BINARY) $(libs) $(objects)

@@ -3,14 +3,13 @@
 
 namespace barzer {
 
-CTokenClassInfo::CTokenClassInfo( ) :
-	theClass(CLASS_UNCLASSIFIED),
-	subclass(0),
-	classFlags(0),
-	spellBit(0)
+void CToken::syncClassInfoFromSavedTok()
 {
-	flags[0] = flags[1] = 0;
+#warning implement CToken::syncClassInfoFromSavedTok
+/// copy settings from storedToken's info sub-object into cInfo
 }
+
+
 std::ostream& TToken::print ( std::ostream& fp ) const
 {
 	if( !buf || !len ) {
