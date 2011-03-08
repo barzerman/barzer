@@ -10,6 +10,7 @@ barzer_parse_types.o \
 barzer_lexer.o \
 barzer_parse.o \
 barzer_language.o \
+barzer_dtaindex.o \
 barzer_server.o \
 barzer_token.o \
 lg_en/barzer_en_lex.o \

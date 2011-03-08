@@ -1,0 +1,3 @@
+namespace barzer {
+
+} // namespace barzer 
