@@ -16,12 +16,18 @@ barzer_token.o \
 lg_en/barzer_en_lex.o \
 lg_ru/barzer_ru_lex.o
 
-all: $(objects)
+all: ay/aylib.a $(objects) 
 	c++ $(LINKFLAGS) -o  $(BINARY) $(libs) $(objects)
 clean: 
 	rm -f $(objects) $(BINARY)
+cleanall: clean cleanaylib
+	rm -f $(objects) $(BINARY)
+cleanaylib: 
+	cd ay; make -f aylib.mk clean; cd ..
 aylib: 
-	cd ay; make -f aylib.mk rebuild
+	cd ay; make -f aylib.mk rebuild; cd ..
+ay/aylib.a: 
+	cd ay; make -f aylib.mk rebuild; cd ..
 .cpp.o:
 	c++  -c $(CFLAGS) $< -o $@
 rebuild: clean aylib all

@@ -15,7 +15,7 @@ class bitflags {
 public:
 	bitflags() { memset( buf,0,sizeof(buf) ); }
 	inline void unset( uint8_t bit )
-		{ if( bit < SZ ) buf[ bit>>3 ] &= ~(1 << ( bit & 0x7 ) ); }
+		{ buf[ bit>>3 ] &= ~(1 << ( bit & 0x7 ) ); }
 	inline void flip( )
 		{ 
 			for( uint8_t* b = buf; b != buf+sizeof(buf); ++b ) 
@@ -23,17 +23,15 @@ public:
 		}
 
 	inline void set( uint8_t bit )
-		{ if( bit < SZ ) buf[ bit>>3 ] |= (1 << ( bit & 0x7 ) ); }
+		{ buf[ bit>>3 ] |= (1 << ( bit & 0x7 ) ); }
 
 	/// set bit-th bit
 	inline void set( uint8_t bit, bool v )
 	{
-		if( bit < SZ ) {
 			if( v==true )
 				buf[ bit>>3 ] |= (1 << ( bit & 0x7 ) );
 			else 
 				buf[ bit>>3 ] &= ~(1 << ( bit & 0x7 ) );
-		}
 	}
 	/// 0 all bits
 	void reset() { memset( buf,0,sizeof(buf) ); }
@@ -42,7 +40,7 @@ public:
 
 	/// get bit-th bit value
 	bool operator[]( uint8_t bit ) const
-		{ return ( bit < SZ ? (buf[ bit>>3 ] & (1 << ( bit & 0x7 ))) : false ); }
+		{ return ( (buf[ bit>>3 ] & (1 << ( bit & 0x7 ))) ); }
 	
 	inline void flip( uint8_t bit )
 	{

@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <ay/ay_bitflags.h>
+#include <ay/ay_string_pool.h>
 
 /// Storage types are the types used in read-only data structures to store 
 /// tokens (both compounded and single) and Entities
@@ -13,9 +14,9 @@ namespace barzer {
 class StoredEntity;
 class StoredToken;
 
-typedef int32_t StoredTokenId; 
-typedef int32_t StoredEntityId; 
-const int32_t INVALID_STORED_ID = -1;
+typedef uint32_t StoredTokenId; 
+typedef uint32_t StoredEntityId; 
+const uint32_t INVALID_STORED_ID = 0xffffffff;
 
 //// stores information relevant to a relationship between one token and one entity
 //// StoredToken has an array of pairs (TokenEntityLinkInfo,StoredEntity) 
@@ -73,13 +74,30 @@ typedef std::vector<SETELI_pair> SETELI_pair_vec;
 /// Every StoredToken will have a unique id issued by DataIndex
 struct StoredToken {
 	StoredTokenId tokId;
+
+	ay::UniqueCharPool::StrId stringId; // when numWords =1 this is resolved from the pool 
+					   // oherwie it's resolved from the compounded names object 
+
 	StoredTokenClassInfo classInfo;
 	uint16_t numWords; // number of words in the token 1 or more for compounded
 	uint16_t length;   // full length of all participatin tokens and spaces
 
 	SETELI_pair_vec entVec;
+	
+	bool isSingleTok() const { return (numWords==1); }
 
-	StoredToken( ) : tokId(INVALID_STORED_ID), numWords(0), length(0) {}
+	inline void setSingle( StoredTokenId tid, ay::UniqueCharPool::StrId sid, uint16_t len ) 
+	{
+		tokId= tid;
+		stringId = sid;
+		numWords = 1;
+		length = len;
+	}
+
+	StoredToken( ) : 
+		tokId(INVALID_STORED_ID), 
+		stringId(ay::UniqueCharPool::ID_NOTFOUND),
+		numWords(0), length(0) {}
 };
 
 
@@ -104,26 +122,29 @@ typedef std::pair< StoredTokenId, EntTokenOrderInfo > StoredTokenSeqInfo_pair;
 /// represents Token,EntityClass,EntitySubclass - unique id
 struct UniqEntityTok {
 	StoredTokenId tokId;
-	uint16_t eClass, eSubClass;
+	uint16_t eclass, subclass;
 	UniqEntityTok( ) : 
 		tokId(INVALID_STORED_ID),
-		eClass(0),
-		eSubClass(0)
+		eclass(0),
+		subclass(0)
 	{}
 	UniqEntityTok( StoredTokenId t, uint16_t ec, uint16_t esc ) : 
 		tokId(t),
-		eClass(ec),
-		eSubClass(esc)
+		eclass(ec),
+		subclass(esc)
 	{}
 };
 
 struct StoredEntity {
 	StoredEntityId entId; // entity id unique across all classes
+	uint16_t eclass, subclass;
 
 	int32_t relevance; // 0 - 2,000,000,000
 	typedef std::vector<StoredTokenSeqInfo_pair> STSI_vec; 
 
 	StoredEntity() : entId(INVALID_STORED_ID), relevance(0) {}
+	void setAll( StoredEntityId id, uint16_t c, uint16_t sc ) 
+		{ entId= id; eclass=c; subclass = sc; }
 };
 
 
