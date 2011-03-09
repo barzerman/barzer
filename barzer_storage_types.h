@@ -5,6 +5,7 @@
 #include <bitset>
 #include <vector>
 #include <map>
+#include <ay/ay_bitflags.h>
 
 /// Storage types are the types used in read-only data structures to store 
 /// tokens (both compounded and single) and Entities
@@ -37,7 +38,7 @@ class TokenEntityLinkInfo {
 
 		TELI_BIT_MAX
 	};
-	std::bitset<TELI_BIT_MAX> bits;
+	ay::bitflags<TELI_BIT_MAX> bits;
 
 public:
 	bool    isStem( )   const { return bits[ TELI_BIT_STEM ] ; }
@@ -49,8 +50,8 @@ public:
 	// sets maximum boostin number of occurences
 	inline void setNumOcc(int n) { 
 		if( n==2) { bits.set(TELI_BIT_OCC_BOOST1); bits.set(TELI_BIT_OCC_BOOST2,0); } 
-		else if( n==1) { bits.set(TELI_BIT_OCC_BOOST1,0); bits.set(TELI_BIT_OCC_BOOST2,0); } 
-		else if( n==3) { bits.set(TELI_BIT_OCC_BOOST1,0); bits.set(TELI_BIT_OCC_BOOST2); } 
+		else if( n==1) { bits.unset(TELI_BIT_OCC_BOOST1); bits.unset(TELI_BIT_OCC_BOOST2); } 
+		else if( n==3) { bits.unset(TELI_BIT_OCC_BOOST1); bits.set(TELI_BIT_OCC_BOOST2); } 
 		else { bits.set(TELI_BIT_OCC_BOOST1); bits.set(TELI_BIT_OCC_BOOST2); } 
 	}
 	int8_t getStrength() const { return strength; }
@@ -91,12 +92,35 @@ struct StoredToken {
 /// assortment of linked tokens
 struct EntTokenOrderInfo {
 	uint16_t seqId; // sequence id. 0 means an unordered collection of tokens 
-	uint16_t idx;   // index within sequence. for seqId this value is irrelevant
+	uint8_t  idx;   // index within sequence. for seqId this value is irrelevant
+	// bitflags
+	enum {
+		ETOIBIT_ID
+	};
+	ay::bitflags<8> bits;   // index within sequence. for seqId this value is irrelevant
 }; 
 typedef std::pair< StoredTokenId, EntTokenOrderInfo > StoredTokenSeqInfo_pair;
 /// Stored Entity - thes objects live in DataIndex - they're only modified on load
-class StoredEntity {
-	StoredEntityId entId;
+
+/// represents Token,EntityClass,EntitySubclass - unique id
+struct UniqEntityTok {
+	StoredTokenId tokId;
+	uint16_t eClass, eSubClass;
+	UniqEntityTok( ) : 
+		tokId(INVALID_STORED_ID),
+		eClass(0),
+		eSubClass(0)
+	{}
+	UniqEntityTok( StoredTokenId t, uint16_t ec, uint16_t esc ) : 
+		tokId(t),
+		eClass(ec),
+		eSubClass(esc)
+	{}
+};
+
+struct StoredEntity {
+	StoredEntityId entId; // entity id unique across all classes
+
 	int32_t relevance; // 0 - 2,000,000,000
 	typedef std::vector<StoredTokenSeqInfo_pair> STSI_vec; 
 

@@ -32,9 +32,11 @@ public:
 /// also issues "string ids" - 4-byte integers
 class UniqueCharPool : public CharPool {
 public:
-	typedef int StrId;
+	typedef uint32_t StrId;
 
-	enum { ID_NOTFOUND = -1 };
+	enum { 
+		ID_NOTFOUND = 0xffffffff 
+	};
 private:
 	char_cp_vec idVec; // idVec[StrId] is the char_cp
 	map_by_char_cp<StrId>::Type idMap; // idMap[char_cp] returns id 
@@ -47,7 +49,7 @@ public:
 			return ( i == idMap.end() ? ID_NOTFOUND : i->second );
 		}
 	const char* resolveId( StrId id ) const
-		{ return ( (id>=0 && id< idVec.size()) ? idVec[id] : 0 ); }
+		{ return ( (id< idVec.size()) ? idVec[id] : 0 ); }
 
 	StrId internIt( const char* s ); 
 	UniqueCharPool( size_t cSz = DEFAULT_CHUNK_SIZE ) : 
