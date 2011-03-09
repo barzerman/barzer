@@ -1,6 +1,6 @@
 #ifndef BARZER_TOKEN_H
 #define BARZER_TOKEN_H
-#include <bitset>
+#include <ay/ay_bitflags.h>
 /// Various low level constants and utilities 
 /// used for both Parsed and Stored tokens
 namespace barzer {
@@ -21,23 +21,25 @@ struct StoredTokenClassInfo {
 	int16_t theClass;  // one of the CLASS_ values
 	int16_t subclass;  // subclass within a given class values are in 
 					       // barzer_parse_type_subclass.h in enums 
-	int16_t classFlags; // class specific flags  also see subclass.h
+	enum { CLASS_SPEC_FLAG_MAX = 16 };
+	ay::bitflags<CLASS_SPEC_FLAG_MAX>  classFlags; // class specific flags  also see subclass.h
+	
 	enum {
 		BIT_GENERALDICT, // not present in the domain tokens, general english word
 		BIT_COMPOUNDED,
 		BIT_MIXEDCASE, // token is in mixed case
 		BIT_MISSPELLING, // this is a known misspelling
-		BIT_STEM // this is a  stem (doesn't exist as unstemmed)
+		BIT_STEM, // this is a  stem (doesn't exist as unstemmed)
+
+		BIT_MAX
 	};
 	/// non-mutually exclusive binary properties
-	int16_t flags; // bit mask of BIT_XXX
+	ay::bitflags<BIT_MAX> flags; // bit mask of BIT_XXX
 	
 	StoredTokenClassInfo():
 		theClass(CLASS_WORD),
-		subclass(0),
-		classFlags(0),
-		flags(0)
-	{ }
+		subclass(0)
+	{}
 };
 
 ////// parsing token class info 
@@ -57,7 +59,7 @@ struct CTokenClassInfo {
 					       // barzer_parse_type_subclass.h in enums 
 public:
 	enum { CLASS_SPEC_FLAG_MAX = 16 };
-	std::bitset<CLASS_SPEC_FLAG_MAX>  classFlags; // class specific flags  also see subclass.h
+	ay::bitflags<CLASS_SPEC_FLAG_MAX>  classFlags; // class specific flags  also see subclass.h
 
 	////// bits 
 	enum {
@@ -80,7 +82,7 @@ public:
 		CTCI_BIT_MAX
 	};
 
-	std::bitset<CTCI_BIT_MAX> bitFlags;
+	ay::bitflags<CTCI_BIT_MAX> bitFlags;
 	
 	CTokenClassInfo( ) :
 		theClass(CLASS_UNCLASSIFIED),

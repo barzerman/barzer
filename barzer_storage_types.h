@@ -2,7 +2,6 @@
 #define BARZER_STORAGE_TYPES_H
 
 #include <barzer_token.h>
-#include <bitset>
 #include <vector>
 #include <map>
 #include <ay/ay_bitflags.h>

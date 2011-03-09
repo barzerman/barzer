@@ -1,4 +1,4 @@
-CFLAGS := -I/opt/local/include -Wall -g -I. -I./ay
+CFLAGS := -I/opt/local/include -Wall -g -I. -I./ay -j2
 LINKFLAGS := 
 BINARY=barzer.exe
 libs = ay/aylib.a /opt/local/lib/boost/libboost_system.a
