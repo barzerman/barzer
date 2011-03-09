@@ -27,15 +27,20 @@ StoredToken& StoredTokenPool::addSingleTok( bool& newAdded, const char* t)
 	return newTok;
 }
 
-const StoredToken* DtaIndex::getStoredToken( const char* ) const
+
+void DtaIndex::clear()
 {
-	return 0;
-}
-const StoredToken* DtaIndex::getStoredTokenById( StoredTokenId ) const
-{
-	return 0;
+	tokPool.clear();
+	entPool.clear();
 }
 
+DtaIndex::DtaIndex(ay::UniqueCharPool* sPool) :
+	strPool(sPool),
+	tokPool(strPool),
+	cwTree(0),
+	semFSA(0)
+{
+}
 DtaIndex::~DtaIndex()
 {
 }
