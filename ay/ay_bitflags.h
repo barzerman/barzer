@@ -11,7 +11,7 @@ namespace ay {
 
 template <uint8_t SZ>
 class bitflags {
-	uint8_t buf[ SZ/9+1 ];
+	uint8_t buf[ (SZ-1)/8+1 ];
 public:
 	bitflags() { memset( buf,0,sizeof(buf) ); }
 	inline void unset( uint8_t bit )
