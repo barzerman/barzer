@@ -1,9 +1,10 @@
 CFLAGS := -I/opt/local/include -Wall -g -I. -I./ay -j4
 LINKFLAGS := 
 BINARY=barzer.exe
-libs = ay/aylib.a /opt/local/lib/boost/libboost_system.a
+libs = ay/aylib.a /opt/local/lib/boost/libboost_system.a -lexpat
 ECHO = echo
 objects = \
+barzer_loader_xml.o \
 barzer.o \
 barzer_shell.o\
 barzer_parse_types.o \

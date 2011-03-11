@@ -114,9 +114,33 @@ public:
 	const StoredToken& getStoredTokenById( StoredTokenId id ) const
 		{ return tokPool.getTokById(id); }
 
+	// these two methods add token and entity honoring ordering info and link info (teli) 
+	// as they get references to one another. Modifies both token and entity objects 
+	// if unique is true only adds the token if it's either non-0 name id or 
+	// it's unique. which may result in a load time hit
+	// called from load
+
+	// adds token to the token pool. 
+	void addTokenToEntity(
+		const char* tok,
+		StoredEntity& ent, 
+		const EntTokenOrderInfo& ord, 
+		const TokenEntityLinkInfo& teli,
+		bool unique=false );
+
+	void addTokenToEntity(
+		StoredToken& stok,
+		StoredEntity& ent, 
+		const EntTokenOrderInfo& ord, 
+		const TokenEntityLinkInfo& teli,
+		bool unique=false );
+
 	void clear() ;
 	~DtaIndex();
 	DtaIndex( ay::UniqueCharPool* sPool ); // must be a global pool
+
+	int loadEntities_XML( const char* fileName );
+
 }; 
 
 } // namespace barzer

@@ -20,9 +20,7 @@ const uint32_t INVALID_STORED_ID = 0xffffffff;
 
 //// stores information relevant to a relationship between one token and one entity
 //// StoredToken has an array of pairs (TokenEntityLinkInfo,StoredEntity) 
-class TokenEntityLinkInfo {
-	static int8_t getValidInt8( int x ) 
-		{ return ( x>=-100 && x<= 100 ? (int8_t)x: 0); }
+struct TokenEntityLinkInfo {
 	int8_t strength; // 0 - default regular match, negative - depression, positive - boost
 
 	// degree to which this token alone is allowed to match on the entity
@@ -39,12 +37,14 @@ class TokenEntityLinkInfo {
 		TELI_BIT_OCC_BOOST2,
 		TELI_BIT_UNIQID, // token is a unique id for the entity
 		TELI_BIT_MISSPELL, // only associated as known misspelling
+		TELI_BIT_EUID, // this token is a euid
 
 		TELI_BIT_MAX
 	};
 	ay::bitflags<TELI_BIT_MAX> bits;
 
-public:
+	static int8_t getValidInt8( int x ) 
+		{ return ( x>=-100 && x<= 100 ? (int8_t)x: 0); }
 	bool    isStem( )   const { return bits[ TELI_BIT_STEM ] ; }
 	bool    isMultiOcc()const { return (bits[TELI_BIT_OCC_BOOST1] || bits[TELI_BIT_OCC_BOOST2] ); }
 	uint8_t getNumOcc() const { return(1+(bits[TELI_BIT_OCC_BOOST1] ? 1:0) + (bits[TELI_BIT_OCC_BOOST2] ? 2:0 ));}
@@ -53,6 +53,8 @@ public:
 		   void setBit_Stem() { bits.set(TELI_BIT_STEM); }
 		   void setBit_Uniqid() { bits.set(TELI_BIT_UNIQID); }
 		   void setBit_Misspell() { bits.set(TELI_BIT_MISSPELL); }
+		   void setBit_Euid() { bits.set(TELI_BIT_EUID); }
+
 	// sets maximum boostin number of occurences
 	inline void setNumOcc(int n) { 
 		if( n==2) { bits.set(TELI_BIT_OCC_BOOST1); bits.set(TELI_BIT_OCC_BOOST2,0); } 
@@ -119,21 +121,24 @@ struct StoredToken {
 /// each Entity may have a few privileged token sequences which are 
 /// treated as names. This is the way to take the order of tokens 
 /// into account. 
-/// at first everything will just have seqId 0 which means an unordered 
+/// at first everything will just have nameId 0 which means an unordered 
 /// assortment of linked tokens
 struct EntTokenOrderInfo {
-	uint16_t seqId; // sequence id. 0 means an unordered collection of tokens 
-	uint8_t  idx;   // index within sequence. for seqId this value is irrelevant
+	uint16_t nameId; // sequence id. 0 means an unordered collection of tokens 
+	uint8_t  idx;   // index within sequence. for nameId this value is irrelevant
 	// bitflags
 	enum {
-		ETOIBIT_ID
+		ETOIBIT_EUID // tis token is a euid (unique id)
 	};
-	ay::bitflags<8> bits;   // index within sequence. for seqId this value is irrelevant
+	ay::bitflags<8> bits;   // index within sequence. for nameId this value is irrelevant
 
-	void incrementName() { ++seqId; }
+	inline bool isEuid() const { return bits[ETOIBIT_EUID] ; }
+	inline void setBit_Euid( ) { bits.set(ETOIBIT_EUID); }
+
+	void incrementName() { ++nameId; }
 	void incrementIdx() { ++idx; }
 
-	EntTokenOrderInfo() : seqId(0), idx(0) {}
+	EntTokenOrderInfo() : nameId(0), idx(0) {}
 }; 
 typedef std::pair< StoredTokenId, EntTokenOrderInfo > StoredTokenSeqInfo_pair;
 /// Stored Entity - thes objects live in DataIndex - they're only modified on load
@@ -149,7 +154,7 @@ struct StoredEntityClass {
 	StoredEntityClass(uint16_t c, uint16_t es) : ec(c), subclass(es) 
 		{}
 	
-	void set( uint16_t c, uint16_t es )
+	void set( uint16_t c, uint16_t sc )
 		{ ec = c; subclass = sc; }
 	void reset() { ec = subclass = 0; }
 
@@ -171,9 +176,9 @@ struct StoredEntityUniqId {
 	StoredEntityUniqId() : 
 		tokId(INVALID_STORED_ID)
 	{}
-	StoredEntityUniqId(StoredTokenId tid, uint16_t cl, uint16_t subcl ) : 
+	StoredEntityUniqId(StoredTokenId tid, uint16_t cl, uint16_t sc ) : 
 		tokId(tid),
-		eclass(cl,suncl)
+		eclass(cl,sc)
 	{}
 
 	inline bool isTokIdValid() const 
@@ -209,14 +214,17 @@ struct StoredEntity {
 		euid(uniqId),
 		relevance(0) {}
 
-	inline void addToken( StoredTokenId tokId, const StoredTokenSeqInfo& stsi )
+	inline void addToken( StoredTokenId tokId, const EntTokenOrderInfo& stsi )
 	{
 		tokInfoVec.push_back( STSI_vec::value_type( tokId, stsi ) ) ;
 	}
 	inline bool hasTokenLinSrch( StoredTokenId tokId ) const
 		{ 
-			STSI_vec::const_iterator i = std::find(tokInfoVec.begin(), tokInfoVec.end(),tokId); 
-			return ( i != tokVecInfo.end() );
+			for( STSI_vec::const_iterator i = tokInfoVec.begin(); i!= tokInfoVec.end(); ++i ) {
+				if( i->first == tokId )
+					return true;
+			}
+			return false;
 		}
 	void setAll( StoredEntityId id, const StoredEntityUniqId& uniqId )
 		{ entId= id; euid = uniqId; }
