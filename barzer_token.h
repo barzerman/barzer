@@ -64,8 +64,8 @@ public:
 	////// bits 
 	enum {
 		/// general bits
-		CTCI_BIT_NOT_IN_DATASET, // word is matched but it's not in the dataset 
-					        // must be a general english word
+		CTCI_BIT_IN_DATASET, // word is matched and is in the dataset not just a
+					        // general english word
 		CTCI_BIT_COMPOUNDED,
 		CTCI_BIT_MIXEDCASE, // token was not all lowercase
 		CTCI_BIT_ORIGMATCH, // token matched as is without converting to lower case

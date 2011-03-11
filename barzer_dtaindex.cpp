@@ -4,6 +4,28 @@
 
 namespace barzer {
 
+StoredEntity& addOneEntity( bool& madeNew, const StoredEntityUniqId& uniqId )
+{
+	std::pair< UniqIdToEntIdMap::iterator, bool > insPair = 
+		euidMap.insert( 	
+			UniqIdToEntIdMap::value_type(
+				uniqId, INVALID_STORED_ID
+			)
+		);
+	madeNew = insPair.second;
+	if( !madeNew ) { // this is not a new uniqId
+		StoredEntityId entId =insPair->second;
+
+		return storEnt.vec[ entId ];
+	}
+		
+	StoredEntityId entId = storEnt.vec.size();
+	*(insPair->second) = entId; // update euid --> entid map value with the newly generated entid
+	
+	StoredEntity& e = storEnt.extend(); 
+	e.setAll( entId, uniqId );
+	return e;
+}
 StoredToken& StoredTokenPool::addSingleTok( bool& newAdded, const char* t)
 {
 	newAdded = false;

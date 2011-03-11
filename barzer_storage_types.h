@@ -21,6 +21,8 @@ const uint32_t INVALID_STORED_ID = 0xffffffff;
 //// stores information relevant to a relationship between one token and one entity
 //// StoredToken has an array of pairs (TokenEntityLinkInfo,StoredEntity) 
 class TokenEntityLinkInfo {
+	static int8_t getValidInt8( int x ) 
+		{ return ( x>=-100 && x<= 100 ? (int8_t)x: 0); }
 	int8_t strength; // 0 - default regular match, negative - depression, positive - boost
 
 	// degree to which this token alone is allowed to match on the entity
@@ -35,6 +37,8 @@ class TokenEntityLinkInfo {
 		/// 01 - 2, 10 - 3, 11 - 4 or more 
 		TELI_BIT_OCC_BOOST1, 
 		TELI_BIT_OCC_BOOST2,
+		TELI_BIT_UNIQID, // token is a unique id for the entity
+		TELI_BIT_MISSPELL, // only associated as known misspelling
 
 		TELI_BIT_MAX
 	};
@@ -46,7 +50,9 @@ public:
 	uint8_t getNumOcc() const { return(1+(bits[TELI_BIT_OCC_BOOST1] ? 1:0) + (bits[TELI_BIT_OCC_BOOST2] ? 2:0 ));}
 
 	// sets the stem flag 
-		   void setStem() { bits.set(TELI_BIT_STEM); }
+		   void setBit_Stem() { bits.set(TELI_BIT_STEM); }
+		   void setBit_Uniqid() { bits.set(TELI_BIT_UNIQID); }
+		   void setBit_Misspell() { bits.set(TELI_BIT_MISSPELL); }
 	// sets maximum boostin number of occurences
 	inline void setNumOcc(int n) { 
 		if( n==2) { bits.set(TELI_BIT_OCC_BOOST1); bits.set(TELI_BIT_OCC_BOOST2,0); } 
@@ -75,8 +81,9 @@ typedef std::vector<SETELI_pair> SETELI_pair_vec;
 struct StoredToken {
 	StoredTokenId tokId;
 
-	ay::UniqueCharPool::StrId stringId; // when numWords =1 this is resolved from the pool 
-					   // oherwie it's resolved from the compounded names object 
+	// when numWords =1 this is resolved from the pool 
+	// otherwise it's resolved from the compounded names object 
+	ay::UniqueCharPool::StrId stringId; 
 
 	StoredTokenClassInfo classInfo;
 	uint16_t numWords; // number of words in the token 1 or more for compounded
@@ -94,10 +101,17 @@ struct StoredToken {
 		length = len;
 	}
 
+	void addEntity( StoredEntityId entId, const TokenEntityLinkInfo& teli )
+	{
+		entVec.resize( entVec.size() +1 ) ;
+		entVec.back().first = entId;
+		entVec.back().second = teli;
+	}
 	StoredToken( ) : 
 		tokId(INVALID_STORED_ID), 
 		stringId(ay::UniqueCharPool::ID_NOTFOUND),
-		numWords(0), length(0) {}
+		numWords(0), length(0) 
+	{}
 };
 
 
@@ -115,36 +129,97 @@ struct EntTokenOrderInfo {
 		ETOIBIT_ID
 	};
 	ay::bitflags<8> bits;   // index within sequence. for seqId this value is irrelevant
+
+	void incrementName() { ++seqId; }
+	void incrementIdx() { ++idx; }
+
+	EntTokenOrderInfo() : seqId(0), idx(0) {}
 }; 
 typedef std::pair< StoredTokenId, EntTokenOrderInfo > StoredTokenSeqInfo_pair;
 /// Stored Entity - thes objects live in DataIndex - they're only modified on load
 
-/// represents Token,EntityClass,EntitySubclass - unique id
-struct UniqEntityTok {
-	StoredTokenId tokId;
-	uint16_t eclass, subclass;
-	UniqEntityTok( ) : 
-		tokId(INVALID_STORED_ID),
-		eclass(0),
-		subclass(0)
-	{}
-	UniqEntityTok( StoredTokenId t, uint16_t ec, uint16_t esc ) : 
-		tokId(t),
-		eclass(ec),
-		subclass(esc)
-	{}
+/// class of the stored entity . for now we assume the hierarchy is 
+/// 1-2 levels deep 
+struct StoredEntityClass {
+	uint16_t ec, subclass;
+	
+	StoredEntityClass() : ec(0), subclass(0) {}
+	StoredEntityClass(uint16_t c) : ec(c), subclass(0) 
+		{}
+	StoredEntityClass(uint16_t c, uint16_t es) : ec(c), subclass(es) 
+		{}
+	
+	void set( uint16_t c, uint16_t es )
+		{ ec = c; subclass = sc; }
+	void reset() { ec = subclass = 0; }
+
+	bool isValid() const { return (ec!=0); }
 };
+
+inline bool operator<( const StoredEntityClass& l, const StoredEntityClass& r )
+{
+	if( l.ec < r.ec ) return true;
+	else if( r.ec < l.ec ) return false;
+	else return ( l.subclass < r.subclass );
+}
+
+/// unique id for an entity within the given StoredEntityClass
+struct StoredEntityUniqId {
+	StoredTokenId     tokId;
+	StoredEntityClass eclass;
+
+	StoredEntityUniqId() : 
+		tokId(INVALID_STORED_ID)
+	{}
+	StoredEntityUniqId(StoredTokenId tid, uint16_t cl, uint16_t subcl ) : 
+		tokId(tid),
+		eclass(cl,suncl)
+	{}
+
+	inline bool isTokIdValid() const 
+		{ return (tokId!=INVALID_STORED_ID); }
+	inline bool isValid() const 
+		{ return ( isTokIdValid() && eclass.isValid() ); }
+};
+inline bool operator <(const StoredEntityUniqId& l, const StoredEntityUniqId& r ) 
+{
+	return( l.tokId< r.tokId ?
+		true :
+		(r.tokId< l.tokId ? false: (l.eclass < r.eclass)) 
+	);
+		
+}
+
+/// no need to define == StoredEntityClass - it's a bcs class
 
 struct StoredEntity {
 	StoredEntityId entId; // entity id unique across all classes
-	uint16_t eclass, subclass;
 
+	StoredEntityUniqId euid;
+	
 	int32_t relevance; // 0 - 2,000,000,000
 	typedef std::vector<StoredTokenSeqInfo_pair> STSI_vec; 
+	STSI_vec tokInfoVec; 
 
-	StoredEntity() : entId(INVALID_STORED_ID), relevance(0) {}
-	void setAll( StoredEntityId id, uint16_t c, uint16_t sc ) 
-		{ entId= id; eclass=c; subclass = sc; }
+	StoredEntity() : 
+		entId(INVALID_STORED_ID), 
+		relevance(0) {}
+	StoredEntity( StoredEntityId id, const StoredEntityUniqId& uniqId ) : 
+		entId(id), 
+		euid(uniqId),
+		relevance(0) {}
+
+	inline void addToken( StoredTokenId tokId, const StoredTokenSeqInfo& stsi )
+	{
+		tokInfoVec.push_back( STSI_vec::value_type( tokId, stsi ) ) ;
+	}
+	inline bool hasTokenLinSrch( StoredTokenId tokId ) const
+		{ 
+			STSI_vec::const_iterator i = std::find(tokInfoVec.begin(), tokInfoVec.end(),tokId); 
+			return ( i != tokVecInfo.end() );
+		}
+	void setAll( StoredEntityId id, const StoredEntityUniqId& uniqId )
+		{ entId= id; euid = uniqId; }
 };
 
 

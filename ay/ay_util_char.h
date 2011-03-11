@@ -39,6 +39,8 @@ struct char_cp_compare_less {
 template <typename T, class comparer=char_cp_compare_less>
 struct map_by_char_cp { typedef std::map< char_cp, T, comparer > Type; };
 
+typedef map_by_char_cp<int>::Type char2int_map_t;
+
 typedef std::vector<char_cp> 						char_cp_vec;
 typedef std::set< char_cp,char_cp_compare_less > 	    char_cp_set;
 

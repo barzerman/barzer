@@ -16,18 +16,19 @@ struct StoredTokenPool;
 
 class StoredEntityPool {
 	ay::slogrovector<StoredEntity> storEnt;
+
+	typedef std::map< StoredEntityUniqId, StoredEntityId > UniqIdToEntIdMap;
+	UniqIdToEntIdMap euidMap;
+
 	friend class DtaIndex;
 	void clear()
 		{ storEnt.vec.clear(); }
 	StoredEntity& getEnt( StoredEntityId id ) { return storEnt.vec[ id ]; }
 public:	
-	StoredEntity& addOneEntity( uint16_t eclass, uint16_t subclass ) { 	
-		StoredEntityId entId = storEnt.vec.size();
+	/// first argument is set to true if new StoredEntity was created 
+	/// otherwise it's set to false
+	StoredEntity& addOneEntity( bool&, const StoredEntityUniqId& );
 
-		StoredEntity& e = storEnt.extend(); 
-		e.setAll( entId, eclass, subclass );
-		return e;
-	}
 	const StoredEntity& getEnt( StoredEntityId id ) const { return storEnt.vec[ id ]; }
 	bool isEntityIdValid( const StoredEntityId entId )  const
 		{ return (entId < storEnt.vec.size() ); }
