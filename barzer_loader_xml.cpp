@@ -341,6 +341,7 @@ int EntityLoader_XML::readFile( const char* fileName )
 		fp = fopen( fileName, "r" );
 		if( !fp ) 
 			return ELXML_ERR_FILE;
+		std::cerr << "reading entities from file " << fileName << "\n";
 	}
   	
 	char buf[ 128*1024 ];	
