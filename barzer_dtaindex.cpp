@@ -114,6 +114,15 @@ DtaIndex::DtaIndex(ay::UniqueCharPool* sPool) :
 DtaIndex::~DtaIndex()
 {
 }
+void DtaIndex::print( std::ostream& fp ) const
+{
+	fp << "Tokens: " ;
+	tokPool.print(fp );
+	fp << "\n";
+	entPool.print(fp);
+	fp << std::endl;
+}
+
 int DtaIndex::loadEntities_XML( const char* fileName )
 {
 	EntityLoader_XML xmlLoader(this);

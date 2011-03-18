@@ -172,6 +172,11 @@ public:
 
 	int loadEntities_XML( const char* fileName );
 
+	inline const StoredEntity* getEntByEuid( const StoredEntityUniqId& euid ) const
+		{ return entPool.getEntByEuid(euid); }
+	inline const StoredToken* getTokByString( const char* s ) const
+		{ return tokPool.getTokByString(s); }
+	void print( std::ostream&  fp ) const;
 }; 
 
 } // namespace barzer

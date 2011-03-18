@@ -61,7 +61,14 @@ static int bshf_tok( BarzerShell* shell, char_cp cmd, std::istream& in )
 	std::string tmp;
 	ay::stopwatch totalTimer;
 	in >> tmp;
-	const char* token = tmp.c_str();
+	const StoredToken* token = dtaIdx->getTokByString( tmp.c_str() );
+	if( !token ) {
+		std::cerr << "no such token \"" << tmp << "\"\n";
+		return 0;
+	}
+	std::ostream& fp = shell->getOutStream();
+	fp << *token << std::endl;
+	
 	return 0;
 }
 static int bshf_euid( BarzerShell* shell, char_cp cmd, std::istream& in )
@@ -70,13 +77,12 @@ static int bshf_euid( BarzerShell* shell, char_cp cmd, std::istream& in )
 	DtaIndex* dtaIdx = context->obtainDtaIdx();
 	std::string tmp;
 	in >> tmp;
-	const char* token = tmp.c_str();
 	StoredEntityUniqId euid;
 	if( !dtaIdx->buildEuidFromStream(euid,in) ) {
 		std::cerr << "invalid euid\n";
 		return 0;
 	}
-	const StoredEntity* ent = dtaIdx->entPool.getEntByEuid( euid );
+	const StoredEntity* ent = dtaIdx->getEntByEuid( euid );
 	if( !ent ) {
 		std::cerr << "euid " << euid << " not found\n";
 		return 0;
@@ -106,10 +112,16 @@ static int bshf_xmload( BarzerShell* shell, char_cp cmd, std::istream& in )
 static int bshf_inspect( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
+	DtaIndex* dtaIdx = context->obtainDtaIdx();
 	
 	std::cerr << "per token: StoredToken " << sizeof(StoredToken) << " bytes\n";
 	std::cerr << "per entity: StoredEntity " << sizeof(StoredEntity) << " bytes\n";
 	std::cerr << "extra per entity token: EntTokenOrderInfo " << sizeof(EntTokenOrderInfo) << "+ TokenEntityLinkInfo() " << sizeof(TokenEntityLinkInfo) << " bytes\n";
+
+	if( dtaIdx ) {
+		std::ostream& fp = shell->getOutStream();
+		dtaIdx->print(fp);
+	}
 	return 0;
 }
 static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
@@ -138,7 +150,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_tokenize, "tokenize", "tests tokenizer" ),
 	CmdData( (ay::Shell_PROCF)bshf_xmload, "xmload", "loads xml from file" ),
 	CmdData( (ay::Shell_PROCF)bshf_tok, "tok", "token lookup" ),
-	CmdData( (ay::Shell_PROCF)bshf_euid, "euid", "entity lookup by euid" ),
+	CmdData( (ay::Shell_PROCF)bshf_euid, "euid", "entity lookup by euid (tok class subclass)" ),
 
 };
 

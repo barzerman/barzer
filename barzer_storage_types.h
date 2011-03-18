@@ -119,6 +119,8 @@ struct StoredToken {
 	// top level print method - single line abbreviated	
 	void print( std::ostream& ) const;
 };
+inline std::ostream& operator <<( std::ostream& fp, const StoredToken& t )
+{ return ( t.print(fp), fp ); }
 
 
 /// information stored together with a token id within a "name" 
