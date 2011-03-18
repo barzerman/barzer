@@ -296,9 +296,9 @@ int EntityLoader_XML::init()
 		return 666;
 	XML_SetUserData(parser,this);
 
-// cast to XML_StartElementHandler
-// cast to XML_EndElementHandler
-// cast to XML_CharacterDataHandler
+	// cast to XML_StartElementHandler
+	// cast to XML_EndElementHandler
+	// cast to XML_CharacterDataHandler
 	XML_SetElementHandler(parser, 
 		::startElement, ::endElement);
 	XML_SetCharacterDataHandler(parser, charDataHandle);
@@ -347,7 +347,7 @@ int EntityLoader_XML::readFile( const char* fileName )
 	char buf[ 128*1024 ];	
 	bool done = false;
 	do {
-    	size_t len = fread(buf, 1, sizeof(buf), stdin);
+    	size_t len = fread(buf, 1, sizeof(buf), fp);
     	done = len < sizeof(buf);
     	if (!XML_Parse(parser, buf, len, done)) {
       		fprintf(stderr,

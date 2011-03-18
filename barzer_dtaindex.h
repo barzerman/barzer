@@ -25,6 +25,15 @@ class StoredEntityPool {
 		{ storEnt.vec.clear(); }
 	StoredEntity& getEnt( StoredEntityId id ) { return storEnt.vec[ id ]; }
 public:	
+	inline const StoredEntity* getEntByEuid( const StoredEntityUniqId& euid ) const
+	{
+		UniqIdToEntIdMap::const_iterator i = euidMap.find( euid );
+
+		if( i== euidMap.end() ) 
+			return 0;
+		StoredEntityId entId = i->second;
+		return ( &(storEnt.vec[entId]) );
+	}
 	/// first argument is set to true if new StoredEntity was created 
 	/// otherwise it's set to false
 	StoredEntity& addOneEntity( bool&, const StoredEntityUniqId& );
@@ -35,8 +44,18 @@ public:
 
 	void setPoolCapacity( size_t initCap, size_t capIncrement ) 
 		{ storEnt.setCapacity(initCap,capIncrement); }
+	void print(std::ostream& fp ) const
+	{
+		fp << "euid: " << euidMap.size() ; 
+	}
 };
-	
+
+inline std::ostream& operator <<( std::ostream& fp, const StoredEntityPool& x )
+{
+	x.print(fp);
+	return fp;
+}
+
 /// pool of all stored tokens 
 class StoredTokenPool
 {
@@ -83,8 +102,14 @@ public:
 		{ return storTok.vec[ id ]; }
 		  StoredToken& getTokById( StoredTokenId id ) 
 		{ return storTok.vec[ id ]; }
+	void print(std::ostream& fp) const 
+		{ fp <<  "toks:" <<  singleTokMap.size() ; }
 };
-
+inline std::ostream& operator <<( std::ostream& fp, const StoredTokenPool& x )
+{
+	x.print( fp );
+	return fp;
+}
 /// 
 /// DTAINDEX stores all tokens, entities as well as compounded words prefix trees as well as 
 /// semantical FSAs. It is loaded once and then accessed read-only during parsing
@@ -113,6 +138,12 @@ public:
 
 	const StoredToken& getStoredTokenById( StoredTokenId id ) const
 		{ return tokPool.getTokById(id); }
+
+
+	/// reads token, eclass, subclass from stream and constructs Euid if and only iff
+	/// all three could be read and the token could be resolved
+	/// Returns false if fails to read all three components or resolve the token 
+	bool buildEuidFromStream( StoredEntityUniqId& euid, std::istream& ) const;
 
 	// these two methods add token and entity honoring ordering info and link info (teli) 
 	// as they get references to one another. Modifies both token and entity objects 

@@ -15,6 +15,8 @@ class StoredEntity;
 class StoredToken;
 
 typedef uint32_t StoredTokenId; 
+
+
 typedef uint32_t StoredEntityId; 
 const uint32_t INVALID_STORED_ID = 0xffffffff;
 
@@ -114,6 +116,8 @@ struct StoredToken {
 		stringId(ay::UniqueCharPool::ID_NOTFOUND),
 		numWords(0), length(0) 
 	{}
+	// top level print method - single line abbreviated	
+	void print( std::ostream& ) const;
 };
 
 
@@ -159,7 +163,16 @@ struct StoredEntityClass {
 	void reset() { ec = subclass = 0; }
 
 	bool isValid() const { return (ec!=0); }
+
+	void print( std::ostream& fp ) const
+		{ fp << ec << ":" << subclass ; }
 };
+
+inline std::ostream& operator <<( std::ostream& fp, const StoredEntityClass& x )
+{
+	x.print(fp);
+	return fp;
+}
 
 inline bool operator<( const StoredEntityClass& l, const StoredEntityClass& r )
 {
@@ -185,7 +198,15 @@ struct StoredEntityUniqId {
 		{ return (tokId!=INVALID_STORED_ID); }
 	inline bool isValid() const 
 		{ return ( isTokIdValid() && eclass.isValid() ); }
+	void print( std::ostream& fp ) const
+		{ fp << eclass << "," << tokId ; }
 };
+inline std::ostream& operator <<(std::ostream& fp, const StoredEntityUniqId& x )
+{
+	x.print(fp);
+	return fp;
+}
+
 inline bool operator <(const StoredEntityUniqId& l, const StoredEntityUniqId& r ) 
 {
 	return( l.tokId< r.tokId ?
@@ -228,7 +249,14 @@ struct StoredEntity {
 		}
 	void setAll( StoredEntityId id, const StoredEntityUniqId& uniqId )
 		{ entId= id; euid = uniqId; }
+	
+	void print( std::ostream& ) const;
 };
+inline std::ostream& operator <<( std::ostream& fp, const StoredEntity& e )
+{
+	return ( e.print(fp), fp );
+}
+
 
 
 }

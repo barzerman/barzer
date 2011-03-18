@@ -25,7 +25,7 @@ struct stopwatch
 	/// advance true is equivalent to stop()
 	stopwatch& calcTime(bool advance= false);
 	stopwatch& stop()
-		{ calcTime(true); }
+		{ calcTime(true); return *this; }
 	stopwatch& start();
 	/// 0s everything and restarts
 	stopwatch& restart();

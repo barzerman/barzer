@@ -64,6 +64,31 @@ void DtaIndex::addTokenToEntity(
 	}
 }
 
+bool DtaIndex::buildEuidFromStream( StoredEntityUniqId& euid, std::istream& in) const
+{
+	std::string tmp;
+	/// token
+	if( in >> tmp ) {
+		const StoredToken* tok = getStoredToken( tmp.c_str() );
+		if( !tok ) 	
+			return false;
+		euid.tokId = tok->tokId;
+	}
+		else return false;
+	/// class
+	if( in >> tmp ) {
+		euid.eclass.ec = atoi(tmp.c_str());
+	}
+		else return false;
+	/// subclass
+	if( in >> tmp ) {
+		euid.eclass.subclass = atoi(tmp.c_str());
+	}
+		else return false;
+	
+	return true;
+}
+
 void DtaIndex::addTokenToEntity( 
 	const char* str, StoredEntity& ent, 
 	const EntTokenOrderInfo& ord, const TokenEntityLinkInfo& teli, bool unique )

@@ -54,6 +54,39 @@ static int bshf_test( ay::Shell*, char_cp cmd, std::istream& in )
 	return 0;
 }
 
+static int bshf_tok( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext * context = shell->getBarzerContext();
+	DtaIndex* dtaIdx = context->obtainDtaIdx();
+	std::string tmp;
+	ay::stopwatch totalTimer;
+	in >> tmp;
+	const char* token = tmp.c_str();
+	return 0;
+}
+static int bshf_euid( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext * context = shell->getBarzerContext();
+	DtaIndex* dtaIdx = context->obtainDtaIdx();
+	std::string tmp;
+	in >> tmp;
+	const char* token = tmp.c_str();
+	StoredEntityUniqId euid;
+	if( !dtaIdx->buildEuidFromStream(euid,in) ) {
+		std::cerr << "invalid euid\n";
+		return 0;
+	}
+	const StoredEntity* ent = dtaIdx->entPool.getEntByEuid( euid );
+	if( !ent ) {
+		std::cerr << "euid " << euid << " not found\n";
+		return 0;
+	}
+	std::ostream& fp = shell->getOutStream();
+	fp << *ent << std::endl;
+
+	return 0;
+}
+
 static int bshf_xmload( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
@@ -101,9 +134,12 @@ static const CmdData g_cmd[] = {
 	CmdData( ay::Shell::cmd_help, "help", "get help on a barzer function" ),
 	CmdData( ay::Shell::cmd_exit, "exit", "exit the barzer shell" ),
 	CmdData( bshf_test, "test", "just a test" ),
+	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),
 	CmdData( (ay::Shell_PROCF)bshf_tokenize, "tokenize", "tests tokenizer" ),
 	CmdData( (ay::Shell_PROCF)bshf_xmload, "xmload", "loads xml from file" ),
-	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),
+	CmdData( (ay::Shell_PROCF)bshf_tok, "tok", "token lookup" ),
+	CmdData( (ay::Shell_PROCF)bshf_euid, "euid", "entity lookup by euid" ),
+
 };
 
 ay::ShellContext* BarzerShell::mkContext()

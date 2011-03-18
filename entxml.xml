@@ -1,0 +1,5 @@
+<entlist c="1" s="2">
+<e i="ID001"> <t>My First Entity</t> </e>
+<e i="ID002"> <n>second</n> </e>
+<e c="1" s="3" i="ID003"> <t>numero three</t> </e>
+</entlist>
