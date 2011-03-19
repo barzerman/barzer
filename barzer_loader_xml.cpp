@@ -363,6 +363,7 @@ int EntityLoader_XML::readFile( const char* fileName )
       		return 1;
     	}
 	} while (!done);
+	fclose(fp);
 	return ELXML_ERR_OK;
 }
 

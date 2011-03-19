@@ -75,8 +75,6 @@ static int bshf_euid( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	DtaIndex* dtaIdx = context->obtainDtaIdx();
-	std::string tmp;
-	in >> tmp;
 	StoredEntityUniqId euid;
 	if( !dtaIdx->buildEuidFromStream(euid,in) ) {
 		std::cerr << "invalid euid\n";
