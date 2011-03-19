@@ -24,7 +24,7 @@ const char* CharPool::addStringToPool( const char* s, size_t len )
 	char* loc = &(backVec.back());
 	backVec.resize( chunk.back().size() + len ) ;
 	memcpy( loc+1, s, len );
-	return loc;
+	return loc+1;
 }
 ///// UniqueCharPool
 UniqueCharPool::StrId UniqueCharPool::internIt( const char* s ) 

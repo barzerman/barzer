@@ -88,7 +88,9 @@ void EntityLoader_XML::handle_entity_open( Tag_t parentTag, const char_cp * attr
 			break;
 		}
 	}
-
+	if( !euid.isValid() && d_eclass.isValid() ) {
+		euid.eclass = d_eclass;
+	}
 	bool madeNew = true;
 	if( !idTok_p || !euid.isValid() ) {
 		d_curEnt = 0;

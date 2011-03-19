@@ -27,8 +27,10 @@ cleanall: clean cleanaylib
 	rm -f $(objects) $(BINARY)
 cleanaylib: 
 	cd ay; make -f aylib.mk clean; cd ..
+aylib_rebuild: 
+	cd ay; make -f aylib.mk rebuild FLAGS=$(FLAGS); cd ..
 aylib: 
-	echo "SHIT";cd ay; make -f aylib.mk rebuild FLAGS=$(FLAGS); cd ..
+	cd ay; make -f aylib.mk FLAGS=$(FLAGS); cd ..
 ay/aylib.a: 
 	cd ay; make -f aylib.mk rebuild $(FLAGS); cd ..
 .cpp.o:
