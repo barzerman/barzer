@@ -7,16 +7,16 @@
 
 namespace ay {
 
-typedef std::vector<char_p> char_p_vec;	
+typedef std::vector<char> char_vec;	
 
 //// pools const char* strings. uniqueness is not enforced  
 class CharPool {
 	size_t chunkSz;
 	/// chunks can be of different sizes 
-	typedef std::vector< char_p_vec > ChunkVec;
+	typedef std::vector< char_vec > ChunkVec;
 	ChunkVec chunk;	
 protected:
-	char_p_vec& addNewChunk( ) ;
+	char_vec& addNewChunk( ) ;
 public:
 	// len should include terminal 0
 	const char* addStringToPool( const char* s, size_t len );

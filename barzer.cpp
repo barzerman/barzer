@@ -4,8 +4,20 @@
 #include <iostream>
 #include <stdlib.h>
 #include <strings.h>
+#include <signal.h>
 
 #include "barzer_config.h"
+
+extern "C" void block_ctrlc () 
+{
+	sigset_t newsigset;
+ 
+   if ((sigemptyset(&newsigset) == -1) ||
+       (sigaddset(&newsigset, SIGINT) == -1))
+      perror("Failed to initialize the signal set");
+   else if (sigprocmask(SIG_BLOCK, &newsigset, NULL) == -1)
+      perror("Failed to block SIGINT");
+}
 
 struct TaskEnv {
     ay::CommandLineArgs cmdlProc;
@@ -27,6 +39,7 @@ int TaskEnv::run( )
 
 int run_shell(int argc, char * argv[]) {
     TaskEnv env;
+	// block_ctrlc();
     int rc = env.init( argc, argv );
     if( rc ) {
       std::cerr << "FATAL: Initialization failed.. exiting\n";

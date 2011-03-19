@@ -42,12 +42,14 @@ EntityLoader_XML::Tag_t EntityLoader_XML::getTag( const char* s ) const
 	switch(s[0]) {
 	case 'e':
 		if( !s[1] )  { // <e>  entity
-			return TAG_NAME;
+			return TAG_ENTITY;
+		} else if( !strcmp( &(s[1]), "ntlist" ) ) { // <entlist>
+			return TAG_ENTLIST;
 		}
 		break;
 	case 'n':
 		if( !s[1] ) { // <n> ~ name
-			return TAG_ENTITY;
+			return TAG_NAME;
 		}
 		break;
 	case 't':
@@ -339,8 +341,10 @@ int EntityLoader_XML::readFile( const char* fileName )
 	FILE* fp = stdin;
 	if( fileName ) {
 		fp = fopen( fileName, "r" );
-		if( !fp ) 
+		if( !fp ) {
+			std::cerr << "Failed to open \"" << fileName << "\" for reading\n";
 			return ELXML_ERR_FILE;
+		}
 		std::cerr << "reading entities from file " << fileName << "\n";
 	}
   	
