@@ -39,13 +39,18 @@ StoredToken& StoredTokenPool::addSingleTok( bool& newAdded, const char* t)
 
 	StoredTokenId tokId = storTok.vec.size();
 	StoredToken& newTok = storTok.extend();
-	newTok.setSingle( tokId, sid, strlen(internedStr) );
+	newTok.setSingle( tokId, internedStr, sid, strlen(internedStr) );
+
 
 	singleTokMap.insert( 
 		std::make_pair(
-			internedStr, &newTok
+			internedStr, tokId 
 		)
 	);
+	const StoredToken* shit = getTokByString(  t );
+	if( !shit || shit->tokId != newTok.tokId || strcmp(internedStr,t) ) {
+		std::cerr<< "inconsistency !!!!!\n";
+	}
 	newAdded = true;
 	return newTok;
 }

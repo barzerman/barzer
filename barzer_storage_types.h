@@ -87,6 +87,7 @@ struct StoredToken {
 
 	// when numWords =1 this is resolved from the pool 
 	// otherwise it's resolved from the compounded names object 
+	const char* theTok;
 	ay::UniqueCharPool::StrId stringId; 
 
 	StoredTokenClassInfo classInfo;
@@ -97,8 +98,13 @@ struct StoredToken {
 	
 	bool isSingleTok() const { return (numWords==1); }
 
-	inline void setSingle( StoredTokenId tid, ay::UniqueCharPool::StrId sid, uint16_t len ) 
+	inline void setSingle( 
+		StoredTokenId tid, 
+		const char* tt,
+		ay::UniqueCharPool::StrId sid, 
+		uint16_t len ) 
 	{
+		theTok = tt;
 		tokId= tid;
 		stringId = sid;
 		numWords = 1;
@@ -113,6 +119,7 @@ struct StoredToken {
 	}
 	StoredToken( ) : 
 		tokId(INVALID_STORED_ID), 
+		theTok(0),
 		stringId(ay::UniqueCharPool::ID_NOTFOUND),
 		numWords(0), length(0) 
 	{}

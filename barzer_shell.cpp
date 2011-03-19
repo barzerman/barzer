@@ -54,6 +54,21 @@ static int bshf_test( ay::Shell*, char_cp cmd, std::istream& in )
 	return 0;
 }
 
+static int bshf_tokid( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext * context = shell->getBarzerContext();
+	const DtaIndex* dtaIdx = context->obtainDtaIdx();
+
+	StoredTokenId tid;
+	in >> tid ;
+	const StoredTokenPool* tokPool = &(dtaIdx->tokPool);
+	if( !tokPool->isTokIdValid(tid) ) {
+		std::cerr << tid << " is not a valid token id\n";
+	}
+	const StoredToken& tok = tokPool->getTokById( tid );
+	std::cerr << tok << std::endl;
+	return 0;
+}
 static int bshf_tok( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
@@ -69,6 +84,22 @@ static int bshf_tok( BarzerShell* shell, char_cp cmd, std::istream& in )
 	std::ostream& fp = shell->getOutStream();
 	fp << *token << std::endl;
 	
+	return 0;
+}
+static int bshf_entid( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext * context = shell->getBarzerContext();
+	DtaIndex* dtaIdx = context->obtainDtaIdx();
+	StoredEntityId tid;
+	in >> tid ;
+	const StoredEntityPool* entPool = &(dtaIdx->entPool);
+	if( !entPool->isEntityIdValid(tid) ) {
+		std::cerr << tid << " is not a valid entity id\n";
+		return 0;
+	}
+	const StoredEntity& ent = entPool->getEnt( tid );
+	std::cerr << ent << std::endl;
+
 	return 0;
 }
 static int bshf_euid( BarzerShell* shell, char_cp cmd, std::istream& in )
@@ -147,8 +178,10 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),
 	CmdData( (ay::Shell_PROCF)bshf_tokenize, "tokenize", "tests tokenizer" ),
 	CmdData( (ay::Shell_PROCF)bshf_xmload, "xmload", "loads xml from file" ),
-	CmdData( (ay::Shell_PROCF)bshf_tok, "tok", "token lookup" ),
+	CmdData( (ay::Shell_PROCF)bshf_tok, "tok", "token lookup by string" ),
+	CmdData( (ay::Shell_PROCF)bshf_tokid, "tokid", "token lookup by string" ),
 	CmdData( (ay::Shell_PROCF)bshf_euid, "euid", "entity lookup by euid (tok class subclass)" ),
+	CmdData( (ay::Shell_PROCF)bshf_entid, "entid", "entity lookup by entity id" ),
 
 };
 

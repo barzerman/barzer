@@ -67,7 +67,7 @@ private:
 
 	/// single tokens mapped by the actual const char*
 	/// references ponters stored in storTok
-	ay::map_by_char_cp<StoredToken*>::Type singleTokMap;
+	ay::map_by_char_cp<StoredTokenId>::Type singleTokMap;
 	void clear() 
 		{ 
 			singleTokMap.clear();
@@ -83,12 +83,11 @@ public:
 	const StoredToken* getTokByString( const char* s ) const
 		{
 			typeof( singleTokMap.begin() ) i = singleTokMap.find( s) ;
-			return ( i == singleTokMap.end() ? 0 : i->second );
+			return ( i == singleTokMap.end() ? 0 : &(storTok.vec[i->second]) );
 		}
 	StoredToken* getTokByString( const char* s ) 
 		{
-			typeof( singleTokMap.begin() ) i = singleTokMap.find( s) ;
-			return ( i == singleTokMap.end() ? 0 : i->second );
+			return (StoredToken*)(((const StoredTokenPool*)this)->getTokByString(s));
 		}
 	/// newAdded is set to true only if this called resulted in creation of a new token 
 	/// set to false otherwise
