@@ -39,8 +39,7 @@ StoredToken& StoredTokenPool::addSingleTok( bool& newAdded, const char* t)
 
 	StoredTokenId tokId = storTok.vec.size();
 	StoredToken& newTok = storTok.extend();
-	newTok.setSingle( tokId, internedStr, sid, strlen(internedStr) );
-
+	newTok.setSingle( tokId, sid, strlen(internedStr) );
 
 	singleTokMap.insert( 
 		std::make_pair(
@@ -126,6 +125,18 @@ void DtaIndex::print( std::ostream& fp ) const
 	fp << "\n";
 	entPool.print(fp);
 	fp << std::endl;
+}
+
+void DtaIndex::printStoredToken( std::ostream& fp, StoredTokenId id ) const
+{
+	fp << resolveStoredTokenStr(id) << "|";
+	const StoredToken* st = tokPool.getTokByIdSafe( id );
+	fp << '[' ;
+	if( st ) 
+		fp << *st ;
+	else 
+		fp << "UNDEFINED";
+	fp << ']' ;
 }
 
 int DtaIndex::loadEntities_XML( const char* fileName )

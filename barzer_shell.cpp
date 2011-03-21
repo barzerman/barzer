@@ -2,6 +2,7 @@
 #include <barzer_parse.h>
 #include <barzer_dtaindex.h>
 #include <ay_util_time.h>
+#include <sstream>
 
 namespace barzer {
 
@@ -59,14 +60,25 @@ static int bshf_tokid( BarzerShell* shell, char_cp cmd, std::istream& in )
 	BarzerShellContext * context = shell->getBarzerContext();
 	const DtaIndex* dtaIdx = context->obtainDtaIdx();
 
-	StoredTokenId tid;
-	in >> tid ;
-	const StoredTokenPool* tokPool = &(dtaIdx->tokPool);
-	if( !tokPool->isTokIdValid(tid) ) {
-		std::cerr << tid << " is not a valid token id\n";
+	char  tidBuf[ 128 ];
+	std::ostream& fp = shell->getOutStream();
+	std::string tmp;
+	while( in >>tmp )  {
+		std::stringstream sstr( tmp );
+		while( sstr.getline(tidBuf,sizeof(tidBuf)-1,',') ) {
+			StoredTokenId tid = atoi(tidBuf);
+			const StoredTokenPool* tokPool = &(dtaIdx->tokPool);
+			if( !tokPool->isTokIdValid(tid) ) {
+				std::cerr << tid << " is not a valid token id\n";
+				continue;
+			}
+			dtaIdx->printStoredToken( fp, tid );
+			fp << std::endl;
+		
+			//const StoredToken& tok = tokPool->getTokById( tid );
+			//fp << tok << std::endl;
+		}
 	}
-	const StoredToken& tok = tokPool->getTokById( tid );
-	std::cerr << tok << std::endl;
 	return 0;
 }
 static int bshf_tok( BarzerShell* shell, char_cp cmd, std::istream& in )
@@ -90,15 +102,24 @@ static int bshf_entid( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	DtaIndex* dtaIdx = context->obtainDtaIdx();
-	StoredEntityId tid;
-	in >> tid ;
-	const StoredEntityPool* entPool = &(dtaIdx->entPool);
-	if( !entPool->isEntityIdValid(tid) ) {
-		std::cerr << tid << " is not a valid entity id\n";
-		return 0;
+	std::string tmp;
+	char  tidBuf[ 128 ];
+	std::ostream& fp = shell->getOutStream();
+	while( in >>tmp )  {
+		std::stringstream sstr( tmp );
+		while( sstr.getline(tidBuf,sizeof(tidBuf)-1,',') ) {
+			StoredEntityId tid = atoi(tidBuf);
+			const StoredEntityPool* entPool = &(dtaIdx->entPool);
+			const StoredEntity* ent = entPool->getEntByIdSafe( tid );
+			if( !ent ) {
+				std::cerr << tid << " is not a valid entity id\n";
+				return 0;
+			}
+			fp << '[' ;
+			dtaIdx->printEuid( fp, ent->euid );
+			fp << ']' << *ent << std::endl;
+		}
 	}
-	const StoredEntity& ent = entPool->getEnt( tid );
-	std::cerr << ent << std::endl;
 
 	return 0;
 }
@@ -173,7 +194,10 @@ static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
 /// end of specific shell routines
 static const CmdData g_cmd[] = {
 	CmdData( ay::Shell::cmd_help, "help", "get help on a barzer function" ),
+	// CmdData( ay::Shell::cmd_set, "set", "sets parameters" ),
 	CmdData( ay::Shell::cmd_exit, "exit", "exit the barzer shell" ),
+	CmdData( ay::Shell::cmd_exit, "quit", "exit the barzer shell" ),
+	CmdData( ay::Shell::cmd_run, "run", "execute script(s)" ),
 	CmdData( bshf_test, "test", "just a test" ),
 	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),
 	CmdData( (ay::Shell_PROCF)bshf_tokenize, "tokenize", "tests tokenizer" ),

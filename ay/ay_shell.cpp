@@ -10,7 +10,9 @@ typedef Shell::CmdData CmdData;
 
 static const CmdData g_cmd[] = {
 	CmdData( Shell::cmd_help, "help", "get help on a function" ),
-	CmdData( Shell::cmd_exit, "exit", "exit the shell" )
+	CmdData( Shell::cmd_exit, "exit", "exit the shell" ),
+	CmdData( Shell::cmd_run, "run", "run scripts" ),
+	CmdData( Shell::cmd_set, "set", "sets parameters" ),
 };
 
 std::ostream& Shell::CmdData::print( std::ostream& fp ) const
@@ -18,6 +20,31 @@ std::ostream& Shell::CmdData::print( std::ostream& fp ) const
 	fp << name << " - " << desc;
 }
 
+int Shell::cmd_set( Shell* sh, char_cp cmd, std::istream& in )
+{
+	std::cerr << "Shell::cmd_set unimplemented\n";
+	return 0;
+}
+
+int Shell::cmd_run( Shell* sh, char_cp cmd, std::istream& in )
+{
+	std::string fName;
+	if( !(in >> fName) ) {
+		std::cerr << "must specify valid file name\n";
+		return 0;
+	}
+	std::ifstream fp;
+	fp.open( fName.c_str() ) ;
+	if( !fp.is_open() )  {
+		std::cerr << "couldnt open " << fName <<  "for reading\n";
+		return 0;
+	}
+
+	Shell newShell(*sh );
+	newShell.runCmdLoop(&fp);
+
+	return 0;
+}
 int Shell::cmd_help( Shell* sh, char_cp cmd, std::istream& in )
 {
 	std::string srchStr;
@@ -35,8 +62,7 @@ int Shell::cmd_help( Shell* sh, char_cp cmd, std::istream& in )
 
 int Shell::cmd_exit( Shell*, char_cp cmd, std::istream& in )
 {
-	exit(0);
-	return 0;
+	return 1;
 }
 
 int Shell::printPrompt()
@@ -111,14 +137,21 @@ int Shell::init()
 	context = mkContext();
 	return rc;
 }
-int Shell::runCmdLoop()
+int Shell::runCmdLoop(std::istream* fp )
 {
 	int rc = 0;
 
 	std::string curStr;
-	printPrompt();
-	while( std::getline( *inStream, curStr ) ) {
+	bool isScript = fp; 
+	if( !isScript ) {
+		fp = inStream;
+		printPrompt();
+	}	
+	while( std::getline( *fp, curStr ) ) {
 		std::stringstream sstr;
+		if( isScript ) {
+			std::cerr << curStr << std::endl; 
+		}
 		sstr<< curStr;
 		std::string cmdStr;
 		std::getline( sstr, cmdStr, ' ');
@@ -127,7 +160,8 @@ int Shell::runCmdLoop()
 		cmdInvoke( rc, cmdStr.c_str(), sstr );
 		if( rc ) 
 			break;
-		printPrompt();
+		if( !isScript ) 
+			printPrompt();
 	}
 	return rc;
 }

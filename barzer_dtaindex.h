@@ -25,6 +25,13 @@ class StoredEntityPool {
 		{ storEnt.vec.clear(); }
 	StoredEntity& getEnt( StoredEntityId id ) { return storEnt.vec[ id ]; }
 public:	
+	inline const StoredEntityId getEntIdByEuid( const StoredEntityUniqId& euid ) const
+	{
+		UniqIdToEntIdMap::const_iterator i = euidMap.find( euid );
+
+		return( i== euidMap.end() ?  INVALID_STORED_ID : i->second ) ;
+	}
+	
 	inline const StoredEntity* getEntByEuid( const StoredEntityUniqId& euid ) const
 	{
 		UniqIdToEntIdMap::const_iterator i = euidMap.find( euid );
@@ -48,6 +55,9 @@ public:
 	{
 		fp << "euid: " << euidMap.size() ; 
 	}
+	/// checks boundaries returns 0 if id is invalid
+	inline const StoredEntity* getEntByIdSafe( StoredEntityId id )  const
+		{ return( isEntityIdValid(id) ? &(getEnt(id)):(const StoredEntity*)0 );}
 };
 
 inline std::ostream& operator <<( std::ostream& fp, const StoredEntityPool& x )
@@ -99,10 +109,14 @@ public:
 	// boundaries are not checked. generally this id must be vetted 
 	const StoredToken& getTokById( StoredTokenId id )  const
 		{ return storTok.vec[ id ]; }
-		  StoredToken& getTokById( StoredTokenId id ) 
+  		  StoredToken& getTokById( StoredTokenId id ) 
 		{ return storTok.vec[ id ]; }
 	void print(std::ostream& fp) const 
 		{ fp <<  "toks:" <<  singleTokMap.size() ; }
+
+	/// checks boundaries returns 0 if id is invalid
+	inline const StoredToken* getTokByIdSafe( StoredTokenId id )  const
+		{ return( isTokIdValid(id) ? &(getTokById(id)):0 );}
 };
 inline std::ostream& operator <<( std::ostream& fp, const StoredTokenPool& x )
 {
@@ -176,6 +190,24 @@ public:
 	inline const StoredToken* getTokByString( const char* s ) const
 		{ return tokPool.getTokByString(s); }
 	void print( std::ostream&  fp ) const;
+
+	inline const char* resolveStoredTokenStr( const StoredToken& tok ) const 
+	{
+		if( tok.isSingleTok() ) {
+			return strPool->resolveId(tok.stringId);
+		} else {
+			return "(compound)";
+		}
+	}
+	/// never returns 0
+	inline const char* resolveStoredTokenStr( StoredTokenId id ) const 
+	{
+		const StoredToken* t = tokPool.getTokByIdSafe( id );
+		return ( t ? resolveStoredTokenStr(*t) : "<<null>>" );
+	}
+	void printStoredToken( std::ostream& fp, const StoredTokenId ) const;
+	void printEuid( std::ostream& fp, const StoredEntityUniqId& euid ) const
+	{ fp << euid << '|' << resolveStoredTokenStr(euid.tokId ); }
 }; 
 
 } // namespace barzer

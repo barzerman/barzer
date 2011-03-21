@@ -21,7 +21,10 @@ protected:
 
 	int setupStreams();
 public:
+	bool echo; /// when on prints commands to std:cerr 
 	/// individual commands 
+	static int cmd_set( Shell*, char_cp cmd, std::istream& in );
+	static int cmd_run( Shell*, char_cp cmd, std::istream& in );
 	static int cmd_help( Shell*, char_cp cmd, std::istream& in );
 	static int cmd_exit( Shell*, char_cp cmd, std::istream& in );
 	// end of commands 
@@ -62,7 +65,8 @@ protected:
 	virtual int printPrompt();
 private:
 	// generally overloading this shouldn't be needed
-	virtual int runCmdLoop();
+	// when fp is 0 inStream is assumed
+	virtual int runCmdLoop(std::istream* fp =0);
 
 	// *OVERLOAD this to run indexCmdDataRange with the right parms
 	// by default called from run
@@ -76,7 +80,8 @@ public:
 		outStream(&std::cout),
 		errStream(&std::cerr),
 		inStream(&std::cin),
-		context(0)
+		context(0),
+		echo(false)
 	{}
 	virtual ~Shell() {}
 	std::ostream& getOutStream() { return *outStream; }
