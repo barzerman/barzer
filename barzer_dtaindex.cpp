@@ -131,12 +131,10 @@ void DtaIndex::printStoredToken( std::ostream& fp, StoredTokenId id ) const
 {
 	fp << resolveStoredTokenStr(id) << "|";
 	const StoredToken* st = tokPool.getTokByIdSafe( id );
-	fp << '[' ;
 	if( st ) 
 		fp << *st ;
 	else 
 		fp << "UNDEFINED";
-	fp << ']' ;
 }
 
 int DtaIndex::loadEntities_XML( const char* fileName )

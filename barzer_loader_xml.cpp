@@ -66,12 +66,17 @@ void EntityLoader_XML::handle_entity_open( Tag_t parentTag, const char_cp * attr
 	StoredEntityUniqId euid;
 	/// forming uniqId based on the attributes
 	StoredToken* idTok_p = 0;
+	int32_t relevance = 0;
+
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
 		switch( *n ) {
 		case 'c':
 			if( !n[1] ) euid.eclass.ec = atoi(v);
+			break;
+		case 'r':
+			if( !n[1] ) relevance = atoi(v);
 			break;
 		case 's':
 			if( !n[1] ) euid.eclass.subclass = atoi(v);
@@ -97,7 +102,12 @@ void EntityLoader_XML::handle_entity_open( Tag_t parentTag, const char_cp * attr
 		return;
 	}
 	d_curEnt = &( dtaIdx->entPool.addOneEntity(madeNew,euid));
+	if( madeNew ) {
+		if( !relevance && d_elistFlags.relevance > 0 ) 
+			relevance = d_elistFlags.relevance;
 
+		d_curEnt->relevance = relevance;
+	}
 	//// may need to enter unique id to the entity as findable token
 	if( d_elistFlags.isEuidTok ) {
 		EntTokenOrderInfo ord;
@@ -137,6 +147,9 @@ void EntityLoader_XML::handle_entlist_open( Tag_t parentTag, const char_cp * att
 		switch( *n ) {
 		case 'c':
 			if( !n[1] ) d_eclass.ec = atoi(v);
+			break;
+		case 'r':
+			if( !n[1] ) d_elistFlags.relevance = atoi(v);
 			break;
 		case 's':
 			if( !n[1] ) d_eclass.subclass = atoi(v);

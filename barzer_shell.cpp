@@ -115,9 +115,9 @@ static int bshf_entid( BarzerShell* shell, char_cp cmd, std::istream& in )
 				std::cerr << tid << " is not a valid entity id\n";
 				return 0;
 			}
-			fp << '[' ;
-			dtaIdx->printEuid( fp, ent->euid );
-			fp << ']' << *ent << std::endl;
+			fp << 
+			dtaIdx->resolveStoredTokenStr(ent->euid.tokId)
+			<< '|' << *ent << std::endl;
 		}
 	}
 

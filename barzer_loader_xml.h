@@ -12,10 +12,11 @@ struct DtaIndex;
 //// all defaults must be always 0 
 struct EntityLoader_EntListFlags  {
 	bool isEuidTok; // when true unique ids will be added as searcheable toks to the entity
-
+	int32_t relevance; // default relevance for the entities 
 	inline void reset()  
 	{
 		isEuidTok= false;
+		relevance=0;
 	}
 	EntityLoader_EntListFlags() 
 	{reset();}
@@ -33,13 +34,15 @@ struct EntityLoader_XML {
 		// c(lass),s(ubclass)
 		// i(d) - euid - entity id unique within class and subclass
 		// free text will be tokenized on space only .. 
+		// r(elevance) - tie breaker for the same tokens (relevance)
 		TAG_ENTITY, 
 
 		// collection of entities - top level tag <entlist>
 		// valid attributes 
-		// c(lass),s(ubclass) 
+		// c(lass),s(ubclass) - class, subclass 
 		// i(ds as tokens)  - when set unique ids will 
 		// be added to entities as tokens
+		// r(elevance) - default relevance 
 		TAG_ENTLIST,
 
 		// single token within entity (or name) <t>
