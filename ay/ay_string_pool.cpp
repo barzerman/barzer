@@ -1,42 +1,63 @@
 #include <ay_string_pool.h>
+#include <iostream>
 
 namespace ay {
 
-CharPool::CharPool( size_t cSz ) : chunkSz(cSz)
+CharPool::~CharPool( )
+{
+	for( ChunkVec::iterator i = chunk.begin(); i!= chunk.end(); ++i ) {
+		free( *i );
+		*i=0;
+	}
+}
+
+CharPool::CharPool( size_t cSz ) : 
+	chunkCapacity(cSz),
+	chunkSz(0)
 {
 	addNewChunk();
 }
 
-char_vec& CharPool::addNewChunk( )
+char* CharPool::addNewChunk( )
 {
 	chunk.resize( chunk.size() + 1 );
-	chunk.back().reserve( chunkSz );
+
+	chunk.back() = (char*)malloc( chunkCapacity );
+	memset( chunk.back(), 0, chunkCapacity );
+	chunkSz = 0;
+	return chunk.back();
 }
 
 const char* CharPool::addStringToPool( const char* s, size_t len )
 {
-	if( len > chunkSz ) 
-		chunkSz = len;
-	char_vec & backVec = chunk.back();
-	if( backVec.capacity() < backVec.size() + len ) 
+	if( len > chunkCapacity ) 
+		chunkCapacity = len;
+	if( chunkCapacity < chunkSz + len ) {
 		addNewChunk();
+	}
+	char* backVec = chunk.back();
 	
-	char* loc = &(backVec.back());
-	backVec.resize( chunk.back().size() + len ) ;
-	memcpy( loc+1, s, len );
-	return loc+1;
+	size_t loc = chunkSz;
+	chunkSz += len; 
+	
+	char* locStr = backVec+loc;
+
+	memcpy( locStr, s, len );
+	return locStr;
 }
 ///// UniqueCharPool
 UniqueCharPool::StrId UniqueCharPool::internIt( const char* s ) 
 {
 	StrId id = getId(s);
-	if( id!=ID_NOTFOUND ) 
+	if( id!=ID_NOTFOUND ) {
 		return id;
-	
+	}	
 	const char * newS = addStringToPool( s );
 	id = idVec.size();
 	idVec.push_back( newS );
-	idMap[newS]= id;
+	//std::cerr << "SHIT: " << id << ":map " << idMap.size() << ":vec " << idVec.size() << ":" << s << "~" << newS ;
+	idMap.insert( CharIdMap::value_type(newS, id) );
+	//std::cerr << " added\n";	
 	
 	return id;
 }

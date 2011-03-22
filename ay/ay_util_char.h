@@ -30,7 +30,7 @@ struct char_cp_compare_less {
 			else 
 				return false;
 		} else
-			return false;
+			return r;
 	}
 };
 

@@ -77,7 +77,7 @@ private:
 
 	/// single tokens mapped by the actual const char*
 	/// references ponters stored in storTok
-	ay::map_by_char_cp<StoredTokenId>::Type singleTokMap;
+	std::map<const char*,StoredTokenId,ay::char_cp_compare_less> singleTokMap;
 	void clear() 
 		{ 
 			singleTokMap.clear();
@@ -90,6 +90,11 @@ public:
 	StoredTokenPool( ay::UniqueCharPool* sPool ) : 
 		strPool(sPool)
 	{}
+	StoredTokenId getTokIdByString( const char* t ) const
+	{
+		typeof( singleTokMap.begin() ) i = singleTokMap.find( t) ;
+		return (  i == singleTokMap.end() ? INVALID_STORED_ID : i->second );
+	}
 	const StoredToken* getTokByString( const char* s ) const
 		{
 			typeof( singleTokMap.begin() ) i = singleTokMap.find( s) ;

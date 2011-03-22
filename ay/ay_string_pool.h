@@ -7,16 +7,17 @@
 
 namespace ay {
 
-typedef std::vector<char> char_vec;	
 
 //// pools const char* strings. uniqueness is not enforced  
 class CharPool {
-	size_t chunkSz;
+	size_t chunkCapacity; // current chunk capacity
+	size_t chunkSz;       // current chunk size
+
 	/// chunks can be of different sizes 
-	typedef std::vector< char_vec > ChunkVec;
+	typedef std::vector< char* > ChunkVec;
 	ChunkVec chunk;	
 protected:
-	char_vec& addNewChunk( ) ;
+	char* addNewChunk( ) ;
 public:
 	// len should include terminal 0
 	const char* addStringToPool( const char* s, size_t len );
@@ -26,6 +27,7 @@ public:
 		
 	enum { DEFAULT_CHUNK_SIZE = 64*1024 };
 	CharPool( size_t cSz = DEFAULT_CHUNK_SIZE );
+	~CharPool();
 };
 
 /// stores each string only once 
@@ -39,13 +41,15 @@ public:
 	};
 private:
 	char_cp_vec idVec; // idVec[StrId] is the char_cp
-	map_by_char_cp<StrId>::Type idMap; // idMap[char_cp] returns id 
+	typedef std::map< char_cp, StrId, ay::char_cp_compare_less > CharIdMap;
+	CharIdMap idMap;
+	// map_by_char_cp<StrId>::Type idMap; // idMap[char_cp] returns id 
 		// ID_NOTFOUND when string cant be found
 public: 
 
 	StrId getId( const char* s ) const
 		{ 
-			map_by_char_cp<StrId>::Type::const_iterator i= idMap.find(s);
+			CharIdMap::const_iterator i= idMap.find(s);
 			return ( i == idMap.end() ? ID_NOTFOUND : i->second );
 		}
 	const char* resolveId( StrId id ) const
