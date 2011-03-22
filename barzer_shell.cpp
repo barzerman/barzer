@@ -174,10 +174,34 @@ static int bshf_inspect( BarzerShell* shell, char_cp cmd, std::istream& in )
 	}
 	return 0;
 }
+static int bshf_lex( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext * context = shell->getBarzerContext();
+	Barz& barz = context->barz;
+	QParser& parser = context->parser;
+
+	ay::InputLineReader reader( in );
+	QuestionParm qparm;
+	std::ostream& outFp = shell->getOutStream() ;
+	while( reader.nextLine() && reader.str.length() ) {
+		const char* q = reader.str.c_str();
+
+		/// tokenize
+		parser.tokenize_only( barz, q, qparm );
+		const TTWPVec& ttVec = barz.getTtVec();
+		outFp << "Tokens:" << ttVec << std::endl;
+
+		/// classify tokens in the barz
+		parser.lex_only( barz, qparm );
+		const CTWPVec& ctVec = barz.getCtVec();
+		outFp << "Classified Tokens:" << ctVec << std::endl;
+	}
+	return 0;
+}
+
 static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
-
 	Barz& barz = context->barz;
 	QParser& parser = context->parser;
 
@@ -200,6 +224,7 @@ static const CmdData g_cmd[] = {
 	CmdData( ay::Shell::cmd_run, "run", "execute script(s)" ),
 	CmdData( bshf_test, "test", "just a test" ),
 	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),
+	CmdData( (ay::Shell_PROCF)bshf_lex, "lex", "tokenize and then classify (lex) the input" ),
 	CmdData( (ay::Shell_PROCF)bshf_tokenize, "tokenize", "tests tokenizer" ),
 	CmdData( (ay::Shell_PROCF)bshf_xmload, "xmload", "loads xml from file" ),
 	CmdData( (ay::Shell_PROCF)bshf_tok, "tok", "token lookup by string" ),

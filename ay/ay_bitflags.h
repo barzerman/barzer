@@ -13,6 +13,9 @@ template <uint8_t SZ>
 class bitflags {
 	uint8_t buf[ (SZ-1)/8+1 ];
 public:
+	uint8_t getSz() const
+		{ return SZ; }
+
 	bitflags() { memset( buf,0,sizeof(buf) ); }
 	inline void unset( uint8_t bit )
 		{ buf[ bit>>3 ] &= ~(1 << ( bit & 0x7 ) ); }

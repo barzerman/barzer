@@ -1,7 +1,29 @@
 #include <barzer_parse_types.h>
+#include <barzer_storage_types.h>
 #include <barzer_parse.h>
 
 namespace barzer {
+
+std::ostream& CToken::print( std::ostream& fp ) const
+{
+	fp << "[" << qtVec << "] " ;
+	fp << cInfo << ling;
+	if( storedTok ) 
+		fp << " strd[" << *storedTok << "]";
+	else 
+		fp << "(nostore)";
+	return fp;
+}
+
+std::ostream& operator<<( std::ostream& fp, const CTWPVec& v )
+{
+	for( CTWPVec::const_iterator i = v.begin(); i!= v.end(); ++i ) {
+		fp << i->first << std::endl;
+	}
+	return fp;
+}
+
+// CToken service functions  and output
 
 void CToken::syncClassInfoFromSavedTok()
 {
@@ -9,7 +31,7 @@ void CToken::syncClassInfoFromSavedTok()
 /// copy settings from storedToken's info sub-object into cInfo
 }
 
-
+/// TToken service functions and output
 std::ostream& TToken::print ( std::ostream& fp ) const
 {
 	if( !buf || !len ) {

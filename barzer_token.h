@@ -40,6 +40,12 @@ struct StoredTokenClassInfo {
 		theClass(CLASS_WORD),
 		subclass(0)
 	{}
+
+	void printClassName( std::ostream& ) const;
+	void printSublassName( std::ostream& ) const;
+	void printBitflagNames( std::ostream& ) const;
+	void printClassflagNames( std::ostream& ) const;
+	std::ostream& print( std::ostream& ) const;
 };
 
 ////// parsing token class info 
@@ -51,12 +57,20 @@ struct CTokenClassInfo {
 		CLASS_MYSTERY_WORD, /// word cant be either classified or matched
 		CLASS_NUMBER,
 		CLASS_PUNCTUATION, // subClass/classFlags ill be always 0
-		CLASS_SPACE // subClass/classFlags ill be always 0 
+		CLASS_SPACE, // subClass/classFlags ill be always 0 
+	
+
+		/// add new ones above this . 
+		/// remember to update barzer_token.cpp (CTCI_ClassName)
+		CLASS_MAX 
 	} TokenClass_t;
 
 	int16_t theClass;
-	int16_t subclass;  // subclass within a given class values are in 
-					       // barzer_parse_type_subclass.h in enums 
+	// subclass within a given class values are in 
+   	// barzer_parse_type_subclass.h in enums 
+	// for WORD and NUMBER classes subclasses should be the same
+	// as the ones in StoredTokenClassInfo::subClass 
+	int16_t subclass;  
 public:
 	enum { CLASS_SPEC_FLAG_MAX = 16 };
 	ay::bitflags<CLASS_SPEC_FLAG_MAX>  classFlags; // class specific flags  also see subclass.h
@@ -88,13 +102,24 @@ public:
 		theClass(CLASS_UNCLASSIFIED),
 		subclass(0)
 	{}
+	void printClassSubclass( std::ostream& ) const;
+	void printClassFlags( std::ostream& ) const;
+	void printBitFlags( std::ostream& ) const;
+
+	std::ostream& print( std::ostream& ) const;
 };
+inline std::ostream& operator <<( std::ostream& fp, const CTokenClassInfo& t )
+{ return t.print(fp); }
 
 // linugistic information - part of speech, directionality etc
-class TokenLinguisticInfo {
+struct TokenLinguisticInfo {
 	/// unused
 	uint8_t dummy;
+	std::ostream& print( std::ostream& fp ) const
+	{ return fp; }
 };
+inline std::ostream& operator <<( std::ostream& fp, const TokenLinguisticInfo& t)
+{ return t.print(fp); }
 
 } // barzer namespace ends
 #endif // BARZER_TOKEN_H

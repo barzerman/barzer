@@ -2,6 +2,7 @@
 #define BARZER_SUBCLASS_SUBCLASS_H
 namespace barzer {
 
+//// constants 
 namespace ling {
 
 enum {

@@ -32,6 +32,17 @@ public:
 	QLexParser lexer;
 	QSemanticParser semanticizer;
 	
+	/// wipes out higher ctokens/punits and tokenizes q
+	int tokenize_only( Barz& barz, const char* q, const QuestionParm& qparm );
+
+	/// wipes out punits and repopulates ctokens
+	int lex_only( Barz& barz, const QuestionParm& qparm );
+
+	/// analyzes ctokens and repopulates punits
+	int semanticize_only( Barz& barz, const QuestionParm& qparm );
+
+	 
+	/// tokenizes, classifies and semanticizes 
 	int parse( Barz& barz, const char* q, const QuestionParm& qparm );
 };
 

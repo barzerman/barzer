@@ -67,10 +67,15 @@ struct CToken {
 		{ cInfo.theClass = (typeof(cInfo.theClass))(c); } 
 	CToken( ) : 
 		storedTok(0) {}
+	std::ostream& print( std::ostream& fp ) const;
 };
 
 typedef std::pair< CToken, uint16_t > CTokenWithPos;
 typedef std::vector< CTokenWithPos > CTWPVec;
+
+std::ostream& operator<<( std::ostream & , const CTWPVec& );
+inline std::ostream& operator<<( std::ostream& fp, const CToken& t)
+	{ return t.print( fp ); }
 
 struct PUnitClassInfo
 {
