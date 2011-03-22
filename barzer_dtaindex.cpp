@@ -46,13 +46,12 @@ StoredToken& StoredTokenPool::addSingleTok( bool& newAdded, const char* t)
 			internedStr, tokId 
 		)
 	);
-	const StoredTokenId shit3 = getTokIdByString( internedStr );
-	const StoredTokenId shit2 = getTokIdByString( t );
-	const StoredToken* shit1 = getTokByString( internedStr );
+	/*
 	const StoredToken* shit = getTokByString(  t );
 	if( !shit || shit->tokId != newTok.tokId || strcmp(internedStr,t) ) {
 		std::cerr<< "inconsistency !!!!!\n";
 	}
+	*/
 	newAdded = true;
 	return newTok;
 }

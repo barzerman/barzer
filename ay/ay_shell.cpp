@@ -163,7 +163,7 @@ int Shell::runCmdLoop(std::istream* fp )
 		if( !isScript ) 
 			printPrompt();
 	}
-	return rc;
+	return 0;
 }
 int Shell::run()
 {
