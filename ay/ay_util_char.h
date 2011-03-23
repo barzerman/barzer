@@ -1,9 +1,9 @@
 #ifndef AY_UTIL_CHAR_H
 #define AY_UTIL_CHAR_H
 
+#include <ay_headers.h>
 #include <vector>
 #include <map>
-#include <ay_headers.h>
 #include <set>
 
 namespace ay {

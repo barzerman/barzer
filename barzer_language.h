@@ -1,8 +1,8 @@
 #ifndef BARZER_LANGUAGE_H  
 #define BARZER_LANGUAGE_H  
 
-#include <barzer_parse_types.h>
 #include <ay/ay_headers.h>
+#include <barzer_parse_types.h>
 
 /// language specific logic 
 namespace barzer {

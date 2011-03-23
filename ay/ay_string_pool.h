@@ -2,8 +2,8 @@
 #define AY_STRING_POOL_H 
 
 /// alllocation pool functionality 
-#include <vector>
 #include <ay_headers.h>
+#include <vector>
 #include <ay_util_char.h>
 
 namespace ay {

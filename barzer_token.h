@@ -1,7 +1,7 @@
 #ifndef BARZER_TOKEN_H
 #define BARZER_TOKEN_H
-#include <ay/ay_bitflags.h>
 #include <ay/ay_headers.h>
+#include <ay/ay_bitflags.h>
 /// Various low level constants and utilities 
 /// used for both Parsed and Stored tokens
 namespace barzer {

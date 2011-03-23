@@ -1,9 +1,9 @@
 #ifndef BARZER_LOADER_XML_H
 #define BARZER_LOADER_XML_H
 
+#include <ay/ay_headers.h>
 #include <stack>
 #include <ay/ay_util_char.h>
-#include <ay/ay_headers.h>
 
 struct XML_ParserStruct;
 using ay::char_cp;

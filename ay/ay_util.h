@@ -5,7 +5,6 @@
 #include <map>
 #include <vector>
 #include <iostream>
-#include <ay_headers.h>
 #include <fstream>
 
 #include <ay_util_char.h>

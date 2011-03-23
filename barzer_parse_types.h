@@ -1,12 +1,12 @@
 #ifndef BARZER_PARSE_TYPES_H
 #define BARZER_PARSE_TYPES_H
 
+#include <ay/ay_headers.h>
 #include <vector>
 #include <map>
 #include <iostream>
 #include <stdio.h>
 #include <barzer_token.h>
-#include <ay/ay_headers.h>
 
 namespace barzer {
 struct TToken ;

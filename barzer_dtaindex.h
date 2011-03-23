@@ -1,11 +1,11 @@
 #ifndef BARZER_DTAINDEX_H
 #define BARZER_DTAINDEX_H
 
+#include <ay/ay_headers.h>
 #include <barzer_storage_types.h>
 #include <ay/ay_slogrovector.h>
 #include <ay/ay_string_pool.h>
 #include <ay/ay_util_char.h>
-#include <ay/ay_headers.h>
 
 namespace barzer {
 

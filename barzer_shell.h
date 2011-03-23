@@ -1,9 +1,9 @@
 #ifndef BARZER_SHELL_H
 #define BARZER_SHELL_H
 
+#include <ay/ay_headers.h>
 #include <ay/ay_shell.h>
 #include <iostream>
-#include <ay/ay_headers.h>
 namespace barzer {
 
 struct BarzerShellContext;
