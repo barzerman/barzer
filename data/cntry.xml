@@ -1,0 +1,226 @@
+<entlist c="1" s="1">
+<e i="CNT0001" r="194100"><n>China</n></e>
+<e i="CNT0002" r="173000"><n>India</n></e>
+<e i="CNT0003" r="45000"><n>United States</n></e>
+<e i="CNT0004" r="34400"><n>Indonesia</n></e>
+<e i="CNT0005" r="27599"><n>Brazil</n></e>
+<e i="CNT0006" r="25400"><n>Pakistan</n></e>
+<e i="CNT0007" r="22900"><n>Nigeria</n></e>
+<e i="CNT0008" r="21800"><n>Bangladesh</n></e>
+<e i="CNT0009" r="20500"><n>Russia</n></e>
+<e i="CNT0010" r="18400"><n>Japan</n></e>
+<e i="CNT0011" r="16299"><n>Mexico</n></e>
+<e i="CNT0012" r="13600"><n>Philippines</n></e>
+<e i="CNT0013" r="12600"><n>Vietnam</n></e>
+<e i="CNT0014" r="11800"><n>Germany</n></e>
+<e i="CNT0015" r="11600"><n>Egypt</n></e>
+<e i="CNT0016" r="11500"><n>Ethiopia</n></e>
+<e i="CNT0017" r="10900"><n>Iran</n></e>
+<e i="CNT0018" r="10700"><n>Turkey</n></e>
+<e i="CNT0019" r="9800"><n>Dem. Rep. of Congo</n></e>
+<e i="CNT0020" r="9700"><n>Thailand</n></e>
+<e i="CNT0021" r="9500"><n>France</n></e>
+<e i="CNT0022" r="8900"><n>United Kingdom</n></e>
+<e i="CNT0023" r="8800"><n>Italy</n></e>
+<e i="CNT0024" r="7300"><n>Myanmar (Burma)</n></e>
+<e i="CNT0025" r="7200"><n>South Africa</n></e>
+<e i="CNT0026" r="7100"><n>South Korea</n></e>
+<e i="CNT0027" r="6700"><n>Spain</n></e>
+<e i="CNT0028" r="6600"><n>Colombia</n></e>
+<e i="CNT0029" r="6600"><n>Ukraine</n></e>
+<e i="CNT0030" r="6300"><n>Sudan</n></e>
+<e i="CNT0031" r="6300"><n>Tanzania</n></e>
+<e i="CNT0032" r="5800"><n>Argentina</n></e>
+<e i="CNT0033" r="5600"><n>Kenya</n></e>
+<e i="CNT0034" r="5500"><n>Poland</n></e>
+<e i="CNT0035" r="5300"><n>Algeria</n></e>
+<e i="CNT0036" r="5000"><n>Canada</n></e>
+<e i="CNT0037" r="4600"><n>Morocco</n></e>
+<e i="CNT0038" r="4600"><n>Uganda</n></e>
+<e i="CNT0039" r="4600"><n>Iraq</n></e>
+<e i="CNT0040" r="4300"><n>Peru</n></e>
+<e i="CNT0041" r="4200"><n>Venezuela</n></e>
+<e i="CNT0042" r="4200"><n>Afghanistan</n></e>
+<e i="CNT0043" r="4100"><n>Nepal</n></e>
+<e i="CNT0044" r="4000"><n>Uzbekistan</n></e>
+<e i="CNT0045" r="4000"><n>Malaysia</n></e>
+<e i="CNT0046" r="3900"><n>Saudi Arabia</n></e>
+<e i="CNT0047" r="3500"><n>Ghana</n></e>
+<e i="CNT0048" r="3500"><n>North Korea</n></e>
+<e i="CNT0049" r="3400"><n>Republic of China (Taiwan)</n></e>
+<e i="CNT0050" r="3200"><n>Australia</n></e>
+<e i="CNT0051" r="3300"><n>Yemen</n></e>
+<e i="CNT0052" r="3200"><n>Mozambique</n></e>
+<e i="CNT0053" r="3100"><n>Côte d'Ivoire</n></e>
+<e i="CNT0054" r="3100"><n>Romania</n></e>
+<e i="CNT0055" r="3000"><n>Syria</n></e>
+<e i="CNT0056" r="3000"><n>Sri Lanka</n></e>
+<e i="CNT0057" r="2900"><n>Madagascar</n></e>
+<e i="CNT0058" r="2800"><n>Cameroon</n></e>
+<e i="CNT0059" r="2700"><n>Angola</n></e>
+<e i="CNT0060" r="2500"><n>Chile</n></e>
+<e i="CNT0061" r="2410"><n>Netherlands</n></e>
+<e i="CNT0062" r="2400"><n>Kazakhstan</n></e>
+<e i="CNT0063" r="2300"><n>Burkina Faso</n></e>
+<e i="CNT0064" r="2300"><n>Malawi</n></e>
+<e i="CNT0065" r="2200"><n>Niger</n></e>
+<e i="CNT0066" r="2100"><n>Mali</n></e>
+<e i="CNT0067" r="2100"><n>Guatemala</n></e>
+<e i="CNT0068" r="2100"><n>Ecuador</n></e>
+<e i="CNT0069" r="1900"><n>Cambodia</n></e>
+<e i="CNT0070" r="1900"><n>Zambia</n></e>
+<e i="CNT0071" r="1900"><n>Senegal</n></e>
+<e i="CNT0072" r="1800"><n>Zimbabwe</n></e>
+<e i="CNT0073" r="1700"><n>Chad</n></e>
+<e i="CNT0074" r="1600"><n>Greece</n></e>
+<e i="CNT0075" r="1600"><n>Cuba</n></e>
+<e i="CNT0076" r="1600"><n>Belgium</n></e>
+<e i="CNT0077" r="1500"><n>Portugal</n></e>
+<e i="CNT0078" r="1500"><n>Tunisia</n></e>
+<e i="CNT0079" r="1500"><n>Czech Republic</n></e>
+<e i="CNT0080" r="1500"><n>Bolivia</n></e>
+<e i="CNT0081" r="1500"><n>Rwanda</n></e>
+<e i="CNT0082" r="1500"><n>Guinea</n></e>
+<e i="CNT0083" r="1500"><n>Haiti</n></e>
+<e i="CNT0084" r="1400"><n>Hungary</n></e>
+<e i="CNT0085" r="1400"><n>Belarus</n></e>
+<e i="CNT0086" r="1400"><n>Sweden</n></e>
+<e i="CNT0087" r="1400"><n>Dominican Republic</n></e>
+<e i="CNT0088" r="1400"><n>Somalia</n></e>
+<e i="CNT0089" r="1300"><n>Azerbaijan</n></e>
+<e i="CNT0090" r="1300"><n>Benin</n></e>
+<e i="CNT0091" r="1200"><n>Burundi</n></e>
+<e i="CNT0092" r="1200"><n>Austria</n></e>
+<e i="CNT0093" r="1200"><n>Honduras</n></e>
+<e i="CNT0094" r="1100"><n>Switzerland</n></e>
+<e i="CNT0095" r="1100"><n>Israel</n></e>
+<e i="CNT0096" r="1100"><n>Bulgaria</n></e>
+<e i="CNT0097" r="1100"><n>Serbia</n></e>
+<e i="CNT0098" r="1019"><n>Tajikistan</n></e>
+<e i="CNT0099" r="1019"><n>Hong Kong</n></e>
+<e i="CNT0100" r="1000"><n>Papua New Guinea</n></e>
+<e i="CNT0101" r="980"><n>Togo</n></e>
+<e i="CNT0102" r="950"><n>Libya</n></e>
+<e i="CNT0103" r="940"><n>Jordan</n></e>
+<e i="CNT0104" r="940"><n>Paraguay</n></e>
+<e i="CNT0105" r="900"><n>Laos</n></e>
+<e i="CNT0106" r="900"><n>El Salvador</n></e>
+<e i="CNT0107" r="840"><n>Sierra Leone</n></e>
+<e i="CNT0108" r="840"><n>Nicaragua</n></e>
+<e i="CNT0109" r="810"><n>Denmark</n></e>
+<e i="CNT0110" r="790"><n>Slovakia</n></e>
+<e i="CNT0111" r="780"><n>Kyrgyzstan</n></e>
+<e i="CNT0112" r="780"><n>Finland</n></e>
+<e i="CNT0113" r="760"><n>Eritrea</n></e>
+<e i="CNT0114" r="750"><n>Turkmenistan</n></e>
+<e i="CNT0115" r="740"><n>Singapore</n></e>
+<e i="CNT0116" r="720"><n>Norway</n></e>
+<e i="CNT0117" r="680"><n>United Arab Emirates</n></e>
+<e i="CNT0118" r="660"><n>Costa Rica</n></e>
+<e i="CNT0119" r="650"><n>Central African Republic</n></e>
+<e i="CNT0120" r="650"><n>Ireland</n></e>
+<e i="CNT0121" r="640"><n>Georgia</n></e>
+<e i="CNT0122" r="640"><n>Croatia</n></e>
+<e i="CNT0123" r="640"><n>New Zealand</n></e>
+<e i="CNT0124" r="620"><n>Lebanon</n></e>
+<e i="CNT0125" r="590"><n>Liberia</n></e>
+<e i="CNT0126" r="570"><n>Palestinian territories</n></e>
+<e i="CNT0127" r="560"><n>Bosnia and Herzegovina</n></e>
+<e i="CNT0128" r="540"><n>Republic of the Congo</n></e>
+<e i="CNT0129" r="540"><n>Puerto Rico</n></e>
+<e i="CNT0130" r="520"><n>Moldova</n></e>
+<e i="CNT0131" r="490"><n>Panama</n></e>
+<e i="CNT0132" r="490"><n>Mauritania</n></e>
+<e i="CNT0133" r="490"><n>Uruguay</n></e>
+<e i="CNT0134" r="470"><n>Armenia</n></e>
+<e i="CNT0135" r="470"><n>Lithuania</n></e>
+<e i="CNT0136" r="460"><n>Albania</n></e>
+<e i="CNT0137" r="440"><n>Kuwait</n></e>
+<e i="CNT0138" r="400"><n>Mongolia</n></e>
+<e i="CNT0139" r="400"><n>Jamaica</n></e>
+<e i="CNT0140" r="390"><n>Oman</n></e>
+<e i="CNT0141" r="320"><n>Latvia</n></e>
+<e i="CNT0142" r="320"><n>Namibia</n></e>
+<e i="CNT0143" r="300"><n>Lesotho</n></e>
+<e i="CNT0144" r="300"><n>Republic of Macedonia</n></e>
+<e i="CNT0145" r="300"><n>Slovenia</n></e>
+<e i="CNT0146" r="260"><n>Botswana</n></e>
+<e i="CNT0147" r="250"><n>Gambia</n></e>
+<e i="CNT0148" r="250"><n>Qatar</n></e>
+<e i="CNT0149" r="240"><n>Guinea-Bissau</n></e>
+<e i="CNT0150" r="220"><n>Gabon</n></e>
+<e i="CNT0151" r="190"><n>Estonia</n></e>
+<e i="CNT0152" r="190"><n>Trinidad and Tobago</n></e>
+<e i="CNT0153" r="190"><n>Mauritius</n></e>
+<e i="CNT0154" r="170"><n>Swaziland</n></e>
+<e i="CNT0155" r="170"><n>East Timor</n></e>
+<e i="CNT0156" r="130"><n>Djibouti</n></e>
+<e i="CNT0157" r="120"><n>Fiji</n></e>
+<e i="CNT0158" r="120"><n>Bahrain</n></e>
+<e i="CNT0159" r="120"><n>Cyprus</n></e>
+<e i="CNT0160" r="110"><n>Guyana</n></e>
+<e i="CNT0161" r="100"><n>Bhutan</n></e>
+<e i="CNT0162" r="100"><n>Equatorial Guinea [5]</n></e>
+<e i="CNT0163" r="100"><n>Comoros</n></e>
+<e i="CNT0164" r="90"><n>Montenegro</n></e>
+<e i="CNT0165" r="80"><n>Macau</n></e>
+<e i="CNT0166" r="80"><n>Solomon Islands</n></e>
+<e i="CNT0167" r="80"><n>Western Sahara</n></e>
+<e i="CNT0168" r="80"><n>Suriname</n></e>
+<e i="CNT0169" r="70"><n>Luxembourg</n></e>
+<e i="CNT0170" r="70"><n>Cape Verde</n></e>
+<e i="CNT0171" r="60"><n>Malta</n></e>
+<e i="CNT0172" r="60"><n>Brunei</n></e>
+<e i="CNT0173" r="50"><n>Bahamas</n></e>
+<e i="CNT0174" r="50"><n>Belize</n></e>
+<e i="CNT0175" r="50"><n>Iceland</n></e>
+<e i="CNT0176" r="50"><n>Maldives</n></e>
+<e i="CNT0177" r="40"><n>Barbados</n></e>
+<e i="CNT0178" r="40"><n>Vanuatu</n></e>
+<e i="CNT0179" r="30"><n>Samoa</n></e>
+<e i="CNT0180" r="30"><n>Guam</n></e>
+<e i="CNT0181" r="30"><n>Saint Lucia</n></e>
+<e i="CNT0182" r="20"><n>São Tomé and Príncipe</n></e>
+<e i="CNT0183" r="20"><n>Curaçao</n></e>
+<e i="CNT0184" r="20"><n>Saint Vincent and the Grenadines</n></e>
+<e i="CNT0185" r="20"><n>U.S. Virgin Islands</n></e>
+<e i="CNT0186" r="20"><n>Aruba</n></e>
+<e i="CNT0187" r="20"><n>Grenada</n></e>
+<e i="CNT0188" r="20"><n>Tonga</n></e>
+<e i="CNT0189" r="10"><n>Federated States of Micronesia</n></e>
+<e i="CNT0190" r="10"><n>Kiribati</n></e>
+<e i="CNT0191" r="10"><n>Jersey</n></e>
+<e i="CNT0192" r="10"><n>Antigua and Barbuda</n></e>
+<e i="CNT0193" r="10"><n>Northern Mariana Islands</n></e>
+<e i="CNT0194" r="10"><n>Seychelles</n></e>
+<e i="CNT0195" r="10"><n>Andorra</n></e>
+<e i="CNT0196" r="10"><n>Isle of Man</n></e>
+<e i="CNT0197" r="10"><n>American Samoa</n></e>
+<e i="CNT0198" r="10"><n>Dominica</n></e>
+<e i="CNT0199" r="10"><n>Bermuda</n></e>
+<e i="CNT0200" r="10"><n>Guernsey</n></e>
+<e i="CNT0201" r="10"><n>Cayman Islands</n></e>
+<e i="CNT0202" r="10"><n>Greenland</n></e>
+<e i="CNT0203" r="10"><n>Marshall Islands</n></e>
+<e i="CNT0204" r="10"><n>Saint Kitts and Nevis</n></e>
+<e i="CNT0205" r="10"><n>Faroe Islands</n></e>
+<e i="CNT0206" r="5"><n>Turks and Caicos Islands</n></e>
+<e i="CNT0207" r="5"><n>Sint Maarten</n></e>
+<e i="CNT0208" r="5"><n>Liechtenstein</n></e>
+<e i="CNT0209" r="5"><n>Monaco</n></e>
+<e i="CNT0210" r="5"><n>San Marino</n></e>
+<e i="CNT0211" r="4"><n>Gibraltar</n></e>
+<e i="CNT0212" r="4"><n>British Virgin Islands</n></e>
+<e i="CNT0213" r="2"><n>Cook Islands</n></e>
+<e i="CNT0214" r="2"><n>Palau</n></e>
+<e i="CNT0215" r="2"><n>Anguilla</n></e>
+<e i="CNT0216" r="1"><n>Nauru</n></e>
+<e i="CNT0217" r="1"><n>Tuvalu</n></e>
+<e i="CNT0218" r="1"><n>Montserrat</n></e>
+<e i="CNT0219" r="1"><n>Saint Helena, Ascension and Tristan da Cunha</n></e>
+<e i="CNT0220" r="0"><n>Falkland Islands</n></e>
+<e i="CNT0221" r="0"><n>Niue</n></e>
+<e i="CNT0222" r="0"><n>Tokelau</n></e>
+<e i="CNT0223" r="0"><n>Vatican City</n></e>
+<e i="CNT0224" r="0"><n>Pitcairn Islands</n></e>
+</entlist>
