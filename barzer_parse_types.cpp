@@ -27,7 +27,12 @@ std::ostream& operator<<( std::ostream& fp, const CTWPVec& v )
 
 void CToken::syncClassInfoFromSavedTok()
 {
-#warning implement CToken::syncClassInfoFromSavedTok
+	if( storedTok ) {
+		if( storedTok->classInfo.theClass == StoredTokenClassInfo::CLASS_NUMBER ) 
+			cInfo.theClass = CTokenClassInfo::CLASS_NUMBER ;
+		else
+			cInfo.theClass = CTokenClassInfo::CLASS_WORD ;
+	}
 /// copy settings from storedToken's info sub-object into cInfo
 }
 

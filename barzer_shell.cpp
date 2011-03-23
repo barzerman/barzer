@@ -14,18 +14,20 @@ struct BarzerShellContext : public ay::ShellContext {
 
 	ay::UniqueCharPool charPool;
 
-	BarzerShellContext() : dtaIdx(0) 
-	{ }
 	~BarzerShellContext() {
 		if( dtaIdx ) 
 			delete dtaIdx;
 	}
 	DtaIndex* obtainDtaIdx() 
 	{
-		if( !dtaIdx ) 
+		if( !dtaIdx ) {
 			dtaIdx = new  DtaIndex(&charPool);
+			parser.lexer.setDtaIndex( dtaIdx );
+		}
 		return dtaIdx;
 	}
+	BarzerShellContext() : dtaIdx(0)
+	{ obtainDtaIdx(); }
 	void clearDtaIdx() 
 	{
 		if( dtaIdx )
