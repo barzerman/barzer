@@ -20,6 +20,7 @@ bool QLexParser::tryClassify_number( CToken& ctok, const TToken& ttok ) const
 	}
 	if( hasDigit ) {
 		ctok.setClass( CTokenClassInfo::CLASS_NUMBER );
+		return true;
 	}
 	return false;
 }

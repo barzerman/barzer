@@ -21,6 +21,7 @@ struct EnumAndString {
 			const EnumAndString& eas = buf[i];
 			if( eas.num == theEnum ) {
 				fp << eas.s ;
+				return;
 			}
 		}
 		fp << "(undefined)";
@@ -237,10 +238,11 @@ void CTokenClassInfo::printClassSubclass( std::ostream& fp ) const
 	case CLASS_UNCLASSIFIED:
 	case CLASS_MYSTERY_WORD:
 	case CLASS_PUNCTUATION:
+	case CLASS_SPACE:
 		fp << "_";
 		break;
 	default:
-		fp << "(undefined)";
+		fp << "(unknown)";
 		break;
 	}
 }

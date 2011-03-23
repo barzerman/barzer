@@ -196,7 +196,7 @@ static int bshf_lex( BarzerShell* shell, char_cp cmd, std::istream& in )
 		/// classify tokens in the barz
 		parser.lex_only( barz, qparm );
 		const CTWPVec& ctVec = barz.getCtVec();
-		outFp << "Classified Tokens:" << ctVec << std::endl;
+		outFp << "Classified Tokens:\n" << ctVec << std::endl;
 	}
 	return 0;
 }

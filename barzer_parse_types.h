@@ -69,6 +69,8 @@ struct CToken {
 	CToken( ) : 
 		storedTok(0) {}
 	std::ostream& print( std::ostream& fp ) const;
+	
+	std::ostream& printQtVec( std::ostream& fp ) const;
 };
 
 typedef std::pair< CToken, uint16_t > CTokenWithPos;
@@ -127,10 +129,13 @@ class QLexParser;
 class QTokenizer;
 // collection of punits and the original question
 class Barz {
-	/// copy of the original question
+	/// original question with 0-s terminating tokens
 	/// all poistional info, pointers and offsets from everything
-	/// contained in puVec refers to this string
-	std::string question; 
+	/// contained in puVec refers to this string. 
+	/// so this string is almost always *longer* than the input question
+	std::vector<char> question; 
+	/// exact copy of the original question
+	std::string questionOrig; 
 	
 	TTWPVec ttVec; 
 	CTWPVec ctVec; 
@@ -141,6 +146,10 @@ class Barz {
 	friend class QTokenizer;
 
 	friend class QParser;
+	
+	/// called from tokenize, ensures that question has 0-terminated
+	/// tokens and that ttVec tokens point into it
+	void syncQuestionFromTokens();
 public:
 	const TTWPVec& getTtVec() const { return  ttVec; }
 	const CTWPVec& getCtVec() const { return ctVec; }
