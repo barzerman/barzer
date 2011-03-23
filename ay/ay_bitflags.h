@@ -1,5 +1,6 @@
 #ifndef AY_BITFLAGS_H
 #define AY_BITFLAGS_H
+#include <ay_headers.h>
 #include <stdlib.h>
 #include <iostream>
 

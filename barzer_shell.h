@@ -3,6 +3,7 @@
 
 #include <ay/ay_shell.h>
 #include <iostream>
+#include <ay/ay_headers.h>
 namespace barzer {
 
 struct BarzerShellContext;

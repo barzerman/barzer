@@ -5,6 +5,7 @@
 #include <ay/ay_slogrovector.h>
 #include <ay/ay_string_pool.h>
 #include <ay/ay_util_char.h>
+#include <ay/ay_headers.h>
 
 namespace barzer {
 

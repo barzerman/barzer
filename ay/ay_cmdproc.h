@@ -1,5 +1,6 @@
 #ifndef AY_CMDPROC_H
 #define AY_CMDPROC_H
+#include <ay_headers.h>
 
 
 /// command line processor 

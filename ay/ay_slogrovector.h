@@ -1,6 +1,7 @@
 #ifndef AY_SLOGROVECTOR_H
 #define AY_SLOGROVECTOR_H
 
+#include <ay_headers.h>
 #include <vector>
 // slogrovector is something that starts with a presumed size and then 
 // increments capacity by a fixed number of elements instead of doubling

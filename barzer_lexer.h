@@ -2,6 +2,7 @@
 #define BARZER_LEXER_H
 #include <barzer_parse_types.h>
 #include <barzer_language.h>
+#include <ay/ay_headers.h>
 
 namespace barzer {
 class DtaIndex;

@@ -6,6 +6,7 @@
 #include <map>
 #include <ay/ay_bitflags.h>
 #include <ay/ay_string_pool.h>
+#include <ay/ay_headers.h>
 
 /// Storage types are the types used in read-only data structures to store 
 /// tokens (both compounded and single) and Entities
