@@ -5,6 +5,7 @@ BINARY=barzer.exe
 libs = ay/aylib.a /opt/local/lib/boost/libboost_system.a -lexpat
 ECHO = echo
 objects = \
+barzer_basic_types.o \
 barzer_storage_types.o \
 barzer_loader_xml.o \
 barzer.o \

@@ -20,6 +20,9 @@ std::ostream& CToken::print( std::ostream& fp ) const
 	printQtVec(fp) << "]";
 
 	fp << cInfo << ling;
+	if( isNumber() ) {
+		fp << "=" << bNum;
+	}
 	if( storedTok ) 
 		fp << " strd[" << *storedTok << "]";
 	else 

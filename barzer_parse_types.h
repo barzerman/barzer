@@ -7,6 +7,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <barzer_token.h>
+#include <barzer_basic_types.h>
 
 namespace barzer {
 struct TToken ;
@@ -45,11 +46,14 @@ inline std::ostream& operator<<( std::ostream& fp, const TTokenWithPos& t ) {
 }
 std::ostream& operator<<( std::ostream& fp, const TTWPVec& v );
 class StoredToken;
+
 /// classified token
 struct CToken {
 	TTWPVec qtVec; // input question tokens corresponding to this CToken 
 	CTokenClassInfo cInfo;
 	TokenLinguisticInfo ling; 
+
+	BarzerNumber bNum; // in cse this classifies as number
 
 	const StoredToken* storedTok;
 	void setCInfoBit( size_t b ) { cInfo.bitFlags.set(b); }
@@ -71,6 +75,9 @@ struct CToken {
 	std::ostream& print( std::ostream& fp ) const;
 	
 	std::ostream& printQtVec( std::ostream& fp ) const;
+
+	bool isNumber() const { return cInfo.theClass == CTokenClassInfo::CLASS_NUMBER; }
+	bool isWord() const { return cInfo.theClass == CTokenClassInfo::CLASS_WORD; }
 };
 
 typedef std::pair< CToken, uint16_t > CTokenWithPos;
