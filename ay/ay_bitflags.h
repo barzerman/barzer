@@ -3,6 +3,7 @@
 #include <ay_headers.h>
 #include <stdlib.h>
 #include <iostream>
+#include <stdint.h>
 
 namespace ay {
 // bitflags works around a nasty limitation of bitset which seems to alsways be 

@@ -5,6 +5,7 @@
 #include <ay_headers.h>
 #include <vector>
 #include <ay_util_char.h>
+#include <stdint.h>
 
 namespace ay {
 

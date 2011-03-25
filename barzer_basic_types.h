@@ -3,6 +3,8 @@
 #include <iostream>
 #include <limits>
 #include <stdlib.h>
+#include <stdint.h>
+
 namespace barzer {
 
 /// pure numbers

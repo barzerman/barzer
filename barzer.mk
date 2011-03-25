@@ -1,8 +1,8 @@
 FLAGS := $(FLAGS) 
-CFLAGS := $(FLAGS) -I/opt/local/include -Wall -g -I. -I./ay
+CFLAGS := $(FLAGS) -I/opt/local/include -I/usr/include -Wall -g -I. -I./ay
 LINKFLAGS := $(FLAGS)
 BINARY=barzer.exe
-libs = ay/aylib.a /opt/local/lib/boost/libboost_system.a -lexpat
+libs = -Lay -lay -L/opt/local/lib/boost -L/usr/lib -lboost_system -lexpat
 ECHO = echo
 objects = \
 barzer_basic_types.o \
@@ -18,10 +18,15 @@ barzer_dtaindex.o \
 barzer_server.o \
 barzer_token.o \
 lg_en/barzer_en_lex.o \
-lg_ru/barzer_ru_lex.o
+lg_ru/barzer_ru_lex.o \
+#ay/ay_cmdproc.o \
+ay/ay_shell.o \
+ay/ay_util.o \
+ay/ay_string_pool.o \
+ay/ay_util_time.o
 
-all: ay/aylib.a $(objects) 
-	c++ $(LINKFLAGS) -o  $(BINARY) $(libs) $(objects)
+all: ay/libay.a $(objects) 
+	c++ $(LINKFLAGS) -o  $(BINARY) $(objects) $(libs) 
 clean: 
 	rm -f $(objects) $(BINARY)
 cleanall: clean cleanaylib
@@ -32,7 +37,7 @@ aylib_rebuild:
 	cd ay; make -f aylib.mk rebuild FLAGS=$(FLAGS); cd ..
 aylib: 
 	cd ay; make -f aylib.mk FLAGS=$(FLAGS); cd ..
-ay/aylib.a: 
+ay/libay.a: 
 	cd ay; make -f aylib.mk rebuild $(FLAGS); cd ..
 .cpp.o:
 	c++  -c $(CFLAGS) $< -o $@
