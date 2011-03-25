@@ -19,11 +19,6 @@ barzer_server.o \
 barzer_token.o \
 lg_en/barzer_en_lex.o \
 lg_ru/barzer_ru_lex.o \
-#ay/ay_cmdproc.o \
-ay/ay_shell.o \
-ay/ay_util.o \
-ay/ay_string_pool.o \
-ay/ay_util_time.o
 
 all: ay/libay.a $(objects) 
 	c++ $(LINKFLAGS) -o  $(BINARY) $(objects) $(libs) 
