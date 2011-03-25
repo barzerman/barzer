@@ -78,6 +78,11 @@ struct CToken {
 
 	bool isNumber() const { return cInfo.theClass == CTokenClassInfo::CLASS_NUMBER; }
 	bool isWord() const { return cInfo.theClass == CTokenClassInfo::CLASS_WORD; }
+	bool isPunct() const { return cInfo.theClass == CTokenClassInfo::CLASS_PUNCTUATION; }
+	bool isPunct(char c) const { 
+		return ( isPunct() && qtVec.size() == 1 && qtVec[0].first.buf[0] == c );
+	}
+	bool isSpace() const { return cInfo.theClass == CTokenClassInfo::CLASS_SPACE; }
 };
 
 typedef std::pair< CToken, uint16_t > CTokenWithPos;

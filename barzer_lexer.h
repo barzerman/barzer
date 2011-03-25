@@ -28,6 +28,9 @@ class QLexParser {
 	int singleTokenClassify( CTWPVec& , const TTWPVec&, const QuestionParm& );	
 	/// multitoken non-language specific hardcoded stuff
 	int advancedBasicClassify( CTWPVec& , const TTWPVec&, const QuestionParm& );	
+	/// called from advancedBasicClassify
+	/// tries to detect numbers with punctuation - 1.5 , 1,000,000 etc. 
+	int advancedNumberClassify( CTWPVec& , const TTWPVec&, const QuestionParm& );	
 
 	bool tryClassify_number( CToken&, const TToken&  ) const;
 public:
