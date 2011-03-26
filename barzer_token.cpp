@@ -203,6 +203,7 @@ std::ostream& StoredTokenClassInfo::print( std::ostream& fp ) const
 #define CTCI_CLASS_NAME( x ) { CTokenClassInfo::CLASS_##x, #x }
 static EnumAndString g_CTCI_ClassName[] = {
 		CTCI_CLASS_NAME(UNCLASSIFIED),
+		CTCI_CLASS_NAME(BLANK),
 		CTCI_CLASS_NAME(WORD),
 		CTCI_CLASS_NAME(MYSTERY_WORD),
 		CTCI_CLASS_NAME(NUMBER),

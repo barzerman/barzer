@@ -42,6 +42,10 @@ struct StoredTokenClassInfo {
 		subclass(0)
 	{}
 
+	void clear() 
+	{
+	}
+
 	void printClassName( std::ostream& ) const;
 	void printSublassName( std::ostream& ) const;
 	void printBitflagNames( std::ostream& ) const;
@@ -54,6 +58,7 @@ struct StoredTokenClassInfo {
 struct CTokenClassInfo {
 	typedef enum {
 		CLASS_UNCLASSIFIED,
+		CLASS_BLANK,
 		CLASS_WORD,
 		CLASS_MYSTERY_WORD, /// word cant be either classified or matched
 		CLASS_NUMBER,
@@ -108,6 +113,12 @@ public:
 	void printBitFlags( std::ostream& ) const;
 
 	std::ostream& print( std::ostream& ) const;
+	void clear() {
+		theClass = CLASS_BLANK;
+		subclass = 0;
+		bitFlags.clear();
+		classFlags.clear();
+	}
 };
 inline std::ostream& operator <<( std::ostream& fp, const CTokenClassInfo& t )
 { return t.print(fp); }
@@ -116,6 +127,7 @@ inline std::ostream& operator <<( std::ostream& fp, const CTokenClassInfo& t )
 struct TokenLinguisticInfo {
 	/// unused
 	uint8_t dummy;
+	void clear() {}
 	std::ostream& print( std::ostream& fp ) const
 	{ return fp; }
 };

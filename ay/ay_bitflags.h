@@ -40,6 +40,7 @@ public:
 	}
 	/// 0 all bits
 	void reset() { memset( buf,0,sizeof(buf) ); }
+	void clear() { reset(); }
 	/// 1 all bits
 	void set() { memset( buf,0xffffffff,sizeof(buf) ); }
 

@@ -24,6 +24,9 @@ class QLexParser {
 	/// by running through some lang specific code
 	QLangLexer langLexer;
 	const DtaIndex* dtaIdx;
+
+	void collapseCTokens( CTWPVec::iterator beg, CTWPVec::iterator end );
+
 	/// resolves single tokens - this is not language specific
 	int singleTokenClassify( CTWPVec& , const TTWPVec&, const QuestionParm& );	
 	/// multitoken non-language specific hardcoded stuff

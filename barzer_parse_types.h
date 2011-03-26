@@ -4,6 +4,7 @@
 #include <ay/ay_headers.h>
 #include <vector>
 #include <map>
+#include <list>
 #include <iostream>
 #include <stdio.h>
 #include <barzer_token.h>
@@ -56,6 +57,13 @@ struct CToken {
 	BarzerNumber bNum; // in cse this classifies as number
 
 	const StoredToken* storedTok;
+
+	void clear() {
+		qtVec.clear();
+		cInfo.clear();
+		ling.clear();
+		bNum.clear();
+	}
 	void setCInfoBit( size_t b ) { cInfo.bitFlags.set(b); }
 
 	/// sets qtVec to a single TToken
@@ -83,6 +91,15 @@ struct CToken {
 		return ( isPunct() && qtVec.size() == 1 && qtVec[0].first.buf[0] == c );
 	}
 	bool isSpace() const { return cInfo.theClass == CTokenClassInfo::CLASS_SPACE; }
+	
+	void setNumber( int i ) {
+		cInfo.theClass = StoredTokenClassInfo::CLASS_NUMBER;
+		bNum.set(i);
+	}
+	void setNumber( double x ) {
+		cInfo.theClass = StoredTokenClassInfo::CLASS_NUMBER;
+		bNum.set(x);
+	}
 };
 
 typedef std::pair< CToken, uint16_t > CTokenWithPos;

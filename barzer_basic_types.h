@@ -27,6 +27,10 @@ public:
 	BarzerNumber( int i ) : type(NTYPE_INT) {n.i = i;}
 	BarzerNumber( double i ) : type(NTYPE_REAL) {n.real = i;}
 
+	void set( int i ) { type= NTYPE_INT; n.i = i; }
+	void set( double x ) { type= NTYPE_REAL; n.real = x; }
+
+	void clear() { type = NTYPE_NAN; }
 	int setInt( const char* s) { return( type= NTYPE_INT, n.i = atoi(s)); }
 	int setReal( const char* s) { return( type= NTYPE_REAL, n.i = atof(s)); }
 	inline bool isNan() const { return type == NTYPE_NAN; }

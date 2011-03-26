@@ -1,6 +1,7 @@
 #include <barzer_lexer.h>
 #include <ctype.h>
 #include <barzer_dtaindex.h>
+#include <sstream>
 
 namespace barzer {
 bool QLexParser::tryClassify_number( CToken& ctok, const TToken& ttok ) const
@@ -30,9 +31,99 @@ bool QLexParser::tryClassify_number( CToken& ctok, const TToken& ttok ) const
 	return false;
 }
 
+void QLexParser::collapseCTokens( CTWPVec::iterator beg, CTWPVec::iterator end )
+{
+	if( beg == end ) 
+		return;
+	CTWPVec::iterator i = beg;
+	CToken& target = beg->first;
+	++i;
+	for( ; i!= end; ++i ) {
+		CToken& t = i->first;
+		std::copy(t.qtVec.begin(),t.qtVec.end(),  target.qtVec.end() );
+		t.clear();
+	}
+}
+
+int QLexParser::advancedNumberClassify( CTWPVec& cvec, const TTWPVec& tvec, const QuestionParm& qparm )
+{
+	//// this only processes positive 
+	CTWPVec::iterator nBeg = cvec.begin(), nEnd = cvec.begin();
+	CTWPVec::iterator i = cvec.begin();
+	for( ; i!= cvec.end(); ++i ) {
+		CToken& t = i->first;
+
+		bool isMinus = t.isPunct('-');
+		bool hasDigits = false;
+		if( t.isNumber() || isMinus ) {
+			std::stringstream sstr;
+			if( isMinus )
+				sstr << '-';
+			else
+				sstr << t.bNum;
+			hasDigits = !isMinus;
+
+			CTWPVec::iterator j=i;
+			++j;
+			bool hasDot = false;
+			bool hasFraction = false;
+			/// this only assumes simple decimals and regular numbers
+			/// if i is a number then first j cant be a number (tokenization 
+			/// cant produce 2 non space separated numbers 
+			/// so it's either . or non digit and we will need to do anything
+			/// only if it's .
+			for(; j!= cvec.end(); ++j ) {
+				if( j->first.isNumber() ) {
+						hasDigits = true;
+						if( hasDot )
+							hasFraction = true;
+						sstr << t.bNum;
+				} if( j->first.isPunct('.') ) {
+					if( hasDot ) {
+						if( hasDigits ) {
+							std::string tmp = sstr.str();
+							if( hasFraction ) {
+								double x = atof( tmp.c_str() );
+								t.setNumber( x );
+								collapseCTokens( i, ++j );
+							} else if( isMinus ) {
+								int x = atoi( tmp.c_str() );
+								t.setNumber( x );
+								collapseCTokens( i, ++j );
+							}
+						}
+						i=j;
+						break;
+					} else {
+						sstr << '.';
+					}
+				} else {
+					if( hasDot ) {
+						if( hasDigits ) {
+							std::string tmp = sstr.str();
+							double x = atof( tmp.c_str() );
+							t.setNumber( x );
+							collapseCTokens( i, ++j );
+						}
+					} else if( isMinus ) {
+						std::string tmp = sstr.str();
+						int x = atoi( tmp.c_str() );
+						t.setNumber( x );
+						collapseCTokens( i, ++j );
+					}
+					i=j;
+					break;
+				}
+			}
+		} 
+	}
+	return 0;
+}
+
 int QLexParser::advancedBasicClassify( CTWPVec& cvec, const TTWPVec& tvec, const QuestionParm& qparm )
 {
 	// transforms 
+	advancedNumberClassify(cvec,tvec,qparm);
 	return 0;
 }
 
