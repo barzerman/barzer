@@ -137,6 +137,17 @@ int Shell::init()
 	context = mkContext();
 	return rc;
 }
+int Shell::cmdInvoke( int& rc, char_cp cmd, std::istream& in )
+{
+	const CmdData* cd = getCmdDta( cmd );
+	if( cd ) {
+		return( (rc=cd->func( this, cmd, in ), 0) );
+	} else {
+		*errStream << "command " << cmd << " not found. Run 'help [text]' for help\n";
+		return( rc=0,-1 );
+	}
+}
+
 int Shell::runCmdLoop(std::istream* fp )
 {
 	int rc = 0;

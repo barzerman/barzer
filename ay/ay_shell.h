@@ -55,12 +55,7 @@ protected:
 		CmdDataMap::const_iterator i = cmdMap.find( cmd );
 		return( i!= cmdMap.end() ? i->second : 0 );
 	}
-
-	inline int cmdInvoke( int& rc, char_cp cmd, std::istream& in )
-	{
-		const CmdData* cd = getCmdDta( cmd );
-		return( cd ? (rc=cd->func( this, cmd, in ), 0) : (rc=0,-1) );
-	}
+	inline int cmdInvoke( int& rc, char_cp cmd, std::istream& in );
 
 	CmdDataRange getProcs() const; // own procedures and fallback ones (BaseProcs)
 	virtual int printPrompt();
