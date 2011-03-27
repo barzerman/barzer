@@ -84,6 +84,7 @@ struct CToken {
 	
 	std::ostream& printQtVec( std::ostream& fp ) const;
 
+	bool isBlank() const { return cInfo.theClass == CTokenClassInfo::CLASS_BLANK; }
 	bool isNumber() const { return cInfo.theClass == CTokenClassInfo::CLASS_NUMBER; }
 	bool isWord() const { return cInfo.theClass == CTokenClassInfo::CLASS_WORD; }
 	bool isPunct() const { return cInfo.theClass == CTokenClassInfo::CLASS_PUNCTUATION; }
@@ -93,11 +94,11 @@ struct CToken {
 	bool isSpace() const { return cInfo.theClass == CTokenClassInfo::CLASS_SPACE; }
 	
 	void setNumber( int i ) {
-		cInfo.theClass = StoredTokenClassInfo::CLASS_NUMBER;
+		cInfo.theClass = CTokenClassInfo::CLASS_NUMBER;
 		bNum.set(i);
 	}
 	void setNumber( double x ) {
-		cInfo.theClass = StoredTokenClassInfo::CLASS_NUMBER;
+		cInfo.theClass = CTokenClassInfo::CLASS_NUMBER;
 		bNum.set(x);
 	}
 };

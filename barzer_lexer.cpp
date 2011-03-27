@@ -48,82 +48,62 @@ void QLexParser::collapseCTokens( CTWPVec::iterator beg, CTWPVec::iterator end )
 int QLexParser::advancedNumberClassify( CTWPVec& cvec, const TTWPVec& tvec, const QuestionParm& qparm )
 {
 	//// this only processes positive 
-	CTWPVec::iterator nBeg = cvec.begin(), nEnd = cvec.begin();
-	CTWPVec::iterator i = cvec.begin();
-	for( ; i!= cvec.end(); ++i ) {
-		CToken& t = i->first;
+	for( size_t i =0; i< cvec.size(); ++i ) {
+		CToken& t = cvec[i].first;
+		if( t.isNumber() ) {
+			size_t i_dot = i+1, i_frac = i+2;
+			if( i_frac < cvec.size() ) {
+				CToken& dotTok = cvec[i_dot].first;
+				CToken& fracTok = cvec[i_frac].first;
+				// tokens preceding T and following frac
+				CToken* pastFrac = ( i_frac + 1 < cvec.size() ? &(cvec[i_frac+1].first) : 0 );
+				CToken* preT = ( i ? &(cvec[i-1].first) : 0 );
 
-		bool isMinus = t.isPunct('-');
-		bool hasDigits = false;
-		if( t.isNumber() || isMinus ) {
-			std::stringstream sstr;
-			if( isMinus )
-				sstr << '-';
-			else
-				sstr << t.bNum;
-			hasDigits = !isMinus;
-
-			CTWPVec::iterator j=i;
-			++j;
-			bool hasDot = false;
-			bool hasFraction = false;
-			/// this only assumes simple decimals and regular numbers
-			/// if i is a number then first j cant be a number (tokenization 
-			/// cant produce 2 non space separated numbers 
-			/// so it's either . or non digit and we will need to do anything
-			/// only if it's .
-			for(; j!= cvec.end(); ++j ) {
-				if( j->first.isNumber() ) {
-						hasDigits = true;
-						if( hasDot )
-							hasFraction = true;
-						sstr << t.bNum;
-				} if( j->first.isPunct('.') ) {
-					if( hasDot ) {
-						if( hasDigits ) {
-							std::string tmp = sstr.str();
-							if( hasFraction ) {
-								double x = atof( tmp.c_str() );
-								t.setNumber( x );
-								collapseCTokens( i, ++j );
-							} else if( isMinus ) {
-								int x = atoi( tmp.c_str() );
-								t.setNumber( x );
-								collapseCTokens( i, ++j );
-							}
-						}
-						i=j;
-						break;
-					} else {
-						sstr << '.';
-					}
-				} else {
-					if( hasDot ) {
-						if( hasDigits ) {
-							std::string tmp = sstr.str();
-							double x = atof( tmp.c_str() );
-							t.setNumber( x );
-							collapseCTokens( i, ++j );
-						}
-					} else if( isMinus ) {
-						std::string tmp = sstr.str();
-						int x = atoi( tmp.c_str() );
-						t.setNumber( x );
-						collapseCTokens( i, ++j );
-					}
-					i=j;
-					break;
+				if( 
+					(pastFrac && !(pastFrac->isSpace()) && !pastFrac->isPunct(',') ) ||
+					(preT && !(preT->isSpace()) && !preT->isPunct(',') ) )  
+				{
+					continue;
+				}
+				if( dotTok.isPunct('.') && fracTok.isNumber() ) {
+					// floating point
+					std::stringstream sstr;
+					sstr << t.bNum << '.' << fracTok.bNum;
+					double x = atof( sstr.str().c_str() );
+					t.setNumber( x );
+					t.qtVec.insert( t.qtVec.end(), dotTok.qtVec.begin(), dotTok.qtVec.end() );
+					t.qtVec.insert( t.qtVec.end(), fracTok.qtVec.begin(), fracTok.qtVec.end() );
+					dotTok.clear();
+					fracTok.clear();
 				}
 			}
 		} 
 	}
 	return 0;
 }
+namespace {
+
+void removeBlankCTokens( CTWPVec& cvec )
+{
+	CTWPVec::iterator d = cvec.begin(), s = cvec.begin();
+	while( s!= cvec.end()) {
+		if( !s->first.isBlank() ) {
+			if( s!= d ) *d = *s;
+			++d;
+		}
+		++s;
+	}
+	if( d!= cvec.end() ) 
+		cvec.resize( d-cvec.begin() );
+}
+
+}
 
 int QLexParser::advancedBasicClassify( CTWPVec& cvec, const TTWPVec& tvec, const QuestionParm& qparm )
 {
 	// transforms 
 	advancedNumberClassify(cvec,tvec,qparm);
+	removeBlankCTokens( cvec );
 	return 0;
 }
 
