@@ -5,21 +5,28 @@
 
 #include <ay/ay_util_char.h>
 using ay::char_cp;
-struct XML_ParserStruct;
+
+extern "C" {
+struct XML_ParserStruct; // this is expat xml parser type. expat is in C
+}
 
 namespace barzer {
 //// !!!!!!!!!!! NEVER REORDER ANY OF THE ENUMS 
 
 class BELParserXML : public BELParser {
+	/// given a tag returns one of the TAG_XX enums (see below)
+	int getTag( const char* s ) const;
+	const char* getTagName( const char* s );
 public:
 	/// there's practically a 1-1 correspondence between the BELParseTreeNode::nodeType enums and 
 	/// the XML tags. the TreeNode enums are not sequential so we will address this issue 
 	/// but assigning ranges 
 	enum {
+		TAG_UNDEFINED,
 		/// control tags 
-		TAG_STATEMENT, // doesnt have a pair in the node type realm - the whole statement
+		TAG_STATEMENT, // <stmt> doesnt have a pair in the node type realm - the whole statement
 		
-		TAG_PATTERN, // no pair in the node type - represents the whole left side 
+		TAG_PATTERN, // <pat> no pair in the node type - represents the whole left side 
 
 		TAG_RANGE_ELEMENT, // no pair in the node type - represents the whole left side 
 					 // BEL_PATTERN_XXX = TAG_XXX - TAG_PATTERN
@@ -31,7 +38,7 @@ public:
 		TAG_N, 		// number
 		TAG_RX, 	// token regexp
 		TAG_TDRV, 	// token derivaive
-		TAG_WC, 	// word class
+		TAG_WCLS, 	// word class
 		TAG_W, 		// token wildcard
 		TAG_DATE, 	// date
 		TAG_TIME, 	// time
@@ -45,12 +52,10 @@ public:
 		TAG_PERM, // permutation of children
 		TAG_TAIL, // if children are A,B,C this translates into [A], [A,B] and [A,B,C]
 
-		TAG_TRANSLATION, // no pair in the node type - represents the whole left side 
+		TAG_TRANSLATION, // <trans> no pair in the node type - represents the whole left side 
 		TAG_REWRITE_STRUCT, // not a real tag used for translation
 						// BEL_REWRITE_XXX = TAG_XXX-TAG_REWRITE_STRUCT
 
-		TAG_RL, // literal
-		TAG_RN, // number
 		TAG_VAR, // variable
 		TAG_FUNC, // function
 		
@@ -59,6 +64,7 @@ public:
 	};
 
 	XML_ParserStruct* parser;
+	~BELParserXML() ;
 	BELParserXML( BELReader* r ) : 
 		BELParser(r),parser(0) {}
 
