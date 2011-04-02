@@ -5,6 +5,10 @@ BINARY=barzer.exe
 libs = -Lay -lay -L/opt/local/lib/boost -L/usr/lib -lboost_system -lexpat
 ECHO = echo
 objects = \
+barzer_el_parser.o \
+barzer_el_trie.o \
+barzer_el_trie_processor.o \
+barzer_el_xml.o \
 barzer_basic_types.o \
 barzer_storage_types.o \
 barzer_loader_xml.o \
