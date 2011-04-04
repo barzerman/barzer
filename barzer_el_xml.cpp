@@ -35,14 +35,180 @@ static void charDataHandle( void * ud, const XML_Char *str, int len)
 
 namespace barzer {
 
+bool BELParserXML::isValidTag( int tag, int parent ) const
+{
+	switch( parent ) {
+	case TAG_UNDEFINED:
+		return ( tag == TAG_STATEMENT );
+	case TAG_STATEMENT:
+		if( tag == TAG_PATTERN ) {
+			if( !statement.pattern )
+				return true;
+		} else if( tag == TAG_TRANSLATION ) {
+			if( !statement.translation )
+				return true;
+		}
+		return false;
+	case TAG_PATTERN:
+	switch( tag ) {
+	TAG_T:
+	TAG_TG:
+	TAG_P:
+	TAG_SPC:
+	TAG_N:
+	TAG_RX:
+	TAG_TDRV:
+	TAG_WCLS:
+	TAG_W:
+	TAG_DATE:
+	TAG_TIME:
+	TAG_LIST:
+	TAG_ANY:
+	TAG_OPT:
+	TAG_PERM:
+	TAG_TAIL:
+		return true;
+	default:
+		return false;
+	}
+		break;
+
+	case TAG_TRANSLATION:
+		return true;
+	default:
+		return false;
+	}
+	// fall through - should reach here 	
+	return false;
+}
+
 // attr_sz number of attribute pairs
 void BELParserXML::startElement( const char* tag, const char_cp * attr, size_t attr_sz )
 {
+	int tid = getTag( tag );
+	int parentTag = ( tagStack.empty() ? TAG_UNDEFINED:  tagStack.top() );
+	
+	if( tid == TAG_STATEMENT ) {
+		++statementCount;
+	}
+	tagStack.push( tid );
+	if( !isValidTag( tid, parentTag )  ) {
+		std::cerr << "invalid BEL xml in statement " << statementCount << "\n";
+		return;
+	}	
+	elementHandleRouter( tid, attr,attr_sz, false );
 }
+
+void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t attr_sz, bool close )
+{
+#define CASE_TAG(x) case TAG_##x: taghandle_##x(attr,attr_sz,close); return;
+	if( close ) 
+		statement.popNode();
+
+	switch( tid ) {
+	CASE_TAG(UNDEFINED)
+	CASE_TAG(STATEMENT)
+	CASE_TAG(PATTERN)
+	CASE_TAG(TRANSLATION)
+	CASE_TAG(T)
+	CASE_TAG(TG)
+	CASE_TAG(P)
+	CASE_TAG(SPC)
+	CASE_TAG(N)
+	CASE_TAG(RX)
+	CASE_TAG(TDRV)
+	CASE_TAG(WCLS)
+	CASE_TAG(W)
+	CASE_TAG(DATE)
+	CASE_TAG(TIME)
+	CASE_TAG(LIST)
+	CASE_TAG(ANY)
+	CASE_TAG(OPT)
+	CASE_TAG(PERM)
+	CASE_TAG(TAIL)
+	}
+#undef CASE_TAG
+}
+
+void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bool close )
+{
+	if( close ) { /// tag is being closed
+		return;
+	}
+	if( statement.hasStatement() ) { // bad - means we have statement tag nested in another statement
+		std::cerr << "statement nested in statement " << statementCount << "\n";
+		return;
+	} 
+	statement.setStatement();
+}
+void BELParserXML::taghandle_UNDEFINED( const char_cp * attr, size_t attr_sz, bool close )
+{}
+
+void BELParserXML::taghandle_PATTERN( const char_cp * attr, size_t attr_sz , bool close)
+{
+	if( close ) { /// tag is being closed
+		return;
+	}
+	if( statement.hasPattern() ) { 
+		std::cerr << "duplicate pattern tag in statement " << statementCount << "\n";
+		return;
+	}
+	
+}
+void BELParserXML::taghandle_TRANSLATION( const char_cp * attr, size_t attr_sz , bool close)
+{
+	if( close ) { /// tag is being closed
+		statement.popNode();
+		return;
+	}
+	if( statement.hasTranslation() ) { 
+		std::cerr << "duplicate translation tag in statement " << statementCount << "\n";
+		return;
+	}
+	
+}
+void BELParserXML::taghandle_T( const char_cp * attr, size_t attr_sz , bool close)
+{
+}
+void BELParserXML::taghandle_TG( const char_cp * attr, size_t attr_sz , bool close)
+{}
+void BELParserXML::taghandle_P( const char_cp * attr, size_t attr_sz , bool close)
+{}
+void BELParserXML::taghandle_SPC( const char_cp * attr, size_t attr_sz , bool close)
+{}
+void BELParserXML::taghandle_N( const char_cp * attr, size_t attr_sz , bool close)
+{}
+void BELParserXML::taghandle_RX( const char_cp * attr, size_t attr_sz , bool close)
+{}
+void BELParserXML::taghandle_TDRV( const char_cp * attr, size_t attr_sz , bool close)
+{}
+void BELParserXML::taghandle_WCLS( const char_cp * attr, size_t attr_sz , bool close)
+{}
+void BELParserXML::taghandle_W( const char_cp * attr, size_t attr_sz , bool close)
+{}
+void BELParserXML::taghandle_DATE( const char_cp * attr, size_t attr_sz , bool close)
+{}
+void BELParserXML::taghandle_TIME( const char_cp * attr, size_t attr_sz , bool close)
+{}
+void BELParserXML::taghandle_LIST( const char_cp * attr, size_t attr_sz , bool close)
+{}
+void BELParserXML::taghandle_ANY( const char_cp * attr, size_t attr_sz , bool close)
+{}
+void BELParserXML::taghandle_OPT( const char_cp * attr, size_t attr_sz , bool close)
+{}
+void BELParserXML::taghandle_PERM( const char_cp * attr, size_t attr_sz , bool close)
+{}
+void BELParserXML::taghandle_TAIL( const char_cp * attr, size_t attr_sz , bool close)
+{}
+void BELParserXML::taghandle_TRANSLATION( const char_cp * attr, size_t attr_sz , bool close)
+{}
 
 void BELParserXML::endElement( const char* tag )
 {
+	int tid = getTag( tag );
+	elementHandleRouter(tid,0,0,true);
 }
+
 void BELParserXML::getElementText( const char* txt, int len )
 {
 }

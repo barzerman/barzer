@@ -14,9 +14,11 @@ namespace barzer {
 //// !!!!!!!!!!! NEVER REORDER ANY OF THE ENUMS 
 
 class BELParserXML : public BELParser {
+
 	/// given a tag returns one of the TAG_XX enums (see below)
 	int getTag( const char* s ) const;
 	const char* getTagName( const char* s );
+	bool isValidTag( int tag, int parent ) const;
 public:
 	/// there's practically a 1-1 correspondence between the BELParseTreeNode::nodeType enums and 
 	/// the XML tags. the TreeNode enums are not sequential so we will address this issue 
@@ -64,14 +66,106 @@ public:
 	};
 
 	XML_ParserStruct* parser;
+	int statementCount;  // siply counts statetent tags for err diag
+	std::stack< int > tagStack;
+
+	struct CurStatementData {
+		BELStatementParsed stmt;
+		enum {
+			BIT_HAS_PATTERN,
+			BIT_HAS_TRANSLATION,
+			BIT_HAS_STATEMENT,
+
+			BIT_MAX
+		};
+		ay::bitset<BIT_MAX> bit;
+		enum {
+			STATE_BLANK,
+			STATE_PATTERN,
+			STATE_TRANSLATION
+		} state;
+			
+		void clear()
+		{ bit.clear(); state = STATE_BLANK; }
+
+		std::stack< BELParseTreeNode* > nodeStack;
+
+		BELParseTreeNode* getCurTreeNode()
+		{
+			if( nodeStack.empty() ) {
+				if( state == STATE_TRANSLATION ) 
+					return &(stmt.translation);
+				else if( state == STATE_PATTERN ) 
+					return &(stmt.translation);
+				else 
+					return 0;
+			} else 
+				return nodeStack.top();
+		}
+		void stateTranslation() { bits.set(BIT_HAS_STATEMENT);}
+		void stateTranslation() { state = STATE_TRANSLATION; bits.set(BIT_HAS_TRANSLATION);}
+		void statePattern() { state = STATE_PATTERN;ibits.set(BIT_HAS_PATTERN); }
+		void stateBlank() { state = STATE_BLANK; }
+		
+		BELParseTreeNode* pushNode(BELParseTreeNode::NodeClass nc, int nt ) 
+		{
+			BELParseTreeNode* curNode = getCurTreeNode();
+			if( !curNode )
+				return 0;
+			
+			curNode = &(curNode->addChild(nc,nt));
+			nodeStack.push( curNode );
+			return curNode;
+		}
+		void popNode()
+		{ nodeStack.pop(); }
+
+		bool hasStatement() const { return bits[BITS_HAS_STATEMENT];};
+		bool hasPattern() const { return bits[BITS_HAS_PATTERN];};
+		bool hasTranslation() const { return bits[BITS_HAS_TRANSLATION];};
+	} statement;
+
+
 	~BELParserXML() ;
 	BELParserXML( BELReader* r ) : 
-		BELParser(r),parser(0) {}
+		BELParser(r),
+		parser(0),
+		statementCount(0)
+	{}
 
 	// actual expat entry points 
+	// tid is tag id. this function is called by (start/end)Element 
+	void elementHandleRouter( int tid, const char_cp * attr, size_t attr_sz, bool close );
+
+	// call elementHandleRouter
 	void startElement( const char* tag, const char_cp * attr, size_t attr_sz );
 	void endElement( const char* tag );
+
 	void getElementText( const char* txt, int len );
+	
+	/// tag handles 
+	void taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bool close=false );
+	void taghandle_UNDEFINED( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_STATEMENT( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_PATTERN( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_TRANSLATION( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_T( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_TG( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_P( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_SPC( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_N( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_RX( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_TDRV( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_WCLS( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_W( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_DATE( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_TIME( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_LIST( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_ANY( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_OPT( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_PERM( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_TAIL( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_TRANSLATION( const char_cp * attr, size_t attr_sz , bool close=false);
 
 	int parse( std::istream& );
 };

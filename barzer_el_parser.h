@@ -80,9 +80,12 @@ struct BELParseTreeNode {
 	typedef std::vector<BELParseTreeNode> ChildrenVec;
 
 	ChildrenVec child;
+	BELParseTreeNodeData nodeData; 
 	
 	BELParseTreeNode( ) : 
-		nodeClass( NODE_UNDEFINED), nodeType( BEL_TYPE_UNDEFINED ) {}
+		nodeClass( NODE_UNDEFINED), 
+		nodeType( BEL_TYPE_UNDEFINED ) 
+	{}
 	// takes node class and node type as parameters
 	BELParseTreeNode( NodeClass nc, int nt ) : 
 		nodeClass(nc), nodeType(nt)
@@ -94,13 +97,28 @@ struct BELParseTreeNode {
 		child.back().setClassAndType(nc,nt);
 		return child.back();
 	}
+	void clear( ) 
+	{
+		child.clear();
+		setClassAndType(NODE_UNDEFINED,BEL_TYPE_UNDEFINED);
+	}
 };
 
 /// statement parse tree represents a single BarzEL  statement as parsed on load 
 /// this tree is evaluated and resulting paths are added to a barzel trie by the parser
 struct BELStatementParsed {
-	BELParseTreeNode pattern;
-	BELParseTreeNode translation;
+	struct Data {
+		uint32_t id; // 
+		int strength; // 
+
+		Data() : id(0xffffffff), strength(0) {}
+		void clear()
+		{ id=0xffffffff;strength = 0; }
+	};
+	BELParseTreeNode pattern; // points at the node under statement
+	BELParseTreeNode translation; // poitns at the node under statement 
+	void clear()
+		{ pattern.clear(); translation.clear(); }
 };
 
 /// all specific parsers inherit from this base type and overload 
