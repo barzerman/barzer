@@ -1,0 +1,9 @@
+1. fish of the site and the database
+	- registration
+	- general structure and flow
+2. Format translator which ends up emitting barzer xml input format
+3. Registry 
+	- customer specific parameters of the installation 
+	- database representation of it 
+	- XML format for barzer to load this in 
+4. Server infrastructure requirements

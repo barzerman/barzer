@@ -1,4 +1,5 @@
 #include <barzer_el_xml.h>
+#include <barzer_el_xml.h>
 
 extern "C" {
 #include <expat.h>
@@ -42,31 +43,31 @@ bool BELParserXML::isValidTag( int tag, int parent ) const
 		return ( tag == TAG_STATEMENT );
 	case TAG_STATEMENT:
 		if( tag == TAG_PATTERN ) {
-			if( !statement.pattern )
+			if( !statement.hasPattern() )
 				return true;
 		} else if( tag == TAG_TRANSLATION ) {
-			if( !statement.translation )
+			if( !statement.hasTranslation() )
 				return true;
 		}
 		return false;
 	case TAG_PATTERN:
 	switch( tag ) {
-	TAG_T:
-	TAG_TG:
-	TAG_P:
-	TAG_SPC:
-	TAG_N:
-	TAG_RX:
-	TAG_TDRV:
-	TAG_WCLS:
-	TAG_W:
-	TAG_DATE:
-	TAG_TIME:
-	TAG_LIST:
-	TAG_ANY:
-	TAG_OPT:
-	TAG_PERM:
-	TAG_TAIL:
+	case TAG_T:
+	case TAG_TG:
+	case TAG_P:
+	case TAG_SPC:
+	case TAG_N:
+	case TAG_RX:
+	case TAG_TDRV:
+	case TAG_WCLS:
+	case TAG_W:
+	case TAG_DATE:
+	case TAG_TIME:
+	case TAG_LIST:
+	case TAG_ANY:
+	case TAG_OPT:
+	case TAG_PERM:
+	case TAG_TAIL:
 		return true;
 	default:
 		return false;
@@ -139,7 +140,7 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 {
 	if( close ) { /// statement is ready to be sent to the reader for adding to the trie
 		if( statement.hasStatement() ) 
-			reader->addStatement( statement );
+			reader->addStatement( statement.stmt );
 		statement.clear();
 		return;
 	}
@@ -155,7 +156,7 @@ void BELParserXML::taghandle_UNDEFINED( const char_cp * attr, size_t attr_sz, bo
 void BELParserXML::taghandle_PATTERN( const char_cp * attr, size_t attr_sz , bool close)
 {
 	if( close ) { /// tag is being closed
-		setBlank();
+		statement.setBlank();
 		return;
 	}
 	if( statement.hasPattern() ) { 
@@ -167,7 +168,7 @@ void BELParserXML::taghandle_PATTERN( const char_cp * attr, size_t attr_sz , boo
 void BELParserXML::taghandle_TRANSLATION( const char_cp * attr, size_t attr_sz , bool close)
 {
 	if( close ) { /// tag is being closed
-		setBlank();
+		statement.setBlank();
 		return;
 	}
 	if( statement.hasTranslation() ) { 
@@ -185,7 +186,7 @@ void BELParserXML::taghandle_T_text( const char* s, int len )
 		node->getNodeDataPtr(t);
 		if( t ) {
 			d_tmpText.assign( s, len );
-			StoredTokenId sid = strPool->internIt( d_tmpText.c_str() );
+			ay::UniqueCharPool::StrId sid = strPool->internIt( d_tmpText.c_str() );
 			t->stringId = sid;
 		}
 	}
@@ -314,7 +315,7 @@ void BELParserXML::taghandle_LITERAL_text( const char* s, int len )
 		node->getNodeDataPtr(t);
 		if( t ) {
 			d_tmpText.assign( s, len );
-			StoredTokenId sid = strPool->internIt( d_tmpText.c_str() );
+			ay::UniqueCharPool::StrId sid = strPool->internIt( d_tmpText.c_str() );
 			t->setString( sid );
 		}
 	}
@@ -387,8 +388,10 @@ void BELParserXML::endElement( const char* tag )
 
 void BELParserXML::getElementText( const char* txt, int len )
 {
-	int tid = getTag( tag );
-#define CASE_TAG(x) case TAG__##x: taghandle_##x##_text( txt, len ); break;
+	if( tagStack.empty() )
+		return; // this should never happen 
+	int tid = tagStack.top();
+#define CASE_TAG(x) case TAG_##x: taghandle_##x##_text( txt, len ); break;
 	switch( tid ) {
 		CASE_TAG(T)
 		CASE_TAG(LITERAL)

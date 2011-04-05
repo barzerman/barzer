@@ -3,7 +3,9 @@
 
 #include <barzer_el_parser.h>
 
+#include <ay/ay_bitflags.h>
 #include <ay/ay_util_char.h>
+#include <stack>
 using ay::char_cp;
 
 extern "C" {
@@ -84,7 +86,7 @@ public:
 
 			BIT_MAX
 		};
-		ay::bitset<BIT_MAX> bit;
+		ay::bitflags<BIT_MAX> bits;
 		enum {
 			STATE_BLANK,
 			STATE_PATTERN,
@@ -93,7 +95,7 @@ public:
 			
 		void clear()
 		{ 
-			bit.clear(); 
+			bits.clear(); 
 			state = STATE_BLANK; 
 			stmt.translation.clear();
 			stmt.pattern.clear();
@@ -113,6 +115,9 @@ public:
 			} else 
 				return nodeStack.top();
 		}
+		BELParseTreeNode* getCurrentNode() {
+			return getCurTreeNode();
+		}
 		void setStatement() { 
 			bits.set(BIT_HAS_STATEMENT);
 		}
@@ -122,7 +127,8 @@ public:
 		}
 
 		void setPattern() { 
-			state = STATE_PATTERN;ibits.set(BIT_HAS_PATTERN); 
+			state = STATE_PATTERN;
+			bits.set(BIT_HAS_PATTERN); 
 			stmt.pattern.setNodeData( BTND_StructData() );
 		}
 		// this is not the same a clear - this is the state of the XML parsing 
@@ -145,9 +151,9 @@ public:
 		void popNode()
 		{ nodeStack.pop(); }
 
-		bool hasStatement() const { return bits[BITS_HAS_STATEMENT];};
-		bool hasPattern() const { return bits[BITS_HAS_PATTERN];};
-		bool hasTranslation() const { return bits[BITS_HAS_TRANSLATION];};
+		bool hasStatement() const { return bits[BIT_HAS_STATEMENT];};
+		bool hasPattern() const { return bits[BIT_HAS_PATTERN];};
+		bool hasTranslation() const { return bits[BIT_HAS_TRANSLATION];};
 	} statement;
 
 	ay::UniqueCharPool* strPool; // string pool to use for generation of stringIds
@@ -174,7 +180,6 @@ public:
 	/// tag handles 
 	void taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bool close=false );
 	void taghandle_UNDEFINED( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_STATEMENT( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_PATTERN( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_TRANSLATION( const char_cp * attr, size_t attr_sz , bool close=false);
 
@@ -198,7 +203,6 @@ public:
 	void taghandle_OPT( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_PERM( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_TAIL( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_TRANSLATION( const char_cp * attr, size_t attr_sz , bool close=false);
 
 	// <rn>
 	void taghandle_RNUMBER_text( const char* s , int len );

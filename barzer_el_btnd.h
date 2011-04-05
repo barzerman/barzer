@@ -2,6 +2,7 @@
 #define BARZER_EL_BTND_H
 
 #include <ay/ay_bitflags.h>
+#include <ay/ay_string_pool.h>
 #include <boost/variant.hpp>
 
 // types defined in this file are used to store information for various node types 
@@ -33,7 +34,7 @@ struct BTND_Pattern_Number {
 
 	BTND_Pattern_Number() : 
 		type(T_ANY_INT)
-	{ range.lo = range.hi = 0; }
+	{ range.integer.lo = range.integer.hi = 0; }
 
 	void setAnyInt() { type = T_ANY_INT; }
 	void setAnyReal() { type = T_ANY_REAL; }
@@ -61,7 +62,7 @@ struct BTND_Pattern_Punct {
 struct BTND_Pattern_Wildcard {
 	uint8_t minTerms, maxTerms;
 	BTND_Pattern_Wildcard() : minTerms(0), maxTerms(0) {}
-	BTND_Pattern_Wildcard(uint8_t mn, uint8_t mxi ) : minTerms(mn), maxTerms(mx) {}
+	BTND_Pattern_Wildcard(uint8_t mn, uint8_t mx ) : minTerms(mn), maxTerms(mx) {}
 };
 
 // date wildcard data
@@ -96,7 +97,7 @@ struct BTND_Pattern_Time {
 struct BTND_Pattern_DateTime {
 	enum {
 		T_ANY_DATETIME, 
-		T_DATETIME_RANGE
+		T_DATETIME_RANGE,
 		T_MAX
 	};
 	
@@ -117,7 +118,7 @@ struct BTND_Pattern_CompoundedWord {
 };
 
 struct BTND_Pattern_Token {
-	ay::UniqueCharPool::StrId stringId stringId;
+	ay::UniqueCharPool::StrId stringId;
 
 	BTND_Pattern_Token() : stringId(ay::UniqueCharPool::ID_NOTFOUND) {}
 	BTND_Pattern_Token(ay::UniqueCharPool::StrId id) : stringId(id) {}

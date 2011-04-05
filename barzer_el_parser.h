@@ -91,6 +91,7 @@ class BELReader {
 protected: 
 	BELTrie* trie ; 
 	BELParser* parser;
+	ay::UniqueCharPool* strPool;
 	size_t numStatements; /// total number of successfully read statements 
 
 	std::string inputFileName; 
@@ -109,8 +110,8 @@ public:
 	} InputFormat;
 	InputFormat inputFmt;
 
-	BELReader( BELTrie* t )  :
-		trie(t) , parser(0), numStatements(0) , inputFmt(INPUT_FMT_XML)
+	BELReader( BELTrie* t, ay::UniqueCharPool* sPool )  :
+		trie(t) , parser(0), strPool(sPool), numStatements(0) , inputFmt(INPUT_FMT_XML)
 	{}
 	
 	/// this method is called by the parser for every statement tree 
