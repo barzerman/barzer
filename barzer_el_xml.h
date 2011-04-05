@@ -37,6 +37,8 @@ public:
 		TAG_TG,		// tg
 		TAG_P, 		// punctuation
 		TAG_SPC, 	// SPACE
+		/// <n> . valid attributes
+		/// l - low value, h - high, r - real .. no attributes means "any integer"
 		TAG_N, 		// number
 		TAG_RX, 	// token regexp
 		TAG_TDRV, 	// token derivaive
@@ -58,7 +60,11 @@ public:
 		TAG_REWRITE_STRUCT, // not a real tag used for translation
 						// BEL_REWRITE_XXX = TAG_XXX-TAG_REWRITE_STRUCT
 
-		TAG_VAR, // variable
+		// <ltlr> valid attribute 
+		// 
+		TAG_LITERAL, // <ltrl>
+		TAG_RNUMBER, // <rn>
+		TAG_VAR, // <var>
 		TAG_FUNC, // function
 		
 		TAG_MAX
@@ -86,7 +92,12 @@ public:
 		} state;
 			
 		void clear()
-		{ bit.clear(); state = STATE_BLANK; }
+		{ 
+			bit.clear(); 
+			state = STATE_BLANK; 
+			stmt.translation.clear();
+			stmt.pattern.clear();
+		}
 
 		std::stack< BELParseTreeNode* > nodeStack;
 
@@ -102,18 +113,32 @@ public:
 			} else 
 				return nodeStack.top();
 		}
-		void stateTranslation() { bits.set(BIT_HAS_STATEMENT);}
-		void stateTranslation() { state = STATE_TRANSLATION; bits.set(BIT_HAS_TRANSLATION);}
-		void statePattern() { state = STATE_PATTERN;ibits.set(BIT_HAS_PATTERN); }
-		void stateBlank() { state = STATE_BLANK; }
+		void setStatement() { 
+			bits.set(BIT_HAS_STATEMENT);
+		}
+		void setTranslation() { 
+			state = STATE_TRANSLATION; bits.set(BIT_HAS_TRANSLATION);
+			stmt.translation.setNodeData( BTND_RewriteData() );
+		}
+
+		void setPattern() { 
+			state = STATE_PATTERN;ibits.set(BIT_HAS_PATTERN); 
+			stmt.pattern.setNodeData( BTND_StructData() );
+		}
+		// this is not the same a clear - this is the state of the XML parsing 
+		// when endElement() for pattern/translate should call this 
+		void setBlank() { 
+			state = STATE_BLANK; 
+		}
 		
-		BELParseTreeNode* pushNode(BELParseTreeNode::NodeClass nc, int nt ) 
+		template <typename T>
+		BELParseTreeNode* pushNode( const T& t )
 		{
 			BELParseTreeNode* curNode = getCurTreeNode();
 			if( !curNode )
 				return 0;
 			
-			curNode = &(curNode->addChild(nc,nt));
+			curNode = &(curNode->addChild(t));
 			nodeStack.push( curNode );
 			return curNode;
 		}
@@ -125,12 +150,15 @@ public:
 		bool hasTranslation() const { return bits[BITS_HAS_TRANSLATION];};
 	} statement;
 
+	ay::UniqueCharPool* strPool; // string pool to use for generation of stringIds
+	mutable std::string d_tmpText; // used by getElementText as a temp buffer
 
 	~BELParserXML() ;
-	BELParserXML( BELReader* r ) : 
+	BELParserXML( BELReader* r, ay::UniqueCharPool* pool ) : 
 		BELParser(r),
 		parser(0),
-		statementCount(0)
+		statementCount(0),
+		strPool(pool)
 	{}
 
 	// actual expat entry points 
@@ -149,11 +177,16 @@ public:
 	void taghandle_STATEMENT( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_PATTERN( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_TRANSLATION( const char_cp * attr, size_t attr_sz , bool close=false);
+
 	void taghandle_T( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_T_text( const char *s, int len );
+
 	void taghandle_TG( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_P( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_SPC( const char_cp * attr, size_t attr_sz , bool close=false);
+
 	void taghandle_N( const char_cp * attr, size_t attr_sz , bool close=false);
+
 	void taghandle_RX( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_TDRV( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_WCLS( const char_cp * attr, size_t attr_sz , bool close=false);
@@ -166,6 +199,16 @@ public:
 	void taghandle_PERM( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_TAIL( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_TRANSLATION( const char_cp * attr, size_t attr_sz , bool close=false);
+
+	// <rn>
+	void taghandle_RNUMBER_text( const char* s , int len );
+	void taghandle_RNUMBER( const char_cp * attr, size_t attr_sz , bool close=false);
+
+	void taghandle_LITERAL_text( const char* s, int len );
+	void taghandle_LITERAL( const char_cp * attr, size_t attr_sz , bool close=false);
+
+	void taghandle_FUNC( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_VAR( const char_cp * attr, size_t attr_sz , bool close=false);
 
 	int parse( std::istream& );
 };

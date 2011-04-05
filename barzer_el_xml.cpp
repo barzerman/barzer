@@ -76,7 +76,7 @@ bool BELParserXML::isValidTag( int tag, int parent ) const
 	case TAG_TRANSLATION:
 		return true;
 	default:
-		return false;
+		return true;
 	}
 	// fall through - should reach here 	
 	return false;
@@ -102,8 +102,6 @@ void BELParserXML::startElement( const char* tag, const char_cp * attr, size_t a
 void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t attr_sz, bool close )
 {
 #define CASE_TAG(x) case TAG_##x: taghandle_##x(attr,attr_sz,close); return;
-	if( close ) 
-		statement.popNode();
 
 	switch( tid ) {
 	CASE_TAG(UNDEFINED)
@@ -126,13 +124,23 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 	CASE_TAG(OPT)
 	CASE_TAG(PERM)
 	CASE_TAG(TAIL)
+
+	CASE_TAG(LITERAL)
+	CASE_TAG(RNUMBER)
+	CASE_TAG(VAR)
+	CASE_TAG(FUNC)
 	}
 #undef CASE_TAG
+	if( close ) 
+		statement.popNode();
 }
 
 void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bool close )
 {
-	if( close ) { /// tag is being closed
+	if( close ) { /// statement is ready to be sent to the reader for adding to the trie
+		if( statement.hasStatement() ) 
+			reader->addStatement( statement );
+		statement.clear();
 		return;
 	}
 	if( statement.hasStatement() ) { // bad - means we have statement tag nested in another statement
@@ -147,37 +155,119 @@ void BELParserXML::taghandle_UNDEFINED( const char_cp * attr, size_t attr_sz, bo
 void BELParserXML::taghandle_PATTERN( const char_cp * attr, size_t attr_sz , bool close)
 {
 	if( close ) { /// tag is being closed
+		setBlank();
 		return;
 	}
 	if( statement.hasPattern() ) { 
 		std::cerr << "duplicate pattern tag in statement " << statementCount << "\n";
 		return;
 	}
-	
+	statement.setPattern();
 }
 void BELParserXML::taghandle_TRANSLATION( const char_cp * attr, size_t attr_sz , bool close)
 {
 	if( close ) { /// tag is being closed
-		statement.popNode();
+		setBlank();
 		return;
 	}
 	if( statement.hasTranslation() ) { 
 		std::cerr << "duplicate translation tag in statement " << statementCount << "\n";
 		return;
 	}
-	
+	statement.setTranslation();
+}
+
+void BELParserXML::taghandle_T_text( const char* s, int len )
+{
+	BELParseTreeNode* node = statement.getCurrentNode();
+	if( node ) {
+		BTND_Pattern_Token* t = 0;
+		node->getNodeDataPtr(t);
+		if( t ) {
+			d_tmpText.assign( s, len );
+			StoredTokenId sid = strPool->internIt( d_tmpText.c_str() );
+			t->stringId = sid;
+		}
+	}
 }
 void BELParserXML::taghandle_T( const char_cp * attr, size_t attr_sz , bool close)
 {
+	if( close ) return;
+	statement.pushNode( 
+		BTND_PatternData(
+			BTND_Pattern_Token() 
+		)
+	);
+
 }
 void BELParserXML::taghandle_TG( const char_cp * attr, size_t attr_sz , bool close)
 {}
 void BELParserXML::taghandle_P( const char_cp * attr, size_t attr_sz , bool close)
-{}
+{
+}
 void BELParserXML::taghandle_SPC( const char_cp * attr, size_t attr_sz , bool close)
-{}
+{
+}
 void BELParserXML::taghandle_N( const char_cp * attr, size_t attr_sz , bool close)
-{}
+{
+	if( close ) return;
+
+	bool isReal = false, isRange = false;
+	float flo=0., fhi = 0.;
+	int   ilo = 0, ihi = 0;
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		switch( *n ) {
+		case 'h':
+			if( !isRange ) isRange = true;
+
+			if( !isReal ) 
+				isReal = strchr(v, '.');
+			if( isReal ) {
+				fhi = atof( v );
+				ihi = (int) fhi;
+			} else {
+				ihi = atoi( v );
+				fhi = (float) fhi;
+			}
+			break;
+		case 'l':
+			if( !isRange ) isRange = true;
+			if( !isReal ) 
+				isReal = strchr(v, '.');
+			if( isReal ) {
+				flo = atof( v );
+				ilo = (int) fhi;
+			} else {
+				ilo = atoi( v );
+				flo = (float) fhi;
+			}
+			break;
+		case 'r':
+			if( !isReal ) isReal = true;
+			break;
+		}
+	}
+	BTND_Pattern_Number pat; 
+	
+	if( isRange ) {
+		if( isReal ) 
+			pat.setRealRange( flo, fhi );
+		else 
+			pat.setIntRange( ilo, ihi );
+	} else {
+		if( isReal ) 
+			pat.setAnyReal();
+		else
+			pat.setAnyInt();
+	}
+	statement.pushNode( 
+		BTND_PatternData(
+			pat
+		)
+	);
+}
 void BELParserXML::taghandle_RX( const char_cp * attr, size_t attr_sz , bool close)
 {}
 void BELParserXML::taghandle_TDRV( const char_cp * attr, size_t attr_sz , bool close)
@@ -191,26 +281,120 @@ void BELParserXML::taghandle_DATE( const char_cp * attr, size_t attr_sz , bool c
 void BELParserXML::taghandle_TIME( const char_cp * attr, size_t attr_sz , bool close)
 {}
 void BELParserXML::taghandle_LIST( const char_cp * attr, size_t attr_sz , bool close)
-{}
+{
+	if( close ) return;
+	statement.pushNode( BTND_StructData( BTND_StructData::T_LIST));
+}
 void BELParserXML::taghandle_ANY( const char_cp * attr, size_t attr_sz , bool close)
-{}
+{
+	if( close ) return;
+	statement.pushNode( BTND_StructData( BTND_StructData::T_ANY));
+}
 void BELParserXML::taghandle_OPT( const char_cp * attr, size_t attr_sz , bool close)
-{}
+{
+	if( close ) return;
+	statement.pushNode( BTND_StructData( BTND_StructData::T_OPT));
+}
 void BELParserXML::taghandle_PERM( const char_cp * attr, size_t attr_sz , bool close)
-{}
+{
+	if( close ) return;
+	statement.pushNode( BTND_StructData( BTND_StructData::T_PERM));
+}
 void BELParserXML::taghandle_TAIL( const char_cp * attr, size_t attr_sz , bool close)
-{}
-void BELParserXML::taghandle_TRANSLATION( const char_cp * attr, size_t attr_sz , bool close)
-{}
+{
+	if( close ) return;
+	statement.pushNode( BTND_StructData( BTND_StructData::T_TAIL));
+}
+/// rewrite tags 
+void BELParserXML::taghandle_LITERAL_text( const char* s, int len )
+{
+	BELParseTreeNode* node = statement.getCurrentNode();
+	if( node ) {
+		BTND_Rewrite_Literal* t = 0;
+		node->getNodeDataPtr(t);
+		if( t ) {
+			d_tmpText.assign( s, len );
+			StoredTokenId sid = strPool->internIt( d_tmpText.c_str() );
+			t->setString( sid );
+		}
+	}
+}
+void BELParserXML::taghandle_LITERAL( const char_cp * attr, size_t attr_sz , bool close)
+{
+	if( close ) return;
+	statement.pushNode( 
+		BTND_RewriteData(
+			BTND_Rewrite_Literal() 
+		)
+	);
+}
+void BELParserXML::taghandle_RNUMBER_text( const char*s, int len )
+{
+	BELParseTreeNode* node = statement.getCurrentNode();
+	if( node ) {
+		BTND_Rewrite_Number* t = 0;
+		node->getNodeDataPtr(t);
+		if( t && len && s[0] ) {
+			d_tmpText.assign( s, len );
+			if( strchr( d_tmpText.c_str(), '.' ) ) {
+				t->set( atof( d_tmpText.c_str() ) );
+			} else {
+				t->set( atoi( d_tmpText.c_str() ) );
+			}
+		}
+	}
+}
+void BELParserXML::taghandle_RNUMBER( const char_cp * attr, size_t attr_sz , bool close)
+{
+	if( close ) return;
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+	}
+	statement.pushNode( 
+		BTND_RewriteData(
+			BTND_Rewrite_Number(0) 
+		)
+	);
+}
+
+void BELParserXML::taghandle_VAR( const char_cp * attr, size_t attr_sz , bool close)
+{
+	if( close ) return;
+	statement.pushNode( 
+		BTND_RewriteData(
+			BTND_Rewrite_Variable() 
+		)
+	);
+}
+void BELParserXML::taghandle_FUNC( const char_cp * attr, size_t attr_sz , bool close)
+{
+	if( close ) return;
+	statement.pushNode( 
+		BTND_RewriteData(
+			BTND_Rewrite_Function() 
+		)
+	);
+}
+
 
 void BELParserXML::endElement( const char* tag )
 {
 	int tid = getTag( tag );
 	elementHandleRouter(tid,0,0,true);
+	tagStack.pop();
 }
 
 void BELParserXML::getElementText( const char* txt, int len )
 {
+	int tid = getTag( tag );
+#define CASE_TAG(x) case TAG__##x: taghandle_##x##_text( txt, len ); break;
+	switch( tid ) {
+		CASE_TAG(T)
+		CASE_TAG(LITERAL)
+		CASE_TAG(RNUMBER)
+	}
+#undef CASE_TAG
 }
 BELParserXML::~BELParserXML()
 {
@@ -268,7 +452,8 @@ int BELParserXML::getTag( const char* s ) const
 	CHECK_4CW("unc", TAG_FUNC ) // <func>
 		break;
 	case 'l':
-	CHECK_4CW("list", TAG_LIST ) // <list>
+	CHECK_4CW("ist", TAG_LIST ) // <list>
+	CHECK_4CW("trl", TAG_LITERAL ) // <ltrl>
 		break;
 	case 'n':
 	CHECK_1CW(TAG_N) // <n>
@@ -282,6 +467,7 @@ int BELParserXML::getTag( const char* s ) const
 	CHECK_4CW("erm",TAG_PERM ) // <perm>
 		break;
 	case 'r': 
+	CHECK_2CW("n",TAG_RNUMBER) // <rn>
 		break;
 	case 's':
 	CHECK_4CW("tmt",TAG_STATEMENT )  // <stmt>

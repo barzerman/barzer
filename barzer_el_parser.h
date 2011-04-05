@@ -6,6 +6,7 @@
 #include <vector>
 #include <cstdio>
 #include <string>
+#include <barzer_el_btnd.h>
 
 /// wrapper object for various formats in which BarzEL may be fed to the application
 /// as well as the data structures required for the actual parsing
@@ -16,92 +17,35 @@ namespace barzer {
 //// tree of these nodes is built during parsing
 //// a the next step the tree gets interpreted into BrzelTrie path and added to a trie 
 struct BELParseTreeNode {
-	typedef enum {
-		NODE_UNDEFINED,
+	/// see barzer_el_btnd.h for the structure of the nested variant 
+	BTNDVariant btndVar;  // node data
 
-		NODE_PATTERN_ELEMENT,   // pattern only
-		NODE_PATTERN_STRUCTURE, // pattern only
-		NODE_REWRITE
-	} NodeClass;
-	NodeClass nodeClass;
-	
-	enum {
-		BEL_TYPE_UNDEFINED =0
-	};
-//// !!!!!!!!!!! NEVER REORDER ANY OF THE ENUMS 
-	enum {
-		BEL_PATTERN_UNDEFINED=BEL_TYPE_UNDEFINED,
-
-		BEL_PATTERN_T,		// token
-		BEL_PATTERN_TG,		// tg
-		BEL_PATTERN_P, 		// punctuation
-		BEL_PATTERN_SPC, 	// SPACE
-		BEL_PATTERN_N, 		// number
-		BEL_PATTERN_RX, 	// token regexp
-		BEL_PATTERN_TDRV, 	// token derivaive
-		BEL_PATTERN_WC, 	// word class
-		BEL_PATTERN_W, 		// token wildcard
-		BEL_PATTERN_DATE, 	// date
-		BEL_PATTERN_TIME, 	// time
-
-		/// add new types above this line only
-		BEL_PATTERN_MAX
-	} ;
-
-//// !!!!!!!!!!! NEVER REORDER ANY OF THE ENUMS 
-	/// pattern structure types 
-	enum {
-		BEL_STRUCT_UNDEFINED=BEL_TYPE_UNDEFINED, 
-
-		BEL_STRUCT_LIST, // sequence of elements
-		BEL_STRUCT_ANY,  // any element 
-		BEL_STRUCT_OPT,  // optional subtree
-		BEL_STRUCT_PERM, // permutation of children
-		BEL_STRUCT_TAIL, // if children are A,B,C this translates into [A], [A,B] and [A,B,C]
-		/// add new types above this line only
-		BEL_STRUCT_MAX
-	} ;
-
-//// !!!!!!!!!!! NEVER REORDER ANY OF THE ENUMS 
-	// translation types
-	enum {
-		BEL_REWRITE_UNDEFINED=BEL_TYPE_UNDEFINED,
-
-		BEL_REWRITE_LITERAL,
-		BEL_REWRITE_NUMBER,
-		BEL_REWRITE_VARIABLE,
-		BEL_REWRITE_FUNCTION,
-		
-		BEL_REWRITE_MAX
-	} ;
-	
-	int nodeType; /// depending on the class one of the above enums
-	
 	typedef std::vector<BELParseTreeNode> ChildrenVec;
 
 	ChildrenVec child;
-	BELParseTreeNodeData nodeData; 
 	
-	BELParseTreeNode( ) : 
-		nodeClass( NODE_UNDEFINED), 
-		nodeType( BEL_TYPE_UNDEFINED ) 
+	BELParseTreeNode( ) 
 	{}
-	// takes node class and node type as parameters
-	BELParseTreeNode( NodeClass nc, int nt ) : 
-		nodeClass(nc), nodeType(nt)
-	{}
-	void setClassAndType( NodeClass nc, int nt ) { nodeClass =nc; nodeType = nt; }
 
-	BELParseTreeNode& addChild( NodeClass nc, int nt ) {
+	template <typename T>
+	BELParseTreeNode& addChild( const T& t) {
 		child.resize( child.size() +1 );
-		child.back().setClassAndType(nc,nt);
+		child.back().btndVar = t;
 		return child.back();
 	}
 	void clear( ) 
 	{
 		child.clear();
-		setClassAndType(NODE_UNDEFINED,BEL_TYPE_UNDEFINED);
+		btndVar = BTND_None();
 	}
+
+	template <typename T>
+	T& setNodeData( const T& d ) 
+		{ return( btndVar = d, boost::get<T>(btndVar) ); }
+	
+	template <typename T>
+	void getNodeDataPtr( T*& ptr ) 
+		{ ptr = boost::get<T>( &btndVar ); }
 };
 
 /// statement parse tree represents a single BarzEL  statement as parsed on load 
@@ -115,8 +59,9 @@ struct BELStatementParsed {
 		void clear()
 		{ id=0xffffffff;strength = 0; }
 	};
+
 	BELParseTreeNode pattern; // points at the node under statement
-	BELParseTreeNode translation; // poitns at the node under statement 
+	BELParseTreeNode translation; // points at the node under statement 
 	void clear()
 		{ pattern.clear(); translation.clear(); }
 };
