@@ -16,7 +16,7 @@ int wstring_vec_read( WstringVec& vec, std::wistream& in )
 		std::string inFN;
 		std::getline( ss, inFN, ' ' );
 		if( inFN.length() && !isspace(inFN[0]) ) {
-			fp == &fs;
+			fp = &fs;
 			fs.open( inFN.c_str() );
 		} else
 			fp = &std::cin;

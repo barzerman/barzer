@@ -64,20 +64,44 @@ inline bool operator ==( const BarzelTrieFirmChildKey& l, const BarzelTrieFirmCh
 /// stored in barzel trie nodes
 struct BarzelWCCLookup {
 };
+struct BELParseTreeNode;
 
+/// right side of the pattern 
+struct BarzelTranslation {
+	bool hasTranslation; 
+	BarzelTranslation() : hasTranslation(false) {}
+	void set( const BELParseTreeNode& ) {
+		// warning BarzelTranslation unimplemented for real
+		if( !hasTranslation ) 
+			hasTranslation = true;
+	}
+	bool nonEmpty() const
+		{ return hasTranslation; }
+};
 
 class BarzelTrieNode {
-	enum {
-		BIT_LEAF,
-
-		BIT_MAX
-	};
-	ay::bitflags<BIT_MAX> nodeBits;
-
 	typedef std::map<BarzelTrieFirmChildKey, BarzelTrieNode > BarzelFCMap; 
 	BarzelFCMap firmMap; /// children of the 'firm' types - token,punctuation,compounded word
 
 	BarzelWCCLookup wcChild; /// used for wildcard matching (number,date, etc)
+public:
+	BarzelTranslation translation;
+
+	bool isLeaf() { return translation.nonEmpty(); }
+	/// makes node leaf and sets translation
+	void setTranslation(const BELParseTreeNode& ptn ) { translation.set(ptn); }
+
+	// locates a child node or creates a new one and returns a reference to it. non-leaf by default 
+	// if pattern data cant be translated into a valid key the same node is returned
+	/// so typically  when we want to add a chain of patterns as a path to the trie 
+	/// we will iterate over the chain calling node = node->addPattern(p) for each pattern 
+	/// and in the end we will call node->setTranslation() 
+	BarzelTrieNode* addPattern( const BTND_PatternData& p );
+};
+
+struct BELTrie {
+	BarzelTrieNode root;
+	void addPath( const BTND_PatternDataVec& path, const BELParseTreeNode& trans );
 };
 
 }

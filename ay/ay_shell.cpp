@@ -17,7 +17,7 @@ static const CmdData g_cmd[] = {
 
 std::ostream& Shell::CmdData::print( std::ostream& fp ) const
 {
-	fp << name << " - " << desc;
+	return( fp << name << " - " << desc );
 }
 
 int Shell::cmd_set( Shell* sh, char_cp cmd, std::istream& in )
@@ -69,6 +69,7 @@ int Shell::printPrompt()
 {
 	if( outStream == & std::cout )
 		std::cout << "cmd>";
+	return 0;
 }
 
 int Shell::setupStreams()
@@ -107,6 +108,7 @@ int Shell::setupStreams()
 		tmp->open( errF.c_str() );
 		errStream = tmp;
 	}
+	return 0;
 }
 
 int Shell::indexCmdDataRange( const CmdDataRange& rng )

@@ -14,11 +14,14 @@ void BELParseTreeNode::print( std::ostream& fp, int depth ) const
 	fp << pfx << "}\n";
 }
 
-void BELReader::addStatement( const BELStatementParsed& )
+void BELReader::addStatement( const BELStatementParsed& sp )
 {
+	BELParseTreeNode_PatternEmitter emitter( sp.pattern );
+	while( emitter.produceSequence() ) {
+		trie->addPath( emitter.getCurSequence(), sp.translation );
+	}
 	
-	std::cerr << "BELReader::addStatement not implemented\n";
-	// numStatements++
+	++numStatements;
 }
 
 

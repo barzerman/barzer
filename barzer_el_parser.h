@@ -40,14 +40,26 @@ struct BELParseTreeNode {
 	}
 
 	template <typename T>
-	T& setNodeData( const T& d ) 
-		{ return( btndVar = d, boost::get<T>(btndVar) ); }
+	T& setNodeData( const T& d ) { return(btndVar=d, boost::get<T>(btndVar));}
 	
 	template <typename T>
 	void getNodeDataPtr( T*& ptr ) 
 		{ ptr = boost::get<T>( &btndVar ); }
 	
 	void print( std::ostream& fp, int depth=0 ) const;
+};
+
+/// this is what Vadim will hopefully implement
+struct BELParseTreeNode_PatternEmitter {
+	BTND_PatternDataVec curVec;
+
+	const BELParseTreeNode& tree;
+	BELParseTreeNode_PatternEmitter( const BELParseTreeNode& t ) : tree(t) {}
+
+	/// returns false when fails to produce a sequence
+	bool produceSequence() { return true; }
+	const BTND_PatternDataVec& getCurSequence( ) const
+	{ return curVec; }
 };
 
 /// statement parse tree represents a single BarzEL  statement as parsed on load 

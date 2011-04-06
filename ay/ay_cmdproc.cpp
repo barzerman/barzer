@@ -50,6 +50,7 @@ std::pair<int,int> CommandLineArgs::getArgVal_list( bool& hasArg, const char* an
 	getArgVal( hasArg, an, &argPos );
 
 	if( hasArg ) {
+		return std::pair<int,int>(CMDLINE_ARG_NOTFOUND,CMDLINE_ARG_NOTFOUND);
 	} else 
 		return std::pair<int,int>(CMDLINE_ARG_NOTFOUND,CMDLINE_ARG_NOTFOUND);
 }

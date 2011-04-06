@@ -156,6 +156,7 @@ enum {
 	BTND_Pattern_TYPE_MAX
 };
 
+typedef std::vector< BTND_PatternData > BTND_PatternDataVec;
 
 //// REWRITE Types
 struct BTND_Rewrite_Literal {

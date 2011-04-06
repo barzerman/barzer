@@ -46,6 +46,7 @@ stopwatch& stopwatch::restart( )
 
 	msec = 0;
 	sec = 0;
+	return *this;
 }
 
 } // namespace ay
