@@ -11,8 +11,8 @@ namespace barzer {
 
 struct CompWordsTree;
 struct SemanticalFSA;
-struct StoredEntityPool;
-struct StoredTokenPool;
+class StoredEntityPool;
+class StoredTokenPool;
 
 
 class StoredEntityPool {

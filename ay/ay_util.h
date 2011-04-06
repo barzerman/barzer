@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 
+#include <ay_debug.h>
 #include <ay_util_char.h>
 
 namespace ay {

@@ -121,6 +121,7 @@ public:
 		void setStatement() { 
 			bits.set(BIT_HAS_STATEMENT);
 		}
+
 		void setTranslation() { 
 			state = STATE_TRANSLATION; bits.set(BIT_HAS_TRANSLATION);
 			stmt.translation.setNodeData( BTND_RewriteData() );

@@ -1,0 +1,11 @@
+#!/bin/ksh
+
+if [[ -z $1 ]]; then
+	echo "usage: gcccomp srcfile"
+	exit 1
+fi >&2
+
+OUTFILE=$1.tsk
+echo c++ -o $OUTFILE -I. -I/opt/local/include $1 
+c++ -o $OUTFILE -I. -I/opt/local/include $1 
+ls -l $OUTFILE

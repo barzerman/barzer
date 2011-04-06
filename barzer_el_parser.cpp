@@ -3,6 +3,17 @@
 #include <fstream>
 namespace barzer {
 
+void BELParseTreeNode::print( std::ostream& fp, int depth ) const
+{
+	std::string pfx( depth*2, ' ');
+	fp << pfx << "btndVar[" << btndVar.which() << "] {\n";
+	++depth;
+	for( ChildrenVec::const_iterator i = child.begin(); i!= child.end(); ++i ) {
+		i->print( fp, depth );
+	}
+	fp << pfx << "}\n";
+}
+
 void BELReader::addStatement( const BELStatementParsed& )
 {
 	

@@ -8,7 +8,7 @@
 struct XML_ParserStruct;
 using ay::char_cp;
 namespace barzer {
-struct DtaIndex;
+class DtaIndex;
 
 //// all defaults must be always 0 
 struct EntityLoader_EntListFlags  {
