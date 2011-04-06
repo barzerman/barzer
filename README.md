@@ -1,6 +1,12 @@
-Barzel test README
-==================
+Barzel - whatever that is
+=========================
 
-* one
-* two
 
+Contents
+--------
+
+* assigment - assigments, surprisingly
+* ay - utility library named after guess who
+* data - no clue
+* lg_* - language modules
+* design_parse.txt - parser design document?
