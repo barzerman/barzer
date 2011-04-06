@@ -46,6 +46,8 @@ struct BELParseTreeNode {
 	template <typename T>
 	void getNodeDataPtr( T*& ptr ) 
 		{ ptr = boost::get<T>( &btndVar ); }
+	
+	void print( std::ostream& fp, int depth=0 ) const;
 };
 
 /// statement parse tree represents a single BarzEL  statement as parsed on load 
@@ -71,7 +73,7 @@ struct BELStatementParsed {
 /// in the future when BarzEL has its own language we will add a new one 
 /// there will also be a binary parser 
 
-struct BELReader;
+class BELReader;
 
 class BELParser {
 protected:

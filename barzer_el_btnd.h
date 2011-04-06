@@ -57,6 +57,7 @@ struct BTND_Pattern_Number {
 struct BTND_Pattern_Punct {
 	int theChar; // actual punctuation character
 	BTND_Pattern_Punct() : theChar(0) {}
+	BTND_Pattern_Punct(char c) : theChar(c) {}
 };
 // simple token wildcard data
 struct BTND_Pattern_Wildcard {
@@ -110,11 +111,11 @@ struct BTND_Pattern_DateTime {
 };
 
 struct BTND_Pattern_CompoundedWord {
-	uint32_t poolId; // id of the pool of compounded words
-	uint32_t tokId;  // token id within the pool
+	uint32_t compWordId;  
 	BTND_Pattern_CompoundedWord() :
-		poolId(0), tokId(0xffffffff)
+		compWordId(0xffffffff)
 	{}
+	BTND_Pattern_CompoundedWord(uint32_t cwi ) : compWordId(cwi) {}
 };
 
 struct BTND_Pattern_Token {
@@ -154,6 +155,7 @@ enum {
 	
 	BTND_Pattern_TYPE_MAX
 };
+
 
 //// REWRITE Types
 struct BTND_Rewrite_Literal {
@@ -222,6 +224,8 @@ enum {
 	BTND_Rewrite_Function_TYPE
 }; 
 
+/// when updating the enums make sure to sunc up BTNDDecode::typeName_XXX 
+
 /// pattern structure flow data - blank for now
 struct BTND_StructData {
 	enum {
@@ -254,6 +258,12 @@ enum {
 	BTND_StructData_TYPE,  // 1
 	BTND_PatternData_TYPE, // 2
 	BTND_RewriteData_TYPE  // 3
+};
+
+struct BTNDDecode {
+	static const char* typeName_Pattern ( int x ) ; // BTND_Pattern_XXXX_TYPE values 
+	static const char* typeName_Rewrite ( int x ) ; // BTND_Rewrite_XXXX_TYPE values 
+	static const char* typeName_Struct ( int x ) ; // BTND_Struct_XXXX_TYPE values 
 };
 
 } // barzer namespace

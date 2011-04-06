@@ -14,7 +14,7 @@ namespace barzer {
 struct TToken ;
 struct CToken;
 struct PUnit ;
-struct Barz ;
+class Barz ;
 
 // global constnts 
 enum {
@@ -46,7 +46,7 @@ inline std::ostream& operator<<( std::ostream& fp, const TTokenWithPos& t ) {
 	return ( fp << t.second << "{" << t.first << "}" );
 }
 std::ostream& operator<<( std::ostream& fp, const TTWPVec& v );
-class StoredToken;
+		struct StoredToken;
 
 /// classified token
 struct CToken {

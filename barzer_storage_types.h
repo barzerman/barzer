@@ -12,8 +12,8 @@
 /// tokens (both compounded and single) and Entities
 namespace barzer {
 
-class StoredEntity;
-class StoredToken;
+struct StoredEntity;
+struct StoredToken;
 
 typedef uint32_t StoredTokenId; 
 

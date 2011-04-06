@@ -1,0 +1,8 @@
+#ifndef AY_DEBUG_H
+#define AY_DEBUG_H
+
+#define AYDEBUG(x) ( std::cerr << __FILE__ ":" << __LINE__ << "(" <<__func__ <<")" << ": " #x << "= " << (x) << '\n' )
+
+namespace ay {
+}
+#endif // AY_DEBUG_H
