@@ -1,6 +1,10 @@
 Barzel - whatever that is
 =========================
 
+Building Barzel
+---------------
+    make -f barzer.mk
+
 
 Contents
 --------
@@ -10,3 +14,5 @@ Contents
 * data - no clue
 * lg_* - language modules
 * design_parse.txt - parser design document?
+* barzer_shell.* - shell interface for barzer
+* barzer.mk - main makefile 
