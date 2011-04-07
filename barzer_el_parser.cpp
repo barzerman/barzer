@@ -46,7 +46,7 @@ BELParser*  BELReader::initParser(InputFormat fmt)
 	}
 	switch( fmt ) {
 	case INPUT_FMT_XML:
-		return new BELParserXML( this, strPool );
+		return ( (parser = new BELParserXML( this, strPool )) );
 	case INPUT_FMT_BIN:
 		std::cerr << "BELReader: binary format not implemented yet\n";
 		return 0;

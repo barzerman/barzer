@@ -68,15 +68,29 @@ struct BELParseTreeNode;
 
 /// right side of the pattern 
 struct BarzelTranslation {
-	bool hasTranslation; 
-	BarzelTranslation() : hasTranslation(false) {}
+	typedef enum {
+		T_NONE,   // blank translation 
+		T_STOP, // translates into stop token 
+		T_STRING, // string literal
+		T_COMPWORD, // compounded word
+		T_NUMBER_INT, // integer 
+		T_NUMBER_REAL, // real number (float)
+		T_REWRITER, // interpreted sequence
+		
+		T_MAX
+	} Type_t;
+	uint32_t id;
+	uint8_t  type; // one of T_XXX constants 
+		
 	void set( const BELParseTreeNode& ) {
 		// warning BarzelTranslation unimplemented for real
-		if( !hasTranslation ) 
-			hasTranslation = true;
+		if( type == T_NONE ) 
+			type = T_STOP;
 	}
 	bool nonEmpty() const
-		{ return hasTranslation; }
+		{ return ( type != T_NONE ); }
+	BarzelTranslation() : id( 0xffffffff ) , type(T_NONE) {}
+	BarzelTranslation(Type_t t , uint32_t i ) : id(i),type((uint8_t)t) {}
 };
 
 class BarzelTrieNode {
