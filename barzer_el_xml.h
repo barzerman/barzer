@@ -69,6 +69,9 @@ public:
 		TAG_VAR, // <var>
 		TAG_FUNC, // function
 		
+		// added by pltr
+		TAG_STMSET, // document element
+		
 		TAG_MAX
 
 	};
@@ -214,6 +217,9 @@ public:
 
 	void taghandle_FUNC( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_VAR( const char_cp * attr, size_t attr_sz , bool close=false);
+	
+	// document element
+	void taghandle_STMSET( const char_cp * attr, size_t attr_sz , bool close=false);
 
 	int parse( std::istream& );
 };

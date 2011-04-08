@@ -1,13 +1,13 @@
 #include <barzer_el_xml.h>
 #include <barzer_el_xml.h>
-
+#include "ay/ay_debug.h"
 extern "C" {
 #include <expat.h>
 
 // cast to XML_StartElementHandler
 static void startElement(void* ud, const XML_Char *n, const XML_Char **a)
 {
-	const char* name = (const char*)n; 
+	const char* name = (const char*)n;
 	const char** atts = (const char**)a; 
 	barzer::BELParserXML *loader =(barzer::BELParserXML *)ud;
 	int attrCount = XML_GetSpecifiedAttributeCount( loader->parser );
@@ -40,7 +40,9 @@ bool BELParserXML::isValidTag( int tag, int parent ) const
 {
 	switch( parent ) {
 	case TAG_UNDEFINED:
-		return ( tag == TAG_STATEMENT );
+		// in fact statement can't even have an undefined parent anymore.
+		// should probably rewrite it /pltr
+		return ( tag == TAG_STATEMENT || tag == TAG_STMSET);
 	case TAG_STATEMENT:
 		if( tag == TAG_PATTERN ) {
 			if( !statement.hasPattern() )
@@ -94,7 +96,7 @@ void BELParserXML::startElement( const char* tag, const char_cp * attr, size_t a
 	}
 	tagStack.push( tid );
 	if( !isValidTag( tid, parentTag )  ) {
-		std::cerr << "invalid BEL xml in statement " << statementCount << "\n";
+		std::cerr << "invalid BEL xml(tag: " << tag <<") in statement " << statementCount << "\n";
 		return;
 	}	
 	elementHandleRouter( tid, attr,attr_sz, false );
@@ -139,8 +141,9 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bool close )
 {
 	if( close ) { /// statement is ready to be sent to the reader for adding to the trie
-		if( statement.hasStatement() ) 
+		if( statement.hasStatement() ) {
 			reader->addStatement( statement.stmt );
+		}
 		statement.clear();
 		return;
 	}
@@ -148,6 +151,7 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 		std::cerr << "statement nested in statement " << statementCount << "\n";
 		return;
 	} 
+
 	statement.setStatement();
 }
 void BELParserXML::taghandle_UNDEFINED( const char_cp * attr, size_t attr_sz, bool close )
@@ -378,6 +382,9 @@ void BELParserXML::taghandle_FUNC( const char_cp * attr, size_t attr_sz , bool c
 	);
 }
 
+// not sure if it's even needed here /pltr
+void taghandle_STMSET( const char_cp * attr, size_t attr_sz , bool close=false) {}
+
 
 void BELParserXML::endElement( const char* tag )
 {
@@ -441,6 +448,8 @@ int BELParserXML::parse( std::istream& fp )
 #define CHECK_2CW(c,N)  if( c[0] == s[1] && !s[2] ) return N;
 #define CHECK_3CW(c,N)  if( c[0] == s[1] && c[1] == s[2] && !s[3] ) return N;
 #define CHECK_4CW(c,N)  if( c[0] == s[1] && c[1] == s[2] && c[2] == s[3] && !s[4] ) return N;
+// needed for stmset
+#define CHECK_6CW(c,N)  if( c[0] == s[1] && c[1] == s[2] && c[2] == s[3] && c[3] == s[4] && c[4] == s[5] && !s[6] ) return N;
 
 int BELParserXML::getTag( const char* s ) const
 {
@@ -474,6 +483,7 @@ int BELParserXML::getTag( const char* s ) const
 		break;
 	case 's':
 	CHECK_4CW("tmt",TAG_STATEMENT )  // <stmt>
+	CHECK_6CW("tmset",TAG_STMSET )  // <stmset>
 		break;
 	case 't':
 	CHECK_1CW(TAG_T) // <t>

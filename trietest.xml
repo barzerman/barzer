@@ -1,0 +1,10 @@
+<stmset>
+	<stmt>
+		<pat><t>huy</t></pat>
+		<tran>pizda</tran>
+	</stmt>
+	<stmt>
+		<pat><n>2</n></pat>
+		<tran>pizda</tran>
+	</stmt>
+</stmset>
