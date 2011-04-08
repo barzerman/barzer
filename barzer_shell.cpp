@@ -4,6 +4,10 @@
 #include <ay_util_time.h>
 #include <sstream>
 
+#include "barzer_el_xml.h"
+#include "barzer_el_trie.h"
+#include "barzer_el_parser.h"
+
 namespace barzer {
 
 struct BarzerShellContext : public ay::ShellContext {
@@ -217,6 +221,34 @@ static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
+// just a test function for trie loading
+static int bshf_trieloadxml( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext * context = shell->getBarzerContext();
+	DtaIndex* dtaIdx = context->obtainDtaIdx();
+
+	ay::UniqueCharPool strPool;
+	
+	BELTrie trie;
+	BELReader reader(&trie, &strPool);
+	BELParser* parser = reader.initParser(BELReader::INPUT_FMT_XML); 
+	
+	std::string tmp;
+	ay::stopwatch totalTimer;
+	
+	while( in >> tmp ) {
+		ay::stopwatch tmr;
+		const char* fname = tmp.c_str();
+		//dtaIdx->loadEntities_XML( fname );
+		int numsts = reader.loadFromFile(fname);
+		std::cerr << numsts << " statements read. ";
+		std::cerr << "done in " << tmr.calcTime() << " seconds\n";
+
+	}
+	std::cerr << "All done in " << totalTimer.calcTime() << " seconds\n";
+	return 0;
+}
+
 /// end of specific shell routines
 static const CmdData g_cmd[] = {
 	CmdData( ay::Shell::cmd_help, "help", "get help on a barzer function" ),
@@ -233,6 +265,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_tokid, "tokid", "token lookup by string" ),
 	CmdData( (ay::Shell_PROCF)bshf_euid, "euid", "entity lookup by euid (tok class subclass)" ),
 	CmdData( (ay::Shell_PROCF)bshf_entid, "entid", "entity lookup by entity id" ),
+	CmdData( (ay::Shell_PROCF)bshf_trieloadxml, "trieloadxml", "loads a trie from an xml file" ),
 
 };
 

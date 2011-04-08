@@ -1,6 +1,9 @@
 #include <barzer_el_parser.h>
 #include <barzer_el_xml.h>
 #include <fstream>
+
+#include "ay/ay_debug.h"
+
 namespace barzer {
 
 void BELParseTreeNode::print( std::ostream& fp, int depth ) const
@@ -17,9 +20,11 @@ void BELParseTreeNode::print( std::ostream& fp, int depth ) const
 void BELReader::addStatement( const BELStatementParsed& sp )
 {
 	BELParseTreeNode_PatternEmitter emitter( sp.pattern );
-	while( emitter.produceSequence() ) {
+	// only commented until emitter is fully implemented
+	// causes an infinite loop at the moment
+	// while( emitter.produceSequence() ) { 
 		trie->addPath( emitter.getCurSequence(), sp.translation );
-	}
+	//}
 	
 	++numStatements;
 }
