@@ -136,5 +136,10 @@ inline bool operator<( const BarzerDate& l, const BarzerDate& r )
 		return ( l.day < r.day );
 }
 
+struct BarzerTimeOfDay {
+	uint8_t hh, mm, ss; // hours minutes seconds 
+	BarzerTimeOfDay( ) : hh(0), mm(0), ss(0) {}
+};
+
 }
 #endif // BARZER_BASIC_TYPES_H

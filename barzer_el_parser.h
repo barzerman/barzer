@@ -47,6 +47,35 @@ struct BELParseTreeNode {
 		{ ptr = boost::get<T>( &btndVar ); }
 	
 	void print( std::ostream& fp, int depth=0 ) const;
+	bool isChildless() const
+		{ return ( !child.size() ); }
+	
+	/// if this subtree is effectively a single rewrite we will return a pointer to the node that 
+	/// actually performs the rewrite
+	const BELParseTreeNode* getTrivialChild() const
+	{
+		if( !child.size() ) 
+			return this;
+		else if( child.size() == 1 )
+			return (child.front().isChildless() ? &(child.front()) : 0);
+		else
+			return 0;
+	}
+	const BTNDVariant& getNodeData() const 
+		{ return btndVar; }
+	
+	const BTND_RewriteData* getRewriteData() const
+		{ return( boost::get<BTND_RewriteData>( &btndVar) ); }
+	const BTND_StructData* getStructData() const
+		{ return( boost::get<BTND_StructData>( &btndVar) ); }
+	const BTND_PatternData* getPatternData() const
+		{ return( boost::get<BTND_PatternData>( &btndVar) ); }
+	
+	const BTND_RewriteData* getTrivialRewriteData() const
+	{
+		const BELParseTreeNode* tn = getTrivialChild();
+		return( tn ? tn->getRewriteData() : 0 );
+	}
 };
 
 /// this is what Vadim will hopefully implement

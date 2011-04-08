@@ -162,14 +162,15 @@ typedef std::vector< BTND_PatternData > BTND_PatternDataVec;
 struct BTND_Rewrite_Literal {
 	enum {
 		T_STRING,
-		T_COMPOUND
+		T_COMPOUND,
+		T_STOP /// rewrites into a blank yet unmatcheable token
 	};
-	uint8_t  type;
 	uint32_t theId;
+	uint8_t  type;
 
 	BTND_Rewrite_Literal() : 
-		type(T_STRING),
-		theId(ay::UniqueCharPool::ID_NOTFOUND) 
+		theId(ay::UniqueCharPool::ID_NOTFOUND) ,
+		type(T_STRING)
 	{}
 	void setCompound(uint32_t id ) 
 		{ type = T_COMPOUND; theId = id; }
@@ -181,21 +182,22 @@ struct BTND_Rewrite_Literal {
 };
 
 struct BTND_Rewrite_Number {
-	bool isConst; /// when false we will need to evaluate underlying nodes
 	boost::variant< int, double > val;
+	bool isConst; /// when false we will need to evaluate underlying nodes
 	BTND_Rewrite_Number( ) : isConst(false) {}
 
-	BTND_Rewrite_Number( int x ) : isConst(true), val(x) {}
-	BTND_Rewrite_Number( double x ) : isConst(true), val(x) {}
+	BTND_Rewrite_Number( int x ) : val(x), isConst(true) {}
+	BTND_Rewrite_Number( double x ) : val(x), isConst(true) {}
 
 	void set( int i ) { isConst = true; val =i; }
 	void set( double i ) { isConst = true; val =i; }
 };
 
 struct BTND_Rewrite_Variable {
-	bool byName; 
-	uint32_t varId; /// when byName is true this will be used as a sring id
+	uint8_t byName; 
+	uint32_t varId; /// when byName is non 0 this will be used as a sring id
 		// otherwise as $1/$2 
+	BTND_Rewrite_Variable() : byName(0), varId(0xffffffff) {}
 };
 
 struct BTND_Rewrite_Function {
@@ -208,13 +210,51 @@ struct BTND_Rewrite_None {
 	int dummy;
 	BTND_Rewrite_None() : dummy(0) {}
 };
+struct BTND_Rewrite_AbsoluteDate {
+	BarzerDate date;
+};
+struct BTND_Rewrite_TimeOfDay {
+	BarzerTimeOfDay date;
+};
+
+enum {
+	BTND_Rewrite_AbsoluteDate_TYPE,
+	BTND_Rewrite_TimeOfDay_TYPE
+};
+
+/// they may actually store an explicit constant range
+/// if that werent an issue we could make it a blank type
+struct BTND_Rewrite_Range {
+	typedef char None;
+	typedef std::pair< int, int > Integer;
+	typedef std::pair< float, float > Real;
+	typedef std::pair< BTND_Rewrite_TimeOfDay, BTND_Rewrite_TimeOfDay > TimeOfDay;
+	typedef std::pair< BTND_Rewrite_AbsoluteDate, BTND_Rewrite_AbsoluteDate > AbsDate;
+
+	typedef boost::variant<
+		None,
+		Integer,
+		Real,
+		TimeOfDay,
+		AbsDate
+	> Data;
+	
+	Data dta;
+};
+
+typedef boost::variant<
+	BTND_Rewrite_AbsoluteDate,
+	BTND_Rewrite_TimeOfDay
+> BTND_Rewrite_DateTime;
 
 typedef boost::variant< 
 	BTND_Rewrite_None,
 	BTND_Rewrite_Literal,
 	BTND_Rewrite_Number,
 	BTND_Rewrite_Variable,
-	BTND_Rewrite_Function
+	BTND_Rewrite_Function,
+	BTND_Rewrite_DateTime,
+	BTND_Rewrite_Range
 > BTND_RewriteData;
 
 enum {
@@ -222,7 +262,9 @@ enum {
 	BTND_Rewrite_Literal_TYPE,
 	BTND_Rewrite_Number_TYPE,
 	BTND_Rewrite_Variable_TYPE,
-	BTND_Rewrite_Function_TYPE
+	BTND_Rewrite_Function_TYPE,
+	BTND_Rewrite_DateTime_TYPE,
+	BTND_Rewrite_Range_TYPE
 }; 
 
 /// when updating the enums make sure to sunc up BTNDDecode::typeName_XXX 

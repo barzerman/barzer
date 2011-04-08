@@ -6,6 +6,7 @@
 /// data structures representing the Barzer Expression Language BarzEL term pattern trie
 /// 
 namespace barzer {
+struct BELTrie;
 
 /// this type is used as a key by firmchild lookup (BarzelFCLookup)
 struct BarzelTrieFirmChildKey {
@@ -79,14 +80,22 @@ struct BarzelTranslation {
 		
 		T_MAX
 	} Type_t;
-	uint32_t id;
+	boost::variant< uint32_t, double> id;
 	uint8_t  type; // one of T_XXX constants 
 		
-	void set( const BELParseTreeNode& ) {
-		// warning BarzelTranslation unimplemented for real
-		if( type == T_NONE ) 
-			type = T_STOP;
+	void set( BELTrie& trie, const BTND_Rewrite_Literal& );
+	void set( BELTrie& trie, const BTND_Rewrite_Number& );
+
+	void set( BELTrie& trie, const BELParseTreeNode& );
+
+	void setRewriter( uint32_t rid ) 
+	{
+		type = T_REWRITER;
+		id = rid;
 	}
+	void setStop() { type = T_STOP; }
+
+	void clear() { type= T_NONE; }
 	bool nonEmpty() const
 		{ return ( type != T_NONE ); }
 	BarzelTranslation() : id( 0xffffffff ) , type(T_NONE) {}
@@ -103,18 +112,20 @@ public:
 
 	bool isLeaf() { return translation.nonEmpty(); }
 	/// makes node leaf and sets translation
-	void setTranslation(const BELParseTreeNode& ptn ) { translation.set(ptn); }
+	void setTranslation(BELTrie&, const BELParseTreeNode& ptn ) { translation.set(BELTrie&, ptn); }
 
 	// locates a child node or creates a new one and returns a reference to it. non-leaf by default 
 	// if pattern data cant be translated into a valid key the same node is returned
 	/// so typically  when we want to add a chain of patterns as a path to the trie 
 	/// we will iterate over the chain calling node = node->addPattern(p) for each pattern 
 	/// and in the end we will call node->setTranslation() 
-	BarzelTrieNode* addPattern( const BTND_PatternData& p );
+	BarzelTrieNode* addPattern( BELTrie& trie, const BTND_PatternData& p );
 };
 
 struct BELTrie {
+	BarzelRewriterPool* rewrPool;
 	BarzelTrieNode root;
+	BELTrie( BarzelRewriterPool*  pool ) : rewrPool(pool) {}
 	void addPath( const BTND_PatternDataVec& path, const BELParseTreeNode& trans );
 };
 
