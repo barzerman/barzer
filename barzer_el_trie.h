@@ -1,12 +1,15 @@
 #ifndef BARZER_EL_TRIE_H
 #define BARZER_EL_TRIE_H
 #include <barzer_el_btnd.h>
+#include <barzer_el_parser.h>
+#include <barzer_el_rewriter.h>
 #include <map>
 
 /// data structures representing the Barzer Expression Language BarzEL term pattern trie
 /// 
 namespace barzer {
 struct BELTrie;
+class BarzelRewriterPool;
 
 /// this type is used as a key by firmchild lookup (BarzelFCLookup)
 struct BarzelTrieFirmChildKey {
@@ -65,10 +68,10 @@ inline bool operator ==( const BarzelTrieFirmChildKey& l, const BarzelTrieFirmCh
 /// stored in barzel trie nodes
 struct BarzelWCCLookup {
 };
-struct BELParseTreeNode;
 
 /// right side of the pattern 
-struct BarzelTranslation {
+class BarzelTranslation {
+public:
 	typedef enum {
 		T_NONE,   // blank translation 
 		T_STOP, // translates into stop token 
@@ -112,7 +115,7 @@ public:
 
 	bool isLeaf() { return translation.nonEmpty(); }
 	/// makes node leaf and sets translation
-	void setTranslation(BELTrie&, const BELParseTreeNode& ptn ) { translation.set(BELTrie&, ptn); }
+	void setTranslation(BELTrie&trie, const BELParseTreeNode& ptn ) { translation.set(trie, ptn); }
 
 	// locates a child node or creates a new one and returns a reference to it. non-leaf by default 
 	// if pattern data cant be translated into a valid key the same node is returned

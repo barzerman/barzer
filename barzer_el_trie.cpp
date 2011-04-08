@@ -46,7 +46,7 @@ void BarzelTranslation::set(BELTrie& ,const BTND_Rewrite_Literal& x )
 		break;
 	case BTND_Rewrite_Literal::T_COMPOUND:
 		type = T_COMPWORD;
-		#warning logic to autogenerate compound word ids can go here
+		//#warning logic to autogenerate compound word ids can go here
 
 		id = x.theId;
 		break;
@@ -63,11 +63,10 @@ void BarzelTranslation::set(BELTrie& ,const BTND_Rewrite_Literal& x )
 void BarzelTranslation::set(BELTrie&, const BTND_Rewrite_Number& x )
 {
 	if( x.isConst ) 
-		id = x.val;
+		id = ( x.val.which() ? boost::get<double>(x.val) : boost::get<int>(x.val) );
 	else {
 		AYTRACE( "inconsistent number encountered in Barzel rewrite" );
 		setStop();
-		break;
 	}
 }
 
@@ -80,10 +79,10 @@ void BarzelTranslation::set( BELTrie& trie, const BELParseTreeNode& tn )
 	if( rwrDta ) {
 		switch( rwrDta->which() ) {
 		case BTND_Rewrite_Literal_TYPE:
-			set( boost::get<BTND_Rewrite_Literal>( *rwrDta ) );
+			set( trie,boost::get<BTND_Rewrite_Literal>( *rwrDta ) );
 			return;
 		case BTND_Rewrite_Number_TYPE:
-			set( boost::get<BTND_Rewrite_Number>( *rwrDta ) );
+			set( trie,boost::get<BTND_Rewrite_Number>( *rwrDta ) );
 			return;
 		default: 
 			AYTRACE("invalid trivial rewrite" );

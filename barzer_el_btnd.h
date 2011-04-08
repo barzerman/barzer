@@ -4,6 +4,7 @@
 #include <ay/ay_bitflags.h>
 #include <ay/ay_string_pool.h>
 #include <boost/variant.hpp>
+#include <barzer_basic_types.h>
 
 // types defined in this file are used to store information for various node types 
 // in the BarzEL trie
@@ -225,6 +226,8 @@ enum {
 /// they may actually store an explicit constant range
 /// if that werent an issue we could make it a blank type
 struct BTND_Rewrite_Range {
+	int dummy;
+
 	typedef char None;
 	typedef std::pair< int, int > Integer;
 	typedef std::pair< float, float > Real;
@@ -309,6 +312,79 @@ struct BTNDDecode {
 	static const char* typeName_Struct ( int x ) ; // BTND_Struct_XXXX_TYPE values 
 };
 
+//// tree of these nodes is built during parsing
+//// a the next step the tree gets interpreted into BrzelTrie path and added to a trie 
+struct BELParseTreeNode {
+	/// see barzer_el_btnd.h for the structure of the nested variant 
+	BTNDVariant btndVar;  // node data
+
+	typedef std::vector<BELParseTreeNode> ChildrenVec;
+
+	ChildrenVec child;
+	
+	template <typename T>
+	BELParseTreeNode& addChild( const T& t) {
+		child.resize( child.size() +1 );
+		child.back().btndVar = t;
+		return child.back();
+	}
+	void clear( ) 
+	{
+		child.clear();
+		btndVar = BTND_None();
+	}
+
+	template <typename T>
+	T& setNodeData( const T& d ) { return(btndVar=d, boost::get<T>(btndVar));}
+	
+	template <typename T>
+	void getNodeDataPtr( T*& ptr ) 
+		{ ptr = boost::get<T>( &btndVar ); }
+	
+	void print( std::ostream& fp, int depth=0 ) const;
+	bool isChildless() const
+		{ return ( !child.size() ); }
+	
+	/// if this subtree is effectively a single rewrite we will return a pointer to the node that 
+	/// actually performs the rewrite
+	const BELParseTreeNode* getTrivialChild() const
+	{
+		if( !child.size() ) 
+			return this;
+		else if( child.size() == 1 )
+			return (child.front().isChildless() ? &(child.front()) : 0);
+		else
+			return 0;
+	}
+	const BTNDVariant& getNodeData() const 
+		{ return btndVar; }
+	
+	const BTND_RewriteData* getRewriteData() const
+		{ return( boost::get<BTND_RewriteData>( &btndVar) ); }
+	const BTND_StructData* getStructData() const
+		{ return( boost::get<BTND_StructData>( &btndVar) ); }
+	const BTND_PatternData* getPatternData() const
+		{ return( boost::get<BTND_PatternData>( &btndVar) ); }
+	
+	const BTND_RewriteData* getTrivialRewriteData() const
+	{
+		const BELParseTreeNode* tn = getTrivialChild();
+		return( tn ? tn->getRewriteData() : 0 );
+	}
+};
+
+/// this is what Vadim will hopefully implement
+struct BELParseTreeNode_PatternEmitter {
+	BTND_PatternDataVec curVec;
+
+	const BELParseTreeNode& tree;
+	BELParseTreeNode_PatternEmitter( const BELParseTreeNode& t ) : tree(t) {}
+
+	/// returns false when fails to produce a sequence
+	bool produceSequence() { return true; }
+	const BTND_PatternDataVec& getCurSequence( ) const
+	{ return curVec; }
+};
 } // barzer namespace
 
 #endif // BARZER_EL_BTND_H

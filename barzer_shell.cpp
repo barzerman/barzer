@@ -224,14 +224,15 @@ static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
 // just a test function for trie loading
 static int bshf_trieloadxml( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
-	BarzerShellContext * context = shell->getBarzerContext();
-	DtaIndex* dtaIdx = context->obtainDtaIdx();
+	//BarzerShellContext * context = shell->getBarzerContext();
+	//DtaIndex* dtaIdx = context->obtainDtaIdx();
 
 	ay::UniqueCharPool strPool;
 	
-	BELTrie trie;
+	BarzelRewriterPool brPool( 64*1024 );
+	BELTrie trie( &brPool );
 	BELReader reader(&trie, &strPool);
-	BELParser* parser = reader.initParser(BELReader::INPUT_FMT_XML); 
+	reader.initParser(BELReader::INPUT_FMT_XML); 
 	
 	std::string tmp;
 	ay::stopwatch totalTimer;

@@ -1,6 +1,7 @@
 #ifndef BARZER_EL_REWRITER_H
 #define BARZER_EL_REWRITER_H
-
+#include <barzer_el_btnd.h>
+#include <barzer_el_parser.h>
 namespace barzer {
 
 /// rewriter is a tree which is evaluated based on input
@@ -20,6 +21,7 @@ namespace barzer {
 /// nodeclose 1byte
 struct BarzelRwrTreeNode {
 };
+class BarzelTranslation;
 
 /// unique at least per BarzelTrie (most likely globally unique)
 /// the pool stores binary buffers with barzel rewrite instructions
@@ -30,12 +32,15 @@ class BarzelRewriterPool {
 	typedef std::vector< BufAndSize > BufAndSizeVec;
 	BufAndSizeVec encVec;
 
-	uint32_t poolNewBuf( const char* s, uint32_t sz )
+	uint32_t poolNewBuf( const uint8_t* s, uint32_t sz )
 	{
 		encVec.push_back( BufAndSize( (char*)malloc(sz), sz) );
 		return (encVec.size() -1);
 	}
+
+	int  encodeParseTreeNode( BarzelRewriterPool::byte_vec& trans, const BELParseTreeNode& ptn );
 public:
+	~BarzelRewriterPool();
 	BarzelRewriterPool( size_t reserveSz ) 
 		{ encVec.reserve( reserveSz ) ; }
 
@@ -46,7 +51,7 @@ public:
 		ERR_ENCODING_INCONSISTENT // some internal inconsistency encountered
 	};
 	// returns one of the ERR_XXX enums
-	int produceTranslation( BarzelTranslation& , const BELPBELParseTreeNode& ptn );
+	int produceTranslation( BarzelTranslation& , const BELParseTreeNode& ptn );
 };
 
 }

@@ -17,7 +17,7 @@ namespace barzel {
 
 int  BarzelRewriterPool::encodeParseTreeNode( BarzelRewriterPool::byte_vec& trans, const BELParseTreeNode& ptn )
 {
-	trans.push_back( (uint8_t)RWR_NODE_START );
+	trans.push_back( (uint8_t)barzel::RWR_NODE_START );
 	const BTND_RewriteData* rd = ptn.getRewriteData();
 	if( !rd ) 
 		return ERR_ENCODING_FAILED;
@@ -26,28 +26,29 @@ int  BarzelRewriterPool::encodeParseTreeNode( BarzelRewriterPool::byte_vec& tran
 
 	int rwrTypeId = rd->which();
 	uint8_t header[ 2 ] = {0};
-	header[0] = (uint8_t)uint8_t;
+	header[0] = (uint8_t)rwrTypeId;
 	switch( rwrTypeId ) {
 	case BTND_Rewrite_DateTime_TYPE:
 		header[1] = boost::get< BTND_Rewrite_DateTime >( ptn.getNodeData() ).which();
 		break;
 	case BTND_Rewrite_Range_TYPE:
-		header[1] = boost::get< BTND_Rewrite_Range >( ptn.getNodeData() ).which();
+		header[1] = boost::get< BTND_Rewrite_Range >( ptn.getNodeData() ).dta.which();
 		break;
 	default:
 		break;
 	}
-	trans.push_back( header[0], header[1] );
+	trans.push_back( header[0] );
+	trans.push_back( header[1] );
 	// end of header production
 
 	// processing children
-	for( BELParseTreeNode::ChildrenVec ch = child.begin(); ch != child.end(); ++ch ) {
+	for( BELParseTreeNode::ChildrenVec::const_iterator ch = ptn.child.begin(); ch != ptn.child.end(); ++ch ) {
 		
-		int rc =encodeParseTreeNode( trans, ch );
+		int rc =encodeParseTreeNode( trans, *ch );
 		if( rc ) 
 			return rc; // error
 	}
-	trans.push_back( (uint8_t)RWR_NODE_END );
+	trans.push_back( (uint8_t)barzel::RWR_NODE_END );
 	return ERR_OK;
 }
 
