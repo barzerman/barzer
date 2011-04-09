@@ -21,9 +21,18 @@ BarzelTrieNode* BarzelTrieNode::addFirmPattern( BELTrie& trie, const BTND_Patter
 
 BarzelTrieNode* BarzelTrieNode::addWildcardPattern( BELTrie& trie, const BTND_PatternData& p, const BarzelTrieFirmChildKey& fk  )
 {
-	if( key.isBlank() ) {
-	}
-	 
+	if( !hasValidWcLookup() ) 
+		trie.wcPool->addWCLookup( wcLookupId );
+	
+	BarzelWCLookup* wcLookup = trie.wcPool->getWCLookup( wcLookupId );
+	BarzelWCLookupKey lkey;
+	lkey.first = fk;
+	trie.wcPool->produceWCKey( lkey.second );
+	BarzelWCLookup::iterator i = wcLookup->find( lkey );	
+	if( i == wcLookup->end() ) 
+		i = wcLookup->insert( BarzelWCLookup::value_type( lkey, BarzelTrieNode()  ) ).first;	
+	
+	return &(i->second);
 }
 std::ostream& BarzelTrieFirmChildKey::print( std::ostream& fp ) const
 {

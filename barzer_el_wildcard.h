@@ -16,6 +16,7 @@ struct BarzelWCKey;
 
 
 class BarzelWildcardPool {
+	ay::PoolWithId< BarzelWCLookup > wcLookupPool;
 
 	ay::InternerWithId<BTND_Pattern_Number> 	pool_Number;
 	ay::InternerWithId<BTND_Pattern_Date> 		pool_Date;
@@ -23,6 +24,13 @@ class BarzelWildcardPool {
 	ay::InternerWithId<BTND_Pattern_DateTime> 	pool_DateTime;
 	ay::InternerWithId<BTND_Pattern_Wildcard> 	pool_Wildcard;
 public:
+	
+	BarzelWCLookup* 			addWCLookup( uint32_t& id ) 
+		{ return wcLookupPool.addObj( id ); }
+	BarzelWCLookup* 			getWCLookup( uint32_t id ) 
+		{ return wcLookupPool.getObjById(id); }
+	const BarzelWCLookup* 		getWCLookup( uint32_t id ) const 
+		{ return wcLookupPool.getObjById(id); }
 
 	void produceWCKey( BarzelWCKey& key, const BTND_Pattern_Number& x )
 	{

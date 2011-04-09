@@ -61,7 +61,7 @@ public:
 };
 
 /// simple PoolWithId does not ensure uniqueness it simply stores 
-/// objects in consequtive chunks and issue ids . 
+/// objects in consequtive chunkconsts and issue ids . 
 /// access by id is O(1)
 /// T must have a default constructor
 template <typename T>
@@ -80,9 +80,34 @@ private:
 
 	void addNewChunk( ) 
 	{
-		chunkVec.
+		cVec.resize( cVc.size() +1 );
+		cVec.back() = new T[ chunkCapacity ];
+		curChunk = cVec.back();
+		curChunkSz = 0;
 	}
+		
 public:
+	T* addObj( uint32_t& id ) 
+	{
+		if( curChunkSz>= chunkCapacity ) 
+			addNewChunk();
+		id = (cVec.size() *chunkCapacity) +  curChunkSz;
+		T* t =  curChunk + curChunkSz;
+		++curChunkSz;
+		return t;
+	}
+
+	const T* getObjById( uint32_t id )  const
+	{
+		size_t chunkId = ( id / chunkCapacity );
+		if( chunkId < cVec.size() ) {
+			size_t offset = ( id% chunkCapacity );
+			return( offset < curChunkSz? (curChunk+offset) : 0 );
+		} else
+			return 0;
+	}
+	T* getObjById( uint32_t id )  
+		{ return ( (T*) ( ((const PoolWithId*)this )->getObjById(id) ) ); }
 
 };
 

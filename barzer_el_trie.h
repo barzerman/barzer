@@ -81,11 +81,21 @@ struct BarzelWCKey {
 	// non trivial constructor - this may add wildcard to the pool
 	// when fails wcType will be set to BTND_Pattern_None_TYPE
 	BarzelWCKey( BELTrie& trie, const BTND_PatternData& pat );
+
+	inline bool lessThan( const BarzelWCKey& r ) const
+	{ return ay::range_comp()::less_than( wcType, wcId, r.wcType, r.wcId ); }
 };
+inline bool operator <( const BarzelWCKey& l, const BarzelWCKey& r )
+{
+	return l.lessThan( r );
+}
 
 /// barzel wildcard child lookup object 
 /// stored in barzel trie nodes
-typedef std::map< BarzelWCKey, BarzelTrieNode > BarzelWCLookup;
+
+typedef std::pair<BarzelTrieFirmChildKey, BarzelWCKey> BarzelWCLookupKey;
+
+typedef std::map< BarzelWCLookupKey, BarzelTrieNode > BarzelWCLookup;
 
 /// right side of the pattern 
 class BarzelTranslation {
@@ -127,7 +137,8 @@ class BarzelTrieNode {
 	typedef std::map<BarzelTrieFirmChildKey, BarzelTrieNode > BarzelFCMap; 
 	BarzelFCMap firmMap; /// children of the 'firm' types - token,punctuation,compounded word
 
-	BarzelWCLookup wcChild; /// used for wildcard matching (number,date, etc)
+	uint32_t wcLookupId; // when valid (not 0xffffffff) can it's an id of a wildcard lookup object 
+	// BarzelWCLookup wcChild; /// used for wildcard matching (number,date, etc)
 public:
 	BarzelTranslation translation;
 
@@ -146,6 +157,10 @@ public:
 
 	// if p is firm (not a wildcard) this is a no-op
 	BarzelTrieNode* addWildcardPattern( BELTrie& trie, const BTND_PatternData& p, const BarzelTrieFirmChildKey& fk  );
+
+	bool hasValidWcLookup() const
+		{ return (wcLookupId != 0xffffffff); }
+	BarzelTrieNode() : wcLookupId(0xffffffff) {}
 };
 
 struct BELTrie {
