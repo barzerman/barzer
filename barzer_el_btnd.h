@@ -42,12 +42,12 @@ struct BTND_Pattern_Number {
 			case T_ANY_INT: return false;
 			case T_ANY_REAL: return false;
 			case T_RANGE_INT: 
-				return ay::range_comp()::less_than(
+				return (ay::range_comp().less_than(
 						range.integer.lo, range.integer.hi,
 						r.range.integer.lo, r.range.integer.hi
-					);
+					));
 			case T_RANGE_REAL: 
-				return ay::range_comp()::less_than(
+				return ay::range_comp().less_than(
 						range.real.lo, range.real.hi,
 						r.range.real.lo, r.range.real.hi
 					);
@@ -101,7 +101,7 @@ struct BTND_Pattern_Wildcard {
 
 	bool isLessThan( const BTND_Pattern_Wildcard& r ) const
 	{
-		return( ay::range_comp()::less_than( minTerms, maxTerms, r.minTerms, r.maxTerms ) );
+		return( ay::range_comp().less_than( minTerms, maxTerms, r.minTerms, r.maxTerms ) );
 	}
 };
 inline bool operator <( const BTND_Pattern_Wildcard& l, const BTND_Pattern_Wildcard& r )
@@ -123,7 +123,7 @@ struct BTND_Pattern_Date {
 	BTND_Pattern_Date( ) : type(T_ANY_DATE), lo(0),hi(0) {}
 
 	bool isLessThan( const BTND_Pattern_Date& r ) const
-		{ return ay::range_comp()( type, lo, hi, r.type, r.lo, r.hi ); }
+		{ return ay::range_comp().less_than( type, lo, hi, r.type, r.lo, r.hi ); }
 };
 inline bool operator <( const BTND_Pattern_Date& l, const BTND_Pattern_Date& r )
 	{ return l.isLessThan( r ); }
@@ -140,8 +140,13 @@ struct BTND_Pattern_Time {
 
 	BTND_Pattern_Time( ) : type(T_ANY_TIME), lo(0), hi(0) {}
 	bool isLessThan( const BTND_Pattern_Time& r ) const
-		{ return ay::range_comp()( type,lo, hi, r.type, r.lo, r.hi ); }
+		{ return ay::range_comp().less_than( type,lo, hi, r.type, r.lo, r.hi ); }
 };
+inline bool operator <( const BTND_Pattern_Time& l, const BTND_Pattern_Time& r )
+{
+	return l.isLessThan( r );
+}
+
 
 struct BTND_Pattern_DateTime {
 	enum {
@@ -168,7 +173,7 @@ struct BTND_Pattern_DateTime {
 		case T_ANY_DATETIME:
 			return false;
 		case T_DATETIME_RANGE: 
-			ay::range_comp()::less_than( 
+			ay::range_comp().less_than( 
 				dlo,   dhi,   tlo,   thi, 
 				r.dlo, r.dhi, r.tlo, r.thi );
 		default: return false;

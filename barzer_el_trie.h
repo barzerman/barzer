@@ -72,7 +72,7 @@ struct BarzelWCKey {
 	uint32_t wcId; // wildcard id unique for the type in a pool
 	uint8_t wcType; // one of BTND_Pattern_XXXX_TYPE enums
 	
-	bool clear() 
+	void clear() 
 		{ wcType = BTND_Pattern_None_TYPE; wcId= 0xffffffff; }
 	bool isBlank() const 
 		{ return( wcType == BTND_Pattern_None_TYPE ); }
@@ -83,7 +83,7 @@ struct BarzelWCKey {
 	BarzelWCKey( BELTrie& trie, const BTND_PatternData& pat );
 
 	inline bool lessThan( const BarzelWCKey& r ) const
-	{ return ay::range_comp()::less_than( wcType, wcId, r.wcType, r.wcId ); }
+	{ return ay::range_comp().less_than( wcType, wcId, r.wcType, r.wcId ); }
 };
 inline bool operator <( const BarzelWCKey& l, const BarzelWCKey& r )
 {
@@ -95,7 +95,6 @@ inline bool operator <( const BarzelWCKey& l, const BarzelWCKey& r )
 
 typedef std::pair<BarzelTrieFirmChildKey, BarzelWCKey> BarzelWCLookupKey;
 
-typedef std::map< BarzelWCLookupKey, BarzelTrieNode > BarzelWCLookup;
 
 /// right side of the pattern 
 class BarzelTranslation {
@@ -163,12 +162,14 @@ public:
 	BarzelTrieNode() : wcLookupId(0xffffffff) {}
 };
 
+typedef std::map< BarzelWCLookupKey, BarzelTrieNode > BarzelWCLookup;
+
 struct BELTrie {
 	BarzelRewriterPool* rewrPool;
 	BarzelWildcardPool* wcPool;
 
 	BarzelTrieNode root;
-	BELTrie( BarzelRewriterPool*  rPool, BarzelWildcardPool* wPool ) : rewrPool(pool), wcPool(wPool) {}
+	BELTrie( BarzelRewriterPool*  rPool, BarzelWildcardPool* wPool ) : rewrPool(rPool), wcPool(wPool) {}
 
 	/// stores wildcard data n a form later usable by the Trie
 	/// this ends up calling wcPool->produceWCKey()

@@ -20,13 +20,13 @@ public:
 private:
 	typedef T* T_p;
 	typedef const T* T_cp;
-	typedef std::vector<T_cp> TpVec;
+	typedef std::vector<const T*> TpVec;
 	typedef std::map<T,uint32_t> T2IdMap;
 	
 	TpVec theVec;
 	T2IdMap theMap;
 	
-	IdType pushNewObj( T_p tp ) 
+	IdType pushNewObj( T_cp tp ) 
 		{ 
 			IdType idx = theVec.size();
 			theVec.push_back( tp ) ;
@@ -55,7 +55,8 @@ public:
 		typename T2IdMap::iterator i = theMap.find( t );
 		if( i != theMap.end() ) 
 			return i->second;
-		i = theMap.insert( T2IdMap::value_type( t, INVALID_ID ) ).first;
+		i = theMap.insert( typename T2IdMap::value_type( t, INVALID_ID ) ).first;
+
 		return( (i->second = pushNewObj( &(i->first) )) );
 	}
 };
@@ -80,7 +81,7 @@ private:
 
 	void addNewChunk( ) 
 	{
-		cVec.resize( cVc.size() +1 );
+		cVec.resize( cVec.size() +1 );
 		cVec.back() = new T[ chunkCapacity ];
 		curChunk = cVec.back();
 		curChunkSz = 0;

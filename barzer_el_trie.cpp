@@ -1,5 +1,6 @@
 #include <barzer_el_trie.h>
 #include <barzer_el_wildcard.h>
+#include <list>
 
 namespace barzer {
 /// barzel TRIE node methods
@@ -27,7 +28,7 @@ BarzelTrieNode* BarzelTrieNode::addWildcardPattern( BELTrie& trie, const BTND_Pa
 	BarzelWCLookup* wcLookup = trie.wcPool->getWCLookup( wcLookupId );
 	BarzelWCLookupKey lkey;
 	lkey.first = fk;
-	trie.wcPool->produceWCKey( lkey.second );
+	trie.produceWCKey( lkey.second, p );
 	BarzelWCLookup::iterator i = wcLookup->find( lkey );	
 	if( i == wcLookup->end() ) 
 		i = wcLookup->insert( BarzelWCLookup::value_type( lkey, BarzelTrieNode()  ) ).first;	
@@ -68,8 +69,8 @@ void BELTrie::addPath( const BTND_PatternDataVec& path, const BELParseTreeNode& 
 			WCPatDtaList::iterator firstWC = wcpdList.rbegin().base();
 		} else {
 			if( firstWC != wcpdList.end() ) {
-				for( WCPatDtaList::iterator li = firstWC; li != firstWC.end(); ++li ) {
-					li->nextFirmKey = firmKey;
+				for( WCPatDtaList::iterator li = firstWC; li != wcpdList.end(); ++li ) {
+					li->second = firmKey;
 				}
 				firstWC = wcpdList.end();
 			}
@@ -89,7 +90,7 @@ void BELTrie::addPath( const BTND_PatternDataVec& path, const BELParseTreeNode& 
 			wcpdList.pop_front(); // now first element points to the next wildcard (if any are left)
 		} else { // reached a firm token
 			if( n ) 
-				n = n->addPattern( *this, *i );
+				n = n->addFirmPattern( *this, *i );
 			else {
 				AYTRACE("addPattern returned NULL") ;
 				return; // this is impossible
