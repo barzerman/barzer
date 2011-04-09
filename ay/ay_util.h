@@ -80,6 +80,67 @@ typedef std::vector<std::wstring> WstringVec;
 /// streaming utilities
 int wstring_vec_read( WstringVec& vec, std::wistream& in );
 
+struct range_comp {
+	/*
+	template <typename T>
+	inline bool less_than( const T& l1, const T& l2, const T& r1, const T& r2 ) const
+	{ return ( l1< r1 ? true :(r1< l1 ? false: (l2< r2) )  ); }
+	template <typename T>
+	inline bool greater_than( const T& l1, const T& l2, const T& r1, const T& r2 ) const
+	{ return less_than( r1,r2, l1,l2 ); }
+	*/
+	
+	template <typename T1,typename T2>
+	inline bool less_than( const T1& l1, const T2& l2, const T1& r1, const T2& r2 ) const
+	{
+		return ( l1< r1 ? true :(r1< l1 ? false: (l2< r2) )  );
+	}
+	template <typename T1,typename T2>
+	inline bool greater_than( const T1& l1, const T2& l2, const T1& r1, const T2& r2 ) const
+	{
+		return less_than( r1,r2,l1,l2 );
+	}
+
+	template <typename T1,typename T2,typename T3>
+	inline bool less_than( 
+		const T1& l1, const T2& l2, const T3& l3, 
+		const T1& r1, const T2& r2, const T3& r3 )
+	{
+		if( l1< r1 ) 
+			return true;
+		else if( r1 < l1 ) 
+			return false;
+
+		return less_than( l2,l3, r2,r3 );
+	}
+	template <typename T1,typename T2,typename T3>
+	inline bool greater_than( 
+		const T1& l1, const T2& l2, const T3& l3, 
+		const T1& r1, const T2& r2, const T3& r3 )
+	{
+		return less_than( r1,r2,r3,l1,l2,l3 );
+	}
+	template <typename T1,typename T2,typename T3,typename T4>
+	inline bool less_than( 
+		const T1& l1, const T2& l2, const T3& l3, const T4& l4,
+		const T1& r1, const T2& r2, const T3& r3, const T4& r4 )
+	{
+		if( l1< r1 ) 
+			return true;
+		else if( r1 < l1 ) 
+			return false;
+
+		return less_than( l2,l3,l4, r2,r3,r4 );
+	}
+	template <typename T1,typename T2,typename T3,typename T4>
+	inline bool greater_than( 
+		const T1& l1, const T2& l2, const T3& l3, const T4& l4,
+		const T1& r1, const T2& r2, const T3& r3, const T4& r4 )
+	{
+		return less_than( r1,r2,r3,r4, l1,l2,l3,l4 );
+	}
+};
+
 }
 
 #endif
