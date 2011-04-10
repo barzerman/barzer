@@ -3,6 +3,7 @@
 
 #include <ay/ay_bitflags.h>
 #include <ay/ay_string_pool.h>
+#include <ay/ay_util.h>
 #include <boost/variant.hpp>
 #include <barzer_basic_types.h>
 
@@ -30,6 +31,32 @@ struct BTND_Pattern_Number {
 		struct { int 	lo,hi; } integer;
 	} range;
 
+	inline bool isLessThan( const BTND_Pattern_Number& r ) const
+	{
+		if( type < r.type ) 
+			return true;
+		else if( r.type < type ) 
+			return false;
+		else {
+			switch( type ) {
+			case T_ANY_INT: return false;
+			case T_ANY_REAL: return false;
+			case T_RANGE_INT: 
+				return (ay::range_comp().less_than(
+						range.integer.lo, range.integer.hi,
+						r.range.integer.lo, r.range.integer.hi
+					));
+			case T_RANGE_REAL: 
+				return ay::range_comp().less_than(
+						range.real.lo, range.real.hi,
+						r.range.real.lo, r.range.real.hi
+					);
+			default:
+				return false;
+			}
+		}
+	}
+
 	bool isReal() const 
 		{ return (type == T_ANY_REAL || type == T_RANGE_REAL); }
 
@@ -53,6 +80,8 @@ struct BTND_Pattern_Number {
 		range.real.hi = hi;
 	}
 };
+inline bool operator <( const BTND_Pattern_Number& l, const BTND_Pattern_Number& r )
+	{ return l.isLessThan( r ); }
 
 // 
 struct BTND_Pattern_Punct {
@@ -63,9 +92,20 @@ struct BTND_Pattern_Punct {
 // simple token wildcard data
 struct BTND_Pattern_Wildcard {
 	uint8_t minTerms, maxTerms;
+
+	size_t getMinTokSpan() const { return minTerms; }
+	size_t getMaxTokSpan() const { return maxTerms; }
+
 	BTND_Pattern_Wildcard() : minTerms(0), maxTerms(0) {}
 	BTND_Pattern_Wildcard(uint8_t mn, uint8_t mx ) : minTerms(mn), maxTerms(mx) {}
+
+	bool isLessThan( const BTND_Pattern_Wildcard& r ) const
+	{
+		return( ay::range_comp().less_than( minTerms, maxTerms, r.minTerms, r.maxTerms ) );
+	}
 };
+inline bool operator <( const BTND_Pattern_Wildcard& l, const BTND_Pattern_Wildcard& r )
+	{ return l.isLessThan( r ); }
 
 // date wildcard data
 struct BTND_Pattern_Date {
@@ -81,7 +121,12 @@ struct BTND_Pattern_Date {
 	uint32_t lo, hi; // low high date in YYYYMMDD format
 	
 	BTND_Pattern_Date( ) : type(T_ANY_DATE), lo(0),hi(0) {}
+
+	bool isLessThan( const BTND_Pattern_Date& r ) const
+		{ return ay::range_comp().less_than( type, lo, hi, r.type, r.lo, r.hi ); }
 };
+inline bool operator <( const BTND_Pattern_Date& l, const BTND_Pattern_Date& r )
+	{ return l.isLessThan( r ); }
 
 // time wildcard data. represents time of day 
 // HHMM - short number
@@ -94,7 +139,14 @@ struct BTND_Pattern_Time {
 	uint16_t lo, hi; // HHMM 
 
 	BTND_Pattern_Time( ) : type(T_ANY_TIME), lo(0), hi(0) {}
+	bool isLessThan( const BTND_Pattern_Time& r ) const
+		{ return ay::range_comp().less_than( type,lo, hi, r.type, r.lo, r.hi ); }
 };
+inline bool operator <( const BTND_Pattern_Time& l, const BTND_Pattern_Time& r )
+{
+	return l.isLessThan( r );
+}
+
 
 struct BTND_Pattern_DateTime {
 	enum {
@@ -109,7 +161,28 @@ struct BTND_Pattern_DateTime {
 
 	BTND_Pattern_DateTime() : type(T_ANY_DATETIME) , 
 		tlo(0), thi(0), dlo(0), dhi(0) {}
+	
+	bool isLessThan( const BTND_Pattern_DateTime& r ) const
+	{
+		if( type < r.type  ) 
+			return true;
+		else if( r.type < type ) 
+			return false;
+
+		switch( type ) {
+		case T_ANY_DATETIME:
+			return false;
+		case T_DATETIME_RANGE: 
+			ay::range_comp().less_than( 
+				dlo,   dhi,   tlo,   thi, 
+				r.dlo, r.dhi, r.tlo, r.thi );
+		default: return false;
+		}
+	}
 };
+
+inline bool operator <( const BTND_Pattern_DateTime& l, const BTND_Pattern_DateTime& r )
+	{ return l.isLessThan( r ); }
 
 struct BTND_Pattern_CompoundedWord {
 	uint32_t compWordId;  
@@ -142,20 +215,54 @@ typedef boost::variant<
 		BTND_Pattern_DateTime 			// 8 
 > BTND_PatternData;
 
-/// these enums must mirror the order of the types in BTND_PatternData
+/// these enums MUST mirror the order of the types in BTND_PatternData
 enum {
 	BTND_Pattern_None_TYPE, 			// 0			
 	BTND_Pattern_Token_TYPE, 			// 1			
 	BTND_Pattern_Punct_TYPE,  		    // 2
 	BTND_Pattern_CompoundedWord_TYPE,	// 3
+	/// wildcard types 
 	BTND_Pattern_Number_TYPE, 			// 4
 	BTND_Pattern_Wildcard_TYPE, 		// 5
 	BTND_Pattern_Date_TYPE,     		// 6
 	BTND_Pattern_Time_TYPE,    			// 7
 	BTND_Pattern_DateTime_TYPE,			// 8
+
+
+	/// end of wildcard types - add new ones ONLY ABOVE THIS LINE
+	/// in general there should be no more than 1-2 more types added 
+	/// nest them in another variant 
+	BTND_Pattern_MAXWILDCARD_TYPE,
 	
 	BTND_Pattern_TYPE_MAX
 };
+
+/// BTND pattern accessor - ghetto visitor 
+struct BTND_PatternData_Access {
+	bool isWildcard( const BTND_PatternData& btnd ) const 
+	{
+		return( btnd.which() >= BTND_Pattern_Number_TYPE && btnd.which() < BTND_Pattern_MAXWILDCARD_TYPE );
+	}
+
+	/// returns the maximum tok span for the wildcard 
+	/// generally most things except for the 'Wildcard' (this one skips an arbitrary number of terms 
+	/// have the span of 1  
+	inline size_t getMaxTokSpan(const BTND_PatternData& btnd ) const 
+	{
+		if( btnd.which() == BTND_Pattern_Wildcard_TYPE ) 
+			return boost::get< BTND_Pattern_Wildcard >(btnd).getMaxTokSpan();
+		else 
+			return 1;
+	}
+	inline size_t getMinTokSpan(const BTND_PatternData& btnd ) const 
+	{
+		if( btnd.which() == BTND_Pattern_Wildcard_TYPE ) 
+			return boost::get< BTND_Pattern_Wildcard >(btnd).getMinTokSpan();
+		else 
+			return 1;
+	}
+};
+
 
 typedef std::vector< BTND_PatternData > BTND_PatternDataVec;
 

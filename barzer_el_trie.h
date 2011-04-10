@@ -10,6 +10,7 @@
 namespace barzer {
 struct BELTrie;
 class BarzelRewriterPool;
+class BarzelWildcardPool;
 
 /// this type is used as a key by firmchild lookup (BarzelFCLookup)
 struct BarzelTrieFirmChildKey {
@@ -64,10 +65,36 @@ struct BarzelTrieFirmChildKey_comp_eq {
 inline bool operator ==( const BarzelTrieFirmChildKey& l, const BarzelTrieFirmChildKey& r )
 { return BarzelTrieFirmChildKey_comp_eq() ( l, r ); }
 
+/// wildcard child key
+struct BarzelWCKey {
+	BarzelTrieFirmChildKey	firmFollowerKey; // first firm key following this wildcard
+	
+	uint32_t wcId; // wildcard id unique for the type in a pool
+	uint8_t wcType; // one of BTND_Pattern_XXXX_TYPE enums
+	
+	void clear() 
+		{ wcType = BTND_Pattern_None_TYPE; wcId= 0xffffffff; }
+	bool isBlank() const 
+		{ return( wcType == BTND_Pattern_None_TYPE ); }
+	BarzelWCKey() : wcId(0xffffffff), wcType(BTND_Pattern_None_TYPE) {}
+
+	// non trivial constructor - this may add wildcard to the pool
+	// when fails wcType will be set to BTND_Pattern_None_TYPE
+	BarzelWCKey( BELTrie& trie, const BTND_PatternData& pat );
+
+	inline bool lessThan( const BarzelWCKey& r ) const
+	{ return ay::range_comp().less_than( wcType, wcId, r.wcType, r.wcId ); }
+};
+inline bool operator <( const BarzelWCKey& l, const BarzelWCKey& r )
+{
+	return l.lessThan( r );
+}
+
 /// barzel wildcard child lookup object 
 /// stored in barzel trie nodes
-struct BarzelWCCLookup {
-};
+
+typedef std::pair<BarzelTrieFirmChildKey, BarzelWCKey> BarzelWCLookupKey;
+
 
 /// right side of the pattern 
 class BarzelTranslation {
@@ -109,7 +136,8 @@ class BarzelTrieNode {
 	typedef std::map<BarzelTrieFirmChildKey, BarzelTrieNode > BarzelFCMap; 
 	BarzelFCMap firmMap; /// children of the 'firm' types - token,punctuation,compounded word
 
-	BarzelWCCLookup wcChild; /// used for wildcard matching (number,date, etc)
+	uint32_t wcLookupId; // when valid (not 0xffffffff) can it's an id of a wildcard lookup object 
+	// BarzelWCLookup wcChild; /// used for wildcard matching (number,date, etc)
 public:
 	BarzelTranslation translation;
 
@@ -122,13 +150,32 @@ public:
 	/// so typically  when we want to add a chain of patterns as a path to the trie 
 	/// we will iterate over the chain calling node = node->addPattern(p) for each pattern 
 	/// and in the end we will call node->setTranslation() 
-	BarzelTrieNode* addPattern( BELTrie& trie, const BTND_PatternData& p );
+
+	// if p is a non-firm kind (a wildcard) this is a no-op
+	BarzelTrieNode* addFirmPattern( BELTrie& trie, const BTND_PatternData& p );
+
+	// if p is firm (not a wildcard) this is a no-op
+	BarzelTrieNode* addWildcardPattern( BELTrie& trie, const BTND_PatternData& p, const BarzelTrieFirmChildKey& fk  );
+
+	bool hasValidWcLookup() const
+		{ return (wcLookupId != 0xffffffff); }
+	BarzelTrieNode() : wcLookupId(0xffffffff) {}
 };
+
+typedef std::map< BarzelWCLookupKey, BarzelTrieNode > BarzelWCLookup;
 
 struct BELTrie {
 	BarzelRewriterPool* rewrPool;
+	BarzelWildcardPool* wcPool;
+
 	BarzelTrieNode root;
-	BELTrie( BarzelRewriterPool*  pool ) : rewrPool(pool) {}
+	BELTrie( BarzelRewriterPool*  rPool, BarzelWildcardPool* wPool ) : rewrPool(rPool), wcPool(wPool) {}
+
+	/// stores wildcard data n a form later usable by the Trie
+	/// this ends up calling wcPool->produceWCKey()
+	void produceWCKey( BarzelWCKey&, const BTND_PatternData&   );
+
+	/// adds a new path to the trie
 	void addPath( const BTND_PatternDataVec& path, const BELParseTreeNode& trans );
 };
 

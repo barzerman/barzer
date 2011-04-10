@@ -1,11 +1,14 @@
 #include <barzer_el_trie.h>
+#include <barzer_el_wildcard.h>
+#include <list>
 
 namespace barzer {
-BarzelTrieNode* BarzelTrieNode::addPattern( BELTrie& rewrPool, const BTND_PatternData& p )
+/// barzel TRIE node methods
+BarzelTrieNode* BarzelTrieNode::addFirmPattern( BELTrie& trie, const BTND_PatternData& p )
 {
 	BarzelTrieFirmChildKey key(p);
-	if( !key.isBlank() ) {
-		// here we should try to generate a WCCLookupKey 
+	if( key.isBlank() ) {
+		AYTRACE( "illegally attempting to add a wildcard" );
 		return this;
 	} else {
 		BarzelFCMap::iterator i = firmMap.find( key );
@@ -16,20 +19,82 @@ BarzelTrieNode* BarzelTrieNode::addPattern( BELTrie& rewrPool, const BTND_Patter
 	}
 	 
 }
+
+BarzelTrieNode* BarzelTrieNode::addWildcardPattern( BELTrie& trie, const BTND_PatternData& p, const BarzelTrieFirmChildKey& fk  )
+{
+	if( !hasValidWcLookup() ) 
+		trie.wcPool->addWCLookup( wcLookupId );
+	
+	BarzelWCLookup* wcLookup = trie.wcPool->getWCLookup( wcLookupId );
+	BarzelWCLookupKey lkey;
+	lkey.first = fk;
+	trie.produceWCKey( lkey.second, p );
+	BarzelWCLookup::iterator i = wcLookup->find( lkey );	
+	if( i == wcLookup->end() ) 
+		i = wcLookup->insert( BarzelWCLookup::value_type( lkey, BarzelTrieNode()  ) ).first;	
+	
+	return &(i->second);
+}
 std::ostream& BarzelTrieFirmChildKey::print( std::ostream& fp ) const
 {
 	return( fp << BTNDDecode::typeName_Pattern( type )  << ":" << std::hex << id );
 }
 
+//// bel TRIE methods
+void BELTrie::produceWCKey( BarzelWCKey& key, const BTND_PatternData& btnd  )
+{
+	wcPool->produceWCKey(key, btnd );
+}
+
+namespace {
+	typedef std::pair< BTND_PatternDataVec::const_iterator, BarzelTrieFirmChildKey > WCPatDta;
+	typedef std::list< WCPatDta > WCPatDtaList;
+
+}
+
 void BELTrie::addPath( const BTND_PatternDataVec& path, const BELParseTreeNode& trans )
 {
 	BarzelTrieNode* n = &root;
+
+	// forming the list of wildcard pattern data. data includes iterator to the actual
+	// wildcard as well as the next firm match key (if any)
+	WCPatDtaList wcpdList;
+	WCPatDtaList::iterator firstWC = wcpdList.end();
+
 	for( BTND_PatternDataVec::const_iterator i = path.begin(); i!= path.end(); ++i ) {
-		if( n ) 
-			n = n->addPattern( *this, *i );
-		else {
-			AYTRACE("addPattern returned NULL") ;
-			return; // this is impossible
+		BarzelTrieFirmChildKey firmKey(*i);
+
+		if( firmKey.isBlank() ) {
+			wcpdList.push_back( WCPatDta(i,BarzelTrieFirmChildKey() ) );
+			WCPatDtaList::iterator firstWC = wcpdList.rbegin().base();
+		} else {
+			if( firstWC != wcpdList.end() ) {
+				for( WCPatDtaList::iterator li = firstWC; li != wcpdList.end(); ++li ) {
+					li->second = firmKey;
+				}
+				firstWC = wcpdList.end();
+			}
+		}
+	}
+	/// at this point wcpdList has data on all wildcards in the path - it stores pairs 
+	/// (iterator of path, nextFirmKey). now we run through the path again 
+
+	for( BTND_PatternDataVec::const_iterator i = path.begin(); i!= path.end(); ++i ) {
+		if( !wcpdList.empty() && i == wcpdList.front().first ) { // we reached a wildcard
+			if( n ) 
+				n = n->addWildcardPattern( *this, *i, wcpdList.front().second );
+			else {
+				AYTRACE("addPattern for wildcard returned NULL") ;
+				return; // this is impossible
+			}
+			wcpdList.pop_front(); // now first element points to the next wildcard (if any are left)
+		} else { // reached a firm token
+			if( n ) 
+				n = n->addFirmPattern( *this, *i );
+			else {
+				AYTRACE("addPattern returned NULL") ;
+				return; // this is impossible
+			}
 		}
 	}
 	if( n )
@@ -95,5 +160,6 @@ void BarzelTranslation::set( BELTrie& trie, const BELParseTreeNode& tn )
 		}
 	}
 }
+
 
 } // end namespace barzer

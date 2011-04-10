@@ -4,9 +4,10 @@
 #include <ay_util_time.h>
 #include <sstream>
 
-#include "barzer_el_xml.h"
-#include "barzer_el_trie.h"
-#include "barzer_el_parser.h"
+#include <barzer_el_xml.h>
+#include <barzer_el_trie.h>
+#include <barzer_el_parser.h>
+#include <barzer_el_wildcard.h>
 
 namespace barzer {
 
@@ -230,7 +231,8 @@ static int bshf_trieloadxml( BarzerShell* shell, char_cp cmd, std::istream& in )
 	ay::UniqueCharPool strPool;
 	
 	BarzelRewriterPool brPool( 64*1024 );
-	BELTrie trie( &brPool );
+	BarzelWildcardPool wcPool;
+	BELTrie trie( &brPool, &wcPool );
 	BELReader reader(&trie, &strPool);
 	reader.initParser(BELReader::INPUT_FMT_XML); 
 	

@@ -6,6 +6,6 @@ if [[ -z $1 ]]; then
 fi >&2
 
 OUTFILE=$1.tsk
-echo c++ -o $OUTFILE -I. -I/opt/local/include $1 
+echo c++ -o $OUTFILE -I. -I./ay -I/opt/local/include $1 
 c++ -o $OUTFILE -I. -I/opt/local/include $1 
 ls -l $OUTFILE
