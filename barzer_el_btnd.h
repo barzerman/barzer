@@ -374,6 +374,7 @@ struct BELParseTreeNode {
 };
 
 /// this is what Vadim will hopefully implement
+/*
 struct BELParseTreeNode_PatternEmitter {
 	BTND_PatternDataVec curVec;
 
@@ -384,7 +385,37 @@ struct BELParseTreeNode_PatternEmitter {
 	bool produceSequence() { return true; }
 	const BTND_PatternDataVec& getCurSequence( ) const
 	{ return curVec; }
-};
+}; //*/
+
+// a fake emitter, just for testing purposes
+
+///*
+struct BELParseTreeNode_PatternEmitter {
+	BTND_PatternDataVec curVec;
+
+	const BELParseTreeNode& tree;
+	bool seqDone;
+	
+	BELParseTreeNode_PatternEmitter( const BELParseTreeNode& t ) : tree(t), seqDone(false) {
+		pushAll(t);
+	}
+	
+	void pushAll( const BELParseTreeNode& t );
+	
+	/// returns false when fails to produce a sequence
+	bool produceSequence()
+	{
+		if (seqDone || !curVec.size()) {
+			return false;
+		} else {
+			return (seqDone = true);
+		}
+	}
+	
+	const BTND_PatternDataVec& getCurSequence( ) const
+	{ return curVec; }
+}; //*/
+
 } // barzer namespace
 
 #endif // BARZER_EL_BTND_H

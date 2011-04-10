@@ -5,6 +5,10 @@
 	</stmt>
 	<stmt>
 		<pat><n>2</n></pat>
-		<tran>pizda</tran>
+		<tran>muravey</tran>
 	</stmt>
+	<stmt>
+		<pat><n>2</n></pat>
+		<tran>shmel</tran>
+	</stmt>	
 </stmset>

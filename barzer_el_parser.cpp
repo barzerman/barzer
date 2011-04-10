@@ -22,9 +22,9 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 	BELParseTreeNode_PatternEmitter emitter( sp.pattern );
 	// only commented until emitter is fully implemented
 	// causes an infinite loop at the moment
-	// while( emitter.produceSequence() ) { 
+	 while( emitter.produceSequence() ) { 
 		trie->addPath( emitter.getCurSequence(), sp.translation );
-	//}
+	 }
 	
 	++numStatements;
 }

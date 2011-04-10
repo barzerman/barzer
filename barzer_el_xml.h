@@ -112,7 +112,7 @@ public:
 				if( state == STATE_TRANSLATION ) 
 					return &(stmt.translation);
 				else if( state == STATE_PATTERN ) 
-					return &(stmt.translation);
+					return &(stmt.pattern);
 				else 
 					return 0;
 			} else 
