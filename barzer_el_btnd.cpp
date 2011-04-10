@@ -81,7 +81,7 @@ void BELParseTreeNode_PatternEmitter::pushAll( const BELParseTreeNode& t )
 			case BTND_Pattern_DateTime_TYPE: break;
 			default: AYTRACE("nobody expects the spanish inquisition");
 			}
-			//curVec.push_back(*pd);
+			curVec.push_back(*pd);
 		}
 		//
 		break;
