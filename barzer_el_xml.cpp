@@ -104,7 +104,8 @@ void BELParserXML::startElement( const char* tag, const char_cp * attr, size_t a
 
 void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t attr_sz, bool close )
 {
-#define CASE_TAG(x) case TAG_##x: taghandle_##x(attr,attr_sz,close); break;
+	AYDEBUG(tid);
+#define CASE_TAG(x) case TAG_##x: taghandle_##x(attr,attr_sz,close); return;
 
 	switch( tid ) {
 	CASE_TAG(UNDEFINED)
@@ -134,8 +135,9 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 	CASE_TAG(FUNC)
 	}
 #undef CASE_TAG
-	if( close )
-		statement.popNode();
+
+	//if( close )
+	//	statement.popNode();
 
 }
 
@@ -198,7 +200,10 @@ void BELParserXML::taghandle_T_text( const char* s, int len )
 }
 void BELParserXML::taghandle_T( const char_cp * attr, size_t attr_sz , bool close)
 {
-	if( close ) return;
+	if( close ) {
+		statement.popNode();
+		return;
+	}
 	statement.pushNode(
 		BTND_PatternData(
 			BTND_Pattern_Token()
@@ -216,8 +221,10 @@ void BELParserXML::taghandle_SPC( const char_cp * attr, size_t attr_sz , bool cl
 }
 void BELParserXML::taghandle_N( const char_cp * attr, size_t attr_sz , bool close)
 {
-	if( close ) return;
-
+	if( close ) {
+		statement.popNode();
+		return;
+	}
 	bool isReal = false, isRange = false;
 	float flo=0., fhi = 0.;
 	int   ilo = 0, ihi = 0;
@@ -288,27 +295,42 @@ void BELParserXML::taghandle_TIME( const char_cp * attr, size_t attr_sz , bool c
 {}
 void BELParserXML::taghandle_LIST( const char_cp * attr, size_t attr_sz , bool close)
 {
-	if( close ) return;
+	if( close ) {
+		statement.popNode();
+		return;
+	}
 	statement.pushNode( BTND_StructData( BTND_StructData::T_LIST));
 }
 void BELParserXML::taghandle_ANY( const char_cp * attr, size_t attr_sz , bool close)
 {
-	if( close ) return;
+	if( close ) {
+		statement.popNode();
+		return;
+	}
 	statement.pushNode( BTND_StructData( BTND_StructData::T_ANY));
 }
 void BELParserXML::taghandle_OPT( const char_cp * attr, size_t attr_sz , bool close)
 {
-	if( close ) return;
+	if( close ) {
+		statement.popNode();
+		return;
+	}
 	statement.pushNode( BTND_StructData( BTND_StructData::T_OPT));
 }
 void BELParserXML::taghandle_PERM( const char_cp * attr, size_t attr_sz , bool close)
 {
-	if( close ) return;
+	if( close ) {
+		statement.popNode();
+		return;
+	}
 	statement.pushNode( BTND_StructData( BTND_StructData::T_PERM));
 }
 void BELParserXML::taghandle_TAIL( const char_cp * attr, size_t attr_sz , bool close)
 {
-	if( close ) return;
+	if( close ) {
+		statement.popNode();
+		return;
+	}
 	statement.pushNode( BTND_StructData( BTND_StructData::T_TAIL));
 }
 /// rewrite tags 
@@ -327,7 +349,10 @@ void BELParserXML::taghandle_LITERAL_text( const char* s, int len )
 }
 void BELParserXML::taghandle_LITERAL( const char_cp * attr, size_t attr_sz , bool close)
 {
-	if( close ) return;
+	if( close ) {
+		statement.popNode();
+		return;
+	}
 	statement.pushNode(
 		BTND_RewriteData(
 			BTND_Rewrite_Literal()
@@ -352,7 +377,10 @@ void BELParserXML::taghandle_RNUMBER_text( const char*s, int len )
 }
 void BELParserXML::taghandle_RNUMBER( const char_cp * attr, size_t attr_sz , bool close)
 {
-	if( close ) return;
+	if( close ) {
+		statement.popNode();
+		return;
+	}
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
@@ -366,7 +394,10 @@ void BELParserXML::taghandle_RNUMBER( const char_cp * attr, size_t attr_sz , boo
 
 void BELParserXML::taghandle_VAR( const char_cp * attr, size_t attr_sz , bool close)
 {
-	if( close ) return;
+	if( close ) {
+		statement.popNode();
+		return;
+	}
 	statement.pushNode( 
 		BTND_RewriteData(
 			BTND_Rewrite_Variable() 
@@ -375,7 +406,10 @@ void BELParserXML::taghandle_VAR( const char_cp * attr, size_t attr_sz , bool cl
 }
 void BELParserXML::taghandle_FUNC( const char_cp * attr, size_t attr_sz , bool close)
 {
-	if( close ) return;
+	if( close ) {
+		statement.popNode();
+		return;
+	}
 	statement.pushNode( 
 		BTND_RewriteData(
 			BTND_Rewrite_Function() 
