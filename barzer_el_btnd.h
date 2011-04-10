@@ -480,48 +480,26 @@ struct BELParseTreeNode {
 	}
 };
 
-/// this is what Vadim will hopefully implement
-/*
+struct PatternEmitterNode;
+
 struct BELParseTreeNode_PatternEmitter {
 	BTND_PatternDataVec curVec;
 
 	const BELParseTreeNode& tree;
-	BELParseTreeNode_PatternEmitter( const BELParseTreeNode& t ) : tree(t) {}
+	
+	BELParseTreeNode_PatternEmitter( const BELParseTreeNode& t ) : tree(t)
+        { makePatternTree(); }
 
 	/// returns false when fails to produce a sequence
-	bool produceSequence() { return true; }
+	bool produceSequence();
 	const BTND_PatternDataVec& getCurSequence( ) const
 	{ return curVec; }
-}; //*/
-
-// a fake emitter, just for testing purposes
-
-///*
-struct BELParseTreeNode_PatternEmitter {
-	BTND_PatternDataVec curVec;
-
-	const BELParseTreeNode& tree;
-	bool seqDone;
 	
-	BELParseTreeNode_PatternEmitter( const BELParseTreeNode& t ) : tree(t), seqDone(false) {
-		pushAll(t);
-	}
-	
-	void pushAll( const BELParseTreeNode& t );
-	
-	/// returns false when fails to produce a sequence
-	bool produceSequence()
-	{
-		if (seqDone || !curVec.size()) {
-			return false;
-		} else {
-			return (seqDone = true);
-		}
-	}
-	
-	const BTND_PatternDataVec& getCurSequence( ) const
-	{ return curVec; }
-}; //*/
+	~BELParseTreeNode_PatternEmitter();
+private:
+    PatternEmitterNode* patternTree;
+    void makePatternTree();
+};
 
 } // barzer namespace
 

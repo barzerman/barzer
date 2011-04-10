@@ -104,7 +104,7 @@ void BELParserXML::startElement( const char* tag, const char_cp * attr, size_t a
 
 void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t attr_sz, bool close )
 {
-#define CASE_TAG(x) case TAG_##x: taghandle_##x(attr,attr_sz,close); return;
+#define CASE_TAG(x) case TAG_##x: taghandle_##x(attr,attr_sz,close); break;
 
 	switch( tid ) {
 	CASE_TAG(UNDEFINED)
@@ -134,8 +134,9 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 	CASE_TAG(FUNC)
 	}
 #undef CASE_TAG
-	if( close ) 
+	if( close )
 		statement.popNode();
+
 }
 
 void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bool close )
@@ -504,6 +505,25 @@ int BELParserXML::getTag( const char* s ) const
 	} // switch ends
 	
 	return TAG_UNDEFINED;
+}
+
+void BELParserXML::CurStatementData::clear()
+{
+	bits.clear();
+	state = STATE_BLANK;
+	stmt.translation.clear();
+	stmt.pattern.clear();
+	if ( !nodeStack.empty() ) {
+		AYDEBUG(nodeStack.size());
+		while (!nodeStack.empty())
+			nodeStack.pop();
+	}
+}
+
+void BELParserXML::CurStatementData::popNode()
+{
+	AYTRACE("popNode");
+	nodeStack.pop();
 }
 
 } // barzer namespace ends
