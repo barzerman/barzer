@@ -198,9 +198,9 @@ void BELParserXML::taghandle_T_text( const char* s, int len )
 void BELParserXML::taghandle_T( const char_cp * attr, size_t attr_sz , bool close)
 {
 	if( close ) return;
-	statement.pushNode( 
+	statement.pushNode(
 		BTND_PatternData(
-			BTND_Pattern_Token() 
+			BTND_Pattern_Token()
 		)
 	);
 
@@ -327,9 +327,9 @@ void BELParserXML::taghandle_LITERAL_text( const char* s, int len )
 void BELParserXML::taghandle_LITERAL( const char_cp * attr, size_t attr_sz , bool close)
 {
 	if( close ) return;
-	statement.pushNode( 
+	statement.pushNode(
 		BTND_RewriteData(
-			BTND_Rewrite_Literal() 
+			BTND_Rewrite_Literal()
 		)
 	);
 }
