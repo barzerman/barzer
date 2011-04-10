@@ -102,6 +102,8 @@ public:
 			state = STATE_BLANK; 
 			stmt.translation.clear();
 			stmt.pattern.clear();
+			while( !nodeStack.empty() ) 
+				nodeStack.pop();
 		}
 
 		std::stack< BELParseTreeNode* > nodeStack;
