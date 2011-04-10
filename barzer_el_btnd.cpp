@@ -62,53 +62,6 @@ struct Leaf: public PatternEmitterNode {
     const BTND_PatternData& data;
 };
 
-<<<<<<< HEAD
-//	AYTRACE("printing pattern node");
-//	t.print( std::cerr, 1 );
-
-	switch( t.getNodeData().which() ) {
-	case BTND_None_TYPE:
-		AYTRACE("unknown node type omg wtf");
-		break;
-	case BTND_StructData_TYPE: {
-//		AYTRACE("struct");
-		const BELParseTreeNode::ChildrenVec& cv = t.child;
-
-		for( BELParseTreeNode::ChildrenVec::const_iterator ci = cv.begin();
-				ci != cv.end(); ++ci ) {
-			pushAll( *ci );
-		}
-	}
-		break;
-	case BTND_PatternData_TYPE:
-//		AYTRACE("pattern");
-		{
-			const BTND_PatternData* pd = t.getPatternData();
-			switch( pd->which() ) {
-			case BTND_Pattern_None_TYPE:
-				AYTRACE("what do you mean None"); break;
-			case BTND_Pattern_Token_TYPE:
-				break;
-			case BTND_Pattern_Punct_TYPE: break;
-			case BTND_Pattern_CompoundedWord_TYPE: break;
-			case BTND_Pattern_Number_TYPE: break;
-			case BTND_Pattern_Wildcard_TYPE: break;
-			case BTND_Pattern_Date_TYPE: break;
-			case BTND_Pattern_Time_TYPE: break;
-			case BTND_Pattern_DateTime_TYPE: break;
-			default: AYTRACE("nobody expects the spanish inquisition");
-			}
-			curVec.push_back(*pd);
-		}
-		//
-		break;
-	case BTND_RewriteData_TYPE:
-		AYTRACE("this ain't a place for no rewrites");
-		break;
-	default:
-		AYTRACE("something is definitely broken");
-	}
-=======
 struct IntermediateNode : public PatternEmitterNode {
     IntermediateNode(const BELParseTreeNode::ChildrenVec& children)
     {
@@ -273,7 +226,6 @@ struct Tail: public IntermediateNode {
 private:
     ChildVec::const_iterator endPosition;
 };
->>>>>>> 342480d56c022a5ad326b8fe1d373d20127c0a1e
 
 } // namespace {
     
