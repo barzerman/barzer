@@ -251,6 +251,7 @@ PatternEmitterNode* PatternEmitterNode::make(const BELParseTreeNode& node)
     }
     
     // should never get here
+    AYTRACE("something is definitely broken");
     return NULL;
 }
 

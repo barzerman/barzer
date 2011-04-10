@@ -102,6 +102,8 @@ public:
 			state = STATE_BLANK; 
 			stmt.translation.clear();
 			stmt.pattern.clear();
+			while( !nodeStack.empty() ) 
+				nodeStack.pop();
 		}
 
 		std::stack< BELParseTreeNode* > nodeStack;
@@ -112,7 +114,7 @@ public:
 				if( state == STATE_TRANSLATION ) 
 					return &(stmt.translation);
 				else if( state == STATE_PATTERN ) 
-					return &(stmt.translation);
+					return &(stmt.pattern);
 				else 
 					return 0;
 			} else 
@@ -126,7 +128,8 @@ public:
 		}
 
 		void setTranslation() { 
-			state = STATE_TRANSLATION; bits.set(BIT_HAS_TRANSLATION);
+			state = STATE_TRANSLATION;
+			bits.set(BIT_HAS_TRANSLATION);
 			stmt.translation.setNodeData( BTND_RewriteData() );
 		}
 

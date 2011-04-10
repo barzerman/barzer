@@ -491,7 +491,7 @@ struct BELParseTreeNode_PatternEmitter {
         { makePatternTree(); }
 
 	/// returns false when fails to produce a sequence
-	bool produceSequence() ;
+	bool produceSequence();
 	const BTND_PatternDataVec& getCurSequence( ) const
 	{ return curVec; }
 	
@@ -500,6 +500,7 @@ private:
     PatternEmitterNode* patternTree;
     void makePatternTree();
 };
+
 } // barzer namespace
 
 #endif // BARZER_EL_BTND_H
