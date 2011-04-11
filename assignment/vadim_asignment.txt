@@ -1,12 +1,11 @@
-PATTERN FLOW EXPANDED 
-Date: end of day 04/09/2011
-implement the class(es) that given
-BELParseTreeNode
-evaluates the tree and using the tree_permute.cpp iterator logic 
-emits all valid sequences . 
-rectified pattern sequence should be passed by reference to a callback
-object
-in other words it evaluates all ANY/PERM/OPT etc. pattern flow statements 
-and produces pattern lists 
+completion date apr 17
+* test the BELParseTreeNode_PatternEmitter 
+	- create a specialized emitter test function in barzer_shell.cpp to load and see emitted sequences 
+      for arbitrary structures 
+ 	- eprformance test on 
+		- large expansions (structures that expand into tens of thousands of combinations) without
+		  adding to trie
+* familiarize self with te BarzelTrie data structure 
+* participate in matching algo discussion 
 
 

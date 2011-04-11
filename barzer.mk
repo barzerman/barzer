@@ -28,7 +28,7 @@ lg_en/barzer_en_lex.o \
 lg_ru/barzer_ru_lex.o \
 
 all: ay/libay.a $(objects) 
-	c++ $(LINKFLAGS) -o  $(BINARY) $(objects) $(libs) 
+	$(CC) $(LINKFLAGS) -o  $(BINARY) $(objects) $(libs)
 clean: 
 	rm -f $(objects) $(BINARY)
 cleanall: clean cleanaylib
@@ -42,5 +42,5 @@ aylib:
 ay/libay.a: 
 	cd ay; make -f aylib.mk rebuild $(FLAGS); cd ..
 .cpp.o:
-	c++  -c $(CFLAGS) $< -o $@
+	$(CC)  -c $(CFLAGS) $< -o $@
 rebuild: clean aylib all

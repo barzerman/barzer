@@ -10,5 +10,5 @@ clean:
 	rm -f $(objects) $(LIBNAME)
 
 .cpp.o:
-	c++ -c $(CFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS) $< -o $@
 rebuild: clean all
