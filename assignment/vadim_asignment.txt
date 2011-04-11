@@ -5,7 +5,6 @@ completion date apr 17
  	- eprformance test on 
 		- large expansions (structures that expand into tens of thousands of combinations) without
 		  adding to trie
-			
 * familiarize self with te BarzelTrie data structure 
 * participate in matching algo discussion 
 
