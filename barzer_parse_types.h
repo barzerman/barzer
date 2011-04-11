@@ -22,9 +22,6 @@ enum {
 	BGC_MAX_NUMTOK = 1024 // maximum number of tokens in the question
 }; 
 
-enum {
-};
-
 struct TToken {
 	uint16_t  len; 
 	const char* buf;

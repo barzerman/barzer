@@ -147,7 +147,7 @@ public:
 		template <typename T>
 		BELParseTreeNode* pushNode( const T& t )
 		{
-			AYTRACE("pushNode");
+			//AYTRACE("pushNode");
 			BELParseTreeNode* curNode = getCurTreeNode();
 			if( !curNode )
 				return 0;

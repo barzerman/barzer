@@ -104,7 +104,7 @@ void BELParserXML::startElement( const char* tag, const char_cp * attr, size_t a
 
 void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t attr_sz, bool close )
 {
-	AYDEBUG(tid);
+	//AYDEBUG(tid);
 #define CASE_TAG(x) case TAG_##x: taghandle_##x(attr,attr_sz,close); return;
 
 	switch( tid ) {
@@ -381,13 +381,24 @@ void BELParserXML::taghandle_RNUMBER( const char_cp * attr, size_t attr_sz , boo
 		statement.popNode();
 		return;
 	}
+	BTND_Rewrite_Number num;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
+		switch( n[0] ) {
+		case 'v': {
+			if( strchr( v, '.' ) ) {
+				num.set( atof( v ) );
+			} else {
+				num.set( atoi( v ) );
+			}
+		}
+			break;
+		}
 	}
 	statement.pushNode( 
 		BTND_RewriteData(
-			BTND_Rewrite_Number(0) 
+			num
 		)
 	);
 }
@@ -556,7 +567,7 @@ void BELParserXML::CurStatementData::clear()
 
 void BELParserXML::CurStatementData::popNode()
 {
-	AYTRACE("popNode");
+	//AYTRACE("popNode");
 	nodeStack.pop();
 }
 

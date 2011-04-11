@@ -30,7 +30,7 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 	 }
 	
 	++numStatements;
-	AYDEBUG(numStatements);
+	// AYDEBUG(numStatements);
 }
 
 

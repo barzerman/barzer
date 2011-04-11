@@ -1,0 +1,9 @@
+1. Make simple configurable logger .  DElivery date April 13
+	- make it part of aylib ay_logger
+	- singleton loads an optional config file which controls the log level
+	- statements like AYTRACE/AYDEBUG depends on the trace level
+	- trace level should also be controllable from the shell 
+Basically it should print the same as AYDEBUG/AYTRACE except that the actual printing 
+will only occur when appropriate tracelevel is set. 
+Also, there should be a compile time flag to remove all print statements (#ifdef) 
+
