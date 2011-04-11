@@ -96,7 +96,7 @@ public:
 			STATE_TRANSLATION
 		} state;
 			
-		void clear()
+		void clear(); /* moved it into .cpp for debugging purposes
 		{ 
 			bits.clear(); 
 			state = STATE_BLANK; 
@@ -104,7 +104,7 @@ public:
 			stmt.pattern.clear();
 			while( !nodeStack.empty() ) 
 				nodeStack.pop();
-		}
+		} //*/
 
 		std::stack< BELParseTreeNode* > nodeStack;
 
@@ -147,6 +147,7 @@ public:
 		template <typename T>
 		BELParseTreeNode* pushNode( const T& t )
 		{
+			AYTRACE("pushNode");
 			BELParseTreeNode* curNode = getCurTreeNode();
 			if( !curNode )
 				return 0;
@@ -155,8 +156,9 @@ public:
 			nodeStack.push( curNode );
 			return curNode;
 		}
-		void popNode()
+		void popNode(); /*
 		{ nodeStack.pop(); }
+		*/
 
 		bool hasStatement() const { return bits[BIT_HAS_STATEMENT];};
 		bool hasPattern() const { return bits[BIT_HAS_PATTERN];};
