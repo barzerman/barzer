@@ -10,6 +10,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <stdint.h>
+#include "ay_headers.h"
 
 #ifndef LOG_DISABLE
 #define AYLOG(l) ay::LogMsg(ay::Logger::l,__FILE__,__LINE__).getStream()
@@ -32,30 +34,28 @@ template<class T>
 inline VoidStream& operator<<(VoidStream &vs, const T &v) { return vs; }
 
 
-
-const std::string LOG_LVL_STR[] = {"DEBUG", "WARNING","ERROR","CRITICAL", "KABOOM"};
-
 // this is awful, should probably just replace it with a bunch of static functions
 class Logger {
 public:
 	static VoidStream voidstream;
-	static int LEVEL;
+	static uint8_t LEVEL;
 	enum LogLevelEnum {
 		DEBUG,
 		WARNING,
 		ERROR,
 		CRITICAL,
-		KABOOM // something awful which should stop program running immediately
+
+		LOG_LEVEL_MAX// something awful which should stop program running immediately
 	};
 
 
-	static void init(int l);
+	static void init(uint8_t l);
 
 	static Logger* getLogger();
 
-	static void setLevel(int l) { LEVEL = l; }
+	static void setLevel(uint8_t l) { LEVEL = l; }
 
-	std::ostream& logMsg(const int lvl, const char* filename,
+	std::ostream& logMsg(const uint8_t lvl, const char* filename,
 										   const int lineno);
 
 	std::ostream& getStream() { return *stream_; }
@@ -65,6 +65,7 @@ public:
 	void setStream(std::ostream* stream);
 
 private:
+	const static std::string LOG_LVL_STR[Logger::LOG_LEVEL_MAX];
 	static Logger *instance_;
 	std::ostream *stream_;
 	bool gotfile;
@@ -76,10 +77,10 @@ private:
 // a linebreak at the end. No I'm not sure this is the best way to handle it.
 
 class LogMsg {
-	int level_;
+	uint level_;
 	Logger* logger_;
 public:
-	LogMsg(const int lvl, const char* filename, const int lineno) :
+	LogMsg(const uint8_t lvl, const char* filename, const int lineno) :
 		level_(lvl), logger_(Logger::getLogger())
 	{
 		logger_->logMsg(lvl, filename, lineno);

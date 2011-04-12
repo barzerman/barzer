@@ -5,16 +5,15 @@
  *      Author: polter
  */
 
-#include <iostream>
-#include <fstream>
 #include "ay_logger.h"
 
 namespace ay {
 
-Logger *Logger::instance_;
-int Logger::LEVEL;
+Logger *Logger::instance_ = 0;
+uint8_t Logger::LEVEL = Logger::WARNING;
 VoidStream Logger::voidstream;
-
+const std::string Logger::LOG_LVL_STR[Logger::LOG_LEVEL_MAX]
+                                      = {"DEBUG", "WARNING","ERROR","CRITICAL"};
 
 std::ostream& LogMsg::getStream()
 {
@@ -25,10 +24,7 @@ std::ostream& LogMsg::getStream()
 		return Logger::voidstream;
 }
 
-void Logger::init( int l = ERROR )
-{
-	LEVEL = l;
-}
+void Logger::init( uint8_t l = WARNING ) { LEVEL = l; }
 
 Logger* Logger::getLogger()
 {
@@ -54,10 +50,10 @@ void Logger::setStream( std::ostream* os )
 	stream_ = os;
 }
 
-std::ostream& Logger::logMsg( const int lvl, const char* filename,
+std::ostream& Logger::logMsg( const uint8_t lvl, const char* filename,
 		const int lineno )
 {
-	if ( lvl > 4 )
+	if (lvl >= Logger::LOG_LEVEL_MAX)
 		return *stream_; // should probably crash right here
 	if ( lvl >= LEVEL ) {
 		*stream_ << filename << ":" << lineno << ":[" << LOG_LVL_STR[lvl]
