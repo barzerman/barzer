@@ -71,6 +71,8 @@ public:
 		default: k.clear(); return;
 		}
 	}
+	
+	std::ostream& print( std::ostream& fp, const BarzelWCKey& key, const BELPrintContext& ctxt ) const;
 };
 
 }

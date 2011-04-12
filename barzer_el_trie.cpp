@@ -3,6 +3,104 @@
 #include <list>
 
 namespace barzer {
+///// output operators 
+
+const BarzelWCLookup*  BELPrintContext::getWildcardLookup( uint32_t id ) const
+{
+return( trie.wcPool->getWCLookup( id ));
+}
+std::ostream& BELTrie::print( std::ostream& fp, BELPrintContext& ctxt  ) const
+{
+
+	fp << "/" << std::endl;
+	root.print( fp, ctxt );
+	return fp;
+}
+
+/// print one trie node 
+std::ostream& BarzelTrieNode::print( std::ostream& fp , BELPrintContext& ctxt ) const
+{
+	ctxt.descend();
+
+	bool needNewline = true;
+	if( hasFirmChildren() ) {
+		print_firmChildren( fp, ctxt );
+		fp << "\n";
+		needNewline = false;
+	} else 
+		fp << "[no firm]";
+	
+	if( hasWildcardChildren() ) {
+		print_wcChildren(fp, ctxt );
+		fp << "\n";
+		needNewline = false;
+	} else 
+		fp << "[no wildcards]";
+
+	if( isLeaf() ) 
+		print_translation( (fp << " *LEAF*=> ["), ctxt) << "]";
+	
+	if( needNewline ) 
+		fp << "\n";
+
+	ctxt.ascend();
+	return fp;
+}
+
+std::ostream& BarzelTrieNode::print_translation( std::ostream& fp, const BELPrintContext& ctxt ) const
+{
+
+	return translation.print( fp, ctxt );
+}
+
+std::ostream& BarzelTrieNode::print_firmChildren( std::ostream& fp, BELPrintContext& ctxt ) const
+{
+	for( BarzelFCMap::const_iterator i = firmMap.begin(); i!= firmMap.end() ; ++i ) {
+		i->first.print( (fp << ctxt.prefix), ctxt);
+		if( ctxt.needDescend() ) {
+			const BarzelTrieNode& child = i->second;
+			child.print( fp, ctxt );
+		} else {
+			fp << "/\n";
+		}
+	}
+	return fp;
+}
+
+std::ostream& BarzelTrieNode::print_wcChildren( std::ostream& fp, BELPrintContext& ctxt ) const
+{
+	const BarzelWCLookup* wcLookup = ctxt.getWildcardLookup( wcLookupId );
+	if( !wcLookup ) {
+		std::cerr << "Barzel Trie FATAL: lookup id " << std::hex << wcLookupId << " is invalid\n";
+		return fp;
+	}
+	for( BarzelWCLookup::const_iterator i = wcLookup->begin(); i != wcLookup->end(); ++i ) {
+		const BarzelWCLookupKey& lupKey = i->first;
+		ctxt.printBarzelWCLookupKey( (fp << ctxt.prefix << "W:"), lupKey );
+		if( ctxt.needDescend() ) {
+			const BarzelTrieNode& child = i->second;
+			child.print( fp, ctxt );
+		} else {
+			fp << "/\n";
+		}
+	}
+	return fp;
+}
+
+std::ostream& BELPrintContext::printBarzelWCLookupKey( std::ostream& fp, const BarzelWCLookupKey& key ) const
+{
+	const BarzelTrieFirmChildKey& firmKey = key.first;
+	const BarzelWCKey& wcKey = key.second;
+	
+	trie.wcPool->print( fp, wcKey, *this );
+	if( !firmKey.isBlank() ) {
+		fp << "-->";
+		firmKey.print( fp, *this );
+	}
+	return fp;
+}
+
+
 /// barzel TRIE node methods
 BarzelTrieNode* BarzelTrieNode::addFirmPattern( BELTrie& trie, const BTND_PatternData& p )
 {
@@ -19,6 +117,7 @@ BarzelTrieNode* BarzelTrieNode::addFirmPattern( BELTrie& trie, const BTND_Patter
 	}
 	 
 }
+
 
 BarzelTrieNode* BarzelTrieNode::addWildcardPattern( BELTrie& trie, const BTND_PatternData& p, const BarzelTrieFirmChildKey& fk  )
 {
@@ -38,6 +137,13 @@ BarzelTrieNode* BarzelTrieNode::addWildcardPattern( BELTrie& trie, const BTND_Pa
 std::ostream& BarzelTrieFirmChildKey::print( std::ostream& fp ) const
 {
 	return( fp << BTNDDecode::typeName_Pattern( type )  << ":" << std::hex << id );
+}
+
+std::ostream& BarzelTrieFirmChildKey::print( std::ostream& fp, const BELPrintContext& ctxt ) const
+{
+	return( fp << BTNDDecode::typeName_Pattern( type )  << ":" << std::hex << id << "[" << 
+	ctxt.printableString(id) <<
+	"]" );
 }
 
 //// bel TRIE methods
@@ -161,5 +267,27 @@ void BarzelTranslation::set( BELTrie& trie, const BELParseTreeNode& tn )
 	}
 }
 
+std::ostream& BarzelTranslation::print( std::ostream& fp, const BELPrintContext& ctxt) const
+{
+	switch(type ) {
+	case T_NONE: return ( fp << "<none>" );
+	case T_STOP: return ( fp << "#" );
+	case T_STRING: return ( fp << "STRING" );
+	case T_COMPWORD: return ( fp << "COMP" );
+	case T_NUMBER_INT: return ( fp << "INTEGER" );
+	case T_NUMBER_REAL: return ( fp << "REAL" );
+	case T_REWRITER:
+	{
+		BarzelRewriterPool::BufAndSize bas; 
+		ctxt.trie.rewrPool->resolveTranslation( bas, *this );
+		fp << "RWR(";
+		fp << "rewriter bytes[" << bas.second << "]";
+		fp << ")";
+	}
+		break;
+		
+	}
+	return ( fp << "unknown translation" );
+}
 
 } // end namespace barzer

@@ -5,7 +5,7 @@ namespace barzer {
 BarzelRewriterPool::~BarzelRewriterPool()
 {
 	for( BufAndSizeVec::iterator i = encVec.begin(); i!= encVec.end(); ++i ) 
-		free(i->first);
+		free((uint8_t*)(i->first));
 }
 
 namespace barzel {
@@ -50,6 +50,16 @@ int  BarzelRewriterPool::encodeParseTreeNode( BarzelRewriterPool::byte_vec& tran
 	}
 	trans.push_back( (uint8_t)barzel::RWR_NODE_END );
 	return ERR_OK;
+}
+
+bool BarzelRewriterPool::resolveTranslation( BarzelRewriterPool::BufAndSize& bas, const BarzelTranslation& trans ) const
+{
+	uint32_t rid = trans.getRewriterId( );
+	if( rid < encVec.size() ) 
+		return ( bas = encVec[rid], true );
+	else 
+		return ( bas = BarzelRewriterPool::BufAndSize(0,0), false );
+		
 }
 
 int BarzelRewriterPool::produceTranslation( BarzelTranslation& trans, const BELParseTreeNode& ptn )

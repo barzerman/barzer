@@ -54,9 +54,16 @@ public:
 			CharIdMap::const_iterator i= idMap.find(s);
 			return ( i == idMap.end() ? ID_NOTFOUND : i->second );
 		}
-	const char* resolveId( StrId id ) const
+	const char* resolveId( uint32_t id ) const
 		{ return ( (id< idVec.size()) ? idVec[id] : 0 ); }
-
+	
+	// this is guaranteed to never return 0
+	inline const char* printableStr(uint32_t id) const
+		{ 
+			const char* s = resolveId(id);
+			return( s? s: ""); 
+		}
+				
 	StrId internIt( const char* s ); 
 	UniqueCharPool( size_t cSz = DEFAULT_CHUNK_SIZE ) : 
 		CharPool(cSz ) { }

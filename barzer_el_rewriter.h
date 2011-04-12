@@ -27,14 +27,16 @@ class BarzelTranslation;
 /// the pool stores binary buffers with barzel rewrite instructions
 /// these buffers are used to build BarzelRewriteTree objects on the fly 
 class BarzelRewriterPool {
-	typedef std::pair<char*, uint32_t> BufAndSize;
+public:
+	typedef std::pair<const uint8_t*, uint32_t> BufAndSize;
+private:
 	typedef std::vector<uint8_t> byte_vec;
 	typedef std::vector< BufAndSize > BufAndSizeVec;
 	BufAndSizeVec encVec;
 
 	uint32_t poolNewBuf( const uint8_t* s, uint32_t sz )
 	{
-		encVec.push_back( BufAndSize( (char*)malloc(sz), sz) );
+		encVec.push_back( BufAndSize( (uint8_t*)malloc(sz), sz) );
 		return (encVec.size() -1);
 	}
 
@@ -52,6 +54,10 @@ public:
 	};
 	// returns one of the ERR_XXX enums
 	int produceTranslation( BarzelTranslation& , const BELParseTreeNode& ptn );
+
+	/// when translation contained valid rewriter buffer returns true
+	/// otherwise 0
+	bool resolveTranslation( BufAndSize&, const BarzelTranslation& trans ) const;
 };
 
 }

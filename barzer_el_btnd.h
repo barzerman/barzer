@@ -10,11 +10,13 @@
 // types defined in this file are used to store information for various node types 
 // in the BarzEL trie
 namespace barzer {
+struct BELPrintContext;
 
 //// BarzelTrieNodeData - PATTERN types 
 
 /// simple number wildcard data 
 struct BTND_Pattern_Number {
+	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	enum {
 		T_ANY_INT, // any integer 
 		T_ANY_REAL, // any real
@@ -85,12 +87,14 @@ inline bool operator <( const BTND_Pattern_Number& l, const BTND_Pattern_Number&
 
 // 
 struct BTND_Pattern_Punct {
+	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	int theChar; // actual punctuation character
 	BTND_Pattern_Punct() : theChar(0) {}
 	BTND_Pattern_Punct(char c) : theChar(c) {}
 };
 // simple token wildcard data
 struct BTND_Pattern_Wildcard {
+	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	uint8_t minTerms, maxTerms;
 
 	size_t getMinTokSpan() const { return minTerms; }
@@ -109,6 +113,7 @@ inline bool operator <( const BTND_Pattern_Wildcard& l, const BTND_Pattern_Wildc
 
 // date wildcard data
 struct BTND_Pattern_Date {
+	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	enum {
 		T_ANY_DATE, 
 		T_ANY_FUTUREDATE, 
@@ -131,8 +136,11 @@ inline bool operator <( const BTND_Pattern_Date& l, const BTND_Pattern_Date& r )
 // time wildcard data. represents time of day 
 // HHMM - short number
 struct BTND_Pattern_Time {
+	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	enum {
 		T_ANY_TIME,
+		T_ANY_FUTURE_TIME,
+		T_ANY_PAST_TIME,
 		T_TIMERANGE
 	};
 	uint8_t type; // T_XXXX values 
@@ -149,15 +157,18 @@ inline bool operator <( const BTND_Pattern_Time& l, const BTND_Pattern_Time& r )
 
 
 struct BTND_Pattern_DateTime {
+	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	enum {
 		T_ANY_DATETIME, 
+		T_ANY_FUTURE_DATETIME, 
+		T_ANY_PAST_DATETIME, 
 		T_DATETIME_RANGE,
 		T_MAX
 	};
 	
 	uint8_t type; // T_XXXX values 
 	uint16_t tlo,thi; // HHMM lo hi time
-	uint16_t dlo,dhi; // YYYYMMDD lo hi date
+	uint32_t dlo,dhi; // YYYYMMDD lo hi date
 
 	BTND_Pattern_DateTime() : type(T_ANY_DATETIME) , 
 		tlo(0), thi(0), dlo(0), dhi(0) {}
@@ -185,6 +196,7 @@ inline bool operator <( const BTND_Pattern_DateTime& l, const BTND_Pattern_DateT
 	{ return l.isLessThan( r ); }
 
 struct BTND_Pattern_CompoundedWord {
+	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	uint32_t compWordId;  
 	BTND_Pattern_CompoundedWord() :
 		compWordId(0xffffffff)
@@ -193,6 +205,7 @@ struct BTND_Pattern_CompoundedWord {
 };
 
 struct BTND_Pattern_Token {
+	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	ay::UniqueCharPool::StrId stringId;
 
 	BTND_Pattern_Token() : stringId(ay::UniqueCharPool::ID_NOTFOUND) {}
@@ -201,6 +214,7 @@ struct BTND_Pattern_Token {
 
 /// blank data type 
 struct BTND_Pattern_None {
+	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 };
 
 typedef boost::variant< 
@@ -268,6 +282,7 @@ typedef std::vector< BTND_PatternData > BTND_PatternDataVec;
 
 //// REWRITE Types
 struct BTND_Rewrite_Literal {
+	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	enum {
 		T_STRING,
 		T_COMPOUND,
@@ -290,6 +305,7 @@ struct BTND_Rewrite_Literal {
 };
 
 struct BTND_Rewrite_Number {
+	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	boost::variant< int, double > val;
 	bool isConst; /// when false we will need to evaluate underlying nodes
 	BTND_Rewrite_Number( ) : isConst(false) {}
@@ -302,6 +318,7 @@ struct BTND_Rewrite_Number {
 };
 
 struct BTND_Rewrite_Variable {
+	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	uint8_t byName; 
 	uint32_t varId; /// when byName is non 0 this will be used as a sring id
 		// otherwise as $1/$2 
@@ -309,19 +326,23 @@ struct BTND_Rewrite_Variable {
 };
 
 struct BTND_Rewrite_Function {
+	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	ay::UniqueCharPool::StrId nameId; // function name id
 	BTND_Rewrite_Function() : nameId(ay::UniqueCharPool::ID_NOTFOUND) {}
 	BTND_Rewrite_Function(ay::UniqueCharPool::StrId id) : nameId(id) {}
 };
 // blank rewrite data type
 struct BTND_Rewrite_None {
+	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	int dummy;
 	BTND_Rewrite_None() : dummy(0) {}
 };
 struct BTND_Rewrite_AbsoluteDate {
+	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	BarzerDate date;
 };
 struct BTND_Rewrite_TimeOfDay {
+	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	BarzerTimeOfDay date;
 };
 
@@ -333,6 +354,7 @@ enum {
 /// they may actually store an explicit constant range
 /// if that werent an issue we could make it a blank type
 struct BTND_Rewrite_Range {
+	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	int dummy;
 
 	typedef char None;
@@ -381,6 +403,7 @@ enum {
 
 /// pattern structure flow data - blank for now
 struct BTND_StructData {
+	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	enum {
 		T_LIST, // sequence of elements
 		T_ANY,  // any element 
@@ -390,13 +413,14 @@ struct BTND_StructData {
 		/// add new types above this line only
 		BEL_STRUCT_MAX
 	};
-	int type;
+	uint8_t type;
 	BTND_StructData() : type(T_LIST) {}
 	BTND_StructData(int t) : type(t) {}
 };
 
 /// blank data type
 struct BTND_None {
+	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 };
 
 typedef boost::variant<

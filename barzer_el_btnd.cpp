@@ -1,4 +1,5 @@
 #include <barzer_el_btnd.h>
+#include <barzer_el_trie.h>
 
 #include <algorithm>
 
@@ -275,5 +276,143 @@ BELParseTreeNode_PatternEmitter::~BELParseTreeNode_PatternEmitter()
     delete patternTree;
 }
 
+/// print methods 
+
+std::ostream&  BTND_Pattern_Number::print( std::ostream& fp, const BELPrintContext& ) const
+{
+	switch( type ) {
+	case T_ANY_INT:
+		fp << "AnyInt";
+		break;
+	case T_ANY_REAL:
+		fp << "AnyReal";
+		break;
+	case T_RANGE_INT:
+		fp << "RangeInt[" << range.integer.lo << "," << range.integer.hi << "]";
+		break;
+	case T_RANGE_REAL:
+		fp << "RangeReal[" << range.real.lo << "," << range.real.hi << "]";
+		break;
+	default:
+		return ( fp << "NumUnknown" );	
+	}
+	return fp; 
+}
+
+std::ostream&  BTND_Pattern_Punct::print( std::ostream& fp, const BELPrintContext&  ) const
+{
+	return ( fp << "Punct (" << (char)theChar << ")" );
+}
+std::ostream&  BTND_Pattern_Wildcard::print( std::ostream& fp , const BELPrintContext& ) const
+{
+	return ( fp << "Wildcard(" << minTerms << "," << maxTerms << ")");
+}
+
+std::ostream&  BTND_Pattern_Date::print( std::ostream& fp , const BELPrintContext& ) const
+{
+	switch( type ) {
+	case T_ANY_DATE:
+		return (fp << "AnyDate");
+	case T_ANY_FUTUREDATE:
+		return (fp << "AnyFutureDate");
+	case T_ANY_PASTDATE:
+		return (fp << "AnyPastDate");
+
+	case T_DATERANGE:
+		return ( fp << "Date[" << lo << "," << hi << "]" );
+	}
+	return (fp << "UnknownDate" );
+}
+std::ostream&  BTND_Pattern_Time::print( std::ostream& fp , const BELPrintContext& ) const
+{
+
+	switch( type ) {
+	case T_ANY_TIME: return( fp << "AnyTime" );
+	case T_ANY_FUTURE_TIME: return( fp << "AnyFutureTime" );
+	case T_ANY_PAST_TIME:return( fp << "AnyPastTime" );
+	case T_TIMERANGE:return( fp << "Time["  << lo << "," << hi << "]");
+	}
+	return ( fp << "UnknownTime" );
+}
+std::ostream&  BTND_Pattern_DateTime::print( std::ostream& fp , const BELPrintContext& ) const
+{
+	switch( type ) {
+	case T_ANY_DATETIME: return (fp << "AnyDateTime" );
+	case T_ANY_FUTURE_DATETIME: return (fp << "FutureDateTime" );
+	case T_ANY_PAST_DATETIME: return (fp << "PastDateTime" );
+	case T_DATETIME_RANGE: return (fp << "DateTime[" << dlo << "-" << tlo << "," << dhi << "-" << thi << "]");
+	}
+	return (fp << "DateTimeUnknown");
+}
+std::ostream&  BTND_Pattern_CompoundedWord::print( std::ostream& fp , const BELPrintContext& ) const
+{
+	return ( fp << "compword(" << std::hex << compWordId << ")");
+}
+std::ostream&  BTND_Pattern_Token::print( std::ostream& fp , const BELPrintContext& ctxt ) const
+{
+	return ( fp << "token[" << ctxt.printableString( stringId ) << "]");
+}
+std::ostream&  BTND_Pattern_None::print( std::ostream& fp , const BELPrintContext& ) const
+{
+	return (fp << "<PatternNone>");
+}
+
+std::ostream&  BTND_Rewrite_Literal::print( std::ostream& fp , const BELPrintContext& ctxt ) const
+{
+	switch( type ) {
+	case T_STRING: return( fp << "\"" << ctxt.printableString( theId ) << "\"" );
+	case T_COMPOUND: return ( fp << "comp(" << std::hex << theId << ")" );
+	case T_STOP: return ( fp << "#" );
+	}
+	return (fp << "<InvalidLiteral>" );
+}
+std::ostream&  BTND_Rewrite_Number::print( std::ostream& fp , const BELPrintContext& ) const
+{
+	return fp; 
+}
+std::ostream&  BTND_Rewrite_Variable::print( std::ostream& fp , const BELPrintContext& ctxt ) const
+{
+	if( byName ) {
+		return ( fp << "$" << ctxt.printableString( varId ) ) ;
+	} else {
+		return ( fp << "$" << varId );
+	}
+}
+std::ostream&  BTND_Rewrite_Function::print( std::ostream& fp , const BELPrintContext& ctxt) const
+{
+	return ( fp << "func." << ctxt.printableString( nameId ) );
+}
+std::ostream&  BTND_Rewrite_None::print( std::ostream& fp , const BELPrintContext& ) const
+{
+	return (fp << "RwrNone" );
+}
+std::ostream&  BTND_Rewrite_AbsoluteDate::print( std::ostream& fp , const BELPrintContext& ) const
+{
+	return ( fp << "AbsDate" );
+}
+std::ostream&  BTND_Rewrite_TimeOfDay::print( std::ostream& fp , const BELPrintContext& ) const
+{
+	return ( fp << "RwrTimeOfDay" ); }
+std::ostream&  BTND_Rewrite_Range::print( std::ostream& fp , const BELPrintContext& ) const
+{
+	return (fp << "RwrRange" );
+}
+std::ostream&  BTND_StructData::print( std::ostream& fp , const BELPrintContext& ) const
+{
+	const char* str = "Unknown";
+	switch( type ) {
+	case T_LIST: str = "List" ; break;
+	case T_ANY: str = "Any" ; break;
+	case T_OPT: str = "Opt" ; break;
+	case T_PERM: str = "Perm" ; break;
+	case T_TAIL: str = "Tail" ; break;
+	default: str = "Unknown"; break;
+	}
+	return ( fp << "Struct." << str );
+}
+std::ostream&  BTND_None::print( std::ostream& fp , const BELPrintContext& ) const
+{
+	return ( fp << "None" ); 
+}
 
 } // namespace barzer

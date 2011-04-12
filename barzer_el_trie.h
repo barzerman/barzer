@@ -3,6 +3,7 @@
 #include <barzer_el_btnd.h>
 #include <barzer_el_parser.h>
 #include <barzer_el_rewriter.h>
+#include <ay/ay_bitflags.h>
 #include <map>
 
 /// data structures representing the Barzer Expression Language BarzEL term pattern trie
@@ -11,6 +12,8 @@ namespace barzer {
 struct BELTrie;
 class BarzelRewriterPool;
 class BarzelWildcardPool;
+struct BELPrintContext;
+struct BELPrintFormat;
 
 /// this type is used as a key by firmchild lookup (BarzelFCLookup)
 struct BarzelTrieFirmChildKey {
@@ -44,6 +47,9 @@ struct BarzelTrieFirmChildKey {
 			id=0xffffffff;
 		}
 	}
+
+	std::ostream& print( std::ostream& , const BELPrintContext& ctxt ) const;
+	
 	std::ostream& print( std::ostream& ) const;
 	bool isBlank() const { return (type == BTND_Pattern_None_TYPE); }
 };
@@ -67,8 +73,6 @@ inline bool operator ==( const BarzelTrieFirmChildKey& l, const BarzelTrieFirmCh
 
 /// wildcard child key
 struct BarzelWCKey {
-	BarzelTrieFirmChildKey	firmFollowerKey; // first firm key following this wildcard
-	
 	uint32_t wcId; // wildcard id unique for the type in a pool
 	uint8_t wcType; // one of BTND_Pattern_XXXX_TYPE enums
 	
@@ -84,11 +88,16 @@ struct BarzelWCKey {
 
 	inline bool lessThan( const BarzelWCKey& r ) const
 	{ return ay::range_comp().less_than( wcType, wcId, r.wcType, r.wcId ); }
+	
+	std::ostream& print( std::ostream& fp, const BarzelWildcardPool* ) const;
 };
+
+
 inline bool operator <( const BarzelWCKey& l, const BarzelWCKey& r )
 {
 	return l.lessThan( r );
 }
+
 
 /// barzel wildcard child lookup object 
 /// stored in barzel trie nodes
@@ -123,14 +132,24 @@ public:
 		type = T_REWRITER;
 		id = rid;
 	}
+
+	uint32_t getRewriterId() const
+	{
+		return ( type == T_REWRITER ? boost::get<uint32_t>(id) : 0xffffffff );
+	}
 	void setStop() { type = T_STOP; }
 
 	void clear() { type= T_NONE; }
+	bool isRewriter() const  { return ( type == T_REWRITER ); }
+		 
 	bool nonEmpty() const
 		{ return ( type != T_NONE ); }
 	BarzelTranslation() : id( 0xffffffff ) , type(T_NONE) {}
 	BarzelTranslation(Type_t t , uint32_t i ) : id(i),type((uint8_t)t) {}
+	
+	std::ostream& print( std::ostream& , const BELPrintContext& ) const;
 };
+
 
 class BarzelTrieNode {
 	typedef std::map<BarzelTrieFirmChildKey, BarzelTrieNode > BarzelFCMap; 
@@ -141,7 +160,18 @@ class BarzelTrieNode {
 public:
 	BarzelTranslation translation;
 
-	bool isLeaf() { return translation.nonEmpty(); }
+	std::ostream& print_firmChildren( std::ostream& fp, BELPrintContext& ) const;
+	std::ostream& print_wcChildren( std::ostream& fp, BELPrintContext& ) const;
+	std::ostream& print_translation( std::ostream& fp, const BELPrintContext& ) const;
+
+
+	bool hasFirmChildren() const { return (!firmMap.empty()); }
+	bool hasWildcardChildren() const { return (wcLookupId != 0xffffffff ) ; }
+	bool hasChildren() const 
+		{ return (hasWildcardChildren() || hasFirmChildren() ); }
+
+	bool isLeaf() const { return translation.nonEmpty(); }
+
 	/// makes node leaf and sets translation
 	void setTranslation(BELTrie&trie, const BELParseTreeNode& ptn ) { translation.set(trie, ptn); }
 
@@ -159,7 +189,10 @@ public:
 
 	bool hasValidWcLookup() const
 		{ return (wcLookupId != 0xffffffff); }
+
 	BarzelTrieNode() : wcLookupId(0xffffffff) {}
+
+	std::ostream& print( std::ostream& , BELPrintContext& ) const;
 };
 
 typedef std::map< BarzelWCLookupKey, BarzelTrieNode > BarzelWCLookup;
@@ -177,6 +210,65 @@ struct BELTrie {
 
 	/// adds a new path to the trie
 	void addPath( const BTND_PatternDataVec& path, const BELParseTreeNode& trans );
+
+	/// print methods 
+	std::ostream& print( std::ostream&, BELPrintContext& ctxt ) const;
+};
+
+/// object necessary for meaningful printing
+struct BELPrintFormat {
+	enum {
+		PFB_NODESCEND, // doesnt recursively print the children 
+
+		/// add new flags only above this line
+		PFB_MAX
+	};
+	ay::bitflags<PFB_MAX> flags; // only prints children at the current level
+
+	/// PFB_NODESCEND flag
+	bool doDescend() const 	{ return (!flags[PFB_NODESCEND]); }
+	void setNodescend() 	{ flags.set( PFB_NODESCEND ); }
+
+};
+struct BELPrintContext {
+	const BELTrie& trie;
+	const ay::UniqueCharPool& strPool;
+	const BELPrintFormat& format;
+
+	std::string prefix;
+	int depth;
+	enum { PREFIX_INDENT_SZ = 4 };	
+
+	void descend() { ++depth; prefix.resize( prefix.size() + PREFIX_INDENT_SZ, ' ' ); }
+	void ascend() { 
+		if( depth > 0 ) 
+			--depth;
+		if( prefix.size() >= PREFIX_INDENT_SZ )
+			prefix.resize( prefix.size() - PREFIX_INDENT_SZ ); 
+	}
+	BELPrintContext( 
+		const BELTrie& t, 
+		const ay::UniqueCharPool& sp ,
+		const BELPrintFormat& f
+	) : 
+		trie(t), 
+		strPool(sp),
+		format(f),
+		depth(0)
+	{}
+	
+
+	const char* printableString( uint32_t id )  const
+	{ return strPool.printableStr(id); }
+	
+	const BarzelWCLookup*  getWildcardLookup( uint32_t id ) const; 
+
+	bool needDescend() const
+	{
+		return( !depth || format.doDescend() );
+	}
+
+	std::ostream& printBarzelWCLookupKey( std::ostream& fp, const BarzelWCLookupKey& key ) const;
 };
 
 }
