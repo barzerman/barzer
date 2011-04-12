@@ -60,8 +60,8 @@ std::ostream& Logger::logMsg( const int lvl, const char* filename,
 	if ( lvl > 4 )
 		return *stream_; // should probably crash right here
 	if ( lvl >= LEVEL ) {
-		*stream_ << filename << ":" << lineno << ":[" << LOG_LVL_STR[lvl]
-				<< "] ";
+		return (*stream_ << filename << ":" << lineno << ":[" << LOG_LVL_STR[lvl]
+				<< "] ") ;
 	}
 }
 

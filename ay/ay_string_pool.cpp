@@ -3,12 +3,18 @@
 
 namespace ay {
 
-CharPool::~CharPool( )
+void CharPool::clear() 
 {
 	for( ChunkVec::iterator i = chunk.begin(); i!= chunk.end(); ++i ) {
 		free( *i );
 		*i=0;
 	}
+	chunk.clear();
+}
+
+CharPool::~CharPool( )
+{
+	clear();
 }
 
 CharPool::CharPool( size_t cSz ) : 

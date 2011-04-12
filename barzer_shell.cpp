@@ -10,6 +10,7 @@
 #include <barzer_el_wildcard.h>
 #include "ay/ay_logger.h"
 #include <algorithm>
+#include <barzer_universe.h>
 namespace barzer {
 
 struct BarzerShellContext : public ay::ShellContext {
@@ -18,27 +19,10 @@ struct BarzerShellContext : public ay::ShellContext {
 	Barz barz;
 	QParser parser;
 
-	ay::UniqueCharPool charPool;
+	StoredUniverse universe;
 
-	~BarzerShellContext() {
-		if( dtaIdx ) 
-			delete dtaIdx;
-	}
 	DtaIndex* obtainDtaIdx() 
-	{
-		if( !dtaIdx ) {
-			dtaIdx = new  DtaIndex(&charPool);
-			parser.lexer.setDtaIndex( dtaIdx );
-		}
-		return dtaIdx;
-	}
-	BarzerShellContext() : dtaIdx(0)
-	{ obtainDtaIdx(); }
-	void clearDtaIdx() 
-	{
-		if( dtaIdx )
-			delete dtaIdx;
-	}
+	{ return &(universe.getDtaIdx()); }
 };
 
 inline BarzerShellContext* BarzerShell::getBarzerContext()

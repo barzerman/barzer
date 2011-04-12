@@ -13,6 +13,7 @@ struct BELTrie;
 class BarzelRewriterPool;
 class BarzelWildcardPool;
 struct BELPrintContext;
+struct BELTrieContext;
 struct BELPrintFormat;
 
 /// this type is used as a key by firmchild lookup (BarzelFCLookup)
@@ -160,6 +161,9 @@ class BarzelTrieNode {
 public:
 	BarzelTranslation translation;
 
+	uint32_t getWCLookupId() const { return wcLookupId; }
+
+	void clear();
 	std::ostream& print_firmChildren( std::ostream& fp, BELPrintContext& ) const;
 	std::ostream& print_wcChildren( std::ostream& fp, BELPrintContext& ) const;
 	std::ostream& print_translation( std::ostream& fp, const BELPrintContext& ) const;
@@ -213,6 +217,8 @@ struct BELTrie {
 
 	/// print methods 
 	std::ostream& print( std::ostream&, BELPrintContext& ctxt ) const;
+
+	void clear();
 };
 
 /// object necessary for meaningful printing
@@ -230,6 +236,19 @@ struct BELPrintFormat {
 	void setNodescend() 	{ flags.set( PFB_NODESCEND ); }
 
 };
+struct BELTrieContext {
+	BELTrie& trie;
+	const ay::UniqueCharPool& strPool;
+
+	BELTrieContext(
+		BELTrie& t, 
+		const ay::UniqueCharPool& sp 
+	) : 
+		trie(t), 
+		strPool(sp)
+	{}
+};
+
 struct BELPrintContext {
 	const BELTrie& trie;
 	const ay::UniqueCharPool& strPool;
