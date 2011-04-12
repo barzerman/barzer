@@ -8,7 +8,8 @@
 #include <barzer_el_trie.h>
 #include <barzer_el_parser.h>
 #include <barzer_el_wildcard.h>
-
+#include "ay/ay_logger.h"
+#include <algorithm>
 namespace barzer {
 
 struct BarzerShellContext : public ay::ShellContext {
@@ -252,6 +253,26 @@ static int bshf_trieloadxml( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
+static int bshf_setloglevel( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	std::map<std::string,int> m;
+	int i = 0;
+	m["DEBUG"] = i++;
+	m["WARNING"] = i++;
+	m["ERROR"] = i++;
+	m["CRITICAL"] = i++;
+
+	std::string  lstr;
+	in >> lstr;
+	AYLOG(DEBUG) << "got " << lstr;
+	std::transform(lstr.begin(), lstr.end(), lstr.begin(), ::toupper);
+	int il = m[lstr];
+	AYLOG(DEBUG) << "got " << il << " out of it";
+	AYLOG(DEBUG) << "Setting log level to " << ay::LOG_LVL_STR[il];
+	ay::Logger::LEVEL = il;
+	return 0;
+}
+
 /// end of specific shell routines
 static const CmdData g_cmd[] = {
 	CmdData( ay::Shell::cmd_help, "help", "get help on a barzer function" ),
@@ -269,6 +290,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_euid, "euid", "entity lookup by euid (tok class subclass)" ),
 	CmdData( (ay::Shell_PROCF)bshf_entid, "entid", "entity lookup by entity id" ),
 	CmdData( (ay::Shell_PROCF)bshf_trieloadxml, "trieloadxml", "loads a trie from an xml file" ),
+	CmdData( (ay::Shell_PROCF)bshf_setloglevel, "setloglevel", "set a log level (DEBUG/WARNINg/ERROR/CRITICAL)" ),
 
 };
 

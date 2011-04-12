@@ -12,3 +12,13 @@ tokenize
 tokid
 trieloadxml
 xmload
+setloglevel
+DEBUG
+ERROR
+WARNING
+CRITICAL
+debug
+error
+warning
+critical
+

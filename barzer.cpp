@@ -5,8 +5,10 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <signal.h>
+#include "ay/ay_logger.h"
 
 #include "barzer_config.h"
+
 
 extern "C" void block_ctrlc () 
 {
@@ -60,6 +62,7 @@ void print_usage(const char* prg_name) {
 }
 
 int main( int argc, char * argv[] ) {
+	ay::Logger::init(ay::Logger::DEBUG);
     try {
         if (argc >= 2) {
             if (strcasecmp(argv[1], "shell") == 0) {

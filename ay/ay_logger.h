@@ -33,8 +33,9 @@ inline VoidStream& operator<<(VoidStream &vs, const T &v) { return vs; }
 // A message clas. Made it for the sake of using destructor to add
 // a linebreak at the end. No I'm not sure this is the best way to handle it.
 
-// this is awful, should probably just replace it by a bunch of static functions
 const std::string LOG_LVL_STR[] = {"DEBUG", "WARNING","ERROR","CRITICAL", "KABOOM"};
+
+// this is awful, should probably just replace it with a bunch of static functions
 class Logger {
 public:
 	static VoidStream voidstream;

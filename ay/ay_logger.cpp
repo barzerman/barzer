@@ -14,7 +14,6 @@ namespace ay {
 Logger *Logger::instance_;
 int Logger::LEVEL;
 VoidStream Logger::voidstream;
-//std::ostream *Logger::stream_;
 
 
 std::ostream& LogMsg::getStream()
