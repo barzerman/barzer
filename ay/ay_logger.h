@@ -17,6 +17,10 @@
 #define AYLOG(l) ay::Logger::voidstream
 #endif
 
+#define AYLOGDEBUG(l) AYLOG(DEBUG) << #l << " = " << (l)
+#define AYLOGINIT(l) ay::Logger::init(ay::Logger::l);
+#define SETLOGLEVEL(l) ay::Logger::LEVEL = ay::Logger::l
+
 namespace ay {
 
 // just for the purpose of overloading  operator<< for supressed log levels
@@ -28,10 +32,6 @@ template<class T>
 inline VoidStream& operator<<(VoidStream &vs, const T &v) { return vs; }
 
 
-
-
-// A message clas. Made it for the sake of using destructor to add
-// a linebreak at the end. No I'm not sure this is the best way to handle it.
 
 const std::string LOG_LVL_STR[] = {"DEBUG", "WARNING","ERROR","CRITICAL", "KABOOM"};
 
@@ -71,6 +71,9 @@ private:
 	Logger() : stream_(&std::cerr), gotfile(false) {}
 };
 
+
+// A message class. Made it for the sake of using the destructor to add
+// a linebreak at the end. No I'm not sure this is the best way to handle it.
 
 class LogMsg {
 	int level_;
