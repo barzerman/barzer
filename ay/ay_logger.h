@@ -66,7 +66,8 @@ public:
 private:
 	static Logger *instance_;
 	std::ostream *stream_;
-	Logger() : stream_(&std::cerr) {}
+	bool gotfile;
+	Logger() : stream_(&std::cerr), gotfile(false) {}
 };
 
 
