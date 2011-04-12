@@ -2,10 +2,15 @@
 
 namespace barzer {
 
-BarzelRewriterPool::~BarzelRewriterPool()
+void BarzelRewriterPool::clear()
 {
 	for( BufAndSizeVec::iterator i = encVec.begin(); i!= encVec.end(); ++i ) 
 		free((uint8_t*)(i->first));
+}
+
+BarzelRewriterPool::~BarzelRewriterPool()
+{
+	clear();
 }
 
 namespace barzel {

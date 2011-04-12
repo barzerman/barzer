@@ -42,6 +42,7 @@ private:
 
 	int  encodeParseTreeNode( BarzelRewriterPool::byte_vec& trans, const BELParseTreeNode& ptn );
 public:
+	void clear();
 	~BarzelRewriterPool();
 	BarzelRewriterPool( size_t reserveSz ) 
 		{ encVec.reserve( reserveSz ) ; }

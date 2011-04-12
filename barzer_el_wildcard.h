@@ -26,7 +26,17 @@ class BarzelWildcardPool {
 	ay::InternerWithId<BTND_Pattern_DateTime> 	pool_DateTime;
 	ay::InternerWithId<BTND_Pattern_Wildcard> 	pool_Wildcard;
 public:
-	
+	void clear() 
+	{
+		wcLookupPool.clear();
+
+		pool_Number.clear();
+		pool_Date.clear();
+		pool_Time.clear();
+		pool_DateTime.clear();
+		pool_Wildcard.clear();
+	}
+
 	BarzelWCLookup* 			addWCLookup( uint32_t& id ) 
 		{ return wcLookupPool.addObj( id ); }
 	BarzelWCLookup* 			getWCLookup( uint32_t id ) 

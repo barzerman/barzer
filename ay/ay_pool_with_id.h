@@ -33,6 +33,10 @@ private:
 			return idx;
 		}
 public:
+	void clear() { 
+		theMap.clear();
+		theVec.clear();
+	};
 	InternerWithId( size_t sz = DEFAULT_VECSZ )
 		{ theVec.reserve( sz ); }
 	
@@ -88,6 +92,15 @@ private:
 	}
 		
 public:
+	void clear()
+	{
+		for( typename ChunkVec::iterator i = cVec.begin(); i!= cVec.end(); ++i ) {
+			delete [] (*i);
+		}
+		cVec.clear();
+	}
+	~PoolWithId() { clear(); }
+
 	T* addObj( uint32_t& id ) 
 	{
 		if( curChunkSz>= chunkCapacity ) 

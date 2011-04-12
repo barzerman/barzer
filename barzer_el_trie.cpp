@@ -9,6 +9,19 @@ const BarzelWCLookup*  BELPrintContext::getWildcardLookup( uint32_t id ) const
 {
 return( trie.wcPool->getWCLookup( id ));
 }
+
+void BarzelTrieNode::clear()
+{
+	firmMap.clear();
+	wcLookupId = 0xffffffff;
+}
+void BELTrie::clear()
+{
+	rewrPool->clear();
+	wcPool->clear();
+	root.clear();
+}
+
 std::ostream& BELTrie::print( std::ostream& fp, BELPrintContext& ctxt  ) const
 {
 

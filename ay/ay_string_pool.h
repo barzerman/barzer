@@ -29,6 +29,7 @@ public:
 		
 	enum { DEFAULT_CHUNK_SIZE = 64*1024 };
 	CharPool( size_t cSz = DEFAULT_CHUNK_SIZE );
+	void clear();
 	~CharPool();
 };
 
@@ -48,7 +49,12 @@ private:
 	// map_by_char_cp<StrId>::Type idMap; // idMap[char_cp] returns id 
 		// ID_NOTFOUND when string cant be found
 public: 
-
+	void clear() 
+	{
+		idMap.clear();
+		idVec.clear();
+		CharPool::clear();
+	}
 	StrId getId( const char* s ) const
 		{ 
 			CharIdMap::const_iterator i= idMap.find(s);
