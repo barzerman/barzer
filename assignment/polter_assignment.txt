@@ -1,3 +1,8 @@
+Todo:
+1. Code review of the entire _el_ file (TODAY Apr 12)
+2. Implement trie browser and hook it up to the shell (Apr 14)
+
+Done April 12:
 1. Make simple configurable logger .  DElivery date April 13
 	- make it part of aylib ay_logger
 	- singleton loads an optional config file which controls the log level
