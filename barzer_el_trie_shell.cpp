@@ -14,9 +14,9 @@
 
 namespace barzer {
 
-#define TSHF(n) (#n, trie_shell_##n)
+#define DEF_TFUN(n) static int trie_shell_##n( BarzerShell* shell, std::istream& in )
 
-static int trie_shell_load( BarzerShell* shell, char_cp cmd, std::istream& in ) {
+DEF_TFUN(load) {
 	AYLOG(DEBUG) << "trie_shell_load  called";
 
 	BarzerShellContext *context = shell->getBarzerContext();
@@ -30,13 +30,16 @@ static int trie_shell_load( BarzerShell* shell, char_cp cmd, std::istream& in ) 
 	std::string sin;
 	if (in >> sin) {
 		const char *fname = sin.c_str();
+		AYLOG(DEBUG) << "Loading " << fname;
 		int numsts = reader.loadFromFile(fname);
 		std::cout << numsts << " statements read. ";
+	} else {
+		AYLOG(ERROR) << "no filename";
 	}
 	return 0;
 }
 
-static int trie_shell_print( BarzerShell* shell, char_cp cmd, std::istream& in ) {
+DEF_TFUN(print) {
 	AYLOG(DEBUG) << "trie_shell_print  called";
 	BarzerShellContext *context = shell->getBarzerContext();
 	StoredUniverse &uni = context->universe;
@@ -53,29 +56,56 @@ static int trie_shell_print( BarzerShell* shell, char_cp cmd, std::istream& in )
 }
 
 
-static int trie_shell_help( BarzerShell* shell, char_cp cmd, std::istream& in ) {
+DEF_TFUN(show) {
+	BarzerShellContext *context = shell->getBarzerContext();
+	//StoredUniverse &uni = context->universe;
+	BELTrieWalker &walker = context->trieWalker;
+	TrieNodeStack &nodeStack = walker.getNodeStack();
+
+	BarzelTrieNode *topNode =  nodeStack.top();
+
+	std::cout << "Current node's lookup ID is: " << topNode->getWCLookupId();
+
+	return 0;
+}
+
+DEF_TFUN(moveback) {
+	// facedesk
+	TrieNodeStack &nodeStack  = shell->getBarzerContext()->trieWalker.getNodeStack();
+	if (nodeStack.size() > 1) nodeStack.pop();
+	else std::cout << "Already at the root node" << std::endl;
+	return 0;
+}
+
+DEF_TFUN(help) {
 	AYLOG(DEBUG) << "trie_shell_help  called";
-	std::cout << "trie [load|print|help|list|moveto|moveback]" << std::endl;
+	std::cout << "trie [load|print|help|list|show|moveto|moveback]" << std::endl;
 	return 0;
 }
 
 
-// ye ye, I know i'm bad bad bad for creating this static map
+#undef DEF_TFUN
+
 // but i really want some static directory service for storing this kind of shit
 
+#define TSHF(n) (#n, trie_shell_##n)
 static std::map<std::string,TrieShellFun> triefunmap =
 		boost::assign::map_list_of TSHF(load)
 								   TSHF(print)
+								   TSHF(show)
+								   TSHF(moveback)
 								   TSHF(help);
 
+#undef TSHF
 
-int bshtrie_process( BarzerShell* shell, char_cp cmd, std::istream& in ) {
+
+int bshtrie_process( BarzerShell* shell, std::istream& in ) {
 	AYLOG(DEBUG) << "bshtrie_process called";
 	std::string fname;
 	in >> fname;
 	AYLOG(DEBUG) << "fname=" << fname;
 	TrieShellFun fun = triefunmap[fname];
-	if (fun) return fun(shell, cmd, in);
+	if (fun) return fun(shell, in);
 	return 0;
 }
 

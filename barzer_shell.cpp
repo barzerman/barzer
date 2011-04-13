@@ -246,7 +246,7 @@ static int bshf_setloglevel( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 static int bshf_trie( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
-
+   /*
 	BarzerShellContext *context = shell->getBarzerContext();
 	StoredUniverse &uni = context->universe;
 	BELTrie &trie = uni.getBarzelTrie();
@@ -258,9 +258,9 @@ static int bshf_trie( BarzerShell* shell, char_cp cmd, std::istream& in )
 	ay::UniqueCharPool &stringPool = uni.getStringPool();
 	BELPrintContext ctxt( trie, stringPool, fmt );
 	trie.print(std::cout, ctxt);
-	return 0;
+	return 0; //*/
 
-	return bshtrie_process( shell, cmd, in );
+	return bshtrie_process( shell, in );
 //	return 0;
 
 }
