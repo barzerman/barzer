@@ -249,7 +249,12 @@ static int bshf_setloglevel( BarzerShell* shell, char_cp cmd, std::istream& in )
 	in >> lstr;
 	std::transform(lstr.begin(), lstr.end(), lstr.begin(), ::toupper);
 	int il = m[lstr];
+<<<<<<< HEAD
 	AYLOG(DEBUG) << "Setting log level to " << slevels[il];
+=======
+	AYLOG(DEBUG) << "got " << il << " out of it";
+	AYLOG(DEBUG) << "Setting log level to " << ay::Logger::getLogLvlStr( il ) << std::endl;
+>>>>>>> 8e1d9e67964f20238790c45af2c6297a99f09a62
 	ay::Logger::LEVEL = il;
 	return 0;
 }

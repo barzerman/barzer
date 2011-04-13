@@ -12,8 +12,15 @@ namespace ay {
 Logger *Logger::instance_ = 0;
 uint8_t Logger::LEVEL = Logger::WARNING;
 VoidStream Logger::voidstream;
-const std::string Logger::LOG_LVL_STR[Logger::LOG_LEVEL_MAX]
-                                      = {"DEBUG", "WARNING","ERROR","CRITICAL"};
+namespace {
+const char* g_LOG_LVL_STR[] = {"DEBUG", "WARNING","ERROR","CRITICAL"};
+}
+const char* ay::Logger::getLogLvlStr( int x)
+{
+	return( x>=0 && x< sizeof(g_LOG_LVL_STR)/sizeof(g_LOG_LVL_STR[0]) ? g_LOG_LVL_STR[x]: "");
+
+}
+
 
 std::ostream& LogMsg::getStream()
 {
@@ -56,10 +63,10 @@ std::ostream& Logger::logMsg( const uint8_t lvl, const char* filename,
 	if (lvl >= Logger::LOG_LEVEL_MAX)
 		return *stream_; // should probably crash right here
 	if ( lvl >= LEVEL ) {
-		return (*stream_ << filename << ":" << lineno << ":[" << Logger::LOG_LVL_STR[lvl]
+		return (*stream_ << filename << ":" << lineno << ":[" << g_LOG_LVL_STR[lvl]
 				<< "] ") ;
 	}
-	return voidstream;
+	return *stream_;
 }
 
 }
