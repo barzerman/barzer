@@ -238,6 +238,14 @@ void BarzelTranslation::set(BELTrie& ,const BTND_Rewrite_Literal& x )
 		type = T_STOP;
 		id = 0xffffffff;
 		break;
+	case BTND_Rewrite_Literal::T_BLANK:
+		type = T_BLANK;
+		id = 0xffffffff;
+		break;
+	case BTND_Rewrite_Literal::T_PUNCT:
+		type = T_PUNCT;
+		id = 0xffffffff;
+		break;
 	default: 
 		AYTRACE( "inconsistent literal encountered in Barzel rewrite" );
 		setStop(); // this should never happen

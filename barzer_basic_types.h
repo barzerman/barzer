@@ -153,7 +153,9 @@ public:
 	enum {
 		T_STRING,
 		T_COMPOUND,
-		T_STOP /// rewrites into a blank yet unmatcheable token
+		T_STOP, /// rewrites into a blank yet unmatcheable token
+		T_PUNCT,
+		T_BLANK
 	};
 private:
 	uint32_t theId;

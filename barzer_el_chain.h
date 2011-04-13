@@ -73,6 +73,7 @@ class BarzelBead {
 	
 public:
 	BarzelBead() : tokenSpan(0), tokenCount(0) {}
+	BarzelBead(const CToken&) ;
 	/// implement:
 	//// - constructor from CToken (initialization)
 	//// - bead absorption (folding a bead into this one)

@@ -33,6 +33,10 @@ public:
 	QLexParser lexer;
 	QSemanticParser semanticizer;
 	
+	QParser( const DtaIndex* didx ) : 
+		lexer(didx) 
+	{}
+
 	/// wipes out higher ctokens/punits and tokenizes q
 	int tokenize_only( Barz& barz, const char* q, const QuestionParm& qparm );
 

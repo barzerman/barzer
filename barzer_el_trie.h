@@ -117,7 +117,8 @@ public:
 		T_NUMBER_INT, // integer 
 		T_NUMBER_REAL, // real number (float)
 		T_REWRITER, // interpreted sequence
-		
+		T_BLANK,
+		T_PUNCT,
 		T_MAX
 	} Type_t;
 	boost::variant< uint32_t, double, int> id;
