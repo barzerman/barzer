@@ -79,6 +79,7 @@ public:
 			return fp << "NaN";
 	}
 };
+
 inline std::ostream& operator <<( std::ostream& fp, const BarzerNumber& n )
 { return n.print(fp); }
 
@@ -146,6 +147,9 @@ struct BarzerTimeOfDay {
 	std::ostream& print( std::ostream& fp ) const 
 		{ return ( fp << hh << ':' << mm << ':' << ss ); }
 };
+inline std::ostream& operator <<( std::ostream& fp, const BarzerTimeOfDay& x )
+	{ return( x.print(fp) ); }
+
 //// barzer literal 
 
 class BarzerLiteral {
@@ -155,28 +159,44 @@ public:
 		T_COMPOUND,
 		T_STOP, /// rewrites into a blank yet unmatcheable token
 		T_PUNCT,
-		T_BLANK
+		T_BLANK,
+
+		T_MAX
 	};
 private:
 	uint32_t theId;
 	uint8_t  type;
 public:
 	BarzerLiteral() : 
-		theId(ay::UniqueCharPool::ID_NOTFOUND) ,
+		theId(0xffffffff),
 		type(T_STRING)
 	{}
 
+	/// never returns 0, type should be one of the T_XXX constants
+	static const char* getTypeName(int t) const;
+		
+	std::ostream& print( std::ostream& ) const;
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
+	std::ostream& print( std::ostream&, const Universe& ) const;
+
 	void setCompound(uint32_t id ) 
 		{ type = T_COMPOUND; theId = id; }
 
 	void setCompound()
-		{ setCompound(ay::UniqueCharPool::ID_NOTFOUND) ; }
+		{ setCompound(0xffffffff); }
 	void setString(uint32_t id) 
 		{ type = T_STRING; theId = id;  }
+	void setBlank( ) { type = T_BLANK; theId = 0xffffffff; }
+	void setStop( ) { type = T_STOP; theId = 0xffffffff; }
+	void setPunct(int c) { type = T_PUNCT; theId = c; }
+	void setNull() { type = T_STRING; theId = 0xffffffff; }
 
 	uint32_t getId() const { return theId; }
 	uint32_t getType() const { return theId; }
+
+	bool isNull() const { return ( type == T_STRING && theId == 0xffffffff ); }
+	
+
 };
 
 
@@ -197,17 +217,30 @@ struct BarzerRange {
 	
 	Data dta;
 	std::ostream& print( std::ostream& fp ) const
-		{ return ( fp << "Range"); }
+		{ return ( fp << "Range" << dta << ""); }
 };
+inline std::ostream& operator <<( std::ostream& fp, const BarzerRange& x )
+	{ return( x.print(fp) ); }
 
 /// non constant string - it's different from barzer literal as the value may not be 
 /// among the permanently stored but rather something constructed by barzel
 class BarzerString {
 	std::string str;
 
+	void setFromTTokens( const TTWPVec& v )
+	{
+		str.clear();
+		/// most of the time there will only be 1 iteration here
+		for( TTWPVec::const_iterator i = v.begin(); i!= v.end(); ++i ) {
+			str.append( i->buf, i->len );
+		}
+	}
+
 	std::ostream& print( std::ostream& fp ) const
-		{ return ( fp << str ); }
+		{ return ( fp << "\"" <<str<< "\"" ); }
 };
+inline std::ostream& operator <<( std::ostream& fp, const BarzerString& x )
+	{ return( x.print(fp) ); }
 
 struct BarzerEntityList {
 	typedef std::vector< StoredEntity > EList;
@@ -215,6 +248,8 @@ struct BarzerEntityList {
 	
 	std::ostream& print( std::ostream& fp ) const;
 };
+inline std::ostream& operator <<( std::ostream& fp, const BarzerEntityList& x )
+	{ return( x.print(fp) ); }
 
 } // namespace barzer ends
 

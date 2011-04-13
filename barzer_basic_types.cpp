@@ -34,5 +34,36 @@ std::ostream& BarzerEntityList::print( std::ostream& fp ) const
 	return fp;
 }
 
+namespace {
+
+static const char* g_BarzerLiteral_typeName[] = {
+		"STRING",
+		"COMPOUND",
+		"STOP",
+		"PUNCT",
+		"BLANK"
+};
+
+}
+
+static const char* BarzerLiteral::getTypeName(int t) const
+{
+	return( ARR_NONNULL_STR( g_BarzerLiteral_typeName, t) ) ;
+}
+
+std::ostream& BarzerLiteral::print( std::ostream& fp ) const
+{
+	return ( fp << getTypeName(type) << ":" << std::hex << theId );
+}
+
+std::ostream& BarzerLiteral::print( std::ostream& fp, const BELPrintContext& ) const
+{
+	return print( fp );
+}
+std::ostream& BarzerLiteral::print( std::ostream&, const Universe& ) const
+{
+	return print( fp );
+}
+
 } // namespace barzer 
 

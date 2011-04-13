@@ -54,6 +54,10 @@ struct BarzelBeadExpression {
 	typedef std::list< SubExpr >  SubExprList;
 
 	SubExprList child;
+	std::ostream& print( std::ostream& fp ) const 
+	{
+		return ( fp << "<expression>" );
+	}
 };
 typedef boost::variant <
 	BarzelBeadBlank,
@@ -66,24 +70,24 @@ typedef boost::variant <
 ///  Barzel bead ma be a constant or an expression 
 class BarzelBead {
 	CTWPVec ctokOrigVec; // pre-barzel CToken list participating in this bead 
-	size_t tokenSpan;   // full token span (including non-participating beads)
-	size_t tokenCount;   // token count of everything participating in this bead
 	/// types 
 	BarzelBeadData dta;
 	
 public:
-	BarzelBead() : tokenSpan(0), tokenCount(0) {}
-	BarzelBead(const CToken&) ;
+	void init(const CToken&) ;
+	BarzelBead(const CToken& ct) 
+	{ init(ct); }
 	/// implement:
 	//// - constructor from CToken (initialization)
 	//// - bead absorption (folding a bead into this one)
 	//// - templated initializer from types participating in BarzelBeadData 
-	
+	std::ostream& print( std::ostream& ) const;
 }; 
 
 struct BarzelBeadChain {
 	std::list< BarzelBead > 	BeadList;
 
+	BeadList lst;
 	/// implement 
 	/// - fold ( BeadList::iterator from, to )
 	/// - externally Matcher will provide these iterator ranges for fold 

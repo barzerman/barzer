@@ -30,6 +30,9 @@ struct TToken {
 	TToken( const char* s ) : len( strlen(s) ), buf(s) {}
 	// watch out for data consistency
 	TToken( const char* s, short l ) : len(l), buf(s) {}
+	
+	int getPunct() const
+		{ return( buf && len ? buf[0] : ((int)'|') ); }
 
 	std::ostream& print( FILE* fp ) const;
 	std::ostream& print( std::ostream& fp ) const;
@@ -61,6 +64,19 @@ struct CToken {
 		ling.clear();
 		bNum.clear();
 	}
+
+	size_t getTokenSpan() const
+	{
+		uint16_t minPos = 0, maxPos= 0;
+		for( TTWPVec::const_iterator i = qtVec.begin(); i!= qtVec.end(); ++i ) {
+			if( i->second < minPos ) 
+				minPos = i->second;
+			if( i->second > maxPos ) 
+				maxPos = i->second;
+		}
+		return( ( maxPos >= minPos )  ? (maxPos-minPos+1) : 0 );
+	}
+
 	void setCInfoBit( size_t b ) { cInfo.bitFlags.set(b); }
 
 	/// sets qtVec to a single TToken
@@ -85,6 +101,7 @@ struct CToken {
 
 	bool isBlank() const { return cInfo.theClass == CTokenClassInfo::CLASS_BLANK; }
 	bool isNumber() const { return cInfo.theClass == CTokenClassInfo::CLASS_NUMBER; }
+	bool isMysteryWord() const { return cInfo.theClass == CTokenClassInfo::CLASS_MYSTERY_WORD; }
 	bool isWord() const { return cInfo.theClass == CTokenClassInfo::CLASS_WORD; }
 	bool isPunct() const { return cInfo.theClass == CTokenClassInfo::CLASS_PUNCTUATION; }
 	bool isPunct(char c) const { 
@@ -100,6 +117,15 @@ struct CToken {
 		cInfo.theClass = CTokenClassInfo::CLASS_NUMBER;
 		bNum.set(x);
 	}
+	/// 
+	uint32_t getStringId() const 	
+		{ return( isWord() && storedTok ? storedTok->getSingleTokStringId() : 0xffffffff ) ; }
+	
+	const TToken*  getFirstTToken() const { return ( qtVec.size() ? &(qtVec.front()) : 0 ); }
+	int   getPunct( ) const
+		{ const TToken* t = getFirstTToken(); return ( t ? t->getPunct() : 0 ); }
+	const TTWPVec& getTTokens() const { return qtVec; }
+	const BarzerNumber& getNumber() const { return bNum; }
 };
 
 typedef std::pair< CToken, uint16_t > CTokenWithPos;

@@ -17,6 +17,8 @@ namespace ay {
 #define ARR_END( a ) ((a)+sizeof(a)/sizeof((a)[0]))
 #define ARR_SZ( a ) (sizeof(a)/sizeof((a)[0]))
 
+#define ARR_NONNULL_STR(a,x) ( ((x)< (sizeof(a)/sizeof((a)[0]) ) && (x)>=0 ) ? a[x] : 0 )
+
 /// wide char utilities 
 
 typedef wchar_t* wchar_p;
