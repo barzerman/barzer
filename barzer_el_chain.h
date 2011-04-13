@@ -74,8 +74,8 @@ class BarzelBead {
 	BarzelBeadData dta;
 	
 public:
-	void init(const CToken&) ;
-	BarzelBead(const CToken& ct) 
+	void init(const CTWPVec::value_type&) ;
+	BarzelBead(const CTWPVec::value_type& ct) 
 	{ init(ct); }
 	/// implement:
 	//// - constructor from CToken (initialization)
@@ -91,6 +91,8 @@ struct BarzelBeadChain {
 	/// implement 
 	/// - fold ( BeadList::iterator from, to )
 	/// - externally Matcher will provide these iterator ranges for fold 
+
+	void init( const CTWPVec& cv );
 };
 
 
