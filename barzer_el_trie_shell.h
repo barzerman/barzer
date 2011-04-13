@@ -17,7 +17,7 @@
 namespace barzer {
 
 typedef ay::char_cp char_cp;
-typedef typedef int (*TrieShellFun)( BarzerShell*, char_cp cmd, std::istream& in );
+typedef int (*TrieShellFun)( BarzerShell*, char_cp cmd, std::istream& in );
 
 
 int bshtrie_process( BarzerShell* shell, char_cp cmd, std::istream& in );

@@ -18,6 +18,21 @@ namespace barzer {
 
 static int trie_shell_load( BarzerShell* shell, char_cp cmd, std::istream& in ) {
 	AYLOG(DEBUG) << "trie_shell_load  called";
+
+	BarzerShellContext *context = shell->getBarzerContext();
+	StoredUniverse &uni = context->universe;
+	BELTrie &trie = uni.getBarzelTrie();
+	ay::UniqueCharPool &stringPool = uni.getStringPool();
+
+	BELReader reader(&trie, &stringPool);
+	reader.initParser(BELReader::INPUT_FMT_XML);
+
+	std::string sin;
+	if (in >> sin) {
+		const char *fname = sin.c_str();
+		int numsts = reader.loadFromFile(fname);
+		std::cout << numsts << " statements read. ";
+	}
 	return 0;
 }
 
@@ -27,8 +42,8 @@ static int trie_shell_print( BarzerShell* shell, char_cp cmd, std::istream& in )
 	StoredUniverse &uni = context->universe;
 	BELTrie &trie = uni.getBarzelTrie();
 
-	BELTrieWalker &walker = context->trieWalker;
-	TrieNodeStack &nstack = walker.getNodeStack();
+	//BELTrieWalker &walker = context->trieWalker;
+	//TrieNodeStack &nstack = walker.getNodeStack();
 
 	BELPrintFormat fmt;
 	ay::UniqueCharPool &stringPool = uni.getStringPool();
