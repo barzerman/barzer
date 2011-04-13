@@ -63,9 +63,9 @@ public:
 
 	void setFile(const char* filename);
 	void setStream(std::ostream* stream);
-
+	static const char* getLogLvlStr( int );
 private:
-	const static std::string LOG_LVL_STR[Logger::LOG_LEVEL_MAX];
+	// const static std::string LOG_LVL_STR[Logger::LOG_LEVEL_MAX];
 	static Logger *instance_;
 	std::ostream *stream_;
 	bool gotfile;
