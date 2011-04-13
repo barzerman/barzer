@@ -5,16 +5,14 @@
 	</stmt>
 	<stmt>
 		<pat><t>huy</t></pat>
-		<tran>1</tran>
+		<tran><rn>5</rn></tran>
 	</stmt>
 	<stmt>
-		<pat><t>moo</t></pat>
-		<tran>1</tran>
+		<pat><n>6</n></pat>
+		<tran><ltrl>lala</ltrl></tran>
 	</stmt>
-	<!-- 
 	<stmt>
-		<pat><t>shmel</t></pat>
-		<tran><rn>100</rn></tran>
+		<pat><n>100</n></pat>
+		<tran><rn>200</rn></tran>
 	</stmt>
-	 -->	
 </stmset>

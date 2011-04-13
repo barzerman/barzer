@@ -29,6 +29,12 @@ public:
 	const BELTrie& getBarzelTrie() const { return barzelTrie; }
 		  BELTrie& getBarzelTrie() 	  { return barzelTrie; }
 	
+	// had to add it in order to be able to create BELPrintContext
+    // for custom trie printing
+	ay::UniqueCharPool& getStringPool() {
+		return stringPool;
+	}
+
 	// purges everything 
 	void clear();
 

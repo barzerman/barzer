@@ -21,6 +21,10 @@ struct BarzerShellContext : public ay::ShellContext {
 
 	StoredUniverse universe;
 
+	typedef std::stack<BarzelTrieNode*> TrieNodeStack;
+
+	TrieNodeStack trieNodeStack;
+
 	DtaIndex* obtainDtaIdx() 
 	{ return &(universe.getDtaIdx()); }
 };
@@ -210,15 +214,12 @@ static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
 // just a test function for trie loading
 static int bshf_trieloadxml( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
-	//BarzerShellContext * context = shell->getBarzerContext();
-	//DtaIndex* dtaIdx = context->obtainDtaIdx();
-
-	ay::UniqueCharPool strPool;
+	BarzerShellContext *context = shell->getBarzerContext();
+	StoredUniverse &uni = context->universe;
+	BELTrie &trie = uni.getBarzelTrie();
+	ay::UniqueCharPool &stringPool = uni.getStringPool();
 	
-	BarzelRewriterPool brPool( 64*1024 );
-	BarzelWildcardPool wcPool;
-	BELTrie trie( &brPool, &wcPool );
-	BELReader reader(&trie, &strPool);
+	BELReader reader(&trie, &stringPool);
 	reader.initParser(BELReader::INPUT_FMT_XML); 
 	
 	std::string tmp;
@@ -239,23 +240,47 @@ static int bshf_trieloadxml( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 static int bshf_setloglevel( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
-	std::map<std::string,int> m;
-	int i = 0;
-	m["DEBUG"] = i++;
-	m["WARNING"] = i++;
-	m["ERROR"] = i++;
-	m["CRITICAL"] = i++;
+	static std::map<std::string,int> m;
+	const std::string *slevels = ay::Logger::LOG_LVL_STR;
+	for (int i = 0; i < ay::Logger::LOG_LEVEL_MAX; i++)
+		m[slevels[i]] = i;
 
 	std::string  lstr;
 	in >> lstr;
-	AYLOG(DEBUG) << "got " << lstr;
 	std::transform(lstr.begin(), lstr.end(), lstr.begin(), ::toupper);
 	int il = m[lstr];
-	AYLOG(DEBUG) << "got " << il << " out of it";
-	AYLOG(DEBUG) << "Setting log level to " << ay::LOG_LVL_STR[il];
+	AYLOG(DEBUG) << "Setting log level to " << slevels[il];
 	ay::Logger::LEVEL = il;
 	return 0;
 }
+
+
+static int bshf_trie( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext *context = shell->getBarzerContext();
+	StoredUniverse &uni = context->universe;
+	BELTrie &trie = uni.getBarzelTrie();
+
+	TrieNodeStack nstack = context->trieNodeStack;
+
+	if ( !nstack.size() ) nstack.push( trie.root );
+
+
+	std::string c;
+	in >> c;
+	std::cout << c << "\n";
+	in >> c;
+	std::cout << c << "\n";
+
+	BELPrintFormat fmt;
+	ay::UniqueCharPool &stringPool = uni.getStringPool();
+	BELPrintContext ctxt( trie, stringPool, fmt );
+	trie.print(std::cout, ctxt);
+
+	return 0;
+
+}
+
 
 /// end of specific shell routines
 static const CmdData g_cmd[] = {
@@ -275,7 +300,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_entid, "entid", "entity lookup by entity id" ),
 	CmdData( (ay::Shell_PROCF)bshf_trieloadxml, "trieloadxml", "loads a trie from an xml file" ),
 	CmdData( (ay::Shell_PROCF)bshf_setloglevel, "setloglevel", "set a log level (DEBUG/WARNINg/ERROR/CRITICAL)" ),
-
+	CmdData( (ay::Shell_PROCF)bshf_trie, "trie", "trie commands" ),
 };
 
 ay::ShellContext* BarzerShell::mkContext()

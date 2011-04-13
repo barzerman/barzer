@@ -47,7 +47,7 @@ public:
 
 		LOG_LEVEL_MAX// something awful which should stop program running immediately
 	};
-
+	const static std::string LOG_LVL_STR[LOG_LEVEL_MAX];
 
 	static void init(uint8_t l);
 
@@ -65,7 +65,7 @@ public:
 	void setStream(std::ostream* stream);
 
 private:
-	const static std::string LOG_LVL_STR[Logger::LOG_LEVEL_MAX];
+	//const static std::string LOG_LVL_STR[Logger::LOG_LEVEL_MAX];
 	static Logger *instance_;
 	std::ostream *stream_;
 	bool gotfile;
