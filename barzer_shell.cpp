@@ -1,6 +1,4 @@
 #include <barzer_shell.h>
-#include <barzer_parse.h>
-#include <barzer_dtaindex.h>
 #include <ay_util_time.h>
 #include <sstream>
 
@@ -10,24 +8,10 @@
 #include <barzer_el_wildcard.h>
 #include "ay/ay_logger.h"
 #include <algorithm>
-#include <barzer_universe.h>
+#include "barzer_el_trie_shell.h"
+
 namespace barzer {
 
-struct BarzerShellContext : public ay::ShellContext {
-	DtaIndex* dtaIdx;
-
-	Barz barz;
-	QParser parser;
-
-	StoredUniverse universe;
-
-	typedef std::stack<BarzelTrieNode*> TrieNodeStack;
-
-	TrieNodeStack trieNodeStack;
-
-	DtaIndex* obtainDtaIdx() 
-	{ return &(universe.getDtaIdx()); }
-};
 
 inline BarzerShellContext* BarzerShell::getBarzerContext()
 {
@@ -241,7 +225,11 @@ static int bshf_trieloadxml( BarzerShell* shell, char_cp cmd, std::istream& in )
 static int bshf_setloglevel( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	static std::map<std::string,int> m;
-	const std::string *slevels = ay::Logger::LOG_LVL_STR;
+
+	// had to hardcode it after removal of the Logger array ...
+	static std::string slevels[]
+	                     = {"DEBUG", "WARNING","ERROR","CRITICAL"};
+
 	for (int i = 0; i < ay::Logger::LOG_LEVEL_MAX; i++)
 		m[slevels[i]] = i;
 
@@ -249,12 +237,8 @@ static int bshf_setloglevel( BarzerShell* shell, char_cp cmd, std::istream& in )
 	in >> lstr;
 	std::transform(lstr.begin(), lstr.end(), lstr.begin(), ::toupper);
 	int il = m[lstr];
-<<<<<<< HEAD
-	AYLOG(DEBUG) << "Setting log level to " << slevels[il];
-=======
 	AYLOG(DEBUG) << "got " << il << " out of it";
 	AYLOG(DEBUG) << "Setting log level to " << ay::Logger::getLogLvlStr( il ) << std::endl;
->>>>>>> 8e1d9e67964f20238790c45af2c6297a99f09a62
 	ay::Logger::LEVEL = il;
 	return 0;
 }
@@ -262,27 +246,22 @@ static int bshf_setloglevel( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 static int bshf_trie( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
+
 	BarzerShellContext *context = shell->getBarzerContext();
 	StoredUniverse &uni = context->universe;
 	BELTrie &trie = uni.getBarzelTrie();
 
-	TrieNodeStack nstack = context->trieNodeStack;
-
-	if ( !nstack.size() ) nstack.push( trie.root );
-
-
-	std::string c;
-	in >> c;
-	std::cout << c << "\n";
-	in >> c;
-	std::cout << c << "\n";
+	BELTrieWalker &walker = context->trieWalker;
+	TrieNodeStack &nstack = walker.getNodeStack();
 
 	BELPrintFormat fmt;
 	ay::UniqueCharPool &stringPool = uni.getStringPool();
 	BELPrintContext ctxt( trie, stringPool, fmt );
 	trie.print(std::cout, ctxt);
-
 	return 0;
+
+	return bshtrie_process( shell, cmd, in );
+//	return 0;
 
 }
 

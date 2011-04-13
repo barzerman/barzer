@@ -2,6 +2,7 @@
 #include <barzer_el_trie.h>
 
 #include <algorithm>
+#include <ay/ay_logger.h>
 
 namespace barzer {
 
@@ -57,7 +58,8 @@ namespace {
 struct Leaf: public PatternEmitterNode {
     Leaf(const BTND_PatternData& d): data(d) {}
     
-    bool step() { return false; }
+    //bool step() { return false; }
+    bool step() { return true; }
     void yield(BTND_PatternDataVec& vec) const { vec.push_back(data); }
     
     const BTND_PatternData& data;
@@ -82,22 +84,28 @@ protected:
 };
 
 struct List: public IntermediateNode {
-    List(const BELParseTreeNode::ChildrenVec& children): IntermediateNode(children) {}
+    List(const BELParseTreeNode::ChildrenVec& children): IntermediateNode(children) {
+    	position = childs.begin();
+    }
     
     bool step()
     {
-        for(ChildVec::const_iterator it=childs.begin(); it != childs.end(); ++it) {
-            if((*it)->step())
+        //for(ChildVec::const_iterator it=childs.begin(); it != childs.end(); ++it) {
+    	while (position != childs.end())
+            if((*position++)->step())
                 return true;
-        }
+        //}
         return false;
     }
     
     void yield(BTND_PatternDataVec& vec) const
     {
-        for(ChildVec::const_iterator it=childs.begin(); it != childs.end(); ++it)
-            (*it)->yield(vec);
+        for(ChildVec::const_iterator it=childs.begin(); it != childs.end(); ++it) {
+            if ((*it)->step()) (*it)->yield(vec);
+        }
     }
+private:
+    ChildVec::const_iterator position;
 };
 
 struct Any: public IntermediateNode {

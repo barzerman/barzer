@@ -2,7 +2,7 @@
 #include <barzer_el_xml.h>
 #include <fstream>
 
-#include "ay/ay_debug.h"
+#include "ay/ay_logger.h"
 
 namespace barzer {
 
@@ -23,11 +23,14 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 	// only commented until emitter is fully implemented
 	// causes an infinite loop at the moment
 
-//	sp.translation.print(std::cerr, 1);
 
-	 while( emitter.produceSequence() ) { 
+	int i = 0;
+	while( emitter.produceSequence() ) {
 		trie->addPath( emitter.getCurSequence(), sp.translation );
-	 }
+		i++;
+	}
+	AYLOG(DEBUG) << i << " sequences produced";
+
 	
 	++numStatements;
 	// AYDEBUG(numStatements);

@@ -12,6 +12,7 @@ barzer_el_btnd.o \
 barzer_el_parser.o \
 barzer_el_trie.o \
 barzer_el_trie_processor.o \
+barzer_el_trie_shell.o \
 barzer_el_xml.o \
 barzer_basic_types.o \
 barzer_storage_types.o \
