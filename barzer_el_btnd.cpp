@@ -365,7 +365,7 @@ std::ostream&  BTND_Pattern_None::print( std::ostream& fp , const BELPrintContex
 	return (fp << "<PatternNone>");
 }
 
-std::ostream&  BTND_Rewrite_Literal::print( std::ostream& fp , const BELPrintContext& ctxt ) const
+std::ostream&  BarzerLiteral::print( std::ostream& fp , const BELPrintContext& ctxt ) const
 {
 	switch( type ) {
 	case T_STRING: return( fp << "\"" << ctxt.printableString( theId ) << "\"" );
@@ -373,10 +373,6 @@ std::ostream&  BTND_Rewrite_Literal::print( std::ostream& fp , const BELPrintCon
 	case T_STOP: return ( fp << "#" );
 	}
 	return (fp << "<InvalidLiteral>" );
-}
-std::ostream&  BTND_Rewrite_Number::print( std::ostream& fp , const BELPrintContext& ) const
-{
-	return fp; 
 }
 std::ostream&  BTND_Rewrite_Variable::print( std::ostream& fp , const BELPrintContext& ctxt ) const
 {
@@ -394,17 +390,7 @@ std::ostream&  BTND_Rewrite_None::print( std::ostream& fp , const BELPrintContex
 {
 	return (fp << "RwrNone" );
 }
-std::ostream&  BTND_Rewrite_AbsoluteDate::print( std::ostream& fp , const BELPrintContext& ) const
-{
-	return ( fp << "AbsDate" );
-}
-std::ostream&  BTND_Rewrite_TimeOfDay::print( std::ostream& fp , const BELPrintContext& ) const
-{
-	return ( fp << "RwrTimeOfDay" ); }
-std::ostream&  BTND_Rewrite_Range::print( std::ostream& fp , const BELPrintContext& ) const
-{
-	return (fp << "RwrRange" );
-}
+
 std::ostream&  BTND_StructData::print( std::ostream& fp , const BELPrintContext& ) const
 {
 	const char* str = "Unknown";

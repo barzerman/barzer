@@ -112,7 +112,7 @@ public:
 	typedef enum {
 		T_NONE,   // blank translation 
 		T_STOP, // translates into stop token 
-		T_STRING, // string literal
+		T_STRING, // dynamic string or literal
 		T_COMPWORD, // compounded word
 		T_NUMBER_INT, // integer 
 		T_NUMBER_REAL, // real number (float)
@@ -120,7 +120,7 @@ public:
 		
 		T_MAX
 	} Type_t;
-	boost::variant< uint32_t, double> id;
+	boost::variant< uint32_t, double, int> id;
 	uint8_t  type; // one of T_XXX constants 
 		
 	void set( BELTrie& trie, const BTND_Rewrite_Literal& );

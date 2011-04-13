@@ -5,6 +5,8 @@ BINARY=barzer.exe
 libs = -Lay -lay -L/opt/local/lib/boost -L/usr/lib -lboost_system -lexpat -lstdc++
 ECHO = echo
 objects = \
+barzer_el_matcher.o \
+barzer_el_chain.o \
 barzer_universe.o \
 barzer_el_wildcard.o \
 barzer_el_rewriter.o \
