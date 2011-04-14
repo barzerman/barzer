@@ -131,4 +131,14 @@ int Barz::semanticParse( QSemanticParser& sem, const QuestionParm& qparm )
 	return sem.semanticize( puVec, ctVec, qparm );
 }
 
+void BarzerString::setFromTTokens( const TTWPVec& v )
+{
+	str.clear();
+	/// most of the time there will only be 1 iteration here
+	for( TTWPVec::const_iterator i = v.begin(); i!= v.end(); ++i ) {
+		const TToken& ttok = i->first;
+		str.append( ttok.buf, ttok.len );
+	}
+}
+
 } // barzer namespace 

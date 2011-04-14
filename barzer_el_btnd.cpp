@@ -366,15 +366,6 @@ std::ostream&  BTND_Pattern_None::print( std::ostream& fp , const BELPrintContex
 	return (fp << "<PatternNone>");
 }
 
-std::ostream&  BarzerLiteral::print( std::ostream& fp , const BELPrintContext& ctxt ) const
-{
-	switch( type ) {
-	case T_STRING: return( fp << "\"" << ctxt.printableString( theId ) << "\"" );
-	case T_COMPOUND: return ( fp << "comp(" << std::hex << theId << ")" );
-	case T_STOP: return ( fp << "#" );
-	}
-	return (fp << "<InvalidLiteral>" );
-}
 std::ostream&  BTND_Rewrite_Variable::print( std::ostream& fp , const BELPrintContext& ctxt ) const
 {
 	if( byName ) {
