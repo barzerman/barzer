@@ -42,6 +42,7 @@ public:
 	int moveTo(size_t);
 
 	std::vector<BarzelTrieFirmChildKey>& getFCvec() { return fcvec; }
+	std::vector<BarzelWCLookupKey>& getWCvec() { return wcvec; }
 
 	BarzelTrieNode* currectNode() {
 		return nodeStack.top();

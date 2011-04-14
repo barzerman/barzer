@@ -34,6 +34,7 @@ DEF_TFUN(load) {
 		int numsts = reader.loadFromFile(fname);
 		std::cout << numsts << " statements read. " << std::endl;
 		context->trieWalker.loadFC();
+		context->trieWalker.loadWC();
 	} else {
 		AYLOG(ERROR) << "no filename";
 	}

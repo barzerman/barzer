@@ -7,6 +7,7 @@
 #include <barzer_parse.h>
 #include <barzer_universe.h>
 #include "barzer_el_trie_walker.h"
+#include "barzer_el_wildcard.h"
 
 #include <iostream>
 namespace barzer {

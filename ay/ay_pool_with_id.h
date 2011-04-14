@@ -99,13 +99,17 @@ public:
 		}
 		cVec.clear();
 	}
+	PoolWithId(size_t cap=DEFAULT_CHUNK_CAPACITY) :
+		chunkCapacity(cap),
+		curChunkSz(0)
+	{ }
 	~PoolWithId() { clear(); }
 
 	T* addObj( uint32_t& id ) 
 	{
-		if( curChunkSz>= chunkCapacity ) 
+		if( !cVec.size() || curChunkSz>= chunkCapacity ) 
 			addNewChunk();
-		id = (cVec.size() *chunkCapacity) +  curChunkSz;
+		id = ((cVec.size()-1) *chunkCapacity) +  curChunkSz;
 		T* t =  curChunk + curChunkSz;
 		++curChunkSz;
 		return t;
@@ -114,11 +118,14 @@ public:
 	const T* getObjById( uint32_t id )  const
 	{
 		size_t chunkId = ( id / chunkCapacity );
-		if( chunkId < cVec.size() ) {
-			size_t offset = ( id% chunkCapacity );
-			return( offset < curChunkSz? (curChunk+offset) : 0 );
-		} else
+		Chunk theChunk;
+		if( chunkId < cVec.size()) 
+			theChunk = cVec[ chunkId ];
+		else
 			return 0;
+		size_t theChunkSz = ( theChunk == curChunk ? curChunkSz : chunkCapacity );
+		size_t offset = ( id% chunkCapacity );
+		return( offset < theChunkSz? (theChunk+offset) : 0 );
 	}
 	T* getObjById( uint32_t id )  
 		{ return ( (T*) ( ((const PoolWithId*)this )->getObjById(id) ) ); }

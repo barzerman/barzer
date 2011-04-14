@@ -230,7 +230,8 @@ static int bshf_trls( BarzerShell* shell, char_cp cmd, std::istream& in )
 	StoredUniverse &uni = context->universe;
 	BELTrieWalker &walker = context->trieWalker;
 
-	std::vector<BarzelTrieFirmChildKey> fcvec = walker.getFCvec();
+	std::vector<BarzelTrieFirmChildKey> &fcvec = walker.getFCvec();
+	const std::vector<BarzelWCLookupKey> &wcvec = walker.getWCvec();
 	BarzelTrieNode &node = walker.getCurrentNode();
 
 	ay::UniqueCharPool &stringPool = uni.getStringPool();
@@ -258,8 +259,14 @@ static int bshf_trls( BarzerShell* shell, char_cp cmd, std::istream& in )
 		std::cout << std::endl;
 	}
 
+	std::cout << "the wildcard lookup ID is: " << node.getWCLookupId();
+	std::cout << "(" << wcvec.size() << " wildcard children)" << std::endl;
 
-	std::cout << "the wildcard lookup ID is: " << node.getWCLookupId() << std::endl;
+	for (size_t i = 0; i < wcvec.size(); i++) {
+		const BarzelWCLookupKey &key = wcvec[i];
+		std::cout << "[" << i << "] \n";
+
+	}
 
 	AYLOG(DEBUG) << "Stack size is " << walker.getNodeStack().size();
 
