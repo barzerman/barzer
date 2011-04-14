@@ -32,7 +32,8 @@ DEF_TFUN(load) {
 		const char *fname = sin.c_str();
 		AYLOG(DEBUG) << "Loading " << fname;
 		int numsts = reader.loadFromFile(fname);
-		std::cout << numsts << " statements read. ";
+		std::cout << numsts << " statements read. " << std::endl;
+		context->trieWalker.loadFC();
 	} else {
 		AYLOG(ERROR) << "no filename";
 	}
@@ -58,24 +59,73 @@ DEF_TFUN(print) {
 
 DEF_TFUN(show) {
 	BarzerShellContext *context = shell->getBarzerContext();
-	//StoredUniverse &uni = context->universe;
+	StoredUniverse &uni = context->universe;
 	BELTrieWalker &walker = context->trieWalker;
-	TrieNodeStack &nodeStack = walker.getNodeStack();
 
-	BarzelTrieNode *topNode =  nodeStack.top();
+	std::vector<BarzelTrieFirmChildKey> fcvec = walker.getFCvec();
+	BarzelTrieNode &node = walker.getCurrentNode();
 
-	std::cout << "Current node's lookup ID is: " << topNode->getWCLookupId();
+	ay::UniqueCharPool &stringPool = uni.getStringPool();
+
+	std::cout << "Current node got: " << std::endl;
+	std::cout << fcvec.size() << " firm children" << std::endl;
+
+	for (size_t i = 0; i < fcvec.size(); i++) {
+		BarzelTrieFirmChildKey &key = fcvec[i];
+		std::cout << "[" << i << "] ";
+		key.print(std::cout) << ":";
+
+		switch(key.type) {
+		case BTND_Pattern_Token_TYPE: {
+				const char *str = stringPool.resolveId(key.id);
+				std::cout << (str ? str : "Illegal string ID");
+			}
+			break;
+		case BTND_Pattern_Punct_TYPE:
+			std::cout << (char) key.id;
+			break;
+		case BTND_Pattern_CompoundedWord_TYPE: // no idea what to do here
+			break;
+		}
+		std::cout << std::endl;
+	}
+
+
+	std::cout << "the wildcard lookup ID is: " << node.getWCLookupId() << std::endl;
+
+	AYLOG(DEBUG) << "Stack size is " << walker.getNodeStack().size();
 
 	return 0;
 }
 
 DEF_TFUN(moveback) {
-	// facedesk
-	TrieNodeStack &nodeStack  = shell->getBarzerContext()->trieWalker.getNodeStack();
-	if (nodeStack.size() > 1) nodeStack.pop();
-	else std::cout << "Already at the root node" << std::endl;
+	BELTrieWalker &w = shell->getBarzerContext()->trieWalker;
+	w.moveBack();
 	return 0;
 }
+
+DEF_TFUN(moveto) {
+	BELTrieWalker &w = shell->getBarzerContext()->trieWalker;
+	std::string s;
+	if (in >> s) {
+		const char *cstr = s.c_str();
+		size_t num = atoi(cstr);
+		std::cout << "Moving to child " << num << std::endl;
+		if (w.moveTo(num)) {
+			AYLOG(ERROR) << "Couldn't load child";
+		}
+		std::cout << "Stack size is " << w.getNodeStack().size() << std::endl;
+	} else {
+		std::cout << "trie moveto <#Child>" << std::endl;
+	}
+	return 0;
+}
+DEF_TFUN(test) {
+	BELTrieWalker w  = shell->getBarzerContext()->trieWalker;
+    std::cout << w.getNodeStack().size() << std::endl;
+    return 0;
+}
+
 
 DEF_TFUN(help) {
 	AYLOG(DEBUG) << "trie_shell_help  called";
@@ -94,6 +144,8 @@ static std::map<std::string,TrieShellFun> triefunmap =
 								   TSHF(print)
 								   TSHF(show)
 								   TSHF(moveback)
+								   TSHF(moveto)
+								   TSHF(test)
 								   TSHF(help);
 
 #undef TSHF

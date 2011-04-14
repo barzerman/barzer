@@ -152,9 +152,10 @@ public:
 	std::ostream& print( std::ostream& , const BELPrintContext& ) const;
 };
 
+class BarzelTrieNode;
+typedef std::map<BarzelTrieFirmChildKey, BarzelTrieNode > BarzelFCMap;
 
 class BarzelTrieNode {
-	typedef std::map<BarzelTrieFirmChildKey, BarzelTrieNode > BarzelFCMap; 
 	BarzelFCMap firmMap; /// children of the 'firm' types - token,punctuation,compounded word
 
 	uint32_t wcLookupId; // when valid (not 0xffffffff) can it's an id of a wildcard lookup object 

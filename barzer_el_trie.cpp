@@ -1,6 +1,8 @@
 #include <barzer_el_trie.h>
 #include <barzer_el_wildcard.h>
 #include <list>
+#include <ay/ay_logger.h>
+
 
 namespace barzer {
 ///// output operators 
@@ -174,6 +176,8 @@ namespace {
 void BELTrie::addPath( const BTND_PatternDataVec& path, const BELParseTreeNode& trans )
 {
 	BarzelTrieNode* n = &root;
+
+	AYLOG(DEBUG) << "Adding new path (" << path.size() << " elements)";
 
 	// forming the list of wildcard pattern data. data includes iterator to the actual
 	// wildcard as well as the next firm match key (if any)

@@ -62,7 +62,7 @@ void print_usage(const char* prg_name) {
 }
 
 int main( int argc, char * argv[] ) {
-	ay::Logger::init(ay::Logger::DEBUG);
+	ay::Logger::init(ay::Logger::WARNING);
     try {
         if (argc >= 2) {
             if (strcasecmp(argv[1], "shell") == 0) {

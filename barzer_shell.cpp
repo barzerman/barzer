@@ -195,32 +195,6 @@ static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
-// just a test function for trie loading
-static int bshf_trieloadxml( BarzerShell* shell, char_cp cmd, std::istream& in )
-{
-	BarzerShellContext *context = shell->getBarzerContext();
-	StoredUniverse &uni = context->universe;
-	BELTrie &trie = uni.getBarzelTrie();
-	ay::UniqueCharPool &stringPool = uni.getStringPool();
-	
-	BELReader reader(&trie, &stringPool);
-	reader.initParser(BELReader::INPUT_FMT_XML); 
-	
-	std::string tmp;
-	ay::stopwatch totalTimer;
-	
-	while( in >> tmp ) {
-		ay::stopwatch tmr;
-		const char* fname = tmp.c_str();
-		//dtaIdx->loadEntities_XML( fname );
-		int numsts = reader.loadFromFile(fname);
-		std::cerr << numsts << " statements read. ";
-		std::cerr << "done in " << tmr.calcTime() << " seconds\n";
-
-	}
-	std::cerr << "All done in " << totalTimer.calcTime() << " seconds\n";
-	return 0;
-}
 
 static int bshf_setloglevel( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
@@ -246,23 +220,7 @@ static int bshf_setloglevel( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 static int bshf_trie( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
-   /*
-	BarzerShellContext *context = shell->getBarzerContext();
-	StoredUniverse &uni = context->universe;
-	BELTrie &trie = uni.getBarzelTrie();
-
-	//BELTrieWalker &walker = context->trieWalker;
-	//TrieNodeStack &nstack = walker.getNodeStack();
-
-	BELPrintFormat fmt;
-	ay::UniqueCharPool &stringPool = uni.getStringPool();
-	BELPrintContext ctxt( trie, stringPool, fmt );
-	trie.print(std::cout, ctxt);
-	return 0; //*/
-
 	return bshtrie_process( shell, in );
-//	return 0;
-
 }
 
 
@@ -282,7 +240,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_tokid, "tokid", "token lookup by string" ),
 	CmdData( (ay::Shell_PROCF)bshf_euid, "euid", "entity lookup by euid (tok class subclass)" ),
 	CmdData( (ay::Shell_PROCF)bshf_entid, "entid", "entity lookup by entity id" ),
-	CmdData( (ay::Shell_PROCF)bshf_trieloadxml, "trieloadxml", "loads a trie from an xml file" ),
+	//CmdData( (ay::Shell_PROCF)bshf_trieloadxml, "trieloadxml", "loads a trie from an xml file" ),
 	CmdData( (ay::Shell_PROCF)bshf_setloglevel, "setloglevel", "set a log level (DEBUG/WARNINg/ERROR/CRITICAL)" ),
 	CmdData( (ay::Shell_PROCF)bshf_trie, "trie", "trie commands" ),
 };
