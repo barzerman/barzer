@@ -25,11 +25,13 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 	int i = 0;
 	while( emitter.produceSequence() ) {
 		const BTND_PatternDataVec& seq = emitter.getCurSequence();
-		for (BTND_PatternDataVec::const_iterator ci = seq.begin(); ci != seq.end(); ++ci) {
-			const BTND_PatternData &pd = *ci;
-			printPatternData(std::cout, pd);
-		}
+		AYLOG(DEBUG) << "Got sequence";
+		//for (BTND_PatternDataVec::const_iterator ci = seq.begin(); ci != seq.end(); ++ci) {
+		//	const BTND_PatternData &pd = *ci;
+		//	printPatternData(std::cout, pd);
+		//}
 		trie->addPath( seq, sp.translation );
+		AYLOG(DEBUG) << "Path added";
 		i++;
 	}
 	AYLOG(DEBUG) << i << " sequences produced";
