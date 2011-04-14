@@ -83,9 +83,23 @@ struct BTND_Pattern_Number {
 		range.real.lo = lo;
 		range.real.hi = hi;
 	}
+	std::ostream& printRange( std::ostream& fp ) const 
+	{
+		switch( type ) {
+		case T_RANGE_REAL:
+			return (fp << range.real.lo << "," << range.real.hi);
+		case T_RANGE_INT:
+			return (fp << range.integer.lo << "," << range.integer.hi);
+		}
+		return fp;
+	}
 };
 inline bool operator <( const BTND_Pattern_Number& l, const BTND_Pattern_Number& r )
 	{ return l.isLessThan( r ); }
+inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_Number& x )
+{
+	return (x.printRange( fp << "NUM[" ) << "]" );
+}
 
 // 
 struct BTND_Pattern_Punct {
@@ -94,6 +108,9 @@ struct BTND_Pattern_Punct {
 	BTND_Pattern_Punct() : theChar(0) {}
 	BTND_Pattern_Punct(char c) : theChar(c) {}
 };
+inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_Punct& x )
+	{ return( fp << "'" << std::hex << x.theChar << "'" ); }
+
 // simple token wildcard data
 struct BTND_Pattern_Wildcard {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
@@ -110,6 +127,8 @@ struct BTND_Pattern_Wildcard {
 		return( ay::range_comp().less_than( minTerms, maxTerms, r.minTerms, r.maxTerms ) );
 	}
 };
+inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_Wildcard& x )
+	{ return( fp << "*[" << x.minTerms << "," << x.maxTerms << "]" ); }
 inline bool operator <( const BTND_Pattern_Wildcard& l, const BTND_Pattern_Wildcard& r )
 	{ return l.isLessThan( r ); }
 
@@ -132,6 +151,9 @@ struct BTND_Pattern_Date {
 	bool isLessThan( const BTND_Pattern_Date& r ) const
 		{ return ay::range_comp().less_than( type, lo, hi, r.type, r.lo, r.hi ); }
 };
+inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_Date& x )
+	{ return( fp << "date." << x.type << "[" << x.lo << "," << x.hi << "]" ); }
+
 inline bool operator <( const BTND_Pattern_Date& l, const BTND_Pattern_Date& r )
 	{ return l.isLessThan( r ); }
 
@@ -152,6 +174,8 @@ struct BTND_Pattern_Time {
 	bool isLessThan( const BTND_Pattern_Time& r ) const
 		{ return ay::range_comp().less_than( type,lo, hi, r.type, r.lo, r.hi ); }
 };
+inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_Time& x )
+	{ return( fp << "time." << x.type << "[" << x.lo << "," << x.hi << "]" ); }
 inline bool operator <( const BTND_Pattern_Time& l, const BTND_Pattern_Time& r )
 {
 	return l.isLessThan( r );
@@ -193,6 +217,10 @@ struct BTND_Pattern_DateTime {
 		}
 	}
 };
+inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_DateTime& x )
+	{ return( fp << "datetime." << x.type << "[" << 
+		x.dlo << ':' << x.tlo  << "," << 
+		x.dhi << ':' << x.thi << "]" ); }
 
 inline bool operator <( const BTND_Pattern_DateTime& l, const BTND_Pattern_DateTime& r )
 	{ return l.isLessThan( r ); }
@@ -205,6 +233,8 @@ struct BTND_Pattern_CompoundedWord {
 	{}
 	BTND_Pattern_CompoundedWord(uint32_t cwi ) : compWordId(cwi) {}
 };
+inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_CompoundedWord& x )
+	{ return( fp << "compw[" << std::hex << x.compWordId << "]");}
 
 struct BTND_Pattern_Token {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
@@ -213,11 +243,15 @@ struct BTND_Pattern_Token {
 	BTND_Pattern_Token() : stringId(ay::UniqueCharPool::ID_NOTFOUND) {}
 	BTND_Pattern_Token(ay::UniqueCharPool::StrId id) : stringId(id) {}
 };
+inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_Token& x )
+	{ return( fp << "string[" << std::hex << x.stringId << "]");}
 
 /// blank data type 
 struct BTND_Pattern_None {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 };
+inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_None& x )
+	{ return( fp << "<none>" ); }
 
 typedef boost::variant< 
 		BTND_Pattern_None,				// 0
