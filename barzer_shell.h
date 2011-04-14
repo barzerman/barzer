@@ -28,7 +28,7 @@ struct BarzerShellContext : public ay::ShellContext {
 
 	BarzerShellContext() : 
 		trieWalker(universe.getBarzelTrie()) ,
-		parser( obtainDtaIdx() )
+		parser( universe )
 	{}
 };
 struct BarzerShell : public ay::Shell {

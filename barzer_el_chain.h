@@ -37,6 +37,7 @@ typedef boost::variant<
 	BarzerDate,
 	BarzerTimeOfDay,
 	BarzerRange,
+	BarzerEntityList,
 	BarzelEntityRangeCombo
 > BarzelBeadAtomic_var;
 
@@ -103,9 +104,5 @@ struct BarzelBeadChain {
 	void init( const CTWPVec& cv );
 };
 
-
-
-
 }
-
 #endif // BARZER_EL_CHAIN_H
