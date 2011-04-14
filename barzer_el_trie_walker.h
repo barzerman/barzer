@@ -24,7 +24,14 @@ public:
 		nodeStack.push(&t.root);
 	}
 
-	TrieNodeStack& getNodeStack() { return nodeStack; }
+	TrieNodeStack& getNodeStack();
+	bool moveBack();
+
+	BarzelTrieNode* currectNode() {
+		return nodeStack.top();
+	}
+
+
 
 };
 
