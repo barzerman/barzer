@@ -11,4 +11,8 @@
 		<pat><t>100</t></pat>
 		<tran><rn v="200"/></tran>
 	</stmt>
+	<stmt>
+		<pat><n/><t>shit</t></pat>
+		<tran><rn v="200"/></tran>
+	</stmt>
 </stmset>
