@@ -20,13 +20,16 @@ void BELParseTreeNode::print( std::ostream& fp, int depth ) const
 void BELReader::addStatement( const BELStatementParsed& sp )
 {
 	BELParseTreeNode_PatternEmitter emitter( sp.pattern );
-	// only commented until emitter is fully implemented
-	// causes an infinite loop at the moment
 
 
 	int i = 0;
 	while( emitter.produceSequence() ) {
-		trie->addPath( emitter.getCurSequence(), sp.translation );
+		const BTND_PatternDataVec& seq = emitter.getCurSequence();
+		for (BTND_PatternDataVec::const_iterator ci = seq.begin(); ci != seq.end(); ++ci) {
+			const BTND_PatternData &pd = *ci;
+			printPatternData(std::cout, pd);
+		}
+		trie->addPath( seq, sp.translation );
 		i++;
 	}
 	AYLOG(DEBUG) << i << " sequences produced";

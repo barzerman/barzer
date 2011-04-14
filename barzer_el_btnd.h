@@ -232,6 +232,7 @@ typedef boost::variant<
 		BTND_Pattern_DateTime 			// 8 
 > BTND_PatternData;
 
+
 /// these enums MUST mirror the order of the types in BTND_PatternData
 enum {
 	BTND_Pattern_None_TYPE, 			// 0			

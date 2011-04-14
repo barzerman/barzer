@@ -1,8 +1,10 @@
 <stmset>
 	<stmt>
-		<pat><t>huy</t></pat>
+		<pat><t>mama</t><t>myla</t><t>ramu</t></pat>
 		<tran><rn v="56"/></tran>
 	</stmt>
+	
+	<!-- 
 	<stmt>
 		<pat><t>huy</t><n>25</n></pat>
 		<tran><ltrl>1</ltrl></tran>
@@ -20,4 +22,5 @@
 		<pat><t>100</t></pat>
 		<tran><rn v="200"/></tran>
 	</stmt>
+	 -->
 </stmset>

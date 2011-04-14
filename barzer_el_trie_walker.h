@@ -25,6 +25,7 @@ public:
 	}
 
 	TrieNodeStack& getNodeStack();
+
 	bool moveBack();
 
 	BarzelTrieNode* currectNode() {
