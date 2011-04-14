@@ -4,10 +4,6 @@
 		<tran><rn v="56"/></tran>
 	</stmt>
 	<stmt>
-		<pat><t>huy</t></pat>
-		<tran><rn v="5"/></tran>
-	</stmt>
-	<stmt>
 		<pat><t>6</t></pat>
 		<tran><ltrl>lala</ltrl></tran>
 	</stmt>

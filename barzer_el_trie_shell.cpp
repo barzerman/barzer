@@ -56,7 +56,7 @@ DEF_TFUN(print) {
 	return 0;
 }
 
-
+/*
 DEF_TFUN(show) {
 	BarzerShellContext *context = shell->getBarzerContext();
 	StoredUniverse &uni = context->universe;
@@ -119,7 +119,8 @@ DEF_TFUN(moveto) {
 		std::cout << "trie moveto <#Child>" << std::endl;
 	}
 	return 0;
-}
+
+} //*/
 DEF_TFUN(test) {
 	BELTrieWalker w  = shell->getBarzerContext()->trieWalker;
     std::cout << w.getNodeStack().size() << std::endl;
@@ -142,11 +143,12 @@ DEF_TFUN(help) {
 static std::map<std::string,TrieShellFun> triefunmap =
 		boost::assign::map_list_of TSHF(load)
 								   TSHF(print)
-								   TSHF(show)
-								   TSHF(moveback)
-								   TSHF(moveto)
 								   TSHF(test)
 								   TSHF(help);
+/*TSHF(show)
+TSHF(moveback)
+TSHF(moveto)
+*/
 
 #undef TSHF
 
