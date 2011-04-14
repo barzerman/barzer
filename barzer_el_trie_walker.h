@@ -9,6 +9,7 @@
 #define BEL_TRIE_WALKER_H_
 
 #include "barzer_el_trie.h"
+#include "barzer_el_wildcard.h"
 #include <stack>
 #include <vector>
 #include <ay/ay_logger.h>
@@ -22,6 +23,7 @@ class BELTrieWalker {
 	BELTrie &trie;
 	TrieNodeStack nodeStack;
 	std::vector<BarzelTrieFirmChildKey> fcvec;
+	std::vector<BarzelWCLookupKey> wcvec;
 
 public:
 	BELTrieWalker(BELTrie &t) : trie(t) {
@@ -32,8 +34,10 @@ public:
 	BarzelTrieNode& getCurrentNode() {	return *nodeStack.top(); }
 
 
+	const BarzelWCLookup* getWildcardLookup(uint32_t) const;
 
 	void loadFC();
+	void loadWC();
 	bool moveBack();
 	int moveTo(size_t);
 
@@ -42,8 +46,6 @@ public:
 	BarzelTrieNode* currectNode() {
 		return nodeStack.top();
 	}
-
-
 
 };
 

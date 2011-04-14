@@ -474,8 +474,30 @@ struct BELParseTreeNode {
 	T& setNodeData( const T& d ) { return(btndVar=d, boost::get<T>(btndVar));}
 	
 	template <typename T>
-	void getNodeDataPtr( T*& ptr ) 
-		{ ptr = boost::get<T>( &btndVar ); }
+	void getNodeDataPtr_Pattern( T*& ptr ) 
+	{ 
+		if( btndVar.which() == BTND_PatternData_TYPE ) 
+			ptr = boost::get<T>(&(boost::get<BTND_PatternData>(btndVar)));
+		else 
+			ptr = 0;
+	}
+	template <typename T>
+	void getNodeDataPtr_Struct( T*& ptr ) 
+		{ 
+		if( btndVar.which() == BTND_StructData_TYPE ) 
+			ptr = boost::get<T>(&(boost::get<BTND_StructData>(btndVar)));
+		else 
+			ptr = 0;
+		}
+
+	template <typename T>
+	void getNodeDataPtr_Rewrite( T*& ptr ) 
+		{ 
+		if( btndVar.which() == BTND_RewriteData_TYPE ) 
+			ptr = boost::get<T>(&(boost::get<BTND_RewriteData>(btndVar)));
+		else 
+			ptr = 0;
+		}
 	
 	void print( std::ostream& fp, int depth=0 ) const;
 	bool isChildless() const

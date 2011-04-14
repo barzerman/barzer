@@ -11,6 +11,12 @@ namespace barzer {
 
 TrieNodeStack& BELTrieWalker::getNodeStack() { return nodeStack; }
 
+const BarzelWCLookup* BELTrieWalker::getWildcardLookup( uint32_t id ) const
+{
+	return( trie.wcPool->getWCLookup( id ));
+}
+
+
 bool BELTrieWalker::moveBack()
 {
 	if ( nodeStack.size() > 1 ) {
@@ -20,13 +26,15 @@ bool BELTrieWalker::moveBack()
 	} else return false;
 }
 
-int BELTrieWalker::moveTo(const size_t pos) {
-	if (pos < 0 || pos >= fcvec.size()) return 1;
-
-	BarzelFCMap &fcmap = nodeStack.top()->getFirmMap();
-	nodeStack.push(&fcmap[fcvec[pos]]);
-	loadFC();
-	return 0;
+int BELTrieWalker::moveTo(const size_t pos) 
+{
+	if( pos < fcvec.size()) {
+		BarzelFCMap &fcmap = nodeStack.top()->getFirmMap();
+		nodeStack.push(&fcmap[fcvec[pos]]);
+		loadFC();
+		return 0;
+	} else
+		return 1;
 }
 
 void BELTrieWalker::loadFC() {
@@ -41,9 +49,19 @@ void BELTrieWalker::loadFC() {
 		}
 		AYLOG(DEBUG) << i << " children loaded";
 	}
+}
 
-
-
+void BELTrieWalker::loadWC() {
+	wcvec.clear();
+	const BarzelWCLookup *wcmap = getWildcardLookup(getCurrentNode().getWCLookupId());
+	int i = 0;
+	if (!wcmap->empty()) {
+		for (BarzelWCLookup::const_iterator wci = wcmap->begin(); wci != wcmap->end(); ++wci) {
+			wcvec.push_back(wci->first);
+			i++;
+		}
+		AYLOG(DEBUG) << i << " children loaded";
+	}
 }
 
 }

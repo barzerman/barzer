@@ -190,7 +190,7 @@ void BELParserXML::taghandle_T_text( const char* s, int len )
 	BELParseTreeNode* node = statement.getCurrentNode();
 	if( node ) {
 		BTND_Pattern_Token* t = 0;
-		node->getNodeDataPtr(t);
+		node->getNodeDataPtr_Pattern(t);
 		if( t ) {
 			d_tmpText.assign( s, len );
 			ay::UniqueCharPool::StrId sid = strPool->internIt( d_tmpText.c_str() );
@@ -339,7 +339,7 @@ void BELParserXML::taghandle_LITERAL_text( const char* s, int len )
 	BELParseTreeNode* node = statement.getCurrentNode();
 	if( node ) {
 		BTND_Rewrite_Literal* t = 0;
-		node->getNodeDataPtr(t);
+		node->getNodeDataPtr_Rewrite(t);
 		if( t ) {
 			d_tmpText.assign( s, len );
 			ay::UniqueCharPool::StrId sid = strPool->internIt( d_tmpText.c_str() );
@@ -364,7 +364,7 @@ void BELParserXML::taghandle_RNUMBER_text( const char*s, int len )
 	BELParseTreeNode* node = statement.getCurrentNode();
 	if( node ) {
 		BTND_Rewrite_Number* t = 0;
-		node->getNodeDataPtr(t);
+		node->getNodeDataPtr_Rewrite(t);
 		if( t && len && s[0] ) {
 			d_tmpText.assign( s, len );
 			if( strchr( d_tmpText.c_str(), '.' ) ) {
