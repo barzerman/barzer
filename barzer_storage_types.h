@@ -124,7 +124,7 @@ struct StoredToken {
 	void print( std::ostream& ) const;
 
 	uint32_t getSingleTokStringId() const
-		{ return( isSingleTOk() ? stringId : 0xffffffff ); }
+		{ return( isSingleTok() ? stringId : 0xffffffff ); }
 };
 inline std::ostream& operator <<( std::ostream& fp, const StoredToken& t )
 { return ( t.print(fp), fp ); }
@@ -266,7 +266,13 @@ inline std::ostream& operator <<( std::ostream& fp, const StoredEntity& e )
 	return ( e.print(fp), fp );
 }
 
-
+//// generic type used by Barzel among other things
+class BarzerEntityList {
+	typedef std::vector< StoredEntity > EList;
+	EList lst;
+public:
+	std::ostream& print( std::ostream& fp ) const;
+};
 
 }
 #endif // BARZER_STORAGE_TYPES_H

@@ -22,6 +22,13 @@ void StoredEntity::print( std::ostream& fp ) const
 	fp << ']';
 }
 
+std::ostream& BarzerEntityList::print( std::ostream& fp ) const
+{
+	for( EList::const_iterator i = lst.begin(); i!= lst.end(); ++i ) {
+		fp << '{' << *i << "}";
+	}
+	return fp;
+}
 }
 
 

@@ -7,7 +7,6 @@
 #include <ay/ay_util.h>
 #include <boost/variant.hpp>
 #include <barzer_basic_types.h>
-#include <barzer_basic_types.h>
 
 // types defined in this file are used to store information for various node types 
 // in the BarzEL trie

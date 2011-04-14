@@ -8,36 +8,35 @@ void BarzelBead::init( const CTWPVec::value_type& v )
 	ctokOrigVec.push_back( v );
 	dta = BarzelBeadAtomic();
 
-	BarzelBeadAtomic& atomic = boost::get< BarzelBeadAtomic >( dta );
+	BarzelBeadAtomic_var& atomic = boost::get< BarzelBeadAtomic >( dta ).dta;
 
 	const CToken& ct = v.first;
 	switch( ct.getCTokenClass() ) {
-	case CLASS_UNCLASSIFIED: 
+	case CTokenClassInfo::CLASS_UNCLASSIFIED: 
 		break;
-	case CLASS_BLANK: 
+	case CTokenClassInfo::CLASS_BLANK: 
 		boost::get<BarzerLiteral>(atomic).setBlank(); 
 		break;
-	case CLASS_WORD: 
-		boost::get<BarzerLiteral>(atomic).setString(ct.getSingleTokStringId()); 
+	case CTokenClassInfo::CLASS_WORD: 
+		boost::get<BarzerLiteral>(atomic).setString(ct.getStringId()); 
 		break;
-	case CLASS_MYSTERY_WORD: 
+	case CTokenClassInfo::CLASS_MYSTERY_WORD: 
 		boost::get<BarzerString>(atomic).setFromTTokens( ct.getTTokens() ); 
 		break;
-	case CLASS_NUMBER: 
+	case CTokenClassInfo::CLASS_NUMBER: 
 		boost::get<BarzerNumber>(atomic) = ct.getNumber(); 
 		break;
-	case CLASS_PUNCTUATION:
+	case CTokenClassInfo::CLASS_PUNCTUATION:
 		boost::get<BarzerLiteral>(atomic).setPunct(ct.getPunct());
 		break;
 		
-	case CLASS_SPACE:
+	case CTokenClassInfo::CLASS_SPACE:
 		boost::get<BarzerLiteral>(atomic).setBlank();
 		break;
 	}
 }
 
 namespace {
-
 struct print_visitor : public boost::static_visitor<> 
 {
 	
@@ -46,6 +45,13 @@ struct print_visitor : public boost::static_visitor<>
 	template <typename T> void operator()( const T& t ) const { t.print( fp ); }
 };
 } // anonymous namespace ends
+
+std::ostream& BarzelBeadAtomic::print( std::ostream& fp ) const
+{
+	print_visitor visi(fp);
+	boost::apply_visitor( visi, dta );
+	return fp;
+}
 
 std::ostream& BarzelBead::print( std::ostream& fp ) const
 {

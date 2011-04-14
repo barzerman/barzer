@@ -1,6 +1,7 @@
 #ifndef BARZER_EL_CHAIN_H  
 #define BARZER_EL_CHAIN_H  
 
+#include <barzer_storage_types.h>
 #include <barzer_parse_types.h>
 #include <barzer_el_btnd.h>
 #include <list>
@@ -37,7 +38,13 @@ typedef boost::variant<
 	BarzerTimeOfDay,
 	BarzerRange,
 	BarzelEntityRangeCombo
-> BarzelBeadAtomic;
+> BarzelBeadAtomic_var;
+
+struct BarzelBeadAtomic {
+	BarzelBeadAtomic_var dta;
+	
+	std::ostream& print( std::ostream& fp ) const;
+};
 
 /// this is a tree type. beads of this type do not 
 /// for future implementation
@@ -74,6 +81,7 @@ class BarzelBead {
 	BarzelBeadData dta;
 	
 public:
+	BarzelBead() {}
 	void init(const CTWPVec::value_type&) ;
 	BarzelBead(const CTWPVec::value_type& ct) 
 	{ init(ct); }
@@ -85,7 +93,7 @@ public:
 }; 
 
 struct BarzelBeadChain {
-	std::list< BarzelBead > 	BeadList;
+	typedef std::list< BarzelBead > 	BeadList;
 
 	BeadList lst;
 	/// implement 

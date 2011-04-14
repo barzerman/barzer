@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <barzer_token.h>
 #include <barzer_basic_types.h>
+#include <barzer_storage_types.h>
 
 namespace barzer {
 struct TToken ;
@@ -121,7 +122,7 @@ struct CToken {
 	uint32_t getStringId() const 	
 		{ return( isWord() && storedTok ? storedTok->getSingleTokStringId() : 0xffffffff ) ; }
 	
-	const TToken*  getFirstTToken() const { return ( qtVec.size() ? &(qtVec.front()) : 0 ); }
+	const TToken*  getFirstTToken() const { return ( qtVec.size() ? &(qtVec.front().first) : 0 ); }
 	int   getPunct( ) const
 		{ const TToken* t = getFirstTToken(); return ( t ? t->getPunct() : 0 ); }
 	const TTWPVec& getTTokens() const { return qtVec; }
@@ -216,5 +217,19 @@ public:
 	int classifyTokens( QLexParser& , const QuestionParm& );
 	int semanticParse( QSemanticParser&, const QuestionParm& );
 };
+
+
+/// non constant string - it's different from barzer literal as the value may not be 
+/// among the permanently stored but rather something constructed by barzel
+class BarzerString {
+	std::string str;
+public:
+	void setFromTTokens( const TTWPVec& v );
+
+	std::ostream& print( std::ostream& fp ) const
+		{ return ( fp << "\"" <<str<< "\"" ); }
+};
+inline std::ostream& operator <<( std::ostream& fp, const BarzerString& x )
+	{ return( x.print(fp) ); }
 } // barzer  namespace 
 #endif // BARZER_PARSE_TYPES_H
