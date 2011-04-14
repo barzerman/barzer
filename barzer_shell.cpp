@@ -224,6 +224,75 @@ static int bshf_trie( BarzerShell* shell, char_cp cmd, std::istream& in )
 }
 
 
+static int bshf_trls( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext *context = shell->getBarzerContext();
+	StoredUniverse &uni = context->universe;
+	BELTrieWalker &walker = context->trieWalker;
+
+	std::vector<BarzelTrieFirmChildKey> fcvec = walker.getFCvec();
+	BarzelTrieNode &node = walker.getCurrentNode();
+
+	ay::UniqueCharPool &stringPool = uni.getStringPool();
+
+	std::cout << "Current node got: " << std::endl;
+	std::cout << fcvec.size() << " firm children" << std::endl;
+
+	for (size_t i = 0; i < fcvec.size(); i++) {
+		BarzelTrieFirmChildKey &key = fcvec[i];
+		std::cout << "[" << i << "] ";
+		key.print(std::cout) << ":";
+
+		switch(key.type) {
+		case BTND_Pattern_Token_TYPE: {
+				const char *str = stringPool.resolveId(key.id);
+				std::cout << (str ? str : "Illegal string ID");
+			}
+			break;
+		case BTND_Pattern_Punct_TYPE:
+			std::cout << (char) key.id;
+			break;
+		case BTND_Pattern_CompoundedWord_TYPE: // no idea what to do here
+			break;
+		}
+		std::cout << std::endl;
+	}
+
+
+	std::cout << "the wildcard lookup ID is: " << node.getWCLookupId() << std::endl;
+
+	AYLOG(DEBUG) << "Stack size is " << walker.getNodeStack().size();
+
+	return 0;
+}
+
+static int bshf_trcd( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+
+	BELTrieWalker &w = shell->getBarzerContext()->trieWalker;
+	std::string s;
+	if (in >> s) {
+		const char *cstr = s.c_str();
+		size_t num = atoi(cstr);
+		std::cout << "Moving to child " << num << std::endl;
+		if (w.moveTo(num)) {
+			AYLOG(ERROR) << "Couldn't load child";
+		}
+		std::cout << "Stack size is " << w.getNodeStack().size() << std::endl;
+	} else {
+		std::cout << "trie moveto <#Child>" << std::endl;
+	}
+	return 0;
+
+}
+
+static int bshf_trup( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BELTrieWalker &w = shell->getBarzerContext()->trieWalker;
+	w.moveBack();
+	return 0;
+}
+
 /// end of specific shell routines
 static const CmdData g_cmd[] = {
 	CmdData( ay::Shell::cmd_help, "help", "get help on a barzer function" ),
@@ -243,6 +312,9 @@ static const CmdData g_cmd[] = {
 	//CmdData( (ay::Shell_PROCF)bshf_trieloadxml, "trieloadxml", "loads a trie from an xml file" ),
 	CmdData( (ay::Shell_PROCF)bshf_setloglevel, "setloglevel", "set a log level (DEBUG/WARNINg/ERROR/CRITICAL)" ),
 	CmdData( (ay::Shell_PROCF)bshf_trie, "trie", "trie commands" ),
+	CmdData( (ay::Shell_PROCF)bshf_trls, "trls", "lists current trie node children" ),
+	CmdData( (ay::Shell_PROCF)bshf_trcd, "trcd", "changes current trie node to the child by number" ),
+	CmdData( (ay::Shell_PROCF)bshf_trup, "trup", "moves back to the parent trie node" ),
 };
 
 ay::ShellContext* BarzerShell::mkContext()
