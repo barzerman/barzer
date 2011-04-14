@@ -20,13 +20,15 @@ bool BELTrieWalker::moveBack()
 	} else return false;
 }
 
-int BELTrieWalker::moveTo(const size_t pos) {
-	if (pos < 0 || pos >= fcvec.size()) return 1;
-
-	BarzelFCMap &fcmap = nodeStack.top()->getFirmMap();
-	nodeStack.push(&fcmap[fcvec[pos]]);
-	loadFC();
-	return 0;
+int BELTrieWalker::moveTo(const size_t pos) 
+{
+	if( pos < fcvec.size()) {
+		BarzelFCMap &fcmap = nodeStack.top()->getFirmMap();
+		nodeStack.push(&fcmap[fcvec[pos]]);
+		loadFC();
+		return 0;
+	} else
+		return 1;
 }
 
 void BELTrieWalker::loadFC() {
