@@ -4,24 +4,28 @@
 #include <limits>
 #include <stdlib.h>
 #include <stdint.h>
+#include <ay/ay_bitflags.h>
+#include <barzer_dtaindex.h>
+#include <boost/variant.hpp>
+
 
 namespace barzer {
-
+struct BELPrintContext;
 /// pure numbers
 class BarzerNumber {
 public:
-	typedef enum {
+	enum {
 		NTYPE_NAN, //  not a number
 		NTYPE_INT,
 		NTYPE_REAL
-	} Type_t;
+	} ;
 	
 private:
-	Type_t type;
 	union {
 		int i;
 		double  real;
 	} n;
+	uint8_t type;
 public:
 	BarzerNumber() : type(NTYPE_NAN) {n.i = 0;}
 	BarzerNumber( int i ) : type(NTYPE_INT) {n.i = i;}
@@ -139,7 +143,79 @@ inline bool operator<( const BarzerDate& l, const BarzerDate& r )
 struct BarzerTimeOfDay {
 	uint8_t hh, mm, ss; // hours minutes seconds 
 	BarzerTimeOfDay( ) : hh(0), mm(0), ss(0) {}
+	std::ostream& print( std::ostream& fp ) const 
+		{ return ( fp << hh << ':' << mm << ':' << ss ); }
+};
+//// barzer literal 
+
+class BarzerLiteral {
+public:
+	enum {
+		T_STRING,
+		T_COMPOUND,
+		T_STOP, /// rewrites into a blank yet unmatcheable token
+		T_PUNCT,
+		T_BLANK
+	};
+private:
+	uint32_t theId;
+	uint8_t  type;
+public:
+	BarzerLiteral() : 
+		theId(ay::UniqueCharPool::ID_NOTFOUND) ,
+		type(T_STRING)
+	{}
+
+	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
+	void setCompound(uint32_t id ) 
+		{ type = T_COMPOUND; theId = id; }
+
+	void setCompound()
+		{ setCompound(ay::UniqueCharPool::ID_NOTFOUND) ; }
+	void setString(uint32_t id) 
+		{ type = T_STRING; theId = id;  }
+
+	uint32_t getId() const { return theId; }
+	uint32_t getType() const { return theId; }
 };
 
-}
+
+struct BarzerRange {
+	typedef char None;
+	typedef std::pair< int, int > Integer;
+	typedef std::pair< float, float > Real;
+	typedef std::pair< BarzerTimeOfDay, BarzerTimeOfDay > TimeOfDay;
+	typedef std::pair< BarzerDate, BarzerDate > Date;
+
+	typedef boost::variant<
+		None,
+		Integer,
+		Real,
+		TimeOfDay,
+		Date
+	> Data;
+	
+	Data dta;
+	std::ostream& print( std::ostream& fp ) const
+		{ return ( fp << "Range"); }
+};
+
+/// non constant string - it's different from barzer literal as the value may not be 
+/// among the permanently stored but rather something constructed by barzel
+class BarzerString {
+	std::string str;
+
+	std::ostream& print( std::ostream& fp ) const
+		{ return ( fp << str ); }
+};
+
+struct BarzerEntityList {
+	typedef std::vector< StoredEntity > EList;
+	EList entList;
+	
+	std::ostream& print( std::ostream& fp ) const;
+};
+
+} // namespace barzer ends
+
 #endif // BARZER_BASIC_TYPES_H

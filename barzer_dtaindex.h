@@ -124,6 +124,7 @@ public:
 	inline const StoredToken* getTokByIdSafe( StoredTokenId id )  const
 		{ return( isTokIdValid(id) ? &(getTokById(id)):0 );}
 };
+
 inline std::ostream& operator <<( std::ostream& fp, const StoredTokenPool& x )
 {
 	x.print( fp );

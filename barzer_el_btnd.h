@@ -1,10 +1,12 @@
 #ifndef BARZER_EL_BTND_H
 #define BARZER_EL_BTND_H
 
+#include <stdint.h>
 #include <ay/ay_bitflags.h>
 #include <ay/ay_string_pool.h>
 #include <ay/ay_util.h>
 #include <boost/variant.hpp>
+#include <barzer_basic_types.h>
 #include <barzer_basic_types.h>
 
 // types defined in this file are used to store information for various node types 
@@ -26,6 +28,7 @@ struct BTND_Pattern_Number {
 
 		T_MAX
 	};
+
 	uint8_t type; // one of T_XXXX 
 	// for EXACT_XXX types only lo is used
 	union {
@@ -281,40 +284,24 @@ struct BTND_PatternData_Access {
 typedef std::vector< BTND_PatternData > BTND_PatternDataVec;
 
 //// REWRITE Types
-struct BTND_Rewrite_Literal {
-	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
-	enum {
-		T_STRING,
-		T_COMPOUND,
-		T_STOP /// rewrites into a blank yet unmatcheable token
-	};
-	uint32_t theId;
-	uint8_t  type;
-
-	BTND_Rewrite_Literal() : 
-		theId(ay::UniqueCharPool::ID_NOTFOUND) ,
-		type(T_STRING)
-	{}
-	void setCompound(uint32_t id ) 
-		{ type = T_COMPOUND; theId = id; }
-
-	void setCompound()
-		{ setCompound(ay::UniqueCharPool::ID_NOTFOUND) ; }
-	void setString(uint32_t id) 
-		{ type = T_STRING; theId = id;  }
+struct BTND_Rewrite_Literal : public  BarzerLiteral {
+	std::ostream& print( std::ostream& fp, const BELPrintContext& ctxt ) const
+		{ return BarzerLiteral::print( fp, ctxt ); }
 };
 
-struct BTND_Rewrite_Number {
-	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
-	boost::variant< int, double > val;
-	bool isConst; /// when false we will need to evaluate underlying nodes
-	BTND_Rewrite_Number( ) : isConst(false) {}
+struct BTND_Rewrite_Number : public BarzerNumber {
+	
+	uint8_t isConst; /// when false we will need to evaluate underlying nodes
 
-	BTND_Rewrite_Number( int x ) : val(x), isConst(true) {}
-	BTND_Rewrite_Number( double x ) : val(x), isConst(true) {}
+	BTND_Rewrite_Number( ) : isConst(0) {}
 
-	void set( int i ) { isConst = true; val =i; }
-	void set( double i ) { isConst = true; val =i; }
+	BTND_Rewrite_Number( int x ) : BarzerNumber(x), isConst(0) {}
+	BTND_Rewrite_Number( double x ) : BarzerNumber(x), isConst(0) {}
+
+	std::ostream& print( std::ostream& fp, const BELPrintContext& ) const
+		{ return BarzerNumber::print( fp ); }
+	void set( int i ) { isConst = (uint8_t)1; BarzerNumber::set(i); }
+	void set( double i ) { isConst = (uint8_t)1; BarzerNumber::set(i); }
 };
 
 struct BTND_Rewrite_Variable {
@@ -337,13 +324,13 @@ struct BTND_Rewrite_None {
 	int dummy;
 	BTND_Rewrite_None() : dummy(0) {}
 };
-struct BTND_Rewrite_AbsoluteDate {
-	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
-	BarzerDate date;
+struct BTND_Rewrite_AbsoluteDate : public BarzerDate {
+	std::ostream& print( std::ostream& fp, const BELPrintContext& ) const
+		{ return BarzerDate::print( fp ); }
 };
-struct BTND_Rewrite_TimeOfDay {
-	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
-	BarzerTimeOfDay date;
+struct BTND_Rewrite_TimeOfDay : public BarzerTimeOfDay {
+	std::ostream& print( std::ostream& fp, const BELPrintContext& ) const
+		{ return BarzerTimeOfDay::print( fp ); }
 };
 
 enum {
@@ -353,25 +340,9 @@ enum {
 
 /// they may actually store an explicit constant range
 /// if that werent an issue we could make it a blank type
-struct BTND_Rewrite_Range {
-	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
-	int dummy;
-
-	typedef char None;
-	typedef std::pair< int, int > Integer;
-	typedef std::pair< float, float > Real;
-	typedef std::pair< BTND_Rewrite_TimeOfDay, BTND_Rewrite_TimeOfDay > TimeOfDay;
-	typedef std::pair< BTND_Rewrite_AbsoluteDate, BTND_Rewrite_AbsoluteDate > AbsDate;
-
-	typedef boost::variant<
-		None,
-		Integer,
-		Real,
-		TimeOfDay,
-		AbsDate
-	> Data;
-	
-	Data dta;
+struct BTND_Rewrite_Range : public BarzerRange {
+	std::ostream& print( std::ostream& fp, const BELPrintContext& ) const
+		{ return BarzerRange::print( fp ); }
 };
 
 typedef boost::variant<

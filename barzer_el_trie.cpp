@@ -223,19 +223,27 @@ void BELTrie::addPath( const BTND_PatternDataVec& path, const BELParseTreeNode& 
 
 void BarzelTranslation::set(BELTrie& ,const BTND_Rewrite_Literal& x )
 {
-	switch( x.type ) {
+	switch( x.getType() ) {
 	case BTND_Rewrite_Literal::T_STRING:
 		type = T_STRING;
-		id = x.theId;
+		id = x.getId();
 		break;
 	case BTND_Rewrite_Literal::T_COMPOUND:
 		type = T_COMPWORD;
 		//#warning logic to autogenerate compound word ids can go here
 
-		id = x.theId;
+		id = x.getId();
 		break;
 	case BTND_Rewrite_Literal::T_STOP:
 		type = T_STOP;
+		id = 0xffffffff;
+		break;
+	case BTND_Rewrite_Literal::T_BLANK:
+		type = T_BLANK;
+		id = 0xffffffff;
+		break;
+	case BTND_Rewrite_Literal::T_PUNCT:
+		type = T_PUNCT;
 		id = 0xffffffff;
 		break;
 	default: 
@@ -247,7 +255,10 @@ void BarzelTranslation::set(BELTrie& ,const BTND_Rewrite_Literal& x )
 void BarzelTranslation::set(BELTrie&, const BTND_Rewrite_Number& x )
 {
 	if( x.isConst ) 
-		id = ( x.val.which() ? boost::get<double>(x.val) : boost::get<int>(x.val) );
+		if( x.isReal() ) 
+			id = x.getReal();
+		else
+			id = x.getInt();
 	else {
 		AYTRACE( "inconsistent number encountered in Barzel rewrite" );
 		setStop();

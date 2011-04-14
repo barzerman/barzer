@@ -81,6 +81,8 @@ struct CToken {
 	
 	std::ostream& printQtVec( std::ostream& fp ) const;
 
+	int getCTokenClass( ) const { return cInfo.theClass; }
+
 	bool isBlank() const { return cInfo.theClass == CTokenClassInfo::CLASS_BLANK; }
 	bool isNumber() const { return cInfo.theClass == CTokenClassInfo::CLASS_NUMBER; }
 	bool isWord() const { return cInfo.theClass == CTokenClassInfo::CLASS_WORD; }

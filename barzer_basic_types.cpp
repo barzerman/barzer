@@ -26,5 +26,13 @@ void BarzerDate::setDayMonth(const BarzerNumber& d, const BarzerNumber& m)
 	year = thisYear;
 }
 
+std::ostream& BarzerEntityList::print( std::ostream& fp ) const
+{
+	for( EList::const_iterator i = entList.begin(); i!= entList.end(); ++i ) {
+		fp << '{' << *i << "}";
+	}
+	return fp;
+}
+
 } // namespace barzer 
 

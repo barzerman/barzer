@@ -251,8 +251,8 @@ static int bshf_trie( BarzerShell* shell, char_cp cmd, std::istream& in )
 	StoredUniverse &uni = context->universe;
 	BELTrie &trie = uni.getBarzelTrie();
 
-	BELTrieWalker &walker = context->trieWalker;
-	TrieNodeStack &nstack = walker.getNodeStack();
+	//BELTrieWalker &walker = context->trieWalker;
+	//TrieNodeStack &nstack = walker.getNodeStack();
 
 	BELPrintFormat fmt;
 	ay::UniqueCharPool &stringPool = uni.getStringPool();
