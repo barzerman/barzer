@@ -1,8 +1,8 @@
 Todo:
-0) Make BarzEL XML schema (but not use it anywhere in the code to validate against) 
-1) Code review of the entire _el_ file (TODAY Apr 12)
-2) test it make sure the trie loads to our liking 
-3) stress test it with 
+0) Make BarzEL XML schema (but not use it anywhere in the code to validate against) (April 15)
+1) Code review of the entire _el_ file (TODAY Apr 15)
+2) test it make sure the trie loads to our liking (April 15)
+3) stress test it with (April 17)
  	a) large input 
   	b) incorrect input 
    	c) lots of record/very deep records
