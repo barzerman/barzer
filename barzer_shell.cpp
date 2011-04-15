@@ -241,6 +241,24 @@ static int bshf_trls( BarzerShell* shell, char_cp cmd, std::istream& in )
 	BELPrintFormat fmt;
 	BELPrintContext prnContext( trie, stringPool, fmt );
 
+	TrieNodeStack &stack = walker.getNodeStack();
+	std::cout << "/";
+	if (stack.size() > 1) {
+		for (TrieNodeStack::iterator si = ++(stack.begin()); si != stack.end(); ++si) {
+			BELTrieWalkerKey &key = (*si).first;
+			switch(key.which()) {
+			case 0: //BarzelTrieFirmChildKey
+				boost::get<BarzelTrieFirmChildKey>(key).print(std::cout, prnContext);
+				break;
+			case 1: //BarzelWCLookupKey
+				BarzelWCLookupKey &wckey = boost::get<BarzelWCLookupKey>(key);
+				prnContext.printBarzelWCLookupKey(std::cout, wckey);
+				break;
+			}
+			std::cout << "/";
+		}
+	}
+	std::cout << std::endl;
 
 	std::cout << "Current node got: " << std::endl;
 	std::cout << fcvec.size() << " firm children" << std::endl;
@@ -281,15 +299,15 @@ static int bshf_trcd( BarzerShell* shell, char_cp cmd, std::istream& in )
 	if (in >> s) {
 		const char *cstr = s.c_str();
 		size_t num = atoi(cstr);
-		std::cout << "Moving to child " << num << std::endl;
+		//std::cout << "Moving to child " << num << std::endl;
 		if (w.moveToFC(num)) {
 			AYLOG(ERROR) << "Couldn't load child";
 		}
-		std::cout << "Stack size is " << w.getNodeStack().size() << std::endl;
+		//std::cout << "Stack size is " << w.getNodeStack().size() << std::endl;
 	} else {
 		std::cout << "trie moveto <#Child>" << std::endl;
 	}
-	return 0;
+	return bshf_trls(shell, cmd, in );
 }
 
 static int bshf_trcdw( BarzerShell* shell, char_cp cmd, std::istream& in )
@@ -299,15 +317,14 @@ static int bshf_trcdw( BarzerShell* shell, char_cp cmd, std::istream& in )
 	if (in >> s) {
 		const char *cstr = s.c_str();
 		size_t num = atoi(cstr);
-		std::cout << "Moving to wildcard child " << num << std::endl;
+		//std::cout << "Moving to wildcard child " << num << std::endl;
 		if (w.moveToWC(num)) {
 			AYLOG(ERROR) << "Couldn't load the child";
 		}
-		std::cout << "Stack size is " << w.getNodeStack().size() << std::endl;
 	} else {
 		std::cout << "trie moveto <#Child>" << std::endl;
 	}
-	return 0;
+	return bshf_trls(shell, cmd, in );;
 }
 
 

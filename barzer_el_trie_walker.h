@@ -17,8 +17,18 @@
 
 namespace barzer {
 
-typedef std::stack<BarzelTrieNode*> TrieNodeStack;
-typedef std::pair<BarzelWCLookupKey,BarzelTrieNode> WCRec;
+//typedef std::stack<BarzelTrieNode*> TrieNodeStack;
+
+///*
+
+typedef boost::variant<
+    BarzelTrieFirmChildKey,
+    BarzelWCLookupKey
+> BELTrieWalkerKey;
+
+typedef std::pair<BELTrieWalkerKey,BarzelTrieNode*> BELTWStackPair;
+typedef std::vector<BELTWStackPair> TrieNodeStack;
+//*/
 
 class BELTrieWalker {
 	BELTrie &trie;
@@ -30,11 +40,13 @@ class BELTrieWalker {
 
 public:
 	BELTrieWalker(BELTrie &t) : trie(t) {
-		nodeStack.push(&t.root);
+		nodeStack.push_back(BELTWStackPair(BELTrieWalkerKey(BarzelTrieFirmChildKey()), &t.root));
+		//nodeStack.push(&t.root);
 	}
 
 	TrieNodeStack& getNodeStack();
-	BarzelTrieNode& getCurrentNode() { return *nodeStack.top(); }
+	BarzelTrieNode& getCurrentNode() { return *(nodeStack.back().second); }
+	//BarzelTrieNode& getCurrentNode() { return *(nodeStack.top()); }
 
 
 	BarzelWCLookup* getWildcardLookup(uint32_t);
@@ -49,11 +61,6 @@ public:
 
 	std::vector<BarzelTrieFirmChildKey>& getFCvec() { return fcvec; }
 	std::vector<BarzelWCLookupKey>& getWCvec() { return wcKeyVec; }
-
-	BarzelTrieNode* currentNode() {
-		return nodeStack.top();
-	}
-
 };
 
 }

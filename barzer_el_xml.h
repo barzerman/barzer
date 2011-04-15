@@ -5,6 +5,7 @@
 
 #include <ay/ay_bitflags.h>
 #include <ay/ay_util_char.h>
+#include <ay/ay_logger.h>
 #include <stack>
 using ay::char_cp;
 
