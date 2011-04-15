@@ -46,13 +46,14 @@ DEF_TFUN(print) {
 	StoredUniverse &uni = context->universe;
 	BELTrie &trie = uni.getBarzelTrie();
 
-	//BELTrieWalker &walker = context->trieWalker;
-	//TrieNodeStack &nstack = walker.getNodeStack();
+	BELTrieWalker &walker = context->trieWalker;
 
 	BELPrintFormat fmt;
 	ay::UniqueCharPool &stringPool = uni.getStringPool();
 	BELPrintContext ctxt( trie, stringPool, fmt );
-	trie.print(std::cout, ctxt);
+	//trie.print(std::cout, ctxt);
+	walker.getCurrentNode().print(std::cout, ctxt);
+
 	return 0;
 }
 

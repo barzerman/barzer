@@ -196,7 +196,8 @@ public:
 	void setNull() { type = T_STRING; theId = 0xffffffff; }
 
 	uint32_t getId() const { return theId; }
-	uint32_t getType() const { return theId; }
+	//uint32_t getType() const { return theId; } // pfft
+	uint8_t getType() const { return type; }
 
 	bool isNull() const { return ( type == T_STRING && theId == 0xffffffff ); }
 	
