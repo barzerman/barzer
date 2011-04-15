@@ -1,9 +1,8 @@
 <stmset>
 	<stmt>
-		<pat><t>mama</t><t>myla</t><t>ramu</t></pat>
+		<pat><t>mama</t><t>myla</t><t>ramu</t><opt><t>s mylom</t></opt></pat>
 		<tran><rn v="56"/></tran>
 	</stmt>
-	<!-- 
 	<stmt>
 		<pat><t>6</t><opt><n/></opt></pat>
 		<tran><ltrl>lala</ltrl></tran>
@@ -16,5 +15,4 @@
 		<pat><n/><t>shit</t></pat>
 		<tran><rn v="200"/></tran>
 	</stmt>
-	 -->
 </stmset>

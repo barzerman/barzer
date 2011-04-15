@@ -26,6 +26,7 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 	while( emitter.produceSequence() ) {
 		const BTND_PatternDataVec& seq = emitter.getCurSequence();
 		AYLOG(DEBUG) << "Got sequence (" << seq.size() << ")";
+
 		//for (BTND_PatternDataVec::const_iterator ci = seq.begin(); ci != seq.end(); ++ci) {
 		//	const BTND_PatternData &pd = *ci;
 		//	printPatternData(std::cout, pd);
