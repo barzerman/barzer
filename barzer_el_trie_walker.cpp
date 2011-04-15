@@ -20,7 +20,7 @@ BarzelWCLookup* BELTrieWalker::getWildcardLookup( uint32_t id )
 bool BELTrieWalker::moveBack()
 {
 	if ( nodeStack.size() > 1 ) {
-		nodeStack.pop();
+		nodeStack.pop_back();
 		loadChildren();
 		return true;
 	} else return false;
@@ -29,10 +29,11 @@ bool BELTrieWalker::moveBack()
 int BELTrieWalker::moveToFC(const size_t pos)
 {
 	if( pos < fcvec.size()) {
-		//BarzelTrieNode &node = ;
 		BarzelFCMap &fcmap = getCurrentNode().getFirmMap();
-		//BarzelTrieNode &nextNode = ;
-		nodeStack.push(&fcmap[fcvec[pos]]);
+
+		BarzelTrieFirmChildKey &key = fcvec[pos];
+		nodeStack.push_back(BELTWStackPair(BELTrieWalkerKey(key), &fcmap[key]));
+		//nodeStack.push(&fcmap[key]);
 		loadChildren();
 		return 0;
 	} else
@@ -43,7 +44,9 @@ int BELTrieWalker::moveToFC(const size_t pos)
 int BELTrieWalker::moveToWC(const size_t pos)
 {
 	if( pos < wcNodeVec.size()) {
-		nodeStack.push(wcNodeVec[pos]);
+		BELTrieWalkerKey key(wcKeyVec[pos]);
+		nodeStack.push_back(BELTWStackPair(key, wcNodeVec[pos]));
+		//nodeStack.push(wcNodeVec[pos]);
 		loadChildren();
 		return 0;
 	} else

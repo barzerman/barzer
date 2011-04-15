@@ -1,5 +1,4 @@
 #include <barzer_el_xml.h>
-#include <barzer_el_xml.h>
 #include "ay/ay_debug.h"
 extern "C" {
 #include <expat.h>
@@ -215,6 +214,13 @@ void BELParserXML::taghandle_TG( const char_cp * attr, size_t attr_sz , bool clo
 {}
 void BELParserXML::taghandle_P( const char_cp * attr, size_t attr_sz , bool close)
 {
+	/*
+	if (close) {
+		statement.popNode();
+		return;
+	} */
+
+
 }
 void BELParserXML::taghandle_SPC( const char_cp * attr, size_t attr_sz , bool close)
 {
