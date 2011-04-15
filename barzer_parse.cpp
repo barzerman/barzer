@@ -1,13 +1,14 @@
 #include <barzer_parse.h>
 #include <barzer_universe.h>
 #include <barzer_el_matcher.h>
+#include <barzer_barz.h>
 
 using namespace barzer;
 ///////// semantic parser 
-int QSemanticParser::semanticize( PUWPVec& pv, const CTWPVec& cv, const QuestionParm& qparm  )
+int QSemanticParser::semanticize( Barz& barz, const QuestionParm& qparm  )
 {
 	err.clear();
-
+	barzelMatcher.matchAndRewrite( barz );
 	return 0;
 }
 

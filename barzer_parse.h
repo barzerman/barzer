@@ -2,18 +2,21 @@
 #define BARZER_PARSE_H
 #include <ay/ay_headers.h>
 #include <barzer_lexer.h>
+#include <barzer_el_matcher.h>
 
 namespace barzer {
 class StoredUniverse;
 class QSemanticParser {
 protected:
 	const StoredUniverse& universe;
+	BarzelMatcher barzelMatcher;
 public:
 	struct Error : public QPError { } err;
 
-	virtual int semanticize( PUWPVec& , const CTWPVec&, const QuestionParm&  );
+	virtual int semanticize( Barz&, const QuestionParm&  );
 	QSemanticParser( const StoredUniverse& u ) : 
-		universe(u)
+		universe(u),
+		barzelMatcher(u)
 	{}
 	virtual ~QSemanticParser() {}
 };

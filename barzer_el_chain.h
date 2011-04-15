@@ -102,6 +102,7 @@ struct BarzelBeadChain {
 	/// - externally Matcher will provide these iterator ranges for fold 
 
 	void init( const CTWPVec& cv );
+	void clear() { lst.clear(); }
 };
 
 }

@@ -18,7 +18,6 @@ class StoredUniverse;
 class BarzelMatcher {
 	const StoredUniverse& universe;
 
-	BarzelBeadChain beadChain;	
 public:
 	BarzelMatcher( const StoredUniverse& u ) : universe(u) {}
 

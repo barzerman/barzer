@@ -5,6 +5,7 @@
 #include <ay/ay_shell.h>
 #include <barzer_dtaindex.h>
 #include <barzer_parse.h>
+#include <barzer_barz.h>
 #include <barzer_universe.h>
 #include "barzer_el_trie_walker.h"
 

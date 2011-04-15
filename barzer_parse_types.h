@@ -180,45 +180,6 @@ struct QuestionParm {
 	QuestionParm() : lang(0) {}
 };
 
-class QSemanticParser;
-class QLexParser;
-class QTokenizer;
-// collection of punits and the original question
-class Barz {
-	/// original question with 0-s terminating tokens
-	/// all poistional info, pointers and offsets from everything
-	/// contained in puVec refers to this string. 
-	/// so this string is almost always *longer* than the input question
-	std::vector<char> question; 
-	/// exact copy of the original question
-	std::string questionOrig; 
-	
-	TTWPVec ttVec; 
-	CTWPVec ctVec; 
-	PUWPVec puVec;
-	
-	friend class QSemanticParser;
-	friend class QLexParser;
-	friend class QTokenizer;
-
-	friend class QParser;
-	
-	/// called from tokenize, ensures that question has 0-terminated
-	/// tokens and that ttVec tokens point into it
-	void syncQuestionFromTokens();
-public:
-	const TTWPVec& getTtVec() const { return  ttVec; }
-	const CTWPVec& getCtVec() const { return ctVec; }
-	const PUWPVec& getPuVec() const { return  puVec; }
-
-	void clear();
-
-	int tokenize( QTokenizer& , const char* q, const QuestionParm& );
-	int classifyTokens( QLexParser& , const QuestionParm& );
-	int semanticParse( QSemanticParser&, const QuestionParm& );
-};
-
-
 /// non constant string - it's different from barzer literal as the value may not be 
 /// among the permanently stored but rather something constructed by barzel
 class BarzerString {
