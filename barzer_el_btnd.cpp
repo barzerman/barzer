@@ -68,10 +68,10 @@ struct Leaf: public PatternEmitterNode {
 struct IntermediateNode : public PatternEmitterNode {
     IntermediateNode(const BELParseTreeNode::ChildrenVec& children)
     {
-    	AYLOGDEBUG(children.size());
+    	//AYLOGDEBUG(children.size());
         for(BELParseTreeNode::ChildrenVec::const_iterator it=children.begin(); it != children.end(); ++it)
             childs.push_back(make(*it));
-        AYLOG(DEBUG) << "done";
+        //AYLOG(DEBUG) << "done";
     }
     
     virtual ~IntermediateNode()
@@ -99,11 +99,11 @@ struct List: public IntermediateNode {
                 return true;
         }
         if (produce) {
-        	AYLOG(DEBUG) << "List.step() = true";
+        	//AYLOG(DEBUG) << "List.step() = true";
         	produce = false;
         	return true;
         }
-        AYLOG(DEBUG) << "List.step() = false";
+        //AYLOG(DEBUG) << "List.step() = false";
         return false;
     }
     
@@ -410,29 +410,5 @@ std::ostream&  BTND_None::print( std::ostream& fp , const BELPrintContext& ) con
 {
 	return ( fp << "None" ); 
 }
-
-/*
-void printPatternData(std::ostream &str, const BTND_PatternData &pd) {
-	switch(pd.which()) {
-	case BTND_Pattern_None_TYPE:
-		str << "BTND_Pattern_None";
-		break;
-	case BTND_Pattern_Token_TYPE:
-		str << "BTND_Pattern_Token";
-		break;
-	case BTND_Pattern_Punct_TYPE:
-		str << "BTND_Pattern_Punct";
-		break;
-	case BTND_Pattern_CompoundedWord_TYPE: break;
-	case BTND_Pattern_Number_TYPE: break;
-	case BTND_Pattern_Wildcard_TYPE: break;
-	case BTND_Pattern_Date_TYPE: break;
-	case BTND_Pattern_Time_TYPE: break;
-	case BTND_Pattern_DateTime_TYPE: break;
-	default:
-		AYLOG(ERROR) << "Unknown BTND_PatternData";
-	}
-
-} //*/
 
 } // namespace barzer

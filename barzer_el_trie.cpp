@@ -181,7 +181,7 @@ const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, const B
 {
 	BarzelTrieNode* n = &root;
 
-	AYLOG(DEBUG) << "Adding new path (" << path.size() << " elements)";
+	//AYLOG(DEBUG) << "Adding new path (" << path.size() << " elements)";
 
 	// forming the list of wildcard pattern data. data includes iterator to the actual
 	// wildcard as well as the next firm match key (if any)

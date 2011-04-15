@@ -29,10 +29,16 @@ bool BELTrieWalker::moveBack()
 int BELTrieWalker::moveToFC(const size_t pos)
 {
 	if( pos < fcvec.size()) {
-		BarzelFCMap &fcmap = getCurrentNode().getFirmMap();
+		const BarzelFCMap &fcmap = getCurrentNode().getFirmMap();
 
-		BarzelTrieFirmChildKey &key = fcvec[pos];
-		nodeStack.push_back(BELTWStackPair(BELTrieWalkerKey(key), &fcmap[key]));
+		const BarzelTrieFirmChildKey &key = fcvec[pos];
+
+		BarzelFCMap::const_iterator i = fcmap.find( key );
+		if( i== fcmap.end() ) {
+			AYTRACE("PANIC: invalid key");
+			return 1;
+		}
+		nodeStack.push_back(BELTWStackPair(BELTrieWalkerKey(key), &(i->second) ));
 		//nodeStack.push(&fcmap[key]);
 		loadChildren();
 		return 0;
@@ -60,9 +66,9 @@ void BELTrieWalker::loadChildren() {
 
 void BELTrieWalker::loadFC() {
 	fcvec.clear();
-	BarzelTrieNode &node = getCurrentNode();
-	BarzelFCMap &fcmap = node.getFirmMap();
-	AYLOGDEBUG(fcmap.size());
+	const BarzelTrieNode &node = getCurrentNode();
+	const BarzelFCMap &fcmap = node.getFirmMap();
+	//AYLOGDEBUG(fcmap.size());
  	int i = 0;
 	if (node.hasFirmChildren()) {
 		for (BarzelFCMap::const_iterator fci = fcmap.begin();
@@ -70,7 +76,7 @@ void BELTrieWalker::loadFC() {
 			fcvec.push_back(fci->first);
 			i++;
 		}
-		AYLOG(DEBUG) << i << " firm children loaded";
+		//AYLOG(DEBUG) << i << " firm children loaded";
 	}
 }
 
@@ -79,7 +85,7 @@ void BELTrieWalker::loadWC() {
 	wcNodeVec.clear();
 	BarzelWCLookup *wcmap = getWildcardLookup(getCurrentNode().getWCLookupId());
 	if (!wcmap) return;
-	AYLOGDEBUG(wcmap->size());
+	//AYLOGDEBUG(wcmap->size());
 	int i = 0;
 	if (!wcmap->empty()) {
 		for (BarzelWCLookup::iterator wci = wcmap->begin(); wci != wcmap->end(); ++wci) {
@@ -88,7 +94,7 @@ void BELTrieWalker::loadWC() {
 			wcNodeVec.push_back(&node);
 			i++;
 		}
-		AYLOG(DEBUG) << i << " wildcard children loaded";
+		//AYLOG(DEBUG) << i << " wildcard children loaded";
 	}
 }
 

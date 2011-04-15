@@ -17,7 +17,7 @@ namespace barzer {
 #define DEF_TFUN(n) static int trie_shell_##n( BarzerShell* shell, std::istream& in )
 
 DEF_TFUN(load) {
-	AYLOG(DEBUG) << "trie_shell_load  called";
+	//AYLOG(DEBUG) << "trie_shell_load  called";
 
 	BarzerShellContext *context = shell->getBarzerContext();
 	StoredUniverse &uni = context->universe;
@@ -30,18 +30,18 @@ DEF_TFUN(load) {
 	std::string sin;
 	if (in >> sin) {
 		const char *fname = sin.c_str();
-		AYLOG(DEBUG) << "Loading " << fname;
+		//AYLOG(DEBUG) << "Loading " << fname;
 		int numsts = reader.loadFromFile(fname);
 		std::cout << numsts << " statements read. " << std::endl;
 		if (numsts)	context->trieWalker.loadChildren();
 	} else {
-		AYLOG(ERROR) << "no filename";
+		//AYLOG(ERROR) << "no filename";
 	}
 	return 0;
 }
 
 DEF_TFUN(print) {
-	AYLOG(DEBUG) << "trie_shell_print  called";
+	//AYLOG(DEBUG) << "trie_shell_print  called";
 	BarzerShellContext *context = shell->getBarzerContext();
 	StoredUniverse &uni = context->universe;
 	BELTrie &trie = uni.getBarzelTrie();
@@ -65,7 +65,7 @@ DEF_TFUN(test) {
 
 
 DEF_TFUN(help) {
-	AYLOG(DEBUG) << "trie_shell_help  called";
+	//AYLOG(DEBUG) << "trie_shell_help  called";
 	std::cout << "trie [load|print|help|list|show|moveto|moveback]" << std::endl;
 	return 0;
 }
@@ -87,10 +87,10 @@ static std::map<std::string,TrieShellFun> triefunmap =
 
 
 int bshtrie_process( BarzerShell* shell, std::istream& in ) {
-	AYLOG(DEBUG) << "bshtrie_process called";
+	//AYLOG(DEBUG) << "bshtrie_process called";
 	std::string fname;
 	in >> fname;
-	AYLOG(DEBUG) << "fname=" << fname;
+	//AYLOG(DEBUG) << "fname=" << fname;
 	TrieShellFun fun = triefunmap[fname];
 	if (fun) return fun(shell, in);
 	return 0;

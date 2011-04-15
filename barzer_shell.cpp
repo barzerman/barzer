@@ -235,7 +235,7 @@ static int bshf_trls( BarzerShell* shell, char_cp cmd, std::istream& in )
 	std::vector<BarzelTrieFirmChildKey> &fcvec = walker.getFCvec();
     std::vector<BarzelWCLookupKey> &wcvec = walker.getWCvec();
 
-    BarzelTrieNode &node = walker.getCurrentNode();
+    const BarzelTrieNode &node = walker.getCurrentNode();
 
 	ay::UniqueCharPool &stringPool = uni.getStringPool();
 	BELPrintFormat fmt;
@@ -260,18 +260,24 @@ static int bshf_trls( BarzerShell* shell, char_cp cmd, std::istream& in )
 	}
 	std::cout << std::endl;
 
-	std::cout << "Current node got: " << std::endl;
-	std::cout << fcvec.size() << " firm children" << std::endl;
+	if( fcvec.size() ) {
+		std::cout << fcvec.size() << " firm children" << std::endl;
 
-	for (size_t i = 0; i < fcvec.size(); i++) {
-		BarzelTrieFirmChildKey &key = fcvec[i];
-		std::cout << "[" << i << "] ";
-		key.print(std::cout, prnContext) << std::endl;
+		for (size_t i = 0; i < fcvec.size(); i++) {
+			BarzelTrieFirmChildKey &key = fcvec[i];
+			std::cout << "[" << i << "] ";
+			key.print(std::cout, prnContext) << std::endl;
+		}
+	} else {
+		std::cout << "<no firm>" << std::endl;
 	}
 
-	std::cout << wcvec.size() << " wildcard children (" ;
-	std::cout << "the wildcard lookup ID is: " << node.getWCLookupId() << std::endl;
-
+	if( wcvec.size() ) {
+		std::cout << wcvec.size() << " wildcards lookup[" << 
+		std::hex << node.getWCLookupId() << "]" << std::endl;
+	} else {
+		std::cout << "<no wildcards>" << std::endl;
+	}
 
 	for (size_t i = 0; i < wcvec.size(); i++) {
 		//const BarzelWCLookupKey &key = wcvec[i];
@@ -287,7 +293,7 @@ static int bshf_trls( BarzerShell* shell, char_cp cmd, std::istream& in )
 	}
 
 
-	AYLOG(DEBUG) << "Stack size is " << walker.getNodeStack().size();
+	//AYLOG(DEBUG) << "Stack size is " << walker.getNodeStack().size();
 
 	return 0;
 }

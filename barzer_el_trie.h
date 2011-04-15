@@ -173,6 +173,7 @@ public:
 
 	bool hasFirmChildren() const { return (!firmMap.empty()); }
 	BarzelFCMap& getFirmMap() { return firmMap; }
+	const BarzelFCMap& getFirmMap() const { return firmMap; }
 
 	bool hasWildcardChildren() const { return (wcLookupId != 0xffffffff ) ; }
 	bool hasChildren() const 

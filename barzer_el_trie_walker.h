@@ -26,12 +26,12 @@ typedef boost::variant<
     BarzelWCLookupKey
 > BELTrieWalkerKey;
 
-typedef std::pair<BELTrieWalkerKey,BarzelTrieNode*> BELTWStackPair;
+typedef std::pair<BELTrieWalkerKey,const BarzelTrieNode*> BELTWStackPair;
 typedef std::vector<BELTWStackPair> TrieNodeStack;
 //*/
 
 class BELTrieWalker {
-	BELTrie &trie;
+	const BELTrie &trie;
 	TrieNodeStack nodeStack;
 	std::vector<BarzelTrieFirmChildKey> fcvec;
 
@@ -45,7 +45,7 @@ public:
 	}
 
 	TrieNodeStack& getNodeStack();
-	BarzelTrieNode& getCurrentNode() { return *(nodeStack.back().second); }
+	const BarzelTrieNode& getCurrentNode() { return *(nodeStack.back().second); }
 	//BarzelTrieNode& getCurrentNode() { return *(nodeStack.top()); }
 
 
