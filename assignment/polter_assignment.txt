@@ -1,12 +1,13 @@
 Todo:
-1. Code review of the entire _el_ file (TODAY Apr 12)
-1) inventorize and document what works now and what the system does - in other words you need to understand the whole thing - the entire picture with all the pools etc 
-2) test it make sure the trie loads to our liking 
-3) stress test it with 
+0) Make BarzEL XML schema (but not use it anywhere in the code to validate against) (April 15)
+1) Code review of the entire _el_ file (TODAY Apr 15)
+2) test it make sure the trie loads to our liking (April 15)
+3) stress test it with (April 17)
  	a) large input 
   	b) incorrect input 
    	c) lots of record/very deep records
-4) i think you're very close to getting emitter done
+4) finish up emitter (April 16)
+
 
 Done April 14:
 2. Implement trie browser and hook it up to the shell (Apr 14)
