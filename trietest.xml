@@ -3,8 +3,9 @@
 		<pat><t>mama</t><t>myla</t><t>ramu</t></pat>
 		<tran><rn v="56"/></tran>
 	</stmt>
+	<!-- 
 	<stmt>
-		<pat><t>6</t></pat>
+		<pat><t>6</t><opt><n/></opt></pat>
 		<tran><ltrl>lala</ltrl></tran>
 	</stmt>
 	<stmt>
@@ -15,4 +16,5 @@
 		<pat><n/><t>shit</t></pat>
 		<tran><rn v="200"/></tran>
 	</stmt>
+	 -->
 </stmset>

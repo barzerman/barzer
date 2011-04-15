@@ -58,8 +58,8 @@ namespace {
 struct Leaf: public PatternEmitterNode {
     Leaf(const BTND_PatternData& d): data(d) {}
     
-    //bool step() { return false; }
-    bool step() { return true; }
+    bool step() { return false; }
+    //bool step() { return true; }
     void yield(BTND_PatternDataVec& vec) const { vec.push_back(data); }
     
     const BTND_PatternData& data;
@@ -86,28 +86,37 @@ protected:
 };
 
 struct List: public IntermediateNode {
-    List(const BELParseTreeNode::ChildrenVec& children): IntermediateNode(children) {
-    	position = childs.begin();
+    List(const BELParseTreeNode::ChildrenVec& children): IntermediateNode(children), produce(true) {
+    	//position = childs.begin();
     }
     
     bool step()
     {
-        //for(ChildVec::const_iterator it=childs.begin(); it != childs.end(); ++it) {
-    	while (position != childs.end())
-            if((*position++)->step())
+        for(ChildVec::const_iterator it=childs.begin(); it != childs.end(); ++it) {
+    	//while (position != childs.end())
+            //if((*position++)->step())
+        	if((*it)->step())
                 return true;
-        //}
+        }
+        if (produce) {
+        	AYLOG(DEBUG) << "List.step() = true";
+        	produce = false;
+        	return true;
+        }
+        AYLOG(DEBUG) << "List.step() = false";
         return false;
     }
     
     void yield(BTND_PatternDataVec& vec) const
     {
         for(ChildVec::const_iterator it=childs.begin(); it != childs.end(); ++it) {
-            if ((*it)->step()) (*it)->yield(vec);
+            //if ((*it)->step())
+            (*it)->yield(vec);
         }
     }
 private:
-    ChildVec::const_iterator position;
+//    ChildVec::const_iterator position;
+    bool produce;
 };
 
 struct Any: public IntermediateNode {
