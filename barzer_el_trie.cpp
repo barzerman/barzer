@@ -172,8 +172,12 @@ namespace {
 	typedef std::list< WCPatDta > WCPatDtaList;
 
 }
+void BarzelTrieNode::setTranslation(BELTrie&trie, const BELParseTreeNode& ptn ) 
+{ 
+	translation.set(trie, ptn);
+}
 
-void BELTrie::addPath( const BTND_PatternDataVec& path, const BELParseTreeNode& trans )
+const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, const BELParseTreeNode& trans )
 {
 	BarzelTrieNode* n = &root;
 
@@ -207,21 +211,24 @@ void BELTrie::addPath( const BTND_PatternDataVec& path, const BELParseTreeNode& 
 			if( n ) 
 				n = n->addWildcardPattern( *this, *i, wcpdList.front().second );
 			else {
-				AYTRACE("addPattern for wildcard returned NULL") ;
-				return; // this is impossible
+				AYTRACE("addWildcardPattern returned NULL") ;
+				return 0; // this is impossible
 			}
 			wcpdList.pop_front(); // now first element points to the next wildcard (if any are left)
 		} else { // reached a firm token
 			if( n ) 
 				n = n->addFirmPattern( *this, *i );
 			else {
-				AYTRACE("addPattern returned NULL") ;
-				return; // this is impossible
+				AYTRACE("addFirmPattern returned NULL") ;
+				return 0; // this is impossible
 			}
 		}
 	}
-	if( n )
+	if( n ) {
 		n->setTranslation( *this, trans );
+	} else 
+		AYTRACE("inconsistent state for setTranslation");
+	return n;
 }
 //// BarzelTranslation methods
 
@@ -259,12 +266,15 @@ void BarzelTranslation::set(BELTrie& ,const BTND_Rewrite_Literal& x )
 }
 void BarzelTranslation::set(BELTrie&, const BTND_Rewrite_Number& x )
 {
-	if( x.isConst ) 
-		if( x.isReal() ) 
+	if( x.isConst )  {
+		if( x.isReal() ) {
+			type = T_NUMBER_REAL;
 			id = x.getReal();
-		else
+		} else {
+			type = T_NUMBER_INT;
 			id = x.getInt();
-	else {
+		}
+	} else {
 		AYTRACE( "inconsistent number encountered in Barzel rewrite" );
 		setStop();
 	}

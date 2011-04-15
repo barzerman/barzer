@@ -54,6 +54,7 @@ struct BELTrie;
 ///  parses them using the parser for  given format and adds 
 ///  resulting barzel statements to the trie 
 /// 
+class BarzelTrieNode;
 class BELReader {
 protected: 
 	BELTrie* trie ; 
@@ -62,7 +63,7 @@ protected:
 	size_t numStatements; /// total number of successfully read statements 
 
 	std::string inputFileName; 
-
+	
 public:
 
 	/// barzEL input formats
@@ -89,6 +90,8 @@ public:
 	//   combines initParser and LoadFromStream 
 	//   creates the parser and calls loadFromStream
 	int  loadFromFile( const char* fileName, InputFormat fmt = INPUT_FMT_XML );
+
+	std::ostream& printNode( std::ostream& fp, const BarzelTrieNode& node ) const;
 }; 
 
 }

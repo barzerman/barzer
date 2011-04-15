@@ -17,6 +17,12 @@ void BELParseTreeNode::print( std::ostream& fp, int depth ) const
 	fp << pfx << "}\n";
 }
 
+std::ostream& BELReader::printNode( std::ostream& fp, const BarzelTrieNode& node ) const 
+{
+	BELPrintFormat fmt;
+	BELPrintContext ctxt( *trie, *strPool, fmt );
+	return node.print( fp, ctxt );
+}
 void BELReader::addStatement( const BELStatementParsed& sp )
 {
 	BELParseTreeNode_PatternEmitter emitter( sp.pattern );
@@ -25,17 +31,17 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 	int i = 0;
 	while( emitter.produceSequence() ) {
 		const BTND_PatternDataVec& seq = emitter.getCurSequence();
-		AYLOG(DEBUG) << "Got sequence (" << seq.size() << ")";
+		//AYLOG(DEBUG) << "Got sequence (" << seq.size() << ")";
 
 		//for (BTND_PatternDataVec::const_iterator ci = seq.begin(); ci != seq.end(); ++ci) {
 		//	const BTND_PatternData &pd = *ci;
 		//	printPatternData(std::cout, pd);
 		//}
 		trie->addPath( seq, sp.translation );
-		AYLOG(DEBUG) << "Path added";
+		// printNode( AYTRACE( "new node"), *n );
 		i++;
 	}
-	AYLOG(DEBUG) << i << " sequences produced";
+	//AYLOG(DEBUG) << i << " sequences produced";
 
 	
 	++numStatements;

@@ -181,7 +181,7 @@ public:
 	bool isLeaf() const { return translation.nonEmpty(); }
 
 	/// makes node leaf and sets translation
-	void setTranslation(BELTrie&trie, const BELParseTreeNode& ptn ) { translation.set(trie, ptn); }
+	void setTranslation(BELTrie&trie, const BELParseTreeNode& ptn );
 
 	// locates a child node or creates a new one and returns a reference to it. non-leaf by default 
 	// if pattern data cant be translated into a valid key the same node is returned
@@ -217,7 +217,8 @@ struct BELTrie {
 	void produceWCKey( BarzelWCKey&, const BTND_PatternData&   );
 
 	/// adds a new path to the trie
-	void addPath( const BTND_PatternDataVec& path, const BELParseTreeNode& trans );
+	// returns the leaf. if this function returns null it would indicate some major loading inconsistency
+	const BarzelTrieNode* addPath( const BTND_PatternDataVec& path, const BELParseTreeNode& trans );
 
 	/// print methods 
 	std::ostream& print( std::ostream&, BELPrintContext& ctxt ) const;
