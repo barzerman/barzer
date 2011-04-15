@@ -18,12 +18,15 @@
 namespace barzer {
 
 typedef std::stack<BarzelTrieNode*> TrieNodeStack;
+typedef std::pair<BarzelWCLookupKey,BarzelTrieNode> WCRec;
 
 class BELTrieWalker {
 	BELTrie &trie;
 	TrieNodeStack nodeStack;
 	std::vector<BarzelTrieFirmChildKey> fcvec;
-	std::vector<BarzelWCLookupKey> wcvec;
+
+	std::vector<BarzelWCLookupKey> wcKeyVec;
+	std::vector<BarzelTrieNode*> wcNodeVec;
 
 public:
 	BELTrieWalker(BELTrie &t) : trie(t) {
@@ -31,20 +34,23 @@ public:
 	}
 
 	TrieNodeStack& getNodeStack();
-	BarzelTrieNode& getCurrentNode() {	return *nodeStack.top(); }
+	BarzelTrieNode& getCurrentNode() { return *nodeStack.top(); }
 
 
-	const BarzelWCLookup* getWildcardLookup(uint32_t) const;
+	BarzelWCLookup* getWildcardLookup(uint32_t);
 
+
+	void loadChildren();
 	void loadFC();
 	void loadWC();
 	bool moveBack();
-	int moveTo(size_t);
+	int moveToFC(size_t);
+	int moveToWC(size_t);
 
 	std::vector<BarzelTrieFirmChildKey>& getFCvec() { return fcvec; }
-	std::vector<BarzelWCLookupKey>& getWCvec() { return wcvec; }
+	std::vector<BarzelWCLookupKey>& getWCvec() { return wcKeyVec; }
 
-	BarzelTrieNode* currectNode() {
+	BarzelTrieNode* currentNode() {
 		return nodeStack.top();
 	}
 

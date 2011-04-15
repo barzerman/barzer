@@ -8,7 +8,7 @@
 		<tran><ltrl>lala</ltrl></tran>
 	</stmt>
 	<stmt>
-		<pat><t>100</t></pat>
+		<pat><t>100</t><n/></pat>
 		<tran><rn v="200"/></tran>
 	</stmt>
 	<stmt>
