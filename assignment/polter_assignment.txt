@@ -1,5 +1,14 @@
 Todo:
 1. Code review of the entire _el_ file (TODAY Apr 12)
+1) inventorize and document what works now and what the system does - in other words you need to understand the whole thing - the entire picture with all the pools etc 
+2) test it make sure the trie loads to our liking 
+3) stress test it with 
+ 	a) large input 
+  	b) incorrect input 
+   	c) lots of record/very deep records
+4) i think you're very close to getting emitter done
+
+Done April 14:
 2. Implement trie browser and hook it up to the shell (Apr 14)
 
 Done April 12:

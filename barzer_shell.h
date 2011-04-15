@@ -5,6 +5,7 @@
 #include <ay/ay_shell.h>
 #include <barzer_dtaindex.h>
 #include <barzer_parse.h>
+#include <barzer_barz.h>
 #include <barzer_universe.h>
 #include "barzer_el_trie_walker.h"
 #include "barzer_el_wildcard.h"
@@ -29,7 +30,7 @@ struct BarzerShellContext : public ay::ShellContext {
 
 	BarzerShellContext() : 
 		trieWalker(universe.getBarzelTrie()) ,
-		parser( obtainDtaIdx() )
+		parser( universe )
 	{}
 };
 struct BarzerShell : public ay::Shell {

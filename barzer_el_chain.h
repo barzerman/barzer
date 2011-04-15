@@ -37,6 +37,7 @@ typedef boost::variant<
 	BarzerDate,
 	BarzerTimeOfDay,
 	BarzerRange,
+	BarzerEntityList,
 	BarzelEntityRangeCombo
 > BarzelBeadAtomic_var;
 
@@ -101,11 +102,8 @@ struct BarzelBeadChain {
 	/// - externally Matcher will provide these iterator ranges for fold 
 
 	void init( const CTWPVec& cv );
+	void clear() { lst.clear(); }
 };
 
-
-
-
 }
-
 #endif // BARZER_EL_CHAIN_H

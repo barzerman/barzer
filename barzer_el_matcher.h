@@ -3,7 +3,6 @@
 
 #include <barzer_el_chain.h>
 #include <barzer_parse_types.h>
-#include <barzer_universe.h>
 
 /// Barzel matching algorithm is here 
 /// it takes an array of CTokens , converts it to BarzelBeadChain 
@@ -14,12 +13,11 @@
 /// 
 
 namespace barzer {
-
+class StoredUniverse;
 /// there is one BarzelMatcher per thread
 class BarzelMatcher {
 	const StoredUniverse& universe;
 
-	BarzelBeadChain beadChain;	
 public:
 	BarzelMatcher( const StoredUniverse& u ) : universe(u) {}
 
