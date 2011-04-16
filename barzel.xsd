@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://www.barzer.net/barzel/0.1"
+           xmlns:tns="http://www.barzer.net/barzel/0.1"
+           elementFormDefault="qualified">
+
+    <xs:complexType name="patNumberType">
+    	<xs:attribute name="h" type="xs:decimal"></xs:attribute>
+    	<xs:attribute name="l" type="xs:decimal"></xs:attribute>
+    	<xs:attribute name="r" type="xs:boolean"></xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="patList">
+    	<xs:choice maxOccurs="unbounded" minOccurs="0">
+    		<xs:element name="t" type="xs:string"></xs:element>
+    		<xs:element name="n" type="tns:patNumberType" ></xs:element>
+    		<xs:element name="p" type="xs:string" ></xs:element>
+    		<xs:element name="w"  />
+    		<xs:element name="wcls" type="xs:string"  />
+    		<xs:element name="list" type="tns:patList"></xs:element>
+    		<xs:element name="opt" type="tns:patList"></xs:element>
+    		<xs:element name="any" type="tns:patList"></xs:element>
+    		<xs:element name="perm" type="tns:patList"></xs:element>
+    		<xs:element name="tail" type="tns:patList"></xs:element>
+    	</xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="rNumberType">
+    	<xs:attribute name="v" type="xs:decimal"></xs:attribute>
+    </xs:complexType>    
+    
+    <xs:complexType name="tranList">
+        <xs:choice maxOccurs="unbounded" minOccurs="0">
+            <xs:element name="var" type="xs:string"></xs:element>
+            <xs:element name="rn" type="tns:rNumberType"></xs:element>
+            <xs:element name="ltrl" type="xs:string"></xs:element>
+            <xs:element name="time" type="xs:time"></xs:element>
+            <xs:element name="date" type="xs:date"></xs:element>
+        </xs:choice>
+    </xs:complexType>
+    
+    <xs:group name="statementGroup">
+        <xs:sequence>
+            <xs:element name="pat" type="tns:patList" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="tran" type="tns:tranList" minOccurs="1" maxOccurs="1"></xs:element>
+        </xs:sequence>
+    </xs:group>
+
+    <xs:complexType name="statementType">
+    	<xs:sequence>
+    		<xs:group ref="tns:statementGroup"></xs:group>
+    	</xs:sequence>
+    </xs:complexType>
+
+    <xs:element name="stmset">
+    	<xs:complexType>
+    		<xs:sequence maxOccurs="unbounded" minOccurs="0">
+    			<xs:element name="stmt" type="tns:statementType"></xs:element>
+    		</xs:sequence>
+    	</xs:complexType>
+    </xs:element>
+</xs:schema>
