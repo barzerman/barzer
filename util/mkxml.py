@@ -59,7 +59,7 @@ def main():
     print "<stmset>"
 
     no = int(sys.argv[1])
-    for i in range(1, no):
+    for i in xrange(1, no):
         print "<stmt>"
         gen_pat()
         gen_tran()
