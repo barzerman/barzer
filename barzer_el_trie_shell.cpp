@@ -75,8 +75,12 @@ DEF_TFUN(help) {
 
 // but i really want some static directory service for storing this kind of shit
 
+
+typedef std::map<std::string,TrieShellFun> FunMap;
+
+int bshtrie_process( BarzerShell* shell, std::istream& in ) {
 #define TSHF(n) (#n, trie_shell_##n)
-static std::map<std::string,TrieShellFun> triefunmap =
+	static FunMap funmap =
 		boost::assign::map_list_of TSHF(load)
 								   TSHF(print)
 								   TSHF(test)
@@ -84,16 +88,15 @@ static std::map<std::string,TrieShellFun> triefunmap =
 
 
 #undef TSHF
-
-
-int bshtrie_process( BarzerShell* shell, std::istream& in ) {
 	//AYLOG(DEBUG) << "bshtrie_process called";
 	std::string fname;
 	in >> fname;
 	//AYLOG(DEBUG) << "fname=" << fname;
-	TrieShellFun fun = triefunmap[fname];
-	if (fun) return fun(shell, in);
-	return 0;
+	//TrieShellFun fun = triefunmap[fname];
+	FunMap::iterator i = funmap.find(fname);
+	if (i == funmap.end()) return 0;
+	return i->second(shell, in);
+	//return 0;
 }
 
 
