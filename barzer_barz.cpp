@@ -60,8 +60,8 @@ void Barz::clear()
 
 int Barz::semanticParse( QSemanticParser& sem, const QuestionParm& qparm )
 {
-	/// invalidating all higher order objects
-	beadChain.clear();
+	/// invalidating and initializing all higher order objects
+	beadChain.init(ctVec);
 
 	return sem.semanticize( *this, qparm );
 }

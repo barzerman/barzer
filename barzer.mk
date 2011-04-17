@@ -1,5 +1,8 @@
 FLAGS := $(FLAGS) 
-CFLAGS := $(FLAGS) -I/opt/local/include -I/usr/include -Wall -g -I. -I./ay
+ifeq ($(IS64),yes)
+	BITMODE=-m64
+endif 
+CFLAGS :=$(BITMODE) -I/opt/local/include -I/usr/include -Wall -g -I. -I./ay
 LINKFLAGS := $(FLAGS)
 BINARY=barzer.exe
 libs = -Lay -lay -L/opt/local/lib/boost -L/usr/lib -lboost_system -lexpat -lstdc++

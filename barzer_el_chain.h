@@ -73,6 +73,10 @@ typedef boost::variant <
 	BarzelBeadExpression
 > BarzelBeadData;
 
+/// this class when implemented will keep matching trace information structured as a tree 
+/// to reflect the matching process
+struct BarzelBeadTraceInfo {
+};
 //// Barzel bead starts as a CToken 
 /// Barzel matcher matches the beads sequences and rewrites until no rewrites were made
 ///  Barzel bead ma be a constant or an expression 
@@ -80,21 +84,23 @@ class BarzelBead {
 	CTWPVec ctokOrigVec; // pre-barzel CToken list participating in this bead 
 	/// types 
 	BarzelBeadData dta;
-	
 public:
 	BarzelBead() {}
 	void init(const CTWPVec::value_type&) ;
 	BarzelBead(const CTWPVec::value_type& ct) 
-	{ init(ct); }
+		{ init(ct); }
 	/// implement:
-	//// - constructor from CToken (initialization)
-	//// - bead absorption (folding a bead into this one)
-	//// - templated initializer from types participating in BarzelBeadData 
+	void absorbBead( const BarzelBead& bead ); 
+
+	template <typename T> void become( const T& t ) { dta = t; }
+
 	std::ostream& print( std::ostream& ) const;
 }; 
 
 struct BarzelBeadChain {
 	typedef std::list< BarzelBead > 	BeadList;
+	
+	typedef std::pair< BeadList::iterator, BeadList::iterator > Range;
 
 	BeadList lst;
 	/// implement 
