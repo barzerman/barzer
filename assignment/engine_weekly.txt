@@ -1,0 +1,6 @@
+milestones by end of day:
+Monday Apr 18
+1. 04/18 monday: apr 18 sample statements get processed in barzer (dates)
+2. 04/19 tuesday: barzel testing and debugging date, firm token + number ... 
+3. 04/20 wednesday: barzel does dates, distance, fluff
+
