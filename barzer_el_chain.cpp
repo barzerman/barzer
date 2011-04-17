@@ -64,7 +64,7 @@ std::ostream& BarzelBead::print( std::ostream& fp ) const
 
 void BarzelBeadChain::init( const CTWPVec& cv )
 {
-	lst.clear();
+	clear();
 	for( CTWPVec::const_iterator i = cv.begin(); i!= cv.end(); ++i ) {
 		lst.push_back( BarzelBead() );
 		lst.back().init( *i );

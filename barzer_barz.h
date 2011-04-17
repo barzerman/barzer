@@ -37,6 +37,9 @@ public:
 	const TTWPVec& getTtVec() const { return  ttVec; }
 	const CTWPVec& getCtVec() const { return ctVec; }
 
+	BarzelBeadChain& getBeads() { return beadChain; }
+	const BarzelBeadChain& getBeads() const { return beadChain; }
+
 	void clear();
 
 	int tokenize( QTokenizer& , const char* q, const QuestionParm& );
