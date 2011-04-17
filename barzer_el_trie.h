@@ -221,6 +221,9 @@ struct BELTrie {
 	// returns the leaf. if this function returns null it would indicate some major loading inconsistency
 	const BarzelTrieNode* addPath( const BTND_PatternDataVec& path, const BELParseTreeNode& trans );
 
+	BarzelTrieNode& getRoot() { return root; }
+	const BarzelTrieNode& getRoot() const { return root; }
+
 	/// print methods 
 	std::ostream& print( std::ostream&, BELPrintContext& ctxt ) const;
 

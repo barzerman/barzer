@@ -16,6 +16,10 @@
 namespace barzer {
 class StoredUniverse;
 
+// reference information about the matched sequence 
+// pair of iterators pointing to the first and the last element to be rewritten
+typedef BarzelBeadChain::Range BeadRange;
+
 /// every time a match is detected in a trie 
 struct BarzelMatchInfo {
 	/// matching context - variable names (if named variables)
@@ -32,17 +36,21 @@ struct BarzelMatchInfo {
 			return fp;
 		}
 	} matchPath;
-	// reference information about the matched sequence 
-	// pair of iterators pointing to the first and the last element to be rewritten
-	typedef BarzelBeadChain::Range BeadRange;
+
+
 	BeadRange beadRng;
+	int score; // 
 	
 	void clear() {
 		ctxt.clear();
 		matchPath.clear();
 		beadRng = BeadRange();
 	}
+	BarzelMatchInfo() : score(0)  {}
+	void setScore( int s ) { score = s; }
 };
+
+
 /// BarzelMatcher objects need to be unique per thread
 class BarzelMatcher {
 protected:
@@ -53,7 +61,15 @@ protected:
 	/// as well as the BarzelMatchInfo, which stores:
 	///   - matching context (variable names and such) 
 	///   - match path - determinitsic path in the trie that was matched for this unit
+public:
 	typedef std::pair<BarzelMatchInfo,const BarzelTranslation*> RewriteUnit;
+	typedef std::pair< RewriteUnit, int> RangeWithScore;
+	typedef std::vector< RangeWithScore > RangeWithScoreVec;
+protected:
+	/// returns the score of the match beginning wht the bead pointed 
+	/// to by fullRange.first and ending before or at fullRange.second
+	/// score of 0 means no match was found
+	int matchInRange( RewriteUnit& , const BeadRange& fullRange );
 
 	virtual bool match( RewriteUnit&, BarzelBeadChain& );
 
@@ -95,6 +111,7 @@ protected:
 		void clear() { err = ERR_OK; failFlag.clear(); }
 	};
 	Error d_err;
+	
 public:
 
 	BarzelMatcher( const StoredUniverse& u ) : universe(u) {}
