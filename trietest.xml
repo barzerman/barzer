@@ -1,10 +1,28 @@
-<stmset>
+<?xml version="1.0" encoding="UTF-8"?>
+<stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
+	    xmlns="http://www.barzer.net/barzel/0.1">
+	    <!-- for some reason xmllint doesn't like this 
+	    xsi:schemaLocation="http://www.barzer.net/barzel/0.1 barzel.xsd">
+	     -->
 	<stmt>
-		<pat><t>mama</t><t>myla</t><t>ramu</t><opt><t>s mylom</t></opt></pat>
+		<pat>
+			<any>
+				<t>bob</t><t>alice</t>
+			</any>
+			<t>mama</t>
+			<t>myla</t>
+			<t>ramu</t>
+			<opt>
+				<t>s mylom</t>
+			</opt>
+			<perm>
+				<t>foo</t><n/><any><n/></any>
+			</perm>
+		</pat>
 		<tran><rn v="56"/></tran>
 	</stmt>
 	<stmt>
-		<pat><t>6</t><opt><n/></opt></pat>
+		<pat><t>6</t><opt><n/><wcls>verb</wcls></opt></pat>
 		<tran><ltrl>lala</ltrl></tran>
 	</stmt>
 	<stmt>
