@@ -13,6 +13,52 @@ int BTMIterator::addTerminalPath( const NodeAndBead& nb )
 	return 0;
 }
 
+namespace {
+
+struct findMatchingChildren_visitor : boost::static_visitor<bool> {
+	BTMIterator& btmi;
+	NodeAndBeadVec& mtChild;
+	const BeadRange& rng;
+	const BarzelTrieNode* tn;
+	
+	findMatchingChildren_visitor( 
+		BTMIterator& bi, NodeAndBeadVec& mC, const BeadRange& r, const BarzelTrieNode* t ):
+		btmi(bi), mtChild(mC), rng(r), tn(t)
+	{}
+	
+	bool operator()( const BarzerLiteral& dta ) 
+	{
+		return false;
+	}
+	bool operator()( const BarzerString& dta ) 
+	{
+		return false;
+	}
+	bool operator()( const BarzerNumber& dta ) 
+	{
+		return false;
+	}
+	bool operator()( const BarzerDate& dta ) 
+	{
+		return false;
+	}
+	bool operator()( const BarzerTimeOfDay& dta ) {
+		return false;
+	}
+	bool operator()( const BarzerRange& dta ) {
+		return false;
+	}
+	bool operator()( const BarzerEntityList& dta ) {
+		return false;
+	}
+	bool operator()( const BarzelEntityRangeCombo& dta )
+	{
+		return false;
+	}
+};
+
+}
+
 bool BTMIterator::findMatchingChildren( NodeAndBeadVec& mtChild, const BeadRange& rng, const BarzelTrieNode* tn )
 {
 	if( rng.first == rng.second ) 
@@ -20,19 +66,13 @@ bool BTMIterator::findMatchingChildren( NodeAndBeadVec& mtChild, const BeadRange
 
 	const BarzelBead& b = *(rng.first);
 	
-	const BarzelBeadAtomic* dta = b.getAtomic();
-	if( !dta )  /// expressions and blanks wont be matched 
+	const BarzelBeadAtomic* bead = b.getAtomic();
+	if( !bead )  /// expressions and blanks wont be matched 
 		return false; 
 	
-	const BarzerLiteral* literal = dta->getLiteral(); 
-	if( literal ) {
-		// ...
-	}
-	// if success -  add to mtChild and return 
-	// else - do wildcard matching 
-	#warning BTMIterator::findMatchingChildren unimplemented
+	findMatchingChildren_visitor vis( *this, mtChild, rng, tn );
 
-	return false;
+	return boost::apply_visitor( vis, bead->dta );
 }
 
 void BTMIterator::matchBeadChain( const BeadRange& rng, const BarzelTrieNode* trieNode )
