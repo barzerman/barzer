@@ -45,13 +45,7 @@ const char* BTNDDecode::typeName_Struct ( int )
 	return "BarzelStruct";
 }
 
-struct PatternEmitterNode {
-    virtual bool step() = 0;
-    virtual void yield(BTND_PatternDataVec& vec) const = 0;
-    virtual ~PatternEmitterNode() {}
-    
-    static PatternEmitterNode* make(const BELParseTreeNode& node);
-};
+
 
 namespace {
     
@@ -86,37 +80,25 @@ protected:
 };
 
 struct List: public IntermediateNode {
-    List(const BELParseTreeNode::ChildrenVec& children): IntermediateNode(children), produce(true) {
-    	//position = childs.begin();
-    }
+    List(const BELParseTreeNode::ChildrenVec& children): IntermediateNode(children) {}
     
     bool step()
     {
         for(ChildVec::const_iterator it=childs.begin(); it != childs.end(); ++it) {
-    	//while (position != childs.end())
-            //if((*position++)->step())
-        	if((*it)->step())
+        	if((*it)->step()) {
                 return true;
+        	}
         }
-        if (produce) {
-        	//AYLOG(DEBUG) << "List.step() = true";
-        	produce = false;
-        	return true;
-        }
-        //AYLOG(DEBUG) << "List.step() = false";
         return false;
     }
     
     void yield(BTND_PatternDataVec& vec) const
     {
         for(ChildVec::const_iterator it=childs.begin(); it != childs.end(); ++it) {
-            //if ((*it)->step())
             (*it)->yield(vec);
         }
     }
 private:
-//    ChildVec::const_iterator position;
-    bool produce;
 };
 
 struct Any: public IntermediateNode {
@@ -146,46 +128,42 @@ struct Any: public IntermediateNode {
     }
     
 private:
+
     ChildVec::const_iterator position;
 };
 
 struct Opt: public IntermediateNode {
     Opt(const BELParseTreeNode::ChildrenVec& children): IntermediateNode(children)
     {
-        selected = true;
-        position = childs.begin();
+    	selected = true;
     }
     
     bool step()
     {
-        if(selected) {
-            if((*position)->step())
-                return true;
-            
-            ++position;
-            
-            if(position==childs.end())
-                selected = false;
-        
-            return true;
-        }
-        else {
-            position = childs.begin();
-            selected = true;
-            return false;
-        }
+    	if (selected) {
+			for(ChildVec::const_iterator it=childs.begin(); it != childs.end(); ++it) {
+				if((*it)->step()) {
+					return true;
+				}
+			}
+			selected = false;
+			return true;
+    	} else {
+    		selected = true;
+    		return false;
+    	}
     }
     
     void yield(BTND_PatternDataVec& vec) const
     {
-        if(selected)
+        if(selected) {
             for(ChildVec::const_iterator it=childs.begin(); it != childs.end(); ++it)
                 (*it)->yield(vec);
+        }
     }
     
 private:
     bool selected;
-    ChildVec::const_iterator position;
 };
 
 struct Perm: public IntermediateNode {
@@ -277,12 +255,12 @@ PatternEmitterNode* PatternEmitterNode::make(const BELParseTreeNode& node)
 
 bool BELParseTreeNode_PatternEmitter::produceSequence()
 {
-    bool ret = patternTree->step();
-    
-    curVec.clear();
-    if(ret)
-        patternTree->yield(curVec);
-    
+	bool ret = patternTree->step();
+    if (ret) curVec.clear();
+    //if(ret)
+        //patternTree->yield(curVec);
+    //bool ret = patternTree->step();
+    //return ret;
     return ret;
 }
 
