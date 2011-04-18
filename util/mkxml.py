@@ -5,7 +5,8 @@ import random
 import string
 
 def gen_random_str():
-    return ''.join(random.choice(string.ascii_letters) for x in range(5))
+    len = random.randint(1, 10)
+    return ''.join(random.choice(string.ascii_letters) for x in range(len))
 
 def gen_tok():
     return "<t>%s</t>" % gen_random_str()

@@ -531,7 +531,14 @@ struct BELParseTreeNode {
 	}
 };
 
-struct PatternEmitterNode;
+//struct PatternEmitterNode;
+struct PatternEmitterNode {
+    virtual bool step() = 0;
+    virtual void yield(BTND_PatternDataVec& vec) const = 0;
+    virtual ~PatternEmitterNode() {}
+
+    static PatternEmitterNode* make(const BELParseTreeNode& node);
+};
 
 struct BELParseTreeNode_PatternEmitter {
 	BTND_PatternDataVec curVec;
@@ -543,8 +550,12 @@ struct BELParseTreeNode_PatternEmitter {
 
 	/// returns false when fails to produce a sequence
 	bool produceSequence();
-	const BTND_PatternDataVec& getCurSequence( ) const
-	{ return curVec; }
+	const BTND_PatternDataVec& getCurSequence( )
+	{
+		patternTree->yield(curVec);
+		return curVec;
+	}
+
 	
 	~BELParseTreeNode_PatternEmitter();
 private:

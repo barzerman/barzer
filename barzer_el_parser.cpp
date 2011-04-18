@@ -29,7 +29,7 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 
 
 	int i = 0;
-	while( emitter.produceSequence() ) {
+	do {
 		const BTND_PatternDataVec& seq = emitter.getCurSequence();
 		//AYLOG(DEBUG) << "Got sequence (" << seq.size() << ")";
 
@@ -40,7 +40,7 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 		trie->addPath( seq, sp.translation );
 		// printNode( AYTRACE( "new node"), *n );
 		i++;
-	}
+	} while( emitter.produceSequence() );
 	//AYLOG(DEBUG) << i << " sequences produced";
 
 	
