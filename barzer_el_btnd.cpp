@@ -104,11 +104,13 @@ private:
 struct Any: public IntermediateNode {
     Any(const BELParseTreeNode::ChildrenVec& children): IntermediateNode(children)
     {
+    	//AYLOGDEBUG(childs.size());
         position = childs.begin();
     }
     
     bool step()
     {
+    	if (position == childs.end()) return false;
         if((*position)->step())
             return true;
         
@@ -124,7 +126,7 @@ struct Any: public IntermediateNode {
     
     void yield(BTND_PatternDataVec& vec) const
     {
-        (*position)->yield(vec);
+    	if (position != childs.end()) (*position)->yield(vec);
     }
     
 private:

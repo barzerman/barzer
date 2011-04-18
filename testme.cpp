@@ -54,6 +54,23 @@ static std::ostream& printPatternVec(std::ostream &os, const BTND_PatternDataVec
 	return os;
 } //*/
 
+/*
+<perm><any><any><perm><t>jQKDeSuFu</t></perm>
+<list><n /></list>
+<perm></perm>
+<p>|</p>
+</any>
+<t>Te</t>
+</any>
+
+<list><t>V</t><p>\</p><n h="608" l="24979" /><t>HyNSC</t><any>
+
+<perm><p>$</p><n /></perm><t>nXTAC</t><t>cPUw</t>
+<opt><p>-</p><p>+</p>
+</opt><t>gAA</t><p>|</p></any>
+
+</list><p>%</p><p>;</p><n h="0.247718" l="0.534541" r="true" /></perm>
+*/
 
 int main() {
 	AYLOGINIT(DEBUG);
@@ -70,17 +87,21 @@ int main() {
 	BELParseTreeNode tnode;
 	tnode.setNodeData(BTND_StructData(BTND_StructData::T_LIST));
 
+	/*
 	tnode.addChild(pd);
 	tnode.addChild(pd2);
 	tnode.addChild(pd3);
+*/
+	BELParseTreeNode &tnode2 = tnode.addChild(BTND_StructData(BTND_StructData::T_PERM));
+	tnode.addChild(pd);
+	BELParseTreeNode &tnode3 = tnode2.addChild(BTND_StructData(BTND_StructData::T_ANY));
+	//tnode2.addChild(pd2);
+	BELParseTreeNode &tnode4 = tnode3.addChild(BTND_StructData(BTND_StructData::T_PERM));
 
-
-
-	BELParseTreeNode &tnode2 = tnode.addChild(BTND_StructData(BTND_StructData::T_OPT));
-	tnode2.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("1"))));
-	//tnode2.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("2"))));
-	//tnode2.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("3"))));
-	//tnode2.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("4"))));
+	tnode4.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("1"))));
+	tnode2.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("2"))));
+	tnode2.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("3"))));
+	tnode2.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("4"))));
 
 
 	BELParseTreeNode_PatternEmitter emitter( tnode );
