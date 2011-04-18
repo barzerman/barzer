@@ -171,6 +171,10 @@ private:
 	uint32_t theId;
 	uint8_t  type;
 public:
+	bool isBlank() const { return type == T_BLANK; }
+	bool isStop() const { return type == T_STOP; }
+	bool isPunct() const { return type == T_PUNCT; }
+
 	BarzerLiteral() : 
 		theId(0xffffffff),
 		type(T_STRING)
