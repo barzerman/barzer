@@ -7,15 +7,92 @@
 
 namespace barzer {
 
-bool BarzelMatcher::match( RewriteUnit& ru, BarzelBeadChain& beads )
+int BarzelMatcher::matchInRange( RewriteUnit& rwrUnit, const BeadRange& fullRange ) 
 {
-	#warning BarzelMatcher::match unimplemented
-	return false;
+	int  score = 0;
+	const BarzelTrieNode* trieNode = &(universe.getBarzelTrie().getRoot());
+
+	for( BeadList::iterator i = fullRange.first; i!=  fullRange.second; ++i ) {
+		const BarzelBead & bead = *i;
+
+		if( bead.isBlank() ) {
+			AYLOG(WARNING) << trieNode << std::endl;
+		}
+		/// matching this bead to the children (trieNode)
+		/// if matched 
+		/// -- update trieNode
+		/// -- push  trieNode into the matched path
+		/// --- newTrieNode->isLeaf - record leaf path (maybe it will be naturaly there)
+		/// else (not matched and we abort) 
+		/// back out to the previous leaf path 
+
+		// alternative: 
+		/// take the whole sub tree and match wildcards forward , keeping track of the longest path  
+	}
+	return score;
+}
+
+namespace {
+	inline BarzelMatcher::RangeWithScoreVec::iterator findBestRangeByScore( 
+		BarzelMatcher::RangeWithScoreVec::iterator beg,
+		BarzelMatcher::RangeWithScoreVec::iterator end 
+	)
+	{
+		BarzelMatcher::RangeWithScoreVec::iterator result = end;
+		int score = 0;
+		for( BarzelMatcher::RangeWithScoreVec::iterator i = beg; i!= end; ++i ) {
+			/// this is a left-biased system and the vector is ordered 
+			/// by closeness to the left edge
+			if( i->second > score ) {
+				result = i;
+				score = i->second;
+			}
+		}
+		return result;
+	}
+
+}
+
+bool BarzelMatcher::match( RewriteUnit& ru, BarzelBeadChain& beadChain )
+{
+	// trie always has at least one node (root)
+
+
+	RangeWithScoreVec rwScoreVec;
+	for( BeadList::iterator i = beadChain.getLstBegin(); beadChain.isIterNotEnd(i); ++i ) {
+		/// full range - all beads starting from i
+		BeadRange fullRange( i, beadChain.getLstEnd() );
+
+		RewriteUnit rwrUnit;
+		int score = matchInRange( rwrUnit, fullRange );
+
+		if( score ) {
+			rwScoreVec.push_back( 
+				RangeWithScoreVec::value_type(
+					rwrUnit, score
+				)
+			);
+
+		}
+	}
+	if( !rwScoreVec.size() ) 
+		return false;
+
+	RangeWithScoreVec::iterator bestI = findBestRangeByScore( rwScoreVec.begin(), rwScoreVec.end() );
+	if( bestI != rwScoreVec.end() ) {
+		ru = bestI->first;
+		/// it's better to keep the scores separte in case we decide to massage the scores later
+		ru.first.setScore( bestI->second );
+		return true;
+	} else { // should never happen 
+		AYLOG(ERROR) << "no valid rewrite unit for a valid match" << std::endl;
+		return false;
+	}
 }
 
 bool BarzelMatcher::evaluateRewriteUnit( const RewriteUnit&, const BarzelBeadChain& ) const
 {
-	#warning BarzelMatcher::evaluateRewriteUnit
+	// #warning BarzelMatcher::evaluateRewriteUnit
 	return true;
 }
 

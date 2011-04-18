@@ -10,7 +10,9 @@
 #include <boost/assign.hpp>
 
 #include "barzer_el_trie_shell.h"
-#include <ay/ay_logger.h>
+#include <ay_logger.h>
+#include <ay_util_time.h>
+
 
 namespace barzer {
 
@@ -27,6 +29,8 @@ DEF_TFUN(load) {
 	BELReader reader(&trie, &stringPool);
 	reader.initParser(BELReader::INPUT_FMT_XML);
 
+	ay::stopwatch totalTimer;
+
 	std::string sin;
 	if (in >> sin) {
 		const char *fname = sin.c_str();
@@ -34,9 +38,11 @@ DEF_TFUN(load) {
 		int numsts = reader.loadFromFile(fname);
 		std::cout << numsts << " statements read. " << std::endl;
 		if (numsts)	context->trieWalker.loadChildren();
+		std::cerr << "Loaded in " << totalTimer.calcTime() << " seconds\n";
 	} else {
 		//AYLOG(ERROR) << "no filename";
 	}
+
 	return 0;
 }
 

@@ -95,17 +95,32 @@ public:
 	template <typename T> void become( const T& t ) { dta = t; }
 
 	std::ostream& print( std::ostream& ) const;
+
+	bool isBlank( ) const { return (dta.which() == 0); }
 }; 
 
+typedef std::list< BarzelBead > 	BeadList;
+
 struct BarzelBeadChain {
-	typedef std::list< BarzelBead > 	BeadList;
 	
 	typedef std::pair< BeadList::iterator, BeadList::iterator > Range;
-
+	
 	BeadList lst;
 	/// implement 
 	/// - fold ( BeadList::iterator from, to )
 	/// - externally Matcher will provide these iterator ranges for fold 
+	
+	BeadList::iterator getLstBegin() { return lst.begin(); }
+	BeadList::const_iterator getLstBegin() const { return lst.begin(); }
+
+	BeadList::const_iterator getLstEnd() const { return lst.end(); }
+	BeadList::iterator getLstEnd() { return lst.end(); }
+
+	bool isIterEnd( BeadList::iterator i ) const { return i == lst.end(); }
+	bool isIterEnd( BeadList::const_iterator i ) const { return i == lst.end(); }
+
+	bool isIterNotEnd( BeadList::iterator i ) const { return i != lst.end(); }
+	bool isIterNotEnd( BeadList::const_iterator i ) const { return i != lst.end(); }
 
 	void init( const CTWPVec& cv );
 	void clear() { lst.clear(); }
