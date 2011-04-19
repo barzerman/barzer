@@ -232,7 +232,7 @@ const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, const B
 
 void BarzelTranslation::set(BELTrie& ,const BTND_Rewrite_Literal& x )
 {
-	AYLOGDEBUG(x.getType());
+	//AYLOGDEBUG(x.getType());
 	switch( x.getType() ) {
 	case BTND_Rewrite_Literal::T_STRING:
 		type = T_STRING;

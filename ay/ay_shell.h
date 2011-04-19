@@ -79,7 +79,9 @@ public:
 		context(0),
 		echo(false)
 	{}
-	virtual ~Shell() {}
+	virtual ~Shell() {
+		delete context; // to shut valgrind up
+	}
 	std::ostream& getOutStream() { return *outStream; }
 	std::ostream& getErrStream() { return *errStream; }
 	std::istream& getInStream() { return *inStream; }

@@ -42,7 +42,6 @@ DEF_TFUN(load) {
 	} else {
 		//AYLOG(ERROR) << "no filename";
 	}
-
 	return 0;
 }
 
