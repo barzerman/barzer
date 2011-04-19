@@ -56,6 +56,31 @@ struct BarzelTrieFirmChildKey {
 			id=0xffffffff;
 		}
 	}
+	/// followsBlank should be set to true if the literal follows a blank in the beads chain
+	void setString(const BarzerLiteral& dta, bool followsBlank=false ) 
+	{
+		type = (typeof type) BTND_Pattern_Token_TYPE;
+		id =   dta.getId();
+		noLeftBlanks = ( followsBlank ? 1:0 );
+	}
+	void setCompound(const BarzerLiteral& dta, bool followsBlank=false ) 
+	{
+		type = (typeof type) BTND_Pattern_CompoundedWord_TYPE;
+		id =   dta.getId();
+		noLeftBlanks = ( followsBlank ? 1:0 );
+	}
+	void setPunct(const BarzerLiteral& dta, bool followsBlank=false ) 
+	{
+		type = (typeof type) BTND_Pattern_Punct_TYPE;
+		id =   dta.getId();
+		noLeftBlanks = ( followsBlank ? 1:0 );
+	}
+	void setStop(const BarzerLiteral& dta, bool followsBlank=false ) 
+	{
+		type = (typeof type) BTND_Pattern_Punct_TYPE;
+		id =   0;
+		noLeftBlanks = ( followsBlank ? 1:0 );
+	}
 
 	std::ostream& print( std::ostream& , const BELPrintContext& ctxt ) const;
 	
@@ -193,7 +218,6 @@ public:
 	std::ostream& print_wcChildren( std::ostream& fp, BELPrintContext& ) const;
 	std::ostream& print_translation( std::ostream& fp, const BELPrintContext& ) const;
 
-
 	bool hasFirmChildren() const { return (!firmMap.empty()); }
 	BarzelFCMap& getFirmMap() { return firmMap; }
 	const BarzelFCMap& getFirmMap() const { return firmMap; }
@@ -223,6 +247,11 @@ public:
 		{ return (wcLookupId != 0xffffffff); }
 
 	BarzelTrieNode() : wcLookupId(0xffffffff) {}
+	const BarzelTrieNode* getFirmChild( const BarzelTrieFirmChildKey& key ) const
+	{
+		BarzelFCMap::const_iterator  i = firmMap.find( key );
+		return ( i == firmMap.end() ? 0 : &(i->second) );
+	}
 
 	std::ostream& print( std::ostream& , BELPrintContext& ) const;
 };

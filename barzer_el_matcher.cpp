@@ -18,16 +18,62 @@ namespace {
 struct findMatchingChildren_visitor : boost::static_visitor<bool> {
 	BTMIterator& btmi;
 	NodeAndBeadVec& mtChild;
-	const BeadRange& rng;
+	BeadRange rng;
 	const BarzelTrieNode* tn;
+
+	bool followsBlank;
+	bool tryMore;
 	
 	findMatchingChildren_visitor( 
 		BTMIterator& bi, NodeAndBeadVec& mC, const BeadRange& r, const BarzelTrieNode* t ):
-		btmi(bi), mtChild(mC), rng(r), tn(t)
+		btmi(bi), mtChild(mC), rng(r), tn(t), followsBlank(false), tryMore(true)
 	{}
 	
 	bool operator()( const BarzerLiteral& dta ) 
 	{
+		BarzelTrieFirmChildKey key; 
+
+		// trying to form firm key 
+		switch(dta.getType()) {
+		case BarzerLiteral::T_STRING:   key.setString( dta, followsBlank ); break;
+
+		case BarzerLiteral::T_COMPOUND: key.setCompound( dta, followsBlank ); break;
+		case BarzerLiteral::T_STOP:     key.setStop( dta, followsBlank ); break;
+		case BarzerLiteral::T_PUNCT:    key.setPunct( dta, followsBlank ); break;
+		case BarzerLiteral::T_BLANK: 
+			++rng.first;
+			followsBlank = tryMore= true;
+			return true;
+		}
+		if( followsBlank )
+			followsBlank = false;
+		
+		const BarzelTrieNode* ch = tn->getFirmChild( key ); 
+		if( ch ) {
+			mtChild.push_back( NodeAndBeadVec::value_type(ch,rng.first) );
+			return true;
+		}
+
+		if( tn->hasValidWcLookup() ) 
+			return false;
+
+		// int skip = 1;
+		const BarzelWCLookup* wcLookup = btmi.universe.getWCLookup( tn->getWCLookupId() );
+		if( !wcLookup ) { // this should never happen
+			AYLOG(ERROR) << "null lookup" << std::endl;
+		}
+		#warning unfinished implementation
+		// loop i= rng.first , ++i, until i = rng.second
+		//  wcKey = (skip,followsBlank)	
+		//  for each child matching partial wcKey
+		//     if( wildcardMatch( child, rng.first, i, skip ) ) 
+		// 		   mtChild.push_back( child, i )
+		//  end foreach
+		//  skip++ 
+		// endloop
+		// make blank firmKey 
+		// -  
+		// - 
 		return false;
 	}
 	bool operator()( const BarzerString& dta ) 
@@ -55,6 +101,16 @@ struct findMatchingChildren_visitor : boost::static_visitor<bool> {
 	{
 		return false;
 	}
+
+	inline bool keepTrying() const 
+	{
+		if( rng.first == rng.second ) 
+			return false;
+		if( tryMore ) 
+			return true;	
+		
+		return false;
+	}
 };
 
 }
@@ -72,7 +128,12 @@ bool BTMIterator::findMatchingChildren( NodeAndBeadVec& mtChild, const BeadRange
 	
 	findMatchingChildren_visitor vis( *this, mtChild, rng, tn );
 
-	return boost::apply_visitor( vis, bead->dta );
+	size_t numMatched = 0;
+	while( vis.keepTrying() ) {
+		if( boost::apply_visitor( vis, bead->dta ) )
+			++numMatched; 
+	}	
+	return mtChild.size();
 }
 
 void BTMIterator::matchBeadChain( const BeadRange& rng, const BarzelTrieNode* trieNode )
@@ -104,7 +165,7 @@ int BarzelMatcher::matchInRange( RewriteUnit& rwrUnit, const BeadRange& fullRang
 	int  score = 0;
 	const BarzelTrieNode* trieRoot = &(universe.getBarzelTrie().getRoot());
 
-	BTMIterator btmi(fullRange);	
+	BTMIterator btmi(fullRange,universe);	
 	btmi.findPaths(trieRoot);
 	
 	score = findWinningPath( rwrUnit, btmi.bestPaths );

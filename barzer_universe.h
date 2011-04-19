@@ -28,7 +28,11 @@ public:
 
 	const BELTrie& getBarzelTrie() const { return barzelTrie; }
 		  BELTrie& getBarzelTrie() 	  { return barzelTrie; }
-	
+	const BarzelWCLookup* getWCLookup( uint32_t id ) const
+	{
+		return barzelWildcardPool.getWCLookup( id );
+	}
+
 	// had to add it in order to be able to create BELPrintContext
     // for custom trie printing
 	ay::UniqueCharPool& getStringPool() {

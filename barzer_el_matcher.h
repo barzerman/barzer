@@ -80,10 +80,13 @@ public:
 private:
 	// recursive function
 	void matchBeadChain( const BeadRange& rng, const BarzelTrieNode* trieNode );
-public:
 
-	BTMIterator( const BeadRange& rng ) : 
-		bestPaths(rng)
+public:
+	const StoredUniverse& universe;
+
+	BTMIterator( const BeadRange& rng, const StoredUniverse& u ) : 
+		bestPaths(rng),
+		universe(u)
 	{ }
 	void findPaths( const BarzelTrieNode* trieNode)
 		{ matchBeadChain( bestPaths.fullRange, trieNode ); }
