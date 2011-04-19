@@ -86,7 +86,7 @@ public:
 	}
 
 	/// this method is called by the parser for every statement tree 
-	void addStatement( const BELStatementParsed& );
+	virtual void addStatement( const BELStatementParsed& );
 
 	BELParser*  initParser(InputFormat fmt);
 	int  loadFromStream( std::istream& fp );
@@ -95,7 +95,28 @@ public:
 	int  loadFromFile( const char* fileName, InputFormat fmt = INPUT_FMT_XML );
 
 	std::ostream& printNode( std::ostream& fp, const BarzelTrieNode& node ) const;
-}; 
+};
+
+class Callable {
+public:
+	virtual void operator()( const BELStatementParsed& );
+};
+
+template<class T>class BELExpandReader : public BELReader {
+	T &functor;
+public:
+	BELExpandReader(T &f, BELTrie* t, ay::UniqueCharPool* sPool)
+		: BELReader(t, sPool), functor(f) {}
+	void addStatement( const BELStatementParsed& sp)
+	{
+		BELParseTreeNode_PatternEmitter emitter( sp.pattern );
+		do {
+			const BTND_PatternDataVec& seq = emitter.getCurSequence();
+			functor(seq);
+		} while( emitter.produceSequence() );
+		++numStatements;
+	}
+};
 
 }
 
