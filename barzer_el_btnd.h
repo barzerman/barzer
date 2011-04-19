@@ -101,10 +101,11 @@ inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_Number& x
 	return (x.printRange( fp << "NUM[" ) << "]" );
 }
 
-// 
+// Punctuation and Stop Tokens (theChar is 0 for stops) 
 struct BTND_Pattern_Punct {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
-	int theChar; // actual punctuation character
+	int theChar; // actual punctuation character. 0 - same as stop
+	
 	BTND_Pattern_Punct() : theChar(0) {}
 	BTND_Pattern_Punct(char c) : theChar(c) {}
 };

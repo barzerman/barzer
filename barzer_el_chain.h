@@ -40,15 +40,32 @@ typedef boost::variant<
 	BarzerEntityList,
 	BarzelEntityRangeCombo
 > BarzelBeadAtomic_var;
-
+enum {
+	BarzerLiteral_TYPE, 
+	BarzerString_TYPE,
+	BarzerNumber_TYPE,
+	BarzerDate_TYPE,
+	BarzerTimeOfDay_TYPE,
+	BarzerRange_TYPE,
+	BarzerEntityList_TYPE,
+	BarzelEntityRangeCombo_TYPE
+};
 struct BarzelBeadAtomic {
 	BarzelBeadAtomic_var dta;
 	
+	const BarzerLiteral* getLiteral() const { return boost::get<BarzerLiteral>( &dta ); }
+
+	bool isLiteral() const { return dta.which() == BarzerLiteral_TYPE; }
+	bool isNumber() const { return dta.which() == BarzerNumber_TYPE; }
+	int getType() const 
+		{ return dta.which(); }
+
 	std::ostream& print( std::ostream& fp ) const;
 };
 
-/// this is a tree type. beads of this type do not 
-/// for future implementation
+/// this is a tree type. beads of this type are expresions on top of whatever 
+/// was discerned from the input
+/// for future implementation - 
 // 
 struct BarzelBeadExpression {
 	struct Data  {
@@ -73,6 +90,12 @@ typedef boost::variant <
 	BarzelBeadExpression
 > BarzelBeadData;
 
+enum {
+	BarzelBeadBlank_TYPE,
+	BarzelBeadAtomic_TYPE,
+	BarzelBeadExpression_TYPE
+};
+
 /// this class when implemented will keep matching trace information structured as a tree 
 /// to reflect the matching process
 struct BarzelBeadTraceInfo {
@@ -96,7 +119,11 @@ public:
 
 	std::ostream& print( std::ostream& ) const;
 
-	bool isBlank( ) const { return (dta.which() == 0); }
+	bool isBlank( ) const { return (dta.which() == BarzelBeadBlank_TYPE); }
+	bool isAtomic() const { return (dta.which() == BarzelBeadAtomic_TYPE); }
+	bool isExpression() const { return (dta.which() == BarzelBeadExpression_TYPE); }
+
+	const BarzelBeadAtomic* getAtomic() const { return  boost::get<BarzelBeadAtomic>( &dta ); }
 }; 
 
 typedef std::list< BarzelBead > 	BeadList;

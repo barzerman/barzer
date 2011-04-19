@@ -3,7 +3,8 @@
 #include <barzer_el_btnd.h>
 #include <barzer_el_parser.h>
 #include <barzer_el_rewriter.h>
-#include <ay/ay_bitflags.h>
+#include <ay_bitflags.h>
+#include <ay_util.h>
 #include <map>
 
 /// data structures representing the Barzer Expression Language BarzEL term pattern trie
@@ -20,16 +21,23 @@ struct BELPrintFormat;
 struct BarzelTrieFirmChildKey {
 	uint32_t id;
 	uint8_t  type;
+	// when noLeftBlanks is !=0 
+	// the firm child will only match if it immediately follows the prior token 
+	// in other words spaces wont be skipped (!)
+	// tis is needed for patterns defining dates and such
+	uint8_t  noLeftBlanks;
 	
-	BarzelTrieFirmChildKey() : id(0xffffffff), type(BTND_Pattern_None_TYPE) {}
+	BarzelTrieFirmChildKey() : id(0xffffffff), type(BTND_Pattern_None_TYPE), noLeftBlanks(0) {}
 
-	BarzelTrieFirmChildKey(const BTND_Pattern_Token& x) : id(x.stringId), type((uint8_t)BTND_Pattern_Token_TYPE) {}
-	BarzelTrieFirmChildKey(const BTND_Pattern_Punct& x) : id(x.theChar),  type((uint8_t)BTND_Pattern_Punct_TYPE) {}
+	BarzelTrieFirmChildKey(const BTND_Pattern_Token& x) : id(x.stringId), type((uint8_t)BTND_Pattern_Token_TYPE), noLeftBlanks(0) {}
+	BarzelTrieFirmChildKey(const BTND_Pattern_Punct& x) : id(x.theChar),  type((uint8_t)BTND_Pattern_Punct_TYPE), noLeftBlanks(0) {}
 	BarzelTrieFirmChildKey(const BTND_Pattern_CompoundedWord& x) : 
-		id(x.compWordId), type((uint8_t)BTND_Pattern_CompoundedWord_TYPE){}
+		id(x.compWordId), type((uint8_t)BTND_Pattern_CompoundedWord_TYPE), noLeftBlanks(0)
+	{}
 	
 	inline BarzelTrieFirmChildKey( const BTND_PatternData& p ) 
 	{
+		noLeftBlanks=0;
 		switch( p.which() ) {
 		case BTND_Pattern_Token_TYPE:
 			type = (uint8_t)BTND_Pattern_Token_TYPE;
@@ -48,11 +56,37 @@ struct BarzelTrieFirmChildKey {
 			id=0xffffffff;
 		}
 	}
+	/// followsBlank should be set to true if the literal follows a blank in the beads chain
+	void setString(const BarzerLiteral& dta, bool followsBlank=false ) 
+	{
+		type = (typeof type) BTND_Pattern_Token_TYPE;
+		id =   dta.getId();
+		noLeftBlanks = ( followsBlank ? 1:0 );
+	}
+	void setCompound(const BarzerLiteral& dta, bool followsBlank=false ) 
+	{
+		type = (typeof type) BTND_Pattern_CompoundedWord_TYPE;
+		id =   dta.getId();
+		noLeftBlanks = ( followsBlank ? 1:0 );
+	}
+	void setPunct(const BarzerLiteral& dta, bool followsBlank=false ) 
+	{
+		type = (typeof type) BTND_Pattern_Punct_TYPE;
+		id =   dta.getId();
+		noLeftBlanks = ( followsBlank ? 1:0 );
+	}
+	void setStop(const BarzerLiteral& dta, bool followsBlank=false ) 
+	{
+		type = (typeof type) BTND_Pattern_Punct_TYPE;
+		id =   0;
+		noLeftBlanks = ( followsBlank ? 1:0 );
+	}
 
 	std::ostream& print( std::ostream& , const BELPrintContext& ctxt ) const;
 	
 	std::ostream& print( std::ostream& ) const;
 	bool isBlank() const { return (type == BTND_Pattern_None_TYPE); }
+	bool isNoLeftBlanks() const { return noLeftBlanks; }
 };
 
 inline std::ostream& operator <<( std::ostream& fp, const BarzelTrieFirmChildKey& key )
@@ -60,7 +94,13 @@ inline std::ostream& operator <<( std::ostream& fp, const BarzelTrieFirmChildKey
 
 struct BarzelTrieFirmChildKey_comp_less {
 	inline bool operator() ( const BarzelTrieFirmChildKey& l, const BarzelTrieFirmChildKey& r ) const 
-		{ return( l.id < r.id ? true : ( r.id < l.id ? false : (l.type < r.type))); }
+		{ 
+			return ay::range_comp().less_than( 
+				l.noLeftBlanks, l.type, l.id,
+				r.noLeftBlanks, r.type, r.id
+			);
+			// return( l.id < r.id ? true : ( r.id < l.id ? false : (l.type < r.type))); 
+		}
 };
 inline bool operator <( const BarzelTrieFirmChildKey& l, const BarzelTrieFirmChildKey& r ) 
 { return BarzelTrieFirmChildKey_comp_less() ( l, r ); }
@@ -76,19 +116,27 @@ inline bool operator ==( const BarzelTrieFirmChildKey& l, const BarzelTrieFirmCh
 struct BarzelWCKey {
 	uint32_t wcId; // wildcard id unique for the type in a pool
 	uint8_t wcType; // one of BTND_Pattern_XXXX_TYPE enums
+	uint8_t noLeftBlanks; // one of BTND_Pattern_XXXX_TYPE enums
 	
 	void clear() 
 		{ wcType = BTND_Pattern_None_TYPE; wcId= 0xffffffff; }
 	bool isBlank() const 
 		{ return( wcType == BTND_Pattern_None_TYPE ); }
-	BarzelWCKey() : wcId(0xffffffff), wcType(BTND_Pattern_None_TYPE) {}
+	BarzelWCKey() : 
+		wcId(0xffffffff), 
+		wcType(BTND_Pattern_None_TYPE),
+		noLeftBlanks(0)
+	{}
 
 	// non trivial constructor - this may add wildcard to the pool
 	// when fails wcType will be set to BTND_Pattern_None_TYPE
-	BarzelWCKey( BELTrie& trie, const BTND_PatternData& pat );
+	// BarzelWCKey( BELTrie& trie, const BTND_PatternData& pat );
 
 	inline bool lessThan( const BarzelWCKey& r ) const
-	{ return ay::range_comp().less_than( wcType, wcId, r.wcType, r.wcId ); }
+	{ return ay::range_comp().less_than( 
+		noLeftBlanks, 	wcType, 	wcId,
+		r.noLeftBlanks, r.wcType, 	r.wcId 
+		);}
 	
 	std::ostream& print( std::ostream& fp, const BarzelWildcardPool* ) const;
 };
@@ -170,7 +218,6 @@ public:
 	std::ostream& print_wcChildren( std::ostream& fp, BELPrintContext& ) const;
 	std::ostream& print_translation( std::ostream& fp, const BELPrintContext& ) const;
 
-
 	bool hasFirmChildren() const { return (!firmMap.empty()); }
 	BarzelFCMap& getFirmMap() { return firmMap; }
 	const BarzelFCMap& getFirmMap() const { return firmMap; }
@@ -200,6 +247,11 @@ public:
 		{ return (wcLookupId != 0xffffffff); }
 
 	BarzelTrieNode() : wcLookupId(0xffffffff) {}
+	const BarzelTrieNode* getFirmChild( const BarzelTrieFirmChildKey& key ) const
+	{
+		BarzelFCMap::const_iterator  i = firmMap.find( key );
+		return ( i == firmMap.end() ? 0 : &(i->second) );
+	}
 
 	std::ostream& print( std::ostream& , BELPrintContext& ) const;
 };

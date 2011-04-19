@@ -151,14 +151,12 @@ BarzelTrieNode* BarzelTrieNode::addWildcardPattern( BELTrie& trie, const BTND_Pa
 }
 std::ostream& BarzelTrieFirmChildKey::print( std::ostream& fp ) const
 {
-	return( fp << BTNDDecode::typeName_Pattern( type )  << ":" << std::hex << id );
+	return( fp << BTNDDecode::typeName_Pattern( type )  << ":" << std::hex << id << (noLeftBlanks? "+":"") );
 }
 
 std::ostream& BarzelTrieFirmChildKey::print( std::ostream& fp, const BELPrintContext& ctxt ) const
 {
-	return( fp << BTNDDecode::typeName_Pattern( type )  << ":" << std::hex << id << "[" << 
-	ctxt.printableString(id) <<
-	"]" );
+	return( print( fp ) << "[" << ctxt.printableString(id) << "]" );
 }
 
 //// bel TRIE methods

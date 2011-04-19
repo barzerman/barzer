@@ -49,6 +49,48 @@ struct BarzelMatchInfo {
 	BarzelMatchInfo() : score(0)  {}
 	void setScore( int s ) { score = s; }
 };
+/// Barzel TrieMatcher (BTM)
+struct BTMBestPaths {
+	/// information of the best terminal paths matched 
+	/// 
+	BeadRange fullRange; // original range of the top level matcher 
+	BTMBestPaths( const BeadRange& r ) : fullRange(r) {}
+	
+};
+
+typedef std::pair< const BarzelTrieNode*, BeadList::iterator > NodeAndBead;
+typedef std::vector< NodeAndBead > NodeAndBeadVec;
+
+// object used by the matcher
+class BTMIterator {
+public:
+	typedef std::vector<const BarzelTrieNode*> BTNVec;
+
+private:
+	/// current path - d_tn is one level below. 
+	BTNVec d_path;
+	/// pushes curPath and the accompanying bead range 
+	int addTerminalPath( const NodeAndBead& nb );
+
+	// puts all matching children of tn int mtChild
+	// uses rng[0-...] for matching
+	bool findMatchingChildren( NodeAndBeadVec& mtChild, const BeadRange& rng, const BarzelTrieNode* tn );
+public:
+	BTMBestPaths bestPaths;
+private:
+	// recursive function
+	void matchBeadChain( const BeadRange& rng, const BarzelTrieNode* trieNode );
+
+public:
+	const StoredUniverse& universe;
+
+	BTMIterator( const BeadRange& rng, const StoredUniverse& u ) : 
+		bestPaths(rng),
+		universe(u)
+	{ }
+	void findPaths( const BarzelTrieNode* trieNode)
+		{ matchBeadChain( bestPaths.fullRange, trieNode ); }
+};
 
 
 /// BarzelMatcher objects need to be unique per thread
@@ -71,12 +113,8 @@ protected:
 	/// score of 0 means no match was found
 	int matchInRange( RewriteUnit& , const BeadRange& fullRange );
 
-	virtual bool match( RewriteUnit&, BarzelBeadChain& );
 
-	/// evaluation methods are called within match 
-	/// returns true if this unit is rewritable. if one unit in a set is not rewritable
-	/// mostly this will be useful for entity search patterns 
-	bool evaluateRewriteUnit( const RewriteUnit&, const BarzelBeadChain& ) const;
+	virtual bool match( RewriteUnit&, BarzelBeadChain& );
 
 	/// 
 	int rewriteUnit( const RewriteUnit&, BarzelBeadChain& );	 	
@@ -86,7 +124,6 @@ protected:
 			void clear() {}
 			void addExclusion( const BarzelMatchInfo& ) {}
 	};
-	PathExclusionList d_exclList;
 	enum { MAX_REWRITE_COUNT = 1024*4, MAX_MATCH_COUNT = 1024*16 } ;
 	//// error object
 	struct Error {
@@ -112,6 +149,10 @@ protected:
 	};
 	Error d_err;
 	
+	/// evaluates highest scoring paths and returns the first suitable one
+	/// fills out rwrUnit
+	int findWinningPath( RewriteUnit& rwrUnit, BTMBestPaths& bestPaths );
+
 public:
 
 	BarzelMatcher( const StoredUniverse& u ) : universe(u) {}
@@ -125,7 +166,6 @@ public:
 	virtual int matchAndRewrite( Barz& );
 	virtual void clear() 
 	{
-		d_exclList.clear();
 		d_err.clear();
 	}
 
