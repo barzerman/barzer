@@ -87,17 +87,13 @@ int main() {
 	BELParseTreeNode tnode;
 	tnode.setNodeData(BTND_StructData(BTND_StructData::T_LIST));
 
-	/*
+
 	tnode.addChild(pd);
 	tnode.addChild(pd2);
 	tnode.addChild(pd3);
-*/
 	BELParseTreeNode &tnode2 = tnode.addChild(BTND_StructData(BTND_StructData::T_PERM));
-	tnode.addChild(pd);
 	BELParseTreeNode &tnode3 = tnode2.addChild(BTND_StructData(BTND_StructData::T_ANY));
-	//tnode2.addChild(pd2);
 	BELParseTreeNode &tnode4 = tnode3.addChild(BTND_StructData(BTND_StructData::T_PERM));
-
 	tnode4.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("1"))));
 	tnode2.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("2"))));
 	tnode2.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("3"))));
