@@ -341,6 +341,70 @@ static int bshf_trup( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
+class PatternPrinter {
+	BELPrintContext &ctxt;
+public:
+	PatternPrinter(BELPrintContext &pc) : ctxt(pc) {}
+	// i'm not really sure if there's a suitable function already for these needs
+	// so i added this one.
+    void printPatternData(std::ostream &os, const BTND_PatternData &pd)
+	{
+		switch(pd.which()) {
+		case BTND_Pattern_None_TYPE:
+			os << "BTND_Pattern_None_TYPE";
+			break;
+			//abort();
+#define CASEPD(x) case BTND_Pattern_##x##_TYPE: boost::get<BTND_Pattern_##x>(pd).print(os, ctxt); break;
+		CASEPD(Token)
+		CASEPD(Punct)
+		CASEPD(CompoundedWord)
+		CASEPD(Number)
+		CASEPD(Wildcard)
+		CASEPD(Date)
+		CASEPD(Time)
+		CASEPD(DateTime)
+#undef CASEPD
+		default:
+			AYLOG(ERROR) << "Unexpected pattern type\n";
+		}
+	}
+
+    // only prints the vector itself yet.
+	void operator()(const BTND_PatternDataVec& seq) {
+		std::cout << "[";
+		for(BTND_PatternDataVec::const_iterator pi = seq.begin(); pi != seq.end();) {
+			printPatternData(std::cout, *pi);
+			if (++pi != seq.end()) std::cout << ", ";
+		}
+		std::cout << "]\n";
+	}
+};
+
+static int bshf_stexpand( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext *context = shell->getBarzerContext();
+	StoredUniverse &uni = context->universe;
+	BELTrie &trie = uni.getBarzelTrie();
+	ay::UniqueCharPool &stringPool = uni.getStringPool();
+
+	BELPrintFormat fmt;
+	BELPrintContext ctxt( trie, stringPool, fmt );
+	PatternPrinter pp(ctxt);
+	BELExpandReader<PatternPrinter> reader(pp, &trie, &stringPool);
+	reader.initParser(BELReader::INPUT_FMT_XML);
+
+	std::string sin;
+	if (in >> sin) {
+		const char *fname = sin.c_str();
+		//AYLOG(DEBUG) << "Loading " << fname;
+		int numsts = reader.loadFromFile(fname);
+		std::cout << numsts << " statements read. " << std::endl;
+	} else {
+		//AYLOG(ERROR) << "no filename";
+	}
+	return 0;
+}
+
 /// end of specific shell routines
 static const CmdData g_cmd[] = {
 	CmdData( ay::Shell::cmd_help, "help", "get help on a barzer function" ),
@@ -364,6 +428,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_trcd, "trcd", "changes current trie node to the firm child by number" ),
 	CmdData( (ay::Shell_PROCF)bshf_trcdw, "trcdw", "changes current trie node to the wildcard child by number" ),
 	CmdData( (ay::Shell_PROCF)bshf_trup, "trup", "moves back to the parent trie node" ),
+	CmdData( (ay::Shell_PROCF)bshf_stexpand, "stexpand", "expand and print all statements in a file" ),
 };
 
 ay::ShellContext* BarzerShell::mkContext()
