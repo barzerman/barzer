@@ -127,19 +127,32 @@ struct range_comp {
 		const T1& l1, const T2& l2, const T3& l3, const T4& l4,
 		const T1& r1, const T2& r2, const T3& r3, const T4& r4 )
 	{
-		if( l1< r1 ) 
-			return true;
-		else if( r1 < l1 ) 
-			return false;
-
+		if( l1< r1 ) return true; else if( r1 < l1 ) return false;
 		return less_than( l2,l3,l4, r2,r3,r4 );
 	}
+
 	template <typename T1,typename T2,typename T3,typename T4>
 	inline bool greater_than( 
 		const T1& l1, const T2& l2, const T3& l3, const T4& l4,
 		const T1& r1, const T2& r2, const T3& r3, const T4& r4 )
 	{
 		return less_than( r1,r2,r3,r4, l1,l2,l3,l4 );
+	}
+
+	template <typename T1,typename T2,typename T3,typename T4, typename T5>
+	inline bool less_than( 
+		const T1& l1, const T2& l2, const T3& l3, const T4& l4, const T5& l5,
+		const T1& r1, const T2& r2, const T3& r3, const T4& r4, const T5& r5 )
+	{
+		if( l1< r1 ) return true; else if( r1 < l1 ) return false;
+		return less_than( l2,l3,l4,l5, r2,r3,r4,r5 );
+	}
+	template <typename T1,typename T2,typename T3,typename T4,typename T5>
+	inline bool greater_than( 
+		const T1& l1, const T2& l2, const T3& l3, const T4& l4, const T5& l5,
+		const T1& r1, const T2& r2, const T3& r3, const T4& r4, const T5& r5 )
+	{
+		return less_than( r1,r2,r3,r4,r5, l1,l2,l3,l4,l5 );
 	}
 };
 

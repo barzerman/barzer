@@ -39,6 +39,10 @@ struct BarzelTrieFirmChildKey {
 	{
 		noLeftBlanks=0;
 		switch( p.which() ) {
+		case BTND_Pattern_StopToken_TYPE:
+			type = (uint8_t)BTND_Pattern_StopToken_TYPE;
+			id = boost::get<BTND_Pattern_StopToken>( p ).stringId;	
+			break;
 		case BTND_Pattern_Token_TYPE:
 			type = (uint8_t)BTND_Pattern_Token_TYPE;
 			id = boost::get<BTND_Pattern_Token>( p ).stringId;	
@@ -56,36 +60,32 @@ struct BarzelTrieFirmChildKey {
 			id=0xffffffff;
 		}
 	}
-	/// followsBlank should be set to true if the literal follows a blank in the beads chain
-	void setString(const BarzerLiteral& dta, bool followsBlank=false ) 
+	inline BarzelTrieFirmChildKey& set( const BarzerLiteral& dta, bool followsBlank=false )
 	{
-		type = (typeof type) BTND_Pattern_Token_TYPE;
+		noLeftBlanks = ( followsBlank ? 0:1 );
 		id =   dta.getId();
-		noLeftBlanks = ( followsBlank ? 1:0 );
+		switch(dta.getType()) {
+		case BarzerLiteral::T_STRING:   type=(uint8_t) BTND_Pattern_Token_TYPE; break;
+		case BarzerLiteral::T_COMPOUND: type=(uint8_t) BTND_Pattern_CompoundedWord_TYPE; break;
+		case BarzerLiteral::T_STOP:     type=(uint8_t) BTND_Pattern_StopToken_TYPE; break;
+		case BarzerLiteral::T_PUNCT:    type=(uint8_t) BTND_Pattern_Punct_TYPE; break;
+		case BarzerLiteral::T_BLANK: 
+			type = (typeof type) BTND_Pattern_Token_TYPE;
+			id =   0xffffffff;
+			break;
+		}
+		return *this;
 	}
-	void setCompound(const BarzerLiteral& dta, bool followsBlank=false ) 
-	{
-		type = (typeof type) BTND_Pattern_CompoundedWord_TYPE;
-		id =   dta.getId();
-		noLeftBlanks = ( followsBlank ? 1:0 );
-	}
-	void setPunct(const BarzerLiteral& dta, bool followsBlank=false ) 
-	{
-		type = (typeof type) BTND_Pattern_Punct_TYPE;
-		id =   dta.getId();
-		noLeftBlanks = ( followsBlank ? 1:0 );
-	}
-	void setStop(const BarzerLiteral& dta, bool followsBlank=false ) 
-	{
-		type = (typeof type) BTND_Pattern_Punct_TYPE;
-		id =   0;
-		noLeftBlanks = ( followsBlank ? 1:0 );
-	}
+	void setNull( ) { type = BTND_Pattern_None_TYPE; id = 0xffffffff; }
 
 	std::ostream& print( std::ostream& , const BELPrintContext& ctxt ) const;
 	
 	std::ostream& print( std::ostream& ) const;
-	bool isBlank() const { return (type == BTND_Pattern_None_TYPE); }
+	bool isNull() const { return (type == BTND_Pattern_None_TYPE); }
+
+	bool isBlankLiteral() const { return (BTND_Pattern_Token_TYPE ==type && id==0xffffffff); } 
+	bool isStopToken() const { return( BTND_Pattern_StopToken_TYPE == type ); }
+
 	bool isNoLeftBlanks() const { return noLeftBlanks; }
 };
 
@@ -116,6 +116,11 @@ inline bool operator ==( const BarzelTrieFirmChildKey& l, const BarzelTrieFirmCh
 struct BarzelWCKey {
 	uint32_t wcId; // wildcard id unique for the type in a pool
 	uint8_t wcType; // one of BTND_Pattern_XXXX_TYPE enums
+	// longest span of the wildcard
+	// for example if number wildcard has maxSpan of 1 
+	// only 1 bead long sequences will be considered candidates
+	// for matching
+	uint8_t maxSpan; 
 	uint8_t noLeftBlanks; // one of BTND_Pattern_XXXX_TYPE enums
 	
 	void clear() 
@@ -125,8 +130,14 @@ struct BarzelWCKey {
 	BarzelWCKey() : 
 		wcId(0xffffffff), 
 		wcType(BTND_Pattern_None_TYPE),
+		maxSpan(1),
 		noLeftBlanks(0)
 	{}
+	void set( uint8_t span, bool followsBlank ) 
+	{
+		maxSpan= span;
+		noLeftBlanks = ( followsBlank? 0: 1 );
+	}
 
 	// non trivial constructor - this may add wildcard to the pool
 	// when fails wcType will be set to BTND_Pattern_None_TYPE
@@ -134,8 +145,8 @@ struct BarzelWCKey {
 
 	inline bool lessThan( const BarzelWCKey& r ) const
 	{ return ay::range_comp().less_than( 
-		noLeftBlanks, 	wcType, 	wcId,
-		r.noLeftBlanks, r.wcType, 	r.wcId 
+		maxSpan, noLeftBlanks, 	wcType, 	wcId,
+		r.maxSpan, r.noLeftBlanks, r.wcType, 	r.wcId 
 		);}
 	
 	std::ostream& print( std::ostream& fp, const BarzelWildcardPool* ) const;
@@ -152,7 +163,6 @@ inline bool operator <( const BarzelWCKey& l, const BarzelWCKey& r )
 /// stored in barzel trie nodes
 
 typedef std::pair<BarzelTrieFirmChildKey, BarzelWCKey> BarzelWCLookupKey;
-
 
 /// right side of the pattern 
 class BarzelTranslation {

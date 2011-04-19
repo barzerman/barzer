@@ -171,10 +171,6 @@ private:
 	uint32_t theId;
 	uint8_t  type;
 public:
-	bool isBlank() const { return type == T_BLANK; }
-	bool isStop() const { return type == T_STOP; }
-	bool isPunct() const { return type == T_PUNCT; }
-
 	BarzerLiteral() : 
 		theId(0xffffffff),
 		type(T_STRING)
@@ -204,11 +200,11 @@ public:
 	uint8_t getType() const { return type; }
 
 	bool isNull() const { return ( type == T_STRING && theId == 0xffffffff ); }
-	
-
+	bool isBlank() const { return type == T_BLANK; }
+	bool isStop() const { return type == T_STOP; }
+	bool isPunct() const { return type == T_PUNCT; }
 };
-
-
+/// range of continuous values (int,real,date,time ...)
 struct BarzerRange {
 	typedef std::pair< int, int > Integer;
 	typedef std::pair< float, float > Real;

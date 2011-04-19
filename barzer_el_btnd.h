@@ -241,9 +241,29 @@ struct BTND_Pattern_Token {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	ay::UniqueCharPool::StrId stringId;
 
-	BTND_Pattern_Token() : stringId(ay::UniqueCharPool::ID_NOTFOUND) {}
-	BTND_Pattern_Token(ay::UniqueCharPool::StrId id) : stringId(id) {}
+	BTND_Pattern_Token() : 
+		stringId(ay::UniqueCharPool::ID_NOTFOUND)
+	{}
+	BTND_Pattern_Token(ay::UniqueCharPool::StrId id) : 
+		stringId(id)
+	{}
 };
+/// stop token is a regular token literal except it will be ignored 
+/// by any tag matching algorithm
+struct BTND_Pattern_StopToken : public BTND_Pattern_Token {
+	std::ostream& print( std::ostream& fp, const BELPrintContext& ctxt ) const
+	{
+		return BTND_Pattern_Token::print( fp, ctxt ) << "<STOP>";
+	}
+	ay::UniqueCharPool::StrId stringId;
+
+	BTND_Pattern_StopToken(ay::UniqueCharPool::StrId id) : 
+		BTND_Pattern_Token(id)
+	{}
+};
+
+inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_StopToken& x )
+	{ return( fp << "stop[" << std::hex << x.stringId << "]");}
 inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_Token& x )
 	{ return( fp << "string[" << std::hex << x.stringId << "]");}
 
@@ -263,7 +283,8 @@ typedef boost::variant<
 		BTND_Pattern_Wildcard, 			// 5
 		BTND_Pattern_Date,     			// 6
 		BTND_Pattern_Time,     			// 7
-		BTND_Pattern_DateTime 			// 8 
+		BTND_Pattern_DateTime, 			// 8 
+		BTND_Pattern_StopToken		 	// 9
 > BTND_PatternData;
 
 
@@ -279,6 +300,7 @@ enum {
 	BTND_Pattern_Date_TYPE,     		// 6
 	BTND_Pattern_Time_TYPE,    			// 7
 	BTND_Pattern_DateTime_TYPE,			// 8
+	BTND_Pattern_StopToken_TYPE,		// 9
 
 
 	/// end of wildcard types - add new ones ONLY ABOVE THIS LINE

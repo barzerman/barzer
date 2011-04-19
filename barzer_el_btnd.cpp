@@ -22,6 +22,7 @@ const char* BTNDDecode::typeName_Pattern ( int x )
 	ENUMCASE(Date)
 	ENUMCASE(Time)
 	ENUMCASE(DateTime)
+	ENUMCASE(StopToken)
 	default: 
 		return "PatternUNDEF";
 	}

@@ -108,7 +108,7 @@ std::ostream& BELPrintContext::printBarzelWCLookupKey( std::ostream& fp, const B
 	const BarzelWCKey& wcKey = key.second;
 	
 	trie.wcPool->print( fp, wcKey, *this );
-	if( !firmKey.isBlank() ) {
+	if( !firmKey.isNull() ) {
 		fp << "-->";
 		firmKey.print( fp, *this );
 	}
@@ -120,7 +120,7 @@ std::ostream& BELPrintContext::printBarzelWCLookupKey( std::ostream& fp, const B
 BarzelTrieNode* BarzelTrieNode::addFirmPattern( BELTrie& trie, const BTND_PatternData& p )
 {
 	BarzelTrieFirmChildKey key(p);
-	if( key.isBlank() ) {
+	if( key.isNull() ) {
 		AYTRACE( "illegally attempting to add a wildcard" );
 		return this;
 	} else {
@@ -189,7 +189,7 @@ const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, const B
 	for( BTND_PatternDataVec::const_iterator i = path.begin(); i!= path.end(); ++i ) {
 		BarzelTrieFirmChildKey firmKey(*i);
 
-		if( firmKey.isBlank() ) {
+		if( firmKey.isNull() ) {
 			wcpdList.push_back( WCPatDta(i,BarzelTrieFirmChildKey() ) );
 			WCPatDtaList::iterator firstWC = wcpdList.rbegin().base();
 		} else {
