@@ -42,8 +42,6 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 		i++;
 	} while( emitter.produceSequence() );
 	//AYLOG(DEBUG) << i << " sequences produced";
-
-	
 	++numStatements;
 	// AYDEBUG(numStatements);
 }
