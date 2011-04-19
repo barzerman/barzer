@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include "ay/ay_logger.h"
+#include <ay_util_time.h>
 
 namespace barzer {
 
@@ -26,17 +27,18 @@ std::ostream& BELReader::printNode( std::ostream& fp, const BarzelTrieNode& node
 void BELReader::addStatement( const BELStatementParsed& sp )
 {
 	BELParseTreeNode_PatternEmitter emitter( sp.pattern );
+	//AYLOG(DEBUG) << "addStatement called";
 
-
-	int i = 0;
+	int i = 0, j = 0;
+	ay::stopwatch totalTimer;
 	do {
 		const BTND_PatternDataVec& seq = emitter.getCurSequence();
+		j += seq.size();
 		trie->addPath( seq, sp.translation );
 		i++;
 		//AYLOG(DEBUG) << "path added";
 	} while( emitter.produceSequence() );
-	//AYLOG(DEBUG) << i << " sequences produced";
-
+	AYLOG(DEBUG) << i << " sequences(" <<  j << " nodes) produced in " << totalTimer.calcTime();
 	
 	++numStatements;
 	// AYDEBUG(numStatements);

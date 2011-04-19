@@ -63,7 +63,6 @@ protected:
 	size_t numStatements; /// total number of successfully read statements 
 
 	std::string inputFileName; 
-	
 public:
 
 	/// barzEL input formats
@@ -82,6 +81,10 @@ public:
 		trie(t) , parser(0), strPool(sPool), numStatements(0) , inputFmt(INPUT_FMT_XML)
 	{}
 	
+	~BELReader() {
+		delete parser;
+	}
+
 	/// this method is called by the parser for every statement tree 
 	void addStatement( const BELStatementParsed& );
 
