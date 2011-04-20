@@ -187,6 +187,8 @@ class BarzerString {
 public:
 	void setFromTTokens( const TTWPVec& v );
 
+	const std::string& getStr() const { return str; }
+
 	std::ostream& print( std::ostream& fp ) const
 		{ return ( fp << "\"" <<str<< "\"" ); }
 };
