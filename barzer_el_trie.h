@@ -182,7 +182,7 @@ inline bool operator <( const BarzelWCKey& l, const BarzelWCKey& r )
 typedef std::pair<BarzelTrieFirmChildKey, BarzelWCKey> BarzelWCLookupKey;
 inline bool operator< (const BarzelWCLookupKey& l, const BarzelWCLookupKey& r )
 {
-	ay::range_comp().less_than(
+	return ay::range_comp().less_than(
 		l.first.id, l.first.type, l.second, l.first.noLeftBlanks,
 		r.first.id, r.first.type, r.second, r.first.noLeftBlanks
 	);

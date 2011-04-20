@@ -91,7 +91,7 @@ public:
 	void findPaths( const BarzelTrieNode* trieNode)
 		{ matchBeadChain( bestPaths.fullRange, trieNode ); }
 	
-	bool evalWildcard( wcKey, BeadList::iterator fromI, BeadList::iterator theI, uint8_t tokSkip ) const;
+	bool evalWildcard( const BarzelWCKey& wcKey, BeadList::iterator fromI, BeadList::iterator theI, uint8_t tokSkip ) const;
 };
 
 

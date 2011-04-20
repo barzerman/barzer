@@ -85,10 +85,9 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 			BarzelWCLookup::const_iterator wci = wcLookup.lower_bound(key);
 
 			for( ; wci!= wcLookup.end() && partialWCKeyProcess_key_eq( wci->first,key) ; ++wci ) {
-				if( wci->first.maxSpan< tokSkip ) 
+				if( wci->first.second.maxSpan< tokSkip ) 
 					break;
 	
-				const BarzelTrieNode* child = &(wci->second);
 				/// if match is successful tryWildcardMatch will push into d_mtChild
 				tryWildcardMatch( wci, iter, tokSkip );
 			}
@@ -127,7 +126,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 	void skipBlanks() 
 	{
 		for( ;d_rng.first!= d_rng.second; ++d_rng.first ) {
-			const BarzelBead& b = *(rng.first);
+			const BarzelBead& b = *(d_rng.first);
 			const BarzelBeadAtomic* bead = b.getAtomic();
 			if( bead && bead->isBlankLiteral() ) {
 				if( !d_followsBlank ) 
@@ -140,7 +139,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 	{
 		BarzelTrieFirmChildKey firmKey; 
 		// forming firm key
-		bool curDtaIsBlank = key.set(dta,d_followsBlank).isBlankLiteral();
+		bool curDtaIsBlank = firmKey.set(dta,d_followsBlank).isBlankLiteral();
 		if( curDtaIsBlank ) 
 			return false; // this should never happen (skipBlanks is called prior)
 
@@ -206,34 +205,34 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 bool BTMIterator::evalWildcard( const BarzelWCKey& wcKey, BeadList::iterator fromI, BeadList::iterator theI, uint8_t tokSkip ) const
 {
 	const BarzelWildcardPool& wcPool = universe.getWildcardPool();
-	switch( wcKey.type ) {
+	switch( wcKey.wcType ) {
 	case BTND_Pattern_Number_TYPE:
 	{
-		const BTND_Pattern_Number* p = wcPool.get_BTND_Pattern_Number(wcKey.id);
+		const BTND_Pattern_Number* p = wcPool.get_BTND_Pattern_Number(wcKey.wcId);
 		if( !p ) return false;
 	}
 		break;
 	case BTND_Pattern_Wildcard_TYPE:
 	{
-		const BTND_Pattern_Wildcard* p = wcPool.get_BTND_Pattern_Wildcard(wcKey.id);
+		const BTND_Pattern_Wildcard* p = wcPool.get_BTND_Pattern_Wildcard(wcKey.wcId);
 		if( !p ) return false;
 	}
 		break;
 	case BTND_Pattern_Date_TYPE:
 	{
-		const BTND_Pattern_Date* p = wcPool.get_BTND_Pattern_Date(wcKey.id);
+		const BTND_Pattern_Date* p = wcPool.get_BTND_Pattern_Date(wcKey.wcId);
 		if( !p ) return false;
 	}
 		break;
 	case BTND_Pattern_Time_TYPE:
 	{
-		const BTND_Pattern_TIme* p = wcPool.get_BTND_Pattern_TIme(wcKey.id);
+		const BTND_Pattern_Time* p = wcPool.get_BTND_Pattern_Time(wcKey.wcId);
 		if( !p ) return false;
 	}
 		break;
 	case BTND_Pattern_DateTime_TYPE:
 	{
-		const BTND_Pattern_DateTime* p = wcPool.get_BTND_Pattern_DateTime(wcKey.id);
+		const BTND_Pattern_DateTime* p = wcPool.get_BTND_Pattern_DateTime(wcKey.wcId);
 		if( !p ) return false;
 	}
 		break;
@@ -255,7 +254,6 @@ bool BTMIterator::findMatchingChildren( NodeAndBeadVec& mtChild, const BeadRange
 	
 	findMatchingChildren_visitor vis( *this, mtChild, rng, tn );
 
-	size_t numMatched = 0;
 	vis.skipBlanks();
 	boost::apply_visitor( vis, bead->dta );
 	return mtChild.size();
