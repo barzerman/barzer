@@ -26,6 +26,17 @@ class BarzelWildcardPool {
 	ay::InternerWithId<BTND_Pattern_DateTime> 	pool_DateTime;
 	ay::InternerWithId<BTND_Pattern_Wildcard> 	pool_Wildcard;
 public:
+	const BTND_Pattern_Number* 	get_BTND_Pattern_Number( uint32_t id ) const 
+		{ return pool_Number.getObjById( id ); }
+	const BTND_Pattern_Date* 	get_BTND_Pattern_Date( uint32_t id ) const 
+		{ return pool_Date.getObjById( id ); }
+	const BTND_Pattern_Time* 	get_BTND_Pattern_Time( uint32_t	id ) const 
+		{ return pool_Time.getObjById( id ); }
+	const BTND_Pattern_DateTime* get_BTND_Pattern_DateTime(	uint32_t id ) const 
+		{ return pool_DateTime.getObjById( id ); }
+	const BTND_Pattern_Wildcard* get_BTND_Pattern_Wildcard( uint32_t id ) const 
+		{ return pool_Wildcard.getObjById( id ); }
+
 	void clear() 
 	{
 		wcLookupPool.clear();

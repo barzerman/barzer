@@ -300,6 +300,7 @@ enum {
 	BTND_Pattern_Date_TYPE,     		// 6
 	BTND_Pattern_Time_TYPE,    			// 7
 	BTND_Pattern_DateTime_TYPE,			// 8
+	///
 	BTND_Pattern_StopToken_TYPE,		// 9
 
 

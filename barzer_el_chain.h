@@ -57,6 +57,11 @@ struct BarzelBeadAtomic {
 
 	bool isLiteral() const { return dta.which() == BarzerLiteral_TYPE; }
 	bool isNumber() const { return dta.which() == BarzerNumber_TYPE; }
+	bool isBlankLiteral() const
+		{ 
+			const BarzerLiteral* bl = getLiteral();
+			return( bl && bl->isBlank() );
+		}
 	int getType() const 
 		{ return dta.which(); }
 

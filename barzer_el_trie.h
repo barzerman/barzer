@@ -76,7 +76,7 @@ struct BarzelTrieFirmChildKey {
 		}
 		return *this;
 	}
-	void setNull( ) { type = BTND_Pattern_None_TYPE; id = 0xffffffff; }
+	void setNull( ) { type = BTND_Pattern_None_TYPE; id = 0xffffffff; noLeftBlanks=0;}
 
 	std::ostream& print( std::ostream& , const BELPrintContext& ctxt ) const;
 	
@@ -96,8 +96,8 @@ struct BarzelTrieFirmChildKey_comp_less {
 	inline bool operator() ( const BarzelTrieFirmChildKey& l, const BarzelTrieFirmChildKey& r ) const 
 		{ 
 			return ay::range_comp().less_than( 
-				l.noLeftBlanks, l.type, l.id,
-				r.noLeftBlanks, r.type, r.id
+				l.type, l.id, l.noLeftBlanks,
+				r.type, r.id, r.noLeftBlanks
 			);
 			// return( l.id < r.id ? true : ( r.id < l.id ? false : (l.type < r.type))); 
 		}
@@ -144,10 +144,27 @@ struct BarzelWCKey {
 	// BarzelWCKey( BELTrie& trie, const BTND_PatternData& pat );
 
 	inline bool lessThan( const BarzelWCKey& r ) const
-	{ return ay::range_comp().less_than( 
-		maxSpan, noLeftBlanks, 	wcType, 	wcId,
-		r.maxSpan, r.noLeftBlanks, r.wcType, 	r.wcId 
-		);}
+	{ 
+		if( 
+			ay::range_comp().less_than( 
+				maxSpan, 	wcType,
+				r.maxSpan, 	r.wcType
+			) 
+		) {
+			return true;
+		} else if( 
+			ay::range_comp().less_than( 
+				r.maxSpan, 	r.wcType,
+				maxSpan, 	wcType
+			) 
+		) {
+			return false;
+		} else
+			return ( ay::range_comp().less_than(
+				r.wcId, r.noLeftBlanks,
+				  wcId,   noLeftBlanks
+			) );
+	}
 	
 	std::ostream& print( std::ostream& fp, const BarzelWildcardPool* ) const;
 };
@@ -163,6 +180,13 @@ inline bool operator <( const BarzelWCKey& l, const BarzelWCKey& r )
 /// stored in barzel trie nodes
 
 typedef std::pair<BarzelTrieFirmChildKey, BarzelWCKey> BarzelWCLookupKey;
+inline bool operator< (const BarzelWCLookupKey& l, const BarzelWCLookupKey& r )
+{
+	ay::range_comp().less_than(
+		l.first.id, l.first.type, l.second, l.first.noLeftBlanks,
+		r.first.id, r.first.type, r.second, r.first.noLeftBlanks
+	);
+}
 
 /// right side of the pattern 
 class BarzelTranslation {

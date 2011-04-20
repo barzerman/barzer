@@ -32,6 +32,7 @@ public:
 	{
 		return barzelWildcardPool.getWCLookup( id );
 	}
+	const BarzelWildcardPool& getWildcardPool() const {return barzelWildcardPool;}
 
 	// had to add it in order to be able to create BELPrintContext
     // for custom trie printing

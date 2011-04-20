@@ -1,8 +1,17 @@
 Todo:
-1) Code review of the entire _el_ file (TODAY Apr 15)
-4) finish up emitter (April 16)
+1. look at the type Barz . in barzer_barz.h . the end result of barzing (parsing) is in Barz::beadChain 
+when barzer is running in server mode it will be forming XML (or JSON or other formats) and sending them back 
+2. Assignment: there should be a class that given const Barz& streams it out as a variety of formats 
+BarzResponseStreamer ... with virtual std::ostream& print( std::ostream& )  .. inheriting from it
+BarzStreamerXML, BarzStreamerJSON ... 
+I think initially it should be XML (convince me otherwise) 
+- write the code in barz_server_response.cpp/.h - implement first approximation of the streaming
+3. Implement end to end streamer connectivity and hook it up with the current barzer server (single threaded)
 
-Done April 16
+*1)* Code review of the entire _el_ file (TODAY Apr 15)
+
+Done April 19
+4) finish up emitter (April 16)
 0) Make BarzEL XML schema (but not use it anywhere in the code to validate against) (April 15)
 2) test it make sure the trie loads to our liking (April 15)
 3) stress test it with (April 17)
