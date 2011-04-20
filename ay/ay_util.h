@@ -155,6 +155,16 @@ struct range_comp {
 		return less_than( r1,r2,r3,r4,r5, l1,l2,l3,l4,l5 );
 	}
 };
+/// RAII
+template <typename T>
+struct vector_raii {
+	T& v;
+	vector_raii(T& vv, const typename T::value_type& x ):
+		v(vv)
+	{ v.push_back(x); }
+
+	~vector_raii() { v.pop_back(); }
+};
 
 }
 

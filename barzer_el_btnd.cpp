@@ -392,4 +392,34 @@ std::ostream&  BTND_None::print( std::ostream& fp , const BELPrintContext& ) con
 	return ( fp << "None" ); 
 }
 
+bool BTND_Pattern_Number::checkNumber( const BarzerNumber& num ) const
+{
+	switch( type ) {
+	case T_ANY_INT:
+		return num.isInt();
+	case T_ANY_REAL:
+		return num.isReal();
+
+	case T_RANGE_INT:
+		if( num.isInt() ) {
+			int n = num.getInt_unsafe();
+			return( n <= range.integer.hi && n>=range.integer.lo );
+		} else 
+			return false;
+	case T_RANGE_REAL:
+		if( num.isReal() ) {
+			double n = num.getReal_unsafe();
+			return( n <= range.integer.hi && n>=range.integer.lo );
+		} else if( num.isInt() ) {
+			double n = num.getInt_unsafe();
+			return( n <= range.integer.hi && n>=range.integer.lo );
+		} else
+			return false;
+		break;
+	default: 
+		return false;
+	}
+	return false;
+}
+
 } // namespace barzer

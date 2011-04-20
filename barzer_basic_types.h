@@ -10,6 +10,7 @@
 #include <boost/variant.hpp>
 //#include <barzer_universe.h>
 //#include <barzer_storage_types.h>
+#include <ay_util.h>
 
 namespace barzer {
 struct BELPrintContext;
@@ -44,6 +45,9 @@ public:
 	inline bool isNan() const { return type == NTYPE_NAN; }
 	inline bool isInt() const { return type == NTYPE_INT; }
 	inline bool isReal() const { return type == NTYPE_REAL; }
+
+	inline int 		getInt_unsafe() const { return( n.i  ); }
+	inline double 	getReal_unsafe() const { return( n.real  ); }
 
 	inline int 		getInt() const { return( isInt() ? n.i : 0 ); }
 	inline double 	getReal() const { return( isReal() ? n.real : 0. ); }
@@ -127,32 +131,58 @@ struct BarzerDate {
 	}
 	std::ostream& print( std::ostream& fp ) const 
 		{ return ( fp << month << '/' << day << '/' << year ); }
+	bool lessThan( const BarzerDate& r ) const
+	{
+		return ay::range_comp( ).less_than(
+			year,	month, day,
+			r.year,	r.month, r.day
+		);
+	}
 };
 inline std::ostream&  operator<<( std::ostream& fp, const BarzerDate& d )
 { return ( d.print(fp) ); }
 
 inline bool operator<( const BarzerDate& l, const BarzerDate& r )
-{
-	if( l.year < r.year )
-		return true;
-	else if( r.year < l.year ) 
-		return false;
-	else if( l.month < r.month )
-		return true;
-	else if( r.month < l.month )
-		return true;
-	else
-		return ( l.day < r.day );
-}
+{ return l.lessThan(r); }
 
 struct BarzerTimeOfDay {
 	uint8_t hh, mm, ss; // hours minutes seconds 
 	BarzerTimeOfDay( ) : hh(0), mm(0), ss(0) {}
 	std::ostream& print( std::ostream& fp ) const 
 		{ return ( fp << hh << ':' << mm << ':' << ss ); }
+	inline bool lessThan( const BarzerTimeOfDay& r ) const
+	{
+		return ay::range_comp().less_than( 
+			hh, 	mm,   ss,
+			r.hh, r.mm, r.ss
+		);
+	}
 };
+inline bool operator <( const BarzerTimeOfDay& l, const BarzerTimeOfDay& r )
+{ return l.lessThan(r); }
+
 inline std::ostream& operator <<( std::ostream& fp, const BarzerTimeOfDay& x )
 	{ return( x.print(fp) ); }
+
+struct BarzerDateTime {
+	BarzerDate date;
+	BarzerTimeOfDay timeOfDay;
+	inline bool lessThan( const BarzerDateTime& r ) const
+	{
+		return ay::range_comp().less_than(
+			date,		timeOfDay,
+			r.date,		r.timeOfDay
+		);
+	}
+	std::ostream& print( std::ostream& fp ) const
+	{
+		return( fp << date << "-" << timeOfDay );
+	}
+};
+inline bool operator< ( const BarzerDateTime& l, const BarzerDateTime& r )
+{ return l.lessThan( r ); }
+inline std::ostream& operator<< ( std::ostream& fp, const BarzerDateTime& x )
+{ return x.print(fp); }
 
 //// barzer literal 
 

@@ -49,23 +49,32 @@ struct BarzelMatchInfo {
 	BarzelMatchInfo() : score(0)  {}
 	void setScore( int s ) { score = s; }
 };
+typedef std::pair< const BarzelTrieNode*, BeadList::iterator > NodeAndBead;
+typedef std::vector< NodeAndBead > NodeAndBeadVec;
 /// Barzel TrieMatcher (BTM)
 struct BTMBestPaths {
+	// ghetto - technically evaluation may be required for right side backout
+	// so the best path with right sides that guarantee no backout
+	NodeAndBeadVec d_bestHardPath;
+
+	// things with nasty right sides (the ones with backout potential) are here 
+	// this will be implemented LATER (SHIT)
+	std::vector<NodeAndBeadVec> d_vagueWildcardPaths;
+
 	/// information of the best terminal paths matched 
 	/// 
 	BeadRange fullRange; // original range of the top level matcher 
 	BTMBestPaths( const BeadRange& r ) : fullRange(r) {}
 	
+	void addPath( const NodeAndBeadVec& nb );
 };
 
-typedef std::pair< const BarzelTrieNode*, BeadList::iterator > NodeAndBead;
-typedef std::vector< NodeAndBead > NodeAndBeadVec;
 
 // object used by the matcher
 class BTMIterator {
 public:
 	typedef std::vector<const BarzelTrieNode*> BTNVec;
-
+	NodeAndBeadVec d_matchPath;
 private:
 	/// current path - d_tn is one level below. 
 	BTNVec d_path;

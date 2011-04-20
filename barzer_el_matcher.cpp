@@ -9,7 +9,8 @@ namespace barzer {
 
 int BTMIterator::addTerminalPath( const NodeAndBead& nb )
 {
-	#warning BTMIterator::addTerminalPath
+	ay::vector_raii<NodeAndBeadVec>( d_matchPath, nb );
+	bestPaths.addPath( d_matchPath );
 	return 0;
 }
 
@@ -199,48 +200,91 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 
 };
 
-}
+//// TEMPLATE MATCHING
+template <typename P>
+struct evalWildcard_vis : public boost::static_visitor<bool> {
+	const P& d_pattern;
 
+	evalWildcard_vis( const P& p ) : d_pattern(p) {}
+	template <typename T>
+	bool operator()( const T& ) const {
+		/// for all types except for the specialized wildcard wont match
+		return false;
+	}
+};
+/// number templates 
+template <>  template<>
+inline bool evalWildcard_vis<BTND_Pattern_Number>::operator()<BarzerLiteral> ( const BarzerLiteral& dta ) const
+{
+	/// some literals may be "also numbers" 
+	/// special handling for that needs to be added here 
+	return false;
+}
+template <> template <>
+inline bool evalWildcard_vis<BTND_Pattern_Number>::operator()<BarzerNumber> ( const BarzerNumber& dta ) const
+{ return d_pattern.checkNumber( dta ); }
+//// end of number template matching
+//// other patterns 
+/// for now these patterns always match on a right data type (date matches any date, datetime any date time etc..)
+/// they can be certainly further refined
+template <> template <>
+inline bool evalWildcard_vis<BTND_Pattern_Date>::operator()<BarzerDate> ( const BarzerDate& dta ) const
+{ return true; }
+
+template <> template <>
+inline bool evalWildcard_vis<BTND_Pattern_DateTime>::operator()<BarzerDateTime> ( const BarzerDateTime& dta )  const
+{ return true; }
+
+template <> template <>
+inline bool evalWildcard_vis<BTND_Pattern_Time>::operator()<BarzerTimeOfDay> ( const BarzerTimeOfDay& dta )  const
+{ return true; }
+
+template <> template <>
+inline bool evalWildcard_vis<BTND_Pattern_Wildcard>::operator()<BarzerLiteral> ( const BarzerLiteral& dta )  const
+{ return true; }
+//// end of other template matching
+
+}
 
 bool BTMIterator::evalWildcard( const BarzelWCKey& wcKey, BeadList::iterator fromI, BeadList::iterator theI, uint8_t tokSkip ) const
 {
 	const BarzelWildcardPool& wcPool = universe.getWildcardPool();
+	const BarzelBeadAtomic* atomic = theI->getAtomic();
+	if( !atomic ) 
+		return false;
+	
 	switch( wcKey.wcType ) {
 	case BTND_Pattern_Number_TYPE:
 	{
 		const BTND_Pattern_Number* p = wcPool.get_BTND_Pattern_Number(wcKey.wcId);
-		if( !p ) return false;
+		return( p ?  boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Number>(*p), atomic->dta ) : false );
 	}
-		break;
 	case BTND_Pattern_Wildcard_TYPE:
 	{
 		const BTND_Pattern_Wildcard* p = wcPool.get_BTND_Pattern_Wildcard(wcKey.wcId);
-		if( !p ) return false;
+		return( p ?  boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Wildcard>(*p), atomic->dta ) : false );
 	}
-		break;
 	case BTND_Pattern_Date_TYPE:
 	{
 		const BTND_Pattern_Date* p = wcPool.get_BTND_Pattern_Date(wcKey.wcId);
-		if( !p ) return false;
+		return( p ?  boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Date>(*p), atomic->dta ) : false );
 	}
-		break;
 	case BTND_Pattern_Time_TYPE:
 	{
 		const BTND_Pattern_Time* p = wcPool.get_BTND_Pattern_Time(wcKey.wcId);
-		if( !p ) return false;
+		return( p ?  boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Time>(*p), atomic->dta ) : false );
 	}
-		break;
 	case BTND_Pattern_DateTime_TYPE:
 	{
 		const BTND_Pattern_DateTime* p = wcPool.get_BTND_Pattern_DateTime(wcKey.wcId);
-		if( !p ) return false;
+		return( p ?  boost::apply_visitor( evalWildcard_vis<BTND_Pattern_DateTime>(*p), atomic->dta ) : false );
 	}
-		break;
 	default:
 		return false;
 	}
 	return false;
 }
+
 bool BTMIterator::findMatchingChildren( NodeAndBeadVec& mtChild, const BeadRange& rng, const BarzelTrieNode* tn )
 {
 	if( rng.first == rng.second ) 
@@ -261,6 +305,8 @@ bool BTMIterator::findMatchingChildren( NodeAndBeadVec& mtChild, const BeadRange
 
 void BTMIterator::matchBeadChain( const BeadRange& rng, const BarzelTrieNode* trieNode )
 {
+	ay::vector_raii<NodeAndBeadVec>( d_matchPath, NodeAndBeadVec::value_type( trieNode, rng.first ) );
+
 	if( rng.first == rng.second ) {
 		return; // range is empty
 	}
@@ -283,12 +329,19 @@ void BTMIterator::matchBeadChain( const BeadRange& rng, const BarzelTrieNode* tr
 	}
 }
 
-int BarzelMatcher::matchInRange( RewriteUnit& rwrUnit, const BeadRange& fullRange ) 
+void BTMBestPaths::addPath( const NodeAndBeadVec& nb )
+{
+	// ghetto
+	if( nb.size() > d_bestHardPath.size() )
+		d_bestHardPath = nb;
+}
+
+int BarzelMatcher::matchInRange( RewriteUnit& rwrUnit, const BeadRange& curBeadRange ) 
 {
 	int  score = 0;
 	const BarzelTrieNode* trieRoot = &(universe.getBarzelTrie().getRoot());
 
-	BTMIterator btmi(fullRange,universe);	
+	BTMIterator btmi(curBeadRange,universe);	
 	btmi.findPaths(trieRoot);
 	
 	score = findWinningPath( rwrUnit, btmi.bestPaths );

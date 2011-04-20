@@ -32,7 +32,7 @@ struct BTND_Pattern_Number {
 	// for EXACT_XXX types only lo is used
 	union {
 		struct { float lo,hi; } real;
-		struct { int 	lo,hi; } integer;
+		struct { int lo,hi; } integer;
 	} range;
 
 	inline bool isLessThan( const BTND_Pattern_Number& r ) const
@@ -71,6 +71,7 @@ struct BTND_Pattern_Number {
 	void setAnyInt() { type = T_ANY_INT; }
 	void setAnyReal() { type = T_ANY_REAL; }
 
+	int getType() const { return type; }
 	void setIntRange( int lo, int hi )
 	{
 		type = T_RANGE_INT;
@@ -93,6 +94,7 @@ struct BTND_Pattern_Number {
 		}
 		return fp;
 	}
+	bool checkNumber( const BarzerNumber& num ) const;
 };
 inline bool operator <( const BTND_Pattern_Number& l, const BTND_Pattern_Number& r )
 	{ return l.isLessThan( r ); }
