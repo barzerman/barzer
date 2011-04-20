@@ -1,0 +1,33 @@
+/*
+ * barz_server_response.h
+ *
+ *  Created on: Apr 20, 2011
+ *      Author: polter
+ */
+
+#ifndef BARZ_SERVER_RESPONSE_H_
+#define BARZ_SERVER_RESPONSE_H_
+
+#include "barzer_barz.h"
+#include "barzer_universe.h"
+
+namespace  barzer {
+
+class BarzResponseStreamer {
+protected:
+	const Barz &barz;
+	StoredUniverse &universe;
+public:
+	BarzResponseStreamer(const Barz &b, StoredUniverse &u) : barz(b), universe(u) {}
+	virtual std::ostream& print(std::ostream& os) { return os; }
+};
+
+
+class BarzStreamerXML : public BarzResponseStreamer {
+public:
+	std::ostream& print(std::ostream&);
+};
+
+}
+
+#endif /* BARZ_SERVER_RESPONSE_H_ */

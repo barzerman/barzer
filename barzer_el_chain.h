@@ -129,6 +129,7 @@ public:
 	bool isExpression() const { return (dta.which() == BarzelBeadExpression_TYPE); }
 
 	const BarzelBeadAtomic* getAtomic() const { return  boost::get<BarzelBeadAtomic>( &dta ); }
+	const BarzelBeadExpression* getExpression() const { return  boost::get<BarzelBeadExpression>( &dta ); }
 }; 
 
 typedef std::list< BarzelBead > 	BeadList;
