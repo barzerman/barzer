@@ -97,11 +97,6 @@ public:
 	std::ostream& printNode( std::ostream& fp, const BarzelTrieNode& node ) const;
 };
 
-class Callable {
-public:
-	virtual void operator()( const BELStatementParsed& );
-};
-
 template<class T>class BELExpandReader : public BELReader {
 	T &functor;
 public:
