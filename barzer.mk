@@ -9,6 +9,7 @@ libs = -Lay -lay -L/opt/local/lib/boost -L/usr/lib -lboost_system -lexpat -lstdc
 ECHO = echo
 objects = \
 barz_server_response.o \
+barzer_server_request.o \
 barzer_barz.o \
 barzer_el_matcher.o \
 barzer_el_chain.o \
