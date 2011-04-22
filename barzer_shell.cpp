@@ -9,6 +9,7 @@
 #include "ay/ay_logger.h"
 #include <algorithm>
 #include "barzer_el_trie_shell.h"
+#include "barz_server_response.h"
 
 namespace barzer {
 
@@ -22,6 +23,8 @@ inline BarzerShellContext* BarzerShell::getBarzerContext()
 typedef const char* char_cp;
 typedef ay::Shell::CmdData CmdData;
 ///// specific shell routines
+
+
 static int bshf_test( ay::Shell*, char_cp cmd, std::istream& in )
 {
 	std::cout << "command: " << cmd << ";";
@@ -194,6 +197,30 @@ static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
 	}
 	return 0;
 }
+
+static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext * context = shell->getBarzerContext();
+	Barz& barz = context->barz;
+	QParser& parser = context->parser;
+
+	BarzStreamerXML bs(barz, context->universe);
+
+	ay::InputLineReader reader( in );
+	QuestionParm qparm;
+	std::ostream &os = shell->getOutStream();
+
+	while( reader.nextLine() && reader.str.length() ) {
+		const char* q = reader.str.c_str();
+		os << "parsing: " << q << "\n";
+		parser.parse( barz, q, qparm );
+		os << "parsed. printing\n";
+		bs.print(os);
+		// << ttVec << std::endl;
+	}
+	return 0;
+}
+
 
 
 static int bshf_setloglevel( BarzerShell* shell, char_cp cmd, std::istream& in )
@@ -429,6 +456,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_trcdw, "trcdw", "changes current trie node to the wildcard child by number" ),
 	CmdData( (ay::Shell_PROCF)bshf_trup, "trup", "moves back to the parent trie node" ),
 	CmdData( (ay::Shell_PROCF)bshf_stexpand, "stexpand", "expand and print all statements in a file" ),
+	CmdData( (ay::Shell_PROCF)bshf_process, "process", "process an input string" ),
 };
 
 ay::ShellContext* BarzerShell::mkContext()

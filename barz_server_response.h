@@ -25,6 +25,7 @@ public:
 
 class BarzStreamerXML : public BarzResponseStreamer {
 public:
+	BarzStreamerXML(const Barz &b, StoredUniverse &u) : BarzResponseStreamer(b, u) {}
 	std::ostream& print(std::ostream&);
 };
 

@@ -53,10 +53,11 @@ public:
 			_os << (char)data.getId(); // cough. need to somehow make this localised
 			break;
 		case BarzerLiteral::T_BLANK:
-			_os << "huh";
+			_os << "<blank />";
 			break;
 		default:
 			AYLOG(ERROR) << "Unknown literal type";
+			_os << "<error>unknown literal type</error>";
 		}
 		_os << "</literal>";
 	}
