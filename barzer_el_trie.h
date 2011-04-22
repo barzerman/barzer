@@ -226,6 +226,22 @@ public:
 	void clear() { type= T_NONE; }
 	bool isRewriter() const  { return ( type == T_REWRITER ); }
 		 
+	// returns if evaluation may theoretically fail - theoretically some rewrites may 
+	// contain things such as entity searches or other operations resulting in entity lists
+	// as well as potentially fail conditions - post check may be more complicated than the 
+	// initial wildcard matching check
+	// this function answers in principle whether the right side may theoretically fail 
+	// this check is very cheap because no actual evaluation is performed
+	bool isFallible(const BarzelRewriterPool& rwrPool) const 
+	{
+		if( type != T_REWRITER ) {
+			return false;
+		} else {
+			return isRewriteFallible( rwrPool );
+		}
+	}
+
+	bool isRewriteFallible( const BarzelRewriterPool& pool ) const;
 	bool nonEmpty() const
 		{ return ( type != T_NONE ); }
 	BarzelTranslation() : id( 0xffffffff ) , type(T_NONE) {}
@@ -242,9 +258,29 @@ class BarzelTrieNode {
 
 	uint32_t wcLookupId; // when valid (not 0xffffffff) can it's an id of a wildcard lookup object 
 	// BarzelWCLookup wcChild; /// used for wildcard matching (number,date, etc)
+	enum {
+		B_WCCHILD, // it's a wildcard child of its parent 
+		
+		// new bits strictly above this line 
+		B_MAX
+	};
+
+	ay::bitflags<B_MAX> d_flags; // only prints children at the current level
+
+	const BarzelTrieNode* d_parent;
 public:
 	BarzelTranslation translation;
 
+	BarzelTrieNode():
+		wcLookupId(0xffffffff) ,
+		d_parent(0)
+	{}
+	BarzelTrieNode(const BarzelTrieNode* p ):
+		wcLookupId(0xffffffff) ,
+		d_parent(p)
+	{}
+
+	const BarzelTrieNode* getParent() const { return d_parent; }
 	uint32_t getWCLookupId() const { return wcLookupId; }
 
 	void clear();
@@ -277,10 +313,13 @@ public:
 	// if p is firm (not a wildcard) this is a no-op
 	BarzelTrieNode* addWildcardPattern( BELTrie& trie, const BTND_PatternData& p, const BarzelTrieFirmChildKey& fk  );
 
+
 	bool hasValidWcLookup() const
 		{ return (wcLookupId != 0xffffffff); }
 
-	BarzelTrieNode() : wcLookupId(0xffffffff) {}
+	void setFlag_isWcChild() { d_flags.set( B_WCCHILD ); }
+	bool isWcChild() const { return d_flags[ B_WCCHILD ]; }
+
 	const BarzelTrieNode* getFirmChild( const BarzelTrieFirmChildKey& key ) const
 	{
 		BarzelFCMap::const_iterator  i = firmMap.find( key );

@@ -126,7 +126,7 @@ BarzelTrieNode* BarzelTrieNode::addFirmPattern( BELTrie& trie, const BTND_Patter
 	} else {
 		BarzelFCMap::iterator i = firmMap.find( key );
 		if( i == firmMap.end() ) { // creating new one
-			i = firmMap.insert( BarzelFCMap::value_type( key, BarzelTrieNode() ) ).first;
+			i = firmMap.insert( BarzelFCMap::value_type( key, BarzelTrieNode(this) ) ).first;
 		}
 		return &(i->second);
 	}
@@ -145,8 +145,9 @@ BarzelTrieNode* BarzelTrieNode::addWildcardPattern( BELTrie& trie, const BTND_Pa
 	trie.produceWCKey( lkey.second, p );
 	BarzelWCLookup::iterator i = wcLookup->find( lkey );	
 	if( i == wcLookup->end() ) 
-		i = wcLookup->insert( BarzelWCLookup::value_type( lkey, BarzelTrieNode()  ) ).first;	
-	
+		i = wcLookup->insert( BarzelWCLookup::value_type( lkey, BarzelTrieNode(this)  ) ).first;	
+	i->second.setFlag_isWcChild();	
+
 	return &(i->second);
 }
 std::ostream& BarzelTrieFirmChildKey::print( std::ostream& fp ) const
@@ -229,6 +230,20 @@ const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, const B
 	return n;
 }
 //// BarzelTranslation methods
+
+bool BarzelTranslation::isRewriteFallible( const BarzelRewriterPool& pool ) const
+{
+	BarzelRewriterPool::BufAndSize rwr; // rewrite bytecode
+	if( !pool.resolveTranslation( rwr, *this ) ) {
+		AYLOG(ERROR) << "failed to retrieve rewrite\n";
+		return false; // 
+	} else {
+		/// here we need to evaluate rewrite for fallibility (do NOT confuse with rewrite evaluation
+		/// which would ned the matched data. for now we assume that nothing is fallible
+		#warning rewrite fallibility evaluation needs to be implemented
+		return false;
+	}
+}
 
 void BarzelTranslation::set(BELTrie& ,const BTND_Rewrite_Literal& x )
 {

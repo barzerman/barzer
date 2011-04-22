@@ -38,6 +38,9 @@ inline void BarzelWCLookupKey_form::operator()<BarzerLiteral> ( const BarzerLite
 	key.second.set( maxSpan, true );
 }
 
+struct MatchChildInfo {
+};
+
 struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 	BTMIterator& 			d_btmi;
 	NodeAndBeadVec& 		d_mtChild;
@@ -79,16 +82,29 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 	inline void partialWCKeyProcess( const BarzelWCLookup& wcLookup, const BarzelWCLookupKey& key, BeadList::iterator iter, uint8_t tokSkip )
 	{
 
-		if( key.first.isNull() ) {
-			/// in this case we should try to consume max span of every wildcard
-			#warning partialWCKeyProcess wc not followed by literal
+		BarzelWCLookupKey nullKey;
+		BarzelWCLookup::const_iterator wci = ( wcLookup.lower_bound(nullKey));
+		bool wcTermPathNotFound = (wci == wcLookup.end()); 
+		if( wcTermPathNotFound ) {
+			/// this means here are no wc terminated paths (a *) and 
+			/// we got null key on input which means we had exhausted 
+			/// all potential candidate paths and there's nothing left to do 
+			if( key.first.isNull() )
+				return;
+			BarzelWCLookup::const_iterator wci = ( wcLookup.lower_bound(key));
 		} else {
-			BarzelWCLookup::const_iterator wci = wcLookup.lower_bound(key);
-
-			for( ; wci!= wcLookup.end() && partialWCKeyProcess_key_eq( wci->first,key) ; ++wci ) {
-				if( wci->first.second.maxSpan< tokSkip ) 
-					break;
-	
+			/// otherwise we will iterate over everything
+			wci = wcLookup.begin();
+		} 
+			
+		/// this here means that there are wc terminated paths (a*) 
+		/// which, in turn means we need to match every wildcard in the subtree
+		/// in order for the algo to be correct
+		for( ; wci!= wcLookup.end() && 
+			( wcTermPathNotFound || partialWCKeyProcess_key_eq( wci->first,key) ); 
+			++wci 
+		) {
+			if( wci->first.second.maxSpan>= tokSkip ) {
 				/// if match is successful tryWildcardMatch will push into d_mtChild
 				tryWildcardMatch( wci, iter, tokSkip );
 			}
@@ -112,16 +128,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 				boost::apply_visitor( key_form, blankBead );
 				++tokSkip;
 			}	
-
 			partialWCKeyProcess( wcLookup, key, i,tokSkip );
-			if( !key.first.isNull() ) {
-				BarzelWCLookupKey nullkey;
-				BarzelWCLookupKey_form nullKey_form ( nullkey, tokSkip );
-				BarzelBeadData blankBead;
-				boost::apply_visitor( nullKey_form, blankBead );
-
-				partialWCKeyProcess( wcLookup, nullkey,i,tokSkip );
-			}
 		}
 	}
 	void skipBlanks() 
@@ -158,9 +165,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 
 		if( !curDtaIsBlank && d_followsBlank ) 
 			d_followsBlank = false;
-
 		// ch is 0 here 
-
 		if( d_tn->hasValidWcLookup() ) 
 			return false;
 
@@ -315,9 +320,15 @@ void BTMIterator::matchBeadChain( const BeadRange& rng, const BarzelTrieNode* tr
 	if( !findMatchingChildren( mtChild, rng, trieNode ) ) 
 		return; // no matching children found
 
+	const BarzelTrieNode* tn = 0;
+	BeadList::iterator nextBead = rng.second;
+
 	for( NodeAndBeadVec::const_iterator ch = mtChild.begin(); ch != mtChild.end(); ++ ch ) {
-		const BarzelTrieNode* tn = ch->first;
-		BeadList::iterator nextBead = ch->second;
+		if(tn && ch->first == tn && ch->second == nextBead) 
+			continue;
+		
+		tn = ch->first;
+		nextBead = ch->second;
 
 		if( tn->isLeaf() ) {
 			addTerminalPath( *ch );
@@ -329,11 +340,50 @@ void BTMIterator::matchBeadChain( const BeadRange& rng, const BarzelTrieNode* tr
 	}
 }
 
-void BTMBestPaths::addPath( const NodeAndBeadVec& nb )
+
+int BTMBestPaths::setRewriteUnit( RewriteUnit& ru )
+{
+	#warning unimplemeneted setRewriteUnit
+	// TODO: NodeAndBeadVec should store bead range 
+	//       this range will be used to id the variable 
+	//       this is the final piece of the puzzle 
+	//       other than the actual rewrite 
+	return 0;
+}
+/// bool indicates fallibility 
+/// int is the score in case path doesnt fail
+std::pair< bool, int > BTMBestPaths::scorePath( const NodeAndBeadVec& nb ) const
+{
+	std::pair< bool, int >  retVal( true, 0 );
+	
+	BeadList::iterator fromBead = d_fullRange.first;
+	BeadList::iterator endBead = nb.rbegin()->second;
+
+	int numTokensConsumed = 0; // number of *tokens* in the match  
+	for( BeadList::iterator i = fromBead; i!= endBead; ++i ) {
+		numTokensConsumed += i->getFullNumTokens();
+	}
+
+	int matchStyleScore = 0; // wc match gets 10 firm - 100
+	for( const BarzelTrieNode* tn = nb.rbegin()->first; tn; tn= tn->getParent() ) {
+		matchStyleScore += ( tn->isWcChild() ? 10 : 100 );	
+	}
+	retVal.second = numTokensConsumed * matchStyleScore;	
+
+	return retVal;
+}
+
+void BTMBestPaths::addPath(const NodeAndBeadVec& nb )
 {
 	// ghetto
-	if( nb.size() > d_bestHardPath.size() )
-		d_bestHardPath = nb;
+	std::pair< bool, int > score = scorePath( nb );	
+	if( score.second <= d_bestInfallibleScore ) 
+		return;
+	if( score.first ) { /// fallible 
+		d_falliblePaths.push_back( NABVScore(nb,score.second) );
+	} else { 
+		d_bestInfalliblePath = nb;
+	}
 }
 
 int BarzelMatcher::matchInRange( RewriteUnit& rwrUnit, const BeadRange& curBeadRange ) 
@@ -344,15 +394,10 @@ int BarzelMatcher::matchInRange( RewriteUnit& rwrUnit, const BeadRange& curBeadR
 	BTMIterator btmi(curBeadRange,universe);	
 	btmi.findPaths(trieRoot);
 	
-	score = findWinningPath( rwrUnit, btmi.bestPaths );
+	score = btmi.bestPaths.setRewriteUnit( rwrUnit );
+	// findWinningPath( rwrUnit, btmi.bestPaths );
 
 	return score;
-}
-
-int BarzelMatcher::findWinningPath( RewriteUnit& rwrUnit, BTMBestPaths& bestPaths )
-{
-	#warning BarzelMatcher::findWinningPath unimplemented 
-	return 0;
 }
 
 namespace {

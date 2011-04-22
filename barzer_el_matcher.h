@@ -49,24 +49,42 @@ struct BarzelMatchInfo {
 	BarzelMatchInfo() : score(0)  {}
 	void setScore( int s ) { score = s; }
 };
+typedef std::pair<BarzelMatchInfo,const BarzelTranslation*> RewriteUnit;
 typedef std::pair< const BarzelTrieNode*, BeadList::iterator > NodeAndBead;
 typedef std::vector< NodeAndBead > NodeAndBeadVec;
+//struct RewriteUnit;
+
 /// Barzel TrieMatcher (BTM)
 struct BTMBestPaths {
 	// ghetto - technically evaluation may be required for right side backout
 	// so the best path with right sides that guarantee no backout
-	NodeAndBeadVec d_bestHardPath;
+	// such paths are called INFALLIBLE
+	NodeAndBeadVec d_bestInfalliblePath;
+	int d_bestInfallibleScore;
+	
 
-	// things with nasty right sides (the ones with backout potential) are here 
+	// fallible paths (the ones with potential backout) potentially better than 
+	// the best infallible
 	// this will be implemented LATER (SHIT)
-	std::vector<NodeAndBeadVec> d_vagueWildcardPaths;
+	typedef std::pair< NodeAndBeadVec, int > NABVScore;
+	std::list<NABVScore> d_falliblePaths;
 
 	/// information of the best terminal paths matched 
 	/// 
-	BeadRange fullRange; // original range of the top level matcher 
-	BTMBestPaths( const BeadRange& r ) : fullRange(r) {}
+	BeadRange d_fullRange; // original range of the top level matcher 
+
+	BTMBestPaths( const BeadRange& r ) : 
+		d_bestInfallibleScore(0),
+		d_fullRange(r) {}
+	const BeadRange& getFullRange() const { return d_fullRange; }
 	
+	/// bool indicates fallibility (true - infallible)
+	/// int is the score in case path doesnt fail
+	std::pair< bool, int > scorePath( const NodeAndBeadVec& nb ) const;
+
 	void addPath( const NodeAndBeadVec& nb );
+	/// returns the score of the winning match
+	int setRewriteUnit( RewriteUnit& ru );
 };
 
 
@@ -98,7 +116,7 @@ public:
 		universe(u)
 	{ }
 	void findPaths( const BarzelTrieNode* trieNode)
-		{ matchBeadChain( bestPaths.fullRange, trieNode ); }
+		{ matchBeadChain( bestPaths.getFullRange(), trieNode ); }
 	
 	bool evalWildcard( const BarzelWCKey& wcKey, BeadList::iterator fromI, BeadList::iterator theI, uint8_t tokSkip ) const;
 };
@@ -115,7 +133,6 @@ protected:
 	///   - matching context (variable names and such) 
 	///   - match path - determinitsic path in the trie that was matched for this unit
 public:
-	typedef std::pair<BarzelMatchInfo,const BarzelTranslation*> RewriteUnit;
 	typedef std::pair< RewriteUnit, int> RangeWithScore;
 	typedef std::vector< RangeWithScore > RangeWithScoreVec;
 protected:
@@ -162,7 +179,8 @@ protected:
 	
 	/// evaluates highest scoring paths and returns the first suitable one
 	/// fills out rwrUnit
-	int findWinningPath( RewriteUnit& rwrUnit, BTMBestPaths& bestPaths );
+	//int findWinningPath( RewriteUnit& rwrUnit, BTMBestPaths& bestPaths )
+	//{ return bestPaths.setRewriteUnit( rwrUnit ); }	
 
 public:
 

@@ -130,6 +130,22 @@ public:
 
 	const BarzelBeadAtomic* getAtomic() const { return  boost::get<BarzelBeadAtomic>( &dta ); }
 	const BarzelBeadExpression* getExpression() const { return  boost::get<BarzelBeadExpression>( &dta ); }
+
+	size_t getFullNumTokens() const
+	{
+		size_t n = 1;
+		bool wasBlank = false;
+		for( CTWPVec::const_iterator i = ctokOrigVec.begin(); i!= ctokOrigVec.end(); ++i ) {
+			if( i->first.isBlank() ) {
+				if( !wasBlank ) {
+					++n;
+				}
+			} else {
+				wasBlank = false;
+			}
+		}
+		return ( wasBlank ? n-1: n );
+	}
 }; 
 
 typedef std::list< BarzelBead > 	BeadList;
