@@ -1,4 +1,5 @@
 Todo:
+
 1. look at the type Barz . in barzer_barz.h . the end result of barzing (parsing) is in Barz::beadChain 
 when barzer is running in server mode it will be forming XML (or JSON or other formats) and sending them back 
 2. Assignment: there should be a class that given const Barz& streams it out as a variety of formats 

@@ -1,0 +1,2 @@
+0. barzer_standard_entity.h/.cpp (gen.price, gen.distance ...) class ubclass translator
+

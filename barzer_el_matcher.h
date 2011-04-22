@@ -50,7 +50,7 @@ struct BarzelMatchInfo {
 	void setScore( int s ) { score = s; }
 };
 typedef std::pair<BarzelMatchInfo,const BarzelTranslation*> RewriteUnit;
-typedef std::pair< const BarzelTrieNode*, BeadList::iterator > NodeAndBead;
+typedef std::pair< const BarzelTrieNode*, BarzelBeadChain::Range > NodeAndBead;
 typedef std::vector< NodeAndBead > NodeAndBeadVec;
 //struct RewriteUnit;
 
