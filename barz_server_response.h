@@ -20,6 +20,7 @@ protected:
 public:
 	BarzResponseStreamer(const Barz &b, StoredUniverse &u) : barz(b), universe(u) {}
 	virtual std::ostream& print(std::ostream& os) { return os; }
+	virtual ~BarzResponseStreamer() {}
 };
 
 

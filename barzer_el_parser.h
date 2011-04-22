@@ -81,7 +81,7 @@ public:
 		trie(t) , parser(0), strPool(sPool), numStatements(0) , inputFmt(INPUT_FMT_XML)
 	{}
 	
-	~BELReader() {
+	virtual ~BELReader() {
 		delete parser;
 	}
 
