@@ -75,8 +75,9 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		const BarzelWCKey& wcKey = wci->first.second;
 
 		/// do the matching 
-		if( d_btmi.evalWildcard( wcKey, d_rangeStart, iter, tokSkip ) )
-			d_mtChild.push_back( NodeAndBeadVec::value_type(ch,iter) );
+		if( d_btmi.evalWildcard( wcKey, d_rangeStart, iter, tokSkip ) ) {
+			d_mtChild.push_back( NodeAndBeadVec::value_type(ch,BarzelBeadChain::Range(d_rng.first,iter)) );
+		}
 	}
 	/// iterates over all matching subordinate wildcards
 	inline void partialWCKeyProcess( const BarzelWCLookup& wcLookup, const BarzelWCLookupKey& key, BeadList::iterator iter, uint8_t tokSkip )
@@ -153,14 +154,19 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 
 		const BarzelTrieNode* ch = d_tn->getFirmChild( firmKey ); 
 		if( ch ) {
-			d_mtChild.push_back( NodeAndBeadVec::value_type(ch,d_rng.first) );
+			BeadList::iterator endIt = d_rng.first;
+			++endIt;
+			d_mtChild.push_back( NodeAndBeadVec::value_type(ch,BarzelBeadChain::Range(d_rng.first,endIt)) );
 		} 
 		/// retrying in case 
 		if( !d_followsBlank ) {
 			firmKey.noLeftBlanks = 0;
 			ch = d_tn->getFirmChild( firmKey ); 
-			if( ch )
-				d_mtChild.push_back( NodeAndBeadVec::value_type(ch,d_rng.first) );
+			if( ch ) {
+				BeadList::iterator endIt = d_rng.first;
+				++endIt;
+				d_mtChild.push_back( NodeAndBeadVec::value_type(ch, BarzelBeadChain::Range(d_rng.first,endIt)));
+			}
 		}
 
 		if( !curDtaIsBlank && d_followsBlank ) 
@@ -310,7 +316,7 @@ bool BTMIterator::findMatchingChildren( NodeAndBeadVec& mtChild, const BeadRange
 
 void BTMIterator::matchBeadChain( const BeadRange& rng, const BarzelTrieNode* trieNode )
 {
-	ay::vector_raii<NodeAndBeadVec>( d_matchPath, NodeAndBeadVec::value_type( trieNode, rng.first ) );
+	ay::vector_raii<NodeAndBeadVec>( d_matchPath, NodeAndBeadVec::value_type( trieNode, BarzelBeadChain::Range(rng.first,rng.first)) );
 
 	if( rng.first == rng.second ) {
 		return; // range is empty
@@ -324,11 +330,11 @@ void BTMIterator::matchBeadChain( const BeadRange& rng, const BarzelTrieNode* tr
 	BeadList::iterator nextBead = rng.second;
 
 	for( NodeAndBeadVec::const_iterator ch = mtChild.begin(); ch != mtChild.end(); ++ ch ) {
-		if(tn && ch->first == tn && ch->second == nextBead) 
+		if(tn && ch->first == tn && ch->second.second == nextBead) 
 			continue;
 		
 		tn = ch->first;
-		nextBead = ch->second;
+		nextBead = ch->second.second;
 
 		if( tn->isLeaf() ) {
 			addTerminalPath( *ch );
@@ -357,7 +363,9 @@ std::pair< bool, int > BTMBestPaths::scorePath( const NodeAndBeadVec& nb ) const
 	std::pair< bool, int >  retVal( true, 0 );
 	
 	BeadList::iterator fromBead = d_fullRange.first;
-	BeadList::iterator endBead = nb.rbegin()->second;
+	BeadList::iterator endBead = nb.rbegin()->second.second;
+
+	++endBead; // need to look past the end of the last bead range
 
 	int numTokensConsumed = 0; // number of *tokens* in the match  
 	for( BeadList::iterator i = fromBead; i!= endBead; ++i ) {
