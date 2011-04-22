@@ -8,5 +8,5 @@ fi >&2
 OUTFILE=$1.tsk
 
 echo clang -lstdc++ -o $OUTFILE -I. -I/opt/local/include $1 
-clang -lstdc++ -o $OUTFILE -I. -I/opt/local/include $1 
+clang -Wnon-virtual-dtor -lstdc++ -o $OUTFILE -I. -I/opt/local/include $1 
 ls -l $OUTFILE
