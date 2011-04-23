@@ -47,6 +47,7 @@
             <!-- again, very hard to guess -->
             <xs:element name="time" type="xs:time"></xs:element>
             <xs:element name="date" type="xs:date"></xs:element>
+            <xs:element name="func" type="tns:tranList"></xs:element>
         </xs:choice>
     </xs:complexType>
     
