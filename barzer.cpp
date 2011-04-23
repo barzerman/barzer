@@ -5,9 +5,9 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <signal.h>
-#include "ay/ay_logger.h"
+#include <ay/ay_logger.h>
 
-#include "barzer_config.h"
+#include <barzer_config.h>
 
 
 extern "C" void block_ctrlc () 

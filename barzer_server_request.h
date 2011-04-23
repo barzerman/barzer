@@ -12,12 +12,13 @@
 #include <vector>
 #include <ay/ay_logger.h>
 #include <boost/function.hpp>
-#include "barzer_universe.h"
+#include <barzer_universe.h>
+#include <barzer_barz.h>
+#include <barzer_parse.h>
+#include <barzer_server_response.h>
 
 extern "C" {
-#include "expat.h"
-
-
+#include <expat.h>
 };
 
 namespace barzer {
@@ -37,14 +38,23 @@ class BarzerRequestParser {
 	};
 	std::vector<RequestTag> tagStack;
 	StoredUniverse &universe;
+	Barz barz;
+	QParser qparser;
+	BarzStreamerXML response;
+
+	std::ostream &os;
 public:
 	XML_Parser parser;
 
-	BarzerRequestParser(StoredUniverse &u);
+	BarzerRequestParser(StoredUniverse &u, std::ostream &s);
 	~BarzerRequestParser();
 
-	int parse(char *buf, size_t len) {
+	int parse(const char *buf, const size_t len) {
 		return XML_Parse(parser, buf, len, true);
+	}
+
+	RequestTag& getTag() {
+		return tagStack.back();
 	}
 
 	void addTag(const char *name)
@@ -57,9 +67,7 @@ public:
 		tagStack.back().attrs.insert(AttrPair(name, value));
 	}
 
-	void setBody(const char *body) {
-		tagStack.back().body = body;
-	}
+	void setBody(const std::string &s);
 
 	void process(const char *name);
 	void command_query();

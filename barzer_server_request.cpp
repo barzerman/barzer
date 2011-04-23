@@ -5,7 +5,7 @@
  *      Author: polter
  */
 
-#include "barzer_server_request.h"
+#include <barzer_server_request.h>
 #include <boost/assign.hpp>
 #include <boost/mem_fn.hpp>
 
@@ -36,15 +36,17 @@ static void endElement(void *ud, const XML_Char *n)
 // cast to XML_CharacterDataHandler
 static void charDataHandle( void * ud, const XML_Char *str, int len)
 {
-	const char* s = (const char*)str;
+	//const char* s = (const char*)str;
 	barzer::BarzerRequestParser *rp = (barzer::BarzerRequestParser *)ud;
+	std::string s((char*) str, len);
 	rp->setBody(s);
 }
 } // extern "C" ends
 
 namespace barzer {
 
-BarzerRequestParser::BarzerRequestParser(StoredUniverse &u) : universe(u)
+BarzerRequestParser::BarzerRequestParser(StoredUniverse &u, std::ostream &s)
+	: universe(u), qparser(u), response(barz, u), os(s)
 {
 		parser = XML_ParserCreate(NULL);
 		XML_SetUserData(parser, this);
@@ -70,6 +72,10 @@ static const ReqCmdFunc* getCmdFunc(std::string &name) {
 #undef CMDFUN
 
 
+void BarzerRequestParser::setBody(const std::string &s) {
+	tagStack.back().body += s;
+}
+
 void BarzerRequestParser::process(const char *name) {
 	RequestTag &t = tagStack.back();
 	if (t.tagName == name) {
@@ -85,6 +91,9 @@ void BarzerRequestParser::process(const char *name) {
 
 
 void BarzerRequestParser::command_query() {
+	QuestionParm qparm;
+	qparser.parse( barz, getTag().body.c_str(), qparm );
+	response.print(os);
 //
 }
 

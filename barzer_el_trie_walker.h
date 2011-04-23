@@ -8,8 +8,8 @@
 #ifndef BEL_TRIE_WALKER_H_
 #define BEL_TRIE_WALKER_H_
 
-#include "barzer_el_trie.h"
-#include "barzer_el_wildcard.h"
+#include <barzer_el_trie.h>
+#include <barzer_el_wildcard.h>
 #include <stack>
 #include <vector>
 #include <ay/ay_logger.h>

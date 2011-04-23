@@ -268,10 +268,15 @@ inline std::ostream& operator <<( std::ostream& fp, const StoredEntity& e )
 
 //// generic type used by Barzel among other things
 class BarzerEntityList {
-	typedef std::vector< StoredEntity > EList;
-	EList lst;
 public:
+	typedef std::vector< StoredEntity > EList;
+	const EList& getList() const {
+		return lst;
+	}
 	std::ostream& print( std::ostream& fp ) const;
+private:
+	EList lst;
+
 };
 
 }

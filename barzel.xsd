@@ -3,7 +3,8 @@
            targetNamespace="http://www.barzer.net/barzel/0.1"
            xmlns:tns="http://www.barzer.net/barzel/0.1"
            elementFormDefault="qualified">
-
+	
+	<!-- type for numbers inside patterns - <n l="low" h="high" /> -->
     <xs:complexType name="patNumberType">
     	<xs:attribute name="h" type="xs:decimal"></xs:attribute>
     	<xs:attribute name="l" type="xs:decimal"></xs:attribute>
@@ -12,11 +13,17 @@
 
     <xs:complexType name="patList">
     	<xs:choice maxOccurs="unbounded" minOccurs="0">
+    		<!-- token -->
     		<xs:element name="t" type="xs:string"></xs:element>
+    		<!-- number -->
     		<xs:element name="n" type="tns:patNumberType" ></xs:element>
+    		<!-- punctuation -->
     		<xs:element name="p" type="xs:string" ></xs:element>
+    		<!-- wildcard -->
     		<xs:element name="w"  />
+    		<!-- world class -->
     		<xs:element name="wcls" type="xs:string"  />
+    		<!-- you'll never guess about these -->
     		<xs:element name="list" type="tns:patList"></xs:element>
     		<xs:element name="opt" type="tns:patList"></xs:element>
     		<xs:element name="any" type="tns:patList"></xs:element>
@@ -24,18 +31,23 @@
     		<xs:element name="tail" type="tns:patList"></xs:element>
     	</xs:choice>
     </xs:complexType>
-
+	<!-- type for the right side numbers -->
     <xs:complexType name="rNumberType">
     	<xs:attribute name="v" type="xs:decimal"></xs:attribute>
     </xs:complexType>    
     
     <xs:complexType name="tranList">
         <xs:choice maxOccurs="unbounded" minOccurs="0">
+        	<!-- variable -->
             <xs:element name="var" type="xs:string"></xs:element>
+            <!-- number -->
             <xs:element name="rn" type="tns:rNumberType"></xs:element>
+            <!-- literal -->
             <xs:element name="ltrl" type="xs:string"></xs:element>
+            <!-- again, very hard to guess -->
             <xs:element name="time" type="xs:time"></xs:element>
             <xs:element name="date" type="xs:date"></xs:element>
+            <xs:element name="func" type="tns:tranList"></xs:element>
         </xs:choice>
     </xs:complexType>
     
