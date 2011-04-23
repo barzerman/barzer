@@ -349,11 +349,13 @@ void BTMIterator::matchBeadChain( const BeadRange& rng, const BarzelTrieNode* tr
 
 int BTMBestPaths::setRewriteUnit( RewriteUnit& ru )
 {
-	#warning unimplemeneted setRewriteUnit
-	// TODO: NodeAndBeadVec should store bead range 
-	//       this range will be used to id the variable 
-	//       this is the final piece of the puzzle 
-	//       other than the actual rewrite 
+	BarzelMatchInfo& ruMatchInfo = ru.first;
+	ruMatchInfo.setScore( getBestScore() );
+	ruMatchInfo.setBeadRange( getFullRange() );
+	const NodeAndBeadVec& winningPath = getBestPath();
+	ruMatchInfo.setPath( winningPath );
+	ru.second = getTranslation();
+
 	return 0;
 }
 /// bool indicates fallibility 
@@ -373,7 +375,8 @@ std::pair< bool, int > BTMBestPaths::scorePath( const NodeAndBeadVec& nb ) const
 	}
 
 	int matchStyleScore = 0; // wc match gets 10 firm - 100
-	for( const BarzelTrieNode* tn = nb.rbegin()->first; tn; tn= tn->getParent() ) {
+	/// backtraces nodes up to root
+	for( const BarzelTrieNode* tn = nb.rbegin()->first; tn && tn->getParent(); tn= tn->getParent() ) {
 		matchStyleScore += ( tn->isWcChild() ? 10 : 100 );	
 	}
 	retVal.second = numTokensConsumed * matchStyleScore;	

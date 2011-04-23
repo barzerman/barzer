@@ -20,38 +20,55 @@ class StoredUniverse;
 // pair of iterators pointing to the first and the last element to be rewritten
 typedef BarzelBeadChain::Range BeadRange;
 
-/// every time a match is detected in a trie 
-struct BarzelMatchInfo {
-	/// matching context - variable names (if named variables)
-	/// or map of matched wildcard ids
-	struct Context {
-		Context() {}
-		void clear() {}
-	} ctxt;
-	/// represents a deterministic pattern path in the trie resulting in a specific translation
-	struct TrieMatchPath {
-		TrieMatchPath() {}
-		void clear() {}
-		std::ostream& print( std::ostream& fp ) const {
-			return fp;
-		}
-	} matchPath;
-
-
-	BeadRange beadRng;
-	int score; // 
-	
-	void clear() {
-		ctxt.clear();
-		matchPath.clear();
-		beadRng = BeadRange();
-	}
-	BarzelMatchInfo() : score(0)  {}
-	void setScore( int s ) { score = s; }
-};
-typedef std::pair<BarzelMatchInfo,const BarzelTranslation*> RewriteUnit;
 typedef std::pair< const BarzelTrieNode*, BarzelBeadChain::Range > NodeAndBead;
 typedef std::vector< NodeAndBead > NodeAndBeadVec;
+typedef std::vector< const NodeAndBead* > NodeAndBeadPtrVec; 
+/// every time a match is detected in a trie 
+class BarzelMatchInfo {
+	BeadRange d_beadRng; // full range of beads the match is done for
+	int d_score; // 
+	NodeAndBeadVec    d_thePath;
+	NodeAndBeadPtrVec d_wcVec; // $n would get translated to wcVec[n] (points into d_thePath)
+	/// uint32_t is the stringId from the pool
+	std::map< uint32_t, size_t > d_varNameMap; 
+public:
+	BarzelMatchInfo() : d_score(0)  {}
+	void setScore( int s ) 	{ d_score = s; }
+	int getScore() const 	{ return d_score; }
+	
+	const BeadRange& getBeadRange( ) const { return  d_beadRng; }
+	void setBeadRange( const BeadRange& br ) { d_beadRng= br; }
+
+	const NodeAndBead* getDataByNumber(size_t n ) const 
+		{ return ( n< d_wcVec.size() ? d_wcVec[n] : 0 ); }
+	/// the trie node is needed in case there's a potential variable name 
+	void setPath( const NodeAndBeadVec& p )
+	{
+		d_thePath = p;
+		d_wcVec.clear();
+		d_wcVec.reserve( d_thePath.size() );
+		d_varNameMap.clear();
+		for( NodeAndBeadVec::const_iterator i = d_thePath.begin(); i!= d_thePath.end(); ++i ) {
+			if( i->first->isWcChild() ) 
+				d_wcVec.push_back( &(*i) );
+			/// if we want to add variable names we can have trie node hold var name 
+			/// so right in this loop we will just update varNameMap 
+		}
+	}
+
+	void clear() {
+		d_thePath.clear();
+		d_wcVec.clear();
+		d_beadRng = BeadRange();
+	}
+
+	const NodeAndBead* getDataByNameId( uint32_t id ) const 
+	{
+		std::map< uint32_t, size_t >::const_iterator i = d_varNameMap.find( id );
+		return( i == d_varNameMap.end() ? 0 : getDataByNumber( i->second ) );
+	}
+};
+typedef std::pair<BarzelMatchInfo,const BarzelTranslation*> RewriteUnit;
 //struct RewriteUnit;
 
 /// Barzel TrieMatcher (BTM)
@@ -77,6 +94,7 @@ struct BTMBestPaths {
 		d_bestInfallibleScore(0),
 		d_fullRange(r) {}
 	const BeadRange& getFullRange() const { return d_fullRange; }
+	void setFullRange(const BeadRange& br ) { d_fullRange = br; }
 	
 	/// bool indicates fallibility (true - infallible)
 	/// int is the score in case path doesnt fail
@@ -85,6 +103,14 @@ struct BTMBestPaths {
 	void addPath( const NodeAndBeadVec& nb );
 	/// returns the score of the winning match
 	int setRewriteUnit( RewriteUnit& ru );
+
+	int getBestScore() const
+		{ return d_bestInfallibleScore; }
+	const NodeAndBeadVec&  getBestPath() const { return  d_bestInfalliblePath ; }
+	const BarzelTranslation* const getTranslation() { 
+		const NodeAndBeadVec& p = getBestPath();
+		return( p.size() ? &(p.rbegin()->first->translation) : 0 ); 
+	}
 };
 
 
