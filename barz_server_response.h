@@ -8,8 +8,8 @@
 #ifndef BARZ_SERVER_RESPONSE_H_
 #define BARZ_SERVER_RESPONSE_H_
 
-#include "barzer_barz.h"
-#include "barzer_universe.h"
+#include <barzer_barz.h>
+#include <barzer_universe.h>
 
 namespace  barzer {
 

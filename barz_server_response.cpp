@@ -5,15 +5,15 @@
  *      Author: polter
  */
 
-#include "barz_server_response.h"
-#include "ay/ay_logger.h"
+#include <barz_server_response.h>
+#include <ay/ay_logger.h>
 #include <sstream>
 
 namespace barzer {
 
 namespace {
 
-// this probably won't work with utf-8 properly.
+
 // need to find an xml library for this kind of stuff
 static std::ostream& xmlEscape(const std::string &src, std::ostream &os) {
 	//std::ostringstream ret;
@@ -52,7 +52,10 @@ public:
 		case BarzerLiteral::T_STOP: // shrug
 			break;
 		case BarzerLiteral::T_PUNCT:
-			_os << (char)data.getId(); // cough. need to somehow make this localised
+			{ // cough. this is ugly. also need to somehow make this localised
+				std::string s(1, (char)data.getId());
+				xmlEscape(s, _os);
+			}
 			break;
 		case BarzerLiteral::T_BLANK:
 			_os << " ";

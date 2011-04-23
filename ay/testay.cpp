@@ -5,7 +5,7 @@
  *      Author: polter
  */
 
-#include "ay_logger.h"
+#include <ay_logger.h>
 
 void testLogger() {
 	AYLOGINIT(DEBUG);

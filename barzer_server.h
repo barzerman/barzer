@@ -8,9 +8,12 @@
 #include <boost/algorithm/string.hpp>
 
 #include <ay/ay_headers.h>
+#include <ay/ay_logger.h>
+
 #include <barzer_universe.h>
 #include <barzer_barz.h>
 #include <barzer_parse.h>
+#include <barzer_server_request.h>
 
 namespace barzer {
 int run_server(int port);
@@ -48,14 +51,14 @@ class AsyncServer {
 
     // should probably change this to be initialized in main() or something
     StoredUniverse universe;
-	Barz barz;
-	QParser parser;
 
 public:
     AsyncServer(boost::asio::io_service& io_service, short port);
 
     void handle_accept(SearchSession *new_session,
 					   const boost::system::error_code& error);
+
+    void query(const char*, const size_t, std::ostream&);
 };
 
 }
