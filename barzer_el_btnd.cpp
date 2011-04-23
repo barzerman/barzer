@@ -359,11 +359,15 @@ std::ostream&  BTND_Pattern_None::print( std::ostream& fp , const BELPrintContex
 
 std::ostream&  BTND_Rewrite_Variable::print( std::ostream& fp , const BELPrintContext& ctxt ) const
 {
-	if( byName ) {
-		return ( fp << "$" << ctxt.printableString( varId ) ) ;
-	} else {
-		return ( fp << "$" << varId );
+	switch( idMode ) {
+	case MODE_WC_NUMBER: // wildcard number
+		return( fp << "$" << varId  );
+	case MODE_VARNAME:   // variable name 
+		return( fp << "$" << ctxt.printableString( varId ) );
+	case MODE_PATEL_NUMBER: // pattern element number
+		return( fp << "p$" << varId );
 	}
+	return ( fp << "bad$" << varId);
 }
 std::ostream&  BTND_Rewrite_Function::print( std::ostream& fp , const BELPrintContext& ctxt) const
 {

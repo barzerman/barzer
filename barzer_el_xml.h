@@ -177,6 +177,15 @@ public:
 		strPool(pool)
 	{}
 
+	uint32_t internTmpText( const char* s, int len ) 
+		{ 
+			return strPool->internIt(d_tmpText.assign(s,len).c_str()); 
+		}
+	uint32_t internString( const char* s ) 
+		{ return strPool->internIt(s); }
+	const char* setTmpText( const char* s, int len ) 
+		{ return d_tmpText.assign( s, len ).c_str(); }
+
 	// actual expat entry points 
 	// tid is tag id. this function is called by (start/end)Element 
 	void elementHandleRouter( int tid, const char_cp * attr, size_t attr_sz, bool close );
@@ -194,7 +203,6 @@ public:
 	void taghandle_TRANSLATION( const char_cp * attr, size_t attr_sz , bool close=false);
 
 	void taghandle_T( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_T_text( const char *s, int len );
 
 	void taghandle_TG( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_P( const char_cp * attr, size_t attr_sz , bool close=false);
@@ -215,10 +223,8 @@ public:
 	void taghandle_TAIL( const char_cp * attr, size_t attr_sz , bool close=false);
 
 	// <rn>
-	void taghandle_RNUMBER_text( const char* s , int len );
 	void taghandle_RNUMBER( const char_cp * attr, size_t attr_sz , bool close=false);
 
-	void taghandle_LITERAL_text( const char* s, int len );
 	void taghandle_LITERAL( const char_cp * attr, size_t attr_sz , bool close=false);
 
 	void taghandle_FUNC( const char_cp * attr, size_t attr_sz , bool close=false);

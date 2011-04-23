@@ -48,6 +48,14 @@ public:
 	
 	std::ostream& printBarzelTrie( std::ostream& fp, const BELPrintFormat& fmt ) const;
 	std::ostream& printBarzelTrie( std::ostream& fp ) const;
+
+	bool getBarzelRewriter( BarzelRewriterPool::BufAndSize& bas, const BarzelTranslation& tran ) 
+	{
+		if( tran.isRewriter() ) 
+			return barzelRewritePool.resolveTranslation( bas, tran );
+		else 
+			return ( bas = BarzelRewriterPool::BufAndSize(), false );
+	}
 }; 
 
 }

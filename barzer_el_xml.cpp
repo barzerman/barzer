@@ -183,44 +183,100 @@ void BELParserXML::taghandle_TRANSLATION( const char_cp * attr, size_t attr_sz ,
 	}
 	statement.setTranslation();
 }
+/// tag text visitors
+namespace {
 
-void BELParserXML::taghandle_T_text( const char* s, int len )
-{
-	BELParseTreeNode* node = statement.getCurrentNode();
-	if( node ) {
-		BTND_Pattern_Token* t = 0;
-		node->getNodeDataPtr_Pattern(t);
-		if( t ) {
-			d_tmpText.assign( s, len );
-			ay::UniqueCharPool::StrId sid = strPool->internIt( d_tmpText.c_str() );
-			t->stringId = sid;
+struct BTND_text_visitor_base  : public boost::static_visitor<> {
+	BELParserXML& d_parser;
+	const char* d_str;
+	int d_len;
+	
+	BTND_text_visitor_base( BELParserXML& parser, const char* s, int len ) : 
+		d_parser(parser),
+		d_str(s), 
+		d_len(len) 
+	{}
+};
+
+// rewrite visitor template specifications 
+struct BTND_Rewrite_Text_visitor : public BTND_text_visitor_base {
+	BTND_Rewrite_Text_visitor( BELParserXML& parser, const char* s, int len ) :
+		BTND_text_visitor_base( parser, s, len ) 
+	{}
+
+	template <typename T>
+	void operator()(T& t) const { }
+};
+template <> void BTND_Rewrite_Text_visitor::operator()<BTND_Rewrite_Literal>(BTND_Rewrite_Literal& t)   const
+	{ t.setString( d_parser.internTmpText(d_str, d_len) ); }
+template <> void BTND_Rewrite_Text_visitor::operator()<BTND_Rewrite_Number>(BTND_Rewrite_Number& t)   const
+	{ 
+		const char* s = d_parser.setTmpText( d_str, d_len );
+		if( strchr( s, '.' ) ) 
+			t.set( atof(s) );
+		else
+			t.set( atoi(s) );
+	}
+
+// pattern visitor  template specifications 
+struct BTND_Pattern_Text_visitor : public BTND_text_visitor_base {
+	BTND_Pattern_Text_visitor( BELParserXML& parser, const char* s, int len ) :
+		BTND_text_visitor_base( parser, s, len ) 
+	{}
+	template <typename T>
+	void operator() (T& t) const {}
+};
+
+template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTND_Pattern_Token& t)  const
+{ t.stringId = d_parser.internTmpText(  d_str, d_len  ); }
+template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Punct> (BTND_Pattern_Punct& t) const
+{ 
+	// may want to do something fancy for chinese punctuation (whatever that is)
+	const char* str_end = d_str + d_len;
+	for( const char* s = d_str; s< str_end; ++s ) {
+		if( !isspace(*s) ) {
+			t.setChar( *s );
+			return;
 		}
 	}
+	t.setChar(0);
 }
+// pattern visitor  template specifications 
+
+// general visitor 
+struct BTND_text_visitor : public BTND_text_visitor_base {
+	BTND_text_visitor( BELParserXML& parser, const char* s, int len ) :
+		BTND_text_visitor_base( parser, s, len ) 
+	{}
+	void operator()( BTND_PatternData& pat ) const
+		{ boost::apply_visitor( BTND_Pattern_Text_visitor(d_parser,d_str,d_len), pat ) ; }
+	void operator()( BTND_None& ) const {}
+	void operator()( BTND_StructData& ) const {}
+	void operator()( BTND_RewriteData& rwr)  const
+		{ boost::apply_visitor( BTND_Rewrite_Text_visitor(d_parser,d_str,d_len), rwr ) ; }
+};
+
+} // end of anon namespace 
+
 void BELParserXML::taghandle_T( const char_cp * attr, size_t attr_sz , bool close)
 {
 	if( close ) {
 		statement.popNode();
 		return;
 	}
-	statement.pushNode(
-		BTND_PatternData(
-			BTND_Pattern_Token()
-		)
-	);
+	statement.pushNode( BTND_PatternData( BTND_Pattern_Token()));
 
 }
 void BELParserXML::taghandle_TG( const char_cp * attr, size_t attr_sz , bool close)
-{}
+{
+}
 void BELParserXML::taghandle_P( const char_cp * attr, size_t attr_sz , bool close)
 {
-	/*
 	if (close) {
 		statement.popNode();
 		return;
-	} */
-
-
+	} 
+	statement.pushNode( BTND_PatternData( BTND_Pattern_Punct()));
 }
 void BELParserXML::taghandle_SPC( const char_cp * attr, size_t attr_sz , bool close)
 {
@@ -340,19 +396,6 @@ void BELParserXML::taghandle_TAIL( const char_cp * attr, size_t attr_sz , bool c
 	statement.pushNode( BTND_StructData( BTND_StructData::T_TAIL));
 }
 /// rewrite tags 
-void BELParserXML::taghandle_LITERAL_text( const char* s, int len )
-{
-	BELParseTreeNode* node = statement.getCurrentNode();
-	if( node ) {
-		BTND_Rewrite_Literal* t = 0;
-		node->getNodeDataPtr_Rewrite(t);
-		if( t ) {
-			d_tmpText.assign( s, len );
-			ay::UniqueCharPool::StrId sid = strPool->internIt( d_tmpText.c_str() );
-			t->setString( sid );
-		}
-	}
-}
 void BELParserXML::taghandle_LITERAL( const char_cp * attr, size_t attr_sz , bool close)
 {
 	if( close ) {
@@ -365,22 +408,7 @@ void BELParserXML::taghandle_LITERAL( const char_cp * attr, size_t attr_sz , boo
 		)
 	);
 }
-void BELParserXML::taghandle_RNUMBER_text( const char*s, int len )
-{
-	BELParseTreeNode* node = statement.getCurrentNode();
-	if( node ) {
-		BTND_Rewrite_Number* t = 0;
-		node->getNodeDataPtr_Rewrite(t);
-		if( t && len && s[0] ) {
-			d_tmpText.assign( s, len );
-			if( strchr( d_tmpText.c_str(), '.' ) ) {
-				t->set( atof( d_tmpText.c_str() ) );
-			} else {
-				t->set( atoi( d_tmpText.c_str() ) );
-			}
-		}
-	}
-}
+
 void BELParserXML::taghandle_RNUMBER( const char_cp * attr, size_t attr_sz , bool close)
 {
 	if( close ) {
@@ -408,18 +436,44 @@ void BELParserXML::taghandle_RNUMBER( const char_cp * attr, size_t attr_sz , boo
 		)
 	);
 }
-
 void BELParserXML::taghandle_VAR( const char_cp * attr, size_t attr_sz , bool close)
 {
 	if( close ) {
 		statement.popNode();
 		return;
 	}
-	statement.pushNode( 
-		BTND_RewriteData(
-			BTND_Rewrite_Variable() 
-		)
-	);
+	BTND_Rewrite_Variable var;
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+
+		switch( n[0] ) {
+		case 'n': { // <var name=""/> - named variable
+		}
+			break;
+		case 'p': { // <var pn="1"/> - pattern element number - if pattern is "a * b * c" then pn[1] is a, pn[2] is the first * etc
+					// pn[0] is the whole sub chain matching this pattern 
+			int num  = atoi(v);
+			if( num >= 0 ) 
+				var.setPatternElemNumber( num );
+			else {
+				AYLOG(ERROR) << "invalid pattern element number " << v << std::endl;
+			}
+		}
+			break;
+		case 'w': { // <var w="1"/> - wildcard number like $1 
+			int num  = atoi(v);
+			if( num >= 0 ) 
+				var.setWildcardNumber( num );
+			else {
+				AYLOG(ERROR) << "invalid wildcard number " << v << std::endl;
+			}
+		}
+			break;
+
+		}
+	}
+	statement.pushNode( BTND_RewriteData( var));
 }
 void BELParserXML::taghandle_FUNC( const char_cp * attr, size_t attr_sz , bool close)
 {
@@ -449,7 +503,15 @@ void BELParserXML::getElementText( const char* txt, int len )
 {
 	if( tagStack.empty() )
 		return; // this should never happen 
+	BELParseTreeNode* node = statement.getCurrentNode();
+	if( node ) 	{
+		boost::apply_visitor( BTND_text_visitor(*this,txt,len), node->getVar() ) ; 
+	}
+	return;
+
+	/*
 	int tid = tagStack.top();
+
 #define CASE_TAG(x) case TAG_##x: taghandle_##x##_text( txt, len ); break;
 	switch( tid ) {
 		CASE_TAG(T)
@@ -457,6 +519,7 @@ void BELParserXML::getElementText( const char* txt, int len )
 		CASE_TAG(RNUMBER)
 	}
 #undef CASE_TAG
+	*/
 }
 BELParserXML::~BELParserXML()
 {

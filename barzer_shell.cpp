@@ -8,8 +8,8 @@
 #include <barzer_el_wildcard.h>
 #include "ay/ay_logger.h"
 #include <algorithm>
-#include "barzer_el_trie_shell.h"
-#include "barz_server_response.h"
+#include <barzer_el_trie_shell.h>
+#include <barz_server_response.h>
 
 namespace barzer {
 
@@ -250,6 +250,41 @@ static int bshf_trie( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return bshtrie_process( shell, in );
 }
 
+namespace {
+
+struct ShellState {
+	BarzerShellContext *context;
+	StoredUniverse &uni ;
+	BELTrieWalker &walker ;
+	BELTrie &trie ;
+    const BarzelTrieNode &curTrieNode;
+	ay::UniqueCharPool &stringPool;
+
+	ShellState( BarzerShell* shell, char_cp cmd, std::istream& in ) :
+		context(shell->getBarzerContext()),
+		uni(context->universe),
+		walker(context->trieWalker),
+		trie(uni.getBarzelTrie()),
+		curTrieNode(walker.getCurrentNode()),
+		stringPool( uni.getStringPool() )
+	{}
+
+};
+
+} // anon namespace ends 
+static int bshf_trans( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	ShellState sh( shell, cmd, in );
+	std::string tmp;
+	while( in >>tmp ) {
+	}
+	/// 
+	if (sh.curTrieNode.isLeaf()) {
+	} else {
+		std::cerr << "no valid translation, node is not a leaf\n";
+	}
+	return 0;
+}
 
 static int bshf_trls( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
@@ -257,7 +292,6 @@ static int bshf_trls( BarzerShell* shell, char_cp cmd, std::istream& in )
 	StoredUniverse &uni = context->universe;
 	BELTrieWalker &walker = context->trieWalker;
 	BELTrie &trie = uni.getBarzelTrie();
-
 
 	std::vector<BarzelTrieFirmChildKey> &fcvec = walker.getFCvec();
     std::vector<BarzelWCLookupKey> &wcvec = walker.getWCvec();
@@ -315,11 +349,9 @@ static int bshf_trls( BarzerShell* shell, char_cp cmd, std::istream& in )
 	}
 
 	if (node.isLeaf()) {
-		std::cout << "This node is a leaf: ";
+		std::cout << "*LEAF*:";
 		node.print_translation(std::cout, prnContext) << std::endl;
 	}
-
-
 	//AYLOG(DEBUG) << "Stack size is " << walker.getNodeStack().size();
 
 	return 0;
@@ -450,6 +482,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_entid, "entid", "entity lookup by entity id" ),
 	//CmdData( (ay::Shell_PROCF)bshf_trieloadxml, "trieloadxml", "loads a trie from an xml file" ),
 	CmdData( (ay::Shell_PROCF)bshf_setloglevel, "setloglevel", "set a log level (DEBUG/WARNINg/ERROR/CRITICAL)" ),
+	CmdData( (ay::Shell_PROCF)bshf_trans, "trans", "tester for barzel translation" ),
 	CmdData( (ay::Shell_PROCF)bshf_trie, "trie", "trie commands" ),
 	CmdData( (ay::Shell_PROCF)bshf_trls, "trls", "lists current trie node children" ),
 	CmdData( (ay::Shell_PROCF)bshf_trcd, "trcd", "changes current trie node to the firm child by number" ),

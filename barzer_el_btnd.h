@@ -100,7 +100,7 @@ inline bool operator <( const BTND_Pattern_Number& l, const BTND_Pattern_Number&
 	{ return l.isLessThan( r ); }
 inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_Number& x )
 {
-	return (x.printRange( fp << "NUM[" ) << "]" );
+	return (x.printRange( fp << "NUM[" ) << "]");
 }
 
 // Punctuation and Stop Tokens (theChar is 0 for stops) 
@@ -110,6 +110,8 @@ struct BTND_Pattern_Punct {
 	
 	BTND_Pattern_Punct() : theChar(0) {}
 	BTND_Pattern_Punct(char c) : theChar(c) {}
+
+	void setChar( char c ) { theChar = c; }
 };
 inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_Punct& x )
 	{ return( fp << "'" << std::hex << x.theChar << "'" ); }
@@ -366,10 +368,29 @@ struct BTND_Rewrite_Number : public BarzerNumber {
 
 struct BTND_Rewrite_Variable {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
-	uint8_t byName; 
-	uint32_t varId; /// when byName is non 0 this will be used as a sring id
+	enum {
+		MODE_WC_NUMBER, // wildcard number
+		MODE_VARNAME,   // variable name 
+		MODE_PATEL_NUMBER // pattern element number
+	};
+	uint8_t idMode; 
+	uint32_t varId; /// when idMode is MODE_VARNAME this will be used as a sring id
 		// otherwise as $1/$2 
-	BTND_Rewrite_Variable() : byName(0), varId(0xffffffff) {}
+
+	bool isValid() const { return varId != 0xffffffff; }
+
+	bool isVarname() const { return idMode == MODE_VARNAME; }
+	bool isWildcardNum() const { return idMode == MODE_WC_NUMBER; }
+	bool isPatternElemNumber() const { return idMode == MODE_PATEL_NUMBER; }
+
+	void setVarNameId( uint32_t vid ){ varId = vid; idMode= MODE_VARNAME; }
+	void setWildcardNumber( uint32_t vid ){ varId = vid; idMode= MODE_WC_NUMBER; }
+	void setPatternElemNumber( uint32_t vid ){ varId = vid; idMode= MODE_PATEL_NUMBER; }
+
+	BTND_Rewrite_Variable() : 
+		idMode(MODE_WC_NUMBER), 
+		varId(0xffffffff) 
+	{}
 };
 
 struct BTND_Rewrite_Function {
@@ -384,10 +405,13 @@ struct BTND_Rewrite_None {
 	int dummy;
 	BTND_Rewrite_None() : dummy(0) {}
 };
+/// absolute date will always default to today
+/// if it has child nodes it will be 
 struct BTND_Rewrite_AbsoluteDate : public BarzerDate {
 	std::ostream& print( std::ostream& fp, const BELPrintContext& ) const
 		{ return BarzerDate::print( fp ); }
 };
+
 struct BTND_Rewrite_TimeOfDay : public BarzerTimeOfDay {
 	std::ostream& print( std::ostream& fp, const BELPrintContext& ) const
 		{ return BarzerTimeOfDay::print( fp ); }
@@ -490,6 +514,8 @@ struct BELParseTreeNode {
 		child.back().btndVar = t;
 		return child.back();
 	}
+
+	BTNDVariant& getVar() { return btndVar; }
 	void clear( ) 
 	{
 		child.clear();
