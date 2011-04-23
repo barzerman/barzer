@@ -10,7 +10,6 @@
 #include <algorithm>
 #include <barzer_el_trie_shell.h>
 #include <barzer_server_response.h>
->>>>>>> 16d0a821ee5e3df7bd843751aa1fac1f0cecec36
 
 namespace barzer {
 
