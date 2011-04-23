@@ -15,7 +15,7 @@
 #include <barzer_universe.h>
 #include <barzer_barz.h>
 #include <barzer_parse.h>
-#include <barz_server_response.h>
+#include <barzer_server_response.h>
 
 extern "C" {
 #include <expat.h>

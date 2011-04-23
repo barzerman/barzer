@@ -1,5 +1,5 @@
 /*
- * barz_server_response.h
+ * barzer_server_response.h
  *
  *  Created on: Apr 20, 2011
  *      Author: polter

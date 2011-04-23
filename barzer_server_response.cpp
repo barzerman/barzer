@@ -1,11 +1,11 @@
 /*
- * barz_server_response.cpp
+ * barzer_server_response.cpp
  *
  *  Created on: Apr 20, 2011
  *      Author: polter
  */
 
-#include <barz_server_response.h>
+#include <barzer_server_response.h>
 #include <ay/ay_logger.h>
 #include <sstream>
 
@@ -33,19 +33,57 @@ static std::ostream& xmlEscape(const std::string &src, std::ostream &os) {
 }
 
 
+class RangeVisitor : public boost::static_visitor<> {
+	std::ostream &os;
+public:
+	RangeVisitor(std::ostream &s) : os(s) {}
+
+	template<class T> std::ostream& lohi(const T lo, const T hi) {
+		os << "<lo>" << lo << "</lo>";
+		os << "<hi>" << hi << "</hi>";
+		return os;
+	}
+
+	template<class T> std::ostream& lohi(const std::pair<T,T> &p) {
+		p.first.print(os << "<lo>") << "</lo>";
+		p.second.print(os << "<hi>") << "</hi>";
+		return os;
+	}
+
+	void operator()(const BarzerRange::Integer &data) {
+		os << "<num t=\"int\">";
+		lohi(data.first, data.second) << "</num>";
+	}
+	void operator()(const BarzerRange::Real &data) {
+		os << "<num t=\"real\">";
+		lohi(data.first, data.second) << "</num>";
+	}
+	void operator()(const BarzerRange::TimeOfDay &data) {
+		os << "<time>";
+		lohi(data);
+		os << "</time>";
+	}
+	void operator()(const BarzerRange::Date &data) {
+		os << "<date>";
+		lohi(data);
+		os << "</date>";
+	}
+
+};
+
 class AtomicVisitor : public boost::static_visitor<> {
-	std::ostream &_os;
+	std::ostream &os;
 	StoredUniverse &_u;
 public:
-	AtomicVisitor(std::ostream &os, StoredUniverse &u) : _os(os), _u(u) {}
+	AtomicVisitor(std::ostream &s, StoredUniverse &u) : os(s), _u(u) {}
 
 	void operator()(const BarzerLiteral &data) {
 		if (data.isBlank()) return;
-		_os << "<token>";
+		os << "<token>";
 		switch(data.getType()) {
 		case BarzerLiteral::T_STRING: {
 			std::string s = _u.getStringPool().resolveId(data.getId());
-			xmlEscape(s, _os);
+			xmlEscape(s, os);
 		}
 		case BarzerLiteral::T_COMPOUND: // shrug
 			break;
@@ -54,52 +92,73 @@ public:
 		case BarzerLiteral::T_PUNCT:
 			{ // cough. this is ugly. also need to somehow make this localised
 				std::string s(1, (char)data.getId());
-				xmlEscape(s, _os);
+				xmlEscape(s, os);
 			}
 			break;
 		case BarzerLiteral::T_BLANK:
-			_os << " ";
+			os << " ";
 			break;
 		default:
 			AYLOG(ERROR) << "Unknown literal type";
-			_os << "<error>unknown literal type</error>";
+			os << "<error>unknown literal type</error>";
 		}
-		_os << "</token>";
+		os << "</token>";
 	}
 	void operator()(const BarzerString &data) {
-		_os << "<token>";
-		xmlEscape(data.getStr(), _os) << "</token>";
+		os << "<token>";
+		xmlEscape(data.getStr(), os) << "</token>";
 	}
 	void operator()(const BarzerNumber &data) {
-		_os << "<number>";
-		data.print(_os) << "</number>";
+		os << "<num>";
+		data.print(os) << "</num>";
 	}
 	void operator()(const BarzerDate &data) {
-		_os << "<date>";
-		data.print(_os) << "</number>";
+		os << "<date>";
+		data.print(os) << "</number>";
 	}
 	void operator()(const BarzerTimeOfDay &data) {
-		_os << "<time>";
-		data.print(_os) << "</time>";
+		os << "<time>";
+		data.print(os) << "</time>";
 	}
 	void operator()(const BarzerRange &data) {
-		_os << "<range>";
-		_os << "</range>";
-
-
-	} // not sure how to properly deconstruct this yet
-	void operator()(const BarzerEntityList &data) {
-		_os << "<entlist>";
-		_os << "</entlist>";
+		os << "<range>";
+		RangeVisitor v(os);
+		boost::apply_visitor(v, data.dta);
+		os << "</range>";
 	}
+
+	void printEntity(const StoredEntity &ent) {
+		os << "\n    <entity id=\"" << ent.entId << "\">";
+		const StoredEntityUniqId &euid = ent.euid;
+		os << "<euid"
+				<< " tokid=\"" << euid.tokId << "\""
+		        << " class=\"" << euid.eclass.ec << "\""
+				<< " subclass=\"" << euid.eclass.subclass << "\""
+				<< " />";
+		os << "</entity>";
+	}
+
+	// not sure how to properly deconstruct this yet
+	void operator()(const BarzerEntityList &data) {
+		os << "<entlist>";
+		const BarzerEntityList::EList &lst = data.getList();
+		for (BarzerEntityList::EList::const_iterator li = lst.begin();
+													 li != lst.end(); ++li) {
+			printEntity(*li);
+		}
+		os << "</entlist>";
+	}
+
 	void operator()(const BarzelEntityRangeCombo &data) {
-		_os << "<entrange>";
-		_os << "</entrange>";
+		os << "<entrange>";
+		(*this)(data.ent);
+		(*this)(data.range);
+		os << "</entrange>";
 	}
 };
 }
 
-std::ostream& BarzStreamerXML::print(std::ostream & os)
+std::ostream& BarzStreamerXML::print(std::ostream &os)
 {
 	os << "<barz>" << std::endl;
 	const BarzelBeadChain &bc = barz.getBeads();
