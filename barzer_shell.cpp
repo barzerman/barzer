@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <barzer_el_trie_shell.h>
 #include <barzer_server_response.h>
+#include <functional>
+#include <boost/function.hpp>
 
 namespace barzer {
 
@@ -260,28 +262,49 @@ struct ShellState {
     const BarzelTrieNode &curTrieNode;
 	ay::UniqueCharPool &stringPool;
 
+
 	ShellState( BarzerShell* shell, char_cp cmd, std::istream& in ) :
 		context(shell->getBarzerContext()),
 		uni(context->universe),
 		walker(context->trieWalker),
 		trie(uni.getBarzelTrie()),
 		curTrieNode(walker.getCurrentNode()),
-		stringPool( uni.getStringPool() )
+		stringPool( uni.getStringPool())
 	{}
 
 };
 
 } // anon namespace ends 
+static int bshf_triestats( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	ShellState sh( shell, cmd, in );
+	BarzelTrieTraverser_depth trav( sh.trie.getRoot(), sh.uni.getWildcardPool() );
+	BarzelTrieStatsCounter counter;
+	trav.traverse( counter, sh.curTrieNode );
+	std::cerr << counter << std::endl;
+	return 0;
+}
 static int bshf_trans( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	ShellState sh( shell, cmd, in );
-	std::string tmp;
-	while( in >>tmp ) {
-	}
+	BELPrintFormat fmt;
+	BELPrintContext prnContext( sh.trie, sh.stringPool, fmt );
+	
+	const BarzelTrieNode* aLeaf = 0;
 	/// 
 	if (sh.curTrieNode.isLeaf()) {
+		aLeaf = &sh.curTrieNode;
 	} else {
-		std::cerr << "no valid translation, node is not a leaf\n";
+		BarzelTrieTraverser_depth trav( sh.trie.getRoot(), sh.uni.getWildcardPool() );
+		boost::function< bool (const BarzelTrieNode&) > fun( &BarzelTrieNode::isLeaf );
+		aLeaf = trav.traverse( fun, sh.curTrieNode );
+	}
+	if( !aLeaf ) {
+		AYLOG(ERROR) << "this trie node has no descendants with a valid translation\n";
+		return 0;
+	} else {
+		aLeaf->print( std::cerr, prnContext ) << std::endl;
+
 	}
 	return 0;
 }
@@ -483,6 +506,7 @@ static const CmdData g_cmd[] = {
 	//CmdData( (ay::Shell_PROCF)bshf_trieloadxml, "trieloadxml", "loads a trie from an xml file" ),
 	CmdData( (ay::Shell_PROCF)bshf_setloglevel, "setloglevel", "set a log level (DEBUG/WARNINg/ERROR/CRITICAL)" ),
 	CmdData( (ay::Shell_PROCF)bshf_trans, "trans", "tester for barzel translation" ),
+	CmdData( (ay::Shell_PROCF)bshf_triestats, "triestats", "trie commands" ),
 	CmdData( (ay::Shell_PROCF)bshf_trie, "trie", "trie commands" ),
 	CmdData( (ay::Shell_PROCF)bshf_trls, "trls", "lists current trie node children" ),
 	CmdData( (ay::Shell_PROCF)bshf_trcd, "trcd", "changes current trie node to the firm child by number" ),
