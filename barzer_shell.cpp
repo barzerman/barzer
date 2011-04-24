@@ -16,7 +16,7 @@
 namespace barzer {
 
 
-inline BarzerShellContext* BarzerShell::getBarzerContext()
+BarzerShellContext* BarzerShell::getBarzerContext()
 {
 	return dynamic_cast<BarzerShellContext*>(context);  
 }

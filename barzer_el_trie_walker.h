@@ -132,8 +132,6 @@ struct BarzelTrieTraverser_depth {
 	template <typename T>
 	const BarzelTrieNode* traverse(T& cb, const BarzelTrieNode& tn )
 	{
-		if( !cb(tn) )
-			return &tn;
 		BarzelTrieNodeChildIterator it( tn, d_wcPool );
 		for( const BarzelTrieNode* child = it.getCurrentChild(); child; child = it.getNextChild() ) {
 			if( !cb(*child) )
