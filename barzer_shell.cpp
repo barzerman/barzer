@@ -278,10 +278,18 @@ struct ShellState {
 static int bshf_triestats( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	ShellState sh( shell, cmd, in );
+	{
 	BarzelTrieTraverser_depth trav( sh.trie.getRoot(), sh.uni.getWildcardPool() );
 	BarzelTrieStatsCounter counter;
 	trav.traverse( counter, sh.curTrieNode );
 	std::cerr << counter << std::endl;
+	}
+	{
+	BarzelTrieTraverser_depth trav( sh.trie.getRoot(), sh.uni.getWildcardPool() );
+	BarzelTrieStatsCounter counter;
+	trav.traverse_nostack( counter, sh.curTrieNode );
+	std::cerr << counter << std::endl;
+	}
 	return 0;
 }
 static int bshf_trans( BarzerShell* shell, char_cp cmd, std::istream& in )

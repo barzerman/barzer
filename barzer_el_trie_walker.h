@@ -13,6 +13,7 @@
 #include <stack>
 #include <vector>
 #include <ay/ay_logger.h>
+#include <ay/ay_util.h>
 
 
 namespace barzer {
@@ -70,30 +71,52 @@ class BarzelTrieNodeChildIterator {
 	BarzelFCMap::const_iterator d_firmIter;
 	const BarzelWCLookup* 	    d_wcLookup;
 	BarzelWCLookup::const_iterator d_wcLookupIter;
+	
 public:
+	typedef std::pair< const BarzelWCLookup*, BarzelWCLookup::const_iterator > LookupKey;
+	typedef boost::variant< 
+		BarzelFCMap::const_iterator,
+		LookupKey
+	> NodeKey;
 	bool isOnFirmChildren() const { return d_firmIter != d_tn.getFirmMap().end() ; }	
 
-	const BarzelTrieNode* getCurrentChild( ) const
+	const BarzelTrieNode* getCurrentChild( NodeKey& k ) const
 	{
 		if( isOnFirmChildren() ) {
+			k = d_firmIter;
 			return ( &( d_firmIter->second ) );
 		} else if( d_wcLookup && d_wcLookupIter != d_wcLookup->end() ) {
+			k = LookupKey( d_wcLookup, d_wcLookupIter );
 			return ( &( d_wcLookupIter->second ));
-		} else
-			return ( 0);
+		} else {
+			k = LookupKey( 0, BarzelWCLookup::const_iterator() );
+			return ( 0 );
+		}
+	}
+	const BarzelTrieNode* getCurrentChild( ) const
+	{
+		NodeKey k;
+		return getCurrentChild( k );
+	}
+	const BarzelTrieNode* getNextChild(NodeKey& k) 
+	{
+		if( d_firmIter != d_tn.getFirmMap().end() && ++d_firmIter != d_tn.getFirmMap().end() ) {
+			k = d_firmIter;
+			return ( &(d_firmIter->second) );
+		} else if( d_wcLookup && d_wcLookupIter != d_wcLookup->end()  && ++d_wcLookupIter != d_wcLookup->end() ) {
+			k = LookupKey( d_wcLookup, d_wcLookupIter );
+			return ( &(d_wcLookupIter->second) );
+		}
+
+		k = LookupKey( 0, BarzelWCLookup::const_iterator() );
+		return 0;
 	}
 	const BarzelTrieNode* getNextChild( )
 	{
-		if( isOnFirmChildren() ) {
-			if( ++d_firmIter != d_tn.getFirmMap().end() )
-				return ( &(d_firmIter->second) );
-			else if( d_wcLookup && d_wcLookupIter != d_wcLookup->end() ) {
-				if( ++d_wcLookupIter != d_wcLookup->end()  )
-					return ( &(d_wcLookupIter->second) );
-			}
-		}
-		return 0;
+		NodeKey k;
+		return getNextChild( k );
 	}
+	
 	// bring everything current 
 	void reset()
 	{ 
@@ -117,6 +140,7 @@ public:
 	{ reset(); }
 };
 
+
 /// BarzelTrie depth first traverser
 /// does depth first traversal. 
 /// presumes bool T::operator() ( const BarzelTrieNode& ) {} 
@@ -129,14 +153,37 @@ struct BarzelTrieTraverser_depth {
 		d_wcPool(wcPool)
 	{}
 
+	typedef BarzelTrieNodeChildIterator::NodeKey   NodeKey;
+	typedef std::vector< NodeKey >  NodeKeyVec;
+	NodeKeyVec d_stack;
+
+	const NodeKeyVec& getPath() { d_stack; }
+	/// visits every node in the tree until cb returns false, keeps the stack 
 	template <typename T>
 	const BarzelTrieNode* traverse(T& cb, const BarzelTrieNode& tn )
+	{
+		BarzelTrieNodeChildIterator it( tn, d_wcPool );
+		NodeKey nk;
+		for( const BarzelTrieNode* child = it.getCurrentChild(nk); child; child = it.getNextChild(nk) ) {
+			ay::vector_raii< NodeKeyVec > raii( d_stack, nk );
+			if( !cb(*child) )
+				return child;
+			const BarzelTrieNode* stopNode = traverse( cb, *child);
+			if( stopNode ) 
+				return stopNode;
+		}
+		return 0;
+	}
+	/// same as traverse except the stack is not kept
+	// !!DO NOT USE THIS!! 
+	template <typename T>
+	const BarzelTrieNode* traverse_nostack(T& cb, const BarzelTrieNode& tn )
 	{
 		BarzelTrieNodeChildIterator it( tn, d_wcPool );
 		for( const BarzelTrieNode* child = it.getCurrentChild(); child; child = it.getNextChild() ) {
 			if( !cb(*child) )
 				return child;
-			const BarzelTrieNode* stopNode = traverse( cb, *child);
+			const BarzelTrieNode* stopNode = traverse_nostack( cb, *child);
 			if( stopNode ) 
 				return stopNode;
 		}
@@ -147,17 +194,7 @@ struct BarzelTrieTraverser_depth {
 struct BarzelTrieStatsCounter {
 	size_t numNodes, numWildcards, numLeaves;
 
-	bool operator()( const BarzelTrieNode& tn )
-	{
-		++numNodes;
-		if( tn.isLeaf() ) {
-			++numLeaves;
-		}
-		if( tn.isWcChild() ) {
-			++numWildcards;
-		}
-		return true;
-	}
+	bool operator()( const BarzelTrieNode& tn );
 	BarzelTrieStatsCounter() :
 		numNodes(0), numWildcards(0), numLeaves(0)
 	{}
@@ -166,7 +203,7 @@ struct BarzelTrieStatsCounter {
 		return fp << 
 		"Total nodes: " << numNodes << "\n" <<
 		"Total wildcards: " << numWildcards << "\n" <<
-		"Total leaves: " << numWildcards ;
+		"Total leaves: " << numLeaves ;
 		
 	}
 };

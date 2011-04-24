@@ -19,6 +19,8 @@ namespace barzer {
 /// 
 /// nodeclose 1byte
 struct BarzelRwrTreeNode {
+	typedef char[2] Header;
+	Header d_header;
 };
 class BarzelTranslation;
 

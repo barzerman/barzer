@@ -98,5 +98,15 @@ void BELTrieWalker::loadWC() {
 	}
 }
 
+	bool BarzelTrieStatsCounter::operator()( const BarzelTrieNode& tn )
+	{
+		++numNodes;
+		if( tn.isLeaf() ) 
+			++numLeaves;
+		if( tn.isWcChild() ) 
+			++numWildcards;
+		return true;
+	}
+
 }
 

@@ -2,7 +2,7 @@ FLAGS := $(FLAGS)
 ifeq ($(IS64),yes)
 	BITMODE=-m64
 endif 
-CFLAGS :=$(CFLAGS) $(BITMODE) -O3 -Wnon-virtual-dtor -I/opt/local/include -I/usr/include -Wall -g -I. -I./ay
+CFLAGS :=$(CFLAGS) $(BITMODE) $(OPT) -Wnon-virtual-dtor -I/opt/local/include -I/usr/include -Wall -g -I. -I./ay
 LINKFLAGS := $(FLAGS)
 BINARY=barzer.exe
 libs = -Lay -lay -L/opt/local/lib/boost -L/usr/lib -lboost_system -lexpat -lstdc++

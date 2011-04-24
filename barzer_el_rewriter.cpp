@@ -20,6 +20,12 @@ namespace barzel {
 	};
 }
 
+namespace {
+
+struct encodeParseTreeNode_visitor : public boost::static_visitor<> {
+};
+
+} // anon namespace ends 
 int  BarzelRewriterPool::encodeParseTreeNode( BarzelRewriterPool::byte_vec& trans, const BELParseTreeNode& ptn )
 {
 	trans.push_back( (uint8_t)barzel::RWR_NODE_START );
