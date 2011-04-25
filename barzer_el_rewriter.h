@@ -73,6 +73,7 @@ class BarzelMatchInfo;
 
 struct BarzelEvalResult {
 	BarzelBeadData d_val;	
+	const BarzelBeadData& getBeadData() const { return d_val; }
 };
 typedef std::vector< BarzelEvalResult > BarzelEvalResultVec;
 
@@ -104,6 +105,8 @@ protected:
 	const uint8_t* growTree_recursive( ByteRange& brng, BarzelEvalContext& ctxt );
 	
 public:
+	BTND_RewriteData& getBtnd() { return d_btnd; }
+
 	const BTND_RewriteData& getBtnd() const { return d_btnd; }
 	bool isFallible() const 
 	{

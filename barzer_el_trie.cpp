@@ -231,6 +231,10 @@ const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, const B
 }
 //// BarzelTranslation methods
 
+void BarzelTranslation::fillRewriteData( BTND_RewriteData& rd ) const
+{
+SHIT
+}
 bool BarzelTranslation::isRewriteFallible( const BarzelRewriterPool& pool ) const
 {
 	BarzelRewriterPool::BufAndSize rwr; // rewrite bytecode
@@ -272,7 +276,7 @@ void BarzelTranslation::set(BELTrie& ,const BTND_Rewrite_Literal& x )
 		break;
 	case BTND_Rewrite_Literal::T_PUNCT:
 		type = T_PUNCT;
-		id = 0xffffffff;
+		id = x.getId();
 		break;
 	default: 
 		AYTRACE( "inconsistent literal encountered in Barzel rewrite" );
@@ -321,7 +325,21 @@ void BarzelTranslation::set( BELTrie& trie, const BELParseTreeNode& tn )
 		}
 	}
 }
+void BarzelTranslation::fillRewriteData( BTND_RewriteData& d ) const
+{
+	switch(type) {
+	case T_NONE: d = BTND_Rewrite_None(); return;
 
+	case T_STOP: { BTND_Rewrite_Literal l; l.setStop(); d = l; } return;
+	case T_STRING: { BTND_Rewrite_Literal l; l.setString(getId_uint32()); d = l; } return;
+	case T_BLANK: { BTND_Rewrite_Literal l; l.setBlank(); d = l; } return;
+	case T_PUNCT: { BTND_Rewrite_Literal l; l.setPunct(getId_uint32()); d = l; } return;
+	case T_COMPWORD: { BTND_Rewrite_Literal l; l.setCompound(getId_uint32()); d = l; } return;
+	case T_NUMBER_INT: { BTND_Rewrite_Number n; n.set(getId_int()); d=n;} return;
+	case T_NUMBER_REAL: { BTND_Rewrite_Number n; n.set(getId_double()); d=n;} return;
+	default: d = BTND_Rewrite_None(); return;
+	}
+}
 std::ostream& BarzelTranslation::print( std::ostream& fp, const BELPrintContext& ctxt) const
 {
 	switch(type ) {

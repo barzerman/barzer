@@ -221,6 +221,10 @@ public:
 	{
 		return ( type == T_REWRITER ? boost::get<uint32_t>(id) : 0xffffffff );
 	}
+	uint32_t getId_uint32() const { return ( id.which() ==0 ? boost::get<uint32_t>(id) : 0xffffffff ); }
+	uint32_t getId_int() const { return ( id.which() ==2  ? boost::get<int>(id) : 0 ); }
+	uint32_t getId_double() const { return ( id.which() ==1  ? boost::get<double>(id) : 0.0 ); }
+
 	void setStop() { type = T_STOP; }
 
 	void clear() { type= T_NONE; }
@@ -233,14 +237,9 @@ public:
 	// this function answers in principle whether the right side may theoretically fail 
 	// this check is very cheap because no actual evaluation is performed
 	bool isFallible(const BarzelRewriterPool& rwrPool) const 
-	{
-		if( type != T_REWRITER ) {
-			return false;
-		} else {
-			return isRewriteFallible( rwrPool );
-		}
-	}
+		{ return( type != T_REWRITER ? false : isRewriteFallible( rwrPool ) ); }
 
+	/// resolves 
 	void fillRewriteData( BTND_RewriteData& ) const;
 
 	bool isRewriteFallible( const BarzelRewriterPool& pool ) const;

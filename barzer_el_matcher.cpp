@@ -480,18 +480,49 @@ int BarzelMatcher::rewriteUnit( const RewriteUnit& ru, BarzelBeadChain& chain )
 	const BeadRange& range = matchInfo.getBeadRange();
 	BarzelBead& theBead = *(range.first);
 
+	try {
+
 	if( !transP ) { // null translatons shouldnt happen  .. 
-		theBead.setStopLiteral();
 		AYLOG(WARNING) << "null translation detected" << std::endl;
-		return 0;
+		throw;
 	}
 
-	/// constructing eval tree
-	BarzelEvalNode eNode;
+	const BarzelTranslation& translation = *transP;
+
 	BarzelEvalResult transResult;
+	BarzelEvalNode evalNode;
+	if( translation.isRewriter() ) { /// translation is a rewriter 
+		BarzelRewriterPool::BufAndSize bas;
+		if( !universe.getBarzelRewriter( bas, translation )) {
+			AYLOG(ERROR) << "no bytecode in rewriter" << std::endl;
+			throw;
+		}
+
+		/// constructing eval tree
+		BarzelEvalContext ctxt( matchInfo, universe );
+		if( !evalNode.growTree( bas, ctxt ) ) {
+			AYLOG(ERROR) << "eval tree construction failed" << std::endl;
+			throw;
+		}
+		/// end of custom rewriter handling 
+	} else {  /// trivial translation (non-rewrite - no bytecode there)
+
+		// creating a childless evalNode 
+		translation.fillRewriteData( evalNode.getBtnd() );
+	}
+	if( !evalNode.eval( transResult, ctxt ) ) {
+		AYLOG(ERROR) << "evaluation failed" << std::endl;
+		throw;
+	}
 
 	// the range will be replaced with a single bead . 
 	// so we will simply delete everything past the first bead
+	theBead.setData(  transResult.getBeadData() );
+
+	} catch(...) {
+		theBead.setStopLiteral();
+	}
+
 	chain.collapseRangeLeft( range );
 	return 0;
 }
