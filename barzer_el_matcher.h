@@ -172,7 +172,7 @@ protected:
 
 	virtual bool match( RewriteUnit&, BarzelBeadChain& );
 
-	int rewriteUnit( const RewriteUnit&, BarzelBeadChain& );	 	
+	int rewriteUnit( RewriteUnit&, BarzelBeadChain& );	 	
 
 	class PathExclusionList {
 		public:

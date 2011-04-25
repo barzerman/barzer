@@ -68,8 +68,8 @@ struct BarzelBeadAtomic {
 	int getType() const 
 		{ return dta.which(); }
 
-	void setStopLiteral( )
-		{ BarzerLiteral lrl; lrl.setStop(); dta = lrl; }
+	BarzelBeadAtomic& setStopLiteral( )
+		{ BarzerLiteral lrl; lrl.setStop(); dta = lrl; return *this; }
 
 	std::ostream& print( std::ostream& fp ) const;
 };
@@ -132,6 +132,9 @@ public:
 	std::ostream& print( std::ostream& ) const;
 
 	template <typename T> void setData( const T& t ) { dta = t; }
+	void setStopLiteral() { 
+		dta= BarzelBeadAtomic().setStopLiteral();
+	}
 
 	bool isBlank( ) const { return (dta.which() == BarzelBeadBlank_TYPE); }
 	bool isAtomic() const { return (dta.which() == BarzelBeadAtomic_TYPE); }
@@ -183,16 +186,15 @@ struct BarzelBeadChain {
 	void init( const CTWPVec& cv );
 	void clear() { lst.clear(); }
 
-	void collapseRangeLeft( const Range r ) 
-	{
+	void collapseRangeLeft( Range r ) {
 		if( r.first == r.second ) 
 			return;
 		BarzelBead& firstBead = *(r.first);
 		++(r.first);
-		for( BarzelBeadList::iterator i = r.fist; i!= r.second; ++i ) {
+		for( BeadList::iterator i = r.first; i!= r.second; ++i ) {
 			firstBead.absorbBead( *i );
 		}
-		lst.erase( (r.fist), r.second );
+		lst.erase( r.first, r.second );
 	}
 };
 

@@ -157,7 +157,7 @@ struct BarzelTrieTraverser_depth {
 	typedef std::vector< NodeKey >  NodeKeyVec;
 	NodeKeyVec d_stack;
 
-	const NodeKeyVec& getPath() { d_stack; }
+	const NodeKeyVec& getPath() { return d_stack; }
 	/// visits every node in the tree until cb returns false, keeps the stack 
 	template <typename T>
 	const BarzelTrieNode* traverse(T& cb, const BarzelTrieNode& tn )

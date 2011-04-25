@@ -468,7 +468,7 @@ bool BarzelMatcher::match( RewriteUnit& ru, BarzelBeadChain& beadChain )
 }
 
 /// 
-int BarzelMatcher::rewriteUnit( const RewriteUnit& ru, BarzelBeadChain& chain )
+int BarzelMatcher::rewriteUnit( RewriteUnit& ru, BarzelBeadChain& chain )
 {
 	BarzelMatchInfo& matchInfo = ru.first;
 	
@@ -491,6 +491,7 @@ int BarzelMatcher::rewriteUnit( const RewriteUnit& ru, BarzelBeadChain& chain )
 
 	BarzelEvalResult transResult;
 	BarzelEvalNode evalNode;
+	BarzelEvalContext ctxt( matchInfo, universe );
 	if( translation.isRewriter() ) { /// translation is a rewriter 
 		BarzelRewriterPool::BufAndSize bas;
 		if( !universe.getBarzelRewriter( bas, translation )) {
@@ -499,7 +500,6 @@ int BarzelMatcher::rewriteUnit( const RewriteUnit& ru, BarzelBeadChain& chain )
 		}
 
 		/// constructing eval tree
-		BarzelEvalContext ctxt( matchInfo, universe );
 		if( !evalNode.growTree( bas, ctxt ) ) {
 			AYLOG(ERROR) << "eval tree construction failed" << std::endl;
 			throw;

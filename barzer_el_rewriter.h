@@ -2,6 +2,7 @@
 #define BARZER_EL_REWRITER_H
 #include <barzer_el_btnd.h>
 #include <barzer_el_parser.h>
+#include <barzer_el_chain.h>
 namespace barzer {
 /// rewriter is a tree which is evaluated based on input
 /// result of evaluation is a value computed from underlying nodes
@@ -13,15 +14,6 @@ namespace barzer {
 /// input is RewriterContext which has a hash table with variables and other 
 /// stuff
 
-/// tree encoding format
-/// nodeopen 1byte 
-//// nodeheader 4 bytes 
-/// 
-/// nodeclose 1byte
-struct BarzelRwrTreeNode {
-	typedef char[2] Header;
-	Header d_header;
-};
 class BarzelTranslation;
 
 /// unique at least per BarzelTrie (most likely globally unique)
@@ -87,9 +79,9 @@ struct BarzelEvalContext {
 	};
 
 	bool hasError() { return err != EVALERR_OK; }
-	const uint8_t* setErr_GROW() { return( err = EVALERR_GROW, 0); } 
+	const uint8_t* setErr_GROW() { return( err = EVALERR_GROW, (const uint8_t*)0); } 
 	BarzelEvalContext( BarzelMatchInfo& mi, const StoredUniverse& uni ) : 
-		matchInfo(mi), unverse(uni) , err(EVALERR_OK)
+		matchInfo(mi), universe(uni) , err(EVALERR_OK)
 	{}
 };
 class BarzelEvalNode {
@@ -123,13 +115,13 @@ public:
 
 	/// construct the tree from the byte buffer created in encode ... 
 	/// returns true is tree was constructed successfully
-	bool growTree( const BufAndSize& bas, BarzelEvalContext& ctxt )
+	bool growTree( const BarzelRewriterPool::BufAndSize& bas, BarzelEvalContext& ctxt )
 	{
 		ByteRange brng( bas.first, bas.first+ bas.second );
 		return( growTree_recursive( brng, ctxt ) !=0 ) ;
 	}
 	/// returns true if evaluation is successful 
-	bool eval(BarzelEvalResult&, EvalContext& ctxt ) const;
+	bool eval(BarzelEvalResult&, BarzelEvalContext& ctxt ) const;
 };
 
 }

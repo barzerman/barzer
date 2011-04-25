@@ -365,8 +365,11 @@ struct BTND_Rewrite_Number : public BarzerNumber {
 
 	std::ostream& print( std::ostream& fp, const BELPrintContext& ) const
 		{ return BarzerNumber::print( fp ); }
+
 	void set( int i ) { isConst = (uint8_t)1; BarzerNumber::set(i); }
+	void set_int( int i ) { isConst = (uint8_t)1; BarzerNumber::set(i); }
 	void set( double i ) { isConst = (uint8_t)1; BarzerNumber::set(i); }
+	void set_double( double i ) { isConst = (uint8_t)1; BarzerNumber::set(i); }
 };
 
 struct BTND_Rewrite_Variable {

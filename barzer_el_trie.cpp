@@ -231,10 +231,6 @@ const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, const B
 }
 //// BarzelTranslation methods
 
-void BarzelTranslation::fillRewriteData( BTND_RewriteData& rd ) const
-{
-SHIT
-}
 bool BarzelTranslation::isRewriteFallible( const BarzelRewriterPool& pool ) const
 {
 	BarzelRewriterPool::BufAndSize rwr; // rewrite bytecode
@@ -244,9 +240,9 @@ bool BarzelTranslation::isRewriteFallible( const BarzelRewriterPool& pool ) cons
 	} else {
 		/// here we need to evaluate rewrite for fallibility (do NOT confuse with rewrite evaluation
 		/// which would ned the matched data. for now we assume that nothing is fallible
-		BufAndSize bas;
+		BarzelRewriterPool::BufAndSize bas;
 		if( pool.resolveTranslation( bas, *this ))
-			return pool.isRewritrFallible( bas );
+			return pool.isRewriteFallible( bas );
 		
 		return false;
 	}

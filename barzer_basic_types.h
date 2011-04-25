@@ -254,15 +254,6 @@ struct BarzerRange {
 inline std::ostream& operator <<( std::ostream& fp, const BarzerRange& x )
 	{ return( x.print(fp) ); }
 
-boos::variant<
-	BarzerNumber,
-	BarzerLiteral ,
-	BarzerDate,
-	BarzerTimeOfDay,
-	BarzerDateTime,
-	BarzerRange
-> BarzerValue;
-
 } // namespace barzer ends
 
 #endif // BARZER_BASIC_TYPES_H

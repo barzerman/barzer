@@ -28,8 +28,10 @@ bool  BarzelRewriterPool::isRewriteFallible( const BarzelRewriterPool::BufAndSiz
 	/// linear scan of all nodes - no need to have visitor - for now only EntitySearch is considered fallible
 	/// heoretically there can be infallible entity search patterns and if and when it becomes relevant 
 	/// i will update the logic - it would require analysing the subtree (AY) 
+	uint8_t tmp[ sizeof(BTND_RewriteData) ];  
 	for( const uint8_t * b = buf+1; b< buf_end; b+= ( 2 + sizeof(BTND_RewriteData) ) ) {
-		const BTND_Rewrite_EntitySearch* srch = boost::get<BTND_Rewrite_EntitySearch>( (new(b) BTND_RewriteData()) );
+		memcpy( tmp, b, sizeof(tmp) );
+		const BTND_Rewrite_EntitySearch* srch = boost::get<BTND_Rewrite_EntitySearch>( (new(tmp) BTND_RewriteData()) );
 		if( srch ) 
 			return true;
 	}
@@ -107,7 +109,7 @@ struct Eval_visitor_needToStop : public boost::static_visitor<bool> {
 struct Eval_visitor_compute : public boost::static_visitor<bool> {  
 	const BarzelEvalResultVec& d_childValVec;
 	BarzelEvalResult& d_val;
-	Eval_visitor_compute( 	const BarzelEvalResultVec& cvv; BarzelEvalResult& v ) : 
+	Eval_visitor_compute( 	const BarzelEvalResultVec& cvv, BarzelEvalResult& v ) : 
 		d_childValVec(cvv),
 		d_val(v)
 	{}
@@ -124,31 +126,36 @@ struct Eval_visitor_compute : public boost::static_visitor<bool> {
 
 } // end of anon namespace 
 
-bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalNode::EvalContext& ctxt ) const
+bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) const
 {
+	BarzelEvalResultVec childValVec;
 	if( d_child.size() ) {
-		BarzelEvalResultVec childValVec;
 		childValVec.resize( d_child.size() );
 		
 		/// forming dependent vector of values 
 		for( size_t i =0; i< d_child.size(); ++i ) {
-			const BarzelEvalNode& cNode = d_child[i];
+			const BarzelEvalNode& childNode = d_child[i];
 			BarzelEvalResult& childVal = childValVec[i];
 			if( !childNode.eval(childVal, ctxt) ) 
 				return false; // error in one of the children occured
 			
-			if( boost::apply_visitor( Eval_visitor_needToStop(childVal,val), d_btnd ) ) 
+			Eval_visitor_needToStop visitor(childVal,val);
+			if( boost::apply_visitor( visitor, d_btnd ) ) 
 				return 0;
 		}
 		/// vector of dependent values ready
-		return boost::apply_visitor( Eval_visitor_compute(childValVec,val), d_btnd );
 	}
+
+	Eval_visitor_compute visitor(childValVec,val);
+
+	return boost::apply_visitor( visitor, d_btnd );
 }
 
-const uint8_t* BarzelEvalNode::growTree_recursive( BarzelEvalNode::ByteRange& brng, EvalContext& ctxt )
+const uint8_t* BarzelEvalNode::growTree_recursive( BarzelEvalNode::ByteRange& brng, BarzelEvalContext& ctxt )
 {
-	const uint8_t* buf = bas.first;
+	const uint8_t* buf = brng.first;
 	const uint16_t childStep_sz = 1 + sizeof(BTND_RewriteData);
+	uint8_t tmp[ sizeof(BTND_RewriteData) ];
 	for( ; buf < brng.second; ++buf ) {
 
 		switch( *buf ) {
@@ -156,7 +163,8 @@ const uint8_t* BarzelEvalNode::growTree_recursive( BarzelEvalNode::ByteRange& br
 			if( buf + childStep_sz >= brng.second ) 
 				return ctxt.setErr_GROW();
 
-			d_child.push_back( *(new(buf+1) BTND_RewriteData()) ); 
+			memcpy( tmp, buf+1, sizeof(tmp) );
+			d_child.push_back( *(new(tmp) BTND_RewriteData()) ); 
 
 			BarzelEvalNode::ByteRange childRange( (buf + childStep_sz ), brng.second);
 			buf = d_child.back().growTree_recursive( childRange, ctxt );
