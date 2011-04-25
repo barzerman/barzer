@@ -56,14 +56,20 @@ struct BarzelBeadAtomic {
 	const BarzerLiteral* getLiteral() const { return boost::get<BarzerLiteral>( &dta ); }
 
 	bool isLiteral() const { return dta.which() == BarzerLiteral_TYPE; }
+	bool isStopLiteral() const { 
+		const BarzerLiteral* bl = getLiteral();
+		return( bl && bl->isStop() );
+	}
 	bool isNumber() const { return dta.which() == BarzerNumber_TYPE; }
-	bool isBlankLiteral() const
-		{ 
-			const BarzerLiteral* bl = getLiteral();
-			return( bl && bl->isBlank() );
-		}
+	bool isBlankLiteral() const { 
+		const BarzerLiteral* bl = getLiteral();
+		return( bl && bl->isBlank() );
+	}
 	int getType() const 
 		{ return dta.which(); }
+
+	void setStopLiteral( )
+		{ BarzerLiteral lrl; lrl.setStop(); dta = lrl; }
 
 	std::ostream& print( std::ostream& fp ) const;
 };
@@ -118,11 +124,14 @@ public:
 	BarzelBead(const CTWPVec::value_type& ct) 
 		{ init(ct); }
 	/// implement:
-	void absorbBead( const BarzelBead& bead ); 
+	void absorbBead( const BarzelBead& bead )
+	{ ctokOrigVec.insert( ctokOrigVec.end(), bead.ctokOrigVec.begin(), bead.ctokOrigVec.end() ); }
 
 	template <typename T> void become( const T& t ) { dta = t; }
 
 	std::ostream& print( std::ostream& ) const;
+
+	template <typename T> void setData( const T& t ) { dta = t; }
 
 	bool isBlank( ) const { return (dta.which() == BarzelBeadBlank_TYPE); }
 	bool isAtomic() const { return (dta.which() == BarzelBeadAtomic_TYPE); }
@@ -173,6 +182,18 @@ struct BarzelBeadChain {
 
 	void init( const CTWPVec& cv );
 	void clear() { lst.clear(); }
+
+	void collapseRangeLeft( const Range r ) 
+	{
+		if( r.first == r.second ) 
+			return;
+		BarzelBead& firstBead = *(r.first);
+		++(r.first);
+		for( BarzelBeadList::iterator i = r.fist; i!= r.second; ++i ) {
+			firstBead.absorbBead( *i );
+		}
+		lst.erase( (r.fist), r.second );
+	}
 };
 
 }

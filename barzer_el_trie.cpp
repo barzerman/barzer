@@ -240,7 +240,10 @@ bool BarzelTranslation::isRewriteFallible( const BarzelRewriterPool& pool ) cons
 	} else {
 		/// here we need to evaluate rewrite for fallibility (do NOT confuse with rewrite evaluation
 		/// which would ned the matched data. for now we assume that nothing is fallible
-		#warning rewrite fallibility evaluation needs to be implemented
+		BufAndSize bas;
+		if( pool.resolveTranslation( bas, *this ))
+			return pool.isRewritrFallible( bas );
+		
 		return false;
 	}
 }

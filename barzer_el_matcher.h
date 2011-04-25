@@ -32,6 +32,8 @@ class BarzelMatchInfo {
 	/// uint32_t is the stringId from the pool
 	std::map< uint32_t, size_t > d_varNameMap; 
 public:
+	bool isBeadRangeEmpty() const { return d_beadRng.first == d_beadRng.second ; }
+
 	BarzelMatchInfo() : d_score(0)  {}
 	void setScore( int s ) 	{ d_score = s; }
 	int getScore() const 	{ return d_score; }
@@ -170,7 +172,6 @@ protected:
 
 	virtual bool match( RewriteUnit&, BarzelBeadChain& );
 
-	/// 
 	int rewriteUnit( const RewriteUnit&, BarzelBeadChain& );	 	
 
 	class PathExclusionList {

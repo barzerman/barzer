@@ -468,9 +468,31 @@ bool BarzelMatcher::match( RewriteUnit& ru, BarzelBeadChain& beadChain )
 }
 
 /// 
-int BarzelMatcher::rewriteUnit( const RewriteUnit&, BarzelBeadChain& )
+int BarzelMatcher::rewriteUnit( const RewriteUnit& ru, BarzelBeadChain& chain )
 {
-	#warning BarzelMatcher::rewriteUnit
+	BarzelMatchInfo& matchInfo = ru.first;
+	
+	const BarzelTranslation* transP = ru.second;
+	if( matchInfo.isBeadRangeEmpty() ) { // this should never happen 
+		AYLOG(ERROR) << "empty bead range submitted for rewriting" << std::endl;
+		return 0;
+	}
+	const BeadRange& range = matchInfo.getBeadRange();
+	BarzelBead& theBead = *(range.first);
+
+	if( !transP ) { // null translatons shouldnt happen  .. 
+		theBead.setStopLiteral();
+		AYLOG(WARNING) << "null translation detected" << std::endl;
+		return 0;
+	}
+
+	/// constructing eval tree
+	BarzelEvalNode eNode;
+	BarzelEvalResult transResult;
+
+	// the range will be replaced with a single bead . 
+	// so we will simply delete everything past the first bead
+	chain.collapseRangeLeft( range );
 	return 0;
 }
 int BarzelMatcher::matchAndRewrite( Barz& barz )

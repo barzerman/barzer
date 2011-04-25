@@ -41,7 +41,7 @@ private:
 		return (encVec.size() -1);
 	}
 
-	int  encodeParseTreeNode( BarzelRewriterPool::byte_vec& trans, const BELParseTreeNode& ptn );
+	int  encodeParseTreeNode( BarzelRewriterPool::byte_vec& trans, const BELParseTreeNode& ptn ) const;
 public:
 	void clear();
 	~BarzelRewriterPool();
@@ -60,6 +60,73 @@ public:
 	/// when translation contained valid rewriter buffer returns true
 	/// otherwise 0
 	bool resolveTranslation( BufAndSize&, const BarzelTranslation& trans ) const;
+	/// returns true if any EntitySearch rewrites are encountered anywhere 
+	/// in the encoding - this performs a linear scan 
+	/// of the rewrite bytecode . even if this function returns true the rewrite 
+	/// may still never fail. this is a quick way to check though during matching 
+	bool isRewriteFallible( const BufAndSize& bas ) const;
+};
+
+//// rewriter evaluation 
+class StoredUniverse;
+class BarzelMatchInfo;
+
+struct BarzelEvalResult {
+	BarzelBeadData d_val;	
+};
+typedef std::vector< BarzelEvalResult > BarzelEvalResultVec;
+
+struct BarzelEvalContext {
+	BarzelMatchInfo& matchInfo;
+	const StoredUniverse& universe;
+	int err;
+	enum {
+		EVALERR_OK, 
+		EVALERR_GROW
+	};
+
+	bool hasError() { return err != EVALERR_OK; }
+	const uint8_t* setErr_GROW() { return( err = EVALERR_GROW, 0); } 
+	BarzelEvalContext( BarzelMatchInfo& mi, const StoredUniverse& uni ) : 
+		matchInfo(mi), unverse(uni) , err(EVALERR_OK)
+	{}
+};
+class BarzelEvalNode {
+protected:
+	BTND_RewriteData d_btnd;
+
+	typedef std::vector< BarzelEvalNode > ChildVec;
+	ChildVec d_child;
+
+
+	//// will recursively add nodes 
+	typedef std::pair< const uint8_t*, const uint8_t* > ByteRange;
+	const uint8_t* growTree_recursive( ByteRange& brng, BarzelEvalContext& ctxt );
+	
+public:
+	const BTND_RewriteData& getBtnd() const { return d_btnd; }
+	bool isFallible() const 
+	{
+		if( ( d_btnd.which() == BTND_Rewrite_EntitySearch_TYPE ) ) 
+			return true;
+		for( ChildVec::const_iterator i = d_child.begin(); i!= d_child.end(); ++i ) {
+			if( i->isFallible() ) 
+				return true;
+		}
+		return false;
+	}
+	BarzelEvalNode() {}
+	BarzelEvalNode( const BTND_RewriteData& b ) : d_btnd(b) {}
+
+	/// construct the tree from the byte buffer created in encode ... 
+	/// returns true is tree was constructed successfully
+	bool growTree( const BufAndSize& bas, BarzelEvalContext& ctxt )
+	{
+		ByteRange brng( bas.first, bas.first+ bas.second );
+		return( growTree_recursive( brng, ctxt ) !=0 ) ;
+	}
+	/// returns true if evaluation is successful 
+	bool eval(BarzelEvalResult&, EvalContext& ctxt ) const;
 };
 
 }

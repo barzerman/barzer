@@ -346,6 +346,9 @@ struct BTND_PatternData_Access {
 typedef std::vector< BTND_PatternData > BTND_PatternDataVec;
 
 //// REWRITE Types
+/// translation is essentially a tree each node having one and only 
+/// one rewrite type 
+/// 
 struct BTND_Rewrite_Literal : public  BarzerLiteral {
 	std::ostream& print( std::ostream& fp, const BELPrintContext& ctxt ) const
 		{ return BarzerLiteral::print( fp, ctxt ); }
@@ -429,6 +432,36 @@ struct BTND_Rewrite_Range : public BarzerRange {
 		{ return BarzerRange::print( fp ); }
 };
 
+/// only makes sense when it's underneath BTND_Rewrite_EntitySearch_Srch
+/// each TND_Rewrite_EntitySearch_Srch can have multiple class filters 
+struct BTND_Rewrite_EntitySearch_ClassFilter {
+	// 0xffff is a wilcdard (meaning any class or subclass would do)
+	uint16_t d_entClass, d_entSubclass;
+
+	BTND_Rewrite_EntitySearch_ClassFilter() : d_entClass(0xffff), d_entSubclass(0xffff) {}
+	BTND_Rewrite_EntitySearch_ClassFilter( uint16_t c, uint16_t sc) : 
+		d_entClass(c), d_entSubclass(sc) 
+	{}
+
+	std::ostream& print( std::ostream& fp ) const
+		{ return fp << std::hex << d_entClass << ":" << std::hex << d_entSubclass; }
+	std::ostream& print( std::ostream& fp, const BELPrintContext& ) const
+		{ return print(fp); }
+};
+
+/// runs entity search based on subordinate BTND_Rewrite_EntitySearch_Arg_XXX nodes
+struct BTND_Rewrite_EntitySearch_Srch {
+	std::ostream& print( std::ostream& fp ) const
+		{ return fp << "EntSearch"; }
+	std::ostream& print( std::ostream& fp, const BELPrintContext& ) const
+		{ return print(fp); }
+};
+
+typedef boost::variant<
+	BTND_Rewrite_EntitySearch_ClassFilter,
+	BTND_Rewrite_EntitySearch_Srch
+> BTND_Rewrite_EntitySearch;
+
 typedef boost::variant<
 	BTND_Rewrite_AbsoluteDate,
 	BTND_Rewrite_TimeOfDay
@@ -441,7 +474,8 @@ typedef boost::variant<
 	BTND_Rewrite_Variable,
 	BTND_Rewrite_Function,
 	BTND_Rewrite_DateTime,
-	BTND_Rewrite_Range
+	BTND_Rewrite_Range,
+	BTND_Rewrite_EntitySearch
 > BTND_RewriteData;
 
 enum {
@@ -451,7 +485,8 @@ enum {
 	BTND_Rewrite_Variable_TYPE,
 	BTND_Rewrite_Function_TYPE,
 	BTND_Rewrite_DateTime_TYPE,
-	BTND_Rewrite_Range_TYPE
+	BTND_Rewrite_Range_TYPE,
+	BTND_Rewrite_EntitySearch_TYPE
 }; 
 
 /// when updating the enums make sure to sunc up BTNDDecode::typeName_XXX 

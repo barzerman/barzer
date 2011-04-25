@@ -241,6 +241,8 @@ public:
 		}
 	}
 
+	void fillRewriteData( BTND_RewriteData& ) const;
+
 	bool isRewriteFallible( const BarzelRewriterPool& pool ) const;
 	bool nonEmpty() const
 		{ return ( type != T_NONE ); }
