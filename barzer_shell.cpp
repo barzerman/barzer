@@ -13,6 +13,8 @@
 #include <functional>
 #include <boost/function.hpp>
 
+#include <barzer_server_request.h>
+
 namespace barzer {
 
 
@@ -461,6 +463,7 @@ public:
 
     // only prints the vector itself yet.
 	void operator()(const BTND_PatternDataVec& seq) {
+		//return;
 		std::cout << "[";
 		for(BTND_PatternDataVec::const_iterator pi = seq.begin(); pi != seq.end();) {
 			printPatternData(std::cout, *pi);
@@ -483,17 +486,46 @@ static int bshf_stexpand( BarzerShell* shell, char_cp cmd, std::istream& in )
 	BELExpandReader<PatternPrinter> reader(pp, &trie, &stringPool);
 	reader.initParser(BELReader::INPUT_FMT_XML);
 
+	ay::stopwatch totalTimer;
+
 	std::string sin;
 	if (in >> sin) {
 		const char *fname = sin.c_str();
 		//AYLOG(DEBUG) << "Loading " << fname;
 		int numsts = reader.loadFromFile(fname);
-		std::cout << numsts << " statements read. " << std::endl;
+		std::cout << numsts << " statements read. in "  << totalTimer.calcTime() << std::endl;
 	} else {
 		//AYLOG(ERROR) << "no filename";
 	}
 	return 0;
 }
+
+
+static int bshf_querytest( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext *context = shell->getBarzerContext();
+	StoredUniverse &uni = context->universe;
+	//BELTrie &trie = uni.getBarzelTrie();
+	//ay::UniqueCharPool &stringPool = uni.getStringPool();
+
+	ay::stopwatch totalTimer;
+
+	size_t num = 0;
+	if (in >> num) {
+		shell->getOutStream() << "performing " << num << " queries...\n";
+		while (num--) {
+			std::string str = "<query>mama myla 2 ramy</query>";
+			std::stringstream ss;
+			BarzerRequestParser rp(uni, ss);
+			rp.parse(str.c_str(), str.size());
+		}
+		shell->getOutStream() << "done in " << totalTimer.calcTime() << "\n";
+	} else {
+		//AYLOG(ERROR) << "no filename";
+	}
+	return 0;
+}
+
 
 /// end of specific shell routines
 static const CmdData g_cmd[] = {
@@ -522,6 +554,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_trup, "trup", "moves back to the parent trie node" ),
 	CmdData( (ay::Shell_PROCF)bshf_stexpand, "stexpand", "expand and print all statements in a file" ),
 	CmdData( (ay::Shell_PROCF)bshf_process, "process", "process an input string" ),
+	CmdData( (ay::Shell_PROCF)bshf_querytest, "querytest", "peforms given number of queries" ),
 };
 
 ay::ShellContext* BarzerShell::mkContext()
