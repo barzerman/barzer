@@ -1,5 +1,9 @@
 #include <barzer_server.h>
 
+extern "C" {
+#include <unistd.h>
+}
+
 namespace barzer {
 
 using boost::asio::ip::tcp;
@@ -88,12 +92,13 @@ void AsyncServer::query(const char* buf, const size_t len, std::ostream& os) {
 
 
 int run_server(int port) {
-	ay::Logger::getLogger()->setFile("barzer_server.log");
-	boost::asio::io_service io_service;
-	std::cerr << "Running barzer search server on port " << port << "..." << std::endl;
-	AsyncServer s(io_service, port);
-	io_service.run();
-
+	if (!fork()) {
+		ay::Logger::getLogger()->setFile("barzer_server.log");
+		boost::asio::io_service io_service;
+		std::cerr << "Running barzer search server on port " << port << "..." << std::endl;
+		AsyncServer s(io_service, port);
+		io_service.run();
+	}
 	return 0;
 }
 }
