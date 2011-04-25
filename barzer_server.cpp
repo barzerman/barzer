@@ -18,18 +18,17 @@ void SearchSession::start() {
 }
 
 
-static void handle_write(const boost::system::error_code &e,
-		std::size_t len)
+void SearchSession::handle_write(const boost::system::error_code &e, std::size_t len)
 {
 		if (e) {
 			AYLOG(ERROR) << "Error writing into buffer: " << e;
 		} else {
 			AYLOG(DEBUG) << len << " written into the socket";
 		}
-
+		delete this;
 }
 
-void SearchSession::handle_read(const boost::system::error_code ec, size_t bytes_transferred) {
+void SearchSession::handle_read(const boost::system::error_code &ec, size_t bytes_transferred) {
 
 	if (!ec) {
 		std::string response;
@@ -37,12 +36,16 @@ void SearchSession::handle_read(const boost::system::error_code ec, size_t bytes
 		std::istream is(&data_);
 		is.read(chunk, bytes_transferred);
 
-		boost::asio::streambuf buf;
-		std::ostream os(&buf);
+		//boost::asio::streambuf buf;
+		std::ostream os(&outbuf);
 
 		server->query(chunk, bytes_transferred, os);
 
-		boost::asio::async_write(socket_, buf, &handle_write);
+		boost::asio::async_write(socket_, outbuf,
+				boost::bind(&SearchSession::handle_write, this,
+							boost::asio::placeholders::error,
+							boost::asio::placeholders::bytes_transferred));
+//				&handle_write);
 
 
 		/*
@@ -54,8 +57,6 @@ void SearchSession::handle_read(const boost::system::error_code ec, size_t bytes
 		*/
 
 	}
-
-	delete this;
 }
 
 

@@ -26,6 +26,7 @@ class AsyncServer;
 class SearchSession {
 	tcp::socket socket_;
 	boost::asio::streambuf data_;
+	boost::asio::streambuf outbuf;
 
 	AsyncServer *server;
 
@@ -40,7 +41,8 @@ public:
 	}
 	void start();
 
-	void handle_read(const boost::system::error_code ec, size_t bytes_transferred);
+	void handle_write(const boost::system::error_code&, size_t);
+	void handle_read(const boost::system::error_code&, size_t);
 
 };
 
