@@ -516,6 +516,7 @@ struct BTND_None {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 };
 
+
 typedef boost::variant<
 	BTND_None, 		  // 0
 	BTND_StructData,  // 1

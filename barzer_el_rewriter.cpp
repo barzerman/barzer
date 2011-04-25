@@ -13,29 +13,30 @@ BarzelRewriterPool::~BarzelRewriterPool()
 	clear();
 }
 
-namespace barzel {
-	enum {
-		RWR_NODE_START = 1,
-		RWR_NODE_END
-	};
-}
+namespace {
+
+struct Fallible {
+	bool isThatSo;
+
+	bool nodeStart() { return true; }
+	bool nodeEnd() { return true; }
+	bool nodeData( const BTND_RewriteData& d ) {
+		const BTND_Rewrite_EntitySearch* srch = boost::get<BTND_Rewrite_EntitySearch>( &d);
+		if( srch ) {
+			return ( isThatSo= false );
+		} else 
+			return true;
+	}
+	Fallible() : isThatSo(false) {}
+};
+
+} // anon namespace ends 
 
 bool  BarzelRewriterPool::isRewriteFallible( const BarzelRewriterPool::BufAndSize& bas ) const 
 {
-	const uint8_t * buf = bas.first;
-	const uint8_t * buf_end = bas.first + bas.second;
-	
-	/// linear scan of all nodes - no need to have visitor - for now only EntitySearch is considered fallible
-	/// heoretically there can be infallible entity search patterns and if and when it becomes relevant 
-	/// i will update the logic - it would require analysing the subtree (AY) 
-	uint8_t tmp[ sizeof(BTND_RewriteData) ];  
-	for( const uint8_t * b = buf+1; b< buf_end; b+= ( 2 + sizeof(BTND_RewriteData) ) ) {
-		memcpy( tmp, b, sizeof(tmp) );
-		const BTND_Rewrite_EntitySearch* srch = boost::get<BTND_Rewrite_EntitySearch>( (new(tmp) BTND_RewriteData()) );
-		if( srch ) 
-			return true;
-	}
-	return true;
+	Fallible fallible;
+	BarzelRewriteByteCodeProcessor<Fallible> processor(fallible,bas);
+	return fallible.isThatSo;
 }
 
 int  BarzelRewriterPool::encodeParseTreeNode( BarzelRewriterPool::byte_vec& trans, const BELParseTreeNode& ptn ) const
@@ -180,4 +181,40 @@ const uint8_t* BarzelEvalNode::growTree_recursive( BarzelEvalNode::ByteRange& br
 	}
 	return 0;
 }
+
+namespace {
+
+struct BTND_RewriteData_printer : public boost::static_visitor<> {
+	std::ostream& fp;
+	const BELPrintContext& ctxt;
+	BTND_RewriteData_printer( std::ostream& f, const BELPrintContext& c ) : fp(f), ctxt(c) {} 
+
+	template <typename T> void operator()( const T& t ) const { t.print( fp, ctxt ); }
+};
+
+template <> void BTND_RewriteData_printer::operator()<BTND_Rewrite_DateTime>( const BTND_Rewrite_DateTime& t ) const 
+{ fp << "DateTime"; }
+template <> void BTND_RewriteData_printer::operator()<BTND_Rewrite_EntitySearch>( const BTND_Rewrite_EntitySearch& t ) const 
+{ fp << "EntSearch"; }
+} // anon namespace 
+
+	bool BRBCPrintCB::nodeData( const BTND_RewriteData& d )
+	{
+		BTND_RewriteData_printer printer(fp, ctxt);
+		boost::apply_visitor( printer, d );
+		return true;
+	}
+
+	bool BRBCPrintCB::nodeStart() 
+	{
+		fp << prefix << "(\n"; 
+		prefix.append( 4, ' ' );
+		return true;
+	}
+	bool BRBCPrintCB::nodeEnd() 
+	{
+		fp << prefix << ")\n"; 
+		if( prefix.length() >= 4 )  prefix.resize(prefix.size()-4); 
+		return true; 
+	}
 } /// barzer namespace ends

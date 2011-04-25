@@ -59,6 +59,15 @@ public:
 	bool isRewriteFallible( const BufAndSize& bas ) const;
 };
 
+
+namespace barzel {
+	enum {
+		RWR_NODE_START = 1,
+		RWR_NODE_END
+	};
+}
+
+
 //// rewriter evaluation 
 class StoredUniverse;
 class BarzelMatchInfo;
@@ -93,7 +102,9 @@ protected:
 
 
 	//// will recursively add nodes 
+public:
 	typedef std::pair< const uint8_t*, const uint8_t* > ByteRange;
+private:
 	const uint8_t* growTree_recursive( ByteRange& brng, BarzelEvalContext& ctxt );
 	
 public:
@@ -123,7 +134,71 @@ public:
 	/// returns true if evaluation is successful 
 	bool eval(BarzelEvalResult&, BarzelEvalContext& ctxt ) const;
 };
+//// T must have methods:
+////   bool T::nodeStart()
+////   bool T::nodeEnd()
+////   bool T::nodeData( const BTND_RewriteData& ) 
+////   false returned from any of these functions aborts processing
 
-}
+template <typename T>
+struct BarzelRewriteByteCodeProcessor {
+	
+	BarzelEvalNode::ByteRange d_rng;
+	T& d_cb;
+
+	BarzelRewriteByteCodeProcessor( T& cb, const BarzelRewriterPool::BufAndSize& bas ) :
+		d_rng(bas.first, bas.first+bas.second),
+		d_cb(cb)
+	{}
+	BarzelRewriteByteCodeProcessor( T& cb, const BarzelEvalNode::ByteRange r ) :
+		d_rng(r),
+		d_cb(cb)
+	{}
+	
+	const uint8_t* run( ){
+		const uint8_t* buf = d_rng.first;
+		const uint16_t childStep_sz = 1 + sizeof(BTND_RewriteData);
+		uint8_t tmp[ sizeof(BTND_RewriteData) ];
+		for( ; buf < d_rng.second; ++buf ) {
+	
+			switch( *buf ) {
+			case barzel::RWR_NODE_START: {
+				if( buf + childStep_sz >= d_rng.second ) 
+					return 0;
+				if( !d_cb.nodeStart() )
+					return 0;
+
+				memcpy( tmp, buf+1, sizeof(tmp) );
+				if( !d_cb.nodeData( *(new(tmp) BTND_RewriteData()) ) ) 
+					return 0;
+	
+				BarzelEvalNode::ByteRange childRange( (buf + childStep_sz ), d_rng.second);
+				BarzelRewriteByteCodeProcessor proc( d_cb, childRange );
+				buf = proc.run();
+				if( !buf ) 
+					return 0;
+			}
+				break;
+			case barzel::RWR_NODE_END:
+				return( d_cb.nodeEnd() ? buf : 0 ) ;
+			default:
+				return 0;
+			}
+		}
+		return 0;
+	}
+};
+struct BRBCPrintCB {
+	mutable std::string   prefix;
+	std::ostream& fp;
+	const BELPrintContext& ctxt;
+
+	BRBCPrintCB( std::ostream& f, const BELPrintContext& c ) : fp(f),ctxt(c) {}
+	bool nodeStart();
+	bool nodeEnd();
+	bool nodeData( const BTND_RewriteData& d );
+};
+	
+} // barzer namespace 
 
 #endif // BARZER_EL_REWRITER_H

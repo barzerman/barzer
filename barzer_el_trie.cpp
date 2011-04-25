@@ -7,6 +7,27 @@
 namespace barzer {
 ///// output operators 
 
+namespace {
+std::ostream& glob_printRewriterByteCode( std::ostream& fp, const BarzelRewriterPool::BufAndSize& bas, const BELPrintContext& ctxt )
+{
+	BRBCPrintCB printer( fp, ctxt );
+	BarzelRewriteByteCodeProcessor<BRBCPrintCB> processor(printer,bas);
+	processor.run();
+	return fp;
+}
+} // end of anon namespace 
+
+std::ostream& BELPrintContext::printRewriterByteCode( std::ostream& fp, const BarzelTranslation& t ) const
+{
+	BarzelRewriterPool::BufAndSize bas;
+	if( trie.rewrPool->resolveTranslation( bas, t ) ) {
+		return glob_printRewriterByteCode( fp, bas, *this );
+	} else {
+		AYDEBUG( "NO BYTE CODE" );
+	}
+	return fp;
+}
+
 const BarzelWCLookup*  BELPrintContext::getWildcardLookup( uint32_t id ) const
 {
 return( trie.wcPool->getWCLookup( id ));
@@ -348,10 +369,7 @@ std::ostream& BarzelTranslation::print( std::ostream& fp, const BELPrintContext&
 	case T_REWRITER:
 	{
 		BarzelRewriterPool::BufAndSize bas; 
-		ctxt.trie.rewrPool->resolveTranslation( bas, *this );
-		fp << "RWR(";
-		fp << "rewriter bytes[" << bas.second << "]";
-		fp << ")";
+		ctxt.printRewriterByteCode( fp << "RWR{", *this ) << "}";
 	}
 		break;
 		

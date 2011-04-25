@@ -249,6 +249,7 @@ public:
 	BarzelTranslation(Type_t t , uint32_t i ) : id(i),type((uint8_t)t) {}
 	
 	std::ostream& print( std::ostream& , const BELPrintContext& ) const;
+
 };
 
 class BarzelTrieNode;
@@ -423,6 +424,9 @@ struct BELPrintContext {
 	}
 
 	std::ostream& printBarzelWCLookupKey( std::ostream& fp, const BarzelWCLookupKey& key ) const;
+
+	// std::ostream& printRewriterByteCode( std::ostream& fp, const BarzelRewriterPool::BufAndSize& );
+	std::ostream& printRewriterByteCode( std::ostream& fp, const BarzelTranslation& ) const;
 };
 
 }
