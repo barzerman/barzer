@@ -50,7 +50,8 @@
         	<!-- variable -->
             <xs:element name="var" type="tns:rVarType"></xs:element>
             <!-- number -->
-            <xs:element name="rn" type="tns:rNumberType"></xs:element>
+            <xs:element name="rn" type="tns:rNumberType">
+            </xs:element>
             <!-- literal -->
             <xs:element name="ltrl" type="xs:string"></xs:element>
             <!-- again, very hard to guess -->

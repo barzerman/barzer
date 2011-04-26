@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+		targetNamespace="http://www.barzer.net/server_response/0.1"
+		xmlns:tns="http://www.barzer.net/server_response/0.1"
+		elementFormDefault="qualified">
+
+<!-- first iteration of server response xsd. only included the tags which have a chance to appear -->
+
+	<xs:element name="barz">
+    	<xs:complexType>
+    		<xs:choice maxOccurs="unbounded" minOccurs="0">
+    			<xs:element name="token" type="xs:string"></xs:element>
+    			<xs:element name="num" type="xs:string"></xs:element>
+    			<xs:element name="time" type="xs:string"></xs:element>
+    			<xs:element name="date" type="xs:string"></xs:element>
+    		</xs:choice>
+    	</xs:complexType>
+    </xs:element>
+
+</schema>

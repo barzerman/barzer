@@ -114,7 +114,7 @@ public:
 	}
 	void operator()(const BarzerDate &data) {
 		os << "<date>";
-		data.print(os) << "</number>";
+		data.print(os) << "</date>";
 	}
 	void operator()(const BarzerTimeOfDay &data) {
 		os << "<time>";
