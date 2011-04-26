@@ -29,7 +29,9 @@ private:
 
 	uint32_t poolNewBuf( const uint8_t* s, uint32_t sz )
 	{
-		encVec.push_back( BufAndSize( (uint8_t*)malloc(sz), sz) );
+		uint8_t* buf = (uint8_t*)malloc(sz);
+		memcpy( buf, s,sz);
+		encVec.push_back( BufAndSize( buf, sz) );
 		return (encVec.size() -1);
 	}
 

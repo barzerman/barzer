@@ -44,7 +44,7 @@ int  BarzelRewriterPool::encodeParseTreeNode( BarzelRewriterPool::byte_vec& tran
 	// for every node push node_start_byte, then BTND_Rewrite (the whole variant) (otn.getNodeData() ) - memcpy, then node end byte
 
 	trans.push_back( (uint8_t)barzel::RWR_NODE_START );
-	std::cerr << "(";
+	//std::cerr << "(";
 	const BTND_RewriteData* rd = ptn.getRewriteData();
 	if( !rd ) 
 		return ERR_ENCODING_FAILED;
@@ -52,7 +52,7 @@ int  BarzelRewriterPool::encodeParseTreeNode( BarzelRewriterPool::byte_vec& tran
 	const uint8_t* rdBuf = (const uint8_t*) rd;
 	size_t dta_sz = sizeof(BTND_RewriteData);
 	trans.insert( trans.end(), rdBuf, rdBuf+dta_sz);
-	std::cerr << "BTND_RewriteData[" << rd->which() << ":" << dta_sz << "]";
+	//std::cerr << "BTND_RewriteData[" << rd->which() << ":" << dta_sz << "]";
 
 	for( BELParseTreeNode::ChildrenVec::const_iterator ch = ptn.child.begin(); ch != ptn.child.end(); ++ch ) {
 		
@@ -61,7 +61,7 @@ int  BarzelRewriterPool::encodeParseTreeNode( BarzelRewriterPool::byte_vec& tran
 			return rc; // error
 	}
 	trans.push_back( (uint8_t)barzel::RWR_NODE_END );
-	std::cerr << ")";
+	//std::cerr << ")";
 	return ERR_OK;
 }
 

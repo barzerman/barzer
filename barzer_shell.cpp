@@ -292,6 +292,18 @@ static int bshf_triestats( BarzerShell* shell, char_cp cmd, std::istream& in )
 	}
 	return 0;
 }
+
+namespace {
+
+struct TrieLeafFinder {
+	bool operator()( const BarzelTrieNode& t ) const
+	{
+		return !t.isLeaf();
+	}
+};
+
+}
+
 static int bshf_trans( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	ShellState sh( shell, cmd, in );
@@ -304,7 +316,7 @@ static int bshf_trans( BarzerShell* shell, char_cp cmd, std::istream& in )
 		aLeaf = &sh.curTrieNode;
 	} else {
 		BarzelTrieTraverser_depth trav( sh.trie.getRoot(), sh.uni.getWildcardPool() );
-		boost::function< bool (const BarzelTrieNode&) > fun( &BarzelTrieNode::isLeaf );
+		TrieLeafFinder fun;
 		aLeaf = trav.traverse( fun, sh.curTrieNode );
 	}
 	AYDEBUG(sizeof(BTND_RewriteData));
