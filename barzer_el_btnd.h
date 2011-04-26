@@ -401,7 +401,9 @@ struct BTND_Rewrite_Variable {
 
 struct BTND_Rewrite_Function {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
-	ay::UniqueCharPool::StrId nameId; // function name id
+	uint32_t nameId; // function name id
+
+	void setNameId( uint32_t i ) { nameId = i ; }
 	BTND_Rewrite_Function() : nameId(ay::UniqueCharPool::ID_NOTFOUND) {}
 	BTND_Rewrite_Function(ay::UniqueCharPool::StrId id) : nameId(id) {}
 };

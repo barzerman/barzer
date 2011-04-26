@@ -307,6 +307,7 @@ static int bshf_trans( BarzerShell* shell, char_cp cmd, std::istream& in )
 		boost::function< bool (const BarzelTrieNode&) > fun( &BarzelTrieNode::isLeaf );
 		aLeaf = trav.traverse( fun, sh.curTrieNode );
 	}
+	AYDEBUG(sizeof(BTND_RewriteData));
 	if( !aLeaf ) {
 		AYLOG(ERROR) << "this trie node has no descendants with a valid translation\n";
 		return 0;

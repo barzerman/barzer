@@ -449,6 +449,8 @@ void BELParserXML::taghandle_VAR( const char_cp * attr, size_t attr_sz , bool cl
 
 		switch( n[0] ) {
 		case 'n': { // <var name=""/> - named variable
+			/// intern
+			var.setVarNameId( internString(v) );
 		}
 			break;
 		case 'p': { // <var pn="1"/> - pattern element number - if pattern is "a * b * c" then pn[1] is a, pn[2] is the first * etc
@@ -481,11 +483,15 @@ void BELParserXML::taghandle_FUNC( const char_cp * attr, size_t attr_sz , bool c
 		statement.popNode();
 		return;
 	}
-	statement.pushNode( 
-		BTND_RewriteData(
-			BTND_Rewrite_Function() 
-		)
-	);
+	BTND_Rewrite_Function f;
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		if( !strcmp(n, "name") ) {
+		 f.setNameId( internString(v) );
+		}
+	}
+	statement.pushNode( BTND_RewriteData( f));
 }
 
 // not sure if it's even needed here /pltr
