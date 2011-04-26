@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
+	xmlns="http://www.barzer.net/barzel/0.1">
+	<!--
+		for some reason xmllint doesn't like this
+		xsi:schemaLocation="http://www.barzer.net/barzel/0.1 barzel.xsd">
+	-->
+	<stmt>
+		<pat>
+			<t>China</t><n/><p>/</p>
+		</pat>
+		<tran>
+			<rn>
+			<var w="1"/>
+			<rn v="56"/>
+			</rn>
+		</tran>
+	</stmt>
+</stmset>
