@@ -146,7 +146,7 @@ bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) cons
 			
 			Eval_visitor_needToStop visitor(childVal,val);
 			if( boost::apply_visitor( visitor, d_btnd ) ) 
-				return 0;
+				return false;
 		}
 		/// vector of dependent values ready
 	}

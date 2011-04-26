@@ -112,11 +112,21 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		}
 	}
 
-	void doWildcards( const BarzelWCLookup& wcLookup ) 
+	inline void doWildcards( )
 	{
+		if( !d_tn->hasValidWcLookup() ) 
+			return;
+
+		const BarzelWCLookup* wcLookup_ptr = d_btmi.universe.getWCLookup( d_tn->getWCLookupId() );
+		if( !wcLookup_ptr ) { // this should never happen
+			AYLOG(ERROR) << "null lookup" << std::endl;
+			return;
+		} 
+		const BarzelWCLookup& wcLookup  = *wcLookup_ptr;
+
 		uint8_t tokSkip = 0;
 		BeadList::iterator i = d_rng.first;
-		for( ++i; i!= d_rng.second; ++i ) {
+		for( ; i!= d_rng.second; ++i ) {
 			BarzelWCLookupKey key;
 			BarzelWCLookupKey_form key_form( key, tokSkip );
 			const BarzelBeadAtomic* bead = i->getAtomic();
@@ -144,7 +154,17 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 				break;
 		}
 	}
-	bool operator()( const BarzerLiteral& dta ) 
+
+	template <typename T>
+	bool operator()( const T& dta ) 
+	{
+		doWildcards( );
+		return (d_mtChild.size() > 0);
+	}
+
+};
+	template <>
+inline	bool findMatchingChildren_visitor::operator()<BarzerLiteral> ( const BarzerLiteral& dta ) 
 	{
 		BarzelTrieFirmChildKey firmKey; 
 		// forming firm key
@@ -158,7 +178,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 			++endIt;
 			d_mtChild.push_back( NodeAndBeadVec::value_type(ch,BarzelBeadChain::Range(d_rng.first,endIt)) );
 		} 
-		/// retrying in case 
+		/// retrying in case the token immediately follows non blank 
 		if( !d_followsBlank ) {
 			firmKey.noLeftBlanks = 0;
 			ch = d_tn->getFirmChild( firmKey ); 
@@ -172,44 +192,9 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		if( !curDtaIsBlank && d_followsBlank ) 
 			d_followsBlank = false;
 		// ch is 0 here 
-		if( d_tn->hasValidWcLookup() ) 
-			return false;
-
-		const BarzelWCLookup* wcLookup = d_btmi.universe.getWCLookup( d_tn->getWCLookupId() );
-		if( !wcLookup ) { // this should never happen
-			AYLOG(ERROR) << "null lookup" << std::endl;
-		} else
-			doWildcards( *wcLookup );	
+		doWildcards( );
 		return (d_mtChild.size() > 0);
 	}
-
-	bool operator()( const BarzerString& dta ) 
-	{
-		return false;
-	}
-	bool operator()( const BarzerNumber& dta ) 
-	{
-		return false;
-	}
-	bool operator()( const BarzerDate& dta ) 
-	{
-		return false;
-	}
-	bool operator()( const BarzerTimeOfDay& dta ) {
-		return false;
-	}
-	bool operator()( const BarzerRange& dta ) {
-		return false;
-	}
-	bool operator()( const BarzerEntityList& dta ) {
-		return false;
-	}
-	bool operator()( const BarzelEntityRangeCombo& dta )
-	{
-		return false;
-	}
-
-};
 
 //// TEMPLATE MATCHING
 template <typename P>
@@ -531,7 +516,7 @@ int BarzelMatcher::matchAndRewrite( Barz& barz )
 	AYTRACE( "BarzelMatcher::matchAndRewrite unimplemented" );
 	clear();
 
-	BarzelBeadChain beads = barz.getBeads();
+	BarzelBeadChain& beads = barz.getBeads();
 
 	int rewrCount = 0, matchCount = 0;
 
