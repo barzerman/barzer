@@ -1,4 +1,8 @@
 #include <barzer_server.h>
+#include <boost/bind.hpp>
+#include <boost/asio.hpp>
+#include <boost/algorithm/string.hpp>
+
 
 extern "C" {
 #include <unistd.h>
