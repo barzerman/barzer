@@ -547,7 +547,8 @@ static const CmdData g_cmd[] = {
 	CmdData( ay::Shell::cmd_exit, "exit", "exit the barzer shell" ),
 	CmdData( ay::Shell::cmd_exit, "quit", "exit the barzer shell" ),
 	CmdData( ay::Shell::cmd_run, "run", "execute script(s)" ),
-	CmdData( bshf_test, "test", "just a test" ),
+	//commented test to reduce the bloat
+	//CmdData( bshf_test, "test", "just a test" ),
 	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),
 	CmdData( (ay::Shell_PROCF)bshf_lex, "lex", "tokenize and then classify (lex) the input" ),
 	CmdData( (ay::Shell_PROCF)bshf_tokenize, "tokenize", "tests tokenizer" ),

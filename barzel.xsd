@@ -31,6 +31,15 @@
     		<xs:element name="tail" type="tns:patList"></xs:element>
     	</xs:choice>
     </xs:complexType>
+	<!-- type for the right side variables -->
+    <xs:complexType name="rVarType">
+    	<!-- variable name -->
+    	<xs:attribute name="name" type="xs:string"></xs:attribute>
+    	<!-- pattern num -->
+    	<xs:attribute name="pn" type="xs:integer"></xs:attribute>
+    	<!-- wildcard num -->
+    	<xs:attribute name="w" type="xs:integer"></xs:attribute>
+    </xs:complexType> 
 	<!-- type for the right side numbers -->
     <xs:complexType name="rNumberType">
     	<xs:attribute name="v" type="xs:decimal"></xs:attribute>
@@ -39,7 +48,7 @@
     <xs:complexType name="tranList">
         <xs:choice maxOccurs="unbounded" minOccurs="0">
         	<!-- variable -->
-            <xs:element name="var" type="xs:string"></xs:element>
+            <xs:element name="var" type="tns:rVarType"></xs:element>
             <!-- number -->
             <xs:element name="rn" type="tns:rNumberType"></xs:element>
             <!-- literal -->
