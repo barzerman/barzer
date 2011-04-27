@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
+	xmlns="http://www.barzer.net/barzel/0.1">
+	<!--
+		test xml for matcher
+	-->
+	<stmt>
+		<pat>
+			<n l="1" h="12"/>
+		</pat>
+		<tran>
+			<rn v="666"/>
+		</tran>
+	</stmt>
+</stmset>

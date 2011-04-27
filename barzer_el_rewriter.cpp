@@ -120,12 +120,18 @@ struct Eval_visitor_compute : public boost::static_visitor<bool> {
 	{}
 
 	/// this should be specialized for various participants in the BTND_RewriteData variant 
-	template <typename T>
-	bool operator()( const T& ) 
+	template <typename T> bool operator()( const T& ) 
 	{
 		return true;
 	}
 };
+template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Number>( const BTND_Rewrite_Number& n ) 
+{
+	BarzerNumber bNum;
+	n.setBarzerNumber( bNum );
+	d_val.setBeadData( BarzelBeadAtomic().setData( bNum ) );
+	return true;
+}
 
 //// the main visitor - compute
 
@@ -146,7 +152,7 @@ bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) cons
 			
 			Eval_visitor_needToStop visitor(childVal,val);
 			if( boost::apply_visitor( visitor, d_btnd ) ) 
-				return 0;
+				return false;
 		}
 		/// vector of dependent values ready
 	}

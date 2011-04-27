@@ -77,6 +77,7 @@ class BarzelMatchInfo;
 struct BarzelEvalResult {
 	BarzelBeadData d_val;	
 	const BarzelBeadData& getBeadData() const { return d_val; }
+	template <typename T> void setBeadData( const T& t ) { d_val = t; }
 };
 typedef std::vector< BarzelEvalResult > BarzelEvalResultVec;
 

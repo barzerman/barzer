@@ -20,6 +20,8 @@ class StoredUniverse;
 // pair of iterators pointing to the first and the last element to be rewritten
 typedef BarzelBeadChain::Range BeadRange;
 
+/// NodeAndBead represent one node in the trie + the range of beads used in matching 
+/// for this node
 typedef std::pair< const BarzelTrieNode*, BarzelBeadChain::Range > NodeAndBead;
 typedef std::vector< NodeAndBead > NodeAndBeadVec;
 typedef std::vector< const NodeAndBead* > NodeAndBeadPtrVec; 
@@ -91,10 +93,12 @@ struct BTMBestPaths {
 	/// information of the best terminal paths matched 
 	/// 
 	BeadRange d_fullRange; // original range of the top level matcher 
-
-	BTMBestPaths( const BeadRange& r ) : 
+	const StoredUniverse& universe;
+	BTMBestPaths( const BeadRange& r, const StoredUniverse& u ) : 
 		d_bestInfallibleScore(0),
-		d_fullRange(r) {}
+		d_fullRange(r),
+		universe(u) 
+	{}
 	const BeadRange& getFullRange() const { return d_fullRange; }
 	void setFullRange(const BeadRange& br ) { d_fullRange = br; }
 	
@@ -140,7 +144,7 @@ public:
 	const StoredUniverse& universe;
 
 	BTMIterator( const BeadRange& rng, const StoredUniverse& u ) : 
-		bestPaths(rng),
+		bestPaths(rng,u),
 		universe(u)
 	{ }
 	void findPaths( const BarzelTrieNode* trieNode)

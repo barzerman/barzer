@@ -71,6 +71,8 @@ struct BarzelBeadAtomic {
 	BarzelBeadAtomic& setStopLiteral( )
 		{ BarzerLiteral lrl; lrl.setStop(); dta = lrl; return *this; }
 
+	template <typename T> BarzelBeadAtomic& setData( const T& t ) 
+	{ dta = t; return *this; }
 	std::ostream& print( std::ostream& fp ) const;
 };
 
