@@ -76,7 +76,9 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 
 		/// do the matching 
 		if( d_btmi.evalWildcard( wcKey, d_rangeStart, iter, tokSkip ) ) {
-			d_mtChild.push_back( NodeAndBeadVec::value_type(ch,BarzelBeadChain::Range(d_rng.first,iter)) );
+			BarzelBeadChain::Range goodRange(d_rng.first,iter);
+			++(goodRange.second);
+			d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
 		}
 	}
 	/// iterates over all matching subordinate wildcards
@@ -128,8 +130,8 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		BeadList::iterator i = d_rng.first;
 		for( ; i!= d_rng.second; ++i ) {
 			BarzelWCLookupKey key;
-			BarzelWCLookupKey_form key_form( key, tokSkip );
 			const BarzelBeadAtomic* bead = i->getAtomic();
+			BarzelWCLookupKey_form key_form( key, tokSkip );
 			if( bead )  {
 				if( !bead->isBlankLiteral() ) 
 					++tokSkip;
