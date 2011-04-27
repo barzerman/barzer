@@ -370,6 +370,11 @@ struct BTND_Rewrite_Number : public BarzerNumber {
 	void set_int( int i ) { isConst = (uint8_t)1; BarzerNumber::set(i); }
 	void set( double i ) { isConst = (uint8_t)1; BarzerNumber::set(i); }
 	void set_double( double i ) { isConst = (uint8_t)1; BarzerNumber::set(i); }
+
+	void setBarzerNumber( BarzerNumber& x ) const
+	{
+		x = *(static_cast<const BarzerNumber*>(this));
+	}
 };
 
 struct BTND_Rewrite_Variable {

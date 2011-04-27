@@ -56,6 +56,9 @@ public:
 		else 
 			return ( bas = BarzelRewriterPool::BufAndSize(), false );
 	}
+	bool isBarzelTranslationFallible( const BarzelTranslation& tran ) const {
+		return tran.isFallible( barzelRewritePool );
+	}
 }; 
 
 }
