@@ -32,11 +32,11 @@ struct BELFunctionStorage_holder {
 	#undef ADDFN
 
 	void addFun(const char *fname, BELStoredFunction fun) {
-		const BELStoredFunId fid = universe.getStringPool().internIt(fname);
+		const uint32_t fid = universe.getStringPool().internIt(fname);
 		addFun(fid, fun);
 	}
 
-	void addFun(const BELStoredFunId fid, BELStoredFunction fun) {
+	void addFun(const uint32_t fid, BELStoredFunction fun) {
 		funmap.insert(BELStoredFunRec(fid, fun));
 	}
 
@@ -119,12 +119,12 @@ BELFunctionStorage::~BELFunctionStorage()
 bool BELFunctionStorage::call(const char *fname, BarzelEvalResult &er,
 		                                   const BarzelEvalResultVec &ervec) const
 {
-	const BELStoredFunId fid = universe.getStringPool().getId(fname);
+	const uint32_t fid = universe.getStringPool().getId(fname);
 	if (fid == ay::UniqueCharPool::ID_NOTFOUND) return false;
 	return call(fid, er, ervec);
 }
 
-bool BELFunctionStorage::call(const BELStoredFunId fid, BarzelEvalResult &er,
+bool BELFunctionStorage::call(const uint32_t fid, BarzelEvalResult &er,
 									              const BarzelEvalResultVec &ervec) const
 {
 	const BELStoredFunMap::const_iterator frec = holder->funmap.find(fid);
