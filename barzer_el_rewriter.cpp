@@ -1,4 +1,6 @@
 #include <barzer_el_rewriter.h>
+#include <barzer_el_function.h>
+#include <barzer_universe.h>
 
 namespace barzer {
 
@@ -114,9 +116,13 @@ struct Eval_visitor_needToStop : public boost::static_visitor<bool> {
 struct Eval_visitor_compute : public boost::static_visitor<bool> {  
 	const BarzelEvalResultVec& d_childValVec;
 	BarzelEvalResult& d_val;
-	Eval_visitor_compute( 	const BarzelEvalResultVec& cvv, BarzelEvalResult& v ) : 
+	BarzelEvalContext &ctxt;
+
+	Eval_visitor_compute( const BarzelEvalResultVec& cvv, BarzelEvalResult& v,
+						  BarzelEvalContext &c) :
 		d_childValVec(cvv),
-		d_val(v)
+		d_val(v),
+		ctxt(c)
 	{}
 
 	/// this should be specialized for various participants in the BTND_RewriteData variant 
@@ -124,7 +130,17 @@ struct Eval_visitor_compute : public boost::static_visitor<bool> {
 	{
 		return true;
 	}
+
+
 };
+
+
+template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const BTND_Rewrite_Function &data) {
+	const StoredUniverse &u = ctxt.universe;
+	const BELFunctionStorage &fs = u.getFunctionStorage();
+	return fs.call(data.nameId, d_val, d_childValVec);
+}
+
 template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Number>( const BTND_Rewrite_Number& n ) 
 {
 	BarzerNumber bNum;
@@ -157,7 +173,7 @@ bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) cons
 		/// vector of dependent values ready
 	}
 
-	Eval_visitor_compute visitor(childValVec,val);
+	Eval_visitor_compute visitor(childValVec,val,ctxt);
 
 	return boost::apply_visitor( visitor, d_btnd );
 }

@@ -5,8 +5,10 @@ namespace barzer {
 StoredUniverse::StoredUniverse() :
 	dtaIdx(&stringPool),
 	barzelRewritePool(64*1024),
-	barzelTrie(&barzelRewritePool,&barzelWildcardPool)
+	barzelTrie(&barzelRewritePool,&barzelWildcardPool),
+	funSt(*this)
 {
+
 }
 
 void StoredUniverse::clear()

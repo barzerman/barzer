@@ -23,6 +23,7 @@ barzer_el_trie_processor.o \
 barzer_el_trie_shell.o \
 barzer_el_trie_walker.o \
 barzer_el_xml.o \
+barzer_el_function.o \
 barzer_basic_types.o \
 barzer_storage_types.o \
 barzer_loader_xml.o \
