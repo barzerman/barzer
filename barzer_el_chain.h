@@ -188,17 +188,11 @@ struct BarzelBeadChain {
 	void init( const CTWPVec& cv );
 	void clear() { lst.clear(); }
 
-	void collapseRangeLeft( Range r ) {
-		if( r.first == r.second ) 
-			return;
-		BarzelBead& firstBead = *(r.first);
-		++(r.first);
-		for( BeadList::iterator i = r.first; i!= r.second; ++i ) {
-			firstBead.absorbBead( *i );
-		}
-		lst.erase( r.first, r.second );
-	}
+	const Range getFullRange() 
+		{ return Range( lst.begin(), lst.end() ); }
+	void collapseRangeLeft( Range r );
 };
 
+std::ostream& operator <<( std::ostream& fp, const BarzelBeadChain::Range& rng ) ;
 }
 #endif // BARZER_EL_CHAIN_H

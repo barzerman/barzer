@@ -344,7 +344,7 @@ int BTMBestPaths::setRewriteUnit( RewriteUnit& ru )
 {
 	BarzelMatchInfo& ruMatchInfo = ru.first;
 	ruMatchInfo.setScore( getBestScore() );
-	ruMatchInfo.setBeadRange( getFullRange() );
+	ruMatchInfo.setFullBeadRange( getFullRange() );
 	const NodeAndBeadVec& winningPath = getBestPath();
 	ruMatchInfo.setPath( winningPath );
 	ru.second = getTranslation();
@@ -397,6 +397,28 @@ void BTMBestPaths::addPath(const NodeAndBeadVec& nb )
 	}
 }
 
+
+void BarzelMatchInfo::setPath( const NodeAndBeadVec& p )
+{
+	d_thePath = p;
+	d_wcVec.clear();
+	d_wcVec.reserve( d_thePath.size() );
+	d_varNameMap.clear();
+	d_substitutionBeadRange.first = d_substitutionBeadRange.second = d_beadRng.second;
+	for( NodeAndBeadVec::const_iterator i = d_thePath.begin(); i!= d_thePath.end(); ++i ) {
+		
+		if( i->first->isWcChild() ) 
+			d_wcVec.push_back( &(*i) );
+		/// if we want to add variable names we can have trie node hold var name 
+		/// so right in this loop we will just update varNameMap 
+	}
+	if( d_thePath.size() ) {
+		d_substitutionBeadRange.first = d_thePath.front().second.first;
+		d_substitutionBeadRange.second = d_thePath.back().second.second;
+		if( d_substitutionBeadRange.second != d_beadRng.second ) 
+			++d_substitutionBeadRange.second;
+	}
+}
 int BarzelMatcher::matchInRange( RewriteUnit& rwrUnit, const BeadRange& curBeadRange ) 
 {
 	int  score = 0;
@@ -474,11 +496,11 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, BarzelBeadChain& chain )
 	BarzelMatchInfo& matchInfo = ru.first;
 	
 	const BarzelTranslation* transP = ru.second;
-	if( matchInfo.isBeadRangeEmpty() ) { // this should never happen 
+	if( matchInfo.isSubstitutionBeadRangeEmpty() ) { // this should never happen 
 		AYLOG(ERROR) << "empty bead range submitted for rewriting" << std::endl;
 		return 0;
 	}
-	const BeadRange& range = matchInfo.getBeadRange();
+	const BeadRange& range = matchInfo.getSubstitutionBeadRange();
 	BarzelBead& theBead = *(range.first);
 
 	if( !transP ) { // null translatons shouldnt happen  .. 
@@ -490,6 +512,8 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, BarzelBeadChain& chain )
 
 	BarzelEvalResult transResult;
 	BarzelEvalNode evalNode;
+
+	//AYDEBUG( matchInfo.getSubstitutionBeadRange() );
 	BarzelEvalContext ctxt( matchInfo, universe );
 	if( translation.isRewriter() ) { /// translation is a rewriter 
 		BarzelRewriterPool::BufAndSize bas;

@@ -25,8 +25,6 @@ std::ostream& CToken::print( std::ostream& fp ) const
 	}
 	if( storedTok ) 
 		fp << " strd[" << *storedTok << "]";
-	else 
-		fp << "(nostore)";
 	return fp;
 }
 
