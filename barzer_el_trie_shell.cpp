@@ -24,9 +24,8 @@ DEF_TFUN(load) {
 	BarzerShellContext *context = shell->getBarzerContext();
 	StoredUniverse &uni = context->universe;
 	BELTrie &trie = uni.getBarzelTrie();
-	ay::UniqueCharPool &stringPool = uni.getStringPool();
 
-	BELReader reader(&trie, &stringPool);
+	BELReader reader(&trie, uni );
 	reader.initParser(BELReader::INPUT_FMT_XML);
 
 	ay::stopwatch totalTimer;

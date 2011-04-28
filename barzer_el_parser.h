@@ -12,6 +12,8 @@
 /// as well as the data structures required for the actual parsing
 namespace barzer {
 
+class StoredUniverse;
+
 //// !!!!!!!!!!! NEVER REORDER ANY OF THE ENUMS 
 
 
@@ -43,6 +45,8 @@ class BELReader;
 class BELParser {
 protected:
 	BELReader* reader; // parser doesnt own this pointer. reader owns the parser
+
+	uint32_t internString( const char* s ) ;
 public:
 	BELParser( BELReader* r ) : reader(r) {}
 	virtual int parse( std::istream& ) = 0;
@@ -59,12 +63,13 @@ class BELReader {
 protected: 
 	BELTrie* trie ; 
 	BELParser* parser;
-	ay::UniqueCharPool* strPool;
+	// ay::UniqueCharPool* strPool;
+	StoredUniverse& universe;
 	size_t numStatements; /// total number of successfully read statements 
 
 	std::string inputFileName; 
 public:
-
+	StoredUniverse& getUniverse() { return universe; }
 	/// barzEL input formats
 	typedef enum {
 		INPUT_FMT_AUTO, // will try to figure out from file extension . this only works when fileName !=0
@@ -77,8 +82,8 @@ public:
 	} InputFormat;
 	InputFormat inputFmt;
 
-	BELReader( BELTrie* t, ay::UniqueCharPool* sPool )  :
-		trie(t) , parser(0), strPool(sPool), numStatements(0) , inputFmt(INPUT_FMT_XML)
+	BELReader( BELTrie* t, StoredUniverse& uni )  :
+		trie(t) , parser(0), universe(uni), numStatements(0) , inputFmt(INPUT_FMT_XML)
 	{}
 	
 	virtual ~BELReader() {
@@ -100,8 +105,8 @@ public:
 template<class T>class BELExpandReader : public BELReader {
 	T &functor;
 public:
-	BELExpandReader(T &f, BELTrie* t, ay::UniqueCharPool* sPool)
-		: BELReader(t, sPool), functor(f) {}
+	BELExpandReader(T &f, BELTrie* t, StoredUniverse& u )
+		: BELReader(t,u), functor(f) {}
 	void addStatement( const BELStatementParsed& sp)
 	{
 		BELParseTreeNode_PatternEmitter emitter( sp.pattern );

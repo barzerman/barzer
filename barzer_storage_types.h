@@ -125,6 +125,7 @@ struct StoredToken {
 
 	uint32_t getSingleTokStringId() const
 		{ return( isSingleTok() ? stringId : 0xffffffff ); }
+	uint32_t getStringId() const { return stringId; }
 };
 inline std::ostream& operator <<( std::ostream& fp, const StoredToken& t )
 { return ( t.print(fp), fp ); }
