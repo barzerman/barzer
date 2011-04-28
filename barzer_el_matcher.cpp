@@ -45,20 +45,18 @@ struct MatchChildInfo {
 struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 	BTMIterator& 			d_btmi;
 	NodeAndBeadVec& 		d_mtChild;
-	BeadRange 				d_rng;
-	// initialy d_rng.first this may change if the range starts with blanks (see skipBlanks function)
-	BeadList::iterator      d_rangeStart; 
+	const BeadRange&		d_rng;
+	
 	const BarzelTrieNode* 	d_tn;
 
 	bool d_followsBlank;
 	
-	findMatchingChildren_visitor( BTMIterator& bi, NodeAndBeadVec& mC, const BeadRange& r, const BarzelTrieNode* t ):
+	findMatchingChildren_visitor( BTMIterator& bi, bool followsBlanks, NodeAndBeadVec& mC, const BeadRange& r, const BarzelTrieNode* t ):
 		d_btmi(bi), 
 		d_mtChild(mC), 
 		d_rng(r), 
-		d_rangeStart(r.first), 
 		d_tn(t), 
-		d_followsBlank(false)
+		d_followsBlank(followsBlanks)
 	{}
 	
 	/// partial key comparison . called from partialWCKeyProcess
@@ -76,7 +74,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		const BarzelWCKey& wcKey = wci->first.second;
 
 		/// do the matching 
-		if( d_btmi.evalWildcard( wcKey, d_rangeStart, iter, tokSkip ) ) {
+		if( d_btmi.evalWildcard( wcKey, d_rng.first, iter, tokSkip ) ) {
 			BarzelBeadChain::Range goodRange(d_rng.first,iter);
 			d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
 		}
@@ -144,18 +142,6 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 			partialWCKeyProcess( wcLookup, key, i,tokSkip );
 		}
 	}
-	void skipBlanks() 
-	{
-		for( ;d_rng.first!= d_rng.second; ++d_rng.first ) {
-			const BarzelBead& b = *(d_rng.first);
-			const BarzelBeadAtomic* bead = b.getAtomic();
-			if( bead && bead->isBlankLiteral() ) {
-				if( !d_followsBlank ) 
-					d_followsBlank = true;
-			} else 
-				break;
-		}
-	}
 
 	template <typename T>
 	bool operator()( const T& dta ) 
@@ -172,7 +158,7 @@ inline	bool findMatchingChildren_visitor::operator()<BarzerLiteral> ( const Barz
 		// forming firm key
 		bool curDtaIsBlank = firmKey.set(dta,d_followsBlank).isBlankLiteral();
 		if( curDtaIsBlank ) 
-			return false; // this should never happen (skipBlanks is called prior)
+			return false; // this should never happen blanks are skipped
 
 		const BarzelTrieNode* ch = d_tn->getFirmChild( firmKey ); 
 		if( ch ) {
@@ -283,26 +269,36 @@ bool BTMIterator::evalWildcard( const BarzelWCKey& wcKey, BeadList::iterator fro
 	return false;
 }
 
-bool BTMIterator::findMatchingChildren( NodeAndBeadVec& mtChild, const BeadRange& rng, const BarzelTrieNode* tn )
+bool BTMIterator::findMatchingChildren( NodeAndBeadVec& mtChild, const BeadRange& r, const BarzelTrieNode* tn )
 {
-	if( rng.first == rng.second ) 
+	if( r.first == r.second ) 
 		return false; // this should never happen bu just in case
 
-	const BarzelBead& b = *(rng.first);
-	const BarzelBeadAtomic* bead = b.getAtomic();
+	bool precededByBlanks = false;
+	const BarzelBeadAtomic* bead;
+	BeadRange rng(r);
+	do {
+		const BarzelBead& b = *(rng.first);
+		bead = b.getAtomic();
+		if( !bead )  /// expressions and blanks wont be matched 
+			return false; 
+		if( bead->isBlankLiteral() ) {
+			++rng.first;
+			if( !precededByBlanks )
+				precededByBlanks= true;
+		} else 
+			break;
+	} while( rng.first != rng.second );
 
-	if( !bead )  /// expressions and blanks wont be matched 
-		return false; 
-	
-	findMatchingChildren_visitor vis( *this, mtChild, rng, tn );
+	findMatchingChildren_visitor vis( *this, precededByBlanks, mtChild, rng, tn );
 
-	vis.skipBlanks();
 	boost::apply_visitor( vis, bead->dta );
 	return mtChild.size();
 }
 
 void BTMIterator::matchBeadChain( const BeadRange& rng, const BarzelTrieNode* trieNode )
 {
+	//AYDEBUG( rng );
 	ay::vector_raii<NodeAndBeadVec> raii( d_matchPath, NodeAndBeadVec::value_type( trieNode, BarzelBeadChain::Range(rng.first,rng.first)) );
 
 	if( rng.first == rng.second ) {
@@ -332,9 +328,11 @@ void BTMIterator::matchBeadChain( const BeadRange& rng, const BarzelTrieNode* tr
 		}
 
 		if( nextBead != rng.second ) {  // recursion
-			BeadList::iterator beadPastMatch = nextBead;
+			BeadRange nextRange( nextBead, rng.second );
+			++nextRange.first;
 			// advancing to the next bead and starting new recursion from there			
-			matchBeadChain( BeadRange(++beadPastMatch,rng.second), tn );
+			// std::cerr << "************* SHIT recursion\n";
+			matchBeadChain( nextRange, tn );
 		}
 	}
 }

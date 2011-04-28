@@ -74,7 +74,7 @@ std::ostream& operator <<( std::ostream& fp, const BarzelBeadChain::Range& rng )
 		i->print( fp );
 		fp << "</bead>" ;
 	}
-	fp << "<beadrange>";
+	fp << "</beadrange>";
 	return fp;
 }
 ///// BarzelBeadChain
