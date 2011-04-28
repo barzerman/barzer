@@ -26,6 +26,11 @@ struct NumberMatcher : public boost::static_visitor<BarzerNumber> {
 		{ return BarzerNumber(); }  // NaN
 };
 
+static BarzerNumber getNumber(const BarzelEvalResult &result) {
+	NumberMatcher m;
+	return boost::apply_visitor(m, result.getBeadData());
+}
+
 // writes result number into BarzerNumber - NaN when failed
 static bool setNumber(BarzerNumber &num, const BarzelEvalResult &result) {
 	NumberMatcher m;
@@ -34,15 +39,6 @@ static bool setNumber(BarzerNumber &num, const BarzelEvalResult &result) {
 }
 
 template<class T> void setResult(BarzelEvalResult&, const T&);
-
-template <>
-void setResult<BarzerNumber>(BarzelEvalResult &result,
-									const BarzerNumber &num)
-{
-	BarzelBeadAtomic atm;
-	atm.dta = num;
-	result.setBeadData(atm);
-}
 
 template<class T> void setResult(BarzelEvalResult &result, const T &data) {
 	BarzelBeadAtomic atm;
@@ -103,6 +99,7 @@ template<class U> struct ArithVisitor : public boost::static_visitor<bool> {
 		return false;
 	}
 };
+
 }
 // Stores map ay::UniqueCharPool::StrId -> BELFunctionStorage::function
 // the function names are using format "stfun_*function name*"
@@ -131,6 +128,8 @@ struct BELFunctionStorage_holder {
 		ADDFN(opLt);
 		ADDFN(opGt);
 		ADDFN(opEq);
+		// string
+		ADDFN(strConcat);
 
 	}
 	#undef ADDFN
@@ -176,7 +175,20 @@ struct BELFunctionStorage_holder {
 
 	STFUN(mkTime)
 	{
-		return false;
+		//AYLOG(DEBUG) << "mkTime called";
+		BarzerNumber h(0),m(0),s(0);
+		BarzerTimeOfDay time;
+		//AYLOGDEBUG(rvec.size());
+		switch (rvec.size()) {
+		case 3: time.ss = getNumber(rvec[2]).getInt();
+		case 2: time.mm = getNumber(rvec[1]).getInt();
+		case 1: time.hh = getNumber(rvec[0]).getInt();
+			break;
+		default: return false;
+		}
+		//AYLOG(DEBUG) << "setting result";
+		setResult(result, time);
+		return true;
 	}
 
 
@@ -254,19 +266,47 @@ struct BELFunctionStorage_holder {
 	// no implementation yet for i'm not sure yet what to put into the result
 	// meaning there's no boolean type in barzer (yet?)
 
-	STFUN(opAnd)
+	STFUN(opAnd) // stfunc_opAnd(&result, &rvec)
 	{
-		return false;
+//		AYLOG(DEBUG) << "opAnd called";
+//		AYLOGDEBUG(rvec.size());
+		if (rvec.size()) {
+			BarzelEvalResultVec::const_iterator ri = rvec.begin();
+			do {
+				if ((ri++)->getBeadData().which() == BarzelBeadBlank_TYPE)	break;
+			} while (ri != rvec.end());
+			result.setBeadData((--ri)->getBeadData());
+		} else {
+			//AYLOG(DEBUG) << "setting blank";
+			BarzelBeadBlank blank;
+			result.setBeadData(blank);
+		}
+		return true;
 	}
+
 	STFUN(opOr)
 	{
-		return false;
+		//	AYLOG(DEBUG) << "opOr called";
+		//	AYLOGDEBUG(rvec.size());
+		if (rvec.size()) {
+			BarzelEvalResultVec::const_iterator ri = rvec.begin();
+			do {
+				if ((ri++)->getBeadData().which() != BarzelBeadBlank_TYPE) break;
+			} while (ri != rvec.end());
+			result.setBeadData((--ri)->getBeadData());
+		} else {
+			//AYLOG(DEBUG) << "setting blank";
+			BarzelBeadBlank blank;
+			result.setBeadData(blank);
+		}
+		return true;
 	}
 
 	STFUN(opXor)
 	{
 		return false;
 	}
+
 	STFUN(opLt)
 	{
 		return false;
@@ -277,6 +317,11 @@ struct BELFunctionStorage_holder {
 	}
 	STFUN(opEq)
 	{
+		return false;
+	}
+
+	// string
+	STFUN(strConcat) { // strfun_strConcat(&result, &rvec)
 		return false;
 	}
 
