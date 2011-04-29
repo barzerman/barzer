@@ -13,7 +13,8 @@
 			<rn>
 			<var w="1"/>
 			<rn v="56"/>
-			</rn>
+			</rn> 
+			<func name="mkDate"><rn v="9" /><rn v="10" /><rn v="2011" /></func>
 		</tran>
 	</stmt>
 </stmset>

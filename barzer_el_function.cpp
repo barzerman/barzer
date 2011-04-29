@@ -136,6 +136,7 @@ struct BELFunctionStorage_holder {
 
 	void addFun(const char *fname, BELStoredFunction fun) {
 		const uint32_t fid = universe.getStringPool().internIt(fname);
+		//AYLOG(DEBUG) << "adding function(" << fname << ":" << fid << ")";
 		addFun(fid, fun);
 	}
 
