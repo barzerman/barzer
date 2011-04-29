@@ -74,12 +74,31 @@ namespace barzel {
 class StoredUniverse;
 class BarzelMatchInfo;
 
-struct BarzelEvalResult {
-	BarzelBeadData d_val;	
+class BarzelEvalResult {
+public:
+	typedef std::vector< BarzelBeadData > BarzelBeadDataVec;
+private:
+	/// this vector can never be shorter than 1 element 
+	BarzelBeadDataVec d_val;	
+public:
+	BarzelEvalResult() : d_val(1) {}
+	const BarzelBeadData& getBeadData() const { return d_val[0]; }
 
-	const BarzelBeadData& getBeadData() const { return d_val; }
-	template <typename T> void setBeadData( const T& t ) { d_val = t; }
+	const BarzelBeadDataVec& getBeadDataVec() const { return d_val; }
+	bool isVec() const { return (d_val.size() > 1); }
+	template <typename T> void setBeadData( const T& t ) { d_val[0] = t; }
 };
+template <>
+inline void BarzelEvalResult::setBeadData<BarzelBeadRange>( const BarzelBeadRange& t ) 
+{
+	d_val.clear();
+	for( BeadList::iterator i = t.first; i!= t.second; ++i ) 
+		d_val.push_back( i->getBeadData() );
+	
+	if( !d_val.size() )
+		d_val.resize(1);
+}
+
 typedef std::vector< BarzelEvalResult > BarzelEvalResultVec;
 
 struct BarzelEvalContext {

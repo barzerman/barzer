@@ -299,7 +299,8 @@ bool BTMIterator::findMatchingChildren( NodeAndBeadVec& mtChild, const BeadRange
 void BTMIterator::matchBeadChain( const BeadRange& rng, const BarzelTrieNode* trieNode )
 {
 	//AYDEBUG( rng );
-	ay::vector_raii<NodeAndBeadVec> raii( d_matchPath, NodeAndBeadVec::value_type( trieNode, BarzelBeadChain::Range(rng.first,rng.first)) );
+	NodeAndBead nbvVal ( trieNode, BarzelBeadChain::Range(rng.first,rng.first));
+	ay::vector_raii<NodeAndBeadVec> raii( d_matchPath, nbvVal );
 
 	if( rng.first == rng.second ) {
 		return; // range is empty
@@ -317,6 +318,8 @@ void BTMIterator::matchBeadChain( const BeadRange& rng, const BarzelTrieNode* tr
 			continue;
 		
 		tn = ch->first;
+
+
 		// nextBead is set to the second iterator in the range
 		// remember ranges stored in d_mtChain are inclusive, that is 
 		// if only one bead was matched iterator to it is stored in both 
@@ -328,8 +331,12 @@ void BTMIterator::matchBeadChain( const BeadRange& rng, const BarzelTrieNode* tr
 		}
 
 		if( nextBead != rng.second ) {  // recursion
+			
 			BeadRange nextRange( nextBead, rng.second );
 			++nextRange.first;
+			d_matchPath.back().second.second = nextRange.first;
+			// const BeadRange& shitRange = d_matchPath.back().second;
+			// AYDEBUG( shitRange );
 			// advancing to the next bead and starting new recursion from there			
 			// std::cerr << "************* SHIT recursion\n";
 			matchBeadChain( nextRange, tn );
@@ -405,8 +412,11 @@ void BarzelMatchInfo::setPath( const NodeAndBeadVec& p )
 	d_substitutionBeadRange.first = d_substitutionBeadRange.second = d_beadRng.second;
 	for( NodeAndBeadVec::const_iterator i = d_thePath.begin(); i!= d_thePath.end(); ++i ) {
 		
-		if( i->first->isWcChild() ) 
-			d_wcVec.push_back( &(*i) );
+		AYDEBUG( i->second );
+		if( i->first->isWcChild() )  {
+			if( i != d_thePath.begin() ) 
+				d_wcVec.push_back( &(*(i-1)) );
+		}
 		/// if we want to add variable names we can have trie node hold var name 
 		/// so right in this loop we will just update varNameMap 
 	}
@@ -541,9 +551,12 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, BarzelBeadChain& chain )
 
 	// the range will be replaced with a single bead . 
 	// so we will simply delete everything past the first bead
-	theBead.setData(  transResult.getBeadData() );
-
-	chain.collapseRangeLeft( range );
+	if( transResult.isVec() ) {
+		AYDEBUG("chain rewrites not supported yet");
+	} else {
+		theBead.setData(  transResult.getBeadData() );
+		chain.collapseRangeLeft( range );
+	}
 	return 0;
 }
 int BarzelMatcher::matchAndRewrite( Barz& barz )

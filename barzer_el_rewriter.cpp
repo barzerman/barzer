@@ -1,6 +1,7 @@
 #include <barzer_el_rewriter.h>
 #include <barzer_el_function.h>
 #include <barzer_universe.h>
+#include <barzer_el_matcher.h>
 #include <ay/ay_logger.h>
 namespace barzer {
 
@@ -152,6 +153,15 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Number>( const BT
 }
 template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Variable>( const BTND_Rewrite_Variable& n ) 
 {
+	BarzelMatchInfo& matchInfo = ctxt.matchInfo;
+	const NodeAndBead* nob = matchInfo.getDataByVar(n);
+	if( nob ) {
+		BeadRange r(nob->second);
+		// matchInfo.expandRangeByOne(r);
+		// std::cerr << "** COMPUTE *********";
+		// AYDEBUG( r );
+		d_val.setBeadData( r );
+	}
 	return true;
 }
 

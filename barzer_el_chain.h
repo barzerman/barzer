@@ -122,6 +122,7 @@ class BarzelBead {
 	BarzelBeadData dta;
 public:
 	BarzelBead() {}
+	const BarzelBeadData& getBeadData() const { return dta; }
 	void init(const CTWPVec::value_type&) ;
 	BarzelBead(const CTWPVec::value_type& ct) 
 		{ init(ct); }
