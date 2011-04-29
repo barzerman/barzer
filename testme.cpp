@@ -110,6 +110,14 @@ struct PrintVisitor : boost::static_visitor<> {
 		//data.print(std::cout) << std::endl;
 		printf("%02d/%02d/%04d\n", data.day, data.month, data.year);
 	}
+	void operator()(const BarzerTimeOfDay &data) {
+		//data.print(std::cout) << std::endl;
+		printf("%02d:%02d:%02d\n", data.hh, data.mm, data.ss);
+	}
+	void operator()(const BarzelBeadBlank &data) {
+		std::cout << "<blank />\n";
+	}
+
 	void operator()(const BarzelBeadAtomic &data) {
 		boost::apply_visitor(*this, data.dta);
 	}
@@ -121,22 +129,31 @@ struct PrintVisitor : boost::static_visitor<> {
 static int testFunctions(StoredUniverse &su) {
 	BarzelEvalResultVec vec;
 	BarzelBeadAtomic bba;
-	bba.dta = BarzerNumber(1);
+
+	//bba.dta = BarzelBeadBlank();
 	vec.resize(vec.size() + 1);
-	vec.back().setBeadData(bba);
+	vec.back().setBeadData(BarzelBeadBlank());
+
+
 
 	bba.dta = BarzerNumber(10);
 	vec.resize(vec.size() + 1);
 	vec.back().setBeadData(bba);
-/*
-	bba.dta = BarzerNumber(1979);
+
+	bba.dta = BarzerNumber(30);
 	vec.resize(vec.size() + 1);
-	vec.back().setBeadData(bba); */
+	vec.back().setBeadData(bba);
+
+	bba.dta = BarzerNumber(55);
+	vec.resize(vec.size() + 1);
+	vec.back().setBeadData(bba);
 
 
 	BarzelEvalResult res;
 
-	su.getFunctionStorage().call("mkDate", res, vec);
+	su.getFunctionStorage().call("opAnd", res, vec);
+
+	std::cout << res.getBeadData().which() << "\n";
 
 	PrintVisitor pv;
 

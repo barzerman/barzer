@@ -161,7 +161,7 @@ struct BarzelRewriteByteCodeProcessor {
 	const uint8_t* run( ){
 		const uint8_t* buf = d_rng.first;
 		const uint16_t childStep_sz = 1 + sizeof(BTND_RewriteData);
-		uint8_t tmp[ sizeof(BTND_RewriteData) ];
+		//uint8_t tmp[ sizeof(BTND_RewriteData) ];
 		for( ; buf < d_rng.second; ++buf ) {
 	
 			switch( *buf ) {
@@ -171,9 +171,10 @@ struct BarzelRewriteByteCodeProcessor {
 				if( !d_cb.nodeStart() )
 					return 0;
 
-				memcpy( tmp, buf+1, sizeof(tmp) );
-				if( !d_cb.nodeData( *(new(tmp) BTND_RewriteData()) ) ) 
-					return 0;
+				//memcpy( tmp, buf+1, sizeof(tmp) );
+				//if( !d_cb.nodeData( *(new(tmp) BTND_RewriteData()) ) )
+					//return 0;
+				if( !d_cb.nodeData( *(BTND_RewriteData*)(buf+1) )) return 0;
 	
 				BarzelEvalNode::ByteRange childRange( (buf + childStep_sz ), d_rng.second);
 				BarzelRewriteByteCodeProcessor proc( d_cb, childRange );
