@@ -6,10 +6,34 @@
 	-->
 	<stmt>
 		<pat>
-			<n l="1" h="12"/>
+			<t>shit</t><n l="100" h="200"/><t>junk</t>
 		</pat>
 		<tran>
-			<rn v="777"/>
+			<rn v="800"/>
+		</tran>
+	</stmt>
+	<stmt>
+		<pat>
+			<t>shit</t><n l="100" h="200"/>
+		</pat>
+		<tran>
+			<rn v="69"/>
+		</tran>
+	</stmt>
+	<stmt>
+		<pat>
+			<t>shit</t><t>junk</t>
+		</pat>
+		<tran>
+			<rn v="70"/>
+		</tran>
+	</stmt>
+	<stmt>
+		<pat>
+			<t>shit</t><n l="0" h="20"/>
+		</pat>
+		<tran>
+			<rn v="71"/>
 		</tran>
 	</stmt>
 </stmset>

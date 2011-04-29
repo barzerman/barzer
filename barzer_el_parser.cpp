@@ -1,11 +1,20 @@
 #include <barzer_el_parser.h>
 #include <barzer_el_xml.h>
+#include <barzer_universe.h>
 #include <fstream>
 
 #include <ay/ay_logger.h>
 #include <ay_util_time.h>
 
 namespace barzer {
+
+uint32_t BELParser::internString( const char* t )
+{
+	// here we may want to tweak some (nonexistent yet) fields in StoredToken 
+	// to reflect the fact that this thing is actually in the trie
+	StoredToken& sTok =  reader->getUniverse().getDtaIdx().addToken( t );
+	return sTok.getStringId();
+}
 
 void BELParseTreeNode::print( std::ostream& fp, int depth ) const
 {
@@ -21,7 +30,7 @@ void BELParseTreeNode::print( std::ostream& fp, int depth ) const
 std::ostream& BELReader::printNode( std::ostream& fp, const BarzelTrieNode& node ) const 
 {
 	BELPrintFormat fmt;
-	BELPrintContext ctxt( *trie, *strPool, fmt );
+	BELPrintContext ctxt( *trie, universe.getStringPool(), fmt );
 	return node.print( fp, ctxt );
 }
 void BELReader::addStatement( const BELStatementParsed& sp )
@@ -66,7 +75,7 @@ BELParser*  BELReader::initParser(InputFormat fmt)
 	}
 	switch( fmt ) {
 	case INPUT_FMT_XML:
-		return ( (parser = new BELParserXML( this, strPool )) );
+		return ( (parser = new BELParserXML( this )) );
 	case INPUT_FMT_BIN:
 		std::cerr << "BELReader: binary format not implemented yet\n";
 		return 0;

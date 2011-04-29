@@ -97,15 +97,7 @@ public:
 			STATE_TRANSLATION
 		} state;
 			
-		void clear(); /* moved it into .cpp for debugging purposes
-		{ 
-			bits.clear(); 
-			state = STATE_BLANK; 
-			stmt.translation.clear();
-			stmt.pattern.clear();
-			while( !nodeStack.empty() ) 
-				nodeStack.pop();
-		} //*/
+		void clear(); 
 
 		std::stack< BELParseTreeNode* > nodeStack;
 
@@ -166,23 +158,17 @@ public:
 		bool hasTranslation() const { return bits[BIT_HAS_TRANSLATION];};
 	} statement;
 
-	ay::UniqueCharPool* strPool; // string pool to use for generation of stringIds
 	mutable std::string d_tmpText; // used by getElementText as a temp buffer
 
 	~BELParserXML() ;
-	BELParserXML( BELReader* r, ay::UniqueCharPool* pool ) : 
+	BELParserXML( BELReader* r ) : 
 		BELParser(r),
 		parser(0),
-		statementCount(0),
-		strPool(pool)
+		statementCount(0)
 	{}
 
 	uint32_t internTmpText( const char* s, int len ) 
-		{ 
-			return strPool->internIt(d_tmpText.assign(s,len).c_str()); 
-		}
-	uint32_t internString( const char* s ) 
-		{ return strPool->internIt(s); }
+		{ return internString( d_tmpText.assign(s,len).c_str() ); }
 	const char* setTmpText( const char* s, int len ) 
 		{ return d_tmpText.assign( s, len ).c_str(); }
 
