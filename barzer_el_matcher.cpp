@@ -541,6 +541,12 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, BarzelBeadChain& chain )
 
 	// the range will be replaced with a single bead . 
 	// so we will simply delete everything past the first bead
+
+	//BeadPrinter bp;
+	//boost::apply_visitor(bp, transResult.getBeadData());
+
+	//AYLOG(DEBUG) << "matcher done";
+
 	theBead.setData(  transResult.getBeadData() );
 
 	chain.collapseRangeLeft( range );

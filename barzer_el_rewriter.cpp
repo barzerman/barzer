@@ -2,6 +2,8 @@
 #include <barzer_el_function.h>
 #include <barzer_universe.h>
 #include <ay/ay_logger.h>
+
+
 namespace barzer {
 
 void BarzelRewriterPool::clear()
@@ -125,10 +127,40 @@ struct Eval_visitor_compute : public boost::static_visitor<bool> {
 		ctxt(c)
 	{}
 
+	bool operator()( const BTND_Rewrite_None &data ) {
+		AYLOG(DEBUG) << "BTND_Rewrite_None";
+		if (d_childValVec.size()) {
+			d_val.setBeadData(d_childValVec[0].getBeadData());
+		}
+		return true;
+	}
+	bool operator()( const BTND_Rewrite_Literal &data ) {
+		AYLOG(DEBUG) << "BTND_Rewrite_Literal";
+		return true;
+	}
+	//bool operator()( const BTND_Rewrite_Number &data ) {  }
+	bool operator()( const BTND_Rewrite_Variable &data ) {
+		AYLOG(DEBUG) << "BTND_Rewrite_Variable";
+		return true;
+	}
+	bool operator()( const BTND_Rewrite_DateTime &data ) {
+		AYLOG(DEBUG) << "BTND_Rewrite_DateTime";
+		return true;
+	}
+	bool operator()( const BTND_Rewrite_Range &data ) {
+		AYLOG(DEBUG) << "BTND_Rewrite_Range";
+		return true;
+	}
+	bool operator()( const BTND_Rewrite_EntitySearch &data ) {
+		AYLOG(DEBUG) << "BTND_Rewrite_EntitySearch";
+		return true;
+	}
+
 
 	/// this should be specialized for various participants in the BTND_RewriteData variant 
 	template <typename T> bool operator()( const T& )
 	{
+		AYLOG(DEBUG) << "unknown";
 		return true;
 	}
 
@@ -140,13 +172,15 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const B
 	AYLOG(DEBUG) << "calling funid:" << data.nameId;
 	const StoredUniverse &u = ctxt.universe;
 	const BELFunctionStorage &fs = u.getFunctionStorage();
-	return fs.call(data.nameId, d_val, d_childValVec);
+	bool ret = fs.call(data.nameId, d_val, d_childValVec);
+	return ret;
 }
 
 template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Number>( const BTND_Rewrite_Number& n ) 
 {
 	BarzerNumber bNum;
 	n.setBarzerNumber( bNum );
+	bNum.print(AYLOG(DEBUG) << "BTND_Rewrite_Number:");
 	d_val.setBeadData( BarzelBeadAtomic().setData( bNum ) );
 	return true;
 }
@@ -176,8 +210,13 @@ bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) cons
 	}
 
 	Eval_visitor_compute visitor(childValVec,val,ctxt);
+	bool ret = boost::apply_visitor( visitor, d_btnd );
 
-	return boost::apply_visitor( visitor, d_btnd );
+	//BeadPrinter bp;
+	//boost::apply_visitor(bp, val.getBeadData());
+	//AYLOG(DEBUG) << "--------------";
+	return ret;
+
 }
 
 const uint8_t* BarzelEvalNode::growTree_recursive( BarzelEvalNode::ByteRange& brng, BarzelEvalContext& ctxt )
@@ -194,9 +233,9 @@ const uint8_t* BarzelEvalNode::growTree_recursive( BarzelEvalNode::ByteRange& br
 				return ctxt.setErr_GROW();
 
 			//memcpy( tmp, buf+1, sizeof(tmp) );
-			//BTND_RewriteData *rdp = (BTND_RewriteData*) tmp;
+			BTND_RewriteData *rdp = (BTND_RewriteData*)(buf+1);
 			//AYLOG(DEBUG) << rdp->which();
-			d_child.push_back(*(BTND_RewriteData*)(buf+1));
+			d_child.push_back(*rdp);
 			//d_child.push_back( *(new(tmp) BTND_RewriteData()) );
 
 			BarzelEvalNode::ByteRange childRange( (buf + childStep_sz ), brng.second);
@@ -211,7 +250,8 @@ const uint8_t* BarzelEvalNode::growTree_recursive( BarzelEvalNode::ByteRange& br
 			return ctxt.setErr_GROW();
 		}
 	}
-	return 0;
+	return buf; // i'm honestly not sure this is what should be returned
+	//return 0;
 }
 
 namespace {

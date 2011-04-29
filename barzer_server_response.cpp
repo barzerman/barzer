@@ -96,7 +96,7 @@ public:
 			}
 			break;
 		case BarzerLiteral::T_BLANK:
-			os << " ";
+			os << "<blank />";
 			break;
 		default:
 			AYLOG(ERROR) << "Unknown literal type";

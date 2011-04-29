@@ -4,6 +4,7 @@
 #include <barzer_storage_types.h>
 #include <barzer_parse_types.h>
 #include <barzer_el_btnd.h>
+#include <ay/ay_logger.h>
 #include <list>
 
 /// Barzel chain is the sequence manipulated during rewriting 
@@ -194,5 +195,51 @@ struct BarzelBeadChain {
 };
 
 std::ostream& operator <<( std::ostream& fp, const BarzelBeadChain::Range& rng ) ;
+
+struct BeadPrinter : public boost::static_visitor<> {
+	void operator()(const BarzerLiteral &data) {
+		AYLOG(DEBUG) << "BarzerLiteral";
+	}
+	void operator()(const BarzerString &data) {
+		AYLOG(DEBUG) << "BarzerString";
+	}
+	void operator()(const BarzerNumber &data) {
+		AYLOG(DEBUG) << "BarzerNumber";
+	}
+	void operator()(const BarzerDate &data) {
+		AYLOG(DEBUG) << "BarzerDate";
+	}
+	void operator()(const BarzerTimeOfDay &data) {
+		AYLOG(DEBUG) << "BarzerTimeOfDay";
+	}
+	void operator()(const BarzerRange &data) {
+		AYLOG(DEBUG) << "BarzerRange";
+	}
+	void operator()(const BarzerEntityList &data) {
+		AYLOG(DEBUG) << "BarzerEntityList";
+	}
+	void operator()(const BarzelEntityRangeCombo &data) {
+		AYLOG(DEBUG) << "BarzelEntityRangeCombo";
+	}
+
+	void operator()(const BarzelBeadAtomic &data) {
+		AYLOG(DEBUG) << "Atomic";
+		boost::apply_visitor(*this, data.dta);
+	}
+	void operator()(const BarzelBeadBlank &data) {
+		AYLOG(DEBUG) << "Blank";
+	}
+	void operator()(const BarzelBeadExpression &data) {
+		AYLOG(DEBUG) << "Expression";
+	}
+
+	template <class T> void operator()(const T &data) {
+		AYLOG(DEBUG) << "Something else";
+	}
+
+};
+
+
+
 }
 #endif // BARZER_EL_CHAIN_H
