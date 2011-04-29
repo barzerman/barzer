@@ -192,6 +192,7 @@ struct BarzelBeadChain {
 		{ return Range( lst.begin(), lst.end() ); }
 	void collapseRangeLeft( Range r );
 };
+typedef BarzelBeadChain::Range BarzelBeadRange;
 
 std::ostream& operator <<( std::ostream& fp, const BarzelBeadChain::Range& rng ) ;
 }

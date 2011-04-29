@@ -198,9 +198,15 @@ public:
 		T_COMPWORD, // compounded word
 		T_NUMBER_INT, // integer 
 		T_NUMBER_REAL, // real number (float)
+		/// this one is very special - this actually creates a tree 
 		T_REWRITER, // interpreted sequence
-		T_BLANK,
-		T_PUNCT,
+
+		T_BLANK,    // blank literal
+		T_PUNCT,    // punctuation
+		T_VAR_NAME, // variable name rewrite
+		T_VAR_WC_NUM, // variable rewrite on wildcard number 
+		T_VAR_EL_NUM, // variable rewrite on raw element number
+
 		T_MAX
 	} Type_t;
 	boost::variant< uint32_t, double, int> id;
@@ -208,8 +214,18 @@ public:
 		
 	void set( BELTrie& trie, const BTND_Rewrite_Literal& );
 	void set( BELTrie& trie, const BTND_Rewrite_Number& );
+	void set( BELTrie& trie, const BTND_Rewrite_Variable& );
 
 	void set( BELTrie& trie, const BELParseTreeNode& );
+
+	void setStop() { type = T_STOP; }
+
+	//// this is invoked from el_parser
+	template <typename T>
+	inline void setBtnd( BELTrie& trie, const T& x ) {
+		AYDEBUG("unsupported trivial rewrite" );
+		setStop();
+	}
 
 	void setRewriter( uint32_t rid ) 
 	{
@@ -225,7 +241,6 @@ public:
 	int getId_int() const { return ( id.which() ==2  ? boost::get<int>(id) : 0 ); }
 	double getId_double() const { return ( id.which() ==1  ? boost::get<double>(id) : 0.0 ); }
 
-	void setStop() { type = T_STOP; }
 
 	void clear() { type= T_NONE; }
 	bool isRewriter() const  { return ( type == T_REWRITER ); }
@@ -251,6 +266,12 @@ public:
 	std::ostream& print( std::ostream& , const BELPrintContext& ) const;
 
 };
+template <>
+inline void BarzelTranslation::setBtnd<BTND_Rewrite_Literal>( BELTrie& trie, const BTND_Rewrite_Literal& x ) { set(trie,x); }
+template <>
+inline void BarzelTranslation::setBtnd<BTND_Rewrite_Number>( BELTrie& trie, const BTND_Rewrite_Number& x ) { set(trie,x); }
+template <>
+inline void BarzelTranslation::setBtnd<BTND_Rewrite_Variable>( BELTrie& trie, const BTND_Rewrite_Variable& x ) { set(trie,x); }
 
 class BarzelTrieNode;
 typedef std::map<BarzelTrieFirmChildKey, BarzelTrieNode > BarzelFCMap;

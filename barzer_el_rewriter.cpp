@@ -150,6 +150,10 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Number>( const BT
 	d_val.setBeadData( BarzelBeadAtomic().setData( bNum ) );
 	return true;
 }
+template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Variable>( const BTND_Rewrite_Variable& n ) 
+{
+	return true;
+}
 
 //// the main visitor - compute
 
