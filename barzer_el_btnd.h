@@ -390,6 +390,9 @@ struct BTND_Rewrite_Variable {
 
 	bool isValid() const { return varId != 0xffffffff; }
 
+	uint8_t getIdMode() const { return idMode; }
+	uint32_t getVarId() const { return varId; }
+		
 	bool isVarname() const { return idMode == MODE_VARNAME; }
 	bool isWildcardNum() const { return idMode == MODE_WC_NUMBER; }
 	bool isPatternElemNumber() const { return idMode == MODE_PATEL_NUMBER; }

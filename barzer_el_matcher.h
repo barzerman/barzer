@@ -49,12 +49,18 @@ public:
 	void setScore( int s ) 	{ d_score = s; }
 	int getScore() const 	{ return d_score; }
 	
+	void  expandRangeByOne( BeadRange& r ) const
+	{
+		if( r.second != d_beadRng.second ) ++r.second;
+	}
 	const BeadRange& getSubstitutionBeadRange( ) const { return  d_substitutionBeadRange; }
 	const BeadRange& getFullBeadRange( ) const { return  d_beadRng; }
 	void setFullBeadRange( const BeadRange& br ) { d_beadRng= br; }
 
-	const NodeAndBead* getDataByNumber(size_t n ) const 
-		{ return ( n< d_wcVec.size() ? d_wcVec[n] : 0 ); }
+	const NodeAndBead* getDataByElementNumber(size_t n ) const 
+		{ return ( n>0 && n< d_thePath.size() ? &(d_thePath[n-1]) : 0 ); }
+	const NodeAndBead* getDataByWildcardNumber(size_t n ) const 
+		{ return ( n>0 && n<= d_wcVec.size() ? d_wcVec[n-1] : 0 ); }
 	/// the trie node is needed in case there's a potential variable name 
 	void setPath( const NodeAndBeadVec& p );
 
@@ -67,7 +73,17 @@ public:
 	const NodeAndBead* getDataByNameId( uint32_t id ) const 
 	{
 		std::map< uint32_t, size_t >::const_iterator i = d_varNameMap.find( id );
-		return( i == d_varNameMap.end() ? 0 : getDataByNumber( i->second ) );
+		return( i == d_varNameMap.end() ? 0 : getDataByElementNumber( i->second ) );
+	}
+	
+	inline const NodeAndBead* getDataByVar( const BTND_Rewrite_Variable& var ) const
+	{
+		switch( var.getIdMode() ) {
+		case BTND_Rewrite_Variable::MODE_WC_NUMBER: return getDataByWildcardNumber( var.getVarId());
+		case BTND_Rewrite_Variable::MODE_VARNAME: return getDataByNameId( var.getVarId());
+		case BTND_Rewrite_Variable::MODE_PATEL_NUMBER: return getDataByElementNumber( var.getVarId());
+		}
+		return 0;
 	}
 };
 typedef std::pair<BarzelMatchInfo,const BarzelTranslation*> RewriteUnit;

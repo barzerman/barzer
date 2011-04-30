@@ -123,6 +123,7 @@ class BarzelBead {
 	BarzelBeadData dta;
 public:
 	BarzelBead() {}
+	const BarzelBeadData& getBeadData() const { return dta; }
 	void init(const CTWPVec::value_type&) ;
 	BarzelBead(const CTWPVec::value_type& ct) 
 		{ init(ct); }
@@ -193,6 +194,7 @@ struct BarzelBeadChain {
 		{ return Range( lst.begin(), lst.end() ); }
 	void collapseRangeLeft( Range r );
 };
+typedef BarzelBeadChain::Range BarzelBeadRange;
 
 std::ostream& operator <<( std::ostream& fp, const BarzelBeadChain::Range& rng ) ;
 
