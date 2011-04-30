@@ -27,5 +27,11 @@
         </pat>
         <tran><func name="mkDate"><var w="3" /><var w="2" /><var w="1" /></func></tran>
     </stmt>
+    <stmt>
+        <pat>
+            <n l="1" h="12"/><p>/</p><n  l="1" h="31"/><p>/</p><n/>
+        </pat>
+        <tran><func name="mkDate"><var w="2" /><var w="1" /><var w="3" /></func></tran>
+    </stmt>
 </stmset>
             
