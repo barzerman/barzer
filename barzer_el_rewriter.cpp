@@ -166,7 +166,7 @@ struct Eval_visitor_compute : public boost::static_visitor<bool> {
 
 
 template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const BTND_Rewrite_Function &data) {
-	AYLOG(DEBUG) << "calling funid:" << data.nameId;
+	//AYLOG(DEBUG) << "calling funid:" << data.nameId;
 	const StoredUniverse &u = ctxt.universe;
 	const BELFunctionStorage &fs = u.getFunctionStorage();
 	bool ret = fs.call(data.nameId, d_val, d_childValVec);

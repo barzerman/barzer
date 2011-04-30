@@ -160,18 +160,18 @@ struct BELFunctionStorage_holder {
 
 		BarzerDate date;
 		// changes fields to whatever was set
-		AYLOGDEBUG(rvec.size());
+		//AYLOGDEBUG(rvec.size());
 		switch (rvec.size()) {
 		case 3:
 			if (setNumber(tmp, rvec[2])) y = tmp;
 		case 2:
 			if (setNumber(tmp, rvec[1])) m = tmp;
 			else {
-				AYLOG(DEBUG) << rvec[1].getBeadData().which();
+				//AYLOG(DEBUG) << rvec[1].getBeadData().which();
 			}
 		case 1:
 			if (!setNumber(d, rvec[0])) {
-				AYLOG(DEBUG) << rvec[0].getBeadData().which();
+				//AYLOG(DEBUG) << rvec[0].getBeadData().which();
 			}
 			break;
 		default: return false;
