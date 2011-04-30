@@ -130,7 +130,7 @@ struct BarzerDate {
 		year = (typeof year) y.getInt();
 	}
 	std::ostream& print( std::ostream& fp ) const 
-		{ return ( fp << month << '/' << day << '/' << year ); }
+		{ return ( fp << (int)month << '/' << (int)day << '/' << year ); }
 	bool lessThan( const BarzerDate& r ) const
 	{
 		return ay::range_comp( ).less_than(
