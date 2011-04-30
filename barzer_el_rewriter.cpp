@@ -129,7 +129,7 @@ struct Eval_visitor_compute : public boost::static_visitor<bool> {
 	{}
 
 	bool operator()( const BTND_Rewrite_None &data ) {
-		AYLOG(DEBUG) << "BTND_Rewrite_None";
+		//AYLOG(DEBUG) << "BTND_Rewrite_None";
 		if (d_childValVec.size()) {
 			d_val.setBeadData(d_childValVec[0].getBeadData());
 		}
