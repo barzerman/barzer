@@ -150,23 +150,31 @@ struct BELFunctionStorage_holder {
 							        const BarzelEvalResultVec &rvec) const
 
 	// makers
-	STFUN(mkDate) // american format
+	STFUN(mkDate) //(d) | (d,m) | (d,m,y)
 	{
 		//sets everything to today
 		BarzerNumber m(BarzerDate::thisMonth),
 					 d(BarzerDate::thisDay),
-					 y(BarzerDate::thisYear);
+					 y(BarzerDate::thisYear),
+					 tmp;
+
 		BarzerDate date;
 		// changes fields to whatever was set
+		AYLOGDEBUG(rvec.size());
 		switch (rvec.size()) {
 		case 3:
-			setNumber(y, rvec[2]);
+			if (setNumber(tmp, rvec[2])) y = tmp;
 		case 2:
-			setNumber(d, rvec[1]);
+			if (setNumber(tmp, rvec[1])) m = tmp;
+			else {
+				AYLOG(DEBUG) << rvec[1].getBeadData().which();
+			}
 		case 1:
-			setNumber(m, rvec[0]);
+			if (!setNumber(d, rvec[0])) {
+				AYLOG(DEBUG) << rvec[0].getBeadData().which();
+			}
 			break;
-		default: break;
+		default: return false;
 			// huhuh
 		}
 		date.setDayMonthYear(d,m,y);

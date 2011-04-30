@@ -17,11 +17,15 @@
 			<func name="mkDate"><rn v="9" /><rn v="10" /><rn v="2011" /></func>
 		</tran>
 	</stmt>
+	<stmt>
+        <pat><n l="1" h="5" /><n l="1" h="9" /></pat>
+        <tran><var w="2" /></tran>
+    </stmt>
     <stmt>
         <pat>
-            <n l="1" h="12"  /><n  l="1" h="31"/><n l="1900" h="2100"/>
+            <n l="1900" h="2100" /><n l="1" h="12"  /><n  l="1" h="31"/>
         </pat>
-        <tran><func name="mkDate"><var w="1" /><var w="2" /><var w="3" /></func></tran>
+        <tran><func name="mkDate"><var w="3" /><var w="2" /><var w="1" /></func></tran>
     </stmt>
 </stmset>
             
