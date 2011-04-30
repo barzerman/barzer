@@ -139,11 +139,7 @@ struct Eval_visitor_compute : public boost::static_visitor<bool> {
 		AYLOG(DEBUG) << "BTND_Rewrite_Literal";
 		return true;
 	}
-	//bool operator()( const BTND_Rewrite_Number &data ) {  }
-	bool operator()( const BTND_Rewrite_Variable &data ) {
-		AYLOG(DEBUG) << "BTND_Rewrite_Variable";
-		return true;
-	}
+
 	bool operator()( const BTND_Rewrite_DateTime &data ) {
 		AYLOG(DEBUG) << "BTND_Rewrite_DateTime";
 		return true;
