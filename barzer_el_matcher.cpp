@@ -412,7 +412,7 @@ void BarzelMatchInfo::setPath( const NodeAndBeadVec& p )
 	d_substitutionBeadRange.first = d_substitutionBeadRange.second = d_beadRng.second;
 	for( NodeAndBeadVec::const_iterator i = d_thePath.begin(); i!= d_thePath.end(); ++i ) {
 		
-		AYDEBUG( i->second );
+		/// AYDEBUG( i->second );
 		if( i->first->isWcChild() )  {
 			if( i != d_thePath.begin() ) 
 				d_wcVec.push_back( &(*(i-1)) );
