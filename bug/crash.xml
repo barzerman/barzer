@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
+    xmlns="http://www.barzer.net/barzel/0.1">
+    <!-- segfault on matching 2011/10/25 -->
+    <stmt>
+        <pat>
+            <n l="1900" h="2100"/><p>/</p><n l="1" h="12"/><p>/</p><n l="1" h="31"/>
+        </pat>
+        <tran><func name="mkDate"><var w="3" /><var w="2" /><var w="1" /></func></tran>
+    </stmt>    
+</stmset>
