@@ -20,10 +20,17 @@ namespace {
 // returns BarzerNumber ot of random barzer type. NaN if fails
 struct NumberMatcher : public boost::static_visitor<BarzerNumber> {
 	BarzerNumber operator()( const BarzerNumber &dt ) {	return dt; }
+	/*BarzerNumber operator()( const 	BarzerLiteral &dt ) {
+		dt.print(AYLOG(DEBUG) << "literal type: ");
+		return BarzerNumber();
+	} */
 	BarzerNumber operator()( const BarzelBeadAtomic &dt )
 		{ return boost::apply_visitor(*this, dt.dta); }
 	template <typename T> BarzerNumber operator()( const T& )
-		{ return BarzerNumber(); }  // NaN
+		{
+			//AYLOG(DEBUG) << "unknown type";
+			return BarzerNumber();
+		}  // NaN
 };
 
 static BarzerNumber getNumber(const BarzelEvalResult &result) {
@@ -163,15 +170,21 @@ struct BELFunctionStorage_holder {
 		//AYLOGDEBUG(rvec.size());
 		switch (rvec.size()) {
 		case 3:
-			if (setNumber(tmp, rvec[2])) y = tmp;
-		case 2:
-			if (setNumber(tmp, rvec[1])) m = tmp;
+			if (setNumber(y, rvec[2]));
 			else {
-				//AYLOG(DEBUG) << rvec[1].getBeadData().which();
+				AYLOG(DEBUG) << "(mkDate) Wrong type in the third argument: ";
+				//             << rvec[2].getBeadData().which();
+			}
+		case 2:
+			if (setNumber(m, rvec[1]));
+			else {
+				AYLOG(DEBUG) << "(mkDate) Wrong type in the second argument: ";
+				//             << rvec[1].getBeadData().which();
 			}
 		case 1:
 			if (!setNumber(d, rvec[0])) {
-				//AYLOG(DEBUG) << rvec[0].getBeadData().which();
+				AYLOG(DEBUG) << "(mkDate) Wrong type in the first argument: ";
+				//             << rvec[0].getBeadData().which();
 			}
 			break;
 		default: return false;
