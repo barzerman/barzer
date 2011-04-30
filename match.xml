@@ -6,7 +6,7 @@
 	-->
 	<stmt>
 		<pat>
-			<t>пизда</t><n l="100" h="200"/><t>junk</t>
+			<t>cunt</t><n l="100" h="200"/><t>junk</t>
 		</pat>
 		<tran>
 			<rn v="800"/>
@@ -14,7 +14,7 @@
 	</stmt>
 	<stmt>
 		<pat>
-			<t>пизда</t><n l="100" h="200"/>
+			<t>cunt</t><n l="100" h="200"/>
 		</pat>
 		<tran>
 			<rn v="69"/>
@@ -22,7 +22,7 @@
 	</stmt>
 	<stmt>
 		<pat>
-			<t>пизда</t><t>junk</t>
+			<t>cunt</t><t>junk</t>
 		</pat>
 		<tran>
 			<rn v="70"/>
@@ -30,7 +30,7 @@
 	</stmt>
 	<stmt>
 		<pat>
-			<t>пизда</t><n l="0" h="20"/>
+			<t>cunt</t><n l="0" h="20"/>
 		</pat>
 		<tran>
 			<rn v="71"/>

@@ -172,7 +172,12 @@ inline	bool findMatchingChildren_visitor::operator()<BarzerLiteral> ( const Barz
 			ch = d_tn->getFirmChild( firmKey ); 
 			if( ch ) {
 				BeadList::iterator endIt = d_rng.first;
-				++endIt;
+
+				if( endIt != d_rng.second ) {
+					const BarzelBeadAtomic* atomic = endIt->getAtomic();
+					if( !atomic || atomic->isBlankLiteral() ) 
+						++endIt;
+				}
 				d_mtChild.push_back( NodeAndBeadVec::value_type(ch, BarzelBeadChain::Range(d_rng.first,endIt)));
 			}
 		}
@@ -335,10 +340,10 @@ void BTMIterator::matchBeadChain( const BeadRange& rng, const BarzelTrieNode* tr
 			BeadRange nextRange( nextBead, rng.second );
 			++nextRange.first;
 			d_matchPath.back().second.second = nextRange.first;
-			// const BeadRange& shitRange = d_matchPath.back().second;
-			// AYDEBUG( shitRange );
+			//const BeadRange& shitRange = d_matchPath.back().second;
+			//AYDEBUG( nextRange );
 			// advancing to the next bead and starting new recursion from there			
-			// std::cerr << "************* SHIT recursion\n";
+			//std::cerr << "************* SHIT recursion\n";
 			matchBeadChain( nextRange, tn );
 		}
 	}
@@ -412,7 +417,7 @@ void BarzelMatchInfo::setPath( const NodeAndBeadVec& p )
 	d_substitutionBeadRange.first = d_substitutionBeadRange.second = d_beadRng.second;
 	for( NodeAndBeadVec::const_iterator i = d_thePath.begin(); i!= d_thePath.end(); ++i ) {
 		
-		/// AYDEBUG( i->second );
+		//AYDEBUG( i->second );
 		if( i->first->isWcChild() )  {
 			if( i != d_thePath.begin() ) 
 				d_wcVec.push_back( &(*(i-1)) );

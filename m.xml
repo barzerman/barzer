@@ -6,10 +6,10 @@
 	-->
 	<stmt>
 		<pat>
-			<n l="1" h="20"/><t>shit</t>
+			<n l="1" h="12"/><p>/</p><n l="1" h="31"/>
 		</pat>
 		<tran>
-			<var w="1"/>
+			<var w="2"/>
 		</tran>
 	</stmt>
 </stmset>

@@ -187,9 +187,10 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Variable>( const 
 	const NodeAndBead* nob = matchInfo.getDataByVar(n);
 	if( nob ) {
 		BeadRange r(nob->second);
-		// matchInfo.expandRangeByOne(r);
-		// std::cerr << "** COMPUTE *********";
-		// AYDEBUG( r );
+		if( r.first == r.second ) 
+			matchInfo.expandRangeByOne(r);
+		//std::cerr << "** COMPUTE *********";
+		//AYDEBUG( r );
 		d_val.setBeadData( r );
 	}
 	return true;
