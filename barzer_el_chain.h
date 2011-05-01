@@ -167,8 +167,29 @@ public:
 typedef std::list< BarzelBead > 	BeadList;
 
 struct BarzelBeadChain {
-	
 	typedef std::pair< BeadList::iterator, BeadList::iterator > Range;
+
+	static inline bool 	iteratorAtBlank( BeadList::iterator i ) 
+	{
+		const BarzelBeadAtomic* atomic = i->getAtomic();
+		return( atomic && atomic->isBlankLiteral() );
+	}
+	static inline void 	trimBlanksFromRange( Range& rng ) 
+	{
+		while( rng.first != rng.second ) {
+			BeadList::iterator lastElem = rng.second;
+			--lastElem;
+			if( lastElem == rng.first ) 
+				break;
+			if( BarzelBeadChain::iteratorAtBlank(lastElem) ) 
+				rng.second= lastElem;
+			else if( BarzelBeadChain::iteratorAtBlank(rng.first) ) 
+				++rng.first;
+			else
+				break;
+		}
+	}
+
 	
 	BeadList lst;
 	/// implement 

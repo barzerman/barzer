@@ -189,8 +189,11 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Variable>( const 
 		BeadRange r(nob->second);
 		if( r.first == r.second ) 
 			matchInfo.expandRangeByOne(r);
-		//std::cerr << "** COMPUTE *********";
-		//AYDEBUG( r );
+		std::cerr << "** COMPUTE *********";
+		AYDEBUG( r );
+		BarzelBeadChain::trimBlanksFromRange(r);
+		std::cerr << "** AFTER COMPUTE *********";
+		AYDEBUG( r );
 		d_val.setBeadData( r );
 	}
 	return true;

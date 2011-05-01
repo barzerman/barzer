@@ -58,7 +58,7 @@ public:
 	void setFullBeadRange( const BeadRange& br ) { d_beadRng= br; }
 
 	const NodeAndBead* getDataByElementNumber(size_t n ) const 
-		{ return ( n>0 && n< d_thePath.size() ? &(d_thePath[n-1]) : 0 ); }
+		{ return ( n>0 && n<= d_thePath.size() ? &(d_thePath[n-1]) : 0 ); }
 	const NodeAndBead* getDataByWildcardNumber(size_t n ) const 
 		{ return ( n>0 && n<= d_wcVec.size() ? d_wcVec[n-1] : 0 ); }
 	/// the trie node is needed in case there's a potential variable name 
@@ -113,6 +113,7 @@ struct BTMBestPaths {
 		d_fullRange(r),
 		universe(u) 
 	{}
+	const BeadList::iterator getAbsoluteEnd() const { return d_fullRange.second; }
 	const BeadRange& getFullRange() const { return d_fullRange; }
 	void setFullRange(const BeadRange& br ) { d_fullRange = br; }
 	
