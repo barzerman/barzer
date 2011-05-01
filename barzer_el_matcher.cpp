@@ -32,7 +32,8 @@ int BTMIterator::addTerminalPath( const NodeAndBead& nb )
 	}
 	//AYDEBUG(br);
 	ay::vector_raii<NodeAndBeadVec> raii( d_matchPath, theNb );
-	print_NodeAndBeadVec( std::cerr, d_matchPath, bestPaths.getAbsoluteEnd() );
+	//print_NodeAndBeadVec( std::cerr << "**ADD TERMINAL >>>", d_matchPath, bestPaths.getAbsoluteEnd() ) <<
+	//" <<<<< END\n" ;
 	bestPaths.addPath( d_matchPath );
 	return 0;
 }
@@ -363,9 +364,7 @@ void BTMIterator::matchBeadChain( const BeadRange& rng, const BarzelTrieNode* tr
 
 		nextBead = chRange.second;
 
-		if( tn->isLeaf() ) {
-			addTerminalPath( *ch );
-		}
+		//print_NodeAndBeadVec( std::cerr << "*** MATCH BEAD CHAIN >>>", d_matchPath, rng.second ) << "<<<< **END\n";
 
 		if( nextBead != rng.second ) {  // recursion
 			
@@ -376,6 +375,9 @@ void BTMIterator::matchBeadChain( const BeadRange& rng, const BarzelTrieNode* tr
 			pathRange.second = chRange.second;
 			if( pathRange.second != rng.second ) 
 				++pathRange.second;
+			if( tn->isLeaf() ) {
+				addTerminalPath( *ch );
+			}
 			//BarzelBeadChain::trimBlanksFromRange( d_matchPath.back().second );
 
 			//const BeadRange& shitRange = d_matchPath.back().second;
@@ -385,7 +387,11 @@ void BTMIterator::matchBeadChain( const BeadRange& rng, const BarzelTrieNode* tr
 			BeadRange nextRange( nextBead, rng.second );
 			++nextRange.first;
 			matchBeadChain( nextRange, tn );
-		} 
+		}  else {
+			if( tn->isLeaf() ) {
+				addTerminalPath( *ch );
+			}
+		}
 	}
 }
 
@@ -458,8 +464,8 @@ void BarzelMatchInfo::setPath( const NodeAndBeadVec& p )
 	for( NodeAndBeadVec::const_iterator i = d_thePath.begin(); i!= d_thePath.end(); ++i ) {
 		if( i->first->isWcChild() )  {
 			if( i != d_thePath.begin() )  {
-				const NodeAndBead& nab = *(i-1);
-				d_wcVec.push_back( &nab );
+				// const NodeAndBead& nab = *(i-1);
+				d_wcVec.push_back( (i-d_thePath.begin())-1 );
 			}
 		}
 		/// if we want to add variable names we can have trie node hold var name 

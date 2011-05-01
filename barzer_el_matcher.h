@@ -36,7 +36,7 @@ class BarzelMatchInfo {
 	int d_score; // 
 	///  for each trie node stores the node + the range of beads that matched the node
 	NodeAndBeadVec    d_thePath;
-	NodeAndBeadPtrVec d_wcVec; // $n would get translated to wcVec[n] (points into d_thePath)
+	std::vector< size_t > d_wcVec; // $n would get translated to wcVec[n] (stores offsets in thePath)
 	/// uint32_t is the stringId from the pool
 	std::map< uint32_t, size_t > d_varNameMap; 
 public:
@@ -49,6 +49,8 @@ public:
 	void setScore( int s ) 	{ d_score = s; }
 	int getScore() const 	{ return d_score; }
 	
+	bool  iteratorIsEnd( BeadList::iterator i ) const
+		{ return (i == d_beadRng.second); }
 	void  expandRangeByOne( BeadRange& r ) const
 	{
 		if( r.second != d_beadRng.second ) ++r.second;
@@ -60,7 +62,13 @@ public:
 	const NodeAndBead* getDataByElementNumber(size_t n ) const 
 		{ return ( n>0 && n<= d_thePath.size() ? &(d_thePath[n-1]) : 0 ); }
 	const NodeAndBead* getDataByWildcardNumber(size_t n ) const 
-		{ return ( n>0 && n<= d_wcVec.size() ? d_wcVec[n-1] : 0 ); }
+		{ 
+			if( n>0 && n<= d_wcVec.size() ) {
+				size_t i = d_wcVec[n-1];
+				return ( i< d_thePath.size() ? &(d_thePath[i]) : 0 );
+			} else
+				return 0;
+		}
 	/// the trie node is needed in case there's a potential variable name 
 	void setPath( const NodeAndBeadVec& p );
 
