@@ -206,6 +206,7 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	Barz& barz = context->barz;
+	// Barz barz;
 	QParser& parser = context->parser;
 
 	BarzStreamerXML bs(barz, context->universe);

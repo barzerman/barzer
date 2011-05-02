@@ -8,6 +8,10 @@ using namespace barzer;
 int QSemanticParser::semanticize( Barz& barz, const QuestionParm& qparm  )
 {
 	err.clear();
+	/*
+	BarzelMatcher matcher( universe );
+	matcher.matchAndRewrite( barz );
+	*/
 	barzelMatcher.matchAndRewrite( barz );
 	return 0;
 }
@@ -39,6 +43,7 @@ int QParser::tokenize_only( Barz& barz, const char* q, const QuestionParm& qparm
 
 int QParser::parse( Barz& barz, const char* q, const QuestionParm& qparm )
 {
+	barz.clear();
 	tokenize_only( barz, q, qparm );
 	lex_only( barz, qparm );
 	semanticize_only( barz, qparm );
