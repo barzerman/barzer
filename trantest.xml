@@ -33,4 +33,17 @@
         </pat>
         <tran><func name="mkDate"><var w="2" /><var w="1" /><var w="3" /></func></tran>
     </stmt>
+    <stmt>
+        <pat>
+            <n l="100" h="200"/><p>+</p><n l="100" h="200" />
+        </pat>
+        <tran><func name="mkRange"><var w="1" /><var w="2" /></func></tran>
+    </stmt>
+    <stmt>
+        <pat>
+            <t>mama</t><t>myla</t><t>ramu</t>
+        </pat>
+        <tran><var pn="2" /></tran>
+    </stmt>
+    
 </stmset>

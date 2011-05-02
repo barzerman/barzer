@@ -147,6 +147,59 @@ struct StrConcatVisitor : public boost::static_visitor<bool> {
 	}
 };
 
+struct RangePacker : public boost::static_visitor<bool> {
+	BarzelBeadAtomic left;
+	BarzerRange &range;
+
+	RangePacker(BarzerRange &r) : range(r) {}
+
+	bool setLeft(const BarzelBeadData &dt) {
+		if (dt.which() == BarzelBeadAtomic_TYPE) {
+			left = boost::get<BarzelBeadAtomic>(dt);
+			return true;
+		} else return false;
+	}
+
+	template<class T> bool setLeft(const T&) { return false; }
+
+	bool operator()(const BarzerNumber &rnum) {
+		if (left.isNumber()) {
+			const BarzerNumber &lnum = left.getNumber();
+			if (lnum.isReal()) {
+				if (rnum.isReal()) {
+					range.dta = BarzerRange::Real((float)lnum.getReal(), (float)rnum.getReal());
+				} else {
+					range.dta = BarzerRange::Real((float)lnum.getReal(), (float)rnum.getInt());
+				}
+			} else {
+				if (rnum.isReal()) {
+					range.dta = BarzerRange::Real((float)lnum.getInt(), (float)rnum.getReal());
+				} else {
+					range.dta = BarzerRange::Integer(lnum.getInt(), rnum.getInt());
+				}
+			}
+			//range.print(AYLOG(DEBUG) << "done: ");
+			return true;
+		} else return false;
+
+	}
+
+	bool operator()(const BarzerDate &rdate) {
+		return false;
+	}
+	bool operator()(const BarzerTimeOfDay &rtod) {
+		return false;
+	}
+	bool operator()(const BarzelBeadAtomic &data) {
+		return boost::apply_visitor(*this, data.dta);
+	}
+	template<class T> bool operator()(const T&) {
+		return false;
+	}
+
+
+};
+
 }
 // Stores map ay::UniqueCharPool::StrId -> BELFunctionStorage::function
 // the function names are using format "stfun_*function name*"
@@ -163,6 +216,7 @@ struct BELFunctionStorage_holder {
 		// makers
 		ADDFN(mkDate);
 		ADDFN(mkTime);
+		ADDFN(mkRange);
 		// arith
 		ADDFN(opPlus);
 		ADDFN(opMinus);
@@ -225,7 +279,7 @@ struct BELFunctionStorage_holder {
 				AYLOG(DEBUG) << "(mkDate) Wrong type in the first argument: ";
 				//             << rvec[0].getBeadData().which();
 			}
-			break;
+		case 0: break; // 0 arguments = today
 		default: return false;
 			// huhuh
 		}
@@ -251,6 +305,21 @@ struct BELFunctionStorage_holder {
 		//AYLOG(DEBUG) << "setting result";
 		setResult(result, time);
 		return true;
+	}
+
+	STFUN(mkRange)
+	{
+		if (rvec.size() >= 2) {
+			BarzerRange br;
+			RangePacker rp(br);
+			if (rp.setLeft(rvec[0].getBeadData())) {
+				if (boost::apply_visitor(rp, rvec[1].getBeadData())) {
+					setResult(result, br);
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 
