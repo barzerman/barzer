@@ -50,6 +50,7 @@ static EnumAndString g_STCI_SubclassName_Word[] = {
 	STCI_WORD_SUBCLASS_NAME(CONJUNCTION), // and or  
 	STCI_WORD_SUBCLASS_NAME(PREPOSITION), // on to from ... 
 	STCI_WORD_SUBCLASS_NAME(NEGATION)     // not), nonm un-,nor
+	STCI_WORD_SUBCLASS_NAME(NUMBERAL)     // word is actually a numeral but it appears in the data set as a token
 };
 #undef STCI_WORD_SUBCLASS_NAME
 
