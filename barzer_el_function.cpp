@@ -8,6 +8,7 @@
 #include <barzer_el_function.h>
 #include <barzer_universe.h>
 #include <barzer_basic_types.h>
+#include <sstream>
 #include <ay/ay_logger.h>
 
 
@@ -107,6 +108,45 @@ template<class U> struct ArithVisitor : public boost::static_visitor<bool> {
 	}
 };
 
+struct StrConcatVisitor : public boost::static_visitor<bool> {
+	std::stringstream ss;
+	StoredUniverse &universe;
+	StrConcatVisitor(StoredUniverse &u) : universe(u) {}
+
+	bool operator()( const BarzerString &dt ) {
+		ss << dt.getStr();
+		return true;
+	}
+	bool operator()( const BarzerLiteral &dt ) {
+		switch (dt.getType()) {
+		case BarzerLiteral::T_STRING:
+		case BarzerLiteral::T_COMPOUND:
+		case BarzerLiteral::T_PUNCT: {
+			const char *str = universe.getStringPool().resolveId(dt.getId());
+			if (str) {
+				ss << str;
+				return true;
+			} else {
+				AYLOG(ERROR) << "Unknown string ID";
+				return false;
+			}
+		}
+		default:
+			AYLOG(ERROR) << "Wrong literal type";
+			return false;
+		}
+	}
+
+	bool operator()( const BarzelBeadAtomic &dt ) {
+		return boost::apply_visitor(*this, dt.dta);
+	}
+
+	template <typename T> bool operator()( const T& )
+	{
+		return false;
+	}
+};
+
 }
 // Stores map ay::UniqueCharPool::StrId -> BELFunctionStorage::function
 // the function names are using format "stfun_*function name*"
@@ -131,7 +171,6 @@ struct BELFunctionStorage_holder {
 		//logic
 		ADDFN(opAnd);
 		ADDFN(opOr);
-		ADDFN(opXor);
 		ADDFN(opLt);
 		ADDFN(opGt);
 		ADDFN(opEq);
@@ -325,11 +364,6 @@ struct BELFunctionStorage_holder {
 		return true;
 	}
 
-	STFUN(opXor)
-	{
-		return false;
-	}
-
 	STFUN(opLt)
 	{
 		return false;
@@ -345,6 +379,17 @@ struct BELFunctionStorage_holder {
 
 	// string
 	STFUN(strConcat) { // strfun_strConcat(&result, &rvec)
+		if (rvec.size()) {
+			StrConcatVisitor scv(universe);
+			for (BarzelEvalResultVec::const_iterator ri = rvec.begin();
+													 ri != rvec.end(); ++ri) {
+				if (!boost::apply_visitor(scv, ri->getBeadData())) return false;
+			}
+			BarzerString bzs;
+			bzs.setStr(scv.ss.str());
+			setResult(result, bzs);
+			return true;
+		}
 		return false;
 	}
 

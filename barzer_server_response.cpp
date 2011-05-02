@@ -73,16 +73,16 @@ public:
 
 class AtomicVisitor : public boost::static_visitor<> {
 	std::ostream &os;
-	StoredUniverse &_u;
+	StoredUniverse &universe;
 public:
-	AtomicVisitor(std::ostream &s, StoredUniverse &u) : os(s), _u(u) {}
+	AtomicVisitor(std::ostream &s, StoredUniverse &u) : os(s), universe(u) {}
 
 	void operator()(const BarzerLiteral &data) {
 		if (data.isBlank()) return;
 		os << "<token>";
 		switch(data.getType()) {
 		case BarzerLiteral::T_STRING: {
-			std::string s = _u.getStringPool().resolveId(data.getId());
+			std::string s = universe.getStringPool().resolveId(data.getId());
 			xmlEscape(s, os);
 		}
 		case BarzerLiteral::T_COMPOUND: // shrug
