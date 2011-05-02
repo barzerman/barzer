@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
-	xmlns="http://www.barzer.net/barzel/0.1">
-	<!--
-		for some reason xmllint doesn't like this
-		xsi:schemaLocation="http://www.barzer.net/barzel/0.1 barzel.xsd">
-	-->
-	<stmt>
-		<pat>
-			<t>China</t><n/><p>/</p>
-		</pat>
-		<tran>
-			<rn>
-			<var w="1"/>
-			<rn v="56"/>
-			</rn> 
-			<func name="mkDate"><rn v="9" /><rn v="10" /><rn v="2011" /></func>
-		</tran>
-	</stmt>
-	<stmt>
+    xmlns="http://www.barzer.net/barzel/0.1">
+    <!--
+        for some reason xmllint doesn't like this
+        xsi:schemaLocation="http://www.barzer.net/barzel/0.1 barzel.xsd">
+    -->
+    <stmt>
+        <pat>
+            <t>China</t><n/><p>/</p>
+        </pat>
+        <tran>
+            <rn>
+            <var w="1"/>
+            <rn v="56"/>
+            </rn> 
+            <func name="mkDate"><rn v="9" /><rn v="10" /><rn v="2011" /></func>
+        </tran>
+    </stmt>
+    <stmt>
         <pat><n l="1" h="5" /><n l="1" h="9" /></pat>
         <tran><var w="2" /></tran>
     </stmt>

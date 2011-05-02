@@ -52,6 +52,15 @@ public:
 					   const boost::system::error_code& error);
 
     void query(const char*, const size_t, std::ostream&);
+
+    void init() {
+    	BELTrie &trie = universe.getBarzelTrie();
+    	BELReader reader(&trie, universe);
+    	reader.initParser(BELReader::INPUT_FMT_XML);
+    	char fname[] = "barzel_rules.xml";
+    	int numsts = reader.loadFromFile(fname);
+    	AYLOG(DEBUG) << numsts << " statements read from `" << fname << "'";
+    }
 };
 
 
@@ -147,6 +156,7 @@ int run_server(int port) {
 		boost::asio::io_service io_service;
 		std::cerr << "Running barzer search server on port " << port << "..." << std::endl;
 		AsyncServer s(io_service, port);
+		s.init();
 		io_service.run();
 	}
 	return 0;
