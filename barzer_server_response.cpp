@@ -73,16 +73,16 @@ public:
 
 class AtomicVisitor : public boost::static_visitor<> {
 	std::ostream &os;
-	StoredUniverse &_u;
+	StoredUniverse &universe;
 public:
-	AtomicVisitor(std::ostream &s, StoredUniverse &u) : os(s), _u(u) {}
+	AtomicVisitor(std::ostream &s, StoredUniverse &u) : os(s), universe(u) {}
 
 	void operator()(const BarzerLiteral &data) {
 		if (data.isBlank()) return;
 		os << "<token>";
 		switch(data.getType()) {
 		case BarzerLiteral::T_STRING: {
-			std::string s = _u.getStringPool().resolveId(data.getId());
+			std::string s = universe.getStringPool().resolveId(data.getId());
 			xmlEscape(s, os);
 		}
 		case BarzerLiteral::T_COMPOUND: // shrug
@@ -96,7 +96,7 @@ public:
 			}
 			break;
 		case BarzerLiteral::T_BLANK:
-			os << " ";
+			os << "<blank />";
 			break;
 		default:
 			AYLOG(ERROR) << "Unknown literal type";
@@ -114,7 +114,7 @@ public:
 	}
 	void operator()(const BarzerDate &data) {
 		os << "<date>";
-		data.print(os) << "</number>";
+		data.print(os) << "</date>";
 	}
 	void operator()(const BarzerTimeOfDay &data) {
 		os << "<time>";

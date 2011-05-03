@@ -74,10 +74,31 @@ namespace barzel {
 class StoredUniverse;
 class BarzelMatchInfo;
 
-struct BarzelEvalResult {
-	BarzelBeadData d_val;	
-	const BarzelBeadData& getBeadData() const { return d_val; }
+class BarzelEvalResult {
+public:
+	typedef std::vector< BarzelBeadData > BarzelBeadDataVec;
+private:
+	/// this vector can never be shorter than 1 element 
+	BarzelBeadDataVec d_val;	
+public:
+	BarzelEvalResult() : d_val(1) {}
+	const BarzelBeadData& getBeadData() const { return d_val[0]; }
+
+	const BarzelBeadDataVec& getBeadDataVec() const { return d_val; }
+	bool isVec() const { return (d_val.size() > 1); }
+	template <typename T> void setBeadData( const T& t ) { d_val[0] = t; }
 };
+template <>
+inline void BarzelEvalResult::setBeadData<BarzelBeadRange>( const BarzelBeadRange& t ) 
+{
+	d_val.clear();
+	for( BeadList::iterator i = t.first; i!= t.second; ++i ) 
+		d_val.push_back( i->getBeadData() );
+	
+	if( !d_val.size() )
+		d_val.resize(1);
+}
+
 typedef std::vector< BarzelEvalResult > BarzelEvalResultVec;
 
 struct BarzelEvalContext {
@@ -160,7 +181,7 @@ struct BarzelRewriteByteCodeProcessor {
 	const uint8_t* run( ){
 		const uint8_t* buf = d_rng.first;
 		const uint16_t childStep_sz = 1 + sizeof(BTND_RewriteData);
-		uint8_t tmp[ sizeof(BTND_RewriteData) ];
+		//uint8_t tmp[ sizeof(BTND_RewriteData) ];
 		for( ; buf < d_rng.second; ++buf ) {
 	
 			switch( *buf ) {
@@ -170,9 +191,10 @@ struct BarzelRewriteByteCodeProcessor {
 				if( !d_cb.nodeStart() )
 					return 0;
 
-				memcpy( tmp, buf+1, sizeof(tmp) );
-				if( !d_cb.nodeData( *(new(tmp) BTND_RewriteData()) ) ) 
-					return 0;
+				//memcpy( tmp, buf+1, sizeof(tmp) );
+				//if( !d_cb.nodeData( *(new(tmp) BTND_RewriteData()) ) )
+					//return 0;
+				if( !d_cb.nodeData( *(BTND_RewriteData*)(buf+1) )) return 0;
 	
 				BarzelEvalNode::ByteRange childRange( (buf + childStep_sz ), d_rng.second);
 				BarzelRewriteByteCodeProcessor proc( d_cb, childRange );

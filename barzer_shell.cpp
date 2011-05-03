@@ -206,6 +206,7 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	Barz& barz = context->barz;
+	// Barz barz;
 	QParser& parser = context->parser;
 
 	BarzStreamerXML bs(barz, context->universe);
@@ -496,7 +497,7 @@ static int bshf_stexpand( BarzerShell* shell, char_cp cmd, std::istream& in )
 	BELPrintFormat fmt;
 	BELPrintContext ctxt( trie, stringPool, fmt );
 	PatternPrinter pp(ctxt);
-	BELExpandReader<PatternPrinter> reader(pp, &trie, &stringPool);
+	BELExpandReader<PatternPrinter> reader(pp, &trie, uni);
 	reader.initParser(BELReader::INPUT_FMT_XML);
 
 	ay::stopwatch totalTimer;
@@ -547,6 +548,7 @@ static const CmdData g_cmd[] = {
 	CmdData( ay::Shell::cmd_exit, "exit", "exit the barzer shell" ),
 	CmdData( ay::Shell::cmd_exit, "quit", "exit the barzer shell" ),
 	CmdData( ay::Shell::cmd_run, "run", "execute script(s)" ),
+	//commented test to reduce the bloat
 	CmdData( bshf_test, "test", "just a test" ),
 	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),
 	CmdData( (ay::Shell_PROCF)bshf_lex, "lex", "tokenize and then classify (lex) the input" ),

@@ -215,6 +215,11 @@ public:
 	void printStoredToken( std::ostream& fp, const StoredTokenId ) const;
 	void printEuid( std::ostream& fp, const StoredEntityUniqId& euid ) const
 	{ fp << euid << '|' << resolveStoredTokenStr(euid.tokId ); }
+	
+	StoredToken& addToken( const char* t ) {
+		bool wasNew = false;
+		return tokPool.addSingleTok( wasNew, t );
+	}
 }; 
 
 } // namespace barzer

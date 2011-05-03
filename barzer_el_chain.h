@@ -4,6 +4,7 @@
 #include <barzer_storage_types.h>
 #include <barzer_parse_types.h>
 #include <barzer_el_btnd.h>
+#include <ay/ay_logger.h>
 #include <list>
 
 /// Barzel chain is the sequence manipulated during rewriting 
@@ -55,6 +56,8 @@ struct BarzelBeadAtomic {
 	
 	const BarzerLiteral* getLiteral() const { return boost::get<BarzerLiteral>( &dta ); }
 
+	const BarzerNumber& getNumber() const { return boost::get<BarzerNumber>(dta); }
+
 	bool isLiteral() const { return dta.which() == BarzerLiteral_TYPE; }
 	bool isStopLiteral() const { 
 		const BarzerLiteral* bl = getLiteral();
@@ -71,6 +74,8 @@ struct BarzelBeadAtomic {
 	BarzelBeadAtomic& setStopLiteral( )
 		{ BarzerLiteral lrl; lrl.setStop(); dta = lrl; return *this; }
 
+	template <typename T> BarzelBeadAtomic& setData( const T& t ) 
+	{ dta = t; return *this; }
 	std::ostream& print( std::ostream& fp ) const;
 };
 
@@ -119,7 +124,9 @@ class BarzelBead {
 	/// types 
 	BarzelBeadData dta;
 public:
+	BarzelBead(const BarzelBeadData& d ): dta(d) {}
 	BarzelBead() {}
+	const BarzelBeadData& getBeadData() const { return dta; }
 	void init(const CTWPVec::value_type&) ;
 	BarzelBead(const CTWPVec::value_type& ct) 
 		{ init(ct); }
@@ -163,8 +170,29 @@ public:
 typedef std::list< BarzelBead > 	BeadList;
 
 struct BarzelBeadChain {
-	
 	typedef std::pair< BeadList::iterator, BeadList::iterator > Range;
+
+	static inline bool 	iteratorAtBlank( BeadList::iterator i ) 
+	{
+		const BarzelBeadAtomic* atomic = i->getAtomic();
+		return( atomic && atomic->isBlankLiteral() );
+	}
+	static inline void 	trimBlanksFromRange( Range& rng ) 
+	{
+		while( rng.first != rng.second ) {
+			BeadList::iterator lastElem = rng.second;
+			--lastElem;
+			if( lastElem == rng.first ) 
+				break;
+			if( BarzelBeadChain::iteratorAtBlank(lastElem) ) 
+				rng.second= lastElem;
+			else if( BarzelBeadChain::iteratorAtBlank(rng.first) ) 
+				++rng.first;
+			else
+				break;
+		}
+	}
+
 	
 	BeadList lst;
 	/// implement 
@@ -185,18 +213,63 @@ struct BarzelBeadChain {
 
 	void init( const CTWPVec& cv );
 	void clear() { lst.clear(); }
-
-	void collapseRangeLeft( Range r ) {
-		if( r.first == r.second ) 
-			return;
-		BarzelBead& firstBead = *(r.first);
-		++(r.first);
-		for( BeadList::iterator i = r.first; i!= r.second; ++i ) {
-			firstBead.absorbBead( *i );
-		}
-		lst.erase( r.first, r.second );
+	
+	BeadList::iterator insertBead( BeadList::iterator at, const BarzelBeadData& d ) 
+	{
+		return lst.insert( at, d );
 	}
+	const Range getFullRange() 
+		{ return Range( lst.begin(), lst.end() ); }
+	void collapseRangeLeft( Range r );
 };
+typedef BarzelBeadChain::Range BarzelBeadRange;
+
+std::ostream& operator <<( std::ostream& fp, const BarzelBeadChain::Range& rng ) ;
+
+struct BeadPrinter : public boost::static_visitor<> {
+	void operator()(const BarzerLiteral &data) {
+		AYLOG(DEBUG) << "BarzerLiteral";
+	}
+	void operator()(const BarzerString &data) {
+		AYLOG(DEBUG) << "BarzerString";
+	}
+	void operator()(const BarzerNumber &data) {
+		AYLOG(DEBUG) << "BarzerNumber";
+	}
+	void operator()(const BarzerDate &data) {
+		AYLOG(DEBUG) << "BarzerDate";
+	}
+	void operator()(const BarzerTimeOfDay &data) {
+		AYLOG(DEBUG) << "BarzerTimeOfDay";
+	}
+	void operator()(const BarzerRange &data) {
+		AYLOG(DEBUG) << "BarzerRange";
+	}
+	void operator()(const BarzerEntityList &data) {
+		AYLOG(DEBUG) << "BarzerEntityList";
+	}
+	void operator()(const BarzelEntityRangeCombo &data) {
+		AYLOG(DEBUG) << "BarzelEntityRangeCombo";
+	}
+
+	void operator()(const BarzelBeadAtomic &data) {
+		AYLOG(DEBUG) << "Atomic";
+		boost::apply_visitor(*this, data.dta);
+	}
+	void operator()(const BarzelBeadBlank &data) {
+		AYLOG(DEBUG) << "Blank";
+	}
+	void operator()(const BarzelBeadExpression &data) {
+		AYLOG(DEBUG) << "Expression";
+	}
+
+	template <class T> void operator()(const T &data) {
+		AYLOG(DEBUG) << "Something else";
+	}
+
+};
+
+
 
 }
 #endif // BARZER_EL_CHAIN_H

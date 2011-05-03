@@ -1,19 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
-	xmlns="http://www.barzer.net/barzel/0.1">
-	<!--
-		for some reason xmllint doesn't like this
-		xsi:schemaLocation="http://www.barzer.net/barzel/0.1 barzel.xsd">
-	-->
-	<stmt>
-		<pat>
-			<t>China</t><n/><p>/</p>
-		</pat>
-		<tran>
-			<rn>
-			<var w="1"/>
-			<rn v="56"/>
-			</rn>
-		</tran>
-	</stmt>
+    xmlns="http://www.barzer.net/barzel/0.1">
+    <!--
+        for some reason xmllint doesn't like this
+        xsi:schemaLocation="http://www.barzer.net/barzel/0.1 barzel.xsd">
+    -->
+    <stmt>
+        <pat>
+            <t>China</t><n/><p>/</p>
+        </pat>
+        <tran>
+            <rn>
+            <var w="1"/>
+            <rn v="56"/>
+            </rn> 
+            <func name="mkDate"><rn v="9" /><rn v="10" /><rn v="2011" /></func>
+        </tran>
+    </stmt>
+    <stmt>
+        <pat><n l="1" h="5" /><n l="1" h="9" /></pat>
+        <tran><var w="2" /></tran>
+    </stmt>
+    <stmt>
+        <pat>
+            <n l="1900" h="2100"/><n l="1" h="12"/><n l="1" h="31"/>
+        </pat>
+        <tran><func name="mkDate"><var w="3" /><var w="2" /><var w="1" /></func></tran>
+    </stmt>
+    <stmt>
+        <pat>
+            <n l="1" h="12"/><p>/</p><n  l="1" h="31"/><p>/</p><n/>
+        </pat>
+        <tran><func name="mkDate"><var w="2" /><var w="1" /><var w="3" /></func></tran>
+    </stmt>
+    <stmt>
+        <pat>
+            <t>a</t> <t>b</t> <n l="1" h="20"/><t>c</t><n/> <t>d</t> <n/> <t>e</t>
+        </pat>
+        <tran><var gn="2"/></tran>
+    </stmt>
+            <n l="100" h="200"/><p>+</p><n l="100" h="200" />
+        </pat>
+        <tran><func name="mkRange"><var w="1" /><var w="2" /></func></tran>
+    </stmt>
+    <stmt>
+        <pat>
+            <t>mama</t><t>myla</t><t>ramu</t>
+        </pat>
+        <tran><var pn="2" /></tran>
+    </stmt>
+    
 </stmset>

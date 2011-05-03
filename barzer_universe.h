@@ -6,6 +6,7 @@
 #include <barzer_el_wildcard.h>
 #include <barzer_el_trie.h>
 #include <barzer_dtaindex.h>
+#include <barzer_el_function.h>
 
 namespace barzer {
 
@@ -21,6 +22,9 @@ class StoredUniverse {
 	BarzelWildcardPool barzelWildcardPool;  // all wildcard structures for barzel
 
 	BELTrie  barzelTrie;
+
+	BELFunctionStorage funSt;
+
 public:
 	StoredUniverse();
 	const DtaIndex& getDtaIdx() const { return dtaIdx; }
@@ -56,6 +60,12 @@ public:
 		else 
 			return ( bas = BarzelRewriterPool::BufAndSize(), false );
 	}
+	bool isBarzelTranslationFallible( const BarzelTranslation& tran ) const {
+		return tran.isFallible( barzelRewritePool );
+	}
+
+	const BELFunctionStorage& getFunctionStorage() const { return funSt; }
+
 }; 
 
 }

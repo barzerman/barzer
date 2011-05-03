@@ -1,4 +1,8 @@
 #include <barzer_server.h>
+#include <boost/bind.hpp>
+#include <boost/asio.hpp>
+#include <boost/algorithm/string.hpp>
+
 
 extern "C" {
 #include <unistd.h>
@@ -7,6 +11,59 @@ extern "C" {
 namespace barzer {
 
 using boost::asio::ip::tcp;
+
+class AsyncServer;
+
+class SearchSession {
+	tcp::socket socket_;
+	boost::asio::streambuf data_;
+	boost::asio::streambuf outbuf;
+
+	AsyncServer *server;
+
+public:
+	SearchSession(boost::asio::io_service& io_service, AsyncServer *s)
+		: socket_(io_service), server(s) {}
+
+	tcp::socket& socket() { return socket_;	}
+
+	std::string process_input(std::string input) {
+		return boost::algorithm::to_upper_copy(input);
+	}
+	void start();
+
+	void handle_write(const boost::system::error_code&, size_t);
+	void handle_read(const boost::system::error_code&, size_t);
+
+};
+
+
+class AsyncServer {
+    boost::asio::io_service& io_service_;
+    tcp::acceptor acceptor_;
+
+    // should probably change this to be initialized in main() or something
+    StoredUniverse universe;
+
+public:
+    AsyncServer(boost::asio::io_service& io_service, short port);
+
+    void handle_accept(SearchSession *new_session,
+					   const boost::system::error_code& error);
+
+    void query(const char*, const size_t, std::ostream&);
+
+    void init() {
+    	BELTrie &trie = universe.getBarzelTrie();
+    	BELReader reader(&trie, universe);
+    	reader.initParser(BELReader::INPUT_FMT_XML);
+    	char fname[] = "barzel_rules.xml";
+    	int numsts = reader.loadFromFile(fname);
+    	AYLOG(DEBUG) << numsts << " statements read from `" << fname << "'";
+    }
+};
+
+
 
 void SearchSession::start() {
 	//boost::asio::write(socket_, boost::asio::buffer("-ok- welcome to barzer\n"));
@@ -38,13 +95,14 @@ void SearchSession::handle_read(const boost::system::error_code &ec, size_t byte
 
 		//boost::asio::streambuf buf;
 		std::ostream os(&outbuf);
-
 		server->query(chunk, bytes_transferred, os);
+		delete chunk;
 
 		boost::asio::async_write(socket_, outbuf,
 				boost::bind(&SearchSession::handle_write, this,
 							boost::asio::placeholders::error,
 							boost::asio::placeholders::bytes_transferred));
+
 //				&handle_write);
 
 
@@ -98,8 +156,10 @@ int run_server(int port) {
 		boost::asio::io_service io_service;
 		std::cerr << "Running barzer search server on port " << port << "..." << std::endl;
 		AsyncServer s(io_service, port);
+		s.init();
 		io_service.run();
 	}
 	return 0;
 }
+
 }

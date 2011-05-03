@@ -269,6 +269,32 @@ bool BarzelTranslation::isRewriteFallible( const BarzelRewriterPool& pool ) cons
 	}
 }
 
+void BarzelTranslation::set(BELTrie& ,const BTND_Rewrite_Variable& x )
+{
+	switch( x.getIdMode() ) {
+	case BTND_Rewrite_Variable::MODE_WC_NUMBER:
+		type = T_VAR_WC_NUM;
+		id =  x.getVarId();
+		return;
+	case BTND_Rewrite_Variable::MODE_VARNAME:
+		type = T_VAR_NAME;
+		id =  x.getVarId();
+		return;
+	case BTND_Rewrite_Variable::MODE_PATEL_NUMBER:
+		type = T_VAR_EL_NUM;
+		id =  x.getVarId();
+		return;
+	case BTND_Rewrite_Variable::MODE_WCGAP_NUMBER:
+		type = T_VAR_GN_NUM;
+		id =  x.getVarId();
+		return;
+	default: 
+		AYTRACE( "inconsistent literal encountered in Barzel rewrite" );
+		setStop(); // this should never happen
+		break;
+	}
+}
+
 void BarzelTranslation::set(BELTrie& ,const BTND_Rewrite_Literal& x )
 {
 	//AYLOGDEBUG(x.getType());
@@ -317,6 +343,21 @@ void BarzelTranslation::set(BELTrie&, const BTND_Rewrite_Number& x )
 	}
 }
 
+namespace {
+
+struct BarzelTranslation_set_visitor : public boost::static_visitor<> {
+	BarzelTranslation& d_tran;
+	BELTrie& d_trie;
+
+	BarzelTranslation_set_visitor( BELTrie& trie, BarzelTranslation& tran ) : d_tran(tran), d_trie(trie) {}
+	
+	template <typename T>
+	void operator() ( const T&x ) 
+		{ d_tran.setBtnd( d_trie, x ); }
+};
+
+} // anon namespace ends 
+
 void BarzelTranslation::set( BELTrie& trie, const BELParseTreeNode& tn ) 
 {
 	/// diagnosing trivial rewrite usually root will have one childless child
@@ -324,20 +365,12 @@ void BarzelTranslation::set( BELTrie& trie, const BELParseTreeNode& tn )
 	/// theoretically root itself may contain the transform (if we process attribs)
 	const BTND_RewriteData* rwrDta = tn.getTrivialRewriteData();
 	if( rwrDta ) {
-		switch( rwrDta->which() ) {
-		case BTND_Rewrite_Literal_TYPE:
-			set( trie,boost::get<BTND_Rewrite_Literal>( *rwrDta ) );
-			return;
-		case BTND_Rewrite_Number_TYPE:
-			set( trie,boost::get<BTND_Rewrite_Number>( *rwrDta ) );
-			return;
-		default: 
-			AYTRACE("invalid trivial rewrite" );
-			setStop(); 
-			return;
-		}
+		BarzelTranslation_set_visitor vis( trie, *this  );
+		boost::apply_visitor( vis, *rwrDta );
+		return;
 	} else { // non trivial rewrite 
 		if( trie.rewrPool->produceTranslation( *this, tn ) != BarzelRewriterPool::ERR_OK ) {
+			AYTRACE("Failed to produce vali rewrite translation" );
 			setStop();
 		}
 	}
@@ -354,27 +387,42 @@ void BarzelTranslation::fillRewriteData( BTND_RewriteData& d ) const
 	case T_COMPWORD: { BTND_Rewrite_Literal l; l.setCompound(getId_uint32()); d = l; } return;
 	case T_NUMBER_INT: { BTND_Rewrite_Number n; n.set(getId_int()); d=n;} return;
 	case T_NUMBER_REAL: { BTND_Rewrite_Number n; n.set(getId_double()); d=n;} return;
+
+	case T_VAR_NAME: { BTND_Rewrite_Variable n; n.setVarNameId(getId_uint32()); d=n; } return;
+	case T_VAR_WC_NUM: { BTND_Rewrite_Variable n; n.setWildcardNumber(getId_uint32()); d=n; } return;
+	case T_VAR_EL_NUM: { BTND_Rewrite_Variable n; n.setPatternElemNumber(getId_uint32()); d=n; } return;
+	case T_VAR_GN_NUM: { BTND_Rewrite_Variable n; n.setWildcardGapNumber(getId_uint32()); d=n; } return;
+
 	default: d = BTND_Rewrite_None(); return;
 	}
 }
 std::ostream& BarzelTranslation::print( std::ostream& fp, const BELPrintContext& ctxt) const
 {
+#define CASEPRINT(x) case T_##x: return( fp << #x );
 	switch(type ) {
-	case T_NONE: return ( fp << "<none>" );
-	case T_STOP: return ( fp << "#" );
-	case T_STRING: return ( fp << "STRING" );
-	case T_COMPWORD: return ( fp << "COMP" );
-	case T_NUMBER_INT: return ( fp << "INTEGER" );
-	case T_NUMBER_REAL: return ( fp << "REAL" );
+	CASEPRINT(NONE)
+	CASEPRINT(STOP)
+	CASEPRINT(STRING)
+	CASEPRINT(COMPWORD)
+	CASEPRINT(NUMBER_INT)
+	CASEPRINT(NUMBER_REAL)
+
 	case T_REWRITER:
 	{
 		BarzelRewriterPool::BufAndSize bas; 
 		ctxt.printRewriterByteCode( fp << "RWR{", *this ) << "}";
 	}
-		break;
-		
+		return fp;
+	CASEPRINT(BLANK)
+	CASEPRINT(PUNCT)
+	CASEPRINT(VAR_NAME)
+	CASEPRINT(VAR_WC_NUM)
+	CASEPRINT(VAR_EL_NUM)
+
+	default:
+		return ( fp << "unknown translation" );
 	}
-	return ( fp << "unknown translation" );
+#undef CASEPRINT
 }
 
 } // end namespace barzer

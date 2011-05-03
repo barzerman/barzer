@@ -150,10 +150,7 @@ struct range_comp {
 template <typename T>
 struct vector_raii {
 	T& v;
-	vector_raii(T& vv, const typename T::value_type& x ):
-		v(vv)
-	{ v.push_back(x); }
-
+	vector_raii(T& vv, const typename T::value_type& x ) : v(vv) { v.push_back(x); }
 	~vector_raii() { v.pop_back(); }
 };
 

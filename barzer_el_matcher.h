@@ -20,43 +20,70 @@ class StoredUniverse;
 // pair of iterators pointing to the first and the last element to be rewritten
 typedef BarzelBeadChain::Range BeadRange;
 
+/// NodeAndBead represent one node in the trie + the range of beads used in matching 
+/// for this node
 typedef std::pair< const BarzelTrieNode*, BarzelBeadChain::Range > NodeAndBead;
 typedef std::vector< NodeAndBead > NodeAndBeadVec;
 typedef std::vector< const NodeAndBead* > NodeAndBeadPtrVec; 
-/// every time a match is detected in a trie 
+/// BarzelMatchInfo represents one left side of one substitution 
+/// 
 class BarzelMatchInfo {
 	BeadRange d_beadRng; // full range of beads the match is done for
+
+	// range of beads we will be actually substituting
+	// substitution range is computed from the path in setPath
+	BeadRange d_substitutionBeadRange; 
 	int d_score; // 
+	///  for each trie node stores the node + the range of beads that matched the node
 	NodeAndBeadVec    d_thePath;
-	NodeAndBeadPtrVec d_wcVec; // $n would get translated to wcVec[n] (points into d_thePath)
+	std::vector< size_t > d_wcVec; // $n would get translated to wcVec[n] (stores offsets in thePath)
 	/// uint32_t is the stringId from the pool
 	std::map< uint32_t, size_t > d_varNameMap; 
 public:
-	bool isBeadRangeEmpty() const { return d_beadRng.first == d_beadRng.second ; }
+	bool isFullBeadRangeEmpty() const { return d_beadRng.first == d_beadRng.second ; }
+	bool isSubstitutionBeadRangeEmpty() const
+		{return d_substitutionBeadRange.first == d_substitutionBeadRange.second;}
+	
 
 	BarzelMatchInfo() : d_score(0)  {}
 	void setScore( int s ) 	{ d_score = s; }
 	int getScore() const 	{ return d_score; }
 	
-	const BeadRange& getBeadRange( ) const { return  d_beadRng; }
-	void setBeadRange( const BeadRange& br ) { d_beadRng= br; }
-
-	const NodeAndBead* getDataByNumber(size_t n ) const 
-		{ return ( n< d_wcVec.size() ? d_wcVec[n] : 0 ); }
-	/// the trie node is needed in case there's a potential variable name 
-	void setPath( const NodeAndBeadVec& p )
+	bool  iteratorIsEnd( BeadList::iterator i ) const
+		{ return (i == d_beadRng.second); }
+	void  expandRangeByOne( BeadRange& r ) const
 	{
-		d_thePath = p;
-		d_wcVec.clear();
-		d_wcVec.reserve( d_thePath.size() );
-		d_varNameMap.clear();
-		for( NodeAndBeadVec::const_iterator i = d_thePath.begin(); i!= d_thePath.end(); ++i ) {
-			if( i->first->isWcChild() ) 
-				d_wcVec.push_back( &(*i) );
-			/// if we want to add variable names we can have trie node hold var name 
-			/// so right in this loop we will just update varNameMap 
-		}
+		if( r.second != d_beadRng.second ) ++r.second;
 	}
+	const BeadRange& getSubstitutionBeadRange( ) const { return  d_substitutionBeadRange; }
+	const BeadRange& getFullBeadRange( ) const { return  d_beadRng; }
+	void setFullBeadRange( const BeadRange& br ) { d_beadRng= br; }
+
+	const NodeAndBead* getDataByElementNumber(size_t n ) const 
+		{ return ( n>0 && n<= d_thePath.size() ? &(d_thePath[n-1]) : 0 ); }
+
+	typedef std::pair< NodeAndBeadVec::const_iterator, NodeAndBeadVec::const_iterator > PathRange;
+	const NodeAndBead* getDataByWildcardNumber(size_t n ) const 
+		{ 
+			if( n>0 && n<= d_wcVec.size() ) {
+				size_t i = d_wcVec[n-1];
+				return ( i< d_thePath.size() ? &(d_thePath[i]) : 0 );
+			} else
+				return 0;
+		}
+	/// forms the range between the end of n-1th and n-th wildcards if n=1 then the range is
+	/// between beginning of the match and the start of the wildcard
+	bool getGapRange( BeadRange& r, size_t n ) const;
+	bool getGapRange( BeadRange& r, const BTND_Rewrite_Variable& n ) const
+	{
+		if( n.isWildcardGapNumber() ) 
+			return getGapRange( r, n.getVarId() );
+		else
+			return ( r= BeadRange(), false );
+	}
+
+	/// the trie node is needed in case there's a potential variable name 
+	void setPath( const NodeAndBeadVec& p );
 
 	void clear() {
 		d_thePath.clear();
@@ -67,8 +94,33 @@ public:
 	const NodeAndBead* getDataByNameId( uint32_t id ) const 
 	{
 		std::map< uint32_t, size_t >::const_iterator i = d_varNameMap.find( id );
-		return( i == d_varNameMap.end() ? 0 : getDataByNumber( i->second ) );
+		return( i == d_varNameMap.end() ? 0 : getDataByElementNumber( i->second ) );
 	}
+	
+	inline const NodeAndBead* getDataByVar_trivial( const BTND_Rewrite_Variable& var ) const
+	{
+		switch( var.getIdMode() ) {
+		case BTND_Rewrite_Variable::MODE_WC_NUMBER: return getDataByWildcardNumber( var.getVarId());
+		case BTND_Rewrite_Variable::MODE_VARNAME: return getDataByNameId( var.getVarId());
+		case BTND_Rewrite_Variable::MODE_PATEL_NUMBER: return getDataByElementNumber( var.getVarId());
+		}
+		return 0;
+	}
+	// r will contain the bead range matching the contents of var
+	// var can be pn - pattern number, w - wildcard umber and gn - gap number
+	// gn[i] is everything between (exclusively) w[i-1] and w[i]
+	// when resolution fails return false
+	bool getDataByVar( BeadRange& r, const BTND_Rewrite_Variable& var )
+	{
+		const NodeAndBead* nob = getDataByVar_trivial(var);
+		if( nob ) {
+			return( r = nob->second, true );
+		} else if( getGapRange(r,var) ) {
+			return true;
+		}
+		return false;
+	}
+
 };
 typedef std::pair<BarzelMatchInfo,const BarzelTranslation*> RewriteUnit;
 //struct RewriteUnit;
@@ -91,10 +143,13 @@ struct BTMBestPaths {
 	/// information of the best terminal paths matched 
 	/// 
 	BeadRange d_fullRange; // original range of the top level matcher 
-
-	BTMBestPaths( const BeadRange& r ) : 
+	const StoredUniverse& universe;
+	BTMBestPaths( const BeadRange& r, const StoredUniverse& u ) : 
 		d_bestInfallibleScore(0),
-		d_fullRange(r) {}
+		d_fullRange(r),
+		universe(u) 
+	{}
+	const BeadList::iterator getAbsoluteEnd() const { return d_fullRange.second; }
 	const BeadRange& getFullRange() const { return d_fullRange; }
 	void setFullRange(const BeadRange& br ) { d_fullRange = br; }
 	
@@ -140,7 +195,7 @@ public:
 	const StoredUniverse& universe;
 
 	BTMIterator( const BeadRange& rng, const StoredUniverse& u ) : 
-		bestPaths(rng),
+		bestPaths(rng,u),
 		universe(u)
 	{ }
 	void findPaths( const BarzelTrieNode* trieNode)

@@ -66,8 +66,29 @@ std::ostream& BarzelBead::print( std::ostream& fp ) const
 	return ( fp << ctokOrigVec << std::endl );
 }
 
+std::ostream& operator <<( std::ostream& fp, const BarzelBeadChain::Range& rng ) 
+{
+	fp << "<beadrange>";
+	for(BeadList::const_iterator i = rng.first; i!= rng.second; ++i ) {
+		fp << "<bead>" ;
+		i->print( fp );
+		fp << "</bead>" ;
+	}
+	fp << "</beadrange>";
+	return fp;
+}
 ///// BarzelBeadChain
 
+void BarzelBeadChain::collapseRangeLeft( Range r ) {
+	if( r.first == r.second ) 
+		return;
+	BarzelBead& firstBead = *(r.first);
+	++(r.first);
+	for( BeadList::iterator i = r.first; i!= r.second; ++i ) {
+		firstBead.absorbBead( *i );
+	}
+	lst.erase( r.first, r.second );
+}
 void BarzelBeadChain::init( const CTWPVec& cv )
 {
 	clear();
@@ -77,5 +98,4 @@ void BarzelBeadChain::init( const CTWPVec& cv )
 	}
 }
 
-
-}
+} // barzer namespace

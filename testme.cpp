@@ -9,15 +9,18 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <signal.h>
-#include "ay/ay_logger.h"
-#include "barzer_el_parser.h"
-#include "barzer_config.h"
-#include "barzer_el_btnd.h"
-#include "barzer_universe.h"
-
+#include <ay/ay_logger.h>
+#include <barzer_el_parser.h>
+#include <barzer_config.h>
+#include <barzer_el_btnd.h>
+#include <barzer_universe.h>
+#include <barzer_el_function.h>
+#include <barzer_basic_types.h>
+#include <barzer_el_rewriter.h>
+#include <stdio.h>
 
 using namespace barzer;
-
+/*
 static std::ostream& printPatternData(std::ostream &os, const BTND_PatternData &pd, BELPrintContext &ctxt)
 {
 	switch(pd.which()) {
@@ -40,8 +43,8 @@ static std::ostream& printPatternData(std::ostream &os, const BTND_PatternData &
 	}
 	return os;
 }
-
-///*
+ //*/
+/*
 static std::ostream& printPatternVec(std::ostream &os, const BTND_PatternDataVec &pdv,
 											           BELPrintContext &ctxt)
 {
@@ -55,26 +58,7 @@ static std::ostream& printPatternVec(std::ostream &os, const BTND_PatternDataVec
 } //*/
 
 /*
-<perm><any><any><perm><t>jQKDeSuFu</t></perm>
-<list><n /></list>
-<perm></perm>
-<p>|</p>
-</any>
-<t>Te</t>
-</any>
-
-<list><t>V</t><p>\</p><n h="608" l="24979" /><t>HyNSC</t><any>
-
-<perm><p>$</p><n /></perm><t>nXTAC</t><t>cPUw</t>
-<opt><p>-</p><p>+</p>
-</opt><t>gAA</t><p>|</p></any>
-
-</list><p>%</p><p>;</p><n h="0.247718" l="0.534541" r="true" /></perm>
-*/
-
-int main() {
-	AYLOGINIT(DEBUG);
-	static StoredUniverse su;
+static int testEmitter(StoredUniverse &su) {
 	ay::UniqueCharPool &sp = su.getStringPool();
 	BELTrie &trie = su.getBarzelTrie();
 	BELPrintFormat fmt;
@@ -112,11 +96,76 @@ int main() {
 
     do {
 		printPatternVec(std::cout, emitter.getCurSequence(), pctxt);
-	} while (emitter.produceSequence()); //*/
-/*
-	printPatternData(std::cout, pd, pctxt) << "\n";
-	printPatternData(std::cout, pd2, pctxt) << "\n";
-	printPatternData(std::cout, pd3, pctxt) << "\n";
-*/
+	} while (emitter.produceSequence());
 	return 0;
+} //*/
+
+
+
+struct PrintVisitor : boost::static_visitor<> {
+	void operator()(const BarzerNumber &data) {
+		data.print(std::cout) << std::endl;
+	}
+	void operator()(const BarzerDate &data) {
+		//data.print(std::cout) << std::endl;
+		printf("%02d/%02d/%04d\n", data.day, data.month, data.year);
+	}
+	void operator()(const BarzerTimeOfDay &data) {
+		//data.print(std::cout) << std::endl;
+		printf("%02d:%02d:%02d\n", data.hh, data.mm, data.ss);
+	}
+	void operator()(const BarzelBeadBlank &data) {
+		std::cout << "<blank />\n";
+	}
+
+	void operator()(const BarzelBeadAtomic &data) {
+		boost::apply_visitor(*this, data.dta);
+	}
+	template<class T> void operator()(const T &data) {
+		std::cout << "unknown type: ";
+	}
+};
+
+static int testFunctions(StoredUniverse &su) {
+	BarzelEvalResultVec vec;
+	BarzelBeadAtomic bba;
+
+	//bba.dta = BarzelBeadBlank();
+	vec.resize(vec.size() + 1);
+	vec.back().setBeadData(BarzelBeadBlank());
+
+
+
+	bba.dta = BarzerNumber(10);
+	vec.resize(vec.size() + 1);
+	vec.back().setBeadData(bba);
+
+	bba.dta = BarzerNumber(30);
+	vec.resize(vec.size() + 1);
+	vec.back().setBeadData(bba);
+
+	bba.dta = BarzerNumber(55);
+	vec.resize(vec.size() + 1);
+	vec.back().setBeadData(bba);
+
+
+	BarzelEvalResult res;
+
+	su.getFunctionStorage().call("opAnd", res, vec);
+
+	std::cout << res.getBeadData().which() << "\n";
+
+	PrintVisitor pv;
+
+	//res.setBeadData(bba);
+
+	boost::apply_visitor(pv, res.getBeadData());
+
+	return 0;
+}
+
+int main() {
+	AYLOGINIT(DEBUG);
+	static StoredUniverse su;
+	return testFunctions(su);
 }
