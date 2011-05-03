@@ -180,5 +180,6 @@ int main() {
 	std::cout << (int) dl.lookupMonth("june") << "\n";
 	std::cout << (int) dl.lookupMonth("январь") << "\n";
 	std::cout << (int) dl.lookupMonth("август") << "\n";
+	std::cout << (int) dl.lookupWeekday("wednesday") << "\n";
 
 }

@@ -30,7 +30,7 @@ void DateLookup::addMonth(const uint32_t mid, const uint8_t mnum) {
 
 void DateLookup::addWeekday(const char* wdname, const uint8_t wdnum) {
 	const uint32_t wdid = universe.getStringPool().internIt(wdname);
-	addMonth(wdid, wdnum);
+	addWeekday(wdid, wdnum);
 }
 
 void DateLookup::addWeekday(const uint32_t wdid, const uint8_t wdnum) {

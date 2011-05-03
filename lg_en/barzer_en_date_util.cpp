@@ -16,10 +16,10 @@ namespace barzer {
 			{"jan", "feb", "mar", "apr", "may", "jun",
 			 "jul", "aug", "sep", "oct", "nov", "dec"};
 		static const char *wdays[] =
-			{"sunday", "monday", "tuesday", "wednesday",
-			 "thursday", "friday", "saturday"};
+			{"monday", "tuesday", "wednesday",
+			 "thursday", "friday", "saturday", "sunday"};
 		static const char *wdaysShort[] =
-			{"sun", "mon", "tue", "wed", "thu", "fri", "sat"};
+			{"mon", "tue", "wed", "thu", "fri", "sat", "sun"};
 		dl.addMonths(months);
 		dl.addMonths(monthsShort);
 		dl.addWeekdays(wdays);

@@ -65,7 +65,7 @@
         <pat>
             <any><t>sunday</t><t>monday</t><t>tuesday</t><t>wednesday</t><t>thursday</t><t>friday</t><t>saturday</t></any>
         </pat>
-        <tran><func name="lookupMonth"><var pn="1" /></func></tran>
+        <tran><func name="lookupWday"><var pn="1" /></func></tran>
     </stmt>
     
 </stmset>

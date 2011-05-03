@@ -493,7 +493,7 @@ struct BELFunctionStorage_holder {
 			try {
 				const BarzelBeadAtomic &ba = boost::get<BarzelBeadAtomic>(rvec[0].getBeadData());
 				const BarzerLiteral &bl = boost::get<BarzerLiteral>(ba.dta);
-				uint8_t mnum = universe.getDateLookup().lookupMonth(bl.getId());
+				const uint8_t mnum = universe.getDateLookup().lookupMonth(bl.getId());
 				if (!mnum) return false;
 				BarzerNumber bn(mnum);
 				setResult(result, bn);
@@ -508,12 +508,14 @@ struct BELFunctionStorage_holder {
 
 	STFUN(lookupWday)
 	{
+		//AYLOG(DEBUG) << "lookupwday called";
 		if (rvec.size()) {
 			try {
 				const BarzelBeadAtomic &ba = boost::get<BarzelBeadAtomic>(rvec[0].getBeadData());
 				const BarzerLiteral &bl = boost::get<BarzerLiteral>(ba.dta);
+				AYLOG(DEBUG) << bl.getId();
 				uint8_t mnum = universe.getDateLookup().lookupWeekday(bl.getId());
-				if (!mnum) return false;
+				//if (!mnum) return false;
 				BarzerNumber bn(mnum);
 				setResult(result, bn);
 				return true;
