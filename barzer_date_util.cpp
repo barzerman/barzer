@@ -41,7 +41,7 @@ void DateLookup::addMonths(const char *months[]) {
 	for (int i = 0; i < 12; ++i) addMonth(months[i], i+1);
 }
 void DateLookup::addWeekdays(const char *wdays[]) {
-	for (int i = 0; i < 7; ++i) addWeekday(wdays[i], i);
+	for (int i = 0; i < 7; ++i) addWeekday(wdays[i], i+1);
 }
 
 const uint8_t DateLookup::lookupMonth(const char* mname) const {

@@ -515,7 +515,7 @@ struct BELFunctionStorage_holder {
 				const BarzerLiteral &bl = boost::get<BarzerLiteral>(ba.dta);
 				AYLOG(DEBUG) << bl.getId();
 				uint8_t mnum = universe.getDateLookup().lookupWeekday(bl.getId());
-				//if (!mnum) return false;
+				if (!mnum) return false;
 				BarzerNumber bn(mnum);
 				setResult(result, bn);
 				return true;
