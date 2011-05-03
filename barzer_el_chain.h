@@ -251,7 +251,6 @@ struct BeadPrinter : public boost::static_visitor<> {
 	void operator()(const BarzelEntityRangeCombo &data) {
 		AYLOG(DEBUG) << "BarzelEntityRangeCombo";
 	}
-
 	void operator()(const BarzelBeadAtomic &data) {
 		AYLOG(DEBUG) << "Atomic";
 		boost::apply_visitor(*this, data.dta);

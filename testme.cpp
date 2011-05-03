@@ -167,5 +167,18 @@ static int testFunctions(StoredUniverse &su) {
 int main() {
 	AYLOGINIT(DEBUG);
 	static StoredUniverse su;
-	return testFunctions(su);
+/*
+	std::cout << sizeof(BELParseTreeNode)
+		<< " vs " << sizeof(BarzelEvalNode)
+		<< " vs " << sizeof(BTND_RewriteData)
+		<< " vs " << sizeof(BarzerNumber)
+		<< "\n";
+		*/
+	const DateLookup dl = su.getDateLookup();
+	//return testFunctions(su);
+
+	std::cout << (int) dl.lookupMonth("june") << "\n";
+	std::cout << (int) dl.lookupMonth("январь") << "\n";
+	std::cout << (int) dl.lookupMonth("август") << "\n";
+
 }

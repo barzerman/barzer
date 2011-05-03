@@ -7,6 +7,7 @@
 #include <barzer_el_trie.h>
 #include <barzer_dtaindex.h>
 #include <barzer_el_function.h>
+#include <barzer_date_util.h>
 
 namespace barzer {
 
@@ -24,6 +25,7 @@ class StoredUniverse {
 	BELTrie  barzelTrie;
 
 	BELFunctionStorage funSt;
+	DateLookup dateLookup;
 
 public:
 	StoredUniverse();
@@ -65,7 +67,7 @@ public:
 	}
 
 	const BELFunctionStorage& getFunctionStorage() const { return funSt; }
-
+	const DateLookup& getDateLookup() const { return dateLookup; }
 }; 
 
 }

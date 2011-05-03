@@ -36,8 +36,12 @@ barzer_language.o \
 barzer_dtaindex.o \
 barzer_server.o \
 barzer_token.o \
+barzer_date_util.o \
 lg_en/barzer_en_lex.o \
 lg_ru/barzer_ru_lex.o \
+lg_en/barzer_en_date_util.o \
+lg_ru/barzer_ru_date_util.o \
+
 
 all: ay/libay.a $(objects) 
 	$(CC) $(LINKFLAGS) -o  $(BINARY) $(objects) $(libs)

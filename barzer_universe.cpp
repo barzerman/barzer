@@ -6,7 +6,8 @@ StoredUniverse::StoredUniverse() :
 	dtaIdx(&stringPool),
 	barzelRewritePool(64*1024),
 	barzelTrie(&barzelRewritePool,&barzelWildcardPool),
-	funSt(*this)
+	funSt(*this),
+	dateLookup(*this)
 {
 
 }

@@ -10,7 +10,7 @@
 #include <barzer_basic_types.h>
 #include <sstream>
 #include <ay/ay_logger.h>
-
+#include <barzer_date_util.h>
 
 namespace barzer {
 
@@ -120,8 +120,7 @@ struct StrConcatVisitor : public boost::static_visitor<bool> {
 	bool operator()( const BarzerLiteral &dt ) {
 		switch (dt.getType()) {
 		case BarzerLiteral::T_STRING:
-		case BarzerLiteral::T_COMPOUND:
-		case BarzerLiteral::T_PUNCT: {
+		case BarzerLiteral::T_COMPOUND: {
 			const char *str = universe.getStringPool().resolveId(dt.getId());
 			if (str) {
 				ss << str;
@@ -131,6 +130,9 @@ struct StrConcatVisitor : public boost::static_visitor<bool> {
 				return false;
 			}
 		}
+		case BarzerLiteral::T_PUNCT:
+			ss << (char)dt.getId();
+			return true;
 		default:
 			AYLOG(ERROR) << "Wrong literal type";
 			return false;
@@ -181,19 +183,37 @@ struct RangePacker : public boost::static_visitor<bool> {
 			//range.print(AYLOG(DEBUG) << "done: ");
 			return true;
 		} else return false;
-
 	}
 
 	bool operator()(const BarzerDate &rdate) {
-		return false;
+		//if (left.getType() == BarzerDate_TYPE) {
+		try {
+			range.dta = BarzerRange::Date(boost::get<BarzerDate>(left.dta), rdate);
+			return true;
+		} catch (boost::bad_get) {
+			AYLOG(ERROR) << "Types don't match";
+			return false;
+		}
+		//}
+//		return false;
 	}
+
 	bool operator()(const BarzerTimeOfDay &rtod) {
-		return false;
+		try {
+			range.dta = BarzerRange::TimeOfDay(boost::get<BarzerTimeOfDay>(left.dta), rtod);
+			return true;
+		} catch (boost::bad_get) {
+			AYLOG(ERROR) << "Types don't match";
+			return false;
+		}
 	}
+
 	bool operator()(const BarzelBeadAtomic &data) {
 		return boost::apply_visitor(*this, data.dta);
 	}
+
 	template<class T> bool operator()(const T&) {
+		AYLOG(ERROR) << "Wrong range type";
 		return false;
 	}
 
@@ -230,6 +250,9 @@ struct BELFunctionStorage_holder {
 		ADDFN(opEq);
 		// string
 		ADDFN(strConcat);
+		// lookup
+		ADDFN(lookupMonth);
+		ADDFN(lookupWday);
 
 	}
 	#undef ADDFN
@@ -462,8 +485,47 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 
-	#undef STFUN
+	// lookup
 
+	STFUN(lookupMonth)
+	{
+		if (rvec.size()) {
+			try {
+				const BarzelBeadAtomic &ba = boost::get<BarzelBeadAtomic>(rvec[0].getBeadData());
+				const BarzerLiteral &bl = boost::get<BarzerLiteral>(ba.dta);
+				uint8_t mnum = universe.getDateLookup().lookupMonth(bl.getId());
+				if (!mnum) return false;
+				BarzerNumber bn(mnum);
+				setResult(result, bn);
+				return true;
+			} catch(boost::bad_get) {
+				AYLOG(ERROR) << "Wrong argument type";
+				return false;
+			}
+		}
+		return false;
+	}
+
+	STFUN(lookupWday)
+	{
+		if (rvec.size()) {
+			try {
+				const BarzelBeadAtomic &ba = boost::get<BarzelBeadAtomic>(rvec[0].getBeadData());
+				const BarzerLiteral &bl = boost::get<BarzerLiteral>(ba.dta);
+				uint8_t mnum = universe.getDateLookup().lookupWeekday(bl.getId());
+				if (!mnum) return false;
+				BarzerNumber bn(mnum);
+				setResult(result, bn);
+				return true;
+			} catch(boost::bad_get) {
+				AYLOG(ERROR) << "Wrong argument type";
+				return false;
+			}
+		}
+		return false;
+	}
+
+	#undef STFUN
 };
 
 BELFunctionStorage::BELFunctionStorage(StoredUniverse &u) : universe(u),

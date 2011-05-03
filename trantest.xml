@@ -25,7 +25,7 @@
         <pat>
             <n l="1900" h="2100"/><n l="1" h="12"/><n l="1" h="31"/>
         </pat>
-        <tran><func name="mkDate"><var w="3" /><var w="2" /><var w="1" /></func></tran>
+        <tran><func name="mkRange"><func name="mkDate"><var w="3" /><var w="2" /><var w="1" /></func><func name="mkDate"><var w="3" /><var w="2" /><var w="1" /></func></func></tran>
     </stmt>
     <stmt>
         <pat>
@@ -39,15 +39,33 @@
         </pat>
         <tran><var gn="2"/></tran>
     </stmt>
+    <stmt>
+        <pat>
             <n l="100" h="200"/><p>+</p><n l="100" h="200" />
         </pat>
         <tran><func name="mkRange"><var w="1" /><var w="2" /></func></tran>
     </stmt>
+    
     <stmt>
         <pat>
             <t>mama</t><t>myla</t><t>ramu</t>
         </pat>
         <tran><var pn="2" /></tran>
+    </stmt>
+
+    <stmt>
+        <pat>
+            <any><t>january</t><t>february</t><t>march</t><t>april</t>
+            <t>may</t><t>june</t><t>july</t><t>august</t><t>spetember</t>
+            <t>october</t><t>november</t><t>december</t></any>
+        </pat>
+        <tran><func name="lookupMonth"><var pn="1" /></func></tran>
+    </stmt>
+    <stmt>
+        <pat>
+            <any><t>sunday</t><t>monday</t><t>tuesday</t><t>wednesday</t><t>thursday</t><t>friday</t><t>saturday</t></any>
+        </pat>
+        <tran><func name="lookupMonth"><var pn="1" /></func></tran>
     </stmt>
     
 </stmset>
