@@ -8,6 +8,7 @@
 #include <barzer_el_function.h>
 #include <barzer_universe.h>
 #include <barzer_basic_types.h>
+#include <sstream>
 #include <ay/ay_logger.h>
 
 
@@ -20,10 +21,17 @@ namespace {
 // returns BarzerNumber ot of random barzer type. NaN if fails
 struct NumberMatcher : public boost::static_visitor<BarzerNumber> {
 	BarzerNumber operator()( const BarzerNumber &dt ) {	return dt; }
+	/*BarzerNumber operator()( const 	BarzerLiteral &dt ) {
+		dt.print(AYLOG(DEBUG) << "literal type: ");
+		return BarzerNumber();
+	} */
 	BarzerNumber operator()( const BarzelBeadAtomic &dt )
 		{ return boost::apply_visitor(*this, dt.dta); }
 	template <typename T> BarzerNumber operator()( const T& )
-		{ return BarzerNumber(); }  // NaN
+		{
+			//AYLOG(DEBUG) << "unknown type";
+			return BarzerNumber();
+		}  // NaN
 };
 
 static BarzerNumber getNumber(const BarzelEvalResult &result) {
@@ -100,6 +108,98 @@ template<class U> struct ArithVisitor : public boost::static_visitor<bool> {
 	}
 };
 
+struct StrConcatVisitor : public boost::static_visitor<bool> {
+	std::stringstream ss;
+	StoredUniverse &universe;
+	StrConcatVisitor(StoredUniverse &u) : universe(u) {}
+
+	bool operator()( const BarzerString &dt ) {
+		ss << dt.getStr();
+		return true;
+	}
+	bool operator()( const BarzerLiteral &dt ) {
+		switch (dt.getType()) {
+		case BarzerLiteral::T_STRING:
+		case BarzerLiteral::T_COMPOUND:
+		case BarzerLiteral::T_PUNCT: {
+			const char *str = universe.getStringPool().resolveId(dt.getId());
+			if (str) {
+				ss << str;
+				return true;
+			} else {
+				AYLOG(ERROR) << "Unknown string ID";
+				return false;
+			}
+		}
+		default:
+			AYLOG(ERROR) << "Wrong literal type";
+			return false;
+		}
+	}
+
+	bool operator()( const BarzelBeadAtomic &dt ) {
+		return boost::apply_visitor(*this, dt.dta);
+	}
+
+	template <typename T> bool operator()( const T& )
+	{
+		return false;
+	}
+};
+
+struct RangePacker : public boost::static_visitor<bool> {
+	BarzelBeadAtomic left;
+	BarzerRange &range;
+
+	RangePacker(BarzerRange &r) : range(r) {}
+
+	bool setLeft(const BarzelBeadData &dt) {
+		if (dt.which() == BarzelBeadAtomic_TYPE) {
+			left = boost::get<BarzelBeadAtomic>(dt);
+			return true;
+		} else return false;
+	}
+
+	template<class T> bool setLeft(const T&) { return false; }
+
+	bool operator()(const BarzerNumber &rnum) {
+		if (left.isNumber()) {
+			const BarzerNumber &lnum = left.getNumber();
+			if (lnum.isReal()) {
+				if (rnum.isReal()) {
+					range.dta = BarzerRange::Real((float)lnum.getReal(), (float)rnum.getReal());
+				} else {
+					range.dta = BarzerRange::Real((float)lnum.getReal(), (float)rnum.getInt());
+				}
+			} else {
+				if (rnum.isReal()) {
+					range.dta = BarzerRange::Real((float)lnum.getInt(), (float)rnum.getReal());
+				} else {
+					range.dta = BarzerRange::Integer(lnum.getInt(), rnum.getInt());
+				}
+			}
+			//range.print(AYLOG(DEBUG) << "done: ");
+			return true;
+		} else return false;
+
+	}
+
+	bool operator()(const BarzerDate &rdate) {
+		return false;
+	}
+	bool operator()(const BarzerTimeOfDay &rtod) {
+		return false;
+	}
+	bool operator()(const BarzelBeadAtomic &data) {
+		return boost::apply_visitor(*this, data.dta);
+	}
+	template<class T> bool operator()(const T&) {
+		return false;
+	}
+
+
+};
+
 }
 // Stores map ay::UniqueCharPool::StrId -> BELFunctionStorage::function
 // the function names are using format "stfun_*function name*"
@@ -116,6 +216,7 @@ struct BELFunctionStorage_holder {
 		// makers
 		ADDFN(mkDate);
 		ADDFN(mkTime);
+		ADDFN(mkRange);
 		// arith
 		ADDFN(opPlus);
 		ADDFN(opMinus);
@@ -124,7 +225,6 @@ struct BELFunctionStorage_holder {
 		//logic
 		ADDFN(opAnd);
 		ADDFN(opOr);
-		ADDFN(opXor);
 		ADDFN(opLt);
 		ADDFN(opGt);
 		ADDFN(opEq);
@@ -163,17 +263,23 @@ struct BELFunctionStorage_holder {
 		//AYLOGDEBUG(rvec.size());
 		switch (rvec.size()) {
 		case 3:
-			if (setNumber(tmp, rvec[2])) y = tmp;
-		case 2:
-			if (setNumber(tmp, rvec[1])) m = tmp;
+			if (setNumber(y, rvec[2]));
 			else {
-				//AYLOG(DEBUG) << rvec[1].getBeadData().which();
+				AYLOG(DEBUG) << "(mkDate) Wrong type in the third argument: ";
+				//             << rvec[2].getBeadData().which();
+			}
+		case 2:
+			if (setNumber(m, rvec[1]));
+			else {
+				AYLOG(DEBUG) << "(mkDate) Wrong type in the second argument: ";
+				//             << rvec[1].getBeadData().which();
 			}
 		case 1:
 			if (!setNumber(d, rvec[0])) {
-				//AYLOG(DEBUG) << rvec[0].getBeadData().which();
+				AYLOG(DEBUG) << "(mkDate) Wrong type in the first argument: ";
+				//             << rvec[0].getBeadData().which();
 			}
-			break;
+		case 0: break; // 0 arguments = today
 		default: return false;
 			// huhuh
 		}
@@ -199,6 +305,21 @@ struct BELFunctionStorage_holder {
 		//AYLOG(DEBUG) << "setting result";
 		setResult(result, time);
 		return true;
+	}
+
+	STFUN(mkRange)
+	{
+		if (rvec.size() >= 2) {
+			BarzerRange br;
+			RangePacker rp(br);
+			if (rp.setLeft(rvec[0].getBeadData())) {
+				if (boost::apply_visitor(rp, rvec[1].getBeadData())) {
+					setResult(result, br);
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 
@@ -312,11 +433,6 @@ struct BELFunctionStorage_holder {
 		return true;
 	}
 
-	STFUN(opXor)
-	{
-		return false;
-	}
-
 	STFUN(opLt)
 	{
 		return false;
@@ -332,6 +448,17 @@ struct BELFunctionStorage_holder {
 
 	// string
 	STFUN(strConcat) { // strfun_strConcat(&result, &rvec)
+		if (rvec.size()) {
+			StrConcatVisitor scv(universe);
+			for (BarzelEvalResultVec::const_iterator ri = rvec.begin();
+													 ri != rvec.end(); ++ri) {
+				if (!boost::apply_visitor(scv, ri->getBeadData())) return false;
+			}
+			BarzerString bzs;
+			bzs.setStr(scv.ss.str());
+			setResult(result, bzs);
+			return true;
+		}
 		return false;
 	}
 

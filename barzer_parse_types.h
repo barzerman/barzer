@@ -189,6 +189,9 @@ public:
 
 	const std::string& getStr() const { return str; }
 
+	void setStr(const std::string &s) {	str = s; }
+	void setStr(const char *s) { str = s; }
+
 	std::ostream& print( std::ostream& fp ) const
 		{ return ( fp << "\"" <<str<< "\"" ); }
 };

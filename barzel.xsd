@@ -20,7 +20,7 @@
     		<!-- punctuation -->
     		<xs:element name="p" type="xs:string" ></xs:element>
     		<!-- wildcard -->
-    		<xs:element name="w"  />
+    		<xs:element name="w" />
     		<!-- world class -->
     		<xs:element name="wcls" type="xs:string"  />
     		<!-- you'll never guess about these -->
@@ -42,12 +42,14 @@
     </xs:complexType> 
 	<!-- type for the right side numbers -->
     <xs:complexType name="rNumberType">
+        <xs:group ref="tns:tranGroup"  maxOccurs="unbounded" minOccurs="0"></xs:group>
     	<xs:attribute name="v" type="xs:decimal"></xs:attribute>
     </xs:complexType>    
     
-    <xs:complexType name="tranList">
-        <xs:choice maxOccurs="unbounded" minOccurs="0">
-        	<!-- variable -->
+    
+    <xs:group name="tranGroup">
+        <xs:choice>
+            <!-- variable -->
             <xs:element name="var" type="tns:rVarType"></xs:element>
             <!-- number -->
             <xs:element name="rn" type="tns:rNumberType">
@@ -57,8 +59,17 @@
             <!-- again, very hard to guess -->
             <xs:element name="time" type="xs:time"></xs:element>
             <xs:element name="date" type="xs:date"></xs:element>
-            <xs:element name="func" type="tns:tranList"></xs:element>
+            <xs:element name="func">
+            	<xs:complexType>
+                    <xs:group ref="tns:tranGroup" maxOccurs="unbounded" minOccurs="0" />
+                    <xs:attribute name="name" type="xs:string"></xs:attribute>
+            	</xs:complexType>
+            </xs:element>
         </xs:choice>
+    </xs:group>
+    
+    <xs:complexType name="tranList">
+        <xs:group ref="tns:tranGroup" maxOccurs="unbounded" minOccurs="0"></xs:group>
     </xs:complexType>
     
     <xs:group name="statementGroup">

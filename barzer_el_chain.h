@@ -56,6 +56,8 @@ struct BarzelBeadAtomic {
 	
 	const BarzerLiteral* getLiteral() const { return boost::get<BarzerLiteral>( &dta ); }
 
+	const BarzerNumber& getNumber() const { return boost::get<BarzerNumber>(dta); }
+
 	bool isLiteral() const { return dta.which() == BarzerLiteral_TYPE; }
 	bool isStopLiteral() const { 
 		const BarzerLiteral* bl = getLiteral();

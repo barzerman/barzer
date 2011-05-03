@@ -14,7 +14,8 @@ enum {
 	WORD_SUBCLASS_ARTICLE,     // a the 
 	WORD_SUBCLASS_CONJUNCTION, // and or  
 	WORD_SUBCLASS_PREPOSITION, // on to from ... 
-	WORD_SUBCLASS_NEGATION     // not, nonm un-,nor
+	WORD_SUBCLASS_NEGATION,     // not, nonm un-,nor
+	WORD_SUBCLASS_NUMERAL      // numeral appearing in the dataset as a tag
 };
 
 enum {
