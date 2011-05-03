@@ -184,9 +184,9 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Number>( const BT
 template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Variable>( const BTND_Rewrite_Variable& n ) 
 {
 	BarzelMatchInfo& matchInfo = ctxt.matchInfo;
-	const NodeAndBead* nob = matchInfo.getDataByVar(n);
-	if( nob ) {
-		BeadRange r(nob->second);
+	BeadRange r;
+
+	if( matchInfo.getDataByVar(r,n)  ) {
 		if( r.first == r.second )  {
 			if( matchInfo.iteratorIsEnd( r.second ) ) {
 				std::cerr << "ERROR: blank tail range passed\n";
@@ -203,7 +203,6 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Variable>( const 
 	}
 	return true;
 }
-
 //// the main visitor - compute
 
 } // end of anon namespace 

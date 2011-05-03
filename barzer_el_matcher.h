@@ -61,6 +61,8 @@ public:
 
 	const NodeAndBead* getDataByElementNumber(size_t n ) const 
 		{ return ( n>0 && n<= d_thePath.size() ? &(d_thePath[n-1]) : 0 ); }
+
+	typedef std::pair< NodeAndBeadVec::const_iterator, NodeAndBeadVec::const_iterator > PathRange;
 	const NodeAndBead* getDataByWildcardNumber(size_t n ) const 
 		{ 
 			if( n>0 && n<= d_wcVec.size() ) {
@@ -69,6 +71,17 @@ public:
 			} else
 				return 0;
 		}
+	/// forms the range between the end of n-1th and n-th wildcards if n=1 then the range is
+	/// between beginning of the match and the start of the wildcard
+	bool getGapRange( BeadRange& r, size_t n ) const;
+	bool getGapRange( BeadRange& r, const BTND_Rewrite_Variable& n ) const
+	{
+		if( n.isWildcardGapNumber() ) 
+			return getGapRange( r, n.getVarId() );
+		else
+			return ( r= BeadRange(), false );
+	}
+
 	/// the trie node is needed in case there's a potential variable name 
 	void setPath( const NodeAndBeadVec& p );
 
@@ -84,7 +97,7 @@ public:
 		return( i == d_varNameMap.end() ? 0 : getDataByElementNumber( i->second ) );
 	}
 	
-	inline const NodeAndBead* getDataByVar( const BTND_Rewrite_Variable& var ) const
+	inline const NodeAndBead* getDataByVar_trivial( const BTND_Rewrite_Variable& var ) const
 	{
 		switch( var.getIdMode() ) {
 		case BTND_Rewrite_Variable::MODE_WC_NUMBER: return getDataByWildcardNumber( var.getVarId());
@@ -93,6 +106,21 @@ public:
 		}
 		return 0;
 	}
+	// r will contain the bead range matching the contents of var
+	// var can be pn - pattern number, w - wildcard umber and gn - gap number
+	// gn[i] is everything between (exclusively) w[i-1] and w[i]
+	// when resolution fails return false
+	bool getDataByVar( BeadRange& r, const BTND_Rewrite_Variable& var )
+	{
+		const NodeAndBead* nob = getDataByVar_trivial(var);
+		if( nob ) {
+			return( r = nob->second, true );
+		} else if( getGapRange(r,var) ) {
+			return true;
+		}
+		return false;
+	}
+
 };
 typedef std::pair<BarzelMatchInfo,const BarzelTranslation*> RewriteUnit;
 //struct RewriteUnit;

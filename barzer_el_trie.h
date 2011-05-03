@@ -205,7 +205,8 @@ public:
 		T_PUNCT,    // punctuation
 		T_VAR_NAME, // variable name rewrite
 		T_VAR_WC_NUM, // variable rewrite on wildcard number 
-		T_VAR_EL_NUM, // variable rewrite on raw element number
+		T_VAR_EL_NUM, // variable rewrite on raw element number (PN)
+		T_VAR_GN_NUM, // variable rewrite on raw element number
 
 		T_MAX
 	} Type_t;

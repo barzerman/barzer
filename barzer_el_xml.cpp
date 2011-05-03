@@ -448,6 +448,12 @@ void BELParserXML::taghandle_VAR( const char_cp * attr, size_t attr_sz , bool cl
 		const char* v = attr[i+1]; // attr value
 
 		switch( n[0] ) {
+		case 'g': { // <var gn="1"/> gap number - if pattern is a * b c * d gn[1] is a, gn[2] = (b c), gn[3] = 3 
+			int num  = atoi(v);
+			if( num > 0 ) 
+				var.setWildcardGapNumber( num );
+		}
+			 break;
 		case 'n': { // <var name=""/> - named variable
 			/// intern
 			var.setVarNameId( internString(v) );
@@ -456,7 +462,7 @@ void BELParserXML::taghandle_VAR( const char_cp * attr, size_t attr_sz , bool cl
 		case 'p': { // <var pn="1"/> - pattern element number - if pattern is "a * b * c" then pn[1] is a, pn[2] is the first * etc
 					// pn[0] is the whole sub chain matching this pattern 
 			int num  = atoi(v);
-			if( num >= 0 ) 
+			if( num > 0 ) 
 				var.setPatternElemNumber( num );
 			else {
 				AYLOG(ERROR) << "invalid pattern element number " << v << std::endl;
@@ -465,7 +471,7 @@ void BELParserXML::taghandle_VAR( const char_cp * attr, size_t attr_sz , bool cl
 			break;
 		case 'w': { // <var w="1"/> - wildcard number like $1 
 			int num  = atoi(v);
-			if( num >= 0 ) 
+			if( num > 0 ) 
 				var.setWildcardNumber( num );
 			else {
 				AYLOG(ERROR) << "invalid wildcard number " << v << std::endl;

@@ -382,7 +382,8 @@ struct BTND_Rewrite_Variable {
 	enum {
 		MODE_WC_NUMBER, // wildcard number
 		MODE_VARNAME,   // variable name 
-		MODE_PATEL_NUMBER // pattern element number
+		MODE_PATEL_NUMBER, // pattern element number
+		MODE_WCGAP_NUMBER, // wildcard gap number
 	};
 	uint8_t idMode; 
 	uint32_t varId; /// when idMode is MODE_VARNAME this will be used as a sring id
@@ -396,10 +397,12 @@ struct BTND_Rewrite_Variable {
 	bool isVarname() const { return idMode == MODE_VARNAME; }
 	bool isWildcardNum() const { return idMode == MODE_WC_NUMBER; }
 	bool isPatternElemNumber() const { return idMode == MODE_PATEL_NUMBER; }
+	bool isWildcardGapNumber() const { return idMode == MODE_WCGAP_NUMBER; }
 
 	void setVarNameId( uint32_t vid ){ varId = vid; idMode= MODE_VARNAME; }
 	void setWildcardNumber( uint32_t vid ){ varId = vid; idMode= MODE_WC_NUMBER; }
 	void setPatternElemNumber( uint32_t vid ){ varId = vid; idMode= MODE_PATEL_NUMBER; }
+	void setWildcardGapNumber( uint32_t vid ){ varId = vid; idMode= MODE_WCGAP_NUMBER; }
 
 	BTND_Rewrite_Variable() : 
 		idMode(MODE_WC_NUMBER), 

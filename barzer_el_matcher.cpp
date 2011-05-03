@@ -454,6 +454,29 @@ void BTMBestPaths::addPath(const NodeAndBeadVec& nb )
 }
 
 
+bool BarzelMatchInfo::getGapRange( BeadRange& r, size_t n ) const
+{
+	const NodeAndBead* wc = getDataByWildcardNumber(n);
+	if( !wc ) return ( r=BeadRange(), false );
+	r = d_beadRng;
+	if( n>  1 ) {
+		if( n< d_thePath.size() ) {
+			const NodeAndBead* wc0 = getDataByWildcardNumber(n-1);
+		if( !wc0 ) { // this is completely impossible
+					std::cerr << "getGapRange inconsistent\n";
+				return ( r=BeadRange(), false );
+			}
+			r.first = wc0->second.second;
+			r.second = wc->second.first;
+		} else {
+			r.first = wc->second.first;
+		}
+	} else {
+		r.second = wc->second.first;
+	}
+	return true;
+}
+
 void BarzelMatchInfo::setPath( const NodeAndBeadVec& p )
 {
 	d_thePath = p;
@@ -604,7 +627,28 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, BarzelBeadChain& chain )
 	// so we will simply delete everything past the first bead
 
 	if( transResult.isVec() ) {
-		AYDEBUG("chain rewrites not supported yet");
+		//std::cerr << "*** BEFORE::::>>\n";
+		//AYDEBUG( chain.getFullRange() );
+		const BarzelEvalResult::BarzelBeadDataVec& bbdv = transResult.getBeadDataVec();
+		BeadList::iterator bi = range.first;
+		BarzelEvalResult::BarzelBeadDataVec::const_iterator di = bbdv.begin();
+		for( ; di != bbdv.end() && bi!= range.second; )  {
+			//bi->print( std::cerr );
+			bi->setData( *di );
+			if( ++di == bbdv.end() ) 
+				break;
+			if( ++bi == range.second ) 
+				break;
+		}
+		if( di != bbdv.end() ) { // vector is longer than the bead range 
+			for( ; di != bbdv.begin(); ++di )  
+				chain.insertBead( range.second, *di );
+		} else if( bi != range.second ) { // vector is shorter than the list and we need to fold the remainder of the list
+			if( bi != range.first ) 
+				chain.collapseRangeLeft( BeadRange(bi, range.second) );
+		}
+		//std::cerr << "<<<<< *** AFTER ::::>>\n";
+		//AYDEBUG( chain.getFullRange() );
 	} else {
 		theBead.setData(  transResult.getBeadData() );
 		chain.collapseRangeLeft( range );

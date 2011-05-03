@@ -122,6 +122,7 @@ class BarzelBead {
 	/// types 
 	BarzelBeadData dta;
 public:
+	BarzelBead(const BarzelBeadData& d ): dta(d) {}
 	BarzelBead() {}
 	const BarzelBeadData& getBeadData() const { return dta; }
 	void init(const CTWPVec::value_type&) ;
@@ -210,7 +211,11 @@ struct BarzelBeadChain {
 
 	void init( const CTWPVec& cv );
 	void clear() { lst.clear(); }
-
+	
+	BeadList::iterator insertBead( BeadList::iterator at, const BarzelBeadData& d ) 
+	{
+		return lst.insert( at, d );
+	}
 	const Range getFullRange() 
 		{ return Range( lst.begin(), lst.end() ); }
 	void collapseRangeLeft( Range r );
