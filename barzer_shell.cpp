@@ -154,6 +154,10 @@ static int bshf_inspect( BarzerShell* shell, char_cp cmd, std::istream& in )
 	std::cerr << "per token: StoredToken " << sizeof(StoredToken) << " bytes\n";
 	std::cerr << "per entity: StoredEntity " << sizeof(StoredEntity) << " bytes\n";
 	std::cerr << "extra per entity token: EntTokenOrderInfo " << sizeof(EntTokenOrderInfo) << "+ TokenEntityLinkInfo() " << sizeof(TokenEntityLinkInfo) << " bytes\n";
+	std::cerr << "Barzel:" << std::endl;
+	AYDEBUG( sizeof(BarzelTranslation) );
+	AYDEBUG( sizeof(BarzelTrieNode) );
+	AYDEBUG( sizeof(BarzelFCMap) );
 
 	if( dtaIdx ) {
 		std::ostream& fp = shell->getOutStream();
