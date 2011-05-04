@@ -331,7 +331,7 @@ void BarzelTranslation::set(BELTrie& ,const BTND_Rewrite_Literal& x )
 		break;
 	case BTND_Rewrite_Literal::T_STOP:
 		type = T_STOP;
-		id = 0xffffffff;
+		id = x.getId();
 		break;
 	case BTND_Rewrite_Literal::T_BLANK:
 		type = T_BLANK;
@@ -400,7 +400,7 @@ void BarzelTranslation::fillRewriteData( BTND_RewriteData& d ) const
 	switch(type) {
 	case T_NONE: d = BTND_Rewrite_None(); return;
 
-	case T_STOP: { BTND_Rewrite_Literal l; l.setStop(); d = l; } return;
+	case T_STOP: { BTND_Rewrite_Literal l; l.setStop(); l.setId(getId_uint32()); d = l; } return;
 	case T_STRING: { BTND_Rewrite_Literal l; l.setString(getId_uint32()); d = l; } return;
 	case T_BLANK: { BTND_Rewrite_Literal l; l.setBlank(); d = l; } return;
 	case T_PUNCT: { BTND_Rewrite_Literal l; l.setPunct(getId_uint32()); d = l; } return;
