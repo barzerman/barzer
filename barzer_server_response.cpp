@@ -80,21 +80,26 @@ public:
 
 	void operator()(const BarzerLiteral &data) {
 		if (data.isBlank()) return;
-		os << "<token>";
 		switch(data.getType()) {
-		case BarzerLiteral::T_STRING: {
+		case BarzerLiteral::T_STRING:
+		case BarzerLiteral::T_COMPOUND: {
+			os << "<token>";
 			std::string s = universe.getStringPool().resolveId(data.getId());
 			xmlEscape(s, os);
+			os << "<token>";
 		}
-		case BarzerLiteral::T_COMPOUND: // shrug
 			break;
-		case BarzerLiteral::T_STOP: // shrug
-			os << "<fluff />";
+		case BarzerLiteral::T_STOP: {
+			std::string s = universe.getStringPool().resolveId(data.getId());
+			xmlEscape(s, os << "<fluff>") << "</fluff>";
+		}
 			break;
 		case BarzerLiteral::T_PUNCT:
 			{ // cough. this is ugly. also need to somehow make this localised
+				os << "<token>";
 				std::string s(1, (char)data.getId());
 				xmlEscape(s, os);
+				os << "<token>";
 			}
 			break;
 		case BarzerLiteral::T_BLANK:
@@ -104,7 +109,6 @@ public:
 			AYLOG(ERROR) << "Unknown literal type";
 			os << "<error>unknown literal type</error>";
 		}
-		os << "</token>";
 	}
 	void operator()(const BarzerString &data) {
 		os << "<token>";
