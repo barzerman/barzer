@@ -212,7 +212,7 @@ public:
 
 		T_MAX
 	} Type_t;
-	boost::variant< uint32_t, double, int> id;
+	boost::variant< uint32_t, float, int> id;
 	uint8_t  type; // one of T_XXX constants 
 		
 	void set( BELTrie& trie, const BTND_Rewrite_Literal& );
@@ -288,6 +288,8 @@ class BarzelTrieNode {
 	uint32_t d_firmMapId; // when valid (not 0xffffffff) can it's an id of a firm lookup object  (BarzelFCMap)
 
 	uint32_t d_wcLookupId; // when valid (not 0xffffffff) can it's an id of a wildcard lookup object 
+	const BarzelTrieNode* d_parent;
+
 	// BarzelWCLookup wcChild; /// used for wildcard matching (number,date, etc)
 	enum {
 		B_WCCHILD, // it's a wildcard child of its parent 
@@ -295,23 +297,14 @@ class BarzelTrieNode {
 		// new bits strictly above this line 
 		B_MAX
 	};
-
 	ay::bitflags<B_MAX> d_flags; // only prints children at the current level
 
-	const BarzelTrieNode* d_parent;
 
 	/// methods
 	void clearFirmMap();
 	void clearWCMap();
 public:
 	/// these functions MAY return 0 if the node has no firm children 
-	/*
-	const BarzelFCMap* getFirmMap(const BELTrie& trie) const { return &d_firmMap; }
-		  BarzelFCMap* getFirmMap(BELTrie& trie) { return &d_firmMap; }
-	// this function will NEVER return 0
-	BarzelFCMap* getOrMakeFirmMap(BELTrie& trie) 
-  		{ return getFirmMap(trie); }
-	*/	
 	uint32_t getFirmMapId() const { return d_firmMapId; }
 
 	// given the nature of the trie - it's extremely leaf heavy - most nodes will actually have 

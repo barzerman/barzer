@@ -352,7 +352,7 @@ void BarzelTranslation::set(BELTrie&, const BTND_Rewrite_Number& x )
 	if( x.isConst )  {
 		if( x.isReal() ) {
 			type = T_NUMBER_REAL;
-			id = x.getReal();
+			id = (float)(x.getReal());
 		} else {
 			type = T_NUMBER_INT;
 			id = x.getInt();
