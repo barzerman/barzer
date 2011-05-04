@@ -30,27 +30,8 @@ static std::ostream& xmlEscape(const char *src,  std::ostream &os) {
 	return os;
 }
 
-static std::ostream& xmlEscape(const std::string &src, std::ostream &os) {
-	//std::ostringstream ret;
-
+static inline std::ostream& xmlEscape(const std::string &src, std::ostream &os) {
 	return xmlEscape(src.c_str(), os);
-
-	/*
-	for(std::string::const_iterator i = src.begin(); i != src.end(); ++i) {
-		char c = (char)*i;
-		switch(c) {
-		case '&': os << "&amp;"; break;
-		case '<': os << "&lt;"; break;
-		case '>': os << "&gt;"; break;
-		case '"': os << "&quot;"; break;
-		case '\'': os << "&apos;"; break;
-		default: os << c;
-		}
-	}
-	//return ret.str();
-	 *
-	*/
-	return os;
 }
 
 
@@ -103,33 +84,31 @@ public:
 		if (data.isBlank()) return;
 		switch(data.getType()) {
 		case BarzerLiteral::T_STRING:
-		case BarzerLiteral::T_COMPOUND: {
-			os << "<token>";
-			const char *cstr = universe.getStringPool().resolveId(data.getId());
-			if (cstr) {
-//				std::string s = cstr;
-				xmlEscape(cstr, os);
-			} else {
-				AYLOG(ERROR) << "Illegal literal ID: " << std::hex << data.getId();
-			}
-			os << "<token>";
-		}
-			break;
-		case BarzerLiteral::T_STOP: {
-			if (data.getId() == 0xffffffff) {
-				os << "<fluff />";
-			} else {
+		case BarzerLiteral::T_COMPOUND:
+			{
+				os << "<token>";
 				const char *cstr = universe.getStringPool().resolveId(data.getId());
-				if (cstr) xmlEscape(cstr, os << "<fluff>") << "</fluff>";
-				else AYLOG(ERROR) << "Illegal literal(STOP) ID: " << std::hex << data.getId();
+				if (cstr) xmlEscape(cstr, os);
+				else AYLOG(ERROR) << "Illegal literal ID: " << std::hex << data.getId();
+				os << "<token>";
 			}
-		}
+			break;
+		case BarzerLiteral::T_STOP:
+			{
+				if (data.getId() == 0xffffffff) {
+					os << "<fluff />";
+				} else {
+					const char *cstr = universe.getStringPool().resolveId(data.getId());
+					if (cstr) xmlEscape(cstr, os << "<fluff>") << "</fluff>";
+					else AYLOG(ERROR) << "Illegal literal(STOP) ID: " << std::hex << data.getId();
+				}
+			}
 			break;
 		case BarzerLiteral::T_PUNCT:
-			{ // cough. this is ugly. also need to somehow make this localised
+			{ // need to somehow make this localised
 				os << "<token>";
-				std::string s(1, (char)data.getId());
-				xmlEscape(s, os);
+				const char str[] = { (char)data.getId(), '\0' };
+				xmlEscape(str, os);
 				os << "<token>";
 			}
 			break;
