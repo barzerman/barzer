@@ -1,5 +1,5 @@
 FLAGS := $(FLAGS) 
-CFLAGS := $(FLAGS) -g -I.
+CFLAGS := $(FLAGS) -Wall -g -I.
 LIBNAME=libay.a
 
 objects = ay_cmdproc.o ay_shell.o ay_util.o ay_string_pool.o ay_util_time.o ay_logger.o

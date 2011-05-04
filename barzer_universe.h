@@ -21,6 +21,8 @@ class StoredUniverse {
 	DtaIndex dtaIdx;
 	BarzelRewriterPool barzelRewritePool; // all rewrite structures for barzel
 	BarzelWildcardPool barzelWildcardPool;  // all wildcard structures for barzel
+	BarzelFirmChildPool barzelFirmChildPool; // all firm child lookups for barzel
+	BarzelTranslationPool barzelTranslationPool;
 
 	BELTrie  barzelTrie;
 

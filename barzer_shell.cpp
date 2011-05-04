@@ -154,6 +154,12 @@ static int bshf_inspect( BarzerShell* shell, char_cp cmd, std::istream& in )
 	std::cerr << "per token: StoredToken " << sizeof(StoredToken) << " bytes\n";
 	std::cerr << "per entity: StoredEntity " << sizeof(StoredEntity) << " bytes\n";
 	std::cerr << "extra per entity token: EntTokenOrderInfo " << sizeof(EntTokenOrderInfo) << "+ TokenEntityLinkInfo() " << sizeof(TokenEntityLinkInfo) << " bytes\n";
+	std::cerr << "Barzel:" << std::endl;
+	AYDEBUG( sizeof(BarzelTranslation) );
+	AYDEBUG( sizeof(BarzelTrieNode) );
+	AYDEBUG( sizeof(BarzelFCMap) );
+	std::cerr << "Barzel Wildcards:\n";
+	context->universe.getWildcardPool().print( std::cerr );
 
 	if( dtaIdx ) {
 		std::ostream& fp = shell->getOutStream();
@@ -282,13 +288,13 @@ static int bshf_triestats( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	ShellState sh( shell, cmd, in );
 	{
-	BarzelTrieTraverser_depth trav( sh.trie.getRoot(), sh.uni.getWildcardPool() );
+	BarzelTrieTraverser_depth trav( sh.trie.getRoot(), sh.uni.getBarzelTrie() );
 	BarzelTrieStatsCounter counter;
 	trav.traverse( counter, sh.curTrieNode );
 	std::cerr << counter << std::endl;
 	}
 	{
-	BarzelTrieTraverser_depth trav( sh.trie.getRoot(), sh.uni.getWildcardPool() );
+	BarzelTrieTraverser_depth trav( sh.trie.getRoot(), sh.uni.getBarzelTrie() );
 	BarzelTrieStatsCounter counter;
 	trav.traverse_nostack( counter, sh.curTrieNode );
 	std::cerr << counter << std::endl;
@@ -318,7 +324,7 @@ static int bshf_trans( BarzerShell* shell, char_cp cmd, std::istream& in )
 	if (sh.curTrieNode.isLeaf()) {
 		aLeaf = &sh.curTrieNode;
 	} else {
-		BarzelTrieTraverser_depth trav( sh.trie.getRoot(), sh.uni.getWildcardPool() );
+		BarzelTrieTraverser_depth trav( sh.trie.getRoot(), sh.uni.getBarzelTrie() );
 		TrieLeafFinder fun;
 		aLeaf = trav.traverse( fun, sh.curTrieNode );
 	}

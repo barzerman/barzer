@@ -5,6 +5,7 @@
 #include <barzer_el_rewriter.h>
 #include <ay_bitflags.h>
 #include <ay_util.h>
+#include <ay_pool_with_id.h>
 #include <map>
 
 /// data structures representing the Barzer Expression Language BarzEL term pattern trie
@@ -13,6 +14,7 @@ namespace barzer {
 struct BELTrie;
 class BarzelRewriterPool;
 class BarzelWildcardPool;
+
 struct BELPrintContext;
 struct BELTrieContext;
 struct BELPrintFormat;
@@ -210,7 +212,7 @@ public:
 
 		T_MAX
 	} Type_t;
-	boost::variant< uint32_t, double, int> id;
+	boost::variant< uint32_t, float, int> id;
 	uint8_t  type; // one of T_XXX constants 
 		
 	void set( BELTrie& trie, const BTND_Rewrite_Literal& );
@@ -276,11 +278,20 @@ inline void BarzelTranslation::setBtnd<BTND_Rewrite_Variable>( BELTrie& trie, co
 
 class BarzelTrieNode;
 typedef std::map<BarzelTrieFirmChildKey, BarzelTrieNode > BarzelFCMap;
+/// BarzelFirmChildPool contiguously stores BarzelFCMap objects (see el_trie.h for definition)
+typedef ay::PoolWithId< BarzelFCMap > BarzelFirmChildPool;
+typedef ay::PoolWithId< BarzelTranslation > BarzelTranslationPool;
+
 
 class BarzelTrieNode {
-	BarzelFCMap firmMap; /// children of the 'firm' types - token,punctuation,compounded word
+	// BarzelFCMap d_firmMap; /// children of the 'firm' types - token,punctuation,compounded word
 
-	uint32_t wcLookupId; // when valid (not 0xffffffff) can it's an id of a wildcard lookup object 
+	uint32_t d_firmMapId; // when valid (not 0xffffffff) can it's an id of a firm lookup object  (BarzelFCMap)
+
+	uint32_t d_wcLookupId; // when valid (not 0xffffffff) can it's an id of a wildcard lookup object 
+	uint32_t d_translationId;
+	const BarzelTrieNode* d_parent;
+
 	// BarzelWCLookup wcChild; /// used for wildcard matching (number,date, etc)
 	enum {
 		B_WCCHILD, // it's a wildcard child of its parent 
@@ -288,35 +299,46 @@ class BarzelTrieNode {
 		// new bits strictly above this line 
 		B_MAX
 	};
-
 	ay::bitflags<B_MAX> d_flags; // only prints children at the current level
 
-	const BarzelTrieNode* d_parent;
+
+	/// methods
+	void clearFirmMap();
+	void clearWCMap();
+	
 public:
+	/// these functions MAY return 0 if the node has no firm children 
+	uint32_t getFirmMapId() const { return d_firmMapId; }
+	uint32_t getTranslationId() const { return d_translationId; }
+
+	// given the nature of the trie - it's extremely leaf heavy - most nodes will actually have 
+	// translation 
 	BarzelTranslation translation;
 
 	BarzelTrieNode():
-		wcLookupId(0xffffffff) ,
+		d_firmMapId(0xffffffff),
+		d_wcLookupId(0xffffffff) ,
+		d_translationId(0xffffffff),
 		d_parent(0)
 	{}
 	BarzelTrieNode(const BarzelTrieNode* p ):
-		wcLookupId(0xffffffff) ,
+		d_firmMapId(0xffffffff) ,
+		d_wcLookupId(0xffffffff) ,
+		d_translationId(0xffffffff),
 		d_parent(p)
 	{}
 
 	const BarzelTrieNode* getParent() const { return d_parent; }
-	uint32_t getWCLookupId() const { return wcLookupId; }
+	uint32_t getWCLookupId() const { return d_wcLookupId; }
 
 	void clear();
 	std::ostream& print_firmChildren( std::ostream& fp, BELPrintContext& ) const;
 	std::ostream& print_wcChildren( std::ostream& fp, BELPrintContext& ) const;
 	std::ostream& print_translation( std::ostream& fp, const BELPrintContext& ) const;
 
-	bool hasFirmChildren() const { return (!firmMap.empty()); }
-	BarzelFCMap& getFirmMap() { return firmMap; }
-	const BarzelFCMap& getFirmMap() const { return firmMap; }
+	bool hasFirmChildren() const { return (d_firmMapId!=0xffffffff); }
 
-	bool hasWildcardChildren() const { return (wcLookupId != 0xffffffff ) ; }
+	bool hasWildcardChildren() const { return (d_wcLookupId != 0xffffffff ) ; }
 	bool hasChildren() const 
 		{ return (hasWildcardChildren() || hasFirmChildren() ); }
 
@@ -339,15 +361,15 @@ public:
 
 
 	bool hasValidWcLookup() const
-		{ return (wcLookupId != 0xffffffff); }
+		{ return (d_wcLookupId != 0xffffffff); }
 
 	void setFlag_isWcChild() { d_flags.set( B_WCCHILD ); }
 	bool isWcChild() const { return d_flags[ B_WCCHILD ]; }
 
-	const BarzelTrieNode* getFirmChild( const BarzelTrieFirmChildKey& key ) const
+	const BarzelTrieNode* getFirmChild( const BarzelTrieFirmChildKey& key, const BarzelFCMap& fcmap ) const
 	{
-		BarzelFCMap::const_iterator  i = firmMap.find( key );
-		return ( i == firmMap.end() ? 0 : &(i->second) );
+		BarzelFCMap::const_iterator  i = fcmap.find( key );
+		return ( i == fcmap.end() ? 0 : &(i->second) );
 	}
 
 	std::ostream& print( std::ostream& , BELPrintContext& ) const;
@@ -358,9 +380,31 @@ typedef std::map< BarzelWCLookupKey, BarzelTrieNode > BarzelWCLookup;
 struct BELTrie {
 	BarzelRewriterPool* rewrPool;
 	BarzelWildcardPool* wcPool;
+	BarzelFirmChildPool* fcPool;
+	BarzelTranslationPool *tranPool;
 
 	BarzelTrieNode root;
-	BELTrie( BarzelRewriterPool*  rPool, BarzelWildcardPool* wPool ) : rewrPool(rPool), wcPool(wPool) {}
+	BELTrie( 
+		BarzelRewriterPool*  rPool, 
+		BarzelWildcardPool* wPool,
+		BarzelFirmChildPool* fPool,
+		BarzelTranslationPool* tPool 
+	) : 
+		rewrPool(rPool), 
+		wcPool(wPool),
+		fcPool(fPool),
+		tranPool(tPool)
+	{}
+
+	BarzelTranslation*  makeNewBarzelTranslation( uint32_t& id ) 
+		{ return tranPool->addObj( id ); }
+	const BarzelTranslation* getBarzelTranslation( const BarzelTrieNode& node ) const { return tranPool->getObjById(node.getTranslationId()); }
+		  BarzelTranslation* getBarzelTranslation( const BarzelTrieNode& node ) 	   { return tranPool->getObjById(node.getTranslationId()); }
+
+	BarzelFCMap*  makeNewBarzelFCMap( uint32_t& id ) 
+		{ return fcPool->addObj( id ); }
+	const BarzelFCMap* getBarzelFCMap( const BarzelTrieNode& node ) const { return fcPool->getObjById(node.getFirmMapId()); }
+		  BarzelFCMap* getBarzelFCMap( const BarzelTrieNode& node ) 	  { return fcPool->getObjById(node.getFirmMapId()); }
 
 	/// stores wildcard data n a form later usable by the Trie
 	/// this ends up calling wcPool->produceWCKey()
@@ -369,6 +413,8 @@ struct BELTrie {
 	/// adds a new path to the trie
 	// returns the leaf. if this function returns null it would indicate some major loading inconsistency
 	const BarzelTrieNode* addPath( const BTND_PatternDataVec& path, const BELParseTreeNode& trans );
+	BarzelWildcardPool&  getWCPool() { return *wcPool; }
+	const BarzelWildcardPool&  getWCPool() const { return *wcPool; }
 
 	BarzelTrieNode& getRoot() { return root; }
 	const BarzelTrieNode& getRoot() const { return root; }

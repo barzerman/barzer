@@ -179,42 +179,45 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 	template <>
 inline	bool findMatchingChildren_visitor::operator()<BarzerLiteral> ( const BarzerLiteral& dta ) 
 	{
-		BarzelTrieFirmChildKey firmKey; 
-		// forming firm key
-		bool curDtaIsBlank = firmKey.set(dta,d_followsBlank).isBlankLiteral();
-		if( curDtaIsBlank ) 
-			return false; // this should never happen blanks are skipped
-
-		const BarzelTrieNode* ch = d_tn->getFirmChild( firmKey ); 
-		if( ch ) {
-			BeadList::iterator endIt = d_rng.first;
-			//++endIt;
-			BarzelBeadChain::Range goodRange(d_rng.first,endIt);
-			// AYDEBUG(goodRange);
-			d_mtChild.push_back( NodeAndBeadVec::value_type(ch, goodRange ) );
-		} 
-		/// retrying in case the token immediately follows non blank 
-		if( !d_followsBlank ) {
-			firmKey.noLeftBlanks = 0;
-			ch = d_tn->getFirmChild( firmKey ); 
+		const BarzelFCMap* fcmap = d_btmi.universe.getBarzelTrie().getBarzelFCMap( *d_tn );
+		if( fcmap ) {
+			BarzelTrieFirmChildKey firmKey; 
+			// forming firm key
+			bool curDtaIsBlank = firmKey.set(dta,d_followsBlank).isBlankLiteral();
+			if( curDtaIsBlank ) 
+				return false; // this should never happen blanks are skipped
+	
+			const BarzelTrieNode* ch = d_tn->getFirmChild( firmKey, *fcmap ); 
 			if( ch ) {
 				BeadList::iterator endIt = d_rng.first;
-
-				/*
-				if( endIt != d_rng.second ) {
-					const BarzelBeadAtomic* atomic = endIt->getAtomic();
-					if( !atomic || atomic->isBlankLiteral() ) 
-						++endIt;
-				}
-				*/
+				//++endIt;
 				BarzelBeadChain::Range goodRange(d_rng.first,endIt);
 				// AYDEBUG(goodRange);
-				d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+				d_mtChild.push_back( NodeAndBeadVec::value_type(ch, goodRange ) );
+			} 
+			/// retrying in case the token immediately follows non blank 
+			if( !d_followsBlank ) {
+				firmKey.noLeftBlanks = 0;
+				ch = d_tn->getFirmChild( firmKey, *fcmap ); 
+				if( ch ) {
+					BeadList::iterator endIt = d_rng.first;
+	
+					/*
+					if( endIt != d_rng.second ) {
+						const BarzelBeadAtomic* atomic = endIt->getAtomic();
+						if( !atomic || atomic->isBlankLiteral() ) 
+							++endIt;
+					}
+					*/
+					BarzelBeadChain::Range goodRange(d_rng.first,endIt);
+					// AYDEBUG(goodRange);
+					d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+				}
 			}
+	
+			if( !curDtaIsBlank && d_followsBlank ) 
+				d_followsBlank = false;
 		}
-
-		if( !curDtaIsBlank && d_followsBlank ) 
-			d_followsBlank = false;
 		// ch is 0 here 
 		doWildcards( );
 		return (d_mtChild.size() > 0);

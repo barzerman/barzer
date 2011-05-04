@@ -202,6 +202,7 @@ public:
 		{ matchBeadChain( bestPaths.getFullRange(), trieNode ); }
 	
 	bool evalWildcard( const BarzelWCKey& wcKey, BeadList::iterator fromI, BeadList::iterator theI, uint8_t tokSkip ) const;
+	
 };
 
 

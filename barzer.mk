@@ -5,7 +5,7 @@ endif
 CFLAGS :=$(CFLAGS) $(BITMODE) $(OPT) -Wnon-virtual-dtor -I/opt/local/include -I/usr/include -Wall -g -I. -I./ay
 LINKFLAGS := $(FLAGS)
 BINARY=barzer.exe
-libs = -Lay -lay -L/opt/local/lib/boost -L/usr/lib -lboost_system -lexpat -lstdc++
+libs = -Lay -lay -L/opt/local/lib -L/opt/local/lib/boost -L/usr/lib -lboost_system -lexpat -lstdc++
 ECHO = echo
 objects = \
 barzer_server_response.o \
