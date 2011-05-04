@@ -218,6 +218,8 @@ public:
 
 	void setCompound()
 		{ setCompound(0xffffffff); }
+	void setId(uint32_t id) 
+	{ theId = id; }
 	void setString(uint32_t id) 
 		{ type = T_STRING; theId = id;  }
 	void setBlank( ) { type = T_BLANK; theId = 0xffffffff; }
@@ -233,6 +235,7 @@ public:
 	bool isBlank() const { return type == T_BLANK; }
 	bool isStop() const { return type == T_STOP; }
 	bool isPunct() const { return type == T_PUNCT; }
+	bool isCompound() const { return type == T_COMPOUND; }
 };
 /// range of continuous values (int,real,date,time ...)
 struct BarzerRange {

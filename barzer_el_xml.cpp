@@ -208,7 +208,14 @@ struct BTND_Rewrite_Text_visitor : public BTND_text_visitor_base {
 	void operator()(T& t) const { }
 };
 template <> void BTND_Rewrite_Text_visitor::operator()<BTND_Rewrite_Literal>(BTND_Rewrite_Literal& t)   const
-	{ t.setString( d_parser.internTmpText(d_str, d_len) ); }
+	{ 
+		uint32_t i = d_parser.internTmpText(d_str, d_len); 
+		if( t.isCompound() ) {
+			// warning compounded tokens unsupported yet
+		} else {
+			t.setId( i );
+		}
+	}
 template <> void BTND_Rewrite_Text_visitor::operator()<BTND_Rewrite_Number>(BTND_Rewrite_Number& t)   const
 	{ 
 		const char* s = d_parser.setTmpText( d_str, d_len );
@@ -402,11 +409,24 @@ void BELParserXML::taghandle_LITERAL( const char_cp * attr, size_t attr_sz , boo
 		statement.popNode();
 		return;
 	}
-	statement.pushNode(
-		BTND_RewriteData(
-			BTND_Rewrite_Literal()
-		)
-	);
+	BTND_Rewrite_Literal literal;
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		switch( n[0] ) {
+		case 't': // type
+			switch( v[0] ) {
+			case 's': // t="stop" ~ stop token
+				literal.setStop();
+				break;
+			case 'c': // t="comp" ~ compounded word
+				literal.setCompound();
+				break;
+			}
+			break;
+		}
+	}
+	statement.pushNode( BTND_RewriteData(literal) );
 }
 
 void BELParserXML::taghandle_RNUMBER( const char_cp * attr, size_t attr_sz , bool close)
