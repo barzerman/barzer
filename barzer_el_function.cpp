@@ -108,6 +108,9 @@ template<class U> struct ArithVisitor : public boost::static_visitor<bool> {
 	}
 };
 
+
+// concats N strings into one using std::stringstream
+
 struct StrConcatVisitor : public boost::static_visitor<bool> {
 	std::stringstream ss;
 	StoredUniverse &universe;
@@ -148,6 +151,12 @@ struct StrConcatVisitor : public boost::static_visitor<bool> {
 		return false;
 	}
 };
+
+
+// tries to pack 2 values into 1 range
+// always assumes the values are atomic and of the same type
+// the only supported types at the moments are
+// BarzerNumber, BarzerDate and BarzerTimeOfDay
 
 struct RangePacker : public boost::static_visitor<bool> {
 	BarzelBeadAtomic left;
@@ -525,6 +534,11 @@ struct BELFunctionStorage_holder {
 			}
 		}
 		return false;
+	}
+
+	STFUN(lookupEntity)
+	{
+
 	}
 
 	#undef STFUN

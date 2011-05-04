@@ -1,6 +1,5 @@
 #include <barzer_shell.h>
 #include <ay_util_time.h>
-#include <sstream>
 
 #include <barzer_el_xml.h>
 #include <barzer_el_trie.h>
@@ -14,6 +13,11 @@
 #include <boost/function.hpp>
 
 #include <barzer_server_request.h>
+//
+#include <sstream>
+#include <fstream>
+
+
 
 namespace barzer {
 
@@ -217,16 +221,26 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 	BarzStreamerXML bs(barz, context->universe);
 
+	std::string fname;
+	std::ostream *ostr = &std::cout;
+	std::ofstream ofile;
+
 	ay::InputLineReader reader( in );
+	if (in >> fname) {
+		AYLOG(DEBUG) << "found ofile name: " << fname;
+		ofile.open(fname.c_str());
+		ostr = &ofile;
+	}
+
 	QuestionParm qparm;
-	std::ostream &os = shell->getOutStream();
+	//std::ostream &os = shell->getOutStream();
 
 	while( reader.nextLine() && reader.str.length() ) {
 		const char* q = reader.str.c_str();
-		os << "parsing: " << q << "\n";
+		*ostr << "parsing: " << q << "\n";
 		parser.parse( barz, q, qparm );
-		os << "parsed. printing\n";
-		bs.print(os);
+		*ostr << "parsed. printing\n";
+		bs.print(*ostr);
 		// << ttVec << std::endl;
 	}
 	return 0;

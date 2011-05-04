@@ -15,8 +15,27 @@ namespace {
 
 
 // need to find an xml library for this kind of stuff
+static std::ostream& xmlEscape(const char *src,  std::ostream &os) {
+	for(;*src != '\0'; ++src) {
+		char c = (char)(*src);
+		switch (c) {
+		case '&': os << "&amp;"; break;
+		case '<': os << "&lt;"; break;
+		case '>': os << "&gt;"; break;
+		case '"': os << "&quot;"; break;
+		case '\'': os << "&apos;"; break;
+		default: os << c;
+		}
+	}
+	return os;
+}
+
 static std::ostream& xmlEscape(const std::string &src, std::ostream &os) {
 	//std::ostringstream ret;
+
+	return xmlEscape(src.c_str(), os);
+
+	/*
 	for(std::string::const_iterator i = src.begin(); i != src.end(); ++i) {
 		char c = (char)*i;
 		switch(c) {
@@ -29,8 +48,11 @@ static std::ostream& xmlEscape(const std::string &src, std::ostream &os) {
 		}
 	}
 	//return ret.str();
+	 *
+	*/
 	return os;
 }
+
 
 
 class RangeVisitor : public boost::static_visitor<> {
@@ -79,20 +101,36 @@ public:
 
 	void operator()(const BarzerLiteral &data) {
 		if (data.isBlank()) return;
-		os << "<token>";
 		switch(data.getType()) {
-		case BarzerLiteral::T_STRING: {
-			std::string s = universe.getStringPool().resolveId(data.getId());
-			xmlEscape(s, os);
+		case BarzerLiteral::T_STRING:
+		case BarzerLiteral::T_COMPOUND: {
+			os << "<token>";
+			const char *cstr = universe.getStringPool().resolveId(data.getId());
+			if (cstr) {
+//				std::string s = cstr;
+				xmlEscape(cstr, os);
+			} else {
+				AYLOG(ERROR) << "Illegal literal ID: " << std::hex << data.getId();
+			}
+			os << "<token>";
 		}
-		case BarzerLiteral::T_COMPOUND: // shrug
 			break;
-		case BarzerLiteral::T_STOP: // shrug
+		case BarzerLiteral::T_STOP: {
+			if (data.getId() == 0xffffffff) {
+				os << "<fluff />";
+			} else {
+				const char *cstr = universe.getStringPool().resolveId(data.getId());
+				if (cstr) xmlEscape(cstr, os << "<fluff>") << "</fluff>";
+				else AYLOG(ERROR) << "Illegal literal(STOP) ID: " << std::hex << data.getId();
+			}
+		}
 			break;
 		case BarzerLiteral::T_PUNCT:
 			{ // cough. this is ugly. also need to somehow make this localised
+				os << "<token>";
 				std::string s(1, (char)data.getId());
 				xmlEscape(s, os);
+				os << "<token>";
 			}
 			break;
 		case BarzerLiteral::T_BLANK:
@@ -102,15 +140,14 @@ public:
 			AYLOG(ERROR) << "Unknown literal type";
 			os << "<error>unknown literal type</error>";
 		}
-		os << "</token>";
 	}
 	void operator()(const BarzerString &data) {
 		os << "<token>";
 		xmlEscape(data.getStr(), os) << "</token>";
 	}
 	void operator()(const BarzerNumber &data) {
-		os << "<num>";
-		data.print(os) << "</num>";
+		const char *type =  data.isReal() ? "real" : (data.isInt() ? "int" : "NaN");
+		data.print(os << "<num t=\"" << type << "\">") << "</num>";
 	}
 	void operator()(const BarzerDate &data) {
 		os << "<date>";
