@@ -1,8 +1,20 @@
-0. barzer_standard_entity.h/.cpp (gen.price, gen.distance ...) class ubclass translator
-1. multiple tries support 
-2. entity range combo enhanced (with units)
-3. barzel variable names support 
-4. reduce the size of barzel trie node part II 
-	- pool translations
+*. basic semantical routines - 
+	- repeated stop tokens (consecutive same tok id) need to be absorbed into the first one
+*. stop words handling 
+*. document barzel trie matching algo 
+*. barzer_standard_entity.h/.cpp (gen.price, gen.distance ...) class ubclass translator
+*. entity range combo enhanced (with units)
+*. reduce the size of barzel trie node part II 
+	- pool translations. this is important because if rule has 100 emissions and translation is a rewriter
+	  then 100 identical rewriters will be created - no need for that. also, having translation ids is 
+	  essential for barzel variables
+		1. Trie::addPath called from el_parse should pool the translation and pass tranid instead of the node in
 	- wc lookups are very costly and vast majority of these nodes are identical 
-5. document barzel trie matching algo 
+		1. perhaps instead of wcLookup this should simply be a variant including among other things 
+			BarzelTrieNode (bypassing the whole map/keys nonsense) for cases when there's only one wc node - this is 
+			a reasonable assumption - most date patterns would have one wc child per number node (!)
+*. barzel variable names support 
+	1. there needs to ba  a global table mapping variable and translation id (see above) to trie nodes. in fact the map should 
+	be of a chain of varids + one tran id to multiple trie nodes. probably best is:
+		map[transid, trie[ varname, trie[ ..] ] ]
+*. multiple tries support 

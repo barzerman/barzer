@@ -29,7 +29,7 @@ bool BELTrieWalker::moveBack()
 int BELTrieWalker::moveToFC(const size_t pos)
 {
 	if( pos < fcvec.size()) {
-		const BarzelFCMap *fcmap = trie.getBarzelFCMap( getCurrentNode().getFirmMapId() );
+		const BarzelFCMap *fcmap = trie.getBarzelFCMap( getCurrentNode() );
 
 		if( fcmap ) {
 			const BarzelTrieFirmChildKey &key = fcvec[pos];
@@ -69,7 +69,7 @@ void BELTrieWalker::loadChildren() {
 void BELTrieWalker::loadFC() {
 	fcvec.clear();
 	const BarzelTrieNode &node = getCurrentNode();
-	const BarzelFCMap *fcmap = trie.getBarzelFCMap( node.getFirmMapId() );
+	const BarzelFCMap *fcmap = trie.getBarzelFCMap( node );
 	//AYLOGDEBUG(fcmap.size());
  	int i = 0;
 	if (fcmap && node.hasFirmChildren()) {

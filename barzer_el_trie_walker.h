@@ -139,7 +139,7 @@ public:
 		d_trie(trie),
 		// d_wcPool(wcPool),
 		d_wcLookup(trie.getWCPool().getWCLookup( d_tn.getWCLookupId() ) ),
-		d_firmMap( trie.getBarzelFCMap( d_tn.getFirmMapId()) )
+		d_firmMap( trie.getBarzelFCMap( d_tn ) )
 	{ reset(); }
 
 	BarzelTrieNodeChildIterator( const BarzelTrieNodeChildIterator& ni, const BarzelTrieNode& tn ) :

@@ -100,7 +100,7 @@ std::ostream& BarzelTrieNode::print_translation( std::ostream& fp, const BELPrin
 
 std::ostream& BarzelTrieNode::print_firmChildren( std::ostream& fp, BELPrintContext& ctxt ) const
 {
-	const BarzelFCMap* fm= ( hasFirmChildren() ? ctxt.trie.getBarzelFCMap(d_firmMapId) : 0 );
+	const BarzelFCMap* fm= ( hasFirmChildren() ? ctxt.trie.getBarzelFCMap(*this) : 0 );
 	if( !fm ) {
 		return fp;
 	}
@@ -161,7 +161,7 @@ BarzelTrieNode* BarzelTrieNode::addFirmPattern( BELTrie& trie, const BTND_Patter
 	} else {
 		
 		BarzelFCMap* fm = ( hasFirmChildren() ? 
-			trie.getBarzelFCMap( getFirmMapId() ) : 
+			trie.getBarzelFCMap(*this) : 
 			trie.makeNewBarzelFCMap(d_firmMapId) 
 		);
 		BarzelFCMap& firmMap = *fm;

@@ -280,6 +280,7 @@ class BarzelTrieNode;
 typedef std::map<BarzelTrieFirmChildKey, BarzelTrieNode > BarzelFCMap;
 /// BarzelFirmChildPool contiguously stores BarzelFCMap objects (see el_trie.h for definition)
 typedef ay::PoolWithId< BarzelFCMap > BarzelFirmChildPool;
+typedef ay::PoolWithId< BarzelTranslation > BarzelTranslationPool;
 
 
 class BarzelTrieNode {
@@ -288,6 +289,7 @@ class BarzelTrieNode {
 	uint32_t d_firmMapId; // when valid (not 0xffffffff) can it's an id of a firm lookup object  (BarzelFCMap)
 
 	uint32_t d_wcLookupId; // when valid (not 0xffffffff) can it's an id of a wildcard lookup object 
+	uint32_t d_translationId;
 	const BarzelTrieNode* d_parent;
 
 	// BarzelWCLookup wcChild; /// used for wildcard matching (number,date, etc)
@@ -303,9 +305,11 @@ class BarzelTrieNode {
 	/// methods
 	void clearFirmMap();
 	void clearWCMap();
+	
 public:
 	/// these functions MAY return 0 if the node has no firm children 
 	uint32_t getFirmMapId() const { return d_firmMapId; }
+	uint32_t getTranslationId() const { return d_translationId; }
 
 	// given the nature of the trie - it's extremely leaf heavy - most nodes will actually have 
 	// translation 
@@ -314,6 +318,7 @@ public:
 	BarzelTrieNode():
 		d_firmMapId(0xffffffff),
 		d_wcLookupId(0xffffffff) ,
+		d_translationId(0xffffffff)
 		d_parent(0)
 	{}
 	BarzelTrieNode(const BarzelTrieNode* p ):
@@ -375,23 +380,30 @@ struct BELTrie {
 	BarzelRewriterPool* rewrPool;
 	BarzelWildcardPool* wcPool;
 	BarzelFirmChildPool* fcPool;
+	BarzelTranslationPool *tranPool;
 
 	BarzelTrieNode root;
 	BELTrie( 
 		BarzelRewriterPool*  rPool, 
 		BarzelWildcardPool* wPool,
-		BarzelFirmChildPool* fPool ) : 
-	rewrPool(rPool), 
-	wcPool(wPool),
-	fcPool(fPool) 
+		BarzelFirmChildPool* fPool,
+		BarzelTranslationPool* tPool 
+	) : 
+		rewrPool(rPool), 
+		wcPool(wPool),
+		fcPool(fPool),
+		tranPool(tPool)
 	{}
 
+	BarzelTranslation*  makeNewBarzelTranslation( uint32_t& id ) 
+		{ return tranPool->addObj( id ); }
+	const BarzelTranslation* getBarzelTranslation( const BarzelTrieNode& node ) const { return tranPool->getObjById(node.getTranslationId()); }
+		  BarzelTranslation* getBarzelTranslation( const BarzelTrieNode& node ) 	   { return tranPool->getObjById(node.getTranslationId()); }
+
 	BarzelFCMap*  makeNewBarzelFCMap( uint32_t& id ) 
-	{
-		return fcPool->addObj( id );
-	}
-	const BarzelFCMap* getBarzelFCMap( uint32_t id ) const { return fcPool->getObjById(id); }
-		  BarzelFCMap* getBarzelFCMap( uint32_t id ) 	   { return fcPool->getObjById(id); }
+		{ return fcPool->addObj( id ); }
+	const BarzelFCMap* getBarzelFCMap( const BarzelTrieNode& node ) const { return fcPool->getObjById(node.getFirmMapId()); }
+		  BarzelFCMap* getBarzelFCMap( const BarzelTrieNode& node ) 	  { return fcPool->getObjById(node.getFirmMapId()); }
 
 	/// stores wildcard data n a form later usable by the Trie
 	/// this ends up calling wcPool->produceWCKey()
