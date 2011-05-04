@@ -509,7 +509,6 @@ enum {
 
 /// pattern structure flow data - blank for now
 struct BTND_StructData {
-	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	enum {
 		T_LIST, // sequence of elements
 		T_ANY,  // any element 
@@ -519,9 +518,21 @@ struct BTND_StructData {
 		/// add new types above this line only
 		BEL_STRUCT_MAX
 	};
+protected:
+	uint32_t varId;  // variable id default 0xffffffff
 	uint8_t type;
-	BTND_StructData() : type(T_LIST) {}
-	BTND_StructData(int t) : type(t) {}
+public:
+	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
+
+	int getType() const { return type; }
+	void setType( int t ) { type = t; }
+
+	uint32_t getVarId() const { return varId; }
+	void setVarId( uint32_t vi ) { varId = vi; }
+
+	BTND_StructData() : varId(0xffffffff), type(T_LIST) {}
+	BTND_StructData(int t) : varId(0xffffffff), type(t) {}
+	BTND_StructData(int t, uint32_t vi ) : varId(vi), type(t) {}
 };
 
 /// blank data type
