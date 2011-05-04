@@ -234,7 +234,7 @@ PatternEmitterNode* PatternEmitterNode::make(const BELParseTreeNode& node)
 {
     switch(node.btndVar.which()) {
         case BTND_StructData_TYPE:
-            switch(boost::get<BTND_StructData>(node.btndVar).type) {
+            switch(boost::get<BTND_StructData>(node.btndVar).getType()) {
                 case BTND_StructData::T_LIST:
                     return new List(node.child);
                 case BTND_StructData::T_ANY:

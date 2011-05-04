@@ -220,6 +220,16 @@ public:
 		bool wasNew = false;
 		return tokPool.addSingleTok( wasNew, t );
 	}
+
+	StoredEntity& addEntity( const char* t, uint16_t cl, uint16_t scl )
+	{
+		StoredTokenId tokId = strPool->internIt( t );
+		const StoredEntityUniqId euid( tokId, cl, scl );
+
+		bool isNew = false;
+		return entPool.addOneEntity( isNew, euid );
+	}
+	
 }; 
 
 } // namespace barzer

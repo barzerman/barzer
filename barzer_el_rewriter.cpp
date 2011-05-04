@@ -135,11 +135,6 @@ struct Eval_visitor_compute : public boost::static_visitor<bool> {
 		}
 		return true;
 	}
-	bool operator()( const BTND_Rewrite_Literal &data ) {
-		AYLOG(DEBUG) << "BTND_Rewrite_Literal";
-		return true;
-	}
-
 	bool operator()( const BTND_Rewrite_DateTime &data ) {
 		AYLOG(DEBUG) << "BTND_Rewrite_DateTime";
 		return true;
@@ -165,6 +160,15 @@ struct Eval_visitor_compute : public boost::static_visitor<bool> {
 };
 
 
+template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Literal>(const BTND_Rewrite_Literal &data) {
+	//AYLOG(DEBUG) << "calling funid:" << data.nameId;
+	//const StoredUniverse &u = ctxt.universe;
+	//const BELFunctionStorage &fs = u.getFunctionStorage();
+	BarzerLiteral lit( data );
+
+	d_val.setBeadData( 	BarzelBeadAtomic().setData( BarzerLiteral(data) ) );
+	return true;
+}
 template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const BTND_Rewrite_Function &data) {
 	//AYLOG(DEBUG) << "calling funid:" << data.nameId;
 	const StoredUniverse &u = ctxt.universe;
