@@ -15,8 +15,27 @@ namespace {
 
 
 // need to find an xml library for this kind of stuff
+static std::ostream& xmlEscape(const char *src,  std::ostream &os) {
+	for(;*src != '\0'; ++src) {
+		char c = (char)(*src);
+		switch (c) {
+		case '&': os << "&amp;"; break;
+		case '<': os << "&lt;"; break;
+		case '>': os << "&gt;"; break;
+		case '"': os << "&quot;"; break;
+		case '\'': os << "&apos;"; break;
+		default: os << c;
+		}
+	}
+	return os;
+}
+
 static std::ostream& xmlEscape(const std::string &src, std::ostream &os) {
 	//std::ostringstream ret;
+
+	return xmlEscape(src.c_str(), os);
+
+	/*
 	for(std::string::const_iterator i = src.begin(); i != src.end(); ++i) {
 		char c = (char)*i;
 		switch(c) {
@@ -29,6 +48,8 @@ static std::ostream& xmlEscape(const std::string &src, std::ostream &os) {
 		}
 	}
 	//return ret.str();
+	 *
+	*/
 	return os;
 }
 
@@ -84,14 +105,24 @@ public:
 		case BarzerLiteral::T_STRING:
 		case BarzerLiteral::T_COMPOUND: {
 			os << "<token>";
-			std::string s = universe.getStringPool().resolveId(data.getId());
-			xmlEscape(s, os);
+			const char *cstr = universe.getStringPool().resolveId(data.getId());
+			if (cstr) {
+//				std::string s = cstr;
+				xmlEscape(cstr, os);
+			} else {
+				AYLOG(ERROR) << "Illegal literal ID: " << std::hex << data.getId();
+			}
 			os << "<token>";
 		}
 			break;
 		case BarzerLiteral::T_STOP: {
-			std::string s = universe.getStringPool().resolveId(data.getId());
-			xmlEscape(s, os << "<fluff>") << "</fluff>";
+			if (data.getId() == 0xffffffff) {
+				os << "<fluff />";
+			} else {
+				const char *cstr = universe.getStringPool().resolveId(data.getId());
+				if (cstr) xmlEscape(cstr, os << "<fluff>") << "</fluff>";
+				else AYLOG(ERROR) << "Illegal literal(STOP) ID: " << std::hex << data.getId();
+			}
 		}
 			break;
 		case BarzerLiteral::T_PUNCT:

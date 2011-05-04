@@ -67,5 +67,12 @@
         </pat>
         <tran><func name="lookupWday"><var pn="1" /></func></tran>
     </stmt>
-    
+    <stmt>
+        <pat>
+        <any><t>shit</t><t>fuck</t></any><t>cunt</t>
+        </pat>
+        <tran>
+            <ltrl t="stop" >shit</ltrl>
+        </tran>
+    </stmt>    
 </stmset>

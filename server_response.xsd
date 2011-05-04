@@ -44,13 +44,14 @@
                 </xs:complexType>
             </xs:element>
         </xs:all>
-        <xs:attribute name="id" type="xs:int" />
+        <!-- <xs:attribute name="id" type="xs:int" /> -->
     </xs:complexType>
 
     <xs:element name="barz">
         <xs:complexType>
             <xs:choice maxOccurs="unbounded" minOccurs="0">
                 <xs:element name="token" type="xs:string" />
+                <xs:element name="fluff" type="xs:string" />
                 <xs:element name="num" type="tns:numType" />
                 <xs:element name="time" type="xs:string" />
                 <xs:element name="date" type="xs:string" />
