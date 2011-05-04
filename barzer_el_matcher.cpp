@@ -179,7 +179,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 	template <>
 inline	bool findMatchingChildren_visitor::operator()<BarzerLiteral> ( const BarzerLiteral& dta ) 
 	{
-		const BarzelFCMap* fcmap = d_btmi.universe.getBarzelTrie().getBarzelFCMap( d_tn );
+		const BarzelFCMap* fcmap = d_btmi.universe.getBarzelTrie().getBarzelFCMap( *d_tn );
 		if( fcmap ) {
 			BarzelTrieFirmChildKey firmKey; 
 			// forming firm key
