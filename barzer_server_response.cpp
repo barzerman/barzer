@@ -89,6 +89,7 @@ public:
 		case BarzerLiteral::T_COMPOUND: // shrug
 			break;
 		case BarzerLiteral::T_STOP: // shrug
+			os << "<fluff />";
 			break;
 		case BarzerLiteral::T_PUNCT:
 			{ // cough. this is ugly. also need to somehow make this localised
