@@ -318,12 +318,13 @@ public:
 	BarzelTrieNode():
 		d_firmMapId(0xffffffff),
 		d_wcLookupId(0xffffffff) ,
-		d_translationId(0xffffffff)
+		d_translationId(0xffffffff),
 		d_parent(0)
 	{}
 	BarzelTrieNode(const BarzelTrieNode* p ):
 		d_firmMapId(0xffffffff) ,
 		d_wcLookupId(0xffffffff) ,
+		d_translationId(0xffffffff),
 		d_parent(p)
 	{}
 
