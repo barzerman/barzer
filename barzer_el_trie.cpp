@@ -33,10 +33,19 @@ const BarzelWCLookup*  BELPrintContext::getWildcardLookup( uint32_t id ) const
 return( trie.wcPool->getWCLookup( id ));
 }
 
+void BarzelTrieNode::clearFirmMap()
+{
+	d_firmMapId = 0xffffffff;
+}
+void BarzelTrieNode::clearWCMap()
+{
+
+	d_wcLookupId = 0xffffffff;
+}
 void BarzelTrieNode::clear()
 {
-	firmMap.clear();
-	wcLookupId = 0xffffffff;
+	clearFirmMap();
+	clearWCMap();
 }
 void BELTrie::clear()
 {
@@ -91,6 +100,11 @@ std::ostream& BarzelTrieNode::print_translation( std::ostream& fp, const BELPrin
 
 std::ostream& BarzelTrieNode::print_firmChildren( std::ostream& fp, BELPrintContext& ctxt ) const
 {
+	const BarzelFCMap* fm= ( hasFirmChildren() ? ctxt.trie.getBarzelFCMap(d_firmMapId) : 0 );
+	if( !fm ) {
+		return fp;
+	}
+	const BarzelFCMap& firmMap = *fm;
 	for( BarzelFCMap::const_iterator i = firmMap.begin(); i!= firmMap.end() ; ++i ) {
 		i->first.print( (fp << ctxt.prefix), ctxt);
 		if( ctxt.needDescend() ) {
@@ -105,9 +119,9 @@ std::ostream& BarzelTrieNode::print_firmChildren( std::ostream& fp, BELPrintCont
 
 std::ostream& BarzelTrieNode::print_wcChildren( std::ostream& fp, BELPrintContext& ctxt ) const
 {
-	const BarzelWCLookup* wcLookup = ctxt.getWildcardLookup( wcLookupId );
+	const BarzelWCLookup* wcLookup = ctxt.getWildcardLookup( d_wcLookupId );
 	if( !wcLookup ) {
-		std::cerr << "Barzel Trie FATAL: lookup id " << std::hex << wcLookupId << " is invalid\n";
+		std::cerr << "Barzel Trie FATAL: lookup id " << std::hex << d_wcLookupId << " is invalid\n";
 		return fp;
 	}
 	for( BarzelWCLookup::const_iterator i = wcLookup->begin(); i != wcLookup->end(); ++i ) {
@@ -145,6 +159,12 @@ BarzelTrieNode* BarzelTrieNode::addFirmPattern( BELTrie& trie, const BTND_Patter
 		AYTRACE( "illegally attempting to add a wildcard" );
 		return this;
 	} else {
+		
+		BarzelFCMap* fm = ( hasFirmChildren() ? 
+			trie.getBarzelFCMap( getFirmMapId() ) : 
+			trie.makeNewBarzelFCMap(d_firmMapId) 
+		);
+		BarzelFCMap& firmMap = *fm;
 		BarzelFCMap::iterator i = firmMap.find( key );
 		if( i == firmMap.end() ) { // creating new one
 			i = firmMap.insert( BarzelFCMap::value_type( key, BarzelTrieNode(this) ) ).first;
@@ -158,9 +178,9 @@ BarzelTrieNode* BarzelTrieNode::addFirmPattern( BELTrie& trie, const BTND_Patter
 BarzelTrieNode* BarzelTrieNode::addWildcardPattern( BELTrie& trie, const BTND_PatternData& p, const BarzelTrieFirmChildKey& fk  )
 {
 	if( !hasValidWcLookup() ) 
-		trie.wcPool->addWCLookup( wcLookupId );
+		trie.wcPool->addWCLookup( d_wcLookupId );
 	
-	BarzelWCLookup* wcLookup = trie.wcPool->getWCLookup( wcLookupId );
+	BarzelWCLookup* wcLookup = trie.wcPool->getWCLookup( d_wcLookupId );
 	BarzelWCLookupKey lkey;
 	lkey.first = fk;
 	trie.produceWCKey( lkey.second, p );

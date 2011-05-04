@@ -286,13 +286,13 @@ static int bshf_triestats( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	ShellState sh( shell, cmd, in );
 	{
-	BarzelTrieTraverser_depth trav( sh.trie.getRoot(), sh.uni.getWildcardPool() );
+	BarzelTrieTraverser_depth trav( sh.trie.getRoot(), sh.uni.getBarzelTrie() );
 	BarzelTrieStatsCounter counter;
 	trav.traverse( counter, sh.curTrieNode );
 	std::cerr << counter << std::endl;
 	}
 	{
-	BarzelTrieTraverser_depth trav( sh.trie.getRoot(), sh.uni.getWildcardPool() );
+	BarzelTrieTraverser_depth trav( sh.trie.getRoot(), sh.uni.getBarzelTrie() );
 	BarzelTrieStatsCounter counter;
 	trav.traverse_nostack( counter, sh.curTrieNode );
 	std::cerr << counter << std::endl;
@@ -322,7 +322,7 @@ static int bshf_trans( BarzerShell* shell, char_cp cmd, std::istream& in )
 	if (sh.curTrieNode.isLeaf()) {
 		aLeaf = &sh.curTrieNode;
 	} else {
-		BarzelTrieTraverser_depth trav( sh.trie.getRoot(), sh.uni.getWildcardPool() );
+		BarzelTrieTraverser_depth trav( sh.trie.getRoot(), sh.uni.getBarzelTrie() );
 		TrieLeafFinder fun;
 		aLeaf = trav.traverse( fun, sh.curTrieNode );
 	}

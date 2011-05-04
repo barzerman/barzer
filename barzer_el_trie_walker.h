@@ -66,19 +66,25 @@ public:
 
 class BarzelTrieNodeChildIterator {
 	const BarzelTrieNode& d_tn;
-	const BarzelWildcardPool& d_wcPool;
+	// const BarzelWildcardPool& d_wcPool;
+	const BELTrie& d_trie;
 	
 	BarzelFCMap::const_iterator d_firmIter;
 	const BarzelWCLookup* 	    d_wcLookup;
+	const BarzelFCMap* 		    d_firmMap;
+
 	BarzelWCLookup::const_iterator d_wcLookupIter;
 	
+	const BarzelFCMap*   getFirmMap() {
+		return d_firmMap;
+	}
 public:
 	typedef std::pair< const BarzelWCLookup*, BarzelWCLookup::const_iterator > LookupKey;
 	typedef boost::variant< 
 		BarzelFCMap::const_iterator,
 		LookupKey
 	> NodeKey;
-	bool isOnFirmChildren() const { return d_firmIter != d_tn.getFirmMap().end() ; }	
+	bool isOnFirmChildren() const { return ( d_firmMap && d_firmIter != d_firmMap->end() ); }	
 
 	const BarzelTrieNode* getCurrentChild( NodeKey& k ) const
 	{
@@ -100,7 +106,7 @@ public:
 	}
 	const BarzelTrieNode* getNextChild(NodeKey& k) 
 	{
-		if( d_firmIter != d_tn.getFirmMap().end() && ++d_firmIter != d_tn.getFirmMap().end() ) {
+		if( d_firmMap && d_firmIter != d_firmMap->end() && ++d_firmIter != d_firmMap->end() ) {
 			k = d_firmIter;
 			return ( &(d_firmIter->second) );
 		} else if( d_wcLookup && d_wcLookupIter != d_wcLookup->end()  && ++d_wcLookupIter != d_wcLookup->end() ) {
@@ -120,23 +126,27 @@ public:
 	// bring everything current 
 	void reset()
 	{ 
-		d_firmIter = d_tn.getFirmMap().begin(); 
+		if( d_firmMap )
+			d_firmIter = d_firmMap->begin(); 
 		if( d_wcLookup ) 
 			d_wcLookupIter = d_wcLookup->begin();
 	}
 	BarzelTrieNodeChildIterator( 
 		const BarzelTrieNode& tn,
-		const BarzelWildcardPool& wcPool
+		const BELTrie& trie
 		) : 
 		d_tn(tn) ,
-		d_wcPool(wcPool),
-		d_wcLookup(d_wcPool.getWCLookup( d_tn.getWCLookupId() ) )
+		d_trie(trie),
+		// d_wcPool(wcPool),
+		d_wcLookup(trie.getWCPool().getWCLookup( d_tn.getWCLookupId() ) ),
+		d_firmMap( trie.getBarzelFCMap( d_tn.getFirmMapId()) )
 	{ reset(); }
 
 	BarzelTrieNodeChildIterator( const BarzelTrieNodeChildIterator& ni, const BarzelTrieNode& tn ) :
 		d_tn(tn),
-		d_wcPool(ni.d_wcPool),
-		d_wcLookup(d_wcPool.getWCLookup( d_tn.getWCLookupId() ) )
+		d_trie(ni.d_trie),
+		// d_wcPool(ni.d_wcPool),
+		d_wcLookup(ni.d_trie.getWCPool().getWCLookup( d_tn.getWCLookupId() ) )
 	{ reset(); }
 };
 
@@ -147,10 +157,12 @@ public:
 /// traversal stops as soon as false is returned and the d_stopNode is set to the node at which the stoppage 
 /// occured is if traverser went over the whole trie - 0 is returned
 struct BarzelTrieTraverser_depth {
-	const BarzelWildcardPool& d_wcPool;
+	// const BarzelWildcardPool& d_wcPool;
+	BELTrie d_trie;
 
-	BarzelTrieTraverser_depth( const BarzelTrieNode& tn, const BarzelWildcardPool& wcPool  )  :
-		d_wcPool(wcPool)
+	BarzelTrieTraverser_depth( const BarzelTrieNode& tn, const BELTrie& trie  )  :
+		//d_wcPool(wcPool)
+		d_trie(trie)
 	{}
 
 	typedef BarzelTrieNodeChildIterator::NodeKey   NodeKey;
@@ -162,7 +174,7 @@ struct BarzelTrieTraverser_depth {
 	template <typename T>
 	const BarzelTrieNode* traverse(T& cb, const BarzelTrieNode& tn )
 	{
-		BarzelTrieNodeChildIterator it( tn, d_wcPool );
+		BarzelTrieNodeChildIterator it( tn, d_trie );
 		NodeKey nk;
 		for( const BarzelTrieNode* child = it.getCurrentChild(nk); child; child = it.getNextChild(nk) ) {
 			ay::vector_raii< NodeKeyVec > raii( d_stack, nk );
@@ -179,7 +191,7 @@ struct BarzelTrieTraverser_depth {
 	template <typename T>
 	const BarzelTrieNode* traverse_nostack(T& cb, const BarzelTrieNode& tn )
 	{
-		BarzelTrieNodeChildIterator it( tn, d_wcPool );
+		BarzelTrieNodeChildIterator it( tn, d_trie );
 		for( const BarzelTrieNode* child = it.getCurrentChild(); child; child = it.getNextChild() ) {
 			if( !cb(*child) )
 				return child;

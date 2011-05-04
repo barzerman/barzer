@@ -29,16 +29,18 @@ bool BELTrieWalker::moveBack()
 int BELTrieWalker::moveToFC(const size_t pos)
 {
 	if( pos < fcvec.size()) {
-		const BarzelFCMap &fcmap = getCurrentNode().getFirmMap();
+		const BarzelFCMap *fcmap = trie.getBarzelFCMap( getCurrentNode().getFirmMapId() );
 
-		const BarzelTrieFirmChildKey &key = fcvec[pos];
-
-		BarzelFCMap::const_iterator i = fcmap.find( key );
-		if( i== fcmap.end() ) {
-			AYTRACE("PANIC: invalid key");
-			return 1;
+		if( fcmap ) {
+			const BarzelTrieFirmChildKey &key = fcvec[pos];
+	
+			BarzelFCMap::const_iterator i = fcmap->find( key );
+			if( i== fcmap->end() ) {
+					AYTRACE("PANIC: invalid key");
+				return 1;
+			}
+			nodeStack.push_back(BELTWStackPair(BELTrieWalkerKey(key), &(i->second) ));
 		}
-		nodeStack.push_back(BELTWStackPair(BELTrieWalkerKey(key), &(i->second) ));
 		//nodeStack.push(&fcmap[key]);
 		loadChildren();
 		return 0;
@@ -67,12 +69,12 @@ void BELTrieWalker::loadChildren() {
 void BELTrieWalker::loadFC() {
 	fcvec.clear();
 	const BarzelTrieNode &node = getCurrentNode();
-	const BarzelFCMap &fcmap = node.getFirmMap();
+	const BarzelFCMap *fcmap = trie.getBarzelFCMap( node.getFirmMapId() );
 	//AYLOGDEBUG(fcmap.size());
  	int i = 0;
-	if (node.hasFirmChildren()) {
-		for (BarzelFCMap::const_iterator fci = fcmap.begin();
-				fci != fcmap.end();	++fci) {
+	if (fcmap && node.hasFirmChildren()) {
+		for (BarzelFCMap::const_iterator fci = fcmap->begin();
+				fci != fcmap->end();	++fci) {
 			fcvec.push_back(fci->first);
 			i++;
 		}
