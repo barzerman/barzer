@@ -33,6 +33,7 @@ static std::ostream& xmlEscape(const std::string &src, std::ostream &os) {
 }
 
 
+
 class RangeVisitor : public boost::static_visitor<> {
 	std::ostream &os;
 public:
@@ -109,8 +110,8 @@ public:
 		xmlEscape(data.getStr(), os) << "</token>";
 	}
 	void operator()(const BarzerNumber &data) {
-		os << "<num>";
-		data.print(os) << "</num>";
+		const char *type =  data.isReal() ? "real" : (data.isInt() ? "int" : "NaN");
+		data.print(os << "<num t=\"" << type << "\">") << "</num>";
 	}
 	void operator()(const BarzerDate &data) {
 		os << "<date>";

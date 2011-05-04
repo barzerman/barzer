@@ -1,20 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-		targetNamespace="http://www.barzer.net/server_response/0.1"
-		xmlns:tns="http://www.barzer.net/server_response/0.1"
-		elementFormDefault="qualified">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="http://www.barzer.net/server_response/0.1"
+        xmlns:tns="http://www.barzer.net/server_response/0.1"
+        elementFormDefault="qualified">
 
-<!-- first iteration of server response xsd. only included the tags which have a chance to appear -->
+<!-- second iteration of server response xsd. still only included the tags which have a chance to appear -->
 
-	<xs:element name="barz">
-    	<xs:complexType>
-    		<xs:choice maxOccurs="unbounded" minOccurs="0">
-    			<xs:element name="token" type="xs:string"></xs:element>
-    			<xs:element name="num" type="xs:string"></xs:element>
-    			<xs:element name="time" type="xs:string"></xs:element>
-    			<xs:element name="date" type="xs:string"></xs:element>
-    		</xs:choice>
-    	</xs:complexType>
+    <xs:simpleType name="numTypeEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="int"/>
+            <xs:enumeration value="real"/>
+            <xs:enumeration value="NaN"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:group name="lohiGroup">
+        <xs:choice>
+            <xs:element name="lo" type="xs:string" />
+            <xs:element name="hi" type="xs:string" />
+        </xs:choice>
+    </xs:group>
+
+    <xs:complexType name="rangeNumType">
+        <xs:group ref="tns:lohiGroup" minOccurs="1" maxOccurs="unbounded" />
+        <xs:attribute name="t" type="tns:numTypeEnum" use="required" />
+    </xs:complexType>
+
+    <xs:complexType name="numType">
+        <xs:simpleContent>
+            <xs:extension base="xs:decimal">
+                <xs:attribute name="t" type="tns:numTypeEnum" use="required" />
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <xs:complexType name="entityType">
+        <xs:all>
+            <xs:element name="euid">
+                <xs:complexType>
+                    <xs:attribute name="tokid" type="xs:int" />
+                    <xs:attribute name="class" type="xs:int" />
+                    <xs:attribute name="subclass" type="xs:int" />
+                </xs:complexType>
+            </xs:element>
+        </xs:all>
+        <xs:attribute name="id" type="xs:int" />
+    </xs:complexType>
+
+    <xs:element name="barz">
+        <xs:complexType>
+            <xs:choice maxOccurs="unbounded" minOccurs="0">
+                <xs:element name="token" type="xs:string" />
+                <xs:element name="num" type="tns:numType" />
+                <xs:element name="time" type="xs:string" />
+                <xs:element name="date" type="xs:string" />
+                <xs:element name="entity" type="tns:entityType" />
+                <xs:element name="range">
+                    <xs:complexType>
+                        <xs:choice minOccurs="1" maxOccurs="1">
+                            <xs:element name="num" type="tns:rangeNumType" />
+                            <xs:element name="time">
+                                <xs:complexType><xs:group ref="tns:lohiGroup" /></xs:complexType>
+                            </xs:element>
+                            <xs:element name="date">
+                                <xs:complexType><xs:group ref="tns:lohiGroup" /></xs:complexType>
+                             </xs:element>
+                            </xs:choice>
+                    </xs:complexType>
+                </xs:element>
+            </xs:choice>
+        </xs:complexType>
     </xs:element>
 
-</schema>
+</xs:schema>
