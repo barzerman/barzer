@@ -2,5 +2,7 @@
 1. multiple tries support 
 2. entity range combo enhanced (with units)
 3. barzel variable names support 
-4. reduce the size of barzel trie node - pool the firm children and translations
+4. reduce the size of barzel trie node part II 
+	- pool translations
+	- wc lookups are very costly and vast majority of these nodes are identical 
 5. document barzel trie matching algo 

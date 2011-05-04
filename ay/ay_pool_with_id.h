@@ -105,11 +105,16 @@ public:
 	{ }
 	~PoolWithId() { clear(); }
 
+	// total number of elements pooled
+	inline size_t getNumElements() const 
+	{
+		return( ((cVec.size()-1) *chunkCapacity) +  curChunkSz );
+	}
 	T* addObj( uint32_t& id ) 
 	{
 		if( !cVec.size() || curChunkSz>= chunkCapacity ) 
 			addNewChunk();
-		id = ((cVec.size()-1) *chunkCapacity) +  curChunkSz;
+		id = getNumElements();
 		T* t =  curChunk + curChunkSz;
 		++curChunkSz;
 		return t;

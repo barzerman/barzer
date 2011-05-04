@@ -158,6 +158,8 @@ static int bshf_inspect( BarzerShell* shell, char_cp cmd, std::istream& in )
 	AYDEBUG( sizeof(BarzelTranslation) );
 	AYDEBUG( sizeof(BarzelTrieNode) );
 	AYDEBUG( sizeof(BarzelFCMap) );
+	std::cerr << "Barzel Wildcards:\n";
+	context->universe.getWildcardPool().print( std::cerr );
 
 	if( dtaIdx ) {
 		std::ostream& fp = shell->getOutStream();

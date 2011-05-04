@@ -3,6 +3,7 @@
 
 #include <barzer_el_trie.h>
 #include <ay/ay_pool_with_id.h>
+#include <ay/ay_debug.h>
 namespace barzer {
 struct BarzelWCKey;
 
@@ -93,6 +94,16 @@ public:
 		}
 	}
 	
+	// prints stats 
+	std::ostream& print( std::ostream& fp ) const
+	{
+		return( fp << "total WC lookups: " << (wcLookupPool.getNumElements()) << "\n" <<
+		"pool_Number:" << (pool_Number.getVecSize()) << "\n" <<
+		"pool_Date:" << (pool_Date.getVecSize()) <<"\n" <<
+		"pool_Time:" << (pool_Time.getVecSize()) <<"\n" <<
+		"pool_DateTime:" << (pool_DateTime.getVecSize()) <<"\n" <<
+		"pool_Wildcard:" << (pool_Wildcard.getVecSize()) )<< "\n" ;
+	}
 	std::ostream& print( std::ostream& fp, const BarzelWCKey& key, const BELPrintContext& ctxt ) const;
 };
 

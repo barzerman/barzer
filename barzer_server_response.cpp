@@ -150,10 +150,7 @@ public:
 	}
 
 	void operator()(const BarzelEntityRangeCombo &data) {
-		os << "<entrange>";
-		(*this)(data.ent);
-		(*this)(data.range);
-		os << "</entrange>";
+		os << "<entrange>" << "</entrange>";
 	}
 };
 }
