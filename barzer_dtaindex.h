@@ -220,8 +220,14 @@ public:
 		bool wasNew = false;
 		return tokPool.addSingleTok( wasNew, t );
 	}
-
-	StoredEntity& addEntity( const char* t, uint16_t cl, uint16_t scl )
+	/// add generic entity does not link storedtoken and the newly minted entity
+	StoredEntity& addGenericEntity( uint16_t cl, uint16_t scl )
+	{
+		const StoredEntityUniqId euid( 0xffffffff, cl, scl );
+		bool isNew = false;
+		return entPool.addOneEntity( isNew, euid );
+	}
+	StoredEntity& addGenericEntity( const char* t, uint16_t cl, uint16_t scl )
 	{
 		StoredTokenId tokId = addToken(t).tokId;
 		const StoredEntityUniqId euid( tokId, cl, scl );
