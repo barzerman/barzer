@@ -538,7 +538,7 @@ struct BELFunctionStorage_holder {
 
 	STFUN(lookupEntity)
 	{
-
+		return false;
 	}
 
 	#undef STFUN

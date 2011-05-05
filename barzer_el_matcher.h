@@ -164,9 +164,15 @@ struct BTMBestPaths {
 	int getBestScore() const
 		{ return d_bestInfallibleScore; }
 	const NodeAndBeadVec&  getBestPath() const { return  d_bestInfalliblePath ; }
+	/*
 	const BarzelTranslation* const getTranslation() { 
 		const NodeAndBeadVec& p = getBestPath();
-		return( p.size() ? &(p.rbegin()->first->translation) : 0 ); 
+		return( p.size() ? p.rbegin()->first->getTranslation(universe.getBarzelTrie()) : 0 ); 
+	}
+	*/
+	const BarzelTrieNode*  getTrieNode() const { 
+		const NodeAndBeadVec& p = getBestPath();
+		return( p.size() ? p.rbegin()->first : 0 ); 
 	}
 };
 

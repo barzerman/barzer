@@ -286,11 +286,11 @@ typedef ay::PoolWithId< BarzelTranslation > BarzelTranslationPool;
 class BarzelTrieNode {
 	// BarzelFCMap d_firmMap; /// children of the 'firm' types - token,punctuation,compounded word
 
+	const BarzelTrieNode* d_parent;
 	uint32_t d_firmMapId; // when valid (not 0xffffffff) can it's an id of a firm lookup object  (BarzelFCMap)
 
 	uint32_t d_wcLookupId; // when valid (not 0xffffffff) can it's an id of a wildcard lookup object 
 	uint32_t d_translationId;
-	const BarzelTrieNode* d_parent;
 
 	// BarzelWCLookup wcChild; /// used for wildcard matching (number,date, etc)
 	enum {
@@ -306,26 +306,28 @@ class BarzelTrieNode {
 	void clearFirmMap();
 	void clearWCMap();
 	
+	// given the nature of the trie - it's extremely leaf heavy - most nodes will actually have 
+	// translation 
+	//BarzelTranslation d_translation;
 public:
 	/// these functions MAY return 0 if the node has no firm children 
 	uint32_t getFirmMapId() const { return d_firmMapId; }
 	uint32_t getTranslationId() const { return d_translationId; }
-
-	// given the nature of the trie - it's extremely leaf heavy - most nodes will actually have 
-	// translation 
-	BarzelTranslation translation;
+	
+	BarzelTranslation* getTranslation(BELTrie& trie);
+	const BarzelTranslation* getTranslation(const BELTrie& trie) const;
 
 	BarzelTrieNode():
+		d_parent(0),
 		d_firmMapId(0xffffffff),
 		d_wcLookupId(0xffffffff) ,
-		d_translationId(0xffffffff),
-		d_parent(0)
+		d_translationId(0xffffffff)
 	{}
 	BarzelTrieNode(const BarzelTrieNode* p ):
+		d_parent(p),
 		d_firmMapId(0xffffffff) ,
 		d_wcLookupId(0xffffffff) ,
-		d_translationId(0xffffffff),
-		d_parent(p)
+		d_translationId(0xffffffff)
 	{}
 
 	const BarzelTrieNode* getParent() const { return d_parent; }
@@ -342,10 +344,10 @@ public:
 	bool hasChildren() const 
 		{ return (hasWildcardChildren() || hasFirmChildren() ); }
 
-	bool isLeaf() const { return translation.nonEmpty(); }
+	bool isLeaf() const { return (d_translationId != 0xffffffff); }
 
 	/// makes node leaf and sets translation
-	void setTranslation(BELTrie&trie, const BELParseTreeNode& ptn );
+	void setTranslation(uint32_t tranId ) { d_translationId = tranId; }
 
 	// locates a child node or creates a new one and returns a reference to it. non-leaf by default 
 	// if pattern data cant be translated into a valid key the same node is returned
@@ -411,8 +413,7 @@ struct BELTrie {
 	void produceWCKey( BarzelWCKey&, const BTND_PatternData&   );
 
 	/// adds a new path to the trie
-	// returns the leaf. if this function returns null it would indicate some major loading inconsistency
-	const BarzelTrieNode* addPath( const BTND_PatternDataVec& path, const BELParseTreeNode& trans );
+	const BarzelTrieNode* addPath( const BTND_PatternDataVec& path, uint32_t tranId );
 	BarzelWildcardPool&  getWCPool() { return *wcPool; }
 	const BarzelWildcardPool&  getWCPool() const { return *wcPool; }
 
@@ -424,6 +425,14 @@ struct BELTrie {
 
 	void clear();
 };
+inline BarzelTranslation* BarzelTrieNode::getTranslation(BELTrie& trie) 
+{ 
+	return trie.getBarzelTranslation( *this );
+}
+inline const BarzelTranslation* BarzelTrieNode::getTranslation(const BELTrie& trie) const 
+{ 
+	return trie.getBarzelTranslation( *this );
+}
 
 /// object necessary for meaningful printing
 struct BELPrintFormat {

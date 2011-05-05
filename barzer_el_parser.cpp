@@ -43,7 +43,14 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 	do {
 		const BTND_PatternDataVec& seq = emitter.getCurSequence();
 		j += seq.size();
-		trie->addPath( seq, sp.translation );
+		uint32_t tranId = 0xffffffff;
+		BarzelTranslation* tran = trie->makeNewBarzelTranslation( tranId );
+
+		if( !tran ) {
+			AYLOG(ERROR) << "null translation returned\n";
+		} else
+			tran->set(*trie, sp.translation);
+		trie->addPath( seq, tranId );
 		i++;
 		//AYLOG(DEBUG) << "path added";
 	} while( emitter.produceSequence() );
