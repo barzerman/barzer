@@ -222,12 +222,11 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 	BarzStreamerXML bs(barz, context->universe);
 
 	std::string fname;
-	std::ostream *ostr = &std::cout;
+	std::ostream *ostr = &(shell->getOutStream());
 	std::ofstream ofile;
 
 	ay::InputLineReader reader( in );
 	if (in >> fname) {
-		AYLOG(DEBUG) << "found ofile name: " << fname;
 		ofile.open(fname.c_str());
 		ostr = &ofile;
 	}
