@@ -49,6 +49,8 @@ public:
 	inline int 		getInt_unsafe() const { return( n.i  ); }
 	inline double 	getReal_unsafe() const { return( n.real  ); }
 
+	inline uint32_t 	getUint32() const { return( isInt() ? (uint32_t)(n.i) : 0 ); }
+
 	inline int 		getInt() const { return( isInt() ? n.i : 0 ); }
 	inline double 	getReal() const { return( isReal() ? n.real : 0. ); }
 	
