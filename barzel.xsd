@@ -6,46 +6,55 @@
 	
 	<!-- type for numbers inside patterns - <n l="low" h="high" /> -->
     <xs:complexType name="patNumberType">
-    	<xs:attribute name="h" type="xs:decimal"></xs:attribute>
-    	<xs:attribute name="l" type="xs:decimal"></xs:attribute>
-    	<xs:attribute name="r" type="xs:boolean"></xs:attribute>
+    	<xs:attribute name="h" type="xs:decimal" />
+    	<xs:attribute name="l" type="xs:decimal" />
+    	<xs:attribute name="r" type="xs:boolean" />
     </xs:complexType>
 
     <xs:complexType name="patList">
     	<xs:choice maxOccurs="unbounded" minOccurs="0">
     		<!-- token -->
-    		<xs:element name="t" type="xs:string"></xs:element>
+    		<xs:element name="t" type="xs:string" />
     		<!-- number -->
-    		<xs:element name="n" type="tns:patNumberType" ></xs:element>
+    		<xs:element name="n" type="tns:patNumberType" />
     		<!-- punctuation -->
-    		<xs:element name="p" type="xs:string" ></xs:element>
+    		<xs:element name="p" type="xs:string" />
     		<!-- wildcard -->
     		<xs:element name="w" />
     		<!-- world class -->
     		<xs:element name="wcls" type="xs:string"  />
     		<!-- you'll never guess about these -->
-    		<xs:element name="list" type="tns:patList"></xs:element>
-    		<xs:element name="opt" type="tns:patList"></xs:element>
-    		<xs:element name="any" type="tns:patList"></xs:element>
-    		<xs:element name="perm" type="tns:patList"></xs:element>
-    		<xs:element name="tail" type="tns:patList"></xs:element>
+    		<xs:element name="list" type="tns:patList" />
+    		<xs:element name="opt" type="tns:patList" />
+    		<xs:element name="any" type="tns:patList" />
+    		<xs:element name="perm" type="tns:patList" />
+    		<xs:element name="tail" type="tns:patList" />
     	</xs:choice>
     </xs:complexType>
 	<!-- type for the right side variables -->
     <xs:complexType name="rVarType">
     	<!-- variable name -->
-    	<xs:attribute name="name" type="xs:string"></xs:attribute>
+    	<xs:attribute name="name" type="xs:string" />
     	<!-- pattern num -->
-    	<xs:attribute name="pn" type="xs:integer"></xs:attribute>
+    	<xs:attribute name="pn" type="xs:int" />
+    	<xs:attribute name="gn" type="xs:int" />
     	<!-- wildcard num -->
-    	<xs:attribute name="w" type="xs:integer"></xs:attribute>
+    	<xs:attribute name="w" type="xs:int" />
     </xs:complexType> 
 	<!-- type for the right side numbers -->
     <xs:complexType name="rNumberType">
-        <xs:group ref="tns:tranGroup"  maxOccurs="unbounded" minOccurs="0"></xs:group>
-    	<xs:attribute name="v" type="xs:decimal"></xs:attribute>
+        <xs:group ref="tns:tranGroup"  maxOccurs="unbounded" minOccurs="0" />
+    	<xs:attribute name="v" type="xs:decimal" />
     </xs:complexType>    
     
+     <xs:simpleType name="ltrlTypeEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="stop" />
+            <xs:enumeration value="blank" />
+            <xs:enumeration value="string" />
+            <xs:enumeration value="compound" />
+        </xs:restriction>
+    </xs:simpleType>
     
     <xs:group name="tranGroup">
         <xs:choice>
@@ -55,14 +64,22 @@
             <xs:element name="rn" type="tns:rNumberType">
             </xs:element>
             <!-- literal -->
-            <xs:element name="ltrl" type="xs:string"></xs:element>
+            <xs:element name="ltrl">
+			    <xs:complexType>
+			        <xs:simpleContent>
+			            <xs:extension base="xs:string">
+			                <xs:attribute name="t" type="tns:ltrlTypeEnum" />
+			            </xs:extension>
+			        </xs:simpleContent>
+			    </xs:complexType>
+            </xs:element>
             <!-- again, very hard to guess -->
-            <xs:element name="time" type="xs:time"></xs:element>
-            <xs:element name="date" type="xs:date"></xs:element>
+            <xs:element name="time" type="xs:time" />
+            <xs:element name="date" type="xs:date" />
             <xs:element name="func">
             	<xs:complexType>
                     <xs:group ref="tns:tranGroup" maxOccurs="unbounded" minOccurs="0" />
-                    <xs:attribute name="name" type="xs:string"></xs:attribute>
+                    <xs:attribute name="name" type="xs:string" />
             	</xs:complexType>
             </xs:element>
         </xs:choice>
@@ -74,21 +91,21 @@
     
     <xs:group name="statementGroup">
         <xs:sequence>
-            <xs:element name="pat" type="tns:patList" minOccurs="1" maxOccurs="1"></xs:element>
-            <xs:element name="tran" type="tns:tranList" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="pat" type="tns:patList" minOccurs="1" maxOccurs="1" />
+            <xs:element name="tran" type="tns:tranList" minOccurs="1" maxOccurs="1" />
         </xs:sequence>
     </xs:group>
 
     <xs:complexType name="statementType">
     	<xs:sequence>
-    		<xs:group ref="tns:statementGroup"></xs:group>
+    		<xs:group ref="tns:statementGroup" />
     	</xs:sequence>
     </xs:complexType>
 
     <xs:element name="stmset">
     	<xs:complexType>
     		<xs:sequence maxOccurs="unbounded" minOccurs="0">
-    			<xs:element name="stmt" type="tns:statementType"></xs:element>
+    			<xs:element name="stmt" type="tns:statementType" />
     		</xs:sequence>
     	</xs:complexType>
     </xs:element>
