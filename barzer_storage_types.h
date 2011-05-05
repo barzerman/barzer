@@ -274,6 +274,9 @@ public:
 	const EList& getList() const {
 		return lst;
 	}
+	void addEntity(const StoredEntity &e) {
+		lst.push_back(e);
+	}
 	std::ostream& print( std::ostream& fp ) const;
 private:
 	EList lst;

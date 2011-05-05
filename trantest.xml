@@ -74,5 +74,13 @@
         <tran>
             <ltrl t="stop" >shit</ltrl>
         </tran>
-    </stmt>    
+    </stmt>
+    <stmt>
+        <pat>
+        <t>pussy</t>
+        </pat>
+        <tran>
+            <func name="mkEnt"><ltrl t="string">shit</ltrl><rn v="1" /><rn v="1" /></func>
+        </tran>
+    </stmt>      
 </stmset>

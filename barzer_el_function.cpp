@@ -246,6 +246,8 @@ struct BELFunctionStorage_holder {
 		ADDFN(mkDate);
 		ADDFN(mkTime);
 		ADDFN(mkRange);
+		ADDFN(mkEnt);
+		ADDFN(mkERC);
 		// arith
 		ADDFN(opPlus);
 		ADDFN(opMinus);
@@ -353,6 +355,56 @@ struct BELFunctionStorage_holder {
 		}
 		return false;
 	}
+
+	STFUN(mkEnt) // makes Entity
+	{
+		if (rvec.size() > 2) {
+			try {
+
+				const BarzerLiteral &ltrl = boost::get<BarzerLiteral>(
+						boost::get<BarzelBeadAtomic>(rvec[0].getBeadData()).dta);
+				const BarzerNumber &cl = getNumber(rvec[1]);
+				const BarzerNumber &scl = getNumber(rvec[2]);
+
+				const DtaIndex &dtaIdx = universe.getDtaIdx();
+
+				const char *tokstr = universe.getStringPool().resolveId(ltrl.getId());
+
+				if (!tokstr) {
+					AYLOG(ERROR) << "Invalid literal ID: " << ltrl.getId();
+					return false;
+				}
+	 			const StoredToken *tok = dtaIdx.getTokByString(tokstr);
+				if (!tok) {
+					AYLOG(ERROR) << "Invalid token: " << tokstr;
+					return false;
+				}
+
+				const StoredEntityUniqId euid(tok->tokId, cl.getInt(), scl.getInt());
+				const StoredEntity *ent = dtaIdx.getEntByEuid(euid);
+				if (!ent) {
+					AYLOG(ERROR) << "No such entity: ("
+							     << tokstr << ", " << cl << ", " << scl << ")";
+					return false;
+				}
+
+				BarzerEntityList belst;
+				belst.addEntity(*ent);
+				setResult(result, belst);
+				return true;
+
+			} catch (boost::bad_get) {
+				AYLOG(ERROR) << "Wrong argument type";
+			}
+		}
+		return false;
+	}
+
+	STFUN(mkERC) // makes EntityRangeCombo
+	{
+		return false;
+	}
+
 
 
 	// arith
@@ -536,10 +588,6 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 
-	STFUN(lookupEntity)
-	{
-		return false;
-	}
 
 	#undef STFUN
 };

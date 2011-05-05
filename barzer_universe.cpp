@@ -9,7 +9,7 @@ StoredUniverse::StoredUniverse() :
 	funSt(*this),
 	dateLookup(*this)
 {
-
+	dtaIdx.addGenericEntity("shit", 1, 1);
 }
 
 void StoredUniverse::clear()
