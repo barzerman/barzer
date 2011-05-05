@@ -223,7 +223,7 @@ public:
 
 	StoredEntity& addEntity( const char* t, uint16_t cl, uint16_t scl )
 	{
-		StoredTokenId tokId = strPool->internIt( t );
+		StoredTokenId tokId = addToken(t).tokId;
 		const StoredEntityUniqId euid( tokId, cl, scl );
 
 		bool isNew = false;
