@@ -144,14 +144,15 @@ public:
 	}
 
 	void printEntity(const StoredEntity &ent) {
-		os << "\n    <entity id=\"" << ent.entId << "\">";
 		const StoredEntityUniqId &euid = ent.euid;
-		os << "<euid"
-				<< " tokid=\"" << euid.tokId << "\""
+		const StoredToken &tok = universe.getDtaIdx().tokPool.getTokById(euid.tokId);
+		const char *tokname = universe.getStringPool().resolveId(tok.stringId);
+		os << "<entity"
+				<< " id=\"" << tokname << "\""
 		        << " class=\"" << euid.eclass.ec << "\""
 				<< " subclass=\"" << euid.eclass.subclass << "\""
 				<< " />";
-		os << "</entity>";
+		//os << "</entity>";
 	}
 
 	// not sure how to properly deconstruct this yet
