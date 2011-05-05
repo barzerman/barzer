@@ -28,7 +28,9 @@ class StoredUniverse {
 
 	BELFunctionStorage funSt;
 	DateLookup dateLookup;
-
+	
+	/// this will create the "wellknown" entities 
+	void createGenericEntities();
 public:
 	StoredUniverse();
 	const DtaIndex& getDtaIdx() const { return dtaIdx; }
@@ -70,6 +72,8 @@ public:
 
 	const BELFunctionStorage& getFunctionStorage() const { return funSt; }
 	const DateLookup& getDateLookup() const { return dateLookup; }
+	
+	const char* getGenericSubclassName( uint16_t subcl ) const;
 }; 
 
 }

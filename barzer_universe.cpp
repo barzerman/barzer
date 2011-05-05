@@ -9,7 +9,8 @@ StoredUniverse::StoredUniverse() :
 	funSt(*this),
 	dateLookup(*this)
 {
-	dtaIdx.addGenericEntity("shit", 1, 1);
+	//dtaIdx.addGenericEntity("shit", 1, 1);
+	createGenericEntities();
 }
 
 void StoredUniverse::clear()
@@ -31,6 +32,53 @@ std::ostream& StoredUniverse::printBarzelTrie( std::ostream& fp ) const
 	BELPrintContext ctxt( barzelTrie, stringPool, fmt );
 	return barzelTrie.print( fp, ctxt );
 }
+///////////////// generic entities 
+namespace {
 
+struct GenericEntData {
+	uint16_t cl, subcl;
+	const char* id;
+	const char* name;
+	
+	GenericEntData( uint16_t sc, const char* n ) : 
+		cl(1), subcl(sc) , id(0), name(n)
+	{}
+	GenericEntData( uint16_t sc, const char* idStr, const char* n ) : 
+		cl(1), subcl(sc) , id(idStr), name(n)
+	{}
+};
+
+static GenericEntData g_genDta[] = {
+	GenericEntData(1,"price"), // price 
+	GenericEntData(2,"length"), // length
+	GenericEntData(3,"weight"), // weight
+	GenericEntData(4,"age"), // weight
+	GenericEntData(4,"area"), // weight
+	GenericEntData(4,"volume"), // weight
+	GenericEntData(5,"shit", "some shit") // weight
+};
+} // anon namespace ends
+
+const char* StoredUniverse::getGenericSubclassName( uint16_t subcl ) const
+{
+	if( subcl< ARR_SZ(g_genDta) ) 
+		return g_genDta[subcl].name;
+	else 
+		return "<unknown>";
+}
+
+void StoredUniverse::createGenericEntities()
+{
+	for( int i=0; i< ARR_SZ( g_genDta ); ++i ) {
+		const GenericEntData& gd = g_genDta[i];
+		if( gd.id ) {
+			dtaIdx.addGenericEntity( gd.id, gd.cl, gd.subcl );
+		} else {
+			dtaIdx.addGenericEntity( gd.cl, gd.subcl );
+		}
+	}
+}
+
+//// end of generic entities 
 
 } // namespace barzer ends
