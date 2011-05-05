@@ -40,6 +40,22 @@
        <xs:attribute name="subclass" type="xs:int" />
     </xs:complexType>
 
+	<xs:complexType name="rangeType">
+		<xs:choice minOccurs="1" maxOccurs="1">
+			<xs:element name="num" type="tns:rangeNumType" />
+			<xs:element name="time">
+				<xs:complexType>
+					<xs:group ref="tns:lohiGroup" />
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="date">
+				<xs:complexType>
+					<xs:group ref="tns:lohiGroup" />
+				</xs:complexType>
+			</xs:element>
+		</xs:choice>
+	</xs:complexType>
+
     <xs:element name="barz">
         <xs:complexType>
             <xs:choice maxOccurs="unbounded" minOccurs="0">
@@ -48,20 +64,22 @@
                 <xs:element name="num" type="tns:numType" />
                 <xs:element name="time" type="xs:string" />
                 <xs:element name="date" type="xs:string" />
-                <xs:element name="entity" type="tns:entityType" />
-                <xs:element name="range">
+                <xs:element name="entlist">
                     <xs:complexType>
-                        <xs:choice minOccurs="1" maxOccurs="1">
-                            <xs:element name="num" type="tns:rangeNumType" />
-                            <xs:element name="time">
-                                <xs:complexType><xs:group ref="tns:lohiGroup" /></xs:complexType>
-                            </xs:element>
-                            <xs:element name="date">
-                                <xs:complexType><xs:group ref="tns:lohiGroup" /></xs:complexType>
-                             </xs:element>
-                            </xs:choice>
+                    <xs:sequence minOccurs="1" maxOccurs="unbounded">
+                        <xs:element name="entity" type="tns:entityType" />
+                    </xs:sequence>
                     </xs:complexType>
-                </xs:element>
+                </xs:element>    
+                <xs:element name="erc">
+                    <xs:complexType>
+                    <xs:sequence minOccurs="1" maxOccurs="1">
+                        <xs:element name="entity" type="tns:entityType" />
+                        <xs:element name="range" type="tns:rangeType" />
+                    </xs:sequence>
+                    </xs:complexType>
+                </xs:element>                
+                <xs:element name="range" type="tns:rangeType" />
             </xs:choice>
         </xs:complexType>
     </xs:element>
