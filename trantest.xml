@@ -80,7 +80,10 @@
         <t>pussy</t>
         </pat>
         <tran>
+            <func name="mkERC">
             <func name="mkEnt"><ltrl t="string">shit</ltrl><rn v="1" /><rn v="1" /></func>
+            <func name="mkRange"><rn v="0" /><rn v="2"/></func>
+            </func>
         </tran>
     </stmt>      
 </stmset>

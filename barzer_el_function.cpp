@@ -360,7 +360,6 @@ struct BELFunctionStorage_holder {
 	{
 		if (rvec.size() > 2) {
 			try {
-
 				const BarzerLiteral &ltrl = boost::get<BarzerLiteral>(
 						boost::get<BarzelBeadAtomic>(rvec[0].getBeadData()).dta);
 				const BarzerNumber &cl = getNumber(rvec[1]);
@@ -402,6 +401,23 @@ struct BELFunctionStorage_holder {
 
 	STFUN(mkERC) // makes EntityRangeCombo
 	{
+		if (rvec.size() < 2) {
+			AYLOG(ERROR) << "Need 2 arguments";
+			return false;
+		}
+		try {
+			BarzelEntityRangeCombo erc;
+			const BarzerEntityList &belst = boost::get<BarzerEntityList>(
+					boost::get<BarzelBeadAtomic>(rvec[0].getBeadData()).dta);
+
+			erc.setEntityId(belst.getList().front().entId);
+			erc.range = boost::get<BarzerRange>(
+					boost::get<BarzelBeadAtomic>(rvec[1].getBeadData()).dta);
+			setResult(result, erc);
+			return true;
+		} catch (boost::bad_get) {
+			AYLOG(ERROR) << "Wrong argument type";
+		}
 		return false;
 	}
 
