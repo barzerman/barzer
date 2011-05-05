@@ -95,7 +95,8 @@ std::ostream& BarzelTrieNode::print( std::ostream& fp , BELPrintContext& ctxt ) 
 std::ostream& BarzelTrieNode::print_translation( std::ostream& fp, const BELPrintContext& ctxt ) const
 {
 
-	return translation.print( fp, ctxt );
+	const BarzelTranslation* trans = getTranslation(ctxt.trie);
+	return ( trans ? trans->print( fp, ctxt ) : fp << "(null)" ) ;
 }
 
 std::ostream& BarzelTrieNode::print_firmChildren( std::ostream& fp, BELPrintContext& ctxt ) const
@@ -212,12 +213,8 @@ namespace {
 	typedef std::list< WCPatDta > WCPatDtaList;
 
 }
-void BarzelTrieNode::setTranslation(BELTrie&trie, const BELParseTreeNode& ptn ) 
-{ 
-	translation.set(trie, ptn);
-}
 
-const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, const BELParseTreeNode& trans )
+const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, uint32_t transId )
 {
 	BarzelTrieNode* n = &root;
 
@@ -265,7 +262,7 @@ const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, const B
 		}
 	}
 	if( n ) {
-		n->setTranslation( *this, trans );
+		n->setTranslation( transId );
 	} else 
 		AYTRACE("inconsistent state for setTranslation");
 	return n;

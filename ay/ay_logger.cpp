@@ -17,7 +17,7 @@ const char* g_LOG_LVL_STR[] = {"DEBUG", "WARNING","ERROR","CRITICAL"};
 }
 const char* ay::Logger::getLogLvlStr( int x)
 {
-	return( x>=0 && x< sizeof(g_LOG_LVL_STR)/sizeof(g_LOG_LVL_STR[0]) ? g_LOG_LVL_STR[x]: "");
+	return( x>=0 && (unsigned)(x)< sizeof(g_LOG_LVL_STR)/sizeof(g_LOG_LVL_STR[0]) ? g_LOG_LVL_STR[x]: "");
 
 }
 

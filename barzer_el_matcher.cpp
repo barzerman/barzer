@@ -406,7 +406,8 @@ int BTMBestPaths::setRewriteUnit( RewriteUnit& ru )
 	ruMatchInfo.setFullBeadRange( getFullRange() );
 	const NodeAndBeadVec& winningPath = getBestPath();
 	ruMatchInfo.setPath( winningPath );
-	ru.second = getTranslation();
+	const BarzelTrieNode* tn = getTrieNode();
+	ru.second = ( tn ? tn->getTranslation(universe.getBarzelTrie()) : 0 );
 
 	return 0;
 }
@@ -417,7 +418,8 @@ std::pair< bool, int > BTMBestPaths::scorePath( const NodeAndBeadVec& nb ) const
 	if( !nb.size() ) 
 		return( std::pair< bool, int >(true,0) );
 
-	bool isTranslationFallible = universe.isBarzelTranslationFallible( nb.back().first->translation );
+	const BarzelTranslation* trans = nb.back().first->getTranslation(universe.getBarzelTrie());
+	bool isTranslationFallible = ( trans ? universe.isBarzelTranslationFallible( *trans ) : false);
 
 	std::pair< bool, int >  retVal( isTranslationFallible, 0 );
 	
