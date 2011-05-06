@@ -649,7 +649,8 @@ struct BELParseTreeNode {
 };
 
 
-typedef std::vector<std::vector<uint32_t> > BELVarInfo;
+typedef std::vector<uint32_t> BELSingleVarPath;
+typedef std::vector<BELSingleVarPath> BELVarInfo;
 typedef BELVarInfo::value_type VarVec;
 
 //struct PatternEmitterNode;

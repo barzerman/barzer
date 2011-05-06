@@ -243,7 +243,8 @@ const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, uint32_
 	/// at this point wcpdList has data on all wildcards in the path - it stores pairs 
 	/// (iterator of path, nextFirmKey). now we run through the path again 
 
-	for( BTND_PatternDataVec::const_iterator i = path.begin(); i!= path.end(); ++i ) {
+	BELVarInfo::const_iterator vi=varInfo.begin(); 
+	for( BTND_PatternDataVec::const_iterator i = path.begin(); i!= path.end(); ++i, ++vi ) {
 		if( !wcpdList.empty() && i == wcpdList.front().first ) { // we reached a wildcard
 			if( n ) 
 				n = n->addWildcardPattern( *this, *i, wcpdList.front().second );
@@ -263,7 +264,9 @@ const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, uint32_
 		/// n is the new trienode 
 		/// trying to create variableinfo link to it
 		/// transid,varInfo --> n
-		if( varInfo.size() ) {
+		size_t vpos = ( i-path.begin() ); 
+		if(  ) {
+			
 		}
 	}
 	if( n ) {
