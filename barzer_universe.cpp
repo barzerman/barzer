@@ -55,7 +55,15 @@ static GenericEntData g_genDta[] = {
 	GenericEntData(4,"age"), // weight
 	GenericEntData(4,"area"), // weight
 	GenericEntData(4,"volume"), // weight
-	GenericEntData(5,"shit", "some shit") // weight
+	// can't take this shit!
+	GenericEntData(5,"shit", "some shit"), // weight
+	// Astronomical units
+	GenericEntData(1,"USD", "US dollar"),
+	GenericEntData(1,"EUR", "Euro euro!"),
+	GenericEntData(1,"JPY", "Japanese yen"),
+	GenericEntData(1,"CNY", "Renminbi"),
+	GenericEntData(1,"GBP", "Pound sterling"),
+	GenericEntData(1,"RUB", "Рупь")
 };
 } // anon namespace ends
 
