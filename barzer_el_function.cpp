@@ -357,6 +357,8 @@ struct BELFunctionStorage_holder {
 		return true;
 	}
 
+
+
 	STFUN(mkRange)
 	{
 		if (rvec.size() >= 2) {
@@ -372,6 +374,19 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 
+	const StoredEntity* fetchEntity(const char* tokname,
+									const uint16_t cl, const uint16_t scl) const
+	{
+		const DtaIndex &dtaIdx = universe.getDtaIdx();
+		const StoredToken *tok = dtaIdx.getTokByString(tokname);
+		if (!tok) {
+			AYLOG(ERROR) << "Invalid token: " << tokname;
+			return 0;
+		}
+		const StoredEntityUniqId euid(tok->tokId, cl, scl);
+		return dtaIdx.getEntByEuid(euid);
+	}
+
 	STFUN(mkEnt) // makes Entity
 	{
 		if (rvec.size() < 2) {
@@ -384,7 +399,7 @@ struct BELFunctionStorage_holder {
 			const BarzerNumber &cl = getNumber(rvec[1]);
 			const BarzerNumber &scl = getNumber(rvec[2]);
 
-			const DtaIndex &dtaIdx = universe.getDtaIdx();
+			//const DtaIndex &dtaIdx = universe.getDtaIdx();
 
 			const char *tokstr = universe.getStringPool().resolveId(ltrl.getId());
 
@@ -392,14 +407,8 @@ struct BELFunctionStorage_holder {
 				AYLOG(ERROR) << "Invalid literal ID: " << ltrl.getId();
 				return false;
 			}
-			const StoredToken *tok = dtaIdx.getTokByString(tokstr);
-			if (!tok) {
-				AYLOG(ERROR) << "Invalid token: " << tokstr;
-				return false;
-			}
 
-			const StoredEntityUniqId euid(tok->tokId, cl.getInt(), scl.getInt());
-			const StoredEntity *ent = dtaIdx.getEntByEuid(euid);
+			const StoredEntity *ent = fetchEntity(tokstr, cl.getInt(), scl.getInt());
 			if (!ent) {
 				AYLOG(ERROR) << "No such entity: ("
 							 << tokstr << ", " << cl << ", " << scl << ")";
@@ -440,6 +449,10 @@ struct BELFunctionStorage_holder {
 	}
 
 
+	STFUN(mkPriceRC)
+	{
+		return false;
+	}
 
 	// arith
 
