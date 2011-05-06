@@ -167,12 +167,12 @@ public:
 	}
 
 	void operator()(const BarzelEntityRangeCombo &data) {
-		os << "<erc>";
 		const StoredEntity *ent = universe.getDtaIdx().entPool.getEntByIdSafe(data.d_entId);
 		if (!ent) {
 			AYLOG(ERROR) << "Invalid entity id: " << data.d_entId;
 			return;
 		}
+		os << "<erc>";
 		printEntity(*ent);
 		(*this)(data.range);
 		os << "</erc>";

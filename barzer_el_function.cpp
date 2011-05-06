@@ -34,16 +34,32 @@ struct NumberMatcher : public boost::static_visitor<BarzerNumber> {
 		}  // NaN
 };
 
+
 static BarzerNumber getNumber(const BarzelEvalResult &result) {
 	NumberMatcher m;
 	return boost::apply_visitor(m, result.getBeadData());
 }
+
+
 
 // writes result number into BarzerNumber - NaN when failed
 static bool setNumber(BarzerNumber &num, const BarzelEvalResult &result) {
 	NumberMatcher m;
 	num = boost::apply_visitor(m, result.getBeadData());
 	return !num.isNan();
+}
+
+template<class T> struct BeadMatcher : public boost::static_visitor<T> {
+	const T* operator()( const T &dt ) { return &dt; }
+	const T* operator()( const BarzelBeadAtomic &dt )
+			{ return boost::apply_visitor(*this, dt.dta); }
+	template<class U> T* operator()( const U& ) { return 0; }
+};
+
+template<class T> const T* getBead(const BarzelEvalResult &result)
+{
+	BeadMatcher<T> m;
+	return boost::apply_visitor(m, result.getBeadData());
 }
 
 template<class T> void setResult(BarzelEvalResult&, const T&);
@@ -358,43 +374,45 @@ struct BELFunctionStorage_holder {
 
 	STFUN(mkEnt) // makes Entity
 	{
-		if (rvec.size() > 2) {
-			try {
-				const BarzerLiteral &ltrl = boost::get<BarzerLiteral>(
-						boost::get<BarzelBeadAtomic>(rvec[0].getBeadData()).dta);
-				const BarzerNumber &cl = getNumber(rvec[1]);
-				const BarzerNumber &scl = getNumber(rvec[2]);
+		if (rvec.size() < 2) {
+			AYLOG(DEBUG) << "mkEnt: Wrong number of arguments";
+			return false;
+		}
+		try {
+			const BarzerLiteral &ltrl = boost::get<BarzerLiteral>(
+					boost::get<BarzelBeadAtomic>(rvec[0].getBeadData()).dta);
+			const BarzerNumber &cl = getNumber(rvec[1]);
+			const BarzerNumber &scl = getNumber(rvec[2]);
 
-				const DtaIndex &dtaIdx = universe.getDtaIdx();
+			const DtaIndex &dtaIdx = universe.getDtaIdx();
 
-				const char *tokstr = universe.getStringPool().resolveId(ltrl.getId());
+			const char *tokstr = universe.getStringPool().resolveId(ltrl.getId());
 
-				if (!tokstr) {
-					AYLOG(ERROR) << "Invalid literal ID: " << ltrl.getId();
-					return false;
-				}
-	 			const StoredToken *tok = dtaIdx.getTokByString(tokstr);
-				if (!tok) {
-					AYLOG(ERROR) << "Invalid token: " << tokstr;
-					return false;
-				}
-
-				const StoredEntityUniqId euid(tok->tokId, cl.getInt(), scl.getInt());
-				const StoredEntity *ent = dtaIdx.getEntByEuid(euid);
-				if (!ent) {
-					AYLOG(ERROR) << "No such entity: ("
-							     << tokstr << ", " << cl << ", " << scl << ")";
-					return false;
-				}
-
-				BarzerEntityList belst;
-				belst.addEntity(*ent);
-				setResult(result, belst);
-				return true;
-
-			} catch (boost::bad_get) {
-				AYLOG(ERROR) << "Wrong argument type";
+			if (!tokstr) {
+				AYLOG(ERROR) << "Invalid literal ID: " << ltrl.getId();
+				return false;
 			}
+			const StoredToken *tok = dtaIdx.getTokByString(tokstr);
+			if (!tok) {
+				AYLOG(ERROR) << "Invalid token: " << tokstr;
+				return false;
+			}
+
+			const StoredEntityUniqId euid(tok->tokId, cl.getInt(), scl.getInt());
+			const StoredEntity *ent = dtaIdx.getEntByEuid(euid);
+			if (!ent) {
+				AYLOG(ERROR) << "No such entity: ("
+							 << tokstr << ", " << cl << ", " << scl << ")";
+				return false;
+			}
+
+			BarzerEntityList belst;
+			belst.addEntity(*ent);
+			setResult(result, belst);
+			return true;
+
+		} catch (boost::bad_get) {
+			AYLOG(ERROR) << "mkEnt: Wrong argument type";
 		}
 		return false;
 	}

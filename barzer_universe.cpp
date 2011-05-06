@@ -69,7 +69,7 @@ const char* StoredUniverse::getGenericSubclassName( uint16_t subcl ) const
 
 void StoredUniverse::createGenericEntities()
 {
-	for( int i=0; i< ARR_SZ( g_genDta ); ++i ) {
+	for( size_t i=0; i< ARR_SZ( g_genDta ); ++i ) {
 		const GenericEntData& gd = g_genDta[i];
 		if( gd.id ) {
 			dtaIdx.addGenericEntity( gd.id, gd.cl, gd.subcl );
