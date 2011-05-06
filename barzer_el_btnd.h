@@ -655,8 +655,10 @@ struct PatternEmitterNode {
     static PatternEmitterNode* make(const BELParseTreeNode& node);
 };
 
+typedef std::vector<std::vector<uint32_t> > BELVarInfo;
 struct BELParseTreeNode_PatternEmitter {
 	BTND_PatternDataVec curVec;
+	BELVarInfo varVec;
 
 	const BELParseTreeNode& tree;
 	
@@ -665,6 +667,12 @@ struct BELParseTreeNode_PatternEmitter {
 
 	/// returns false when fails to produce a sequence
 	bool produceSequence();
+
+
+	const BELVarInfo& getVarInfo() const {
+		return varVec;
+	}
+
 	const BTND_PatternDataVec& getCurSequence( )
 	{
 		patternTree->yield(curVec);

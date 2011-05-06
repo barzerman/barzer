@@ -54,7 +54,7 @@ struct Leaf: public PatternEmitterNode {
     Leaf(const BTND_PatternData& d): data(d) {}
     
     bool step() { return false; }
-    //bool step() { return true; }
+
     void yield(BTND_PatternDataVec& vec) const { vec.push_back(data); }
     
     const BTND_PatternData& data;
