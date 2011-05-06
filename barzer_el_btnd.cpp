@@ -49,23 +49,27 @@ const char* BTNDDecode::typeName_Struct ( int )
 
 
 namespace {
-    
 struct Leaf: public PatternEmitterNode {
-    Leaf(const BTND_PatternData& d): data(d) {}
+    Leaf(const BTND_PatternData& d, const VarVec &v): data(d), vars(v) {}
     
     bool step() { return false; }
 
-    void yield(BTND_PatternDataVec& vec) const { vec.push_back(data); }
+    void yield(BTND_PatternDataVec& vec, BELVarInfo &varInfo) const
+    {
+    	varInfo.push_back(vars);
+    	vec.push_back(data);
+    }
     
     const BTND_PatternData& data;
+    VarVec vars;
 };
 
 struct IntermediateNode : public PatternEmitterNode {
-    IntermediateNode(const BELParseTreeNode::ChildrenVec& children)
+    IntermediateNode(const BELParseTreeNode::ChildrenVec& children, VarVec &vars)
     {
     	//AYLOGDEBUG(children.size());
         for(BELParseTreeNode::ChildrenVec::const_iterator it=children.begin(); it != children.end(); ++it)
-            childs.push_back(make(*it));
+            childs.push_back(make(*it, vars));
         //AYLOG(DEBUG) << "done";
     }
     
@@ -81,7 +85,8 @@ protected:
 };
 
 struct List: public IntermediateNode {
-    List(const BELParseTreeNode::ChildrenVec& children): IntermediateNode(children) {}
+    List(const BELParseTreeNode::ChildrenVec& children, VarVec &v)
+    	: IntermediateNode(children, v) {}
     
     bool step()
     {
@@ -93,17 +98,18 @@ struct List: public IntermediateNode {
         return false;
     }
     
-    void yield(BTND_PatternDataVec& vec) const
+    void yield(BTND_PatternDataVec& vec, BELVarInfo &vinfo) const
     {
         for(ChildVec::const_iterator it=childs.begin(); it != childs.end(); ++it) {
-            (*it)->yield(vec);
+            (*it)->yield(vec, vinfo);
         }
     }
 private:
 };
 
 struct Any: public IntermediateNode {
-    Any(const BELParseTreeNode::ChildrenVec& children): IntermediateNode(children)
+    Any(const BELParseTreeNode::ChildrenVec& children, VarVec &v)
+    	: IntermediateNode(children, v)
     {
     	//AYLOGDEBUG(childs.size());
         position = childs.begin();
@@ -125,9 +131,9 @@ struct Any: public IntermediateNode {
         return true;
     }
     
-    void yield(BTND_PatternDataVec& vec) const
+    void yield(BTND_PatternDataVec& vec, BELVarInfo &vinfo) const
     {
-    	if (position != childs.end()) (*position)->yield(vec);
+    	if (position != childs.end()) (*position)->yield(vec, vinfo);
     }
     
 private:
@@ -136,7 +142,8 @@ private:
 };
 
 struct Opt: public IntermediateNode {
-    Opt(const BELParseTreeNode::ChildrenVec& children): IntermediateNode(children)
+    Opt(const BELParseTreeNode::ChildrenVec& children, VarVec &v)
+    	: IntermediateNode(children, v)
     {
     	selected = true;
     }
@@ -157,11 +164,11 @@ struct Opt: public IntermediateNode {
     	}
     }
     
-    void yield(BTND_PatternDataVec& vec) const
+    void yield(BTND_PatternDataVec& vec, BELVarInfo &vinfo) const
     {
         if(selected) {
             for(ChildVec::const_iterator it=childs.begin(); it != childs.end(); ++it)
-                (*it)->yield(vec);
+                (*it)->yield(vec, vinfo);
         }
     }
     
@@ -170,7 +177,8 @@ private:
 };
 
 struct Perm: public IntermediateNode {
-    Perm(const BELParseTreeNode::ChildrenVec& children): IntermediateNode(children)
+    Perm(const BELParseTreeNode::ChildrenVec& children, VarVec &v)
+    	: IntermediateNode(children, v)
     {
         for(unsigned i=0; i < childs.size(); ++i)
             currentPermutation.push_back(i);
@@ -185,10 +193,10 @@ struct Perm: public IntermediateNode {
         return std::next_permutation(currentPermutation.begin(), currentPermutation.end());
     }
     
-    void yield(BTND_PatternDataVec& vec) const
+    void yield(BTND_PatternDataVec& vec, BELVarInfo &vinfo) const
     {
         for(PermVec::const_iterator it=currentPermutation.begin(); it != currentPermutation.end(); ++it)
-            childs[*it]->yield(vec);
+            childs[*it]->yield(vec, vinfo);
     }
     
 private:
@@ -197,7 +205,8 @@ private:
 };
 
 struct Tail: public IntermediateNode {
-    Tail(const BELParseTreeNode::ChildrenVec& children): IntermediateNode(children)
+    Tail(const BELParseTreeNode::ChildrenVec& children, VarVec &v)
+    	: IntermediateNode(children, v)
     {
         endPosition = childs.begin() + 1;
     }
@@ -218,10 +227,10 @@ struct Tail: public IntermediateNode {
         return true;
     }
     
-    void yield(BTND_PatternDataVec& vec) const
+    void yield(BTND_PatternDataVec& vec, BELVarInfo &vinfo) const
     {
         for(ChildVec::const_iterator it=childs.begin(); it != endPosition; ++it)
-            (*it)->yield(vec);
+            (*it)->yield(vec, vinfo);
     }
     
 private:
@@ -230,25 +239,28 @@ private:
 
 } // namespace {
     
-PatternEmitterNode* PatternEmitterNode::make(const BELParseTreeNode& node)
+PatternEmitterNode* PatternEmitterNode::make(const BELParseTreeNode& node, VarVec &vars)
 {
     switch(node.btndVar.which()) {
-        case BTND_StructData_TYPE:
-            switch(boost::get<BTND_StructData>(node.btndVar).getType()) {
+        case BTND_StructData_TYPE: {
+        	const BTND_StructData &sdata = boost::get<BTND_StructData>(node.btndVar);
+        	if (sdata.hasVar()) vars.push_back(sdata.getVarId());
+            switch(sdata.getType()) {
                 case BTND_StructData::T_LIST:
-                    return new List(node.child);
+                    return new List(node.child, vars);
                 case BTND_StructData::T_ANY:
-                    return new Any(node.child);
+                    return new Any(node.child, vars);
                 case BTND_StructData::T_OPT:
-                    return new Opt(node.child);
+                    return new Opt(node.child, vars);
                 case BTND_StructData::T_PERM:
-                    return new Perm(node.child);
+                    return new Perm(node.child, vars);
                 case BTND_StructData::T_TAIL:
-                    return new Tail(node.child);
+                    return new Tail(node.child, vars);
             }
             break;
+        }
         case BTND_PatternData_TYPE:
-            return new Leaf(boost::get<BTND_PatternData>(node.btndVar));
+            return new Leaf(boost::get<BTND_PatternData>(node.btndVar), vars);
     }
     
     // should never get here
@@ -259,7 +271,10 @@ PatternEmitterNode* PatternEmitterNode::make(const BELParseTreeNode& node)
 bool BELParseTreeNode_PatternEmitter::produceSequence()
 {
 	bool ret = patternTree->step();
-    if (ret) curVec.clear();
+    if (ret) {
+    	curVec.clear();
+    	varVec.clear();
+    }
     //if(ret)
         //patternTree->yield(curVec);
     //bool ret = patternTree->step();
@@ -269,7 +284,8 @@ bool BELParseTreeNode_PatternEmitter::produceSequence()
 
 void BELParseTreeNode_PatternEmitter::makePatternTree()
 {
-    patternTree = PatternEmitterNode::make(tree);
+	VarVec v;
+    patternTree = PatternEmitterNode::make(tree, v);
 }
 BELParseTreeNode_PatternEmitter::~BELParseTreeNode_PatternEmitter()
 {
