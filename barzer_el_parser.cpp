@@ -42,6 +42,7 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 	ay::stopwatch totalTimer;
 	do {
 		const BTND_PatternDataVec& seq = emitter.getCurSequence();
+		const BELVarInfo& varInfo = emitter.getVarInfo();
 		j += seq.size();
 		uint32_t tranId = 0xffffffff;
 		BarzelTranslation* tran = trie->makeNewBarzelTranslation( tranId );
@@ -50,7 +51,7 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 			AYLOG(ERROR) << "null translation returned\n";
 		} else
 			tran->set(*trie, sp.translation);
-		trie->addPath( seq, tranId );
+		trie->addPath( seq, tranId, varInfo );
 		i++;
 		//AYLOG(DEBUG) << "path added";
 	} while( emitter.produceSequence() );

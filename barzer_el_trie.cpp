@@ -214,7 +214,7 @@ namespace {
 
 }
 
-const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, uint32_t transId )
+const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, uint32_t transId, const BELVarInfo& varInfo )
 {
 	BarzelTrieNode* n = &root;
 
@@ -259,6 +259,11 @@ const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, uint32_
 				AYTRACE("addFirmPattern returned NULL") ;
 				return 0; // this is impossible
 			}
+		}
+		/// n is the new trienode 
+		/// trying to create variableinfo link to it
+		/// transid,varInfo --> n
+		if( varInfo.size() ) {
 		}
 	}
 	if( n ) {

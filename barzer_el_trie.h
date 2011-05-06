@@ -413,7 +413,7 @@ struct BELTrie {
 	void produceWCKey( BarzelWCKey&, const BTND_PatternData&   );
 
 	/// adds a new path to the trie
-	const BarzelTrieNode* addPath( const BTND_PatternDataVec& path, uint32_t tranId );
+	const BarzelTrieNode* addPath( const BTND_PatternDataVec& path, uint32_t tranId, const BELVarInfo& varInfo );
 	BarzelWildcardPool&  getWCPool() { return *wcPool; }
 	const BarzelWildcardPool&  getWCPool() const { return *wcPool; }
 
