@@ -530,6 +530,8 @@ public:
 	uint32_t getVarId() const { return varId; }
 	void setVarId( uint32_t vi ) { varId = vi; }
 
+	const inline bool hasVar() const { return varId != 0xffffffff; }
+
 	BTND_StructData() : varId(0xffffffff), type(T_LIST) {}
 	BTND_StructData(int t) : varId(0xffffffff), type(t) {}
 	BTND_StructData(int t, uint32_t vi ) : varId(vi), type(t) {}
@@ -646,16 +648,21 @@ struct BELParseTreeNode {
 	}
 };
 
-//struct PatternEmitterNode;
-struct PatternEmitterNode {
-    virtual bool step() = 0;
-    virtual void yield(BTND_PatternDataVec& vec) const = 0;
-    virtual ~PatternEmitterNode() {}
-
-    static PatternEmitterNode* make(const BELParseTreeNode& node);
-};
 
 typedef std::vector<std::vector<uint32_t> > BELVarInfo;
+typedef BELVarInfo::value_type VarVec;
+
+//struct PatternEmitterNode;
+
+
+struct PatternEmitterNode {
+    virtual bool step() = 0;
+    virtual void yield(BTND_PatternDataVec& vec, BELVarInfo &vinfo) const = 0;
+    virtual ~PatternEmitterNode() {}
+
+    static PatternEmitterNode* make(const BELParseTreeNode& node, VarVec &vars);
+};
+
 struct BELParseTreeNode_PatternEmitter {
 	BTND_PatternDataVec curVec;
 	BELVarInfo varVec;
@@ -665,19 +672,22 @@ struct BELParseTreeNode_PatternEmitter {
 	BELParseTreeNode_PatternEmitter( const BELParseTreeNode& t ) : tree(t)
         { makePatternTree(); }
 
-	/// returns false when fails to produce a sequence
-	bool produceSequence();
 
 
-	const BELVarInfo& getVarInfo() const {
-		return varVec;
-	}
+	// the next 3 functions should only be ever called in the order they
+	// are declared. It's very important
 
 	const BTND_PatternDataVec& getCurSequence( )
 	{
-		patternTree->yield(curVec);
+		patternTree->yield(curVec, varVec);
 		return curVec;
 	}
+
+	// should only be called after getCurSequence and before produceSequence
+	const BELVarInfo& getVarInfo() const { return varVec; }
+
+	/// returns false when fails to produce a sequence
+	bool produceSequence();
 
 	
 	~BELParseTreeNode_PatternEmitter();
