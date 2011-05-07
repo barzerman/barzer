@@ -11,6 +11,7 @@ find_package(Boost COMPONENTS system REQUIRED)
 link_directories ( ${boost_LIBRARY_DIRS} )
 
 include_directories("${PROJECT_BINARY_DIR}"
+                    "${PROJECT_SOURCE_DIR}"
                     "${PROJECT_SOURCE_DIR}/ay"
                     "${PROJECT_SOURCE_DIR}/${EN_DIR}"
                     "${PROJECT_SOURCE_DIR}/${RU_DIR}"
