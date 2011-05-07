@@ -3,6 +3,7 @@
 #include <barzer_el_btnd.h>
 #include <barzer_el_parser.h>
 #include <barzer_el_rewriter.h>
+#include <barzer_el_variable.h>
 #include <ay_bitflags.h>
 #include <ay_util.h>
 #include <ay_pool_with_id.h>
@@ -384,6 +385,7 @@ struct BELTrie {
 	BarzelWildcardPool* wcPool;
 	BarzelFirmChildPool* fcPool;
 	BarzelTranslationPool *tranPool;
+	BarzelVariableIndex   d_varIndex;
 
 	BarzelTrieNode root;
 	BELTrie( 
@@ -397,6 +399,9 @@ struct BELTrie {
 		fcPool(fPool),
 		tranPool(tPool)
 	{}
+
+	      BarzelVariableIndex& getVarIndex()       { return d_varIndex; }
+	const BarzelVariableIndex& getVarIndex() const { return d_varIndex; }
 
 	BarzelTranslation*  makeNewBarzelTranslation( uint32_t& id ) 
 		{ return tranPool->addObj( id ); }
@@ -493,6 +498,7 @@ struct BELPrintContext {
 	const char* printableString( uint32_t id )  const
 	{ return strPool.printableStr(id); }
 	
+	std::ostream& printVariableName( std::ostream& fp, uint32_t varId ) const;
 	const BarzelWCLookup*  getWildcardLookup( uint32_t id ) const; 
 
 	bool needDescend() const

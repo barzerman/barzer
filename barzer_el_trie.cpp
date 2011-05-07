@@ -17,6 +17,21 @@ std::ostream& glob_printRewriterByteCode( std::ostream& fp, const BarzelRewriter
 }
 } // end of anon namespace 
 
+std::ostream& BELPrintContext::printVariableName( std::ostream& fp, uint32_t varId ) const
+{
+	const BELSingleVarPath* bsvp = trie.getVarIndex().getPathFromTranVarId( varId );
+		
+	if( bsvp && bsvp->size() ) {
+		BELSingleVarPath::const_iterator i = bsvp->begin(); 
+		fp << printableString( *i );
+		for( ++i; i!= bsvp->end(); ++i ) {
+			fp << "." << printableString( *i );
+		}
+	} else {
+		fp << "bad_varid[" << std::hex << "]";
+	}
+	return fp;
+}
 std::ostream& BELPrintContext::printRewriterByteCode( std::ostream& fp, const BarzelTranslation& t ) const
 {
 	BarzelRewriterPool::BufAndSize bas;
@@ -244,6 +259,8 @@ const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, uint32_
 	/// (iterator of path, nextFirmKey). now we run through the path again 
 
 	BELVarInfo::const_iterator vi=varInfo.begin(); 
+	BarzelSingleTranVarInfo* storedTranVarInfo = 0;
+
 	for( BTND_PatternDataVec::const_iterator i = path.begin(); i!= path.end(); ++i, ++vi ) {
 		if( !wcpdList.empty() && i == wcpdList.front().first ) { // we reached a wildcard
 			if( n ) 
@@ -264,9 +281,12 @@ const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, uint32_
 		/// n is the new trienode 
 		/// trying to create variableinfo link to it
 		/// transid,varInfo --> n
-		size_t vpos = ( i-path.begin() ); 
-		if(  ) {
+		if( vi->size() ) { // it's a vector of stringIds corresponding to context names
+			if( !storedTranVarInfo ) 
+				storedTranVarInfo = d_varIndex.produceBarzelSingleTranVarInfo( transId );		
+			// storedTranVarInfo is guaranteed not to be 0 here
 			
+			storedTranVarInfo->insert( BarzelSingleTranVarInfo::value_type( *vi,  n) );
 		}
 	}
 	if( n ) {
@@ -413,7 +433,7 @@ void BarzelTranslation::fillRewriteData( BTND_RewriteData& d ) const
 	case T_NUMBER_INT: { BTND_Rewrite_Number n; n.set(getId_int()); d=n;} return;
 	case T_NUMBER_REAL: { BTND_Rewrite_Number n; n.set(getId_double()); d=n;} return;
 
-	case T_VAR_NAME: { BTND_Rewrite_Variable n; n.setVarNameId(getId_uint32()); d=n; } return;
+	case T_VAR_NAME: { BTND_Rewrite_Variable n; n.setVarId(getId_uint32()); d=n; } return;
 	case T_VAR_WC_NUM: { BTND_Rewrite_Variable n; n.setWildcardNumber(getId_uint32()); d=n; } return;
 	case T_VAR_EL_NUM: { BTND_Rewrite_Variable n; n.setPatternElemNumber(getId_uint32()); d=n; } return;
 	case T_VAR_GN_NUM: { BTND_Rewrite_Variable n; n.setWildcardGapNumber(getId_uint32()); d=n; } return;

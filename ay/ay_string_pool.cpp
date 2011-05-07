@@ -61,9 +61,7 @@ UniqueCharPool::StrId UniqueCharPool::internIt( const char* s )
 	const char * newS = addStringToPool( s );
 	id = idVec.size();
 	idVec.push_back( newS );
-	//std::cerr << "SHIT: " << id << ":map " << idMap.size() << ":vec " << idVec.size() << ":" << s << "~" << newS ;
 	idMap.insert( CharIdMap::value_type(newS, id) );
-	//std::cerr << " added\n";	
 	
 	return id;
 }

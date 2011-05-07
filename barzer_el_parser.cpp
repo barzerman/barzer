@@ -8,6 +8,25 @@
 
 namespace barzer {
 
+uint32_t BELParser::internVariable( const char* t )
+{
+	const char* beg = t;
+	const char* end = strchr( t, '.' ); 
+	std::string tmp;
+	BELSingleVarPath vPath;
+	for( ;end; ) {
+		tmp.assign( beg, end-beg );
+		vPath.push_back( internString(tmp.c_str()));
+		beg = end+1;
+		end = strchr( beg, '.' );
+	}
+	if( *beg ) {
+		tmp.assign( beg );
+		vPath.push_back( internString(tmp.c_str()));
+	}
+	return reader->getTrie().getVarIndex().produceVarIdFromPathForTran(vPath);
+}
+
 uint32_t BELParser::internString( const char* t )
 {
 	// here we may want to tweak some (nonexistent yet) fields in StoredToken 

@@ -7,6 +7,7 @@
 #include <ay/ay_util.h>
 #include <boost/variant.hpp>
 #include <barzer_basic_types.h>
+#include <barzer_el_variable.h>
 
 // types defined in this file are used to store information for various node types 
 // in the BarzEL trie
@@ -386,7 +387,7 @@ struct BTND_Rewrite_Variable {
 		MODE_WCGAP_NUMBER, // wildcard gap number
 	};
 	uint8_t idMode; 
-	uint32_t varId; /// when idMode is MODE_VARNAME this will be used as a sring id
+	uint32_t varId; /// when idMode is MODE_VARNAME this is a variable path id (see el_variables.h)
 		// otherwise as $1/$2 
 
 	bool isValid() const { return varId != 0xffffffff; }
@@ -399,7 +400,7 @@ struct BTND_Rewrite_Variable {
 	bool isPatternElemNumber() const { return idMode == MODE_PATEL_NUMBER; }
 	bool isWildcardGapNumber() const { return idMode == MODE_WCGAP_NUMBER; }
 
-	void setVarNameId( uint32_t vid ){ varId = vid; idMode= MODE_VARNAME; }
+	void setVarId( uint32_t vid ){ varId = vid; idMode= MODE_VARNAME; }
 	void setWildcardNumber( uint32_t vid ){ varId = vid; idMode= MODE_WC_NUMBER; }
 	void setPatternElemNumber( uint32_t vid ){ varId = vid; idMode= MODE_PATEL_NUMBER; }
 	void setWildcardGapNumber( uint32_t vid ){ varId = vid; idMode= MODE_WCGAP_NUMBER; }
@@ -572,9 +573,14 @@ struct BELParseTreeNode {
 	typedef std::vector<BELParseTreeNode> ChildrenVec;
 
 	ChildrenVec child;
-	
+	/// translation nodes may have things such as <var name="a.b.c"/>
+	/// they get encoded during parsing and stored in BarzelVariableIndex::d_pathInterner
+
+	BELParseTreeNode() {}
+
 	template <typename T>
-	BELParseTreeNode& addChild( const T& t) {
+	BELParseTreeNode& addChild( const T& t)
+	{
 		child.resize( child.size() +1 );
 		child.back().btndVar = t;
 		return child.back();
@@ -648,13 +654,7 @@ struct BELParseTreeNode {
 	}
 };
 
-
-typedef std::vector<uint32_t> BELSingleVarPath;
-typedef std::vector<BELSingleVarPath> BELVarInfo;
 typedef BELVarInfo::value_type VarVec;
-
-//struct PatternEmitterNode;
-
 
 struct PatternEmitterNode {
     virtual bool step() = 0;
