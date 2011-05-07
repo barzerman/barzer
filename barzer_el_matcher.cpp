@@ -513,7 +513,7 @@ bool BarzelMatchInfo::getDataByVarId( BeadRange& r, uint32_t varId, const BELTri
 		}
 	}
 	r = resultRange;
-	return( resultRange.first == resultRange.second );
+	return( resultRange.first != resultRange.second );
 }
 
 bool BarzelMatchInfo::getGapRange( BeadRange& r, size_t n ) const
