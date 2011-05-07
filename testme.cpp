@@ -20,7 +20,20 @@
 #include <stdio.h>
 
 using namespace barzer;
-/*
+
+template<class T> static std::ostream& operator<<(std::ostream &os, const std::vector<T> &vec) {
+	os << "[";
+	for (typename std::vector<T>::const_iterator vi = vec.begin(); vi != vec.end(); ++vi) {
+		os << *vi;
+		if (vi+1 < vec.end()) os << ",";
+	}
+	os << "]";
+
+	return os;
+}
+
+
+///*
 static std::ostream& printPatternData(std::ostream &os, const BTND_PatternData &pd, BELPrintContext &ctxt)
 {
 	switch(pd.which()) {
@@ -44,7 +57,7 @@ static std::ostream& printPatternData(std::ostream &os, const BTND_PatternData &
 	return os;
 }
  //*/
-/*
+///*
 static std::ostream& printPatternVec(std::ostream &os, const BTND_PatternDataVec &pdv,
 											           BELPrintContext &ctxt)
 {
@@ -57,7 +70,7 @@ static std::ostream& printPatternVec(std::ostream &os, const BTND_PatternDataVec
 	return os;
 } //*/
 
-/*
+
 static int testEmitter(StoredUniverse &su) {
 	ay::UniqueCharPool &sp = su.getStringPool();
 	BELTrie &trie = su.getBarzelTrie();
@@ -71,17 +84,32 @@ static int testEmitter(StoredUniverse &su) {
 	BELParseTreeNode tnode;
 	tnode.setNodeData(BTND_StructData(BTND_StructData::T_LIST));
 
-
 	tnode.addChild(pd);
 	tnode.addChild(pd2);
 	tnode.addChild(pd3);
-	BELParseTreeNode &tnode2 = tnode.addChild(BTND_StructData(BTND_StructData::T_PERM));
-	BELParseTreeNode &tnode3 = tnode2.addChild(BTND_StructData(BTND_StructData::T_ANY));
-	BELParseTreeNode &tnode4 = tnode3.addChild(BTND_StructData(BTND_StructData::T_PERM));
-	tnode4.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("1"))));
+
+	BTND_StructData sd = BTND_StructData(BTND_StructData::T_LIST);
+	sd.setVarId(6);
+
+	BELParseTreeNode &tnode2 = tnode.addChild(sd);
+	tnode2.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("1"))));
 	tnode2.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("2"))));
-	tnode2.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("3"))));
-	tnode2.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("4"))));
+
+	BTND_StructData sd2 = BTND_StructData(BTND_StructData::T_LIST);
+	sd2.setVarId(7);
+
+	BELParseTreeNode &tnode3 = tnode2.addChild(sd2);
+	tnode3.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("3"))));
+	tnode3.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("4"))));
+
+	tnode2.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("5"))));
+	tnode2.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("6"))));
+
+	tnode.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("7"))));
+
+//	tnode4.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("1"))));
+
+
 
 
 	BELParseTreeNode_PatternEmitter emitter( tnode );
@@ -96,6 +124,8 @@ static int testEmitter(StoredUniverse &su) {
 
     do {
 		printPatternVec(std::cout, emitter.getCurSequence(), pctxt);
+		std::cout << emitter.getVarInfo() << "\n";
+
 	} while (emitter.produceSequence());
 	return 0;
 } //*/
@@ -164,9 +194,22 @@ static int testFunctions(StoredUniverse &su) {
 	return 0;
 }
 
+void testDateLookup(StoredUniverse &su) {
+	const DateLookup dl = su.getDateLookup();
+	//
+
+	std::cout << (int) dl.lookupMonth("june") << "\n";
+	std::cout << (int) dl.lookupMonth("январь") << "\n";
+	std::cout << (int) dl.lookupMonth("август") << "\n";
+	std::cout << (int) dl.lookupWeekday("wednesday") << "\n";
+	std::cout << (int) dl.lookupWeekday("понедельник") << "\n";
+}
+
+
 int main() {
 	AYLOGINIT(DEBUG);
 	static StoredUniverse su;
+	testEmitter(su);
 /*
 	std::cout << sizeof(BELParseTreeNode)
 		<< " vs " << sizeof(BarzelEvalNode)
@@ -174,13 +217,6 @@ int main() {
 		<< " vs " << sizeof(BarzerNumber)
 		<< "\n";
 		*/
-	const DateLookup dl = su.getDateLookup();
 	//return testFunctions(su);
-
-	std::cout << (int) dl.lookupMonth("june") << "\n";
-	std::cout << (int) dl.lookupMonth("январь") << "\n";
-	std::cout << (int) dl.lookupMonth("август") << "\n";
-	std::cout << (int) dl.lookupWeekday("wednesday") << "\n";
-	std::cout << (int) dl.lookupWeekday("понедельник") << "\n";
 
 }

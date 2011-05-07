@@ -86,4 +86,10 @@
             </func>
         </tran>
     </stmt>      
+    
+    <stmt>
+    
+        <pat><list v="twat"><n l="500" h="600" /></list></pat>
+        <tran><var name="twat" /></tran>
+    </stmt>
 </stmset>

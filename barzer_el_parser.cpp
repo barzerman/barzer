@@ -62,6 +62,11 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 	do {
 		const BTND_PatternDataVec& seq = emitter.getCurSequence();
 		const BELVarInfo& varInfo = emitter.getVarInfo();
+
+		if (seq.size() != varInfo.size()) {
+			AYLOG(ERROR) << "Panic: varInfo.size != seq.size()";
+		}
+
 		j += seq.size();
 		uint32_t tranId = 0xffffffff;
 		BarzelTranslation* tran = trie->makeNewBarzelTranslation( tranId );

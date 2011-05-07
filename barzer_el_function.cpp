@@ -40,8 +40,6 @@ static BarzerNumber getNumber(const BarzelEvalResult &result) {
 	return boost::apply_visitor(m, result.getBeadData());
 }
 
-
-
 // writes result number into BarzerNumber - NaN when failed
 static bool setNumber(BarzerNumber &num, const BarzelEvalResult &result) {
 	NumberMatcher m;
@@ -56,13 +54,20 @@ template<class T> struct BeadMatcher : public boost::static_visitor<T> {
 	template<class U> T* operator()( const U& ) { return 0; }
 };
 
+// safe version, returns 0 on fail
 template<class T> const T* getBead(const BarzelEvalResult &result)
 {
-	BeadMatcher<T> m;
-	return boost::apply_visitor(m, result.getBeadData());
+	//BeadMatcher<T> m;
+	return boost::apply_visitor(BeadMatcher<T>(), result.getBeadData());
 }
 
-template<class T> void setResult(BarzelEvalResult&, const T&);
+// throwing version. only call it when catching boost::bad_get
+template<class T> const T& getAtomic(const BarzelEvalResult &result) {
+	return boost::get<T>(
+			boost::get<BarzelBeadAtomic>(result.getBeadData()).dta);
+}
+
+//template<class T> void setResult(BarzelEvalResult&, const T&);
 
 template<class T> void setResult(BarzelEvalResult &result, const T &data) {
 	BarzelBeadAtomic atm;
@@ -394,12 +399,9 @@ struct BELFunctionStorage_holder {
 			return false;
 		}
 		try {
-			const BarzerLiteral &ltrl = boost::get<BarzerLiteral>(
-					boost::get<BarzelBeadAtomic>(rvec[0].getBeadData()).dta);
+			const BarzerLiteral &ltrl = getAtomic<BarzerLiteral>(rvec[0]);
 			const BarzerNumber &cl = getNumber(rvec[1]);
 			const BarzerNumber &scl = getNumber(rvec[2]);
-
-			//const DtaIndex &dtaIdx = universe.getDtaIdx();
 
 			const char *tokstr = universe.getStringPool().resolveId(ltrl.getId());
 
@@ -434,12 +436,10 @@ struct BELFunctionStorage_holder {
 		}
 		try {
 			BarzelEntityRangeCombo erc;
-			const BarzerEntityList &belst = boost::get<BarzerEntityList>(
-					boost::get<BarzelBeadAtomic>(rvec[0].getBeadData()).dta);
+			const BarzerEntityList &belst = getAtomic<BarzerEntityList>(rvec[0]);
 
 			erc.setEntityId(belst.getList().front().entId);
-			erc.range = boost::get<BarzerRange>(
-					boost::get<BarzelBeadAtomic>(rvec[1].getBeadData()).dta);
+			erc.range = getAtomic<BarzerRange>(rvec[1]);
 			setResult(result, erc);
 			return true;
 		} catch (boost::bad_get) {
@@ -597,19 +597,19 @@ struct BELFunctionStorage_holder {
 
 	STFUN(lookupMonth)
 	{
-		if (rvec.size()) {
-			try {
-				const BarzelBeadAtomic &ba = boost::get<BarzelBeadAtomic>(rvec[0].getBeadData());
-				const BarzerLiteral &bl = boost::get<BarzerLiteral>(ba.dta);
-				const uint8_t mnum = universe.getDateLookup().lookupMonth(bl.getId());
-				if (!mnum) return false;
-				BarzerNumber bn(mnum);
-				setResult(result, bn);
-				return true;
-			} catch(boost::bad_get) {
-				AYLOG(ERROR) << "Wrong argument type";
-				return false;
-			}
+		if (!rvec.size()) {
+			AYLOG(ERROR) << "Wrong number of agruments";
+			return false;
+		}
+		try {
+			const BarzerLiteral &bl = getAtomic<BarzerLiteral>(rvec[0]);
+			const uint8_t mnum = universe.getDateLookup().lookupMonth(bl.getId());
+			if (!mnum) return false;
+			BarzerNumber bn(mnum);
+			setResult(result, bn);
+			return true;
+		} catch(boost::bad_get) {
+			AYLOG(ERROR) << "Wrong argument type";
 		}
 		return false;
 	}
@@ -617,20 +617,19 @@ struct BELFunctionStorage_holder {
 	STFUN(lookupWday)
 	{
 		//AYLOG(DEBUG) << "lookupwday called";
-		if (rvec.size()) {
-			try {
-				const BarzelBeadAtomic &ba = boost::get<BarzelBeadAtomic>(rvec[0].getBeadData());
-				const BarzerLiteral &bl = boost::get<BarzerLiteral>(ba.dta);
-				AYLOG(DEBUG) << bl.getId();
-				uint8_t mnum = universe.getDateLookup().lookupWeekday(bl.getId());
-				if (!mnum) return false;
-				BarzerNumber bn(mnum);
-				setResult(result, bn);
-				return true;
-			} catch(boost::bad_get) {
-				AYLOG(ERROR) << "Wrong argument type";
-				return false;
-			}
+		if (!rvec.size()) {
+			AYLOG(ERROR) << "Wrong number of agruments";
+			return false;
+		}
+		try {
+			const BarzerLiteral &bl = getAtomic<BarzerLiteral>(rvec[0]);
+			uint8_t mnum = universe.getDateLookup().lookupWeekday(bl.getId());
+			if (!mnum) return false;
+			BarzerNumber bn(mnum);
+			setResult(result, bn);
+			return true;
+		} catch(boost::bad_get) {
+			AYLOG(ERROR) << "Wrong argument type";
 		}
 		return false;
 	}
