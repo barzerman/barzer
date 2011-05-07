@@ -459,6 +459,63 @@ void BTMBestPaths::addPath(const NodeAndBeadVec& nb )
 }
 
 
+
+bool BarzelMatchInfo::getDataByVarId( BeadRange& r, uint32_t varId, const BELTrie& trie ) const
+{
+	const BarzelVariableIndex& varIdx = trie.getVarIndex();
+	const BarzelTrieNode * leafNode = getTheLeafNode();
+	if( !leafNode ) return false;
+	uint32_t translationId = leafNode->getTranslationId();
+
+	// varKey is the vector of uint32_t-s - id's of each variable (context) for 
+	// variable a.b.c varKey would have 3 elements - stringId for a, b and c
+	const BELSingleVarPath* varKey = varIdx.getPathFromTranVarId( varId );
+	if( !varKey || !varKey->size() ) return false;
+	/// varInfo - varKey mappings to BarzelTrieNodes (multimap)
+	const BarzelSingleTranVarInfo* varInfo = varIdx.getBarzelSingleTranVarInfo( translationId );
+	if( !varInfo ) return false;
+	// now we iterate over varInfo multimap over all keys prefixed with varKey
+	// all matches will be in varNodeSet (below)
+	BarzelSingleTranVarInfo::const_iterator mi = varInfo->lower_bound( *varKey );
+	if( mi == varInfo->end() ) return false;
+	std::set< const BarzelTrieNode* > varNodeSet;
+	for( ;mi != varInfo->end(); ++mi  ) {
+		// seeing whether varKey is a prefix of mi->first 
+		const BELSingleVarPath& miKey = mi->first;
+		if( miKey.size() < varKey->size() ) 
+			break;
+		BELSingleVarPath::const_iterator vki= varKey->begin(), mki = miKey.begin(); 
+		bool varKeyIsPrefixOfMiKey = true;
+		for( ; vki != varKey->end(); ++vki,++mki ) {
+			if( *vki != *mki ) {
+				varKeyIsPrefixOfMiKey= false;
+				break;
+			}
+		}
+		if( varKeyIsPrefixOfMiKey ) 
+			varNodeSet.insert( mi->second );
+		else
+			break;
+	}
+	// now computing the union range of all elements of the path such that their trie nodes are in 
+	// the varNodeSet. running thru the path 
+	if( !varNodeSet.size() ) return false;
+	BeadRange resultRange;
+	for( NodeAndBeadVec::const_iterator i = d_thePath.begin(); i!= d_thePath.end(); ++i ) {
+		const BarzelTrieNode* tn = i->first;
+		if( varNodeSet.find(tn) != varNodeSet.end() ) {
+			if( resultRange.first == resultRange.second ) { // range is empty
+				resultRange = i->second;
+			} else { // there is already something in range
+				// so we only extend the right edge
+				resultRange.second = i->second.second;
+			}
+		}
+	}
+	r = resultRange;
+	return( resultRange.first != resultRange.second );
+}
+
 bool BarzelMatchInfo::getGapRange( BeadRange& r, size_t n ) const
 {
 	const NodeAndBead* wc = getDataByWildcardNumber(n);
@@ -487,7 +544,6 @@ void BarzelMatchInfo::setPath( const NodeAndBeadVec& p )
 	d_thePath = p;
 	d_wcVec.clear();
 	d_wcVec.reserve( d_thePath.size() );
-	d_varNameMap.clear();
 	d_substitutionBeadRange.first = d_substitutionBeadRange.second = d_beadRng.second;
 	for( NodeAndBeadVec::const_iterator i = d_thePath.begin(); i!= d_thePath.end(); ++i ) {
 		if( i->first->isWcChild() )  {

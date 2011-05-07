@@ -46,7 +46,11 @@ class BELParser {
 protected:
 	BELReader* reader; // parser doesnt own this pointer. reader owns the parser
 
+	enum { MAX_VARNAME_LENGTH };
 	uint32_t internString( const char* s ) ;
+	/// gets variable name v1.v2.v3 ... interns individual parts and 
+	/// adds result to the variable pool as a whole vector
+	uint32_t internVariable( const char* );
 public:
 	BELParser( BELReader* r ) : reader(r) {}
 	virtual int parse( std::istream& ) = 0;
@@ -69,6 +73,11 @@ protected:
 
 	std::string inputFileName; 
 public:
+
+
+	BELTrie& getTrie() { return *trie ; }
+	const BELTrie& getTrie() const { return *trie ; }
+
 	StoredUniverse& getUniverse() { return universe; }
 	/// barzEL input formats
 	typedef enum {

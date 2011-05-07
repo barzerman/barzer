@@ -22,6 +22,7 @@ class BELParserXML : public BELParser {
 	int getTag( const char* s ) const;
 	const char* getTagName( const char* s );
 	bool isValidTag( int tag, int parent ) const;
+	void processAttrForStructTag( BTND_StructData& node, const char_cp * attr, size_t attr_sz );
 public:
 	/// there's practically a 1-1 correspondence between the BELParseTreeNode::nodeType enums and 
 	/// the XML tags. the TreeNode enums are not sequential so we will address this issue 

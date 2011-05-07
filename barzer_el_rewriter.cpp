@@ -190,7 +190,7 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Variable>( const 
 	BarzelMatchInfo& matchInfo = ctxt.matchInfo;
 	BeadRange r;
 
-	if( matchInfo.getDataByVar(r,n)  ) {
+	if( matchInfo.getDataByVar(r,n,ctxt.universe.getBarzelTrie())  ) {
 		if( r.first == r.second )  {
 			if( matchInfo.iteratorIsEnd( r.second ) ) {
 				std::cerr << "ERROR: blank tail range passed\n";

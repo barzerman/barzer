@@ -8,6 +8,25 @@
 
 namespace barzer {
 
+uint32_t BELParser::internVariable( const char* t )
+{
+	const char* beg = t;
+	const char* end = strchr( t, '.' ); 
+	std::string tmp;
+	BELSingleVarPath vPath;
+	for( ;end; ) {
+		tmp.assign( beg, end-beg );
+		vPath.push_back( internString(tmp.c_str()));
+		beg = end+1;
+		end = strchr( beg, '.' );
+	}
+	if( *beg ) {
+		tmp.assign( beg );
+		vPath.push_back( internString(tmp.c_str()));
+	}
+	return reader->getTrie().getVarIndex().produceVarIdFromPathForTran(vPath);
+}
+
 uint32_t BELParser::internString( const char* t )
 {
 	// here we may want to tweak some (nonexistent yet) fields in StoredToken 
@@ -42,6 +61,7 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 	ay::stopwatch totalTimer;
 	do {
 		const BTND_PatternDataVec& seq = emitter.getCurSequence();
+		const BELVarInfo& varInfo = emitter.getVarInfo();
 		j += seq.size();
 		uint32_t tranId = 0xffffffff;
 		BarzelTranslation* tran = trie->makeNewBarzelTranslation( tranId );
@@ -50,7 +70,7 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 			AYLOG(ERROR) << "null translation returned\n";
 		} else
 			tran->set(*trie, sp.translation);
-		trie->addPath( seq, tranId );
+		trie->addPath( seq, tranId, varInfo );
 		i++;
 		//AYLOG(DEBUG) << "path added";
 	} while( emitter.produceSequence() );

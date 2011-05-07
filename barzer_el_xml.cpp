@@ -362,13 +362,28 @@ void BELParserXML::taghandle_DATE( const char_cp * attr, size_t attr_sz , bool c
 {}
 void BELParserXML::taghandle_TIME( const char_cp * attr, size_t attr_sz , bool close)
 {}
+
+void BELParserXML::processAttrForStructTag( BTND_StructData& dta, const char_cp * attr, size_t attr_sz )
+{
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		switch( n[0] ) {
+		case 'v': 
+			dta.setVarId( internString(v) );
+			return;
+		}
+	}
+}
 void BELParserXML::taghandle_LIST( const char_cp * attr, size_t attr_sz , bool close)
 {
 	if( close ) {
 		statement.popNode();
 		return;
 	}
-	statement.pushNode( BTND_StructData( BTND_StructData::T_LIST));
+	BTND_StructData node( BTND_StructData::T_LIST);
+	processAttrForStructTag( node, attr, attr_sz );
+	statement.pushNode( node );
 }
 void BELParserXML::taghandle_ANY( const char_cp * attr, size_t attr_sz , bool close)
 {
@@ -376,7 +391,9 @@ void BELParserXML::taghandle_ANY( const char_cp * attr, size_t attr_sz , bool cl
 		statement.popNode();
 		return;
 	}
-	statement.pushNode( BTND_StructData( BTND_StructData::T_ANY));
+	BTND_StructData node( BTND_StructData::T_ANY);
+	processAttrForStructTag( node, attr, attr_sz );
+	statement.pushNode( node );
 }
 void BELParserXML::taghandle_OPT( const char_cp * attr, size_t attr_sz , bool close)
 {
@@ -384,7 +401,9 @@ void BELParserXML::taghandle_OPT( const char_cp * attr, size_t attr_sz , bool cl
 		statement.popNode();
 		return;
 	}
-	statement.pushNode( BTND_StructData( BTND_StructData::T_OPT));
+	BTND_StructData node( BTND_StructData::T_OPT);
+	processAttrForStructTag( node, attr, attr_sz );
+	statement.pushNode( node );
 }
 void BELParserXML::taghandle_PERM( const char_cp * attr, size_t attr_sz , bool close)
 {
@@ -392,7 +411,9 @@ void BELParserXML::taghandle_PERM( const char_cp * attr, size_t attr_sz , bool c
 		statement.popNode();
 		return;
 	}
-	statement.pushNode( BTND_StructData( BTND_StructData::T_PERM));
+	BTND_StructData node( BTND_StructData::T_PERM);
+	processAttrForStructTag( node, attr, attr_sz );
+	statement.pushNode( node );
 }
 void BELParserXML::taghandle_TAIL( const char_cp * attr, size_t attr_sz , bool close)
 {
@@ -400,7 +421,9 @@ void BELParserXML::taghandle_TAIL( const char_cp * attr, size_t attr_sz , bool c
 		statement.popNode();
 		return;
 	}
-	statement.pushNode( BTND_StructData( BTND_StructData::T_TAIL));
+	BTND_StructData node( BTND_StructData::T_TAIL);
+	processAttrForStructTag( node, attr, attr_sz );
+	statement.pushNode(node);
 }
 /// rewrite tags 
 void BELParserXML::taghandle_LITERAL( const char_cp * attr, size_t attr_sz , bool close)
@@ -476,7 +499,7 @@ void BELParserXML::taghandle_VAR( const char_cp * attr, size_t attr_sz , bool cl
 			 break;
 		case 'n': { // <var name=""/> - named variable
 			/// intern
-			var.setVarNameId( internString(v) );
+			var.setVarId( internVariable(v) );
 		}
 			break;
 		case 'p': { // <var pn="1"/> - pattern element number - if pattern is "a * b * c" then pn[1] is a, pn[2] is the first * etc

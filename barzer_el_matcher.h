@@ -37,8 +37,9 @@ class BarzelMatchInfo {
 	///  for each trie node stores the node + the range of beads that matched the node
 	NodeAndBeadVec    d_thePath;
 	std::vector< size_t > d_wcVec; // $n would get translated to wcVec[n] (stores offsets in thePath)
-	/// uint32_t is the stringId from the pool
-	std::map< uint32_t, size_t > d_varNameMap; 
+
+	// varid is the key to BarzelVariableIndex::d_pathInterner
+	bool getDataByVarId( BeadRange& r, uint32_t varId, const BELTrie& trie ) const;
 public:
 	bool isFullBeadRangeEmpty() const { return d_beadRng.first == d_beadRng.second ; }
 	bool isSubstitutionBeadRangeEmpty() const
@@ -91,17 +92,18 @@ public:
 		d_beadRng = BeadRange();
 	}
 
+	/* SHIT
 	const NodeAndBead* getDataByNameId( uint32_t id ) const 
 	{
 		std::map< uint32_t, size_t >::const_iterator i = d_varNameMap.find( id );
 		return( i == d_varNameMap.end() ? 0 : getDataByElementNumber( i->second ) );
 	}
+	*/
 	
 	inline const NodeAndBead* getDataByVar_trivial( const BTND_Rewrite_Variable& var ) const
 	{
 		switch( var.getIdMode() ) {
 		case BTND_Rewrite_Variable::MODE_WC_NUMBER: return getDataByWildcardNumber( var.getVarId());
-		case BTND_Rewrite_Variable::MODE_VARNAME: return getDataByNameId( var.getVarId());
 		case BTND_Rewrite_Variable::MODE_PATEL_NUMBER: return getDataByElementNumber( var.getVarId());
 		}
 		return 0;
@@ -110,19 +112,35 @@ public:
 	// var can be pn - pattern number, w - wildcard umber and gn - gap number
 	// gn[i] is everything between (exclusively) w[i-1] and w[i]
 	// when resolution fails return false
-	bool getDataByVar( BeadRange& r, const BTND_Rewrite_Variable& var )
+	bool getDataByVar( BeadRange& r, const BTND_Rewrite_Variable& var, const BELTrie& trie )
 	{
 		const NodeAndBead* nob = getDataByVar_trivial(var);
 		if( nob ) {
 			return( r = nob->second, true );
+		} else if( var.isVarId() ) {
+			return getDataByVarId(r,var.getVarId(), trie );
+			// case BTND_Rewrite_Variable::MODE_VARNAME: return getDataByNameId( var.getVarId());
 		} else if( getGapRange(r,var) ) {
 			return true;
 		}
 		return false;
 	}
+	const BarzelTrieNode* getTheLeafNode() const
+		{ return (d_thePath.size() ? d_thePath.back().first : 0 ); }
+	uint32_t getTranslationId() const
+		{ return (d_thePath.size() ? d_thePath.back().first->getTranslationId() : 0xffffffff); }
 
 };
 typedef std::pair<BarzelMatchInfo,const BarzelTranslation*> RewriteUnit;
+/*
+struct RewriteUnit {
+	BarzelMatchInfo first;
+	const BarzelTranslation* second;
+	const BarzelTrieNode* trieNode;
+	
+	RewriteUnit() : second(0), trieNode(0) {}
+};
+*/
 //struct RewriteUnit;
 
 /// Barzel TrieMatcher (BTM)
