@@ -395,7 +395,7 @@ struct BTND_Rewrite_Variable {
 	uint8_t getIdMode() const { return idMode; }
 	uint32_t getVarId() const { return varId; }
 		
-	bool isVarname() const { return idMode == MODE_VARNAME; }
+	bool isVarId() const { return idMode == MODE_VARNAME; }
 	bool isWildcardNum() const { return idMode == MODE_WC_NUMBER; }
 	bool isPatternElemNumber() const { return idMode == MODE_PATEL_NUMBER; }
 	bool isWildcardGapNumber() const { return idMode == MODE_WCGAP_NUMBER; }
