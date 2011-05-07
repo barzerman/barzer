@@ -262,6 +262,7 @@ const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, uint32_
 	BarzelSingleTranVarInfo* storedTranVarInfo = 0;
 
 	for( BTND_PatternDataVec::const_iterator i = path.begin(); i!= path.end(); ++i, ++vi ) {
+		const BarzelTrieNode* prevN = n;
 		if( !wcpdList.empty() && i == wcpdList.front().first ) { // we reached a wildcard
 			if( n ) 
 				n = n->addWildcardPattern( *this, *i, wcpdList.front().second );
@@ -286,7 +287,7 @@ const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, uint32_
 				storedTranVarInfo = d_varIndex.produceBarzelSingleTranVarInfo( transId );		
 			// storedTranVarInfo is guaranteed not to be 0 here
 			
-			storedTranVarInfo->insert( BarzelSingleTranVarInfo::value_type( *vi,  n) );
+			storedTranVarInfo->insert( BarzelSingleTranVarInfo::value_type( *vi,  prevN) );
 		}
 	}
 	if( n ) {

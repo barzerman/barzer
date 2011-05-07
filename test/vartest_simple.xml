@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
+	xmlns="http://www.barzer.net/barzel/0.1">
+	<!--
+		simple test for trivial variables
+	-->
+	<stmt>
+		<pat>
+		<list v="a">
+			<t>shit</t>
+		</list>
+		<t>junk</t>
+		<list v="b"><t>cunt</t></list>
+		</pat>
+		<tran>
+			<var n="b"/>
+		</tran>
+	</stmt>
+</stmset>
