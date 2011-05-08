@@ -306,12 +306,6 @@ static int bshf_triestats( BarzerShell* shell, char_cp cmd, std::istream& in )
 	trav.traverse( counter, sh.curTrieNode );
 	std::cerr << counter << std::endl;
 	}
-	{
-	BarzelTrieTraverser_depth trav( sh.trie.getRoot(), sh.uni.getBarzelTrie() );
-	BarzelTrieStatsCounter counter;
-	trav.traverse_nostack( counter, sh.curTrieNode );
-	std::cerr << counter << std::endl;
-	}
 	return 0;
 }
 

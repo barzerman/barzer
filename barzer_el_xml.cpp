@@ -439,6 +439,7 @@ void BELParserXML::taghandle_LITERAL( const char_cp * attr, size_t attr_sz , boo
 		switch( n[0] ) {
 		case 't': // type
 			switch( v[0] ) {
+			case 'f': // t="fluff" ~ stop token
 			case 's': // t="stop" ~ stop token
 				literal.setStop();
 				break;
