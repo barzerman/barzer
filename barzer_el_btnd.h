@@ -109,7 +109,7 @@ struct BTND_Pattern_Punct {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	int theChar; // actual punctuation character. 0 - same as stop
 	
-	BTND_Pattern_Punct() : theChar(0) {}
+	BTND_Pattern_Punct() : theChar(0xffffffff) {}
 	BTND_Pattern_Punct(char c) : theChar(c) {}
 
 	void setChar( char c ) { theChar = c; }
@@ -247,7 +247,7 @@ struct BTND_Pattern_Token {
 	ay::UniqueCharPool::StrId stringId;
 
 	BTND_Pattern_Token() : 
-		stringId(ay::UniqueCharPool::ID_NOTFOUND)
+		stringId(0xffffffff)
 	{}
 	BTND_Pattern_Token(ay::UniqueCharPool::StrId id) : 
 		stringId(id)
@@ -260,8 +260,9 @@ struct BTND_Pattern_StopToken : public BTND_Pattern_Token {
 	{
 		return BTND_Pattern_Token::print( fp, ctxt ) << "<STOP>";
 	}
-	ay::UniqueCharPool::StrId stringId;
+	//ay::UniqueCharPool::StrId stringId;
 
+	BTND_Pattern_StopToken() : BTND_Pattern_Token(0xffffffff) {}
 	BTND_Pattern_StopToken(ay::UniqueCharPool::StrId id) : 
 		BTND_Pattern_Token(id)
 	{}

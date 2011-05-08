@@ -271,9 +271,30 @@ void BELParserXML::taghandle_T( const char_cp * attr, size_t attr_sz , bool clos
 		statement.popNode();
 		return;
 	}
-	statement.pushNode( BTND_PatternData( BTND_Pattern_Token()));
-
+	bool isStop = false;
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		switch( *n ) {
+		case 't':  // type t=
+			switch( v[0] ) {
+			// stop is the same as fluff
+			case 'f': // fluff (t="f" or t="fluff")
+			case 's': // stop (t="s" or t="stop") 
+				isStop = true;
+				break;
+			}
+			break;
+		}
+	}
+	BTND_PatternData dta;
+	if( isStop ) 
+		dta = BTND_Pattern_StopToken();
+	else
+		dta = BTND_Pattern_Token();
+	statement.pushNode( dta );
 }
+
 void BELParserXML::taghandle_TG( const char_cp * attr, size_t attr_sz , bool close)
 {
 }
