@@ -169,58 +169,80 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 	}
 
 	template <typename T>
+	bool doFirmMatch( const BarzelFCMap& fcmap, const T& dta, bool allowBlanks=false ) {
+		return false;
+	}
+	template <typename T>
 	bool operator()( const T& dta ) 
 	{
 		doWildcards( );
 		return (d_mtChild.size() > 0);
 	}
-
+	
 };
+	template <>
+	bool findMatchingChildren_visitor::doFirmMatch<BarzerLiteral>( const BarzelFCMap& fcmap, const BarzerLiteral& dta, bool allowBlanks) 
+	{
+		BarzelTrieFirmChildKey firmKey; 
+		// forming firm key
+		bool curDtaIsBlank = firmKey.set(dta,d_followsBlank).isBlankLiteral();
+		if( !allowBlanks && curDtaIsBlank ) {
+			return false; // this should never happen blanks are skipped
+		}
+
+		const BarzelTrieNode* ch = d_tn->getFirmChild( firmKey, fcmap ); 
+		if( ch ) {
+			BeadList::iterator endIt = d_rng.first;
+			//++endIt;
+			BarzelBeadChain::Range goodRange(d_rng.first,endIt);
+			// AYDEBUG(goodRange);
+			d_mtChild.push_back( NodeAndBeadVec::value_type(ch, goodRange ) );
+		} 
+		/// retrying in case the token immediately follows non blank 
+		if( !d_followsBlank ) {
+			firmKey.noLeftBlanks = 0;
+			ch = d_tn->getFirmChild( firmKey, fcmap ); 
+			if( ch ) {
+				BeadList::iterator endIt = d_rng.first;
+
+				BarzelBeadChain::Range goodRange(d_rng.first,endIt);
+				d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+			}
+		}
+	
+		return true;
+	}
 	template <>
 inline	bool findMatchingChildren_visitor::operator()<BarzerLiteral> ( const BarzerLiteral& dta ) 
 	{
 		const BarzelFCMap* fcmap = d_btmi.universe.getBarzelTrie().getBarzelFCMap( *d_tn );
 		if( fcmap ) {
-			BarzelTrieFirmChildKey firmKey; 
-			// forming firm key
-			bool curDtaIsBlank = firmKey.set(dta,d_followsBlank).isBlankLiteral();
-			if( curDtaIsBlank ) 
-				return false; // this should never happen blanks are skipped
+			doFirmMatch( *fcmap, dta );
+			/// trying to match single wildcard literals
+			BarzerLiteral wcLit = dta;
+			wcLit.setId( 0xffffffff );
+			doFirmMatch( *fcmap, wcLit, true );
 	
-			const BarzelTrieNode* ch = d_tn->getFirmChild( firmKey, *fcmap ); 
-			if( ch ) {
-				BeadList::iterator endIt = d_rng.first;
-				//++endIt;
-				BarzelBeadChain::Range goodRange(d_rng.first,endIt);
-				// AYDEBUG(goodRange);
-				d_mtChild.push_back( NodeAndBeadVec::value_type(ch, goodRange ) );
-			} 
-			/// retrying in case the token immediately follows non blank 
-			if( !d_followsBlank ) {
-				firmKey.noLeftBlanks = 0;
-				ch = d_tn->getFirmChild( firmKey, *fcmap ); 
-				if( ch ) {
-					BeadList::iterator endIt = d_rng.first;
-	
-					/*
-					if( endIt != d_rng.second ) {
-						const BarzelBeadAtomic* atomic = endIt->getAtomic();
-						if( !atomic || atomic->isBlankLiteral() ) 
-							++endIt;
-					}
-					*/
-					BarzelBeadChain::Range goodRange(d_rng.first,endIt);
-					// AYDEBUG(goodRange);
-					d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
-				}
-			}
-	
-			if( !curDtaIsBlank && d_followsBlank ) 
+			if( d_followsBlank ) 
 				d_followsBlank = false;
 		}
 		// ch is 0 here 
 		doWildcards( );
 		return (d_mtChild.size() > 0);
+	}
+	template <>
+inline	bool findMatchingChildren_visitor::operator()<BarzerString> ( const BarzerString& dta ) 
+	{
+		const BarzelFCMap* fcmap = d_btmi.universe.getBarzelTrie().getBarzelFCMap( *d_tn );
+		if( fcmap ) {
+			BarzerLiteral wcLit;
+			doFirmMatch( *fcmap, wcLit, true );
+			wcLit.setBlank();
+			doFirmMatch( *fcmap, wcLit, true );
+			if( d_followsBlank ) 
+				d_followsBlank = false;
+		}
+		return (d_mtChild.size() > 0 );
 	}
 
 //// TEMPLATE MATCHING
