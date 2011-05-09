@@ -6,5 +6,47 @@
             <n l="1900" h="2100"/><p>/</p><n l="1" h="12"/><p>/</p><n l="1" h="31"/>
         </pat>
         <tran><func name="mkDate"><var w="3" /><var w="2" /><var w="1" /></func></tran>
-    </stmt>    
+    </stmt>
+    
+    <stmt>
+        <pat>
+            <any v="mon">
+            <t>january</t><t>jan</t>
+            <t>february</t><t>feb</t>
+            <t>march</t><t>mar</t>
+            <t>april</t><t>apr</t>
+            <t>may</t>
+            <t>june</t><t>jun</t>
+            <t>july</t><t>jul</t>
+            <t>august</t><t>aug</t>
+            <t>september</t><t>sep</t>
+            <t>october</t><t>oct</t>
+            <t>november</t><t>nov</t>
+            <t>december</t><t>dec</t>
+            </any>
+            <list v="day"><n l="1" h="31" /></list>
+            <list v="year"><n l="1900" h="2100" /></list>
+        </pat>
+        <tran>
+            <func name="mkDate">
+                <var name="day" />
+                <func name="lookupMonth"><var name="mon" /></func>
+                <var name="year" />
+            </func>
+        </tran>
+    </stmt>
+    
+    <stmt>
+        <pat>
+        <t>$</t>
+        <list v="val"><n /></list> 
+        </pat>
+        <tran>
+            <func name="mkERC">
+            <func name="mkEnt"><ltrl t="string">USD</ltrl><rn v="1" /><rn v="1" /></func>
+            <func name="mkRange"><var name="val" /><var name="val" /></func>
+            </func>
+        </tran>
+    </stmt>
+    
 </stmset>
