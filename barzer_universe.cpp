@@ -7,7 +7,8 @@ StoredUniverse::StoredUniverse() :
 	barzelRewritePool(64*1024),
 	barzelTrie(&barzelRewritePool,&barzelWildcardPool,&barzelFirmChildPool,&barzelTranslationPool),
 	funSt(*this),
-	dateLookup(*this)
+	dateLookup(*this),
+	settings("config.xml")
 {
 	//dtaIdx.addGenericEntity("shit", 1, 1);
 	createGenericEntities();

@@ -8,6 +8,7 @@
 #include <barzer_dtaindex.h>
 #include <barzer_el_function.h>
 #include <barzer_date_util.h>
+#include <barzer_settings.h>
 
 namespace barzer {
 
@@ -29,6 +30,8 @@ class StoredUniverse {
 	BELFunctionStorage funSt;
 	DateLookup dateLookup;
 	
+	BarzerSettings settings;
+
 	/// this will create the "wellknown" entities 
 	void createGenericEntities();
 public:
@@ -72,6 +75,7 @@ public:
 
 	const BELFunctionStorage& getFunctionStorage() const { return funSt; }
 	const DateLookup& getDateLookup() const { return dateLookup; }
+	const BarzerSettings& getSettings() const { return settings; }
 	
 	const char* getGenericSubclassName( uint16_t subcl ) const;
 }; 

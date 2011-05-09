@@ -33,6 +33,7 @@ template<class T> static std::ostream& operator<<(std::ostream &os, const std::v
 }
 
 
+
 ///*
 static std::ostream& printPatternData(std::ostream &os, const BTND_PatternData &pd, BELPrintContext &ctxt)
 {
@@ -206,10 +207,16 @@ void testDateLookup(StoredUniverse &su) {
 }
 
 
+void testSettings(StoredUniverse &su) {
+	std::cout << su.getSettings().get("config.ruleset") << std::endl;
+}
+
 int main() {
 	AYLOGINIT(DEBUG);
-	static StoredUniverse su;
-	testEmitter(su);
+	StoredUniverse su;
+	//testEmitter(su);
+	testSettings(su);
+
 /*
 	std::cout << sizeof(BELParseTreeNode)
 		<< " vs " << sizeof(BarzelEvalNode)
@@ -218,5 +225,5 @@ int main() {
 		<< "\n";
 		*/
 	//return testFunctions(su);
-
+	return 0;
 }
