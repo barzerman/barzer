@@ -145,15 +145,34 @@ struct BTND_Pattern_Date {
 		T_ANY_DATE, 
 		T_ANY_FUTUREDATE, 
 		T_ANY_PASTDATE, 
+		T_TODAY, 
 
 		T_DATERANGE, // range of dates
 		T_MAX
 	};
 	uint8_t type; // T_XXXX values 
-	uint32_t lo, hi; // low high date in YYYYMMDD format
+	int32_t lo, hi; // low high date in YYYYMMDD format
 	
 	BTND_Pattern_Date( ) : type(T_ANY_DATE), lo(0),hi(0) {}
 
+	// argument is in the form of the long number 
+	// fo AD YYYYMMDD for BC -YYYYMMDD
+	bool isDateValid( int32_t dt, int32_t today ) const {
+		switch( type ) {
+		case T_ANY_DATE: return true;
+		case T_ANY_FUTUREDATE: return ( dt> today );
+		case T_ANY_PASTDATE:   return ( dt< today );
+		case T_TODAY:   return ( dt== today );
+
+		case T_DATERANGE: return ( dt>= lo && dt <=hi );
+		default: 
+			return false;
+		}
+	}
+	bool isDateValid( const BarzerDate& dt ) const
+	{
+		return isDateValid( dt.getLongDate(), dt.longToday );
+	}
 	bool isLessThan( const BTND_Pattern_Date& r ) const
 		{ return ay::range_comp().less_than( type, lo, hi, r.type, r.lo, r.hi ); }
 };

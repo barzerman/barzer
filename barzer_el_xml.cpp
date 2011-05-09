@@ -371,6 +371,13 @@ void BELParserXML::taghandle_N( const char_cp * attr, size_t attr_sz , bool clos
 		)
 	);
 }
+void BELParserXML::taghandle_DATE( const char_cp * attr, size_t attr_sz , bool close) 
+{ 
+}
+void BELParserXML::taghandle_TIME( const char_cp * attr, size_t attr_sz , bool close) 
+{
+}
+
 void BELParserXML::taghandle_RX( const char_cp * attr, size_t attr_sz , bool close)
 {}
 void BELParserXML::taghandle_TDRV( const char_cp * attr, size_t attr_sz , bool close)
@@ -378,10 +385,6 @@ void BELParserXML::taghandle_TDRV( const char_cp * attr, size_t attr_sz , bool c
 void BELParserXML::taghandle_WCLS( const char_cp * attr, size_t attr_sz , bool close)
 {}
 void BELParserXML::taghandle_W( const char_cp * attr, size_t attr_sz , bool close)
-{}
-void BELParserXML::taghandle_DATE( const char_cp * attr, size_t attr_sz , bool close)
-{}
-void BELParserXML::taghandle_TIME( const char_cp * attr, size_t attr_sz , bool close)
 {}
 
 void BELParserXML::processAttrForStructTag( BTND_StructData& dta, const char_cp * attr, size_t attr_sz )

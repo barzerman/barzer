@@ -101,6 +101,7 @@ struct BarzerDate {
 
 	static uint8_t thisMonth, thisDay; 
 	static int16_t thisYear;
+	static int32_t longToday;
 
 	enum {
 		INVALID_YEAR = 0x7fff,
@@ -109,6 +110,10 @@ struct BarzerDate {
 	};
 
 	BarzerDate() : month(0), day(0), year(INVALID_YEAR) {}
+
+	int32_t getLongDate() const {
+		return ( 10000*(int32_t)year + 100*(int32_t)month  + (int32_t)day );
+	}
 	bool isFull() const { return((year!=INVALID_YEAR) && month && day); }
 	
 	/// returns true if y represents a year which can be reasonably assumed by a business application
