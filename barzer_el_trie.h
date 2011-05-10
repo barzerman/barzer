@@ -55,6 +55,16 @@ struct BarzelTrieFirmChildKey {
 		}
 		return *this;
 	}
+	bool isLiteralKey() const
+	{
+		int it = (int)type;
+		return( 
+			it == BTND_Pattern_Token_TYPE ||
+			it == BTND_Pattern_StopToken_TYPE ||
+			it == BTND_Pattern_Punct_TYPE ||
+			it == BTND_Pattern_CompoundedWord_TYPE
+		);
+	}
 	void setNull( ) { type = BTND_Pattern_None_TYPE; id = 0xffffffff; noLeftBlanks=0;}
 
 	bool isNull() const { return (type == BTND_Pattern_None_TYPE); }

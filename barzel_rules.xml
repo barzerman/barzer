@@ -5,7 +5,13 @@
         <pat>
             <n l="1900" h="2100"/><p>/</p><n l="1" h="12"/><p>/</p><n l="1" h="31"/>
         </pat>
-        <tran><func name="mkDate"><var w="3" /><var w="2" /><var w="1" /></func></tran>
+        <tran><func name="mkDate"><var pn="5" /><var pn="3" /><var pn="1" /></func></tran>
+    </stmt>
+    <stmt>
+        <pat>
+            <n l="1" h="12"/><p>/</p><n l="1" h="31"/><p>/</p><n l="1900" h="2100"/>
+        </pat>
+        <tran><func name="mkDate"><var pn="1" /><var pn="3" /><var pn="5" /></func></tran>
     </stmt>
     
     <stmt>

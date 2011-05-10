@@ -318,7 +318,7 @@ const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, uint32_
 		//if( !(shitKey == firmKey) ) {
 			//std::cerr << "SHIT FUCK different keys formed\n";
 		//}
-		if( firmKey.isNull() ) {
+		if( firmKey.isNull() || (!firmKey.isLiteralKey() && path.begin() == i) ) { // either failed to encode firm key or this is a leading wc
 			wcpdList.push_back( WCPatDta(i,BarzelTrieFirmChildKey() ) );
 			WCPatDtaList::iterator firstWC = wcpdList.rbegin().base();
 		} else {
