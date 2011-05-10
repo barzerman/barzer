@@ -9,6 +9,8 @@
 #include <barzer_universe.h>
 #include <boost/foreach.hpp>
 #include <ay/ay_logger.h>
+#include <time.h>
+#include <barzer_basic_types.h>
 
 namespace barzer {
 
@@ -25,6 +27,14 @@ BarzerSettings::BarzerSettings(StoredUniverse &u, const char *fname)
 
 void BarzerSettings::init() {
 	reader.initParser(BELReader::INPUT_FMT_XML);
+
+	time_t t;
+	time (&t);
+	tm *tinfo = localtime (&t);
+
+	BarzerDate::thisDay = tinfo->tm_mday;
+	BarzerDate::thisMonth = tinfo->tm_mon + 1;
+	BarzerDate::thisYear = tinfo->tm_year + 1900;
 }
 
 void BarzerSettings::loadRules(const char *fname) {
