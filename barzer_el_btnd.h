@@ -25,6 +25,7 @@ struct BTND_Pattern_Number {
 
 		T_RANGE_INT, // range is always inclusive as in <= <=
 		T_RANGE_REAL, // same as above - always inclusive
+		T_ANY_NUMBER, // any number at all real or integer
 
 		T_MAX
 	};
@@ -44,6 +45,7 @@ struct BTND_Pattern_Number {
 			return false;
 		else {
 			switch( type ) {
+			case T_ANY_NUMBER: return false;
 			case T_ANY_INT: return false;
 			case T_ANY_REAL: return false;
 			case T_RANGE_INT: 
@@ -69,6 +71,7 @@ struct BTND_Pattern_Number {
 		type(T_ANY_INT)
 	{ range.integer.lo = range.integer.hi = 0; }
 
+	void setAnyNumber() { type = T_ANY_NUMBER; }
 	void setAnyInt() { type = T_ANY_INT; }
 	void setAnyReal() { type = T_ANY_REAL; }
 
