@@ -151,9 +151,14 @@ struct BTND_Pattern_Date {
 		T_MAX
 	};
 	uint8_t type; // T_XXXX values 
+	enum {
+		MAX_LONG_DATE = 100000000,
+		MIN_LONG_DATE = -100000000
+	};
+
 	int32_t lo, hi; // low high date in YYYYMMDD format
 	
-	BTND_Pattern_Date( ) : type(T_ANY_DATE), lo(0),hi(0) {}
+	BTND_Pattern_Date( ) : type(T_ANY_DATE), lo(MIN_LONG_DATE),hi(MAX_LONG_DATE) {}
 
 	// argument is in the form of the long number 
 	// fo AD YYYYMMDD for BC -YYYYMMDD
@@ -169,6 +174,12 @@ struct BTND_Pattern_Date {
 			return false;
 		}
 	}
+	void setHi( int32_t d ) { hi = d; }
+	void setLo( int32_t d ) { lo = d; }
+	void setFuture( ) { lo= MIN_LONG_DATE; hi= MAX_LONG_DATE; type= T_ANY_FUTUREDATE; }
+	void setPast( ) { lo= MIN_LONG_DATE; hi= MAX_LONG_DATE; type= T_ANY_PASTDATE; }
+	void setAny( ) { lo= MIN_LONG_DATE; hi= MAX_LONG_DATE; type= T_ANY_DATE; }
+
 	bool isDateValid( const BarzerDate& dt ) const
 	{
 		return isDateValid( dt.getLongDate(), dt.longToday );
@@ -183,7 +194,7 @@ inline bool operator <( const BTND_Pattern_Date& l, const BTND_Pattern_Date& r )
 	{ return l.isLessThan( r ); }
 
 // time wildcard data. represents time of day 
-// HHMM - short number
+// seconds since midnight
 struct BTND_Pattern_Time {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	enum {
@@ -193,9 +204,10 @@ struct BTND_Pattern_Time {
 		T_TIMERANGE
 	};
 	uint8_t type; // T_XXXX values 
-	uint16_t lo, hi; // HHMM 
+	BarzerTimeOfDay lo, hi; // seconds since midnight
 
-	BTND_Pattern_Time( ) : type(T_ANY_TIME), lo(0), hi(0) {}
+	BTND_Pattern_Time( ) : type(T_ANY_TIME), lo(0), hi(BarzerTimeOfDay::MAX_TIMEOFDAY) {}
+
 	bool isLessThan( const BTND_Pattern_Time& r ) const
 		{ return ay::range_comp().less_than( type,lo, hi, r.type, r.lo, r.hi ); }
 };
@@ -205,7 +217,6 @@ inline bool operator <( const BTND_Pattern_Time& l, const BTND_Pattern_Time& r )
 {
 	return l.isLessThan( r );
 }
-
 
 struct BTND_Pattern_DateTime {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
@@ -218,7 +229,7 @@ struct BTND_Pattern_DateTime {
 	};
 	
 	uint8_t type; // T_XXXX values 
-	uint16_t tlo,thi; // HHMM lo hi time
+	BarzerTimeOfDay tlo,thi; 
 	uint32_t dlo,dhi; // YYYYMMDD lo hi date
 
 	BTND_Pattern_DateTime() : type(T_ANY_DATETIME) , 

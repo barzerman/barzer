@@ -215,7 +215,10 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 		case BTND_Pattern_Date::T_DATERANGE: {
 			BarzelWCKey wcKey;
 			trie.wcPool->produceWCKey( wcKey, p );
-			key.type=wcKey.wcType;
+			if( wcKey.wcType != BTND_Pattern_Date_TYPE ) {
+				AYDEBUG( "TRIE PANIC" );
+			}
+			key.type=BTND_Pattern_Date_TYPE;
 			key.id=wcKey.wcId;
 		}
 			break;

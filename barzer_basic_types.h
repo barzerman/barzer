@@ -153,16 +153,39 @@ inline bool operator<( const BarzerDate& l, const BarzerDate& r )
 { return l.lessThan(r); }
 
 struct BarzerTimeOfDay {
-	uint8_t hh, mm, ss; // hours minutes seconds 
-	BarzerTimeOfDay( ) : hh(0), mm(0), ss(0) {}
+	uint32_t secSinceMidnight; 
+	enum {
+		MAX_TIMEOFDAY = 24*3600
+	};
+	/// military time
+	BarzerTimeOfDay( uint32_t  x ) : secSinceMidnight(x) {}
+	BarzerTimeOfDay( int hh, int mm, int ss ) :
+		secSinceMidnight(
+			hh*3600 + mm*60 + ss
+		)
+	{}
+
+
+	void setHHMMSS( int hh, int mm, int ss ) 
+	{ secSinceMidnight = hh*3600 + mm*60 + ss; }
+	// american time hh:mm:ss , pm
+	BarzerTimeOfDay( int hh, int mm, int ss, bool isPm ) :
+		secSinceMidnight(
+			( isPm ? (hh+12): hh) *3600 + mm*60 + ss
+		)
+	{}
+
+	BarzerTimeOfDay( ) : secSinceMidnight(0) {}
+
+	short getHH() const { return (secSinceMidnight/3600); }
+	short getMM() const { return ((secSinceMidnight%3600)/60); }
+	short getSS() const { return (secSinceMidnight%60); }
+
 	std::ostream& print( std::ostream& fp ) const 
-		{ return ( fp << hh << ':' << mm << ':' << ss ); }
+		{ return ( fp << getHH() << ':' << getMM() << ':' << getSS() ); }
 	inline bool lessThan( const BarzerTimeOfDay& r ) const
 	{
-		return ay::range_comp().less_than( 
-			hh, 	mm,   ss,
-			r.hh, r.mm, r.ss
-		);
+		return (secSinceMidnight< r.secSinceMidnight);
 	}
 };
 inline bool operator <( const BarzerTimeOfDay& l, const BarzerTimeOfDay& r )

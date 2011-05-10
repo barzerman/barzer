@@ -365,15 +365,38 @@ void BELParserXML::taghandle_N( const char_cp * attr, size_t attr_sz , bool clos
 		else
 			pat.setAnyInt();
 	}
-	statement.pushNode( 
-		BTND_PatternData(
-			pat
-		)
-	);
+	statement.pushNode( BTND_PatternData( pat));
 }
 void BELParserXML::taghandle_DATE( const char_cp * attr, size_t attr_sz , bool close) 
 { 
+	if( close ) {
+		statement.popNode();
+		return;
+	}
+	/// we can actually replace future and past with ranges, where today is computed for the
+	/// current instance of the engine in case there are problems 
+	BTND_Pattern_Date pat; 
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		/// note: value of the attribute is ignored for everything except for hi and lo 
+		/// all other attributes are boolean
+		switch( *n ) {
+		// any <date a="y"/> - thi is a default option <date/> accomplishes just that
+		case 'a': pat.setPast(); break;
+		// future <date f="y"/> 
+		case 'f': pat.setFuture(); break;
+		// high same as low 'l'
+		case 'h': pat.setLo(atoi(v)); break;
+		// low date <date l="20100908" h="20110101"/> 
+		case 'l': pat.setLo(atoi(v)); break;
+		// past <date p="yes"/> or <date past="y"/>
+		case 'p': pat.setPast(); break;
+		}
+	}	
+	statement.pushNode( BTND_PatternData( pat));
 }
+
 void BELParserXML::taghandle_TIME( const char_cp * attr, size_t attr_sz , bool close) 
 {
 }
@@ -385,7 +408,8 @@ void BELParserXML::taghandle_TDRV( const char_cp * attr, size_t attr_sz , bool c
 void BELParserXML::taghandle_WCLS( const char_cp * attr, size_t attr_sz , bool close)
 {}
 void BELParserXML::taghandle_W( const char_cp * attr, size_t attr_sz , bool close)
-{}
+{
+}
 
 void BELParserXML::processAttrForStructTag( BTND_StructData& dta, const char_cp * attr, size_t attr_sz )
 {

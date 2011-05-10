@@ -221,6 +221,14 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 	template <typename T>
 	bool operator()( const T& dta ) 
 	{
+		const BarzelFCMap* fcmap = d_btmi.universe.getBarzelTrie().getBarzelFCMap( *d_tn );
+		if( fcmap ) {
+			/// trying to match single wildcard literals
+			doFirmMatch( *fcmap, dta, true );
+	
+			if( d_followsBlank ) 
+				d_followsBlank = false;
+		}
 		doWildcards( );
 		return (d_mtChild.size() > 0);
 	}
@@ -316,6 +324,7 @@ inline	bool findMatchingChildren_visitor::operator()<BarzerString> ( const Barze
 			if( d_followsBlank ) 
 				d_followsBlank = false;
 		}
+		doWildcards( );
 		return (d_mtChild.size() > 0 );
 	}
 
