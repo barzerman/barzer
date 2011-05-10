@@ -48,5 +48,22 @@
             </func>
         </tran>
     </stmt>
+
+    <stmt>
+        <pat>
+        <t>between</t>
+        <list v="low"><n /></list>
+        <t>and</t>
+        <list v="high"><n /></list>
+        <t>bucks</t>
+        </pat>
+        <tran>
+            <func name="mkERC">
+            <func name="mkEnt"><ltrl t="string">USD</ltrl><rn v="1" /><rn v="1" /></func>
+            <func name="mkRange"><var name="low" /><var name="high" /></func>
+            </func>
+        </tran>
+    </stmt>
+    
     
 </stmset>
