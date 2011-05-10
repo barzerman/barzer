@@ -368,7 +368,7 @@ std::ostream&  BTND_Pattern_DateTime::print( std::ostream& fp , const BELPrintCo
 	case T_ANY_DATETIME: return (fp << "AnyDateTime" );
 	case T_ANY_FUTURE_DATETIME: return (fp << "FutureDateTime" );
 	case T_ANY_PAST_DATETIME: return (fp << "PastDateTime" );
-	case T_DATETIME_RANGE: return (fp << "DateTime[" << dlo << "-" << tlo << "," << dhi << "-" << thi << "]");
+	case T_DATETIME_RANGE: return (fp << "DateTime[" << lo << "-" << hi << "]");
 	}
 	return (fp << "DateTimeUnknown");
 }
@@ -424,7 +424,7 @@ std::ostream&  BTND_None::print( std::ostream& fp , const BELPrintContext& ) con
 	return ( fp << "None" ); 
 }
 
-bool BTND_Pattern_Number::checkNumber( const BarzerNumber& num ) const
+bool BTND_Pattern_Number::operator() ( const BarzerNumber& num ) const
 {
 	switch( type ) {
 	case T_ANY_NUMBER:

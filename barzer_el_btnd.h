@@ -15,9 +15,13 @@ namespace barzer {
 struct BELPrintContext;
 
 //// BarzelTrieNodeData - PATTERN types 
-
+/// all pattern classes must inherit from this 
+struct BTND_Pattern_Base {
+/// match operator 
+template <typename T> bool operator()( const T& t ) const { return false; }
+};
 /// simple number wildcard data 
-struct BTND_Pattern_Number {
+struct BTND_Pattern_Number : public BTND_Pattern_Base {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	enum {
 		T_ANY_INT, // any integer 
@@ -98,7 +102,7 @@ struct BTND_Pattern_Number {
 		}
 		return fp;
 	}
-	bool checkNumber( const BarzerNumber& num ) const;
+	bool operator()( const BarzerNumber& num ) const;
 };
 inline bool operator <( const BTND_Pattern_Number& l, const BTND_Pattern_Number& r )
 	{ return l.isLessThan( r ); }
@@ -108,7 +112,7 @@ inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_Number& x
 }
 
 // Punctuation and Stop Tokens (theChar is 0 for stops) 
-struct BTND_Pattern_Punct {
+struct BTND_Pattern_Punct : public BTND_Pattern_Base {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	int theChar; // actual punctuation character. 0 - same as stop
 	
@@ -142,7 +146,7 @@ inline bool operator <( const BTND_Pattern_Wildcard& l, const BTND_Pattern_Wildc
 	{ return l.isLessThan( r ); }
 
 // date wildcard data
-struct BTND_Pattern_Date {
+struct BTND_Pattern_Date : public BTND_Pattern_Base {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	enum {
 		T_ANY_DATE, 
@@ -183,10 +187,9 @@ struct BTND_Pattern_Date {
 	void setPast( ) { lo= MIN_LONG_DATE; hi= MAX_LONG_DATE; type= T_ANY_PASTDATE; }
 	void setAny( ) { lo= MIN_LONG_DATE; hi= MAX_LONG_DATE; type= T_ANY_DATE; }
 
-	bool isDateValid( const BarzerDate& dt ) const
-	{
-		return isDateValid( dt.getLongDate(), dt.longToday );
-	}
+	bool operator()( const BarzerDate& dt ) const
+		{ return isDateValid( dt.getLongDate(), dt.longToday ); }
+
 	bool isLessThan( const BTND_Pattern_Date& r ) const
 		{ return ay::range_comp().less_than( type, lo, hi, r.type, r.lo, r.hi ); }
 };
@@ -198,7 +201,7 @@ inline bool operator <( const BTND_Pattern_Date& l, const BTND_Pattern_Date& r )
 
 // time wildcard data. represents time of day 
 // seconds since midnight
-struct BTND_Pattern_Time {
+struct BTND_Pattern_Time : public BTND_Pattern_Base {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	enum {
 		T_ANY_TIME,
@@ -221,7 +224,7 @@ inline bool operator <( const BTND_Pattern_Time& l, const BTND_Pattern_Time& r )
 	return l.isLessThan( r );
 }
 
-struct BTND_Pattern_DateTime {
+struct BTND_Pattern_DateTime : public BTND_Pattern_Base {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	enum {
 		T_ANY_DATETIME, 
@@ -232,12 +235,34 @@ struct BTND_Pattern_DateTime {
 	};
 	
 	uint8_t type; // T_XXXX values 
-	BarzerTimeOfDay tlo,thi; 
-	uint32_t dlo,dhi; // YYYYMMDD lo hi date
+	BarzerDateTime lo, hi;
 
-	BTND_Pattern_DateTime() : type(T_ANY_DATETIME) , 
-		tlo(0), thi(0), dlo(0), dhi(0) {}
+	BTND_Pattern_DateTime() : type(T_ANY_DATETIME) {
+		lo.setMin();
+		hi.setMax();
+	}
 	
+	void setRange() {
+		type = T_DATETIME_RANGE;
+		lo.setMin();
+		hi.setMax();
+	}
+	void setRange( const BarzerDateTime& l, const BarzerDateTime& h  ) {
+		type = T_DATETIME_RANGE;
+		lo = l;
+		hi = h;
+	}
+	void setRangeAbove( const BarzerDateTime& d ) {
+		type = T_DATETIME_RANGE;
+		lo = d;
+		hi.setMax();
+	}
+	void setRangeBelow( const BarzerDateTime& d ) {
+		type = T_DATETIME_RANGE;
+		lo.setMin();
+		hi = d;
+	}
+
 	bool isLessThan( const BTND_Pattern_DateTime& r ) const
 	{
 		if( type < r.type  ) 
@@ -245,26 +270,32 @@ struct BTND_Pattern_DateTime {
 		else if( r.type < type ) 
 			return false;
 
-		switch( type ) {
-		case T_ANY_DATETIME:
+		if( type == T_DATETIME_RANGE ) 
+			return (
+				ay::range_comp().less_than(
+						lo, hi,
+						r.lo, r.hi
+				)
+			);
+		else 
 			return false;
-		case T_DATETIME_RANGE: 
-			ay::range_comp().less_than( 
-				dlo,   dhi,   tlo,   thi, 
-				r.dlo, r.dhi, r.tlo, r.thi );
-		default: return false;
-		}
+	}
+
+	bool operator()( const BarzerDateTime& d ) const {
+		if( lo.isValid() && !( lo < d) ) 
+			return false;
+		if( hi.isValid() && !( d< hi ) ) 
+			return false;
+		return true;
 	}
 };
 inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_DateTime& x )
-	{ return( fp << "datetime." << x.type << "[" << 
-		x.dlo << ':' << x.tlo  << "," << 
-		x.dhi << ':' << x.thi << "]" ); }
+	{ return( fp << "datetime." << x.type << '[' << x.lo << '-' << x.hi <<']' ); } 
 
 inline bool operator <( const BTND_Pattern_DateTime& l, const BTND_Pattern_DateTime& r )
 	{ return l.isLessThan( r ); }
 
-struct BTND_Pattern_CompoundedWord {
+struct BTND_Pattern_CompoundedWord : public BTND_Pattern_Base {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	uint32_t compWordId;  
 	BTND_Pattern_CompoundedWord() :
@@ -275,7 +306,7 @@ struct BTND_Pattern_CompoundedWord {
 inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_CompoundedWord& x )
 	{ return( fp << "compw[" << std::hex << x.compWordId << "]");}
 
-struct BTND_Pattern_Token {
+struct BTND_Pattern_Token : public BTND_Pattern_Base {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	ay::UniqueCharPool::StrId stringId;
 
@@ -307,7 +338,7 @@ inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_Token& x 
 	{ return( fp << "string[" << std::hex << x.stringId << "]");}
 
 /// blank data type 
-struct BTND_Pattern_None {
+struct BTND_Pattern_None : public BTND_Pattern_Base{
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 };
 inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_None& x )

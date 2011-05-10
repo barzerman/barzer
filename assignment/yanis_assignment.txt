@@ -1,3 +1,8 @@
+BUG:
+* sgt says 32 bit fails on trie load
+
+
+
 *. basic semantical routines - 
 	- repeated stop tokens (consecutive same tok id) need to be absorbed into the first one
 *. stop words handling 

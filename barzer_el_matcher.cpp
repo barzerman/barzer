@@ -61,7 +61,7 @@ inline bool evalWildcard_vis<BTND_Pattern_Number>::operator()<BarzerLiteral> ( c
 }
 template <> template <>
 inline bool evalWildcard_vis<BTND_Pattern_Number>::operator()<BarzerNumber> ( const BarzerNumber& dta ) const
-{ return d_pattern.checkNumber( dta ); }
+{ return d_pattern( dta ); }
 //// end of number template matching
 //// other patterns 
 /// for now these patterns always match on a right data type (date matches any date, datetime any date time etc..)
@@ -69,12 +69,12 @@ inline bool evalWildcard_vis<BTND_Pattern_Number>::operator()<BarzerNumber> ( co
 template <> template <>
 inline bool evalWildcard_vis<BTND_Pattern_Date>::operator()<BarzerDate> ( const BarzerDate& dta ) const
 { 
-	return d_pattern.isDateValid( dta );
+	return d_pattern( dta );
 }
 
 template <> template <>
 inline bool evalWildcard_vis<BTND_Pattern_DateTime>::operator()<BarzerDateTime> ( const BarzerDateTime& dta )  const
-{ return true; }
+{ return d_pattern( dta ); }
 
 template <> template <>
 inline bool evalWildcard_vis<BTND_Pattern_Time>::operator()<BarzerTimeOfDay> ( const BarzerTimeOfDay& dta )  const
