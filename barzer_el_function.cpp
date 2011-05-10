@@ -349,15 +349,25 @@ struct BELFunctionStorage_holder {
 		//AYLOG(DEBUG) << "mkTime called";
 		BarzerNumber h(0),m(0),s(0);
 		BarzerTimeOfDay time;
+		int hh(0), mm(0), ss(0);
 		//AYLOGDEBUG(rvec.size());
 		switch (rvec.size()) {
-		case 3: time.ss = getNumber(rvec[2]).getInt();
-		case 2: time.mm = getNumber(rvec[1]).getInt();
-		case 1: time.hh = getNumber(rvec[0]).getInt();
+		case 3: ss = getNumber(rvec[2]).getInt();
+		case 2: mm = getNumber(rvec[1]).getInt();
+		case 1: hh = getNumber(rvec[0]).getInt();
+			break;
+		case 0: {
+			time_t t = std::time(0);
+			time_t ssm = t%(3600*24);
+			hh = ssm/3600;
+			mm = (ssm%3600)/60;
+			ss = (ssm%60);
+		}
 			break;
 		default: return false;
 		}
 		//AYLOG(DEBUG) << "setting result";
+		time.setHHMMSS( hh, mm, ss );
 		setResult(result, time);
 		return true;
 	}

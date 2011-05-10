@@ -167,10 +167,83 @@ std::ostream& BELPrintContext::printBarzelWCLookupKey( std::ostream& fp, const B
 }
 
 
+namespace {
+	typedef std::pair< BTND_PatternDataVec::const_iterator, BarzelTrieFirmChildKey > WCPatDta;
+	typedef std::list< WCPatDta > WCPatDtaList;
+
+
+/// forms firm child key given a BTND_Pattern_XXX 
+struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
+	BELTrie& trie;
+	BarzelTrieFirmChildKey& key ;
+	BarzelTrieFirmChildKey_form( BarzelTrieFirmChildKey& x, BELTrie& tr ) : 
+		trie(tr),
+		key(x) 
+	{ }
+
+	template <typename T>
+	void operator()( const T& ) {
+		key.type=BTND_Pattern_None_TYPE; // isNone will return true for this
+		key.id=0xffffffff;
+	}
+	void operator()( const  BTND_Pattern_StopToken& p ) 
+	{
+		key.type = (uint8_t)BTND_Pattern_StopToken_TYPE;
+		key.id = p.stringId;	
+	}
+	void operator()( const BTND_Pattern_Token& p ) {
+		key.type = (uint8_t)BTND_Pattern_Token_TYPE;
+		key.id = p.stringId;	
+		}
+	void operator()( const BTND_Pattern_Punct& p ) {
+		key.type = (uint8_t) BTND_Pattern_Punct_TYPE;
+		key.id = p.theChar;
+		}
+	void operator()( const BTND_Pattern_CompoundedWord& p ) {
+		key.type = (uint8_t) BTND_Pattern_CompoundedWord_TYPE;
+		key.id = p.compWordId;
+	}
+	void operator()( const BTND_Pattern_Date& p ) {
+		switch( p.type ) {
+		
+		case BTND_Pattern_Date::T_ANY_DATE:
+			key.type=BTND_Pattern_Date_TYPE; 
+			key.id=0xffffffff;
+			break;
+		case BTND_Pattern_Date::T_ANY_FUTUREDATE:
+		case BTND_Pattern_Date::T_ANY_PASTDATE:
+		case BTND_Pattern_Date::T_DATERANGE: {
+			BarzelWCKey wcKey;
+			trie.wcPool->produceWCKey( wcKey, p );
+			if( wcKey.wcType != BTND_Pattern_Date_TYPE ) {
+				AYDEBUG( "TRIE PANIC" );
+			}
+			key.type=BTND_Pattern_Date_TYPE;
+			key.id=wcKey.wcId;
+		}
+			break;
+		default:
+			key.type=BTND_Pattern_None_TYPE; // isNone will return true for this
+			key.id=0xffffffff;
+			break;
+		}
+	}
+	void operator()( const BTND_Pattern_Number& p ) {
+		BarzelWCKey wcKey;
+		trie.wcPool->produceWCKey( wcKey, p );
+		if( wcKey.wcType != BTND_Pattern_Number_TYPE ) {
+			AYDEBUG( "TRIE PANIC" );
+		}
+		key.type=BTND_Pattern_Number_TYPE;
+		key.id=wcKey.wcId;
+	}
+}; // BarzelTrieFirmChildKey_form
+
+} // anon namespace ends 
+
 /// barzel TRIE node methods
-BarzelTrieNode* BarzelTrieNode::addFirmPattern( BELTrie& trie, const BTND_PatternData& p )
+BarzelTrieNode* BarzelTrieNode::addFirmPattern( BELTrie& trie, const BarzelTrieFirmChildKey& key )
 {
-	BarzelTrieFirmChildKey key(p);
 	if( key.isNull() ) {
 		AYTRACE( "illegally attempting to add a wildcard" );
 		return this;
@@ -187,7 +260,6 @@ BarzelTrieNode* BarzelTrieNode::addFirmPattern( BELTrie& trie, const BTND_Patter
 		}
 		return &(i->second);
 	}
-	 
 }
 
 
@@ -207,6 +279,7 @@ BarzelTrieNode* BarzelTrieNode::addWildcardPattern( BELTrie& trie, const BTND_Pa
 
 	return &(i->second);
 }
+//// BarzelTrieFirmChildKey
 std::ostream& BarzelTrieFirmChildKey::print( std::ostream& fp ) const
 {
 	return( fp << BTNDDecode::typeName_Pattern( type )  << ":" << std::hex << id << (noLeftBlanks? "+":"") );
@@ -217,16 +290,11 @@ std::ostream& BarzelTrieFirmChildKey::print( std::ostream& fp, const BELPrintCon
 	return( print( fp ) << "[" << ctxt.printableString(id) << "]" );
 }
 
+
 //// bel TRIE methods
 void BELTrie::produceWCKey( BarzelWCKey& key, const BTND_PatternData& btnd  )
 {
 	wcPool->produceWCKey(key, btnd );
-}
-
-namespace {
-	typedef std::pair< BTND_PatternDataVec::const_iterator, BarzelTrieFirmChildKey > WCPatDta;
-	typedef std::list< WCPatDta > WCPatDtaList;
-
 }
 
 const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, uint32_t transId, const BELVarInfo& varInfo )
@@ -240,10 +308,17 @@ const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, uint32_
 	WCPatDtaList wcpdList;
 	WCPatDtaList::iterator firstWC = wcpdList.end();
 
-	for( BTND_PatternDataVec::const_iterator i = path.begin(); i!= path.end(); ++i ) {
-		BarzelTrieFirmChildKey firmKey(*i);
+	BarzelTrieFirmChildKey firmKey;
+	BarzelTrieFirmChildKey_form keyFormer( firmKey, *this ) ;
 
-		if( firmKey.isNull() ) {
+	for( BTND_PatternDataVec::const_iterator i = path.begin(); i!= path.end(); ++i ) {
+		//BarzelTrieFirmChildKey shitKey(*i);
+		boost::apply_visitor( keyFormer, *i );
+		firmKey.noLeftBlanks = 0;
+		//if( !(shitKey == firmKey) ) {
+			//std::cerr << "SHIT FUCK different keys formed\n";
+		//}
+		if( firmKey.isNull() || (!firmKey.isLiteralKey() && path.begin() == i) ) { // either failed to encode firm key or this is a leading wc
 			wcpdList.push_back( WCPatDta(i,BarzelTrieFirmChildKey() ) );
 			WCPatDtaList::iterator firstWC = wcpdList.rbegin().base();
 		} else {
@@ -272,9 +347,11 @@ const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, uint32_
 			}
 			wcpdList.pop_front(); // now first element points to the next wildcard (if any are left)
 		} else { // reached a firm token
-			if( n ) 
-				n = n->addFirmPattern( *this, *i );
-			else {
+			if( n ) {
+				/// this visitor updates firmKey (declared at the top of this function)
+				boost::apply_visitor( keyFormer, *i );
+				n = n->addFirmPattern( *this, firmKey );
+			} else {
 				AYTRACE("addFirmPattern returned NULL") ;
 				return 0; // this is impossible
 			}

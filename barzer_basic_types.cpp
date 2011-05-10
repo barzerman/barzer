@@ -11,6 +11,7 @@ namespace barzer {
 uint8_t BarzerDate::thisMonth = 0;
 uint8_t BarzerDate::thisDay = 0;
 int16_t BarzerDate::thisYear =BarzerDate::INVALID_YEAR;
+int32_t BarzerDate::longToday =BarzerDate::INVALID_YEAR;
 
 /// must be called first thing in the program
 void BarzerDate::initToday()
@@ -21,6 +22,7 @@ void BarzerDate::initToday()
 	thisMonth = theTm.tm_mon+1;
 	thisDay = theTm.tm_mday;
 	thisYear = theTm.tm_year;
+	longToday = 10000* (int)thisYear + 1000 * (int) thisMonth + thisDay;
 }
 
 /// will try to set year to current year 

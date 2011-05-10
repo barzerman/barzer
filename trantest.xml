@@ -25,13 +25,13 @@
         <pat>
             <n l="1900" h="2100"/><n l="1" h="12"/><n l="1" h="31"/>
         </pat>
-        <tran><func name="mkRange"><func name="mkDate"><var w="3" /><var w="2" /><var w="1" /></func><func name="mkDate"><var w="3" /><var w="2" /><var w="1" /></func></func></tran>
+        <tran><func name="mkRange"><func name="mkDate"><var pn="3" /><var pn="2" /><var pn="1" /></func><func name="mkDate"><var pn="3" /><var pn="2" /><var pn="1" /></func></func></tran>
     </stmt>
     <stmt>
         <pat>
             <n l="1" h="12"/><p>/</p><n  l="1" h="31"/><p>/</p><n/>
         </pat>
-        <tran><func name="mkDate"><var w="2" /><var w="1" /><var w="3" /></func></tran>
+        <tran><func name="mkDate"><var pn="3" /><var pn="1" /><var pn="5" /></func></tran>
     </stmt>
     <stmt>
         <pat>
@@ -91,5 +91,14 @@
     
         <pat><list v="twat"><n l="500" h="600" /></list></pat>
         <tran><var name="twat" /></tran>
+    </stmt>
+
+    <stmt>
+        <pat>
+        <date/><t>a</t>
+        </pat>
+        <tran>
+            <ltrl t="stop" >date_pattern</ltrl>
+        </tran>
     </stmt>
 </stmset>

@@ -306,6 +306,9 @@ BELParseTreeNode_PatternEmitter::~BELParseTreeNode_PatternEmitter()
 std::ostream&  BTND_Pattern_Number::print( std::ostream& fp, const BELPrintContext& ) const
 {
 	switch( type ) {
+	case T_ANY_NUMBER:
+		fp << "AnyNum";
+		break;
 	case T_ANY_INT:
 		fp << "AnyInt";
 		break;
@@ -424,6 +427,8 @@ std::ostream&  BTND_None::print( std::ostream& fp , const BELPrintContext& ) con
 bool BTND_Pattern_Number::checkNumber( const BarzerNumber& num ) const
 {
 	switch( type ) {
+	case T_ANY_NUMBER:
+		return true;
 	case T_ANY_INT:
 		return num.isInt();
 	case T_ANY_REAL:

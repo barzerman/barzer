@@ -39,6 +39,52 @@ int BTMIterator::addTerminalPath( const NodeAndBead& nb )
 }
 
 namespace {
+//// TEMPLATE MATCHING
+template <typename P>
+struct evalWildcard_vis : public boost::static_visitor<bool> {
+	const P& d_pattern;
+
+	evalWildcard_vis( const P& p ) : d_pattern(p) {}
+	template <typename T>
+	bool operator()( const T& ) const {
+		/// for all types except for the specialized wildcard wont match
+		return false;
+	}
+};
+/// number templates 
+template <>  template<>
+inline bool evalWildcard_vis<BTND_Pattern_Number>::operator()<BarzerLiteral> ( const BarzerLiteral& dta ) const
+{
+	/// some literals may be "also numbers" 
+	/// special handling for that needs to be added here 
+	return false;
+}
+template <> template <>
+inline bool evalWildcard_vis<BTND_Pattern_Number>::operator()<BarzerNumber> ( const BarzerNumber& dta ) const
+{ return d_pattern.checkNumber( dta ); }
+//// end of number template matching
+//// other patterns 
+/// for now these patterns always match on a right data type (date matches any date, datetime any date time etc..)
+/// they can be certainly further refined
+template <> template <>
+inline bool evalWildcard_vis<BTND_Pattern_Date>::operator()<BarzerDate> ( const BarzerDate& dta ) const
+{ 
+	return d_pattern.isDateValid( dta );
+}
+
+template <> template <>
+inline bool evalWildcard_vis<BTND_Pattern_DateTime>::operator()<BarzerDateTime> ( const BarzerDateTime& dta )  const
+{ return true; }
+
+template <> template <>
+inline bool evalWildcard_vis<BTND_Pattern_Time>::operator()<BarzerTimeOfDay> ( const BarzerTimeOfDay& dta )  const
+{ return true; }
+
+template <> template <>
+inline bool evalWildcard_vis<BTND_Pattern_Wildcard>::operator()<BarzerLiteral> ( const BarzerLiteral& dta )  const
+{ return true; }
+//// end of other template matching
+
 
 struct BarzelWCLookupKey_form : public boost::static_visitor<> {
 	BarzelWCLookupKey& key; // std::pair<BarzelTrieFirmChildKey, BarzelWCKey>
@@ -175,6 +221,14 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 	template <typename T>
 	bool operator()( const T& dta ) 
 	{
+		const BarzelFCMap* fcmap = d_btmi.universe.getBarzelTrie().getBarzelFCMap( *d_tn );
+		if( fcmap ) {
+			/// trying to match single wildcard literals
+			doFirmMatch( *fcmap, dta, true );
+	
+			if( d_followsBlank ) 
+				d_followsBlank = false;
+		}
 		doWildcards( );
 		return (d_mtChild.size() > 0);
 	}
@@ -213,6 +267,63 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		return true;
 	}
 	template <>
+	bool findMatchingChildren_visitor::doFirmMatch<BarzerDate>( const BarzelFCMap& fcmap, const BarzerDate& dta, bool allowBlanks) 
+	{
+		BarzelTrieFirmChildKey firmKey((uint8_t)(BTND_Pattern_Date_TYPE),0xffffffff); 
+		// forming firm key
+		// we ignore the whole allow blanks thing for dates - blanks will just always be allowed
+		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey );
+		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool();
+		for( ; i!= fcmap.end() && i->first.type == BTND_Pattern_Date_TYPE; ++i ) {
+			/// we're looping over all date wildcards on the current node 
+			/// extracting the actual wildcard 
+			if( i->first.id == 0xffffffff ) {
+				const BarzelTrieNode* ch = &(i->second);
+				BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);
+				d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+			} else {
+				const BTND_Pattern_Date* dpat = wcPool.get_BTND_Pattern_Date( i->first.id );
+				if( !dpat ) return false;
+				if( evalWildcard_vis<BTND_Pattern_Date>(*dpat)( dta )  ) {
+				//if( boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Date>(*dpat), dta ) ) {}
+					d_mtChild.push_back( NodeAndBeadVec::value_type(
+						&(i->second),
+						BarzelBeadChain::Range(d_rng.first,d_rng.first)) );
+				}
+			}
+		}
+		return false;
+	}
+	template <>
+	bool findMatchingChildren_visitor::doFirmMatch<BarzerNumber>( const BarzelFCMap& fcmap, const BarzerNumber& dta, bool allowBlanks) 
+	{
+		BarzelTrieFirmChildKey firmKey((uint8_t)(BTND_Pattern_Number_TYPE),0xffffffff); 
+		// forming firm key
+		// we ignore the whole allow blanks thing for dates - blanks will just always be allowed
+		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey );
+		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool();
+		for( ; i!= fcmap.end() && i->first.type == BTND_Pattern_Number_TYPE; ++i ) {
+			/// we're looping over all date wildcards on the current node 
+			/// extracting the actual wildcard 
+			if( i->first.id == 0xffffffff ) {
+				const BarzelTrieNode* ch = &(i->second);
+				BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);
+				d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+			} else {
+				const BTND_Pattern_Number* dpat = wcPool.get_BTND_Pattern_Number( i->first.id );
+				if( !dpat ) return false;
+				if( evalWildcard_vis<BTND_Pattern_Number>(*dpat)( dta )  ) {
+				//if( boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Number>(*dpat), dta ) ) {}
+					d_mtChild.push_back( NodeAndBeadVec::value_type(
+						&(i->second),
+						BarzelBeadChain::Range(d_rng.first,d_rng.first)) );
+				}
+			}
+		}
+		return false;
+	}
+
+	template <>
 inline	bool findMatchingChildren_visitor::operator()<BarzerLiteral> ( const BarzerLiteral& dta ) 
 	{
 		const BarzelFCMap* fcmap = d_btmi.universe.getBarzelTrie().getBarzelFCMap( *d_tn );
@@ -242,52 +353,9 @@ inline	bool findMatchingChildren_visitor::operator()<BarzerString> ( const Barze
 			if( d_followsBlank ) 
 				d_followsBlank = false;
 		}
+		doWildcards( );
 		return (d_mtChild.size() > 0 );
 	}
-
-//// TEMPLATE MATCHING
-template <typename P>
-struct evalWildcard_vis : public boost::static_visitor<bool> {
-	const P& d_pattern;
-
-	evalWildcard_vis( const P& p ) : d_pattern(p) {}
-	template <typename T>
-	bool operator()( const T& ) const {
-		/// for all types except for the specialized wildcard wont match
-		return false;
-	}
-};
-/// number templates 
-template <>  template<>
-inline bool evalWildcard_vis<BTND_Pattern_Number>::operator()<BarzerLiteral> ( const BarzerLiteral& dta ) const
-{
-	/// some literals may be "also numbers" 
-	/// special handling for that needs to be added here 
-	return false;
-}
-template <> template <>
-inline bool evalWildcard_vis<BTND_Pattern_Number>::operator()<BarzerNumber> ( const BarzerNumber& dta ) const
-{ return d_pattern.checkNumber( dta ); }
-//// end of number template matching
-//// other patterns 
-/// for now these patterns always match on a right data type (date matches any date, datetime any date time etc..)
-/// they can be certainly further refined
-template <> template <>
-inline bool evalWildcard_vis<BTND_Pattern_Date>::operator()<BarzerDate> ( const BarzerDate& dta ) const
-{ return true; }
-
-template <> template <>
-inline bool evalWildcard_vis<BTND_Pattern_DateTime>::operator()<BarzerDateTime> ( const BarzerDateTime& dta )  const
-{ return true; }
-
-template <> template <>
-inline bool evalWildcard_vis<BTND_Pattern_Time>::operator()<BarzerTimeOfDay> ( const BarzerTimeOfDay& dta )  const
-{ return true; }
-
-template <> template <>
-inline bool evalWildcard_vis<BTND_Pattern_Wildcard>::operator()<BarzerLiteral> ( const BarzerLiteral& dta )  const
-{ return true; }
-//// end of other template matching
 
 }
 

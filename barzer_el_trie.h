@@ -29,7 +29,8 @@ struct BarzelTrieFirmChildKey {
 	// in other words spaces wont be skipped (!)
 	// tis is needed for patterns defining dates and such
 	uint8_t  noLeftBlanks;
-	
+	BarzelTrieFirmChildKey( uint8_t t, uint32_t i, bool nlb=true) : id(i), type(t), noLeftBlanks(nlb?0:1) {}
+
 	BarzelTrieFirmChildKey() : id(0xffffffff), type(BTND_Pattern_None_TYPE), noLeftBlanks(0) {}
 
 	BarzelTrieFirmChildKey(const BTND_Pattern_Token& x) : id(x.stringId), type((uint8_t)BTND_Pattern_Token_TYPE), noLeftBlanks(0) {}
@@ -38,31 +39,6 @@ struct BarzelTrieFirmChildKey {
 		id(x.compWordId), type((uint8_t)BTND_Pattern_CompoundedWord_TYPE), noLeftBlanks(0)
 	{}
 	
-	inline BarzelTrieFirmChildKey( const BTND_PatternData& p ) 
-	{
-		noLeftBlanks=0;
-		switch( p.which() ) {
-		case BTND_Pattern_StopToken_TYPE:
-			type = (uint8_t)BTND_Pattern_StopToken_TYPE;
-			id = boost::get<BTND_Pattern_StopToken>( p ).stringId;	
-			break;
-		case BTND_Pattern_Token_TYPE:
-			type = (uint8_t)BTND_Pattern_Token_TYPE;
-			id = boost::get<BTND_Pattern_Token>( p ).stringId;	
-			break;
-		case BTND_Pattern_Punct_TYPE:
-			type = (uint8_t) BTND_Pattern_Punct_TYPE;
-			id = boost::get<BTND_Pattern_Punct>( p ).theChar;
-			break;
-		case BTND_Pattern_CompoundedWord_TYPE:
-			type = (uint8_t) BTND_Pattern_CompoundedWord_TYPE;
-			id = boost::get<BTND_Pattern_CompoundedWord>( p ).compWordId;
-			break;
-		default:
-			type=BTND_Pattern_None_TYPE; // isNone will return true for this
-			id=0xffffffff;
-		}
-	}
 	inline BarzelTrieFirmChildKey& set( const BarzerLiteral& dta, bool followsBlank=false )
 	{
 		noLeftBlanks = ( followsBlank ? 0:1 );
@@ -79,17 +55,27 @@ struct BarzelTrieFirmChildKey {
 		}
 		return *this;
 	}
+	bool isLiteralKey() const
+	{
+		int it = (int)type;
+		return( 
+			it == BTND_Pattern_Token_TYPE ||
+			it == BTND_Pattern_StopToken_TYPE ||
+			it == BTND_Pattern_Punct_TYPE ||
+			it == BTND_Pattern_CompoundedWord_TYPE
+		);
+	}
 	void setNull( ) { type = BTND_Pattern_None_TYPE; id = 0xffffffff; noLeftBlanks=0;}
 
-	std::ostream& print( std::ostream& , const BELPrintContext& ctxt ) const;
-	
-	std::ostream& print( std::ostream& ) const;
 	bool isNull() const { return (type == BTND_Pattern_None_TYPE); }
 
 	bool isBlankLiteral() const { return (BTND_Pattern_Token_TYPE ==type && id==0xffffffff); } 
 	bool isStopToken() const { return( BTND_Pattern_StopToken_TYPE == type ); }
 
 	bool isNoLeftBlanks() const { return noLeftBlanks; }
+	std::ostream& print( std::ostream& , const BELPrintContext& ctxt ) const;
+	
+	std::ostream& print( std::ostream& ) const;
 };
 
 inline std::ostream& operator <<( std::ostream& fp, const BarzelTrieFirmChildKey& key )
@@ -99,8 +85,8 @@ struct BarzelTrieFirmChildKey_comp_less {
 	inline bool operator() ( const BarzelTrieFirmChildKey& l, const BarzelTrieFirmChildKey& r ) const 
 		{ 
 			return ay::range_comp().less_than( 
-				l.type, l.id, l.noLeftBlanks,
-				r.type, r.id, r.noLeftBlanks
+				l.type, r.id, l.noLeftBlanks,
+				r.type, l.id, r.noLeftBlanks
 			);
 			// return( l.id < r.id ? true : ( r.id < l.id ? false : (l.type < r.type))); 
 		}
@@ -357,7 +343,7 @@ public:
 	/// and in the end we will call node->setTranslation() 
 
 	// if p is a non-firm kind (a wildcard) this is a no-op
-	BarzelTrieNode* addFirmPattern( BELTrie& trie, const BTND_PatternData& p );
+	BarzelTrieNode* addFirmPattern( BELTrie& trie, const BarzelTrieFirmChildKey& key );
 
 	// if p is firm (not a wildcard) this is a no-op
 	BarzelTrieNode* addWildcardPattern( BELTrie& trie, const BTND_PatternData& p, const BarzelTrieFirmChildKey& fk  );
@@ -417,7 +403,7 @@ struct BELTrie {
 	/// this ends up calling wcPool->produceWCKey()
 	void produceWCKey( BarzelWCKey&, const BTND_PatternData&   );
 
-	/// adds a new path to the trie
+	/// adds a new path to the 
 	const BarzelTrieNode* addPath( const BTND_PatternDataVec& path, uint32_t tranId, const BELVarInfo& varInfo );
 	BarzelWildcardPool&  getWCPool() { return *wcPool; }
 	const BarzelWildcardPool&  getWCPool() const { return *wcPool; }
