@@ -600,6 +600,8 @@ int BarzerShell::init()
 		delete context;
 
 	context = mkContext();
+
+	((BarzerShellContext*)context)->trieWalker.loadChildren();
 	return rc;
 }
 

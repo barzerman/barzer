@@ -9,6 +9,7 @@
 #include <barzer_el_function.h>
 #include <barzer_date_util.h>
 #include <barzer_settings.h>
+#include <barzer_config.h>
 
 namespace barzer {
 
