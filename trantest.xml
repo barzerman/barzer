@@ -92,4 +92,13 @@
         <pat><list v="twat"><n l="500" h="600" /></list></pat>
         <tran><var name="twat" /></tran>
     </stmt>
+
+    <stmt>
+        <pat>
+        <date/><t>a</t>
+        </pat>
+        <tran>
+            <ltrl t="stop" >date_pattern</ltrl>
+        </tran>
+    </stmt>
 </stmset>
