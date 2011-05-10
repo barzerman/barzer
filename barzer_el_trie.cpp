@@ -229,29 +229,13 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 		}
 	}
 	void operator()( const BTND_Pattern_Number& p ) {
-		switch( p.type ) {
-		
-		case BTND_Pattern_Date::T_ANY_DATE:
-			key.type=BTND_Pattern_Number_TYPE; 
-			key.id=0xffffffff;
-			break;
-		case BTND_Pattern_Date::T_ANY_FUTUREDATE:
-		case BTND_Pattern_Date::T_ANY_PASTDATE:
-		case BTND_Pattern_Date::T_DATERANGE: {
-			BarzelWCKey wcKey;
-			trie.wcPool->produceWCKey( wcKey, p );
-			if( wcKey.wcType != BTND_Pattern_Number_TYPE ) {
-				AYDEBUG( "TRIE PANIC" );
-			}
-			key.type=BTND_Pattern_Number_TYPE;
-			key.id=wcKey.wcId;
+		BarzelWCKey wcKey;
+		trie.wcPool->produceWCKey( wcKey, p );
+		if( wcKey.wcType != BTND_Pattern_Number_TYPE ) {
+			AYDEBUG( "TRIE PANIC" );
 		}
-			break;
-		default:
-			key.type=BTND_Pattern_None_TYPE; // isNone will return true for this
-			key.id=0xffffffff;
-			break;
-		}
+		key.type=BTND_Pattern_Number_TYPE;
+		key.id=wcKey.wcId;
 	}
 }; // BarzelTrieFirmChildKey_form
 
