@@ -176,6 +176,13 @@ struct StoredEntityClass {
 
 	void print( std::ostream& fp ) const
 		{ fp << ec << ":" << subclass ; }
+	
+	bool matchOther( const StoredEntityClass& other ) const {
+		if( !ec ) 
+			return true;
+		else 
+			return ( (ec == other.ec) && (!subclass || subClass == other.subClass) );
+	}
 };
 
 inline std::ostream& operator <<( std::ostream& fp, const StoredEntityClass& x )
@@ -197,7 +204,7 @@ struct StoredEntityUniqId {
 	StoredEntityClass eclass;
 
 	StoredEntityUniqId() : 
-		tokId(INVALID_STORED_ID)
+		tokId(0xffffffff)
 	{}
 	StoredEntityUniqId(StoredTokenId tid, uint16_t cl, uint16_t sc ) : 
 		tokId(tid),
@@ -210,6 +217,11 @@ struct StoredEntityUniqId {
 		{ return ( isTokIdValid() && eclass.isValid() ); }
 	void print( std::ostream& fp ) const
 		{ fp << eclass << "," << tokId ; }
+	
+	void matchOther( const StoredEntityUniqId& other ) 
+	{
+		if( eclass.matchOther( other.eclass ) && ( !isTokIdValid() || tokId == other.tokId ) );
+	}
 };
 inline std::ostream& operator <<(std::ostream& fp, const StoredEntityUniqId& x )
 {
@@ -282,6 +294,8 @@ private:
 	EList lst;
 
 };
+
+typedef StoredEntityUniqId BarzerEntity;
 
 }
 #endif // BARZER_STORAGE_TYPES_H
