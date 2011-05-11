@@ -329,9 +329,23 @@ struct BarzerRange {
 		TimeOfDay,
 		Date
 	> Data;
-	
+
 	Data dta;
+
+	enum {
+		ORDER_ASC,
+		ORDER_DESC
+	};
+
+	uint8_t order;  // ASC/DESC
+
 	std::ostream& print( std::ostream& fp ) const;
+	void setAsc() { order = ORDER_ASC; }
+	void setDesc() { order = ORDER_DESC; }
+	bool isAsc() const { return ORDER_ASC== order; }
+	bool isDesc() const { return ORDER_DESC== order; }
+
+	BarzerRange( ) : order(ORDER_ASC) {}
 };
 inline std::ostream& operator <<( std::ostream& fp, const BarzerRange& x )
 	{ return( x.print(fp) ); }
