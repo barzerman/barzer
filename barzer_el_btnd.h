@@ -242,26 +242,19 @@ struct BTND_Pattern_DateTime : public BTND_Pattern_Base {
 		hi.setMax();
 	}
 	
-	void setRange() {
-		type = T_DATETIME_RANGE;
-		lo.setMin();
-		hi.setMax();
-	}
-	void setRange( const BarzerDateTime& l, const BarzerDateTime& h  ) {
-		type = T_DATETIME_RANGE;
-		lo = l;
-		hi = h;
-	}
-	void setRangeAbove( const BarzerDateTime& d ) {
-		type = T_DATETIME_RANGE;
-		lo = d;
-		hi.setMax();
-	}
-	void setRangeBelow( const BarzerDateTime& d ) {
-		type = T_DATETIME_RANGE;
-		lo.setMin();
-		hi = d;
-	}
+	void setFuture() { type = T_ANY_FUTURE_DATETIME; }
+	void setPast() { type = T_ANY_PAST_DATETIME; }
+
+	void setRange() { type = T_DATETIME_RANGE; lo.setMin(); hi.setMax(); }
+
+	void setRange( const BarzerDateTime& l, const BarzerDateTime& h  ) { type = T_DATETIME_RANGE; lo = l; hi = h; }
+	void setRangeAbove( const BarzerDateTime& d ) { type = T_DATETIME_RANGE; lo = d; hi.setMax(); }
+	void setRangeBelow( const BarzerDateTime& d ) { type = T_DATETIME_RANGE; lo.setMin(); hi = d; }
+
+	void setLoDate( int x ) { if( type != T_DATETIME_RANGE ) type = T_DATETIME_RANGE; lo.setDate( x ); }
+	void setLoTime( int x ) { if( type != T_DATETIME_RANGE ) type = T_DATETIME_RANGE; lo.setTime( x ); }
+	void setHiDate( int x ) { if( type != T_DATETIME_RANGE ) type = T_DATETIME_RANGE; hi.setDate( x ); }
+	void setHiTime( int x ) { if( type != T_DATETIME_RANGE ) type = T_DATETIME_RANGE; hi.setTime( x ); }
 
 	bool isLessThan( const BTND_Pattern_DateTime& r ) const
 	{

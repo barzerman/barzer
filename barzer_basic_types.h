@@ -158,6 +158,12 @@ struct BarzerDate {
 		month = (typeof month) m.getInt();
 		year = (typeof year) y.getInt();
 	}
+	void setYYYYMMDD( int x ) 
+	{
+		year  = x/10000;
+		month = (x%10000)/100;
+		day = x%100;
+	}
 	std::ostream& print( std::ostream& fp ) const 
 		{ return ( fp << (int)month << '/' << (int)day << '/' << year ); }
 	bool lessThan( const BarzerDate& r ) const
@@ -246,6 +252,11 @@ struct BarzerDateTime {
 	}
 	const BarzerDate& getDate() const { return date; }
 	const BarzerTimeOfDay& getTime() const { return timeOfDay; }
+	
+	void setDate( int x ) 
+		{ date.setYYYYMMDD(x); }
+	void setTime( int x ) 
+		{ timeOfDay.setHHMMSS((x/10000),(x%10000)/100,x%100); }
 };
 inline bool operator< ( const BarzerDateTime& l, const BarzerDateTime& r )
 	{ return l.lessThan( r ); }

@@ -203,6 +203,15 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 		key.type = (uint8_t) BTND_Pattern_CompoundedWord_TYPE;
 		key.id = p.compWordId;
 	}
+	void operator()( const BTND_Pattern_DateTime& p ) {
+		BarzelWCKey wcKey;
+		trie.wcPool->produceWCKey( wcKey, p );
+		if( wcKey.wcType != BTND_Pattern_DateTime_TYPE ) {
+			AYDEBUG( "TRIE PANIC" );
+		}
+		key.type=BTND_Pattern_DateTime_TYPE;
+		key.id=wcKey.wcId;
+	}
 	void operator()( const BTND_Pattern_Date& p ) {
 		switch( p.type ) {
 		
