@@ -43,6 +43,7 @@ typedef boost::variant<
 	BarzerNumber,
 	BarzerDate,
 	BarzerTimeOfDay,
+	BarzerDateTime,
 	BarzerRange,
 	BarzerEntityList,
 	BarzelEntityRangeCombo
@@ -53,6 +54,7 @@ enum {
 	BarzerNumber_TYPE,
 	BarzerDate_TYPE,
 	BarzerTimeOfDay_TYPE,
+	BarzerDateTime_TYPE,
 	BarzerRange_TYPE,
 	BarzerEntityList_TYPE,
 	BarzelEntityRangeCombo_TYPE

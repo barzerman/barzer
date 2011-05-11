@@ -155,6 +155,12 @@ public:
 
 		printTo(os << "<time>", data) << "</time>";
 	}
+	void operator()(const BarzerDateTime &data) {
+		os << "<timestamp>";
+		(*this)( data.getDate() );
+		(*this)( data.getTime() );
+		os << "</timestamp>";
+	}
 	void operator()(const BarzerRange &data) {
 		os << "<range>";
 		RangeVisitor v(os);
