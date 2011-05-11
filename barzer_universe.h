@@ -10,6 +10,7 @@
 #include <barzer_date_util.h>
 #include <barzer_settings.h>
 #include <barzer_config.h>
+#include <barzer_dict.h>
 
 namespace barzer {
 
@@ -33,6 +34,8 @@ class StoredUniverse {
 	
 	BarzerSettings settings;
 
+	BarzerDict dict;
+
 	/// this will create the "wellknown" entities 
 	void createGenericEntities();
 public:
@@ -53,6 +56,11 @@ public:
 	ay::UniqueCharPool& getStringPool() {
 		return stringPool;
 	}
+
+	const ay::UniqueCharPool& getStringPool() const {
+		return stringPool;
+	}
+
 
 	// purges everything 
 	void clear();
@@ -77,6 +85,7 @@ public:
 	const BELFunctionStorage& getFunctionStorage() const { return funSt; }
 	const DateLookup& getDateLookup() const { return dateLookup; }
 	const BarzerSettings& getSettings() const { return settings; }
+	const BarzerDict& getDict() const { return dict; }
 	
 	const char* getGenericSubclassName( uint16_t subcl ) const;
 }; 

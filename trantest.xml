@@ -101,4 +101,11 @@
             <ltrl t="stop" >date_pattern</ltrl>
         </tran>
     </stmt>
+    <stmt>
+    <pat>
+    <any v="currency"><t>dollars</t><t>usd</t><t>euro</t><t>рублей</t></any>
+    </pat>
+    <tran><func name="mkLtrl"><var name="currency" /></func></tran>
+    </stmt>
+    
 </stmset>

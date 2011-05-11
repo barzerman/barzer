@@ -114,11 +114,12 @@
         <list v="low"><n /></list>
         <t>and</t>
         <list v="high"><n /></list>
-        <t>bucks</t>
+        <any v="curr"><t>bucks</t><t>dollars</t><t>dollar</t><t>euro</t><t>eur</t></any>
         </pat>
         <tran>
             <func name="mkERC">
-            <func name="mkEnt"><ltrl t="string">USD</ltrl><rn v="1" /><rn v="1" /></func>
+            <func name="mkEnt"><func name="mkLtrl"><var name="curr"/></func>
+                <rn v="1" /><rn v="1" /></func>
             <func name="mkRange"><var name="low" /><var name="high" /></func>
             </func>
         </tran>
@@ -152,15 +153,17 @@
     </stmt>
     <stmt>
         <pat>
-            <opt><t>price</t></opt>
+            <opt>
+                <any><list><t>price</t><t>is</t></list><t>costs</t></any>
+            </opt>
             <t>cheaper</t>
             <t>than</t>
             <list v="price"><n /></list>
-            <t>dollars</t>
+            <any v="curr"><t>bucks</t><t>dollars</t><t>dollar</t><t>euro</t><t>eur</t></any>
         </pat>
         <tran>
             <func name="mkERC">
-            <func name="mkEnt"><ltrl t="string">USD</ltrl><rn v="1" /><rn v="1" /></func>
+            <func name="mkEnt"><func name="mkLtrl"><var name="curr" /></func><rn v="1" /><rn v="1" /></func>
             <func name="mkRange"><rn v="0" /><var name="price" /></func>
             </func>
         </tran>
