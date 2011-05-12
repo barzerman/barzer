@@ -63,6 +63,8 @@ bool BELParserXML::isValidTag( int tag, int parent ) const
 	case TAG_WCLS:
 	case TAG_W:
 	case TAG_DATE:
+	case TAG_DATETIME:
+	case TAG_ENTITY:
 	case TAG_TIME:
 	case TAG_LIST:
 	case TAG_ANY:
@@ -121,6 +123,7 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 	CASE_TAG(WCLS)
 	CASE_TAG(W)
 	CASE_TAG(DATE)
+	CASE_TAG(DATETIME)
 	CASE_TAG(TIME)
 	CASE_TAG(LIST)
 	CASE_TAG(ANY)
@@ -364,6 +367,65 @@ void BELParserXML::taghandle_N( const char_cp * attr, size_t attr_sz , bool clos
 			pat.setAnyReal();
 		else
 			pat.setAnyInt();
+	}
+	statement.pushNode( BTND_PatternData( pat));
+}
+void BELParserXML::taghandle_ENTITY( const char_cp * attr, size_t attr_sz , bool close) 
+{ 
+	if( close ) {
+		statement.popNode();
+		return;
+	}
+	BTND_Pattern_Entity pat; 
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		switch( n[0] ) {
+		case 'c': // class - c="1"
+			pat.setEntityClass( atoi(v) ); 
+			break;
+		case 's': // subclass - s="1"
+			pat.setEntityClass( atoi(v) ); 
+			break;
+		case 't': // id token - t="ABCD011"
+			pat.setTokenId( internString(v) );
+			break;
+		}
+	}
+	statement.pushNode( BTND_PatternData( pat));
+}
+void BELParserXML::taghandle_DATETIME( const char_cp * attr, size_t attr_sz , bool close) 
+{ 
+	if( close ) {
+		statement.popNode();
+		return;
+	}
+	BTND_Pattern_DateTime pat; 
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		switch( n[0] ) {
+		case 'd': 
+			if( n[1] == 'l' ) { /// dl="YYYYMMDD" date low 
+				pat.setLoDate( atoi(v) );
+			} else if( n[1] == 'h' ) { // dh="YYYYMMDD" date hi
+				pat.setHiDate( atoi(v) );
+			}
+			break;
+		case 'f':  // f="y" - future
+			pat.setFuture();
+			break;
+		case 'p':  // f="y" - future
+			pat.setPast();
+			break;
+		case 't': 
+			if( n[1] == 'l' ) { /// tl="hhmmss" time low 
+				pat.setLoTime( atoi(v) );
+			} else if( n[1] == 'h' ) { // th="hhmmss" time hi
+				pat.setHiTime( atoi(v) );
+			}
+			break;
+		}
 	}
 	statement.pushNode( BTND_PatternData( pat));
 }
@@ -678,6 +740,10 @@ int BELParserXML::getTag( const char* s ) const
 		break;
 	case 'd':
 	CHECK_4CW("ate", TAG_DATE ) // <date> 
+	CHECK_4CW("tim", TAG_DATETIME ) // <dtim> 
+		break;
+	case 'e':
+	CHECK_3CW("nt",TAG_ENTITY) // <ent>
 		break;
 	case 'f':
 	CHECK_4CW("unc", TAG_FUNC ) // <func>

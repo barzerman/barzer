@@ -38,6 +38,7 @@ barzer_server.o \
 barzer_token.o \
 barzer_date_util.o \
 barzer_settings.o \
+barzer_dict.o \
 lg_en/barzer_en_lex.o \
 lg_ru/barzer_ru_lex.o \
 lg_en/barzer_en_date_util.o \
@@ -52,11 +53,11 @@ cleanall: clean cleanaylib
 cleanaylib: 
 	cd ay; make -f aylib.mk clean; cd ..
 aylib_rebuild: 
-	cd ay; make -f aylib.mk rebuild FLAGS=$(FLAGS); cd ..
+	cd ay; make -f aylib.mk rebuild OPT=$(OPT) FLAGS=$(FLAGS); cd ..
 aylib: 
-	cd ay; make -f aylib.mk FLAGS=$(FLAGS); cd ..
+	cd ay; make -f aylib.mk OPT=$(OPT) FLAGS=$(FLAGS); cd ..
 ay/libay.a: 
-	cd ay; make -f aylib.mk rebuild $(FLAGS); cd ..
+	cd ay; make -f aylib.mk rebuild OPT=$(OPT) $(FLAGS); cd ..
 .cpp.o:
 	$(CC)  -c $(CFLAGS) $< -o $@
 rebuild: clean aylib all

@@ -21,21 +21,16 @@ struct BarzelBeadBlank {
 };
 
 /// combination 
-struct BarzelEntityRangeCombo {
-	uint32_t d_entId; // main entity id
-	uint32_t d_unitEntId; // unit entity id 
-	BarzerRange      range;
+/*
+struct BarzerEntityRangeCombo {
+	BarzerEntity d_entId; // main entity id
+	BarzerEntity d_unitEntId; // unit entity id 
+	BarzerRange  d_range;
 	
-	BarzelEntityRangeCombo() : d_entId(0xffffffff), d_unitEntId(0xffffffff) {}
-
-	void setUnitEntityId( uint32_t id ) { d_unitEntId = id; }
-	void setEntityId( uint32_t id ) { d_entId = id; }
-
 	std::ostream& print( std::ostream& fp ) const
-	{
-		return ( range.print( fp )<<"("  << d_entId << ":" << d_unitEntId << ")" );
-	}
+		{ return ( range.print( fp )<<"("  << d_entId << ":" << d_unitEntId << "[" << range << "])" ); }
 };
+*/
 
 typedef boost::variant<
 	BarzerLiteral, // constant string literal
@@ -43,9 +38,11 @@ typedef boost::variant<
 	BarzerNumber,
 	BarzerDate,
 	BarzerTimeOfDay,
+	BarzerDateTime,
 	BarzerRange,
 	BarzerEntityList,
-	BarzelEntityRangeCombo
+	BarzerEntity,
+	BarzerEntityRangeCombo
 > BarzelBeadAtomic_var;
 enum {
 	BarzerLiteral_TYPE, 
@@ -53,9 +50,11 @@ enum {
 	BarzerNumber_TYPE,
 	BarzerDate_TYPE,
 	BarzerTimeOfDay_TYPE,
+	BarzerDateTime_TYPE,
 	BarzerRange_TYPE,
 	BarzerEntityList_TYPE,
-	BarzelEntityRangeCombo_TYPE
+	BarzerEntity_TYPE,
+	BarzerEntityRangeCombo_TYPE
 };
 struct BarzelBeadAtomic {
 	BarzelBeadAtomic_var dta;
@@ -254,8 +253,8 @@ struct BeadPrinter : public boost::static_visitor<> {
 	void operator()(const BarzerEntityList &data) {
 		AYLOG(DEBUG) << "BarzerEntityList";
 	}
-	void operator()(const BarzelEntityRangeCombo &data) {
-		AYLOG(DEBUG) << "BarzelEntityRangeCombo";
+	void operator()(const BarzerEntityRangeCombo &data) {
+		AYLOG(DEBUG) << "BarzerEntityRangeCombo";
 	}
 	void operator()(const BarzelBeadAtomic &data) {
 		AYLOG(DEBUG) << "Atomic";

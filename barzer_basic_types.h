@@ -11,6 +11,7 @@
 //#include <barzer_universe.h>
 //#include <barzer_storage_types.h>
 #include <ay_util.h>
+#include <barzer_storage_types.h>
 
 namespace barzer {
 struct BELPrintContext;
@@ -105,12 +106,34 @@ struct BarzerDate {
 
 	enum {
 		INVALID_YEAR = 0x7fff,
+		MAX_YEAR = 0x7ffe,
+
+		INVALID_MONTH = 0xff,
+		MAX_MONTH = 0xfe,
+		MAX_DAY = 0xfe,
+
+		INVALID_DAY = 0xff,
 		BIZSANE_OLDEST_YEAR  = 1900,
 		BIZSANE_LATEST_YEAR  = 2100,
 	};
 
-	BarzerDate() : month(0), day(0), year(INVALID_YEAR) {}
+	BarzerDate() : month(INVALID_MONTH), day(INVALID_DAY), year(INVALID_YEAR) {}
+	
+	bool isValid() const { return( year != INVALID_YEAR && day != INVALID_DAY && month != INVALID_MONTH ); }
 
+	void setMax( ) 
+	{ 
+		year = MAX_YEAR;
+		month = MAX_MONTH;
+		day = MAX_DAY;
+	}
+	void setMin( ) 
+	{ 
+		year = -MAX_YEAR;
+		month = 0;
+		day = 0;
+	}
+	
 	int32_t getLongDate() const {
 		return ( 10000*(int32_t)year + 100*(int32_t)month  + (int32_t)day );
 	}
@@ -135,6 +158,12 @@ struct BarzerDate {
 		day = (typeof day) d.getInt();
 		month = (typeof month) m.getInt();
 		year = (typeof year) y.getInt();
+	}
+	void setYYYYMMDD( int x ) 
+	{
+		year  = x/10000;
+		month = (x%10000)/100;
+		day = x%100;
 	}
 	std::ostream& print( std::ostream& fp ) const 
 		{ return ( fp << (int)month << '/' << (int)day << '/' << year ); }
@@ -165,21 +194,27 @@ struct BarzerTimeOfDay {
 		)
 	{}
 
-
 	void setHHMMSS( int hh, int mm, int ss ) 
 	{ secSinceMidnight = hh*3600 + mm*60 + ss; }
+
 	// american time hh:mm:ss , pm
 	BarzerTimeOfDay( int hh, int mm, int ss, bool isPm ) :
 		secSinceMidnight(
 			( isPm ? (hh+12): hh) *3600 + mm*60 + ss
 		)
 	{}
-
-	BarzerTimeOfDay( ) : secSinceMidnight(0) {}
+	/// constructe invalid by default
+	BarzerTimeOfDay( ) : secSinceMidnight(0xffffffff) {}
 
 	short getHH() const { return (secSinceMidnight/3600); }
 	short getMM() const { return ((secSinceMidnight%3600)/60); }
 	short getSS() const { return (secSinceMidnight%60); }
+
+
+	void setMin() { secSinceMidnight= 0; }
+	void setMax() { secSinceMidnight= 0xfffffffe; }
+
+	bool isValid() const { return(secSinceMidnight != 0xffffffff); }
 
 	std::ostream& print( std::ostream& fp ) const 
 		{ return ( fp << getHH() << ':' << getMM() << ':' << getSS() ); }
@@ -197,6 +232,14 @@ inline std::ostream& operator <<( std::ostream& fp, const BarzerTimeOfDay& x )
 struct BarzerDateTime {
 	BarzerDate date;
 	BarzerTimeOfDay timeOfDay;
+
+	void setMax() { date.setMax(); timeOfDay.setMax(); }
+	void setMin() { date.setMin(); timeOfDay.setMin(); }
+
+	bool hasDate() const { return date.isValid(); }
+	bool hasTime() const { return timeOfDay.isValid(); }
+	bool isValid() const { return ( hasDate() || hasTime() ); }
+
 	inline bool lessThan( const BarzerDateTime& r ) const
 	{
 		return ay::range_comp().less_than(
@@ -208,11 +251,18 @@ struct BarzerDateTime {
 	{
 		return( fp << date << "-" << timeOfDay );
 	}
+	const BarzerDate& getDate() const { return date; }
+	const BarzerTimeOfDay& getTime() const { return timeOfDay; }
+	
+	void setDate( int x ) 
+		{ date.setYYYYMMDD(x); }
+	void setTime( int x ) 
+		{ timeOfDay.setHHMMSS((x/10000),(x%10000)/100,x%100); }
 };
 inline bool operator< ( const BarzerDateTime& l, const BarzerDateTime& r )
-{ return l.lessThan( r ); }
+	{ return l.lessThan( r ); }
 inline std::ostream& operator<< ( std::ostream& fp, const BarzerDateTime& x )
-{ return x.print(fp); }
+	{ return x.print(fp); }
 
 //// barzer literal 
 
@@ -280,12 +330,51 @@ struct BarzerRange {
 		TimeOfDay,
 		Date
 	> Data;
-	
+
 	Data dta;
+
+	enum {
+		ORDER_ASC,
+		ORDER_DESC
+	};
+
+	uint8_t order;  // ASC/DESC
+
 	std::ostream& print( std::ostream& fp ) const;
+	void setAsc() { order = ORDER_ASC; }
+	void setDesc() { order = ORDER_DESC; }
+	bool isAsc() const { return ORDER_ASC== order; }
+	bool isDesc() const { return ORDER_DESC== order; }
+
+	BarzerRange( ) : order(ORDER_ASC) {}
+	bool lessThan( const BarzerRange& r ) const
+	{
+		return( dta.which() < r.dta.which() ) ;
+	}
 };
+inline bool operator< ( const BarzerRange& l, const BarzerRange& r ) 
+{
+	return l.lessThan(r);
+}
 inline std::ostream& operator <<( std::ostream& fp, const BarzerRange& x )
 	{ return( x.print(fp) ); }
+
+/// combination 
+struct BarzerEntityRangeCombo {
+	BarzerEntity d_entId; // main entity id
+	BarzerEntity d_unitEntId; // unit entity id 
+	BarzerRange  d_range;
+	
+	const BarzerEntity& getEntity() const { return d_entId; }
+	const BarzerEntity& getUnitEntity() const { return d_unitEntId; }
+	const BarzerRange&  getRange() const { return d_range; }
+
+	void  setEntity( const BarzerEntity& e ) { d_entId = e; }
+	void  setRange( const BarzerRange& r ) { d_range = r; }
+
+	std::ostream& print( std::ostream& fp ) const
+		{ return ( d_range.print( fp )<<"("  << d_entId << ":" << d_unitEntId << ")" ); }
+};
 
 } // namespace barzer ends
 

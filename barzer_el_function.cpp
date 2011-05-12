@@ -47,6 +47,26 @@ static bool setNumber(BarzerNumber &num, const BarzelEvalResult &result) {
 	return !num.isNan();
 }
 
+
+// extracts a string from BarzerString or BarzerLiteral
+struct StringExtractor : public boost::static_visitor<const char*> {
+	const StoredUniverse &universe;
+	StringExtractor(const StoredUniverse &u) : universe(u) {}
+	const char* operator()( const BarzerLiteral &dt ) const {
+		return universe.getStringPool().resolveId(dt.getId());
+	}
+	const char* operator()( const BarzerString &dt ) const
+		{ return dt.getStr().c_str(); }
+	const char* operator()( const BarzelBeadAtomic &dt ) const
+		{ return boost::apply_visitor(*this, dt.dta); }
+	template <typename T> const char* operator()( const T& ) const
+		{ return 0;	}
+};
+
+static const char* extractString(const StoredUniverse &u, const BarzelEvalResult &result) {
+	return boost::apply_visitor(StringExtractor(u), result.getBeadData());
+}
+
 template<class T> struct BeadMatcher : public boost::static_visitor<T> {
 	const T* operator()( const T &dt ) { return &dt; }
 	const T* operator()( const BarzelBeadAtomic &dt )
@@ -269,6 +289,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(mkRange);
 		ADDFN(mkEnt);
 		ADDFN(mkERC);
+		ADDFN(mkLtrl);
 		// arith
 		ADDFN(opPlus);
 		ADDFN(opMinus);
@@ -445,11 +466,11 @@ struct BELFunctionStorage_holder {
 			return false;
 		}
 		try {
-			BarzelEntityRangeCombo erc;
+			BarzerEntityRangeCombo erc;
 			const BarzerEntityList &belst = getAtomic<BarzerEntityList>(rvec[0]);
 
-			erc.setEntityId(belst.getList().front().entId);
-			erc.range = getAtomic<BarzerRange>(rvec[1]);
+			erc.setEntity(belst.getList().front().getEuid());
+			erc.setRange( getAtomic<BarzerRange>(rvec[1]) );
 			setResult(result, erc);
 			return true;
 		} catch (boost::bad_get) {
@@ -463,6 +484,37 @@ struct BELFunctionStorage_holder {
 	{
 		return false;
 	}
+
+	STFUN(mkLtrl)
+	{
+		if (!rvec.size()) {
+			AYLOG(ERROR) << "Need an argument";
+			return false;
+		}
+
+		const char* str = extractString(universe, rvec[0]);
+		if (!str) {
+			AYLOG(ERROR) << "Need a string";
+			return false;
+		}
+
+
+		// normalizing the string (dollar -> usd) and making a literal out of it
+
+		const BarzerDict dict = universe.getDict();
+		uint32_t id = dict.lookup(str);
+
+
+
+		AYLOG(DEBUG) << "translating " << str << " -> (" << id << ":" << universe.getStringPool().resolveId(id);
+		BarzerLiteral lt;
+		lt.setString(id);
+
+
+		setResult(result, lt);
+		return true; //*/
+	}
+
 
 	// arith
 

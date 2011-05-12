@@ -11,13 +11,26 @@
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
+#include <barzer_config.h>
+#include <barzer_el_parser.h>
 
+namespace barzer {
+class StoredUniverse;
 class BarzerSettings {
+	StoredUniverse &universe;
+	BELReader reader;
+
 	boost::property_tree::ptree pt;
 public:
-	BarzerSettings(const char *fname = "config.xml") {
+	BarzerSettings(StoredUniverse&, const char*);
+	BarzerSettings(StoredUniverse&);
+	/* {
 		load(fname);
-	}
+	} //*/
+
+	void init();
+
+	void loadRules(const char *fname);
 
 	void load(const char *fname);
 
@@ -26,5 +39,5 @@ public:
 
 };
 
-
+}
 #endif /* BARZER_SETTINGS_H_ */

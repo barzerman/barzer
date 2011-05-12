@@ -61,7 +61,7 @@ inline bool evalWildcard_vis<BTND_Pattern_Number>::operator()<BarzerLiteral> ( c
 }
 template <> template <>
 inline bool evalWildcard_vis<BTND_Pattern_Number>::operator()<BarzerNumber> ( const BarzerNumber& dta ) const
-{ return d_pattern.checkNumber( dta ); }
+{ return d_pattern( dta ); }
 //// end of number template matching
 //// other patterns 
 /// for now these patterns always match on a right data type (date matches any date, datetime any date time etc..)
@@ -69,17 +69,27 @@ inline bool evalWildcard_vis<BTND_Pattern_Number>::operator()<BarzerNumber> ( co
 template <> template <>
 inline bool evalWildcard_vis<BTND_Pattern_Date>::operator()<BarzerDate> ( const BarzerDate& dta ) const
 { 
-	return d_pattern.isDateValid( dta );
+	return d_pattern( dta );
 }
 
 template <> template <>
 inline bool evalWildcard_vis<BTND_Pattern_DateTime>::operator()<BarzerDateTime> ( const BarzerDateTime& dta )  const
-{ return true; }
+{ return d_pattern( dta ); }
 
 template <> template <>
 inline bool evalWildcard_vis<BTND_Pattern_Time>::operator()<BarzerTimeOfDay> ( const BarzerTimeOfDay& dta )  const
 { return true; }
 
+template <> template <>
+inline bool evalWildcard_vis<BTND_Pattern_Entity>::operator()<BarzerEntity> ( const BarzerEntity& dta )  const
+{ 
+	return d_pattern( dta );
+}
+template <> template <>
+inline bool evalWildcard_vis<BTND_Pattern_Entity>::operator()<BarzerEntityRangeCombo> ( const BarzerEntityRangeCombo& dta )  const
+{ 
+	return d_pattern( dta );
+}
 template <> template <>
 inline bool evalWildcard_vis<BTND_Pattern_Wildcard>::operator()<BarzerLiteral> ( const BarzerLiteral& dta )  const
 { return true; }
@@ -295,6 +305,34 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		return false;
 	}
 	template <>
+	bool findMatchingChildren_visitor::doFirmMatch<BarzerDateTime>( const BarzelFCMap& fcmap, const BarzerDateTime& dta, bool allowBlanks) 
+	{
+		BarzelTrieFirmChildKey firmKey((uint8_t)(BTND_Pattern_DateTime_TYPE),0xffffffff); 
+		// forming firm key
+		// we ignore the whole allow blanks thing for dates - blanks will just always be allowed
+		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey );
+		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool();
+		for( ; i!= fcmap.end() && i->first.type == BTND_Pattern_DateTime_TYPE; ++i ) {
+			/// we're looping over all date wildcards on the current node 
+			/// extracting the actual wildcard 
+			if( i->first.id == 0xffffffff ) {
+				const BarzelTrieNode* ch = &(i->second);
+				BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);
+				d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+			} else {
+				const BTND_Pattern_DateTime* dpat = wcPool.get_BTND_Pattern_DateTime( i->first.id );
+				if( !dpat ) return false;
+				if( evalWildcard_vis<BTND_Pattern_DateTime>(*dpat)( dta )  ) {
+				//if( boost::apply_visitor( evalWildcard_vis<BTND_Pattern_DateTime>(*dpat), dta ) ) {}
+					d_mtChild.push_back( NodeAndBeadVec::value_type(
+						&(i->second),
+						BarzelBeadChain::Range(d_rng.first,d_rng.first)) );
+				}
+			}
+		}
+		return false;
+	}
+	template <>
 	bool findMatchingChildren_visitor::doFirmMatch<BarzerNumber>( const BarzelFCMap& fcmap, const BarzerNumber& dta, bool allowBlanks) 
 	{
 		BarzelTrieFirmChildKey firmKey((uint8_t)(BTND_Pattern_Number_TYPE),0xffffffff); 
@@ -314,6 +352,62 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 				if( !dpat ) return false;
 				if( evalWildcard_vis<BTND_Pattern_Number>(*dpat)( dta )  ) {
 				//if( boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Number>(*dpat), dta ) ) {}
+					d_mtChild.push_back( NodeAndBeadVec::value_type(
+						&(i->second),
+						BarzelBeadChain::Range(d_rng.first,d_rng.first)) );
+				}
+			}
+		}
+		return false;
+	}
+	template <>
+	bool findMatchingChildren_visitor::doFirmMatch<BarzerEntity>( const BarzelFCMap& fcmap, const BarzerEntity& dta, bool allowBlanks) 
+	{
+		BarzelTrieFirmChildKey firmKey((uint8_t)(BTND_Pattern_Entity_TYPE),0xffffffff); 
+		// forming firm key
+		// we ignore the whole allow blanks thing for dates - blanks will just always be allowed
+		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey );
+		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool();
+		for( ; i!= fcmap.end() && i->first.type == BTND_Pattern_Entity_TYPE; ++i ) {
+			/// we're looping over all date wildcards on the current node 
+			/// extracting the actual wildcard 
+			if( i->first.id == 0xffffffff ) {
+				const BarzelTrieNode* ch = &(i->second);
+				BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);
+				d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+			} else {
+				const BTND_Pattern_Entity* dpat = wcPool.get_BTND_Pattern_Entity( i->first.id );
+				if( !dpat ) return false;
+				if( evalWildcard_vis<BTND_Pattern_Entity>(*dpat)( dta )  ) {
+				//if( boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Entity>(*dpat), dta ) ) {}
+					d_mtChild.push_back( NodeAndBeadVec::value_type(
+						&(i->second),
+						BarzelBeadChain::Range(d_rng.first,d_rng.first)) );
+				}
+			}
+		}
+		return false;
+	}
+	template <>
+	bool findMatchingChildren_visitor::doFirmMatch<BarzerEntityRangeCombo>( const BarzelFCMap& fcmap, const BarzerEntityRangeCombo& dta, bool allowBlanks) 
+	{
+		BarzelTrieFirmChildKey firmKey((uint8_t)(BTND_Pattern_Entity_TYPE),0xffffffff); 
+		// forming firm key
+		// we ignore the whole allow blanks thing for dates - blanks will just always be allowed
+		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey );
+		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool();
+		for( ; i!= fcmap.end() && i->first.type == BTND_Pattern_Entity_TYPE; ++i ) {
+			/// we're looping over all date wildcards on the current node 
+			/// extracting the actual wildcard 
+			if( i->first.id == 0xffffffff ) {
+				const BarzelTrieNode* ch = &(i->second);
+				BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);
+				d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+			} else {
+				const BTND_Pattern_Entity* dpat = wcPool.get_BTND_Pattern_Entity( i->first.id );
+				if( !dpat ) return false;
+				if( evalWildcard_vis<BTND_Pattern_Entity>(*dpat)( dta )  ) {
+				//if( boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Entity>(*dpat), dta ) ) {}
 					d_mtChild.push_back( NodeAndBeadVec::value_type(
 						&(i->second),
 						BarzelBeadChain::Range(d_rng.first,d_rng.first)) );
@@ -367,30 +461,29 @@ bool BTMIterator::evalWildcard( const BarzelWCKey& wcKey, BeadList::iterator fro
 		return false;
 	
 	switch( wcKey.wcType ) {
-	case BTND_Pattern_Number_TYPE:
-	{
+	case BTND_Pattern_Number_TYPE: {
 		const BTND_Pattern_Number* p = wcPool.get_BTND_Pattern_Number(wcKey.wcId);
 		return( p ?  boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Number>(*p), atomic->dta ) : false );
 	}
-	case BTND_Pattern_Wildcard_TYPE:
-	{
+	case BTND_Pattern_Wildcard_TYPE: {
 		const BTND_Pattern_Wildcard* p = wcPool.get_BTND_Pattern_Wildcard(wcKey.wcId);
 		return( p ?  boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Wildcard>(*p), atomic->dta ) : false );
 	}
-	case BTND_Pattern_Date_TYPE:
-	{
+	case BTND_Pattern_Date_TYPE: {
 		const BTND_Pattern_Date* p = wcPool.get_BTND_Pattern_Date(wcKey.wcId);
 		return( p ?  boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Date>(*p), atomic->dta ) : false );
 	}
-	case BTND_Pattern_Time_TYPE:
-	{
+	case BTND_Pattern_Time_TYPE: {
 		const BTND_Pattern_Time* p = wcPool.get_BTND_Pattern_Time(wcKey.wcId);
 		return( p ?  boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Time>(*p), atomic->dta ) : false );
 	}
-	case BTND_Pattern_DateTime_TYPE:
-	{
+	case BTND_Pattern_DateTime_TYPE: {
 		const BTND_Pattern_DateTime* p = wcPool.get_BTND_Pattern_DateTime(wcKey.wcId);
 		return( p ?  boost::apply_visitor( evalWildcard_vis<BTND_Pattern_DateTime>(*p), atomic->dta ) : false );
+	}
+	case BTND_Pattern_Entity_TYPE: {
+		const BTND_Pattern_Entity* p = wcPool.get_BTND_Pattern_Entity(wcKey.wcId);
+		return( p ?  boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Entity>(*p), atomic->dta ) : false );
 	}
 	default:
 		return false;
