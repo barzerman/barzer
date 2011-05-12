@@ -81,4 +81,17 @@ void DateLookup::getMonths(const char* lang, SymbolVec &vec) const {
 	getMonths(universe.getStringPool().getId(lang), vec);
 }
 
+
+void DateLookup::getWeekdays(const uint32_t langId, SymbolVec &vec) const {
+	SymbolStorage::const_iterator iter = weekdayStorage.find(langId);
+	if (iter == weekdayStorage.end()) return;
+	const SymbolVec &src = iter->second;
+	vec.insert(vec.end(), src.begin(), src.end());
+
+}
+
+void DateLookup::getWeekdays(const char* lang, SymbolVec &vec) const {
+	getWeekdays(universe.getStringPool().getId(lang), vec);
+}
+
 }
