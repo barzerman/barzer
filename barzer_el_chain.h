@@ -21,14 +21,16 @@ struct BarzelBeadBlank {
 };
 
 /// combination 
-struct BarzelEntityRangeCombo {
-	BarzelEntity d_entId; // main entity id
-	BarzelEntity d_unitEntId; // unit entity id 
+/*
+struct BarzerEntityRangeCombo {
+	BarzerEntity d_entId; // main entity id
+	BarzerEntity d_unitEntId; // unit entity id 
 	BarzerRange  d_range;
 	
 	std::ostream& print( std::ostream& fp ) const
 		{ return ( range.print( fp )<<"("  << d_entId << ":" << d_unitEntId << "[" << range << "])" ); }
 };
+*/
 
 typedef boost::variant<
 	BarzerLiteral, // constant string literal
@@ -40,7 +42,7 @@ typedef boost::variant<
 	BarzerRange,
 	BarzerEntityList,
 	BarzerEntity,
-	BarzelEntityRangeCombo
+	BarzerEntityRangeCombo
 > BarzelBeadAtomic_var;
 enum {
 	BarzerLiteral_TYPE, 
@@ -52,7 +54,7 @@ enum {
 	BarzerRange_TYPE,
 	BarzerEntityList_TYPE,
 	BarzerEntity_TYPE,
-	BarzelEntityRangeCombo_TYPE
+	BarzerEntityRangeCombo_TYPE
 };
 struct BarzelBeadAtomic {
 	BarzelBeadAtomic_var dta;
@@ -251,8 +253,8 @@ struct BeadPrinter : public boost::static_visitor<> {
 	void operator()(const BarzerEntityList &data) {
 		AYLOG(DEBUG) << "BarzerEntityList";
 	}
-	void operator()(const BarzelEntityRangeCombo &data) {
-		AYLOG(DEBUG) << "BarzelEntityRangeCombo";
+	void operator()(const BarzerEntityRangeCombo &data) {
+		AYLOG(DEBUG) << "BarzerEntityRangeCombo";
 	}
 	void operator()(const BarzelBeadAtomic &data) {
 		AYLOG(DEBUG) << "Atomic";

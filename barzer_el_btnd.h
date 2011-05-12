@@ -332,7 +332,7 @@ inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_Token& x 
 
 /// this pattern is used to match BarzerEntityList as well as BarzerEntityRangeCombo
 class BTND_Pattern_Entity : public BTND_Pattern_Base {
-	std::ostream& print( std::ostream& fp, const BELPrintContext& ctxt ) const
+	std::ostream& print( std::ostream& fp, const BELPrintContext& ctxt ) const;
 	BarzerEntity ent;
 	BarzerRange range;
 	uint8_t     rangeIsValid; 
@@ -349,9 +349,11 @@ public:
 	const BarzerEntity& getEntity() const { return ent; }
 	BarzerEntity& getEntity() { return ent; }
 
-	bool operator() ( const BarzelEntityRangeCombo& erc ) cnst {
+	bool operator() ( const BarzerEntityRangeCombo& erc ) const {
+		return false;
 	}
-	bool operator() ( const BarzelEntity& ent ) cnst {
+	bool operator() ( const BarzerEntity& ent ) const {
+		return false;
 	}
 };
 
@@ -373,7 +375,7 @@ typedef boost::variant<
 		BTND_Pattern_Time,     			// 7
 		BTND_Pattern_DateTime, 			// 8 
 		BTND_Pattern_StopToken,		 	// 9
-		BTND_Pattern_EntityRangeCombo   // 10
+		BTND_Pattern_Entity			    // 10
 > BTND_PatternData;
 
 
@@ -391,7 +393,7 @@ enum {
 	BTND_Pattern_DateTime_TYPE,			// 8
 	///
 	BTND_Pattern_StopToken_TYPE,		// 9
-	BTND_Pattern_EntityRangeCombo_TYPE, // 10
+	BTND_Pattern_Entity_TYPE,           // 10
 
 
 	/// end of wildcard types - add new ones ONLY ABOVE THIS LINE

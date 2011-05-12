@@ -181,7 +181,7 @@ struct StoredEntityClass {
 		if( !ec ) 
 			return true;
 		else 
-			return ( (ec == other.ec) && (!subclass || subClass == other.subClass) );
+			return ( (ec == other.ec) && (!subclass || subclass == other.subclass) );
 	}
 };
 
@@ -218,9 +218,9 @@ struct StoredEntityUniqId {
 	void print( std::ostream& fp ) const
 		{ fp << eclass << "," << tokId ; }
 	
-	void matchOther( const StoredEntityUniqId& other ) 
+	bool matchOther( const StoredEntityUniqId& other ) 
 	{
-		if( eclass.matchOther( other.eclass ) && ( !isTokIdValid() || tokId == other.tokId ) );
+		return( eclass.matchOther( other.eclass ) && ( !isTokIdValid() || tokId == other.tokId ) );
 	}
 };
 inline std::ostream& operator <<(std::ostream& fp, const StoredEntityUniqId& x )
@@ -272,6 +272,7 @@ struct StoredEntity {
 	void setAll( StoredEntityId id, const StoredEntityUniqId& uniqId )
 		{ entId= id; euid = uniqId; }
 	
+	const StoredEntityUniqId& getEuid() const { return euid; }
 	void print( std::ostream& ) const;
 };
 inline std::ostream& operator <<( std::ostream& fp, const StoredEntity& e )

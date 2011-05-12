@@ -445,11 +445,11 @@ struct BELFunctionStorage_holder {
 			return false;
 		}
 		try {
-			BarzelEntityRangeCombo erc;
+			BarzerEntityRangeCombo erc;
 			const BarzerEntityList &belst = getAtomic<BarzerEntityList>(rvec[0]);
 
-			erc.setEntityId(belst.getList().front().entId);
-			erc.range = getAtomic<BarzerRange>(rvec[1]);
+			erc.setEntity(belst.getList().front().getEuid());
+			erc.setRange( getAtomic<BarzerRange>(rvec[1]) );
 			setResult(result, erc);
 			return true;
 		} catch (boost::bad_get) {

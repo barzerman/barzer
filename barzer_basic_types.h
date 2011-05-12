@@ -11,6 +11,7 @@
 //#include <barzer_universe.h>
 //#include <barzer_storage_types.h>
 #include <ay_util.h>
+#include <barzer_storage_types.h>
 
 namespace barzer {
 struct BELPrintContext;
@@ -349,6 +350,23 @@ struct BarzerRange {
 };
 inline std::ostream& operator <<( std::ostream& fp, const BarzerRange& x )
 	{ return( x.print(fp) ); }
+
+/// combination 
+struct BarzerEntityRangeCombo {
+	BarzerEntity d_entId; // main entity id
+	BarzerEntity d_unitEntId; // unit entity id 
+	BarzerRange  d_range;
+	
+	const BarzerEntity& getEntity() const { return d_entId; }
+	const BarzerEntity& getUnitEntity() const { return d_unitEntId; }
+	const BarzerRange&  getRange() const { return d_range; }
+
+	void  setEntity( const BarzerEntity& e ) { d_entId = e; }
+	void  setRange( const BarzerRange& r ) { d_range = r; }
+
+	std::ostream& print( std::ostream& fp ) const
+		{ return ( d_range.print( fp )<<"("  << d_entId << ":" << d_unitEntId << ")" ); }
+};
 
 } // namespace barzer ends
 

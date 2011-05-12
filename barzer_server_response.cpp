@@ -172,15 +172,24 @@ public:
 		os << "</entlist>";
 	}
 
-	void operator()(const BarzelEntityRangeCombo &data) {
-		const StoredEntity *ent = universe.getDtaIdx().entPool.getEntByIdSafe(data.d_entId);
+	void operator()(const BarzerEntity &data) {
+		const StoredEntity *ent = universe.getDtaIdx().entPool.getEntByEuid(data);
+		
 		if (!ent) {
-			AYLOG(ERROR) << "Invalid entity id: " << data.d_entId;
+			AYLOG(ERROR) << "Invalid entity id: " << data;
+			return;
+		}
+		printEntity(*ent);
+	}
+	void operator()(const BarzerEntityRangeCombo &data) {
+		const StoredEntity *ent = universe.getDtaIdx().entPool.getEntByEuid(data.getEntity());
+		if (!ent) {
+			AYLOG(ERROR) << "Invalid entity id: " << data.getEntity();
 			return;
 		}
 		os << "<erc>";
 		printEntity(*ent);
-		(*this)(data.range);
+		(*this)(data.getRange());
 		os << "</erc>";
 	}
 };
