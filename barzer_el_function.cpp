@@ -286,6 +286,7 @@ struct BELFunctionStorage_holder {
 		// makers
 		ADDFN(mkDate);
 		ADDFN(mkTime);
+		ADDFN(mkDateTime);
 		ADDFN(mkRange);
 		ADDFN(mkEnt);
 		ADDFN(mkERC);
@@ -412,6 +413,7 @@ struct BELFunctionStorage_holder {
 			return true;
 		}
 		bool operator()(const BarzelBeadAtomic &data) {
+			//AYLOG(DEBUG) << "got atomic of type: " << data.getType();
 			return boost::apply_visitor(*this, data.getData());
 		}
 		// not applicable
@@ -766,7 +768,10 @@ bool BELFunctionStorage::call(const char *fname, BarzelEvalResult &er,
 {
 	//AYLOG(DEBUG) << "calling function name `" << fname << "'";
 	const uint32_t fid = universe.getStringPool().getId(fname);
-	if (fid == ay::UniqueCharPool::ID_NOTFOUND) return false;
+	if (fid == ay::UniqueCharPool::ID_NOTFOUND) {
+		AYLOG(ERROR) << "No such function name: `" << fname << "'";
+		return false;
+	}
 	return call(fid, er, ervec);
 }
 
@@ -775,7 +780,10 @@ bool BELFunctionStorage::call(const uint32_t fid, BarzelEvalResult &er,
 {
 	//AYLOG(DEBUG) << "calling function id `" << fid << "'";
 	const BELStoredFunMap::const_iterator frec = holder->funmap.find(fid);
-	if (frec == holder->funmap.end()) return false;
+	if (frec == holder->funmap.end()) {
+		AYLOG(ERROR) << "No such function id: " << fid;
+		return false;
+	}
 	return frec->second(holder, er, ervec);
 
 }

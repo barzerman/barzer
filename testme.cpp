@@ -77,32 +77,34 @@ static int testEmitter(StoredUniverse &su) {
 	BELTrie &trie = su.getBarzelTrie();
 	BELPrintFormat fmt;
 	BELPrintContext pctxt( trie, sp, fmt );
-
+	/*
 	BTND_PatternData pd(BTND_Pattern_Token(sp.internIt("mama")));
 	BTND_Pattern_Number num; BTND_PatternData pd2(num);
 	BTND_PatternData pd3(BTND_Pattern_Punct(':'));
-
+	 */
 	BELParseTreeNode tnode;
-	tnode.setNodeData(BTND_StructData(BTND_StructData::T_LIST));
+	tnode.setNodeData(BTND_StructData(BTND_StructData::T_ANY));
 
+	/*
 	tnode.addChild(pd);
 	tnode.addChild(pd2);
 	tnode.addChild(pd3);
+	*/
 
 	BTND_StructData sd = BTND_StructData(BTND_StructData::T_LIST);
-	sd.setVarId(6);
+	//sd.setVarId(6);
 
 	BELParseTreeNode &tnode2 = tnode.addChild(sd);
 	tnode2.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("1"))));
 	tnode2.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("2"))));
 
 	BTND_StructData sd2 = BTND_StructData(BTND_StructData::T_LIST);
-	sd2.setVarId(7);
+	//sd2.setVarId(7);
 
-	BELParseTreeNode &tnode3 = tnode2.addChild(sd2);
+	BELParseTreeNode &tnode3 = tnode.addChild(sd2);
 	tnode3.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("3"))));
 	tnode3.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("4"))));
-
+/*
 	tnode2.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("5"))));
 	tnode2.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("6"))));
 
@@ -110,7 +112,7 @@ static int testEmitter(StoredUniverse &su) {
 
 //	tnode4.addChild(BTND_PatternData(BTND_Pattern_Token(sp.internIt("1"))));
 
-
+*/
 
 
 	BELParseTreeNode_PatternEmitter emitter( tnode );
@@ -143,7 +145,7 @@ struct PrintVisitor : boost::static_visitor<> {
 	}
 	void operator()(const BarzerTimeOfDay &data) {
 		//data.print(std::cout) << std::endl;
-		printf("%02d:%02d:%02d\n", data.hh, data.mm, data.ss);
+		printf("%02d:%02d:%02d\n", data.getHH(), data.getMM(), data.getSS());
 	}
 	void operator()(const BarzelBeadBlank &data) {
 		std::cout << "<blank />\n";
@@ -214,8 +216,8 @@ void testSettings(StoredUniverse &su) {
 int main() {
 	AYLOGINIT(DEBUG);
 	StoredUniverse su;
-	//testEmitter(su);
-	testSettings(su);
+	testEmitter(su);
+	//testSettings(su);
 
 /*
 	std::cout << sizeof(BELParseTreeNode)
