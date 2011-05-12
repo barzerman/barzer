@@ -332,31 +332,51 @@ inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_Token& x 
 
 /// this pattern is used to match BarzerEntityList as well as BarzerEntityRangeCombo
 class BTND_Pattern_Entity : public BTND_Pattern_Base {
-	std::ostream& print( std::ostream& fp, const BELPrintContext& ctxt ) const;
-	BarzerEntity ent;
-	BarzerRange range;
-	uint8_t     rangeIsValid; 
+	BarzerEntity d_ent;
+	BarzerRange d_range;
+	uint8_t     d_rangeIsValid; 
 public:
-	BTND_Pattern_Entity()  : rangeIsValid(0) {}
+	std::ostream& print( std::ostream& fp, const BELPrintContext& ctxt ) const
+	{
+		d_ent.print( fp ) ; 
+		if( d_rangeIsValid ) 
+			fp << '[' << d_range << ']';
+		return fp;
+	}
+	BTND_Pattern_Entity()  : d_rangeIsValid(0) {}
 
-	void setRange() { if( rangeIsValid == 0 ) rangeIsValid= 1; }
-	void setRange( const BarzerRange& r ) { if( rangeIsValid==0 ) rangeIsValid=1; range=r; }
+	void setRange() { if( d_rangeIsValid == 0 ) d_rangeIsValid= 1; }
+	void setRange( const BarzerRange& r ) { if( d_rangeIsValid==0 ) d_rangeIsValid=1; d_range=r; }
 
-	BarzerRange& getRange() { return range; }
-	const BarzerRange& getRange() const { return range; }
+	bool isRangeValid( ) const { return d_rangeIsValid; } 
 
-	void setEntity( const BarzerEntity& e ) { ent=e; }
-	const BarzerEntity& getEntity() const { return ent; }
-	BarzerEntity& getEntity() { return ent; }
+	BarzerRange& getRange() { return d_range; }
+	const BarzerRange& getRange() const { return d_range; }
+
+	void setEntity( const BarzerEntity& e ) { d_ent=e; }
+	void setEntityClass( int c ) { d_ent.setClass( c ); }
+	void setEntitySubclass( int c ) { d_ent.setSubclass( c ); }
+	void setTokenId( uint32_t c ) { d_ent.setTokenId( c ); }
+
+	const BarzerEntity& getEntity() const { return d_ent; }
+	BarzerEntity& getEntity() { return d_ent; }
 
 	bool operator() ( const BarzerEntityRangeCombo& erc ) const {
-		return false;
+		return ( d_ent.matchOther( erc.getEntity() ) );
 	}
-	bool operator() ( const BarzerEntity& ent ) const {
-		return false;
+	bool operator() ( const BarzerEntity& ent ) const { return ( d_ent.matchOther( ent ) ); }
+	bool lessThan( const BTND_Pattern_Entity& r ) const 
+	{
+		return ay::range_comp().less_than(
+			d_ent, d_range, d_rangeIsValid, 
+			r.d_ent, r.d_range, r.d_rangeIsValid
+		 );
 	}
 };
-
+inline bool operator< ( const BTND_Pattern_Entity& l, const BTND_Pattern_Entity& r ) 
+{
+	return l.lessThan( r );
+}
 /// blank data type 
 struct BTND_Pattern_None : public BTND_Pattern_Base{
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;

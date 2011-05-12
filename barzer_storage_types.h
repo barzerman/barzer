@@ -168,6 +168,8 @@ struct StoredEntityClass {
 	StoredEntityClass(uint16_t c, uint16_t es) : ec(c), subclass(es) 
 		{}
 	
+	void setClass( uint16_t c ) { ec = c; }
+	void setSubclass( uint16_t c ) { subclass = c; }
 	void set( uint16_t c, uint16_t sc )
 		{ ec = c; subclass = sc; }
 	void reset() { ec = subclass = 0; }
@@ -178,10 +180,8 @@ struct StoredEntityClass {
 		{ fp << ec << ":" << subclass ; }
 	
 	bool matchOther( const StoredEntityClass& other ) const {
-		if( !ec ) 
-			return true;
-		else 
-			return ( (ec == other.ec) && (!subclass || subclass == other.subclass) );
+		if( !ec ) return true;
+		else return ( (ec == other.ec) && (!subclass || subclass == other.subclass) );
 	}
 };
 
@@ -203,25 +203,22 @@ struct StoredEntityUniqId {
 	StoredTokenId     tokId;
 	StoredEntityClass eclass;
 
-	StoredEntityUniqId() : 
-		tokId(0xffffffff)
-	{}
+	void setClass( uint16_t c ) { eclass.setClass( c ); }
+	void setSubclass( uint16_t c ) { eclass.setSubclass( c ); }
+	void setTokenId( uint32_t i ) { tokId = i; }
+
+	StoredEntityUniqId() : tokId(0xffffffff) {}
 	StoredEntityUniqId(StoredTokenId tid, uint16_t cl, uint16_t sc ) : 
 		tokId(tid),
 		eclass(cl,sc)
 	{}
 
-	inline bool isTokIdValid() const 
-		{ return (tokId!=INVALID_STORED_ID); }
-	inline bool isValid() const 
-		{ return ( isTokIdValid() && eclass.isValid() ); }
-	void print( std::ostream& fp ) const
-		{ fp << eclass << "," << tokId ; }
+	inline bool isTokIdValid() const { return (tokId!=INVALID_STORED_ID); }
+	inline bool isValid() const { return ( isTokIdValid() && eclass.isValid() ); }
+	void print( std::ostream& fp ) const { fp << eclass << "," << tokId ; }
 	
-	bool matchOther( const StoredEntityUniqId& other ) 
-	{
-		return( eclass.matchOther( other.eclass ) && ( !isTokIdValid() || tokId == other.tokId ) );
-	}
+	bool matchOther( const StoredEntityUniqId& other ) const
+		{ return( eclass.matchOther( other.eclass ) && ( !isTokIdValid() || tokId == other.tokId ) ); }
 };
 inline std::ostream& operator <<(std::ostream& fp, const StoredEntityUniqId& x )
 {

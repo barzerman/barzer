@@ -64,6 +64,7 @@ bool BELParserXML::isValidTag( int tag, int parent ) const
 	case TAG_W:
 	case TAG_DATE:
 	case TAG_DATETIME:
+	case TAG_ENTITY:
 	case TAG_TIME:
 	case TAG_LIST:
 	case TAG_ANY:
@@ -366,6 +367,30 @@ void BELParserXML::taghandle_N( const char_cp * attr, size_t attr_sz , bool clos
 			pat.setAnyReal();
 		else
 			pat.setAnyInt();
+	}
+	statement.pushNode( BTND_PatternData( pat));
+}
+void BELParserXML::taghandle_ENTITY( const char_cp * attr, size_t attr_sz , bool close) 
+{ 
+	if( close ) {
+		statement.popNode();
+		return;
+	}
+	BTND_Pattern_Entity pat; 
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		switch( n[0] ) {
+		case 'c': // class - c="1"
+			pat.setEntityClass( atoi(v) ); 
+			break;
+		case 's': // subclass - s="1"
+			pat.setEntityClass( atoi(v) ); 
+			break;
+		case 't': // id token - t="ABCD011"
+			pat.setTokenId( internString(v) );
+			break;
+		}
 	}
 	statement.pushNode( BTND_PatternData( pat));
 }
@@ -716,6 +741,9 @@ int BELParserXML::getTag( const char* s ) const
 	case 'd':
 	CHECK_4CW("ate", TAG_DATE ) // <date> 
 	CHECK_4CW("tim", TAG_DATETIME ) // <dtim> 
+		break;
+	case 'e':
+	CHECK_3CW("nt",TAG_ENTITY) // <ent>
 		break;
 	case 'f':
 	CHECK_4CW("unc", TAG_FUNC ) // <func>

@@ -347,7 +347,15 @@ struct BarzerRange {
 	bool isDesc() const { return ORDER_DESC== order; }
 
 	BarzerRange( ) : order(ORDER_ASC) {}
+	bool lessThan( const BarzerRange& r ) const
+	{
+		return( dta.which() < r.dta.which() ) ;
+	}
 };
+inline bool operator< ( const BarzerRange& l, const BarzerRange& r ) 
+{
+	return l.lessThan(r);
+}
 inline std::ostream& operator <<( std::ostream& fp, const BarzerRange& x )
 	{ return( x.print(fp) ); }
 

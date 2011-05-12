@@ -81,6 +81,16 @@ inline bool evalWildcard_vis<BTND_Pattern_Time>::operator()<BarzerTimeOfDay> ( c
 { return true; }
 
 template <> template <>
+inline bool evalWildcard_vis<BTND_Pattern_Entity>::operator()<BarzerEntity> ( const BarzerEntity& dta )  const
+{ 
+	return d_pattern( dta );
+}
+template <> template <>
+inline bool evalWildcard_vis<BTND_Pattern_Entity>::operator()<BarzerEntityRangeCombo> ( const BarzerEntityRangeCombo& dta )  const
+{ 
+	return d_pattern( dta );
+}
+template <> template <>
 inline bool evalWildcard_vis<BTND_Pattern_Wildcard>::operator()<BarzerLiteral> ( const BarzerLiteral& dta )  const
 { return true; }
 //// end of other template matching
@@ -395,30 +405,29 @@ bool BTMIterator::evalWildcard( const BarzelWCKey& wcKey, BeadList::iterator fro
 		return false;
 	
 	switch( wcKey.wcType ) {
-	case BTND_Pattern_Number_TYPE:
-	{
+	case BTND_Pattern_Number_TYPE: {
 		const BTND_Pattern_Number* p = wcPool.get_BTND_Pattern_Number(wcKey.wcId);
 		return( p ?  boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Number>(*p), atomic->dta ) : false );
 	}
-	case BTND_Pattern_Wildcard_TYPE:
-	{
+	case BTND_Pattern_Wildcard_TYPE: {
 		const BTND_Pattern_Wildcard* p = wcPool.get_BTND_Pattern_Wildcard(wcKey.wcId);
 		return( p ?  boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Wildcard>(*p), atomic->dta ) : false );
 	}
-	case BTND_Pattern_Date_TYPE:
-	{
+	case BTND_Pattern_Date_TYPE: {
 		const BTND_Pattern_Date* p = wcPool.get_BTND_Pattern_Date(wcKey.wcId);
 		return( p ?  boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Date>(*p), atomic->dta ) : false );
 	}
-	case BTND_Pattern_Time_TYPE:
-	{
+	case BTND_Pattern_Time_TYPE: {
 		const BTND_Pattern_Time* p = wcPool.get_BTND_Pattern_Time(wcKey.wcId);
 		return( p ?  boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Time>(*p), atomic->dta ) : false );
 	}
-	case BTND_Pattern_DateTime_TYPE:
-	{
+	case BTND_Pattern_DateTime_TYPE: {
 		const BTND_Pattern_DateTime* p = wcPool.get_BTND_Pattern_DateTime(wcKey.wcId);
 		return( p ?  boost::apply_visitor( evalWildcard_vis<BTND_Pattern_DateTime>(*p), atomic->dta ) : false );
+	}
+	case BTND_Pattern_Entity_TYPE: {
+		const BTND_Pattern_Entity* p = wcPool.get_BTND_Pattern_Entity(wcKey.wcId);
+		return( p ?  boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Entity>(*p), atomic->dta ) : false );
 	}
 	default:
 		return false;
