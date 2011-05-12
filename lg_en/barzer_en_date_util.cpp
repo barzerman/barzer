@@ -7,6 +7,8 @@
 
 #include <lg_en/barzer_en_date_util.h>
 
+static const char* lang = "EN";
+
 namespace barzer {
 	void fillDateInfo_en(DateLookup &dl) {
 		static const char *months[] =
@@ -20,9 +22,9 @@ namespace barzer {
 			 "thursday", "friday", "saturday", "sunday"};
 		static const char *wdaysShort[] =
 			{"mon", "tue", "wed", "thu", "fri", "sat", "sun"};
-		dl.addMonths(months);
-		dl.addMonths(monthsShort);
-		dl.addWeekdays(wdays);
-		dl.addWeekdays(wdaysShort);
+		dl.addMonths(months, lang);
+		dl.addMonths(monthsShort, lang);
+		dl.addWeekdays(wdays, lang);
+		dl.addWeekdays(wdaysShort, lang);
 	}
 }

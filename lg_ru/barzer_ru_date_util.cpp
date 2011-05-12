@@ -7,7 +7,10 @@
 
 #include <lg_ru/barzer_ru_date_util.h>
 
+static const char* lang = "RU";
+
 namespace barzer {
+
 	void fillDateInfo_ru(DateLookup &dl) {
 		static const char* months[] =
 			{"январь", "февраль", "март", "апрель", "май", "июнь",
@@ -22,9 +25,9 @@ namespace barzer {
 			{"пнд", "втр", "срд", "чтв",
 			 "птн", "сбт", "вск"};
 
-		dl.addMonths(months);
-		dl.addMonths(monthsShort);
-		dl.addWeekdays(wdays);
-		dl.addWeekdays(wdaysShort);
+		dl.addMonths(months, lang);
+		dl.addMonths(monthsShort, lang);
+		dl.addWeekdays(wdays, lang);
+		dl.addWeekdays(wdaysShort, lang);
 	}
 }
