@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
-    <ruleset>barzel_rules.xml</ruleset>
-    <logfile>barzer.log</logfile>
+    <rules>
+        <file>barzel_rules.xml</file>
+    </rules>
+    <logging>
+        <level>DEBUG</level>
+        <file>barzer.log</file>
+    </logging>
 </config>

@@ -8,11 +8,11 @@
 #include <barzer_server_response.h>
 #include <ay/ay_logger.h>
 #include <sstream>
+#include <boost/format.hpp>
 
 namespace barzer {
 
 namespace {
-
 
 // need to find an xml library for this kind of stuff
 static std::ostream& xmlEscape(const char *src,  std::ostream &os) {
@@ -35,6 +35,26 @@ static inline std::ostream& xmlEscape(const std::string &src, std::ostream &os) 
 }
 
 
+template<class T> std::ostream& printTo(std::ostream&, const T&);
+
+template<>
+std::ostream& printTo<BarzerDate>(std::ostream &os, const BarzerDate &dt)
+{
+	return (os << boost::format("%|04u|-%|02u|-%|02u|") % (int)dt.year
+														% (int)dt.month
+														% (int)dt.day);
+}
+
+template<>
+std::ostream& printTo<BarzerTimeOfDay>(std::ostream &os,
+						               const BarzerTimeOfDay &dt)
+{
+	return (os << boost::format("%|02d|:%|02d|:%|02d|") % (int)dt.getHH()
+			 	 	 	 	 	 	 	 	 	 	 	% (int)dt.getMM()
+			 	 	 	 	 	 	 	 	 	 	 	% (int)dt.getSS());
+}
+
+
 
 class RangeVisitor : public boost::static_visitor<> {
 	std::ostream &os;
@@ -48,8 +68,8 @@ public:
 	}
 
 	template<class T> std::ostream& lohi(const std::pair<T,T> &p) {
-		p.first.print(os << "<lo>") << "</lo>";
-		p.second.print(os << "<hi>") << "</hi>";
+		printTo(os << "<lo>", p.first) << "</lo>";
+		printTo(os << "<hi>", p.second) << "</hi>";
 		return os;
 	}
 
@@ -129,12 +149,11 @@ public:
 		data.print(os << "<num t=\"" << type << "\">") << "</num>";
 	}
 	void operator()(const BarzerDate &data) {
-		os << "<date>";
-		data.print(os) << "</date>";
+		printTo(os << "<date>", data) << "</date>";
 	}
 	void operator()(const BarzerTimeOfDay &data) {
-		os << "<time>";
-		data.print(os) << "</time>";
+
+		printTo(os << "<time>", data) << "</time>";
 	}
 	void operator()(const BarzerDateTime &data) {
 		os << "<timestamp>";
@@ -197,7 +216,7 @@ public:
 
 std::ostream& BarzStreamerXML::print(std::ostream &os)
 {
-	os << "<barz>" << std::endl;
+	os << "<barz>\n";
 	const BarzelBeadChain &bc = barz.getBeads();
 	for (BeadList::const_iterator bli = bc.getLstBegin(); bc.isIterNotEnd(bli); ++bli) {
 		const BarzelBead &bead = *bli;
@@ -207,7 +226,7 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 			os << "    ";
 			AtomicVisitor v(os, universe);
 			boost::apply_visitor(v, bead.getAtomic()->dta);
-			os << std::endl;
+			os << "\n";
 		} else if (bead.isExpression()) {
 			// not quite sure what to do with it yet
 			// const BarzelBeadExpression *bbe = bead.getExpression();
@@ -218,7 +237,7 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 			// then wtf is this
 		}
 	}
-	os << "</barz>" << std::endl;
+	os << "</barz>\n";
 	return os;
 }
 

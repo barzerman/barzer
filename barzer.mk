@@ -38,6 +38,7 @@ barzer_server.o \
 barzer_token.o \
 barzer_date_util.o \
 barzer_settings.o \
+barzer_dict.o \
 lg_en/barzer_en_lex.o \
 lg_ru/barzer_ru_lex.o \
 lg_en/barzer_en_date_util.o \
