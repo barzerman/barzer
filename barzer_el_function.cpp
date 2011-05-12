@@ -393,18 +393,69 @@ struct BELFunctionStorage_holder {
 		return true;
 	}
 
+	// applies  BarzerDate/BarzerTimeOfDay/BarzerDateTime to BarzerDateTime
+	// to construct a timestamp
+	struct DateTimePacker : public boost::static_visitor<bool> {
+		BarzerDateTime &dtim;
+		DateTimePacker(BarzerDateTime &d) : dtim(d) {}
+		bool operator()(const BarzerDate &data) {
+			dtim.setDate(data);
+			return true;
+		}
+		bool operator()(const BarzerTimeOfDay &data) {
+			dtim.setTime(data);
+			return true;
+		}
+		bool operator()(const BarzerDateTime &data) {
+			if (data.hasDate()) dtim.setDate(data.getDate());
+			if (data.hasTime()) dtim.setTime(data.getTime());
+			return true;
+		}
+		bool operator()(const BarzelBeadAtomic &data) {
+			return boost::apply_visitor(*this, data.getData());
+		}
+		// not applicable
+		template<class T> bool operator()(const T&)
+		{
+			AYLOG(ERROR) << "Wrong argument type";
+			return false;
+		}
 
+	};
+
+	STFUN(mkDateTime) {
+		BarzerDateTime dtim;
+		DateTimePacker v(dtim);
+
+		for (BarzelEvalResultVec::const_iterator ri = rvec.begin();
+				ri != rvec.end(); ++ri) {
+			if (!boost::apply_visitor(v, ri->getBeadData())) return false;
+		}
+		setResult(result, dtim);
+		return false;
+	}
+
+	STFUN(mkEnityList) {
+		// <- yanis goes here
+		return false;
+	}
 
 	STFUN(mkRange)
 	{
-		if (rvec.size() >= 2) {
-			BarzerRange br;
-			RangePacker rp(br);
-			if (rp.setLeft(rvec[0].getBeadData())) {
-				if (boost::apply_visitor(rp, rvec[1].getBeadData())) {
-					setResult(result, br);
-					return true;
-				}
+		int secIx = 0;
+		switch (rvec.size()) {
+		case 2: secIx = 1; break;
+		case 1: secIx = 0; break;
+		default:
+			return false;
+		}
+
+		BarzerRange br;
+		RangePacker rp(br);
+		if (rp.setLeft(rvec[0].getBeadData())) {
+			if (boost::apply_visitor(rp, rvec[secIx].getBeadData())) {
+				setResult(result, br);
+				return true;
 			}
 		}
 		return false;

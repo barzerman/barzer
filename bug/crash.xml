@@ -180,49 +180,40 @@
             </func>
         </tran>
     </stmt>    
-    <!-- stmt>
-        <pat>
-            <list v="hh"><n l="1" h="12" /></list>
-            <p>:</p>
-            <list v="mm"><n l="0" h="59" /></list>
-            <opt>
-                <list>
-                    <p>:</p>
-                 <list v="ss"><n l="0" h="59" /></list>
-                </list>
-            </opt>
-            <any>
-                <t>pm</t>
-                <list><t>p</t><p>.</p><t>m</t></list>
-            </any>
-        </pat>
-        <tran>
-            <func name="mktime">
-                <func name="opPlus"><var name="hh" /><rn v="12" /></func>
-                <var name="mm" />
-                <var name="ss" />
-            </func>
-        </tran>
-    </stmt -->
-    
     <stmt>
         <pat>
-            <list v="hh"><n l="0" h="23" /></list>
-            <p>:</p>
-            <list v="mm"><n l="0" h="59" /></list>
-            <opt>
-                <list>
-                    <p>:</p>
-                    <list v="ss"><n l="0" h="59" /></list>
-                </list>
-            </opt>
-        </pat>    
-        <tran>
-            <func name="mktime">
-                <func name="opPlus"><var name="hh" /><rn v="12" /></func>
-                <var name="mm" />
-                <var name="ss" />
-            </func>
-        </tran>
+        <list v="hh"><n l="1" h="12" /></list>
+         <p>:</p>
+         <list v="mm"><n l="0" h="59" /></list>
+         <opt>
+            <list>
+                <p>:</p>
+                <list v="ss"><n l="0" h="59" /></list>
+            </list>
+         </opt>
+         <any>
+            <t>pm</t>
+            <list><t>p</t><p>.</p><t>m</t></list>
+        </any>
+    </pat>
+    
+    <pat><list v="hh"><n l="0" h="23" /></list>
+         <p>:</p>
+         <list v="mm"><n l="0" h="59" /></list>
+         <opt>
+            <list>
+                <p>:</p>
+                <list v="ss"><n l="0" h="59" /></list>
+            </list>
+         </opt>
+    </pat>    
+    <tran>
+        <func name="mktime">
+            <func name="opPlus"><var name="hh" /><rn v="12" /></func>
+            <var name="mm" />
+            <var name="ss" />
+        </func>
+    </tran>
     </stmt>    
+    
 </stmset>

@@ -107,5 +107,20 @@
     </pat>
     <tran><func name="mkLtrl"><var name="currency" /></func></tran>
     </stmt>
+    <stmt>
+        <pat>
+            <t>testRange</t><list v="num"><n /></list>
+        </pat>
+        <tran><func name="mkRange"><var name="num" /></func></tran>
+    </stmt> 
     
+    
+    <stmt>
+        <pat>
+        <list v="date"><date /></list><list v="time"><time /></list>
+        </pat>
+        <tran>
+        <func name="mkDateTime"><var name="date" /><var name="time" /></func>
+        </tran>
+    </stmt>
 </stmset>

@@ -210,6 +210,7 @@ struct BarzerTimeOfDay {
 	short getMM() const { return ((secSinceMidnight%3600)/60); }
 	short getSS() const { return (secSinceMidnight%60); }
 
+	uint32_t getSeconds() const { return secSinceMidnight;	}
 
 	void setMin() { secSinceMidnight= 0; }
 	void setMax() { secSinceMidnight= 0xfffffffe; }
@@ -256,8 +257,12 @@ struct BarzerDateTime {
 	
 	void setDate( int x ) 
 		{ date.setYYYYMMDD(x); }
+	void setDate( const BarzerDate &d )
+		{ date = d; }
 	void setTime( int x ) 
 		{ timeOfDay.setHHMMSS((x/10000),(x%10000)/100,x%100); }
+	void setTime( const BarzerTimeOfDay &t )
+		{ timeOfDay = t; }
 };
 inline bool operator< ( const BarzerDateTime& l, const BarzerDateTime& r )
 	{ return l.lessThan( r ); }
