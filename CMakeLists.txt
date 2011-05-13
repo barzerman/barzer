@@ -48,6 +48,8 @@ set(SOURCES barzer_barz.cpp
             barzer_el_trie_shell.cpp 
             barzer_universe.cpp
             barzer_el_trie_walker.cpp
+            barzer_dict.cpp
+            barzer_settings.cpp
             "${EN_DIR}/barzer_en_date_util.cpp"
             "${EN_DIR}/barzer_en_lex.cpp"
             "${RU_DIR}/barzer_ru_date_util.cpp"

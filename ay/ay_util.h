@@ -9,6 +9,7 @@
 
 #include <ay_debug.h>
 #include <ay_util_char.h>
+#include <stdint.h>
 
 namespace ay {
 
@@ -153,6 +154,24 @@ struct vector_raii {
 	vector_raii(T& vv, const typename T::value_type& x ) : v(vv) { v.push_back(x); }
 	~vector_raii() { v.pop_back(); }
 };
+
+// added for conditional pushing/popping
+template<class T> struct vector_raii_p {
+	T &vec;
+	uint32_t cnt;
+	vector_raii_p(T& v) : vec(v), cnt(0) {}
+	void push(const typename T::value_type &n) {
+		vec.push_back(n);
+		++cnt;
+	}
+	~vector_raii_p() {
+		while (cnt--) vec.pop_back();
+	}
+private:
+	vector_raii_p(vector_raii_p&) {}
+	vector_raii_p& operator=(const vector_raii_p &) {}
+};
+
 
 }
 

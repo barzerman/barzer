@@ -13,7 +13,7 @@
 #include <barzer_server_request.h>
 
 namespace barzer {
-int run_server(int port);
+int run_server(StoredUniverse&, uint16_t);
 }
 
 #endif

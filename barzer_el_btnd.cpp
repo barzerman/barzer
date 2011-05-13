@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <ay/ay_logger.h>
+#include <ay/ay_util.h>
 
 namespace barzer {
 
@@ -244,29 +245,26 @@ PatternEmitterNode* PatternEmitterNode::make(const BELParseTreeNode& node, VarVe
     switch(node.btndVar.which()) {
         case BTND_StructData_TYPE: {
         	const BTND_StructData &sdata = boost::get<BTND_StructData>(node.btndVar);
-        	PatternEmitterNode* ret = 0;
-        	if (sdata.hasVar()) vars.push_back(sdata.getVarId());
+        	//PatternEmitterNode* ret = 0;
+        	ay::vector_raii_p<VarVec> vp(vars);
+        	 //vars.push_back(sdata.getVarId());
+        	if (sdata.hasVar())	vp.push(sdata.getVarId());
             switch(sdata.getType()) {
                 case BTND_StructData::T_LIST:
-                    ret = new List(node.child, vars);
-                    break;
+                  	return new List(node.child, vars);
                 case BTND_StructData::T_ANY:
-                    ret = new Any(node.child, vars);
-                    break;
+                    return new Any(node.child, vars);
                 case BTND_StructData::T_OPT:
-                    ret = new Opt(node.child, vars);
-                    break;
+                    return new Opt(node.child, vars);
                 case BTND_StructData::T_PERM:
-                    ret = new Perm(node.child, vars);
-                    break;
+                    return new Perm(node.child, vars);
                 case BTND_StructData::T_TAIL:
-                    ret = new Tail(node.child, vars);
-                    break;
+                    return new Tail(node.child, vars);
                 default:
                 	AYLOG(ERROR) << "Invalid BTND_StructData type: " << sdata.getType();
             }
-            if (sdata.hasVar()) vars.pop_back();
-            return ret;
+            //if (sdata.hasVar()) vars.pop_back();
+            //return ret;
         }
         case BTND_PatternData_TYPE:
             return new Leaf(boost::get<BTND_PatternData>(node.btndVar), vars);

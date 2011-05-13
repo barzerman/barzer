@@ -85,6 +85,7 @@ public:
 	const BELFunctionStorage& getFunctionStorage() const { return funSt; }
 	const DateLookup& getDateLookup() const { return dateLookup; }
 	const BarzerSettings& getSettings() const { return settings; }
+	BarzerSettings& getSettings() { return settings; }
 	const BarzerDict& getDict() const { return dict; }
 	
 	const char* getGenericSubclassName( uint16_t subcl ) const;

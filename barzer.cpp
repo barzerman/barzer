@@ -37,6 +37,17 @@ struct TaskEnv {
 int TaskEnv::init( int argc, char* argv[] )
 {
     cmdlProc.init( argc, argv );
+
+    barzer::BarzerSettings &st = g_universe->getSettings();
+
+    bool hasArg = false;
+    const char *fname = cmdlProc.getArgVal(hasArg, "-cfg", 0);
+
+    if (hasArg && fname)
+    	st.load(fname);
+    else
+    	st.load();
+
     return 0;
 }
 int TaskEnv::run( )
@@ -74,6 +85,7 @@ int main( int argc, char * argv[] ) {
 	//ay::Logger::init(ay::Logger::WARNING);
 	AYLOGINIT(DEBUG);
 	barzer::StoredUniverse universe;
+	g_universe = &universe;
 
 	//AYLOGINIT(WARNING);
     try {
@@ -84,10 +96,10 @@ int main( int argc, char * argv[] ) {
             } else if (strcasecmp(argv[1], "server") == 0) {
                 if (argc >= 3) {
                     // port is specified on command line
-                    return barzer::run_server(std::atoi(argv[2]));
+                    return barzer::run_server(universe, std::atoi(argv[2]));
                 } else {
                     // run on default port
-                    return barzer::run_server(SERVER_PORT);
+                    return barzer::run_server(universe, SERVER_PORT);
                 }
             }
         }

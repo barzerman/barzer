@@ -12,7 +12,7 @@
 namespace barzer {
 
 BarzerDict::BarzerDict(StoredUniverse &u) : universe(u), hmap(1024) {
-	AYLOG(DEBUG) << "BarzerDict::BarzerDict";
+	//AYLOG(DEBUG) << "BarzerDict::BarzerDict";
 	init();
 }
 
@@ -28,11 +28,6 @@ void BarzerDict::init() {
 	add("рублей", "RUB");
 	add("руб", "RUB");
 	add("RUB", "RUB");
-/*
-	for (Dict::const_iterator di = map.begin(); di != map.end(); ++di) {
-		AYLOG(DEBUG) << (di->first) << " => " << (di->second);
-	} */
-
 }
 
 void BarzerDict::add(const char *key, const char *value) {

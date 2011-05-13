@@ -19,12 +19,6 @@ BarzerSettings::BarzerSettings(StoredUniverse &u)
 	init();
 }
 
-BarzerSettings::BarzerSettings(StoredUniverse &u, const char *fname)
-	: universe(u), reader(&u.getBarzelTrie(), u) {
-	init();
-	load(fname);
-}
-
 void BarzerSettings::init() {
 	reader.initParser(BELReader::INPUT_FMT_XML);
 
@@ -43,15 +37,23 @@ void BarzerSettings::loadRules(const char *fname) {
 		std::cout << num << " statements loaded from `" << fname << "'\n";
 }
 
-void BarzerSettings::load(const char *fname = DEFAULT_CONFIG_FILE) {
+
+void BarzerSettings::load() {
+	//AYLOG(DEBUG) << "BarzerSettings::load()";
+	load(DEFAULT_CONFIG_FILE);
+}
+
+void BarzerSettings::load(const char *fname) {
 	using boost::property_tree::ptree;
 	//AYLOGDEBUG(fname);
+
 	read_xml(fname, pt);
 
 	BOOST_FOREACH(ptree::value_type &v, pt.get_child("config.rules")) {
 		//AYLOG(DEBUG) << v.second.data().c_str();
 		loadRules(v.second.data().c_str());
 	}
+
 
 }
 
