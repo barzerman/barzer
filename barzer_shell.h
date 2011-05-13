@@ -18,7 +18,7 @@ namespace barzer {
 struct BarzerShellContext : public ay::ShellContext {
 	// DtaIndex* dtaIdx;
 
-	StoredUniverse universe;
+	StoredUniverse& universe;
 	BELTrieWalker trieWalker;
 
 	Barz barz;
@@ -28,16 +28,21 @@ struct BarzerShellContext : public ay::ShellContext {
 	DtaIndex* obtainDtaIdx()
 	{ return &(universe.getDtaIdx()); }
 
-	BarzerShellContext() : 
-		trieWalker(universe.getBarzelTrie()) ,
-		parser( universe )
+	BarzerShellContext(StoredUniverse& u) : 
+		universe(u),
+		trieWalker(u.getBarzelTrie()) ,
+		parser( u )
 	{}
 };
 struct BarzerShell : public ay::Shell {
-virtual int init();
-virtual ay::ShellContext* mkContext();
+	StoredUniverse* d_universe;
 
-BarzerShellContext* getBarzerContext() ;
+	void setUniverse( StoredUniverse* u ) { d_universe = u; }
+	BarzerShell( StoredUniverse* u=0 ) : d_universe(u) {}
+	virtual int init();
+	virtual ay::ShellContext* mkContext();
+
+	BarzerShellContext* getBarzerContext() ;
 	
 };
 
