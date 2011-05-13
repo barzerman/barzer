@@ -426,15 +426,19 @@ struct BELFunctionStorage_holder {
 	};
 
 	STFUN(mkDateTime) {
+		//AYLOGDEBUG(rvec.size());
 		BarzerDateTime dtim;
 		DateTimePacker v(dtim);
 
 		for (BarzelEvalResultVec::const_iterator ri = rvec.begin();
 				ri != rvec.end(); ++ri) {
-			if (!boost::apply_visitor(v, ri->getBeadData())) return false;
+			if (!boost::apply_visitor(v, ri->getBeadData())) {
+				AYLOG(DEBUG) << "fail";
+				return false;
+			}
 		}
 		setResult(result, dtim);
-		return false;
+		return true;
 	}
 
 	STFUN(mkEnityList) {
@@ -444,8 +448,10 @@ struct BELFunctionStorage_holder {
 
 	STFUN(mkRange)
 	{
-		int secIx = 0;
+		size_t secIx = 0;
+		uint8_t order = 0;
 		switch (rvec.size()) {
+		case 3: order = getNumber(rvec[2]).getInt();
 		case 2: secIx = 1; break;
 		case 1: secIx = 0; break;
 		default:
@@ -501,9 +507,10 @@ struct BELFunctionStorage_holder {
 				return false;
 			}
 
-			BarzerEntityList belst;
-			belst.addEntity(*ent);
-			setResult(result, belst);
+			//BarzerEntityList belst;
+			//belst.addEntity(*ent);
+			//setResult(result, belst);
+			setResult(result, ent->getEuid());
 			return true;
 
 		} catch (boost::bad_get) {
@@ -512,24 +519,51 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 
-	STFUN(mkERC) // makes EntityRangeCombo
-	{
-		if (rvec.size() < 2) {
-			AYLOG(ERROR) << "Need 2 arguments";
+	struct ERCPacker : public boost::static_visitor<bool> {
+		uint8_t num;
+		BarzerEntityRangeCombo &erc;
+		ERCPacker(BarzerEntityRangeCombo &e) : num(0), erc(e) {}
+
+		bool operator()(const BarzerEntityList &el) {
+			return (*this)(el.getList().front().getEuid());
+		}
+
+		bool operator()(const BarzerEntity &euid) {
+			if (num) {
+				erc.setUnitEntity(euid);
+			} else {
+				erc.setEntity(euid);
+			}
+			++num;
+			return true;
+		}
+		bool operator()(const BarzerRange &el)
+			{ erc.setRange(el); return true;	}
+		bool operator()(const BarzelBeadAtomic &data) {
+			return boost::apply_visitor(*this, data.getData());
+		}
+		// not applicable
+		template<class T> bool operator()(const T& v) {
+			AYLOG(ERROR) << "ERCPacker: Wrong argument type";
 			return false;
 		}
-		try {
-			BarzerEntityRangeCombo erc;
-			const BarzerEntityList &belst = getAtomic<BarzerEntityList>(rvec[0]);
 
-			erc.setEntity(belst.getList().front().getEuid());
-			erc.setRange( getAtomic<BarzerRange>(rvec[1]) );
-			setResult(result, erc);
-			return true;
-		} catch (boost::bad_get) {
-			AYLOG(ERROR) << "Wrong argument type";
-		}
-		return false;
+	};
+
+	STFUN(mkERC) // makes EntityRangeCombo
+	{
+		//AYLOGDEBUG(rvec.size());
+		BarzerEntityRangeCombo erc;
+		ERCPacker v(erc);
+		for (BarzelEvalResultVec::const_iterator ri = rvec.begin();
+						ri != rvec.end(); ++ri)
+			if (!boost::apply_visitor(v, ri->getBeadData())) {
+					AYLOG(DEBUG) << "fail. type: " << ri->getBeadData().which();
+						return false;
+			}
+
+		setResult(result, erc);
+		return true;
 	}
 
 

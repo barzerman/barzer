@@ -162,7 +162,8 @@ public:
 		os << "</timestamp>";
 	}
 	void operator()(const BarzerRange &data) {
-		os << "<range>";
+
+		os << "<range order=\"" << (data.isAsc() ? "ASC" : "DESC") <<  "\">";
 		RangeVisitor v(os);
 		boost::apply_visitor(v, data.dta);
 		os << "</range>";
@@ -201,13 +202,21 @@ public:
 		printEntity(*ent);
 	}
 	void operator()(const BarzerEntityRangeCombo &data) {
-		const StoredEntity *ent = universe.getDtaIdx().entPool.getEntByEuid(data.getEntity());
-		if (!ent) {
-			AYLOG(ERROR) << "Invalid entity id: " << data.getEntity();
-			return;
-		}
+		const StoredEntityPool &pool = universe.getDtaIdx().entPool;
+		const StoredEntity *ent = pool.getEntByEuid(data.getEntity()),
+						   *unit = pool.getEntByEuid(data.getUnitEntity());
+
 		os << "<erc>";
-		printEntity(*ent);
+		if (ent) {
+			printEntity(*ent);
+		} else {
+			AYLOG(ERROR) << "Invalid entity id: " << data.getEntity();
+		}
+		if (unit) {
+			os << "<unit>";
+			printEntity(*unit);
+			os << "</unit>";
+		}
 		(*this)(data.getRange());
 		os << "</erc>";
 	}
