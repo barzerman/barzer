@@ -8,7 +8,11 @@
 #include <ay/ay_logger.h>
 
 #include <barzer_config.h>
+#include <barzer_universe.h>
 
+namespace {
+static barzer::StoredUniverse*  g_universe = 0;
+}
 
 extern "C" void block_ctrlc () 
 {
@@ -25,6 +29,7 @@ struct TaskEnv {
     ay::CommandLineArgs cmdlProc;
     barzer::BarzerShell        barzerShell;
     
+	TaskEnv() : barzerShell(0){}
     int init(int argc, char* argv[]);
     int run();
 };
@@ -41,6 +46,10 @@ int TaskEnv::run( )
 
 int run_shell(int argc, char * argv[]) {
     TaskEnv env;
+	if( !g_universe )
+		g_universe = new barzer::StoredUniverse();
+	env.barzerShell.setUniverse( g_universe );
+
 	// block_ctrlc();
     int rc = env.init( argc, argv );
     if( rc ) {
@@ -64,6 +73,8 @@ void print_usage(const char* prg_name) {
 int main( int argc, char * argv[] ) {
 	//ay::Logger::init(ay::Logger::WARNING);
 	AYLOGINIT(DEBUG);
+	barzer::StoredUniverse universe;
+
 	//AYLOGINIT(WARNING);
     try {
         if (argc >= 2) {
