@@ -502,7 +502,7 @@ void BarzelTranslation::set( BELTrie& trie, const BELParseTreeNode& tn )
 		return;
 	} else { // non trivial rewrite 
 		if( trie.rewrPool->produceTranslation( *this, tn ) != BarzelRewriterPool::ERR_OK ) {
-			AYTRACE("Failed to produce vali rewrite translation" );
+			AYTRACE("Failed to produce valid rewrite translation" );
 			setStop();
 		}
 	}

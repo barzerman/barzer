@@ -214,6 +214,8 @@ struct BTND_Pattern_Time : public BTND_Pattern_Base {
 
 	BTND_Pattern_Time( ) : type(T_ANY_TIME), lo(0), hi(BarzerTimeOfDay::MAX_TIMEOFDAY) {}
 
+	void setLo( int x ) { lo.setLong( x ); }
+	void setHi( int x ) { hi.setLong( x ); }
 	bool isLessThan( const BTND_Pattern_Time& r ) const
 		{ return ay::range_comp().less_than( type,lo, hi, r.type, r.lo, r.hi ); }
 };

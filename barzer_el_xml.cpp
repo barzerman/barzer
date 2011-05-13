@@ -98,6 +98,7 @@ void BELParserXML::startElement( const char* tag, const char_cp * attr, size_t a
 	tagStack.push( tid );
 	if( !isValidTag( tid, parentTag )  ) {
 		std::cerr << "invalid BEL xml(tag: " << tag <<") in statement " << statementCount << "\n";
+		tagStack.pop();
 		return;
 	}	
 	elementHandleRouter( tid, attr,attr_sz, false );
@@ -461,6 +462,24 @@ void BELParserXML::taghandle_DATE( const char_cp * attr, size_t attr_sz , bool c
 
 void BELParserXML::taghandle_TIME( const char_cp * attr, size_t attr_sz , bool close) 
 {
+	if( close ) {
+		statement.popNode();
+		return;
+	}
+	BTND_Pattern_Time pat; 
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		switch( n[0] ) {
+		case 'l':  // l - lo HHMMSS
+			pat.setLo( atoi(v) );
+			break;
+		case 'h':  // l - lo HHMMSS
+			pat.setHi( atoi(v) );
+			break;
+		}
+	}
+	statement.pushNode( BTND_PatternData( pat));
 }
 
 void BELParserXML::taghandle_RX( const char_cp * attr, size_t attr_sz , bool close)
@@ -662,7 +681,8 @@ void BELParserXML::endElement( const char* tag )
 {
 	int tid = getTag( tag );
 	elementHandleRouter(tid,0,0,true);
-	tagStack.pop();
+	if( !tagStack.empty() ) 
+		tagStack.pop();
 }
 
 void BELParserXML::getElementText( const char* txt, int len )
@@ -802,12 +822,6 @@ void BELParserXML::CurStatementData::clear()
 		while (!nodeStack.empty())
 			nodeStack.pop();
 	}
-}
-
-void BELParserXML::CurStatementData::popNode()
-{
-	//AYTRACE("popNode");
-	nodeStack.pop();
 }
 
 } // barzer namespace ends
