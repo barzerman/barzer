@@ -87,6 +87,8 @@ void StoredUniverse::createGenericEntities()
 			dtaIdx.addGenericEntity( gd.cl, gd.subcl );
 		}
 	}
+
+	dtaIdx.addGenericEntity("wine", 2, 1);
 }
 
 //// end of generic entities 
