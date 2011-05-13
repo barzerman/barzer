@@ -297,11 +297,11 @@
     
     <stmt>
         <pat>
-        <t>smallest</t>
+        <t>foo</t>
         <list v="ent"><ent /></list>
         </pat>
         <tran>
-        <func name="mkERC"><var name="ent" /><func name="mkRange"><rn v="0" /></func></func>
+        <func name="mkERC"><var name="ent" /></func>
         </tran>
     </stmt>
 </stmset>

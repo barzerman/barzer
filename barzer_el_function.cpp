@@ -552,7 +552,8 @@ struct BELFunctionStorage_holder {
 
 	STFUN(mkERC) // makes EntityRangeCombo
 	{
-		//AYLOGDEBUG(rvec.size());
+		AYLOGDEBUG(rvec.size());
+		AYLOG(DEBUG) << rvec[0].getBeadData().which();
 		BarzerEntityRangeCombo erc;
 		ERCPacker v(erc);
 		for (BarzelEvalResultVec::const_iterator ri = rvec.begin();
