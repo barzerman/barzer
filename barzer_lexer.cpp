@@ -211,7 +211,8 @@ int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qpar
 				if( !tok ) tok = s;
 			}
 			prevChar =( isdigit(c) ? CHAR_DIGIT : CHAR_ALPHA );
-		}
+		} else 
+			prevChar = CHAR_ALPHA;
 	    lc=c;
 	}
 	if( tok ) {
