@@ -152,9 +152,11 @@ public:
 			nodeStack.push( curNode );
 			return curNode;
 		}
-		void popNode(); /*
-		{ nodeStack.pop(); }
-		*/
+		void popNode()
+		{ 
+			if( !nodeStack.empty() ) 
+				nodeStack.pop(); 
+		}
 
 		bool hasStatement() const { return bits[BIT_HAS_STATEMENT];};
 		bool hasPattern() const { return bits[BIT_HAS_PATTERN];};

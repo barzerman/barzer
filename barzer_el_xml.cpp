@@ -98,6 +98,7 @@ void BELParserXML::startElement( const char* tag, const char_cp * attr, size_t a
 	tagStack.push( tid );
 	if( !isValidTag( tid, parentTag )  ) {
 		std::cerr << "invalid BEL xml(tag: " << tag <<") in statement " << statementCount << "\n";
+		tagStack.pop();
 		return;
 	}	
 	elementHandleRouter( tid, attr,attr_sz, false );
@@ -662,7 +663,8 @@ void BELParserXML::endElement( const char* tag )
 {
 	int tid = getTag( tag );
 	elementHandleRouter(tid,0,0,true);
-	tagStack.pop();
+	if( !tagStack.empty() ) 
+		tagStack.pop();
 }
 
 void BELParserXML::getElementText( const char* txt, int len )
@@ -802,12 +804,6 @@ void BELParserXML::CurStatementData::clear()
 		while (!nodeStack.empty())
 			nodeStack.pop();
 	}
-}
-
-void BELParserXML::CurStatementData::popNode()
-{
-	//AYTRACE("popNode");
-	nodeStack.pop();
 }
 
 } // barzer namespace ends
