@@ -17,6 +17,8 @@ namespace barzer {
 struct BELPrintContext;
 struct Universe;
 
+struct BarzerNone {
+};
 /// pure numbers
 class BarzerNumber {
 public:
@@ -327,12 +329,14 @@ public:
 };
 /// range of continuous values (int,real,date,time ...)
 struct BarzerRange {
+	typedef std::pair< BarzerNone, BarzerNone > None;
 	typedef std::pair< int, int > Integer;
 	typedef std::pair< float, float > Real;
 	typedef std::pair< BarzerTimeOfDay, BarzerTimeOfDay > TimeOfDay;
 	typedef std::pair< BarzerDate, BarzerDate > Date;
 
 	typedef boost::variant<
+		None,
 		Integer,
 		Real,
 		TimeOfDay,
@@ -349,6 +353,8 @@ struct BarzerRange {
 	uint8_t order;  // ASC/DESC
 
 	std::ostream& print( std::ostream& fp ) const;
+
+	bool isBlank() { return !dta.which(); }
 	void setAsc() { order = ORDER_ASC; }
 	void setDesc() { order = ORDER_DESC; }
 	bool isAsc() const { return ORDER_ASC== order; }

@@ -73,6 +73,9 @@ public:
 		return os;
 	}
 
+	void operator()(const BarzerRange::None &data) {
+		os << "<norange/>";
+	}
 	void operator()(const BarzerRange::Integer &data) {
 		os << "<num t=\"int\">";
 		lohi(data.first, data.second) << "</num>";

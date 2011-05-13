@@ -76,6 +76,10 @@ struct BarzerRange_print_visitor : public boost::static_visitor<>
 		fp << ",";
 		t.second.print( fp ); 
 	}
+	void operator () ( const BarzerRange::None& t ) const
+	{
+		fp << "(null)";
+	}
 	void operator () ( const BarzerRange::Integer& t ) const
 	{
 		fp << t.first << "," << t.second ;
