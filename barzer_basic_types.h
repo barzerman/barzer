@@ -196,6 +196,9 @@ struct BarzerTimeOfDay {
 
 	void setHHMMSS( int hh, int mm, int ss ) 
 	{ secSinceMidnight = hh*3600 + mm*60 + ss; }
+	/// x is long number in HHMMSS format
+	void setLong( int32_t x ) 
+	{ setHHMMSS( x/10000, (x%10000)/100, x%100 ); }
 
 	// american time hh:mm:ss , pm
 	BarzerTimeOfDay( int hh, int mm, int ss, bool isPm ) :
