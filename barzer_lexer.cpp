@@ -166,11 +166,20 @@ int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qpar
 	char lc = 0;
 	const char* tok = 0;
 	const char* s = q;
+	enum {
+		CHAR_UNKNOWN=0,
+		CHAR_ALPHA,
+		CHAR_DIGIT
+	};
+	int prevChar = CHAR_UNKNOWN;
+#define PREVCHAR_NOT( t ) ( prevChar && (CHAR_##t != prevChar) )
+
 	for( s = q; *s; ++s ) {
 		char c = *s;
 		if( !isascii(c) ) {
 			if( !tok ) 
 				tok = s;
+			prevChar = CHAR_UNKNOWN;
 		} else
 		if( isspace(c) ) {
 			if( !lc || lc != c ) {
@@ -178,22 +187,30 @@ int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qpar
 					ttwp.push_back( TTWPVec::value_type( TToken(tok,s-tok), ttwp.size() ));
 					tok = 0;
 				}
-				ttwp.push_back( 
-						TTWPVec::value_type(
-							TToken(s,1),
-							ttwp.size() 
-						)
-				);
+				ttwp.push_back( TTWPVec::value_type( TToken(s,1), ttwp.size() ));
 			}
+			prevChar = CHAR_UNKNOWN;
 		} else if( ispunct(c) ) {
 			if( tok ) {
 				ttwp.push_back( TTWPVec::value_type( TToken(tok,s-tok), ttwp.size() ));
 				tok = 0;
 			}
 			ttwp.push_back( TTWPVec::value_type( TToken(s,1), ttwp.size() ));
+			prevChar = CHAR_UNKNOWN;
 		} else if( isalnum(c) ) {
-			if( !tok ) 
-				tok = s;
+			if( (isalpha(c) && PREVCHAR_NOT(ALPHA) ) || 
+				(isdigit(c) && PREVCHAR_NOT(DIGIT) ) 
+			) {
+				if( tok ) {
+					ttwp.push_back( TTWPVec::value_type( TToken(tok,s-tok), ttwp.size() ));
+					tok = 0;
+				}
+				--s;
+				//ttwp.push_back( TTWPVec::value_type( TToken(" ",1), ttwp.size() ));
+			} else  {
+				if( !tok ) tok = s;
+			}
+			prevChar =( isdigit(c) ? CHAR_DIGIT : CHAR_ALPHA );
 		}
 	    lc=c;
 	}
@@ -202,6 +219,7 @@ int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qpar
 		tok = 0;
 	}
 	return ( ttwp.size() - origSize );
+#undef PREVCHAR_NOT
 }
 
 } // barzer namespace 
