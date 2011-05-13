@@ -125,6 +125,7 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 	CASE_TAG(W)
 	CASE_TAG(DATE)
 	CASE_TAG(DATETIME)
+	CASE_TAG(ENTITY)
 	CASE_TAG(TIME)
 	CASE_TAG(LIST)
 	CASE_TAG(ANY)
