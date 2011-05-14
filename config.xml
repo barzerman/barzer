@@ -2,6 +2,7 @@
 <config>
     <rules>
         <file>data/barzel_prices.xml</file>
+        <file>data/barzel_dates.xml</file>
         <file>barzel_rules.xml</file>
     </rules>
     <logging>

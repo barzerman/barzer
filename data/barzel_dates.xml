@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
+    xmlns="http://www.barzer.net/barzel/0.1">
+    <stmt>
+        <pat>
+            <n l="1900" h="2100"/><p>/</p><n l="1" h="12"/><p>/</p><n l="1" h="31"/>
+        </pat>
+        <tran><func name="mkDate"><var pn="5" /><var pn="3" /><var pn="1" /></func></tran>
+    </stmt>
+    <stmt>
+        <pat>
+            <n l="1" h="12"/><p>/</p><n l="1" h="31"/><p>/</p><n l="1900" h="2100"/>
+        </pat>
+        <tran><func name="mkDate"><var pn="1" /><var pn="3" /><var pn="5" /></func></tran>
+    </stmt>
+    
+    <stmt>
+        <pat>
+            <any v="mon">
+            <t>january</t><t>jan</t>
+            <t>february</t><t>feb</t>
+            <t>march</t><t>mar</t>
+            <t>april</t><t>apr</t>
+            <t>may</t>
+            <t>june</t><t>jun</t>
+            <t>july</t><t>jul</t>
+            <t>august</t><t>aug</t>
+            <t>september</t><t>sep</t>
+            <t>october</t><t>oct</t>
+            <t>november</t><t>nov</t>
+            <t>december</t><t>dec</t>
+            </any>
+            <list v="day"><n l="1" h="31" /></list>
+            <opt><p>,</p></opt>
+            <list v="year"><n l="1900" h="2100" /></list>
+        </pat>
+        <tran>
+            <func name="mkDate">
+                <var name="day" />
+                <func name="lookupMonth"><var name="mon" /></func>
+                <var name="year" />
+            </func>
+        </tran>
+    </stmt>
+    
+    <stmt>
+        <pat>
+            <any v="mon">
+            <t>january</t><t>jan</t>
+            <t>february</t><t>feb</t>
+            <t>march</t><t>mar</t>
+            <t>april</t><t>apr</t>
+            <t>may</t>
+            <t>june</t><t>jun</t>
+            <t>july</t><t>jul</t>
+            <t>august</t><t>aug</t>
+            <t>september</t><t>sep</t>
+            <t>october</t><t>oct</t>
+            <t>november</t><t>nov</t>
+            <t>december</t><t>dec</t>
+            </any>
+            <list v="day"><n l="1" h="31" /></list>
+        </pat>
+        <tran>
+            <func name="mkDate">
+                <var name="day" />
+                <func name="lookupMonth"><var name="mon" /></func>
+            </func>
+        </tran>
+    </stmt>    
+    <stmt>
+        <pat>
+            <list v="hh"><n l="1" h="12" /></list>
+            <p>:</p>
+            <list v="mm"><n l="0" h="59" /></list>
+            <opt>
+                <list>
+                    <p>:</p>
+                 <list v="ss"><n l="0" h="59" /></list>
+                </list>
+            </opt>
+            <any>
+                <t>pm</t>
+                <list><t>p</t><p>.</p><t>m</t><opt><p>.</p></opt></list>
+            </any>
+        </pat>
+        <tran>
+            <func name="mkTime">
+                <func name="opPlus"><var name="hh" /><rn v="12" /></func>
+                <var name="mm" />
+                <var name="ss" />
+            </func>
+        </tran>
+    </stmt>
+    
+    <stmt>
+        <pat>
+            <list v="hh"><n l="0" h="23" /></list>
+            <p>:</p>
+            <list v="mm"><n l="0" h="59" /></list>
+            <opt>
+                <list>
+                    <p>:</p>
+                    <list v="ss"><n l="0" h="59" /></list>
+                </list>
+            </opt>
+            <opt>
+                <any>
+                <t>am</t>
+                <list><t>a</t><p>.</p><t>m</t><opt><p>.</p></opt></list>
+                </any>
+            </opt>
+        </pat>    
+        <tran>
+            <func name="mkTime">
+                <var name="hh" />
+                <var name="mm" />
+                <var name="ss" />
+            </func>
+        </tran>
+    </stmt>
+    <stmt>
+        <pat>
+            <list v="hh"><n l="1" h="12" /></list>
+            <any>
+                <t>am</t>
+                <list><t>a</t><p>.</p><t>m</t><opt><p>.</p></opt></list>
+            </any>
+        </pat>
+        <tran>
+            <func name="mkTime"><var name="hh" /></func>
+        </tran>    
+    </stmt>
+    <stmt>
+        <pat>
+            <list v="hh"><n l="1" h="12" /></list>
+            <any>
+                <t>pm</t>
+                <list><t>p</t><p>.</p><t>m</t><opt><p>.</p></opt></list>
+            </any>
+        </pat>
+        <tran>
+            <func name="mkTime">
+                <func name="opPlus"><var name="hh" /><rn v="12" /></func>
+            </func>
+        </tran>
+    </stmt>
+    
+    <stmt>
+        <pat>
+            <any>
+                <list>
+                    <list v="date"><date /></list>
+                    <opt><t>at</t></opt>
+                    <list v="time"><time /></list>
+                </list>
+                <list>
+                    <list v="time"><time /></list>
+                    <opt><t>on</t></opt>
+                    <list v="date"><date /></list>
+                </list>
+            </any>
+        </pat>
+    <tran>
+        <func name="mkDateTime"><var name="date" /><var name="time" /></func>
+    </tran>
+    </stmt>
+    <stmt>
+        <pat>
+        <t>between</t>
+        <list v="low"><date /></list>
+        <t>and</t>
+        <list v="high"><date /></list>
+        </pat>
+        <tran>
+            <func name="mkRange"><ltrl>ASC</ltrl><var name="high" /></func>
+        </tran>
+    </stmt>     
+</stmset>
