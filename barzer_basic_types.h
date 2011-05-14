@@ -343,6 +343,14 @@ struct BarzerRange {
 		Date
 	> Data;
 
+	enum {
+		None_TYPE,
+		Integer_TYPE,
+		Real_TYPE,
+		TimeOfDay_TYPE,
+		Date_TYPE
+	};
+
 	Data dta;
 
 	enum {
@@ -354,7 +362,15 @@ struct BarzerRange {
 
 	std::ostream& print( std::ostream& fp ) const;
 
-	bool isBlank() { return !dta.which(); }
+
+	void setData(const Data &d) { dta = d; }
+	const Data& getData() const { return dta; }
+	Data& getData() { return dta; }
+	uint32_t getType() const { return dta.which(); }
+
+
+
+	bool isBlank() const { return !dta.which(); }
 	void setAsc() { order = ORDER_ASC; }
 	void setDesc() { order = ORDER_DESC; }
 	bool isAsc() const { return ORDER_ASC== order; }

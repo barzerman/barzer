@@ -123,6 +123,8 @@ struct StoredToken {
 	// top level print method - single line abbreviated	
 	void print( std::ostream& ) const;
 
+	uint32_t getId() const { return tokId; }
+
 	uint32_t getSingleTokStringId() const
 		{ return( isSingleTok() ? stringId : 0xffffffff ); }
 	uint32_t getStringId() const { return stringId; }
