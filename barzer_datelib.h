@@ -46,11 +46,17 @@ struct BarzerDate_calc {
 	void setMonth( int monthOffset );
 	void setYear( int yearOffset );
 
-	/// relative intra-month periods
+	/// relative intra-month point
 	enum {
-		PER_BEGINNING, // beginning of the month 
-		PER_END, // end of the month 
-		PER_MIDDLE // middle of the month 
+		MON_BEGINNING, // beginning of the month 
+		MON_END, // end of the month 
+		MON_MIDDLE, // middle of the month 
+
+		MON_WEEK1_BEG,
+		MON_WEEK2_BEG,
+		MON_WEEK3_BEG,
+		MON_WEEK4_BEG
+		
 	};
 	
 	void setAbsoluteMonthPoint( int month, int monPer );
@@ -70,17 +76,19 @@ struct BarzerDate_range_calc {
 	/// period references
 	/// month periods 
 	enum {
-		PER_BEGINNING, // beginning of the month 
-		PER_END, // end of the month 
-		PER_MIDDLE, // middle of the month 
-
 		// beginning of the month 
-		RNG_WEEK1,
-		RNG_WEEK2, 
-		RNG_WEEK3, 
-		RNG_WEEK4,
+		MON_RNG_HALF1, // first half of the month
+		MON_RNG_HALF2, // second half of the month
 
+		MON_RNG_BEG, // beginning of the month range (first week)
+		MON_RNG_END, // end of the month range (last week)
+		MON_RNG_MID, // middle of the month range
 
+		/// 1,2,3,4th weeks of the month
+		MON_RNG_WEEK1,
+		MON_RNG_WEEK2, 
+		MON_RNG_WEEK3, 
+		MON_RNG_WEEK4
 	};
 	/// monPer - one of PER_XXXX  constants 
 	/// month - 1-12, year YYYY 
@@ -95,14 +103,20 @@ struct BarzerDate_range_calc {
 	void setRange( const BarzerDate& fromDt, int days, bool bizDays );
 };
 
-struct BarzerTime_range_calc {
-	BarzerTime d_lo, d_hi;
+struct BarzerTime_calc {
+	BarzerTime d_time;
 	enum {
-		DAYPER_MORNING,
-		DAYPER_EVENING,
-		DAYPER_AFTERNOON,
-		DAYPER_NIGHT
+		PER_BEG_OF_HOUR,
+		PER_END_OF_HOUR,
+
+		PER_MORNING,
+		PER_EVENING,
+		PER_AFTERNOON,
+		PER_NIGHT
 	};
+	BarzerTime_calc( const BarzerTime& t ) : d_time(t) {}
+	/// per - one of the PER constnats
+	void setPeriod( int per ); 
 };
 
 /// TIME 

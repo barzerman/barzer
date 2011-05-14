@@ -22,6 +22,18 @@ struct char_cp_compare_eq {
 			return (!strcmp( l, r )); 
 	}
 };
+struct char_cp_compare_nocase_less {
+	bool operator ()( char_cp l, char_cp r ) const
+	{ 
+		if( l ) {
+			if( r ) 
+				return ( strcasecmp(l,r) < 0 );
+			else 
+				return false;
+		} else
+			return r;
+	}
+};
 struct char_cp_compare_less {
 	bool operator ()( char_cp l, char_cp r ) const
 	{ 

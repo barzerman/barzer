@@ -78,7 +78,7 @@ private:
 
 	/// single tokens mapped by the actual const char*
 	/// references ponters stored in storTok
-	std::map<const char*,StoredTokenId,ay::char_cp_compare_less> singleTokMap;
+	std::map<const char*,StoredTokenId,ay::char_cp_compare_nocase_less> singleTokMap;
 	void clear() 
 		{ 
 			singleTokMap.clear();
