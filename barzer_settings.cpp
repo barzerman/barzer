@@ -32,9 +32,9 @@ void BarzerSettings::init() {
 }
 
 void BarzerSettings::loadRules(const char *fname) {
-	int num = reader.loadFromFile(fname);
-	if (num)
-		std::cout << num << " statements loaded from `" << fname << "'\n";
+	BELReader r(&universe.getBarzelTrie(), universe);
+	int num = r.loadFromFile(fname, BELReader::INPUT_FMT_XML);
+	std::cout << num << " statements loaded from `" << fname << "'\n";
 }
 
 

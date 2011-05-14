@@ -74,7 +74,7 @@ public:
 	}
 
 	void operator()(const BarzerRange::None &data) {
-		os << "<norange/>";
+		//os << "<norange/>";
 	}
 	void operator()(const BarzerRange::Integer &data) {
 		os << "<num t=\"int\">";
@@ -166,10 +166,15 @@ public:
 	}
 	void operator()(const BarzerRange &data) {
 
-		os << "<range order=\"" << (data.isAsc() ? "ASC" : "DESC") <<  "\">";
-		RangeVisitor v(os);
-		boost::apply_visitor(v, data.dta);
-		os << "</range>";
+		os << "<range order=\"" << (data.isAsc() ? "ASC" : "DESC") <<  "\"";
+		if (data.isBlank()) os << " />";
+		else {
+			os << ">";
+			RangeVisitor v(os);
+			boost::apply_visitor(v, data.dta);
+			os << "</range>";
+		}
+
 	}
 
 	void printEntity(const StoredEntity &ent) {
@@ -184,6 +189,8 @@ public:
 		//os << "</entity>";
 	}
 
+
+
 	// not sure how to properly deconstruct this yet
 	void operator()(const BarzerEntityList &data) {
 		os << "<entlist>";
@@ -196,28 +203,32 @@ public:
 	}
 
 	void operator()(const BarzerEntity &data) {
+		if (data.tokId == 0xffffff) {
+			os << boost::format("<entity cl=\"%1%\" scl=\"%2%\" />")
+				% data.eclass.ec
+				% data.eclass.subclass;
+			return;
+		}
+
 		const StoredEntity *ent = universe.getDtaIdx().entPool.getEntByEuid(data);
-		
 		if (!ent) {
-			AYLOG(ERROR) << "Invalid entity id: " << data;
+			AYLOG(ERROR) << "Invalid entity id: " << data.tokId << ","
+												  << data.eclass.ec << ","
+												  << data.eclass.subclass;
 			return;
 		}
 		printEntity(*ent);
 	}
+
 	void operator()(const BarzerEntityRangeCombo &data) {
-		const StoredEntityPool &pool = universe.getDtaIdx().entPool;
-		const StoredEntity *ent = pool.getEntByEuid(data.getEntity()),
-						   *unit = pool.getEntByEuid(data.getUnitEntity());
+		const StoredEntityUniqId &ent = data.getEntity(),
+						         &unit = data.getUnitEntity();
 
 		os << "<erc>";
-		if (ent) {
-			printEntity(*ent);
-		} else {
-			AYLOG(ERROR) << "Invalid entity id: " << data.getEntity();
-		}
-		if (unit) {
+			(*this)(ent);
+		if (unit.eclass.ec && unit.eclass.subclass) {
 			os << "<unit>";
-			printEntity(*unit);
+			(*this)(unit);
 			os << "</unit>";
 		}
 		(*this)(data.getRange());

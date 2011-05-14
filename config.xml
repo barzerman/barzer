@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
     <rules>
+        <file>data/barzel_prices.xml</file>
         <file>barzel_rules.xml</file>
     </rules>
     <logging>

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
+    xmlns="http://www.barzer.net/barzel/0.1">
+
+    <stmt>
+        <pat>
+        <t>$</t>
+        <list v="val"><n /></list> 
+        </pat>
+        <tran>
+            <func name="mkERC">
+            <func name="mkEnt"><ltrl t="string">USD</ltrl><rn v="1" /><rn v="1" /></func>
+            <func name="mkRange"><var name="val" /></func>
+            </func>
+        </tran>
+    </stmt>
+    <stmt>
+    <pat>
+        <list v="val"><n /></list>
+        <t>grand</t>
+    </pat>
+    <tran>
+        <func name="mkERC">
+        <func name="mkEnt"><ltrl t="string">USD</ltrl><rn v="1" /><rn v="1" /></func>
+        <func name="mkRange">
+            <func name="opMult"><var name="val" /><rn v="1000" /></func>
+        </func>
+        </func>        
+    </tran>
+    </stmt>
+    <stmt>
+        <pat>
+        <list v="val"><n /></list>
+        <any><t>dollars</t><t>bucks</t></any>
+        </pat>
+        <tran>
+            <func name="mkERC">
+            <func name="mkEnt"><ltrl t="string">USD</ltrl><rn v="1" /><rn v="1" /></func>
+            <func name="mkRange"><var name="val" /><var name="val" /></func>
+            </func>
+        </tran>
+    </stmt> 
+    <stmt>
+        <pat>
+        <t>between</t>
+        <list v="low"><n /></list>
+        <t>and</t>
+        <list v="high"><n /></list>
+        <any v="curr"><t>bucks</t><t>dollars</t><t>dollar</t><t>euro</t><t>eur</t></any>
+        </pat>
+        <tran>
+            <func name="mkERC">
+            <func name="mkEnt"><func name="mkLtrl"><var name="curr"/></func>
+                <rn v="1" /><rn v="1" /></func>
+            <func name="mkRange"><var name="low" /><var name="high" /></func>
+            </func>
+        </tran>
+    </stmt>
+
+    <stmt>
+        <pat>
+        <t>between</t>
+        <list v="low"><date /></list>
+        <t>and</t>
+        <list v="high"><date /></list>
+        </pat>
+        <tran>
+            <func name="mkRange"><ltrl>ASC</ltrl><var name="high" /></func>
+        </tran>
+    </stmt> 
+    <stmt>
+        <pat>
+            <opt><t>price</t></opt>
+            <t>cheaper</t>
+            <t>than</t>
+            <t>$</t>
+            <list v="price"><n /></list>
+        </pat>
+        <tran>
+            <func name="mkERC">
+            <func name="mkEnt"><ltrl t="string">USD</ltrl><rn v="1" /><rn v="1" /></func>
+            <func name="mkRange"><rn v="0" /><var name="price" /></func>
+            </func>
+        </tran>
+    </stmt>
+    <stmt>
+        <pat>
+            <opt>
+                <any><list><t>price</t><t>is</t></list><t>costs</t></any>
+            </opt>
+            <t>cheaper</t>
+            <t>than</t>
+            <list v="price"><n /></list>
+            <any v="curr"><t>bucks</t><t>dollars</t><t>dollar</t><t>euro</t><t>eur</t></any>
+        </pat>
+        <tran>
+            <func name="mkERC">
+            <func name="mkEnt"><func name="mkLtrl"><var name="curr" /></func><rn v="1" /><rn v="1" /></func>
+            <func name="mkRange"><rn v="0" /><var name="price" /></func>
+            </func>
+        </tran>
+    </stmt>
+    <stmt>
+        <pat>
+            <t>under</t>
+            <list v="price"><n /></list>
+            <any v="curr"><t>bucks</t><t>dollars</t><t>dollar</t><t>euro</t><t>eur</t></any>
+        </pat>
+        <tran>
+            <func name="mkERC">
+            <func name="mkEnt"><func name="mkLtrl"><var name="curr" /></func><rn v="1" /><rn v="1" /></func>
+            <func name="mkRange"><rn v="0" /><var name="price" /></func>
+            </func>
+        </tran>
+    </stmt>    
+    <stmt>
+        <pat>
+            <t>cheapest</t>
+        </pat>
+    <tran>
+        <func name="mkERC">
+            <func name="mkEnt"><rn v="1" /><rn v="1" /></func> 
+            <func name="mkRange"><rn v="0" /></func>
+        </func>
+    </tran>
+    </stmt>
+    <stmt>
+        <pat>
+            <t>most</t>
+            <t>expensive</t>
+        </pat>
+    <tran>
+        <func name="mkERC">
+            <func name="mkEnt"><rn v="1" /><rn v="1" /></func> 
+            <func name="mkRange"><ltrl>DESC</ltrl></func>
+        </func>
+    </tran>
+    </stmt>
+</stmset>
