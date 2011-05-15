@@ -45,11 +45,20 @@ public:
 
 	const BELTrie& getBarzelTrie() const { return barzelTrie; }
 		  BELTrie& getBarzelTrie() 	  { return barzelTrie; }
+
+	const BarzelRewriterPool& getRewriterPool() const { return getBarzelTrie().getRewriterPool(); }
+	BarzelRewriterPool& getRewriterPool() { return getBarzelTrie().getRewriterPool(); }
+	const BarzelWildcardPool& getWildcardPool() const { return getBarzelTrie().getWildcardPool(); } 
+	BarzelWildcardPool& getWildcardPool() { return getBarzelTrie().getWildcardPool(); } 
+	const BarzelFirmChildPool& getFirmChildPool() const { return getBarzelTrie().getFirmChildPool(); }
+	BarzelFirmChildPool& getFirmChildPool() { return getBarzelTrie().getFirmChildPool(); }
+	const BarzelTranslationPool& getTranslationPool() const { return getBarzelTrie().getTranslationPool(); }
+	BarzelTranslationPool& getTranslationPool() { return getBarzelTrie().getTranslationPool(); }
+
 	const BarzelWCLookup* getWCLookup( uint32_t id ) const
 	{
 		return barzelWildcardPool.getWCLookup( id );
 	}
-	const BarzelWildcardPool& getWildcardPool() const {return barzelWildcardPool;}
 
 	// had to add it in order to be able to create BELPrintContext
     // for custom trie printing
@@ -74,12 +83,12 @@ public:
 	bool getBarzelRewriter( BarzelRewriterPool::BufAndSize& bas, const BarzelTranslation& tran ) const
 	{
 		if( tran.isRewriter() ) 
-			return barzelRewritePool.resolveTranslation( bas, tran );
+			return getRewriterPool().resolveTranslation( bas, tran );
 		else 
 			return ( bas = BarzelRewriterPool::BufAndSize(), false );
 	}
 	bool isBarzelTranslationFallible( const BarzelTranslation& tran ) const {
-		return tran.isFallible( barzelRewritePool );
+		return tran.isFallible( getRewriterPool() );
 	}
 
 	const BELFunctionStorage& getFunctionStorage() const { return funSt; }

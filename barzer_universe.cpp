@@ -19,8 +19,8 @@ void StoredUniverse::clear()
 {
 	barzelTrie.clear();
 	dtaIdx.clear();
-	barzelWildcardPool.clear();
-	barzelRewritePool.clear();
+	getWildcardPool().clear();
+	getRewriterPool().clear();
 	stringPool.clear();
 }
 std::ostream& StoredUniverse::printBarzelTrie( std::ostream& fp, const BELPrintFormat& fmt ) const
