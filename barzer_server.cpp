@@ -154,14 +154,13 @@ void AsyncServer::query(const char* buf, const size_t len, std::ostream& os) {
 
 
 int run_server(StoredUniverse &u, uint16_t port) {
-	if (!fork()) {
-		ay::Logger::getLogger()->setFile("barzer_server.log");
-		boost::asio::io_service io_service;
-		std::cerr << "Running barzer search server on port " << port << "..." << std::endl;
-		AsyncServer s(u, io_service, port);
-		s.init();
-		io_service.run();
-	}
+	ay::Logger::getLogger()->setFile("barzer_server.log");
+	boost::asio::io_service io_service;
+	std::cerr << "Running barzer search server on port " << port << "..." << std::endl;
+	AsyncServer s(u, io_service, port);
+	s.init();
+	io_service.run();
+
 	return 0;
 }
 
