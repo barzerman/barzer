@@ -17,8 +17,8 @@ StoredUniverse::StoredUniverse() :
 
 void StoredUniverse::clear()
 {
-	barzelTrie.clear();
-	dtaIdx.clear();
+	getBarzelTrie().clear();
+	getDtaIdx().clear();
 	getWildcardPool().clear();
 	getRewriterPool().clear();
 	stringPool.clear();
@@ -26,13 +26,13 @@ void StoredUniverse::clear()
 std::ostream& StoredUniverse::printBarzelTrie( std::ostream& fp, const BELPrintFormat& fmt ) const
 {
 	BELPrintContext ctxt( barzelTrie, stringPool, fmt );
-	return barzelTrie.print( fp, ctxt );
+	return getBarzelTrie().print( fp, ctxt );
 }
 std::ostream& StoredUniverse::printBarzelTrie( std::ostream& fp ) const
 {
 	BELPrintFormat fmt;
-	BELPrintContext ctxt( barzelTrie, stringPool, fmt );
-	return barzelTrie.print( fp, ctxt );
+	BELPrintContext ctxt( getBarzelTrie(), stringPool, fmt );
+	return getBarzelTrie().print( fp, ctxt );
 }
 ///////////////// generic entities 
 namespace {
