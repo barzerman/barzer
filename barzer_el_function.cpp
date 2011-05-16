@@ -84,7 +84,7 @@ template<class T> const T* getBead(const BarzelEvalResult &result)
 // throwing version. only call it when catching boost::bad_get
 template<class T> const T& getAtomic(const BarzelEvalResult &result) {
 	return boost::get<T>(
-			boost::get<BarzelBeadAtomic>(result.getBeadData()).dta);
+			boost::get<BarzelBeadAtomic>(result.getBeadData()).getData());
 }
 
 //template<class T> void setResult(BarzelEvalResult&, const T&);
@@ -177,6 +177,9 @@ struct StrConcatVisitor : public boost::static_visitor<bool> {
 		case BarzerLiteral::T_PUNCT:
 			ss << (char)dt.getId();
 			return true;
+		case BarzerLiteral::T_BLANK:
+		case BarzerLiteral::T_STOP:
+			return true;
 		default:
 			AYLOG(ERROR) << "Wrong literal type";
 			return false;
@@ -239,6 +242,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(mkEnt);
 		ADDFN(mkERC);
 		ADDFN(mkLtrl);
+		ADDFN(mkFluff);
 		// arith
 		ADDFN(opPlus);
 		ADDFN(opMinus);
@@ -685,23 +689,36 @@ struct BELFunctionStorage_holder {
 			return false;
 		}
 
-
 		// normalizing the string (dollar -> usd) and making a literal out of it
 
 		const BarzerDict dict = universe.getDict();
 		uint32_t id = dict.lookup(str);
 
-
-
 		AYLOG(DEBUG) << "translating " << str << " -> (" << id << ":" << universe.getStringPool().resolveId(id);
 		BarzerLiteral lt;
 		lt.setString(id);
-
 
 		setResult(result, lt);
 		return true; //*/
 	}
 
+	STFUN(mkFluff)
+	{
+		if (!rvec.size()) {
+			AYLOG(ERROR) << "mkFluff(BarzerLiteral) needs 1 argument";
+			return false;
+		}
+		try {
+			uint32_t id = getAtomic<BarzerLiteral>(rvec[0]).getId();
+			BarzerLiteral ltrl;
+			ltrl.setStop(id);
+			setResult(result, ltrl);
+			return true;
+		} catch (boost::bad_get&) {
+			AYLOG(ERROR) << "mkFluff(BarzerLiteral): Wrong argument type";
+			return false;
+		}
+	}
 
 	// arith
 
@@ -841,6 +858,7 @@ struct BELFunctionStorage_holder {
 		}
 		return false;
 	}
+
 
 	// lookup
 

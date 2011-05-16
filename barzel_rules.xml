@@ -2,16 +2,6 @@
 <stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
     xmlns="http://www.barzer.net/barzel/0.1">
 
-<stmt>
-<pat>
-<t>between</t>
-<list v="curr1"><ent s="1" c="1" /></list>
-<t>and</t>
-<list v="curr2"><ent s="1" c="1"/></list>
-</pat>
-<tran>
-<func name="mkERC"><var name="curr1" /><var name="curr2" /></func>
-</tran>
-</stmt>
+
 
 </stmset>
