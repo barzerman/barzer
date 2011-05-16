@@ -386,6 +386,18 @@ struct BELTrie {
 		tranPool(tPool)
 	{}
 
+		  BarzelRewriterPool& getRewriterPool() { return  * rewrPool; }
+	const BarzelRewriterPool& getRewriterPool() const { return  * rewrPool; }
+
+		  BarzelWildcardPool& getWildcardPool()  { return * wcPool; }
+	const BarzelWildcardPool& getWildcardPool() const  { return * wcPool; }
+
+		  BarzelFirmChildPool& getFirmChildPool() { return * fcPool; }
+	const BarzelFirmChildPool& getFirmChildPool() const { return * fcPool; }
+
+		  BarzelTranslationPool& getTranslationPool() { return *tranPool; }
+	const BarzelTranslationPool& getTranslationPool() const { return *tranPool; }
+
 	      BarzelVariableIndex& getVarIndex()       { return d_varIndex; }
 	const BarzelVariableIndex& getVarIndex() const { return d_varIndex; }
 
