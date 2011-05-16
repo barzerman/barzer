@@ -70,8 +70,9 @@ public:
     	char fname[] = "barzel_rules.xml";
     	int numsts = reader.loadFromFile(fname);
     	*/
-    	BarzerSettings &set = universe.getSettings();
+/*    	BarzerSettings &set = universe.getSettings();
     	set.load();
+    	*/
     	//AYLOG(DEBUG) << numsts << " statements read from `" << fname << "'";
     }
 };

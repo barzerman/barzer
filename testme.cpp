@@ -215,11 +215,25 @@ void testSettings(StoredUniverse &su) {
 	std::cout << su.getSettings().get("config.ruleset") << std::endl;
 }
 
+
+void testReader() {
+	std::stringstream ss;
+	ss << "config.xml";
+	ay::InputLineReader reader(ss);
+	while( reader.nextLine() && reader.str.length() ) {
+		const char* q = reader.str.c_str();
+		std::cout << "line:\n";
+		std::cout << q;
+	}
+}
+
 int main() {
 	AYLOGINIT(DEBUG);
 	StoredUniverse su;
-	testEmitter(su);
+//	testEmitter(su);
 	//testSettings(su);
+	testReader();
+
 
 /*
 	std::cout << sizeof(BELParseTreeNode)

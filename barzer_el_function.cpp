@@ -702,6 +702,7 @@ struct BELFunctionStorage_holder {
 		return true; //*/
 	}
 
+	// set "stop" type on the incoming literal.
 	STFUN(mkFluff)
 	{
 		if (!rvec.size()) {
