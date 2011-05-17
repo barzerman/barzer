@@ -11,6 +11,7 @@
 #include <barzer_settings.h>
 #include <barzer_config.h>
 #include <barzer_dict.h>
+#include <barzer_el_compwords.h>
 
 namespace barzer {
 
@@ -26,6 +27,9 @@ class StoredUniverse {
 	BarzelWildcardPool barzelWildcardPool;  // all wildcard structures for barzel
 	BarzelFirmChildPool barzelFirmChildPool; // all firm child lookups for barzel
 	BarzelTranslationPool barzelTranslationPool;
+
+	/// compounded words pool
+	BarzelCompWordPool compWordPool;
 
 	BELTrie  barzelTrie;
 
@@ -45,6 +49,9 @@ public:
 
 	const BELTrie& getBarzelTrie() const { return barzelTrie; }
 		  BELTrie& getBarzelTrie() 	  { return barzelTrie; }
+
+	      BarzelCompWordPool& getCompWordPool()       { return compWordPool; }
+	const BarzelCompWordPool& getCompWordPool() const { return compWordPool; }
 
 	const BarzelRewriterPool& getRewriterPool() const { return getBarzelTrie().getRewriterPool(); }
 	BarzelRewriterPool& getRewriterPool() { return getBarzelTrie().getRewriterPool(); }

@@ -51,6 +51,9 @@ protected:
 	/// gets variable name v1.v2.v3 ... interns individual parts and 
 	/// adds result to the variable pool as a whole vector
 	uint32_t internVariable( const char* );
+	/// alias can be 0 - in that case no alias will be generated and an orphaned compounded 
+	/// token will be added 
+	uint32_t addCompoundedWordLiteral( const char* alias );
 public:
 	BELParser( BELReader* r ) : reader(r) {}
 	virtual int parse( std::istream& ) = 0;

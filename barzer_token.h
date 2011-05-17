@@ -27,7 +27,7 @@ struct StoredTokenClassInfo {
 	
 	enum {
 		BIT_GENERALDICT, // not present in the domain tokens, general english word
-		BIT_COMPOUNDED,
+		BIT_COMPOUNDED, // thisis a compounded word
 		BIT_MIXEDCASE, // token is in mixed case
 		BIT_MISSPELLING, // this is a known misspelling
 		BIT_STEM, // this is a  stem (doesn't exist as unstemmed)
@@ -42,9 +42,13 @@ struct StoredTokenClassInfo {
 		subclass(0)
 	{}
 
-	void clear() 
-	{
-	}
+	
+	bool isSimple() const { return !flags[ BIT_COMPOUNDED ]; }
+	void setSimple() { flags.set( BIT_COMPOUNDED, false ); }
+
+	bool isCompounded() const { return flags[ BIT_COMPOUNDED ]; }
+	void setCompounded() { flags.set( BIT_COMPOUNDED ); }
+
 
 	void printClassName( std::ostream& ) const;
 	void printSublassName( std::ostream& ) const;

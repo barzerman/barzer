@@ -27,6 +27,19 @@ StoredEntity& StoredEntityPool::addOneEntity( bool& madeNew, const StoredEntityU
 	e.setAll( entId, uniqId );
 	return e;
 }
+StoredToken& StoredTokenPool::addCompoundedTok( bool& newAdded, uint32_t cwid, uint16_t numW, uint16_t len )
+{
+	newAdded = false;
+	StoredToken* sTok = getTokByCwid( cwid );
+	if( sTok ) 
+		return *sTok;
+
+	StoredTokenId tokId = storTok.vec.size();
+	StoredToken& newTok = storTok.extend();
+	newTok.setCompounded( tokId, cwid, numW, len );
+	return newTok;
+}
+
 StoredToken& StoredTokenPool::addSingleTok( bool& newAdded, const char* t)
 {
 	newAdded = false;
@@ -46,12 +59,6 @@ StoredToken& StoredTokenPool::addSingleTok( bool& newAdded, const char* t)
 			internedStr, tokId 
 		)
 	);
-	/*
-	const StoredToken* shit = getTokByString(  t );
-	if( !shit || shit->tokId != newTok.tokId || strcmp(internedStr,t) ) {
-		std::cerr<< "inconsistency !!!!!\n";
-	}
-	*/
 	newAdded = true;
 	return newTok;
 }

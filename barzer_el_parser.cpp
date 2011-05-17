@@ -27,6 +27,14 @@ uint32_t BELParser::internVariable( const char* t )
 	return reader->getTrie().getVarIndex().produceVarIdFromPathForTran(vPath);
 }
 
+uint32_t BELParser::addCompoundedWordLiteral( const char* alias )
+{
+	uint32_t aliasId = ( alias ? internString(alias) : 0xffffffff );
+	uint32_t cwid = reader->getUniverse().getCompWordPool().addNewCompWordWithAlias( aliasId );
+	StoredToken& sTok =  reader->getUniverse().getDtaIdx().addCompoundedToken(cwid);
+	return sTok.tokId;
+}
+
 uint32_t BELParser::internString( const char* t )
 {
 	// here we may want to tweak some (nonexistent yet) fields in StoredToken 

@@ -573,8 +573,10 @@ void BELParserXML::taghandle_LITERAL( const char_cp * attr, size_t attr_sz , boo
 			case 's': // t="stop" ~ stop token
 				literal.setStop();
 				break;
-			case 'c': // t="comp" ~ compounded word
-				literal.setCompound();
+			case 'c': // t="c:ALIASXXX" ~ compounded word with alias ALIASXXX
+				const char* semicolon = strchr( v, ':' );
+				uint32_t tokId = addCompoundedWordLiteral( semicolon );
+				literal.setCompound(tokId);
 				break;
 			}
 			break;

@@ -6,6 +6,7 @@
 #include <ay/ay_slogrovector.h>
 #include <ay/ay_string_pool.h>
 #include <ay/ay_util_char.h>
+#include <boost/unordered_map.hpp>
 
 namespace barzer {
 
@@ -79,6 +80,10 @@ private:
 	/// single tokens mapped by the actual const char*
 	/// references ponters stored in storTok
 	std::map<const char*,StoredTokenId,ay::char_cp_compare_nocase_less> singleTokMap;
+
+	// cwid to offset in storTok
+	typedef boost::unordered_map<uint32_t, uint32_t> CwidToTokenIdMap;
+	CwidToTokenIdMap d_cwidMap;
 	void clear() 
 		{ 
 			singleTokMap.clear();
@@ -108,6 +113,8 @@ public:
 	/// newAdded is set to true only if this called resulted in creation of a new token 
 	/// set to false otherwise
 	StoredToken& addSingleTok( bool& newAdded, const char* t);
+	/// adds new compounded word
+	StoredToken& addCompoundedTok( bool& newAdded, uint32_t cwId, uint16_t numW, uint16_t len );
 	
 	bool isTokIdValid(StoredTokenId id ) const
 	{ return ( id< storTok.vec.size() ); }
@@ -119,6 +126,14 @@ public:
 		{ return storTok.vec[ id ]; }
 	void print(std::ostream& fp) const 
 		{ fp <<  "toks:" <<  singleTokMap.size() ; }
+
+	const StoredToken* getTokByCwid( uint32_t cwid ) const 
+	{
+		CwidToTokenIdMap::const_iterator i = d_cwidMap.find( cwid );
+		return( i == d_cwidMap.end() ? 0: &(getTokById(i->second)) );
+	}
+	StoredToken* getTokByCwid( uint32_t cwid ) 
+		{ return const_cast<StoredToken*>(  ((const StoredTokenPool*)this)->getTokByCwid(cwid) ); }
 
 	/// checks boundaries returns 0 if id is invalid
 	inline const StoredToken* getTokByIdSafe( StoredTokenId id )  const
@@ -200,7 +215,7 @@ public:
 
 	inline const char* resolveStoredTokenStr( const StoredToken& tok ) const 
 	{
-		if( tok.isSingleTok() ) {
+		if( tok.isSimpleTok() ) {
 			return strPool->resolveId(tok.stringId);
 		} else {
 			return "(compound)";
@@ -219,6 +234,18 @@ public:
 	StoredToken& addToken( const char* t ) {
 		bool wasNew = false;
 		return tokPool.addSingleTok( wasNew, t );
+	}
+	enum {
+		COMPTOK_DEFAULT_NUMW = 2,
+		COMPTOK_DEFAULT_LEN  = 10
+	};
+	StoredToken& addCompoundedToken( uint32_t cwId ) {
+		bool wasNew = false;
+		return tokPool.addCompoundedTok( wasNew, cwId, COMPTOK_DEFAULT_NUMW, COMPTOK_DEFAULT_LEN );
+	}
+	StoredToken& addCompoundedToken( uint32_t cwId, uint16_t numW, uint16_t len ) {
+		bool wasNew = false;
+		return tokPool.addCompoundedTok( wasNew, cwId, numW, len );
 	}
 	/// add generic entity does not link storedtoken and the newly minted entity
 	StoredEntity& addGenericEntity( uint16_t cl, uint16_t scl )

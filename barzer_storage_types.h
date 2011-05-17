@@ -17,7 +17,6 @@ struct StoredToken;
 
 typedef uint32_t StoredTokenId; 
 
-
 typedef uint32_t StoredEntityId; 
 const uint32_t INVALID_STORED_ID = 0xffffffff;
 
@@ -90,13 +89,15 @@ struct StoredToken {
 	// otherwise it's resolved from the compounded names object 
 	ay::UniqueCharPool::StrId stringId; 
 
-	StoredTokenClassInfo classInfo;
 	uint16_t numWords; // number of words in the token 1 or more for compounded
 	uint16_t length;   // full length of all participatin tokens and spaces
 
+	StoredTokenClassInfo classInfo;
+
 	SETELI_pair_vec entVec;
 	
-	bool isSingleTok() const { return (numWords==1); }
+	bool isSimpleTok() const { return (classInfo.isSimple() && numWords == 1); }
+	bool isCompoundedTok() const { return (numWords> 1 || classInfo.isCompounded()); }
 
 	inline void setSingle( 
 		StoredTokenId tid, 
@@ -115,18 +116,30 @@ struct StoredToken {
 		entVec.back().first = entId;
 		entVec.back().second = teli;
 	}
+
 	StoredToken( ) : 
 		tokId(INVALID_STORED_ID), 
 		stringId(ay::UniqueCharPool::ID_NOTFOUND),
 		numWords(0), length(0) 
 	{}
+
+	uint32_t getTrieId( ) const { return stringId; }
+
+	/// initializes this token as a compounded word 
+	void setCompounded( uint32_t tid, uint32_t cwId, uint16_t nw, uint16_t len  ) 
+	{
+		tokId = tid;
+		stringId = cwId;
+		numWords = nw;
+	}
+
 	// top level print method - single line abbreviated	
 	void print( std::ostream& ) const;
 
 	uint32_t getId() const { return tokId; }
 
 	uint32_t getSingleTokStringId() const
-		{ return( isSingleTok() ? stringId : 0xffffffff ); }
+		{ return( isSimpleTok() ? stringId : 0xffffffff ); }
 	uint32_t getStringId() const { return stringId; }
 };
 inline std::ostream& operator <<( std::ostream& fp, const StoredToken& t )
