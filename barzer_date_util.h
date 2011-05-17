@@ -14,7 +14,7 @@
 
 namespace barzer {
 
-class StoredUniverse;
+class GlobalPools;
 class DateLookup {
 public:
 	typedef void (*DateLookupFunc)( DateLookup& );
@@ -26,7 +26,7 @@ public:
 	typedef SymbolStorage::value_type SymbolRec;
 
 private:
-	StoredUniverse &universe;
+	GlobalPools &globPools;
 	DateLookupMap monthMap;
 	DateLookupMap weekdayMap;
 
@@ -35,7 +35,7 @@ private:
 
 
 public:
-	DateLookup(StoredUniverse &u) : universe(u), monthMap(12*4), weekdayMap(7*4)
+	DateLookup(GlobalPools &u) : globPools(u), monthMap(12*4), weekdayMap(7*4)
 	{
 		init();
 	}

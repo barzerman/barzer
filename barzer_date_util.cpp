@@ -21,23 +21,23 @@ void DateLookup::init() {
 }
 
 void DateLookup::addMonth(const char* mname, const uint8_t mnum, const char* lang) {
-	const uint32_t mid = universe.getStringPool().internIt(mname);
+	const uint32_t mid = globPools.stringPool.internIt(mname);
 	addMonth(mid, mnum, lang);
 }
 void DateLookup::addMonth(const uint32_t mid, const uint8_t mnum, const char* lang) {
 	monthMap.insert(DateLookupRec(mid, mnum));
-	uint32_t langId = universe.getStringPool().internIt(lang);
+	uint32_t langId = globPools.stringPool.internIt(lang);
 	weekdayStorage[langId].push_back(mid);
 }
 
 void DateLookup::addWeekday(const char* wdname, const uint8_t wdnum, const char* lang) {
-	const uint32_t wdid = universe.getStringPool().internIt(wdname);
+	const uint32_t wdid = globPools.stringPool.internIt(wdname);
 	addWeekday(wdid, wdnum, lang);
 }
 
 void DateLookup::addWeekday(const uint32_t wdid, const uint8_t wdnum, const char* lang) {
 	weekdayMap.insert(DateLookupRec(wdid, wdnum));
-	uint32_t langId = universe.getStringPool().internIt(lang);
+	uint32_t langId = globPools.stringPool.internIt(lang);
 	weekdayStorage[langId].push_back(wdid);
 }
 
@@ -49,7 +49,7 @@ void DateLookup::addWeekdays(const char *wdays[], const char* lang) {
 }
 
 const uint8_t DateLookup::lookupMonth(const char* mname) const {
-	const uint32_t mid = universe.getStringPool().getId(mname);
+	const uint32_t mid = globPools.stringPool.getId(mname);
 	if (mid == ay::UniqueCharPool::ID_NOTFOUND) return 0;
 	return lookupMonth(mid);
 }
@@ -59,7 +59,7 @@ const uint8_t DateLookup::lookupMonth(const uint32_t mid) const {
 
 }
 const uint8_t DateLookup::lookupWeekday(const char* wdname) const {
-	const uint32_t wdid = universe.getStringPool().getId(wdname);
+	const uint32_t wdid = globPools.stringPool.getId(wdname);
 	if (wdid == ay::UniqueCharPool::ID_NOTFOUND) return 0;
 	return lookupWeekday(wdid);
 }
@@ -78,7 +78,7 @@ void DateLookup::getMonths(const uint32_t langId, SymbolVec &vec) const {
 }
 
 void DateLookup::getMonths(const char* lang, SymbolVec &vec) const {
-	getMonths(universe.getStringPool().getId(lang), vec);
+	getMonths(globPools.stringPool.getId(lang), vec);
 }
 
 
@@ -91,7 +91,7 @@ void DateLookup::getWeekdays(const uint32_t langId, SymbolVec &vec) const {
 }
 
 void DateLookup::getWeekdays(const char* lang, SymbolVec &vec) const {
-	getWeekdays(universe.getStringPool().getId(lang), vec);
+	getWeekdays(globPools.stringPool.getId(lang), vec);
 }
 
 }

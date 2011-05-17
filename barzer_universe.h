@@ -15,43 +15,179 @@
 
 namespace barzer {
 
+/// holds all tries in the system keyed by 2 strings
+/// TrieClass and  TrieId
+class GlobalTriePool {
+	typedef std::map< std::string, BELTrie > ClassTrieMap;
+	typedef std::map< std::string, ClassTrieMap > TrieMap; 
+
+	TrieMap d_trieMap;
+
+	BarzelRewriterPool* d_rewrPool;
+	BarzelWildcardPool* d_wcPool;
+	BarzelFirmChildPool* d_fcPool;
+	BarzelTranslationPool* d_tranPool;
+public:
+
+	ClassTrieMap& produceTrieMap( const std::string& trieClass )
+	{
+		TrieMap::iterator i = d_trieMap.find( trieClass );
+		if( i == d_trieMap.end() ) 
+			i = d_trieMap.insert( TrieMap::value_type( trieClass, ClassTrieMap())).first;
+		
+		return i->second;
+	}
+	const ClassTrieMap* getTrieMap( const std::string& trieClass ) const
+	{
+		TrieMap::const_iterator i = d_trieMap.find( trieClass );
+		if( i == d_trieMap.end() ) 
+			return 0;
+		else
+			return &(i->second);
+	}
+
+	const BELTrie* getTrie( const std::string& trieClass, const std::string& trieId ) const
+	{
+		const ClassTrieMap* ctm = getTrieMap( trieClass );
+		if( !ctm )
+			return 0;
+		else {
+			ClassTrieMap::const_iterator j = ctm->find( trieId );
+			if( j == ctm->end() ) 
+				return 0;
+			else
+				return &(j->second);
+		}
+	}
+
+	BELTrie& produceTrie( const std::string& trieClass, const std::string& trieId ) 
+	{
+		ClassTrieMap&  ctm = produceTrieMap( trieClass );
+		ClassTrieMap::iterator i = ctm.find( trieId );
+
+		if( i == ctm.end() ) 
+			i = ctm.insert( ClassTrieMap::value_type(trieId, 
+				BELTrie(
+					d_rewrPool,
+					d_wcPool,
+					d_fcPool,
+					d_tranPool
+				)) ).first;
+		
+		return i->second;
+	}
+	
+	BELTrie& init() 
+		{ return produceTrie( std::string(), std::string() ); }
+
+	GlobalTriePool( 
+			BarzelRewriterPool* rewrPool,
+			BarzelWildcardPool* wcPool,
+			BarzelFirmChildPool* fcPool,
+			BarzelTranslationPool* tranPool
+	) :
+			d_rewrPool( rewrPool ),
+			d_wcPool( wcPool ),
+			d_fcPool( fcPool ),
+			d_tranPool( tranPool )
+	{
+		init();
+	}
+};
+
+/// in general there is one cluster per customer installation 
+class UniverseTrieCluster {
+	GlobalTriePool& d_triePool;
+
+public:
+	typedef std::list< BELTrie* > BELTrieList;
+private:
+	BELTrieList d_trieList;
+	friend class UniverseTrieClusterIterator;
+
+	BELTrieList& getTrieList() { return d_trieList; }
+public: 
+	UniverseTrieCluster( GlobalTriePool& triePool ) : d_triePool( triePool ) 
+		{
+			d_trieList.push_back( &(d_triePool.init()) ) ;
+		}
+
+	BELTrie& appendTrie( const std::string& trieClass, const std::string& trieId )
+	{
+		BELTrie& tr = d_triePool.produceTrie(trieClass,trieId);
+		d_trieList.push_back( &tr );
+		return tr;
+	}
+	BELTrie& prependTrie( const std::string& trieClass, const std::string& trieId )
+	{
+		BELTrie& tr = d_triePool.produceTrie(trieClass,trieId);
+		d_trieList.push_front( &tr );
+		return tr;
+	}
+};
+
+class UniverseTrieClusterIterator {
+	UniverseTrieCluster& d_cluster;
+	UniverseTrieCluster::BELTrieList::iterator d_i;
+public:
+	UniverseTrieClusterIterator( UniverseTrieCluster& cluster ) : 
+		d_cluster( cluster),
+		d_i( cluster.getTrieList().begin() )
+	{}
+	
+	void reset() { d_i = d_cluster.getTrieList().begin(); }
+	const BELTrie& getCurrentTrie() const
+		{ return *(*d_i); }
+	BELTrie& getCurrentTrie()
+		{ return *(*d_i); }
+	bool advance( ) 
+		{ return ( d_i == d_cluster.getTrieList().end() ? false : (++d_i,true) ); }
+};
 /// a single data universe encompassing all stored 
 /// data for 
 /// Barzel, DataIndex and everything else 
 
-class StoredUniverse {
+class GlobalPools {
+public:
 	ay::UniqueCharPool stringPool; /// all strings in the universe 
+	/// every client's domain has this 
+	DtaIndex dtaIdx; // entity-token links
 
-	DtaIndex dtaIdx;
 	BarzelRewriterPool barzelRewritePool; // all rewrite structures for barzel
 	BarzelWildcardPool barzelWildcardPool;  // all wildcard structures for barzel
 	BarzelFirmChildPool barzelFirmChildPool; // all firm child lookups for barzel
 	BarzelTranslationPool barzelTranslationPool;
-
-	/// compounded words pool
-	BarzelCompWordPool compWordPool;
-
-	BELTrie  barzelTrie;
-
+	BarzelCompWordPool compWordPool; /// compounded words pool
 	BELFunctionStorage funSt;
 	DateLookup dateLookup;
-	
-	BarzerSettings settings;
-
 	BarzerDict dict;
+	GlobalTriePool globalTriePool;
 
 	/// this will create the "wellknown" entities 
 	void createGenericEntities();
+	GlobalPools();
+};
+
+class StoredUniverse {
+
+	GlobalPools& gp;
+
+
+	UniverseTrieCluster          trieCluster; 
+	UniverseTrieClusterIterator trieClusterIter;
+
+	BarzerSettings settings;
+
 public:
-	StoredUniverse();
-	const DtaIndex& getDtaIdx() const { return dtaIdx; }
-		  DtaIndex& getDtaIdx() 	  { return dtaIdx; }
+	StoredUniverse(GlobalPools& gp );
+	const DtaIndex& getDtaIdx() const { return gp.dtaIdx; }
+		  DtaIndex& getDtaIdx() 	  { return gp.dtaIdx; }
 
-	const BELTrie& getBarzelTrie() const { return barzelTrie; }
-		  BELTrie& getBarzelTrie() 	  { return barzelTrie; }
+	const BELTrie& getBarzelTrie() const { return trieClusterIter.getCurrentTrie(); }
+		  BELTrie& getBarzelTrie() 	  { return trieClusterIter.getCurrentTrie(); }
 
-	      BarzelCompWordPool& getCompWordPool()       { return compWordPool; }
-	const BarzelCompWordPool& getCompWordPool() const { return compWordPool; }
+	      BarzelCompWordPool& getCompWordPool()       { return gp.compWordPool; }
+	const BarzelCompWordPool& getCompWordPool() const { return gp.compWordPool; }
 
 	const BarzelRewriterPool& getRewriterPool() const { return getBarzelTrie().getRewriterPool(); }
 	BarzelRewriterPool& getRewriterPool() { return getBarzelTrie().getRewriterPool(); }
@@ -64,17 +200,17 @@ public:
 
 	const BarzelWCLookup* getWCLookup( uint32_t id ) const
 	{
-		return barzelWildcardPool.getWCLookup( id );
+		return gp.barzelWildcardPool.getWCLookup( id );
 	}
 
 	// had to add it in order to be able to create BELPrintContext
     // for custom trie printing
 	ay::UniqueCharPool& getStringPool() {
-		return stringPool;
+		return gp.stringPool;
 	}
 
 	const ay::UniqueCharPool& getStringPool() const {
-		return stringPool;
+		return gp.stringPool;
 	}
 
 
@@ -82,7 +218,7 @@ public:
 	void clear();
 
 	const char* printableStringById( uint32_t id )  const
-		{ return stringPool.printableStr(id); }
+		{ return gp.stringPool.printableStr(id); }
 	
 	std::ostream& printBarzelTrie( std::ostream& fp, const BELPrintFormat& fmt ) const;
 	std::ostream& printBarzelTrie( std::ostream& fp ) const;
@@ -98,11 +234,11 @@ public:
 		return tran.isFallible( getRewriterPool() );
 	}
 
-	const BELFunctionStorage& getFunctionStorage() const { return funSt; }
-	const DateLookup& getDateLookup() const { return dateLookup; }
+	const BELFunctionStorage& getFunctionStorage() const { return gp.funSt; }
+	const DateLookup& getDateLookup() const { return gp.dateLookup; }
 	const BarzerSettings& getSettings() const { return settings; }
 	BarzerSettings& getSettings() { return settings; }
-	const BarzerDict& getDict() const { return dict; }
+	const BarzerDict& getDict() const { return gp.dict; }
 	
 	const char* getGenericSubclassName( uint16_t subcl ) const;
 }; 

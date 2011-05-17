@@ -50,10 +50,10 @@ static bool setNumber(BarzerNumber &num, const BarzelEvalResult &result) {
 
 // extracts a string from BarzerString or BarzerLiteral
 struct StringExtractor : public boost::static_visitor<const char*> {
-	const StoredUniverse &universe;
-	StringExtractor(const StoredUniverse &u) : universe(u) {}
+	const StoredUniverse &globPools;
+	StringExtractor(const StoredUniverse &u) : globPools(u) {}
 	const char* operator()( const BarzerLiteral &dt ) const {
-		return universe.getStringPool().resolveId(dt.getId());
+		return globPools.getStringPool().resolveId(dt.getId());
 	}
 	const char* operator()( const BarzerString &dt ) const
 		{ return dt.getStr().c_str(); }
@@ -154,8 +154,8 @@ template<class U> struct ArithVisitor : public boost::static_visitor<bool> {
 
 struct StrConcatVisitor : public boost::static_visitor<bool> {
 	std::stringstream ss;
-	StoredUniverse &universe;
-	StrConcatVisitor(StoredUniverse &u) : universe(u) {}
+	GlobalPools &globPools;
+	StrConcatVisitor(GlobalPools &u) : globPools(u) {}
 
 	bool operator()( const BarzerString &dt ) {
 		ss << dt.getStr();
@@ -165,7 +165,7 @@ struct StrConcatVisitor : public boost::static_visitor<bool> {
 		switch (dt.getType()) {
 		case BarzerLiteral::T_STRING:
 		case BarzerLiteral::T_COMPOUND: {
-			const char *str = universe.getStringPool().resolveId(dt.getId());
+			const char *str = globPools.stringPool.resolveId(dt.getId());
 			if (str) {
 				ss << str;
 				return true;
@@ -229,11 +229,11 @@ bool mergeRanges(BarzerRange &r1, const BarzerRange &r2) {
 
 
 struct BELFunctionStorage_holder {
-	StoredUniverse &universe;
+	GlobalPools &globPools;
 	BELStoredFunMap funmap;
 
 	#define ADDFN(n) addFun(#n, boost::mem_fn(&BELFunctionStorage_holder::stfun_##n))
-	BELFunctionStorage_holder(StoredUniverse &u) : universe(u) {
+	BELFunctionStorage_holder(GlobalPools &u) : globPools(u) {
 		// makers
 		ADDFN(mkDate);
 		ADDFN(mkTime);
@@ -264,7 +264,7 @@ struct BELFunctionStorage_holder {
 	#undef ADDFN
 
 	void addFun(const char *fname, BELStoredFunction fun) {
-		const uint32_t fid = universe.getStringPool().internIt(fname);
+		const uint32_t fid = globPools.stringPool.internIt(fname);
 		//AYLOG(DEBUG) << "adding function(" << fname << ":" << fid << ")";
 		addFun(fid, fun);
 	}
@@ -403,16 +403,16 @@ struct BELFunctionStorage_holder {
 	// BarzerNumber, BarzerDate and BarzerTimeOfDay
 
 	struct RangePacker : public boost::static_visitor<bool> {
-		StoredUniverse &universe;
+		GlobalPools &globPools;
 		BarzerRange &range;
 
 		//const BarzelBeadAtomic *left;
 		uint32_t cnt;
 
-		RangePacker(StoredUniverse &u, BarzerRange &r) : universe(u), range(r), cnt(0) {}
+		RangePacker(GlobalPools &u, BarzerRange &r) : globPools(u), range(r), cnt(0) {}
 
 		bool operator()(const BarzerLiteral &ltrl) {
-			ay::UniqueCharPool &spool = universe.getStringPool();
+			ay::UniqueCharPool &spool = globPools.stringPool;
 			if (ltrl.getId() == spool.internIt("DESC")) {
 				range.setDesc();
 				return true;
@@ -511,7 +511,7 @@ struct BELFunctionStorage_holder {
 	STFUN(mkRange)
 	{
 		BarzerRange br;
-		RangePacker rp(universe, br);
+		RangePacker rp(globPools, br);
 
 		for (BarzelEvalResultVec::const_iterator ri = rvec.begin();
 								ri != rvec.end(); ++ri)
@@ -525,7 +525,7 @@ struct BELFunctionStorage_holder {
 									const uint16_t cl, const uint16_t scl) const
 	{
 		const StoredEntityUniqId euid(tokId, cl, scl);
-		return universe.getDtaIdx().getEntByEuid(euid);
+		return globPools.dtaIdx.getEntByEuid(euid);
 	}
 
 
@@ -539,7 +539,7 @@ struct BELFunctionStorage_holder {
 			: cnt(0), tokId(0xffffff), cl(0), scl(0), holder(h) {}
 
 		bool operator()(const BarzerLiteral &ltrl) {
-			const StoredUniverse &u =  holder.universe;
+			const StoredUniverse &u =  holder.globPools;
 			const DtaIndex &dtaIdx = u.getDtaIdx();
 
 			const char *tokStr = u.getStringPool().resolveId(ltrl.getId());
@@ -683,7 +683,7 @@ struct BELFunctionStorage_holder {
 			return false;
 		}
 
-		const char* str = extractString(universe, rvec[0]);
+		const char* str = extractString(globPools, rvec[0]);
 		if (!str) {
 			AYLOG(ERROR) << "Need a string";
 			return false;
@@ -691,10 +691,10 @@ struct BELFunctionStorage_holder {
 
 		// normalizing the string (dollar -> usd) and making a literal out of it
 
-		const BarzerDict dict = universe.getDict();
+		const BarzerDict dict = globPools.dict;
 		uint32_t id = dict.lookup(str);
 
-		AYLOG(DEBUG) << "translating " << str << " -> (" << id << ":" << universe.getStringPool().resolveId(id);
+		AYLOG(DEBUG) << "translating " << str << " -> (" << id << ":" << globPools.stringPool.resolveId(id);
 		BarzerLiteral lt;
 		lt.setString(id);
 
@@ -847,7 +847,7 @@ struct BELFunctionStorage_holder {
 	// string
 	STFUN(strConcat) { // strfun_strConcat(&result, &rvec)
 		if (rvec.size()) {
-			StrConcatVisitor scv(universe);
+			StrConcatVisitor scv(globPools);
 			for (BarzelEvalResultVec::const_iterator ri = rvec.begin();
 													 ri != rvec.end(); ++ri) {
 				if (!boost::apply_visitor(scv, ri->getBeadData())) return false;
@@ -871,7 +871,7 @@ struct BELFunctionStorage_holder {
 		}
 		try {
 			const BarzerLiteral &bl = getAtomic<BarzerLiteral>(rvec[0]);
-			const uint8_t mnum = universe.getDateLookup().lookupMonth(bl.getId());
+			const uint8_t mnum = globPools.dateLookup.lookupMonth(bl.getId());
 			if (!mnum) return false;
 			BarzerNumber bn(mnum);
 			setResult(result, bn);
@@ -891,7 +891,7 @@ struct BELFunctionStorage_holder {
 		}
 		try {
 			const BarzerLiteral &bl = getAtomic<BarzerLiteral>(rvec[0]);
-			uint8_t mnum = universe.getDateLookup().lookupWeekday(bl.getId());
+			uint8_t mnum = globPools.dateLookup.lookupWeekday(bl.getId());
 			if (!mnum) return false;
 			BarzerNumber bn(mnum);
 			setResult(result, bn);
@@ -906,7 +906,7 @@ struct BELFunctionStorage_holder {
 	#undef STFUN
 };
 
-BELFunctionStorage::BELFunctionStorage(StoredUniverse &u) : universe(u),
+BELFunctionStorage::BELFunctionStorage(GlobalPools &u) : globPools(u),
 		holder(new BELFunctionStorage_holder(u)) { }
 
 BELFunctionStorage::~BELFunctionStorage()
@@ -920,7 +920,7 @@ bool BELFunctionStorage::call(const char *fname, BarzelEvalResult &er,
 		                                   const BarzelEvalResultVec &ervec) const
 {
 	//AYLOG(DEBUG) << "calling function name `" << fname << "'";
-	const uint32_t fid = universe.getStringPool().getId(fname);
+	const uint32_t fid = globPools.stringPool.getId(fname);
 	if (fid == ay::UniqueCharPool::ID_NOTFOUND) {
 		AYLOG(ERROR) << "No such function name: `" << fname << "'";
 		return false;

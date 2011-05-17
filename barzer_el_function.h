@@ -16,7 +16,7 @@
 namespace barzer {
 
 
-class StoredUniverse;
+class GlobalPools;
 class BELFunctionStorage;
 struct BELFunctionStorage_holder;
 
@@ -30,11 +30,11 @@ typedef std::pair<uint32_t,BELStoredFunction> BELStoredFunRec;
 typedef boost::unordered_map<uint32_t,BELStoredFunction> BELStoredFunMap;
 
 class BELFunctionStorage {
-	StoredUniverse &universe;
+	GlobalPools &globPools;
 	BELFunctionStorage_holder *holder;
 public:
 
-	BELFunctionStorage(StoredUniverse &u);
+	BELFunctionStorage(GlobalPools &u);
 	~BELFunctionStorage();
 
 	bool call(const char *fname, BarzelEvalResult&, const BarzelEvalResultVec&) const;
