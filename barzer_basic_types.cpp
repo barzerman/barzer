@@ -25,6 +25,34 @@ void BarzerDate::initToday()
 	longToday = 10000* (int)thisYear + 1000 * (int) thisMonth + thisDay;
 }
 
+time_t BarzerDate::getTime_t() const
+{
+	time_t t = time(0);
+	tm tmdate;
+	localtime_r(&t, &tmdate);
+	tmdate.tm_year = year - 1900;
+	tmdate.tm_mon = month - 1;
+	tmdate.tm_mday = day;
+	return mktime(&tmdate);
+}
+
+void BarzerDate::setTime_t(time_t t)
+{
+	struct tm tmdate;
+	localtime_r(&t, &tmdate);
+	year = tmdate.tm_year + 1900;
+	month = tmdate.tm_mon + 1;
+	day = tmdate.tm_mday;
+}
+
+
+void BarzerDate::setToday() {
+	day = thisDay;
+	month = thisMonth;
+	year = thisYear;
+}
+
+
 /// will try to set year to current year 
 void BarzerDate::setDayMonth(const BarzerNumber& d, const BarzerNumber& m) 
 {

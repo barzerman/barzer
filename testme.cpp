@@ -216,6 +216,29 @@ void testSettings(StoredUniverse &su) {
 }
 
 
+void testDate() {
+	BarzerDate date;
+	date.initToday();
+
+	std::time_t time = std::time(0);
+	std::tm tmdate;
+
+	localtime_r(&time, &tmdate);
+
+	tmdate.tm_year = 2011 - 1900;
+	tmdate.tm_mon = 4 - 1;
+	tmdate.tm_mday = 11;
+
+
+	std::cout << tmdate.tm_mday << "." << tmdate.tm_mon + 1 << "." << tmdate.tm_year+1900 << "\n";
+
+	std::time_t time2 =  std::mktime(&tmdate);
+	std::tm *y = std::localtime( &time2 );
+
+	std::cout << y->tm_mday << "." << y->tm_mon + 1 << "." << y->tm_year+1900 << "\n";
+
+}
+
 typedef std::pair<uint64_t, uint64_t> TestRange;
 
 int main() {
@@ -225,7 +248,7 @@ int main() {
 	//testSettings(su);
 	//testReader();
 
-
+	testDate();
 
 /*	std::cout << sizeof(BarzerNumber)
 		//<< " vs " << sizeof(BarzerDate)

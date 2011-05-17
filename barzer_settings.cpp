@@ -21,14 +21,7 @@ BarzerSettings::BarzerSettings(StoredUniverse &u)
 
 void BarzerSettings::init() {
 	reader.initParser(BELReader::INPUT_FMT_XML);
-
-	time_t t;
-	time (&t);
-	tm *tinfo = localtime (&t);
-
-	BarzerDate::thisDay = tinfo->tm_mday;
-	BarzerDate::thisMonth = tinfo->tm_mon + 1;
-	BarzerDate::thisYear = tinfo->tm_year + 1900;
+	BarzerDate::initToday();
 }
 
 void BarzerSettings::loadRules(const char *fname) {

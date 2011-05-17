@@ -11,7 +11,7 @@ namespace barzer {
 /// operator date + days 
 
 
-/// single date calculaator assuming today as a reference point
+/// single date calculator assuming today as a reference point
 struct BarzerDate_calc {
 	/// date being calculated 
 	BarzerDate d_date;
@@ -27,10 +27,15 @@ struct BarzerDate_calc {
 	BarzerDate_calc( ) : d_defaultFuture(true) {}
 	BarzerDate_calc( bool fut ) : d_defaultFuture(fut) {}
 
+
+	void setFuture(bool);
+
+	void setToday( );
+	void setTodayOffset(int);
 	void setTomorrow( );
 	void setYesterday( );
-	void setToday( );
 	
+
 	// sets weekend depending on the weekCOunt 
 	// 0 - this or past (depending 
 	void setWeekend( int weekCount=0 );
@@ -38,9 +43,9 @@ struct BarzerDate_calc {
 	/// same weekday for next/last week deopending on defaultFuture
 	void setWeek( );
 	// weekDay 1,7 - same as struct tm 
-	void setWeekday( int weekDay );
+	void setWeekday( uint8_t weekDay );
 	/// same weekday ona diff week depending on defaultFuture
-	void setWeek( int weekOffset );
+	void setWeek( uint8_t weekOffset );
 	
 	/// N months ago/from now
 	void setMonth( int monthOffset );

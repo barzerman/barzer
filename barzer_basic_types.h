@@ -4,6 +4,8 @@
 #include <limits>
 #include <stdlib.h>
 #include <stdint.h>
+#include <time.h>
+
 #include <ay/ay_bitflags.h>
 //#include <barzer_parse_types.h>
 //#include <barzer_dtaindex.h>
@@ -123,6 +125,8 @@ struct BarzerDate {
 	
 	bool isValid() const { return( year != INVALID_YEAR && day != INVALID_DAY && month != INVALID_MONTH ); }
 
+
+	void setToday();
 	void setMax( ) 
 	{ 
 		year = MAX_YEAR;
@@ -139,6 +143,11 @@ struct BarzerDate {
 	int32_t getLongDate() const {
 		return ( 10000*(int32_t)year + 100*(int32_t)month  + (int32_t)day );
 	}
+
+	time_t getTime_t() const;
+	void setTime_t(time_t time);
+
+
 	bool isFull() const { return((year!=INVALID_YEAR) && month && day); }
 	
 	/// returns true if y represents a year which can be reasonably assumed by a business application
