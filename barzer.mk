@@ -61,3 +61,7 @@ ay/libay.a:
 .cpp.o:
 	$(CC)  -c $(CFLAGS) $< -o $@
 rebuild: clean aylib all
+
+.PHONY : test
+test:
+	cd test; rake test; cd ..
