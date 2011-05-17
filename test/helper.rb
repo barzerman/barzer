@@ -14,8 +14,7 @@ def with_cwd(dir)
 end
 
 def run_barzer(params)
-  output = with_cwd('..') { `./barzer.exe #{params}` }
-  XmlSimple.xml_in(output)
+  with_cwd('..') { `./barzer.exe #{params}` }
 end
 
 def get_expected_barzer_results
@@ -23,5 +22,6 @@ def get_expected_barzer_results
 end
 
 def get_current_barzer_results
-  run_barzer "test -i test/#{QUERIES_FILENAME}"
+  output = run_barzer("test -i test/#{QUERIES_FILENAME}")
+  XmlSimple.xml_in(output)
 end
