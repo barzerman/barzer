@@ -2,38 +2,6 @@
 
 namespace barzer {
 
-StoredUniverse::StoredUniverse() :
-	dtaIdx(&stringPool),
-	barzelRewritePool(64*1024),
-	barzelTrie(&barzelRewritePool,&barzelWildcardPool,&barzelFirmChildPool,&barzelTranslationPool),
-	funSt(*this),
-	dateLookup(*this),
-	settings(*this),
-	dict(*this)
-{
-	//dtaIdx.addGenericEntity("shit", 1, 1);
-	createGenericEntities();
-}
-
-void StoredUniverse::clear()
-{
-	getBarzelTrie().clear();
-	getDtaIdx().clear();
-	getWildcardPool().clear();
-	getRewriterPool().clear();
-	stringPool.clear();
-}
-std::ostream& StoredUniverse::printBarzelTrie( std::ostream& fp, const BELPrintFormat& fmt ) const
-{
-	BELPrintContext ctxt( barzelTrie, stringPool, fmt );
-	return getBarzelTrie().print( fp, ctxt );
-}
-std::ostream& StoredUniverse::printBarzelTrie( std::ostream& fp ) const
-{
-	BELPrintFormat fmt;
-	BELPrintContext ctxt( getBarzelTrie(), stringPool, fmt );
-	return getBarzelTrie().print( fp, ctxt );
-}
 ///////////////// generic entities 
 namespace {
 
@@ -68,16 +36,23 @@ static GenericEntData g_genDta[] = {
 	GenericEntData(1,"RUB", "Рупь")
 };
 } // anon namespace ends
-
-const char* StoredUniverse::getGenericSubclassName( uint16_t subcl ) const
+GlobalPools::GlobalPools() :
+	dtaIdx( &stringPool),
+	barzelRewritePool(64*1024),
+	funSt(*this),
+	dateLookup(*this),
+	dict(*this),
+	globalTriePool( 
+			&barzelRewritePool,
+			&barzelWildcardPool,
+			&barzelFirmChildPool,
+			&barzelTranslationPool 
+		)
 {
-	if( subcl< ARR_SZ(g_genDta) ) 
-		return g_genDta[subcl].name;
-	else 
-		return "<unknown>";
+	createGenericEntities();
 }
 
-void StoredUniverse::createGenericEntities()
+void GlobalPools::createGenericEntities()
 {
 	for( size_t i=0; i< ARR_SZ( g_genDta ); ++i ) {
 		const GenericEntData& gd = g_genDta[i];
@@ -90,6 +65,43 @@ void StoredUniverse::createGenericEntities()
 
 	dtaIdx.addGenericEntity("wine", 2, 1);
 }
+
+StoredUniverse::StoredUniverse(GlobalPools& g) :
+	gp(g),
+	settings(*this),
+	trieCluster(g.globalTriePool),
+	trieClusterIter(trieCluster)
+{
+}
+
+void StoredUniverse::clear()
+{
+	getBarzelTrie().clear();
+	getDtaIdx().clear();
+	getWildcardPool().clear();
+	getRewriterPool().clear();
+	gp.stringPool.clear();
+}
+std::ostream& StoredUniverse::printBarzelTrie( std::ostream& fp, const BELPrintFormat& fmt ) const
+{
+	BELPrintContext ctxt( getBarzelTrie(), gp.stringPool, fmt );
+	return getBarzelTrie().print( fp, ctxt );
+}
+std::ostream& StoredUniverse::printBarzelTrie( std::ostream& fp ) const
+{
+	BELPrintFormat fmt;
+	BELPrintContext ctxt( getBarzelTrie(), gp.stringPool, fmt );
+	return getBarzelTrie().print( fp, ctxt );
+}
+
+const char* StoredUniverse::getGenericSubclassName( uint16_t subcl ) const
+{
+	if( subcl< ARR_SZ(g_genDta) ) 
+		return g_genDta[subcl].name;
+	else 
+		return "<unknown>";
+}
+
 
 //// end of generic entities 
 

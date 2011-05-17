@@ -12,14 +12,14 @@
 
 namespace barzer {
 
-class StoredUniverse;
+class GlobalPools;
 class BarzerDict {
 	typedef boost::unordered_map<std::string,uint32_t> Dict;
 	typedef Dict::value_type DictRec;
-	StoredUniverse &universe;
+	GlobalPools &globPools;
 	Dict hmap;
 public:
-	BarzerDict(StoredUniverse &u);
+	BarzerDict(GlobalPools &g);
 
 	void init();
 

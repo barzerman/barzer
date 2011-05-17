@@ -11,7 +11,7 @@
 
 namespace barzer {
 
-BarzerDict::BarzerDict(StoredUniverse &u) : universe(u), hmap(1024) {
+BarzerDict::BarzerDict(GlobalPools &u) : globPools(u), hmap(1024) {
 	//AYLOG(DEBUG) << "BarzerDict::BarzerDict";
 	init();
 }
@@ -31,7 +31,7 @@ void BarzerDict::init() {
 }
 
 void BarzerDict::add(const char *key, const char *value) {
-	ay::UniqueCharPool &sp = universe.getStringPool();
+	ay::UniqueCharPool &sp = globPools.stringPool;
 	uint32_t id = sp.internIt(value);
 	hmap.insert(DictRec(key, id));
 }

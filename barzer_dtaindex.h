@@ -218,6 +218,7 @@ public:
 		if( tok.isSimpleTok() ) {
 			return strPool->resolveId(tok.stringId);
 		} else {
+			
 			return "(compound)";
 		}
 	}
