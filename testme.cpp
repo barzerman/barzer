@@ -216,32 +216,29 @@ void testSettings(StoredUniverse &su) {
 }
 
 
-void testReader() {
-	std::stringstream ss;
-	ss << "config.xml";
-	ay::InputLineReader reader(ss);
-	while( reader.nextLine() && reader.str.length() ) {
-		const char* q = reader.str.c_str();
-		std::cout << "line:\n";
-		std::cout << q;
-	}
-}
+typedef std::pair<uint64_t, uint64_t> TestRange;
 
 int main() {
 	AYLOGINIT(DEBUG);
 	StoredUniverse su;
 //	testEmitter(su);
 	//testSettings(su);
-	testReader();
+	//testReader();
 
 
-/*
-	std::cout << sizeof(BELParseTreeNode)
-		<< " vs " << sizeof(BarzelEvalNode)
-		<< " vs " << sizeof(BTND_RewriteData)
-		<< " vs " << sizeof(BarzerNumber)
+
+/*	std::cout << sizeof(BarzerNumber)
+		//<< " vs " << sizeof(BarzerDate)
+		//<< " vs " << sizeof(BarzerTimeOfDay)
+		//<< " vs " << sizeof(BarzerRange)
+		//<< " vs " << sizeof(TestRange)
+		<< " vs " << sizeof(TestNumber)
 		<< "\n";
-		*/
+		//*/
+
 	//return testFunctions(su);
+
+
+
 	return 0;
 }
