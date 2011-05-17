@@ -314,6 +314,7 @@ public:
 		{ type = T_STRING; theId = id;  }
 	void setBlank( ) { type = T_BLANK; theId = 0xffffffff; }
 	void setStop( ) { type = T_STOP; theId = 0xffffffff; }
+	void setStop( uint32_t id ) { type = T_STOP; theId = id; }
 	void setPunct(int c) { type = T_PUNCT; theId = c; }
 	void setNull() { type = T_STRING; theId = 0xffffffff; }
 
@@ -398,6 +399,8 @@ struct BarzerEntityRangeCombo {
 	const BarzerEntity& getEntity() const { return d_entId; }
 	const BarzerEntity& getUnitEntity() const { return d_unitEntId; }
 	const BarzerRange&  getRange() const { return d_range; }
+
+	BarzerRange&  getRange() { return d_range; }
 
 	void  setEntity( const BarzerEntity& e ) { d_entId = e; }
 	void  setUnitEntity( const BarzerEntity& e ) { d_unitEntId = e; }

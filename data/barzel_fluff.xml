@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
+    xmlns="http://www.barzer.net/barzel/0.1">
+    
+    <stmt>
+        <pat><any v="word"><t>hey</t><t>a</t><t>the</t></any></pat>
+        <tran><func name="mkFluff"><var name="word" /></func></tran>
+    </stmt>
+</stmset>

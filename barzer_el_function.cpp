@@ -84,7 +84,7 @@ template<class T> const T* getBead(const BarzelEvalResult &result)
 // throwing version. only call it when catching boost::bad_get
 template<class T> const T& getAtomic(const BarzelEvalResult &result) {
 	return boost::get<T>(
-			boost::get<BarzelBeadAtomic>(result.getBeadData()).dta);
+			boost::get<BarzelBeadAtomic>(result.getBeadData()).getData());
 }
 
 //template<class T> void setResult(BarzelEvalResult&, const T&);
@@ -177,6 +177,9 @@ struct StrConcatVisitor : public boost::static_visitor<bool> {
 		case BarzerLiteral::T_PUNCT:
 			ss << (char)dt.getId();
 			return true;
+		case BarzerLiteral::T_BLANK:
+		case BarzerLiteral::T_STOP:
+			return true;
 		default:
 			AYLOG(ERROR) << "Wrong literal type";
 			return false;
@@ -192,6 +195,30 @@ struct StrConcatVisitor : public boost::static_visitor<bool> {
 		return false;
 	}
 };
+
+template<class T> void mergePairs(std::pair<T,T> &left, const std::pair<T,T> &right) {
+	//AYLOG(DEBUG) << "merging pairs";
+	left.first = std::min(left.first, right.first);
+	left.second = std::max(left.second, right.second);
+}
+
+bool mergeRanges(BarzerRange &r1, const BarzerRange &r2) {
+	if (r1.getType() != r2.getType() || r1.isBlank()) return false;
+	switch(r1.getType()) {
+	case BarzerRange::Integer_TYPE:
+		mergePairs(boost::get<BarzerRange::Integer>(r1.getData()),
+				   boost::get<BarzerRange::Integer>(r2.getData()));
+		break;
+	case BarzerRange::Real_TYPE:
+		mergePairs(boost::get<BarzerRange::Real>(r1.getData()),
+				   boost::get<BarzerRange::Real>(r2.getData()));
+		break;
+	case BarzerRange::Date_TYPE:
+	case BarzerRange::TimeOfDay_TYPE:
+	default: return false;
+	}
+	return true;
+}
 
 
 }
@@ -215,6 +242,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(mkEnt);
 		ADDFN(mkERC);
 		ADDFN(mkLtrl);
+		ADDFN(mkFluff);
 		// arith
 		ADDFN(opPlus);
 		ADDFN(opMinus);
@@ -378,7 +406,7 @@ struct BELFunctionStorage_holder {
 		StoredUniverse &universe;
 		BarzerRange &range;
 
-		const BarzelBeadAtomic *left;
+		//const BarzelBeadAtomic *left;
 		uint32_t cnt;
 
 		RangePacker(StoredUniverse &u, BarzerRange &r) : universe(u), range(r), cnt(0) {}
@@ -434,26 +462,35 @@ struct BELFunctionStorage_holder {
 		}
 
 		bool operator()(const BarzerDate &rdate) {
-			try {
-				const BarzerDate &ldate = boost::get<BarzerDate>(left->getData());
-				range.setData(BarzerRange::Date(ldate, rdate));
-				return true;
-			} catch (boost::bad_get) {
-				AYLOG(ERROR) << "Types don't match";
-				return false;
+			if (cnt) {
+				try {
+					BarzerRange::Date &dp
+						= boost::get<BarzerRange::Date>(range.getData());
+					dp.second = rdate;
+				} catch (boost::bad_get) {
+					AYLOG(ERROR) << "Types don't match";
+					return false;
+				}
+			} else {
+				range.setData(BarzerRange::Date(rdate, rdate));
 			}
+			return true;
 		}
 
 		bool operator()(const BarzerTimeOfDay &rtod) {
-			try {
-				const BarzerTimeOfDay &ltod
-					= boost::get<BarzerTimeOfDay>(left->getData());
-				range.setData(BarzerRange::TimeOfDay(ltod, rtod));
-				return true;
-			} catch (boost::bad_get) {
-				AYLOG(ERROR) << "Types don't match";
-				return false;
+			if (cnt) {
+				try {
+					BarzerRange::TimeOfDay &todp
+						= boost::get<BarzerRange::TimeOfDay>(range.getData());
+					todp.second = rtod;
+				} catch (boost::bad_get) {
+					AYLOG(ERROR) << "Types don't match";
+					return false;
+				}
+			} else {
+				range.setData(BarzerRange::TimeOfDay(rtod, rtod));
 			}
+			return true;
 		}
 
 		bool operator()(const BarzelBeadAtomic &data) {
@@ -468,7 +505,6 @@ struct BELFunctionStorage_holder {
 			AYLOG(ERROR) << "Wrong range type";
 			return false;
 		}
-
 
 	};
 
@@ -565,6 +601,7 @@ struct BELFunctionStorage_holder {
 
 	// tries to construct an EntityRangeCombo from a sequence of BeadData
 	// first BarzerEntity counts as entity the rest - as units
+	// can also merge with another ERC
 	struct ERCPacker : public boost::static_visitor<bool> {
 		uint8_t num;
 		BarzerEntityRangeCombo &erc;
@@ -582,6 +619,27 @@ struct BELFunctionStorage_holder {
 			++num;
 			return true;
 		}
+		// merges N ERC together. Tries to select the best entity/unit
+		bool operator()(const BarzerEntityRangeCombo &other) {
+			if (num) {
+				const BarzerEntity &e = other.getEntity(),
+								   &u = other.getUnitEntity();
+				if ((!erc.getEntity().isValid()) && e.isValid())
+					erc.setEntity(e);
+				if ((!erc.getUnitEntity().isValid()) && u.isValid())
+					erc.setUnitEntity(u);
+
+				BarzerRange &l = erc.getRange();
+				return mergeRanges(l, other.getRange());
+			} else {
+				erc.setRange(other.getRange());
+				erc.setEntity(other.getEntity());
+				erc.setUnitEntity(other.getUnitEntity());
+			}
+			++num;
+			return true;
+		}
+
 		bool operator()(const BarzerRange &el)
 			{ erc.setRange(el); return true;	}
 		bool operator()(const BarzelBeadAtomic &data) {
@@ -631,23 +689,37 @@ struct BELFunctionStorage_holder {
 			return false;
 		}
 
-
 		// normalizing the string (dollar -> usd) and making a literal out of it
 
 		const BarzerDict dict = universe.getDict();
 		uint32_t id = dict.lookup(str);
 
-
-
 		AYLOG(DEBUG) << "translating " << str << " -> (" << id << ":" << universe.getStringPool().resolveId(id);
 		BarzerLiteral lt;
 		lt.setString(id);
-
 
 		setResult(result, lt);
 		return true; //*/
 	}
 
+	// set "stop" type on the incoming literal.
+	STFUN(mkFluff)
+	{
+		if (!rvec.size()) {
+			AYLOG(ERROR) << "mkFluff(BarzerLiteral) needs 1 argument";
+			return false;
+		}
+		try {
+			uint32_t id = getAtomic<BarzerLiteral>(rvec[0]).getId();
+			BarzerLiteral ltrl;
+			ltrl.setStop(id);
+			setResult(result, ltrl);
+			return true;
+		} catch (boost::bad_get&) {
+			AYLOG(ERROR) << "mkFluff(BarzerLiteral): Wrong argument type";
+			return false;
+		}
+	}
 
 	// arith
 
@@ -787,6 +859,7 @@ struct BELFunctionStorage_holder {
 		}
 		return false;
 	}
+
 
 	// lookup
 
