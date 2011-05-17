@@ -68,9 +68,9 @@ void GlobalPools::createGenericEntities()
 
 StoredUniverse::StoredUniverse(GlobalPools& g) :
 	gp(g),
-	settings(*this),
 	trieCluster(g.globalTriePool),
-	trieClusterIter(trieCluster)
+	trieClusterIter(trieCluster),
+	settings(*this)
 {
 }
 

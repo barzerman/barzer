@@ -172,10 +172,11 @@ class StoredUniverse {
 
 	GlobalPools& gp;
 
-	BarzerSettings settings;
 
 	UniverseTrieCluster          trieCluster; 
 	UniverseTrieClusterIterator trieClusterIter;
+
+	BarzerSettings settings;
 
 public:
 	StoredUniverse(GlobalPools& gp );
