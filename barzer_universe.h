@@ -140,7 +140,7 @@ public:
 	BELTrie& getCurrentTrie()
 		{ return *(*d_i); }
 	bool advance( ) 
-		{ return ( d_i == d_cluster.getTrieList().end() ? false : (++d_i,true) ); }
+		{ return ( d_i == d_cluster.getTrieList().end() ? false : (++d_i, d_i != d_cluster.getTrieList().end()) ); }
 };
 /// a single data universe encompassing all stored 
 /// data for 
@@ -173,9 +173,13 @@ class StoredUniverse {
 
 
 	UniverseTrieCluster          trieCluster; 
-	UniverseTrieClusterIterator trieClusterIter;
+	mutable UniverseTrieClusterIterator trieClusterIter;
 
 	BarzerSettings settings;
+	friend class QSemanticParser;
+
+	void  getToFirstTrie() const { trieClusterIter.reset(); }
+	bool  getToNextTrie() const { return trieClusterIter.advance(); }
 
 public:
 	StoredUniverse(GlobalPools& gp );

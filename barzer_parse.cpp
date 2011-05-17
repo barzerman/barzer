@@ -8,11 +8,14 @@ using namespace barzer;
 int QSemanticParser::semanticize( Barz& barz, const QuestionParm& qparm  )
 {
 	err.clear();
+	universe.getToFirstTrie();
 	/*
 	BarzelMatcher matcher( universe );
 	matcher.matchAndRewrite( barz );
 	*/
-	barzelMatcher.matchAndRewrite( barz );
+	do {
+		barzelMatcher.matchAndRewrite( barz );
+	} while( universe.getToNextTrie() );
 	return 0;
 }
 
