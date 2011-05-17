@@ -10,7 +10,6 @@
 #include <barzer_date_util.h>
 #include <barzer_settings.h>
 #include <barzer_config.h>
-#include <barzer_dict.h>
 #include <barzer_el_compwords.h>
 
 namespace barzer {
@@ -160,7 +159,7 @@ public:
 	BarzelCompWordPool compWordPool; /// compounded words pool
 	BELFunctionStorage funSt;
 	DateLookup dateLookup;
-	BarzerDict dict;
+
 	GlobalTriePool globalTriePool;
 
 	/// this will create the "wellknown" entities 
@@ -238,7 +237,6 @@ public:
 	const DateLookup& getDateLookup() const { return gp.dateLookup; }
 	const BarzerSettings& getSettings() const { return settings; }
 	BarzerSettings& getSettings() { return settings; }
-	const BarzerDict& getDict() const { return gp.dict; }
 	
 	const char* getGenericSubclassName( uint16_t subcl ) const;
 }; 

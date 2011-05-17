@@ -41,7 +41,6 @@ GlobalPools::GlobalPools() :
 	barzelRewritePool(64*1024),
 	funSt(*this),
 	dateLookup(*this),
-	dict(*this),
 	globalTriePool( 
 			&barzelRewritePool,
 			&barzelWildcardPool,

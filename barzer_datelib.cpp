@@ -33,7 +33,6 @@ void BarzerDate_calc::setTodayOffset(int offset) {
 void BarzerDate_calc::setTomorrow() { setTodayOffset(1); }
 void BarzerDate_calc::setYesterday() { setTodayOffset(-1); }
 
-
 void BarzerDate_calc::setWeekday(uint8_t weekDay) {
 	time_t t = time(0);
 	struct tm tmdate;

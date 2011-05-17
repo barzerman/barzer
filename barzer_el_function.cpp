@@ -241,7 +241,6 @@ struct BELFunctionStorage_holder {
 		ADDFN(mkRange);
 		ADDFN(mkEnt);
 		ADDFN(mkERC);
-		ADDFN(mkLtrl);
 		ADDFN(mkFluff);
 		// arith
 		ADDFN(opPlus);
@@ -689,12 +688,7 @@ struct BELFunctionStorage_holder {
 			return false;
 		}
 
-		// normalizing the string (dollar -> usd) and making a literal out of it
-
-		const BarzerDict dict = globPools.dict;
-		uint32_t id = dict.lookup(str);
-
-		AYLOG(DEBUG) << "translating " << str << " -> (" << id << ":" << globPools.stringPool.resolveId(id);
+		uint32_t id = globPools.stringPool.internIt(str);
 		BarzerLiteral lt;
 		lt.setString(id);
 
