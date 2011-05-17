@@ -1,3 +1,4 @@
+require 'rubygems'
 require 'xmlsimple'
 
 QUERIES_FILENAME = 'data/queries.txt'
