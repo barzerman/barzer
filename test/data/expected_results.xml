@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testset>
+  <test>
+    <query>wine for between $5 and $30</query>
+    <barz>
+      <token>wine<token>
+      <token>for</token>
+      <erc><entity id="USD" class="1" subclass="1" /><range order="ASC"><num t="int"><lo>5</lo><hi>30</hi></num></range></erc>
+    </barz>
+  </test>
+  <test>
+    <query>tv shows on monday</query>
+    <barz>
+      <token>tv</token>
+      <token>shows</token>
+      <token>on<token>
+      <token>monday</token>
+    </barz>
+  </test>
+  <test>
+    <query>cheapest whore eu</query>
+    <barz>
+      <erc><entity cl="1" scl="1" /><range order="ASC" /></erc>
+      <token>whore</token>
+      <token>eu</token>
+    </barz>
+  </test>
+  <test>
+    <query>january 5 at 15:30</query>
+    <barz>
+      <timestamp><date>2011-01-05</date><time>15:30:00</time></timestamp>
+    </barz>
+  </test>
+  <test>
+    <query>apple prices on last tuesday</query>
+    <barz>
+      <token>apple</token>
+      <token>prices</token>
+      <token>on<token>
+      <token>last</token>
+      <token>tuesday</token>
+    </barz>
+  </test>
+</testset>
