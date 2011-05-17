@@ -6,8 +6,11 @@ class TestExpectedResults < Test::Unit::TestCase
     expected_results = get_expected_barzer_results
     current_results = get_current_barzer_results
     
-    expected_results.each_pair do |query, result|
-      assert result == current_results[query]
+    expected_results["test"].each do |t|
+      query = t["query"][0]
+      expected_barz = t["barz"]
+      current_barz = current_results["test"].find { |x| x["query"][0] == query }["barz"]
+      assert current_barz == expected_barz, "checking barz for '#{query}'"
     end
   end
 end

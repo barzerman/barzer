@@ -1,5 +1,6 @@
 require 'xmlsimple'
 
+QUERIES_FILENAME = 'data/queries.txt'
 EXPECTED_RESULTS_FILENAME = "data/expected_results.xml"
 
 def with_cwd(dir)
@@ -22,5 +23,5 @@ def get_expected_barzer_results
 end
 
 def get_current_barzer_results
-  run_barzer "test -i test/data/queries.txt"
+  run_barzer "test -i test/#{QUERIES_FILENAME}"
 end

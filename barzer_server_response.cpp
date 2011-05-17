@@ -113,7 +113,7 @@ public:
 				const char *cstr = universe.getStringPool().resolveId(data.getId());
 				if (cstr) xmlEscape(cstr, os);
 				else AYLOG(ERROR) << "Illegal literal ID: " << std::hex << data.getId();
-				os << "<token>";
+				os << "</token>";
 			}
 			break;
 		case BarzerLiteral::T_STOP:
@@ -132,7 +132,7 @@ public:
 				os << "<token>";
 				const char str[] = { (char)data.getId(), '\0' };
 				xmlEscape(str, os);
-				os << "<token>";
+				os << "</token>";
 			}
 			break;
 		case BarzerLiteral::T_BLANK:
