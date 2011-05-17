@@ -10,7 +10,7 @@ class TestExpectedResults < Test::Unit::TestCase
       query = t["query"][0]
       expected_barz = t["barz"]
       current_barz = current_results["test"].find { |x| x["query"][0] == query }["barz"]
-      assert current_barz == expected_barz, "checking barz for '#{query}'"
+      assert_equal current_barz, expected_barz, "checking barz for '#{query}'"
     end
   end
 end
