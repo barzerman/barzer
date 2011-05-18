@@ -202,7 +202,7 @@
 
     <stmt>
         <pat>
-            <any v="time"><t>last</t><t>this</t><t>next</t></any>
+            <any v="time"><t>on</t><t>last</t><t>this</t><t>next</t></any>
             <any v="wday">
                 <t>monday</t>
                 <t>tuesday</t>
@@ -220,6 +220,7 @@
                 <ltrl>last</ltrl><rn v="-1" />
                 <ltrl>this</ltrl><rn v="0" />
                 <ltrl>next</ltrl><rn v="1" />
+                <ltrl>on</ltrl><rn v="1" />
                 </func>
                 <func name="lookupWday"><var name="wday" /></func>
             </func>
