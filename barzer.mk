@@ -62,5 +62,5 @@ ay/libay.a:
 rebuild: clean aylib all
 
 .PHONY : test
-test:
+test: all
 	cd test; rake test; cd ..
