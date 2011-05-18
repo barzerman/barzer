@@ -98,24 +98,4 @@ void BarzelBeadChain::init( const CTWPVec& cv )
 	}
 }
 
-struct BarzelBeadData_EQ : public boost::static_visitor<bool> {
-	bool operator()(const BarzerEntityList &left, const BarzerEntityList &right) const
-	    { return false; }
-	bool operator()(const BarzerString &left, const BarzerString &right) const
-	    { return false; }
-	bool operator()(const BarzelBeadAtomic &left, const BarzelBeadAtomic &right) const
-		{ return boost::apply_visitor(*this, left.getData(), right.getData()); }
-	template<class T> bool operator()(const T &left, const T &right) const
-		{ return ay::bcs::equal(left, right); }
-	template<class T, class U> bool operator()(const T&, const U&) const { return false; }
-};
-
-
-//bool operator==(const BarzelBeadData &left, const BarzelBeadData &right)
-bool beadsEqual(const BarzelBeadData &left, const BarzelBeadData &right)
-{
-	return boost::apply_visitor(BarzelBeadData_EQ(), left, right);
-}
-
-
 } // barzer namespace
