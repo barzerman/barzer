@@ -64,5 +64,4 @@ rebuild: clean aylib all
 
 .PHONY : test
 test: all
-	cd test
-	rake test
+	cd test; rake test
