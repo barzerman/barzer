@@ -11,9 +11,12 @@
 #include <barzer_settings.h>
 #include <barzer_config.h>
 #include <barzer_el_compwords.h>
+#include <boost/unordered_map.hpp> 
+
 
 namespace barzer {
 
+class StoredUniverse;
 /// holds all tries in the system keyed by 2 strings
 /// TrieClass and  TrieId
 class GlobalTriePool {
@@ -26,8 +29,9 @@ class GlobalTriePool {
 	BarzelWildcardPool* d_wcPool;
 	BarzelFirmChildPool* d_fcPool;
 	BarzelTranslationPool* d_tranPool;
-public:
 
+
+public:
 	ClassTrieMap& produceTrieMap( const std::string& trieClass )
 	{
 		TrieMap::iterator i = d_trieMap.find( trieClass );
@@ -148,6 +152,9 @@ public:
 
 class GlobalPools {
 public:
+	// 0 should never be used 
+	enum { DEFAULT_UNIVERSE_ID = 0 }; 
+
 	ay::UniqueCharPool stringPool; /// all strings in the universe 
 	/// every client's domain has this 
 	DtaIndex dtaIdx; // entity-token links
@@ -162,15 +169,31 @@ public:
 
 	GlobalTriePool globalTriePool;
 
+	typedef boost::unordered_map< uint32_t, StoredUniverse* > UniverseMap;
+
+	UniverseMap d_uniMap;
+
 	/// this will create the "wellknown" entities 
+	StoredUniverse& produceUniverse( uint32_t id );
+
+	const StoredUniverse* getUniverse( uint32_t id )  const 
+	{
+		UniverseMap::const_iterator i = d_uniMap.find( id );
+		return ( i == d_uniMap.end() ? 0 : i->second );
+	}
+	StoredUniverse* getUniverse( uint32_t id )
+	{ return const_cast<StoredUniverse*>( ((const GlobalPools*)this)->getUniverse(id) ); }
+
 	void createGenericEntities();
+	      StoredUniverse* getDefaultUniverse()       { return getUniverse( DEFAULT_UNIVERSE_ID ) ; }
+	const StoredUniverse* getDefaultUniverse() const { return getUniverse( DEFAULT_UNIVERSE_ID ) ; }
+
 	GlobalPools();
+	~GlobalPools();
 };
 
 class StoredUniverse {
-
 	GlobalPools& gp;
-
 
 	UniverseTrieCluster          trieCluster; 
 	mutable UniverseTrieClusterIterator trieClusterIter;
@@ -182,6 +205,14 @@ class StoredUniverse {
 	bool  getToNextTrie() const { return trieClusterIter.advance(); }
 
 public:
+	BELTrie& produceTrie( const std::string& trieClass, const std::string& trieId ) 
+	{
+		return gp.globalTriePool.produceTrie( trieClass, trieId );
+	}
+
+	GlobalPools& getGlobalPools() { return gp; }
+	const GlobalPools& getGlobalPools() const { return gp; }
+
 	StoredUniverse(GlobalPools& gp );
 	const DtaIndex& getDtaIdx() const { return gp.dtaIdx; }
 		  DtaIndex& getDtaIdx() 	  { return gp.dtaIdx; }
@@ -244,6 +275,15 @@ public:
 	
 	const char* getGenericSubclassName( uint16_t subcl ) const;
 }; 
+
+inline StoredUniverse& GlobalPools::produceUniverse( uint32_t id )
+{
+	StoredUniverse * p = getUniverse( id );
+	if( !p ) 
+		p = new StoredUniverse( *this );
+	
+	return *p;
+}
 
 }
 #endif // BARZER_UNIVERSE_H

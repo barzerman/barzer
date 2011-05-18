@@ -54,6 +54,10 @@ void BELParseTreeNode::print( std::ostream& fp, int depth ) const
 	fp << pfx << "}\n";
 }
 
+void BELReader::setTrie( const std::string& trieClass, const std::string& trieId )
+{
+	trie = &(universe.produceTrie( trieClass, trieId ));
+}
 std::ostream& BELReader::printNode( std::ostream& fp, const BarzelTrieNode& node ) const 
 {
 	BELPrintFormat fmt;

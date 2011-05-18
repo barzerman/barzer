@@ -112,6 +112,7 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 	switch( tid ) {
 	CASE_TAG(UNDEFINED)
 	CASE_TAG(STATEMENT)
+	CASE_TAG(STMSET)
 	CASE_TAG(PATTERN)
 	CASE_TAG(TRANSLATION)
 	CASE_TAG(T)
@@ -145,6 +146,21 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 
 }
 
+void BELParserXML::taghandle_STMSET( const char_cp * attr, size_t attr_sz, bool close )
+{
+	if( close ) 
+		return;
+	std::string trieClass , trieId;
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		switch( *n ) {
+		case 'c': trieClass.assign(v); break;
+		case 'i': trieId.assign(v); break;
+		}
+	}
+	reader->setTrie( trieClass , trieId );
+}
 void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bool close )
 {
 	if( close ) { /// statement is ready to be sent to the reader for adding to the trie
@@ -675,10 +691,6 @@ void BELParserXML::taghandle_FUNC( const char_cp * attr, size_t attr_sz , bool c
 	}
 	statement.pushNode( BTND_RewriteData( f));
 }
-
-// not sure if it's even needed here /pltr
-void taghandle_STMSET( const char_cp * attr, size_t attr_sz , bool close=false) {}
-
 
 void BELParserXML::endElement( const char* tag )
 {

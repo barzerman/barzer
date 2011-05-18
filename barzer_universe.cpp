@@ -36,6 +36,14 @@ static GenericEntData g_genDta[] = {
 	GenericEntData(1,"RUB", "Рупь")
 };
 } // anon namespace ends
+
+GlobalPools::~GlobalPools() 
+{
+	for( UniverseMap::iterator i =  d_uniMap.begin(); i!= d_uniMap.end(); ++i ) {
+		if( i->second ) 
+			delete i->second;
+	}
+}
 GlobalPools::GlobalPools() :
 	dtaIdx( &stringPool),
 	barzelRewritePool(64*1024),
@@ -49,6 +57,9 @@ GlobalPools::GlobalPools() :
 		)
 {
 	createGenericEntities();
+
+	/// create default universe 
+	produceUniverse(DEFAULT_UNIVERSE_ID);
 }
 
 void GlobalPools::createGenericEntities()

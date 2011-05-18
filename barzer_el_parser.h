@@ -76,7 +76,7 @@ protected:
 
 	std::string inputFileName; 
 public:
-
+	void setTrie( const std::string& trieClass, const std::string& trieId ) ;
 
 	BELTrie& getTrie() { return *trie ; }
 	const BELTrie& getTrie() const { return *trie ; }
