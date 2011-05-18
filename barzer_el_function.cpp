@@ -11,6 +11,7 @@
 #include <sstream>
 #include <ay/ay_logger.h>
 #include <barzer_date_util.h>
+#include <barzer_datelib.h>
 
 namespace barzer {
 
@@ -236,6 +237,7 @@ struct BELFunctionStorage_holder {
 	BELFunctionStorage_holder(GlobalPools &u) : globPools(u) {
 		// makers
 		ADDFN(mkDate);
+		ADDFN(mkWday);
 		ADDFN(mkTime);
 		ADDFN(mkDateTime);
 		ADDFN(mkRange);
@@ -315,6 +317,26 @@ struct BELFunctionStorage_holder {
 		//date.print(AYLOG(DEBUG) << "date formed: ");
 		setResult(result, date);
 		return true;
+	}
+
+	STFUN(mkWday)
+	{
+		if (rvec.size() < 2) {
+			AYLOG(ERROR) << "mkWday(Number, Number): Need 2 arguments";
+			return false;
+		}
+		try {
+			int fut  = getAtomic<BarzerNumber>(rvec[0]).getInt();
+			uint8_t wday = getAtomic<BarzerNumber>(rvec[1]).getInt();
+			BarzerDate_calc calc;
+			calc.setFuture(fut);
+			calc.setWeekday(wday);
+			setResult(result, calc.d_date);
+			return true;
+		} catch (boost::bad_get) {
+			AYLOG(ERROR) << "mkWday(Number, Number): Wrong argument type";
+		}
+		return false;
 	}
 
 	STFUN(mkTime)
@@ -823,6 +845,13 @@ struct BELFunctionStorage_holder {
 			result.setBeadData(blank);
 		}
 		return true;
+	}
+
+	STFUN(opSelect) {
+		if (rvec.size() < 2) {
+			AYLOG(ERROR) << "opSelect: need at least 2 arguments";
+			return false;
+		}
 	}
 
 	STFUN(opLt)

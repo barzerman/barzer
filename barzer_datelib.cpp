@@ -10,8 +10,17 @@
 
 namespace barzer {
 
+void BarzerDate_calc::set(int year, int month, int day) {
+	time_t t = time(0);
+	struct tm tmdate;
+	localtime_r(&t, &tmdate);
+	tmdate.tm_year = year - 1900;
+	tmdate.tm_mon = month - 1;
+	tmdate.tm_mday = day;
+	d_date.setTime_t(mktime(&tmdate));
+}
 
-void BarzerDate_calc::setFuture(bool fut) {
+void BarzerDate_calc::setFuture(int8_t fut) {
 	d_defaultFuture = fut;
 }
 
@@ -21,20 +30,21 @@ void BarzerDate_calc::setToday() {
 }
 
 
-void BarzerDate_calc::setTodayOffset(int offset) {
-	time_t t = time(0);
-	struct tm tmdate;
-	localtime_r(&t, &tmdate);
-	tmdate.tm_mday += offset;
-	t = mktime(&tmdate);
-	d_date.setTime_t(t);
+void BarzerDate_calc::dayOffset(int offset) {
+	set(d_date.year, d_date.month, d_date.day - offset);
 }
 
-void BarzerDate_calc::setTomorrow() { setTodayOffset(1); }
-void BarzerDate_calc::setYesterday() { setTodayOffset(-1); }
+void BarzerDate_calc::setTomorrow() {
+	setToday();
+	dayOffset(1);
+}
+void BarzerDate_calc::setYesterday() {
+	setToday();
+	dayOffset(-1);
+}
 
 void BarzerDate_calc::setWeekday(uint8_t weekDay) {
-	time_t t = time(0);
+	time_t t = d_date.getTime_t();
 	struct tm tmdate;
 	localtime_r(&t, &tmdate);
 
@@ -45,20 +55,29 @@ void BarzerDate_calc::setWeekday(uint8_t weekDay) {
 		return;
 	}
 
-	if (d_defaultFuture) {
+	switch(d_defaultFuture) {
+	case PAST:
 		if (weekDay > todayWeekDay)
-			setTodayOffset(weekDay - toodayWeekDay);
+			dayOffset( -(todayWeekDay + (7 - weekDay)) );
 		else
-			setTodayOffset( weekDay + (7 - todayWeekDay) );
-	} else {
+			dayOffset( -(todayWeekDay - weekDay) );
+		break;
+	case PRESENT: // this <weekday>
+		dayOffset( weekDay - todayWeekDay );
+		break;
+	case FUTURE:
 		if (weekDay > todayWeekDay)
-			setTodayOffset( -(todayWeekDay + (7 - weekDay)) );
+			dayOffset(weekDay - todayWeekDay);
 		else
-			setTodayOffset( -(todayWeekDay - weekDay) );
+			dayOffset( weekDay + (7 - todayWeekDay) );
+		break;
 	}
 }
 
 
+void BarzerDate_calc::setMonth(int month) {
+	set(d_date.year, d_date.month + month, d_date.day);
+}
 
 
 

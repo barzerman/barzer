@@ -233,6 +233,23 @@ typedef BarzelBeadChain::Range BarzelBeadRange;
 
 std::ostream& operator <<( std::ostream& fp, const BarzelBeadChain::Range& rng ) ;
 
+struct BarzelBeadData_EQ : public boost::static_visitor<bool> {
+	bool operator()(const BarzerEntityList &left, const BarzerEntityList &right) const
+	    { return false; }
+	bool operator()(const BarzerEntityList &left, const BarzerEntityList &right) const
+	    { return false; }
+	bool operator()(const BarzelBeadAtomic &left, const BarzelBeadAtomic &right) const
+		{ return boost::apply_visitor(*this, left, right); }
+	template<class T> bool operator()(const T&, const T&) const { return false; }
+	template<class T, class U> bool operator()(const T&, const U&) const { return false; }
+};
+
+bool operator==(const BarzelBeadData &left, const BarzelBeadData &right)
+{
+	return boost::apply_visitor(BarzelBeadData_EQ(), left, right);
+}
+
+
 struct BeadPrinter : public boost::static_visitor<> {
 	void operator()(const BarzerLiteral &data) {
 		AYLOG(DEBUG) << "BarzerLiteral";

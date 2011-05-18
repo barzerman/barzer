@@ -3,7 +3,8 @@
     xmlns="http://www.barzer.net/barzel/0.1">
     
     <stmt>
-        <pat><any v="word"><t>hey</t><t>a</t><t>the</t></any></pat>
+        <pat>
+            <any v="word"><t>hey</t><t>a</t><t>the</t></any></pat>
         <tran><func name="mkFluff"><var name="word" /></func></tran>
     </stmt>
 </stmset>

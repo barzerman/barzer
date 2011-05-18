@@ -220,7 +220,12 @@ void testDate() {
 	BarzerDate date;
 	date.initToday();
 
+	uint8_t day = 12, month = 4, year = 2010;
+	std::time_t time = (day * 24 * 60 * 60) + (month * 30 * 24 )
+
+
 	std::time_t time = std::time(0);
+	/*
 	std::tm tmdate;
 
 	localtime_r(&time, &tmdate);
@@ -228,9 +233,9 @@ void testDate() {
 	tmdate.tm_year = 2011 - 1900;
 	tmdate.tm_mon = 4 - 1;
 	tmdate.tm_mday = 11;
+*/
 
-
-	std::cout << tmdate.tm_mday << "." << tmdate.tm_mon + 1 << "." << tmdate.tm_year+1900 << "\n";
+	//std::cout << tmdate.tm_mday << "." << tmdate.tm_mon + 1 << "." << tmdate.tm_year+1900 << "\n";
 
 	std::time_t time2 =  std::mktime(&tmdate);
 	std::tm *y = std::localtime( &time2 );
