@@ -12,6 +12,7 @@
 #include <ay/ay_logger.h>
 #include <barzer_date_util.h>
 #include <barzer_datelib.h>
+#include <barzer_el_chain.h>
 
 namespace barzer {
 
@@ -255,6 +256,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(opLt);
 		ADDFN(opGt);
 		ADDFN(opEq);
+		ADDFN(opSelect);
 		// string
 		ADDFN(strConcat);
 		// lookup
@@ -848,10 +850,27 @@ struct BELFunctionStorage_holder {
 	}
 
 	STFUN(opSelect) {
-		if (rvec.size() < 2) {
-			AYLOG(ERROR) << "opSelect: need at least 2 arguments";
+		if (rvec.size() < 3) {
+			AYLOG(ERROR) << "opSelect: need at least 3 arguments";
 			return false;
 		}
+
+		if (!(rvec.size() & 1)) {
+			AYLOG(ERROR) << "opSelect: need an odd amount of arguments";
+		}
+
+		const BarzelBeadData &var = rvec[0].getBeadData();
+
+		for (BarzelEvalResultVec::const_iterator it = rvec.begin()+1;
+												 it != rvec.end(); it += 2) {
+			const BarzelBeadData &rec = it->getBeadData();
+
+			if (beadsEqual(var, rec)) {
+				result.setBeadData((it+1)->getBeadData());
+				return true;
+			} //*/
+		}
+		return false;
 	}
 
 	STFUN(opLt)

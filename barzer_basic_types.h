@@ -278,6 +278,8 @@ struct BarzerDateTime {
 	void setTime( const BarzerTimeOfDay &t )
 		{ timeOfDay = t; }
 };
+
+
 inline bool operator< ( const BarzerDateTime& l, const BarzerDateTime& r )
 	{ return l.lessThan( r ); }
 inline std::ostream& operator<< ( std::ostream& fp, const BarzerDateTime& x )
