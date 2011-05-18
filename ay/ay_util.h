@@ -10,6 +10,7 @@
 #include <ay_debug.h>
 #include <ay_util_char.h>
 #include <stdint.h>
+#include <cstdlib>
 
 namespace ay {
 
@@ -171,6 +172,18 @@ private:
 	vector_raii_p(vector_raii_p&) {}
 	vector_raii_p& operator=(const vector_raii_p &) {}
 };
+
+// bitwise copy semantics
+namespace bcs {
+
+template <typename T>
+inline bool equal( const T& l, const T& r ) 
+	{ return !(memcmp( &l, &r, sizeof(T) )); }
+template <typename T>
+inline bool less( const T& l, const T& r ) 
+	{ return (memcmp( &l, &r, sizeof(T) )<0); }
+
+}
 
 
 }

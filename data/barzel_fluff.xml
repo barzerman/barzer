@@ -4,7 +4,11 @@
     
     <stmt>
         <pat>
-            <any v="word"><t>hey</t><t>a</t><t>the</t></any></pat>
+			<list v="word">
+			<any><t>hey</t><t>a</t><t>the</t></any>
+			<t>shit</t>
+			</list>
+		</pat>
         <tran><func name="mkFluff"><var name="word" /></func></tran>
     </stmt>
 </stmset>
