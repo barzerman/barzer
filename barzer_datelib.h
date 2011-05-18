@@ -1,6 +1,7 @@
 #ifndef BARZER_DATEMANIP_H
 #define BARZER_DATEMANIP_H
 #include <barzer_basic_types.h>
+#include <ay/ay_logger.h>
 /// barzer date calculators (BDM) for relative date overrides
 /// there are 2 types of calculators: 
 /// 1) Boundary calculator - computes boundary of time range 
@@ -21,17 +22,19 @@ struct BarzerDate_calc {
 	/// "on thursday" could mean next thursday or last thursday depending on this 
 	/// compare "what sitcoms are playing on thursday"  to "what sitcoms were playing on thursday"
 	///
-	bool d_defaultFuture; 
+	int8_t d_defaultFuture;
 
-	BarzerDate_calc( const BarzerDate& d, bool fut ) : d_date(d), d_defaultFuture(fut) {}
-	BarzerDate_calc( ) : d_defaultFuture(true) {}
-	BarzerDate_calc( bool fut ) : d_defaultFuture(fut) {}
+	BarzerDate_calc( const BarzerDate& d, int8_t fut ) : d_date(d), d_defaultFuture(fut) {}
+	BarzerDate_calc( ) : d_defaultFuture(1) {}
+	BarzerDate_calc( int8_t fut ) : d_defaultFuture(fut) {}
 
 
-	void setFuture(bool);
+	void set(int year, int month, int day);
+
+	void setFuture(int8_t);
 
 	void setToday( );
-	void setTodayOffset(int);
+	void dayOffset(int);
 	void setTomorrow( );
 	void setYesterday( );
 	
@@ -64,6 +67,12 @@ struct BarzerDate_calc {
 		
 	};
 	
+	enum {
+		PAST = -1,
+		PRESENT,
+		FUTURE
+	};
+
 	void setAbsoluteMonthPoint( int month, int monPer );
 
 	void addBizDays( int n, uint32_t calendarId );
@@ -71,10 +80,10 @@ struct BarzerDate_calc {
 
 /// date range calculator 
 struct BarzerDate_range_calc {
-	BarerDate d_lo, d_hi;
+	BarzerDate d_lo, d_hi;
 	bool d_defaultFuture; 
 
-	BarzerDate_range_calc( const BarerDate& l, const BarerDate& r) : d_defaultFuture(true) {}
+	BarzerDate_range_calc( const BarzerDate& l, const BarzerDate& r) : d_defaultFuture(true) {}
 	BarzerDate_range_calc() : d_defaultFuture(true) {}
 	BarzerDate_range_calc(bool fut ) : d_defaultFuture(fut) {}
 
@@ -109,7 +118,7 @@ struct BarzerDate_range_calc {
 };
 
 struct BarzerTime_calc {
-	BarzerTime d_time;
+	BarzerTimeOfDay d_time;
 	enum {
 		PER_BEG_OF_HOUR,
 		PER_END_OF_HOUR,
@@ -119,7 +128,7 @@ struct BarzerTime_calc {
 		PER_AFTERNOON,
 		PER_NIGHT
 	};
-	BarzerTime_calc( const BarzerTime& t ) : d_time(t) {}
+	BarzerTime_calc( const BarzerTimeOfDay &t ) : d_time(t) {}
 	/// per - one of the PER constnats
 	void setPeriod( int per ); 
 };
@@ -137,5 +146,4 @@ struct BarzerTime_calc {
 
 };
 
-}
 #endif // BARZER_DATEMANIP_H

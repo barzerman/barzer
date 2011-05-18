@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
     xmlns="http://www.barzer.net/barzel/0.1">
-
+<stmt>
+    <pat>
+    <any v="foo">
+        <t>foo</t>
+        <t>bar</t>
+        <t>baz</t>
+    </any></pat>
+    <tran>
+    <func name="opSelect">
+    <var name="foo" />
+    <ltrl>foo</ltrl><rn v="1" />
+    <ltrl>bar</ltrl><rn v="2" />
+    <ltrl>baz</ltrl><rn v="3" />
+    </func>
+    </tran>
+</stmt>
 </stmset>
