@@ -14,18 +14,27 @@
 
 namespace barzer {
 
-BarzerSettings::BarzerSettings(StoredUniverse &u)
+/*BarzerSettings::BarzerSettings(StoredUniverse &u)
 	: universe(u), reader(&u.getBarzelTrie(), u) {
 	init();
-}
+} //*/
+
+BarzerSettings::BarzerSettings(GlobalPools &gp)
+	: gpools(gp) {
+	init();
+} //*/
+
 
 void BarzerSettings::init() {
-	reader.initParser(BELReader::INPUT_FMT_XML);
+	//reader.initParser(BELReader::INPUT_FMT_XML);
 	BarzerDate::initToday();
 }
 
 void BarzerSettings::loadRules(const char *fname) {
-	BELReader r(&universe.getBarzelTrie(), universe);
+#warning "need to change the reader not to require trie and universe for its input"
+	StoredUniverse *u = gpools.getUniverse(0);
+	BELReader r(&(u->getBarzelTrie()), *u);
+
 	int num = r.loadFromFile(fname, BELReader::INPUT_FMT_XML);
 	std::cout << num << " statements loaded from `" << fname << "'\n";
 }

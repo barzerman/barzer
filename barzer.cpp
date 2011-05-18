@@ -131,8 +131,8 @@ void print_usage(const char* prg_name) {
 }
 
 
-void init_universe(barzer::StoredUniverse &u, ay::CommandLineArgs &cmdlProc) {
-    barzer::BarzerSettings &st = u.getSettings();
+void init_gpools(barzer::GlobalPools &gp, ay::CommandLineArgs &cmdlProc) {
+    barzer::BarzerSettings &st = gp.getSettings();
 
     bool hasArg = false;
     const char *fname = cmdlProc.getArgVal(hasArg, "-cfg", 0);
@@ -151,7 +151,7 @@ int main( int argc, char * argv[] ) {
 	barzer::GlobalPools globPool;
 	barzer::StoredUniverse &universe = globPool.produceUniverse(0);
 
-	init_universe(universe, cmdlProc);
+	init_gpools(globPool, cmdlProc);
 
 	//g_universe = &universe;
 

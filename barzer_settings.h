@@ -16,15 +16,17 @@
 #include <ay/ay_logger.h>
 
 namespace barzer {
-class StoredUniverse;
+class GlobalPools;
 class BarzerSettings {
-	StoredUniverse &universe;
-	BELReader reader;
+	GlobalPools &gpools;
+	//StoredUniverse &universe;
+	//BELReader reader;
 
 	boost::property_tree::ptree pt;
 public:
 	//BarzerSettings(StoredUniverse&, const char*);
-	BarzerSettings(StoredUniverse&);
+	//BarzerSettings(StoredUniverse&);
+	BarzerSettings(GlobalPools&);
 
 
 	void init();

@@ -173,6 +173,8 @@ public:
 
 	UniverseMap d_uniMap;
 
+	BarzerSettings settings;
+
 	/// this will create the "wellknown" entities 
 	StoredUniverse& produceUniverse( uint32_t id );
 
@@ -188,6 +190,10 @@ public:
 	      StoredUniverse* getDefaultUniverse()       { return getUniverse( DEFAULT_UNIVERSE_ID ) ; }
 	const StoredUniverse* getDefaultUniverse() const { return getUniverse( DEFAULT_UNIVERSE_ID ) ; }
 
+	const BarzerSettings& getSettings() const { return settings; }
+	BarzerSettings& getSettings() { return settings; }
+
+
 	GlobalPools();
 	~GlobalPools();
 };
@@ -198,7 +204,7 @@ class StoredUniverse {
 	UniverseTrieCluster          trieCluster; 
 	mutable UniverseTrieClusterIterator trieClusterIter;
 
-	BarzerSettings settings;
+	//BarzerSettings settings;
 	friend class QSemanticParser;
 
 	void  getToFirstTrie() const { trieClusterIter.reset(); }
@@ -270,8 +276,10 @@ public:
 
 	const BELFunctionStorage& getFunctionStorage() const { return gp.funSt; }
 	const DateLookup& getDateLookup() const { return gp.dateLookup; }
+	/*
 	const BarzerSettings& getSettings() const { return settings; }
 	BarzerSettings& getSettings() { return settings; }
+	//*/
 	
 	const char* getGenericSubclassName( uint16_t subcl ) const;
 }; 
