@@ -182,7 +182,7 @@ public:
 		return ( i == d_uniMap.end() ? 0 : i->second );
 	}
 	StoredUniverse* getUniverse( uint32_t id )
-	{ return const_cast<StoredUniverse*>( ((const GlobalPools*)this)->getUniverse(id) ); }
+		{ return const_cast<StoredUniverse*>( ((const GlobalPools*)this)->getUniverse(id) ); }
 
 	void createGenericEntities();
 	      StoredUniverse* getDefaultUniverse()       { return getUniverse( DEFAULT_UNIVERSE_ID ) ; }
@@ -279,9 +279,10 @@ public:
 inline StoredUniverse& GlobalPools::produceUniverse( uint32_t id )
 {
 	StoredUniverse * p = getUniverse( id );
-	if( !p ) 
+	if( !p ) { 
 		p = new StoredUniverse( *this );
-	
+		d_uniMap[ id ] = p;	
+	}
 	return *p;
 }
 
