@@ -17,6 +17,7 @@
 #include <barzer_parse.h>
 #include <barzer_server_response.h>
 
+
 extern "C" {
 #include <expat.h>
 };
@@ -37,16 +38,23 @@ class BarzerRequestParser {
 		std::string body;
 	};
 	std::vector<RequestTag> tagStack;
-	StoredUniverse &universe;
+
+	Barz barz;
+
+	GlobalPools &gpools;
+	uint32_t userId;
+
+	/*
 	Barz barz;
 	QParser qparser;
 	BarzStreamerXML response;
+	*/
 
 	std::ostream &os;
 public:
 	XML_Parser parser;
 
-	BarzerRequestParser(StoredUniverse &u, std::ostream &s);
+	BarzerRequestParser(GlobalPools&, std::ostream &s);
 	~BarzerRequestParser();
 
 	int parse(const char *buf, const size_t len) {

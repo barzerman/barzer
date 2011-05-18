@@ -43,13 +43,12 @@ class AsyncServer {
     tcp::acceptor acceptor_;
 
     // should probably change this to be initialized in main() or something
-    StoredUniverse &universe;
+    GlobalPools &gpools;
 
 public:
-    //AsyncServer(StoredUniverse &u, boost::asio::io_service& io_service, short port)
-    AsyncServer(StoredUniverse &u, boost::asio::io_service& io_service, short port)
+    AsyncServer(GlobalPools &gp, boost::asio::io_service& io_service, short port)
     	: io_service_(io_service),
-    	  acceptor_(io_service, tcp::endpoint(tcp::v4(), port)), universe(u)
+    	  acceptor_(io_service, tcp::endpoint(tcp::v4(), port)), gpools(gp)
     {
         SearchSession *new_session = new SearchSession(io_service_, this);
         acceptor_.async_accept(new_session->socket(),
@@ -64,16 +63,7 @@ public:
     void query(const char*, const size_t, std::ostream&);
 
     void init() {
-/*    	BELTrie &trie = universe.getBarzelTrie();
-    	BELReader reader(&trie, universe);
-    	reader.initParser(BELReader::INPUT_FMT_XML);
-    	char fname[] = "barzel_rules.xml";
-    	int numsts = reader.loadFromFile(fname);
-    	*/
-/*    	BarzerSettings &set = universe.getSettings();
-    	set.load();
-    	*/
-    	//AYLOG(DEBUG) << numsts << " statements read from `" << fname << "'";
+    	//
     }
 };
 
@@ -148,17 +138,17 @@ void AsyncServer::handle_accept(SearchSession *new_session,
 }
 
 void AsyncServer::query(const char* buf, const size_t len, std::ostream& os) {
-	BarzerRequestParser rp(universe, os);
+	BarzerRequestParser rp(gpools, os);
 	rp.parse(buf, len);
 }
 
 
 
-int run_server(StoredUniverse &u, uint16_t port) {
+int run_server(GlobalPools &gp, uint16_t port) {
 	ay::Logger::getLogger()->setFile("barzer_server.log");
 	boost::asio::io_service io_service;
 	std::cerr << "Running barzer search server on port " << port << "..." << std::endl;
-	AsyncServer s(u, io_service, port);
+	AsyncServer s(gp, io_service, port);
 	s.init();
 	io_service.run();
 

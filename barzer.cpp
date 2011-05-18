@@ -149,7 +149,7 @@ int main( int argc, char * argv[] ) {
 	ay::CommandLineArgs cmdlProc;
 	cmdlProc.init(argc, argv);
 	barzer::GlobalPools globPool;
-	barzer::StoredUniverse universe(globPool);
+	barzer::StoredUniverse &universe = globPool.produceUniverse(0);
 
 	init_universe(universe, cmdlProc);
 
@@ -165,10 +165,10 @@ int main( int argc, char * argv[] ) {
             } else if (strcasecmp(argv[1], "server") == 0) {
                 if (argc >= 3) {
                     // port is specified on command line
-                    return barzer::run_server(universe, std::atoi(argv[2]));
+                    return barzer::run_server(globPool, std::atoi(argv[2]));
                 } else {
                     // run on default port
-                    return barzer::run_server(universe, SERVER_PORT);
+                    return barzer::run_server(globPool, SERVER_PORT);
                 }
             } else if (strcasecmp(argv[1], "test") == 0) {
             	return run_test(universe, cmdlProc);

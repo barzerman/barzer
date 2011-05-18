@@ -527,7 +527,6 @@ static int bshf_stexpand( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
-
 static int bshf_querytest( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext *context = shell->getBarzerContext();
@@ -543,7 +542,7 @@ static int bshf_querytest( BarzerShell* shell, char_cp cmd, std::istream& in )
 		while (num--) {
 			std::string str = "<query>mama myla 2 ramy</query>";
 			std::stringstream ss;
-			BarzerRequestParser rp(uni, ss);
+			BarzerRequestParser rp(uni.getGlobalPools(), ss);
 			rp.parse(str.c_str(), str.size());
 		}
 		shell->getOutStream() << "done in " << totalTimer.calcTime() << "\n";

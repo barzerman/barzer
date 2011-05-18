@@ -45,8 +45,8 @@ static void charDataHandle( void * ud, const XML_Char *str, int len)
 
 namespace barzer {
 
-BarzerRequestParser::BarzerRequestParser(StoredUniverse &u, std::ostream &s)
-	: universe(u), qparser(u), response(barz, u), os(s)
+BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s)
+	: gpools(gp), userId(0)/* qparser(u), response(barz, u) */, os(s)
 {
 		parser = XML_ParserCreate(NULL);
 		XML_SetUserData(parser, this);
@@ -91,6 +91,11 @@ void BarzerRequestParser::process(const char *name) {
 
 
 void BarzerRequestParser::command_query() {
+	StoredUniverse &u = gpools.produceUniverse(userId);
+
+	QParser qparser(u);
+	BarzStreamerXML response(barz, u);
+
 	QuestionParm qparm;
 	qparser.parse( barz, getTag().body.c_str(), qparm );
 	response.print(os);

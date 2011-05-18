@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
-    <tries>
-        <trie>mama</trie>
-        <trie>myla</trie>
-    </tries>
     <rules>
-        <file trie="mama">data/barzel_prices.xml</file>
+        <file>data/barzel_prices.xml</file>
         <file>data/barzel_dates.xml</file>
         <file>data/barzel_fluff.xml</file>
         <file>barzel_rules.xml</file>
@@ -14,4 +10,11 @@
         <level>DEBUG</level>
         <file>barzer.log</file>
     </logging>
+    <users>
+        <user id="1">
+            <trieset>
+                <trie class="class1" name="1" />
+            </trieset>
+        </user>
+    </users>
 </config>

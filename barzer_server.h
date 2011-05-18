@@ -13,7 +13,7 @@
 #include <barzer_server_request.h>
 
 namespace barzer {
-int run_server(StoredUniverse&, uint16_t);
+int run_server(GlobalPools&, uint16_t);
 }
 
 #endif
