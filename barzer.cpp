@@ -145,7 +145,7 @@ void init_universe(barzer::StoredUniverse &u, ay::CommandLineArgs &cmdlProc) {
 
 int main( int argc, char * argv[] ) {
 	AYLOGINIT(DEBUG);
-	ay::Logger::getLogger()->setFile("barzer.log");
+	//ay::Logger::getLogger()->setFile("barzer.log");
 	ay::CommandLineArgs cmdlProc;
 	cmdlProc.init(argc, argv);
 	barzer::GlobalPools globPool;

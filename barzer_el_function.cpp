@@ -330,8 +330,8 @@ struct BELFunctionStorage_holder {
 		try {
 			int fut  = getAtomic<BarzerNumber>(rvec[0]).getInt();
 			uint8_t wday = getAtomic<BarzerNumber>(rvec[1]).getInt();
-			BarzerDate_calc calc;
-			calc.setFuture(fut);
+			BarzerDate_calc calc(fut);
+			calc.setToday();
 			calc.setWeekday(wday);
 			setResult(result, calc.d_date);
 			return true;

@@ -147,7 +147,6 @@ struct BarzerDate {
 	time_t getTime_t() const;
 	void setTime_t(time_t time);
 
-
 	bool isFull() const { return((year!=INVALID_YEAR) && month && day); }
 	
 	/// returns true if y represents a year which can be reasonably assumed by a business application

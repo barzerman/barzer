@@ -21,7 +21,7 @@ void BarzerDate::initToday()
     localtime_r(&t, & theTm);
 	thisMonth = theTm.tm_mon+1;
 	thisDay = theTm.tm_mday;
-	thisYear = theTm.tm_year;
+	thisYear = theTm.tm_year + 1900;
 	longToday = 10000* (int)thisYear + 1000 * (int) thisMonth + thisDay;
 }
 

@@ -1,6 +1,7 @@
 #ifndef BARZER_DATEMANIP_H
 #define BARZER_DATEMANIP_H
 #include <barzer_basic_types.h>
+#include <ay/ay_logger.h>
 /// barzer date calculators (BDM) for relative date overrides
 /// there are 2 types of calculators: 
 /// 1) Boundary calculator - computes boundary of time range 

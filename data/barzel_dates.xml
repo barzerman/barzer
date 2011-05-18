@@ -202,7 +202,7 @@
 
     <stmt>
         <pat>
-            <t>last</t>
+            <any v="time"><t>last</t><t>this</t><t>next</t></any>
             <any v="wday">
                 <t>monday</t>
                 <t>tuesday</t>
@@ -216,7 +216,11 @@
         </pat>
         <tran>
             <func name="mkWday">
-                <rn v="0" />
+                <func name="opSelect"><var name="time" />
+                <ltrl>last</ltrl><rn v="-1" />
+                <ltrl>this</ltrl><rn v="0" />
+                <ltrl>next</ltrl><rn v="1" />
+                </func>
                 <func name="lookupWday"><var name="wday" /></func>
             </func>
         </tran>
