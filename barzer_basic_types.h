@@ -445,6 +445,13 @@ struct BarzerERCExpr {
 	BarzerERCExpr( uint16_t t = T_LOGIC_AND ) : d_type(t), d_subtype(0) {}
 
 	const char* getTypeName() const ;
+
+	uint16_t getSubtype() const { return d_subtype; }
+	uint16_t getType() const { return d_type; }
+
+	void setSubtype(uint16_t t ) { d_subtype=t; }
+	void setType( uint16_t t ) { d_type=t; }
+
 	void addToExpr( const BarzerEntityRangeCombo& erc, uint16_t type = T_LOGIC_AND ) 
 	{
 		if( type == d_type ) {

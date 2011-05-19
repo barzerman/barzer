@@ -234,6 +234,10 @@ public:
 		(*this)(data.getRange());
 		os << "</erc>";
 	}
+	void operator()(const BarzerERCExpr &data) {
+		#warning implement me, Polter
+		os << "<ercexpr/>";
+	}
 };
 }
 

@@ -240,18 +240,24 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 	void operator()( const BTND_Pattern_Number& p ) {
 		BarzelWCKey wcKey;
 		trie.wcPool->produceWCKey( wcKey, p );
-		if( wcKey.wcType != BTND_Pattern_Number_TYPE ) {
-			AYDEBUG( "TRIE PANIC" );
-		}
+		if( wcKey.wcType != BTND_Pattern_Number_TYPE ) { AYDEBUG( "TRIE PANIC" ); }
+
 		key.type=BTND_Pattern_Number_TYPE;
 		key.id=wcKey.wcId;
+	}
+	void operator()( const BTND_Pattern_ERCExpr& p ) {
+		BarzelWCKey wcKey;
+		trie.wcPool->produceWCKey( wcKey, p );
+		if( wcKey.wcType != BTND_Pattern_ERCExpr_TYPE ) { AYDEBUG( "TRIE PANIC" ); }
+
+		key.type = BTND_Pattern_ERCExpr_TYPE;
+		key.id = wcKey.wcId;
 	}
 	void operator()( const BTND_Pattern_Entity& p ) {
 		BarzelWCKey wcKey;
 		trie.wcPool->produceWCKey( wcKey, p );
-		if( wcKey.wcType != BTND_Pattern_Entity_TYPE ) {
-			AYDEBUG( "TRIE PANIC" );
-		}
+		if( wcKey.wcType != BTND_Pattern_Entity_TYPE ) { AYDEBUG( "TRIE PANIC" ); }
+
 		key.type=BTND_Pattern_Entity_TYPE;
 		key.id=wcKey.wcId;
 	}

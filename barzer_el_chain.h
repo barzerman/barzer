@@ -32,7 +32,8 @@ typedef boost::variant<
 	BarzerRange,
 	BarzerEntityList,
 	BarzerEntity,
-	BarzerEntityRangeCombo
+	BarzerEntityRangeCombo,
+	BarzerERCExpr
 > BarzelBeadAtomic_var;
 enum {
 	BarzerLiteral_TYPE, 
@@ -44,7 +45,8 @@ enum {
 	BarzerRange_TYPE,
 	BarzerEntityList_TYPE,
 	BarzerEntity_TYPE,
-	BarzerEntityRangeCombo_TYPE
+	BarzerEntityRangeCombo_TYPE,
+	BarzerERCExpr_TYPE
 };
 struct BarzelBeadAtomic {
 	BarzelBeadAtomic_var dta;

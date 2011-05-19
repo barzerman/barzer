@@ -416,6 +416,34 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		}
 		return false;
 	}
+	template <>
+	bool findMatchingChildren_visitor::doFirmMatch<BarzerERCExpr>( const BarzelFCMap& fcmap, const BarzerERCExpr& dta, bool allowBlanks) 
+	{
+		BarzelTrieFirmChildKey firmKey((uint8_t)(BTND_Pattern_ERCExpr_TYPE),0xffffffff); 
+		// forming firm key
+		// we ignore the whole allow blanks thing for dates - blanks will just always be allowed
+		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey );
+		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool();
+		for( ; i!= fcmap.end() && i->first.type == BTND_Pattern_ERCExpr_TYPE; ++i ) {
+			/// we're looping over all date wildcards on the current node 
+			/// extracting the actual wildcard 
+			if( i->first.id == 0xffffffff ) {
+				const BarzelTrieNode* ch = &(i->second);
+				BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);
+				d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+			} else {
+				const BTND_Pattern_ERCExpr* dpat = wcPool.get_BTND_Pattern_ERCExpr( i->first.id );
+				if( !dpat ) return false;
+				if( evalWildcard_vis<BTND_Pattern_ERCExpr>(*dpat)( dta )  ) {
+				//if( boost::apply_visitor( evalWildcard_vis<BTND_Pattern_ERCExpr>(*dpat), dta ) ) {}
+					d_mtChild.push_back( NodeAndBeadVec::value_type(
+						&(i->second),
+						BarzelBeadChain::Range(d_rng.first,d_rng.first)) );
+				}
+			}
+		}
+		return false;
+	}
 
 	template <>
 inline	bool findMatchingChildren_visitor::operator()<BarzerLiteral> ( const BarzerLiteral& dta ) 

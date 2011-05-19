@@ -27,7 +27,10 @@ class BarzelWildcardPool {
 	ay::InternerWithId<BTND_Pattern_DateTime> 	pool_DateTime;
 	ay::InternerWithId<BTND_Pattern_Wildcard> 	pool_Wildcard;
 	ay::InternerWithId<BTND_Pattern_Entity> 	pool_Entity;
+	ay::InternerWithId<BTND_Pattern_ERCExpr> 	pool_ERCExpr;
 public:
+	const BTND_Pattern_ERCExpr* 	get_BTND_Pattern_ERCExpr( uint32_t id ) const 
+		{ return pool_ERCExpr.getObjById( id ); }
 	const BTND_Pattern_Entity* 	get_BTND_Pattern_Entity( uint32_t id ) const 
 		{ return pool_Entity.getObjById( id ); }
 	const BTND_Pattern_Number* 	get_BTND_Pattern_Number( uint32_t id ) const 
@@ -89,6 +92,12 @@ public:
 		key.wcType = BTND_Pattern_Entity_TYPE;
 		key.wcId = pool_Entity.produceIdByObj( x );
 	}
+	void produceWCKey( BarzelWCKey& key, const BTND_Pattern_ERCExpr& x )
+	{
+		key.wcType = BTND_Pattern_ERCExpr_TYPE;
+		key.wcId = pool_ERCExpr.produceIdByObj( x );
+	}
+
 
 	inline void produceWCKey( BarzelWCKey& k, const BTND_PatternData& x )
 	{
@@ -99,6 +108,7 @@ public:
 		case BTND_Pattern_DateTime_TYPE: produceWCKey(k, boost::get<BTND_Pattern_DateTime>(x) ); return;
 		case BTND_Pattern_Time_TYPE: produceWCKey(k, boost::get<BTND_Pattern_Time>(x) ); return;
 		case BTND_Pattern_Entity_TYPE: produceWCKey(k, boost::get<BTND_Pattern_Entity>(x) ); return;
+		case BTND_Pattern_ERCExpr_TYPE: produceWCKey(k, boost::get<BTND_Pattern_ERCExpr>(x) ); return;
 		default: k.clear(); return;
 		}
 	}
@@ -112,6 +122,7 @@ public:
 		"pool_Time:" << (pool_Time.getVecSize()) <<"\n" <<
 		"pool_DateTime:" << (pool_DateTime.getVecSize()) <<"\n" <<
 		"pool_Entity:" << (pool_Entity.getVecSize()) <<"\n" <<
+		"pool_ERCExpr:" << (pool_ERCExpr.getVecSize()) <<"\n" <<
 		"pool_Wildcard:" << (pool_Wildcard.getVecSize()) )<< "\n" ;
 	}
 	std::ostream& print( std::ostream& fp, const BarzelWCKey& key, const BELPrintContext& ctxt ) const;

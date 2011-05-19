@@ -44,6 +44,12 @@ std::ostream& BarzelWildcardPool::print( std::ostream& fp, const BarzelWCKey& ke
 		if( pat ) pat->print(fp,ctxt); else fp << "<null>";
 	}
 		break;
+	case BTND_Pattern_ERCExpr_TYPE: 
+	{
+		const BTND_Pattern_ERCExpr* pat = pool_ERCExpr.getObjById( wcId );
+		if( pat ) pat->print(fp); else fp << "<null>";
+	}
+		break;
 	default: fp << "<undefined>";
 	}
 	return fp;
