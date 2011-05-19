@@ -2,7 +2,7 @@
 <stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
     xmlns="http://www.barzer.net/barzel/0.1">
     
-    <stmt>
+    <!-- stmt>
         <pat>
 			<list v="word">
 			<any><t>hey</t><t>a</t><t>the</t></any>
@@ -10,5 +10,10 @@
 			</list>
 		</pat>
         <tran><func name="mkFluff"><var name="word" /></func></tran>
+    </stmt -->
+    
+    <stmt>
+    <pat><t>foo</t><t /></pat>
+    <tran><ltrl>foo2</ltrl></tran>
     </stmt>
 </stmset>

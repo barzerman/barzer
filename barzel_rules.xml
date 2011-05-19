@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
     xmlns="http://www.barzer.net/barzel/0.1">
-<stmt>
+<!-- stmt>
     <pat>
         <list v="left"><ent /></list>
         <t>and</t>
@@ -14,5 +14,40 @@
             <var name="right" />
         </func>
     </tran>
-</stmt>
+</stmt -->
+
+    <stmt>
+        <pat>
+            <any v="mon">
+            <t>january</t><t>jan</t>
+            <t>february</t><t>feb</t>
+            <t>march</t><t>mar</t>
+            <t>april</t><t>apr</t>
+            <t>may</t>
+            <t>june</t><t>jun</t>
+            <t>july</t><t>jul</t>
+            <t>august</t><t>aug</t>
+            <t>september</t><t>sep</t>
+            <t>october</t><t>oct</t>
+            <t>november</t><t>nov</t>
+            <t>december</t><t>dec</t>
+            </any>
+            <list v="day"><n l="1" h="31" /></list>
+        </pat>
+        <tran>
+            <func name="mkDate">
+                <var name="day" />
+                <func name="lookupMonth"><var name="mon" /></func>
+            </func>
+        </tran>
+    </stmt>
+
+    <stmt>
+        <pat>
+            <t>foo</t><date />
+        </pat>
+        <tran>
+            <ltrl>foo</ltrl>
+        </tran>
+    </stmt>
 </stmset>
