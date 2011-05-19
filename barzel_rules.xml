@@ -3,18 +3,16 @@
     xmlns="http://www.barzer.net/barzel/0.1">
 <stmt>
     <pat>
-    <any v="foo">
-        <t>foo</t>
-        <t>bar</t>
-        <t>baz</t>
-    </any></pat>
+        <list v="left"><ent /></list>
+        <t>and</t>
+        <list v="right"><ent /></list>
+    </pat>
     <tran>
-    <func name="opSelect">
-    <var name="foo" />
-    <ltrl>foo</ltrl><rn v="1" />
-    <ltrl>bar</ltrl><rn v="2" />
-    <ltrl>baz</ltrl><rn v="3" />
-    </func>
+        <func name="mkErcExpr">
+            <ltrl>AND</ltrl>
+            <var name="left" />
+            <var name="right" />
+        </func>
     </tran>
 </stmt>
 </stmset>

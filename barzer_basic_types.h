@@ -446,12 +446,15 @@ struct BarzerERCExpr {
 
 	BarzerERCExpr( const BarzerERCExpr& x ) : d_data(x.d_data), d_type(x.d_type), d_eclass(x.d_eclass) {}
 	BarzerERCExpr( ) : d_type(T_LOGIC_AND ), d_eclass(EC_LOGIC) {}
-	BarzerERCExpr( uint16_t t = T_LOGIC_AND ) : d_type(t), d_eclass(EC_LOGIC) {}
+	//BarzerERCExpr( uint16_t t = T_LOGIC_AND ) : d_type(t), d_eclass(EC_LOGIC) {}
+	BarzerERCExpr( uint16_t t ) : d_type(t), d_eclass(EC_LOGIC) {}
 
 	const char* getTypeName() const ;
 
 	uint16_t getEclass() const { return d_eclass; }
 	uint16_t getType() const { return d_type; }
+
+	const DataList& getData() const { return d_data; }
 
 	void setEclass(uint16_t t ) { d_eclass=t; }
 	void setType( uint16_t t ) { d_type=t; }

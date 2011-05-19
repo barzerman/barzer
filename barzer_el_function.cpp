@@ -244,6 +244,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(mkRange);
 		ADDFN(mkEnt);
 		ADDFN(mkERC);
+		ADDFN(mkErcExpr);
 		ADDFN(mkFluff);
 		// arith
 		ADDFN(opPlus);
@@ -693,6 +694,56 @@ struct BELFunctionStorage_holder {
 		return true;
 	}
 
+	struct ErcExprPacker : public boost::static_visitor<bool> {
+		BarzerERCExpr expr;
+		GlobalPools &gpools;
+		ErcExprPacker(GlobalPools &gp) : gpools(gp) {}
+
+		bool operator()(const BarzerLiteral &ltrl) {
+			ay::UniqueCharPool &sp = gpools.stringPool;
+			if (ltrl.getId() == sp.internIt("and")) {
+				//AYLOG(DEBUG) << "AND";
+				expr.setType(BarzerERCExpr::T_LOGIC_AND);
+			} else if (ltrl.getId() == sp.internIt("or")) {
+				//AYLOG(DEBUG) << "OR";
+				expr.setType(BarzerERCExpr::T_LOGIC_OR);
+			} else {
+				AYLOG(ERROR) << "mkErcExpr(Literal,ERC,ERC ...):"
+							 << "Unknown literal: " << sp.resolveId(ltrl.getId());
+				return false;
+			}
+			return true;
+		}
+		bool operator()(const BarzerEntityRangeCombo &erc) {
+			expr.addToExpr(erc, expr.d_type);
+			return true;
+		}
+		bool operator()(const BarzelBeadAtomic &data) {
+			return boost::apply_visitor(*this, data.getData());
+		}
+		// not applicable
+		template<class T> bool operator()(const T& v) {
+			AYLOG(ERROR) << "mkErcExpr(Literal,ERC,ERC ...): Type mismatch";
+			return false;
+		}
+	};
+
+	STFUN(mkErcExpr)
+	{
+		if (rvec.size() < 3) {
+			AYLOG(ERROR) << "mkErcExpr(Literal,ERC,ERC ...): needs at least 3 arguments";
+			return false;
+		}
+
+		ErcExprPacker p(globPools);
+
+		for(BarzelEvalResultVec::const_iterator it = rvec.begin();
+											    it != rvec.end(); ++it) {
+			if (!boost::apply_visitor(p, it->getBeadData())) return false;
+		}
+		setResult(result, p.expr);
+		return true;
+	}
 
 	STFUN(mkPriceRC)
 	{

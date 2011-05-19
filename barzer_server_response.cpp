@@ -225,8 +225,8 @@ public:
 						         &unit = data.getUnitEntity();
 
 		os << "<erc>";
-			(*this)(ent);
-		if (unit.eclass.ec && unit.eclass.subclass) {
+		(*this)(ent);
+		if (unit.isValid()) {
 			os << "<unit>";
 			(*this)(unit);
 			os << "</unit>";
@@ -234,9 +234,15 @@ public:
 		(*this)(data.getRange());
 		os << "</erc>";
 	}
-	void operator()(const BarzerERCExpr &data) {
-		#warning implement me, Polter
-		os << "<ercexpr/>";
+	void operator()(const BarzerERCExpr &exp) {
+		os << "<ercexpr type=\"" << exp.getTypeName() << "\">";
+		const BarzerERCExpr::DataList &list = exp.getData();
+		for (BarzerERCExpr::DataList::const_iterator it = list.begin();
+													 it != list.end(); ++it) {
+			boost::apply_visitor(*this, *it);
+		}
+
+		os << "</ercexpr>";
 	}
 };
 }

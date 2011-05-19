@@ -31,7 +31,6 @@ void BarzerSettings::init() {
 }
 
 void BarzerSettings::loadRules(const char *fname) {
-#warning "need to change the reader not to require trie and universe for its input"
 	StoredUniverse *u = gpools.getUniverse(0);
 	BELReader r(&(u->getBarzelTrie()), *u);
 
