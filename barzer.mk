@@ -44,6 +44,18 @@ lg_ru/barzer_ru_lex.o \
 lg_en/barzer_en_date_util.o \
 lg_ru/barzer_ru_date_util.o \
 
+DIST_FILES = \
+	$(BINARY) \
+	config.xml \
+	barzel_rules.xml
+DIST_DATA_FILES = \
+	data/barzel_prices.xml \
+	data/barzel_dates.xml \
+	data/barzel_fluff.xml 
+
+INSTALL_DIR = /usr/share/barzer
+INSTALL_DATA_DIR = $(INSTALL_DIR)/data
+
 all: ay/libay.a $(objects) 
 	$(CC) $(LINKFLAGS) -o  $(BINARY) $(objects) $(libs)
 clean: 
@@ -65,3 +77,8 @@ rebuild: clean aylib all
 .PHONY : test
 test: all
 	cd test; rake test
+
+install:
+	install -d $(INSTALL_DIR) $(INSTALL_DATA_DIR)
+	install $(DIST_FILES) $(INSTALL_DIR)
+	install $(DIST_DATA_FILES) $(INSTALL_DATA_DIR)
