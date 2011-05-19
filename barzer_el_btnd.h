@@ -379,6 +379,27 @@ inline bool operator< ( const BTND_Pattern_Entity& l, const BTND_Pattern_Entity&
 {
 	return l.lessThan( r );
 }
+class BTND_Pattern_ERCExpr : public BTND_Pattern_Base {
+	uint16_t d_exprType, d_exprEclass;
+public:
+	BTND_Pattern_ERCExpr() : d_exprType(BarzerERCExpr::T_LOGIC_AND),d_exprEclass(0) {} 
+	
+
+	void setExprType(uint16_t t) { d_exprType= t; }
+	uint16_t getExprType() const { return d_exprType; }
+	uint16_t getExprSubtype() const { return d_exprEclass; }
+	void setEclass(uint16_t t) { d_exprEclass=t; }
+
+	bool operator()( const BarzerERCExpr& e) const { return ( d_exprEclass== BarzerERCExpr::EC_ARBITRARY || d_exprEclass == e.getEclass() ); } 
+	bool lessThan( const BTND_Pattern_ERCExpr& r ) const {
+		return (d_exprEclass < r.d_exprEclass);
+
+	}
+	std::ostream& print( std::ostream& fp ) const 
+		{ return (fp << d_exprEclass << ":" << d_exprType ); }
+};
+inline bool operator<( const BTND_Pattern_ERCExpr& l, const BTND_Pattern_ERCExpr& r ) 
+{ return l.lessThan(r); }
 /// blank data type 
 struct BTND_Pattern_None : public BTND_Pattern_Base{
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
@@ -397,7 +418,8 @@ typedef boost::variant<
 		BTND_Pattern_Time,     			// 7
 		BTND_Pattern_DateTime, 			// 8 
 		BTND_Pattern_StopToken,		 	// 9
-		BTND_Pattern_Entity			    // 10
+		BTND_Pattern_Entity,		    // 10
+		BTND_Pattern_ERCExpr			// 11
 > BTND_PatternData;
 
 
@@ -416,6 +438,7 @@ enum {
 	///
 	BTND_Pattern_StopToken_TYPE,		// 9
 	BTND_Pattern_Entity_TYPE,           // 10
+	BTND_Pattern_ERCExpr_TYPE,          // 11
 
 
 	/// end of wildcard types - add new ones ONLY ABOVE THIS LINE

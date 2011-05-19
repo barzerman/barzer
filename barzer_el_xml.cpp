@@ -65,6 +65,7 @@ bool BELParserXML::isValidTag( int tag, int parent ) const
 	case TAG_DATE:
 	case TAG_DATETIME:
 	case TAG_ENTITY:
+	case TAG_ERCEXPR:
 	case TAG_TIME:
 	case TAG_LIST:
 	case TAG_ANY:
@@ -127,6 +128,7 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 	CASE_TAG(DATE)
 	CASE_TAG(DATETIME)
 	CASE_TAG(ENTITY)
+	CASE_TAG(ERCEXPR)
 	CASE_TAG(TIME)
 	CASE_TAG(LIST)
 	CASE_TAG(ANY)
@@ -388,12 +390,24 @@ void BELParserXML::taghandle_N( const char_cp * attr, size_t attr_sz , bool clos
 	}
 	statement.pushNode( BTND_PatternData( pat));
 }
+void BELParserXML::taghandle_ERCEXPR( const char_cp * attr, size_t attr_sz , bool close) 
+{
+	if( close ) { statement.popNode(); return; }
+	BTND_Pattern_ERCExpr pat; 
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		switch( n[0] ) {
+		case 'c': // c - eclass
+			pat.setEclass( atoi(v) );
+			break;
+		}
+	}
+	statement.pushNode( BTND_PatternData(pat) );
+}
 void BELParserXML::taghandle_ENTITY( const char_cp * attr, size_t attr_sz , bool close) 
 { 
-	if( close ) {
-		statement.popNode();
-		return;
-	}
+	if( close ) { statement.popNode(); return; }
 	BTND_Pattern_Entity pat; 
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
@@ -779,6 +793,7 @@ int BELParserXML::getTag( const char* s ) const
 		break;
 	case 'e':
 	CHECK_3CW("nt",TAG_ENTITY) // <ent>
+	CHECK_6CW("rcexp",TAG_ERCEXPR) // <ercexp>
 		break;
 	case 'f':
 	CHECK_4CW("unc", TAG_FUNC ) // <func>

@@ -2,6 +2,7 @@
 #define BARZER_BASIC_TYPES_H
 #include <iostream>
 #include <limits>
+#include <list>
 #include <stdlib.h>
 #include <stdint.h>
 #include <time.h>
@@ -418,6 +419,70 @@ struct BarzerEntityRangeCombo {
 
 	std::ostream& print( std::ostream& fp ) const
 		{ return ( d_range.print( fp )<<"("  << d_entId << ":" << d_unitEntId << ")" ); }
+};
+
+/// ERC expression for example (ERC and ERC ... ) 
+struct BarzerERCExpr {
+	typedef boost::variant<
+		BarzerEntityRangeCombo,
+		BarzerERCExpr
+	> Data;
+
+	typedef std::list< Data > DataList;
+	DataList d_data;
+
+	enum {
+		T_LOGIC_AND,
+		T_LOGIC_OR,
+		// add hardcoded expression types above this line 
+		T_LOGIC_CUSTOM
+	};
+	uint16_t d_type; // one of T_XXX values	
+	enum {
+		EC_LOGIC,
+		EC_ARBITRARY=0xffff
+	};
+	uint16_t d_eclass; // for custom types only currently unused. default 0 
+
+	BarzerERCExpr( const BarzerERCExpr& x ) : d_data(x.d_data), d_type(x.d_type), d_eclass(x.d_eclass) {}
+	BarzerERCExpr( ) : d_type(T_LOGIC_AND ), d_eclass(EC_LOGIC) {}
+	BarzerERCExpr( uint16_t t = T_LOGIC_AND ) : d_type(t), d_eclass(EC_LOGIC) {}
+
+	const char* getTypeName() const ;
+
+	uint16_t getEclass() const { return d_eclass; }
+	uint16_t getType() const { return d_type; }
+
+	void setEclass(uint16_t t ) { d_eclass=t; }
+	void setType( uint16_t t ) { d_type=t; }
+
+	void addToExpr( const BarzerEntityRangeCombo& erc, uint16_t type = T_LOGIC_AND, uint16_t eclass = EC_LOGIC) 
+	{
+		if( eclass != EC_LOGIC ) {
+			d_data.push_back( Data(erc) );
+			return;
+		}
+		if( type == d_type ) {
+			d_data.push_back( Data(erc) );
+		} else {
+			if( d_data.empty() ) {
+				d_type = type;
+				d_data.push_back( Data(erc) );
+			} else {
+				DataList::iterator end = d_data.end();
+
+				d_data.push_back( Data() );
+				d_data.back() = *this;
+				d_type = type;
+				d_data.push_back( Data() );
+				d_data.back() = erc;
+	
+				d_data.erase( d_data.begin(), end );
+			}
+		}
+	}
+	std::ostream& print( std::ostream& fp ) const;
+
 };
 
 } // namespace barzer ends

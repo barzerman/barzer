@@ -51,6 +51,7 @@ public:
 		TAG_DATE, 	// date
 		TAG_DATETIME, 	// date
 		TAG_ENTITY, 	// entity or erc matched on entity 
+		TAG_ERCEXPR, 	// expression made of ERCs
 		TAG_TIME, 	// time
 
 		TAG_RANGE_STRUCT, // not a real tag used for translation
@@ -208,6 +209,7 @@ public:
 	void taghandle_DATE( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_DATETIME( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_ENTITY( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_ERCEXPR( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_TIME( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_LIST( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_ANY( const char_cp * attr, size_t attr_sz , bool close=false);
