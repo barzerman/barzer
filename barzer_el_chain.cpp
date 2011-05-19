@@ -77,6 +77,35 @@ std::ostream& operator <<( std::ostream& fp, const BarzelBeadChain::Range& rng )
 	fp << "</beadrange>";
 	return fp;
 }
+namespace {
+	struct BarzerERCExpr_Data_print : public boost::static_visitor<> {
+		std::ostream& fp;
+		BarzerERCExpr_Data_print( std::ostream& f ) : fp(f) {}
+
+		template <typename T>
+		void operator() ( const T& t ) { t.print(fp); }
+	};
+}
+const char* BarzerERCExpr::getTypeName() const
+{
+	static const char* s[] = { "AND", "OR" };
+	
+	return ( d_type < ARR_SZ(s) ? s[d_type] : "(UNDEF)" );
+}
+
+std::ostream& BarzerERCExpr::print( std::ostream& fp ) const
+{
+	fp << getTypeName() ;
+	if( d_subtype ) 
+		fp << ":" << d_subtype ;
+	fp << "{";
+
+	BarzerERCExpr_Data_print visitor(fp);
+	for( DataList::const_iterator i=d_data.begin(); i!= d_data.end(); ++i ) {
+		boost::apply_visitor( visitor, *i );
+	}
+	return fp << "}";
+}
 ///// BarzelBeadChain
 
 void BarzelBeadChain::collapseRangeLeft( Range r ) {

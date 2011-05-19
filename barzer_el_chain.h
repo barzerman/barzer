@@ -22,17 +22,6 @@ struct BarzelBeadBlank {
 };
 
 /// combination 
-/*
-struct BarzerEntityRangeCombo {
-	BarzerEntity d_entId; // main entity id
-	BarzerEntity d_unitEntId; // unit entity id 
-	BarzerRange  d_range;
-	
-	std::ostream& print( std::ostream& fp ) const
-		{ return ( range.print( fp )<<"("  << d_entId << ":" << d_unitEntId << "[" << range << "])" ); }
-};
-*/
-
 typedef boost::variant<
 	BarzerLiteral, // constant string literal
 	BarzerString, // non constant string (something constructed from the input) 
