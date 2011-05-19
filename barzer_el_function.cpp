@@ -519,7 +519,7 @@ struct BELFunctionStorage_holder {
 
 		bool operator()(const BarzelBeadAtomic &data) {
 			if(boost::apply_visitor(*this, data.dta)) {
-				++cnt;
+				if (data.getType() != BarzerLiteral_TYPE) ++cnt;
 				return true;
 			}
 			return false;
