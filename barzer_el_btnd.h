@@ -380,25 +380,23 @@ inline bool operator< ( const BTND_Pattern_Entity& l, const BTND_Pattern_Entity&
 	return l.lessThan( r );
 }
 class BTND_Pattern_ERCExpr : public BTND_Pattern_Base {
-	uint16_t d_exprType, d_exprSubtype;
+	uint16_t d_exprType, d_exprEclass;
 public:
-	BTND_Pattern_ERCExpr() : d_exprType(BarzerERCExpr::T_LOGIC_AND),d_exprSubtype(0) {} 
+	BTND_Pattern_ERCExpr() : d_exprType(BarzerERCExpr::T_LOGIC_AND),d_exprEclass(0) {} 
 	
 
 	void setExprType(uint16_t t) { d_exprType= t; }
 	uint16_t getExprType() const { return d_exprType; }
-	uint16_t getExprSubtype() const { return d_exprSubtype; }
-	void setExprSubtype(uint16_t t) { d_exprSubtype=t; }
+	uint16_t getExprSubtype() const { return d_exprEclass; }
+	void setEclass(uint16_t t) { d_exprEclass=t; }
 
-	bool operator()( const BarzerERCExpr& e) const { return (d_exprType == e.getType() && d_exprSubtype == e.getSubtype() ); } 
+	bool operator()( const BarzerERCExpr& e) const { return ( d_exprEclass== BarzerERCExpr::EC_ARBITRARY || d_exprEclass == e.getEclass() ); } 
 	bool lessThan( const BTND_Pattern_ERCExpr& r ) const {
-		return ay::range_comp().less_than(
-			  d_exprType,   d_exprSubtype,
-			r.d_exprType, r.d_exprSubtype
-		);
+		return (d_exprEclass < r.d_exprEclass);
+
 	}
 	std::ostream& print( std::ostream& fp ) const 
-		{ return (fp << d_exprType << ":" << d_exprSubtype); }
+		{ return (fp << d_exprEclass << ":" << d_exprType ); }
 };
 inline bool operator<( const BTND_Pattern_ERCExpr& l, const BTND_Pattern_ERCExpr& r ) 
 { return l.lessThan(r); }

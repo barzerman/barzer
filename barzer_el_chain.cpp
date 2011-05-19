@@ -96,8 +96,8 @@ const char* BarzerERCExpr::getTypeName() const
 std::ostream& BarzerERCExpr::print( std::ostream& fp ) const
 {
 	fp << getTypeName() ;
-	if( d_subtype ) 
-		fp << ":" << d_subtype ;
+	if( d_eclass ) 
+		fp << ":" << d_eclass ;
 	fp << "{";
 
 	BarzerERCExpr_Data_print visitor(fp);

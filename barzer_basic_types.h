@@ -438,22 +438,30 @@ struct BarzerERCExpr {
 		T_LOGIC_CUSTOM
 	};
 	uint16_t d_type; // one of T_XXX values	
-	uint16_t d_subtype; // for custom types only currently unused. default 0 
+	enum {
+		EC_LOGIC,
+		EC_ARBITRARY=0xffff
+	};
+	uint16_t d_eclass; // for custom types only currently unused. default 0 
 
-	BarzerERCExpr( const BarzerERCExpr& x ) : d_data(x.d_data), d_type(x.d_type), d_subtype(x.d_subtype) {}
-	BarzerERCExpr( ) : d_type(T_LOGIC_AND ), d_subtype(0) {}
-	BarzerERCExpr( uint16_t t = T_LOGIC_AND ) : d_type(t), d_subtype(0) {}
+	BarzerERCExpr( const BarzerERCExpr& x ) : d_data(x.d_data), d_type(x.d_type), d_eclass(x.d_eclass) {}
+	BarzerERCExpr( ) : d_type(T_LOGIC_AND ), d_eclass(EC_LOGIC) {}
+	BarzerERCExpr( uint16_t t = T_LOGIC_AND ) : d_type(t), d_eclass(EC_LOGIC) {}
 
 	const char* getTypeName() const ;
 
-	uint16_t getSubtype() const { return d_subtype; }
+	uint16_t getEclass() const { return d_eclass; }
 	uint16_t getType() const { return d_type; }
 
-	void setSubtype(uint16_t t ) { d_subtype=t; }
+	void setEclass(uint16_t t ) { d_eclass=t; }
 	void setType( uint16_t t ) { d_type=t; }
 
-	void addToExpr( const BarzerEntityRangeCombo& erc, uint16_t type = T_LOGIC_AND ) 
+	void addToExpr( const BarzerEntityRangeCombo& erc, uint16_t type = T_LOGIC_AND, uint16_t eclass = EC_LOGIC) 
 	{
+		if( eclass != EC_LOGIC ) {
+			d_data.push_back( Data(erc) );
+			return;
+		}
 		if( type == d_type ) {
 			d_data.push_back( Data(erc) );
 		} else {
