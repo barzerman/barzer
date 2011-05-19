@@ -63,7 +63,7 @@ std::ostream& BarzelBead::print( std::ostream& fp ) const
 {
 	boost::apply_visitor( print_visitor(fp), dta );
 	fp << " ~~ ";
-	return ( fp << ctokOrigVec << std::endl );
+	return ( fp << ctokOrigVec );
 }
 
 std::ostream& operator <<( std::ostream& fp, const BarzelBeadChain::Range& rng ) 
