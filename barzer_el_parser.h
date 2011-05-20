@@ -82,6 +82,7 @@ public:
 	const BELTrie& getTrie() const { return *trie ; }
 
 	StoredUniverse& getUniverse() { return universe; }
+
 	/// barzEL input formats
 	typedef enum {
 		INPUT_FMT_AUTO, // will try to figure out from file extension . this only works when fileName !=0

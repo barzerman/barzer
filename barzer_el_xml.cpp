@@ -1,4 +1,5 @@
 #include <barzer_el_xml.h>
+#include <barzer_universe.h>
 #include <ay/ay_debug.h>
 extern "C" {
 #include <expat.h>
@@ -138,6 +139,7 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 
 	CASE_TAG(LITERAL)
 	CASE_TAG(RNUMBER)
+	CASE_TAG(MKENT)
 	CASE_TAG(VAR)
 	CASE_TAG(FUNC)
 	}
@@ -615,6 +617,30 @@ void BELParserXML::taghandle_LITERAL( const char_cp * attr, size_t attr_sz , boo
 	statement.pushNode( BTND_RewriteData(literal) );
 }
 
+void BELParserXML::taghandle_MKENT( const char_cp * attr, size_t attr_sz , bool close)
+{
+	if( close ) {
+		statement.popNode();
+		return;
+	}
+	BTND_Rewrite_MkEnt mkent;
+	uint16_t eclass = 0, subclass = 0;
+	const char* idStr = 0;
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		switch( n[0] ) {
+		case 'c': eclass =  atoi(v); break;
+		case 's': subclass =  atoi(v); break;
+		case 'i': idStr = v; break;
+		}
+	}
+
+	const StoredEntity& ent  = reader->getUniverse().getDtaIdx().addGenericEntity( idStr, eclass, subclass );
+	mkent.setEntId( ent.entId );
+	statement.pushNode( BTND_RewriteData(mkent));
+}
+
 void BELParserXML::taghandle_RNUMBER( const char_cp * attr, size_t attr_sz , bool close)
 {
 	if( close ) {
@@ -636,11 +662,7 @@ void BELParserXML::taghandle_RNUMBER( const char_cp * attr, size_t attr_sz , boo
 			break;
 		}
 	}
-	statement.pushNode( 
-		BTND_RewriteData(
-			num
-		)
-	);
+	statement.pushNode( BTND_RewriteData( num));
 }
 void BELParserXML::taghandle_VAR( const char_cp * attr, size_t attr_sz , bool close)
 {
@@ -779,6 +801,7 @@ int BELParserXML::parse( std::istream& fp )
 #define CHECK_3CW(c,N)  if( c[0] == s[1] && c[1] == s[2] && !s[3] ) return N;
 #define CHECK_4CW(c,N)  if( c[0] == s[1] && c[1] == s[2] && c[2] == s[3] && !s[4] ) return N;
 // needed for stmset
+#define CHECK_5CW(c,N)  if( c[0] == s[1] && c[1] == s[2] && c[2] == s[3] && c[3] == s[4] && !s[5] ) return N;
 #define CHECK_6CW(c,N)  if( c[0] == s[1] && c[1] == s[2] && c[2] == s[3] && c[3] == s[4] && c[4] == s[5] && !s[6] ) return N;
 
 int BELParserXML::getTag( const char* s ) const
@@ -801,6 +824,9 @@ int BELParserXML::getTag( const char* s ) const
 	case 'l':
 	CHECK_4CW("ist", TAG_LIST ) // <list>
 	CHECK_4CW("trl", TAG_LITERAL ) // <ltrl>
+		break;
+	case 'm':
+	CHECK_5CW("kent", TAG_MKENT) // <n>
 		break;
 	case 'n':
 	CHECK_1CW(TAG_N) // <n>

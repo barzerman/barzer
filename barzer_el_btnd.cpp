@@ -36,6 +36,7 @@ const char* BTNDDecode::typeName_Rewrite ( int x )
 	case BTND_Rewrite_None_TYPE: return "RewriteNone";
 	case BTND_Rewrite_Literal_TYPE: return "Literal";
 	case BTND_Rewrite_Number_TYPE: return "Number";
+	case BTND_Rewrite_MkEnt_TYPE: return "MkEnt";
 	case BTND_Rewrite_Variable_TYPE: return "Variable";
 	case BTND_Rewrite_Function_TYPE: return "Function";
 	default: return "RewriteUnknown";

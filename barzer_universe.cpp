@@ -20,14 +20,19 @@ struct GenericEntData {
 
 static GenericEntData g_genDta[] = {
 	GenericEntData(1,"price"), // price 
-	GenericEntData(2,"length"), // length
-	GenericEntData(3,"weight"), // weight
-	GenericEntData(4,"age"), // weight
-	GenericEntData(4,"area"), // weight
-	GenericEntData(4,"volume"), // weight
+
+	GenericEntData(2,"length"), // length-width-height-distance (cm,inch,m,foot,km,mile,kkm,kmile)
+	GenericEntData(3,"weight"), // weight in 
+	GenericEntData(4,"age"), // age in years, months, days, hours, minutes
+	GenericEntData(5,"area"), // square area
+	GenericEntData(6,"volume"), // cubic volume
+	GenericEntData(7,"wearsize"), // clothing/shoe sizes
+
 	// can't take this shit!
-	GenericEntData(5,"shit", "some shit"), // weight
+	GenericEntData(69,"shit", "some shit"), // weight
 	// Astronomical units
+
+	/// currencies 
 	GenericEntData(1,"USD", "US dollar"),
 	GenericEntData(1,"EUR", "Euro euro!"),
 	GenericEntData(1,"JPY", "Japanese yen"),

@@ -11,12 +11,7 @@ order
 
 Deliverables necessary for this:
 1. implementing compounded words
-	- trie load comp words implement - comp word number autogeneration
-		- enumeration of compounded words should be separate for each trie 
 	- modify xmload to create compounded words for names in addition to separate tokens 
-2. implementing multi-trie container inside the universe 
-	* getTrie will return the "current instance" and universe will have a way to iterate over
-	all possible instances of trie
 3. handle words that are actually numbers. 
 	*Whenever a token is interned an entry needs to be made linking the StoredToken to a number 
 	*literal bead needs to have a flag indicating that this literal is in fact a number (integer)

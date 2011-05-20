@@ -177,6 +177,14 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const B
 	return ret;
 }
 
+template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_MkEnt>( const BTND_Rewrite_MkEnt& n ) 
+{
+	const StoredEntity * se = ctxt.universe.getDtaIdx().getEntById( n.getEntId() );
+	BarzerEntity ent=  se->euid;
+	d_val.setBeadData( BarzelBeadAtomic().setData( ent ) );
+	return true;
+}
+
 template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Number>( const BTND_Rewrite_Number& n ) 
 {
 	BarzerNumber bNum;

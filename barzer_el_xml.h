@@ -71,6 +71,7 @@ public:
 		// 
 		TAG_LITERAL, // <ltrl>
 		TAG_RNUMBER, // <rn>
+		TAG_MKENT, // <mkent c="class" sc="subclass" id="UNIQID"> 
 		TAG_VAR, // <var>
 		TAG_FUNC, // function
 		
@@ -219,6 +220,7 @@ public:
 
 	// <rn>
 	void taghandle_RNUMBER( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_MKENT( const char_cp * attr, size_t attr_sz , bool close=false);
 
 	void taghandle_LITERAL( const char_cp * attr, size_t attr_sz , bool close=false);
 

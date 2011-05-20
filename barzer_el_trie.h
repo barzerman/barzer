@@ -196,6 +196,7 @@ public:
 		T_VAR_WC_NUM, // variable rewrite on wildcard number 
 		T_VAR_EL_NUM, // variable rewrite on raw element number (PN)
 		T_VAR_GN_NUM, // variable rewrite on raw element number
+		T_MKENT, // entity maker
 
 		T_MAX
 	} Type_t;
@@ -204,6 +205,7 @@ public:
 		
 	void set( BELTrie& trie, const BTND_Rewrite_Literal& );
 	void set( BELTrie& trie, const BTND_Rewrite_Number& );
+	void set( BELTrie& trie, const BTND_Rewrite_MkEnt& );
 	void set( BELTrie& trie, const BTND_Rewrite_Variable& );
 
 	void set( BELTrie& trie, const BELParseTreeNode& );
@@ -262,7 +264,8 @@ template <>
 inline void BarzelTranslation::setBtnd<BTND_Rewrite_Number>( BELTrie& trie, const BTND_Rewrite_Number& x ) { set(trie,x); }
 template <>
 inline void BarzelTranslation::setBtnd<BTND_Rewrite_Variable>( BELTrie& trie, const BTND_Rewrite_Variable& x ) { set(trie,x); }
-
+template <>
+inline void BarzelTranslation::setBtnd<BTND_Rewrite_MkEnt>( BELTrie& trie, const BTND_Rewrite_MkEnt& x ) { set(trie,x); }
 class BarzelTrieNode;
 typedef std::map<BarzelTrieFirmChildKey, BarzelTrieNode > BarzelFCMap;
 /// BarzelFirmChildPool contiguously stores BarzelFCMap objects (see el_trie.h for definition)

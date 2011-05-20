@@ -257,13 +257,17 @@ public:
 	}
 	StoredEntity& addGenericEntity( const char* t, uint16_t cl, uint16_t scl )
 	{
-		StoredTokenId tokId = addToken(t).tokId;
+		StoredTokenId tokId = ( t ? addToken(t).tokId : 0xffffffff );
 		const StoredEntityUniqId euid( tokId, cl, scl );
 
 		bool isNew = false;
 		return entPool.addOneEntity( isNew, euid );
 	}
 	
+	const StoredEntity* getEntById( uint32_t id ) const
+	{
+		return entPool.getEntByIdSafe(id);
+	}
 }; 
 
 } // namespace barzer

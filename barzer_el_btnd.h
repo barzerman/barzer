@@ -509,6 +509,16 @@ struct BTND_Rewrite_Number : public BarzerNumber {
 		x = *(static_cast<const BarzerNumber*>(this));
 	}
 };
+struct BTND_Rewrite_MkEnt : public BarzerNumber {
+	uint32_t d_entId;
+
+	BTND_Rewrite_MkEnt() : d_entId(0xffffffff) {}
+	void setEntId( uint32_t i ) { d_entId = i; }
+
+	uint32_t getEntId( ) const { return d_entId ; }
+	std::ostream& print( std::ostream& fp, const BELPrintContext& ) const
+		{ return (fp<< std::hex << d_entId ); }
+};
 
 struct BTND_Rewrite_Variable {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
@@ -624,7 +634,8 @@ typedef boost::variant<
 	BTND_Rewrite_Function,
 	BTND_Rewrite_DateTime,
 	BTND_Rewrite_Range,
-	BTND_Rewrite_EntitySearch
+	BTND_Rewrite_EntitySearch,
+	BTND_Rewrite_MkEnt
 > BTND_RewriteData;
 
 enum {
@@ -635,7 +646,8 @@ enum {
 	BTND_Rewrite_Function_TYPE,
 	BTND_Rewrite_DateTime_TYPE,
 	BTND_Rewrite_Range_TYPE,
-	BTND_Rewrite_EntitySearch_TYPE
+	BTND_Rewrite_EntitySearch_TYPE,
+	BTND_Rewrite_MkEnt_TYPE
 }; 
 
 /// when updating the enums make sure to sunc up BTNDDecode::typeName_XXX 
