@@ -3,6 +3,21 @@
     xmlns="http://www.barzer.net/barzel/0.1">
     <stmt>
         <pat>
+            <any v="day"><t>today</t><t>yesterday</t><t>tomorrow</t></any>
+        </pat>
+        <tran>
+            <func name="mkDay">
+                <func name="opSelect">
+                    <var name="day" />
+                    <ltrl>today</ltrl><rn v="0" />
+                    <ltrl>yesterday</ltrl><rn v="-1" />
+                    <ltrl>tomorrow</ltrl><rn v="1" />
+                </func>
+            </func>
+        </tran>
+    </stmt>
+    <stmt>
+        <pat>
             <n l="1900" h="2100"/><p>/</p><n l="1" h="12"/><p>/</p><n l="1" h="31"/>
         </pat>
         <tran><func name="mkDate"><var pn="5" /><var pn="3" /><var pn="1" /></func></tran>
@@ -42,7 +57,6 @@
             </func>
         </tran>
     </stmt>
-    
     <stmt>
         <pat>
             <any v="mon">
@@ -152,6 +166,23 @@
                 <list>
                     <list v="date"><date /></list>
                     <opt><t>at</t></opt>
+                    <list v="hh"><n l="1" h="12" /> </list>
+                </list>
+            </any>
+        </pat>
+    <tran>
+        <func name="mkDateTime"><var name="date" />
+            <func name="mkTime"><var name="hh" /></func>
+        </func>
+    </tran>
+    </stmt>    
+    
+    <stmt>
+        <pat>
+            <any>
+                <list>
+                    <list v="date"><date /></list>
+                    <opt><t>at</t></opt>
                     <list v="time"><time /></list>
                 </list>
                 <list>
@@ -225,5 +256,5 @@
                 <func name="lookupWday"><var name="wday" /></func>
             </func>
         </tran>
-    </stmt>         
+    </stmt>       
 </stmset>

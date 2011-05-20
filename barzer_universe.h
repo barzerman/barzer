@@ -32,14 +32,15 @@ class GlobalTriePool {
 
 
 public:
-	ClassTrieMap& produceTrieMap( const std::string& trieClass )
-	{
+	ClassTrieMap& produceTrieMap( const std::string& trieClass );
+	/*{
 		TrieMap::iterator i = d_trieMap.find( trieClass );
 		if( i == d_trieMap.end() ) 
 			i = d_trieMap.insert( TrieMap::value_type( trieClass, ClassTrieMap())).first;
 		
 		return i->second;
-	}
+	} //*/
+
 	const ClassTrieMap* getTrieMap( const std::string& trieClass ) const
 	{
 		TrieMap::const_iterator i = d_trieMap.find( trieClass );

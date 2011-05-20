@@ -37,6 +37,12 @@ static GenericEntData g_genDta[] = {
 };
 } // anon namespace ends
 
+GlobalTriePool::ClassTrieMap& GlobalTriePool::produceTrieMap( const std::string& trieClass ) {
+	return d_trieMap[trieClass]; // XAXAXA
+}
+
+
+
 GlobalPools::~GlobalPools() 
 {
 	for( UniverseMap::iterator i =  d_uniMap.begin(); i!= d_uniMap.end(); ++i ) {
