@@ -26,7 +26,7 @@ int BTMIterator::addTerminalPath( const NodeAndBead& nb )
 	NodeAndBead theNb(nb);
 	BeadRange& br = theNb.second;
 	if( br.first == br.second ) {
-		if( br.second != bestPaths.getAbsoluteEnd() ) {
+		if( br.second != bestPaths.getAbsoluteEnd() && br.second->isBlankLiteral() ) {
 			++br.second;
 		}
 	}
@@ -302,7 +302,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 				}
 			}
 		}
-		return false;
+		return true;
 	}
 	template <>
 	bool findMatchingChildren_visitor::doFirmMatch<BarzerDateTime>( const BarzelFCMap& fcmap, const BarzerDateTime& dta, bool allowBlanks) 
@@ -330,7 +330,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 				}
 			}
 		}
-		return false;
+		return true;
 	}
 	template <>
 	bool findMatchingChildren_visitor::doFirmMatch<BarzerNumber>( const BarzelFCMap& fcmap, const BarzerNumber& dta, bool allowBlanks) 
@@ -358,7 +358,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 				}
 			}
 		}
-		return false;
+		return true;
 	}
 	template <>
 	bool findMatchingChildren_visitor::doFirmMatch<BarzerEntity>( const BarzelFCMap& fcmap, const BarzerEntity& dta, bool allowBlanks) 
@@ -386,7 +386,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 				}
 			}
 		}
-		return false;
+		return true;
 	}
 	template <>
 	bool findMatchingChildren_visitor::doFirmMatch<BarzerEntityRangeCombo>( const BarzelFCMap& fcmap, const BarzerEntityRangeCombo& dta, bool allowBlanks) 
@@ -414,7 +414,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 				}
 			}
 		}
-		return false;
+		return true;
 	}
 	template <>
 	bool findMatchingChildren_visitor::doFirmMatch<BarzerERCExpr>( const BarzelFCMap& fcmap, const BarzerERCExpr& dta, bool allowBlanks) 
@@ -442,7 +442,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 				}
 			}
 		}
-		return false;
+		return true;
 	}
 
 	template <>
@@ -590,6 +590,7 @@ void BTMIterator::matchBeadChain( const BeadRange& rng, const BarzelTrieNode* tr
 			if( pathRange.second != rng.second ) 
 				++pathRange.second;
 			if( tn->isLeaf() ) {
+				//AYDEBUG( BarzelBeadChain::makeInclusiveRange(ch->second,rng.second) );
 				addTerminalPath( *ch );
 			}
 			//BarzelBeadChain::trimBlanksFromRange( d_matchPath.back().second );
@@ -954,7 +955,13 @@ int BarzelMatcher::matchAndRewrite( Barz& barz )
 			AYLOG(ERROR) << "Rewrite count circuit breaker hit .." << std::endl;
 			break;
 		}
+		//std::cerr << "**************** SHIT BEFORE {\n";
+		//AYDEBUG( beads.getFullRange() );
+		//std::cerr << "} **************** end SHIT BEFORE {\n";
 		int rewrRc = rewriteUnit( rewrUnit, beads );
+		//std::cerr << "**************** SHIT AFTER {\n";
+		//AYDEBUG( beads.getFullRange() );
+		//std::cerr << "} **************** end SHIT AFTER {\n";
 		if( rewrRc ) { // should never be the case
 			d_err.setFlag( Error::EF_RWRFAILS );
 			AYLOG(ERROR) << "rewrite failed"  << std::endl;

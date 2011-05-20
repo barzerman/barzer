@@ -436,6 +436,7 @@ struct BELFunctionStorage_holder {
 		RangePacker(GlobalPools &u, BarzerRange &r) : globPools(u), range(r), cnt(0) {}
 
 		bool operator()(const BarzerLiteral &ltrl) {
+			//AYLOG(DEBUG) << "mkRange arg " << cnt << ":BarzerLiteral";
 			ay::UniqueCharPool &spool = globPools.stringPool;
 			if (ltrl.getId() == spool.internIt("DESC")) {
 				range.setDesc();
@@ -450,6 +451,7 @@ struct BELFunctionStorage_holder {
 		}
 
 		bool operator()(const BarzerNumber &rnum) {
+			//AYLOG(DEBUG) << "mkRange arg " << cnt << ":BarzerNumber";
 			if (cnt) {
 				if (rnum.isInt()) {
 					if (range.getType() == BarzerRange::Integer_TYPE) {
@@ -486,13 +488,14 @@ struct BELFunctionStorage_holder {
 		}
 
 		bool operator()(const BarzerDate &rdate) {
+			//AYLOG(DEBUG) << "mkRange arg " << cnt << ":BarzerDate";
 			if (cnt) {
 				try {
 					BarzerRange::Date &dp
 						= boost::get<BarzerRange::Date>(range.getData());
 					dp.second = rdate;
 				} catch (boost::bad_get) {
-					AYLOG(ERROR) << "Types don't match";
+					AYLOG(ERROR) << "Types don't match: " << range.getData().which();
 					return false;
 				}
 			} else {
@@ -502,6 +505,7 @@ struct BELFunctionStorage_holder {
 		}
 
 		bool operator()(const BarzerTimeOfDay &rtod) {
+			//AYLOG(DEBUG) << "mkRange arg " << cnt << ":BarzerTimeOfDay";
 			if (cnt) {
 				try {
 					BarzerRange::TimeOfDay &todp
@@ -518,7 +522,8 @@ struct BELFunctionStorage_holder {
 		}
 
 		bool operator()(const BarzelBeadAtomic &data) {
-			if(boost::apply_visitor(*this, data.dta)) {
+			//AYLOG(DEBUG) << "mkRange arg " << cnt;
+			if(boost::apply_visitor(*this, data.getData())) {
 				if (data.getType() != BarzerLiteral_TYPE) ++cnt;
 				return true;
 			}

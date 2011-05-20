@@ -148,7 +148,11 @@ public:
 
 	const BarzelBeadAtomic* getAtomic() const { return  boost::get<BarzelBeadAtomic>( &dta ); }
 	const BarzelBeadExpression* getExpression() const { return  boost::get<BarzelBeadExpression>( &dta ); }
-
+	bool isBlankLiteral() const
+		{ 
+			const BarzelBeadAtomic* atomic = getAtomic();
+			return( atomic && atomic->isBlankLiteral() )  ;
+		}
 	size_t getFullNumTokens() const
 	{
 		size_t n = 1;
@@ -220,7 +224,19 @@ struct BarzelBeadChain {
 	const Range getFullRange() 
 		{ return Range( lst.begin(), lst.end() ); }
 	void collapseRangeLeft( Range r );
+	
+	/// will try to print rng.first through rng.second including second, unless it equals end
+	static Range makeInclusiveRange( const Range& rng, BeadList::const_iterator end ) 
+	{
+		Range r = rng;
+		if( r.second != end ) 
+			++(r.second);
+
+		return r;
+	}
 };
+
+
 typedef BarzelBeadChain::Range BarzelBeadRange;
 
 std::ostream& operator <<( std::ostream& fp, const BarzelBeadChain::Range& rng ) ;
