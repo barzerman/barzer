@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
+    xmlns="http://www.barzer.net/barzel/0.1">
+    <stmt>
+        <pat>
+        <list v="val"><n /></list>
+        <any><t>рублей</t><t>рубля</t>
+            <list>
+                <any><t>руб</t><t>р</t></any>
+                <opt><p>.</p></opt>
+            </list>
+        </any>
+        </pat>
+        <tran>
+            <func name="mkERC">
+            <func name="mkEnt"><ltrl>RUB</ltrl><rn v="1" /><rn v="1" /></func>
+            <func name="mkRange"><var name="val" /></func>
+            </func>
+        </tran>
+    </stmt>
+    <stmt>
+        <pat>
+        <list v="val"><n /></list>
+        <any><t>долларов</t><t>доллара</t><t>баксов</t><t>бакса</t>
+            <list>
+                <any><t>дол</t><t>долл</t></any>
+                <opt><p>.</p></opt>
+            </list>
+        </any>
+        </pat>
+        <tran>
+            <func name="mkERC">
+            <func name="mkEnt"><ltrl>USD</ltrl><rn v="1" /><rn v="1" /></func>
+            <func name="mkRange"><var name="val" /></func>
+            </func>
+        </tran>
+    </stmt>
+    
+    <stmt>
+        <pat>
+            <list v="val"><n /></list>
+            <any><t>штуки</t><t>штук</t><t>тонны</t><t>тонн</t><t>тон</t><t>косарь</t><t>косарей</t><t>косаря</t></any>
+            <any><t>долларов</t><t>доллара</t><t>баксов</t><t>бакса</t>
+                <list>
+                    <any><t>дол</t><t>долл</t></any>
+                    <opt><p>.</p></opt>
+                </list>
+            </any>
+        </pat>
+        <tran>
+            <func name="mkERC">
+            <func name="mkEnt"><ltrl>USD</ltrl><rn v="1" /><rn v="1" /></func>
+            <func name="mkRange"><func name="opMult"><var name="val" /><rn v="1000" /></func></func>
+            </func>
+        </tran>
+    </stmt>
+    <stmt>
+        <pat>    
+             <any><t>за</t><t>в</t></any>
+             <list v="price"><ent  c="1" s="1" /></list>
+        </pat>
+        <tran>
+            <var name="price" />
+        </tran>
+    </stmt>
+    
+    <stmt>
+        <pat>
+            <any>
+                <t>до</t>
+                <list>
+                    <any><t>меньше</t><t>дешевле</t><t>ниже</t></any>
+                    <t>чем</t>
+                </list>
+             </any>
+             <list v="high"><ent c="1" s="1" /></list>
+        </pat>
+        <tran>
+            <func name="mkERC">
+                <var name="high" />
+                <func name="mkERC">
+                    <func name="mkEnt"><rn v="1" /><rn v="1" /></func>
+                    <func name="mkRange"><rn v="0" /></func>
+                </func>
+            </func>
+        </tran>
+    </stmt>
+    <stmt>
+        <pat>
+            <any>
+                <list><t>самый</t><t>дешевый</t></list>
+                <list><t>самая</t><t>дешевая</t></list>
+                <list><t>самое</t><t>дешевое</t></list>
+            </any>
+        </pat>
+    <tran>
+        <func name="mkERC">
+            <func name="mkEnt"><rn v="1" /><rn v="1" /></func> 
+            <func name="mkRange"></func>
+        </func>
+    </tran>
+    </stmt>
+    <stmt>
+        <pat>
+            <any>
+                <list><t>самый</t><t>дорогой</t></list>
+                <list><t>самая</t><t>дорогая</t></list>
+                <list><t>самое</t><t>дорогое</t></list>
+            </any>
+        </pat>
+    <tran>
+        <func name="mkERC">
+            <func name="mkEnt"><rn v="1" /><rn v="1" /></func> 
+            <func name="mkRange"><ltrl>DESC</ltrl></func>
+        </func>
+    </tran>
+    </stmt>    
+</stmset>
