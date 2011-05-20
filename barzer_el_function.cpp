@@ -93,7 +93,7 @@ template<class T> const T& getAtomic(const BarzelEvalResult &result) {
 
 template<class T> void setResult(BarzelEvalResult &result, const T &data) {
 	BarzelBeadAtomic atm;
-	atm.dta = data;
+	atm.setData(data);
 	result.setBeadData(atm);
 }
 
@@ -238,6 +238,7 @@ struct BELFunctionStorage_holder {
 	BELFunctionStorage_holder(GlobalPools &u) : globPools(u) {
 		// makers
 		ADDFN(mkDate);
+		ADDFN(mkDay);
 		ADDFN(mkWday);
 		ADDFN(mkTime);
 		ADDFN(mkDateTime);
@@ -293,7 +294,7 @@ struct BELFunctionStorage_holder {
 
 		BarzerDate date;
 		// changes fields to whatever was set
-		//AYLOGDEBUG(rvec.size());
+		AYLOGDEBUG(rvec.size());
 		switch (rvec.size()) {
 		case 3:
 			if (setNumber(y, rvec[2]));
@@ -317,8 +318,20 @@ struct BELFunctionStorage_holder {
 			// huhuh
 		}
 		date.setDayMonthYear(d,m,y);
-		//date.print(AYLOG(DEBUG) << "date formed: ");
+		date.print(AYLOG(DEBUG) << "date formed: ");
 		setResult(result, date);
+		return true;
+	}
+
+	STFUN(mkDay) {
+		if (!rvec.size()) {
+			AYLOG(ERROR) << "mkDay(Number): Need an argument";
+			return false;
+		}
+		BarzerDate_calc calc;
+		calc.setToday();
+		calc.dayOffset(getNumber(rvec[0]).getInt());
+		setResult(result, calc.d_date);
 		return true;
 	}
 
