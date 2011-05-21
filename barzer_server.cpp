@@ -92,7 +92,6 @@ void SearchSession::handle_write(const boost::system::error_code &e, std::size_t
 void SearchSession::handle_read(const boost::system::error_code &ec, size_t bytes_transferred) {
 
 	if (!ec) {
-		std::string response;
 		char *chunk = new char[bytes_transferred];
 		std::istream is(&data_);
 		is.read(chunk, bytes_transferred);
@@ -100,7 +99,7 @@ void SearchSession::handle_read(const boost::system::error_code &ec, size_t byte
 		//boost::asio::streambuf buf;
 		std::ostream os(&outbuf);
 		server->query(chunk, bytes_transferred, os);
-		delete chunk;
+		delete[] chunk;
 
 		boost::asio::async_write(socket_, outbuf,
 				boost::bind(&SearchSession::handle_write, this,
