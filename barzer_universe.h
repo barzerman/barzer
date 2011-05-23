@@ -241,7 +241,7 @@ public:
 
 	const BarzelWCLookup* getWCLookup( uint32_t id ) const
 	{
-		return gp.barzelWildcardPool.getWCLookup( id );
+		return getWildcardPool().getWCLookup( id );
 	}
 
 	// had to add it in order to be able to create BELPrintContext

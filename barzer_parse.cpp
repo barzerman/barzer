@@ -16,6 +16,7 @@ int QSemanticParser::semanticize( Barz& barz, const QuestionParm& qparm  )
 	do {
 		barzelMatcher.matchAndRewrite( barz );
 	} while( universe.getToNextTrie() );
+	universe.getToFirstTrie();
 	return 0;
 }
 

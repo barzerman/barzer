@@ -68,10 +68,11 @@ GlobalPools::GlobalPools() :
 		),
 	settings(*this)
 {
-	createGenericEntities();
-
 	/// create default universe 
 	produceUniverse(DEFAULT_UNIVERSE_ID);
+	
+	createGenericEntities();
+
 }
 
 void GlobalPools::createGenericEntities()
