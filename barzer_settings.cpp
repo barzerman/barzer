@@ -67,9 +67,8 @@ void BarzerSettings::load(const char *fname) {
 	//AYLOGDEBUG(fname);
 
 	read_xml(fname, pt);
-
-	loadRules();
 	loadEntities();
+	loadRules();
 }
 
 const std::string BarzerSettings::get(const char *key) const {
