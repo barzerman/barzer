@@ -31,7 +31,9 @@ public:
 
 	void init();
 
-	void loadRules(const char *fname);
+	void loadRules();
+	void loadEntities();
+
 
 	void load();
 	void load(const char *fname);

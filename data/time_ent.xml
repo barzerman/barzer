@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entlist c="1" s="8">
+    <e i="TIME_INTERVAL"><n>Time interval</n></e>
+    <e i="DATE_INTERVAL"><n>Date interval</n></e>
+    <e i="DATETIME_INTERVAL"><n>Datetime interval</n></e>
+</entlist>

@@ -102,6 +102,7 @@ public:
 			STATE_TRANSLATION
 		} state;
 			
+		CurStatementData() : state(STATE_BLANK) {}
 		void clear(); 
 
 		std::stack< BELParseTreeNode* > nodeStack;
