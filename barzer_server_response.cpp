@@ -177,8 +177,7 @@ public:
 
 	}
 
-	void printEntity(const StoredEntity &ent) {
-		const StoredEntityUniqId &euid = ent.euid;
+	void printEntity(const BarzerEntity &euid) {
 		const StoredToken &tok = universe.getDtaIdx().tokPool.getTokById(euid.tokId);
 		const char *tokname = universe.getStringPool().resolveId(tok.stringId);
 		os << "<entity"
@@ -217,7 +216,7 @@ public:
 												  << data.eclass.subclass;
 			return;
 		}
-		printEntity(*ent);
+		printEntity(ent->getEuid());
 	}
 
 	void operator()(const BarzerEntityRangeCombo &data) {

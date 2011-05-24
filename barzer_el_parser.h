@@ -38,6 +38,9 @@ struct BELStatementParsed {
 		d_sourceName.assign( srcName );
 	}
 	void stmtNumberIncrement() { ++d_stmtNumber; }
+
+	size_t getStmtNumber() const { return d_stmtNumber; }
+	const std::string&  getSourceName() const { return d_sourceName; }
 };
 
 /// all specific parsers inherit from this base type and overload 

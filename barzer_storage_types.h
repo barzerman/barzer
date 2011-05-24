@@ -292,14 +292,16 @@ inline std::ostream& operator <<( std::ostream& fp, const StoredEntity& e )
 	return ( e.print(fp), fp );
 }
 
+typedef StoredEntityUniqId BarzerEntity;
+
 //// generic type used by Barzel among other things
 class BarzerEntityList {
 public:
-	typedef std::vector< StoredEntity > EList;
+	typedef std::vector< BarzerEntity > EList;
 	const EList& getList() const {
 		return lst;
 	}
-	void addEntity(const StoredEntity &e) {
+	void addEntity(const BarzerEntity &e) {
 		lst.push_back(e);
 	}
 	std::ostream& print( std::ostream& fp ) const;
@@ -308,7 +310,6 @@ private:
 
 };
 
-typedef StoredEntityUniqId BarzerEntity;
 
 }
 #endif // BARZER_STORAGE_TYPES_H
