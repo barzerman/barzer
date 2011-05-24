@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'xmlsimple'
+require 'erb'
 
 QUERIES_FILENAME = 'data/queries.txt'
 EXPECTED_RESULTS_FILENAME = "data/expected_results.xml"
@@ -19,7 +20,10 @@ def run_barzer(params)
 end
 
 def get_expected_barzer_results
-  XmlSimple.xml_in(EXPECTED_RESULTS_FILENAME)
+  f = File.new(EXPECTED_RESULTS_FILENAME)
+  contents = ERB.new(f.readlines.join).result
+  f.close
+  XmlSimple.xml_in(contents)
 end
 
 def get_current_barzer_results

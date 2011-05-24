@@ -13,8 +13,7 @@
     <barz>
       <token>tv</token>
       <token>shows</token>
-      <token>on</token>
-      <token>monday</token>
+      <date>2011-05-30</date>
     </barz>
   </test>
   <test>
@@ -37,8 +36,7 @@
       <token>apple</token>
       <token>prices</token>
       <token>on</token>
-      <token>last</token>
-      <token>tuesday</token>
+      <date>2011-05-17</date>
     </barz>
   </test>
 </testset>
