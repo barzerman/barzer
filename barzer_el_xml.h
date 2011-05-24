@@ -169,11 +169,7 @@ public:
 	mutable std::string d_tmpText; // used by getElementText as a temp buffer
 
 	~BELParserXML() ;
-	BELParserXML( BELReader* r ) : 
-		BELParser(r),
-		parser(0),
-		statementCount(0)
-	{}
+	BELParserXML( BELReader* r );
 
 	uint32_t internTmpText( const char* s, int len ) 
 		{ return internString( d_tmpText.assign(s,len).c_str() ); }

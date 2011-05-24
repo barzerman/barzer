@@ -179,9 +179,17 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const B
 
 template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_MkEnt>( const BTND_Rewrite_MkEnt& n ) 
 {
-	const StoredEntity * se = ctxt.universe.getDtaIdx().getEntById( n.getEntId() );
-	BarzerEntity ent=  se->euid;
-	d_val.setBeadData( BarzelBeadAtomic().setData( ent ) );
+	if( n.isSingleEnt() ) {
+		const StoredEntity * se = ctxt.universe.getDtaIdx().getEntById( n.getEntId() );
+		BarzerEntity ent=  se->euid;
+		d_val.setBeadData( BarzelBeadAtomic().setData( ent ) );
+	} else if( n.isEntList() ) {
+		const EntityGroup* entGrp = ctxt.universe.getBarzelTrie().getEntGroupById( n.getEntGroupId() );
+		if( entGrp ) {
+			// building entity list
+	#warning build the fucking entity list
+		}
+	}
 	return true;
 }
 

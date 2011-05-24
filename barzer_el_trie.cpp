@@ -321,7 +321,7 @@ void BELTrie::produceWCKey( BarzelWCKey& key, const BTND_PatternData& btnd  )
 	wcPool->produceWCKey(key, btnd );
 }
 
-const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, uint32_t transId, const BELVarInfo& varInfo )
+const BarzelTrieNode* BELTrie::addPath( const BELStatementParsed& stmt, const BTND_PatternDataVec& path, uint32_t transId, const BELVarInfo& varInfo )
 {
 	BarzelTrieNode* n = &root;
 
@@ -392,10 +392,43 @@ const BarzelTrieNode* BELTrie::addPath( const BTND_PatternDataVec& path, uint32_
 		}
 	}
 	if( n ) {
-		n->setTranslation( transId );
+		if( n->hasValidTranslation() ) {
+			std::cerr << "SHIT CLASH FOLD\n";
+		} else
+			n->setTranslation( transId );
 	} else 
 		AYTRACE("inconsistent state for setTranslation");
 	return n;
+}
+bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id )
+{
+	BarzelTranslation* tran = getBarzelTranslation(*n);
+	if( tran ) {
+		EntityGroup* entGrp = 0;
+		switch( tran->getType() ) {
+		case BarzelTranslation::T_MKENT: {
+			uint32_t entId = tran->getId_uint32();
+			uint32_t grpId = 0;
+			entGrp = getEntityCollection().addEntGroup( grpId );
+			tran->setMkEntList( grpId );
+			entGrp->addEntity( entId );
+		}
+			break;
+		case BarzelTranslation::T_MKENTLIST:
+			entGrp = getEntityCollection().getEntGroup( tran->getId_uint32() );
+			break;
+		default: return false;
+		}
+		if( entGrp ) {
+			entGrp->addEntity( id );
+			return true;
+		} else {
+			AYDEBUG("mkent inconsistency");
+			return false;
+		}
+	}
+	else  // this should never be the case 
+		return false;
 }
 //// BarzelTranslation methods
 
@@ -476,8 +509,12 @@ void BarzelTranslation::set(BELTrie& ,const BTND_Rewrite_Literal& x )
 }
 void BarzelTranslation::set(BELTrie&, const BTND_Rewrite_MkEnt& x )
 {
-	type = T_MKENT;
-	id   = x.getEntId();
+	if( x.isSingleEnt() ) 
+		type = T_MKENT;
+	else 
+		type = T_MKENTLIST;
+
+	id   = x.getRawId();
 }
 void BarzelTranslation::set(BELTrie&, const BTND_Rewrite_Number& x )
 {
@@ -545,6 +582,7 @@ void BarzelTranslation::fillRewriteData( BTND_RewriteData& d ) const
 	case T_VAR_EL_NUM: { BTND_Rewrite_Variable n; n.setPatternElemNumber(getId_uint32()); d=n; } return;
 	case T_VAR_GN_NUM: { BTND_Rewrite_Variable n; n.setWildcardGapNumber(getId_uint32()); d=n; } return;
 	case T_MKENT: { BTND_Rewrite_MkEnt n; n.setEntId( getId_uint32() ); d=n; } return;
+	case T_MKENTLIST: { BTND_Rewrite_MkEnt n; n.setEntGroupId( getId_uint32() ); d=n; } return;
 
 	default: d = BTND_Rewrite_None(); return;
 	}

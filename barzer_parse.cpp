@@ -9,10 +9,6 @@ int QSemanticParser::semanticize( Barz& barz, const QuestionParm& qparm  )
 {
 	err.clear();
 	universe.getToFirstTrie();
-	/*
-	BarzelMatcher matcher( universe );
-	matcher.matchAndRewrite( barz );
-	*/
 	do {
 		barzelMatcher.matchAndRewrite( barz );
 	} while( universe.getToNextTrie() );

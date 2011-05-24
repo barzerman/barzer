@@ -20,19 +20,24 @@ class StoredUniverse;
 /// statement parse tree represents a single BarzEL  statement as parsed on load 
 /// this tree is evaluated and resulting paths are added to a barzel trie by the parser
 struct BELStatementParsed {
-	struct Data {
-		uint32_t id; // 
-		int strength; // 
+	size_t d_stmtNumber;
+	std::string d_sourceName;
 
-		Data() : id(0xffffffff), strength(0) {}
-		void clear()
-		{ id=0xffffffff;strength = 0; }
-	};
+	BELStatementParsed() : 
+		d_stmtNumber(0)
+	{}
 
 	BELParseTreeNode pattern; // points at the node under statement
 	BELParseTreeNode translation; // points at the node under statement 
 	void clear()
 		{ pattern.clear(); translation.clear(); }
+	
+	void setSrcInfo( const char* srcName ) 
+	{ 
+		d_stmtNumber = 0;
+		d_sourceName.assign( srcName );
+	}
+	void stmtNumberIncrement() { ++d_stmtNumber; }
 };
 
 /// all specific parsers inherit from this base type and overload 
@@ -76,6 +81,7 @@ protected:
 
 	std::string inputFileName; 
 public:
+	const std::string& getInputFileName() const { return inputFileName; }
 	void setTrie( const std::string& trieClass, const std::string& trieId ) ;
 
 	BELTrie& getTrie() { return *trie ; }
