@@ -13,8 +13,7 @@
     <barz>
       <token>tv</token>
       <token>shows</token>
-      <token>on</token>
-      <token>monday</token>
+      <date>2011-05-30</date>
     </barz>
   </test>
   <test>

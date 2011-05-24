@@ -56,7 +56,7 @@ DIST_DATA_FILES = \
 INSTALL_DIR = /usr/share/barzer
 INSTALL_DATA_DIR = $(INSTALL_DIR)/data
 
-all: ay/libay.a $(objects) 
+all: ay/libay.a $(objects)
 	$(CC) $(LINKFLAGS) -o  $(BINARY) $(objects) $(libs)
 clean: 
 	rm -f $(objects) $(BINARY)
@@ -75,7 +75,7 @@ ay/libay.a:
 rebuild: clean aylib all
 
 .PHONY : test
-test: all
+test: $(BINARY)
 	cd test; rake test
 
 install:
