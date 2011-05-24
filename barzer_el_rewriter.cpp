@@ -187,7 +187,14 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_MkEnt>( const BTN
 		const EntityGroup* entGrp = ctxt.universe.getBarzelTrie().getEntGroupById( n.getEntGroupId() );
 		if( entGrp ) {
 			// building entity list
-	#warning build the fucking entity list
+			BarzerEntityList entList;
+			for( EntityGroup::Vec::const_iterator i = entGrp->getVec().begin(); i!= entGrp->getVec().end(); ++i )
+			{
+				const StoredEntity * se = ctxt.universe.getDtaIdx().getEntById( *i );
+				const BarzerEntity& euid = se->getEuid();
+				entList.addEntity( euid ); 
+			}
+			d_val.setBeadData( BarzelBeadAtomic().setData( entList ) );
 		}
 	}
 	return true;

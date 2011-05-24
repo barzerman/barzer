@@ -10,6 +10,7 @@ namespace barzer {
 struct EntityGroup {
 	typedef std::vector< uint32_t > Vec;
 	Vec d_vec;
+	const Vec& getVec() const { return d_vec; }
 	void addEntity( uint32_t i ) { d_vec.push_back( i ); } 
 };
 //// pool of entity groups
