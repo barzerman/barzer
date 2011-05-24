@@ -8,6 +8,9 @@
         <file>data/barzel_ru_dates.xml</file>
         <file>data/barzel_ru_prices.xml</file>
     </rules>
+    <entities>
+        <file>data/time_ent.xml</file>
+    </entities>
     <logging>
         <level>DEBUG</level>
         <file>barzer.log</file>

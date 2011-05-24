@@ -27,6 +27,7 @@ static GenericEntData g_genDta[] = {
 	GenericEntData(5,"area"), // square area
 	GenericEntData(6,"volume"), // cubic volume
 	GenericEntData(7,"wearsize"), // clothing/shoe sizes
+	GenericEntData(8,"time"), // time
 
 	// can't take this shit!
 	GenericEntData(69,"shit", "some shit"), // weight
