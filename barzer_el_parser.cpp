@@ -87,7 +87,7 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 			AYLOG(ERROR) << "null translation returned\n";
 		} else
 			tran->set(*trie, sp.translation);
-		trie->addPath( seq, tranId, varInfo );
+		trie->addPath( sp, seq, tranId, varInfo );
 		i++;
 		//AYLOG(DEBUG) << "path added";
 	} while( emitter.produceSequence() );

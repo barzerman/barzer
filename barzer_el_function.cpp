@@ -650,7 +650,7 @@ struct BELFunctionStorage_holder {
 		ERCPacker(BarzerEntityRangeCombo &e) : num(0), erc(e) {}
 
 		bool operator()(const BarzerEntityList &el) {
-			return (*this)(el.getList().front().getEuid());
+			return (*this)(el.getList().front());
 		}
 		bool operator()(const BarzerEntity &euid) {
 			if (num) {

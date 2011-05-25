@@ -511,11 +511,36 @@ struct BTND_Rewrite_Number : public BarzerNumber {
 };
 struct BTND_Rewrite_MkEnt : public BarzerNumber {
 	uint32_t d_entId;
+	/// when mode is 0 d_entId is the single entity Id 
+	//  when mode is 1 d_entId is id of the pool of entityIds 
+	enum {
+		MODE_SINGLE_ENT,
+		MODE_ENT_LIST
+	};
+	uint8_t  d_mode;
 
-	BTND_Rewrite_MkEnt() : d_entId(0xffffffff) {}
-	void setEntId( uint32_t i ) { d_entId = i; }
 
-	uint32_t getEntId( ) const { return d_entId ; }
+	BTND_Rewrite_MkEnt() : d_entId(0xffffffff), d_mode(MODE_SINGLE_ENT) {}
+
+	bool isSingleEnt() const { return d_mode == MODE_SINGLE_ENT; }
+	bool isEntList() const { return d_mode == MODE_ENT_LIST; }
+
+	// single entity manipulation
+	void setEntId( uint32_t i ) { 
+		d_entId = i; 
+		d_mode = MODE_SINGLE_ENT;
+	}
+	uint32_t getRawId( ) const { return d_entId; }
+	uint32_t getEntId( ) const { return ( isSingleEnt() ? d_entId : 0xffffffff ); }
+
+	// entity list manipulation
+	void setEntGroupId( uint32_t i ) {
+		d_entId = i; 
+		d_mode = MODE_ENT_LIST;
+	}
+
+	uint32_t getEntGroupId( ) const { return isEntList() ? d_entId :0xffffffff; }
+
 	std::ostream& print( std::ostream& fp, const BELPrintContext& ) const
 		{ return (fp<< std::hex << d_entId ); }
 };

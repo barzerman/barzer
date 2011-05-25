@@ -177,15 +177,18 @@ public:
 
 	}
 
-	void printEntity(const StoredEntity &ent) {
-		const StoredEntityUniqId &euid = ent.euid;
-		const StoredToken &tok = universe.getDtaIdx().tokPool.getTokById(euid.tokId);
-		const char *tokname = universe.getStringPool().resolveId(tok.stringId);
-		os << "<entity"
-				<< " id=\"" << tokname << "\""
-		        << " class=\"" << euid.eclass.ec << "\""
-				<< " subclass=\"" << euid.eclass.subclass << "\""
-				<< " />";
+	void printEntity(const BarzerEntity &euid) {
+		const StoredToken *tok = universe.getDtaIdx().tokPool.getTokByIdSafe(euid.tokId);
+		if( tok ) {
+			const char *tokname = universe.getStringPool().resolveId(tok->stringId);
+			os << "<entity"
+					<< " id=\"" << (tokname? tokname:"(null)") << "\""
+		        	<< " class=\"" << euid.eclass.ec << "\""
+					<< " subclass=\"" << euid.eclass.subclass << "\""
+					<< " />";
+		} else {
+			os << "INVALID_TOK[" << euid.eclass << "," << std::hex << euid.tokId << "]";
+		}
 		//os << "</entity>";
 	}
 
@@ -217,7 +220,7 @@ public:
 												  << data.eclass.subclass;
 			return;
 		}
-		printEntity(*ent);
+		printEntity(ent->getEuid());
 	}
 
 	void operator()(const BarzerEntityRangeCombo &data) {

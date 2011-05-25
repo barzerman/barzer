@@ -36,6 +36,14 @@ static void charDataHandle( void * ud, const XML_Char *str, int len)
 
 namespace barzer {
 
+
+BELParserXML::BELParserXML( BELReader* r ) : 
+		BELParser(r),
+		parser(0),
+		statementCount(0)
+	{
+		statement.stmt.setSrcInfo(reader->getInputFileName().c_str());
+	}
 bool BELParserXML::isValidTag( int tag, int parent ) const
 {
 	switch( parent ) {
@@ -174,6 +182,8 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 		statement.clear();
 		return;
 	}
+	statement.stmt.stmtNumberIncrement();
+
 	if( statement.hasStatement() ) { // bad - means we have statement tag nested in another statement
 		std::cerr << "statement nested in statement " << statementCount << "\n";
 		return;
@@ -766,6 +776,8 @@ BELParserXML::~BELParserXML()
 
 int BELParserXML::parse( std::istream& fp )
 {
+	statement.stmt.setSrcInfo(reader->getInputFileName().c_str());
+
 	/// initialize parser  if needed
 	if( !parser ) {
 		parser = XML_ParserCreate(NULL);

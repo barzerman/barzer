@@ -1,6 +1,11 @@
 FLAGS := $(FLAGS) 
 ifeq ($(IS64),yes)
 	BITMODE=-m64
+	AYBIT="IS64=yes"
+endif 
+ifeq ($(IS32),yes)
+	BITMODE=-m32
+	AYBIT="IS32=yes"
 endif 
 CFLAGS :=$(CFLAGS) $(BITMODE) $(OPT) -Wno-parentheses -Wnon-virtual-dtor -I/opt/local/include -I/usr/include -Wall -g -I. -I./ay
 LINKFLAGS := $(FLAGS)
@@ -55,8 +60,8 @@ DIST_DATA_FILES = \
 INSTALL_DIR = /usr/share/barzer
 INSTALL_DATA_DIR = $(INSTALL_DIR)/data
 
-all: ay/libay.a $(objects)
-	$(CC) $(LINKFLAGS) -o  $(BINARY) $(objects) $(libs)
+all: ay/libay.a $(objects) 
+	$(CC) $(BITMODE) $(LINKFLAGS) -o  $(BINARY) $(objects) $(libs)
 clean: 
 	rm -f $(objects) $(BINARY)
 cleanall: clean cleanaylib
@@ -64,11 +69,11 @@ cleanall: clean cleanaylib
 cleanaylib: 
 	cd ay; make -f aylib.mk clean; cd ..
 aylib_rebuild: 
-	cd ay; make -f aylib.mk rebuild OPT=$(OPT) FLAGS=$(FLAGS); cd ..
+	cd ay; make -f aylib.mk rebuild $(AYBIT) OPT=$(OPT) FLAGS=$(FLAGS); cd ..
 aylib: 
-	cd ay; make -f aylib.mk OPT=$(OPT) FLAGS=$(FLAGS); cd ..
+	cd ay; make -f aylib.mk $(AYBIT) OPT=$(OPT) FLAGS=$(FLAGS); cd ..
 ay/libay.a: 
-	cd ay; make -f aylib.mk rebuild OPT=$(OPT) $(FLAGS); cd ..
+	cd ay; make -f aylib.mk rebuild $(AYBIT) OPT=$(OPT) $(FLAGS); cd ..
 .cpp.o:
 	$(CC)  -c $(CFLAGS) $< -o $@
 rebuild: clean aylib all

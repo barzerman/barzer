@@ -1,22 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
-    xmlns="http://www.barzer.net/barzel/0.1">
-<stmt>
-    <pat>
-        <list v="left"><ent /></list>
-        <t>and</t>
-        <list v="right"><ent /></list>
-    </pat>
-    <tran>
-        <func name="mkErcExpr">
-            <ltrl>AND</ltrl>
-            <var name="left" />
-            <var name="right" />
-        </func>
-    </tran>
-</stmt>
-<stmt>
-    <pat><t>foo</t></pat>
-    <tran><func name="mkEnt"><ltrl>TIME_INTERVAL</ltrl><rn v="1" /><rn v="8" /></func></tran>    
-</stmt>
+
 </stmset>
