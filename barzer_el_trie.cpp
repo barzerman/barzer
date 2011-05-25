@@ -422,8 +422,16 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id )
 		default: return false;
 		}
 		if( entGrp ) {
-			entGrp->addEntity( id );
-			return true;
+			const BarzelTranslation* newTran = tranPool->getObjById(id);
+			if( newTran && newTran->isMkEntSingle() ) {
+				uint32_t newEntId = newTran->getId_uint32();
+
+				entGrp->addEntity( newEntId );
+				return true;
+			} else {
+				AYDEBUG("mkent inconsistency");
+				return false;
+			}
 		} else {
 			AYDEBUG("mkent inconsistency");
 			return false;
@@ -431,6 +439,7 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id )
 	}
 	else  // this should never be the case 
 		return false;
+	
 }
 //// BarzelTranslation methods
 
