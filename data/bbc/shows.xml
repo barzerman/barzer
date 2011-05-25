@@ -1,0 +1,710 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance" xmlns="http://www.barzer.net/barzel/0.1">
+<stmt><pat> <t></t> <p>'</p> <t>Allo</t> <t></t> <p>'</p> <t>Allo</t> <p>!</p> <t></t> </pat><tran> <mkent i="b006xyt3" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t></t> <p>.</p> <t></t> <p>.</p> <t></t> <p>.</p> <t></t> <t>and</t> <t>Many</t> <t>Children</t> <t>Came</t> </pat><tran> <mkent i="b007njrd" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Bad</t> <t>Time</t> <t>to</t> <t>be</t> <t>a</t> <t>Man</t> </pat><tran> <mkent i="p00f5bqh" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Band</t> <t>for</t> <t>Britain</t> </pat><tran> <mkent i="b00rhghl" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Beautiful</t> <t>Mind</t> </pat><tran> <mkent i="b0074fgs" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Bit</t> <t>of</t> <t>Fry</t> <t>and</t> <t>Laurie</t> </pat><tran> <mkent i="b00rv4zp" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Boy</t> <t>In</t> <t>Harris</t> <t></t> <p>-</p> <t></t> <t>An</t> <p>-</p> <t>Diugh</t> </pat><tran> <mkent i="b00x7chz" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Boy</t> <t>Named</t> <t>Charlie</t> <t>Brown</t> </pat><tran> <mkent i="b0078rgh" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Breed</t> <t>Apart</t> </pat><tran> <mkent i="b00mrtx2" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Bronx</t> <t>Tale</t> </pat><tran> <mkent i="b00yk32c" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Bucket</t> <t>o</t> <p>'</p> <t></t> <t>French</t> <t>and</t> <t>Saunders</t> </pat><tran> <mkent i="b007z6zb" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Bug</t> <p>'</p> <t>s</t> <t>Life</t> </pat><tran> <mkent i="b007c1b4" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Burns</t> <t>Night</t> <t>Celebration</t> </pat><tran> <mkent i="b00qcj2x" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Canterbury</t> <t>Tale</t> </pat><tran> <mkent i="b0078k2v" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Century</t> <t>of</t> <t>Fatherhood</t> </pat><tran> <mkent i="b00swhjq" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Chance</t> <t>to</t> <t>Meet</t> </pat><tran> <mkent i="p00fjlpp" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Child</t> <p>'</p> <t>s</t> <t>Christmas</t> <t>in</t> <t>Wales</t> </pat><tran> <mkent i="b00gg12w" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Child</t> <p>'</p> <t>s</t> <t>Christmases</t> <t>in</t> <t>Wales</t> </pat><tran> <mkent i="b00pgr8x" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Church</t> <t>in</t> <t>Crisis</t> <p>?</p> <t></t> </pat><tran> <mkent i="b00tjr1j" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Class</t> <t>Apart</t> </pat><tran> <mkent i="b007cl9x" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Cock</t> <t>and</t> <t>Bull</t> <t>Story</t> </pat><tran> <mkent i="b007xh8v" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Common</t> <t>Thread</t> </pat><tran> <mkent i="b0084kx0" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Concert</t> <t>for</t> <t>Heroes</t> </pat><tran> <mkent i="b00tt9jp" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Conversation</t> <t>with</t> <t>Gregory</t> <t>Peck</t> </pat><tran> <mkent i="b010vyk7" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Cook</t> <p>'</p> <t>s</t> <t>Tour</t> <t>of</t> <t>France</t> </pat><tran> <mkent i="p00f5byq" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Cottage</t> <t>on</t> <t>Dartmoor</t> </pat><tran> <mkent i="b0074skz" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Dander</t> <t>with</t> <t>Drennan</t> </pat><tran> <mkent i="b00cz7xx" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Dangerous</t> <t>Place</t> <t>to</t> <t>Meet</t> <t>My</t> <t>Family</t> </pat><tran> <mkent i="b00yzhzl" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Date</t> <t>with</t> <t>Darkness</t> </pat><tran> <mkent i="b007cfrx" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Day</t> <t>Out</t> </pat><tran> <mkent i="b00pcbys" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Day</t> <t>Out</t> <t>with</t> <t>Gwyn</t> </pat><tran> <mkent i="b00jnhfr" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Day</t> <t>That</t> <t>Shook</t> <t>The</t> <t>World</t> </pat><tran> <mkent i="p008pxgw" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Day</t> <t>to</t> <t>Remember</t> </pat><tran> <mkent i="p00fgf9f" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Distant</t> <t>Trumpet</t> </pat><tran> <mkent i="b007795q" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Family</t> <t>Business</t> </pat><tran> <mkent i="b00tlxly" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Farewell</t> <t>to</t> <t>Floyd</t> </pat><tran> <mkent i="b00n3x5b" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Farmer</t> <p>'</p> <t>s</t> <t>Life</t> <t>For</t> <t>Me</t> </pat><tran> <mkent i="b00yflv1" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Feast</t> <t>of</t> <t>Floyd</t> </pat><tran> <mkent i="b0077jgh" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Fish</t> <t>Called</t> <t>Wanda</t> </pat><tran> <mkent i="b00lrpfr" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>for</t> <t>Andromeda</t> </pat><tran> <mkent i="b0074sc9" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Funny</t> <t>Thing</t> <t>Happened</t> <t>on</t> <t>the</t> <t>Way</t> <t>Through</t> <t>the</t> <t>Troubles</t> </pat><tran> <mkent i="b007cx1p" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Game</t> <t>for</t> <t>Vultures</t> </pat><tran> <mkent i="b007bylk" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Gharaids</t> </pat><tran> <mkent i="b00fkyg3" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Gift</t> <t>for</t> <t>Heidi</t> </pat><tran> <mkent i="b0078f5h" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>God</t> <t>Given</t> <t>Gift</t> </pat><tran> <mkent i="b008hryd" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Good</t> <t>Woman</t> </pat><tran> <mkent i="b00hb4rb" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Goofy</t> <t>Movie</t> </pat><tran> <mkent i="b00795hk" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>gu</t> <t>U</t> <t></t> <p>-</p> <t></t> <t>Am</t> <t>Faca</t> <t>Tu</t> <p>?</p> <t></t> </pat><tran> <mkent i="b00dtrvx" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>gu</t> <t>U</t> <p>,</p> <t></t> <t>An</t> <t>Cuala</t> <t>Tu</t> <p>?</p> <t></t> </pat><tran> <mkent i="b00x9b63" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Guide</t> <t>to</t> <t>Recognising</t> <t>Your</t> <t>Saints</t> </pat><tran> <mkent i="b00djkr7" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Hard</t> <t>Day</t> <p>'</p> <t>s</t> <t>Night</t> </pat><tran> <mkent i="b0074q9m" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Heroes</t> <t>Welcome</t> </pat><tran> <mkent i="b00bbs76" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>History</t> <t>of</t> <t>Ancient</t> <t>Britain</t> </pat><tran> <mkent i="b00xchyf" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>History</t> <t>of</t> <t>Britain</t> <t>by</t> <t>Simon</t> <t>Schama</t> </pat><tran> <mkent i="b008qpzn" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>History</t> <t>of</t> <t>British</t> <t>Art</t> </pat><tran> <mkent i="b00b4jvb" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>History</t> <t>of</t> <t>Celtic</t> <t>Britain</t> </pat><tran> <mkent i="b010bg26" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>History</t> <t>of</t> <t>Christianity</t> </pat><tran> <mkent i="b00ntrqh" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>History</t> <t>of</t> <t>Horror</t> <t>with</t> <t>Mark</t> <t>Gatiss</t> </pat><tran> <mkent i="b00vcwm7" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>History</t> <t>of</t> <t>Scotland</t> </pat><tran> <mkent i="b00nz3b7" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>History</t> <t>of</t> <t>the</t> <t>World</t> </pat><tran> <mkent i="b00sm7wt" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Home</t> <t>for</t> <t>Maisie</t> </pat><tran> <mkent i="b010fq2d" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Hundred</t> <t>Years</t> <t>of</t> <t>Us</t> </pat><tran> <mkent i="b0101z6z" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Journey</t> <t>Back</t> <t>to</t> <t>Newcastle</t> <p>:</p> <t></t> <t>Michael</t> <t>Smith</t> <p>'</p> <t>s</t> <t>Deep</t> <t>North</t> </pat><tran> <mkent i="b00tr1gm" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Kiss</t> <t>Before</t> <t>Dying</t> </pat><tran> <mkent i="b007v2jj" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Land</t> <t>against</t> <t>the</t> <t>Light</t> </pat><tran> <mkent i="p00gsjqf" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Life</t> <t>of</t> <t>Grime</t> </pat><tran> <mkent i="b007cgb1" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Life</t> <t>of</t> <t>Grime</t> </pat><tran> <mkent i="b007cgdr" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Life</t> <t>of</t> <t>Grime</t> </pat><tran> <mkent i="b007cgpr" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Life</t> <t>of</t> <t>Grime</t> </pat><tran> <mkent i="p00f6mz0" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Life</t> <t>on</t> <t>the</t> <t>Box</t> <p>:</p> <t></t> <t>Arthur</t> <t>Lowe</t> </pat><tran> <mkent i="b00g50v3" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Life</t> <t>Without</t> <t>Work</t> </pat><tran> <mkent i="b00vjcxl" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Little</t> <t>Later</t> </pat><tran> <mkent i="b00cgq6c" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Little</t> <t>Later</t> </pat><tran> <mkent i="b00fdsk2" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Little</t> <t>Later</t> <p>:</p> <t></t> <t>Amy</t> <t>MacDonald</t> </pat><tran> <mkent i="b00cgp3z" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Little</t> <t>Light</t> <t>Music</t> <p>:</p> <t></t> <t>Friday</t> <t>Night</t> <t>is</t> <t>Music</t> <t>Night</t> </pat><tran> <mkent i="b0074rw8" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Little</t> <t>Local</t> <t>Difficulty</t> </pat><tran> <mkent i="p00f83lc" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Lot</t> <t>like</t> <t>Love</t> </pat><tran> <mkent i="b008m8mv" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Love</t> <t>Divided</t> </pat><tran> <mkent i="b0078wy7" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Lucky</t> <t>Day</t> </pat><tran> <mkent i="b0074rv9" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Man</t> <t>Called</t> <t>Horse</t> </pat><tran> <mkent i="b007cf7x" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Man</t> <t>from</t> <t>the</t> <t>Sun</t> </pat><tran> <mkent i="b0074nt1" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Man</t> <t>of</t> <t>No</t> <t>Importance</t> </pat><tran> <mkent i="b0074mb4" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Man</t> <p>'</p> <t>s</t> <t>World</t> </pat><tran> <mkent i="p00fv9sk" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Marriage</t> <t>Made</t> <t>In</t> <t>Portsmouth</t> </pat><tran> <mkent i="b0094jwk" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Marriage</t> <t>Made</t> <t>in</t> <t>Portsmouth</t> </pat><tran> <mkent i="b00bc56p" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Midsummer</t> <t>Night</t> <p>'</p> <t>s</t> <t>Dream</t> </pat><tran> <mkent i="b0078kx9" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Month</t> <t>of</t> <t>Sun</t> <t>Days</t> </pat><tran> <mkent i="b00lqwyj" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Musical</t> <t>Star</t> <t>is</t> <t>Born</t> </pat><tran> <mkent i="b007j116" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Muslim</t> <t>in</t> <t>Wales</t> <p>:</p> <t></t> <t>Quran</t> <t>and</t> <t>Country</t> </pat><tran> <mkent i="p00h0l3w" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Necessary</t> <t>Evil</t> <p>?</p> <t></t> </pat><tran> <mkent i="b00n1lkj" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Night</t> <t>at</t> <t>the</t> <t>Opera</t> </pat><tran> <mkent i="b0078zmv" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Night</t> <t>on</t> <t>the</t> <t>Town</t> </pat><tran> <mkent i="b007c99v" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Night</t> <t>to</t> <t>Remember</t> </pat><tran> <mkent i="b0077f2t" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Nightingale</t> <t>Sang</t> <t>in</t> <t>Berkeley</t> <t>Square</t> </pat><tran> <mkent i="b007b91b" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Number</t> </pat><tran> <mkent i="b00dh26z" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Parliamentary</t> <t>Coup</t> </pat><tran> <mkent i="b00jqjkr" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Passion</t> <t>for</t> <t>Plants</t> </pat><tran> <mkent i="b00876pj" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Passionate</t> <t>Woman</t> </pat><tran> <mkent i="b00s3vd3" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Pembrokeshire</t> <t>Farm</t> </pat><tran> <mkent i="b007vlhy" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Pembrokeshire</t> <t>Farm</t> </pat><tran> <mkent i="b007x11c" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Perfect</t> <t>Spy</t> </pat><tran> <mkent i="b008dqld" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Picture</t> <t>of</t> <t>Britain</t> </pat><tran> <mkent i="b006vhth" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Pilgrim</t> <p>'</p> <t>s</t> <t>Progress</t> </pat><tran> <mkent i="b007cwqr" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Pilgrim</t> <p>'</p> <t>s</t> <t>Progress</t> </pat><tran> <mkent i="b007cwr3" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Pilgrim</t> <p>'</p> <t>s</t> <t>Progress</t> </pat><tran> <mkent i="b007cwrc" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Pilgrim</t> <p>'</p> <t>s</t> <t>Progress</t> </pat><tran> <mkent i="b007cwrp" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Pilgrim</t> <p>'</p> <t>s</t> <t>Progress</t> </pat><tran> <mkent i="b007cws2" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Pilgrim</t> <p>'</p> <t>s</t> <t>Progress</t> </pat><tran> <mkent i="b007cwsk" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Pocket</t> <t>History</t> <t>Of</t> <p>.</p> <t></t> <p>.</p> <t></t> <p>.</p> <t></t> <t>Belfast</t> </pat><tran> <mkent i="b007cwmm" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Pocket</t> <t>History</t> <t>Of</t> <p>.</p> <t></t> <p>.</p> <t></t> <p>.</p> <t></t> <t>Lisburn</t> </pat><tran> <mkent i="b007cwlx" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Pocket</t> <t>History</t> <t>of</t> <p>.</p> <t></t> <p>.</p> <t></t> <p>.</p> <t></t> <t>Newry</t> </pat><tran> <mkent i="b007cwk1" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Poem</t> <t>for</t> <t>Harry</t> <t></t> <p>-</p> <t></t> <t>A</t> <t>Tribute</t> <t>to</t> <t>Harry</t> <t>Patch</t> </pat><tran> <mkent i="b0074t0t" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Poet</t> <p>'</p> <t>s</t> <t>Guide</t> <t>to</t> <t>Britain</t> </pat><tran> <mkent i="b00kdr8l" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Portrait</t> <t>of</t> <t>Scotland</t> </pat><tran> <mkent i="b00ml5dd" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Prairie</t> <t>Home</t> <t>Companion</t> </pat><tran> <mkent i="b00j6bnw" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Prince</t> <t>for</t> <t>Wales</t> <p>?</p> <t></t> </pat><tran> <mkent i="b00ljqgd" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Prince</t> <t>Made</t> <t>in</t> <t>Wales</t> </pat><tran> <mkent i="b00ljqcj" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Queer</t> <t>Try</t> </pat><tran> <mkent i="b00dfbb1" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Question</t> <t>of</t> <t>Genius</t> </pat><tran> <mkent i="b00sgbtk" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Question</t> <t>of</t> <t>Sport</t> </pat><tran> <mkent i="b006t1s9" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Question</t> <t>of</t> <t>Sport</t> <p>:</p> <t></t> <t>World</t> <t>Cup</t> <t>Special</t> </pat><tran> <mkent i="b007cgpb" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Question</t> <t>of</t> <t>Sport</t> <p>:</p> <t></t> <t>World</t> <t>Cup</t> <t>Special</t> </pat><tran> <mkent i="b007cgpp" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Question</t> <t>of</t> <t>Sport</t> <p>:</p> <t></t> <t>World</t> <t>Cup</t> <t>Special</t> </pat><tran> <mkent i="b007cgq3" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Real</t> <t>Friend</t> </pat><tran> <mkent i="b00bbt5n" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Real</t> <t>Summer</t> </pat><tran> <mkent i="b0089h0c" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Reir</t> <t>na</t> <t>h</t> <p>-</p> <t>Aimisir</t> </pat><tran> <mkent i="b00ht7zs" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Revolution</t> <t>in</t> <t>Childhood</t> </pat><tran> <mkent i="b00byhz2" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Room</t> <t>for</t> <t>Romeo</t> <t>Brass</t> </pat><tran> <mkent i="b0078skp" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Royal</t> <t>Occasion</t> </pat><tran> <mkent i="p0091xws" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Scottish</t> <t>Songbook</t> <t>at</t> <t>Celtic</t> <t>Connections</t> <t>2010</t> </pat><tran> <mkent i="b00q2nhn" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Seaside</t> <t>Parish</t> </pat><tran> <mkent i="b006vh7c" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Seaside</t> <t>Parish</t> </pat><tran> <mkent i="b0079020" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Short</t> <t>Stay</t> <t>in</t> <t>Switzerland</t> </pat><tran> <mkent i="b00h62w9" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Simple</t> <t>Plan</t> </pat><tran> <mkent i="b0078cwc" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Slave</t> <p>'</p> <t>s</t> <t>Story</t> </pat><tran> <mkent i="b007ctbp" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Small</t> <t>Summer</t> <t>Party</t> </pat><tran> <mkent i="b00748rq" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Song</t> <t>of</t> <t>Crotal</t> <t>and</t> <t>White</t> <t>An</t> <p>-</p> <t>diugh</t> <t></t> <p>(</p> <t>A</t> <t>Song</t> <t>of</t> <t>Crotal</t> <t>and</t> <t>White</t> <t>Today</t> <p>)</p> <t></t> </pat><tran> <mkent i="b00ph8kn" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Star</t> <t>Is</t> <t>Born</t> </pat><tran> <mkent i="b0078zpn" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>State</t> <t>of</t> <t>Mind</t> </pat><tran> <mkent i="b0074q9w" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Stitch</t> <t>in</t> <t>Time</t> </pat><tran> <mkent i="b00789y0" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Study</t> <t>in</t> <t>Terror</t> </pat><tran> <mkent i="b007c1kl" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Study</t> <t>in</t> <t>Terror</t> </pat><tran> <mkent i="b00djlxn" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Summer</t> <t>of</t> <t>Melas</t> <p>:</p> <t></t> <t>Highlights</t> </pat><tran> <mkent i="b00tgd9x" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Surveillance</t> <t>Society</t> <t>Committee</t> </pat><tran> <mkent i="b007lcg5" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Tabloid</t> <t>is</t> <t>Born</t> <p>!</p> <t></t> </pat><tran> <mkent i="b007l4fv" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Tale</t> <t>of</t> <t>Two</t> <t>Britains</t> </pat><tran> <mkent i="b00nph5d" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Tale</t> <t>of</t> <t>Two</t> <t>Cities</t> </pat><tran> <mkent i="b0078mb0" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Tale</t> <t>of</t> <t>Two</t> <t>Cities</t> </pat><tran> <mkent i="b00d2p2b" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Taste</t> <t>of</t> <t>Iran</t> </pat><tran> <mkent i="b00n59zt" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Taste</t> <t>of</t> <t>My</t> <t>Life</t> </pat><tran> <mkent i="b00701fw" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Thing</t> <t>Called</t> <t>Love</t> </pat><tran> <mkent i="p00cflmd" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Thunder</t> <t>of</t> <t>Drums</t> </pat><tran> <mkent i="b0077v32" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Time</t> <t>to</t> <t>Kill</t> </pat><tran> <mkent i="b0074df6" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Time</t> <t>to</t> <t>Kill</t> </pat><tran> <mkent i="b007ckdg" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Tribute</t> <t>to</t> <t>Ned</t> <t>Sherrin</t> <p>:</p> <t></t> <t>Comedy</t> <t>Connections</t> <p>:</p> <t></t> <t>That</t> <t>Was</t> <t>the</t> <t>Week</t> <t>that</t> <t>Was</t> </pat><tran> <mkent i="b0084bld" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Tribute</t> <t>to</t> <t>Sir</t> <t>Edmund</t> <t>Hillary</t> <p>:</p> <t></t> <t>The</t> <t>Race</t> <t>for</t> <t>Everest</t> </pat><tran> <mkent i="b008wfgr" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Tudor</t> <t>Feast</t> <t>at</t> <t>Christmas</t> </pat><tran> <mkent i="b00794j3" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Very</t> <t>British</t> <t>Olympics</t> </pat><tran> <mkent i="b0074rrt" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Very</t> <t>English</t> <t>Village</t> </pat><tran> <mkent i="b006z43x" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>View</t> <t>from</t> <t>a</t> <t>Hill</t> </pat><tran> <mkent i="b008j4jk" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Visit</t> <t>To</t> </pat><tran> <mkent i="p00fc389" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Vow</t> <t>to</t> <t>Kill</t> </pat><tran> <mkent i="b007b93d" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Voyage</t> <t>Round</t> <t>My</t> <t>Father</t> </pat><tran> <mkent i="b0074pct" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Walk</t> <t>in</t> <t>the</t> <t>Sun</t> </pat><tran> <mkent i="b00gfzdt" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Walk</t> <t>on</t> <t>the</t> <t>Moon</t> </pat><tran> <mkent i="b0078ds2" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Walk</t> <t>to</t> <t>Remember</t> </pat><tran> <mkent i="b007cg2g" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Waste</t> <t>of</t> <t>Shame</t> </pat><tran> <mkent i="b0074rw5" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Way</t> <t>of</t> <t>Life</t> </pat><tran> <mkent i="b0074fg5" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Wild</t> <t>Romance</t> </pat><tran> <mkent i="p00h3qvm" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Woman</t> <t>in</t> <t>Love</t> <t>and</t> <t>War</t> <p>:</p> <t></t> <t>Vera</t> <t>Brittain</t> </pat><tran> <mkent i="b00flklr" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Woman</t> <t>of</t> <t>No</t> <t>Importance</t> </pat><tran> <mkent i="b00782fy" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>World</t> <t>Away</t> </pat><tran> <mkent i="b00mvdgm" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>World</t> <t>of</t> <t>Pain</t> <p>:</p> <t></t> <t>Meera</t> <t>Syal</t> <t>on</t> <t>Self</t> <p>-</p> <t>Harm</t> </pat><tran> <mkent i="b00l17tq" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Year</t> <t>in</t> <t>Sex</t> <t>City</t> </pat><tran> <mkent i="b008x518" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <t>Year</t> <t>in</t> <t>Tibet</t> </pat><tran> <mkent i="b00949bt" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <p>'</p> <t></t> <t>Bhliadhna</t> </pat><tran> <mkent i="b00pgzl0" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <p>'</p> <t></t> <t>Chuirm</t> </pat><tran> <mkent i="b00drtt4" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <p>'</p> <t></t> <t>Comharrachadh</t> <t>Bliadhna</t> <t>nan</t> <t>Oran</t> <t></t> <p>(</p> <t>Celebrating</t> <t>the</t> <t>Year</t> <t>of</t> <t>Song</t> <p>)</p> <t></t> </pat><tran> <mkent i="b00wwg9b" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <p>'</p> <t></t> <t>Dol</t> <t>Dhachaigh</t> </pat><tran> <mkent i="b00fyxwk" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <p>'</p> <t></t> <t>Fagail</t> <t>Mhiughalai</t> </pat><tran> <mkent i="b00dx5y0" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <p>'</p> <t></t> <t>Sireadh</t> <t>Moire</t> </pat><tran> <mkent i="b00l1s27" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <p>'</p> <t></t> <t>Tighinn</t> <t>Fo</t> <t>Churam</t> <t></t> <p>(</p> <t>Religious</t> <t>Documentary</t> <p>)</p> <t></t> </pat><tran> <mkent i="b00mfdyt" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <p>'</p> <t>Bhuth</t> <t></t> <p>(</p> <t>Level</t> <t>A</t> <t>Maths</t> <p>)</p> <t></t> </pat><tran> <mkent i="b00mw2ym" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <p>'</p> <t>Fagail</t> <t>Bharraigh</t> </pat><tran> <mkent i="b007hx6w" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A</t> <p>-</p> <t>Z</t> <t>of</t> <t>Politics</t> </pat><tran> <mkent i="b0078mj9" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>A303</t> <p>:</p> <t></t> <t>Highway</t> <t>to</t> <t>the</t> <t>Sun</t> </pat><tran> <mkent i="b0116ly6" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>ABC</t> <t>of</t> <t>Music</t> <p>,</p> <t></t> <t>An</t> </pat><tran> <mkent i="p00fk0sv" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>ABC</t> <t>World</t> <t>News</t> <t>with</t> <t>Charles</t> <t>Gibson</t> </pat><tran> <mkent i="b006mhnx" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>ABC</t> <t>World</t> <t>News</t> <t>with</t> <t>Diane</t> <t>Sawyer</t> </pat><tran> <mkent i="b00qbb6w" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Abdication</t> <p>:</p> <t></t> <t>A</t> <t>Very</t> <t>British</t> <t>Coup</t> </pat><tran> <mkent i="b0074t58" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Abduction</t> <t>Club</t> </pat><tran> <mkent i="b0074smn" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Abhainn</t> <t>an</t> <t>t</t> <p>-</p> <t>Sluaigh</t> <t>2007</t> <p>/</p> <t>08</t> </pat><tran> <mkent i="b00qjntj" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Abigail</t> <p>'</p> <t>s</t> <t>Party</t> </pat><tran> <mkent i="b0074n6r" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Abigail</t> <p>'</p> <t>s</t> <t>Party</t> <t>Pack</t> </pat><tran> <mkent i="b008569j" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Abolition</t> <t>Anniversary</t> <t>1807</t> </pat><tran> <mkent i="b007xhqg" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Abortion</t> <t>Wars</t> </pat><tran> <mkent i="b00xlkgh" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Abortion</t> <p>:</p> <t></t> <t>The</t> <t>Choice</t> </pat><tran> <mkent i="b00bf5fc" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Abortion</t> <p>:</p> <t></t> <t>The</t> <t>Choice</t> </pat><tran> <mkent i="b00bfmps" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Abortion</t> <p>:</p> <t></t> <t>The</t> <t>Choice</t> </pat><tran> <mkent i="b00c3qtm" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Abouna</t> </pat><tran> <mkent i="b00f68w9" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>About</t> <t>Adam</t> </pat><tran> <mkent i="b0078rsj" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>About</t> <t>Britain</t> </pat><tran> <mkent i="p00db1m0" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Above</t> <t>Their</t> <t>Station</t> </pat><tran> <mkent i="b00r3rb6" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Abraham</t> <t>Lincoln</t> <p>:</p> <t></t> <t>Saint</t> <t>or</t> <t>Sinner</t> <p>?</p> <t></t> </pat><tran> <mkent i="b00y5kdx" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Abroad</t> <t>Again</t> <t>in</t> <t>Britain</t> </pat><tran> <mkent i="b007tvqs" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Absolute</t> <t>Beginners</t> </pat><tran> <mkent i="b008nkpy" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Absolute</t> <t>Power</t> </pat><tran> <mkent i="b0081m3b" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Absolute</t> <t>Power</t> </pat><tran> <mkent i="b00kyl91" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Absolute</t> <t>Zero</t> </pat><tran> <mkent i="b007v5rl" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Absolutely</t> <t>Chuffed</t> <p>:</p> <t></t> <t>The</t> <t>Men</t> <t>Who</t> <t>Built</t> <t>a</t> <t>Steam</t> <t>Engine</t> </pat><tran> <mkent i="b00dzz5y" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Absolutely</t> <t>Fabulous</t> </pat><tran> <mkent i="b00jm3ms" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Academi</t> <t>Book</t> <t>of</t> <t>the</t> <t>Year</t> <t>2008</t> </pat><tran> <mkent i="b00cnt4y" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Accidental</t> <t>Angler</t> </pat><tran> <mkent i="b00cnh4b" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Accidental</t> <t>Farmer</t> </pat><tran> <mkent i="b00wyg0s" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Accidental</t> <t>Heroes</t> </pat><tran> <mkent i="b00d9f85" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Accused</t> </pat><tran> <mkent i="b00w5csr" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Ace</t> <t>Ventura</t> <p>:</p> <t></t> <t>Pet</t> <t>Detective</t> </pat><tran> <mkent i="b0074f9q" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Ace</t> <t>Ventura</t> <p>:</p> <t></t> <t>When</t> <t>Nature</t> <t>Calls</t> </pat><tran> <mkent i="b007cjq4" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Acis</t> <t>and</t> <t>Galatea</t> <t>from</t> <t>the</t> <t>Royal</t> <t>Opera</t> <t>House</t> </pat><tran> <mkent i="b00kk5yj" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Across</t> <t>The</t> <t>Andes</t> <p>:</p> <t></t> <t>Beyond</t> <t>Boundaries</t> </pat><tran> <mkent i="b00bcvsy" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Active</t> <t>Citizenship</t> </pat><tran> <mkent i="b007r65g" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Adam</t> <t>Adamant</t> <t>Lives</t> </pat><tran> <mkent i="b007lkxv" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Adam</t> <t>and</t> <t>Paul</t> </pat><tran> <mkent i="b00qsyfh" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Adam</t> <p>'</p> <t>s</t> <t>Rib</t> </pat><tran> <mkent i="b0078ws0" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Adams</t> </pat><tran> <mkent i="b00q2p3y" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Addicted</t> <t>to</t> <t>Boob</t> <t>Jobs</t> </pat><tran> <mkent i="b00cr471" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Addicted</t> <t>to</t> <t>Cheap</t> <t>Shopping</t> <p>?</p> <t></t> </pat><tran> <mkent i="b007t023" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Addictions</t> <t>of</t> <t>Sin</t> <p>:</p> <t></t> <t>WH</t> <t>Auden</t> <t>in</t> <t>His</t> <t>Own</t> <t>Words</t> </pat><tran> <mkent i="b0074tfg" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Addicts</t> <p>:</p> <t></t> <t>No</t> <t>Children</t> <t>Allowed</t> </pat><tran> <mkent i="b00vfjg3" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Admin</t> </pat><tran> <mkent i="b00bf626" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Adrian</t> <t>Mole</t> <p>:</p> <t></t> <t>The</t> <t>Cappuccino</t> <t>Years</t> </pat><tran> <mkent i="b00w08r5" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Adventure</t> <t>Florida</t> </pat><tran> <mkent i="b008rbqq" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Adventure</t> <t>Show</t> </pat><tran> <mkent i="b0071mxr" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Adventure</t> <t>Sulasgeir</t> <t>An</t> <p>-</p> <t>diugh</t> <t></t> <p>(</p> <t>Adventure</t> <t>Sulasgeir</t> <t>Today</t> <p>)</p> <t></t> </pat><tran> <mkent i="b00pftb1" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Adventures</t> <t>Abroad</t> </pat><tran> <mkent i="b00z8hfg" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Adventures</t> <t>of</t> <t>Barry</t> <t>McKenzie</t> </pat><tran> <mkent i="b0074srh" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Adventures</t> <t>of</t> <t>Daniel</t> </pat><tran> <mkent i="b00tjg0n" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Adventures</t> <t>of</t> <t>Don</t> <t>Roberto</t> </pat><tran> <mkent i="b00g6zdn" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Adventures</t> <t>of</t> <t>Rocky</t> <t>and</t> <t>Bullwinkle</t> </pat><tran> <mkent i="b007c5bx" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Adventures</t> <t>of</t> <t>Tom</t> <t>Thumb</t> <t>and</t> <t>Thumbelina</t> </pat><tran> <mkent i="b00795gj" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Advise</t> <t>and</t> <t>Consent</t> </pat><tran> <mkent i="b0077hr3" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Ae</t> <t>Fond</t> <t>Kiss</t> </pat><tran> <mkent i="b00dqcnd" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Affair</t> <t>of</t> <t>the</t> <t>Necklace</t> </pat><tran> <mkent i="b0078tjn" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Affair</t> <t>with</t> <t>a</t> <t>Stranger</t> </pat><tran> <mkent i="b007821x" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Afghanistan</t> <p>:</p> <t></t> <t>Five</t> <t>Welsh</t> <t>Families</t> </pat><tran> <mkent i="b00rbmq4" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Afghanistan</t> <p>:</p> <t></t> <t>The</t> <t>Debate</t> </pat><tran> <mkent i="b00rbmq8" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Afghanistan</t> <p>:</p> <t></t> <t>The</t> <t>War</t> <t>in</t> <t>the</t> <t>East</t> </pat><tran> <mkent i="b00r60dv" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Africa</t> <t>Cup</t> <t>of</t> <t>Nations</t> </pat><tran> <mkent i="b00qppnf" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Africa</t> <p>'</p> <t>s</t> <t>Walk</t> <t>of</t> <t>Hope</t> </pat><tran> <mkent i="b00nkqjm" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>African</t> <t>Footsteps</t> </pat><tran> <mkent i="p00f6fg7" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>African</t> <t>Journey</t> <t>with</t> <t>Jonathan</t> <t>Dimbleby</t> <p>,</p> <t></t> <t>An</t> </pat><tran> <mkent i="b00spp7h" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>African</t> <t>Railway</t> </pat><tran> <mkent i="b00s6bgw" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>African</t> <t>Rock</t> <t></t> <p>'</p> <t>n</t> <p>'</p> <t></t> <t>Roll</t> <t>Years</t> </pat><tran> <mkent i="b006mh5s" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>African</t> <t>School</t> </pat><tran> <mkent i="b00s8zzj" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Africawatch</t> </pat><tran> <mkent i="p00f049n" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>After</t> <t>Rome</t> <p>:</p> <t></t> <t>Holy</t> <t>War</t> <t>and</t> <t>Conquest</t> </pat><tran> <mkent i="b00g1fp1" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>After</t> <t>the</t> <t>Battle</t> </pat><tran> <mkent i="p008pxhz" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>After</t> <t>the</t> <t>Gold</t> <t>Rush</t> </pat><tran> <mkent i="b009nvqs" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>After</t> <t>the</t> <t>Gold</t> <t>Rush</t> </pat><tran> <mkent i="b009yzhk" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>After</t> <t>the</t> <t>Wedding</t> </pat><tran> <mkent i="b00ccf3f" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>After</t> <t>You</t> <p>'</p> <t>ve</t> <t>Gone</t> </pat><tran> <mkent i="b006rgj2" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Afternoon</t> <t>Play</t> </pat><tran> <mkent i="b006t14k" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Ag</t> <t>Bogadh</t> <t>go</t> <t>hInis</t> <t>Meain</t> </pat><tran> <mkent i="b00sb2xd" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Ag</t> <t>Ionnsachadh</t> <t>Le</t> <t>Blarag</t> </pat><tran> <mkent i="b0071mzq" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Against</t> <t>The</t> <t>Odds</t> </pat><tran> <mkent i="b00cqkjt" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Agatha</t> <t>Christie</t> <p>:</p> <t></t> <t>a</t> <t>Life</t> <t>in</t> <t>Pictures</t> </pat><tran> <mkent i="b0078s5q" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Age</t> <t>of</t> <t>Excess</t> <p>:</p> <t></t> <t>When</t> <t>Britain</t> <t>Went</t> <t>Too</t> <t>Far</t> </pat><tran> <mkent i="b0084l5q" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Age</t> <t>of</t> <t>Genius</t> </pat><tran> <mkent i="b0074slv" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Age</t> <t>of</t> <t>Terror</t> </pat><tran> <mkent i="b00b0hz0" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Agony</t> <t></t> <t>Ecstasy</t> <p>:</p> <t></t> <t>A</t> <t>Year</t> <t>with</t> <t>English</t> <t>National</t> <t>Ballet</t> </pat><tran> <mkent i="b00zfty5" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Agony</t> <t>Again</t> </pat><tran> <mkent i="p00fgf81" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Aguirre</t> <p>,</p> <t></t> <t>Wrath</t> <t>of</t> <t>God</t> </pat><tran> <mkent i="b0074rnc" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>AI</t> <p>:</p> <t></t> <t>Artificial</t> <t>Intelligence</t> </pat><tran> <mkent i="b0074f5n" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>AICÍD</t> <p>:</p> <t></t> <t>An</t> <t>Fliú</t> <t>Mór</t> <t>in</t> <t>Éirinn</t> </pat><tran> <mkent i="b00fj69t" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Aida</t> </pat><tran> <mkent i="b00sm3qt" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Aifric</t> </pat><tran> <mkent i="b00fkqrx" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Aig</t> <t>Baile</t> </pat><tran> <mkent i="p009vgh9" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Aig</t> <t>Cridhe</t> <t>ar</t> <t>Ciuil</t> </pat><tran> <mkent i="b00thvrn" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Aimee</t> <t>and</t> <t>Jaguar</t> </pat><tran> <mkent i="b0074n98" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Ain</t> <p>'</p> <t>t</t> <t>Misbehavin</t> <p>'</p> <t></t> </pat><tran> <mkent i="p00f5byn" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Ainsley</t> <p>'</p> <t>s</t> <t>Barbecue</t> <t>Bible</t> </pat><tran> <mkent i="p00f6ff9" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Ainsley</t> <p>'</p> <t>s</t> <t>Meals</t> <t>in</t> <t>Minutes</t> </pat><tran> <mkent i="p00fqn00" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Air</t> <t>a</t> <t>Chuan</t> </pat><tran> <mkent i="b00gswp1" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Air</t> <t>America</t> </pat><tran> <mkent i="b00748n8" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Air</t> <t>an</t> <t>Oir</t> </pat><tran> <mkent i="b00pgyrp" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Air</t> <t>An</t> <t>Rathad</t> </pat><tran> <mkent i="b00fky8c" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Air</t> <t>An</t> <t>Toir</t> </pat><tran> <mkent i="b00jcvq9" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Air</t> <t>an</t> <t>Urlar</t> </pat><tran> <mkent i="b0100sh7" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Air</t> <t>Bhàrr</t> <t>Nan</t> <t>Tonn</t> </pat><tran> <mkent i="b00c7r2v" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Air</t> <t>Force</t> <t>One</t> </pat><tran> <mkent i="b00bcchb" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Air</t> <t>Ghleus</t> </pat><tran> <mkent i="b00scv4y" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Air</t> <t>Medics</t> </pat><tran> <mkent i="b00f68kf" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Air</t> <t>Mhuinnteareas</t> </pat><tran> <mkent i="b0081m2h" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Airmail</t> <t>Orphan</t> </pat><tran> <mkent i="b00rww3t" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Airport</t> </pat><tran> <mkent i="p00fqn5j" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Airport</t> <t>Police</t> <p>:</p> <t></t> <t>Crime</t> <t>Squad</t> <t>Special</t> </pat><tran> <mkent i="b007clmh" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Aiteal</t> </pat><tran> <mkent i="b00htc8q" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Al</t> <t>Murray</t> <p>'</p> <t>s</t> <t>German</t> <t>Adventure</t> </pat><tran> <mkent i="b00wfy05" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Alamo</t> </pat><tran> <mkent i="b00gbjg7" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Alan</t> <t>Clark</t> <t>Diaries</t> </pat><tran> <mkent i="b0082c9f" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alan</t> <t>Plater</t> <t></t> <p>-</p> <t></t> <t>Hearing</t> <t>the</t> <t>Music</t> </pat><tran> <mkent i="b0074r66" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alan</t> <t>Titchmarsh</t> <p>'</p> <t>s</t> <t>Garden</t> <t>Secrets</t> </pat><tran> <mkent i="b00w15w0" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alan</t> <t>Whicker</t> <p>'</p> <t>s</t> <t>Journey</t> <t>of</t> <t>a</t> <t>Lifetime</t> </pat><tran> <mkent i="b00jlvsr" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alas</t> <t>Smith</t> <t>and</t> <t>Jones</t> </pat><tran> <mkent i="p008575c" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alaska</t> <p>:</p> <t></t> <t>The</t> <t>Arctic</t> <t>Man</t> <t>Ski</t> <t>and</t> <t>Sno</t> <p>-</p> <t>Go</t> <t>Classic</t> </pat><tran> <mkent i="b00qyrzv" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Alastair</t> <t>Campbell</t> <t>Diaries</t> </pat><tran> <mkent i="b007vs7y" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alba</t> <t>air</t> <t>Falach</t> </pat><tran> <mkent i="b00rp47p" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alba</t> <t>Today</t> </pat><tran> <mkent i="b00n8146" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alesha</t> <t>Dixon</t> <p>:</p> <t></t> <t>Don</t> <p>'</p> <t>t</t> <t>Hit</t> <t>My</t> <t>Mum</t> </pat><tran> <mkent i="b00w7qqc" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alesha</t> <t>Dixon</t> <p>:</p> <t></t> <t>Who</t> <p>'</p> <t>s</t> <t>Your</t> <t>Daddy</t> <p>?</p> <t></t> </pat><tran> <mkent i="b00p0nl0" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alesha</t> <p>:</p> <t></t> <t>Look</t> <t>but</t> <t>Don</t> <p>'</p> <t>t</t> <t>Touch</t> </pat><tran> <mkent i="b00cw35h" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alex</t> <t>Higgins</t> <p>:</p> <t></t> <t>The</t> <t>People</t> <p>'</p> <t>s</t> <t>Champion</t> </pat><tran> <mkent i="b00tmzfb" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alexander</t> <t>Armstrong</t> <p>'</p> <t>s</t> <t>Very</t> <t>British</t> <t>Holiday</t> </pat><tran> <mkent i="b00nyyct" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alexander</t> <t>McCall</t> <t>Smith</t> </pat><tran> <mkent i="b0074pc4" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alexander</t> <t>Solzhenitsyn</t> <p>:</p> <t></t> <t>The</t> <t>Homecoming</t> </pat><tran> <mkent i="b00d4j9g" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alexander</t> <t>the</t> <t>Great</t> </pat><tran> <mkent i="b0078vkq" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alexei</t> <t>Sayle</t> <p>'</p> <t>s</t> <t>Liverpool</t> </pat><tran> <mkent i="b00c3qss" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alexei</t> <t>Sayle</t> <p>'</p> <t>s</t> <t>Stuff</t> </pat><tran> <mkent i="b008jyy8" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alfred</t> <t>Brendel</t> <p>:</p> <t></t> <t>Man</t> <t>and</t> <t>Mask</t> </pat><tran> <mkent i="b00783dd" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Algeria</t> <p>'</p> <t>s</t> <t>Bloody</t> <t>Years</t> </pat><tran> <mkent i="p00h2mby" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Ali</t> <t>Abbas</t> <p>:</p> <t></t> <t>Back</t> <t>to</t> <t>Baghdad</t> </pat><tran> <mkent i="b00q9xtd" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alice</t> <t>and</t> <t>Her</t> <t>Six</t> <t>Dads</t> </pat><tran> <mkent i="b00t8jgh" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alice</t> <t>Cooper</t> <p>:</p> <t></t> <t>Welcome</t> <t>To</t> <t>Nightmare</t> </pat><tran> <mkent i="b007nm3f" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alice</t> <t>Sommer</t> <t>Herz</t> <t>at</t> <t>106</t> <p>:</p> <t></t> <t>Everything</t> <t>Is</t> <t>a</t> <t>Present</t> </pat><tran> <mkent i="b00qgpyj" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alice</t> <p>'</p> <t>s</t> <t>Adventures</t> <t>in</t> <t>Wonderland</t> </pat><tran> <mkent i="b010t9hx" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alice</t> <p>'</p> <t>s</t> <t>Adventures</t> <t>in</t> <t>Wonderland</t> <p>:</p> <t></t> <t>Behind</t> <t>the</t> <t>Scenes</t> <t>with</t> <t>the</t> <t>Royal</t> <t>Ballet</t> </pat><tran> <mkent i="b0110cs8" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alien</t> <t>Autopsy</t> </pat><tran> <mkent i="b00gbdrn" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alien</t> <t>Empire</t> </pat><tran> <mkent i="b0074m5v" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alien</t> <t>Empire</t> </pat><tran> <mkent i="p002wrb7" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alison</t> <t>Krauss</t> <p>:</p> <t></t> <t>A</t> <t>Hundred</t> <t>Miles</t> <t>or</t> <t>More</t> </pat><tran> <mkent i="b00hkb0x" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alistair</t> <t>Cooke</t> <p>'</p> <t>s</t> <t>America</t> </pat><tran> <mkent i="b00ffbjg" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alistair</t> <t>Cooke</t> <p>:</p> <t></t> <t>Postcards</t> <t>from</t> <t>America</t> </pat><tran> <mkent i="b0074nn6" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alistair</t> <t>McGowan</t> <p>'</p> <t>s</t> <t>Big</t> <t>Impression</t> </pat><tran> <mkent i="p0085sdq" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Aliyah</t> <t></t> <p>-</p> <t></t> <t>The</t> <t>Journey</t> <t>Home</t> </pat><tran> <mkent i="b00b3gty" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>About</t> <t>Abigail</t> <p>'</p> <t>s</t> <t>Party</t> </pat><tran> <mkent i="b008569h" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>About</t> <t>Me</t> </pat><tran> <mkent i="b007clsk" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>About</t> <t>the</t> <t>Good</t> <t>Life</t> </pat><tran> <mkent i="b00wyhth" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>About</t> <t>Thunderbirds</t> </pat><tran> <mkent i="b008lz78" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>Creatures</t> <t>Great</t> <t>and</t> <t>Small</t> </pat><tran> <mkent i="b008yjd9" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>for</t> <t>Love</t> </pat><tran> <mkent i="b0078qjv" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>in</t> <t>a</t> <t>Day</t> <p>:</p> <t></t> <t>The</t> <t>City</t> </pat><tran> <mkent i="b0074sd1" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>Mod</t> <t>Cons</t> </pat><tran> <mkent i="p00fgmhb" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>New</t> <t>House</t> <t>of</t> <t>Tiny</t> <t>Tearaways</t> </pat><tran> <mkent i="b008gc5h" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>of</t> <t>Me</t> </pat><tran> <mkent i="b008zlhb" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>or</t> <t>Nothing</t> </pat><tran> <mkent i="b007x0hl" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>Our</t> <t>Lives</t> </pat><tran> <mkent i="p00cgv47" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>Our</t> <t>Working</t> <t>Lives</t> </pat><tran> <mkent i="b00v3fk3" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>Over</t> <t>the</t> <t>Place</t> </pat><tran> <mkent i="b00yhs34" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>Over</t> <t>The</t> <t>Shop</t> </pat><tran> <mkent i="b00f87s9" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>Party</t> <t>Football</t> <t>Group</t> </pat><tran> <mkent i="b00byrn8" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>Party</t> <t>Football</t> <t>Group</t> </pat><tran> <mkent i="b00cj93f" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>Party</t> <t>Football</t> <t>Group</t> </pat><tran> <mkent i="b00gszqn" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>Rise</t> <t>for</t> <t>Julian</t> <t>Clary</t> </pat><tran> <mkent i="p00fdg57" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>Saints</t> </pat><tran> <mkent i="b007vkkt" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>Square</t> </pat><tran> <mkent i="p009z0ln" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>the</t> <t>Best</t> <t></t> <p>-</p> <t></t> <t>Dave</t> <t>Allen</t> </pat><tran> <mkent i="p00flzfw" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>the</t> <t>King</t> <p>'</p> <t>s</t> <t>Men</t> </pat><tran> <mkent i="b00hhtg5" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>the</t> <t>Queen</t> <p>'</p> <t>s</t> <t>Men</t> </pat><tran> <mkent i="b007cg0f" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>the</t> <t>Small</t> <t>Things</t> </pat><tran> <mkent i="b00jr6h5" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>the</t> <t>Young</t> <t>Dudes</t> <p>:</p> <t></t> <t>Pop</t> <t>and</t> <t>Fashion</t> </pat><tran> <mkent i="b00gq7dx" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>Watched</t> <t>Over</t> <t>by</t> <t>Machines</t> <t>of</t> <t>Loving</t> <t>Grace</t> </pat><tran> <mkent i="b011lvb9" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>All</t> <t>You</t> <t>Need</t> <t>Is</t> <t>the</t> <t>Music</t> </pat><tran> <mkent i="p00gqns6" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alleluia</t> <p>!</p> <t></t> </pat><tran> <mkent i="b00vhhh0" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Almost</t> <t>Famous</t> </pat><tran> <mkent i="b00ggq08" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Almost</t> <t>Famous</t> <t>IV</t> <t>Cutdowns</t> </pat><tran> <mkent i="b00yd04y" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Almost</t> <t>Perfect</t> <t>Guide</t> <t>to</t> <t>Life</t> </pat><tran> <mkent i="b00h27cn" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alpha</t> <t>Dog</t> </pat><tran> <mkent i="b00mf3ct" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alpha</t> <t>Male</t> </pat><tran> <mkent i="b00825mg" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alphablocks</t> </pat><tran> <mkent i="b00qjwv4" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alternative</t> <t>Therapies</t> </pat><tran> <mkent i="b009mt5d" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alun</t> <t>Hoddinott</t> <p>:</p> <t></t> <t>A</t> <t>Tribute</t> </pat><tran> <mkent i="b009pgw0" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Alvarez</t> <t>Kelly</t> </pat><tran> <mkent i="b0078xmc" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Am</t> <t>Braighe</t> <p>'</p> <t>s</t> <t>Am</t> <t>Bayou</t> </pat><tran> <mkent i="b007hwqx" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Am</t> <t>I</t> <t>Normal</t> <p>?</p> <t></t> </pat><tran> <mkent i="b00b0frq" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Am</t> <t>Politician</t> </pat><tran> <mkent i="b00yf9wm" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Am</t> <t>Posadh</t> <t>Hiortadh</t> </pat><tran> <mkent i="b00dtz1l" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>am</t> <p>.</p> <t>pm</t> </pat><tran> <mkent i="b006p2y2" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Amadeus</t> </pat><tran> <mkent i="b00zmdg4" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Amateur</t> <t>Boxing</t> </pat><tran> <mkent i="b008gzsk" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Amazing</t> <t>Grace</t> <p>:</p> <t></t> <t>The</t> <t>True</t> <t>Story</t> <t>of</t> <t>the</t> <t>Song</t> </pat><tran> <mkent i="b007clhh" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Amazing</t> <t>Gracie</t> <p>:</p> <t></t> <t>The</t> <t>Gracie</t> <t>Fields</t> <t>Story</t> </pat><tran> <mkent i="b0074qlt" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Amazing</t> <t>Journey</t> <p>:</p> <t></t> <t>The</t> <t>Story</t> <t>of</t> <t>The</t> <t>Who</t> </pat><tran> <mkent i="b009x040" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Amazing</t> <t>Mrs</t> <t>Pritchard</t> </pat><tran> <mkent i="b006mg4s" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Amazon</t> <t>Abyss</t> </pat><tran> <mkent i="b00hgkn7" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Amazon</t> <t>with</t> <t>Bruce</t> <t>Parry</t> </pat><tran> <mkent i="b00dnk2s" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>America</t> <t>this</t> <t>Week</t> </pat><tran> <mkent i="b0070wgc" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>America</t> <p>,</p> <t></t> <t>America</t> <p>:</p> <t></t> <t>The</t> <t>Films</t> <t>of</t> <t>Ken</t> <t>Burns</t> </pat><tran> <mkent i="p00h3t4v" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>American</t> <t>Beauty</t> </pat><tran> <mkent i="b00dh7dc" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>American</t> <t>Cousins</t> </pat><tran> <mkent i="b008wfb7" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>American</t> <t>Dad</t> </pat><tran> <mkent i="b0072kwm" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>American</t> <t>Dream</t> </pat><tran> <mkent i="b00t6b2t" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>American</t> <t>Eye</t> <t>on</t> <t>Butetown</t> <p>,</p> <t></t> <t>An</t> </pat><tran> <mkent i="b00n9ntq" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>American</t> <t>Flyers</t> </pat><tran> <mkent i="b00b5hr9" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>American</t> <t>Football</t> </pat><tran> <mkent i="b00q08b4" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>American</t> <t>Friends</t> </pat><tran> <mkent i="b0079365" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>American</t> <t>Future</t> <p>:</p> <t></t> <t>A</t> <t>History</t> <p>,</p> <t></t> <t>by</t> <t>Simon</t> <t>Schama</t> </pat><tran> <mkent i="b00dzbq5" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>American</t> <t>History</t> <t>X</t> </pat><tran> <mkent i="b0078ryz" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>American</t> <t>in</t> <t>Paris</t> <p>,</p> <t></t> <t>An</t> </pat><tran> <mkent i="b0074r4z" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>American</t> <t>Movie</t> </pat><tran> <mkent i="b0078ph4" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>American</t> <t>Perfekt</t> </pat><tran> <mkent i="b007c8cv" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>American</t> <t>President</t> </pat><tran> <mkent i="b007bvr9" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>American</t> <t>Psycho</t> </pat><tran> <mkent i="b0074blb" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>American</t> <t>Tail</t> <t>3</t> <p>:</p> <t></t> <t>Treasure</t> <t>Of</t> <t>Manhattan</t> <t>Island</t> </pat><tran> <mkent i="b00792jt" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>American</t> <t>Tail</t> <p>:</p> <t></t> <t>The</t> <t>Mystery</t> <t>of</t> <t>the</t> <t>Night</t> <t>Monster</t> <p>,</p> <t></t> <t>An</t> </pat><tran> <mkent i="b00cycfy" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>American</t> <t>Vampires</t> </pat><tran> <mkent i="b00c4jgp" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>American</t> <t>Visions</t> </pat><tran> <mkent i="p00b9y85" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>American</t> <t>Voices</t> <p>:</p> <t></t> <t>A</t> <t>History</t> <t>of</t> <t>America</t> <t>1917</t> <p>-</p> <t>1941</t> </pat><tran> <mkent i="b00789b6" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Amharc</t> <t>Aneas</t> </pat><tran> <mkent i="b00qg0th" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Amistad</t> </pat><tran> <mkent i="b0078f75" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Amityville</t> <t>II</t> <t></t> <p>-</p> <t></t> <t>The</t> <t>Possession</t> </pat><tran> <mkent i="b007cbn2" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Amityville</t> <t>III</t> <p>:</p> <t></t> <t>The</t> <t>Demon</t> </pat><tran> <mkent i="b007c9bn" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Among</t> <t>Giants</t> </pat><tran> <mkent i="b0078hj5" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Amy</t> <p>:</p> <t></t> <t>My</t> <t>Body</t> <t>for</t> <t>Bucks</t> </pat><tran> <mkent i="b00b0x35" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>ABC</t> <t>of</t> <t>Music</t> </pat><tran> <mkent i="p00fk0sv" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>African</t> <t>Journey</t> <t>with</t> <t>Jonathan</t> <t>Dimbleby</t> </pat><tran> <mkent i="b00spp7h" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>American</t> <t>Eye</t> <t>on</t> <t>Butetown</t> </pat><tran> <mkent i="b00n9ntq" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>American</t> <t>in</t> <t>Paris</t> </pat><tran> <mkent i="b0074r4z" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>American</t> <t>Tail</t> <p>:</p> <t></t> <t>The</t> <t>Mystery</t> <t>of</t> <t>the</t> <t>Night</t> <t>Monster</t> </pat><tran> <mkent i="b00cycfy" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Artist</t> <t>on</t> <t>Every</t> <t>Corner</t> </pat><tran> <mkent i="p00b69nv" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Audience</t> <t>with</t> <t>Ken</t> <t>Dodd</t> </pat><tran> <mkent i="b008m3kb" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Awfully</t> <t>Big</t> <t>Adventure</t> </pat><tran> <mkent i="b0079w31" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Bhearna</t> <t>Bhaoil</t> </pat><tran> <mkent i="b00vpgvb" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Ceanadach</t> </pat><tran> <mkent i="b00nrt43" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Ceasnachadh</t> </pat><tran> <mkent i="b00g8hg5" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Ciuin</t> <t>Mac</t> <t>Adhaimh</t> </pat><tran> <mkent i="b00fgtyk" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Cuiltheann</t> </pat><tran> <mkent i="b00vz5rp" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Duthaich</t> <t>Dhiomhair</t> </pat><tran> <mkent i="b00yk37v" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Education</t> </pat><tran> <mkent i="b0116h74" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Engagement</t> <t>With</t> <t>Franc</t> </pat><tran> <mkent i="b00h98zb" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Englishman</t> <t>Abroad</t> </pat><tran> <mkent i="b0074pqk" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Evening</t> <t>of</t> <t>Ulster</t> <t>Scots</t> </pat><tran> <mkent i="p007k1tc" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Evening</t> <t>With</t> <t>James</t> <t>Young</t> </pat><tran> <mkent i="b00g38vq" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Extras</t> <t>Night</t> <t>In</t> </pat><tran> <mkent i="b00s0zx9" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Gille</t> <t>Fortanach</t> </pat><tran> <mkent i="b00g79nr" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Gruffalo</t> </pat><tran> <mkent i="b00wwf03" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Iolaire</t> </pat><tran> <mkent i="b00g8jyp" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Islamic</t> <t>History</t> <t>of</t> <t>Europe</t> </pat><tran> <mkent i="b00gp0gc" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Island</t> <t>Parish</t> </pat><tran> <mkent i="b006t6m6" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Là</t> </pat><tran> <mkent i="b00drynf" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Oigridh</t> </pat><tran> <mkent i="b00lmq9j" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Otter</t> <t>in</t> <t>the</t> <t>Family</t> </pat><tran> <mkent i="b008m6bq" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Paidrín</t> </pat><tran> <mkent i="b00rx78w" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Railí</t> </pat><tran> <mkent i="b00y50xq" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Sionnach</t> <t>Sgianach</t> <t>s</t> <t>Na</t> <t>Seoid</t> </pat><tran> <mkent i="b00mzwh3" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Solas</t> <t>Buan</t> </pat><tran> <mkent i="b00mzv8g" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>t</t> <p>-</p> <t>Hiortach</t> </pat><tran> <mkent i="b00mgxbd" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>t</t> <p>-</p> <t>Ionnsachadh</t> <t>Og</t> </pat><tran> <mkent i="b00pbv7d" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Taghadh</t> <t>2010</t> <t></t> <p>(</p> <t>Election</t> <t>2010</t> <p>)</p> <t></t> </pat><tran> <mkent i="b00sbhzm" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Taghadh</t> <t>2011</t> <t></t> <p>(</p> <t>Scottish</t> <t>Election</t> <t>2011</t> <p>)</p> <t></t> </pat><tran> <mkent i="b010tcy2" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Tarsainn</t> </pat><tran> <mkent i="b007hvqc" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Teorainn</t> </pat><tran> <mkent i="b00p2jhw" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Tilleadh</t> </pat><tran> <mkent i="b00dx2k3" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Traigh</t> <t>Mhor</t> </pat><tran> <mkent i="b00mffyl" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Triùir</t> <t>Sgoinneil</t> </pat><tran> <mkent i="b00fkqyz" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>An</t> <t>Unfinished</t> <t>Life</t> </pat><tran> <mkent i="b00ljq8d" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Anam</t> <t></t> <p>'</p> <t>s</t> <t>Inntinn</t> </pat><tran> <mkent i="b00jsb8x" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Anastasia</t> </pat><tran> <mkent i="b0078n9l" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Anatomy</t> <t>of</t> <t>a</t> <t>Murder</t> </pat><tran> <mkent i="b007b6cc" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Anchorman</t> <p>:</p> <t></t> <t>The</t> <t>Legend</t> <t>of</t> <t>Ron</t> <t>Burgundy</t> </pat><tran> <mkent i="b007y288" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Anchors</t> <t>Aweigh</t> </pat><tran> <mkent i="b00rvbk2" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Ancient</t> <t>Greece</t> </pat><tran> <mkent i="b00dnkdx" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Ancient</t> <t>Worlds</t> </pat><tran> <mkent i="b00w0bl0" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>And</t> <t>Now</t> <t>for</t> <t>Something</t> <t>Completely</t> <t>Different</t> </pat><tran> <mkent i="b00n7sf5" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>And</t> <t>Then</t> <t>There</t> <t>Were</t> <t>None</t> </pat><tran> <mkent i="b0078t56" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Anderson</t> <t>in</t> <p>.</p> <t></t> <p>.</p> <t></t> <p>.</p> <t></t> </pat><tran> <mkent i="b008y3gr" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Anderson</t> <t>in</t> <p>.</p> <t></t> <p>.</p> <t></t> <p>.</p> <t></t> <t>Music</t> </pat><tran> <mkent i="b007cvxk" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Anderson</t> <t>in</t> <p>.</p> <t></t> <p>.</p> <t></t> <p>.</p> <t></t> <t>Old</t> <t>Motors</t> </pat><tran> <mkent i="b007cwlj" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Anderson</t> <t>in</t> <p>.</p> <t></t> <p>.</p> <t></t> <p>.</p> <t></t> <t>Rhinestones</t> </pat><tran> <mkent i="b007cwlv" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Anderson</t> <t>in</t> <p>.</p> <t></t> <p>.</p> <t></t> <p>.</p> <t></t> <t>Weddings</t> </pat><tran> <mkent i="b007cwm5" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Anderson</t> <t>Tapes</t> </pat><tran> <mkent i="b007z9x3" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Andes</t> <t>to</t> <t>Amazon</t> </pat><tran> <mkent i="p002scwf" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Andre</t> <t>Previn</t> <p>:</p> <t></t> <t>All</t> <t>the</t> <t>Right</t> <t>Notes</t> </pat><tran> <mkent i="b00jqgss" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Andrea</t> <t>Bocelli</t> <p>:</p> <t></t> <t>The</t> <t>Story</t> <t>Behind</t> <t>the</t> <t>Voice</t> </pat><tran> <mkent i="b008l3dz" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Andrew</t> <t>Marr</t> <t>Interviews</t> <t>Ed</t> <t>Miliband</t> </pat><tran> <mkent i="b00vbpf2" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Andrew</t> <t>Marr</t> <t>Show</t> </pat><tran> <mkent i="b006tt1d" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Andrew</t> <t>Marr</t> <t>Show</t> </pat><tran> <mkent i="b0080bbs" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Andrew</t> <t>Marr</t> <t>Talks</t> <t>To</t> <t>Gordon</t> <t>Brown</t> </pat><tran> <mkent i="b00bvcy7" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Andrew</t> <t>Marr</t> <p>'</p> <t>s</t> <t>History</t> <t>of</t> <t>Modern</t> <t>Britain</t> </pat><tran> <mkent i="b007xcfc" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Andrew</t> <t>Marr</t> <p>'</p> <t>s</t> <t>The</t> <t>Making</t> <t>of</t> <t>Modern</t> <t>Britain</t> </pat><tran> <mkent i="b00nrrff" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Andromeda</t> <t>Strain</t> </pat><tran> <mkent i="b007ck69" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Andy</t> <t>Pandy</t> </pat><tran> <mkent i="b006mg13" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Andy</t> <t>Parsons</t> <p>:</p> <t></t> <t>Britain</t> <p>'</p> <t>s</t> <t>Got</t> <t>Idiots</t> </pat><tran> <mkent i="b00vcwfy" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Andy</t> <t>Williams</t> <t>Christmas</t> <t>Show</t> </pat><tran> <mkent i="b00phmjh" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Andy</t> <t>Williams</t> <t>Show</t> </pat><tran> <mkent i="b00n8qpv" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Angel</t> <t>of</t> <t>the</t> <t>Valleys</t> </pat><tran> <mkent i="b00szzhv" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Angellica</t> <p>:</p> <t></t> <t>Time</t> <t>Traveller</t> </pat><tran> <mkent i="b007clc8" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Anglo</t> <p>-</p> <t>Welsh</t> <t>Cup</t> </pat><tran> <mkent i="b009t1pg" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Angry</t> <t>Boys</t> </pat><tran> <mkent i="b00zq41c" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Angus</t> </pat><tran> <mkent i="b0078w1n" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Angus</t> <t>and</t> <t>Cheryl</t> </pat><tran> <mkent i="b00lvh9l" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Animal</t> <t>24</t> <p>:</p> <t>7</t> </pat><tran> <mkent i="b0072238" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Animal</t> <t>24</t> <p>:</p> <t>7</t> </pat><tran> <mkent i="b007crjl" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Animal</t> <t>24</t> <p>:</p> <t>7</t> </pat><tran> <mkent i="b007crls" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Animal</t> <t>24</t> <p>:</p> <t>7</t> </pat><tran> <mkent i="b007crpp" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Animal</t> <t>24</t> <p>:</p> <t>7</t> </pat><tran> <mkent i="b007crrz" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Animal</t> <t>24</t> <p>:</p> <t>7</t> </pat><tran> <mkent i="b0080s58" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Animal</t> <t>Camera</t> </pat><tran> <mkent i="p002sj0l" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Animal</t> <t>Crime</t> <t>Scene</t> </pat><tran> <mkent i="p00d56dz" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Animal</t> <t>Hospital</t> </pat><tran> <mkent i="p00h1lrv" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Animal</t> <t>Hospital</t> <t>Week</t> </pat><tran> <mkent i="p00h2ch7" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Animal</t> <t>Magic</t> <t>Show</t> </pat><tran> <mkent i="p00gzwks" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Animal</t> <t>Park</t> </pat><tran> <mkent i="b006w6ns" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Animal</t> <t>Park</t> <p>:</p> <t></t> <t>Wild</t> <t>in</t> <t>Africa</t> </pat><tran> <mkent i="b007qtz9" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Animal</t> <t>Park</t> <p>:</p> <t></t> <t>Wild</t> <t>on</t> <t>the</t> <t>West</t> <t>Coast</t> </pat><tran> <mkent i="b008ttgx" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Animal</t> <t>People</t> </pat><tran> <mkent i="p00fdg9t" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Animal</t> <t>Rescue</t> <t></t> <p>-</p> <t></t> <t>Live</t> </pat><tran> <mkent i="b007vlyj" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Animal</t> <p>'</p> <t>s</t> <t>Guide</t> <t>to</t> <t>Britain</t> </pat><tran> <mkent i="b010k3j3" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Animalia</t> </pat><tran> <mkent i="b008f3yq" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Animals</t> <t>at</t> <t>Work</t> </pat><tran> <mkent i="b00l5z3r" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Animated</t> <t>Epics</t> </pat><tran> <mkent i="b007hf8l" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Animation</t> <t>Nation</t> </pat><tran> <mkent i="b0088rlw" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Anita</t> <t>and</t> <t>Me</t> </pat><tran> <mkent i="b007cjsq" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Anita</t> <t>Roddick</t> <p>:</p> <t></t> <t>Life</t> <t>and</t> <t>Times</t> </pat><tran> <mkent i="b00819p3" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Ann</t> <t>am</t> <t>Bata</t> <p>,</p> <t></t> <t>Nam</t> <t>Aonar</t> </pat><tran> <mkent i="b00dqzvp" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Ann</t> <t>an</t> <t>Còi5</t> </pat><tran> <mkent i="b00lmr9c" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Ann</t> <t>an</t> <t>Gaol</t> </pat><tran> <mkent i="b00n4h00" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Anna</t> <t>M</t> </pat><tran> <mkent i="b00p1p32" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Anna</t> <t>Nicole</t> <t>from</t> <t>the</t> <t>Royal</t> <t>Opera</t> <t>House</t> </pat><tran> <mkent i="b00zpdyb" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Annapolis</t> </pat><tran> <mkent i="b00dqgxl" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Anne</t> <t>Frank</t> <t>Remembered</t> </pat><tran> <mkent i="b00gkv53" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Anne</t> <t>of</t> <t>Green</t> <t>Gables</t> </pat><tran> <mkent i="b0078bpy" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Anne</t> <t>of</t> <t>Windy</t> <t>Poplars</t> </pat><tran> <mkent i="b0078f49" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Annlan</t> </pat><tran> <mkent i="b00pxn8g" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Announcement</t> </pat><tran> <mkent i="b00796xr" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Anns</t> <t>a</t> <t>Gharradh</t> <t></t> <p>(</p> <t>In</t> <t>the</t> <t>Garden</t> <p>)</p> <t></t> </pat><tran> <mkent i="b00mzwsg" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Another</t> <t>Stakeout</t> </pat><tran> <mkent i="b007c5kt" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Ant</t> <t>Bully</t> </pat><tran> <mkent i="b00pk65y" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Antenna</t> </pat><tran> <mkent i="p00918k0" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Antenna</t> <t>in</t> <t>the</t> <t>USSR</t> </pat><tran> <mkent i="p00607t6" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Anthea</t> <t>Turner</t> <p>:</p> <t></t> <t>The</t> <t>Perfect</t> <t>Housewife</t> </pat><tran> <mkent i="b006t7rt" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Anthony</t> <t>Howard</t> <t>Tribute</t> </pat><tran> <mkent i="b00xnlqh" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Anthony</t> <t>Minghella</t> <t>Talks</t> <t>to</t> <t>Mark</t> <t>Lawson</t> </pat><tran> <mkent i="b0074pv7" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Antiques</t> <t>Inspectors</t> </pat><tran> <mkent i="p00gtsgy" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Antiques</t> <t>Master</t> </pat><tran> <mkent i="b0112fbx" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Antiques</t> <t>Road</t> <t>Trip</t> </pat><tran> <mkent i="b00xgqvf" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Antiques</t> <t>Roadshow</t> </pat><tran> <mkent i="b006mj2y" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Antiques</t> <t>Roadshow</t> </pat><tran> <mkent i="b007c0j8" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Antiques</t> <t>Roadshow</t> </pat><tran> <mkent i="b007ckbm" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Antiques</t> <t>Roadshow</t> </pat><tran> <mkent i="b007ckgj" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Antiques</t> <t>Roadshow</t> </pat><tran> <mkent i="b007cklj" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Antiques</t> <t>Roadshow</t> </pat><tran> <mkent i="b007cll0" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Antiques</t> <t>Roadshow</t> </pat><tran> <mkent i="b007clpy" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Antiques</t> <t>Rogue</t> <t>Show</t> </pat><tran> <mkent i="b00gn6y7" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Antonio</t> <t>Carluccio</t> <p>'</p> <t>s</t> <t>Italian</t> <t>Feast</t> </pat><tran> <mkent i="p00dypcw" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Antz</t> </pat><tran> <mkent i="b007bxd2" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Any</t> <t>Dream</t> <t>Will</t> <t>Do</t> </pat><tran> <mkent i="b00721q9" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Anywhere</t> <t>but</t> <t>Here</t> </pat><tran> <mkent i="b0078l9w" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Aonghas</t> <t>Dubh</t> </pat><tran> <mkent i="b007zq7t" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Aonghas</t> <t>Padraig</t> <t>Caimbeul</t> </pat><tran> <mkent i="b00vg408" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Ape</t> <p>-</p> <t>Man</t> </pat><tran> <mkent i="p00bc632" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Apes</t> <t>in</t> <t>Danger</t> </pat><tran> <mkent i="b00vf36y" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Apocalypse</t> <t>Now</t> <p>.</p> <t></t> <p>.</p> <t></t> <p>.</p> <t>and</t> <t>Then</t> </pat><tran> <mkent i="b0074pml" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Apocalypto</t> </pat><tran> <mkent i="b00qmf1w" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Apollo</t> <t>Wives</t> </pat><tran> <mkent i="b00lkvtt" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Apparitions</t> </pat><tran> <mkent i="b00fn823" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Apprentice</t> <t>USA</t> </pat><tran> <mkent i="b00q3fkq" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Apprentice</t> </pat><tran> <mkent i="b0071b63" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Apprentice</t> </pat><tran> <mkent i="b007cldd" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Apprentice</t> <p>:</p> <t></t> <t>You</t> <p>'</p> <t>re</t> <t>Fired</t> </pat><tran> <mkent i="b007qgcl" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Approbation</t> <t>of</t> <t>the</t> <t>Speaker</t> </pat><tran> <mkent i="b00sps0g" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Ar</t> <t>Canain</t> <t></t> <p>'</p> <t>s</t> <t>ar</t> <t>Ceol</t> <t></t> <p>-</p> <t></t> <t>100</t> <t>Years</t> <t>of</t> <t>the</t> <t>Mod</t> </pat><tran> <mkent i="b00nccph" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Ar</t> <t>Dobhair</t> <t>Fhein</t> </pat><tran> <mkent i="b00f7jxs" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Ar</t> <t>Fin</t> <t>Y</t> <t>Llyn</t> <p>:</p> <t></t> <t>Tryweryn</t> </pat><tran> <mkent i="p00ct3bf" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Ar</t> <t>N</t> <p>-</p> <t>Aran</t> <t>Laitheil</t> </pat><tran> <mkent i="b00lv2lx" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Arabic</t> <t>Language</t> <t>and</t> <t>Culture</t> </pat><tran> <mkent i="b00799rk" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Arachnophobia</t> </pat><tran> <mkent i="b007bpts" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Arcade</t> <t>Fire</t> <t>at</t> <t>Reading</t> </pat><tran> <mkent i="b008p9h0" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Archbishop</t> <t>of</t> <t>Canterbury</t> <p>'</p> <t>s</t> <t>New</t> <t>Year</t> <t>Message</t> </pat><tran> <mkent i="b008s1dr" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Archbishop</t> </pat><tran> <mkent i="b00fvp5s" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Archibald</t> <t>Hall</t> <t></t> <p>-</p> <t></t> <t>An</t> <t>Uaislean</t> <t></t> <p>(</p> <t>The</t> <t>Perfect</t> <t>Gentleman</t> <p>)</p> <t></t> </pat><tran> <mkent i="b00y328d" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Arctic</t> <t>with</t> <t>Bruce</t> <t>Parry</t> </pat><tran> <mkent i="b00xgh30" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Are</t> <t>Christians</t> <t>Being</t> <t>Persecuted</t> <p>?</p> <t></t> </pat><tran> <mkent i="b00rx7tj" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Are</t> <t>We</t> <t>Having</t> <t>Fun</t> <t>Yet</t> <p>?</p> <t></t> </pat><tran> <mkent i="b0070b6r" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Are</t> <t>You</t> <t>an</t> <t>Egghead</t> <p>?</p> <t></t> </pat><tran> <mkent i="b00nfw9p" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Are</t> <t>You</t> <t>Being</t> <t>Served</t> <p>?</p> <t></t> </pat><tran> <mkent i="b00722yk" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Are</t> <t>You</t> <t>Fitter</t> <t>Than</t> <t>a</t> <t>Pensioner</t> <p>?</p> <t></t> </pat><tran> <mkent i="b00tyr5n" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Are</t> <t>You</t> <t>Having</t> <t>a</t> <t>Laugh</t> <p>?</p> <t></t> <t>TV</t> <t>and</t> <t>Disability</t> </pat><tran> <mkent i="b00swg99" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Are</t> <t>You</t> <t>Related</t> <t>to</t> <t>an</t> <t>American</t> <t>President</t> <p>?</p> <t></t> </pat><tran> <mkent i="b00z4xf8" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Arena</t> </pat><tran> <mkent i="b006pn88" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Argumental</t> </pat><tran> <mkent i="b00hxqml" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Aristocracy</t> </pat><tran> <mkent i="p00ghxx6" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Aristotle</t> <p>'</p> <t>s</t> <t>Lagoon</t> </pat><tran> <mkent i="b00q0hh2" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Arizona</t> </pat><tran> <mkent i="b0094s0n" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Arlington</t> <t>Road</t> </pat><tran> <mkent i="b00s89ch" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Armageddon</t> </pat><tran> <mkent i="b007c1m5" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Armando</t> <t>Iannucci</t> <t>in</t> <t>Milton</t> <p>'</p> <t>s</t> <t>Heaven</t> <t>and</t> <t>Hell</t> </pat><tran> <mkent i="b00ksjzj" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Armistice</t> </pat><tran> <mkent i="b00fcy1p" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Armstrong</t> <t>and</t> <t>Miller</t> <t>Show</t> </pat><tran> <mkent i="b00ndrqv" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Armstrongs</t> <p>:</p> <t></t> <t>The</t> <t>Movie</t> </pat><tran> <mkent i="b007ckhb" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Army</t> <t>of</t> <t>Innocents</t> </pat><tran> <mkent i="p00h3q0l" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Around</t> <t>Ireland</t> <t>in</t> <t>80</t> <t>Days</t> </pat><tran> <mkent i="b00kkr5h" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Around</t> <t>Scotland</t> </pat><tran> <mkent i="b006rbcc" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Around</t> <t>the</t> <t>World</t> <t>by</t> <t>Zeppelin</t> </pat><tran> <mkent i="b00qpjpr" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Around</t> <t>the</t> <t>World</t> <t>in</t> <t>1080</t> <t>Days</t> </pat><tran> <mkent i="b007gp02" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Around</t> <t>the</t> <t>World</t> <t>in</t> <t>60</t> <t>Minutes</t> </pat><tran> <mkent i="b00ymjkt" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Around</t> <t>the</t> <t>World</t> <t>in</t> <t>80</t> <t>Days</t> </pat><tran> <mkent i="b008n8yy" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Around</t> <t>the</t> <t>World</t> <t>in</t> <t>80</t> <t>Days</t> </pat><tran> <mkent i="b00nfmfj" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Around</t> <t>the</t> <t>World</t> <t>in</t> <t>80</t> <t>Days</t> <t></t> <p>-</p> <t></t> <t>20</t> <t>Years</t> <t>On</t> </pat><tran> <mkent i="b00gd3hz" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Around</t> <t>the</t> <t>World</t> <t>in</t> <t>80</t> <t>Faiths</t> </pat><tran> <mkent i="b00glqx9" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Around</t> <t>the</t> <t>World</t> <t>in</t> <t>80</t> <t>Gardens</t> </pat><tran> <mkent i="b008x9bh" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Around</t> <t>the</t> <t>World</t> <t>in</t> <t>80</t> <t>Treasures</t> </pat><tran> <mkent i="b008gh0k" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Arrange</t> <t>Me</t> <t>a</t> <t>Marriage</t> </pat><tran> <mkent i="b008ftqn" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Arrested</t> <t>Development</t> </pat><tran> <mkent i="b007wg5q" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Art</t> </pat><tran> <mkent i="b007lz3s" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Art</t> <t>and</t> <t>Design</t> </pat><tran> <mkent i="b00l60zg" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Art</t> <t>Deco</t> <t>Icons</t> </pat><tran> <mkent i="b00nj89c" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Art</t> <t>of</t> <t>Arts</t> <t>TV</t> </pat><tran> <mkent i="b00dwglc" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Art</t> <t>of</t> <t>Catching</t> <t>Lobsters</t> </pat><tran> <mkent i="b00809dd" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Art</t> <t>of</t> <t>Conducting</t> </pat><tran> <mkent i="p00f2tq2" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Art</t> <t>of</t> <t>Cornwall</t> </pat><tran> <mkent i="b00wbn80" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Art</t> <t>of</t> <t>Dying</t> </pat><tran> <mkent i="b00n1jnn" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Art</t> <t>of</t> <t>Eternity</t> </pat><tran> <mkent i="b006s7gv" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Art</t> <t>of</t> <t>Germany</t> </pat><tran> <mkent i="b00wcqms" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Art</t> <t>of</t> <t>Piano</t> </pat><tran> <mkent i="p00ghxfm" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Art</t> <t>of</t> <t>Russia</t> </pat><tran> <mkent i="b00pdgjw" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Art</t> <t>of</t> <t>Spain</t> </pat><tran> <mkent i="b008wthr" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Art</t> <t>of</t> <t>the</t> <t>Sea</t> </pat><tran> <mkent i="b00sccg0" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Art</t> <t>of</t> <t>Tommy</t> <t>Cooper</t> </pat><tran> <mkent i="b007hzl2" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Art</t> <t>on</t> <t>Your</t> <t>Wall</t> <t>with</t> <t>Sue</t> <t>Perkins</t> </pat><tran> <mkent i="b00p06c4" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Art</t> <t>Show</t> </pat><tran> <mkent i="p00h2lzc" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Art</t> <t>Space</t> </pat><tran> <mkent i="b00s9myz" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Arthur</t> </pat><tran> <mkent i="b006mhc1" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Arthur</t> </pat><tran> <mkent i="b00y25p1" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Arthur</t> <p>'</p> <t>s</t> <t>Dyke</t> </pat><tran> <mkent i="b007c3y0" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Artie</t> <t>Shaw</t> <p>:</p> <t></t> <t>Quest</t> <t>for</t> <t>Perfection</t> </pat><tran> <mkent i="b0074pb5" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Artist</t> <t>on</t> <t>Every</t> <t>Corner</t> <p>,</p> <t></t> <t>An</t> </pat><tran> <mkent i="p00b69nv" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Artist</t> <t>Speaks</t> </pat><tran> <mkent i="p00fgdzj" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Artists</t> <t>on</t> <t>Film</t> <p>:</p> <t></t> <t>Scenes</t> <t>from</t> <t>Working</t> <t>Lives</t> </pat><tran> <mkent i="p009syyh" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Arts</t> <t>and</t> <t>Entertainment</t> <t>Review</t> <t>of</t> <t>the</t> <t>Year</t> <t>Wales</t> </pat><tran> <mkent i="b00h32mh" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>ArtWorks</t> <t>Scotland</t> </pat><tran> <mkent i="b007xrwz" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>As</t> <t>An</t> <t>Eilean</t> <t></t> <p>(</p> <t>From</t> <t>the</t> <t>Island</t> <p>)</p> <t></t> </pat><tran> <mkent i="b00hh23b" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>As</t> <t>BBC1</t> </pat><tran> <mkent i="b00777rm" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>As</t> <t>BBC2</t> </pat><tran> <mkent i="b0079120" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>As</t> <t>Good</t> <t>as</t> <t>Dead</t> </pat><tran> <mkent i="b007bhjr" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>As</t> <t>I</t> <t>Roved</t> <t>Out</t> </pat><tran> <mkent i="b00dckvr" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>As</t> <t>Others</t> <t>See</t> <t>Us</t> </pat><tran> <mkent i="b00ymvwy" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>As</t> <t>Seen</t> <t>on</t> <t>TV</t> </pat><tran> <mkent i="b00lrmxq" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>As</t> <t>Time</t> <t>Goes</t> <t>By</t> </pat><tran> <mkent i="b007nmzp" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>As</t> <t>You</t> <t>Like</t> <t>It</t> </pat><tran> <mkent i="b00hbn86" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Ascent</t> <t>of</t> <t>Man</t> </pat><tran> <mkent i="b00wms4m" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Ash</t> <t>Wednesday</t> </pat><tran> <mkent i="b0089hhz" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Ashanti</t> </pat><tran> <mkent i="b007c02q" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Ashes</t> <t>to</t> <t>Ashes</t> </pat><tran> <mkent i="b00jhp3l" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Ask</t> <t>Rhod</t> <t>Gilbert</t> </pat><tran> <mkent i="b00v2z3s" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Assassination</t> <t>of</t> <t>Richard</t> <t>Nixon</t> </pat><tran> <mkent i="b009kbgy" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Assault</t> <t>on</t> <t>Precinct</t> <t>13</t> </pat><tran> <mkent i="b00781cx" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Assets</t> <t>Recovery</t> <t>Agency</t> <t>Committee</t> </pat><tran> <mkent i="b007mpr8" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Astaire</t> <t>and</t> <t>Rogers</t> <t>Sing</t> <t>George</t> <t>and</t> <t>Ira</t> <t>Gershwin</t> </pat><tran> <mkent i="b00rw6ct" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Astaire</t> <t>and</t> <t>Rogers</t> <t>Sing</t> <t>the</t> <t>Great</t> <t>American</t> <t>Songbook</t> </pat><tran> <mkent i="b00rzkyn" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Astronaut</t> <p>'</p> <t>s</t> <t>Wife</t> </pat><tran> <mkent i="b007clcg" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>At</t> <t>First</t> <t>Sight</t> </pat><tran> <mkent i="b00796sx" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>At</t> <t>Home</t> <t>with</t> <t>the</t> <t>Georgians</t> </pat><tran> <mkent i="b00wkmmj" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>At</t> <t>Sea</t> <t>With</t> <t>A</t> <t>Royal</t> <t>Navy</t> <t>Captain</t> </pat><tran> <mkent i="b00w00dq" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>At</t> <t>the</t> <t>Height</t> <t>of</t> <t>Summer</t> </pat><tran> <mkent i="b0074s2n" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>At</t> <t>War</t> <p>:</p> <t></t> <t>The</t> <t>Soldiers</t> <t>and</t> <t>their</t> <t>Families</t> </pat><tran> <mkent i="b00x36wk" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Atanarjuat</t> <p>:</p> <t></t> <t>The</t> <t>Fast</t> <t>Runner</t> </pat><tran> <mkent i="b008wf94" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Atash</t> </pat><tran> <mkent i="b007vbb5" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Athletics</t> </pat><tran> <mkent i="b006x7j9" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Athletics</t> </pat><tran> <mkent i="b00crzfc" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Athletics</t> <p>:</p> <t></t> <t>European</t> <t>Championships</t> </pat><tran> <mkent i="b00t9v4l" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Athletics</t> <p>:</p> <t></t> <t>European</t> <t>Indoor</t> <t>Championships</t> </pat><tran> <mkent i="b00j8z71" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Athletics</t> <p>:</p> <t></t> <t>European</t> <t>Team</t> <t>Championships</t> </pat><tran> <mkent i="b00lm8cb" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Athletics</t> <p>:</p> <t></t> <t>Great</t> <t>Manchester</t> <t>Run</t> </pat><tran> <mkent i="b00c0747" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Athletics</t> <p>:</p> <t></t> <t>Great</t> <t>North</t> <t>Road</t> <t>Races</t> </pat><tran> <mkent i="b0081b9d" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Athletics</t> <p>:</p> <t></t> <t>London</t> <t>10k</t> <t>Highlights</t> </pat><tran> <mkent i="b00bx1n2" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Athletics</t> <p>:</p> <t></t> <t>London</t> <t>Grand</t> <t>Prix</t> </pat><tran> <mkent i="b007vb9f" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Athletics</t> <p>:</p> <t></t> <t>New</t> <t>York</t> <t>Marathon</t> </pat><tran> <mkent i="b0087f0p" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Athletics</t> <p>:</p> <t></t> <t>Olympic</t> <t>Trials</t> </pat><tran> <mkent i="b00cl438" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Athletics</t> <p>:</p> <t></t> <t>Olympic</t> <t>Trials</t> </pat><tran> <mkent i="b00cnhdp" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Athletics</t> <p>:</p> <t></t> <t>World</t> <t>Championships</t> </pat><tran> <mkent i="b00m9g27" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Athletics</t> <p>:</p> <t></t> <t>World</t> <t>Trials</t> </pat><tran> <mkent i="b00lsydv" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Athletics</t> <p>:</p> <t></t> <t>World</t> <t>Trials</t> <t>and</t> <t>UK</t> <t>Championships</t> </pat><tran> <mkent i="b007v9lb" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Athletics</t> <p>:</p> <t></t> <t>World</t> <t>Trials</t> <t>and</t> <t>UK</t> <t>Championships</t> </pat><tran> <mkent i="b007vbg6" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>ATL</t> <t>TV</t> </pat><tran> <mkent i="b0092px7" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Atlantis</t> </pat><tran> <mkent i="b0113f70" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Atom</t> </pat><tran> <mkent i="b007x243" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Atomic</t> <t>Submarine</t> </pat><tran> <mkent i="b0090yt4" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Atomic</t> <t>Twister</t> </pat><tran> <mkent i="b0079012" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Attack</t> <t>on</t> <t>the</t> <t>Iron</t> <t>Coast</t> </pat><tran> <mkent i="b0077hqs" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Attenborough</t> <t>and</t> <t>the</t> <t>Giant</t> <t>Egg</t> </pat><tran> <mkent i="b00z6dsg" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Attenborough</t> <p>'</p> <t>s</t> <t>Journey</t> </pat><tran> <mkent i="b00vl3ln" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Attila</t> <t>the</t> <t>Hun</t> </pat><tran> <mkent i="b008zlgz" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Au</t> <t>Hasard</t> <p>,</p> <t></t> <t>Balthazar</t> </pat><tran> <mkent i="b007t2w6" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Audience</t> <t>with</t> <t>Ken</t> <t>Dodd</t> <p>,</p> <t></t> <t>An</t> </pat><tran> <mkent i="b008m3kb" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Auerbach</t> <t>at</t> <t>the</t> <t>Biennale</t> </pat><tran> <mkent i="p00b6bls" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Augustus</t> <t>and</t> <t>Gwen</t> <p>:</p> <t></t> <t>The</t> <t>Fire</t> <t>and</t> <t>the</t> <t>Fountain</t> </pat><tran> <mkent i="p00gtnct" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Auld</t> <t>Lang</t> <t>Syne</t> <p>:</p> <t></t> <t>Robert</t> <t>Burns</t> <t>at</t> <t>Celtic</t> <t>Connections</t> <t>2009</t> </pat><tran> <mkent i="b00hbsdc" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Auntie</t> <p>'</p> <t>s</t> <t>War</t> <t>on</t> <t>Smut</t> </pat><tran> <mkent i="b009hff3" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Australian</t> <t>Open</t> <t>Tennis</t> </pat><tran> <mkent i="b006v640" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Autism</t> <p>,</p> <t></t> <t>Disco</t> <t>and</t> <t>Me</t> </pat><tran> <mkent i="b00sbk0y" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Autistic</t> <t>Driving</t> <t>School</t> </pat><tran> <mkent i="b00s7xwx" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Autistic</t> <t>Me</t> <t></t> <p>-</p> <t></t> <t>One</t> <t>Year</t> <t>On</t> </pat><tran> <mkent i="b00s5gs3" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Autistic</t> <t>Me</t> </pat><tran> <mkent i="b00m5jb4" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Autistic</t> <t>Superstars</t> </pat><tran> <mkent i="b00sfxn7" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Autobiography</t> <t>of</t> <t>Miss</t> <t>Jane</t> <t>Pittman</t> </pat><tran> <mkent i="b00874b0" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Autumnwatch</t> </pat><tran> <mkent i="b0079t1p" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Autumnwatch</t> <t>Unsprung</t> </pat><tran> <mkent i="b00v9s10" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>AV</t> <t>Debate</t> <t>with</t> <t>Andrew</t> <t>Neil</t> </pat><tran> <mkent i="b010919w" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Avalanche</t> <p>:</p> <t></t> <t>Scotland</t> <p>'</p> <t>s</t> <t>Cocaine</t> <t>Epidemic</t> </pat><tran> <mkent i="b00qvl3n" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Avengers</t> </pat><tran> <mkent i="b006mhk8" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Aviation</t> <t>and</t> <t>Rail</t> <t>Committee</t> </pat><tran> <mkent i="b00ll5m9" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>The</t> <t>Aviator</t> </pat><tran> <mkent i="b00b2swv" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Away</t> <t>from</t> <t>Her</t> </pat><tran> <mkent i="b00tkxhk" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Awaydays</t> </pat><tran> <mkent i="b01074hf" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Awfully</t> <t>Big</t> <t>Adventure</t> <p>,</p> <t></t> <t>An</t> </pat><tran> <mkent i="b0079w31" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>AWOL</t> <p>:</p> <t></t> <t>Absent</t> <t>Without</t> <t>Leave</t> </pat><tran> <mkent i="b00f2r67" s="1" c="100" /> </tran></stmt>
+<stmt><pat> <t>Axe</t> <t>the</t> <t>Agent</t> <p>?</p> <t></t> </pat><tran> <mkent i="b00j1fjw" s="1" c="100" /> </tran></stmt>
+</stmset>

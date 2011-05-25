@@ -194,6 +194,8 @@ public:
 	const BarzerSettings& getSettings() const { return settings; }
 	BarzerSettings& getSettings() { return settings; }
 
+	const DtaIndex& getDtaIndex() const { return dtaIdx; }
+	DtaIndex& getDtaIndex() { return dtaIdx; }
 
 	GlobalPools();
 	~GlobalPools();

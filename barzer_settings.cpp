@@ -30,12 +30,22 @@ void BarzerSettings::init() {
 	BarzerDate::initToday();
 }
 
-void BarzerSettings::loadRules(const char *fname) {
-	StoredUniverse *u = gpools.getUniverse(0);
-	BELReader r(&(u->getBarzelTrie()), *u);
+void BarzerSettings::loadRules() {
+	using boost::property_tree::ptree;
 
-	int num = r.loadFromFile(fname, BELReader::INPUT_FMT_XML);
-	std::cout << num << " statements loaded from `" << fname << "'\n";
+	StoredUniverse *u = gpools.getUniverse(0);
+	if (!u) return;
+
+	BOOST_FOREACH(ptree::value_type &v, pt.get_child("config.rules")) {
+		//AYLOG(DEBUG) << v.second.data().c_str();
+		//loadRules(v.second.data().c_str());
+		BELReader r(&(u->getBarzelTrie()), *u);
+		const char *fname =  v.second.data().c_str();
+		int num = r.loadFromFile(fname, BELReader::INPUT_FMT_XML);
+
+		std::cout << num << " statements loaded from `" << fname << "'\n";
+	}
+
 }
 
 
@@ -44,20 +54,21 @@ void BarzerSettings::load() {
 	load(DEFAULT_CONFIG_FILE);
 }
 
-void BarzerSettings::load(const char *fname) {
+
+void BarzerSettings::loadEntities() {
 	using boost::property_tree::ptree;
+	DtaIndex &dix = gpools.getDtaIndex();
+	BOOST_FOREACH(ptree::value_type &v, pt.get_child("config.entities")) {
+		dix.loadEntities_XML(v.second.data().c_str());
+	}
+}
+
+void BarzerSettings::load(const char *fname) {
 	//AYLOGDEBUG(fname);
 
 	read_xml(fname, pt);
-
-	BOOST_FOREACH(ptree::value_type &v, pt.get_child("config.rules")) {
-		//AYLOG(DEBUG) << v.second.data().c_str();
-		loadRules(v.second.data().c_str());
-	}
-
-
-
-
+	loadEntities();
+	loadRules();
 }
 
 const std::string BarzerSettings::get(const char *key) const {
