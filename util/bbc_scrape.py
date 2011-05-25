@@ -6,20 +6,18 @@ import urllib
 from HTMLParser import HTMLParser
 from xml.sax.saxutils import escape, quoteattr
 import re, string
+from sets import Set
+
 
 base_url = "http://www.bbc.co.uk/tv/programmes/a-z/by/%s/all"
 letters = string.ascii_lowercase + string.digits
 
 id_pat = re.compile("^\/programmes\/(\w+)")
-punct_pat = re.compile("([%s])" % string.punctuation)
+punct_pat = re.compile("[%s]" % string.punctuation)
 article_pat = re.compile('(.*)\,\s+(The|A)$')
+split_pat = re.compile("([%s])|\s+" % string.punctuation)
 
-
-def getAttrs(attrList):
-    map = {}
-    for (name, value) in attrList:
-        map[name] = value
-    return map
+classes = Set(["series", "brand", "episode"])
 
 class MyParser(HTMLParser):
     shows = []
@@ -33,13 +31,11 @@ class MyParser(HTMLParser):
         self.entryId = self.entryName = u''
 
     def handle_starttag(self, tag, attrs):
-        attrMap = getAttrs(attrs)
+        amap = dict(attrs)
         if tag == 'li':
-            if attrMap.get("class") in ["series", "brand", "episode"]:
-                self.inShow = True
-                #print "episode found"
+            self.inShow = amap.get("class") in classes
         elif tag == 'a' and self.inShow:
-            m = id_pat.match(attrMap.get('href', ''))
+            m = id_pat.match(amap.get('href', ''))
             if m: self.entryId = m.group(1)
             else: self.clear()
         elif tag == 'span' and self.inShow:
@@ -71,11 +67,10 @@ def processShows(shows):
     for (id, name) in shows:
         print '<stmt><pat>',
         s = article_pat.sub("\\2 \\1", name)
-        for i in s.split(" "):
-            for j in punct_pat.split(i):
-                if punct_pat.match(j):
-                    print '<p>%s</p>' % escape(j),
-                else: print ('<t>%s</t>' % j).encode('utf-8'),
+        for y in (x for x in split_pat.split(name) if x):
+            if punct_pat.match(y):
+                print '<p>%s</p>' % escape(y),
+            else: print ('<t>%s</t>' % y).encode('utf-8'),
         print '</pat><tran>',
         mkEnt(id)
         print '</tran></stmt>'
