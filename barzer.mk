@@ -50,7 +50,6 @@ lg_en/barzer_en_date_util.o \
 lg_ru/barzer_ru_date_util.o \
 
 DIST_FILES = \
-	$(BINARY) \
 	config.xml \
 	barzel_rules.xml
 DIST_DATA_FILES = \
@@ -80,10 +79,11 @@ ay/libay.a:
 rebuild: clean aylib all
 
 .PHONY : test
-test: all
+test: $(BINARY)
 	cd test; rake test
 
 install:
 	install -d $(INSTALL_DIR) $(INSTALL_DATA_DIR)
-	install $(DIST_FILES) $(INSTALL_DIR)
-	install $(DIST_DATA_FILES) $(INSTALL_DATA_DIR)
+	install -m 0755 $(BINARY) $(INSTALL_DIR)
+	install -m 0644 $(DIST_FILES) $(INSTALL_DIR)
+	install -m 0644 $(DIST_DATA_FILES) $(INSTALL_DATA_DIR)
