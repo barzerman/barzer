@@ -685,7 +685,9 @@ struct BTND_StructData {
 		T_OPT,  // optional subtree
 		T_PERM, // permutation of children
 		T_TAIL, // if children are A,B,C this translates into [A], [A,B] and [A,B,C]
+
 		/// add new types above this line only
+		T_SUBSET, // if children are A,B,C this translates into A,B,C,AB,AC,BC,ABC
 		BEL_STRUCT_MAX
 	};
 protected:

@@ -61,7 +61,8 @@ public:
 		TAG_ANY,  // any element 
 		TAG_OPT,  // optional subtree
 		TAG_PERM, // permutation of children
-		TAG_TAIL, // if children are A,B,C this translates into [A], [A,B] and [A,B,C]
+		TAG_TAIL, // if children are A,B,C this translates into A,AB,ABC
+		TAG_SUBSET, // if children are A,B,C this translates into A,B,C,AB,AC,BC,ABC
 
 		TAG_TRANSLATION, // <trans> no pair in the node type - represents the whole left side 
 		TAG_REWRITE_STRUCT, // not a real tag used for translation
@@ -214,6 +215,7 @@ public:
 	void taghandle_OPT( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_PERM( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_TAIL( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_SUBSET( const char_cp * attr, size_t attr_sz , bool close=false);
 
 	// <rn>
 	void taghandle_RNUMBER( const char_cp * attr, size_t attr_sz , bool close=false);

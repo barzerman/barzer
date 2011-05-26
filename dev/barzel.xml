@@ -3,15 +3,7 @@
     xmlns="http://www.barzer.net/barzel/0.1">
 
     <stmt>
-        <pat> <t>shit</t> </pat>
+        <pat> <subset><t>a</t><t>b</t><t>c</t><t>d</t><t>e</t></subset></pat>
         <tran> <mkent c="10" s="9" i="abc1"/> </tran>
-    </stmt>
-    <stmt>
-        <pat> <t>shit</t> </pat>
-        <tran> <mkent c="10" s="10" i="abc"/> </tran>
-    </stmt>
-    <stmt>
-        <pat> <t>shit</t> </pat>
-        <tran> <mkent c="10" s="10" i="fgh"/> </tran>
     </stmt>
 </stmset>

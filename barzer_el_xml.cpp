@@ -81,6 +81,7 @@ bool BELParserXML::isValidTag( int tag, int parent ) const
 	case TAG_OPT:
 	case TAG_PERM:
 	case TAG_TAIL:
+	case TAG_SUBSET:
 		return true;
 	default:
 		return false;
@@ -144,6 +145,7 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 	CASE_TAG(OPT)
 	CASE_TAG(PERM)
 	CASE_TAG(TAIL)
+	CASE_TAG(SUBSET)
 
 	CASE_TAG(LITERAL)
 	CASE_TAG(RNUMBER)
@@ -617,6 +619,16 @@ void BELParserXML::taghandle_PERM( const char_cp * attr, size_t attr_sz , bool c
 	processAttrForStructTag( node, attr, attr_sz );
 	statement.pushNode( node );
 }
+void BELParserXML::taghandle_SUBSET( const char_cp * attr, size_t attr_sz , bool close)
+{
+	if( close ) {
+		statement.popNode();
+		return;
+	}
+	BTND_StructData node( BTND_StructData::T_SUBSET);
+	processAttrForStructTag( node, attr, attr_sz );
+	statement.pushNode(node);
+}
 void BELParserXML::taghandle_TAIL( const char_cp * attr, size_t attr_sz , bool close)
 {
 	if( close ) {
@@ -875,6 +887,7 @@ int BELParserXML::getTag( const char* s ) const
 	case 's':
 	CHECK_4CW("tmt",TAG_STATEMENT )  // <stmt>
 	CHECK_6CW("tmset",TAG_STMSET )  // <stmset>
+	CHECK_6CW("ubset",TAG_SUBSET )  // <subset>
 		break;
 	case 't':
 	CHECK_1CW(TAG_T) // <t>

@@ -238,6 +238,42 @@ struct Tail: public IntermediateNode {
 private:
     ChildVec::const_iterator endPosition;
 };
+struct Subset: public IntermediateNode {
+
+    Subset(const BELParseTreeNode::ChildrenVec& children, VarVec &v)
+    	: IntermediateNode(children, v),
+		d_subsMax( (1<< children.size()) ),
+		d_subsCurrent(1)
+    {}
+    
+	bool isInCurrentSubset( uint32_t i ) const { return ( (1<< i) & d_subsCurrent ); }
+
+    bool step()
+    {
+        for( uint32_t i = 0; i< childs.size(); ++i ) {
+            if(isInCurrentSubset(i) && childs[i]->step())
+                return true;
+        }
+        
+        if(d_subsCurrent >= d_subsMax ) {
+            d_subsCurrent = 1;
+            return false;
+        }
+        
+        ++d_subsCurrent;
+        return true;
+    }
+    
+    void yield(BTND_PatternDataVec& vec, BELVarInfo &vinfo) const
+    {
+        for(uint32_t i = 0; i< childs.size(); ++i ) {
+			if( isInCurrentSubset(i) ) 
+            	childs[i]->yield(vec, vinfo);
+		}
+    }
+private:
+	uint32_t d_subsMax, d_subsCurrent;
+};
 
 } // namespace {
     
@@ -261,6 +297,8 @@ PatternEmitterNode* PatternEmitterNode::make(const BELParseTreeNode& node, VarVe
                     return new Perm(node.child, vars);
                 case BTND_StructData::T_TAIL:
                     return new Tail(node.child, vars);
+                case BTND_StructData::T_SUBSET:
+                    return new Subset(node.child, vars);
                 default:
                 	AYLOG(ERROR) << "Invalid BTND_StructData type: " << sdata.getType();
             }
@@ -414,6 +452,7 @@ std::ostream&  BTND_StructData::print( std::ostream& fp , const BELPrintContext&
 	case T_OPT: str = "Opt" ; break;
 	case T_PERM: str = "Perm" ; break;
 	case T_TAIL: str = "Tail" ; break;
+	case T_SUBSET: str = "Subset" ; break;
 	default: str = "Unknown"; break;
 	}
 	return ( fp << "Struct." << str );
