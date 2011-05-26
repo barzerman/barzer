@@ -262,15 +262,42 @@ template <> void BTND_Rewrite_Text_visitor::operator()<BTND_Rewrite_Number>(BTND
 
 // pattern visitor  template specifications 
 struct BTND_Pattern_Text_visitor : public BTND_text_visitor_base {
-	BTND_Pattern_Text_visitor( BELParserXML& parser, const char* s, int len ) :
-		BTND_text_visitor_base( parser, s, len ) 
+	BTND_PatternData& d_pat;
+	BTND_Pattern_Text_visitor( BTND_PatternData& pat, BELParserXML& parser, const char* s, int len ) :
+		BTND_text_visitor_base( parser, s, len ),
+		d_pat(pat)
 	{}
 	template <typename T>
 	void operator() (T& t) const {}
 };
 
+namespace {
+bool isAllDigits( const char* s,int len  ) {
+	const char* s_end = s+len;
+	for( ; s< s_end; ++s ) {
+		if( !isdigit(*s) ) 
+			return false;
+	}
+	return true;
+}
+} // anon namespace ends 
+
 template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTND_Pattern_Token& t)  const
-{ t.stringId = d_parser.internTmpText(  d_str, d_len  ); }
+{ 
+	/// if d_str is numeric we need to do something
+	if( isdigit(d_str[0]) && isAllDigits(d_str,d_len)) {
+		BTND_Pattern_Number numPat;
+		int num= atoi(d_str);
+		numPat.setIntRange( num, num );
+		d_pat = numPat;
+		return;
+	} 
+	t.stringId = d_parser.internTmpText(  d_str, d_len  ); 
+}
+template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_StopToken>  (BTND_Pattern_StopToken& t)  const
+{ 
+	t.stringId = d_parser.internTmpText(  d_str, d_len  ); 
+}
 template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Punct> (BTND_Pattern_Punct& t) const
 { 
 	// may want to do something fancy for chinese punctuation (whatever that is)
@@ -291,7 +318,10 @@ struct BTND_text_visitor : public BTND_text_visitor_base {
 		BTND_text_visitor_base( parser, s, len ) 
 	{}
 	void operator()( BTND_PatternData& pat ) const
-		{ boost::apply_visitor( BTND_Pattern_Text_visitor(d_parser,d_str,d_len), pat ) ; }
+		{ 
+			BTND_Pattern_Text_visitor vis(pat,d_parser,d_str,d_len);
+			boost::apply_visitor( vis, pat ) ; 
+		}
 	void operator()( BTND_None& ) const {}
 	void operator()( BTND_StructData& ) const {}
 	void operator()( BTND_RewriteData& rwr)  const
@@ -755,18 +785,6 @@ void BELParserXML::getElementText( const char* txt, int len )
 		boost::apply_visitor( BTND_text_visitor(*this,txt,len), node->getVar() ) ; 
 	}
 	return;
-
-	/*
-	int tid = tagStack.top();
-
-#define CASE_TAG(x) case TAG_##x: taghandle_##x##_text( txt, len ); break;
-	switch( tid ) {
-		CASE_TAG(T)
-		CASE_TAG(LITERAL)
-		CASE_TAG(RNUMBER)
-	}
-#undef CASE_TAG
-	*/
 }
 BELParserXML::~BELParserXML()
 {

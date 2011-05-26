@@ -509,7 +509,7 @@ struct BTND_Rewrite_Number : public BarzerNumber {
 		x = *(static_cast<const BarzerNumber*>(this));
 	}
 };
-struct BTND_Rewrite_MkEnt : public BarzerNumber {
+struct BTND_Rewrite_MkEnt {
 	uint32_t d_entId;
 	/// when mode is 0 d_entId is the single entity Id 
 	//  when mode is 1 d_entId is id of the pool of entityIds 
