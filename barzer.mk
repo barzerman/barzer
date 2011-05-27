@@ -13,6 +13,7 @@ BINARY=barzer.exe
 libs = -Lay -lay -L/opt/local/lib -L/opt/local/lib/boost -L/usr/lib -lboost_system -lexpat -lstdc++
 ECHO = echo
 objects = \
+barzer_el_analysis.o \
 barzer_server_response.o \
 barzer_server_request.o \
 barzer_barz.o \

@@ -10,6 +10,7 @@
 #include <barzer_date_util.h>
 #include <barzer_settings.h>
 #include <barzer_config.h>
+#include <barzer_el_analysis.h>
 #include <barzer_el_compwords.h>
 #include <boost/unordered_map.hpp> 
 
@@ -30,16 +31,8 @@ class GlobalTriePool {
 	BarzelFirmChildPool* d_fcPool;
 	BarzelTranslationPool* d_tranPool;
 
-
 public:
 	ClassTrieMap& produceTrieMap( const std::string& trieClass );
-	/*{
-		TrieMap::iterator i = d_trieMap.find( trieClass );
-		if( i == d_trieMap.end() ) 
-			i = d_trieMap.insert( TrieMap::value_type( trieClass, ClassTrieMap())).first;
-		
-		return i->second;
-	} //*/
 
 	const ClassTrieMap* getTrieMap( const std::string& trieClass ) const
 	{
@@ -153,6 +146,7 @@ public:
 
 class GlobalPools {
 public:
+
 	// 0 should never be used 
 	enum { DEFAULT_UNIVERSE_ID = 0 }; 
 
@@ -175,9 +169,17 @@ public:
 	UniverseMap d_uniMap;
 
 	BarzerSettings settings;
+	DATrie  d_daTrie;
 
+	/// this is a special mode. the matching tries are NOT populated 
+	/// when system is in this mode only analysis trie is built
+	bool d_isDataAnalysisMode;
+	bool isDataAnalysisMode() const { return d_isDataAnalysisMode; }
+	void setDataAnalysisMode() { d_isDataAnalysisMode= true; }
 	/// this will create the "wellknown" entities 
 	StoredUniverse& produceUniverse( uint32_t id );
+	DATrie& getDATrie() { return d_daTrie; }
+	const DATrie& getDATrie() const { return d_daTrie; }
 
 	const StoredUniverse* getUniverse( uint32_t id )  const 
 	{
@@ -196,7 +198,6 @@ public:
 
 	const DtaIndex& getDtaIndex() const { return dtaIdx; }
 	DtaIndex& getDtaIndex() { return dtaIdx; }
-
 	GlobalPools();
 	~GlobalPools();
 };
@@ -214,6 +215,10 @@ class StoredUniverse {
 	bool  getToNextTrie() const { return trieClusterIter.advance(); }
 
 public:
+	DATrie& getDATrie() { return gp.getDATrie(); }
+	const DATrie& getDATrie() const { return gp.getDATrie(); }
+	bool isDataAnalysisMode() const { return gp.isDataAnalysisMode(); }
+	
 	BELTrie& produceTrie( const std::string& trieClass, const std::string& trieId ) 
 	{
 		return gp.globalTriePool.produceTrie( trieClass, trieId );
@@ -279,10 +284,6 @@ public:
 
 	const BELFunctionStorage& getFunctionStorage() const { return gp.funSt; }
 	const DateLookup& getDateLookup() const { return gp.dateLookup; }
-	/*
-	const BarzerSettings& getSettings() const { return settings; }
-	BarzerSettings& getSettings() { return settings; }
-	//*/
 	
 	const char* getGenericSubclassName( uint16_t subcl ) const;
 }; 

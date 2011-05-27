@@ -10,10 +10,6 @@
 #include <barzer_config.h>
 #include <barzer_universe.h>
 
-/*
-namespace {
-static barzer::StoredUniverse*  g_universe = 0;
-} //*/
 
 extern "C" void block_ctrlc () 
 {
@@ -135,8 +131,12 @@ void init_gpools(barzer::GlobalPools &gp, ay::CommandLineArgs &cmdlProc) {
     barzer::BarzerSettings &st = gp.getSettings();
 
     bool hasArg = false;
+	/// running wiht this flag cosntructs data analysis tries only. 
+	/// data analysis tries are not used for matching  
+	if( cmdlProc.hasArg( "-datrie" ) ) { 
+		gp.setDataAnalysisMode( );
+	}
     const char *fname = cmdlProc.getArgVal(hasArg, "-cfg", 0);
-
     if (hasArg && fname)
     	st.load(fname);
     else
