@@ -1,6 +1,5 @@
 #include <barzer_dtaindex.h>
 //#include <boost/pool/singleton_pool.hpp>
-#include <ay/ay_slogrovector.h>
 #include <barzer_loader_xml.h>
 
 namespace barzer {
