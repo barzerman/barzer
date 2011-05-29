@@ -4,16 +4,19 @@
 #include <barzer_universe.h>
 #include <barzer_el_btnd.h>
 #include <barzer_el_trie_walker.h>
+#include <ay/ay_vector.h>
 namespace barzer {
 
 // analytical data 
 struct TA_BTN_data {
-	uint32_t numDesc,  // number of descendants + 1 
-			 numDescEntities, // number of entities in descendants 
-		     numEntSelf;      // number of entities in self
+	uint32_t numDesc;  // number of descendants + 1 
+	typedef ay::vecset< uint32_t > EntVecSet;
+	EntVecSet entities;
+	
+	void addEntity( uint32_t i ) { entities.insert(i); }
 
 	TA_BTN_data() : 
-		numDesc(0), numDescEntities(0), numEntSelf(0)
+		numDesc(0)
 	{}
 };
 
@@ -27,7 +30,6 @@ struct TrieAnalyzer {
 	int d_nameThreshold;   // if < d_nameThreshold - qualifies as a name
 	int d_fluffThreshold;  // if > d_fluffThreshold - can be considered fluff
 
-	TrieAnalyzer( const StoredUniverse& u );
 	
 	TrieAnalyzer( const StoredUniverse& );
 

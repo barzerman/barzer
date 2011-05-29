@@ -187,6 +187,12 @@ public:
 			return std::pair< iterator, bool>( i, false );
 		}
 	}
+	template <typename InputIterator> 
+	void insert( InputIterator first, InputIterator last )
+	{
+		for( InputIterator i = first; i!= last; ++i ) 
+			insert( *i );
+	}
 
 	iterator erase( iterator pos ) { return d_vec.erase(pos); }
 	iterator erase( iterator first, iterator last ) { return d_vec.erase(first,last); }
