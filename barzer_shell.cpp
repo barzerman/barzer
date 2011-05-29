@@ -5,6 +5,7 @@
 #include <barzer_el_trie.h>
 #include <barzer_el_parser.h>
 #include <barzer_el_wildcard.h>
+#include <barzer_el_analysis.h>
 #include <ay/ay_logger.h>
 #include <algorithm>
 #include <barzer_el_trie_shell.h>
@@ -345,6 +346,16 @@ static int bshf_trans( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
+/// data analysis entry point
+static int bshf_dtaan( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	ShellState sh( shell, cmd, in );
+	TrieAnalyzer analyzer( sh.uni );
+	analyzer.getTraverser().traverse( analyzer, sh.uni.getBarzelTrie().getRoot() );
+
+	return 0;
+}
+
 static int bshf_trls( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext *context = shell->getBarzerContext();
@@ -561,6 +572,7 @@ static const CmdData g_cmd[] = {
 	CmdData( ay::Shell::cmd_run, "run", "execute script(s)" ),
 	//commented test to reduce the bloat
 	CmdData( bshf_test, "test", "just a test" ),
+	CmdData( (ay::Shell_PROCF)bshf_dtaan, "dtaan", "data set analyzer. runs through the trie" ),
 	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),
 	CmdData( (ay::Shell_PROCF)bshf_lex, "lex", "tokenize and then classify (lex) the input" ),
 	CmdData( (ay::Shell_PROCF)bshf_tokenize, "tokenize", "tests tokenizer" ),

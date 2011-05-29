@@ -521,7 +521,8 @@ struct BTND_Rewrite_MkEnt {
 
 
 	BTND_Rewrite_MkEnt() : d_entId(0xffffffff), d_mode(MODE_SINGLE_ENT) {}
-
+	
+	bool isValid() const { return (d_entId != 0xffffffff); }
 	bool isSingleEnt() const { return d_mode == MODE_SINGLE_ENT; }
 	bool isEntList() const { return d_mode == MODE_ENT_LIST; }
 

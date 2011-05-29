@@ -21,32 +21,8 @@ extern "C" void block_ctrlc ()
    else if (sigprocmask(SIG_BLOCK, &newsigset, NULL) == -1)
       perror("Failed to block SIGINT");
 }
-/*
-struct TaskEnv {
-    ay::CommandLineArgs cmdlProc;
-    barzer::BarzerShell        barzerShell;
-    
-	TaskEnv() : barzerShell(0){}
-    int init(int argc, char* argv[]);
-    int run();
-};
 
-int TaskEnv::init( int argc, char* argv[] )
-{
-    cmdlProc.init( argc, argv );
-
-
-
-    return 0;
-}
-int TaskEnv::run( )
-{
-    return barzerShell.run();
-}
-//*/
-
-
-int run_shell(barzer::StoredUniverse &u, ay::CommandLineArgs &cmdlProc) {
+int run_shell(barzer::GlobalPools & globPool, barzer::StoredUniverse &u, ay::CommandLineArgs &cmdlProc) {
 	barzer::BarzerShell shell;
 	shell.setUniverse(&u);
 	if (int rc = shell.run()) {
@@ -98,30 +74,6 @@ int run_test(barzer::StoredUniverse &u, ay::CommandLineArgs &cmdlProc) {
 	return process_input(u, reader, *out);
 }
 
-/*
-int run_shell(int argc, char * argv[]) {
-    TaskEnv env;
-	if( !g_universe )
-		g_universe = new barzer::StoredUniverse();
-	env.barzerShell.setUniverse( g_universe );
-
-	// block_ctrlc();
-    int rc = env.init( argc, argv );
-    if( rc ) {
-      std::cerr << "FATAL: Initialization failed.. exiting\n";
-      exit(rc);
-    }
-
-    rc= env.run();
-    if( rc ) {
-        std::cerr  << "FATAL: Execution failed\n";
-        exit(rc);
-    }
-	
-    return rc;
-}
-*/
-
 void print_usage(const char* prg_name) {
     std::cerr << "Usage: " << prg_name << " [shell|test [-i <input file> -o <output file>]|server <port>]" << std::endl;
 }
@@ -129,13 +81,12 @@ void print_usage(const char* prg_name) {
 
 void init_gpools(barzer::GlobalPools &gp, ay::CommandLineArgs &cmdlProc) {
     barzer::BarzerSettings &st = gp.getSettings();
+	if( cmdlProc.hasArg("-anlt") ) { /// analytical mode is set
+		std::cerr << "RUNNING IN ANALYTICAL MODE!\n";
+		gp.setAnalyticalMode();
+	}
 
     bool hasArg = false;
-	/// running wiht this flag cosntructs data analysis tries only. 
-	/// data analysis tries are not used for matching  
-	if( cmdlProc.hasArg( "-datrie" ) ) { 
-		gp.setDataAnalysisMode( );
-	}
     const char *fname = cmdlProc.getArgVal(hasArg, "-cfg", 0);
     if (hasArg && fname)
     	st.load(fname);
@@ -161,7 +112,7 @@ int main( int argc, char * argv[] ) {
             if (strcasecmp(argv[1], "shell") == 0) {
                 // ay shell
                 //return run_shell(argc, argv);
-            	return run_shell(universe, cmdlProc);
+            	return run_shell(globPool, universe, cmdlProc);
             } else if (strcasecmp(argv[1], "server") == 0) {
                 if (argc >= 3) {
                     // port is specified on command line

@@ -62,10 +62,17 @@ protected:
 	/// alias can be 0 - in that case no alias will be generated and an orphaned compounded 
 	/// token will be added 
 	uint32_t addCompoundedWordLiteral( const char* alias );
+	
+
+	const BELReader* getReader() const { return reader; }
+	BELReader* getReader() { return reader; }
 public:
 	BELParser( BELReader* r ) : reader(r) {}
 	virtual int parse( std::istream& ) = 0;
 	virtual ~BELParser() {}
+
+	StoredUniverse& getUniverse(); 
+	const  StoredUniverse& getUniverse() const;
 };
 
 struct BELTrie;
@@ -91,6 +98,7 @@ public:
 	const BELTrie& getTrie() const { return *trie ; }
 
 	StoredUniverse& getUniverse() { return universe; }
+	const StoredUniverse& getUniverse() const { return universe; }
 
 	/// barzEL input formats
 	typedef enum {
@@ -123,6 +131,11 @@ public:
 
 	std::ostream& printNode( std::ostream& fp, const BarzelTrieNode& node ) const;
 };
+inline StoredUniverse& BELParser::getUniverse()
+{ return reader->getUniverse(); }
+
+inline const  StoredUniverse& BELParser::getUniverse() const
+{ return reader->getUniverse(); }
 
 template<class T>class BELExpandReader : public BELReader {
 	T &functor;

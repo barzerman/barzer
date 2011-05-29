@@ -60,6 +60,8 @@ public:
 	/// checks boundaries returns 0 if id is invalid
 	inline const StoredEntity* getEntByIdSafe( StoredEntityId id )  const
 		{ return( isEntityIdValid(id) ? &(getEnt(id)):(const StoredEntity*)0 );}
+	size_t getNumberOfEntities() const
+		{ return storedEnt.size(); }
 };
 
 inline std::ostream& operator <<( std::ostream& fp, const StoredEntityPool& x )
@@ -138,6 +140,8 @@ public:
 	/// checks boundaries returns 0 if id is invalid
 	inline const StoredToken* getTokByIdSafe( StoredTokenId id )  const
 		{ return( isTokIdValid(id) ? &(getTokById(id)):0 );}
+	size_t getGetNumberOfTokens() const
+		{ return storTok.size(); }
 };
 
 inline std::ostream& operator <<( std::ostream& fp, const StoredTokenPool& x )
@@ -166,6 +170,8 @@ public:
 	CompWordsTree* cwTree;
 	SemanticalFSA* semFSA;
 
+	size_t getNumberOfTokens() const { return tokPool.getNumberOfTokens(); }
+	size_t getNumberOfEntities() const { entPool.getNumberOfEntities(); }
 	/// given the token returns a matching StoredToken 
 	/// only works for imple tokens 
 	const StoredToken* getStoredToken( const char* s) const

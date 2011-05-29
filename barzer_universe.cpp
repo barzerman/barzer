@@ -68,7 +68,7 @@ GlobalPools::GlobalPools() :
 			&barzelTranslationPool 
 		),
 	settings(*this),
-	d_isDataAnalysisMode(false)
+	d_isAnalyticalMode(false)
 {
 	/// create default universe 
 	produceUniverse(DEFAULT_UNIVERSE_ID);

@@ -10,7 +10,6 @@
 #include <barzer_date_util.h>
 #include <barzer_settings.h>
 #include <barzer_config.h>
-#include <barzer_el_analysis.h>
 #include <barzer_el_compwords.h>
 #include <boost/unordered_map.hpp> 
 
@@ -169,17 +168,14 @@ public:
 	UniverseMap d_uniMap;
 
 	BarzerSettings settings;
-	DATrie  d_daTrie;
 
-	/// this is a special mode. the matching tries are NOT populated 
-	/// when system is in this mode only analysis trie is built
-	bool d_isDataAnalysisMode;
-	bool isDataAnalysisMode() const { return d_isDataAnalysisMode; }
-	void setDataAnalysisMode() { d_isDataAnalysisMode= true; }
+	bool d_isAnalyticalMode;
+
+	bool isAnalyticalMode() const { return d_isAnalyticalMode; }
+	void setAnalyticalMode() { d_isAnalyticalMode= true; }
+
 	/// this will create the "wellknown" entities 
 	StoredUniverse& produceUniverse( uint32_t id );
-	DATrie& getDATrie() { return d_daTrie; }
-	const DATrie& getDATrie() const { return d_daTrie; }
 
 	const StoredUniverse* getUniverse( uint32_t id )  const 
 	{
@@ -211,13 +207,12 @@ class StoredUniverse {
 	//BarzerSettings settings;
 	friend class QSemanticParser;
 
+
 	void  getToFirstTrie() const { trieClusterIter.reset(); }
 	bool  getToNextTrie() const { return trieClusterIter.advance(); }
 
 public:
-	DATrie& getDATrie() { return gp.getDATrie(); }
-	const DATrie& getDATrie() const { return gp.getDATrie(); }
-	bool isDataAnalysisMode() const { return gp.isDataAnalysisMode(); }
+	bool isAnalyticalMode() const { return gp.isAnalyticalMode(); }
 	
 	BELTrie& produceTrie( const std::string& trieClass, const std::string& trieId ) 
 	{

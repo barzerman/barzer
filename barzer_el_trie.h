@@ -299,7 +299,7 @@ class BarzelTrieNode {
 		// new bits strictly above this line 
 		B_MAX
 	};
-	ay::bitflags<B_MAX> d_flags; // only prints children at the current level
+	ay::bitflags<B_MAX> d_flags; 
 
 
 	/// methods

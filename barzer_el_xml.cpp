@@ -228,6 +228,11 @@ struct BTND_text_visitor_base  : public boost::static_visitor<> {
 	const char* d_str;
 	int d_len;
 	
+	StoredUniverse& getUniverse() { return d_parser.getUniverse(); }
+	const StoredUniverse& getUniverse() const { return d_parser.getUniverse(); }
+	bool isAnalyticalMode() const
+	{ return getUniverse().isAnalyticalMode(); }
+
 	BTND_text_visitor_base( BELParserXML& parser, const char* s, int len ) : 
 		d_parser(parser),
 		d_str(s), 
@@ -287,7 +292,7 @@ bool isAllDigits( const char* s,int len  ) {
 template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTND_Pattern_Token& t)  const
 { 
 	/// if d_str is numeric we need to do something
-	if( isdigit(d_str[0]) && isAllDigits(d_str,d_len)) {
+	if( !isAnalyticalMode() && isdigit(d_str[0]) && isAllDigits(d_str,d_len)) {
 		BTND_Pattern_Number numPat;
 		int num= atoi(d_str);
 		numPat.setIntRange( num, num );

@@ -81,9 +81,7 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 
 		j += seq.size();
 
-		if( universe.isDataAnalysisMode() ) {
-			universe.getDATrie().addAnalyticalStatement(sp,seq);
-		} else {
+		{ // adding path to the trie
 			uint32_t tranId = 0xffffffff;
 			BarzelTranslation* tran = trie->makeNewBarzelTranslation( tranId );
 			if( !tran ) {

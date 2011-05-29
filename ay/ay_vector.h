@@ -139,6 +139,65 @@ public:
 	value_type& operator[] ( size_t i ) { return d_vec[i]; }
 	const value_type& operator[] ( size_t i ) const { return d_vec[i]; }
 };
+/// sorted vector
+template <typename T, typename Comp = std::less<T> >
+class vecset {
+	typedef T value_type;
+	typedef std::vector<value_type> TheVec;	
+	typedef Comp value_comp;
+	TheVec d_vec;
+public:
+	const TheVec& getVector() const { return d_vec; }
+	void clear() { d_vec.clear(); }
+	typedef typename TheVec::iterator iterator;
+	typedef typename TheVec::const_iterator const_iterator;
+
+	iterator begin() { return d_vec.begin(); }
+	const_iterator begin() const { return d_vec.begin(); }
+
+	iterator end() { return d_vec.end(); }
+	const_iterator end() const { return d_vec.end(); }
+	
+	iterator lower_bound( const T& k ) 
+		{ return std::lower_bound( d_vec.begin(), d_vec.end(), k, value_comp() ); }
+	const_iterator lower_bound( const T& k ) const
+		{ return std::lower_bound( d_vec.begin(), d_vec.end(), k, value_comp() ); }
+
+	iterator find( const T& k ) 
+	{ iterator i = lower_bound(k); return( (i == d_vec.end() || value_comp()(k,*i) ) ?  d_vec.end():i) ; }
+	const_iterator find( const T& k ) const
+	{ const_iterator i = lower_bound(k); return( (i == d_vec.end() || value_comp()(k,*i) ) ?  d_vec.end():i) ; }
+	
+	std::pair< iterator, iterator > equal_range( const value_type& k ) 
+		{ return std::equal_range( d_vec.begin(), d_vec.end(), k, value_comp() ); }
+	std::pair< const_iterator, const_iterator > equal_range( const value_type& k ) const
+		{ return std::equal_range( d_vec.begin(), d_vec.end(), k, value_comp() ); }
+
+	iterator upper_bound( const T& k ) 
+		{ return std::upper_bound( d_vec.begin(), d_vec.end(), k, value_comp() ); }
+	const_iterator upper_bound( const T& k ) const
+		{ return std::upper_bound( d_vec.begin(), d_vec.end(), k, value_comp() ); }
+
+	std::pair< iterator, bool> insert( const value_type& v )
+	{
+		iterator i = lower_bound( v );
+		if( i == d_vec.end() ||  value_comp()( v,*i) ) { // first non smaller is not equal or all keys smaller
+			return std::pair< iterator, bool>( d_vec.insert( i, v ), true );
+		} else {
+			return std::pair< iterator, bool>( i, false );
+		}
+	}
+
+	iterator erase( iterator pos ) { return d_vec.erase(pos); }
+	iterator erase( iterator first, iterator last ) { return d_vec.erase(first,last); }
+
+	size_t size() const { return d_vec.size(); }
+
+	/// i has to be a number, not T
+	value_type& operator[] ( size_t i ) { return d_vec[i]; }
+	const value_type& operator[] ( size_t i ) const { return d_vec[i]; }
+	
+};
 
 }
 #endif // AY_VECTOR_H

@@ -5,6 +5,16 @@
 
 namespace ay {
 
+bool CommandLineArgs::hasArg( const char* an ) const
+{
+	const char_cp * end = argv + argc;
+	const char_cp* i = argv;
+	for( ; i!= end; ++i ) {
+		if( !strcmp( *i, an ) )
+			return true;
+	}
+	return false;
+}
 const char* CommandLineArgs::getArgVal( bool& hasArg, const char* an, int*argPos ) const
 {
 	const char_cp * end = argv + argc;

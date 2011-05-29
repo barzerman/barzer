@@ -16,11 +16,7 @@ struct CommandLineArgs {
 	const char_cp* argv;
 
 	const char* getArgVal( bool& hasArg, const char* an, int*argPos=0 ) const;
-	bool 		hasArg( const char* an ) const
-		{ 
-			bool tmp = false;
-			return( getArgVal( tmp, an ), tmp );
-		}
+	bool 		hasArg( const char* an ) const;
 	int			getArgVal_int( bool& hasArg, const char* an ) const;
 	double		getArgVal_double( bool& hasArg, const char* an ) const;
 
