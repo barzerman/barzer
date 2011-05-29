@@ -232,7 +232,7 @@ public:
 	inline const char* resolveStoredTokenStr( StoredTokenId id ) const 
 	{
 		const StoredToken* t = tokPool.getTokByIdSafe( id );
-		return ( t ? resolveStoredTokenStr(*t) : "<<null>>" );
+		return ( t ? resolveStoredTokenStr(*t) : "" );
 	}
 	void printStoredToken( std::ostream& fp, const StoredTokenId ) const;
 	void printEuid( std::ostream& fp, const StoredEntityUniqId& euid ) const

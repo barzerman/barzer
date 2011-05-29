@@ -66,6 +66,8 @@ struct BarzelTrieFirmChildKey {
 			it == BTND_Pattern_CompoundedWord_TYPE
 		);
 	}
+	uint32_t getTokenId() const
+		{ return ( type == BTND_Pattern_Token_TYPE ? id : 0xffffffff ); }
 	void setNull( ) { type = BTND_Pattern_None_TYPE; id = 0xffffffff; noLeftBlanks=0;}
 
 	bool isNull() const { return (type == BTND_Pattern_None_TYPE); }

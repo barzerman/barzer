@@ -36,6 +36,9 @@ typedef ay::Shell::CmdData CmdData;
 
 static int bshf_test( ay::Shell*, char_cp cmd, std::istream& in )
 {
+	/// NEVER REMOVE THIS FUNCTION . it's used in debug scripts in those cases 
+	/// gdb ctrl-C gets passed to the app - it is unfortunately the case on Mac
+	/// - AY
 	std::cout << "command: " << cmd << ";";
 	std::cout << "parms: (";
 	std::string tmp;
@@ -351,7 +354,9 @@ static int bshf_dtaan( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	ShellState sh( shell, cmd, in );
 	TrieAnalyzer analyzer( sh.uni );
-	analyzer.getTraverser().traverse( analyzer, sh.uni.getBarzelTrie().getRoot() );
+	// analyzer.getTraverser().traverse( analyzer, sh.uni.getBarzelTrie().getRoot() );
+	analyzer.traverse();
+	analyzer.print( std::cout );
 
 	return 0;
 }

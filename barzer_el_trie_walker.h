@@ -29,7 +29,6 @@ typedef boost::variant<
 
 typedef std::pair<BELTrieWalkerKey,const BarzelTrieNode*> BELTWStackPair;
 typedef std::vector<BELTWStackPair> TrieNodeStack;
-//*/
 
 class BELTrieWalker {
 	const BELTrie &trie;
@@ -45,7 +44,8 @@ public:
 		//nodeStack.push(&t.root);
 	}
 
-	TrieNodeStack& getNodeStack();
+	TrieNodeStack& getNodeStack() { return nodeStack; }
+	const TrieNodeStack& getNodeStack() const { return nodeStack; }
 	const BarzelTrieNode& getCurrentNode() { return *(nodeStack.back().second); }
 	//BarzelTrieNode& getCurrentNode() { return *(nodeStack.top()); }
 
@@ -80,6 +80,8 @@ class BarzelTrieNodeChildIterator {
 	}
 public:
 	typedef std::pair< const BarzelWCLookup*, BarzelWCLookup::const_iterator > LookupKey;
+	/// NEVER change the order in this variant EVER 
+	/// this will break data analysis -- AY 
 	typedef boost::variant< 
 		BarzelFCMap::const_iterator,
 		LookupKey
@@ -169,7 +171,8 @@ struct BarzelTrieTraverser_depth {
 	typedef std::vector< NodeKey >  NodeKeyVec;
 	NodeKeyVec d_stack;
 
-	const NodeKeyVec& getPath() { return d_stack; }
+	NodeKeyVec& getPath() { return d_stack; }
+	const NodeKeyVec& getPath() const { return d_stack; }
 	/// visits every node in the tree until cb returns false, keeps the stack 
 	template <typename T>
 	const BarzelTrieNode* traverse(T& cb, const BarzelTrieNode& tn )

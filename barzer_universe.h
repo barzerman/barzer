@@ -281,6 +281,9 @@ public:
 	const DateLookup& getDateLookup() const { return gp.dateLookup; }
 	
 	const char* getGenericSubclassName( uint16_t subcl ) const;
+
+	const char* decodeToken( uint32_t tid ) const 
+		{ return getDtaIdx().resolveStoredTokenStr( tid ); }
 }; 
 
 inline StoredUniverse& GlobalPools::produceUniverse( uint32_t id )

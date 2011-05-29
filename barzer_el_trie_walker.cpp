@@ -9,7 +9,6 @@
 
 namespace barzer {
 
-TrieNodeStack& BELTrieWalker::getNodeStack() { return nodeStack; }
 
 BarzelWCLookup* BELTrieWalker::getWildcardLookup( uint32_t id )
 {
