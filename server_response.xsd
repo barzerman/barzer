@@ -14,6 +14,20 @@
         </xs:restriction>
     </xs:simpleType>
 
+    <xs:simpleType name="orderTypeEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="ASC"/>
+            <xs:enumeration value="DESC"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="ercExprTypeEnum">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="AND"/>
+            <xs:enumeration value="OR"/>
+        </xs:restriction>
+    </xs:simpleType>    
+
     <xs:group name="lohiGroup">
         <xs:choice>
             <xs:element name="lo" type="xs:string" />
@@ -54,7 +68,30 @@
 				</xs:complexType>
 			</xs:element>
 		</xs:choice>
+		<xs:attribute name="order" type="tns:orderTypeEnum"/>
 	</xs:complexType>
+
+    <xs:complexType name="ercType">
+		<xs:sequence>
+		    <xs:element name="entity" type="tns:entityType" />
+		    <xs:element name="unit" minOccurs="0">
+		        <xs:complexType>
+		            <xs:sequence>
+		                <xs:element name="entity" type="tns:entityType" />
+		            </xs:sequence>
+		      </xs:complexType>
+		    </xs:element>
+		    <xs:element name="range" type="tns:rangeType" />
+		</xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ercExprType">
+		<xs:choice minOccurs="1" maxOccurs="unbounded">
+		    <xs:element name="erc" type="tns:ercType" />
+		    <xs:element name="ercexpr" type="tns:ercExprType" />
+		</xs:choice>
+		<xs:attribute name="type" type="tns:ercExprTypeEnum" />
+    </xs:complexType>
 
     <xs:element name="barz">
         <xs:complexType>
@@ -71,15 +108,9 @@
                     </xs:sequence>
                     </xs:complexType>
                 </xs:element>    
-                <xs:element name="erc">
-                    <xs:complexType>
-                    <xs:sequence minOccurs="1" maxOccurs="1">
-                        <xs:element name="entity" type="tns:entityType" />
-                        <xs:element name="range" type="tns:rangeType" />
-                    </xs:sequence>
-                    </xs:complexType>
-                </xs:element>                
+                <xs:element name="erc" type="tns:ercType" />                
                 <xs:element name="range" type="tns:rangeType" />
+                <xs:element name="ercexpr" type="tns:ercExprType" />
             </xs:choice>
         </xs:complexType>
     </xs:element>
