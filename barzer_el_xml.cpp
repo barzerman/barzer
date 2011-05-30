@@ -185,7 +185,9 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 		return;
 	}
 	statement.stmt.stmtNumberIncrement();
-
+	if( !(statement.stmt.getStmtNumber() % 100)  ) {
+		std::cerr << '.';
+	}
 	if( statement.hasStatement() ) { // bad - means we have statement tag nested in another statement
 		std::cerr << "statement nested in statement " << statementCount << "\n";
 		return;
