@@ -25,13 +25,13 @@ bool TrieAnalyzer::getPathTokens( ay::char_cp_vec& tvec ) const
 		/// here we're guaranteed that which is 0  
 		const BarzelFCMap::const_iterator& fcmi = boost::get< BarzelFCMap::const_iterator > ( nk );
 		const BarzelTrieFirmChildKey& fck = fcmi->first;
-		uint32_t tokId = fck.getTokenId( ) ;
-		if( tokId == 0xffffffff ) {
+		uint32_t stringId = fck.getTokenStringId( ) ;
+		if( stringId == 0xffffffff ) {
 			tvec.clear();
 			return false;
 		}
 
-		const char* tok = d_universe.decodeToken( tokId );
+		const char* tok = d_universe.decodeStringById( stringId );
 		if( tok && *tok ) {
 			tvec.push_back( tok );
 		}
@@ -88,24 +88,27 @@ bool TANameProducer::operator()( TrieAnalyzer& analyzer, const BarzelTrieNode& t
 	ay::char_cp_vec tokVec;
 
 	if( dta ) {
-		if( dta->entities.size() < analyzer.getNameThreshold() ) {
+		if( dta->entities.size() <= analyzer.getNameThreshold() ) {
 			if( analyzer.getPathTokens( tokVec ) ) {
-				d_fp << "NAME:";
+				d_fp << "NAME[" << dta->entities.size() << "]:";
 				for( ay::char_cp_vec::const_iterator i = tokVec.begin(); i!= tokVec.end(); ++i ) {
 					d_fp << " " << *i;
 				}
 				d_fp << std::endl;
 			}
 		} else 
-		if( dta->entities.size() > analyzer.getFluffThreshold() ) {
+		if( dta->entities.size() >= analyzer.getFluffThreshold() ) {
 			if( analyzer.getPathTokens( tokVec ) ) {
-				d_fp << "FLUFF:" << std::endl;
+				// d_universe.getDtaIdx().getNumberOfEntities()
+				double pct = (double)(dta->entities.size())*100.0 / (double)(analyzer.getUniverse().getDtaIdx().getNumberOfEntities() +1 );
+				d_fp << "FLUFF[" << pct << "]:";
 				for( ay::char_cp_vec::const_iterator i = tokVec.begin(); i!= tokVec.end(); ++i ) {
 					d_fp << " " << *i;
 				}
 				d_fp << std::endl;
 			}
 		}
+		//AYDEBUG( dta->entities.size() );
 	}
 	return true;
 }

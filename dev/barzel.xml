@@ -3,7 +3,8 @@
     xmlns="http://www.barzer.net/barzel/0.1">
 
     <stmt>
-        <pat> <subset><t>1</t><t>b</t></subset></pat>
+        <pat> <subset><t>a</t><t>aa</t><t>aaa</t><t>1</t><t>b</t></subset></pat>
         <tran> <mkent c="10" s="9" i="abc1"/> </tran>
     </stmt>
+
 </stmset>

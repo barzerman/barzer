@@ -219,6 +219,8 @@ public:
 		{ return tokPool.getTokByString(s); }
 	void print( std::ostream&  fp ) const;
 
+	inline const char* resolveStringById( uint32_t id  ) const  
+	{ return strPool->resolveId( id ); }
 	inline const char* resolveStoredTokenStr( const StoredToken& tok ) const 
 	{
 		if( tok.isSimpleTok() ) {

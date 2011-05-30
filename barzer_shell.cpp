@@ -354,9 +354,13 @@ static int bshf_dtaan( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	ShellState sh( shell, cmd, in );
 	TrieAnalyzer analyzer( sh.uni );
-	// analyzer.getTraverser().traverse( analyzer, sh.uni.getBarzelTrie().getRoot() );
 	analyzer.traverse();
-	analyzer.print( std::cout );
+	// analyzer.getTraverser().traverse( analyzer, sh.uni.getBarzelTrie().getRoot() );
+	TANameProducer nameProducer(shell->getOutStream());
+	TrieAnalyzerTraverser< TANameProducer > trav( analyzer,nameProducer);
+	trav.traverse();
+	// analyzer.traverse();
+	// analyzer.print( std::cout );
 
 	return 0;
 }
