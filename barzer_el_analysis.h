@@ -37,6 +37,9 @@ struct TrieAnalyzer {
 	size_t getFluffThreshold() const { return d_fluffThreshold; }
 	TrieAnalyzer( const StoredUniverse& );
 	
+	void setNameThreshold( size_t n );
+	void setFluffThreshold( size_t n ) ;
+
 	const TA_BTN_data* getTrieNodeData( BTN_cp tn ) const 
 	{
 		BTNDataHash::const_iterator i = d_dtaHash.find( tn );
@@ -47,7 +50,15 @@ struct TrieAnalyzer {
 		BTNDataHash::iterator i = d_dtaHash.find( tn );
 		return( i == d_dtaHash.end() ? 0 : &(i->second) );
 	}
-
+	
+	const StoredEntity* getEntityById( uint32_t id ) const
+	{
+		return getUniverse().getDtaIdx().getEntById( id );
+	}
+	const char* getIdStr( const StoredEntityUniqId& euid ) const
+	{
+		return getUniverse().getDtaIdx().resolveStoredTokenStr( euid.tokId ); 
+	}
 	const StoredUniverse& getUniverse() const { return d_universe; }
 	BarzelTrieTraverser_depth& getTraverser() { return d_trav; }
 	void updateAnalytics( BTN_cp, TA_BTN_data& dta );
@@ -86,8 +97,13 @@ struct TrieAnalyzerTraverser {
 
 /// name [producer] - specific for analyzer traverser 
 struct TANameProducer {
+	size_t d_numNames, d_numFluff; // number of name and fluff patterns 
 	std::ostream& d_fp;
-	TANameProducer( std::ostream& fp ) : d_fp(fp) {}
+	TANameProducer( std::ostream& fp ) : 
+		d_numNames(0),
+		d_numFluff(0),
+		d_fp(fp)
+	{}
 	bool operator()( TrieAnalyzer& analyzer, const BarzelTrieNode& t ) ;
 };
 

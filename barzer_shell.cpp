@@ -225,6 +225,7 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 	BarzStreamerXML bs(barz, context->universe);
 	std::string fname;
+
 	std::ostream *ostr = &(shell->getOutStream());
 	std::ofstream ofile;
 
@@ -349,19 +350,64 @@ static int bshf_trans( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
+namespace {
+
+struct TAParms {
+static size_t nameThreshold; 
+static size_t fluffThreshold; 
+};
+size_t TAParms::nameThreshold = 2000;
+size_t TAParms::fluffThreshold = 200;
+
+
+}
+
 /// data analysis entry point
 static int bshf_dtaan( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
+	std::ostream *ostr = &(shell->getOutStream());
+	std::ofstream ofile;
+
+		
+	//ay::InputLineReader reader( in );
+	std::string str;
+	if (in >> str) {
+		std::string str1;
+		if( str == "nameth" ) {
+			if( in >> str1 ) { 
+				TAParms::nameThreshold = atoi( str1.c_str() ); 
+				std::cerr << "name threshold set to 1/" << TAParms::nameThreshold << "-th\n";
+				return 0;
+			}
+		} else if( str == "fluffth" ) {
+			if( in >> str1 ) { 
+				TAParms::fluffThreshold = atoi( str1.c_str() ); 
+				std::cerr << "fluff threshold set to 1/" << TAParms::fluffThreshold << "-th\n";
+				return 0;
+			}
+		} else {
+			ofile.open(str.c_str());
+			if( !ofile.is_open() ) {
+				std::cerr << "failed to open " << str << " for output \n";
+			} else {
+				std::cerr << "results will be written to " << str << "\n";
+				ostr = &ofile;
+			}
+		}
+	}
+
 	ShellState sh( shell, cmd, in );
 	TrieAnalyzer analyzer( sh.uni );
+	analyzer.setNameThreshold( TAParms::nameThreshold );
+	analyzer.setFluffThreshold( TAParms::fluffThreshold );
+
 	analyzer.traverse();
-	// analyzer.getTraverser().traverse( analyzer, sh.uni.getBarzelTrie().getRoot() );
-	TANameProducer nameProducer(shell->getOutStream());
+
+	TANameProducer nameProducer( *ostr );
 	TrieAnalyzerTraverser< TANameProducer > trav( analyzer,nameProducer);
 	trav.traverse();
-	// analyzer.traverse();
-	// analyzer.print( std::cout );
-
+	
+	std::cerr << nameProducer.d_numNames << " names and " << nameProducer.d_numFluff << " fluff patterns saved\n";
 	return 0;
 }
 
