@@ -367,6 +367,15 @@ public:
 		return ( d_ent.matchOther( erc.getEntity() ) );
 	}
 	bool operator() ( const BarzerEntity& ent ) const { return ( d_ent.matchOther( ent ) ); }
+
+	bool operator() ( const BarzerEntityList& elist ) const { 
+		const BarzerEntityList::EList& lst = elist.getList();
+		for( BarzerEntityList::EList::const_iterator i = lst.begin(); i!= lst.end(); ++i ) {
+			if( (*this)(*i) )
+				return true;
+		}
+		return false;
+	}
 	bool lessThan( const BTND_Pattern_Entity& r ) const 
 	{
 		return ay::range_comp().less_than(
@@ -448,6 +457,25 @@ enum {
 	
 	BTND_Pattern_TYPE_MAX
 };
+
+struct BTND_Pattern_TypeId_Resolve {
+	int operator() ( const BTND_Pattern_None& x ) const { return  BTND_Pattern_None_TYPE; }
+	int operator() ( const BTND_Pattern_Token& x ) const { return  BTND_Pattern_Token_TYPE; }
+	int operator() ( const BTND_Pattern_Punct& x ) const { return  BTND_Pattern_Punct_TYPE; }
+	int operator() ( const BTND_Pattern_CompoundedWord& x ) const { return  BTND_Pattern_CompoundedWord_TYPE; }
+	int operator() ( const BTND_Pattern_Number& x ) const { return  BTND_Pattern_Number_TYPE; }
+	int operator() ( const BTND_Pattern_Wildcard& x ) const { return  BTND_Pattern_Wildcard_TYPE; }
+	int operator() ( const BTND_Pattern_Date& x ) const { return  BTND_Pattern_Date_TYPE; }
+	int operator() ( const BTND_Pattern_Time& x ) const { return  BTND_Pattern_Time_TYPE; }
+	int operator() ( const BTND_Pattern_DateTime& x ) const { return  BTND_Pattern_DateTime_TYPE; }
+	int operator() ( const BTND_Pattern_StopToken& x ) const { return  BTND_Pattern_StopToken_TYPE; }
+	int operator() ( const BTND_Pattern_Entity& x ) const { return  BTND_Pattern_Entity_TYPE; }
+	int operator() ( const BTND_Pattern_ERCExpr& x ) const { return  BTND_Pattern_ERCExpr_TYPE; }
+
+	template <typename T> int operator() ( const T& ) const { return BTND_Pattern_None_TYPE; }
+};
+
+/// pattern tyepe number getter visitor 
 
 /// BTND pattern accessor - ghetto visitor 
 struct BTND_PatternData_Access {

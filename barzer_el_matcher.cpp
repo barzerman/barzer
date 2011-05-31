@@ -39,6 +39,19 @@ int BTMIterator::addTerminalPath( const NodeAndBead& nb )
 }
 
 namespace {
+
+/// T is the atomic bead variant member type
+template <typename T> struct BeadToPattern_convert { typedef  BTND_Pattern_None PatternType; };
+
+template <> struct BeadToPattern_convert<BarzerNumber> { typedef BTND_Pattern_Number PatternType; };
+template <> struct BeadToPattern_convert<BarzerDate> { typedef BTND_Pattern_Date PatternType; };
+template <> struct BeadToPattern_convert<BarzerDateTime> { typedef BTND_Pattern_DateTime PatternType; };
+template <> struct BeadToPattern_convert<BarzerEntityList> { typedef BTND_Pattern_Entity PatternType; };
+template <> struct BeadToPattern_convert<BarzerEntity> { typedef BTND_Pattern_Entity PatternType; };
+template <> struct BeadToPattern_convert<BarzerEntityRangeCombo> { typedef BTND_Pattern_Entity PatternType; };
+template <> struct BeadToPattern_convert<BarzerERCExpr> { typedef BTND_Pattern_ERCExpr PatternType; };
+
+
 //// TEMPLATE MATCHING
 template <typename P>
 struct evalWildcard_vis : public boost::static_visitor<bool> {
@@ -81,15 +94,16 @@ inline bool evalWildcard_vis<BTND_Pattern_Time>::operator()<BarzerTimeOfDay> ( c
 { return true; }
 
 template <> template <>
+inline bool evalWildcard_vis<BTND_Pattern_Entity>::operator()<BarzerEntityList> ( const BarzerEntityList& dta )  const
+{ return d_pattern( dta ); }
+template <> template <>
 inline bool evalWildcard_vis<BTND_Pattern_Entity>::operator()<BarzerEntity> ( const BarzerEntity& dta )  const
-{ 
-	return d_pattern( dta );
-}
+{ return d_pattern( dta ); }
+
 template <> template <>
 inline bool evalWildcard_vis<BTND_Pattern_Entity>::operator()<BarzerEntityRangeCombo> ( const BarzerEntityRangeCombo& dta )  const
-{ 
-	return d_pattern( dta );
-}
+{ return d_pattern( dta ); }
+
 template <> template <>
 inline bool evalWildcard_vis<BTND_Pattern_Wildcard>::operator()<BarzerLiteral> ( const BarzerLiteral& dta )  const
 { return true; }
@@ -228,6 +242,39 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 	bool doFirmMatch( const BarzelFCMap& fcmap, const T& dta, bool allowBlanks=false ) {
 		return false;
 	}
+
+	template <typename T>
+	bool doFirmMatch_default( const BarzelFCMap& fcmap, const T& dta, bool allowBlanks=false )
+	{
+		typedef typename BeadToPattern_convert<T>::PatternType PatternType;
+		BTND_Pattern_TypeId_Resolve typeIdResolve;
+		uint8_t patternTypeId = typeIdResolve(dta);
+
+		BarzelTrieFirmChildKey firmKey(patternTypeId,0xffffffff); 
+		// forming firm key
+		// we ignore the whole allow blanks thing for dates - blanks will just always be allowed
+		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey );
+		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool();
+		for( ; i!= fcmap.end() && i->first.type == patternTypeId; ++i ) {
+			/// we're looping over all date wildcards on the current node 
+			/// extracting the actual wildcard 
+			if( i->first.id == 0xffffffff ) {
+				const BarzelTrieNode* ch = &(i->second);
+				BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);
+				d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+			} else {
+				const BTND_Pattern_Entity* dpat = wcPool.get_BTND_Pattern< PatternType > ( i->first.id );
+				if( !dpat ) return false;
+				if( evalWildcard_vis< PatternType >(*dpat)( dta )  ) {
+					d_mtChild.push_back( NodeAndBeadVec::value_type(
+						&(i->second),
+						BarzelBeadChain::Range(d_rng.first,d_rng.first)) );
+				}
+			}
+		}
+		return true;
+	}
+
 	template <typename T>
 	bool operator()( const T& dta ) 
 	{
@@ -360,6 +407,13 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		}
 		return true;
 	}
+
+	template <>
+	bool findMatchingChildren_visitor::doFirmMatch<BarzerEntityList>( const BarzelFCMap& fcmap, const BarzerEntityList& dta, bool allowBlanks) 
+	{
+		return doFirmMatch_default( fcmap, dta, allowBlanks );
+	}
+
 	template <>
 	bool findMatchingChildren_visitor::doFirmMatch<BarzerEntity>( const BarzelFCMap& fcmap, const BarzerEntity& dta, bool allowBlanks) 
 	{
