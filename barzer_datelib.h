@@ -45,6 +45,7 @@ struct BarzerDate_calc {
 
 	/// same weekday for next/last week deopending on defaultFuture
 	void setWeek( );
+
 	// weekDay 1,7 - same as struct tm 
 	void setWeekday( uint8_t weekDay );
 	/// same weekday ona diff week depending on defaultFuture

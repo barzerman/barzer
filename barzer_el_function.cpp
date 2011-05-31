@@ -248,6 +248,8 @@ struct BELFunctionStorage_holder {
 		ADDFN(mkERC);
 		ADDFN(mkErcExpr);
 		ADDFN(mkFluff);
+		// getters
+		ADDFN(getWeekday); // getWeekday(BarzerDate)
 		// arith
 		ADDFN(opPlus);
 		ADDFN(opMinus);
@@ -833,6 +835,18 @@ struct BELFunctionStorage_holder {
 			AYLOG(ERROR) << "mkFluff(BarzerLiteral): Wrong argument type";
 			return false;
 		}
+	}
+
+	// getters
+
+	STFUN(getWeekday) {
+		BarzerDate bd;
+		if (rvec.size() >= 1)
+			bd = getAtomic<BarzerDate>(rvec[0]);
+
+		BarzerNumber n(bd.getWeekday());
+		setResult(result, n);
+		return true;
 	}
 
 	// arith
