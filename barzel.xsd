@@ -54,6 +54,7 @@
             <xs:element name="any" type="tns:patListType" />
             <xs:element name="perm" type="tns:patListType" />
             <xs:element name="tail" type="tns:patListType" />
+            <xs:element name="subset" type="tns:patListType" />
         </xs:choice>        
     </xs:group>
 

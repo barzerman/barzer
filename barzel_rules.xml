@@ -16,4 +16,15 @@
         </func>
     </tran>
 </stmt>
+
+<stmt>
+    <pat><t>foo</t></pat>
+    <tran>
+        <func name="mkDateRange">
+            <func name="mkDate"><rn v="15" /><rn v="5" /><rn v="2005" /></func>
+            <func name="mkDate"><rn v="0" /><rn v="1" /><rn v="0" /></func>
+        </func>
+    </tran>
+</stmt>
+
 </stmset>

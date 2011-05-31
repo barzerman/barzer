@@ -238,6 +238,7 @@ struct BELFunctionStorage_holder {
 	BELFunctionStorage_holder(GlobalPools &u) : globPools(u) {
 		// makers
 		ADDFN(mkDate);
+		ADDFN(mkDateRange);
 		ADDFN(mkDay);
 		ADDFN(mkWday);
 		ADDFN(mkTime);
@@ -322,6 +323,32 @@ struct BELFunctionStorage_holder {
 		setResult(result, date);
 		return true;
 	}
+
+	STFUN(mkDateRange)
+	{
+		if (rvec.size() < 2) {
+			AYLOG(ERROR) << "mkDateRange(Date, DateOffset): Need 2 arguments";
+			return false;
+		}
+		try {
+			const BarzerDate &date = getAtomic<BarzerDate>(rvec[0]),
+					   	     &offset = getAtomic<BarzerDate>(rvec[1]);
+			BarzerDate_calc c;
+			c.set(date.year + offset.year,
+			      date.month + offset.month,
+			      date.day + offset.day);
+
+			BarzerRange range;
+			range.setData(BarzerRange::Date(date, c.d_date));
+			setResult(result, range);
+			return true;
+		} catch (boost::bad_get) {
+			AYLOG(ERROR) << "mkDateRange(Date, DateOffset): Arong argument type";
+		}
+		return false;
+
+	}
+
 
 	STFUN(mkDay) {
 		if (!rvec.size()) {
