@@ -169,7 +169,8 @@ int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qpar
 	enum {
 		CHAR_UNKNOWN=0,
 		CHAR_ALPHA,
-		CHAR_DIGIT
+		CHAR_DIGIT,
+		CHAR_UTF8
 	};
 	int prevChar = CHAR_UNKNOWN;
 #define PREVCHAR_NOT( t ) ( prevChar && (CHAR_##t != prevChar) )
@@ -177,9 +178,17 @@ int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qpar
 	for( s = q; *s; ++s ) {
 		char c = *s;
 		if( !isascii(c) ) {
-			if( !tok ) 
-				tok = s;
-			prevChar = CHAR_UNKNOWN;
+			if( PREVCHAR_NOT(UTF8) ) {
+				if( tok ) {
+					ttwp.push_back( TTWPVec::value_type( TToken(tok,s-tok), ttwp.size() ));
+					tok = 0;
+				}
+				--s;
+			} else {
+				if( !tok ) 
+					tok = s;
+			}
+			prevChar = CHAR_UTF8;
 		} else
 		if( isspace(c) ) {
 			if( !lc || lc != c ) {
@@ -206,7 +215,6 @@ int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qpar
 					tok = 0;
 				}
 				--s;
-				//ttwp.push_back( TTWPVec::value_type( TToken(" ",1), ttwp.size() ));
 			} else  {
 				if( !tok ) tok = s;
 			}
