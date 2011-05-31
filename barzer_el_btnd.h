@@ -459,21 +459,21 @@ enum {
 };
 
 struct BTND_Pattern_TypeId_Resolve {
-	int operator() ( const BTND_Pattern_None& x ) const { return  BTND_Pattern_None_TYPE; }
-	int operator() ( const BTND_Pattern_Token& x ) const { return  BTND_Pattern_Token_TYPE; }
-	int operator() ( const BTND_Pattern_Punct& x ) const { return  BTND_Pattern_Punct_TYPE; }
-	int operator() ( const BTND_Pattern_CompoundedWord& x ) const { return  BTND_Pattern_CompoundedWord_TYPE; }
-	int operator() ( const BTND_Pattern_Number& x ) const { return  BTND_Pattern_Number_TYPE; }
-	int operator() ( const BTND_Pattern_Wildcard& x ) const { return  BTND_Pattern_Wildcard_TYPE; }
-	int operator() ( const BTND_Pattern_Date& x ) const { return  BTND_Pattern_Date_TYPE; }
-	int operator() ( const BTND_Pattern_Time& x ) const { return  BTND_Pattern_Time_TYPE; }
-	int operator() ( const BTND_Pattern_DateTime& x ) const { return  BTND_Pattern_DateTime_TYPE; }
-	int operator() ( const BTND_Pattern_StopToken& x ) const { return  BTND_Pattern_StopToken_TYPE; }
-	int operator() ( const BTND_Pattern_Entity& x ) const { return  BTND_Pattern_Entity_TYPE; }
-	int operator() ( const BTND_Pattern_ERCExpr& x ) const { return  BTND_Pattern_ERCExpr_TYPE; }
+	template <typename T> int operator() () const { return BTND_Pattern_None_TYPE; }
 
-	template <typename T> int operator() ( const T& ) const { return BTND_Pattern_None_TYPE; }
 };
+template <> inline int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_None > () const { return  BTND_Pattern_None_TYPE; }
+template <> inline int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_Token > ( ) const { return  BTND_Pattern_Token_TYPE; }
+template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_Punct  > ( ) const { return  BTND_Pattern_Punct_TYPE; }
+template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_CompoundedWord > ( ) const { return  BTND_Pattern_CompoundedWord_TYPE; }
+template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_Number > ( ) const { return  BTND_Pattern_Number_TYPE; }
+template <>inline  int BTND_Pattern_TypeId_Resolve::operator()<BTND_Pattern_Wildcard > ( ) const { return  BTND_Pattern_Wildcard_TYPE; }
+template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_Date > ( ) const { return  BTND_Pattern_Date_TYPE; }
+template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_Time> ( ) const { return  BTND_Pattern_Time_TYPE; }
+template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_DateTime> ( ) const { return  BTND_Pattern_DateTime_TYPE; }
+template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_StopToken> ( ) const { return  BTND_Pattern_StopToken_TYPE; }
+template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_Entity> ( ) const { return  BTND_Pattern_Entity_TYPE; }
+template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_ERCExpr> ( ) const { return  BTND_Pattern_ERCExpr_TYPE; }
 
 /// pattern tyepe number getter visitor 
 

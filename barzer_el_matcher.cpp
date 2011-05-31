@@ -247,8 +247,8 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 	bool doFirmMatch_default( const BarzelFCMap& fcmap, const T& dta, bool allowBlanks=false )
 	{
 		typedef typename BeadToPattern_convert<T>::PatternType PatternType;
-		BTND_Pattern_TypeId_Resolve typeIdResolve;
-		uint8_t patternTypeId = typeIdResolve(dta);
+		BTND_Pattern_TypeId_Resolve  typeIdResolve;
+		uint8_t patternTypeId = typeIdResolve.operator()< PatternType > ();
 
 		BarzelTrieFirmChildKey firmKey(patternTypeId,0xffffffff); 
 		// forming firm key

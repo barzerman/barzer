@@ -8,10 +8,10 @@
     </stmt>
     <stmt>
         <pat> <t>a</t><t>aa</t></pat>
-        <tran> <mkent c="10" s="9" i="abc2"/> </tran>
+        <tran> <mkent c="10" s="8" i="abc2"/> </tran>
     </stmt>
     <stmt>
-        <pat> <ent/></pat>
+        <pat> <ent c="10" s="8"/></pat>
         <tran> <ltrl t="f">crap</ltrl> </tran>
     </stmt>
 
