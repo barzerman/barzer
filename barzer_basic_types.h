@@ -145,6 +145,9 @@ struct BarzerDate {
 		return ( 10000*(int32_t)year + 100*(int32_t)month  + (int32_t)day );
 	}
 
+	// 1-7 staring from monday
+	uint8_t getWeekday() const;
+
 	time_t getTime_t() const;
 	void setTime_t(time_t time);
 
