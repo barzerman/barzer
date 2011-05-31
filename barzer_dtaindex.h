@@ -142,6 +142,7 @@ public:
 		{ return( isTokIdValid(id) ? &(getTokById(id)):0 );}
 	size_t getNumberOfTokens() const
 		{ return singleTokMap.size(); }
+	
 };
 
 inline std::ostream& operator <<( std::ostream& fp, const StoredTokenPool& x )
@@ -219,6 +220,8 @@ public:
 		{ return tokPool.getTokByString(s); }
 	void print( std::ostream&  fp ) const;
 
+	inline const char* resolveStringById( uint32_t id  ) const  
+	{ return strPool->resolveId( id ); }
 	inline const char* resolveStoredTokenStr( const StoredToken& tok ) const 
 	{
 		if( tok.isSimpleTok() ) {

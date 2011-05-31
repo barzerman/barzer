@@ -160,7 +160,7 @@ public:
 /// occured is if traverser went over the whole trie - 0 is returned
 struct BarzelTrieTraverser_depth {
 	// const BarzelWildcardPool& d_wcPool;
-	BELTrie d_trie;
+	const BELTrie& d_trie;
 
 	BarzelTrieTraverser_depth( const BarzelTrieNode& tn, const BELTrie& trie  )  :
 		//d_wcPool(wcPool)
