@@ -1122,13 +1122,12 @@ struct BELFunctionStorage_holder {
 
 	static bool voidELpred(const BarzerEntity&) { return true; }
 
-	struct ELPred {
-		ELPredFn fun;
-		ELPredFn next;
-		ELPred(ELPredFn f) : fun(f), next(voidELpred) {}
-		ELPred(ELPredFn f, ELPredFn n) : fun(f), next(n) {}
+	struct ELPredPair {
+		ELPredFn left;
+		ELPredFn right;
+		ELPredPair(ELPredFn l, ELPredFn r) : left(l), right(r) {}
 		inline bool operator()(const BarzerEntity& ent) const {
-			return fun(ent) && next(ent);
+			return left(ent) && right(ent);
 		}
 	};
 
@@ -1149,27 +1148,22 @@ struct BELFunctionStorage_holder {
 
 	STFUN(filterEList) // (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
 	{
-		if (rvec.size() < 2) {
-			AYLOG(ERROR) << "filterEList(BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])"
-						 <<  "Need at least 2 arguments";
-			return false;
-		}
 		BarzerEntityList outlst;
 		const BarzerEntityList::EList lst = getAtomic<BarzerEntityList>(rvec[0]).getList();
+		ELPredFn pred = voidELpred;
 		try {
-			uint32_t cl =  getAtomic<BarzerNumber>(rvec[1]).getInt();
-			ELPred pred(ELCheck(cl, checkClass));
-
 			switch(rvec.size()) {
-			case 4: pred = ELPred(
-						ELCheck(getAtomic<BarzerNumber>(rvec[3]).getInt(),
-								checkId),
-						pred);
-			case 3: pred = ELPred(
-						ELCheck(getAtomic<BarzerNumber>(rvec[2]).getInt(),
-								checkClass),
-						pred);
-			default:
+			case 4: {
+				uint32_t id = getAtomic<BarzerNumber>(rvec[3]).getInt();
+				pred = ELPredPair( ELCheck(id, checkId), pred );
+			}
+			case 3: {
+				uint32_t scl = getAtomic<BarzerNumber>(rvec[2]).getInt();
+				pred = ELPredPair( ELCheck(scl, checkSC),	pred );
+			}
+			case 2: {
+				uint32_t id = getAtomic<BarzerNumber>(rvec[1]).getInt();
+				pred = ELPredPair( ELCheck(id, checkClass), pred );
 				for(BarzerEntityList::EList::const_iterator it = lst.begin();
 														    it != lst.end();
 														    ++it) {
@@ -1177,6 +1171,11 @@ struct BELFunctionStorage_holder {
 				}
 				setResult(result, outlst);
 				return true;
+			}
+			default:
+				AYLOG(ERROR) << "filterEList(BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])"
+							 <<  "Need at least 2 arguments";
+				return false;
 			}
 		} catch (boost::bad_get) {
 			AYLOG(ERROR) << "filterEList(BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])"
