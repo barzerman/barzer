@@ -268,6 +268,8 @@ struct BELFunctionStorage_holder {
 		ADDFN(lookupMonth);
 		ADDFN(lookupWday);
 
+		// --
+		ADDFN(filterEList); // (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
 	}
 	#undef ADDFN
 
@@ -1054,7 +1056,75 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 
+	// this looks just horrible, need to just throw it all away :\
 
+	typedef boost::function<bool(const BarzerEntity&)> ELPredFn;
+	typedef boost::function<bool(const BarzerEntity&, uint32_t)> ELCheckFn;
+
+	static bool voidELpred(const BarzerEntity&) { return true; }
+
+	struct ELPred {
+		ELPredFn fun;
+		ELPredFn next;
+		ELPred(ELPredFn f) : fun(f), next(voidELpred) {}
+		ELPred(ELPredFn f, ELPredFn n) : fun(f), next(n) {}
+		inline bool operator()(const BarzerEntity& ent) const {
+			return fun(ent) && next(ent);
+		}
+	};
+
+	struct ELCheck {
+		uint32_t id;
+		ELCheckFn fun;
+		ELCheck(uint32_t i, ELCheckFn f) : id(i), fun(f) {}
+		inline bool operator()( const BarzerEntity &ent ) { return fun(ent, id); }
+	};
+
+	inline static bool checkSC(const BarzerEntity& ent, uint32_t id)
+		{ return ent.eclass.subclass == (uint16_t)id; }
+	inline static bool checkClass(const BarzerEntity& ent, uint32_t id)
+		{ return ent.eclass.ec == (uint16_t)id; }
+	inline static bool checkId(const BarzerEntity& ent, uint32_t id)
+		{ return ent.tokId == id; }
+
+
+	STFUN(filterEList) // (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
+	{
+		if (rvec.size() < 2) {
+			AYLOG(ERROR) << "filterEList(BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])"
+						 <<  "Need at least 2 arguments";
+			return false;
+		}
+		BarzerEntityList outlst;
+		const BarzerEntityList::EList lst = getAtomic<BarzerEntityList>(rvec[0]).getList();
+		try {
+			uint32_t cl =  getAtomic<BarzerNumber>(rvec[1]).getInt();
+			ELPred pred(ELCheck(cl, checkClass));
+
+			switch(rvec.size()) {
+			case 4: pred = ELPred(
+						ELCheck(getAtomic<BarzerNumber>(rvec[3]).getInt(),
+								checkId),
+						pred);
+			case 3: pred = ELPred(
+						ELCheck(getAtomic<BarzerNumber>(rvec[2]).getInt(),
+								checkClass),
+						pred);
+			default:
+				for(BarzerEntityList::EList::const_iterator it = lst.begin();
+														    it != lst.end();
+														    ++it) {
+					if (pred(*it)) outlst.addEntity(*it);
+				}
+				setResult(result, outlst);
+				return true;
+			}
+		} catch (boost::bad_get) {
+			AYLOG(ERROR) << "filterEList(BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])"
+						 <<  "Need at least 2 arguments";
+		}
+		return false;
+	}
 	#undef STFUN
 };
 
