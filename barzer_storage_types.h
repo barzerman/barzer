@@ -180,9 +180,9 @@ struct StoredEntityClass {
 	uint16_t ec, subclass;
 	
 	StoredEntityClass() : ec(0), subclass(0) {}
-	StoredEntityClass(uint16_t c) : ec(c), subclass(0) 
+	explicit StoredEntityClass(uint16_t c) : ec(c), subclass(0) 
 		{}
-	StoredEntityClass(uint16_t c, uint16_t es) : ec(c), subclass(es) 
+	explicit StoredEntityClass(uint16_t c, uint16_t es) : ec(c), subclass(es) 
 		{}
 	
 	void setClass( uint16_t c ) { ec = c; }

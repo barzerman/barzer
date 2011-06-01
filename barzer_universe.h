@@ -171,6 +171,8 @@ public:
 
 	bool d_isAnalyticalMode;
 
+	EntPropCompatibility entCompatibility;
+
 	bool isAnalyticalMode() const { return d_isAnalyticalMode; }
 	void setAnalyticalMode() { d_isAnalyticalMode= true; }
 
@@ -213,7 +215,8 @@ class StoredUniverse {
 
 public:
 	bool isAnalyticalMode() const { return gp.isAnalyticalMode(); }
-	
+	EntPropCompatibility& getEntPropIndex() { return gp.entCompatibility; }
+	const EntPropCompatibility& getEntPropIndex() const { return gp.entCompatibility; }
 	BELTrie& produceTrie( const std::string& trieClass, const std::string& trieId ) 
 	{
 		return gp.globalTriePool.produceTrie( trieClass, trieId );

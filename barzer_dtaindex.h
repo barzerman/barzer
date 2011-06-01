@@ -278,6 +278,55 @@ public:
 		return entPool.getEntByIdSafe(id);
 	}
 }; 
+/// EntPropCompatibility is an index used to determine whether a particular entity can serve as a property for 
+/// another entity
+///
+/// this is in essence a rule set
+/// rules are in 1 on 4 classes:
+///   1. Entity Eclass <---> Prop Eclass (example: (1,1) <----> (10,10) )  (1,1,0xffffffff), (10,10,0xfffffff) 
+///  
+///   2. Entity Eclass <----> Prop Euid   (example (1,1)     <----> (10,10,fgh)
+
+///   3. Euid          <----> Prop Eclass (example (1,1,abc) <-----> (10,10) 
+///   4. Euid          <----> Prop Euid   (example (1,1,abc) <----> (10,10,fgh) )
+
+class EntPropCompatibility {
+	typedef std::pair< StoredEntityUniqId, StoredEntityUniqId > EntPropPair;
+	typedef std::set< EntPropPair > EntPropPairSet;
+
+	EntPropPairSet d_entPropPairSet;
+	
+public:
+	bool entPropPairs( const StoredEntityUniqId& l, const StoredEntityUniqId& r ) const 
+	{
+		{ // rule type 1 
+		if( d_entPropPairSet.find( EntPropPair( StoredEntityUniqId(l.eclass), StoredEntityUniqId(r.eclass)) ) != d_entPropPairSet.end() ) 
+			return true;
+		}	
+		{ // rule type 2
+		if( d_entPropPairSet.find( EntPropPair( StoredEntityUniqId(l.eclass), r ) ) != d_entPropPairSet.end() ) 
+			return true;
+		}	
+		{ // rule type 3
+		if( d_entPropPairSet.find( EntPropPair( l, StoredEntityUniqId(r.eclass) ) ) != d_entPropPairSet.end() ) 
+			return true;
+		}	
+		{ // rule type 4
+		if( d_entPropPairSet.find( EntPropPair(l,r) ) != d_entPropPairSet.end() ) 
+			return true;
+		}	
+		return false;
+	}
+
+	void addRule( const StoredEntityUniqId& l, const StoredEntityClass& ec ) 
+		{ d_entPropPairSet.insert( EntPropPair(l,StoredEntityUniqId(ec)) ) ; }
+	void addRule( const StoredEntityUniqId& e, const StoredEntityUniqId& p ) 
+		{ d_entPropPairSet.insert( EntPropPair(e,p) ); }
+	void addRule( const StoredEntityClass& e, const StoredEntityUniqId& p ) 
+		{ d_entPropPairSet.insert( EntPropPair(StoredEntityUniqId(e),p) ); }
+	void addRule( const StoredEntityClass& e, const StoredEntityClass& p ) 
+		{ d_entPropPairSet.insert( EntPropPair(StoredEntityUniqId(e),StoredEntityUniqId(p)) ); }
+};
 
 } // namespace barzer
 #endif //  BARZER_DTAINDEX_H
