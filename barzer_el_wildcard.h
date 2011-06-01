@@ -44,6 +44,9 @@ public:
 	const BTND_Pattern_Wildcard* get_BTND_Pattern_Wildcard( uint32_t id ) const 
 		{ return pool_Wildcard.getObjById( id ); }
 
+	template <typename T> 
+	const T* get_BTND_Pattern( uint32_t id ) const;
+
 	void clear() 
 	{
 		wcLookupPool.clear();
@@ -127,7 +130,27 @@ public:
 	}
 	std::ostream& print( std::ostream& fp, const BarzelWCKey& key, const BELPrintContext& ctxt ) const;
 };
-
+	template <>  
+	inline const BTND_Pattern_ERCExpr* 	BarzelWildcardPool::get_BTND_Pattern<BTND_Pattern_ERCExpr>( uint32_t id ) const 
+		{ return pool_ERCExpr.getObjById( id ); }
+	template <>  
+	inline const BTND_Pattern_Entity* 	BarzelWildcardPool::get_BTND_Pattern<BTND_Pattern_Entity>( uint32_t id ) const 
+		{ return pool_Entity.getObjById( id ); }
+	template <>  
+	inline const BTND_Pattern_Number* 	BarzelWildcardPool::get_BTND_Pattern<BTND_Pattern_Number>( uint32_t id ) const 
+		{ return pool_Number.getObjById( id ); }
+	template <>  
+	inline const BTND_Pattern_Date* 	BarzelWildcardPool::get_BTND_Pattern<BTND_Pattern_Date>( uint32_t id ) const 
+		{ return pool_Date.getObjById( id ); }
+	template <>  
+	inline const BTND_Pattern_Time* 	BarzelWildcardPool::get_BTND_Pattern<BTND_Pattern_Time>( uint32_t	id ) const 
+		{ return pool_Time.getObjById( id ); }
+	template <>  
+	inline const BTND_Pattern_DateTime* BarzelWildcardPool::get_BTND_Pattern<BTND_Pattern_DateTime>(	uint32_t id ) const 
+		{ return pool_DateTime.getObjById( id ); }
+	template <>  
+	inline const BTND_Pattern_Wildcard* BarzelWildcardPool::get_BTND_Pattern<BTND_Pattern_Wildcard>( uint32_t id ) const 
+		{ return pool_Wildcard.getObjById( id ); }
 }
 
 #endif // BARZER_EL_WILDCARD_H
