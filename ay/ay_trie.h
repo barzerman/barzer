@@ -44,6 +44,21 @@ public:
 		{ return d_child.find( key ); }
 	typename VecMap::iterator find( const  key_type& key ) 
 		{ return d_child.find( key ); }
+	
+	// returns the pair of bool - whether or not anything at all was found 
+	// and the new end 
+	template <class FI>
+	std::pair< bool, FI> getLongestPath( FI start, FI end, bool found=false ) const
+	{
+		if( start == end ) 
+			return std::pair< bool, FI>( found, end );
+
+		typename VecMap::const_iterator i = find( *start );
+		if( i == d_child.end() ) 
+			return std::pair< bool, FI>( found, start );
+		else
+			return i->second.getLongestPath( ++start, end, true );
+	}
 };
 
 

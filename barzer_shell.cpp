@@ -355,9 +355,11 @@ namespace {
 struct TAParms {
 static size_t nameThreshold; 
 static size_t fluffThreshold; 
+static size_t maxNameLen; 
 };
 size_t TAParms::nameThreshold = 2000;
 size_t TAParms::fluffThreshold = 200;
+size_t TAParms::maxNameLen     = 4;
 
 
 }
