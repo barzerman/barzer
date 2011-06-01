@@ -36,4 +36,15 @@
     </tran>
 </stmt>
 
+
+<stmt>
+    <pat><t>foo</t><list v="ltrl"><t /></list></pat>
+    <tran>
+        <func name="getTokId"><func name="mkLtrl"><var name="ltrl" /></func></func>
+    </tran>
+</stmt>
+
+
+
+
 </stmset>
