@@ -359,7 +359,7 @@ static size_t maxNameLen;
 };
 size_t TAParms::nameThreshold = 2000;
 size_t TAParms::fluffThreshold = 200;
-size_t TAParms::maxNameLen     = 4;
+size_t TAParms::maxNameLen     = 3;
 
 
 }
@@ -379,6 +379,12 @@ static int bshf_dtaan( BarzerShell* shell, char_cp cmd, std::istream& in )
 			if( in >> str1 ) { 
 				TAParms::nameThreshold = atoi( str1.c_str() ); 
 				std::cerr << "name threshold set to 1/" << TAParms::nameThreshold << "-th\n";
+				return 0;
+			}
+		} else if( str == "maxname" ) {
+			if( in >> str1 ) { 
+				TAParms::maxNameLen = atoi( str1.c_str() ); 
+				std::cerr << "maxname length set to:" << TAParms::maxNameLen << "\n";
 				return 0;
 			}
 		} else if( str == "fluffth" ) {
@@ -406,7 +412,12 @@ static int bshf_dtaan( BarzerShell* shell, char_cp cmd, std::istream& in )
 	analyzer.traverse();
 
 	TANameProducer nameProducer( *ostr );
+	nameProducer.setMaxNameLen( TAParms::maxNameLen );
 	TrieAnalyzerTraverser< TANameProducer > trav( analyzer,nameProducer);
+
+	std::cerr << "computing ...\n";
+	trav.traverse();
+	nameProducer.setMode_output();
 	trav.traverse();
 	
 	std::cerr << nameProducer.d_numNames << " names and " << nameProducer.d_numFluff << " fluff patterns saved\n";

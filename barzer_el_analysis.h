@@ -6,6 +6,7 @@
 #include <barzer_el_trie_walker.h>
 #include <ay/ay_vector.h>
 #include <ay/ay_util_char.h>
+#include <ay/ay_trie.h>
 
 namespace barzer {
 
@@ -73,6 +74,8 @@ struct TrieAnalyzer {
 	//// when a non-token (wildcard) is encountered the effort is abprted and *false*
 	//// is returned otherwise the function returns *true*
 	bool getPathTokens( ay::char_cp_vec& tvec ) const ;
+	/// same as above except returns stringIds of the tokens  
+	bool getPathTokens( std::vector< uint32_t >& tvec ) const ;
 
 	std::ostream& print( std::ostream& fp ) const;
 };
@@ -98,12 +101,34 @@ struct TrieAnalyzerTraverser {
 /// name [producer] - specific for analyzer traverser 
 struct TANameProducer {
 	size_t d_numNames, d_numFluff; // number of name and fluff patterns 
+	size_t d_maxNameLen; // do not output names longer than this
+	size_t d_minFluffNameLength; // doesnt try to strip fluff from sequences as long as 
+		/// this or shorter
 	std::ostream& d_fp;
+	enum {
+		MODE_ANALYSIS,
+		MODE_OUTPUT
+	};
+	int d_mode;
+
+	typedef ay::trie< uint32_t, char > FluffTrie;
+	FluffTrie d_fluffTrie;
+
 	TANameProducer( std::ostream& fp ) : 
 		d_numNames(0),
 		d_numFluff(0),
-		d_fp(fp)
+		d_maxNameLen(3),
+		d_minFluffNameLength(2),
+		d_fp(fp),
+		d_mode(MODE_ANALYSIS)
 	{}
+
+	void setMode_analysis() { d_mode= MODE_ANALYSIS; } 
+	bool isMode_analysis() const { return( d_mode== MODE_ANALYSIS); } 
+	void setMode_output () { d_mode= MODE_OUTPUT; } 
+	bool isMode_output () const { return(d_mode== MODE_OUTPUT); } 
+	
+	void setMaxNameLen( size_t l ) { d_maxNameLen = l; }
 	bool operator()( TrieAnalyzer& analyzer, const BarzelTrieNode& t ) ;
 };
 

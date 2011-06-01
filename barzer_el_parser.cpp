@@ -71,10 +71,15 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 
 	int i = 0, j = 0;
 	ay::stopwatch totalTimer;
+	const StoredUniverse& universe = getUniverse();
 	do {
+
 		const BTND_PatternDataVec& seq = emitter.getCurSequence();
 		const BELVarInfo& varInfo = emitter.getVarInfo();
 
+		if( seq.size() > universe.getMaxAnalyticalModeMaxSeqLength() && universe.isAnalyticalMode() ) {
+			continue;
+		}
 		if (seq.size() != varInfo.size()) {
 			AYLOG(ERROR) << "Panic: varInfo.size != seq.size()";
 		}

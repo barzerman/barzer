@@ -170,6 +170,9 @@ public:
 	BarzerSettings settings;
 
 	bool d_isAnalyticalMode;
+	size_t d_maxAnalyticalModeMaxSeqLength;
+
+	size_t getMaxAnalyticalModeMaxSeqLength() const { return d_maxAnalyticalModeMaxSeqLength; }
 
 	EntPropCompatibility entCompatibility;
 
@@ -214,6 +217,7 @@ class StoredUniverse {
 	bool  getToNextTrie() const { return trieClusterIter.advance(); }
 
 public:
+	size_t getMaxAnalyticalModeMaxSeqLength() const { return gp.getMaxAnalyticalModeMaxSeqLength(); }
 	bool isAnalyticalMode() const { return gp.isAnalyticalMode(); }
 	EntPropCompatibility& getEntPropIndex() { return gp.entCompatibility; }
 	const EntPropCompatibility& getEntPropIndex() const { return gp.entCompatibility; }

@@ -17,6 +17,8 @@ private:
 	VecMap d_child;
 public:
 	size_t getNumChildren() const { return d_child.size(); }
+	typedef typename VecMap::value_type value_type;
+
 	typename VecMap::value_type& operator[]( size_t i ) { return d_child[i]; }
 	const typename VecMap::value_type& operator[]( size_t i ) const { return d_child[i]; }
 
@@ -58,6 +60,29 @@ public:
 			return std::pair< bool, FI>( found, start );
 		else
 			return i->second.getLongestPath( ++start, end, true );
+	}
+
+	/// FI must be an iterator such that *FI is pair<key_type,data_type>
+	template <class FI>
+	trie& addPath( FI start, FI end )
+	{
+		if( start == end ) 
+			return *this;
+		else {
+			trie& v = add( start->first, start->second );
+			return v.addPath( ++start, end );
+		}
+	}
+	/// FI must be an iterator such that *FI is key_type
+	template <class FI>
+	trie& addKeyPath( FI start, FI end )
+	{
+		if( start == end ) 
+			return *this;
+		else {
+			trie& v = add( *start, data_type() );
+			return v.addKeyPath( ++start, end );
+		}
 	}
 };
 

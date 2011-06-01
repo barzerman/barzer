@@ -18,6 +18,31 @@ TrieAnalyzer::TrieAnalyzer( const StoredUniverse& u ) :
 	d_fluffThreshold(1+u.getDtaIdx().getNumberOfEntities()/200)
 {}
 
+bool TrieAnalyzer::getPathTokens( std::vector< uint32_t >& tvec ) const 
+{
+	tvec.clear();
+	const BarzelTrieTraverser_depth::NodeKeyVec& nkv = d_trav.getPath();
+	for( BarzelTrieTraverser_depth::NodeKeyVec::const_iterator i = nkv.begin(); i != nkv.end(); ++i ) {
+		const BarzelTrieTraverser_depth::NodeKey& nk = *i;
+		/// nk is a variant - the 0 member is firm key , everything above it is a wildcard or other stuff
+		/// if we encounter a non-firm key we will abort name creation 
+		if( nk.which() ) {
+			tvec.clear();
+			return false;
+		}
+		/// here we're guaranteed that which is 0  
+		const BarzelFCMap::const_iterator& fcmi = boost::get< BarzelFCMap::const_iterator > ( nk );
+		const BarzelTrieFirmChildKey& fck = fcmi->first;
+		uint32_t stringId = fck.getTokenStringId( ) ;
+		if( stringId == 0xffffffff ) {
+			tvec.clear();
+			return false;
+		}
+		tvec.push_back( stringId );
+	}
+	return true;
+}
+
 bool TrieAnalyzer::getPathTokens( ay::char_cp_vec& tvec ) const 
 {
 	tvec.clear();
@@ -94,10 +119,22 @@ bool TANameProducer::operator()( TrieAnalyzer& analyzer, const BarzelTrieNode& t
 	const BarzelTrieNode* tn = &t;
 	const TA_BTN_data* dta = analyzer.getTrieNodeData( tn );
 	ay::char_cp_vec tokVec;
+	std::vector< uint32_t > stringIdVec;
 
 	if( dta ) {
 		if( dta->entities.size() <= analyzer.getNameThreshold() ) {
-			if( analyzer.getPathTokens( tokVec ) ) {
+			
+			if( isMode_output() && analyzer.getPathTokens( tokVec ) ) {
+
+				if( d_maxNameLen < tokVec.size() )
+					return true;
+				analyzer.getPathTokens( stringIdVec );
+
+
+				if( d_fluffTrie.getLongestPath( stringIdVec.begin(), stringIdVec.end()).first ||
+					d_fluffTrie.getLongestPath( stringIdVec.rbegin(), stringIdVec.rend()).first )
+						return true;
+
 				++d_numNames;
 				/// printing names for all entities 
 				for( int i = 0; i< dta->entities.size(); ++i ) {
@@ -116,15 +153,23 @@ bool TANameProducer::operator()( TrieAnalyzer& analyzer, const BarzelTrieNode& t
 			}
 		} else 
 		if( dta->entities.size() >= analyzer.getFluffThreshold() ) {
-			if( analyzer.getPathTokens( tokVec ) ) {
-				++d_numFluff;
-				// d_universe.getDtaIdx().getNumberOfEntities()
-				double pct = (double)(dta->entities.size())*100.0 / (double)(analyzer.getUniverse().getDtaIdx().getNumberOfEntities() +1 );
-				d_fp << "FLUFF[" << pct << "]:";
-				for( ay::char_cp_vec::const_iterator i = tokVec.begin(); i!= tokVec.end(); ++i ) {
-					d_fp << " " << *i;
+			analyzer.getPathTokens( stringIdVec );
+
+			if( isMode_output() ) {
+				if( analyzer.getPathTokens( tokVec ) ) {
+					++d_numFluff;
+					// d_universe.getDtaIdx().getNumberOfEntities()
+					double pct = (double)(dta->entities.size())*100.0 / (double)(analyzer.getUniverse().getDtaIdx().getNumberOfEntities() +1 );
+					d_fp << "FLUFF[" << pct << "]:";
+					for( ay::char_cp_vec::const_iterator i = tokVec.begin(); i!= tokVec.end(); ++i ) {
+						d_fp << " " << *i;
+					}
+					d_fp << std::endl;
 				}
-				d_fp << std::endl;
+			} else {
+				// analytical mode - adding forward and backward fluff
+				d_fluffTrie.addKeyPath( stringIdVec.begin(), stringIdVec.end() );
+				d_fluffTrie.addKeyPath( stringIdVec.rbegin(), stringIdVec.rend() );
 			}
 		}
 		//AYDEBUG( dta->entities.size() );
