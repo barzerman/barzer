@@ -367,6 +367,15 @@ public:
 		return ( d_ent.matchOther( erc.getEntity() ) );
 	}
 	bool operator() ( const BarzerEntity& ent ) const { return ( d_ent.matchOther( ent ) ); }
+
+	bool operator() ( const BarzerEntityList& elist ) const { 
+		const BarzerEntityList::EList& lst = elist.getList();
+		for( BarzerEntityList::EList::const_iterator i = lst.begin(); i!= lst.end(); ++i ) {
+			if( (*this)(*i) )
+				return true;
+		}
+		return false;
+	}
 	bool lessThan( const BTND_Pattern_Entity& r ) const 
 	{
 		return ay::range_comp().less_than(
@@ -449,6 +458,25 @@ enum {
 	BTND_Pattern_TYPE_MAX
 };
 
+struct BTND_Pattern_TypeId_Resolve {
+	template <typename T> int operator() () const { return BTND_Pattern_None_TYPE; }
+
+};
+template <> inline int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_None > () const { return  BTND_Pattern_None_TYPE; }
+template <> inline int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_Token > ( ) const { return  BTND_Pattern_Token_TYPE; }
+template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_Punct  > ( ) const { return  BTND_Pattern_Punct_TYPE; }
+template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_CompoundedWord > ( ) const { return  BTND_Pattern_CompoundedWord_TYPE; }
+template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_Number > ( ) const { return  BTND_Pattern_Number_TYPE; }
+template <>inline  int BTND_Pattern_TypeId_Resolve::operator()<BTND_Pattern_Wildcard > ( ) const { return  BTND_Pattern_Wildcard_TYPE; }
+template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_Date > ( ) const { return  BTND_Pattern_Date_TYPE; }
+template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_Time> ( ) const { return  BTND_Pattern_Time_TYPE; }
+template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_DateTime> ( ) const { return  BTND_Pattern_DateTime_TYPE; }
+template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_StopToken> ( ) const { return  BTND_Pattern_StopToken_TYPE; }
+template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_Entity> ( ) const { return  BTND_Pattern_Entity_TYPE; }
+template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_ERCExpr> ( ) const { return  BTND_Pattern_ERCExpr_TYPE; }
+
+/// pattern tyepe number getter visitor 
+
 /// BTND pattern accessor - ghetto visitor 
 struct BTND_PatternData_Access {
 	bool isWildcard( const BTND_PatternData& btnd ) const 
@@ -509,13 +537,39 @@ struct BTND_Rewrite_Number : public BarzerNumber {
 		x = *(static_cast<const BarzerNumber*>(this));
 	}
 };
-struct BTND_Rewrite_MkEnt : public BarzerNumber {
+struct BTND_Rewrite_MkEnt {
 	uint32_t d_entId;
+	/// when mode is 0 d_entId is the single entity Id 
+	//  when mode is 1 d_entId is id of the pool of entityIds 
+	enum {
+		MODE_SINGLE_ENT,
+		MODE_ENT_LIST
+	};
+	uint8_t  d_mode;
 
-	BTND_Rewrite_MkEnt() : d_entId(0xffffffff) {}
-	void setEntId( uint32_t i ) { d_entId = i; }
 
-	uint32_t getEntId( ) const { return d_entId ; }
+	BTND_Rewrite_MkEnt() : d_entId(0xffffffff), d_mode(MODE_SINGLE_ENT) {}
+	
+	bool isValid() const { return (d_entId != 0xffffffff); }
+	bool isSingleEnt() const { return d_mode == MODE_SINGLE_ENT; }
+	bool isEntList() const { return d_mode == MODE_ENT_LIST; }
+
+	// single entity manipulation
+	void setEntId( uint32_t i ) { 
+		d_entId = i; 
+		d_mode = MODE_SINGLE_ENT;
+	}
+	uint32_t getRawId( ) const { return d_entId; }
+	uint32_t getEntId( ) const { return ( isSingleEnt() ? d_entId : 0xffffffff ); }
+
+	// entity list manipulation
+	void setEntGroupId( uint32_t i ) {
+		d_entId = i; 
+		d_mode = MODE_ENT_LIST;
+	}
+
+	uint32_t getEntGroupId( ) const { return isEntList() ? d_entId :0xffffffff; }
+
 	std::ostream& print( std::ostream& fp, const BELPrintContext& ) const
 		{ return (fp<< std::hex << d_entId ); }
 };
@@ -660,7 +714,9 @@ struct BTND_StructData {
 		T_OPT,  // optional subtree
 		T_PERM, // permutation of children
 		T_TAIL, // if children are A,B,C this translates into [A], [A,B] and [A,B,C]
+
 		/// add new types above this line only
+		T_SUBSET, // if children are A,B,C this translates into A,B,C,AB,AC,BC,ABC
 		BEL_STRUCT_MAX
 	};
 protected:

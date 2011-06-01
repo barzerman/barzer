@@ -4,33 +4,61 @@
            xmlns:tns="http://www.barzer.net/barzel/0.1"
            elementFormDefault="qualified">
 	
-	<!-- type for numbers inside patterns - <n l="low" h="high" /> -->
-    <xs:complexType name="patNumberType">
-    	<xs:attribute name="h" type="xs:decimal" />
-    	<xs:attribute name="l" type="xs:decimal" />
-    	<xs:attribute name="r" type="xs:boolean" />
+
+    <xs:complexType name="entityType">
+	    <xs:attribute name="i" type="xs:string" />
+	    <xs:attribute name="c" type="xs:int" />
+	    <xs:attribute name="s" type="xs:int" />
     </xs:complexType>
 
-    <xs:complexType name="patList">
-    	<xs:choice maxOccurs="unbounded" minOccurs="0">
-    		<!-- token -->
-    		<xs:element name="t" type="xs:string" />
-    		<!-- number -->
-    		<xs:element name="n" type="tns:patNumberType" />
-    		<!-- punctuation -->
-    		<xs:element name="p" type="xs:string" />
-    		<!-- wildcard -->
-    		<xs:element name="w" />
-    		<!-- world class -->
-    		<xs:element name="wcls" type="xs:string"  />
-    		<!-- you'll never guess about these -->
-    		<xs:element name="list" type="tns:patList" />
-    		<xs:element name="opt" type="tns:patList" />
-    		<xs:element name="any" type="tns:patList" />
-    		<xs:element name="perm" type="tns:patList" />
-    		<xs:element name="tail" type="tns:patList" />
-    	</xs:choice>
+    <xs:complexType name="patType">
+        <xs:group ref="tns:patGroup" maxOccurs="unbounded" minOccurs="0"></xs:group>
     </xs:complexType>
+
+
+    <xs:complexType name="patListType">
+        <xs:group ref="tns:patGroup" maxOccurs="unbounded" minOccurs="0" />
+        <xs:attribute name="v" type="xs:string" />        
+    </xs:complexType>
+
+    <xs:group name="patGroup">
+        <xs:choice>
+            <!-- token -->
+            <xs:element name="t" type="xs:string" />
+            <!-- number <n l="low" h="high" /> -->
+            <xs:element name="n">
+                <xs:complexType>
+                    <xs:attribute name="h" type="xs:decimal" />
+                    <xs:attribute name="l" type="xs:decimal" />
+                    <xs:attribute name="r" type="xs:boolean" />
+                </xs:complexType>            
+            </xs:element>
+            <!-- punctuation -->
+            <xs:element name="p" type="xs:string" />
+            <!-- wildcard -->
+            <xs:element name="w" />
+            <!-- world class -->
+            <xs:element name="wcls" type="xs:string"  />
+            
+            <xs:element name="date">
+            </xs:element>
+
+            <xs:element name="time">
+            </xs:element>
+            
+            <!-- entity pattern -->
+            <xs:element name="ent" type="tns:entityType" />
+            <!-- you'll never guess about these -->
+            <xs:element name="list" type="tns:patListType" />
+            <xs:element name="opt" type="tns:patListType" />
+            <xs:element name="any" type="tns:patListType" />
+            <xs:element name="perm" type="tns:patListType" />
+            <xs:element name="tail" type="tns:patListType" />
+            <xs:element name="subset" type="tns:patListType" />
+        </xs:choice>        
+    </xs:group>
+
+    
 	<!-- type for the right side variables -->
     <xs:complexType name="rVarType">
     	<!-- variable name -->
@@ -59,10 +87,9 @@
     <xs:group name="tranGroup">
         <xs:choice>
             <!-- variable -->
-            <xs:element name="var" type="tns:rVarType"></xs:element>
+            <xs:element name="var" type="tns:rVarType" />
             <!-- number -->
-            <xs:element name="rn" type="tns:rNumberType">
-            </xs:element>
+            <xs:element name="rn" type="tns:rNumberType" />
             <!-- literal -->
             <xs:element name="ltrl">
 			    <xs:complexType>
@@ -82,6 +109,7 @@
                     <xs:attribute name="name" type="xs:string" />
             	</xs:complexType>
             </xs:element>
+            <xs:element name="mkent" type="tns:entityType" />
         </xs:choice>
     </xs:group>
     
@@ -91,7 +119,7 @@
     
     <xs:group name="statementGroup">
         <xs:sequence>
-            <xs:element name="pat" type="tns:patList" minOccurs="1" maxOccurs="1" />
+            <xs:element name="pat" type="tns:patType" minOccurs="1" maxOccurs="1" />
             <xs:element name="tran" type="tns:tranList" minOccurs="1" maxOccurs="1" />
         </xs:sequence>
     </xs:group>

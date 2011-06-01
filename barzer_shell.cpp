@@ -5,6 +5,7 @@
 #include <barzer_el_trie.h>
 #include <barzer_el_parser.h>
 #include <barzer_el_wildcard.h>
+#include <barzer_el_analysis.h>
 #include <ay/ay_logger.h>
 #include <algorithm>
 #include <barzer_el_trie_shell.h>
@@ -35,6 +36,9 @@ typedef ay::Shell::CmdData CmdData;
 
 static int bshf_test( ay::Shell*, char_cp cmd, std::istream& in )
 {
+	/// NEVER REMOVE THIS FUNCTION . it's used in debug scripts in those cases 
+	/// gdb ctrl-C gets passed to the app - it is unfortunately the case on Mac
+	/// - AY
 	std::cout << "command: " << cmd << ";";
 	std::cout << "parms: (";
 	std::string tmp;
@@ -221,6 +225,7 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 	BarzStreamerXML bs(barz, context->universe);
 	std::string fname;
+
 	std::ostream *ostr = &(shell->getOutStream());
 	std::ofstream ofile;
 
@@ -342,6 +347,67 @@ static int bshf_trans( BarzerShell* shell, char_cp cmd, std::istream& in )
 		aLeaf->print( std::cerr, prnContext ) << std::endl;
 
 	}
+	return 0;
+}
+
+namespace {
+
+struct TAParms {
+static size_t nameThreshold; 
+static size_t fluffThreshold; 
+};
+size_t TAParms::nameThreshold = 2000;
+size_t TAParms::fluffThreshold = 200;
+
+
+}
+
+/// data analysis entry point
+static int bshf_dtaan( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	std::ostream *ostr = &(shell->getOutStream());
+	std::ofstream ofile;
+
+		
+	//ay::InputLineReader reader( in );
+	std::string str;
+	if (in >> str) {
+		std::string str1;
+		if( str == "nameth" ) {
+			if( in >> str1 ) { 
+				TAParms::nameThreshold = atoi( str1.c_str() ); 
+				std::cerr << "name threshold set to 1/" << TAParms::nameThreshold << "-th\n";
+				return 0;
+			}
+		} else if( str == "fluffth" ) {
+			if( in >> str1 ) { 
+				TAParms::fluffThreshold = atoi( str1.c_str() ); 
+				std::cerr << "fluff threshold set to 1/" << TAParms::fluffThreshold << "-th\n";
+				return 0;
+			}
+		} else {
+			ofile.open(str.c_str());
+			if( !ofile.is_open() ) {
+				std::cerr << "failed to open " << str << " for output \n";
+			} else {
+				std::cerr << "results will be written to " << str << "\n";
+				ostr = &ofile;
+			}
+		}
+	}
+
+	ShellState sh( shell, cmd, in );
+	TrieAnalyzer analyzer( sh.uni );
+	analyzer.setNameThreshold( TAParms::nameThreshold );
+	analyzer.setFluffThreshold( TAParms::fluffThreshold );
+
+	analyzer.traverse();
+
+	TANameProducer nameProducer( *ostr );
+	TrieAnalyzerTraverser< TANameProducer > trav( analyzer,nameProducer);
+	trav.traverse();
+	
+	std::cerr << nameProducer.d_numNames << " names and " << nameProducer.d_numFluff << " fluff patterns saved\n";
 	return 0;
 }
 
@@ -561,6 +627,7 @@ static const CmdData g_cmd[] = {
 	CmdData( ay::Shell::cmd_run, "run", "execute script(s)" ),
 	//commented test to reduce the bloat
 	CmdData( bshf_test, "test", "just a test" ),
+	CmdData( (ay::Shell_PROCF)bshf_dtaan, "dtaan", "data set analyzer. runs through the trie" ),
 	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),
 	CmdData( (ay::Shell_PROCF)bshf_lex, "lex", "tokenize and then classify (lex) the input" ),
 	CmdData( (ay::Shell_PROCF)bshf_tokenize, "tokenize", "tests tokenizer" ),

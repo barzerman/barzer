@@ -80,14 +80,17 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 		}
 
 		j += seq.size();
-		uint32_t tranId = 0xffffffff;
-		BarzelTranslation* tran = trie->makeNewBarzelTranslation( tranId );
 
-		if( !tran ) {
-			AYLOG(ERROR) << "null translation returned\n";
-		} else
-			tran->set(*trie, sp.translation);
-		trie->addPath( seq, tranId, varInfo );
+		{ // adding path to the trie
+			uint32_t tranId = 0xffffffff;
+			BarzelTranslation* tran = trie->makeNewBarzelTranslation( tranId );
+			if( !tran ) {
+				AYLOG(ERROR) << "null translation returned\n";
+			} else
+				tran->set(*trie, sp.translation);
+		
+			trie->addPath( sp, seq, tranId, varInfo );
+		}
 		i++;
 		//AYLOG(DEBUG) << "path added";
 	} while( emitter.produceSequence() );

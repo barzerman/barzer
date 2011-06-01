@@ -223,6 +223,29 @@ bool mergeRanges(BarzerRange &r1, const BarzerRange &r2) {
 }
 
 
+uint32_t getTokId(const char* tokStr, const StoredUniverse &u)
+{
+	const StoredToken *tok = u.getDtaIdx().getTokByString(tokStr);
+
+	if (!tok) {
+		AYLOG(ERROR) << "Invalid token: " << tokStr;
+		return 0;
+	}
+	return tok->getId();
+}
+
+uint32_t getTokId(const BarzerLiteral &l, const StoredUniverse &u)
+{
+	const DtaIndex dtaIdx = u.getDtaIdx();
+	const char *tokStr = u.getStringPool().resolveId(l.getId());
+
+	if (!tokStr) {
+		AYLOG(ERROR) << "Invalid literal ID: " << l.getId();
+		return 0;
+	}
+	return getTokId(tokStr, u);
+}
+
 }
 // Stores map ay::UniqueCharPool::StrId -> BELFunctionStorage::function
 // the function names are using format "stfun_*function name*"
@@ -238,6 +261,7 @@ struct BELFunctionStorage_holder {
 	BELFunctionStorage_holder(GlobalPools &u) : globPools(u) {
 		// makers
 		ADDFN(mkDate);
+		ADDFN(mkDateRange);
 		ADDFN(mkDay);
 		ADDFN(mkWday);
 		ADDFN(mkTime);
@@ -247,6 +271,10 @@ struct BELFunctionStorage_holder {
 		ADDFN(mkERC);
 		ADDFN(mkErcExpr);
 		ADDFN(mkFluff);
+		ADDFN(mkLtrl);
+		// getters
+		ADDFN(getWeekday); // getWeekday(BarzerDate)
+		ADDFN(getTokId); // (BarzerLiteral|BarzerEntity)
 		// arith
 		ADDFN(opPlus);
 		ADDFN(opMinus);
@@ -265,6 +293,8 @@ struct BELFunctionStorage_holder {
 		ADDFN(lookupMonth);
 		ADDFN(lookupWday);
 
+		// --
+		ADDFN(filterEList); // (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
 	}
 	#undef ADDFN
 
@@ -281,7 +311,8 @@ struct BELFunctionStorage_holder {
 
 	// stored functions
 	#define STFUN(n) bool stfun_##n( BarzelEvalResult &result,\
-							        const BarzelEvalResultVec &rvec) const
+							        const BarzelEvalResultVec &rvec,\
+							        const StoredUniverse &q_universe) const
 
 	// makers
 	STFUN(mkDate) //(d) | (d,m) | (d,m,y)
@@ -322,6 +353,32 @@ struct BELFunctionStorage_holder {
 		setResult(result, date);
 		return true;
 	}
+
+	STFUN(mkDateRange)
+	{
+		if (rvec.size() < 2) {
+			AYLOG(ERROR) << "mkDateRange(Date, DateOffset): Need 2 arguments";
+			return false;
+		}
+		try {
+			const BarzerDate &date = getAtomic<BarzerDate>(rvec[0]),
+					   	     &offset = getAtomic<BarzerDate>(rvec[1]);
+			BarzerDate_calc c;
+			c.set(date.year + offset.year,
+			      date.month + offset.month,
+			      date.day + offset.day);
+
+			BarzerRange range;
+			range.setData(BarzerRange::Date(date, c.d_date));
+			setResult(result, range);
+			return true;
+		} catch (boost::bad_get) {
+			AYLOG(ERROR) << "mkDateRange(Date, DateOffset): Arong argument type";
+		}
+		return false;
+
+	}
+
 
 	STFUN(mkDay) {
 		if (!rvec.size()) {
@@ -575,12 +632,15 @@ struct BELFunctionStorage_holder {
 		//const char *tokStr;
 		uint32_t cnt, tokId;
 		uint16_t cl, scl;
-		const BELFunctionStorage_holder &holder;
+		//const BELFunctionStorage_holder &holder;
+		const StoredUniverse &universe;
 
-		EntityPacker(const BELFunctionStorage_holder &h)
-			: cnt(0), tokId(0xffffff), cl(0), scl(0), holder(h) {}
+		//EntityPacker(const BELFunctionStorage_holder &h)
+		EntityPacker(const StoredUniverse &u)
+			: cnt(0), tokId(0xffffff), cl(0), scl(0), universe(u) {}
 
 		bool operator()(const BarzerLiteral &ltrl) {
+			/*
 			const StoredUniverse &u =  holder.globPools;
 			const DtaIndex &dtaIdx = u.getDtaIdx();
 
@@ -601,6 +661,9 @@ struct BELFunctionStorage_holder {
 
 			tokId = tok->getId();
 			return true;
+			*/
+
+			return (tokId = getTokId(ltrl, universe));
 		}
 		bool operator()(const BarzerNumber &rnum) {
 			uint16_t ui = (uint16_t) rnum.getInt();
@@ -627,7 +690,8 @@ struct BELFunctionStorage_holder {
 	STFUN(mkEnt) // makes Entity
 	{
 
-		EntityPacker ep(*this);
+		//EntityPacker ep(*this);
+		EntityPacker ep(q_universe);
 
 		for (BarzelEvalResultVec::const_iterator ri = rvec.begin();
 								ri != rvec.end(); ++ri)
@@ -650,7 +714,7 @@ struct BELFunctionStorage_holder {
 		ERCPacker(BarzerEntityRangeCombo &e) : num(0), erc(e) {}
 
 		bool operator()(const BarzerEntityList &el) {
-			return (*this)(el.getList().front().getEuid());
+			return (*this)(el.getList().front());
 		}
 		bool operator()(const BarzerEntity &euid) {
 			if (num) {
@@ -763,11 +827,6 @@ struct BELFunctionStorage_holder {
 		return true;
 	}
 
-	STFUN(mkPriceRC)
-	{
-		return false;
-	}
-
 	STFUN(mkLtrl)
 	{
 		if (!rvec.size()) {
@@ -806,6 +865,49 @@ struct BELFunctionStorage_holder {
 			AYLOG(ERROR) << "mkFluff(BarzerLiteral): Wrong argument type";
 			return false;
 		}
+	}
+
+	// getters
+
+	STFUN(getWeekday) {
+		BarzerDate bd;
+		if (rvec.size() >= 1)
+			bd = getAtomic<BarzerDate>(rvec[0]);
+
+		BarzerNumber n(bd.getWeekday());
+		setResult(result, n);
+		return true;
+	}
+
+	struct TokIdGetter : boost::static_visitor<bool> {
+		const StoredUniverse &universe;
+		uint32_t tokId;
+		TokIdGetter(const StoredUniverse &u) : universe(u), tokId(0) {}
+
+		bool operator()(const BarzerLiteral &dt) {
+			return ((tokId = getTokId(dt, universe)));
+		}
+
+		bool operator()(const BarzelBeadAtomic &data) {
+			return boost::apply_visitor(*this, data.getData());
+		}
+		// not applicable
+		template<class T> bool operator()(const T&) {
+			AYLOG(ERROR) << "getTokId(BarzerLiteral|BarzerEntity): Type mismatch";
+			return false;
+		}
+	};
+
+	STFUN(getTokId)
+	{
+		if (!rvec.size()) {
+			AYLOG(ERROR) << "getTokId(BarzerLiteral|BarzerEntity) needs an argument";
+			return false;
+		}
+		TokIdGetter tig(q_universe);
+		boost::apply_visitor(tig, rvec[0].getBeadData());
+		setResult(result, BarzerNumber((int)tig.tokId));
+		return true;
 	}
 
 	// arith
@@ -1013,7 +1115,75 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 
+	// this looks just horrible, need to just throw it all away :\.
 
+	typedef boost::function<bool(const BarzerEntity&)> ELPredFn;
+	typedef boost::function<bool(const BarzerEntity&, uint32_t)> ELCheckFn;
+
+	static bool voidELpred(const BarzerEntity&) { return true; }
+
+	struct ELPred {
+		ELPredFn fun;
+		ELPredFn next;
+		ELPred(ELPredFn f) : fun(f), next(voidELpred) {}
+		ELPred(ELPredFn f, ELPredFn n) : fun(f), next(n) {}
+		inline bool operator()(const BarzerEntity& ent) const {
+			return fun(ent) && next(ent);
+		}
+	};
+
+	struct ELCheck {
+		uint32_t id;
+		ELCheckFn fun;
+		ELCheck(uint32_t i, ELCheckFn f) : id(i), fun(f) {}
+		inline bool operator()( const BarzerEntity &ent ) { return fun(ent, id); }
+	};
+
+	inline static bool checkSC(const BarzerEntity& ent, uint32_t id)
+		{ return ent.eclass.subclass == (uint16_t)id; }
+	inline static bool checkClass(const BarzerEntity& ent, uint32_t id)
+		{ return ent.eclass.ec == (uint16_t)id; }
+	inline static bool checkId(const BarzerEntity& ent, uint32_t id)
+		{ return ent.tokId == id; }
+
+
+	STFUN(filterEList) // (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
+	{
+		if (rvec.size() < 2) {
+			AYLOG(ERROR) << "filterEList(BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])"
+						 <<  "Need at least 2 arguments";
+			return false;
+		}
+		BarzerEntityList outlst;
+		const BarzerEntityList::EList lst = getAtomic<BarzerEntityList>(rvec[0]).getList();
+		try {
+			uint32_t cl =  getAtomic<BarzerNumber>(rvec[1]).getInt();
+			ELPred pred(ELCheck(cl, checkClass));
+
+			switch(rvec.size()) {
+			case 4: pred = ELPred(
+						ELCheck(getAtomic<BarzerNumber>(rvec[3]).getInt(),
+								checkId),
+						pred);
+			case 3: pred = ELPred(
+						ELCheck(getAtomic<BarzerNumber>(rvec[2]).getInt(),
+								checkClass),
+						pred);
+			default:
+				for(BarzerEntityList::EList::const_iterator it = lst.begin();
+														    it != lst.end();
+														    ++it) {
+					if (pred(*it)) outlst.addEntity(*it);
+				}
+				setResult(result, outlst);
+				return true;
+			}
+		} catch (boost::bad_get) {
+			AYLOG(ERROR) << "filterEList(BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])"
+						 <<  "Need at least 2 arguments";
+		}
+		return false;
+	}
 	#undef STFUN
 };
 
@@ -1028,7 +1198,8 @@ BELFunctionStorage::~BELFunctionStorage()
 
 
 bool BELFunctionStorage::call(const char *fname, BarzelEvalResult &er,
-		                                   const BarzelEvalResultVec &ervec) const
+		                                   const BarzelEvalResultVec &ervec,
+		                                   const StoredUniverse &u) const
 {
 	//AYLOG(DEBUG) << "calling function name `" << fname << "'";
 	const uint32_t fid = globPools.stringPool.getId(fname);
@@ -1036,11 +1207,12 @@ bool BELFunctionStorage::call(const char *fname, BarzelEvalResult &er,
 		AYLOG(ERROR) << "No such function name: `" << fname << "'";
 		return false;
 	}
-	return call(fid, er, ervec);
+	return call(fid, er, ervec, u);
 }
 
 bool BELFunctionStorage::call(const uint32_t fid, BarzelEvalResult &er,
-									              const BarzelEvalResultVec &ervec) const
+									              const BarzelEvalResultVec &ervec,
+									              const StoredUniverse &u) const
 {
 	//AYLOG(DEBUG) << "calling function id `" << fid << "'";
 	const BELStoredFunMap::const_iterator frec = holder->funmap.find(fid);
@@ -1048,7 +1220,7 @@ bool BELFunctionStorage::call(const uint32_t fid, BarzelEvalResult &er,
 		AYLOG(ERROR) << "No such function id: " << fid;
 		return false;
 	}
-	return frec->second(holder, er, ervec);
+	return frec->second(holder, er, ervec, u);
 
 }
 

@@ -67,7 +67,8 @@ GlobalPools::GlobalPools() :
 			&barzelFirmChildPool,
 			&barzelTranslationPool 
 		),
-	settings(*this)
+	settings(*this),
+	d_isAnalyticalMode(false)
 {
 	/// create default universe 
 	produceUniverse(DEFAULT_UNIVERSE_ID);
@@ -93,8 +94,7 @@ void GlobalPools::createGenericEntities()
 StoredUniverse::StoredUniverse(GlobalPools& g) :
 	gp(g),
 	trieCluster(g.globalTriePool),
-	trieClusterIter(trieCluster) /*,
-	settings(*this) //*/
+	trieClusterIter(trieCluster) 
 {
 }
 

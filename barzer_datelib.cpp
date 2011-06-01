@@ -48,14 +48,17 @@ void BarzerDate_calc::setYesterday() {
 	dayOffset(-1);
 }
 
+
 void BarzerDate_calc::setWeekday(uint8_t weekDay) {
-	time_t t = d_date.getTime_t();
+	/*time_t t = d_date.getTime_t();
 	struct tm tmdate;
 	localtime_r(&t, &tmdate);
 
 	// tm stored weekdays starting from sunday(0)
 	// connverting
 	uint8_t todayWeekDay = (tmdate.tm_wday + 6) % 7 + 1;
+	*/
+	uint8_t todayWeekDay = d_date.getWeekday();
 
 	//AYLOG(DEBUG) << "todayWeekDay: " << (int)todayWeekDay
 //				<< "weekDay: " << (int)weekDay;

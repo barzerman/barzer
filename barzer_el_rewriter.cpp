@@ -173,15 +173,30 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const B
 	//AYLOG(DEBUG) << "calling funid:" << data.nameId;
 	const StoredUniverse &u = ctxt.universe;
 	const BELFunctionStorage &fs = u.getFunctionStorage();
-	bool ret = fs.call(data.nameId, d_val, d_childValVec);
+	bool ret = fs.call(data.nameId, d_val, d_childValVec, u);
 	return ret;
 }
 
 template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_MkEnt>( const BTND_Rewrite_MkEnt& n ) 
 {
-	const StoredEntity * se = ctxt.universe.getDtaIdx().getEntById( n.getEntId() );
-	BarzerEntity ent=  se->euid;
-	d_val.setBeadData( BarzelBeadAtomic().setData( ent ) );
+	if( n.isSingleEnt() ) {
+		const StoredEntity * se = ctxt.universe.getDtaIdx().getEntById( n.getEntId() );
+		BarzerEntity ent=  se->euid;
+		d_val.setBeadData( BarzelBeadAtomic().setData( ent ) );
+	} else if( n.isEntList() ) {
+		const EntityGroup* entGrp = ctxt.universe.getBarzelTrie().getEntGroupById( n.getEntGroupId() );
+		if( entGrp ) {
+			// building entity list
+			BarzerEntityList entList;
+			for( EntityGroup::Vec::const_iterator i = entGrp->getVec().begin(); i!= entGrp->getVec().end(); ++i )
+			{
+				const StoredEntity * se = ctxt.universe.getDtaIdx().getEntById( *i );
+				const BarzerEntity& euid = se->getEuid();
+				entList.addEntity( euid ); 
+			}
+			d_val.setBeadData( BarzelBeadAtomic().setData( entList ) );
+		}
+	}
 	return true;
 }
 

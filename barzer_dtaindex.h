@@ -3,7 +3,7 @@
 
 #include <ay/ay_headers.h>
 #include <barzer_storage_types.h>
-#include <ay/ay_slogrovector.h>
+#include <ay/ay_vector.h>
 #include <ay/ay_string_pool.h>
 #include <ay/ay_util_char.h>
 #include <boost/unordered_map.hpp>
@@ -60,6 +60,8 @@ public:
 	/// checks boundaries returns 0 if id is invalid
 	inline const StoredEntity* getEntByIdSafe( StoredEntityId id )  const
 		{ return( isEntityIdValid(id) ? &(getEnt(id)):(const StoredEntity*)0 );}
+	size_t getNumberOfEntities() const
+		{ return euidMap.size(); }
 };
 
 inline std::ostream& operator <<( std::ostream& fp, const StoredEntityPool& x )
@@ -138,6 +140,9 @@ public:
 	/// checks boundaries returns 0 if id is invalid
 	inline const StoredToken* getTokByIdSafe( StoredTokenId id )  const
 		{ return( isTokIdValid(id) ? &(getTokById(id)):0 );}
+	size_t getNumberOfTokens() const
+		{ return singleTokMap.size(); }
+	
 };
 
 inline std::ostream& operator <<( std::ostream& fp, const StoredTokenPool& x )
@@ -166,6 +171,8 @@ public:
 	CompWordsTree* cwTree;
 	SemanticalFSA* semFSA;
 
+	size_t getNumberOfTokens() const { return tokPool.getNumberOfTokens(); }
+	size_t getNumberOfEntities() const { return entPool.getNumberOfEntities(); }
 	/// given the token returns a matching StoredToken 
 	/// only works for imple tokens 
 	const StoredToken* getStoredToken( const char* s) const
@@ -213,6 +220,8 @@ public:
 		{ return tokPool.getTokByString(s); }
 	void print( std::ostream&  fp ) const;
 
+	inline const char* resolveStringById( uint32_t id  ) const  
+	{ return strPool->resolveId( id ); }
 	inline const char* resolveStoredTokenStr( const StoredToken& tok ) const 
 	{
 		if( tok.isSimpleTok() ) {
@@ -226,7 +235,7 @@ public:
 	inline const char* resolveStoredTokenStr( StoredTokenId id ) const 
 	{
 		const StoredToken* t = tokPool.getTokByIdSafe( id );
-		return ( t ? resolveStoredTokenStr(*t) : "<<null>>" );
+		return ( t ? resolveStoredTokenStr(*t) : "" );
 	}
 	void printStoredToken( std::ostream& fp, const StoredTokenId ) const;
 	void printEuid( std::ostream& fp, const StoredEntityUniqId& euid ) const
@@ -269,6 +278,55 @@ public:
 		return entPool.getEntByIdSafe(id);
 	}
 }; 
+/// EntPropCompatibility is an index used to determine whether a particular entity can serve as a property for 
+/// another entity
+///
+/// this is in essence a rule set
+/// rules are in 1 on 4 classes:
+///   1. Entity Eclass <---> Prop Eclass (example: (1,1) <----> (10,10) )  (1,1,0xffffffff), (10,10,0xfffffff) 
+///  
+///   2. Entity Eclass <----> Prop Euid   (example (1,1)     <----> (10,10,fgh)
+
+///   3. Euid          <----> Prop Eclass (example (1,1,abc) <-----> (10,10) 
+///   4. Euid          <----> Prop Euid   (example (1,1,abc) <----> (10,10,fgh) )
+
+class EntPropCompatibility {
+	typedef std::pair< StoredEntityUniqId, StoredEntityUniqId > EntPropPair;
+	typedef std::set< EntPropPair > EntPropPairSet;
+
+	EntPropPairSet d_entPropPairSet;
+	
+public:
+	bool entPropPairs( const StoredEntityUniqId& l, const StoredEntityUniqId& r ) const 
+	{
+		{ // rule type 1 
+		if( d_entPropPairSet.find( EntPropPair( StoredEntityUniqId(l.eclass), StoredEntityUniqId(r.eclass)) ) != d_entPropPairSet.end() ) 
+			return true;
+		}	
+		{ // rule type 2
+		if( d_entPropPairSet.find( EntPropPair( StoredEntityUniqId(l.eclass), r ) ) != d_entPropPairSet.end() ) 
+			return true;
+		}	
+		{ // rule type 3
+		if( d_entPropPairSet.find( EntPropPair( l, StoredEntityUniqId(r.eclass) ) ) != d_entPropPairSet.end() ) 
+			return true;
+		}	
+		{ // rule type 4
+		if( d_entPropPairSet.find( EntPropPair(l,r) ) != d_entPropPairSet.end() ) 
+			return true;
+		}	
+		return false;
+	}
+
+	void addRule( const StoredEntityUniqId& l, const StoredEntityClass& ec ) 
+		{ d_entPropPairSet.insert( EntPropPair(l,StoredEntityUniqId(ec)) ) ; }
+	void addRule( const StoredEntityUniqId& e, const StoredEntityUniqId& p ) 
+		{ d_entPropPairSet.insert( EntPropPair(e,p) ); }
+	void addRule( const StoredEntityClass& e, const StoredEntityUniqId& p ) 
+		{ d_entPropPairSet.insert( EntPropPair(StoredEntityUniqId(e),p) ); }
+	void addRule( const StoredEntityClass& e, const StoredEntityClass& p ) 
+		{ d_entPropPairSet.insert( EntPropPair(StoredEntityUniqId(e),StoredEntityUniqId(p)) ); }
+};
 
 } // namespace barzer
 #endif //  BARZER_DTAINDEX_H

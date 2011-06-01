@@ -30,16 +30,8 @@ class GlobalTriePool {
 	BarzelFirmChildPool* d_fcPool;
 	BarzelTranslationPool* d_tranPool;
 
-
 public:
 	ClassTrieMap& produceTrieMap( const std::string& trieClass );
-	/*{
-		TrieMap::iterator i = d_trieMap.find( trieClass );
-		if( i == d_trieMap.end() ) 
-			i = d_trieMap.insert( TrieMap::value_type( trieClass, ClassTrieMap())).first;
-		
-		return i->second;
-	} //*/
 
 	const ClassTrieMap* getTrieMap( const std::string& trieClass ) const
 	{
@@ -153,6 +145,7 @@ public:
 
 class GlobalPools {
 public:
+
 	// 0 should never be used 
 	enum { DEFAULT_UNIVERSE_ID = 0 }; 
 
@@ -176,6 +169,13 @@ public:
 
 	BarzerSettings settings;
 
+	bool d_isAnalyticalMode;
+
+	EntPropCompatibility entCompatibility;
+
+	bool isAnalyticalMode() const { return d_isAnalyticalMode; }
+	void setAnalyticalMode() { d_isAnalyticalMode= true; }
+
 	/// this will create the "wellknown" entities 
 	StoredUniverse& produceUniverse( uint32_t id );
 
@@ -196,7 +196,6 @@ public:
 
 	const DtaIndex& getDtaIndex() const { return dtaIdx; }
 	DtaIndex& getDtaIndex() { return dtaIdx; }
-
 	GlobalPools();
 	~GlobalPools();
 };
@@ -210,10 +209,14 @@ class StoredUniverse {
 	//BarzerSettings settings;
 	friend class QSemanticParser;
 
+
 	void  getToFirstTrie() const { trieClusterIter.reset(); }
 	bool  getToNextTrie() const { return trieClusterIter.advance(); }
 
 public:
+	bool isAnalyticalMode() const { return gp.isAnalyticalMode(); }
+	EntPropCompatibility& getEntPropIndex() { return gp.entCompatibility; }
+	const EntPropCompatibility& getEntPropIndex() const { return gp.entCompatibility; }
 	BELTrie& produceTrie( const std::string& trieClass, const std::string& trieId ) 
 	{
 		return gp.globalTriePool.produceTrie( trieClass, trieId );
@@ -279,12 +282,11 @@ public:
 
 	const BELFunctionStorage& getFunctionStorage() const { return gp.funSt; }
 	const DateLookup& getDateLookup() const { return gp.dateLookup; }
-	/*
-	const BarzerSettings& getSettings() const { return settings; }
-	BarzerSettings& getSettings() { return settings; }
-	//*/
 	
 	const char* getGenericSubclassName( uint16_t subcl ) const;
+
+	const char* decodeStringById( uint32_t strId ) const 
+		{ return getDtaIdx().resolveStringById( strId ); }
 }; 
 
 inline StoredUniverse& GlobalPools::produceUniverse( uint32_t id )

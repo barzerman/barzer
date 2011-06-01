@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
+    xmlns="http://www.barzer.net/barzel/0.1">
+
+    <stmt>
+        <pat> <t>a</t><t>aa</t></pat>
+        <tran> <mkent c="10" s="9" i="abc1"/> </tran>
+    </stmt>
+    <stmt>
+        <pat> <t>a</t><t>aa</t></pat>
+        <tran> <mkent c="10" s="8" i="abc2"/> </tran>
+    </stmt>
+    <stmt>
+        <pat> <ent c="10" s="8"/></pat>
+        <tran> <ltrl t="f">crap</ltrl> </tran>
+    </stmt>
+
+</stmset>

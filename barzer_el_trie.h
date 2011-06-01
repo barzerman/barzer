@@ -4,6 +4,7 @@
 #include <barzer_el_parser.h>
 #include <barzer_el_rewriter.h>
 #include <barzer_el_variable.h>
+#include <barzer_el_entcol.h>
 #include <ay_bitflags.h>
 #include <ay_util.h>
 #include <ay_pool_with_id.h>
@@ -65,6 +66,8 @@ struct BarzelTrieFirmChildKey {
 			it == BTND_Pattern_CompoundedWord_TYPE
 		);
 	}
+	uint32_t getTokenStringId() const
+		{ return ( type == BTND_Pattern_Token_TYPE ? id : 0xffffffff ); }
 	void setNull( ) { type = BTND_Pattern_None_TYPE; id = 0xffffffff; noLeftBlanks=0;}
 
 	bool isNull() const { return (type == BTND_Pattern_None_TYPE); }
@@ -197,6 +200,7 @@ public:
 		T_VAR_EL_NUM, // variable rewrite on raw element number (PN)
 		T_VAR_GN_NUM, // variable rewrite on raw element number
 		T_MKENT, // entity maker
+		T_MKENTLIST, // entity list maker
 
 		T_MAX
 	} Type_t;
@@ -207,6 +211,11 @@ public:
 	void set( BELTrie& trie, const BTND_Rewrite_Number& );
 	void set( BELTrie& trie, const BTND_Rewrite_MkEnt& );
 	void set( BELTrie& trie, const BTND_Rewrite_Variable& );
+	void setMkEntList( uint32_t i )
+	{
+		type = T_MKENTLIST;
+		id = i;
+	}
 
 	void set( BELTrie& trie, const BELParseTreeNode& );
 
@@ -225,6 +234,7 @@ public:
 		id = rid;
 	}
 
+	uint8_t getType() const { return type; }
 	uint32_t getRewriterId() const
 	{
 		return ( type == T_REWRITER ? boost::get<uint32_t>(id) : 0xffffffff );
@@ -235,6 +245,8 @@ public:
 
 
 	void clear() { type= T_NONE; }
+	bool isMkEntSingle() const  { return ( type == T_MKENT ); }
+	bool isMkEntList() const  { return ( type == T_MKENTLIST ); }
 	bool isRewriter() const  { return ( type == T_REWRITER ); }
 		 
 	// returns if evaluation may theoretically fail - theoretically some rewrites may 
@@ -289,7 +301,7 @@ class BarzelTrieNode {
 		// new bits strictly above this line 
 		B_MAX
 	};
-	ay::bitflags<B_MAX> d_flags; // only prints children at the current level
+	ay::bitflags<B_MAX> d_flags; 
 
 
 	/// methods
@@ -334,10 +346,12 @@ public:
 	bool hasChildren() const 
 		{ return (hasWildcardChildren() || hasFirmChildren() ); }
 
-	bool isLeaf() const { return (d_translationId != 0xffffffff); }
+	bool hasValidTranslation() const { return (d_translationId != 0xffffffff); }
+	bool isLeaf() const { return hasValidTranslation(); }
 
 	/// makes node leaf and sets translation
 	void setTranslation(uint32_t tranId ) { d_translationId = tranId; }
+	
 
 	// locates a child node or creates a new one and returns a reference to it. non-leaf by default 
 	// if pattern data cant be translated into a valid key the same node is returned
@@ -368,13 +382,14 @@ public:
 };
 
 typedef std::map< BarzelWCLookupKey, BarzelTrieNode > BarzelWCLookup;
-
+struct BELStatementParsed;
 struct BELTrie {
 	BarzelRewriterPool* rewrPool;
 	BarzelWildcardPool* wcPool;
 	BarzelFirmChildPool* fcPool;
 	BarzelTranslationPool *tranPool;
 	BarzelVariableIndex   d_varIndex;
+	EntityCollection      d_entCollection;
 
 	BarzelTrieNode root;
 	BELTrie( 
@@ -388,6 +403,11 @@ struct BELTrie {
 		fcPool(fPool),
 		tranPool(tPool)
 	{}
+
+	const EntityGroup* getEntGroupById( uint32_t id ) const 
+	{ return d_entCollection.getEntGroup(id); }
+	const EntityCollection& getEntityCollection() const { return       d_entCollection; }
+	EntityCollection& getEntityCollection() { return       d_entCollection; }
 
 		  BarzelRewriterPool& getRewriterPool() { return  * rewrPool; }
 	const BarzelRewriterPool& getRewriterPool() const { return  * rewrPool; }
@@ -409,6 +429,10 @@ struct BELTrie {
 	const BarzelTranslation* getBarzelTranslation( const BarzelTrieNode& node ) const { return tranPool->getObjById(node.getTranslationId()); }
 		  BarzelTranslation* getBarzelTranslation( const BarzelTrieNode& node ) 	   { return tranPool->getObjById(node.getTranslationId()); }
 
+	/// tries to add another translation to the existing one. 
+	/// initially this will only work for entity lists 
+	bool tryAddingTranslation( BarzelTrieNode* n, uint32_t tranId ); 
+
 	BarzelFCMap*  makeNewBarzelFCMap( uint32_t& id ) 
 		{ return fcPool->addObj( id ); }
 	const BarzelFCMap* getBarzelFCMap( const BarzelTrieNode& node ) const { return fcPool->getObjById(node.getFirmMapId()); }
@@ -419,7 +443,7 @@ struct BELTrie {
 	void produceWCKey( BarzelWCKey&, const BTND_PatternData&   );
 
 	/// adds a new path to the 
-	const BarzelTrieNode* addPath( const BTND_PatternDataVec& path, uint32_t tranId, const BELVarInfo& varInfo );
+	const BarzelTrieNode* addPath( const BELStatementParsed& stmt, const BTND_PatternDataVec& path, uint32_t tranId, const BELVarInfo& varInfo );
 	BarzelWildcardPool&  getWCPool() { return *wcPool; }
 	const BarzelWildcardPool&  getWCPool() const { return *wcPool; }
 

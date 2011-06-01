@@ -1,5 +1,11 @@
 FLAGS := $(FLAGS) 
-CFLAGS := $(OPT) $(FLAGS) -Wall -g -I.
+ifeq ($(IS64),yes)
+	BITMODE=-m64
+endif 
+ifeq ($(IS32),yes)
+	BITMODE=-m32
+endif 
+CFLAGS := $(OPT) $(BITMODE) $(FLAGS) -Wall -g -I.
 LIBNAME=libay.a
 
 objects = ay_cmdproc.o ay_shell.o ay_util.o ay_string_pool.o ay_util_time.o ay_logger.o

@@ -20,19 +20,27 @@ class StoredUniverse;
 /// statement parse tree represents a single BarzEL  statement as parsed on load 
 /// this tree is evaluated and resulting paths are added to a barzel trie by the parser
 struct BELStatementParsed {
-	struct Data {
-		uint32_t id; // 
-		int strength; // 
+	size_t d_stmtNumber;
+	std::string d_sourceName;
 
-		Data() : id(0xffffffff), strength(0) {}
-		void clear()
-		{ id=0xffffffff;strength = 0; }
-	};
+	BELStatementParsed() : 
+		d_stmtNumber(0)
+	{}
 
 	BELParseTreeNode pattern; // points at the node under statement
 	BELParseTreeNode translation; // points at the node under statement 
 	void clear()
 		{ pattern.clear(); translation.clear(); }
+	
+	void setSrcInfo( const char* srcName ) 
+	{ 
+		d_stmtNumber = 0;
+		d_sourceName.assign( srcName );
+	}
+	void stmtNumberIncrement() { ++d_stmtNumber; }
+
+	size_t getStmtNumber() const { return d_stmtNumber; }
+	const std::string&  getSourceName() const { return d_sourceName; }
 };
 
 /// all specific parsers inherit from this base type and overload 
@@ -54,10 +62,17 @@ protected:
 	/// alias can be 0 - in that case no alias will be generated and an orphaned compounded 
 	/// token will be added 
 	uint32_t addCompoundedWordLiteral( const char* alias );
+	
+
+	const BELReader* getReader() const { return reader; }
+	BELReader* getReader() { return reader; }
 public:
 	BELParser( BELReader* r ) : reader(r) {}
 	virtual int parse( std::istream& ) = 0;
 	virtual ~BELParser() {}
+
+	StoredUniverse& getUniverse(); 
+	const  StoredUniverse& getUniverse() const;
 };
 
 struct BELTrie;
@@ -76,12 +91,14 @@ protected:
 
 	std::string inputFileName; 
 public:
+	const std::string& getInputFileName() const { return inputFileName; }
 	void setTrie( const std::string& trieClass, const std::string& trieId ) ;
 
 	BELTrie& getTrie() { return *trie ; }
 	const BELTrie& getTrie() const { return *trie ; }
 
 	StoredUniverse& getUniverse() { return universe; }
+	const StoredUniverse& getUniverse() const { return universe; }
 
 	/// barzEL input formats
 	typedef enum {
@@ -114,6 +131,11 @@ public:
 
 	std::ostream& printNode( std::ostream& fp, const BarzelTrieNode& node ) const;
 };
+inline StoredUniverse& BELParser::getUniverse()
+{ return reader->getUniverse(); }
+
+inline const  StoredUniverse& BELParser::getUniverse() const
+{ return reader->getUniverse(); }
 
 template<class T>class BELExpandReader : public BELReader {
 	T &functor;

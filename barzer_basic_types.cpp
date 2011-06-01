@@ -25,6 +25,18 @@ void BarzerDate::initToday()
 	longToday = 10000* (int)thisYear + 1000 * (int) thisMonth + thisDay;
 }
 
+uint8_t BarzerDate::getWeekday() const
+{
+	time_t t = time(0);
+	tm tmdate;
+	localtime_r(&t, &tmdate);
+	tmdate.tm_year = year - 1900;
+	tmdate.tm_mon = month - 1;
+	tmdate.tm_mday = day;
+	mktime(&tmdate);
+	return (tmdate.tm_wday + 6) % 7 + 1;
+}
+
 time_t BarzerDate::getTime_t() const
 {
 	time_t t = time(0);

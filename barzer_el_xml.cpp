@@ -36,6 +36,14 @@ static void charDataHandle( void * ud, const XML_Char *str, int len)
 
 namespace barzer {
 
+
+BELParserXML::BELParserXML( BELReader* r ) : 
+		BELParser(r),
+		parser(0),
+		statementCount(0)
+	{
+		statement.stmt.setSrcInfo(reader->getInputFileName().c_str());
+	}
 bool BELParserXML::isValidTag( int tag, int parent ) const
 {
 	switch( parent ) {
@@ -73,6 +81,7 @@ bool BELParserXML::isValidTag( int tag, int parent ) const
 	case TAG_OPT:
 	case TAG_PERM:
 	case TAG_TAIL:
+	case TAG_SUBSET:
 		return true;
 	default:
 		return false;
@@ -136,6 +145,7 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 	CASE_TAG(OPT)
 	CASE_TAG(PERM)
 	CASE_TAG(TAIL)
+	CASE_TAG(SUBSET)
 
 	CASE_TAG(LITERAL)
 	CASE_TAG(RNUMBER)
@@ -173,6 +183,10 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 		}
 		statement.clear();
 		return;
+	}
+	statement.stmt.stmtNumberIncrement();
+	if( !(statement.stmt.getStmtNumber() % 100)  ) {
+		std::cerr << '.';
 	}
 	if( statement.hasStatement() ) { // bad - means we have statement tag nested in another statement
 		std::cerr << "statement nested in statement " << statementCount << "\n";
@@ -216,6 +230,11 @@ struct BTND_text_visitor_base  : public boost::static_visitor<> {
 	const char* d_str;
 	int d_len;
 	
+	StoredUniverse& getUniverse() { return d_parser.getUniverse(); }
+	const StoredUniverse& getUniverse() const { return d_parser.getUniverse(); }
+	bool isAnalyticalMode() const
+	{ return getUniverse().isAnalyticalMode(); }
+
 	BTND_text_visitor_base( BELParserXML& parser, const char* s, int len ) : 
 		d_parser(parser),
 		d_str(s), 
@@ -252,15 +271,42 @@ template <> void BTND_Rewrite_Text_visitor::operator()<BTND_Rewrite_Number>(BTND
 
 // pattern visitor  template specifications 
 struct BTND_Pattern_Text_visitor : public BTND_text_visitor_base {
-	BTND_Pattern_Text_visitor( BELParserXML& parser, const char* s, int len ) :
-		BTND_text_visitor_base( parser, s, len ) 
+	BTND_PatternData& d_pat;
+	BTND_Pattern_Text_visitor( BTND_PatternData& pat, BELParserXML& parser, const char* s, int len ) :
+		BTND_text_visitor_base( parser, s, len ),
+		d_pat(pat)
 	{}
 	template <typename T>
 	void operator() (T& t) const {}
 };
 
+namespace {
+bool isAllDigits( const char* s,int len  ) {
+	const char* s_end = s+len;
+	for( ; s< s_end; ++s ) {
+		if( !isdigit(*s) ) 
+			return false;
+	}
+	return true;
+}
+} // anon namespace ends 
+
 template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTND_Pattern_Token& t)  const
-{ t.stringId = d_parser.internTmpText(  d_str, d_len  ); }
+{ 
+	/// if d_str is numeric we need to do something
+	if( !isAnalyticalMode() && isdigit(d_str[0]) && isAllDigits(d_str,d_len)) {
+		BTND_Pattern_Number numPat;
+		int num= atoi(d_str);
+		numPat.setIntRange( num, num );
+		d_pat = numPat;
+		return;
+	} 
+	t.stringId = d_parser.internTmpText(  d_str, d_len  ); 
+}
+template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_StopToken>  (BTND_Pattern_StopToken& t)  const
+{ 
+	t.stringId = d_parser.internTmpText(  d_str, d_len  ); 
+}
 template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Punct> (BTND_Pattern_Punct& t) const
 { 
 	// may want to do something fancy for chinese punctuation (whatever that is)
@@ -281,7 +327,10 @@ struct BTND_text_visitor : public BTND_text_visitor_base {
 		BTND_text_visitor_base( parser, s, len ) 
 	{}
 	void operator()( BTND_PatternData& pat ) const
-		{ boost::apply_visitor( BTND_Pattern_Text_visitor(d_parser,d_str,d_len), pat ) ; }
+		{ 
+			BTND_Pattern_Text_visitor vis(pat,d_parser,d_str,d_len);
+			boost::apply_visitor( vis, pat ) ; 
+		}
 	void operator()( BTND_None& ) const {}
 	void operator()( BTND_StructData& ) const {}
 	void operator()( BTND_RewriteData& rwr)  const
@@ -419,7 +468,7 @@ void BELParserXML::taghandle_ENTITY( const char_cp * attr, size_t attr_sz , bool
 			pat.setEntityClass( atoi(v) ); 
 			break;
 		case 's': // subclass - s="1"
-			pat.setEntityClass( atoi(v) ); 
+			pat.setEntitySubclass( atoi(v) ); 
 			break;
 		case 't': // id token - t="ABCD011"
 			pat.setTokenId( internString(v) );
@@ -576,6 +625,16 @@ void BELParserXML::taghandle_PERM( const char_cp * attr, size_t attr_sz , bool c
 	BTND_StructData node( BTND_StructData::T_PERM);
 	processAttrForStructTag( node, attr, attr_sz );
 	statement.pushNode( node );
+}
+void BELParserXML::taghandle_SUBSET( const char_cp * attr, size_t attr_sz , bool close)
+{
+	if( close ) {
+		statement.popNode();
+		return;
+	}
+	BTND_StructData node( BTND_StructData::T_SUBSET);
+	processAttrForStructTag( node, attr, attr_sz );
+	statement.pushNode(node);
 }
 void BELParserXML::taghandle_TAIL( const char_cp * attr, size_t attr_sz , bool close)
 {
@@ -745,18 +804,6 @@ void BELParserXML::getElementText( const char* txt, int len )
 		boost::apply_visitor( BTND_text_visitor(*this,txt,len), node->getVar() ) ; 
 	}
 	return;
-
-	/*
-	int tid = tagStack.top();
-
-#define CASE_TAG(x) case TAG_##x: taghandle_##x##_text( txt, len ); break;
-	switch( tid ) {
-		CASE_TAG(T)
-		CASE_TAG(LITERAL)
-		CASE_TAG(RNUMBER)
-	}
-#undef CASE_TAG
-	*/
 }
 BELParserXML::~BELParserXML()
 {
@@ -766,6 +813,8 @@ BELParserXML::~BELParserXML()
 
 int BELParserXML::parse( std::istream& fp )
 {
+	statement.stmt.setSrcInfo(reader->getInputFileName().c_str());
+
 	/// initialize parser  if needed
 	if( !parser ) {
 		parser = XML_ParserCreate(NULL);
@@ -845,6 +894,7 @@ int BELParserXML::getTag( const char* s ) const
 	case 's':
 	CHECK_4CW("tmt",TAG_STATEMENT )  // <stmt>
 	CHECK_6CW("tmset",TAG_STMSET )  // <stmset>
+	CHECK_6CW("ubset",TAG_SUBSET )  // <subset>
 		break;
 	case 't':
 	CHECK_1CW(TAG_T) // <t>

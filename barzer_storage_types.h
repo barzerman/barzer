@@ -4,7 +4,9 @@
 #include <ay/ay_headers.h>
 #include <barzer_token.h>
 #include <vector>
+#include <algorithm>
 #include <map>
+#include <ay/ay_util.h>
 #include <ay/ay_bitflags.h>
 #include <ay/ay_string_pool.h>
 
@@ -178,9 +180,9 @@ struct StoredEntityClass {
 	uint16_t ec, subclass;
 	
 	StoredEntityClass() : ec(0), subclass(0) {}
-	StoredEntityClass(uint16_t c) : ec(c), subclass(0) 
+	explicit StoredEntityClass(uint16_t c) : ec(c), subclass(0) 
 		{}
-	StoredEntityClass(uint16_t c, uint16_t es) : ec(c), subclass(es) 
+	explicit StoredEntityClass(uint16_t c, uint16_t es) : ec(c), subclass(es) 
 		{}
 	
 	void setClass( uint16_t c ) { ec = c; }
@@ -206,6 +208,10 @@ inline std::ostream& operator <<( std::ostream& fp, const StoredEntityClass& x )
 	return fp;
 }
 
+inline bool operator ==( const StoredEntityClass& l, const StoredEntityClass& r )
+{
+	return (l.ec == r.ec && l.subclass == r.subclass );
+}
 inline bool operator<( const StoredEntityClass& l, const StoredEntityClass& r )
 {
 	if( l.ec < r.ec ) return true;
@@ -227,6 +233,10 @@ struct StoredEntityUniqId {
 		tokId(tid),
 		eclass(cl,sc)
 	{}
+	explicit StoredEntityUniqId( const StoredEntityClass& ec ) : 
+		tokId(0xffffffff),
+		eclass(ec)
+	{}
 
 	inline bool isTokIdValid() const { return (tokId!=INVALID_STORED_ID); }
 	inline bool isValid() const { return ( isTokIdValid() && eclass.isValid() ); }
@@ -239,6 +249,11 @@ inline std::ostream& operator <<(std::ostream& fp, const StoredEntityUniqId& x )
 {
 	x.print(fp);
 	return fp;
+}
+
+inline bool operator ==(const StoredEntityUniqId& l, const StoredEntityUniqId& r ) 
+{
+	return ( l.tokId == r.tokId && l.eclass == r.eclass );
 }
 
 inline bool operator <(const StoredEntityUniqId& l, const StoredEntityUniqId& r ) 
@@ -292,23 +307,44 @@ inline std::ostream& operator <<( std::ostream& fp, const StoredEntity& e )
 	return ( e.print(fp), fp );
 }
 
+typedef StoredEntityUniqId BarzerEntity;
+
 //// generic type used by Barzel among other things
 class BarzerEntityList {
 public:
-	typedef std::vector< StoredEntity > EList;
-	const EList& getList() const {
-		return lst;
-	}
-	void addEntity(const StoredEntity &e) {
-		lst.push_back(e);
-	}
-	std::ostream& print( std::ostream& fp ) const;
+	typedef std::vector< BarzerEntity > EList;
 private:
-	EList lst;
+	EList d_lst;
+	StoredEntityClass d_class;
+	
+public:
+	struct comp_ent_less {
+		bool operator() ( const BarzerEntity& l, const BarzerEntity& r ) const 
+			{ return ay::range_comp().less_than( l.eclass, r.tokId, r.eclass, l.tokId); }
+	};
+	struct comp_eclass_less {
+		bool operator() ( const BarzerEntity& l, const BarzerEntity& r ) const 
+			{ return ( l.eclass < r.eclass ); }
+	};
+	const EList& getList() const 
+		{ return d_lst; }
 
+	bool hasClass( const StoredEntityClass& ec ) const
+		{ return std::binary_search( d_lst.begin(), d_lst.end(), BarzerEntity(ec), comp_ent_less() ); }
+
+	bool hasEntity( const BarzerEntity& ent ) const
+		{ return std::binary_search( d_lst.begin(), d_lst.end(), ent, comp_ent_less() ); }
+
+	void addEntity(const BarzerEntity &e) 
+		{ 
+			EList::iterator i = std::lower_bound( d_lst.begin(), d_lst.end(), e, comp_ent_less() );
+			if( i == d_lst.end() || !( *i == e ) )
+				d_lst.insert(i,e);
+		}
+
+	std::ostream& print( std::ostream& fp ) const;
 };
 
-typedef StoredEntityUniqId BarzerEntity;
 
 }
 #endif // BARZER_STORAGE_TYPES_H

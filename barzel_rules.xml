@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
     xmlns="http://www.barzer.net/barzel/0.1">
+
 <stmt>
     <pat>
         <list v="left"><ent /></list>
@@ -15,8 +16,35 @@
         </func>
     </tran>
 </stmt>
+
 <stmt>
-    <pat><t>foo</t></pat>
-    <tran><func name="mkEnt"><ltrl>TIME_INTERVAL</ltrl><rn v="1" /><rn v="8" /></func></tran>    
+    <pat><t>daterangetest</t></pat>
+    <tran>
+        <func name="mkDateRange">
+            <func name="mkDate"><rn v="15" /><rn v="5" /><rn v="2005" /></func>
+            <func name="mkDate"><rn v="0" /><rn v="1" /><rn v="0" /></func>
+        </func>
+    </tran>
 </stmt>
+
+<stmt>
+    <pat><t>wdtest</t><list v="date"><date /></list></pat>
+    <tran>
+        <func name="getWeekday">
+            <var name="date"/>
+        </func>
+    </tran>
+</stmt>
+
+
+<stmt>
+    <pat><t>foo</t><list v="ltrl"><t /></list></pat>
+    <tran>
+        <func name="getTokId"><func name="mkLtrl"><var name="ltrl" /></func></func>
+    </tran>
+</stmt>
+
+
+
+
 </stmset>
