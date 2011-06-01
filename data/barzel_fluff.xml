@@ -12,8 +12,4 @@
         <tran><func name="mkFluff"><var name="word" /></func></tran>
     </stmt -->
     
-    <stmt>
-    <pat><t>foo</t><t /></pat>
-    <tran><ltrl>foo2</ltrl></tran>
-    </stmt>
 </stmset>

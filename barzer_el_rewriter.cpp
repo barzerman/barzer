@@ -173,7 +173,7 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const B
 	//AYLOG(DEBUG) << "calling funid:" << data.nameId;
 	const StoredUniverse &u = ctxt.universe;
 	const BELFunctionStorage &fs = u.getFunctionStorage();
-	bool ret = fs.call(data.nameId, d_val, d_childValVec);
+	bool ret = fs.call(data.nameId, d_val, d_childValVec, u);
 	return ret;
 }
 

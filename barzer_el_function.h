@@ -25,9 +25,11 @@ struct BELFunctionStorage_holder;
 
 typedef boost::function<bool(const BELFunctionStorage_holder*,
 		                    BarzelEvalResult&,
-		                    const BarzelEvalResultVec&)> BELStoredFunction;
-typedef std::pair<uint32_t,BELStoredFunction> BELStoredFunRec;
+		                    const BarzelEvalResultVec&,
+		                    const StoredUniverse&)> BELStoredFunction;
 typedef boost::unordered_map<uint32_t,BELStoredFunction> BELStoredFunMap;
+//typedef std::pair<uint32_t,BELStoredFunction> BELStoredFunRec;
+typedef BELStoredFunMap::value_type BELStoredFunRec;
 
 class BELFunctionStorage {
 	GlobalPools &globPools;
@@ -37,8 +39,12 @@ public:
 	BELFunctionStorage(GlobalPools &u);
 	~BELFunctionStorage();
 
-	bool call(const char *fname, BarzelEvalResult&, const BarzelEvalResultVec&) const;
-	bool call(const uint32_t, BarzelEvalResult& ,const BarzelEvalResultVec&) const;
+	bool call(const char *fname, BarzelEvalResult&,
+			  const BarzelEvalResultVec&,
+			  const StoredUniverse&) const;
+	bool call(const uint32_t, BarzelEvalResult&,
+			  const BarzelEvalResultVec&,
+			  const StoredUniverse &u) const;
 
 };
 

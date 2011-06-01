@@ -96,7 +96,6 @@ void SearchSession::handle_read(const boost::system::error_code &ec, size_t byte
 		std::istream is(&data_);
 		is.read(chunk, bytes_transferred);
 
-		//boost::asio::streambuf buf;
 		std::ostream os(&outbuf);
 		server->query(chunk, bytes_transferred, os);
 		delete[] chunk;
