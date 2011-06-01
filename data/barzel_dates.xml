@@ -204,7 +204,7 @@
         <list v="high"><date /></list>
         </pat>
         <tran>
-            <func name="mkRange"><ltrl>ASC</ltrl><var name="high" /></func>
+            <func name="mkRange"><ltrl>ASC</ltrl><var name="low" /><var name="high" /></func>
         </tran>
     </stmt>
     
