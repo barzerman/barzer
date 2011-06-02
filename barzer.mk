@@ -50,14 +50,6 @@ lg_ru/barzer_ru_lex.o \
 lg_en/barzer_en_date_util.o \
 lg_ru/barzer_ru_date_util.o \
 
-DIST_FILES = \
-	config.xml \
-	barzel_rules.xml
-DIST_DATA_FILES = \
-	data/barzel_prices.xml \
-	data/barzel_dates.xml \
-	data/barzel_fluff.xml 
-
 INSTALL_DIR = /usr/share/barzer
 INSTALL_DATA_DIR = $(INSTALL_DIR)/data
 
@@ -84,7 +76,8 @@ test: $(BINARY)
 	cd test; rake test
 
 install:
-	install -d $(INSTALL_DIR) $(INSTALL_DATA_DIR)
+	install -d $(INSTALL_DIR) $(INSTALL_DATA_DIR)/configs $(INSTALL_DATA_DIR)/entities $(INSTALL_DATA_DIR)/rules
 	install -m 0755 $(BINARY) $(INSTALL_DIR)
-	install -m 0644 $(DIST_FILES) $(INSTALL_DIR)
-	install -m 0644 $(DIST_DATA_FILES) $(INSTALL_DATA_DIR)
+	install -m 0644 data/configs/* $(INSTALL_DATA_DIR)/configs
+	install -m 0644 data/entities/* $(INSTALL_DATA_DIR)/entities
+	install -m 0644 data/rules/* $(INSTALL_DATA_DIR)/rules
