@@ -233,6 +233,7 @@ public:
 	const DtaIndex& getDtaIdx() const { return gp.dtaIdx; }
 		  DtaIndex& getDtaIdx() 	  { return gp.dtaIdx; }
 
+	size_t getEclassEntCount( const StoredEntityClass& eclass ) const { return getDtaIdx().getEclassEntCount( eclass ); }
 	const BELTrie& getBarzelTrie() const { return trieClusterIter.getCurrentTrie(); }
 		  BELTrie& getBarzelTrie() 	  { return trieClusterIter.getCurrentTrie(); }
 

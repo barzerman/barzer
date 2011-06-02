@@ -300,6 +300,7 @@ struct StoredEntity {
 		{ entId= id; euid = uniqId; }
 	
 	const StoredEntityUniqId& getEuid() const { return euid; }
+	const StoredEntityClass& getEclass() const { return euid.eclass; }
 	void print( std::ostream& ) const;
 };
 inline std::ostream& operator <<( std::ostream& fp, const StoredEntity& e )

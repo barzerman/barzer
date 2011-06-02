@@ -429,7 +429,8 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id )
 				entGrp->addEntity( newEntId );
 				return true;
 			} else {
-				AYDEBUG("mkent inconsistency");
+				std::cerr <<"\n" <<  __FILE__ << ":" << __LINE__ << "translation clash: " << " types: " << 
+				(size_t)( newTran ? newTran->getType() : -1 ) << " vs " << (size_t)(tran->getType())  << std::endl;
 				return false;
 			}
 		} else {

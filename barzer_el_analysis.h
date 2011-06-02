@@ -14,9 +14,20 @@ namespace barzer {
 struct TA_BTN_data {
 	uint32_t numDesc;  // number of descendants + 1 
 	typedef ay::vecset< uint32_t > EntVecSet;
+	typedef ay::vecmap< StoredEntityClass, uint32_t > EclassCountMap;
 	EntVecSet entities;
+
+	EclassCountMap eclassMap;
 	
-	void addEntity( uint32_t i ) { entities.insert(i); }
+	void addOneToEclass( const StoredEntityClass& eclass ) 
+	{
+		EclassCountMap::iterator i = eclassMap.find( eclass );
+		if( i == eclassMap.end() )
+			i = eclassMap.insert( EclassCountMap::value_type( eclass, 0 ) ).first;
+
+		++(i->second);
+	}
+	void addEntity( uint32_t i, const StoredUniverse& u );
 
 	TA_BTN_data() : 
 		numDesc(0)
@@ -31,11 +42,13 @@ struct TrieAnalyzer {
 	typedef boost::unordered_map< BTN_cp, TA_BTN_data > BTNDataHash;
 	BTNDataHash d_dtaHash;
 	
-	size_t d_nameThreshold;   // if < d_nameThreshold - qualifies as a name
-	size_t d_fluffThreshold;  // if > d_fluffThreshold - can be considered fluff
-	
+	size_t d_nameThreshold;   // if < 1+totalCount/(d_nameThreshold+1) - qualifies as a name
+	size_t d_fluffThreshold;  // if > 1+totalCount/(d_fluffThreshold+1) - can be considered fluff
+	size_t d_absNameThreshold; // if < d_absNameThreshold - qualifies as name (should be a very low number)	
+
 	size_t getNameThreshold() const { return d_nameThreshold; }
 	size_t getFluffThreshold() const { return d_fluffThreshold; }
+	size_t getAbsNameThreshold() const { return d_absNameThreshold; }
 	TrieAnalyzer( const StoredUniverse& );
 	
 	void setNameThreshold( size_t n );
@@ -78,6 +91,13 @@ struct TrieAnalyzer {
 	bool getPathTokens( std::vector< uint32_t >& tvec ) const ;
 
 	std::ostream& print( std::ostream& fp ) const;
+
+	/// returns true if this qualifies to be a name in any class 
+	/// puts qualifying entities into nameableEntities
+	bool dtaBelowNameThreshold( TA_BTN_data::EntVecSet& nameableEntities, const TA_BTN_data& dta ) const;
+
+	/// returns true if this is above fluff threshold in ALL classes 
+	bool dtaAboveFluffThreshold( const TA_BTN_data& dta ) const;
 };
 
 //// specific must have 

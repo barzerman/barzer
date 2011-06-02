@@ -20,13 +20,33 @@ class StoredEntityPool {
 	ay::slogrovector<StoredEntity> storEnt;
 
 	typedef std::map< StoredEntityUniqId, StoredEntityId > UniqIdToEntIdMap;
+	typedef std::map< StoredEntityClass, uint32_t > EclassStatsMap;
+
 	UniqIdToEntIdMap euidMap;
+
+	EclassStatsMap eclassMap;
 
 	friend class DtaIndex;
 	void clear()
-		{ storEnt.vec.clear(); }
+		{ 
+			eclassMap.clear();
+			euidMap.clear();
+			storEnt.vec.clear(); 
+		}
 	StoredEntity& getEnt( StoredEntityId id ) { return storEnt.vec[ id ]; }
+	
+	void addOneToEclass( const StoredEntityClass& eclass) {
+		EclassStatsMap::iterator i = eclassMap.find( eclass );
+		if( i == eclassMap.end() ) 
+			i = eclassMap.insert( EclassStatsMap::value_type( eclass, 0 ) ).first;
+		
+	}
 public:	
+	uint32_t getEclassEntCount( const StoredEntityClass& eclass ) const 
+	{
+		EclassStatsMap::const_iterator i = eclassMap.find( eclass );
+		return( i == eclassMap.end() ? 0: i->second );
+	}
 	inline const StoredEntityId getEntIdByEuid( const StoredEntityUniqId& euid ) const
 	{
 		UniqIdToEntIdMap::const_iterator i = euidMap.find( euid );
@@ -277,6 +297,8 @@ public:
 	{
 		return entPool.getEntByIdSafe(id);
 	}
+	uint32_t getEclassEntCount( const StoredEntityClass& eclass ) const 
+		{ return entPool.getEclassEntCount( eclass ); }
 }; 
 /// EntPropCompatibility is an index used to determine whether a particular entity can serve as a property for 
 /// another entity

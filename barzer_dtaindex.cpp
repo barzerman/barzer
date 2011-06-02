@@ -18,12 +18,13 @@ StoredEntity& StoredEntityPool::addOneEntity( bool& madeNew, const StoredEntityU
 
 		return storEnt.vec[ entId ];
 	}
-		
+
 	StoredEntityId entId = storEnt.vec.size();
 	(insPair.first->second) = entId; // update euid --> entid map value with the newly generated entid
 	
 	StoredEntity& e = storEnt.extend(); 
 	e.setAll( entId, uniqId );
+	addOneToEclass( uniqId.eclass );		
 	return e;
 }
 StoredToken& StoredTokenPool::addCompoundedTok( bool& newAdded, uint32_t cwid, uint16_t numW, uint16_t len )

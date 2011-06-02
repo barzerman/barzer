@@ -21,7 +21,18 @@ printf( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<stmset xmlns:xsi=\"http://
 	printf( "</tran></stmt>\n" )
 }
 /FLUFF/ {
-	printf ("***FLUFF:%s\n", $0 )
+	split( $0, f, ":" )
+	printf( "<stmt>" )
+	printf( "<pat>" )
+	split( f[2], tok, " " )
+
+	for( t in tok ) {
+		printf( "<t>%s</t>", tok[t] );
+	}
+	printf( "</pat><tran>" )
+	printf ("<ltrl t=\"fluff\">%s</ltrl>", f[2] )
+	printf( "</tran></stmt>\n" )
+
 }
 END {
 printf( "</stmset>\n" );
