@@ -1,0 +1,5 @@
+Contains hierarchy for vendor data.
+For example,
+
+data/vendor/bbc/rules
+data/vendor/bbc/entities
