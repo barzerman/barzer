@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# An old startup script, deals with just one instance.
+# Replaced by barzer-init.d.rb
+
 PATH=/bin:/usr/bin:/sbin:/usr/sbin
 
 DESC="Barzer Server"
