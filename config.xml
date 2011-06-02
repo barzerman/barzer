@@ -7,7 +7,8 @@
         <file>barzel_rules.xml</file>
         <file>data/barzel_ru_dates.xml</file>
         <file>data/barzel_ru_prices.xml</file>
-        <file>shit.xml</file>
+        <file>data/bbc/shows.xml</file>
+        <file>/barzer/data/bbc/bbc_shows_autonames.xml</file>
     </rules>
     <entities>
         <file>data/time_ent.xml</file>

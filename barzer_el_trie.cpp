@@ -394,7 +394,7 @@ const BarzelTrieNode* BELTrie::addPath( const BELStatementParsed& stmt, const BT
 	if( n ) {
 		if( n->hasValidTranslation() && n->getTranslationId() != transId ) {
 			if( !tryAddingTranslation(n,transId) ) {
-				std::cerr << "BARZEL TRANSLATION CLASH:" << stmt.getSourceName() << ":" << stmt.getStmtNumber() << "\n";
+				std::cerr << "\nBARZEL TRANSLATION CLASH:" << stmt.getSourceName() << ":" << stmt.getStmtNumber() << "\n";
 			}
 		} else
 			n->setTranslation( transId );
