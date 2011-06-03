@@ -1,5 +1,6 @@
 #include <barzer_barz.h>
 #include <barzer_parse.h>
+#include <barzer_el_chain.h>
 
 
 namespace barzer {
@@ -65,5 +66,15 @@ int Barz::semanticParse( QSemanticParser& sem, const QuestionParm& qparm )
 
 	return sem.semanticize( *this, qparm );
 }
+//// post-semantcial interpretation 
+int Barz::postSemanticParse( QSemanticParser& sem, const QuestionParm& qparm )
+{
+	/// potprocessing the beadChain
+	typedef BarzelBeadChain::Range  BeadRange;
+	BeadRange rng = beadChain.getFullRange();
+	//// collapsing consecutive entities
+	return 0;
+}
+
 
 } // barzer namepace ends
