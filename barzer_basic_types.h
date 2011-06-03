@@ -23,6 +23,7 @@ struct Universe;
 struct BarzerNone {
 };
 inline bool operator<( const BarzerNone& l, const BarzerNone& r ) { return false; }
+inline bool operator ==( const BarzerNone& l, const BarzerNone& r ) { return true; }
 /// pure numbers
 class BarzerNumber {
 public:
@@ -95,7 +96,23 @@ public:
 		else  
 			return fp << "NaN";
 	}
+	bool isEqual( const BarzerNumber& r ) const
+	{
+		if( type != r.type )
+			return false;
+		else {
+			switch(type) {
+			case NTYPE_NAN: return true;
+			case NTYPE_INT: return ( n.i == r.n.i );
+			case NTYPE_REAL: return ( n.real == r.n.real );
+			default: return false; // should never be the case 
+			}
+		}
+	}
 };
+
+inline bool operator == ( const BarzerNumber& l, const BarzerNumber& r ) 
+	{ return l.isEqual(r); }
 
 inline std::ostream& operator <<( std::ostream& fp, const BarzerNumber& n )
 { return n.print(fp); }
@@ -182,6 +199,7 @@ struct BarzerDate {
 	}
 	std::ostream& print( std::ostream& fp ) const 
 		{ return ( fp << std::dec << (int)month << '/' << (int)day << '/' << year ); }
+
 	bool lessThan( const BarzerDate& r ) const
 	{
 		return ay::range_comp( ).less_than(
@@ -189,10 +207,14 @@ struct BarzerDate {
 			r.year,	r.month, r.day
 		);
 	}
+	bool isEqual( const BarzerDate& r ) const
+	{ return( (year == r.year) && (month == r.month) && (day  == r.day )); }
 };
 inline std::ostream&  operator<<( std::ostream& fp, const BarzerDate& d )
 { return ( d.print(fp) ); }
 
+inline bool operator ==( const BarzerDate& l, const BarzerDate& r )
+{ return l.isEqual(r); }
 inline bool operator<( const BarzerDate& l, const BarzerDate& r )
 { return l.lessThan(r); }
 
@@ -241,7 +263,13 @@ struct BarzerTimeOfDay {
 	{
 		return (secSinceMidnight< r.secSinceMidnight);
 	}
+	inline bool isEqual( const BarzerTimeOfDay& r ) const
+	{
+		return (secSinceMidnight == r.secSinceMidnight);
+	}
 };
+inline bool operator ==( const BarzerTimeOfDay& l, const BarzerTimeOfDay& r )
+{ return l.isEqual(r); }
 inline bool operator <( const BarzerTimeOfDay& l, const BarzerTimeOfDay& r )
 { return l.lessThan(r); }
 
@@ -266,6 +294,8 @@ struct BarzerDateTime {
 			r.date,		r.timeOfDay
 		);
 	}
+	inline bool isEqual( const BarzerDateTime& r ) const
+		{ return( (date == r.date) && (timeOfDay == r.timeOfDay) ); }
 	std::ostream& print( std::ostream& fp ) const
 	{
 		return( fp << date << "-" << timeOfDay );
@@ -284,6 +314,8 @@ struct BarzerDateTime {
 };
 
 
+inline bool operator == ( const BarzerDateTime& l, const BarzerDateTime& r )
+	{ return l.isEqual( r ); }
 inline bool operator< ( const BarzerDateTime& l, const BarzerDateTime& r )
 	{ return l.lessThan( r ); }
 inline std::ostream& operator<< ( std::ostream& fp, const BarzerDateTime& x )
@@ -342,7 +374,12 @@ public:
 	bool isStop() const { return type == T_STOP; }
 	bool isPunct() const { return type == T_PUNCT; }
 	bool isCompound() const { return type == T_COMPOUND; }
+	inline bool isEqual( const BarzerLiteral& r ) const 
+		{  return( type == r.type && theId == r.theId ); }
 };
+inline bool operator == ( const BarzerLiteral& l, const BarzerLiteral& r ) 
+{ return l.isEqual(r); }
+
 /// range of continuous values (int,real,date,time ...)
 struct BarzerRange {
 	typedef std::pair< BarzerNone, BarzerNone > None;
@@ -350,7 +387,7 @@ struct BarzerRange {
 	typedef std::pair< float, float > Real;
 	typedef std::pair< BarzerTimeOfDay, BarzerTimeOfDay > TimeOfDay;
 	typedef std::pair< BarzerDate, BarzerDate > Date;
-	typedef std::pair< BarzerDate, BarzerDate > Entity;
+	typedef std::pair< BarzerEntity, BarzerEntity > Entity;
 
 	typedef boost::variant<
 		None,
@@ -401,10 +438,15 @@ struct BarzerRange {
 		Less_visitor( const Data& l ) : leftVal(l) {}
 		template <typename T> bool operator()( const T& rVal ) const { return (boost::get<T>( leftVal ) < rVal); }
 	};
+	struct Equal_visitor : public boost::static_visitor<bool> {
+		typedef BarzerRange::Data Data;
+		const Data& leftVal;
+		Equal_visitor( const Data& l ) : leftVal(l) {}
+		template <typename T> bool operator()( const T& rVal ) const { return (boost::get<T>( leftVal ) == rVal); }
+	};
 
 	bool lessThan( const BarzerRange& r ) const
 	{
-		return ( dta.which() < r.dta.which()  );
 		if( dta.which() < r.dta.which() ) 
 			return true;
 		else if( r.dta.which() < dta.which() ) 
@@ -412,14 +454,19 @@ struct BarzerRange {
 		else  /// this guarantees that the left and right types are the same 
 			return boost::apply_visitor( Less_visitor(dta), r.dta );
 	}
+	bool isEqual( const BarzerRange& r )  const
+	{
+		if( dta.which() != r.dta.which() ) 
+			return false;
+		else  /// this guarantees that the left and right types are the same 
+			return boost::apply_visitor( Equal_visitor(dta), r.dta );
+	}
 	/*
 	bool lessThan( const BarzerRange& r ) const { return( dta.which() < r.dta.which() ) ; }
 	*/
 };
-inline bool operator< ( const BarzerRange& l, const BarzerRange& r ) 
-{
-	return l.lessThan(r);
-}
+inline bool operator== ( const BarzerRange& l, const BarzerRange& r ) { return l.isEqual(r); }
+inline bool operator< ( const BarzerRange& l, const BarzerRange& r ) { return l.lessThan(r); }
 inline std::ostream& operator <<( std::ostream& fp, const BarzerRange& x )
 	{ return( x.print(fp) ); }
 
@@ -441,8 +488,22 @@ struct BarzerEntityRangeCombo {
 
 	std::ostream& print( std::ostream& fp ) const
 		{ return ( d_range.print( fp )<<"("  << d_entId << ":" << d_unitEntId << ")" ); }
+	bool isEqual( const BarzerEntityRangeCombo& r ) const  
+	{ return( (d_entId == r.d_entId) && (d_unitEntId == r.d_unitEntId) && (d_range == r.d_range) ); }
+	bool lessThan( const BarzerEntityRangeCombo& r ) const
+	{
+		return ay::range_comp( ).less_than(
+			d_entId, d_unitEntId, d_range,
+			r.d_entId, r.d_unitEntId, r.d_range
+		);
+	}
 };
 
+inline bool operator ==( const BarzerEntityRangeCombo& l, const BarzerEntityRangeCombo& r )
+{ return l.isEqual(r); }
+
+inline bool operator <( const BarzerEntityRangeCombo& l, const BarzerEntityRangeCombo& r )
+{ return l.lessThan(r); }
 /// ERC expression for example (ERC and ERC ... ) 
 struct BarzerERCExpr {
 	typedef boost::variant<
@@ -508,7 +569,20 @@ struct BarzerERCExpr {
 	}
 	std::ostream& print( std::ostream& fp ) const;
 
+	bool lessThan( const BarzerERCExpr& r ) const 
+	{
+			return ay::range_comp( ).less_than(
+				d_data, d_type, d_eclass ,
+				r.d_data, r.d_type, r.d_eclass 
+			);
+	}
+	bool isEqual( const BarzerERCExpr& r ) const 
+	{ return ( (d_data == r.d_data) && (d_type == r.d_type) && (d_eclass == r.d_eclass) ); }
 };
+inline bool operator< ( const BarzerERCExpr& l, const BarzerERCExpr& r )
+	{ return l.lessThan(r); }
+inline bool operator== ( const BarzerERCExpr& l, const BarzerERCExpr& r )
+	{ return l.isEqual(r);}
 
 } // namespace barzer ends
 

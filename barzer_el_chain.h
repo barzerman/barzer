@@ -20,6 +20,8 @@ struct BarzelBeadBlank {
 	std::ostream& print( std::ostream& fp ) const
 		 { return ( fp << "<blankbead>" ); }
 };
+inline bool operator< ( const BarzelBeadBlank& l, const BarzelBeadBlank& r ) 
+{ return false; }
 
 /// combination 
 typedef boost::variant<
@@ -102,6 +104,11 @@ struct BarzelBeadExpression {
 		return ( fp << "<expression>" );
 	}
 };
+inline bool operator< ( const BarzelBeadExpression& l, const BarzelBeadExpression& r )
+{
+	return false;
+}
+
 typedef boost::variant <
 	BarzelBeadBlank,
 	BarzelBeadAtomic,
@@ -261,8 +268,9 @@ struct BarzelBeadData_EQ : public boost::static_visitor<bool> {
 	    { return false; }
 	bool operator()(const BarzelBeadAtomic &left, const BarzelBeadAtomic &right) const
 		{ return boost::apply_visitor(*this, left.getData(), right.getData()); }
-	template<class T> bool operator()(const T &left, const T &right) const
-		{ return ay::bcs::equal(left, right); }
+	template<class T> bool operator()(const T &l, const T &r) const
+		{ return( l ==r ); }
+		// { return ay::bcs::equal(left, right); }
 	template<class T, class U> bool operator()(const T&, const U&) const { return false; }
 };
 

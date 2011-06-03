@@ -94,6 +94,12 @@ public:
 		lohi(data);
 		os << "</date>";
 	}
+	void operator()(const BarzerRange::Entity &data) {
+		os << "<entrange>";
+
+		//printEntity(const BarzerEntity &euid)
+		os << "</entrange>";
+	}
 
 };
 
