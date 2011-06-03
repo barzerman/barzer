@@ -332,6 +332,7 @@ struct BELFunctionStorage_holder {
 							        const BarzelEvalResultVec &rvec,\
 							        const StoredUniverse &q_universe) const
 
+    #define SETSIG(x) static const char *sig = #x;
 	// makers
 	STFUN(mkDate) //(d) | (d,m) | (d,m,y)
 	{
@@ -1207,74 +1208,54 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 
-	// this looks just horrible, need to just throw it all away :\.
 
-	typedef boost::function<bool(const BarzerEntity&)> ELPredFn;
-	typedef boost::function<bool(const BarzerEntity&, uint32_t)> ELCheckFn;
+	typedef boost::function<bool(const BarzerEntity&, uint32_t, uint32_t, uint32_t)> ELCheckFn;
 
-	static bool voidELpred(const BarzerEntity&) { return true; }
-
-	struct ELPredPair {
-		ELPredFn left;
-		ELPredFn right;
-		ELPredPair(ELPredFn l, ELPredFn r) : left(l), right(r) {}
-		inline bool operator()(const BarzerEntity& ent) const {
-			return left(ent) && right(ent);
-		}
-	};
-
-	struct ELCheck {
-		uint32_t id;
-		ELCheckFn fun;
-		ELCheck(uint32_t i, ELCheckFn f) : id(i), fun(f) {}
-		inline bool operator()( const BarzerEntity &ent ) { return fun(ent, id); }
-	};
-
-	inline static bool checkSC(const BarzerEntity& ent, uint32_t id)
-		{ return ent.eclass.subclass == (uint16_t)id; }
-	inline static bool checkClass(const BarzerEntity& ent, uint32_t id)
-		{ return ent.eclass.ec == (uint16_t)id; }
-	inline static bool checkId(const BarzerEntity& ent, uint32_t id)
-		{ return ent.tokId == id; }
+	inline static bool checkClass(const BarzerEntity& ent, uint32_t cl, uint32_t scl = 0, uint32_t id = 0)
+		{ return ent.eclass.ec == (uint16_t)cl; }
+	inline static bool checkSC(const BarzerEntity& ent, uint32_t cl, uint32_t scl, uint32_t id = 0)
+		{ return ent.eclass.subclass == (uint16_t)scl && checkClass(ent, cl); }
+	inline static bool checkId(const BarzerEntity& ent, uint32_t cl, uint32_t scl, uint32_t id)
+		{ return ent.tokId == id && checkSC(ent, cl, scl); }
 
 
 	STFUN(filterEList) // (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
 	{
+		//static const char *sig =
+		//	"filterEList(BarzerEntityList, BarzerNumber, [BarzerNumber, [BarzerNumber]])";
+		SETSIG(filterEList(BarzerEntityList, BarzerNumber, [BarzerNumber, [BarzerNumber]]));
 		BarzerEntityList outlst;
 		const BarzerEntityList::EList lst = getAtomic<BarzerEntityList>(rvec[0]).getList();
-		ELPredFn pred = voidELpred;
+		uint32_t cl = 0, scl = 0, id = 0;
+		ELCheckFn pred = checkClass;
+		bool setf = true;
 		try {
 			switch(rvec.size()) {
-			case 4: {
-				uint32_t id = getAtomic<BarzerNumber>(rvec[3]).getInt();
-				pred = ELPredPair( ELCheck(id, checkId), pred );
-			}
-			case 3: {
-				uint32_t scl = getAtomic<BarzerNumber>(rvec[2]).getInt();
-				pred = ELPredPair( ELCheck(scl, checkSC),	pred );
-			}
-			case 2: {
-				uint32_t id = getAtomic<BarzerNumber>(rvec[1]).getInt();
-				pred = ELPredPair( ELCheck(id, checkClass), pred );
+			case 4:
+				id = getAtomic<BarzerNumber>(rvec[3]).getInt();
+				pred = checkId;
+				setf = false;
+			case 3:
+				scl = getAtomic<BarzerNumber>(rvec[2]).getInt();
+				if (setf) pred = checkSC;
+			case 2:
+				id = getAtomic<BarzerNumber>(rvec[1]).getInt();
 				for(BarzerEntityList::EList::const_iterator it = lst.begin();
 														    it != lst.end();
 														    ++it) {
-					if (pred(*it)) outlst.addEntity(*it);
+					if (pred(*it, cl, scl, id)) outlst.addEntity(*it);
 				}
 				setResult(result, outlst);
 				return true;
-			}
 			default:
-				AYLOG(ERROR) << "filterEList(BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])"
-							 <<  "Need at least 2 arguments";
-				return false;
+				AYLOG(ERROR) << sig << " Need at least 2 arguments";
 			}
 		} catch (boost::bad_get) {
-			AYLOG(ERROR) << "filterEList(BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])"
-						 <<  "Need at least 2 arguments";
+			AYLOG(ERROR) << sig << ": Type mismatch";
 		}
 		return false;
 	}
+    #undef SETSIG
 	#undef STFUN
 };
 
