@@ -323,9 +323,9 @@ struct BELFunctionStorage_holder {
 		typedef boost::unordered_map<uint32_t,uint8_t> PMap;
 		static ay::UniqueCharPool sp = gpools.stringPool;
 		static const PMap pmap = boost::assign::map_list_of
-				(sp.internIt("week"), P_WEEK)
-				(sp.internIt("month"), P_MONTH)
-				(sp.internIt("year"), P_YEAR);
+				(sp.internIt("week"), (uint8_t)P_WEEK)
+				(sp.internIt("month"), (uint8_t)P_MONTH)
+				(sp.internIt("year"), (uint8_t)P_YEAR);
 		PMap::const_iterator it = pmap.find(stringId);
 		return (it == pmap.end()) ? 0 : it->second;
 	}
