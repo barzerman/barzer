@@ -25,8 +25,8 @@ def usage
   puts "Usage: #{File.basename(__FILE__)} {start|stop|status|restart}"
 end
 
-def daemon_running?(daemon_name)
-  system("#{DAEMON_BIN} --name=#{daemon_name} --running")
+def daemon_running?(instance)
+  system("#{DAEMON_BIN} #{daemon_args(instance)} --running")
 end
 
 def pid_file(i)
@@ -40,25 +40,26 @@ def get_pid(i)
   pid
 end
 
+def daemon_args(i)
+  ["--name=barzer-#{i['name']}",
+   "--inherit",
+   "--chdir=#{BARZER_DIR}", 
+   "--output=#{LOG_DIR}/barzer-#{i['name']}.log",
+   "--pidfile=#{pid_file(i)}"].join(' ')
+end
+
 def start_instance(i)
-  logfile = "#{LOG_DIR}/barzer-#{i['name']}.log"
   pidfile = pid_file(i)
 
   # Making sure pid file is writable by barzer user
   FileUtils.touch(pidfile) unless File.exist?(pidfile)
   FileUtils.chown(BARZER_USER, nil, pidfile)
   
-  daemon_args = ["--name=barzer-#{i['name']}",
-                 "--inherit",
-                 "--chdir=#{BARZER_DIR}", 
-                 "--output=#{logfile}",
-                   "--pidfile=#{pidfile}"].join(' ')
-  
-  if daemon_running?(i['name'])
+  if daemon_running?(i)
     puts "Instance #{i['name']} is already running."
   else
     barzer_cmd = "#{BARZER_DIR}/#{BARZER_BIN} server #{i['port']} -cfg #{CONFIG_DIR}/#{i['config']}.xml"
-    start_cmd = "#{SU_BIN} -l #{BARZER_USER} --shell=/bin/bash -c \"#{DAEMON_BIN} #{daemon_args} -- #{barzer_cmd}\""
+    start_cmd = "#{SU_BIN} -l #{BARZER_USER} --shell=/bin/bash -c \"#{DAEMON_BIN} #{daemon_args(i)} -- #{barzer_cmd}\""
     start_success = system(start_cmd)
     if start_success
       puts "Instance #{i['name']} started successfully."
@@ -85,11 +86,11 @@ def force_stop
 end
 
 def stop_instance(i)
-  if daemon_running?(i['name'])
-    system("${DAEMON_BIN --name=#{i['name']} --stop")
+  if daemon_running?(i)
+    system("${DAEMON_BIN #{daemon_args(i)} --stop")
 
     tries = 0
-    while daemon_running?(i['name']) && tries < 5 do
+    while daemon_running?(i) && tries < 5 do
       tries += 1
     end
 
