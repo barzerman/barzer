@@ -87,7 +87,7 @@ end
 
 def stop_instance(i)
   if daemon_running?(i)
-    system("${DAEMON_BIN #{daemon_args(i)} --stop")
+    system("#{DAEMON_BIN} #{daemon_args(i)} --stop")
 
     tries = 0
     while daemon_running?(i) && tries < 5 do
