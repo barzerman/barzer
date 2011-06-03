@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <rules>
+        <file>data/rules/barzel_prices.xml</file>
+        <file>data/rules/barzel_dates.xml</file>
+        <file>data/rules/barzel_fluff.xml</file>
+        <file>data/rules/barzel_rules.xml</file>
+        <file>data/rules/barzel_ru_dates.xml</file>
+        <file>data/rules/barzel_ru_prices.xml</file>
+        <file>data/vendor/bbc/rules/shows.xml</file>
+        <file>data/vendor/bbc/rules/bbc_shows_autonames.xml</file>
+    </rules>
+    <entities>
+        <file>data/entities/time_ent.xml</file>
+    </entities>
+    <logging>
+        <level>DEBUG</level>
+        <file>barzer.log</file>
+    </logging>
+    <users>
+        <user id="1">
+            <trieset>
+                <trie class="class1" name="1" />
+            </trieset>
+        </user>
+    </users>
+</config>

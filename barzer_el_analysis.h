@@ -74,6 +74,7 @@ struct TrieAnalyzer {
 		return getUniverse().getDtaIdx().resolveStoredTokenStr( euid.tokId ); 
 	}
 	const StoredUniverse& getUniverse() const { return d_universe; }
+	size_t getTotalEntCount() const { return getUniverse().getDtaIdx().getNumberOfEntities(); }
 	BarzelTrieTraverser_depth& getTraverser() { return d_trav; }
 	void updateAnalytics( BTN_cp, TA_BTN_data& dta );
 	bool operator()( const BarzelTrieNode& t ) ;
@@ -98,6 +99,10 @@ struct TrieAnalyzer {
 
 	/// returns true if this is above fluff threshold in ALL classes 
 	bool dtaAboveFluffThreshold( const TA_BTN_data& dta ) const;
+	bool isUnderThreshold( size_t num, size_t totalCount, size_t ratio ) const
+	{ return( num < (totalCount/ratio) ); }
+	bool isOverThreshold( size_t num, size_t totalCount, size_t ratio ) const
+	{ return( num >= (totalCount/ratio) ); }
 };
 
 //// specific must have 

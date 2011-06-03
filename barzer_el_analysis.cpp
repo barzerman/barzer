@@ -223,7 +223,7 @@ bool TrieAnalyzer::dtaAboveFluffThreshold( const TA_BTN_data& dta ) const
 				return false;
 		}
 	}
-	return true;
+	return isOverThreshold(dta.entities.size(),getTotalEntCount(),getFluffThreshold()) ;
 }
 ///// name producer 
 
@@ -237,9 +237,12 @@ bool TANameProducer::operator()( TrieAnalyzer& analyzer, const BarzelTrieNode& t
 	TA_BTN_data::EntVecSet nameableEntities;
 
 	if( dta ) {
-		const TA_BTN_data::EntVecSet* entitiesP = &(dta->entities);
+		const TA_BTN_data::EntVecSet* entitiesP = 0;
 			
-		if( dta->entities.size() <= analyzer.getNameThreshold() ) 
+
+		if( dta->entities.size() < analyzer.getAbsNameThreshold() || 
+			analyzer.isUnderThreshold(dta->entities.size(),analyzer.getTotalEntCount(),analyzer.getNameThreshold()) 
+		) 
 			entitiesP = &(dta->entities);
 		else {
 			nameableEntities.clear();

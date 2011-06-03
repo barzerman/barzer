@@ -53,8 +53,11 @@ struct BarzelBeadAtomic {
 	
 	const BarzerLiteral* getLiteral() const { return boost::get<BarzerLiteral>( &dta ); }
 
+	const BarzerEntity* getEntity() const { return boost::get<BarzerEntity>( &dta ); }
+
 	const BarzerNumber& getNumber() const { return boost::get<BarzerNumber>(dta); }
 
+	bool isEntity() const { return dta.which() == BarzerEntity_TYPE; }
 	bool isLiteral() const { return dta.which() == BarzerLiteral_TYPE; }
 	bool isStopLiteral() const { 
 		const BarzerLiteral* bl = getLiteral();
@@ -148,10 +151,17 @@ public:
 
 	const BarzelBeadAtomic* getAtomic() const { return  boost::get<BarzelBeadAtomic>( &dta ); }
 	const BarzelBeadExpression* getExpression() const { return  boost::get<BarzelBeadExpression>( &dta ); }
-	bool isBlankLiteral() const
-		{ 
+	bool isBlankLiteral() const { 
 			const BarzelBeadAtomic* atomic = getAtomic();
 			return( atomic && atomic->isBlankLiteral() )  ;
+		}
+	bool isEntity(StoredEntityClass& ec) const { 
+			const BarzelBeadAtomic* atomic = getAtomic();
+			if( atomic ) {
+				const BarzerEntity* ent = atomic->getEntity();
+				return ( ent ? ( ec=ent->eclass, true): false );
+			} else
+				return false;
 		}
 	size_t getFullNumTokens() const
 	{
