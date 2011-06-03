@@ -92,6 +92,8 @@ template<class T> const T& getAtomic(const BarzelEvalResult &result) {
 
 //template<class T> void setResult(BarzelEvalResult&, const T&);
 
+
+
 template<class T> void setResult(BarzelEvalResult &result, const T &data) {
 	BarzelBeadAtomic atm;
 	atm.setData(data);
@@ -278,6 +280,8 @@ struct BELFunctionStorage_holder {
 		ADDFN(getTokId); // (BarzerLiteral|BarzerEntity)
 		ADDFN(getMDay);
 		ADDFN(getYear);
+		ADDFN(getLow); // (BarzerRange)
+		ADDFN(getHigh); // (BarzerRange)
 		// arith
 		ADDFN(opPlus);
 		ADDFN(opMinus);
@@ -332,7 +336,8 @@ struct BELFunctionStorage_holder {
 							        const BarzelEvalResultVec &rvec,\
 							        const StoredUniverse &q_universe) const
 
-    #define SETSIG(x) static const char *sig = #x;
+    #define SETSIG(x) static const char *sig = #x
+	#define FERROR(x) AYLOG(ERROR) << sig << ": " << #x
 	// makers
 	STFUN(mkDate) //(d) | (d,m) | (d,m,y)
 	{
@@ -689,29 +694,6 @@ struct BELFunctionStorage_holder {
 			: cnt(0), tokId(0xffffff), cl(0), scl(0), universe(u) {}
 
 		bool operator()(const BarzerLiteral &ltrl) {
-			/*
-			const StoredUniverse &u =  holder.globPools;
-			const DtaIndex &dtaIdx = u.getDtaIdx();
-
-			const char *tokStr = u.getStringPool().resolveId(ltrl.getId());
-			if (!tokStr) {
-				AYLOG(ERROR) << "Invalid literal ID: " << ltrl.getId();
-				return false;
-			}
-			//AYLOG(DEBUG) << "making entity id: " << tokStr;
-
-			const StoredToken *tok = dtaIdx.getTokByString(tokStr);
-
-			if (!tok) {
-				AYLOG(ERROR) << "Invalid token: " << tokStr;
-				return false;
-			}
-			//AYLOG(DEBUG) << "making token id: " << tok->getId();
-
-			tokId = tok->getId();
-			return true;
-			*/
-
 			return (tokId = getTokId(ltrl, universe));
 		}
 		bool operator()(const BarzerNumber &rnum) {
@@ -976,6 +958,65 @@ struct BELFunctionStorage_holder {
 		boost::apply_visitor(tig, rvec[0].getBeadData());
 		setResult(result, BarzerNumber((int)tig.tokId));
 		return true;
+	}
+
+	struct RangeGetter : public boost::static_visitor<bool> {
+		BarzelEvalResult &result;
+		uint8_t pos;
+		RangeGetter(BarzelEvalResult &r, uint8_t p = 0) : result(r), pos(p) {}
+
+
+		bool set(const BarzerNone) { return false; }
+		bool set(int i) {
+			setResult(result, BarzerNumber(i));
+			return true;
+		}
+		bool set(float f) {
+			setResult(result, BarzerNumber(f));
+			return true;
+		}
+
+		template<class T> bool set(const T &v) {
+			setResult(result, v);
+			return true;
+		}
+
+		template<class T> bool operator()(const std::pair<T,T> &dt)
+			{ return set(pos ? dt.second : dt.first); }
+		bool operator()(const BarzerRange &r)
+			{ return boost::apply_visitor(*this, r.getData()); }
+		bool operator()(const BarzelBeadAtomic &data)
+			{ return boost::apply_visitor(*this, data.getData()); }
+		// not applicable
+		template<class T> bool operator()(const T&) {
+			AYLOG(ERROR) << "Type mismatch";
+			return false;
+		}
+
+	};
+
+	STFUN(getLow)
+	{
+		SETSIG(getLow(BarzerRange));
+		RangeGetter rg(result, 0);
+		if (rvec.size()) {
+			return boost::apply_visitor(rg, rvec[0].getBeadData());
+		} else {
+			FERROR(Expected at least 1 argument);
+		}
+		return false;
+	}
+
+	STFUN(getHigh)
+	{
+		SETSIG(getLow(BarzerRange));
+		RangeGetter rg(result, 1);
+		if (rvec.size()) {
+			return boost::apply_visitor(rg, rvec[0].getBeadData());
+		} else {
+			FERROR(Expected at least 1 argument);
+		}
+		return false;
 	}
 
 	// arith
@@ -1258,6 +1299,7 @@ struct BELFunctionStorage_holder {
 		}
 		return false;
 	}
+	#undef FERROR
     #undef SETSIG
 	#undef STFUN
 };
