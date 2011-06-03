@@ -2,6 +2,7 @@
 
 # init.d startup script for multiple barzer instances
 
+require 'rubygems'
 require 'xmlsimple'
 require 'fileutils'
 
@@ -13,7 +14,7 @@ BARZER_DIR = '/usr/share/barzer'
 CONFIG_DIR = "#{BARZER_DIR}/data/configs"
 BARZER_BIN = 'barzer.exe'
 DAEMON_BIN = '/usr/bin/daemon'
-SU_BIN = '/usr/bin/su'
+SU_BIN = '/bin/su'
 
 def read_instances_config(config_file)
   data = XmlSimple.xml_in(config_file)
@@ -25,7 +26,7 @@ def usage
 end
 
 def daemon_running?(daemon_name)
-  system("#{DAEMON_BIN} --name=#{daemon_name} --runninig")
+  system("#{DAEMON_BIN} --name=#{daemon_name} --running")
 end
 
 def pid_file(i)
@@ -40,23 +41,25 @@ def get_pid(i)
 end
 
 def start_instance(i)
-  log_file = "#{LOG_DIR}/barzer-#{i['name']}.log"
+  logfile = "#{LOG_DIR}/barzer-#{i['name']}.log"
+  pidfile = pid_file(i)
 
   # Making sure pid file is writable by barzer user
   FileUtils.touch(pidfile) unless File.exist?(pidfile)
-  FileUtils.chown(BARZER_USER, pidfile)
+  FileUtils.chown(BARZER_USER, nil, pidfile)
   
   daemon_args = ["--name=barzer-#{i['name']}",
                  "--inherit",
                  "--chdir=#{BARZER_DIR}", 
-                 "--output=#{log_file}",
-                   "--pidfile=#{pid_file(i)}"].join(' ')
+                 "--output=#{logfile}",
+                   "--pidfile=#{pidfile}"].join(' ')
   
   if daemon_running?(i['name'])
     puts "Instance #{i['name']} is already running."
   else
-    barzer_cmd = "#{BARZER_BIN} server #{i['port']} -cfg #{CONFIG_DIR}/#{i['config']}.xml"
-    start_success = system("#{SU_BIN} -l #{BARZER_USER} --shell=/bin/bash -c \"#{DAEMON_BIN} #{daemon_args} -- #{barzer_cmd}\"")
+    barzer_cmd = "#{BARZER_DIR}/#{BARZER_BIN} server #{i['port']} -cfg #{CONFIG_DIR}/#{i['config']}.xml"
+    start_cmd = "#{SU_BIN} -l #{BARZER_USER} --shell=/bin/bash -c \"#{DAEMON_BIN} #{daemon_args} -- #{barzer_cmd}\""
+    start_success = system(start_cmd)
     if start_success
       puts "Instance #{i['name']} started successfully."
       return true
@@ -104,12 +107,12 @@ def stop(instances)
   force_stop if stop_failures
 
   # Many daemons don't delete their pidfiles when they exit.
-  instances.each { |i| File.delete(pid_file(i)) }
+  instances.each { |i| File.delete(pid_file(i)) if File.exist?(pid_file(i)) }
 end
 
 def status(instances)
   instances.each do |i|
-    if daemon_running(i)
+    if daemon_running?(i)
       puts "Instance #{i['name']} is running with the pid #{get_pid(i)}"
     else
       # TODO: detect stray processes and stray pid files
@@ -119,8 +122,8 @@ end
 
 def restart(instances)
   puts "Restarting barzer instances..."
-  stop(instances)
-  start(instances)
+  stop instances
+  start instances
 end
 
 def main
@@ -131,13 +134,13 @@ def main
   else
     case ARGV[0]
     when "start"
-      start
+      start instances
     when "stop"
-      stop
+      stop instances
     when "status"
-      status
+      status instances
     when "restart"
-      restart
+      restart instances
     else
       usage
     end
