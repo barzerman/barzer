@@ -18,7 +18,7 @@
     </stmt>    
     <stmt>
         <pat>
-            <opt><t>в</t></opt>
+            <t>в</t>
             <list v="hh"><n l="0" h="23" /></list>
             <opt>
                 <any><t>часов</t><t>часа</t></any>
