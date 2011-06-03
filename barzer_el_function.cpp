@@ -375,27 +375,30 @@ struct BELFunctionStorage_holder {
 
 	STFUN(mkDateRange)
 	{
-		if (rvec.size() < 2) {
-			AYLOG(ERROR) << "mkDateRange(Date, DateOffset): Need 2 arguments";
-			return false;
-		}
-		try {
-			const BarzerDate &date = getAtomic<BarzerDate>(rvec[0]),
-					   	     &offset = getAtomic<BarzerDate>(rvec[1]);
-			BarzerDate_calc c;
-			c.set(date.year + offset.year,
-			      date.month + offset.month,
-			      date.day + offset.day);
+		SETSIG(mkDateRange(Date, Number, [Number, [Number]]));
+		int day = 0, month = 0, year = 0;
 
-			BarzerRange range;
-			range.setData(BarzerRange::Date(date, c.d_date));
-			setResult(result, range);
-			return true;
+		try {
+			switch(rvec.size()) {
+			case 4: year = getAtomic<BarzerNumber>(rvec[3]).getInt();
+			case 3: month = getAtomic<BarzerNumber>(rvec[2]).getInt();
+			case 2: {
+				day = getAtomic<BarzerNumber>(rvec[1]).getInt();
+				const BarzerDate &date = getAtomic<BarzerDate>(rvec[0]);
+				BarzerDate_calc c;
+				c.set(date.year + year, date.month + month, date.day + day);
+				BarzerRange range;
+				range.setData(BarzerRange::Date(date, c.d_date));
+				setResult(result, range);
+				return true;
+			}
+			default:
+				AYLOG(ERROR) << sig << ": Need 2-4 arguments";
+			}
 		} catch (boost::bad_get) {
-			AYLOG(ERROR) << "mkDateRange(Date, DateOffset): Arong argument type";
+			AYLOG(ERROR) << sig << ": Wrong argument type";
 		}
 		return false;
-
 	}
 
 
