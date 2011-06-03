@@ -298,7 +298,35 @@
     </func>
   </tran>
   </stmt>
-  
 
+  <stmt>
+    <pat><t>next</t><t>week</t></pat>
+    <tran>
+        <func name="mkDateRange">
+            <func name="opDateCalc">
+                <func name="mkDate" />
+                <func name="opMinus">
+                    <rn v="7" />
+                    <func name="getWeekday"><func name="mkDate" /></func>
+                </func>
+            </func>
+            <func name="mkDate"><rn v="7" /><rn v="0" /><rn v="0" /></func>
+        </func>
+  </tran>
+  </stmt>
   
+  <stmt>
+    <pat><t>next</t><t>month</t></pat>
+    <tran>
+        <func name="mkDateRange">
+            <func name="opDateCalc"><!-- adding 1 month to 1th this month -->
+                <func name="mkDate"><rn v="1" /></func>
+                <rn v="0"/>
+                <rn v="1"/>
+            </func>
+            <!-- and making a range month long -->
+            <func name="mkDate"><rn v="0" /><rn v="1" /><rn v="0" /></func>
+        </func>
+  </tran>
+  </stmt>
 </stmset>

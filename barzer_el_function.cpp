@@ -13,6 +13,7 @@
 #include <barzer_date_util.h>
 #include <barzer_datelib.h>
 #include <barzer_el_chain.h>
+#include <boost/assign.hpp>
 
 namespace barzer {
 
@@ -254,11 +255,11 @@ uint32_t getTokId(const BarzerLiteral &l, const StoredUniverse &u)
 
 
 struct BELFunctionStorage_holder {
-	GlobalPools &globPools;
+	GlobalPools &gpools;
 	BELStoredFunMap funmap;
 
 	#define ADDFN(n) addFun(#n, boost::mem_fn(&BELFunctionStorage_holder::stfun_##n))
-	BELFunctionStorage_holder(GlobalPools &u) : globPools(u) {
+	BELFunctionStorage_holder(GlobalPools &u) : gpools(u) {
 		// makers
 		ADDFN(mkDate);
 		ADDFN(mkDateRange);
@@ -275,6 +276,8 @@ struct BELFunctionStorage_holder {
 		// getters
 		ADDFN(getWeekday); // getWeekday(BarzerDate)
 		ADDFN(getTokId); // (BarzerLiteral|BarzerEntity)
+		ADDFN(getMDay);
+		ADDFN(getYear);
 		// arith
 		ADDFN(opPlus);
 		ADDFN(opMinus);
@@ -287,6 +290,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(opGt);
 		ADDFN(opEq);
 		ADDFN(opSelect);
+		ADDFN(opDateCalc);
 		// string
 		ADDFN(strConcat);
 		// lookup
@@ -299,13 +303,27 @@ struct BELFunctionStorage_holder {
 	#undef ADDFN
 
 	void addFun(const char *fname, BELStoredFunction fun) {
-		const uint32_t fid = globPools.stringPool.internIt(fname);
+		const uint32_t fid = gpools.stringPool.internIt(fname);
 		//AYLOG(DEBUG) << "adding function(" << fname << ":" << fid << ")";
 		addFun(fid, fun);
 	}
 
 	void addFun(const uint32_t fid, BELStoredFunction fun) {
 		funmap.insert(BELStoredFunRec(fid, fun));
+	}
+
+
+	enum { P_WEEK = 1, P_MONTH, P_YEAR, P_DECADE, P_CENTURY };
+
+	uint8_t getPeriod(uint32_t stringId) {
+		typedef boost::unordered_map<uint32_t,uint8_t> PMap;
+		static ay::UniqueCharPool sp = gpools.stringPool;
+		static const PMap pmap = boost::assign::map_list_of
+				(sp.internIt("week"), P_WEEK)
+				(sp.internIt("month"), P_MONTH)
+				(sp.internIt("year"), P_YEAR);
+		PMap::const_iterator it = pmap.find(stringId);
+		return (it == pmap.end()) ? 0 : it->second;
 	}
 
 
@@ -411,6 +429,33 @@ struct BELFunctionStorage_holder {
 		}
 		return false;
 	}
+
+	/*
+	STFUN(mkNextDateRange) {
+		if (!rvec.size()) {
+			AYLOG(ERROR) << "mkNext(Literal): Need at least 1 argument";
+			return false;
+		}
+		try {
+			const BarzerLiteral &l = getAtomic<BarzerLiteral>(rvec[0]);
+			BarzerRange r;
+			BarzerDate today;
+			today.setToday();
+
+			uint8_t period = getPeriod(l.getId());
+			switch(period) {
+			case P_WEEK: {
+				uint8_t wday = today.getWeekday();
+			}
+			case P_MONTH:
+			case P_YEAR:
+			default: return false;
+			}
+		} catch(boost::bad_get) {
+			AYLOG(ERROR) << "mkNext(Literal): Type mismatch";
+		}
+	} //*/
+
 
 	STFUN(mkTime)
 	{
@@ -610,7 +655,7 @@ struct BELFunctionStorage_holder {
 	STFUN(mkRange)
 	{
 		BarzerRange br;
-		RangePacker rp(globPools, br);
+		RangePacker rp(gpools, br);
 
 		for (BarzelEvalResultVec::const_iterator ri = rvec.begin();
 								ri != rvec.end(); ++ri)
@@ -624,7 +669,7 @@ struct BELFunctionStorage_holder {
 									const uint16_t cl, const uint16_t scl) const
 	{
 		const StoredEntityUniqId euid(tokId, cl, scl);
-		return globPools.dtaIdx.getEntByEuid(euid);
+		return gpools.dtaIdx.getEntByEuid(euid);
 	}
 
 
@@ -817,7 +862,7 @@ struct BELFunctionStorage_holder {
 			return false;
 		}
 
-		ErcExprPacker p(globPools);
+		ErcExprPacker p(gpools);
 
 		for(BarzelEvalResultVec::const_iterator it = rvec.begin();
 											    it != rvec.end(); ++it) {
@@ -834,13 +879,13 @@ struct BELFunctionStorage_holder {
 			return false;
 		}
 
-		const char* str = extractString(globPools, rvec[0]);
+		const char* str = extractString(gpools, rvec[0]);
 		if (!str) {
 			AYLOG(ERROR) << "Need a string";
 			return false;
 		}
 
-		uint32_t id = globPools.stringPool.internIt(str);
+		uint32_t id = gpools.stringPool.internIt(str);
 		BarzerLiteral lt;
 		lt.setString(id);
 
@@ -871,11 +916,30 @@ struct BELFunctionStorage_holder {
 
 	STFUN(getWeekday) {
 		BarzerDate bd;
-		if (rvec.size() >= 1)
+		if (rvec.size())
 			bd = getAtomic<BarzerDate>(rvec[0]);
+		else bd.setToday();
 
 		BarzerNumber n(bd.getWeekday());
 		setResult(result, n);
+		return true;
+	}
+
+	STFUN(getMDay) {
+		BarzerDate bd;
+		if (rvec.size())
+			bd = getAtomic<BarzerDate>(rvec[0]);
+		else bd.setToday();
+		setResult(result, BarzerNumber(bd.day));
+		return true;
+	}
+
+	STFUN(getYear) {
+		BarzerDate bd;
+		if (rvec.size())
+			bd = getAtomic<BarzerDate>(rvec[0]);
+		else bd.setToday();
+		setResult(result, BarzerNumber(bd.year));
 		return true;
 	}
 
@@ -1057,10 +1121,38 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 
+	STFUN(opDateCalc)
+	{
+		static const char *sig = "opDateCalc(Date ,Number[, Number[, Number]]):";
+		try {
+
+			int month = 0, year = 0, day = 0;
+			switch (rvec.size()) {
+			case 4: year = getAtomic<BarzerNumber>(rvec[3]).getInt();
+			case 3: month = getAtomic<BarzerNumber>(rvec[2]).getInt();
+			case 2: {
+				day = getAtomic<BarzerNumber>(rvec[1]).getInt();
+				const BarzerDate &date = getAtomic<BarzerDate>(rvec[0]);
+				BarzerDate_calc c;
+				c.set(date.year + year,
+				      date.month + month,
+				      date.day + day);
+				setResult(result, c.d_date);
+				return true;
+			}
+			default: AYLOG(ERROR) << sig << " Need 2-4 arguments";
+			}
+		} catch (boost::bad_get) {
+			AYLOG(ERROR) << sig << " type mismatch";
+		}
+		return false;
+	}
+
+
 	// string
 	STFUN(strConcat) { // strfun_strConcat(&result, &rvec)
 		if (rvec.size()) {
-			StrConcatVisitor scv(globPools);
+			StrConcatVisitor scv(gpools);
 			for (BarzelEvalResultVec::const_iterator ri = rvec.begin();
 													 ri != rvec.end(); ++ri) {
 				if (!boost::apply_visitor(scv, ri->getBeadData())) return false;
@@ -1084,7 +1176,7 @@ struct BELFunctionStorage_holder {
 		}
 		try {
 			const BarzerLiteral &bl = getAtomic<BarzerLiteral>(rvec[0]);
-			const uint8_t mnum = globPools.dateLookup.lookupMonth(bl.getId());
+			const uint8_t mnum = gpools.dateLookup.lookupMonth(bl.getId());
 			if (!mnum) return false;
 			BarzerNumber bn(mnum);
 			setResult(result, bn);
@@ -1104,7 +1196,7 @@ struct BELFunctionStorage_holder {
 		}
 		try {
 			const BarzerLiteral &bl = getAtomic<BarzerLiteral>(rvec[0]);
-			uint8_t mnum = globPools.dateLookup.lookupWeekday(bl.getId());
+			uint8_t mnum = gpools.dateLookup.lookupWeekday(bl.getId());
 			if (!mnum) return false;
 			BarzerNumber bn(mnum);
 			setResult(result, bn);
