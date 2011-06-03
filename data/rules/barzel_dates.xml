@@ -298,7 +298,97 @@
     </func>
   </tran>
   </stmt>
-  
 
-  
+  <stmt>
+    <pat><t>next</t><t>week</t></pat>
+    <tran>
+        <func name="mkDateRange">
+            <func name="opDateCalc">
+                <func name="mkDate" />
+                <func name="opMinus">
+                    <rn v="8" />
+                    <func name="getWeekday"><func name="mkDate" /></func>
+                </func>
+            </func>
+            <rn v="6" /><rn v="0" /><rn v="0" />
+        </func>
+  </tran>
+  </stmt>
+  <stmt>
+    <pat><t>last</t><t>week</t></pat>
+    <tran>
+        <func name="mkDateRange">
+            <func name="opDateCalc">
+                <func name="mkDate" />
+                <func name="opMinus">
+                    <rn v="-6" />
+                    <func name="getWeekday"><func name="mkDate" /></func>
+                </func>
+            </func>
+            <rn v="6" /><rn v="0" /><rn v="0" />
+        </func>
+  </tran>
+  </stmt>  
+  <stmt>
+    <pat><t>next</t><t>month</t></pat>
+    <tran>
+        <func name="mkDateRange">
+            <func name="opDateCalc"><!-- adding 1 month to 1th this month -->
+                <func name="mkDate"><rn v="1" /></func>
+                <rn v="0"/>
+                <rn v="1"/>
+            </func>
+            <!-- and making a range month long -->
+            <rn v="0" /><rn v="1" /><rn v="0" />
+        </func>
+  </tran>
+  </stmt>
+  <stmt>
+    <pat><t>last</t><t>month</t></pat>
+    <tran>
+        <func name="mkDateRange">
+            <func name="opDateCalc"><!-- adding 1 month to 1th this month -->
+                <func name="mkDate"><rn v="1" /></func>
+                <rn v="0"/>
+                <rn v="-1"/>
+            </func>
+            <!-- and making a range month long -->
+            <rn v="0" /><rn v="1" /><rn v="0" />
+        </func>
+  </tran>
+  </stmt>  
+  <stmt>
+    <pat><t>next</t><t>year</t></pat>
+    <tran>
+        <func name="mkDateRange">
+            <func name="opDateCalc"><!-- adding 1 year to 1/1/thisYear -->
+                <func name="mkDate"><rn v="1" /><rn v="1" /></func>
+                <rn v="0"/>
+                <rn v="0"/>
+                <rn v="1"/>
+            </func>
+            <!-- and making a range a year long -->
+            <rn v="0" />
+            <rn v="0" />
+            <rn v="1" />
+        </func>
+  </tran>
+  </stmt>
+  <stmt>
+    <pat><t>last</t><t>year</t></pat>
+    <tran>
+        <func name="mkDateRange">
+            <func name="opDateCalc"><!-- adding -1 year to 1/1/thisYear -->
+                <func name="mkDate"><rn v="1" /><rn v="1" /></func>
+                <rn v="0"/>
+                <rn v="0"/>
+                <rn v="-1"/>
+            </func>
+            <!-- and making a range a year long -->
+            <rn v="0" />
+            <rn v="0" />
+            <rn v="1" />
+        </func>
+  </tran>
+  </stmt>
 </stmset>
