@@ -105,7 +105,7 @@ def stop(instances)
 
   stop_failures = []
   instances.each { |i| stop_failures << i['name'] unless stop_instance(i) }
-  force_stop if stop_failures
+  force_stop unless stop_failures.empty?
 
   # Many daemons don't delete their pidfiles when they exit.
   instances.each { |i| File.delete(pid_file(i)) if File.exist?(pid_file(i)) }
