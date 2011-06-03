@@ -22,6 +22,7 @@ struct Universe;
 
 struct BarzerNone {
 };
+inline bool operator<( const BarzerNone& l, const BarzerNone& r ) { return false; }
 /// pure numbers
 class BarzerNumber {
 public:
@@ -349,13 +350,15 @@ struct BarzerRange {
 	typedef std::pair< float, float > Real;
 	typedef std::pair< BarzerTimeOfDay, BarzerTimeOfDay > TimeOfDay;
 	typedef std::pair< BarzerDate, BarzerDate > Date;
+	typedef std::pair< BarzerDate, BarzerDate > Entity;
 
 	typedef boost::variant<
 		None,
 		Integer,
 		Real,
 		TimeOfDay,
-		Date
+		Date,
+		Entity
 	> Data;
 
 	enum {
@@ -363,7 +366,8 @@ struct BarzerRange {
 		Integer_TYPE,
 		Real_TYPE,
 		TimeOfDay_TYPE,
-		Date_TYPE
+		Date_TYPE,
+		Entity_TYPE
 	};
 
 	Data dta;
@@ -383,8 +387,6 @@ struct BarzerRange {
 	Data& getData() { return dta; }
 	uint32_t getType() const { return dta.which(); }
 
-
-
 	bool isBlank() const { return !dta.which(); }
 	void setAsc() { order = ORDER_ASC; }
 	void setDesc() { order = ORDER_DESC; }
@@ -392,10 +394,27 @@ struct BarzerRange {
 	bool isDesc() const { return ORDER_DESC== order; }
 
 	BarzerRange( ) : order(ORDER_ASC) {}
+
+	struct Less_visitor : public boost::static_visitor<bool> {
+		typedef BarzerRange::Data Data;
+		const Data& leftVal;
+		Less_visitor( const Data& l ) : leftVal(l) {}
+		template <typename T> bool operator()( const T& rVal ) const { return (boost::get<T>( leftVal ) < rVal); }
+	};
+
 	bool lessThan( const BarzerRange& r ) const
 	{
-		return( dta.which() < r.dta.which() ) ;
+		return ( dta.which() < r.dta.which()  );
+		if( dta.which() < r.dta.which() ) 
+			return true;
+		else if( r.dta.which() < dta.which() ) 
+			return false;
+		else  /// this guarantees that the left and right types are the same 
+			return boost::apply_visitor( Less_visitor(dta), r.dta );
 	}
+	/*
+	bool lessThan( const BarzerRange& r ) const { return( dta.which() < r.dta.which() ) ; }
+	*/
 };
 inline bool operator< ( const BarzerRange& l, const BarzerRange& r ) 
 {
