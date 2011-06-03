@@ -5,6 +5,7 @@
 
 using namespace barzer;
 ///////// semantic parser 
+
 int QSemanticParser::semanticize( Barz& barz, const QuestionParm& qparm  )
 {
 	err.clear();
@@ -22,6 +23,12 @@ QParser::QParser( const StoredUniverse& u ) :
 	lexer(&(u.getDtaIdx())),
 	semanticizer(u)
 {}
+
+int QParser::interpret_only( Barz& barz, const QuestionParm& qparm )
+{
+	err.semRc = barz.postSemanticParse( semanticizer, qparm );
+	return 0;
+}
 
 int QParser::semanticize_only( Barz& barz, const QuestionParm& qparm )
 {
