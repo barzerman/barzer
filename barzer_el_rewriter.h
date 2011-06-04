@@ -83,11 +83,15 @@ private:
 public:
 	BarzelEvalResult() : d_val(1) {}
 	const BarzelBeadData& getBeadData() const { return d_val[0]; }
+	      BarzelBeadData& getBeadData()       { return d_val[0]; }
 
 	const BarzelBeadDataVec& getBeadDataVec() const { return d_val; }
 	bool isVec() const { return (d_val.size() > 1); }
 	template <typename T> void setBeadData( const T& t ) { d_val[0] = t; }
+	//template <typename T> T& setBeadData( const T& t )
+//		{ return (d_val[0] = t); }
 };
+
 template <>
 inline void BarzelEvalResult::setBeadData<BarzelBeadRange>( const BarzelBeadRange& t ) 
 {
@@ -98,6 +102,7 @@ inline void BarzelEvalResult::setBeadData<BarzelBeadRange>( const BarzelBeadRang
 	if( !d_val.size() )
 		d_val.resize(1);
 }
+ //*/
 
 typedef std::vector< BarzelEvalResult > BarzelEvalResultVec;
 

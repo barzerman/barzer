@@ -674,6 +674,8 @@ struct BELFunctionStorage_holder {
 		return true;
 	}
 
+
+
 	const StoredEntity* fetchEntity(uint32_t tokId,
 									const uint16_t cl, const uint16_t scl) const
 	{
@@ -897,6 +899,48 @@ struct BELFunctionStorage_holder {
 			return false;
 		}
 	}
+
+	struct ExprTagPacker : public boost::static_visitor<bool> {
+		BarzelBeadExpression &expr;
+		ExprTagPacker(BarzelBeadExpression &e) : expr(e) {}
+
+		bool operator()(const BarzelBeadBlank&) {
+			AYLOG(ERROR) << "BarzelBeadBlank encountered";
+			return false;
+		}
+		bool operator()(const BarzelBeadAtomic &data) {
+			expr.addChild(data);
+			return true;
+	    }
+		bool operator()(const BarzelBeadExpression &sexp) {
+			expr.addChild(sexp);
+			return true;
+		}
+	};
+
+	STFUN(mkExprTag) {
+		if (rvec.size()) {
+			try {
+				// to avoid too much copying
+				result.setBeadData(BarzelBeadExpression());
+				BarzelBeadExpression &expr
+					= boost::get<BarzelBeadExpression>(result.getBeadData());
+				ExprTagPacker etp(expr);
+
+				expr.setSid(getAtomic<BarzerLiteral>(rvec[0]).getId());
+				for (BarzelEvalResultVec::const_iterator it = rvec.begin()+1;
+														 it != rvec.end();
+														 ++it) {
+					if(!boost::apply_visitor(etp, it->getBeadData())) return false;
+				}
+				return true;
+			} catch (boost::bad_get) {
+				AYLOG(ERROR) << "Type mismatch";
+			}
+		}
+		return false;
+	}
+
 
 	// getters
 

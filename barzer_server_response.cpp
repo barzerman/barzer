@@ -74,7 +74,7 @@ public:
 	}
 
 	void operator()(const BarzerRange::None &data) {
-		//os << "<norange/>";
+		os << "<norange/>";
 	}
 	void operator()(const BarzerRange::Integer &data) {
 		os << "<num t=\"int\">";
@@ -253,6 +253,19 @@ public:
 
 		os << "</ercexpr>";
 	}
+	void operator()(const BarzelBeadBlank&) {}
+	void operator()(const BarzelBeadAtomic &data)
+	{
+		AYLOG(DEBUG) << "atomic: " << data.getType();
+		os << "    ";
+		boost::apply_visitor(*this, data.getData());
+		os << "\n";
+	}
+	void operator()(const BarzelBeadExpression &data)
+	{
+		os << "<expression>";
+		os << "</expression>";
+	}
 };
 }
 
@@ -260,24 +273,9 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 {
 	os << "<barz>\n";
 	const BarzelBeadChain &bc = barz.getBeads();
+	AtomicVisitor v(os, universe);
 	for (BeadList::const_iterator bli = bc.getLstBegin(); bc.isIterNotEnd(bli); ++bli) {
-		const BarzelBead &bead = *bli;
-		if (bead.isBlank()) {
-			os << " ";
-		} else if (bead.isAtomic()) {
-			os << "    ";
-			AtomicVisitor v(os, universe);
-			boost::apply_visitor(v, bead.getAtomic()->dta);
-			os << "\n";
-		} else if (bead.isExpression()) {
-			// not quite sure what to do with it yet
-			// const BarzelBeadExpression *bbe = bead.getExpression();
-			os << "<expression>";
-			os << "</expression>";
-		} else {
-			AYLOG(ERROR) << "Unknown bead type";
-			// then wtf is this
-		}
+		boost::apply_visitor(v, bli->getBeadData());
 	}
 	os << "</barz>\n";
 	return os;
