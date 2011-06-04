@@ -208,6 +208,7 @@ public:
 	void taghandle_W( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_DATE( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_DATETIME( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_RANGE( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_ENTITY( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_ERCEXPR( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_TIME( const char_cp * attr, size_t attr_sz , bool close=false);

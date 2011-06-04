@@ -469,7 +469,7 @@ void BELParserXML::taghandle_RANGE( const char_cp * attr, size_t attr_sz , bool 
 		switch( n[0] ) {
 		case 'm': // class - c="1"
 			if( *v == 'v' ) 
-				pat.setModeToVal( atoi(v) ); 
+				pat.setModeToVal( );
 			break;
 		case 't': // type 
 			switch( v[0] ) {

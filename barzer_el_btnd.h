@@ -403,6 +403,7 @@ public:
 	BarzerRange& range() { return d_range; }
 	const BarzerRange& range() const { return d_range; }
 
+	BTND_Pattern_Range( ) : d_mode(MODE_TYPE) {}
 	BTND_Pattern_Range( const BarzerRange& r) : 
 		d_range(r),
 		d_mode(MODE_TYPE)
@@ -423,7 +424,7 @@ public:
 		} else 
 			return false;
 	} 
-	std::ostream& print( std::ostream& fp ) const 
+	std::ostream& print( std::ostream& fp,const BELPrintContext& ) const 
 	{ return (fp << '[' << d_range) << ']'; }
 };
 inline bool operator< ( const BTND_Pattern_Range& l, const BTND_Pattern_Range& r ) 
