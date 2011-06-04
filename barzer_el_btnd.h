@@ -388,6 +388,47 @@ inline bool operator< ( const BTND_Pattern_Entity& l, const BTND_Pattern_Entity&
 {
 	return l.lessThan( r );
 }
+class BTND_Pattern_Range : public BTND_Pattern_Base {
+protected:
+	enum {
+		MODE_TYPE, // only compares the range type 
+		MODE_VAL // only compares the range type 
+	};
+	BarzerRange d_range;
+	int d_mode; 
+public:
+	void setModeToType() { d_mode = MODE_TYPE; }
+	void setModeToVal() { d_mode = MODE_VAL; }
+
+	BarzerRange& range() { return d_range; }
+	const BarzerRange& range() const { return d_range; }
+
+	BTND_Pattern_Range( const BarzerRange& r) : 
+		d_range(r),
+		d_mode(MODE_TYPE)
+	{}
+	bool lessThan( const BTND_Pattern_Range& r ) const { 
+		return ay::range_comp().less_than(
+			d_mode, d_range,
+			r.d_mode, r.d_range
+		);
+	}
+	bool operator()( const BarzerRange& e) const 
+	{ 
+		if( d_mode == MODE_TYPE ) {
+			return ( d_range.getType() == e.getType() );
+		}
+		if( d_mode == MODE_VAL ) {
+			return ( d_range.getType() == e.getType() && d_range == e );
+		} else 
+			return false;
+	} 
+	std::ostream& print( std::ostream& fp ) const 
+	{ return (fp << '[' << d_range) << ']'; }
+};
+inline bool operator< ( const BTND_Pattern_Range& l, const BTND_Pattern_Range& r ) 
+{ return l.lessThan(r); }
+
 class BTND_Pattern_ERCExpr : public BTND_Pattern_Base {
 	uint16_t d_exprType, d_exprEclass;
 public:
@@ -428,7 +469,8 @@ typedef boost::variant<
 		BTND_Pattern_DateTime, 			// 8 
 		BTND_Pattern_StopToken,		 	// 9
 		BTND_Pattern_Entity,		    // 10
-		BTND_Pattern_ERCExpr			// 11
+		BTND_Pattern_ERCExpr,			// 11
+		BTND_Pattern_Range				// 12
 > BTND_PatternData;
 
 
@@ -448,6 +490,7 @@ enum {
 	BTND_Pattern_StopToken_TYPE,		// 9
 	BTND_Pattern_Entity_TYPE,           // 10
 	BTND_Pattern_ERCExpr_TYPE,          // 11
+	BTND_Pattern_Range_TYPE,          // 12
 
 
 	/// end of wildcard types - add new ones ONLY ABOVE THIS LINE
@@ -473,6 +516,7 @@ template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_Tim
 template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_DateTime> ( ) const { return  BTND_Pattern_DateTime_TYPE; }
 template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_StopToken> ( ) const { return  BTND_Pattern_StopToken_TYPE; }
 template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_Entity> ( ) const { return  BTND_Pattern_Entity_TYPE; }
+template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_Range> ( ) const { return  BTND_Pattern_Range_TYPE; }
 template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_ERCExpr> ( ) const { return  BTND_Pattern_ERCExpr_TYPE; }
 
 /// pattern tyepe number getter visitor 

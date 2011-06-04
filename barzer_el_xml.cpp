@@ -74,6 +74,7 @@ bool BELParserXML::isValidTag( int tag, int parent ) const
 	case TAG_DATE:
 	case TAG_DATETIME:
 	case TAG_ENTITY:
+	case TAG_RANGE:
 	case TAG_ERCEXPR:
 	case TAG_TIME:
 	case TAG_LIST:
@@ -138,6 +139,7 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 	CASE_TAG(DATE)
 	CASE_TAG(DATETIME)
 	CASE_TAG(ENTITY)
+	CASE_TAG(RANGE)
 	CASE_TAG(ERCEXPR)
 	CASE_TAG(TIME)
 	CASE_TAG(LIST)
@@ -455,6 +457,32 @@ void BELParserXML::taghandle_ERCEXPR( const char_cp * attr, size_t attr_sz , boo
 		}
 	}
 	statement.pushNode( BTND_PatternData(pat) );
+}
+void BELParserXML::taghandle_RANGE( const char_cp * attr, size_t attr_sz , bool close) 
+{ 
+	if( close ) { statement.popNode(); return; }
+	BTND_Pattern_Range pat; 
+
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		switch( n[0] ) {
+		case 'm': // class - c="1"
+			if( *v == 'v' ) 
+				pat.setModeToVal( atoi(v) ); 
+			break;
+		case 't': // type 
+			switch( v[0] ) {
+			case 'i': pat.range().dta = BarzerRange::Integer(); break;
+			case 'r': pat.range().dta = BarzerRange::Real(); break;
+			case 't': pat.range().dta = BarzerRange::TimeOfDay(); break;
+			case 'd': pat.range().dta = BarzerRange::Date(); break;
+			case 'e': pat.range().dta = BarzerRange::Entity(); break;
+			}
+			break;
+		}
+	}
+	statement.pushNode( BTND_PatternData( pat));
 }
 void BELParserXML::taghandle_ENTITY( const char_cp * attr, size_t attr_sz , bool close) 
 { 
@@ -890,6 +918,7 @@ int BELParserXML::getTag( const char* s ) const
 		break;
 	case 'r': 
 	CHECK_2CW("n",TAG_RNUMBER) // <rn>
+	CHECK_5CW("ange",TAG_RANGE) // <range>
 		break;
 	case 's':
 	CHECK_4CW("tmt",TAG_STATEMENT )  // <stmt>

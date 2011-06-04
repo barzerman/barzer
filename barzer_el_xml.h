@@ -51,6 +51,7 @@ public:
 		TAG_DATE, 	// date
 		TAG_DATETIME, 	// date
 		TAG_ENTITY, 	// entity or erc matched on entity 
+		TAG_RANGE, 	// entity or erc matched on entity 
 		TAG_ERCEXPR, 	// expression made of ERCs
 		TAG_TIME, 	// time
 
