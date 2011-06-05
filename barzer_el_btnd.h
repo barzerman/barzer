@@ -422,7 +422,19 @@ public:
 			return ( d_range.getType() == e.getType() );
 		}
 		if( d_mode == MODE_VAL ) {
-			return ( d_range.getType() == e.getType() && d_range == e );
+			if( d_range.getType() == e.getType() ) {
+				if( !e.isEntity() ) {
+					return ( d_range == e );
+				} else {
+					const BarzerRange::Entity* otherEntPair = e.getEntity();
+					const BarzerRange::Entity* thisEntPair = d_range.getEntity();
+					return (
+						thisEntPair->first.matchOther( otherEntPair->first ) &&
+						thisEntPair->second.matchOther( otherEntPair->second ) 
+					);
+				}
+			} else
+				return false;
 		} else 
 			return false;
 	} 

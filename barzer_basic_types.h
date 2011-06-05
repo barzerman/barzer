@@ -414,10 +414,23 @@ struct BarzerRange {
 		ORDER_DESC
 	};
 
+	bool isNone( ) const {return (dta.which() ==None_TYPE); }
+	bool isInteger( ) const {return (dta.which() ==Integer_TYPE); }
+	bool isReal( ) const {return (dta.which() ==Real_TYPE); }
+	bool isTimeOfDay( ) const {return (dta.which() ==TimeOfDay_TYPE); }
+	bool isDate( ) const {return (dta.which() ==Date_TYPE); }
+	bool isEntity( ) const {return (dta.which() ==Entity_TYPE); }
+
+	const None* getNone( ) const { return boost::get<None>( &dta ); }
+	const Integer*  getInteger( ) const {return boost::get<Integer>( &dta ); }
+	const Real*  getReal( ) const {return boost::get<Real>( &dta ); }
+	const TimeOfDay*  getTimeOfDay( ) const {return boost::get<TimeOfDay>( &dta ); }
+	const Date* getDate( ) const {return boost::get<Date>( &dta ); }
+	const Entity* getEntity( ) const {return boost::get<Entity>( &dta ); }
+
 	uint8_t order;  // ASC/DESC
 
 	std::ostream& print( std::ostream& fp ) const;
-
 
 	void setData(const Data &d) { dta = d; }
 	const Data& getData() const { return dta; }
@@ -461,8 +474,10 @@ struct BarzerRange {
 		else  /// this guarantees that the left and right types are the same 
 			return boost::apply_visitor( Equal_visitor(dta), r.dta );
 	}
-	void setEntityClass( const StoredEntityClass& c ) 
-		{ dta = Entity( StoredEntityUniqId(c), StoredEntityUniqId(c)); }
+	Entity& setEntityClass( const StoredEntityClass& c ) { return boost::get<Entity>(dta = Entity( StoredEntityUniqId(c), StoredEntityUniqId(c))); }
+	Entity& setEntity( ) { return( boost::get<Entity>(dta = Entity())); }
+
+	Entity& setEntity( const StoredEntityUniqId& euid1, const StoredEntityUniqId& euid2 ) { return boost::get<Entity>( dta = Entity(euid1,euid2)); }
 };
 inline bool operator== ( const BarzerRange& l, const BarzerRange& r ) { return l.isEqual(r); }
 inline bool operator< ( const BarzerRange& l, const BarzerRange& r ) { return l.lessThan(r); }
