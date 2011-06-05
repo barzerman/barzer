@@ -461,9 +461,8 @@ struct BarzerRange {
 		else  /// this guarantees that the left and right types are the same 
 			return boost::apply_visitor( Equal_visitor(dta), r.dta );
 	}
-	/*
-	bool lessThan( const BarzerRange& r ) const { return( dta.which() < r.dta.which() ) ; }
-	*/
+	void setEntityClass( const StoredEntityClass& c ) 
+		{ dta = Entity( StoredEntityUniqId(c), StoredEntityUniqId(c)); }
 };
 inline bool operator== ( const BarzerRange& l, const BarzerRange& r ) { return l.isEqual(r); }
 inline bool operator< ( const BarzerRange& l, const BarzerRange& r ) { return l.lessThan(r); }

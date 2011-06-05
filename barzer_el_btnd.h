@@ -408,6 +408,8 @@ public:
 		d_range(r),
 		d_mode(MODE_TYPE)
 	{}
+	void setEntityClass( const StoredEntityClass& c ) 
+	{ d_range.setEntityClass(c); }
 	bool lessThan( const BTND_Pattern_Range& r ) const { 
 		return ay::range_comp().less_than(
 			d_mode, d_range,
