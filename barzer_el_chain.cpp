@@ -127,4 +127,12 @@ void BarzelBeadChain::init( const CTWPVec& cv )
 	}
 }
 
+void BarzelBeadExpression::addChild(const SubExpr &exp) {
+	child.push_back(exp);
+}
+void BarzelBeadExpression::addAttribute(uint32_t key, uint32_t value) {
+	attrs.push_back(AttrList::value_type(key, value));
+}
+
+
 } // barzer namespace

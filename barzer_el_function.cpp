@@ -275,6 +275,9 @@ struct BELFunctionStorage_holder {
 		ADDFN(mkErcExpr);
 		ADDFN(mkFluff);
 		ADDFN(mkLtrl);
+		ADDFN(mkExprTag);
+		ADDFN(mkExprAttrs);
+
 		// getters
 		ADDFN(getWeekday); // getWeekday(BarzerDate)
 		ADDFN(getTokId); // (BarzerLiteral|BarzerEntity)
@@ -908,12 +911,9 @@ struct BELFunctionStorage_holder {
 			AYLOG(ERROR) << "BarzelBeadBlank encountered";
 			return false;
 		}
-		bool operator()(const BarzelBeadAtomic &data) {
+
+		template <class T> bool operator()(const T &data) {
 			expr.addChild(data);
-			return true;
-	    }
-		bool operator()(const BarzelBeadExpression &sexp) {
-			expr.addChild(sexp);
 			return true;
 		}
 	};
@@ -941,6 +941,28 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 
+	#define GETID(x) getAtomic<BarzerLiteral>(x).getId()
+	STFUN(mkExprAttrs) {
+		if (rvec.size() >= 3) {
+			try {
+				result.setBeadData(
+						boost::get<BarzelBeadExpression>(rvec[0].getBeadData()));
+				BarzelBeadExpression &expr
+					= boost::get<BarzelBeadExpression>(result.getBeadData());
+
+				size_t len = (rvec.size()-1) & (~1);
+				for (size_t i = 1; i < len; i+=2)
+					expr.addAttribute( GETID(rvec[i]), GETID(rvec[i+1]) );
+				return true;
+			} catch (boost::bad_get) {
+				AYLOG(ERROR) << "Type mismatch";
+			}
+		} else {
+			AYLOG(ERROR) << "need at least 3 arguments";
+		}
+		return false;
+	}
+#undef GETID
 
 	// getters
 
