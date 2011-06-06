@@ -74,6 +74,7 @@ bool BELParserXML::isValidTag( int tag, int parent ) const
 	case TAG_DATE:
 	case TAG_DATETIME:
 	case TAG_ENTITY:
+	case TAG_RANGE:
 	case TAG_ERCEXPR:
 	case TAG_TIME:
 	case TAG_LIST:
@@ -138,6 +139,7 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 	CASE_TAG(DATE)
 	CASE_TAG(DATETIME)
 	CASE_TAG(ENTITY)
+	CASE_TAG(RANGE)
 	CASE_TAG(ERCEXPR)
 	CASE_TAG(TIME)
 	CASE_TAG(LIST)
@@ -455,6 +457,73 @@ void BELParserXML::taghandle_ERCEXPR( const char_cp * attr, size_t attr_sz , boo
 		}
 	}
 	statement.pushNode( BTND_PatternData(pat) );
+}
+void BELParserXML::taghandle_RANGE( const char_cp * attr, size_t attr_sz , bool close) 
+{ 
+	if( close ) { statement.popNode(); return; }
+	BTND_Pattern_Range pat; 
+
+	/// entity range related locals 
+	StoredEntityUniqId euid;
+	const char* id1Str = 0;
+	const char* id2Str = 0;
+	bool isEntity = false;
+	/// end of entity range related stuff 
+
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+
+		switch( n[0] ) {
+		case 'm': // class - c="1"
+			if( *v == 'v' ) 
+				pat.setModeToVal( );
+			break;
+		case 't': // type 
+			switch( v[0] ) {
+			case 'i': pat.range().dta = BarzerRange::Integer(); break;
+			case 'r': pat.range().dta = BarzerRange::Real(); break;
+			case 't': pat.range().dta = BarzerRange::TimeOfDay(); break;
+			case 'd': pat.range().dta = BarzerRange::Date(); break;
+			case 'e': if( !isEntity ) isEntity= true; break;
+			}
+			break;
+		case 'e':
+			if( !isEntity ) isEntity= true;
+
+			switch( n[1] ) {
+			case 's': euid.eclass.subclass =  atoi(v); break; // "es" - subclass
+			case 'c': euid.eclass.ec =  atoi(v); break; 	  // "ec" - class
+			case 'i': 
+				if( n[2] == '1' ) { 						  // i1=id - first entity id 
+					id1Str = v;
+				} else if( n[2] == '2' ) { 					  // i2=id - second entity id
+					id2Str = v;
+				}
+			}
+			break;
+		}
+	}
+	if( isEntity ){
+		pat.range().dta = BarzerRange::Entity();
+
+		if( euid.eclass.isValid() ) {
+			BarzerRange::Entity& entRange = pat.range().setEntityClass( euid.eclass ); 
+	
+			if( id1Str ) {
+				const StoredEntity& ent1  = 
+					reader->getUniverse().getDtaIdx().addGenericEntity( id1Str, euid.eclass.ec, euid.eclass.subclass );
+				entRange.first = ent1.getEuid();
+			}
+			if( id2Str ) {
+				const StoredEntity& ent2  = 
+					reader->getUniverse().getDtaIdx().addGenericEntity( id2Str, euid.eclass.ec, euid.eclass.subclass );
+				entRange.first = ent2.getEuid();
+			}
+		}
+	}
+
+	statement.pushNode( BTND_PatternData( pat));
 }
 void BELParserXML::taghandle_ENTITY( const char_cp * attr, size_t attr_sz , bool close) 
 { 
@@ -890,6 +959,7 @@ int BELParserXML::getTag( const char* s ) const
 		break;
 	case 'r': 
 	CHECK_2CW("n",TAG_RNUMBER) // <rn>
+	CHECK_5CW("ange",TAG_RANGE) // <range>
 		break;
 	case 's':
 	CHECK_4CW("tmt",TAG_STATEMENT )  // <stmt>

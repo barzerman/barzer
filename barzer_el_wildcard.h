@@ -28,9 +28,12 @@ class BarzelWildcardPool {
 	ay::InternerWithId<BTND_Pattern_Wildcard> 	pool_Wildcard;
 	ay::InternerWithId<BTND_Pattern_Entity> 	pool_Entity;
 	ay::InternerWithId<BTND_Pattern_ERCExpr> 	pool_ERCExpr;
+	ay::InternerWithId<BTND_Pattern_Range> 	pool_Range;
 public:
 	const BTND_Pattern_ERCExpr* 	get_BTND_Pattern_ERCExpr( uint32_t id ) const 
 		{ return pool_ERCExpr.getObjById( id ); }
+	const BTND_Pattern_Range* 	get_BTND_Pattern_Range( uint32_t id ) const 
+		{ return pool_Range.getObjById( id ); }
 	const BTND_Pattern_Entity* 	get_BTND_Pattern_Entity( uint32_t id ) const 
 		{ return pool_Entity.getObjById( id ); }
 	const BTND_Pattern_Number* 	get_BTND_Pattern_Number( uint32_t id ) const 
@@ -90,6 +93,11 @@ public:
 		key.wcType = BTND_Pattern_Wildcard_TYPE;
 		key.wcId = pool_Wildcard.produceIdByObj( x );
 	}
+	void produceWCKey( BarzelWCKey& key, const BTND_Pattern_Range& x )
+	{
+		key.wcType = BTND_Pattern_Range_TYPE;
+		key.wcId = pool_Range.produceIdByObj( x );
+	}
 	void produceWCKey( BarzelWCKey& key, const BTND_Pattern_Entity& x )
 	{
 		key.wcType = BTND_Pattern_Entity_TYPE;
@@ -111,6 +119,7 @@ public:
 		case BTND_Pattern_DateTime_TYPE: produceWCKey(k, boost::get<BTND_Pattern_DateTime>(x) ); return;
 		case BTND_Pattern_Time_TYPE: produceWCKey(k, boost::get<BTND_Pattern_Time>(x) ); return;
 		case BTND_Pattern_Entity_TYPE: produceWCKey(k, boost::get<BTND_Pattern_Entity>(x) ); return;
+		case BTND_Pattern_Range_TYPE: produceWCKey(k, boost::get<BTND_Pattern_Range>(x) ); return;
 		case BTND_Pattern_ERCExpr_TYPE: produceWCKey(k, boost::get<BTND_Pattern_ERCExpr>(x) ); return;
 		default: k.clear(); return;
 		}
@@ -133,6 +142,9 @@ public:
 	template <>  
 	inline const BTND_Pattern_ERCExpr* 	BarzelWildcardPool::get_BTND_Pattern<BTND_Pattern_ERCExpr>( uint32_t id ) const 
 		{ return pool_ERCExpr.getObjById( id ); }
+	template <>  
+	inline const BTND_Pattern_Range* 	BarzelWildcardPool::get_BTND_Pattern<BTND_Pattern_Range>( uint32_t id ) const 
+		{ return pool_Range.getObjById( id ); }
 	template <>  
 	inline const BTND_Pattern_Entity* 	BarzelWildcardPool::get_BTND_Pattern<BTND_Pattern_Entity>( uint32_t id ) const 
 		{ return pool_Entity.getObjById( id ); }

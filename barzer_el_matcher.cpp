@@ -50,6 +50,7 @@ template <> struct BeadToPattern_convert<BarzerEntityList> { typedef BTND_Patter
 template <> struct BeadToPattern_convert<BarzerEntity> { typedef BTND_Pattern_Entity PatternType; };
 template <> struct BeadToPattern_convert<BarzerEntityRangeCombo> { typedef BTND_Pattern_Entity PatternType; };
 template <> struct BeadToPattern_convert<BarzerERCExpr> { typedef BTND_Pattern_ERCExpr PatternType; };
+template <> struct BeadToPattern_convert<BarzerRange> { typedef BTND_Pattern_Range PatternType; };
 
 
 //// TEMPLATE MATCHING
@@ -93,6 +94,9 @@ template <> template <>
 inline bool evalWildcard_vis<BTND_Pattern_Time>::operator()<BarzerTimeOfDay> ( const BarzerTimeOfDay& dta )  const
 { return true; }
 
+template <> template <>
+inline bool evalWildcard_vis<BTND_Pattern_Range>::operator()<BarzerRange> ( const BarzerRange& dta )  const
+{ return d_pattern( dta ); }
 template <> template <>
 inline bool evalWildcard_vis<BTND_Pattern_Entity>::operator()<BarzerEntityList> ( const BarzerEntityList& dta )  const
 { return d_pattern( dta ); }
@@ -566,6 +570,10 @@ bool BTMIterator::evalWildcard( const BarzelWCKey& wcKey, BeadList::iterator fro
 	case BTND_Pattern_Entity_TYPE: {
 		const BTND_Pattern_Entity* p = wcPool.get_BTND_Pattern_Entity(wcKey.wcId);
 		return( p ?  boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Entity>(*p), atomic->dta ) : false );
+	}
+	case BTND_Pattern_Range_TYPE: {
+		const BTND_Pattern_Range* p = wcPool.get_BTND_Pattern_Range(wcKey.wcId);
+		return( p ?  boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Range>(*p), atomic->dta ) : false );
 	}
 	default:
 		return false;

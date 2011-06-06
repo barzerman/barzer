@@ -38,6 +38,12 @@ std::ostream& BarzelWildcardPool::print( std::ostream& fp, const BarzelWCKey& ke
 		if( pat ) pat->print(fp,ctxt); else fp << "<null>";
 	}
 		break;
+	case BTND_Pattern_Range_TYPE: 
+	{
+		const BTND_Pattern_Range* pat = pool_Range.getObjById( wcId );
+		if( pat ) pat->print(fp,ctxt); else fp << "<null>";
+	}
+		break;
 	case BTND_Pattern_Entity_TYPE: 
 	{
 		const BTND_Pattern_Entity* pat = pool_Entity.getObjById( wcId );
