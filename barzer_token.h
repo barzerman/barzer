@@ -105,8 +105,14 @@ public:
 		/// all new bits must be added above this line 
 		CTCI_BIT_MAX
 	};
-
+	
 	ay::bitflags<CTCI_BIT_MAX> bitFlags;
+
+	void setSpellCorrected( bool v = true ) { bitFlags.set( CTCI_BIT_SPELL_CORRECTED, true ); }
+	void setStemmed( bool v = true ) { bitFlags.set( CTCI_BIT_STEMMED, true ); }
+
+	bool  isSpellCorrected( ) const { return bitFlags[ CTCI_BIT_SPELL_CORRECTED ]; }
+	bool  isStemmed( ) const { return bitFlags[CTCI_BIT_STEMMED]; }
 	
 	CTokenClassInfo( ) :
 		theClass(CLASS_UNCLASSIFIED),
@@ -124,6 +130,7 @@ public:
 		classFlags.clear();
 	}
 };
+
 inline std::ostream& operator <<( std::ostream& fp, const CTokenClassInfo& t )
 { return t.print(fp); }
 

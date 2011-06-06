@@ -26,7 +26,7 @@ enum {
 struct TToken {
 	uint16_t  len; 
 	const char* buf;
-			
+	
 	TToken( ) : len(0), buf("") {}
 	TToken( const char* s ) : len( strlen(s) ), buf(s) {}
 	// watch out for data consistency
@@ -54,7 +54,7 @@ struct CToken {
 	TTWPVec qtVec; // input question tokens corresponding to this CToken 
 	CTokenClassInfo cInfo;
 	TokenLinguisticInfo ling; 
-
+	
 	BarzerNumber bNum; // in cse this classifies as number
 
 	const StoredToken* storedTok;
@@ -105,11 +105,15 @@ struct CToken {
 	bool isMysteryWord() const { return cInfo.theClass == CTokenClassInfo::CLASS_MYSTERY_WORD; }
 	bool isWord() const { return cInfo.theClass == CTokenClassInfo::CLASS_WORD; }
 	bool isPunct() const { return cInfo.theClass == CTokenClassInfo::CLASS_PUNCTUATION; }
-	bool isPunct(char c) const { 
-		return ( isPunct() && qtVec.size() == 1 && qtVec[0].first.buf[0] == c );
-	}
+	bool isPunct(char c) const { return ( isPunct() && qtVec.size() == 1 && qtVec[0].first.buf[0] == c ); }
+
 	bool isSpace() const { return cInfo.theClass == CTokenClassInfo::CLASS_SPACE; }
 	
+	void setSpellCorrected( bool v = true ) { cInfo.setSpellCorrected(v); }
+	void setStemmed( bool v = true ) { cInfo.setStemmed(v); }
+	bool isSpellCorrected( ) const { return cInfo.isSpellCorrected(); }
+	bool isStemmed( ) const { return cInfo.isStemmed(); }
+
 	void setNumber( int i ) {
 		cInfo.theClass = CTokenClassInfo::CLASS_NUMBER;
 		bNum.set(i);
