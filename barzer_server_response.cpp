@@ -14,11 +14,14 @@ namespace barzer {
 
 namespace {
 
-class tag_raii {
+struct tag_raii {
 	std::ostream &os;
 	std::vector<const char*> tags;
-public:
+
 	tag_raii(std::ostream &s) : os(s) {}
+	tag_raii(std::ostream &s, const char *tag) : os(s) { push(tag); }
+	operator std::ostream&() { return os; }
+
 	void push(const char *tag) {
 		os << "<" << tag << ">";
 		tags.push_back(tag);
@@ -177,11 +180,13 @@ public:
 		data.print(os << "<num t=\"" << type << "\">") << "</num>";
 	}
 	void operator()(const BarzerDate &data) {
-		printTo(os << "<date>", data) << "</date>";
+		//printTo(os << "<date>", data) << "</date>";
+		printTo(tag_raii(os,"date"), data);
 	}
 	void operator()(const BarzerTimeOfDay &data) {
 
-		printTo(os << "<time>", data) << "</time>";
+		//printTo(os << "<time>", data) << "</time>";
+		printTo(tag_raii(os, "time"), data);
 	}
 	void operator()(const BarzerDateTime &data) {
 		os << "<timestamp>";
