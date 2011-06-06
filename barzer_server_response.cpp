@@ -14,6 +14,28 @@ namespace barzer {
 
 namespace {
 
+struct tag_raii {
+	std::ostream &os;
+	std::vector<const char*> tags;
+
+	tag_raii(std::ostream &s) : os(s) {}
+	tag_raii(std::ostream &s, const char *tag) : os(s) { push(tag); }
+	operator std::ostream&() { return os; }
+
+	void push(const char *tag) {
+		os << "<" << tag << ">";
+		tags.push_back(tag);
+	}
+	~tag_raii() {
+		size_t i = tags.size();
+		while(i--) {
+			os << "</" << tags.back() << ">";
+			tags.pop_back();
+		}
+	}
+};
+
+
 // need to find an xml library for this kind of stuff
 static std::ostream& xmlEscape(const char *src,  std::ostream &os) {
 	for(;*src != '\0'; ++src) {
@@ -74,7 +96,7 @@ public:
 	}
 
 	void operator()(const BarzerRange::None &data) {
-		//os << "<norange/>";
+		os << "<norange/>";
 	}
 	void operator()(const BarzerRange::Integer &data) {
 		os << "<num t=\"int\">";
@@ -103,14 +125,15 @@ public:
 
 };
 
-class AtomicVisitor : public boost::static_visitor<> {
+class BeadVisitor : public boost::static_visitor<> {
 	std::ostream &os;
 	StoredUniverse &universe;
+	size_t lvl;
 public:
-	AtomicVisitor(std::ostream &s, StoredUniverse &u) : os(s), universe(u) {}
+	BeadVisitor(std::ostream &s, StoredUniverse &u) : os(s), universe(u), lvl(0) {}
 
 	void operator()(const BarzerLiteral &data) {
-		if (data.isBlank()) return;
+		//AYLOG(DEBUG) << "BarzerLiteral";
 		switch(data.getType()) {
 		case BarzerLiteral::T_STRING:
 		case BarzerLiteral::T_COMPOUND:
@@ -142,7 +165,7 @@ public:
 			}
 			break;
 		case BarzerLiteral::T_BLANK:
-			os << "<blank />";
+			//os << "<blank />";
 			break;
 		default:
 			AYLOG(ERROR) << "Unknown literal type";
@@ -150,19 +173,20 @@ public:
 		}
 	}
 	void operator()(const BarzerString &data) {
-		os << "<token>";
-		xmlEscape(data.getStr(), os) << "</token>";
+		xmlEscape(data.getStr(), os << "<token>") << "</token>";
 	}
 	void operator()(const BarzerNumber &data) {
 		const char *type =  data.isReal() ? "real" : (data.isInt() ? "int" : "NaN");
 		data.print(os << "<num t=\"" << type << "\">") << "</num>";
 	}
 	void operator()(const BarzerDate &data) {
-		printTo(os << "<date>", data) << "</date>";
+		//printTo(os << "<date>", data) << "</date>";
+		printTo(tag_raii(os,"date"), data);
 	}
 	void operator()(const BarzerTimeOfDay &data) {
 
-		printTo(os << "<time>", data) << "</time>";
+		//printTo(os << "<time>", data) << "</time>";
+		printTo(tag_raii(os, "time"), data);
 	}
 	void operator()(const BarzerDateTime &data) {
 		os << "<timestamp>";
@@ -187,11 +211,18 @@ public:
 		const StoredToken *tok = universe.getDtaIdx().tokPool.getTokByIdSafe(euid.tokId);
 		if( tok ) {
 			const char *tokname = universe.getStringPool().resolveId(tok->stringId);
-			os << "<entity"
+			static const char *tmpl =
+					"<entity id=\"%1%\" class=\"%2%\" subclass=\"%3%\" />";
+			os << boost::format(tmpl) % (tokname ? tokname : "(null)")
+									  % euid.eclass.ec
+									  % euid.eclass.subclass;
+					/*
+					os << "<entity"
 					<< " id=\"" << (tokname? tokname:"(null)") << "\""
 		        	<< " class=\"" << euid.eclass.ec << "\""
 					<< " subclass=\"" << euid.eclass.subclass << "\""
 					<< " />";
+					*/
 		} else {
 			os << "INVALID_TOK[" << euid.eclass << "," << std::hex << euid.tokId << "]";
 		}
@@ -213,7 +244,7 @@ public:
 
 	void operator()(const BarzerEntity &data) {
 		if (data.tokId == 0xffffff) {
-			os << boost::format("<entity cl=\"%1%\" scl=\"%2%\" />")
+			os << boost::format("<entity class=\"%1%\" subclass=\"%2%\" />")
 				% data.eclass.ec
 				% data.eclass.subclass;
 			return;
@@ -253,6 +284,53 @@ public:
 
 		os << "</ercexpr>";
 	}
+	void operator()(const BarzelBeadBlank&) {}
+	void operator()(const BarzelBeadAtomic &data)
+	{
+		//AYLOG(DEBUG) << "atomic: " << data.getType();
+		os << "    ";
+		boost::apply_visitor(*this, data.getData());
+		os << "\n";
+	}
+
+	typedef BarzelBeadExpression BBE; // sorry!
+	void printAttributes(const BBE::AttrList &lst) {
+		const ay::UniqueCharPool &sp = universe.getStringPool();
+		for (BBE::AttrList::const_iterator it = lst.begin(); it != lst.end(); ++it) {
+			 const char *name = sp.resolveId(it->first),
+					    *value = sp.resolveId(it->second);
+			 if (name && value) {
+				 os << " " << name <<  "=\"" << value << "\"";
+			 } else {
+				 AYLOG(ERROR) << "Unknown string id: "
+						 	  << (name ? it->second : it-> first);
+			 }
+		 }
+	}
+
+	void operator()(const BarzelBeadExpression &data)
+	{
+		tag_raii tr(os);
+		if (!(lvl++)) tr.push("expr");
+		const char *tagname = universe.getStringPool().resolveId(data.sid);
+		if (tagname) {
+			os << "<" << tagname;
+			printAttributes(data.getAttrs());
+			const BBE::SubExprList &selst = data.getChildren();
+			if (selst.size()) {
+				os << ">";
+				for (BBE::SubExprList::const_iterator it = selst.begin();
+													  it != selst.end(); ++it) {
+					boost::apply_visitor(*this, *it);
+				}
+				os << "</" << tagname << ">";
+			} else os << " />";
+		} else AYLOG(ERROR) << "Unknown string id: " << data.sid;
+		//os << "</expression>";
+	}
+	void clear() {
+		lvl = 0;
+	}
 };
 }
 
@@ -260,24 +338,10 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 {
 	os << "<barz>\n";
 	const BarzelBeadChain &bc = barz.getBeads();
+	BeadVisitor v(os, universe);
 	for (BeadList::const_iterator bli = bc.getLstBegin(); bc.isIterNotEnd(bli); ++bli) {
-		const BarzelBead &bead = *bli;
-		if (bead.isBlank()) {
-			os << " ";
-		} else if (bead.isAtomic()) {
-			os << "    ";
-			AtomicVisitor v(os, universe);
-			boost::apply_visitor(v, bead.getAtomic()->dta);
-			os << "\n";
-		} else if (bead.isExpression()) {
-			// not quite sure what to do with it yet
-			// const BarzelBeadExpression *bbe = bead.getExpression();
-			os << "<expression>";
-			os << "</expression>";
-		} else {
-			AYLOG(ERROR) << "Unknown bead type";
-			// then wtf is this
-		}
+		boost::apply_visitor(v, bli->getBeadData());
+		v.clear();
 	}
 	os << "</barz>\n";
 	return os;

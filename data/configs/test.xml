@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <rules>
+        <file>data/rules/test-rules.xml</file>
+    </rules>
+    <entities>
+        <file>data/entities/time_ent.xml</file>
+    </entities>
+    <logging>
+        <level>DEBUG</level>
+        <file>barzer.log</file>
+    </logging>
+    <users>
+        <user id="1">
+            <trieset>
+                <trie class="class1" name="1" />
+            </trieset>
+        </user>
+    </users>
+</config>

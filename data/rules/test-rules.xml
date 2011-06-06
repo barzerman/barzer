@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
+    xmlns="http://www.barzer.net/barzel/0.1">
+    <stmt>
+    <pat><t>foo</t></pat>
+    <tran>
+    <func name="mkExprAttrs">
+    <func name="mkExprTag">
+        <ltrl>foo</ltrl>
+        <ltrl>bar</ltrl>
+        <func name="mkExprTag"><ltrl>lala</ltrl></func>
+    </func>
+    <ltrl>mama</ltrl><ltrl>myla</ltrl>
+    <ltrl>mama1</ltrl><ltrl>myla1</ltrl>
+    </func>
+    </tran>
+    </stmt>
+    
+        
+</stmset>

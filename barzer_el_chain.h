@@ -88,8 +88,14 @@ struct BarzelBeadAtomic {
 /// for future implementation - 
 // 
 struct BarzelBeadExpression {
-	struct Data  {
-	} dta;
+	typedef std::pair<uint32_t, uint32_t> Attr;
+	typedef std::vector<Attr> AttrList;
+
+	//struct Data {} dta;
+
+	uint32_t sid;
+	AttrList attrs;
+
 	
 	typedef boost::variant< 
 		BarzelBeadAtomic,
@@ -99,6 +105,24 @@ struct BarzelBeadExpression {
 	typedef std::list< SubExpr >  SubExprList;
 
 	SubExprList child;
+
+	//const Data& getData() const { return dta; }
+	uint32_t getSid() const { return sid; }
+	void setSid(uint32_t s) { sid = s; }
+	const AttrList& getAttrs() const { return attrs; }
+	AttrList& getAttrs() { return attrs; }
+
+	void addAttribute(uint32_t k, uint32_t v);
+
+	const SubExprList& getChildren() const { return child; }
+	SubExprList& getChildren()  { return child; }
+
+	void addChild(const SubExpr&);
+	/*
+	void addChild(const BarzelBeadAtomic&);
+	void addChild(const BarzelBeadExpression&);
+	*/
+
 	std::ostream& print( std::ostream& fp ) const 
 	{
 		return ( fp << "<expression>" );
@@ -263,9 +287,11 @@ std::ostream& operator <<( std::ostream& fp, const BarzelBeadChain::Range& rng )
 
 struct BarzelBeadData_EQ : public boost::static_visitor<bool> {
 	bool operator()(const BarzerEntityList &left, const BarzerEntityList &right) const
-	    { return false; }
+	{
+		return false;
+	}
 	bool operator()(const BarzerString &left, const BarzerString &right) const
-	    { return false; }
+	    { return left.getStr() == right.getStr(); }
 	bool operator()(const BarzelBeadAtomic &left, const BarzelBeadAtomic &right) const
 		{ return boost::apply_visitor(*this, left.getData(), right.getData()); }
 	template<class T> bool operator()(const T &l, const T &r) const
