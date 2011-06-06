@@ -127,6 +127,14 @@ void BarzelBeadChain::init( const CTWPVec& cv )
 	}
 }
 
+void BarzelBeadExpression::addChild(const BarzelBeadExpression &exp) {
+	if (exp.sid == ATTRLIST) {
+		const AttrList &other = exp.attrs;
+		attrs.insert(attrs.end(), other.begin(), other.end());
+	} else {
+		addChild(SubExpr(exp));
+	}
+}
 void BarzelBeadExpression::addChild(const SubExpr &exp) {
 	child.push_back(exp);
 }

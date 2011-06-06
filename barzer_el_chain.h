@@ -92,6 +92,7 @@ struct BarzelBeadExpression {
 	typedef std::vector<Attr> AttrList;
 
 	//struct Data {} dta;
+	enum { ATTRLIST = 0xffffff };
 
 	uint32_t sid;
 	AttrList attrs;
@@ -117,7 +118,9 @@ struct BarzelBeadExpression {
 	const SubExprList& getChildren() const { return child; }
 	SubExprList& getChildren()  { return child; }
 
+	void addChild(const BarzelBeadExpression&);
 	void addChild(const SubExpr&);
+
 	/*
 	void addChild(const BarzelBeadAtomic&);
 	void addChild(const BarzelBeadExpression&);
