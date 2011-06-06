@@ -4,14 +4,13 @@
     <stmt>
     <pat><t>foo</t></pat>
     <tran>
-    <func name="mkExprAttrs">
-    <func name="mkExprTag">
-        <ltrl>foo</ltrl>
+    <func name="mkExprTag"><ltrl>foo</ltrl>
+        <func name="mkExprAttrs">
+            <ltrl>mama</ltrl><ltrl>myla</ltrl>
+            <ltrl>mama1</ltrl><ltrl>myla1</ltrl>
+        </func>
         <ltrl>bar</ltrl>
         <func name="mkExprTag"><ltrl>lala</ltrl></func>
-    </func>
-    <ltrl>mama</ltrl><ltrl>myla</ltrl>
-    <ltrl>mama1</ltrl><ltrl>myla1</ltrl>
     </func>
     </tran>
     </stmt>

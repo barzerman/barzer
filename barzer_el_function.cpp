@@ -943,26 +943,25 @@ struct BELFunctionStorage_holder {
 
 	#define GETID(x) getAtomic<BarzerLiteral>(x).getId()
 	STFUN(mkExprAttrs) {
-		if (rvec.size() >= 3) {
+		if (rvec.size()) {
 			try {
-				result.setBeadData(
-						boost::get<BarzelBeadExpression>(rvec[0].getBeadData()));
+				result.setBeadData(BarzelBeadExpression());
 				BarzelBeadExpression &expr
 					= boost::get<BarzelBeadExpression>(result.getBeadData());
+				expr.setSid(BarzelBeadExpression::ATTRLIST);
 
-				size_t len = (rvec.size()-1) & (~1);
-				for (size_t i = 1; i < len; i+=2)
+				// making sure we have even sized length
+				size_t len = rvec.size() & (~1);
+				for (size_t i = 0; i < len; i+=2)
 					expr.addAttribute( GETID(rvec[i]), GETID(rvec[i+1]) );
 				return true;
 			} catch (boost::bad_get) {
 				AYLOG(ERROR) << "Type mismatch";
 			}
-		} else {
-			AYLOG(ERROR) << "need at least 3 arguments";
 		}
 		return false;
 	}
-#undef GETID
+	#undef GETID
 
 	// getters
 
