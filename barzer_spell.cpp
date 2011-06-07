@@ -66,7 +66,7 @@ int BarzerHunspell::addWord( const char* w )
 void BarzerHunspellInvoke::clear() 
 {
 	if( d_str_pp ) {
-		d_spell.getHunspell()->free_list( &d_str_pp, d_str_pp_sz );
+		getHunspell()->free_list( &d_str_pp, d_str_pp_sz );
 		d_str_pp = 0;
 	}
 }
@@ -77,11 +77,11 @@ void BarzerHunspellInvoke::clear()
 std::pair< int, size_t> BarzerHunspellInvoke::checkSpell( const char* s )
 {
 	clear();
-	int n = d_spell.getHunspell()->spell( s );
+	int n = getHunspell()->spell( s );
 	if( n ) 
 		return std::pair< int, size_t >( n, 0 );
 	else {
-		d_str_pp_sz = d_spell.getHunspell()->suggest( &d_str_pp, s );
+		d_str_pp_sz = getHunspell()->suggest( &d_str_pp, s );
 		return std::pair< int, size_t >( n, d_str_pp_sz );
 	}
 }
@@ -91,7 +91,7 @@ const char* BarzerHunspellInvoke::stem( const char* s )
 {
 	clear();
 
-	d_str_pp_sz = d_spell.getHunspell()->stem( &d_str_pp, s );
+	d_str_pp_sz = getHunspell()->stem( &d_str_pp, s );
 	if( d_str_pp_sz> 0 ) 
 		return d_str_pp[0];
 	else 

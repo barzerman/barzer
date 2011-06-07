@@ -26,16 +26,17 @@ public:
 /// it can be used multiple times. the object cleans up memory allocated by 
 /// the spellchecker
 class BarzerHunspellInvoke {
-	BarzerHunspell& d_spell;
+	const BarzerHunspell& d_spell;
 	
 	typedef char* char_p;
 	typedef char_p* char_pp;
 	
 	char_pp d_str_pp;
 	size_t  d_str_pp_sz;
+	Hunspell* getHunspell() { return const_cast<Hunspell*>( d_spell.getHunspell() ); }
 public:
 	void clear() ;
-	BarzerHunspellInvoke( BarzerHunspell& spell ) : 
+	BarzerHunspellInvoke( const BarzerHunspell& spell ) : 
 		d_spell(spell) ,
 		d_str_pp(0),
 		d_str_pp_sz(0)
