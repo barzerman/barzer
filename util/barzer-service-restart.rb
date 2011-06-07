@@ -2,7 +2,7 @@
 
 # Restarts barzer daemon if the installed version is newer than the currently running one.
 
-PID_FILE = '/var/run/barzer.pid'
+PID_FILE = '/var/run/barzer-default.pid'
 EXE_FILE = '/usr/share/barzer/barzer.exe'
 
 pid_m = File.mtime(PID_FILE)
