@@ -257,138 +257,213 @@
             </func>
         </tran>
     </stmt>
-       <stmt>
-  <pat><t>evening</t></pat>
-  <tran>
-    <func name="mkRange">
-        <func name="mkTime"><rn v="16" /></func>
-        <func name="mkTime"><rn v="23" /><rn v="59" /></func>
-    </func>
-  </tran>
-  </stmt>
-  <stmt>
-  <pat><t>morning</t></pat>
-  <tran>
-    <func name="mkRange">
-        <func name="mkTime"><rn v="4" /></func>
-        <func name="mkTime"><rn v="12" /></func>
-    </func>
-  </tran>
-  </stmt>
-  
-  <stmt>
-  <pat><t>afternoon</t></pat>
-  <tran>
-    <func name="mkRange">
-        <func name="mkTime"><rn v="12" /></func>
-        <func name="mkTime"><rn v="17" /></func>
-    </func>
-  </tran>
-  </stmt>
-  
-  <stmt>
-  <pat><t>night</t></pat>
-  <tran>
-    <func name="mkErc">
-        <func name="mkEnt"><rn v="1" /><rn v="8"/></func>
-        <func name="mkRange">
-            <func name="mkTime"><rn v="23" /></func>
-            <func name="mkTime"><rn v="5" /></func>
-        </func>
-    </func>
-  </tran>
-  </stmt>
+    <stmt>
+        <pat><t>evening</t></pat>
+        <tran>
+            <func name="mkRange">
+                <func name="mkTime"><rn v="16" /></func>
+                <func name="mkTime"><rn v="23" /><rn v="59" /></func>
+            </func>
+        </tran>
+    </stmt>
+	<stmt>
+	<pat><t>morning</t></pat>
+	<tran>
+	  <func name="mkRange">
+	      <func name="mkTime"><rn v="4" /></func>
+	      <func name="mkTime"><rn v="12" /></func>
+	  </func>
+	</tran>
+	</stmt>
+	
+	<stmt>
+	<pat><t>afternoon</t></pat>
+	<tran>
+	  <func name="mkRange">
+	      <func name="mkTime"><rn v="12" /></func>
+	      <func name="mkTime"><rn v="17" /></func>
+	  </func>
+	</tran>
+	</stmt>
+	
+	<stmt>
+	<pat><t>night</t></pat>
+	<tran>
+	  <func name="mkErc">
+	      <func name="mkEnt"><rn v="1" /><rn v="8"/></func>
+	      <func name="mkRange">
+	          <func name="mkTime"><rn v="23" /></func>
+	          <func name="mkTime"><rn v="5" /></func>
+	      </func>
+	  </func>
+	</tran>
+	</stmt>
+	
+	<stmt>
+	  <pat><t>next</t><t>week</t></pat>
+	  <tran>
+	      <func name="mkDateRange">
+	          <func name="opDateCalc">
+	              <func name="mkDate" />
+	              <func name="opMinus">
+	                  <rn v="8" />
+	                  <func name="getWeekday"><func name="mkDate" /></func>
+	              </func>
+	          </func>
+	          <rn v="6" /><rn v="0" /><rn v="0" />
+	      </func>
+	</tran>
+	</stmt>
+	<stmt>
+	  <pat><t>last</t><t>week</t></pat>
+	  <tran>
+	      <func name="mkDateRange">
+	          <func name="opDateCalc">
+	              <func name="mkDate" />
+	              <func name="opMinus">
+	                  <rn v="-6" />
+	                  <func name="getWeekday"><func name="mkDate" /></func>
+	              </func>
+	          </func>
+	          <rn v="6" /><rn v="0" /><rn v="0" />
+	      </func>
+	</tran>
+	</stmt>  
+	<stmt>
+	  <pat><t>next</t><t>month</t></pat>
+	  <tran>
+	      <func name="mkDateRange">
+	          <func name="opDateCalc"><!-- adding 1 month to 1th this month -->
+	              <func name="mkDate"><rn v="1" /></func>
+	              <rn v="0"/>
+	              <rn v="1"/>
+	          </func>
+	          <!-- and making a range month long -->
+	          <rn v="0" /><rn v="1" /><rn v="0" />
+	      </func>
+	</tran>
+	</stmt>
+	<stmt>
+	  <pat><t>last</t><t>month</t></pat>
+	  <tran>
+	      <func name="mkDateRange">
+	          <func name="opDateCalc"><!-- adding 1 month to 1th this month -->
+	              <func name="mkDate"><rn v="1" /></func>
+	              <rn v="0"/>
+	              <rn v="-1"/>
+	          </func>
+	          <!-- and making a range month long -->
+	          <rn v="0" /><rn v="1" /><rn v="0" />
+	      </func>
+	</tran>
+	</stmt>  
+	<stmt>
+	  <pat><t>next</t><t>year</t></pat>
+	  <tran>
+	      <func name="mkDateRange">
+	          <func name="opDateCalc"><!-- adding 1 year to 1/1/thisYear -->
+	              <func name="mkDate"><rn v="1" /><rn v="1" /></func>
+	              <rn v="0"/>
+	              <rn v="0"/>
+	              <rn v="1"/>
+	          </func>
+	          <!-- and making a range a year long -->
+	          <rn v="0" />
+	          <rn v="0" />
+	          <rn v="1" />
+	      </func>
+	</tran>
+	</stmt>
+	<stmt>
+	  <pat><t>last</t><t>year</t></pat>
+	  <tran>
+	      <func name="mkDateRange">
+	          <func name="opDateCalc"><!-- adding -1 year to 1/1/thisYear -->
+	              <func name="mkDate"><rn v="1" /><rn v="1" /></func>
+	              <rn v="0"/>
+	              <rn v="0"/>
+	              <rn v="-1"/>
+	          </func>
+	          <!-- and making a range a year long -->
+	          <rn v="0" />
+	          <rn v="0" />
+	          <rn v="1" />
+	      </func>
+	</tran>
+	</stmt>
+	<stmt>
+	  <pat><t>since</t><list v="date"><range t="d" /></list></pat>
+	  <tran>
+	  <func name="mkRange">
+	      <func name="getHigh"><var name="date" /></func>
+	      <func name="mkDate" />
+	  </func>
+	  </tran>  
+	</stmt>
+	
+	<stmt>
+	  <pat><t>since</t><list v="date"><date /></list></pat>
+	  <tran>
+	      <func name="mkRange"><var name="date" /><func name="mkDate" /></func>
+	  </tran>  
+	</stmt>
+	
+	<stmt>
+	  <pat>
+	      <any>
+	          <t>until</t>
+	          <list><opt><p>'</p></opt><any><t>til</t><t>till</t></any></list>
+	      </any>
+	      <list v="date"><date /></list></pat>
+	  <tran>
+	      <func name="mkRange"><func name="mkDate" /><var name="date" /></func>
+	  </tran>  
+	</stmt>
 
-  <stmt>
-    <pat><t>next</t><t>week</t></pat>
-    <tran>
-        <func name="mkDateRange">
-            <func name="opDateCalc">
-                <func name="mkDate" />
-                <func name="opMinus">
-                    <rn v="8" />
-                    <func name="getWeekday"><func name="mkDate" /></func>
+    <stmt>
+        <pat>
+            <list v="r"><range t="i" /></list>
+            <any>
+                <t>pm</t>
+                <list>
+                    <t>p</t><p>.</p><t>m</t><opt><p>.</p></opt>
+                </list>
+            </any>
+        </pat>
+        <tran>
+            <func name="mkRange">
+                <func name="mkTime">
+                    <func name="opPlus">
+                        <rn v="12" />
+                        <func name="getLow"><var name="r" /></func>
+                    </func>
+                </func>
+                <func name="mkTime">
+                    <func name="opPlus">
+                        <rn v="12" />
+                        <func name="getHigh"><var name="r" /></func>
+                    </func>
                 </func>
             </func>
-            <rn v="6" /><rn v="0" /><rn v="0" />
-        </func>
-  </tran>
-  </stmt>
-  <stmt>
-    <pat><t>last</t><t>week</t></pat>
-    <tran>
-        <func name="mkDateRange">
-            <func name="opDateCalc">
-                <func name="mkDate" />
-                <func name="opMinus">
-                    <rn v="-6" />
-                    <func name="getWeekday"><func name="mkDate" /></func>
+        </tran>
+    </stmt>
+    <stmt>
+        <pat>
+            <list v="time"><range t="t" /></list>
+            <opt><t>on</t></opt>
+            <list v="date"><date /></list>
+        </pat>
+        <tran>
+            <func name="mkErcExpr"><ltrl>and</ltrl>
+                <func name="mkERC">
+                    <mkent i="DATE_INTERVAL" c="1" s="8" />
+                    <func name="mkRange"><var name="date" /></func>
+                </func>
+                <func name="mkERC">
+                    <mkent i="TIME_INTERVAL" c="1" s="8" />
+                    <var name="time" />
                 </func>
             </func>
-            <rn v="6" /><rn v="0" /><rn v="0" />
-        </func>
-  </tran>
-  </stmt>  
-  <stmt>
-    <pat><t>next</t><t>month</t></pat>
-    <tran>
-        <func name="mkDateRange">
-            <func name="opDateCalc"><!-- adding 1 month to 1th this month -->
-                <func name="mkDate"><rn v="1" /></func>
-                <rn v="0"/>
-                <rn v="1"/>
-            </func>
-            <!-- and making a range month long -->
-            <rn v="0" /><rn v="1" /><rn v="0" />
-        </func>
-  </tran>
-  </stmt>
-  <stmt>
-    <pat><t>last</t><t>month</t></pat>
-    <tran>
-        <func name="mkDateRange">
-            <func name="opDateCalc"><!-- adding 1 month to 1th this month -->
-                <func name="mkDate"><rn v="1" /></func>
-                <rn v="0"/>
-                <rn v="-1"/>
-            </func>
-            <!-- and making a range month long -->
-            <rn v="0" /><rn v="1" /><rn v="0" />
-        </func>
-  </tran>
-  </stmt>  
-  <stmt>
-    <pat><t>next</t><t>year</t></pat>
-    <tran>
-        <func name="mkDateRange">
-            <func name="opDateCalc"><!-- adding 1 year to 1/1/thisYear -->
-                <func name="mkDate"><rn v="1" /><rn v="1" /></func>
-                <rn v="0"/>
-                <rn v="0"/>
-                <rn v="1"/>
-            </func>
-            <!-- and making a range a year long -->
-            <rn v="0" />
-            <rn v="0" />
-            <rn v="1" />
-        </func>
-  </tran>
-  </stmt>
-  <stmt>
-    <pat><t>last</t><t>year</t></pat>
-    <tran>
-        <func name="mkDateRange">
-            <func name="opDateCalc"><!-- adding -1 year to 1/1/thisYear -->
-                <func name="mkDate"><rn v="1" /><rn v="1" /></func>
-                <rn v="0"/>
-                <rn v="0"/>
-                <rn v="-1"/>
-            </func>
-            <!-- and making a range a year long -->
-            <rn v="0" />
-            <rn v="0" />
-            <rn v="1" />
-        </func>
-  </tran>
-  </stmt>
+        </tran>
+    </stmt>
 </stmset>
