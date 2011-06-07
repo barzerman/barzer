@@ -65,6 +65,8 @@ public:
 			return i->second.getLongestPath( ++start, end, &(i->second) );
 	}
 
+	/// EV is the evaluator bool EV::operator()( i->second ) 
+	/// when this is true found will be advanced to i->second
 	template <class FI>
 	std::pair< const trie*, FI> getTerminatedLongestPath( FI start, typename std::iterator_traits<FI>::value_type end, const trie* found=0 ) const
 	{
@@ -183,6 +185,7 @@ struct char_trie {
 		return trie.getTerminatedLongestPath( s, (char)(0));
 	}
 };
+
 
 } // namespace ay
 #endif // AY_TRIE_H

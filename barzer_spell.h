@@ -12,6 +12,9 @@ public:
 	BarzerHunspell( const char* affFile, const char* dictFile );
 	~BarzerHunspell( );
 	int addDictionary( const char* fname );
+	int addWord( const char* );
+	/// treats every line in the file as a word , adds it to dictionary  
+	int addWordsFromTextFile( const char* fname );
 	Hunspell* getHunspell() { return d_hunspell; }
 	const Hunspell* getHunspell() const { return d_hunspell; }
 };

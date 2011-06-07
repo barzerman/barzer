@@ -25,6 +25,31 @@ BarzerHunspell::~BarzerHunspell( )
 	if( d_hunspell ) 
 		delete d_hunspell;
 }
+int BarzerHunspell::addWordsFromTextFile( const char* fname ) 
+{
+	FILE* fp = fopen( fname, "r" );
+	if( !fp ) {
+		std::cerr <<"failed to open " << fname << " for reading extra words\n";
+		return 0;
+	}
+	char buf[256] =0;
+	int numWords = 0;
+	while( fgets( buf, sizeof(buf)-1, fp ) ) {
+		if( *buf == '#' ) 
+			continue;
+		buf[ strlen(buf) -1 ] = 0;
+		if( *buf ) {
+			add( buf );
+			++numWords;
+		}
+	}
+	fclose(fp);
+	return numWords;
+}
+int BarzerHunspell::addWord( const char* w ) 
+{
+	return d_hunspell->add( w );
+}
 
 void BarzerHunspellInvoke::clear() 
 {
@@ -48,6 +73,7 @@ std::pair< int, size_t> BarzerHunspellInvoke::checkSpell( const char* s )
 		return std::pair< int, size_t >( n, d_str_pp_sz );
 	}
 }
+
 
 const char* BarzerHunspellInvoke::stem( const char* s )
 {
