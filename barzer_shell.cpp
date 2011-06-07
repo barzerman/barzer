@@ -234,6 +234,8 @@ static int bshf_spell( BarzerShell* shell, char_cp cmd, std::istream& in )
 			for( int i =0; i< scResult.second; ++i ) {
 				std::cerr << sugg[i] << std::endl;
 			}
+		} else {
+			std::cerr << "valid spelling\n";
 		}
 	}
 
