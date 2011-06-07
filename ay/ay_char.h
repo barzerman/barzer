@@ -1,10 +1,10 @@
-#include <hunspell/hunspell.hxx>
-#include <hunspell/hunspell.h>
-#include <iostream>
-#include <math.h>
-#include <ay_char.h>
+#ifndef AY_CHAR_H
+#define AY_CHAR_H
 
-namespace {
+#include <cstring>
+#include <cstdlib>
+/// char string utilities 
+namespace ay {
 
 template <typename T>
 struct char_compare { bool operator()( const T& l, const T& r ) const { return (l==r); } };
@@ -13,6 +13,15 @@ struct char_compare_nocase_ascii {
 	bool operator()( char l, char r ) const { return( toupper(l) == toupper(r) ); } 
 };
 
+/// tandard levenshtein edit distance algorithm wrapped in a reusable object
+/// it takes care of memory allocations and will only allocate a new chunk if its buffer is smaller 
+/// than required 
+/// best way to use it:
+/// char comparison method is overridable. the algorithm also works for characters of wider types than char
+/// there are specialized ascii versions - case sensitive and in-sensitive
+/// LevenshteinEditDistance editDist;
+///     perform many edit distance calculations using it
+/// 
 class LevenshteinEditDistance {
 	size_t d_curBufSz;
 	int    *d_buf;
@@ -28,6 +37,7 @@ class LevenshteinEditDistance {
 		}
 		return d_buf;
 	}
+	/// this is needed to compute 
 	inline int min3(int a,int b,int c)
 	{
   		if( a< b ) 
@@ -124,72 +134,5 @@ inline int LevenshteinEditDistance::ascii_no_case(const char *s,const char*t)
 {
 	return ascii( s, t, char_compare_nocase_ascii() );
 }
-
-
-}
-
-
-int main( int argc, char* argv[] ) 
-{
-	printf( "Hello World\n" );
-
-	char buf[ 1024] ; 
-	Hunspell hunspell( "/Users/yanis/Downloads/en_US/en_US.aff", "/Users/yanis/Downloads/en_US/en_US.dic" );
-
-	const char* extrawords = "extrawords.txt";
-	FILE* fp = fopen( extrawords, "r" );
-	if( !fp ) {
-		fp= stdin;
-		std::cerr <<" reading extra words from stdin\n";
-	} else {
-		std::cerr <<" reading extra words from " << extrawords << std::endl;
-	}
-	time_t t = time(0);
-	int wordCount = 0;
-	ay::LevenshteinEditDistance editDist;
-	while( fgets( buf, sizeof(buf), fp ) ) {
-		buf[ strlen(buf)-1 ] = 0;
-		if( !*buf ) 
-			break;
-		int rc = hunspell.add(  buf ) ;
-		++wordCount;
-		//std::cerr << "rc=" << rc << std::endl;
-	}
-	if( fp != stdin ) 
-		fclose(fp);
-	std::cerr << "DONE ADDING " << wordCount << " EXTRA WORDS in " << time(0) -t << " seconds\n";
-	while( fgets( buf, sizeof(buf), stdin ) ) {
-		buf[ strlen(buf)-1 ] = 0;
-		char ** result = 0;
-		int n = hunspell.spell( buf );
-		std::cerr << n << " returnned from hunspell.spell( buf ) " << std::endl;
-		if( !n ) {
-			n = hunspell.suggest( &result, buf );
-			for( int i = 0; i< n; ++i ) {
-				size_t noCaseEdist = editDist.ascii_no_case( buf, result[i] ) ;
-				size_t caseEdist = editDist.ascii_with_case( buf, result[i] );
-				size_t genericEdist = editDist.generic<char, char_compare<char> >( 
-					buf, strlen(buf), result[i], strlen(result[i]), char_compare<char>() );
-					 
-				std::cerr << "SUGGESTION #" << i << ":" << result[i] << 
-				"~" << noCaseEdist << ':' << caseEdist << ':' << genericEdist << std::endl;
-			}
-			hunspell.free_list( &result, n );
-			result = 0;
-		} else {
-			std::cerr << buf << " is ok\n";
-		}
-		/// analysis 
-		{
-			// n = hunspell.analyze( &result, buf );
-			n = hunspell.stem( &result, buf );
-			if( n<=0 ) {
-				std::cerr << "analysis failed\n";
-			}
-			for( int i = 0; i< n; ++i ) {
-				std::cerr << "ANALYZE #" << i << ":" << result[i] << std::endl;
-			}
-			hunspell.free_list( &result, n );
-		}
-	}
-}
+} // ay namespace ends 
+#endif // AY_CHAR_H
