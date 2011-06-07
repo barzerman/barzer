@@ -6,6 +6,7 @@
 
 namespace barzer {
 class DtaIndex;
+class StoredUniverse;
 
 /// converts input const char* quesion 
 /// into vector of TToken with position (token's number in the input)
@@ -24,6 +25,7 @@ class QLexParser {
 	/// by running through some lang specific code
 	QLangLexer langLexer;
 	const DtaIndex* dtaIdx;
+	const StoredUniverse& d_universe;
 
 	void collapseCTokens( CTWPVec::iterator beg, CTWPVec::iterator end );
 
@@ -37,7 +39,7 @@ class QLexParser {
 
 	bool tryClassify_number( CToken&, const TToken&  ) const;
 public:
-	QLexParser( const DtaIndex * di=0) : dtaIdx(di) {}
+	QLexParser( const StoredUniverse& u, const DtaIndex * di=0) : dtaIdx(di), d_universe(u) {}
 	enum {
 		QLPERR_NULL_IDX =1 // dtaIdx object is null
 	}; 

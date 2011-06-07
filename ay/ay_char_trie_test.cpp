@@ -36,6 +36,7 @@ struct Uint32CharTrie_print_cb {
 	}
 };
 
+/// end of spelling affix trie 
 int main( int argc, char* argv[] ) 
 {
 	//// 

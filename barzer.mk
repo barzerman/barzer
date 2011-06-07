@@ -10,9 +10,11 @@ endif
 CFLAGS :=$(CFLAGS) $(BITMODE) $(OPT) -Wno-parentheses -Wnon-virtual-dtor -I/opt/local/include -I/usr/include -Wall -g -I. -I./ay
 LINKFLAGS := $(FLAGS)
 BINARY=barzer.exe
-libs = -Lay -lay -L/opt/local/lib -L/opt/local/lib/boost -L/usr/lib -lboost_system -lexpat -lstdc++
+LIB_HUNSPELL=-lhunspell-1.2
+libs = -Lay -lay -L/opt/local/lib -L/opt/local/lib/boost -L/usr/lib $(LIB_HUNSPELL) -lboost_system -lexpat -lstdc++
 ECHO = echo
 objects = \
+barzer_spell.o \
 barzer_el_analysis.o \
 barzer_server_response.o \
 barzer_server_request.o \
