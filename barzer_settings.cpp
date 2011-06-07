@@ -14,15 +14,9 @@
 
 namespace barzer {
 
-/*BarzerSettings::BarzerSettings(StoredUniverse &u)
-	: universe(u), reader(&u.getBarzelTrie(), u) {
-	init();
-} //*/
-
 BarzerSettings::BarzerSettings(GlobalPools &gp)
-	: gpools(gp) {
-	init();
-} //*/
+	: gpools(gp) 
+{ init(); }
 
 
 void BarzerSettings::init() {
