@@ -9,8 +9,11 @@ namespace barzer {
 class BarzerHunspell {
 	Hunspell* d_hunspell;
 public:
+	BarzerHunspell( ) : d_hunspell(0) {}
 	BarzerHunspell( const char* affFile, const char* dictFile );
 	~BarzerHunspell( );
+	void initHunspell( const char* affFile, const char* dictFile );
+
 	int addDictionary( const char* fname );
 	int addWord( const char* );
 	/// treats every line in the file as a word , adds it to dictionary  

@@ -6,6 +6,13 @@
 namespace barzer {
 
 
+void  BarzerHunspell::initHunspell( const char* affFile, const char* dictFile ) 
+{
+	if( d_hunspell ) 
+		delete d_hunspell;
+
+	d_hunspell =  new Hunspell( affFile, dictFile )  ;
+}
 BarzerHunspell::BarzerHunspell( const char* affFile, const char* dictFile ) :
 	d_hunspell( new Hunspell( affFile, dictFile )  )
 { }
@@ -16,6 +23,7 @@ int BarzerHunspell::addDictionary( const char* fname )
 		return d_hunspell->add_dic( fname );
 	else {
 		// add_dic rcode doesnt seem to be documented 
+		AYTRACE( "hunspell is invalid" );
 		return 666;
 	}
 }
@@ -27,6 +35,10 @@ BarzerHunspell::~BarzerHunspell( )
 }
 int BarzerHunspell::addWordsFromTextFile( const char* fname ) 
 {
+	if( !d_hunspell ) {
+		AYTRACE( "hunspell is invalid" );
+		return 0;
+	}
 	FILE* fp = fopen( fname, "r" );
 	if( !fp ) {
 		std::cerr <<"failed to open " << fname << " for reading extra words\n";

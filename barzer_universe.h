@@ -10,6 +10,7 @@
 #include <barzer_date_util.h>
 #include <barzer_settings.h>
 #include <barzer_config.h>
+#include <barzer_spell.h>
 #include <barzer_el_compwords.h>
 #include <boost/unordered_map.hpp> 
 
@@ -208,6 +209,7 @@ class StoredUniverse {
 
 	UniverseTrieCluster          trieCluster; 
 	mutable UniverseTrieClusterIterator trieClusterIter;
+	BarzerHunspell      hunspell;
 
 	//BarzerSettings settings;
 	friend class QSemanticParser;
