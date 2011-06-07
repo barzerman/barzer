@@ -56,20 +56,5 @@ public:
 	const char* stem( const char* s );
 };
 
-/// barzer spell has a few lines of defence 
-/// first it tries to match the string that couldnt be matched using the prefix (maybe sugfix also) tries
-/// only very certain matches will stop at that point 
-/// if no conclusive match could be done using the tries it invokes external speller 
-/// 
-
-class BarzerSpell  {
-	BarzerHunspell& d_extSpell;
-	
-	DtaIndex& d_dtaIdx;
-public:
-	BarzerSpell( BarzerHunspell& espell, DtaIndex& dtaIdx ) : d_extSpell(espell), d_dtaIdx(dtaIdx)  {}
-
-};
-
 } // barzer namespace ends
 #endif // BARZER_SPELL_H

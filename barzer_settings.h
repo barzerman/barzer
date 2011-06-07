@@ -24,6 +24,8 @@ class BarzerSettings {
 
 	boost::property_tree::ptree pt;
 public:
+	StoredUniverse* getCurrentUniverse() ;
+
 	//BarzerSettings(StoredUniverse&, const char*);
 	//BarzerSettings(StoredUniverse&);
 	BarzerSettings(GlobalPools&);
@@ -33,6 +35,9 @@ public:
 
 	void loadRules();
 	void loadEntities();
+
+	///loads spellchecker related stuff (hunspell dictionaries, extra word lists and such)
+	void loadSpell();
 
 
 	void load();
