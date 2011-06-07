@@ -352,7 +352,7 @@ struct BELFunctionStorage_holder {
 
 		BarzerDate date;
 		// changes fields to whatever was set
-		AYLOGDEBUG(rvec.size());
+		//AYLOGDEBUG(rvec.size());
 		switch (rvec.size()) {
 		case 3:
 			if (setNumber(y, rvec[2]));
@@ -577,6 +577,13 @@ struct BELFunctionStorage_holder {
 			}
 		}
 
+		template<class T> void setSecond(std::pair<T,T> &p, const T &v) {
+			if (p.first < v || range.isDesc())
+				p.second = v;
+			else
+				p.first = v;
+		}
+
 		bool operator()(const BarzerNumber &rnum) {
 			//AYLOG(DEBUG) << "mkRange arg " << cnt << ":BarzerNumber";
 			if (cnt) {
@@ -584,20 +591,26 @@ struct BELFunctionStorage_holder {
 					if (range.getType() == BarzerRange::Integer_TYPE) {
 						BarzerRange::Integer &ip
 							= boost::get<BarzerRange::Integer>(range.getData());
-						ip.second = rnum.getInt();
+						//ip.second = rnum.getInt();
+						setSecond(ip, rnum.getInt());
 					} else if (range.getType() == BarzerRange::Real_TYPE) {
 						BarzerRange::Real &rp
 							= boost::get<BarzerRange::Real>(range.getData());
-						rp.second = (float) rnum.getInt();
+						//rp.second = (float) rnum.getInt();
+						setSecond(rp, (float) rnum.getInt());
 					}
 				} else if (rnum.isReal()) {
 					if (range.getType() == BarzerRange::Real_TYPE) {
 						BarzerRange::Real &rp
 							= boost::get<BarzerRange::Real>(range.getData());
-						rp.second = rnum.getReal();
+						//rp.second = rnum.getReal();
+						setSecond(rp, (float)rnum.getReal());
 					} else {
 						int lf = boost::get<BarzerRange::Integer>(range.getData()).first;
-						range.setData(BarzerRange::Real((float) lf, rnum.getReal()));
+						BarzerRange::Real newRange((float) lf, (float) lf);
+						setSecond(newRange, (float)rnum.getReal());
+						range.setData(newRange);
+						//range.setData(BarzerRange::Real((float) lf, rnum.getReal()));
 					}
 				} else {
 					return false;
@@ -620,7 +633,9 @@ struct BELFunctionStorage_holder {
 				try {
 					BarzerRange::Date &dp
 						= boost::get<BarzerRange::Date>(range.getData());
-					dp.second = rdate;
+					if (dp.first < rdate || range.isDesc())
+						dp.second = rdate;
+					else dp.first = rdate;
 				} catch (boost::bad_get) {
 					AYLOG(ERROR) << "Types don't match: " << range.getData().which();
 					return false;
