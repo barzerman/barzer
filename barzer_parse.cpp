@@ -20,7 +20,7 @@ int QSemanticParser::semanticize( Barz& barz, const QuestionParm& qparm  )
 /// general parser 
 QParser::QParser( const StoredUniverse& u ) : 
 	universe(u),
-	lexer(&(u.getDtaIdx())),
+	lexer(u,&(u.getDtaIdx())),
 	semanticizer(u)
 {}
 

@@ -32,14 +32,14 @@ int BarzerHunspell::addWordsFromTextFile( const char* fname )
 		std::cerr <<"failed to open " << fname << " for reading extra words\n";
 		return 0;
 	}
-	char buf[256] =0;
+	char buf[256*4] ;
 	int numWords = 0;
 	while( fgets( buf, sizeof(buf)-1, fp ) ) {
 		if( *buf == '#' ) 
 			continue;
 		buf[ strlen(buf) -1 ] = 0;
 		if( *buf ) {
-			add( buf );
+			addWord( buf );
 			++numWords;
 		}
 	}

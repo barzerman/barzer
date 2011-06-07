@@ -135,6 +135,9 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, const TTWPVec& tVec, const Q
 				ctok.setClass( CTokenClassInfo::CLASS_PUNCTUATION );
 			} else if( !tryClassify_number(ctok,t) ) { 
 				/// fall thru - this is an unmatched word
+
+				/// lets try to spell correct the fucker 
+
 				ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
 			}
 		}
