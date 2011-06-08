@@ -1,14 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-        <!-- file>data/vendor/bbc/rules/shows.xml</file>
-        <file>data/vendor/bbc/rules/bbc_shows_autonames.xml</file>
-         -->
-
 <config>
-
-    <spell affx="/Users/yanis/Downloads/en_US/en_US.dic" maindict="/Users/yanis/Downloads/en_US/en_US.dic">
-       <dict>/some/path</dict>
-       <extra>/Users/yanis/barzer/spell/extrawords.txt</extra>
-    </spell>            
     <rules>
         <file>data/rules/generic.xml</file>
         <file>data/rules/barzel_prices.xml</file>
@@ -26,7 +17,11 @@
         <file>barzer.log</file>
     </logging>
     <users>
-        <user id="1">
+        <user id="0">
+            <spell affx="/Users/yanis/Downloads/en_US/en_US.dic" maindict="/Users/yanis/Downloads/en_US/en_US.dic">
+                <dict>/some/path</dict>
+                <extra>/Users/yanis/barzer/spell/extrawords.txt</extra>
+            </spell>            
             <trieset>
                 <trie class="class1" name="1" />
             </trieset>

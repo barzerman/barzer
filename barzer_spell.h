@@ -10,6 +10,7 @@ namespace barzer {
 class BarzerHunspell {
 	Hunspell* d_hunspell;
 public:
+	// this is a hack NEVER call this function
 	BarzerHunspell( ) : d_hunspell(0) {}
 	BarzerHunspell( const char* affFile, const char* dictFile );
 	~BarzerHunspell( );

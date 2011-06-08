@@ -2,16 +2,36 @@
 #include <hunspell/hunspell.hxx>
 #include <hunspell/hunspell.h>
 #include <barzer_spell.h>
+#include <unistd.h>
+#include <ay/ay_logger.h>
+#include <signal.h>
 
 namespace barzer {
 
-
 void  BarzerHunspell::initHunspell( const char* affFile, const char* dictFile ) 
 {
-	if( d_hunspell ) 
+	try {
+	if( d_hunspell ) {
 		delete d_hunspell;
+		d_hunspell = 0;	
+	}
 
+	if( access( affFile , F_OK ) ) {
+		AYLOG(ERROR) << "invalid affix file \"" <<  affFile << "\"\n";
+		return;
+	}
+	if( access( dictFile , F_OK ) ) {
+		AYLOG(ERROR) << "invalid dictionary file \"" <<  dictFile << "\"\n";
+		return;
+	}
 	d_hunspell =  new Hunspell( affFile, dictFile )  ;
+	} catch(...) {
+		if( d_hunspell ) {
+			delete d_hunspell;
+			d_hunspell = 0;
+		}
+		AYLOG(ERROR) << "Hunspell initialization failed\n";
+	}
 }
 BarzerHunspell::BarzerHunspell( const char* affFile, const char* dictFile ) :
 	d_hunspell( new Hunspell( affFile, dictFile )  )
@@ -19,9 +39,13 @@ BarzerHunspell::BarzerHunspell( const char* affFile, const char* dictFile ) :
 
 int BarzerHunspell::addDictionary( const char* fname ) 
 {
-	if( d_hunspell ) 
+	if( d_hunspell ) {
+		if( access( fname , F_OK ) ) {
+			AYLOG(ERROR) << "unopenable dictionary file \"" <<  fname << "\"\n";
+			return 0;
+		}
 		return d_hunspell->add_dic( fname );
-	else {
+	} else {
 		// add_dic rcode doesnt seem to be documented 
 		AYTRACE( "hunspell is invalid" );
 		return 666;
@@ -33,12 +57,15 @@ BarzerHunspell::~BarzerHunspell( )
 	if( d_hunspell ) 
 		delete d_hunspell;
 }
+
 int BarzerHunspell::addWordsFromTextFile( const char* fname ) 
 {
+
 	if( !d_hunspell ) {
 		AYTRACE( "hunspell is invalid" );
 		return 0;
 	}
+
 	FILE* fp = fopen( fname, "r" );
 	if( !fp ) {
 		std::cerr <<"failed to open " << fname << " for reading extra words\n";
@@ -46,7 +73,12 @@ int BarzerHunspell::addWordsFromTextFile( const char* fname )
 	}
 	char buf[256*4] ;
 	int numWords = 0;
+
 	while( fgets( buf, sizeof(buf)-1, fp ) ) {
+		if( !d_hunspell ) {
+			fprintf( stderr, "Hunspell is broken\n" );
+			break;
+		}
 		if( *buf == '#' ) 
 			continue;
 		buf[ strlen(buf) -1 ] = 0;
@@ -60,7 +92,10 @@ int BarzerHunspell::addWordsFromTextFile( const char* fname )
 }
 int BarzerHunspell::addWord( const char* w ) 
 {
-	return d_hunspell->add( w );
+	if( d_hunspell )
+		return d_hunspell->add( w );
+	else 
+		return 0;
 }
 
 void BarzerHunspellInvoke::clear() 
