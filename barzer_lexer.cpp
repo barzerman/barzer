@@ -116,7 +116,7 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, BarzerHunspellInvoke& 
 	bool isAsciiToken = ttok.isAscii();
 	ay::LevenshteinEditDistance& editDist = spellChecker.getEditDistanceCalc();
 
-	if( isAsciiToken && ttok.len < MIN_SPELL_CORRECT_LEN ) {
+	if( isAsciiToken && ttok.len > MIN_SPELL_CORRECT_LEN ) {
 		std::pair< int, size_t> scResult = spellChecker.checkSpell( t );
 		
 		const char* stem = 0;
@@ -134,7 +134,7 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, BarzerHunspellInvoke& 
 		}
 
 		const char* bestSugg = 0;
-		for( int i =0; i< sugg_sz; ++i ) {
+		for( size_t i =0; i< sugg_sz; ++i ) {
 			const char* curSugg = sugg[i];
 			if( editDist.ascii_no_case( t, curSugg ) <= MAX_EDIT_DIST_FROM_SPELL) {
 				// if this suggeston resolves to a token we simply return it

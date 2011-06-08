@@ -263,7 +263,7 @@ bool TANameProducer::operator()( TrieAnalyzer& analyzer, const BarzelTrieNode& t
 
 				++d_numNames;
 				/// printing names for all entities 
-				for( int i = 0; i< entities.size(); ++i ) {
+				for( size_t i = 0; i< entities.size(); ++i ) {
 					const StoredEntity* ent = analyzer.getEntityById( entities[i] );
 					if( !ent )  // should nev er be the case
 						continue;
