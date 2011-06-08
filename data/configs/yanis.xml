@@ -4,11 +4,11 @@
          -->
 
 <config>
-	<spell>
-		<dict>/Users/yanis/Downloads/en_US/en_US.dic</dict>
-		<affx>/Users/yanis/Downloads/en_US/en_US.aff</affx>
-		<extra>/Users/yanis/barzer/spell/extrawords.txt</extra>
-	</spell>
+
+    <spell affx="/Users/yanis/Downloads/en_US/en_US.dic" maindict="/Users/yanis/Downloads/en_US/en_US.dic">
+       <dict>/some/path</dict>
+       <extra>/Users/yanis/barzer/spell/extrawords.txt</extra>
+    </spell>            
     <rules>
         <file>data/rules/generic.xml</file>
         <file>data/rules/barzel_prices.xml</file>

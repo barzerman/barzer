@@ -12,7 +12,7 @@
     </logging>
     <users>
         <user id="0">
-            <spell affx="data/spell/en_US.aff" maindict="data/spell/en_US.dic">
+            <spell affx="/Users/yanis/Downloads/en_US/en_US.dic" maindict="/Users/yanis/Downloads/en_US/en_US.dic">
                 <dict>/some/path</dict>
                 <extra>/Users/yanis/barzer/spell/extrawords.txt</extra>
             </spell>            
