@@ -14,7 +14,7 @@
         <user id="0">
             <spell affx="data/spell/en_US.aff" maindict="data/spell/en_US.dic">
                 <dict>/some/path</dict>
-                <extra>data/spell/extra.txt</extra>
+                <extra>/Users/yanis/barzer/spell/extrawords.txt</extra>
             </spell>            
             <trieset>
                 <trie class="class1" name="1" />
