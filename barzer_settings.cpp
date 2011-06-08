@@ -59,8 +59,12 @@ void BarzerSettings::load() {
 void BarzerSettings::loadEntities() {
 	using boost::property_tree::ptree;
 	DtaIndex &dix = gpools.getDtaIndex();
+	try {
 	BOOST_FOREACH(ptree::value_type &v, pt.get_child("config.entities")) {
 		dix.loadEntities_XML(v.second.data().c_str());
+	}
+	} catch(...) {
+		std::cerr << "WARNING: entities section not found in config\n";
 	}
 }
 
@@ -79,6 +83,8 @@ void BarzerSettings::loadSpell()
 	const char* affxFile = 0;
 	const char* mainDict  = 0;
 	bool initDone = false;
+	try {
+
 	BOOST_FOREACH(ptree::value_type &v, pt.get_child("config.spell")) {
 		const std::string& tagName = v.first;
 		const char* tagVal = v.second.data().c_str();
@@ -108,6 +114,10 @@ void BarzerSettings::loadSpell()
 			std::cerr << "initializing hunspell with " << affxFile << " and " << mainDict << std::endl;
 			hunspell.initHunspell( affxFile, mainDict );
 		}
+	}
+	} 
+	catch(...) {
+		std::cerr << "WARNING: Spelling info not found\n" ;
 	}
 }
 

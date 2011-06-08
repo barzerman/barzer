@@ -2,6 +2,7 @@
 #define BARZER_SPELL_H
 #include <map>
 #include <barzer_dtaindex.h>
+#include <ay_char.h>
 
 class Hunspell;
 namespace barzer {
@@ -33,8 +34,15 @@ class BarzerHunspellInvoke {
 	
 	char_pp d_str_pp;
 	size_t  d_str_pp_sz;
+
+	/// levenshteyn edit distance calculator object - need an object because this thing 
+	/// allocates memory 
+	mutable ay::LevenshteinEditDistance d_editDist;
+
 	Hunspell* getHunspell() { return const_cast<Hunspell*>( d_spell.getHunspell() ); }
 public:
+	ay::LevenshteinEditDistance& getEditDistanceCalc() const { return d_editDist; }
+
 	void clear() ;
 	BarzerHunspellInvoke( const BarzerHunspell& spell ) : 
 		d_spell(spell) ,

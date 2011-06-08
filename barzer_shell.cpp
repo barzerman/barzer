@@ -230,7 +230,7 @@ static int bshf_spell( BarzerShell* shell, char_cp cmd, std::istream& in )
 		if( !scResult.first ) {
 
 			std::cerr << "misspelling correctin it. got " << scResult.second << " suggestions\n";
-			char*const* sugg = spellChecker.getAllSuggestions();
+			const char*const* sugg = spellChecker.getAllSuggestions();
 			for( int i =0; i< scResult.second; ++i ) {
 				std::cerr << sugg[i] << std::endl;
 			}
