@@ -36,10 +36,10 @@ public:
 	void loadRules();
 	void loadEntities();
 	///loads spellchecker related stuff (hunspell dictionaries, extra word lists and such)
-	void loadSpell(StoredUniverse&, boost::property_tree::ptree&);
+	void loadSpell(StoredUniverse&, const boost::property_tree::ptree&);
 
-	void loadTrieset(StoredUniverse&, boost::property_tree::ptree&);
-	void loadUser(boost::property_tree::ptree::value_type &);
+	void loadTrieset(StoredUniverse&, const boost::property_tree::ptree&);
+	void loadUser(const boost::property_tree::ptree::value_type &);
 	void loadUsers();
 
 

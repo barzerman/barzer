@@ -3,9 +3,9 @@
     <rules>
         <file>data/rules/test-rules.xml</file>
     </rules>
-    <entities>
+    <entities2>
         <file>data/entities/time_ent.xml</file>
-    </entities>
+    </entities2>
     <logging>
         <level>DEBUG</level>
         <file>barzer.log</file>
