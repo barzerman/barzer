@@ -65,8 +65,10 @@ int BarzerHunspell::addWord( const char* w )
 
 void BarzerHunspellInvoke::clear() 
 {
+	Hunspell* hunspell = getHunspell();
+	if( !hunspell ) return ;
 	if( d_str_pp ) {
-		getHunspell()->free_list( &d_str_pp, d_str_pp_sz );
+		hunspell->free_list( &d_str_pp, d_str_pp_sz );
 		d_str_pp = 0;
 	}
 }
@@ -76,12 +78,16 @@ void BarzerHunspellInvoke::clear()
 /// returns the number of spelling suggestions 
 std::pair< int, size_t> BarzerHunspellInvoke::checkSpell( const char* s )
 {
+	Hunspell* hunspell = getHunspell();
+	if( !hunspell ) {
+		return std::pair< int, size_t >( 0, 0 );
+	}
 	clear();
-	int n = getHunspell()->spell( s );
+	int n = hunspell->spell( s );
 	if( n ) 
 		return std::pair< int, size_t >( n, 0 );
 	else {
-		d_str_pp_sz = getHunspell()->suggest( &d_str_pp, s );
+		d_str_pp_sz = hunspell->suggest( &d_str_pp, s );
 		return std::pair< int, size_t >( n, d_str_pp_sz );
 	}
 }
@@ -89,9 +95,11 @@ std::pair< int, size_t> BarzerHunspellInvoke::checkSpell( const char* s )
 
 const char* BarzerHunspellInvoke::stem( const char* s )
 {
+	Hunspell* hunspell = getHunspell();
+	if( !hunspell ) return 0;
 	clear();
 
-	d_str_pp_sz = getHunspell()->stem( &d_str_pp, s );
+	d_str_pp_sz = hunspell->stem( &d_str_pp, s );
 	if( d_str_pp_sz> 0 ) 
 		return d_str_pp[0];
 	else 
