@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
+    xmlns="http://www.barzer.net/barzel/0.1">
+
+<stmt>
+    <pat><t>between</t><list v="low"><n /></list><t>and</t><list v="high"><n /></list></pat>
+    <tran>
+        <func name="mkRange"><var name="low" /><var name="high" /></func>
+    </tran>
+</stmt>
+</stmset>
