@@ -18,6 +18,8 @@ public:
 	int tokenize( TTWPVec& , const char*, const QuestionParm& );	
 };
 
+class BarzerHunspellInvoke;
+
 //// Lexical parser - it classifies TTokens and 
 //// manipulates the resulting vector of CTokens
 class QLexParser {
@@ -29,8 +31,21 @@ class QLexParser {
 
 	void collapseCTokens( CTWPVec::iterator beg, CTWPVec::iterator end );
 
+	enum { 
+		// hunspell results with higher levenshteyn distance from original than this will be 
+		/// discarded
+		MAX_EDIT_DIST_FROM_SPELL = 2,  
+		/// words shorter than this wont be spell corrected 
+		MIN_SPELL_CORRECT_LEN = 4 
+	};
+	/// invoked from singleTokenClassify - tries to spell correct 
+	/// fluffs the token if it's not correctable otherwise attempts to find something 
+	/// returned by hunspell within the maximum Levenshteyn edit distance from t that resolves to 
+	/// an actual domain token
+	int trySpellCorrectAndClassify( CToken& ctok, BarzerHunspellInvoke& spellChecker, TToken& ttok );
+
 	/// resolves single tokens - this is not language specific
-	int singleTokenClassify( CTWPVec& , const TTWPVec&, const QuestionParm& );	
+	int singleTokenClassify( CTWPVec& , TTWPVec&, const QuestionParm& );	
 	/// multitoken non-language specific hardcoded stuff
 	int advancedBasicClassify( CTWPVec& , const TTWPVec&, const QuestionParm& );	
 	/// called from advancedBasicClassify
@@ -45,7 +60,7 @@ public:
 	}; 
 	void setDtaIndex(const DtaIndex * di) { dtaIdx= di; }
 	struct Error : public QPError { } err;
-	virtual int lex( CTWPVec& , const TTWPVec&, const QuestionParm& );
+	virtual int lex( CTWPVec& , TTWPVec&, const QuestionParm& );
 	virtual ~QLexParser() {}
 };
 }

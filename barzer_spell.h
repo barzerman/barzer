@@ -2,6 +2,7 @@
 #define BARZER_SPELL_H
 #include <map>
 #include <barzer_dtaindex.h>
+#include <ay_char.h>
 
 class Hunspell;
 namespace barzer {
@@ -26,16 +27,24 @@ public:
 /// it can be used multiple times. the object cleans up memory allocated by 
 /// the spellchecker
 class BarzerHunspellInvoke {
-	BarzerHunspell& d_spell;
+	const BarzerHunspell& d_spell;
 	
 	typedef char* char_p;
 	typedef char_p* char_pp;
 	
 	char_pp d_str_pp;
 	size_t  d_str_pp_sz;
+
+	/// levenshteyn edit distance calculator object - need an object because this thing 
+	/// allocates memory 
+	mutable ay::LevenshteinEditDistance d_editDist;
+
+	Hunspell* getHunspell() { return const_cast<Hunspell*>( d_spell.getHunspell() ); }
 public:
+	ay::LevenshteinEditDistance& getEditDistanceCalc() const { return d_editDist; }
+
 	void clear() ;
-	BarzerHunspellInvoke( BarzerHunspell& spell ) : 
+	BarzerHunspellInvoke( const BarzerHunspell& spell ) : 
 		d_spell(spell) ,
 		d_str_pp(0),
 		d_str_pp_sz(0)
@@ -54,21 +63,6 @@ public:
 	std::pair< int, size_t> checkSpell( const char* s );
 
 	const char* stem( const char* s );
-};
-
-/// barzer spell has a few lines of defence 
-/// first it tries to match the string that couldnt be matched using the prefix (maybe sugfix also) tries
-/// only very certain matches will stop at that point 
-/// if no conclusive match could be done using the tries it invokes external speller 
-/// 
-
-class BarzerSpell  {
-	BarzerHunspell& d_extSpell;
-	
-	DtaIndex& d_dtaIdx;
-public:
-	BarzerSpell( BarzerHunspell& espell, DtaIndex& dtaIdx ) : d_extSpell(espell), d_dtaIdx(dtaIdx)  {}
-
 };
 
 } // barzer namespace ends

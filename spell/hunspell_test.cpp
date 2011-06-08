@@ -1,7 +1,8 @@
 #include <hunspell/hunspell.hxx>
 #include <hunspell/hunspell.h>
 #include <iostream>
-
+#include <math.h>
+#include <ay_char.h>
 
 int main( int argc, char* argv[] ) 
 {
@@ -20,6 +21,7 @@ int main( int argc, char* argv[] )
 	}
 	time_t t = time(0);
 	int wordCount = 0;
+	ay::LevenshteinEditDistance editDist;
 	while( fgets( buf, sizeof(buf), fp ) ) {
 		buf[ strlen(buf)-1 ] = 0;
 		if( !*buf ) 
@@ -39,7 +41,13 @@ int main( int argc, char* argv[] )
 		if( !n ) {
 			n = hunspell.suggest( &result, buf );
 			for( int i = 0; i< n; ++i ) {
-				std::cerr << "SUGGESTION #" << i << ":" << result[i] << std::endl;
+				size_t noCaseEdist = editDist.ascii_no_case( buf, result[i] ) ;
+				size_t caseEdist = editDist.ascii_with_case( buf, result[i] );
+				size_t genericEdist = editDist.generic<char, ay::char_compare<char> >( 
+					buf, strlen(buf), result[i], strlen(result[i]), ay::char_compare<char>() );
+					 
+				std::cerr << "SUGGESTION #" << i << ":" << result[i] << 
+				"~" << noCaseEdist << ':' << caseEdist << ':' << genericEdist << std::endl;
 			}
 			hunspell.free_list( &result, n );
 			result = 0;

@@ -216,6 +216,32 @@ static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
+static int bshf_spell( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext *context = shell->getBarzerContext();
+	const StoredUniverse &uni = context->universe;
+	const BarzerHunspell& hunspell = uni.getHunspell();
+	ay::InputLineReader reader( in );
+	BarzerHunspellInvoke spellChecker(hunspell);
+
+	while( reader.nextLine() && reader.str.length() ) {
+		const char*  str = reader.str.c_str();
+		std::pair< int, size_t> scResult = spellChecker.checkSpell( str );	
+		if( !scResult.first ) {
+
+			std::cerr << "misspelling correctin it. got " << scResult.second << " suggestions\n";
+			const char*const* sugg = spellChecker.getAllSuggestions();
+			for( int i =0; i< scResult.second; ++i ) {
+				std::cerr << sugg[i] << std::endl;
+			}
+		} else {
+			std::cerr << "valid spelling\n";
+		}
+	}
+
+	return 0;
+}
+
 static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
@@ -658,6 +684,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_trcd, "trcd", "changes current trie node to the firm child by number" ),
 	CmdData( (ay::Shell_PROCF)bshf_trcdw, "trcdw", "changes current trie node to the wildcard child by number" ),
 	CmdData( (ay::Shell_PROCF)bshf_trup, "trup", "moves back to the parent trie node" ),
+	CmdData( (ay::Shell_PROCF)bshf_spell, "spell", "tests hunspell in the current universe spell checker" ),
 	CmdData( (ay::Shell_PROCF)bshf_stexpand, "stexpand", "expand and print all statements in a file" ),
 	CmdData( (ay::Shell_PROCF)bshf_process, "process", "process an input string" ),
 	CmdData( (ay::Shell_PROCF)bshf_querytest, "querytest", "peforms given number of queries" ),

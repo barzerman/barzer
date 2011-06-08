@@ -219,6 +219,9 @@ class StoredUniverse {
 	bool  getToNextTrie() const { return trieClusterIter.advance(); }
 
 public:
+	BarzerHunspell& getHunspell() { return hunspell; }
+	const BarzerHunspell& getHunspell() const { return hunspell; }
+
 	size_t getMaxAnalyticalModeMaxSeqLength() const { return gp.getMaxAnalyticalModeMaxSeqLength(); }
 	bool isAnalyticalMode() const { return gp.isAnalyticalMode(); }
 	EntPropCompatibility& getEntPropIndex() { return gp.entCompatibility; }

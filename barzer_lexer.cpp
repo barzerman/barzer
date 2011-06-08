@@ -1,7 +1,9 @@
 #include <barzer_lexer.h>
 #include <ctype.h>
 #include <barzer_dtaindex.h>
+#include <barzer_universe.h>
 #include <sstream>
+#include <ay_char.h>
 
 namespace barzer {
 bool QLexParser::tryClassify_number( CToken& ctok, const TToken& ttok ) const
@@ -107,14 +109,70 @@ int QLexParser::advancedBasicClassify( CTWPVec& cvec, const TTWPVec& tvec, const
 	return 0;
 }
 
-int QLexParser::singleTokenClassify( CTWPVec& cVec, const TTWPVec& tVec, const QuestionParm& qparm )
+int QLexParser::trySpellCorrectAndClassify( CToken& ctok, BarzerHunspellInvoke& spellChecker, TToken& ttok )
+{
+	const char* t = ttok.buf;
+
+	bool isAsciiToken = ttok.isAscii();
+	ay::LevenshteinEditDistance& editDist = spellChecker.getEditDistanceCalc();
+
+	if( isAsciiToken && ttok.len < MIN_SPELL_CORRECT_LEN ) {
+		std::pair< int, size_t> scResult = spellChecker.checkSpell( t );
+		
+		const char* stem = 0;
+		const char*const* sugg = 0;
+		size_t sugg_sz = 0;
+		if( !scResult.first ) { // this is a misspelling 
+			sugg = spellChecker.getAllSuggestions();
+			sugg_sz = scResult.second;
+		} else { // this is not a misspelling but we'll try to stem 
+			stem = spellChecker.stem(t);
+			if( stem ) {
+				sugg = &stem;
+				sugg_sz = 1;
+			}
+		}
+
+		const char* bestSugg = 0;
+		for( int i =0; i< sugg_sz; ++i ) {
+			const char* curSugg = sugg[i];
+			if( editDist.ascii_no_case( t, curSugg ) <= MAX_EDIT_DIST_FROM_SPELL) {
+				// if this suggeston resolves to a token we simply return it
+				// we should also take care of word split spelling correction
+				const StoredToken* storedTok = dtaIdx->getStoredToken( curSugg );
+				if( storedTok ) { /// 
+					/// 
+					ctok.storedTok = storedTok;
+					ctok.syncClassInfoFromSavedTok();
+					return 0;
+				} else
+					bestSugg = curSugg;
+			}
+		}
+		// nothing was resolved but we can at least correct the mystery word 
+		if( bestSugg ) {
+		}
+	} else {
+		/// non-ascii spell checking logic should go here 
+	}
+
+
+	ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
+	return 1;
+}
+
+int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const QuestionParm& qparm )
 {
 	cVec.resize( tVec.size() );
 	if( !dtaIdx ) 
 		return ( err.e = QLPERR_NULL_IDX, 0 );
 
+	const BarzerHunspell& hunspell = d_universe.getHunspell();
+	BarzerHunspellInvoke spellChecker(hunspell);
+	ay::LevenshteinEditDistance editDist;
+
 	for( uint32_t i = 0; i< tVec.size(); ++i ) {
-		const TToken& ttok = tVec[i].first;
+		TToken& ttok = tVec[i].first;
 		const char* t = ttok.buf;
 		cVec[i].second = i;
 		CToken& ctok = cVec[i].first;
@@ -136,16 +194,16 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, const TTWPVec& tVec, const Q
 			} else if( !tryClassify_number(ctok,t) ) { 
 				/// fall thru - this is an unmatched word
 
-				/// lets try to spell correct the fucker 
+				/// lets try to spell correct the token
+				trySpellCorrectAndClassify( ctok, spellChecker, ttok ) ;
 
-				ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
 			}
 		}
 	}
 	return 0;
 }
 
-int QLexParser::lex( CTWPVec& cVec, const TTWPVec& tVec, const QuestionParm& qparm )
+int QLexParser::lex( CTWPVec& cVec, TTWPVec& tVec, const QuestionParm& qparm )
 {
 	err.clear();
 	cVec.clear();

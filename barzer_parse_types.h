@@ -37,6 +37,19 @@ struct TToken {
 
 	std::ostream& print( FILE* fp ) const;
 	std::ostream& print( std::ostream& fp ) const;
+
+	enum {
+		IS_ASCII,
+		IS_16BYTE, /// alphabet has 16 byte chars
+	};
+	/// returns true if every character in the token is ASCII
+	bool isAscii() const
+		{ 
+			for( const char* s = buf; *s; ++s ) 
+				if( !isascii(*s) ) return false; 
+
+			return true;
+		}
 };
 
 inline std::ostream& operator<<( std::ostream& fp, const TToken& t ) { return (t.print(fp)); }
