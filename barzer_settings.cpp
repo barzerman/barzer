@@ -62,10 +62,10 @@ void BarzerSettings::loadEntities() {
 	using boost::property_tree::ptree;
 	DtaIndex &dix = gpools.getDtaIndex();
 	try {
-	BOOST_FOREACH(ptree::value_type &v, pt.get_child("config.entities")) {
-		dix.loadEntities_XML(v.second.data().c_str());
-	}
-	} catch(...) {
+		BOOST_FOREACH(ptree::value_type &v, pt.get_child("config.entities")) {
+			dix.loadEntities_XML(v.second.data().c_str());
+		}
+	} catch(boost::property_tree::ptree_bad_path &e) {
 		std::cerr << "WARNING: entities section not found in config\n";
 	}
 }
@@ -73,13 +73,18 @@ void BarzerSettings::loadEntities() {
 
 void BarzerSettings::loadSpell(StoredUniverse &u, ptree &node)
 {
-	using boost::property_tree::ptree;
 	BarzerHunspell& hunspell = u.getHunspell();
 
+	boost::optional<ptree &> spell_opt = pt.get_child_optional("spell");
+	if (!spell_opt) {
+		std::cout << "No <spell> tag";
+		return;
+	}
 
 	try {
-		ptree &spell = node.get_child("spell");
-		ptree &attrs = spell.get_child("<xmlattr>");
+		//const ptree &spell = node.get_child("spell");
+		const ptree &spell = spell_opt.get();
+		const ptree &attrs = spell.get_child("<xmlattr>");
 
 		const std::string &affx = attrs.get<std::string>("affx"),
 			              &dict = attrs.get<std::string>("maindict");
@@ -89,7 +94,7 @@ void BarzerSettings::loadSpell(StoredUniverse &u, ptree &node)
 
 		hunspell.initHunspell(affx.c_str(), dict.c_str());
 
-		BOOST_FOREACH(ptree::value_type &v, spell) {
+		BOOST_FOREACH(const ptree::value_type &v, spell) {
 			const std::string& tagName = v.first;
 			const char* tagVal = v.second.data().c_str();
 			if( tagName == "dict" ) {
@@ -162,7 +167,10 @@ void BarzerSettings::loadSpell()
 */
 
 void BarzerSettings::loadTrieset(StoredUniverse &u, ptree &node) {
-	BOOST_FOREACH(ptree::value_type &v, node.get_child("trieset")) {
+	boost::optional<ptree &> trieset = node.get_child_optional("trieset");
+	if (!trieset) return;
+
+	BOOST_FOREACH(ptree::value_type &v, trieset.get()) {
 		if (v.first == "trie") {
 			ptree &trie = v.second;
 			try {
