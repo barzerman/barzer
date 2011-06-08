@@ -1,4 +1,4 @@
 #!/bin/bash
 # a readline wrapper for the shell
 # because someone can't help himself and keeps inventing the wheel :P
-rlwrap -c -f .rlcomplete ./barzer.exe shell
+rlwrap -c -f .rlcomplete ./barzer.exe shell $@

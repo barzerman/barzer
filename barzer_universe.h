@@ -219,6 +219,7 @@ class StoredUniverse {
 	bool  getToNextTrie() const { return trieClusterIter.advance(); }
 
 public:
+	UniverseTrieCluster& getTrieCluster() { return trieCluster; }
 	BarzerHunspell& getHunspell() { return hunspell; }
 	const BarzerHunspell& getHunspell() const { return hunspell; }
 

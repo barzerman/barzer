@@ -12,6 +12,8 @@
 #include <time.h>
 #include <barzer_basic_types.h>
 
+using boost::property_tree::ptree;
+
 namespace barzer {
 
 BarzerSettings::BarzerSettings(GlobalPools &gp)
@@ -68,6 +70,43 @@ void BarzerSettings::loadEntities() {
 	}
 }
 
+
+void BarzerSettings::loadSpell(StoredUniverse &u, ptree &node)
+{
+	using boost::property_tree::ptree;
+	BarzerHunspell& hunspell = u.getHunspell();
+
+
+	try {
+		ptree &spell = node.get_child("spell");
+		ptree &attrs = spell.get_child("<xmlattr>");
+
+		const std::string &affx = attrs.get<std::string>("affx"),
+			              &dict = attrs.get<std::string>("maindict");
+
+		std::cerr << "initializing hunspell with "
+				  << affx << " and " << dict << std::endl;
+
+		hunspell.initHunspell(affx.c_str(), dict.c_str());
+
+		BOOST_FOREACH(ptree::value_type &v, spell) {
+			const std::string& tagName = v.first;
+			const char* tagVal = v.second.data().c_str();
+			if( tagName == "dict" ) {
+				std::cerr << "adding dictionary " << tagVal << std::endl;
+				hunspell.addDictionary( tagVal );
+			} else if( tagName == "extra" ) {
+				std::cerr << "adding extra file " << tagVal << "... " <<
+				hunspell.addWordsFromTextFile( tagVal ) << " words added\n";
+		   }
+		}
+	} catch (boost::property_tree::ptree_bad_path &e) {
+		AYLOG(ERROR) << "Can't get " << e.what();
+		return;
+	}
+}
+
+/*
 void BarzerSettings::loadSpell()
 {
 	using boost::property_tree::ptree;
@@ -120,14 +159,57 @@ void BarzerSettings::loadSpell()
 		std::cerr << "WARNING: Spelling info not found\n" ;
 	}
 }
+*/
+
+void BarzerSettings::loadTrieset(StoredUniverse &u, ptree &node) {
+	BOOST_FOREACH(ptree::value_type &v, node.get_child("trieset")) {
+		if (v.first == "trie") {
+			ptree &trie = v.second;
+			try {
+				const std::string &cl = trie.get<std::string>("<xmlattr>.class"),
+				     		&name = trie.get<std::string>("<xmlattr>.name");
+				u.getTrieCluster().appendTrie(cl, name);
+			} catch (boost::property_tree::ptree_bad_path &e) {
+				AYLOG(ERROR) << "Can't get " << e.what();
+			}
+		}
+	}
+}
+
+void BarzerSettings::loadUser(ptree::value_type &user) {
+	ptree &children = user.second;
+	boost::optional<uint32_t> userId
+		= children.get_optional<uint32_t>("<xmlattr>.id");
+
+	if (!userId) {
+		AYLOG(ERROR) << "No user id in tag <user>";
+		return;
+	}
+
+	StoredUniverse &u = gpools.produceUniverse(userId.get());
+	std::cout << "Loading user id: " << userId << "\n";
+	loadTrieset(u, children);
+	loadSpell(u, children);
+}
+
+void BarzerSettings::loadUsers() {
+	using boost::property_tree::ptree;
+	BOOST_FOREACH(ptree::value_type &v, pt.get_child("config.users")) {
+		std::cout << "loading user\n";
+		//if (v.first == "user")
+			loadUser(v);
+	}
+}
 
 void BarzerSettings::load(const char *fname) {
 	//AYLOGDEBUG(fname);
+	std::cout << "Loading config file: " << fname << std::endl;
 
 	read_xml(fname, pt);
-	loadSpell();
+	//loadSpell();
 	loadEntities();
 	loadRules();
+	loadUsers();
 }
 
 const std::string BarzerSettings::get(const char *key) const {

@@ -11,10 +11,26 @@
         <file>barzer.log</file>
     </logging>
     <users>
-        <user id="1">
+        <user id="0">
+            <spell affx="data/spell/en_US.aff" maindict="data/spell/en_US.dic">
+                <dict>/some/path</dict>
+                <extra>data/spell/extra.txt</extra>
+            </spell>            
             <trieset>
                 <trie class="class1" name="1" />
             </trieset>
         </user>
+        <user id="2">
+            <trieset>
+                <trie class="class1" name="1" />
+            </trieset>
+        </user>
+        
+        <user>
+            <trieset>
+                <trie class="class1" name="1" />
+            </trieset>
+        </user>
+        
     </users>
 </config>
