@@ -14,6 +14,11 @@
 
 using boost::property_tree::ptree;
 
+static ptree& empty_ptree() {
+	static ptree pt;
+	return pt;
+}
+
 namespace barzer {
 
 BarzerSettings::BarzerSettings(GlobalPools &gp)
@@ -38,10 +43,12 @@ void BarzerSettings::loadRules() {
 
 	StoredUniverse *u = getCurrentUniverse();
 	if (!u) return;
-
-	BOOST_FOREACH(ptree::value_type &v, pt.get_child("config.rules")) {
-		//AYLOG(DEBUG) << v.second.data().c_str();
-		//loadRules(v.second.data().c_str());
+	const ptree &rules = pt.get_child("config.rules", empty_ptree());
+	if (rules.empty()) {
+		// warning goes here
+		return;
+	}
+	BOOST_FOREACH(const ptree::value_type &v, rules) {
 		BELReader r(&(u->getBarzelTrie()), *u);
 		const char *fname =  v.second.data().c_str();
 		int num = r.loadFromFile(fname, BELReader::INPUT_FMT_XML);
@@ -61,29 +68,30 @@ void BarzerSettings::load() {
 void BarzerSettings::loadEntities() {
 	using boost::property_tree::ptree;
 	DtaIndex &dix = gpools.getDtaIndex();
-	try {
-		BOOST_FOREACH(ptree::value_type &v, pt.get_child("config.entities")) {
-			dix.loadEntities_XML(v.second.data().c_str());
-		}
-	} catch(boost::property_tree::ptree_bad_path &e) {
-		std::cerr << "WARNING: entities section not found in config\n";
+	const ptree &ents = pt.get_child("config.entities", empty_ptree());
+	BOOST_FOREACH(const ptree::value_type &v, ents) {
+		dix.loadEntities_XML(v.second.data().c_str());
 	}
+/*	} catch(boost::property_tree::ptree_bad_path &e) {
+		std::cerr << "WARNING: entities section not found in config\n";
+	} //*/
 }
 
 
-void BarzerSettings::loadSpell(StoredUniverse &u, ptree &node)
+void BarzerSettings::loadSpell(StoredUniverse &u, const ptree &node)
 {
 	BarzerHunspell& hunspell = u.getHunspell();
 
-	boost::optional<ptree &> spell_opt = pt.get_child_optional("spell");
-	if (!spell_opt) {
-		std::cout << "No <spell> tag";
+	//const boost::optional<ptree &> spell_opt = node.get_child_optional("spell");
+	const ptree &spell = node.get_child("spell", empty_ptree());
+	if (spell.empty()) {
+		std::cout << "No <spell> tag\n";
 		return;
 	}
 
 	try {
 		//const ptree &spell = node.get_child("spell");
-		const ptree &spell = spell_opt.get();
+		//const ptree &spell = spell_opt.get();
 		const ptree &attrs = spell.get_child("<xmlattr>");
 
 		const std::string &affx = attrs.get<std::string>("affx"),
@@ -166,16 +174,14 @@ void BarzerSettings::loadSpell()
 }
 */
 
-void BarzerSettings::loadTrieset(StoredUniverse &u, ptree &node) {
-	boost::optional<ptree &> trieset = node.get_child_optional("trieset");
-	if (!trieset) return;
-
-	BOOST_FOREACH(ptree::value_type &v, trieset.get()) {
+void BarzerSettings::loadTrieset(StoredUniverse &u, const ptree &node) {
+	BOOST_FOREACH(const ptree::value_type &v, node.get_child("trieset", empty_ptree())) {
 		if (v.first == "trie") {
-			ptree &trie = v.second;
+			const ptree &trie = v.second;
 			try {
-				const std::string &cl = trie.get<std::string>("<xmlattr>.class"),
-				     		&name = trie.get<std::string>("<xmlattr>.name");
+				const ptree &attrs = trie.get_child("<xmlattr>");
+				const std::string &cl = attrs.get<std::string>("class"),
+								  &name = attrs.get<std::string>("name");
 				u.getTrieCluster().appendTrie(cl, name);
 			} catch (boost::property_tree::ptree_bad_path &e) {
 				AYLOG(ERROR) << "Can't get " << e.what();
@@ -184,9 +190,9 @@ void BarzerSettings::loadTrieset(StoredUniverse &u, ptree &node) {
 	}
 }
 
-void BarzerSettings::loadUser(ptree::value_type &user) {
-	ptree &children = user.second;
-	boost::optional<uint32_t> userId
+void BarzerSettings::loadUser(const ptree::value_type &user) {
+	const ptree &children = user.second;
+	const boost::optional<uint32_t> userId
 		= children.get_optional<uint32_t>("<xmlattr>.id");
 
 	if (!userId) {
@@ -201,23 +207,24 @@ void BarzerSettings::loadUser(ptree::value_type &user) {
 }
 
 void BarzerSettings::loadUsers() {
-	using boost::property_tree::ptree;
-	BOOST_FOREACH(ptree::value_type &v, pt.get_child("config.users")) {
-		std::cout << "loading user\n";
-		//if (v.first == "user")
-			loadUser(v);
+	BOOST_FOREACH(ptree::value_type &v,
+			pt.get_child("config.users", empty_ptree())) {
+		if (v.first == "user") loadUser(v);
 	}
 }
 
 void BarzerSettings::load(const char *fname) {
 	//AYLOGDEBUG(fname);
 	std::cout << "Loading config file: " << fname << std::endl;
-
-	read_xml(fname, pt);
-	//loadSpell();
-	loadEntities();
-	loadRules();
-	loadUsers();
+	try {
+		read_xml(fname, pt);
+		//loadSpell();
+		loadEntities();
+		loadRules();
+		loadUsers();
+	} catch (boost::property_tree::xml_parser_error &e) {
+		AYLOG(ERROR) << e.what();
+	}
 }
 
 const std::string BarzerSettings::get(const char *key) const {
