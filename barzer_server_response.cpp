@@ -129,6 +129,7 @@ class BeadVisitor : public boost::static_visitor<> {
 	std::ostream &os;
 	StoredUniverse &universe;
 	size_t lvl;
+	
 public:
 	BeadVisitor(std::ostream &s, StoredUniverse &u) : os(s), universe(u), lvl(0) {}
 
@@ -216,13 +217,6 @@ public:
 			os << boost::format(tmpl) % (tokname ? tokname : "(null)")
 									  % euid.eclass.ec
 									  % euid.eclass.subclass;
-					/*
-					os << "<entity"
-					<< " id=\"" << (tokname? tokname:"(null)") << "\""
-		        	<< " class=\"" << euid.eclass.ec << "\""
-					<< " subclass=\"" << euid.eclass.subclass << "\""
-					<< " />";
-					*/
 		} else {
 			os << "INVALID_TOK[" << euid.eclass << "," << std::hex << euid.tokId << "]";
 		}

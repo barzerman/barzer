@@ -68,7 +68,13 @@ struct CToken {
 	CTokenClassInfo cInfo;
 	TokenLinguisticInfo ling; 
 	
+	typedef std::pair< std::string, std::string > StringPair;
+	typedef std::vector< StringPair > SpellCorrections;
+
 	BarzerNumber bNum; // in cse this classifies as number
+
+	/// before:after corrections are stored here 
+	SpellCorrections spellCorrections;
 
 	const StoredToken* storedTok;
 
@@ -123,6 +129,13 @@ struct CToken {
 	bool isSpace() const { return cInfo.theClass == CTokenClassInfo::CLASS_SPACE; }
 	
 	void setSpellCorrected( bool v = true ) { cInfo.setSpellCorrected(v); }
+	void addSpellingCorrection( const char* wrong, const char*  correct ) 
+	{ 
+		setSpellCorrected();
+		spellCorrections.resize( spellCorrections.size() +1 ) ;
+		spellCorrections.back().first.assign(wrong);
+		spellCorrections.back().first.assign(correct);
+	}
 	void setStemmed( bool v = true ) { cInfo.setStemmed(v); }
 	bool isSpellCorrected( ) const { return cInfo.isSpellCorrected(); }
 	bool isStemmed( ) const { return cInfo.isStemmed(); }

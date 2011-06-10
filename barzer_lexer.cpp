@@ -137,16 +137,23 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, BarzerHunspellInvoke& 
 		for( size_t i =0; i< sugg_sz; ++i ) {
 			const char* curSugg = sugg[i];
 			if( editDist.ascii_no_case( t, curSugg ) <= MAX_EDIT_DIST_FROM_SPELL) {
-				// if this suggeston resolves to a token we simply return it
-				// we should also take care of word split spelling correction
-				const StoredToken* storedTok = dtaIdx->getStoredToken( curSugg );
-				if( storedTok ) { /// 
-					/// 
-					ctok.storedTok = storedTok;
-					ctok.syncClassInfoFromSavedTok();
-					return 0;
-				} else
-					bestSugg = curSugg;
+				
+				/// current suggestion contains at least one space which means
+				/// the spellchecker has broken up the input 
+				if( strchr( curSugg, ' ' ) ) { }
+				else { // spell corrected to a solid token
+					// if this suggeston resolves to a token we simply return it
+					// we should also take care of word split spelling correction
+					const StoredToken* storedTok = dtaIdx->getStoredToken( curSugg );
+					if( storedTok ) { /// 
+						/// 
+						ctok.storedTok = storedTok;
+						ctok.syncClassInfoFromSavedTok();
+						ctok.addSpellingCorrection( t, curSugg );
+						return 0;
+					} else
+						bestSugg = curSugg;
+				}
 			}
 		}
 		// nothing was resolved but we can at least correct the mystery word 
@@ -196,7 +203,6 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
 
 				/// lets try to spell correct the token
 				trySpellCorrectAndClassify( ctok, spellChecker, ttok ) ;
-
 			}
 		}
 	}

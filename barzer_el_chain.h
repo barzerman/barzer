@@ -65,6 +65,7 @@ struct BarzelBeadAtomic {
 		const BarzerLiteral* bl = getLiteral();
 		return( bl && bl->isStop() );
 	}
+	bool isDate() const { return dta.which() == BarzerDate_TYPE; }
 	bool isNumber() const { return dta.which() == BarzerNumber_TYPE; }
 	bool isBlankLiteral() const { 
 		const BarzerLiteral* bl = getLiteral();
