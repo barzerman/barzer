@@ -15,6 +15,7 @@
         <file>data/vendor/bbc/rules/shows.xml</file>
         <file>data/vendor/bbc/rules/bbc_shows_autonames.xml</file>
         <file>data/vendor/bbc/rules/genres.xml</file>        
+        <file>data/vendor/bbc/rules/generic.xml</file>
     </rules>
     <entities>
         <file>data/entities/time_ent.xml</file>
@@ -25,10 +26,7 @@
     </logging>
     <users>
         <user id="0">
-            <spell affx="data/spell/en_US.aff" maindict="data/spell/en_US.dic">
-                <dict>/some/path</dict>
-                <extra>data/spell/extra.txt</extra>
-            </spell>            
+            <spell affx="data/spell/en_US.aff" maindict="data/spell/en_US.dic" />            
             <trieset>
                 <trie class="class1" name="1" />
             </trieset>
