@@ -76,6 +76,12 @@ std::ostream& printTo<BarzerTimeOfDay>(std::ostream &os,
 			 	 	 	 	 	 	 	 	 	 	 	% (int)dt.getSS());
 }
 
+template<>
+std::ostream& printTo<BarzerDateTime>(std::ostream &os,
+						               const BarzerDateTime &dt)
+{
+	return printTo(printTo(os, dt.getDate()) << " ", dt.getTime());
+}
 
 
 class RangeVisitor : public boost::static_visitor<> {
@@ -115,6 +121,11 @@ public:
 		os << "<date>";
 		lohi(data);
 		os << "</date>";
+	}
+	void operator()(const BarzerRange::DateTime &data) {
+		os << "<timestamp>";
+		lohi(data);
+		os << "</timestamp>";
 	}
 	void operator()(const BarzerRange::Entity &data) {
 		os << "<entrange>";

@@ -387,6 +387,7 @@ struct BarzerRange {
 	typedef std::pair< float, float > Real;
 	typedef std::pair< BarzerTimeOfDay, BarzerTimeOfDay > TimeOfDay;
 	typedef std::pair< BarzerDate, BarzerDate > Date;
+	typedef std::pair< BarzerDateTime, BarzerDateTime > DateTime;
 	typedef std::pair< BarzerEntity, BarzerEntity > Entity;
 
 	typedef boost::variant<
@@ -395,6 +396,7 @@ struct BarzerRange {
 		Real,
 		TimeOfDay,
 		Date,
+		DateTime,
 		Entity
 	> Data;
 
@@ -404,6 +406,7 @@ struct BarzerRange {
 		Real_TYPE,
 		TimeOfDay_TYPE,
 		Date_TYPE,
+		DateTime_TYPE,
 		Entity_TYPE
 	};
 
@@ -419,6 +422,7 @@ struct BarzerRange {
 	bool isReal( ) const {return (dta.which() ==Real_TYPE); }
 	bool isTimeOfDay( ) const {return (dta.which() ==TimeOfDay_TYPE); }
 	bool isDate( ) const {return (dta.which() ==Date_TYPE); }
+	bool isDateTime( ) const {return (dta.which() ==DateTime_TYPE); }
 	bool isEntity( ) const {return (dta.which() ==Entity_TYPE); }
 
 	const None* getNone( ) const { return boost::get<None>( &dta ); }
@@ -426,6 +430,7 @@ struct BarzerRange {
 	const Real*  getReal( ) const {return boost::get<Real>( &dta ); }
 	const TimeOfDay*  getTimeOfDay( ) const {return boost::get<TimeOfDay>( &dta ); }
 	const Date* getDate( ) const {return boost::get<Date>( &dta ); }
+	const DateTime* getDateTime( ) const {return boost::get<DateTime>( &dta ); }
 	const Entity* getEntity( ) const {return boost::get<Entity>( &dta ); }
 
 	uint8_t order;  // ASC/DESC

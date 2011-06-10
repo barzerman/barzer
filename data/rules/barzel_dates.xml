@@ -447,7 +447,7 @@
             </func>
         </tran>
     </stmt>
-    <stmt>
+    <!-- stmt>
         <pat>
             <list v="time"><range t="t" /></list>
             <opt><t>on</t></opt>
@@ -465,7 +465,26 @@
                 </func>
             </func>
         </tran>
-    </stmt>
+    </stmt -->
+    <stmt>
+        <pat>
+            <list v="time"><range t="t" /></list>
+            <opt><t>on</t></opt>
+            <list v="date"><date /></list>
+        </pat>
+        <tran>
+            <func name="mkRange">
+                <func name="mkDateTime">
+                    <var name="date" /> 
+                    <func name="getLow"><var name="time" /></func>
+                </func>
+                <func name="mkDateTime">
+                    <var name="date" /> 
+                    <func name="getHigh"><var name="time" /></func>
+                </func>
+            </func>
+        </tran>    
+    </stmt>    
     <stmt>
         <pat>
             <t>before</t>
@@ -475,4 +494,5 @@
             <func name="mkRange"><func name="mkTime"><rn v="0" /><rn v="0" /></func><var name="time" /></func>
         </tran>    
     </stmt>
+    
 </stmset>
