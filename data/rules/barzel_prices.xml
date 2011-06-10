@@ -29,12 +29,12 @@
     </stmt>
     <stmt>
         <pat>
-        <list v="val"><n /></list>
-        <any v="curr"><t>euro</t><t>euros</t><t>eur</t></any>
+            <list v="val"><n /></list>
+            <any><t>euro</t><t>euros</t><t>eur</t></any>
         </pat>
         <tran>
             <func name="mkERC">
-            <func name="mkEnt"><ltrl>EUR</ltrl><rn v="1" /><rn v="1" /></func>
+            <mkent i="EUR" c="1" s="1" />
             <func name="mkRange"><var name="val" /></func>
             </func>
         </tran>
@@ -76,6 +76,30 @@
                     <func name="mkEnt"><rn v="1" /><rn v="1" /></func>
                     <func name="mkRange"><var name="low" /></func>
                 </func>
+            </func>
+        </tran>
+    </stmt>
+    <stmt>
+        <pat>
+            <list v="range"><range t="i" /></list>
+            <any><t>bucks</t><t>dollars</t><t>dollar</t></any>
+        </pat>
+        <tran>
+            <func name="mkERC">
+                <mkent i="USD" c="1" s="1" />
+                <var name="range" />
+            </func>
+        </tran>
+    </stmt>
+    <stmt>
+        <pat>
+            <list v="range"><range t="i" /></list>
+            <any><t>euro</t><t>euros</t><t>eur</t></any>
+        </pat>
+        <tran>
+            <func name="mkERC">
+                <mkent i="EUR" c="1" s="1" />
+                <var name="range" />
             </func>
         </tran>
     </stmt>

@@ -2,14 +2,31 @@
 <stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
     xmlns="http://www.barzer.net/barzel/0.1">
     
-    <!-- stmt>
-        <pat>
+    <stmt>
+       <pat>
 			<list v="word">
 			<any><t>hey</t><t>a</t><t>the</t></any>
 			<t>shit</t>
 			</list>
 		</pat>
         <tran><func name="mkFluff"><var name="word" /></func></tran>
-    </stmt -->
+    </stmt>
     
+    <stmt>
+        <pat>
+            <any v="f">
+                <t>at</t><t>on</t><t>in</t>
+            </any>
+            <any v="data">
+                <date />
+                <time />
+                <datetime />
+                <range />
+                <ent />
+            </any>
+        </pat>
+        <tran>
+            <var name="data" />
+        </tran>
+    </stmt>
 </stmset>

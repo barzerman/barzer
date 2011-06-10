@@ -466,4 +466,13 @@
             </func>
         </tran>
     </stmt>
+    <stmt>
+        <pat>
+            <t>before</t>
+            <list v="time"><time /></list>
+        </pat>
+        <tran>
+            <func name="mkRange"><func name="mkTime"><rn v="0" /><rn v="0" /></func><var name="time" /></func>
+        </tran>    
+    </stmt>
 </stmset>

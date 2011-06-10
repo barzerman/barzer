@@ -13,7 +13,8 @@
         <file>data/rules/barzel_ru_dates.xml</file>
         <file>data/rules/barzel_ru_prices.xml</file>
         <file>data/vendor/bbc/rules/shows.xml</file>
-        <file>data/vendor/bbc/rules/bbc_shows_autonames.xml</file>        
+        <file>data/vendor/bbc/rules/bbc_shows_autonames.xml</file>
+        <file>data/vendor/bbc/rules/genres.xml</file>        
     </rules>
     <entities>
         <file>data/entities/time_ent.xml</file>
