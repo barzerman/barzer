@@ -200,10 +200,14 @@ public:
 		printTo(tag_raii(os, "time"), data);
 	}
 	void operator()(const BarzerDateTime &data) {
+		printTo(tag_raii(os, "timestamp"), data);
+				/*
 		os << "<timestamp>";
-		(*this)( data.getDate() );
-		(*this)( data.getTime() );
+		//(*this)( data.getDate() );
+		//(*this)( data.getTime() );
+
 		os << "</timestamp>";
+		*/
 	}
 	void operator()(const BarzerRange &data) {
 
