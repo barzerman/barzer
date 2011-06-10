@@ -2,16 +2,14 @@
 <stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
     xmlns="http://www.barzer.net/barzel/0.1">
     <stmt>
-    <pat><t>foo</t></pat>
+    <pat>
+    <list v="x">
+        <t>foo</t><t>bar</t>
+    </list>
+    </pat>
     <tran>
-    <func name="mkExprTag"><ltrl>foo</ltrl>
-        <func name="mkExprAttrs">
-            <ltrl>mama</ltrl><ltrl>myla</ltrl>
-            <ltrl>mama1</ltrl><ltrl>myla1</ltrl>
-        </func>
-        <ltrl>bar</ltrl>
-        <func name="mkExprTag"><ltrl>lala</ltrl></func>
-    </func>
+    <!-- func name="test"><var name="x" /></func -->
+    <func name="mkFluff"><var name="x" /></func>
     </tran>
     </stmt>
     

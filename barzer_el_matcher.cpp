@@ -985,6 +985,7 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, BarzelBeadChain& chain )
 		//std::cerr << "<<<<< *** AFTER ::::>>\n";
 		//AYDEBUG( chain.getFullRange() );
 	} else {
+		//AYLOG(DEBUG) << "not a a vector: " << transResult.getBeadDataVec().size();
 		theBead.setData(  transResult.getBeadData() );
 		chain.collapseRangeLeft( range );
 	}

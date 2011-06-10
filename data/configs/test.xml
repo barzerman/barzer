@@ -13,24 +13,10 @@
     <users>
         <user id="0">
             <spell affx="/Users/yanis/Downloads/en_US/en_US.dic" maindict="/Users/yanis/Downloads/en_US/en_US.dic">
-                <dict>/some/path</dict>
-                <extra>/Users/yanis/barzer/spell/extrawords.txt</extra>
             </spell>            
             <trieset>
                 <trie class="class1" name="1" />
             </trieset>
         </user>
-        <user id="2">
-            <trieset>
-                <trie class="class1" name="1" />
-            </trieset>
-        </user>
-        
-        <user>
-            <trieset>
-                <trie class="class1" name="1" />
-            </trieset>
-        </user>
-        
     </users>
 </config>

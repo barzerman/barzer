@@ -3,11 +3,8 @@
     xmlns="http://www.barzer.net/barzel/0.1">
     
     <stmt>
-       <pat>
-			<list v="word">
-			<any><t>hey</t><t>a</t><t>the</t></any>
-			<t>shit</t>
-			</list>
+        <pat>
+    	    <any v="word"><t>hey</t><t>a</t><t>the</t><t>fuck</t><t>what</t></any>
 		</pat>
         <tran><func name="mkFluff"><var name="word" /></func></tran>
     </stmt>

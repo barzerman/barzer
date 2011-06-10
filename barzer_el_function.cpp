@@ -94,10 +94,16 @@ template<class T> const T& getAtomic(const BarzelEvalResult &result) {
 
 
 
-template<class T> void setResult(BarzelEvalResult &result, const T &data) {
+template<class T> T& setResult(BarzelEvalResult &result, const T &data) {
+	result.setBeadData(BarzelBeadAtomic());
+	boost::get<BarzelBeadAtomic>(result.getBeadData()).setData(data);
+	BarzelBeadAtomic &a = boost::get<BarzelBeadAtomic>(result.getBeadData());
+	return boost::get<T>(a.getData());
+	/*
 	BarzelBeadAtomic atm;
 	atm.setData(data);
 	result.setBeadData(atm);
+	*/
 }
 
 // probably can replace it by something from stl
@@ -263,6 +269,8 @@ struct BELFunctionStorage_holder {
 	#define ADDFN(n) addFun(#n, boost::mem_fn(&BELFunctionStorage_holder::stfun_##n))
 	BELFunctionStorage_holder(GlobalPools &u) : gpools(u) {
 		// makers
+		ADDFN(test);
+
 		ADDFN(mkDate);
 		ADDFN(mkDateRange);
 		ADDFN(mkDay);
@@ -341,6 +349,22 @@ struct BELFunctionStorage_holder {
 
     #define SETSIG(x) static const char *sig = #x
 	#define FERROR(x) AYLOG(ERROR) << sig << ": " << #x
+
+	STFUN(test) {
+		AYLOGDEBUG(rvec.size());
+		//const BarzelEvalResult::BarzelBeadDataVec &v = rvec[0].getBeadDataVec();
+		//result.setBeadData(rvec[0].getBeadDataVec());
+		BarzelEvalResult::BarzelBeadDataVec &resultVec = result.getBeadDataVec();
+		resultVec.clear();
+		BarzerString s;
+		s.setStr("lala");
+		resultVec.push_back(BarzelBeadAtomic(s));
+		resultVec.push_back(BarzelBeadAtomic(s));
+
+		AYLOGDEBUG(result.isVec());
+		return true;
+	}
+
 	// makers
 	STFUN(mkDate) //(d) | (d,m) | (d,m,y)
 	{
