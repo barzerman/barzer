@@ -814,7 +814,10 @@ struct BELFunctionStorage_holder {
 					erc.setUnitEntity(u);
 
 				BarzerRange &l = erc.getRange();
-				return mergeRanges(l, other.getRange());
+				if (l.isBlank()) {
+					erc.setRange(other.getRange());
+					return true;
+				} else return mergeRanges(l, other.getRange());
 			} else {
 				erc.setRange(other.getRange());
 				erc.setEntity(other.getEntity());

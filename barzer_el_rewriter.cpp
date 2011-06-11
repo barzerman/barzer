@@ -130,9 +130,20 @@ struct Eval_visitor_compute : public boost::static_visitor<bool> {
 
 	bool operator()( const BTND_Rewrite_None &data ) {
 		//AYLOG(DEBUG) << "BTND_Rewrite_None";
-		if (d_childValVec.size()) {
-			d_val.setBeadData(d_childValVec[0].getBeadDataVec());
+
+		BarzelBeadDataVec &valVec = d_val.getBeadDataVec();
+		valVec.clear();
+		for (BarzelEvalResultVec::const_iterator iter = d_childValVec.begin();
+												 iter != d_childValVec.end();
+												 ++iter) {
+			const BarzelBeadDataVec &childVec = iter->getBeadDataVec();
+			valVec.insert(valVec.end(), childVec.begin(), childVec.end());
 		}
+		/*
+		if (d_childValVec.size()) {
+
+			d_val.setBeadData(d_childValVec[0].getBeadDataVec());
+		}*/
 		return true;
 	}
 	bool operator()( const BTND_Rewrite_DateTime &data ) {
