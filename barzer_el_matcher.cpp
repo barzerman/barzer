@@ -267,7 +267,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 				BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);
 				d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
 			} else {
-				const BTND_Pattern_Entity* dpat = wcPool.get_BTND_Pattern< PatternType > ( i->first.id );
+				const PatternType* dpat = wcPool.get_BTND_Pattern< PatternType > ( i->first.id );
 				if( !dpat ) return false;
 				if( evalWildcard_vis< PatternType >(*dpat)( dta )  ) {
 					d_mtChild.push_back( NodeAndBeadVec::value_type(
@@ -414,6 +414,11 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 
 	template <>
 	bool findMatchingChildren_visitor::doFirmMatch<BarzerEntityList>( const BarzelFCMap& fcmap, const BarzerEntityList& dta, bool allowBlanks) 
+	{
+		return doFirmMatch_default( fcmap, dta, allowBlanks );
+	}
+	template <>
+	bool findMatchingChildren_visitor::doFirmMatch<BarzerRange>( const BarzelFCMap& fcmap, const BarzerRange& dta, bool allowBlanks) 
 	{
 		return doFirmMatch_default( fcmap, dta, allowBlanks );
 	}

@@ -26,7 +26,9 @@
     </logging>
     <users>
         <user id="0">
-            <spell affx="data/spell/en_US.aff" maindict="data/spell/en_US.dic" />            
+            <spell affx="/usr/share/hunspell/en_US.aff" maindict="/usr/share/hunspell/en_US.dic">
+                <extra>/usr/share/barzer/data/configs/bbc_extrawords.txt</extra>
+            </spell>            
             <trieset>
                 <trie class="class1" name="1" />
             </trieset>

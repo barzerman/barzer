@@ -140,6 +140,7 @@ class BeadVisitor : public boost::static_visitor<> {
 	std::ostream &os;
 	StoredUniverse &universe;
 	size_t lvl;
+	
 public:
 	BeadVisitor(std::ostream &s, StoredUniverse &u) : os(s), universe(u), lvl(0) {}
 
@@ -224,13 +225,6 @@ public:
 			os << boost::format(tmpl) % (tokname ? tokname : "(null)")
 									  % euid.eclass.ec
 									  % euid.eclass.subclass;
-					/*
-					os << "<entity"
-					<< " id=\"" << (tokname? tokname:"(null)") << "\""
-		        	<< " class=\"" << euid.eclass.ec << "\""
-					<< " subclass=\"" << euid.eclass.subclass << "\""
-					<< " />";
-					*/
 		} else {
 			os << "INVALID_TOK[" << euid.eclass << "," << std::hex << euid.tokId << "]";
 		}
@@ -347,9 +341,26 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 	os << "<barz>\n";
 	const BarzelBeadChain &bc = barz.getBeads();
 	BeadVisitor v(os, universe);
+	CToken::SpellCorrections spellCorrections;
+
 	for (BeadList::const_iterator bli = bc.getLstBegin(); bc.isIterNotEnd(bli); ++bli) {
 		boost::apply_visitor(v, bli->getBeadData());
 		v.clear();
+		//// accumulating spell corrections in spellCorrections vector 
+		const CTWPVec& ctoks = bli->getCTokens();
+		for( CTWPVec::const_iterator ci = ctoks.begin(); ci != ctoks.end(); ++ci ) {
+			const CToken::SpellCorrections& corr = ci->first.getSpellCorrections(); 
+			spellCorrections.insert( spellCorrections.end(), corr.begin(), corr.end() );
+		}
+		/// end of spell corrections accumulation
+	}
+	/// printing spell corrections  if any 
+	if( spellCorrections.size( ) ) {
+		os << "<spell>\n";
+		for( CToken::SpellCorrections::const_iterator i = spellCorrections.begin(); i!= spellCorrections.end(); ++i ) {
+			os << "<correction before=\"" << i->first << "\" after=\"" << i->second << "\"/>\n";
+		}
+		os << "</spell>\n";
 	}
 	os << "</barz>\n";
 	return os;

@@ -409,12 +409,25 @@ struct BELFunctionStorage_holder {
 	{
 		SETSIG(mkDateRange(Date, Number, [Number, [Number]]));
 		int day = 0, month = 0, year = 0;
-
+		// Holy shit ... what is this stuf?!??!  (AY)
 		try {
 			switch(rvec.size()) {
 			case 4: year = getAtomic<BarzerNumber>(rvec[3]).getInt();
 			case 3: month = getAtomic<BarzerNumber>(rvec[2]).getInt();
 			case 2: {
+				
+				const BarzelBeadAtomic& atomic1 = boost::get<BarzelBeadAtomic>( rvec[0].getBeadData() );
+				const BarzelBeadAtomic& atomic2 = boost::get<BarzelBeadAtomic>( rvec[1].getBeadData() );
+				/// trying to see if these are 2 dates 
+				if( atomic1.isDate() && atomic1.isDate() ) {
+					const BarzerDate& date1 = boost::get<BarzerDate>( atomic1.getData() );
+					const BarzerDate& date2 = boost::get<BarzerDate>( atomic2.getData() );
+					BarzerRange range;
+					range.setData(BarzerRange::Date(date1, date2));
+					setResult(result, range);
+					return true;
+				}
+
 				day = getAtomic<BarzerNumber>(rvec[1]).getInt();
 				const BarzerDate &date = getAtomic<BarzerDate>(rvec[0]);
 				BarzerDate_calc c;
