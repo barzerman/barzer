@@ -395,7 +395,7 @@ struct BELFunctionStorage_holder {
 				const BarzelBeadAtomic& atomic1 = boost::get<BarzelBeadAtomic>( rvec[0].getBeadData() );
 				const BarzelBeadAtomic& atomic2 = boost::get<BarzelBeadAtomic>( rvec[1].getBeadData() );
 				/// trying to see if these are 2 dates 
-				if( atomic1.isDate() && atomic1.isDate() ) {
+				if( atomic1.isDate() && atomic2.isDate() ) {
 					const BarzerDate& date1 = boost::get<BarzerDate>( atomic1.getData() );
 					const BarzerDate& date2 = boost::get<BarzerDate>( atomic2.getData() );
 					BarzerRange range;
