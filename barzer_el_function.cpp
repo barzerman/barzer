@@ -415,7 +415,7 @@ struct BELFunctionStorage_holder {
 			case 4: year = getAtomic<BarzerNumber>(rvec[3]).getInt();
 			case 3: month = getAtomic<BarzerNumber>(rvec[2]).getInt();
 			case 2: {
-				
+/*
 				const BarzelBeadAtomic& atomic1 = boost::get<BarzelBeadAtomic>( rvec[0].getBeadData() );
 				const BarzelBeadAtomic& atomic2 = boost::get<BarzelBeadAtomic>( rvec[1].getBeadData() );
 				/// trying to see if these are 2 dates 
@@ -427,7 +427,7 @@ struct BELFunctionStorage_holder {
 					setResult(result, range);
 					return true;
 				}
-
+*/
 				day = getAtomic<BarzerNumber>(rvec[1]).getInt();
 				const BarzerDate &date = getAtomic<BarzerDate>(rvec[0]);
 				BarzerDate_calc c;
