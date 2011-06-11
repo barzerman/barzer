@@ -455,32 +455,6 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 
-	/*
-	STFUN(mkNextDateRange) {
-		if (!rvec.size()) {
-			AYLOG(ERROR) << "mkNext(Literal): Need at least 1 argument";
-			return false;
-		}
-		try {
-			const BarzerLiteral &l = getAtomic<BarzerLiteral>(rvec[0]);
-			BarzerRange r;
-			BarzerDate today;
-			today.setToday();
-
-			uint8_t period = getPeriod(l.getId());
-			switch(period) {
-			case P_WEEK: {
-				uint8_t wday = today.getWeekday();
-			}
-			case P_MONTH:
-			case P_YEAR:
-			default: return false;
-			}
-		} catch(boost::bad_get) {
-			AYLOG(ERROR) << "mkNext(Literal): Type mismatch";
-		}
-	} //*/
-
 
 	STFUN(mkTime)
 	{
@@ -640,21 +614,36 @@ struct BELFunctionStorage_holder {
 			return true;
 		}
 
+
 		bool operator()(const BarzerDate &rdate) {
 			//AYLOG(DEBUG) << "mkRange arg " << cnt << ":BarzerDate";
 			if (cnt) {
 				try {
 					BarzerRange::Date &dp
 						= boost::get<BarzerRange::Date>(range.getData());
-					if (dp.first < rdate || range.isDesc())
-						dp.second = rdate;
-					else dp.first = rdate;
+					setSecond(dp, rdate);
 				} catch (boost::bad_get) {
 					AYLOG(ERROR) << "Types don't match: " << range.getData().which();
 					return false;
 				}
 			} else {
 				range.setData(BarzerRange::Date(rdate, rdate));
+			}
+			return true;
+		}
+
+		bool operator()(const BarzerDateTime &dt) {
+			if (cnt) {
+				try {
+					BarzerRange::DateTime &r
+						= boost::get<BarzerRange::DateTime>(range.getData());
+					setSecond(r, dt);
+				} catch (boost::bad_get) {
+					AYLOG(ERROR) << "Types don't match";
+					return false;
+				}
+			} else {
+				range.setData(BarzerRange::DateTime(dt, dt));
 			}
 			return true;
 		}
@@ -675,6 +664,7 @@ struct BELFunctionStorage_holder {
 			}
 			return true;
 		}
+
 
 		bool operator()(const BarzelBeadAtomic &data) {
 			//AYLOG(DEBUG) << "mkRange arg " << cnt;

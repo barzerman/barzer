@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
+    xmlns="http://www.barzer.net/barzel/0.1">
+    <stmt>
+        <pat>
+            <list v="show"><ent c="100" s="1" /></list><t>episodes</t>
+        </pat>
+        <tran><var name="show" /></tran>
+    </stmt>
+</stmset>

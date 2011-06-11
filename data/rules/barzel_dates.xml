@@ -447,7 +447,7 @@
             </func>
         </tran>
     </stmt>
-    <stmt>
+    <!-- stmt>
         <pat>
             <list v="time"><range t="t" /></list>
             <opt><t>on</t></opt>
@@ -465,5 +465,108 @@
                 </func>
             </func>
         </tran>
+    </stmt -->
+    <stmt>
+        <pat>
+            <list v="time"><range t="t" /></list>
+            <opt><t>on</t></opt>
+            <list v="date"><date /></list>
+        </pat>
+        <tran>
+            <func name="mkRange">
+                <func name="mkDateTime">
+                    <var name="date" /> 
+                    <func name="getLow"><var name="time" /></func>
+                </func>
+                <func name="mkDateTime">
+                    <var name="date" /> 
+                    <func name="getHigh"><var name="time" /></func>
+                </func>
+            </func>
+        </tran>    
+    </stmt>  
+
+    <stmt>
+        <pat>
+            <list v="date"><date /></list>
+            <opt><t>on</t></opt>
+            <list v="time"><range t="t" /></list>
+        </pat>
+        <tran>
+            <func name="mkRange">
+                <func name="mkDateTime">
+                    <var name="date" /> 
+                    <func name="getLow"><var name="time" /></func>
+                </func>
+                <func name="mkDateTime">
+                    <var name="date" /> 
+                    <func name="getHigh"><var name="time" /></func>
+                </func>
+            </func>
+        </tran>    
+    </stmt>  
+
+    
+      
+    <stmt>
+        <pat>
+            <t>before</t>
+            <list v="time"><time /></list>
+        </pat>
+        <tran>
+            <func name="mkRange"><func name="mkTime"><rn v="0" /><rn v="0" /></func><var name="time" /></func>
+        </tran>    
+    </stmt>
+    <stmt>
+        <pat>
+            <t>after</t>
+            <list v="time"><time /></list>
+        </pat>
+        <tran>
+            <func name="mkRange"><var name="time" /><func name="mkTime"><rn v="23" /><rn v="59" /></func></func>
+        </tran>    
+    </stmt>
+    <stmt>
+        <pat>
+            <t>after</t>
+            <list v="dt"><datetime /></list>
+        </pat>
+        <tran>
+            <func name="mkRange"><var name="time" /><func name="mkTime"><rn v="23" /><rn v="59" /></func></func>
+        </tran>    
+    </stmt>
+    
+    <stmt>
+        <pat>
+            <list v="time"><range t="t" /></list>
+            <any v="wday">
+                <t>monday</t>
+                <t>tuesday</t>
+                <t>wednesday</t>
+                <t>thursday</t>
+                <t>friday</t>
+                <t>saturday</t>
+                <t>sunday</t>
+                <t>mon</t><t>tue</t><t>wed</t><t>thu</t><t>fri</t><t>sat</t><t>sun</t>
+            </any>
+         </pat>
+         <tran>
+            <func name="mkRange">
+                <func name="mkDateTime">
+                    <func name="getLow"><var name="time" /></func>
+                    <func name="mkWday">
+                        <rn v="1" />
+                        <func name="lookupWday"><var name="wday" /></func>
+                    </func>
+                </func>
+                <func name="mkDateTime">
+                    <func name="getHigh"><var name="time" /></func>
+                    <func name="mkWday">
+                        <rn v="1" />
+                        <func name="lookupWday"><var name="wday" /></func>
+                    </func>
+                </func>
+            </func>
+         </tran>
     </stmt>
 </stmset>
