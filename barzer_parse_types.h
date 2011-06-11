@@ -84,6 +84,7 @@ struct CToken {
 		ling.clear();
 		bNum.clear();
 	}
+	const SpellCorrections& getSpellCorrections() const { return spellCorrections; }
 
 	size_t getTokenSpan() const
 	{
@@ -134,7 +135,7 @@ struct CToken {
 		setSpellCorrected();
 		spellCorrections.resize( spellCorrections.size() +1 ) ;
 		spellCorrections.back().first.assign(wrong);
-		spellCorrections.back().first.assign(correct);
+		spellCorrections.back().second.assign(correct);
 	}
 	void setStemmed( bool v = true ) { cInfo.setStemmed(v); }
 	bool isSpellCorrected( ) const { return cInfo.isSpellCorrected(); }

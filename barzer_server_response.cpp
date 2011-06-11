@@ -348,9 +348,26 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 	os << "<barz>\n";
 	const BarzelBeadChain &bc = barz.getBeads();
 	BeadVisitor v(os, universe);
+	CToken::SpellCorrections spellCorrections;
+
 	for (BeadList::const_iterator bli = bc.getLstBegin(); bc.isIterNotEnd(bli); ++bli) {
 		boost::apply_visitor(v, bli->getBeadData());
 		v.clear();
+		//// accumulating spell corrections in spellCorrections vector 
+		const CTWPVec& ctoks = bli->getCTokens();
+		for( CTWPVec::const_iterator ci = ctoks.begin(); ci != ctoks.end(); ++ci ) {
+			const CToken::SpellCorrections& corr = ci->first.getSpellCorrections(); 
+			spellCorrections.insert( spellCorrections.end(), corr.begin(), corr.end() );
+		}
+		/// end of spell corrections accumulation
+	}
+	/// printing spell corrections  if any 
+	if( spellCorrections.size( ) ) {
+		os << "<spell>\n";
+		for( CToken::SpellCorrections::const_iterator i = spellCorrections.begin(); i!= spellCorrections.end(); ++i ) {
+			os << "<correction><before w=\"" << i->first << "\"/><after w=\"" << i->second << "\"/></correction>\n";
+		}
+		os << "</spell>\n";
 	}
 	os << "</barz>\n";
 	return os;

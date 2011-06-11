@@ -213,6 +213,8 @@ public:
 		}
 		return ( wasBlank ? n-1: n );
 	}
+	const CTWPVec& getCTokens() const 
+		{ return ctokOrigVec; }
 }; 
 
 typedef std::list< BarzelBead > 	BeadList;
