@@ -365,7 +365,7 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 	if( spellCorrections.size( ) ) {
 		os << "<spell>\n";
 		for( CToken::SpellCorrections::const_iterator i = spellCorrections.begin(); i!= spellCorrections.end(); ++i ) {
-			os << "<correction><before w=\"" << i->first << "\"/><after w=\"" << i->second << "\"/></correction>\n";
+			os << "<correction before=\"" << i->first << "\" after=\"" << i->second << "\"/>\n";
 		}
 		os << "</spell>\n";
 	}
