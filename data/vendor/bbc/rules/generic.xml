@@ -7,4 +7,8 @@
         </pat>
         <tran><var name="show" /></tran>
     </stmt>
+    <stmt>
+        <pat><t>cartoons</t></pat>
+        <tran><ltrl>animation</ltrl></tran>
+    </stmt>
 </stmset>

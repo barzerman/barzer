@@ -159,6 +159,28 @@
             </func>
         </tran>
     </stmt>
+
+    <stmt>
+        <pat>
+            <any>
+	            <list v="date"><date /></list>
+	            <opt><t>at</t></opt>
+	            <list v="hh"><n l="1" h="12" /></list>
+	            <any>
+	                <t>pm</t>
+	                <list><t>p</t><p>.</p><t>m</t><opt><p>.</p></opt></list>
+	            </any>
+            </any>
+        </pat>
+	    <tran>
+	        <func name="mkDateTime">
+	            <var name="date" />
+	            <func name="mkTime">
+	                <func name="opPlus"><var name="hh" /><rn v="12" /></func>
+	            </func>
+	        </func>
+	    </tran>
+    </stmt> 
     
     <stmt>
         <pat>
@@ -166,7 +188,7 @@
                 <list>
                     <list v="date"><date /></list>
                     <opt><t>at</t></opt>
-                    <list v="hh"><n l="1" h="12" /> </list>
+                    <list v="hh"><n l="1" h="12" /></list>
                 </list>
             </any>
         </pat>
@@ -198,9 +220,9 @@
     </stmt>
     <stmt>
         <pat>
-        <t>between</t>
+        <any><t>between</t><t>from</t></any>
         <list v="low"><date /></list>
-        <t>and</t>
+        <any><t>and</t><t>until</t><t>till</t><list><p>'</p><t>til</t></list><t>to</t></any>
         <list v="high"><date /></list>
         </pat>
         <tran>
@@ -447,25 +469,6 @@
             </func>
         </tran>
     </stmt>
-    <!-- stmt>
-        <pat>
-            <list v="time"><range t="t" /></list>
-            <opt><t>on</t></opt>
-            <list v="date"><date /></list>
-        </pat>
-        <tran>
-            <func name="mkErcExpr"><ltrl>and</ltrl>
-                <func name="mkERC">
-                    <mkent i="DATE_INTERVAL" c="1" s="8" />
-                    <func name="mkRange"><var name="date" /></func>
-                </func>
-                <func name="mkERC">
-                    <mkent i="TIME_INTERVAL" c="1" s="8" />
-                    <var name="time" />
-                </func>
-            </func>
-        </tran>
-    </stmt -->
     <stmt>
         <pat>
             <list v="time"><range t="t" /></list>
@@ -538,17 +541,19 @@
     
     <stmt>
         <pat>
-            <list v="time"><range t="t" /></list>
-            <any v="wday">
-                <t>monday</t>
-                <t>tuesday</t>
-                <t>wednesday</t>
-                <t>thursday</t>
-                <t>friday</t>
-                <t>saturday</t>
-                <t>sunday</t>
-                <t>mon</t><t>tue</t><t>wed</t><t>thu</t><t>fri</t><t>sat</t><t>sun</t>
-            </any>
+            <perm>
+	            <list v="time"><range t="t" /></list>
+	            <any v="wday">
+	                <t>monday</t>
+	                <t>tuesday</t>
+	                <t>wednesday</t>
+	                <t>thursday</t>
+	                <t>friday</t>
+	                <t>saturday</t>
+	                <t>sunday</t>
+	                <t>mon</t><t>tue</t><t>wed</t><t>thu</t><t>fri</t><t>sat</t><t>sun</t>
+	            </any>
+            </perm>
          </pat>
          <tran>
             <func name="mkRange">
@@ -573,17 +578,17 @@
     <stmt>
         <pat>
             <perm>
-                    <list v="time"><time /></list>
-                    <any v="wday">
-		                <t>monday</t>
-		                <t>tuesday</t>
-		                <t>wednesday</t>
-		                <t>thursday</t>
-		                <t>friday</t>
-		                <t>saturday</t>
-		                <t>sunday</t>
-		                <t>mon</t><t>tue</t><t>wed</t><t>thu</t><t>fri</t><t>sat</t><t>sun</t>
-	                </any>
+                <list v="time"><time /></list>
+                <any v="wday">
+					<t>monday</t>
+					<t>tuesday</t>
+					<t>wednesday</t>
+					<t>thursday</t>
+					<t>friday</t>
+					<t>saturday</t>
+					<t>sunday</t>
+					<t>mon</t><t>tue</t><t>wed</t><t>thu</t><t>fri</t><t>sat</t><t>sun</t>
+                </any>
            </perm>
          </pat>
          <tran>

@@ -4,7 +4,7 @@
     
     <stmt>
         <pat>
-    	    <any v="word"><t>hey</t><t>a</t><t>the</t><t>fuck</t><t>what</t></any>
+    	    <any v="word"><t>hey</t><t>a</t><t>the</t><t>fuck</t><t>what</t><t>is</t><t>are</t></any>
 		</pat>
         <tran><func name="mkFluff"><var name="word" /></func></tran>
     </stmt>
