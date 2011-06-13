@@ -33,7 +33,7 @@
     
     <stmt>
         <pat>
-            <list v="fluff"><opt><t>please</t></opt><opt></opt><t>show</t><opt><t>me</t></opt></list>
+            <list v="fluff"><opt><any><t>could</t><t>would</t><t>can</t><t>will</t></any><t><t>you</t><t>u</t></t></opt><opt><t>please</t></opt><opt></opt><t>show</t><opt><t>me</t></opt></list>
         </pat>
         <tran><func name="mkFluff"><var name="fluff" /></func></tran>    
     

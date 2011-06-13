@@ -162,15 +162,13 @@
 
     <stmt>
         <pat>
-            <any>
-	            <list v="date"><date /></list>
-	            <opt><t>at</t></opt>
-	            <list v="hh"><n l="1" h="12" /></list>
-	            <any>
-	                <t>pm</t>
-	                <list><t>p</t><p>.</p><t>m</t><opt><p>.</p></opt></list>
-	            </any>
-            </any>
+	        <list v="date"><date /></list>
+	        <opt><t>at</t></opt>
+	        <list v="hh"><n l="1" h="12" /></list>
+	        <any>
+	            <t>pm</t>
+	            <list><t>p</t><p>.</p><t>m</t><opt><p>.</p></opt></list>
+	        </any>
         </pat>
 	    <tran>
 	        <func name="mkDateTime">
@@ -180,17 +178,13 @@
 	            </func>
 	        </func>
 	    </tran>
-    </stmt> 
+    </stmt > 
     
     <stmt>
         <pat>
-            <any>
-                <list>
-                    <list v="date"><date /></list>
-                    <opt><t>at</t></opt>
-                    <list v="hh"><n l="1" h="12" /></list>
-                </list>
-            </any>
+            <list v="date"><date /></list>
+            <opt><t>at</t></opt>
+            <list v="hh"><n l="1" h="12" /></list>
         </pat>
     <tran>
         <func name="mkDateTime"><var name="date" />
@@ -220,16 +214,31 @@
     </stmt>
     <stmt>
         <pat>
-        <any><t>between</t><t>from</t></any>
-        <list v="low"><date /></list>
-        <any><t>and</t><t>until</t><t>till</t><list><p>'</p><t>til</t></list><t>to</t></any>
-        <list v="high"><date /></list>
+	        <any><t>between</t><t>from</t></any>
+	        <list v="low"><date /></list>
+	        <any><t>and</t><t>until</t><t>till</t><list><p>'</p><t>til</t></list><t>to</t></any>
+	        <list v="high"><date /></list>
         </pat>
         <tran>
             <func name="mkRange"><ltrl>ASC</ltrl><var name="low" /><var name="high" /></func>
         </tran>
     </stmt>
-    
+  
+    <stmt>
+        <pat>
+            <any><t>between</t><t>from</t></any>
+            <list v="low"><range t="t" /></list>
+            <any><t>and</t><t>until</t><t>till</t><list><p>'</p><t>til</t></list><t>to</t></any>
+            <list v="high"><range t="t" /></list>
+        </pat>
+        <tran>
+            <func name="mkRange">
+                <func name="getHigh"><var name="low" /></func>
+                <func name="getLow"><var name="high" /></func>
+                </func>
+        </tran>
+    </stmt>  
+  
     
     <stmt>
         <pat>
@@ -602,4 +611,28 @@
          </tran>
     </stmt>
     
+    <stmt>
+        <pat>
+            <any><t>from</t><t>between</t></any>
+            <list v="hh1"><n l="1" h="12" /></list>
+            <any>
+				<t>and</t><t>to</t>
+				<t>until</t>
+				<list><opt><p>'</p></opt><any><t>til</t><t>till</t></any></list>
+            </any>
+            <list v="hh2"><n l="1" h="12" /></list>
+            <any>
+                <t>pm</t>
+                <list>
+                    <t>p</t><p>.</p><t>m</t><opt><p>.</p></opt>
+                </list>
+            </any>
+        </pat>
+        <tran>
+            <func name="mkRange">
+                <func name="mkTime"><func name="opPlus"><rn v="12" /><var name="hh1" /></func></func>
+                <func name="mkTime"><func name="opPlus"><rn v="12" /><var name="hh2" /></func></func>
+            </func>
+        </tran>
+    </stmt>
 </stmset>
