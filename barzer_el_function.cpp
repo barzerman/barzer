@@ -937,10 +937,30 @@ struct BELFunctionStorage_holder {
 			return false;
 		}
 		try {
+			BarzelBeadDataVec &resultVec = result.getBeadDataVec();
+			resultVec.clear();
+			for (BarzelEvalResultVec::const_iterator rvit = rvec.begin();
+													 rvit != rvec.end();
+													 ++rvit) {
+				const BarzelBeadDataVec &vec = rvit->getBeadDataVec();
+				for (BarzelBeadDataVec::const_iterator bdit = vec.begin();
+													   bdit != vec.end();
+													   ++bdit) {
+					uint32_t id = boost::get<BarzerLiteral>(
+							boost::get<BarzelBeadAtomic>(*bdit).getData() ).getId();
+					if (id != 0xffffffff) {
+						BarzerLiteral ltrl;
+						ltrl.setStop(id);
+						resultVec.push_back(BarzelBeadAtomic(ltrl));
+					}
+				}
+			}
+			/*
 			uint32_t id = getAtomic<BarzerLiteral>(rvec[0]).getId();
 			BarzerLiteral ltrl;
 			ltrl.setStop(id);
 			setResult(result, ltrl);
+			*/
 			return true;
 		} catch (boost::bad_get&) {
 			AYLOG(ERROR) << "mkFluff(BarzerLiteral): Wrong argument type";
