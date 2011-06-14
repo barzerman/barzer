@@ -14,4 +14,15 @@
     </tran>
 </stmt>
 
+<!--
+<stmt>
+    <pat>
+        <list v="x"><t>which</t></list>
+    </pat>
+    <tran>
+        <func name="mkFluff"><var name="x" /></func>
+    </tran>
+</stmt>
+-->
+
 </stmset>

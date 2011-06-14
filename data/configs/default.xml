@@ -4,10 +4,10 @@
         <file>data/rules/generic.xml</file>
         <file>data/rules/barzel_prices.xml</file>
         <file>data/rules/barzel_dates.xml</file>
-        <file>data/rules/barzel_fluff.xml</file>
         <file>data/rules/barzel_rules.xml</file>
         <file>data/rules/barzel_ru_dates.xml</file>
         <file>data/rules/barzel_ru_prices.xml</file>
+        <file>data/rules/barzel_fluff.xml</file>
     </rules>
     <entities>
         <file>data/entities/time_ent.xml</file>
@@ -21,7 +21,8 @@
             <spell affx="/usr/share/hunspell/en_US.aff" maindict="/usr/share/hunspell/en_US.dic">
             </spell>            
             <trieset>
-                <trie class="class1" name="1" />
+                <trie class="" name="" />
+                <trie class="post" name="fluff" />
             </trieset>
         </user>
     </users>

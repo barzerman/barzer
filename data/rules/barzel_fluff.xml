@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
-    xmlns="http://www.barzer.net/barzel/0.1">
-    
+    xmlns="http://www.barzer.net/barzel/0.1" i="fluff" c="post">
+
+<!--    
     <stmt>
         <pat>
     	    <any v="word"><t>hey</t><t>a</t><t>the</t><t>fuck</t><t>what</t><t>is</t><t>are</t></any>
 		</pat>
         <tran><func name="mkFluff"><var name="word" /></func></tran>
     </stmt>
+ -->
     
     <stmt>
         <pat>
@@ -30,10 +32,14 @@
         <pat><any v="fl-1"><t>what</t><t>which</t></any><opt v="fl-2"><t>kind</t><t>of</t></opt><tail v="contents"><t /><t /><t /></tail><any v="fl-3"><t>is</t><t>are</t></any><t>available</t></pat>
         <tran><func name="mkFluff"><var name="fl-1" /><var name="fl-2" /><var name="fl-3" /></func><var name="contents" /></tran> 
     </stmt>
-    
     <stmt>
         <pat>
-            <list v="fluff"><opt><any><t>could</t><t>would</t><t>can</t><t>will</t></any><t><t>you</t><t>u</t></t></opt><opt><t>please</t></opt><opt></opt><t>show</t><opt><t>me</t></opt></list>
+            <list v="fluff">
+            <opt><any><t>could</t><t>would</t><t>can</t><t>will</t></any><t><t>you</t><t>u</t></t></opt>
+            <opt><t>please</t></opt>
+            <t>show</t>
+            <opt><t>me</t></opt>
+        </list>
         </pat>
         <tran><func name="mkFluff"><var name="fluff" /></func></tran>    
     
@@ -49,7 +55,191 @@
         </pat>
         <tran><func name="mkFluff"><var name="fluff" /></func></tran>    
     
-    </stmt>
-   	 
+    <stmt>
+        <pat>
+            <t>foo</t>
+        </pat>
+        <tran>
+            <ltrl>bar</ltrl><ltrl>baz</ltrl>
+        </tran>
+    </stmt>    
     
+    <stmt>
+        <pat>
+	        <any v="f">
+		        <t>what</t>
+		        <t>which</t>
+		        <list>
+		              <any><t>what</t><t>where</t><t>how</t></any>
+		              <t>do</t><t>i</t>
+		        </list>
+		        <t>how</t>
+		        <t>in</t>
+		        <t>on</t>
+		        <t>at</t>
+	        </any>
+        </pat>
+        <tran>
+            <func name="mkFluff"><var name="f" /></func>
+        </tran>
+    </stmt>
+    
+    
+    <stmt>
+        <pat>
+        <any v="word">
+            <list><t>c</t><p>'</p><t>mon</t></list>
+            <list><t>a</t><p>'</p><t>s</t></list>
+            <list><t>aren</t><p>'</p><t>t</t></list>
+            <list><t>ain</t><p>'</p><t>t</t></list>
+            <list><t>can</t><p>'</p><t>t</t></list>
+            <list><t>c</t><p>'</p><t>s</t></list>
+            <list><t>couldn</t><p>'</p><t>t</t></list>
+            <list><t>didn</t><p>'</p><t>t</t></list>
+            <list><t>doesn</t><p>'</p><t>t</t></list>
+            <list><t>don</t><p>'</p><t>t</t></list>
+            <list><t>hadn</t><p>'</p><t>t</t></list>
+            <list><t>hasn</t><p>'</p><t>t</t></list>
+            <list><t>haven</t><p>'</p><t>t</t></list>
+            <list><t>he</t><p>'</p><t>s</t></list>
+            <list><t>here</t><p>'</p><t>s</t></list>
+            <list><t>i</t><p>'</p><t>d</t></list>
+            <list><t>i</t><p>'</p><t>ll</t></list>
+            <list><t>i</t><p>'</p><t>m</t></list>
+            <list><t>i</t><p>'</p><t>ve</t></list>
+            <list><t>isn</t><p>'</p><t>t</t></list>
+            <t>it</t>
+            <list><t>it</t><p>'</p><t>d</t></list>
+            <list><t>it</t><p>'</p><t>ll</t></list>
+            <list><t>it</t><p>'</p><t>s</t></list>
+            <list><t>let</t><p>'</p><t>s</t></list>
+            <list><t>shouldn</t><p>'</p><t>t</t></list>
+            <list><t>t</t><p>'</p><t>s</t></list>
+            <list><t>that</t><p>'</p><t>s</t></list>
+            <list><t>there</t><p>'</p><t>s</t></list>
+            <list><t>they</t><p>'</p><t>d</t></list>
+            <list><t>they</t><p>'</p><t>ll</t></list>
+            <list><t>they</t><p>'</p><t>re</t></list>
+            <list><t>they</t><p>'</p><t>ve</t></list>
+            <list><t>wasn</t><p>'</p><t>t</t></list>
+            <list><t>we</t><p>'</p><t>d</t></list>
+            <list><t>we</t><p>'</p><t>ll</t></list>
+            <list><t>we</t><p>'</p><t>re</t></list>
+            <list><t>we</t><p>'</p><t>ve</t></list>
+            <list><t>weren</t><p>'</p><t>t</t></list>
+            <list><t>what</t><p>'</p><t>s</t></list>
+            <list><t>where</t><p>'</p><t>s</t></list>
+            <list><t>who</t><p>'</p><t>s</t></list>
+            <list><t>won</t><p>'</p><t>t</t></list>
+            <list><t>wouldn</t><p>'</p><t>t</t></list>
+            <list><t>you</t><p>'</p><t>d</t></list>
+            <list><t>you</t><p>'</p><t>ll</t></list>
+            <list><t>you</t><p>'</p><t>re</t></list>
+            <list><t>you</t><p>'</p><t>ve</t></list>
+            
+            <t>able</t><t>about</t><t>above</t><t>according</t><t>accordingly</t>
+            <t>across</t><t>actually</t><t>after</t><t>afterwards</t><t>again</t><t>against</t>
+            <t>all</t><t>allow</t><t>allows</t><t>almost</t><t>alone</t>
+            <t>along</t><t>already</t><t>also</t><t>although</t><t>always</t>
+            <t>am</t><t>among</t><t>amongst</t><t>an</t><t>and</t><t>another</t>
+            <t>any</t><t>anybody</t><t>anyhow</t><t>anyone</t><t>anything</t>
+            <t>anyway</t><t>anyways</t><t>anywhere</t><t>apart</t><t>appear</t>
+            <t>appreciate</t><t>appropriate</t><t>are</t><t>around</t>
+            <t>as</t><t>aside</t><t>ask</t><t>asking</t><t>associated</t><t>at</t>
+            <t>available</t><t>away</t><t>awfully</t><t>be</t><t>became</t>
+            <t>because</t><t>become</t><t>becomes</t><t>becoming</t><t>been</t>
+            <t>before</t><t>beforehand</t><t>behind</t><t>being</t><t>believe</t>
+            <t>below</t><t>beside</t><t>besides</t><t>best</t><t>better</t>
+            
+            <t>between</t><t>beyond</t><t>both</t><t>brief</t><t>but</t><t>by</t>
+            <t>came</t><t>can</t><t>cannot</t><t>cant</t><t>cause</t><t>causes</t>
+            <t>certain</t><t>certainly</t><t>changes</t><t>clearly</t><t>co</t>
+            <t>com</t><t>come</t><t>comes</t><t>concerning</t><t>consequently</t>
+            <t>consider</t><t>considering</t><t>contain</t><t>containing</t>
+            <t>contains</t><t>corresponding</t><t>could</t><t>course</t><t>currently</t>
+            <t>definitely</t><t>described</t><t>despite</t><t>did</t><t>different</t>
+            <t>do</t><t>does</t><t>doing</t><t>done</t><t>down</t><t>downwards</t>
+            
+            <t>during</t><t>each</t><t>edu</t><t>eg</t><t>eight</t><t>either</t>
+            <t>else</t><t>elsewhere</t><t>enough</t><t>entirely</t><t>especially</t>
+            <t>et</t><t>etc</t><t>even</t><t>ever</t><t>every</t><t>everybody</t>
+            <t>everyone</t><t>everything</t><t>everywhere</t><t>ex</t><t>exactly</t>
+            <t>example</t><t>except</t><t>far</t><t>few</t><t>fifth</t><t>first</t>
+            <t>five</t><t>followed</t><t>following</t><t>follows</t><t>for</t>
+            <t>former</t><t>formerly</t><t>forth</t><t>four</t><t>from</t><t>further</t>
+            <t>furthermore</t><t>get</t><t>gets</t><t>getting</t><t>given</t>
+            <t>gives</t><t>go</t><t>goes</t><t>going</t><t>gone</t><t>got</t>
+            <t>gotten</t><t>greetings</t><t>had</t><t>happens</t><t>hardly</t>
+            <t>has</t><t>have</t><t>having</t><t>he</t><t>hello</t><t>help</t>
+            <t>hence</t><t>her</t><t>here</t><t>hereafter</t><t>hereby</t>
+            <t>herein</t><t>hereupon</t><t>hers</t><t>herself</t><t>hi</t><t>him</t>
+            <t>himself</t><t>his</t><t>hither</t><t>hopefully</t><t>how</t><t>howbeit</t>
+            <t>however</t><t>ie</t><t>if</t><t>ignored</t><t>immediate</t><t>in</t>
+            <t>inasmuch</t><t>inc</t><t>indeed</t><t>indicate</t><t>indicated</t>
+            <t>indicates</t><t>inner</t><t>insofar</t><t>instead</t><t>into</t>
+            <t>inward</t><t>is</t><t>its</t><t>itself</t><t>just</t><t>keep</t>
+            <t>keeps</t><t>kept</t><t>know</t><t>knows</t><t>known</t><t>last</t>
+            <t>lately</t><t>later</t><t>latter</t><t>latterly</t><t>least</t>
+
+            <t>less</t><t>lest</t><t>let</t><t>like</t><t>liked</t><t>likely</t>
+            <t>little</t><t>look</t><t>looking</t><t>looks</t><t>ltd</t><t>mainly</t>
+            <t>many</t><t>may</t><t>maybe</t><t>me</t><t>mean</t><t>meanwhile</t>
+            <t>merely</t><t>might</t><t>more</t><t>moreover</t><t>most</t>
+            <t>mostly</t><t>much</t><t>must</t><t>my</t><t>myself</t><t>name</t>
+            <t>namely</t><t>nd</t><t>near</t><t>nearly</t><t>necessary</t><t>need</t>
+            <t>needs</t><t>neither</t><t>never</t><t>nevertheless</t><t>new</t>
+            <t>next</t><t>nine</t><t>no</t><t>nobody</t><t>non</t><t>none</t>
+            <t>noone</t><t>nor</t><t>normally</t><t>not</t><t>nothing</t>
+            <t>novel</t><t>now</t><t>nowhere</t><t>obviously</t><t>of</t><t>off</t>
+            <t>often</t><t>oh</t><t>ok</t><t>okay</t><t>old</t><t>on</t>
+            <t>once</t><t>one</t><t>ones</t><t>only</t><t>onto</t><t>or</t>
+            <t>other</t><t>others</t><t>otherwise</t><t>ought</t><t>our</t>
+            <t>ours</t><t>ourselves</t><t>out</t><t>outside</t><t>over</t>
+            <t>overall</t><t>own</t><t>particular</t><t>particularly</t>
+            <t>per</t><t>perhaps</t><t>placed</t><t>please</t><t>plus</t>
+            <t>possible</t><t>presumably</t><t>probably</t><t>provides</t>
+            <t>que</t><t>quite</t><t>qv</t><t>rather</t><t>rd</t><t>re</t>
+            <t>really</t><t>reasonably</t><t>regarding</t><t>regardless</t>
+            <t>regards</t><t>relatively</t><t>respectively</t><t>right</t>
+            <t>said</t><t>same</t><t>saw</t><t>say</t><t>saying</t><t>says</t>
+            <t>second</t><t>secondly</t><t>see</t><t>seeing</t><t>seem</t>
+            <t>seemed</t><t>seeming</t><t>seems</t><t>seen</t><t>self</t>
+           
+            <t>selves</t><t>sensible</t><t>sent</t><t>serious</t><t>seriously</t>
+            <t>seven</t><t>several</t><t>shall</t><t>she</t><t>should</t>
+            <t>since</t><t>six</t><t>so</t><t>some</t><t>somebody</t><t>somehow</t>
+            <t>someone</t><t>something</t><t>sometime</t><t>sometimes</t><t>somewhat</t>
+            <t>somewhere</t><t>soon</t><t>sorry</t><t>specified</t><t>specify</t>
+            <t>specifying</t><t>still</t><t>sub</t><t>such</t><t>sup</t><t>sure</t>
+            <t>take</t><t>taken</t><t>tell</t><t>tends</t><t>th</t><t>than</t>
+            <t>thank</t><t>thanks</t><t>thanx</t><t>that</t><t>thats</t><t>the</t>
+            <t>their</t><t>theirs</t><t>them</t><t>themselves</t><t>then</t>
+            <t>thence</t><t>there</t><t>thereafter</t><t>thereby</t><t>therefore</t>
+            <t>therein</t><t>theres</t><t>thereupon</t><t>these</t><t>they</t>
+            <t>think</t><t>third</t><t>this</t><t>thorough</t><t>thoroughly</t>
+            <t>those</t><t>though</t><t>three</t><t>through</t><t>throughout</t>
+            <t>thru</t><t>thus</t><t>to</t><t>together</t><t>too</t><t>took</t>
+            <t>toward</t><t>towards</t><t>tried</t><t>tries</t><t>truly</t>
+            <t>try</t><t>trying</t><t>twice</t><t>two</t><t>un</t><t>under</t>
+            <t>unfortunately</t><t>unless</t><t>unlikely</t><t>until</t><t>unto</t>
+            <t>up</t><t>upon</t><t>us</t><t>use</t><t>used</t><t>useful</t><t>uses</t>
+            <t>using</t><t>usually</t><t>value</t><t>various</t><t>very</t>
+            <t>via</t><t>viz</t><t>vs</t><t>want</t><t>wants</t><t>was</t><t>way</t>
+            <t>we</t><t>welcome</t><t>well</t><t>went</t><t>were</t><t>what</t>
+            <t>whatever</t><t>when</t><t>whence</t><t>whenever</t><t>where</t>
+            <t>whereafter</t><t>whereas</t><t>whereby</t><t>wherein</t>
+            <t>whereupon</t><t>wherever</t><t>whether</t><t>which</t><t>while</t>
+            <t>whither</t><t>who</t><t>whoever</t><t>whole</t><t>whom</t><t>whose</t>
+            <t>why</t><t>will</t><t>willing</t><t>wish</t><t>with</t><t>within</t>
+            <t>without</t><t>wonder</t><t>would</t><t>would</t>
+            <t>yes</t><t>yet</t><t>you</t><t>your</t><t>yours</t><t>yourself</t>
+            <t>yourselves</t><t>zero</t>
+        </any>
+    </pat>
+    
+        <tran>
+            <func name="mkFluff"><var name="word" /></func>
+        </tran>
+    
+    </stmt>
 </stmset>
