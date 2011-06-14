@@ -10,7 +10,7 @@
         <tran><func name="mkFluff"><var name="word" /></func></tran>
     </stmt>
  -->
-    
+    <!-- 
     <stmt>
         <pat>
             <any v="f">
@@ -28,7 +28,10 @@
             <var name="data" />
         </tran>
     </stmt>
-    <stmt>
+     -->
+     
+     
+    <!-- stmt>
         <pat><any v="fl-1"><t>what</t><t>which</t></any><opt v="fl-2"><t>kind</t><t>of</t></opt><tail v="contents"><t /><t /><t /></tail><any v="fl-3"><t>is</t><t>are</t></any><t>available</t></pat>
         <tran><func name="mkFluff"><var name="fl-1" /><var name="fl-2" /><var name="fl-3" /></func><var name="contents" /></tran> 
     </stmt>
@@ -43,7 +46,7 @@
         </pat>
         <tran><func name="mkFluff"><var name="fluff" /></func></tran>    
     
-    </stmt>
+    </stmt -->
     
     <stmt>
         <pat>
@@ -54,7 +57,7 @@
         </tran>
     </stmt>    
     
-    <stmt>
+    <!-- stmt>
         <pat>
 	        <any v="f">
 		        <t>what</t>
@@ -72,7 +75,7 @@
         <tran>
             <func name="mkFluff"><var name="f" /></func>
         </tran>
-    </stmt>
+    </stmt -->
     
     
     <stmt>
