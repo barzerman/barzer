@@ -354,7 +354,7 @@ struct BELFunctionStorage_holder {
 		AYLOGDEBUG(rvec.size());
 		//const BarzelEvalResult::BarzelBeadDataVec &v = rvec[0].getBeadDataVec();
 		//result.setBeadData(rvec[0].getBeadDataVec());
-		BarzelEvalResult::BarzelBeadDataVec &resultVec = result.getBeadDataVec();
+		// BarzelEvalResult::BarzelBeadDataVec &resultVec = result.getBeadDataVec();
 
 		AYLOGDEBUG(rvec[0].getBeadData().which());
 
