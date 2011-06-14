@@ -880,6 +880,7 @@ namespace {
 bool BarzelMatcher::match( RewriteUnit& ru, BarzelBeadChain& beadChain )
 {
 	// trie always has at least one node (root)
+	//AYDEBUG( BeadRange(beadChain.getLstBegin(), beadChain.getLstEnd()) );
 	RangeWithScoreVec rwScoreVec;
 	for( BeadList::iterator i = beadChain.getLstBegin(); beadChain.isIterNotEnd(i); ++i ) {
 		/// full range - all beads starting from i
@@ -927,7 +928,7 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, BarzelBeadChain& chain )
 
 	if( !transP ) { // null translatons shouldnt happen  .. 
 		AYLOG(WARNING) << "null translation detected" << std::endl;
-		return 0;
+
 	}
 
 	const BarzelTranslation& translation = *transP;
@@ -981,7 +982,7 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, BarzelBeadChain& chain )
 				break;
 		}
 		if( di != bbdv.end() ) { // vector is longer than the bead range 
-			for( ; di != bbdv.begin(); ++di )  
+			for( ; di != bbdv.end(); ++di )  
 				chain.insertBead( range.second, *di );
 		} else if( bi != range.second ) { // vector is shorter than the list and we need to fold the remainder of the list
 			if( bi != range.first ) 
