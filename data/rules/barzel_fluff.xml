@@ -6,7 +6,7 @@
         <pat>
     	    <any v="word"><t>hey</t><t>a</t><t>the</t><t>fuck</t><t>what</t><t>is</t><t>are</t></any>
 		</pat>
-        <tran><ltrl t="f"><var name="word" /></func></tran>
+        <tran><func name="mkFluff"><var name="word" /></func></tran>
     </stmt>
     
     <stmt>
@@ -38,6 +38,18 @@
         <tran><func name="mkFluff"><var name="fluff" /></func></tran>    
     
     </stmt>
+    <stmt>
+        <pat>
+            <any v="fluff">
+				<t>what</t>
+				<t>where</t>
+				<tail><t>how</t><t>much</t><t>is</t></tail>
+				<t>when</t>
+			</any>
+        </pat>
+        <tran><func name="mkFluff"><var name="fluff" /></func></tran>    
     
+    </stmt>
+   	 
     
 </stmset>
