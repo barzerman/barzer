@@ -9,7 +9,7 @@
 			<t>shit</t>
 			</list>
 		</pat>
-        <tran><func name="mkFluff"><var name="word" /></func></tran>
+        <tran><ltrl t="f"><var name="word" /></func></tran>
     </stmt>
     
     <stmt>
