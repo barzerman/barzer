@@ -216,6 +216,9 @@ struct QuestionParm {
 class BarzerString {
 	std::string str;
 public:
+	BarzerString() {}
+	BarzerString(const char* s) : str(s) {}
+
 	void setFromTTokens( const TTWPVec& v );
 
 	const std::string& getStr() const { return str; }

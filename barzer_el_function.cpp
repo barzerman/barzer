@@ -355,11 +355,8 @@ struct BELFunctionStorage_holder {
 		//const BarzelEvalResult::BarzelBeadDataVec &v = rvec[0].getBeadDataVec();
 		//result.setBeadData(rvec[0].getBeadDataVec());
 		BarzelEvalResult::BarzelBeadDataVec &resultVec = result.getBeadDataVec();
-		resultVec.clear();
-		BarzerString s;
-		s.setStr("lala");
-		resultVec.push_back(BarzelBeadAtomic(s));
-		resultVec.push_back(BarzelBeadAtomic(s));
+
+		AYLOGDEBUG(rvec[0].getBeadData().which());
 
 		AYLOGDEBUG(result.isVec());
 		return true;
@@ -946,8 +943,10 @@ struct BELFunctionStorage_holder {
 				for (BarzelBeadDataVec::const_iterator bdit = vec.begin();
 													   bdit != vec.end();
 													   ++bdit) {
-					uint32_t id = boost::get<BarzerLiteral>(
-							boost::get<BarzelBeadAtomic>(*bdit).getData() ).getId();
+					const BarzelBeadAtomic &atm
+						= boost::get<BarzelBeadAtomic>(*bdit);
+					uint32_t id
+						= boost::get<BarzerLiteral>(atm.getData()).getId();
 					if (id != 0xffffffff) {
 						BarzerLiteral ltrl;
 						ltrl.setStop(id);
