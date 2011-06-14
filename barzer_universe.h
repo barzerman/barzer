@@ -112,12 +112,14 @@ public:
 	BELTrie& appendTrie( const std::string& trieClass, const std::string& trieId )
 	{
 		BELTrie& tr = d_triePool.produceTrie(trieClass,trieId);
+		d_trieList.remove(&tr);
 		d_trieList.push_back( &tr );
 		return tr;
 	}
 	BELTrie& prependTrie( const std::string& trieClass, const std::string& trieId )
 	{
 		BELTrie& tr = d_triePool.produceTrie(trieClass,trieId);
+		d_trieList.remove(&tr);
 		d_trieList.push_front( &tr );
 		return tr;
 	}
