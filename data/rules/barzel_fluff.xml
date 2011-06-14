@@ -231,7 +231,8 @@
     </pat>
     
         <tran>
-            <func name="mkFluff"><var name="word" /></func>
+            <!-- func name="mkFluff"><var name="word" /></func>  -->
+            <ltrl t="f" />
         </tran>
     
     </stmt>
