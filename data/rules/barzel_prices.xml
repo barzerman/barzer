@@ -14,6 +14,19 @@
         </tran>
     </stmt>
     <stmt>
+        <pat>
+        <list v="val"><n /></list>
+        <t>$</t>
+        </pat>
+        <tran>
+            <func name="mkERC">
+            <func name="mkEnt"><ltrl t="string">USD</ltrl><rn v="1" /><rn v="1" /></func>
+            <func name="mkRange"><var name="val" /></func>
+            </func>
+        </tran>
+    </stmt>
+    
+    <stmt>
     <pat>
         <list v="val"><n /></list>
         <t>grand</t>
@@ -147,4 +160,18 @@
         </func>
     </tran>
     </stmt>
+    <stmt>
+        <pat>
+            <list v="erc1"><ent c="1" s="1" /></list>
+            <any v="contents"><ent /><list><tail><t /><t /><t /></tail></list></any>
+            <list v="erc2"><ent c="1" s="1" /></list>
+        </pat>
+    <tran>
+        <var name="contents" />
+        <func name="mkERC">
+            <var name="erc1" /> 
+            <var name="erc2" />
+        </func>
+    </tran>
+    </stmt>    
 </stmset>

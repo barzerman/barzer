@@ -94,10 +94,16 @@ template<class T> const T& getAtomic(const BarzelEvalResult &result) {
 
 
 
-template<class T> void setResult(BarzelEvalResult &result, const T &data) {
+template<class T> T& setResult(BarzelEvalResult &result, const T &data) {
+	result.setBeadData(BarzelBeadAtomic());
+	boost::get<BarzelBeadAtomic>(result.getBeadData()).setData(data);
+	BarzelBeadAtomic &a = boost::get<BarzelBeadAtomic>(result.getBeadData());
+	return boost::get<T>(a.getData());
+	/*
 	BarzelBeadAtomic atm;
 	atm.setData(data);
 	result.setBeadData(atm);
+	*/
 }
 
 // probably can replace it by something from stl
@@ -263,6 +269,8 @@ struct BELFunctionStorage_holder {
 	#define ADDFN(n) addFun(#n, boost::mem_fn(&BELFunctionStorage_holder::stfun_##n))
 	BELFunctionStorage_holder(GlobalPools &u) : gpools(u) {
 		// makers
+		ADDFN(test);
+
 		ADDFN(mkDate);
 		ADDFN(mkDateRange);
 		ADDFN(mkDay);
@@ -341,6 +349,22 @@ struct BELFunctionStorage_holder {
 
     #define SETSIG(x) static const char *sig = #x
 	#define FERROR(x) AYLOG(ERROR) << sig << ": " << #x
+
+	STFUN(test) {
+		AYLOGDEBUG(rvec.size());
+		//const BarzelEvalResult::BarzelBeadDataVec &v = rvec[0].getBeadDataVec();
+		//result.setBeadData(rvec[0].getBeadDataVec());
+		BarzelEvalResult::BarzelBeadDataVec &resultVec = result.getBeadDataVec();
+		resultVec.clear();
+		BarzerString s;
+		s.setStr("lala");
+		resultVec.push_back(BarzelBeadAtomic(s));
+		resultVec.push_back(BarzelBeadAtomic(s));
+
+		AYLOGDEBUG(result.isVec());
+		return true;
+	}
+
 	// makers
 	STFUN(mkDate) //(d) | (d,m) | (d,m,y)
 	{
@@ -391,7 +415,7 @@ struct BELFunctionStorage_holder {
 			case 4: year = getAtomic<BarzerNumber>(rvec[3]).getInt();
 			case 3: month = getAtomic<BarzerNumber>(rvec[2]).getInt();
 			case 2: {
-				
+/*
 				const BarzelBeadAtomic& atomic1 = boost::get<BarzelBeadAtomic>( rvec[0].getBeadData() );
 				const BarzelBeadAtomic& atomic2 = boost::get<BarzelBeadAtomic>( rvec[1].getBeadData() );
 				/// trying to see if these are 2 dates 
@@ -403,7 +427,7 @@ struct BELFunctionStorage_holder {
 					setResult(result, range);
 					return true;
 				}
-
+*/
 				day = getAtomic<BarzerNumber>(rvec[1]).getInt();
 				const BarzerDate &date = getAtomic<BarzerDate>(rvec[0]);
 				BarzerDate_calc c;
@@ -790,7 +814,10 @@ struct BELFunctionStorage_holder {
 					erc.setUnitEntity(u);
 
 				BarzerRange &l = erc.getRange();
-				return mergeRanges(l, other.getRange());
+				if (l.isBlank()) {
+					erc.setRange(other.getRange());
+					return true;
+				} else return mergeRanges(l, other.getRange());
 			} else {
 				erc.setRange(other.getRange());
 				erc.setEntity(other.getEntity());
@@ -910,10 +937,30 @@ struct BELFunctionStorage_holder {
 			return false;
 		}
 		try {
+			BarzelBeadDataVec &resultVec = result.getBeadDataVec();
+			resultVec.clear();
+			for (BarzelEvalResultVec::const_iterator rvit = rvec.begin();
+													 rvit != rvec.end();
+													 ++rvit) {
+				const BarzelBeadDataVec &vec = rvit->getBeadDataVec();
+				for (BarzelBeadDataVec::const_iterator bdit = vec.begin();
+													   bdit != vec.end();
+													   ++bdit) {
+					uint32_t id = boost::get<BarzerLiteral>(
+							boost::get<BarzelBeadAtomic>(*bdit).getData() ).getId();
+					if (id != 0xffffffff) {
+						BarzerLiteral ltrl;
+						ltrl.setStop(id);
+						resultVec.push_back(BarzelBeadAtomic(ltrl));
+					}
+				}
+			}
+			/*
 			uint32_t id = getAtomic<BarzerLiteral>(rvec[0]).getId();
 			BarzerLiteral ltrl;
 			ltrl.setStop(id);
 			setResult(result, ltrl);
+			*/
 			return true;
 		} catch (boost::bad_get&) {
 			AYLOG(ERROR) << "mkFluff(BarzerLiteral): Wrong argument type";

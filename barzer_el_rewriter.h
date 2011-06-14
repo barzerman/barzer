@@ -74,6 +74,7 @@ namespace barzel {
 class StoredUniverse;
 class BarzelMatchInfo;
 
+typedef std::vector< BarzelBeadData > BarzelBeadDataVec;
 class BarzelEvalResult {
 public:
 	typedef std::vector< BarzelBeadData > BarzelBeadDataVec;
@@ -86,11 +87,22 @@ public:
 	      BarzelBeadData& getBeadData()       { return d_val[0]; }
 
 	const BarzelBeadDataVec& getBeadDataVec() const { return d_val; }
+	      BarzelBeadDataVec& getBeadDataVec()       { return d_val; }
 	bool isVec() const { return (d_val.size() > 1); }
 	template <typename T> void setBeadData( const T& t ) { d_val[0] = t; }
 	//template <typename T> T& setBeadData( const T& t )
 //		{ return (d_val[0] = t); }
 };
+
+template <>
+inline void BarzelEvalResult::setBeadData<BarzelBeadDataVec>( const BarzelBeadDataVec& v )
+{
+	d_val.clear();
+	d_val.insert(d_val.end(), v.begin(), v.end());
+	if (!d_val.size())
+		d_val.resize(1);
+}
+
 
 template <>
 inline void BarzelEvalResult::setBeadData<BarzelBeadRange>( const BarzelBeadRange& t ) 

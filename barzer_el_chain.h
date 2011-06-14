@@ -53,6 +53,9 @@ enum {
 struct BarzelBeadAtomic {
 	BarzelBeadAtomic_var dta;
 	
+	BarzelBeadAtomic() {}
+	BarzelBeadAtomic(const BarzelBeadAtomic_var &d) : dta(d) {}
+
 	const BarzerLiteral* getLiteral() const { return boost::get<BarzerLiteral>( &dta ); }
 
 	const BarzerEntity* getEntity() const { return boost::get<BarzerEntity>( &dta ); }
@@ -78,6 +81,7 @@ struct BarzelBeadAtomic {
 		{ BarzerLiteral lrl; lrl.setStop(); dta = lrl; return *this; }
 
 	const BarzelBeadAtomic_var& getData() const { return dta; }
+	      BarzelBeadAtomic_var& getData()       { return dta; }
 
 	template <typename T> BarzelBeadAtomic& setData( const T& t ) 
 	{ dta = t; return *this; }
