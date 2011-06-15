@@ -223,6 +223,18 @@
             <func name="mkRange"><ltrl>ASC</ltrl><var name="low" /><var name="high" /></func>
         </tran>
     </stmt>
+    <stmt>
+        <pat>
+            <any><t>between</t><t>from</t></any>
+            <list v="low"><time /></list>
+            <any><t>and</t><t>until</t><t>till</t><list><p>'</p><t>til</t></list><t>to</t></any>
+            <list v="high"><time /></list>
+        </pat>
+        <tran>
+            <func name="mkRange"><ltrl>ASC</ltrl><var name="low" /><var name="high" /></func>
+        </tran>
+    </stmt>  
+  
   
     <stmt>
         <pat>
@@ -517,9 +529,6 @@
             </func>
         </tran>    
     </stmt>  
-
-    
-      
     <stmt>
         <pat>
             <t>before</t>
@@ -635,4 +644,27 @@
             </func>
         </tran>
     </stmt>
+    
+    <stmt>
+        <pat>
+            <perm>
+                <list v="time"><range t="t" /></list>
+                <list v="date"><range t="d" /></list>
+            </perm>
+        </pat>
+        <tran>
+            <func name="mkErcExpr"><ltrl>AND</ltrl>
+                <func name="mkERC">
+                    <mkent i="DATE_INTERVAL" c="1" s="8" />
+                    <var name="date" />
+                </func>
+                <func name="mkERC">
+                    <mkent i="TIME_INTERVAL" c="1" s="8" />
+                    <var name="time" />
+                </func>
+            </func>
+        </tran>
+    </stmt>
+    
+    
 </stmset>

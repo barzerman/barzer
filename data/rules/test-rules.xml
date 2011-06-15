@@ -3,7 +3,7 @@
     xmlns="http://www.barzer.net/barzel/0.1">
     <stmt>
     <pat>
-        <t>foo</t><list v="x"><n /></list></pat>
+        <t>foo</t><list v="x"><n r="true" /></list></pat>
     <tran>
         <var name="x" />
     </tran>
