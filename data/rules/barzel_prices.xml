@@ -139,6 +139,24 @@
     </stmt>
     <stmt>
         <pat>
+            <any>
+                <t>under</t>
+                <list>
+                    <any><t>cheaper</t><t>less</t></any>
+                    <t>than</t>
+                </list>
+             </any>
+            <list v="high"><n /></list>
+        </pat>
+        <tran>
+                <func name="mkERC">
+                    <func name="mkEnt"><rn v="1" /><rn v="1" /></func>
+                    <func name="mkRange"><rn v="0" /><var name="high" /></func>
+                </func>
+        </tran>
+    </stmt>    
+    <stmt>
+        <pat>
             <t>cheapest</t>
         </pat>
     <tran>
@@ -173,5 +191,25 @@
             <var name="erc2" />
         </func>
     </tran>
-    </stmt>    
+    </stmt>
+    <stmt>
+        <pat>
+            <any>
+                <t>over</t>
+                <t>above</t>
+                <list><t>more</t><t>expensive</t><t>than</t></list>
+            </any>
+            <list v="num"><n /></list>
+        </pat>
+        <tran>
+            <func name="mkERC">
+                <func name="mkEnt"><rn v="1" /><rn v="1" /></func>
+                <func name="mkRange">
+                    <var name="num" />
+                    <rn v="2147483647" />
+                </func>
+            </func>
+        </tran>
+    </stmt>
+        
 </stmset>

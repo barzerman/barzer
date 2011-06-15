@@ -48,15 +48,6 @@
     
     </stmt -->
     
-    <stmt>
-        <pat>
-            <t>foo</t>
-        </pat>
-        <tran>
-            <ltrl>bar</ltrl><ltrl>baz</ltrl>
-        </tran>
-    </stmt>    
-    
     <!-- stmt>
         <pat>
 	        <any v="f">
