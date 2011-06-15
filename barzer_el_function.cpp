@@ -208,7 +208,8 @@ struct StrConcatVisitor : public boost::static_visitor<bool> {
 };
 
 template<class T> void mergePairs(std::pair<T,T> &left, const std::pair<T,T> &right) {
-	//AYLOG(DEBUG) << "merging pairs";
+	//AYLOG(DEBUG) << left.first << " " << right.first;
+
 	left.first = std::min(left.first, right.first);
 	left.second = std::max(left.second, right.second);
 }
@@ -812,6 +813,7 @@ struct BELFunctionStorage_holder {
 
 				BarzerRange &l = erc.getRange();
 				if (l.isBlank()) {
+					//AYLOG(DEBUG) << "blank";
 					erc.setRange(other.getRange());
 					return true;
 				} else return mergeRanges(l, other.getRange());

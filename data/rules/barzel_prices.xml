@@ -207,4 +207,24 @@
             </func>
         </tran>
     </stmt>
+    <stmt>
+        <pat>
+            <any>
+                <t>over</t>
+                <t>above</t>
+                <list><t>more</t><t>expensive</t><t>than</t></list>
+            </any>
+            <t>$</t>
+            <list v="num"><n /></list>
+        </pat>
+        <tran>
+            <func name="mkERC">
+                <mkent i="USD" c="1" s="1" />
+                <func name="mkRange">
+                    <var name="num" />
+                    <rn v="2147483647" />
+                </func>
+            </func>
+        </tran>
+    </stmt>    
 </stmset>
