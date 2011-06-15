@@ -735,7 +735,7 @@ struct BELFunctionStorage_holder {
 
 		//EntityPacker(const BELFunctionStorage_holder &h)
 		EntityPacker(const StoredUniverse &u)
-			: cnt(0), tokId(0xffffff), cl(0), scl(0), universe(u) {}
+			: cnt(0), tokId(INVALID_STORED_ID), cl(0), scl(0), universe(u) {}
 
 		bool operator()(const BarzerLiteral &ltrl) {
 			return (tokId = getTokId(ltrl, universe));
