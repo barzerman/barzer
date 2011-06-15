@@ -89,19 +89,10 @@ class RangeVisitor : public boost::static_visitor<> {
 public:
 	RangeVisitor(std::ostream &s) : os(s) {}
 
-	std::ostream& lohi(int lo, int hi) {
-		os << boost::format("<lo>%|d|</lo><hi>%|d|</hi>") % lo % hi;
-		/*
-		os << "<lo>" << lo << "</lo>";
-		os << "<hi>" << hi << "</hi>";
-		*/
-		return os;
-	}
-
-
 	template<class T> std::ostream& lohi(const T lo, const T hi) {
-		os << "<lo>" << lo << "</lo>";
-		os << "<hi>" << hi << "</hi>";
+		os << std::dec
+		   << "<lo>" << lo << "</lo>"
+		   << "<hi>" << hi << "</hi>";
 		return os;
 	}
 

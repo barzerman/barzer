@@ -3,13 +3,9 @@
     xmlns="http://www.barzer.net/barzel/0.1">
     <stmt>
     <pat>
-    <list v="x">
-        <t>foo</t><t>bar</t>
-    </list>
-    </pat>
+        <t>foo</t><list v="x"><n /></list></pat>
     <tran>
-    <!-- func name="test"><var name="x" /></func -->
-    <func name="mkFluff"><var name="x" /></func>
+        <var name="x" />
     </tran>
     </stmt>
     
