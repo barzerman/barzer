@@ -97,7 +97,7 @@ struct BarzelBeadExpression {
 	typedef std::vector<Attr> AttrList;
 
 	//struct Data {} dta;
-	enum { ATTRLIST = 0xffffff };
+	enum { ATTRLIST = INVALID_STORED_ID };
 
 	uint32_t sid;
 	AttrList attrs;

@@ -160,7 +160,7 @@ public:
 			break;
 		case BarzerLiteral::T_STOP:
 			{
-				if (data.getId() == 0xffffffff) {
+				if (data.getId() == INVALID_STORED_ID) {
 					os << "<fluff />";
 				} else {
 					const char *cstr = universe.getStringPool().resolveId(data.getId());
@@ -246,7 +246,7 @@ public:
 	}
 
 	void operator()(const BarzerEntity &data) {
-		if (data.tokId == 0xffffff) {
+		if (!data.isTokIdValid()) {
 			os << boost::format("<entity class=\"%1%\" subclass=\"%2%\" />")
 				% data.eclass.ec
 				% data.eclass.subclass;
