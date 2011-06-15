@@ -3,20 +3,10 @@
     xmlns="http://www.barzer.net/barzel/0.1">
     <stmt>
         <pat>
-        <t>$</t>
-        <list v="val"><n /></list> 
-        </pat>
-        <tran>
-            <func name="mkERC">
-            <func name="mkEnt"><ltrl t="string">USD</ltrl><rn v="1" /><rn v="1" /></func>
-            <func name="mkRange"><var name="val" /></func>
-            </func>
-        </tran>
-    </stmt>
-    <stmt>
-        <pat>
-        <list v="val"><n /></list>
-        <t>$</t>
+            <perm>
+                <t>$</t>
+                <list v="val"><n /></list>
+            </perm> 
         </pat>
         <tran>
             <func name="mkERC">
@@ -212,10 +202,9 @@
                 <func name="mkEnt"><rn v="1" /><rn v="1" /></func>
                 <func name="mkRange">
                     <var name="num" />
-                    <rn v="2147483647" />
+                    <rn v="2147483647" /> <!-- this is a hack, need to change -->
                 </func>
             </func>
         </tran>
     </stmt>
-        
 </stmset>
