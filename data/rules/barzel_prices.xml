@@ -94,7 +94,10 @@
     </stmt>
     <stmt>
         <pat>
-            <list v="range"><range t="i" /></list>
+            <any v="range">
+                <range t="i" />
+                <ent c="1" s="1" />
+            </any>
             <any><t>bucks</t><t>dollars</t><t>dollar</t></any>
         </pat>
         <tran>
@@ -106,7 +109,10 @@
     </stmt>
     <stmt>
         <pat>
-            <list v="range"><range t="i" /></list>
+            <any v="range">
+                <range t="i" />
+                <ent c="1" s="1" />
+            </any>
             <any><t>euro</t><t>euros</t><t>eur</t></any>
         </pat>
         <tran>
