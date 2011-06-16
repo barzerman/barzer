@@ -82,6 +82,25 @@
             </func>
         </tran>
     </stmt>
+    
+    <stmt>
+        <pat>
+            <t>between</t>
+            <list v="high"><ent c="1" s="1" /></list>
+            <t>and</t>
+            <list v="low"><n /></list>
+        </pat>
+        <tran>
+            <func name="mkERC">
+                <var name="high" />
+                <func name="mkERC">
+                    <func name="mkEnt"><rn v="1" /><rn v="1" /></func>
+                    <func name="mkRange"><var name="low" /></func>
+                </func>
+            </func>
+        </tran>
+    </stmt>    
+    
     <stmt>
         <pat>
             <any v="range">
