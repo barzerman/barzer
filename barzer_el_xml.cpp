@@ -76,6 +76,7 @@ bool BELParserXML::isValidTag( int tag, int parent ) const
 	case TAG_ENTITY:
 	case TAG_RANGE:
 	case TAG_ERCEXPR:
+	case TAG_ERC:
 	case TAG_TIME:
 	case TAG_LIST:
 	case TAG_ANY:
@@ -141,6 +142,7 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 	CASE_TAG(ENTITY)
 	CASE_TAG(RANGE)
 	CASE_TAG(ERCEXPR)
+	CASE_TAG(ERC)
 	CASE_TAG(TIME)
 	CASE_TAG(LIST)
 	CASE_TAG(ANY)
@@ -442,6 +444,12 @@ void BELParserXML::taghandle_N( const char_cp * attr, size_t attr_sz , bool clos
 			pat.setAnyInt();
 	}
 	statement.pushNode( BTND_PatternData( pat));
+}
+void BELParserXML::taghandle_ERC( const char_cp * attr, size_t attr_sz , bool close) 
+{
+	BTND_Pattern_ERC pat; 
+	if( close ) { statement.popNode(); return; }
+	statement.pushNode( BTND_PatternData(pat) );
 }
 void BELParserXML::taghandle_ERCEXPR( const char_cp * attr, size_t attr_sz , bool close) 
 {
@@ -934,6 +942,7 @@ int BELParserXML::getTag( const char* s ) const
 		break;
 	case 'e':
 	CHECK_3CW("nt",TAG_ENTITY) // <ent>
+	CHECK_3CW("rc",TAG_ERC) // <erc>
 	CHECK_6CW("rcexp",TAG_ERCEXPR) // <ercexp>
 		break;
 	case 'f':

@@ -444,6 +444,33 @@ public:
 inline bool operator< ( const BTND_Pattern_Range& l, const BTND_Pattern_Range& r ) 
 { return l.lessThan(r); }
 
+class BTND_Pattern_ERC: public BTND_Pattern_Base {
+	BarzerEntityRangeCombo d_erc;
+public:
+
+	const BarzerEntityRangeCombo& getERC() const { return d_erc; }
+	BarzerEntityRangeCombo& getERC() { return d_erc; }
+	bool operator()( const BarzerEntityRangeCombo& e) const 
+		{ return d_erc.matchOther(e, !d_erc.getRange().isBlank()); } 
+	
+	
+	std::ostream& print( std::ostream& fp ) const 
+	{ 
+		d_erc.print(fp);
+		if( !d_erc.getRange().isBlank() ) {
+			fp << " range type " << d_erc.getRange().getType() << "\n";
+		}
+		return fp;
+	}
+	bool lessThan( const BTND_Pattern_ERC& r) const
+		{return d_erc.lessThan(r.getERC()); }
+};
+
+inline bool operator < ( const BTND_Pattern_ERC& l, const BTND_Pattern_ERC& r ) 
+{ return l.lessThan(r); }
+inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_ERC& e ) 
+{ return e.print(fp); }
+
 class BTND_Pattern_ERCExpr : public BTND_Pattern_Base {
 	uint16_t d_exprType, d_exprEclass;
 public:
@@ -485,7 +512,8 @@ typedef boost::variant<
 		BTND_Pattern_StopToken,		 	// 9
 		BTND_Pattern_Entity,		    // 10
 		BTND_Pattern_ERCExpr,			// 11
-		BTND_Pattern_Range				// 12
+		BTND_Pattern_ERC,			// 12
+		BTND_Pattern_Range				// 13
 > BTND_PatternData;
 
 
@@ -505,6 +533,7 @@ enum {
 	BTND_Pattern_StopToken_TYPE,		// 9
 	BTND_Pattern_Entity_TYPE,           // 10
 	BTND_Pattern_ERCExpr_TYPE,          // 11
+	BTND_Pattern_ERC_TYPE,          // 11
 	BTND_Pattern_Range_TYPE,          // 12
 
 

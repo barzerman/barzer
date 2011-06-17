@@ -516,6 +516,14 @@ struct BarzerEntityRangeCombo {
 			r.d_entId, r.d_unitEntId, r.d_range
 		);
 	}
+	// only range type is checked if at all 
+	bool matchOther( const BarzerEntityRangeCombo& other, bool checkRange=false ) const {
+		return (
+			d_entId.matchOther( other.d_entId )  && 
+			d_unitEntId.matchOther( other.d_unitEntId ) && 
+			(!checkRange || d_range.getType() == other.getRange().getType() )
+		);
+	}
 };
 
 inline bool operator ==( const BarzerEntityRangeCombo& l, const BarzerEntityRangeCombo& r )
