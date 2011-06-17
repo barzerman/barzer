@@ -1,9 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
     xmlns="http://www.barzer.net/barzel/0.1">
+    
+    <stmt>
+        <pat>
+            <perm>
+                <t>$</t>
+                <list v="val"><n /></list>
+            </perm> 
+        </pat>
+        <tran>
+            <func name="mkERC">
+            <func name="mkEnt"><ltrl t="string">USD</ltrl><rn v="1" /><rn v="1" /></func>
+            <func name="mkRange"><var name="val" /></func>
+            </func>
+        </tran>
+    </stmt>    
     <stmt>
     <pat>
-        <t>foo</t><list v="x"><n r="true" /></list></pat>
+        <t>foo</t><list v="x"><erc /></list></pat>
     <tran>
         <var name="x" />
     </tran>

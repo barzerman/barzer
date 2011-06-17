@@ -476,6 +476,9 @@ void BELParserXML::taghandle_ERC( const char_cp * attr, size_t attr_sz , bool cl
 			break;
 		case 'r': // range type setting 
 			switch( v[0] ) {
+			case 'n':
+				erc.getRange().setData( BarzerRange::None() );
+				break;
 			case 'i':  // r=i
 				erc.getRange().setData( BarzerRange::Integer() );
 				break;

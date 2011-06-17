@@ -57,7 +57,7 @@
     <stmt>
         <pat>    
              <any><t>за</t><t>в</t></any>
-             <list v="price"><ent  c="1" s="1" /></list>
+             <list v="price"><erc  c="1" s="1" /></list>
         </pat>
         <tran>
             <var name="price" />
@@ -73,7 +73,7 @@
                     <t>чем</t>
                 </list>
              </any>
-             <list v="high"><ent c="1" s="1" /></list>
+             <list v="high"><erc c="1" s="1" /></list>
         </pat>
         <tran>
             <func name="mkERC">
