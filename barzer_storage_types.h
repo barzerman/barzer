@@ -343,6 +343,13 @@ public:
 				d_lst.insert(i,e);
 		}
 
+	void filterEntList( BarzerEntityList& lst, const StoredEntityUniqId& euid ) const
+	{
+		for( EList::const_iterator i = d_lst.begin(); i!= d_lst.end(); ++i ) {
+			if( euid.matchOther( *i ) ) 
+				lst.d_lst.push_back( *i );
+		}
+	}
 	std::ostream& print( std::ostream& fp ) const;
 };
 
