@@ -447,8 +447,58 @@ void BELParserXML::taghandle_N( const char_cp * attr, size_t attr_sz , bool clos
 }
 void BELParserXML::taghandle_ERC( const char_cp * attr, size_t attr_sz , bool close) 
 {
-	BTND_Pattern_ERC pat; 
 	if( close ) { statement.popNode(); return; }
+	BTND_Pattern_ERC pat; 
+	BarzerEntityRangeCombo& erc = pat.getERC();
+
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		switch( n[0] ) {
+		case 'c': // entity class - c="1"
+			erc.getEntity().setClass( atoi(v) ); 
+			break;
+		case 's': // entity subclass - s="1"
+			erc.getEntity().setSubclass( atoi(v) ); 
+			break;
+		case 't': // entity id token - t="ABCD011"
+			erc.getEntity().setTokenId( internString(v) );
+			break;
+		case 'u': // unit fields
+			switch(n[1]) {
+			case 'c': // unit entity  class - uc="1"
+				erc.getUnitEntity().setClass( atoi(v) ); break;
+			case 's': // unit entity subclass - us="1"
+				erc.getUnitEntity().setSubclass( atoi(v) ); break;
+			case 't': // unit entity id token - ut="ABCD011"
+				erc.getUnitEntity().setTokenId( internString(v) ); break;
+			}
+			break;
+		case 'r': // range type setting 
+			switch( v[0] ) {
+			case 'i':  // r=i
+				erc.getRange().setData( BarzerRange::Integer() );
+				break;
+			case 'r':  // r=r real numbers
+				erc.getRange().setData( BarzerRange::Real() );
+				break;
+			case 't':  // r=t - time of day
+				erc.getRange().setData( BarzerRange::TimeOfDay() );
+				break;
+			case 'd':  // r=d - date
+				erc.getRange().setData( BarzerRange::Date() );
+				break;
+			case 'm':  // r=m - date time
+				erc.getRange().setData( BarzerRange::DateTime() );
+				break;
+			case 'e':  // r=e - entity
+				erc.getRange().setData( BarzerRange::Entity() );
+				break;
+			}
+			break;
+		}
+	}
+
 	statement.pushNode( BTND_PatternData(pat) );
 }
 void BELParserXML::taghandle_ERCEXPR( const char_cp * attr, size_t attr_sz , bool close) 

@@ -533,8 +533,8 @@ enum {
 	BTND_Pattern_StopToken_TYPE,		// 9
 	BTND_Pattern_Entity_TYPE,           // 10
 	BTND_Pattern_ERCExpr_TYPE,          // 11
-	BTND_Pattern_ERC_TYPE,          // 11
-	BTND_Pattern_Range_TYPE,          // 12
+	BTND_Pattern_ERC_TYPE,          // 12
+	BTND_Pattern_Range_TYPE,          // 13
 
 
 	/// end of wildcard types - add new ones ONLY ABOVE THIS LINE

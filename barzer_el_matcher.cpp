@@ -48,7 +48,7 @@ template <> struct BeadToPattern_convert<BarzerDate> { typedef BTND_Pattern_Date
 template <> struct BeadToPattern_convert<BarzerDateTime> { typedef BTND_Pattern_DateTime PatternType; };
 template <> struct BeadToPattern_convert<BarzerEntityList> { typedef BTND_Pattern_Entity PatternType; };
 template <> struct BeadToPattern_convert<BarzerEntity> { typedef BTND_Pattern_Entity PatternType; };
-template <> struct BeadToPattern_convert<BarzerEntityRangeCombo> { typedef BTND_Pattern_Entity PatternType; };
+template <> struct BeadToPattern_convert<BarzerEntityRangeCombo> { typedef BTND_Pattern_ERC PatternType; };
 template <> struct BeadToPattern_convert<BarzerERCExpr> { typedef BTND_Pattern_ERCExpr PatternType; };
 template <> struct BeadToPattern_convert<BarzerRange> { typedef BTND_Pattern_Range PatternType; };
 
@@ -105,7 +105,7 @@ inline bool evalWildcard_vis<BTND_Pattern_Entity>::operator()<BarzerEntity> ( co
 { return d_pattern( dta ); }
 
 template <> template <>
-inline bool evalWildcard_vis<BTND_Pattern_Entity>::operator()<BarzerEntityRangeCombo> ( const BarzerEntityRangeCombo& dta )  const
+inline bool evalWildcard_vis<BTND_Pattern_ERC>::operator()<BarzerEntityRangeCombo> ( const BarzerEntityRangeCombo& dta )  const
 { return d_pattern( dta ); }
 
 template <> template <>
@@ -454,6 +454,8 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 	template <>
 	bool findMatchingChildren_visitor::doFirmMatch<BarzerEntityRangeCombo>( const BarzelFCMap& fcmap, const BarzerEntityRangeCombo& dta, bool allowBlanks) 
 	{
+		return doFirmMatch_default( fcmap, dta, allowBlanks );
+
 		BarzelTrieFirmChildKey firmKey((uint8_t)(BTND_Pattern_Entity_TYPE),0xffffffff); 
 		// forming firm key
 		// we ignore the whole allow blanks thing for dates - blanks will just always be allowed
@@ -470,7 +472,6 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 				const BTND_Pattern_Entity* dpat = wcPool.get_BTND_Pattern_Entity( i->first.id );
 				if( !dpat ) return false;
 				if( evalWildcard_vis<BTND_Pattern_Entity>(*dpat)( dta )  ) {
-				//if( boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Entity>(*dpat), dta ) ) {}
 					d_mtChild.push_back( NodeAndBeadVec::value_type(
 						&(i->second),
 						BarzelBeadChain::Range(d_rng.first,d_rng.first)) );

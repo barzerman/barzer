@@ -498,7 +498,8 @@ struct BarzerEntityRangeCombo {
 	const BarzerEntity& getEntity() const { return d_entId; }
 	const BarzerEntity& getUnitEntity() const { return d_unitEntId; }
 	const BarzerRange&  getRange() const { return d_range; }
-
+	BarzerEntity& getEntity() { return d_entId; }
+	BarzerEntity& getUnitEntity() { return d_unitEntId; }
 	BarzerRange&  getRange() { return d_range; }
 
 	void  setEntity( const BarzerEntity& e ) { d_entId = e; }
