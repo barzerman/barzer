@@ -463,7 +463,7 @@ public:
 		return fp;
 	}
 	bool lessThan( const BTND_Pattern_ERC& r) const
-		{return d_erc.lessThan(r.getERC()); }
+		{ return d_erc.lessThan(r.getERC()); }
 };
 
 inline bool operator < ( const BTND_Pattern_ERC& l, const BTND_Pattern_ERC& r ) 
@@ -562,6 +562,7 @@ template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_Sto
 template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_Entity> ( ) const { return  BTND_Pattern_Entity_TYPE; }
 template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_Range> ( ) const { return  BTND_Pattern_Range_TYPE; }
 template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_ERCExpr> ( ) const { return  BTND_Pattern_ERCExpr_TYPE; }
+template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_ERC> ( ) const { return  BTND_Pattern_ERC_TYPE; }
 
 /// pattern tyepe number getter visitor 
 

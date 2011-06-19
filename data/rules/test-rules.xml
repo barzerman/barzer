@@ -17,11 +17,8 @@
         </tran>
     </stmt>    
     <stmt>
-    <pat>
-        <t>foo</t><list v="x"><erc /></list></pat>
-    <tran>
-        <var name="x" />
-    </tran>
+    <pat><t>foo</t><erc/></pat>
+    <tran> <ltrl t="f">crap</ltrl> </tran>
     </stmt>
     
         
