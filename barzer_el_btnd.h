@@ -447,22 +447,22 @@ inline bool operator< ( const BTND_Pattern_Range& l, const BTND_Pattern_Range& r
 class BTND_Pattern_ERC: public BTND_Pattern_Base {
 	BarzerEntityRangeCombo d_erc;
 
-	uint8_t d_matchBlankRange, d_matchBalnkEntity;
+	uint8_t d_matchBlankRange, d_matchBlankEntity;
 public:
-	BTND_Pattern_ERC() : d_matchBlankRange(0), d_matchBalnkEntity(0) {}	
+	BTND_Pattern_ERC() : d_matchBlankRange(0), d_matchBlankEntity(0) {}	
 
-	bool isMatchBalnkRange() const { return d_matchBlankRange; }
-	bool isMatchBalnkEntity() const { return d_matchBalnkEntity; }
+	bool isMatchBlankRange() const { return d_matchBlankRange; }
+	bool isMatchBlankEntity() const { return d_matchBlankEntity; }
 
 	
-	void setMatchBalnkRange() { d_matchBlankRange= 1; }
-	void setMatchBalnkEntity() { d_matchBalnkEntity = 1; }
+	void setMatchBlankRange() { d_matchBlankRange= 1; }
+	void setMatchBlankEntity() { d_matchBlankEntity = 1; }
 
 	const BarzerEntityRangeCombo& getERC() const { return d_erc; }
 	BarzerEntityRangeCombo& getERC() { return d_erc; }
 	bool operator()( const BarzerEntityRangeCombo& e) const 
 		{ 
-			//return d_erc.matchOtherWithBlanks(e, isMatchBalnkRange(), isMatchBalnkEntity() );
+			//return d_erc.matchOtherWithBlanks(e, isMatchBlankRange(), isMatchBlankEntity() );
 			return d_erc.matchOther(e, !d_erc.getRange().isBlank()); 
 		} 
 	
@@ -482,8 +482,8 @@ public:
 				return false;
 			else
 				return (ay::range_comp().less_than(
-					d_matchBlankRange, d_matchBalnkEntity,
-					r.d_matchBlankRange, r.d_matchBalnkEntity
+					d_matchBlankRange, d_matchBlankEntity,
+					r.d_matchBlankRange, r.d_matchBlankEntity
 				) );
 		}
 };
