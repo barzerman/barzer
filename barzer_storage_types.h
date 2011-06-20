@@ -244,6 +244,9 @@ struct StoredEntityUniqId {
 	
 	bool matchOther( const StoredEntityUniqId& other ) const
 		{ return( eclass.matchOther( other.eclass ) && ( !isTokIdValid() || tokId == other.tokId ) ); }
+
+	bool matchOther( const StoredEntityUniqId& other, bool matchInvalid ) const
+		{ return( eclass.matchOther( other.eclass ) && (tokId == other.tokId || !(matchInvalid || isTokIdValid()) ) ); }
 };
 inline std::ostream& operator <<(std::ostream& fp, const StoredEntityUniqId& x )
 {

@@ -16,8 +16,9 @@ template <uint8_t SZ>
 class bitflags {
 	uint8_t buf[ (SZ-1)/8+1 ];
 public:
-	uint8_t getSz() const
-		{ return SZ; }
+	uint8_t getSz() const { return SZ; }
+	const uint8_t * getBuf() const { return buf; }
+	uint8_t getBufSz() const { return SZ; }
 
 	bitflags() { memset( buf,0,sizeof(buf) ); }
 	inline void unset( uint8_t bit )
@@ -66,6 +67,10 @@ public:
 		return fp;
 	}
 };
+
+template <uint8_t SZL, uint8_t SZR>
+inline bool operator <(const bitflags<SZL>& l,const bitflags<SZR>& r ) 
+{ return ( memcmp( l.getBuf(), r.getBuf(), std::min(l.getBufSz(),r.getBufSz()) ) < 0); }
 
 template <uint8_t SZ>
 inline std::ostream& operator <<( std::ostream& fp , const bitflags<SZ>& bs ) 

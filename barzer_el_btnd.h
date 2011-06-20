@@ -446,13 +446,25 @@ inline bool operator< ( const BTND_Pattern_Range& l, const BTND_Pattern_Range& r
 
 class BTND_Pattern_ERC: public BTND_Pattern_Base {
 	BarzerEntityRangeCombo d_erc;
+
+	uint8_t d_matchBlankRange, d_matchBalnkEntity;
 public:
+	BTND_Pattern_ERC() : d_matchBlankRange(0), d_matchBalnkEntity(0) {}	
+
+	bool isMatchBalnkRange() const { return d_matchBlankRange; }
+	bool isMatchBalnkEntity() const { return d_matchBalnkEntity; }
+
+	
+	void setMatchBalnkRange() { d_matchBlankRange= 1; }
+	void setMatchBalnkEntity() { d_matchBalnkEntity = 1; }
 
 	const BarzerEntityRangeCombo& getERC() const { return d_erc; }
 	BarzerEntityRangeCombo& getERC() { return d_erc; }
 	bool operator()( const BarzerEntityRangeCombo& e) const 
-		{ return d_erc.matchOther(e, !d_erc.getRange().isBlank()); } 
-	
+		{ 
+			//return d_erc.matchOtherWithBlanks(e, isMatchBalnkRange(), isMatchBalnkEntity() );
+			return d_erc.matchOther(e, !d_erc.getRange().isBlank()); 
+		} 
 	
 	std::ostream& print( std::ostream& fp ) const 
 	{ 
@@ -463,7 +475,17 @@ public:
 		return fp;
 	}
 	bool lessThan( const BTND_Pattern_ERC& r) const
-		{ return d_erc.lessThan(r.getERC()); }
+		{ 
+			if(  d_erc.lessThan(r.getERC()) )
+				return true;
+			else if( r.getERC().lessThan(d_erc) ) 
+				return false;
+			else
+				return (ay::range_comp().less_than(
+					d_matchBlankRange, d_matchBalnkEntity,
+					r.d_matchBlankRange, r.d_matchBalnkEntity
+				) );
+		}
 };
 
 inline bool operator < ( const BTND_Pattern_ERC& l, const BTND_Pattern_ERC& r ) 

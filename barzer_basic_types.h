@@ -418,6 +418,7 @@ struct BarzerRange {
 	};
 
 	bool isNone( ) const {return (dta.which() ==None_TYPE); }
+	bool isValid( ) const {return isNone(); }
 	bool isInteger( ) const {return (dta.which() ==Integer_TYPE); }
 	bool isReal( ) const {return (dta.which() ==Real_TYPE); }
 	bool isTimeOfDay( ) const {return (dta.which() ==TimeOfDay_TYPE); }
@@ -525,6 +526,17 @@ struct BarzerEntityRangeCombo {
 			(!checkRange || d_range.getType() == other.getRange().getType() )
 		);
 	}
+
+	bool matchOtherWithBlanks( 
+		const BarzerEntityRangeCombo& other, bool matchBlankRange, bool matchBlankEnt
+	) const {
+		return (
+			d_entId.matchOther( other.d_entId, matchBlankEnt )  && 
+			d_unitEntId.matchOther( other.d_unitEntId, matchBlankEnt ) && 
+			(d_range.getType() == other.getRange().getType() || (!matchBlankRange && !d_range.isValid() ))
+		);
+	}
+
 };
 
 inline bool operator ==( const BarzerEntityRangeCombo& l, const BarzerEntityRangeCombo& r )

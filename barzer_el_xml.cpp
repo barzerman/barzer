@@ -455,6 +455,16 @@ void BELParserXML::taghandle_ERC( const char_cp * attr, size_t attr_sz , bool cl
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
 		switch( n[0] ) {
+		case 'b': // match blank range / ent
+			switch( n[1] ) {
+			case 'r': // br="y" - match blank range
+				pat.setMatchBalnkRange();
+				break;
+			case 'e': // be="y" - match blank entity id
+				pat.setMatchBalnkEntity();
+				break;
+			}
+			break;
 		case 'c': // entity class - c="1"
 			erc.getEntity().setClass( atoi(v) ); 
 			break;
