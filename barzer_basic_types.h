@@ -498,7 +498,8 @@ struct BarzerEntityRangeCombo {
 	const BarzerEntity& getEntity() const { return d_entId; }
 	const BarzerEntity& getUnitEntity() const { return d_unitEntId; }
 	const BarzerRange&  getRange() const { return d_range; }
-
+	BarzerEntity& getEntity() { return d_entId; }
+	BarzerEntity& getUnitEntity() { return d_unitEntId; }
 	BarzerRange&  getRange() { return d_range; }
 
 	void  setEntity( const BarzerEntity& e ) { d_entId = e; }
@@ -514,6 +515,14 @@ struct BarzerEntityRangeCombo {
 		return ay::range_comp( ).less_than(
 			d_entId, d_unitEntId, d_range,
 			r.d_entId, r.d_unitEntId, r.d_range
+		);
+	}
+	// only range type is checked if at all 
+	bool matchOther( const BarzerEntityRangeCombo& other, bool checkRange=false ) const {
+		return (
+			d_entId.matchOther( other.d_entId )  && 
+			d_unitEntId.matchOther( other.d_unitEntId ) && 
+			(!checkRange || d_range.getType() == other.getRange().getType() )
 		);
 	}
 };

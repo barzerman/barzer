@@ -57,9 +57,9 @@
 	<stmt>
 	    <pat>
 	        <t>between</t>
-	        <list v="curr1"><ent s="1" c="1" /></list>
+	        <list v="curr1"><erc s="1" c="1" /></list>
 	        <t>and</t>
-	        <list v="curr2"><ent s="1" c="1"/></list>
+	        <list v="curr2"><erc s="1" c="1"/></list>
 	    </pat>
 	    <tran>
 	        <func name="mkERC"><var name="curr1" /><var name="curr2" /></func>
@@ -70,7 +70,7 @@
             <t>between</t>
             <list v="low"><n /></list>
             <t>and</t>
-            <list v="high"><ent c="1" s="1" /></list>
+            <list v="high"><erc c="1" s="1" /></list>
         </pat>
         <tran>
             <func name="mkERC">
@@ -86,7 +86,7 @@
     <stmt>
         <pat>
             <t>between</t>
-            <list v="high"><ent c="1" s="1" /></list>
+            <list v="high"><erc c="1" s="1" /></list>
             <t>and</t>
             <list v="low"><n /></list>
         </pat>
@@ -105,7 +105,7 @@
         <pat>
             <any v="range">
                 <range t="i" />
-                <ent c="1" s="1" />
+                <erc c="1" s="1" />
             </any>
             <any><t>bucks</t><t>dollars</t><t>dollar</t></any>
         </pat>
@@ -120,7 +120,7 @@
         <pat>
             <any v="range">
                 <range t="i" />
-                <ent c="1" s="1" />
+                <erc c="1" s="1" />
             </any>
             <any><t>euro</t><t>euros</t><t>eur</t></any>
         </pat>
@@ -140,7 +140,7 @@
                     <t>than</t>
                 </list>
              </any>
-            <list v="high"><ent c="1" s="1" /></list>
+            <list v="high"><erc c="1" s="1" /></list>
         </pat>
         <tran>
             <func name="mkERC">
@@ -195,9 +195,9 @@
     </stmt>
     <stmt>
         <pat>
-            <list v="erc1"><ent c="1" s="1" /></list>
+            <list v="erc1"><erc c="1" s="1" r="n" /></list>
             <any v="contents"><ent /><list><tail><t /><t /><t /></tail></list></any>
-            <list v="erc2"><ent c="1" s="1" /></list>
+            <any v="erc2"><erc c="1" s="1" r="i" /><erc c="1" s="1" r="r" /></any>
         </pat>
     <tran>
         <var name="contents" />
