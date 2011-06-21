@@ -470,7 +470,7 @@ bool BTND_Pattern_Number::operator() ( const BarzerNumber& num ) const
 	case T_ANY_INT:
 		return num.isInt();
 	case T_ANY_REAL:
-		return num.isReal();
+		return true;
 
 	case T_RANGE_INT:
 		if( num.isInt() ) {
