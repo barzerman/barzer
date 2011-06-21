@@ -962,11 +962,13 @@ int BELParserXML::parse( std::istream& fp )
 			std::cerr << "BELParserXML couldnt create xml parser\n";
 			return 0;
 		}
-		XML_SetUserData(parser,this);
-		XML_SetElementHandler(parser, 
-			::startElement, ::endElement);
-		XML_SetCharacterDataHandler(parser, charDataHandle);
-	}
+	} else 
+		XML_ParserReset(parser,0);
+	
+	XML_SetUserData(parser,this);
+	XML_SetElementHandler(parser, 
+		::startElement, ::endElement);
+	XML_SetCharacterDataHandler(parser, charDataHandle);
 	
 	char buf[ 128*1024 ];	
 	bool done = false;

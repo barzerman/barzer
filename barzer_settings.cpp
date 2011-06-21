@@ -48,14 +48,13 @@ void BarzerSettings::loadRules() {
 		// warning goes here
 		return;
 	}
+	BELReader r(&(u->getBarzelTrie()), *u);
 	BOOST_FOREACH(const ptree::value_type &v, rules) {
-		BELReader r(&(u->getBarzelTrie()), *u);
 		const char *fname =  v.second.data().c_str();
 		int num = r.loadFromFile(fname, BELReader::INPUT_FMT_XML);
 
 		std::cout << num << " statements loaded from `" << fname << "'\n";
 	}
-
 }
 
 

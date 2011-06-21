@@ -143,6 +143,7 @@ BELParser*  BELReader::initParser(InputFormat fmt)
 
 int BELReader::loadFromStream( std::istream& fp ) 
 {
+	numStatements=0;
 	if( !parser ) {
 		std::cerr << "BELReader::loadFromStream uninitialized parser\n";
 		return 0;
