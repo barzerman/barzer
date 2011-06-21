@@ -3,13 +3,18 @@
 #include <map>
 #include <barzer_dtaindex.h>
 #include <ay_char.h>
+#include <boost/thread/mutex.hpp>
 
 class Hunspell;
 namespace barzer {
 
 class BarzerHunspell {
 	Hunspell* d_hunspell;
+	
+	mutable boost::mutex d_mutex;
 public:
+	boost::mutex& mutex() const { return d_mutex; }
+
 	// this is a hack NEVER call this function
 	BarzerHunspell( ) : d_hunspell(0) {}
 	BarzerHunspell( const char* affFile, const char* dictFile );
