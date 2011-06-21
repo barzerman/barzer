@@ -59,7 +59,6 @@ void BarzerSettings::loadRules() {
 
 		std::cout << num << " statements loaded from `" << fname << "'\n";
 	}
-
 }
 
 
