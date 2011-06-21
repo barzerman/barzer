@@ -5,14 +5,18 @@
  *      Author: polter
  */
 
+#include <ay/ay_logger.h>
 #include <barzer_settings.h>
 #include <barzer_universe.h>
-#include <boost/foreach.hpp>
-#include <ay/ay_logger.h>
-#include <time.h>
 #include <barzer_basic_types.h>
 
+#include <boost/foreach.hpp>
+#include <boost/filesystem.hpp>
+#include <time.h>
+#include <cstdlib>
+
 using boost::property_tree::ptree;
+namespace fs = boost::filesystem;
 
 static ptree& empty_ptree() {
 	static ptree pt;
@@ -158,6 +162,15 @@ void BarzerSettings::loadUsers() {
 void BarzerSettings::load(const char *fname) {
 	//AYLOGDEBUG(fname);
 	std::cout << "Loading config file: " << fname << std::endl;
+	fs::path oldPath = fs::current_path();
+
+	const char *dataPath = std::getenv("BARZER_DATA");
+	if (dataPath) {
+		fs::current_path(dataPath);
+	} else {
+		fs::current_path( fs::current_path() / "data/" );
+	}
+
 	try {
 		read_xml(fname, pt);
 		//loadSpell();
@@ -167,6 +180,7 @@ void BarzerSettings::load(const char *fname) {
 	} catch (boost::property_tree::xml_parser_error &e) {
 		AYLOG(ERROR) << e.what();
 	}
+	fs::current_path(oldPath);
 }
 
 const std::string BarzerSettings::get(const char *key) const {

@@ -7,13 +7,15 @@ ifeq ($(IS32),yes)
 	BITMODE=-m32
 	AYBIT="IS32=yes"
 endif 
-CFLAGS :=$(CFLAGS) $(BITMODE) $(OPT) -Wno-parentheses -Wnon-virtual-dtor -I/opt/local/include -I/usr/include -Wall -g -I. -I./ay
+CFLAGS :=$(CFLAGS) $(BITMODE) $(OPT) -Wno-parentheses -Wnon-virtual-dtor \
+	-I/opt/local/include -I/usr/include -Wall -g -I. -I./ay -fpic
 LINKFLAGS := $(FLAGS)
 BINARY=barzer.exe
 LIB_HUNSPELL=-lhunspell-1.2
-libs = -Lay -lay -L/opt/local/lib -L/opt/local/lib/boost -L/usr/lib $(LIB_HUNSPELL) -lboost_system -lexpat -lstdc++
+libs = -Lay -lay -L/opt/local/lib -L/opt/local/lib/boost -L/usr/lib $(LIB_HUNSPELL) \
+	-lboost_system -lboost_filesystem -lexpat -lstdc++
 ECHO = echo
-objects = \
+lib_objects = \
 barzer_spell.o \
 barzer_el_analysis.o \
 barzer_server_response.o \
@@ -35,7 +37,6 @@ barzer_el_function.o \
 barzer_basic_types.o \
 barzer_storage_types.o \
 barzer_loader_xml.o \
-barzer.o \
 barzer_shell.o\
 barzer_parse_types.o \
 barzer_lexer.o \
@@ -51,6 +52,8 @@ lg_en/barzer_en_lex.o \
 lg_ru/barzer_ru_lex.o \
 lg_en/barzer_en_date_util.o \
 lg_ru/barzer_ru_date_util.o \
+
+objects = $(lib_objects) barzer.o
 
 INSTALL_DIR = /usr/share/barzer
 INSTALL_DATA_DIR = $(INSTALL_DIR)/data
@@ -70,7 +73,7 @@ aylib:
 ay/libay.a: 
 	cd ay; make -f aylib.mk rebuild $(AYBIT) OPT=$(OPT) $(FLAGS); cd ..
 .cpp.o:
-	$(CC)  -c $(CFLAGS) $< -o $@
+	$(CC) -DDATA_DIR=$(INSTALL_DATA_DIR) -c $(CFLAGS) $< -o $@
 rebuild: clean aylib all
 
 .PHONY : test
