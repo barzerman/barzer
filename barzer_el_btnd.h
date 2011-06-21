@@ -462,8 +462,8 @@ public:
 	BarzerEntityRangeCombo& getERC() { return d_erc; }
 	bool operator()( const BarzerEntityRangeCombo& e) const 
 		{ 
-			//return d_erc.matchOtherWithBlanks(e, isMatchBalnkRange(), isMatchBalnkEntity() );
-			return d_erc.matchOther(e, !d_erc.getRange().isBlank()); 
+			return d_erc.matchOtherWithBlanks(e, isMatchBalnkRange(), isMatchBalnkEntity() );
+			//return d_erc.matchOther(e, !d_erc.getRange().isBlank()); 
 		} 
 	
 	std::ostream& print( std::ostream& fp ) const 

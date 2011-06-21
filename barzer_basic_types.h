@@ -418,7 +418,7 @@ struct BarzerRange {
 	};
 
 	bool isNone( ) const {return (dta.which() ==None_TYPE); }
-	bool isValid( ) const {return isNone(); }
+	bool isValid( ) const {return dta.which(); }
 	bool isInteger( ) const {return (dta.which() ==Integer_TYPE); }
 	bool isReal( ) const {return (dta.which() ==Real_TYPE); }
 	bool isTimeOfDay( ) const {return (dta.which() ==TimeOfDay_TYPE); }
