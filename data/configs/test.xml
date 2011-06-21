@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
     <rules>
-        <file>data/rules/test-rules.xml</file>
+        <file>rules/test-rules.xml</file>
     </rules>
     <entities2>
-        <file>data/entities/time_ent.xml</file>
+        <file>entities/time_ent.xml</file>
     </entities2>
     <logging>
         <level>DEBUG</level>

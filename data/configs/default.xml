@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
     <rules>
-        <file>data/rules/generic.xml</file>
-        <file>data/rules/barzel_prices.xml</file>
-        <file>data/rules/barzel_dates.xml</file>
-        <file>data/rules/barzel_rules.xml</file>
-        <file>data/rules/barzel_ru_dates.xml</file>
-        <file>data/rules/barzel_ru_prices.xml</file>
-        <file>data/rules/barzel_fluff.xml</file>
+        <file>rules/generic.xml</file>
+        <file>rules/barzel_prices.xml</file>
+        <file>rules/barzel_dates.xml</file>
+        <file>rules/barzel_rules.xml</file>
+        <file>rules/barzel_ru_dates.xml</file>
+        <file>rules/barzel_ru_prices.xml</file>
+        <file>rules/barzel_fluff.xml</file>
     </rules>
     <entities>
-        <file>data/entities/time_ent.xml</file>
+        <file>entities/time_ent.xml</file>
     </entities>
     <logging>
         <level>DEBUG</level>
