@@ -195,7 +195,7 @@
     </stmt>
     <stmt>
         <pat>
-            <list v="erc1"><erc c="1" s="1" r="n" /></list>
+            <list v="erc1"><erc c="1" s="1" br="y" be="y"  /></list>
             <any v="contents"><ent /><list><tail><t /><t /><t /></tail></list></any>
             <any v="erc2"><erc c="1" s="1" r="i" /><erc c="1" s="1" r="r" /></any>
         </pat>

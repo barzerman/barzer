@@ -458,10 +458,10 @@ void BELParserXML::taghandle_ERC( const char_cp * attr, size_t attr_sz , bool cl
 		case 'b': // match blank range / ent
 			switch( n[1] ) {
 			case 'r': // br="y" - match blank range
-				pat.setMatchBalnkRange();
+				pat.setMatchBlankRange();
 				break;
 			case 'e': // be="y" - match blank entity id
-				pat.setMatchBalnkEntity();
+				pat.setMatchBlankEntity();
 				break;
 			}
 			break;
