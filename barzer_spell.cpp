@@ -10,7 +10,9 @@ namespace barzer {
 
 void  BarzerHunspell::initHunspell( const char* affFile, const char* dictFile ) 
 {
+	boost::mutex::scoped_lock theLock( mutex() );
 	try {
+
 	if( d_hunspell ) {
 		delete d_hunspell;
 		d_hunspell = 0;	
@@ -40,6 +42,7 @@ BarzerHunspell::BarzerHunspell( const char* affFile, const char* dictFile ) :
 int BarzerHunspell::addDictionary( const char* fname ) 
 {
 	if( d_hunspell ) {
+		boost::mutex::scoped_lock theLock( mutex() );
 		if( access( fname , F_OK ) ) {
 			AYLOG(ERROR) << "unopenable dictionary file \"" <<  fname << "\"\n";
 			return 0;
@@ -61,6 +64,7 @@ BarzerHunspell::~BarzerHunspell( )
 int BarzerHunspell::addWordsFromTextFile( const char* fname ) 
 {
 
+	boost::mutex::scoped_lock theLock( mutex() );
 	if( !d_hunspell ) {
 		AYTRACE( "hunspell is invalid" );
 		return 0;
@@ -113,6 +117,7 @@ void BarzerHunspellInvoke::clear()
 /// returns the number of spelling suggestions 
 std::pair< int, size_t> BarzerHunspellInvoke::checkSpell( const char* s )
 {
+	boost::mutex::scoped_lock theLock( d_spell.mutex() );
 	Hunspell* hunspell = getHunspell();
 	if( !hunspell ) {
 		return std::pair< int, size_t >( 0, 0 );
@@ -130,6 +135,7 @@ std::pair< int, size_t> BarzerHunspellInvoke::checkSpell( const char* s )
 
 const char* BarzerHunspellInvoke::stem( const char* s )
 {
+	boost::mutex::scoped_lock theLock( d_spell.mutex() );
 	Hunspell* hunspell = getHunspell();
 	if( !hunspell ) return 0;
 	clear();
