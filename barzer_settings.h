@@ -11,9 +11,12 @@
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
+
 #include <barzer_config.h>
 #include <barzer_el_parser.h>
 #include <ay/ay_logger.h>
+
+
 
 namespace barzer {
 class GlobalPools;
@@ -23,6 +26,7 @@ class BarzerSettings {
 	//BELReader reader;
 
 	boost::property_tree::ptree pt;
+
 public:
 	StoredUniverse* getCurrentUniverse() ;
 

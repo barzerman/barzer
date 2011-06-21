@@ -26,7 +26,7 @@ static ptree& empty_ptree() {
 namespace barzer {
 
 BarzerSettings::BarzerSettings(GlobalPools &gp)
-	: gpools(gp) 
+	: gpools(gp)
 { init(); }
 
 StoredUniverse* BarzerSettings::getCurrentUniverse() 
@@ -40,6 +40,7 @@ StoredUniverse* BarzerSettings::getCurrentUniverse()
 void BarzerSettings::init() {
 	//reader.initParser(BELReader::INPUT_FMT_XML);
 	BarzerDate::initToday();
+
 }
 
 void BarzerSettings::loadRules() {
@@ -163,23 +164,20 @@ void BarzerSettings::load(const char *fname) {
 	std::cout << "Loading config file: " << fname << std::endl;
 	fs::path oldPath = fs::current_path();
 
-	const char *dataPath = std::getenv("BARZER_DATA");
-	if (dataPath) {
-		fs::current_path(dataPath);
-	} else {
-		fs::current_path( fs::current_path() / "data/" );
-	}
-
 	try {
 		read_xml(fname, pt);
-		//loadSpell();
+
+		const char *dataPath = std::getenv("BARZER_HOME");
+		if (dataPath) {
+			fs::current_path(dataPath);
+		}
+
 		loadEntities();
 		loadRules();
 		loadUsers();
 	} catch (boost::property_tree::xml_parser_error &e) {
 		AYLOG(ERROR) << e.what();
 	}
-	fs::current_path(oldPath);
 }
 
 const std::string BarzerSettings::get(const char *key) const {

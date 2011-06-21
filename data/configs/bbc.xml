@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-        <!-- file>vendor/bbc/rules/shows.xml</file>
-        <file>vendor/bbc/rules/bbc_shows_autonames.xml</file>
+        <!-- file>data/vendor/bbc/rules/shows.xml</file>
+        <file>data/vendor/bbc/rules/bbc_shows_autonames.xml</file>
          -->
 
 <config>
     <rules>
-        <file>rules/generic.xml</file>
-        <file>rules/barzel_prices.xml</file>
-        <file>rules/barzel_dates.xml</file>
-        <file>rules/barzel_fluff.xml</file>
-        <file>rules/barzel_rules.xml</file>
-        <file>rules/barzel_ru_dates.xml</file>
-        <file>rules/barzel_ru_prices.xml</file>
-        <file>vendor/bbc/rules/shows.xml</file>
-        <file>vendor/bbc/rules/bbc_shows_autonames.xml</file>
-        <file>vendor/bbc/rules/genres.xml</file>        
-        <file>vendor/bbc/rules/generic.xml</file>
+        <file>data/rules/generic.xml</file>
+        <file>data/rules/barzel_prices.xml</file>
+        <file>data/rules/barzel_dates.xml</file>
+        <file>data/rules/barzel_fluff.xml</file>
+        <file>data/rules/barzel_rules.xml</file>
+        <file>data/rules/barzel_ru_dates.xml</file>
+        <file>data/rules/barzel_ru_prices.xml</file>
+        <file>data/vendor/bbc/rules/shows.xml</file>
+        <file>data/vendor/bbc/rules/bbc_shows_autonames.xml</file>
+        <file>data/vendor/bbc/rules/genres.xml</file>        
+        <file>data/vendor/bbc/rules/generic.xml</file>
     </rules>
     <entities>
-        <file>entities/time_ent.xml</file>
+        <file>data/entities/time_ent.xml</file>
     </entities>
     <logging>
         <level>DEBUG</level>
