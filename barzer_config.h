@@ -7,6 +7,6 @@
 
 #define SERVER_PORT 5666
 
-#define DEFAULT_CONFIG_FILE "configs/default.xml"
+#define DEFAULT_CONFIG_FILE "data/configs/default.xml"
 
 #endif //BARZER_CONFIG_H
