@@ -73,6 +73,8 @@ struct CToken {
 
 	BarzerNumber bNum; // in cse this classifies as number
 
+	BarzerNumber& number() { return bNum; }
+	const BarzerNumber& number() const { return bNum; }
 	/// before:after corrections are stored here 
 	SpellCorrections spellCorrections;
 

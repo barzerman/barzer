@@ -24,10 +24,11 @@ bool QLexParser::tryClassify_number( CToken& ctok, const TToken& ttok ) const
 	if( hasDigit ) {
 		ctok.setClass( CTokenClassInfo::CLASS_NUMBER );
 		if( hasDot ) 
-			ctok.bNum.setReal( ttok.buf );
-		else 
-			ctok.bNum.setInt( ttok.buf );
-
+			ctok.number().setReal( ttok.buf );
+		else  {
+			ctok.number().setInt( ttok.buf );
+			ctok.number().setAsciiLen( ttok.len );
+		}
 		return true;
 	}
 	return false;
@@ -70,7 +71,7 @@ int QLexParser::advancedNumberClassify( CTWPVec& cvec, const TTWPVec& tvec, cons
 				if( dotTok.isPunct('.') && fracTok.isNumber() ) {
 					// floating point
 					std::stringstream sstr;
-					sstr << t.bNum << '.' << fracTok.bNum;
+					sstr << t.number() << '.' << fracTok.number();
 					double x = atof( sstr.str().c_str() );
 					t.setNumber( x );
 					t.qtVec.insert( t.qtVec.end(), dotTok.qtVec.begin(), dotTok.qtVec.end() );

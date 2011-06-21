@@ -464,13 +464,14 @@ std::ostream&  BTND_None::print( std::ostream& fp , const BELPrintContext& ) con
 
 bool BTND_Pattern_Number::operator() ( const BarzerNumber& num ) const
 {
+	uint8_t len = getAsciiLen();
+	if(len && len!= num.getAsciiLen()) 
+		return false;
+		
 	switch( type ) {
-	case T_ANY_NUMBER:
-		return true;
-	case T_ANY_INT:
-		return num.isInt();
-	case T_ANY_REAL:
-		return true;
+	case T_ANY_NUMBER: return true;
+	case T_ANY_INT: return num.isInt();
+	case T_ANY_REAL: return true;
 
 	case T_RANGE_INT:
 		if( num.isInt() ) {

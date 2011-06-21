@@ -396,6 +396,7 @@ void BELParserXML::taghandle_N( const char_cp * attr, size_t attr_sz , bool clos
 	bool isReal = false, isRange = false;
 	float flo=0., fhi = 0.;
 	int   ilo = 0, ihi = 0;
+	BTND_Pattern_Number pat; 
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
@@ -428,9 +429,13 @@ void BELParserXML::taghandle_N( const char_cp * attr, size_t attr_sz , bool clos
 		case 'r':
 			if( !isReal ) isReal = true;
 			break;
+		case 'w':{
+			int width = atoi(v);
+			pat.setAsciiLen( width );
+		}
+			break;
 		}
 	}
-	BTND_Pattern_Number pat; 
 	
 	if( isRange ) {
 		if( isReal ) 

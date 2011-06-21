@@ -34,14 +34,18 @@ struct BTND_Pattern_Number : public BTND_Pattern_Base {
 		T_MAX
 	};
 
+	uint8_t d_asciiLen;
 	uint8_t type; // one of T_XXXX 
 	// for EXACT_XXX types only lo is used
 	union {
 		struct { float lo,hi; } real;
 		struct { int lo,hi; } integer;
 	} range;
+	
+	uint8_t getAsciiLen() const { return d_asciiLen; }
+	void 	setAsciiLen( uint8_t i ) { d_asciiLen= i; }
 
-	inline bool isLessThan( const BTND_Pattern_Number& r ) const
+	inline bool lessThan( const BTND_Pattern_Number& r ) const
 	{
 		if( type < r.type ) 
 			return true;
@@ -49,18 +53,21 @@ struct BTND_Pattern_Number : public BTND_Pattern_Base {
 			return false;
 		else {
 			switch( type ) {
-			case T_ANY_NUMBER: return false;
-			case T_ANY_INT: return false;
-			case T_ANY_REAL: return false;
+			case T_ANY_NUMBER: 
+				return ( getAsciiLen() < r.getAsciiLen() );
+			case T_ANY_INT: 
+				return ( getAsciiLen() < r.getAsciiLen() );
+			case T_ANY_REAL: 
+				return ( getAsciiLen() < r.getAsciiLen() );
 			case T_RANGE_INT: 
 				return (ay::range_comp().less_than(
-						range.integer.lo, range.integer.hi,
-						r.range.integer.lo, r.range.integer.hi
+						  range.integer.lo,   range.integer.hi,   getAsciiLen() ,
+						r.range.integer.lo, r.range.integer.hi, r.getAsciiLen() 
 					));
 			case T_RANGE_REAL: 
 				return ay::range_comp().less_than(
-						range.real.lo, range.real.hi,
-						r.range.real.lo, r.range.real.hi
+						  range.real.lo,   range.real.hi,   getAsciiLen(),
+						r.range.real.lo, r.range.real.hi, r.getAsciiLen()
 					);
 			default:
 				return false;
@@ -68,12 +75,9 @@ struct BTND_Pattern_Number : public BTND_Pattern_Base {
 		}
 	}
 
-	bool isReal() const 
-		{ return (type == T_ANY_REAL || type == T_RANGE_REAL); }
+	bool isReal() const { return (type == T_ANY_REAL || type == T_RANGE_REAL); }
 
-	BTND_Pattern_Number() : 
-		type(T_ANY_INT)
-	{ range.integer.lo = range.integer.hi = 0; }
+	BTND_Pattern_Number() : d_asciiLen(0), type(T_ANY_INT) { range.integer.lo = range.integer.hi = 0; }
 
 	void setAnyNumber() { type = T_ANY_NUMBER; }
 	void setAnyInt() { type = T_ANY_INT; }
@@ -105,7 +109,7 @@ struct BTND_Pattern_Number : public BTND_Pattern_Base {
 	bool operator()( const BarzerNumber& num ) const;
 };
 inline bool operator <( const BTND_Pattern_Number& l, const BTND_Pattern_Number& r )
-	{ return l.isLessThan( r ); }
+	{ return l.lessThan( r ); }
 inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_Number& x )
 {
 	return (x.printRange( fp << "NUM[" ) << "]");

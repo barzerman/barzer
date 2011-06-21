@@ -38,11 +38,19 @@ private:
 		int i;
 		double  real;
 	} n;
+
 	uint8_t type;
+	// if known length of original ascii string representation 
+	// this CAN BE NULL
+	uint8_t d_asciiLen;
 public:
-	BarzerNumber() : type(NTYPE_NAN) {n.i = 0;}
-	BarzerNumber( int i ) : type(NTYPE_INT) {n.i = i;}
-	BarzerNumber( double i ) : type(NTYPE_REAL) {n.real = i;}
+
+	void 	setAsciiLen( uint8_t l ) { d_asciiLen = l ; } 
+	uint8_t getAsciiLen( ) const { return d_asciiLen; } 
+
+	BarzerNumber() 				: type(NTYPE_NAN), d_asciiLen(0) {n.i = 0;}
+	BarzerNumber( int i ) 		: type(NTYPE_INT), d_asciiLen(0) {n.i = i;}
+	BarzerNumber( double i ) 	: type(NTYPE_REAL), d_asciiLen(0) {n.real = i;}
 
 	void set( int i ) { type= NTYPE_INT; n.i = i; }
 	void set( double x ) { type= NTYPE_REAL; n.real = x; }
@@ -50,6 +58,7 @@ public:
 	void clear() { type = NTYPE_NAN; }
 	int setInt( const char* s) { return( type= NTYPE_INT, n.i = atoi(s)); }
 	int setReal( const char* s) { return( type= NTYPE_REAL, n.i = atof(s)); }
+
 	inline bool isNan() const { return type == NTYPE_NAN; }
 	inline bool isInt() const { return type == NTYPE_INT; }
 	inline bool isReal() const { return type == NTYPE_REAL; }
