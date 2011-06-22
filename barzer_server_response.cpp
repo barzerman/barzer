@@ -221,9 +221,11 @@ public:
 		const StoredToken *tok = universe.getDtaIdx().tokPool.getTokByIdSafe(euid.tokId);
 		if( tok ) {
 			const char *tokname = universe.getStringPool().resolveId(tok->stringId);
+			std::stringstream tokNameStr;
+			xmlEscape( (tokname ? tokname : "(null)") ,  tokNameStr);
 			static const char *tmpl =
 					"<entity id=\"%1%\" class=\"%2%\" subclass=\"%3%\" />";
-			os << boost::format(tmpl) % (tokname ? tokname : "(null)")
+			os << boost::format(tmpl) % tokNameStr.str()
 									  % euid.eclass.ec
 									  % euid.eclass.subclass;
 		} else {
