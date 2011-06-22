@@ -134,5 +134,6 @@ inline int LevenshteinEditDistance::ascii_no_case(const char *s,const char*t)
 {
 	return ascii( s, t, char_compare_nocase_ascii() );
 }
+
 } // ay namespace ends 
 #endif // AY_CHAR_H

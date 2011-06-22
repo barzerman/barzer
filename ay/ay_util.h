@@ -200,6 +200,8 @@ inline bool less( const T& l, const T& r )
 	{ return (memcmp( &l, &r, sizeof(T) )<0); }
 
 }
+/// copies s into dest, replacing diacritics with an english character
+int umlautsToAscii( std::string& dest, const char* s );
 
 }
 
