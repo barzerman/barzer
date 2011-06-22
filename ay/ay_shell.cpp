@@ -11,6 +11,7 @@ typedef Shell::CmdData CmdData;
 static const CmdData g_cmd[] = {
 	CmdData( Shell::cmd_help, "help", "get help on a function" ),
 	CmdData( Shell::cmd_exit, "exit", "exit the shell" ),
+	CmdData( Shell::cmd_quit, "quit", "exit current barzer shell" ),
 	CmdData( Shell::cmd_run, "run", "run scripts" ),
 	CmdData( Shell::cmd_set, "set", "sets parameters" ),
 };
@@ -40,10 +41,12 @@ int Shell::cmd_run( Shell* sh, char_cp cmd, std::istream& in )
 		return 0;
 	}
 
-	Shell newShell(*sh );
-	newShell.runCmdLoop(&fp);
+	Shell * newShell = sh->cloneShell();
+	newShell->init();
+	int rc = newShell->runCmdLoop(&fp);
+	delete newShell;
 
-	return 0;
+	return rc;
 }
 int Shell::cmd_help( Shell* sh, char_cp cmd, std::istream& in )
 {
@@ -60,10 +63,8 @@ int Shell::cmd_help( Shell* sh, char_cp cmd, std::istream& in )
 	return 0;
 }
 
-int Shell::cmd_exit( Shell*, char_cp cmd, std::istream& in )
-{
-	return 1;
-}
+int Shell::cmd_quit( Shell*, char_cp cmd, std::istream& in ) { return -1; }
+int Shell::cmd_exit( Shell*, char_cp cmd, std::istream& in ) { return -1; }
 
 int Shell::printPrompt()
 {
@@ -176,14 +177,14 @@ int Shell::runCmdLoop(std::istream* fp )
 		if( !isScript ) 
 			printPrompt();
 	}
-	return 0;
+	return ( rc < 0 ? rc: 0 );
 }
 int Shell::run()
 {
 	int rc = init();
 	rc = setupStreams();
 	rc = runCmdLoop();
-	return rc;
+	return ( rc < -1 ? rc : 0 );
 }
 
 }

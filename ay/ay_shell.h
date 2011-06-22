@@ -28,6 +28,7 @@ public:
 	static int cmd_run( Shell*, char_cp cmd, std::istream& in );
 	static int cmd_help( Shell*, char_cp cmd, std::istream& in );
 	static int cmd_exit( Shell*, char_cp cmd, std::istream& in );
+	static int cmd_quit( Shell*, char_cp cmd, std::istream& in );
 	// end of commands 
 
 	/// 
@@ -68,10 +69,20 @@ private:
 	// by default called from run
 	virtual int init();
 	virtual ShellContext* mkContext() { return 0; }
+	virtual ShellContext* cloneContext() { return 0; }
 public:
+	Shell& setContext( ShellContext* ctxt ) { if( context ) delete context; context = ctxt; return *this;}
+
 	int processOneCmd( std::istream& in );
 	ShellContext* getContext() { return context; }
 
+	Shell(const Shell& sh ) : 
+		outStream(sh.outStream),
+		errStream(sh.errStream),
+		inStream(sh.inStream),
+		context(0),
+		echo(sh.echo)
+	{}
 	Shell() : 
 		outStream(&std::cout),
 		errStream(&std::cerr),
@@ -79,6 +90,8 @@ public:
 		context(0),
 		echo(false)
 	{}
+	virtual Shell* cloneShell() { return new Shell(*this); }
+
 	virtual ~Shell() {
 		delete context; // to shut valgrind up
 	}

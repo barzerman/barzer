@@ -661,8 +661,8 @@ static int bshf_querytest( BarzerShell* shell, char_cp cmd, std::istream& in )
 static const CmdData g_cmd[] = {
 	CmdData( ay::Shell::cmd_help, "help", "get help on a barzer function" ),
 	// CmdData( ay::Shell::cmd_set, "set", "sets parameters" ),
-	CmdData( ay::Shell::cmd_exit, "exit", "exit the barzer shell" ),
-	CmdData( ay::Shell::cmd_exit, "quit", "exit the barzer shell" ),
+	CmdData( ay::Shell::cmd_exit, "exit", "exit all barzer shells" ),
+	CmdData( ay::Shell::cmd_quit, "quit", "exit the current barzer shell" ),
 	CmdData( ay::Shell::cmd_run, "run", "execute script(s)" ),
 	//commented test to reduce the bloat
 	CmdData( bshf_test, "test", "just a test" ),
@@ -690,9 +690,9 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_querytest, "querytest", "peforms given number of queries" ),
 };
 
-ay::ShellContext* BarzerShell::mkContext()
-{
-	return new BarzerShellContext(*d_universe);
+ay::ShellContext* BarzerShell::mkContext() { return new BarzerShellContext(*d_universe); }
+ay::ShellContext* BarzerShell::cloneContext() { 
+	return new BarzerShellContext(*(dynamic_cast<BarzerShellContext*>( context )));
 }
 
 int BarzerShell::init()

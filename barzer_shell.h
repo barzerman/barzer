@@ -24,7 +24,6 @@ struct BarzerShellContext : public ay::ShellContext {
 	Barz barz;
 	QParser parser;
 
-
 	DtaIndex* obtainDtaIdx()
 	{ return &(universe.getDtaIdx()); }
 
@@ -41,6 +40,14 @@ struct BarzerShell : public ay::Shell {
 	BarzerShell( StoredUniverse* u=0 ) : d_universe(u) {}
 	virtual int init();
 	virtual ay::ShellContext* mkContext();
+	virtual ay::ShellContext* cloneContext();
+	virtual BarzerShell* cloneShell() 
+	{
+		BarzerShell* newShell =  new BarzerShell( *this );
+		ay::ShellContext* newCtxt = this->cloneContext();
+		newShell->setContext( newCtxt );
+		return newShell;
+	}
 
 	BarzerShellContext* getBarzerContext() ;
 	
