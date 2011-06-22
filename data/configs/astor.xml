@@ -8,13 +8,13 @@
         <file>data/rules/barzel_ru_dates.xml</file>
         <file>data/rules/barzel_ru_prices.xml</file>
         
-        <file>data/vendor/astor/rules/auto/color.xml/</file>
-        <file>data/vendor/astor/rules/auto/country.xml/</file>
-        <file>data/vendor/astor/rules/auto/grape.xml/</file>
-        <file>data/vendor/astor/rules/auto/producer.xml/</file>
-        <file>data/vendor/astor/rules/auto/regions.xml/</file>
-        <file>data/vendor/astor/rules/auto/style.xml/</file>
-        <file>data/vendor/astor/rules/auto/wines.xml/</file>
+        <file>data/vendor/astor/rules/auto/color.xml</file>
+        <file>data/vendor/astor/rules/auto/country.xml</file>
+        <file>data/vendor/astor/rules/auto/grape.xml</file>
+        <file>data/vendor/astor/rules/auto/producer.xml</file>
+        <file>data/vendor/astor/rules/auto/regions.xml</file>
+        <file>data/vendor/astor/rules/auto/style.xml</file>
+        <file>data/vendor/astor/rules/auto/wines.xml</file>
         
         <file>data/rules/barzel_fluff.xml</file>
     </rules>

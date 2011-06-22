@@ -73,7 +73,7 @@ aylib:
 ay/libay.a: 
 	cd ay; make -f aylib.mk rebuild $(AYBIT) OPT=$(OPT) $(FLAGS); cd ..
 .cpp.o:
-	$(CC) -DDATA_DIR=$(INSTALL_DATA_DIR) -c $(CFLAGS) $< -o $@
+	$(CC) -DBARZER_HOME=$(INSTALL_DATA_DIR) -c $(CFLAGS) $< -o $@
 rebuild: clean aylib all
 
 .PHONY : test
