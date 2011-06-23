@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <rules></rules>
+    <entities>
+        <file>data/entities/time_ent.xml</file>
+    </entities>
+    <logging>
+        <level>DEBUG</level>
+        <file>barzer.log</file>
+    </logging>
+    <users>
+        <user id="0"></user>
+    </users>
+</config>

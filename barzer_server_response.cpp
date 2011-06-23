@@ -218,20 +218,18 @@ public:
 	}
 
 	void printEntity(const BarzerEntity &euid) {
+		os << "<entity ";
 		const StoredToken *tok = universe.getDtaIdx().tokPool.getTokByIdSafe(euid.tokId);
 		if( tok ) {
 			const char *tokname = universe.getStringPool().resolveId(tok->stringId);
-			std::stringstream tokNameStr;
-			xmlEscape( (tokname ? tokname : "(null)") ,  tokNameStr);
-			static const char *tmpl =
-					"<entity id=\"%1%\" class=\"%2%\" subclass=\"%3%\" />";
-			os << boost::format(tmpl) % tokNameStr.str()
-									  % euid.eclass.ec
-									  % euid.eclass.subclass;
-		} else {
+			if (tokname) {
+				xmlEscape(tokname, os << "id=\"") << "\" ";
+			}
+		} else if( euid.isTokIdValid() ) {
 			os << "INVALID_TOK[" << euid.eclass << "," << std::hex << euid.tokId << "]";
 		}
-		//os << "</entity>";
+		static const char *tmpl = "class=\"%1%\" subclass=\"%2%\" />";
+		os << boost::format(tmpl) % euid.eclass.ec % euid.eclass.subclass;
 	}
 
 
@@ -248,21 +246,7 @@ public:
 	}
 
 	void operator()(const BarzerEntity &data) {
-		if (!data.isTokIdValid()) {
-			os << boost::format("<entity class=\"%1%\" subclass=\"%2%\" />")
-				% data.eclass.ec
-				% data.eclass.subclass;
-			return;
-		}
-
-		const StoredEntity *ent = universe.getDtaIdx().entPool.getEntByEuid(data);
-		if (!ent) {
-			AYLOG(ERROR) << "Invalid entity id: " << data.tokId << ","
-												  << data.eclass.ec << ","
-												  << data.eclass.subclass;
-			return;
-		}
-		printEntity(ent->getEuid());
+		printEntity(data);
 	}
 
 	void operator()(const BarzerEntityRangeCombo &data) {

@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include <cctype>
+#include <stdint.h>
 
 const char* diacriticChar2Ascii( uint8_t x ) {
 switch( x ) {
