@@ -76,9 +76,12 @@ ay/libay.a:
 	$(CC) -DBARZER_HOME=$(INSTALL_DATA_DIR) -c $(CFLAGS) $< -o $@
 rebuild: clean aylib all
 
-.PHONY : test
+.PHONY : test util
 test: $(BINARY)
 	cd test; rake test
+util:
+	cd util; make -f util.mk rebuild; cd ..
+
 
 install:
 	install -d $(INSTALL_DIR) $(INSTALL_DATA_DIR)/configs $(INSTALL_DATA_DIR)/entities $(INSTALL_DATA_DIR)/rules

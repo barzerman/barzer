@@ -1,20 +1,26 @@
-FLAGS := $(FLAGS) -lstdc++
-CFLAGS := $(CFLAGS) $(OPT) $(BITMODE) $(FLAGS) -Wall -g -I. -fpic
+PYINCLUDE := $(shell python-config --includes)
+PYLIBS := $(shell python-config --libs)
+
+FLAGS := $(FLAGS) ${PYLIBS} -lboost_python -lstdc++ 
+CFLAGS := $(CFLAGS) $(OPT) $(BITMODE) $(FLAGS) $(PYINCLUDE) -Wall -g -I. -fpic
 LIBNAME=libbarzerutil.a
 SHARED_LIBNAME=libbarzerutil.so
+PYTHON_LIBNAME=python_util.so
 
-objects = umlaut.o
+objects = umlaut.o python_util.o
 
-all: umlaut
+all: deumlaut $(PYTHON_LIBNAME)
 	echo "done"
-umlaut: $(objects)
+deumlaut: $(objects)
 	$(CC) -o deumlaut $(objects) $(FLAGS)
+$(PYTHON_LIBNAME): $(objects)
+	$(CC) -shared -o $(PYTHON_LIBNAME) $(objects) $(FLAGS) 
 staticlib: $(objects)
 	$(AR) -r  $(LIBNAME) $(objects)
 sharedlib: $(objects)
 	$(CC) -shared -Wl,-soname,$(SHARED_LIBNAME) -o $(SHARED_LIBNAME) $(objects)
 clean: 
-	rm -f $(objects) $(LIBNAME) $(SHARED_LIBNAME)
+	rm -f $(objects) $(LIBNAME) $(SHARED_LIBNAME) $(PYTHON_LIBNAME)
 .cpp.o:
 	$(CC) -c $(CFLAGS) $< -o $@
 rebuild: clean all
