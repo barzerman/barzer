@@ -111,7 +111,6 @@ int umlautsToAscii( std::string& dest, const char* s )
 		if( (uint8_t)*ss == 0xc3 ) {
 			++numDiacritics;
 			if( !*(++ss) ) return numDiacritics;
-			const char * shit = diacriticChar2Ascii(*ss);
 			dest.append( diacriticChar2Ascii(*ss) );
 		} else {
 			dest.push_back( *ss );

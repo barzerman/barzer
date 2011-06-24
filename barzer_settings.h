@@ -15,10 +15,27 @@
 #include <barzer_config.h>
 #include <barzer_el_parser.h>
 #include <ay/ay_logger.h>
+#include <ay/ay_bitflags.h>
 
 
 
 namespace barzer {
+
+/// parsing settings true for all users in the instance 
+struct ParseSettings {
+
+	// when true everything gets stemmed both on load and on input 
+	// by default. in order to reduce the load time individual rulesets can 
+	// set presume stemmed 
+	bool d_stem; 
+	ParseSettings() : 
+		d_stem(false) 
+	{}
+	
+	bool stemByDefault() const { return d_stem; }
+	void set_stemByDefault() { d_stem = true; }
+};
+
 class GlobalPools;
 class BarzerSettings {
 	GlobalPools &gpools;
@@ -27,7 +44,11 @@ class BarzerSettings {
 
 	boost::property_tree::ptree pt;
 
+	ParseSettings d_parserSettings;
 public:
+	const ParseSettings& parserSettings() const { return d_parserSettings; } 
+		  ParseSettings& parserSettings() 	    { return d_parserSettings; } 
+
 	StoredUniverse* getCurrentUniverse() ;
 
 	//BarzerSettings(StoredUniverse&, const char*);
