@@ -167,6 +167,7 @@ void BarzerSettings::load(const char *fname) {
 	try {
 		read_xml(fname, pt);
 
+		fs::path oldPath = fs::current_path();
 		const char *dataPath = std::getenv("BARZER_HOME");
 		if (dataPath) {
 			fs::current_path(dataPath);
@@ -175,6 +176,8 @@ void BarzerSettings::load(const char *fname) {
 		loadEntities();
 		loadRules();
 		loadUsers();
+
+		fs::current_path(oldPath);
 	} catch (boost::property_tree::xml_parser_error &e) {
 		AYLOG(ERROR) << e.what();
 	}
