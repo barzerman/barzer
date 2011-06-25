@@ -148,6 +148,33 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 
 	bool d_followsBlank;
 	
+	/// returns a valit StoredToken id for stemmed token. will only work if the range contains a single
+	/// non blank verbal CToken 
+	uint32_t getStemmedTokenId( ) const
+	{
+		uint32_t id = 0xffffffff;
+		size_t stringNum = 0;
+		for( BeadList::const_iterator i = d_rng.first; i!= d_rng.second; ++i ) {
+			if( i->isStringLiteral() ) {
+				if( stringNum++ ) return 0xffffffff;
+
+				const CTWPVec& ctvec = i->getCTokens();
+				// going over all ctokens
+				for( CTWPVec::const_iterator i = ctvec.begin(); i != ctvec.end(); ++i ) {
+					/// if more than one word is encountered  we abort
+					if( i->first.isWord() || i->first.isMysteryWord() ) {
+						if( i->first.stemTok ) 
+							id = i->first.stemTok->tokId;
+						else 
+							return 0xffffffff;
+					}
+				}
+			} else if( !i->isBlankLiteral() ) 
+				return 0xffffffff;
+		}
+		return id;
+	}
+
 	findMatchingChildren_visitor( BTMIterator& bi, bool followsBlanks, NodeAndBeadVec& mC, const BeadRange& r, const BarzelTrieNode* t ):
 		d_btmi(bi), 
 		d_mtChild(mC), 
@@ -332,7 +359,18 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 	template <>
 	bool findMatchingChildren_visitor::doFirmMatch<BarzerLiteral>( const BarzelFCMap& fcmap, const BarzerLiteral& dta, bool allowBlanks) 
 	{
-		return doFirmMatch_literal( fcmap, dta, allowBlanks );
+		bool rc = doFirmMatch_literal( fcmap, dta, allowBlanks );
+		if( dta.isString() || dta.isStop() ) {
+			uint32_t stemId = getStemmedTokenId();
+			if( stemId != 0xffffffff ) {
+				/// we have a stem to try 
+				BarzerLiteral stemmedLiteral;
+				
+				stemmedLiteral.setId( stemId );
+				rc = rc || doFirmMatch_literal( fcmap, stemmedLiteral, allowBlanks );
+			}
+		} 
+		return rc;
 	}
 	template <>
 	bool findMatchingChildren_visitor::doFirmMatch<BarzerDate>( const BarzelFCMap& fcmap, const BarzerDate& dta, bool allowBlanks) 

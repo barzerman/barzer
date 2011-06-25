@@ -74,6 +74,10 @@ struct BarzelBeadAtomic {
 		const BarzerLiteral* bl = getLiteral();
 		return( bl && bl->isBlank() );
 	}
+	bool isStringLiteral() const { 
+		const BarzerLiteral* bl = getLiteral();
+		return( bl && bl->isString() );
+	}
 	int getType() const 
 		{ return dta.which(); }
 
@@ -190,6 +194,11 @@ public:
 
 	const BarzelBeadAtomic* getAtomic() const { return  boost::get<BarzelBeadAtomic>( &dta ); }
 	const BarzelBeadExpression* getExpression() const { return  boost::get<BarzelBeadExpression>( &dta ); }
+
+	bool isStringLiteral() const { 
+		const BarzelBeadAtomic* atomic = getAtomic();
+		return( atomic && atomic->isStringLiteral() )  ;
+	}
 	bool isBlankLiteral() const { 
 			const BarzelBeadAtomic* atomic = getAtomic();
 			return( atomic && atomic->isBlankLiteral() )  ;
