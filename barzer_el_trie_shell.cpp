@@ -25,7 +25,7 @@ DEF_TFUN(load) {
 	StoredUniverse &uni = context->universe;
 	BELTrie &trie = uni.getBarzelTrie();
 
-	BELReader reader(&trie, uni );
+	BELReader reader(&trie, uni.getGlobalPools() );
 	reader.initParser(BELReader::INPUT_FMT_XML);
 
 	ay::stopwatch totalTimer;

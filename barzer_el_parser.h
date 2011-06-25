@@ -13,7 +13,7 @@
 namespace barzer {
 
 class StoredUniverse;
-
+class GlobalPools;
 //// !!!!!!!!!!! NEVER REORDER ANY OF THE ENUMS 
 
 
@@ -70,9 +70,13 @@ public:
 	BELParser( BELReader* r ) : reader(r) {}
 	virtual int parse( std::istream& ) = 0;
 	virtual ~BELParser() {}
-
+/*
 	StoredUniverse& getUniverse(); 
 	const  StoredUniverse& getUniverse() const;
+	*/
+	GlobalPools& getGlobalPools();
+	const  GlobalPools& getGlobalPools() const;
+
 };
 
 struct BELTrie;
@@ -86,7 +90,8 @@ protected:
 	BELTrie* trie ; 
 	BELParser* parser;
 	// ay::UniqueCharPool* strPool;
-	StoredUniverse& universe;
+	//StoredUniverse& universe;
+	GlobalPools &gp;
 	size_t numStatements; /// total number of successfully read statements 
 
 	std::string inputFileName; 
@@ -97,8 +102,13 @@ public:
 	BELTrie& getTrie() { return *trie ; }
 	const BELTrie& getTrie() const { return *trie ; }
 
+	/*
 	StoredUniverse& getUniverse() { return universe; }
 	const StoredUniverse& getUniverse() const { return universe; }
+	 */
+	GlobalPools& getGlobalPools() { return gp; }
+	const GlobalPools& getGlobalPools() const { return gp; }
+
 
 	/// barzEL input formats
 	typedef enum {
@@ -112,8 +122,10 @@ public:
 	} InputFormat;
 	InputFormat inputFmt;
 
-	BELReader( BELTrie* t, StoredUniverse& uni )  :
-		trie(t) , parser(0), universe(uni), numStatements(0) , inputFmt(INPUT_FMT_XML)
+	BELReader( GlobalPools &g );
+
+	BELReader( BELTrie* t, GlobalPools &g  )  :
+		trie(t) , parser(0), gp(g), numStatements(0) , inputFmt(INPUT_FMT_XML)
 	{}
 	
 	virtual ~BELReader() {
@@ -131,17 +143,27 @@ public:
 
 	std::ostream& printNode( std::ostream& fp, const BarzelTrieNode& node ) const;
 };
+/*
 inline StoredUniverse& BELParser::getUniverse()
 { return reader->getUniverse(); }
 
 inline const  StoredUniverse& BELParser::getUniverse() const
 { return reader->getUniverse(); }
+*/
+
+inline GlobalPools& BELParser::getGlobalPools()
+	{ return reader->getGlobalPools(); }
+
+inline const GlobalPools& BELParser::getGlobalPools() const
+	{ return reader->getGlobalPools(); }
+
+
 
 template<class T>class BELExpandReader : public BELReader {
 	T &functor;
 public:
-	BELExpandReader(T &f, BELTrie* t, StoredUniverse& u )
-		: BELReader(t,u), functor(f) {}
+	BELExpandReader(T &f, BELTrie* t, GlobalPools &gp )
+		: BELReader(t,gp), functor(f) {}
 	void addStatement( const BELStatementParsed& sp)
 	{
 		BELParseTreeNode_PatternEmitter emitter( sp.pattern );

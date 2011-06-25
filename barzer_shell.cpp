@@ -614,7 +614,7 @@ static int bshf_stexpand( BarzerShell* shell, char_cp cmd, std::istream& in )
 	BELPrintFormat fmt;
 	BELPrintContext ctxt( trie, stringPool, fmt );
 	PatternPrinter pp(ctxt);
-	BELExpandReader<PatternPrinter> reader(pp, &trie, uni);
+	BELExpandReader<PatternPrinter> reader(pp, &trie, uni.getGlobalPools());
 	reader.initParser(BELReader::INPUT_FMT_XML);
 
 	ay::stopwatch totalTimer;

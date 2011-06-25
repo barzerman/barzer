@@ -233,11 +233,17 @@ struct BTND_text_visitor_base  : public boost::static_visitor<> {
 	BELParserXML& d_parser;
 	const char* d_str;
 	int d_len;
-	
+	/*
 	StoredUniverse& getUniverse() { return d_parser.getUniverse(); }
 	const StoredUniverse& getUniverse() const { return d_parser.getUniverse(); }
+	*/
+	GlobalPools& getGlobalPoools() { return d_parser.getGlobalPools(); }
+	const GlobalPools& getGlobalPoools() const { return d_parser.getGlobalPools(); }
+
+
 	bool isAnalyticalMode() const
-	{ return getUniverse().isAnalyticalMode(); }
+	//{ return getUniverse().isAnalyticalMode(); }
+		{ return getGlobalPoools().isAnalyticalMode(); }
 
 	BTND_text_visitor_base( BELParserXML& parser, const char* s, int len ) : 
 		d_parser(parser),
@@ -588,12 +594,14 @@ void BELParserXML::taghandle_RANGE( const char_cp * attr, size_t attr_sz , bool 
 	
 			if( id1Str ) {
 				const StoredEntity& ent1  = 
-					reader->getUniverse().getDtaIdx().addGenericEntity( id1Str, euid.eclass.ec, euid.eclass.subclass );
+					//reader->getUniverse().getDtaIdx().addGenericEntity( id1Str, euid.eclass.ec, euid.eclass.subclass );
+					reader->getGlobalPools().getDtaIdx().addGenericEntity( id1Str, euid.eclass.ec, euid.eclass.subclass );
 				entRange.first = ent1.getEuid();
 			}
 			if( id2Str ) {
 				const StoredEntity& ent2  = 
-					reader->getUniverse().getDtaIdx().addGenericEntity( id2Str, euid.eclass.ec, euid.eclass.subclass );
+					//reader->getUniverse().getDtaIdx().addGenericEntity( id2Str, euid.eclass.ec, euid.eclass.subclass );
+					reader->getGlobalPools().getDtaIdx().addGenericEntity( id2Str, euid.eclass.ec, euid.eclass.subclass );
 				entRange.first = ent2.getEuid();
 			}
 		}
@@ -840,7 +848,8 @@ void BELParserXML::taghandle_MKENT( const char_cp * attr, size_t attr_sz , bool 
 		}
 	}
 
-	const StoredEntity& ent  = reader->getUniverse().getDtaIdx().addGenericEntity( idStr, eclass, subclass );
+	//const StoredEntity& ent  = reader->getUniverse().getDtaIdx().addGenericEntity( idStr, eclass, subclass );
+	const StoredEntity& ent  = reader->getGlobalPools().getDtaIdx().addGenericEntity( idStr, eclass, subclass );
 	mkent.setEntId( ent.entId );
 	statement.pushNode( BTND_RewriteData(mkent));
 }
