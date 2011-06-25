@@ -5,6 +5,7 @@ extern "C" {
 #include <expat.h>
 
 // cast to XML_StartElementHandler
+
 static void startElement(void* ud, const XML_Char *n, const XML_Char **a)
 {
 	const char* name = (const char*)n;
@@ -298,14 +299,25 @@ bool isAllDigits( const char* s,int len  ) {
 template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTND_Pattern_Token& t)  const
 { 
 	/// if d_str is numeric we need to do something
-	if( !isAnalyticalMode() && isdigit(d_str[0]) && isAllDigits(d_str,d_len)) {
-		BTND_Pattern_Number numPat;
-		int num= atoi(d_str);
-		numPat.setIntRange( num, num );
-		d_pat = numPat;
-		return;
-	} 
-	t.stringId = d_parser.internTmpText(  d_str, d_len  ); 
+	bool strIsNum = ( isdigit(d_str[0]) && isAllDigits(d_str,d_len));
+	bool needStem = t.doStem;
+	if( strIsNum ) {
+		if( !isAnalyticalMode() ) {
+			BTND_Pattern_Number numPat;
+			int num= atoi(d_str);
+			numPat.setIntRange( num, num );
+			d_pat = numPat;
+			return;
+		}
+	}  else {
+		///
+		if( needStem && !d_parser.getUniverse().stemByDefault() ) 
+			needStem = false;
+	}
+	if( needStem ) 
+		t.stringId = d_parser.internTmpText(  d_str, d_len  ); 
+	else
+		t.stringId = d_parser.stemAndInternTmpText(d_str, d_len); 
 }
 template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_StopToken>  (BTND_Pattern_StopToken& t)  const
 { 
@@ -350,6 +362,7 @@ void BELParserXML::taghandle_T( const char_cp * attr, size_t attr_sz , bool clos
 		return;
 	}
 	bool isStop = false;
+	BTND_PatternData dta;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
@@ -363,13 +376,15 @@ void BELParserXML::taghandle_T( const char_cp * attr, size_t attr_sz , bool clos
 				break;
 			}
 			break;
+		case 's':  // s="n" - no stemming
+			if( getUniverse().stemByDefault() ) dta.doStem = ( *v != 'n' ); break;
 		}
 	}
-	BTND_PatternData dta;
 	if( isStop ) 
 		dta = BTND_Pattern_StopToken();
 	else
 		dta = BTND_Pattern_Token();
+
 	statement.pushNode( dta );
 }
 

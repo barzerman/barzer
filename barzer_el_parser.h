@@ -66,6 +66,8 @@ protected:
 
 	const BELReader* getReader() const { return reader; }
 	BELReader* getReader() { return reader; }
+
+	uint32_t stemAndInternTmpText( const char* s, int len );
 public:
 	BELParser( BELReader* r ) : reader(r) {}
 	virtual int parse( std::istream& ) = 0;

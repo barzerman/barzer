@@ -189,6 +189,9 @@ public:
 		UniverseMap::const_iterator i = d_uniMap.find( id );
 		return ( i == d_uniMap.end() ? 0 : i->second );
 	}
+	ParserSettings& parserSettings() { return settings.parserSettings(); }
+	const ParserSettings& parserSettings() const { return settings.parserSettings(); }
+
 	StoredUniverse* getUniverse( uint32_t id )
 		{ return const_cast<StoredUniverse*>( ((const GlobalPools*)this)->getUniverse(id) ); }
 
@@ -220,6 +223,7 @@ class StoredUniverse {
 	bool  getToNextTrie() const { return trieClusterIter.advance(); }
 
 public:
+	bool stemByDefault() const { return gp.parseSettings().stemByDefault(); }
 	UniverseTrieCluster& getTrieCluster() { return trieCluster; }
 	BarzerHunspell& getHunspell() { return hunspell; }
 	const BarzerHunspell& getHunspell() const { return hunspell; }

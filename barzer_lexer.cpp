@@ -151,6 +151,11 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, BarzerHunspellInvoke& 
 						ctok.storedTok = storedTok;
 						ctok.syncClassInfoFromSavedTok();
 						ctok.addSpellingCorrection( t, curSugg );
+						if( d_universe.stemByDefault() ) {
+							const char* stem = d_universe.getHunspell().stem( t );
+							if( stem ) 
+								ctok.stemTok = dtaIdx->getStoredToken( stem );
+						}
 						return 0;
 					} else
 						bestSugg = curSugg;
