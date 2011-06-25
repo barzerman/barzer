@@ -148,6 +148,7 @@ void BarzerSettings::loadUser(const ptree::value_type &user) {
 
 	StoredUniverse &u = gpools.produceUniverse(userId.get());
 	std::cout << "Loading user id: " << userId << "\n";
+
 	loadTrieset(u, children);
 	loadSpell(u, children);
 }
@@ -170,6 +171,15 @@ void BarzerSettings::load(const char *fname) {
 		const char *dataPath = std::getenv("BARZER_HOME");
 		if (dataPath) {
 			fs::current_path(dataPath);
+		}
+
+		const ptree &rules = pt.get_child("config.stem", empty_ptree());
+		if( !rules.empty() ) {
+			StoredUniverse *u = getCurrentUniverse();
+			u->getGlobalPools().parseSettings().set_stemByDefault();
+			std::cerr << "Stemming MODE\n";
+		} else {
+			std::cerr << "No Stemming\n";
 		}
 
 		loadEntities();

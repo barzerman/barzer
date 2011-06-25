@@ -315,9 +315,9 @@ template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTN
 			needStem = false;
 	}
 	if( needStem ) 
-		t.stringId = d_parser.internTmpText(  d_str, d_len, false); 
-	else
 		t.stringId = d_parser.stemAndInternTmpText(d_str, d_len); 
+	else
+		t.stringId = d_parser.internTmpText(  d_str, d_len, false); 
 }
 template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_StopToken>  (BTND_Pattern_StopToken& t)  const
 { 
