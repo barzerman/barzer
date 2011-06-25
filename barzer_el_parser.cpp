@@ -11,12 +11,13 @@ namespace barzer {
 
 uint32_t BELParser::stemAndInternTmpText( const char* s, int len )
 {
-	BarzerHunspell& spell = getUniverse().getHunspell();
 	std::string scopy(s, len );
 	
-	const char* stemmed = spell.stem(scopy.c_str());
+	BarzerHunspellInvoke spellChecker(getUniverse().getHunspell());
+	const char* stemmed = spellChecker.stem(scopy.c_str());
+
 	if( strncmp(scopy.c_str(), stemmed, len) ) 
-		internString( stem );
+		internString( stemmed );
 
 	return internString( scopy.c_str());
 }

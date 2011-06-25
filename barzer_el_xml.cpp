@@ -258,7 +258,7 @@ struct BTND_Rewrite_Text_visitor : public BTND_text_visitor_base {
 };
 template <> void BTND_Rewrite_Text_visitor::operator()<BTND_Rewrite_Literal>(BTND_Rewrite_Literal& t)   const
 	{ 
-		uint32_t i = d_parser.internTmpText(d_str, d_len); 
+		uint32_t i = d_parser.internTmpText(d_str, d_len, false); 
 		if( t.isCompound() ) {
 			// warning compounded tokens unsupported yet
 		} else {
@@ -315,13 +315,13 @@ template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTN
 			needStem = false;
 	}
 	if( needStem ) 
-		t.stringId = d_parser.internTmpText(  d_str, d_len  ); 
+		t.stringId = d_parser.internTmpText(  d_str, d_len, false); 
 	else
 		t.stringId = d_parser.stemAndInternTmpText(d_str, d_len); 
 }
 template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_StopToken>  (BTND_Pattern_StopToken& t)  const
 { 
-	t.stringId = d_parser.internTmpText(  d_str, d_len  ); 
+	t.stringId = d_parser.internTmpText(  d_str, d_len, false  ); 
 }
 template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Punct> (BTND_Pattern_Punct& t) const
 { 
@@ -362,7 +362,7 @@ void BELParserXML::taghandle_T( const char_cp * attr, size_t attr_sz , bool clos
 		return;
 	}
 	bool isStop = false;
-	BTND_PatternData dta;
+	bool doStem = false;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
@@ -377,14 +377,17 @@ void BELParserXML::taghandle_T( const char_cp * attr, size_t attr_sz , bool clos
 			}
 			break;
 		case 's':  // s="n" - no stemming
-			if( getUniverse().stemByDefault() ) dta.doStem = ( *v != 'n' ); break;
+			if( getUniverse().stemByDefault() ) doStem = ( *v != 'n' ); break;
 		}
 	}
-	if( isStop ) 
+	BTND_PatternData dta;
+	if( isStop ) {
 		dta = BTND_Pattern_StopToken();
-	else
-		dta = BTND_Pattern_Token();
-
+	} else {
+		BTND_Pattern_Token p;
+		p.doStem = doStem;
+		dta =p ;
+	}
 	statement.pushNode( dta );
 }
 

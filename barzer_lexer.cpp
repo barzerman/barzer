@@ -152,7 +152,9 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, BarzerHunspellInvoke& 
 						ctok.syncClassInfoFromSavedTok();
 						ctok.addSpellingCorrection( t, curSugg );
 						if( d_universe.stemByDefault() ) {
-							const char* stem = d_universe.getHunspell().stem( t );
+							BarzerHunspellInvoke spellChecker(d_universe.getHunspell());
+
+							const char* stem = spellChecker.stem( t );
 							if( stem ) 
 								ctok.stemTok = dtaIdx->getStoredToken( stem );
 						}

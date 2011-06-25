@@ -314,7 +314,7 @@ struct BTND_Pattern_Token : public BTND_Pattern_Base {
 		stringId(0xffffffff), doStem(false)
 	{}
 	BTND_Pattern_Token(ay::UniqueCharPool::StrId id) : 
-		stringId(id)
+		stringId(id),
 		doStem(false)
 	{}
 };

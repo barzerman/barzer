@@ -189,8 +189,8 @@ public:
 		UniverseMap::const_iterator i = d_uniMap.find( id );
 		return ( i == d_uniMap.end() ? 0 : i->second );
 	}
-	ParserSettings& parserSettings() { return settings.parserSettings(); }
-	const ParserSettings& parserSettings() const { return settings.parserSettings(); }
+	ParseSettings& parseSettings() { return settings.parseSettings(); }
+	const ParseSettings& parseSettings() const { return settings.parseSettings(); }
 
 	StoredUniverse* getUniverse( uint32_t id )
 		{ return const_cast<StoredUniverse*>( ((const GlobalPools*)this)->getUniverse(id) ); }

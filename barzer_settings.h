@@ -44,10 +44,10 @@ class BarzerSettings {
 
 	boost::property_tree::ptree pt;
 
-	ParseSettings d_parserSettings;
+	ParseSettings d_parseSettings;
 public:
-	const ParseSettings& parserSettings() const { return d_parserSettings; } 
-		  ParseSettings& parserSettings() 	    { return d_parserSettings; } 
+	const ParseSettings& parseSettings() const { return d_parseSettings; } 
+		  ParseSettings& parseSettings() 	    { return d_parseSettings; } 
 
 	StoredUniverse* getCurrentUniverse() ;
 

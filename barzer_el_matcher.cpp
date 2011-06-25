@@ -242,6 +242,8 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		}
 	}
 
+	bool doFirmMatch_literal( const BarzelFCMap& fcmap, const BarzerLiteral& ltrl, bool allowBlanks );
+	
 	template <typename T>
 	bool doFirmMatch( const BarzelFCMap& fcmap, const T& dta, bool allowBlanks=false ) {
 		return false;
@@ -296,8 +298,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 	}
 	
 };
-	template <>
-	bool findMatchingChildren_visitor::doFirmMatch<BarzerLiteral>( const BarzelFCMap& fcmap, const BarzerLiteral& dta, bool allowBlanks) 
+	bool findMatchingChildren_visitor::doFirmMatch_literal( const BarzelFCMap& fcmap, const BarzerLiteral& dta, bool allowBlanks )
 	{
 		BarzelTrieFirmChildKey firmKey; 
 		// forming firm key
@@ -327,6 +328,11 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		}
 	
 		return true;
+	}
+	template <>
+	bool findMatchingChildren_visitor::doFirmMatch<BarzerLiteral>( const BarzelFCMap& fcmap, const BarzerLiteral& dta, bool allowBlanks) 
+	{
+		return doFirmMatch_literal( fcmap, dta, allowBlanks );
 	}
 	template <>
 	bool findMatchingChildren_visitor::doFirmMatch<BarzerDate>( const BarzelFCMap& fcmap, const BarzerDate& dta, bool allowBlanks) 

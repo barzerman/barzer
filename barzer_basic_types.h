@@ -378,6 +378,7 @@ public:
 	//uint32_t getType() const { return theId; } // pfft
 	uint8_t getType() const { return type; }
 
+	bool isString() const { return ( type == T_STRING && theId != 0xffffffff ); }
 	bool isNull() const { return ( type == T_STRING && theId == 0xffffffff ); }
 	bool isBlank() const { return type == T_BLANK; }
 	bool isStop() const { return type == T_STOP; }
