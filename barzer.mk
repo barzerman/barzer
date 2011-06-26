@@ -11,6 +11,8 @@ CFLAGS :=$(CFLAGS) $(BITMODE) $(OPT) -Wno-parentheses -Wnon-virtual-dtor \
 	-I/opt/local/include -I/usr/include -Wall -g -I. -I./ay -fpic
 LINKFLAGS := $(FLAGS)
 BINARY=barzer.exe
+LIBNAME=libbarzer
+SHARED_LIBNAME=libbarzer.so
 LIB_HUNSPELL=-lhunspell-1.2
 libs = -Lay -lay -L/opt/local/lib -L/opt/local/lib/boost -L/usr/lib $(LIB_HUNSPELL) \
 	-lboost_system -lboost_filesystem -lexpat -lstdc++
@@ -60,6 +62,10 @@ INSTALL_DATA_DIR = $(INSTALL_DIR)/data
 
 all: ay/libay.a $(objects) 
 	$(CC) $(BITMODE) $(LINKFLAGS) -o  $(BINARY) $(objects) $(libs)
+lib: ay/libay.a $(lib_objects)
+	$(AR) -r $(LIBNAME).a $(lib_objects)
+sharedlib: ay/libay.a $(lib_objects)
+	$(CC) -shared -Wl,-soname,$(LIBNAME).so -o $(LIBNAME).so $(lib_objects) $(libs) 
 clean: 
 	rm -f $(objects) $(BINARY)
 cleanall: clean cleanaylib

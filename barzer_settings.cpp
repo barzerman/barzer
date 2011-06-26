@@ -53,12 +53,29 @@ void BarzerSettings::loadRules() {
 		// warning goes here
 		return;
 	}
-	BELReader r(&(u->getBarzelTrie()), *u);
+	//BELReader r(&(u->getBarzelTrie()), *u);
+	BELReader r(gpools);
 	BOOST_FOREACH(const ptree::value_type &v, rules) {
-		const char *fname =  v.second.data().c_str();
-		int num = r.loadFromFile(fname, BELReader::INPUT_FMT_XML);
+		if (v.first == "file") {
+			const ptree &file = v.second;
+			const char *fname =  file.data().c_str();
+			try {
+				const ptree &attrs = file.get_child("<xmlattr>");
+				const std::string &cl = attrs.get<std::string>("class"),
+			                  	  &id = attrs.get<std::string>("id");
+				r.setTrie(cl, id);
+				std::cout << "loading `" << fname << "' into trie ("
+						  << cl << "." << id << ")\n";
+			} catch (boost::property_tree::ptree_bad_path&) {
+				r.setTrie("", "");
+				std::cout << "loading `" << fname << "' into default trie\n";
+			}
 
-		std::cout << num << " statements loaded from `" << fname << "'\n";
+			int num = r.loadFromFile(fname, BELReader::INPUT_FMT_XML);
+			std::cout << num << " statements loaded from `" << fname << "'\n";
+		} else {
+			AYLOG(ERROR) << "Unknown tag /rules/" << v.first;
+		}
 	}
 }
 
@@ -186,6 +203,7 @@ void BarzerSettings::load(const char *fname) {
 	try {
 		read_xml(fname, pt);
 
+		fs::path oldPath = fs::current_path();
 		const char *dataPath = std::getenv("BARZER_HOME");
 		if (dataPath) {
 			fs::current_path(dataPath);
@@ -196,6 +214,8 @@ void BarzerSettings::load(const char *fname) {
 		loadEntities();
 		loadRules();
 		loadUsers();
+
+		fs::current_path(oldPath);
 	} catch (boost::property_tree::xml_parser_error &e) {
 		AYLOG(ERROR) << e.what();
 	}

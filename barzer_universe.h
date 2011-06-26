@@ -146,6 +146,8 @@ public:
 /// Barzel, DataIndex and everything else 
 
 class GlobalPools {
+	GlobalPools(GlobalPools&); // {}
+	GlobalPools& operator=(GlobalPools&); // {}
 public:
 
 	// 0 should never be used 
@@ -199,11 +201,22 @@ public:
 	      StoredUniverse* getDefaultUniverse()       { return getUniverse( DEFAULT_UNIVERSE_ID ) ; }
 	const StoredUniverse* getDefaultUniverse() const { return getUniverse( DEFAULT_UNIVERSE_ID ) ; }
 
+	BarzelCompWordPool& getCompWordPool() { return compWordPool; }
+	const BarzelCompWordPool& getCompWordPool() const { return compWordPool; }
+
+	DtaIndex& getDtaIdx() { return dtaIdx; }
+	const DtaIndex& getDtaIdx() const { return dtaIdx; }
+
 	const BarzerSettings& getSettings() const { return settings; }
 	BarzerSettings& getSettings() { return settings; }
 
 	const DtaIndex& getDtaIndex() const { return dtaIdx; }
 	DtaIndex& getDtaIndex() { return dtaIdx; }
+
+	ay::UniqueCharPool& getStringPool() { return stringPool; }
+	const ay::UniqueCharPool& getStringPool() const { return stringPool; }
+
+
 	GlobalPools();
 	~GlobalPools();
 };

@@ -12,7 +12,7 @@ using namespace boost::python;
 
 
 namespace {
-std::string stripDiacritics(const std::string &src) {
+const std::string stripDiacritics(const std::string &src) {
 	std::string out;
 	umlautsToAscii(out, src.c_str());
 	return out;

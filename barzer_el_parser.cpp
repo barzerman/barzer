@@ -44,8 +44,11 @@ uint32_t BELParser::internVariable( const char* t )
 uint32_t BELParser::addCompoundedWordLiteral( const char* alias )
 {
 	uint32_t aliasId = ( alias ? internString(alias) : 0xffffffff );
-	uint32_t cwid = reader->getUniverse().getCompWordPool().addNewCompWordWithAlias( aliasId );
-	StoredToken& sTok =  reader->getUniverse().getDtaIdx().addCompoundedToken(cwid);
+	//uint32_t cwid = reader->getUniverse().getCompWordPool().addNewCompWordWithAlias( aliasId );
+	GlobalPools &gp = reader->getGlobalPools();
+	uint32_t cwid = gp.getCompWordPool().addNewCompWordWithAlias( aliasId );
+	//StoredToken& sTok =  reader->getUniverse().getDtaIdx().addCompoundedToken(cwid);
+	StoredToken& sTok =  gp.getDtaIdx().addCompoundedToken(cwid);
 	return sTok.tokId;
 }
 
@@ -53,7 +56,9 @@ uint32_t BELParser::internString( const char* t )
 {
 	// here we may want to tweak some (nonexistent yet) fields in StoredToken 
 	// to reflect the fact that this thing is actually in the trie
-	StoredToken& sTok =  reader->getUniverse().getDtaIdx().addToken( t );
+
+	//StoredToken& sTok =  reader->getUniverse().getDtaIdx().addToken( t );
+	StoredToken& sTok =  reader->getGlobalPools().getDtaIdx().addToken( t );
 	return sTok.getStringId();
 }
 
@@ -68,14 +73,22 @@ void BELParseTreeNode::print( std::ostream& fp, int depth ) const
 	fp << pfx << "}\n";
 }
 
+
+BELReader::BELReader( GlobalPools &g ) :
+	trie(&g.globalTriePool.produceTrie("", "")) , parser(0), gp(g),
+	numStatements(0) , inputFmt(INPUT_FMT_XML)
+{}
+
 void BELReader::setTrie( const std::string& trieClass, const std::string& trieId )
 {
-	trie = &(universe.produceTrie( trieClass, trieId ));
+	//trie = &(universe.produceTrie( trieClass, trieId ));
+	trie = &(gp.globalTriePool.produceTrie( trieClass, trieId ));
 }
 std::ostream& BELReader::printNode( std::ostream& fp, const BarzelTrieNode& node ) const 
 {
 	BELPrintFormat fmt;
-	BELPrintContext ctxt( *trie, universe.getStringPool(), fmt );
+	//BELPrintContext ctxt( *trie, universe.getStringPool(), fmt );
+	BELPrintContext ctxt( *trie, gp.getStringPool(), fmt );
 	return node.print( fp, ctxt );
 }
 void BELReader::addStatement( const BELStatementParsed& sp )
@@ -85,13 +98,14 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 
 	int i = 0, j = 0;
 	ay::stopwatch totalTimer;
-	const StoredUniverse& universe = getUniverse();
+	//const StoredUniverse& universe = getUniverse();
+	const GlobalPools &gp = getGlobalPools();
 	do {
 
 		const BTND_PatternDataVec& seq = emitter.getCurSequence();
 		const BELVarInfo& varInfo = emitter.getVarInfo();
 
-		if( seq.size() > universe.getMaxAnalyticalModeMaxSeqLength() && universe.isAnalyticalMode() ) {
+		if( seq.size() > gp.getMaxAnalyticalModeMaxSeqLength() && gp.isAnalyticalMode() ) {
 			continue;
 		}
 		if (seq.size() != varInfo.size()) {
