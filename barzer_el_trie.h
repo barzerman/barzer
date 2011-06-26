@@ -40,7 +40,8 @@ struct BarzelTrieFirmChildKey {
 		id(x.compWordId), type((uint8_t)BTND_Pattern_CompoundedWord_TYPE), noLeftBlanks(0)
 	{}
 	
-	inline BarzelTrieFirmChildKey& set( const BarzerLiteral& dta, bool followsBlank=false )
+	// default followsBlank is false
+	inline BarzelTrieFirmChildKey& set( const BarzerLiteral& dta, bool followsBlank )
 	{
 		noLeftBlanks = ( followsBlank ? 0:1 );
 		id =   dta.getId();

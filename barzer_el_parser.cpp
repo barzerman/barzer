@@ -1,12 +1,26 @@
 #include <barzer_el_parser.h>
 #include <barzer_el_xml.h>
 #include <barzer_universe.h>
+#include <barzer_spell.h>
 #include <fstream>
 
 #include <ay/ay_logger.h>
 #include <ay_util_time.h>
 
 namespace barzer {
+
+uint32_t BELParser::stemAndInternTmpText( const char* s, int len )
+{
+	std::string scopy(s, len );
+	
+	BarzerHunspellInvoke spellChecker(getUniverse().getHunspell());
+	const char* stemmed = spellChecker.stem(scopy.c_str());
+
+	if( stemmed && strncmp(scopy.c_str(), stemmed, len) ) 
+		internString( stemmed );
+
+	return internString( scopy.c_str());
+}
 
 uint32_t BELParser::internVariable( const char* t )
 {

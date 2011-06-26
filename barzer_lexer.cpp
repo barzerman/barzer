@@ -110,28 +110,22 @@ int QLexParser::advancedBasicClassify( CTWPVec& cvec, const TTWPVec& tvec, const
 	return 0;
 }
 
-int QLexParser::trySpellCorrectAndClassify( CToken& ctok, BarzerHunspellInvoke& spellChecker, TToken& ttok )
+int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 {
 	const char* t = ttok.buf;
 
 	bool isAsciiToken = ttok.isAscii();
-	ay::LevenshteinEditDistance& editDist = spellChecker.getEditDistanceCalc();
 
 	if( isAsciiToken && ttok.len > MIN_SPELL_CORRECT_LEN ) {
+		BarzerHunspellInvoke spellChecker(d_universe.getHunspell());
+		ay::LevenshteinEditDistance& editDist = spellChecker.getEditDistanceCalc();
 		std::pair< int, size_t> scResult = spellChecker.checkSpell( t );
 		
-		const char* stem = 0;
 		const char*const* sugg = 0;
 		size_t sugg_sz = 0;
 		if( !scResult.first ) { // this is a misspelling 
 			sugg = spellChecker.getAllSuggestions();
 			sugg_sz = scResult.second;
-		} else { // this is not a misspelling but we'll try to stem 
-			stem = spellChecker.stem(t);
-			if( stem ) {
-				sugg = &stem;
-				sugg_sz = 1;
-			}
 		}
 
 		const char* bestSugg = 0;
@@ -157,16 +151,26 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, BarzerHunspellInvoke& 
 				}
 			}
 		}
-		// nothing was resolved but we can at least correct the mystery word 
-		if( bestSugg ) {
+		// nothing was resolved/spell corrected so we will try stemming
+		{
+		BarzerHunspellInvoke stemmer(d_universe.getHunspell());
+		const char* stem = spellChecker.stem( t );
+		const StoredToken* storedTok = dtaIdx->getStoredToken(stem);
+		if( storedTok ) {
+			/// 
+			ctok.storedTok = storedTok;
+			ctok.syncClassInfoFromSavedTok();
+			ctok.addSpellingCorrection( t, stem );
+			return 1;
 		}
+		} // end of block
 	} else {
 		/// non-ascii spell checking logic should go here 
 	}
 
 
 	ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
-	return 1;
+	return -1;
 }
 
 int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const QuestionParm& qparm )
@@ -174,17 +178,14 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
 	cVec.resize( tVec.size() );
 	if( !dtaIdx ) 
 		return ( err.e = QLPERR_NULL_IDX, 0 );
-
-	const BarzerHunspell& hunspell = d_universe.getHunspell();
-	BarzerHunspellInvoke spellChecker(hunspell);
-	ay::LevenshteinEditDistance editDist;
-
+	
 	for( uint32_t i = 0; i< tVec.size(); ++i ) {
 		TToken& ttok = tVec[i].first;
 		const char* t = ttok.buf;
 		cVec[i].second = i;
 		CToken& ctok = cVec[i].first;
 		ctok.setTToken( ttok, i );
+		bool wasStemmed = false;
 
 		if( !t || !*t || isspace(*t) ) { // this should never happen
 			ctok.setClass( CTokenClassInfo::CLASS_SPACE );
@@ -203,10 +204,20 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
 				/// fall thru - this is an unmatched word
 
 				/// lets try to spell correct the token
-				trySpellCorrectAndClassify( ctok, spellChecker, ttok ) ;
+				if( trySpellCorrectAndClassify( ctok, ttok ) > 0 )
+					wasStemmed = true;
 			}
 		}
+		/// stemming 
+		if( ctok.isWord() && d_universe.stemByDefault() && !wasStemmed ) {
+			BarzerHunspellInvoke spellChecker(d_universe.getHunspell());
+			std::string strToStem( ttok.buf, ttok.len );
+			const char* stem = spellChecker.stem( strToStem.c_str() );
+			if( stem )
+				ctok.stemTok = dtaIdx->getStoredToken( stem );
+		}
 	}
+
 	return 0;
 }
 

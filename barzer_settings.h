@@ -44,10 +44,10 @@ class BarzerSettings {
 
 	boost::property_tree::ptree pt;
 
-	ParseSettings d_parserSettings;
+	ParseSettings d_parseSettings;
 public:
-	const ParseSettings& parserSettings() const { return d_parserSettings; } 
-		  ParseSettings& parserSettings() 	    { return d_parserSettings; } 
+	const ParseSettings& parseSettings() const { return d_parseSettings; } 
+		  ParseSettings& parseSettings() 	    { return d_parseSettings; } 
 
 	StoredUniverse* getCurrentUniverse() ;
 
@@ -59,6 +59,7 @@ public:
 	void init();
 
 	void loadRules();
+	void loadParseSettings();
 	void loadEntities();
 	///loads spellchecker related stuff (hunspell dictionaries, extra word lists and such)
 	void loadSpell(StoredUniverse&, const boost::property_tree::ptree&);

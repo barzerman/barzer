@@ -174,8 +174,13 @@ public:
 	~BELParserXML() ;
 	BELParserXML( BELReader* r );
 
-	uint32_t internTmpText( const char* s, int len ) 
-		{ return internString( d_tmpText.assign(s,len).c_str() ); }
+	uint32_t internTmpText( const char* s, int len, bool stem ) 
+		{ 
+			return ( stem ? 
+			  stemAndInternTmpText( d_tmpText.assign(s,len).c_str(), len ) : 
+			  internString(d_tmpText.assign(s,len).c_str())
+			); 
+		}
 	const char* setTmpText( const char* s, int len ) 
 		{ return d_tmpText.assign( s, len ).c_str(); }
 

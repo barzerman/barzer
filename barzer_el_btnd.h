@@ -308,12 +308,14 @@ inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_Compounde
 struct BTND_Pattern_Token : public BTND_Pattern_Base {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	ay::UniqueCharPool::StrId stringId;
+	bool doStem;
 
 	BTND_Pattern_Token() : 
-		stringId(0xffffffff)
+		stringId(0xffffffff), doStem(false)
 	{}
 	BTND_Pattern_Token(ay::UniqueCharPool::StrId id) : 
-		stringId(id)
+		stringId(id),
+		doStem(false)
 	{}
 };
 /// stop token is a regular token literal except it will be ignored 

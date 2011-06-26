@@ -79,6 +79,8 @@ struct CToken {
 	SpellCorrections spellCorrections;
 
 	const StoredToken* storedTok;
+	// this can be 0. token resulting from stemming of stroedTok
+	const StoredToken* stemTok; 
 
 	void clear() {
 		qtVec.clear();
@@ -109,15 +111,14 @@ struct CToken {
 		qtVec[0].first = tt;
 		qtVec[0].second = pos;
 	}
-	
 	/// updates info from currently attached saved token
 	void syncClassInfoFromSavedTok();
 	void setClass(CTokenClassInfo::TokenClass_t c)
 		{ cInfo.theClass = (typeof(cInfo.theClass))(c); } 
-	CToken( ) : 
-		storedTok(0) {}
+
+	CToken( ) : storedTok(0), stemTok(0) {}
+
 	std::ostream& print( std::ostream& fp ) const;
-	
 	std::ostream& printQtVec( std::ostream& fp ) const;
 
 	int getCTokenClass( ) const { return cInfo.theClass; }
