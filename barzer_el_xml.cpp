@@ -317,7 +317,7 @@ template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTN
 		}
 	}  else {
 		///
-		if( needStem && !d_parser.getUniverse().stemByDefault() ) 
+		if( needStem && !d_parser.getGlobalPools().parseSettings().stemByDefault() ) 
 			needStem = false;
 	}
 	if( needStem ) 
@@ -383,7 +383,7 @@ void BELParserXML::taghandle_T( const char_cp * attr, size_t attr_sz , bool clos
 			}
 			break;
 		case 's':  // s="n" - no stemming
-			if( getUniverse().stemByDefault() ) doStem = ( *v != 'n' ); break;
+			if( getGlobalPools().parseSettings().stemByDefault() ) doStem = ( *v != 'n' ); break;
 		}
 	}
 	BTND_PatternData dta;
