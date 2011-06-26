@@ -69,6 +69,24 @@ void BarzerSettings::load() {
 }
 
 
+void BarzerSettings::loadParseSettings() {
+	const ptree &rules = pt.get_child("config.parse", empty_ptree());
+	if( !rules.empty() ) {
+		StoredUniverse *u = getCurrentUniverse();
+		BOOST_FOREACH(const ptree::value_type &v, rules) {
+			const std::string& tagName = v.first;
+			const std::string& text =  v.second.data();
+			if( tagName == "stem" ) {
+				if( text != "NO" ) {
+					u->getGlobalPools().parseSettings().set_stemByDefault();
+					std::cerr << ">>>>> STEMMING MODE\n";
+				} else 
+					std::cerr << ">>>>> no stemming\n";
+			}
+			
+		}
+	}
+}
 void BarzerSettings::loadEntities() {
 	using boost::property_tree::ptree;
 	DtaIndex &dix = gpools.getDtaIndex();
@@ -173,15 +191,8 @@ void BarzerSettings::load(const char *fname) {
 			fs::current_path(dataPath);
 		}
 
-		const ptree &rules = pt.get_child("config.stem", empty_ptree());
-		if( !rules.empty() ) {
-			StoredUniverse *u = getCurrentUniverse();
-			u->getGlobalPools().parseSettings().set_stemByDefault();
-			std::cerr << "Stemming MODE\n";
-		} else {
-			std::cerr << "No Stemming\n";
-		}
 
+		loadParseSettings();
 		loadEntities();
 		loadRules();
 		loadUsers();

@@ -42,7 +42,7 @@ class QLexParser {
 	/// fluffs the token if it's not correctable otherwise attempts to find something 
 	/// returned by hunspell within the maximum Levenshteyn edit distance from t that resolves to 
 	/// an actual domain token
-	int trySpellCorrectAndClassify( CToken& ctok, BarzerHunspellInvoke& spellChecker, TToken& ttok );
+	int trySpellCorrectAndClassify( CToken& ctok, TToken& ttok );
 
 	/// resolves single tokens - this is not language specific
 	int singleTokenClassify( CTWPVec& , TTWPVec&, const QuestionParm& );	

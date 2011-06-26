@@ -59,6 +59,7 @@ public:
 	void init();
 
 	void loadRules();
+	void loadParseSettings();
 	void loadEntities();
 	///loads spellchecker related stuff (hunspell dictionaries, extra word lists and such)
 	void loadSpell(StoredUniverse&, const boost::property_tree::ptree&);
