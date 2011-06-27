@@ -78,6 +78,7 @@ bool BELParserXML::isValidTag( int tag, int parent ) const
 	case TAG_RANGE:
 	case TAG_ERCEXPR:
 	case TAG_ERC:
+	case TAG_EXPAND:
 	case TAG_TIME:
 	case TAG_LIST:
 	case TAG_ANY:
@@ -143,6 +144,7 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 	CASE_TAG(ENTITY)
 	CASE_TAG(RANGE)
 	CASE_TAG(ERCEXPR)
+	CASE_TAG(EXPAND)
 	CASE_TAG(ERC)
 	CASE_TAG(TIME)
 	CASE_TAG(LIST)
@@ -757,22 +759,33 @@ void BELParserXML::processAttrForStructTag( BTND_StructData& dta, const char_cp 
 		}
 	}
 }
+void BELParserXML::taghandle_EXPAND( const char_cp * attr, size_t attr_sz , bool close) 
+{
+	if( close ) { statement.popNode(); return; }
+
+	BTND_StructData node( BTND_StructData::T_MACRO);
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		switch( n[0] ) {
+		case 'n': node.setMacroNameId( internVariable(v) ); return; // n="MACROXXX"
+		}
+	}
+	statement.pushNode( node );
+}
+
 void BELParserXML::taghandle_LIST( const char_cp * attr, size_t attr_sz , bool close)
 {
-	if( close ) {
-		statement.popNode();
-		return;
-	}
+	if( close ) { statement.popNode(); return; }
+
 	BTND_StructData node( BTND_StructData::T_LIST);
 	processAttrForStructTag( node, attr, attr_sz );
 	statement.pushNode( node );
 }
 void BELParserXML::taghandle_ANY( const char_cp * attr, size_t attr_sz , bool close)
 {
-	if( close ) {
-		statement.popNode();
-		return;
-	}
+	if( close ) { statement.popNode(); return; }
+
 	BTND_StructData node( BTND_StructData::T_ANY);
 	processAttrForStructTag( node, attr, attr_sz );
 	statement.pushNode( node );
@@ -1041,6 +1054,7 @@ int BELParserXML::getTag( const char* s ) const
 	CHECK_3CW("nt",TAG_ENTITY) // <ent>
 	CHECK_3CW("rc",TAG_ERC) // <erc>
 	CHECK_6CW("rcexp",TAG_ERCEXPR) // <ercexp>
+	CHECK_6CW("xpand",TAG_EXPAND) // <expand>
 		break;
 	case 'f':
 	CHECK_4CW("unc", TAG_FUNC ) // <func>
