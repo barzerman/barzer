@@ -78,7 +78,8 @@ public:
 	*/
 	GlobalPools& getGlobalPools();
 	const  GlobalPools& getGlobalPools() const;
-
+	
+	const BELParseTreeNode* getMacroByName( const std::string&  ) const;
 };
 
 struct BELTrie;
@@ -136,6 +137,7 @@ public:
 
 	/// this method is called by the parser for every statement tree 
 	virtual void addStatement( const BELStatementParsed& );
+	virtual void addMacro( const std::string& macro, const BELStatementParsed& );
 
 	BELParser*  initParser(InputFormat fmt);
 	int  loadFromStream( std::istream& fp );
@@ -145,13 +147,6 @@ public:
 
 	std::ostream& printNode( std::ostream& fp, const BarzelTrieNode& node ) const;
 };
-/*
-inline StoredUniverse& BELParser::getUniverse()
-{ return reader->getUniverse(); }
-
-inline const  StoredUniverse& BELParser::getUniverse() const
-{ return reader->getUniverse(); }
-*/
 
 inline GlobalPools& BELParser::getGlobalPools()
 	{ return reader->getGlobalPools(); }

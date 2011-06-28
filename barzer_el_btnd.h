@@ -833,6 +833,7 @@ struct BTND_StructData {
 
 		/// add new types above this line only
 		T_SUBSET, // if children are A,B,C this translates into A,B,C,AB,AC,BC,ABC
+
 		BEL_STRUCT_MAX
 	};
 protected:
@@ -845,8 +846,8 @@ public:
 	void setType( int t ) { type = t; }
 
 	uint32_t getVarId() const { return varId; }
-	void setVarId( uint32_t vi ) { varId = vi; }
-
+		void setVarId( uint32_t vi ) { varId = vi; }
+	
 	const inline bool hasVar() const { return varId != 0xffffffff; }
 
 	BTND_StructData() : varId(0xffffffff), type(T_LIST) {}
@@ -900,6 +901,12 @@ struct BELParseTreeNode {
 		child.resize( child.size() +1 );
 		child.back().btndVar = t;
 		return child.back();
+	}
+
+	BELParseTreeNode& addChild( const BELParseTreeNode& node ) 
+	{
+		child.resize( child.size() +1 );
+		return( child.back() = node, child.back() );
 	}
 
 	BTNDVariant& getVar() { return btndVar; }
@@ -967,6 +974,21 @@ struct BELParseTreeNode {
 	{
 		const BELParseTreeNode* tn = getTrivialChild();
 		return( tn ? tn->getRewriteData() : 0 );
+	}
+};
+
+/// barzel macros 
+class BarzelMacros {
+	typedef std::map< std::string, BELParseTreeNode >  MacroMap;
+	MacroMap d_macroMap;
+	
+public:
+	BELParseTreeNode& addMacro( const std::string& macro )
+		{ return d_macroMap[ macro ]; }
+	const BELParseTreeNode* getMacro( const std::string& macro ) const
+	{
+		MacroMap::const_iterator i = d_macroMap.find( macro );
+		return ( i == d_macroMap.end() ? 0: &(i->second) );
 	}
 };
 

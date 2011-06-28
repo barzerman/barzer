@@ -78,6 +78,7 @@ bool BELParserXML::isValidTag( int tag, int parent ) const
 	case TAG_RANGE:
 	case TAG_ERCEXPR:
 	case TAG_ERC:
+	case TAG_EXPAND:
 	case TAG_TIME:
 	case TAG_LIST:
 	case TAG_ANY:
@@ -143,6 +144,7 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 	CASE_TAG(ENTITY)
 	CASE_TAG(RANGE)
 	CASE_TAG(ERCEXPR)
+	CASE_TAG(EXPAND)
 	CASE_TAG(ERC)
 	CASE_TAG(TIME)
 	CASE_TAG(LIST)
@@ -183,20 +185,43 @@ void BELParserXML::taghandle_STMSET( const char_cp * attr, size_t attr_sz, bool 
 void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bool close )
 {
 	if( close ) { /// statement is ready to be sent to the reader for adding to the trie
-		if( statement.hasStatement() ) {
+		if( statement.isMacro() ) {
+			reader->addMacro( statement.macroName, statement.stmt );
+		} else if( statement.hasStatement() ) {
 			reader->addStatement( statement.stmt );
-		}
+		} 
 		statement.clear();
 		return;
 	}
+
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		switch( *n ) {
+		case 'm': {
+			if( !getMacroByName( std::string(v) )) {
+				statement.setMacro(v); // m="MACROXXX"
+			} else {
+				AYLOG(ERROR) << "attempt to REDEFINE MACRO " << v  << " ignored\n";
+			}
+		}
+			break;
+		}
+	}
+
+	// const BELParseTreeNode* macroNode = getMacroByName(macroName);
+
 	statement.stmt.stmtNumberIncrement();
 	if( !(statement.stmt.getStmtNumber() % 100)  ) {
 		std::cerr << '.';
 	}
-	if( statement.hasStatement() ) { // bad - means we have statement tag nested in another statement
-		std::cerr << "statement nested in statement " << statementCount << "\n";
-		return;
-	} 
+	if( statement.isMacro() ) {
+	} else {
+		if( statement.hasStatement() ) { // bad - means we have statement tag nested in another statement
+			std::cerr << "statement nested in statement " << statementCount << "\n";
+			return;
+		} 
+	}
 
 	statement.setStatement();
 }
@@ -317,7 +342,7 @@ template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTN
 		}
 	}  else {
 		///
-		if( needStem && !d_parser.getUniverse().stemByDefault() ) 
+		if( needStem && !d_parser.getGlobalPools().parseSettings().stemByDefault() ) 
 			needStem = false;
 	}
 	if( needStem ) 
@@ -383,7 +408,7 @@ void BELParserXML::taghandle_T( const char_cp * attr, size_t attr_sz , bool clos
 			}
 			break;
 		case 's':  // s="n" - no stemming
-			if( getUniverse().stemByDefault() ) doStem = ( *v != 'n' ); break;
+			if( getGlobalPools().parseSettings().stemByDefault() ) doStem = ( *v != 'n' ); break;
 		}
 	}
 	BTND_PatternData dta;
@@ -757,22 +782,40 @@ void BELParserXML::processAttrForStructTag( BTND_StructData& dta, const char_cp 
 		}
 	}
 }
+void BELParserXML::taghandle_EXPAND( const char_cp * attr, size_t attr_sz , bool close) 
+{
+	if( close ) { return; }
+
+	std::string macroName;
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		switch( n[0] ) {
+		case 'n': macroName= v; break;
+		}
+	}
+	
+	const BELParseTreeNode* macroNode = getMacroByName(macroName);
+	if( macroNode ) {
+		BELParseTreeNode* curNode = statement.getCurTreeNode();
+		curNode->addChild( *macroNode );
+	} else {
+		AYLOG(ERROR) << "macro " << macroName  << " referenced in statement "  << statementCount<< " doesnt exist\n";
+	}
+}
+
 void BELParserXML::taghandle_LIST( const char_cp * attr, size_t attr_sz , bool close)
 {
-	if( close ) {
-		statement.popNode();
-		return;
-	}
+	if( close ) { statement.popNode(); return; }
+
 	BTND_StructData node( BTND_StructData::T_LIST);
 	processAttrForStructTag( node, attr, attr_sz );
 	statement.pushNode( node );
 }
 void BELParserXML::taghandle_ANY( const char_cp * attr, size_t attr_sz , bool close)
 {
-	if( close ) {
-		statement.popNode();
-		return;
-	}
+	if( close ) { statement.popNode(); return; }
+
 	BTND_StructData node( BTND_StructData::T_ANY);
 	processAttrForStructTag( node, attr, attr_sz );
 	statement.pushNode( node );
@@ -1041,6 +1084,7 @@ int BELParserXML::getTag( const char* s ) const
 	CHECK_3CW("nt",TAG_ENTITY) // <ent>
 	CHECK_3CW("rc",TAG_ERC) // <erc>
 	CHECK_6CW("rcexp",TAG_ERCEXPR) // <ercexp>
+	CHECK_6CW("xpand",TAG_EXPAND) // <expand>
 		break;
 	case 'f':
 	CHECK_4CW("unc", TAG_FUNC ) // <func>
@@ -1099,6 +1143,7 @@ void BELParserXML::CurStatementData::clear()
 	state = STATE_BLANK;
 	stmt.translation.clear();
 	stmt.pattern.clear();
+	macroName.clear();
 	if ( !nodeStack.empty() ) {
 		AYDEBUG(nodeStack.size());
 		while (!nodeStack.empty())

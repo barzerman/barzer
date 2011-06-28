@@ -54,6 +54,7 @@ public:
 		TAG_RANGE, 	// entity or erc matched on entity 
 		TAG_ERCEXPR, 	// expression made of ERCs
 		TAG_ERC, 	// single ERC
+		TAG_EXPAND, // expands pre-defined macro
 		TAG_TIME, 	// time
 
 		TAG_RANGE_STRUCT, // not a real tag used for translation
@@ -91,10 +92,13 @@ public:
 
 	struct CurStatementData {
 		BELStatementParsed stmt;
+		std::string macroName;
+
 		enum {
 			BIT_HAS_PATTERN,
 			BIT_HAS_TRANSLATION,
 			BIT_HAS_STATEMENT,
+			BIT_IS_MACRO,
 
 			BIT_MAX
 		};
@@ -163,10 +167,15 @@ public:
 			if( !nodeStack.empty() ) 
 				nodeStack.pop(); 
 		}
+		void setMacro(const char* s ) {
+			macroName.assign(s);
+			bits.set( BIT_IS_MACRO );
+		}
 
 		bool hasStatement() const { return bits[BIT_HAS_STATEMENT];};
 		bool hasPattern() const { return bits[BIT_HAS_PATTERN];};
 		bool hasTranslation() const { return bits[BIT_HAS_TRANSLATION];};
+		bool isMacro() const { return bits[BIT_IS_MACRO];};
 	} statement;
 
 	mutable std::string d_tmpText; // used by getElementText as a temp buffer
@@ -218,6 +227,7 @@ public:
 	void taghandle_ENTITY( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_ERC( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_ERCEXPR( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_EXPAND( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_TIME( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_LIST( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_ANY( const char_cp * attr, size_t attr_sz , bool close=false);
