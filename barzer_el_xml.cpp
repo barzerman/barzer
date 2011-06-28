@@ -185,20 +185,43 @@ void BELParserXML::taghandle_STMSET( const char_cp * attr, size_t attr_sz, bool 
 void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bool close )
 {
 	if( close ) { /// statement is ready to be sent to the reader for adding to the trie
-		if( statement.hasStatement() ) {
+		if( statement.isMacro() ) {
+			reader->addMacro( statement.macroName, statement.stmt );
+		} else if( statement.hasStatement() ) {
 			reader->addStatement( statement.stmt );
-		}
+		} 
 		statement.clear();
 		return;
 	}
+
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		switch( *n ) {
+		case 'm': {
+			if( !getMacroByName( std::string(v) )) {
+				statement.setMacro(v); // m="MACROXXX"
+			} else {
+				AYLOG(ERROR) << "attempt to REDEFINE MACRO " << v  << " ignored\n";
+			}
+		}
+			break;
+		}
+	}
+
+	// const BELParseTreeNode* macroNode = getMacroByName(macroName);
+
 	statement.stmt.stmtNumberIncrement();
 	if( !(statement.stmt.getStmtNumber() % 100)  ) {
 		std::cerr << '.';
 	}
-	if( statement.hasStatement() ) { // bad - means we have statement tag nested in another statement
-		std::cerr << "statement nested in statement " << statementCount << "\n";
-		return;
-	} 
+	if( statement.isMacro() ) {
+	} else {
+		if( statement.hasStatement() ) { // bad - means we have statement tag nested in another statement
+			std::cerr << "statement nested in statement " << statementCount << "\n";
+			return;
+		} 
+	}
 
 	statement.setStatement();
 }
@@ -761,17 +784,24 @@ void BELParserXML::processAttrForStructTag( BTND_StructData& dta, const char_cp 
 }
 void BELParserXML::taghandle_EXPAND( const char_cp * attr, size_t attr_sz , bool close) 
 {
-	if( close ) { statement.popNode(); return; }
+	if( close ) { return; }
 
-	BTND_StructData node( BTND_StructData::T_MACRO);
+	std::string macroName;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
 		switch( n[0] ) {
-		case 'n': node.setMacroNameId( internVariable(v) ); return; // n="MACROXXX"
+		case 'n': macroName= v; break;
 		}
 	}
-	statement.pushNode( node );
+	
+	const BELParseTreeNode* macroNode = getMacroByName(macroName);
+	if( macroNode ) {
+		BELParseTreeNode* curNode = statement.getCurTreeNode();
+		curNode->addChild( *macroNode );
+	} else {
+		AYLOG(ERROR) << "macro " << macroName  << " referenced in statement "  << statementCount<< " doesnt exist\n";
+	}
 }
 
 void BELParserXML::taghandle_LIST( const char_cp * attr, size_t attr_sz , bool close)
@@ -1113,6 +1143,7 @@ void BELParserXML::CurStatementData::clear()
 	state = STATE_BLANK;
 	stmt.translation.clear();
 	stmt.pattern.clear();
+	macroName.clear();
 	if ( !nodeStack.empty() ) {
 		AYDEBUG(nodeStack.size());
 		while (!nodeStack.empty())

@@ -92,10 +92,13 @@ public:
 
 	struct CurStatementData {
 		BELStatementParsed stmt;
+		std::string macroName;
+
 		enum {
 			BIT_HAS_PATTERN,
 			BIT_HAS_TRANSLATION,
 			BIT_HAS_STATEMENT,
+			BIT_IS_MACRO,
 
 			BIT_MAX
 		};
@@ -164,10 +167,15 @@ public:
 			if( !nodeStack.empty() ) 
 				nodeStack.pop(); 
 		}
+		void setMacro(const char* s ) {
+			macroName.assign(s);
+			bits.set( BIT_IS_MACRO );
+		}
 
 		bool hasStatement() const { return bits[BIT_HAS_STATEMENT];};
 		bool hasPattern() const { return bits[BIT_HAS_PATTERN];};
 		bool hasTranslation() const { return bits[BIT_HAS_TRANSLATION];};
+		bool isMacro() const { return bits[BIT_IS_MACRO];};
 	} statement;
 
 	mutable std::string d_tmpText; // used by getElementText as a temp buffer

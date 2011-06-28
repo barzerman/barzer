@@ -9,6 +9,13 @@
 
 namespace barzer {
 
+
+const BELParseTreeNode* BELParser::getMacroByName( const std::string& macroname ) const
+{
+	const BELTrie& trie = reader->getTrie();
+	return trie.getMacros().getMacro( macroname );
+}
+
 uint32_t BELParser::stemAndInternTmpText( const char* s, int len )
 {
 	std::string scopy(s, len );
@@ -91,6 +98,12 @@ std::ostream& BELReader::printNode( std::ostream& fp, const BarzelTrieNode& node
 	BELPrintContext ctxt( *trie, gp.getStringPool(), fmt );
 	return node.print( fp, ctxt );
 }
+void BELReader::addMacro( const std::string& macroName, const BELStatementParsed& sp )
+{
+	BELParseTreeNode& storedMacro = getTrie().getMacros().addMacro( macroName ) ;
+	storedMacro = sp.pattern;
+}
+
 void BELReader::addStatement( const BELStatementParsed& sp )
 {
 	BELParseTreeNode_PatternEmitter emitter( sp.pattern );

@@ -404,6 +404,11 @@ struct BELTrie {
 		fcPool(fPool),
 		tranPool(tPool)
 	{}
+	BarzelMacros macros;
+
+	const BarzelMacros& getMacros() const { return  macros; }
+	BarzelMacros& getMacros() { return  macros; }
+
 
 	const EntityGroup* getEntGroupById( uint32_t id ) const 
 	{ return d_entCollection.getEntGroup(id); }
