@@ -5,7 +5,6 @@
         <file>data/rules/generic.xml</file>
         <file>data/rules/barzel_prices.xml</file>
         <file>data/rules/barzel_dates.xml</file>
-        <file>data/rules/barzel_rules.xml</file>
         <file>data/rules/barzel_ru_dates.xml</file>
         <file>data/rules/barzel_ru_prices.xml</file>
         
