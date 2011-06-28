@@ -304,7 +304,7 @@ static int bshf_anlqry( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 		std::pair< size_t, size_t > barzRc = barz.getBeadCount();
 		++numQueries;
-		if( !(numQueries%10) ) 
+		if( !(numQueries%5000) ) 
 			std::cerr << '.';
 		if( barzRc.first ) 
 			++numSemanticalBarzes;
