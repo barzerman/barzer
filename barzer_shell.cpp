@@ -274,6 +274,44 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 	}
 	return 0;
 }
+static int bshf_anlqry( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext * context = shell->getBarzerContext();
+	Barz& barz = context->barz;
+	// Barz barz;
+	QParser& parser = context->parser;
+
+	BarzStreamerXML bs(barz, context->universe);
+	std::string fname;
+
+	std::ostream *ostr = &(shell->getOutStream());
+	std::ofstream ofile;
+
+	ay::InputLineReader reader( in );
+	if (in >> fname) {
+		ofile.open(fname.c_str());
+		ostr = &ofile;
+	}
+
+	QuestionParm qparm;
+	//std::ostream &os = shell->getOutStream();
+
+	size_t numSemanticalBarzes = 0, numQueries = 0;
+	ay::stopwatch totalTimer;
+	while( reader.nextLine() && reader.str.length() ) {
+		const char* q = reader.str.c_str();
+		parser.parse( barz, q, qparm );
+
+		std::pair< size_t, size_t > barzRc = barz.getBeadCount();
+		++numQueries;
+		if( !(numQueries%10) ) 
+			std::cerr << '.';
+		if( barzRc.first ) 
+			++numSemanticalBarzes;
+	}
+	std::cout << "\n" << numQueries << " (" << numSemanticalBarzes << " semantical) queries processed read. in "  << totalTimer.calcTime() << std::endl;
+	return 0;
+}
 
 
 
@@ -666,6 +704,7 @@ static const CmdData g_cmd[] = {
 	CmdData( ay::Shell::cmd_run, "run", "execute script(s)" ),
 	//commented test to reduce the bloat
 	CmdData( bshf_test, "test", "just a test" ),
+	CmdData( (ay::Shell_PROCF)bshf_anlqry, "anlqry", "<filename> analyzes query set" ),
 	CmdData( (ay::Shell_PROCF)bshf_dtaan, "dtaan", "data set analyzer. runs through the trie" ),
 	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),
 	CmdData( (ay::Shell_PROCF)bshf_lex, "lex", "tokenize and then classify (lex) the input" ),

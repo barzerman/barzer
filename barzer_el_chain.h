@@ -74,6 +74,8 @@ struct BarzelBeadAtomic {
 		const BarzerLiteral* bl = getLiteral();
 		return( bl && bl->isBlank() );
 	}
+	bool isString() const {  return (dta.which() == BarzerString_TYPE); }
+
 	bool isStringLiteral() const { 
 		const BarzerLiteral* bl = getLiteral();
 		return( bl && bl->isString() );
@@ -225,6 +227,22 @@ public:
 			}
 		}
 		return ( wasBlank ? n-1: n );
+	}
+	/// it's a loosely defined property - semantical bead is anything less than trivial 
+	/// meaning it's either non-atomic, non-number, fluff if string - meaning something prcoessed
+	/// by barzer
+	bool isSemantical() const {
+		if( isBlank() ) return false;
+		// not blank
+		const BarzelBeadAtomic* atomic = getAtomic();
+		if( !atomic ) return true; // non atomic and non blank - must be semantical
+		const BarzerLiteral* ltrl = atomic->getLiteral(); 
+		if( ltrl ) return ltrl->isStop();
+		// not literal at this point
+		if( atomic->isString() ) return false;
+		if( atomic->isNumber() ) return false;
+
+		return true;
 	}
 	const CTWPVec& getCTokens() const 
 		{ return ctokOrigVec; }

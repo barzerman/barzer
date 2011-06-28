@@ -178,7 +178,7 @@
 	            </func>
 	        </func>
 	    </tran>
-    </stmt > 
+    </stmt> 
     
     <stmt>
         <pat>
@@ -550,7 +550,7 @@
     <stmt>
         <pat>
             <t>after</t>
-            <list v="dt"><datetime /></list>
+            <list v="dt"><dtim/></list>
         </pat>
         <tran>
             <func name="mkRange"><var name="time" /><func name="mkTime"><rn v="23" /><rn v="59" /></func></func>
