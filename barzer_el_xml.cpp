@@ -105,6 +105,9 @@ bool BELParserXML::isValidTag( int tag, int parent ) const
 void BELParserXML::startElement( const char* tag, const char_cp * attr, size_t attr_sz )
 {
 	int tid = getTag( tag );
+	if( tid == TAG_UNDEFINED && statement.hasStatement() ) 
+		statement.setInvalid();
+
 	int parentTag = ( tagStack.empty() ? TAG_UNDEFINED:  tagStack.top() );
 	
 	if( tid == TAG_STATEMENT ) {
@@ -185,11 +188,15 @@ void BELParserXML::taghandle_STMSET( const char_cp * attr, size_t attr_sz, bool 
 void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bool close )
 {
 	if( close ) { /// statement is ready to be sent to the reader for adding to the trie
-		if( statement.isMacro() ) {
-			reader->addMacro( statement.macroName, statement.stmt );
-		} else if( statement.hasStatement() ) {
-			reader->addStatement( statement.stmt );
-		} 
+		if( !statement.isValid() ) {
+			AYLOG(ERROR) << "skipped invalid statement " << statementCount ;
+		} else {
+			if( statement.isMacro() ) {
+				reader->addMacro( statement.macroName, statement.stmt );
+			} else if( statement.hasStatement() ) {
+				reader->addStatement( statement.stmt );
+			} 
+		}
 		statement.clear();
 		return;
 	}
@@ -202,7 +209,7 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 			if( !getMacroByName( std::string(v) )) {
 				statement.setMacro(v); // m="MACROXXX"
 			} else {
-				AYLOG(ERROR) << "attempt to REDEFINE MACRO " << v  << " ignored\n";
+				AYLOG(ERROR) << "attempt to REDEFINE MACRO " << v  << " ignored";
 			}
 		}
 			break;
@@ -800,7 +807,7 @@ void BELParserXML::taghandle_EXPAND( const char_cp * attr, size_t attr_sz , bool
 		BELParseTreeNode* curNode = statement.getCurTreeNode();
 		curNode->addChild( *macroNode );
 	} else {
-		AYLOG(ERROR) << "macro " << macroName  << " referenced in statement "  << statementCount<< " doesnt exist\n";
+		AYLOG(ERROR) << "macro " << macroName  << " referenced in statement "  << statementCount<< " doesnt exist";
 	}
 }
 
@@ -967,7 +974,7 @@ void BELParserXML::taghandle_VAR( const char_cp * attr, size_t attr_sz , bool cl
 			if( num > 0 ) 
 				var.setPatternElemNumber( num );
 			else {
-				AYLOG(ERROR) << "invalid pattern element number " << v << std::endl;
+				AYLOG(ERROR) << "invalid pattern element number " << v ;
 			}
 		}
 			break;
@@ -976,7 +983,7 @@ void BELParserXML::taghandle_VAR( const char_cp * attr, size_t attr_sz , bool cl
 			if( num > 0 ) 
 				var.setWildcardNumber( num );
 			else {
-				AYLOG(ERROR) << "invalid wildcard number " << v << std::endl;
+				AYLOG(ERROR) << "invalid wildcard number " << v ;
 			}
 		}
 			break;
@@ -1131,9 +1138,10 @@ int BELParserXML::getTag( const char* s ) const
 	CHECK_1CW(TAG_W) // <w>
 	CHECK_4CW("cls",TAG_WCLS) // <wcls>
 	default:
-		return TAG_UNDEFINED;
+		break;
 	} // switch ends
 	
+	AYLOG(ERROR) << "UNKNOWN TAG! " << s;
 	return TAG_UNDEFINED;
 }
 

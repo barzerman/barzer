@@ -398,7 +398,7 @@ struct BELFunctionStorage_holder {
 			// huhuh
 		}
 		date.setDayMonthYear(d,m,y);
-		date.print(AYLOG(DEBUG) << "date formed: ");
+		//date.print(AYLOG(DEBUG) << "date formed: ");
 		setResult(result, date);
 		return true;
 	}

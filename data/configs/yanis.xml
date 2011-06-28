@@ -26,7 +26,8 @@
                 <extra>/Users/yanis/barzer/spell/extrawords.txt</extra>
             </spell>            
             <trieset>
-                <trie class="class1" name="1" />
+                <trie class="" name="" />
+                <trie class="post" name="fluff" />
             </trieset>
         </user>
     </users>

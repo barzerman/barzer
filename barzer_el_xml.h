@@ -99,6 +99,7 @@ public:
 			BIT_HAS_TRANSLATION,
 			BIT_HAS_STATEMENT,
 			BIT_IS_MACRO,
+			BIT_IS_INVALID,
 
 			BIT_MAX
 		};
@@ -139,6 +140,8 @@ public:
 			stmt.translation.setNodeData( BTND_RewriteData() );
 		}
 
+		void setInvalid() { bits.set(BIT_IS_INVALID); }
+		bool isValid() { return !bits[ BIT_IS_INVALID ] ; }
 		void setPattern() { 
 			state = STATE_PATTERN;
 			bits.set(BIT_HAS_PATTERN); 

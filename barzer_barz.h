@@ -46,6 +46,19 @@ public:
 	int classifyTokens( QLexParser& , const QuestionParm& );
 	int semanticParse( QSemanticParser&, const QuestionParm& );
 	int postSemanticParse( QSemanticParser&, const QuestionParm& );
+
+	/// returns pair. first is the number of units which have been modified semantically
+	/// mening - fluff, date, entity, erc, expression etc
+	// second - number of beads in the barz 
+	std::pair<size_t,size_t> getBeadCount() const
+	{
+		std::pair< size_t, size_t > rv(0,0);
+		for( BeadList::const_iterator i = beadChain.getLstBegin(); i!= beadChain.getLstEnd(); ++i ) {
+			++(rv.second);
+			if( i->isSemantical() ) ++(rv.first);
+		}
+		return rv;
+	}
 };
 }
 #endif // BARZER_BARZ_h

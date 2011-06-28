@@ -2,73 +2,6 @@
 <stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
     xmlns="http://www.barzer.net/barzel/0.1" i="fluff" c="post">
 
-<!--    
-    <stmt>
-        <pat>
-    	    <any v="word"><t>hey</t><t>a</t><t>the</t><t>fuck</t><t>what</t><t>is</t><t>are</t></any>
-		</pat>
-        <tran><func name="mkFluff"><var name="word" /></func></tran>
-    </stmt>
- -->
-    <!-- 
-    <stmt>
-        <pat>
-            <any v="f">
-                <t>at</t><t>on</t><t>in</t>
-            </any>
-            <any v="data">
-                <date />
-                <time />
-                <datetime />
-                <range />
-                <ent />
-            </any>
-        </pat>
-        <tran>
-            <var name="data" />
-        </tran>
-    </stmt>
-     -->
-     
-     
-    <!-- stmt>
-        <pat><any v="fl-1"><t>what</t><t>which</t></any><opt v="fl-2"><t>kind</t><t>of</t></opt><tail v="contents"><t /><t /><t /></tail><any v="fl-3"><t>is</t><t>are</t></any><t>available</t></pat>
-        <tran><func name="mkFluff"><var name="fl-1" /><var name="fl-2" /><var name="fl-3" /></func><var name="contents" /></tran> 
-    </stmt>
-    <stmt>
-        <pat>
-            <list v="fluff">
-            <opt><any><t>could</t><t>would</t><t>can</t><t>will</t></any><t><t>you</t><t>u</t></t></opt>
-            <opt><t>please</t></opt>
-            <t>show</t>
-            <opt><t>me</t></opt>
-        </list>
-        </pat>
-        <tran><func name="mkFluff"><var name="fluff" /></func></tran>    
-    
-    </stmt -->
-    
-    <!-- stmt>
-        <pat>
-	        <any v="f">
-		        <t>what</t>
-		        <t>which</t>
-		        <list>
-		              <any><t>what</t><t>where</t><t>how</t></any>
-		              <t>do</t><t>i</t>
-		        </list>
-		        <t>how</t>
-		        <t>in</t>
-		        <t>on</t>
-		        <t>at</t>
-	        </any>
-        </pat>
-        <tran>
-            <func name="mkFluff"><var name="f" /></func>
-        </tran>
-    </stmt -->
-    
-    
     <stmt>
         <pat><t>at</t><list v="t"><time /></list></pat>
         <tran><var name="t" /></tran>
@@ -227,8 +160,7 @@
     </pat>
     
         <tran>
-            <!-- func name="mkFluff"><var name="word" /></func>  -->
-            <ltrl t="f" />
+            <ltrl t="f"/>
         </tran>
     
     </stmt>
