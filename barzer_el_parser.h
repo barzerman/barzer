@@ -105,6 +105,7 @@ protected:
 public:
 	const std::string& getInputFileName() const { return inputFileName; }
 	void setTrie( const std::string& trieClass, const std::string& trieId ) ;
+	void setTrie(BELTrie *t) { trie = t; }
 
 	BELTrie& getTrie() { return *trie ; }
 	const BELTrie& getTrie() const { return *trie ; }

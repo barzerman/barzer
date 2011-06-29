@@ -174,8 +174,10 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 
 void BELParserXML::taghandle_STMSET( const char_cp * attr, size_t attr_sz, bool close )
 {
-	if( close ) 
+	if( close ) {
+		reader->setTrie("", "");
 		return;
+	}
 	std::string trieClass , trieId;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
@@ -185,7 +187,8 @@ void BELParserXML::taghandle_STMSET( const char_cp * attr, size_t attr_sz, bool 
 		case 'i': trieId.assign(v); break;
 		}
 	}
-	reader->setTrie( trieClass , trieId );
+	if (!(trieClass.empty() || trieId.empty()))
+		reader->setTrie( trieClass , trieId );
 }
 void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bool close )
 {

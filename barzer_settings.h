@@ -16,6 +16,8 @@
 
 #include <barzer_config.h>
 #include <barzer_el_parser.h>
+#include <barzer_spell.h>
+
 #include <ay/ay_logger.h>
 #include <ay/ay_bitflags.h>
 
@@ -39,7 +41,7 @@ struct ParseSettings {
 
 
 typedef std::pair<const char*, const char*> TriePath;
-
+class BarzerSettings;
 struct User {
 	typedef uint32_t Id;
 	struct Spell {
@@ -47,35 +49,37 @@ struct User {
 		typedef std::pair<uint8_t,const char*> Rec;
 		typedef std::vector<Rec> Vec;
 
+		User *user;
+		BarzerHunspell *hunspell;
 		const char *maindict;
 		const char *affx;
 		Vec vec;
 
-		Spell(const char *md, const char *a) : maindict(md), affx(a) {}
-		void addExtra(const char *path) {
-			vec.push_back(Rec(EXTRA, path));
-		}
-		void addDict(const char *path) {
-			vec.push_back(Rec(DICT, path));
-		}
+		Spell(User *u, const char *md, const char *a);
+		void addExtra(const char *path);
+		void addDict(const char *path);
 
 	};
 	typedef std::vector<TriePath> TrieVec;
 	Id id;
 	boost::optional<Spell> spell;
 	TrieVec tries;
+	BarzerSettings &settings;
+	StoredUniverse &universe;
 
-	User(Id i = INVALID_STORED_ID) : id(i) {}
+	User(Id i, BarzerSettings &s);
 
 	TrieVec& getTries() { return tries; }
 	const TrieVec& getTries() const { return tries; }
-	void addTrie(const char *cl, const char *id)
-		{ tries.push_back(TriePath(cl, id)); }
+
+	void addTrie(const char *cl, const char *id);
 
 	Spell* getSpell() { return spell.get_ptr(); }
-	void setSpell(const Spell &s) { spell = s; }
-	Spell& createSpell(const char *md, const char *affx)
-		{ return (spell = Spell(md, affx)).get(); }
+	Spell& createSpell(const char *md, const char *affx);
+
+
+	StoredUniverse& getUniverse() { return universe; }
+	const StoredUniverse& getUniverse() const { return universe; }
 
 };
 
@@ -101,7 +105,7 @@ public:
 private:
 	GlobalPools &gpools;
 	//StoredUniverse &universe;
-	//BELReader reader;
+	BELReader reader;
 
 	boost::property_tree::ptree pt;
 
@@ -133,22 +137,21 @@ public:
 
 	void loadUsers();
 	void loadUser(const boost::property_tree::ptree::value_type &);
-	User& createUser(User::Id id) {
-		User& u = umap[id];
-		u.id = id;
-		return u;
-	}
+
+	User& createUser(User::Id id);
 	User* getUser(User::Id id);
 
-
-	void addRulefile(const char *fn, const char *tclass = "", const char *tid = "");
-	void addRulefile(const Rulefile&);
+	void addRulefile(const char *fn);
+	void addRulefile(const char *fn, const char *tclass, const char *tid);
 
 	void addEntityFile(const char*);
 	void setLogging(const Logging&);
 
 	void load();
 	void load(const char *fname);
+
+	GlobalPools& getGlobalPools() { return gpools; }
+	const GlobalPools& getGlobalPools() const { return gpools; }
 
 	const std::string get(const char*) const;
 	const std::string get(const std::string&) const;

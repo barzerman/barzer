@@ -25,9 +25,71 @@ static ptree& empty_ptree() {
 
 namespace barzer {
 
+User::Spell::Spell(User *u, const char *md, const char *a)
+	: user(u), hunspell(&(u->getUniverse().getHunspell())), maindict(md), affx(a) {}
+
+void User::Spell::addExtra(const char *path)
+{
+	vec.push_back(Rec(EXTRA, path));
+	hunspell->addWordsFromTextFile(path);
+} //*/
+void User::Spell::addDict(const char *path)
+{
+	vec.push_back(Rec(DICT, path));
+	hunspell->addDictionary(path);
+} //*/
+
+
+User::User(Id i, BarzerSettings &s)
+	: id(i), settings(s), universe(s.getGlobalPools().produceUniverse(i))
+	{}
+
+User::Spell& User::createSpell(const char *md, const char *affx)
+{
+	spell = Spell(this, md, affx);
+	return spell.get();
+}
+
+void User::addTrie(const char *cl, const char *id) {
+	tries.push_back(TriePath(cl, id));
+	universe.getTrieCluster().appendTrie(cl, id);
+}
+
+
+User& BarzerSettings::createUser(User::Id id) {
+	UserMap::iterator it = umap.find(id);
+	if (it == umap.end()) {
+		return umap.insert(UserMap::value_type(id, User(id, *this))).first->second;
+	} else return it->second;
+
+}
+
+
+User*  BarzerSettings::getUser(User::Id id)
+{
+	UserMap::iterator it = umap.find(id);
+	return (it == umap.end() ? 0 : &(it->second));
+}
+
 BarzerSettings::BarzerSettings(GlobalPools &gp)
-	: gpools(gp)
+	: gpools(gp), reader(gp)
 { init(); }
+
+
+void BarzerSettings::addRulefile(const char *fn, const char *tclass = "", const char *tid = "")
+{
+	rules.push_back(Rulefile(fn, tclass, tid));
+	reader.setTrie(tclass, tid);
+	size_t num = reader.loadFromFile(fn, BELReader::INPUT_FMT_XML);
+	std::cout << num << " statements loaded from `" << fn << "'\n";
+}
+
+
+void BarzerSettings::addEntityFile(const char *fname)
+{
+	entityFiles.push_back(fname);
+	gpools.getDtaIdx().loadEntities_XML(fname);
+}
 
 StoredUniverse* BarzerSettings::getCurrentUniverse() 
 {
@@ -54,7 +116,7 @@ void BarzerSettings::loadRules() {
 		return;
 	}
 	//BELReader r(&(u->getBarzelTrie()), *u);
-	BELReader r(gpools);
+	//BELReader r(gpools);
 	BOOST_FOREACH(const ptree::value_type &v, rules) {
 		if (v.first == "file") {
 			const ptree &file = v.second;
@@ -63,15 +125,15 @@ void BarzerSettings::loadRules() {
 				const ptree &attrs = file.get_child("<xmlattr>");
 				const std::string &cl = attrs.get<std::string>("class"),
 			                  	  &id = attrs.get<std::string>("id");
-				r.setTrie(cl, id);
+				reader.setTrie(cl, id);
 				std::cout << "loading `" << fname << "' into trie ("
 						  << cl << "." << id << ")\n";
 			} catch (boost::property_tree::ptree_bad_path&) {
-				r.setTrie("", "");
+				reader.setTrie("", "");
 				std::cout << "loading `" << fname << "' into default trie\n";
 			}
 
-			int num = r.loadFromFile(fname, BELReader::INPUT_FMT_XML);
+			int num = reader.loadFromFile(fname, BELReader::INPUT_FMT_XML);
 			std::cout << num << " statements loaded from `" << fname << "'\n";
 		} else {
 			AYLOG(ERROR) << "Unknown tag /rules/" << v.first;
@@ -88,28 +150,29 @@ void BarzerSettings::load() {
 
 void BarzerSettings::loadParseSettings() {
 	const ptree &rules = pt.get_child("config.parse", empty_ptree());
-	if( !rules.empty() ) {
-		StoredUniverse *u = getCurrentUniverse();
-		BOOST_FOREACH(const ptree::value_type &v, rules) {
-			const std::string& tagName = v.first;
-			const std::string& text =  v.second.data();
-			if( tagName == "stem" ) {
-				if( text != "NO" ) {
-					u->getGlobalPools().parseSettings().set_stemByDefault();
-					std::cerr << ">>>>> STEMMING MODE\n";
-				} else 
-					std::cerr << ">>>>> no stemming\n";
-			}
-			
+	//if( !rules.empty() ) { dont need this as empty ptree means 0 foreach iterations
+	StoredUniverse *u = getCurrentUniverse();
+	BOOST_FOREACH(const ptree::value_type &v, rules) {
+		const std::string& tagName = v.first;
+		const std::string& text =  v.second.data();
+		if( tagName == "stem" ) {
+			if( text != "NO" ) {
+				u->getGlobalPools().parseSettings().set_stemByDefault();
+				std::cerr << ">>>>> STEMMING MODE\n";
+			} else
+				std::cerr << ">>>>> no stemming\n";
 		}
+
 	}
+	//}
 }
 void BarzerSettings::loadEntities() {
 	using boost::property_tree::ptree;
-	DtaIndex &dix = gpools.getDtaIndex();
+	//DtaIndex &dix = gpools.getDtaIndex();
 	const ptree &ents = pt.get_child("config.entities", empty_ptree());
 	BOOST_FOREACH(const ptree::value_type &v, ents) {
-		dix.loadEntities_XML(v.second.data().c_str());
+		//dix.loadEntities_XML(v.second.data().c_str());
+		addEntityFile(v.second.data().c_str());
 	}
 }
 
@@ -230,3 +293,7 @@ const std::string BarzerSettings::get(const std::string &key) const {
 }
 
 }
+
+
+
+
