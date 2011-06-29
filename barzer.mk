@@ -13,6 +13,7 @@ LINKFLAGS := $(FLAGS)
 BINARY=barzer.exe
 LIBNAME=libbarzer
 SHARED_LIBNAME=libbarzer.so
+PYTHON_LIBNAME=util/python_util.so
 LIB_HUNSPELL=-lhunspell-1.2
 libs = -Lay -lay -L/opt/local/lib -L/opt/local/lib/boost -L/usr/lib $(LIB_HUNSPELL) \
 	-lboost_system -lboost_filesystem -lexpat -lstdc++
@@ -60,12 +61,14 @@ objects = $(lib_objects) barzer.o
 INSTALL_DIR = /usr/share/barzer
 INSTALL_DATA_DIR = $(INSTALL_DIR)/data
 
-all: ay/libay.a $(objects) 
+all: ay/libay.a $(objects) $(PYTHON_LIBNAME)
 	$(CC) $(BITMODE) $(LINKFLAGS) -o  $(BINARY) $(objects) $(libs)
 lib: ay/libay.a $(lib_objects)
 	$(AR) -r $(LIBNAME).a $(lib_objects)
 sharedlib: ay/libay.a $(lib_objects)
 	$(CC) -shared -Wl,-soname,$(LIBNAME).so -o $(LIBNAME).so $(lib_objects) $(libs) 
+$(PYTHON_LIBNAME): ay/libay.a $(lib_objects)
+	cd util; make -f util.mk rebuild; cd ..
 clean: 
 	rm -f $(objects) $(BINARY)
 cleanall: clean cleanaylib
@@ -80,7 +83,7 @@ ay/libay.a:
 	cd ay; make -f aylib.mk rebuild $(AYBIT) OPT=$(OPT) $(FLAGS); cd ..
 .cpp.o:
 	$(CC) -DBARZER_HOME=$(INSTALL_DIR) -c $(CFLAGS) $< -o $@
-rebuild: clean aylib all
+rebuild: clean aylib util all
 
 .PHONY : test util
 test: $(BINARY)
@@ -90,8 +93,10 @@ util:
 
 
 install:
-	install -d $(INSTALL_DIR) $(INSTALL_DATA_DIR)/configs $(INSTALL_DATA_DIR)/entities $(INSTALL_DATA_DIR)/rules
+	install -d $(INSTALL_DIR) $(INSTALL_DIR)/util $(INSTALL_DATA_DIR)/configs $(INSTALL_DATA_DIR)/entities $(INSTALL_DATA_DIR)/rules
 	install -m 0755 $(BINARY) $(INSTALL_DIR)
+	install -m 0755 $(PYTHON_LIBNAME) $(INSTALL_DIR)/util
 	install -m 0644 data/configs/* $(INSTALL_DATA_DIR)/configs
 	install -m 0644 data/entities/* $(INSTALL_DATA_DIR)/entities
 	install -m 0644 data/rules/* $(INSTALL_DATA_DIR)/rules
+	
