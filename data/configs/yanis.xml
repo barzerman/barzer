@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
+	<parse><stem/></parse>
     <rules>
         <file>data/rules/generic.xml</file>
         <file>data/rules/barzel_prices.xml</file>
