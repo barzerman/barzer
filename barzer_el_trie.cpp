@@ -2,6 +2,7 @@
 #include <barzer_el_wildcard.h>
 #include <list>
 #include <ay/ay_logger.h>
+#include <barzer_universe.h>
 
 
 namespace barzer {
@@ -421,7 +422,7 @@ const BarzelTrieNode* BELTrie::addPath(
 	if( n ) {
 		if( n->hasValidTranslation() && n->getTranslationId() != transId ) {
 			if( !tryAddingTranslation(n,transId,stmt,emitterSeqNo) ) {
-				std::cerr << "\nBARZEL TRANSLATION CLASH:" << stmt.getSourceName() << ":" << stmt.getStmtNumber() << "\n";
+				//std::cerr << "\nBARZEL TRANSLATION CLASH:" << stmt.getSourceName() << ":" << stmt.getStmtNumber() << "\n";
 			}
 		} else
 			n->setTranslation( transId );
@@ -432,7 +433,10 @@ const BarzelTrieNode* BELTrie::addPath(
 
 std::ostream& BELTrie::printTanslationTraceInfo( std::ostream& fp, const BarzelTranslationTraceInfo& traceInfo )
 {
-	return fp;
+	const char* srcName = globalPools.internalString_resolve( traceInfo.source );
+	
+	return ( fp << ( srcName ? srcName : "(null)" ) << ':' << traceInfo.statementNum << '.' <<
+	traceInfo.emitterSeqNo );
 }
 bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELStatementParsed& stmt, uint32_t emitterSeqNo )
 {

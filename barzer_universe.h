@@ -26,6 +26,7 @@ class GlobalTriePool {
 
 	TrieMap d_trieMap;
 
+	GlobalPools& d_gp;
 	BarzelRewriterPool* d_rewrPool;
 	BarzelWildcardPool* d_wcPool;
 	BarzelFirmChildPool* d_fcPool;
@@ -65,6 +66,7 @@ public:
 		if( i == ctm.end() ) 
 			i = ctm.insert( ClassTrieMap::value_type(trieId, 
 				BELTrie(
+					d_gp,
 					d_rewrPool,
 					d_wcPool,
 					d_fcPool,
@@ -78,11 +80,13 @@ public:
 		{ return produceTrie( std::string(), std::string() ); }
 
 	GlobalTriePool( 
+			GlobalPools& gp,
 			BarzelRewriterPool* rewrPool,
 			BarzelWildcardPool* wcPool,
 			BarzelFirmChildPool* fcPool,
 			BarzelTranslationPool* tranPool
 	) :
+			d_gp(gp),
 			d_rewrPool( rewrPool ),
 			d_wcPool( wcPool ),
 			d_fcPool( fcPool ),

@@ -62,6 +62,7 @@ GlobalPools::GlobalPools() :
 	funSt(*this),
 	dateLookup(*this),
 	globalTriePool( 
+			*this,
 			&barzelRewritePool,
 			&barzelWildcardPool,
 			&barzelFirmChildPool,

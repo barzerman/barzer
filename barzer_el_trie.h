@@ -397,7 +397,10 @@ public:
 
 typedef std::map< BarzelWCLookupKey, BarzelTrieNode > BarzelWCLookup;
 struct BELStatementParsed;
+class GlobalPools;
+
 struct BELTrie {
+	GlobalPools& globalPools;
 	BarzelRewriterPool* rewrPool;
 	BarzelWildcardPool* wcPool;
 	BarzelFirmChildPool* fcPool;
@@ -407,11 +410,13 @@ struct BELTrie {
 
 	BarzelTrieNode root;
 	BELTrie( 
+		GlobalPools& gp,
 		BarzelRewriterPool*  rPool, 
 		BarzelWildcardPool* wPool,
 		BarzelFirmChildPool* fPool,
 		BarzelTranslationPool* tPool 
 	) : 
+		globalPools(gp),
 		rewrPool(rPool), 
 		wcPool(wPool),
 		fcPool(fPool),
