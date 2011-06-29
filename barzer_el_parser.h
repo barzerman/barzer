@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <string>
 #include <barzer_el_btnd.h>
+#include <ay/ay_pool_with_id.h>
 
 /// wrapper object for various formats in which BarzEL may be fed to the application
 /// as well as the data structures required for the actual parsing
@@ -22,9 +23,10 @@ class GlobalPools;
 struct BELStatementParsed {
 	size_t d_stmtNumber;
 	std::string d_sourceName;
+	uint32_t d_sourceNameStrId; 
 
 	BELStatementParsed() : 
-		d_stmtNumber(0)
+		d_stmtNumber(0),d_sourceNameStrId(0xffffffff)
 	{}
 
 	BELParseTreeNode pattern; // points at the node under statement
@@ -32,13 +34,15 @@ struct BELStatementParsed {
 	void clear()
 		{ pattern.clear(); translation.clear(); }
 	
-	void setSrcInfo( const char* srcName ) 
+	void setSrcInfo( const char* srcName, uint32_t strId ) 
 	{ 
 		d_stmtNumber = 0;
+		d_sourceNameStrId = strId;
 		d_sourceName.assign( srcName );
 	}
 	void stmtNumberIncrement() { ++d_stmtNumber; }
 
+	uint32_t getSourceNameStrId()  const { return d_sourceNameStrId; }
 	size_t getStmtNumber() const { return d_stmtNumber; }
 	const std::string&  getSourceName() const { return d_sourceName; }
 };

@@ -336,8 +336,19 @@ void BELTrie::produceWCKey( BarzelWCKey& key, const BTND_PatternData& btnd  )
 {
 	wcPool->produceWCKey(key, btnd );
 }
+void BELTrie::setTanslationTraceInfo( BarzelTranslation& tran, const BELStatementParsed& stmt, uint32_t emitterSeqNo )
+{
+	tran.traceInfo.source = stmt.getSourceNameStrId();
+	tran.traceInfo.statementNum = stmt.getStmtNumber();
+	tran.traceInfo.emitterSeqNo = emitterSeqNo;
+}
 
-const BarzelTrieNode* BELTrie::addPath( const BELStatementParsed& stmt, const BTND_PatternDataVec& path, uint32_t transId, const BELVarInfo& varInfo )
+const BarzelTrieNode* BELTrie::addPath( 
+	const BELStatementParsed& stmt, 
+	const BTND_PatternDataVec& path, 
+	uint32_t transId, 
+	const BELVarInfo& varInfo,
+	uint32_t emitterSeqNo )
 {
 	BarzelTrieNode* n = &root;
 
@@ -409,7 +420,7 @@ const BarzelTrieNode* BELTrie::addPath( const BELStatementParsed& stmt, const BT
 	}
 	if( n ) {
 		if( n->hasValidTranslation() && n->getTranslationId() != transId ) {
-			if( !tryAddingTranslation(n,transId) ) {
+			if( !tryAddingTranslation(n,transId,stmt,emitterSeqNo) ) {
 				std::cerr << "\nBARZEL TRANSLATION CLASH:" << stmt.getSourceName() << ":" << stmt.getStmtNumber() << "\n";
 			}
 		} else
@@ -418,7 +429,12 @@ const BarzelTrieNode* BELTrie::addPath( const BELStatementParsed& stmt, const BT
 		AYTRACE("inconsistent state for setTranslation");
 	return n;
 }
-bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id )
+
+std::ostream& BELTrie::printTanslationTraceInfo( std::ostream& fp, const BarzelTranslationTraceInfo& traceInfo )
+{
+	return fp;
+}
+bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELStatementParsed& stmt, uint32_t emitterSeqNo )
 {
 	BarzelTranslation* tran = getBarzelTranslation(*n);
 	if( tran ) {
@@ -435,7 +451,14 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id )
 		case BarzelTranslation::T_MKENTLIST:
 			entGrp = getEntityCollection().getEntGroup( tran->getId_uint32() );
 			break;
-		default: return false;
+		default: { // CLASH 
+			std::cerr << "RULE CLASH: " << stmt.getSourceName() << ':' << stmt.getStmtNumber()  << '.' << emitterSeqNo <<
+			" VS " ;
+			printTanslationTraceInfo( std::cerr, tran->traceInfo ) << std::endl;
+			
+
+		}
+			return false;
 		}
 		if( entGrp ) {
 			const BarzelTranslation* newTran = tranPool->getObjById(id);

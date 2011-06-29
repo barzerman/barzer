@@ -132,10 +132,11 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 			BarzelTranslation* tran = trie->makeNewBarzelTranslation( tranId );
 			if( !tran ) {
 				AYLOG(ERROR) << "null translation returned\n";
-			} else
+			} else {
+				trie->setTanslationTraceInfo( *tran, sp, i );
 				tran->set(*trie, sp.translation);
-		
-			trie->addPath( sp, seq, tranId, varInfo );
+			}	
+			trie->addPath( sp, seq, tranId, varInfo, i );
 		}
 		i++;
 		//AYLOG(DEBUG) << "path added";

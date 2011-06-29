@@ -153,7 +153,11 @@ public:
 	// 0 should never be used 
 	enum { DEFAULT_UNIVERSE_ID = 0 }; 
 
-	ay::UniqueCharPool stringPool; /// all strings in the universe 
+	ay::UniqueCharPool stringPool; /// all dictionary strings in the universe 
+
+	/// strings for internal use only - file names, trie names, user info stuff etc 
+	/// this pool should be very small compared to stringPool
+	ay::UniqueCharPool internalStringPool; 
 	/// every client's domain has this 
 	DtaIndex dtaIdx; // entity-token links
 
@@ -176,6 +180,9 @@ public:
 	bool d_isAnalyticalMode;
 	size_t d_maxAnalyticalModeMaxSeqLength;
 
+	uint32_t internalString_intern( const char* str ) { return internalStringPool.internIt( str ); }
+	const char* internalString_resolve( uint32_t id ) { return internalStringPool.resolveId( id ); }
+	
 	size_t getMaxAnalyticalModeMaxSeqLength() const { return d_maxAnalyticalModeMaxSeqLength; }
 
 	EntPropCompatibility entCompatibility;

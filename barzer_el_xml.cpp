@@ -43,7 +43,9 @@ BELParserXML::BELParserXML( BELReader* r ) :
 		parser(0),
 		statementCount(0)
 	{
-		statement.stmt.setSrcInfo(reader->getInputFileName().c_str());
+		const char* srcName =reader->getInputFileName().c_str();
+		uint32_t srcNameStrId = reader->getGlobalPools().internalString_intern( srcName );
+		statement.stmt.setSrcInfo(srcName, srcNameStrId );
 	}
 bool BELParserXML::isValidTag( int tag, int parent ) const
 {
@@ -1035,7 +1037,10 @@ BELParserXML::~BELParserXML()
 
 int BELParserXML::parse( std::istream& fp )
 {
-	statement.stmt.setSrcInfo(reader->getInputFileName().c_str());
+	const char* srcName =reader->getInputFileName().c_str();
+	uint32_t srcNameStrId = reader->getGlobalPools().internalString_intern( srcName );
+	statement.stmt.setSrcInfo(srcName, srcNameStrId );
+	//statement.stmt.setSrcInfo(reader->getInputFileName().c_str());
 
 	/// initialize parser  if needed
 	if( !parser ) {
