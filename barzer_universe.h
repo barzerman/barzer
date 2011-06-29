@@ -185,7 +185,7 @@ public:
 	size_t d_maxAnalyticalModeMaxSeqLength;
 
 	uint32_t internalString_intern( const char* str ) { return internalStringPool.internIt( str ); }
-	const char* internalString_resolve( uint32_t id ) { return internalStringPool.resolveId( id ); }
+	const char* internalString_resolve( uint32_t id ) const { return internalStringPool.resolveId( id ); }
 	
 	size_t getMaxAnalyticalModeMaxSeqLength() const { return d_maxAnalyticalModeMaxSeqLength; }
 
@@ -227,9 +227,10 @@ public:
 	ay::UniqueCharPool& getStringPool() { return stringPool; }
 	const ay::UniqueCharPool& getStringPool() const { return stringPool; }
 
-
+	std::ostream& printTanslationTraceInfo( std::ostream& , const BarzelTranslationTraceInfo& traceInfo ) const;
 	GlobalPools();
 	~GlobalPools();
+
 };
 
 class StoredUniverse {

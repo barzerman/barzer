@@ -181,18 +181,6 @@ inline bool operator< (const BarzelWCLookupKey& l, const BarzelWCLookupKey& r )
 	);
 }
 
-struct BarzelTranslationTraceInfo {
-	// string id of the source name
-	// its not stoed in the maain string pool but in the per trie pool for internal names only
-	uint32_t source;
-
-	// statement number  and the order in which the rule was emitted
-	uint32_t statementNum, emitterSeqNo;
-
-	BarzelTranslationTraceInfo( ) : source(0xffffffff), statementNum(0xffffffff),emitterSeqNo(0xffffffff) {}
-	void set( uint32_t s, uint32_t st, uint32_t em ) 
-	{ source = s; statementNum = st; emitterSeqNo = em; }
-};
 /// right side of the pattern 
 class BarzelTranslation {
 public:
@@ -469,7 +457,7 @@ struct BELTrie {
 	/// adds a new path to the 
 	const BarzelTrieNode* addPath( const BELStatementParsed& stmt, const BTND_PatternDataVec& path, uint32_t tranId, const BELVarInfo& varInfo, uint32_t emitterSeqNo );
 	void setTanslationTraceInfo( BarzelTranslation& tran, const BELStatementParsed& stmt, uint32_t emitterSeqNo );
-	std::ostream& printTanslationTraceInfo( std::ostream& , const BarzelTranslationTraceInfo& traceInfo );
+	std::ostream& printTanslationTraceInfo( std::ostream& , const BarzelTranslationTraceInfo& traceInfo ) const;
 	BarzelWildcardPool&  getWCPool() { return *wcPool; }
 	const BarzelWildcardPool&  getWCPool() const { return *wcPool; }
 

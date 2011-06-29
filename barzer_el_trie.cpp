@@ -431,12 +431,9 @@ const BarzelTrieNode* BELTrie::addPath(
 	return n;
 }
 
-std::ostream& BELTrie::printTanslationTraceInfo( std::ostream& fp, const BarzelTranslationTraceInfo& traceInfo )
+std::ostream& BELTrie::printTanslationTraceInfo( std::ostream& fp, const BarzelTranslationTraceInfo& traceInfo ) const
 {
-	const char* srcName = globalPools.internalString_resolve( traceInfo.source );
-	
-	return ( fp << ( srcName ? srcName : "(null)" ) << ':' << traceInfo.statementNum << '.' <<
-	traceInfo.emitterSeqNo );
+	return globalPools.printTanslationTraceInfo( fp, traceInfo );
 }
 bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELStatementParsed& stmt, uint32_t emitterSeqNo )
 {
