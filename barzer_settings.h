@@ -40,7 +40,7 @@ struct ParseSettings {
 };
 
 
-typedef std::pair<const char*, const char*> TriePath;
+typedef std::pair<std::string, std::string> TriePath;
 class BarzerSettings;
 struct User {
 	typedef uint32_t Id;
@@ -72,7 +72,7 @@ struct User {
 	TrieVec& getTries() { return tries; }
 	const TrieVec& getTries() const { return tries; }
 
-	void addTrie(const char *cl, const char *id);
+	void addTrie(const std::string&, const std::string&);
 
 	Spell* getSpell() { return spell.get_ptr(); }
 	Spell& createSpell(const char *md, const char *affx);
@@ -86,7 +86,7 @@ struct User {
 struct Rulefile {
 	TriePath trie;
 	const char *fname;
-	Rulefile(const char *fn, const char *tclass = 0, const char *tid = 0)
+	Rulefile(const char *fn, const std::string &tclass = "", const std::string &tid = "")
 		: trie(TriePath(tclass, tid)), fname(fn) {}
 };
 
@@ -131,9 +131,9 @@ public:
 	void loadParseSettings();
 	void loadEntities();
 	///loads spellchecker related stuff (hunspell dictionaries, extra word lists and such)
-	void loadSpell(StoredUniverse&, const boost::property_tree::ptree&);
+	void loadSpell(User&, const boost::property_tree::ptree&);
 
-	void loadTrieset(StoredUniverse&, const boost::property_tree::ptree&);
+	void loadTrieset(User&, const boost::property_tree::ptree&);
 
 	void loadUsers();
 	void loadUser(const boost::property_tree::ptree::value_type &);
@@ -141,8 +141,8 @@ public:
 	User& createUser(User::Id id);
 	User* getUser(User::Id id);
 
-	void addRulefile(const char *fn);
-	void addRulefile(const char *fn, const char *tclass, const char *tid);
+	//void addRulefile(const char *fn);
+	void addRulefile(const char *fn, const std::string&, const std::string&);
 
 	void addEntityFile(const char*);
 	void setLogging(const Logging&);

@@ -26,15 +26,24 @@ static ptree& empty_ptree() {
 namespace barzer {
 
 User::Spell::Spell(User *u, const char *md, const char *a)
-	: user(u), hunspell(&(u->getUniverse().getHunspell())), maindict(md), affx(a) {}
+	: user(u), hunspell(&(u->getUniverse().getHunspell())), maindict(md), affx(a)
+{
+	std::cout << "initializing hunspell with "
+			  << a << " and " << md << "\n";
+	hunspell->initHunspell(md, a);
+
+}
 
 void User::Spell::addExtra(const char *path)
 {
+	std::cout << "adding extra file " << path << "... " <<
+			hunspell->addWordsFromTextFile(path) << " words added\n";
 	vec.push_back(Rec(EXTRA, path));
-	hunspell->addWordsFromTextFile(path);
+
 } //*/
 void User::Spell::addDict(const char *path)
 {
+	std::cout << "adding dictionary " << path << std::endl;
 	vec.push_back(Rec(DICT, path));
 	hunspell->addDictionary(path);
 } //*/
@@ -50,7 +59,7 @@ User::Spell& User::createSpell(const char *md, const char *affx)
 	return spell.get();
 }
 
-void User::addTrie(const char *cl, const char *id) {
+void User::addTrie(const std::string &cl, const std::string &id) {
 	tries.push_back(TriePath(cl, id));
 	universe.getTrieCluster().appendTrie(cl, id);
 }
@@ -76,12 +85,16 @@ BarzerSettings::BarzerSettings(GlobalPools &gp)
 { init(); }
 
 
-void BarzerSettings::addRulefile(const char *fn, const char *tclass = "", const char *tid = "")
+void BarzerSettings::addRulefile(const char *fn, const std::string &tclass = "",
+												 const std::string &tid = "")
 {
 	rules.push_back(Rulefile(fn, tclass, tid));
 	reader.setTrie(tclass, tid);
 	size_t num = reader.loadFromFile(fn, BELReader::INPUT_FMT_XML);
-	std::cout << num << " statements loaded from `" << fn << "'\n";
+	std::cout << num << " statements loaded from `" << fn << "'";
+	if (!(tclass.empty() || tid.empty()))
+		std::cout << " into the trie `" << tclass << "." << tid << "'";
+	std::cout << "\n";
 }
 
 
@@ -125,16 +138,11 @@ void BarzerSettings::loadRules() {
 				const ptree &attrs = file.get_child("<xmlattr>");
 				const std::string &cl = attrs.get<std::string>("class"),
 			                  	  &id = attrs.get<std::string>("id");
-				reader.setTrie(cl, id);
-				std::cout << "loading `" << fname << "' into trie ("
-						  << cl << "." << id << ")\n";
+				addRulefile(fname, cl, id);
 			} catch (boost::property_tree::ptree_bad_path&) {
-				reader.setTrie("", "");
-				std::cout << "loading `" << fname << "' into default trie\n";
+				addRulefile(fname);
 			}
 
-			int num = reader.loadFromFile(fname, BELReader::INPUT_FMT_XML);
-			std::cout << num << " statements loaded from `" << fname << "'\n";
 		} else {
 			AYLOG(ERROR) << "Unknown tag /rules/" << v.first;
 		}
@@ -177,9 +185,9 @@ void BarzerSettings::loadEntities() {
 }
 
 
-void BarzerSettings::loadSpell(StoredUniverse &u, const ptree &node)
+void BarzerSettings::loadSpell(User &u, const ptree &node)
 {
-	BarzerHunspell& hunspell = u.getHunspell();
+	//BarzerHunspell& hunspell = u.getHunspell();
 
 	//const boost::optional<ptree &> spell_opt = node.get_child_optional("spell");
 	const ptree &spell = node.get_child("spell", empty_ptree());
@@ -196,20 +204,15 @@ void BarzerSettings::loadSpell(StoredUniverse &u, const ptree &node)
 		const std::string &affx = attrs.get<std::string>("affx"),
 			              &dict = attrs.get<std::string>("maindict");
 
-		std::cerr << "initializing hunspell with "
-				  << affx << " and " << dict << std::endl;
-
-		hunspell.initHunspell(affx.c_str(), dict.c_str());
+		User::Spell &s = u.createSpell(affx.c_str(), dict.c_str());
 
 		BOOST_FOREACH(const ptree::value_type &v, spell) {
 			const std::string& tagName = v.first;
 			const char* tagVal = v.second.data().c_str();
 			if( tagName == "dict" ) {
-				std::cerr << "adding dictionary " << tagVal << std::endl;
-				hunspell.addDictionary( tagVal );
+				s.addDict( tagVal );
 			} else if( tagName == "extra" ) {
-				std::cerr << "adding extra file " << tagVal << "... " <<
-				hunspell.addWordsFromTextFile( tagVal ) << " words added\n";
+				s.addExtra( tagVal );
 		   }
 		}
 	} catch (boost::property_tree::ptree_bad_path &e) {
@@ -218,7 +221,7 @@ void BarzerSettings::loadSpell(StoredUniverse &u, const ptree &node)
 	}
 }
 
-void BarzerSettings::loadTrieset(StoredUniverse &u, const ptree &node) {
+void BarzerSettings::loadTrieset(User &u, const ptree &node) {
 	BOOST_FOREACH(const ptree::value_type &v, node.get_child("trieset", empty_ptree())) {
 		if (v.first == "trie") {
 			const ptree &trie = v.second;
@@ -226,7 +229,8 @@ void BarzerSettings::loadTrieset(StoredUniverse &u, const ptree &node) {
 				const ptree &attrs = trie.get_child("<xmlattr>");
 				const std::string &cl = attrs.get<std::string>("class"),
 								  &name = attrs.get<std::string>("name");
-				u.getTrieCluster().appendTrie(cl, name);
+				u.addTrie(cl, name);
+				//u.getTrieCluster().appendTrie(cl, name);
 			} catch (boost::property_tree::ptree_bad_path &e) {
 				AYLOG(ERROR) << "Can't get " << e.what();
 			}
@@ -244,7 +248,9 @@ void BarzerSettings::loadUser(const ptree::value_type &user) {
 		return;
 	}
 
-	StoredUniverse &u = gpools.produceUniverse(userId.get());
+	User &u = createUser(userId.get());
+
+	//StoredUniverse &u = gpools.produceUniverse(userId.get());
 	std::cout << "Loading user id: " << userId << "\n";
 
 	loadTrieset(u, children);
