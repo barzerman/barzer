@@ -2,7 +2,7 @@ PYINCLUDE := $(shell python-config --includes)
 PYLIBS := $(shell python-config --libs)
 
 FLAGS := $(FLAGS) ${PYLIBS} -lboost_python -lstdc++ 
-CFLAGS := $(CFLAGS) $(OPT) $(BITMODE) $(FLAGS) $(PYINCLUDE) -Wall -O3 -s -I. -fpic
+CFLAGS := $(CFLAGS) $(OPT) $(BITMODE) $(FLAGS) $(PYINCLUDE) -Wno-array-bounds -O3 -s -I. -fpic -I/opt/local/include 
 LIBNAME=libbarzerutil.a
 SHARED_LIBNAME=libbarzerutil.so
 PYTHON_LIBNAME=python_util.so
