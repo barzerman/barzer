@@ -204,8 +204,12 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
 				/// fall thru - this is an unmatched word
 
 				/// lets try to spell correct the token
-				if( trySpellCorrectAndClassify( ctok, ttok ) > 0 )
-					wasStemmed = true;
+				if( d_universe.stemByDefault() ) {
+					if( trySpellCorrectAndClassify( ctok, ttok ) > 0 )
+						wasStemmed = true;
+	 			} else {
+					ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
+				}
 			}
 		}
 		/// stemming 

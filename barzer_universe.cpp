@@ -62,6 +62,7 @@ GlobalPools::GlobalPools() :
 	funSt(*this),
 	dateLookup(*this),
 	globalTriePool( 
+			*this,
 			&barzelRewritePool,
 			&barzelWildcardPool,
 			&barzelFirmChildPool,
@@ -78,6 +79,13 @@ GlobalPools::GlobalPools() :
 
 }
 
+std::ostream& GlobalPools::printTanslationTraceInfo( std::ostream& fp, const BarzelTranslationTraceInfo& traceInfo ) const
+{
+	const char* srcName = internalString_resolve( traceInfo.source );
+	
+	return ( fp << ( srcName ? srcName : "(null)" ) << ':' << traceInfo.statementNum << '.' <<
+	traceInfo.emitterSeqNo );
+}
 void GlobalPools::createGenericEntities()
 {
 	for( size_t i=0; i< ARR_SZ( g_genDta ); ++i ) {

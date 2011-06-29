@@ -20,6 +20,19 @@ namespace barzer {
 struct BELPrintContext;
 struct Universe;
 
+struct BarzelTranslationTraceInfo {
+	// string id of the source name
+	// its not stoed in the maain string pool but in the per trie pool for internal names only
+	uint32_t source;
+
+	// statement number  and the order in which the rule was emitted
+	uint32_t statementNum, emitterSeqNo;
+
+	BarzelTranslationTraceInfo( ) : source(0xffffffff), statementNum(0xffffffff),emitterSeqNo(0xffffffff) {}
+	void set( uint32_t s, uint32_t st, uint32_t em ) 
+	{ source = s; statementNum = st; emitterSeqNo = em; }
+};
+
 struct BarzerNone {
 };
 inline bool operator<( const BarzerNone& l, const BarzerNone& r ) { return false; }

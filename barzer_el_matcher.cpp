@@ -950,8 +950,9 @@ bool BarzelMatcher::match( RewriteUnit& ru, BarzelBeadChain& beadChain )
 }
 
 /// 
-int BarzelMatcher::rewriteUnit( RewriteUnit& ru, BarzelBeadChain& chain )
+int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 {
+	BarzelBeadChain& chain = barz.getBeads();
 	BarzelMatchInfo& matchInfo = ru.first;
 	
 	const BarzelTranslation* transP = ru.second;
@@ -1031,6 +1032,8 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, BarzelBeadChain& chain )
 		theBead.setData(  transResult.getBeadData() );
 		chain.collapseRangeLeft( range );
 	}
+	barz.pushTrace( transP->traceInfo );
+
 	return 0;
 }
 int BarzelMatcher::matchAndRewrite( Barz& barz )
@@ -1063,7 +1066,7 @@ int BarzelMatcher::matchAndRewrite( Barz& barz )
 		//std::cerr << "**************** SHIT BEFORE {\n";
 		//AYDEBUG( beads.getFullRange() );
 		//std::cerr << "} **************** end SHIT BEFORE {\n";
-		int rewrRc = rewriteUnit( rewrUnit, beads );
+		int rewrRc = rewriteUnit( rewrUnit, barz );
 		//std::cerr << "**************** SHIT AFTER {\n";
 		//AYDEBUG( beads.getFullRange() );
 		//std::cerr << "} **************** end SHIT AFTER {\n";

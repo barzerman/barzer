@@ -206,8 +206,9 @@ public:
 		T_MAX
 	} Type_t;
 	boost::variant< uint32_t, float, int> id;
+	BarzelTranslationTraceInfo traceInfo;
 	uint8_t  type; // one of T_XXX constants 
-		
+
 	void set( BELTrie& trie, const BTND_Rewrite_Literal& );
 	void set( BELTrie& trie, const BTND_Rewrite_Number& );
 	void set( BELTrie& trie, const BTND_Rewrite_MkEnt& );
@@ -384,7 +385,10 @@ public:
 
 typedef std::map< BarzelWCLookupKey, BarzelTrieNode > BarzelWCLookup;
 struct BELStatementParsed;
+class GlobalPools;
+
 struct BELTrie {
+	GlobalPools& globalPools;
 	BarzelRewriterPool* rewrPool;
 	BarzelWildcardPool* wcPool;
 	BarzelFirmChildPool* fcPool;
@@ -394,11 +398,13 @@ struct BELTrie {
 
 	BarzelTrieNode root;
 	BELTrie( 
+		GlobalPools& gp,
 		BarzelRewriterPool*  rPool, 
 		BarzelWildcardPool* wPool,
 		BarzelFirmChildPool* fPool,
 		BarzelTranslationPool* tPool 
 	) : 
+		globalPools(gp),
 		rewrPool(rPool), 
 		wcPool(wPool),
 		fcPool(fPool),
@@ -437,7 +443,7 @@ struct BELTrie {
 
 	/// tries to add another translation to the existing one. 
 	/// initially this will only work for entity lists 
-	bool tryAddingTranslation( BarzelTrieNode* n, uint32_t tranId ); 
+	bool tryAddingTranslation( BarzelTrieNode* n, uint32_t tranId, const BELStatementParsed& stmt, uint32_t emitterSeqNo ); 
 
 	BarzelFCMap*  makeNewBarzelFCMap( uint32_t& id ) 
 		{ return fcPool->addObj( id ); }
@@ -449,7 +455,9 @@ struct BELTrie {
 	void produceWCKey( BarzelWCKey&, const BTND_PatternData&   );
 
 	/// adds a new path to the 
-	const BarzelTrieNode* addPath( const BELStatementParsed& stmt, const BTND_PatternDataVec& path, uint32_t tranId, const BELVarInfo& varInfo );
+	const BarzelTrieNode* addPath( const BELStatementParsed& stmt, const BTND_PatternDataVec& path, uint32_t tranId, const BELVarInfo& varInfo, uint32_t emitterSeqNo );
+	void setTanslationTraceInfo( BarzelTranslation& tran, const BELStatementParsed& stmt, uint32_t emitterSeqNo );
+	std::ostream& printTanslationTraceInfo( std::ostream& , const BarzelTranslationTraceInfo& traceInfo ) const;
 	BarzelWildcardPool&  getWCPool() { return *wcPool; }
 	const BarzelWildcardPool&  getWCPool() const { return *wcPool; }
 

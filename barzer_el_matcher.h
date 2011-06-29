@@ -92,14 +92,6 @@ public:
 		d_beadRng = BeadRange();
 	}
 
-	/* SHIT
-	const NodeAndBead* getDataByNameId( uint32_t id ) const 
-	{
-		std::map< uint32_t, size_t >::const_iterator i = d_varNameMap.find( id );
-		return( i == d_varNameMap.end() ? 0 : getDataByElementNumber( i->second ) );
-	}
-	*/
-	
 	inline const NodeAndBead* getDataByVar_trivial( const BTND_Rewrite_Variable& var ) const
 	{
 		switch( var.getIdMode() ) {
@@ -132,16 +124,6 @@ public:
 
 };
 typedef std::pair<BarzelMatchInfo,const BarzelTranslation*> RewriteUnit;
-/*
-struct RewriteUnit {
-	BarzelMatchInfo first;
-	const BarzelTranslation* second;
-	const BarzelTrieNode* trieNode;
-	
-	RewriteUnit() : second(0), trieNode(0) {}
-};
-*/
-//struct RewriteUnit;
 
 /// Barzel TrieMatcher (BTM)
 struct BTMBestPaths {
@@ -154,7 +136,7 @@ struct BTMBestPaths {
 
 	// fallible paths (the ones with potential backout) potentially better than 
 	// the best infallible
-	// this will be implemented LATER (SHIT)
+	// this will be implemented LATER (?) 
 	typedef std::pair< NodeAndBeadVec, int > NABVScore;
 	std::list<NABVScore> d_falliblePaths;
 
@@ -182,12 +164,6 @@ struct BTMBestPaths {
 	int getBestScore() const
 		{ return d_bestInfallibleScore; }
 	const NodeAndBeadVec&  getBestPath() const { return  d_bestInfalliblePath ; }
-	/*
-	const BarzelTranslation* const getTranslation() { 
-		const NodeAndBeadVec& p = getBestPath();
-		return( p.size() ? p.rbegin()->first->getTranslation(universe.getBarzelTrie()) : 0 ); 
-	}
-	*/
 	const BarzelTrieNode*  getTrieNode() const { 
 		const NodeAndBeadVec& p = getBestPath();
 		return( p.size() ? p.rbegin()->first : 0 ); 
@@ -252,7 +228,7 @@ protected:
 
 	virtual bool match( RewriteUnit&, BarzelBeadChain& );
 
-	int rewriteUnit( RewriteUnit&, BarzelBeadChain& );	 	
+	int rewriteUnit( RewriteUnit&, Barz& );	 	
 
 	class PathExclusionList {
 		public:

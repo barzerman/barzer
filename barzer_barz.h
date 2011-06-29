@@ -19,6 +19,7 @@ class Barz {
 	std::vector<char> question; 
 	/// exact copy of the original question
 	std::string questionOrig; 
+
 	
 	TTWPVec ttVec; 
 	CTWPVec ctVec; 
@@ -34,6 +35,16 @@ class Barz {
 	/// tokens and that ttVec tokens point into it
 	void syncQuestionFromTokens();
 public:
+	typedef std::vector< BarzelTranslationTraceInfo > BarzelTraceVec;
+	enum { MAX_TRACE_LEN = 256 };
+
+	BarzelTraceVec barzelTraceVec;
+	
+	void pushTrace( const BarzelTranslationTraceInfo& trace ) { 
+		if( barzelTraceVec.size() < MAX_TRACE_LEN ) 
+			barzelTraceVec.push_back( trace ) ; 
+	}
+
 	const TTWPVec& getTtVec() const { return  ttVec; }
 	const CTWPVec& getCtVec() const { return ctVec; }
 

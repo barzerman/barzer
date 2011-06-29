@@ -26,6 +26,7 @@ class GlobalTriePool {
 
 	TrieMap d_trieMap;
 
+	GlobalPools& d_gp;
 	BarzelRewriterPool* d_rewrPool;
 	BarzelWildcardPool* d_wcPool;
 	BarzelFirmChildPool* d_fcPool;
@@ -65,6 +66,7 @@ public:
 		if( i == ctm.end() ) 
 			i = ctm.insert( ClassTrieMap::value_type(trieId, 
 				BELTrie(
+					d_gp,
 					d_rewrPool,
 					d_wcPool,
 					d_fcPool,
@@ -78,11 +80,13 @@ public:
 		{ return produceTrie( std::string(), std::string() ); }
 
 	GlobalTriePool( 
+			GlobalPools& gp,
 			BarzelRewriterPool* rewrPool,
 			BarzelWildcardPool* wcPool,
 			BarzelFirmChildPool* fcPool,
 			BarzelTranslationPool* tranPool
 	) :
+			d_gp(gp),
 			d_rewrPool( rewrPool ),
 			d_wcPool( wcPool ),
 			d_fcPool( fcPool ),
@@ -153,7 +157,11 @@ public:
 	// 0 should never be used 
 	enum { DEFAULT_UNIVERSE_ID = 0 }; 
 
-	ay::UniqueCharPool stringPool; /// all strings in the universe 
+	ay::UniqueCharPool stringPool; /// all dictionary strings in the universe 
+
+	/// strings for internal use only - file names, trie names, user info stuff etc 
+	/// this pool should be very small compared to stringPool
+	ay::UniqueCharPool internalStringPool; 
 	/// every client's domain has this 
 	DtaIndex dtaIdx; // entity-token links
 
@@ -176,6 +184,9 @@ public:
 	bool d_isAnalyticalMode;
 	size_t d_maxAnalyticalModeMaxSeqLength;
 
+	uint32_t internalString_intern( const char* str ) { return internalStringPool.internIt( str ); }
+	const char* internalString_resolve( uint32_t id ) const { return internalStringPool.resolveId( id ); }
+	
 	size_t getMaxAnalyticalModeMaxSeqLength() const { return d_maxAnalyticalModeMaxSeqLength; }
 
 	EntPropCompatibility entCompatibility;
@@ -216,9 +227,10 @@ public:
 	ay::UniqueCharPool& getStringPool() { return stringPool; }
 	const ay::UniqueCharPool& getStringPool() const { return stringPool; }
 
-
+	std::ostream& printTanslationTraceInfo( std::ostream& , const BarzelTranslationTraceInfo& traceInfo ) const;
 	GlobalPools();
 	~GlobalPools();
+
 };
 
 class StoredUniverse {

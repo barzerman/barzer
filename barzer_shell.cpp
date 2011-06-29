@@ -263,6 +263,8 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 	QuestionParm qparm;
 	//std::ostream &os = shell->getOutStream();
+	const StoredUniverse &uni = context->universe;
+	const GlobalPools &globalPools = uni.getGlobalPools();
 
 	while( reader.nextLine() && reader.str.length() ) {
 		const char* q = reader.str.c_str();
@@ -270,6 +272,14 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 		parser.parse( barz, q, qparm );
 		*ostr << "parsed. printing\n";
 		bs.print(*ostr);
+		
+		if( barz.barzelTraceVec.size() ) {
+			*ostr << "barzel rules trace {\n";	
+			for( Barz::BarzelTraceVec::const_iterator ti = barz.barzelTraceVec.begin(); ti != barz.barzelTraceVec.end(); ++ti ) {
+				globalPools.printTanslationTraceInfo( *ostr, *ti ) << "\n";
+			}
+			*ostr << "end of rule trace }\n";	
+		}
 		// << ttVec << std::endl;
 	}
 	return 0;
@@ -304,7 +314,7 @@ static int bshf_anlqry( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 		std::pair< size_t, size_t > barzRc = barz.getBeadCount();
 		++numQueries;
-		if( !(numQueries%10) ) 
+		if( !(numQueries%5000) ) 
 			std::cerr << '.';
 		if( barzRc.first ) 
 			++numSemanticalBarzes;
