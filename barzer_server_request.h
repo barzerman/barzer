@@ -16,6 +16,7 @@
 #include <barzer_barz.h>
 #include <barzer_parse.h>
 #include <barzer_server_response.h>
+#include <barzer_settings.h>
 
 
 extern "C" {
@@ -28,20 +29,46 @@ typedef std::pair<std::string, std::string> AttrPair;
 
 class BarzerRequestParser;
 
-typedef boost::function<void(BarzerRequestParser*)> ReqCmdFunc;
-typedef std::map<std::string,ReqCmdFunc> CmdFunMap;
+
+struct TrieId {
+	User::Id userId;
+	TriePath path;
+	TrieId(User::Id uid, const std::string &cl, const std::string &tid)
+		: userId(uid), path(cl, tid) {}
+};
+
+struct UserId {
+	User::Id id;
+	UserId(User::Id i) : id(i) {}
+};
+
+
+typedef boost::variant<
+		Rulefile,
+		TrieId,
+		UserId
+	> CmdArg;
+typedef std::vector<CmdArg> CmdArgList;
 
 class BarzerRequestParser {
+public:
+	typedef std::map<const std::string, const std::string> AttrList;
 	struct RequestTag {
 		std::string tagName;
-		std::map<std::string,std::string> attrs;
+		AttrList attrs;
 		std::string body;
 	};
+	enum Cmd {ADD,DELETE};
+private:
+
 	std::vector<RequestTag> tagStack;
+
+	CmdArgList arglist;
 
 	Barz barz;
 
 	GlobalPools &gpools;
+	BarzerSettings &settings;
 	uint32_t userId;
 
 	/*
@@ -61,9 +88,7 @@ public:
 		return XML_Parse(parser, buf, len, true);
 	}
 
-	RequestTag& getTag() {
-		return tagStack.back();
-	}
+	RequestTag& getTag();
 
 	void addTag(const char *name)
 	{
@@ -78,11 +103,18 @@ public:
 	void setBody(const std::string &s);
 
 	void process(const char *name);
-	void command_query();
+	void tag_query(RequestTag&);
+	void tag_cmd(RequestTag&);
+	void tag_rulefile(RequestTag&);
+	void tag_user(RequestTag&);
+	void tag_trie(RequestTag&);
 
-
+	BarzerSettings& getSettings() { return settings; }
+	std::ostream& stream() { return os; }
 };
 
+inline BarzerRequestParser::RequestTag& BarzerRequestParser::getTag()
+	{ return tagStack.back(); }
 
 }
 

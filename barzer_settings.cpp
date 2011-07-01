@@ -59,15 +59,17 @@ User::Spell& User::createSpell(const char *md, const char *affx)
 	return spell.get();
 }
 
-void User::addTrie(const std::string &cl, const std::string &id) {
-	tries.push_back(TriePath(cl, id));
-	universe.getTrieCluster().appendTrie(cl, id);
+//void User::addTrie(const std::string &cl, const std::string &id) {
+void User::addTrie(const TriePath &tp) {
+	tries.push_back(tp);
+	universe.getTrieCluster().appendTrie(tp.first, tp.second);
 }
 
 
 User& BarzerSettings::createUser(User::Id id) {
 	UserMap::iterator it = umap.find(id);
 	if (it == umap.end()) {
+		std::cout << "Adding user id(" << id << ")\n";
 		return umap.insert(UserMap::value_type(id, User(id, *this))).first->second;
 	} else return it->second;
 
@@ -85,17 +87,26 @@ BarzerSettings::BarzerSettings(GlobalPools &gp)
 { init(); }
 
 
-void BarzerSettings::addRulefile(const char *fn, const std::string &tclass = "",
-												 const std::string &tid = "")
-{
-	rules.push_back(Rulefile(fn, tclass, tid));
+
+void BarzerSettings::addRulefile(const Rulefile &f) {
+	const std::string &tclass = f.trie.first,
+					  &tid = f.trie.second;
+	const char *fname = f.fname;
 	reader.setTrie(tclass, tid);
-	size_t num = reader.loadFromFile(fn, BELReader::INPUT_FMT_XML);
-	std::cout << num << " statements loaded from `" << fn << "'";
+
+	size_t num = reader.loadFromFile(fname, BELReader::INPUT_FMT_XML);
+	std::cout << num << " statements loaded from `" << fname << "'";
 	if (!(tclass.empty() || tid.empty()))
 		std::cout << " into the trie `" << tclass << "." << tid << "'";
 	std::cout << "\n";
 }
+/*
+void BarzerSettings::addRulefile(const char *fn, const std::string &tclass = "",
+												 const std::string &tid = "")
+{
+	rules.push_back(Rulefile(fn, tclass, tid));
+
+} */
 
 
 void BarzerSettings::addEntityFile(const char *fname)
@@ -138,9 +149,9 @@ void BarzerSettings::loadRules() {
 				const ptree &attrs = file.get_child("<xmlattr>");
 				const std::string &cl = attrs.get<std::string>("class"),
 			                  	  &id = attrs.get<std::string>("id");
-				addRulefile(fname, cl, id);
+				addRulefile(Rulefile(fname, cl, id));
 			} catch (boost::property_tree::ptree_bad_path&) {
-				addRulefile(fname);
+				addRulefile(Rulefile(fname));
 			}
 
 		} else {
@@ -229,7 +240,7 @@ void BarzerSettings::loadTrieset(User &u, const ptree &node) {
 				const ptree &attrs = trie.get_child("<xmlattr>");
 				const std::string &cl = attrs.get<std::string>("class"),
 								  &name = attrs.get<std::string>("name");
-				u.addTrie(cl, name);
+				u.addTrie(TriePath(cl, name));
 				//u.getTrieCluster().appendTrie(cl, name);
 			} catch (boost::property_tree::ptree_bad_path &e) {
 				AYLOG(ERROR) << "Can't get " << e.what();
