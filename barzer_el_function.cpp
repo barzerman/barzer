@@ -90,6 +90,11 @@ template<class T> const T& getAtomic(const BarzelEvalResult &result) {
 			boost::get<BarzelBeadAtomic>(result.getBeadData()).getData());
 }
 
+template<class T> const T& getAtomic(const BarzelBeadData &dta) {
+	return boost::get<T>(
+			boost::get<BarzelBeadAtomic>(dta).getData());
+}
+
 //template<class T> void setResult(BarzelEvalResult&, const T&);
 
 
@@ -931,13 +936,9 @@ struct BELFunctionStorage_holder {
 	// set "stop" type on the incoming literal.
 	STFUN(mkFluff)
 	{
-		if (!rvec.size()) {
-			AYLOG(ERROR) << "mkFluff(BarzerLiteral) needs 1 argument";
-			return false;
-		}
 		try {
-			BarzelBeadDataVec &resultVec = result.getBeadDataVec();
-			resultVec.clear();
+			BarzerLiteral &ltrl = setResult(result, BarzerLiteral());
+			ltrl.setStop();
 			for (BarzelEvalResultVec::const_iterator rvit = rvec.begin();
 													 rvit != rvec.end();
 													 ++rvit) {
@@ -945,23 +946,13 @@ struct BELFunctionStorage_holder {
 				for (BarzelBeadDataVec::const_iterator bdit = vec.begin();
 													   bdit != vec.end();
 													   ++bdit) {
-					const BarzelBeadAtomic &atm
-						= boost::get<BarzelBeadAtomic>(*bdit);
-					uint32_t id
-						= boost::get<BarzerLiteral>(atm.getData()).getId();
-					if (id != 0xffffffff) {
-						BarzerLiteral ltrl;
-						ltrl.setStop(id);
-						resultVec.push_back(BarzelBeadAtomic(ltrl));
+					const BarzerLiteral &fl = getAtomic<BarzerLiteral>(*bdit);
+					if (fl.isString() || fl.isCompound()) {
+						ltrl.setId(fl.getId());
+						return true;
 					}
 				}
 			}
-			/*
-			uint32_t id = getAtomic<BarzerLiteral>(rvec[0]).getId();
-			BarzerLiteral ltrl;
-			ltrl.setStop(id);
-			setResult(result, ltrl);
-			*/
 			return true;
 		} catch (boost::bad_get&) {
 			AYLOG(ERROR) << "mkFluff(BarzerLiteral): Wrong argument type";

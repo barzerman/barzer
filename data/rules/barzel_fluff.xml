@@ -160,7 +160,8 @@
     </pat>
     
         <tran>
-            <ltrl t="f"/>
+            <!-- ltrl t="f"/ -->
+            <func name="mkFluff"><var name="word" /></func>
         </tran>
     
     </stmt>

@@ -72,7 +72,8 @@ struct User {
 	TrieVec& getTries() { return tries; }
 	const TrieVec& getTries() const { return tries; }
 
-	void addTrie(const std::string&, const std::string&);
+	//void addTrie(const std::string&, const std::string&);
+	void addTrie(const TriePath&);
 
 	Spell* getSpell() { return spell.get_ptr(); }
 	Spell& createSpell(const char *md, const char *affx);
@@ -80,7 +81,6 @@ struct User {
 
 	StoredUniverse& getUniverse() { return universe; }
 	const StoredUniverse& getUniverse() const { return universe; }
-
 };
 
 struct Rulefile {
@@ -142,7 +142,8 @@ public:
 	User* getUser(User::Id id);
 
 	//void addRulefile(const char *fn);
-	void addRulefile(const char *fn, const std::string&, const std::string&);
+	//void addRulefile(const char *fn, const std::string&, const std::string&);
+	void addRulefile(const Rulefile &f);
 
 	void addEntityFile(const char*);
 	void setLogging(const Logging&);
