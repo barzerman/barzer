@@ -398,7 +398,7 @@ class BTND_Pattern_Range : public BTND_Pattern_Base {
 protected:
 	enum {
 		MODE_TYPE, // only compares the range type 
-		MODE_VAL // only compares the range type 
+		MODE_VAL // compares the range value
 	};
 	BarzerRange d_range;
 	int d_mode; 

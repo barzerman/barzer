@@ -44,12 +44,6 @@ class BarzerRequestParser {
 	GlobalPools &gpools;
 	uint32_t userId;
 
-	/*
-	Barz barz;
-	QParser qparser;
-	BarzStreamerXML response;
-	*/
-
 	std::ostream &os;
 public:
 	XML_Parser parser;

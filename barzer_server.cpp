@@ -104,18 +104,6 @@ void SearchSession::handle_read(const boost::system::error_code &ec, size_t byte
 				boost::bind(&SearchSession::handle_write, this,
 							boost::asio::placeholders::error,
 							boost::asio::placeholders::bytes_transferred));
-
-//				&handle_write);
-
-
-		/*
-		std::string request(chunk);
-		response = process_input(request);
-
-		boost::asio::write(socket_,  boost::asio::buffer("-ok- "));
-		boost::asio::write(socket_,  boost::asio::buffer(response, bytes_transferred));
-		*/
-
 	}
 }
 
