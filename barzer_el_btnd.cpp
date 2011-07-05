@@ -510,7 +510,7 @@ struct BTND_Base_print_XML : public statc_visitor<const char*> {
 	const BELTrie& d_trie;
 
 	void beginTag( ) { d_fp << '<'; } 
-	void endTag( ) { d_fp << ( d_closeTag ? "/>" : ">" ); }
+	void endTag( bool hasText = false ) { d_fp << ( (hasText || d_closeTag) ? "/>" : ">" ); }
 	void printClosingTag( const char* tag) { d_fp << "</" << tag << '>' ; }
 
 	BTND_Base_print_XML( std::ostream& fp, bool closeTag, const BELTrie& trie ) :
@@ -533,41 +533,38 @@ struct BTND_PatternData_print_XML : public BTND_Base_print_XML {
 	const char* operator()( const BTND_Pattern_Token& d ) 
 	{
 		const char* tag = "t";
+		d_fp <<"<t";
+		if( d.doStem ) {
+			d_fp << " s=\"y\"";
+		}
+		d_fp << '>' << GlobalPools::getInstance().decodeStringById_safe( d.stringId ) << "</t>";
+
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_Punct& d ) 
 	{
 		const char* tag = "t";
-		return tag;
-	}
-	const char* operator()( const BTND_Pattern_CompoundedWord& d ) 
-	{
-		const char* tag = "t";
+		d_fp << "<t>" << ( isascii(d.theChar) ? d.theChar : ' ' ) << "</t>";
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_Number& d ) 
 	{
-		const char* tag = "t";
-		return tag;
-	}
-	const char* operator()( const BTND_Pattern_Wildcard& d ) 
-	{
-		const char* tag = "t";
+		const char* tag = "n";
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_Date& d ) 
 	{
-		const char* tag = "t";
+		const char* tag = "date";
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_Time& d ) 
 	{
-		const char* tag = "t";
+		const char* tag = "time";
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_DateTime& d ) 
 	{
-		const char* tag = "t";
+		const char* tag = "dtim";
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_StopToken& d ) 
@@ -612,12 +609,14 @@ struct BTNDVariant_print_XML : public BTNDVariant_print_XML {
 	}
 	const char* operator()( const BTND_StructData& d ) { 
 		const char* tag = d.getXMLTag();
+		beginTag();
 		d.printXML( d_fp, d_trie );
+		endTag();
 		return tag;
 	}
 	template <typename T> 
 	const char* operator()( cosnt T& ) { 
-		d_fp << "unimplemented"; 
+		d_fp << "<unimplemented>"; 
 	}
 };
 
@@ -625,9 +624,7 @@ struct BTNDVariant_print_XML : public BTNDVariant_print_XML {
 std::ostream&  BELParseTreeNode::printBarzelXML( std::ostream& fp, const BELTrie& trie ) const
 {
 	BTNDVariant_print_XML vis(fp, (!child.size()), trie );
-	vis.beginTag();
 	const char* tag = boost::apply_visitor( vis, btndVar );
-	vis.endTag();
 	if( child.size() ) {
 		for( ChildrenVec::const_iterator i = child.begin(); i!= child.end(); ++i ) {
 			i->printBarzelXML(fp);

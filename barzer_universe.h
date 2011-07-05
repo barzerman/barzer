@@ -235,6 +235,11 @@ public:
 	GlobalPools();
 	~GlobalPools();
 
+	const char* decodeStringById( uint32_t strId ) const 
+		{ return dtaIdx.resolveStringById( strId ); }
+	/// never returns 0
+	const char* decodeStringById_safe( uint32_t strId ) const
+		{ const char* str = decodeStringById(strId); return (str ? str :"" ); }
 };
 
 class StoredUniverse {
