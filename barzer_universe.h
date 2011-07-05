@@ -155,7 +155,7 @@ class GlobalPools {
 	// there can be only one
 	static GlobalPools* g_instance;
 public:
-	GlobalPools* getInstance() { return g_instance; }
+	GlobalPools& getInstance() { return *g_instance; }
 	
 	// 0 should never be used 
 	enum { DEFAULT_UNIVERSE_ID = 0 }; 

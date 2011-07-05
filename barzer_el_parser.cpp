@@ -59,6 +59,10 @@ uint32_t BELParser::addCompoundedWordLiteral( const char* alias )
 	return sTok.tokId;
 }
 
+uint32_t BELParser::internString_internal( const char* t )
+{
+	return GlobalPools::getInstance().internString_internal( t );
+}
 uint32_t BELParser::internString( const char* t )
 {
 	// here we may want to tweak some (nonexistent yet) fields in StoredToken 

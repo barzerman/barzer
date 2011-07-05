@@ -18,18 +18,21 @@ std::ostream& glob_printRewriterByteCode( std::ostream& fp, const BarzelRewriter
 }
 } // end of anon namespace 
 
-std::ostream& BELPrintContext::printVariableName( std::ostream& fp, uint32_t varId ) const
+std::ostream& BELTrie::printVariableName( std::ostream& fp, uint32_t varId ) const
 {
 	const BELSingleVarPath* bsvp = trie.getVarIndex().getPathFromTranVarId( varId );
 		
+	const GlobalPools& gp = GlobalPools::getInstance();
 	if( bsvp && bsvp->size() ) {
 		BELSingleVarPath::const_iterator i = bsvp->begin(); 
-		fp << printableString( *i );
+		const char * s = gp.internalString_resolve( *i );
+
+		if( s ) fp << s;
 		for( ++i; i!= bsvp->end(); ++i ) {
-			fp << "." << printableString( *i );
+			fp << ".";
+			const char* s = gp.internalString_resolve( *i );
+			if( s ) fp << s;
 		}
-	} else {
-		fp << "bad_varid[" << std::hex << "]";
 	}
 	return fp;
 }

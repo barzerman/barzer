@@ -13,6 +13,7 @@
 // in the BarzEL trie
 namespace barzer {
 struct BELPrintContext;
+class BELTrie;
 
 //// BarzelTrieNodeData - PATTERN types 
 /// all pattern classes must inherit from this 
@@ -852,6 +853,8 @@ public:
 		}
 	}
 
+
+	std::ostream& printXML( std::ostream&, const BELTrie& ) const;
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 
 	int getType() const { return type; }
@@ -892,6 +895,8 @@ struct BTNDDecode {
 	static const char* typeName_Rewrite ( int x ) ; // BTND_Rewrite_XXXX_TYPE values 
 	static const char* typeName_Struct ( int x ) ; // BTND_Struct_XXXX_TYPE values 
 };
+
+class BELTrie;
 
 //// tree of these nodes is built during parsing
 //// a the next step the tree gets interpreted into BrzelTrie path and added to a trie 
@@ -989,7 +994,7 @@ struct BELParseTreeNode {
 	}
 
 	/// streams out XML recursively. the result should look like regular barzel xml 
-	std::ostream& printBarzelXML( std::ostream& fp ) const;
+	std::ostream& printBarzelXML( std::ostream& fp, const BELTrie&  ) const;
 };
 
 /// barzel macros 

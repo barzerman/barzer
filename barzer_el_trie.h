@@ -436,6 +436,8 @@ struct BELTrie {
 	      BarzelVariableIndex& getVarIndex()       { return d_varIndex; }
 	const BarzelVariableIndex& getVarIndex() const { return d_varIndex; }
 
+	std::ostream& printVariableName( std::ostream& fp, uint32_t varId ) const;
+	
 	BarzelTranslation*  makeNewBarzelTranslation( uint32_t& id ) 
 		{ return tranPool->addObj( id ); }
 	const BarzelTranslation* getBarzelTranslation( const BarzelTrieNode& node ) const { return tranPool->getObjById(node.getTranslationId()); }
@@ -537,7 +539,8 @@ struct BELPrintContext {
 	const char* printableString( uint32_t id )  const
 	{ return strPool.printableStr(id); }
 	
-	std::ostream& printVariableName( std::ostream& fp, uint32_t varId ) const;
+	std::ostream& printVariableName( std::ostream& fp, uint32_t varId ) const
+		{ return trie.printVariableName(fp,varId); }
 	const BarzelWCLookup*  getWildcardLookup( uint32_t id ) const; 
 
 	bool needDescend() const

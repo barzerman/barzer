@@ -1169,7 +1169,7 @@ void BELParserXML::CurStatementData::clear()
 void BELParserXMLEmit::addStatement( const BELStatementParsed& sp )
 {
 	sp << "<stmtset>";
-	sp.pattern.printBarzelXML( d_outStr );
+	sp.pattern.printBarzelXML( d_outStr, getTrie());
 	sp << "</stmtset>";
 }
 

@@ -53,13 +53,14 @@ struct BELStatementParsed {
 /// there will also be a binary parser 
 
 class BELReader;
-
+struct BELTrie;
 class BELParser {
 protected:
 	BELReader* reader; // parser doesnt own this pointer. reader owns the parser
 	std::ostream& d_outStream;
 
 	enum { MAX_VARNAME_LENGTH };
+	uint32_t internString_internal( const char* s ) ;
 	uint32_t internString( const char* s ) ;
 	/// gets variable name v1.v2.v3 ... interns individual parts and 
 	/// adds result to the variable pool as a whole vector
@@ -72,6 +73,8 @@ protected:
 	const BELReader* getReader() const { return reader; }
 	BELReader* getReader() { return reader; }
 
+	const BELTrie& const getTrie(); 
+	BELTrie& getTrie(); 
 public:
 	uint32_t stemAndInternTmpText( const char* s, int len );
 	BELParser( BELReader* r, std::ostream& outStream ) : d_outStream(outStream), reader(r) {}
@@ -83,7 +86,6 @@ public:
 	const BELParseTreeNode* getMacroByName( const std::string&  ) const;
 };
 
-struct BELTrie;
 //// the reader gets barzel code from a file 
 ///  parses them using the parser for  given format and adds 
 ///  resulting barzel statements to the trie 
@@ -151,11 +153,12 @@ public:
 	std::ostream& printNode( std::ostream& fp, const BarzelTrieNode& node ) const;
 };
 
-inline GlobalPools& BELParser::getGlobalPools()
-	{ return reader->getGlobalPools(); }
+inline BELTrie& BELParser::getTrie() { return reader->getTrie(); }
+inline const BELTrie& BELParser::getTrie() const { return reader->getTrie(); }
 
-inline const GlobalPools& BELParser::getGlobalPools() const
-	{ return reader->getGlobalPools(); }
+inline GlobalPools& BELParser::getGlobalPools() { return reader->getGlobalPools(); }
+
+inline const GlobalPools& BELParser::getGlobalPools() const { return reader->getGlobalPools(); }
 
 
 
