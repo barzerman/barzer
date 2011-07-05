@@ -468,6 +468,172 @@ std::ostream&  BTND_None::print( std::ostream& fp , const BELPrintContext& ) con
 	return ( fp << "None" ); 
 }
 
+std::ostream& BTND_Pattern_DateTime::printXML( std::ostream& fp ) const 
+{
+	fp << "<dtim";
+	switch(type) {
+	case T_ANY_DATETIME:
+		break;
+	case T_ANY_FUTURE_DATETIME: 
+		fp << " f=\"y\"";
+		break;
+	case T_ANY_PAST_DATETIME: 
+		fp << " p=\"y\"";
+		break;
+	case T_DATETIME_RANGE: 
+		if( lo.isValid() ) {
+			if( lo.hasDate() ) {
+				fp << " dl=\"" << lo.date.getLong() << "\";
+			}
+			if( lo.hasTime() ) {
+				fp << " tl=\"" << lo.timeOfDay.getLong() << "\";
+			}
+		}
+		if( hi.isValid() ) {
+			if( hi.hasDate() ) {
+				fp << " dh=\"" << hi.date.getLong() << "\";
+			}
+			if( hi.hasTime() ) {
+				fp << " th=\"" << hi.timeOfDay.getLong() << "\";
+			}
+		}
+		break;
+	}
+	fp << "/>";
+	return fp;
+}
+std::ostream& BTND_Pattern_Time::printXML( std::ostream& fp ) const 
+{
+	fp << "<time";
+	switch(type) {
+	case T_ANY_TIME:
+		break;
+	case T_ANY_FUTURE_TIME:
+		fp << " f=\"y\"";
+		break;
+	case T_ANY_PAST_TIME: 
+		fp << " p=\"y\"";
+		break;
+	case T_TIMERANGE: 
+		fp << " l=\"" << getLoLong() << "\" h=\"" << getHiLong() << "\"";
+		break;
+	}
+	fp << "/>";
+	return fp;
+}
+std::ostream& BTND_Pattern_Date::printXML( std::ostream& fp ) const 
+{
+	fp << "<date";
+	switch( type ) {
+	case T_ANY_DATE:
+		break;
+	case T_ANY_FUTUREDATE:
+		fp << " f=\"y\"";
+		break;
+	case T_ANY_PASTDATE:
+		fp << " p=\"y\"";
+		break;
+	case T_TODAY: // this seems to be unused
+		break;
+
+	case T_DATERANGE:
+		if( isLoSet() ) {
+			fp << " l=\"" << lo << "\"";
+		}
+		if( isHiSet() ) {
+			fp << " h=\"" << hi << "\"";
+		}
+		break;
+	}
+	fp << "/>";
+
+	return fp;
+}
+std::ostream& BTND_Pattern_ERC::printXML( std::ostream& fp ) const
+{
+	fo << "<erc";
+	if( isRangeValid() ) {
+		fp << " r=\"" << d_erc.geXMLtAttrValueChar() << "\"";
+	} else if(isMatchBlankRange()) {
+		fp << " br=\"y\"";
+	}
+	if( isEntityValid() ) {
+		fp << " c=\"" << d_erc.getEntity().eclass.ec << "\"";
+		if( erc.getEntity().eclass.subclass ) {
+			fp << " s=\"" << d_erc.getEntity().eclass.subclass << "\"";
+		}
+		if( d_erc.getEntity().tokId != 0xffffffff ) {
+			d_fp << " t=\"" << GlobalPools::getInstance().decodeStringById_safe( d_erc.getEntity().tokId ) << "\"";
+		}
+	} else if(isMatchBlankEntity()){
+		fp << " be=\"y\"";
+	}
+	if( isUnitEntityValid() ) {
+		fp << " uc=\"" << d_erc.getUnitEntity().eclass.ec << "\"";
+		if( erc.getEntity().eclass.subclass ) {
+			fp << " us=\"" << d_erc.getUnitEntity().eclass.subclass << "\"";
+		}
+		if( d_erc.getEntity().tokId != 0xffffffff ) {
+			d_fp << " ut=\"" << GlobalPools::getInstance().decodeStringById_safe( d_erc.getUnitEntity().tokId ) << "\"";
+		}
+	} else if(isMatchBlankEntity()){
+
+	return fo << "\>";
+}
+std::ostream& BTND_Pattern_Entity::printXML( std::ostream& fp ) const
+{
+	fo << "<ent";
+	if( d_ent.eclass.ec ) {
+		fp << " c=\"" << d_ent.eclass.ec << "\"";
+	}
+	if( d_ent.eclass.subclass ) {
+		fp << " s=\"" << d_ent.eclass.subclass << "\"";
+	}
+	if( d_ent.eclass.subclass ) {
+		fp << " s=\"" << d_ent.eclass.subclass << "\"";
+	}
+	if( d_ent.tokId != 0xffffffff ) {
+		fp << " t=\"" << GlobalPools::getInstance().decodeStringById_safe( d_ent.tokId )   << "\"";
+	}
+	fo << "/>";
+	return fp;
+}
+std::ostream& BTND_Pattern_Range::printXML( std::ostream& fp ) const
+{
+	fp << "<range";
+	if( range().isValid() ) 
+		fp << " t=\"" << range().geXMLtAttrValueChar()  << "\"";
+	if( isModeVal() ) {
+		fp << " m=\"v\"";
+	}
+	if( isEntity() ) {
+	}
+	return fp << "\>";
+}
+std::ostream& BTND_Pattern_ERCExpr::printXML( std::ostream& fp ) const
+{
+	fp << "<ercexpr";
+	return fp << "\>";
+}
+std::ostream& BTND_Pattern_Number::printXML( std::ostream& fp ) const
+{
+	fp << "<n";
+	if( d_asciiLen ) {
+		fp << " w=\"" <<  d_asciiLen << '"';
+	}
+	switch( type ) {
+	case T_ANY_INT: break;
+	case T_ANY_REAL:
+		fp << " r =\"y\";
+		break;
+	case T_RANGE_INT: 
+		fp << " r =\"y\" l=\"" << range.integer.lo << "\" h=\"" << range.integer.hi << "\""; break;
+	case T_RANGE_REAL: 
+		fp << "l=\"" << range.real.lo << "\" h=\"" << range.real.hi << "\""; break;
+	case T_ANY_NUMBER: break;
+	}
+	return fp << "/>";
+}
 bool BTND_Pattern_Number::operator() ( const BarzerNumber& num ) const
 {
 	uint8_t len = getAsciiLen();
@@ -534,8 +700,8 @@ struct BTND_PatternData_print_XML : public BTND_Base_print_XML {
 	{
 		const char* tag = "t";
 		d_fp <<"<t";
-		if( d.doStem ) {
-			d_fp << " s=\"y\"";
+		if( !d.doStem ) {
+			d_fp << " s=\"n\"";
 		}
 		d_fp << '>' << GlobalPools::getInstance().decodeStringById_safe( d.stringId ) << "</t>";
 
@@ -550,46 +716,56 @@ struct BTND_PatternData_print_XML : public BTND_Base_print_XML {
 	const char* operator()( const BTND_Pattern_Number& d ) 
 	{
 		const char* tag = "n";
+		d.printXML(d_fp);
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_Date& d ) 
 	{
 		const char* tag = "date";
+		d.printXML( d_fp );
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_Time& d ) 
 	{
 		const char* tag = "time";
+		d.printXML( d_fp );
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_DateTime& d ) 
 	{
 		const char* tag = "dtim";
+		d.printXML( d_fp );
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_StopToken& d ) 
 	{
 		const char* tag = "t";
+		d_fp << "<t t=\"f\">" << GlobalPools::getInstance().decodeStringById_safe( d.stringId ) << "</t>";
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_Entity& d ) 
 	{
-		const char* tag = "t";
+		const char* tag = "ent";
+		d.printXML( d_fp );
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_ERCExpr& d ) 
 	{
-		const char* tag = "t";
+		const char* tag = "ercexpr";
+		d.printXML( d_fp );
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_ERC& d ) 
 	{
-		const char* tag = "t";
+		const char* tag = "erc";
+		d_fp << "<erc";
+		d.printXML(d_fp);
+		d_fp << "\>";
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_Range& d ) 
 	{
-		const char* tag = "t";
+		const char* tag = "range";
 		return tag;
 	}
 };

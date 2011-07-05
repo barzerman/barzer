@@ -620,6 +620,7 @@ void BELParserXML::taghandle_RANGE( const char_cp * attr, size_t attr_sz , bool 
 			case 'i': pat.range().dta = BarzerRange::Integer(); break;
 			case 'r': pat.range().dta = BarzerRange::Real(); break;
 			case 't': pat.range().dta = BarzerRange::TimeOfDay(); break;
+			case 'm': pat.range().dta = BarzerRange::DateTime(); break;
 			case 'd': pat.range().dta = BarzerRange::Date(); break;
 			case 'e': if( !isEntity ) isEntity= true; break;
 			}
@@ -766,6 +767,8 @@ void BELParserXML::taghandle_TIME( const char_cp * attr, size_t attr_sz , bool c
 		case 'h':  // l - lo HHMMSS
 			pat.setHi( atoi(v) );
 			break;
+		case 'f': pat.setFuture(); break;
+		case 'p': pat.setPast(); break;
 		}
 	}
 	statement.pushNode( BTND_PatternData( pat));

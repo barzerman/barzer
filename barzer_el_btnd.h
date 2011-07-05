@@ -107,6 +107,7 @@ struct BTND_Pattern_Number : public BTND_Pattern_Base {
 		}
 		return fp;
 	}
+	std::ostream& printXML( std::ostream& fp ) const;
 	bool operator()( const BarzerNumber& num ) const;
 };
 inline bool operator <( const BTND_Pattern_Number& l, const BTND_Pattern_Number& r )
@@ -197,6 +198,7 @@ struct BTND_Pattern_Date : public BTND_Pattern_Base {
 
 	bool isLessThan( const BTND_Pattern_Date& r ) const
 		{ return ay::range_comp().less_than( type, lo, hi, r.type, r.lo, r.hi ); }
+	std::ostream& printXML( std::ostream& fp ) const;
 };
 inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_Date& x )
 	{ return( fp << "date." << x.type << "[" << x.lo << "," << x.hi << "]" ); }
@@ -219,10 +221,18 @@ struct BTND_Pattern_Time : public BTND_Pattern_Base {
 
 	BTND_Pattern_Time( ) : type(T_ANY_TIME), lo(0), hi(BarzerTimeOfDay::MAX_TIMEOFDAY) {}
 
+	bool isLoSet() const { return (lo!= 0) ; }
+	bool isHiSet() const { return (hi!= BarzerTimeOfDay::MAX_TIMEOFDAY) ; }
+	void setFuture() { type = T_ANY_FUTURE_TIME; }
+	void setPast() { type = T_ANY_PAST_TIME; }
+
 	void setLo( int x ) { lo.setLong( x ); }
 	void setHi( int x ) { hi.setLong( x ); }
+	uint32_t getLoLong() const { return lo.getLong(); }
+	uint32_t getHiLong() const { return hi.getLong(); }
 	bool isLessThan( const BTND_Pattern_Time& r ) const
 		{ return ay::range_comp().less_than( type,lo, hi, r.type, r.lo, r.hi ); }
+	std::ostream& printXML( std::ostream& fp ) const;
 };
 inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_Time& x )
 	{ return( fp << "time." << x.type << "[" << x.lo << "," << x.hi << "]" ); }
@@ -407,6 +417,8 @@ public:
 	void setModeToType() { d_mode = MODE_TYPE; }
 	void setModeToVal() { d_mode = MODE_VAL; }
 
+	bool isModeVal() { return( MODE_VAL == d_mode) ; }
+
 	BarzerRange& range() { return d_range; }
 	const BarzerRange& range() const { return d_range; }
 
@@ -415,6 +427,7 @@ public:
 		d_range(r),
 		d_mode(MODE_TYPE)
 	{}
+	bool isEntity() const { return d_range.isEntity(); }
 	void setEntityClass( const StoredEntityClass& c ) 
 	{ d_range.setEntityClass(c); }
 	bool lessThan( const BTND_Pattern_Range& r ) const { 
@@ -445,6 +458,7 @@ public:
 		} else 
 			return false;
 	} 
+	std::ostream& printXML( std::ostream& fp ) const ;
 	std::ostream& print( std::ostream& fp,const BELPrintContext& ) const 
 	{ return (fp << '[' << d_range) << ']'; }
 };
@@ -457,6 +471,10 @@ class BTND_Pattern_ERC: public BTND_Pattern_Base {
 	uint8_t d_matchBlankRange, d_matchBlankEntity;
 public:
 	BTND_Pattern_ERC() : d_matchBlankRange(0), d_matchBlankEntity(0) {}	
+
+	bool isRangeValid() const { return d_erc.getRange().isValid(); }
+	bool isEntityValid() const { return d_erc.getEntity().isValidForMatching(); }
+	bool isUnitEntityValid() const { return d_erc.getUnitEntity().isValidForMatching(); }
 
 	bool isMatchBlankRange() const { return d_matchBlankRange; }
 	bool isMatchBlankEntity() const { return d_matchBlankEntity; }
@@ -472,6 +490,7 @@ public:
 			return d_erc.matchOtherWithBlanks(e, isMatchBlankRange(), isMatchBlankEntity() );
 		} 
 	
+	std::ostream& printXML( std::ostream& fp ) const ;
 	std::ostream& print( std::ostream& fp ) const 
 	{ 
 		d_erc.print(fp);
@@ -515,6 +534,7 @@ public:
 		return (d_exprEclass < r.d_exprEclass);
 
 	}
+	std::ostream& printXML( std::ostream& fp ) const ;
 	std::ostream& print( std::ostream& fp ) const 
 		{ return (fp << d_exprEclass << ":" << d_exprType ); }
 };

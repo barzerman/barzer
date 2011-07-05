@@ -184,6 +184,7 @@ struct BarzerDate {
 	int32_t getLongDate() const {
 		return ( 10000*(int32_t)year + 100*(int32_t)month  + (int32_t)day );
 	}
+	int32_t getLong() const { return getLongDate(); }
 
 	// 1-7 staring from monday
 	uint8_t getWeekday() const;
@@ -258,7 +259,6 @@ struct BarzerTimeOfDay {
 	/// x is long number in HHMMSS format
 	void setLong( int32_t x ) 
 	{ setHHMMSS( x/10000, (x%10000)/100, x%100 ); }
-
 	// american time hh:mm:ss , pm
 	BarzerTimeOfDay( int hh, int mm, int ss, bool isPm ) :
 		secSinceMidnight(
@@ -271,6 +271,9 @@ struct BarzerTimeOfDay {
 	short getHH() const { return (secSinceMidnight/3600); }
 	short getMM() const { return ((secSinceMidnight%3600)/60); }
 	short getSS() const { return (secSinceMidnight%60); }
+
+	uint32_t getLong( ) const 
+		{ return ( 10000 * getHH() + 100 * getMM() + getSS() ); }
 
 	uint32_t getSeconds() const { return secSinceMidnight;	}
 
@@ -432,7 +435,7 @@ struct BarzerRange {
 		DateTime_TYPE,
 		Entity_TYPE
 	};
-
+	
 	Data dta;
 
 	enum {
@@ -541,6 +544,21 @@ struct BarzerEntityRangeCombo {
 			r.d_entId, r.d_unitEntId, r.d_range
 		);
 	}
+	char geXMLtAttrValueChar( ) const 
+		{ 
+
+		switch( d_range.dta.which()) {
+		case None_TYPE: return 'n';
+		case Integer_TYPE: return 'i';
+		case Real_TYPE: return 'r';
+		case TimeOfDay_TYPE: return 't';
+		case Date_TYPE: return 'd';
+		case DateTime_TYPE: return 'm';
+		case Entity_TYPE: return 'e';
+		default: return 'X';
+		}
+			
+		}
 	// only range type is checked if at all 
 	bool matchOther( const BarzerEntityRangeCombo& other, bool checkRange=false ) const {
 		return (

@@ -221,7 +221,7 @@ inline bool operator<( const StoredEntityClass& l, const StoredEntityClass& r )
 
 /// unique id for an entity within the given StoredEntityClass
 struct StoredEntityUniqId {
-	StoredTokenId     tokId;
+	uint32_t     tokId;
 	StoredEntityClass eclass;
 
 	void setClass( uint16_t c ) { eclass.setClass( c ); }
@@ -240,6 +240,7 @@ struct StoredEntityUniqId {
 
 	inline bool isTokIdValid() const { return (tokId!=INVALID_STORED_ID); }
 	inline bool isValid() const { return ( isTokIdValid() && eclass.isValid() ); }
+	inline bool isValidForMatching() const { return ( eclass.ec ); }
 	void print( std::ostream& fp ) const { fp << eclass << "," << tokId ; }
 	
 	bool matchOther( const StoredEntityUniqId& other ) const
