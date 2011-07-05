@@ -83,7 +83,7 @@ void BELParseTreeNode::print( std::ostream& fp, int depth ) const
 
 BELReader::BELReader( GlobalPools &g ) :
 	trie(&g.globalTriePool.produceTrie("", "")) , parser(0), gp(g),
-	numStatements(0) , inputFmt(INPUT_FMT_XML)
+	numStatements(0) , inputFmt(INPUT_FMT_XML), silentMode(false)
 {}
 
 void BELReader::setTrie( const std::string& trieClass, const std::string& trieId )
@@ -148,7 +148,7 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 }
 
 
-BELParser*  BELReader::initParser(InputFormat fmt)
+BELParser*  BELReader::initParser(InputFormat fmt, std::ostream& outStream)
 {
 	if( parser ) {
 		if( fmt != inputFmt ) {
@@ -168,8 +168,9 @@ BELParser*  BELReader::initParser(InputFormat fmt)
 		}
 	}
 	switch( fmt ) {
-	case INPUT_FMT_XML:
-		return ( (parser = new BELParserXML( this )) );
+	case INPUT_FMT_XML: return ( (parser = new BELParserXML( this, outStream )) );
+	//INPUT_FMT_XML_EMITTER
+	case INPUT_FMT_XML_EMITTER: return ( (parser = new BELParserXMLEmit( this, outStream )) );
 	case INPUT_FMT_BIN:
 		std::cerr << "BELReader: binary format not implemented yet\n";
 		return 0;
@@ -200,7 +201,7 @@ int BELReader::loadFromFile( const char* fileName, BELReader::InputFormat fmt )
 	if( fileName )
 		inputFileName.assign( fileName );
 
-	if( !initParser( fmt ) )
+	if( !initParser( fmt, std::cerr ) )
 		return 0;
 
 	if( inputFileName.length() ) { // trying to load from file 

@@ -124,7 +124,6 @@ StoredUniverse* BarzerSettings::getCurrentUniverse()
 }
 
 void BarzerSettings::init() {
-	//reader.initParser(BELReader::INPUT_FMT_XML);
 	BarzerDate::initToday();
 
 }

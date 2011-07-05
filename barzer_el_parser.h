@@ -57,6 +57,7 @@ class BELReader;
 class BELParser {
 protected:
 	BELReader* reader; // parser doesnt own this pointer. reader owns the parser
+	std::ostream& d_outStream;
 
 	enum { MAX_VARNAME_LENGTH };
 	uint32_t internString( const char* s ) ;
@@ -73,13 +74,9 @@ protected:
 
 public:
 	uint32_t stemAndInternTmpText( const char* s, int len );
-	BELParser( BELReader* r ) : reader(r) {}
+	BELParser( BELReader* r, std::ostream& outStream ) : d_outStream(outStream), reader(r) {}
 	virtual int parse( std::istream& ) = 0;
 	virtual ~BELParser() {}
-/*
-	StoredUniverse& getUniverse(); 
-	const  StoredUniverse& getUniverse() const;
-	*/
 	GlobalPools& getGlobalPools();
 	const  GlobalPools& getGlobalPools() const;
 	
@@ -96,13 +93,16 @@ class BELReader {
 protected: 
 	BELTrie* trie ; 
 	BELParser* parser;
-	// ay::UniqueCharPool* strPool;
-	//StoredUniverse& universe;
 	GlobalPools &gp;
 	size_t numStatements; /// total number of successfully read statements 
 
 	std::string inputFileName; 
+	
+	bool silentMode;
 public:
+	bool isSilentMode() const { return silentMode; }
+	void setSilentMode() { silentMode = true; }
+
 	const std::string& getInputFileName() const { return inputFileName; }
 	void setTrie( const std::string& trieClass, const std::string& trieId ) ;
 	void setTrie(BELTrie *t) { trie = t; }
@@ -110,10 +110,6 @@ public:
 	BELTrie& getTrie() { return *trie ; }
 	const BELTrie& getTrie() const { return *trie ; }
 
-	/*
-	StoredUniverse& getUniverse() { return universe; }
-	const StoredUniverse& getUniverse() const { return universe; }
-	 */
 	GlobalPools& getGlobalPools() { return gp; }
 	const GlobalPools& getGlobalPools() const { return gp; }
 
@@ -125,6 +121,8 @@ public:
 		INPUT_FMT_XML,  // default
 		INPUT_FMT_BIN,
 		INPUT_FMT_BARZEL,
+
+		INPUT_FMT_XML_EMITTER,
 
 		INPUT_FMT_MAX
 	} InputFormat;

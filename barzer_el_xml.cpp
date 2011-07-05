@@ -38,8 +38,8 @@ static void charDataHandle( void * ud, const XML_Char *str, int len)
 namespace barzer {
 
 
-BELParserXML::BELParserXML( BELReader* r ) : 
-		BELParser(r),
+BELParserXML::BELParserXML( BELReader* r, std::ostream& outStream ) : 
+		BELParser(r, outStream),
 		parser(0),
 		statementCount(0)
 	{
@@ -224,7 +224,7 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 	// const BELParseTreeNode* macroNode = getMacroByName(macroName);
 
 	statement.stmt.stmtNumberIncrement();
-	if( !(statement.stmt.getStmtNumber() % 100)  ) {
+	if( !isSilentMode() && !(statement.stmt.getStmtNumber() % 100)  ) {
 		std::cerr << '.';
 	}
 	if( statement.isMacro() ) {
@@ -234,7 +234,6 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 			return;
 		} 
 	}
-
 	statement.setStatement();
 }
 void BELParserXML::taghandle_UNDEFINED( const char_cp * attr, size_t attr_sz, bool close )
@@ -1166,5 +1165,13 @@ void BELParserXML::CurStatementData::clear()
 			nodeStack.pop();
 	}
 }
+//// 
+void BELParserXMLEmit::addStatement( const BELStatementParsed& sp )
+{
+	sp << "<stmtset>";
+	sp.pattern.printBarzelXML( d_outStr );
+	sp << "</stmtset>";
+}
+
 
 } // barzer namespace ends

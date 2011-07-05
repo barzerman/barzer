@@ -840,6 +840,18 @@ protected:
 	uint32_t varId;  // variable id default 0xffffffff
 	uint8_t type;
 public:
+	const char* getXMLTag( ) const { 
+		switch( type ) {
+		case T_LIST: return "list";
+		case T_ANY: return "any";
+		case T_OPT: return "opt";
+		case T_PERM: return "perm";
+		case T_TAIL: return "tail";
+		case T_SUBSET: return "subs";
+		default return "badstruct";
+		}
+	}
+
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 
 	int getType() const { return type; }
@@ -975,6 +987,9 @@ struct BELParseTreeNode {
 		const BELParseTreeNode* tn = getTrivialChild();
 		return( tn ? tn->getRewriteData() : 0 );
 	}
+
+	/// streams out XML recursively. the result should look like regular barzel xml 
+	std::ostream& printBarzelXML( std::ostream& fp ) const;
 };
 
 /// barzel macros 

@@ -338,8 +338,6 @@ BELParseTreeNode_PatternEmitter::~BELParseTreeNode_PatternEmitter()
     delete patternTree;
 }
 
-/// print methods 
-
 std::ostream&  BTND_Pattern_Number::print( std::ostream& fp, const BELPrintContext& ) const
 {
 	switch( type ) {
@@ -443,6 +441,9 @@ std::ostream&  BTND_Rewrite_None::print( std::ostream& fp , const BELPrintContex
 	return (fp << "RwrNone" );
 }
 
+std::ostream&  BTND_StructData::printXML( std::ostream& fp  ) const
+{
+}
 std::ostream&  BTND_StructData::print( std::ostream& fp , const BELPrintContext& ) const
 {
 	const char* str = "Unknown";
@@ -493,6 +494,60 @@ bool BTND_Pattern_Number::operator() ( const BarzerNumber& num ) const
 		return false;
 	}
 	return false;
+}
+
+/// print methods 
+namespace {
+
+struct BTND_StructData_print_XML : public statc_visitor<const char*> {
+	std::ostream& d_fp;
+	BTND_StructData_print_XML( std::ostream& fp ) : d_fp(fp) { }
+	
+};
+
+struct BTNDVariant_print_XML : public statc_visitor<const char*> {
+	bool closeTag;  // when tag has no children nor cdata 
+	std::ostream& d_fp;
+
+	BTNDVariant_print_XML( std::ostream& fp, bool ct ) : d_fp(fp), closeTag(ct) { }
+	
+	void beginTag( ) { d_fp << '<'; } 
+
+	void endTag( ) { d_fp << ( closeTag ? "/>" : ">" ); }
+	void printClosingTag( const char* tag) { d_fp << "</" << tag << '>' ; }
+
+	const char* operator()( cosnt BTND_None& ) { 
+		return ""; 
+	}
+
+	const char* operator()( cosnt BTND_StructData& d ) { 
+		constchar* tag = d.getXMLTag();
+		d_fp << tag ;
+		if( d.hasVar() ) {
+		}
+		return tag;
+	}
+	template <typename T> 
+	const char* operator()( cosnt T& ) { 
+		d_fp << "unimplemented"; 
+	}
+};
+
+}
+std::ostream&  BELParseTreeNode::printBarzelXML( std::ostream& fp ) const
+{
+	BTNDVariant_print_XML vis(fp, child.size());
+	vis.beginTag();
+	const char* tag = boost::apply_visitor( vis, btndVar );
+	vis.endTag();
+	if( child.size() ) {
+		for( ChildrenVec::const_iterator i = child.begin(); i!= child.end(); ++i ) {
+			i->printBarzelXML(fp);
+		}
+		vis.printClosingTag( tag );
+	}
+
+	return fp;
 }
 
 } // namespace barzer

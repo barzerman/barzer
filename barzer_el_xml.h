@@ -184,7 +184,7 @@ public:
 	mutable std::string d_tmpText; // used by getElementText as a temp buffer
 
 	~BELParserXML() ;
-	BELParserXML( BELReader* r );
+	BELParserXML( BELReader* r, std::ostream& outStream );
 
 	uint32_t internTmpText( const char* s, int len, bool stem ) 
 		{ 
@@ -252,6 +252,14 @@ public:
 	void taghandle_STMSET( const char_cp * attr, size_t attr_sz , bool close=false);
 
 	int parse( std::istream& );
+};
+/// this emits combinations rather than adding 
+class BELParserXMLEmit : public BELParserXML {
+public:
+	BELParserXMLEmit( BELReader* r, std::ostream& outStr) : 
+		BELParserXML( r, outStr )
+	{}
+	void addStatement( const BELStatementParsed& sp );
 };
 
 }

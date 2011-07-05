@@ -60,7 +60,11 @@ public:
     void handle_accept(SearchSession *new_session,
 					   const boost::system::error_code& error);
 
-    void query(const char*, const size_t, std::ostream&);
+
+
+    void query_emitter(const char*, const size_t, std::ostream&);
+
+    void query_router(const char*, const size_t, std::ostream&);
 
     void init() {
     	//
@@ -97,7 +101,7 @@ void SearchSession::handle_read(const boost::system::error_code &ec, size_t byte
 		is.read(chunk, bytes_transferred);
 
 		std::ostream os(&outbuf);
-		server->query(chunk, bytes_transferred, os);
+		server->query_router(chunk, bytes_transferred, os);
 		delete[] chunk;
 
 		boost::asio::async_write(socket_, outbuf,
@@ -123,9 +127,23 @@ void AsyncServer::handle_accept(SearchSession *new_session,
     }
 }
 
-void AsyncServer::query(const char* buf, const size_t len, std::ostream& os) {
-	BarzerRequestParser rp(gpools, os);
-	rp.parse(buf, len);
+void AsyncServer::query_emitter(const char* buf, const size_t len, std::ostream& os) 
+{
+	BELReader reader(&trie, uni.getGlobalPools() );
+	reader.initParser(BELReader::INPUT_FMT_XML_EMITTER, os);
+	std::stringstream is( buf );
+	reader.setSilentMode();
+	reader.loadFromStream( is );
+}
+
+void AsyncServer::query_router(const char* buf, const size_t len, std::ostream& os) 
+{
+	if( !strncmp(buf, "<stmset>", 8 ) ) {
+		query_emitter(buf, os );
+	} else {
+		BarzerRequestParser rp(gpools, os);
+		rp.parse(buf, len);
+	}
 }
 
 
