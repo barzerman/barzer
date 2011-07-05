@@ -61,7 +61,7 @@ objects = $(lib_objects) barzer.o
 INSTALL_DIR = /usr/share/barzer
 INSTALL_DATA_DIR = $(INSTALL_DIR)/data
 
-all: ay/libay.a $(objects) $(PYTHON_LIBNAME)
+all: ay/libay.a $(objects)
 	$(CC) $(BITMODE) $(LINKFLAGS) -o  $(BINARY) $(objects) $(libs)
 lib: ay/libay.a $(lib_objects)
 	$(AR) -r $(LIBNAME).a $(lib_objects)
