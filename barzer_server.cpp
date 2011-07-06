@@ -129,11 +129,13 @@ void AsyncServer::handle_accept(SearchSession *new_session,
 
 void AsyncServer::query_emitter(const char* buf, const size_t len, std::ostream& os) 
 {
-	BELReader reader(&trie, uni.getGlobalPools() );
+	BELTrie* trie  = GlobalPools::getInstance().mkNewTrie();
+	BELReader reader(trie, GlobalPools::getInstance());
 	reader.initParser(BELReader::INPUT_FMT_XML_EMITTER, os);
 	std::stringstream is( buf );
 	reader.setSilentMode();
 	reader.loadFromStream( is );
+	delete trie;
 }
 
 /*
@@ -146,9 +148,9 @@ void AsyncServer::query_router(const char* buf, const size_t len, std::ostream& 
 
 	if( buf[0] == '!' && buf[1] == '!' ) {
 		if( !strncmp(buf+2,"EMIT:",5) ) 
-			query_emitter(buf+7, os );
+			query_emitter(buf+7, len-7, os );
 		else {
-			AYLOG(ERROR) << "UNKNOWN header: " << std::string( buf, (len>6 ? 6: len) ) << stdf::endl;
+			AYLOG(ERROR) << "UNKNOWN header: " << std::string( buf, (len>6 ? 6: len) ) << std::endl;
 		}
 	} else {
 		BarzerRequestParser rp(gpools, os);

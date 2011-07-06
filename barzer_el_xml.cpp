@@ -44,7 +44,7 @@ BELParserXML::BELParserXML( BELReader* r, std::ostream& outStream ) :
 		statementCount(0)
 	{
 		const char* srcName =reader->getInputFileName().c_str();
-		uint32_t srcNameStrId = reader->getGlobalPools().internalString_intern( srcName );
+		uint32_t srcNameStrId = reader->getGlobalPools().internString_internal( srcName );
 		statement.stmt.setSrcInfo(srcName, srcNameStrId );
 	}
 bool BELParserXML::isValidTag( int tag, int parent ) const
@@ -224,7 +224,7 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 	// const BELParseTreeNode* macroNode = getMacroByName(macroName);
 
 	statement.stmt.stmtNumberIncrement();
-	if( !isSilentMode() && !(statement.stmt.getStmtNumber() % 100)  ) {
+	if( !reader->isSilentMode() && !(statement.stmt.getStmtNumber() % 100)  ) {
 		std::cerr << '.';
 	}
 	if( statement.isMacro() ) {
@@ -1043,7 +1043,7 @@ BELParserXML::~BELParserXML()
 int BELParserXML::parse( std::istream& fp )
 {
 	const char* srcName =reader->getInputFileName().c_str();
-	uint32_t srcNameStrId = reader->getGlobalPools().internalString_intern( srcName );
+	uint32_t srcNameStrId = reader->getGlobalPools().internString_internal( srcName );
 	statement.stmt.setSrcInfo(srcName, srcNameStrId );
 	//statement.stmt.setSrcInfo(reader->getInputFileName().c_str());
 
@@ -1171,9 +1171,9 @@ void BELParserXML::CurStatementData::clear()
 //// 
 void BELParserXMLEmit::addStatement( const BELStatementParsed& sp )
 {
-	sp << "<stmtset>";
-	sp.pattern.printBarzelXML( d_outStr, getTrie());
-	sp << "</stmtset>";
+	d_outStream << "<stmtset>";
+	sp.pattern.printBarzelXML( d_outStream, getTrie());
+	d_outStream << "</stmtset>";
 }
 
 

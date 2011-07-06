@@ -144,7 +144,7 @@ public:
 	virtual void addStatement( const BELStatementParsed& );
 	virtual void addMacro( const std::string& macro, const BELStatementParsed& );
 
-	BELParser*  initParser(InputFormat fmt);
+	BELParser*  initParser(InputFormat fmt, std::ostream& );
 	int  loadFromStream( std::istream& fp );
 	//   combines initParser and LoadFromStream 
 	//   creates the parser and calls loadFromStream

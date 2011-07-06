@@ -4,8 +4,11 @@
 #include <algorithm>
 #include <ay/ay_logger.h>
 #include <ay/ay_util.h>
+#include <barzer_universe.h>
 
 namespace barzer {
+
+#define TAG_CLOSE_STR "/>" 
 
 /// name decodings for BTND types per class
 
@@ -445,8 +448,9 @@ std::ostream&  BTND_StructData::printXML( std::ostream& fp, const BELTrie& trie 
 {
 	fp << getXMLTag();
 	if( hasVar() ) {
-		trie.printVariableName( fp << " v=\"" ) << "\"";
+		trie.printVariableName( fp << " v=\"", varId ) << "\"";
 	}
+	return fp;
 }
 
 std::ostream&  BTND_StructData::print( std::ostream& fp , const BELPrintContext& ) const
@@ -483,23 +487,23 @@ std::ostream& BTND_Pattern_DateTime::printXML( std::ostream& fp ) const
 	case T_DATETIME_RANGE: 
 		if( lo.isValid() ) {
 			if( lo.hasDate() ) {
-				fp << " dl=\"" << lo.date.getLong() << "\";
+				fp << " dl=\"" << lo.date.getLong() << "\"";
 			}
 			if( lo.hasTime() ) {
-				fp << " tl=\"" << lo.timeOfDay.getLong() << "\";
+				fp << " tl=\"" << lo.timeOfDay.getLong() << "\"";
 			}
 		}
 		if( hi.isValid() ) {
 			if( hi.hasDate() ) {
-				fp << " dh=\"" << hi.date.getLong() << "\";
+				fp << " dh=\"" << hi.date.getLong() << "\"";
 			}
 			if( hi.hasTime() ) {
-				fp << " th=\"" << hi.timeOfDay.getLong() << "\";
+				fp << " th=\"" << hi.timeOfDay.getLong() << "\"";
 			}
 		}
 		break;
 	}
-	fp << "/>";
+	fp << TAG_CLOSE_STR;
 	return fp;
 }
 std::ostream& BTND_Pattern_Time::printXML( std::ostream& fp ) const 
@@ -518,7 +522,7 @@ std::ostream& BTND_Pattern_Time::printXML( std::ostream& fp ) const
 		fp << " l=\"" << getLoLong() << "\" h=\"" << getHiLong() << "\"";
 		break;
 	}
-	fp << "/>";
+	fp << TAG_CLOSE_STR;
 	return fp;
 }
 std::ostream& BTND_Pattern_Date::printXML( std::ostream& fp ) const 
@@ -545,44 +549,44 @@ std::ostream& BTND_Pattern_Date::printXML( std::ostream& fp ) const
 		}
 		break;
 	}
-	fp << "/>";
+	fp << TAG_CLOSE_STR;
 
 	return fp;
 }
 std::ostream& BTND_Pattern_ERC::printXML( std::ostream& fp ) const
 {
-	fo << "<erc";
+	fp << "<erc";
 	if( isRangeValid() ) {
-		fp << " r=\"" << d_erc.geXMLtAttrValueChar() << "\"";
+		fp << " r=\"" << d_erc.getRange().geXMLtAttrValueChar() << "\"";
 	} else if(isMatchBlankRange()) {
 		fp << " br=\"y\"";
 	}
 	if( isEntityValid() ) {
 		fp << " c=\"" << d_erc.getEntity().eclass.ec << "\"";
-		if( erc.getEntity().eclass.subclass ) {
+		if( d_erc.getEntity().eclass.subclass ) {
 			fp << " s=\"" << d_erc.getEntity().eclass.subclass << "\"";
 		}
 		if( d_erc.getEntity().tokId != 0xffffffff ) {
-			d_fp << " t=\"" << GlobalPools::getInstance().decodeStringById_safe( d_erc.getEntity().tokId ) << "\"";
+			fp << " t=\"" << GlobalPools::getInstance().decodeStringById_safe( d_erc.getEntity().tokId ) << "\"";
 		}
 	} else if(isMatchBlankEntity()){
 		fp << " be=\"y\"";
 	}
 	if( isUnitEntityValid() ) {
 		fp << " uc=\"" << d_erc.getUnitEntity().eclass.ec << "\"";
-		if( erc.getEntity().eclass.subclass ) {
+		if( d_erc.getEntity().eclass.subclass ) {
 			fp << " us=\"" << d_erc.getUnitEntity().eclass.subclass << "\"";
 		}
 		if( d_erc.getEntity().tokId != 0xffffffff ) {
-			d_fp << " ut=\"" << GlobalPools::getInstance().decodeStringById_safe( d_erc.getUnitEntity().tokId ) << "\"";
+			fp << " ut=\"" << GlobalPools::getInstance().decodeStringById_safe( d_erc.getUnitEntity().tokId ) << "\"";
 		}
-	} else if(isMatchBlankEntity()){
+	}
 
-	return fo << "\>";
+	return fp << TAG_CLOSE_STR;
 }
 std::ostream& BTND_Pattern_Entity::printXML( std::ostream& fp ) const
 {
-	fo << "<ent";
+	fp << "<ent";
 	if( d_ent.eclass.ec ) {
 		fp << " c=\"" << d_ent.eclass.ec << "\"";
 	}
@@ -595,7 +599,7 @@ std::ostream& BTND_Pattern_Entity::printXML( std::ostream& fp ) const
 	if( d_ent.tokId != 0xffffffff ) {
 		fp << " t=\"" << GlobalPools::getInstance().decodeStringById_safe( d_ent.tokId )   << "\"";
 	}
-	fo << "/>";
+	fp << TAG_CLOSE_STR;
 	return fp;
 }
 std::ostream& BTND_Pattern_Range::printXML( std::ostream& fp ) const
@@ -616,12 +620,12 @@ std::ostream& BTND_Pattern_Range::printXML( std::ostream& fp ) const
 			fp << " ei1=\"" << GlobalPools::getInstance().decodeStringById_safe(re->second.tokId ) << "\"";
 		}
 	}
-	return fp << "\>";
+	return fp << TAG_CLOSE_STR;
 }
 std::ostream& BTND_Pattern_ERCExpr::printXML( std::ostream& fp ) const
 {
 	fp << "<ercexpr";
-	return fp << "\>";
+	return fp << TAG_CLOSE_STR;
 }
 std::ostream& BTND_Pattern_Number::printXML( std::ostream& fp ) const
 {
@@ -632,7 +636,7 @@ std::ostream& BTND_Pattern_Number::printXML( std::ostream& fp ) const
 	switch( type ) {
 	case T_ANY_INT: break;
 	case T_ANY_REAL:
-		fp << " r =\"y\";
+		fp << " r =\"y\"";
 		break;
 	case T_RANGE_INT: 
 		fp << " r =\"y\" l=\"" << range.integer.lo << "\" h=\"" << range.integer.hi << "\""; break;
@@ -640,7 +644,7 @@ std::ostream& BTND_Pattern_Number::printXML( std::ostream& fp ) const
 		fp << "l=\"" << range.real.lo << "\" h=\"" << range.real.hi << "\""; break;
 	case T_ANY_NUMBER: break;
 	}
-	return fp << "/>";
+	return fp << TAG_CLOSE_STR;
 }
 bool BTND_Pattern_Number::operator() ( const BarzerNumber& num ) const
 {
@@ -678,17 +682,17 @@ bool BTND_Pattern_Number::operator() ( const BarzerNumber& num ) const
 /// print methods 
 namespace {
 
-struct BTND_Base_print_XML : public statc_visitor<const char*> {
+struct BTND_Base_print_XML : public boost::static_visitor<const char*> {
 	bool d_closeTag;  // when tag has no children nor cdata 
 	std::ostream& d_fp;
 	const BELTrie& d_trie;
 
 	void beginTag( ) { d_fp << '<'; } 
-	void endTag( bool hasText = false ) { d_fp << ( (hasText || d_closeTag) ? "/>" : ">" ); }
+	void endTag( bool hasText = false ) { d_fp << ( (hasText || d_closeTag) ? TAG_CLOSE_STR : ">" ); }
 	void printClosingTag( const char* tag) { d_fp << "</" << tag << '>' ; }
 
 	BTND_Base_print_XML( std::ostream& fp, bool closeTag, const BELTrie& trie ) :
-		d_closeTag(closeTag), d_fp(fp), d_tie(trie) 
+		d_closeTag(closeTag), d_fp(fp), d_trie(trie) 
 	{}
 };
 
@@ -697,11 +701,14 @@ struct BTND_PatternData_print_XML : public BTND_Base_print_XML {
 		BTND_Base_print_XML(fp,closeTag, trie ) {}
 	template <typename T>
 	const char* operator() ( const T& d ) 
-	{ d_fp << "undefined"; }
+	{ 
+		const char* tag = "undefined";
+
+		return( d_fp << tag, tag );
+	}
 	
 	const char* operator()( const BTND_Pattern_None& d ) 
 	{
-		const char* tag ="pat_none";
 		return "pat_none";
 	}
 	const char* operator()( const BTND_Pattern_Token& d ) 
@@ -768,7 +775,7 @@ struct BTND_PatternData_print_XML : public BTND_Base_print_XML {
 		const char* tag = "erc";
 		d_fp << "<erc";
 		d.printXML(d_fp);
-		d_fp << "\>";
+		d_fp << TAG_CLOSE_STR;
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_Range& d ) 
@@ -779,11 +786,11 @@ struct BTND_PatternData_print_XML : public BTND_Base_print_XML {
 	}
 };
 
-struct BTNDVariant_print_XML : public BTNDVariant_print_XML {
+struct BTNDVariant_print_XML : public BTND_Base_print_XML {
 	BTNDVariant_print_XML( std::ostream& fp, bool closeTag, const BELTrie& trie ) : 
 		BTND_Base_print_XML(fp,closeTag, trie ) {}
 	
-	const char* operator()( cosnt BTND_None& ) { 
+	const char* operator()( const BTND_None& ) { 
 		return ""; 
 	}
 
@@ -799,8 +806,10 @@ struct BTNDVariant_print_XML : public BTNDVariant_print_XML {
 		return tag;
 	}
 	template <typename T> 
-	const char* operator()( cosnt T& ) { 
-		d_fp << "<unimplemented>"; 
+	const char* operator()( const T& ) { 
+		const char* tag = "unimplemented";
+		d_fp << "<" << tag << "/>";
+		return tag;
 	}
 };
 
@@ -812,7 +821,7 @@ std::ostream&  BELParseTreeNode::printBarzelXML( std::ostream& fp, const BELTrie
 	const char* tag = boost::apply_visitor( vis, btndVar );
 	if( child.size() ) {
 		for( ChildrenVec::const_iterator i = child.begin(); i!= child.end(); ++i ) {
-			i->printBarzelXML(fp);
+			i->printBarzelXML(fp,trie);
 		}
 		vis.printClosingTag( tag );
 	}

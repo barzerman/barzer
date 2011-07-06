@@ -87,7 +87,7 @@ void BELParseTreeNode::print( std::ostream& fp, int depth ) const
 
 BELReader::BELReader( GlobalPools &g ) :
 	trie(&g.globalTriePool.produceTrie("", "")) , parser(0), gp(g),
-	numStatements(0) , inputFmt(INPUT_FMT_XML), silentMode(false)
+	numStatements(0) ,silentMode(false),  inputFmt(INPUT_FMT_XML)
 {}
 
 void BELReader::setTrie( const std::string& trieClass, const std::string& trieId )

@@ -20,7 +20,7 @@ std::ostream& glob_printRewriterByteCode( std::ostream& fp, const BarzelRewriter
 
 std::ostream& BELTrie::printVariableName( std::ostream& fp, uint32_t varId ) const
 {
-	const BELSingleVarPath* bsvp = trie.getVarIndex().getPathFromTranVarId( varId );
+	const BELSingleVarPath* bsvp = getVarIndex().getPathFromTranVarId( varId );
 		
 	const GlobalPools& gp = GlobalPools::getInstance();
 	if( bsvp && bsvp->size() ) {

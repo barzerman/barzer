@@ -464,6 +464,21 @@ struct BarzerRange {
 
 	std::ostream& print( std::ostream& fp ) const;
 
+	char geXMLtAttrValueChar( ) const { 
+
+		switch( dta.which()) {
+		case BarzerRange::None_TYPE: return 'n';
+		case BarzerRange::Integer_TYPE: return 'i';
+		case BarzerRange::Real_TYPE: return 'r';
+		case BarzerRange::TimeOfDay_TYPE: return 't';
+		case BarzerRange::Date_TYPE: return 'd';
+		case BarzerRange::DateTime_TYPE: return 'm';
+		case BarzerRange::Entity_TYPE: return 'e';
+		default: return 'X';
+		}
+			
+	}
+
 	void setData(const Data &d) { dta = d; }
 	const Data& getData() const { return dta; }
 	Data& getData() { return dta; }
@@ -544,21 +559,6 @@ struct BarzerEntityRangeCombo {
 			r.d_entId, r.d_unitEntId, r.d_range
 		);
 	}
-	char geXMLtAttrValueChar( ) const 
-		{ 
-
-		switch( d_range.dta.which()) {
-		case BarzerRange::None_TYPE: return 'n';
-		case BarzerRange::Integer_TYPE: return 'i';
-		case BarzerRange::Real_TYPE: return 'r';
-		case BarzerRange::TimeOfDay_TYPE: return 't';
-		case BarzerRange::Date_TYPE: return 'd';
-		case BarzerRange::DateTime_TYPE: return 'm';
-		case BarzerRange::Entity_TYPE: return 'e';
-		default: return 'X';
-		}
-			
-		}
 	// only range type is checked if at all 
 	bool matchOther( const BarzerEntityRangeCombo& other, bool checkRange=false ) const {
 		return (

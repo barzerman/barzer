@@ -75,6 +75,16 @@ public:
 		
 		return i->second;
 	}
+	BELTrie* mkNewTrie() 
+	{
+		return new BELTrie(
+			d_gp,
+			d_rewrPool,
+			d_wcPool,
+			d_fcPool,
+			d_tranPool
+		);
+	}
 	
 	BELTrie& init() 
 		{ return produceTrie( std::string(), std::string() ); }
@@ -155,7 +165,7 @@ class GlobalPools {
 	// there can be only one
 	static GlobalPools* g_instance;
 public:
-	GlobalPools& getInstance() { return *g_instance; }
+	static GlobalPools& getInstance() { return *g_instance; }
 	
 	// 0 should never be used 
 	enum { DEFAULT_UNIVERSE_ID = 0 }; 
@@ -188,7 +198,7 @@ public:
 	bool d_isAnalyticalMode;
 	size_t d_maxAnalyticalModeMaxSeqLength;
 
-	uint32_t internalString_intern( const char* str ) { return internalStringPool.internIt( str ); }
+	uint32_t internString_internal( const char* str ) { return internalStringPool.internIt( str ); }
 	const char* internalString_resolve( uint32_t id ) const { return internalStringPool.resolveId( id ); }
 	
 	size_t getMaxAnalyticalModeMaxSeqLength() const { return d_maxAnalyticalModeMaxSeqLength; }
@@ -201,6 +211,7 @@ public:
 	/// this will create the "wellknown" entities 
 	StoredUniverse& produceUniverse( uint32_t id );
 
+	BELTrie* mkNewTrie() { return globalTriePool.mkNewTrie(); }
 	const StoredUniverse* getUniverse( uint32_t id )  const 
 	{
 		UniverseMap::const_iterator i = d_uniMap.find( id );

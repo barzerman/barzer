@@ -192,7 +192,9 @@ struct BTND_Pattern_Date : public BTND_Pattern_Base {
 	void setFuture( ) { lo= MIN_LONG_DATE; hi= MAX_LONG_DATE; type= T_ANY_FUTUREDATE; }
 	void setPast( ) { lo= MIN_LONG_DATE; hi= MAX_LONG_DATE; type= T_ANY_PASTDATE; }
 	void setAny( ) { lo= MIN_LONG_DATE; hi= MAX_LONG_DATE; type= T_ANY_DATE; }
-
+	
+	bool isLoSet() const { return (lo !=MIN_LONG_DATE); }
+	bool isHiSet() const { return (hi !=MAX_LONG_DATE); }
 	bool operator()( const BarzerDate& dt ) const
 		{ return isDateValid( dt.getLongDate(), dt.longToday ); }
 
@@ -242,6 +244,7 @@ inline bool operator <( const BTND_Pattern_Time& l, const BTND_Pattern_Time& r )
 }
 
 struct BTND_Pattern_DateTime : public BTND_Pattern_Base {
+	std::ostream& printXML( std::ostream& ) const;
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	enum {
 		T_ANY_DATETIME, 
@@ -355,6 +358,7 @@ class BTND_Pattern_Entity : public BTND_Pattern_Base {
 	BarzerRange d_range;
 	uint8_t     d_rangeIsValid; 
 public:
+	std::ostream& printXML( std::ostream& fp) const;
 	std::ostream& print( std::ostream& fp, const BELPrintContext& ctxt ) const
 	{
 		d_ent.print( fp ) ; 
@@ -417,7 +421,7 @@ public:
 	void setModeToType() { d_mode = MODE_TYPE; }
 	void setModeToVal() { d_mode = MODE_VAL; }
 
-	bool isModeVal() { return( MODE_VAL == d_mode) ; }
+	bool isModeVal() const { return( MODE_VAL == d_mode) ; }
 
 	BarzerRange& range() { return d_range; }
 	const BarzerRange& range() const { return d_range; }
