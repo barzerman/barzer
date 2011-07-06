@@ -61,7 +61,7 @@ uint32_t BELParser::addCompoundedWordLiteral( const char* alias )
 
 uint32_t BELParser::internString_internal( const char* t )
 {
-	return GlobalPools::getInstance().internString_internal( t );
+	return reader->getGlobalPools().internString_internal( t );
 }
 uint32_t BELParser::internString( const char* t )
 {

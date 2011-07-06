@@ -49,10 +49,8 @@ GlobalTriePool::ClassTrieMap& GlobalTriePool::produceTrieMap( const std::string&
 
 
 
-GlobalPools* GlobalPools::g_instance = 0;
 GlobalPools::~GlobalPools() 
 {
-	g_instance = 0;
 	for( UniverseMap::iterator i =  d_uniMap.begin(); i!= d_uniMap.end(); ++i ) {
 		if( i->second ) 
 			delete i->second;
@@ -76,10 +74,6 @@ GlobalPools::GlobalPools() :
 	d_isAnalyticalMode(false),
 	d_maxAnalyticalModeMaxSeqLength(3)
 {
-	if( g_instance ) 
-		std::cerr << "PANIC more than one GlobalPools detected\n";
-
-	g_instance = this;
 	/// create default universe 
 	produceUniverse(DEFAULT_UNIVERSE_ID);
 	

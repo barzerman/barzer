@@ -472,7 +472,7 @@ std::ostream&  BTND_None::print( std::ostream& fp , const BELPrintContext& ) con
 	return ( fp << "None" ); 
 }
 
-std::ostream& BTND_Pattern_DateTime::printXML( std::ostream& fp ) const 
+std::ostream& BTND_Pattern_DateTime::printXML( std::ostream& fp, const GlobalPools& gp ) const 
 {
 	fp << "<dtim";
 	switch(type) {
@@ -506,7 +506,7 @@ std::ostream& BTND_Pattern_DateTime::printXML( std::ostream& fp ) const
 	fp << TAG_CLOSE_STR;
 	return fp;
 }
-std::ostream& BTND_Pattern_Time::printXML( std::ostream& fp ) const 
+std::ostream& BTND_Pattern_Time::printXML( std::ostream& fp, const GlobalPools& gp ) const 
 {
 	fp << "<time";
 	switch(type) {
@@ -525,7 +525,7 @@ std::ostream& BTND_Pattern_Time::printXML( std::ostream& fp ) const
 	fp << TAG_CLOSE_STR;
 	return fp;
 }
-std::ostream& BTND_Pattern_Date::printXML( std::ostream& fp ) const 
+std::ostream& BTND_Pattern_Date::printXML( std::ostream& fp, const GlobalPools& gp ) const 
 {
 	fp << "<date";
 	switch( type ) {
@@ -553,7 +553,7 @@ std::ostream& BTND_Pattern_Date::printXML( std::ostream& fp ) const
 
 	return fp;
 }
-std::ostream& BTND_Pattern_ERC::printXML( std::ostream& fp ) const
+std::ostream& BTND_Pattern_ERC::printXML( std::ostream& fp, const GlobalPools& gp ) const
 {
 	fp << "<erc";
 	if( isRangeValid() ) {
@@ -567,7 +567,7 @@ std::ostream& BTND_Pattern_ERC::printXML( std::ostream& fp ) const
 			fp << " s=\"" << d_erc.getEntity().eclass.subclass << "\"";
 		}
 		if( d_erc.getEntity().tokId != 0xffffffff ) {
-			fp << " t=\"" << GlobalPools::getInstance().decodeStringById_safe( d_erc.getEntity().tokId ) << "\"";
+			fp << " t=\"" << gp.decodeStringById_safe( d_erc.getEntity().tokId ) << "\"";
 		}
 	} else if(isMatchBlankEntity()){
 		fp << " be=\"y\"";
@@ -578,13 +578,13 @@ std::ostream& BTND_Pattern_ERC::printXML( std::ostream& fp ) const
 			fp << " us=\"" << d_erc.getUnitEntity().eclass.subclass << "\"";
 		}
 		if( d_erc.getEntity().tokId != 0xffffffff ) {
-			fp << " ut=\"" << GlobalPools::getInstance().decodeStringById_safe( d_erc.getUnitEntity().tokId ) << "\"";
+			fp << " ut=\"" << gp.decodeStringById_safe( d_erc.getUnitEntity().tokId ) << "\"";
 		}
 	}
 
 	return fp << TAG_CLOSE_STR;
 }
-std::ostream& BTND_Pattern_Entity::printXML( std::ostream& fp ) const
+std::ostream& BTND_Pattern_Entity::printXML( std::ostream& fp, const GlobalPools& gp ) const
 {
 	fp << "<ent";
 	if( d_ent.eclass.ec ) {
@@ -597,12 +597,12 @@ std::ostream& BTND_Pattern_Entity::printXML( std::ostream& fp ) const
 		fp << " s=\"" << d_ent.eclass.subclass << "\"";
 	}
 	if( d_ent.tokId != 0xffffffff ) {
-		fp << " t=\"" << GlobalPools::getInstance().decodeStringById_safe( d_ent.tokId )   << "\"";
+		fp << " t=\"" << gp.decodeStringById_safe( d_ent.tokId )   << "\"";
 	}
 	fp << TAG_CLOSE_STR;
 	return fp;
 }
-std::ostream& BTND_Pattern_Range::printXML( std::ostream& fp ) const
+std::ostream& BTND_Pattern_Range::printXML( std::ostream& fp, const GlobalPools& gp ) const
 {
 	fp << "<range";
 	if( range().isValid() ) 
@@ -614,20 +614,20 @@ std::ostream& BTND_Pattern_Range::printXML( std::ostream& fp ) const
 	if( re ) {
 		fp << " ec=\"" << re->first.eclass.ec << "\" es=\"" << re->first.eclass.subclass << "\"";
 		if( re->first.tokId != 0xffffffff ) {
-			fp << " ei1=\"" << GlobalPools::getInstance().decodeStringById_safe(re->first.tokId ) << "\"";
+			fp << " ei1=\"" << gp.decodeStringById_safe(re->first.tokId ) << "\"";
 		}
 		if( re->second.tokId != 0xffffffff ) {
-			fp << " ei1=\"" << GlobalPools::getInstance().decodeStringById_safe(re->second.tokId ) << "\"";
+			fp << " ei1=\"" << gp.decodeStringById_safe(re->second.tokId ) << "\"";
 		}
 	}
 	return fp << TAG_CLOSE_STR;
 }
-std::ostream& BTND_Pattern_ERCExpr::printXML( std::ostream& fp ) const
+std::ostream& BTND_Pattern_ERCExpr::printXML( std::ostream& fp, const GlobalPools& gp ) const
 {
 	fp << "<ercexpr";
 	return fp << TAG_CLOSE_STR;
 }
-std::ostream& BTND_Pattern_Number::printXML( std::ostream& fp ) const
+std::ostream& BTND_Pattern_Number::printXML( std::ostream& fp, const GlobalPools& gp ) const
 {
 	fp << "<n";
 	if( d_asciiLen ) {
@@ -718,7 +718,7 @@ struct BTND_PatternData_print_XML : public BTND_Base_print_XML {
 		if( !d.doStem ) {
 			d_fp << " s=\"n\"";
 		}
-		d_fp << '>' << GlobalPools::getInstance().decodeStringById_safe( d.stringId ) << "</t>";
+		d_fp << '>' << d_trie.getGlobalPools().decodeStringById_safe( d.stringId ) << "</t>";
 
 		return tag;
 	}
@@ -731,57 +731,57 @@ struct BTND_PatternData_print_XML : public BTND_Base_print_XML {
 	const char* operator()( const BTND_Pattern_Number& d ) 
 	{
 		const char* tag = "n";
-		d.printXML(d_fp);
+		d.printXML(d_fp,d_trie.getGlobalPools());
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_Date& d ) 
 	{
 		const char* tag = "date";
-		d.printXML( d_fp );
+		d.printXML( d_fp,d_trie.getGlobalPools() );
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_Time& d ) 
 	{
 		const char* tag = "time";
-		d.printXML( d_fp );
+		d.printXML( d_fp,d_trie.getGlobalPools() );
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_DateTime& d ) 
 	{
 		const char* tag = "dtim";
-		d.printXML( d_fp );
+		d.printXML( d_fp,d_trie.getGlobalPools() );
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_StopToken& d ) 
 	{
 		const char* tag = "t";
-		d_fp << "<t t=\"f\">" << GlobalPools::getInstance().decodeStringById_safe( d.stringId ) << "</t>";
+		d_fp << "<t t=\"f\">" << d_trie.getGlobalPools().decodeStringById_safe( d.stringId ) << "</t>";
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_Entity& d ) 
 	{
 		const char* tag = "ent";
-		d.printXML( d_fp );
+		d.printXML( d_fp,d_trie.getGlobalPools() );
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_ERCExpr& d ) 
 	{
 		const char* tag = "ercexpr";
-		d.printXML( d_fp );
+		d.printXML( d_fp,d_trie.getGlobalPools() );
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_ERC& d ) 
 	{
 		const char* tag = "erc";
 		d_fp << "<erc";
-		d.printXML(d_fp);
+		d.printXML(d_fp,d_trie.getGlobalPools());
 		d_fp << TAG_CLOSE_STR;
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_Range& d ) 
 	{
 		const char* tag = "range";
-		d.printXML( d_fp );
+		d.printXML( d_fp,d_trie.getGlobalPools() );
 		return tag;
 	}
 };

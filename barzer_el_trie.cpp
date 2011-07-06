@@ -22,7 +22,7 @@ std::ostream& BELTrie::printVariableName( std::ostream& fp, uint32_t varId ) con
 {
 	const BELSingleVarPath* bsvp = getVarIndex().getPathFromTranVarId( varId );
 		
-	const GlobalPools& gp = GlobalPools::getInstance();
+	const GlobalPools& gp = getGlobalPools();
 	if( bsvp && bsvp->size() ) {
 		BELSingleVarPath::const_iterator i = bsvp->begin(); 
 		const char * s = gp.internalString_resolve( *i );

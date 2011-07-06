@@ -397,6 +397,7 @@ public:
 	BarzelVariableIndex   d_varIndex;
 	EntityCollection      d_entCollection;
 
+	const GlobalPools& getGlobalPools() const { return globalPools; }
 	BarzelTrieNode root;
 	BELTrie( 
 		GlobalPools& gp,

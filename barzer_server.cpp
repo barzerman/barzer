@@ -129,8 +129,9 @@ void AsyncServer::handle_accept(SearchSession *new_session,
 
 void AsyncServer::query_emitter(const char* buf, const size_t len, std::ostream& os) 
 {
-	BELTrie* trie  = GlobalPools::getInstance().mkNewTrie();
-	BELReader reader(trie, GlobalPools::getInstance());
+	GlobalPools gp;
+	BELTrie* trie  = gp.mkNewTrie();
+	BELReader reader(trie, gp);
 	reader.initParser(BELReader::INPUT_FMT_XML_EMITTER, os);
 	std::stringstream is( buf );
 	reader.setSilentMode();

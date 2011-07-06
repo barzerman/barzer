@@ -12,6 +12,7 @@
 // types defined in this file are used to store information for various node types 
 // in the BarzEL trie
 namespace barzer {
+class GlobalPools;
 struct BELPrintContext;
 class BELTrie;
 
@@ -107,7 +108,7 @@ struct BTND_Pattern_Number : public BTND_Pattern_Base {
 		}
 		return fp;
 	}
-	std::ostream& printXML( std::ostream& fp ) const;
+	std::ostream& printXML( std::ostream& fp, const GlobalPools&  ) const;
 	bool operator()( const BarzerNumber& num ) const;
 };
 inline bool operator <( const BTND_Pattern_Number& l, const BTND_Pattern_Number& r )
@@ -200,7 +201,7 @@ struct BTND_Pattern_Date : public BTND_Pattern_Base {
 
 	bool isLessThan( const BTND_Pattern_Date& r ) const
 		{ return ay::range_comp().less_than( type, lo, hi, r.type, r.lo, r.hi ); }
-	std::ostream& printXML( std::ostream& fp ) const;
+	std::ostream& printXML( std::ostream& fp, const GlobalPools&  ) const;
 };
 inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_Date& x )
 	{ return( fp << "date." << x.type << "[" << x.lo << "," << x.hi << "]" ); }
@@ -234,7 +235,7 @@ struct BTND_Pattern_Time : public BTND_Pattern_Base {
 	uint32_t getHiLong() const { return hi.getLong(); }
 	bool isLessThan( const BTND_Pattern_Time& r ) const
 		{ return ay::range_comp().less_than( type,lo, hi, r.type, r.lo, r.hi ); }
-	std::ostream& printXML( std::ostream& fp ) const;
+	std::ostream& printXML( std::ostream& fp, const GlobalPools&  ) const;
 };
 inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_Time& x )
 	{ return( fp << "time." << x.type << "[" << x.lo << "," << x.hi << "]" ); }
@@ -244,7 +245,7 @@ inline bool operator <( const BTND_Pattern_Time& l, const BTND_Pattern_Time& r )
 }
 
 struct BTND_Pattern_DateTime : public BTND_Pattern_Base {
-	std::ostream& printXML( std::ostream& ) const;
+	std::ostream& printXML( std::ostream&, const GlobalPools&  ) const;
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	enum {
 		T_ANY_DATETIME, 
@@ -358,7 +359,7 @@ class BTND_Pattern_Entity : public BTND_Pattern_Base {
 	BarzerRange d_range;
 	uint8_t     d_rangeIsValid; 
 public:
-	std::ostream& printXML( std::ostream& fp) const;
+	std::ostream& printXML( std::ostream& fp, const GlobalPools& ) const;
 	std::ostream& print( std::ostream& fp, const BELPrintContext& ctxt ) const
 	{
 		d_ent.print( fp ) ; 
@@ -462,7 +463,7 @@ public:
 		} else 
 			return false;
 	} 
-	std::ostream& printXML( std::ostream& fp ) const ;
+	std::ostream& printXML( std::ostream& fp, const GlobalPools&  ) const ;
 	std::ostream& print( std::ostream& fp,const BELPrintContext& ) const 
 	{ return (fp << '[' << d_range) << ']'; }
 };
@@ -494,7 +495,7 @@ public:
 			return d_erc.matchOtherWithBlanks(e, isMatchBlankRange(), isMatchBlankEntity() );
 		} 
 	
-	std::ostream& printXML( std::ostream& fp ) const ;
+	std::ostream& printXML( std::ostream& fp, const GlobalPools&  ) const ;
 	std::ostream& print( std::ostream& fp ) const 
 	{ 
 		d_erc.print(fp);
@@ -538,7 +539,7 @@ public:
 		return (d_exprEclass < r.d_exprEclass);
 
 	}
-	std::ostream& printXML( std::ostream& fp ) const ;
+	std::ostream& printXML( std::ostream& fp, const GlobalPools&  ) const ;
 	std::ostream& print( std::ostream& fp ) const 
 		{ return (fp << d_exprEclass << ":" << d_exprType ); }
 };
