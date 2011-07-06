@@ -606,7 +606,15 @@ std::ostream& BTND_Pattern_Range::printXML( std::ostream& fp ) const
 	if( isModeVal() ) {
 		fp << " m=\"v\"";
 	}
-	if( isEntity() ) {
+	const BarzerRange::Entity* re = d_range.getEntity();
+	if( re ) {
+		fp << " ec=\"" << re->first.eclass.ec << "\" es=\"" << re->first.eclass.subclass << "\"";
+		if( re->first.tokId != 0xffffffff ) {
+			fp << " ei1=\"" << GlobalPools::getInstance().decodeStringById_safe(re->first.tokId ) << "\"";
+		}
+		if( re->second.tokId != 0xffffffff ) {
+			fp << " ei1=\"" << GlobalPools::getInstance().decodeStringById_safe(re->second.tokId ) << "\"";
+		}
 	}
 	return fp << "\>";
 }
@@ -766,6 +774,7 @@ struct BTND_PatternData_print_XML : public BTND_Base_print_XML {
 	const char* operator()( const BTND_Pattern_Range& d ) 
 	{
 		const char* tag = "range";
+		d.printXML( d_fp );
 		return tag;
 	}
 };
@@ -779,9 +788,8 @@ struct BTNDVariant_print_XML : public BTNDVariant_print_XML {
 	}
 
 	const char* operator()( const BTND_PatternData& d ) { 
-		const char* tag = d.getXMLTag();
-		d.printXML( d_fp, d_trie );
-		return tag;
+		BTND_PatternData_print_XML vis(d_fp, d_closeTag, d_trie );
+		return boost::apply_visitor( vis, d );
 	}
 	const char* operator()( const BTND_StructData& d ) { 
 		const char* tag = d.getXMLTag();
@@ -796,7 +804,8 @@ struct BTNDVariant_print_XML : public BTNDVariant_print_XML {
 	}
 };
 
-}
+} // anonymous namespace ends 
+
 std::ostream&  BELParseTreeNode::printBarzelXML( std::ostream& fp, const BELTrie& trie ) const
 {
 	BTNDVariant_print_XML vis(fp, (!child.size()), trie );
