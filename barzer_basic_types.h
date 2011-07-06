@@ -548,13 +548,13 @@ struct BarzerEntityRangeCombo {
 		{ 
 
 		switch( d_range.dta.which()) {
-		case None_TYPE: return 'n';
-		case Integer_TYPE: return 'i';
-		case Real_TYPE: return 'r';
-		case TimeOfDay_TYPE: return 't';
-		case Date_TYPE: return 'd';
-		case DateTime_TYPE: return 'm';
-		case Entity_TYPE: return 'e';
+		case BarzerRange::None_TYPE: return 'n';
+		case BarzerRange::Integer_TYPE: return 'i';
+		case BarzerRange::Real_TYPE: return 'r';
+		case BarzerRange::TimeOfDay_TYPE: return 't';
+		case BarzerRange::Date_TYPE: return 'd';
+		case BarzerRange::DateTime_TYPE: return 'm';
+		case BarzerRange::Entity_TYPE: return 'e';
 		default: return 'X';
 		}
 			

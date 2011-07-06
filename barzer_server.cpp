@@ -136,10 +136,20 @@ void AsyncServer::query_emitter(const char* buf, const size_t len, std::ostream&
 	reader.loadFromStream( is );
 }
 
+/*
+	in order for the server to process special transactions they must begin with a header
+	if the first 2 characters in buf are '!' followed by command (e.g. EMIT) request will be routed 
+	accordingly
+*/
 void AsyncServer::query_router(const char* buf, const size_t len, std::ostream& os) 
 {
-	if( !strncmp(buf, "<stmset>", 8 ) ) {
-		query_emitter(buf, os );
+
+	if( buf[0] == '!' && buf[1] == '!' ) {
+		if( !strncmp(buf+2,"EMIT:",5) ) 
+			query_emitter(buf+7, os );
+		else {
+			AYLOG(ERROR) << "UNKNOWN header: " << std::string( buf, (len>6 ? 6: len) ) << stdf::endl;
+		}
 	} else {
 		BarzerRequestParser rp(gpools, os);
 		rp.parse(buf, len);

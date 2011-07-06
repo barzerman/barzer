@@ -53,7 +53,7 @@ struct BELStatementParsed {
 /// there will also be a binary parser 
 
 class BELReader;
-struct BELTrie;
+class BELTrie;
 class BELParser {
 protected:
 	BELReader* reader; // parser doesnt own this pointer. reader owns the parser
@@ -73,11 +73,11 @@ protected:
 	const BELReader* getReader() const { return reader; }
 	BELReader* getReader() { return reader; }
 
-	const BELTrie& const getTrie(); 
+	const BELTrie& getTrie() const; 
 	BELTrie& getTrie(); 
 public:
 	uint32_t stemAndInternTmpText( const char* s, int len );
-	BELParser( BELReader* r, std::ostream& outStream ) : d_outStream(outStream), reader(r) {}
+	BELParser( BELReader* r, std::ostream& outStream ) : reader(r), d_outStream(outStream) {}
 	virtual int parse( std::istream& ) = 0;
 	virtual ~BELParser() {}
 	GlobalPools& getGlobalPools();
@@ -159,8 +159,6 @@ inline const BELTrie& BELParser::getTrie() const { return reader->getTrie(); }
 inline GlobalPools& BELParser::getGlobalPools() { return reader->getGlobalPools(); }
 
 inline const GlobalPools& BELParser::getGlobalPools() const { return reader->getGlobalPools(); }
-
-
 
 template<class T>class BELExpandReader : public BELReader {
 	T &functor;

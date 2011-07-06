@@ -13,7 +13,7 @@
 /// data structures representing the Barzer Expression Language BarzEL term pattern trie
 /// 
 namespace barzer {
-struct BELTrie;
+class BELTrie;
 class BarzelRewriterPool;
 class BarzelWildcardPool;
 
@@ -387,7 +387,8 @@ typedef std::map< BarzelWCLookupKey, BarzelTrieNode > BarzelWCLookup;
 struct BELStatementParsed;
 class GlobalPools;
 
-struct BELTrie {
+class BELTrie {
+public:
 	GlobalPools& globalPools;
 	BarzelRewriterPool* rewrPool;
 	BarzelWildcardPool* wcPool;

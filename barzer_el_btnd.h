@@ -221,8 +221,8 @@ struct BTND_Pattern_Time : public BTND_Pattern_Base {
 
 	BTND_Pattern_Time( ) : type(T_ANY_TIME), lo(0), hi(BarzerTimeOfDay::MAX_TIMEOFDAY) {}
 
-	bool isLoSet() const { return (lo!= 0) ; }
-	bool isHiSet() const { return (hi!= BarzerTimeOfDay::MAX_TIMEOFDAY) ; }
+	bool isLoSet() const { return (lo.isValid() && lo.getSeconds()) ; }
+	bool isHiSet() const { return (hi.isValid() && hi.getSeconds() != BarzerTimeOfDay::MAX_TIMEOFDAY) ; }
 	void setFuture() { type = T_ANY_FUTURE_TIME; }
 	void setPast() { type = T_ANY_PAST_TIME; }
 
@@ -869,7 +869,7 @@ public:
 		case T_PERM: return "perm";
 		case T_TAIL: return "tail";
 		case T_SUBSET: return "subs";
-		default return "badstruct";
+		default: return "badstruct";
 		}
 	}
 
