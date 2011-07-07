@@ -133,9 +133,11 @@ int barze( GlobalPools& gp, RequestEnvironment& reqEnv )
 	rp.parse(reqEnv.buf, reqEnv.len);
 	return 0;
 }
-int emit( RequestEnvironment& reqEnv )
+int emit( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools )
 {
 	GlobalPools gp;
+	if( realGlobalPools.parseSettings().stemByDefault() ) 
+		gp.parseSettings().set_stemByDefault( );
 	BELTrie* trie  = gp.mkNewTrie();
 	BELReaderXMLEmit reader(trie, reqEnv.outStream);
 	reader.initParser(BELReader::INPUT_FMT_XML);
@@ -151,7 +153,7 @@ int route( GlobalPools& gpools, const char* buf, const size_t len, std::ostream&
 	if( buf[0] == '!' && buf[1] == '!' ) {
 		if( !strncmp(buf+2,"EMIT:",5) ) {
 			RequestEnvironment reqEnv(os,buf+7,len-7);
-			request::emit( reqEnv );
+			request::emit( reqEnv, gpools );
 		}
 		else {
 			AYLOG(ERROR) << "UNKNOWN header: " << std::string( buf, (len>6 ? 6: len) ) << std::endl;

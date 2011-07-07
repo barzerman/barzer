@@ -122,6 +122,8 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 		const BTND_PatternDataVec& seq = emitter.getCurSequence();
 		const BELVarInfo& varInfo = emitter.getVarInfo();
 
+		if( !seq.size() ) 
+			continue;
 		if( seq.size() > gp.getMaxAnalyticalModeMaxSeqLength() && gp.isAnalyticalMode() ) {
 			continue;
 		}

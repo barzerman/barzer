@@ -639,7 +639,7 @@ std::ostream& BTND_Pattern_Number::printXML( std::ostream& fp, const GlobalPools
 		fp << " r =\"y\"";
 		break;
 	case T_RANGE_INT: 
-		fp << " r =\"y\" l=\"" << range.integer.lo << "\" h=\"" << range.integer.hi << "\""; break;
+		fp << " l=\"" << range.integer.lo << "\" h=\"" << range.integer.hi << "\""; break;
 	case T_RANGE_REAL: 
 		fp << "l=\"" << range.real.lo << "\" h=\"" << range.real.hi << "\""; break;
 	case T_ANY_NUMBER: break;

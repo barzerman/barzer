@@ -404,7 +404,8 @@ void BELParserXML::taghandle_T( const char_cp * attr, size_t attr_sz , bool clos
 		return;
 	}
 	bool isStop = false;
-	bool doStem = false;
+	bool doStem = getGlobalPools().parseSettings().stemByDefault() ;
+
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
@@ -1171,21 +1172,21 @@ void BELParserXML::CurStatementData::clear()
 //// 
 void BELReaderXMLEmit::addStatement( const BELStatementParsed& sp )
 {
-	d_outStream << "<stmtset>";
-	sp.pattern.printBarzelXML( d_outStream, getTrie());
-	d_outStream << "</stmtset>\n";
-
 	BELParseTreeNode_PatternEmitter emitter( sp.pattern );
 	int i =0;
+	d_outStream << "<patternset>\n";
 	do {
 		const BTND_PatternDataVec& seq = emitter.getCurSequence();
-		d_outStream << "<pat n=\"" << i << "\">";
+		if( !seq.size() ) 
+			continue;
+		d_outStream << "    <pat n=\"" << i << "\">";
 		for( BTND_PatternDataVec::const_iterator pi = seq.begin(); pi != seq.end();++pi ) 
-			btnd_xml_print( d_outStream, getTrie(), *pi );
+			btnd_xml_print( d_outStream , getTrie(), *pi );
 		d_outStream << "</pat>\n";
 		i++;
 		//AYLOG(DEBUG) << "path added";
 	} while( emitter.produceSequence() );
+	d_outStream << "</patternset>\n";
 }
 
 

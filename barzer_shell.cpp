@@ -96,6 +96,10 @@ static int bshf_tok( BarzerShell* shell, char_cp cmd, std::istream& in )
 }
 static int bshf_emit( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
+	BarzerShellContext * context = shell->getBarzerContext();
+	const StoredUniverse &uni = context->universe;
+	const GlobalPools &globalPools = uni.getGlobalPools();
+
 	std::stringstream sstr;
 
 	std::string tmp;
@@ -107,7 +111,8 @@ static int bshf_emit( BarzerShell* shell, char_cp cmd, std::istream& in )
 	}
 	std::string q = strStr.str();
 	RequestEnvironment reqEnv(shell->getOutStream(),q.c_str(),q.length());
-	request::emit( reqEnv );
+
+	request::emit( reqEnv, globalPools );
 	return 0;
 }
 
