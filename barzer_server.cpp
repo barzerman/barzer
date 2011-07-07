@@ -62,8 +62,6 @@ public:
 
 
 
-    void query_emitter(const char*, const size_t, std::ostream&);
-
     void query_router(const char*, const size_t, std::ostream&);
 
     void init() {
@@ -127,17 +125,27 @@ void AsyncServer::handle_accept(SearchSession *new_session,
     }
 }
 
-void AsyncServer::query_emitter(const char* buf, const size_t len, std::ostream& os) 
+namespace request {
+int barze( GlobalPools& gp, RequestEnvironment& reqEnv )
+{
+	BarzerRequestParser rp(gp, reqEnv.outStream );
+	rp.parse(reqEnv.buf, reqEnv.len);
+	return 0;
+}
+int emit( RequestEnvironment& reqEnv )
 {
 	GlobalPools gp;
 	BELTrie* trie  = gp.mkNewTrie();
 	BELReader reader(trie, gp);
-	reader.initParser(BELReader::INPUT_FMT_XML_EMITTER, os);
-	std::stringstream is( buf );
+	reader.initParser(BELReader::INPUT_FMT_XML_EMITTER, reqEnv.outStream);
+	std::stringstream is( reqEnv.buf );
 	reader.setSilentMode();
 	reader.loadFromStream( is );
 	delete trie;
+	return 0;
 }
+
+} // request namespace ends
 
 /*
 	in order for the server to process special transactions they must begin with a header
@@ -146,16 +154,17 @@ void AsyncServer::query_emitter(const char* buf, const size_t len, std::ostream&
 */
 void AsyncServer::query_router(const char* buf, const size_t len, std::ostream& os) 
 {
-
 	if( buf[0] == '!' && buf[1] == '!' ) {
-		if( !strncmp(buf+2,"EMIT:",5) ) 
-			query_emitter(buf+7, len-7, os );
+		if( !strncmp(buf+2,"EMIT:",5) ) {
+			RequestEnvironment reqEnv(os,buf+7,len-7);
+			request::emit( reqEnv );
+		}
 		else {
 			AYLOG(ERROR) << "UNKNOWN header: " << std::string( buf, (len>6 ? 6: len) ) << std::endl;
 		}
 	} else {
-		BarzerRequestParser rp(gpools, os);
-		rp.parse(buf, len);
+		RequestEnvironment reqEnv(os,buf,len);
+		request::barze( gpools, reqEnv );
 	}
 }
 

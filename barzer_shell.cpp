@@ -1,4 +1,5 @@
 #include <barzer_shell.h>
+#include <barzer_server.h>
 #include <ay_util_time.h>
 
 #include <barzer_el_xml.h>
@@ -722,8 +723,9 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_xmload, "xmload", "loads xml from file" ),
 	CmdData( (ay::Shell_PROCF)bshf_tok, "tok", "token lookup by string" ),
 	CmdData( (ay::Shell_PROCF)bshf_tokid, "tokid", "token lookup by string" ),
-	CmdData( (ay::Shell_PROCF)bshf_euid, "euid", "entity lookup by euid (tok class subclass)" ),
+	CmdData( (ay::Shell_PROCF)bshf_emit, "emit", "emit [filename] emitter test" ),
 	CmdData( (ay::Shell_PROCF)bshf_entid, "entid", "entity lookup by entity id" ),
+	CmdData( (ay::Shell_PROCF)bshf_euid, "euid", "entity lookup by euid (tok class subclass)" ),
 	//CmdData( (ay::Shell_PROCF)bshf_trieloadxml, "trieloadxml", "loads a trie from an xml file" ),
 	CmdData( (ay::Shell_PROCF)bshf_setloglevel, "setloglevel", "set a log level (DEBUG/WARNINg/ERROR/CRITICAL)" ),
 	CmdData( (ay::Shell_PROCF)bshf_trans, "trans", "tester for barzel translation" ),
