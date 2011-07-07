@@ -17,7 +17,6 @@ namespace barzer {
 //// !!!!!!!!!!! NEVER REORDER ANY OF THE ENUMS 
 
 class BELParserXML : public BELParser {
-
 	/// given a tag returns one of the TAG_XX enums (see below)
 	int getTag( const char* s ) const;
 	const char* getTagName( const char* s );
@@ -184,7 +183,7 @@ public:
 	mutable std::string d_tmpText; // used by getElementText as a temp buffer
 
 	~BELParserXML() ;
-	BELParserXML( BELReader* r, std::ostream& outStream );
+	BELParserXML( BELReader* r);
 
 	uint32_t internTmpText( const char* s, int len, bool stem ) 
 		{ 
@@ -254,10 +253,12 @@ public:
 	int parse( std::istream& );
 };
 /// this emits combinations rather than adding 
-class BELParserXMLEmit : public BELParserXML {
+class BELReaderXMLEmit : public BELReader {
+	std::ostream& d_outStream;
 public:
-	BELParserXMLEmit( BELReader* r, std::ostream& outStr) : 
-		BELParserXML( r, outStr )
+	BELReaderXMLEmit( BELTrie* t, std::ostream& os ) :
+		BELReader( t, t->getGlobalPools() ),
+		d_outStream(os)
 	{}
 	void addStatement( const BELStatementParsed& sp );
 };

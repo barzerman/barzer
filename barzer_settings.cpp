@@ -100,14 +100,6 @@ void BarzerSettings::addRulefile(const Rulefile &f) {
 		std::cout << " into the trie `" << tclass << "." << tid << "'";
 	std::cout << "\n";
 }
-/*
-void BarzerSettings::addRulefile(const char *fn, const std::string &tclass = "",
-												 const std::string &tid = "")
-{
-	rules.push_back(Rulefile(fn, tclass, tid));
-
-} */
-
 
 void BarzerSettings::addEntityFile(const char *fname)
 {

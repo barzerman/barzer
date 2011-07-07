@@ -94,6 +94,23 @@ static int bshf_tok( BarzerShell* shell, char_cp cmd, std::istream& in )
 	
 	return 0;
 }
+static int bshf_emit( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	std::stringstream sstr;
+
+	std::string tmp;
+	ay::InputLineReader reader( in );
+
+	std::stringstream strStr;
+	while( reader.nextLine() && reader.str.length() ) {
+		strStr << reader.str;
+	}
+	std::string q = strStr.str();
+	RequestEnvironment reqEnv(shell->getOutStream(),q.c_str(),q.length());
+	request::emit( reqEnv );
+	return 0;
+}
+
 static int bshf_entid( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
@@ -664,7 +681,7 @@ static int bshf_stexpand( BarzerShell* shell, char_cp cmd, std::istream& in )
 	BELPrintContext ctxt( trie, stringPool, fmt );
 	PatternPrinter pp(ctxt);
 	BELExpandReader<PatternPrinter> reader(pp, &trie, uni.getGlobalPools());
-	reader.initParser(BELReader::INPUT_FMT_XML, std::cerr);
+	reader.initParser(BELReader::INPUT_FMT_XML);
 
 	ay::stopwatch totalTimer;
 

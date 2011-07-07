@@ -57,7 +57,6 @@ class BELTrie;
 class BELParser {
 protected:
 	BELReader* reader; // parser doesnt own this pointer. reader owns the parser
-	std::ostream& d_outStream;
 
 	enum { MAX_VARNAME_LENGTH };
 	uint32_t internString_internal( const char* s ) ;
@@ -77,7 +76,7 @@ protected:
 	BELTrie& getTrie(); 
 public:
 	uint32_t stemAndInternTmpText( const char* s, int len );
-	BELParser( BELReader* r, std::ostream& outStream ) : reader(r), d_outStream(outStream) {}
+	BELParser( BELReader* r ) : reader(r) {}
 	virtual int parse( std::istream& ) = 0;
 	virtual ~BELParser() {}
 	GlobalPools& getGlobalPools();
@@ -124,8 +123,6 @@ public:
 		INPUT_FMT_BIN,
 		INPUT_FMT_BARZEL,
 
-		INPUT_FMT_XML_EMITTER,
-
 		INPUT_FMT_MAX
 	} InputFormat;
 	InputFormat inputFmt;
@@ -144,7 +141,7 @@ public:
 	virtual void addStatement( const BELStatementParsed& );
 	virtual void addMacro( const std::string& macro, const BELStatementParsed& );
 
-	BELParser*  initParser(InputFormat fmt, std::ostream& );
+	BELParser*  initParser(InputFormat fmt );
 	int  loadFromStream( std::istream& fp );
 	//   combines initParser and LoadFromStream 
 	//   creates the parser and calls loadFromStream

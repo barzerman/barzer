@@ -152,7 +152,7 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 }
 
 
-BELParser*  BELReader::initParser(InputFormat fmt, std::ostream& outStream)
+BELParser*  BELReader::initParser(InputFormat fmt )
 {
 	if( parser ) {
 		if( fmt != inputFmt ) {
@@ -172,9 +172,7 @@ BELParser*  BELReader::initParser(InputFormat fmt, std::ostream& outStream)
 		}
 	}
 	switch( fmt ) {
-	case INPUT_FMT_XML: return ( (parser = new BELParserXML( this, outStream )) );
-	//INPUT_FMT_XML_EMITTER
-	case INPUT_FMT_XML_EMITTER: return ( (parser = new BELParserXMLEmit( this, outStream )) );
+	case INPUT_FMT_XML: return ( (parser = new BELParserXML( this )) );
 	case INPUT_FMT_BIN:
 		std::cerr << "BELReader: binary format not implemented yet\n";
 		return 0;
@@ -205,7 +203,7 @@ int BELReader::loadFromFile( const char* fileName, BELReader::InputFormat fmt )
 	if( fileName )
 		inputFileName.assign( fileName );
 
-	if( !initParser( fmt, std::cerr ) )
+	if( !initParser(fmt) )
 		return 0;
 
 	if( inputFileName.length() ) { // trying to load from file 

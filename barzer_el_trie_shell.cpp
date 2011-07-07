@@ -26,7 +26,7 @@ DEF_TFUN(load) {
 	BELTrie &trie = uni.getBarzelTrie();
 
 	BELReader reader(&trie, uni.getGlobalPools() );
-	reader.initParser(BELReader::INPUT_FMT_XML, std::cerr);
+	reader.initParser(BELReader::INPUT_FMT_XML);
 
 	ay::stopwatch totalTimer;
 

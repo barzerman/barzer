@@ -38,8 +38,8 @@ static void charDataHandle( void * ud, const XML_Char *str, int len)
 namespace barzer {
 
 
-BELParserXML::BELParserXML( BELReader* r, std::ostream& outStream ) : 
-		BELParser(r, outStream),
+BELParserXML::BELParserXML( BELReader* r) : 
+		BELParser(r),
 		parser(0),
 		statementCount(0)
 	{
@@ -1169,7 +1169,7 @@ void BELParserXML::CurStatementData::clear()
 	}
 }
 //// 
-void BELParserXMLEmit::addStatement( const BELStatementParsed& sp )
+void BELReaderXMLEmit::addStatement( const BELStatementParsed& sp )
 {
 	d_outStream << "<stmtset>";
 	sp.pattern.printBarzelXML( d_outStream, getTrie());

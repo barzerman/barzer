@@ -2,6 +2,7 @@
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <boost/algorithm/string.hpp>
+#include <barzer_el_xml.h>
 
 
 extern "C" {
@@ -136,8 +137,8 @@ int emit( RequestEnvironment& reqEnv )
 {
 	GlobalPools gp;
 	BELTrie* trie  = gp.mkNewTrie();
-	BELReader reader(trie, gp);
-	reader.initParser(BELReader::INPUT_FMT_XML_EMITTER, reqEnv.outStream);
+	BELReaderXMLEmit reader(trie, reqEnv.outStream);
+	reader.initParser(BELReader::INPUT_FMT_XML);
 	std::stringstream is( reqEnv.buf );
 	reader.setSilentMode();
 	reader.loadFromStream( is );
@@ -145,14 +146,7 @@ int emit( RequestEnvironment& reqEnv )
 	return 0;
 }
 
-} // request namespace ends
-
-/*
-	in order for the server to process special transactions they must begin with a header
-	if the first 2 characters in buf are '!' followed by command (e.g. EMIT) request will be routed 
-	accordingly
-*/
-void AsyncServer::query_router(const char* buf, const size_t len, std::ostream& os) 
+int route( GlobalPools& gpools, const char* buf, const size_t len, std::ostream& os )
 {
 	if( buf[0] == '!' && buf[1] == '!' ) {
 		if( !strncmp(buf+2,"EMIT:",5) ) {
@@ -166,6 +160,19 @@ void AsyncServer::query_router(const char* buf, const size_t len, std::ostream& 
 		RequestEnvironment reqEnv(os,buf,len);
 		request::barze( gpools, reqEnv );
 	}
+	return 0;
+}
+
+} // request namespace ends
+
+/*
+	in order for the server to process special transactions they must begin with a header
+	if the first 2 characters in buf are '!' followed by command (e.g. EMIT) request will be routed 
+	accordingly
+*/
+void AsyncServer::query_router(const char* buf, const size_t len, std::ostream& os) 
+{
+	request::route( gpools, buf, len, os );
 }
 
 

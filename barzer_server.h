@@ -47,6 +47,10 @@ namespace request {
 int barze( const GlobalPools&, RequestEnvironment& reqEnv );
 int emit( RequestEnvironment& reqEnv );
 
+/// ends up routing between other functions
+int route( GlobalPools& gpools, const char* buf, const size_t len, std::ostream& os );
+
+
 } // request namespace ends
 
 }
