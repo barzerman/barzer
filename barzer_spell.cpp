@@ -1,10 +1,11 @@
-
+#include <barzer_universe.h>
 #include <hunspell/hunspell.hxx>
 #include <hunspell/hunspell.h>
 #include <barzer_spell.h>
 #include <unistd.h>
 #include <ay/ay_logger.h>
 #include <signal.h>
+
 
 namespace barzer {
 
@@ -104,6 +105,7 @@ int BarzerHunspell::addWord( const char* w )
 
 void BarzerHunspellInvoke::clear() 
 {
+	d_ghettoStr.clear();
 	Hunspell* hunspell = getHunspell();
 	if( !hunspell ) return ;
 	if( d_str_pp ) {
@@ -133,8 +135,29 @@ std::pair< int, size_t> BarzerHunspellInvoke::checkSpell( const char* s )
 }
 
 
+bool BarzerHunspellInvoke::ghettoAsciiStem( const char* s ) const
+{
+	size_t len = strlen( s );
+	if( len > 4 && len < 64 ) {
+		if( s[ len-1 ] == 's' ) {
+			char buf[ 64 ];
+			strncpy( buf, s, len );
+			buf[ len-1 ] = 0;
+			if( d_gp.getDtaIdx().getStoredToken( buf ) ) {
+				d_ghettoStr.assign(buf);
+				return true;
+			}
+		}
+	} 
+	return false;
+}
+
 const char* BarzerHunspellInvoke::stem( const char* s )
 {
+	if( d_isascii ) {
+		if( ghettoAsciiStem(s) )
+			return d_ghettoStr.c_str();
+	}
 	boost::mutex::scoped_lock theLock( d_spell.mutex() );
 	Hunspell* hunspell = getHunspell();
 	if( !hunspell ) return 0;

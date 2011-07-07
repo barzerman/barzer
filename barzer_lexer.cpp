@@ -117,7 +117,7 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 	bool isAsciiToken = ttok.isAscii();
 
 	if( isAsciiToken && ttok.len > MIN_SPELL_CORRECT_LEN ) {
-		BarzerHunspellInvoke spellChecker(d_universe.getHunspell());
+		BarzerHunspellInvoke spellChecker(d_universe.getHunspell(),d_universe.getGlobalPools());
 		ay::LevenshteinEditDistance& editDist = spellChecker.getEditDistanceCalc();
 		std::pair< int, size_t> scResult = spellChecker.checkSpell( t );
 		
@@ -153,8 +153,8 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 		}
 		// nothing was resolved/spell corrected so we will try stemming
 		{
-		BarzerHunspellInvoke stemmer(d_universe.getHunspell());
-		const char* stem = spellChecker.stem( t );
+		BarzerHunspellInvoke stemmer(d_universe.getHunspell(),d_universe.getGlobalPools());
+		const char* stem = stemmer.stem( t );
 		const StoredToken* storedTok = dtaIdx->getStoredToken(stem);
 		if( storedTok ) {
 			/// 
@@ -214,7 +214,7 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
 		}
 		/// stemming 
 		if( ctok.isWord() && d_universe.stemByDefault() && !wasStemmed ) {
-			BarzerHunspellInvoke spellChecker(d_universe.getHunspell());
+			BarzerHunspellInvoke spellChecker(d_universe.getHunspell(),d_universe.getGlobalPools());
 			std::string strToStem( ttok.buf, ttok.len );
 			const char* stem = spellChecker.stem( strToStem.c_str() );
 			if( stem )

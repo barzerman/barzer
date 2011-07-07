@@ -245,7 +245,7 @@ static int bshf_spell( BarzerShell* shell, char_cp cmd, std::istream& in )
 	const StoredUniverse &uni = context->universe;
 	const BarzerHunspell& hunspell = uni.getHunspell();
 	ay::InputLineReader reader( in );
-	BarzerHunspellInvoke spellChecker(hunspell);
+	BarzerHunspellInvoke spellChecker(hunspell,uni.getGlobalPools());
 
 	while( reader.nextLine() && reader.str.length() ) {
 		const char*  str = reader.str.c_str();
