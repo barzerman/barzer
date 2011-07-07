@@ -1080,6 +1080,8 @@ private:
     void makePatternTree();
 };
 
+std::ostream& btnd_xml_print( std::ostream&, const BELTrie&, const BTND_PatternData& d );
+
 } // barzer namespace
 
 #endif // BARZER_EL_BTND_H

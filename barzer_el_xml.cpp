@@ -1173,7 +1173,19 @@ void BELReaderXMLEmit::addStatement( const BELStatementParsed& sp )
 {
 	d_outStream << "<stmtset>";
 	sp.pattern.printBarzelXML( d_outStream, getTrie());
-	d_outStream << "</stmtset>";
+	d_outStream << "</stmtset>\n";
+
+	BELParseTreeNode_PatternEmitter emitter( sp.pattern );
+	int i =0;
+	do {
+		const BTND_PatternDataVec& seq = emitter.getCurSequence();
+		d_outStream << "<pat n=\"" << i << "\">";
+		for( BTND_PatternDataVec::const_iterator pi = seq.begin(); pi != seq.end();++pi ) 
+			btnd_xml_print( d_outStream, getTrie(), *pi );
+		d_outStream << "</pat>\n";
+		i++;
+		//AYLOG(DEBUG) << "path added";
+	} while( emitter.produceSequence() );
 }
 
 

@@ -815,6 +815,13 @@ struct BTNDVariant_print_XML : public BTND_Base_print_XML {
 
 } // anonymous namespace ends 
 
+std::ostream& btnd_xml_print( std::ostream& fp, const BELTrie& trie, const BTND_PatternData& d )
+{
+	BTND_PatternData_print_XML vis(fp, true, trie );
+	boost::apply_visitor( vis, d );
+	return fp;
+}
+
 std::ostream&  BELParseTreeNode::printBarzelXML( std::ostream& fp, const BELTrie& trie ) const
 {
 	BTNDVariant_print_XML vis(fp, (!child.size()), trie );
