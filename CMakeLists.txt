@@ -6,7 +6,7 @@ set (barzer_VERSION_MINOR 1)
 set(EN_DIR "lg_en")
 set(RU_DIR "lg_ru")
 
-list(APPEND CMAKE_MODULE_PATH "./cmake")
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 find_package(Boost COMPONENTS system python filesystem REQUIRED)
 link_directories ( ${boost_LIBRARY_DIRS} )
@@ -32,7 +32,6 @@ set(EXTRA_LIBS ${EXTRA_LIBS}
 
 set(SOURCES barzer_barz.cpp
             barzer_basic_types.cpp
-            barzer.cpp
             barzer_datelib.cpp
             barzer_date_util.cpp
             barzer_dtaindex.cpp
@@ -79,3 +78,12 @@ ENDIF( ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" )
 
 add_executable(barzer.exe barzer.cpp ${SOURCES})
 target_link_libraries (barzer.exe  ${EXTRA_LIBS})
+
+set(INSTALL_DIR "/usr/share/barzer")
+set(INSTALL_DATA_DIR "${INSTALL_DIR}/data")
+set(INSTALL_UTIL_DIR "${INSTALL_DIR}/data")
+
+install(FILES barzer.exe DESTINATION ${INSTALL_DIR})
+install(
+    DIRECTORY "data/configs" "data/entities" "data/rules"
+    DESTINATION ${INSTALL_DATA_DIR})
