@@ -6,6 +6,7 @@
 #include <boost/thread/mutex.hpp>
 
 class Hunspell;
+class GlobalPools;
 namespace barzer {
 
 class BarzerHunspell {
@@ -46,14 +47,22 @@ class BarzerHunspellInvoke {
 	mutable ay::LevenshteinEditDistance d_editDist;
 
 	Hunspell* getHunspell() { return const_cast<Hunspell*>( d_spell.getHunspell() ); }
+	const GlobalPools& d_gp;
+	bool d_isascii;
+	/// results of ghettoXXX methods are stored in this variable
+	mutable std::string d_ghettoStr;
 public:
+	/// if returns true d_ghettoStr will have the stem
+	bool ghettoAsciiStem( const char* s ) const;
 	ay::LevenshteinEditDistance& getEditDistanceCalc() const { return d_editDist; }
 
 	void clear() ;
-	BarzerHunspellInvoke( const BarzerHunspell& spell ) : 
+	BarzerHunspellInvoke( const BarzerHunspell& spell, const GlobalPools& gp  ) : 
 		d_spell(spell) ,
 		d_str_pp(0),
-		d_str_pp_sz(0)
+		d_str_pp_sz(0),
+		d_gp(gp),
+		d_isascii(true)
 	{}
 
 	~BarzerHunspellInvoke() { clear(); }

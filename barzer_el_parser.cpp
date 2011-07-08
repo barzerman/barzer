@@ -20,7 +20,7 @@ uint32_t BELParser::stemAndInternTmpText( const char* s, int len )
 {
 	std::string scopy(s, len );
 	
-	BarzerHunspellInvoke spellChecker(getGlobalPools().produceUniverse(0).getHunspell());
+	BarzerHunspellInvoke spellChecker(getGlobalPools().produceUniverse(0).getHunspell(), getGlobalPools());
 	const char* stemmed = spellChecker.stem(scopy.c_str());
 
 	if( stemmed && strncmp(scopy.c_str(), stemmed, len) ) 

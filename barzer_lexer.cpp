@@ -117,7 +117,7 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 	bool isAsciiToken = ttok.isAscii();
 
 	if( isAsciiToken && ttok.len > MIN_SPELL_CORRECT_LEN ) {
-		BarzerHunspellInvoke spellChecker(d_universe.getHunspell());
+		BarzerHunspellInvoke spellChecker(d_universe.getHunspell(),d_universe.getGlobalPools());
 		ay::LevenshteinEditDistance& editDist = spellChecker.getEditDistanceCalc();
 		std::pair< int, size_t> scResult = spellChecker.checkSpell( t );
 		
@@ -153,16 +153,19 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 		}
 		// nothing was resolved/spell corrected so we will try stemming
 		{
-		BarzerHunspellInvoke stemmer(d_universe.getHunspell());
-		const char* stem = spellChecker.stem( t );
-		const StoredToken* storedTok = dtaIdx->getStoredToken(stem);
-		if( storedTok ) {
-			/// 
-			ctok.storedTok = storedTok;
-			ctok.syncClassInfoFromSavedTok();
-			ctok.addSpellingCorrection( t, stem );
-			return 1;
-		}
+			BarzerHunspellInvoke stemmer(d_universe.getHunspell(),d_universe.getGlobalPools());
+			const char* stem = stemmer.stem( t );
+			if( stem ) {
+				const StoredToken* storedTok = dtaIdx->getStoredToken(stem);
+				size_t stem_len = strlen( stem );
+				if( stem_len > 3 && storedTok ) {
+					/// 
+					ctok.storedTok = storedTok;
+					ctok.syncClassInfoFromSavedTok();
+					ctok.addSpellingCorrection( t, stem );
+					return 1;
+				}
+			}
 		} // end of block
 	} else {
 		/// non-ascii spell checking logic should go here 
@@ -214,7 +217,7 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
 		}
 		/// stemming 
 		if( ctok.isWord() && d_universe.stemByDefault() && !wasStemmed ) {
-			BarzerHunspellInvoke spellChecker(d_universe.getHunspell());
+			BarzerHunspellInvoke spellChecker(d_universe.getHunspell(),d_universe.getGlobalPools());
 			std::string strToStem( ttok.buf, ttok.len );
 			const char* stem = spellChecker.stem( strToStem.c_str() );
 			if( stem )
