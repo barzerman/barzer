@@ -20,7 +20,7 @@ include_directories("${PROJECT_BINARY_DIR}"
                     "${PROJECT_SOURCE_DIR}/ay"
                     "${PROJECT_SOURCE_DIR}/${EN_DIR}"
                     "${PROJECT_SOURCE_DIR}/${RU_DIR}"
-                    ${boost_INCLUDE_DIRS})
+                     ${Boost_INCLUDE_DIRS})
 add_subdirectory (ay)
 #add_subdirectory (util)
 
