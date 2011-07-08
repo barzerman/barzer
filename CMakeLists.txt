@@ -69,22 +69,26 @@ set(SOURCES barzer_barz.cpp
             "${RU_DIR}/barzer_ru_lex.cpp"
             )
 
-IF( ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" )
-    list(APPEND CMAKE_CXX_FLAGS "-Wnon-virtual-dtor -fpic -Wall -g")
-ENDIF( ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" )
-
-IF( ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" )
-    list(APPEND CMAKE_CXX_FLAGS "-Wnon-virtual-dtor -fpic -Wall -g")
-ENDIF( ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" )
-
-add_executable(barzer.exe barzer.cpp ${SOURCES})
-target_link_libraries (barzer.exe  ${EXTRA_LIBS})
 
 set(PYHTON_UTIL_LIBNAME "python_util.so")
 
 set(INSTALL_DIR "/usr/share/barzer")
 set(INSTALL_DATA_DIR "${INSTALL_DIR}/data")
 set(INSTALL_UTIL_DIR "${INSTALL_DIR}/util")
+
+list(APPEND CMAKE_CXX_FLAGS "-DBARZER_HOME=${INSTALL_DIR} -Wnon-virtual-dtor -fpic -Wall -g")
+set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
+
+IF( ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" )
+    #list(APPEND CMAKE_CXX_FLAGS "")
+ENDIF( ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" )
+
+IF( ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" )
+    #list(APPEND CMAKE_CXX_FLAGS "")
+ENDIF( ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" )
+
+add_executable(barzer.exe barzer.cpp ${SOURCES})
+target_link_libraries (barzer.exe  ${EXTRA_LIBS})
 
 install(FILES barzer.exe
         DESTINATION ${INSTALL_DIR})
