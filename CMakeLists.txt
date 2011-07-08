@@ -3,6 +3,10 @@ project (barzer)
 set (barzer_VERSION_MAJOR 0)
 set (barzer_VERSION_MINOR 1)
 
+set(CMAKE_CXX_COMPILER $ENV{CC})
+
+MESSAGE("$ENV{CC}")
+
 set(EN_DIR "lg_en")
 set(RU_DIR "lg_ru")
 
@@ -75,12 +79,12 @@ set(INSTALL_DIR "/usr/share/barzer")
 set(INSTALL_DATA_DIR "${INSTALL_DIR}/data")
 set(INSTALL_UTIL_DIR "${INSTALL_DIR}/util")
 
-list(APPEND CMAKE_CXX_FLAGS "-DBARZER_HOME=${INSTALL_DIR} -Wnon-virtual-dtor -fpic -Wall -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} $ENV{OPT} -DBARZER_HOME=${INSTALL_DIR} -Wnon-virtual-dtor -fpic -Wall -g")
+
+
 set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
 
-IF( ${CC} )
-set(CMAKE_CXX_COMPILER ${CC})
-ENDIF( ${CC} )
+
 
 IF( ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" )
     #list(APPEND CMAKE_CXX_FLAGS "")
