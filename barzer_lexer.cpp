@@ -153,16 +153,19 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 		}
 		// nothing was resolved/spell corrected so we will try stemming
 		{
-		BarzerHunspellInvoke stemmer(d_universe.getHunspell(),d_universe.getGlobalPools());
-		const char* stem = stemmer.stem( t );
-		const StoredToken* storedTok = dtaIdx->getStoredToken(stem);
-		if( storedTok ) {
-			/// 
-			ctok.storedTok = storedTok;
-			ctok.syncClassInfoFromSavedTok();
-			ctok.addSpellingCorrection( t, stem );
-			return 1;
-		}
+			BarzerHunspellInvoke stemmer(d_universe.getHunspell(),d_universe.getGlobalPools());
+			const char* stem = stemmer.stem( t );
+			if( stem ) {
+				const StoredToken* storedTok = dtaIdx->getStoredToken(stem);
+				size_t stem_len = strlen( stem );
+				if( stem_len > 3 && storedTok ) {
+					/// 
+					ctok.storedTok = storedTok;
+					ctok.syncClassInfoFromSavedTok();
+					ctok.addSpellingCorrection( t, stem );
+					return 1;
+				}
+			}
 		} // end of block
 	} else {
 		/// non-ascii spell checking logic should go here 
