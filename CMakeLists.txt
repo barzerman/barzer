@@ -9,7 +9,7 @@ set(RU_DIR "lg_ru")
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 find_package(Boost COMPONENTS system python filesystem REQUIRED)
-link_directories ( ${boost_LIBRARY_DIRS} )
+link_directories ( ${Boost_LIBRARY_DIRS} )
 
 find_package(Hunspell REQUIRED)
 find_package(PythonLibs REQUIRED)

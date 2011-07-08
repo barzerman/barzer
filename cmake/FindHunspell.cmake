@@ -3,6 +3,8 @@ FIND_PATH(HUNSPELL_INCLUDE_DIR hunspell.hxx
     /usr/local/include
     /usr/include/hunspell
     /usr/include
+    /opt/include
+    /opt/include/hunspell
 )
 
 SET(HUNSPELL_NAMES ${HUNSPELL_NAMES} hunspell hunspell-1.2 hunspell-1.3)
