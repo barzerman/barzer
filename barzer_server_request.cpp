@@ -110,7 +110,7 @@ template<class T>struct CmdProc : public boost::static_visitor<> {
 };
 
 struct CmdAdd : public CmdProc<CmdAdd> {
-	CmdAdd(BarzerRequestParser &p) : CmdProc(p) {}
+	CmdAdd(BarzerRequestParser &p) : CmdProc<CmdAdd>(p) {}
 	void operator()(Rulefile &rf) {
 		parser.getSettings().addRulefile(rf);
 		parser.stream() << "<rulefile>!!";
