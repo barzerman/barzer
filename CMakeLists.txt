@@ -6,9 +6,14 @@ set (barzer_VERSION_MINOR 1)
 set(EN_DIR "lg_en")
 set(RU_DIR "lg_ru")
 
+list(APPEND CMAKE_MODULE_PATH "./cmake")
 
-find_package(Boost COMPONENTS system REQUIRED)
+find_package(Boost COMPONENTS system python filesystem REQUIRED)
 link_directories ( ${boost_LIBRARY_DIRS} )
+
+find_package(Hunspell REQUIRED)
+find_package(PythonLibs REQUIRED)
+find_package(EXPAT REQUIRED)
 
 include_directories("${PROJECT_BINARY_DIR}"
                     "${PROJECT_SOURCE_DIR}"
@@ -18,38 +23,46 @@ include_directories("${PROJECT_BINARY_DIR}"
                     ${boost_INCLUDE_DIRS})
 add_subdirectory (ay)
 
-set(EXTRA_LIBS ${EXTRA_LIBS} ${Boost_SYSTEM_LIBRARY} ay expat)
+set(EXTRA_LIBS ${EXTRA_LIBS}
+               ${Boost_SYSTEM_LIBRARY}
+               ${Boost_FILESYSTEM_LIBRARY}
+               ${EXPAT_LIBRARIES}
+               ${HUNSPELL_LIBRARIES}
+               ay)
 
 set(SOURCES barzer_barz.cpp
-            barzer_el_wildcard.cpp
             barzer_basic_types.cpp
+            barzer.cpp
+            barzer_datelib.cpp
+            barzer_date_util.cpp
+            barzer_dtaindex.cpp
+            barzer_el_analysis.cpp
+            barzer_el_btnd.cpp
+            barzer_el_chain.cpp
+            barzer_el_function.cpp
+            barzer_el_matcher.cpp
+            barzer_el_parser.cpp
+            barzer_el_rewriter.cpp
+            barzer_el_trie.cpp
+            barzer_el_trie_processor.cpp
+            barzer_el_trie_shell.cpp
+            barzer_el_trie_walker.cpp
+            barzer_el_wildcard.cpp
             barzer_el_xml.cpp
             barzer_language.cpp
-            barzer_date_util.cpp
             barzer_lexer.cpp
-            barzer_dtaindex.cpp
             barzer_loader_xml.cpp
-            barzer_el_btnd.cpp
             barzer_parse.cpp
-            barzer_el_chain.cpp
             barzer_parse_types.cpp
-            barzer_el_function.cpp 
             barzer_server.cpp
-            barzer_el_matcher.cpp
             barzer_server_request.cpp
-            barzer_el_parser.cpp
             barzer_server_response.cpp
-            barzer_el_rewriter.cpp
-            barzer_shell.cpp
-            barzer_el_trie.cpp
-            barzer_storage_types.cpp
-            barzer_el_trie_processor.cpp
-            barzer_token.cpp
-            barzer_el_trie_shell.cpp 
-            barzer_universe.cpp
-            barzer_el_trie_walker.cpp
-            barzer_dict.cpp
             barzer_settings.cpp
+            barzer_shell.cpp
+            barzer_spell.cpp
+            barzer_storage_types.cpp
+            barzer_token.cpp
+            barzer_universe.cpp
             "${EN_DIR}/barzer_en_date_util.cpp"
             "${EN_DIR}/barzer_en_lex.cpp"
             "${RU_DIR}/barzer_ru_date_util.cpp"
@@ -57,11 +70,11 @@ set(SOURCES barzer_barz.cpp
             )
 
 IF( ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" )
-    list(APPEND CMAKE_CXX_FLAGS "-Wnon-virtual-dtor -Wall -g")
+    list(APPEND CMAKE_CXX_FLAGS "-Wnon-virtual-dtor -fpic -Wall -g")
 ENDIF( ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" )
 
 IF( ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" )
-    list(APPEND CMAKE_CXX_FLAGS "-Wnon-virtual-dtor -Wall -g")
+    list(APPEND CMAKE_CXX_FLAGS "-Wnon-virtual-dtor -fpic -Wall -g")
 ENDIF( ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" )
 
 add_executable(barzer.exe barzer.cpp ${SOURCES})
