@@ -22,6 +22,7 @@ include_directories("${PROJECT_BINARY_DIR}"
                     "${PROJECT_SOURCE_DIR}/${RU_DIR}"
                     ${boost_INCLUDE_DIRS})
 add_subdirectory (ay)
+add_subdirectory (util)
 
 set(EXTRA_LIBS ${EXTRA_LIBS}
                ${Boost_SYSTEM_LIBRARY}
@@ -79,11 +80,15 @@ ENDIF( ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" )
 add_executable(barzer.exe barzer.cpp ${SOURCES})
 target_link_libraries (barzer.exe  ${EXTRA_LIBS})
 
+set(PYHTON_UTIL_LIBNAME "python_util.so")
+
 set(INSTALL_DIR "/usr/share/barzer")
 set(INSTALL_DATA_DIR "${INSTALL_DIR}/data")
-set(INSTALL_UTIL_DIR "${INSTALL_DIR}/data")
+set(INSTALL_UTIL_DIR "${INSTALL_DIR}/util")
 
-install(FILES barzer.exe DESTINATION ${INSTALL_DIR})
-install(
-    DIRECTORY "data/configs" "data/entities" "data/rules"
-    DESTINATION ${INSTALL_DATA_DIR})
+install(FILES barzer.exe
+        DESTINATION ${INSTALL_DIR})
+install(FILES "util/${PYHTON_UTIL_LIBNAME}"
+        DESTINATION ${INSTALL_UTIL_DIR})
+install(DIRECTORY "data/configs" "data/entities" "data/rules"
+        DESTINATION ${INSTALL_DATA_DIR})
