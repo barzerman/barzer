@@ -22,7 +22,7 @@ include_directories("${PROJECT_BINARY_DIR}"
                     "${PROJECT_SOURCE_DIR}/${RU_DIR}"
                     ${boost_INCLUDE_DIRS})
 add_subdirectory (ay)
-add_subdirectory (util)
+#add_subdirectory (util)
 
 set(EXTRA_LIBS ${EXTRA_LIBS}
                ${Boost_SYSTEM_LIBRARY}
@@ -69,8 +69,7 @@ set(SOURCES barzer_barz.cpp
             "${RU_DIR}/barzer_ru_lex.cpp"
             )
 
-
-set(PYHTON_UTIL_LIBNAME "python_util.so")
+#set(PYHTON_UTIL_LIBNAME "python_util.so")
 
 set(INSTALL_DIR "/usr/share/barzer")
 set(INSTALL_DATA_DIR "${INSTALL_DIR}/data")
@@ -78,6 +77,10 @@ set(INSTALL_UTIL_DIR "${INSTALL_DIR}/util")
 
 list(APPEND CMAKE_CXX_FLAGS "-DBARZER_HOME=${INSTALL_DIR} -Wnon-virtual-dtor -fpic -Wall -g")
 set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
+
+IF( ${CC} )
+set(CMAKE_CXX_COMPILER ${CC})
+ENDIF( ${CC} )
 
 IF( ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" )
     #list(APPEND CMAKE_CXX_FLAGS "")
