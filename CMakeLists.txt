@@ -95,7 +95,7 @@ target_link_libraries (barzer.exe  ${EXTRA_LIBS})
 
 install(FILES barzer.exe
         DESTINATION ${INSTALL_DIR})
-install(FILES "util/${PYHTON_UTIL_LIBNAME}"
-        DESTINATION ${INSTALL_UTIL_DIR})
+#install(FILES "util/${PYHTON_UTIL_LIBNAME}"
+#        DESTINATION ${INSTALL_UTIL_DIR})
 install(DIRECTORY "data/configs" "data/entities" "data/rules"
         DESTINATION ${INSTALL_DATA_DIR})
