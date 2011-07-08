@@ -150,7 +150,7 @@ int emit( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools )
 
 int route( GlobalPools& gpools, const char* buf, const size_t len, std::ostream& os )
 {
-	if( buf[0] == '!' && buf[1] == '!' ) {
+	if( len >= 7 && buf[0] == '!' && buf[1] == '!' ) {
 		if( !strncmp(buf+2,"EMIT:",5) ) {
 			RequestEnvironment reqEnv(os,buf+7,len-7);
 			request::emit( reqEnv, gpools );
