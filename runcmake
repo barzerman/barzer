@@ -1,0 +1,9 @@
+#!/usr/bin/ksh
+
+OPTS=""
+if [[ -n $CC ]]; then
+OPTS="-DCMAKE_C_COMPILER=$CC"
+fi
+
+cmake $OPTS $* .
+

@@ -1,9 +1,10 @@
+set(CMAKE_C_COMPILER $ENV{CC})
+set(CMAKE_CXX_COMPILER $ENV{CC})
 cmake_minimum_required (VERSION 2.6)
 project (barzer)
 set (barzer_VERSION_MAJOR 0)
 set (barzer_VERSION_MINOR 1)
 
-set(CMAKE_CXX_COMPILER $ENV{CC})
 
 #MESSAGE("${CC}")
 
@@ -83,9 +84,10 @@ add_definitions("\$(OPT)")
 
 set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
 
+MESSAGE(${CMAKE_CXX_COMPILER_ID})
 
 IF( ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" )
-#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wparentheses")
+    add_definitions(" -Wno-parentheses")
 ENDIF( ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" )
 
 IF( ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" )
