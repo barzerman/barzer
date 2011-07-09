@@ -77,14 +77,15 @@ set(INSTALL_DIR "/usr/share/barzer")
 set(INSTALL_DATA_DIR "${INSTALL_DIR}/data")
 set(INSTALL_UTIL_DIR "${INSTALL_DIR}/util")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} $ENV{OPT} -DBARZER_HOME=${INSTALL_DIR} -Wnon-virtual-dtor -fpic -Wall -g")
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} $ENV{OPT} -DBARZER_HOME=${INSTALL_DIR} -Wnon-virtual-dtor -fpic -g")
+add_definitions("\$(OPT)")
 
 set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
 
 
 IF( ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" )
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wparentheses")
+#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wparentheses")
 ENDIF( ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" )
 
 IF( ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" )
