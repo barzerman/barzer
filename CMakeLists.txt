@@ -73,8 +73,6 @@ set(SOURCES barzer_barz.cpp
             "${RU_DIR}/barzer_ru_lex.cpp"
             )
 
-#set(PYHTON_UTIL_LIBNAME "python_util.so")
-
 set(INSTALL_DIR "/usr/share/barzer")
 set(INSTALL_DATA_DIR "${INSTALL_DIR}/data")
 set(INSTALL_UTIL_DIR "${INSTALL_DIR}/util")
@@ -97,9 +95,12 @@ ENDIF( ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" )
 add_executable(barzer.exe barzer.cpp ${SOURCES})
 target_link_libraries (barzer.exe  ${EXTRA_LIBS})
 
+GET_TARGET_PROPERTY(PYHTON_UTIL_LIBNAME python_util LOCATION)
+
 install(FILES barzer.exe
         DESTINATION ${INSTALL_DIR})
-#install(FILES "util/${PYHTON_UTIL_LIBNAME}"
-#        DESTINATION ${INSTALL_UTIL_DIR})
+install(FILES "${PYHTON_UTIL_LIBNAME}"
+        DESTINATION ${INSTALL_UTIL_DIR})
 install(DIRECTORY "data/configs" "data/entities" "data/rules"
         DESTINATION ${INSTALL_DATA_DIR})
+        
