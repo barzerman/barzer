@@ -12,11 +12,11 @@ set(RU_DIR "lg_ru")
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
-find_package(Boost COMPONENTS system filesystem REQUIRED)
+find_package(Boost COMPONENTS system python filesystem REQUIRED)
 link_directories ( ${Boost_LIBRARY_DIRS} )
 
 find_package(Hunspell REQUIRED)
-#find_package(PythonLibs REQUIRED)
+find_package(PythonLibs REQUIRED)
 find_package(EXPAT REQUIRED)
 
 include_directories("${PROJECT_BINARY_DIR}"
@@ -26,7 +26,7 @@ include_directories("${PROJECT_BINARY_DIR}"
                     "${PROJECT_SOURCE_DIR}/${RU_DIR}"
                      ${Boost_INCLUDE_DIRS})
 add_subdirectory (ay)
-#add_subdirectory (util)
+add_subdirectory (util)
 
 set(EXTRA_LIBS ${EXTRA_LIBS}
                ${Boost_SYSTEM_LIBRARY}
@@ -79,7 +79,7 @@ set(INSTALL_DIR "/usr/share/barzer")
 set(INSTALL_DATA_DIR "${INSTALL_DIR}/data")
 set(INSTALL_UTIL_DIR "${INSTALL_DIR}/util")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} $ENV{OPT} \$(OPT) -DBARZER_HOME=${INSTALL_DIR} -Wnon-virtual-dtor -fpic -Wall -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} $ENV{OPT} -DBARZER_HOME=${INSTALL_DIR} -Wnon-virtual-dtor -fpic -Wall -g")
 
 
 set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")

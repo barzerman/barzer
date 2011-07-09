@@ -12,3 +12,4 @@
 int umlautsToAscii( std::string& dest, const char* s );
 
 #endif /* UMLAUH_H_ */
+

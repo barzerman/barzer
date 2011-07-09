@@ -14,7 +14,10 @@ set(EXTRA_LIBS ${EXTRA_LIBS}
                ${Boost_PYTHON_LIBRARY}
                ${PYTHON_LIBRARIES}
                ay)
+
+MESSAGE(python_util)
                     
 add_library(python_util SHARED python_util.cpp umlaut.cpp)
 target_link_libraries (python_util ${EXTRA_LIBS})
 SET_TARGET_PROPERTIES(python_util PROPERTIES PREFIX "")
+
