@@ -16,7 +16,7 @@ SHARED_LIBNAME=libbarzer.so
 PYTHON_LIBNAME=util/python_util.so
 LIB_HUNSPELL=-lhunspell-1.2
 libs = -Lay -lay -L/opt/local/lib -L/opt/local/lib/boost -L/usr/lib $(LIB_HUNSPELL) \
-	-lboost_system -lboost_filesystem -lexpat -lstdc++
+	-lboost_system -lboost_filesystem -lboost_thread-mt -lexpat -lstdc++
 ECHO = echo
 lib_objects = \
 barzer_spell.o \

@@ -1,4 +1,5 @@
 #include <barzer_server.h>
+#include <boost/thread.hpp>
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <boost/algorithm/string.hpp>
@@ -150,6 +151,10 @@ int emit( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools )
 
 int route( GlobalPools& gpools, const char* buf, const size_t len, std::ostream& os )
 {
+	std::cerr << "SHIT sleeping in thread " << boost::this_thread::get_id() << std::endl;
+	sleep(500);
+	std::cerr<< boost::this_thread::get_id() <<  ".. SHIT done\n";
+
 	if( len >= 7 && buf[0] == '!' && buf[1] == '!' ) {
 		if( !strncmp(buf+2,"EMIT:",5) ) {
 			RequestEnvironment reqEnv(os,buf+7,len-7);
@@ -179,10 +184,37 @@ void AsyncServer::query_router(const char* buf, const size_t len, std::ostream& 
 
 
 
-int run_server(GlobalPools &gp, uint16_t port) {
+
+int run_server_mt(GlobalPools &gp, uint16_t port) {
 	ay::Logger::getLogger()->setFile("barzer_server.log");
-	boost::asio::io_service io_service;
 	std::cerr << "Running barzer search server on port " << port << "..." << std::endl;
+
+	boost::asio::io_service io_service;
+
+	boost::asio::io_service::work work(io_service);
+
+  	boost::thread_group threads;
+    for (std::size_t i = 0; i < gp.settings.getNumThreads(); ++i)
+	    threads.create_thread(boost::bind(&boost::asio::io_service::run, &io_service));
+
+	AsyncServer s(gp, io_service, port);
+	s.init();
+	io_service.run();
+	threads.join_all();
+
+	return 0;
+}
+
+int run_server(GlobalPools &gp, uint16_t port) {
+	if( gp.settings.getNumThreads() > 1 ) {
+		
+		return run_server_mt(gp,port);
+	}
+	ay::Logger::getLogger()->setFile("barzer_server.log");
+	std::cerr << "Running barzer search server on port " << port << "..." << std::endl;
+
+	boost::asio::io_service io_service;
+
 	AsyncServer s(gp, io_service, port);
 	s.init();
 	io_service.run();
