@@ -97,6 +97,9 @@ public:
 	void setBody(const std::string &s);
 
 	void process(const char *name);
+	/// query is already stripped of the 
+	void raw_query_parse( const char* query );
+
 	void tag_query(RequestTag&);
 	void tag_cmd(RequestTag&);
 	void tag_rulefile(RequestTag&);

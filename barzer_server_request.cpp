@@ -167,7 +167,26 @@ void BarzerRequestParser::tag_trie(RequestTag &tag) {
 }
 
 
+void BarzerRequestParser::raw_query_parse( const char* query ) 
+{
+	const StoredUniverse * up = gpools.getUniverse(userId);
+	if( !up ) return;
+
+	const StoredUniverse &u = *up;
+
+	QParser qparser(u);
+	BarzStreamerXML response(barz, u);
+
+	QuestionParm qparm;
+	//qparser.parse( barz, getTag().body.c_str(), qparm );
+	qparser.parse( barz, query, qparm );
+	response.print(os);
+}
+
 void BarzerRequestParser::tag_query(RequestTag &tag) {
+	if( tag.tagName == "query" ) {
+		return raw_query_parse( tag.body.c_str() );
+	}
 	StoredUniverse &u = gpools.produceUniverse(userId);
 
 	QParser qparser(u);

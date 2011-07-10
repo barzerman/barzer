@@ -130,6 +130,17 @@ namespace request {
 int barze( GlobalPools& gp, RequestEnvironment& reqEnv )
 {
 	BarzerRequestParser rp(gp, reqEnv.outStream );
+
+	const char * query= strstr( reqEnv.buf, "<query>" );
+	if( query ) {
+		query = query +7;
+		const char* endQuery = strstr( query, "</query>" );
+		if( endQuery ) {
+			std::string q( query, endQuery-query );
+			rp.raw_query_parse( q.c_str() );
+			return 0;
+		}
+	}
 	rp.parse(reqEnv.buf, reqEnv.len);
 	return 0;
 }
@@ -150,6 +161,8 @@ int emit( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools )
 
 int route( GlobalPools& gpools, const char* buf, const size_t len, std::ostream& os )
 {
+	static int shit = 0;
+	++shit;
 	// std::cerr << "SHIT in thread " << boost::this_thread::get_id() << "\n";
 
 	// sleep(5);
