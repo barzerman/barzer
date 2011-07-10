@@ -75,7 +75,6 @@ public:
 
 void SearchSession::start() {
 	//boost::asio::write(socket_, boost::asio::buffer("-ok- welcome to barzer\n"));
-
 	boost::asio::async_read_until(socket_, data_, "\r\n.\r\n",
 								  boost::bind(&SearchSession::handle_read, this,
 											  boost::asio::placeholders::error,
@@ -151,10 +150,9 @@ int emit( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools )
 
 int route( GlobalPools& gpools, const char* buf, const size_t len, std::ostream& os )
 {
-	/*
-	std::cerr << "SHIT sleeping in thread " << boost::this_thread::get_id() << std::endl;
-	sleep(5);
-	*/
+	// std::cerr << "SHIT in thread " << boost::this_thread::get_id() << "\n";
+
+	// sleep(5);
 
 	if( len >= 7 && buf[0] == '!' && buf[1] == '!' ) {
 		if( !strncmp(buf+2,"EMIT:",5) ) {
