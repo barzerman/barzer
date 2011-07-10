@@ -151,9 +151,10 @@ int emit( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools )
 
 int route( GlobalPools& gpools, const char* buf, const size_t len, std::ostream& os )
 {
+	/*
 	std::cerr << "SHIT sleeping in thread " << boost::this_thread::get_id() << std::endl;
-	sleep(500);
-	std::cerr<< boost::this_thread::get_id() <<  ".. SHIT done\n";
+	sleep(5);
+	*/
 
 	if( len >= 7 && buf[0] == '!' && buf[1] == '!' ) {
 		if( !strncmp(buf+2,"EMIT:",5) ) {
@@ -206,7 +207,7 @@ int run_server_mt(GlobalPools &gp, uint16_t port) {
 }
 
 int run_server(GlobalPools &gp, uint16_t port) {
-	if( gp.settings.getNumThreads() > 1 ) {
+	if( gp.settings.getNumThreads() ) {
 		
 		return run_server_mt(gp,port);
 	}

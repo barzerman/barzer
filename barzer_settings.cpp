@@ -83,7 +83,7 @@ User*  BarzerSettings::getUser(User::Id id)
 }
 
 BarzerSettings::BarzerSettings(GlobalPools &gp)
-	: gpools(gp), reader(gp), d_numThreads(1)
+	: gpools(gp), reader(gp), d_numThreads(0)
 { init(); }
 
 
@@ -166,7 +166,7 @@ void BarzerSettings::loadInstanceSettings() {
 		if( tagName == "threads" )  {
 			size_t nt = atoi( text.c_str() );
 				
-			std::cerr << "threadcount set to " << nt << std::endl;
+			std::cerr << "EXTRA THREADS: " << nt << " created" << std::endl;
 			if( !nt )
 				nt = 1;
 			if( nt > MAX_REASONABLE_THREADCOUNT ) {
