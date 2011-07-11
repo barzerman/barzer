@@ -97,7 +97,7 @@ ENDIF( ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" )
 add_executable(barzer.exe barzer.cpp ${SOURCES})
 target_link_libraries (barzer.exe  ${EXTRA_LIBS})
 
-GET_TARGET_PROPERTY(PYHTON_UTIL_LIBNAME python_util LOCATION)
+GET_TARGET_PROPERTY(PYHTON_UTIL_LIBNAME pybarzer LOCATION)
 
 install(FILES barzer.exe
         DESTINATION ${INSTALL_DIR})

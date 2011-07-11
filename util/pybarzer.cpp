@@ -18,7 +18,7 @@ const std::string stripDiacritics(const std::string &src) {
 	return out;
 }
 }
-BOOST_PYTHON_MODULE(python_util)
+BOOST_PYTHON_MODULE(pybarzer)
 {
     def("stripDiacritics", stripDiacritics);
 
