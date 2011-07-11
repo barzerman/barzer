@@ -1,4 +1,5 @@
 #!/usr/bin/ksh
+set -v on
 
 OPTS=""
 if [[ -n $CC ]]; then

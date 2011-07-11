@@ -73,13 +73,15 @@ set(SOURCES barzer_barz.cpp
             "${RU_DIR}/barzer_ru_date_util.cpp"
             "${RU_DIR}/barzer_ru_lex.cpp"
             )
-
-set(INSTALL_DIR "/usr/share/barzer")
+IF(NOT INSTALL_DIR)
+    set(INSTALL_DIR "/usr/share/barzer")
+ENDIF(NOT INSTALL_DIR)
 set(INSTALL_DATA_DIR "${INSTALL_DIR}/data")
 set(INSTALL_UTIL_DIR "${INSTALL_DIR}/util")
 
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} $ENV{OPT} -DBARZER_HOME=${INSTALL_DIR} -Wnon-virtual-dtor -fpic -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} $ENV{OPT} -Wnon-virtual-dtor -fpic -g")
+add_definitions(-DBARZER_HOME=${INSTALL_DIR})
 add_definitions("\$(OPT)")
 
 set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
@@ -87,7 +89,7 @@ set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
 MESSAGE(${CMAKE_CXX_COMPILER_ID})
 
 IF( ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" )
-    add_definitions(" -Wno-parentheses")
+    add_definitions("-Wno-parentheses")
 ENDIF( ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" )
 
 IF( ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" )
