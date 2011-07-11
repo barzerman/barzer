@@ -16,7 +16,7 @@ set(EXTRA_LIBS ${EXTRA_LIBS}
                ay)
 
                    
-add_library(python_util SHARED python_util.cpp umlaut.cpp)
-target_link_libraries (python_util ${EXTRA_LIBS})
-SET_TARGET_PROPERTIES(python_util PROPERTIES PREFIX "")
+add_library(pybarzer SHARED pybarzer.cpp umlaut.cpp)
+target_link_libraries (pybarzer ${EXTRA_LIBS})
+SET_TARGET_PROPERTIES(pybarzer PROPERTIES PREFIX "")
 
