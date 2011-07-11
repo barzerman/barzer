@@ -765,7 +765,7 @@ static const CmdData g_cmd[] = {
 };
 
 ay::ShellContext* BarzerShell::mkContext() { 
-	return new BarzerShellContext(*d_universe, getBarzerContext()->getTrie());
+	return new BarzerShellContext(*d_universe, d_universe->getSomeTrie() );
 }
 
 ay::ShellContext* BarzerShell::cloneContext() { 

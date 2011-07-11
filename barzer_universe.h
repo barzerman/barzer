@@ -137,9 +137,8 @@ public:
 		d_trieList.push_front( &tr );
 		return tr;
 	}
-	const BELTrie*  getFirstTrie() const { 
-		return ( d_trieList.empty() ?  0 : (*(d_trieList.begin())) );
-	}
+	BELTrie*  getFirstTrie() { return ( d_trieList.empty() ?  0 : (*(d_trieList.begin())) ); }
+	const BELTrie*  getFirstTrie() const { return ( d_trieList.empty() ?  0 : (*(d_trieList.begin())) ); }
 };
 
 class UniverseTrieClusterIterator {
@@ -291,6 +290,7 @@ public:
 		  DtaIndex& getDtaIdx() 	  { return gp.dtaIdx; }
 
 	size_t getEclassEntCount( const StoredEntityClass& eclass ) const { return getDtaIdx().getEclassEntCount( eclass ); }
+	BELTrie& getSomeTrie() { return *(trieCluster.getFirstTrie()); }
 	const BELTrie& getSomeTrie() const { return *(trieCluster.getFirstTrie()); }
 	const BELTrie& getBarzelTrie( const UniverseTrieClusterIterator& trieClusterIter ) const { return trieClusterIter.getCurrentTrie(); }
 		  BELTrie& getBarzelTrie( UniverseTrieClusterIterator& trieClusterIter )  { return trieClusterIter.getCurrentTrie(); }
