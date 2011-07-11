@@ -195,7 +195,7 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_MkEnt>( const BTN
 		BarzerEntity ent=  se->euid;
 		d_val.setBeadData( BarzelBeadAtomic().setData( ent ) );
 	} else if( n.isEntList() ) {
-		const EntityGroup* entGrp = ctxt.universe.getBarzelTrie().getEntGroupById( n.getEntGroupId() );
+		const EntityGroup* entGrp = ctxt.getTrie().getEntGroupById( n.getEntGroupId() );
 		if( entGrp ) {
 			// building entity list
 			BarzerEntityList entList;
@@ -224,7 +224,7 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Variable>( const 
 	BarzelMatchInfo& matchInfo = ctxt.matchInfo;
 	BeadRange r;
 
-	if( matchInfo.getDataByVar(r,n,ctxt.universe.getBarzelTrie())  ) {
+	if( matchInfo.getDataByVar(r,n,ctxt.getTrie())  ) {
 		if( r.first == r.second )  {
 			if( matchInfo.iteratorIsEnd( r.second ) ) {
 				std::cerr << "ERROR: blank tail range passed\n";

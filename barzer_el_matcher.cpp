@@ -148,6 +148,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 
 	bool d_followsBlank;
 	
+	const BELTrie& 					   d_trie;
 	// only applicable during operator() invokation
 	// it points to the bead whose atomic data we're matching
 	mutable BeadList::const_iterator d_dtaBeadIter; 
@@ -181,13 +182,14 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		return id;
 	}
 
-	findMatchingChildren_visitor( BTMIterator& bi, bool followsBlanks, NodeAndBeadVec& mC, const BeadRange& r, const BarzelTrieNode* t, BeadList::const_iterator dtaBeadIter ):
+	findMatchingChildren_visitor( BTMIterator& bi, bool followsBlanks, NodeAndBeadVec& mC, const BeadRange& r, const BarzelTrieNode* t, BeadList::const_iterator dtaBeadIter, const BELTrie& trie):
 		d_btmi(bi), 
 		d_mtChild(mC), 
 		d_rng(r), 
 		d_tn(t), 
 		d_followsBlank(followsBlanks),
-		d_dtaBeadIter(dtaBeadIter)
+		d_dtaBeadIter(dtaBeadIter),
+		d_trie(trie)
 	{}
 	
 	/// partial key comparison . called from partialWCKeyProcess
@@ -250,7 +252,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		if( !d_tn->hasValidWcLookup() ) 
 			return;
 
-		const BarzelWCLookup* wcLookup_ptr = d_btmi.universe.getWCLookup( d_tn->getWCLookupId() );
+		const BarzelWCLookup* wcLookup_ptr = d_btmi.universe.getWCLookup( d_trie, d_tn->getWCLookupId() );
 		if( !wcLookup_ptr ) { // this should never happen
 			AYLOG(ERROR) << "null lookup" << std::endl;
 			return;
@@ -294,7 +296,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		// forming firm key
 		// we ignore the whole allow blanks thing for dates - blanks will just always be allowed
 		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey );
-		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool();
+		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool( d_trie );
 
 		for( ; i!= fcmap.end() && i->first.type == patternTypeId; ++i ) {
 			/// we're looping over all date wildcards on the current node 
@@ -319,7 +321,8 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 	template <typename T>
 	bool operator()( const T& dta )
 	{
-		const BarzelFCMap* fcmap = d_btmi.universe.getBarzelTrie().getBarzelFCMap( *d_tn );
+		const BarzelFCMap* fcmap = d_trie.getBarzelFCMap( *d_tn );
+
 		if( fcmap ) {
 			/// trying to match single wildcard literals
 			doFirmMatch( *fcmap, dta, true );
@@ -387,7 +390,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		// forming firm key
 		// we ignore the whole allow blanks thing for dates - blanks will just always be allowed
 		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey );
-		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool();
+		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool(d_trie);
 		for( ; i!= fcmap.end() && i->first.type == BTND_Pattern_Date_TYPE; ++i ) {
 			/// we're looping over all date wildcards on the current node 
 			/// extracting the actual wildcard 
@@ -415,7 +418,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		// forming firm key
 		// we ignore the whole allow blanks thing for dates - blanks will just always be allowed
 		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey );
-		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool();
+		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool(d_trie);
 		for( ; i!= fcmap.end() && i->first.type == BTND_Pattern_DateTime_TYPE; ++i ) {
 			/// we're looping over all date wildcards on the current node 
 			/// extracting the actual wildcard 
@@ -443,7 +446,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		// forming firm key
 		// we ignore the whole allow blanks thing for dates - blanks will just always be allowed
 		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey );
-		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool();
+		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool(d_trie);
 		for( ; i!= fcmap.end() && i->first.type == BTND_Pattern_Number_TYPE; ++i ) {
 			/// we're looping over all date wildcards on the current node 
 			/// extracting the actual wildcard 
@@ -483,7 +486,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		// forming firm key
 		// we ignore the whole allow blanks thing for dates - blanks will just always be allowed
 		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey );
-		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool();
+		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool(d_trie);
 		for( ; i!= fcmap.end() && i->first.type == BTND_Pattern_Entity_TYPE; ++i ) {
 			/// we're looping over all date wildcards on the current node 
 			/// extracting the actual wildcard 
@@ -516,7 +519,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		// forming firm key
 		// we ignore the whole allow blanks thing for dates - blanks will just always be allowed
 		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey );
-		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool();
+		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool(d_trie);
 		for( ; i!= fcmap.end() && i->first.type == BTND_Pattern_ERCExpr_TYPE; ++i ) {
 			/// we're looping over all date wildcards on the current node 
 			/// extracting the actual wildcard 
@@ -541,7 +544,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 	template <>
 inline	bool findMatchingChildren_visitor::operator()<BarzerLiteral> ( const BarzerLiteral& dta )
 	{
-		const BarzelFCMap* fcmap = d_btmi.universe.getBarzelTrie().getBarzelFCMap( *d_tn );
+		const BarzelFCMap* fcmap = d_trie.getBarzelFCMap( *d_tn );
 		if( fcmap ) {
 			doFirmMatch( *fcmap, dta );
 			/// trying to match single wildcard literals
@@ -559,7 +562,7 @@ inline	bool findMatchingChildren_visitor::operator()<BarzerLiteral> ( const Barz
 	template <>
 inline	bool findMatchingChildren_visitor::operator()<BarzerString> ( const BarzerString& dta )
 	{
-		const BarzelFCMap* fcmap = d_btmi.universe.getBarzelTrie().getBarzelFCMap( *d_tn );
+		const BarzelFCMap* fcmap = d_trie.getBarzelFCMap( *d_tn );
 		if( fcmap ) {
 			BarzerLiteral wcLit;
 			doFirmMatch( *fcmap, wcLit, true );
@@ -576,7 +579,8 @@ inline	bool findMatchingChildren_visitor::operator()<BarzerString> ( const Barze
 
 bool BTMIterator::evalWildcard( const BarzelWCKey& wcKey, BeadList::iterator fromI, BeadList::iterator theI, uint8_t tokSkip ) const
 {
-	const BarzelWildcardPool& wcPool = universe.getWildcardPool();
+	const BarzelWildcardPool& wcPool = d_trie.getWildcardPool( );
+
 	const BarzelBeadAtomic* atomic = theI->getAtomic();
 	if( !atomic ) 
 		return false;
@@ -643,7 +647,7 @@ bool BTMIterator::findMatchingChildren( NodeAndBeadVec& mtChild, const BeadRange
 			break;
 	} while( rng.first != rng.second );
 
-	findMatchingChildren_visitor vis( *this, precededByBlanks, mtChild, rng, tn, dtaBeadIter );
+	findMatchingChildren_visitor vis( *this, precededByBlanks, mtChild, rng, tn, dtaBeadIter, d_trie);
 
 	boost::apply_visitor( vis, bead->dta );
 	return mtChild.size();
@@ -722,7 +726,7 @@ int BTMBestPaths::setRewriteUnit( RewriteUnit& ru )
 	const NodeAndBeadVec& winningPath = getBestPath();
 	ruMatchInfo.setPath( winningPath );
 	const BarzelTrieNode* tn = getTrieNode();
-	ru.second = ( tn ? tn->getTranslation(universe.getBarzelTrie()) : 0 );
+	ru.second = ( tn ? tn->getTranslation(d_trie) : 0 );
 
 	return 0;
 }
@@ -733,8 +737,8 @@ std::pair< bool, int > BTMBestPaths::scorePath( const NodeAndBeadVec& nb ) const
 	if( !nb.size() ) 
 		return( std::pair< bool, int >(true,0) );
 
-	const BarzelTranslation* trans = nb.back().first->getTranslation(universe.getBarzelTrie());
-	bool isTranslationFallible = ( trans ? universe.isBarzelTranslationFallible( *trans ) : false);
+	const BarzelTranslation* trans = nb.back().first->getTranslation(d_trie);
+	bool isTranslationFallible = ( trans ? universe.isBarzelTranslationFallible( d_trie, *trans ) : false);
 
 	std::pair< bool, int >  retVal( isTranslationFallible, 0 );
 	
@@ -880,9 +884,9 @@ void BarzelMatchInfo::setPath( const NodeAndBeadVec& p )
 int BarzelMatcher::matchInRange( RewriteUnit& rwrUnit, const BeadRange& curBeadRange ) 
 {
 	int  score = 0;
-	const BarzelTrieNode* trieRoot = &(universe.getBarzelTrie().getRoot());
+	const BarzelTrieNode* trieRoot = &(d_trie.getRoot());
 
-	BTMIterator btmi(curBeadRange,universe);	
+	BTMIterator btmi(curBeadRange,universe,d_trie);	
 	btmi.findPaths(trieRoot);
 	
 	btmi.bestPaths.setRewriteUnit( rwrUnit );
@@ -974,10 +978,10 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 	BarzelEvalNode evalNode;
 
 	//AYDEBUG( matchInfo.getSubstitutionBeadRange() );
-	BarzelEvalContext ctxt( matchInfo, universe );
+	BarzelEvalContext ctxt( matchInfo, universe, d_trie );
 	if( translation.isRewriter() ) { /// translation is a rewriter 
 		BarzelRewriterPool::BufAndSize bas;
-		if( !universe.getBarzelRewriter( bas, translation )) {
+		if( !universe.getBarzelRewriter( d_trie,bas, translation )) {
 			AYLOG(ERROR) << "no bytecode in rewriter" << std::endl;
 			theBead.setStopLiteral();
 			return 0;

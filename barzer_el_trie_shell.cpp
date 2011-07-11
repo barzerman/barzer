@@ -23,7 +23,8 @@ DEF_TFUN(load) {
 
 	BarzerShellContext *context = shell->getBarzerContext();
 	StoredUniverse &uni = context->universe;
-	BELTrie &trie = uni.getBarzelTrie();
+
+	BELTrie &trie = context->getTrie();
 
 	BELReader reader(&trie, uni.getGlobalPools() );
 	reader.initParser(BELReader::INPUT_FMT_XML);
@@ -48,7 +49,7 @@ DEF_TFUN(print) {
 	//AYLOG(DEBUG) << "trie_shell_print  called";
 	BarzerShellContext *context = shell->getBarzerContext();
 	StoredUniverse &uni = context->universe;
-	BELTrie &trie = uni.getBarzelTrie();
+	BELTrie &trie = context->getTrie();
 
 	BELTrieWalker &walker = context->trieWalker;
 

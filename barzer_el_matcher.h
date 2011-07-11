@@ -139,15 +139,17 @@ struct BTMBestPaths {
 	// this will be implemented LATER (?) 
 	typedef std::pair< NodeAndBeadVec, int > NABVScore;
 	std::list<NABVScore> d_falliblePaths;
+	const BELTrie& d_trie;
 
 	/// information of the best terminal paths matched 
 	/// 
 	BeadRange d_fullRange; // original range of the top level matcher 
 	const StoredUniverse& universe;
-	BTMBestPaths( const BeadRange& r, const StoredUniverse& u ) : 
+	BTMBestPaths( const BeadRange& r, const StoredUniverse& u, const BELTrie& trie ) : 
 		d_bestInfallibleScore(0),
 		d_fullRange(r),
-		universe(u) 
+		universe(u) ,
+		d_trie(trie)
 	{}
 	const BeadList::iterator getAbsoluteEnd() const { return d_fullRange.second; }
 	const BeadRange& getFullRange() const { return d_fullRange; }
@@ -179,6 +181,8 @@ public:
 private:
 	/// current path - d_tn is one level below. 
 	BTNVec d_path;
+
+	const BELTrie& d_trie;
 	/// pushes curPath and the accompanying bead range 
 	int addTerminalPath( const NodeAndBead& nb );
 
@@ -194,9 +198,10 @@ private:
 public:
 	const StoredUniverse& universe;
 
-	BTMIterator( const BeadRange& rng, const StoredUniverse& u ) : 
-		bestPaths(rng,u),
-		universe(u)
+	BTMIterator( const BeadRange& rng, const StoredUniverse& u, const BELTrie& trie ) : 
+		bestPaths(rng,u,trie),
+		universe(u),
+		d_trie(trie)
 	{ }
 	void findPaths( const BarzelTrieNode* trieNode)
 		{ matchBeadChain( bestPaths.getFullRange(), trieNode ); }
@@ -210,6 +215,7 @@ public:
 class BarzelMatcher {
 protected:
 	const StoredUniverse& universe;
+	const BELTrie& d_trie;
 
 	/// Rewrite unit has BarzelTranslation (see barzer_el_trie.h)
 	/// - which contains the actual rewriting instructions
@@ -267,7 +273,7 @@ protected:
 
 public:
 
-	BarzelMatcher( const StoredUniverse& u ) : universe(u) {}
+	BarzelMatcher( const StoredUniverse& u, const BELTrie& trie ) : universe(u), d_trie(trie) {}
 	virtual ~BarzelMatcher(  ) {}
 
 	const Error& getError() const { return d_err; }

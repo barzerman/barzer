@@ -104,19 +104,19 @@ void GlobalPools::createGenericEntities()
 
 StoredUniverse::StoredUniverse(GlobalPools& g) :
 	gp(g),
-	trieCluster(g.globalTriePool),
-	trieClusterIter(trieCluster) 
+	trieCluster(g.globalTriePool)
 {
 }
 
 void StoredUniverse::clear()
 {
-	getBarzelTrie().clear();
+	// getBarzelTrie().clear();
 	getDtaIdx().clear();
-	getWildcardPool().clear();
-	getRewriterPool().clear();
-	gp.stringPool.clear();
+	// getWildcardPool().clear();
+	// getRewriterPool().clear();
+	// gp.stringPool.clear();
 }
+/*
 std::ostream& StoredUniverse::printBarzelTrie( std::ostream& fp, const BELPrintFormat& fmt ) const
 {
 	BELPrintContext ctxt( getBarzelTrie(), gp.stringPool, fmt );
@@ -128,6 +128,7 @@ std::ostream& StoredUniverse::printBarzelTrie( std::ostream& fp ) const
 	BELPrintContext ctxt( getBarzelTrie(), gp.stringPool, fmt );
 	return getBarzelTrie().print( fp, ctxt );
 }
+*/
 
 const char* StoredUniverse::getGenericSubclassName( uint16_t subcl ) const
 {

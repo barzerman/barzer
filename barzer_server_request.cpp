@@ -169,7 +169,8 @@ void BarzerRequestParser::tag_trie(RequestTag &tag) {
 
 void BarzerRequestParser::raw_query_parse( const char* query ) 
 {
-	const StoredUniverse * up = gpools.getUniverse(userId);
+	const GlobalPools& gp = gpools;
+	const StoredUniverse * up = gp.getUniverse(userId);
 	if( !up ) return;
 
 	const StoredUniverse &u = *up;

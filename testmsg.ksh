@@ -18,7 +18,7 @@ done
 
 integer k
 k=0
-while [[ k -lt 5 ]]; do
+while [[ k -lt 2 ]]; do
 	blast &
 	((k=k+1))
 done

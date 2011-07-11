@@ -176,7 +176,9 @@ int route( GlobalPools& gpools, const char* buf, const size_t len, std::ostream&
 			AYLOG(ERROR) << "UNKNOWN header: " << std::string( buf, (len>6 ? 6: len) ) << std::endl;
 		}
 	} else {
+		int otherShitForDebugger = shit;
 		RequestEnvironment reqEnv(os,buf,len);
+		std::cerr << "SHITFUCK: " << boost::this_thread::get_id()  << ": " << otherShitForDebugger << '\n';
 		request::barze( gpools, reqEnv );
 	}
 	return 0;
@@ -211,7 +213,7 @@ int run_server_mt(GlobalPools &gp, uint16_t port) {
 
 	AsyncServer s(gp, io_service, port);
 	s.init();
-	io_service.run();
+	// io_service.run();
 	threads.join_all();
 
 	return 0;

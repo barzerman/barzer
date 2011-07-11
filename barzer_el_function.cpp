@@ -24,10 +24,6 @@ namespace {
 // returns BarzerNumber ot of random barzer type. NaN if fails
 struct NumberMatcher : public boost::static_visitor<BarzerNumber> {
 	BarzerNumber operator()( const BarzerNumber &dt ) {	return dt; }
-	/*BarzerNumber operator()( const 	BarzerLiteral &dt ) {
-		dt.print(AYLOG(DEBUG) << "literal type: ");
-		return BarzerNumber();
-	} */
 	BarzerNumber operator()( const BarzelBeadAtomic &dt )
 		{ return boost::apply_visitor(*this, dt.dta); }
 	template <typename T> BarzerNumber operator()( const T& )
@@ -37,18 +33,20 @@ struct NumberMatcher : public boost::static_visitor<BarzerNumber> {
 		}  // NaN
 };
 
-
-static BarzerNumber getNumber(const BarzelEvalResult &result) {
+namespace {
+BarzerNumber getNumber(const BarzelEvalResult &result) {
 	NumberMatcher m;
 	return boost::apply_visitor(m, result.getBeadData());
 }
 
 // writes result number into BarzerNumber - NaN when failed
-static bool setNumber(BarzerNumber &num, const BarzelEvalResult &result) {
+bool setNumber(BarzerNumber &num, const BarzelEvalResult &result) {
 	NumberMatcher m;
 	num = boost::apply_visitor(m, result.getBeadData());
 	return !num.isNan();
 }
+
+} // anon namespace ends
 
 
 // extracts a string from BarzerString or BarzerLiteral
@@ -65,9 +63,10 @@ struct StringExtractor : public boost::static_visitor<const char*> {
 	template <typename T> const char* operator()( const T& ) const
 		{ return 0;	}
 };
-
-static const char* extractString(const StoredUniverse &u, const BarzelEvalResult &result) {
+namespace {
+const char* extractString(const StoredUniverse &u, const BarzelEvalResult &result) {
 	return boost::apply_visitor(StringExtractor(u), result.getBeadData());
+}
 }
 
 template<class T> struct BeadMatcher : public boost::static_visitor<T> {
@@ -336,24 +335,12 @@ struct BELFunctionStorage_holder {
 
 	enum { P_WEEK = 1, P_MONTH, P_YEAR, P_DECADE, P_CENTURY };
 
-	uint8_t getPeriod(uint32_t stringId) {
-		typedef boost::unordered_map<uint32_t,uint8_t> PMap;
-		static ay::UniqueCharPool sp = gpools.stringPool;
-		static const PMap pmap = boost::assign::map_list_of
-				(sp.internIt("week"), (uint8_t)P_WEEK)
-				(sp.internIt("month"), (uint8_t)P_MONTH)
-				(sp.internIt("year"), (uint8_t)P_YEAR);
-		PMap::const_iterator it = pmap.find(stringId);
-		return (it == pmap.end()) ? 0 : it->second;
-	}
-
-
 	// stored functions
 	#define STFUN(n) bool stfun_##n( BarzelEvalResult &result,\
 							        const BarzelEvalResultVec &rvec,\
 							        const StoredUniverse &q_universe) const
 
-    #define SETSIG(x) static const char *sig = #x
+    #define SETSIG(x) const char *sig = #x
 	#define FERROR(x) AYLOG(ERROR) << sig << ": " << #x
 
 	STFUN(test) {
@@ -1290,7 +1277,7 @@ struct BELFunctionStorage_holder {
 
 	STFUN(opDateCalc)
 	{
-		static const char *sig = "opDateCalc(Date ,Number[, Number[, Number]]):";
+		const char *sig = "opDateCalc(Date ,Number[, Number[, Number]]):";
 		try {
 
 			int month = 0, year = 0, day = 0;

@@ -13,9 +13,10 @@ void TrieAnalyzer::setFluffThreshold( size_t n )
 	d_fluffThreshold= n;
 	// d_fluffThreshold= (1+ d_universe.getDtaIdx().getNumberOfEntities()/n);
 }
-TrieAnalyzer::TrieAnalyzer( const StoredUniverse& u ) :
+TrieAnalyzer::TrieAnalyzer( const StoredUniverse& u, const UniverseTrieClusterIterator& trieClusterIter ) :
+	d_trieClusterIter(trieClusterIter),
 	d_universe(u),
-	d_trav( u.getBarzelTrie().getRoot(), u.getBarzelTrie() ),
+	d_trav( trieClusterIter.getCurrentTrie().getRoot(), trieClusterIter.getCurrentTrie() ),
 	d_nameThreshold(2000),
 	d_fluffThreshold(200),
 	d_absNameThreshold(8)
@@ -78,7 +79,7 @@ bool TrieAnalyzer::getPathTokens( ay::char_cp_vec& tvec ) const
 void TrieAnalyzer::updateAnalytics( BTN_cp tn, TA_BTN_data& dta )
 {
 	if( tn->isLeaf() ) {
-		const BELTrie& trie = d_universe.getBarzelTrie();
+		const BELTrie& trie = d_trieClusterIter.getCurrentTrie();
 		const BarzelTranslation* tran = trie.getBarzelTranslation( *tn );
 		if( tran ) {
 			if( tran->isMkEntSingle() ) {

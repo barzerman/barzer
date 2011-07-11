@@ -121,6 +121,7 @@ typedef std::vector< BarzelEvalResult > BarzelEvalResultVec;
 struct BarzelEvalContext {
 	BarzelMatchInfo& matchInfo;
 	const StoredUniverse& universe;
+	const BELTrie& d_trie;
 	int err;
 	enum {
 		EVALERR_OK, 
@@ -129,8 +130,9 @@ struct BarzelEvalContext {
 
 	bool hasError() { return err != EVALERR_OK; }
 	const uint8_t* setErr_GROW() { return( err = EVALERR_GROW, (const uint8_t*)0); } 
-	BarzelEvalContext( BarzelMatchInfo& mi, const StoredUniverse& uni ) : 
-		matchInfo(mi), universe(uni) , err(EVALERR_OK)
+	const BELTrie& getTrie() const { return d_trie; }
+	BarzelEvalContext( BarzelMatchInfo& mi, const StoredUniverse& uni, const BELTrie& trie ) : 
+		matchInfo(mi), universe(uni) , d_trie(trie),err(EVALERR_OK)
 	{}
 };
 class BarzelEvalNode {
