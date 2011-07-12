@@ -1,6 +1,6 @@
 #!/bin/ksh
 
-NUMITER=100
+NUMITER=200
 if [[ -n $1 ]]; then
 	NUMITER=$1
 fi
@@ -18,7 +18,7 @@ done
 
 integer k
 k=0
-while [[ k -lt 2 ]]; do
+while [[ k -lt 5 ]]; do
 	blast &
 	((k=k+1))
 done
