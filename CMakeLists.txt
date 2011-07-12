@@ -13,7 +13,7 @@ set(RU_DIR "lg_ru")
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
-find_package(Boost COMPONENTS system python filesystem REQUIRED)
+find_package(Boost COMPONENTS system python thread filesystem REQUIRED)
 link_directories ( ${Boost_LIBRARY_DIRS} )
 
 find_package(Hunspell REQUIRED)
@@ -32,6 +32,7 @@ add_subdirectory (util)
 set(EXTRA_LIBS ${EXTRA_LIBS}
                ${Boost_SYSTEM_LIBRARY}
                ${Boost_FILESYSTEM_LIBRARY}
+               ${Boost_THREAD_LIBRARY}
                ${EXPAT_LIBRARIES}
                ${HUNSPELL_LIBRARIES}
                ay)
