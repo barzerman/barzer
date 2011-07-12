@@ -190,7 +190,7 @@ static int bshf_inspect( BarzerShell* shell, char_cp cmd, std::istream& in )
 	AYDEBUG( sizeof(BarzelTrieNode) );
 	AYDEBUG( sizeof(BarzelFCMap) );
 	std::cerr << "Barzel Wildcards:\n";
-	context->universe.getWildcardPool().print( std::cerr );
+	context->getTrie().getWildcardPool().print( std::cerr );
 
 	if( dtaIdx ) {
 		std::ostream& fp = shell->getOutStream();
@@ -390,7 +390,7 @@ struct ShellState {
 		context(shell->getBarzerContext()),
 		uni(context->universe),
 		walker(context->trieWalker),
-		trie(uni.getBarzelTrie()),
+		trie(context->getTrie()),
 		curTrieNode(walker.getCurrentNode()),
 		stringPool( uni.getStringPool())
 	{}
@@ -402,7 +402,7 @@ static int bshf_triestats( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	ShellState sh( shell, cmd, in );
 	{
-	BarzelTrieTraverser_depth trav( sh.trie.getRoot(), sh.uni.getBarzelTrie() );
+	BarzelTrieTraverser_depth trav( sh.trie.getRoot(), shell->getBarzerContext()->getTrie() );
 	BarzelTrieStatsCounter counter;
 	trav.traverse( counter, sh.curTrieNode );
 	std::cerr << counter << std::endl;
@@ -432,7 +432,7 @@ static int bshf_trans( BarzerShell* shell, char_cp cmd, std::istream& in )
 	if (sh.curTrieNode.isLeaf()) {
 		aLeaf = &sh.curTrieNode;
 	} else {
-		BarzelTrieTraverser_depth trav( sh.trie.getRoot(), sh.uni.getBarzelTrie() );
+		BarzelTrieTraverser_depth trav( sh.trie.getRoot(), sh.trie );
 		TrieLeafFinder fun;
 		aLeaf = trav.traverse( fun, sh.curTrieNode );
 	}
@@ -502,11 +502,12 @@ static int bshf_dtaan( BarzerShell* shell, char_cp cmd, std::istream& in )
 	}
 
 	ShellState sh( shell, cmd, in );
-	TrieAnalyzer analyzer( sh.uni );
+	UniverseTrieClusterIterator trieClusterIter( sh.uni.getTrieCluster() );
+	TrieAnalyzer analyzer( sh.uni, trieClusterIter );
 	analyzer.setNameThreshold( TAParms::nameThreshold );
 	analyzer.setFluffThreshold( TAParms::fluffThreshold );
 
-	analyzer.traverse();
+	analyzer.traverse(trieClusterIter);
 
 	TANameProducer nameProducer( *ostr );
 	nameProducer.setMaxNameLen( TAParms::maxNameLen );
@@ -526,7 +527,7 @@ static int bshf_trls( BarzerShell* shell, char_cp cmd, std::istream& in )
 	BarzerShellContext *context = shell->getBarzerContext();
 	StoredUniverse &uni = context->universe;
 	BELTrieWalker &walker = context->trieWalker;
-	BELTrie &trie = uni.getBarzelTrie();
+	BELTrie &trie = context->getTrie();
 
 	std::vector<BarzelTrieFirmChildKey> &fcvec = walker.getFCvec();
     std::vector<BarzelWCLookupKey> &wcvec = walker.getWCvec();
@@ -679,7 +680,7 @@ static int bshf_stexpand( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext *context = shell->getBarzerContext();
 	StoredUniverse &uni = context->universe;
-	BELTrie &trie = uni.getBarzelTrie();
+	BELTrie &trie = context->getTrie();
 	ay::UniqueCharPool &stringPool = uni.getStringPool();
 
 	BELPrintFormat fmt;
@@ -763,7 +764,10 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_querytest, "querytest", "peforms given number of queries" ),
 };
 
-ay::ShellContext* BarzerShell::mkContext() { return new BarzerShellContext(*d_universe); }
+ay::ShellContext* BarzerShell::mkContext() { 
+	return new BarzerShellContext(*d_universe, d_universe->getSomeTrie() );
+}
+
 ay::ShellContext* BarzerShell::cloneContext() { 
 	return new BarzerShellContext(*(dynamic_cast<BarzerShellContext*>( context )));
 }

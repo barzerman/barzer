@@ -41,6 +41,7 @@ struct TrieAnalyzer {
 	typedef const BarzelTrieNode* BTN_cp;
 	typedef boost::unordered_map< BTN_cp, TA_BTN_data > BTNDataHash;
 	BTNDataHash d_dtaHash;
+	const UniverseTrieClusterIterator& d_trieClusterIter;
 	
 	size_t d_nameThreshold;   // if < 1+totalCount/(d_nameThreshold+1) - qualifies as a name
 	size_t d_fluffThreshold;  // if > 1+totalCount/(d_fluffThreshold+1) - can be considered fluff
@@ -49,7 +50,9 @@ struct TrieAnalyzer {
 	size_t getNameThreshold() const { return d_nameThreshold; }
 	size_t getFluffThreshold() const { return d_fluffThreshold; }
 	size_t getAbsNameThreshold() const { return d_absNameThreshold; }
-	TrieAnalyzer( const StoredUniverse& );
+
+	const BELTrie& getTrie() const { return d_trieClusterIter.getCurrentTrie(); }
+	TrieAnalyzer( const StoredUniverse&, const UniverseTrieClusterIterator& trieClusterIter );
 	
 	void setNameThreshold( size_t n );
 	void setFluffThreshold( size_t n ) ;
@@ -79,8 +82,8 @@ struct TrieAnalyzer {
 	void updateAnalytics( BTN_cp, TA_BTN_data& dta );
 	bool operator()( const BarzelTrieNode& t ) ;
 
-	void traverse( ) 
-		{ getTraverser().traverse( *this, getUniverse().getBarzelTrie().getRoot() ); }
+	void traverse( const UniverseTrieClusterIterator& trieClusterIter ) 
+		{ getTraverser().traverse( *this, trieClusterIter.getCurrentTrie().getRoot() ); }
 
 	//// returns string values for the current tokens (vector of const char*)
 	//// this only wors if the current traverser's path is made up entirely of the 
@@ -120,7 +123,7 @@ struct TrieAnalyzerTraverser {
 		{ return specific( analyzer, t ); }
 	
 	void traverse( )
-		{ analyzer.getTraverser().traverse( *this, analyzer.getUniverse().getBarzelTrie().getRoot() ); }
+		{ analyzer.getTraverser().traverse( *this, analyzer.getTrie().getRoot() ); }
 };
 
 /// name [producer] - specific for analyzer traverser 

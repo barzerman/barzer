@@ -16,9 +16,9 @@ namespace  barzer {
 class BarzResponseStreamer {
 protected:
 	const Barz &barz;
-	StoredUniverse &universe;
+	const StoredUniverse &universe;
 public:
-	BarzResponseStreamer(const Barz &b, StoredUniverse &u) : barz(b), universe(u) {}
+	BarzResponseStreamer(const Barz &b, const StoredUniverse &u) : barz(b), universe(u) {}
 	virtual std::ostream& print(std::ostream& os) { return os; }
 	virtual ~BarzResponseStreamer() {}
 };
@@ -26,7 +26,7 @@ public:
 
 class BarzStreamerXML : public BarzResponseStreamer {
 public:
-	BarzStreamerXML(const Barz &b, StoredUniverse &u) : BarzResponseStreamer(b, u) {}
+	BarzStreamerXML(const Barz &b, const StoredUniverse &u) : BarzResponseStreamer(b, u) {}
 	std::ostream& print(std::ostream&);
 };
 

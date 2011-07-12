@@ -117,6 +117,7 @@ private:
 	friend class UniverseTrieClusterIterator;
 
 	BELTrieList& getTrieList() { return d_trieList; }
+	const BELTrieList& getTrieList() const { return d_trieList; }
 public: 
 	UniverseTrieCluster( GlobalTriePool& triePool ) : d_triePool( triePool ) 
 		{
@@ -136,13 +137,15 @@ public:
 		d_trieList.push_front( &tr );
 		return tr;
 	}
+	BELTrie*  getFirstTrie() { return ( d_trieList.empty() ?  0 : (*(d_trieList.begin())) ); }
+	const BELTrie*  getFirstTrie() const { return ( d_trieList.empty() ?  0 : (*(d_trieList.begin())) ); }
 };
 
 class UniverseTrieClusterIterator {
-	UniverseTrieCluster& d_cluster;
-	UniverseTrieCluster::BELTrieList::iterator d_i;
+	const UniverseTrieCluster& d_cluster;
+	UniverseTrieCluster::BELTrieList::const_iterator d_i;
 public:
-	UniverseTrieClusterIterator( UniverseTrieCluster& cluster ) : 
+	UniverseTrieClusterIterator( const UniverseTrieCluster& cluster ) : 
 		d_cluster( cluster),
 		d_i( cluster.getTrieList().begin() )
 	{}
@@ -253,19 +256,20 @@ class StoredUniverse {
 	GlobalPools& gp;
 
 	UniverseTrieCluster          trieCluster; 
-	mutable UniverseTrieClusterIterator trieClusterIter;
+	// mutable UniverseTrieClusterIterator trieClusterIter;
 	BarzerHunspell      hunspell;
 
 	//BarzerSettings settings;
 	friend class QSemanticParser;
 
 
-	void  getToFirstTrie() const { trieClusterIter.reset(); }
-	bool  getToNextTrie() const { return trieClusterIter.advance(); }
+	//void  getToFirstTrie() const { trieClusterIter.reset(); }
+	//bool  getToNextTrie() const { return trieClusterIter.advance(); }
 
 public:
 	bool stemByDefault() const { return gp.parseSettings().stemByDefault(); }
 	UniverseTrieCluster& getTrieCluster() { return trieCluster; }
+	const UniverseTrieCluster& getTrieCluster() const { return trieCluster; }
 	BarzerHunspell& getHunspell() { return hunspell; }
 	const BarzerHunspell& getHunspell() const { return hunspell; }
 
@@ -286,24 +290,26 @@ public:
 		  DtaIndex& getDtaIdx() 	  { return gp.dtaIdx; }
 
 	size_t getEclassEntCount( const StoredEntityClass& eclass ) const { return getDtaIdx().getEclassEntCount( eclass ); }
-	const BELTrie& getBarzelTrie() const { return trieClusterIter.getCurrentTrie(); }
-		  BELTrie& getBarzelTrie() 	  { return trieClusterIter.getCurrentTrie(); }
+	BELTrie& getSomeTrie() { return *(trieCluster.getFirstTrie()); }
+	const BELTrie& getSomeTrie() const { return *(trieCluster.getFirstTrie()); }
+	const BELTrie& getBarzelTrie( const UniverseTrieClusterIterator& trieClusterIter ) const { return trieClusterIter.getCurrentTrie(); }
+		  BELTrie& getBarzelTrie( UniverseTrieClusterIterator& trieClusterIter )  { return trieClusterIter.getCurrentTrie(); }
 
 	      BarzelCompWordPool& getCompWordPool()       { return gp.compWordPool; }
 	const BarzelCompWordPool& getCompWordPool() const { return gp.compWordPool; }
 
-	const BarzelRewriterPool& getRewriterPool() const { return getBarzelTrie().getRewriterPool(); }
-	BarzelRewriterPool& getRewriterPool() { return getBarzelTrie().getRewriterPool(); }
-	const BarzelWildcardPool& getWildcardPool() const { return getBarzelTrie().getWildcardPool(); } 
-	BarzelWildcardPool& getWildcardPool() { return getBarzelTrie().getWildcardPool(); } 
-	const BarzelFirmChildPool& getFirmChildPool() const { return getBarzelTrie().getFirmChildPool(); }
-	BarzelFirmChildPool& getFirmChildPool() { return getBarzelTrie().getFirmChildPool(); }
-	const BarzelTranslationPool& getTranslationPool() const { return getBarzelTrie().getTranslationPool(); }
-	BarzelTranslationPool& getTranslationPool() { return getBarzelTrie().getTranslationPool(); }
+	const BarzelRewriterPool& getRewriterPool( const BELTrie& trie ) const { return trie.getRewriterPool(); }
+		  BarzelRewriterPool& getRewriterPool( BELTrie& trie ) { return trie.getRewriterPool(); }
+	const BarzelWildcardPool& getWildcardPool( const BELTrie& trie) const { return trie.getWildcardPool(); } 
+		  BarzelWildcardPool& getWildcardPool( BELTrie& trie ) { return trie.getWildcardPool(); } 
+	const BarzelFirmChildPool& getFirmChildPool( const BELTrie& trie ) const { return trie.getFirmChildPool(); }
+		  BarzelFirmChildPool& getFirmChildPool( BELTrie& trie ) { return trie.getFirmChildPool(); }
+	const BarzelTranslationPool& getTranslationPool( const BELTrie& trie ) const { return trie.getTranslationPool(); }
+		BarzelTranslationPool& getTranslationPool( BELTrie& trie ) { return trie.getTranslationPool(); }
 
-	const BarzelWCLookup* getWCLookup( uint32_t id ) const
+	const BarzelWCLookup* getWCLookup( const BELTrie& trie, uint32_t id ) const
 	{
-		return getWildcardPool().getWCLookup( id );
+		return getWildcardPool(trie).getWCLookup( id );
 	}
 
 	// had to add it in order to be able to create BELPrintContext
@@ -323,18 +329,20 @@ public:
 	const char* printableStringById( uint32_t id )  const
 		{ return gp.stringPool.printableStr(id); }
 	
+	/*
 	std::ostream& printBarzelTrie( std::ostream& fp, const BELPrintFormat& fmt ) const;
 	std::ostream& printBarzelTrie( std::ostream& fp ) const;
+	*/
 
-	bool getBarzelRewriter( BarzelRewriterPool::BufAndSize& bas, const BarzelTranslation& tran ) const
+	bool getBarzelRewriter( const BELTrie& trie, BarzelRewriterPool::BufAndSize& bas, const BarzelTranslation& tran ) const
 	{
 		if( tran.isRewriter() ) 
-			return getRewriterPool().resolveTranslation( bas, tran );
+			return getRewriterPool(trie).resolveTranslation( bas, tran );
 		else 
 			return ( bas = BarzelRewriterPool::BufAndSize(), false );
 	}
-	bool isBarzelTranslationFallible( const BarzelTranslation& tran ) const {
-		return tran.isFallible( getRewriterPool() );
+	bool isBarzelTranslationFallible( const BELTrie& trie, const BarzelTranslation& tran ) const {
+		return tran.isFallible( getRewriterPool(trie) );
 	}
 
 	const BELFunctionStorage& getFunctionStorage() const { return gp.funSt; }

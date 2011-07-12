@@ -20,17 +20,19 @@ struct BarzerShellContext : public ay::ShellContext {
 
 	StoredUniverse& universe;
 	BELTrieWalker trieWalker;
+	BELTrie& d_trie;
 
 	Barz barz;
 	QParser parser;
 
-	DtaIndex* obtainDtaIdx()
-	{ return &(universe.getDtaIdx()); }
-
-	BarzerShellContext(StoredUniverse& u) : 
+	DtaIndex* obtainDtaIdx() { return &(universe.getDtaIdx()); }
+	BELTrie& getTrie() { return d_trie; }
+	const BELTrie& getTrie() const { return d_trie; }
+	BarzerShellContext(StoredUniverse& u, BELTrie& trie) : 
 		universe(u),
-		trieWalker(u.getBarzelTrie()) ,
-		parser( u )
+		trieWalker(trie),
+		parser( u ),
+		d_trie(trie)
 	{}
 };
 struct BarzerShell : public ay::Shell {

@@ -9,14 +9,13 @@ class StoredUniverse;
 class QSemanticParser {
 protected:
 	const StoredUniverse& universe;
-	BarzelMatcher barzelMatcher;
+	// BarzelMatcher barzelMatcher;
 public:
 	struct Error : public QPError { } err;
 
 	virtual int semanticize( Barz&, const QuestionParm&  );
-	QSemanticParser( const StoredUniverse& u ) : 
-		universe(u),
-		barzelMatcher(u)
+	QSemanticParser( const StoredUniverse& u) : 
+		universe(u)
 	{}
 	virtual ~QSemanticParser() {}
 };

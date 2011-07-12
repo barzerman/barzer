@@ -24,6 +24,7 @@
 
 
 namespace barzer {
+
 /// parsing settings true for all users in the instance 
 struct ParseSettings {
 
@@ -114,7 +115,13 @@ private:
 	Rules rules;
 	EntityFileVec entityFiles;
 	Logging logging;
+	
+	enum {  MAX_REASONABLE_THREADCOUNT = 8 };
+	size_t d_numThreads;
 public:
+	size_t getNumThreads() const { return d_numThreads; }
+	void   setNumThreads( size_t n ) { d_numThreads = n; }
+
 	const ParseSettings& parseSettings() const { return d_parseSettings; } 
 		  ParseSettings& parseSettings() 	    { return d_parseSettings; } 
 
@@ -127,6 +134,7 @@ public:
 
 	void init();
 
+	void loadInstanceSettings();
 	void loadRules();
 	void loadParseSettings();
 	void loadEntities();

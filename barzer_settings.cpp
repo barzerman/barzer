@@ -83,7 +83,7 @@ User*  BarzerSettings::getUser(User::Id id)
 }
 
 BarzerSettings::BarzerSettings(GlobalPools &gp)
-	: gpools(gp), reader(gp)
+	: gpools(gp), reader(gp), d_numThreads(0)
 { init(); }
 
 
@@ -158,6 +158,24 @@ void BarzerSettings::load() {
 }
 
 
+void BarzerSettings::loadInstanceSettings() {
+	const ptree &rules = pt.get_child("config.instance", empty_ptree());
+	BOOST_FOREACH(const ptree::value_type &v, rules) {
+		const std::string& tagName = v.first;
+		const std::string& text =  v.second.data();
+		if( tagName == "threads" )  {
+			size_t nt = atoi( text.c_str() );
+				
+			std::cerr << "EXTRA THREADS: " << nt << " created" << std::endl;
+			if( !nt )
+				nt = 1;
+			if( nt > MAX_REASONABLE_THREADCOUNT ) {
+				AYLOG(ERROR) << "threadcoutn of " << nt << " exceeds " <<  MAX_REASONABLE_THREADCOUNT << std::endl;
+			}
+			setNumThreads( nt );
+		}
+	}
+}
 void BarzerSettings::loadParseSettings() {
 	const ptree &rules = pt.get_child("config.parse", empty_ptree());
 	//if( !rules.empty() ) { dont need this as empty ptree means 0 foreach iterations
@@ -281,6 +299,7 @@ void BarzerSettings::load(const char *fname) {
 		}
 
 
+		loadInstanceSettings();
 		loadParseSettings();
 		loadEntities();
 		loadRules();

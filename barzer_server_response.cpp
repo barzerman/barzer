@@ -139,11 +139,11 @@ public:
 
 class BeadVisitor : public boost::static_visitor<> {
 	std::ostream &os;
-	StoredUniverse &universe;
+	const StoredUniverse &universe;
 	size_t lvl;
 	
 public:
-	BeadVisitor(std::ostream &s, StoredUniverse &u) : os(s), universe(u), lvl(0) {}
+	BeadVisitor(std::ostream &s, const StoredUniverse &u) : os(s), universe(u), lvl(0) {}
 
 	void operator()(const BarzerLiteral &data) {
 		//AYLOG(DEBUG) << "BarzerLiteral";
