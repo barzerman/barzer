@@ -21,7 +21,11 @@ void BarzelBead::init( const CTWPVec::value_type& v )
 		break;
 	case CTokenClassInfo::CLASS_WORD: 
 		a.dta = BarzerLiteral();
-		boost::get<BarzerLiteral>(a.dta).setString(ct.getStringId());
+		boost::get<BarzerLiteral>(a.dta).setString(
+			(ct.isWord() && ct.getStoredTok()) ? 
+			ct.getStoredTok()->getSingleTokStringId() :
+			0xffffffff
+		);
 		break;
 	case CTokenClassInfo::CLASS_MYSTERY_WORD: 
 		a.dta = BarzerString();

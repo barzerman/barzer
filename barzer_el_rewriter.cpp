@@ -245,6 +245,17 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Variable>( const 
 
 } // end of anon namespace 
 
+
+	bool BarzelEvalNode::isFallible() const 
+	{
+		if( ( d_btnd.which() == BTND_Rewrite_EntitySearch_TYPE ) ) 
+			return true;
+		for( ChildVec::const_iterator i = d_child.begin(); i!= d_child.end(); ++i ) {
+			if( i->isFallible() ) 
+				return true;
+		}
+		return false;
+	}
 bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) const
 {
 	BarzelEvalResultVec childValVec;

@@ -116,19 +116,6 @@ void StoredUniverse::clear()
 	// getRewriterPool().clear();
 	// gp.stringPool.clear();
 }
-/*
-std::ostream& StoredUniverse::printBarzelTrie( std::ostream& fp, const BELPrintFormat& fmt ) const
-{
-	BELPrintContext ctxt( getBarzelTrie(), gp.stringPool, fmt );
-	return getBarzelTrie().print( fp, ctxt );
-}
-std::ostream& StoredUniverse::printBarzelTrie( std::ostream& fp ) const
-{
-	BELPrintFormat fmt;
-	BELPrintContext ctxt( getBarzelTrie(), gp.stringPool, fmt );
-	return getBarzelTrie().print( fp, ctxt );
-}
-*/
 
 const char* StoredUniverse::getGenericSubclassName( uint16_t subcl ) const
 {

@@ -8,10 +8,11 @@
 #include <iostream>
 #include <stdio.h>
 #include <barzer_token.h>
-#include <barzer_basic_types.h>
-#include <barzer_storage_types.h>
+#include <barzer_number.h>
 
 namespace barzer {
+class StoredToken;
+class StoredEntity;
 struct TToken ;
 struct CToken;
 struct PUnit ;
@@ -152,10 +153,12 @@ struct CToken {
 		cInfo.theClass = CTokenClassInfo::CLASS_NUMBER;
 		bNum.set(x);
 	}
+	const StoredToken* getStoredTok() const { return storedTok; }
 	/// 
+	/*
 	uint32_t getStringId() const 	
 		{ return( isWord() && storedTok ? storedTok->getSingleTokStringId() : 0xffffffff ) ; }
-	
+	*/	
 	const TToken*  getFirstTToken() const { return ( qtVec.size() ? &(qtVec.front().first) : 0 ); }
 	int   getPunct( ) const
 		{ const TToken* t = getFirstTToken(); return ( t ? t->getPunct() : 0 ); }

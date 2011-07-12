@@ -9,6 +9,7 @@
 #include <ay/ay_logger.h>
 #include <sstream>
 #include <boost/format.hpp>
+#include <barzer_universe.h>
 
 namespace barzer {
 

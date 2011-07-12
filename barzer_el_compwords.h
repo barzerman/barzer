@@ -1,8 +1,6 @@
 #ifndef BARZER_EL_COMPWORDS_H
 #define BARZER_EL_COMPWORDS_H
 
-#include <barzer_el_trie.h>
-#include <barzer_storage_types.h>
 #include <boost/unordered_map.hpp> 
 
 /// compounded words support for BARZEL 

@@ -1190,4 +1190,8 @@ void BELReaderXMLEmit::addStatement( const BELStatementParsed& sp )
 }
 
 
+BELReaderXMLEmit::BELReaderXMLEmit( BELTrie* t, std::ostream& os ) :
+		BELReader( t, t->getGlobalPools() ),
+		d_outStream(os)
+	{}
 } // barzer namespace ends
