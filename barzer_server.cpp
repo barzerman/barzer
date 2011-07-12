@@ -203,7 +203,7 @@ void AsyncServer::query_router(const char* buf, const size_t len, std::ostream& 
 
 int run_server_mt(GlobalPools &gp, uint16_t port) {
 	ay::Logger::getLogger()->setFile("barzer_server.log");
-	std::cerr << "Running barzer search server on port " << port << "..." << std::endl;
+	std::cerr << "Running barzer search server(mt) on port " << port << "..." << std::endl;
 
 	boost::asio::io_service io_service;
 

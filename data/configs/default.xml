@@ -26,4 +26,7 @@
             </trieset>
         </user>
     </users>
+    <instance>
+        <threads>4</threads>
+    </instance>
 </config>
