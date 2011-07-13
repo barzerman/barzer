@@ -74,9 +74,9 @@ set(SOURCES barzer_barz.cpp
             "${RU_DIR}/barzer_ru_date_util.cpp"
             "${RU_DIR}/barzer_ru_lex.cpp"
             )
-IF(NOT INSTALL_DIR)
+IF(NOT DEFINED INSTALL_DIR)
     set(INSTALL_DIR "/usr/share/barzer")
-ENDIF(NOT INSTALL_DIR)
+ENDIF(NOT DEFINED INSTALL_DIR)
 set(INSTALL_DATA_DIR "${INSTALL_DIR}/data")
 set(INSTALL_UTIL_DIR "${INSTALL_DIR}/util")
 

@@ -8,6 +8,9 @@
         <file>data/rules/barzel_dates.xml</file>
         <file>data/rules/barzel_ru_dates.xml</file>
         <file>data/rules/barzel_ru_prices.xml</file>
+        <file>data/vendor/sepulka/categories.xml</file>
+        <file>data/vendor/sepulka/manufacturers.xml</file>
+        <file>data/vendor/sepulka/sepulka.xml</file>
         <file>data/rules/barzel_fluff.xml</file>
     </rules>
     <entities>
