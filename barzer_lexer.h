@@ -53,6 +53,7 @@ class QLexParser {
 	int advancedNumberClassify( CTWPVec& , const TTWPVec&, const QuestionParm& );	
 
 	bool tryClassify_number( CToken&, const TToken&  ) const;
+	bool tryClassify_integer( CToken&, const TToken&  ) const;
 public:
 	QLexParser( const StoredUniverse& u, const DtaIndex * di=0) : dtaIdx(di), d_universe(u) {}
 	enum {

@@ -33,6 +33,19 @@ bool QLexParser::tryClassify_number( CToken& ctok, const TToken& ttok ) const
 	}
 	return false;
 }
+bool QLexParser::tryClassify_integer( CToken& ctok, const TToken& ttok ) const 
+{
+	const char* beg = ttok.buf;
+	const char* end = ttok.buf+ttok.len;
+	for( const char* s = beg; s!= end; ++s ) {
+		if( *s < '0' || *s > '9' ) 
+			return false;
+	}
+	ctok.setClass( CTokenClassInfo::CLASS_NUMBER );
+	ctok.number().setInt( ttok.buf );
+	ctok.number().setAsciiLen( ttok.len );
+	return true;
+}
 
 void QLexParser::collapseCTokens( CTWPVec::iterator beg, CTWPVec::iterator end )
 {
@@ -194,24 +207,26 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
 			ctok.setClass( CTokenClassInfo::CLASS_SPACE );
 			continue;
 		}
-		const StoredToken* storedTok = dtaIdx->getStoredToken( t );
-		if( storedTok ) { /// 
-			/// 
-			ctok.storedTok = storedTok;
-			ctok.syncClassInfoFromSavedTok();
-		} else { /// token NOT matched in the data set
-
-			if(ispunct(*t)) {
-				ctok.setClass( CTokenClassInfo::CLASS_PUNCTUATION );
-			} else if( !tryClassify_number(ctok,t) ) { 
-				/// fall thru - this is an unmatched word
-
-				/// lets try to spell correct the token
-				if( d_universe.stemByDefault() ) {
-					if( trySpellCorrectAndClassify( ctok, ttok ) > 0 )
-						wasStemmed = true;
-	 			} else {
-					ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
+		if( !tryClassify_integer(ctok,t) ) {
+			const StoredToken* storedTok = dtaIdx->getStoredToken( t );
+			if( storedTok ) { /// 
+				/// 
+				ctok.storedTok = storedTok;
+				ctok.syncClassInfoFromSavedTok();
+			} else { /// token NOT matched in the data set
+	
+				if(ispunct(*t)) {
+					ctok.setClass( CTokenClassInfo::CLASS_PUNCTUATION );
+				} else if( !tryClassify_number(ctok,t) ) { 
+					/// fall thru - this is an unmatched word
+	
+					/// lets try to spell correct the token
+					if( d_universe.stemByDefault() ) {
+						if( trySpellCorrectAndClassify( ctok, ttok ) > 0 )
+							wasStemmed = true;
+	 				} else {
+						ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
+					}
 				}
 			}
 		}
