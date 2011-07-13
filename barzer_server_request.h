@@ -12,7 +12,6 @@
 #include <vector>
 #include <ay/ay_logger.h>
 #include <boost/function.hpp>
-#include <barzer_universe.h>
 #include <barzer_barz.h>
 #include <barzer_parse.h>
 #include <barzer_server_response.h>

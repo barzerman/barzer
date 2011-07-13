@@ -71,51 +71,15 @@ public:
 	const BarzelWCLookup* 		getWCLookup( uint32_t id ) const 
 		{ return wcLookupPool.getObjById(id); }
 
-	void produceWCKey( BarzelWCKey& key, const BTND_Pattern_Number& x )
-	{
-		key.wcType = BTND_Pattern_Number_TYPE;
-		key.wcId = pool_Number.produceIdByObj( x );
-	}
-	void produceWCKey( BarzelWCKey& key, const BTND_Pattern_Date& x )
-	{
-		key.wcType = BTND_Pattern_Date_TYPE;
-		key.wcId = pool_Date.produceIdByObj( x );
-	}
-	void produceWCKey( BarzelWCKey& key, const BTND_Pattern_Time& x)
-	{
-		key.wcType = BTND_Pattern_Time_TYPE;
-		key.wcId = pool_Time.produceIdByObj( x );
-	}
-	void produceWCKey( BarzelWCKey& key, const BTND_Pattern_DateTime& x)
-	{
-		key.wcType = BTND_Pattern_DateTime_TYPE;
-		key.wcId = pool_DateTime.produceIdByObj( x );
-	}
-	void produceWCKey( BarzelWCKey& key, const BTND_Pattern_Wildcard& x )
-	{
-		key.wcType = BTND_Pattern_Wildcard_TYPE;
-		key.wcId = pool_Wildcard.produceIdByObj( x );
-	}
-	void produceWCKey( BarzelWCKey& key, const BTND_Pattern_Range& x )
-	{
-		key.wcType = BTND_Pattern_Range_TYPE;
-		key.wcId = pool_Range.produceIdByObj( x );
-	}
-	void produceWCKey( BarzelWCKey& key, const BTND_Pattern_Entity& x )
-	{
-		key.wcType = BTND_Pattern_Entity_TYPE;
-		key.wcId = pool_Entity.produceIdByObj( x );
-	}
-	void produceWCKey( BarzelWCKey& key, const BTND_Pattern_ERCExpr& x )
-	{
-		key.wcType = BTND_Pattern_ERCExpr_TYPE;
-		key.wcId = pool_ERCExpr.produceIdByObj( x );
-	}
-	void produceWCKey( BarzelWCKey& key, const BTND_Pattern_ERC& x )
-	{
-		key.wcType = BTND_Pattern_ERC_TYPE;
-		key.wcId = pool_ERC.produceIdByObj( x );
-	}
+	void produceWCKey( BarzelWCKey& key, const BTND_Pattern_Number& x );
+	void produceWCKey( BarzelWCKey& key, const BTND_Pattern_Date& x );
+	void produceWCKey( BarzelWCKey& key, const BTND_Pattern_Time& x);
+	void produceWCKey( BarzelWCKey& key, const BTND_Pattern_DateTime& x);
+	void produceWCKey( BarzelWCKey& key, const BTND_Pattern_Wildcard& x );
+	void produceWCKey( BarzelWCKey& key, const BTND_Pattern_Range& x );
+	void produceWCKey( BarzelWCKey& key, const BTND_Pattern_Entity& x );
+	void produceWCKey( BarzelWCKey& key, const BTND_Pattern_ERCExpr& x );
+	void produceWCKey( BarzelWCKey& key, const BTND_Pattern_ERC& x );
 
 
 	inline void produceWCKey( BarzelWCKey& k, const BTND_PatternData& x )

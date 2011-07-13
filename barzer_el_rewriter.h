@@ -1,6 +1,5 @@
 #ifndef BARZER_EL_REWRITER_H
 #define BARZER_EL_REWRITER_H
-#include <barzer_el_btnd.h>
 #include <barzer_el_parser.h>
 #include <barzer_el_chain.h>
 namespace barzer {
@@ -153,16 +152,7 @@ public:
 	BTND_RewriteData& getBtnd() { return d_btnd; }
 
 	const BTND_RewriteData& getBtnd() const { return d_btnd; }
-	bool isFallible() const 
-	{
-		if( ( d_btnd.which() == BTND_Rewrite_EntitySearch_TYPE ) ) 
-			return true;
-		for( ChildVec::const_iterator i = d_child.begin(); i!= d_child.end(); ++i ) {
-			if( i->isFallible() ) 
-				return true;
-		}
-		return false;
-	}
+	bool isFallible() const ;
 	BarzelEvalNode() {}
 	BarzelEvalNode( const BTND_RewriteData& b ) : d_btnd(b) {}
 

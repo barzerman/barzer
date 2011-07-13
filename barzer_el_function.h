@@ -11,7 +11,6 @@
 #include <boost/unordered_map.hpp>
 #include <boost/function.hpp>
 #include <barzer_el_rewriter.h>
-//#include <barzer_universe.h>
 
 namespace barzer {
 

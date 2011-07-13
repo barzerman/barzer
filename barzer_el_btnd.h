@@ -926,7 +926,6 @@ class BELTrie;
 //// tree of these nodes is built during parsing
 //// a the next step the tree gets interpreted into BrzelTrie path and added to a trie 
 struct BELParseTreeNode {
-	/// see barzer_el_btnd.h for the structure of the nested variant 
 	BTNDVariant btndVar;  // node data
 
 	typedef std::vector<BELParseTreeNode> ChildrenVec;

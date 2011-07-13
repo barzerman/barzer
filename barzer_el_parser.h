@@ -1,7 +1,6 @@
 #ifndef BARZER_EL_PARSER_H
 #define BARZER_EL_PARSER_H
 
-#include <barzer_el_trie.h>
 #include <iostream>
 #include <vector>
 #include <cstdio>

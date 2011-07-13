@@ -256,10 +256,7 @@ public:
 class BELReaderXMLEmit : public BELReader {
 	std::ostream& d_outStream;
 public:
-	BELReaderXMLEmit( BELTrie* t, std::ostream& os ) :
-		BELReader( t, t->getGlobalPools() ),
-		d_outStream(os)
-	{}
+	BELReaderXMLEmit( BELTrie* t, std::ostream& os );
 	void addStatement( const BELStatementParsed& sp );
 };
 

@@ -2,7 +2,6 @@
 #define BARZER_EL_ANALYSIS_H
 
 #include <barzer_universe.h>
-#include <barzer_el_btnd.h>
 #include <barzer_el_trie_walker.h>
 #include <ay/ay_vector.h>
 #include <ay/ay_util_char.h>

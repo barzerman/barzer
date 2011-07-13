@@ -779,6 +779,9 @@ void BTMBestPaths::addPath(const NodeAndBeadVec& nb )
 
 
 
+
+uint32_t BarzelMatchInfo::getTranslationId() const
+	{ return (d_thePath.size() ? d_thePath.back().first->getTranslationId() : 0xffffffff); }
 bool BarzelMatchInfo::getDataByVarId( BeadRange& r, uint32_t varId, const BELTrie& trie ) const
 {
 	const BarzelVariableIndex& varIdx = trie.getVarIndex();
@@ -1083,4 +1086,34 @@ int BarzelMatcher::matchAndRewrite( Barz& barz )
 	return rewrCount;
 }
 
+
+	bool BarzelMatchInfo::getDataByVar( BeadRange& r, const BTND_Rewrite_Variable& var, const BELTrie& trie )
+	{
+		const NodeAndBead* nob = getDataByVar_trivial(var);
+		if( nob ) {
+			return( r = nob->second, true );
+		} else if( var.isVarId() ) {
+			return getDataByVarId(r,var.getVarId(), trie );
+			// case BTND_Rewrite_Variable::MODE_VARNAME: return getDataByNameId( var.getVarId());
+		} else if( getGapRange(r,var) ) {
+			return true;
+		}
+		return false;
+	}
+	bool BarzelMatchInfo::getGapRange( BeadRange& r, const BTND_Rewrite_Variable& n ) const
+	{
+		if( n.isWildcardGapNumber() ) 
+			return getGapRange( r, n.getVarId() );
+		else
+			return ( r= BeadRange(), false );
+	}
+
+	inline const NodeAndBead* BarzelMatchInfo::getDataByVar_trivial( const BTND_Rewrite_Variable& var ) const
+	{
+		switch( var.getIdMode() ) {
+		case BTND_Rewrite_Variable::MODE_WC_NUMBER: return getDataByWildcardNumber( var.getVarId());
+		case BTND_Rewrite_Variable::MODE_PATEL_NUMBER: return getDataByElementNumber( var.getVarId());
+		}
+		return 0;
+	}
 } // namespace barzer ends 

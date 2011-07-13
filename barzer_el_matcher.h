@@ -2,8 +2,6 @@
 #define BARZER_EL_MATCHER_H
 
 #include <barzer_el_chain.h>
-#include <barzer_el_trie.h>
-#include <barzer_parse_types.h>
 
 /// Barzel matching algorithm is here 
 /// it takes an array of CTokens , converts it to BarzelBeadChain 
@@ -15,6 +13,11 @@
 
 namespace barzer {
 class StoredUniverse;
+class BarzelWCKey;
+class BarzelTranslation;
+class BarzelTrieNode;
+class BELTrie;
+class BTND_Rewrite_Variable;
 
 // reference information about the matched sequence 
 // pair of iterators pointing to the first and the last element to be rewritten
@@ -75,13 +78,7 @@ public:
 	/// forms the range between the end of n-1th and n-th wildcards if n=1 then the range is
 	/// between beginning of the match and the start of the wildcard
 	bool getGapRange( BeadRange& r, size_t n ) const;
-	bool getGapRange( BeadRange& r, const BTND_Rewrite_Variable& n ) const
-	{
-		if( n.isWildcardGapNumber() ) 
-			return getGapRange( r, n.getVarId() );
-		else
-			return ( r= BeadRange(), false );
-	}
+	bool getGapRange( BeadRange& r, const BTND_Rewrite_Variable& n ) const;
 
 	/// the trie node is needed in case there's a potential variable name 
 	void setPath( const NodeAndBeadVec& p );
@@ -92,36 +89,16 @@ public:
 		d_beadRng = BeadRange();
 	}
 
-	inline const NodeAndBead* getDataByVar_trivial( const BTND_Rewrite_Variable& var ) const
-	{
-		switch( var.getIdMode() ) {
-		case BTND_Rewrite_Variable::MODE_WC_NUMBER: return getDataByWildcardNumber( var.getVarId());
-		case BTND_Rewrite_Variable::MODE_PATEL_NUMBER: return getDataByElementNumber( var.getVarId());
-		}
-		return 0;
-	}
+	inline const NodeAndBead* getDataByVar_trivial( const BTND_Rewrite_Variable& var ) const;
+
 	// r will contain the bead range matching the contents of var
 	// var can be pn - pattern number, w - wildcard umber and gn - gap number
 	// gn[i] is everything between (exclusively) w[i-1] and w[i]
 	// when resolution fails return false
-	bool getDataByVar( BeadRange& r, const BTND_Rewrite_Variable& var, const BELTrie& trie )
-	{
-		const NodeAndBead* nob = getDataByVar_trivial(var);
-		if( nob ) {
-			return( r = nob->second, true );
-		} else if( var.isVarId() ) {
-			return getDataByVarId(r,var.getVarId(), trie );
-			// case BTND_Rewrite_Variable::MODE_VARNAME: return getDataByNameId( var.getVarId());
-		} else if( getGapRange(r,var) ) {
-			return true;
-		}
-		return false;
-	}
+	bool getDataByVar( BeadRange& r, const BTND_Rewrite_Variable& var, const BELTrie& trie );
 	const BarzelTrieNode* getTheLeafNode() const
 		{ return (d_thePath.size() ? d_thePath.back().first : 0 ); }
-	uint32_t getTranslationId() const
-		{ return (d_thePath.size() ? d_thePath.back().first->getTranslationId() : 0xffffffff); }
-
+	uint32_t getTranslationId() const;
 };
 typedef std::pair<BarzelMatchInfo,const BarzelTranslation*> RewriteUnit;
 

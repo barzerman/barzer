@@ -10,7 +10,6 @@
 
 #include <ay/ay_util_char.h>
 #include <barzer_shell.h>
-#include <barzer_universe.h>
 #include <barzer_el_trie_walker.h>
 #include <barzer_el_trie_shell.h>
 

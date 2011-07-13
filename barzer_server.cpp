@@ -4,6 +4,7 @@
 #include <boost/asio.hpp>
 #include <boost/algorithm/string.hpp>
 #include <barzer_el_xml.h>
+#include <barzer_universe.h>
 
 
 extern "C" {

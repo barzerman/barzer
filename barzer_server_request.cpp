@@ -9,6 +9,7 @@
 #include <boost/assign.hpp>
 #include <boost/mem_fn.hpp>
 #include <cstdlib>
+#include <barzer_universe.h>
 extern "C" {
 // cast to XML_StartElementHandler
 static void startElement(void* ud, const XML_Char *n, const XML_Char **a)

@@ -9,9 +9,9 @@
 #define BARZ_SERVER_RESPONSE_H_
 
 #include <barzer_barz.h>
-#include <barzer_universe.h>
 #include <ay/ay_logger.h>
 namespace  barzer {
+class StoredUniverse;
 
 class BarzResponseStreamer {
 protected:

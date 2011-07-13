@@ -1,6 +1,5 @@
 #ifndef BARZER_EL_TRIE_H
 #define BARZER_EL_TRIE_H
-#include <barzer_el_btnd.h>
 #include <barzer_el_parser.h>
 #include <barzer_el_rewriter.h>
 #include <barzer_el_variable.h>
