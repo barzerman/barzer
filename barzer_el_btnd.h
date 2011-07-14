@@ -754,6 +754,8 @@ struct BTND_Rewrite_Function {
 	uint32_t nameId; // function name id
 
 	void setNameId( uint32_t i ) { nameId = i ; }
+	uint32_t getNameId() const { return nameId; }
+
 	BTND_Rewrite_Function() : nameId(ay::UniqueCharPool::ID_NOTFOUND) {}
 	BTND_Rewrite_Function(ay::UniqueCharPool::StrId id) : nameId(id) {}
 };

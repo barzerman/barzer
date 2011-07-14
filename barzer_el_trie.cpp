@@ -562,6 +562,11 @@ void BarzelTranslation::set(BELTrie& ,const BTND_Rewrite_Literal& x )
 		break;
 	}
 }
+void BarzelTranslation::set(BELTrie&, const BTND_Rewrite_Function& x )
+{
+	type = T_FUNCTION;
+	id = x.getNameId();
+}
 void BarzelTranslation::set(BELTrie&, const BTND_Rewrite_MkEnt& x )
 {
 	if( x.isSingleEnt() ) 
@@ -638,6 +643,7 @@ void BarzelTranslation::fillRewriteData( BTND_RewriteData& d ) const
 	case T_VAR_GN_NUM: { BTND_Rewrite_Variable n; n.setWildcardGapNumber(getId_uint32()); d=n; } return;
 	case T_MKENT: { BTND_Rewrite_MkEnt n; n.setEntId( getId_uint32() ); d=n; } return;
 	case T_MKENTLIST: { BTND_Rewrite_MkEnt n; n.setEntGroupId( getId_uint32() ); d=n; } return;
+	case T_FUNCTION: { BTND_Rewrite_Function n; n.setNameId( getId_uint32() ); d=n; } return;
 
 	default: d = BTND_Rewrite_None(); return;
 	}

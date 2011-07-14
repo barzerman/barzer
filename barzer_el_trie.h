@@ -201,6 +201,7 @@ public:
 		T_VAR_GN_NUM, // variable rewrite on raw element number
 		T_MKENT, // entity maker
 		T_MKENTLIST, // entity list maker
+		T_FUNCTION, // fucntion(void)
 
 		T_MAX
 	} Type_t;
@@ -212,6 +213,7 @@ public:
 	void set( BELTrie& trie, const BTND_Rewrite_Number& );
 	void set( BELTrie& trie, const BTND_Rewrite_MkEnt& );
 	void set( BELTrie& trie, const BTND_Rewrite_Variable& );
+	void set( BELTrie& trie, const BTND_Rewrite_Function& );
 	void setMkEntList( uint32_t i )
 	{
 		type = T_MKENTLIST;
@@ -271,6 +273,10 @@ public:
 	std::ostream& print( std::ostream& , const BELPrintContext& ) const;
 
 };
+template <>
+inline void BarzelTranslation::setBtnd<BTND_Rewrite_Function>( BELTrie& trie, const BTND_Rewrite_Function& x ) { 
+	set(trie,x);
+}
 template <>
 inline void BarzelTranslation::setBtnd<BTND_Rewrite_Literal>( BELTrie& trie, const BTND_Rewrite_Literal& x ) { set(trie,x); }
 template <>
