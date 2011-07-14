@@ -402,6 +402,7 @@ struct BELFunctionStorage_holder {
 		} catch(boost::bad_get) {
 			AYLOG(ERROR) << sig << ": Wrong argument type";
 		}
+		return false;
 	}
 
 	STFUN(mkWday)
