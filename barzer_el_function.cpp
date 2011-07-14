@@ -21,33 +21,6 @@ namespace {
 
 // some utility stuff
 
-// returns BarzerNumber ot of random barzer type. NaN if fails
-struct NumberMatcher : public boost::static_visitor<BarzerNumber> {
-	BarzerNumber operator()( const BarzerNumber &dt ) {	return dt; }
-	BarzerNumber operator()( const BarzelBeadAtomic &dt )
-		{ return boost::apply_visitor(*this, dt.dta); }
-	template <typename T> BarzerNumber operator()( const T& )
-		{
-			//AYLOG(DEBUG) << "unknown type";
-			return BarzerNumber();
-		}  // NaN
-};
-
-namespace {
-BarzerNumber getNumber(const BarzelEvalResult &result) {
-	NumberMatcher m;
-	return boost::apply_visitor(m, result.getBeadData());
-}
-
-// writes result number into BarzerNumber - NaN when failed
-bool setNumber(BarzerNumber &num, const BarzelEvalResult &result) {
-	NumberMatcher m;
-	num = boost::apply_visitor(m, result.getBeadData());
-	return !num.isNan();
-}
-
-} // anon namespace ends
-
 
 // extracts a string from BarzerString or BarzerLiteral
 struct StringExtractor : public boost::static_visitor<const char*> {
@@ -63,24 +36,10 @@ struct StringExtractor : public boost::static_visitor<const char*> {
 	template <typename T> const char* operator()( const T& ) const
 		{ return 0;	}
 };
-namespace {
-const char* extractString(const StoredUniverse &u, const BarzelEvalResult &result) {
-	return boost::apply_visitor(StringExtractor(u), result.getBeadData());
-}
-}
 
-template<class T> struct BeadMatcher : public boost::static_visitor<T> {
-	const T* operator()( const T &dt ) { return &dt; }
-	const T* operator()( const BarzelBeadAtomic &dt )
-			{ return boost::apply_visitor(*this, dt.dta); }
-	template<class U> T* operator()( const U& ) { return 0; }
-};
-
-// safe version, returns 0 on fail
-template<class T> const T* getBead(const BarzelEvalResult &result)
+const char* extractString(const StoredUniverse &u, const BarzelEvalResult &result)
 {
-	//BeadMatcher<T> m;
-	return boost::apply_visitor(BeadMatcher<T>(), result.getBeadData());
+	return boost::apply_visitor(StringExtractor(u), result.getBeadData());
 }
 
 // throwing version. only call it when catching boost::bad_get
@@ -94,6 +53,9 @@ template<class T> const T& getAtomic(const BarzelBeadData &dta) {
 			boost::get<BarzelBeadAtomic>(dta).getData());
 }
 
+template<class T> const BarzerNumber& getNumber(const T &v)
+	{ return getAtomic<BarzerNumber>(v); }
+
 //template<class T> void setResult(BarzelEvalResult&, const T&);
 
 
@@ -103,11 +65,6 @@ template<class T> T& setResult(BarzelEvalResult &result, const T &data) {
 	boost::get<BarzelBeadAtomic>(result.getBeadData()).setData(data);
 	BarzelBeadAtomic &a = boost::get<BarzelBeadAtomic>(result.getBeadData());
 	return boost::get<T>(a.getData());
-	/*
-	BarzelBeadAtomic atm;
-	atm.setData(data);
-	result.setBeadData(atm);
-	*/
 }
 
 // probably can replace it by something from stl
@@ -333,7 +290,7 @@ struct BELFunctionStorage_holder {
 	}
 
 
-	enum { P_WEEK = 1, P_MONTH, P_YEAR, P_DECADE, P_CENTURY };
+	//enum { P_WEEK = 1, P_MONTH, P_YEAR, P_DECADE, P_CENTURY };
 
 	// stored functions
 	#define STFUN(n) bool stfun_##n( BarzelEvalResult &result,\
@@ -364,35 +321,28 @@ struct BELFunctionStorage_holder {
 					 y(BarzerDate::thisYear),
 					 tmp;
 
-		BarzerDate date;
+		BarzerDate &date = setResult(result, BarzerDate());
 		// changes fields to whatever was set
-		//AYLOGDEBUG(rvec.size());
-		switch (rvec.size()) {
-		case 3:
-			if (setNumber(y, rvec[2]));
-			else {
-				AYLOG(DEBUG) << "(mkDate) Wrong type in the third argument: ";
-				//             << rvec[2].getBeadData().which();
-			}
-		case 2:
-			if (setNumber(m, rvec[1]));
-			else {
-				AYLOG(DEBUG) << "(mkDate) Wrong type in the second argument: ";
-				//             << rvec[1].getBeadData().which();
-			}
-		case 1:
-			if (!setNumber(d, rvec[0])) {
-				AYLOG(DEBUG) << "(mkDate) Wrong type in the first argument: ";
-				//             << rvec[0].getBeadData().which();
-			}
-		case 0: break; // 0 arguments = today
-		default: return false;
-			// huhuh
+		try {
+            switch (rvec.size()) {
+            case 3: y = getNumber(rvec[2]);
+            case 2: m = getNumber(rvec[1]);
+            case 1: d = getNumber(rvec[0]);
+            case 0: break; // 0 arguments = today
+            default:
+                AYLOG(ERROR) << "mkDate(): Expected max 3 arguments, "
+                             << rvec.size() << " given";
+                return false;
+            }
+            date.setDayMonthYear(d,m,y);
+
+            //date.print(AYLOG(DEBUG) << "date formed: ");
+            //setResult(result, date);
+            return true;
+		} catch (boost::bad_get) {
+		    AYLOG(DEBUG) << "mkDate(): Wrong argument type";
 		}
-		date.setDayMonthYear(d,m,y);
-		//date.print(AYLOG(DEBUG) << "date formed: ");
-		setResult(result, date);
-		return true;
+		return false;
 	}
 
 	STFUN(mkDateRange)
@@ -438,15 +388,20 @@ struct BELFunctionStorage_holder {
 
 
 	STFUN(mkDay) {
+		SETSIG(mkDay(Number));
 		if (!rvec.size()) {
-			AYLOG(ERROR) << "mkDay(Number): Need an argument";
+			AYLOG(ERROR) << sig << ": Need an argument";
 			return false;
 		}
-		BarzerDate_calc calc;
-		calc.setToday();
-		calc.dayOffset(getNumber(rvec[0]).getInt());
-		setResult(result, calc.d_date);
-		return true;
+		try {
+			BarzerDate_calc calc;
+			calc.setToday();
+			calc.dayOffset(getNumber(rvec[0]).getInt());
+			setResult(result, calc.d_date);
+			return true;
+		} catch(boost::bad_get) {
+			AYLOG(ERROR) << sig << ": Wrong argument type";
+		}
 	}
 
 	STFUN(mkWday)
@@ -473,29 +428,36 @@ struct BELFunctionStorage_holder {
 	STFUN(mkTime)
 	{
 		//AYLOG(DEBUG) << "mkTime called";
-		BarzerNumber h(0),m(0),s(0);
-		BarzerTimeOfDay time;
-		int hh(0), mm(0), ss(0);
-		//AYLOGDEBUG(rvec.size());
-		switch (rvec.size()) {
-		case 3: ss = getNumber(rvec[2]).getInt();
-		case 2: mm = getNumber(rvec[1]).getInt();
-		case 1: hh = getNumber(rvec[0]).getInt();
-			break;
-		case 0: {
-			time_t t = std::time(0);
-			time_t ssm = t%(3600*24);
-			hh = ssm/3600;
-			mm = (ssm%3600)/60;
-			ss = (ssm%60);
+		BarzerTimeOfDay &time = setResult(result, BarzerTimeOfDay());
+		try {
+			//BarzerNumber h(0),m(0),s(0);
+			//BarzerTimeOfDay time;
+			int hh(0), mm(0), ss(0);
+			//AYLOGDEBUG(rvec.size());
+			switch (rvec.size()) {
+			case 3: ss = getNumber(rvec[2]).getInt();
+			case 2: mm = getNumber(rvec[1]).getInt();
+			case 1: hh = getNumber(rvec[0]).getInt();
+				break;
+			case 0: {
+				std::time_t t = std::time(0);
+				std::tm *tm = std::localtime(&t);
+				hh = tm->tm_hour;
+				mm = tm->tm_min;
+				ss = tm->tm_sec;
+			}
+				break;
+			default:
+				AYLOG(ERROR) << "mkTime(): Expected max 3 arguments, "
+				             << rvec.size() << " given";
+				return false;
+			}
+			time.setHHMMSS( hh, mm, ss );
+			return true;
+		} catch (boost::bad_get) {
+			AYLOG(ERROR) << "mkTime(): Wrong argument type";
 		}
-			break;
-		default: return false;
-		}
-		//AYLOG(DEBUG) << "setting result";
-		time.setHHMMSS( hh, mm, ss );
-		setResult(result, time);
-		return true;
+		return false;
 	}
 
 	// applies  BarzerDate/BarzerTimeOfDay/BarzerDateTime to BarzerDateTime
@@ -1148,21 +1110,25 @@ struct BELFunctionStorage_holder {
 
 	STFUN(opMinus)
 	{
-		BarzerNumber bn; // NaN
+		BarzerNumber &bn = setResult(result, BarzerNumber()); // NaN
 
-		if (rvec.size()) {
-			ArithVisitor<minus> visitor(bn);
+		try {
+		    if (rvec.size()) {
+                ArithVisitor<minus> visitor(bn);
 
-			BarzelEvalResultVec::const_iterator ri = rvec.begin();
+                BarzelEvalResultVec::const_iterator ri = rvec.begin();
 
-			// sets bn to the value of the first element of rvec
-			if (setNumber(bn, *ri))
-				while(++ri != rvec.end())
-					if (!boost::apply_visitor(visitor, ri->getBeadData())) break;
+                // sets bn to the value of the first element of rvec
+                bn = getNumber(*ri);
+                while(++ri != rvec.end())
+                    if (!boost::apply_visitor(visitor, ri->getBeadData())) return false;
+                return true;
+		    }
+		} catch (boost::bad_get) {
+		    AYLOG(ERROR) << "opMinus(): Wrong arguments type";
 		}
-
-		setResult(result, bn); // most likely NaN if something went wrong
-		return true;
+		//setResult(result, bn); // most likely NaN if something went wrong
+		return false;
 	}
 
 	STFUN(opMult)
@@ -1180,21 +1146,25 @@ struct BELFunctionStorage_holder {
 
 	STFUN(opDiv) // no checks for division by zero yet
 	{
-		BarzerNumber bn; // NaN
+		BarzerNumber &bn = setResult(result, BarzerNumber()); // NaN
+		try {
+            if (rvec.size()) {
+                ArithVisitor<div> visitor(bn);
 
-		if (rvec.size()) {
-			ArithVisitor<div> visitor(bn);
+                BarzelEvalResultVec::const_iterator ri = rvec.begin();
 
-			BarzelEvalResultVec::const_iterator ri = rvec.begin();
-
-			// sets bn to the value of the first element of rvec
-			if (setNumber(bn, *ri))
-				while(++ri != rvec.end())
-					if (!boost::apply_visitor(visitor, ri->getBeadData())) break;
+                // sets bn to the value of the first element of rvec
+                bn = getNumber(*ri);
+                while(++ri != rvec.end())
+                    if (!boost::apply_visitor(visitor, ri->getBeadData())) return false;
+                return true;
+            }
+		} catch (boost::bad_get) {
+		    AYLOG(ERROR) << "opDiv(): Wrong arguments type";
 		}
+		//setResult(result, bn); // most likely NaN if something went wrong
+		return false;
 
-		setResult(result, bn); // most likely NaN if something went wrong
-		return true;
 	}
 
 
