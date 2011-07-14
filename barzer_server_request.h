@@ -74,7 +74,7 @@ private:
 public:
 	XML_Parser parser;
 
-	BarzerRequestParser(GlobalPools&, std::ostream &s);
+	BarzerRequestParser(GlobalPools&, std::ostream &s, uint32_t uid );
 	~BarzerRequestParser();
 
 	int parse(const char *buf, const size_t len) {

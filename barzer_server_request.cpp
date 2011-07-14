@@ -46,8 +46,8 @@ static void charDataHandle( void * ud, const XML_Char *str, int len)
 
 namespace barzer {
 
-BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s)
-	: gpools(gp), settings(gp.getSettings()), userId(0)/* qparser(u), response(barz, u) */, os(s)
+BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s, uint32_t uid )
+	: gpools(gp), settings(gp.getSettings()), userId(uid)/* qparser(u), response(barz, u) */, os(s)
 {
 		parser = XML_ParserCreate(NULL);
 		XML_SetUserData(parser, this);
@@ -172,7 +172,10 @@ void BarzerRequestParser::raw_query_parse( const char* query )
 {
 	const GlobalPools& gp = gpools;
 	const StoredUniverse * up = gp.getUniverse(userId);
-	if( !up ) return;
+	if( !up ) {
+		os << "<error>invalid user id " << userId << "</error>\n";
+		return;
+	}
 
 	const StoredUniverse &u = *up;
 
@@ -186,19 +189,13 @@ void BarzerRequestParser::raw_query_parse( const char* query )
 }
 
 void BarzerRequestParser::tag_query(RequestTag &tag) {
-	if( tag.tagName == "query" ) {
-		return raw_query_parse( tag.body.c_str() );
+	AttrList &attrs = tag.attrs;
+	AttrList::iterator it = attrs.find("u");
+	if( it != attrs.end() ) {
+		userId = atoi(it->second.c_str());
 	}
-	StoredUniverse &u = gpools.produceUniverse(userId);
 
-	QParser qparser(u);
-	BarzStreamerXML response(barz, u);
-
-	QuestionParm qparm;
-	//qparser.parse( barz, getTag().body.c_str(), qparm );
-	qparser.parse( barz, tag.body.c_str(), qparm );
-	response.print(os);
-//
+	return raw_query_parse( tag.body.c_str() );
 }
 
 } // namespace barzer

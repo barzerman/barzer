@@ -713,12 +713,13 @@ static int bshf_querytest( BarzerShell* shell, char_cp cmd, std::istream& in )
 	ay::stopwatch totalTimer;
 
 	size_t num = 0;
+	uint32_t userId = 0; // maybe add something that gets current user id from context
 	if (in >> num) {
 		shell->getOutStream() << "performing " << num << " queries...\n";
 		while (num--) {
 			std::string str = "<query>mama myla 2 ramy</query>";
 			std::stringstream ss;
-			BarzerRequestParser rp(uni.getGlobalPools(), ss);
+			BarzerRequestParser rp(uni.getGlobalPools(), ss, userId);
 			rp.parse(str.c_str(), str.size());
 		}
 		shell->getOutStream() << "done in " << totalTimer.calcTime() << "\n";

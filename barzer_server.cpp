@@ -130,18 +130,8 @@ void AsyncServer::handle_accept(SearchSession *new_session,
 namespace request {
 int barze( GlobalPools& gp, RequestEnvironment& reqEnv )
 {
-	BarzerRequestParser rp(gp, reqEnv.outStream );
+	BarzerRequestParser rp(gp, reqEnv.outStream, 0 );
 
-	const char * query= strstr( reqEnv.buf, "<query>" );
-	if( query ) {
-		query = query +7;
-		const char* endQuery = strstr( query, "</query>" );
-		if( endQuery ) {
-			std::string q( query, endQuery-query );
-			rp.raw_query_parse( q.c_str() );
-			return 0;
-		}
-	}
 	rp.parse(reqEnv.buf, reqEnv.len);
 	return 0;
 }
