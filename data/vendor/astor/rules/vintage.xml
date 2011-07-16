@@ -1,36 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
     xmlns="http://www.barzer.net/barzel/0.1">
+<stmt m="vintageable">
+    <pat>
+        <any v="ent">
+             <ent s="23" c="110" />
+             <ent s="11" c="110" />
+             <ent s="13" c="110" />
+             <ent s="15" c="110" />
+             <ent s="17" c="110" />
+             <ent s="20" c="110" />
+             <ent s="21" c="110" />
+        </any>
+    </pat>
+</stmt>
 <stmt>
     <pat>
         <any>
             <list>
-                <any v="ent">
-                    <ent s="23" c="110" />
-                    <ent s="11" c="110" />
-                    <ent s="13" c="110" />
-                    <ent s="15" c="110" />
-                    <ent s="17" c="110" />
-                    <ent s="20" c="110" />
-                    <ent s="21" c="110" />
-                </any>
+                <expand n="vintageable" />
                 <opt><t>year</t></opt>
-                <opt><t>vintage</t></opt>
-                <list v="year"><n l="1000" h="2100"/></list>
+                <opt><t>vintage</t><opt><t>of</t></opt></opt>
+                <any v="year">
+                    <n l="1500" h="2100"/>
+                    <range t="i" />
+                </any>
             </list>
             <list>
-                <list v="year"><n l="1000" h="2100"/></list>
+                <any v="year">
+                    <n l="1500" h="2100"/>
+                    <range t="i" />
+                </any>
                 <opt><t>year</t></opt>
                 <opt><t>vintage</t></opt>
-                <any v="ent">
-                    <ent s="23" c="110" />
-                    <ent s="11" c="110" />
-                    <ent s="13" c="110" />
-                    <ent s="15" c="110" />
-                    <ent s="17" c="110" />
-                    <ent s="20" c="110" />
-                    <ent s="21" c="110" />
-                </any>
+                <expand n="vintageable" />
             </list>
         </any>
     </pat>

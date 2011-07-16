@@ -16,6 +16,7 @@
         <file>data/vendor/astor/rules/auto/style.xml</file>
         <file>data/vendor/astor/rules/auto/wines.xml</file>
         <file>data/vendor/astor/rules/auto/astorall.xml</file>
+        <file>data/rules/vintage.xml</file>
         <file>data/vendor/astor/rules/vintage.xml</file>
         
         <file>data/rules/barzel_fluff.xml</file>

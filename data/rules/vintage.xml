@@ -65,18 +65,55 @@
 <stmt>
     <pat>
         <any>
-            <list><t>vintage</t><opt><t>year</t></opt><list v="year"><n l="1000" h="2100"/></list><opt><t>year</t></opt></list>
-            <list><opt><t>year</t></opt><list v="year"><n l="1000" h="2100"/></list><t>vintage</t></list>
+            <list><t>vintage</t><opt><t>of</t></opt><list v="year"><n l="1000" h="2100"/></list><opt><t>year</t></opt></list>
+            <list><opt><t>year</t></opt><list v="year"><n l="1500" h="2100"/></list><t>vintage</t></list>
         </any>
     </pat>
-    <tran>
     <tran>
         <func name="mkERC">
             <mkent i="VINTAGE_YEAR" c="1" s="1" />
             <func name="mkRange"><var name="year" /></func>
         </func>
-    </tran>    
     </tran>
 </stmt>
+
+<stmt>
+    <pat>
+        <any>
+            <list><t>vintage</t><opt><t>of</t></opt><opt><t>'</t></opt><list v="year"><n l="30" h="99"/></list><opt><t>year</t></opt></list>
+            <list><opt><t>year</t></opt><opt><t>'</t></opt><list v="year">n l="30" h="99"/></list><t>vintage</t></list>
+        </any>
+    </pat>
+    <tran>
+        <func name="mkERC">
+            <mkent i="VINTAGE_YEAR" c="1" s="1" />
+            <func name="mkRange">
+            <func name="opPlus">
+                <rn v="1900" />
+                <var name="year" /></func>
+            </func>
+        </func>
+    </tran>
+</stmt>
+
+<stmt>
+    <pat>
+        <any>
+            <list><t>vintage</t><opt><t>of</t></opt><opt><t>'</t></opt><list v="year"><n l="00" h="30"/></list><opt><t>year</t></opt></list>
+            <list><opt><t>year</t></opt><opt><t>'</t></opt><list v="year"><n l="00" h="30"/></list><t>vintage</t></list>
+        </any>
+    </pat>
+    <tran>
+        <func name="mkERC">
+            <mkent i="VINTAGE_YEAR" c="1" s="1" />
+            <func name="mkRange">
+            <func name="opPlus">
+                <rn v="2000" />
+                <var name="year" /></func>
+            </func>
+        </func>
+    </tran>
+</stmt>
+
 </stmset>
 
