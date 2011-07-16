@@ -3,4 +3,8 @@
     <e i="TIME_INTERVAL"><n>Time interval</n></e>
     <e i="DATE_INTERVAL"><n>Date interval</n></e>
     <e i="DATETIME_INTERVAL"><n>Datetime interval</n></e>
+    <e i="VINTAGE_YEAR"><n>VINTAGE</n></e>
+    <e i="VINTAGE_CENTURY"><n>VINTAGE</n></e>
+    <e i="AGE_YEARS"><n>Age</n></e>
+    <e i="AGE_CENTURIES"><n>Age</n></e>
 </entlist>

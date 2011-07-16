@@ -6,6 +6,7 @@
         <file>data/rules/generic.xml</file>
         <file>data/rules/barzel_prices.xml</file>
         <file>data/rules/barzel_dates.xml</file>
+        <file>data/rules/vintage.xml</file>
         <file>data/rules/barzel_ru_dates.xml</file>
         <file>data/rules/barzel_ru_prices.xml</file>
         <file>data/vendor/sepulka/categories.xml</file>

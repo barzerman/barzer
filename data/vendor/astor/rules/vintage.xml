@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
+    xmlns="http://www.barzer.net/barzel/0.1">
+<stmt>
+    <pat>
+        <any>
+            <list>
+                <any v="ent">
+                    <ent s="23" c="110" />
+                    <ent s="11" c="110" />
+                    <ent s="13" c="110" />
+                    <ent s="15" c="110" />
+                    <ent s="17" c="110" />
+                    <ent s="20" c="110" />
+                    <ent s="21" c="110" />
+                </any>
+                <opt><t>year</t></opt>
+                <opt><t>vintage</t></opt>
+                <list v="year"><n l="1000" h="2100"/></list>
+            </list>
+            <list>
+                <list v="year"><n l="1000" h="2100"/></list>
+                <opt><t>year</t></opt>
+                <opt><t>vintage</t></opt>
+                <any v="ent">
+                    <ent s="23" c="110" />
+                    <ent s="11" c="110" />
+                    <ent s="13" c="110" />
+                    <ent s="15" c="110" />
+                    <ent s="17" c="110" />
+                    <ent s="20" c="110" />
+                    <ent s="21" c="110" />
+                </any>
+            </list>
+        </any>
+    </pat>
+    <tran>
+    <tran>
+        <func name="mkERC">
+            <mkent i="VINTAGE_YEAR" c="1" s="1" />
+            <func name="mkRange"><var name="year" /></func>
+        </func>
+        <var name="ent" />
+    </tran>    
+    </tran>
+</stmt>
+
+</stmset>

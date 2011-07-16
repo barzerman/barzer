@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
+    <parse><stem/></parse>
     <rules>
         <file>data/rules/test-rules.xml</file>
     </rules>
@@ -12,11 +13,12 @@
     </logging>
     <users>
         <user id="0">
-            <spell affx="/Users/yanis/Downloads/en_US/en_US.dic" maindict="/Users/yanis/Downloads/en_US/en_US.dic">
+            <spell affx="/usr/share/hunspell/en_US.aff" maindict="/usr/share/hunspell/en_US.dic">
             </spell>            
-            <trieset>
-                <trie class="class1" name="1" />
-            </trieset>
+            <trieset> <trie class="post" name="fluff" /> </trieset>
         </user>
     </users>
+    <instance>
+        <threads>4</threads>
+    </instance>
 </config>

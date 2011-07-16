@@ -642,6 +642,14 @@ struct BELFunctionStorage_holder {
 			return true;
 		}
 
+		bool operator()(const BarzerRange &lr) {
+		    if (cnt) {
+		        mergeRanges(range, lr);
+		    } else {
+		        range = lr;
+		    }
+		    return true;
+		}
 
 		bool operator()(const BarzelBeadAtomic &data) {
 			//AYLOG(DEBUG) << "mkRange arg " << cnt;
