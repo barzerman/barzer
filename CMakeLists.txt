@@ -85,6 +85,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} $ENV{OPT} -Wnon-virtual-dtor -fpic -g")
 add_definitions(-DBARZER_HOME=${INSTALL_DIR})
 add_definitions("\$(OPT)")
 
+IF(DEFINED STD)
+    add_definitions("-std=${STD}")
+ENDIF()
+
 set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
 
 MESSAGE(${CMAKE_CXX_COMPILER_ID})
