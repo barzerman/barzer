@@ -115,7 +115,7 @@ struct CToken {
 	/// updates info from currently attached saved token
 	void syncClassInfoFromSavedTok();
 	void setClass(CTokenClassInfo::TokenClass_t c)
-		{ cInfo.theClass = (typeof(cInfo.theClass))(c); } 
+		{ cInfo.theClass = (int16_t)(c); } 
 
 	CToken( ) : storedTok(0), stemTok(0) {}
 

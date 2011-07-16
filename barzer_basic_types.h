@@ -106,9 +106,9 @@ struct BarzerDate {
 	/// will try to set year to current year 
 	void setDayMonth(const BarzerNumber& d, const BarzerNumber& m) ;
 	void setDayMonthYear(const BarzerNumber& d, const BarzerNumber& m, const BarzerNumber& y ) {
-		day = (typeof day) d.getInt();
-		month = (typeof month) m.getInt();
-		year = (typeof year) y.getInt();
+		day = (uint8_t) d.getInt();
+		month = (uint8_t) m.getInt();
+		year = (int16_t) y.getInt();
 	}
 	void setYYYYMMDD( int x ) 
 	{

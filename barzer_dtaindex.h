@@ -101,7 +101,8 @@ private:
 
 	/// single tokens mapped by the actual const char*
 	/// references ponters stored in storTok
-	std::map<const char*,StoredTokenId,ay::char_cp_compare_nocase_less> singleTokMap;
+	typedef std::map<const char*,StoredTokenId,ay::char_cp_compare_nocase_less> SingleTokMap;
+	SingleTokMap singleTokMap;
 
 	// cwid to offset in storTok
 	typedef boost::unordered_map<uint32_t, uint32_t> CwidToTokenIdMap;
@@ -120,12 +121,13 @@ public:
 	{}
 	StoredTokenId getTokIdByString( const char* t ) const
 	{
-		typeof( singleTokMap.begin() ) i = singleTokMap.find( t) ;
+		SingleTokMap::const_iterator i = singleTokMap.find( t) ;
 		return (  i == singleTokMap.end() ? INVALID_STORED_ID : i->second );
 	}
 	const StoredToken* getTokByString( const char* s ) const
 		{
-			typeof( singleTokMap.begin() ) i = singleTokMap.find( s) ;
+			SingleTokMap::const_iterator i = singleTokMap.find( s) ;
+			//typeof( singleTokMap.begin() ) i = singleTokMap.find( s) ;
 			return ( i == singleTokMap.end() ? 0 : &(storTok.vec[i->second]) );
 		}
 	StoredToken* getTokByString( const char* s ) 

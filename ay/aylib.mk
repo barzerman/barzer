@@ -5,7 +5,7 @@ endif
 ifeq ($(IS32),yes)
 	BITMODE=-m32
 endif 
-CFLAGS := $(OPT) $(BITMODE) $(FLAGS) -Wall -g -I. -fpic
+CFLAGS := $(OPT) $(BITMODE) $(FLAGS) -Wall -g -I. -fpic 
 LIBNAME=libay.a
 SHARED_LIBNAME=libay.so
 

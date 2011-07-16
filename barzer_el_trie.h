@@ -50,7 +50,7 @@ struct BarzelTrieFirmChildKey {
 		case BarzerLiteral::T_STOP:     type=(uint8_t) BTND_Pattern_StopToken_TYPE; break;
 		case BarzerLiteral::T_PUNCT:    type=(uint8_t) BTND_Pattern_Punct_TYPE; break;
 		case BarzerLiteral::T_BLANK: 
-			type = (typeof type) BTND_Pattern_Token_TYPE;
+			type = (uint8_t) BTND_Pattern_Token_TYPE;
 			id =   0xffffffff;
 			break;
 		}
