@@ -47,5 +47,23 @@
     </tran>    
     </tran>
 </stmt>
-
+<stmt>
+    <pat>
+        <perm>
+            <expand n="vintageable"/>
+            <list>
+                <list v="low"><n l="1500" h="2100" /></list>
+                <t>to</t>
+                <list v="high"><n l="1500" h="2100" /></list>
+            </list>
+        </perm>
+    </pat>
+    <tran>
+        <func name="mkERC">
+            <mkent i="VINTAGE_YEAR" c="1" s="1" />
+            <func name="mkRange"><var name="low" /><var name="high" /></func>
+        </func>
+        <var name="ent" />        
+    </tran>
+</stmt>
 </stmset>

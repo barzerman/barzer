@@ -76,9 +76,10 @@ static std::ostream& printPatternVec(std::ostream &os, const BTND_PatternDataVec
 
 static int testEmitter(StoredUniverse &su) {
 	ay::UniqueCharPool &sp = su.getStringPool();
-	BELTrie &trie = su.getBarzelTrie();
+	UniverseTrieCluster &tc = su.getTrieCluster();
+	BELTrie *trie = tc.getFirstTrie();
 	BELPrintFormat fmt;
-	BELPrintContext pctxt( trie, sp, fmt );
+	BELPrintContext pctxt( *trie, sp, fmt );
 
 	BTND_PatternData pd(BTND_Pattern_Token(sp.internIt("mama")));
 	BTND_Pattern_Number num; BTND_PatternData pd2(num);
@@ -186,7 +187,7 @@ static int testFunctions(StoredUniverse &su) {
 
 	BarzelEvalResult res;
 
-	su.getFunctionStorage().call("opAnd", res, vec);
+	su.getFunctionStorage().call("opAnd", res, vec, su);
 
 	std::cout << res.getBeadData().which() << "\n";
 
@@ -212,48 +213,19 @@ void testDateLookup(StoredUniverse &su) {
 
 
 void testSettings(StoredUniverse &su) {
-	std::cout << su.getSettings().get("config.ruleset") << std::endl;
+	std::cout << su.getGlobalPools().getSettings().get("config.ruleset") << std::endl;
 }
 
-
-void testDate() {
-	BarzerDate date;
-	date.initToday();
-
-	uint8_t day = 12, month = 4, year = 2010;
-	std::time_t time = (day * 24 * 60 * 60) + (month * 30 * 24 )
-
-
-	std::time_t time = std::time(0);
-	/*
-	std::tm tmdate;
-
-	localtime_r(&time, &tmdate);
-
-	tmdate.tm_year = 2011 - 1900;
-	tmdate.tm_mon = 4 - 1;
-	tmdate.tm_mday = 11;
-*/
-
-	//std::cout << tmdate.tm_mday << "." << tmdate.tm_mon + 1 << "." << tmdate.tm_year+1900 << "\n";
-
-	std::time_t time2 =  std::mktime(&tmdate);
-	std::tm *y = std::localtime( &time2 );
-
-	std::cout << y->tm_mday << "." << y->tm_mon + 1 << "." << y->tm_year+1900 << "\n";
-
-}
 
 typedef std::pair<uint64_t, uint64_t> TestRange;
 
 int main() {
 	AYLOGINIT(DEBUG);
-	StoredUniverse su;
+	barzer::GlobalPools gp;
 //	testEmitter(su);
 	//testSettings(su);
 	//testReader();
 
-	testDate();
 
 /*	std::cout << sizeof(BarzerNumber)
 		//<< " vs " << sizeof(BarzerDate)
