@@ -77,7 +77,8 @@ public:
 		TAG_MKENT, // <mkent c="class" sc="subclass" id="UNIQID"> 
 		TAG_VAR, // <var>
 		TAG_FUNC, // function
-		
+		TAG_SELECT,
+		TAG_CASE,
 		// added by pltr
 		TAG_STMSET, // document element
 		
@@ -247,6 +248,9 @@ public:
 	void taghandle_FUNC( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_VAR( const char_cp * attr, size_t attr_sz , bool close=false);
 	
+    void taghandle_SELECT( const char_cp * attr, size_t attr_sz , bool close=false);
+    void taghandle_CASE( const char_cp * attr, size_t attr_sz , bool close=false);
+
 	// document element
 	void taghandle_STMSET( const char_cp * attr, size_t attr_sz , bool close=false);
 

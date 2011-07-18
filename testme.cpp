@@ -217,6 +217,11 @@ void testSettings(StoredUniverse &su) {
 }
 
 
+void testRewriteNode(barzer::GlobalPools &gp) {
+    BTND_RewriteData rd1();
+}
+
+
 typedef std::pair<uint64_t, uint64_t> TestRange;
 
 int main() {

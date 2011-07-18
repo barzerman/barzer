@@ -164,6 +164,8 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 	CASE_TAG(MKENT)
 	CASE_TAG(VAR)
 	CASE_TAG(FUNC)
+	CASE_TAG(SELECT)
+	CASE_TAG(CASE)
 	}
 #undef CASE_TAG
 
@@ -1017,6 +1019,13 @@ void BELParserXML::taghandle_FUNC( const char_cp * attr, size_t attr_sz , bool c
 	statement.pushNode( BTND_RewriteData( f));
 }
 
+void BELParserXML::taghandle_SELECT( const char_cp * attr, size_t attr_sz , bool close)
+    {}
+
+void BELParserXML::taghandle_CASE( const char_cp * attr, size_t attr_sz , bool close)
+    {}
+
+
 void BELParserXML::endElement( const char* tag )
 {
 	int tid = getTag( tag );
@@ -1094,6 +1103,9 @@ int BELParserXML::getTag( const char* s ) const
 	case 'a':
 	CHECK_3CW("ny",TAG_ANY) // <any>
 		break;
+	case 'c':
+	CHECK_4CW("ase", TAG_CASE ) // <case>
+	    break;
 	case 'd':
 	CHECK_4CW("ate", TAG_DATE ) // <date> 
 	CHECK_4CW("tim", TAG_DATETIME ) // <dtim> 
@@ -1132,6 +1144,7 @@ int BELParserXML::getTag( const char* s ) const
 	case 's':
 	CHECK_4CW("tmt",TAG_STATEMENT )  // <stmt>
 	CHECK_6CW("tmset",TAG_STMSET )  // <stmset>
+	CHECK_6CW("elect",TAG_SELECT )  // <select>
 	CHECK_6CW("ubset",TAG_SUBSET )  // <subset>
 		break;
 	case 't':
