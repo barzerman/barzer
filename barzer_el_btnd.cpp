@@ -439,6 +439,19 @@ std::ostream&  BTND_Rewrite_Function::print( std::ostream& fp , const BELPrintCo
 {
 	return ( fp << "func." << ctxt.printableString( nameId ) );
 }
+
+
+std::ostream&  BTND_Rewrite_Select::print( std::ostream& fp , const BELPrintContext& ctxt) const
+{
+    return ( fp << "select." << ctxt.printableString( varId ) );
+}
+
+std::ostream&  BTND_Rewrite_Case::print( std::ostream& fp , const BELPrintContext& ctxt) const
+{
+    return ( fp << "case." << ctxt.printableString( literalId ) );
+}
+
+
 std::ostream&  BTND_Rewrite_None::print( std::ostream& fp , const BELPrintContext& ) const
 {
 	return (fp << "RwrNone" );

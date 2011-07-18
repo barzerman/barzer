@@ -1020,10 +1020,45 @@ void BELParserXML::taghandle_FUNC( const char_cp * attr, size_t attr_sz , bool c
 }
 
 void BELParserXML::taghandle_SELECT( const char_cp * attr, size_t attr_sz , bool close)
-    {}
+{
+    if( close ) {
+        statement.popNode();
+        return;
+    }
+    uint32_t varId;
+    for( size_t i=0; i< attr_sz; i+=2 ) {
+        const char* n = attr[i]; // attr name
+        const char* v = attr[i+1]; // attr value
+        switch(n[0]) {
+        case 'v':
+            varId = internString(v);
+            break;
+        }
+    }
+    statement.pushNode( BTND_RewriteData(BTND_Rewrite_Select(varId)) );
+}
 
 void BELParserXML::taghandle_CASE( const char_cp * attr, size_t attr_sz , bool close)
-    {}
+{
+    if( close ) {
+        statement.popNode();
+        return;
+    }
+    uint32_t caseId;
+    for( size_t i=0; i< attr_sz; i+=2 ) {
+        const char* n = attr[i]; // attr name
+        const char* v = attr[i+1]; // attr value
+        switch(n[0]) {
+        case 'l':
+            caseId = internString(v);
+            break;
+        case 'p':
+            caseId = (uint32_t)v[0]; // this is a hack really
+            break;
+        }
+    }
+    statement.pushNode( BTND_RewriteData(BTND_Rewrite_Case(caseId)) );
+}
 
 
 void BELParserXML::endElement( const char* tag )

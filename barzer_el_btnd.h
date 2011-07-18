@@ -759,6 +759,24 @@ struct BTND_Rewrite_Function {
 	BTND_Rewrite_Function() : nameId(ay::UniqueCharPool::ID_NOTFOUND) {}
 	BTND_Rewrite_Function(ay::UniqueCharPool::StrId id) : nameId(id) {}
 };
+
+struct BTND_Rewrite_Select {
+    uint32_t varId;
+    void setVarId(uint32_t id) { varId = id; }
+    uint32_t getVarId() const { return varId; }
+    BTND_Rewrite_Select(uint32_t id = 0xffffffff) : varId(id) {}
+
+    std::ostream& print( std::ostream&, const BELPrintContext& ) const;
+};
+
+
+struct BTND_Rewrite_Case {
+    uint32_t literalId;
+    BTND_Rewrite_Case(uint32_t id = 0xffffffff) : literalId(id) {}
+
+    std::ostream& print( std::ostream&, const BELPrintContext& ) const;
+};
+
 // blank rewrite data type
 struct BTND_Rewrite_None {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
@@ -833,7 +851,9 @@ typedef boost::variant<
 	BTND_Rewrite_DateTime,
 	BTND_Rewrite_Range,
 	BTND_Rewrite_EntitySearch,
-	BTND_Rewrite_MkEnt
+	BTND_Rewrite_MkEnt,
+	BTND_Rewrite_Select,
+	BTND_Rewrite_Case
 > BTND_RewriteData;
 
 enum {
@@ -845,7 +865,9 @@ enum {
 	BTND_Rewrite_DateTime_TYPE,
 	BTND_Rewrite_Range_TYPE,
 	BTND_Rewrite_EntitySearch_TYPE,
-	BTND_Rewrite_MkEnt_TYPE
+	BTND_Rewrite_MkEnt_TYPE,
+	BTND_Rewrite_Select_TYPE,
+	BTND_Rewrite_Case_TYPE
 }; 
 
 /// when updating the enums make sure to sunc up BTNDDecode::typeName_XXX 
