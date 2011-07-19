@@ -1031,7 +1031,7 @@ void BELParserXML::taghandle_SELECT( const char_cp * attr, size_t attr_sz , bool
         const char* v = attr[i+1]; // attr value
         switch(n[0]) {
         case 'v':
-            varId = internString(v);
+            varId = internVariable(v);
             break;
         }
     }

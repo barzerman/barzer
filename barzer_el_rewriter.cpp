@@ -3,7 +3,7 @@
 #include <barzer_universe.h>
 #include <barzer_el_matcher.h>
 #include <ay/ay_logger.h>
-
+//#include <boost/foreach.hpp>
 
 namespace barzer {
 
@@ -35,6 +35,60 @@ struct Fallible {
 	Fallible() : isThatSo(false) {}
 };
 
+// Comparator for sorting a list of <case> nodes. Has the following effect:
+// all <case> node are moved to the beginning of the list and sorted
+// the rest is put to the end of the list in original order
+// assuming std::stable_sort is called
+// so it probably can be called for any list safely
+struct CaseComparator : public boost::static_visitor<bool> {
+    bool operator()(const BELParseTreeNode &l, const BELParseTreeNode &r) const
+    {
+        return boost::apply_visitor(*this, *l.getRewriteData(), *r.getRewriteData());
+    }
+    bool operator()(const BTND_RewriteData &l, const BTND_RewriteData &r) const
+        {
+        return boost::apply_visitor(*this, l, r);
+        }
+    bool operator()(const BTND_Rewrite_Case &l, const BTND_Rewrite_Case &r) const
+        { return l.ltrlId < r.ltrlId; }
+    template<class T> bool operator()(const T&, const BTND_Rewrite_Case &l) const
+        { return false; }
+    template<class T,class U> bool operator()(const T&, const U&) const
+        { return true; }
+};
+
+
+
+struct CaseFinder : public boost::static_visitor<bool> {
+    uint32_t id;
+    CaseFinder(uint32_t i) : id(i) {}
+    bool operator()(const BarzelEvalNode &l, uint32_t i) {
+        //AYLOGDEBUG(l.getBtnd().which());
+        return boost::apply_visitor(*this, l.getBtnd());
+    }
+    /*
+    bool operator()(const BTND_Rewrite_None &l) const {
+        AYLOG(DEBUG) << "none"; return false; }
+    bool operator()(const BTND_Rewrite_Literal) const { AYLOG(DEBUG) << "lit";return false; }
+    bool operator()(const BTND_Rewrite_Number) const { AYLOG(DEBUG) << "num";return false; }
+    bool operator()(const BTND_Rewrite_Variable) const { AYLOG(DEBUG) << "var";return false; }
+    bool operator()(const BTND_Rewrite_Function) const { AYLOG(DEBUG) << "fun";return false; }
+    bool operator()(const BTND_Rewrite_DateTime) const { AYLOG(DEBUG) << "dt";return false; }
+    bool operator()(const BTND_Rewrite_Range) const { AYLOG(DEBUG) << "ran";return false; }
+    bool operator()(const BTND_Rewrite_EntitySearch) const { AYLOG(DEBUG) << "es";return false; }
+    bool operator()(const BTND_Rewrite_MkEnt) const { AYLOG(DEBUG) << "mkent";return false; }
+    bool operator()(const BTND_Rewrite_Select) const { AYLOG(DEBUG) << "sel";return false; }
+ */
+
+    template<class T> bool operator()(const T&) {
+        AYLOG(DEBUG) << "unknown";
+        return false;
+     }
+};
+
+template<> bool CaseFinder::operator()<BTND_Rewrite_Case>(const BTND_Rewrite_Case &l)
+    { return l.ltrlId < id; }
+
 } // anon namespace ends 
 
 bool  BarzelRewriterPool::isRewriteFallible( const BarzelRewriterPool::BufAndSize& bas ) const 
@@ -59,8 +113,19 @@ int  BarzelRewriterPool::encodeParseTreeNode( BarzelRewriterPool::byte_vec& tran
 	trans.insert( trans.end(), rdBuf, rdBuf+dta_sz);
 	//std::cerr << "BTND_RewriteData[" << rd->which() << ":" << dta_sz << "]";
 
-	for( BELParseTreeNode::ChildrenVec::const_iterator ch = ptn.child.begin(); ch != ptn.child.end(); ++ch ) {
-		
+	BELParseTreeNode::ChildrenVec child = ptn.child;
+	if (rd->which() == BTND_Rewrite_Select_TYPE) {
+	    /*size_t len = child.size();
+	    std::vector<const BELParseTreeNode*> v(len, 0);
+	    for (size_t i = 0, s = child.size(); i < s; ++i)
+	        v[i] = &child[i]; */
+	    // this is probably insanely inefficient, will need to correct
+	    std::stable_sort(child.begin(), child.end(), CaseComparator());
+	}
+
+	for( BELParseTreeNode::ChildrenVec::const_iterator ch = child.begin(),
+	                                                       chend = child.end();
+	                                                ch != chend; ++ch ) {
 		int rc =encodeParseTreeNode( trans, *ch );
 		if( rc ) 
 			return rc; // error
@@ -99,6 +164,18 @@ int BarzelRewriterPool::produceTranslation( BarzelTranslation& trans, const BELP
 //// barzel evaluator (translator)
 namespace {
 
+
+// visitor to check if we should eval the child
+// some of the children need not to be be untill much later (case/if)
+struct Eval_visitor_evalChildren :  public boost::static_visitor<bool> {
+    bool operator()(const BTND_Rewrite_Select&) const
+    { return false; }
+    template <typename T>
+    bool operator() ( const T& btnd ) const
+        { return true; }
+};
+
+
 /// this visitor would only make sense for operators that may need less than 
 /// all of their dependent values computd. this primarily relates to 
 /// control structures 
@@ -110,40 +187,44 @@ struct Eval_visitor_needToStop : public boost::static_visitor<bool> {
 		d_childVal(cv),
 		d_val(v)
 	{}
+
 	/// this may be overridden for control structures such as AND/OR etc. 
 	/// it will alter d_val if need be 
+
 	template <typename T>
 	bool operator() ( const T& btnd ) 
 		{ return false; }
 };
+
 struct Eval_visitor_compute : public boost::static_visitor<bool> {  
 	const BarzelEvalResultVec& d_childValVec;
 	BarzelEvalResult& d_val;
 	BarzelEvalContext &ctxt;
+	const BarzelEvalNode &d_evalNode;
 
 	Eval_visitor_compute( const BarzelEvalResultVec& cvv, BarzelEvalResult& v,
-						  BarzelEvalContext &c) :
+						  BarzelEvalContext &c, const BarzelEvalNode &n) :
 		d_childValVec(cvv),
 		d_val(v),
-		ctxt(c)
+		ctxt(c),
+		d_evalNode(n)
 	{}
+
+
+	void returnChildren() {
+        BarzelBeadDataVec &valVec = d_val.getBeadDataVec();
+        valVec.clear();
+        for (BarzelEvalResultVec::const_iterator iter = d_childValVec.begin();
+                                                 iter != d_childValVec.end();
+                                                 ++iter) {
+            const BarzelBeadDataVec &childVec = iter->getBeadDataVec();
+            valVec.insert(valVec.end(), childVec.begin(), childVec.end());
+        }
+	}
 
 	bool operator()( const BTND_Rewrite_None &data ) {
 		//AYLOG(DEBUG) << "BTND_Rewrite_None";
-
-		BarzelBeadDataVec &valVec = d_val.getBeadDataVec();
-		valVec.clear();
-		for (BarzelEvalResultVec::const_iterator iter = d_childValVec.begin();
-												 iter != d_childValVec.end();
-												 ++iter) {
-			const BarzelBeadDataVec &childVec = iter->getBeadDataVec();
-			valVec.insert(valVec.end(), childVec.begin(), childVec.end());
-		}
-		/*
-		if (d_childValVec.size()) {
-
-			d_val.setBeadData(d_childValVec[0].getBeadDataVec());
-		}*/
+	    returnChildren();
 		return true;
 	}
 	bool operator()( const BTND_Rewrite_DateTime &data ) {
@@ -241,6 +322,64 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Variable>( const 
 	}
 	return true;
 }
+
+
+template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Select>
+    ( const BTND_Rewrite_Select &s)
+{
+//    AYLOG(DEBUG) << "BTND_Rewrite_Select";
+    BarzelMatchInfo& matchInfo = ctxt.matchInfo;
+    BeadRange r;
+
+
+//    AYLOGDEBUG(s.varId);
+    BTND_Rewrite_Variable n;
+    n.setVarId(s.varId);
+
+    if( matchInfo.getDataByVar(r, n,ctxt.getTrie())  ) {
+        if( r.first == r.second )  {
+            if( matchInfo.iteratorIsEnd( r.second ) ) {
+                std::cerr << "ERROR: blank tail range passed\n";
+                return false;
+            }
+            matchInfo.expandRangeByOne(r);
+        }
+
+        BarzelBeadChain::trimBlanksFromRange(r);
+
+        const BarzelBeadAtomic &a = boost::get<BarzelBeadAtomic>(r.first->getBeadData());
+        const BarzerLiteral &ltrl = boost::get<BarzerLiteral>(a.getData());
+
+
+        const BarzelEvalNode::ChildVec &child = d_evalNode.getChild();
+
+        CaseFinder cf(ltrl.getId());
+
+        /*
+        BOOST_FOREACH(const BarzelEvalNode &n, child) {
+            AYLOG(DEBUG) << boost::get<BTND_Rewrite_Case>(n.getBtnd()).ltrlId;
+            //if(boost::get<BTND_Rewrite_Case>(n.getBtnd()).ltrlId == ltrl.getId())
+                //return n.eval(d_val, ctxt);
+        } //*/
+
+        BarzelEvalNode::ChildVec::const_iterator it =
+                std::lower_bound(child.begin(), child.end(), 0, cf);
+        if (it != child.end()) {
+            return it->eval(d_val, ctxt);
+        }
+    }
+    return false;
+}
+
+template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Case>
+    ( const BTND_Rewrite_Case &s)
+{
+
+    returnChildren();
+    return true;
+}
+
+
 //// the main visitor - compute
 
 } // end of anon namespace 
@@ -259,24 +398,28 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Variable>( const 
 bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) const
 {
 	BarzelEvalResultVec childValVec;
-	if( d_child.size() ) {
+
+	if( boost::apply_visitor(Eval_visitor_evalChildren(), d_btnd)
+	        && d_child.size() ) {
 		childValVec.resize( d_child.size() );
 		
 		/// forming dependent vector of values 
 		for( size_t i =0; i< d_child.size(); ++i ) {
 			const BarzelEvalNode& childNode = d_child[i];
 			BarzelEvalResult& childVal = childValVec[i];
+
 			if( !childNode.eval(childVal, ctxt) ) 
 				return false; // error in one of the children occured
 			
-			Eval_visitor_needToStop visitor(childVal,val);
-			if( boost::apply_visitor( visitor, d_btnd ) ) 
-				return false;
+
+            Eval_visitor_needToStop visitor(childVal,val);
+            if( boost::apply_visitor( visitor, d_btnd ) )
+                break;
 		}
 		/// vector of dependent values ready
 	}
 
-	Eval_visitor_compute visitor(childValVec,val,ctxt);
+	Eval_visitor_compute visitor(childValVec,val,ctxt, *this);
 	bool ret = boost::apply_visitor( visitor, d_btnd );
 
 	//BeadPrinter bp;

@@ -18,6 +18,7 @@
 #include <barzer_basic_types.h>
 #include <barzer_el_rewriter.h>
 #include <ay/ay_cmdproc.h>
+#include <barzer_el_btnd.h>
 
 #include <stdio.h>
 
@@ -227,6 +228,9 @@ typedef std::pair<uint64_t, uint64_t> TestRange;
 int main() {
 	AYLOGINIT(DEBUG);
 	barzer::GlobalPools gp;
+
+	std::cout << sizeof(BTND_RewriteData) << "\n";
+
 //	testEmitter(su);
 	//testSettings(su);
 	//testReader();

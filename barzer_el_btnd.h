@@ -762,17 +762,23 @@ struct BTND_Rewrite_Function {
 
 struct BTND_Rewrite_Select {
     uint32_t varId;
+    uint32_t storedId;
     void setVarId(uint32_t id) { varId = id; }
     uint32_t getVarId() const { return varId; }
-    BTND_Rewrite_Select(uint32_t id = 0xffffffff) : varId(id) {}
+
+    void setStoredId(uint32_t id) { storedId = id; }
+    uint32_t getStoredId() const { return storedId; }
+
+    BTND_Rewrite_Select(uint32_t vid = 0xffffffff)
+        : varId(vid), storedId(0xffffffff)  {}
 
     std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 };
 
 
 struct BTND_Rewrite_Case {
-    uint32_t literalId;
-    BTND_Rewrite_Case(uint32_t id = 0xffffffff) : literalId(id) {}
+    uint32_t ltrlId;
+    BTND_Rewrite_Case(uint32_t id = 0xffffffff) : ltrlId(id) {}
 
     std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 };

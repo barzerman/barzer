@@ -135,10 +135,11 @@ struct BarzelEvalContext {
 	{}
 };
 class BarzelEvalNode {
+public:
+    typedef std::vector< BarzelEvalNode > ChildVec;
 protected:
 	BTND_RewriteData d_btnd;
 
-	typedef std::vector< BarzelEvalNode > ChildVec;
 	ChildVec d_child;
 
 
@@ -150,6 +151,8 @@ private:
 	
 public:
 	BTND_RewriteData& getBtnd() { return d_btnd; }
+	ChildVec& getChild() { return d_child; }
+	const ChildVec& getChild() const { return d_child; }
 
 	const BTND_RewriteData& getBtnd() const { return d_btnd; }
 	bool isFallible() const ;

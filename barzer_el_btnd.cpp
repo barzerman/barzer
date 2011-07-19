@@ -448,7 +448,7 @@ std::ostream&  BTND_Rewrite_Select::print( std::ostream& fp , const BELPrintCont
 
 std::ostream&  BTND_Rewrite_Case::print( std::ostream& fp , const BELPrintContext& ctxt) const
 {
-    return ( fp << "case." << ctxt.printableString( literalId ) );
+    return ( fp << "case." << ctxt.printableString( ltrlId ) );
 }
 
 
