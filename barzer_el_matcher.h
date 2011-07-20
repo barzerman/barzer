@@ -174,7 +174,7 @@ private:
 
 public:
 	const StoredUniverse& universe;
-
+	const BELTrie&  getTrie() const { return d_trie; }
 	BTMIterator( const BeadRange& rng, const StoredUniverse& u, const BELTrie& trie ) : 
 		bestPaths(rng,u,trie),
 		universe(u),

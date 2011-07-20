@@ -18,6 +18,26 @@ std::ostream& glob_printRewriterByteCode( std::ostream& fp, const BarzelRewriter
 }
 } // end of anon namespace 
 
+BELTrie::~BELTrie( )
+{
+	delete d_wcPool;
+	delete d_fcPool;
+	delete d_tranPool;
+}
+BELTrie::BELTrie( 
+	GlobalPools& gp,
+	BarzelRewriterPool*  rPool, 
+	BarzelWildcardPool* wPool, // ignored
+	BarzelFirmChildPool* fPool,
+	BarzelTranslationPool* tPool 
+) : 
+	globalPools(gp),
+	rewrPool(rPool), 
+	d_wcPool(new BarzelWildcardPool),
+	d_fcPool(new BarzelFirmChildPool),
+	d_tranPool(new BarzelTranslationPool)
+{}
+
 std::ostream& BELTrie::printVariableName( std::ostream& fp, uint32_t varId ) const
 {
 	const BELSingleVarPath* bsvp = getVarIndex().getPathFromTranVarId( varId );
@@ -49,7 +69,7 @@ std::ostream& BELPrintContext::printRewriterByteCode( std::ostream& fp, const Ba
 
 const BarzelWCLookup*  BELPrintContext::getWildcardLookup( uint32_t id ) const
 {
-return( trie.wcPool->getWCLookup( id ));
+return( trie.getWCPool().getWCLookup( id ));
 }
 
 void BarzelTrieNode::clearFirmMap()
@@ -69,7 +89,7 @@ void BarzelTrieNode::clear()
 void BELTrie::clear()
 {
 	rewrPool->clear();
-	wcPool->clear();
+	d_wcPool->clear();
 	root.clear();
 }
 
@@ -162,7 +182,7 @@ std::ostream& BELPrintContext::printBarzelWCLookupKey( std::ostream& fp, const B
 	const BarzelTrieFirmChildKey& firmKey = key.first;
 	const BarzelWCKey& wcKey = key.second;
 	
-	trie.wcPool->print( fp, wcKey, *this );
+	trie.getWCPool().print( fp, wcKey, *this );
 	if( !firmKey.isNull() ) {
 		fp << "-->";
 		firmKey.print( fp, *this );
@@ -209,7 +229,7 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 	}
 	void operator()( const BTND_Pattern_DateTime& p ) {
 		BarzelWCKey wcKey;
-		trie.wcPool->produceWCKey( wcKey, p );
+		trie.getWCPool().produceWCKey( wcKey, p );
 		if( wcKey.wcType != BTND_Pattern_DateTime_TYPE ) {
 			AYDEBUG( "TRIE PANIC" );
 		}
@@ -227,7 +247,7 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 		case BTND_Pattern_Date::T_ANY_PASTDATE:
 		case BTND_Pattern_Date::T_DATERANGE: {
 			BarzelWCKey wcKey;
-			trie.wcPool->produceWCKey( wcKey, p );
+			trie.getWCPool().produceWCKey( wcKey, p );
 			if( wcKey.wcType != BTND_Pattern_Date_TYPE ) {
 				AYDEBUG( "TRIE PANIC" );
 			}
@@ -243,7 +263,7 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 	}
 	void operator()( const BTND_Pattern_Number& p ) {
 		BarzelWCKey wcKey;
-		trie.wcPool->produceWCKey( wcKey, p );
+		trie.getWCPool().produceWCKey( wcKey, p );
 		if( wcKey.wcType != BTND_Pattern_Number_TYPE ) { AYDEBUG( "TRIE PANIC" ); }
 
 		key.type=BTND_Pattern_Number_TYPE;
@@ -251,7 +271,7 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 	}
 	void operator()( const BTND_Pattern_ERCExpr& p ) {
 		BarzelWCKey wcKey;
-		trie.wcPool->produceWCKey( wcKey, p );
+		trie.getWCPool().produceWCKey( wcKey, p );
 		if( wcKey.wcType != BTND_Pattern_ERCExpr_TYPE ) { AYDEBUG( "TRIE PANIC" ); }
 
 		key.type = BTND_Pattern_ERCExpr_TYPE;
@@ -259,7 +279,7 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 	}
 	void operator()( const BTND_Pattern_Entity& p ) {
 		BarzelWCKey wcKey;
-		trie.wcPool->produceWCKey( wcKey, p );
+		trie.getWCPool().produceWCKey( wcKey, p );
 		if( wcKey.wcType != BTND_Pattern_Entity_TYPE ) { AYDEBUG( "TRIE PANIC" ); }
 
 		key.type=BTND_Pattern_Entity_TYPE;
@@ -267,7 +287,7 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 	}
 	void operator()( const BTND_Pattern_ERC& p ) {
 		BarzelWCKey wcKey;
-		trie.wcPool->produceWCKey( wcKey, p );
+		trie.getWCPool().produceWCKey( wcKey, p );
 		if( wcKey.wcType != BTND_Pattern_ERC_TYPE ) { AYDEBUG( "TRIE PANIC" ); }
 
 		key.type=BTND_Pattern_ERC_TYPE;
@@ -275,7 +295,7 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 	}
 	void operator()( const BTND_Pattern_Range& p ) {
 		BarzelWCKey wcKey;
-		trie.wcPool->produceWCKey( wcKey, p );
+		trie.getWCPool().produceWCKey( wcKey, p );
 		if( wcKey.wcType != BTND_Pattern_Range_TYPE ) { AYDEBUG( "TRIE PANIC" ); }
 
 		key.type=BTND_Pattern_Range_TYPE;
@@ -310,9 +330,9 @@ BarzelTrieNode* BarzelTrieNode::addFirmPattern( BELTrie& trie, const BarzelTrieF
 BarzelTrieNode* BarzelTrieNode::addWildcardPattern( BELTrie& trie, const BTND_PatternData& p, const BarzelTrieFirmChildKey& fk  )
 {
 	if( !hasValidWcLookup() ) 
-		trie.wcPool->addWCLookup( d_wcLookupId );
+		trie.getWCPool().addWCLookup( d_wcLookupId );
 	
-	BarzelWCLookup* wcLookup = trie.wcPool->getWCLookup( d_wcLookupId );
+	BarzelWCLookup* wcLookup = trie.getWCPool().getWCLookup( d_wcLookupId );
 	BarzelWCLookupKey lkey;
 	lkey.first = fk;
 	trie.produceWCKey( lkey.second, p );
@@ -338,7 +358,7 @@ std::ostream& BarzelTrieFirmChildKey::print( std::ostream& fp, const BELPrintCon
 //// bel TRIE methods
 void BELTrie::produceWCKey( BarzelWCKey& key, const BTND_PatternData& btnd  )
 {
-	wcPool->produceWCKey(key, btnd );
+	d_wcPool->produceWCKey(key, btnd );
 }
 void BELTrie::setTanslationTraceInfo( BarzelTranslation& tran, const BELStatementParsed& stmt, uint32_t emitterSeqNo )
 {
@@ -465,7 +485,7 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELSta
 			return false;
 		}
 		if( entGrp ) {
-			const BarzelTranslation* newTran = tranPool->getObjById(id);
+			const BarzelTranslation* newTran = d_tranPool->getObjById(id);
 			if( newTran && newTran->isMkEntSingle() ) {
 				uint32_t newEntId = newTran->getId_uint32();
 

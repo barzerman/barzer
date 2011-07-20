@@ -296,7 +296,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		// forming firm key
 		// we ignore the whole allow blanks thing for dates - blanks will just always be allowed
 		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey );
-		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool( d_trie );
+		const BarzelWildcardPool& wcPool = d_trie.getWildcardPool();
 
 		for( ; i!= fcmap.end() && i->first.type == patternTypeId; ++i ) {
 			/// we're looping over all date wildcards on the current node 
@@ -390,7 +390,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		// forming firm key
 		// we ignore the whole allow blanks thing for dates - blanks will just always be allowed
 		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey );
-		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool(d_trie);
+		const BarzelWildcardPool& wcPool = d_trie.getWildcardPool();
 		for( ; i!= fcmap.end() && i->first.type == BTND_Pattern_Date_TYPE; ++i ) {
 			/// we're looping over all date wildcards on the current node 
 			/// extracting the actual wildcard 
@@ -418,7 +418,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		// forming firm key
 		// we ignore the whole allow blanks thing for dates - blanks will just always be allowed
 		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey );
-		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool(d_trie);
+		const BarzelWildcardPool& wcPool = d_trie.getWildcardPool();
 		for( ; i!= fcmap.end() && i->first.type == BTND_Pattern_DateTime_TYPE; ++i ) {
 			/// we're looping over all date wildcards on the current node 
 			/// extracting the actual wildcard 
@@ -446,7 +446,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		// forming firm key
 		// we ignore the whole allow blanks thing for dates - blanks will just always be allowed
 		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey );
-		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool(d_trie);
+		const BarzelWildcardPool& wcPool = d_trie.getWildcardPool();
 		for( ; i!= fcmap.end() && i->first.type == BTND_Pattern_Number_TYPE; ++i ) {
 			/// we're looping over all date wildcards on the current node 
 			/// extracting the actual wildcard 
@@ -486,7 +486,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		// forming firm key
 		// we ignore the whole allow blanks thing for dates - blanks will just always be allowed
 		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey );
-		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool(d_trie);
+		const BarzelWildcardPool& wcPool = d_trie.getWildcardPool();
 		for( ; i!= fcmap.end() && i->first.type == BTND_Pattern_Entity_TYPE; ++i ) {
 			/// we're looping over all date wildcards on the current node 
 			/// extracting the actual wildcard 
@@ -519,7 +519,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		// forming firm key
 		// we ignore the whole allow blanks thing for dates - blanks will just always be allowed
 		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey );
-		const BarzelWildcardPool& wcPool = d_btmi.universe.getWildcardPool(d_trie);
+		const BarzelWildcardPool& wcPool = d_trie.getWildcardPool();
 		for( ; i!= fcmap.end() && i->first.type == BTND_Pattern_ERCExpr_TYPE; ++i ) {
 			/// we're looping over all date wildcards on the current node 
 			/// extracting the actual wildcard 

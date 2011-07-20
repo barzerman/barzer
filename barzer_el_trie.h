@@ -396,28 +396,24 @@ class BELTrie {
 public:
 	GlobalPools& globalPools;
 	BarzelRewriterPool* rewrPool;
-	BarzelWildcardPool* wcPool;
-	BarzelFirmChildPool* fcPool;
-	BarzelTranslationPool *tranPool;
+	BarzelWildcardPool* d_wcPool;
+	BarzelFirmChildPool* d_fcPool;
+	BarzelTranslationPool *d_tranPool;
 	BarzelVariableIndex   d_varIndex;
 	EntityCollection      d_entCollection;
 
 	GlobalPools& getGlobalPools() { return globalPools; }
 	const GlobalPools& getGlobalPools() const { return globalPools; }
 	BarzelTrieNode root;
+
+	~BELTrie();
 	BELTrie( 
 		GlobalPools& gp,
 		BarzelRewriterPool*  rPool, 
-		BarzelWildcardPool* wPool,
-		BarzelFirmChildPool* fPool,
+		BarzelWildcardPool* wPool, // IGNORED
+		BarzelFirmChildPool* fPool, // IGNORED
 		BarzelTranslationPool* tPool 
-	) : 
-		globalPools(gp),
-		rewrPool(rPool), 
-		wcPool(wPool),
-		fcPool(fPool),
-		tranPool(tPool)
-	{}
+	);
 	BarzelMacros macros;
 
 	const BarzelMacros& getMacros() const { return  macros; }
@@ -432,14 +428,14 @@ public:
 		  BarzelRewriterPool& getRewriterPool() { return  * rewrPool; }
 	const BarzelRewriterPool& getRewriterPool() const { return  * rewrPool; }
 
-		  BarzelWildcardPool& getWildcardPool()  { return * wcPool; }
-	const BarzelWildcardPool& getWildcardPool() const  { return * wcPool; }
+		  BarzelWildcardPool& getWildcardPool()  { return * d_wcPool; }
+	const BarzelWildcardPool& getWildcardPool() const  { return * d_wcPool; }
 
-		  BarzelFirmChildPool& getFirmChildPool() { return * fcPool; }
-	const BarzelFirmChildPool& getFirmChildPool() const { return * fcPool; }
+		  BarzelFirmChildPool& getFirmChildPool() { return * d_fcPool; }
+	const BarzelFirmChildPool& getFirmChildPool() const { return * d_fcPool; }
 
-		  BarzelTranslationPool& getTranslationPool() { return *tranPool; }
-	const BarzelTranslationPool& getTranslationPool() const { return *tranPool; }
+		  BarzelTranslationPool& getTranslationPool() { return *d_tranPool; }
+	const BarzelTranslationPool& getTranslationPool() const { return *d_tranPool; }
 
 	      BarzelVariableIndex& getVarIndex()       { return d_varIndex; }
 	const BarzelVariableIndex& getVarIndex() const { return d_varIndex; }
@@ -447,29 +443,29 @@ public:
 	std::ostream& printVariableName( std::ostream& fp, uint32_t varId ) const;
 	
 	BarzelTranslation*  makeNewBarzelTranslation( uint32_t& id ) 
-		{ return tranPool->addObj( id ); }
-	const BarzelTranslation* getBarzelTranslation( const BarzelTrieNode& node ) const { return tranPool->getObjById(node.getTranslationId()); }
-		  BarzelTranslation* getBarzelTranslation( const BarzelTrieNode& node ) 	   { return tranPool->getObjById(node.getTranslationId()); }
+		{ return d_tranPool->addObj( id ); }
+	const BarzelTranslation* getBarzelTranslation( const BarzelTrieNode& node ) const { return d_tranPool->getObjById(node.getTranslationId()); }
+		  BarzelTranslation* getBarzelTranslation( const BarzelTrieNode& node ) 	   { return d_tranPool->getObjById(node.getTranslationId()); }
 
 	/// tries to add another translation to the existing one. 
 	/// initially this will only work for entity lists 
 	bool tryAddingTranslation( BarzelTrieNode* n, uint32_t tranId, const BELStatementParsed& stmt, uint32_t emitterSeqNo ); 
 
 	BarzelFCMap*  makeNewBarzelFCMap( uint32_t& id ) 
-		{ return fcPool->addObj( id ); }
-	const BarzelFCMap* getBarzelFCMap( const BarzelTrieNode& node ) const { return fcPool->getObjById(node.getFirmMapId()); }
-		  BarzelFCMap* getBarzelFCMap( const BarzelTrieNode& node ) 	  { return fcPool->getObjById(node.getFirmMapId()); }
+		{ return d_fcPool->addObj( id ); }
+	const BarzelFCMap* getBarzelFCMap( const BarzelTrieNode& node ) const { return d_fcPool->getObjById(node.getFirmMapId()); }
+		  BarzelFCMap* getBarzelFCMap( const BarzelTrieNode& node ) 	  { return d_fcPool->getObjById(node.getFirmMapId()); }
 
 	/// stores wildcard data n a form later usable by the Trie
-	/// this ends up calling wcPool->produceWCKey()
+	/// this ends up calling d_wcPool->produceWCKey()
 	void produceWCKey( BarzelWCKey&, const BTND_PatternData&   );
 
 	/// adds a new path to the 
 	const BarzelTrieNode* addPath( const BELStatementParsed& stmt, const BTND_PatternDataVec& path, uint32_t tranId, const BELVarInfo& varInfo, uint32_t emitterSeqNo );
 	void setTanslationTraceInfo( BarzelTranslation& tran, const BELStatementParsed& stmt, uint32_t emitterSeqNo );
 	std::ostream& printTanslationTraceInfo( std::ostream& , const BarzelTranslationTraceInfo& traceInfo ) const;
-	BarzelWildcardPool&  getWCPool() { return *wcPool; }
-	const BarzelWildcardPool&  getWCPool() const { return *wcPool; }
+	BarzelWildcardPool&  getWCPool() { return *d_wcPool; }
+	const BarzelWildcardPool&  getWCPool() const { return *d_wcPool; }
 
 	BarzelTrieNode& getRoot() { return root; }
 	const BarzelTrieNode& getRoot() const { return root; }
