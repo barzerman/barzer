@@ -8,6 +8,8 @@
 #include <ay_util.h>
 #include <ay_pool_with_id.h>
 #include <map>
+#include <boost/thread/shared_mutex.hpp>
+
 
 /// data structures representing the Barzer Expression Language BarzEL term pattern trie
 /// 
@@ -402,7 +404,16 @@ class BELTrie {
 	BarzelTranslationPool *d_tranPool;
 	BarzelVariableIndex   d_varIndex;
 	EntityCollection      d_entCollection;
+
 public:
+	typedef boost::shared_mutex Lock;
+	typedef boost::unique_lock< boost::shared_mutex > WriteLock;
+	typedef boost::shared_lock< boost::shared_mutex >  ReadLock;
+private:
+	mutable Lock d_threadLock;
+public:
+	Lock& getThreadLock() const { return d_threadLock; }
+
 	BarzelWildcardPool*  getWCPoolPtr() const { return d_wcPool; }
 	GlobalPools& getGlobalPools() { return globalPools; }
 	const GlobalPools& getGlobalPools() const { return globalPools; }

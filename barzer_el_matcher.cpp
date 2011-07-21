@@ -1045,7 +1045,8 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 }
 int BarzelMatcher::matchAndRewrite( Barz& barz )
 {
-	//AYTRACE( "BarzelMatcher::matchAndRewrite unimplemented" );
+	BELTrie::ReadLock r_lock(d_trie.getThreadLock());
+
 	clear();
 
 	BarzelBeadChain& beads = barz.getBeads();
@@ -1087,19 +1088,18 @@ int BarzelMatcher::matchAndRewrite( Barz& barz )
 }
 
 
-	bool BarzelMatchInfo::getDataByVar( BeadRange& r, const BTND_Rewrite_Variable& var, const BELTrie& trie )
-	{
-		const NodeAndBead* nob = getDataByVar_trivial(var);
-		if( nob ) {
-			return( r = nob->second, true );
-		} else if( var.isVarId() ) {
-			return getDataByVarId(r,var.getVarId(), trie );
-			// case BTND_Rewrite_Variable::MODE_VARNAME: return getDataByNameId( var.getVarId());
-		} else if( getGapRange(r,var) ) {
-			return true;
-		}
-		return false;
+bool BarzelMatchInfo::getDataByVar( BeadRange& r, const BTND_Rewrite_Variable& var, const BELTrie& trie )
+{
+	const NodeAndBead* nob = getDataByVar_trivial(var);
+	if( nob ) {
+		return( r = nob->second, true );
+	} else if( var.isVarId() ) {
+		return getDataByVarId(r,var.getVarId(), trie );
+	} else if( getGapRange(r,var) ) {
+		return true;
 	}
+	return false;
+}
 	bool BarzelMatchInfo::getGapRange( BeadRange& r, const BTND_Rewrite_Variable& n ) const
 	{
 		if( n.isWildcardGapNumber() ) 

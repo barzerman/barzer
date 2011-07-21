@@ -95,6 +95,9 @@ public:
 
 	void setBody(const std::string &s);
 
+	GlobalPools& getGlobalPools() { return  gpools; }
+	const GlobalPools& getGlobalPools() const { return  gpools; }
+
 	void process(const char *name);
 	/// query is already stripped of the 
 	void raw_query_parse( const char* query );

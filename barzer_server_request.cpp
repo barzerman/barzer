@@ -112,29 +112,51 @@ template<class T>struct CmdProc : public boost::static_visitor<> {
 
 struct CmdAdd : public CmdProc<CmdAdd> {
 	CmdAdd(BarzerRequestParser &p) : CmdProc<CmdAdd>(p) {}
-	void operator()(Rulefile &rf) {
+	void operator()(const Rulefile &rf) {
 		parser.getSettings().addRulefile(rf);
 		parser.stream() << "<rulefile>!!";
 	}
-	void operator()(TrieId &tid) {
+	void operator()(const TrieId &tid) {
 		BarzerSettings &s = parser.getSettings();
 		User &u = s.createUser(tid.userId);
 		u.addTrie(tid.path);
 		parser.stream() << "<trie>!!";
 	}
-	void operator()(UserId &uid) {
+	void operator()(const UserId &uid) {
 		parser.getSettings().createUser(uid.id);
 		parser.stream() << "<userid>!!";
 	}
 };
+struct CmdTrieClear : public CmdProc<CmdTrieClear> {
+	CmdTrieClear(BarzerRequestParser &p) : CmdProc<CmdTrieClear>(p) {}
+	template <typename T>
+	void operator() ( const T& ) { }
+	void operator()(const TrieId &tid) {
+		BELTrie* trie = parser.getGlobalPools().getTrie( tid.path.first, tid.path.second );
+		if( trie ) {
+			BELTrie::WriteLock w_lock(trie->getThreadLock());
+
+			trie->clear();
+		} else {
+			parser.stream() << "<error>invalid trie id " << tid.path.first << ':' << tid.path.second << "</error>";
+		}
+	}
+
+};
 
 void BarzerRequestParser::tag_cmd(RequestTag &tag) {
 	AttrList::iterator it = tag.attrs.find("name");
-	if (it != tag.attrs.end() && it->second == "add") {
+	if (it == tag.attrs.end() ) {
+		os << "<error>unknown cmd name</error>";
+		arglist.clear();
+		return;
+	}
+	if(it->second == "add") {
 		CmdAdd cp(*this);
 		cp.process(arglist);
-	} else {
-		os << "<error>unknown cmd name</error>";
+	} else if( it->second == "trieclear" ) {
+		CmdTrieClear cp(*this);
+		cp.process(arglist);
 	}
 	arglist.clear();
 }
