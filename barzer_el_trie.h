@@ -393,40 +393,38 @@ struct BELStatementParsed;
 class GlobalPools;
 
 class BELTrie {
-public:
 	GlobalPools& globalPools;
-	BarzelRewriterPool* rewrPool;
+	/// trie shouldnt be copyable
+	BELTrie( const BELTrie& a ) : globalPools(a.globalPools){}
+	BarzelRewriterPool* d_rewrPool;
 	BarzelWildcardPool* d_wcPool;
 	BarzelFirmChildPool* d_fcPool;
 	BarzelTranslationPool *d_tranPool;
 	BarzelVariableIndex   d_varIndex;
 	EntityCollection      d_entCollection;
-
+public:
+	BarzelWildcardPool*  getWCPoolPtr() const { return d_wcPool; }
 	GlobalPools& getGlobalPools() { return globalPools; }
 	const GlobalPools& getGlobalPools() const { return globalPools; }
 	BarzelTrieNode root;
 
+	// allocates the pools
+	void initPools(); 
+
 	~BELTrie();
-	BELTrie( 
-		GlobalPools& gp,
-		BarzelRewriterPool*  rPool, 
-		BarzelWildcardPool* wPool, // IGNORED
-		BarzelFirmChildPool* fPool, // IGNORED
-		BarzelTranslationPool* tPool 
-	);
+	BELTrie( GlobalPools& gp );
 	BarzelMacros macros;
 
 	const BarzelMacros& getMacros() const { return  macros; }
 	BarzelMacros& getMacros() { return  macros; }
-
 
 	const EntityGroup* getEntGroupById( uint32_t id ) const 
 	{ return d_entCollection.getEntGroup(id); }
 	const EntityCollection& getEntityCollection() const { return       d_entCollection; }
 	EntityCollection& getEntityCollection() { return       d_entCollection; }
 
-		  BarzelRewriterPool& getRewriterPool() { return  * rewrPool; }
-	const BarzelRewriterPool& getRewriterPool() const { return  * rewrPool; }
+		  BarzelRewriterPool& getRewriterPool() { return  * d_rewrPool; }
+	const BarzelRewriterPool& getRewriterPool() const { return  * d_rewrPool; }
 
 		  BarzelWildcardPool& getWildcardPool()  { return * d_wcPool; }
 	const BarzelWildcardPool& getWildcardPool() const  { return * d_wcPool; }

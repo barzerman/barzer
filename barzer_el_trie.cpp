@@ -23,20 +23,32 @@ BELTrie::~BELTrie( )
 	delete d_wcPool;
 	delete d_fcPool;
 	delete d_tranPool;
+	delete d_rewrPool;
 }
-BELTrie::BELTrie( 
-	GlobalPools& gp,
-	BarzelRewriterPool*  rPool, 
-	BarzelWildcardPool* wPool, // ignored
-	BarzelFirmChildPool* fPool,
-	BarzelTranslationPool* tPool 
-) : 
+BELTrie::BELTrie( GlobalPools& gp ) :
 	globalPools(gp),
-	rewrPool(rPool), 
-	d_wcPool(new BarzelWildcardPool),
-	d_fcPool(new BarzelFirmChildPool),
-	d_tranPool(new BarzelTranslationPool)
-{}
+	d_rewrPool(0),
+	d_wcPool(0),
+	d_fcPool(0),
+	d_tranPool(0)
+{
+	initPools();
+}
+void BELTrie::initPools() 
+{
+	if( d_rewrPool ) 
+		delete d_rewrPool;
+	d_rewrPool= new BarzelRewriterPool(1024);
+	if( d_wcPool ) 
+		delete d_wcPool;
+	d_wcPool= new BarzelWildcardPool;
+	if( d_fcPool ) 
+		delete d_fcPool;
+	d_fcPool= new BarzelFirmChildPool;
+	if( d_tranPool ) 
+		delete d_tranPool;
+	d_tranPool= new BarzelTranslationPool;
+}
 
 std::ostream& BELTrie::printVariableName( std::ostream& fp, uint32_t varId ) const
 {
@@ -59,7 +71,7 @@ std::ostream& BELTrie::printVariableName( std::ostream& fp, uint32_t varId ) con
 std::ostream& BELPrintContext::printRewriterByteCode( std::ostream& fp, const BarzelTranslation& t ) const
 {
 	BarzelRewriterPool::BufAndSize bas;
-	if( trie.rewrPool->resolveTranslation( bas, t ) ) {
+	if( trie.getRewriterPool().resolveTranslation( bas, t ) ) {
 		return glob_printRewriterByteCode( fp, bas, *this );
 	} else {
 		AYDEBUG( "NO BYTE CODE" );
@@ -88,7 +100,7 @@ void BarzelTrieNode::clear()
 }
 void BELTrie::clear()
 {
-	rewrPool->clear();
+	d_rewrPool->clear();
 	d_wcPool->clear();
 	root.clear();
 }
@@ -638,7 +650,7 @@ void BarzelTranslation::set( BELTrie& trie, const BELParseTreeNode& tn )
 		boost::apply_visitor( vis, *rwrDta );
 		return;
 	} else { // non trivial rewrite 
-		if( trie.rewrPool->produceTranslation( *this, tn ) != BarzelRewriterPool::ERR_OK ) {
+		if( trie.getRewriterPool().produceTranslation( *this, tn ) != BarzelRewriterPool::ERR_OK ) {
 			AYTRACE("Failed to produce valid rewrite translation" );
 			setStop();
 		}

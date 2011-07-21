@@ -57,19 +57,61 @@ GlobalPools::~GlobalPools()
 	}
 }
 
+BELTrie* GlobalTriePool::mkNewTrie() 
+{
+	return new BELTrie( d_gp);
+}
 
+const GlobalTriePool::ClassTrieMap* GlobalTriePool::getTrieMap( const std::string& trieClass ) const
+{
+	TrieMap::const_iterator i = d_trieMap.find( trieClass );
+	if( i == d_trieMap.end() ) 
+		return 0;
+	else
+		return &(i->second);
+}
+const BELTrie* GlobalTriePool::getTrie( const std::string& trieClass, const std::string& trieId ) const
+{
+	const ClassTrieMap* ctm = getTrieMap( trieClass );
+	if( !ctm )
+		return 0;
+	else {
+		ClassTrieMap::const_iterator j = ctm->find( trieId );
+		if( j == ctm->end() ) 
+			return 0;
+		else
+			return (j->second);
+	}
+}
+GlobalTriePool::~GlobalTriePool()
+{
+	for(TrieMap::iterator i= d_trieMap.begin(); i!= d_trieMap.end(); ++i ) {
+		for( ClassTrieMap::iterator t = i->second.begin(); t != i->second.end(); ++t ) {
+			delete t->second;
+			t->second = 0;
+		}
+	}	
+	d_trieMap.clear();
+}
+
+BELTrie& GlobalTriePool::produceTrie( const std::string& trieClass, const std::string& trieId ) 
+{
+	ClassTrieMap&  ctm = produceTrieMap( trieClass );
+	ClassTrieMap::iterator i = ctm.find( trieId );
+
+	if( i == ctm.end() ) 
+		i = ctm.insert( ClassTrieMap::value_type(
+			trieId, 
+			new BELTrie( d_gp )
+		)).first;
+	
+	return *(i->second);
+}
 GlobalPools::GlobalPools() :
 	dtaIdx( &stringPool),
-	barzelRewritePool(64*1024),
 	funSt(*this),
 	dateLookup(*this),
-	globalTriePool( 
-			*this,
-			&barzelRewritePool,
-			&barzelWildcardPool,
-			&barzelFirmChildPool,
-			&barzelTranslationPool 
-		),
+	globalTriePool( *this ),
 	settings(*this),
 	d_isAnalyticalMode(false),
 	d_maxAnalyticalModeMaxSeqLength(3)

@@ -12,7 +12,7 @@ namespace barzer {
 
 BarzelWCLookup* BELTrieWalker::getWildcardLookup( uint32_t id )
 {
-	return( trie.d_wcPool->getWCLookup( id ));
+	return( trie.getWCPoolPtr()->getWCLookup( id ));
 }
 
 

@@ -21,89 +21,25 @@ class StoredUniverse;
 /// holds all tries in the system keyed by 2 strings
 /// TrieClass and  TrieId
 class GlobalTriePool {
-	typedef std::map< std::string, BELTrie > ClassTrieMap;
+	typedef std::map< std::string, BELTrie* > ClassTrieMap;
 	typedef std::map< std::string, ClassTrieMap > TrieMap; 
 
 	TrieMap d_trieMap;
 
 	GlobalPools& d_gp;
-	BarzelRewriterPool* d_rewrPool;
-	BarzelWildcardPool* d_wcPool;
-	BarzelFirmChildPool* d_fcPool;
-	BarzelTranslationPool* d_tranPool;
 
 public:
 	ClassTrieMap& produceTrieMap( const std::string& trieClass );
 
-	const ClassTrieMap* getTrieMap( const std::string& trieClass ) const
-	{
-		TrieMap::const_iterator i = d_trieMap.find( trieClass );
-		if( i == d_trieMap.end() ) 
-			return 0;
-		else
-			return &(i->second);
-	}
-
-	const BELTrie* getTrie( const std::string& trieClass, const std::string& trieId ) const
-	{
-		const ClassTrieMap* ctm = getTrieMap( trieClass );
-		if( !ctm )
-			return 0;
-		else {
-			ClassTrieMap::const_iterator j = ctm->find( trieId );
-			if( j == ctm->end() ) 
-				return 0;
-			else
-				return &(j->second);
-		}
-	}
-
-	BELTrie& produceTrie( const std::string& trieClass, const std::string& trieId ) 
-	{
-		ClassTrieMap&  ctm = produceTrieMap( trieClass );
-		ClassTrieMap::iterator i = ctm.find( trieId );
-
-		if( i == ctm.end() ) 
-			i = ctm.insert( ClassTrieMap::value_type(trieId, 
-				BELTrie(
-					d_gp,
-					d_rewrPool,
-					d_wcPool,
-					d_fcPool,
-					d_tranPool
-				)) ).first;
-		
-		return i->second;
-	}
-	BELTrie* mkNewTrie() 
-	{
-		return new BELTrie(
-			d_gp,
-			d_rewrPool,
-			d_wcPool,
-			d_fcPool,
-			d_tranPool
-		);
-	}
-	
+	const ClassTrieMap* getTrieMap( const std::string& trieClass ) const;
+	const BELTrie* getTrie( const std::string& trieClass, const std::string& trieId ) const;
+	BELTrie& produceTrie( const std::string& trieClass, const std::string& trieId ) ;
+	BELTrie* mkNewTrie() ;
 	BELTrie& init() 
 		{ return produceTrie( std::string(), std::string() ); }
 
-	GlobalTriePool( 
-			GlobalPools& gp,
-			BarzelRewriterPool* rewrPool,
-			BarzelWildcardPool* wcPool,
-			BarzelFirmChildPool* fcPool,
-			BarzelTranslationPool* tranPool
-	) :
-			d_gp(gp),
-			d_rewrPool( rewrPool ),
-			d_wcPool( wcPool ),
-			d_fcPool( fcPool ),
-			d_tranPool( tranPool )
-	{
-		init();
-	}
+	GlobalTriePool( GlobalPools& gp) : d_gp(gp) { init(); }
+	~GlobalTriePool();
 };
 
 /// in general there is one cluster per customer installation 
@@ -178,10 +114,6 @@ public:
 	/// every client's domain has this 
 	DtaIndex dtaIdx; // entity-token links
 
-	BarzelRewriterPool barzelRewritePool; // all rewrite structures for barzel
-	BarzelWildcardPool barzelWildcardPool;  // all wildcard structures for barzel
-	BarzelFirmChildPool barzelFirmChildPool; // all firm child lookups for barzel
-	BarzelTranslationPool barzelTranslationPool;
 	BarzelCompWordPool compWordPool; /// compounded words pool
 	BELFunctionStorage funSt;
 	DateLookup dateLookup;
@@ -329,11 +261,6 @@ public:
 	const char* printableStringById( uint32_t id )  const
 		{ return gp.stringPool.printableStr(id); }
 	
-	/*
-	std::ostream& printBarzelTrie( std::ostream& fp, const BELPrintFormat& fmt ) const;
-	std::ostream& printBarzelTrie( std::ostream& fp ) const;
-	*/
-
 	bool getBarzelRewriter( const BELTrie& trie, BarzelRewriterPool::BufAndSize& bas, const BarzelTranslation& tran ) const
 	{
 		if( tran.isRewriter() ) 
