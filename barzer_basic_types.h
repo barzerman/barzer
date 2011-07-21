@@ -357,8 +357,24 @@ struct BarzerRange {
 	const Entity* getEntity( ) const {return boost::get<Entity>( &dta ); }
 
 	uint8_t order;  // ASC/DESC
+	enum {
+		RNG_MODE_FULL, // low to high
+		RNG_MODE_NO_HI, // above low (no hi limit)
+		RNG_MODE_NO_LO // below hi (no low limit)
+	};
+	uint8_t rng_mode;  // one of the RNG_MODE_XXX constants 
+	int getRngMode() const { return rng_mode; }
 
 	std::ostream& print( std::ostream& fp ) const;
+	bool hasLo() const { return ( rng_mode == RNG_MODE_FULL || rng_mode == RNG_MODE_NO_HI ); }
+	bool hasHi() const { return ( rng_mode == RNG_MODE_FULL || rng_mode == RNG_MODE_NO_LO ); }
+
+	bool isFull() const { return ( rng_mode == RNG_MODE_FULL ); }
+	bool isNoLo() const { return (rng_mode == RNG_MODE_NO_LO); }
+	bool isNoHi() const { return (rng_mode == RNG_MODE_NO_HI); }
+
+	void setNoHI() { rng_mode= RNG_MODE_NO_HI; }
+	void setNoLO() { rng_mode= RNG_MODE_NO_LO; }
 
 	char geXMLtAttrValueChar( ) const { 
 
@@ -386,19 +402,35 @@ struct BarzerRange {
 	bool isAsc() const { return ORDER_ASC== order; }
 	bool isDesc() const { return ORDER_DESC== order; }
 
-	BarzerRange( ) : order(ORDER_ASC) {}
+	BarzerRange( ) : order(ORDER_ASC), rng_mode(RNG_MODE_FULL) {}
 
 	struct Less_visitor : public boost::static_visitor<bool> {
-		typedef BarzerRange::Data Data;
-		const Data& leftVal;
-		Less_visitor( const Data& l ) : leftVal(l) {}
-		template <typename T> bool operator()( const T& rVal ) const { return (boost::get<T>( leftVal ) < rVal); }
+		// typedef BarzerRange::Data Data;
+		const BarzerRange& leftVal;
+		Less_visitor( const BarzerRange& r ) : leftVal(r) {}
+
+		template <typename T> bool operator()( const T& rVal ) const { 
+			// here we're guaranteed that rng_modes are the same 
+			switch( leftVal.rng_mode ) {
+			case BarzerRange::RNG_MODE_FULL: return (boost::get<T>( leftVal.dta ) < rVal); 
+			case BarzerRange::RNG_MODE_NO_HI: return (boost::get<T>( leftVal.dta ).first < rVal.first); 
+			case BarzerRange::RNG_MODE_NO_LO: return (boost::get<T>( leftVal.dta ).second < rVal.second ); 
+			}
+			return false;
+		}
 	};
 	struct Equal_visitor : public boost::static_visitor<bool> {
 		typedef BarzerRange::Data Data;
-		const Data& leftVal;
-		Equal_visitor( const Data& l ) : leftVal(l) {}
-		template <typename T> bool operator()( const T& rVal ) const { return (boost::get<T>( leftVal ) == rVal); }
+		const BarzerRange& leftVal;
+		Equal_visitor( const BarzerRange& l ) : leftVal(l) {}
+		template <typename T> bool operator()( const T& rVal ) const { 
+			switch( leftVal.rng_mode ) {
+			case BarzerRange::RNG_MODE_FULL: return (boost::get<T>( leftVal.dta ) == rVal); 
+			case BarzerRange::RNG_MODE_NO_HI: return (boost::get<T>( leftVal.dta ).first == rVal.first); 
+			case BarzerRange::RNG_MODE_NO_LO: return (boost::get<T>( leftVal.dta ).second == rVal.second ); 
+			}
+			return true;
+		}
 	};
 
 	bool lessThan( const BarzerRange& r ) const
@@ -407,15 +439,21 @@ struct BarzerRange {
 			return true;
 		else if( r.dta.which() < dta.which() ) 
 			return false;
-		else  /// this guarantees that the left and right types are the same 
-			return boost::apply_visitor( Less_visitor(dta), r.dta );
+		else { /// this guarantees that the left and right types are the same 
+			if( getRngMode() < r.getRngMode() ) 
+				return true;
+			else if( r.getRngMode()  < getRngMode() )
+				return false;
+			else 
+				return boost::apply_visitor( Less_visitor(*this), r.dta );
+		}
 	}
 	bool isEqual( const BarzerRange& r )  const
 	{
 		if( dta.which() != r.dta.which() ) 
 			return false;
 		else  /// this guarantees that the left and right types are the same 
-			return boost::apply_visitor( Equal_visitor(dta), r.dta );
+			return ( getRngMode() == r.getRngMode()  && boost::apply_visitor( Equal_visitor(*this), r.dta ) );
 	}
 	Entity& setEntityClass( const StoredEntityClass& c ) { return boost::get<Entity>(dta = Entity( StoredEntityUniqId(c), StoredEntityUniqId(c))); }
 	Entity& setEntity( ) { return( boost::get<Entity>(dta = Entity())); }
