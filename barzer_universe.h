@@ -31,8 +31,10 @@ class GlobalTriePool {
 public:
 	ClassTrieMap& produceTrieMap( const std::string& trieClass );
 
+	ClassTrieMap* getTrieMap( const std::string& trieClass ) ;
 	const ClassTrieMap* getTrieMap( const std::string& trieClass ) const;
 	const BELTrie* getTrie( const std::string& trieClass, const std::string& trieId ) const;
+	BELTrie* getTrie( const std::string& trieClass, const std::string& trieId ) ;
 	BELTrie& produceTrie( const std::string& trieClass, const std::string& trieId ) ;
 	BELTrie* mkNewTrie() ;
 	BELTrie& init() 
@@ -182,6 +184,8 @@ public:
 	/// never returns 0
 	const char* decodeStringById_safe( uint32_t strId ) const
 		{ const char* str = decodeStringById(strId); return (str ? str :"" ); }
+	BELTrie* getTrie( const std::string& cs, const std::string& ids ) 
+		{ return globalTriePool.getTrie( cs, ids ); }
 };
 
 class StoredUniverse {

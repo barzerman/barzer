@@ -31,7 +31,7 @@ typedef std::pair<BELTrieWalkerKey,const BarzelTrieNode*> BELTWStackPair;
 typedef std::vector<BELTWStackPair> TrieNodeStack;
 
 class BELTrieWalker {
-	const BELTrie &trie;
+	const BELTrie *trie;
 	TrieNodeStack nodeStack;
 	std::vector<BarzelTrieFirmChildKey> fcvec;
 
@@ -39,9 +39,8 @@ class BELTrieWalker {
 	std::vector<BarzelTrieNode*> wcNodeVec;
 
 public:
-	BELTrieWalker(BELTrie &t) : trie(t) {
-		nodeStack.push_back(BELTWStackPair(BELTrieWalkerKey(BarzelTrieFirmChildKey()), &t.root));
-		//nodeStack.push(&t.root);
+	BELTrieWalker(BELTrie &t) : trie(&t) {
+		nodeStack.push_back(BELTWStackPair(BELTrieWalkerKey(BarzelTrieFirmChildKey()), &(trie->root) ));
 	}
 
 	TrieNodeStack& getNodeStack() { return nodeStack; }
@@ -59,6 +58,8 @@ public:
 	bool moveBack();
 	int moveToFC(size_t);
 	int moveToWC(size_t);
+
+	void setTrie( const BELTrie* t );
 
 	std::vector<BarzelTrieFirmChildKey>& getFCvec() { return fcvec; }
 	std::vector<BarzelWCLookupKey>& getWCvec() { return wcKeyVec; }

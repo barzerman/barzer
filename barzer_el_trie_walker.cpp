@@ -12,7 +12,7 @@ namespace barzer {
 
 BarzelWCLookup* BELTrieWalker::getWildcardLookup( uint32_t id )
 {
-	return( trie.getWCPoolPtr()->getWCLookup( id ));
+	return( trie->getWCPoolPtr()->getWCLookup( id ));
 }
 
 
@@ -25,10 +25,24 @@ bool BELTrieWalker::moveBack()
 	} else return false;
 }
 
+void BELTrieWalker::setTrie( const BELTrie* t )
+{
+	if( !t )  {
+		std::cerr << "trying to set NULL tree for the walker\n";
+		return;
+	}
+	trie = t;
+	nodeStack.clear();
+	nodeStack.push_back(BELTWStackPair(BELTrieWalkerKey(BarzelTrieFirmChildKey()), &(trie->root) ));
+	fcvec.clear();
+	wcKeyVec.clear();
+	wcNodeVec.clear();
+	loadChildren();
+}
 int BELTrieWalker::moveToFC(const size_t pos)
 {
 	if( pos < fcvec.size()) {
-		const BarzelFCMap *fcmap = trie.getBarzelFCMap( getCurrentNode() );
+		const BarzelFCMap *fcmap = trie->getBarzelFCMap( getCurrentNode() );
 
 		if( fcmap ) {
 			const BarzelTrieFirmChildKey &key = fcvec[pos];
@@ -68,7 +82,7 @@ void BELTrieWalker::loadChildren() {
 void BELTrieWalker::loadFC() {
 	fcvec.clear();
 	const BarzelTrieNode &node = getCurrentNode();
-	const BarzelFCMap *fcmap = trie.getBarzelFCMap( node );
+	const BarzelFCMap *fcmap = trie->getBarzelFCMap( node );
 	//AYLOGDEBUG(fcmap.size());
  	int i = 0;
 	if (fcmap && node.hasFirmChildren()) {

@@ -62,6 +62,14 @@ BELTrie* GlobalTriePool::mkNewTrie()
 	return new BELTrie( d_gp);
 }
 
+GlobalTriePool::ClassTrieMap* GlobalTriePool::getTrieMap( const std::string& trieClass ) 
+{
+	TrieMap::iterator i = d_trieMap.find( trieClass );
+	if( i == d_trieMap.end() ) 
+		return 0;
+	else
+		return &(i->second);
+}
 const GlobalTriePool::ClassTrieMap* GlobalTriePool::getTrieMap( const std::string& trieClass ) const
 {
 	TrieMap::const_iterator i = d_trieMap.find( trieClass );
@@ -70,6 +78,20 @@ const GlobalTriePool::ClassTrieMap* GlobalTriePool::getTrieMap( const std::strin
 	else
 		return &(i->second);
 }
+BELTrie* GlobalTriePool::getTrie( const std::string& trieClass, const std::string& trieId ) 
+{
+	ClassTrieMap* ctm = getTrieMap( trieClass );
+	if( !ctm )
+		return 0;
+	else {
+		ClassTrieMap::iterator j = ctm->find( trieId );
+		if( j == ctm->end() ) 
+			return 0;
+		else
+			return (j->second);
+	}
+}
+
 const BELTrie* GlobalTriePool::getTrie( const std::string& trieClass, const std::string& trieId ) const
 {
 	const ClassTrieMap* ctm = getTrieMap( trieClass );

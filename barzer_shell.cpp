@@ -398,6 +398,7 @@ struct ShellState {
 };
 
 } // anon namespace ends 
+
 static int bshf_triestats( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	ShellState sh( shell, cmd, in );
@@ -627,6 +628,34 @@ static int bshf_trcdw( BarzerShell* shell, char_cp cmd, std::istream& in )
 	}
 	return bshf_trls(shell, cmd, in );;
 }
+static int bshf_trieclear( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	
+	BarzerShellContext * context = shell->getBarzerContext();
+	BELTrie* trie = context->getCurrentTriePtr();
+	if( !trie ) {
+		std::cerr << "current trie is NULL\n";
+		return 0;
+	} else {
+		std::cerr << "clearing current trie\n";
+		trie->clear();
+		context->trieWalker.setTrie( trie );
+	}
+	return 0;
+}
+static int bshf_trieset( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext * context = shell->getBarzerContext();
+	GlobalPools &globalPools = context->getGLobalPools();
+	std::string trieClass, trieId;
+	in >> trieClass >> trieId;
+	BELTrie* trie = globalPools.getTrie( trieClass, trieId );
+	context->setTrie( trie );
+	context->trieWalker.setTrie( trie );
+
+	std::cerr << "SETTING TRIE: \"" << trieClass << "\":\"" << trieId << "\"\n";
+	return 0;
+}
 
 
 static int bshf_trup( BarzerShell* shell, char_cp cmd, std::istream& in )
@@ -755,6 +784,8 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_trans, "trans", "tester for barzel translation" ),
 	CmdData( (ay::Shell_PROCF)bshf_triestats, "triestats", "trie commands" ),
 	CmdData( (ay::Shell_PROCF)bshf_trie, "trie", "trie commands" ),
+	CmdData( (ay::Shell_PROCF)bshf_trieclear, "trieclear", "out the current trie (trieset to set current trie)" ),
+	CmdData( (ay::Shell_PROCF)bshf_trieset, "trieset", " [trieclass] [trieid] - sets current trie trie" ),
 	CmdData( (ay::Shell_PROCF)bshf_trls, "trls", "lists current trie node children" ),
 	CmdData( (ay::Shell_PROCF)bshf_trcd, "trcd", "changes current trie node to the firm child by number" ),
 	CmdData( (ay::Shell_PROCF)bshf_trcdw, "trcdw", "changes current trie node to the wildcard child by number" ),

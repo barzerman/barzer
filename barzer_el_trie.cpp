@@ -100,9 +100,8 @@ void BarzelTrieNode::clear()
 }
 void BELTrie::clear()
 {
-	d_rewrPool->clear();
-	d_wcPool->clear();
 	root.clear();
+	initPools();
 }
 
 std::ostream& BELTrie::print( std::ostream& fp, BELPrintContext& ctxt  ) const
