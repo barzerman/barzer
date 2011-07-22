@@ -166,11 +166,11 @@ void GlobalPools::createGenericEntities()
 	dtaIdx.addGenericEntity("wine", 2, 1);
 }
 
-StoredUniverse::StoredUniverse(GlobalPools& g) :
+StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
+	d_userId(id),
 	gp(g),
 	trieCluster(g.globalTriePool)
-{
-}
+{}
 
 void StoredUniverse::clear()
 {

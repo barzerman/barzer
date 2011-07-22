@@ -122,6 +122,7 @@ public:
 
 	GlobalTriePool globalTriePool;
 
+	/// maps userId to universe pointer
 	typedef boost::unordered_map< uint32_t, StoredUniverse* > UniverseMap;
 
 	UniverseMap d_uniMap;
@@ -189,6 +190,7 @@ public:
 };
 
 class StoredUniverse {
+	uint32_t d_userId;
 	GlobalPools& gp;
 
 	UniverseTrieCluster          trieCluster; 
@@ -203,6 +205,8 @@ class StoredUniverse {
 	//bool  getToNextTrie() const { return trieClusterIter.advance(); }
 
 public:
+	uint32_t getUserId() const { return d_userId; }
+
 	bool stemByDefault() const { return gp.parseSettings().stemByDefault(); }
 	UniverseTrieCluster& getTrieCluster() { return trieCluster; }
 	const UniverseTrieCluster& getTrieCluster() const { return trieCluster; }
@@ -214,14 +218,12 @@ public:
 	EntPropCompatibility& getEntPropIndex() { return gp.entCompatibility; }
 	const EntPropCompatibility& getEntPropIndex() const { return gp.entCompatibility; }
 	BELTrie& produceTrie( const std::string& trieClass, const std::string& trieId ) 
-	{
-		return gp.globalTriePool.produceTrie( trieClass, trieId );
-	}
+		{ return gp.globalTriePool.produceTrie( trieClass, trieId ); }
 
 	GlobalPools& getGlobalPools() { return gp; }
 	const GlobalPools& getGlobalPools() const { return gp; }
 
-	StoredUniverse(GlobalPools& gp );
+	StoredUniverse(GlobalPools& gp, uint32_t id );
 	const DtaIndex& getDtaIdx() const { return gp.dtaIdx; }
 		  DtaIndex& getDtaIdx() 	  { return gp.dtaIdx; }
 
@@ -289,7 +291,7 @@ inline StoredUniverse& GlobalPools::produceUniverse( uint32_t id )
 {
 	StoredUniverse * p = getUniverse( id );
 	if( !p ) { 
-		p = new StoredUniverse( *this );
+		p = new StoredUniverse( *this, id );
 		d_uniMap[ id ] = p;	
 	}
 	return *p;

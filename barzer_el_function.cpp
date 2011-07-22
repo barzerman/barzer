@@ -24,8 +24,8 @@ namespace {
 
 // extracts a string from BarzerString or BarzerLiteral
 struct StringExtractor : public boost::static_visitor<const char*> {
-	const StoredUniverse &globPools;
-	StringExtractor(const StoredUniverse &u) : globPools(u) {}
+	const GlobalPools &globPools;
+	StringExtractor(const GlobalPools &u) : globPools(u) {}
 	const char* operator()( const BarzerLiteral &dt ) const {
 		return globPools.getStringPool().resolveId(dt.getId());
 	}
@@ -37,7 +37,7 @@ struct StringExtractor : public boost::static_visitor<const char*> {
 		{ return 0;	}
 };
 
-const char* extractString(const StoredUniverse &u, const BarzelEvalResult &result)
+const char* extractString(const GlobalPools &u, const BarzelEvalResult &result)
 {
 	return boost::apply_visitor(StringExtractor(u), result.getBeadData());
 }
