@@ -207,7 +207,7 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 		statement.clear();
 		return;
 	}
-
+	size_t stmtNumber = 0;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
@@ -218,6 +218,9 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 			} else {
 				AYLOG(ERROR) << "attempt to REDEFINE MACRO " << v  << " ignored";
 			}
+		case 'n':  // statement number
+			stmtNumber = atoi(v);
+			break;
 		}
 			break;
 		}
@@ -225,7 +228,7 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 
 	// const BELParseTreeNode* macroNode = getMacroByName(macroName);
 
-	statement.stmt.stmtNumberIncrement();
+	statement.stmt.setStmtNumber( stmtNumber ) ;
 	if( !reader->isSilentMode() && !(statement.stmt.getStmtNumber() % 100)  ) {
 		std::cerr << '.';
 	}

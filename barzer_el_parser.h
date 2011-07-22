@@ -41,6 +41,14 @@ struct BELStatementParsed {
 	}
 	void stmtNumberIncrement() { ++d_stmtNumber; }
 
+	size_t setStmtNumber( size_t num = 0) { 
+		if( num )
+			d_stmtNumber = num;
+		else
+			++d_stmtNumber; 
+		return d_stmtNumber;
+	}
+
 	uint32_t getSourceNameStrId()  const { return d_sourceNameStrId; }
 	size_t getStmtNumber() const { return d_stmtNumber; }
 	const std::string&  getSourceName() const { return d_sourceName; }
