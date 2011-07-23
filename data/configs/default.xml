@@ -23,6 +23,7 @@
     <users>
         <user id="0">
             <spell affx="/usr/share/hunspell/en_US.aff" maindict="/usr/share/hunspell/en_US.dic">
+                <extra>/usr/share/oscommerce/extrawords.txt</extra>
             </spell>            
             <trieset> <trie class="post" name="fluff" /> </trieset>
         </user>
