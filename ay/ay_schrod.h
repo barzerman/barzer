@@ -19,10 +19,10 @@ class Schrod {
 	Schrod(const Schrod& ) {}
 public:
 	typedef Actual value_type;
-	Schrod( bool ex=true  ) : d_exists(ex) { new(d_buf) Actual(); }
+	Schrod( bool ex=true  ) : d_exists(ex) { if( d_exists) new(d_buf) Actual(); }
 
-	template <typename T> Schrod( T& p, bool ex=true  ) : d_exists(ex) { new(d_buf) Actual(p); }
-	template <typename T> Schrod( const T& p, bool ex=true  ) : d_exists(ex) { new(d_buf) Actual(p); }
+	template <typename T> Schrod( T& p, bool ex=true  ) : d_exists(ex) { if( d_exists) new(d_buf) Actual(p); }
+	template <typename T> Schrod( const T& p, bool ex=true  ) : d_exists(ex) { if( d_exists) new(d_buf) Actual(p); }
 
 	bool exists() const { return d_exists; }
 	Actual* actual() { return ( d_exists? (Actual*)d_buf : 0 ); }

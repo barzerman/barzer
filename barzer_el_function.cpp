@@ -1344,9 +1344,9 @@ struct BELFunctionStorage_holder {
 	typedef boost::function<bool(const BarzerEntity&, uint32_t, uint32_t, uint32_t)> ELCheckFn;
 
 	inline static bool checkClass(const BarzerEntity& ent, uint32_t cl, uint32_t scl = 0, uint32_t id = 0)
-		{ return ent.eclass.ec == (uint16_t)cl; }
+		{ return ent.eclass.ec == (uint32_t)cl; }
 	inline static bool checkSC(const BarzerEntity& ent, uint32_t cl, uint32_t scl, uint32_t id = 0)
-		{ return ent.eclass.subclass == (uint16_t)scl && checkClass(ent, cl); }
+		{ return ent.eclass.subclass == (uint32_t)scl && checkClass(ent, cl); }
 	inline static bool checkId(const BarzerEntity& ent, uint32_t cl, uint32_t scl, uint32_t id)
 		{ return ent.tokId == id && checkSC(ent, cl, scl); }
 

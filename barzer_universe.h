@@ -120,6 +120,11 @@ public:
 	bool d_isAnalyticalMode;
 	size_t d_maxAnalyticalModeMaxSeqLength;
 
+
+	uint32_t string_getId( const char* str ) const { return stringPool.getId( str ); }
+	uint32_t string_intern( const char* str ) { return stringPool.internIt( str ); }
+	const char* string_resolve( uint32_t id ) const { return stringPool.resolveId( id ); }
+
 	uint32_t internString_internal( const char* str ) { return internalStringPool.internIt( str ); }
 	const char* internalString_resolve( uint32_t id ) const { return internalStringPool.resolveId( id ); }
 	
@@ -183,12 +188,26 @@ class StoredUniverse {
 
 	UniverseTrieCluster          trieCluster; 
 	BarzerHunspell      hunspell;
+	
+	typedef boost::unordered_map< uint32_t, bool > StringIdSet;
+
+	/// 
+	StringIdSet userSpecificStringSet;
 
 	friend class QSemanticParser;
 
 
 public:
-	
+	/// adds uer specific strings from extra file 
+	/// 
+	size_t   internString( const char*, bool asUserSpecific=false );
+	bool 	 isStringUserSpecific( const char* s ) const
+		{ 
+			uint32_t id = gp.string_getId( s );
+			if( id == 0xffffffff ) return false;
+			return userSpecificStringSet.find(id) != userSpecificStringSet.end(); 
+		}
+
 	uint32_t getUserId() const { return d_userId; }
 
 	bool stemByDefault() const { return gp.parseSettings().stemByDefault(); }

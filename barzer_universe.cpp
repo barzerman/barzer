@@ -169,9 +169,17 @@ void GlobalPools::createGenericEntities()
 StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	d_userId(id),
 	gp(g),
-	trieCluster(g.globalTriePool,*this)
+	trieCluster(g.globalTriePool,*this),
+	hunspell(*this)
 {}
 
+size_t   StoredUniverse::internString( const char* s, bool asUserSpecific )
+{
+	uint32_t id = ( gp.string_intern( s ) ); 
+	if( asUserSpecific )
+		userSpecificStringSet[ id ] = true;
+	return id;
+}
 void StoredUniverse::clearSpell()
 {
 	BarzerHunspellInvoke spellChecker(hunspell,gp);

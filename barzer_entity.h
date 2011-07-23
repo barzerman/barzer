@@ -6,17 +6,17 @@ namespace barzer {
 /// class of the stored entity . for now we assume the hierarchy is 
 /// 1-2 levels deep 
 struct StoredEntityClass {
-	uint16_t ec, subclass;
+	uint32_t ec, subclass;
 	
 	StoredEntityClass() : ec(0), subclass(0) {}
-	explicit StoredEntityClass(uint16_t c) : ec(c), subclass(0) 
+	explicit StoredEntityClass(uint32_t c) : ec(c), subclass(0) 
 		{}
-	explicit StoredEntityClass(uint16_t c, uint16_t es) : ec(c), subclass(es) 
+	explicit StoredEntityClass(uint32_t c, uint32_t es) : ec(c), subclass(es) 
 		{}
 	
-	void setClass( uint16_t c ) { ec = c; }
-	void setSubclass( uint16_t c ) { subclass = c; }
-	void set( uint16_t c, uint16_t sc )
+	void setClass( uint32_t c ) { ec = c; }
+	void setSubclass( uint32_t c ) { subclass = c; }
+	void set( uint32_t c, uint32_t sc )
 		{ ec = c; subclass = sc; }
 	void reset() { ec = subclass = 0; }
 

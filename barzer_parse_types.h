@@ -83,6 +83,9 @@ struct CToken {
 	// this can be 0. token resulting from stemming of stroedTok
 	const StoredToken* stemTok; 
 
+	/// this may be blank 
+	std::string correctedStr;
+
 	void clear() {
 		qtVec.clear();
 		cInfo.clear();
@@ -140,6 +143,9 @@ struct CToken {
 		spellCorrections.resize( spellCorrections.size() +1 ) ;
 		spellCorrections.back().first.assign(wrong);
 		spellCorrections.back().second.assign(correct);
+		if( isMysteryWord() ) {
+			correctedStr.assign( correct );
+		}
 	}
 	void setStemmed( bool v = true ) { cInfo.setStemmed(v); }
 	bool isSpellCorrected( ) const { return cInfo.isSpellCorrected(); }

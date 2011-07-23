@@ -7,18 +7,19 @@
 
 class Hunspell;
 class GlobalPools;
+class StoredUniverse;
 namespace barzer {
 
 class BarzerHunspell {
 	Hunspell* d_hunspell;
-	
+	StoredUniverse& d_universe;	
 	mutable boost::mutex d_mutex;
 public:
 	boost::mutex& mutex() const { return d_mutex; }
 
 	// this is a hack NEVER call this function
-	BarzerHunspell( ) : d_hunspell(0) {}
-	BarzerHunspell( const char* affFile, const char* dictFile );
+	BarzerHunspell( StoredUniverse& universe ) : d_universe(universe), d_hunspell(0) {}
+	BarzerHunspell( StoredUniverse& universe, const char* affFile, const char* dictFile );
 	~BarzerHunspell( );
 	void initHunspell( const char* affFile, const char* dictFile );
 

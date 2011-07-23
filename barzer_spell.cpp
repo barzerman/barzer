@@ -36,8 +36,9 @@ void  BarzerHunspell::initHunspell( const char* affFile, const char* dictFile )
 		AYLOG(ERROR) << "Hunspell initialization failed\n";
 	}
 }
-BarzerHunspell::BarzerHunspell( const char* affFile, const char* dictFile ) :
-	d_hunspell( new Hunspell( affFile, dictFile )  )
+BarzerHunspell::BarzerHunspell( StoredUniverse& universe, const char* affFile, const char* dictFile ) :
+	d_hunspell( new Hunspell( affFile, dictFile )  ),
+	d_universe(universe)
 { }
 
 int BarzerHunspell::addDictionary( const char* fname ) 
@@ -89,6 +90,7 @@ int BarzerHunspell::addWordsFromTextFile( const char* fname )
 		buf[ strlen(buf) -1 ] = 0;
 		if( *buf ) {
 			addWord( buf );
+			d_universe.internString( buf, true );
 			++numWords;
 		}
 	}

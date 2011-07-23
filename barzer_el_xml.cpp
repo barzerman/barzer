@@ -917,7 +917,7 @@ void BELParserXML::taghandle_MKENT( const char_cp * attr, size_t attr_sz , bool 
 		return;
 	}
 	BTND_Rewrite_MkEnt mkent;
-	uint16_t eclass = 0, subclass = 0;
+	uint32_t eclass = 0, subclass = 0;
 	const char* idStr = 0;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name

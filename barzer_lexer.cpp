@@ -129,6 +129,7 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 
 	bool isAsciiToken = ttok.isAscii();
 
+	const char* bestSugg = 0;
 	if( isAsciiToken && ttok.len > MIN_SPELL_CORRECT_LEN ) {
 		BarzerHunspellInvoke spellChecker(d_universe.getHunspell(),d_universe.getGlobalPools());
 		ay::LevenshteinEditDistance& editDist = spellChecker.getEditDistanceCalc();
@@ -141,7 +142,6 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 			sugg_sz = scResult.second;
 		}
 
-		const char* bestSugg = 0;
 		for( size_t i =0; i< sugg_sz; ++i ) {
 			const char* curSugg = sugg[i];
 			if( editDist.ascii_no_case( t, curSugg ) <= MAX_EDIT_DIST_FROM_SPELL) {
@@ -159,13 +159,15 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 						ctok.syncClassInfoFromSavedTok();
 						ctok.addSpellingCorrection( t, curSugg );
 						return 0;
-					} else
-						bestSugg = curSugg;
+					} else if( !bestSugg ) {
+						if( d_universe.isStringUserSpecific(curSugg) ) 
+							bestSugg = curSugg;
+					}
 				}
 			}
 		}
 		// nothing was resolved/spell corrected so we will try stemming
-		{
+		if( !bestSugg ) {
 			BarzerHunspellInvoke stemmer(d_universe.getHunspell(),d_universe.getGlobalPools());
 			const char* stem = stemmer.stem( t );
 			if( stem ) {
@@ -179,7 +181,10 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 					return 1;
 				}
 			}
-		} // end of block
+		} else {
+			ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
+			ctok.addSpellingCorrection( t, bestSugg );
+		}
 	} else {
 		/// non-ascii spell checking logic should go here 
 	}

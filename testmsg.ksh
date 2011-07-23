@@ -9,7 +9,7 @@ blast() {
 integer i 
 i=0
 while [[ i -lt $NUMITER ]]; do
-echo "<query>last monday $i</query>
+echo "<query>pitbulls last monday under 200 dollars $i</query>
 .
 " | nc localhost 5666
 ((i=i+1))
