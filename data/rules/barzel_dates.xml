@@ -4,7 +4,7 @@
     
     <stmt m="month-names">
         <pat>
-           <any v="month-name">
+           <any>
             <t>january</t><t>jan</t>
             <t>february</t><t>feb</t>
             <t>march</t><t>mar</t>
@@ -661,12 +661,40 @@
             </func>
         </tran>
     </stmt>
-    <!-- stmt>
+    <stmt>
         <pat>
-            <t>in</t><expand n="month-names" />
+            <t>in</t><list v="mon"><expand n="month-names" /></list>
         </pat>
         <tran>
-            <func name="mkDate"></func>
+            <func name="mkDateRange">
+	            <func name="mkDate">
+	                <rn v="1" />
+	                <func name="lookupMonth"><var name="mon" /></func>
+	            </func>
+	            <rn v="-1" /><rn v="1" /><rn v="0" />
+            </func>
         </tran>
-    </stmt -->
+    </stmt>
+    
+    <stmt>
+        <pat>
+            <t>between</t>
+            <list v="low"><expand n="month-names" /></list>
+            <t>and</t>
+            <list v="high"><expand n="month-names" /></list>
+        </pat>
+        <tran>
+            <func name="mkRange">
+                <func name="mkDate">
+                    <rn v="1" />
+                    <func name="lookupMonth"><var name="low" /></func>
+                </func>
+                <func name="mkDate">
+                    <rn v="1" />
+                    <func name="lookupMonth"><var name="high" /></func>
+                </func>                
+            </func>
+        </tran>
+    </stmt>    
+    
 </stmset>
