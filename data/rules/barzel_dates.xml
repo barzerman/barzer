@@ -1,6 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
     xmlns="http://www.barzer.net/barzel/0.1">
+    
+    <stmt m="month-names">
+        <pat>
+           <any v="month-name">
+            <t>january</t><t>jan</t>
+            <t>february</t><t>feb</t>
+            <t>march</t><t>mar</t>
+            <t>april</t><t>apr</t>
+            <t>may</t>
+            <t>june</t><t>jun</t>
+            <t>july</t><t>jul</t>
+            <t>august</t><t>aug</t>
+            <t>september</t><t>sep</t>
+            <t>october</t><t>oct</t>
+            <t>november</t><t>nov</t>
+            <t>december</t><t>dec</t>
+            </any>
+        </pat>    
+    </stmt>
     <stmt>
         <pat>
             <any v="day"><t>today</t><t>yesterday</t><t>tomorrow</t></any>
@@ -642,5 +661,12 @@
             </func>
         </tran>
     </stmt>
-    
+    <!-- stmt>
+        <pat>
+            <t>in</t><expand n="month-names" />
+        </pat>
+        <tran>
+            <func name="mkDate"></func>
+        </tran>
+    </stmt -->
 </stmset>

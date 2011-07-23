@@ -127,8 +127,8 @@ struct CmdAdd : public CmdProc<CmdAdd> {
 		parser.stream() << "<userid>!!";
 	}
 };
-struct CmdTrieClear : public CmdProc<CmdTrieClear> {
-	CmdTrieClear(BarzerRequestParser &p) : CmdProc<CmdTrieClear>(p) {}
+struct CmdClear : public CmdProc<CmdClear> {
+	CmdClear(BarzerRequestParser &p) : CmdProc<CmdClear>(p) {}
 	template <typename T>
 	void operator() ( const T& ) { }
 	void operator()(const UserId &uid) {
@@ -166,8 +166,8 @@ void BarzerRequestParser::tag_cmd(RequestTag &tag) {
 	if(it->second == "add") {
 		CmdAdd cp(*this);
 		cp.process(arglist);
-	} else if( it->second == "trieclear" ) {
-		CmdTrieClear cp(*this);
+	} else if( it->second == "clear" ) {
+		CmdClear cp(*this);
 		cp.process(arglist);
 	}
 	arglist.clear();
