@@ -8,6 +8,7 @@
 #include <ay_util.h>
 #include <ay_pool_with_id.h>
 #include <map>
+#include <set>
 #include <boost/thread/shared_mutex.hpp>
 
 
@@ -404,15 +405,24 @@ class BELTrie {
 	BarzelTranslationPool *d_tranPool;
 	BarzelVariableIndex   d_varIndex;
 	EntityCollection      d_entCollection;
-
+	
 public:
+	typedef std::set< uint32_t > UseridSet;
 	typedef boost::shared_mutex Lock;
 	typedef boost::unique_lock< boost::shared_mutex > WriteLock;
 	typedef boost::shared_lock< boost::shared_mutex >  ReadLock;
 private:
+	UseridSet d_userIdSet; // set of unique userids using this trie
 	mutable Lock d_threadLock;
 public:
 	Lock& getThreadLock() const { return d_threadLock; }
+
+	// call in critical section only
+	void registerUser( uint32_t uid ) { d_userIdSet.insert(uid); }
+	void deRegisterUser( uint32_t uid ) { d_userIdSet.erase(uid); }
+
+	const UseridSet& getUserIdSet() const { return d_userIdSet; }
+	size_t getNumUsers() const { return d_userIdSet.size(); }
 
 	BarzelWildcardPool*  getWCPoolPtr() const { return d_wcPool; }
 	GlobalPools& getGlobalPools() { return globalPools; }

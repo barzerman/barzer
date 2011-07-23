@@ -131,12 +131,24 @@ struct CmdTrieClear : public CmdProc<CmdTrieClear> {
 	CmdTrieClear(BarzerRequestParser &p) : CmdProc<CmdTrieClear>(p) {}
 	template <typename T>
 	void operator() ( const T& ) { }
+	void operator()(const UserId &uid) {
+		StoredUniverse * up = parser.getGlobalPools().getUniverse(uid.id);
+		if( up ) 
+			up->clearTries();
+		else {
+			parser.stream() << "<error>invalid userid " << uid.id << "</error>";
+		}
+	}
 	void operator()(const TrieId &tid) {
 		BELTrie* trie = parser.getGlobalPools().getTrie( tid.path.first, tid.path.second );
 		if( trie ) {
 			BELTrie::WriteLock w_lock(trie->getThreadLock());
 
-			trie->clear();
+			if( trie->getNumUsers() ) 
+				trie->clear();
+			else {
+				parser.stream() << "<error>trie " << tid.path.first << ':' << tid.path.second << " used by multiple users. Deregister them first.</error>";
+			}
 		} else {
 			parser.stream() << "<error>invalid trie id " << tid.path.first << ':' << tid.path.second << "</error>";
 		}

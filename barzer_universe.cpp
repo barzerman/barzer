@@ -169,16 +169,31 @@ void GlobalPools::createGenericEntities()
 StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	d_userId(id),
 	gp(g),
-	trieCluster(g.globalTriePool)
+	trieCluster(g.globalTriePool,*this)
 {}
 
+void StoredUniverse::clearSpell()
+{
+	BarzerHunspellInvoke spellChecker(hunspell,gp);
+	spellChecker.clear();
+}
+
+void StoredUniverse::clearTries()
+{
+	UniverseTrieClusterIterator clusterIter( trieCluster );
+	for( ;!clusterIter.isAtEnd(); clusterIter.advance() ) {
+		BELTrie& trie = clusterIter.getCurrentTrie();
+		{
+			BELTrie::WriteLock w_lock(trie.getThreadLock());
+			if( trie.getNumUsers() == 1 ) 
+				trie.clear();
+		}
+	} 
+}
 void StoredUniverse::clear()
 {
-	// getBarzelTrie().clear();
-	getDtaIdx().clear();
-	// getWildcardPool().clear();
-	// getRewriterPool().clear();
-	// gp.stringPool.clear();
+	clearTries();
+	clearSpell();
 }
 
 const char* StoredUniverse::getGenericSubclassName( uint16_t subcl ) const
@@ -190,6 +205,28 @@ const char* StoredUniverse::getGenericSubclassName( uint16_t subcl ) const
 }
 
 
+	UniverseTrieCluster::UniverseTrieCluster( GlobalTriePool& triePool, StoredUniverse& u ) : 
+		d_triePool( triePool ) ,
+		d_universe(u)
+	{
+		d_trieList.push_back( &(d_triePool.init()) ) ;
+	}
+
+	BELTrie& UniverseTrieCluster::appendTrie( const std::string& trieClass, const std::string& trieId )
+	{
+		BELTrie& tr = d_triePool.produceTrie(trieClass,trieId);
+		d_trieList.push_back( &tr );
+		tr.registerUser( d_universe.getUserId() );
+		return tr;
+	}
+	BELTrie& UniverseTrieCluster::prependTrie( const std::string& trieClass, const std::string& trieId )
+	{
+		BELTrie& tr = d_triePool.produceTrie(trieClass,trieId);
+		d_trieList.remove(&tr);
+		d_trieList.push_front( &tr );
+		tr.registerUser( d_universe.getUserId() );
+		return tr;
+	}
 //// end of generic entities 
 
 } // namespace barzer ends

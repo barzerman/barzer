@@ -47,6 +47,7 @@ public:
 /// in general there is one cluster per customer installation 
 class UniverseTrieCluster {
 	GlobalTriePool& d_triePool;
+	StoredUniverse& d_universe;
 
 public:
 	typedef std::list< BELTrie* > BELTrieList;
@@ -57,24 +58,9 @@ private:
 	BELTrieList& getTrieList() { return d_trieList; }
 	const BELTrieList& getTrieList() const { return d_trieList; }
 public: 
-	UniverseTrieCluster( GlobalTriePool& triePool ) : d_triePool( triePool ) 
-		{
-			d_trieList.push_back( &(d_triePool.init()) ) ;
-		}
-
-	BELTrie& appendTrie( const std::string& trieClass, const std::string& trieId )
-	{
-		BELTrie& tr = d_triePool.produceTrie(trieClass,trieId);
-		d_trieList.push_back( &tr );
-		return tr;
-	}
-	BELTrie& prependTrie( const std::string& trieClass, const std::string& trieId )
-	{
-		BELTrie& tr = d_triePool.produceTrie(trieClass,trieId);
-		d_trieList.remove(&tr);
-		d_trieList.push_front( &tr );
-		return tr;
-	}
+	UniverseTrieCluster( GlobalTriePool& triePool, StoredUniverse& u ) ;
+	BELTrie& appendTrie( const std::string& trieClass, const std::string& trieId );
+	BELTrie& prependTrie( const std::string& trieClass, const std::string& trieId );
 	BELTrie*  getFirstTrie() { return ( d_trieList.empty() ?  0 : (*(d_trieList.begin())) ); }
 	const BELTrie*  getFirstTrie() const { return ( d_trieList.empty() ?  0 : (*(d_trieList.begin())) ); }
 };
@@ -93,6 +79,8 @@ public:
 		{ return *(*d_i); }
 	BELTrie& getCurrentTrie()
 		{ return *(*d_i); }
+	bool isAtEnd() const 
+		{ return (d_i == d_cluster.getTrieList().end()); }
 	bool advance( ) 
 		{ return ( d_i == d_cluster.getTrieList().end() ? false : (++d_i, d_i != d_cluster.getTrieList().end()) ); }
 };
@@ -194,17 +182,13 @@ class StoredUniverse {
 	GlobalPools& gp;
 
 	UniverseTrieCluster          trieCluster; 
-	// mutable UniverseTrieClusterIterator trieClusterIter;
 	BarzerHunspell      hunspell;
 
-	//BarzerSettings settings;
 	friend class QSemanticParser;
 
 
-	//void  getToFirstTrie() const { trieClusterIter.reset(); }
-	//bool  getToNextTrie() const { return trieClusterIter.advance(); }
-
 public:
+	
 	uint32_t getUserId() const { return d_userId; }
 
 	bool stemByDefault() const { return gp.parseSettings().stemByDefault(); }
@@ -223,7 +207,7 @@ public:
 	GlobalPools& getGlobalPools() { return gp; }
 	const GlobalPools& getGlobalPools() const { return gp; }
 
-	StoredUniverse(GlobalPools& gp, uint32_t id );
+	explicit StoredUniverse(GlobalPools& gp, uint32_t id );
 	const DtaIndex& getDtaIdx() const { return gp.dtaIdx; }
 		  DtaIndex& getDtaIdx() 	  { return gp.dtaIdx; }
 
@@ -261,6 +245,9 @@ public:
 	}
 
 
+	// clears all tries 
+	void clearTries();
+	void clearSpell();
 	// purges everything 
 	void clear();
 
