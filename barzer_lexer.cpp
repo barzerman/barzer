@@ -180,6 +180,11 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 					ctok.addSpellingCorrection( t, stem );
 					return 1;
 				}
+				if( d_universe.isStringUserSpecific(stem) ) { 
+					ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
+					ctok.addSpellingCorrection( t, stem );
+					return 1;
+				}
 			}
 		} else {
 			ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
