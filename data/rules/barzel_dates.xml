@@ -34,6 +34,11 @@
             </any>        
         </pat>
     </stmt>
+    <stmt m="numeral-suffices">
+        <pat>
+            <any><t>nd</t><t>rd</t><t>st</t><t>th</t></any>
+        </pat>
+    </stmt>
     <stmt>
         <pat>
             <any v="day"><t>today</t><t>yesterday</t><t>tomorrow</t></any>
@@ -60,11 +65,22 @@
         </pat>
         <tran><func name="mkDate"><var pn="1" /><var pn="3" /><var pn="5" /></func></tran>
     </stmt>
-    
+    <stmt>
+        <pat>
+	        <list v="day"><n l="1" h="31" /></list>d
+	        <opt><expand n="numeral-suffices" /></opt>
+	        <t>of</t>
+	        <list v="mon"><expand n="month-names" /></list>
+        </pat>
+        <tran>
+            <var name="mon"/><var name="day" />
+        </tran>
+    </stmt>
     <stmt>
         <pat>
             <list v="mon"><expand n="month-names" /></list>
             <list v="day"><n l="1" h="31" /></list>
+            <opt><expand n="numeral-suffices" /></opt>
             <opt><p>,</p></opt>
             <list v="year"><n l="1900" h="2100" /></list>
         </pat>
@@ -80,6 +96,7 @@
         <pat>
             <list v="mon"><expand n="month-names" /></list>
             <list v="day"><n l="1" h="31" /></list>
+            <opt><expand n="numeral-suffices" /></opt>
         </pat>
         <tran>
             <func name="mkDate">
@@ -714,6 +731,41 @@
                     <func name="lookupMonth"><var name="high" /></func>
                 </func>
             </func>
+        </tran>
+    </stmt>
+    <stmt>
+        <pat>
+            <list v="date"><date /></list>
+            <any><t>-</t><t>through</t></any>
+            <list v="day"><n l="1" h="31" /></list>
+            <opt><expand n="numeral-suffices" /></opt>
+        </pat>
+        <tran>
+            <func name="mkRange">
+                <var name="date" />
+                <func name="setMDay">
+                    <var name="date" />
+                    <var name="day" />
+                </func>
+            </func>
+        </tran>
+    </stmt>
+    <stmt>
+        <pat>
+            <t>between</t>
+            <list v="day"><n l="1" h="31" /></list>
+            <opt><expand n="numeral-suffices" /></opt>
+            <t>and</t>
+            <list v="date"><date /></list>          
+        </pat>
+        <tran>
+            <func name="mkRange">
+                <func name="setMDay">
+                    <var name="date" />
+                    <var name="day" />
+                </func>
+                <var name="date" />
+            </func>        
         </tran>
     </stmt>
     <!-- only a temporary rule
