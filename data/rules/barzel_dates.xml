@@ -20,18 +20,31 @@
             </any>
         </pat>    
     </stmt>
+    <stmt m="weekdays">
+        <pat>
+            <any>
+                <t>monday</t>
+                <t>tuesday</t>
+                <t>wednesday</t>
+                <t>thursday</t>
+                <t>friday</t>
+                <t>saturday</t>
+                <t>sunday</t>
+                <t>mon</t><t>tue</t><t>wed</t><t>thu</t><t>fri</t><t>sat</t><t>sun</t>
+            </any>        
+        </pat>
+    </stmt>
     <stmt>
         <pat>
             <any v="day"><t>today</t><t>yesterday</t><t>tomorrow</t></any>
         </pat>
         <tran>
             <func name="mkDay">
-                <func name="opSelect">
-                    <var name="day" />
-                    <ltrl>today</ltrl><rn v="0" />
-                    <ltrl>yesterday</ltrl><rn v="-1" />
-                    <ltrl>tomorrow</ltrl><rn v="1" />
-                </func>
+            <select v="day">
+            <case l="today"><rn v="0" /></case>
+            <case l="yesterday"><rn v="-1" /></case>
+            <case l="tomorrow"><rn v="1" /></case>
+            </select>
             </func>
         </tran>
     </stmt>
@@ -50,20 +63,7 @@
     
     <stmt>
         <pat>
-            <any v="mon">
-            <t>january</t><t>jan</t>
-            <t>february</t><t>feb</t>
-            <t>march</t><t>mar</t>
-            <t>april</t><t>apr</t>
-            <t>may</t>
-            <t>june</t><t>jun</t>
-            <t>july</t><t>jul</t>
-            <t>august</t><t>aug</t>
-            <t>september</t><t>sep</t>
-            <t>october</t><t>oct</t>
-            <t>november</t><t>nov</t>
-            <t>december</t><t>dec</t>
-            </any>
+            <list v="mon"><expand n="month-names" /></list>
             <list v="day"><n l="1" h="31" /></list>
             <opt><p>,</p></opt>
             <list v="year"><n l="1900" h="2100" /></list>
@@ -78,20 +78,7 @@
     </stmt>
     <stmt>
         <pat>
-            <any v="mon">
-            <t>january</t><t>jan</t>
-            <t>february</t><t>feb</t>
-            <t>march</t><t>mar</t>
-            <t>april</t><t>apr</t>
-            <t>may</t>
-            <t>june</t><t>jun</t>
-            <t>july</t><t>jul</t>
-            <t>august</t><t>aug</t>
-            <t>september</t><t>sep</t>
-            <t>october</t><t>oct</t>
-            <t>november</t><t>nov</t>
-            <t>december</t><t>dec</t>
-            </any>
+            <list v="mon"><expand n="month-names" /></list>
             <list v="day"><n l="1" h="31" /></list>
         </pat>
         <tran>
@@ -273,25 +260,16 @@
     <stmt>
         <pat>
             <any v="time"><t>on</t><t>last</t><t>this</t><t>next</t></any>
-            <any v="wday">
-                <t>monday</t>
-                <t>tuesday</t>
-                <t>wednesday</t>
-                <t>thursday</t>
-                <t>friday</t>
-                <t>saturday</t>
-                <t>sunday</t>
-                <t>mon</t><t>tue</t><t>wed</t><t>thu</t><t>fri</t><t>sat</t><t>sun</t>
-            </any>
+            <list v="wday"><expand n="weekdays" /></list>
         </pat>
         <tran>
             <func name="mkWday">
-                <func name="opSelect"><var name="time" />
-                <ltrl>last</ltrl><rn v="-1" />
-                <ltrl>this</ltrl><rn v="0" />
-                <ltrl>next</ltrl><rn v="1" />
-                <ltrl>on</ltrl><rn v="1" />
-                </func>
+                <select v="time">
+                <case l="last"><rn v="-1" /></case>
+                <case l="this"><rn v="0" /></case>
+                <case l="next"><rn v="1" /></case>
+                <case l="on"><rn v="1" /></case>
+                </select>
                 <func name="lookupWday"><var name="wday" /></func>
             </func>
         </tran>
@@ -452,6 +430,7 @@
 	      <any>
 	          <t>until</t>
 	          <list><opt><p>'</p></opt><any><t>til</t><t>till</t></any></list>
+	          <t>by</t>
 	      </any>
 	      <list v="date"><date /></list></pat>
 	  <tran>
@@ -557,16 +536,7 @@
         <pat>
             <perm>
 	            <list v="time"><range t="t" /></list>
-	            <any v="wday">
-	                <t>monday</t>
-	                <t>tuesday</t>
-	                <t>wednesday</t>
-	                <t>thursday</t>
-	                <t>friday</t>
-	                <t>saturday</t>
-	                <t>sunday</t>
-	                <t>mon</t><t>tue</t><t>wed</t><t>thu</t><t>fri</t><t>sat</t><t>sun</t>
-	            </any>
+                <list v="wday"><expand n="weekdays" /></list>
             </perm>
          </pat>
          <tran>
@@ -593,16 +563,7 @@
         <pat>
             <perm>
                 <list v="time"><time /></list>
-                <any v="wday">
-					<t>monday</t>
-					<t>tuesday</t>
-					<t>wednesday</t>
-					<t>thursday</t>
-					<t>friday</t>
-					<t>saturday</t>
-					<t>sunday</t>
-					<t>mon</t><t>tue</t><t>wed</t><t>thu</t><t>fri</t><t>sat</t><t>sun</t>
-                </any>
+                <list v="wday"><expand n="weekdays" /></list>
            </perm>
          </pat>
          <tran>
@@ -661,7 +622,7 @@
             </func>
         </tran>
     </stmt>
-    <stmt>
+    <!-- stmt>
         <pat>
             <t>in</t><list v="mon"><expand n="month-names" /></list>
         </pat>
@@ -674,8 +635,67 @@
 	            <rn v="-1" /><rn v="1" /><rn v="0" />
             </func>
         </tran>
-    </stmt>
+    </stmt -->
+    <stmt>
+        <pat>
+            <any v="time"><t>in</t><t>last</t><t>this</t><t>next</t></any>
+            <list v="mon"><expand n="month-names" /></list>
+        </pat>
+        <tran>
+            <func name="mkDateRange">
+                <func name="setMDay">         
+                    <func name="mkMonth">
+                        <select v="time">
+                        <case l="last"><rn v="-1" /></case>
+                        <case l="this"><rn v="0" /></case>
+                        <case l="next"><rn v="1" /></case>
+                        <case l="in"><rn v="1" /></case>
+                        </select>
+                        <func name="lookupMonth"><var name="mon" /></func>
+                    </func>
+                    <rn v="1" />
+                </func>
+                <rn v="-1" /><rn v="1" />
+            </func>
+        </tran>
+    </stmt>    
     
+    <stmt>
+        <pat>
+            <any><t>since</t><t>after</t></any>
+            <list v="mon"><expand n="month-names" /></list>
+        </pat>
+        <tran>
+            <func name="mkRange">
+                <func name="setMDay">         
+                    <func name="mkMonth">
+                        <rn v="-1" />
+                        <func name="lookupMonth"><var name="mon" /></func>
+                    </func>
+                    <rn v="1" />
+               </func>
+               <func name="mkDate" />
+           </func>
+        </tran>
+    </stmt>       
+    <stmt>
+        <pat>
+            <any><t>until</t><t>before</t><t>by</t></any>
+            <list v="mon"><expand n="month-names" /></list>
+        </pat>
+        <tran>
+            <func name="mkRange">
+                <func name="mkDate" />
+                <func name="setMDay">         
+                    <func name="mkMonth">
+                        <rn v="1" />
+                        <func name="lookupMonth"><var name="mon" /></func>
+                    </func>
+                    <rn v="1" />
+               </func>
+           </func>
+        </tran>
+    </stmt>     
     <stmt>
         <pat>
             <t>between</t>
@@ -692,9 +712,24 @@
                 <func name="mkDate">
                     <rn v="1" />
                     <func name="lookupMonth"><var name="high" /></func>
-                </func>                
+                </func>
             </func>
         </tran>
-    </stmt>    
-    
+    </stmt>
+    <!-- only a temporary rule
+    should get removed after https://github.com/barzerman/barzer/issues/76 is resolved -->    
+<stmt>
+    <pat>
+        <t>between</t>
+        <list v="low"><range t="d"/></list>
+        <t>and</t>
+        <list v="high"><range t="d" /></list>
+    </pat>
+    <tran>
+        <func name="mkRange">
+            <func name="getLow"><var name="low" /></func>
+            <func name="getHigh"><var name="high" /></func>            
+        </func>
+    </tran>
+</stmt>    
 </stmset>

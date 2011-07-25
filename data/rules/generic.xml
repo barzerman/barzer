@@ -14,4 +14,19 @@
     </tran>
 </stmt>
 
+<stmt>
+    <pat>
+        <t>between</t>
+        <list v="low"><range /></list>
+        <t>and</t>
+        <list v="high"><range /></list>
+    </pat>
+    <tran>
+        <func name="mkRange">
+            <func name="getLow"><var name="low" /></func>
+            <func name="getHigh"><var name="high" /></func>            
+        </func>
+    </tran>
+</stmt>
+
 </stmset>

@@ -84,6 +84,8 @@ struct BarzerDate {
 
 	// 1-7 staring from monday
 	uint8_t getWeekday() const;
+	uint8_t getMonth() const { return month; }
+
 
 	time_t getTime_t() const;
 	void setTime_t(time_t time);
@@ -104,6 +106,13 @@ struct BarzerDate {
 	/// must be called first thing in the program
 	static void initToday();
 	/// will try to set year to current year 
+	void setDay(const BarzerNumber& d) {
+	    day = (uint8_t) d.getInt();
+	}
+    void setMonth(const BarzerNumber& d) {
+        month = (uint8_t) d.getInt();
+    }
+
 	void setDayMonth(const BarzerNumber& d, const BarzerNumber& m) ;
 	void setDayMonthYear(const BarzerNumber& d, const BarzerNumber& m, const BarzerNumber& y ) {
 		day = (uint8_t) d.getInt();

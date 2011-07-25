@@ -237,6 +237,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(mkDateRange);
 		ADDFN(mkDay);
 		ADDFN(mkWday);
+		ADDFN(mkMonth);
 		ADDFN(mkTime);
 		ADDFN(mkDateTime);
 		ADDFN(mkRange);
@@ -252,6 +253,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(getWeekday); // getWeekday(BarzerDate)
 		ADDFN(getTokId); // (BarzerLiteral|BarzerEntity)
 		ADDFN(getMDay);
+		ADDFN(setMDay);
 		ADDFN(getYear);
 		ADDFN(getLow); // (BarzerRange)
 		ADDFN(getHigh); // (BarzerRange)
@@ -425,6 +427,27 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 
+    STFUN(mkMonth)
+    {
+        if (rvec.size() < 2) {
+            AYLOG(ERROR) << "mkMonth(Number, Number): Need 2 arguments";
+            return false;
+        }
+        try {
+            int fut  = getAtomic<BarzerNumber>(rvec[0]).getInt();
+            uint8_t month = getAtomic<BarzerNumber>(rvec[1]).getInt();
+            BarzerDate_calc calc(fut);
+            calc.setToday();
+            calc.setMonth(month);
+            setResult(result, calc.d_date);
+            return true;
+        } catch (boost::bad_get) {
+            AYLOG(ERROR) << "mkMonth(Number, Number): Wrong argument type";
+        }
+        return false;
+    }
+
+
 
 	STFUN(mkTime)
 	{
@@ -436,10 +459,19 @@ struct BELFunctionStorage_holder {
 			int hh(0), mm(0), ss(0);
 			//AYLOGDEBUG(rvec.size());
 			switch (rvec.size()) {
-			case 3: ss = getNumber(rvec[2]).getInt();
-			case 2: mm = getNumber(rvec[1]).getInt();
-			case 1: hh = getNumber(rvec[0]).getInt();
+			case 3: {
+			    const BarzelBeadData &bd = rvec[2].getBeadData();
+			    if (bd.which()) ss = getNumber(bd).getInt();
+			}
+			case 2: {
+			    const BarzelBeadData &bd = rvec[1].getBeadData();
+			    if (bd.which()) mm = getNumber(bd).getInt();
+			}
+			case 1: {
+			    const BarzelBeadData &bd = rvec[0].getBeadData();
+			    if (bd.which()) hh = getNumber(bd).getInt();
 				break;
+			}
 			case 0: {
 				std::time_t t = std::time(0);
 				std::tm *tm = std::localtime(&t);
@@ -982,31 +1014,63 @@ struct BELFunctionStorage_holder {
 
 	STFUN(getWeekday) {
 		BarzerDate bd;
-		if (rvec.size())
-			bd = getAtomic<BarzerDate>(rvec[0]);
-		else bd.setToday();
+		try {
+            if (rvec.size())
+                bd = getAtomic<BarzerDate>(rvec[0]);
+            else bd.setToday();
 
-		BarzerNumber n(bd.getWeekday());
-		setResult(result, n);
-		return true;
+            BarzerNumber n(bd.getWeekday());
+            setResult(result, n);
+            return true;
+		} catch (boost::bad_get) {
+		    AYLOG(ERROR) << "getWeekday(Date): wrong argument type";
+		}
+		return false;
 	}
 
 	STFUN(getMDay) {
 		BarzerDate bd;
-		if (rvec.size())
-			bd = getAtomic<BarzerDate>(rvec[0]);
-		else bd.setToday();
-		setResult(result, BarzerNumber(bd.day));
-		return true;
+		try {
+            if (rvec.size())
+                bd = getAtomic<BarzerDate>(rvec[0]);
+            else bd.setToday();
+            setResult(result, BarzerNumber(bd.day));
+            return true;
+		} catch (boost::bad_get) {
+            AYLOG(ERROR) << "getMDay(Date): wrong argument type";
+        }
 	}
+
+    STFUN(setMDay) {
+        BarzerDate bd;
+        BarzerNumber n;
+        try {
+            switch (rvec.size()) {
+            case 2: n = getAtomic<BarzerNumber>(rvec[1]);
+            case 1: bd = getAtomic<BarzerDate>(rvec[0]); break;
+            case 0:
+                bd.setToday();
+                n.set(1);
+            }
+            bd.setDay(n);
+            setResult(result, bd);
+            return true;
+        } catch (boost::bad_get) {
+            AYLOG(ERROR) << "setMDay(Date, Number): wrong argument type";
+        }
+    }
 
 	STFUN(getYear) {
 		BarzerDate bd;
-		if (rvec.size())
-			bd = getAtomic<BarzerDate>(rvec[0]);
-		else bd.setToday();
-		setResult(result, BarzerNumber(bd.year));
-		return true;
+		try {
+            if (rvec.size())
+                bd = getAtomic<BarzerDate>(rvec[0]);
+            else bd.setToday();
+            setResult(result, BarzerNumber(bd.year));
+            return true;
+		} catch (boost::bad_get) {
+            AYLOG(ERROR) << "getYear(Date): wrong argument type";
+        }
 	}
 
 	struct TokIdGetter : boost::static_visitor<bool> {

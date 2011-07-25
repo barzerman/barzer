@@ -50,18 +50,8 @@ void BarzerDate_calc::setYesterday() {
 
 
 void BarzerDate_calc::setWeekday(uint8_t weekDay) {
-	/*time_t t = d_date.getTime_t();
-	struct tm tmdate;
-	localtime_r(&t, &tmdate);
 
-	// tm stored weekdays starting from sunday(0)
-	// connverting
-	uint8_t todayWeekDay = (tmdate.tm_wday + 6) % 7 + 1;
-	*/
 	uint8_t todayWeekDay = d_date.getWeekday();
-
-	//AYLOG(DEBUG) << "todayWeekDay: " << (int)todayWeekDay
-//				<< "weekDay: " << (int)weekDay;
 
 	if (todayWeekDay == weekDay && !d_defaultFuture) return;
 
@@ -88,9 +78,37 @@ void BarzerDate_calc::setWeekday(uint8_t weekDay) {
 	}
 }
 
+void BarzerDate_calc::monthOffset(int monthOffset) {
+    set(d_date.year, d_date.month + monthOffset, d_date.day);
+}
 
-void BarzerDate_calc::setMonth(int month) {
-	set(d_date.year, d_date.month + month, d_date.day);
+void BarzerDate_calc::setMonth(uint8_t month) {
+//	set(d_date.year, d_date.month + month, d_date.day);
+    uint8_t currentMonth = d_date.getMonth();
+
+    if (currentMonth == month && !d_defaultFuture) return;
+
+    switch(d_defaultFuture) {
+    case PAST:
+        //AYLOG(DEBUG) << "Past";
+        if (month < currentMonth)
+            monthOffset( -(currentMonth - month) );
+        else
+            monthOffset( -(currentMonth + (12 - month)) );
+
+        break;
+    case PRESENT: // this <weekday>
+        //AYLOG(DEBUG) << "Present";
+        monthOffset( month - currentMonth );
+        break;
+    case FUTURE:
+        //AYLOG(DEBUG) << "Future";
+        if (month > currentMonth)
+            monthOffset(month - currentMonth);
+        else
+            monthOffset( month + (12 - currentMonth) );
+        break;
+    }
 }
 
 

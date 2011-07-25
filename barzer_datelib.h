@@ -52,8 +52,10 @@ struct BarzerDate_calc {
 	void setWeek( uint8_t weekOffset );
 	
 	/// N months ago/from now
-	void setMonth( int monthOffset );
-	void setYear( int yearOffset );
+	void monthOffset( int monthOffset );
+	void yearOffset( int yearOffset );
+
+    void setMonth( uint8_t month );
 
 	/// relative intra-month point
 	enum {
