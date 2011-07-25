@@ -768,6 +768,27 @@
             </func>        
         </tran>
     </stmt>
+    <stmt>
+        <pat>
+            <list v="range"><range t="i" /></list>
+            <opt><expand n="numeral-suffices" /></opt>
+            <t>of</t>
+            <list v="mon"><expand n="month-names" /></list>          
+        </pat>
+        <tran>
+            <func name="mkRange">
+                <func name="mkDate">
+                    <func name="getLow"><var name="range" /></func>
+                    <func name="lookupMonth"><var name="mon" /></func>
+                </func>
+                <func name="mkDate">
+                    <func name="getHigh"><var name="range" /></func>
+                    <func name="lookupMonth"><var name="mon" /></func>
+                </func>
+            </func>        
+        </tran>
+    </stmt>    
+    
     <!-- only a temporary rule
     should get removed after https://github.com/barzerman/barzer/issues/76 is resolved -->    
 <stmt>
