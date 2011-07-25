@@ -145,7 +145,7 @@ bool BarzerHunspellInvoke::ghettoAsciiStem( const char* s ) const
 			char buf[ 64 ];
 			strncpy( buf, s, len );
 			buf[ len-1 ] = 0;
-			if( d_gp.getDtaIdx().getStoredToken( buf ) ) {
+			if( d_gp.getDtaIdx().getStoredToken( buf ) || d_spell.getUniverse().isStringUserSpecific(buf)) {
 				d_ghettoStr.assign(buf);
 				return true;
 			}

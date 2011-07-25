@@ -22,7 +22,7 @@ public:
 	BarzerHunspell( StoredUniverse& universe, const char* affFile, const char* dictFile );
 	~BarzerHunspell( );
 	void initHunspell( const char* affFile, const char* dictFile );
-
+	const StoredUniverse& getUniverse() const { return d_universe; }
 	int addDictionary( const char* fname );
 	int addWord( const char* );
 	/// treats every line in the file as a word , adds it to dictionary  
