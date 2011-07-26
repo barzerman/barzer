@@ -13,11 +13,11 @@
 
 namespace barzer {
 class StoredUniverse;
-class BarzelWCKey;
+struct BarzelWCKey;
 class BarzelTranslation;
 class BarzelTrieNode;
 class BELTrie;
-class BTND_Rewrite_Variable;
+struct BTND_Rewrite_Variable;
 
 // reference information about the matched sequence 
 // pair of iterators pointing to the first and the last element to be rewritten
@@ -124,9 +124,9 @@ struct BTMBestPaths {
 	const StoredUniverse& universe;
 	BTMBestPaths( const BeadRange& r, const StoredUniverse& u, const BELTrie& trie ) : 
 		d_bestInfallibleScore(0),
+		d_trie(trie),
 		d_fullRange(r),
-		universe(u) ,
-		d_trie(trie)
+		universe(u) 
 	{}
 	const BeadList::iterator getAbsoluteEnd() const { return d_fullRange.second; }
 	const BeadRange& getFullRange() const { return d_fullRange; }
@@ -176,9 +176,9 @@ public:
 	const StoredUniverse& universe;
 	const BELTrie&  getTrie() const { return d_trie; }
 	BTMIterator( const BeadRange& rng, const StoredUniverse& u, const BELTrie& trie ) : 
+		d_trie(trie),
 		bestPaths(rng,u,trie),
-		universe(u),
-		d_trie(trie)
+		universe(u)
 	{ }
 	void findPaths( const BarzelTrieNode* trieNode)
 		{ matchBeadChain( bestPaths.getFullRange(), trieNode ); }

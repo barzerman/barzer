@@ -14,9 +14,9 @@ void TrieAnalyzer::setFluffThreshold( size_t n )
 	// d_fluffThreshold= (1+ d_universe.getDtaIdx().getNumberOfEntities()/n);
 }
 TrieAnalyzer::TrieAnalyzer( const StoredUniverse& u, const UniverseTrieClusterIterator& trieClusterIter ) :
-	d_trieClusterIter(trieClusterIter),
 	d_universe(u),
 	d_trav( trieClusterIter.getCurrentTrie().getRoot(), trieClusterIter.getCurrentTrie() ),
+	d_trieClusterIter(trieClusterIter),
 	d_nameThreshold(2000),
 	d_fluffThreshold(200),
 	d_absNameThreshold(8)

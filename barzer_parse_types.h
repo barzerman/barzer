@@ -11,8 +11,8 @@
 #include <barzer_number.h>
 
 namespace barzer {
-class StoredToken;
-class StoredEntity;
+struct StoredToken;
+struct StoredEntity;
 struct TToken ;
 struct CToken;
 struct PUnit ;
@@ -61,7 +61,6 @@ inline std::ostream& operator<<( std::ostream& fp, const TTokenWithPos& t ) {
 	return ( fp << t.second << "{" << t.first << "}" );
 }
 std::ostream& operator<<( std::ostream& fp, const TTWPVec& v );
-		struct StoredToken;
 
 /// classified token
 struct CToken {

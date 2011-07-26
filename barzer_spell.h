@@ -18,7 +18,7 @@ public:
 	boost::mutex& mutex() const { return d_mutex; }
 
 	// this is a hack NEVER call this function
-	BarzerHunspell( StoredUniverse& universe ) : d_universe(universe), d_hunspell(0) {}
+	BarzerHunspell( StoredUniverse& universe ) : d_hunspell(0), d_universe(universe) {}
 	BarzerHunspell( StoredUniverse& universe, const char* affFile, const char* dictFile );
 	~BarzerHunspell( );
 	void initHunspell( const char* affFile, const char* dictFile );

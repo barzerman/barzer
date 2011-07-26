@@ -188,8 +188,8 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		d_rng(r), 
 		d_tn(t), 
 		d_followsBlank(followsBlanks),
-		d_dtaBeadIter(dtaBeadIter),
-		d_trie(trie)
+		d_trie(trie),
+		d_dtaBeadIter(dtaBeadIter)
 	{}
 	
 	/// partial key comparison . called from partialWCKeyProcess

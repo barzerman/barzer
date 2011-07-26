@@ -32,8 +32,8 @@ struct BarzerShellContext : public ay::ShellContext {
 		gp(u.getGlobalPools()),
 		universe(u),
 		trieWalker(trie),
-		parser( u ),
-		d_trie(&trie)
+		d_trie(&trie),
+		parser( u )
 	{}
 	BELTrie* getCurrentTriePtr() { return d_trie; }
 	void setTrie( BELTrie* t ) 
