@@ -783,6 +783,12 @@ struct BTND_Rewrite_Case {
     std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 };
 
+
+struct BTND_Rewrite_Logic {
+    enum Type { AND, OR  };
+    Type t;
+};
+
 // blank rewrite data type
 struct BTND_Rewrite_None {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;

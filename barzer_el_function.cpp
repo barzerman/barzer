@@ -1039,6 +1039,7 @@ struct BELFunctionStorage_holder {
 		} catch (boost::bad_get) {
             AYLOG(ERROR) << "getMDay(Date): wrong argument type";
         }
+		return false;
 	}
 
     STFUN(setMDay) {
@@ -1058,6 +1059,7 @@ struct BELFunctionStorage_holder {
         } catch (boost::bad_get) {
             AYLOG(ERROR) << "setMDay(Date, Number): wrong argument type";
         }
+        return false;
     }
 
 	STFUN(getYear) {
@@ -1071,6 +1073,7 @@ struct BELFunctionStorage_holder {
 		} catch (boost::bad_get) {
             AYLOG(ERROR) << "getYear(Date): wrong argument type";
         }
+		return false;
 	}
 
 	struct TokIdGetter : boost::static_visitor<bool> {
@@ -1177,8 +1180,6 @@ struct BELFunctionStorage_holder {
 
 		setResult(result, bn);
 		return true;
-
-
 	}
 
 	STFUN(opMinus)
