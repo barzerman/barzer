@@ -2,21 +2,15 @@
 <stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
     xmlns="http://www.barzer.net/barzel/0.1">
 
+
+<stmt m="foo">
+    <pat><t>foo</t></pat>
+</stmt>
 <stmt>
     <pat>
-    <any v="x">
-	    <t>foo</t>
-	    <t>bar</t>
-	    <t>baz</t>
-    </any>
+        <expand n="foo" as="foo" /><t>bar</t>
     </pat>
-    <tran>
-	    <select v="x">
-        <case l="bar"><rn v="2" /></case>
-	    <case l="foo"><rn v="1" /></case>
-	    <case l="baz"><rn v="3" /></case>
-	    </select>
-    </tran>
+    <tran><var name="foo" /></tran>
 </stmt>
 
 </stmset>

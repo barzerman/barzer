@@ -807,18 +807,27 @@ void BELParserXML::taghandle_EXPAND( const char_cp * attr, size_t attr_sz , bool
 	if( close ) { return; }
 
 	std::string macroName;
+	const char *varName = 0;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
 		switch( n[0] ) {
 		case 'n': macroName= v; break;
+		case 'a':
+		    if (!strcmp(n, "as"))
+		        varName = v;
+		    break;
 		}
 	}
 	
 	const BELParseTreeNode* macroNode = getMacroByName(macroName);
 	if( macroNode ) {
 		BELParseTreeNode* curNode = statement.getCurTreeNode();
-		curNode->addChild( *macroNode );
+		BELParseTreeNode &n = curNode->addChild(*macroNode);
+		if (varName) {
+		    BTND_StructData &sd = boost::get<BTND_StructData>(n.getNodeData());
+		    sd.setVarId(internString(varName));
+		}
 	} else {
 		AYLOG(ERROR) << "macro " << macroName  << " referenced in statement "  << statementCount<< " doesnt exist";
 	}

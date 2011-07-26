@@ -70,7 +70,8 @@
 	        <list v="day"><n l="1" h="31" /></list>d
 	        <opt><expand n="numeral-suffices" /></opt>
 	        <t>of</t>
-	        <list v="mon"><expand n="month-names" /></list>
+	        <!-- <list v="mon"><expand n="month-names" /></list> -->
+	        <expand n="month-names" as="mon" />
         </pat>
         <tran>
             <var name="mon"/><var name="day" />

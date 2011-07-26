@@ -1033,7 +1033,8 @@ struct BELParseTreeNode {
 	}
 	const BTNDVariant& getNodeData() const 
 		{ return btndVar; }
-	
+	      BTNDVariant& getNodeData()
+	        { return btndVar; }
 	const BTND_RewriteData* getRewriteData() const
 		{ return( boost::get<BTND_RewriteData>( &btndVar) ); }
 	const BTND_StructData* getStructData() const
