@@ -79,7 +79,7 @@
     </stmt>
     <stmt>
         <pat>
-            <list v="mon"><expand n="month-names" /></list>
+            <expand n="month-names" as="mon" />
             <list v="day"><n l="1" h="31" /></list>
             <opt><expand n="numeral-suffices" /></opt>
             <opt><p>,</p></opt>
@@ -95,7 +95,7 @@
     </stmt>
     <stmt>
         <pat>
-            <list v="mon"><expand n="month-names" /></list>
+            <expand n="month-names" as="mon" />
             <list v="day"><n l="1" h="31" /></list>
             <opt><expand n="numeral-suffices" /></opt>
         </pat>
@@ -109,7 +109,7 @@
     <stmt>
         <pat>
             <list v="hh"><n l="1" h="12" /></list>
-            <p>:</p>
+            <p>:</p>87
             <list v="mm"><n l="0" h="59" /></list>
             <opt>
                 <list>
@@ -278,7 +278,7 @@
     <stmt>
         <pat>
             <any v="time"><t>on</t><t>last</t><t>this</t><t>next</t></any>
-            <list v="wday"><expand n="weekdays" /></list>
+            <expand n="weekdays" as="wday" />
         </pat>
         <tran>
             <func name="mkWday">
@@ -554,7 +554,7 @@
         <pat>
             <perm>
 	            <list v="time"><range t="t" /></list>
-                <list v="wday"><expand n="weekdays" /></list>
+                <expand n="weekdays" as="wday" />
             </perm>
          </pat>
          <tran>
@@ -581,7 +581,7 @@
         <pat>
             <perm>
                 <list v="time"><time /></list>
-                <list v="wday"><expand n="weekdays" /></list>
+                <expand n="weekdays" as="wday" />
            </perm>
          </pat>
          <tran>
@@ -657,7 +657,7 @@
     <stmt>
         <pat>
             <any v="time"><t>in</t><t>last</t><t>this</t><t>next</t></any>
-            <list v="mon"><expand n="month-names" /></list>
+            <expand n="month-names" as="mon" />
         </pat>
         <tran>
             <func name="mkDateRange">
@@ -681,7 +681,7 @@
     <stmt>
         <pat>
             <any><t>since</t><t>after</t></any>
-            <list v="mon"><expand n="month-names" /></list>
+            <expand n="month-names" as="mon" />
         </pat>
         <tran>
             <func name="mkRange">
@@ -699,7 +699,7 @@
     <stmt>
         <pat>
             <any><t>until</t><t>before</t><t>by</t></any>
-            <list v="mon"><expand n="month-names" /></list>
+            <expand n="month-names" as="mon" />
         </pat>
         <tran>
             <func name="mkRange">
@@ -717,9 +717,9 @@
     <stmt>
         <pat>
             <t>between</t>
-            <list v="low"><expand n="month-names" /></list>
+            <expand n="month-names" as="low" />
             <t>and</t>
-            <list v="high"><expand n="month-names" /></list>
+            <expand n="month-names" as="high" />
         </pat>
         <tran>
             <func name="mkRange">
@@ -774,7 +774,7 @@
             <list v="range"><range t="i" /></list>
             <opt><expand n="numeral-suffices" /></opt>
             <t>of</t>
-            <list v="mon"><expand n="month-names" /></list>          
+            <expand n="month-names" as="mon" />          
         </pat>
         <tran>
             <func name="mkRange">

@@ -1,6 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
     xmlns="http://www.barzer.net/barzel/0.1">
+    <stmt m="month-names-ru">
+        <pat>
+            <any>
+            <t>январь</t><t>янв</t>
+            <t>февраль</t><t>фев</t>
+            <t>март</t><t>мар</t>
+            <t>апрель</t><t>апр</t>
+            <t>май</t>
+            <t>июнь</t><t>июн</t>
+            <t>июль</t><t>июл</t>
+            <t>август</t><t>авг</t>
+            <t>сентябрь</t><t>сен</t>
+            <t>октябрь</t><t>акт</t>
+            <t>ноябрь</t><t>ноя</t>
+            <t>декабрь</t><t>дек</t>
+            </any>        
+        </pat>
+    </stmt>
     <stmt>
         <pat>
             <opt><t>в</t></opt>
@@ -31,18 +49,17 @@
     
     <stmt>
         <pat>
-            <any v="day"><t>сегодня</t><t>вчера</t><t>завтра</t><t>послезавтра</t><t>позазавтра</t></any>
+            <any v="day"><t>сегодня</t><t>вчера</t><t>завтра</t><t>послезавтра</t><t>позавчера</t></any>
         </pat>
         <tran>
             <func name="mkDay">
-                <func name="opSelect">
-                    <var name="day" />
-                    <ltrl>сегодня</ltrl><rn v="0" />
-                    <ltrl>вчера</ltrl><rn v="-1" />
-                    <ltrl>завтра</ltrl><rn v="1" />
-                    <ltrl>послезавтра</ltrl><rn v="2" />
-                    <ltrl>позавчера</ltrl><rn v="-2" />
-                </func>
+                <select v="day">
+                <case l="сегодня"><rn v="0" /></case>
+                <case l="вчера"><rn v="-1" /></case>
+                <case l="завтра"><rn v="1" /></case>
+                <case l="послезавтра"><rn v="2" /></case>
+                <case l="позавчера"><rn v="-2" /></case>
+                </select>
             </func>
         </tran>
     </stmt>
@@ -98,20 +115,7 @@
     <stmt>
         <pat>
             <list v="day"><n l="1" h="31" /></list>
-            <any v="mon">
-            <t>январь</t><t>янв</t>
-            <t>февраль</t><t>фев</t>
-            <t>март</t><t>мар</t>
-            <t>апрель</t><t>апр</t>
-            <t>май</t>
-            <t>июнь</t><t>июн</t>
-            <t>июль</t><t>июл</t>
-            <t>август</t><t>авг</t>
-            <t>сентябрь</t><t>сен</t>
-            <t>октябрь</t><t>акт</t>
-            <t>ноябрь</t><t>ноя</t>
-            <t>декабрь</t><t>дек</t>
-            </any>
+            <expand n="month-names-ru" as="mon" />
             <opt><p>,</p></opt>
             <list v="year"><n l="1900" h="2100" /></list>
             <opt>
@@ -132,20 +136,7 @@
     <stmt>
         <pat>
             <list v="day"><n l="1" h="31" /></list>
-            <any v="mon">
-            <t>январь</t><t>янв</t>
-            <t>февраль</t><t>фев</t>
-            <t>март</t><t>мар</t>
-            <t>апрель</t><t>апр</t>
-            <t>май</t>
-            <t>июнь</t><t>июн</t>
-            <t>июль</t><t>июл</t>
-            <t>август</t><t>авг</t>
-            <t>сентябрь</t><t>сен</t>
-            <t>октябрь</t><t>акт</t>
-            <t>ноябрь</t><t>ноя</t>
-            <t>декабрь</t><t>дек</t>
-            </any>
+            <expand n="month-names-ru" as="mon" />
         </pat>
         <tran>
             <func name="mkDate">

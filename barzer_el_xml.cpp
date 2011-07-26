@@ -825,6 +825,7 @@ void BELParserXML::taghandle_EXPAND( const char_cp * attr, size_t attr_sz , bool
 		BELParseTreeNode* curNode = statement.getCurTreeNode();
 		BELParseTreeNode &n = curNode->addChild(*macroNode);
 		if (varName) {
+		    // safe as the root of any pattern is always a list
 		    BTND_StructData &sd = boost::get<BTND_StructData>(n.getNodeData());
 		    sd.setVarId(internString(varName));
 		}
