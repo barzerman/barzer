@@ -67,12 +67,13 @@ template<class T> T& setResult(BarzelEvalResult &result, const T &data) {
 	return boost::get<T>(a.getData());
 }
 
-template<> bool& setResult<bool>(BarzelEvalResult &result, const bool &data) {
+bool setResult(BarzelEvalResult &result, bool data) {
     if (data) {
         setResult(result, BarzerNumber(1));
     } else {
         result.setBeadData(BarzelBeadBlank());
     }
+    return data;
 }
 
 
@@ -88,6 +89,12 @@ struct mult {
 };
 struct div {
 	template <class T> T operator()(T v1, T v2) { return v1 / v2; }
+};
+struct lt {
+    template <class T> bool operator()(T v1, T v2) { return v1 < v2; }
+};
+struct gt {
+    template <class T> bool operator()(T v1, T v2) { return v1 > v2; }
 };
 
 
@@ -1315,15 +1322,50 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 
-	STFUN(opLt)
+	// should make this more generic
+	template<class T> bool cmpr(BarzelEvalResult &result,
+	                       const BarzelEvalResultVec &rvec) const
 	{
+	    T op;
+	    try {
+	        if (rvec.size() >= 2) {
+                BarzelEvalResultVec::const_iterator end = rvec.end(),
+                                                    it = rvec.begin()+1;
+                bool cont = true;
+                for (; cont && it != end; ++it) {
+                    const BarzerNumber &l = getNumber((it-1)->getBeadData()),
+                                       &r = getNumber(it->getBeadData());
 
-		return false;
+                    if (l.isNan() || r.isNan()) {
+                        cont = false;
+                    } else if (l.isReal()) {
+                        if (r.isReal()) {
+                            cont = op(l.getReal(), r.getReal());
+                        } else {
+                            cont = op(l.getReal(), (double) r.getInt());
+                        }
+                    } else {
+                        if (r.isReal()) {
+                            cont = op((double)l.getInt(), r.getReal());
+                        } else {
+                            cont = op(l.getInt(), r.getInt());
+                        }
+                    }
+                }
+                setResult(result, cont);
+                return true;
+	        } else {
+	            AYLOG(DEBUG) << "Need at least 2 arguments";
+	        }
+	    } catch (boost::bad_get) {
+            AYLOG(DEBUG) << "Trying to compare values of non-number type";
+        }
+	    return false;
 	}
-	STFUN(opGt)
-	{
-		return false;
-	}
+
+	STFUN(opLt) { return cmpr<lt>(result, rvec); }
+	STFUN(opGt)	{ return cmpr<gt>(result, rvec); }
+
 	STFUN(opEq)
 	{
 		if (rvec.size() >= 2) {
