@@ -79,6 +79,8 @@ public:
 		TAG_FUNC, // function
 		TAG_SELECT,
 		TAG_CASE,
+		TAG_AND,
+		TAG_OR,
 		// added by pltr
 		TAG_STMSET, // document element
 		
@@ -250,6 +252,7 @@ public:
 	
     void taghandle_SELECT( const char_cp * attr, size_t attr_sz , bool close=false);
     void taghandle_CASE( const char_cp * attr, size_t attr_sz , bool close=false);
+    void processLogic( int , bool);
 
 	// document element
 	void taghandle_STMSET( const char_cp * attr, size_t attr_sz , bool close=false);

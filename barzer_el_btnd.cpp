@@ -452,6 +452,20 @@ std::ostream&  BTND_Rewrite_Case::print( std::ostream& fp , const BELPrintContex
 }
 
 
+
+std::ostream&  BTND_Rewrite_Logic::print( std::ostream& fp , const BELPrintContext& ctxt) const
+{
+    switch(type) {
+    case AND:
+        fp << "AND";
+    case OR:
+        fp << "OR";
+    }
+    return fp;
+}
+
+
+
 std::ostream&  BTND_Rewrite_None::print( std::ostream& fp , const BELPrintContext& ) const
 {
 	return (fp << "RwrNone" );

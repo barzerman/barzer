@@ -67,6 +67,15 @@ template<class T> T& setResult(BarzelEvalResult &result, const T &data) {
 	return boost::get<T>(a.getData());
 }
 
+template<> bool& setResult<bool>(BarzelEvalResult &result, const bool &data) {
+    if (data) {
+        setResult(result, BarzerNumber(1));
+    } else {
+        result.setBeadData(BarzelBeadBlank());
+    }
+}
+
+
 // probably can replace it by something from stl
 struct plus {
 	template <class T> T operator()(T v1, T v2) { return v1 + v2; }
@@ -1308,6 +1317,7 @@ struct BELFunctionStorage_holder {
 
 	STFUN(opLt)
 	{
+
 		return false;
 	}
 	STFUN(opGt)
@@ -1316,6 +1326,20 @@ struct BELFunctionStorage_holder {
 	}
 	STFUN(opEq)
 	{
+		if (rvec.size() >= 2) {
+		    BarzelEvalResultVec::const_iterator end = rvec.end(),
+		                                        it = rvec.begin()+1;
+		    for (; it != end; ++it) {
+		        if (!beadsEqual((it-1)->getBeadData(), it->getBeadData())) {
+		            setResult(result, false);
+		            return true;
+		        }
+		    }
+		    setResult(result, true);
+		    return true;
+		} else {
+		    AYLOG(DEBUG) << "opEq: need at least 2 arguments";
+		}
 		return false;
 	}
 

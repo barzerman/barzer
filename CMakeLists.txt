@@ -81,7 +81,7 @@ set(INSTALL_DATA_DIR "${INSTALL_DIR}/data")
 set(INSTALL_UTIL_DIR "${INSTALL_DIR}/util")
 
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} $ENV{OPT} -Wnon-virtual-dtor -fpic -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} $ENV{OPT} -Wall -Wnon-virtual-dtor -fpic -g")
 add_definitions(-DBARZER_HOME=${INSTALL_DIR})
 add_definitions("\$(OPT)")
 

@@ -762,15 +762,11 @@ struct BTND_Rewrite_Function {
 
 struct BTND_Rewrite_Select {
     uint32_t varId;
-    uint32_t storedId;
     void setVarId(uint32_t id) { varId = id; }
     uint32_t getVarId() const { return varId; }
 
-    void setStoredId(uint32_t id) { storedId = id; }
-    uint32_t getStoredId() const { return storedId; }
-
     BTND_Rewrite_Select(uint32_t vid = 0xffffffff)
-        : varId(vid), storedId(0xffffffff)  {}
+        : varId(vid) {}
 
     std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 };
@@ -786,7 +782,11 @@ struct BTND_Rewrite_Case {
 
 struct BTND_Rewrite_Logic {
     enum Type { AND, OR  };
-    Type t;
+    Type type;
+    Type getType() const { return type; }
+    void setType(Type t)
+        { type = t; }
+    std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 };
 
 // blank rewrite data type
@@ -860,12 +860,13 @@ typedef boost::variant<
 	BTND_Rewrite_Number,
 	BTND_Rewrite_Variable,
 	BTND_Rewrite_Function,
-	BTND_Rewrite_DateTime,
-	BTND_Rewrite_Range,
-	BTND_Rewrite_EntitySearch,
+	BTND_Rewrite_DateTime, // needs to be removed
+	BTND_Rewrite_Range, // needs to be removed
+	BTND_Rewrite_EntitySearch, // needs to be removed
 	BTND_Rewrite_MkEnt,
 	BTND_Rewrite_Select,
-	BTND_Rewrite_Case
+	BTND_Rewrite_Case,
+	BTND_Rewrite_Logic
 > BTND_RewriteData;
 
 enum {
@@ -879,7 +880,8 @@ enum {
 	BTND_Rewrite_EntitySearch_TYPE,
 	BTND_Rewrite_MkEnt_TYPE,
 	BTND_Rewrite_Select_TYPE,
-	BTND_Rewrite_Case_TYPE
+	BTND_Rewrite_Case_TYPE,
+	BTND_Rewrite_Logic_TYPE
 }; 
 
 /// when updating the enums make sure to sunc up BTNDDecode::typeName_XXX 

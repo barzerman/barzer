@@ -196,6 +196,19 @@ struct Eval_visitor_needToStop : public boost::static_visitor<bool> {
 		{ return false; }
 };
 
+template<>
+bool Eval_visitor_needToStop::operator()<BTND_Rewrite_Logic>(const BTND_Rewrite_Logic& l)
+{
+    const BarzelBeadData &childVal = d_childVal.getBeadData();
+    switch(l.getType()) {
+    case BTND_Rewrite_Logic::AND:
+        return !childVal.which();
+    case BTND_Rewrite_Logic::OR:
+        return childVal.which();
+    }
+    return false;
+}
+
 struct Eval_visitor_compute : public boost::static_visitor<bool> {  
 	const BarzelEvalResultVec& d_childValVec;
 	BarzelEvalResult& d_val;
@@ -380,6 +393,14 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Case>
 }
 
 
+template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Logic>
+    ( const BTND_Rewrite_Logic &s)
+{
+    d_val.setBeadData(d_childValVec.back().getBeadData());
+    return true;
+}
+
+
 //// the main visitor - compute
 
 } // end of anon namespace 
@@ -401,16 +422,20 @@ bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) cons
 
 	if( boost::apply_visitor(Eval_visitor_evalChildren(), d_btnd)
 	        && d_child.size() ) {
-		childValVec.resize( d_child.size() );
+		//childValVec.resize( d_child.size() );
 		
+	    childValVec.reserve( d_child.size() );
+
 		/// forming dependent vector of values 
 		for( size_t i =0; i< d_child.size(); ++i ) {
 			const BarzelEvalNode& childNode = d_child[i];
-			BarzelEvalResult& childVal = childValVec[i];
 
-			if( !childNode.eval(childVal, ctxt) ) 
+            childValVec.resize(i+1);
+			//BarzelEvalResult& childVal = childValVec[i];
+            BarzelEvalResult& childVal = childValVec.back();
+
+			if( !childNode.eval(childVal, ctxt) )
 				return false; // error in one of the children occured
-			
 
             Eval_visitor_needToStop visitor(childVal,val);
             if( boost::apply_visitor( visitor, d_btnd ) )

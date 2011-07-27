@@ -3,14 +3,16 @@
     xmlns="http://www.barzer.net/barzel/0.1">
 
 
-<stmt m="foo">
-    <pat><t>foo</t></pat>
-</stmt>
 <stmt>
-    <pat>
-        <expand n="foo" as="foo" /><t>bar</t>
-    </pat>
-    <tran><var name="foo" /></tran>
+    <pat><t>foo</t></pat>
+    <tran>
+        <or>
+            <and>
+                <func name="opEq"><rn v="6" /><rn v="6" /></func>
+                <ltrl>bar</ltrl>
+            </and>
+            <ltrl>baz</ltrl>
+        </or>
+    </tran>
 </stmt>
-
 </stmset>
