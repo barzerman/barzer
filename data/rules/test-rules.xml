@@ -15,4 +15,20 @@
         </or>
     </tran>
 </stmt>
+
+
+<stmt>
+    <pat><t>moo</t><opt v="x"><t>boo</t></opt></pat>
+    <tran>
+        <or>
+            <and>
+                <var name="x" />
+                <ltrl>naaah</ltrl>
+            </and>
+            <ltrl>yaah</ltrl>
+       </or>
+    </tran>
+</stmt>
+
+
 </stmset>

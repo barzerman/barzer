@@ -81,6 +81,7 @@ public:
 		TAG_CASE,
 		TAG_AND,
 		TAG_OR,
+		TAG_NOT,
 		// added by pltr
 		TAG_STMSET, // document element
 		

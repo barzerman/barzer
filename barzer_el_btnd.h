@@ -779,9 +779,8 @@ struct BTND_Rewrite_Case {
     std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 };
 
-
 struct BTND_Rewrite_Logic {
-    enum Type { AND, OR  };
+    enum Type { AND, OR, NOT  };
     Type type;
     Type getType() const { return type; }
     void setType(Type t)

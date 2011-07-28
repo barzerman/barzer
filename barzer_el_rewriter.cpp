@@ -205,6 +205,8 @@ bool Eval_visitor_needToStop::operator()<BTND_Rewrite_Logic>(const BTND_Rewrite_
         return !childVal.which();
     case BTND_Rewrite_Logic::OR:
         return childVal.which();
+    case BTND_Rewrite_Logic::NOT:
+        break;
     }
     return false;
 }
@@ -240,19 +242,6 @@ struct Eval_visitor_compute : public boost::static_visitor<bool> {
 	    returnChildren();
 		return true;
 	}
-	bool operator()( const BTND_Rewrite_DateTime &data ) {
-		AYLOG(DEBUG) << "BTND_Rewrite_DateTime";
-		return true;
-	}
-	bool operator()( const BTND_Rewrite_Range &data ) {
-		AYLOG(DEBUG) << "BTND_Rewrite_Range";
-		return true;
-	}
-	bool operator()( const BTND_Rewrite_EntitySearch &data ) {
-		AYLOG(DEBUG) << "BTND_Rewrite_EntitySearch";
-		return true;
-	}
-
 
 	/// this should be specialized for various participants in the BTND_RewriteData variant 
 	template <typename T> bool operator()( const T& )
@@ -396,7 +385,27 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Case>
 template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Logic>
     ( const BTND_Rewrite_Logic &s)
 {
-    d_val.setBeadData(d_childValVec.back().getBeadData());
+    switch(s.getType()) {
+    case BTND_Rewrite_Logic::AND:
+    case BTND_Rewrite_Logic::OR:
+        d_val.setBeadData(d_childValVec.back().getBeadData());
+        break;
+    case BTND_Rewrite_Logic::NOT: {
+        BarzelBeadDataVec &valVec =  d_val.getBeadDataVec();
+        valVec.clear();
+        valVec.reserve(d_childValVec.size());
+        for (BarzelEvalResultVec::const_iterator it = d_childValVec.begin(),
+                                                      end = d_childValVec.end();
+                                                 it != end; ++it) {
+            if (it->getBeadData().which()) {
+                valVec.push_back(BarzelBeadBlank());
+            } else {
+                valVec.push_back(BarzelBeadAtomic());
+            }
+        }
+    }
+    }
+
     return true;
 }
 

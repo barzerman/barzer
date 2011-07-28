@@ -169,6 +169,7 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 	// special cases
 	case TAG_AND:
 	case TAG_OR:
+	case TAG_NOT:
 	    processLogic(tid, close);
 	    return;
 	}
@@ -1089,6 +1090,9 @@ void BELParserXML::processLogic( int tid , bool close = false)
     switch(tid) {
     case TAG_AND: l.setType(BTND_Rewrite_Logic::AND); break;
     case TAG_OR: l.setType(BTND_Rewrite_Logic::OR); break;
+    case TAG_NOT:
+        l.setType(BTND_Rewrite_Logic::NOT);
+        break;
     }
     statement.pushNode(BTND_RewriteData(l));
 }
@@ -1170,7 +1174,7 @@ int BELParserXML::getTag( const char* s ) const
 	switch( *s ) {
 	case 'a':
 	CHECK_3CW("ny",TAG_ANY) // <any>
-	CHECK_3CW("nd",TAG_AND) // <any>
+	CHECK_3CW("nd",TAG_AND) // <and>
 		break;
 	case 'c':
 	CHECK_4CW("ase", TAG_CASE ) // <case>
@@ -1197,10 +1201,11 @@ int BELParserXML::getTag( const char* s ) const
 		break;
 	case 'n':
 	CHECK_1CW(TAG_N) // <n>
+	CHECK_3CW("ot",TAG_NOT) // <not>
 		break;
 	case 'o':
 	CHECK_3CW("pt", TAG_OPT ) // <opt>
-	CHECK_2CW("r", TAG_OR ) // <opt>
+	CHECK_2CW("r", TAG_OR ) // <or>
 		break;
 	case 'p':
 	CHECK_1CW(TAG_P) // <p> 
