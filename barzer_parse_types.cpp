@@ -55,8 +55,7 @@ std::ostream& TToken::print ( std::ostream& fp ) const
 	if( !buf || !len ) {
 		return ( fp << 0 <<':' );
 	} else {
-		std::string tmp( buf, len );
-		return (fp << len << ':' << tmp);
+		return ( fp << len << ':' ).write( buf, len );
 	}
 }
 

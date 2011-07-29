@@ -141,11 +141,29 @@ public:
 class BeadVisitor : public boost::static_visitor<> {
 	std::ostream &os;
 	const StoredUniverse &universe;
+	const BarzelBead	&d_bead;
 	size_t lvl;
 	
 public:
-	BeadVisitor(std::ostream &s, const StoredUniverse &u) : os(s), universe(u), lvl(0) {}
+	BeadVisitor(std::ostream &s, const StoredUniverse &u, const BarzelBead& b) : 
+		os(s), universe(u), d_bead(b),  lvl(0) {}
 
+	void printTTokenTag( )
+	{
+		if( lvl ) return;
+		const CTWPVec& ctoks = d_bead.getCTokens();
+		os << "<srctok>";
+		for( CTWPVec::const_iterator ci = ctoks.begin(); ci != ctoks.end(); ++ci ) {
+			const TTWPVec& ttv = ci->first.getTTokens();
+			for( TTWPVec::const_iterator ti = ttv.begin(); ti!= ttv.end() ; ++ti ) {
+				const TToken& ttok = ti->first;
+				if( ttok.len && ttok.buf ) {
+					os.write( ttok.buf, ttok.len );
+				}
+			}
+		}	
+		os << "</srctok>";
+	}
 	void operator()(const BarzerLiteral &data) {
 		//AYLOG(DEBUG) << "BarzerLiteral";
 		switch(data.getType()) {
@@ -156,16 +174,23 @@ public:
 				const char *cstr = universe.getStringPool().resolveId(data.getId());
 				if (cstr) xmlEscape(cstr, os);
 				else AYLOG(ERROR) << "Illegal literal ID: " << std::hex << data.getId();
+				printTTokenTag();
 				os << "</token>";
 			}
 			break;
 		case BarzerLiteral::T_STOP:
 			{
 				if (data.getId() == INVALID_STORED_ID) {
-					os << "<fluff />";
+					os << "<fluff>";
+					printTTokenTag();
+					os << "</fluff>";
 				} else {
 					const char *cstr = universe.getStringPool().resolveId(data.getId());
-					if (cstr) xmlEscape(cstr, os << "<fluff>") << "</fluff>";
+					if (cstr) {
+						xmlEscape(cstr, os << "<fluff>");
+						printTTokenTag();
+						os << "</fluff>";
+					} 
 					else AYLOG(ERROR) << "Illegal literal(STOP) ID: " << std::hex << data.getId();
 				}
 			}
@@ -187,23 +212,32 @@ public:
 		}
 	}
 	void operator()(const BarzerString &data) {
-		xmlEscape(data.getStr(), os << "<token>") << "</token>";
+		xmlEscape(data.getStr(), os << "<token>");
+		printTTokenTag();
+		os << "</token>";
 	}
 	void operator()(const BarzerNumber &data) {
 		const char *type =  data.isReal() ? "real" : (data.isInt() ? "int" : "NaN");
-		data.print(os << "<num t=\"" << type << "\">") << "</num>";
+		data.print(os << "<num t=\"" << type << "\">");
+		printTTokenTag();
+		os << "</num>";
 	}
 	void operator()(const BarzerDate &data) {
 		//printTo(os << "<date>", data) << "</date>";
-		printTo(tag_raii(os,"date"), data);
+		tag_raii td(os,"date");
+		printTo(os,data);
+		printTTokenTag();
 	}
 	void operator()(const BarzerTimeOfDay &data) {
 
-		//printTo(os << "<time>", data) << "</time>";
-		printTo(tag_raii(os, "time"), data);
+		tag_raii td(os, "time");
+		printTo(os, data);
+		printTTokenTag();
 	}
 	void operator()(const BarzerDateTime &data) {
+		tag_raii td(os, "timestamp");
 		printTo(tag_raii(os, "timestamp"), data);
+		printTTokenTag();
 	}
 	void operator()(const BarzerRange &data) {
 
@@ -213,6 +247,7 @@ public:
 			os << ">";
 			RangeVisitor v(os);
 			boost::apply_visitor(v, data.dta);
+			printTTokenTag();
 			os << "</range>";
 		}
 
@@ -229,8 +264,10 @@ public:
 		} else if( euid.isTokIdValid() ) {
 			os << "INVALID_TOK[" << euid.eclass << "," << std::hex << euid.tokId << "]";
 		}
-		static const char *tmpl = "class=\"%1%\" subclass=\"%2%\" />";
+		static const char *tmpl = "class=\"%1%\" subclass=\"%2%\">";
 		os << boost::format(tmpl) % euid.eclass.ec % euid.eclass.subclass;
+		printTTokenTag();
+		os << "</entity>";
 	}
 
 
@@ -243,6 +280,7 @@ public:
 													 li != lst.end(); ++li) {
 			printEntity(*li);
 		}
+		printTTokenTag();
 		os << "</entlist>";
 	}
 
@@ -262,6 +300,7 @@ public:
 			os << "</unit>";
 		}
 		(*this)(data.getRange());
+		printTTokenTag();
 		os << "</erc>";
 	}
 	void operator()(const BarzerERCExpr &exp) {
@@ -271,7 +310,7 @@ public:
 													 it != list.end(); ++it) {
 			boost::apply_visitor(*this, *it);
 		}
-
+		printTTokenTag();
 		os << "</ercexpr>";
 	}
 	void operator()(const BarzelBeadBlank&) {}
@@ -313,6 +352,7 @@ public:
 													  it != selst.end(); ++it) {
 					boost::apply_visitor(*this, *it);
 				}
+				printTTokenTag();
 				os << "</" << tagname << ">";
 			} else os << " />";
 		} else AYLOG(ERROR) << "Unknown string id: " << data.sid;
@@ -328,12 +368,12 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 {
 	os << "<barz>\n";
 	const BarzelBeadChain &bc = barz.getBeads();
-	BeadVisitor v(os, universe);
 	CToken::SpellCorrections spellCorrections;
 
 	for (BeadList::const_iterator bli = bc.getLstBegin(); bc.isIterNotEnd(bli); ++bli) {
+		BeadVisitor v(os, universe, *bli);
 		boost::apply_visitor(v, bli->getBeadData());
-		v.clear();
+
 		//// accumulating spell corrections in spellCorrections vector 
 		const CTWPVec& ctoks = bli->getCTokens();
 		for( CTWPVec::const_iterator ci = ctoks.begin(); ci != ctoks.end(); ++ci ) {
