@@ -4,11 +4,11 @@
 
 
 <stmt>
-    <pat><t>moos</t><opt v="x"><t>boo</t></opt></pat>
+    <pat><t>moo</t><opt v="x"><t>boo</t></opt></pat>
     <tran>
         <or>
             <and>
-                <var name="x" />
+                <not><var name="x" /></not>
                 <ltrl>naaah</ltrl>
             </and>
             <ltrl>yaah</ltrl>
