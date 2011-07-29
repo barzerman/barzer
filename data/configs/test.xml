@@ -15,7 +15,11 @@
         <user id="0">
             <spell affx="/usr/share/hunspell/en_US.aff" maindict="/usr/share/hunspell/en_US.dic">
             </spell>            
-            <trieset> <trie class="post" name="fluff" /> </trieset>
+        
+            <trieset>
+                <trie class="" name="" />
+                <trie class="post" name="fluff" />
+            </trieset>
         </user>
     </users>
     <instance>

@@ -2,23 +2,8 @@
 <stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
     xmlns="http://www.barzer.net/barzel/0.1">
 
-
 <stmt>
-    <pat><t>foo</t></pat>
-    <tran>
-        <or>
-            <and>
-                <func name="opLt"><rn v="2" /><rn v="5" /><rn v="6" /></func>
-                <ltrl>bar</ltrl>
-            </and>
-            <ltrl>baz</ltrl>
-        </or>
-    </tran>
-</stmt>
-
-
-<stmt>
-    <pat><t>moo</t><opt v="x"><t>boo</t></opt></pat>
+    <pat><t>moos</t><opt v="x"><t>boo</t></opt></pat>
     <tran>
         <or>
             <and>

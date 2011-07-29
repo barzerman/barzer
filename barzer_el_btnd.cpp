@@ -460,6 +460,8 @@ std::ostream&  BTND_Rewrite_Logic::print( std::ostream& fp , const BELPrintConte
         fp << "AND";
     case OR:
         fp << "OR";
+    case NOT:
+        fp << "NOT";
     }
     return fp;
 }
