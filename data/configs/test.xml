@@ -18,7 +18,5 @@
             <trieset> <trie class="post" name="fluff" /> </trieset>
         </user>
     </users>
-    <instance>
-        <threads>4</threads>
-    </instance>
+    <instance> <threads>4</threads> </instance>
 </config>

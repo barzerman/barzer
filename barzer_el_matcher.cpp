@@ -1071,13 +1071,17 @@ int BarzelMatcher::matchAndRewrite( Barz& barz )
 			AYLOG(ERROR) << "Rewrite count circuit breaker hit .." << std::endl;
 			break;
 		}
-		//std::cerr << "**************** SHIT BEFORE {\n";
-		//AYDEBUG( beads.getFullRange() );
-		//std::cerr << "} **************** end SHIT BEFORE {\n";
+		/*
+		std::cerr << "**************** SHIT BEFORE {\n";
+		AYDEBUG( beads.getFullRange() );
+		std::cerr << "} **************** end SHIT BEFORE {\n";
+		*/
 		int rewrRc = rewriteUnit( rewrUnit, barz );
-		//std::cerr << "**************** SHIT AFTER {\n";
-		//AYDEBUG( beads.getFullRange() );
-		//std::cerr << "} **************** end SHIT AFTER {\n";
+		/*
+		std::cerr << "**************** SHIT AFTER {\n";
+		AYDEBUG( beads.getFullRange() );
+		std::cerr << "} **************** end SHIT AFTER {\n";
+		*/
 		if( rewrRc ) { // should never be the case
 			d_err.setFlag( Error::EF_RWRFAILS );
 			AYLOG(ERROR) << "rewrite failed"  << std::endl;
