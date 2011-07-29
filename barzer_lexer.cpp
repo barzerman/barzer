@@ -245,11 +245,12 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
 			BarzerHunspellInvoke spellChecker(d_universe.getHunspell(),d_universe.getGlobalPools());
 			std::string strToStem( ttok.buf, ttok.len );
 			const char* stem = spellChecker.stem( strToStem.c_str() );
-			if( stem )
+			if( stem && strToStem != stem)
 				ctok.stemTok = dtaIdx->getStoredToken( stem );
 		}
+		if( ctok.storedTok && ctok.stemTok == ctok.storedTok ) 
+			ctok.stemTok = 0;
 	}
-
 	return 0;
 }
 
