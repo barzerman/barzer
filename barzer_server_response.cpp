@@ -7,6 +7,7 @@
 
 #include <barzer_server_response.h>
 #include <ay/ay_logger.h>
+#include <ay/ay_raii.h>
 #include <sstream>
 #include <boost/format.hpp>
 #include <barzer_universe.h>
@@ -143,14 +144,16 @@ class BeadVisitor : public boost::static_visitor<> {
 	const StoredUniverse &universe;
 	const BarzelBead	&d_bead;
 	size_t lvl;
-	
+
+	bool d_ptintTtok;
 public:
 	BeadVisitor(std::ostream &s, const StoredUniverse &u, const BarzelBead& b) : 
-		os(s), universe(u), d_bead(b),  lvl(0) {}
+		os(s), universe(u), d_bead(b),  lvl(0), d_ptintTtok(true) {}
 
 	void printTTokenTag( )
 	{
-		if( lvl ) return;
+		if( !d_ptintTtok ) return;
+
 		const CTWPVec& ctoks = d_bead.getCTokens();
 		os << "<srctok>";
 		for( CTWPVec::const_iterator ci = ctoks.begin(); ci != ctoks.end(); ++ci ) {
@@ -246,7 +249,10 @@ public:
 		else {
 			os << ">";
 			RangeVisitor v(os);
+			{ /// 
+			ay::valkeep<bool> vk( d_ptintTtok, false );
 			boost::apply_visitor(v, data.dta);
+			}
 			printTTokenTag();
 			os << "</range>";
 		}
@@ -293,6 +299,8 @@ public:
 						         &unit = data.getUnitEntity();
 
 		os << "<erc>";
+		{ /// block 
+		ay::valkeep<bool> vk( d_ptintTtok, false );
 		(*this)(ent);
 		if (unit.isValid()) {
 			os << "<unit>";
@@ -300,16 +308,20 @@ public:
 			os << "</unit>";
 		}
 		(*this)(data.getRange());
+		} // end of block
 		printTTokenTag();
 		os << "</erc>";
 	}
 	void operator()(const BarzerERCExpr &exp) {
 		os << "<ercexpr type=\"" << exp.getTypeName() << "\">";
+		{ // the block
+		ay::valkeep<bool> vk( d_ptintTtok, false );
 		const BarzerERCExpr::DataList &list = exp.getData();
 		for (BarzerERCExpr::DataList::const_iterator it = list.begin();
 													 it != list.end(); ++it) {
 			boost::apply_visitor(*this, *it);
 		}
+		} // end of block 
 		printTTokenTag();
 		os << "</ercexpr>";
 	}
