@@ -96,7 +96,7 @@ public:
 	struct CurStatementData {
 		BELStatementParsed stmt;
 		std::string macroName;
-		std::string procName;
+		uint32_t procNameId;
 
 		enum {
 			BIT_HAS_PATTERN,
@@ -115,7 +115,7 @@ public:
 			STATE_TRANSLATION
 		} state;
 			
-		CurStatementData() : state(STATE_BLANK) {}
+		CurStatementData() : procNameId(0xffffffff), state(STATE_BLANK) {}
 		void clear(); 
 
 		std::stack< BELParseTreeNode* > nodeStack;
@@ -176,8 +176,8 @@ public:
 				nodeStack.pop(); 
 		}
 
-		void setProc(const char* s ) {
-			procName.assign(s);
+		void setProc(uint32_t strId ) {
+			procNameId = strId;
 			bits.set( BIT_IS_PROC );
 		}
 		void setMacro(const char* s ) {
@@ -189,6 +189,7 @@ public:
 		bool hasPattern() const { return bits[BIT_HAS_PATTERN];};
 		bool hasTranslation() const { return bits[BIT_HAS_TRANSLATION];};
 		bool isMacro() const { return bits[BIT_IS_MACRO];};
+		bool isProc() const { return bits[BIT_IS_PROC];};
 	} statement;
 
 	mutable std::string d_tmpText; // used by getElementText as a temp buffer

@@ -207,8 +207,7 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 			if( statement.isMacro() ) {
 				reader->addMacro( statement.macroName, statement.stmt );
 			} else if( statement.isProc() ) {
-				uint32_t storedProcNameId = reader->getGlobalPools().internString_internal( statement.procName.c_str() );
-				reader->addProc( storedProcNameId, statement.stmt );
+				reader->addProc( statement.procNameId, statement.stmt );
 			} if( statement.hasStatement() ) {
 				reader->addStatement( statement.stmt );
 			} 
@@ -228,11 +227,15 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 				AYLOG(ERROR) << "attempt to REDEFINE MACRO " << v  << " ignored";
 			}
 		case 'p':  // 
-			if( !getProcByName( std::string(v) )) {
-				statement.setProc(v); // p="PROCXXX"
+			{ // block
+			uint32_t procNameStrId = reader->getGlobalPools().internString_internal( v );
+
+			if( !getProcByName(procNameStrId)) {
+				statement.setProc(procNameStrId); // p="PROCXXX"
 			} else {
 				AYLOG(ERROR) << "attempt to REDEFINE Procedure " << v  << " ignored";
 			}
+			}  // end of block
 		case 'n':  // statement number
 			stmtNumber = atoi(v);
 			break;
@@ -1252,6 +1255,7 @@ int BELParserXML::getTag( const char* s ) const
 void BELParserXML::CurStatementData::clear()
 {
 	bits.clear();
+	procNameId = 0xffffffff;
 	state = STATE_BLANK;
 	stmt.translation.clear();
 	stmt.pattern.clear();
