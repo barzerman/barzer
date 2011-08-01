@@ -21,9 +21,15 @@ class BarzelTranslation;
 class BarzelRewriterPool {
 public:
 	typedef std::pair<const uint8_t*, uint32_t> BufAndSize;
-private:
 	typedef std::vector<uint8_t> byte_vec;
 	typedef std::vector< BufAndSize > BufAndSizeVec;
+	
+	inline static void byte_vec2bas( BufAndSizeVec& bas, byte_vec& bv ) 
+	{
+		bas.first = &(bv[0]);
+		bas.second = bv.size();
+	}
+private:
 	BufAndSizeVec encVec;
 
 	uint32_t poolNewBuf( const uint8_t* s, uint32_t sz )

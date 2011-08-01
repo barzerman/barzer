@@ -638,6 +638,25 @@ struct BarzelTranslation_set_visitor : public boost::static_visitor<> {
 
 } // anon namespace ends 
 
+int BarzelTranslation::encodeIt( BarzelRewriterPool::byte_vec& enc, BELTrie& trie, const BELParseTreeNode& tn ) 
+{
+	const BTND_RewriteData* rwrDta = tn.getTrivialRewriteData();
+	if( rwrDta ) {
+		BarzelTranslation_set_visitor vis( trie, *this  );
+		boost::apply_visitor( vis, *rwrDta );
+		return ENCOD_TRIVIAL;
+	} else { // non trivial rewrite 
+		if( !encodeParseTreeNode(enc,ptn) ) {
+			if( !enc.size() ) {
+				AYTRACE( "inconsistent encoding produced");
+				return ENCOD_FAILED;
+			} else
+				return ENCOD_REWRITE;
+		} 
+	}
+	return ENCOD_FAILED;
+}
+
 void BarzelTranslation::set( BELTrie& trie, const BELParseTreeNode& tn ) 
 {
 	/// diagnosing trivial rewrite usually root will have one childless child

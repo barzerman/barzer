@@ -63,22 +63,8 @@ struct CaseFinder : public boost::static_visitor<bool> {
     uint32_t id;
     CaseFinder(uint32_t i) : id(i) {}
     bool operator()(const BarzelEvalNode &l, uint32_t i) {
-        //AYLOGDEBUG(l.getBtnd().which());
         return boost::apply_visitor(*this, l.getBtnd());
     }
-    /*
-    bool operator()(const BTND_Rewrite_None &l) const {
-        AYLOG(DEBUG) << "none"; return false; }
-    bool operator()(const BTND_Rewrite_Literal) const { AYLOG(DEBUG) << "lit";return false; }
-    bool operator()(const BTND_Rewrite_Number) const { AYLOG(DEBUG) << "num";return false; }
-    bool operator()(const BTND_Rewrite_Variable) const { AYLOG(DEBUG) << "var";return false; }
-    bool operator()(const BTND_Rewrite_Function) const { AYLOG(DEBUG) << "fun";return false; }
-    bool operator()(const BTND_Rewrite_DateTime) const { AYLOG(DEBUG) << "dt";return false; }
-    bool operator()(const BTND_Rewrite_Range) const { AYLOG(DEBUG) << "ran";return false; }
-    bool operator()(const BTND_Rewrite_EntitySearch) const { AYLOG(DEBUG) << "es";return false; }
-    bool operator()(const BTND_Rewrite_MkEnt) const { AYLOG(DEBUG) << "mkent";return false; }
-    bool operator()(const BTND_Rewrite_Select) const { AYLOG(DEBUG) << "sel";return false; }
- */
 
     template<class T> bool operator()(const T&) {
         AYLOG(DEBUG) << "unknown";

@@ -224,6 +224,12 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 			} else {
 				AYLOG(ERROR) << "attempt to REDEFINE MACRO " << v  << " ignored";
 			}
+		case 'p':  // 
+			if( !getProcByName( std::string(v) )) {
+				statement.setProc(v); // p="PROCXXX"
+			} else {
+				AYLOG(ERROR) << "attempt to REDEFINE Procedure " << v  << " ignored";
+			}
 		case 'n':  // statement number
 			stmtNumber = atoi(v);
 			break;
@@ -281,13 +287,9 @@ struct BTND_text_visitor_base  : public boost::static_visitor<> {
 	BELParserXML& d_parser;
 	const char* d_str;
 	int d_len;
-	/*
-	StoredUniverse& getUniverse() { return d_parser.getUniverse(); }
-	const StoredUniverse& getUniverse() const { return d_parser.getUniverse(); }
-	*/
+
 	GlobalPools& getGlobalPoools() { return d_parser.getGlobalPools(); }
 	const GlobalPools& getGlobalPoools() const { return d_parser.getGlobalPools(); }
-
 
 	bool isAnalyticalMode() const
 	//{ return getUniverse().isAnalyticalMode(); }

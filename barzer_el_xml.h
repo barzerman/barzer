@@ -101,7 +101,8 @@ public:
 			BIT_HAS_PATTERN,
 			BIT_HAS_TRANSLATION,
 			BIT_HAS_STATEMENT,
-			BIT_IS_MACRO,
+			BIT_IS_MACRO,  // is macro (no translation - pattern only)
+			BIT_IS_PROC,   // is "stored procedure" - all translation, no pattern
 			BIT_IS_INVALID,
 
 			BIT_MAX
@@ -172,6 +173,11 @@ public:
 		{ 
 			if( !nodeStack.empty() ) 
 				nodeStack.pop(); 
+		}
+
+		void setProc(const char* s ) {
+			procName.assign(s);
+			bits.set( BIT_IS_PROC );
 		}
 		void setMacro(const char* s ) {
 			macroName.assign(s);

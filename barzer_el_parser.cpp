@@ -10,6 +10,11 @@
 namespace barzer {
 
 
+const BELParseTreeNode* BELParser::getProcByName( const std::string& proc ) const
+{
+	const BELTrie& trie = reader->getTrie();
+	return trie.getProcs().getProc( procname );
+}
 const BELParseTreeNode* BELParser::getMacroByName( const std::string& macroname ) const
 {
 	const BELTrie& trie = reader->getTrie();

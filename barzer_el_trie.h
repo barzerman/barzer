@@ -223,6 +223,15 @@ public:
 		id = i;
 	}
 
+	enum {
+		ENCOD_FAILED = -1,
+
+		ENCOD_REWRITER=0,
+		ENCOD_TRIVIAL
+	};
+	/// returns one of th ENCOD_XXX constants
+	int encodeIt( BarzelRewriterPool::byte_vec& enc, BELTrie& trie, const BELParseTreeNode& );
+
 	void set( BELTrie& trie, const BELParseTreeNode& );
 
 	void setStop() { type = T_STOP; }
@@ -435,7 +444,10 @@ public:
 	~BELTrie();
 	BELTrie( GlobalPools& gp );
 	BarzelMacros macros;
+	BarzelProcs procs;
 
+	const BarzelProcs& getProcs() const { return  procs; }
+	BarzelProcs& getProcs() { return  procs; }
 	const BarzelMacros& getMacros() const { return  macros; }
 	BarzelMacros& getMacros() { return  macros; }
 

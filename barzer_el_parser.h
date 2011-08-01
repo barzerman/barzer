@@ -90,6 +90,7 @@ public:
 	const  GlobalPools& getGlobalPools() const;
 	
 	const BELParseTreeNode* getMacroByName( const std::string&  ) const;
+	const BELParseTreeNode* getProcByName( const std::string&  ) const;
 };
 
 //// the reader gets barzel code from a file 
