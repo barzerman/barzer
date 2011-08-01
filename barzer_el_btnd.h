@@ -1059,21 +1059,6 @@ struct BELParseTreeNode {
 	std::ostream& printBarzelXML( std::ostream& fp, const BELTrie&  ) const;
 };
 
-/// barzel procs (stored procedures) 
-class BarzelProcs {
-	typedef std::map< std::string, BELParseTreeNode >  ProcMap;
-	ProcMap d_procMap;
-	
-public:
-	BELParseTreeNode& addProc( const std::string& proc )
-		{ return d_procMap[ proc ]; }
-	const BELParseTreeNode* getProc( const std::string& proc ) const
-	{
-		ProcMap::const_iterator i = d_procMap.find( proc );
-		return ( i == d_procMap.end() ? 0: &(i->second) );
-	}
-};
-
 /// barzel macros 
 class BarzelMacros {
 	typedef std::map< std::string, BELParseTreeNode >  MacroMap;

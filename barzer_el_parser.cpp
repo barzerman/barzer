@@ -10,10 +10,10 @@
 namespace barzer {
 
 
-const BELParseTreeNode* BELParser::getProcByName( const std::string& proc ) const
+const BarzelEvalNode* BELParser::getProcByName( uint32_t strId ) const
 {
 	const BELTrie& trie = reader->getTrie();
-	return trie.getProcs().getProc( procname );
+	return trie.getProcs().getEvalNode( strId );
 }
 const BELParseTreeNode* BELParser::getMacroByName( const std::string& macroname ) const
 {
@@ -97,15 +97,17 @@ BELReader::BELReader( GlobalPools &g ) :
 
 void BELReader::setTrie( const std::string& trieClass, const std::string& trieId )
 {
-	//trie = &(universe.produceTrie( trieClass, trieId ));
 	trie = &(gp.globalTriePool.produceTrie( trieClass, trieId ));
 }
 std::ostream& BELReader::printNode( std::ostream& fp, const BarzelTrieNode& node ) const 
 {
 	BELPrintFormat fmt;
-	//BELPrintContext ctxt( *trie, universe.getStringPool(), fmt );
 	BELPrintContext ctxt( *trie, gp.getStringPool(), fmt );
 	return node.print( fp, ctxt );
+}
+void BELReader::addProc( uint32_t strId, const BELStatementParsed& sp )
+{
+	getTrie().getProcs().generateStoredProc( strId, sp.translation );
 }
 void BELReader::addMacro( const std::string& macroName, const BELStatementParsed& sp )
 {
@@ -120,7 +122,6 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 
 	int i = 0, j = 0;
 	ay::stopwatch totalTimer;
-	//const StoredUniverse& universe = getUniverse();
 	const GlobalPools &gp = getGlobalPools();
 	do {
 

@@ -18,6 +18,7 @@ std::ostream& glob_printRewriterByteCode( std::ostream& fp, const BarzelRewriter
 }
 } // end of anon namespace 
 
+BELTrie::BELTrie( const BELTrie& a ) : globalPools(a.globalPools), procs(*this) {}
 BELTrie::~BELTrie( )
 {
 	delete d_wcPool;
@@ -30,7 +31,8 @@ BELTrie::BELTrie( GlobalPools& gp ) :
 	d_rewrPool(0),
 	d_wcPool(0),
 	d_fcPool(0),
-	d_tranPool(0)
+	d_tranPool(0),
+	procs(*this)
 {
 	initPools();
 }
@@ -646,12 +648,12 @@ int BarzelTranslation::encodeIt( BarzelRewriterPool::byte_vec& enc, BELTrie& tri
 		boost::apply_visitor( vis, *rwrDta );
 		return ENCOD_TRIVIAL;
 	} else { // non trivial rewrite 
-		if( !encodeParseTreeNode(enc,ptn) ) {
+		if( !BarzelRewriterPool::encodeParseTreeNode(enc,tn) ) {
 			if( !enc.size() ) {
 				AYTRACE( "inconsistent encoding produced");
 				return ENCOD_FAILED;
 			} else
-				return ENCOD_REWRITE;
+				return ENCOD_REWRITER;
 		} 
 	}
 	return ENCOD_FAILED;

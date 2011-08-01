@@ -991,7 +991,7 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 		}
 
 		/// constructing eval tree
-		if( !evalNode.growTree( bas, ctxt ) ) {
+		if( !evalNode.growTree( bas, ctxt.err ) ) {
 			AYLOG(ERROR) << "eval tree construction failed" << std::endl;
 			theBead.setStopLiteral();
 			return 0;

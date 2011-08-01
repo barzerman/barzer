@@ -24,7 +24,7 @@ public:
 	typedef std::vector<uint8_t> byte_vec;
 	typedef std::vector< BufAndSize > BufAndSizeVec;
 	
-	inline static void byte_vec2bas( BufAndSizeVec& bas, byte_vec& bv ) 
+	inline static void byte_vec2bas( BufAndSize& bas, byte_vec& bv ) 
 	{
 		bas.first = &(bv[0]);
 		bas.second = bv.size();
@@ -40,8 +40,8 @@ private:
 		return (encVec.size() -1);
 	}
 
-	int  encodeParseTreeNode( BarzelRewriterPool::byte_vec& trans, const BELParseTreeNode& ptn ) const;
 public:
+	static int  encodeParseTreeNode( BarzelRewriterPool::byte_vec& trans, const BELParseTreeNode& ptn );
 	void clear();
 	~BarzelRewriterPool();
 	BarzelRewriterPool( size_t reserveSz ) 
@@ -153,7 +153,7 @@ protected:
 public:
 	typedef std::pair< const uint8_t*, const uint8_t* > ByteRange;
 private:
-	const uint8_t* growTree_recursive( ByteRange& brng, BarzelEvalContext& ctxt );
+	const uint8_t* growTree_recursive( ByteRange& brng, int& ctxtErr );
 	
 public:
 	BTND_RewriteData& getBtnd() { return d_btnd; }
@@ -167,10 +167,10 @@ public:
 
 	/// construct the tree from the byte buffer created in encode ... 
 	/// returns true is tree was constructed successfully
-	bool growTree( const BarzelRewriterPool::BufAndSize& bas, BarzelEvalContext& ctxt )
+	bool growTree( const BarzelRewriterPool::BufAndSize& bas, int& ctxtErr )
 	{
 		ByteRange brng( bas.first, bas.first+ bas.second );
-		return( growTree_recursive( brng, ctxt ) !=0 ) ;
+		return( growTree_recursive( brng, ctxtErr ) !=0 ) ;
 	}
 	/// returns true if evaluation is successful 
 	bool eval(BarzelEvalResult&, BarzelEvalContext& ctxt ) const;

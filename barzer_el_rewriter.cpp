@@ -84,7 +84,7 @@ bool  BarzelRewriterPool::isRewriteFallible( const BarzelRewriterPool::BufAndSiz
 	return fallible.isThatSo;
 }
 
-int  BarzelRewriterPool::encodeParseTreeNode( BarzelRewriterPool::byte_vec& trans, const BELParseTreeNode& ptn ) const
+int  BarzelRewriterPool::encodeParseTreeNode( BarzelRewriterPool::byte_vec& trans, const BELParseTreeNode& ptn ) 
 {
 	// for every node push node_start_byte, then BTND_Rewrite (the whole variant) (otn.getNodeData() ) - memcpy, then node end byte
 
@@ -449,39 +449,33 @@ bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) cons
 
 }
 
-const uint8_t* BarzelEvalNode::growTree_recursive( BarzelEvalNode::ByteRange& brng, BarzelEvalContext& ctxt )
+const uint8_t* BarzelEvalNode::growTree_recursive( BarzelEvalNode::ByteRange& brng, int& ctxtErr )
 {
-	//AYLOG(DEBUG) << "growTree_recursive called";
 	const uint8_t* buf = brng.first;
 	const uint16_t childStep_sz = 1 + sizeof(BTND_RewriteData);
-	//uint8_t tmp[ sizeof(BTND_RewriteData) ];
 	for( ; buf < brng.second; ++buf) {
 
 		switch( *buf ) {
 		case barzel::RWR_NODE_START: {
 			if( buf + childStep_sz >= brng.second ) 
-				return ctxt.setErr_GROW();
+				return ( ctxtErr = BarzelEvalContext::EVALERR_GROW, (const uint8_t*)0 );
 
-			//memcpy( tmp, buf+1, sizeof(tmp) );
 			BTND_RewriteData *rdp = (BTND_RewriteData*)(buf+1);
-			//AYLOG(DEBUG) << rdp->which();
 			d_child.push_back(*rdp);
-			//d_child.push_back( *(new(tmp) BTND_RewriteData()) );
 
 			BarzelEvalNode::ByteRange childRange( (buf + childStep_sz ), brng.second);
-			buf = d_child.back().growTree_recursive( childRange, ctxt );
+			buf = d_child.back().growTree_recursive( childRange, ctxtErr );
 			if( !buf ) 
-				return ctxt.setErr_GROW();
+				return ( ctxtErr = BarzelEvalContext::EVALERR_GROW, (const uint8_t*)0 );
 		}
 			break;
 		case barzel::RWR_NODE_END:
-			return buf;
+			return ( ctxtErr = BarzelEvalContext::EVALERR_OK, buf );
 		default:
-			return ctxt.setErr_GROW();
+			return ( ctxtErr = BarzelEvalContext::EVALERR_GROW, (const uint8_t*)0 );
 		}
 	}
-	return buf; // i'm honestly not sure this is what should be returned
-	//return 0;
+	return ( ctxtErr = BarzelEvalContext::EVALERR_OK, buf ); 
 }
 
 namespace {

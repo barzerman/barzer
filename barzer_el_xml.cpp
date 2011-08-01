@@ -206,7 +206,10 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 		} else {
 			if( statement.isMacro() ) {
 				reader->addMacro( statement.macroName, statement.stmt );
-			} else if( statement.hasStatement() ) {
+			} else if( statement.isProc() ) {
+				uint32_t storedProcNameId = reader->getGlobalPools().internString_internal( statement.procName.c_str() );
+				reader->addProc( storedProcNameId, statement.stmt );
+			} if( statement.hasStatement() ) {
 				reader->addStatement( statement.stmt );
 			} 
 		}

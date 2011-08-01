@@ -96,6 +96,7 @@ public:
 	struct CurStatementData {
 		BELStatementParsed stmt;
 		std::string macroName;
+		std::string procName;
 
 		enum {
 			BIT_HAS_PATTERN,

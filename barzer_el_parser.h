@@ -61,6 +61,7 @@ struct BELStatementParsed {
 
 class BELReader;
 class BELTrie;
+class BarzelEvalNode;
 class BELParser {
 protected:
 	BELReader* reader; // parser doesnt own this pointer. reader owns the parser
@@ -90,7 +91,8 @@ public:
 	const  GlobalPools& getGlobalPools() const;
 	
 	const BELParseTreeNode* getMacroByName( const std::string&  ) const;
-	const BELParseTreeNode* getProcByName( const std::string&  ) const;
+	/// strId is internal token id of the proc name 
+	const BarzelEvalNode* getProcByName( uint32_t strId ) const;
 };
 
 //// the reader gets barzel code from a file 
@@ -148,6 +150,8 @@ public:
 	/// this method is called by the parser for every statement tree 
 	virtual void addStatement( const BELStatementParsed& );
 	virtual void addMacro( const std::string& macro, const BELStatementParsed& );
+	/// strId is the id of an internal string representing the procedure name
+	virtual void addProc( uint32_t strId, const BELStatementParsed& );
 
 	BELParser*  initParser(InputFormat fmt );
 	int  loadFromStream( std::istream& fp );
