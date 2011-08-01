@@ -127,9 +127,14 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 {
 	const char* t = ttok.buf;
 
-	bool isAsciiToken = ttok.isAscii();
 
 	const char* bestSugg = 0;
+	if( d_universe.isStringUserSpecific(t) ) {
+		ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
+		return 1;
+	}
+
+	bool isAsciiToken = ttok.isAscii();
 	if( isAsciiToken && ttok.len > MIN_SPELL_CORRECT_LEN ) {
 		BarzerHunspellInvoke spellChecker(d_universe.getHunspell(),d_universe.getGlobalPools());
 		ay::LevenshteinEditDistance& editDist = spellChecker.getEditDistanceCalc();
