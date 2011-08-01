@@ -28,6 +28,7 @@ struct tag_raii {
 		os << "<" << tag << ">";
 		tags.push_back(tag);
 	}
+
 	~tag_raii() {
 		size_t i = tags.size();
 		while(i--) {
@@ -37,6 +38,16 @@ struct tag_raii {
 	}
 };
 
+bool isBlank(const BarzelBead &bead) {
+    if (bead.isBlank()) return true;
+    try {
+        const BarzelBeadAtomic &atm = boost::get<BarzelBeadAtomic>(bead.getBeadData());
+        const BarzerLiteral &ltrl = boost::get<BarzerLiteral>(atm.getData());
+        return ltrl.isBlank();
+    } catch (boost::bad_get) {
+        return false;
+    }
+}
 
 // need to find an xml library for this kind of stuff
 static std::ostream& xmlEscape(const char *src,  std::ostream &os) {
@@ -116,19 +127,21 @@ public:
 		lohi(data.first, data.second) << "</num>";
 	}
 	void operator()(const BarzerRange::TimeOfDay &data) {
-		os << "<time>";
+		tag_raii t(os, "time");
 		lohi(data);
-		os << "</time>";
+		//os << "</time>";
 	}
 	void operator()(const BarzerRange::Date &data) {
-		os << "<date>";
+		//os << "<date>";
+	    tag_raii d(os, "date");
 		lohi(data);
-		os << "</date>";
+		//os << "</date>";
 	}
 	void operator()(const BarzerRange::DateTime &data) {
-		os << "<timestamp>";
+		//os << "<timestamp>";
+	    tag_raii ts(os, "timestamp");
 		lohi(data);
-		os << "</timestamp>";
+		//os << "</timestamp>";
 	}
 	void operator()(const BarzerRange::Entity &data) {
 		os << "<entrange>";
@@ -139,7 +152,7 @@ public:
 
 };
 
-class BeadVisitor : public boost::static_visitor<> {
+class BeadVisitor : public boost::static_visitor<bool> {
 	std::ostream &os;
 	const StoredUniverse &universe;
 	const BarzelBead	&d_bead;
@@ -167,7 +180,7 @@ public:
 		}	
 		os << "</srctok>";
 	}
-	void operator()(const BarzerLiteral &data) {
+	bool operator()(const BarzerLiteral &data) {
 		//AYLOG(DEBUG) << "BarzerLiteral";
 		switch(data.getType()) {
 		case BarzerLiteral::T_STRING:
@@ -177,7 +190,7 @@ public:
 				const char *cstr = universe.getStringPool().resolveId(data.getId());
 				if (cstr) xmlEscape(cstr, os);
 				else AYLOG(ERROR) << "Illegal literal ID: " << std::hex << data.getId();
-				printTTokenTag();
+				//printTTokenTag();
 				os << "</token>";
 			}
 			break;
@@ -185,13 +198,13 @@ public:
 			{
 				if (data.getId() == INVALID_STORED_ID) {
 					os << "<fluff>";
-					printTTokenTag();
+					//printTTokenTag();
 					os << "</fluff>";
 				} else {
 					const char *cstr = universe.getStringPool().resolveId(data.getId());
 					if (cstr) {
 						xmlEscape(cstr, os << "<fluff>");
-						printTTokenTag();
+						//printTTokenTag();
 						os << "</fluff>";
 					} 
 					else AYLOG(ERROR) << "Illegal literal(STOP) ID: " << std::hex << data.getId();
@@ -208,41 +221,50 @@ public:
 			break;
 		case BarzerLiteral::T_BLANK:
 			//os << "<blank />";
+		    return false;
 			break;
 		default:
 			AYLOG(ERROR) << "Unknown literal type";
 			os << "<error>unknown literal type</error>";
 		}
+		return true;
 	}
-	void operator()(const BarzerString &data) {
-		xmlEscape(data.getStr(), os << "<token>");
-		printTTokenTag();
-		os << "</token>";
+	bool operator()(const BarzerString &data) {
+	    tag_raii tok(os, "token");
+		//xmlEscape(data.getStr(), os << "<token>");
+	    xmlEscape(data.getStr(), tok);
+		//printTTokenTag();
+		//os << "</token>";
+	    return true;
 	}
-	void operator()(const BarzerNumber &data) {
+	bool operator()(const BarzerNumber &data) {
 		const char *type =  data.isReal() ? "real" : (data.isInt() ? "int" : "NaN");
 		data.print(os << "<num t=\"" << type << "\">");
-		printTTokenTag();
+		//printTTokenTag();
 		os << "</num>";
+		return true;
 	}
-	void operator()(const BarzerDate &data) {
+	bool operator()(const BarzerDate &data) {
 		//printTo(os << "<date>", data) << "</date>";
 		tag_raii td(os,"date");
 		printTo(os,data);
-		printTTokenTag();
+		//printTTokenTag();
+		return true;
 	}
-	void operator()(const BarzerTimeOfDay &data) {
+	bool operator()(const BarzerTimeOfDay &data) {
 
 		tag_raii td(os, "time");
 		printTo(os, data);
-		printTTokenTag();
+		//printTTokenTag();
+		return true;
 	}
-	void operator()(const BarzerDateTime &data) {
+	bool operator()(const BarzerDateTime &data) {
 		tag_raii td(os, "timestamp");
 		printTo(tag_raii(os, "timestamp"), data);
-		printTTokenTag();
+		//printTTokenTag();
+		return true;
 	}
-	void operator()(const BarzerRange &data) {
+	bool operator()(const BarzerRange &data) {
 
 		os << "<range order=\"" << (data.isAsc() ? "ASC" : "DESC") <<  "\"";
 		if (data.isBlank()) os << " />";
@@ -250,13 +272,13 @@ public:
 			os << ">";
 			RangeVisitor v(os);
 			{ /// 
-			ay::valkeep<bool> vk( d_ptintTtok, false );
+			//ay::valkeep<bool> vk( d_ptintTtok, false );
 			boost::apply_visitor(v, data.dta);
 			}
-			printTTokenTag();
+			//printTTokenTag();
 			os << "</range>";
 		}
-
+		return true;
 	}
 
 	void printEntity(const BarzerEntity &euid) {
@@ -270,49 +292,55 @@ public:
 		} else if( euid.isTokIdValid() ) {
 			os << "INVALID_TOK[" << euid.eclass << "," << std::hex << euid.tokId << "]";
 		}
-		static const char *tmpl = "class=\"%1%\" subclass=\"%2%\">";
+		static const char *tmpl = "class=\"%1%\" subclass=\"%2%\" />";
 		os << boost::format(tmpl) % euid.eclass.ec % euid.eclass.subclass;
-		printTTokenTag();
-		os << "</entity>";
+		//printTTokenTag();
+		//os << "</entity>";
 	}
 
 
 
 	// not sure how to properly deconstruct this yet
-	void operator()(const BarzerEntityList &data) {
-		os << "<entlist>";
+	bool operator()(const BarzerEntityList &data) {
+		//os << "<entlist>";
+	    tag_raii el(os, "entlist");
 		const BarzerEntityList::EList &lst = data.getList();
 		for (BarzerEntityList::EList::const_iterator li = lst.begin();
 													 li != lst.end(); ++li) {
 			printEntity(*li);
 		}
-		printTTokenTag();
-		os << "</entlist>";
+		//printTTokenTag();
+		//os << "</entlist>";
+		return true;
 	}
 
-	void operator()(const BarzerEntity &data) {
+	bool operator()(const BarzerEntity &data) {
 		printEntity(data);
+		return true;
 	}
 
-	void operator()(const BarzerEntityRangeCombo &data) {
+	bool operator()(const BarzerEntityRangeCombo &data) {
 		const StoredEntityUniqId &ent = data.getEntity(),
 						         &unit = data.getUnitEntity();
 
-		os << "<erc>";
+		//os << "<erc>";
+		tag_raii erctag(os, "erc");
 		{ /// block 
-		ay::valkeep<bool> vk( d_ptintTtok, false );
+		//ay::valkeep<bool> vk( d_ptintTtok, false );
 		(*this)(ent);
 		if (unit.isValid()) {
-			os << "<unit>";
+			//os << "<unit>";
+		    tag_raii unittag(os, "unit");
 			(*this)(unit);
-			os << "</unit>";
+			//os << "</unit>";
 		}
 		(*this)(data.getRange());
 		} // end of block
-		printTTokenTag();
-		os << "</erc>";
+		//printTTokenTag();
+		//os << "</erc>";
+		return true;
 	}
-	void operator()(const BarzerERCExpr &exp) {
+	bool operator()(const BarzerERCExpr &exp) {
 		os << "<ercexpr type=\"" << exp.getTypeName() << "\">";
 		{ // the block
 		ay::valkeep<bool> vk( d_ptintTtok, false );
@@ -322,16 +350,17 @@ public:
 			boost::apply_visitor(*this, *it);
 		}
 		} // end of block 
-		printTTokenTag();
+		//printTTokenTag();
 		os << "</ercexpr>";
+		return true;
 	}
-	void operator()(const BarzelBeadBlank&) {}
-	void operator()(const BarzelBeadAtomic &data)
+	bool operator()(const BarzelBeadBlank&)
+	    { return false; }
+	bool operator()(const BarzelBeadAtomic &data)
 	{
 		//AYLOG(DEBUG) << "atomic: " << data.getType();
 		os << "    ";
-		boost::apply_visitor(*this, data.getData());
-		os << "\n";
+		return boost::apply_visitor(*this, data.getData());
 	}
 
 	typedef BarzelBeadExpression BBE; // sorry!
@@ -349,7 +378,7 @@ public:
 		 }
 	}
 
-	void operator()(const BarzelBeadExpression &data)
+	bool operator()(const BarzelBeadExpression &data)
 	{
 		tag_raii tr(os);
 		if (!(lvl++)) tr.push("expr");
@@ -364,10 +393,11 @@ public:
 													  it != selst.end(); ++it) {
 					boost::apply_visitor(*this, *it);
 				}
-				printTTokenTag();
+				//printTTokenTag();
 				os << "</" << tagname << ">";
 			} else os << " />";
 		} else AYLOG(ERROR) << "Unknown string id: " << data.sid;
+		return true;
 		//os << "</expression>";
 	}
 	void clear() {
@@ -376,15 +406,27 @@ public:
 };
 }
 
+
+
 std::ostream& BarzStreamerXML::print(std::ostream &os)
 {
-	os << "<barz>\n";
+	os << "<barz>";
 	const BarzelBeadChain &bc = barz.getBeads();
 	CToken::SpellCorrections spellCorrections;
 
 	for (BeadList::const_iterator bli = bc.getLstBegin(); bc.isIterNotEnd(bli); ++bli) {
-		BeadVisitor v(os, universe, *bli);
-		boost::apply_visitor(v, bli->getBeadData());
+	    if (!isBlank(*bli)) {
+	        os << "\n";
+	        tag_raii beadtag(os, "bead");
+	        os << "\n";
+	        BeadVisitor v(os, universe, *bli);
+	        if (boost::apply_visitor(v, bli->getBeadData())) {
+	            os << "\n    ";
+	            v.printTTokenTag();
+	        }
+	        os << "\n";
+	    }
+
 
 		//// accumulating spell corrections in spellCorrections vector 
 		const CTWPVec& ctoks = bli->getCTokens();
