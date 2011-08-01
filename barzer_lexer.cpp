@@ -129,10 +129,6 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 
 
 	const char* bestSugg = 0;
-	if( d_universe.isStringUserSpecific(t) ) {
-		ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
-		return 1;
-	}
 
 	bool isAsciiToken = ttok.isAscii();
 	if( isAsciiToken && ttok.len > MIN_SPELL_CORRECT_LEN ) {
@@ -162,7 +158,8 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 						/// 
 						ctok.storedTok = storedTok;
 						ctok.syncClassInfoFromSavedTok();
-						ctok.addSpellingCorrection( t, curSugg );
+						if( strcmp(t,curSugg) )
+							ctok.addSpellingCorrection( t, curSugg );
 						return 0;
 					} else if( !bestSugg ) {
 						if( d_universe.isStringUserSpecific(curSugg) ) 
@@ -182,18 +179,21 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 					/// 
 					ctok.storedTok = storedTok;
 					ctok.syncClassInfoFromSavedTok();
-					ctok.addSpellingCorrection( t, stem );
+					if( strcmp(t,stem) ) 
+						ctok.addSpellingCorrection( t, stem );
 					return 1;
 				}
 				if( d_universe.isStringUserSpecific(stem) ) { 
 					ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
-					ctok.addSpellingCorrection( t, stem );
+					if( strcmp(t,stem) ) 
+						ctok.addSpellingCorrection( t, stem );
 					return 1;
 				}
 			}
 		} else {
 			ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
-			ctok.addSpellingCorrection( t, bestSugg );
+			if( strcmp(t, bestSugg) )
+				ctok.addSpellingCorrection( t, bestSugg );
 		}
 	} else {
 		/// non-ascii spell checking logic should go here 
