@@ -5,13 +5,13 @@
 namespace barzer {
 
 
-int BarzelProcs::callStoredProc( uint32_t nameStrId, BarzelEvalResult& transResult, BarzelEvalContext& ctxt )
+int BarzelProcs::callStoredProc( uint32_t nameStrId, BarzelEvalResult& transResult, BarzelEvalContext& ctxt,const BarzelEvalResultVec& inputArgs )
 {
 	const BarzelEvalNode* evalNode = getEvalNode( nameStrId );
 	if( !evalNode ) 
 		return ERR_CALL_BADNAME;
 	
-	return( evalNode->eval( transResult, ctxt ) ? ERR_CALL_FAIL : ERR_OK );
+	return( evalNode->eval( transResult, ctxt, inputArgs ) ? ERR_CALL_FAIL : ERR_OK );
 }
 int BarzelProcs::generateStoredProc( uint32_t nameStrId, const BELParseTreeNode& ptn )
 {

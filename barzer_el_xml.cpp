@@ -1001,6 +1001,12 @@ void BELParserXML::taghandle_VAR( const char_cp * attr, size_t attr_sz , bool cl
 		const char* v = attr[i+1]; // attr value
 
 		switch( n[0] ) {
+		case 'a': { // <var arg="1"/> positional argument (for proc calls)
+			int num  = atoi(v);
+			if( num >= 0 ) 
+				var.setPosArg(num);
+		}
+			break;
 		case 'g': { // <var gn="1"/> gap number - if pattern is a * b c * d gn[1] is a, gn[2] = (b c), gn[3] = 3 
 			int num  = atoi(v);
 			if( num > 0 ) 

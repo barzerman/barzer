@@ -313,7 +313,7 @@ struct BELFunctionStorage_holder {
 	// stored functions
 	#define STFUN(n) bool stfun_##n( BarzelEvalResult &result,\
 							        const BarzelEvalResultVec &rvec,\
-							        const StoredUniverse &q_universe) const
+							        const StoredUniverse &q_universe, const BarzelEvalResultVec&) const
 
     #define SETSIG(x) const char *sig = #x
 	#define FERROR(x) AYLOG(ERROR) << sig << ": " << #x
@@ -1535,7 +1535,7 @@ BELFunctionStorage::~BELFunctionStorage()
 
 bool BELFunctionStorage::call(const char *fname, BarzelEvalResult &er,
 		                                   const BarzelEvalResultVec &ervec,
-		                                   const StoredUniverse &u) const
+		                                   const StoredUniverse &u, const BarzelEvalResultVec& inputArgs) const
 {
 	//AYLOG(DEBUG) << "calling function name `" << fname << "'";
 	const uint32_t fid = globPools.stringPool.getId(fname);
@@ -1543,12 +1543,12 @@ bool BELFunctionStorage::call(const char *fname, BarzelEvalResult &er,
 		AYLOG(ERROR) << "No such function name: `" << fname << "'";
 		return false;
 	}
-	return call(fid, er, ervec, u);
+	return call(fid, er, ervec, u, inputArgs );
 }
 
 bool BELFunctionStorage::call(const uint32_t fid, BarzelEvalResult &er,
 									              const BarzelEvalResultVec &ervec,
-									              const StoredUniverse &u) const
+									              const StoredUniverse &u, const BarzelEvalResultVec& inputArgs) const
 {
 	//AYLOG(DEBUG) << "calling function id `" << fid << "'";
 	const BELStoredFunMap::const_iterator frec = holder->funmap.find(fid);
@@ -1556,7 +1556,7 @@ bool BELFunctionStorage::call(const uint32_t fid, BarzelEvalResult &er,
 		AYLOG(ERROR) << "No such function id: " << fid;
 		return false;
 	}
-	return frec->second(holder, er, ervec, u);
+	return frec->second(holder, er, ervec, u, inputArgs);
 
 }
 

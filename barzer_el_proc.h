@@ -61,7 +61,7 @@ public:
 	// returns one of the ERR_XXX constants (ERR_OK or 0 when new stored proc was created 
 	// and no errors encountered)
 	int generateStoredProc( uint32_t nameStrId, const BELParseTreeNode& );
-	int callStoredProc( uint32_t nameStrId, BarzelEvalResult& transResult, BarzelEvalContext& ctxt );
+	int callStoredProc( uint32_t nameStrId, BarzelEvalResult& transResult, BarzelEvalContext& ctxt, const BarzelEvalResultVec& inputArgs );
 };
 
 } // barzer namespace ends 

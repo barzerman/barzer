@@ -1002,7 +1002,8 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 		// creating a childless evalNode 
 		translation.fillRewriteData( evalNode.getBtnd() );
 	}
-	if( !evalNode.eval( transResult, ctxt ) ) {
+	BarzelEvalResultVec inputArgs;
+	if( !evalNode.eval( transResult, ctxt, inputArgs ) ) {
 		AYLOG(ERROR) << "evaluation failed" << std::endl;
 		theBead.setStopLiteral();
 		return 0;
