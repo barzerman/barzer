@@ -5,12 +5,14 @@ FIND_PATH(HUNSPELL_INCLUDE_DIR hunspell.hxx
     /usr/include
     /opt/include
     /opt/include/hunspell
+    /opt/local/include
+    /opt/local/include/hunspell
 )
 
 SET(HUNSPELL_NAMES ${HUNSPELL_NAMES} hunspell hunspell-1.2 hunspell-1.3)
 FIND_LIBRARY(HUNSPELL_LIBRARY
     NAMES ${HUNSPELL_NAMES}
-    PATHS /usr/lib /usr/local/lib /opt/lib
+    PATHS /usr/lib /usr/local/lib /opt/lib /opt/local/lib
 )
 
 IF(HUNSPELL_LIBRARY AND HUNSPELL_INCLUDE_DIR)
