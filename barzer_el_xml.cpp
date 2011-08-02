@@ -208,7 +208,7 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 				reader->addMacro( statement.macroName, statement.stmt );
 			} else if( statement.isProc() ) {
 				reader->addProc( statement.procNameId, statement.stmt );
-			} if( statement.hasStatement() ) {
+			} else if( statement.hasStatement() ) {
 				reader->addStatement( statement.stmt );
 			} 
 		}
@@ -1040,7 +1040,7 @@ void BELParserXML::taghandle_FUNC( const char_cp * attr, size_t attr_sz , bool c
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
 		if( !strcmp(n, "name") ) {
-		 f.setNameId( internString(v) );
+		 f.setNameId( reader->getGlobalPools().internString_internal(v) );
 		}
 	}
 	statement.pushNode( BTND_RewriteData( f));

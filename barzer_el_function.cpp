@@ -298,7 +298,7 @@ struct BELFunctionStorage_holder {
 	#undef ADDFN
 
 	void addFun(const char *fname, BELStoredFunction fun) {
-		const uint32_t fid = gpools.stringPool.internIt(fname);
+		const uint32_t fid = gpools.internString_internal(fname);
 		//AYLOG(DEBUG) << "adding function(" << fname << ":" << fid << ")";
 		addFun(fid, fun);
 	}

@@ -251,6 +251,11 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Literal>(const BT
 }
 template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const BTND_Rewrite_Function &data) {
 	//AYLOG(DEBUG) << "calling funid:" << data.nameId;
+	const BarzelEvalNode* evalNode = ctxt.getTrie().getProcs().getEvalNode( data.nameId );
+	if( evalNode ) {
+		bool ret = evalNode->eval( d_val, ctxt );
+		return ret;
+	}
 	const StoredUniverse &u = ctxt.universe;
 	const BELFunctionStorage &fs = u.getFunctionStorage();
 	bool ret = fs.call(data.nameId, d_val, d_childValVec, u);
