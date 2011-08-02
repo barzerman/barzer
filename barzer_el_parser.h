@@ -106,11 +106,17 @@ protected:
 	BELParser* parser;
 	GlobalPools &gp;
 	size_t numStatements; /// total number of successfully read statements 
+	size_t numMacros; /// total number of successfully loaded macros
+	size_t numProcs; /// total number of successfully loaded procs
 
 	std::string inputFileName; 
 	
 	bool silentMode;
 public:
+	size_t getNumStatements() const { return numStatements; }
+	size_t getNumMacros() const { return numMacros; }
+	size_t getNumProcs() const { return numProcs; }
+
 	bool isSilentMode() const { return silentMode; }
 	void setSilentMode() { silentMode = true; }
 
@@ -140,7 +146,11 @@ public:
 	BELReader( GlobalPools &g );
 
 	BELReader( BELTrie* t, GlobalPools &g  )  :
-		trie(t) , parser(0), gp(g), numStatements(0) , inputFmt(INPUT_FMT_XML)
+		trie(t) , parser(0), gp(g), 
+		numStatements(0) , 
+		numMacros(0) , 
+		numProcs(0) , 
+		inputFmt(INPUT_FMT_XML)
 	{}
 	
 	virtual ~BELReader() {

@@ -107,12 +107,20 @@ std::ostream& BELReader::printNode( std::ostream& fp, const BarzelTrieNode& node
 }
 void BELReader::addProc( uint32_t strId, const BELStatementParsed& sp )
 {
-	getTrie().getProcs().generateStoredProc( strId, sp.translation );
+	int rc = getTrie().getProcs().generateStoredProc( strId, sp.translation );
+	if( rc == BarzelProcs::ERR_OK ) {
+		++numProcs;
+	} else {
+		AYLOG(ERROR) << "error=" << rc << ": failed to load procedure in statement " << numStatements << std::endl;
+	}
+	++numStatements;
 }
 void BELReader::addMacro( const std::string& macroName, const BELStatementParsed& sp )
 {
 	BELParseTreeNode& storedMacro = getTrie().getMacros().addMacro( macroName ) ;
 	storedMacro = sp.pattern;
+	++numMacros;
+	++numStatements;
 }
 
 void BELReader::addStatement( const BELStatementParsed& sp )
@@ -196,7 +204,8 @@ BELParser*  BELReader::initParser(InputFormat fmt )
 
 int BELReader::loadFromStream( std::istream& fp ) 
 {
-	numStatements=0;
+	numStatements=numProcs=numMacros=0;
+
 	if( !parser ) {
 		std::cerr << "BELReader::loadFromStream uninitialized parser\n";
 		return 0;
