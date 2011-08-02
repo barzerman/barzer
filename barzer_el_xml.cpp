@@ -166,11 +166,18 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 	CASE_TAG(FUNC)
 	CASE_TAG(SELECT)
 	CASE_TAG(CASE)
+
 	// special cases
 	case TAG_AND:
 	case TAG_OR:
 	case TAG_NOT:
 	    processLogic(tid, close);
+	    return;
+	case TAG_TEST:
+	    processLogic(TAG_OR, close);
+	    return;
+	case TAG_COND:
+	    processLogic(TAG_AND, close);
 	    return;
 	}
 #undef CASE_TAG
@@ -1186,6 +1193,7 @@ int BELParserXML::getTag( const char* s ) const
 		break;
 	case 'c':
 	CHECK_4CW("ase", TAG_CASE ) // <case>
+	CHECK_4CW("ond", TAG_COND ) // <cond>
 	    break;
 	case 'd':
 	CHECK_4CW("ate", TAG_DATE ) // <date> 
@@ -1232,11 +1240,14 @@ int BELParserXML::getTag( const char* s ) const
 		break;
 	case 't':
 	CHECK_1CW(TAG_T) // <t>
-	CHECK_2CW("g",TAG_TG) // <tg>
-	CHECK_4CW("ail",TAG_TAIL) // <tail>
-	CHECK_4CW("drv",TAG_TDRV) // <tdrv>
-	CHECK_4CW("ime",TAG_TIME) // <time>
 	CHECK_4CW("ran",TAG_TRANSLATION) // <tran>
+	CHECK_4CW("ime",TAG_TIME) // <time>
+    CHECK_4CW("ail",TAG_TAIL) // <tail>
+    CHECK_4CW("est",TAG_TEST) // <test>
+
+	CHECK_2CW("g",TAG_TG) // <tg>
+	CHECK_4CW("drv",TAG_TDRV) // <tdrv>
+
 		break;
 	case 'v':
 	CHECK_3CW("ar",TAG_VAR) // <var>

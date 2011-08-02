@@ -82,7 +82,9 @@ public:
 		TAG_AND,
 		TAG_OR,
 		TAG_NOT,
-		// added by pltr
+		TAG_TEST,
+		TAG_COND,
+
 		TAG_STMSET, // document element
 		
 		TAG_MAX

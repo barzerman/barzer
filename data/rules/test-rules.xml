@@ -17,4 +17,34 @@
 </stmt>
 
 
+
+<stmt>
+    <pat>
+        <any v="x">
+            <t>foo</t>
+            <t>bar</t>
+            <t>baz</t>
+            <t>lala</t>
+        </any>
+    </pat>
+    <tran>
+<test>
+  <cond>
+    <func name="opEq"><var name="x" /><ltrl>foo</ltrl></func>
+    <rn v="1" />
+  </cond>
+  <cond>
+    <func name="opEq"><var name="x" /><ltrl>bar</ltrl></func>
+    <rn v="2" />
+  </cond>
+  <cond>
+    <func name="opEq"><var name="x" /><ltrl>baz</ltrl></func>
+    <rn v="3" />
+  </cond>
+  <rn v="9" />
+</test>
+    </tran>
+</stmt>
+
+
 </stmset>
