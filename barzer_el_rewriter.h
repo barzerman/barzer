@@ -1,5 +1,6 @@
 #ifndef BARZER_EL_REWRITER_H
 #define BARZER_EL_REWRITER_H
+#include <stack>
 #include <barzer_el_parser.h>
 #include <barzer_el_chain.h>
 namespace barzer {
@@ -123,6 +124,15 @@ inline void BarzelEvalResult::setBeadData<BarzelBeadRange>( const BarzelBeadRang
 
 typedef std::vector< BarzelEvalResult > BarzelEvalResultVec;
 
+struct BarzelEvalProcFrame {
+	BarzelEvalResultVec resVec;
+	
+	BarzelEvalProcFrame( ) {}
+	BarzelEvalProcFrame( const BarzelEvalResultVec& rv ) : resVec( rv ) {}
+	const BarzelEvalResult* getPositionalArg( size_t pos ) const
+		{ return( pos< resVec.size() ? &(resVec[pos]) : 0 ); }
+};
+
 struct BarzelEvalContext {
 	BarzelMatchInfo& matchInfo;
 	const StoredUniverse& universe;
@@ -132,14 +142,36 @@ struct BarzelEvalContext {
 		EVALERR_OK, 
 		EVALERR_GROW
 	};
+	
+	std::stack< BarzelEvalProcFrame > d_procFrameStack; 
+	struct frame_stack_raii {
+		BarzelEvalContext& context;
+		frame_stack_raii( BarzelEvalContext& ctxt, const BarzelEvalResultVec& rv ) : 
+			context(ctxt)
+		{ 
+			context.d_procFrameStack.push( BarzelEvalProcFrame() );
+			context.d_procFrameStack.top().resVec = rv;
+		}
+
+		frame_stack_raii( BarzelEvalContext& ctxt, const BarzelEvalProcFrame& frame ):
+			context(ctxt)
+		{
+			context.d_procFrameStack.push( frame );
+		}
+		~frame_stack_raii() { context.d_procFrameStack.pop(); }
+	};
+	const BarzelEvalResult* getPositionalArg( size_t pos ) const
+		{ return ( d_procFrameStack.empty() ? 0 : d_procFrameStack.top().getPositionalArg(pos) ); }
 
 	bool hasError() { return err != EVALERR_OK; }
 	const uint8_t* setErr_GROW() { return( err = EVALERR_GROW, (const uint8_t*)0); } 
 	const BELTrie& getTrie() const { return d_trie; }
+
 	BarzelEvalContext( BarzelMatchInfo& mi, const StoredUniverse& uni, const BELTrie& trie ) : 
 		matchInfo(mi), universe(uni) , d_trie(trie),err(EVALERR_OK)
 	{}
 };
+
 class BarzelEvalNode {
 public:
     typedef std::vector< BarzelEvalNode > ChildVec;
@@ -155,6 +187,14 @@ public:
 private:
 	const uint8_t* growTree_recursive( ByteRange& brng, int& ctxtErr );
 	
+	bool isSubstitutionParm( size_t& pos ) const
+	{
+		if( d_btnd.which()  == BTND_Rewrite_Variable_TYPE ) {
+			const BTND_Rewrite_Variable& var = boost::get< BTND_Rewrite_Variable >( d_btnd );
+			return ( var.isPosArg() ? (pos = var.getVarId(), true) : false );
+		} else 
+			return ( false );
+	}
 public:
 	BTND_RewriteData& getBtnd() { return d_btnd; }
 	ChildVec& getChild() { return d_child; }
@@ -177,6 +217,7 @@ public:
 	/// call from the caller. these are "as is" . this is needed for
 	/// positional argument variables to work 
 	bool eval(BarzelEvalResult&, BarzelEvalContext& ctxt, const BarzelEvalResultVec& inputArgs ) const;
+	bool eval_childValReady(const BarzelEvalResultVec& , BarzelEvalResult&, BarzelEvalContext& ctxt, const BarzelEvalResultVec& inputArgs ) const;
 };
 //// T must have methods:
 ////   bool T::nodeStart()

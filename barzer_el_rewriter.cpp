@@ -259,7 +259,8 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const B
 	//AYLOG(DEBUG) << "calling funid:" << data.nameId;
 	const BarzelEvalNode* evalNode = ctxt.getTrie().getProcs().getEvalNode( data.nameId );
 	if( evalNode ) {
-		bool ret = evalNode->eval( d_val, ctxt, d_inputArgs );
+		BarzelEvalContext::frame_stack_raii frameRaii( ctxt, d_childValVec );
+		bool ret = evalNode->eval( d_val, ctxt, d_childValVec );
 		return ret;
 	}
 	const StoredUniverse &u = ctxt.universe;
@@ -365,13 +366,6 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Select>
 
         CaseFinder cf(ltrl.getId());
 
-        /*
-        BOOST_FOREACH(const BarzelEvalNode &n, child) {
-            AYLOG(DEBUG) << boost::get<BTND_Rewrite_Case>(n.getBtnd()).ltrlId;
-            //if(boost::get<BTND_Rewrite_Case>(n.getBtnd()).ltrlId == ltrl.getId())
-                //return n.eval(d_val, ctxt);
-        } //*/
-
         BarzelEvalNode::ChildVec::const_iterator it =
                 std::lower_bound(child.begin(), child.end(), 0, cf);
         if (it != child.end()) {
@@ -423,16 +417,30 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Logic>
 } // end of anon namespace 
 
 
-	bool BarzelEvalNode::isFallible() const 
-	{
-		if( ( d_btnd.which() == BTND_Rewrite_EntitySearch_TYPE ) ) 
+bool BarzelEvalNode::isFallible() const 
+{
+	if( ( d_btnd.which() == BTND_Rewrite_EntitySearch_TYPE ) ) 
+		return true;
+	for( ChildVec::const_iterator i = d_child.begin(); i!= d_child.end(); ++i ) {
+		if( i->isFallible() ) 
 			return true;
-		for( ChildVec::const_iterator i = d_child.begin(); i!= d_child.end(); ++i ) {
-			if( i->isFallible() ) 
-				return true;
-		}
-		return false;
 	}
+	return false;
+}
+
+bool BarzelEvalNode::eval_childValReady(
+	const BarzelEvalResultVec& childValVec,
+	BarzelEvalResult& val, 
+	BarzelEvalContext&  ctxt, 
+	const BarzelEvalResultVec& inputArgs 
+) const
+{
+	Eval_visitor_compute visitor(inputArgs, childValVec,val,ctxt, *this);
+	bool ret = boost::apply_visitor( visitor, d_btnd );
+
+	return ret;
+}
+
 bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt, const BarzelEvalResultVec& inputArgs ) const
 {
 	BarzelEvalResultVec childValVec;
@@ -445,16 +453,22 @@ bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt, const
 		/// forming dependent vector of values 
 		for( size_t i =0; i< d_child.size(); ++i ) {
 			const BarzelEvalNode& childNode = d_child[i];
-
             childValVec.resize(i+1);
             BarzelEvalResult& childVal = childValVec.back();
 
-			if( !childNode.eval(childVal, ctxt, childValVec) )
-				return false; // error in one of the children occured
-
-            Eval_visitor_needToStop visitor(childVal,val);
-            if( boost::apply_visitor( visitor, d_btnd ) )
-                break;
+			size_t substPos= 0xffffffff;
+			if( childNode.isSubstitutionParm( substPos ) ) {
+				const BarzelEvalResult* subsResult = ctxt.getPositionalArg( substPos );
+				if( subsResult )
+					childVal.setBeadData(subsResult->getBeadData());
+			} else {
+				if( !childNode.eval(childVal, ctxt, childValVec) )
+					return false; // error in one of the children occured
+	
+            	Eval_visitor_needToStop visitor(childVal,val);
+            	if( boost::apply_visitor( visitor, d_btnd ) )
+                	break;
+			}
 		}
 		/// vector of dependent values ready
 	}
@@ -462,9 +476,6 @@ bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt, const
 	Eval_visitor_compute visitor(inputArgs, childValVec,val,ctxt, *this);
 	bool ret = boost::apply_visitor( visitor, d_btnd );
 
-	//BeadPrinter bp;
-	//boost::apply_visitor(bp, val.getBeadData());
-	//AYLOG(DEBUG) << "--------------";
 	return ret;
 
 }
