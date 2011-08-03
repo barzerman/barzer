@@ -20,3 +20,9 @@ add_library(pybarzer SHARED pybarzer.cpp umlaut.cpp)
 target_link_libraries (pybarzer ${EXTRA_LIBS})
 SET_TARGET_PROPERTIES(pybarzer PROPERTIES PREFIX "")
 
+
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    SET_TARGET_PROPERTIES(pybarzer PROPERTIES SUFFIX ".so")
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+
