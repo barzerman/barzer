@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
+    xmlns="http://www.barzer.net/barzel/0.1">
+    
+	<stmt p="PROC1">
+		<tran><func name="mkDate"><rn v="10"/><rn v="11" /><var a="0" /></func></tran>
+	</stmt>
+
+	<stmt>
+		<pat><t>foofoo</t></pat>
+		<tran><func name="PROC1"><rn v="2007" /></func></tran>
+	</stmt>
+</stmset>
