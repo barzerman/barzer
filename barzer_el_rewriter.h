@@ -213,11 +213,7 @@ public:
 		return( growTree_recursive( brng, ctxtErr ) !=0 ) ;
 	}
 	/// returns true if evaluation is successful 
-	/// inputArg is a vector of values is an array of input arguments coming into the 
-	/// call from the caller. these are "as is" . this is needed for
-	/// positional argument variables to work 
-	bool eval(BarzelEvalResult&, BarzelEvalContext& ctxt, const BarzelEvalResultVec& inputArgs ) const;
-	bool eval_childValReady(const BarzelEvalResultVec& , BarzelEvalResult&, BarzelEvalContext& ctxt, const BarzelEvalResultVec& inputArgs ) const;
+	bool eval(BarzelEvalResult&, BarzelEvalContext& ctxt ) const;
 };
 //// T must have methods:
 ////   bool T::nodeStart()

@@ -198,19 +198,16 @@ bool Eval_visitor_needToStop::operator()<BTND_Rewrite_Logic>(const BTND_Rewrite_
 }
 
 struct Eval_visitor_compute : public boost::static_visitor<bool> {  
-	const BarzelEvalResultVec& d_inputArgs;
 	const BarzelEvalResultVec& d_childValVec;
 	BarzelEvalResult& d_val;
 	BarzelEvalContext &ctxt;
 	const BarzelEvalNode &d_evalNode;
 
 	Eval_visitor_compute( 
-		const BarzelEvalResultVec& inputArgs, 
 		const BarzelEvalResultVec& cvv, 
 		BarzelEvalResult& v,
 		BarzelEvalContext &c, 
 		const BarzelEvalNode &n) :
-			d_inputArgs(inputArgs),
 			d_childValVec(cvv),
 			d_val(v),
 			ctxt(c),
@@ -260,12 +257,12 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const B
 	const BarzelEvalNode* evalNode = ctxt.getTrie().getProcs().getEvalNode( data.nameId );
 	if( evalNode ) {
 		BarzelEvalContext::frame_stack_raii frameRaii( ctxt, d_childValVec );
-		bool ret = evalNode->eval( d_val, ctxt, d_childValVec );
+		bool ret = evalNode->eval( d_val, ctxt);
 		return ret;
 	}
 	const StoredUniverse &u = ctxt.universe;
 	const BELFunctionStorage &fs = u.getFunctionStorage();
-	bool ret = fs.call(data.nameId, d_val, d_childValVec, u, d_inputArgs);
+	bool ret = fs.call(data.nameId, d_val, d_childValVec, u );
 	return ret;
 }
 
@@ -302,16 +299,7 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Number>( const BT
 }
 template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Variable>( const BTND_Rewrite_Variable& n ) 
 {
-	if( n.isPosArg() ) { /// positional argument 
-		size_t arg = n.getVarId();
-		if( arg < d_inputArgs.size() ) {
-        	d_val.setBeadData(d_inputArgs[ arg ].getBeadData());
-			return true;
-		} else {
-			std::cerr << "ERROR: invalid proc argument " << arg << std::endl;
-			return false;
-		}
-	} else {
+	{
 		BarzelMatchInfo& matchInfo = ctxt.matchInfo;
 		BeadRange r;
 	
@@ -369,7 +357,7 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Select>
         BarzelEvalNode::ChildVec::const_iterator it =
                 std::lower_bound(child.begin(), child.end(), 0, cf);
         if (it != child.end()) {
-            return it->eval(d_val, ctxt, d_inputArgs);
+            return it->eval(d_val, ctxt );
         }
     }
     return false;
@@ -428,20 +416,7 @@ bool BarzelEvalNode::isFallible() const
 	return false;
 }
 
-bool BarzelEvalNode::eval_childValReady(
-	const BarzelEvalResultVec& childValVec,
-	BarzelEvalResult& val, 
-	BarzelEvalContext&  ctxt, 
-	const BarzelEvalResultVec& inputArgs 
-) const
-{
-	Eval_visitor_compute visitor(inputArgs, childValVec,val,ctxt, *this);
-	bool ret = boost::apply_visitor( visitor, d_btnd );
-
-	return ret;
-}
-
-bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt, const BarzelEvalResultVec& inputArgs ) const
+bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) const
 {
 	BarzelEvalResultVec childValVec;
 
@@ -462,7 +437,7 @@ bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt, const
 				if( subsResult )
 					childVal.setBeadData(subsResult->getBeadData());
 			} else {
-				if( !childNode.eval(childVal, ctxt, childValVec) )
+				if( !childNode.eval(childVal, ctxt) )
 					return false; // error in one of the children occured
 	
             	Eval_visitor_needToStop visitor(childVal,val);
@@ -473,7 +448,7 @@ bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt, const
 		/// vector of dependent values ready
 	}
 
-	Eval_visitor_compute visitor(inputArgs, childValVec,val,ctxt, *this);
+	Eval_visitor_compute visitor(childValVec,val,ctxt, *this);
 	bool ret = boost::apply_visitor( visitor, d_btnd );
 
 	return ret;
