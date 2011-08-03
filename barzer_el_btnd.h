@@ -723,6 +723,7 @@ struct BTND_Rewrite_Variable {
 		MODE_VARNAME,   // variable name 
 		MODE_PATEL_NUMBER, // pattern element number
 		MODE_WCGAP_NUMBER, // wildcard gap number
+		MODE_POSARG // positional argument number
 	};
 	uint8_t idMode; 
 	uint32_t varId; /// when idMode is MODE_VARNAME this is a variable path id (see el_variables.h)
@@ -733,11 +734,13 @@ struct BTND_Rewrite_Variable {
 	uint8_t getIdMode() const { return idMode; }
 	uint32_t getVarId() const { return varId; }
 		
+	bool isPosArg() const { return idMode == MODE_POSARG; }
 	bool isVarId() const { return idMode == MODE_VARNAME; }
 	bool isWildcardNum() const { return idMode == MODE_WC_NUMBER; }
 	bool isPatternElemNumber() const { return idMode == MODE_PATEL_NUMBER; }
 	bool isWildcardGapNumber() const { return idMode == MODE_WCGAP_NUMBER; }
 
+	void setPosArg( uint32_t vid ){ varId = vid; idMode= MODE_POSARG; }
 	void setVarId( uint32_t vid ){ varId = vid; idMode= MODE_VARNAME; }
 	void setWildcardNumber( uint32_t vid ){ varId = vid; idMode= MODE_WC_NUMBER; }
 	void setPatternElemNumber( uint32_t vid ){ varId = vid; idMode= MODE_PATEL_NUMBER; }

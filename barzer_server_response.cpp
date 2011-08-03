@@ -190,7 +190,6 @@ public:
 				const char *cstr = universe.getStringPool().resolveId(data.getId());
 				if (cstr) xmlEscape(cstr, os);
 				else AYLOG(ERROR) << "Illegal literal ID: " << std::hex << data.getId();
-				//printTTokenTag();
 				os << "</token>";
 			}
 			break;
@@ -198,13 +197,11 @@ public:
 			{
 				if (data.getId() == INVALID_STORED_ID) {
 					os << "<fluff>";
-					//printTTokenTag();
 					os << "</fluff>";
 				} else {
 					const char *cstr = universe.getStringPool().resolveId(data.getId());
 					if (cstr) {
 						xmlEscape(cstr, os << "<fluff>");
-						//printTTokenTag();
 						os << "</fluff>";
 					} 
 					else AYLOG(ERROR) << "Illegal literal(STOP) ID: " << std::hex << data.getId();
@@ -233,14 +230,12 @@ public:
 	    tag_raii tok(os, "token");
 		//xmlEscape(data.getStr(), os << "<token>");
 	    xmlEscape(data.getStr(), tok);
-		//printTTokenTag();
 		//os << "</token>";
 	    return true;
 	}
 	bool operator()(const BarzerNumber &data) {
 		const char *type =  data.isReal() ? "real" : (data.isInt() ? "int" : "NaN");
 		data.print(os << "<num t=\"" << type << "\">");
-		//printTTokenTag();
 		os << "</num>";
 		return true;
 	}
@@ -248,20 +243,17 @@ public:
 		//printTo(os << "<date>", data) << "</date>";
 		tag_raii td(os,"date");
 		printTo(os,data);
-		//printTTokenTag();
 		return true;
 	}
 	bool operator()(const BarzerTimeOfDay &data) {
 
 		tag_raii td(os, "time");
 		printTo(os, data);
-		//printTTokenTag();
 		return true;
 	}
 	bool operator()(const BarzerDateTime &data) {
 		tag_raii td(os, "timestamp");
-		printTo(tag_raii(os, "timestamp"), data);
-		//printTTokenTag();
+		printTo(os, data);
 		return true;
 	}
 	bool operator()(const BarzerRange &data) {
@@ -275,7 +267,6 @@ public:
 			//ay::valkeep<bool> vk( d_ptintTtok, false );
 			boost::apply_visitor(v, data.dta);
 			}
-			//printTTokenTag();
 			os << "</range>";
 		}
 		return true;
@@ -294,7 +285,6 @@ public:
 		}
 		static const char *tmpl = "class=\"%1%\" subclass=\"%2%\" />";
 		os << boost::format(tmpl) % euid.eclass.ec % euid.eclass.subclass;
-		//printTTokenTag();
 		//os << "</entity>";
 	}
 
@@ -309,7 +299,6 @@ public:
 													 li != lst.end(); ++li) {
 			printEntity(*li);
 		}
-		//printTTokenTag();
 		//os << "</entlist>";
 		return true;
 	}
@@ -336,7 +325,6 @@ public:
 		}
 		(*this)(data.getRange());
 		} // end of block
-		//printTTokenTag();
 		//os << "</erc>";
 		return true;
 	}
@@ -350,7 +338,6 @@ public:
 			boost::apply_visitor(*this, *it);
 		}
 		} // end of block 
-		//printTTokenTag();
 		os << "</ercexpr>";
 		return true;
 	}
@@ -393,7 +380,6 @@ public:
 													  it != selst.end(); ++it) {
 					boost::apply_visitor(*this, *it);
 				}
-				//printTTokenTag();
 				os << "</" << tagname << ">";
 			} else os << " />";
 		} else AYLOG(ERROR) << "Unknown string id: " << data.sid;

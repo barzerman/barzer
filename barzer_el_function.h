@@ -40,10 +40,10 @@ public:
 
 	bool call(const char *fname, BarzelEvalResult&,
 			  const BarzelEvalResultVec&,
-			  const StoredUniverse&) const;
+			  const StoredUniverse& ) const;
 	bool call(const uint32_t, BarzelEvalResult&,
 			  const BarzelEvalResultVec&,
-			  const StoredUniverse &u) const;
+			  const StoredUniverse &u ) const;
 
 };
 

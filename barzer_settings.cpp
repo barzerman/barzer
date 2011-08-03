@@ -95,7 +95,8 @@ void BarzerSettings::addRulefile(const Rulefile &f) {
 	reader.setTrie(tclass, tid);
 
 	size_t num = reader.loadFromFile(fname, BELReader::INPUT_FMT_XML);
-	std::cout << num << " statements loaded from `" << fname << "'";
+	std::cout << num << " statements (" << reader.getNumMacros() << " macros, " << 
+	reader.getNumProcs() << " procs)" << " loaded from `" << fname << "'";
 	if (!(tclass.empty() || tid.empty()))
 		std::cout << " into the trie `" << tclass << "." << tid << "'";
 	std::cout << "\n";

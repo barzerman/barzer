@@ -10,6 +10,11 @@
 namespace barzer {
 
 
+const BarzelEvalNode* BELParser::getProcByName( uint32_t strId ) const
+{
+	const BELTrie& trie = reader->getTrie();
+	return trie.getProcs().getEvalNode( strId );
+}
 const BELParseTreeNode* BELParser::getMacroByName( const std::string& macroname ) const
 {
 	const BELTrie& trie = reader->getTrie();
@@ -92,20 +97,30 @@ BELReader::BELReader( GlobalPools &g ) :
 
 void BELReader::setTrie( const std::string& trieClass, const std::string& trieId )
 {
-	//trie = &(universe.produceTrie( trieClass, trieId ));
 	trie = &(gp.globalTriePool.produceTrie( trieClass, trieId ));
 }
 std::ostream& BELReader::printNode( std::ostream& fp, const BarzelTrieNode& node ) const 
 {
 	BELPrintFormat fmt;
-	//BELPrintContext ctxt( *trie, universe.getStringPool(), fmt );
 	BELPrintContext ctxt( *trie, gp.getStringPool(), fmt );
 	return node.print( fp, ctxt );
+}
+void BELReader::addProc( uint32_t strId, const BELStatementParsed& sp )
+{
+	int rc = getTrie().getProcs().generateStoredProc( strId, sp.translation );
+	if( rc == BarzelProcs::ERR_OK ) {
+		++numProcs;
+	} else {
+		AYLOG(ERROR) << "error=" << rc << ": failed to load procedure in statement " << numStatements << std::endl;
+	}
+	++numStatements;
 }
 void BELReader::addMacro( const std::string& macroName, const BELStatementParsed& sp )
 {
 	BELParseTreeNode& storedMacro = getTrie().getMacros().addMacro( macroName ) ;
 	storedMacro = sp.pattern;
+	++numMacros;
+	++numStatements;
 }
 
 void BELReader::addStatement( const BELStatementParsed& sp )
@@ -115,7 +130,6 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 
 	int i = 0, j = 0;
 	ay::stopwatch totalTimer;
-	//const StoredUniverse& universe = getUniverse();
 	const GlobalPools &gp = getGlobalPools();
 	do {
 
@@ -190,7 +204,8 @@ BELParser*  BELReader::initParser(InputFormat fmt )
 
 int BELReader::loadFromStream( std::istream& fp ) 
 {
-	numStatements=0;
+	numStatements=numProcs=numMacros=0;
+
 	if( !parser ) {
 		std::cerr << "BELReader::loadFromStream uninitialized parser\n";
 		return 0;

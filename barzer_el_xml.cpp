@@ -213,6 +213,8 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 		} else {
 			if( statement.isMacro() ) {
 				reader->addMacro( statement.macroName, statement.stmt );
+			} else if( statement.isProc() ) {
+				reader->addProc( statement.procNameId, statement.stmt );
 			} else if( statement.hasStatement() ) {
 				reader->addStatement( statement.stmt );
 			} 
@@ -231,6 +233,16 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 			} else {
 				AYLOG(ERROR) << "attempt to REDEFINE MACRO " << v  << " ignored";
 			}
+		case 'p':  // 
+			{ // block
+			uint32_t procNameStrId = reader->getGlobalPools().internString_internal( v );
+
+			if( !getProcByName(procNameStrId)) {
+				statement.setProc(procNameStrId); // p="PROCXXX"
+			} else {
+				AYLOG(ERROR) << "attempt to REDEFINE Procedure " << v  << " ignored";
+			}
+			}  // end of block
 		case 'n':  // statement number
 			stmtNumber = atoi(v);
 			break;
@@ -288,13 +300,9 @@ struct BTND_text_visitor_base  : public boost::static_visitor<> {
 	BELParserXML& d_parser;
 	const char* d_str;
 	int d_len;
-	/*
-	StoredUniverse& getUniverse() { return d_parser.getUniverse(); }
-	const StoredUniverse& getUniverse() const { return d_parser.getUniverse(); }
-	*/
+
 	GlobalPools& getGlobalPoools() { return d_parser.getGlobalPools(); }
 	const GlobalPools& getGlobalPoools() const { return d_parser.getGlobalPools(); }
-
 
 	bool isAnalyticalMode() const
 	//{ return getUniverse().isAnalyticalMode(); }
@@ -993,6 +1001,12 @@ void BELParserXML::taghandle_VAR( const char_cp * attr, size_t attr_sz , bool cl
 		const char* v = attr[i+1]; // attr value
 
 		switch( n[0] ) {
+		case 'a': { // <var arg="1"/> positional argument (for proc calls)
+			int num  = atoi(v);
+			if( num >= 0 ) 
+				var.setPosArg(num);
+		}
+			break;
 		case 'g': { // <var gn="1"/> gap number - if pattern is a * b c * d gn[1] is a, gn[2] = (b c), gn[3] = 3 
 			int num  = atoi(v);
 			if( num > 0 ) 
@@ -1039,7 +1053,7 @@ void BELParserXML::taghandle_FUNC( const char_cp * attr, size_t attr_sz , bool c
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
 		if( !strcmp(n, "name") ) {
-		 f.setNameId( internString(v) );
+		 f.setNameId( reader->getGlobalPools().internString_internal(v) );
 		}
 	}
 	statement.pushNode( BTND_RewriteData( f));
@@ -1258,6 +1272,7 @@ int BELParserXML::getTag( const char* s ) const
 void BELParserXML::CurStatementData::clear()
 {
 	bits.clear();
+	procNameId = 0xffffffff;
 	state = STATE_BLANK;
 	stmt.translation.clear();
 	stmt.pattern.clear();

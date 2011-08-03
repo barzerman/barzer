@@ -98,12 +98,14 @@ public:
 	struct CurStatementData {
 		BELStatementParsed stmt;
 		std::string macroName;
+		uint32_t procNameId;
 
 		enum {
 			BIT_HAS_PATTERN,
 			BIT_HAS_TRANSLATION,
 			BIT_HAS_STATEMENT,
-			BIT_IS_MACRO,
+			BIT_IS_MACRO,  // is macro (no translation - pattern only)
+			BIT_IS_PROC,   // is "stored procedure" - all translation, no pattern
 			BIT_IS_INVALID,
 
 			BIT_MAX
@@ -115,7 +117,7 @@ public:
 			STATE_TRANSLATION
 		} state;
 			
-		CurStatementData() : state(STATE_BLANK) {}
+		CurStatementData() : procNameId(0xffffffff), state(STATE_BLANK) {}
 		void clear(); 
 
 		std::stack< BELParseTreeNode* > nodeStack;
@@ -175,6 +177,11 @@ public:
 			if( !nodeStack.empty() ) 
 				nodeStack.pop(); 
 		}
+
+		void setProc(uint32_t strId ) {
+			procNameId = strId;
+			bits.set( BIT_IS_PROC );
+		}
 		void setMacro(const char* s ) {
 			macroName.assign(s);
 			bits.set( BIT_IS_MACRO );
@@ -184,6 +191,7 @@ public:
 		bool hasPattern() const { return bits[BIT_HAS_PATTERN];};
 		bool hasTranslation() const { return bits[BIT_HAS_TRANSLATION];};
 		bool isMacro() const { return bits[BIT_IS_MACRO];};
+		bool isProc() const { return bits[BIT_IS_PROC];};
 	} statement;
 
 	mutable std::string d_tmpText; // used by getElementText as a temp buffer

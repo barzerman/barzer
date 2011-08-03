@@ -63,22 +63,8 @@ struct CaseFinder : public boost::static_visitor<bool> {
     uint32_t id;
     CaseFinder(uint32_t i) : id(i) {}
     bool operator()(const BarzelEvalNode &l, uint32_t i) {
-        //AYLOGDEBUG(l.getBtnd().which());
         return boost::apply_visitor(*this, l.getBtnd());
     }
-    /*
-    bool operator()(const BTND_Rewrite_None &l) const {
-        AYLOG(DEBUG) << "none"; return false; }
-    bool operator()(const BTND_Rewrite_Literal) const { AYLOG(DEBUG) << "lit";return false; }
-    bool operator()(const BTND_Rewrite_Number) const { AYLOG(DEBUG) << "num";return false; }
-    bool operator()(const BTND_Rewrite_Variable) const { AYLOG(DEBUG) << "var";return false; }
-    bool operator()(const BTND_Rewrite_Function) const { AYLOG(DEBUG) << "fun";return false; }
-    bool operator()(const BTND_Rewrite_DateTime) const { AYLOG(DEBUG) << "dt";return false; }
-    bool operator()(const BTND_Rewrite_Range) const { AYLOG(DEBUG) << "ran";return false; }
-    bool operator()(const BTND_Rewrite_EntitySearch) const { AYLOG(DEBUG) << "es";return false; }
-    bool operator()(const BTND_Rewrite_MkEnt) const { AYLOG(DEBUG) << "mkent";return false; }
-    bool operator()(const BTND_Rewrite_Select) const { AYLOG(DEBUG) << "sel";return false; }
- */
 
     template<class T> bool operator()(const T&) {
         AYLOG(DEBUG) << "unknown";
@@ -98,7 +84,7 @@ bool  BarzelRewriterPool::isRewriteFallible( const BarzelRewriterPool::BufAndSiz
 	return fallible.isThatSo;
 }
 
-int  BarzelRewriterPool::encodeParseTreeNode( BarzelRewriterPool::byte_vec& trans, const BELParseTreeNode& ptn ) const
+int  BarzelRewriterPool::encodeParseTreeNode( BarzelRewriterPool::byte_vec& trans, const BELParseTreeNode& ptn ) 
 {
 	// for every node push node_start_byte, then BTND_Rewrite (the whole variant) (otn.getNodeData() ) - memcpy, then node end byte
 
@@ -217,12 +203,15 @@ struct Eval_visitor_compute : public boost::static_visitor<bool> {
 	BarzelEvalContext &ctxt;
 	const BarzelEvalNode &d_evalNode;
 
-	Eval_visitor_compute( const BarzelEvalResultVec& cvv, BarzelEvalResult& v,
-						  BarzelEvalContext &c, const BarzelEvalNode &n) :
-		d_childValVec(cvv),
-		d_val(v),
-		ctxt(c),
-		d_evalNode(n)
+	Eval_visitor_compute( 
+		const BarzelEvalResultVec& cvv, 
+		BarzelEvalResult& v,
+		BarzelEvalContext &c, 
+		const BarzelEvalNode &n) :
+			d_childValVec(cvv),
+			d_val(v),
+			ctxt(c),
+			d_evalNode(n)
 	{}
 
 
@@ -265,9 +254,15 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Literal>(const BT
 }
 template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const BTND_Rewrite_Function &data) {
 	//AYLOG(DEBUG) << "calling funid:" << data.nameId;
+	const BarzelEvalNode* evalNode = ctxt.getTrie().getProcs().getEvalNode( data.nameId );
+	if( evalNode ) {
+		BarzelEvalContext::frame_stack_raii frameRaii( ctxt, d_childValVec );
+		bool ret = evalNode->eval( d_val, ctxt);
+		return ret;
+	}
 	const StoredUniverse &u = ctxt.universe;
 	const BELFunctionStorage &fs = u.getFunctionStorage();
-	bool ret = fs.call(data.nameId, d_val, d_childValVec, u);
+	bool ret = fs.call(data.nameId, d_val, d_childValVec, u );
 	return ret;
 }
 
@@ -304,23 +299,25 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Number>( const BT
 }
 template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Variable>( const BTND_Rewrite_Variable& n ) 
 {
-	BarzelMatchInfo& matchInfo = ctxt.matchInfo;
-	BeadRange r;
-
-	if( matchInfo.getDataByVar(r,n,ctxt.getTrie())  ) {
-		if( r.first == r.second )  {
-			if( matchInfo.iteratorIsEnd( r.second ) ) {
-				std::cerr << "ERROR: blank tail range passed\n";
-				return false;
+	{
+		BarzelMatchInfo& matchInfo = ctxt.matchInfo;
+		BeadRange r;
+	
+		if( matchInfo.getDataByVar(r,n,ctxt.getTrie())  ) {
+			if( r.first == r.second )  {
+				if( matchInfo.iteratorIsEnd( r.second ) ) {
+					std::cerr << "ERROR: blank tail range passed\n";
+					return false;
+				}
+				matchInfo.expandRangeByOne(r);
 			}
-			matchInfo.expandRangeByOne(r);
+			//std::cerr << "** COMPUTE *********";
+			//AYDEBUG( r );
+			BarzelBeadChain::trimBlanksFromRange(r);
+			//std::cerr << "** AFTER COMPUTE *********";
+			//AYDEBUG( r );
+			d_val.setBeadData( r );
 		}
-		//std::cerr << "** COMPUTE *********";
-		//AYDEBUG( r );
-		BarzelBeadChain::trimBlanksFromRange(r);
-		//std::cerr << "** AFTER COMPUTE *********";
-		//AYDEBUG( r );
-		d_val.setBeadData( r );
 	}
 	return true;
 }
@@ -357,17 +354,10 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Select>
 
         CaseFinder cf(ltrl.getId());
 
-        /*
-        BOOST_FOREACH(const BarzelEvalNode &n, child) {
-            AYLOG(DEBUG) << boost::get<BTND_Rewrite_Case>(n.getBtnd()).ltrlId;
-            //if(boost::get<BTND_Rewrite_Case>(n.getBtnd()).ltrlId == ltrl.getId())
-                //return n.eval(d_val, ctxt);
-        } //*/
-
         BarzelEvalNode::ChildVec::const_iterator it =
                 std::lower_bound(child.begin(), child.end(), 0, cf);
         if (it != child.end()) {
-            return it->eval(d_val, ctxt);
+            return it->eval(d_val, ctxt );
         }
     }
     return false;
@@ -415,40 +405,45 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Logic>
 } // end of anon namespace 
 
 
-	bool BarzelEvalNode::isFallible() const 
-	{
-		if( ( d_btnd.which() == BTND_Rewrite_EntitySearch_TYPE ) ) 
+bool BarzelEvalNode::isFallible() const 
+{
+	if( ( d_btnd.which() == BTND_Rewrite_EntitySearch_TYPE ) ) 
+		return true;
+	for( ChildVec::const_iterator i = d_child.begin(); i!= d_child.end(); ++i ) {
+		if( i->isFallible() ) 
 			return true;
-		for( ChildVec::const_iterator i = d_child.begin(); i!= d_child.end(); ++i ) {
-			if( i->isFallible() ) 
-				return true;
-		}
-		return false;
 	}
+	return false;
+}
+
 bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) const
 {
 	BarzelEvalResultVec childValVec;
 
 	if( boost::apply_visitor(Eval_visitor_evalChildren(), d_btnd)
 	        && d_child.size() ) {
-		//childValVec.resize( d_child.size() );
 		
 	    childValVec.reserve( d_child.size() );
 
 		/// forming dependent vector of values 
 		for( size_t i =0; i< d_child.size(); ++i ) {
 			const BarzelEvalNode& childNode = d_child[i];
-
             childValVec.resize(i+1);
-			//BarzelEvalResult& childVal = childValVec[i];
             BarzelEvalResult& childVal = childValVec.back();
 
-			if( !childNode.eval(childVal, ctxt) )
-				return false; // error in one of the children occured
-
-            Eval_visitor_needToStop visitor(childVal,val);
-            if( boost::apply_visitor( visitor, d_btnd ) )
-                break;
+			size_t substPos= 0xffffffff;
+			if( childNode.isSubstitutionParm( substPos ) ) {
+				const BarzelEvalResult* subsResult = ctxt.getPositionalArg( substPos );
+				if( subsResult )
+					childVal.setBeadData(subsResult->getBeadData());
+			} else {
+				if( !childNode.eval(childVal, ctxt) )
+					return false; // error in one of the children occured
+	
+            	Eval_visitor_needToStop visitor(childVal,val);
+            	if( boost::apply_visitor( visitor, d_btnd ) )
+                	break;
+			}
 		}
 		/// vector of dependent values ready
 	}
@@ -456,46 +451,37 @@ bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) cons
 	Eval_visitor_compute visitor(childValVec,val,ctxt, *this);
 	bool ret = boost::apply_visitor( visitor, d_btnd );
 
-	//BeadPrinter bp;
-	//boost::apply_visitor(bp, val.getBeadData());
-	//AYLOG(DEBUG) << "--------------";
 	return ret;
 
 }
 
-const uint8_t* BarzelEvalNode::growTree_recursive( BarzelEvalNode::ByteRange& brng, BarzelEvalContext& ctxt )
+const uint8_t* BarzelEvalNode::growTree_recursive( BarzelEvalNode::ByteRange& brng, int& ctxtErr )
 {
-	//AYLOG(DEBUG) << "growTree_recursive called";
 	const uint8_t* buf = brng.first;
 	const uint16_t childStep_sz = 1 + sizeof(BTND_RewriteData);
-	//uint8_t tmp[ sizeof(BTND_RewriteData) ];
 	for( ; buf < brng.second; ++buf) {
 
 		switch( *buf ) {
 		case barzel::RWR_NODE_START: {
 			if( buf + childStep_sz >= brng.second ) 
-				return ctxt.setErr_GROW();
+				return ( ctxtErr = BarzelEvalContext::EVALERR_GROW, (const uint8_t*)0 );
 
-			//memcpy( tmp, buf+1, sizeof(tmp) );
 			BTND_RewriteData *rdp = (BTND_RewriteData*)(buf+1);
-			//AYLOG(DEBUG) << rdp->which();
 			d_child.push_back(*rdp);
-			//d_child.push_back( *(new(tmp) BTND_RewriteData()) );
 
 			BarzelEvalNode::ByteRange childRange( (buf + childStep_sz ), brng.second);
-			buf = d_child.back().growTree_recursive( childRange, ctxt );
+			buf = d_child.back().growTree_recursive( childRange, ctxtErr );
 			if( !buf ) 
-				return ctxt.setErr_GROW();
+				return ( ctxtErr = BarzelEvalContext::EVALERR_GROW, (const uint8_t*)0 );
 		}
 			break;
 		case barzel::RWR_NODE_END:
-			return buf;
+			return ( ctxtErr = BarzelEvalContext::EVALERR_OK, buf );
 		default:
-			return ctxt.setErr_GROW();
+			return ( ctxtErr = BarzelEvalContext::EVALERR_GROW, (const uint8_t*)0 );
 		}
 	}
-	return buf; // i'm honestly not sure this is what should be returned
-	//return 0;
+	return ( ctxtErr = BarzelEvalContext::EVALERR_OK, buf ); 
 }
 
 namespace {

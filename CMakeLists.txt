@@ -55,6 +55,7 @@ set(SOURCES barzer_barz.cpp
             barzer_el_trie_walker.cpp
             barzer_el_wildcard.cpp
             barzer_el_xml.cpp
+            barzer_el_proc.cpp
             barzer_language.cpp
             barzer_lexer.cpp
             barzer_loader_xml.cpp
@@ -69,6 +70,7 @@ set(SOURCES barzer_barz.cpp
             barzer_storage_types.cpp
             barzer_token.cpp
             barzer_universe.cpp
+            
             "${EN_DIR}/barzer_en_date_util.cpp"
             "${EN_DIR}/barzer_en_lex.cpp"
             "${RU_DIR}/barzer_ru_date_util.cpp"

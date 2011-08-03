@@ -1,5 +1,6 @@
 #ifndef BARZER_EL_REWRITER_H
 #define BARZER_EL_REWRITER_H
+#include <stack>
 #include <barzer_el_parser.h>
 #include <barzer_el_chain.h>
 namespace barzer {
@@ -21,9 +22,15 @@ class BarzelTranslation;
 class BarzelRewriterPool {
 public:
 	typedef std::pair<const uint8_t*, uint32_t> BufAndSize;
-private:
 	typedef std::vector<uint8_t> byte_vec;
 	typedef std::vector< BufAndSize > BufAndSizeVec;
+	
+	inline static void byte_vec2bas( BufAndSize& bas, byte_vec& bv ) 
+	{
+		bas.first = &(bv[0]);
+		bas.second = bv.size();
+	}
+private:
 	BufAndSizeVec encVec;
 
 	uint32_t poolNewBuf( const uint8_t* s, uint32_t sz )
@@ -34,8 +41,8 @@ private:
 		return (encVec.size() -1);
 	}
 
-	int  encodeParseTreeNode( BarzelRewriterPool::byte_vec& trans, const BELParseTreeNode& ptn ) const;
 public:
+	static int  encodeParseTreeNode( BarzelRewriterPool::byte_vec& trans, const BELParseTreeNode& ptn );
 	void clear();
 	~BarzelRewriterPool();
 	BarzelRewriterPool( size_t reserveSz ) 
@@ -117,6 +124,15 @@ inline void BarzelEvalResult::setBeadData<BarzelBeadRange>( const BarzelBeadRang
 
 typedef std::vector< BarzelEvalResult > BarzelEvalResultVec;
 
+struct BarzelEvalProcFrame {
+	BarzelEvalResultVec resVec;
+	
+	BarzelEvalProcFrame( ) {}
+	BarzelEvalProcFrame( const BarzelEvalResultVec& rv ) : resVec( rv ) {}
+	const BarzelEvalResult* getPositionalArg( size_t pos ) const
+		{ return( pos< resVec.size() ? &(resVec[pos]) : 0 ); }
+};
+
 struct BarzelEvalContext {
 	BarzelMatchInfo& matchInfo;
 	const StoredUniverse& universe;
@@ -126,14 +142,36 @@ struct BarzelEvalContext {
 		EVALERR_OK, 
 		EVALERR_GROW
 	};
+	
+	std::stack< BarzelEvalProcFrame > d_procFrameStack; 
+	struct frame_stack_raii {
+		BarzelEvalContext& context;
+		frame_stack_raii( BarzelEvalContext& ctxt, const BarzelEvalResultVec& rv ) : 
+			context(ctxt)
+		{ 
+			context.d_procFrameStack.push( BarzelEvalProcFrame() );
+			context.d_procFrameStack.top().resVec = rv;
+		}
+
+		frame_stack_raii( BarzelEvalContext& ctxt, const BarzelEvalProcFrame& frame ):
+			context(ctxt)
+		{
+			context.d_procFrameStack.push( frame );
+		}
+		~frame_stack_raii() { context.d_procFrameStack.pop(); }
+	};
+	const BarzelEvalResult* getPositionalArg( size_t pos ) const
+		{ return ( d_procFrameStack.empty() ? 0 : d_procFrameStack.top().getPositionalArg(pos) ); }
 
 	bool hasError() { return err != EVALERR_OK; }
 	const uint8_t* setErr_GROW() { return( err = EVALERR_GROW, (const uint8_t*)0); } 
 	const BELTrie& getTrie() const { return d_trie; }
+
 	BarzelEvalContext( BarzelMatchInfo& mi, const StoredUniverse& uni, const BELTrie& trie ) : 
 		matchInfo(mi), universe(uni) , d_trie(trie),err(EVALERR_OK)
 	{}
 };
+
 class BarzelEvalNode {
 public:
     typedef std::vector< BarzelEvalNode > ChildVec;
@@ -147,8 +185,16 @@ protected:
 public:
 	typedef std::pair< const uint8_t*, const uint8_t* > ByteRange;
 private:
-	const uint8_t* growTree_recursive( ByteRange& brng, BarzelEvalContext& ctxt );
+	const uint8_t* growTree_recursive( ByteRange& brng, int& ctxtErr );
 	
+	bool isSubstitutionParm( size_t& pos ) const
+	{
+		if( d_btnd.which()  == BTND_Rewrite_Variable_TYPE ) {
+			const BTND_Rewrite_Variable& var = boost::get< BTND_Rewrite_Variable >( d_btnd );
+			return ( var.isPosArg() ? (pos = var.getVarId(), true) : false );
+		} else 
+			return ( false );
+	}
 public:
 	BTND_RewriteData& getBtnd() { return d_btnd; }
 	ChildVec& getChild() { return d_child; }
@@ -161,10 +207,10 @@ public:
 
 	/// construct the tree from the byte buffer created in encode ... 
 	/// returns true is tree was constructed successfully
-	bool growTree( const BarzelRewriterPool::BufAndSize& bas, BarzelEvalContext& ctxt )
+	bool growTree( const BarzelRewriterPool::BufAndSize& bas, int& ctxtErr )
 	{
 		ByteRange brng( bas.first, bas.first+ bas.second );
-		return( growTree_recursive( brng, ctxt ) !=0 ) ;
+		return( growTree_recursive( brng, ctxtErr ) !=0 ) ;
 	}
 	/// returns true if evaluation is successful 
 	bool eval(BarzelEvalResult&, BarzelEvalContext& ctxt ) const;

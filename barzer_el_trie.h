@@ -4,6 +4,7 @@
 #include <barzer_el_rewriter.h>
 #include <barzer_el_variable.h>
 #include <barzer_el_entcol.h>
+#include <barzer_el_proc.h>
 #include <ay_bitflags.h>
 #include <ay_util.h>
 #include <ay_pool_with_id.h>
@@ -223,6 +224,15 @@ public:
 		id = i;
 	}
 
+	enum {
+		ENCOD_FAILED = -1,
+
+		ENCOD_REWRITER=0,
+		ENCOD_TRIVIAL
+	};
+	/// returns one of th ENCOD_XXX constants
+	int encodeIt( BarzelRewriterPool::byte_vec& enc, BELTrie& trie, const BELParseTreeNode& );
+
 	void set( BELTrie& trie, const BELParseTreeNode& );
 
 	void setStop() { type = T_STOP; }
@@ -398,13 +408,15 @@ class GlobalPools;
 class BELTrie {
 	GlobalPools& globalPools;
 	/// trie shouldnt be copyable
-	BELTrie( const BELTrie& a ) : globalPools(a.globalPools){}
 	BarzelRewriterPool* d_rewrPool;
 	BarzelWildcardPool* d_wcPool;
 	BarzelFirmChildPool* d_fcPool;
 	BarzelTranslationPool *d_tranPool;
 	BarzelVariableIndex   d_varIndex;
 	EntityCollection      d_entCollection;
+
+	BELTrie( const BELTrie& a );
+
 	
 public:
 	typedef std::set< uint32_t > UseridSet;
@@ -435,7 +447,10 @@ public:
 	~BELTrie();
 	BELTrie( GlobalPools& gp );
 	BarzelMacros macros;
+	BarzelProcs procs;
 
+	const BarzelProcs& getProcs() const { return  procs; }
+	BarzelProcs& getProcs() { return  procs; }
 	const BarzelMacros& getMacros() const { return  macros; }
 	BarzelMacros& getMacros() { return  macros; }
 
