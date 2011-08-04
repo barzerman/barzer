@@ -104,6 +104,14 @@ default: return "";
 }
 }
 
+bool is_diacritic( const char* s )
+{
+	return ( !isascii(s[0]) && 
+		((uint8_t)s[0]== 0xc3 /* theres another codepage for the umlauted czech c OR it here */) && 
+		(diacriticChar2Ascii( (uint8_t)(s[1]) )[0] !=0 ) 
+	);
+}
+
 int umlautsToAscii( std::string& dest, const char* s )
 {
 	int numDiacritics = 0;

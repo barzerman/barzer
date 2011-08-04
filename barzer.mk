@@ -7,8 +7,8 @@ ifeq ($(IS32),yes)
 	BITMODE=-m32
 	AYBIT="IS32=yes"
 endif 
-CFLAGS :=$(CFLAGS) $(BITMODE) $(OPT) -Wno-parentheses -Wnon-virtual-dtor \
-	-I/opt/local/include -I/usr/include -g -I. -I./ay -fpic -Wall
+CFLAGS :=$(CFLAGS) $(BITMODE) $(OPT) -Wall -Wno-parentheses -Wnon-virtual-dtor \
+	-I/opt/local/include -I/usr/include -g -I. -I./ay -fpic
 LINKFLAGS := $(FLAGS)
 BINARY=barzer.exe
 LIBNAME=libbarzer

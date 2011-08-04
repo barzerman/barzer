@@ -203,6 +203,9 @@ inline bool less( const T& l, const T& r )
 /// copies s into dest, replacing diacritics with an english character
 int umlautsToAscii( std::string& dest, const char* s );
 
+/// returns true if s points at the beginning of a diacritic char 
+bool is_diacritic( const char* s );
+
 }
 
 #endif
