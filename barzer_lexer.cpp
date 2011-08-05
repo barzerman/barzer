@@ -300,6 +300,10 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
 		if( ctok.storedTok && ctok.stemTok == ctok.storedTok ) 
 			ctok.stemTok = 0;
 	}
+	if( cVec.size() > MAX_CTOKENS_PER_QUERY ) {
+		cVec.resize( MAX_CTOKENS_PER_QUERY );
+	}
+
 	return 0;
 }
 
@@ -315,6 +319,11 @@ int QLexParser::lex( CTWPVec& cVec, TTWPVec& tVec, const QuestionParm& qparm )
 
 	/// perform advanced language specific lexing 
 	langLexer.lex( cVec, tVec, qparm );
+
+	if( cVec.size() > MAX_CTOKENS_PER_QUERY ) {
+		cVec.resize( MAX_CTOKENS_PER_QUERY );
+		AYLOG(ERROR) << "query truncated\n";
+	}
 	return 0;
 }
 ////////////// TOKENIZE 
@@ -326,7 +335,6 @@ int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qpar
 	size_t origSize = ttwp.size(); 
 	char lc = 0;
 	const char* tok = 0;
-	const char* s = q;
 	enum {
 		CHAR_UNKNOWN=0,
 		CHAR_ALPHA,
@@ -336,7 +344,15 @@ int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qpar
 	int prevChar = CHAR_UNKNOWN;
 #define PREVCHAR_NOT( t ) ( prevChar && (CHAR_##t != prevChar) )
 
-	for( s = q; *s; ++s ) {
+
+	size_t q_len = strlen(q);
+	if( q_len > MAX_QUERY_LEN ) {
+		q_len = MAX_QUERY_LEN;
+	}
+	const char* s_end = q+ q_len; 
+	const char* s = q;
+	for( ; s!= s_end; ++s ) {
+
 		char c = *s;
 		if( !isascii(c) ) {
 			if( !ay::is_diacritic(s) && PREVCHAR_NOT(UTF8) ) {
@@ -388,6 +404,11 @@ int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qpar
 		ttwp.push_back( TTWPVec::value_type( TToken(tok,s-tok), ttwp.size() ));
 		tok = 0;
 	}
+
+	if( ttwp.size()  > MAX_NUM_TOKENS ) {
+		ttwp.resize(MAX_NUM_TOKENS);
+	}
+
 	return ( ttwp.size() - origSize );
 #undef PREVCHAR_NOT
 }

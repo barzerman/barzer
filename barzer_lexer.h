@@ -14,6 +14,7 @@ class StoredUniverse;
 /// tokenizes on any and all punctuation 
 class QTokenizer {
 public:
+	enum { MAX_QUERY_LEN = 1024, MAX_NUM_TOKENS = 96 };
 	struct Error : public QPError { } err;
 	int tokenize( TTWPVec& , const char*, const QuestionParm& );	
 };
@@ -36,7 +37,9 @@ class QLexParser {
 		/// discarded
 		MAX_EDIT_DIST_FROM_SPELL = 2,  
 		/// words shorter than this wont be spell corrected 
-		MIN_SPELL_CORRECT_LEN = 4 
+		MIN_SPELL_CORRECT_LEN = 4 ,
+
+		MAX_CTOKENS_PER_QUERY = 64
 	};
 	/// invoked from singleTokenClassify - tries to spell correct 
 	/// fluffs the token if it's not correctable otherwise attempts to find something 

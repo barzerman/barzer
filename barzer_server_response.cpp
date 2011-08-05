@@ -399,18 +399,18 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 	os << "<barz>";
 	const BarzelBeadChain &bc = barz.getBeads();
 	CToken::SpellCorrections spellCorrections;
-
-	for (BeadList::const_iterator bli = bc.getLstBegin(); bc.isIterNotEnd(bli); ++bli) {
+	size_t curBeadNum = 1;
+	for (BeadList::const_iterator bli = bc.getLstBegin(); bc.isIterNotEnd(bli); ++bli, ++curBeadNum) {
 	    if (!isBlank(*bli)) {
 	        os << "\n";
-	        tag_raii beadtag(os, "bead");
-	        os << "\n";
+	        // tag_raii beadtag(os, "bead");
+			os << "<bead n=\"" << curBeadNum << "\">\n" ;
 	        BeadVisitor v(os, universe, *bli);
 	        if (boost::apply_visitor(v, bli->getBeadData())) {
 	            os << "\n    ";
 	            v.printTTokenTag();
 	        }
-	        os << "\n";
+	        os << "\n</bead>\n";
 	    }
 
 
