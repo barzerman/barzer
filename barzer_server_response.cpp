@@ -96,62 +96,6 @@ std::ostream& printTo<BarzerDateTime>(std::ostream &os,
 	return printTo(printTo(os, dt.getDate()) << " ", dt.getTime());
 }
 
-
-class RangeVisitor : public boost::static_visitor<> {
-	std::ostream &os;
-public:
-	RangeVisitor(std::ostream &s) : os(s) {}
-
-	template<class T> std::ostream& lohi(const T lo, const T hi) {
-		os << std::dec
-		   << "<lo>" << lo << "</lo>"
-		   << "<hi>" << hi << "</hi>";
-		return os;
-	}
-
-	template<class T> std::ostream& lohi(const std::pair<T,T> &p) {
-		printTo(os << "<lo>", p.first) << "</lo>";
-		printTo(os << "<hi>", p.second) << "</hi>";
-		return os;
-	}
-
-	void operator()(const BarzerRange::None &data) {
-		os << "<norange/>";
-	}
-	void operator()(const BarzerRange::Integer &data) {
-		os << "<num t=\"int\">";
-		lohi(data.first, data.second) << "</num>";
-	}
-	void operator()(const BarzerRange::Real &data) {
-		os << "<num t=\"real\">";
-		lohi(data.first, data.second) << "</num>";
-	}
-	void operator()(const BarzerRange::TimeOfDay &data) {
-		tag_raii t(os, "time");
-		lohi(data);
-		//os << "</time>";
-	}
-	void operator()(const BarzerRange::Date &data) {
-		//os << "<date>";
-	    tag_raii d(os, "date");
-		lohi(data);
-		//os << "</date>";
-	}
-	void operator()(const BarzerRange::DateTime &data) {
-		//os << "<timestamp>";
-	    tag_raii ts(os, "timestamp");
-		lohi(data);
-		//os << "</timestamp>";
-	}
-	void operator()(const BarzerRange::Entity &data) {
-		os << "<entrange>";
-
-		//printEntity(const BarzerEntity &euid)
-		os << "</entrange>";
-	}
-
-};
-
 class BeadVisitor : public boost::static_visitor<bool> {
 	std::ostream &os;
 	const StoredUniverse &universe;
@@ -226,6 +170,9 @@ public:
 		}
 		return true;
 	}
+	bool operator()(const BarzerNone &data) {
+		return false;
+	}
 	bool operator()(const BarzerString &data) {
 	    tag_raii tok(os, "token");
 		//xmlEscape(data.getStr(), os << "<token>");
@@ -256,17 +203,38 @@ public:
 		printTo(os, data);
 		return true;
 	}
+
+	struct RangeVisitor : boost::static_visitor<>  {
+		BeadVisitor& bvis;
+		RangeVisitor( BeadVisitor& bv ) : bvis(bv) {}
+
+		void operator() ( const BarzerRange::Integer& i ) 
+		{
+			bvis.os << "<lo>" << i.first << "</lo>";
+			bvis.os << "<hi>" << i.second << "</hi>";
+		}
+		void operator() ( const BarzerRange::Real& i ) 
+		{
+			bvis.os << "<lo>" << i.first << "</lo>";
+			bvis.os << "<hi>" << i.second << "</hi>";
+		}
+		void operator() ( const BarzerRange::None& i ) {}
+
+		template <typename T>
+		void operator()( const T& d ) 
+		{ 
+			bvis.os << "<lo>"; bvis.operator()( d.first ); bvis.os << "</lo>";
+			bvis.os << "<hi>"; bvis.operator()( d.second ); bvis.os << "</hi>";
+		}
+	};
 	bool operator()(const BarzerRange &data) {
 
 		os << "<range order=\"" << (data.isAsc() ? "ASC" : "DESC") <<  "\"";
 		if (data.isBlank()) os << " />";
 		else {
 			os << ">";
-			RangeVisitor v(os);
-			{ /// 
-			//ay::valkeep<bool> vk( d_ptintTtok, false );
-			boost::apply_visitor(v, data.dta);
-			}
+			RangeVisitor v( *this );
+			boost::apply_visitor( v, data.dta );
 			os << "</range>";
 		}
 		return true;
