@@ -210,7 +210,7 @@ public:
 
 		void operator() ( const BarzerRange::Integer& i ) 
 		{
-			bvis.os << "<lo><num>" << i.first << "<num></lo>";
+			bvis.os << "<lo><num>" << i.first << "</num></lo>";
 			bvis.os << "<hi><num>" << i.second << "</num></hi>";
 		}
 		void operator() ( const BarzerRange::Real& i ) 
