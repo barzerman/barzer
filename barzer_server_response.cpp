@@ -210,13 +210,13 @@ public:
 
 		void operator() ( const BarzerRange::Integer& i ) 
 		{
-			bvis.os << "<lo t=\"int\">" << i.first << "</lo>";
-			bvis.os << "<hi t=\"int\">" << i.second << "</hi>";
+			bvis.os << "<lo><num>" << i.first << "<num></lo>";
+			bvis.os << "<hi><num>" << i.second << "</num></hi>";
 		}
 		void operator() ( const BarzerRange::Real& i ) 
 		{
-			bvis.os << "<lo t=\"real\">" << i.first << "</lo>";
-			bvis.os << "<hi t=\"real\">" << i.second << "</hi>";
+			bvis.os << "<lo><num>" << i.first << "</num></lo>";
+			bvis.os << "<hi><num>" << i.second << "</num></hi>";
 		}
 		void operator() ( const BarzerRange::None& i ) {}
 
