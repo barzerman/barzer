@@ -139,7 +139,7 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 	const char* t = ttok.buf;
 	size_t t_len = ttok.len;
 
-	const char* bestSugg = 0;
+	std::string bestSugg;
 
 	bool isAsciiToken = ttok.isAscii();
 	std::string ascifiedT;
@@ -200,9 +200,9 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 							if( strcmp(t,curSugg) )
 								ctok.addSpellingCorrection( t, curSugg );
 							return 0;
-						} else if( !bestSugg ) {
+						} else if( !bestSugg.length() ) {
 							if( d_universe.isStringUserSpecific(curSugg) ) 
-								bestSugg = curSugg;
+								bestSugg.assign( curSugg );
 						}
 					}
 				} // end of if for edit distance
@@ -210,7 +210,7 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 		} // end of spellchecker spelling if
 
 		// nothing was resolved/spell corrected so we will try stemming
-		if( !bestSugg ) {
+		if( !bestSugg.length() ) {
 			BarzerHunspellInvoke stemmer(d_universe.getHunspell(),d_universe.getGlobalPools());
 			const char* stem = stemmer.stem( t );
 			if( stem ) {
@@ -236,8 +236,8 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 			}
 		} else {
 			ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
-			if( strcmp(t, bestSugg) )
-				ctok.addSpellingCorrection( t, bestSugg );
+			if( strcmp(t, bestSugg.c_str()) )
+				ctok.addSpellingCorrection( t, bestSugg.c_str() );
 		}
 	} else {
 		/// non-ascii spell checking logic should go here 
