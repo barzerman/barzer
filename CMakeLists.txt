@@ -119,4 +119,5 @@ install(PROGRAMS "${PYHTON_UTIL_LIBNAME}"
         DESTINATION ${INSTALL_UTIL_DIR})
 install(DIRECTORY "data/configs" "data/entities" "data/rules"
         DESTINATION ${INSTALL_DATA_DIR})
-        
+
+
