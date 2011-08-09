@@ -56,10 +56,19 @@
     </stmt> 
 	<stmt>
 	    <pat>
-	        <t>between</t>
-	        <list v="curr1"><erc s="1" c="1" /></list>
-	        <t>and</t>
-	        <list v="curr2"><erc s="1" c="1"/></list>
+			<any>
+			<list>
+	        	<t>between</t>
+	        	<list v="curr1"><erc s="1" c="1" /></list>
+	        	<t>and</t>
+	        	<list v="curr2"><erc s="1" c="1"/></list>
+			</list>
+			<list>
+	        	<list v="curr1"><erc s="1" c="1" /></list>
+	        	<any><t>to</t><t>-</t></any>
+	        	<list v="curr2"><erc s="1" c="1"/></list>
+			</list>
+			</any>
 	    </pat>
 	    <tran>
 	        <func name="mkERC"><var name="curr1" /><var name="curr2" /></func>
@@ -67,10 +76,20 @@
 	</stmt>    
     <stmt>
         <pat>
-            <t>between</t>
-            <list v="low"><n /></list>
-            <t>and</t>
-            <list v="high"><erc c="1" s="1" /></list>
+			<any>
+			<list>
+            	<t>between</t>
+            	<list v="low"><n /></list>
+            	<t>and</t>
+            	<list v="high"><erc c="1" s="1" /></list>
+			</list>
+			<list>
+				<opt><t>for</t></opt>
+            	<list v="low"><n /></list>
+	        	<any><t>to</t><t>-</t></any>
+            	<list v="high"><erc c="1" s="1" /></list>
+			</list>
+			</any>
         </pat>
         <tran>
             <func name="mkERC">

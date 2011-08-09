@@ -54,6 +54,7 @@
         </tran>
     </stmt>
 
+	<!-- week start and end -->
 	<stmt p="date.week.start">
 		 <tran>
 	        <func name="opDateCalc">
@@ -88,7 +89,31 @@
 	        </func>
 		 </tran>
 	</stmt>
+	<!-- month start and end -->
+	<stmt p="date.month.end">
+		<tran>
+		<func name="opDateCalc">         
+			<func name="mkDate">         
+				<rn v="1"/>
+				<func name="opPlus">
+					<var a="0" />
+					<rn v="1"/>
+				</func>
+	   		</func>
+			<rn v="-1"/>
+		</func>
+	   </tran>
+	</stmt>
+	<stmt p="date.month.start">
+		<tran>
+		<func name="mkDate">         
+			<rn v="1"/>
+			<var a="0" />
+	   </func>
+		</tran>
+	</stmt>
 
+	<!-- end of the week -->
 	<stmt>
 		<pat>
 			<any>
@@ -144,7 +169,65 @@
 			</func>
 		</tran>
 	</stmt>
-
+	<!-- middle of the week -->
+	<stmt>
+		<pat>
+			<any>
+			<list><t>middle</t> <t>of</t><any><t>the</t><t>this</t></any></list>
+			<list><t>mid</t><opt><t>-</t></opt></list>
+			</any>
+			<t>week</t>
+		</pat>
+		<tran>
+			<func name="mkRange">
+	        	<func name="opDateCalc"> <func name="date.week.start"><rn v="0"/></func> <rn v="3"/></func>
+	        	<func name="opDateCalc"> <func name="date.week.start"><rn v="0"/></func> <rn v="5"/></func>
+			</func>
+		</tran>
+	</stmt>
+	<stmt>
+		<pat>
+			<any>
+				<list><t>middle</t> <opt> <list> <t>of</t><opt><any><t>the</t><t>a</t></any></opt> </list> </opt></list>
+				<t>mid</t>
+			</any>
+			<any>
+				<list>
+					<any> <t>last</t> <t>previous</t> <t>prior</t> <t>past</t> </any>
+					<t>week</t>
+				</list>
+				<list> <t>week</t> <t>before</t> </list>
+			</any>
+		</pat>
+		<tran>
+			<func name="mkRange">
+	        	<func name="opDateCalc"> <func name="date.week.start"><rn v="-1"/></func> <rn v="3"/></func>
+	        	<func name="opDateCalc"> <func name="date.week.start"><rn v="-1"/></func> <rn v="5"/></func>
+			</func>
+		</tran>
+	</stmt>
+	<stmt>
+		<pat>
+			<any>
+				<list><t>middle</t> <opt> <list> <t>of</t><opt><any><t>the</t><t>a</t></any></opt> </list> </opt></list>
+				<t>mid</t>
+			</any>
+			<any>
+				<list>
+					<any> <t>next</t> <t>following</t><t>subsequent</t> </any>
+					<t>week</t>
+				</list>
+				<list> <t>week</t> <t>after</t> <opt><t>this</t></opt></list>
+			</any>
+		</pat>
+		<tran>
+			<func name="mkRange">
+	        	<func name="opDateCalc"> <func name="date.week.start"><rn v="1"/></func> <rn v="3"/></func>
+	        	<func name="opDateCalc"> <func name="date.week.start"><rn v="1"/></func> <rn v="5"/></func>
+			</func>
+		</tran>
+	</stmt>
+	<!-- beginning of the week -->
 	<stmt>
 		<pat>
 			<any>
@@ -790,20 +873,71 @@
             </func>
         </tran>
     </stmt>
-    <!-- stmt>
+
+	<!-- month sub-periods -->
+    <stmt>
         <pat>
-            <t>in</t><list v="mon"><expand n="month-names" /></list>
+			<t>early</t> <opt><t>in</t></opt> 
+			<expand n="month-names" as="mon" />
         </pat>
         <tran>
-            <func name="mkDateRange">
-	            <func name="mkDate">
-	                <rn v="1" />
-	                <func name="lookupMonth"><var name="mon" /></func>
-	            </func>
-	            <rn v="-1" /><rn v="1" /><rn v="0" />
-            </func>
+            <func name="mkRange">
+	       		<func name="date.month.start"><func name="lookupMonth"><var name="mon" /></func></func>
+	        	<func name="opDateCalc"> <func name="date.month.start"><func name="lookupMonth"><var name="mon" /></func> </func><rn v="10"/> </func>
+			</func>
         </tran>
-    </stmt -->
+    </stmt>
+    <stmt>
+        <pat>
+			<t>late</t> <opt><t>in</t></opt> 
+			<expand n="month-names" as="mon" />
+        </pat>
+        <tran>
+            <func name="mkRange">
+	        	<func name="opDateCalc"> <func name="date.month.end"><func name="lookupMonth"><var name="mon" /></func> </func><rn v="-10"/> </func>
+	       		<func name="date.month.end"><func name="lookupMonth"><var name="mon" /></func></func>
+			</func>
+        </tran>
+    </stmt>
+    <stmt>
+        <pat>
+			<any><t>middle</t><t>mid</t></any> <opt><t>of</t></opt> 
+			<expand n="month-names" as="mon" />
+        </pat>
+        <tran>
+            <func name="mkRange">
+	        	<func name="opDateCalc"> <func name="date.month.start"><func name="lookupMonth"><var name="mon" /></func> </func><rn v="10"/> </func>
+	        	<func name="opDateCalc"> <func name="date.month.end"><func name="lookupMonth"><var name="mon" /></func> </func><rn v="-10"/> </func>
+			</func>
+        </tran>
+    </stmt>
+	<!-- weeks of the month -->
+    <stmt>
+        <pat>
+			<t>first</t><t>week</t> <any><t>of</t><t>in</t></any> 
+			<expand n="month-names" as="mon" />
+        </pat>
+        <tran>
+            <func name="mkRange">
+	       		<func name="date.month.start"><func name="lookupMonth"><var name="mon" /></func></func>
+	        	<func name="opDateCalc"> <func name="date.month.start"><func name="lookupMonth"><var name="mon" /></func> </func><rn v="6"/> </func>
+			</func>
+        </tran>
+    </stmt>
+    <stmt>
+        <pat>
+			<t>last</t><t>week</t> <any><t>of</t><t>in</t></any> 
+			<expand n="month-names" as="mon" />
+        </pat>
+        <tran>
+            <func name="mkRange">
+	        	<func name="opDateCalc"> <func name="date.month.end"><func name="lookupMonth"><var name="mon" /></func> </func><rn v="-7"/> </func>
+	       		<func name="date.month.end"><func name="lookupMonth"><var name="mon" /></func></func>
+			</func>
+        </tran>
+    </stmt>
+
+	<!-- whole month periods -->
     <stmt>
         <pat>
             <any v="time"><t>in</t><t>last</t><t>this</t><t>next</t></any>
@@ -846,6 +980,7 @@
            </func>
         </tran>
     </stmt>       
+
     <stmt>
         <pat>
             <any><t>until</t><t>before</t><t>by</t></any>
