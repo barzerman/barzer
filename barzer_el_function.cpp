@@ -1186,7 +1186,6 @@ struct BELFunctionStorage_holder {
 
 	STFUN(opPlus)
 	{
-		//AYLOG(DEBUG) << "opPlus called";
 		BarzerNumber bn(0);
 		ArithVisitor<plus> visitor(bn);
 

@@ -1,0 +1,150 @@
+<stmset>
+	<stmt p="date.week.start">
+		 <tran>
+	        <func name="opDateCalc">
+	           <func name="mkDate" />
+	            <func name="opMinus">
+					<func name="opPlus">
+						<func name="opMult">
+	               			<rn v="7"/>
+	               			<var a="0"/>
+						</func>
+						<rn v="1"/>
+					</func>
+	                <func name="getWeekday"/>
+	           </func>
+	        </func>
+		 </tran>
+	</stmt>
+	<stmt p="date.week.end">
+		 <tran>
+	        <func name="opDateCalc">
+	           <func name="mkDate" />
+	            <func name="opMinus">
+					<func name="opPlus">
+						<func name="opMult">
+	                		<rn v="7"/>
+	                		<var a="0"/>
+						</func>
+						<rn v="7"/>
+					</func>
+	                <func name="getWeekday"/>
+	           </func>
+	        </func>
+		 </tran>
+	</stmt>
+
+	<stmt>
+		<pat>
+			<any>
+			<list><t>end</t> <t>of</t><any><t>the</t><t>this</t></any></list>
+			<list><t>late</t> <any> <t>this</t> <list><t>in</t><t>the</t></list></any></list>
+			</any>
+			<t>week</t>
+		</pat>
+		<tran>
+			<func name="mkRange">
+	        	<func name="opDateCalc"> <func name="date.week.start"><rn v="0"/></func> <rn v="4"/></func>
+	      		<func name="date.week.end"><rn v="0"/></func>
+			</func>
+		</tran>
+	</stmt>
+	<stmt>
+		<pat>
+			<any>
+				<list><t>end</t> <opt> <list> <t>of</t><opt><any><t>the</t><t>a</t></any></opt> </list> </opt></list>
+				<t>late</t>
+			</any>
+			<any>
+				<list>
+					<any> <t>last</t> <t>previous</t> <t>prior</t> <t>past</t> </any>
+					<t>week</t>
+				</list>
+				<list> <t>week</t> <t>before</t> </list>
+			</any>
+		</pat>
+		<tran>
+			<func name="mkRange">
+	        	<func name="opDateCalc"> <func name="date.week.start"><rn v="-1"/></func> <rn v="4"/> </func>
+	      		<func name="date.week.end"><rn v="-1"/></func>
+			</func>
+		</tran>
+	</stmt>
+	<stmt>
+		<pat>
+			<t>end</t>
+			<opt> <list> <t>of</t><opt><any><t>the</t><t>a</t></any></opt> </list> </opt>
+			<any>
+				<list>
+					<any> <t>next</t> <t>following</t><t>subsequent</t> </any>
+					<t>week</t>
+				</list>
+				<list> <t>week</t> <t>after</t> <opt><t>this</t></opt></list>
+			</any>
+		</pat>
+		<tran>
+			<func name="mkRange">
+	        	<func name="opDateCalc"> <func name="date.week.start"><rn v="1"/></func> <rn v="4"/> </func>
+	      		<func name="date.week.end"><rn v="1"/></func>
+			</func>
+		</tran>
+	</stmt>
+
+	<stmt>
+		<pat>
+			<any>
+				<list><t>beginning</t>  <t>of</t></list>
+				<list><t>early</t><any><list><t>in</t><t>the</t></list><list><opt><t>in</t></opt><t>this</t></list></any></list>
+			</any>
+			<t>week</t>
+		</pat>
+		<tran>
+			<func name="mkRange">
+	      		<func name="date.week.start"><rn v="0"/></func>
+	        	<func name="opDateCalc"> <func name="date.week.start"><rn v="0"/></func> <rn v="2"/></func>
+			</func>
+		</tran>
+	</stmt>
+	<stmt>
+		<pat>
+			<any>
+			<list><t>beginning</t> <opt> <list> <t>of</t><opt><any><t>the</t><t>a</t></any></opt> </list> </opt></list>
+			<list><t>early</t><opt><t>during</t></opt></list>
+			</any>
+			<any>
+				<list>
+					<any> <t>last</t> <t>previous</t> <t>prior</t> <t>past</t> </any>
+					<t>week</t>
+				</list>
+				<list> <t>week</t> <t>before</t> </list>
+			</any>
+		</pat>
+		<tran>
+			<func name="mkRange">
+	      		<func name="date.week.start"><rn v="-1"/></func>
+	        	<func name="opDateCalc"> <func name="date.week.start"><rn v="-1"/></func> <rn v="2"/> </func>
+			</func>
+		</tran>
+	</stmt>
+	<stmt>
+		<pat>
+			<any>
+			<list><t>beginning</t> <opt> <list> <t>of</t><opt><any><t>the</t><t>a</t></any></opt> </list> </opt></list>
+			<list><t>early</t><opt><t>during</t></opt></list>
+			</any>
+			<any>
+				<list>
+					<any> <t>next</t> <t>following</t><t>subsequent</t> </any>
+					<t>week</t>
+				</list>
+				<list> <t>week</t> <t>after</t> <opt><t>this</t></opt></list>
+			</any>
+		</pat>
+		<tran>
+			<func name="mkRange">
+	      		<func name="date.week.start"><rn v="1"/></func>
+	        	<func name="opDateCalc"> <func name="date.week.start"><rn v="1"/></func> <rn v="2"/> </func>
+			</func>
+		</tran>
+	</stmt>
+</stmset>
