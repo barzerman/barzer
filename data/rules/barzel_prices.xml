@@ -8,12 +8,13 @@
 	<stmt m="MACRO_EUR"> <pat> <any><t>EUR</t><t>euro</t><t>euros</t></any> </pat></stmt>
 	<stmt m="MACRO_GBP"> <pat> <any><t>GBP</t><t>pound</t><t>pounds</t><t>quit</t></any> </pat></stmt>
 	<stmt m="MACRO_GBP_PFX"> <pat> <t>GBP</t> </pat></stmt>
+
     <stmt>
         <pat>
-            <perm>
-				<expand n="MACRO_USD_PFX"/> 
-                <list v="val"><n /></list>
-            </perm> 
+            <any>
+				<list> <list v="val"><n /></list> <expand n="MACRO_USD"/> </list>
+				<list> <expand n="MACRO_USD_PFX"/> <list v="val"><n /></list> </list>
+            </any> 
         </pat>
         <tran>
             <func name="mkERC">
@@ -28,9 +29,9 @@
     
     <stmt>
     <pat>
-		<t>for</t>
+		<opt><t>for</t></opt>
         <list v="val"><n /></list>
-        <any><t>grand</t><t>thousand</t></any>
+        <any><t>grand</t></any>
     </pat>
     <tran>
         <func name="mkERC">
@@ -42,6 +43,7 @@
         </func>        
     </tran>
     </stmt>
+	<!-- EURO price -->
     <stmt>
         <pat>
 			<any>
@@ -53,32 +55,31 @@
             <func name="mkERC">
             <mkent i="EUR" c="1" s="1" />
             <func name="mkRange">
-				<func name="opMult">
-				<var name="val" />
-				<rn v="0.8"/>
-				</func>
-				<func name="opMult">
-				<var name="val" />
-				<rn v="1.3"/>
-				</func>
+				<func name="opMult"> <var name="val" /> <rn v="0.8"/> </func>
+				<func name="opMult"> <var name="val" /> <rn v="1.3"/> </func>
 			</func>
             </func>
         </tran>
     </stmt>
-	<!--
+	<!-- GBP price -->
     <stmt>
         <pat>
-        <list v="val"><n /></list>
-        <any v="curr"><expand n="MACRO_USD"/></any>
+			<any>
+			<list> <list v="val"><n /></list> <expand n="MACRO_GBP"/> </list>
+			<list> <expand n="MACRO_GBP_PFX"/> <list v="val"><n /></list> </list>
+			</any>
         </pat>
         <tran>
             <func name="mkERC">
-            <func name="mkEnt" i="USD" c="1" s="1"/>
-            <func name="mkRange"><var name="val" /></func>
+            <mkent i="GBP" c="1" s="1" />
+            <func name="mkRange">
+				<func name="opMult"> <var name="val" /> <rn v="0.8"/> </func>
+				<func name="opMult"> <var name="val" /> <rn v="1.3"/> </func>
+			</func>
             </func>
         </tran>
-    </stmt> 
-	-->
+    </stmt>
+
 	<!-- OLD ranges -->
 	<!-- price ranges  -->
 	<stmt>
