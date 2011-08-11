@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
     xmlns="http://www.barzer.net/barzel/0.1">
-	<stmt m="MACRO_USD">
-		<pat>
-        	<any><t>usd</t><t>$</t><t>bucks</t><t>greenbacks</t><t>dollars</t><t>dollar</t></any>
-		</pat>
-	</stmt>
+	<stmt m="MACRO_USD"> <pat> <any><t>usd</t><t>$</t><t>bucks</t><t>greenbacks</t><t>dollars</t><t>dollar</t></any> </pat> </stmt>
+
+	<stmt m="MACRO_USD_PFX"> <pat> <any><t>usd</t><t>$</t></any> </pat> </stmt>
+	<stmt m="MACRO_EUR_PFX"> <pat> <t>EUR</t> </pat></stmt>
+	<stmt m="MACRO_EUR"> <pat> <any><t>EUR</t><t>euro</t><t>euros</t></any> </pat></stmt>
+	<stmt m="MACRO_GBP"> <pat> <any><t>GBP</t><t>pound</t><t>pounds</t><t>quit</t></any> </pat></stmt>
+	<stmt m="MACRO_GBP_PFX"> <pat> <t>GBP</t> </pat></stmt>
     <stmt>
         <pat>
             <perm>
-                <t>$</t>
+				<expand n="MACRO_USD_PFX"/> 
                 <list v="val"><n /></list>
             </perm> 
         </pat>
@@ -26,44 +28,59 @@
     
     <stmt>
     <pat>
+		<t>for</t>
         <list v="val"><n /></list>
-        <t>grand</t>
+        <any><t>grand</t><t>thousand</t></any>
     </pat>
     <tran>
         <func name="mkERC">
-        <func name="mkEnt"><rn v="1" /><rn v="1" /></func>
+        <mkent i="USD" c="1" s="1"/>
         <func name="mkRange">
-            <func name="opMult"><var name="val" /><rn v="1000" /></func>
+            <func name="opMult"><var name="val" /><rn v="800" /></func>
+            <func name="opMult"><var name="val" /><rn v="1200" /></func>
         </func>
         </func>        
     </tran>
     </stmt>
     <stmt>
         <pat>
-            <list v="val"><n /></list>
-            <any><t>euro</t><t>euros</t><t>eur</t></any>
+			<any>
+			<list> <list v="val"><n /></list> <expand n="MACRO_EUR"/> </list>
+			<list> <expand n="MACRO_EUR_PFX"/> <list v="val"><n /></list> </list>
+			</any>
         </pat>
         <tran>
             <func name="mkERC">
             <mkent i="EUR" c="1" s="1" />
-            <func name="mkRange"><var name="val" /></func>
+            <func name="mkRange">
+				<func name="opMult">
+				<var name="val" />
+				<rn v="0.8"/>
+				</func>
+				<func name="opMult">
+				<var name="val" />
+				<rn v="1.3"/>
+				</func>
+			</func>
             </func>
         </tran>
     </stmt>
+	<!--
     <stmt>
         <pat>
         <list v="val"><n /></list>
-        <any v="curr"><t>bucks</t><t>dollars</t><t>dollar</t></any>
+        <any v="curr"><expand n="MACRO_USD"/></any>
         </pat>
         <tran>
             <func name="mkERC">
-            <func name="mkEnt"><ltrl>USD</ltrl><rn v="1" /><rn v="1" /></func>
+            <func name="mkEnt" i="USD" c="1" s="1"/>
             <func name="mkRange"><var name="val" /></func>
             </func>
         </tran>
     </stmt> 
+	-->
+	<!-- OLD ranges -->
 	<!-- price ranges  -->
-	<!--
 	<stmt>
 	    <pat>
 			<any>
@@ -105,31 +122,14 @@
             <func name="mkERC">
                 <var name="high" />
                 <func name="mkERC">
-                    <func name="mkEnt"><rn v="1" /><rn v="1" /></func>
+                	<func name="mkEnt" c="1" s="1"/>
                     <func name="mkRange"><var name="low" /></func>
                 </func>
             </func>
         </tran>
     </stmt>
     
-    <stmt>
-        <pat>
-            <t>between</t>
-            <list v="high"><erc c="1" s="1" /></list>
-            <t>and</t>
-            <list v="low"><n /></list>
-        </pat>
-        <tran>
-            <func name="mkERC">
-                <var name="high" />
-                <func name="mkERC">
-                    <func name="mkEnt"><rn v="1" /><rn v="1" /></func>
-                    <func name="mkRange"><var name="low" /></func>
-                </func>
-            </func>
-        </tran>
-    </stmt>    
-	-->
+	<!-- end of OLD ranges -->
 	<!-- AROUND range logic -->
     <stmt>
         <pat>
@@ -140,14 +140,14 @@
 					<expand n="MACRO_USD"/> 
 				</list>
 				<list>
-					<any><t>$</t><t>USD</t></any>
+					<expand n="MACRO_USD_PFX"/> 
 					<list v="num"><n/></list>
 				</list>
 			</any>
         </pat>
         <tran>
             <func name="mkERC">
-                <func name="mkEnt"><rn v="1" /><rn v="1" /></func>
+                <func name="mkEnt"><ltrl t="string">USD</ltrl><rn v="1" /><rn v="1" /></func>
 				<func name="mkRange">
 					<func name="opMult"><var name="num"/><rn v="0.9"/></func>
 					<func name="opMult"><var name="num"/><rn v="1.2"/></func>
@@ -181,6 +181,7 @@
         </tran>
     </stmt>
 	<!-- new BETWEEN range logic -->
+	<!-- USD BETWEEN-->
     <stmt>
         <pat>
 			<any>
@@ -202,17 +203,17 @@
 						<list v="high"><n/></list>
 					</list>
 					<list>
-						<any><t>$</t><t>USD</t></any>
+						<opt><t>for</t></opt>
+						<expand n="MACRO_USD_PFX"/>
 						<list v="low"><n/></list> 
 						<t>-</t> 
-						<opt><any><t>$</t><t>USD</t></any></opt>
+						<opt><expand n="MACRO_USD_PFX"/></opt>
 						<list v="high"><n/></list>
 					</list>
 					<list>
 						<opt><t>for</t></opt>
 						<list v="low"><n/></list> 
 						<t>-</t> 
-						<opt><any><t>$</t><t>USD</t></any></opt>
 						<list v="high"><n/></list>
 						<expand n="MACRO_USD"/> 
 					</list>
@@ -225,7 +226,107 @@
         </pat>
         <tran>
             <func name="mkERC">
-                 <func name="mkEnt"><rn v="1" /><rn v="1" /></func>
+                 <mkent i="USD" c="1" s="1"/>
+                 <func name="mkRange"><var name="low"/><var name="high"/></func>
+             </func>
+        </tran>
+    </stmt>    
+	<!-- EUR BETWEEN-->
+    <stmt>
+        <pat>
+			<any>
+				<any>
+					<list>
+            			<t>between</t> 
+						<expand n="MACRO_EUR_PFX"/>
+						<list v="low"><n/></list> 
+						<t>and</t> 
+						<opt><expand n="MACRO_EUR_PFX"/></opt>
+						<list v="high"><n/></list>
+					</list>
+					<list>
+            			<opt><t>from</t> </opt>
+						<expand n="MACRO_EUR_PFX"/>
+						<list v="low"><n/></list> 
+						<t>to</t> 
+						<opt><expand n="MACRO_EUR_PFX"/></opt>
+						<list v="high"><n/></list>
+					</list>
+					<list>
+						<opt><t>for</t></opt>
+						<expand n="MACRO_EUR_PFX"/>
+						<list v="low"><n/></list> 
+						<t>-</t> 
+						<opt><expand n="MACRO_EUR_PFX"/></opt>
+						<list v="high"><n/></list>
+					</list>
+					<list>
+						<opt><t>for</t></opt>
+						<list v="low"><n/></list> 
+						<t>-</t> 
+						<list v="high"><n/></list>
+						<expand n="MACRO_EUR"/> 
+					</list>
+				</any>
+				<list>
+            		<t>between</t> <list v="low"><n/></list> <t>and</t> <list v="high"><n /></list>
+					<list> <list v="num"><n /></list> <expand n="MACRO_EUR"/> </list>
+				</list>
+			</any>
+        </pat>
+        <tran>
+            <func name="mkERC">
+                 <mkent i="EUR" c="1" s="1"/>
+                 <func name="mkRange"><var name="low"/><var name="high"/></func>
+             </func>
+        </tran>
+    </stmt>    
+	<!-- GBP between -->
+    <stmt>
+        <pat>
+			<any>
+				<any>
+					<list>
+            			<t>between</t> 
+						<expand n="MACRO_GBP_PFX"/>
+						<list v="low"><n/></list> 
+						<t>and</t> 
+						<opt><expand n="MACRO_GBP_PFX"/></opt>
+						<list v="high"><n/></list>
+					</list>
+					<list>
+            			<opt><t>from</t> </opt>
+						<expand n="MACRO_GBP_PFX"/>
+						<list v="low"><n/></list> 
+						<t>to</t> 
+						<opt><expand n="MACRO_GBP_PFX"/></opt>
+						<list v="high"><n/></list>
+					</list>
+					<list>
+						<opt><t>for</t></opt>
+						<expand n="MACRO_GBP_PFX"/>
+						<list v="low"><n/></list> 
+						<t>-</t> 
+						<opt><expand n="MACRO_GBP_PFX"/></opt>
+						<list v="high"><n/></list>
+					</list>
+					<list>
+						<opt><t>for</t></opt>
+						<list v="low"><n/></list> 
+						<t>-</t> 
+						<list v="high"><n/></list>
+						<expand n="MACRO_GBP"/> 
+					</list>
+				</any>
+				<list>
+            		<t>between</t> <list v="low"><n/></list> <t>and</t> <list v="high"><n /></list>
+					<list> <list v="num"><n /></list> <expand n="MACRO_GBP"/> </list>
+				</list>
+			</any>
+        </pat>
+        <tran>
+            <func name="mkERC">
+                 <mkent i="GBP" c="1" s="1"/>
                  <func name="mkRange"><var name="low"/><var name="high"/></func>
              </func>
         </tran>

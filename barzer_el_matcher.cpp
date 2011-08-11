@@ -1003,7 +1003,8 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 		translation.fillRewriteData( evalNode.getBtnd() );
 	}
 	if( !evalNode.eval( transResult, ctxt ) ) {
-		AYLOG(ERROR) << "evaluation failed" << std::endl;
+		// barz.pushTrace( transP->traceInfo );
+		d_trie.printTanslationTraceInfo( AYLOG(ERROR) << "evaluation failed:" , transP->traceInfo );
 		theBead.setStopLiteral();
 		return 0;
 	}
