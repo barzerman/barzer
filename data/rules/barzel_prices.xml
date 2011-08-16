@@ -695,7 +695,7 @@
                 	<t>under</t>
                 	<t>below</t>
             	</any>
-				<expand n="MACRO_USD_PFX"/>
+				<opt><expand n="MACRO_USD_PFX"/></opt>
             	<list v="num"><n /></list>
 				<t>k</t>
 			</list>
