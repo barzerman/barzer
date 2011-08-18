@@ -451,6 +451,7 @@ bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) cons
 	Eval_visitor_compute visitor(childValVec,val,ctxt, *this);
 	bool ret = boost::apply_visitor( visitor, d_btnd );
 
+	
 	return ret;
 
 }

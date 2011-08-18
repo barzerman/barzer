@@ -302,6 +302,7 @@ struct BarzelBeadChain {
 	const Range getFullRange() 
 		{ return Range( lst.begin(), lst.end() ); }
 	void collapseRangeLeft( Range r );
+	void collapseRangeLeft( BeadList::iterator origin, Range r );
 	
 	/// will try to print rng.first through rng.second including second, unless it equals end
 	static Range makeInclusiveRange( const Range& rng, BeadList::const_iterator end ) 

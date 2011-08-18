@@ -1031,7 +1031,7 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 				chain.insertBead( range.second, *di );
 		} else if( bi != range.second ) { // vector is shorter than the list and we need to fold the remainder of the list
 			if( bi != range.first ) 
-				chain.collapseRangeLeft( BeadRange(bi, range.second) );
+				chain.collapseRangeLeft( chain.getFullRange().first,  BeadRange(bi, range.second) );
 		}
 		//std::cerr << "<<<<< *** AFTER ::::>>\n";
 		//AYDEBUG( chain.getFullRange() );

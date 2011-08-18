@@ -84,9 +84,11 @@ typedef std::vector< BarzelBeadData > BarzelBeadDataVec;
 class BarzelEvalResult {
 public:
 	typedef std::vector< BarzelBeadData > BarzelBeadDataVec;
+	typedef std::vector< CTWPVec > CTokVecVec;
 private:
 	/// this vector can never be shorter than 1 element 
 	BarzelBeadDataVec d_val;	
+	CTokVecVec        d_origToks;
 public:
 	BarzelEvalResult() : d_val(1) {}
 	const BarzelBeadData& getBeadData() const { return d_val[0]; }
@@ -96,6 +98,15 @@ public:
 	      BarzelBeadDataVec& getBeadDataVec()       { return d_val; }
 	bool isVec() const { return (d_val.size() > 1); }
 	template <typename T> void setBeadData( const T& t ) { d_val[0] = t; }
+	/*
+	const CTokVecVec& getOrigToks() const
+		{ return d_origToks; }
+	void addOrigTokens( const CTWPVec& v ) 
+	{
+		if( !d_origToks.size() ) d_origToks.resize(1);
+		d_origToks.back().insert( d_origToks.back().end(), v.begin(), v.end() ) ;
+	}
+	*/
 	//template <typename T> T& setBeadData( const T& t )
 //		{ return (d_val[0] = t); }
 };
@@ -114,11 +125,15 @@ template <>
 inline void BarzelEvalResult::setBeadData<BarzelBeadRange>( const BarzelBeadRange& t ) 
 {
 	d_val.clear();
-	for( BeadList::iterator i = t.first; i!= t.second; ++i ) 
+	for( BeadList::iterator i = t.first; i!= t.second; ++i )  {
 		d_val.push_back( i->getBeadData() );
-	
-	if( !d_val.size() )
+		// d_origToks.push_back( i->getCTokens() );
+	}
+
+	if( !d_val.size() ) {
 		d_val.resize(1);
+		// d_origToks.resize(1);
+	}
 }
  //*/
 

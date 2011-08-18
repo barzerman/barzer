@@ -4,6 +4,84 @@
 
 <stmt>
     <pat>
+        <any>
+			<t>under</t>
+			<t>below</t>
+			<list><t>less</t><t>than</t></list>
+		</any>
+        <list v="hi"><n /></list>
+    </pat>
+    <tran>
+        <func name="mkRange"><rn v="0"/><var name="hi" /></func>
+    </tran>
+</stmt>
+<stmt>
+    <pat>
+        <any>
+			<t>above</t>
+			<t>over</t>
+			<list><t>greater</t><t>than</t></list>
+		</any>
+        <list v="lo"><n /></list>
+    </pat>
+    <tran>
+        <func name="mkRange"><var name="lo" /><rn v="214748364"/></func>
+    </tran>
+</stmt>
+<stmt>
+    <pat>
+        <any>
+			<any>
+				<t>cheapest</t>
+				<list><t>least</t><t>expensive</t></list>
+			</any>
+		</any>
+		<any v="txt">
+			<list><opt><t/></opt><t/><ent/><opt><t/></opt></list>
+			<list><ent/><opt><t/></opt></list>
+			<list><opt><t/></opt><ent/><ent/><opt><t/></opt></list>
+			<list><t/><opt><t/></opt></list>
+		</any>
+		<list v="r"><range t="i"/></list>
+    </pat>
+    <tran>
+        <func name="mkERC">
+			<mkent c="1" s="1"/>
+			<var n="r"/>
+		</func>
+		<var n="txt"/>
+    </tran>
+</stmt>
+<stmt>
+    <pat>
+        <any>
+			<any>
+				<t>priciest</t>
+				<list><t>most</t><t>expensive</t></list>
+			</any>
+		</any>
+		<any v="txt">
+			<list><opt><t/></opt><t/><ent/><opt><t/></opt></list>
+			<list><ent/><opt><t/></opt></list>
+			<list><opt><t/></opt><ent/><ent/><opt><t/></opt></list>
+			<list><t/><opt><t/></opt></list>
+		</any>
+		<list v="r"><range t="i"/></list>
+    </pat>
+    <tran>
+        <func name="mkERC">
+			<mkent c="1" s="1"/>
+			<func name="mkRange">
+				<var n="r"/>
+				<ltrl>DESC</ltrl>
+			</func>
+		</func>
+		<var n="txt"/>
+    </tran>
+</stmt>
+
+<stmt>
+    <pat>
         <t>between</t>
         <list v="low"><n /></list>
         <t>and</t>

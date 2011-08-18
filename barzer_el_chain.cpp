@@ -117,6 +117,57 @@ std::ostream& BarzerERCExpr::print( std::ostream& fp ) const
 }
 ///// BarzelBeadChain
 
+void BarzelBeadChain::collapseRangeLeft( BeadList::iterator origin, Range r ) {
+	BeadList::iterator nonStringI = r.second;
+	BeadList::iterator stringI = r.second;
+
+	BeadList::iterator firstTarget = r.first;
+	/// setting the string target
+	if( firstTarget->isStringLiteral() ) 
+		stringI = firstTarget;
+	else {
+		BeadList::iterator ni =firstTarget;
+		for( ; ni != origin; --ni ) {
+			if( ni->isStringLiteral() ) {
+				stringI = ni;
+				break;
+			}
+		}
+		if( stringI == r.second && origin->isStringLiteral() ) {
+			stringI = origin;
+		}
+	}
+	// setting the non string target 
+	if( !firstTarget->isStringLiteral() ) 
+		nonStringI = firstTarget;
+	else {
+		BeadList::iterator ni = firstTarget;
+		for( ; ni != origin; --ni ) {
+			if( !ni->isStringLiteral() ) {
+				nonStringI = ni;
+				break;
+			}
+		}
+		if( nonStringI == r.second && !origin->isStringLiteral() ) {
+			nonStringI = origin;
+		}
+	}
+	++(r.first);
+	if( nonStringI == r.second ) {
+		nonStringI = firstTarget;
+	}
+	if( stringI == r.second ) {
+		stringI = firstTarget;
+	}
+
+	for( BeadList::iterator i = r.first; i!= r.second; ++i ) {
+		//BeadList::iterator targetI = ( !i->isStringLiteral() ? stringI: nonStringI );
+		// if( !i->isStringLiteral()  ) 
+			// nonStringI->absorbBead( *i );
+	}
+	lst.erase( r.first, r.second );
+}
+
 void BarzelBeadChain::collapseRangeLeft( Range r ) {
 	if( r.first == r.second ) 
 		return;

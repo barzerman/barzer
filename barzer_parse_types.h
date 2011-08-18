@@ -174,6 +174,20 @@ struct CToken {
 typedef std::pair< CToken, uint16_t > CTokenWithPos;
 typedef std::vector< CTokenWithPos > CTWPVec;
 
+inline std::ostream& CTWPVec_origTok_print( std::ostream& os,  const CTWPVec& ctoks )
+{
+	for( CTWPVec::const_iterator ci = ctoks.begin(); ci != ctoks.end(); ++ci ) {
+		const TTWPVec& ttv = ci->first.getTTokens();
+		for( TTWPVec::const_iterator ti = ttv.begin(); ti!= ttv.end() ; ++ti ) {
+			const TToken& ttok = ti->first;
+			if( ttok.len && ttok.buf ) {
+				os.write( ttok.buf, ttok.len );
+			}
+		}
+	}	
+	return os << ' ';
+}
+
 std::ostream& operator<<( std::ostream & , const CTWPVec& );
 inline std::ostream& operator<<( std::ostream& fp, const CToken& t)
 	{ return t.print( fp ); }
