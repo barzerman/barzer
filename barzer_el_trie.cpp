@@ -617,7 +617,7 @@ void BarzelTranslation::set(BELTrie&, const BTND_Rewrite_Number& x )
 			id = (float)(x.getReal());
 		} else {
 			type = T_NUMBER_INT;
-			id = x.getInt();
+			id = (int64_t)x.getInt();
 		}
 	} else {
 		AYTRACE( "inconsistent number encountered in Barzel rewrite" );

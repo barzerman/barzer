@@ -150,6 +150,10 @@ struct CToken {
 	bool isSpellCorrected( ) const { return cInfo.isSpellCorrected(); }
 	bool isStemmed( ) const { return cInfo.isStemmed(); }
 
+	void setNumber( const BarzerNumber& n ) {
+		cInfo.theClass = CTokenClassInfo::CLASS_NUMBER;
+		bNum = n;
+	}
 	void setNumber( int i ) {
 		cInfo.theClass = CTokenClassInfo::CLASS_NUMBER;
 		bNum.set(i);

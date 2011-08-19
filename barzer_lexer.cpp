@@ -61,11 +61,83 @@ void QLexParser::collapseCTokens( CTWPVec::iterator beg, CTWPVec::iterator end )
 	}
 }
 
+namespace {
+
+/// ctok is a number 
+inline bool ctok_number_can_be_in_commadelim( bool isFirst, const CToken& ctok )
+{
+	if( ctok.getTTokens().size() > 1 || !ctok.getNumber().isInt() ) 
+		return false;
+	const TToken*  ttok = ctok.getFirstTToken();
+	if( !ttok || ttok->len > 3 ) 
+		return false;
+
+	return (isFirst || ttok->len == 3);
+}
+
+inline int64_t get_decimal_factor( int numZeroBlocks ) 
+{
+	switch(numZeroBlocks) {
+	case 1: return 1000;
+	case 2: return 1000000;
+	case 3: return 1000000000;
+	case 4: return 1000000000000;
+	case 5: return 1000000000000000;
+	default: return 1;
+	}
+}
+
+// returns true if this is a comma delimited integer 
+// endPos will contain the last token of the number
+bool is_comma_delimited_int( const CTWPVec& cvec, size_t fromPos, size_t& endPos, BarzerNumber& theInt ) 
+{
+	{ // first token
+	const CToken& ctok1 = cvec[fromPos].first;
+	if( !ctok1.isNumber() || !ctok_number_can_be_in_commadelim(true,ctok1) || fromPos+2>= cvec.size() )
+		return false;
+	} // end of first process 
+	size_t lastCommaEnd = cvec.size()-1;
+	size_t pos = fromPos+1;
+	size_t numZeroBlocks = 0;
+	for( ; pos < lastCommaEnd && numZeroBlocks< 6; ) {
+		if( !cvec[pos].first.isPunct(',') || !ctok_number_can_be_in_commadelim(false,cvec[pos+1].first) ) {
+			break;
+		} else{
+			++numZeroBlocks;
+			pos+= 2;
+		}
+	}
+	if( !numZeroBlocks )
+		return false;
+	endPos = pos;
+	int64_t intResult = 0;	
+	for( size_t i = fromPos; i< endPos; i+=2, --numZeroBlocks ) {
+		const BarzerNumber& num = cvec[i].first.getNumber();
+		intResult += num.getInt() * get_decimal_factor( numZeroBlocks );
+	}
+	theInt.set( intResult );
+	return true;
+}
+
+} // end of anon namespace 
+
 int QLexParser::advancedNumberClassify( CTWPVec& cvec, const TTWPVec& tvec, const QuestionParm& qparm )
 {
 	//// this only processes positive 
+	BarzerNumber theInt;
+	size_t endPos= 0;
 	for( size_t i =0; i< cvec.size(); ++i ) {
 		CToken& t = cvec[i].first;
+		if( is_comma_delimited_int(cvec, i,endPos,theInt ) ) {
+			t.setNumber(theInt);
+			for( size_t j = i+1; j< endPos; ++j ) {
+				CToken& clearTok = cvec[j].first;
+				t.qtVec.insert( t.qtVec.end(), clearTok.qtVec.begin(),clearTok.qtVec.end() );
+				clearTok.clear();
+			}
+			// *****
+			continue;
+		} 
 		if( t.isNumber() ) {
 			size_t i_dot = i+1, i_frac = i+2;
 			if( i_frac < cvec.size() ) {
@@ -395,7 +467,11 @@ int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qpar
 			} else  {
 				if( !tok ) tok = s;
 			}
-			prevChar =( isdigit(c) ? CHAR_DIGIT : CHAR_ALPHA );
+			if( isdigit(c) ) {
+				prevChar = CHAR_DIGIT;
+			} else {
+				prevChar =CHAR_ALPHA;
+			}
 		} else 
 			prevChar = CHAR_ALPHA;
 	    lc=c;

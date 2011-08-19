@@ -13,7 +13,7 @@ public:
 	
 private:
 	union {
-		int i;
+		int64_t i;
 		double  real;
 	} n;
 
@@ -28,25 +28,27 @@ public:
 
 	BarzerNumber() 				: type(NTYPE_NAN), d_asciiLen(0) {n.i = 0;}
 	BarzerNumber( int i ) 		: type(NTYPE_INT), d_asciiLen(0) {n.i = i;}
+	BarzerNumber( int64_t i ) 		: type(NTYPE_INT), d_asciiLen(0) {n.i = i;}
 	BarzerNumber( double i ) 	: type(NTYPE_REAL), d_asciiLen(0) {n.real = i;}
 
 	void set( int i ) { type= NTYPE_INT; n.i = i; }
+	void set( int64_t i ) { type= NTYPE_INT; n.i = i; }
 	void set( double x ) { type= NTYPE_REAL; n.real = x; }
 
 	void clear() { type = NTYPE_NAN; }
-	int setInt( const char* s) { return( type= NTYPE_INT, n.i = atoi(s)); }
-	int setReal( const char* s) { return( type= NTYPE_REAL, n.i = atof(s)); }
+	int64_t setInt( const char* s) { return( type= NTYPE_INT, n.i = atoi(s)); }
+	int64_t setReal( const char* s) { return( type= NTYPE_REAL, n.i = atof(s)); }
 
 	inline bool isNan() const { return type == NTYPE_NAN; }
 	inline bool isInt() const { return type == NTYPE_INT; }
 	inline bool isReal() const { return type == NTYPE_REAL; }
 
-	inline int 		getInt_unsafe() const { return( n.i  ); }
+	inline int64_t 		getInt_unsafe() const { return( n.i  ); }
 	inline double 	getReal_unsafe() const { return( n.real  ); }
 
 	inline uint32_t 	getUint32() const { return( isInt() ? (uint32_t)(n.i) : 0xffffffff ); }
 
-	inline int 		getInt() const { return( isInt() ? n.i : 0 ); }
+	inline int64_t 		getInt() const { return( isInt() ? n.i : 0 ); }
 	inline double 	getReal() const { return( isReal() ? n.real : 0. ); }
 	
 	inline bool isInt_Nonnegative() const { return ( isInt() && n.i >= 0 );  }
@@ -59,7 +61,7 @@ public:
 	inline bool is_Positive() const { 
 		return ( isInt() ?  n.i>0 : ( isReal() ? n.real>0. : false ) ); }
 
-	inline bool isInt_inRange( int lo, int hi ) const
+	inline bool isInt_inRange( int64_t lo, int64_t hi ) const
 		{ return ( isInt() && n.i> lo && n.i < hi ); }
 	inline bool isReal_inRange( double lo, double hi ) const
 		{ return ( isReal() && n.real> lo && n.real < hi ); }

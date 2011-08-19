@@ -314,8 +314,8 @@ inline bool operator == ( const BarzerLiteral& l, const BarzerLiteral& r )
 /// range of continuous values (int,real,date,time ...)
 struct BarzerRange {
 	typedef std::pair< BarzerNone, BarzerNone > None;
-	typedef std::pair< int, int > Integer;
-	typedef std::pair< float, float > Real;
+	typedef std::pair< int64_t, int64_t > Integer;
+	typedef std::pair< double, double > Real;
 	typedef std::pair< BarzerTimeOfDay, BarzerTimeOfDay > TimeOfDay;
 	typedef std::pair< BarzerDate, BarzerDate > Date;
 	typedef std::pair< BarzerDateTime, BarzerDateTime > DateTime;

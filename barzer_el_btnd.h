@@ -663,12 +663,13 @@ struct BTND_Rewrite_Number : public BarzerNumber {
 
 	BTND_Rewrite_Number( ) : isConst(0) {}
 
-	BTND_Rewrite_Number( int x ) : BarzerNumber(x), isConst(0) {}
+	BTND_Rewrite_Number( int x ) : BarzerNumber((int64_t)x), isConst(0) {}
 	BTND_Rewrite_Number( double x ) : BarzerNumber(x), isConst(0) {}
 
 	std::ostream& print( std::ostream& fp, const BELPrintContext& ) const
 		{ return BarzerNumber::print( fp ); }
 
+	void set( int64_t i ) { isConst = (uint8_t)1; BarzerNumber::set(i); }
 	void set( int i ) { isConst = (uint8_t)1; BarzerNumber::set(i); }
 	void set_int( int i ) { isConst = (uint8_t)1; BarzerNumber::set(i); }
 	void set( double i ) { isConst = (uint8_t)1; BarzerNumber::set(i); }

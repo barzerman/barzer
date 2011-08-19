@@ -209,7 +209,7 @@ public:
 
 		T_MAX
 	} Type_t;
-	boost::variant< uint32_t, float, int> id;
+	boost::variant< uint32_t, double, int64_t> id;
 	BarzelTranslationTraceInfo traceInfo;
 	uint8_t  type; // one of T_XXX constants 
 
@@ -256,7 +256,7 @@ public:
 		return ( type == T_REWRITER ? boost::get<uint32_t>(id) : 0xffffffff );
 	}
 	uint32_t getId_uint32() const { return ( id.which() ==0 ? boost::get<uint32_t>(id) : 0xffffffff ); }
-	int getId_int() const { return ( id.which() ==2  ? boost::get<int>(id) : 0 ); }
+	int64_t getId_int() const { return ( id.which() ==2  ? boost::get<int64_t>(id) : 0 ); }
 	double getId_double() const { return ( id.which() ==1  ? boost::get<double>(id) : 0.0 ); }
 
 

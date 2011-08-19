@@ -609,18 +609,18 @@ struct BELFunctionStorage_holder {
 						BarzerRange::Real &rp
 							= boost::get<BarzerRange::Real>(range.getData());
 						//rp.second = (float) rnum.getInt();
-						setSecond(rp, (float) rnum.getInt());
+						setSecond(rp, (double) rnum.getInt());
 					}
 				} else if (rnum.isReal()) {
 					if (range.getType() == BarzerRange::Real_TYPE) {
 						BarzerRange::Real &rp
 							= boost::get<BarzerRange::Real>(range.getData());
 						//rp.second = rnum.getReal();
-						setSecond(rp, (float)rnum.getReal());
+						setSecond(rp, rnum.getReal());
 					} else {
 						int lf = boost::get<BarzerRange::Integer>(range.getData()).first;
 						BarzerRange::Real newRange((float) lf, (float) lf);
-						setSecond(newRange, (float)rnum.getReal());
+						setSecond(newRange, rnum.getReal());
 						range.setData(newRange);
 						//range.setData(BarzerRange::Real((float) lf, rnum.getReal()));
 					}
@@ -1134,7 +1134,15 @@ struct BELFunctionStorage_holder {
 			setResult(result, BarzerNumber(i));
 			return true;
 		}
+		bool set(int64_t i) {
+			setResult(result, BarzerNumber(i));
+			return true;
+		}
 		bool set(float f) {
+			setResult(result, BarzerNumber(f));
+			return true;
+		}
+		bool set(double f) {
 			setResult(result, BarzerNumber(f));
 			return true;
 		}
