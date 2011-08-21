@@ -68,7 +68,7 @@
             <t>anyway</t><t>anyways</t><t>anywhere</t><t>apart</t><t>appear</t>
             <t>appreciate</t><t>appropriate</t><t>are</t><t>around</t>
             <t>as</t><t>aside</t><t>ask</t><t>asking</t><t>associated</t><t>at</t>
-            <t>available</t><t>away</t><t>awfully</t><t>be</t><t>became</t>
+            <t>available</t><t>away</t><t>be</t><t>became</t>
             <t>because</t><t>become</t><t>becomes</t><t>becoming</t><t>been</t>
             <t>before</t><t>beforehand</t><t>behind</t><t>being</t><t>believe</t>
             <t>below</t><t>beside</t><t>besides</t><t>best</t><t>better</t>
@@ -82,7 +82,7 @@
             <t>definitely</t><t>described</t><t>despite</t><t>did</t><t>different</t>
             <t>do</t><t>does</t><t>doing</t><t>done</t><t>down</t><t>downwards</t>
             
-            <t>during</t><t>each</t><t>edu</t><t>eg</t><t>eight</t><t>either</t>
+            <t>during</t><t>each</t><t>eg</t><t>either</t>
             <t>else</t><t>elsewhere</t><t>enough</t><t>entirely</t><t>especially</t>
             <t>et</t><t>etc</t><t>even</t><t>ever</t><t>every</t><t>everybody</t>
             <t>everyone</t><t>everything</t><t>everywhere</t><t>ex</t><t>exactly</t>
@@ -122,7 +122,7 @@
             <t>possible</t><t>presumably</t><t>probably</t><t>provides</t>
             <t>que</t><t>quite</t><t>qv</t><t>rather</t><t>rd</t><t>re</t>
             <t>really</t><t>reasonably</t><t>regarding</t><t>regardless</t>
-            <t>regards</t><t>relatively</t><t>respectively</t><t>right</t>
+            <t>relatively</t><t>respectively</t><t>right</t>
             <t>said</t><t>same</t><t>saw</t><t>say</t><t>saying</t><t>says</t>
             <t>second</t><t>secondly</t><t>see</t><t>seeing</t><t>seem</t>
             <t>seemed</t><t>seeming</t><t>seems</t><t>seen</t><t>self</t>
@@ -132,9 +132,9 @@
             <t>since</t><t>six</t><t>so</t><t>some</t><t>somebody</t><t>somehow</t>
             <t>someone</t><t>something</t><t>sometime</t><t>sometimes</t><t>somewhat</t>
             <t>somewhere</t><t>soon</t><t>sorry</t><t>specified</t><t>specify</t>
-            <t>specifying</t><t>still</t><t>sub</t><t>such</t><t>sup</t><t>sure</t>
+            <t>specifying</t><t>still</t><t>such</t><t>sup</t><t>sure</t>
             <t>take</t><t>taken</t><t>tell</t><t>tends</t><t>th</t><t>than</t>
-            <t>thank</t><t>thanks</t><t>thanx</t><t>that</t><t>thats</t><t>the</t>
+            <t>thank</t><t>thanks</t><t>thanx</t><t>that</t><t>thats</t>
             <t>their</t><t>theirs</t><t>them</t><t>themselves</t><t>then</t>
             <t>thence</t><t>there</t><t>thereafter</t><t>thereby</t><t>therefore</t>
             <t>therein</t><t>theres</t><t>thereupon</t><t>these</t><t>they</t>
@@ -144,7 +144,7 @@
             <t>toward</t><t>towards</t><t>tried</t><t>tries</t><t>truly</t>
             <t>try</t><t>trying</t><t>twice</t><t>two</t><t>un</t><t>under</t>
             <t>unfortunately</t><t>unless</t><t>unlikely</t><t>until</t><t>unto</t>
-            <t>up</t><t>upon</t><t>us</t><t>use</t><t>used</t><t>useful</t><t>uses</t>
+            <t>up</t><t>upon</t><t>use</t><t>used</t><t>useful</t><t>uses</t>
             <t>using</t><t>usually</t><t>value</t><t>various</t><t>very</t>
             <t>via</t><t>viz</t><t>vs</t><t>want</t><t>wants</t><t>was</t><t>way</t>
             <t>we</t><t>welcome</t><t>well</t><t>went</t><t>were</t><t>what</t>
@@ -153,9 +153,9 @@
             <t>whereupon</t><t>wherever</t><t>whether</t><t>which</t><t>while</t>
             <t>whither</t><t>who</t><t>whoever</t><t>whole</t><t>whom</t><t>whose</t>
             <t>why</t><t>will</t><t>willing</t><t>wish</t><t>with</t><t>within</t>
-            <t>without</t><t>wonder</t><t>would</t><t>would</t>
+            <t>without</t><list><t>i</t><t>wonder</t></list><t>would</t>
             <t>yes</t><t>yet</t><t>you</t><t>your</t><t>yours</t><t>yourself</t>
-            <t>yourselves</t><t>zero</t>
+            <t>yourselves</t>
         </any>
     </pat>
     
