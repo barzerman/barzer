@@ -8,6 +8,7 @@
 #include <barzer_el_wildcard.h>
 #include <barzer_el_analysis.h>
 #include <ay/ay_logger.h>
+#include <ay/ay_choose.h>
 #include <algorithm>
 #include <barzer_el_trie_shell.h>
 #include <barzer_server_response.h>
@@ -462,6 +463,10 @@ size_t TAParms::maxNameLen     = 3;
 
 }
 
+static int bshf_bzspell( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	return 0;
+}
 /// data analysis entry point
 static int bshf_dtaan( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
@@ -769,6 +774,7 @@ static const CmdData g_cmd[] = {
 	//commented test to reduce the bloat
 	CmdData( bshf_test, "test", "just a test" ),
 	CmdData( (ay::Shell_PROCF)bshf_anlqry, "anlqry", "<filename> analyzes query set" ),
+	CmdData( (ay::Shell_PROCF)bshf_bzspell, "bzspell", "barzer spell corrector" ),
 	CmdData( (ay::Shell_PROCF)bshf_dtaan, "dtaan", "data set analyzer. runs through the trie" ),
 	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),
 	CmdData( (ay::Shell_PROCF)bshf_lex, "lex", "tokenize and then classify (lex) the input" ),
