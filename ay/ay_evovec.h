@@ -61,6 +61,13 @@ public:
 		return( is_array() && mode< INTARR_CAPACITY ? (get_array()[ mode ] = n,++mode,true) :false );
 	}
 
+	void clear() 
+	{
+		if( is_vector() ) 
+			delete data.vecP;
+		
+		mode=0;
+	}
 	evovec() : mode(0) {}
 	~evovec() { delete get_vector_ptr(); }
 
