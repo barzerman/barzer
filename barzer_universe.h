@@ -182,12 +182,16 @@ public:
 		{ return globalTriePool.getTrie( cs, ids ); }
 };
 
+class BZSpell;
+
 class StoredUniverse {
 	uint32_t d_userId;
 	GlobalPools& gp;
 
 	UniverseTrieCluster          trieCluster; 
 	BarzerHunspell      hunspell;
+
+	BZSpell*             bzSpell; 
 	
 	typedef boost::unordered_map< uint32_t, bool > StringIdSet;
 

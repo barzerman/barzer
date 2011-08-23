@@ -3,6 +3,7 @@
 
 #include <ay_headers.h>
 #include <vector>
+#include <boost/variant.hpp>
 
 
 // this file has various vector-based containers such as 
@@ -204,6 +205,127 @@ public:
 	const value_type& operator[] ( size_t i ) const { return d_vec[i]; }
 	
 };
+
+// evovec - evolving vector
+/// sizeof evovec is the same as sizeof(vector) but if the contained type is small enough
+/// evovec may keep contained objects in place (no memory allocation) 
+/// 
+/// but for small types it can hold a few elements
+template <typename T>
+class evovec {
+public:
+	typedef std::vector<T> vec_type;
+	
+	struct fixvec {
+		enum { INTARR_CAPACITY = (sizeof(vec_type)-1)/sizeof(T) };
+		T dta[ INTARR_CAPACITY ];
+		uint8_t  sz;
+
+		uint8_t size() const { return sz; } 
+		uint8_t capacity() const { return INTARR_CAPACITY; } 
+		bool hasCapacity() const { return (sz< INTARR_CAPACITY); }
+
+		bool append( const T& n ) 
+			{ return ( hasCapacity() ? (dta[sz++]= n, true) : false ); }
+
+		const T* begin_ptr() const { return &(dta[0]); }
+		const T* end_ptr() const { return &(dta[sz]); }
+
+		T* begin_ptr() { return &(dta[0]); }
+		T* end_ptr() { return &(dta[sz]); }
+
+		fixvec() : sz(0) {}
+	};
+	typedef boost::variant< fixvec, vec_type>  variant_type;
+
+	typedef std::pair< T*, T* > range;
+	typedef std::pair< const T*, const T* > range_const;
+
+	variant_type data;	
+/// public interface
+	bool is_fixvec() const { return !data.which(); }
+	bool is_vector() const { return data.which(); }
+
+	vec_type* get_vector_ptr( ) { return boost::get< vec_type >( &data ); }
+	const vec_type* get_vector_ptr() const{ return boost::get< vec_type >( &data ); }
+
+	vec_type& get_vector( ) { return boost::get< vec_type >( data ); }
+	const vec_type& get_vector() const{ return boost::get< vec_type >( data ); }
+
+	fixvec* get_fixvec_ptr() { return boost::get< fixvec >( &data ); }
+	const fixvec* get_fixvec_ptr() const { return boost::get< fixvec >( &data ); }
+
+	fixvec& get_fixvec() { return boost::get< fixvec >( data ); }
+	const fixvec& get_fixvec() const { return boost::get< fixvec >( data ); }
+
+	void push_back( const T& n ) { 
+		if( is_fixvec() ) { /// still in fixvec 
+			fixvec& fv = boost::get< fixvec >(data);
+			if( !fv.append(n) ) { // array becomes vector when this returns false
+				vec_type tmpVec;
+				tmpVec.reserve( fv.size() +1 ); // minimizes allocations
+				tmpVec.insert( tmpVec.end(), fv.begin_ptr(), fv.end_ptr() );
+
+				data = vec_type();
+				vec_type& vec = get_vector();
+				vec.swap( tmpVec );
+				
+				vec.push_back(n);
+			}
+		} else { // already a vector
+			get_vector().push_back(n);
+		}
+	}
+
+	const T* begin_ptr() const 
+		{ 
+			const fixvec* fv = get_fixvec_ptr();
+			return ( fv ? fv->begin_ptr() : &(get_vector().front()) );
+		}
+	T* begin_ptr() 
+		{ 
+			fixvec* fv = get_fixvec_ptr();
+			return ( fv ? fv->begin_ptr() : &(get_vector().front()) );
+		}
+	const T* end_ptr() const 
+		{ 
+			const fixvec* fv = get_fixvec_ptr();
+			return ( fv ? fv->end_ptr() : &(get_vector().back())+1 );
+		}
+	T* end_ptr() 
+		{ 
+			fixvec* fv = get_fixvec_ptr();
+			return ( fv ? fv->end_ptr() : &(get_vector().back())+1 );
+		}
+
+	range_const get_range() const 
+	{
+		const fixvec* fv = get_fixvec_ptr();
+		if( fv ) 
+			return range_const( fv->begin_ptr(), fv->end_ptr() );
+		else {
+			vec_type& v = get_vector();
+			return range_const( &(v.front()), &( v.back())+1 );
+		}
+	}
+	range get_range() 
+	{
+		fixvec* fv = get_fixvec_ptr();
+		if( fv ) 
+			return range( fv->begin_ptr(), fv->end_ptr() );
+		else {
+			vec_type& v = get_vector();
+			return range( &(v.front()), &(v.back())+1 );
+		}
+	}
+	size_t size() const 
+		{ 
+			const fixvec* fv = get_fixvec_ptr();
+			return( fv ? fv->size() : get_vector().size() ) ;
+		}
+}; // end of evovec
+
+typedef evovec< uint32_t > evovec_uint32;
 
 }
 #endif // AY_VECTOR_H
