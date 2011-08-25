@@ -56,10 +56,8 @@ uint32_t BELParser::internVariable( const char* t )
 uint32_t BELParser::addCompoundedWordLiteral( const char* alias )
 {
 	uint32_t aliasId = ( alias ? internString(alias) : 0xffffffff );
-	//uint32_t cwid = reader->getUniverse().getCompWordPool().addNewCompWordWithAlias( aliasId );
 	GlobalPools &gp = reader->getGlobalPools();
 	uint32_t cwid = gp.getCompWordPool().addNewCompWordWithAlias( aliasId );
-	//StoredToken& sTok =  reader->getUniverse().getDtaIdx().addCompoundedToken(cwid);
 	StoredToken& sTok =  gp.getDtaIdx().addCompoundedToken(cwid);
 	return sTok.tokId;
 }
@@ -73,8 +71,9 @@ uint32_t BELParser::internString( const char* t )
 	// here we may want to tweak some (nonexistent yet) fields in StoredToken 
 	// to reflect the fact that this thing is actually in the trie
 
-	//StoredToken& sTok =  reader->getUniverse().getDtaIdx().addToken( t );
 	StoredToken& sTok =  reader->getGlobalPools().getDtaIdx().addToken( t );
+	trie->addWordInfo( sTok.getStringId() );
+
 	return sTok.getStringId();
 }
 
@@ -92,13 +91,16 @@ void BELParseTreeNode::print( std::ostream& fp, int depth ) const
 
 BELReader::BELReader( GlobalPools &g ) :
 	trie(&g.globalTriePool.produceTrie("", "")) , parser(0), gp(g),
-	numStatements(0) ,silentMode(false),  inputFmt(INPUT_FMT_XML)
+	numStatements(0) ,silentMode(false),  inputFmt(INPUT_FMT_XML),
+	d_trieSpellPriority(0)
 {}
 
 void BELReader::setTrie( const std::string& trieClass, const std::string& trieId )
 {
 	trie = &(gp.globalTriePool.produceTrie( trieClass, trieId ));
+	computeImplicitTrieSpellPriority(trieClass,trieId);
 }
+
 std::ostream& BELReader::printNode( std::ostream& fp, const BarzelTrieNode& node ) const 
 {
 	BELPrintFormat fmt;
@@ -214,6 +216,21 @@ int BELReader::loadFromStream( std::istream& fp )
 
 	return numStatements;
 }
+void BELReader::computeImplicitTrieSpellPriority( const std::string& tclass, const std::string& trieId )
+{
+	d_trieSpellPriority = ( !tclass.length() ? 0 : 10 );
+	d_spellPriority = d_rulesetSpellPriority+d_trieSpellPriority;
+}
+
+void BELReader::computeRulesetSpellPriority( const char* fileName )
+{
+	d_rulesetSpellPriority = 0;
+	if( fileName ) {
+		if( !strstr( fileName, "_fluff" ) ) 
+			d_rulesetSpellPriority= 5;
+	}
+	d_spellPriority = d_rulesetSpellPriority+d_trieSpellPriority;
+}
 
 int BELReader::loadFromFile( const char* fileName, BELReader::InputFormat fmt )
 {
@@ -227,6 +244,7 @@ int BELReader::loadFromFile( const char* fileName, BELReader::InputFormat fmt )
 		std::ifstream fp;
 		fp.open( inputFileName.c_str() );
 		if( fp.is_open() ) { 
+			computeRulesetSpellPriority( fileName );
 			return loadFromStream( fp );
 		}else {
 			std::cerr << "BELReader couldn't open file \"" << fileName << "\"\n";

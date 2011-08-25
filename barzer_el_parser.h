@@ -75,7 +75,6 @@ protected:
 	/// alias can be 0 - in that case no alias will be generated and an orphaned compounded 
 	/// token will be added 
 	uint32_t addCompoundedWordLiteral( const char* alias );
-	
 
 	const BELReader* getReader() const { return reader; }
 	BELReader* getReader() { return reader; }
@@ -112,7 +111,32 @@ protected:
 	std::string inputFileName; 
 	
 	bool silentMode;
+
+	/// priority of the words in the currently parsed trie fo spelling
+	/// default trie - 0, user specific tries - 10
+	uint8_t d_trieSpellPriority;
+
+	/// the higher the priority the earlier this word would be in the spelling correction 
+	/// order 
+	/// if ruleset filename has substring '_fluff' in it priority will be deduced as the ruleset 
+
+	/// a number .. 0 for fluff 5 for everything else
+	/// so this priority is 0,5,10,15
+	uint8_t d_rulesetSpellPriority;
+
+	/// by default is set to d_trieSpellPriority+ d_rulesetSpellPriority 
+	/// can be overridden (currently this is not done)
+	uint8_t d_spellPriority;
+	
+	/// both computeXXXSpellPriority functions update d_spellPriority
+	/// deduces trie spell priority from trie class name ( "" - priority 0, otherwise - 10 )
+	void computeImplicitTrieSpellPriority( const std::string& tclass, const std::string& trieId );
+	/// deduces ruleset spelling priority from ruleset file name ( if has no "_fluff" substring then 
+	/// priority is 5 otherwise 0)
+	void computeRulesetSpellPriority( const char* fileName );
 public:
+	uint8_t getSpellPriority() const { return d_spellPriority; }
+
 	size_t getNumStatements() const { return numStatements; }
 	size_t getNumMacros() const { return numMacros; }
 	size_t getNumProcs() const { return numProcs; }
@@ -167,6 +191,7 @@ public:
 	int  loadFromStream( std::istream& fp );
 	//   combines initParser and LoadFromStream 
 	//   creates the parser and calls loadFromStream
+	// sets ruleset spell priority
 	int  loadFromFile( const char* fileName, InputFormat fmt = INPUT_FMT_XML );
 
 	std::ostream& printNode( std::ostream& fp, const BarzelTrieNode& node ) const;

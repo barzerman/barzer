@@ -43,8 +43,9 @@ static GenericEntData g_genDta[] = {
 };
 } // anon namespace ends
 
-GlobalTriePool::ClassTrieMap& GlobalTriePool::produceTrieMap( const std::string& trieClass ) {
-	return d_trieMap[trieClass]; // XAXAXA
+GlobalTriePool::ClassTrieMap& GlobalTriePool::produceTrieMap( const std::string& trieClass ) 
+{
+	return d_trieMap[trieClass]; 
 }
 
 
@@ -119,14 +120,19 @@ GlobalTriePool::~GlobalTriePool()
 BELTrie& GlobalTriePool::produceTrie( const std::string& trieClass, const std::string& trieId ) 
 {
 	ClassTrieMap&  ctm = produceTrieMap( trieClass );
+
 	ClassTrieMap::iterator i = ctm.find( trieId );
 
-	if( i == ctm.end() ) 
+	if( i == ctm.end() ) {
+		BELTrie* newTrieP = new BELTrie( d_gp );
+
 		i = ctm.insert( ClassTrieMap::value_type(
 			trieId, 
-			new BELTrie( d_gp )
+			newTrieP
 		)).first;
-	
+		newTrieP->setGlobalTriePoolId( d_triePool.size() );
+		d_triePool.push_back( newTrieP );
+	}	
 	return *(i->second);
 }
 GlobalPools::GlobalPools() :
@@ -142,7 +148,6 @@ GlobalPools::GlobalPools() :
 	produceUniverse(DEFAULT_UNIVERSE_ID);
 	
 	createGenericEntities();
-
 }
 
 std::ostream& GlobalPools::printTanslationTraceInfo( std::ostream& fp, const BarzelTranslationTraceInfo& traceInfo ) const
@@ -176,8 +181,12 @@ StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 size_t   StoredUniverse::internString( const char* s, bool asUserSpecific )
 {
 	uint32_t id = ( gp.string_intern( s ) ); 
-	if( asUserSpecific )
+	if( asUserSpecific ) {
 		userSpecificStringSet[ id ] = true;
+	}
+	if( bzSpell )
+		bzSpell->addExtraWordToDictionary( id, frequency );
+
 	return id;
 }
 void StoredUniverse::clearSpell()
@@ -202,6 +211,15 @@ void StoredUniverse::clear()
 {
 	clearTries();
 	clearSpell();
+}
+
+BZSpell* StoredUniverse::initBZSpell( const StoredUniverse* secondaryUniverse )
+{
+	if( bzSpell ) 
+		delete bzSpell;
+	bzSpell = new BZSpell( *this );
+	bzSpell->init( secondaryUniverse ); 
+	return bzSpell;
 }
 
 const char* StoredUniverse::getGenericSubclassName( uint16_t subcl ) const

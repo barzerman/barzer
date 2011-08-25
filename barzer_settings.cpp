@@ -59,7 +59,6 @@ User::Spell& User::createSpell(const char *md, const char *affx)
 	return spell.get();
 }
 
-//void User::addTrie(const std::string &cl, const std::string &id) {
 void User::addTrie(const TriePath &tp) {
 	tries.push_back(tp);
 	universe.getTrieCluster().appendTrie(tp.first, tp.second);
@@ -208,9 +207,31 @@ void BarzerSettings::loadEntities() {
 
 void BarzerSettings::loadSpell(User &u, const ptree &node)
 {
-	//BarzerHunspell& hunspell = u.getHunspell();
+	const ptree &spell = node.get_child("spell", empty_ptree());
+	if (spell.empty()) {
+		std::cout << "No <spell> tag\n";
+		return;
+	}
+	try {
+		// here we can add some fancier secondary spellchecker  logic
+		// for now all users that are not 0 will get 0 passed in
+		if( u.getId() ) {
+			const GlobalPools& gp = u.getUniverse().getGlobalPools();
 
-	//const boost::optional<ptree &> spell_opt = node.get_child_optional("spell");
+			BZSpell* bzs = u.getUniverse().initBZSpell( gp.getDefaultUniverse() );
+			BOOST_FOREACH(const ptree::value_type &v, spell) {
+				const std::string& tagName = v.first;
+				const char* tagVal = v.second.data().c_str();
+				if( tagname == "extra" ) {
+					bzs->loadExtra( tagVal.c_str() );
+				}
+			}
+		}
+	}
+}
+
+void BarzerSettings::loadHunspell(User &u, const ptree &node)
+{
 	const ptree &spell = node.get_child("spell", empty_ptree());
 	if (spell.empty()) {
 		std::cout << "No <spell> tag\n";
@@ -218,8 +239,6 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 	}
 
 	try {
-		//const ptree &spell = node.get_child("spell");
-		//const ptree &spell = spell_opt.get();
 		const ptree &attrs = spell.get_child("<xmlattr>");
 
 		const std::string &affx = attrs.get<std::string>("affx"),
@@ -251,7 +270,6 @@ void BarzerSettings::loadTrieset(User &u, const ptree &node) {
 				const std::string &cl = attrs.get<std::string>("class"),
 								  &name = attrs.get<std::string>("name");
 				u.addTrie(TriePath(cl, name));
-				//u.getTrieCluster().appendTrie(cl, name);
 			} catch (boost::property_tree::ptree_bad_path &e) {
 				AYLOG(ERROR) << "Can't get " << e.what();
 			}
@@ -271,7 +289,6 @@ void BarzerSettings::loadUser(const ptree::value_type &user) {
 
 	User &u = createUser(userId.get());
 
-	//StoredUniverse &u = gpools.produceUniverse(userId.get());
 	std::cout << "Loading user id: " << userId << "\n";
 
 	loadTrieset(u, children);

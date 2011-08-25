@@ -87,10 +87,11 @@ int BarzerHunspell::addWordsFromTextFile( const char* fname )
 		}
 		if( *buf == '#' ) 
 			continue;
+		uint8_t frequency = 1;
 		buf[ strlen(buf) -1 ] = 0;
 		if( *buf ) {
 			addWord( buf );
-			d_universe.internString( buf, true );
+			d_universe.internString( buf, true, frequency );
 			++numWords;
 		}
 	}

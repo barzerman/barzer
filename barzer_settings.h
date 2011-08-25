@@ -140,6 +140,7 @@ public:
 	void loadEntities();
 	///loads spellchecker related stuff (hunspell dictionaries, extra word lists and such)
 	void loadSpell(User&, const boost::property_tree::ptree&);
+	void loadHunspell(User&, const boost::property_tree::ptree&);
 
 	void loadTrieset(User&, const boost::property_tree::ptree&);
 

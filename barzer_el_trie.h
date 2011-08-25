@@ -405,6 +405,15 @@ typedef std::map< BarzelWCLookupKey, BarzelTrieNode > BarzelWCLookup;
 struct BELStatementParsed;
 class GlobalPools;
 
+/// one of thes eis stored for each unique strId in a trie 
+struct TrieWordInfo {
+	uint32_t wordCount; 
+	
+	BZSWordTrieInfo() : wordCount(0) {}
+	void incrementCount() { ++wordCount; }
+};
+typedef boost::unordered_map< uint32_t, TrieWordInfo > strid_to_triewordinfo_map; 
+
 class BELTrie {
 	GlobalPools& globalPools;
 	/// trie shouldnt be copyable
@@ -414,11 +423,26 @@ class BELTrie {
 	BarzelTranslationPool *d_tranPool;
 	BarzelVariableIndex   d_varIndex;
 	EntityCollection      d_entCollection;
+	
+	/// this trie's global id in the global trie pool
+	uint32_t d_globalTriePoolId; 
+	// tokens participating in this trie will have this priority in the localized spelling corrector
+	uint8_t d_spellPriority;
+	
+	strid_to_triewordinfo_map d_wordInfoMap;
+	// must be called from BELParser::internString
+	void addWordInfo( uint32_t strId ) { strid_to_triewordinfo_map[strId].incrementCount(); }
 
 	BELTrie( const BELTrie& a );
-
-	
 public:
+	const strid_to_triewordinfo_map& getWordInfoMap() const { return d_wordInfoMap; }
+
+	uint32_t getGlobalTriePoolId( ) const { return d_globalTriePoolId; }
+	void 	 setGlobalTriePoolId( uint32_t i ){ d_globalTriePoolId = i; }
+
+	uint8_t getSpellPriority( ) const { return d_spellPriority; }
+	void setSpellPriority( uint8_t p ) { d_spellPriority= p; }
+
 	typedef std::set< uint32_t > UseridSet;
 	typedef boost::shared_mutex Lock;
 	typedef boost::unique_lock< boost::shared_mutex > WriteLock;

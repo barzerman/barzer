@@ -18,7 +18,12 @@ std::ostream& glob_printRewriterByteCode( std::ostream& fp, const BarzelRewriter
 }
 } // end of anon namespace 
 
-BELTrie::BELTrie( const BELTrie& a ) : globalPools(a.globalPools), procs(*this) {}
+BELTrie::BELTrie( const BELTrie& a ) : 
+	globalPools(a.globalPools), 
+	procs(*this), 
+	d_globalTriePoolId(a.d_globalTriePoolId),
+	d_spellPriority(0)
+{}
 BELTrie::~BELTrie( )
 {
 	delete d_wcPool;
@@ -32,10 +37,13 @@ BELTrie::BELTrie( GlobalPools& gp ) :
 	d_wcPool(0),
 	d_fcPool(0),
 	d_tranPool(0),
-	procs(*this)
+	procs(*this),
+	d_globalTriePoolId(0xffffffff),
+	d_spellPriority(0)
 {
 	initPools();
 }
+
 void BELTrie::initPools() 
 {
 	if( d_rewrPool ) 

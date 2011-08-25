@@ -23,17 +23,25 @@ class StoredUniverse;
 class GlobalTriePool {
 	typedef std::map< std::string, BELTrie* > ClassTrieMap;
 	typedef std::map< std::string, ClassTrieMap > TrieMap; 
-
+	
 	TrieMap d_trieMap;
 
-	GlobalPools& d_gp;
+	// every time new trie is added to d_trieMap its also added to 
+	// d_triePool
+	
+	std::vector< BELTrie* > d_triePool;
 
+	GlobalPools& d_gp;
+	
 public:
+	const BELTrie* getTrie_byGlobalId( uint32_t n ) const { return( n< d_triePool.size() ? &(d_triePool[n]) : 0 ); } 
+
 	ClassTrieMap& produceTrieMap( const std::string& trieClass );
 
 	ClassTrieMap* getTrieMap( const std::string& trieClass ) ;
 	const ClassTrieMap* getTrieMap( const std::string& trieClass ) const;
 	const BELTrie* getTrie( const std::string& trieClass, const std::string& trieId ) const;
+
 	BELTrie* getTrie( const std::string& trieClass, const std::string& trieId ) ;
 	BELTrie& produceTrie( const std::string& trieClass, const std::string& trieId ) ;
 	BELTrie* mkNewTrie() ;
@@ -56,8 +64,8 @@ private:
 	friend class UniverseTrieClusterIterator;
 
 	BELTrieList& getTrieList() { return d_trieList; }
-	const BELTrieList& getTrieList() const { return d_trieList; }
 public: 
+	const BELTrieList& getTrieList() const { return d_trieList; }
 	UniverseTrieCluster( GlobalTriePool& triePool, StoredUniverse& u ) ;
 	BELTrie& appendTrie( const std::string& trieClass, const std::string& trieId );
 	BELTrie& prependTrie( const std::string& trieClass, const std::string& trieId );
@@ -135,7 +143,6 @@ public:
 	bool isAnalyticalMode() const { return d_isAnalyticalMode; }
 	void setAnalyticalMode() { d_isAnalyticalMode= true; }
 
-	/// this will create the "wellknown" entities 
 	StoredUniverse& produceUniverse( uint32_t id );
 
 	BELTrie* mkNewTrie() { return globalTriePool.mkNewTrie(); }
@@ -200,11 +207,17 @@ class StoredUniverse {
 
 	friend class QSemanticParser;
 
-
+	void addWordsFromTriesToBZSpell();
 public:
+	const BZSpell* getBZSpell() const { return bzSpell; }
+	BZSpell* getBZSpell() { return bzSpell; }
+	BZSpell* initBZSpell( const StoredUniverse* secondaryUniverse = 0);
+
+	const UniverseTrieCluster::BELTrieList& getTrieList() const { return trieCluster.getTrieList(); }
+
 	/// adds uer specific strings from extra file 
 	/// 
-	size_t   internString( const char*, bool asUserSpecific=false );
+	size_t   internString( const char*, bool asUserSpecific, uint8_t frequency );
 	bool 	 isStringUserSpecific( const char* s ) const
 		{ 
 			uint32_t id = gp.string_getId( s );
