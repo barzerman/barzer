@@ -72,7 +72,8 @@ uint32_t BELParser::internString( const char* t )
 	// to reflect the fact that this thing is actually in the trie
 
 	StoredToken& sTok =  reader->getGlobalPools().getDtaIdx().addToken( t );
-	trie->addWordInfo( sTok.getStringId() );
+	BELTrie& trie = reader->getTrie();
+	trie.addWordInfo( sTok.getStringId() );
 
 	return sTok.getStringId();
 }
@@ -91,8 +92,9 @@ void BELParseTreeNode::print( std::ostream& fp, int depth ) const
 
 BELReader::BELReader( GlobalPools &g ) :
 	trie(&g.globalTriePool.produceTrie("", "")) , parser(0), gp(g),
-	numStatements(0) ,silentMode(false),  inputFmt(INPUT_FMT_XML),
-	d_trieSpellPriority(0)
+	numStatements(0) ,silentMode(false),  
+	d_trieSpellPriority(0),
+	inputFmt(INPUT_FMT_XML)
 {}
 
 void BELReader::setTrie( const std::string& trieClass, const std::string& trieId )

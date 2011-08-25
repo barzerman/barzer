@@ -34,7 +34,7 @@ class GlobalTriePool {
 	GlobalPools& d_gp;
 	
 public:
-	const BELTrie* getTrie_byGlobalId( uint32_t n ) const { return( n< d_triePool.size() ? &(d_triePool[n]) : 0 ); } 
+	const BELTrie* getTrie_byGlobalId( uint32_t n ) const { return( n< d_triePool.size() ? (d_triePool[n]) : 0 ); } 
 
 	ClassTrieMap& produceTrieMap( const std::string& trieClass );
 

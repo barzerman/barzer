@@ -49,7 +49,6 @@ struct BZSWordTrieInfo {
 	BZSWordTrieInfo() : wordCount(0) {}
 	void incrementCount() { ++wordCount; }
 };
-typedef boost::unordered_map< uint32_t, BZSWordInfo > 
 
 class BZSpell {
 	StoredUniverse& d_universe;
@@ -98,4 +97,4 @@ public:
 
 }
 
-#define // BARZER_BZSPELL_H 
+#endif // BARZER_BZSPELL_H 

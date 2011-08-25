@@ -79,7 +79,7 @@ struct User {
 	Spell* getSpell() { return spell.get_ptr(); }
 	Spell& createSpell(const char *md, const char *affx);
 
-
+	uint32_t getId() const { return id;}
 	StoredUniverse& getUniverse() { return universe; }
 	const StoredUniverse& getUniverse() const { return universe; }
 };

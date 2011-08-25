@@ -1,4 +1,5 @@
 #include <barzer_universe.h>
+#include <barzer_bzspell.h>
 
 namespace barzer {
 
@@ -178,7 +179,7 @@ StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	hunspell(*this)
 {}
 
-size_t   StoredUniverse::internString( const char* s, bool asUserSpecific )
+size_t   StoredUniverse::internString( const char* s, bool asUserSpecific, uint8_t frequency )
 {
 	uint32_t id = ( gp.string_intern( s ) ); 
 	if( asUserSpecific ) {

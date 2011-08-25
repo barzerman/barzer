@@ -1,5 +1,6 @@
 #include <barzer_universe.h>
 #include <barzer_bzspell.h>
+#include <ay/ay_choose.h>
 
 namespace barzer {
 
@@ -28,12 +29,12 @@ struct WPCallback {
 	size_t   varCount; 
 	WPCallback( BZSpell& b, uint32_t l2  ) : bzs(b), fullStrId(l2), varCount(0)  {}
 	typedef std::vector<char> charvec;
-	typedef charvec_ci::const_iterator charvec_ci;
+	typedef charvec::const_iterator charvec_ci;
 
 	int operator()( charvec_ci fromI, charvec_ci toI )
 	{
 		charvec v( fromI, toI );
-		charvec.push_back(0);
+		v.push_back(0);
 		GlobalPools& gp = bzs.getUniverse().getGlobalPools();
 		const char* str = &(v[0]);
 
@@ -54,28 +55,29 @@ size_t BZSpell::produceWordVariants( uint32_t strId )
 	if( !str ) 
 		return 0;
 
+	size_t str_len = strlen( str );
 	WPCallback cb( *this, strId );	
-	ay::choose_n<char, WPCallback > variator( cb, strId );
-	variator();
+	ay::choose_n<char, WPCallback > variator( cb, str_len-1, str_len-1 );
+	variator( str, str+str_len );
 	return cb.varCount;
 }
 
-size_t BZSpell::init( const StoredUniverse* secondaryUniverse ) const
+size_t BZSpell::init( const StoredUniverse* secondaryUniverse ) 
 {
 	if( secondaryUniverse ) {
 		d_secondarySpellchecker = secondaryUniverse->getBZSpell();
 	} else {
 		const UniverseTrieCluster::BELTrieList& trieList = d_universe.getTrieList(); 
 		for( UniverseTrieCluster::BELTrieList::const_iterator t = trieList.begin(); t!= trieList.end(); ++t ) {
-			const strid_to_triewordinfo_map& wiMap = t->getWordInfoMap();
+			const strid_to_triewordinfo_map& wiMap = (*t)->getWordInfoMap();
 			for( strid_to_triewordinfo_map::const_iterator w = wiMap.begin(); w != wiMap.end(); ++w ) {
 				const TrieWordInfo& wordInfo = w->second;
 				uint32_t strId = w->first;
 	
 				BZSWordInfo& wi = d_wordinfoMap[ strId ];
 				
-				if( wi.upgradePriority( trie->getSpellPriority()) )
-					wi.setFrequency( wi.wordCount );
+				if( wi.upgradePriority( (*t)->getSpellPriority()) )
+					wi.setFrequency( wordInfo.wordCount );
 			}
 		}
 	}

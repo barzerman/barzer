@@ -11,6 +11,7 @@
 #include <map>
 #include <set>
 #include <boost/thread/shared_mutex.hpp>
+#include <boost/unordered_map.hpp>
 
 
 /// data structures representing the Barzer Expression Language BarzEL term pattern trie
@@ -409,7 +410,7 @@ class GlobalPools;
 struct TrieWordInfo {
 	uint32_t wordCount; 
 	
-	BZSWordTrieInfo() : wordCount(0) {}
+	TrieWordInfo() : wordCount(0) {}
 	void incrementCount() { ++wordCount; }
 };
 typedef boost::unordered_map< uint32_t, TrieWordInfo > strid_to_triewordinfo_map; 
@@ -430,11 +431,12 @@ class BELTrie {
 	uint8_t d_spellPriority;
 	
 	strid_to_triewordinfo_map d_wordInfoMap;
-	// must be called from BELParser::internString
-	void addWordInfo( uint32_t strId ) { strid_to_triewordinfo_map[strId].incrementCount(); }
 
 	BELTrie( const BELTrie& a );
 public:
+	// must be called from BELParser::internString
+	void addWordInfo( uint32_t strId ) { d_wordInfoMap[strId].incrementCount(); }
+
 	const strid_to_triewordinfo_map& getWordInfoMap() const { return d_wordInfoMap; }
 
 	uint32_t getGlobalTriePoolId( ) const { return d_globalTriePoolId; }

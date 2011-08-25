@@ -14,6 +14,7 @@
 #include <boost/filesystem.hpp>
 #include <time.h>
 #include <cstdlib>
+#include <barzer_bzspell.h>
 
 using boost::property_tree::ptree;
 namespace fs = boost::filesystem;
@@ -222,11 +223,14 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 			BOOST_FOREACH(const ptree::value_type &v, spell) {
 				const std::string& tagName = v.first;
 				const char* tagVal = v.second.data().c_str();
-				if( tagname == "extra" ) {
-					bzs->loadExtra( tagVal.c_str() );
+				if( tagName == "extra" ) {
+					bzs->loadExtra( tagVal );
 				}
 			}
 		}
+	} catch (boost::property_tree::ptree_bad_path &e) {
+		AYLOG(ERROR) << "Can't get " << e.what();
+		return;
 	}
 }
 
