@@ -57,6 +57,20 @@ typedef map_by_char_cp<int>::Type char2int_map_t;
 typedef std::vector<char_cp> 						char_cp_vec;
 typedef std::set< char_cp,char_cp_compare_less > 	    char_cp_set;
 
+//// char* string parse utils 
+
+namespace strparse {
+inline char* find_separator( char* buf, const char* sep ) {
+	for( ; *buf; ++buf ) {
+		for( const char* s = sep; *s; ++sep ) {
+			if( *buf == *s ) 
+				return buf;
+		}
+	}
+	return 0;
+}
+
+}
 
 } // namespace ay
 

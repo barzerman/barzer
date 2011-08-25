@@ -61,6 +61,37 @@ size_t BZSpell::produceWordVariants( uint32_t strId )
 	variator( str, str+str_len );
 	return cb.varCount;
 }
+size_t BZSpell::loadExtra( const char* fileName )
+{
+	if( !fileName ) 
+		return 0;
+	FILE * fp = fopen( fileName, "r" );
+	if( !fp ) {
+		std::cerr << "cant open file \"" << fileName << "\" for reading\n";
+		return 0;
+	}
+
+	char buf[ 256 ];
+	size_t numWords = 0;
+
+	while( fgets( buf, sizeof(buf)-1, fp ) ) {
+		uint32_t freq = 0;
+		size_t buf_last = strlen(buf)-1;
+		if( buf[buf_last] == '\n' ) 
+			buf[ buf_last ] = 0;
+
+		char * sep = ay::strparse::find_separator( buf, "|,;" );
+		if( sep ) {
+			*sep = 0;
+			++sep;
+			freq = (uint32_t)atoi( sep );
+		}
+		uint32_t strId = d_universe.internString( buf, true, freq );
+		addExtraWordToDictionary( strId, freq );
+		++numWords;
+	}
+	return numWords;
+}
 
 size_t BZSpell::init( const StoredUniverse* secondaryUniverse ) 
 {

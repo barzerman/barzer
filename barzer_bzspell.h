@@ -92,7 +92,7 @@ public:
 	uint32_t getSpellCorrection( const char* s ) const;
 	uint32_t getStem( const char* s ) const;
 
-	void loadExtra( const char* fileName );
+	size_t loadExtra( const char* fileName );
 };
 
 }
