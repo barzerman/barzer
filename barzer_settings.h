@@ -105,7 +105,6 @@ public:
 	typedef std::vector<const char*> EntityFileVec;
 private:
 	GlobalPools &gpools;
-	//StoredUniverse &universe;
 	BELReader reader;
 
 	boost::property_tree::ptree pt;
@@ -115,9 +114,12 @@ private:
 	Rules rules;
 	EntityFileVec entityFiles;
 	Logging logging;
+
+	/// this makes settings not thread safe
 	
 	enum {  MAX_REASONABLE_THREADCOUNT = 8 };
 	size_t d_numThreads;
+	StoredUniverse* d_currentUniverse;
 public:
 	size_t getNumThreads() const { return d_numThreads; }
 	void   setNumThreads( size_t n ) { d_numThreads = n; }
@@ -126,16 +128,15 @@ public:
 		  ParseSettings& parseSettings() 	    { return d_parseSettings; } 
 
 	StoredUniverse* getCurrentUniverse() ;
+	StoredUniverse* setCurrentUniverse( User& u );
 
-	//BarzerSettings(StoredUniverse&, const char*);
-	//BarzerSettings(StoredUniverse&);
 	BarzerSettings(GlobalPools&);
-
 
 	void init();
 
 	void loadInstanceSettings();
 	void loadRules();
+	void loadRules(const boost::property_tree::ptree&);
 	void loadParseSettings();
 	void loadEntities();
 	///loads spellchecker related stuff (hunspell dictionaries, extra word lists and such)
@@ -143,6 +144,7 @@ public:
 	void loadHunspell(User&, const boost::property_tree::ptree&);
 
 	void loadTrieset(User&, const boost::property_tree::ptree&);
+	void loadUserRules(User&, const boost::property_tree::ptree&);
 
 	void loadUsers();
 	void loadUser(const boost::property_tree::ptree::value_type &);

@@ -93,6 +93,7 @@ public:
 	uint32_t getStem( const char* s ) const;
 
 	size_t loadExtra( const char* fileName );
+	std::ostream& printStats( std::ostream& fp ) const;
 };
 
 }

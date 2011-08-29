@@ -83,15 +83,16 @@ User*  BarzerSettings::getUser(User::Id id)
 }
 
 BarzerSettings::BarzerSettings(GlobalPools &gp)
-	: gpools(gp), reader(gp), d_numThreads(0)
-{ init(); }
-
-
+	: gpools(gp), reader(gp), d_numThreads(0), d_currentUniverse(0)
+{ 
+	init(); 
+}
 
 void BarzerSettings::addRulefile(const Rulefile &f) {
 	const std::string &tclass = f.trie.first,
 					  &tid = f.trie.second;
 	const char *fname = f.fname;
+	reader.setCurrentUniverse( getCurrentUniverse() );
 	reader.setTrie(tclass, tid);
 
 	size_t num = reader.loadFromFile(fname, BELReader::INPUT_FMT_XML);
@@ -108,12 +109,16 @@ void BarzerSettings::addEntityFile(const char *fname)
 	gpools.getDtaIdx().loadEntities_XML(fname);
 }
 
+StoredUniverse* BarzerSettings::setCurrentUniverse(User& u ) 
+{
+	d_currentUniverse = gpools.getUniverse(u.getId());
+	return d_currentUniverse;
+}
 StoredUniverse* BarzerSettings::getCurrentUniverse() 
 {
-	/// this needs to be properly implemented to work for the 
-	/// user specific universes 
-	StoredUniverse *u = gpools.getUniverse(0);
-	return u;
+	if( !d_currentUniverse )
+		d_currentUniverse = gpools.getUniverse(0);
+	return d_currentUniverse;
 }
 
 void BarzerSettings::init() {
@@ -121,18 +126,12 @@ void BarzerSettings::init() {
 
 }
 
-void BarzerSettings::loadRules() {
-	using boost::property_tree::ptree;
-
-	StoredUniverse *u = getCurrentUniverse();
-	if (!u) return;
-	const ptree &rules = pt.get_child("config.rules", empty_ptree());
+void BarzerSettings::loadRules(const boost::property_tree::ptree& rules) 
+{
 	if (rules.empty()) {
 		// warning goes here
 		return;
 	}
-	//BELReader r(&(u->getBarzelTrie()), *u);
-	//BELReader r(gpools);
 	BOOST_FOREACH(const ptree::value_type &v, rules) {
 		if (v.first == "file") {
 			const ptree &file = v.second;
@@ -150,6 +149,20 @@ void BarzerSettings::loadRules() {
 			AYLOG(ERROR) << "Unknown tag /rules/" << v.first;
 		}
 	}
+}
+
+void BarzerSettings::loadRules() 
+{
+	using boost::property_tree::ptree;
+
+	StoredUniverse *u = getCurrentUniverse();
+	if (!u) return;
+	const ptree &rules = pt.get_child("config.rules", empty_ptree());
+	if (rules.empty()) {
+		// warning goes here
+		return;
+	}
+	loadRules(rules);
 }
 
 
@@ -216,17 +229,23 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 	try {
 		// here we can add some fancier secondary spellchecker  logic
 		// for now all users that are not 0 will get 0 passed in
-		if( u.getId() ) {
-			const GlobalPools& gp = u.getUniverse().getGlobalPools();
+		const GlobalPools& gp = u.getUniverse().getGlobalPools();
 
-			BZSpell* bzs = u.getUniverse().initBZSpell( gp.getDefaultUniverse() );
-			BOOST_FOREACH(const ptree::value_type &v, spell) {
-				const std::string& tagName = v.first;
-				const char* tagVal = v.second.data().c_str();
-				if( tagName == "extra" ) {
-					bzs->loadExtra( tagVal );
-				}
+		const StoredUniverse* secondaryUniverse = ( u.getId() ? gp.getDefaultUniverse() : 0 );
+		BZSpell* bzs = u.getUniverse().initBZSpell( secondaryUniverse );
+		BOOST_FOREACH(const ptree::value_type &v, spell) {
+			const std::string& tagName = v.first;
+			const char* tagVal = v.second.data().c_str();
+			if( tagName == "extra" ) {
+				bzs->loadExtra( tagVal );
 			}
+		}
+		if( bzs ) {
+			bzs->init( secondaryUniverse );
+			bzs->printStats( std::cerr );
+		}
+		else {
+			AYLOG(ERROR) << "Null BZSpell object for user id " << u.getId() << std::endl;
 		}
 	} catch (boost::property_tree::ptree_bad_path &e) {
 		AYLOG(ERROR) << "Can't get " << e.what();
@@ -281,7 +300,18 @@ void BarzerSettings::loadTrieset(User &u, const ptree &node) {
 	}
 }
 
-void BarzerSettings::loadUser(const ptree::value_type &user) {
+void BarzerSettings::loadUserRules(User& u, const ptree &node )
+{
+	try {
+		const ptree &rules = node.get_child("rules", empty_ptree());
+		setCurrentUniverse(u);
+		loadRules( rules );
+	} catch (...) {
+		
+	}
+}
+void BarzerSettings::loadUser(const ptree::value_type &user) 
+{
 	const ptree &children = user.second;
 	const boost::optional<uint32_t> userId
 		= children.get_optional<uint32_t>("<xmlattr>.id");
@@ -295,6 +325,7 @@ void BarzerSettings::loadUser(const ptree::value_type &user) {
 
 	std::cout << "Loading user id: " << userId << "\n";
 
+	loadUserRules(u,children);
 	loadTrieset(u, children);
 	loadSpell(u, children);
 }

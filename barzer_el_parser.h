@@ -103,7 +103,9 @@ class BELReader {
 protected: 
 	BELTrie* trie ; 
 	BELParser* parser;
+
 	GlobalPools &gp;
+
 	size_t numStatements; /// total number of successfully read statements 
 	size_t numMacros; /// total number of successfully loaded macros
 	size_t numProcs; /// total number of successfully loaded procs
@@ -127,6 +129,7 @@ protected:
 	/// by default is set to d_trieSpellPriority+ d_rulesetSpellPriority 
 	/// can be overridden (currently this is not done)
 	uint8_t d_spellPriority;
+
 	
 	/// both computeXXXSpellPriority functions update d_spellPriority
 	/// deduces trie spell priority from trie class name ( "" - priority 0, otherwise - 10 )
@@ -166,6 +169,7 @@ public:
 		INPUT_FMT_MAX
 	} InputFormat;
 	InputFormat inputFmt;
+	StoredUniverse *d_currentUniverse;
 
 	BELReader( GlobalPools &g );
 
@@ -174,12 +178,17 @@ public:
 		numStatements(0) , 
 		numMacros(0) , 
 		numProcs(0) , 
-		inputFmt(INPUT_FMT_XML)
+		inputFmt(INPUT_FMT_XML),
+		d_currentUniverse(0)
 	{}
 	
 	virtual ~BELReader() {
 		delete parser;
 	}
+
+	void setCurrentUniverse( StoredUniverse* u ) { d_currentUniverse=u; }
+	StoredUniverse* getCurrentUniverse() { return d_currentUniverse; }
+	const StoredUniverse* getCurrentUniverse() const { return d_currentUniverse; }
 
 	/// this method is called by the parser for every statement tree 
 	virtual void addStatement( const BELStatementParsed& );

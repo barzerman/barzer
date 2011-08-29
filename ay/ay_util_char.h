@@ -62,12 +62,28 @@ typedef std::set< char_cp,char_cp_compare_less > 	    char_cp_set;
 namespace strparse {
 inline char* find_separator( char* buf, const char* sep ) {
 	for( ; *buf; ++buf ) {
-		for( const char* s = sep; *s; ++sep ) {
+		for( const char* s = sep; *s; ++s ) {
 			if( *buf == *s ) 
 				return buf;
 		}
 	}
 	return 0;
+}
+/// returns:
+///    0 - for all ascii string 
+///    1 - all non-ascii
+///   -1 - mixed
+inline int is_string_ascii( const char* s ) 
+{
+	bool hasAscii = false, hasNonAscii = false;
+	for( ; *s; ++s ) {
+		if( isascii(*s) ) {
+			if( !hasAscii ) hasAscii = true;
+		} else  {
+			if( !hasNonAscii ) hasNonAscii = true;
+		}
+	}
+	return ( hasNonAscii ?  (hasAscii ? -1: 1) : (hasAscii ? 0: -1) );
 }
 
 }

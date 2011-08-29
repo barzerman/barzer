@@ -176,7 +176,8 @@ StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	d_userId(id),
 	gp(g),
 	trieCluster(g.globalTriePool,*this),
-	hunspell(*this)
+	hunspell(*this),
+	bzSpell(0)
 {}
 
 size_t   StoredUniverse::internString( const char* s, bool asUserSpecific, uint8_t frequency )
@@ -185,9 +186,9 @@ size_t   StoredUniverse::internString( const char* s, bool asUserSpecific, uint8
 	if( asUserSpecific ) {
 		userSpecificStringSet[ id ] = true;
 	}
-	if( bzSpell )
+	if( bzSpell ) {
 		bzSpell->addExtraWordToDictionary( id, frequency );
-
+	}
 	return id;
 }
 void StoredUniverse::clearSpell()
@@ -219,7 +220,6 @@ BZSpell* StoredUniverse::initBZSpell( const StoredUniverse* secondaryUniverse )
 	if( bzSpell ) 
 		delete bzSpell;
 	bzSpell = new BZSpell( *this );
-	bzSpell->init( secondaryUniverse ); 
 	return bzSpell;
 }
 

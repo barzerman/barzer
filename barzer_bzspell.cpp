@@ -55,11 +55,18 @@ size_t BZSpell::produceWordVariants( uint32_t strId )
 	if( !str ) 
 		return 0;
 
-	size_t str_len = strlen( str );
-	WPCallback cb( *this, strId );	
-	ay::choose_n<char, WPCallback > variator( cb, str_len-1, str_len-1 );
-	variator( str, str+str_len );
-	return cb.varCount;
+	int stringClass = ay::strparse::is_string_ascii(str) ;
+	if( stringClass == 0 ) {
+		size_t str_len = strlen( str );
+	
+		if( str_len > 3 ) {
+			WPCallback cb( *this, strId );	
+			ay::choose_n<char, WPCallback > variator( cb, str_len-1, str_len-1 );
+			variator( str, str+str_len );
+			return cb.varCount;
+		}
+	} 
+	return 0;
 }
 size_t BZSpell::loadExtra( const char* fileName )
 {
@@ -93,6 +100,20 @@ size_t BZSpell::loadExtra( const char* fileName )
 	return numWords;
 }
 
+std::ostream& BZSpell::printStats( std::ostream& fp ) const
+{
+	fp << d_wordinfoMap.size() << " actual words, " << d_linkedWordsMap.size() << " partials\n";
+
+	for( strid_wordinfo_hmap::const_iterator i = d_wordinfoMap.begin(); i != d_wordinfoMap.end(); ++i ) {
+		const char* str = d_universe.getGlobalPools().string_resolve( i->first );
+		std::cerr << "FULL:" << ( str? str: "<null>" ) << "\n";
+	}
+	for( strid_evovec_hmap::const_iterator i = d_linkedWordsMap.begin(); i != d_linkedWordsMap.end(); ++i ) {
+		const char* str = d_universe.getGlobalPools().string_resolve( i->first );
+		std::cerr << "PARTIAL:" << ( str? str: "<null>" ) << "\n";
+	}
+	return fp;
+}
 size_t BZSpell::init( const StoredUniverse* secondaryUniverse ) 
 {
 	if( secondaryUniverse ) {
