@@ -320,6 +320,122 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 	return -1;
 }
 
+
+/// this fucntion will be decommissioned 
+int QLexParser::trySpellCorrectAndClassify_hunspell( CToken& ctok, TToken& ttok )
+{
+	const char* t = ttok.buf;
+	size_t t_len = ttok.len;
+
+	std::string bestSugg;
+
+	bool isAsciiToken = ttok.isAscii();
+	std::string ascifiedT;
+	bool startWithSpelling = true;
+
+	/// there are non ascii characters in the string 
+	if( !isAsciiToken ) {
+		if( ay::umlautsToAscii( ascifiedT, t ) ) {
+			const StoredToken* storedTok = dtaIdx->getStoredToken( ascifiedT.c_str()  );
+			if( storedTok ) { /// 
+				/// 
+				ctok.storedTok = storedTok;
+				ctok.syncClassInfoFromSavedTok();
+				ctok.addSpellingCorrection( t, ascifiedT.c_str() );
+				return 0;
+			} else {
+				if( d_universe.isStringUserSpecific( ascifiedT.c_str() ) ) {
+					t = ascifiedT.c_str();
+					t_len = ascifiedT.length();
+					startWithSpelling = false;
+				}
+			}
+			isAsciiToken = isStringAscii( ascifiedT );
+			if( isAsciiToken ) {
+				t = ascifiedT.c_str();
+				t_len = ascifiedT.length();
+			}
+		}
+	} 
+	if( isAsciiToken && t_len > MIN_SPELL_CORRECT_LEN ) {
+		if( startWithSpelling ) {
+			BarzerHunspellInvoke spellChecker(d_universe.getHunspell(),d_universe.getGlobalPools());
+			ay::LevenshteinEditDistance& editDist = spellChecker.getEditDistanceCalc();
+			std::pair< int, size_t> scResult = spellChecker.checkSpell( t );
+			
+			const char*const* sugg = 0;
+			size_t sugg_sz = 0;
+			if( !scResult.first ) { // this is a misspelling 
+				sugg = spellChecker.getAllSuggestions();
+				sugg_sz = scResult.second;
+			}
+	
+			for( size_t i =0; i< sugg_sz; ++i ) {
+				const char* curSugg = sugg[i];
+				if( editDist.ascii_no_case( t, curSugg ) <= MAX_EDIT_DIST_FROM_SPELL) {
+					
+					/// current suggestion contains at least one space which means
+					/// the spellchecker has broken up the input 
+					if( strchr( curSugg, ' ' ) ) { }
+					else { // spell corrected to a solid token
+						// if this suggeston resolves to a token we simply return it
+						// we should also take care of word split spelling correction
+						const StoredToken* storedTok = dtaIdx->getStoredToken( curSugg );
+						if( storedTok ) { /// 
+							/// 
+							ctok.storedTok = storedTok;
+							ctok.syncClassInfoFromSavedTok();
+							if( strcmp(t,curSugg) )
+								ctok.addSpellingCorrection( t, curSugg );
+							return 0;
+						} else if( !bestSugg.length() ) {
+							if( d_universe.isStringUserSpecific(curSugg) ) 
+								bestSugg.assign( curSugg );
+						}
+					}
+				} // end of if for edit distance
+			} // end of looping over spelling suggestions
+		} // end of spellchecker spelling if
+
+		// nothing was resolved/spell corrected so we will try stemming
+		if( !bestSugg.length() ) {
+			BarzerHunspellInvoke stemmer(d_universe.getHunspell(),d_universe.getGlobalPools());
+			const char* stem = stemmer.stem( t );
+			if( stem ) {
+				const StoredToken* storedTok = dtaIdx->getStoredToken(stem);
+				size_t stem_len = strlen( stem );
+				if( stem_len > 3 && storedTok ) {
+					/// 
+					ctok.storedTok = storedTok;
+					ctok.syncClassInfoFromSavedTok();
+					if( strcmp(t,stem) ) 
+						ctok.addSpellingCorrection( t, stem );
+					return 1;
+				}
+				if( d_universe.isStringUserSpecific(stem) ) { 
+					ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
+					if( strcmp(t,stem) ) 
+						ctok.addSpellingCorrection( t, stem );
+					return 1;
+				}
+			} else if( !startWithSpelling) { /// no suggestion found but we werent spellchecking 
+				// so this must be a result of diacritic conversion (de-umlautization)
+				ctok.addSpellingCorrection( t, ttok.buf );
+			}
+		} else {
+			ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
+			if( strcmp(t, bestSugg.c_str()) )
+				ctok.addSpellingCorrection( t, bestSugg.c_str() );
+		}
+	} else {
+		/// non-ascii spell checking logic should go here 
+	}
+
+
+	ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
+	return -1;
+}
+
 int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const QuestionParm& qparm )
 {
 	cVec.resize( tVec.size() );

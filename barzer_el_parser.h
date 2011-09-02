@@ -111,7 +111,7 @@ protected:
 	size_t numProcs; /// total number of successfully loaded procs
 
 	std::string inputFileName; 
-	
+
 	bool silentMode;
 
 	/// priority of the words in the currently parsed trie fo spelling
@@ -130,7 +130,25 @@ protected:
 	/// can be overridden (currently this is not done)
 	uint8_t d_spellPriority;
 
-	
+
+public:
+	/// barzEL input formats
+	typedef enum {
+		INPUT_FMT_AUTO, // will try to figure out from file extension . this only works when fileName !=0
+		
+		INPUT_FMT_XML,  // default
+		INPUT_FMT_BIN,
+		INPUT_FMT_BARZEL,
+
+		INPUT_FMT_MAX
+	} InputFormat;
+	InputFormat inputFmt;
+private:
+	StoredUniverse *d_currentUniverse;
+	/// false by deault, when true takes trie name and class id from
+	// d_curTrieId, d_curTrieClass
+	bool d_trieIdSet; 
+	std::string d_curTrieId, d_curTrieClass;
 	/// both computeXXXSpellPriority functions update d_spellPriority
 	/// deduces trie spell priority from trie class name ( "" - priority 0, otherwise - 10 )
 	void computeImplicitTrieSpellPriority( const std::string& tclass, const std::string& trieId );
@@ -148,7 +166,14 @@ public:
 	void setSilentMode() { silentMode = true; }
 
 	const std::string& getInputFileName() const { return inputFileName; }
+
+	void setCurTrieId( const std::string& trieClass, const std::string& trieId )
+		{ d_trieIdSet=true; d_curTrieId = trieId; d_curTrieClass = trieClass; }
+
+	void clearCurTrieId() { d_trieIdSet= false; d_curTrieId.clear(); d_curTrieClass.clear(); }
+
 	void setTrie( const std::string& trieClass, const std::string& trieId ) ;
+
 	void setTrie(BELTrie *t) { trie = t; }
 
 	BELTrie& getTrie() { return *trie ; }
@@ -158,18 +183,6 @@ public:
 	const GlobalPools& getGlobalPools() const { return gp; }
 
 
-	/// barzEL input formats
-	typedef enum {
-		INPUT_FMT_AUTO, // will try to figure out from file extension . this only works when fileName !=0
-		
-		INPUT_FMT_XML,  // default
-		INPUT_FMT_BIN,
-		INPUT_FMT_BARZEL,
-
-		INPUT_FMT_MAX
-	} InputFormat;
-	InputFormat inputFmt;
-	StoredUniverse *d_currentUniverse;
 
 	BELReader( GlobalPools &g );
 

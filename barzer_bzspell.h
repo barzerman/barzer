@@ -40,7 +40,16 @@ struct BZSWordInfo {
 	}
 	uint32_t getPriority() const { return d_priority; }
 	uint32_t getFrequency() const { return d_freq; }
+
+	bool lessThan( const BZSWordInfo& o ) const  {
+		return ay::range_comp().less_than(
+			d_priority, d_freq,
+			o.d_priority, o.d_freq
+		);
+	}
 };
+inline bool operator <( const BZSWordInfo& l, const BZSWordInfo& r )
+{ return l.lessThan( r ); }
 
 /// one of thes eis stored for each unique strId in a trie 
 struct BZSWordTrieInfo {
@@ -48,14 +57,26 @@ struct BZSWordTrieInfo {
 	
 	BZSWordTrieInfo() : wordCount(0) {}
 	void incrementCount() { ++wordCount; }
+	bool lessThan( const BZSWordTrieInfo& o ) const
+	{
+		return wordCount< o.wordCount; 
+	}
 };
+
+
 
 class BZSpell {
 	StoredUniverse& d_universe;
 public:
+
 	/// the evos must be ordered by priority + frequency in descending order 
 	typedef boost::unordered_map< uint32_t, ay::evovec_uint32 > strid_evovec_hmap;
 	typedef boost::unordered_map< uint32_t, BZSWordInfo > strid_wordinfo_hmap;
+	typedef std::pair<const BZSWordInfo*, size_t > WordInfoAndDepth;
+	/// sizeof single character - 1 by default for ascii  
+	uint8_t d_charSize; 
+
+	size_t  d_minWordLengthToCorrect;
 
 	/// the next spell checker in line  
 	const BZSpell* d_secondarySpellchecker; 
@@ -68,6 +89,7 @@ private:
 	/// generates edit distance variants 
 	size_t produceWordVariants( uint32_t strId ); 
 public:
+	bool isAscii() const { return ( d_charSize== 1 ); }
 	void addWordToLinkedWordsMap(uint32_t linkTo, uint32_t strId )
 	{
 		d_linkedWordsMap[ linkTo ].push_back( strId );
@@ -81,7 +103,7 @@ public:
 	}
 	void addExtraWordToDictionary( uint32_t, uint32_t frequency = 0 );
 
-	BZSpell( StoredUniverse& uni ) : d_universe( uni ) {}
+	BZSpell( StoredUniverse& uni ) ;
 
 	// returns the size of strid_evovec_hmap
 	// this function should be called after the load. 
@@ -90,10 +112,17 @@ public:
 
 	/// when fails 0xffffffff is returned 
 	uint32_t getSpellCorrection( const char* s ) const;
-	uint32_t getStem( const char* s ) const;
+	uint32_t getStem( std::string& , const char* ) const;
 
 	size_t loadExtra( const char* fileName );
 	std::ostream& printStats( std::ostream& fp ) const;
+
+	bool isWordValidInUniverse( const char* word ) const;
+
+	// for each primary spellchecker depth gets incremented by 1 
+	bool getWordinfo( uint32_t strId, WordInfoAndDepth& wid ) const;
+
+	uint32_t getWordinfoByWord( const char* word, WordInfoAndDepth& wid ) const;
 };
 
 }

@@ -94,7 +94,6 @@ void BarzerSettings::addRulefile(const Rulefile &f) {
 	const char *fname = f.fname;
 	reader.setCurrentUniverse( getCurrentUniverse() );
 	reader.setTrie(tclass, tid);
-
 	size_t num = reader.loadFromFile(fname, BELReader::INPUT_FMT_XML);
 	std::cout << num << " statements (" << reader.getNumMacros() << " macros, " << 
 	reader.getNumProcs() << " procs)" << " loaded from `" << fname << "'";
@@ -140,8 +139,10 @@ void BarzerSettings::loadRules(const boost::property_tree::ptree& rules)
 				const ptree &attrs = file.get_child("<xmlattr>");
 				const std::string &cl = attrs.get<std::string>("class"),
 			                  	  &id = attrs.get<std::string>("id");
+				reader.setCurTrieId( cl, id );
 				addRulefile(Rulefile(fname, cl, id));
 			} catch (boost::property_tree::ptree_bad_path&) {
+				reader.clearCurTrieId();
 				addRulefile(Rulefile(fname));
 			}
 

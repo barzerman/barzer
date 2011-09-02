@@ -11,6 +11,7 @@
 #include <barzer_settings.h>
 #include <barzer_config.h>
 #include <barzer_spell.h>
+#include <barzer_bzspell.h>
 #include <barzer_el_compwords.h>
 #include <boost/unordered_map.hpp> 
 
@@ -212,6 +213,19 @@ public:
 	const BZSpell* getBZSpell() const { return bzSpell; }
 	BZSpell* getBZSpell() { return bzSpell; }
 	BZSpell* initBZSpell( const StoredUniverse* secondaryUniverse = 0);
+	
+	/// result of spelling correction is in out
+	/// it attempts to do first pass spelling correction (that is correction to a word known to the user)
+	/// uses bzSpell
+	// returns stringId of corrected word or 0xffffffff 
+	uint32_t spellCorrect( const char* word ) const
+		{ return ( bzSpell ? bzSpell->getSpellCorrection( word ) : 0 ); }
+	//  performs trivial practical stemming
+	// returns stringId of corrected word or 0xffffffff 
+	uint32_t stem( std::string& out, const char* word ) const
+		{ return ( bzSpell ? bzSpell->getStem( out, word ) : 0 ); }
+	bool isWordValidInUniverse( const char* word ) const
+		{ return ( bzSpell ? bzSpell->isWordValidInUniverse( word ) : true ); }
 
 	const UniverseTrieCluster::BELTrieList& getTrieList() const { return trieCluster.getTrieList(); }
 

@@ -47,6 +47,8 @@ class QLexParser {
 	/// an actual domain token
 	int trySpellCorrectAndClassify( CToken& ctok, TToken& ttok );
 
+	int trySpellCorrectAndClassify_hunspell( CToken& ctok, TToken& ttok );
+
 	/// resolves single tokens - this is not language specific
 	int singleTokenClassify( CTWPVec& , TTWPVec&, const QuestionParm& );	
 	/// multitoken non-language specific hardcoded stuff

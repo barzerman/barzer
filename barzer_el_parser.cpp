@@ -96,13 +96,19 @@ BELReader::BELReader( GlobalPools &g ) :
 	trie(&g.globalTriePool.produceTrie("", "")) , parser(0), gp(g),
 	numStatements(0) ,silentMode(false),  
 	d_trieSpellPriority(0),
-	inputFmt(INPUT_FMT_XML)
+	inputFmt(INPUT_FMT_XML),
+	d_trieIdSet(false)
 {}
 
 void BELReader::setTrie( const std::string& trieClass, const std::string& trieId )
 {
-	trie = &(gp.globalTriePool.produceTrie( trieClass, trieId ));
-	computeImplicitTrieSpellPriority(trieClass,trieId);
+	if( d_trieIdSet ) {
+		trie = &(gp.globalTriePool.produceTrie( d_curTrieClass, d_curTrieId ));
+		computeImplicitTrieSpellPriority(d_curTrieClass, d_curTrieId);
+	} else {
+		trie = &(gp.globalTriePool.produceTrie( trieClass, trieId ));
+		computeImplicitTrieSpellPriority(trieClass,trieId);
+	}
 }
 
 std::ostream& BELReader::printNode( std::ostream& fp, const BarzelTrieNode& node ) const 
