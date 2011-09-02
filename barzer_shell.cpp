@@ -98,7 +98,7 @@ static int bshf_tok( BarzerShell* shell, char_cp cmd, std::istream& in )
 static int bshf_emit( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
-	const StoredUniverse &uni = context->universe;
+	const StoredUniverse &uni = context->getUniverse();
 	const GlobalPools &globalPools = uni.getGlobalPools();
 
 	std::stringstream sstr;
@@ -243,7 +243,7 @@ static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
 static int bshf_spell( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext *context = shell->getBarzerContext();
-	const StoredUniverse &uni = context->universe;
+	const StoredUniverse &uni = context->getUniverse();
 	const BarzerHunspell& hunspell = uni.getHunspell();
 	ay::InputLineReader reader( in );
 	BarzerHunspellInvoke spellChecker(hunspell,uni.getGlobalPools());
@@ -269,11 +269,15 @@ static int bshf_spell( BarzerShell* shell, char_cp cmd, std::istream& in )
 static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
+	if( !context || !context->isUniverseValid() ) {
+		std::cerr << "barzer shell FATAL - context oruniverse is NULL\n";
+		return 0;
+	}
 	Barz& barz = context->barz;
 	// Barz barz;
-	QParser& parser = context->parser;
+	QParser parser( (context->getUniverse()) );
 
-	BarzStreamerXML bs(barz, context->universe);
+	BarzStreamerXML bs(barz, context->getUniverse());
 	std::string fname;
 
 	std::ostream *ostr = &(shell->getOutStream());
@@ -287,7 +291,7 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 	QuestionParm qparm;
 	//std::ostream &os = shell->getOutStream();
-	const StoredUniverse &uni = context->universe;
+	const StoredUniverse &uni = context->getUniverse();
 	const GlobalPools &globalPools = uni.getGlobalPools();
 
 	while( reader.nextLine() && reader.str.length() ) {
@@ -315,7 +319,7 @@ static int bshf_anlqry( BarzerShell* shell, char_cp cmd, std::istream& in )
 	// Barz barz;
 	QParser& parser = context->parser;
 
-	BarzStreamerXML bs(barz, context->universe);
+	BarzStreamerXML bs(barz, context->getUniverse());
 	std::string fname;
 
 	std::ostream *ostr = &(shell->getOutStream());
@@ -389,7 +393,7 @@ struct ShellState {
 
 	ShellState( BarzerShell* shell, char_cp cmd, std::istream& in ) :
 		context(shell->getBarzerContext()),
-		uni(context->universe),
+		uni(context->getUniverse()),
 		walker(context->trieWalker),
 		trie(context->getTrie()),
 		curTrieNode(walker.getCurrentNode()),
@@ -531,7 +535,7 @@ static int bshf_dtaan( BarzerShell* shell, char_cp cmd, std::istream& in )
 static int bshf_trls( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext *context = shell->getBarzerContext();
-	StoredUniverse &uni = context->universe;
+	StoredUniverse &uni = context->getUniverse();
 	BELTrieWalker &walker = context->trieWalker;
 	BELTrie &trie = context->getTrie();
 
@@ -713,7 +717,7 @@ public:
 static int bshf_stexpand( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext *context = shell->getBarzerContext();
-	StoredUniverse &uni = context->universe;
+	StoredUniverse &uni = context->getUniverse();
 	BELTrie &trie = context->getTrie();
 	ay::UniqueCharPool &stringPool = uni.getStringPool();
 
@@ -737,10 +741,22 @@ static int bshf_stexpand( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
+static int bshf_user( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	uint32_t uid = 0;
+	if (in >> uid) {
+		int rc = shell->setUser( uid, false ) ;
+		if( rc ) 
+			std::cerr << "error=" << rc << " setting user to " << uid << "\n";
+		else 
+			std::cerr << "user is set to " << uid << "\n";
+	}
+	return 0;
+}
 static int bshf_querytest( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext *context = shell->getBarzerContext();
-	StoredUniverse &uni = context->universe;
+	StoredUniverse &uni = context->getUniverse();
 	//BELTrie &trie = uni.getBarzelTrie();
 	//ay::UniqueCharPool &stringPool = uni.getStringPool();
 
@@ -800,17 +816,37 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_stexpand, "stexpand", "expand and print all statements in a file" ),
 	CmdData( (ay::Shell_PROCF)bshf_process, "process", "process an input string" ),
 	CmdData( (ay::Shell_PROCF)bshf_querytest, "querytest", "peforms given number of queries" ),
+	CmdData( (ay::Shell_PROCF)bshf_user, "user", "sets current user by user id" )
 };
 
 ay::ShellContext* BarzerShell::mkContext() { 
-	return new BarzerShellContext(*d_universe, d_universe->getSomeTrie() );
+	StoredUniverse& u = gp.produceUniverse(d_uid);
+
+	return new BarzerShellContext( u, u.getSomeTrie() );
 }
 
 ay::ShellContext* BarzerShell::cloneContext() { 
 	return new BarzerShellContext(*(dynamic_cast<BarzerShellContext*>( context )));
 }
-
-int BarzerShell::init()
+int BarzerShell::setUser( uint32_t uid, bool forceCreate ) 
+{
+	if( !context ) {
+		AYLOG(ERROR) << "null context\n";	
+		return 666;
+	}
+	StoredUniverse * u = gp.getUniverse(uid);
+	if( !u ) {
+		if( forceCreate ) 
+			u = &( gp.produceUniverse(uid) );
+		else  
+			return 1;
+	}
+	BarzerShellContext* bctxt = getBarzerContext();
+	bctxt->setUniverse(u);
+	d_uid = uid;
+	return 0;
+}
+int BarzerShell::init( )
 {
 	int rc = 0;
 	if( !cmdMap.size() )

@@ -16,21 +16,20 @@ namespace barzer {
 //struct BarzerShellContext;
 
 struct BarzerShellContext : public ay::ShellContext {
-	// DtaIndex* dtaIdx;
 	GlobalPools& gp;
-	StoredUniverse& universe;
+	StoredUniverse* d_universe;
 	BELTrieWalker trieWalker;
 	BELTrie* d_trie;
 
 	Barz barz;
 	QParser parser;
 
-	DtaIndex* obtainDtaIdx() { return &(universe.getDtaIdx()); }
+	DtaIndex* obtainDtaIdx() { return &(d_universe->getDtaIdx()); }
 	BELTrie& getTrie() { return *d_trie; }
 	const BELTrie& getTrie() const { return *d_trie; }
 	BarzerShellContext(StoredUniverse& u, BELTrie& trie) : 
 		gp(u.getGlobalPools()),
-		universe(u),
+		d_universe(&u),
 		trieWalker(trie),
 		d_trie(&trie),
 		parser( u )
@@ -47,13 +46,26 @@ struct BarzerShellContext : public ay::ShellContext {
 	GlobalPools& getGLobalPools() { return gp; }
 	const GlobalPools& getGLobalPools() const { return gp; }
 
+	StoredUniverse& getUniverse() { return *d_universe; }
+	const StoredUniverse& getUniverse() const { return *d_universe; }
+
+	void setUniverse( StoredUniverse* u ) { d_universe= u; }
+	StoredUniverse* getUserUniverse( uint32_t uid ) { return gp.getUniverse(uid); }
+	bool userExists( uint32_t uid ) const { return (gp.getUniverse( uid ) != 0); }
+	bool isUniverseValid() const { return (d_universe!= 0 ); }
 };
 struct BarzerShell : public ay::Shell {
-	StoredUniverse* d_universe;
+	uint32_t d_uid; // user id 
+	GlobalPools& gp;
 
-	void setUniverse( StoredUniverse* u ) { d_universe = u; }
-	BarzerShell( StoredUniverse* u=0 ) : d_universe(u) {}
-	virtual int init();
+	/// if forceCreate is  true user will be created even if it doesnt exist
+	/// otherwise the function will attempt to retrieve the universe and report error
+	/// in case of a failure 
+	int setUser( uint32_t uid, bool forceCreate  );
+
+	BarzerShell( uint32_t uid, GlobalPools& g ) : d_uid(uid), gp(g) {}
+
+	virtual int init( );
 	virtual ay::ShellContext* mkContext();
 	virtual ay::ShellContext* cloneContext();
 	virtual BarzerShell* cloneShell() 

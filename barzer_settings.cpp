@@ -96,7 +96,7 @@ void BarzerSettings::addRulefile(const Rulefile &f) {
 	reader.setTrie(tclass, tid);
 	size_t num = reader.loadFromFile(fname, BELReader::INPUT_FMT_XML);
 	std::cout << num << " statements (" << reader.getNumMacros() << " macros, " << 
-	reader.getNumProcs() << " procs)" << " loaded from `" << fname << "'";
+	reader.getNumProcs() << " procs)" << " loaded from `" << fname ;
 	if (!(tclass.empty() || tid.empty()))
 		std::cout << " into the trie `" << tclass << "." << tid << "'";
 	std::cout << "\n";
@@ -138,7 +138,7 @@ void BarzerSettings::loadRules(const boost::property_tree::ptree& rules)
 			try {
 				const ptree &attrs = file.get_child("<xmlattr>");
 				const std::string &cl = attrs.get<std::string>("class"),
-			                  	  &id = attrs.get<std::string>("id");
+			                  	  &id = attrs.get<std::string>("name");
 				reader.setCurTrieId( cl, id );
 				addRulefile(Rulefile(fname, cl, id));
 			} catch (boost::property_tree::ptree_bad_path&) {
@@ -293,12 +293,15 @@ void BarzerSettings::loadTrieset(User &u, const ptree &node) {
 				const ptree &attrs = trie.get_child("<xmlattr>");
 				const std::string &cl = attrs.get<std::string>("class"),
 								  &name = attrs.get<std::string>("name");
+				std::cerr << "user " << u.getId() << " added trie (" << cl << ":" << name << ")\n";
 				u.addTrie(TriePath(cl, name));
 			} catch (boost::property_tree::ptree_bad_path &e) {
 				AYLOG(ERROR) << "Can't get " << e.what();
 			}
 		}
 	}
+	const UniverseTrieCluster& tcluster = u.getUniverse().getTrieCluster();
+	std::cerr << "user " << u.getId() << ":" << tcluster.getTrieList().size()	 << " tries loaded\n";
 }
 
 void BarzerSettings::loadUserRules(User& u, const ptree &node )

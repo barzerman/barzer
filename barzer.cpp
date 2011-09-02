@@ -22,9 +22,8 @@ extern "C" void block_ctrlc ()
       perror("Failed to block SIGINT");
 }
 
-int run_shell(barzer::GlobalPools & globPool, barzer::StoredUniverse &u, ay::CommandLineArgs &cmdlProc) {
-	barzer::BarzerShell shell;
-	shell.setUniverse(&u);
+int run_shell(barzer::GlobalPools & globPool,  ay::CommandLineArgs &cmdlProc) {
+	barzer::BarzerShell shell(0,globPool);;
 	if (int rc = shell.run()) {
 		std::cerr  << "FATAL: Execution failed\n";
 		exit(rc);
@@ -117,7 +116,7 @@ int main( int argc, char * argv[] ) {
             if (strcasecmp(argv[1], "shell") == 0) {
                 // ay shell
                 //return run_shell(argc, argv);
-            	return run_shell(globPool, universe, cmdlProc);
+            	return run_shell(globPool, cmdlProc);
             } else if (strcasecmp(argv[1], "server") == 0) {
                 if (argc >= 3) {
                     // port is specified on command line

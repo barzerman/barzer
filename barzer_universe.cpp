@@ -118,7 +118,7 @@ GlobalTriePool::~GlobalTriePool()
 	d_trieMap.clear();
 }
 
-BELTrie& GlobalTriePool::produceTrie( const std::string& trieClass, const std::string& trieId ) 
+BELTrie* GlobalTriePool::produceTrie( const std::string& trieClass, const std::string& trieId ) 
 {
 	ClassTrieMap&  ctm = produceTrieMap( trieClass );
 
@@ -133,8 +133,9 @@ BELTrie& GlobalTriePool::produceTrie( const std::string& trieClass, const std::s
 		)).first;
 		newTrieP->setGlobalTriePoolId( d_triePool.size() );
 		d_triePool.push_back( newTrieP );
-	}	
-	return *(i->second);
+		return newTrieP;
+	} else 
+		return( i->second ); 
 }
 GlobalPools::GlobalPools() :
 	dtaIdx( &stringPool),
@@ -241,18 +242,18 @@ const char* StoredUniverse::getGenericSubclassName( uint16_t subcl ) const
 
 	BELTrie& UniverseTrieCluster::appendTrie( const std::string& trieClass, const std::string& trieId )
 	{
-		BELTrie& tr = d_triePool.produceTrie(trieClass,trieId);
-		d_trieList.push_back( &tr );
-		tr.registerUser( d_universe.getUserId() );
-		return tr;
+		BELTrie* tr = d_triePool.produceTrie(trieClass,trieId);
+		d_trieList.push_back( tr );
+		tr->registerUser( d_universe.getUserId() );
+		return *tr;
 	}
 	BELTrie& UniverseTrieCluster::prependTrie( const std::string& trieClass, const std::string& trieId )
 	{
-		BELTrie& tr = d_triePool.produceTrie(trieClass,trieId);
-		d_trieList.remove(&tr);
-		d_trieList.push_front( &tr );
-		tr.registerUser( d_universe.getUserId() );
-		return tr;
+		BELTrie* tr = d_triePool.produceTrie(trieClass,trieId);
+		d_trieList.remove(tr);
+		d_trieList.push_front( tr );
+		tr->registerUser( d_universe.getUserId() );
+		return *tr;
 	}
 //// end of generic entities 
 

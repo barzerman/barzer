@@ -9,12 +9,12 @@ using namespace barzer;
 int QSemanticParser::semanticize( Barz& barz, const QuestionParm& qparm  )
 {
 	err.clear();
-	UniverseTrieClusterIterator trieClusterIter(universe.getTrieCluster());
-
-	do {
-		BarzelMatcher barzelMatcher( universe, trieClusterIter.getCurrentTrie() );
+	const UniverseTrieCluster& trieCluster = universe.getTrieCluster();
+	const UniverseTrieCluster::BELTrieList& trieList = trieCluster.getTrieList();
+	for( UniverseTrieCluster::BELTrieList::const_iterator t = trieList.begin(); t != trieList.end(); ++t ) {
+		BarzelMatcher barzelMatcher( universe, *(*t) );
 		barzelMatcher.matchAndRewrite( barz );
-	} while( trieClusterIter.advance() );
+	}
 	return 0;
 }
 

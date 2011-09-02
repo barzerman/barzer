@@ -237,21 +237,32 @@ bool stem_depluralize( std::string& out, const char* s, size_t s_len )
 
 }
 
-// this implements a simple single suffix stem (not a complete linguistic one)
-uint32_t BZSpell::getStem( std::string& out, const char* s ) const
+bool BZSpell::stem( std::string& out, const char* s ) const
 {
 	if( isAscii() ) {
 		size_t s_len = strlen(s);
 		if( s_len > d_minWordLengthToCorrect ) {
 			std::string out;
 			if( ascii::stem_depluralize( out, s, s_len ) ) {
-				uint32_t strId = d_universe.getGlobalPools().string_getId( out.c_str() );
-				if( strId == 0xffffffff ) {
-					if( d_secondarySpellchecker )
-						return( d_secondarySpellchecker->getUniverse().getGlobalPools().string_getId( out.c_str() ) );
-				} else {
-					return strId;
-				}
+				return true;
+			}
+		}
+	}
+	return false;
+}
+// this implements a simple single suffix stem (not a complete linguistic one)
+uint32_t BZSpell::getStemCorrection( std::string& out, const char* s ) const
+{
+	if( isAscii() ) {
+		
+		std::string out;
+		if( stem( out, s) ) {
+			uint32_t strId = d_universe.getGlobalPools().string_getId( out.c_str() );
+			if( strId == 0xffffffff ) {
+				if( d_secondarySpellchecker )
+					return( d_secondarySpellchecker->getUniverse().getGlobalPools().string_getId( out.c_str() ) );
+			} else {
+				return strId;
 			}
 		}
 	}
@@ -346,6 +357,7 @@ std::ostream& BZSpell::printStats( std::ostream& fp ) const
 {
 	fp << d_wordinfoMap.size() << " actual words, " << d_linkedWordsMap.size() << " partials\n";
 
+	/*
 	for( strid_wordinfo_hmap::const_iterator i = d_wordinfoMap.begin(); i != d_wordinfoMap.end(); ++i ) {
 		const char* str = d_universe.getGlobalPools().string_resolve( i->first );
 		std::cerr << "FULL:" << ( str? str: "<null>" ) << "\n";
@@ -354,6 +366,7 @@ std::ostream& BZSpell::printStats( std::ostream& fp ) const
 		const char* str = d_universe.getGlobalPools().string_resolve( i->first );
 		std::cerr << "PARTIAL:" << ( str? str: "<null>" ) << "\n";
 	}
+	*/
 	return fp;
 }
 size_t BZSpell::init( const StoredUniverse* secondaryUniverse ) 

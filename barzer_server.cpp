@@ -75,7 +75,6 @@ public:
 
 
 void SearchSession::start() {
-	//boost::asio::write(socket_, boost::asio::buffer("-ok- welcome to barzer\n"));
 	boost::asio::async_read_until(socket_, data_, "\r\n.\r\n",
 								  boost::bind(&SearchSession::handle_read, this,
 											  boost::asio::placeholders::error,
@@ -152,14 +151,6 @@ int emit( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools )
 
 int route( GlobalPools& gpools, const char* buf, const size_t len, std::ostream& os )
 {
-	/*
-	static int shit = 0;
-	++shit;
-	*/
-	// std::cerr << "SHIT in thread " << boost::this_thread::get_id() << "\n";
-
-	// sleep(5);
-
 	if( len >= 7 && buf[0] == '!' && buf[1] == '!' ) {
 		if( !strncmp(buf+2,"EMIT:",5) ) {
 			RequestEnvironment reqEnv(os,buf+7,len-7);
@@ -169,9 +160,7 @@ int route( GlobalPools& gpools, const char* buf, const size_t len, std::ostream&
 			AYLOG(ERROR) << "UNKNOWN header: " << std::string( buf, (len>6 ? 6: len) ) << std::endl;
 		}
 	} else {
-		// int otherShitForDebugger = shit;
 		RequestEnvironment reqEnv(os,buf,len);
-		// std::cerr << "SHITFUCK: " << boost::this_thread::get_id()  << ": " << otherShitForDebugger << '\n';
 		request::barze( gpools, reqEnv );
 	}
 	return 0;
@@ -188,9 +177,6 @@ void AsyncServer::query_router(const char* buf, const size_t len, std::ostream& 
 {
 	request::route( gpools, buf, len, os );
 }
-
-
-
 
 int run_server_mt(GlobalPools &gp, uint16_t port) {
 	ay::Logger::getLogger()->setFile("barzer_server.log");

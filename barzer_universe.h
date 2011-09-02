@@ -44,10 +44,10 @@ public:
 	const BELTrie* getTrie( const std::string& trieClass, const std::string& trieId ) const;
 
 	BELTrie* getTrie( const std::string& trieClass, const std::string& trieId ) ;
-	BELTrie& produceTrie( const std::string& trieClass, const std::string& trieId ) ;
+	BELTrie* produceTrie( const std::string& trieClass, const std::string& trieId ) ;
 	BELTrie* mkNewTrie() ;
 	BELTrie& init() 
-		{ return produceTrie( std::string(), std::string() ); }
+		{ return *produceTrie( std::string(), std::string() ); }
 
 	GlobalTriePool( GlobalPools& gp) : d_gp(gp) { init(); }
 	~GlobalTriePool();
@@ -223,7 +223,7 @@ public:
 	//  performs trivial practical stemming
 	// returns stringId of corrected word or 0xffffffff 
 	uint32_t stem( std::string& out, const char* word ) const
-		{ return ( bzSpell ? bzSpell->getStem( out, word ) : 0 ); }
+		{ return ( bzSpell ? bzSpell->getStemCorrection( out, word ) : 0 ); }
 	bool isWordValidInUniverse( const char* word ) const
 		{ return ( bzSpell ? bzSpell->isWordValidInUniverse( word ) : true ); }
 
@@ -252,7 +252,7 @@ public:
 	EntPropCompatibility& getEntPropIndex() { return gp.entCompatibility; }
 	const EntPropCompatibility& getEntPropIndex() const { return gp.entCompatibility; }
 	BELTrie& produceTrie( const std::string& trieClass, const std::string& trieId ) 
-		{ return gp.globalTriePool.produceTrie( trieClass, trieId ); }
+		{ return *(gp.globalTriePool.produceTrie( trieClass, trieId )); }
 
 	GlobalPools& getGlobalPools() { return gp; }
 	const GlobalPools& getGlobalPools() const { return gp; }

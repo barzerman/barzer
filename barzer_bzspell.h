@@ -112,7 +112,11 @@ public:
 
 	/// when fails 0xffffffff is returned 
 	uint32_t getSpellCorrection( const char* s ) const;
-	uint32_t getStem( std::string& , const char* ) const;
+	uint32_t getStemCorrection( std::string& , const char* ) const;
+
+	/// stems (currently only de-pluralizes) word . returns true if stemming was 
+	/// successful
+	bool     stem( std::string& out, const char* word ) const;
 
 	size_t loadExtra( const char* fileName );
 	std::ostream& printStats( std::ostream& fp ) const;

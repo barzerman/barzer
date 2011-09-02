@@ -22,7 +22,7 @@ DEF_TFUN(load) {
 	//AYLOG(DEBUG) << "trie_shell_load  called";
 
 	BarzerShellContext *context = shell->getBarzerContext();
-	StoredUniverse &uni = context->universe;
+	StoredUniverse &uni = context->getUniverse();
 
 	BELTrie &trie = context->getTrie();
 
@@ -48,7 +48,7 @@ DEF_TFUN(load) {
 DEF_TFUN(print) {
 	//AYLOG(DEBUG) << "trie_shell_print  called";
 	BarzerShellContext *context = shell->getBarzerContext();
-	StoredUniverse &uni = context->universe;
+	StoredUniverse &uni = context->getUniverse();
 	BELTrie &trie = context->getTrie();
 
 	BELTrieWalker &walker = context->trieWalker;
