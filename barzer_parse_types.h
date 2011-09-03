@@ -133,6 +133,8 @@ struct CToken {
 	bool isPunct() const { return cInfo.theClass == CTokenClassInfo::CLASS_PUNCTUATION; }
 	bool isPunct(char c) const { return ( isPunct() && qtVec.size() == 1 && qtVec[0].first.buf[0] == c ); }
 
+	bool isPunct(const char* s) const { return ( isPunct() && qtVec.size() == 1 && strchr(s,qtVec[0].first.buf[0]) ); }
+
 	bool isSpace() const { return cInfo.theClass == CTokenClassInfo::CLASS_SPACE; }
 	
 	void setSpellCorrected( bool v = true ) { cInfo.setSpellCorrected(v); }
