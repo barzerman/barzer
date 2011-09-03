@@ -144,15 +144,17 @@ int QLexParser::advancedNumberClassify( CTWPVec& cvec, const TTWPVec& tvec, cons
 				CToken& dotTok = cvec[i_dot].first;
 				CToken& fracTok = cvec[i_frac].first;
 				// tokens preceding T and following frac
+				/*  issue https://github.com/barzerman/barzer/issues/104
 				CToken* pastFrac = ( i_frac + 1 < cvec.size() ? &(cvec[i_frac+1].first) : 0 );
 				CToken* preT = ( i ? &(cvec[i-1].first) : 0 );
 
 				if( 
 					(pastFrac && !(pastFrac->isSpace()) && !pastFrac->isPunct(',') ) ||
-					(preT && !(preT->isSpace()) && !preT->isPunct(',') ) )  
+					(preT && !(preT->isSpace()) && !preT->isPunct(",.!?$") ) )  
 				{
 					continue;
 				}
+				*/
 				if( dotTok.isPunct('.') && fracTok.isNumber() ) {
 					// floating point
 					std::stringstream sstr;
