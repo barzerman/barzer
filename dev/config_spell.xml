@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <rules>
+        <file>data/rules/generic.xml</file>
+        <file>data/rules/barzel_prices.xml</file>
+        <file>data/rules/barzel_dates.xml</file>
+        <file>data/rules/vintage.xml</file>
+        <file>data/rules/barzel_fluff.xml</file>
+    </rules>
+    <entities>
+        <file>data/time_ent.xml</file>
+    </entities>
+    <logging>
+        <level>DEBUG</level>
+        <file>barzer.log</file>
+    </logging>
+    <users>
+        <user id="0">
+			<spell> <extra>dev/spell/extrawords_user0.txt</extra> </spell>
+		</user>
+        <user id="1">
+			<rules>
+				<file class="class1" name="sepulka" >data/vendor/sepulka/rules/sepulka.xml</file>
+				<file class="class1" name="sepulka_auto" >data/vendor/sepulka/rules/sepulka_auto.xml</file>
+			</rules>
+            <trieset>
+                <trie class="class1" name="sepulka" />
+                <trie class="class1" name="sepulka_auto" />
+            </trieset>
+			<spell> <extra>dev/spell/extrawords_user1.txt</extra> </spell>
+        </user>
+    </users>
+</config>
