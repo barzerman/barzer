@@ -221,6 +221,7 @@ BZSpell* StoredUniverse::initBZSpell( const StoredUniverse* secondaryUniverse )
 	if( bzSpell ) 
 		delete bzSpell;
 	bzSpell = new BZSpell( *this );
+	bzSpell->init( secondaryUniverse );
 	return bzSpell;
 }
 

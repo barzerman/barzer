@@ -18,19 +18,37 @@ void BZSpell::addExtraWordToDictionary( uint32_t strId, uint32_t frequency )
 		wi.setFrequency( frequency );
 }
 
-bool BZSpell::getWordinfo( uint32_t strId, WordInfoAndDepth& wid ) const
+uint32_t  BZSpell::getBestWord( uint32_t strId, WordInfoAndDepth& wid ) const
 {
-	strid_wordinfo_hmap::const_iterator i = d_wordinfoMap.find( strId );
-	if( i == d_wordinfoMap.end() ) {
-		++(wid.second);
-		return ( d_secondarySpellchecker ? d_secondarySpellchecker->getWordinfo(strId,wid): false ) ;
-	} else {
-		wid.first = &(i->second);
-		return true;
+	strid_evovec_hmap::const_iterator evi = d_linkedWordsMap.find( strId );
+	if( evi !=  d_linkedWordsMap.end() ) {
+		const uint32_t * evo_end = evi->second.end_ptr();
+		const BZSWordInfo* tmpWordInfo= 0;
+		uint32_t bestWordId = 0xffffffff;
+		for( const uint32_t* ew = evi->second.begin_ptr(); ew!= evo_end; ++ew ) {
+			strid_wordinfo_hmap::const_iterator w = d_wordinfoMap.find( *ew );
+			if( w != d_wordinfoMap.end() ) {
+
+				const BZSWordInfo& curInfo = w->second;
+				if( !tmpWordInfo || *(tmpWordInfo) < curInfo ) {
+					bestWordId = w->first;
+					tmpWordInfo = &(w->second);
+				} 
+			}
+		}
+		if( bestWordId != 0xffffffff ) // should always be the case
+			{ return ( wid.first = tmpWordInfo, bestWordId ); }
 	}
+	// looking for the actual string
+	strid_wordinfo_hmap::const_iterator w = d_wordinfoMap.find( strId );
+	if( w != d_wordinfoMap.end() ) 
+		return ( wid.first = &(w->second), strId ); 
+
+	++(wid.second);
+	return ( d_secondarySpellchecker ? d_secondarySpellchecker->getBestWord(strId,wid): 0xffffffff ) ;
 }
 
-uint32_t BZSpell::getWordinfoByWord( const char* word, WordInfoAndDepth& wid ) const 
+uint32_t BZSpell::getBestWordByString( const char* word, WordInfoAndDepth& wid ) const 
 {
 	uint32_t strId = d_universe.getGlobalPools().string_getId( word );
 
@@ -38,7 +56,7 @@ uint32_t BZSpell::getWordinfoByWord( const char* word, WordInfoAndDepth& wid ) c
 		return 0xffffffff;
 	else {
 		wid.second = 0;
-		return ( getWordinfo( strId, wid ) ? strId: 0xffffffff );
+		return getBestWord( strId, wid ) ;
 	}	
 }
 
@@ -53,16 +71,33 @@ struct CorrectCallback {
 	
 	static bool widLess( const CorrectionQualityInfo& l, const CorrectionQualityInfo& r ) 
 	{
-		return ay::range_comp().less_than( 
-			l.second, *(l.first),
-			r.second, *(r.first)
-		);
+		if( l.second < r.second ) 
+			return true;
+		else if( l.second < r.second ) 
+			return false;
+		if( !l.first ) 
+			return r.first;
+		else if( !r.first )
+			return false;
+		else
+			return ( *(l.first) < *(r.first) );
 	}
+
 	CorrectCallback( const BZSpell& bzs ) : 
 		d_bzSpell(bzs) ,
 		d_bestMatch(0,0),
 		d_bestStrId(0xffffffff)
 	{}
+	
+	void tryUpdateBestMatch( const char* str ) 
+	{
+		CorrectionQualityInfo wid(0, 0);
+		uint32_t strId = d_bzSpell.getBestWordByString( str, wid);
+		if( (0xffffffff != strId) && widLess(d_bestMatch,wid) ) {
+			d_bestMatch= wid;
+			d_bestStrId= strId;
+		}
+	}
 
 	int operator()( charvec_ci fromI, charvec_ci toI )
 	{
@@ -70,14 +105,7 @@ struct CorrectCallback {
 		v.push_back(0);
 		const char* str = &(v[0]);
 
-		CorrectionQualityInfo wid(0, 0);
-		
-		uint32_t strId = d_bzSpell.getWordinfoByWord( str, wid);
-		if( (0xffffffff != strId) && widLess(d_bestMatch,wid) ) {
-			d_bestMatch= wid;
-			d_bestStrId= strId;
-		}
-
+		tryUpdateBestMatch( str );
 		return 0;
 	}
 	
@@ -85,24 +113,33 @@ struct CorrectCallback {
 	const CorrectionQualityInfo& getBestMatchInfo() const { return  d_bestMatch; }
 }; 
 
+
 } // anonymous namespace 
 
-/// when fails 0xffffffff is returned 
-uint32_t BZSpell::getSpellCorrection( const char* str ) const
-{
-	/// for ascii corrector
-	if( isAscii() ) {
-		size_t str_len = strlen( str );
-		if( str_len > d_minWordLengthToCorrect ) {
-			CorrectCallback cb( *this );	
-			ay::choose_n<char, CorrectCallback > variator( cb, str_len-1, str_len-1 );
-			variator( str, str+str_len );
-			return cb.getBestStrId();
-		}
-	} 
-	return 0xffffffff;
-}
 namespace ascii {
+
+struct CharPermuter {
+	size_t buf_len;
+	CorrectCallback& callback;
+	char buf[ 128 ];
+
+	CharPermuter( const char* s, CorrectCallback& cb ) : buf_len(strlen(s)), callback(cb)
+	{
+		strncpy( buf, s, sizeof(buf)-1 );
+		buf[ sizeof(buf)-1 ] = 0;
+	}
+	void doAll() {
+		if( buf_len< 3 ) return ;
+
+		char* buf_last = &buf[buf_len-2];
+		for( char* s = buf; s != buf_last; ++s ) {
+			std::swap( s[0], s[1] );
+			callback.tryUpdateBestMatch( buf );
+			std::swap( s[0], s[1] );
+		}
+	}
+};
+
 
 inline bool is_vowel( char c )
 {
@@ -235,6 +272,46 @@ bool stem_depluralize( std::string& out, const char* s, size_t s_len )
 	return false;
 }
 
+} // ascii namespace ends
+
+int BZSpell::isUsersWordById( uint32_t strId ) const 
+{
+	strid_wordinfo_hmap::const_iterator i =d_wordinfoMap.find( strId );
+	if( i == d_wordinfoMap.end() ) {
+		if( d_secondarySpellchecker ) { 
+			int rc = d_secondarySpellchecker->isUsersWordById( strId );
+			return ( rc ? rc+1 : 0 );
+		} else 
+			return 0;
+	} else 
+		return 1;
+}
+
+int BZSpell::isUsersWord( uint32_t& strId, const char* word ) const 
+{
+	strId = d_universe.getGlobalPools().string_getId( word ) ;
+	return( strId == 0xffffffff ? 0 : isUsersWordById(strId) );
+}
+
+/// when fails 0xffffffff is returned 
+uint32_t BZSpell::getSpellCorrection( const char* str ) const
+{
+	/// for ascii corrector
+	if( isAscii() ) {
+		size_t str_len = strlen( str );
+		if( str_len > d_minWordLengthToCorrect ) {
+			CorrectCallback cb( *this );	
+			cb.tryUpdateBestMatch( str );
+
+			ay::choose_n<char, CorrectCallback > variator( cb, str_len-1, str_len-1 );
+			variator( str, str+str_len );
+
+			ascii::CharPermuter permuter( str, cb );
+			permuter.doAll();
+			return cb.getBestStrId();
+		}
+	} 
+	return 0xffffffff;
 }
 
 bool BZSpell::stem( std::string& out, const char* s ) const
@@ -316,9 +393,11 @@ size_t BZSpell::produceWordVariants( uint32_t strId )
 }
 
 BZSpell::BZSpell( StoredUniverse& uni ) : 
+	d_secondarySpellchecker(0),
 	d_universe( uni ),
 	d_charSize(1) ,
 	d_minWordLengthToCorrect( d_charSize* 3 )
+
 {}
 
 size_t BZSpell::loadExtra( const char* fileName )

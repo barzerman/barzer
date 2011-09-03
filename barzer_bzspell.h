@@ -66,10 +66,15 @@ struct BZSWordTrieInfo {
 
 
 class BZSpell {
+	/// the next spell checker in line  
+	const BZSpell* d_secondarySpellchecker; 
 	StoredUniverse& d_universe;
 public:
 
+
 	/// the evos must be ordered by priority + frequency in descending order 
+	// ay::evovec_uint32 is in ay/ay_evovec.h - it is a wrapper which is either a vector 
+	// or a stack allocated contiguous storage
 	typedef boost::unordered_map< uint32_t, ay::evovec_uint32 > strid_evovec_hmap;
 	typedef boost::unordered_map< uint32_t, BZSWordInfo > strid_wordinfo_hmap;
 	typedef std::pair<const BZSWordInfo*, size_t > WordInfoAndDepth;
@@ -78,8 +83,6 @@ public:
 
 	size_t  d_minWordLengthToCorrect;
 
-	/// the next spell checker in line  
-	const BZSpell* d_secondarySpellchecker; 
 private: 
 	strid_wordinfo_hmap d_wordinfoMap;	// from actual words to universe specific word info 
 	strid_evovec_hmap  	d_linkedWordsMap;  // words linked to partial word
@@ -114,6 +117,13 @@ public:
 	uint32_t getSpellCorrection( const char* s ) const;
 	uint32_t getStemCorrection( std::string& , const char* ) const;
 
+	/// if word isnt found at all returns 0
+	/// 1 - means it's the users word 
+	/// >1 - secondary 
+	// strId will have stringId or 0xffffffff if string cant be resolved
+	int isUsersWord( uint32_t& strId, const char* word ) const ;
+	int isUsersWordById( uint32_t ) const;
+
 	/// stems (currently only de-pluralizes) word . returns true if stemming was 
 	/// successful
 	bool     stem( std::string& out, const char* word ) const;
@@ -124,9 +134,10 @@ public:
 	bool isWordValidInUniverse( const char* word ) const;
 
 	// for each primary spellchecker depth gets incremented by 1 
-	bool getWordinfo( uint32_t strId, WordInfoAndDepth& wid ) const;
+	// returns string id of the best match
+	uint32_t getBestWord( uint32_t strId, WordInfoAndDepth& wid ) const;
 
-	uint32_t getWordinfoByWord( const char* word, WordInfoAndDepth& wid ) const;
+	uint32_t getBestWordByString( const char* word, WordInfoAndDepth& wid ) const;
 };
 
 }

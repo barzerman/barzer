@@ -240,6 +240,63 @@ static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
+static int bshf_bzspell( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext *context = shell->getBarzerContext();
+	const StoredUniverse &uni = context->getUniverse();
+	const GlobalPools& gp = uni.getGlobalPools();
+	const BZSpell* bzSpell = uni.getBZSpell();
+
+	if( !bzSpell ) {
+		std::cerr << "bzspell is NULL\n";
+		return 0;
+	}
+	ay::InputLineReader reader( in );
+
+	while( reader.nextLine() && reader.str.length() ) {
+		const char*  word = reader.str.c_str();
+		uint32_t origStrid = 0xffffffff;
+		int isUsersWord =  bzSpell->isUsersWord( origStrid, word ) ;
+		if( isUsersWord ) {
+			std::cerr << "this is a valid " << ( isUsersWord == 1 ? "user's " : "secondary " ) << "word\n";
+			continue;
+		}
+		uint32_t strId = bzSpell->getSpellCorrection( word );
+		if( strId != 0xffffffff ) {
+			std::cerr << "corrected to " << std::hex << strId << ":";
+			const char* corrected = gp.string_resolve( strId ) ;
+			if( corrected ) {
+				std::cerr << corrected << "\n";
+			} else {
+				std::cerr << "<invalid id>\n";
+			}
+		} else {
+			std::cerr << "cannot correct\n";
+		}
+	}	
+	return 0;
+}
+static int bshf_bzstem( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext *context = shell->getBarzerContext();
+	const StoredUniverse &uni = context->getUniverse();
+	const BZSpell* bzSpell = uni.getBZSpell();
+
+	if( !bzSpell ) {
+		std::cerr << "bzspell is NULL\n";
+		return 0;
+	}
+	ay::InputLineReader reader( in );
+
+	while( reader.nextLine() && reader.str.length() ) {
+		const char*  word = reader.str.c_str();
+		std::string stem;	
+		uint32_t strId = bzSpell->getStemCorrection( stem, word );
+		std::cerr << "stemmed to :" << stem << ":" << std::hex << strId << ":";
+	}	
+	return 0;
+}
+
 static int bshf_spell( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext *context = shell->getBarzerContext();
@@ -467,10 +524,6 @@ size_t TAParms::maxNameLen     = 3;
 
 }
 
-static int bshf_bzspell( BarzerShell* shell, char_cp cmd, std::istream& in )
-{
-	return 0;
-}
 /// data analysis entry point
 static int bshf_dtaan( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
@@ -790,7 +843,8 @@ static const CmdData g_cmd[] = {
 	//commented test to reduce the bloat
 	CmdData( bshf_test, "test", "just a test" ),
 	CmdData( (ay::Shell_PROCF)bshf_anlqry, "anlqry", "<filename> analyzes query set" ),
-	CmdData( (ay::Shell_PROCF)bshf_bzspell, "bzspell", "barzer spell corrector" ),
+	CmdData( (ay::Shell_PROCF)bshf_bzspell, "bzspell", "bzspell correction for the user" ),
+	CmdData( (ay::Shell_PROCF)bshf_bzstem, "bzstem", "bz stemming correction for the user domain" ),
 	CmdData( (ay::Shell_PROCF)bshf_dtaan, "dtaan", "data set analyzer. runs through the trie" ),
 	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),
 	CmdData( (ay::Shell_PROCF)bshf_lex, "lex", "tokenize and then classify (lex) the input" ),
