@@ -12,8 +12,8 @@
     <stmt>
         <pat>
             <any>
-				<list> <list v="val"><n /></list> <expand n="MACRO_USD"/> </list>
-				<list> <expand n="MACRO_USD_PFX"/> <list v="val"><n /></list> </list>
+				<list> <list v="val"><n r="y"/></list> <expand n="MACRO_USD"/> </list>
+				<list> <expand n="MACRO_USD_PFX"/> <list v="val"><n r="y"/></list> </list>
             </any> 
         </pat>
         <tran>
@@ -32,8 +32,8 @@
     <pat>
 		<opt><t>for</t></opt>
 		<any>
-			<list> <list v="val"><n /></list> <t>k</t> <expand n="MACRO_USD"/> </list>
-			<list> <expand n="MACRO_USD_PFX"/><list v="val"><n /></list> <t>k</t> </list>
+			<list> <list v="val"><n r="y"/></list> <t>k</t> <expand n="MACRO_USD"/> </list>
+			<list> <expand n="MACRO_USD_PFX"/><list v="val"><n r="y"/></list> <t>k</t> </list>
 		</any>
     </pat>
     <tran>
@@ -50,8 +50,8 @@
     <pat>
 		<opt><t>for</t></opt>
 		<any>
-			<list> <list v="val"><n /></list> <t>k</t> <expand n="MACRO_EUR"/> </list>
-			<list> <expand n="MACRO_EUR_PFX"/><list v="val"><n /></list> <t>k</t> </list>
+			<list> <list v="val"><n r="y"/></list> <t>k</t> <expand n="MACRO_EUR"/> </list>
+			<list> <expand n="MACRO_EUR_PFX"/><list v="val"><n r="y"/></list> <t>k</t> </list>
 		</any>
     </pat>
     <tran>
@@ -68,8 +68,8 @@
     <pat>
 		<opt><t>for</t></opt>
 		<any>
-			<list> <list v="val"><n /></list> <t>k</t> <expand n="MACRO_GBP"/> </list>
-			<list> <expand n="MACRO_GBP_PFX"/><list v="val"><n /></list> <t>k</t> </list>
+			<list> <list v="val"><n r="y"/></list> <t>k</t> <expand n="MACRO_GBP"/> </list>
+			<list> <expand n="MACRO_GBP_PFX"/><list v="val"><n r="y"/></list> <t>k</t> </list>
 		</any>
     </pat>
     <tran>
@@ -86,7 +86,7 @@
     <stmt>
     <pat>
 		<opt><t>for</t></opt>
-        <list v="val"><n /></list>
+        <list v="val"><n r="y"/></list>
         <t>k</t>
     </pat>
     <tran>
@@ -102,7 +102,7 @@
     <stmt>
     <pat>
 		<opt><t>for</t></opt>
-        <list v="val"><n /></list>
+        <list v="val"><n r="y"/></list>
         <t>grand</t>
     </pat>
     <tran>
@@ -119,8 +119,8 @@
     <stmt>
         <pat>
 			<any>
-			<list> <list v="val"><n /></list> <expand n="MACRO_EUR"/> </list>
-			<list> <expand n="MACRO_EUR_PFX"/> <list v="val"><n /></list> </list>
+			<list> <list v="val"><n r="y"/></list> <expand n="MACRO_EUR"/> </list>
+			<list> <expand n="MACRO_EUR_PFX"/> <list v="val"><n r="y"/></list> </list>
 			</any>
         </pat>
         <tran>
@@ -137,8 +137,8 @@
     <stmt>
         <pat>
 			<any>
-			<list> <list v="val"><n /></list> <expand n="MACRO_GBP"/> </list>
-			<list> <expand n="MACRO_GBP_PFX"/> <list v="val"><n /></list> </list>
+			<list> <list v="val"><n r="y"/></list> <expand n="MACRO_GBP"/> </list>
+			<list> <expand n="MACRO_GBP_PFX"/> <list v="val"><n r="y"/></list> </list>
 			</any>
         </pat>
         <tran>
@@ -179,13 +179,13 @@
 			<any>
 			<list>
             	<t>between</t>
-            	<list v="low"><n /></list>
+            	<list v="low"><n r="y"/></list>
             	<t>and</t>
             	<list v="high"><erc c="1" s="1" /></list>
 			</list>
 			<list>
 				<opt><t>for</t></opt>
-            	<list v="low"><n /></list>
+            	<list v="low"><n r="y"/></list>
 	        	<any><t>to</t><t>-</t></any>
             	<list v="high"><erc c="1" s="1" /></list>
 			</list>
@@ -209,12 +209,12 @@
 			<t>for</t>
 			<any>
 				<list>
-					<list v="num"><n/></list>
+					<list v="num"><n r="y"/></list>
 					<expand n="MACRO_USD"/> 
 				</list>
 				<list>
 					<expand n="MACRO_USD_PFX"/> 
-					<list v="num"><n/></list>
+					<list v="num"><n r="y"/></list>
 				</list>
 			</any>
         </pat>
@@ -234,12 +234,12 @@
 			<any><list><t>close</t><t>to</t></list><t>around</t><t>about</t><t>roughly</t></any>
 			<any>
 				<list>
-					<list v="num"><n/></list>
+					<list v="num"><n r="y"/></list>
 					<expand n="MACRO_USD"/> 
 				</list>
 				<list>
 					<any><t>$</t><t>USD</t></any>
-					<list v="num"><n/></list>
+					<list v="num"><n r="y"/></list>
 				</list>
 			</any>
         </pat>
@@ -262,38 +262,38 @@
 					<list>
             			<t>between</t> 
 						<any><t>$</t><t>USD</t></any>
-						<list v="low"><n/></list> 
+						<list v="low"><n r="y"/></list> 
 						<t>and</t> 
 						<opt><any><t>$</t><t>USD</t></any></opt>
-						<list v="high"><n/></list>
+						<list v="high"><n r="y"/></list>
 					</list>
 					<list>
             			<opt><t>from</t> </opt>
 						<any><t>$</t><t>USD</t></any>
-						<list v="low"><n/></list> 
+						<list v="low"><n r="y"/></list> 
 						<t>to</t> 
 						<opt><any><t>$</t><t>USD</t></any></opt>
-						<list v="high"><n/></list>
+						<list v="high"><n r="y"/></list>
 					</list>
 					<list>
 						<opt><t>for</t></opt>
 						<expand n="MACRO_USD_PFX"/>
-						<list v="low"><n/></list> 
+						<list v="low"><n r="y"/></list> 
 						<t>-</t> 
 						<opt><expand n="MACRO_USD_PFX"/></opt>
-						<list v="high"><n/></list>
+						<list v="high"><n r="y"/></list>
 					</list>
 					<list>
 						<opt><t>for</t></opt>
-						<list v="low"><n/></list> 
+						<list v="low"><n r="y"/></list> 
 						<t>-</t> 
-						<list v="high"><n/></list>
+						<list v="high"><n r="y"/></list>
 						<expand n="MACRO_USD"/> 
 					</list>
 				</any>
 				<list>
-            		<t>between</t> <list v="low"><n/></list> <t>and</t> <list v="high"><n /></list>
-					<list> <list v="num"><n /></list> <expand n="MACRO_USD"/> </list>
+            		<t>between</t> <list v="low"><n r="y"/></list> <t>and</t> <list v="high"><n r="y"/></list>
+					<list> <list v="num"><n r="y"/></list> <expand n="MACRO_USD"/> </list>
 				</list>
 			</any>
         </pat>
@@ -312,38 +312,38 @@
 					<list>
             			<t>between</t> 
 						<expand n="MACRO_EUR_PFX"/>
-						<list v="low"><n/></list> 
+						<list v="low"><n r="y"/></list> 
 						<t>and</t> 
 						<opt><expand n="MACRO_EUR_PFX"/></opt>
-						<list v="high"><n/></list>
+						<list v="high"><n r="y"/></list>
 					</list>
 					<list>
             			<opt><t>from</t> </opt>
 						<expand n="MACRO_EUR_PFX"/>
-						<list v="low"><n/></list> 
+						<list v="low"><n r="y"/></list> 
 						<t>to</t> 
 						<opt><expand n="MACRO_EUR_PFX"/></opt>
-						<list v="high"><n/></list>
+						<list v="high"><n r="y"/></list>
 					</list>
 					<list>
 						<opt><t>for</t></opt>
 						<expand n="MACRO_EUR_PFX"/>
-						<list v="low"><n/></list> 
+						<list v="low"><n r="y"/></list> 
 						<t>-</t> 
 						<opt><expand n="MACRO_EUR_PFX"/></opt>
-						<list v="high"><n/></list>
+						<list v="high"><n r="y"/></list>
 					</list>
 					<list>
 						<opt><t>for</t></opt>
-						<list v="low"><n/></list> 
+						<list v="low"><n r="y"/></list> 
 						<t>-</t> 
-						<list v="high"><n/></list>
+						<list v="high"><n r="y"/></list>
 						<expand n="MACRO_EUR"/> 
 					</list>
 				</any>
 				<list>
-            		<t>between</t> <list v="low"><n/></list> <t>and</t> <list v="high"><n /></list>
-					<list> <list v="num"><n /></list> <expand n="MACRO_EUR"/> </list>
+            		<t>between</t> <list v="low"><n r="y"/></list> <t>and</t> <list v="high"><n r="y"/></list>
+					<list> <list v="num"><n r="y"/></list> <expand n="MACRO_EUR"/> </list>
 				</list>
 			</any>
         </pat>
@@ -362,38 +362,38 @@
 					<list>
             			<t>between</t> 
 						<expand n="MACRO_GBP_PFX"/>
-						<list v="low"><n/></list> 
+						<list v="low"><n r="y"/></list> 
 						<t>and</t> 
 						<opt><expand n="MACRO_GBP_PFX"/></opt>
-						<list v="high"><n/></list>
+						<list v="high"><n r="y"/></list>
 					</list>
 					<list>
             			<opt><t>from</t> </opt>
 						<expand n="MACRO_GBP_PFX"/>
-						<list v="low"><n/></list> 
+						<list v="low"><n r="y"/></list> 
 						<t>to</t> 
 						<opt><expand n="MACRO_GBP_PFX"/></opt>
-						<list v="high"><n/></list>
+						<list v="high"><n r="y"/></list>
 					</list>
 					<list>
 						<opt><t>for</t></opt>
 						<expand n="MACRO_GBP_PFX"/>
-						<list v="low"><n/></list> 
+						<list v="low"><n r="y"/></list> 
 						<t>-</t> 
 						<opt><expand n="MACRO_GBP_PFX"/></opt>
-						<list v="high"><n/></list>
+						<list v="high"><n r="y"/></list>
 					</list>
 					<list>
 						<opt><t>for</t></opt>
-						<list v="low"><n/></list> 
+						<list v="low"><n r="y"/></list> 
 						<t>-</t> 
-						<list v="high"><n/></list>
+						<list v="high"><n r="y"/></list>
 						<expand n="MACRO_GBP"/> 
 					</list>
 				</any>
 				<list>
-            		<t>between</t> <list v="low"><n/></list> <t>and</t> <list v="high"><n /></list>
-					<list> <list v="num"><n /></list> <expand n="MACRO_GBP"/> </list>
+            		<t>between</t> <list v="low"><n r="y"/></list> <t>and</t> <list v="high"><n r="y"/></list>
+					<list> <list v="num"><n r="y"/></list> <expand n="MACRO_GBP"/> </list>
 				</list>
 			</any>
         </pat>
@@ -486,13 +486,13 @@
                 	<list><t>starting</t><any><t>at</t><t>from</t></any></list>
             	</any>
 				<any><t>$</t><t>USD</t></any>
-            	<list v="num"><n /></list>
+            	<list v="num"><n r="y"/></list>
 			</list>
 			<list>
 				<opt><t>for</t></opt>
 				<any>
-					<list> <list v="num"><n /></list> <expand n="MACRO_USD"/> </list>
-					<list> <any><t>$</t><t>USD</t></any> <list v="num"><n /></list> </list>
+					<list> <list v="num"><n r="y"/></list> <expand n="MACRO_USD"/> </list>
+					<list> <any><t>$</t><t>USD</t></any> <list v="num"><n r="y"/></list> </list>
 				</any>
 				<any><t>min</t><t>minimum</t><list><t>at</t><t>least</t></list></any>
 			</list>
@@ -505,7 +505,7 @@
                 	<t>above</t>
                 	<list><t>starting</t><any><t>at</t><t>from</t></any></list>
             	</any>
-            	<list v="num"><n /></list>
+            	<list v="num"><n r="y"/></list>
 			   	<expand n="MACRO_USD"/>
 			</list>
 			<list>
@@ -514,7 +514,7 @@
 			   	<list><t>priced</t><t>above</t></list>
 				</any>
 				<opt><any><t>$</t><t>USD</t></any></opt>
-            	<list v="num"><n /></list>
+            	<list v="num"><n r="y"/></list>
 				<opt> <expand n="MACRO_USD"/> </opt>
 			</list>
 			</any>
@@ -545,13 +545,13 @@
                 	<t>below</t>
             	</any>
 				<expand n="MACRO_USD_PFX"/>
-            	<list v="num"><n /></list>
+            	<list v="num"><n r="y"/></list>
 			</list>
 			<list>
 				<opt><t>for</t></opt>
 				<any>
-					<list> <list v="num"><n /></list> <expand n="MACRO_USD"/> </list>
-					<list> <expand n="MACRO_USD_PFX"/><list v="num"><n /></list> </list>
+					<list> <list v="num"><n r="y"/></list> <expand n="MACRO_USD"/> </list>
+					<list> <expand n="MACRO_USD_PFX"/><list v="num"><n r="y"/></list> </list>
 				</any>
 				<any><t>max</t><t>maximum</t><t>tops</t><list><t>at</t><t>most</t></list></any>
 			</list>
@@ -561,7 +561,7 @@
                 	<t>under</t>
                 	<t>below</t>
             	</any>
-            	<list v="num"><n /></list>
+            	<list v="num"><n r="y"/></list>
 			   	<expand n="MACRO_USD"/>
 			</list>
 			<list>
@@ -569,7 +569,7 @@
 			   	<list><t>less</t><t>expensive</t><t>than</t></list>
                	<list><t>cheaper</t><opt><t>than</t></opt></list>
 				</any>
-            	<list v="num"><n /></list>
+            	<list v="num"><n r="y"/></list>
 				<opt> <expand n="MACRO_USD"/> </opt>
 			</list>
 			</any>
@@ -595,13 +595,13 @@
                 	<t>below</t>
             	</any>
 				<expand n="MACRO_EUR_PFX"/>
-            	<list v="num"><n /></list>
+            	<list v="num"><n r="y"/></list>
 			</list>
 			<list>
 				<opt><t>for</t></opt>
 				<any>
-					<list> <list v="num"><n /></list> <expand n="MACRO_EUR"/> </list>
-					<list> <expand n="MACRO_EUR_PFX"/><list v="num"><n /></list> </list>
+					<list> <list v="num"><n r="y"/></list> <expand n="MACRO_EUR"/> </list>
+					<list> <expand n="MACRO_EUR_PFX"/><list v="num"><n r="y"/></list> </list>
 				</any>
 				<any><t>max</t><t>maximum</t><t>tops</t><list><t>at</t><t>most</t></list></any>
 			</list>
@@ -611,7 +611,7 @@
                 	<t>under</t>
                 	<t>below</t>
             	</any>
-            	<list v="num"><n /></list>
+            	<list v="num"><n r="y"/></list>
 			   	<expand n="MACRO_EUR"/>
 			</list>
 			<list>
@@ -619,7 +619,7 @@
 			   	<list><t>less</t><t>expensive</t><t>than</t></list>
                	<list><t>cheaper</t><opt><t>than</t></opt></list>
 				</any>
-            	<list v="num"><n /></list>
+            	<list v="num"><n r="y"/></list>
 				<expand n="MACRO_EUR"/>
 			</list>
 			</any>
@@ -645,13 +645,13 @@
                 	<t>below</t>
             	</any>
 				<expand n="MACRO_GBP_PFX"/>
-            	<list v="num"><n /></list>
+            	<list v="num"><n r="y"/></list>
 			</list>
 			<list>
 				<opt><t>for</t></opt>
 				<any>
-					<list> <list v="num"><n /></list> <expand n="MACRO_GBP"/> </list>
-					<list> <expand n="MACRO_GBP_PFX"/><list v="num"><n /></list> </list>
+					<list> <list v="num"><n r="y"/></list> <expand n="MACRO_GBP"/> </list>
+					<list> <expand n="MACRO_GBP_PFX"/><list v="num"><n r="y"/></list> </list>
 				</any>
 				<any><t>max</t><t>maximum</t><t>tops</t><list><t>at</t><t>most</t></list></any>
 			</list>
@@ -661,7 +661,7 @@
                 	<t>under</t>
                 	<t>below</t>
             	</any>
-            	<list v="num"><n /></list>
+            	<list v="num"><n r="y"/></list>
 			   	<expand n="MACRO_GBP"/>
 			</list>
 			<list>
@@ -669,7 +669,7 @@
 			   	<list><t>less</t><t>expensive</t><t>than</t></list>
                	<list><t>cheaper</t><opt><t>than</t></opt></list>
 				</any>
-            	<list v="num"><n /></list>
+            	<list v="num"><n r="y"/></list>
 				<expand n="MACRO_GBP"/>
 			</list>
 			</any>
@@ -696,14 +696,14 @@
                 	<t>below</t>
             	</any>
 				<opt><expand n="MACRO_USD_PFX"/></opt>
-            	<list v="num"><n /></list>
+            	<list v="num"><n r="y"/></list>
 				<t>k</t>
 			</list>
 			<list>
 				<opt><t>for</t></opt>
 				<any>
-					<list> <list v="num"><n /></list> <t>k</t> <expand n="MACRO_USD"/> </list>
-					<list> <expand n="MACRO_USD_PFX"/><list v="num"><n /><t>k</t></list> </list>
+					<list> <list v="num"><n r="y"/></list> <t>k</t> <expand n="MACRO_USD"/> </list>
+					<list> <expand n="MACRO_USD_PFX"/><list v="num"><n r="y"/><t>k</t></list> </list>
 				</any>
 				<any><t>max</t><t>maximum</t><t>tops</t><list><t>at</t><t>most</t></list></any>
 			</list>
@@ -713,7 +713,7 @@
                 	<t>under</t>
                 	<t>below</t>
             	</any>
-            	<list v="num"><n /></list>
+            	<list v="num"><n r="y"/></list>
 				<t>k</t>
 			   	<expand n="MACRO_USD"/>
 			</list>
@@ -722,7 +722,7 @@
 			   	<list><t>less</t><t>expensive</t><t>than</t></list>
                	<list><t>cheaper</t><opt><t>than</t></opt></list>
 				</any>
-            	<list v="num"><n /></list>
+            	<list v="num"><n r="y"/></list>
 				<t>k</t>
 				<opt> <expand n="MACRO_USD"/> </opt>
 			</list>
@@ -752,14 +752,14 @@
                 	<t>below</t>
             	</any>
 				<expand n="MACRO_EUR_PFX"/>
-            	<list v="num"><n /></list>
+            	<list v="num"><n r="y"/></list>
 				<t>k</t>
 			</list>
 			<list>
 				<opt><t>for</t></opt>
 				<any>
-					<list> <list v="num"><n /></list><t>k</t> <expand n="MACRO_EUR"/> </list>
-					<list> <expand n="MACRO_EUR_PFX"/><list v="num"><n /><t>k</t></list> </list>
+					<list> <list v="num"><n r="y"/></list><t>k</t> <expand n="MACRO_EUR"/> </list>
+					<list> <expand n="MACRO_EUR_PFX"/><list v="num"><n r="y"/><t>k</t></list> </list>
 				</any>
 				<any><t>max</t><t>maximum</t><t>tops</t><list><t>at</t><t>most</t></list></any>
 			</list>
@@ -769,7 +769,7 @@
                 	<t>under</t>
                 	<t>below</t>
             	</any>
-            	<list v="num"><n /></list>
+            	<list v="num"><n r="y"/></list>
 				<t>k</t>
 			   	<expand n="MACRO_EUR"/>
 			</list>
@@ -778,7 +778,7 @@
 			   	<list><t>less</t><t>expensive</t><t>than</t></list>
                	<list><t>cheaper</t><opt><t>than</t></opt></list>
 				</any>
-            	<list v="num"><n /></list>
+            	<list v="num"><n r="y"/></list>
 				<t>k</t>
 				<expand n="MACRO_EUR"/>
 			</list>
@@ -811,14 +811,14 @@
                 	<t>below</t>
             	</any>
 				<expand n="MACRO_GBP_PFX"/>
-            	<list v="num"><n /></list>
+            	<list v="num"><n r="y"/></list>
 				<t>k</t>
 			</list>
 			<list>
 				<opt><t>for</t></opt>
 				<any>
-					<list> <list v="num"><n /><t>k</t></list> <expand n="MACRO_GBP"/> </list>
-					<list> <expand n="MACRO_GBP_PFX"/><list v="num"><n/><t>k</t></list> </list>
+					<list> <list v="num"><n r="y"/><t>k</t></list> <expand n="MACRO_GBP"/> </list>
+					<list> <expand n="MACRO_GBP_PFX"/><list v="num"><n r="y"/><t>k</t></list> </list>
 				</any>
 				<any><t>max</t><t>maximum</t><t>tops</t><list><t>at</t><t>most</t></list></any>
 			</list>
@@ -828,7 +828,7 @@
                 	<t>under</t>
                 	<t>below</t>
             	</any>
-            	<list v="num"><n /></list>
+            	<list v="num"><n r="y"/></list>
 				<t>k</t>
 			   	<expand n="MACRO_GBP"/>
 			</list>
@@ -837,7 +837,7 @@
 			   	<list><t>less</t><t>expensive</t><t>than</t></list>
                	<list><t>cheaper</t><opt><t>than</t></opt></list>
 				</any>
-            	<list v="num"><n /></list>
+            	<list v="num"><n r="y"/></list>
 				<t>k</t>
 				<expand n="MACRO_GBP"/>
 			</list>
