@@ -102,9 +102,14 @@ void BarzerSettings::addRulefile(const Rulefile &f) {
 	std::cout << "\n";
 }
 
+void BarzerSettings::addDictionaryFile(const char *fname)
+{
+	std::cerr << "Reading dictionary from " << fname << " ... " << gpools.readDictionaryFile( fname ) << "read\n";
+
+}
 void BarzerSettings::addEntityFile(const char *fname)
 {
-	entityFiles.push_back(fname);
+	// entityFiles.push_back(fname);
 	gpools.getDtaIdx().loadEntities_XML(fname);
 }
 
@@ -209,12 +214,23 @@ void BarzerSettings::loadParseSettings() {
 	}
 	//}
 }
+void BarzerSettings::loadDictionaries() {
+	
+	try {
+	using boost::property_tree::ptree;
+	const ptree &ents = pt.get_child("config.dictionaries", empty_ptree());
+	BOOST_FOREACH(const ptree::value_type &v, ents) {
+		addDictionaryFile(v.second.data().c_str());
+
+	}
+	} catch(...) {
+	}
+}
+
 void BarzerSettings::loadEntities() {
 	using boost::property_tree::ptree;
-	//DtaIndex &dix = gpools.getDtaIndex();
 	const ptree &ents = pt.get_child("config.entities", empty_ptree());
 	BOOST_FOREACH(const ptree::value_type &v, ents) {
-		//dix.loadEntities_XML(v.second.data().c_str());
 		addEntityFile(v.second.data().c_str());
 	}
 }
@@ -359,6 +375,7 @@ void BarzerSettings::load(const char *fname) {
 		loadInstanceSettings();
 		loadParseSettings();
 		loadEntities();
+		loadDictionaries();
 		loadRules();
 		loadUsers();
 

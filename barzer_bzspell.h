@@ -82,8 +82,8 @@ public:
 
 	size_t  d_minWordLengthToCorrect;
 
+	enum { MAX_WORD_LEN = 128 };
 private: 
-	enum { MAX_WORD_LEN = 64 };
 	strid_wordinfo_hmap d_wordinfoMap;	// from actual words to universe specific word info 
 	strid_evovec_hmap  	d_linkedWordsMap;  // words linked to partial word
 	

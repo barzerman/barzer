@@ -211,19 +211,20 @@ bool isStringAscii( const std::string& s )
 int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 {
 	const char* t = ttok.buf;
-	// size_t t_len = ttok.len;
-
-	std::string bestSugg;
-
+	size_t t_len = ttok.len;
+	if( t_len > BZSpell::MAX_WORD_LEN ) 
+		return 0;
+	const GlobalPools& gp = d_universe.getGlobalPools();
+	
 	bool isAsciiToken = ttok.isAscii();
 	std::string ascifiedT;
 	// bool startWithSpelling = true;
-	const GlobalPools& gp = d_universe.getGlobalPools();
 	const BZSpell* bzSpell = d_universe.getBZSpell();
 	
 	const char* correctedStr = 0;
 	/// there are non ascii characters in the string 
 	const char* theString = t;
+
 	if( !isAsciiToken ) {
 		if( ay::umlautsToAscii( ascifiedT, t ) ) 
 			correctedStr = ascifiedT.c_str();
@@ -231,6 +232,35 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 	} 
 	uint32_t strId = 0xffffffff;
 	int isUsersWord =  bzSpell->isUsersWord( strId, theString ) ;
+
+	if( gp.isWordInDictionary(strId) ) {
+		ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
+		return 0;
+	}
+
+	char buf[ BZSpell::MAX_WORD_LEN ] ;
+	// trying lower case
+	if( !isUsersWord ) {
+		strncpy( buf, theString, BZSpell::MAX_WORD_LEN );
+		buf[ sizeof(buf)-1 ] = 0;
+		bool hasUpperCase = false;
+		for( char* ss = buf; *ss; ++ss ) {
+			if( isupper(*ss) ) {
+				if( !hasUpperCase ) hasUpperCase= true;
+				*ss = tolower(*ss);
+			} 
+		}
+		theString = buf;
+		if( hasUpperCase ) {
+			isUsersWord =  bzSpell->isUsersWord( strId, theString ) ;
+		}
+		
+		if( !isUsersWord && isupper(theString[0]) ) {
+			ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
+			return 0;
+		}
+	}
+
 	if( !isUsersWord ) {
 		strId = bzSpell->getSpellCorrection( theString );
 		if( strId != 0xffffffff ) {

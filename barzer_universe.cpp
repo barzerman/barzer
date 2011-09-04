@@ -152,6 +152,25 @@ GlobalPools::GlobalPools() :
 	createGenericEntities();
 }
 
+size_t GlobalPools::readDictionaryFile( const char* fname ) 
+{
+	FILE* fp = fopen( fname, "r" );
+	if( !fp ) {
+		std::cerr << "failed to open file " << fname << " for reading\n";
+		return 0;
+	}
+	char buf[ 256 ] ;
+	size_t oldSize = d_dictionary.size();
+	while( fgets( buf, sizeof(buf), fp ) ) {
+		buf[ sizeof(buf)-1 ] = 0;
+		size_t buf_len = strlen(buf);
+		buf[ buf_len-1] = 0;
+		addWordToDictionary( string_intern( buf ) );
+	}
+	
+	return (d_dictionary.size() - oldSize);
+}
+
 std::ostream& GlobalPools::printTanslationTraceInfo( std::ostream& fp, const BarzelTranslationTraceInfo& traceInfo ) const
 {
 	const char* srcName = internalString_resolve( traceInfo.source );

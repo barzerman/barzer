@@ -14,6 +14,7 @@
 #include <barzer_bzspell.h>
 #include <barzer_el_compwords.h>
 #include <boost/unordered_map.hpp> 
+#include <boost/unordered_set.hpp> 
 
 
 namespace barzer {
@@ -100,7 +101,13 @@ public:
 class GlobalPools {
 	GlobalPools(GlobalPools&); // {}
 	GlobalPools& operator=(GlobalPools&); // {}
+	typedef boost::unordered_set< uint32_t > DictionaryMap;
+	DictionaryMap d_dictionary;
 public:
+	void addWordToDictionary( uint32_t w ) { d_dictionary.insert(w); }
+	bool isWordInDictionary( uint32_t w ) const { return (d_dictionary.find(w) != d_dictionary.end()); }
+	size_t readDictionaryFile( const char* name ); 
+
 	// 0 should never be used 
 	enum { DEFAULT_UNIVERSE_ID = 0 }; 
 

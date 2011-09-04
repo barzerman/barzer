@@ -102,7 +102,7 @@ class BarzerSettings {
 public:
 	typedef std::map<User::Id, User> UserMap;
 	typedef std::vector<Rulefile> Rules;
-	typedef std::vector<const char*> EntityFileVec;
+	// typedef std::vector<const char*> EntityFileVec;
 private:
 	GlobalPools &gpools;
 	BELReader reader;
@@ -112,7 +112,8 @@ private:
 	ParseSettings d_parseSettings;
 	UserMap umap;
 	Rules rules;
-	EntityFileVec entityFiles;
+	// EntityFileVec entityFiles;
+	// EntityFileVec dictionaryFiles;
 	Logging logging;
 
 	/// this makes settings not thread safe
@@ -139,6 +140,8 @@ public:
 	void loadRules(const boost::property_tree::ptree&);
 	void loadParseSettings();
 	void loadEntities();
+	/// global dictionaries from <dictionaries> tag
+	void loadDictionaries();
 	///loads spellchecker related stuff (hunspell dictionaries, extra word lists and such)
 	void loadSpell(User&, const boost::property_tree::ptree&);
 	void loadHunspell(User&, const boost::property_tree::ptree&);
@@ -152,11 +155,11 @@ public:
 	User& createUser(User::Id id);
 	User* getUser(User::Id id);
 
-	//void addRulefile(const char *fn);
-	//void addRulefile(const char *fn, const std::string&, const std::string&);
 	void addRulefile(const Rulefile &f);
 
 	void addEntityFile(const char*);
+	/// file to global dictionary <dictionaries> tag
+	void addDictionaryFile(const char*);
 	void setLogging(const Logging&);
 
 	void load();
