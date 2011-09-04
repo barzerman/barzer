@@ -82,6 +82,7 @@ protected:
 	const BELTrie& getTrie() const; 
 	BELTrie& getTrie(); 
 public:
+	uint32_t stemAndInternTmpText_hunspell( const char* s, int len );
 	uint32_t stemAndInternTmpText( const char* s, int len );
 	BELParser( BELReader* r ) : reader(r) {}
 	virtual int parse( std::istream& ) = 0;

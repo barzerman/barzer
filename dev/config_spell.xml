@@ -16,7 +16,12 @@
     </logging>
     <users>
         <user id="0">
-			<spell> <extra>dev/spell/extrawords_user0.txt</extra> </spell>
+			<spell> 
+				<extra>dev/spell/extrawords_user0.txt</extra>
+				<!-- 
+					<extra>/Users/yanis/Downloads/Unabr.dict</extra> 
+				-->
+			</spell>
 		</user>
         <user id="1">
 			<rules>

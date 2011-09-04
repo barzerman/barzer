@@ -250,15 +250,17 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 	}
 	if( theString ) {
 		const StoredToken* storedTok = dtaIdx->getStoredToken( theString );
+
 		if( storedTok ) {
 			ctok.storedTok = storedTok;
 			ctok.syncClassInfoFromSavedTok();
-			if( correctedStr )
-				ctok.addSpellingCorrection( t, correctedStr );
+
 		} else {
 			ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
 		}
-		return 0;
+		if( correctedStr )
+			ctok.addSpellingCorrection( t, correctedStr );
+		return 1;
 	} else 
 		ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
 	return -1;
@@ -385,6 +387,8 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
 	if( !dtaIdx ) 
 		return ( err.e = QLPERR_NULL_IDX, 0 );
 	
+	const BZSpell* bzSpell = d_universe.getBZSpell();
+	bool isQuoted = false;
 	for( uint32_t i = 0; i< tVec.size(); ++i ) {
 		TToken& ttok = tVec[i].first;
 		const char* t = ttok.buf;
@@ -398,7 +402,9 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
 			continue;
 		}
 		if( !tryClassify_integer(ctok,t) ) {
-			const StoredToken* storedTok = dtaIdx->getStoredToken( t );
+			uint32_t usersWordStrId = 0xffffffff;
+			const StoredToken* storedTok = ( bzSpell->isUsersWord( usersWordStrId, t ) ? 
+				dtaIdx->getStoredToken( t ): 0 );
 			if( storedTok ) { /// 
 				/// 
 				ctok.storedTok = storedTok;
@@ -407,11 +413,12 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
 	
 				if(ispunct(*t)) {
 					ctok.setClass( CTokenClassInfo::CLASS_PUNCTUATION );
+					if( *t == '"' ) isQuoted = !isQuoted;
 				} else if( !tryClassify_number(ctok,t) ) { 
 					/// fall thru - this is an unmatched word
 	
 					/// lets try to spell correct the token
-					if( true /*d_universe.stemByDefault()*/ ) {
+					if( !isQuoted /*d_universe.stemByDefault()*/ ) {
 						if( trySpellCorrectAndClassify( ctok, ttok ) > 0 )
 							wasStemmed = true;
 	 				} else {
@@ -421,12 +428,11 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
 			}
 		}
 		/// stemming 
-		if( ctok.isWord() && d_universe.stemByDefault() && !wasStemmed ) {
-			BarzerHunspellInvoke spellChecker(d_universe.getHunspell(),d_universe.getGlobalPools());
+		if( bzSpell && ctok.isWord() && d_universe.stemByDefault() && !wasStemmed ) {
 			std::string strToStem( ttok.buf, ttok.len );
-			const char* stem = spellChecker.stem( strToStem.c_str() );
-			if( stem && strToStem != stem)
-				ctok.stemTok = dtaIdx->getStoredToken( stem );
+			std::string stem;
+			if( bzSpell->stem( stem, strToStem.c_str() ) ) 
+				ctok.stemTok = dtaIdx->getStoredToken( stem.c_str() );
 		}
 		if( ctok.storedTok && ctok.stemTok == ctok.storedTok ) 
 			ctok.stemTok = 0;

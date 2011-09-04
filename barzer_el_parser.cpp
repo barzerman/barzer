@@ -23,6 +23,20 @@ const BELParseTreeNode* BELParser::getMacroByName( const std::string& macroname 
 
 uint32_t BELParser::stemAndInternTmpText( const char* s, int len )
 {
+	StoredUniverse* curUni = reader->getCurrentUniverse();
+	if( !curUni ) 
+		curUni = &(getGlobalPools().produceUniverse(0));
+	BZSpell* bzSpell = curUni->getBZSpell();
+	std::string scopy(s, len );
+	if( bzSpell )  {
+		std::string stem;
+		if( bzSpell->stem(stem, scopy.c_str()) ) 
+			internString( stem.c_str() );
+	}
+	return internString( scopy.c_str());
+}
+uint32_t BELParser::stemAndInternTmpText_hunspell( const char* s, int len )
+{
 	std::string scopy(s, len );
 	StoredUniverse* curUni = reader->getCurrentUniverse();
 	if( !curUni ) 

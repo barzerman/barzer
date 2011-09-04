@@ -71,7 +71,6 @@ class BZSpell {
 	StoredUniverse& d_universe;
 public:
 
-
 	/// the evos must be ordered by priority + frequency in descending order 
 	// ay::evovec_uint32 is in ay/ay_evovec.h - it is a wrapper which is either a vector 
 	// or a stack allocated contiguous storage
@@ -84,6 +83,7 @@ public:
 	size_t  d_minWordLengthToCorrect;
 
 private: 
+	enum { MAX_WORD_LEN = 64 };
 	strid_wordinfo_hmap d_wordinfoMap;	// from actual words to universe specific word info 
 	strid_evovec_hmap  	d_linkedWordsMap;  // words linked to partial word
 	
@@ -138,6 +138,7 @@ public:
 	uint32_t getBestWord( uint32_t strId, WordInfoAndDepth& wid ) const;
 
 	uint32_t getBestWordByString( const char* word, WordInfoAndDepth& wid ) const;
+	void setSecondarySpellchecker( const BZSpell* bzs ) { d_secondarySpellchecker= bzs; }
 };
 
 }

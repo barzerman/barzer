@@ -178,7 +178,7 @@ StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	gp(g),
 	trieCluster(g.globalTriePool,*this),
 	hunspell(*this),
-	bzSpell(0)
+	bzSpell(new BZSpell(*this))
 {}
 
 size_t   StoredUniverse::internString( const char* s, bool asUserSpecific, uint8_t frequency )
@@ -218,9 +218,6 @@ void StoredUniverse::clear()
 
 BZSpell* StoredUniverse::initBZSpell( const StoredUniverse* secondaryUniverse )
 {
-	if( bzSpell ) 
-		delete bzSpell;
-	bzSpell = new BZSpell( *this );
 	bzSpell->init( secondaryUniverse );
 	return bzSpell;
 }

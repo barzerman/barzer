@@ -20,6 +20,13 @@ void BZSpell::addExtraWordToDictionary( uint32_t strId, uint32_t frequency )
 
 uint32_t  BZSpell::getBestWord( uint32_t strId, WordInfoAndDepth& wid ) const
 {
+	{ // checking to see whether strId represents a whole word
+		// whole word will always win
+		strid_wordinfo_hmap::const_iterator w= d_wordinfoMap.find( strId );
+		if( w != d_wordinfoMap.end() ) 
+			return ( wid.first = &(w->second), strId ); 
+	}
+	// looking for linked words 
 	strid_evovec_hmap::const_iterator evi = d_linkedWordsMap.find( strId );
 	if( evi !=  d_linkedWordsMap.end() ) {
 		const uint32_t * evo_end = evi->second.end_ptr();
@@ -39,10 +46,6 @@ uint32_t  BZSpell::getBestWord( uint32_t strId, WordInfoAndDepth& wid ) const
 		if( bestWordId != 0xffffffff ) // should always be the case
 			{ return ( wid.first = tmpWordInfo, bestWordId ); }
 	}
-	// looking for the actual string
-	strid_wordinfo_hmap::const_iterator w = d_wordinfoMap.find( strId );
-	if( w != d_wordinfoMap.end() ) 
-		return ( wid.first = &(w->second), strId ); 
 
 	++(wid.second);
 	return ( d_secondarySpellchecker ? d_secondarySpellchecker->getBestWord(strId,wid): 0xffffffff ) ;
@@ -265,7 +268,7 @@ bool stem_depluralize( std::string& out, const char* s, size_t s_len )
 	s2s chablon = {s,0};
 	const s2s* exception_end = exception + ARR_SZ(exception);
 	const s2s* ew = std::lower_bound( exception, exception_end, chablon );
-	if( ew != exception_end && ew ) {
+	if( ew && ew != exception_end && !strcmp(ew->fromS,s) ) {
 		out.assign( ew->toS );
 		return true;
 	}
@@ -298,8 +301,19 @@ uint32_t BZSpell::getSpellCorrection( const char* str ) const
 {
 	/// for ascii corrector
 	if( isAscii() ) {
+
 		size_t str_len = strlen( str );
-		if( str_len > d_minWordLengthToCorrect ) {
+		if( str_len > d_minWordLengthToCorrect && str_len < MAX_WORD_LEN ) {
+			/*
+			const char* lastChar = str+str_len-1;
+			/// trying trivial heuristics first (depluralization) 
+			if( *lastChar == 's' ) {
+				char tmp[MAX_WORD_LEN+1];
+				strncpy(tmp,str, sizeof(tmp) );
+				tmp[ str_len-1 ] = 0;
+				uint32_t strId = d_universe.getGlobalPools().string_getId( out.c_str() );
+			}
+			*/
 			CorrectCallback cb( *this );	
 			cb.tryUpdateBestMatch( str );
 
