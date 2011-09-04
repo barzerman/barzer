@@ -205,6 +205,7 @@ class StoredUniverse {
 
 	/// 
 	StringIdSet userSpecificStringSet;
+	// bool  d_stemByDefault; 
 
 	friend class QSemanticParser;
 

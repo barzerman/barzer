@@ -33,7 +33,7 @@ struct ParseSettings {
 	// set presume stemmed 
 	bool d_stem; 
 	ParseSettings() : 
-		d_stem(false) 
+		d_stem(true) 
 	{}
 	
 	bool stemByDefault() const { return d_stem; }
