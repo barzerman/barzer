@@ -53,11 +53,26 @@ struct choose_n {
 				d_result.push_back( *i );
 
 				Iter j = i;
-				recurse( ++j, toI );
+				++j;
+
+				recurse( j, toI );
 				d_result.pop_back();
 			}
 		}
 	}
+	template <typename Iter>
+	void doAllWithoutOne( Iter fromI, Iter toI) 
+	{
+		for( Iter i = fromI; i!= toI; ++i ) {
+			d_result.clear();
+			for( Iter j = fromI; j!= toI; ++j ) {
+				if( j!= i ) 
+					d_result.push_back( *j );
+			}
+			d_callback( d_result.begin(), d_result.end() );
+		}
+	}
+
 public:
 	choose_n( CB& cb, size_t minN, size_t maxN ) : 
 		d_minN(minN), d_maxN(maxN),
@@ -72,7 +87,11 @@ public:
 	template <typename Iter>
 	void operator()( Iter fromI, Iter toI ) {
 		clear();
-		recurse( fromI, toI );
+		if( d_minN == d_maxN && d_minN+1 == (toI-fromI) ) {
+			doAllWithoutOne( fromI, toI );
+		} else {
+			recurse( fromI, toI );
+		}
 	}
 };
 
@@ -80,10 +99,10 @@ typedef choose_n<char, iterator_range_print_callback<char> > choose_n_char_print
 
 } // end of anon namespace 
 
-/****  usage sample 
+#ifdef TEST_AY_CHOOSE_CPP
 int main( int argc, char *argv[] )
 {
-	choose_vector_print_cb<char> printCb( std::cerr );
+	ay::iterator_range_print_callback<char> printCb( std::cerr );
 
 	
 	std::string buf;
@@ -91,12 +110,12 @@ int main( int argc, char *argv[] )
 		if( buf.length() > 3 ) {	
 			size_t minSubstrLen = buf.length() -1;
 
-			choose_n_char_print chooser( printCb, minSubstrLen, minSubstrLen );
+			ay::choose_n_char_print chooser( printCb, minSubstrLen, minSubstrLen );
 			chooser( buf.begin(), buf.end() ) ;
 		}
 	}
 	return 0;
 }
-*/
+#endif // TEST_AY_CHOOSE_CPP
 
 #endif // AY_CHOOSE_H

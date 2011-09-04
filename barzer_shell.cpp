@@ -351,6 +351,7 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 	const StoredUniverse &uni = context->getUniverse();
 	const GlobalPools &globalPools = uni.getGlobalPools();
 
+	ay::stopwatch totalTimer;
 	while( reader.nextLine() && reader.str.length() ) {
 		const char* q = reader.str.c_str();
 		*ostr << "parsing: " << q << "\n";
@@ -367,6 +368,7 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 		}
 		// << ttVec << std::endl;
 	}
+	std::cerr << "All done in " << totalTimer.calcTime() << " seconds\n";
 	return 0;
 }
 static int bshf_anlqry( BarzerShell* shell, char_cp cmd, std::istream& in )

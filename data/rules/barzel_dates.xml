@@ -557,12 +557,9 @@
 	<stmt>
 	<pat><t>night</t></pat>
 	<tran>
-	  <func name="mkErc">
-	      <func name="mkEnt"><rn v="1" /><rn v="8"/></func>
-	      <func name="mkRange">
-	          <func name="mkTime"><rn v="23" /></func>
-	          <func name="mkTime"><rn v="5" /></func>
-	      </func>
+	  <func name="mkRange">
+	       <func name="mkTime"><rn v="19" /></func>
+	       <func name="mkTime"><rn v="29" /></func>
 	  </func>
 	</tran>
 	</stmt>
