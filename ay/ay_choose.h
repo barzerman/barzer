@@ -49,6 +49,8 @@ struct choose_n {
 			}
 		}
 		if( fromI!= toI && d_result.size() < d_maxN ) {
+			/// needed = min - d_result.size
+			/// fromI, toI - needed
 			for( Iter i = fromI; i!= toI; ++i ) {
 				d_result.push_back( *i );
 
