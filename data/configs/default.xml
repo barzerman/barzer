@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
 	<parse><stem/></parse>
-
     <rules>
         <file>data/rules/generic.xml</file>
         <file>data/rules/barzel_prices.xml</file>
@@ -9,10 +8,11 @@
         <file>data/rules/vintage.xml</file>
         <file>data/rules/barzel_ru_dates.xml</file>
         <file>data/rules/barzel_ru_prices.xml</file>
-        <file>data/vendor/sepulka/rules/sepulka.xml</file>
-        <file>data/vendor/sepulka/rules/sepulka_auto.xml</file>
         <file>data/rules/barzel_fluff.xml</file>
     </rules>
+    <dictionaries>
+        <file>data/spell/english_words.txt</file>
+    </dictionaries>
     <entities>
         <file>data/entities/time_ent.xml</file>
     </entities>
@@ -22,9 +22,12 @@
     </logging>
     <users>
         <user id="0">
-            <spell affx="/usr/share/hunspell/en_US.aff" maindict="/usr/share/hunspell/en_US.dic">
-                <extra>/usr/share/oscommerce/extrawords.txt</extra>
-            </spell>            
+            <spell> 
+                <extra>dev/spell/extrawords_user0.txt</extra>
+                <!-- 
+                    <extra>/Users/yanis/Downloads/Unabr.dict</extra> 
+                -->
+            </spell>
             <trieset> <trie class="post" name="fluff" /> </trieset>
         </user>
     </users>
