@@ -333,7 +333,6 @@ bool BZSpell::stem( std::string& out, const char* s ) const
 	if( isAscii() ) {
 		size_t s_len = strlen(s);
 		if( s_len > d_minWordLengthToCorrect ) {
-			std::string out;
 			if( ascii::stem_depluralize( out, s, s_len ) ) {
 				return true;
 			}
@@ -346,7 +345,6 @@ uint32_t BZSpell::getStemCorrection( std::string& out, const char* s ) const
 {
 	if( isAscii() ) {
 		
-		std::string out;
 		if( stem( out, s) ) {
 			uint32_t strId = d_universe.getGlobalPools().string_getId( out.c_str() );
 			if( strId == 0xffffffff ) {
