@@ -327,7 +327,7 @@ void BarzerSettings::loadUserRules(User& u, const ptree &node )
 		setCurrentUniverse(u);
 		loadRules( rules );
 	} catch (...) {
-		
+		std::cerr << "user rules exception\n";
 	}
 }
 void BarzerSettings::loadUser(const ptree::value_type &user) 
@@ -351,6 +351,13 @@ void BarzerSettings::loadUser(const ptree::value_type &user)
 }
 
 void BarzerSettings::loadUsers() {
+	{ // hack user 0 must be initialized  
+	User &u = createUser(0);
+	BZSpell* bzs = u.getUniverse().initBZSpell( 0 );
+	bzs->init( 0 );
+	}
+
+
 	BOOST_FOREACH(ptree::value_type &v,
 			pt.get_child("config.users", empty_ptree())) {
 		if (v.first == "user") loadUser(v);
