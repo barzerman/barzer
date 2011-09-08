@@ -213,8 +213,12 @@ size_t   StoredUniverse::internString( const char* s, bool asUserSpecific, uint8
 }
 void StoredUniverse::clearSpell()
 {
+	/*
 	BarzerHunspellInvoke spellChecker(hunspell,gp);
 	spellChecker.clear();
+	*/
+	delete bzSpell;
+	bzSpell = new BZSpell(*this);
 }
 
 void StoredUniverse::clearTries()

@@ -97,7 +97,7 @@ struct StoredToken {
 
 	StoredTokenClassInfo classInfo;
 
-	SETELI_pair_vec entVec;
+	// SETELI_pair_vec entVec;
 	
 	bool isSimpleTok() const { return (classInfo.isSimple() && numWords == 1); }
 	bool isCompoundedTok() const { return (numWords> 1 || classInfo.isCompounded()); }
@@ -113,11 +113,13 @@ struct StoredToken {
 		length = len;
 	}
 
-	void addEntity( StoredEntityId entId, const TokenEntityLinkInfo& teli )
+	void addEntity( StoredEntityId /*entId*/, const TokenEntityLinkInfo& /*teli*/ )
 	{
+		/*
 		entVec.resize( entVec.size() +1 ) ;
 		entVec.back().first = entId;
 		entVec.back().second = teli;
+		*/
 	}
 
 	StoredToken( ) : 
@@ -183,8 +185,8 @@ struct StoredEntity {
 	StoredEntityUniqId euid;
 	
 	int32_t relevance; // 0 - 2,000,000,000
-	typedef std::vector<StoredTokenSeqInfo_pair> STSI_vec; 
-	STSI_vec tokInfoVec; 
+	// typedef std::vector<StoredTokenSeqInfo_pair> STSI_vec; 
+	// STSI_vec tokInfoVec; 
 
 	StoredEntity() : 
 		entId(INVALID_STORED_ID), 
@@ -194,6 +196,7 @@ struct StoredEntity {
 		euid(uniqId),
 		relevance(0) {}
 
+	/*
 	inline void addToken( StoredTokenId tokId, const EntTokenOrderInfo& stsi )
 	{
 		tokInfoVec.push_back( STSI_vec::value_type( tokId, stsi ) ) ;
@@ -206,6 +209,7 @@ struct StoredEntity {
 			}
 			return false;
 		}
+	*/
 	void setAll( StoredEntityId id, const StoredEntityUniqId& uniqId )
 		{ entId= id; euid = uniqId; }
 	
