@@ -150,6 +150,7 @@ GlobalPools::GlobalPools() :
 	produceUniverse(DEFAULT_UNIVERSE_ID);
 	
 	createGenericEntities();
+    globalTriePool.init();
 }
 
 size_t GlobalPools::readDictionaryFile( const char* fname ) 
@@ -258,7 +259,10 @@ const char* StoredUniverse::getGenericSubclassName( uint16_t subcl ) const
 		d_triePool( triePool ) ,
 		d_universe(u)
 	{
-		d_trieList.push_back( &(d_triePool.init()) ) ;
+		// https://github.com/barzerman/barzer/issues/108
+        if( !d_universe.getUserId() ) {
+            d_trieList.push_back( &(d_triePool.init()) ) ;
+        }
 	}
 
 	BELTrie& UniverseTrieCluster::appendTrie( const std::string& trieClass, const std::string& trieId )
