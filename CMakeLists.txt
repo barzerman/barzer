@@ -117,7 +117,7 @@ install(PROGRAMS barzer.exe
         DESTINATION ${INSTALL_DIR})
 install(PROGRAMS "${PYHTON_UTIL_LIBNAME}"
         DESTINATION ${INSTALL_UTIL_DIR})
-install(DIRECTORY "data/configs" "data/entities" "data/rules"
+install(DIRECTORY "data/configs" "data/entities" "data/rules" "data/spell"
         DESTINATION ${INSTALL_DATA_DIR})
 
 
