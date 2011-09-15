@@ -63,6 +63,7 @@ StoredToken& StoredTokenPool::addSingleTok( bool& newAdded, const char* t)
 	return newTok;
 }
 
+	/*
 void DtaIndex::addTokenToEntity(
 	StoredToken& tok,
 	StoredEntity& ent, 
@@ -76,6 +77,7 @@ void DtaIndex::addTokenToEntity(
 		ent.addToken( tok.tokId, ord );
 	}
 }
+	*/
 
 bool DtaIndex::buildEuidFromStream( StoredEntityUniqId& euid, std::istream& in) const
 {
@@ -107,8 +109,9 @@ void DtaIndex::addTokenToEntity(
 	const EntTokenOrderInfo& ord, const TokenEntityLinkInfo& teli, bool unique )
 {
 	bool newAdded= false;
-	StoredToken& tok = tokPool.addSingleTok( newAdded, str );
-	addTokenToEntity(tok,ent,ord,teli,unique);
+	tokPool.addSingleTok( newAdded, str );
+	// StoredToken& tok = tokPool.addSingleTok( newAdded, str );
+	// addTokenToEntity(tok,ent,ord,teli,unique);
 }
 
 void DtaIndex::clear()

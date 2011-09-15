@@ -223,12 +223,14 @@ public:
 		const TokenEntityLinkInfo& teli,
 		bool unique=false );
 
+	/*
 	void addTokenToEntity(
 		StoredToken& stok,
 		StoredEntity& ent, 
 		const EntTokenOrderInfo& ord, 
 		const TokenEntityLinkInfo& teli,
 		bool unique=false );
+		*/
 
 	void clear() ;
 	~DtaIndex();

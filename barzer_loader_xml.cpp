@@ -114,7 +114,7 @@ void EntityLoader_XML::handle_entity_open( Tag_t parentTag, const char_cp * attr
 		ord.setBit_Euid();
 		TokenEntityLinkInfo teli;
 		teli.setBit_Euid();
-		dtaIdx->addTokenToEntity( *idTok_p, *d_curEnt, ord, teli );
+		// dtaIdx->addTokenToEntity( *idTok_p, *d_curEnt, ord, teli );
 	}
 }
 
@@ -211,7 +211,7 @@ void EntityLoader_XML::handle_token_close( )
 {
 	if( !d_curTok || !d_curEnt ) 
 		return;
-	dtaIdx->addTokenToEntity( *d_curTok, *d_curEnt, d_curTokOrdInfo, d_curTELI );
+	// dtaIdx->addTokenToEntity( *d_curTok, *d_curEnt, d_curTokOrdInfo, d_curTELI );
 
 	// cleanup
 	d_curTok = 0;

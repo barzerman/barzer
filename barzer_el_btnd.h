@@ -198,7 +198,6 @@ struct BTND_Pattern_Date : public BTND_Pattern_Base {
 	bool isHiSet() const { return (hi !=MAX_LONG_DATE); }
 	bool operator()( const BarzerDate& dt ) const
 		{ return isDateValid( dt.getLongDate(), dt.longToday ); }
-
 	bool isLessThan( const BTND_Pattern_Date& r ) const
 		{ return ay::range_comp().less_than( type, lo, hi, r.type, r.lo, r.hi ); }
 	std::ostream& printXML( std::ostream& fp, const GlobalPools&  ) const;

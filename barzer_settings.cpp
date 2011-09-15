@@ -239,10 +239,12 @@ void BarzerSettings::loadEntities() {
 void BarzerSettings::loadSpell(User &u, const ptree &node)
 {
 	const ptree &spell = node.get_child("spell", empty_ptree());
+    /*
 	if (spell.empty()) {
 		std::cout << "No <spell> tag\n";
 		return;
 	}
+    */
 	try {
 		// here we can add some fancier secondary spellchecker  logic
 		// for now all users that are not 0 will get 0 passed in
@@ -327,7 +329,7 @@ void BarzerSettings::loadUserRules(User& u, const ptree &node )
 		setCurrentUniverse(u);
 		loadRules( rules );
 	} catch (...) {
-		
+		std::cerr << "user rules exception\n";
 	}
 }
 void BarzerSettings::loadUser(const ptree::value_type &user) 
@@ -351,10 +353,62 @@ void BarzerSettings::loadUser(const ptree::value_type &user)
 }
 
 void BarzerSettings::loadUsers() {
-	BOOST_FOREACH(ptree::value_type &v,
-			pt.get_child("config.users", empty_ptree())) {
-		if (v.first == "user") loadUser(v);
+	{ // hack user 0 must be initialized  
+	User &u = createUser(0);
+	BZSpell* bzs = u.getUniverse().initBZSpell( 0 );
+	bzs->init( 0 );
 	}
+
+
+	BOOST_FOREACH(ptree::value_type &v, pt.get_child("config.users", empty_ptree())) {
+        /// checking whether v has cfgfile attribute
+        if( v.first == "user" ) {
+		    try {
+                const ptree & subNode = v.second;
+                const ptree &attrs = subNode.get_child("<xmlattr>");
+                const std::string &cfgFileName = attrs.get<std::string>("cfgfile");
+                boost::property_tree::ptree userPt;
+		        read_xml(cfgFileName.c_str(), userPt);
+                BOOST_FOREACH(ptree::value_type &userV, userPt.get_child("config.users", empty_ptree())) {
+                    loadUser( userV );
+                }
+            } catch(...) {
+		        loadUser(v);
+            }
+        }
+	}
+}
+
+void BarzerSettings::loadUserConfig(const char *fname) {
+    // not sure we need this thing at all 
+}
+
+
+int BarzerSettings::loadListOfConfigs(const char *fname) {
+    FILE* fp = fopen( fname, "r" );
+    if( !fp ) {
+		std::cerr << "failed to open config list file " << fname << std::endl;
+        return -1;
+    }
+    char cfgFileName[ 512 ];
+    int cfgCount = 0; 
+    while( fgets(cfgFileName, sizeof(cfgFileName)-1, fp ) ) {
+        cfgFileName[ sizeof(cfgFileName)-1 ] = 0;
+        size_t buf_len = strlen(cfgFileName);
+        if( buf_len ) cfgFileName[ buf_len-1 ] = 0;
+        if( isspace(*cfgFileName) || *cfgFileName=='#') {
+            continue;
+        }
+
+        char* comment = strchr( cfgFileName, '#' );
+        if( comment ) 
+            *comment= 0;
+        std::cerr << "loading config from: " << cfgFileName << " ...\n";
+        load( cfgFileName );
+        ++cfgCount;
+    }
+    fclose( fp );
+    return cfgCount;
 }
 
 void BarzerSettings::load(const char *fname) {

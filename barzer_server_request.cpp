@@ -134,7 +134,7 @@ struct CmdClear : public CmdProc<CmdClear> {
 	void operator()(const UserId &uid) {
 		StoredUniverse * up = parser.getGlobalPools().getUniverse(uid.id);
 		if( up ) 
-			up->clearTries();
+			up->clear();
 		else {
 			parser.stream() << "<error>invalid userid " << uid.id << "</error>";
 		}

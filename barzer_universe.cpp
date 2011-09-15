@@ -150,6 +150,7 @@ GlobalPools::GlobalPools() :
 	produceUniverse(DEFAULT_UNIVERSE_ID);
 	
 	createGenericEntities();
+    globalTriePool.init();
 }
 
 size_t GlobalPools::readDictionaryFile( const char* fname ) 
@@ -164,7 +165,8 @@ size_t GlobalPools::readDictionaryFile( const char* fname )
 	while( fgets( buf, sizeof(buf), fp ) ) {
 		buf[ sizeof(buf)-1 ] = 0;
 		size_t buf_len = strlen(buf);
-		buf[ buf_len-1] = 0;
+        if( buf_len )
+		    buf[ buf_len-1] = 0;
 		addWordToDictionary( string_intern( buf ) );
 	}
 	
@@ -213,8 +215,12 @@ size_t   StoredUniverse::internString( const char* s, bool asUserSpecific, uint8
 }
 void StoredUniverse::clearSpell()
 {
+	/*
 	BarzerHunspellInvoke spellChecker(hunspell,gp);
 	spellChecker.clear();
+	*/
+	delete bzSpell;
+	bzSpell = new BZSpell(*this);
 }
 
 void StoredUniverse::clearTries()
@@ -254,7 +260,10 @@ const char* StoredUniverse::getGenericSubclassName( uint16_t subcl ) const
 		d_triePool( triePool ) ,
 		d_universe(u)
 	{
-		d_trieList.push_back( &(d_triePool.init()) ) ;
+		// https://github.com/barzerman/barzer/issues/108
+        if( !d_universe.getUserId() ) {
+            d_trieList.push_back( &(d_triePool.init()) ) ;
+        }
 	}
 
 	BELTrie& UniverseTrieCluster::appendTrie( const std::string& trieClass, const std::string& trieId )
