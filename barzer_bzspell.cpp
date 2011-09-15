@@ -71,6 +71,8 @@ struct CorrectCallback {
 
 	CorrectionQualityInfo d_bestMatch;
 	uint32_t d_bestStrId;
+    // original string's length
+    size_t   d_str_len; 
 	
 	static bool widLess( const CorrectionQualityInfo& l, const CorrectionQualityInfo& r ) 
 	{
@@ -86,10 +88,11 @@ struct CorrectCallback {
 			return ( *(l.first) < *(r.first) );
 	}
 
-	CorrectCallback( const BZSpell& bzs ) : 
+	CorrectCallback( const BZSpell& bzs, size_t str_len ) : 
 		d_bzSpell(bzs) ,
 		d_bestMatch(0,0),
-		d_bestStrId(0xffffffff)
+		d_bestStrId(0xffffffff),
+        d_str_len(str_len)
 	{}
 	
 	void tryUpdateBestMatch( const char* str ) 
@@ -107,6 +110,12 @@ struct CorrectCallback {
 		charvec v( fromI, toI );
 		v.push_back(0);
 		const char* str = &(v[0]);
+
+        if( d_str_len <5 ) {
+            uint32_t id= 0xffffffff;
+            if( !d_bzSpell.isUsersWord( id, str ) ) 
+                return 0;
+        }
 
 		tryUpdateBestMatch( str );
 		return 0;
@@ -303,22 +312,19 @@ uint32_t BZSpell::getSpellCorrection( const char* str ) const
 	if( isAscii() ) {
 
 		size_t str_len = strlen( str );
-		if( str_len > d_minWordLengthToCorrect && str_len < MAX_WORD_LEN ) {
-			/*
-			const char* lastChar = str+str_len-1;
-			/// trying trivial heuristics first (depluralization) 
-			if( *lastChar == 's' ) {
-				char tmp[MAX_WORD_LEN+1];
-				strncpy(tmp,str, sizeof(tmp) );
-				tmp[ str_len-1 ] = 0;
-				uint32_t strId = d_universe.getGlobalPools().string_getId( out.c_str() );
-			}
-			*/
-			CorrectCallback cb( *this );	
+        if( str_len>= MAX_WORD_LEN ) 
+            return 0xffffffff;
+
+        enum { SHORT_WORD_LEN = 4 };
+
+		if( str_len >= d_minWordLengthToCorrect ) {
+			CorrectCallback cb( *this, str_len );	
 			cb.tryUpdateBestMatch( str );
 
-			ay::choose_n<char, CorrectCallback > variator( cb, str_len-1, str_len-1 );
-			variator( str, str+str_len );
+            if( str_len> d_minWordLengthToCorrect ) {
+			    ay::choose_n<char, CorrectCallback > variator( cb, str_len-1, str_len-1 );
+			    variator( str, str+str_len );
+            }
 
 			ascii::CharPermuter permuter( str, cb );
 			permuter.doAll();
@@ -420,7 +426,9 @@ size_t BZSpell::loadExtra( const char* fileName )
 	if( !fp ) {
 		std::cerr << "cant open file \"" << fileName << "\" for reading\n";
 		return 0;
-	}
+	} else {
+        std::cerr << "Reading spellchecker dictionary from " << fileName << "...";
+    }
 
 	char buf[ 256 ];
 	size_t numWords = 0;
@@ -441,6 +449,7 @@ size_t BZSpell::loadExtra( const char* fileName )
 		addExtraWordToDictionary( strId, freq );
 		++numWords;
 	}
+    std::cerr << numWords << " words read\n";
 	return numWords;
 }
 
