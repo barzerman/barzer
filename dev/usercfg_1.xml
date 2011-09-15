@@ -1,24 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<users>
-     <user id="1">
-		<rules>
-		 <file class="class1" name="sepulka" >data/vendor/sepulka/rules/sepulka.xml</file>
-		 <file class="class1" name="sepulka_auto" >data/vendor/sepulka/rules/sepulka_auto.xml</file>
-		</rules>
-         <trieset>
-             <!-- adding basic default trie (no fluff) -->
-            <trie class="" name="" />
-            <trie class="class1" name="sepulka" />
-            <trie class="class1" name="sepulka_auto" />
-            <!-- adding basic default fluff trie  -->
-             <trie class="" name="fluff" />
-         </trieset>
-         <spell> <extra>dev/spell/extrawords_user1.txt</extra> </spell>
-     </user>
-     <user id="2">
-         <trieset>
-             <trie class="" name="fluff" />
-         </trieset>
-     </user>
-</users>
-
+<config>
+        <users>
+            <user id="1">
+			    <rules>
+				    <file class="class1" name="sepulka" >data/vendor/sepulka/rules/sepulka.xml</file>
+				    <file class="class1" name="sepulka_auto" >data/vendor/sepulka/rules/sepulka_auto.xml</file>
+			    </rules>
+                <trieset>
+                    <!-- adding basic default trie (no fluff) -->
+                    <trie class="" name="" />
+                    <trie class="class1" name="sepulka" />
+                    <trie class="class1" name="sepulka_auto" />
+                    <!-- adding basic default fluff trie  -->
+                    <trie class="" name="fluff" />
+                </trieset>
+			    <spell> <extra>dev/spell/extrawords_user1.txt</extra> </spell>
+            </user>
+            <user id="2">
+                <trieset>
+                    <trie class="" name="fluff" />
+                </trieset>
+            </user>
+        </users>
+</config>
