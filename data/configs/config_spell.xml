@@ -8,7 +8,7 @@
         <file>data/rules/barzel_fluff.xml</file>
     </rules>
     <entities>
-        <file>data/time_ent.xml</file>
+        <file>data/entities/time_ent.xml</file>
     </entities>
 
 	<dictionaries>
