@@ -135,6 +135,11 @@ public:
 
 	void init();
 
+    void loadUserConfig(const char *fname);
+    /// expects a list of newline separated config file names (# is for comment)
+    /// will load the configs sequentially (passing them to BarzerSettings::load)
+    int loadListOfConfigs(const char *fname) ;
+
 	void loadInstanceSettings();
 	void loadRules();
 	void loadRules(const boost::property_tree::ptree&);

@@ -50,6 +50,8 @@ public:
 	BELTrie& init() 
 		{ return *produceTrie( std::string(), std::string() ); }
 
+    BELTrie* getDefaultTrie() { return getTrie(std::string(), std::string()); }
+
 	GlobalTriePool( GlobalPools& gp) : d_gp(gp) { init(); }
 	~GlobalTriePool();
 };

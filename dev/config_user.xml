@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <rules>
+        <file>data/rules/generic.xml</file>
+        <file>data/rules/barzel_prices.xml</file>
+        <file>data/rules/barzel_dates.xml</file>
+        <file>data/rules/vintage.xml</file>
+        <file class="" name="fluff">data/rules/barzel_fluff.xml</file>
+    </rules>
+    <entities>
+        <file>data/time_ent.xml</file>
+    </entities>
+
+	<dictionaries>
+		<file>data/spell/english_words.txt</file>
+	</dictionaries>
+
+    <logging>
+        <level>DEBUG</level>
+        <file>barzer.log</file>
+    </logging>
+    <users>
+        <user id="0">
+			<spell> 
+				<extra>dev/spell/extrawords_user0.txt</extra>
+			</spell>
+            <trieset>
+                <!-- explicitly adding basic default fluff trie  -->
+                <trie class="" name="fluff" />
+            </trieset>
+		</user>
+        <user cfgfile="dev/usercfg_1.xml"/>
+    </users>
+</config>
