@@ -75,7 +75,7 @@ int run_test(barzer::StoredUniverse &u, ay::CommandLineArgs &cmdlProc) {
 
 void print_usage(const char* prg_name) {
     std::cerr << "Usage: " << prg_name << " [shell|test [-i <input file> -o <output file>]|server <port>]" << std::endl;
-	std::cerr << "Other options: [-anlt] -cfg <config file>\n";
+	std::cerr << "Other options: [-anlt] [-cfg <config file>| -cfglist <cfg file list file>]\n";
 }
 
 
@@ -87,11 +87,17 @@ void init_gpools(barzer::GlobalPools &gp, ay::CommandLineArgs &cmdlProc) {
 	}
 
     bool hasArg = false;
-    const char *fname = cmdlProc.getArgVal(hasArg, "-cfg", 0);
+    const char *fname = cmdlProc.getArgVal(hasArg, "-cfglist", 0);
     if (hasArg && fname)
-    	st.load(fname);
-    else
-    	st.load();
+    	st.loadListOfConfigs(fname);
+    else {
+
+        fname = cmdlProc.getArgVal(hasArg, "-cfg", 0);
+        if (hasArg && fname)
+    	    st.load(fname);
+        else
+    	    st.load();
+    }
 }
 
 int main( int argc, char * argv[] ) {

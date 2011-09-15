@@ -165,7 +165,8 @@ size_t GlobalPools::readDictionaryFile( const char* fname )
 	while( fgets( buf, sizeof(buf), fp ) ) {
 		buf[ sizeof(buf)-1 ] = 0;
 		size_t buf_len = strlen(buf);
-		buf[ buf_len-1] = 0;
+        if( buf_len )
+		    buf[ buf_len-1] = 0;
 		addWordToDictionary( string_intern( buf ) );
 	}
 	
