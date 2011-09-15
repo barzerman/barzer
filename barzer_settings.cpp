@@ -370,7 +370,7 @@ void BarzerSettings::loadUsers() {
             } else {
                 boost::property_tree::ptree userPt;
                 read_xml(cfgFileName.c_str(), userPt);
-                BOOST_FOREACH(ptree::value_type &userV, userPt) {
+                BOOST_FOREACH(ptree::value_type &userV, userPt.get_child("users")) {
                     if (userV.first == "user") loadUser( userV );
                 }
             }
