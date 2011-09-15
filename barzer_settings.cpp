@@ -363,6 +363,18 @@ void BarzerSettings::loadUsers() {
 	BOOST_FOREACH(ptree::value_type &v, pt.get_child("config.users", empty_ptree())) {
         /// checking whether v has cfgfile attribute
         if( v.first == "user" ) {
+            const std::string &cfgFileName
+                = v.second.get<std::string>("<xmlattr>.cfgfile", "");
+            if (cfgFileName.empty()) {
+                loadUser(v);
+            } else {
+                boost::property_tree::ptree userPt;
+                read_xml(cfgFileName.c_str(), userPt);
+                BOOST_FOREACH(ptree::value_type &userV, userPt.get_child("config.users")) {
+                    if (userV.first == "user") loadUser( userV );
+                }
+            }
+            /*
 		    try {
                 const ptree & subNode = v.second;
                 const ptree &attrs = subNode.get_child("<xmlattr>");
@@ -374,7 +386,7 @@ void BarzerSettings::loadUsers() {
                 }
             } catch(...) {
 		        loadUser(v);
-            }
+            } */
         }
 	}
 }
