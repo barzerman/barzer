@@ -233,32 +233,40 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 	uint32_t strId = 0xffffffff;
 	int isUsersWord =  bzSpell->isUsersWord( strId, theString ) ;
 
-	if( gp.isWordInDictionary(strId) ) {
-		ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
-		return 0;
-	}
 
 	char buf[ BZSpell::MAX_WORD_LEN ] ;
 	// trying lower case
 	if( !isUsersWord ) {
-		strncpy( buf, theString, BZSpell::MAX_WORD_LEN );
-		buf[ sizeof(buf)-1 ] = 0;
-		bool hasUpperCase = false;
-		for( char* ss = buf; *ss; ++ss ) {
-			if( isupper(*ss) ) {
-				if( !hasUpperCase ) hasUpperCase= true;
-				*ss = tolower(*ss);
-			} 
-		}
-		theString = buf;
-		if( hasUpperCase ) {
-			isUsersWord =  bzSpell->isUsersWord( strId, theString ) ;
-		}
-		
-		if( !isUsersWord && isupper(theString[0]) ) {
-			ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
-			return 0;
-		}
+	    if( gp.isWordInDictionary(strId) ) {
+			std::string stemmedStr; 
+			strId = bzSpell->getStemCorrection( stemmedStr, theString );
+			if( strId != 0xffffffff ) {
+				correctedStr = gp.string_resolve( strId ) ;
+			} else {
+		        ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
+		        return 0;
+            }
+	    } else {
+
+		    strncpy( buf, theString, BZSpell::MAX_WORD_LEN );
+		    buf[ sizeof(buf)-1 ] = 0;
+		    bool hasUpperCase = false;
+		    for( char* ss = buf; *ss; ++ss ) {
+			    if( isupper(*ss) ) {
+				    if( !hasUpperCase ) hasUpperCase= true;
+				    *ss = tolower(*ss);
+			    } 
+		    }
+		    theString = buf;
+		    if( hasUpperCase ) {
+			    isUsersWord =  bzSpell->isUsersWord( strId, theString ) ;
+		    }
+	    	
+		    if( !isUsersWord && isupper(theString[0]) ) {
+			    ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
+			    return 0;
+		    }
+        }
 	}
 
 	if( !isUsersWord ) {

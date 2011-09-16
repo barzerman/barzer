@@ -64,7 +64,7 @@ struct BarzerShell : public ay::Shell {
 	int setUser( uint32_t uid, bool forceCreate  );
 
 	BarzerShell( uint32_t uid, GlobalPools& g ) : d_uid(uid), gp(g) {}
-
+    uint32_t getUser() const { return d_uid; }
 	virtual int init( );
 	virtual ay::ShellContext* mkContext();
 	virtual ay::ShellContext* cloneContext();

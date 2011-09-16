@@ -188,7 +188,7 @@ bool stem_depluralize( std::string& out, const char* s, size_t s_len )
 	} else if( s_len > 4 ) {
 		const char* s4 = s+s_len-4;
 		const char* s3 = (s4+1);
-		if( !strcmp(s3,"ses") ) {
+		if( s3[1] == 'e' && s3[2] == 's' && (s3[0]=='s' || s3[0] =='c') ) {
 			if(*s4=='s') {    	  // asses 
 				out.assign( s, s_len-2 );
 				return true;
@@ -220,7 +220,7 @@ bool stem_depluralize( std::string& out, const char* s, size_t s_len )
 		const char* s2 = s+s_len-2;
 		if( s2[0] =='e' && s2[1] == 's' ) {
 		}
-		if( s[ s_len-1 ] == 's' ) {
+		if( s2[1] == 's' ) {
 			out.assign( s, s_len-1 );
 			return true;
 		}
@@ -280,7 +280,16 @@ bool stem_depluralize( std::string& out, const char* s, size_t s_len )
 	if( ew && ew != exception_end && !strcmp(ew->fromS,s) ) {
 		out.assign( ew->toS );
 		return true;
-	}
+	} else {
+        // picking up irregular pluralizations and such 
+        if( s_len > 5 ) {
+		    const char* s2 = s+s_len-2;
+            if( s2[0] == 'e' && s2[1] == 's' ) 
+                return ( out.assign( s, s_len-2 ), true );
+            else if( (s2[0] != 's') &&  s2[1] == 's' ) 
+                return ( out.assign( s, s_len-1 ), true );
+        }
+    }
 	return false;
 }
 

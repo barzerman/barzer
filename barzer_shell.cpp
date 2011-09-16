@@ -805,7 +805,8 @@ static int bshf_user( BarzerShell* shell, char_cp cmd, std::istream& in )
 			std::cerr << "error=" << rc << " setting user to " << uid << "\n";
 		else 
 			std::cerr << "user is set to " << uid << "\n";
-	}
+	} else
+        std::cerr << "Current user is " << shell->getUser() << "\n";
 	return 0;
 }
 static int bshf_querytest( BarzerShell* shell, char_cp cmd, std::istream& in )
