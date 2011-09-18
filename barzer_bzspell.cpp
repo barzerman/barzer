@@ -74,6 +74,7 @@ struct CorrectCallback {
     // original string's length
     size_t   d_str_len; 
 	
+    const BZSpell& bzSpell() const { return d_bzSpell; }
 	static bool widLess( const CorrectionQualityInfo& l, const CorrectionQualityInfo& r ) 
 	{
 		if( l.second < r.second ) 
@@ -144,8 +145,16 @@ struct CharPermuter {
 		if( buf_len< 3 ) return ;
 
 		char* buf_last = &buf[buf_len-2];
-		for( char* s = buf; s != buf_last; ++s ) {
+		for( char* s = buf; s <= buf_last; ++s ) {
 			std::swap( s[0], s[1] );
+
+            if( buf_len <5 ) {
+                uint32_t id= 0xffffffff;
+                if( !callback.bzSpell().isUsersWord( id, buf ) ) {
+			        std::swap( s[0], s[1] );
+                    continue;
+                }
+            }
 			callback.tryUpdateBestMatch( buf );
 			std::swap( s[0], s[1] );
 		}
