@@ -95,6 +95,24 @@ static int bshf_tok( BarzerShell* shell, char_cp cmd, std::istream& in )
 	
 	return 0;
 }
+static int bshf_srvroute( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+
+	BarzerShellContext * context = shell->getBarzerContext();
+	StoredUniverse &uni = context->getUniverse();
+	GlobalPools& gp = uni.getGlobalPools();
+
+	ay::InputLineReader reader( in );
+	QuestionParm qparm;
+    std::ostream& os = std::cerr;
+
+	while( reader.nextLine() && reader.str.length() ) {
+        const char* q = reader.str.c_str();
+        request::route( gp, q, strlen(q), os );
+        os << "==============\n";
+    }
+    return 0;
+}
 static int bshf_emit( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
@@ -113,7 +131,7 @@ static int bshf_emit( BarzerShell* shell, char_cp cmd, std::istream& in )
 	std::string q = strStr.str();
 	RequestEnvironment reqEnv(shell->getOutStream(),q.c_str(),q.length());
 
-	request::emit( reqEnv, globalPools );
+	request::proc_EMIT( reqEnv, globalPools, q.c_str() );
 	return 0;
 }
 
@@ -870,6 +888,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_trcdw, "trcdw", "changes current trie node to the wildcard child by number" ),
 	CmdData( (ay::Shell_PROCF)bshf_trup, "trup", "moves back to the parent trie node" ),
 	CmdData( (ay::Shell_PROCF)bshf_spell, "spell", "tests hunspell in the current universe spell checker" ),
+	CmdData( (ay::Shell_PROCF)bshf_srvroute, "srvroute", "tests server queries and routes it same way server mode would" ),
 	CmdData( (ay::Shell_PROCF)bshf_stexpand, "stexpand", "expand and print all statements in a file" ),
 	CmdData( (ay::Shell_PROCF)bshf_process, "process", "process an input string" ),
 	CmdData( (ay::Shell_PROCF)bshf_querytest, "querytest", "peforms given number of queries" ),

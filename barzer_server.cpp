@@ -134,11 +134,33 @@ int barze( GlobalPools& gp, RequestEnvironment& reqEnv )
 	rp.parse(reqEnv.buf, reqEnv.len);
 	return 0;
 }
-int emit( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools )
+
+int proc_LOAD_CONFIG( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char*  )
+{
+    std::cerr << "unimplemented proc_LOAD_CONFIG\n";
+    return 0;
+}
+int proc_CLEAR_TRIE( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char*  )
+{
+    std::cerr << "unimplemented proc_CLEAR_TRIE\n";
+    return 0;
+}
+int proc_CLEAR_USRER( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char*  )
+{
+    return 0;
+}
+
+int proc_ADD_STMSET( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char*  )
+{
+    std::cerr << "unimplemented proc_ADD_STMSET\n";
+    return 0;
+}
+int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char*  )
 {
 	GlobalPools gp;
 	if( realGlobalPools.parseSettings().stemByDefault() ) 
 		gp.parseSettings().set_stemByDefault( );
+
 	BELTrie* trie  = gp.mkNewTrie();
 	BELReaderXMLEmit reader(trie, reqEnv.outStream);
 	reader.initParser(BELReader::INPUT_FMT_XML);
@@ -151,14 +173,20 @@ int emit( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools )
 
 int route( GlobalPools& gpools, const char* buf, const size_t len, std::ostream& os )
 {
-	if( len >= 7 && buf[0] == '!' && buf[1] == '!' ) {
-		if( !strncmp(buf+2,"EMIT:",5) ) {
-			RequestEnvironment reqEnv(os,buf+7,len-7);
-			request::emit( reqEnv, gpools );
-		}
-		else {
-			AYLOG(ERROR) << "UNKNOWN header: " << std::string( buf, (len>6 ? 6: len) ) << std::endl;
-		}
+    #define IFHEADER_ROUTE(x) if( !strncmp(buf+2, #x":", sizeof( #x) ) ) {\
+			RequestEnvironment reqEnv(os,buf+ sizeof(#x)+2,len-(sizeof(#x)+2) );\
+			request::proc_##x( reqEnv, gpools, buf+ sizeof(#x)+2 );\
+            return 0;\
+    }
+    /// command interface !!CMD:
+	if( buf[0] == '!' && buf[1] == '!' && strchr( buf+2, ':') ) {
+		IFHEADER_ROUTE(EMIT) 
+		IFHEADER_ROUTE(ADD_STMSET)
+		IFHEADER_ROUTE(CLEAR_TRIE)
+		IFHEADER_ROUTE(CLEAR_USER)
+		IFHEADER_ROUTE(LOAD_CONFIG)
+
+		AYLOG(ERROR) << "UNKNOWN header: " << std::string( buf, (len>6 ? 6: len) ) << std::endl;
 	} else {
 		RequestEnvironment reqEnv(os,buf,len);
 		request::barze( gpools, reqEnv );
