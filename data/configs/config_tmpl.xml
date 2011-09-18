@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <parse><stem/></parse>
+    <rules>
+        <file>data/rules/generic.xml</file>
+        <file>data/rules/barzel_prices.xml</file>
+        <file>data/rules/barzel_dates.xml</file>
+        <file>data/rules/vintage.xml</file>
+        <file>data/rules/barzel_ru_dates.xml</file>
+        <file>data/rules/barzel_ru_prices.xml</file>
+        <file>data/rules/barzel_fluff.xml</file>
+    </rules>
+    <dictionaries>
+        <file>data/spell/english_words.txt</file>
+    </dictionaries>
+    <entities>
+        <file>data/entities/time_ent.xml</file>
+    </entities>
+    <logging>
+        <level>DEBUG</level>
+        <file>barzer.log</file>
+    </logging>
+    <users></users>
+    <instance>
+        <threads>4</threads>
+    </instance>
+</config>
