@@ -352,11 +352,29 @@ void BarzerSettings::loadUser(const ptree::value_type &user)
 	loadSpell(u, children);
 }
 
+int BarzerSettings::loadUserConfig( const char* cfgFileName ) {
+    if( !gpools.getUniverse(0) ) {
+        User &u = createUser(0);
+        BZSpell* bzs = u.getUniverse().initBZSpell( 0 );
+        bzs->init( 0 );
+    }
+    boost::property_tree::ptree userPt;
+    read_xml(cfgFileName, userPt);
+    int numUsersLoaded = 0;
+    BOOST_FOREACH(ptree::value_type &userV, userPt.get_child("config.users")) {
+        if (userV.first == "user") { 
+            loadUser( userV );
+            ++numUsersLoaded;
+        }
+    }
+    return numUsersLoaded;
+}
+
 void BarzerSettings::loadUsers() {
 	{ // hack user 0 must be initialized  
-	User &u = createUser(0);
-	BZSpell* bzs = u.getUniverse().initBZSpell( 0 );
-	bzs->init( 0 );
+	    User &u = createUser(0);
+	    BZSpell* bzs = u.getUniverse().initBZSpell( 0 );
+	    bzs->init( 0 );
 	}
 
 
@@ -368,11 +386,14 @@ void BarzerSettings::loadUsers() {
             if (cfgFileName.empty()) {
                 loadUser(v);
             } else {
+                loadUserConfig( cfgFileName.c_str() );
+                /*
                 boost::property_tree::ptree userPt;
                 read_xml(cfgFileName.c_str(), userPt);
                 BOOST_FOREACH(ptree::value_type &userV, userPt.get_child("config.users")) {
                     if (userV.first == "user") loadUser( userV );
                 }
+                */
             }
             /*
 		    try {
@@ -389,10 +410,6 @@ void BarzerSettings::loadUsers() {
             } */
         }
 	}
-}
-
-void BarzerSettings::loadUserConfig(const char *fname) {
-    // not sure we need this thing at all 
 }
 
 

@@ -220,6 +220,15 @@ class StoredUniverse {
 
 	void addWordsFromTriesToBZSpell();
 public:
+    typedef boost::shared_mutex Mutex;
+    mutable Mutex d_theMutex;
+
+    const Mutex& getMutex() const { return d_theMutex; }
+    Mutex& getMutex() { return d_theMutex; }
+
+    typedef boost::unique_lock< Mutex > WriteLock;
+    typedef boost::shared_lock< Mutex >  ReadLock;
+
 	const BZSpell* getBZSpell() const { return bzSpell; }
 	BZSpell* getBZSpell() { return bzSpell; }
 	BZSpell* initBZSpell( const StoredUniverse* secondaryUniverse = 0);

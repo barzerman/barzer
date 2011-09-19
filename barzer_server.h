@@ -48,19 +48,7 @@ int barze( const GlobalPools&, RequestEnvironment& reqEnv );
 /// for function proc_YYY the message format is 
 /// !!YYY: <..whatever the xml or other stuff might be..>
 /// emits patterns after application of control structures ANY/TAIL etc. 
-int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools&, const char*  );
-/// loads stmset (add new rule(s) to trie - trie will be deduced from the 
-/// class trieId attributes
-int proc_ADD_STMSET( RequestEnvironment& reqEnv, const GlobalPools&, const char*  );
-
-/// clears trie (user,class,trieid)
-int proc_CLEAR_TRIE( RequestEnvironment& reqEnv, const GlobalPools&, const char*  );
-
-/// loads extra config file 
-int proc_LOAD_CONFIG( RequestEnvironment& reqEnv, const GlobalPools&, const char*  );
-/// clears the universe associated wih the user 
-/// !!CLEAR_USER:userid
-int proc_CLEAR_USER( RequestEnvironment& reqEnv, const GlobalPools&, const char*  );
+int proc_EMIT( RequestEnvironment&, const GlobalPools&, const char* buf );
 
 /// ends up routing between other functions
 int route( GlobalPools& gpools, const char* buf, const size_t len, std::ostream& os );

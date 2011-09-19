@@ -94,7 +94,7 @@ public:
 	template <typename Iter>
 	void operator()( Iter fromI, Iter toI ) {
 		clear();
-		if( d_minN == d_maxN && d_minN+1 == (toI-fromI) ) {
+		if( d_minN == d_maxN && d_minN+1 == (size_t)(toI-fromI) ) {
 			doAllWithoutOne( fromI, toI );
 		} else {
 			recurse( fromI, toI );

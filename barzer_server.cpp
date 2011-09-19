@@ -135,27 +135,107 @@ int barze( GlobalPools& gp, RequestEnvironment& reqEnv )
 	return 0;
 }
 
-int proc_LOAD_CONFIG( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char*  )
+int proc_LOAD_USRCFG( RequestEnvironment& reqEnv, GlobalPools& gp, const char* cfgfile  )
 {
-    std::cerr << "unimplemented proc_LOAD_CONFIG\n";
-    return 0;
-}
-int proc_CLEAR_TRIE( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char*  )
-{
-    std::cerr << "unimplemented proc_CLEAR_TRIE\n";
-    return 0;
-}
-int proc_CLEAR_USRER( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char*  )
-{
+    return gp.getSettings().loadUserConfig( cfgfile );
     return 0;
 }
 
-int proc_ADD_STMSET( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char*  )
+int proc_LOAD_CONFIG( RequestEnvironment& reqEnv, GlobalPools& gp, const char* cfgfile  )
 {
-    std::cerr << "unimplemented proc_ADD_STMSET\n";
+    gp.getSettings().load( cfgfile );
     return 0;
 }
-int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char*  )
+int proc_CLEAR_TRIE( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  str)
+{
+    const char* pipe = strchr( str, '|' );
+    std::string trieClass, trieId;
+    if( pipe ) {
+        trieClass.assign( str, pipe-str );
+        trieId.assign( pipe+1 );
+    }
+    BELTrie* trie = gp.getTrie( trieClass, trieId );
+    if( trie ) {
+        BELTrie::WriteLock trie_lock( trie->getThreadLock() );
+        trie->clear();
+    } else{
+        std::cerr << "No valid trie (" << trieClass << "|" << trieId << ")\n";
+    }
+    return 0;
+}
+int proc_CLEAR_USER( RequestEnvironment& reqEnv, GlobalPools& gp, const char* str )
+{
+
+    int userId = atoi( str );
+    if( userId<= 0  ) {
+        std::cerr << "Cannot clear id:" << userId << std::endl;
+        return 0;
+    }
+    StoredUniverse* uni = gp.getUniverse( userId ) ;
+    if( !uni ) {
+        std::cerr << "Error: no valid universe found for id " << userId << std::endl;
+        return 0;
+    } else {
+        std::cerr << "Cleared universe for userid " <<  userId << std::endl;
+        StoredUniverse::WriteLock universe_lock( uni->getMutex() );
+        uni->clear();
+    }
+    return 0;
+}
+
+namespace {
+
+const char*  read_pipe_sep( std::string& dest, const char * buf, size_t maxLen = 32 ) 
+{
+    const char* pipe = strchr( buf , '|' );
+    if( pipe ) {
+        size_t len = pipe - buf;
+        if( len > maxLen ) {
+            std::cerr << "Name too long\n";
+            return 0;
+        } else 
+            return ( dest.assign(buf,len), buf+ len+1 );
+    } 
+    return 0;
+}
+
+}
+/// format is !!ADD_STMSET:userid|trieClass|trieId|<stmset> ... </stmset>
+int proc_ADD_STMSET( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  str )
+{
+    /// decoing trie class / trie id
+    /// str points past the first ':' 
+    std::string useridStr, trieClass, trieId;
+    if(     
+        (str= read_pipe_sep(useridStr,str)) !=0  &&
+        (str= read_pipe_sep(trieClass,str)) !=0  &&
+        (str= read_pipe_sep(trieId,str))    !=0 
+    ) {
+        uint32_t userId = (uint32_t)( atoi(useridStr.c_str() ) );
+
+        StoredUniverse* uni = gp.getUniverse( userId );
+        if( !uni ) {
+            std::cerr << "Valid for user id " << userId << " doesnt exist\n";
+            return 0;
+        }
+        StoredUniverse::WriteLock universe_lock( uni->getMutex() );
+
+        BELTrie* trie = &(uni->produceTrie( trieClass, trieId ));
+
+        BELTrie::WriteLock trie_lock(trie->getThreadLock());
+
+        BELReader  reader( trie, gp );
+	    std::stringstream is( str );
+	   
+	    reader.initParser(BELReader::INPUT_FMT_XML);
+        reader.loadFromStream( is );
+    } else {
+        std::cerr << "Wrong format for ADD_STMSET\n";
+    }
+
+    return 0;
+}
+int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* str )
 {
 	GlobalPools gp;
 	if( realGlobalPools.parseSettings().stemByDefault() ) 
@@ -164,7 +244,7 @@ int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, c
 	BELTrie* trie  = gp.mkNewTrie();
 	BELReaderXMLEmit reader(trie, reqEnv.outStream);
 	reader.initParser(BELReader::INPUT_FMT_XML);
-	std::stringstream is( reqEnv.buf );
+	std::stringstream is( str );
 	reader.setSilentMode();
 	reader.loadFromStream( is );
 	delete trie;
@@ -174,8 +254,8 @@ int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, c
 int route( GlobalPools& gpools, const char* buf, const size_t len, std::ostream& os )
 {
     #define IFHEADER_ROUTE(x) if( !strncmp(buf+2, #x":", sizeof( #x) ) ) {\
-			RequestEnvironment reqEnv(os,buf+ sizeof(#x)+2,len-(sizeof(#x)+2) );\
-			request::proc_##x( reqEnv, gpools, buf+ sizeof(#x)+2 );\
+            RequestEnvironment reqEnv(os,buf+ sizeof(#x)+2 , len - (sizeof(#x)+2) );\
+			request::proc_##x( reqEnv,gpools, buf+ sizeof(#x)+2 );\
             return 0;\
     }
     /// command interface !!CMD:
@@ -185,6 +265,7 @@ int route( GlobalPools& gpools, const char* buf, const size_t len, std::ostream&
 		IFHEADER_ROUTE(CLEAR_TRIE)
 		IFHEADER_ROUTE(CLEAR_USER)
 		IFHEADER_ROUTE(LOAD_CONFIG)
+		IFHEADER_ROUTE(LOAD_USRCFG)
 
 		AYLOG(ERROR) << "UNKNOWN header: " << std::string( buf, (len>6 ? 6: len) ) << std::endl;
 	} else {
