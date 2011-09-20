@@ -481,6 +481,57 @@ struct ShellState {
 
 } // anon namespace ends 
 
+static int bshf_userstats( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	// BarzerShellContext * context = shell->getBarzerContext();
+	std::string tmp;
+    std::ostream& outFp = shell->getOutStream() ;
+
+    const GlobalPools & gp = shell->gp; 
+	if( in >> tmp ) {
+        uint32_t userId = atoi(tmp.c_str()) ;
+        std::string modeStr ; 
+        bool doTrieStats = false;
+        if( in >> modeStr ) {
+            if( strchr( modeStr.c_str(), 'f' ) ) 
+                doTrieStats = true;
+        }
+
+        const StoredUniverse* uni = gp.getUniverse( userId ) ;
+        if( uni ) {
+            const UniverseTrieCluster::BELTrieList& trieList = uni->getTrieList();
+            if( trieList.size() ) {
+                int n = 0;
+                for( UniverseTrieCluster::BELTrieList::const_iterator i = trieList.begin(); i!= trieList.end(); ++i ) 
+                {
+                    outFp << ">> Trie " << ++n << ":" << "(" << (*i)->getTrieClass()   << "|" << (*i)->getTrieId()  << ')' << std::endl;
+                    if( doTrieStats ) {
+                        BarzelTrieTraverser_depth trav( (*i)->getRoot(), *(*i) );
+                        BarzelTrieStatsCounter counter;
+                        trav.traverse( counter, (*i)->getRoot() );
+                        std::cerr << counter << std::endl;
+                    }
+                }
+            } else {
+                outFp << "User has no tries\n";
+            }
+        } else {
+            std::cerr << "No valid universe for user id " << userId << "\n";
+
+        }
+    } else {
+        outFp << "User ids:";
+        const GlobalPools::UniverseMap&  uniMap = gp.getUniverseMap();
+        for( GlobalPools::UniverseMap::const_iterator i = uniMap.begin(); i!= uniMap.end(); ++i ) {
+            outFp << i->first << ',';
+        }
+        outFp << std::endl;
+        std::cerr << "to inspect individual universe say: userstats <user id>\n";
+    }
+        
+    return 0;
+}
+
 static int bshf_triestats( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	ShellState sh( shell, cmd, in );
@@ -892,6 +943,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_stexpand, "stexpand", "expand and print all statements in a file" ),
 	CmdData( (ay::Shell_PROCF)bshf_process, "process", "process an input string" ),
 	CmdData( (ay::Shell_PROCF)bshf_querytest, "querytest", "peforms given number of queries" ),
+	CmdData( (ay::Shell_PROCF)bshf_userstats, "userstats", "trie stats for a given user" ),
 	CmdData( (ay::Shell_PROCF)bshf_user, "user", "sets current user by user id" )
 };
 

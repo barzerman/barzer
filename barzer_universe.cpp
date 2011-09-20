@@ -126,6 +126,7 @@ BELTrie* GlobalTriePool::produceTrie( const std::string& trieClass, const std::s
 
 	if( i == ctm.end() ) {
 		BELTrie* newTrieP = new BELTrie( d_gp );
+        newTrieP->setTrieClassAndId( trieClass.c_str(), trieId.c_str());
 
 		i = ctm.insert( ClassTrieMap::value_type(
 			trieId, 

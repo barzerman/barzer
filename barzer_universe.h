@@ -132,6 +132,7 @@ public:
 	typedef boost::unordered_map< uint32_t, StoredUniverse* > UniverseMap;
 
 	UniverseMap d_uniMap;
+    const UniverseMap& getUniverseMap() const { return d_uniMap; }
 
 	BarzerSettings settings;
 

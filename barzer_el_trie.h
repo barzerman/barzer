@@ -453,6 +453,16 @@ private:
 	UseridSet d_userIdSet; // set of unique userids using this trie
 	mutable Lock d_threadLock;
 public:
+    std::string d_trieClass, d_trieId;
+
+    const char* getTrieClass() const { return d_trieClass.c_str(); }
+    const char* getTrieId() const { return d_trieId.c_str(); }
+
+    void setTrieClassAndId( const char* c, const char* i ) 
+    { 
+        d_trieClass.assign(c);
+        d_trieId.assign(i);
+    }
 	Lock& getThreadLock() const { return d_threadLock; }
 
 	// call in critical section only
@@ -535,6 +545,7 @@ public:
 
 	void clear();
 };
+
 inline BarzelTranslation* BarzelTrieNode::getTranslation(BELTrie& trie) 
 { 
 	return trie.getBarzelTranslation( *this );
