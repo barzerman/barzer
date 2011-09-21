@@ -78,7 +78,7 @@ public:
 
     void clearList() { d_trieList.clear(); }
 
-    void appendTriePtr( BELTrie* trie ) { d_trieList.append(trie); }
+    void appendTriePtr( BELTrie* trie ) { d_trieList.push_back(trie); }
 };
 
 class UniverseTrieClusterIterator {
