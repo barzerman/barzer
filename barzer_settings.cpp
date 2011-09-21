@@ -70,6 +70,11 @@ User& BarzerSettings::createUser(User::Id id) {
 	UserMap::iterator it = umap.find(id);
 	if (it == umap.end()) {
 		std::cout << "Adding user id(" << id << ")\n";
+        if( !gpools.getUniverse(id) ) {
+            std::cerr << "Creating universe for " << id << std::endl;
+            gpools.produceUniverse( id );
+        } else
+            std::cerr << "Pre-existing universe for " << id << std::endl;
 		return umap.insert(UserMap::value_type(id, User(id, *this))).first->second;
 	} else return it->second;
 
@@ -162,7 +167,10 @@ void BarzerSettings::loadRules()
 	using boost::property_tree::ptree;
 
 	StoredUniverse *u = getCurrentUniverse();
-	if (!u) return;
+	if (!u) { 
+        std::cerr << "Current universe is blank\n";
+        return;
+    }
 	const ptree &rules = pt.get_child("config.rules", empty_ptree());
 	if (rules.empty()) {
 		// warning goes here
@@ -327,7 +335,10 @@ void BarzerSettings::loadUserRules(User& u, const ptree &node )
 	try {
 		const ptree &rules = node.get_child("rules", empty_ptree());
 		setCurrentUniverse(u);
-		loadRules( rules );
+	    if (rules.empty()) {
+            std::cerr << "rules empty!!!!\n";
+        } else
+		    loadRules( rules );
 	} catch (...) {
 		std::cerr << "user rules exception\n";
 	}
@@ -335,15 +346,16 @@ void BarzerSettings::loadUserRules(User& u, const ptree &node )
 void BarzerSettings::loadUser(const ptree::value_type &user) 
 {
 	const ptree &children = user.second;
-	const boost::optional<uint32_t> userId
+	const boost::optional<uint32_t> userIdOpt
 		= children.get_optional<uint32_t>("<xmlattr>.id");
 
-	if (!userId) {
+	if (!userIdOpt) {
 		AYLOG(ERROR) << "No user id in tag <user>";
 		return;
 	}
+    uint32_t userId = userIdOpt.get();
 
-	User &u = createUser(userId.get());
+	User &u = createUser(userId);
 
 	std::cout << "Loading user id: " << userId << "\n";
 
@@ -371,7 +383,7 @@ int BarzerSettings::loadUserConfig( const char* cfgFileName ) {
 }
 
 void BarzerSettings::loadUsers() {
-	{ // hack user 0 must be initialized  
+	if( !gpools.getUniverse(0)) { // hack user 0 must be initialized  
 	    User &u = createUser(0);
 	    BZSpell* bzs = u.getUniverse().initBZSpell( 0 );
 	    bzs->init( 0 );

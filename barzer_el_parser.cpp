@@ -90,6 +90,15 @@ uint32_t BELParser::internString( const char* t )
 	StoredToken& sTok =  reader->getGlobalPools().getDtaIdx().addToken( t );
 	BELTrie& trie = reader->getTrie();
 	trie.addWordInfo( sTok.getStringId() );
+    StoredUniverse* curUni = reader->getCurrentUniverse();
+    if( curUni ) {
+        BZSpell* bzSpell= curUni->getBZSpell();
+        if( bzSpell ) {
+            bzSpell->addExtraWordToDictionary( sTok.getStringId() );
+        }
+    }
+
+
 
 	return sTok.getStringId();
 }

@@ -75,6 +75,10 @@ public:
 	BELTrie& prependTrie( const std::string& trieClass, const std::string& trieId );
 	BELTrie*  getFirstTrie() { return ( d_trieList.empty() ?  0 : (*(d_trieList.begin())) ); }
 	const BELTrie*  getFirstTrie() const { return ( d_trieList.empty() ?  0 : (*(d_trieList.begin())) ); }
+
+    void clearList() { d_trieList.clear(); }
+
+    void appendTriePtr( BELTrie* trie ) { d_trieList.append(trie); }
 };
 
 class UniverseTrieClusterIterator {
@@ -198,6 +202,9 @@ public:
 		{ const char* str = decodeStringById(strId); return (str ? str :"" ); }
 	BELTrie* getTrie( const std::string& cs, const std::string& ids ) 
 		{ return globalTriePool.getTrie( cs, ids ); }
+
+	BELTrie* produceTrie( const std::string& trieClass, const std::string& trieId ) 
+        { return globalTriePool.produceTrie( trieClass, trieId ) ; }
 };
 
 class BZSpell;
@@ -221,6 +228,10 @@ class StoredUniverse {
 
 	void addWordsFromTriesToBZSpell();
 public:
+    // doesnt destroy the actual tries
+    void clearTrieList() { 
+        trieCluster.clearList();
+    }
     typedef boost::shared_mutex Mutex;
     mutable Mutex d_theMutex;
 
@@ -342,6 +353,8 @@ public:
 
 	const char* decodeStringById( uint32_t strId ) const 
 		{ return getDtaIdx().resolveStringById( strId ); }
+
+    void appendTriePtr( BELTrie* trie ) { trieCluster.appendTriePtr(trie); }
 }; 
 
 inline StoredUniverse& GlobalPools::produceUniverse( uint32_t id )

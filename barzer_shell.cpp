@@ -98,9 +98,8 @@ static int bshf_tok( BarzerShell* shell, char_cp cmd, std::istream& in )
 static int bshf_srvroute( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 
-	BarzerShellContext * context = shell->getBarzerContext();
-	StoredUniverse &uni = context->getUniverse();
-	GlobalPools& gp = uni.getGlobalPools();
+	// BarzerShellContext * context = shell->getBarzerContext();
+	GlobalPools& gp = shell->gp;
 
 	ay::InputLineReader reader( in );
 	QuestionParm qparm;
@@ -108,7 +107,11 @@ static int bshf_srvroute( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 	while( reader.nextLine() && reader.str.length() ) {
         const char* q = reader.str.c_str();
-        request::route( gp, q, strlen(q), os );
+        int rc = request::route( gp, q, strlen(q), os );
+        if( rc != request::ROUTE_ERROR_OK ) {
+            os << " ERROR " << rc;
+        } else
+            os << " success ";
         os << "==============\n";
     }
     return 0;

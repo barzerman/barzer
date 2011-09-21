@@ -110,7 +110,7 @@ int main( int argc, char * argv[] ) {
 	ay::CommandLineArgs cmdlProc;
 	cmdlProc.init(argc, argv);
 	barzer::GlobalPools globPool;
-	barzer::StoredUniverse &universe = globPool.produceUniverse(0);
+	// barzer::StoredUniverse &universe = globPool.produceUniverse(0);
 
 	init_gpools(globPool, cmdlProc);
 
@@ -132,7 +132,7 @@ int main( int argc, char * argv[] ) {
                     return barzer::run_server(globPool, SERVER_PORT);
                 }
             } else if (strcasecmp(argv[1], "test") == 0) {
-            	return run_test(universe, cmdlProc);
+            	return run_test(globPool.produceUniverse(0), cmdlProc);
             }
         } 
 

@@ -12,7 +12,9 @@ int QSemanticParser::semanticize( Barz& barz, const QuestionParm& qparm  )
 	const UniverseTrieCluster& trieCluster = universe.getTrieCluster();
 	const UniverseTrieCluster::BELTrieList& trieList = trieCluster.getTrieList();
 	for( UniverseTrieCluster::BELTrieList::const_iterator t = trieList.begin(); t != trieList.end(); ++t ) {
-		BarzelMatcher barzelMatcher( universe, *(*t) );
+        BELTrie* trie = *t;
+		BarzelMatcher barzelMatcher( universe, *trie );
+        
 		barzelMatcher.matchAndRewrite( barz );
 	}
 	return 0;

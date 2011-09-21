@@ -50,6 +50,11 @@ int barze( const GlobalPools&, RequestEnvironment& reqEnv );
 /// emits patterns after application of control structures ANY/TAIL etc. 
 int proc_EMIT( RequestEnvironment&, const GlobalPools&, const char* buf );
 
+enum {
+    ROUTE_ERROR_OK=0,
+    ROUTE_ERROR_UNKNOWN_COMMAND, // 1 
+    ROUTE_ERROR_EXECUTION_FAILED // 2
+};
 /// ends up routing between other functions
 int route( GlobalPools& gpools, const char* buf, const size_t len, std::ostream& os );
 

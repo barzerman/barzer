@@ -178,7 +178,7 @@ int proc_CLEAR_USER( RequestEnvironment& reqEnv, GlobalPools& gp, const char* st
     } else {
         std::cerr << "Cleared universe for userid " <<  userId << std::endl;
         StoredUniverse::WriteLock universe_lock( uni->getMutex() );
-        uni->clear();
+        uni->clearTrieList();
     }
     return 0;
 }
@@ -200,6 +200,33 @@ const char*  read_pipe_sep( std::string& dest, const char * buf, size_t maxLen =
 }
 
 }
+// adds trie to user
+int proc_ADD_TRIE( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  str )
+{
+    std::string useridStr, trieClass, trieId;
+    if(     
+        (str= read_pipe_sep(useridStr,str)) !=0  &&
+        (str= read_pipe_sep(trieClass,str)) !=0  &&
+        (str= read_pipe_sep(trieId,str))    !=0 
+    ) {
+        uint32_t userId = (uint32_t)( atoi(useridStr.c_str() ) );
+
+        StoredUniverse* uni = gp.getUniverse( userId );
+        if( !uni ) {
+            std::cerr << "Valid for user id " << userId << " doesnt exist\n";
+            return 0;
+        }
+        BELTrie*  trie = gp.getTrie( trieClass, trieId );
+        if( !trie ) {
+            std::cerr << "Trie (" << trieClass << '|' << trieId << ")\n";
+            return 0;
+        }
+
+        uni->appendTriePtr( trie );
+    }
+    return 0;
+}
+
 /// format is !!ADD_STMSET:userid|trieClass|trieId|<stmset> ... </stmset>
 int proc_ADD_STMSET( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  str )
 {
@@ -220,11 +247,16 @@ int proc_ADD_STMSET( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  s
         }
         StoredUniverse::WriteLock universe_lock( uni->getMutex() );
 
-        BELTrie* trie = &(uni->produceTrie( trieClass, trieId ));
+        // BELTrie* trie = &(uni->produceTrie( trieClass, trieId ));
+
+        BELTrie* trie = gp.getTrie( trieClass, trieId );
+        if( !trie ) 
+            trie = gp.produceTrie( trieClass, trieId );
 
         BELTrie::WriteLock trie_lock(trie->getThreadLock());
 
         BELReader  reader( trie, gp );
+        reader.setCurrentUniverse( uni );
 	    std::stringstream is( str );
 	   
 	    reader.initParser(BELReader::INPUT_FMT_XML);
@@ -256,7 +288,7 @@ int route( GlobalPools& gpools, const char* buf, const size_t len, std::ostream&
     #define IFHEADER_ROUTE(x) if( !strncmp(buf+2, #x":", sizeof( #x) ) ) {\
             RequestEnvironment reqEnv(os,buf+ sizeof(#x)+2 , len - (sizeof(#x)+2) );\
 			request::proc_##x( reqEnv,gpools, buf+ sizeof(#x)+2 );\
-            return 0;\
+            return ROUTE_ERROR_OK;\
     }
     /// command interface !!CMD:
 	if( buf[0] == '!' && buf[1] == '!' && strchr( buf+2, ':') ) {
@@ -268,11 +300,12 @@ int route( GlobalPools& gpools, const char* buf, const size_t len, std::ostream&
 		IFHEADER_ROUTE(LOAD_USRCFG)
 
 		AYLOG(ERROR) << "UNKNOWN header: " << std::string( buf, (len>6 ? 6: len) ) << std::endl;
+        return ROUTE_ERROR_UNKNOWN_COMMAND;
 	} else {
 		RequestEnvironment reqEnv(os,buf,len);
 		request::barze( gpools, reqEnv );
 	}
-	return 0;
+	return ROUTE_ERROR_OK;
 }
 
 } // request namespace ends
