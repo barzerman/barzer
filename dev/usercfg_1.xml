@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
         <users>
-            <user id="1">
+            <user id="100">
 			    <rules>
 				    <file class="class1" name="sepulka" >data/vendor/sepulka/rules/sepulka.xml</file>
 				    <file class="class1" name="sepulka_auto" >data/vendor/sepulka/rules/sepulka_auto.xml</file>
@@ -16,7 +16,7 @@
                 </trieset>
 			    <spell> <extra>dev/spell/extrawords_user1.txt</extra> </spell>
             </user>
-            <user id="2">
+            <user id="200">
                 <trieset>
                     <trie class="" name="fluff" />
                 </trieset>
