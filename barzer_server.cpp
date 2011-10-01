@@ -137,13 +137,15 @@ int barze( GlobalPools& gp, RequestEnvironment& reqEnv )
 
 int proc_LOAD_USRCFG( RequestEnvironment& reqEnv, GlobalPools& gp, const char* cfgfile  )
 {
-    return gp.getSettings().loadUserConfig( cfgfile );
+    BELReader reader(gp,&(reqEnv.outStream));
+    return gp.getSettings().loadUserConfig( reader, cfgfile );
     return 0;
 }
 
 int proc_LOAD_CONFIG( RequestEnvironment& reqEnv, GlobalPools& gp, const char* cfgfile  )
 {
-    gp.getSettings().load( cfgfile );
+    BELReader reader(gp,&(reqEnv.outStream));
+    gp.getSettings().load( reader, cfgfile );
     return 0;
 }
 int proc_CLEAR_TRIE( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  str)
@@ -255,7 +257,7 @@ int proc_ADD_STMSET( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  s
 
         BELTrie::WriteLock trie_lock(trie->getThreadLock());
 
-        BELReader  reader( trie, gp );
+        BELReader  reader( trie, gp, &(reqEnv.outStream)  );
         reader.setCurrentUniverse( uni );
 	    std::stringstream is( str );
 	   

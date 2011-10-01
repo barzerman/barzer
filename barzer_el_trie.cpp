@@ -497,9 +497,10 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELSta
 			entGrp = getEntityCollection().getEntGroup( tran->getId_uint32() );
 			break;
 		default: { // CLASH 
-			std::cerr << "RULE CLASH: " << stmt.getSourceName() << ':' << stmt.getStmtNumber()  << '.' << emitterSeqNo <<
+            std::ostream& os = stmt.getErrStream();
+			os << "RULE CLASH: " << stmt.getSourceName() << ':' << stmt.getStmtNumber()  << '.' << emitterSeqNo <<
 			" VS " ;
-			printTanslationTraceInfo( std::cerr, tran->traceInfo ) << std::endl;
+			printTanslationTraceInfo( stmt.getErrStream(), tran->traceInfo ) << std::endl;
 			
 
 		}

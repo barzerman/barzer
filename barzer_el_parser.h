@@ -14,6 +14,7 @@ namespace barzer {
 
 class StoredUniverse;
 class GlobalPools;
+class BELReader;
 //// !!!!!!!!!!! NEVER REORDER ANY OF THE ENUMS 
 
 
@@ -23,16 +24,24 @@ struct BELStatementParsed {
 	size_t d_stmtNumber;
 	std::string d_sourceName;
 	uint32_t d_sourceNameStrId; 
+    
+    BELReader* d_reader;
 
 	BELStatementParsed() : 
-		d_stmtNumber(0),d_sourceNameStrId(0xffffffff)
+		d_stmtNumber(0),d_sourceNameStrId(0xffffffff), d_reader(0)
 	{}
+
 
 	BELParseTreeNode pattern; // points at the node under statement
 	BELParseTreeNode translation; // points at the node under statement 
 	void clear()
 		{ pattern.clear(); translation.clear(); }
 	
+    BELReader* getReader() const { return const_cast<BELReader*>(d_reader); }
+    std::ostream& getErrStream() const;
+
+    void setReader( BELReader* rdr ) { d_reader = rdr; }
+
 	void setSrcInfo( const char* srcName, uint32_t strId ) 
 	{ 
 		d_stmtNumber = 0;
@@ -131,7 +140,6 @@ protected:
 	/// can be overridden (currently this is not done)
 	uint8_t d_spellPriority;
 
-
 public:
 	/// barzEL input formats
 	typedef enum {
@@ -150,6 +158,10 @@ private:
 	// d_curTrieId, d_curTrieClass
 	bool d_trieIdSet; 
 	std::string d_curTrieId, d_curTrieClass;
+
+    /// errors will be written to this stream 
+    std::ostream* d_errStream;
+
 	/// both computeXXXSpellPriority functions update d_spellPriority
 	/// deduces trie spell priority from trie class name ( "" - priority 0, otherwise - 10 )
 	void computeImplicitTrieSpellPriority( const std::string& tclass, const std::string& trieId );
@@ -185,17 +197,11 @@ public:
 
 
 
-	BELReader( GlobalPools &g );
+	BELReader( GlobalPools &g, std::ostream* errStream );
 
-	BELReader( BELTrie* t, GlobalPools &g  )  :
-		trie(t) , parser(0), gp(g), 
-		numStatements(0) , 
-		numMacros(0) , 
-		numProcs(0) , 
-		inputFmt(INPUT_FMT_XML),
-		d_currentUniverse(0)
-	{}
-	
+	BELReader( BELTrie* t, GlobalPools &g, std::ostream* errStream );
+    
+    std::ostream* getErrStream() { return d_errStream; }
 	virtual ~BELReader() {
 		delete parser;
 	}
@@ -230,8 +236,8 @@ inline const GlobalPools& BELParser::getGlobalPools() const { return reader->get
 template<class T>class BELExpandReader : public BELReader {
 	T &functor;
 public:
-	BELExpandReader(T &f, BELTrie* t, GlobalPools &gp )
-		: BELReader(t,gp), functor(f) {}
+	BELExpandReader(T &f, BELTrie* t, GlobalPools &gp, std::ostream* errStream )
+		: BELReader(t,gp,errStream), functor(f) {}
 	void addStatement( const BELStatementParsed& sp)
 	{
 		BELParseTreeNode_PatternEmitter emitter( sp.pattern );
@@ -242,6 +248,13 @@ public:
 		++numStatements;
 	}
 };
+
+inline std::ostream& BELStatementParsed::getErrStream() const
+{ 
+    return( (getReader() && getReader()->getErrStream()) ? 
+        *(getReader()->getErrStream()) :
+        std::cerr );
+}
 
 }
 

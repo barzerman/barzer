@@ -105,7 +105,6 @@ public:
 	// typedef std::vector<const char*> EntityFileVec;
 private:
 	GlobalPools &gpools;
-	BELReader reader;
 
 	boost::property_tree::ptree pt;
 
@@ -131,17 +130,17 @@ public:
 	StoredUniverse* getCurrentUniverse() ;
 	StoredUniverse* setCurrentUniverse( User& u );
 
-	BarzerSettings(GlobalPools&);
+	BarzerSettings(GlobalPools&, std::ostream* os);
 
 	void init();
 
     /// expects a list of newline separated config file names (# is for comment)
     /// will load the configs sequentially (passing them to BarzerSettings::load)
-    int loadListOfConfigs(const char *fname) ;
+    int loadListOfConfigs(BELReader& reader, const char *fname) ;
 
 	void loadInstanceSettings();
-	void loadRules();
-	void loadRules(const boost::property_tree::ptree&);
+	void loadRules(BELReader&);
+	void loadRules(BELReader&, const boost::property_tree::ptree&);
 	void loadParseSettings();
 	void loadEntities();
 	/// global dictionaries from <dictionaries> tag
@@ -150,26 +149,26 @@ public:
 	void loadSpell(User&, const boost::property_tree::ptree&);
 	void loadHunspell(User&, const boost::property_tree::ptree&);
 
-	void loadTrieset(User&, const boost::property_tree::ptree&);
-	void loadUserRules(User&, const boost::property_tree::ptree&);
+	void loadTrieset(BELReader&, User&, const boost::property_tree::ptree&);
+	void loadUserRules(BELReader& reader, User&, const boost::property_tree::ptree&);
 
-	void loadUsers();
-	void loadUser(const boost::property_tree::ptree::value_type &);
+	void loadUsers(BELReader& reader );
+	void loadUser(BELReader& reader, const boost::property_tree::ptree::value_type &);
 
-    int loadUserConfig( const char* cfgFileName );
+    int loadUserConfig( BELReader&, const char* cfgFileName );
 
 	User& createUser(User::Id id);
 	User* getUser(User::Id id);
 
-	void addRulefile(const Rulefile &f);
+	void addRulefile(BELReader&, const Rulefile &f);
 
 	void addEntityFile(const char*);
 	/// file to global dictionary <dictionaries> tag
 	void addDictionaryFile(const char*);
 	void setLogging(const Logging&);
 
-	void load();
-	void load(const char *fname);
+	void load(BELReader& reader );
+	void load(BELReader& reader, const char *fname);
 
 	GlobalPools& getGlobalPools() { return gpools; }
 	const GlobalPools& getGlobalPools() const { return gpools; }

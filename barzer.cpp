@@ -88,15 +88,16 @@ void init_gpools(barzer::GlobalPools &gp, ay::CommandLineArgs &cmdlProc) {
 
     bool hasArg = false;
     const char *fname = cmdlProc.getArgVal(hasArg, "-cfglist", 0);
+    barzer::BELReader reader( gp, &(std::cerr)) ;
     if (hasArg && fname)
-    	st.loadListOfConfigs(fname);
+    	st.loadListOfConfigs(reader, fname);
     else {
 
         fname = cmdlProc.getArgVal(hasArg, "-cfg", 0);
         if (hasArg && fname)
-    	    st.load(fname);
+    	    st.load(reader, fname);
         else
-    	    st.load();
+    	    st.load(reader);
     }
 }
 

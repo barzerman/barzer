@@ -87,13 +87,13 @@ User*  BarzerSettings::getUser(User::Id id)
 	return (it == umap.end() ? 0 : &(it->second));
 }
 
-BarzerSettings::BarzerSettings(GlobalPools &gp)
-	: gpools(gp), reader(gp), d_numThreads(0), d_currentUniverse(0)
+BarzerSettings::BarzerSettings(GlobalPools &gp, std::ostream* os ) : gpools(gp), d_numThreads(0), d_currentUniverse(0)
 { 
 	init(); 
 }
 
-void BarzerSettings::addRulefile(const Rulefile &f) {
+void BarzerSettings::addRulefile(BELReader& reader, const Rulefile &f) 
+{
 	const std::string &tclass = f.trie.first,
 					  &tid = f.trie.second;
 	const char *fname = f.fname;
@@ -135,7 +135,7 @@ void BarzerSettings::init() {
 
 }
 
-void BarzerSettings::loadRules(const boost::property_tree::ptree& rules) 
+void BarzerSettings::loadRules(BELReader& reader, const boost::property_tree::ptree& rules) 
 {
 	if (rules.empty()) {
 		// warning goes here
@@ -150,10 +150,10 @@ void BarzerSettings::loadRules(const boost::property_tree::ptree& rules)
 				const std::string &cl = attrs.get<std::string>("class"),
 			                  	  &id = attrs.get<std::string>("name");
 				reader.setCurTrieId( cl, id );
-				addRulefile(Rulefile(fname, cl, id));
+				addRulefile(reader, Rulefile(fname, cl, id));
 			} catch (boost::property_tree::ptree_bad_path&) {
 				reader.clearCurTrieId();
-				addRulefile(Rulefile(fname));
+				addRulefile(reader,Rulefile(fname));
 			}
 
 		} else {
@@ -162,7 +162,7 @@ void BarzerSettings::loadRules(const boost::property_tree::ptree& rules)
 	}
 }
 
-void BarzerSettings::loadRules() 
+void BarzerSettings::loadRules(BELReader& reader) 
 {
 	using boost::property_tree::ptree;
 
@@ -176,13 +176,13 @@ void BarzerSettings::loadRules()
 		// warning goes here
 		return;
 	}
-	loadRules(rules);
+	loadRules(reader,rules);
 }
 
 
-void BarzerSettings::load() {
+void BarzerSettings::load(BELReader& reader ) {
 	//AYLOG(DEBUG) << "BarzerSettings::load()";
-	load(DEFAULT_CONFIG_FILE);
+	load(reader,DEFAULT_CONFIG_FILE);
 }
 
 
@@ -311,7 +311,7 @@ void BarzerSettings::loadHunspell(User &u, const ptree &node)
 	}
 }
 
-void BarzerSettings::loadTrieset(User &u, const ptree &node) {
+void BarzerSettings::loadTrieset(BELReader& reader, User &u, const ptree &node) {
 	BOOST_FOREACH(const ptree::value_type &v, node.get_child("trieset", empty_ptree())) {
 		if (v.first == "trie") {
 			const ptree &trie = v.second;
@@ -330,7 +330,7 @@ void BarzerSettings::loadTrieset(User &u, const ptree &node) {
 	std::cerr << "user " << u.getId() << ":" << tcluster.getTrieList().size()	 << " tries loaded\n";
 }
 
-void BarzerSettings::loadUserRules(User& u, const ptree &node )
+void BarzerSettings::loadUserRules(BELReader& reader, User& u, const ptree &node )
 {
 	try {
 		const ptree &rules = node.get_child("rules", empty_ptree());
@@ -338,12 +338,12 @@ void BarzerSettings::loadUserRules(User& u, const ptree &node )
 	    if (rules.empty()) {
             std::cerr << "rules empty!!!!\n";
         } else
-		    loadRules( rules );
+		    loadRules( reader, rules );
 	} catch (...) {
 		std::cerr << "user rules exception\n";
 	}
 }
-void BarzerSettings::loadUser(const ptree::value_type &user) 
+void BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user) 
 {
 	const ptree &children = user.second;
 	const boost::optional<uint32_t> userIdOpt
@@ -359,12 +359,12 @@ void BarzerSettings::loadUser(const ptree::value_type &user)
 
 	std::cout << "Loading user id: " << userId << "\n";
 
-	loadUserRules(u,children);
-	loadTrieset(u, children);
+	loadUserRules(reader, u,children);
+	loadTrieset(reader, u, children);
 	loadSpell(u, children);
 }
 
-int BarzerSettings::loadUserConfig( const char* cfgFileName ) {
+int BarzerSettings::loadUserConfig( BELReader& reader, const char* cfgFileName ) {
     if( !gpools.getUniverse(0) ) {
         User &u = createUser(0);
         BZSpell* bzs = u.getUniverse().initBZSpell( 0 );
@@ -375,14 +375,14 @@ int BarzerSettings::loadUserConfig( const char* cfgFileName ) {
     int numUsersLoaded = 0;
     BOOST_FOREACH(ptree::value_type &userV, userPt.get_child("config.users")) {
         if (userV.first == "user") { 
-            loadUser( userV );
+            loadUser( reader, userV );
             ++numUsersLoaded;
         }
     }
     return numUsersLoaded;
 }
 
-void BarzerSettings::loadUsers() {
+void BarzerSettings::loadUsers(BELReader& reader ) {
 	if( !gpools.getUniverse(0)) { // hack user 0 must be initialized  
 	    User &u = createUser(0);
 	    BZSpell* bzs = u.getUniverse().initBZSpell( 0 );
@@ -396,36 +396,16 @@ void BarzerSettings::loadUsers() {
             const std::string &cfgFileName
                 = v.second.get<std::string>("<xmlattr>.cfgfile", "");
             if (cfgFileName.empty()) {
-                loadUser(v);
+                loadUser(reader,v);
             } else {
-                loadUserConfig( cfgFileName.c_str() );
-                /*
-                boost::property_tree::ptree userPt;
-                read_xml(cfgFileName.c_str(), userPt);
-                BOOST_FOREACH(ptree::value_type &userV, userPt.get_child("config.users")) {
-                    if (userV.first == "user") loadUser( userV );
-                }
-                */
+                loadUserConfig( reader, cfgFileName.c_str() );
             }
-            /*
-		    try {
-                const ptree & subNode = v.second;
-                const ptree &attrs = subNode.get_child("<xmlattr>");
-                const std::string &cfgFileName = attrs.get<std::string>("cfgfile");
-                boost::property_tree::ptree userPt;
-		        read_xml(cfgFileName.c_str(), userPt);
-                BOOST_FOREACH(ptree::value_type &userV, userPt.get_child("config.users", empty_ptree())) {
-                    loadUser( userV );
-                }
-            } catch(...) {
-		        loadUser(v);
-            } */
         }
 	}
 }
 
 
-int BarzerSettings::loadListOfConfigs(const char *fname) {
+int BarzerSettings::loadListOfConfigs(BELReader& reader, const char *fname) {
     FILE* fp = fopen( fname, "r" );
     if( !fp ) {
 		std::cerr << "failed to open config list file " << fname << std::endl;
@@ -445,14 +425,14 @@ int BarzerSettings::loadListOfConfigs(const char *fname) {
         if( comment ) 
             *comment= 0;
         std::cerr << "loading config from: " << cfgFileName << " ...\n";
-        load( cfgFileName );
+        load( reader, cfgFileName );
         ++cfgCount;
     }
     fclose( fp );
     return cfgCount;
 }
 
-void BarzerSettings::load(const char *fname) {
+void BarzerSettings::load(BELReader& reader, const char *fname) {
 	//AYLOGDEBUG(fname);
 	std::cout << "Loading config file: " << fname << std::endl;
 	fs::path oldPath = fs::current_path();
@@ -471,8 +451,8 @@ void BarzerSettings::load(const char *fname) {
 		loadParseSettings();
 		loadEntities();
 		loadDictionaries();
-		loadRules();
-		loadUsers();
+		loadRules(reader);
+		loadUsers(reader);
 
 		fs::current_path(oldPath);
 	} catch (boost::property_tree::xml_parser_error &e) {

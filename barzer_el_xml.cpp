@@ -46,6 +46,7 @@ BELParserXML::BELParserXML( BELReader* r) :
 		const char* srcName =reader->getInputFileName().c_str();
 		uint32_t srcNameStrId = reader->getGlobalPools().internString_internal( srcName );
 		statement.stmt.setSrcInfo(srcName, srcNameStrId );
+        statement.stmt.setReader(r);
 	}
 bool BELParserXML::isValidTag( int tag, int parent ) const
 {
@@ -1305,7 +1306,7 @@ void BELReaderXMLEmit::addStatement( const BELStatementParsed& sp )
 
 
 BELReaderXMLEmit::BELReaderXMLEmit( BELTrie* t, std::ostream& os ) :
-		BELReader( t, t->getGlobalPools() ),
+		BELReader( t, t->getGlobalPools(), &os ),
 		d_outStream(os)
 	{
 	}

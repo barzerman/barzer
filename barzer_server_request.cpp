@@ -113,7 +113,8 @@ template<class T>struct CmdProc : public boost::static_visitor<> {
 struct CmdAdd : public CmdProc<CmdAdd> {
 	CmdAdd(BarzerRequestParser &p) : CmdProc<CmdAdd>(p) {}
 	void operator()(const Rulefile &rf) {
-		parser.getSettings().addRulefile(rf);
+        BELReader reader( parser.getGlobalPools(), &(parser.stream()) );
+		parser.getSettings().addRulefile(reader,rf );
 		parser.stream() << "<rulefile>!!";
 	}
 	void operator()(const TrieId &tid) {

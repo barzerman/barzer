@@ -115,12 +115,22 @@ void BELParseTreeNode::print( std::ostream& fp, int depth ) const
 }
 
 
-BELReader::BELReader( GlobalPools &g ) :
+BELReader::BELReader( BELTrie* t, GlobalPools &g, std::ostream* errStream ) :
+    trie(t) , parser(0), gp(g), 
+    numStatements(0) , 
+    numMacros(0) , 
+    numProcs(0) , 
+    inputFmt(INPUT_FMT_XML),
+    d_currentUniverse(0),
+    d_errStream(errStream? errStream: &(std::cerr))
+{}
+BELReader::BELReader( GlobalPools &g, std::ostream* errStream ) : 
 	trie(g.globalTriePool.produceTrie("", "")) , parser(0), gp(g),
 	numStatements(0) ,silentMode(false),  
 	d_trieSpellPriority(0),
 	inputFmt(INPUT_FMT_XML),
-	d_trieIdSet(false)
+	d_trieIdSet(false),
+    d_errStream(errStream? errStream: &(std::cerr))
 {}
 
 void BELReader::setTrie( const std::string& trieClass, const std::string& trieId )

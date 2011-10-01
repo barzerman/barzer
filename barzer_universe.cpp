@@ -143,7 +143,7 @@ GlobalPools::GlobalPools() :
 	funSt(*this),
 	dateLookup(*this),
 	globalTriePool( *this ),
-	settings(*this),
+	settings(*this,0),
 	d_isAnalyticalMode(false),
 	d_maxAnalyticalModeMaxSeqLength(3)
 {
