@@ -274,11 +274,14 @@ int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, c
 		gp.parseSettings().set_stemByDefault( );
 
 	BELTrie* trie  = gp.mkNewTrie();
-	BELReaderXMLEmit reader(trie, reqEnv.outStream);
+	std::ostream &os = reqEnv.outStream;
+	BELReaderXMLEmit reader(trie, os);
 	reader.initParser(BELReader::INPUT_FMT_XML);
 	std::stringstream is( str );
 	reader.setSilentMode();
+    os << "<patternset>\n";
 	reader.loadFromStream( is );
+	os << "</patternset>\n";
 	delete trie;
 	return 0;
 }

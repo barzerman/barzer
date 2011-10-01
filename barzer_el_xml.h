@@ -276,6 +276,7 @@ class BELReaderXMLEmit : public BELReader {
 public:
 	BELReaderXMLEmit( BELTrie* t, std::ostream& os );
 	void addStatement( const BELStatementParsed& sp );
+
 };
 
 }

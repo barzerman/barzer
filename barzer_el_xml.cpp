@@ -1288,7 +1288,7 @@ void BELReaderXMLEmit::addStatement( const BELStatementParsed& sp )
 {
 	BELParseTreeNode_PatternEmitter emitter( sp.pattern );
 	int i =0;
-	d_outStream << "<patternset>\n";
+	d_outStream << "<rule n=\"" <<  sp.getStmtNumber() <<"\">\n";
 	do {
 		const BTND_PatternDataVec& seq = emitter.getCurSequence();
 		if( !seq.size() ) 
@@ -1300,12 +1300,15 @@ void BELReaderXMLEmit::addStatement( const BELStatementParsed& sp )
 		i++;
 		//AYLOG(DEBUG) << "path added";
 	} while( emitter.produceSequence() );
-	d_outStream << "</patternset>\n";
+	d_outStream << "</rule>\n";
 }
 
 
 BELReaderXMLEmit::BELReaderXMLEmit( BELTrie* t, std::ostream& os ) :
 		BELReader( t, t->getGlobalPools() ),
 		d_outStream(os)
-	{}
+	{
+	}
+
+
 } // barzer namespace ends
