@@ -304,6 +304,7 @@ PatternEmitterNode* PatternEmitterNode::make(const BELParseTreeNode& node, VarVe
                     return new Subset(node.child, vars);
                 default:
                 	AYLOG(ERROR) << "Invalid BTND_StructData type: " << sdata.getType();
+                  	return new List(node.child, vars);
             }
             //if (sdata.hasVar()) vars.pop_back();
             //return ret;
@@ -313,7 +314,7 @@ PatternEmitterNode* PatternEmitterNode::make(const BELParseTreeNode& node, VarVe
     }
     
     // should never get here
-    AYTRACE("something is definitely broken");
+    std::cerr << "something is definitely broken " << node.btndVar.which() << "\n";
     return NULL;
 }
 

@@ -224,6 +224,8 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 		return;
 	}
 	size_t stmtNumber = 0;
+    bool needAbort = false;
+    std::stringstream errStrStr ;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
@@ -232,8 +234,10 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 			if( !getMacroByName( std::string(v) )) {
 				statement.setMacro(v); // m="MACROXXX"
 			} else {
-				AYLOG(ERROR) << "attempt to REDEFINE MACRO " << v  << " ignored";
+				errStrStr << "attempt to REDEFINE MACRO " << v  << " ignored";
+                needAbort  = true;
 			}
+            break;
 		case 'p':  // 
 			{ // block
 			uint32_t procNameStrId = reader->getGlobalPools().internString_internal( v );
@@ -241,9 +245,11 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 			if( !getProcByName(procNameStrId)) {
 				statement.setProc(procNameStrId); // p="PROCXXX"
 			} else {
-				AYLOG(ERROR) << "attempt to REDEFINE Procedure " << v  << " ignored";
+				errStrStr << "attempt to REDEFINE Procedure " << v  << " ignored";
+                needAbort  = true;
 			}
 			}  // end of block
+            break;
 		case 'n':  // statement number
 			stmtNumber = atoi(v);
 			break;
@@ -251,6 +257,11 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 			break;
 		}
 	}
+    if( needAbort ) {
+	    statement.stmt.setStmtNumber( stmtNumber ) ;
+        reader->getErrStreamRef() << "<error stmt=\"" << statement.stmt.getStmtNumber() << "\">" << errStrStr.str() << "</error>\n";
+        return;
+    }
 
 	// const BELParseTreeNode* macroNode = getMacroByName(macroName);
 
@@ -261,7 +272,8 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 	if( statement.isMacro() ) {
 	} else {
 		if( statement.hasStatement() ) { // bad - means we have statement tag nested in another statement
-			std::cerr << "statement nested in statement " << statementCount << "\n";
+            reader->getErrStreamRef() << "<error stmt=\"" << statement.stmt.getStmtNumber() << "\">" <<
+			"statement nested in statement </error>\n";
 			return;
 		} 
 	}

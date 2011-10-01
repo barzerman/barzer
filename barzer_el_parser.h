@@ -168,6 +168,7 @@ private:
 	/// deduces ruleset spelling priority from ruleset file name ( if has no "_fluff" substring then 
 	/// priority is 5 otherwise 0)
 	void computeRulesetSpellPriority( const char* fileName );
+	BELReader( const BELReader& r) : gp(r.gp) {}
 public:
 	uint8_t getSpellPriority() const { return d_spellPriority; }
 
@@ -202,6 +203,9 @@ public:
 	BELReader( BELTrie* t, GlobalPools &g, std::ostream* errStream );
     
     std::ostream* getErrStream() { return d_errStream; }
+
+
+    std::ostream& getErrStreamRef() { return ( d_errStream? *d_errStream: std::cerr); }
 	virtual ~BELReader() {
 		delete parser;
 	}
