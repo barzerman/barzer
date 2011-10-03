@@ -56,7 +56,7 @@ enum {
     ROUTE_ERROR_EXECUTION_FAILED // 2
 };
 /// ends up routing between other functions
-int route( GlobalPools& gpools, const char* buf, const size_t len, std::ostream& os );
+int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os );
 
 
 } // request namespace ends

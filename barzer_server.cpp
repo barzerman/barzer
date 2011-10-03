@@ -65,7 +65,7 @@ public:
 
 
 
-    void query_router(const char*, const size_t, std::ostream&);
+    void query_router(char*, const size_t, std::ostream&);
 
     void init() {
     	//
@@ -288,7 +288,7 @@ int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, c
 	return 0;
 }
 
-int route( GlobalPools& gpools, const char* buf, const size_t len, std::ostream& os )
+int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os )
 {
     #define IFHEADER_ROUTE(x) if( !strncmp(buf+2, #x":", sizeof( #x) ) ) {\
             RequestEnvironment reqEnv(os,buf+ sizeof(#x)+2 , len - (sizeof(#x)+2) );\
@@ -323,7 +323,7 @@ int route( GlobalPools& gpools, const char* buf, const size_t len, std::ostream&
 	if the first 2 characters in buf are '!' followed by command (e.g. EMIT) request will be routed 
 	accordingly
 */
-void AsyncServer::query_router(const char* buf, const size_t len, std::ostream& os) 
+void AsyncServer::query_router(char* buf, const size_t len, std::ostream& os)
 {
 	request::route( gpools, buf, len, os );
 }
