@@ -161,7 +161,7 @@ int proc_CLEAR_TRIE( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  s
         BELTrie::WriteLock trie_lock( trie->getThreadLock() );
         trie->clear();
     } else{
-        std::cerr << "No valid trie (" << trieClass << "|" << trieId << ")\n";
+        reqEnv.outStream << "<error>No valid trie (" << trieClass << "|" << trieId << ")</error>\n";
     }
     return 0;
 }
@@ -175,10 +175,10 @@ int proc_CLEAR_USER( RequestEnvironment& reqEnv, GlobalPools& gp, const char* st
     }
     StoredUniverse* uni = gp.getUniverse( userId ) ;
     if( !uni ) {
-        std::cerr << "Error: no valid universe found for id " << userId << std::endl;
+        reqEnv.outStream << "<error>no valid universe found for id " << userId << "</error>\n";
         return 0;
     } else {
-        std::cerr << "Cleared universe for userid " <<  userId << std::endl;
+        reqEnv.outStream << "<info>Cleared universe for userid " <<  userId << "</info>";
         StoredUniverse::WriteLock universe_lock( uni->getMutex() );
         uni->clearTrieList();
     }
@@ -187,13 +187,13 @@ int proc_CLEAR_USER( RequestEnvironment& reqEnv, GlobalPools& gp, const char* st
 
 namespace {
 
-const char*  read_pipe_sep( std::string& dest, const char * buf, size_t maxLen = 32 ) 
+const char*  read_pipe_sep( std::ostream& os, std::string& dest, const char * buf, size_t maxLen = 32 ) 
 {
     const char* pipe = strchr( buf , '|' );
     if( pipe ) {
         size_t len = pipe - buf;
         if( len > maxLen ) {
-            std::cerr << "Name too long\n";
+            os << "<error>Name too long</error>\n";
             return 0;
         } else 
             return ( dest.assign(buf,len), buf+ len+1 );
@@ -207,20 +207,20 @@ int proc_ADD_TRIE( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  str
 {
     std::string useridStr, trieClass, trieId;
     if(     
-        (str= read_pipe_sep(useridStr,str)) !=0  &&
-        (str= read_pipe_sep(trieClass,str)) !=0  &&
-        (str= read_pipe_sep(trieId,str))    !=0 
+        (str= read_pipe_sep(reqEnv.outStream, useridStr,str)) !=0  &&
+        (str= read_pipe_sep(reqEnv.outStream, trieClass,str)) !=0  &&
+        (str= read_pipe_sep(reqEnv.outStream, trieId,str))    !=0 
     ) {
         uint32_t userId = (uint32_t)( atoi(useridStr.c_str() ) );
 
         StoredUniverse* uni = gp.getUniverse( userId );
         if( !uni ) {
-            std::cerr << "Valid for user id " << userId << " doesnt exist\n";
+            reqEnv.outStream << "<error>Valid universe for user id " << userId << " doesnt exist</error>\n";
             return 0;
         }
         BELTrie*  trie = gp.getTrie( trieClass, trieId );
         if( !trie ) {
-            std::cerr << "Trie (" << trieClass << '|' << trieId << ")\n";
+            reqEnv.outStream << "<error>Cannot produce Trie (" << trieClass << '|' << trieId << ")</error>\n";
             return 0;
         }
 
@@ -236,15 +236,15 @@ int proc_ADD_STMSET( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  s
     /// str points past the first ':' 
     std::string useridStr, trieClass, trieId;
     if(     
-        (str= read_pipe_sep(useridStr,str)) !=0  &&
-        (str= read_pipe_sep(trieClass,str)) !=0  &&
-        (str= read_pipe_sep(trieId,str))    !=0 
+        (str= read_pipe_sep(reqEnv.outStream,useridStr,str)) !=0  &&
+        (str= read_pipe_sep(reqEnv.outStream,trieClass,str)) !=0  &&
+        (str= read_pipe_sep(reqEnv.outStream,trieId,str))    !=0 
     ) {
         uint32_t userId = (uint32_t)( atoi(useridStr.c_str() ) );
 
         StoredUniverse* uni = gp.getUniverse( userId );
         if( !uni ) {
-            std::cerr << "Valid for user id " << userId << " doesnt exist\n";
+            reqEnv.outStream << "<error>no valid universe for user id " << userId << " doesnt exist</error>\n";
             return 0;
         }
         StoredUniverse::WriteLock universe_lock( uni->getMutex() );
@@ -264,7 +264,7 @@ int proc_ADD_STMSET( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  s
 	    reader.initParser(BELReader::INPUT_FMT_XML);
         reader.loadFromStream( is );
     } else {
-        std::cerr << "Wrong format for ADD_STMSET\n";
+        reqEnv.outStream << "<error> Wrong format for ADD_STMSET</error>\n";
     }
 
     return 0;
@@ -292,7 +292,9 @@ int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os )
 {
     #define IFHEADER_ROUTE(x) if( !strncmp(buf+2, #x":", sizeof( #x) ) ) {\
             RequestEnvironment reqEnv(os,buf+ sizeof(#x)+2 , len - (sizeof(#x)+2) );\
+            os << "<cmdoutput>\n";\
 			request::proc_##x( reqEnv,gpools, buf+ sizeof(#x)+2 );\
+            os << "</cmdoutput>\n";\
             return ROUTE_ERROR_OK;\
     }
     /// command interface !!CMD:
