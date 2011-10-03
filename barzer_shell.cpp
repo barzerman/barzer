@@ -106,7 +106,7 @@ static int bshf_srvroute( BarzerShell* shell, char_cp cmd, std::istream& in )
     std::ostream& os = std::cerr;
 
 	while( reader.nextLine() && reader.str.length() ) {
-	    char *q = new char[reader.str.size()];
+	    char *q = new char[reader.str.size() + 1];
 	    strcpy(q, reader.str.c_str());
         //const char* q = reader.str.c_str();
         int rc = request::route( gp, q, strlen(q), os );
