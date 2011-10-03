@@ -360,7 +360,26 @@ public:
 };
 }
 
+static void printTraceInfo(std::ostream &os, const Barz &barz, const StoredUniverse &uni)
+{
+    static const char *tmpl = "<match file=\"%1%\" stmt=\"%2%\" emit=\"%3%\" />";
+    const Barz::BarzelTraceVec &tvec = barz.barzelTraceVec;
+    const GlobalPools &gp = uni.getGlobalPools();
+    if( tvec.size() ) {
+        tag_raii ti(os, "traceinfo");
+        os << "\n";
+        for( Barz::BarzelTraceVec::const_iterator ti = tvec.begin(),
+                                                  tend = tvec.end();
+                    ti != tend; ++ti ) {
+            const char *name = gp.internalString_resolve( ti->source );
+            os << boost::format(tmpl) % (name ? name : "")
+                                      % ti->statementNum
+                                      % ti->emitterSeqNo
+               << "\n";
+        }
+    }
 
+}
 
 std::ostream& BarzStreamerXML::print(std::ostream &os)
 {
@@ -398,6 +417,7 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 		}
 		os << "</spell>\n";
 	}
+    printTraceInfo(os, barz, universe);
 	os << "</barz>\n";
 	return os;
 }
