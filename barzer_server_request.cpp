@@ -115,17 +115,17 @@ struct CmdAdd : public CmdProc<CmdAdd> {
 	void operator()(const Rulefile &rf) {
         BELReader reader( parser.getGlobalPools(), &(parser.stream()) );
 		parser.getSettings().addRulefile(reader,rf );
-		parser.stream() << "<rulefile>!!";
+		//parser.stream() << "<rulefile>!!";
 	}
 	void operator()(const TrieId &tid) {
 		BarzerSettings &s = parser.getSettings();
 		User &u = s.createUser(tid.userId);
 		u.addTrie(tid.path);
-		parser.stream() << "<trie>!!";
+		//parser.stream() << "<trie>!!";
 	}
 	void operator()(const UserId &uid) {
 		parser.getSettings().createUser(uid.id);
-		parser.stream() << "<userid>!!";
+		//parser.stream() << "<userid>!!";
 	}
 };
 struct CmdClear : public CmdProc<CmdClear> {
@@ -158,10 +158,12 @@ struct CmdClear : public CmdProc<CmdClear> {
 };
 
 void BarzerRequestParser::tag_cmd(RequestTag &tag) {
+    os << "<cmdoutput>\n";
 	AttrList::iterator it = tag.attrs.find("name");
 	if (it == tag.attrs.end() ) {
 		os << "<error>unknown cmd name</error>";
 		arglist.clear();
+		os << "</cmdoutput>\n";
 		return;
 	}
 	if(it->second == "add") {
@@ -172,6 +174,7 @@ void BarzerRequestParser::tag_cmd(RequestTag &tag) {
 		cp.process(arglist);
 	}
 	arglist.clear();
+	os << "</cmdoutput>\n";
 }
 
 void BarzerRequestParser::tag_user(RequestTag &tag) {
