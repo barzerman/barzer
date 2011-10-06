@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
-    xmlns="http://www.barzer.net/barzel/0.1" i="fluff" c="post">
+    xmlns="http://www.barzer.net/barzel/0.1" i="fluff" c="">
 
     <stmt>
         <pat><t>at</t><list v="t"><time /></list></pat>
