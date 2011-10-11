@@ -6,9 +6,10 @@
         <file>data/rules/barzel_prices.xml</file>
         <file>data/rules/barzel_dates.xml</file>
         <file>data/rules/vintage.xml</file>
-        <file>data/rules/barzel_ru_dates.xml</file>
-        <file>data/rules/barzel_ru_prices.xml</file>
         <file>data/rules/barzel_fluff.xml</file>
+        <file class="" name="prices">data/rules/barzel_prices.xml</file>
+        <file class="" name="dates">data/rules/barzel_dates.xml</file>
+        <file class="" name="vintage">data/rules/vintage.xml</file>
     </rules>
     <dictionaries>
         <file>data/spell/english_words.txt</file>
