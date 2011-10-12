@@ -19,6 +19,7 @@
 //
 #include <sstream>
 #include <fstream>
+#include <string.h>
 
 
 
@@ -106,8 +107,7 @@ static int bshf_srvroute( BarzerShell* shell, char_cp cmd, std::istream& in )
     std::ostream& os = std::cerr;
 
 	while( reader.nextLine() && reader.str.length() ) {
-	    char *q = new char[reader.str.size() + 1];
-	    strcpy(q, reader.str.c_str());
+	    char *q = strdup( reader.str.c_str() );
         //const char* q = reader.str.c_str();
         int rc = request::route( gp, q, strlen(q), os );
         if( rc != request::ROUTE_ERROR_OK ) {
@@ -115,7 +115,7 @@ static int bshf_srvroute( BarzerShell* shell, char_cp cmd, std::istream& in )
         } else
             os << " success ";
         os << "==============\n";
-        delete[] q;
+        free(q);
     }
     return 0;
 }

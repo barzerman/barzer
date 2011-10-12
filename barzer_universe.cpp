@@ -255,6 +255,11 @@ const char* StoredUniverse::getGenericSubclassName( uint16_t subcl ) const
 	else 
 		return "<unknown>";
 }
+void StoredUniverse::clearSpelling() 
+{
+    if( bzSpell ) 
+        bzSpell->clear();
+}
 
 
 	UniverseTrieCluster::UniverseTrieCluster( GlobalTriePool& triePool, StoredUniverse& u ) : 

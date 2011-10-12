@@ -244,7 +244,8 @@ public:
 	const BZSpell* getBZSpell() const { return bzSpell; }
 	BZSpell* getBZSpell() { return bzSpell; }
 	BZSpell* initBZSpell( const StoredUniverse* secondaryUniverse = 0);
-	
+    // clears the dictionary
+    void clearSpelling();
 	/// result of spelling correction is in out
 	/// it attempts to do first pass spelling correction (that is correction to a word known to the user)
 	/// uses bzSpell

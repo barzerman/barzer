@@ -17,8 +17,11 @@
 			    <spell> <extra>dev/spell/extrawords_user1.txt</extra> </spell>
             </user>
             <user id="200">
+			    <rules>
+				    <file class="class200" name="moo" >dev/moo.xml</file>
+			    </rules>
                 <trieset>
-                    <trie class="" name="fluff" />
+                    <trie class="class200" name="moo" />
                 </trieset>
             </user>
         </users>

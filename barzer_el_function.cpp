@@ -54,7 +54,9 @@ template<class T> const T& getAtomic(const BarzelBeadData &dta) {
 }
 
 template<class T> const BarzerNumber& getNumber(const T &v)
-	{ return getAtomic<BarzerNumber>(v); }
+{ 
+    return getAtomic<BarzerNumber>(v); 
+}
 
 //template<class T> void setResult(BarzelEvalResult&, const T&);
 
@@ -347,10 +349,14 @@ struct BELFunctionStorage_holder {
             case 2: m = getNumber(rvec[1]);
             case 1: d = getNumber(rvec[0]);
             case 0: break; // 0 arguments = today
-            default:
+
+            default: // size > 3
                 AYLOG(ERROR) << "mkDate(): Expected max 3 arguments, "
                              << rvec.size() << " given";
-                return false;
+                y = getNumber(rvec[2]);
+                m = getNumber(rvec[1]);
+                d = getNumber(rvec[0]);
+                break;
             }
             date.setDayMonthYear(d,m,y);
 
@@ -359,6 +365,9 @@ struct BELFunctionStorage_holder {
             return true;
 		} catch (boost::bad_get) {
 		    AYLOG(DEBUG) << "mkDate(): Wrong argument type";
+
+            date.setDayMonthYear(d,m,y);
+            return true;
 		}
 		return false;
 	}

@@ -1062,14 +1062,24 @@ void BELParserXML::taghandle_FUNC( const char_cp * attr, size_t attr_sz , bool c
 		return;
 	}
 	BTND_Rewrite_Function f;
+    uint32_t funcNameId = 0xffffffff;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
-		if( !strcmp(n, "name") ) {
-		 f.setNameId( reader->getGlobalPools().internString_internal(v) );
+		if( *n == 'n' ) {
+            funcNameId = reader->getGlobalPools().internString_internal(v) ;
+		    f.setNameId( funcNameId ) ;
 		}
 	}
-	statement.pushNode( BTND_RewriteData( f));
+    if( funcNameId != 0xffffffff ) 
+	    statement.pushNode( BTND_RewriteData( f));
+    else { // no valid function named 
+        reader->getErrStreamRef() << "<error stmt=\"" << statement.stmt.getStmtNumber() << "\">" << " invalid function in translation</error>\n";
+
+        BTND_Rewrite_Literal literal;
+        literal.setStop();
+        statement.pushNode( BTND_RewriteData(literal) );
+    }
 }
 
 void BELParserXML::taghandle_SELECT( const char_cp * attr, size_t attr_sz , bool close)
