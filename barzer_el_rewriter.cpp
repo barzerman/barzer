@@ -262,7 +262,8 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const B
 	}
 	const StoredUniverse &u = ctxt.universe;
 	const BELFunctionStorage &fs = u.getFunctionStorage();
-	bool ret = fs.call(data.nameId, d_val, d_childValVec, u );
+
+	bool ret = fs.call(ctxt, data.nameId, d_val, d_childValVec, u );
 	return ret;
 }
 

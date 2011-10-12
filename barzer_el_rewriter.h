@@ -157,6 +157,7 @@ struct BarzelEvalContext {
 		EVALERR_OK, 
 		EVALERR_GROW
 	};
+    Barz& d_barz;
 	
 	std::stack< BarzelEvalProcFrame > d_procFrameStack; 
 	struct frame_stack_raii {
@@ -182,8 +183,11 @@ struct BarzelEvalContext {
 	const uint8_t* setErr_GROW() { return( err = EVALERR_GROW, (const uint8_t*)0); } 
 	const BELTrie& getTrie() const { return d_trie; }
 
-	BarzelEvalContext( BarzelMatchInfo& mi, const StoredUniverse& uni, const BELTrie& trie ) : 
-		matchInfo(mi), universe(uni) , d_trie(trie),err(EVALERR_OK)
+    Barz& getBarz() { return d_barz; }
+    const Barz& getBarz() const { return d_barz; }
+
+	BarzelEvalContext( BarzelMatchInfo& mi, const StoredUniverse& uni, const BELTrie& trie, Barz& barz ) : 
+		matchInfo(mi), universe(uni) , d_trie(trie),err(EVALERR_OK), d_barz(barz)
 	{}
 };
 

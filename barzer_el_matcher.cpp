@@ -981,7 +981,7 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 	BarzelEvalNode evalNode;
 
 	//AYDEBUG( matchInfo.getSubstitutionBeadRange() );
-	BarzelEvalContext ctxt( matchInfo, universe, d_trie );
+	BarzelEvalContext ctxt( matchInfo, universe, d_trie, barz );
 	if( translation.isRewriter() ) { /// translation is a rewriter 
 		BarzelRewriterPool::BufAndSize bas;
 		if( !universe.getBarzelRewriter( d_trie,bas, translation )) {
