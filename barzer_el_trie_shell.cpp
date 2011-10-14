@@ -28,6 +28,7 @@ DEF_TFUN(load) {
 
 	BELReader reader(&trie, uni.getGlobalPools(), 0 );
 	reader.initParser(BELReader::INPUT_FMT_XML);
+    reader.setCurrentUniverse( &uni );
 
 	ay::stopwatch totalTimer;
 
@@ -36,6 +37,7 @@ DEF_TFUN(load) {
 		const char *fname = sin.c_str();
 		//AYLOG(DEBUG) << "Loading " << fname;
 		int numsts = reader.loadFromFile(fname);
+
 		std::cout << numsts << " statements read. " << std::endl;
 		if (numsts)	context->trieWalker.loadChildren();
 		std::cerr << "Loaded in " << totalTimer.calcTime() << " seconds\n";
