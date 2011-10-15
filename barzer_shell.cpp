@@ -371,9 +371,6 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 	}
 
 	QuestionParm qparm;
-	//std::ostream &os = shell->getOutStream();
-	const StoredUniverse &uni = context->getUniverse();
-	const GlobalPools &globalPools = uni.getGlobalPools();
 
 	ay::stopwatch totalTimer;
 	while( reader.nextLine() && reader.str.length() ) {
@@ -383,13 +380,6 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 		*ostr << "parsed. printing\n";
 		bs.print(*ostr);
 		
-		if( barz.barzelTraceVec.size() ) {
-			*ostr << "barzel rules trace {\n";	
-			for( Barz::BarzelTraceVec::const_iterator ti = barz.barzelTraceVec.begin(); ti != barz.barzelTraceVec.end(); ++ti ) {
-				globalPools.printTanslationTraceInfo( *ostr, *ti ) << "\n";
-			}
-			*ostr << "end of rule trace }\n";	
-		}
 		// << ttVec << std::endl;
 	}
 	std::cerr << "All done in " << totalTimer.calcTime() << " seconds\n";

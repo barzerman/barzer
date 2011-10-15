@@ -14,6 +14,7 @@
 #include <barzer_datelib.h>
 #include <barzer_el_chain.h>
 #include <boost/assign.hpp>
+#include <barzer_barz.h>
 
 namespace barzer {
 
@@ -365,6 +366,7 @@ struct BELFunctionStorage_holder {
             return true;
 		} catch (boost::bad_get) {
 		    AYLOG(DEBUG) << "mkDate(): Wrong argument type";
+            ctxt.getBarz().barzelTrace.pushError( "Wrong argument type" );
 
             date.setDayMonthYear(d,m,y);
             return true;

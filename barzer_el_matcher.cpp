@@ -977,6 +977,8 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 
 	const BarzelTranslation& translation = *transP;
 
+	barz.pushTrace( transP->traceInfo );
+
 	BarzelEvalResult transResult;
 	BarzelEvalNode evalNode;
 
@@ -1003,7 +1005,6 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 		translation.fillRewriteData( evalNode.getBtnd() );
 	}
 	if( !evalNode.eval( transResult, ctxt ) ) {
-		// barz.pushTrace( transP->traceInfo );
 		d_trie.printTanslationTraceInfo( AYLOG(ERROR) << "evaluation failed:" , transP->traceInfo );
 		theBead.setStopLiteral();
 		return 0;
@@ -1040,7 +1041,6 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 		theBead.setData(  transResult.getBeadData() );
 		chain.collapseRangeLeft( range );
 	}
-	barz.pushTrace( transP->traceInfo );
 
 	return 0;
 }

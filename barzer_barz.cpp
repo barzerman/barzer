@@ -52,7 +52,7 @@ int Barz::classifyTokens( QLexParser& lexer, const QuestionParm& qparm )
 
 void Barz::clear()
 {
-	barzelTraceVec.clear();
+	barzelTrace.clear();
 	beadChain.clear();
 	ctVec.clear();
 	ttVec.clear();

@@ -10,6 +10,44 @@ class QSemanticParser;
 class QLexParser;
 class QTokenizer;
 
+struct BarzelTrace {
+    struct SingleFrameTrace {
+        size_t grammarSeqNo; // grammar sequence number
+        BarzelTranslationTraceInfo tranInfo; // translation trace info for the rule that was hit
+        std::vector< std::string > errVec;
+        
+        SingleFrameTrace( ) : grammarSeqNo(0) {}
+        SingleFrameTrace( const BarzelTranslationTraceInfo& ti, size_t n ) : grammarSeqNo(n), tranInfo(ti) {}
+    };
+
+    typedef std::vector< SingleFrameTrace > TraceVec;
+    size_t d_grammarSeqNo; // current grammar sequence number 
+    TraceVec d_tvec;
+
+
+    void clear() { d_tvec.clear(); }
+    size_t size() const { return d_tvec.size(); }
+    void push_back( const BarzelTranslationTraceInfo& traceInfo ) 
+    {
+        d_tvec.push_back( SingleFrameTrace( traceInfo, d_grammarSeqNo ) );
+    }
+    void setGrammarSeqNo( size_t gs ) { d_grammarSeqNo= gs; };
+
+    const TraceVec& getTraceVec() const { return d_tvec; }
+
+    BarzelTrace() : d_grammarSeqNo(0) { }
+
+    SingleFrameTrace& getTopFrameTrace() { return d_tvec.back(); }
+    const SingleFrameTrace& getTopFrameTrace() const { return d_tvec.back(); }
+    
+    void pushError( const char* err ) 
+    {
+        if( d_tvec.size() ) {
+            d_tvec.back().errVec.push_back( err );
+        }
+    }
+}; 
+
 // collection of punits and the original question
 class Barz {
 	/// original question with 0-s terminating tokens
@@ -35,14 +73,13 @@ class Barz {
 	/// tokens and that ttVec tokens point into it
 	void syncQuestionFromTokens();
 public:
-	typedef std::vector< BarzelTranslationTraceInfo > BarzelTraceVec;
 	enum { MAX_TRACE_LEN = 256 };
 
-	BarzelTraceVec barzelTraceVec;
+	BarzelTrace barzelTrace;
 	
 	void pushTrace( const BarzelTranslationTraceInfo& trace ) { 
-		if( barzelTraceVec.size() < MAX_TRACE_LEN ) 
-			barzelTraceVec.push_back( trace ) ; 
+		if( barzelTrace.size() < MAX_TRACE_LEN ) 
+			barzelTrace.push_back( trace ) ; 
 	}
 
 	const TTWPVec& getTtVec() const { return  ttVec; }

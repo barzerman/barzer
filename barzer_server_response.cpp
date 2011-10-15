@@ -362,20 +362,31 @@ public:
 
 static void printTraceInfo(std::ostream &os, const Barz &barz, const StoredUniverse &uni)
 {
-    static const char *tmpl = "<match file=\"%1%\" stmt=\"%2%\" emit=\"%3%\" />";
-    const Barz::BarzelTraceVec &tvec = barz.barzelTraceVec;
+    static const char *tmpl = "<match gram=\"%4%\" file=\"%1%\" stmt=\"%2%\" emit=\"%3%\"";
+    const BarzelTrace::TraceVec &tvec = barz.barzelTrace.getTraceVec();
     const GlobalPools &gp = uni.getGlobalPools();
     if( tvec.size() ) {
         tag_raii ti(os, "traceinfo");
         os << "\n";
-        for( Barz::BarzelTraceVec::const_iterator ti = tvec.begin(),
+        for( BarzelTrace::TraceVec::const_iterator ti = tvec.begin(),
                                                   tend = tvec.end();
                     ti != tend; ++ti ) {
-            const char *name = gp.internalString_resolve( ti->source );
+            const char *name = gp.internalString_resolve( ti->tranInfo.source );
             os << boost::format(tmpl) % (name ? name : "")
-                                      % ti->statementNum
-                                      % ti->emitterSeqNo
-               << "\n";
+                                      % ti->tranInfo.statementNum
+                                      % ti->tranInfo.emitterSeqNo
+                                      % ti->grammarSeqNo;
+            if( ti->errVec.size()) {
+                os << ">";
+                os << " <error>";
+                for( std::vector< std::string >::const_iterator ei = ti->errVec.begin(); ei!= ti->errVec.end(); ++ei ) {
+                    os << *ei << " ";
+                }
+                os << " </error></match>\n";
+            } else {
+                os << "/>";
+            }
+            os << "\n";
         }
     }
 
