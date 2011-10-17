@@ -1,6 +1,7 @@
 #include <barzer_el_rewriter.h>
 #include <barzer_el_function.h>
 #include <barzer_universe.h>
+#include <barzer_barz.h>
 #include <barzer_el_matcher.h>
 #include <ay/ay_logger.h>
 //#include <boost/foreach.hpp>
@@ -521,4 +522,11 @@ template <> void BTND_RewriteData_printer::operator()<BTND_Rewrite_EntitySearch>
 		if( prefix.length() >= 4 )  prefix.resize(prefix.size()-4); 
 		return true; 
 	}
+
+BarzelEvalContext& BarzelEvalContext::pushBarzelError( const char* err )
+{
+    d_barz.barzelTrace.pushError( err );
+    return *this;
+}
+
 } /// barzer namespace ends

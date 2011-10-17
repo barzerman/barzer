@@ -20,6 +20,18 @@ namespace barzer {
 
 namespace {
 
+    // sig is the function's signature 
+    void pushFuncError( BarzelEvalContext& ctxt, const char* funcName, const char* error, const char* sig=0 )
+    {
+        std::stringstream ss; 
+        ss << "<funcerr func=\"" << ( funcName ? funcName: "" ) << "/>" << ( error ? error: "" ) ;
+        if( sig ) {
+            ss << "<sig>" << sig << "</sig>";
+        }
+        ss << "</funcerr>";
+
+        ctxt.getBarz().barzelTrace.pushError( ss.str().c_str() );
+    }
 // some utility stuff
 
 
@@ -146,7 +158,14 @@ template<class U> struct ArithVisitor : public boost::static_visitor<bool> {
 struct StrConcatVisitor : public boost::static_visitor<bool> {
 	std::stringstream ss;
 	GlobalPools &globPools;
-	StrConcatVisitor(GlobalPools &u) : globPools(u) {}
+    BarzelEvalContext& d_ctxt;
+    const char* d_funcName;
+
+	StrConcatVisitor(GlobalPools &u, BarzelEvalContext& ctxt, const char* funcName ) : 
+        globPools(u), 
+        d_ctxt(ctxt),
+        d_funcName(funcName) 
+    {}
 
 	bool operator()( const BarzerString &dt ) {
 		ss << dt.getStr();
@@ -161,7 +180,7 @@ struct StrConcatVisitor : public boost::static_visitor<bool> {
 				ss << str;
 				return true;
 			} else {
-				AYLOG(ERROR) << "Unknown string ID";
+                pushFuncError(d_ctxt, d_funcName, "Unknown string ID" );
 				return false;
 			}
 		}
@@ -172,8 +191,8 @@ struct StrConcatVisitor : public boost::static_visitor<bool> {
 		case BarzerLiteral::T_STOP:
 			return true;
 		default:
-			AYLOG(ERROR) << "Wrong literal type";
-			return false;
+            pushFuncError(d_ctxt, d_funcName, "Wrong literal type" );
+			return true;
 		}
 	}
 
@@ -188,7 +207,6 @@ struct StrConcatVisitor : public boost::static_visitor<bool> {
 };
 
 template<class T> void mergePairs(std::pair<T,T> &left, const std::pair<T,T> &right) {
-	//AYLOG(DEBUG) << left.first << " " << right.first;
 
 	left.first = std::min(left.first, right.first);
 	left.second = std::max(left.second, right.second);
@@ -219,7 +237,7 @@ uint32_t getTokId(const char* tokStr, const StoredUniverse &u)
 
 	if (!tok) {
 		AYLOG(ERROR) << "Invalid token: " << tokStr;
-		return 0;
+		return 0xffffffff;
 	}
 	return tok->getId();
 }
@@ -231,7 +249,7 @@ uint32_t getTokId(const BarzerLiteral &l, const StoredUniverse &u)
 
 	if (!tokStr) {
 		AYLOG(ERROR) << "Invalid literal ID: " << l.getId();
-		return 0;
+		return 0xffffffff;
 	}
 	return getTokId(tokStr, u);
 }
@@ -312,21 +330,18 @@ struct BELFunctionStorage_holder {
 
 
 	//enum { P_WEEK = 1, P_MONTH, P_YEAR, P_DECADE, P_CENTURY };
-
 	// stored functions
 	#define STFUN(n) bool stfun_##n( BarzelEvalResult &result,\
 							        const BarzelEvalResultVec &rvec,\
 							        const StoredUniverse &q_universe, BarzelEvalContext& ctxt ) const
 
     #define SETSIG(x) const char *sig = #x
-	#define FERROR(x) AYLOG(ERROR) << sig << ": " << #x
+    #define SETFUNCNAME(x) const char *func_name = #x
+
+	#define FERROR(x) pushFuncError( ctxt, func_name, x )
 
 	STFUN(test) {
 		AYLOGDEBUG(rvec.size());
-		//const BarzelEvalResult::BarzelBeadDataVec &v = rvec[0].getBeadDataVec();
-		//result.setBeadData(rvec[0].getBeadDataVec());
-		// BarzelEvalResult::BarzelBeadDataVec &resultVec = result.getBeadDataVec();
-
 		AYLOGDEBUG(rvec[0].getBeadData().which());
 
 		AYLOGDEBUG(result.isVec());
@@ -336,6 +351,8 @@ struct BELFunctionStorage_holder {
 	// makers
 	STFUN(mkDate) //(d) | (d,m) | (d,m,y)
 	{
+        SETFUNCNAME(mkDate);
+
 		//sets everything to today
 		BarzerNumber m(BarzerDate::thisMonth),
 					 d(BarzerDate::thisDay),
@@ -365,8 +382,7 @@ struct BELFunctionStorage_holder {
             //setResult(result, date);
             return true;
 		} catch (boost::bad_get) {
-		    AYLOG(DEBUG) << "mkDate(): Wrong argument type";
-            ctxt.getBarz().barzelTrace.pushError( "Wrong argument type" );
+            FERROR( "Wrong argument type"  );
 
             date.setDayMonthYear(d,m,y);
             return true;
@@ -376,7 +392,9 @@ struct BELFunctionStorage_holder {
 
 	STFUN(mkDateRange)
 	{
-		SETSIG(mkDateRange(Date, Number, [Number, [Number]]));
+		// SETSIG(mkDateRange(Date, Number, [Number, [Number]]));
+        SETFUNCNAME(mkDateRange);
+
 		int day = 0, month = 0, year = 0;
 		// Holy shit ... what is this stuf?!??!  (AY)
 		try {
@@ -384,19 +402,6 @@ struct BELFunctionStorage_holder {
 			case 4: year = getAtomic<BarzerNumber>(rvec[3]).getInt();
 			case 3: month = getAtomic<BarzerNumber>(rvec[2]).getInt();
 			case 2: {
-/*
-				const BarzelBeadAtomic& atomic1 = boost::get<BarzelBeadAtomic>( rvec[0].getBeadData() );
-				const BarzelBeadAtomic& atomic2 = boost::get<BarzelBeadAtomic>( rvec[1].getBeadData() );
-				/// trying to see if these are 2 dates 
-				if( atomic1.isDate() && atomic2.isDate() ) {
-					const BarzerDate& date1 = boost::get<BarzerDate>( atomic1.getData() );
-					const BarzerDate& date2 = boost::get<BarzerDate>( atomic2.getData() );
-					BarzerRange range;
-					range.setData(BarzerRange::Date(date1, date2));
-					setResult(result, range);
-					return true;
-				}
-*/
 				day = getAtomic<BarzerNumber>(rvec[1]).getInt();
 				const BarzerDate &date = getAtomic<BarzerDate>(rvec[0]);
 				BarzerDate_calc c;
@@ -407,37 +412,42 @@ struct BELFunctionStorage_holder {
 				return true;
 			}
 			default:
-				AYLOG(ERROR) << sig << ": Need 2-4 arguments";
+                FERROR( "Need 2-4 arguments");
+				// AYLOG(ERROR) << sig << ": Need 2-4 arguments";
 			}
 		} catch (boost::bad_get) {
-			AYLOG(ERROR) << sig << ": Wrong argument type";
+            FERROR( "Wrong argument type");
+			// AYLOG(ERROR) << sig << ": Wrong argument type";
 		}
 		return false;
 	}
 
-
 	STFUN(mkDay) {
-		SETSIG(mkDay(Number));
+		// SETSIG(mkDay(Number));
+        SETFUNCNAME(mkDay);
+
 		if (!rvec.size()) {
-			AYLOG(ERROR) << sig << ": Need an argument";
+            FERROR("Need an argument");
 			return false;
 		}
+        BarzerDate_calc calc;
+        calc.setToday();
 		try {
-			BarzerDate_calc calc;
-			calc.setToday();
 			calc.dayOffset(getNumber(rvec[0]).getInt());
 			setResult(result, calc.d_date);
-			return true;
 		} catch(boost::bad_get) {
-			AYLOG(ERROR) << sig << ": Wrong argument type";
+            FERROR("Wrong argument type");
+			setResult(result, calc.d_date);
 		}
-		return false;
+		return true;
 	}
 
 	STFUN(mkWday)
 	{
+        SETFUNCNAME(mkWday);
+
 		if (rvec.size() < 2) {
-			AYLOG(ERROR) << "mkWday(Number, Number): Need 2 arguments";
+            FERROR("Need 2 arguments");
 			return false;
 		}
 		try {
@@ -449,15 +459,16 @@ struct BELFunctionStorage_holder {
 			setResult(result, calc.d_date);
 			return true;
 		} catch (boost::bad_get) {
-			AYLOG(ERROR) << "mkWday(Number, Number): Wrong argument type";
+            FERROR("Wrong arg type");
 		}
 		return false;
 	}
 
     STFUN(mkMonth)
     {
+        SETFUNCNAME(mkMonth);
         if (rvec.size() < 2) {
-            AYLOG(ERROR) << "mkMonth(Number, Number): Need 2 arguments";
+            FERROR("Wrong arg type");
             return false;
         }
         try {
@@ -469,7 +480,7 @@ struct BELFunctionStorage_holder {
             setResult(result, calc.d_date);
             return true;
         } catch (boost::bad_get) {
-            AYLOG(ERROR) << "mkMonth(Number, Number): Wrong argument type";
+            FERROR("Wrong argument type");
         }
         return false;
     }
@@ -478,13 +489,10 @@ struct BELFunctionStorage_holder {
 
 	STFUN(mkTime)
 	{
-		//AYLOG(DEBUG) << "mkTime called";
+        SETFUNCNAME(mkTime);
 		BarzerTimeOfDay &time = setResult(result, BarzerTimeOfDay());
 		try {
-			//BarzerNumber h(0),m(0),s(0);
-			//BarzerTimeOfDay time;
 			int hh(0), mm(0), ss(0);
-			//AYLOGDEBUG(rvec.size());
 			switch (rvec.size()) {
 			case 3: {
 			    const BarzelBeadData &bd = rvec[2].getBeadData();
@@ -506,16 +514,16 @@ struct BELFunctionStorage_holder {
 				mm = tm->tm_min;
 				ss = tm->tm_sec;
 			}
-				break;
+            // note no break here anymore 
 			default:
-				AYLOG(ERROR) << "mkTime(): Expected max 3 arguments, "
-				             << rvec.size() << " given";
-				return false;
+                if( rvec.size() > 3 ) {
+                    FERROR("Expected max 3 arguments");
+                }
 			}
 			time.setHHMMSS( hh, mm, ss );
 			return true;
 		} catch (boost::bad_get) {
-			AYLOG(ERROR) << "mkTime(): Wrong argument type";
+            FERROR("Wrong argument type");
 		}
 		return false;
 	}
@@ -524,7 +532,11 @@ struct BELFunctionStorage_holder {
 	// to construct a timestamp
 	struct DateTimePacker : public boost::static_visitor<bool> {
 		BarzerDateTime &dtim;
-		DateTimePacker(BarzerDateTime &d) : dtim(d) {}
+        BarzelEvalContext& d_ctxt;
+        const char* d_funcName;
+		DateTimePacker(BarzerDateTime &d,BarzelEvalContext& ctxt,const char* funcName): 
+            dtim(d),d_ctxt(ctxt),d_funcName(funcName) {}
+
 		bool operator()(const BarzerDate &data) {
 			dtim.setDate(data);
 			return true;
@@ -539,27 +551,26 @@ struct BELFunctionStorage_holder {
 			return true;
 		}
 		bool operator()(const BarzelBeadAtomic &data) {
-			//AYLOG(DEBUG) << "got atomic of type: " << data.getType();
 			return boost::apply_visitor(*this, data.getData());
 		}
 		// not applicable
 		template<class T> bool operator()(const T&)
 		{
-			AYLOG(ERROR) << "Wrong argument type";
+            pushFuncError(d_ctxt,d_funcName, "Wrong argument type" );
 			return false;
 		}
 
 	};
 
 	STFUN(mkDateTime) {
-		//AYLOGDEBUG(rvec.size());
+		SETFUNCNAME(mkDateTime);
 		BarzerDateTime dtim;
-		DateTimePacker v(dtim);
+		DateTimePacker v(dtim,ctxt,func_name);
 
 		for (BarzelEvalResultVec::const_iterator ri = rvec.begin();
 				ri != rvec.end(); ++ri) {
 			if (!boost::apply_visitor(v, ri->getBeadData())) {
-				AYLOG(DEBUG) << "fail";
+				FERROR("fail");
 				return false;
 			}
 		}
@@ -568,7 +579,8 @@ struct BELFunctionStorage_holder {
 	}
 
 	STFUN(mkEnityList) {
-		// <- yanis goes here
+		SETFUNCNAME(mkDateTime);
+        FERROR("Unimplemented");
 		return false;
 	}
 	// tries to pack 2 values into 1 range
@@ -580,13 +592,19 @@ struct BELFunctionStorage_holder {
 		GlobalPools &globPools;
 		BarzerRange &range;
 
-		//const BarzelBeadAtomic *left;
 		uint32_t cnt;
 
-		RangePacker(GlobalPools &u, BarzerRange &r) : globPools(u), range(r), cnt(0) {}
+        const char* d_funcName;
+        BarzelEvalContext& d_ctxt;
+
+
+		RangePacker(GlobalPools &u, BarzerRange &r, BarzelEvalContext& ctxt, const char* funcName) : 
+            globPools(u), range(r), cnt(0) ,
+            d_funcName(funcName),
+            d_ctxt(ctxt)
+        {}
 
 		bool operator()(const BarzerLiteral &ltrl) {
-			//AYLOG(DEBUG) << "mkRange arg " << cnt << ":BarzerLiteral";
 			ay::UniqueCharPool &spool = globPools.stringPool;
 			if (ltrl.getId() == spool.internIt("DESC")) {
 				range.setDesc();
@@ -594,6 +612,7 @@ struct BELFunctionStorage_holder {
 			} else if (ltrl.getId() == spool.internIt("ASC")) {
 				return true;
 			} else {
+                pushFuncError( d_ctxt, d_funcName, "Unknown literal" );
 				AYLOG(ERROR) << "Unknown literal: `"
 							 << spool.resolveId(ltrl.getId()) << "'";
 				return false;
@@ -608,32 +627,27 @@ struct BELFunctionStorage_holder {
 		}
 
 		bool operator()(const BarzerNumber &rnum) {
-			//AYLOG(DEBUG) << "mkRange arg " << cnt << ":BarzerNumber";
 			if (cnt) {
 				if (rnum.isInt()) {
 					if (range.getType() == BarzerRange::Integer_TYPE) {
 						BarzerRange::Integer &ip
 							= boost::get<BarzerRange::Integer>(range.getData());
-						//ip.second = rnum.getInt();
 						setSecond(ip, rnum.getInt());
 					} else if (range.getType() == BarzerRange::Real_TYPE) {
 						BarzerRange::Real &rp
 							= boost::get<BarzerRange::Real>(range.getData());
-						//rp.second = (float) rnum.getInt();
 						setSecond(rp, (double) rnum.getInt());
 					}
 				} else if (rnum.isReal()) {
 					if (range.getType() == BarzerRange::Real_TYPE) {
 						BarzerRange::Real &rp
 							= boost::get<BarzerRange::Real>(range.getData());
-						//rp.second = rnum.getReal();
 						setSecond(rp, rnum.getReal());
 					} else {
 						int lf = boost::get<BarzerRange::Integer>(range.getData()).first;
 						BarzerRange::Real newRange((float) lf, (float) lf);
 						setSecond(newRange, rnum.getReal());
 						range.setData(newRange);
-						//range.setData(BarzerRange::Real((float) lf, rnum.getReal()));
 					}
 				} else {
 					return false;
@@ -652,14 +666,14 @@ struct BELFunctionStorage_holder {
 
 
 		bool operator()(const BarzerDate &rdate) {
-			//AYLOG(DEBUG) << "mkRange arg " << cnt << ":BarzerDate";
 			if (cnt) {
 				try {
 					BarzerRange::Date &dp
 						= boost::get<BarzerRange::Date>(range.getData());
 					setSecond(dp, rdate);
 				} catch (boost::bad_get) {
-					AYLOG(ERROR) << "Types don't match: " << range.getData().which();
+                    pushFuncError( d_ctxt, d_funcName, "Types don't match" );
+					// AYLOG(ERROR) << "Types don't match: " << range.getData().which();
 					return false;
 				}
 			} else {
@@ -675,7 +689,7 @@ struct BELFunctionStorage_holder {
 						= boost::get<BarzerRange::DateTime>(range.getData());
 					setSecond(r, dt);
 				} catch (boost::bad_get) {
-					AYLOG(ERROR) << "Types don't match";
+                    pushFuncError( d_ctxt, d_funcName, "Types don't match" );
 					return false;
 				}
 			} else {
@@ -685,14 +699,14 @@ struct BELFunctionStorage_holder {
 		}
 
 		bool operator()(const BarzerTimeOfDay &rtod) {
-			//AYLOG(DEBUG) << "mkRange arg " << cnt << ":BarzerTimeOfDay";
 			if (cnt) {
 				try {
 					BarzerRange::TimeOfDay &todp
 						= boost::get<BarzerRange::TimeOfDay>(range.getData());
 					todp.second = rtod;
 				} catch (boost::bad_get) {
-					AYLOG(ERROR) << "Types don't match";
+					// AYLOG(ERROR) << "Types don't match";
+                    pushFuncError( d_ctxt, d_funcName, "Types don't match" );
 					return false;
 				}
 			} else {
@@ -720,7 +734,7 @@ struct BELFunctionStorage_holder {
 		}
 
 		template<class T> bool operator()(const T&) {
-			AYLOG(ERROR) << "Wrong range type";
+            pushFuncError( d_ctxt, d_funcName, "Wrong range type" );
 			return false;
 		}
 
@@ -728,8 +742,9 @@ struct BELFunctionStorage_holder {
 
 	STFUN(mkRange)
 	{
+        SETFUNCNAME(mkRange);
 		BarzerRange br;
-		RangePacker rp(gpools, br);
+		RangePacker rp(gpools, br,ctxt,func_name);
 
 		for (BarzelEvalResultVec::const_iterator ri = rvec.begin();
 								ri != rvec.end(); ++ri)
@@ -754,11 +769,14 @@ struct BELFunctionStorage_holder {
 		uint32_t cnt, tokId;
 		uint16_t cl, scl;
 		//const BELFunctionStorage_holder &holder;
+        const char* d_funcName;
 		const StoredUniverse &universe;
+        BarzelEvalContext& d_ctxt;
 
 		//EntityPacker(const BELFunctionStorage_holder &h)
-		EntityPacker(const StoredUniverse &u)
-			: cnt(0), tokId(INVALID_STORED_ID), cl(0), scl(0), universe(u) {}
+		EntityPacker(const StoredUniverse &u, BarzelEvalContext& ctxt, const char* funcName  )
+			: cnt(0), tokId(INVALID_STORED_ID), cl(0), scl(0), d_funcName(funcName), universe(u), d_ctxt(ctxt)  
+        {}
 
 		bool operator()(const BarzerLiteral &ltrl) {
 			return (tokId = getTokId(ltrl, universe));
@@ -766,10 +784,8 @@ struct BELFunctionStorage_holder {
 		bool operator()(const BarzerNumber &rnum) {
 			uint16_t ui = (uint16_t) rnum.getInt();
 			if(cnt++) {
-				//AYLOG(DEBUG) << "setting subclass: " << ui;
 				scl = ui;
 			} else {
-				//AYLOG(DEBUG) << "setting class: " << ui;
 				cl = ui;
 			}
 			return true;
@@ -780,24 +796,20 @@ struct BELFunctionStorage_holder {
 			return false;
 		}
 		template<class T> bool operator()(const T&) {
-			AYLOG(ERROR) << "Wrong range type";
+            pushFuncError( d_ctxt, d_funcName, "Wrong range type" );
 			return false;
 		}
 	};
 
 	STFUN(mkEnt) // makes Entity
 	{
-
-		//EntityPacker ep(*this);
-		EntityPacker ep(q_universe);
+        SETFUNCNAME(mkEnt);
+		EntityPacker ep(q_universe,ctxt,func_name);
 
 		for (BarzelEvalResultVec::const_iterator ri = rvec.begin();
 								ri != rvec.end(); ++ri)
 			if (!boost::apply_visitor(ep, ri->getBeadData())) return false;
 
-		/*AYLOG(DEBUG) << "making entity (" << ep.tokId << ","
-										  << ep.cl << ","
-										  << ep.scl << ")"; //*/
 		const StoredEntityUniqId euid(ep.tokId, ep.cl, ep.scl);
 		setResult(result, euid);
 		return true;
@@ -808,8 +820,12 @@ struct BELFunctionStorage_holder {
 	// can also merge with another ERC
 	struct ERCPacker : public boost::static_visitor<bool> {
 		uint8_t num;
+        const char* d_funcName;
+        BarzelEvalContext& d_ctxt;
+
 		BarzerEntityRangeCombo &erc;
-		ERCPacker(BarzerEntityRangeCombo &e) : num(0), erc(e) {}
+		ERCPacker(BarzerEntityRangeCombo &e, BarzelEvalContext& ctxt, const char* funcName ) : 
+            num(0), d_funcName(funcName), d_ctxt(ctxt), erc(e) {}
 
 		bool operator()(const BarzerEntityList &el) {
 			return (*this)(el.getList().front());
@@ -835,7 +851,6 @@ struct BELFunctionStorage_holder {
 
 				BarzerRange &l = erc.getRange();
 				if (l.isBlank()) {
-					//AYLOG(DEBUG) << "blank";
 					erc.setRange(other.getRange());
 					return true;
 				} else return mergeRanges(l, other.getRange());
@@ -855,7 +870,7 @@ struct BELFunctionStorage_holder {
 		}
 		// not applicable
 		template<class T> bool operator()(const T& v) {
-			AYLOG(ERROR) << "ERCPacker: Wrong argument type";
+            pushFuncError(d_ctxt, d_funcName, "Wrong argument type in ERCPacker" );
 			return false;
 		}
 
@@ -865,13 +880,15 @@ struct BELFunctionStorage_holder {
 	{
 		//AYLOGDEBUG(rvec.size());
 		//AYLOG(DEBUG) << rvec[0].getBeadData().which();
+        SETFUNCNAME(mkERC);
+
 		BarzerEntityRangeCombo erc;
-		ERCPacker v(erc);
+		ERCPacker v(erc,ctxt,func_name);
 		for (BarzelEvalResultVec::const_iterator ri = rvec.begin();
 						ri != rvec.end(); ++ri)
 			if (!boost::apply_visitor(v, ri->getBeadData())) {
-					AYLOG(DEBUG) << "fail. type: " << ri->getBeadData().which();
-						return false;
+                    FERROR("ERC failed");
+                    return false;
 			}
 
 		setResult(result, erc);
@@ -881,7 +898,12 @@ struct BELFunctionStorage_holder {
 	struct ErcExprPacker : public boost::static_visitor<bool> {
 		BarzerERCExpr expr;
 		GlobalPools &gpools;
-		ErcExprPacker(GlobalPools &gp) : gpools(gp) {}
+        const char* d_funcName;
+        BarzelEvalContext& d_ctxt;
+		ErcExprPacker(GlobalPools &gp, BarzelEvalContext& ctxt, const char* funcName ) : 
+            gpools(gp), d_funcName(funcName), d_ctxt(ctxt) 
+        {}
+
 
 		bool operator()(const BarzerLiteral &ltrl) {
 			ay::UniqueCharPool &sp = gpools.stringPool;
@@ -892,8 +914,14 @@ struct BELFunctionStorage_holder {
 				//AYLOG(DEBUG) << "OR";
 				expr.setType(BarzerERCExpr::T_LOGIC_OR);
 			} else {
-				AYLOG(ERROR) << "mkErcExpr(Literal,ERC,ERC ...):"
+
+                std::stringstream sstr;
+				sstr << "mkErcExpr(Literal,ERC,ERC ...):"
 							 << "Unknown literal: " << sp.resolveId(ltrl.getId());
+
+                pushFuncError(d_ctxt, d_funcName, sstr.str().c_str() );
+				// AYLOG(ERROR) << "mkErcExpr(Literal,ERC,ERC ...):"
+							 // << "Unknown literal: " << sp.resolveId(ltrl.getId());
 				return false;
 			}
 			return true;
@@ -907,19 +935,21 @@ struct BELFunctionStorage_holder {
 		}
 		// not applicable
 		template<class T> bool operator()(const T& v) {
-			AYLOG(ERROR) << "mkErcExpr(Literal,ERC,ERC ...): Type mismatch";
+            pushFuncError(d_ctxt, d_funcName, "Type mismatch" );
+			// AYLOG(ERROR) << "mkErcExpr(Literal,ERC,ERC ...): Type mismatch";
 			return false;
 		}
 	};
 
 	STFUN(mkErcExpr)
 	{
+        SETFUNCNAME(mkErcExpr);
 		if (rvec.size() < 3) {
-			AYLOG(ERROR) << "mkErcExpr(Literal,ERC,ERC ...): needs at least 3 arguments";
+            FERROR("needs at least 3 arguments");
 			return false;
 		}
 
-		ErcExprPacker p(gpools);
+		ErcExprPacker p(gpools,ctxt,func_name);
 
 		for(BarzelEvalResultVec::const_iterator it = rvec.begin();
 											    it != rvec.end(); ++it) {
@@ -931,14 +961,16 @@ struct BELFunctionStorage_holder {
 
 	STFUN(mkLtrl)
 	{
+        SETFUNCNAME(mkErcExpr);
 		if (!rvec.size()) {
-			AYLOG(ERROR) << "Need an argument";
+            FERROR("Argument is required");
 			return false;
 		}
 
 		const char* str = extractString(gpools, rvec[0]);
 		if (!str) {
-			AYLOG(ERROR) << "Need a string";
+			// AYLOG(ERROR) << "Need a string";
+            FERROR("Need a string");
 			return false;
 		}
 
@@ -947,12 +979,13 @@ struct BELFunctionStorage_holder {
 		lt.setString(id);
 
 		setResult(result, lt);
-		return true; //*/
+		return true; 
 	}
 
 	// set "stop" type on the incoming literal.
 	STFUN(mkFluff)
 	{
+        SETFUNCNAME(mkFluff);
 		try {
 			BarzerLiteral &ltrl = setResult(result, BarzerLiteral());
 			ltrl.setStop();
@@ -970,19 +1003,23 @@ struct BELFunctionStorage_holder {
 					}
 				}
 			}
-			return true;
 		} catch (boost::bad_get&) {
-			AYLOG(ERROR) << "mkFluff(BarzerLiteral): Wrong argument type";
-			return false;
+			// AYLOG(ERROR) << "mkFluff(BarzerLiteral): Wrong argument type";
+            FERROR("Wrong argument type");
 		}
+	    return true;
 	}
 
 	struct ExprTagPacker : public boost::static_visitor<bool> {
+        const char* d_funcName;
 		BarzelBeadExpression &expr;
-		ExprTagPacker(BarzelBeadExpression &e) : expr(e) {}
+        BarzelEvalContext& d_ctxt;
+
+		ExprTagPacker(BarzelBeadExpression &e,BarzelEvalContext& ctxt, const char* funcName ) : d_funcName(funcName), expr(e), d_ctxt(ctxt) {}
 
 		bool operator()(const BarzelBeadBlank&) {
-			AYLOG(ERROR) << "BarzelBeadBlank encountered";
+			// AYLOG(ERROR) << "BarzelBeadBlank encountered";
+            pushFuncError(d_ctxt, d_funcName, "Blank encountered" );
 			return false;
 		}
 
@@ -993,13 +1030,14 @@ struct BELFunctionStorage_holder {
 	};
 
 	STFUN(mkExprTag) {
+        SETFUNCNAME(mkExprTag);
 		if (rvec.size()) {
 			try {
 				// to avoid too much copying
 				result.setBeadData(BarzelBeadExpression());
 				BarzelBeadExpression &expr
 					= boost::get<BarzelBeadExpression>(result.getBeadData());
-				ExprTagPacker etp(expr);
+				ExprTagPacker etp(expr,ctxt,func_name);
 
 				expr.setSid(getAtomic<BarzerLiteral>(rvec[0]).getId());
 				for (BarzelEvalResultVec::const_iterator it = rvec.begin()+1;
@@ -1009,7 +1047,7 @@ struct BELFunctionStorage_holder {
 				}
 				return true;
 			} catch (boost::bad_get) {
-				AYLOG(ERROR) << "Type mismatch";
+                FERROR("Type Mismatch");
 			}
 		}
 		return false;
@@ -1017,6 +1055,7 @@ struct BELFunctionStorage_holder {
 
 	#define GETID(x) getAtomic<BarzerLiteral>(x).getId()
 	STFUN(mkExprAttrs) {
+        SETFUNCNAME(mkExprAttrs);
 		if (rvec.size()) {
 			try {
 				result.setBeadData(BarzelBeadExpression());
@@ -1030,9 +1069,11 @@ struct BELFunctionStorage_holder {
 					expr.addAttribute( GETID(rvec[i]), GETID(rvec[i+1]) );
 				return true;
 			} catch (boost::bad_get) {
-				AYLOG(ERROR) << "Type mismatch";
+				FERROR("Type mismatch");
+                return false;
 			}
 		}
+        FERROR("Blank");
 		return false;
 	}
 	#undef GETID
@@ -1040,6 +1081,7 @@ struct BELFunctionStorage_holder {
 	// getters
 
 	STFUN(getWeekday) {
+        SETFUNCNAME(getWeekday);
 		BarzerDate bd;
 		try {
             if (rvec.size())
@@ -1050,12 +1092,13 @@ struct BELFunctionStorage_holder {
             setResult(result, n);
             return true;
 		} catch (boost::bad_get) {
-		    AYLOG(ERROR) << "getWeekday(Date): wrong argument type";
+            FERROR("wrong argument type, date expected");
 		}
 		return false;
 	}
 
 	STFUN(getMDay) {
+        SETFUNCNAME(getMDay);
 		BarzerDate bd;
 		try {
             if (rvec.size())
@@ -1064,12 +1107,13 @@ struct BELFunctionStorage_holder {
             setResult(result, BarzerNumber(bd.day));
             return true;
 		} catch (boost::bad_get) {
-            AYLOG(ERROR) << "getMDay(Date): wrong argument type";
+            FERROR("wrong argument type");
         }
 		return false;
 	}
 
     STFUN(setMDay) {
+        SETFUNCNAME(setMDay);
         BarzerDate bd;
         BarzerNumber n;
         try {
@@ -1084,12 +1128,14 @@ struct BELFunctionStorage_holder {
             setResult(result, bd);
             return true;
         } catch (boost::bad_get) {
-            AYLOG(ERROR) << "setMDay(Date, Number): wrong argument type";
+            FERROR("wrong argument type");
+            setResult(result, bd);
         }
-        return false;
+        return true;
     }
 
 	STFUN(getYear) {
+        SETFUNCNAME(getYear);
 		BarzerDate bd;
 		try {
             if (rvec.size())
@@ -1098,15 +1144,21 @@ struct BELFunctionStorage_holder {
             setResult(result, BarzerNumber(bd.year));
             return true;
 		} catch (boost::bad_get) {
-            AYLOG(ERROR) << "getYear(Date): wrong argument type";
+            FERROR("wrong argument type");
+            setResult(result,BarzerNumber(0));
+            return true;
         }
-		return false;
 	}
 
 	struct TokIdGetter : boost::static_visitor<bool> {
 		const StoredUniverse &universe;
 		uint32_t tokId;
-		TokIdGetter(const StoredUniverse &u) : universe(u), tokId(0) {}
+        const char* d_funcName;
+        BarzelEvalContext& d_ctxt;
+
+		TokIdGetter(const StoredUniverse &u, BarzelEvalContext& ctxt, const char* funcName) : 
+            universe(u), tokId(0) , d_funcName(funcName), d_ctxt(ctxt)
+        {}
 
 		bool operator()(const BarzerLiteral &dt) {
 			return ((tokId = getTokId(dt, universe)));
@@ -1117,18 +1169,20 @@ struct BELFunctionStorage_holder {
 		}
 		// not applicable
 		template<class T> bool operator()(const T&) {
-			AYLOG(ERROR) << "getTokId(BarzerLiteral|BarzerEntity): Type mismatch";
+            pushFuncError(d_ctxt, d_funcName, "Type mismatch" );
+
 			return false;
 		}
 	};
 
 	STFUN(getTokId)
 	{
+        SETFUNCNAME(getTokId);
 		if (!rvec.size()) {
-			AYLOG(ERROR) << "getTokId(BarzerLiteral|BarzerEntity) needs an argument";
+            FERROR("needs an argument");
 			return false;
 		}
-		TokIdGetter tig(q_universe);
+		TokIdGetter tig(q_universe,ctxt,func_name);
 		boost::apply_visitor(tig, rvec[0].getBeadData());
 		setResult(result, BarzerNumber((int)tig.tokId));
 		return true;
@@ -1137,7 +1191,12 @@ struct BELFunctionStorage_holder {
 	struct RangeGetter : public boost::static_visitor<bool> {
 		BarzelEvalResult &result;
 		uint8_t pos;
-		RangeGetter(BarzelEvalResult &r, uint8_t p = 0) : result(r), pos(p) {}
+        const char* d_funcName;
+        BarzelEvalContext& d_ctxt;
+
+		RangeGetter(BarzelEvalResult &r, uint8_t p, BarzelEvalContext& ctxt, const char* funcName ) : 
+            result(r), pos(p), d_funcName(funcName),d_ctxt(ctxt) 
+        {}
 
 
 		bool set(const BarzerNone) { return false; }
@@ -1171,7 +1230,7 @@ struct BELFunctionStorage_holder {
 			{ return boost::apply_visitor(*this, data.getData()); }
 		// not applicable
 		template<class T> bool operator()(const T&) {
-			AYLOG(ERROR) << "Type mismatch";
+            pushFuncError(d_ctxt, d_funcName, "Type mismatch" );
 			return false;
 		}
 
@@ -1179,24 +1238,28 @@ struct BELFunctionStorage_holder {
 
 	STFUN(getLow)
 	{
-		SETSIG(getLow(BarzerRange));
-		RangeGetter rg(result, 0);
+		// SETSIG(getLow(BarzerRange));
+        SETFUNCNAME(getLow);
+
+		RangeGetter rg(result, 0,ctxt,func_name);
 		if (rvec.size()) {
 			return boost::apply_visitor(rg, rvec[0].getBeadData());
 		} else {
-			FERROR(Expected at least 1 argument);
+			FERROR("Expected at least 1 argument");
 		}
 		return false;
 	}
 
 	STFUN(getHigh)
 	{
-		SETSIG(getLow(BarzerRange));
-		RangeGetter rg(result, 1);
+		// SETSIG(getLow(BarzerRange));
+        SETFUNCNAME(getHigh);
+
+		RangeGetter rg(result, 1,ctxt,func_name);
 		if (rvec.size()) {
 			return boost::apply_visitor(rg, rvec[0].getBeadData());
 		} else {
-			FERROR(Expected at least 1 argument);
+			FERROR("Expected at least 1 argument");
 		}
 		return false;
 	}
@@ -1205,6 +1268,7 @@ struct BELFunctionStorage_holder {
 
 	STFUN(opPlus)
 	{
+        // SETFUNCNAME(opPlus);
 		BarzerNumber bn(0);
 		ArithVisitor<plus> visitor(bn);
 
@@ -1218,6 +1282,7 @@ struct BELFunctionStorage_holder {
 
 	STFUN(opMinus)
 	{
+        SETFUNCNAME(opMinus);
 		BarzerNumber &bn = setResult(result, BarzerNumber()); // NaN
 
 		try {
@@ -1233,7 +1298,7 @@ struct BELFunctionStorage_holder {
                 return true;
 		    }
 		} catch (boost::bad_get) {
-		    AYLOG(ERROR) << "opMinus(): Wrong arguments type";
+            FERROR("Wrong argument types");
 		}
 		//setResult(result, bn); // most likely NaN if something went wrong
 		return false;
@@ -1241,6 +1306,7 @@ struct BELFunctionStorage_holder {
 
 	STFUN(opMult)
 	{
+        // SETFUNCNAME(opMult);
 		BarzerNumber bn(1);
 		ArithVisitor<mult> visitor(bn);
 
@@ -1254,6 +1320,7 @@ struct BELFunctionStorage_holder {
 
 	STFUN(opDiv) // no checks for division by zero yet
 	{
+        SETFUNCNAME(opDiv);
 		BarzerNumber &bn = setResult(result, BarzerNumber()); // NaN
 		try {
             if (rvec.size()) {
@@ -1268,7 +1335,7 @@ struct BELFunctionStorage_holder {
                 return true;
             }
 		} catch (boost::bad_get) {
-		    AYLOG(ERROR) << "opDiv(): Wrong arguments type";
+            FERROR("Wrong argument types");
 		}
 		//setResult(result, bn); // most likely NaN if something went wrong
 		return false;
@@ -1282,8 +1349,7 @@ struct BELFunctionStorage_holder {
 
 	STFUN(opAnd) // stfunc_opAnd(&result, &rvec)
 	{
-//		AYLOG(DEBUG) << "opAnd called";
-//		AYLOGDEBUG(rvec.size());
+        // SETFUNCNAME(opAnd);
 		if (rvec.size()) {
 			BarzelEvalResultVec::const_iterator ri = rvec.begin();
 			do {
@@ -1291,7 +1357,6 @@ struct BELFunctionStorage_holder {
 			} while (ri != rvec.end());
 			result.setBeadData((--ri)->getBeadData());
 		} else {
-			//AYLOG(DEBUG) << "setting blank";
 			BarzelBeadBlank blank;
 			result.setBeadData(blank);
 		}
@@ -1300,8 +1365,7 @@ struct BELFunctionStorage_holder {
 
 	STFUN(opOr)
 	{
-		//	AYLOG(DEBUG) << "opOr called";
-		//	AYLOGDEBUG(rvec.size());
+        // SETFUNCNAME(opOr);
 		if (rvec.size()) {
 			BarzelEvalResultVec::const_iterator ri = rvec.begin();
 			do {
@@ -1309,7 +1373,6 @@ struct BELFunctionStorage_holder {
 			} while (ri != rvec.end());
 			result.setBeadData((--ri)->getBeadData());
 		} else {
-			//AYLOG(DEBUG) << "setting blank";
 			BarzelBeadBlank blank;
 			result.setBeadData(blank);
 		}
@@ -1317,13 +1380,15 @@ struct BELFunctionStorage_holder {
 	}
 
 	STFUN(opSelect) {
+        SETFUNCNAME(opOr);
+
 		if (rvec.size() < 3) {
-			AYLOG(ERROR) << "opSelect: need at least 3 arguments";
+            FERROR("need at least 3 arguments");
 			return false;
 		}
 
 		if (!(rvec.size() & 1)) {
-			AYLOG(ERROR) << "opSelect: need an odd amount of arguments";
+			FERROR("opSelect: need an odd amount of arguments");
 		}
 
 		const BarzelBeadData &var = rvec[0].getBeadData();
@@ -1335,14 +1400,17 @@ struct BELFunctionStorage_holder {
 			if (beadsEqual(var, rec)) {
 				result.setBeadData((it+1)->getBeadData());
 				return true;
-			} //*/
+			}
 		}
 		return false;
 	}
 
 	// should make this more generic
-	template<class T> bool cmpr(BarzelEvalResult &result,
-	                       const BarzelEvalResultVec &rvec) const
+	template<class T> bool cmpr(
+             BarzelEvalResult &result,
+       const BarzelEvalResultVec &rvec,
+       BarzelEvalContext& ctxt,
+       const char* func_name ) const
 	{
 	    T op;
 	    try {
@@ -1371,21 +1439,23 @@ struct BELFunctionStorage_holder {
                     }
                 }
                 setResult(result, cont);
-                return true;
 	        } else {
-	            AYLOG(DEBUG) << "Need at least 2 arguments";
+                FERROR("Need at least 2 arguments");
+                setResult(result, false);
 	        }
 	    } catch (boost::bad_get) {
-            AYLOG(DEBUG) << "Trying to compare values of non-number type";
+            FERROR("Trying to compare non-numerics");
+            setResult(result, false);
         }
-	    return false;
+	    return true;
 	}
 
-	STFUN(opLt) { return cmpr<lt>(result, rvec); }
-	STFUN(opGt)	{ return cmpr<gt>(result, rvec); }
+	STFUN(opLt) { SETFUNCNAME(opLt); return cmpr<lt>(result, rvec,ctxt,func_name); }
+	STFUN(opGt)	{ SETFUNCNAME(opGt); return cmpr<gt>(result, rvec,ctxt,func_name); }
 
 	STFUN(opEq)
 	{
+        SETFUNCNAME(opEq);
 		if (rvec.size() >= 2) {
 		    BarzelEvalResultVec::const_iterator end = rvec.end(),
 		                                        it = rvec.begin()+1;
@@ -1396,16 +1466,17 @@ struct BELFunctionStorage_holder {
 		        }
 		    }
 		    setResult(result, true);
-		    return true;
 		} else {
-		    AYLOG(DEBUG) << "opEq: need at least 2 arguments";
+            FERROR("need at least 2 arguments");
+		    setResult(result, true);
 		}
-		return false;
+		return true;
 	}
 
 	STFUN(opDateCalc)
 	{
-		const char *sig = "opDateCalc(Date ,Number[, Number[, Number]]):";
+        SETFUNCNAME(opDateCalc);
+		// const char *sig = "opDateCalc(Date ,Number[, Number[, Number]]):";
 		try {
 
 			int month = 0, year = 0, day = 0;
@@ -1422,10 +1493,11 @@ struct BELFunctionStorage_holder {
 				setResult(result, c.d_date);
 				return true;
 			}
-			default: AYLOG(ERROR) << sig << " Need 2-4 arguments";
+			default: 
+                FERROR("Need 2-4 arguments" );
 			}
 		} catch (boost::bad_get) {
-			AYLOG(ERROR) << sig << " type mismatch";
+            FERROR("Type mismatch");
 		}
 		return false;
 	}
@@ -1433,8 +1505,9 @@ struct BELFunctionStorage_holder {
 
 	// string
 	STFUN(strConcat) { // strfun_strConcat(&result, &rvec)
+        SETFUNCNAME(strConcat);
 		if (rvec.size()) {
-			StrConcatVisitor scv(gpools);
+			StrConcatVisitor scv(gpools,ctxt,func_name);
 			for (BarzelEvalResultVec::const_iterator ri = rvec.begin();
 													 ri != rvec.end(); ++ri) {
 				if (!boost::apply_visitor(scv, ri->getBeadData())) return false;
@@ -1502,9 +1575,11 @@ struct BELFunctionStorage_holder {
 
 	STFUN(filterEList) // (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
 	{
+        SETFUNCNAME(filterEList);
 		//static const char *sig =
 		//	"filterEList(BarzerEntityList, BarzerNumber, [BarzerNumber, [BarzerNumber]])";
-		SETSIG(filterEList(BarzerEntityList, BarzerNumber, [BarzerNumber, [BarzerNumber]]));
+		// SETSIG(filterEList(BarzerEntityList, BarzerNumber, [BarzerNumber, [BarzerNumber]]));
+
 		BarzerEntityList outlst;
 		const BarzerEntityList::EList lst = getAtomic<BarzerEntityList>(rvec[0]).getList();
 		uint32_t cl = 0, scl = 0, id = 0;
@@ -1529,10 +1604,10 @@ struct BELFunctionStorage_holder {
 				setResult(result, outlst);
 				return true;
 			default:
-				AYLOG(ERROR) << sig << " Need at least 2 arguments";
+				FERROR( "Need at least 2 arguments" );
 			}
 		} catch (boost::bad_get) {
-			AYLOG(ERROR) << sig << ": Type mismatch";
+			FERROR( "Type mismatch" );
 		}
 		return false;
 	}
@@ -1555,10 +1630,11 @@ bool BELFunctionStorage::call(BarzelEvalContext& ctxt, const char *fname, Barzel
 		                                   const BarzelEvalResultVec &ervec,
 		                                   const StoredUniverse &u) const
 {
-	//AYLOG(DEBUG) << "calling function name `" << fname << "'";
 	const uint32_t fid = globPools.stringPool.getId(fname);
 	if (fid == ay::UniqueCharPool::ID_NOTFOUND) {
-		AYLOG(ERROR) << "No such function name: `" << fname << "'";
+		std::stringstream strstr;
+		strstr << "No such function name: `" << fname << "'";
+        pushFuncError(ctxt, "", strstr.str().c_str() );
 		return false;
 	}
 	return call(ctxt,fid, er, ervec, u);
@@ -1568,10 +1644,11 @@ bool BELFunctionStorage::call(BarzelEvalContext& ctxt, const uint32_t fid, Barze
 									              const BarzelEvalResultVec &ervec,
 									              const StoredUniverse &u) const
 {
-	//AYLOG(DEBUG) << "calling function id `" << fid << "'";
 	const BELStoredFunMap::const_iterator frec = holder->funmap.find(fid);
 	if (frec == holder->funmap.end()) {
-		AYLOG(ERROR) << "No such function id: " << fid;
+		std::stringstream strstr;
+        strstr << "No such function id: " << fid;
+        pushFuncError(ctxt, "", strstr.str().c_str() );
 		return false;
 	}
 	return frec->second(holder, er, ervec, u, ctxt);

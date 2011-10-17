@@ -189,6 +189,15 @@ struct BarzelEvalContext {
 	BarzelEvalContext( BarzelMatchInfo& mi, const StoredUniverse& uni, const BELTrie& trie, Barz& barz ) : 
 		matchInfo(mi), universe(uni) , d_trie(trie),err(EVALERR_OK), d_barz(barz)
 	{}
+    BarzelEvalContext& pushBarzelError( const char* err ) ; 
+private:
+    BarzelEvalContext( const BarzelEvalContext& x ) :   
+	    matchInfo(x.matchInfo),
+	    universe(x.universe),
+	    d_trie(x.d_trie),
+	    err( x.err ),
+        d_barz( x.d_barz )
+    {}
 };
 
 class BarzelEvalNode {
