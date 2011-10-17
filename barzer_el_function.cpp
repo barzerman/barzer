@@ -24,7 +24,7 @@ namespace {
     void pushFuncError( BarzelEvalContext& ctxt, const char* funcName, const char* error, const char* sig=0 )
     {
         std::stringstream ss; 
-        ss << "<funcerr func=\"" << ( funcName ? funcName: "" ) << "/>" << ( error ? error: "" ) ;
+        ss << "<funcerr func=\"" << ( funcName ? funcName: "" ) << "\">" << ( error ? error: "" ) ;
         if( sig ) {
             ss << "<sig>" << sig << "</sig>";
         }
