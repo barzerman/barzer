@@ -203,6 +203,9 @@ public:
 	const StoredToken& getStoredTokenById( StoredTokenId id ) const
 		{ return tokPool.getTokById(id); }
 
+	const StoredToken* getStoredTokenPtrById( StoredTokenId id ) const
+		{ return tokPool.getTokByIdSafe(id); }
+
 
 	/// reads token, eclass, subclass from stream and constructs Euid if and only iff
 	/// all three could be read and the token could be resolved

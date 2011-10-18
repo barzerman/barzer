@@ -66,6 +66,21 @@ template<class T> const T& getAtomic(const BarzelBeadData &dta) {
 			boost::get<BarzelBeadAtomic>(dta).getData());
 }
 
+template<class T> const T* getAtomicPtr(const BarzelBeadData &dta) 
+{
+    if( is_BarzelBeadAtomic(dta) ) {
+        const BarzelBeadAtomic& atomic = boost::get<BarzelBeadAtomic>(dta);
+        const BarzelBeadAtomic_var& atDta = atomic.getData();
+
+        return boost::get<T>( &atDta );
+    } else 
+        return 0;
+}
+template<class T> const T* getAtomicPtr(const BarzelEvalResult &res) 
+{
+    return getAtomicPtr<T>( res.getBeadData() );
+}
+
 template<class T> const BarzerNumber& getNumber(const T &v)
 { 
     return getAtomic<BarzerNumber>(v); 
@@ -244,7 +259,6 @@ uint32_t getTokId(const char* tokStr, const StoredUniverse &u)
 
 uint32_t getTokId(const BarzerLiteral &l, const StoredUniverse &u)
 {
-	const DtaIndex dtaIdx = u.getDtaIdx();
 	const char *tokStr = u.getStringPool().resolveId(l.getId());
 
 	if (!tokStr) {
@@ -315,6 +329,12 @@ struct BELFunctionStorage_holder {
 
 		// --
 		ADDFN(filterEList); // (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
+        
+        // ent properties 
+		ADDFN(entClass); // (Entity)
+		ADDFN(entSubclass); // (Entity)
+		ADDFN(entId); // (Entity)
+		ADDFN(entSetSubclass); // (Entity,new subclass)
 	}
 	#undef ADDFN
 
@@ -767,7 +787,7 @@ struct BELFunctionStorage_holder {
 	struct EntityPacker : public boost::static_visitor<bool> {
 		//const char *tokStr;
 		uint32_t cnt, tokId;
-		uint16_t cl, scl;
+		uint32_t cl, scl;
 		//const BELFunctionStorage_holder &holder;
         const char* d_funcName;
 		const StoredUniverse &universe;
@@ -782,7 +802,7 @@ struct BELFunctionStorage_holder {
 			return (tokId = getTokId(ltrl, universe));
 		}
 		bool operator()(const BarzerNumber &rnum) {
-			uint16_t ui = (uint16_t) rnum.getInt();
+			uint32_t ui = (uint32_t) rnum.getInt();
 			if(cnt++) {
 				scl = ui;
 			} else {
@@ -1174,6 +1194,78 @@ struct BELFunctionStorage_holder {
 			return false;
 		}
 	};
+
+	STFUN(entId)
+    {
+        SETFUNCNAME(entClass);
+
+        uint32_t stringId = 0xffffffff;
+        if( rvec.size() ) {
+            const BarzerEntity* ent  = getAtomicPtr<BarzerEntity>(rvec[0]);
+            if( !ent ) {
+                FERROR("entity expected");
+            } else {
+	            const StoredToken *tok = q_universe.getDtaIdx().getStoredTokenPtrById(ent->tokId);
+                if( tok ) 
+                    stringId = tok->stringId;
+            }
+        }
+
+        setResult(result, BarzerLiteral(stringId) );
+        return true;
+    }
+	STFUN(entClass)
+    {
+        SETFUNCNAME(entClass);
+        uint32_t entClass = 0;
+        if( !rvec.size() ) {
+            entClass = q_universe.getEntClass() ;
+        } else {
+            const BarzerEntity* ent  = getAtomicPtr<BarzerEntity>(rvec[0]);
+            if( !ent ) {
+                FERROR("entity expected");
+            } else
+                entClass = ent->eclass.ec;
+        }
+
+        setResult(result, BarzerNumber(entClass) );
+        return true;
+    }
+	STFUN(entSetSubclass)
+    {
+        SETFUNCNAME(entSetSubclass);
+        const BarzerEntity* ent  = ( rvec.size()>= 2 ? getAtomicPtr<BarzerEntity>(rvec[0]) : 0 );
+        if( !ent ) {
+            FERROR( "expected args: entity, new subclass" );
+            return false;
+        }
+        const BarzerNumber* num = getAtomicPtr<BarzerNumber>(rvec[1]);
+        setResult(result, 
+            BarzerEntity(
+                ent->tokId,
+                ent->eclass.ec,
+                (num? num->getInt():0) 
+            )
+        );
+        return true; 
+    }
+	STFUN(entSubclass)
+    {
+        SETFUNCNAME(entSubclass);
+        if( !rvec.size() ) {
+            FERROR( "entity missing" );
+            return false;
+        }
+        const BarzerEntity* ent  = getAtomicPtr<BarzerEntity>(rvec[0]);
+        if( ent ) {
+            setResult(result, BarzerNumber(ent->eclass.subclass));
+        } else {
+            FERROR("wrong argument: entity expected");
+            setResult(result, BarzerNumber() );
+        }
+
+        return true;
+    }
 
 	STFUN(getTokId)
 	{

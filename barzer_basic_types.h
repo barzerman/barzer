@@ -272,6 +272,8 @@ public:
 		theId(0xffffffff),
 		type(T_STRING)
 	{}
+    BarzerLiteral( uint32_t id ) : theId(id), type(T_STRING) {}
+    BarzerLiteral( uint32_t id, uint8_t t ) : theId(id), type(t) {}
 
 	/// never returns 0, type should be one of the T_XXX constants
 	static const char* getTypeName(int t);

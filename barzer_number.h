@@ -28,11 +28,17 @@ public:
 
 	BarzerNumber() 				: type(NTYPE_NAN), d_asciiLen(0) {n.i = 0;}
 	BarzerNumber( int i ) 		: type(NTYPE_INT), d_asciiLen(0) {n.i = i;}
+	BarzerNumber( uint32_t i ) 		: type(NTYPE_INT), d_asciiLen(0) {n.i = i;}
+	BarzerNumber( uint16_t i ) 		: type(NTYPE_INT), d_asciiLen(0) {n.i = i;}
+	BarzerNumber( uint8_t i ) 		: type(NTYPE_INT), d_asciiLen(0) {n.i = i;}
 	BarzerNumber( int64_t i ) 		: type(NTYPE_INT), d_asciiLen(0) {n.i = i;}
 	BarzerNumber( double i ) 	: type(NTYPE_REAL), d_asciiLen(0) {n.real = i;}
 
 	void set( int i ) { type= NTYPE_INT; n.i = i; }
 	void set( int64_t i ) { type= NTYPE_INT; n.i = i; }
+	void set( uint32_t i ) { type= NTYPE_INT; n.i = i; }
+	void set( uint16_t i ) { type= NTYPE_INT; n.i = i; }
+	void set( uint8_t i ) { type= NTYPE_INT; n.i = i; }
 	void set( double x ) { type= NTYPE_REAL; n.real = x; }
 
 	void clear() { type = NTYPE_NAN; }

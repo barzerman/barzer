@@ -159,6 +159,8 @@ enum {
 	BarzelBeadExpression_TYPE
 };
 
+inline bool is_BarzelBeadAtomic( const BarzelBeadData& dta ) { return dta.which() == BarzelBeadAtomic_TYPE; }
+
 /// this class when implemented will keep matching trace information structured as a tree 
 /// to reflect the matching process
 struct BarzelBeadTraceInfo {

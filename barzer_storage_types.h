@@ -215,6 +215,10 @@ struct StoredEntity {
 	
 	const StoredEntityUniqId& getEuid() const { return euid; }
 	const StoredEntityClass& getEclass() const { return euid.eclass; }
+
+    uint32_t getClass() const { return euid.eclass.ec; }
+    uint32_t getSubclass() const { return euid.eclass.subclass; }
+
 	void print( std::ostream& ) const;
 };
 inline std::ostream& operator <<( std::ostream& fp, const StoredEntity& e )
