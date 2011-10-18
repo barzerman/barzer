@@ -623,9 +623,6 @@ std::ostream& BTND_Pattern_Entity::printXML( std::ostream& fp, const GlobalPools
 	if( d_ent.eclass.subclass ) {
 		fp << " s=\"" << d_ent.eclass.subclass << "\"";
 	}
-	if( d_ent.eclass.subclass ) {
-		fp << " s=\"" << d_ent.eclass.subclass << "\"";
-	}
 	if( d_ent.tokId != 0xffffffff ) {
 		fp << " t=\"" << gp.decodeStringById_safe( d_ent.tokId )   << "\"";
 	}

@@ -296,7 +296,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(mkERC);
 		ADDFN(mkErcExpr);
 		ADDFN(mkFluff);
-		ADDFN(mkLtrl);
+		// ADDFN(mkLtrl);
 		ADDFN(mkExprTag);
 		ADDFN(mkExprAttrs);
 
@@ -329,6 +329,7 @@ struct BELFunctionStorage_holder {
 
 		// --
 		ADDFN(filterEList); // (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
+		ADDFN(mkEntList); // (BarzerEntity, ..., BarzerEntity) will also accept BarzerEntityList
         
         // ent properties 
 		ADDFN(entClass); // (Entity)
@@ -1665,6 +1666,41 @@ struct BELFunctionStorage_holder {
 		{ return ent.tokId == id && checkSC(ent, cl, scl); }
 
 
+	STFUN(mkEntList) // (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
+    {
+        SETFUNCNAME(mkEntList);
+        BarzerEntityList outlst;
+
+        bool outlistClassSet = false;
+        for( BarzelEvalResultVec::const_iterator i = rvec.begin(); i != rvec.end(); ++i ) {
+            const BarzerEntity* ent  = getAtomicPtr<BarzerEntity>(*i);
+            if( !ent ) { // there's a non-entity in our list 
+                const BarzerEntityList* entLst = getAtomicPtr<BarzerEntityList>(*i);
+                if( entLst ) {
+                    const BarzerEntityList::EList& theEList = entLst->getList();
+                    for( BarzerEntityList::EList::const_iterator ei = theEList.begin(); ei != theEList.end(); ++ei ) {
+                        outlst.addEntity(*ei);
+                        if( !outlistClassSet ) {
+                            outlistClassSet = true;
+                            outlst.setClass( ei->getClass() );
+                        }
+                    }
+                } else {
+                    std::stringstream sstr;
+                    sstr << "Parameter #" << ( i - rvec.begin() ) << " ignored - it's not an entity\n";
+                    FERROR( sstr.str().c_str() );
+                }
+            } else {
+                outlst.addEntity(*ent);
+                if( !outlistClassSet ) {
+                    outlistClassSet = true;
+                    outlst.setClass( ent->getClass() );
+                }
+            }
+        }
+        setResult(result, outlst);
+        return true;
+    }
 	STFUN(filterEList) // (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
 	{
         SETFUNCNAME(filterEList);

@@ -299,8 +299,6 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		const BarzelWildcardPool& wcPool = d_trie.getWildcardPool();
 
 		for( ; i!= fcmap.end() && i->first.type == patternTypeId; ++i ) {
-			/// we're looping over all date wildcards on the current node 
-			/// extracting the actual wildcard 
 			if( i->first.id == 0xffffffff ) {
 				const BarzelTrieNode* ch = &(i->second);
 				BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);

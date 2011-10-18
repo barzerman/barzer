@@ -77,6 +77,8 @@ struct StoredEntityUniqId {
 
 	bool matchOther( const StoredEntityUniqId& other, bool matchInvalid ) const
 		{ return( eclass.matchOther( other.eclass ) && (tokId == other.tokId || !(matchInvalid || isTokIdValid()) ) ); }
+
+    const StoredEntityClass& getClass()  const { return eclass; }
 };
 inline std::ostream& operator <<(std::ostream& fp, const StoredEntityUniqId& x )
 {
@@ -109,6 +111,8 @@ private:
 	StoredEntityClass d_class;
 	
 public:
+    void setClass( const StoredEntityClass& cl ) 
+        { d_class = cl; }
 	struct comp_ent_less {
 		bool operator() ( const BarzerEntity& l, const BarzerEntity& r ) const 
 			{ return ay::range_comp().less_than( l.eclass, r.tokId, r.eclass, l.tokId); }
