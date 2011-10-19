@@ -372,7 +372,7 @@ struct BELFunctionStorage_holder {
 	}
 	STFUN(text2Num) {
         SETFUNCNAME(text2Num);
-        int langId = 0; // language id . 0 means english ...
+        int langId = 0; // language id . 0 means english 
         ay::char_cp_vec tok;  
 
         BarzerNumber bn;
