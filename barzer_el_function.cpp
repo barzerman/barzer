@@ -310,7 +310,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(getLow); // (BarzerRange)
 		ADDFN(getHigh); // (BarzerRange)
 		// arith
-		ADDFN(text2Num);
+		ADDFN(textToNum);
 		ADDFN(opPlus);
 		ADDFN(opMinus);
 		ADDFN(opMult);
@@ -370,7 +370,7 @@ struct BELFunctionStorage_holder {
 		AYLOGDEBUG(result.isVec());
 		return true;
 	}
-	STFUN(text2Num) {
+	STFUN(textToNum) {
         SETFUNCNAME(text2Num);
         int langId = 0; // language id . 0 means english 
         ay::char_cp_vec tok;  
