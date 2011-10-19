@@ -377,7 +377,7 @@ struct BELFunctionStorage_holder {
 
         BarzerNumber bn;
 		for (BarzelEvalResultVec::const_iterator ri = rvec.begin(); ri != rvec.end(); ++ri) {
-            const BarzerLiteral*  ltrl = getAtomicPtr<BarzerLiteral>( *ri ) ;
+            const BarzerLiteral* ltrl = getAtomicPtr<BarzerLiteral>( *ri ) ;
             if( ltrl )  {
                 const char * str =  gpools.getStringPool().resolveId(ltrl->getId());
                 if( str ) {
