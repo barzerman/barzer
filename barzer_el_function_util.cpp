@@ -98,6 +98,7 @@ int text_to_number( BarzerNumber& bn, const ay::char_cp_vec& tok, int langId)
         if( n1 < 0 ) {
             if( !err ) 
                 err = T2NERR_JUNK;
+
             n1 = 0;
         }
         bn.set( n1 + n0 );
