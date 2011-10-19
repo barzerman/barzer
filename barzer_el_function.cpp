@@ -15,6 +15,7 @@
 #include <barzer_el_chain.h>
 #include <boost/assign.hpp>
 #include <barzer_barz.h>
+#include <barzer_el_function_util.h>
 
 namespace barzer {
 
@@ -309,6 +310,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(getLow); // (BarzerRange)
 		ADDFN(getHigh); // (BarzerRange)
 		// arith
+		ADDFN(text2Num);
 		ADDFN(opPlus);
 		ADDFN(opMinus);
 		ADDFN(opMult);
@@ -368,7 +370,38 @@ struct BELFunctionStorage_holder {
 		AYLOGDEBUG(result.isVec());
 		return true;
 	}
+	STFUN(text2Num) {
+        SETFUNCNAME(text2Num);
+        int langId = 0; // language id . 0 means english
+        ay::char_cp_vec tok;  
 
+        BarzerNumber bn;
+		for (BarzelEvalResultVec::const_iterator ri = rvec.begin(); ri != rvec.end(); ++ri) {
+            const BarzerLiteral* ltrl = getAtomicPtr<BarzerLiteral>( *ri ) ;
+            if( ltrl )  {
+                const char * str =  gpools.getStringPool().resolveId(ltrl->getId());
+                if( str ) {
+                    tok.push_back( str );
+                } else {
+                    std::stringstream strstr;
+                    strstr << "invalid string in argument #" << (ri-rvec.begin());
+                    FERROR( strstr.str().c_str() );
+                }
+            } else {
+		        std::stringstream strstr;
+                strstr << "expected a literal in argument #" << (ri-rvec.begin());
+                FERROR( strstr.str().c_str() );
+            }
+        }
+        int t2ierr = ( strutil::text_to_number( bn, tok, langId ) > strutil::T2NERR_JUNK );
+        if( t2ierr ) {
+            std::stringstream strstr;
+            strstr << "text to number error #" << t2ierr ;
+            FERROR( strstr.str().c_str() );
+        }
+		setResult(result, bn );
+        return true;
+    }
 	// makers
 	STFUN(mkDate) //(d) | (d,m) | (d,m,y)
 	{

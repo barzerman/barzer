@@ -46,6 +46,7 @@ set(SOURCES barzer_barz.cpp
             barzer_el_btnd.cpp
             barzer_el_chain.cpp
             barzer_el_function.cpp
+            barzer_el_function_util.cpp
             barzer_el_matcher.cpp
             barzer_el_parser.cpp
             barzer_el_rewriter.cpp

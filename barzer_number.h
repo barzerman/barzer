@@ -1,6 +1,7 @@
 #ifndef BARZER_NUMBER_H
 #define BARZER_NUMBER_H
 
+#include <iostream>
 namespace barzer {
 /// pure numbers
 class BarzerNumber {
