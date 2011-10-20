@@ -2,6 +2,7 @@
 #define BARZER_NUMBER_H
 
 #include <iostream>
+#include <stdint.h>
 namespace barzer {
 /// pure numbers
 class BarzerNumber {
