@@ -438,7 +438,7 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
 		if( !t || !*t || isspace(*t)  ) { // this should never happen
 			ctok.setClass( CTokenClassInfo::CLASS_SPACE );
 			continue;
-		} else if( ispunct(*t) ) {
+		} else if( (*t) == '.' ) {
             ctok.setClass( CTokenClassInfo::CLASS_PUNCTUATION );
             if( *t == '"' ) isQuoted = !isQuoted;
         } else if( !tryClassify_integer(ctok,t) ) {
@@ -452,10 +452,15 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
 				ctok.storedTok = storedTok;
 				ctok.syncClassInfoFromSavedTok();
 			} else { /// token NOT matched in the data set
-                if( !isNumber ) { 
+                if( ispunct(*t)) {
+                    ctok.setClass( CTokenClassInfo::CLASS_PUNCTUATION );
+                    if( *t == '"' ) isQuoted = !isQuoted;
+                } else if( !isNumber ) { 
 					/// fall thru - this is an unmatched word
 	
 					/// lets try to spell correct the token
+                    if( ispunct(*t) ) {
+                    }
 					if( !isQuoted /*d_universe.stemByDefault()*/ ) {
 						if( trySpellCorrectAndClassify( ctok, ttok ) > 0 )
 							wasStemmed = true;
