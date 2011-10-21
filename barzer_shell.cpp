@@ -834,6 +834,21 @@ public:
 	}
 };
 
+static int bshf_strid( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+    BarzerShellContext * context = shell->getBarzerContext();
+
+	const GlobalPools &gp = context->getGLobalPools();
+	std::string tmp;
+    uint32_t strId = 0xffffffff;
+
+    while( in >> strId ) {
+    const char* str = gp.string_resolve( strId ) ;
+    const char* internalStr = gp.internalString_resolve( strId ) ;
+    std::cerr << std::hex << strId << ":" << ( str ? str : "<null>" ) << ":" << (internalStr ? internalStr : "<null>" ) << std::endl;
+    }
+    return 0;
+}
 static int bshf_stexpand( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext *context = shell->getBarzerContext();
@@ -937,6 +952,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_spell, "spell", "tests hunspell in the current universe spell checker" ),
 	CmdData( (ay::Shell_PROCF)bshf_srvroute, "srvroute", "tests server queries and routes it same way server mode would" ),
 	CmdData( (ay::Shell_PROCF)bshf_stexpand, "stexpand", "expand and print all statements in a file" ),
+	CmdData( (ay::Shell_PROCF)bshf_strid, "strid", "resolve string id (usage strid id)" ),
 	CmdData( (ay::Shell_PROCF)bshf_process, "process", "process an input string" ),
 	CmdData( (ay::Shell_PROCF)bshf_querytest, "querytest", "peforms given number of queries" ),
 	CmdData( (ay::Shell_PROCF)bshf_userstats, "userstats", "trie stats for a given user" ),

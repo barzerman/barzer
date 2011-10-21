@@ -205,6 +205,8 @@ struct StrConcatVisitor : public boost::static_visitor<bool> {
 			ss << (char)dt.getId();
 			return true;
 		case BarzerLiteral::T_BLANK:
+            ss << " ";
+            return true;
 		case BarzerLiteral::T_STOP:
 			return true;
 		default:
@@ -329,6 +331,11 @@ struct BELFunctionStorage_holder {
 		// lookup
 		ADDFN(lookupMonth);
 		ADDFN(lookupWday);
+
+        /// array
+		ADDFN(arrSz);
+		ADDFN(arrIndex);
+		ADDFN(typeFilter);
 
 		// --
 		ADDFN(filterEList); // (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
@@ -1629,7 +1636,68 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 
+    // concatenates all parameters as one list 
+	STFUN(listCat) { // 
+        BarzelBeadDataVec& resultVec = result.getBeadDataVec();
+        for( BarzelEvalResultVec::const_iterator i = rvec.begin(); i!= rvec.end(); ++i ) {
+            const BarzelBeadDataVec& v = i->getBeadDataVec();
+            for( BarzelBeadDataVec::const_iterator vi = v.begin(); vi !=v.end(); ++vi ) 
+                resultVec.push_back( *vi );
+        }
+        return true;
+    }
+    // typeFilter( sample, arg1, arg2, ..., argN ) 
+    // filters out everything from arg1-N of the same type as the sample
+	STFUN(typeFilter) { // 
+        SETFUNCNAME(typeFilter);
+        if( rvec.size() <2 ) {
+            FERROR("need at least 2 arguments. Usage (sample, a1,...,aN)");
+            return false;
+        }
+        const BarzelBeadData& sample = rvec[0].getBeadData();
+        BarzelBeadDataVec& resultVec = result.getBeadDataVec();
 
+        BarzelEvalResultVec::const_iterator i = rvec.begin(); 
+        for( ++i ; i!= rvec.end(); ++i ) {
+            const BarzelBeadDataVec& v = i->getBeadDataVec();
+            for( BarzelBeadDataVec::const_iterator vi = v.begin(); vi !=v.end(); ++vi ) 
+                if( vi->which() == sample.which() )
+                    resultVec.push_back( *vi );
+        }
+        return true;
+    }
+    /// arrIndex( variable, Index )
+	STFUN(arrIndex) { // 
+        SETFUNCNAME(arrIndex);
+        if( rvec.size() < 2 ) {
+            FERROR( "must have at least 2 arguments: variable, index" );
+            return false;
+        } 
+        const BarzelBeadDataVec& arrVec = rvec[0].getBeadDataVec();
+
+        int idx = 0;
+        const BarzerNumber* num  = getAtomicPtr<BarzerNumber>(rvec[1]);
+        if( !num ) {
+            FERROR( "second argument should be a positive number" );
+        } else 
+            idx = num->getInt();
+        
+        if( idx < 0 ) 
+            FERROR("index must be positive" );
+        else if( idx > arrVec.size() ) 
+            FERROR("index out of range" );
+
+        result.getBeadDataVec().push_back( arrVec[idx] );
+        return true;
+    }
+    // array size 
+    STFUN(arrSz) {
+        BarzerNumber bn;
+        setResult(result, BarzerNumber(
+            (int)( rvec.size() ? rvec[0].getBeadDataVec().size() : 0 )
+        ));
+        return true;
+    }
 	// string
 	STFUN(strConcat) { // strfun_strConcat(&result, &rvec)
         SETFUNCNAME(strConcat);
@@ -1637,7 +1705,14 @@ struct BELFunctionStorage_holder {
 			StrConcatVisitor scv(gpools,ctxt,func_name);
 			for (BarzelEvalResultVec::const_iterator ri = rvec.begin();
 													 ri != rvec.end(); ++ri) {
-				if (!boost::apply_visitor(scv, ri->getBeadData())) return false;
+
+                const BarzelBeadDataVec& v = ri->getBeadDataVec();
+                for( BarzelBeadDataVec::const_iterator vi = v.begin(); vi !=v.end(); ++vi ) {
+				    if (!boost::apply_visitor(scv, (*vi))) {
+                        // ignoring errors, continuing concatenation
+                        // we can theoretically print error messages
+                    }
+                }
 			}
 			BarzerString bzs;
 			bzs.setStr(scv.ss.str());
