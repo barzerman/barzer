@@ -157,7 +157,8 @@ public:
                         if( !ispunct(*cstr) ) {
                             xmlEscape(cstr, os << "<fluff>");
                             os << "</fluff>";
-                        }
+                        } else 
+                            os << "<fluff/>";
 					} 
 					else AYLOG(ERROR) << "Illegal literal(STOP) ID: " << std::hex << data.getId();
 				}
