@@ -6,21 +6,35 @@
 <stmt> 
     <pat> 
         <any>
-            <list> <t>between</t><list v="lo"><n r="y"/></list><opt><t>k</t></opt> <t>and</t><list v="hi"><n r="y"/></list><t>k</t> </list>
+            <list> <t>between</t><list v="lo"><n r="y"/></list><opt><t>k</t></opt> <t>and</t><list v="hi"><n r="y"/></list><opt v="k"><t>k</t></opt> </list>
             <list> 
                 <list v="lo"><n r="y"/></list><opt><t>k</t></opt> 
                     <any>
                         <t>-</t>
                         <t>to</t>
                     </any>
-                <list v="hi"><n r="y"/></list><t>k</t> 
+                <list v="hi"><n r="y"/></list><opt v="k"><t>k</t></opt> 
             </list>
         </any>
     </pat> 
     <tran> 
         <func name="mkRange"> 
-            <func name="opMult"><rn v="1000"/><var name="lo" /> </func>
-            <func name="opMult"><rn v="1000"/><var name="hi" /> </func>
+            <test>
+                <cond><var name="k" />
+                <func name="opMult">
+                    <rn v="1000"/><var name="lo" /> 
+                </func>
+                </cond>
+                <var name="lo" />
+            </test>
+            <test>
+                <cond><var name="k" />
+                <func name="opMult">
+                    <rn v="1000"/><var name="hi" /> 
+                </func>
+                </cond>
+                <var name="hi" />
+            </test>
         </func> 
     </tran> 
 </stmt>
