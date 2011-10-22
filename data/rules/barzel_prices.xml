@@ -3,13 +3,29 @@
     xmlns="http://www.barzer.net/barzel/0.1">
 	<stmt m="MACRO_USD"> <pat> <any><t>usd</t><t>$</t><t>bucks</t><t>greenbacks</t><t>dollars</t><t>dollar</t></any> </pat> </stmt>
 
-	<stmt m="MACRO_USD_PFX"> <pat> <any><t>usd</t><t>$</t></any> </pat> </stmt>
-	<stmt m="MACRO_EUR_PFX"> <pat> <t>EUR</t> </pat></stmt>
-	<stmt m="MACRO_EUR"> <pat> <any><t>EUR</t><t>euro</t><t>euros</t></any> </pat></stmt>
-	<stmt m="MACRO_GBP"> <pat> <any><t>GBP</t><t>pound</t><t>pounds</t><t>quit</t></any> </pat></stmt>
-	<stmt m="MACRO_GBP_PFX"> <pat> <t>GBP</t> </pat></stmt>
+	<stmt n="10" m="MACRO_USD_PFX"> <pat> <any><t>usd</t><t>$</t></any> </pat> </stmt>
+	<stmt n="20" m="MACRO_EUR_PFX"> <pat> <t>EUR</t> </pat></stmt>
+	<stmt n="30" m="MACRO_EUR"> <pat> <any><t>EUR</t><t>euro</t><t>euros</t></any> </pat></stmt>
+	<stmt n="40" m="MACRO_GBP"> <pat> <any><t>GBP</t><t>pound</t><t>pounds</t><t>quit</t></any> </pat></stmt>
+	<stmt n="50" m="MACRO_GBP_PFX"> <pat> <t>GBP</t> </pat></stmt>
 
-    <stmt>
+    <stmt n="59">
+        <pat>
+            <expand n="MACRO_USD_PFX"/> 
+            <any v="range">
+                <range t="i" />
+                <range t="r" />
+            </any>
+        </pat>
+        <tran>
+            <func name="mkERC">
+            	<func name="mkEnt"><ltrl t="string">USD</ltrl><rn v="1" /><rn v="1" /></func>
+                <var n="range"/>
+            </func>
+        </tran>
+    </stmt>
+    <!--
+    <stmt n="60">
         <pat>
             <any>
 				<list> <list v="val"><n r="y"/></list> <expand n="MACRO_USD"/> </list>
@@ -26,27 +42,46 @@
             </func>
         </tran>
     </stmt>
+    -->
     
 	<!-- 10K price -->
-    <stmt>
+    <stmt n="70">
     <pat>
-		<opt><t>for</t></opt>
+		<opt v="for">
+            <any>
+                <t>for</t>
+                <list>
+                    <opt><t>for</t></opt>
+                    <any><t>about</t><list><t>close</t><t>to</t></list></any>
+                </list>
+            </any>
+        </opt>
 		<any>
-			<list> <list v="val"><n r="y"/></list> <t>k</t> <expand n="MACRO_USD"/> </list>
-			<list> <expand n="MACRO_USD_PFX"/><list v="val"><n r="y"/></list> <t>k</t> </list>
+			<list> <list v="val"><n r="y"/></list> <opt v="k"><t>k</t></opt> <expand n="MACRO_USD"/> 
+            </list>
+			<list> <expand n="MACRO_USD_PFX"/><list v="val"><n r="y"/></list> <opt v="k"><t>k</t></opt>
+            </list>
 		</any>
     </pat>
     <tran>
         <func name="mkERC">
         <mkent i="USD" c="1" s="1"/>
         <func name="mkRange">
-            <func name="opMult"><var name="val" /><rn v="800" /></func>
-            <func name="opMult"><var name="val" /><rn v="1200" /></func>
+            <func name="opMult">
+                <var name="val" />
+                <test><cond><var n="for"/><rn v=".8"/></cond><rn v="1"/></test>
+                <test><cond><var n="k"/><rn v="1000"/></cond><rn v="1"/></test>
+            </func>
+            <func name="opMult"> <var name="val" />
+                <test><cond><var n="for"/><rn v="1.2"/></cond><rn v="1"/></test>
+                <test><cond><var n="k"/><rn v="1000"/></cond><rn v="1"/></test>
+            </func>
         </func>
         </func>        
     </tran>
     </stmt>
-    <stmt>
+
+    <stmt n="80">
     <pat>
 		<opt><t>for</t></opt>
 		<any>
@@ -64,7 +99,7 @@
         </func>        
     </tran>
     </stmt>
-    <stmt>
+    <stmt n="90">
     <pat>
 		<opt><t>for</t></opt>
 		<any>
@@ -83,11 +118,13 @@
     </tran>
     </stmt>
 	<!-- n grand price -->
-    <stmt>
+    <stmt n="100">
     <pat>
-		<opt><t>for</t></opt>
+		<t>for</t>
         <list v="val"><n r="y"/></list>
-        <t>k</t>
+        <any>   
+            <t>grand</t>
+        </any>
     </pat>
     <tran>
         <func name="mkERC">
@@ -99,24 +136,8 @@
         </func>        
     </tran>
     </stmt>
-    <stmt>
-    <pat>
-		<opt><t>for</t></opt>
-        <list v="val"><n r="y"/></list>
-        <t>grand</t>
-    </pat>
-    <tran>
-        <func name="mkERC">
-        <mkent i="USD" c="1" s="1"/>
-        <func name="mkRange">
-            <func name="opMult"><var name="val" /><rn v="800" /></func>
-            <func name="opMult"><var name="val" /><rn v="1200" /></func>
-        </func>
-        </func>        
-    </tran>
-    </stmt>
 	<!-- EURO price -->
-    <stmt>
+    <stmt n="110">
         <pat>
 			<any>
 			<list> <list v="val"><n r="y"/></list> <expand n="MACRO_EUR"/> </list>
@@ -134,7 +155,7 @@
         </tran>
     </stmt>
 	<!-- GBP price -->
-    <stmt>
+    <stmt n="120">
         <pat>
 			<any>
 			<list> <list v="val"><n r="y"/></list> <expand n="MACRO_GBP"/> </list>
@@ -154,7 +175,7 @@
 
 	<!-- OLD ranges -->
 	<!-- price ranges  -->
-	<stmt>
+	<stmt n="130">
 	    <pat>
 			<any>
 			<list>
@@ -174,7 +195,7 @@
 	        <func name="mkERC"><var name="curr1" /><var name="curr2" /></func>
 	    </tran>
 	</stmt>    
-    <stmt>
+    <stmt n="140">
         <pat>
 			<any>
 			<list>
@@ -204,7 +225,8 @@
     
 	<!-- end of OLD ranges -->
 	<!-- AROUND range logic -->
-    <stmt>
+    <!--
+    <stmt n="150">
         <pat>
 			<t>for</t>
 			<any>
@@ -228,7 +250,9 @@
 			</func>
         </tran>
     </stmt>
-    <stmt>
+    150 -->
+    <!--
+    <stmt n="160">
         <pat>
 			<opt><t>for</t></opt>
 			<any><list><t>close</t><t>to</t></list><t>around</t><t>about</t><t>roughly</t></any>
@@ -253,9 +277,11 @@
 			</func>
         </tran>
     </stmt>
+    -->
 	<!-- new BETWEEN range logic -->
 	<!-- USD BETWEEN-->
-    <stmt>
+    <!--
+    <stmt n="170">
         <pat>
 			<any>
 				<any>
@@ -296,16 +322,27 @@
 					<list> <list v="num"><n r="y"/></list> <expand n="MACRO_USD"/> </list>
 				</list>
 			</any>
+            <opt v="kmult"><t>k</t></opt>
         </pat>
         <tran>
             <func name="mkERC">
-                 <mkent i="USD" c="1" s="1"/>
-                 <func name="mkRange"><var name="low"/><var name="high"/></func>
+                <mkent i="USD" c="1" s="1"/>
+                <func name="mkRange">
+                    <func name="opMult">
+                        <test><cond><var n="kmult"/><rn v="1000"/></cond><rn v="1"/></test>
+                        <var name="low"/>
+                    </func>
+                    <func name="opMult">
+                        <test><cond><var n="kmult"/><rn v="1000"/></cond><rn v="1"/></test>
+                        <var name="high"/>
+                    </func>
+                </func>
              </func>
         </tran>
     </stmt>    
+    170 -->
 	<!-- EUR BETWEEN-->
-    <stmt>
+    <stmt n="180">
         <pat>
 			<any>
 				<any>
@@ -355,7 +392,7 @@
         </tran>
     </stmt>    
 	<!-- GBP between -->
-    <stmt>
+    <stmt n="190">
         <pat>
 			<any>
 				<any>
@@ -406,9 +443,10 @@
     </stmt>    
 	<!-- end of price ranges -->
     
-    <stmt>
+    <stmt n="200">
         <pat>
             <any v="range">
+                <range t="r" />
                 <range t="i" />
                 <erc c="1" s="1" />
             </any>
@@ -421,10 +459,11 @@
             </func>
         </tran>
     </stmt>
-    <stmt>
+    <stmt n="210">
         <pat>
             <any v="range">
                 <range t="i" />
+                <range t="r" />
                 <erc c="1" s="1" />
             </any>
             <any><t>euro</t><t>euros</t><t>eur</t></any>
@@ -436,7 +475,7 @@
             </func>
         </tran>
     </stmt>
-    <stmt>
+    <stmt n="220">
         <pat>
 			<opt><t>the</t></opt>
 			<any>
@@ -453,7 +492,7 @@
         </func>
     </tran>
     </stmt>
-    <stmt>
+    <stmt n="230">
         <pat>
 			<opt><t>the</t></opt>
 			<any>
@@ -473,7 +512,7 @@
     </stmt>
 
 	<!-- price over -->
-    <stmt>
+    <stmt n="240">
         <pat>
 			<any>
 			<list>
@@ -531,7 +570,7 @@
     </stmt>
 	<!-- price under -->
 	<!-- USD under -->
-    <stmt>
+    <stmt n="250">
         <pat>
 			<any>
 			<list>
@@ -581,7 +620,7 @@
             </func>
         </tran>
     </stmt>
-    <stmt>
+    <stmt n="260">
         <pat>
 			<any>
 			<list>
@@ -631,7 +670,7 @@
             </func>
         </tran>
     </stmt>
-    <stmt>
+    <stmt n="270">
         <pat>
 			<any>
 			<list>
@@ -682,7 +721,7 @@
         </tran>
     </stmt>
 	<!-- under nK -->
-    <stmt>
+    <stmt n="280">
         <pat>
 			<any>
 			<list>
@@ -738,7 +777,7 @@
             </func>
         </tran>
     </stmt>
-    <stmt>
+    <stmt n="290">
         <pat>
 			<any>
 			<list>
@@ -797,7 +836,7 @@
             </func>
         </tran>
     </stmt>
-    <stmt>
+    <stmt n="300">
         <pat>
 			<any>
 			<list>

@@ -232,7 +232,43 @@ template<class T> void mergePairs(std::pair<T,T> &left, const std::pair<T,T> &ri
 }
 
 bool mergeRanges(BarzerRange &r1, const BarzerRange &r2) {
-	if (r1.getType() != r2.getType() || r1.isBlank()) return false;
+    if( r1.isBlank() ) r1 = r2;
+
+	if (r1.getType() != r2.getType() ) {
+        if( (r1.isInteger() ||r1.isReal()) && (r2.isInteger() ||r2.isReal()) ) {
+            BarzerRange::Real realPair;
+            const BarzerRange::Real *otherRealPair = 0;
+
+            const BarzerRange::Integer* r1Int = r1.getInteger();
+            if( r1Int ) {
+                otherRealPair = r2.getReal();
+                realPair.first = (double)( r1Int->first );
+                realPair.second = (double)( r1Int->second );
+
+            } else {
+                otherRealPair = r1.getReal();
+                const BarzerRange::Integer* r2Int = r2.getInteger();
+                if( r2Int ) {
+                    realPair.first = (double)( r2Int->first );
+                    realPair.second = (double)( r2Int->second );
+                } else { // this is impossible 
+		            AYLOG(ERROR) << "Internal inconsistency";
+                    return false;
+                }
+            }
+            if( !otherRealPair ) {  // this is impossible
+                AYLOG(ERROR) << "Internal inconsistency";
+                return false;
+            }
+            mergePairs( realPair, *otherRealPair );
+
+            BarzerRange::Data dta = realPair;
+            r1.setData( dta );
+            return true;
+        } 
+        // if types dont match and cant be reconciled
+        return false;
+    }
 	switch(r1.getType()) {
 	case BarzerRange::Integer_TYPE:
 		mergePairs(boost::get<BarzerRange::Integer>(r1.getData()),
@@ -937,6 +973,7 @@ struct BELFunctionStorage_holder {
 		}
 
 	};
+
 
 	STFUN(mkERC) // makes EntityRangeCombo
 	{

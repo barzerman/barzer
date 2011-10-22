@@ -2,6 +2,29 @@
 <stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
     xmlns="http://www.barzer.net/barzel/0.1">
 
+<stmt> <pat> <list v="x"><n r="y"/></list><t>k</t> </pat> <tran> <func name="opMult"> <rn v="1000"/><var name="x" /> </func> </tran> </stmt>
+<stmt> 
+    <pat> 
+        <any>
+            <list> <t>between</t><list v="lo"><n r="y"/></list><opt><t>k</t></opt> <t>and</t><list v="hi"><n r="y"/></list><t>k</t> </list>
+            <list> 
+                <list v="lo"><n r="y"/></list><opt><t>k</t></opt> 
+                    <any>
+                        <t>-</t>
+                        <t>to</t>
+                    </any>
+                <list v="hi"><n r="y"/></list><t>k</t> 
+            </list>
+        </any>
+    </pat> 
+    <tran> 
+        <func name="mkRange"> 
+            <func name="opMult"><rn v="1000"/><var name="lo" /> </func>
+            <func name="opMult"><rn v="1000"/><var name="hi" /> </func>
+        </func> 
+    </tran> 
+</stmt>
+
 <stmt>
     <pat>
         <any>
@@ -9,7 +32,7 @@
 			<t>below</t>
 			<list><t>less</t><t>than</t></list>
 		</any>
-        <list v="hi"><n /></list>
+        <list v="hi"><n r="y"/></list>
     </pat>
     <tran>
         <func name="mkRange"><rn v="0"/><var name="hi" /></func>
@@ -22,7 +45,7 @@
 			<t>over</t>
 			<list><t>greater</t><t>than</t></list>
 		</any>
-        <list v="lo"><n /></list>
+        <list v="lo"><n r="y"/></list>
     </pat>
     <tran>
         <func name="mkRange"><var name="lo" /><rn v="214748364"/></func>
@@ -42,7 +65,10 @@
 			<list><opt><t/></opt><ent/><ent/><opt><t/></opt></list>
 			<list><t/><opt><t/></opt></list>
 		</any>
-		<list v="r"><range t="i"/></list>
+		<any v="r">
+            <range t="i"/>
+            <range t="r"/>
+        </any>
     </pat>
     <tran>
         <func name="mkERC">
@@ -83,9 +109,9 @@
 <stmt>
     <pat>
         <t>between</t>
-        <list v="low"><n /></list>
+        <list v="low"><n r="y"/></list>
         <t>and</t>
-        <list v="high"><n /></list>
+        <list v="high"><n r="y"/></list>
     </pat>
     <tran>
         <func name="mkRange"><var name="low" /><var name="high" /></func>
