@@ -348,6 +348,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(getYear);
 		ADDFN(getLow); // (BarzerRange)
 		ADDFN(getHigh); // (BarzerRange)
+		ADDFN(isRangeEmpty); // (BarzerRange or ERC) - returns true if range.lo == range.hi
 		// arith
 		ADDFN(textToNum);
 		ADDFN(opPlus);
@@ -383,6 +384,11 @@ struct BELFunctionStorage_holder {
 		ADDFN(entSubclass); // (Entity)
 		ADDFN(entId); // (Entity)
 		ADDFN(entSetSubclass); // (Entity,new subclass)
+
+        // erc properties 
+		ADDFN(getEnt); // ((ERC|Entity)[,entity]) -- when second parm passed replaces entity with it
+		ADDFN(getRange); // ((ERC|Entity)[,range]) -- when second parm passed replaces range with it
+        
 	}
 	#undef ADDFN
 
@@ -415,6 +421,78 @@ struct BELFunctionStorage_holder {
 		AYLOGDEBUG(result.isVec());
 		return true;
 	}
+    STFUN(getEnt) {
+        SETFUNCNAME(getEnt);
+        if(rvec.size() )  {
+            const BarzerEntityRangeCombo* erc  = getAtomicPtr<BarzerEntityRangeCombo>(rvec[0]);
+            const BarzerEntity* ent  = ( erc ? &(erc->getRange()) : getAtomicPtr<BarzerEntity>(rvec[0]) );
+            if( ent ) {
+                if( rvec.size() == 1 ) { /// this is a getter 
+                    setResult(result, *ent );
+                    return true;
+                } else if( rvec.size() == 2 ) { // this is a setter 
+                    const BarzerEntityRangeCombo* r_erc  = getAtomicPtr<BarzerEntityRangeCombo>(rvec[1]);
+                    const BarzerEntity* r_ent  = ( r_erc ? &(r_erc->getRange()) : getAtomicPtr<BarzerEntity>(rvec[1]) );
+
+                    if( r_ent ) {
+                        setResult(result, *r_ent );
+                        return true;
+                    }
+                }
+            }
+        }
+
+        FERROR( "expects ( (ERC|Entity) [,entity] ) to get/set entity for erc or bypass" );
+        return true;
+    }
+    STFUN(getRange){
+        SETFUNCNAME(getRange);
+        const BarzerEntity* ent  = getAtomicPtr<BarzerEntity>(rvec[0]);
+        if(rvec.size() )  {
+            const BarzerEntityRangeCombo* erc  = getAtomicPtr<BarzerEntityRangeCombo>(rvec[0]);
+            const BarzerRange* range  = ( erc ? &(erc->getRange()) : getAtomicPtr<BarzerRange>(rvec[0]) );
+            if( range ) {
+                if( rvec.size() == 1 ) { /// this is a getter 
+                    setResult(result, *range );
+                    return true;
+                } else if( rvec.size() == 2 ) { // this is a setter 
+                    const BarzerEntityRangeCombo* r_erc  = getAtomicPtr<BarzerEntityRangeCombo>(rvec[1]);
+                    const BarzerRange* r_range  = ( r_erc ? &(r_erc->getRange()) : getAtomicPtr<BarzerRange>(rvec[1]) );
+
+                    if( r_range ) {
+                        setResult(result, *r_range );
+                        return true;
+                    }
+                }
+            }
+        }
+        FERROR("expects: (ERC|Range) [,(range|ERC)] to get/set range");
+        return true;
+    }
+    STFUN(isRangeEmpty)
+    {
+        SETFUNCNAME(isRangeEmpty);
+        if( rvec.size() == 1 ) {
+            const BarzerRange* range  = getAtomicPtr<BarzerRange>(rvec[0]);
+
+            if( !range ) {
+                const BarzerEntityRangeCombo* erc  = getAtomicPtr<BarzerEntityRangeCombo>(rvec[0]);
+                
+                if( erc ) 
+                    range = &(erc->getRange());
+            }
+            if( range ) {
+                if( range->isEmpty()) 
+                    setResult(result, rvec[0].getBeadData() );
+                else 
+                    setResult(result, BarzelBeadBlank());
+                return true;
+            } 
+        } 
+        FERROR( "expects ( (ERC|Range) ) to tell whether the range is empty (lo == hi)" );
+        
+        return true;
+    }
 	STFUN(textToNum) {
         SETFUNCNAME(text2Num);
         int langId = 0; // language id . 0 means english 

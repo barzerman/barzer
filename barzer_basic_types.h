@@ -415,6 +415,14 @@ struct BarzerRange {
 
 	BarzerRange( ) : order(ORDER_ASC), rng_mode(RNG_MODE_FULL) {}
 
+	struct Empty_visitor : public boost::static_visitor<bool> {
+        template <typename T> bool operator()( const T& val ) const { return (val.first == val.second); }
+        template <> bool operator<BarzerRange::Real>() ( const BarzerRange::Real& val ) const 
+            { return ( fabs(val.first - val.second) <  0.0000000000001); }
+    };
+    bool isEmpty() const 
+        { return boost::apply_visitor( Empty_visitor(), dta ); }
+
 	struct Less_visitor : public boost::static_visitor<bool> {
 		// typedef BarzerRange::Data Data;
 		const BarzerRange& leftVal;
