@@ -213,6 +213,8 @@ public:
 	boost::variant< uint32_t, double, int64_t> id;
 	BarzelTranslationTraceInfo traceInfo;
 	uint8_t  type; // one of T_XXX constants 
+	uint8_t  makeUnmatchable; // when !=0 this is a terminating translation ... the value will 
+                                // be assigned to the unmatchability of the affected beads 
 
 	void set( BELTrie& trie, const BTND_Rewrite_Literal& );
 	void set( BELTrie& trie, const BTND_Rewrite_Number& );
@@ -281,8 +283,8 @@ public:
 	bool isRewriteFallible( const BarzelRewriterPool& pool ) const;
 	bool nonEmpty() const
 		{ return ( type != T_NONE ); }
-	BarzelTranslation() : id( 0xffffffff ) , type(T_NONE) {}
-	BarzelTranslation(Type_t t , uint32_t i ) : id(i),type((uint8_t)t) {}
+	BarzelTranslation() : id( 0xffffffff ) , type(T_NONE), makeUnmatchable(0) {}
+	BarzelTranslation(Type_t t , uint32_t i ) : id(i),type((uint8_t)t), makeUnmatchable(0) {}
 	
 	std::ostream& print( std::ostream& , const BELPrintContext& ) const;
 

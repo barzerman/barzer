@@ -26,14 +26,17 @@ struct BELStatementParsed {
 	uint32_t d_sourceNameStrId; 
     
     BELReader* d_reader;
+    int d_tranUnmatchable; 
 
 	BELStatementParsed() : 
-		d_stmtNumber(0),d_sourceNameStrId(0xffffffff), d_reader(0)
+		d_stmtNumber(0),d_sourceNameStrId(0xffffffff), d_reader(0), d_tranUnmatchable(0)
 	{}
 
 
 	BELParseTreeNode pattern; // points at the node under statement
 	BELParseTreeNode translation; // points at the node under statement 
+
+
 	void clear()
 		{ pattern.clear(); translation.clear(); }
 	
@@ -61,6 +64,9 @@ struct BELStatementParsed {
 	uint32_t getSourceNameStrId()  const { return d_sourceNameStrId; }
 	size_t getStmtNumber() const { return d_stmtNumber; }
 	const std::string&  getSourceName() const { return d_sourceName; }
+
+    int isTranUnmatchable() const { return d_tranUnmatchable;  }
+    void setTranUnmatchable() { d_tranUnmatchable = 1; }
 };
 
 /// all specific parsers inherit from this base type and overload 

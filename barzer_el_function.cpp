@@ -372,6 +372,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(arrSz);
 		ADDFN(arrIndex);
 		ADDFN(typeFilter);
+		ADDFN(setUnmatch);
 
 		// --
 		ADDFN(filterEList); // (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
@@ -1681,6 +1682,16 @@ struct BELFunctionStorage_holder {
             for( BarzelBeadDataVec::const_iterator vi = v.begin(); vi !=v.end(); ++vi ) 
                 resultVec.push_back( *vi );
         }
+        return true;
+    }
+	STFUN(setUnmatch) { //  
+        BarzelBeadDataVec& resultVec = result.getBeadDataVec();
+        for( BarzelEvalResultVec::const_iterator i = rvec.begin(); i!= rvec.end(); ++i ) {
+            const BarzelBeadDataVec& v = i->getBeadDataVec();
+            for( BarzelBeadDataVec::const_iterator vi = v.begin(); vi !=v.end(); ++vi ) 
+                resultVec.push_back( *vi );
+        }
+        result.setUnmatchability(1);
         return true;
     }
     // typeFilter( sample, arg1, arg2, ..., argN ) 

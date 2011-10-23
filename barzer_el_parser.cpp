@@ -200,6 +200,8 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 			} else {
 				trie->setTanslationTraceInfo( *tran, sp, i );
 				tran->set(*trie, sp.translation);
+                if( sp.isTranUnmatchable() ) 
+                    tran->makeUnmatchable = 1;
 			}	
 			trie->addPath( sp, seq, tranId, varInfo, i );
 		}
