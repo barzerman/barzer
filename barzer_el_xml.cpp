@@ -1305,6 +1305,7 @@ void BELParserXML::CurStatementData::clear()
 	bits.clear();
 	procNameId = 0xffffffff;
 	state = STATE_BLANK;
+    stmt.clearUnmatchable();
 	stmt.translation.clear();
 	stmt.pattern.clear();
 	macroName.clear();

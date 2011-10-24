@@ -67,6 +67,7 @@ struct BELStatementParsed {
 
     int isTranUnmatchable() const { return d_tranUnmatchable;  }
     void setTranUnmatchable() { d_tranUnmatchable = 1; }
+    void clearUnmatchable() { d_tranUnmatchable= 0; }
 };
 
 /// all specific parsers inherit from this base type and overload 
