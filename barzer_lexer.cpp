@@ -143,18 +143,6 @@ int QLexParser::advancedNumberClassify( CTWPVec& cvec, const TTWPVec& tvec, cons
 			if( i_frac < cvec.size() ) {
 				CToken& dotTok = cvec[i_dot].first;
 				CToken& fracTok = cvec[i_frac].first;
-				// tokens preceding T and following frac
-				/*  issue https://github.com/barzerman/barzer/issues/104
-				CToken* pastFrac = ( i_frac + 1 < cvec.size() ? &(cvec[i_frac+1].first) : 0 );
-				CToken* preT = ( i ? &(cvec[i-1].first) : 0 );
-
-				if( 
-					(pastFrac && !(pastFrac->isSpace()) && !pastFrac->isPunct(',') ) ||
-					(preT && !(preT->isSpace()) && !preT->isPunct(",.!?$") ) )  
-				{
-					continue;
-				}
-				*/
 				if( dotTok.isPunct('.') && fracTok.isNumber() ) {
 					// floating point
 					std::stringstream sstr;
@@ -185,6 +173,7 @@ void removeBlankCTokens( CTWPVec& cvec )
 	}
 	if( d!= cvec.end() ) 
 		cvec.resize( d-cvec.begin() );
+    
 }
 
 }
@@ -194,6 +183,19 @@ int QLexParser::advancedBasicClassify( CTWPVec& cvec, const TTWPVec& tvec, const
 	// transforms 
 	advancedNumberClassify(cvec,tvec,qparm);
 	removeBlankCTokens( cvec );
+    /// reclassifying punctuation if needed 
+    for( CTWPVec::iterator i = cvec.begin(); i!= cvec.end(); ++i ) {
+        CToken& ctok = i->first;
+        char punct =  ctok.getPunct();
+        if( punct ) {
+            char theString[] = { punct, 0 };
+		    const StoredToken* storedTok = dtaIdx->getStoredToken( theString );
+            if( storedTok ) {
+                ctok.storedTok = storedTok;
+                ctok.syncClassInfoFromSavedTok();
+            }
+        }
+    }
 	return 0;
 }
 

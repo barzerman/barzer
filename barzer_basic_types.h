@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <time.h>
+#include <math.h>
 
 #include <ay/ay_bitflags.h>
 #include <boost/variant.hpp>
@@ -417,7 +418,7 @@ struct BarzerRange {
 
 	struct Empty_visitor : public boost::static_visitor<bool> {
         template <typename T> bool operator()( const T& val ) const { return (val.first == val.second); }
-        template <> bool operator<BarzerRange::Real>() ( const BarzerRange::Real& val ) const 
+        bool operator() ( const BarzerRange::Real& val ) const 
             { return ( fabs(val.first - val.second) <  0.0000000000001); }
     };
     bool isEmpty() const 

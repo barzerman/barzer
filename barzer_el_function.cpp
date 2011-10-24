@@ -425,14 +425,14 @@ struct BELFunctionStorage_holder {
         SETFUNCNAME(getEnt);
         if(rvec.size() )  {
             const BarzerEntityRangeCombo* erc  = getAtomicPtr<BarzerEntityRangeCombo>(rvec[0]);
-            const BarzerEntity* ent  = ( erc ? &(erc->getRange()) : getAtomicPtr<BarzerEntity>(rvec[0]) );
+            const BarzerEntity* ent  = ( erc ? &(erc->getEntity()) : getAtomicPtr<BarzerEntity>(rvec[0]) );
             if( ent ) {
                 if( rvec.size() == 1 ) { /// this is a getter 
                     setResult(result, *ent );
                     return true;
                 } else if( rvec.size() == 2 ) { // this is a setter 
                     const BarzerEntityRangeCombo* r_erc  = getAtomicPtr<BarzerEntityRangeCombo>(rvec[1]);
-                    const BarzerEntity* r_ent  = ( r_erc ? &(r_erc->getRange()) : getAtomicPtr<BarzerEntity>(rvec[1]) );
+                    const BarzerEntity* r_ent  = ( r_erc ? &(r_erc->getEntity()) : getAtomicPtr<BarzerEntity>(rvec[1]) );
 
                     if( r_ent ) {
                         setResult(result, *r_ent );
@@ -447,7 +447,6 @@ struct BELFunctionStorage_holder {
     }
     STFUN(getRange){
         SETFUNCNAME(getRange);
-        const BarzerEntity* ent  = getAtomicPtr<BarzerEntity>(rvec[0]);
         if(rvec.size() )  {
             const BarzerEntityRangeCombo* erc  = getAtomicPtr<BarzerEntityRangeCombo>(rvec[0]);
             const BarzerRange* range  = ( erc ? &(erc->getRange()) : getAtomicPtr<BarzerRange>(rvec[0]) );
@@ -483,9 +482,11 @@ struct BELFunctionStorage_holder {
             }
             if( range ) {
                 if( range->isEmpty()) 
-                    setResult(result, rvec[0].getBeadData() );
-                else 
-                    setResult(result, BarzelBeadBlank());
+                    result = rvec[0];
+                else {
+                    // BarzelBeadBlank blank;
+                    result.setBeadData(BarzelBeadBlank());
+                }
                 return true;
             } 
         } 

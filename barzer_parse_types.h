@@ -134,6 +134,7 @@ struct CToken {
 	bool isPunct(char c) const { return ( isPunct() && qtVec.size() == 1 && qtVec[0].first.buf[0] == c ); }
 
 	bool isPunct(const char* s) const { return ( isPunct() && qtVec.size() == 1 && strchr(s,qtVec[0].first.buf[0]) ); }
+    char  getPunct() { return ( (isPunct() && qtVec.size() == 1) ? qtVec[0].first.buf[0] : 0 ) ; }
 
 	bool isSpace() const { return cInfo.theClass == CTokenClassInfo::CLASS_SPACE; }
 	
