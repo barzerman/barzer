@@ -625,7 +625,7 @@ bool BTMIterator::evalWildcard( const BarzelWCKey& wcKey, BeadList::iterator fro
 bool BTMIterator::findMatchingChildren( NodeAndBeadVec& mtChild, const BeadRange& r, const BarzelTrieNode* tn )
 {
 	if( r.first == r.second ) 
-		return false; // this should never happen bu just in case
+		return 0; // this should never happen bu just in case
 
 	bool precededByBlanks = false;
 	const BarzelBeadAtomic* bead;
@@ -633,6 +633,9 @@ bool BTMIterator::findMatchingChildren( NodeAndBeadVec& mtChild, const BeadRange
 	BeadList::const_iterator dtaBeadIter;
 	do {
 		dtaBeadIter = rng.first;
+        if( dtaBeadIter->getBeadUnmatchability() ) 
+            return false;
+
 		const BarzelBead& b = *dtaBeadIter;
 		bead = b.getAtomic();
 		if( !bead )  /// expressions and blanks wont be matched 
@@ -645,10 +648,12 @@ bool BTMIterator::findMatchingChildren( NodeAndBeadVec& mtChild, const BeadRange
 			break;
 	} while( rng.first != rng.second );
 
+    if( rng.second == rng.first ) return false;
+
 	findMatchingChildren_visitor vis( *this, precededByBlanks, mtChild, rng, tn, dtaBeadIter, d_trie);
 
 	boost::apply_visitor( vis, bead->dta );
-	return mtChild.size();
+	return ( mtChild.size() != 0 );
 }
 
 void BTMIterator::matchBeadChain( const BeadRange& rng, const BarzelTrieNode* trieNode )
@@ -1004,6 +1009,8 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 	}
 	if( !evalNode.eval( transResult, ctxt ) ) {
 		d_trie.printTanslationTraceInfo( AYLOG(ERROR) << "evaluation failed:" , transP->traceInfo );
+        if( translation.makeUnmatchable )
+            theBead.setBeadUnmatchability(1);
 		theBead.setStopLiteral();
 		return 0;
 	}
@@ -1011,15 +1018,19 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 	// the range will be replaced with a single bead . 
 	// so we will simply delete everything past the first bead
 
+    int unmatchability = ( (translation.makeUnmatchable || transResult.getUnmatchability()) ? 1:0);
 	if( transResult.isVec() ) {
 		//std::cerr << "*** BEFORE::::>>\n";
 		//AYDEBUG( chain.getFullRange() );
+
 		const BarzelEvalResult::BarzelBeadDataVec& bbdv = transResult.getBeadDataVec();
 		BeadList::iterator bi = range.first;
 		BarzelEvalResult::BarzelBeadDataVec::const_iterator di = bbdv.begin();
 		for( ; di != bbdv.end() && bi!= range.second; )  {
 			//bi->print( std::cerr );
 			bi->setData( *di );
+            if( unmatchability ) 
+                bi->setBeadUnmatchability(unmatchability);
 			if( ++di == bbdv.end() ) 
 				break;
 			if( ++bi == range.second ) 
@@ -1037,6 +1048,8 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 	} else {
 		//AYLOG(DEBUG) << "not a a vector: " << transResult.getBeadDataVec().size();
 		theBead.setData(  transResult.getBeadData() );
+        if( unmatchability ) 
+            theBead.setBeadUnmatchability( unmatchability );
 		chain.collapseRangeLeft( range );
 	}
 

@@ -130,11 +130,20 @@ public:
 		case BarzerLiteral::T_STRING:
 		case BarzerLiteral::T_COMPOUND:
 			{
-				os << "<token>";
 				const char *cstr = universe.getStringPool().resolveId(data.getId());
-				if (cstr) xmlEscape(cstr, os);
-				else AYLOG(ERROR) << "Illegal literal ID: " << std::hex << data.getId();
-				os << "</token>";
+                if( cstr ) {
+                    if( ispunct(*cstr) ) {
+                        os << "<punct>";
+                        xmlEscape(cstr, os);
+                        os << "</punct>";
+                    } else {
+                        os << "<token>";
+                        xmlEscape(cstr, os);
+                        os << "</token>";
+                    }
+                } else {
+                    AYLOG(ERROR) << "Illegal literal ID: " << std::hex << data.getId();
+                }
 			}
 			break;
 		case BarzerLiteral::T_STOP:
@@ -145,8 +154,11 @@ public:
 				} else {
 					const char *cstr = universe.getStringPool().resolveId(data.getId());
 					if (cstr) {
-						xmlEscape(cstr, os << "<fluff>");
-						os << "</fluff>";
+                        if( !ispunct(*cstr) ) {
+                            xmlEscape(cstr, os << "<fluff>");
+                            os << "</fluff>";
+                        } else 
+                            os << "<fluff/>";
 					} 
 					else AYLOG(ERROR) << "Illegal literal(STOP) ID: " << std::hex << data.getId();
 				}
@@ -154,10 +166,10 @@ public:
 			break;
 		case BarzerLiteral::T_PUNCT:
 			{ // need to somehow make this localised
-				os << "<token>";
+				os << "<punct>";
 				const char str[] = { (char)data.getId(), '\0' };
 				xmlEscape(str, os);
-				os << "</token>";
+				os << "</punct>";
 			}
 			break;
 		case BarzerLiteral::T_BLANK:

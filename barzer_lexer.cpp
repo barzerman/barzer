@@ -143,18 +143,6 @@ int QLexParser::advancedNumberClassify( CTWPVec& cvec, const TTWPVec& tvec, cons
 			if( i_frac < cvec.size() ) {
 				CToken& dotTok = cvec[i_dot].first;
 				CToken& fracTok = cvec[i_frac].first;
-				// tokens preceding T and following frac
-				/*  issue https://github.com/barzerman/barzer/issues/104
-				CToken* pastFrac = ( i_frac + 1 < cvec.size() ? &(cvec[i_frac+1].first) : 0 );
-				CToken* preT = ( i ? &(cvec[i-1].first) : 0 );
-
-				if( 
-					(pastFrac && !(pastFrac->isSpace()) && !pastFrac->isPunct(',') ) ||
-					(preT && !(preT->isSpace()) && !preT->isPunct(",.!?$") ) )  
-				{
-					continue;
-				}
-				*/
 				if( dotTok.isPunct('.') && fracTok.isNumber() ) {
 					// floating point
 					std::stringstream sstr;
@@ -185,6 +173,7 @@ void removeBlankCTokens( CTWPVec& cvec )
 	}
 	if( d!= cvec.end() ) 
 		cvec.resize( d-cvec.begin() );
+    
 }
 
 }
@@ -194,6 +183,19 @@ int QLexParser::advancedBasicClassify( CTWPVec& cvec, const TTWPVec& tvec, const
 	// transforms 
 	advancedNumberClassify(cvec,tvec,qparm);
 	removeBlankCTokens( cvec );
+    /// reclassifying punctuation if needed 
+    for( CTWPVec::iterator i = cvec.begin(); i!= cvec.end(); ++i ) {
+        CToken& ctok = i->first;
+        char punct =  ctok.getPunct();
+        if( punct ) {
+            char theString[] = { punct, 0 };
+		    const StoredToken* storedTok = dtaIdx->getStoredToken( theString );
+            if( storedTok ) {
+                ctok.storedTok = storedTok;
+                ctok.syncClassInfoFromSavedTok();
+            }
+        }
+    }
 	return 0;
 }
 
@@ -435,27 +437,32 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
 		ctok.setTToken( ttok, i );
 		bool wasStemmed = false;
 
-		if( !t || !*t || isspace(*t) ) { // this should never happen
+		if( !t || !*t || isspace(*t)  ) { // this should never happen
 			ctok.setClass( CTokenClassInfo::CLASS_SPACE );
 			continue;
-		}
-		if( !tryClassify_integer(ctok,t) ) {
+		} else if( (*t) == '.' ) {
+            ctok.setClass( CTokenClassInfo::CLASS_PUNCTUATION );
+            if( *t == '"' ) isQuoted = !isQuoted;
+        } else if( !tryClassify_integer(ctok,t) ) {
 			uint32_t usersWordStrId = 0xffffffff;
 			const StoredToken* storedTok = ( bzSpell->isUsersWord( usersWordStrId, t ) ? 
 				dtaIdx->getStoredToken( t ): 0 );
+
+            bool isNumber = tryClassify_number(ctok,t); // this should probably always be false
 			if( storedTok ) { /// 
 				/// 
 				ctok.storedTok = storedTok;
 				ctok.syncClassInfoFromSavedTok();
 			} else { /// token NOT matched in the data set
-	
-				if(ispunct(*t)) {
-					ctok.setClass( CTokenClassInfo::CLASS_PUNCTUATION );
-					if( *t == '"' ) isQuoted = !isQuoted;
-				} else if( !tryClassify_number(ctok,t) ) { 
+                if( ispunct(*t)) {
+                    ctok.setClass( CTokenClassInfo::CLASS_PUNCTUATION );
+                    if( *t == '"' ) isQuoted = !isQuoted;
+                } else if( !isNumber ) { 
 					/// fall thru - this is an unmatched word
 	
 					/// lets try to spell correct the token
+                    if( ispunct(*t) ) {
+                    }
 					if( !isQuoted /*d_universe.stemByDefault()*/ ) {
 						if( trySpellCorrectAndClassify( ctok, ttok ) > 0 )
 							wasStemmed = true;
@@ -464,16 +471,16 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
 					}
 				}
 			}
+		    /// stemming 
+		    if( !isNumber && bzSpell && ctok.isWord() && d_universe.stemByDefault() && !wasStemmed ) {
+			    std::string strToStem( ttok.buf, ttok.len );
+			    std::string stem;
+			    if( bzSpell->stem( stem, strToStem.c_str() ) ) 
+				    ctok.stemTok = dtaIdx->getStoredToken( stem.c_str() );
+		    }
+		    if( ctok.storedTok && ctok.stemTok == ctok.storedTok ) 
+			    ctok.stemTok = 0;
 		}
-		/// stemming 
-		if( bzSpell && ctok.isWord() && d_universe.stemByDefault() && !wasStemmed ) {
-			std::string strToStem( ttok.buf, ttok.len );
-			std::string stem;
-			if( bzSpell->stem( stem, strToStem.c_str() ) ) 
-				ctok.stemTok = dtaIdx->getStoredToken( stem.c_str() );
-		}
-		if( ctok.storedTok && ctok.stemTok == ctok.storedTok ) 
-			ctok.stemTok = 0;
 	}
 	if( cVec.size() > MAX_CTOKENS_PER_QUERY ) {
 		cVec.resize( MAX_CTOKENS_PER_QUERY );

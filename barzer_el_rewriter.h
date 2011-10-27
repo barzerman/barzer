@@ -89,8 +89,16 @@ private:
 	/// this vector can never be shorter than 1 element 
 	BarzelBeadDataVec d_val;	
 	CTokVecVec        d_origToks;
+
+    int d_unmatchable;
 public:
-	BarzelEvalResult() : d_val(1) {}
+
+	BarzelEvalResult() : d_val(1), d_unmatchable(0) {}
+
+    int getUnmatchability() const { return d_unmatchable; }
+    
+    void setUnmatchability(int mb=1) { d_unmatchable= mb; }
+
 	const BarzelBeadData& getBeadData() const { return d_val[0]; }
 	      BarzelBeadData& getBeadData()       { return d_val[0]; }
 
@@ -98,17 +106,6 @@ public:
 	      BarzelBeadDataVec& getBeadDataVec()       { return d_val; }
 	bool isVec() const { return (d_val.size() > 1); }
 	template <typename T> void setBeadData( const T& t ) { d_val[0] = t; }
-	/*
-	const CTokVecVec& getOrigToks() const
-		{ return d_origToks; }
-	void addOrigTokens( const CTWPVec& v ) 
-	{
-		if( !d_origToks.size() ) d_origToks.resize(1);
-		d_origToks.back().insert( d_origToks.back().end(), v.begin(), v.end() ) ;
-	}
-	*/
-	//template <typename T> T& setBeadData( const T& t )
-//		{ return (d_val[0] = t); }
 };
 
 template <>

@@ -232,7 +232,43 @@ template<class T> void mergePairs(std::pair<T,T> &left, const std::pair<T,T> &ri
 }
 
 bool mergeRanges(BarzerRange &r1, const BarzerRange &r2) {
-	if (r1.getType() != r2.getType() || r1.isBlank()) return false;
+    if( r1.isBlank() ) r1 = r2;
+
+	if (r1.getType() != r2.getType() ) {
+        if( (r1.isInteger() ||r1.isReal()) && (r2.isInteger() ||r2.isReal()) ) {
+            BarzerRange::Real realPair;
+            const BarzerRange::Real *otherRealPair = 0;
+
+            const BarzerRange::Integer* r1Int = r1.getInteger();
+            if( r1Int ) {
+                otherRealPair = r2.getReal();
+                realPair.first = (double)( r1Int->first );
+                realPair.second = (double)( r1Int->second );
+
+            } else {
+                otherRealPair = r1.getReal();
+                const BarzerRange::Integer* r2Int = r2.getInteger();
+                if( r2Int ) {
+                    realPair.first = (double)( r2Int->first );
+                    realPair.second = (double)( r2Int->second );
+                } else { // this is impossible 
+		            AYLOG(ERROR) << "Internal inconsistency";
+                    return false;
+                }
+            }
+            if( !otherRealPair ) {  // this is impossible
+                AYLOG(ERROR) << "Internal inconsistency";
+                return false;
+            }
+            mergePairs( realPair, *otherRealPair );
+
+            BarzerRange::Data dta = realPair;
+            r1.setData( dta );
+            return true;
+        } 
+        // if types dont match and cant be reconciled
+        return false;
+    }
 	switch(r1.getType()) {
 	case BarzerRange::Integer_TYPE:
 		mergePairs(boost::get<BarzerRange::Integer>(r1.getData()),
@@ -312,6 +348,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(getYear);
 		ADDFN(getLow); // (BarzerRange)
 		ADDFN(getHigh); // (BarzerRange)
+		ADDFN(isRangeEmpty); // (BarzerRange or ERC) - returns true if range.lo == range.hi
 		// arith
 		ADDFN(textToNum);
 		ADDFN(opPlus);
@@ -336,6 +373,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(arrSz);
 		ADDFN(arrIndex);
 		ADDFN(typeFilter);
+		ADDFN(setUnmatch);
 
 		// --
 		ADDFN(filterEList); // (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
@@ -346,6 +384,11 @@ struct BELFunctionStorage_holder {
 		ADDFN(entSubclass); // (Entity)
 		ADDFN(entId); // (Entity)
 		ADDFN(entSetSubclass); // (Entity,new subclass)
+
+        // erc properties 
+		ADDFN(getEnt); // ((ERC|Entity)[,entity]) -- when second parm passed replaces entity with it
+		ADDFN(getRange); // ((ERC|Entity)[,range]) -- when second parm passed replaces range with it
+        
 	}
 	#undef ADDFN
 
@@ -378,6 +421,79 @@ struct BELFunctionStorage_holder {
 		AYLOGDEBUG(result.isVec());
 		return true;
 	}
+    STFUN(getEnt) {
+        SETFUNCNAME(getEnt);
+        if(rvec.size() )  {
+            const BarzerEntityRangeCombo* erc  = getAtomicPtr<BarzerEntityRangeCombo>(rvec[0]);
+            const BarzerEntity* ent  = ( erc ? &(erc->getEntity()) : getAtomicPtr<BarzerEntity>(rvec[0]) );
+            if( ent ) {
+                if( rvec.size() == 1 ) { /// this is a getter 
+                    setResult(result, *ent );
+                    return true;
+                } else if( rvec.size() == 2 ) { // this is a setter 
+                    const BarzerEntityRangeCombo* r_erc  = getAtomicPtr<BarzerEntityRangeCombo>(rvec[1]);
+                    const BarzerEntity* r_ent  = ( r_erc ? &(r_erc->getEntity()) : getAtomicPtr<BarzerEntity>(rvec[1]) );
+
+                    if( r_ent ) {
+                        setResult(result, *r_ent );
+                        return true;
+                    }
+                }
+            }
+        }
+
+        FERROR( "expects ( (ERC|Entity) [,entity] ) to get/set entity for erc or bypass" );
+        return true;
+    }
+    STFUN(getRange){
+        SETFUNCNAME(getRange);
+        if(rvec.size() )  {
+            const BarzerEntityRangeCombo* erc  = getAtomicPtr<BarzerEntityRangeCombo>(rvec[0]);
+            const BarzerRange* range  = ( erc ? &(erc->getRange()) : getAtomicPtr<BarzerRange>(rvec[0]) );
+            if( range ) {
+                if( rvec.size() == 1 ) { /// this is a getter 
+                    setResult(result, *range );
+                    return true;
+                } else if( rvec.size() == 2 ) { // this is a setter 
+                    const BarzerEntityRangeCombo* r_erc  = getAtomicPtr<BarzerEntityRangeCombo>(rvec[1]);
+                    const BarzerRange* r_range  = ( r_erc ? &(r_erc->getRange()) : getAtomicPtr<BarzerRange>(rvec[1]) );
+
+                    if( r_range ) {
+                        setResult(result, *r_range );
+                        return true;
+                    }
+                }
+            }
+        }
+        FERROR("expects: (ERC|Range) [,(range|ERC)] to get/set range");
+        return true;
+    }
+    STFUN(isRangeEmpty)
+    {
+        SETFUNCNAME(isRangeEmpty);
+        if( rvec.size() == 1 ) {
+            const BarzerRange* range  = getAtomicPtr<BarzerRange>(rvec[0]);
+
+            if( !range ) {
+                const BarzerEntityRangeCombo* erc  = getAtomicPtr<BarzerEntityRangeCombo>(rvec[0]);
+                
+                if( erc ) 
+                    range = &(erc->getRange());
+            }
+            if( range ) {
+                if( range->isEmpty()) 
+                    result = rvec[0];
+                else {
+                    // BarzelBeadBlank blank;
+                    result.setBeadData(BarzelBeadBlank());
+                }
+                return true;
+            } 
+        } 
+        FERROR( "expects ( (ERC|Range) ) to tell whether the range is empty (lo == hi)" );
+        
+        return true;
+    }
 	STFUN(textToNum) {
         SETFUNCNAME(text2Num);
         int langId = 0; // language id . 0 means english 
@@ -937,6 +1053,7 @@ struct BELFunctionStorage_holder {
 		}
 
 	};
+
 
 	STFUN(mkERC) // makes EntityRangeCombo
 	{
@@ -1644,6 +1761,16 @@ struct BELFunctionStorage_holder {
             for( BarzelBeadDataVec::const_iterator vi = v.begin(); vi !=v.end(); ++vi ) 
                 resultVec.push_back( *vi );
         }
+        return true;
+    }
+	STFUN(setUnmatch) { //  
+        BarzelBeadDataVec& resultVec = result.getBeadDataVec();
+        for( BarzelEvalResultVec::const_iterator i = rvec.begin(); i!= rvec.end(); ++i ) {
+            const BarzelBeadDataVec& v = i->getBeadDataVec();
+            for( BarzelBeadDataVec::const_iterator vi = v.begin(); vi !=v.end(); ++vi ) 
+                resultVec.push_back( *vi );
+        }
+        result.setUnmatchability(1);
         return true;
     }
     // typeFilter( sample, arg1, arg2, ..., argN ) 

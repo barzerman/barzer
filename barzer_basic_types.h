@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <time.h>
+#include <math.h>
 
 #include <ay/ay_bitflags.h>
 #include <boost/variant.hpp>
@@ -414,6 +415,14 @@ struct BarzerRange {
 	bool isDesc() const { return ORDER_DESC== order; }
 
 	BarzerRange( ) : order(ORDER_ASC), rng_mode(RNG_MODE_FULL) {}
+
+	struct Empty_visitor : public boost::static_visitor<bool> {
+        template <typename T> bool operator()( const T& val ) const { return (val.first == val.second); }
+        bool operator() ( const BarzerRange::Real& val ) const 
+            { return ( fabs(val.first - val.second) <  0.0000000000001); }
+    };
+    bool isEmpty() const 
+        { return boost::apply_visitor( Empty_visitor(), dta ); }
 
 	struct Less_visitor : public boost::static_visitor<bool> {
 		// typedef BarzerRange::Data Data;

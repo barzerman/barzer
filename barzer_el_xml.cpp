@@ -305,6 +305,14 @@ void BELParserXML::taghandle_TRANSLATION( const char_cp * attr, size_t attr_sz ,
 		return;
 	}
 	statement.setTranslation();
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+        if(!n) continue;
+        switch( n[0] ) {
+        case 'u': if( v && v[0] == 'y' ) statement.stmt.setTranUnmatchable(); break;
+        }
+    }
 }
 /// tag text visitors
 namespace {
@@ -1297,6 +1305,7 @@ void BELParserXML::CurStatementData::clear()
 	bits.clear();
 	procNameId = 0xffffffff;
 	state = STATE_BLANK;
+    stmt.clearUnmatchable();
 	stmt.translation.clear();
 	stmt.pattern.clear();
 	macroName.clear();

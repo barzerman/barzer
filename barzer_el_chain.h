@@ -172,12 +172,16 @@ class BarzelBead {
 	CTWPVec ctokOrigVec; // pre-barzel CToken list participating in this bead 
 	/// types 
 	BarzelBeadData dta;
+    int d_unmatchable; 
 public:
-	BarzelBead(const BarzelBeadData& d ): dta(d) {}
-	BarzelBead() {}
+    int getBeadUnmatchability() const { return d_unmatchable; } 
+    void setBeadUnmatchability(int bu=0) { d_unmatchable= bu; } 
+
+	BarzelBead(const BarzelBeadData& d ): dta(d), d_unmatchable(0) {}
+	BarzelBead() : d_unmatchable(0){}
 	const BarzelBeadData& getBeadData() const { return dta; }
 	void init(const CTWPVec::value_type&) ;
-	BarzelBead(const CTWPVec::value_type& ct) 
+	BarzelBead(const CTWPVec::value_type& ct) : d_unmatchable(0)
 		{ init(ct); }
 	/// implement:
 	void absorbBead( const BarzelBead& bead )
@@ -315,6 +319,11 @@ struct BarzelBeadChain {
 
 		return r;
 	}
+    /// runs through the list and sets unmathabilities for all beads to 0  
+    void clearUnmatchable() {
+		for( BeadList::iterator i = lst.begin(); i!= lst.end(); ++i ) 
+            i->setBeadUnmatchability();
+    }
 };
 
 

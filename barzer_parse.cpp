@@ -13,12 +13,12 @@ int QSemanticParser::semanticize( Barz& barz, const QuestionParm& qparm  )
 	const UniverseTrieCluster::BELTrieList& trieList = trieCluster.getTrieList();
     size_t gramamrSeqNo = 0;
 	for( UniverseTrieCluster::BELTrieList::const_iterator t = trieList.begin(); t != trieList.end(); ++t ) {
+        barz.getBeads().clearUnmatchable();        
+
         BELTrie* trie = *t;
 		BarzelMatcher barzelMatcher( universe, *trie );
-        
         barz.barzelTrace.setGrammarSeqNo( gramamrSeqNo );
 		barzelMatcher.matchAndRewrite( barz );
-
         ++gramamrSeqNo; 
 	}
 	return 0;
