@@ -1132,4 +1132,38 @@ bool BarzelMatchInfo::getDataByVar( BeadRange& r, const BTND_Rewrite_Variable& v
 		}
 		return 0;
 	}
+
+size_t BarzelMatcher::get_match_greedy( NodeAndBeadVec& mtChild, BeadList::iterator fromI, BeadList::iterator toI, bool precededByBlank ) const
+{
+	if( fromI == toI ) 
+		return false; // this should never happen bu just in case
+
+	bool precededByBlanks = false;
+	const BarzelBeadAtomic* bead;
+	BeadRange rng(fromI,toI);
+	BeadList::const_iterator dtaBeadIter;
+	do {
+		dtaBeadIter = rng.first;
+		const BarzelBead& b = *dtaBeadIter;
+		bead = b.getAtomic();
+		if( !bead )  /// expressions and blanks wont be matched 
+			return false; 
+		if( bead->isBlankLiteral() ) {
+			++rng.first;
+			if( !precededByBlanks )
+				precededByBlanks= true;
+		} else 
+			break;
+	} while( rng.first != rng.second );
+
+    const BarzelTrieNode* trieRoot = &(d_trie.getRoot());
+	BTMIterator btmi(rng,universe,d_trie);	
+	btmi.findPaths(trieRoot);
+
+	findMatchingChildren_visitor vis( btmi, precededByBlanks, mtChild, rng, trieRoot, dtaBeadIter, d_trie);
+
+	boost::apply_visitor( vis, bead->dta );
+	return( mtChild.size() );
+}
+
 } // namespace barzer ends 

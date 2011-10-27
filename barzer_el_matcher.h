@@ -184,7 +184,6 @@ public:
 		{ matchBeadChain( bestPaths.getFullRange(), trieNode ); }
 	
 	bool evalWildcard( const BarzelWCKey& wcKey, BeadList::iterator fromI, BeadList::iterator theI, uint8_t tokSkip ) const;
-	
 };
 
 
@@ -264,6 +263,31 @@ public:
 		d_err.clear();
 	}
 
+	
+    size_t get_match_greedy( NodeAndBeadVec& mtChild, BeadList::iterator fromI, BeadList::iterator toI, bool precededByBlank ) const;
+    // starting with each bea tries to match the longest path 
+    // for each matched path invokes callback( const NodeAndBeadVec& ) - NodeAndBeadVec will contain the (matched range,node) pairs
+    template <typename CB>
+    int pureMatchGreedy( CB& callback, const BeadRange& rng ) const
+    {
+        int numEmits = 0;
+        bool precededByBlank = false;
+        for(BeadList::iterator b= rng.first; b != rng.second; ++b ) {
+            const BarzelBeadAtomic* bead;
+            bead = b->getAtomic();
+            if( bead ) {
+                if( !bead->isBlankLiteral() ) {
+                    NodeAndBeadVec mtChild;
+                    if( get_match_greedy(mtChild, b, rng.second, precededByBlank) ) {
+                        ++numEmits;
+                        callback( mtChild );
+                    }
+                } else if( !precededByBlank ) 
+                    precededByBlank = true;
+            }
+        }
+        return numEmits;
+    }
 };
 
 }
