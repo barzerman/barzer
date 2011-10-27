@@ -21,7 +21,9 @@
         <level>DEBUG</level>
         <file>barzer.log</file>
     </logging>
-    <users></users>
+    <users>
+    <user id="0" />
+    </users>
     <instance>
         <threads>4</threads>
     </instance>
