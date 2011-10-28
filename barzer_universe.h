@@ -214,6 +214,8 @@ class StoredUniverse {
 	GlobalPools& gp;
 
 	UniverseTrieCluster          trieCluster; 
+	UniverseTrieCluster          topicTrieCluster; 
+
 	BarzerHunspell      hunspell;
 
 	BZSpell*             bzSpell; 
@@ -232,6 +234,7 @@ public:
     void clearTrieList() { 
         trieCluster.clearList();
     }
+    
     typedef boost::shared_mutex Mutex;
     mutable Mutex d_theMutex;
 
@@ -278,6 +281,10 @@ public:
 
 	bool stemByDefault() const { return gp.parseSettings().stemByDefault(); }
 	UniverseTrieCluster& getTrieCluster() { return trieCluster; }
+
+	UniverseTrieCluster& getTopicTrieCluster() { return topicTrieCluster; }
+	const UniverseTrieCluster& getTopicTrieCluster() const { return topicTrieCluster; }
+
 	const UniverseTrieCluster& getTrieCluster() const { return trieCluster; }
 	BarzerHunspell& getHunspell() { return hunspell; }
 	const BarzerHunspell& getHunspell() const { return hunspell; }
@@ -332,6 +339,7 @@ public:
 
 	// clears all tries 
 	void clearTries();
+	void clearTopicTries();
 	void clearSpell();
 	// purges everything 
 	void clear();
@@ -346,6 +354,7 @@ public:
 		else 
 			return ( bas = BarzelRewriterPool::BufAndSize(), false );
 	}
+
 	bool isBarzelTranslationFallible( const BELTrie& trie, const BarzelTranslation& tran ) const {
 		return tran.isFallible( getRewriterPool(trie) );
 	}

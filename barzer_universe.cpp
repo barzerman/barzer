@@ -199,6 +199,7 @@ StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	d_userId(id),
 	gp(g),
 	trieCluster(g.globalTriePool,*this),
+	topicTrieCluster(g.globalTriePool,*this),
 	hunspell(*this),
 	bzSpell(new BZSpell(*this))
 {}
@@ -224,6 +225,18 @@ void StoredUniverse::clearSpell()
 	bzSpell = new BZSpell(*this);
 }
 
+void StoredUniverse::clearTopicTries()
+{
+	UniverseTrieClusterIterator clusterIter( topicTrieCluster );
+	for( ;!clusterIter.isAtEnd(); clusterIter.advance() ) {
+		BELTrie& trie = clusterIter.getCurrentTrie();
+		{
+			BELTrie::WriteLock w_lock(trie.getThreadLock());
+			if( trie.getNumUsers() == 1 ) 
+				trie.clear();
+		}
+	} 
+}
 void StoredUniverse::clearTries()
 {
 	UniverseTrieClusterIterator clusterIter( trieCluster );
@@ -238,6 +251,7 @@ void StoredUniverse::clearTries()
 }
 void StoredUniverse::clear()
 {
+	clearTopicTries();
 	clearTries();
 	clearSpell();
 }

@@ -14,6 +14,7 @@ public:
 	struct Error : public QPError { } err;
 
 	virtual int semanticize( Barz&, const QuestionParm&  );
+	virtual int analyzeTopics( Barz&, const QuestionParm&  );
 	QSemanticParser( const StoredUniverse& u) : 
 		universe(u)
 	{}

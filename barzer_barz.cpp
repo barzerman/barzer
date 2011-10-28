@@ -65,6 +65,7 @@ int Barz::semanticParse( QSemanticParser& sem, const QuestionParm& qparm )
 	/// invalidating and initializing all higher order objects
 	beadChain.init(ctVec);
 
+    sem.analyzeTopics( *this, qparm );
 	return sem.semanticize( *this, qparm );
 }
 //// post-semantcial interpretation 

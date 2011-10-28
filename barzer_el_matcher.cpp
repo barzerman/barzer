@@ -1136,9 +1136,9 @@ bool BarzelMatchInfo::getDataByVar( BeadRange& r, const BTND_Rewrite_Variable& v
 size_t BarzelMatcher::get_match_greedy( NodeAndBeadVec& mtChild, BeadList::iterator fromI, BeadList::iterator toI, bool precededByBlank ) const
 {
 	if( fromI == toI ) 
-		return false; // this should never happen bu just in case
+		return 0; // this should never happen bu just in case
 
-	bool precededByBlanks = false;
+	bool precededByBlanks = 0;
 	const BarzelBeadAtomic* bead;
 	BeadRange rng(fromI,toI);
 	BeadList::const_iterator dtaBeadIter;
@@ -1147,7 +1147,7 @@ size_t BarzelMatcher::get_match_greedy( NodeAndBeadVec& mtChild, BeadList::itera
 		const BarzelBead& b = *dtaBeadIter;
 		bead = b.getAtomic();
 		if( !bead )  /// expressions and blanks wont be matched 
-			return false; 
+			return 0; 
 		if( bead->isBlankLiteral() ) {
 			++rng.first;
 			if( !precededByBlanks )

@@ -6,20 +6,38 @@
 using namespace barzer;
 ///////// semantic parser 
 
+int QSemanticParser::analyzeTopics( Barz& barz, const QuestionParm& qparm  )
+{
+	const UniverseTrieCluster& trieCluster = universe.getTopicTrieCluster();
+	const UniverseTrieCluster::BELTrieList& trieList = trieCluster.getTrieList();
+    size_t grammarSeqNo = 0;
+    NodeAndBeadVec pathVec;
+	for( UniverseTrieCluster::BELTrieList::const_iterator t = trieList.begin(); t != trieList.end(); ++t ) {
+        if( *t) {
+            const BELTrie& trie = *(*t);
+            BarzelMatcher barzelMatcher( universe, trie );
+            BarzelBeadChain& beadChain = barz.getBeads();
+            barzelMatcher.get_match_greedy( pathVec, beadChain.lst.begin(), beadChain.lst.end(), false );
+        }
+        ++grammarSeqNo;
+    }
+    return 0;
+}
+
 int QSemanticParser::semanticize( Barz& barz, const QuestionParm& qparm  )
 {
 	err.clear();
 	const UniverseTrieCluster& trieCluster = universe.getTrieCluster();
 	const UniverseTrieCluster::BELTrieList& trieList = trieCluster.getTrieList();
-    size_t gramamrSeqNo = 0;
+    size_t grammarSeqNo = 0;
 	for( UniverseTrieCluster::BELTrieList::const_iterator t = trieList.begin(); t != trieList.end(); ++t ) {
         barz.getBeads().clearUnmatchable();        
 
-        BELTrie* trie = *t;
+        const BELTrie* trie = *t;
 		BarzelMatcher barzelMatcher( universe, *trie );
-        barz.barzelTrace.setGrammarSeqNo( gramamrSeqNo );
+        barz.barzelTrace.setGrammarSeqNo( grammarSeqNo );
 		barzelMatcher.matchAndRewrite( barz );
-        ++gramamrSeqNo; 
+        ++grammarSeqNo; 
 	}
 	return 0;
 }
