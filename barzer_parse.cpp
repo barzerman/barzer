@@ -6,18 +6,28 @@
 using namespace barzer;
 ///////// semantic parser 
 
+struct TopicAnalyzer {
+    QSemanticParser& semParser;
+    TopicAnalyzer( QSemanticParser& p ) : semParser(p) {}
+    void operator() ( const NodeAndBead& nb ) {}
+};
+
 int QSemanticParser::analyzeTopics( Barz& barz, const QuestionParm& qparm  )
 {
 	const UniverseTrieCluster& trieCluster = universe.getTopicTrieCluster();
 	const UniverseTrieCluster::BELTrieList& trieList = trieCluster.getTrieList();
     size_t grammarSeqNo = 0;
-    NodeAndBeadVec pathVec;
+
+    TopicAnalyzer topicAnalyzer( *this );
+
+    MatcherCallbackGeneric<TopicAnalyzer> cb(topicAnalyzer);
+
 	for( UniverseTrieCluster::BELTrieList::const_iterator t = trieList.begin(); t != trieList.end(); ++t ) {
         if( *t) {
             const BELTrie& trie = *(*t);
             BarzelMatcher barzelMatcher( universe, trie );
             BarzelBeadChain& beadChain = barz.getBeads();
-            barzelMatcher.get_match_greedy( pathVec, beadChain.lst.begin(), beadChain.lst.end(), false );
+            barzelMatcher.get_match_greedy( cb, beadChain.lst.begin(), beadChain.lst.end(), false );
         }
         ++grammarSeqNo;
     }

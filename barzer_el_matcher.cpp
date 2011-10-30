@@ -8,7 +8,7 @@
 namespace barzer {
 
 namespace {
-inline std::ostream& print_NodeAndBeadVec( std::ostream& fp, const NodeAndBeadVec& v, BeadList::iterator end )
+std::ostream& print_NodeAndBeadVec( std::ostream& fp, const NodeAndBeadVec& v, BeadList::iterator end )
 {
 	for( NodeAndBeadVec::const_iterator i = v.begin(); i!= v.end() ; ++i) {
 		fp << "* ELEMENT[" << i-v.begin() << "]" << ( i->first->isWcChild() ? " WC" : "~") << "\n";
@@ -136,12 +136,37 @@ inline void BarzelWCLookupKey_form::operator()<BarzerLiteral> ( const BarzerLite
 	key.second.set( maxSpan, true );
 }
 
-struct MatchChildInfo {
+class NodeAndBeadVec_Wrapper {
+    MatcherCallback* callback;
+    NodeAndBeadVec* vec;
+
+    size_t fakeSize; 
+public:
+    NodeAndBeadVec_Wrapper( MatcherCallback& cb ) :
+        callback(&cb), vec(0), fakeSize(0) 
+    {}
+    NodeAndBeadVec_Wrapper( NodeAndBeadVec& nbv ) :
+        callback(0), vec(&nbv), fakeSize(0) 
+    {}
+    
+    void push_back( const NodeAndBead& nb )
+    {
+        if( callback ) {
+            (*callback)( nb );
+            ++fakeSize;
+        } else {
+            vec->push_back(nb);
+        }
+    }
+    size_t size() const { return ( vec ? vec->size() : fakeSize ) ; }
 };
 
 struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 	BTMIterator& 			d_btmi;
-	NodeAndBeadVec& 		d_mtChild;
+private: // making sure nobody ever uses this directly
+	NodeAndBeadVec_Wrapper& 		d_mtChild;
+
+public:
 	const BeadRange&		d_rng; // full range
 	
 	const BarzelTrieNode* 	d_tn; 
@@ -182,7 +207,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 		return id;
 	}
 
-	findMatchingChildren_visitor( BTMIterator& bi, bool followsBlanks, NodeAndBeadVec& mC, const BeadRange& r, const BarzelTrieNode* t, BeadList::const_iterator dtaBeadIter, const BELTrie& trie):
+	findMatchingChildren_visitor( BTMIterator& bi, bool followsBlanks, NodeAndBeadVec_Wrapper& mC, const BeadRange& r, const BarzelTrieNode* t, BeadList::const_iterator dtaBeadIter, const BELTrie& trie):
 		d_btmi(bi), 
 		d_mtChild(mC), 
 		d_rng(r), 
@@ -650,7 +675,8 @@ bool BTMIterator::findMatchingChildren( NodeAndBeadVec& mtChild, const BeadRange
 
     if( rng.second == rng.first ) return false;
 
-	findMatchingChildren_visitor vis( *this, precededByBlanks, mtChild, rng, tn, dtaBeadIter, d_trie);
+    NodeAndBeadVec_Wrapper mtChild_wrap(mtChild);
+	findMatchingChildren_visitor vis( *this, precededByBlanks, mtChild_wrap, rng, tn, dtaBeadIter, d_trie);
 
 	boost::apply_visitor( vis, bead->dta );
 	return ( mtChild.size() != 0 );
@@ -1133,7 +1159,7 @@ bool BarzelMatchInfo::getDataByVar( BeadRange& r, const BTND_Rewrite_Variable& v
 		return 0;
 	}
 
-size_t BarzelMatcher::get_match_greedy( NodeAndBeadVec& mtChild, BeadList::iterator fromI, BeadList::iterator toI, bool precededByBlank ) const
+size_t BarzelMatcher::get_match_greedy( MatcherCallback& cb, BeadList::iterator fromI, BeadList::iterator toI, bool precededByBlank ) const
 {
 	if( fromI == toI ) 
 		return 0; // this should never happen bu just in case
@@ -1160,10 +1186,11 @@ size_t BarzelMatcher::get_match_greedy( NodeAndBeadVec& mtChild, BeadList::itera
 	BTMIterator btmi(rng,universe,d_trie);	
 	btmi.findPaths(trieRoot);
 
-	findMatchingChildren_visitor vis( btmi, precededByBlanks, mtChild, rng, trieRoot, dtaBeadIter, d_trie);
+    NodeAndBeadVec_Wrapper cb_wrap(cb);
+	findMatchingChildren_visitor vis( btmi, precededByBlanks, cb_wrap, rng, trieRoot, dtaBeadIter, d_trie);
 
 	boost::apply_visitor( vis, bead->dta );
-	return( mtChild.size() );
+	return( cb_wrap.size() );
 }
 
 } // namespace barzer ends 

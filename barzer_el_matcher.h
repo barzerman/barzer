@@ -187,6 +187,19 @@ public:
 };
 
 
+struct MatcherCallback {
+    virtual void operator()( const NodeAndBead& nb ) = 0;
+    virtual ~MatcherCallback() {}
+};
+
+template <typename CB>
+struct MatcherCallbackGeneric : public MatcherCallback {
+    CB& d_cb;
+    MatcherCallbackGeneric( CB& cb ) : d_cb(cb) {}
+    void operator()( const NodeAndBead& nb ) 
+    { d_cb( nb ); }
+};
+
 /// BarzelMatcher objects need to be unique per thread
 class BarzelMatcher {
 protected:
@@ -264,9 +277,10 @@ public:
 	}
 
 	
-    size_t get_match_greedy( NodeAndBeadVec& mtChild, BeadList::iterator fromI, BeadList::iterator toI, bool precededByBlank ) const;
+    size_t get_match_greedy( MatcherCallback& cb, BeadList::iterator fromI, BeadList::iterator toI, bool precededByBlank ) const;
+
     // starting with each bea tries to match the longest path 
-    // for each matched path invokes callback( const NodeAndBeadVec& ) - NodeAndBeadVec will contain the (matched range,node) pairs
+    // for each matched path invokes callback( const NodeAndBead& ) - NodeAndBead will contain a (matched range,node) pair
     template <typename CB>
     int pureMatchGreedy( CB& callback, const BeadRange& rng ) const
     {
@@ -277,11 +291,9 @@ public:
             bead = b->getAtomic();
             if( bead ) {
                 if( !bead->isBlankLiteral() ) {
-                    NodeAndBeadVec mtChild;
-                    if( get_match_greedy(mtChild, b, rng.second, precededByBlank) ) {
-                        ++numEmits;
-                        callback( mtChild );
-                    }
+                    MatcherCallbackGeneric<CB> cb(callback);
+
+                    numEmits = get_match_greedy(cb, b, rng.second, precededByBlank);
                 } else if( !precededByBlank ) 
                     precededByBlank = true;
             }
