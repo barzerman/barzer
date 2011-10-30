@@ -56,7 +56,8 @@ public:
 	~GlobalTriePool();
 };
 
-/// in general there is one cluster per customer installation 
+/// in general there are 2 clusters per customer installation 
+/// the regular trie cluster and the topic trie one 
 class UniverseTrieCluster {
 	GlobalTriePool& d_triePool;
 	StoredUniverse& d_universe;
