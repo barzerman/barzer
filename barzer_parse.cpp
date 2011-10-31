@@ -5,12 +5,13 @@
 
 using namespace barzer;
 ///////// semantic parser 
-
+namespace {
 struct TopicAnalyzer {
     QSemanticParser& semParser;
     TopicAnalyzer( QSemanticParser& p ) : semParser(p) {}
     void operator() ( const NodeAndBead& nb ) {}
 };
+}
 
 int QSemanticParser::analyzeTopics( Barz& barz, const QuestionParm& qparm  )
 {
@@ -83,6 +84,13 @@ int QParser::tokenize_only( Barz& barz, const char* q, const QuestionParm& qparm
 }
 
 
+int QParser::lex( Barz& barz, const char* q, const QuestionParm& qparm )
+{
+	barz.clear();
+	tokenize_only( barz, q, qparm );
+	lex_only( barz, qparm );
+    return 0;
+}
 int QParser::parse( Barz& barz, const char* q, const QuestionParm& qparm )
 {
 	barz.clear();

@@ -68,8 +68,8 @@ private:
 	BELTrieList d_trieList;
 	friend class UniverseTrieClusterIterator;
 
-	BELTrieList& getTrieList() { return d_trieList; }
 public: 
+	BELTrieList& getTrieList() { return d_trieList; }
 	const BELTrieList& getTrieList() const { return d_trieList; }
 	UniverseTrieCluster( GlobalTriePool& triePool, StoredUniverse& u ) ;
 	BELTrie& appendTrie( const std::string& trieClass, const std::string& trieId );
@@ -264,6 +264,7 @@ public:
 		{ return ( bzSpell ? bzSpell->isWordValidInUniverse( word ) : true ); }
 
 	const UniverseTrieCluster::BELTrieList& getTrieList() const { return trieCluster.getTrieList(); }
+	UniverseTrieCluster::BELTrieList& getTrieList() { return trieCluster.getTrieList(); }
 
 	/// adds uer specific strings from extra file 
 	/// 

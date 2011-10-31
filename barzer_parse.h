@@ -60,6 +60,11 @@ public:
 	 
 	/// tokenizes, classifies and semanticizes 
 	int parse( Barz& barz, const char* q, const QuestionParm& qparm );
+
+    // tokenizes and lexes (no semantics) 
+	int lex( Barz& barz, const char* q, const QuestionParm& qparm );
+    
+    const StoredUniverse& getUniverse() const { return universe; }
 };
 
 } // barzer namespace ends 

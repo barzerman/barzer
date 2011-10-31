@@ -25,6 +25,14 @@
 
 namespace barzer {
 
+BarzerShellContext::BarzerShellContext(StoredUniverse& u, BELTrie& trie) : 
+		gp(u.getGlobalPools()),
+		d_universe(&u),
+		trieWalker(trie),
+		d_trie(&trie),
+		parser( u ),
+        d_grammarId(0)
+	{}
 
 BarzerShellContext* BarzerShell::getBarzerContext()
 {
@@ -345,6 +353,64 @@ static int bshf_spell( BarzerShell* shell, char_cp cmd, std::istream& in )
 	}
 
 	return 0;
+}
+
+namespace {
+
+
+struct TopicAnalyzer {
+    QParser& parser;
+    std::ostream& fp;
+
+	BELPrintFormat fmt;
+    BELPrintContext printCtxt;
+
+    TopicAnalyzer( QParser& p, std::ostream& os, const BELTrie& trie ) :
+        parser(p), fp(os) ,
+        printCtxt( trie, p.getUniverse().getStringPool(), fmt )
+
+    {}
+    void operator() ( const NodeAndBead& nb ) {
+        nb.first->print( fp, printCtxt );
+        fp << "{" << nb.second << "}\n";
+    }
+};
+
+}
+
+static int bshf_greed( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext * context = shell->getBarzerContext();
+	Barz& barz = context->barz;
+
+	QParser parser( (context->getUniverse()) );
+
+	const StoredUniverse &uni = context->getUniverse();
+	BarzStreamerXML bs(barz, context->getUniverse());
+
+    const BELTrie* trie=  &(context->getTrie());
+
+    std::ostream& outFP = shell->getOutStream() ;
+    TopicAnalyzer topicAnalyzer(parser, outFP, *trie );
+    MatcherCallbackGeneric<TopicAnalyzer> cb(topicAnalyzer);
+
+
+	ay::InputLineReader reader( in );
+	while( reader.nextLine() && reader.str.length() ) {
+	    QuestionParm qparm;
+		const char* q = reader.str.c_str();
+		outFP << "lexing: " << q << "\n";
+		parser.lex( barz, q, qparm );
+		outFP << "lexed. printing\n";
+		bs.print(outFP);
+		
+		// << ttVec << std::endl;
+
+        BarzelMatcher barzelMatcher( uni, *trie );
+        BarzelBeadChain& beadChain = barz.getBeads();
+        barzelMatcher.get_match_greedy( cb, beadChain.lst.begin(), beadChain.lst.end(), false );
+	}
+    return 0;
 }
 
 static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
@@ -772,6 +838,37 @@ static int bshf_trieclear( BarzerShell* shell, char_cp cmd, std::istream& in )
 	}
 	return 0;
 }
+static int bshf_grammar( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext * context = shell->getBarzerContext();
+	// GlobalPools &globalPools = context->getGLobalPools();
+	std::string gramStr;
+	if( in >> gramStr ) {
+        int grammarId = atoi( gramStr.c_str() );
+
+	    StoredUniverse &uni = context->getUniverse();
+        UniverseTrieCluster::BELTrieList& trieList = uni.getTrieList();
+        
+        int gi =0;
+	    BELTrie* trie = 0;
+        for( UniverseTrieCluster::BELTrieList::iterator i = trieList.begin(); i!= trieList.end(); ++i ) {
+            if( gi == grammarId ) {
+	            trie = *i;
+            }
+        }
+        if(!trie ) {
+            std::cerr << "grammar id " << grammarId << " not found\n";
+        } else {
+            context->setTrie( trie );
+            context->trieWalker.setTrie( trie );
+        
+            std::cerr << "SETTING TRIE: \"" << trie->getTrieClass() << "\":\"" << trie->getTrieId()<< "\"\n";
+        }
+    } else {
+        std::cerr << "current grammar is: " << context->d_grammarId << " for user "<< shell->getUser() << "\n";
+    }
+	return 0;
+}
 static int bshf_trieset( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
@@ -879,16 +976,30 @@ static int bshf_stexpand( BarzerShell* shell, char_cp cmd, std::istream& in )
 static int bshf_user( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	uint32_t uid = 0;
+    std::ostream& outFP = shell->getOutStream() ;
 	if (in >> uid) {
 		int rc = shell->setUser( uid, false ) ;
 		if( rc ) 
-			std::cerr << "error=" << rc << " setting user to " << uid << "\n";
+			outFP << "error=" << rc << " setting user to " << uid << "\n";
 		else 
-			std::cerr << "user is set to " << uid << "\n";
-	} else
-        std::cerr << "Current user is " << shell->getUser() << "\n";
+			outFP << "user is set to " << uid << "\n";
+	} else {
+        outFP << "Current user is " << shell->getUser() << "\n";
+        
+	    BarzerShellContext *context = shell->getBarzerContext();
+	    StoredUniverse &uni = context->getUniverse();
+        const UniverseTrieCluster::BELTrieList& trieList = uni.getTrieList();
+        size_t numGrammars = 0;
+        for( UniverseTrieCluster::BELTrieList::const_iterator i = trieList.begin(); i!= trieList.end(); ++i ) {
+            const BELTrie* trie = *i; 
+            outFP << numGrammars << " [" << trie->getTrieClass() << ":" << trie->getTrieId() << "]" << std::endl;
+            ++numGrammars ;
+        }
+        outFP << "**** total " << numGrammars << std::endl;
+    }
 	return 0;
 }
+
 static int bshf_querytest( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext *context = shell->getBarzerContext();
@@ -930,6 +1041,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_bzstem, "bzstem", "bz stemming correction for the user domain" ),
 	CmdData( (ay::Shell_PROCF)bshf_dtaan, "dtaan", "data set analyzer. runs through the trie" ),
 	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),
+	CmdData( (ay::Shell_PROCF)bshf_grammar, "grammar", "sets trie for given grammar. use 'user' to list grammars" ),
 	CmdData( (ay::Shell_PROCF)bshf_lex, "lex", "tokenize and then classify (lex) the input" ),
 	CmdData( (ay::Shell_PROCF)bshf_tokenize, "tokenize", "tests tokenizer" ),
 	CmdData( (ay::Shell_PROCF)bshf_xmload, "xmload", "loads xml from file" ),
@@ -954,6 +1066,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_stexpand, "stexpand", "expand and print all statements in a file" ),
 	CmdData( (ay::Shell_PROCF)bshf_strid, "strid", "resolve string id (usage strid id)" ),
 	CmdData( (ay::Shell_PROCF)bshf_process, "process", "process an input string" ),
+	CmdData( (ay::Shell_PROCF)bshf_greed, "greed", "non rewriting full match" ),
 	CmdData( (ay::Shell_PROCF)bshf_querytest, "querytest", "peforms given number of queries" ),
 	CmdData( (ay::Shell_PROCF)bshf_userstats, "userstats", "trie stats for a given user" ),
 	CmdData( (ay::Shell_PROCF)bshf_user, "user", "sets current user by user id" )

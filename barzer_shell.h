@@ -24,16 +24,14 @@ struct BarzerShellContext : public ay::ShellContext {
 	Barz barz;
 	QParser parser;
 
+    int d_grammarId;
+
 	DtaIndex* obtainDtaIdx() { return &(d_universe->getDtaIdx()); }
 	BELTrie& getTrie() { return *d_trie; }
 	const BELTrie& getTrie() const { return *d_trie; }
-	BarzerShellContext(StoredUniverse& u, BELTrie& trie) : 
-		gp(u.getGlobalPools()),
-		d_universe(&u),
-		trieWalker(trie),
-		d_trie(&trie),
-		parser( u )
-	{}
+
+	BarzerShellContext(StoredUniverse& u, BELTrie& trie);
+
 	BELTrie* getCurrentTriePtr() { return d_trie; }
 	void setTrie( BELTrie* t ) 
 	{
