@@ -89,6 +89,7 @@ int QParser::lex( Barz& barz, const char* q, const QuestionParm& qparm )
 	barz.clear();
 	tokenize_only( barz, q, qparm );
 	lex_only( barz, qparm );
+    barz.chainInit(qparm);
     return 0;
 }
 int QParser::parse( Barz& barz, const char* q, const QuestionParm& qparm )

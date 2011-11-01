@@ -402,12 +402,17 @@ static int bshf_greed( BarzerShell* shell, char_cp cmd, std::istream& in )
 		outFP << "lexing: " << q << "\n";
 		parser.lex( barz, q, qparm );
 		outFP << "lexed. printing\n";
+		const CTWPVec& ctVec = barz.getCtVec();
+		outFP << "Classified Tokens: {" << ctVec << "}" << std::endl;
 		bs.print(outFP);
 		
 		// << ttVec << std::endl;
 
         BarzelMatcher barzelMatcher( uni, *trie );
         BarzelBeadChain& beadChain = barz.getBeads();
+        if( beadChain.lst.empty() ) {
+            std::cerr << "no beads\n";
+        }
         barzelMatcher.get_match_greedy( cb, beadChain.lst.begin(), beadChain.lst.end(), false );
 	}
     return 0;

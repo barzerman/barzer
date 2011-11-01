@@ -46,6 +46,8 @@ BELTrie::BELTrie( GlobalPools& gp ) :
 
 void BELTrie::initPools() 
 {
+	d_varIndex.clear();
+
 	if( d_rewrPool ) 
 		delete d_rewrPool;
 	d_rewrPool= new BarzelRewriterPool(1024);

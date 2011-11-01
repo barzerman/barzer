@@ -45,6 +45,7 @@ public:
 	{
 		return d_pathInterner.getObjById(tvid);
 	}
+    void clear() { d_tranIdMap.clear(); d_pathInterner.clear(); }
 };
 
 }

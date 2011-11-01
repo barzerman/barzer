@@ -92,6 +92,7 @@ public:
 
 	int tokenize( QTokenizer& , const char* q, const QuestionParm& );
 	int classifyTokens( QLexParser& , const QuestionParm& );
+	int chainInit( const QuestionParm& );
 	int semanticParse( QSemanticParser&, const QuestionParm& );
 	int postSemanticParse( QSemanticParser&, const QuestionParm& );
 

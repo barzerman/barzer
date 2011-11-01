@@ -60,6 +60,12 @@ void Barz::clear()
 	question.clear();
 }
 
+int Barz::chainInit( const QuestionParm& qparm ) 
+{
+	beadChain.init(ctVec);
+    return 0;
+}
+
 int Barz::semanticParse( QSemanticParser& sem, const QuestionParm& qparm )
 {
 	/// invalidating and initializing all higher order objects
