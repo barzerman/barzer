@@ -927,6 +927,42 @@ int BarzelMatcher::matchInRange( RewriteUnit& rwrUnit, const BeadRange& curBeadR
 
 	return score;
 }
+size_t BarzelMatcher::get_match_greedy( MatcherCallback& cb, BeadList::iterator fromI, BeadList::iterator toI, bool precededByBlank ) const
+{
+	if( fromI == toI ) 
+		return 0; // this should never happen bu just in case
+
+	bool precededByBlanks = 0;
+	const BarzelBeadAtomic* bead;
+	BeadRange rng(fromI,toI);
+
+	BeadList::const_iterator dtaBeadIter;
+
+	do {
+		dtaBeadIter = rng.first;
+		const BarzelBead& b = *dtaBeadIter;
+		bead = b.getAtomic();
+		if( !bead )  /// expressions and blanks wont be matched 
+			return 0; 
+		if( bead->isBlankLiteral() ) {
+			++rng.first;
+			if( !precededByBlanks )
+				precededByBlanks= true;
+		} else 
+			break;
+	} while( rng.first != rng.second );
+
+    const BarzelTrieNode* trieRoot = &(d_trie.getRoot());
+	BTMIterator btmi(rng,universe,d_trie);	
+	btmi.findPaths(trieRoot);
+
+    NodeAndBeadVec_Wrapper cb_wrap(cb);
+	findMatchingChildren_visitor vis( btmi, precededByBlanks, cb_wrap, rng, trieRoot, dtaBeadIter, d_trie);
+
+	boost::apply_visitor( vis, bead->dta );
+
+	return( cb_wrap.size() );
+}
 
 namespace {
 	inline BarzelMatcher::RangeWithScoreVec::iterator findBestRangeByScore( 
@@ -1159,38 +1195,5 @@ bool BarzelMatchInfo::getDataByVar( BeadRange& r, const BTND_Rewrite_Variable& v
 		return 0;
 	}
 
-size_t BarzelMatcher::get_match_greedy( MatcherCallback& cb, BeadList::iterator fromI, BeadList::iterator toI, bool precededByBlank ) const
-{
-	if( fromI == toI ) 
-		return 0; // this should never happen bu just in case
-
-	bool precededByBlanks = 0;
-	const BarzelBeadAtomic* bead;
-	BeadRange rng(fromI,toI);
-	BeadList::const_iterator dtaBeadIter;
-	do {
-		dtaBeadIter = rng.first;
-		const BarzelBead& b = *dtaBeadIter;
-		bead = b.getAtomic();
-		if( !bead )  /// expressions and blanks wont be matched 
-			return 0; 
-		if( bead->isBlankLiteral() ) {
-			++rng.first;
-			if( !precededByBlanks )
-				precededByBlanks= true;
-		} else 
-			break;
-	} while( rng.first != rng.second );
-
-    const BarzelTrieNode* trieRoot = &(d_trie.getRoot());
-	BTMIterator btmi(rng,universe,d_trie);	
-	btmi.findPaths(trieRoot);
-
-    NodeAndBeadVec_Wrapper cb_wrap(cb);
-	findMatchingChildren_visitor vis( btmi, precededByBlanks, cb_wrap, rng, trieRoot, dtaBeadIter, d_trie);
-
-	boost::apply_visitor( vis, bead->dta );
-	return( cb_wrap.size() );
-}
 
 } // namespace barzer ends 

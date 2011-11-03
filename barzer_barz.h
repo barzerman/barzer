@@ -90,10 +90,13 @@ public:
 
 	void clear();
 
+	void clearBeads();
+
 	int tokenize( QTokenizer& , const char* q, const QuestionParm& );
 	int classifyTokens( QLexParser& , const QuestionParm& );
 	int chainInit( const QuestionParm& );
 	int semanticParse( QSemanticParser&, const QuestionParm& );
+	int analyzeTopics( QSemanticParser&, const QuestionParm& );
 	int postSemanticParse( QSemanticParser&, const QuestionParm& );
 
 	/// returns pair. first is the number of units which have been modified semantically

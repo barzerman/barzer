@@ -50,6 +50,10 @@ int Barz::classifyTokens( QLexParser& lexer, const QuestionParm& qparm )
 	return lexer.lex( ctVec, ttVec, qparm );
 }
 
+void Barz::clearBeads()
+{
+	beadChain.clear();
+}
 void Barz::clear()
 {
 	barzelTrace.clear();
@@ -66,12 +70,20 @@ int Barz::chainInit( const QuestionParm& qparm )
     return 0;
 }
 
+int Barz::analyzeTopics( QSemanticParser& sem, const QuestionParm& qparm )
+{
+	beadChain.init(ctVec);
+    return sem.analyzeTopics( *this, qparm );
+}
 int Barz::semanticParse( QSemanticParser& sem, const QuestionParm& qparm )
 {
 	/// invalidating and initializing all higher order objects
+    if( sem.needTopicAnalyzis() ) {
+        analyzeTopics( sem, qparm );
+        clearBeads(); // we don't need to tokenize again really - just purge the beads  
+    }
 	beadChain.init(ctVec);
 
-    sem.analyzeTopics( *this, qparm );
 	return sem.semanticize( *this, qparm );
 }
 //// post-semantcial interpretation 

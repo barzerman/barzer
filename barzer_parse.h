@@ -6,13 +6,18 @@
 
 namespace barzer {
 class StoredUniverse;
+
+class UniverseTrieCluster;
+
 class QSemanticParser {
 protected:
 	const StoredUniverse& universe;
 	// BarzelMatcher barzelMatcher;
 public:
+    bool needTopicAnalyzis() const ;
 	struct Error : public QPError { } err;
 
+    int semanticize_trieList( const UniverseTrieCluster& trieCluster, Barz& barz, const QuestionParm& qparm  );
 	virtual int semanticize( Barz&, const QuestionParm&  );
 	virtual int analyzeTopics( Barz&, const QuestionParm&  );
 	QSemanticParser( const StoredUniverse& u) : 
@@ -52,6 +57,7 @@ public:
 
 	/// analyzes ctokens and repopulates beads
 	int semanticize_only( Barz& barz, const QuestionParm& qparm );
+	int analyzeTopics_only( Barz& barz, const QuestionParm& qparm );
 
 	/// post-semantical processing of beads by exercising a few heuristics:
 	/// - groups consecutive entities of the same type  

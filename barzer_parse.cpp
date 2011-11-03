@@ -8,37 +8,27 @@ using namespace barzer;
 namespace {
 struct TopicAnalyzer {
     QSemanticParser& semParser;
-    TopicAnalyzer( QSemanticParser& p ) : semParser(p) {}
-    void operator() ( const NodeAndBead& nb ) {}
+    const Barz& barz;
+    TopicAnalyzer( QSemanticParser& p, const Barz& b ) : semParser(p), barz(b) {}
+    void operator() ( ) {
+        std::cerr << "Analyzing topics\n";
+    }
 };
 }
 
 int QSemanticParser::analyzeTopics( Barz& barz, const QuestionParm& qparm  )
 {
 	const UniverseTrieCluster& trieCluster = universe.getTopicTrieCluster();
-	const UniverseTrieCluster::BELTrieList& trieList = trieCluster.getTrieList();
-    size_t grammarSeqNo = 0;
-
-    TopicAnalyzer topicAnalyzer( *this );
-
-    MatcherCallbackGeneric<TopicAnalyzer> cb(topicAnalyzer);
-
-	for( UniverseTrieCluster::BELTrieList::const_iterator t = trieList.begin(); t != trieList.end(); ++t ) {
-        if( *t) {
-            const BELTrie& trie = *(*t);
-            BarzelMatcher barzelMatcher( universe, trie );
-            BarzelBeadChain& beadChain = barz.getBeads();
-            barzelMatcher.get_match_greedy( cb, beadChain.lst.begin(), beadChain.lst.end(), false );
-        }
-        ++grammarSeqNo;
+    if( !trieCluster.getTrieList().empty() ) {
+        semanticize_trieList( trieCluster, barz, qparm );
+        TopicAnalyzer analyzer( *this, barz );
+        analyzer();
     }
     return 0;
 }
 
-int QSemanticParser::semanticize( Barz& barz, const QuestionParm& qparm  )
+int QSemanticParser::semanticize_trieList( const UniverseTrieCluster& trieCluster, Barz& barz, const QuestionParm& qparm  )
 {
-	err.clear();
-	const UniverseTrieCluster& trieCluster = universe.getTrieCluster();
 	const UniverseTrieCluster::BELTrieList& trieList = trieCluster.getTrieList();
     size_t grammarSeqNo = 0;
 	for( UniverseTrieCluster::BELTrieList::const_iterator t = trieList.begin(); t != trieList.end(); ++t ) {
@@ -50,7 +40,20 @@ int QSemanticParser::semanticize( Barz& barz, const QuestionParm& qparm  )
 		barzelMatcher.matchAndRewrite( barz );
         ++grammarSeqNo; 
 	}
-	return 0;
+    return 0;
+}
+
+bool QSemanticParser::needTopicAnalyzis() const
+{
+    return universe.hasTopics();
+}
+
+int QSemanticParser::semanticize( Barz& barz, const QuestionParm& qparm  )
+{
+	err.clear();
+	const UniverseTrieCluster& trieCluster = universe.getTrieCluster();
+
+	return semanticize_trieList( trieCluster, barz, qparm );
 }
 
 /// general parser 
@@ -63,6 +66,12 @@ QParser::QParser( const StoredUniverse& u ) :
 int QParser::interpret_only( Barz& barz, const QuestionParm& qparm )
 {
 	err.semRc = barz.postSemanticParse( semanticizer, qparm );
+	return 0;
+}
+
+int QParser::analyzeTopics_only( Barz& barz, const QuestionParm& qparm )
+{
+	err.semRc = barz.analyzeTopics( semanticizer, qparm );
 	return 0;
 }
 

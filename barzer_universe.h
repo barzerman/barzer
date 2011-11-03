@@ -82,6 +82,7 @@ public:
     void appendTriePtr( BELTrie* trie ) { d_trieList.push_back(trie); }
 };
 
+
 class UniverseTrieClusterIterator {
 	const UniverseTrieCluster& d_cluster;
 	UniverseTrieCluster::BELTrieList::const_iterator d_i;
@@ -286,6 +287,7 @@ public:
 
 	UniverseTrieCluster& getTopicTrieCluster() { return topicTrieCluster; }
 	const UniverseTrieCluster& getTopicTrieCluster() const { return topicTrieCluster; }
+    bool hasTopics() const { return !(topicTrieCluster.getTrieList().empty()); }
 
 	const UniverseTrieCluster& getTrieCluster() const { return trieCluster; }
 	BarzerHunspell& getHunspell() { return hunspell; }
