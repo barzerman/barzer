@@ -147,9 +147,12 @@ GlobalPools::GlobalPools() :
 	d_isAnalyticalMode(false),
 	d_maxAnalyticalModeMaxSeqLength(3)
 {
+    BELTrie* defaultTrie = &(globalTriePool.init());
+
 	/// create default universe 
-	produceUniverse(DEFAULT_UNIVERSE_ID);
-	
+	StoredUniverse& defaultUniverse = produceUniverse(DEFAULT_UNIVERSE_ID);
+    defaultUniverse.appendTriePtr( defaultTrie ) ;	
+
 	createGenericEntities();
     globalTriePool.init();
 }
@@ -281,9 +284,11 @@ void StoredUniverse::clearSpelling()
 		d_universe(u)
 	{
 		// https://github.com/barzerman/barzer/issues/108
+        /*
         if( !d_universe.getUserId() ) {
             d_trieList.push_back( &(d_triePool.init()) ) ;
         }
+        */
 	}
 
 	BELTrie& UniverseTrieCluster::appendTrie( const std::string& trieClass, const std::string& trieId )

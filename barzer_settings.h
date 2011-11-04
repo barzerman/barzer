@@ -64,17 +64,17 @@ struct User {
 	typedef std::vector<TriePath> TrieVec;
 	Id id;
 	boost::optional<Spell> spell;
-	TrieVec tries;
+	// TrieVec tries;
 	BarzerSettings &settings;
 	StoredUniverse &universe;
 
 	User(Id i, BarzerSettings &s);
 
-	TrieVec& getTries() { return tries; }
-	const TrieVec& getTries() const { return tries; }
+	// TrieVec& getTries() { return tries; }
+	// const TrieVec& getTries() const { return tries; }
 
 	//void addTrie(const std::string&, const std::string&);
-	void addTrie(const TriePath&);
+	void addTrie(const TriePath&, bool isTopicTrie=false);
 
 	Spell* getSpell() { return spell.get_ptr(); }
 	Spell& createSpell(const char *md, const char *affx);

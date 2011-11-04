@@ -376,6 +376,7 @@ public:
 
 inline StoredUniverse& GlobalPools::produceUniverse( uint32_t id )
 {
+
 	StoredUniverse * p = getUniverse( id );
 	if( !p ) { 
 		p = new StoredUniverse( *this, id );

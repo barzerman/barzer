@@ -60,9 +60,15 @@ User::Spell& User::createSpell(const char *md, const char *affx)
 	return spell.get();
 }
 
-void User::addTrie(const TriePath &tp) {
-	tries.push_back(tp);
-	universe.getTrieCluster().appendTrie(tp.first, tp.second);
+void User::addTrie(const TriePath &tp, bool isTopicTrie ) {
+	// tries.push_back(tp);
+    if( universe.hasTopics() ) {
+        std::cerr << "SHIT\n";
+    }
+    if( isTopicTrie ) 
+	    universe.getTopicTrieCluster().appendTrie(tp.first, tp.second);
+    else 
+	    universe.getTrieCluster().appendTrie(tp.first, tp.second);
 }
 
 
@@ -319,8 +325,12 @@ void BarzerSettings::loadTrieset(BELReader& reader, User &u, const ptree &node) 
 				const ptree &attrs = trie.get_child("<xmlattr>");
 				const std::string &cl = attrs.get<std::string>("class"),
 								  &name = attrs.get<std::string>("name");
-				std::cerr << "user " << u.getId() << " added trie (" << cl << ":" << name << ")\n";
-				u.addTrie(TriePath(cl, name));
+                const boost::optional<std::string> optTopic
+                    = attrs.get_optional<std::string>("topic");
+
+				std::cerr << "user " << u.getId() << " added trie (" << cl << ":" << name << ") " << (optTopic? "TOPIC" :"") << "\n";
+				u.addTrie(TriePath(cl, name), optTopic);
+
 			} catch (boost::property_tree::ptree_bad_path &e) {
 				AYLOG(ERROR) << "Can't get " << e.what();
 			}
