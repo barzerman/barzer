@@ -62,6 +62,7 @@ void Barz::clear()
 	ttVec.clear();
 
 	question.clear();
+    topicInfo.clear();
 }
 
 int Barz::chainInit( const QuestionParm& qparm ) 

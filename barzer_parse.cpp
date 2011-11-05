@@ -8,10 +8,33 @@ using namespace barzer;
 namespace {
 struct TopicAnalyzer {
     QSemanticParser& semParser;
-    const Barz& barz;
-    TopicAnalyzer( QSemanticParser& p, const Barz& b ) : semParser(p), barz(b) {}
+    Barz& barz;
+    TopicAnalyzer( QSemanticParser& p, Barz& b ) : semParser(p), barz(b) {}
     void operator() ( ) {
-        std::cerr << "Analyzing topics\n";
+        std::cerr << __FILE__ << ":" << __LINE__ << " Analyzing topics\n";
+        const BeadList& beadList = barz.getBeadList();
+        for( BeadList::const_iterator i = beadList.begin(); i!= beadList.end(); ++i ) {
+            if( i->isAtomic() ) {
+                const BarzerEntity* ent = i->get<BarzerEntity>();
+                if( ent ) 
+                    barz.topicInfo.addTopic( *ent );
+                else {
+                    const BarzerEntityList* entList = i->get<BarzerEntityList>();
+                    if( entList ) {
+                        const BarzerEntityList::EList& el = entList->getList();
+                        for( BarzerEntityList::EList::const_iterator ei = el.begin(); ei != el.end(); ++ei ) {
+                            barz.topicInfo.addTopic( *ent );
+                        }
+                    } else {
+                        const BarzerEntityRangeCombo* erc = i->get<BarzerEntityRangeCombo>();
+                        if( erc ) {
+                            barz.topicInfo.addTopic( erc->getEntity(), (int)(erc->getInt(BarzTopics::MIN_TOPIC_WEIGHT)) );
+                        }
+                    }
+                }
+            }
+        }
+        barz.topicInfo.computeTopTopics( );
     }
 };
 }

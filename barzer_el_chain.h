@@ -59,6 +59,10 @@ struct BarzelBeadAtomic {
 	const BarzerLiteral* getLiteral() const { return boost::get<BarzerLiteral>( &dta ); }
 
 	const BarzerEntity* getEntity() const { return boost::get<BarzerEntity>( &dta ); }
+	const BarzerEntityList* getEntityList() const { return boost::get<BarzerEntityList>( &dta ); }
+
+    template <typename T>
+    const T* get() const { return boost::get<T>( &dta ); }
 
 	const BarzerNumber& getNumber() const { return boost::get<BarzerNumber>(dta); }
 
@@ -212,13 +216,24 @@ public:
 			return( atomic && atomic->isBlankLiteral() )  ;
 		}
 	bool isEntity(StoredEntityClass& ec) const { 
-			const BarzelBeadAtomic* atomic = getAtomic();
-			if( atomic ) {
-				const BarzerEntity* ent = atomic->getEntity();
-				return ( ent ? ( ec=ent->eclass, true): false );
-			} else
-				return false;
-		}
+        const BarzelBeadAtomic* atomic = getAtomic();
+        if( atomic ) {
+            const BarzerEntity* ent = atomic->getEntity();
+            return ( ent ? ( ec=ent->eclass, true): false );
+        } else
+            return false;
+    }
+
+    template <typename T>
+    const T* get() const {
+        const BarzelBeadAtomic* atomic = getAtomic();
+        if( atomic ) {
+            const T* t = atomic->get<T>();
+            return t;
+        } else
+            return 0;
+    }
+
 	size_t getFullNumTokens() const
 	{
 		size_t n = 1;
@@ -297,6 +312,9 @@ struct BarzelBeadChain {
 
 	bool isIterNotEnd( BeadList::iterator i ) const { return i != lst.end(); }
 	bool isIterNotEnd( BeadList::const_iterator i ) const { return i != lst.end(); }
+
+    BeadList& getList() { return lst; }
+    const BeadList& getList() const { return lst; }
 
 	void init( const CTWPVec& cv );
 	void clear() { lst.clear(); }

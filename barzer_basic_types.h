@@ -498,6 +498,17 @@ struct BarzerEntityRangeCombo {
 	BarzerEntity& getUnitEntity() { return d_unitEntId; }
 	BarzerRange&  getRange() { return d_range; }
 
+    int64_t getInt( int64_t dfVal ) const
+    {
+        if( d_range.hasLo() ) {
+            const BarzerRange::Integer* rng = d_range.getInteger();
+            if( rng ) {
+                return rng->first;
+            } 
+        }
+        return dfVal;
+    }
+
 	void  setEntity( const BarzerEntity& e ) { d_entId = e; }
 	void  setUnitEntity( const BarzerEntity& e ) { d_unitEntId = e; }
 	void  setRange( const BarzerRange& r ) { d_range = r; }

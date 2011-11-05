@@ -3,6 +3,7 @@
 
 #include <barzer_el_chain.h>
 #include <barzer_parse_types.h>
+#include <barzer_topics.h>
 
 namespace barzer {
 
@@ -76,6 +77,7 @@ public:
 	enum { MAX_TRACE_LEN = 256 };
 
 	BarzelTrace barzelTrace;
+    BarzTopics  topicInfo;
 	
 	void pushTrace( const BarzelTranslationTraceInfo& trace ) { 
 		if( barzelTrace.size() < MAX_TRACE_LEN ) 
@@ -111,6 +113,7 @@ public:
 		}
 		return rv;
 	}
+    const BeadList& getBeadList() const { return beadChain.lst; }
 };
 }
 #endif // BARZER_BARZ_h
