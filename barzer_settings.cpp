@@ -381,13 +381,17 @@ int BarzerSettings::loadUserConfig( BELReader& reader, const char* cfgFileName )
         bzs->init( 0 );
     }
     boost::property_tree::ptree userPt;
-    read_xml(cfgFileName, userPt);
     int numUsersLoaded = 0;
-    BOOST_FOREACH(ptree::value_type &userV, userPt.get_child("config.users")) {
-        if (userV.first == "user") { 
-            loadUser( reader, userV );
-            ++numUsersLoaded;
+    try {
+        read_xml(cfgFileName, userPt);
+        BOOST_FOREACH(ptree::value_type &userV, userPt.get_child("config.users")) {
+            if (userV.first == "user") { 
+                loadUser( reader, userV );
+                ++numUsersLoaded;
+            }
         }
+	} catch (boost::property_tree::xml_parser_error &e) {
+		reader.getErrStreamRef() << "<error>" << e.what() << "</error>" << std::endl;
     }
     return numUsersLoaded;
 }
