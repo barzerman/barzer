@@ -492,16 +492,16 @@ size_t BZSpell::init( const StoredUniverse* secondaryUniverse )
 	if( secondaryUniverse ) {
 		d_secondarySpellchecker = secondaryUniverse->getBZSpell();
 	} else {
-		const UniverseTrieCluster::BELTrieList& trieList = d_universe.getTrieList(); 
-		for( UniverseTrieCluster::BELTrieList::const_iterator t = trieList.begin(); t!= trieList.end(); ++t ) {
-			const strid_to_triewordinfo_map& wiMap = (*t)->getWordInfoMap();
+		const TheGrammarList& trieList = d_universe.getTrieList(); 
+		for( TheGrammarList::const_iterator t = trieList.begin(); t!= trieList.end(); ++t ) {
+			const strid_to_triewordinfo_map& wiMap = t->trie().getWordInfoMap();
 			for( strid_to_triewordinfo_map::const_iterator w = wiMap.begin(); w != wiMap.end(); ++w ) {
 				const TrieWordInfo& wordInfo = w->second;
 				uint32_t strId = w->first;
 	
 				BZSWordInfo& wi = d_wordinfoMap[ strId ];
 				
-				if( wi.upgradePriority( (*t)->getSpellPriority()) )
+				if( wi.upgradePriority( t->trie().getSpellPriority()) )
 					wi.setFrequency( wordInfo.wordCount );
 			}
 		}

@@ -228,11 +228,10 @@ void StoredUniverse::clearSpell()
 	bzSpell = new BZSpell(*this);
 }
 
-void StoredUniverse::clearTopicTries()
+void UniverseTrieCluster::clearTries()
 {
-	UniverseTrieClusterIterator clusterIter( topicTrieCluster );
-	for( ;!clusterIter.isAtEnd(); clusterIter.advance() ) {
-		BELTrie& trie = clusterIter.getCurrentTrie();
+	for( TheGrammarList::iterator i = d_trieList.begin(); i!= d_trieList.end(); ++i ) { 
+		BELTrie& trie = i->trie();
 		{
 			BELTrie::WriteLock w_lock(trie.getThreadLock());
 			if( trie.getNumUsers() == 1 ) 
@@ -240,22 +239,11 @@ void StoredUniverse::clearTopicTries()
 		}
 	} 
 }
-void StoredUniverse::clearTries()
-{
-	UniverseTrieClusterIterator clusterIter( trieCluster );
-	for( ;!clusterIter.isAtEnd(); clusterIter.advance() ) {
-		BELTrie& trie = clusterIter.getCurrentTrie();
-		{
-			BELTrie::WriteLock w_lock(trie.getThreadLock());
-			if( trie.getNumUsers() == 1 ) 
-				trie.clear();
-		}
-	} 
-}
+
 void StoredUniverse::clear()
 {
-	clearTopicTries();
-	clearTries();
+    topicTrieCluster.clearTries();
+    trieCluster.clearTries();
 	clearSpell();
 }
 
@@ -291,18 +279,10 @@ void StoredUniverse::clearSpelling()
         */
 	}
 
-	BELTrie& UniverseTrieCluster::appendTrie( const std::string& trieClass, const std::string& trieId )
+	BELTrie& UniverseTrieCluster::appendTrie( const std::string& trieClass, const std::string& trieId, GrammarInfo* gi )
 	{
 		BELTrie* tr = d_triePool.produceTrie(trieClass,trieId);
-		d_trieList.push_back( tr );
-		tr->registerUser( d_universe.getUserId() );
-		return *tr;
-	}
-	BELTrie& UniverseTrieCluster::prependTrie( const std::string& trieClass, const std::string& trieId )
-	{
-		BELTrie* tr = d_triePool.produceTrie(trieClass,trieId);
-		d_trieList.remove(tr);
-		d_trieList.push_front( tr );
+		d_trieList.push_back( TheGrammar(tr,gi) );
 		tr->registerUser( d_universe.getUserId() );
 		return *tr;
 	}

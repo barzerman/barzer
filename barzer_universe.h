@@ -15,6 +15,7 @@
 #include <barzer_el_compwords.h>
 #include <boost/unordered_map.hpp> 
 #include <boost/unordered_set.hpp> 
+#include <barzer_topics.h>
 
 
 namespace barzer {
@@ -56,6 +57,8 @@ public:
 	~GlobalTriePool();
 };
 
+typedef std::list< TheGrammar > TheGrammarList;
+
 /// in general there are 2 clusters per customer installation 
 /// the regular trie cluster and the topic trie one 
 class UniverseTrieCluster {
@@ -63,29 +66,42 @@ class UniverseTrieCluster {
 	StoredUniverse& d_universe;
 
 public:
-	typedef std::list< BELTrie* > BELTrieList;
+    
+	// typedef std::list< BELTrie* > TheGrammarList; BELTrieList
 private:
-	BELTrieList d_trieList;
+	TheGrammarList d_trieList;
 	friend class UniverseTrieClusterIterator;
 
 public: 
-	BELTrieList& getTrieList() { return d_trieList; }
-	const BELTrieList& getTrieList() const { return d_trieList; }
+	const TheGrammarList& getTrieList() const { return d_trieList; }
+
 	UniverseTrieCluster( GlobalTriePool& triePool, StoredUniverse& u ) ;
-	BELTrie& appendTrie( const std::string& trieClass, const std::string& trieId );
-	BELTrie& prependTrie( const std::string& trieClass, const std::string& trieId );
-	BELTrie*  getFirstTrie() { return ( d_trieList.empty() ?  0 : (*(d_trieList.begin())) ); }
-	const BELTrie*  getFirstTrie() const { return ( d_trieList.empty() ?  0 : (*(d_trieList.begin())) ); }
 
-    void clearList() { d_trieList.clear(); }
+	BELTrie& appendTrie( const std::string& trieClass, const std::string& trieId, GrammarInfo* gi =0 );
+	BELTrie*  getFirstTrie() { 
+        return ( d_trieList.empty() ?  0 : d_trieList.begin()->triePtr() ); 
+    }
+	const BELTrie*  getFirstTrie() const { return ( d_trieList.empty() ?  0 : d_trieList.begin()->triePtr()) ; }
 
-    void appendTriePtr( BELTrie* trie ) { d_trieList.push_back(trie); }
+    void clearList() { 
+        for( TheGrammarList::iterator i = d_trieList.begin(); i!= d_trieList.end(); ++i ) 
+            delete i->grammarInfo();
+
+        d_trieList.clear(); 
+    }
+    ~UniverseTrieCluster() { clearList(); }
+
+    void appendTriePtr( BELTrie* trie, GrammarInfo* gi=0 ) { 
+
+        d_trieList.push_back( TheGrammar(trie,gi) ); 
+    }
+    void clearTries();
 };
 
 
 class UniverseTrieClusterIterator {
 	const UniverseTrieCluster& d_cluster;
-	UniverseTrieCluster::BELTrieList::const_iterator d_i;
+	TheGrammarList::const_iterator d_i;
 public:
 	UniverseTrieClusterIterator( const UniverseTrieCluster& cluster ) : 
 		d_cluster( cluster),
@@ -94,9 +110,7 @@ public:
 	
 	void reset() { d_i = d_cluster.getTrieList().begin(); }
 	const BELTrie& getCurrentTrie() const
-		{ return *(*d_i); }
-	BELTrie& getCurrentTrie()
-		{ return *(*d_i); }
+		{ return (d_i->trie()); }
 	bool isAtEnd() const 
 		{ return (d_i == d_cluster.getTrieList().end()); }
 	bool advance( ) 
@@ -264,8 +278,7 @@ public:
 	bool isWordValidInUniverse( const char* word ) const
 		{ return ( bzSpell ? bzSpell->isWordValidInUniverse( word ) : true ); }
 
-	const UniverseTrieCluster::BELTrieList& getTrieList() const { return trieCluster.getTrieList(); }
-	UniverseTrieCluster::BELTrieList& getTrieList() { return trieCluster.getTrieList(); }
+	const TheGrammarList& getTrieList() const { return trieCluster.getTrieList(); }
 
 	/// adds uer specific strings from extra file 
 	/// 
@@ -311,7 +324,6 @@ public:
 	BELTrie& getSomeTrie() { return *(trieCluster.getFirstTrie()); }
 	const BELTrie& getSomeTrie() const { return *(trieCluster.getFirstTrie()); }
 	const BELTrie& getBarzelTrie( const UniverseTrieClusterIterator& trieClusterIter ) const { return trieClusterIter.getCurrentTrie(); }
-		  BELTrie& getBarzelTrie( UniverseTrieClusterIterator& trieClusterIter )  { return trieClusterIter.getCurrentTrie(); }
 
 	      BarzelCompWordPool& getCompWordPool()       { return gp.compWordPool; }
 	const BarzelCompWordPool& getCompWordPool() const { return gp.compWordPool; }
@@ -342,8 +354,8 @@ public:
 
 
 	// clears all tries 
-	void clearTries();
-	void clearTopicTries();
+	// void clearTries();
+	// void clearTopicTries();
 	void clearSpell();
 	// purges everything 
 	void clear();
@@ -371,7 +383,7 @@ public:
 	const char* decodeStringById( uint32_t strId ) const 
 		{ return getDtaIdx().resolveStringById( strId ); }
 
-    void appendTriePtr( BELTrie* trie ) { trieCluster.appendTriePtr(trie); }
+    void appendTriePtr( BELTrie* trie, GrammarInfo* gi=0 ) { trieCluster.appendTriePtr(trie,gi); }
 }; 
 
 inline StoredUniverse& GlobalPools::produceUniverse( uint32_t id )

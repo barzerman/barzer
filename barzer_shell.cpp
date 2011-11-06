@@ -566,16 +566,17 @@ static int bshf_userstats( BarzerShell* shell, char_cp cmd, std::istream& in )
 
         const StoredUniverse* uni = gp.getUniverse( userId ) ;
         if( uni ) {
-            const UniverseTrieCluster::BELTrieList& trieList = uni->getTrieList();
+            const TheGrammarList& trieList = uni->getTrieList();
             if( trieList.size() ) {
                 int n = 0;
-                for( UniverseTrieCluster::BELTrieList::const_iterator i = trieList.begin(); i!= trieList.end(); ++i ) 
+                for( TheGrammarList::const_iterator i = trieList.begin(); i!= trieList.end(); ++i ) 
                 {
-                    outFp << ">> Trie " << ++n << ":" << "(" << (*i)->getTrieClass()   << "|" << (*i)->getTrieId()  << ')' << std::endl;
+                    const BELTrie& trie = i->trie();
+                    outFp << ">> Trie " << ++n << ":" << "(" << trie.getTrieClass()   << "|" << trie.getTrieId()  << ')' << std::endl;
                     if( doTrieStats ) {
-                        BarzelTrieTraverser_depth trav( (*i)->getRoot(), *(*i) );
+                        BarzelTrieTraverser_depth trav( trie.getRoot(), trie );
                         BarzelTrieStatsCounter counter;
-                        trav.traverse( counter, (*i)->getRoot() );
+                        trav.traverse( counter, trie.getRoot() );
                         std::cerr << counter << std::endl;
                     }
                 }
@@ -852,13 +853,14 @@ static int bshf_grammar( BarzerShell* shell, char_cp cmd, std::istream& in )
         int grammarId = atoi( gramStr.c_str() );
 
 	    StoredUniverse &uni = context->getUniverse();
-        UniverseTrieCluster::BELTrieList& trieList = uni.getTrieList();
+
+        const TheGrammarList& trieList = uni.getTrieList();
         
         int gi =0;
 	    BELTrie* trie = 0;
-        for( UniverseTrieCluster::BELTrieList::iterator i = trieList.begin(); i!= trieList.end(); ++i ) {
+        for( TheGrammarList::const_iterator i = trieList.begin(); i!= trieList.end(); ++i ) {
             if( gi == grammarId ) {
-	            trie = *i;
+	            trie = const_cast<BELTrie*>(&(i->trie()));
             }
         }
         if(!trie ) {
@@ -993,10 +995,10 @@ static int bshf_user( BarzerShell* shell, char_cp cmd, std::istream& in )
         
 	    BarzerShellContext *context = shell->getBarzerContext();
 	    StoredUniverse &uni = context->getUniverse();
-        const UniverseTrieCluster::BELTrieList& trieList = uni.getTrieList();
+        const TheGrammarList& trieList = uni.getTrieList();
         size_t numGrammars = 0;
-        for( UniverseTrieCluster::BELTrieList::const_iterator i = trieList.begin(); i!= trieList.end(); ++i ) {
-            const BELTrie* trie = *i; 
+        for( TheGrammarList::const_iterator i = trieList.begin(); i!= trieList.end(); ++i ) {
+            const BELTrie* trie = &(i->trie());
             outFP << numGrammars << " [" << trie->getTrieClass() << ":" << trie->getTrieId() << "]" << std::endl;
             ++numGrammars ;
         }

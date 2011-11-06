@@ -52,13 +52,12 @@ int QSemanticParser::analyzeTopics( Barz& barz, const QuestionParm& qparm  )
 
 int QSemanticParser::semanticize_trieList( const UniverseTrieCluster& trieCluster, Barz& barz, const QuestionParm& qparm  )
 {
-	const UniverseTrieCluster::BELTrieList& trieList = trieCluster.getTrieList();
+	const TheGrammarList& trieList = trieCluster.getTrieList();
     size_t grammarSeqNo = 0;
-	for( UniverseTrieCluster::BELTrieList::const_iterator t = trieList.begin(); t != trieList.end(); ++t ) {
+	for( TheGrammarList::const_iterator t = trieList.begin(); t != trieList.end(); ++t ) {
         barz.getBeads().clearUnmatchable();        
 
-        const BELTrie* trie = *t;
-		BarzelMatcher barzelMatcher( universe, *trie );
+		BarzelMatcher barzelMatcher( universe, t->trie() );
         barz.barzelTrace.setGrammarSeqNo( grammarSeqNo );
 		barzelMatcher.matchAndRewrite( barz );
         ++grammarSeqNo; 

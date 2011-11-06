@@ -6,7 +6,7 @@
 #include <barzer_entity.h>
 
 namespace barzer {
-
+class BELTrie;
 /// f for Trie T the TrieTopics says something like positive: ( t1 || t2 ) negative: (t3 || t4 ) 
 /// it would mean - Apply trie T is either t1 or t2 are found in the barz and neither t3 nor t4 are
 class BarzTopics {
@@ -96,6 +96,36 @@ public:
         return false;
     }
 };
+
+
+struct GrammarInfo {
+    TrieTopics d_trieTopics;
+};
+class TheGrammar {
+    BELTrie* d_trie;
+    GrammarInfo* d_grammarInfo;
+    
+    /// cant create trie-less grammar
+    TheGrammar( ) : d_trie(0), d_grammarInfo(0) {}
+public:
+
+    TheGrammar( BELTrie* t, GrammarInfo* gi= 0) :
+        d_trie(t), 
+        d_grammarInfo(gi)
+    {}
+    
+    const BELTrie*  triePtr() const { return d_trie; }
+    BELTrie* triePtr() { return d_trie; }
+    const BELTrie&  trie() const { return *d_trie; }
+    BELTrie& trie() { return *d_trie; }
+    
+    const GrammarInfo* grammarInfo() const { return d_grammarInfo; } 
+    GrammarInfo* grammarInfo() { return d_grammarInfo; } 
+    
+    GrammarInfo& setGrammarInfo( GrammarInfo* gi ) {
+        return( d_grammarInfo = gi, *d_grammarInfo );
+    }
+}; 
 
 } // namespace barzer
 #endif // BARZER_TOPICS_H
