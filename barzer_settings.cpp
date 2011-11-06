@@ -61,10 +61,6 @@ User::Spell& User::createSpell(const char *md, const char *affx)
 }
 
 void User::addTrie(const TriePath &tp, bool isTopicTrie, GrammarInfo* gramInfo ) {
-	// tries.push_back(tp);
-    if( universe.hasTopics() ) {
-        std::cerr << "SHIT\n";
-    }
     if( isTopicTrie ) 
 	    universe.getTopicTrieCluster().appendTrie(tp.first, tp.second, gramInfo );
     else 
@@ -333,15 +329,17 @@ void BarzerSettings::loadTrieset(BELReader& reader, User &u, const ptree &node) 
                 GrammarInfo* gramInfo = 0;
                 /// extracting topic info
                 BOOST_FOREACH(const ptree::value_type &uv, trieNode.get_child("topic", empty_ptree())) {
-                    const ptree &trieNode = uv.second;
-                    boost::optional<uint32_t> classOpt = trieNode.get_optional<uint32_t>("<xmlattr>.c");
-                    boost::optional<uint32_t> subclassOpt = trieNode.get_optional<uint32_t>("<xmlattr>.s");
-                    boost::optional<std::string> idOpt = trieNode.get_optional<std::string>("<xmlattr>.i");
-                    boost::optional<int> weightOpt = trieNode.get_optional<int>("<xmlattr>.w");
+                    const ptree &topicAttr = uv.second;
+
+                    boost::optional<uint32_t> classOpt = topicAttr.get_optional<uint32_t>("c");
+                    boost::optional<uint32_t> subclassOpt = topicAttr.get_optional<uint32_t>("s");
+                    boost::optional<std::string> idOpt = topicAttr.get_optional<std::string>("i");
+                    boost::optional<int> weightOpt = topicAttr.get_optional<int>("w");
+
                     if( classOpt ) {
                         if( !gramInfo ) {
                             gramInfo = new GrammarInfo();
-                            
+                         
                         }
                         const StoredEntity& ent = u.getUniverse().getDtaIdx().addGenericEntity( (idOpt? (*idOpt).c_str():0), *classOpt, ( subclassOpt? *subclassOpt: 0) ); 
                         gramInfo->trieTopics.mustHave( ent.getEuid(), (weightOpt? *weightOpt: BarzTopics::DEFAULT_TOPIC_WEIGHT) );

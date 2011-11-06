@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<parse><stem/></parse>
+
+    <entities>
+        <file>data/entities/time_ent.xml</file>
+    </entities>
+    <logging>
+        <level>DEBUG</level>
+        <file>barzer.log</file>
+    </logging>
+    <users>
+        <user id="0">
+            <rules> 
+                <file class="class1" name="i93">dev/moo.xml</file> 
+                <file class="class_topics" name="alltopics">dev/topics.xml</file> 
+            </rules>
+            <trieset> 
+                <trie class="class1" name="i93"> 
+                    <topic c="20" s="1" i="abc" w="20"/>
+                </trie>
+                <trie class="class_topics" name="alltopics" topic="yes"/> 
+            </trieset>
+        </user>
+    </users>
+    <instance>
+        <threads>4</threads>
+    </instance>
+</config>
