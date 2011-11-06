@@ -585,7 +585,7 @@ void BELParserXML::taghandle_ERC( const char_cp * attr, size_t attr_sz , bool cl
 			erc.getEntity().setSubclass( atoi(v) ); 
 			break;
 		case 't': // entity id token - t="ABCD011"
-			erc.getEntity().setTokenId( internString(v) );
+			erc.getEntity().setTokenId( internString(v,true) );
 			break;
 		case 'u': // unit fields
 			switch(n[1]) {
@@ -594,7 +594,7 @@ void BELParserXML::taghandle_ERC( const char_cp * attr, size_t attr_sz , bool cl
 			case 's': // unit entity subclass - us="1"
 				erc.getUnitEntity().setSubclass( atoi(v) ); break;
 			case 't': // unit entity id token - ut="ABCD011"
-				erc.getUnitEntity().setTokenId( internString(v) ); break;
+				erc.getUnitEntity().setTokenId( internString(v,true) ); break;
 			}
 			break;
 		case 'r': // range type setting 
@@ -727,7 +727,7 @@ void BELParserXML::taghandle_ENTITY( const char_cp * attr, size_t attr_sz , bool
 			pat.setEntitySubclass( atoi(v) ); 
 			break;
 		case 't': // id token - t="ABCD011"
-			pat.setTokenId( internString(v) );
+			pat.setTokenId( internString(v,true) );
 			break;
 		}
 	}
@@ -839,7 +839,7 @@ void BELParserXML::processAttrForStructTag( BTND_StructData& dta, const char_cp 
 		const char* v = attr[i+1]; // attr value
 		switch( n[0] ) {
 		case 'v': 
-			dta.setVarId( internString(v) );
+			dta.setVarId( internString(v,true) );
 			return;
 		}
 	}
@@ -869,7 +869,7 @@ void BELParserXML::taghandle_EXPAND( const char_cp * attr, size_t attr_sz , bool
 		if (varName) {
 		    // safe as the root of any pattern is always a list
 		    BTND_StructData &sd = boost::get<BTND_StructData>(n.getNodeData());
-		    sd.setVarId(internString(varName));
+		    sd.setVarId(internString(varName,true));
 		}
 	} else {
 		AYLOG(ERROR) << "macro " << macroName  << " referenced in statement "  << statementCount<< " doesnt exist";
@@ -1121,7 +1121,7 @@ void BELParserXML::taghandle_CASE( const char_cp * attr, size_t attr_sz , bool c
         const char* v = attr[i+1]; // attr value
         switch(n[0]) {
         case 'l':
-            caseId = internString(v);
+            caseId = internString(v,true);
             break;
         case 'p':
             caseId = (uint32_t)v[0]; // this is a hack really

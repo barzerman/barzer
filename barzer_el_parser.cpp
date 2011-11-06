@@ -82,19 +82,21 @@ uint32_t BELParser::internString_internal( const char* t )
 {
 	return reader->getGlobalPools().internString_internal( t );
 }
-uint32_t BELParser::internString( const char* t )
+uint32_t BELParser::internString( const char* t, bool noSpell  )
 {
 	// here we may want to tweak some (nonexistent yet) fields in StoredToken 
 	// to reflect the fact that this thing is actually in the trie
 
 	StoredToken& sTok =  reader->getGlobalPools().getDtaIdx().addToken( t );
-	BELTrie& trie = reader->getTrie();
-	trie.addWordInfo( sTok.getStringId() );
-    StoredUniverse* curUni = reader->getCurrentUniverse();
-    if( curUni ) {
-        BZSpell* bzSpell= curUni->getBZSpell();
-        if( bzSpell ) {
-            bzSpell->addExtraWordToDictionary( sTok.getStringId() );
+    if( !noSpell ) {
+	    BELTrie& trie = reader->getTrie();
+        StoredUniverse* curUni = reader->getCurrentUniverse();
+        if( curUni ) {
+	        trie.addWordInfo( sTok.getStringId() );
+            BZSpell* bzSpell= curUni->getBZSpell();
+            if( bzSpell ) {
+                bzSpell->addExtraWordToDictionary( sTok.getStringId() );
+            }
         }
     }
 

@@ -54,14 +54,23 @@ int QSemanticParser::semanticize_trieList( const UniverseTrieCluster& trieCluste
 {
 	const TheGrammarList& trieList = trieCluster.getTrieList();
     size_t grammarSeqNo = 0;
+    std::stringstream skipsStream;
 	for( TheGrammarList::const_iterator t = trieList.begin(); t != trieList.end(); ++t ) {
-        barz.getBeads().clearUnmatchable();        
-
-		BarzelMatcher barzelMatcher( universe, t->trie() );
-        barz.barzelTrace.setGrammarSeqNo( grammarSeqNo );
-		barzelMatcher.matchAndRewrite( barz );
-        ++grammarSeqNo; 
+        // checking whether this grammar applies 
+        if( ! t->grammarInfo() || t->grammarInfo()->goodToGo(barz.topicInfo) ) {
+            // this handles the terminators 
+            barz.getBeads().clearUnmatchable();        
+    
+		    BarzelMatcher barzelMatcher( universe, t->trie() );
+            barz.barzelTrace.setGrammarSeqNo( grammarSeqNo );
+		    barzelMatcher.matchAndRewrite( barz );
+            ++grammarSeqNo; 
+        } else {
+            /// reporting skipped trie
+            skipsStream << t->trie().getTrieClass() << ":" << t->trie().getTrieId() << "|" ;
+        }
 	}
+    barz.barzelTrace.skippedTriesString += skipsStream.str();
     return 0;
 }
 

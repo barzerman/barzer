@@ -60,15 +60,15 @@ User::Spell& User::createSpell(const char *md, const char *affx)
 	return spell.get();
 }
 
-void User::addTrie(const TriePath &tp, bool isTopicTrie ) {
+void User::addTrie(const TriePath &tp, bool isTopicTrie, GrammarInfo* gramInfo ) {
 	// tries.push_back(tp);
     if( universe.hasTopics() ) {
         std::cerr << "SHIT\n";
     }
     if( isTopicTrie ) 
-	    universe.getTopicTrieCluster().appendTrie(tp.first, tp.second);
+	    universe.getTopicTrieCluster().appendTrie(tp.first, tp.second, gramInfo );
     else 
-	    universe.getTrieCluster().appendTrie(tp.first, tp.second);
+	    universe.getTrieCluster().appendTrie(tp.first, tp.second, gramInfo );
 }
 
 
@@ -320,16 +320,34 @@ void BarzerSettings::loadHunspell(User &u, const ptree &node)
 void BarzerSettings::loadTrieset(BELReader& reader, User &u, const ptree &node) {
 	BOOST_FOREACH(const ptree::value_type &v, node.get_child("trieset", empty_ptree())) {
 		if (v.first == "trie") {
-			const ptree &trie = v.second;
+			const ptree &trieNode = v.second;
 			try {
-				const ptree &attrs = trie.get_child("<xmlattr>");
+				const ptree &attrs = trieNode.get_child("<xmlattr>");
 				const std::string &cl = attrs.get<std::string>("class"),
 								  &name = attrs.get<std::string>("name");
                 const boost::optional<std::string> optTopic
                     = attrs.get_optional<std::string>("topic");
 
 				std::cerr << "user " << u.getId() << " added trie (" << cl << ":" << name << ") " << (optTopic? "TOPIC" :"") << "\n";
-				u.addTrie(TriePath(cl, name), optTopic);
+                
+                GrammarInfo* gramInfo = 0;
+                /// extracting topic info
+                BOOST_FOREACH(const ptree::value_type &uv, trieNode.get_child("topic", empty_ptree())) {
+                    const ptree &trieNode = uv.second;
+                    boost::optional<uint32_t> classOpt = trieNode.get_optional<uint32_t>("<xmlattr>.c");
+                    boost::optional<uint32_t> subclassOpt = trieNode.get_optional<uint32_t>("<xmlattr>.s");
+                    boost::optional<std::string> idOpt = trieNode.get_optional<std::string>("<xmlattr>.i");
+                    boost::optional<int> weightOpt = trieNode.get_optional<int>("<xmlattr>.w");
+                    if( classOpt ) {
+                        if( !gramInfo ) {
+                            gramInfo = new GrammarInfo();
+                            
+                        }
+                        const StoredEntity& ent = u.getUniverse().getDtaIdx().addGenericEntity( (idOpt? (*idOpt).c_str():0), *classOpt, ( subclassOpt? *subclassOpt: 0) ); 
+                        gramInfo->trieTopics.mustHave( ent.getEuid(), (weightOpt? *weightOpt: BarzTopics::DEFAULT_TOPIC_WEIGHT) );
+                    }
+                }
+				u.addTrie(TriePath(cl, name), optTopic, gramInfo);
 
 			} catch (boost::property_tree::ptree_bad_path &e) {
 				AYLOG(ERROR) << "Can't get " << e.what();

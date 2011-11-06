@@ -24,9 +24,9 @@ struct BarzelTrace {
     typedef std::vector< SingleFrameTrace > TraceVec;
     size_t d_grammarSeqNo; // current grammar sequence number 
     TraceVec d_tvec;
+    std::string skippedTriesString;
 
-
-    void clear() { d_tvec.clear(); }
+    void clear() { d_tvec.clear(); skippedTriesString.clear();  }
     size_t size() const { return d_tvec.size(); }
     void push_back( const BarzelTranslationTraceInfo& traceInfo ) 
     {

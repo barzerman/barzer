@@ -117,12 +117,20 @@ struct CmdAdd : public CmdProc<CmdAdd> {
 		parser.getSettings().addRulefile(reader,rf );
 		//parser.stream() << "<rulefile>!!";
 	}
+    template <typename T>
+    void operator()( const T& t )
+    {
+        std::cerr << "invalid add\n";
+    }
+    /*
 	void operator()(const TrieId &tid) {
+        
 		BarzerSettings &s = parser.getSettings();
 		User &u = s.createUser(tid.userId);
-		u.addTrie(tid.path);
-		//parser.stream() << "<trie>!!";
+		u.addTrie(tid.path,false,0);
+		
 	}
+    */
 	void operator()(const UserId &uid) {
 		parser.getSettings().createUser(uid.id);
 		//parser.stream() << "<userid>!!";

@@ -77,7 +77,7 @@ public:
 
 	UniverseTrieCluster( GlobalTriePool& triePool, StoredUniverse& u ) ;
 
-	BELTrie& appendTrie( const std::string& trieClass, const std::string& trieId, GrammarInfo* gi =0 );
+	BELTrie& appendTrie( const std::string& trieClass, const std::string& trieId, GrammarInfo* gi );
 	BELTrie*  getFirstTrie() { 
         return ( d_trieList.empty() ?  0 : d_trieList.begin()->triePtr() ); 
     }
@@ -91,7 +91,7 @@ public:
     }
     ~UniverseTrieCluster() { clearList(); }
 
-    void appendTriePtr( BELTrie* trie, GrammarInfo* gi=0 ) { 
+    void appendTriePtr( BELTrie* trie, GrammarInfo* gi ) { 
 
         d_trieList.push_back( TheGrammar(trie,gi) ); 
     }
@@ -383,7 +383,7 @@ public:
 	const char* decodeStringById( uint32_t strId ) const 
 		{ return getDtaIdx().resolveStringById( strId ); }
 
-    void appendTriePtr( BELTrie* trie, GrammarInfo* gi=0 ) { trieCluster.appendTriePtr(trie,gi); }
+    void appendTriePtr( BELTrie* trie, GrammarInfo* gi ) { trieCluster.appendTriePtr(trie,gi); }
 }; 
 
 inline StoredUniverse& GlobalPools::produceUniverse( uint32_t id )

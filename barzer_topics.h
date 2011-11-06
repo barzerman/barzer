@@ -90,7 +90,9 @@ public:
         if( !d_entWeight.first.eclass.isValid() ) 
             return true;
         else {
-            int w = barzTopics.getTopicWeight(d_entWeight.first) ;
+            const BarzerEntity& ent = d_entWeight.first;
+
+            int w = barzTopics.getTopicWeight(ent);
             return( w>= d_entWeight.second ) ;
         }
         return false;
@@ -99,7 +101,10 @@ public:
 
 
 struct GrammarInfo {
-    TrieTopics d_trieTopics;
+    TrieTopics trieTopics;
+    bool goodToGo( const BarzTopics& barzTopics ) const
+    { return trieTopics.goodToGo(barzTopics); }
+    
 };
 class TheGrammar {
     BELTrie* d_trie;

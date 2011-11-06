@@ -196,20 +196,6 @@ struct StoredEntity {
 		euid(uniqId),
 		relevance(0) {}
 
-	/*
-	inline void addToken( StoredTokenId tokId, const EntTokenOrderInfo& stsi )
-	{
-		tokInfoVec.push_back( STSI_vec::value_type( tokId, stsi ) ) ;
-	}
-	inline bool hasTokenLinSrch( StoredTokenId tokId ) const
-		{ 
-			for( STSI_vec::const_iterator i = tokInfoVec.begin(); i!= tokInfoVec.end(); ++i ) {
-				if( i->first == tokId )
-					return true;
-			}
-			return false;
-		}
-	*/
 	void setAll( StoredEntityId id, const StoredEntityUniqId& uniqId )
 		{ entId= id; euid = uniqId; }
 	

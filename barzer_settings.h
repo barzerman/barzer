@@ -24,7 +24,7 @@
 
 
 namespace barzer {
-
+struct GrammarInfo;
 /// parsing settings true for all users in the instance 
 struct ParseSettings {
 
@@ -74,7 +74,7 @@ struct User {
 	// const TrieVec& getTries() const { return tries; }
 
 	//void addTrie(const std::string&, const std::string&);
-	void addTrie(const TriePath&, bool isTopicTrie=false);
+	void addTrie(const TriePath&, bool isTopicTrie, GrammarInfo* );
 
 	Spell* getSpell() { return spell.get_ptr(); }
 	Spell& createSpell(const char *md, const char *affx);

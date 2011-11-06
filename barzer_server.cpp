@@ -225,7 +225,7 @@ int proc_ADD_TRIE( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  str
             return 0;
         }
 
-        uni->appendTriePtr( trie );
+        uni->appendTriePtr( trie, 0 );
     }
     return 0;
 }
