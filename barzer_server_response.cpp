@@ -432,6 +432,8 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 		}
 		/// end of spell corrections accumulation
 	}
+    /// printing topics 
+
 	/// printing spell corrections  if any 
 	if( spellCorrections.size( ) ) {
 		os << "<spell>\n";
