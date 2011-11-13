@@ -20,7 +20,7 @@ static void startElement(void* ud, const XML_Char *n, const XML_Char **a)
 	int attrCount = XML_GetSpecifiedAttributeCount( rp->parser );
 	if( attrCount <=0 || (attrCount & 1) ) attrCount = 0; // odd number of attributes is invalid
 	rp->addTag(name);
-
+    
 	for (int i = 0; i < attrCount; i += 2) {
 		rp->setAttr(atts[i], atts[i+1]);
 	}
@@ -46,8 +46,11 @@ static void charDataHandle( void * ud, const XML_Char *str, int len)
 
 namespace barzer {
 
-BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s, uint32_t uid )
-	: gpools(gp), settings(gp.getSettings()), userId(uid)/* qparser(u), response(barz, u) */, os(s)
+BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s, uint32_t uid ) : 
+    gpools(gp), 
+    settings(gp.getSettings()), 
+    userId(uid)/* qparser(u), response(barz, u) */, 
+    os(s)
 {
 		parser = XML_ParserCreate(NULL);
 		XML_SetUserData(parser, this);
@@ -67,9 +70,11 @@ typedef std::map<std::string,ReqTagFunc> TagFunMap;
 #define CMDFUN(n) (#n, boost::mem_fn(&BarzerRequestParser::tag_##n))
 static const ReqTagFunc* getCmdFunc(std::string &name) {
 	static TagFunMap funmap = boost::assign::map_list_of
+			CMDFUN(qblock)
 			CMDFUN(query)
 			CMDFUN(cmd)
 			CMDFUN(rulefile)
+			CMDFUN(topic)
 			CMDFUN(trie)
 			CMDFUN(user)
 			;
@@ -213,7 +218,6 @@ void BarzerRequestParser::tag_trie(RequestTag &tag) {
 
 }
 
-
 void BarzerRequestParser::raw_query_parse( const char* query ) 
 {
 	const GlobalPools& gp = gpools;
@@ -222,7 +226,6 @@ void BarzerRequestParser::raw_query_parse( const char* query )
 		os << "<error>invalid user id " << userId << "</error>\n";
 		return;
 	}
-
 	const StoredUniverse &u = *up;
 
 	QParser qparser(u);
@@ -234,14 +237,55 @@ void BarzerRequestParser::raw_query_parse( const char* query )
 	response.print(os);
 }
 
+void BarzerRequestParser::tag_topic(RequestTag &tag) {
+    if( !isParentTag("qblock") ) 
+        return;
+
+	AttrList &attrs = tag.attrs;
+    const char* topicIdStr = 0;
+    uint32_t entClass = 0, entSubclass = 0;
+    for( AttrList::const_iterator a = attrs.begin(); a!= attrs.end(); ++a ) {
+        const char* n = a->first.c_str();
+        const char* v = a->second.c_str();
+        switch( n[0] ) {
+        case 'c': // class 
+            entClass = (uint32_t)(atoi(v));
+            break;
+        case 's': // sub class 
+            entSubclass = (uint32_t)(atoi(v));
+            break;
+        case 'i': // id 
+            topicIdStr = v;
+            break;
+        }
+    }
+    StoredTokenId tokId = ( topicIdStr ? gpools.dtaIdx.getTokIdByString(topicIdStr) : 0xffffffff );      
+    BarzerEntity topicEnt( tokId, entClass, entSubclass );
+    barz.topicInfo.addTopic( topicEnt );
+}
+
+void BarzerRequestParser::tag_qblock(RequestTag &tag) {
+	AttrList &attrs = tag.attrs;
+    for( AttrList::const_iterator a = attrs.begin(); a!= attrs.end(); ++a ) {
+        if( a->first == "u" ) {
+            userId = atoi(a->second.c_str());
+        } 
+    }
+    raw_query_parse( d_query.c_str() );
+    d_query.clear();
+}
+
 void BarzerRequestParser::tag_query(RequestTag &tag) {
 	AttrList &attrs = tag.attrs;
 	AttrList::iterator it = attrs.find("u");
 	if( it != attrs.end() ) {
 		userId = atoi(it->second.c_str());
 	}
-
-	return raw_query_parse( tag.body.c_str() );
+    if( isParentTag("qblock") ) {
+        d_query = tag.body.c_str();
+    } else {
+        raw_query_parse( tag.body.c_str() );
+    }
 }
 
 } // namespace barzer

@@ -207,6 +207,8 @@ public:
 		{ return tokPool.getTokByIdSafe(id); }
 
 
+	StoredTokenId getTokIdByString( const char* t ) const
+        { return tokPool.getTokIdByString(t); }
 	/// reads token, eclass, subclass from stream and constructs Euid if and only iff
 	/// all three could be read and the token could be resolved
 	/// Returns false if fails to read all three components or resolve the token 

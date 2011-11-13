@@ -28,7 +28,6 @@ typedef std::pair<std::string, std::string> AttrPair;
 
 class BarzerRequestParser;
 
-
 struct TrieId {
 	User::Id userId;
 	TriePath path;
@@ -48,6 +47,9 @@ typedef boost::variant<
 		UserId
 	> CmdArg;
 typedef std::vector<CmdArg> CmdArgList;
+
+struct RequestQueryDta {
+};
 
 class BarzerRequestParser {
 public:
@@ -71,6 +73,7 @@ private:
 	uint32_t userId;
 
 	std::ostream &os;
+    std::string d_query; // for query block 
 public:
 	XML_Parser parser;
 
@@ -102,14 +105,25 @@ public:
 	/// query is already stripped of the 
 	void raw_query_parse( const char* query );
 
+	void tag_qblock(RequestTag&);
 	void tag_query(RequestTag&);
 	void tag_cmd(RequestTag&);
+
 	void tag_rulefile(RequestTag&);
 	void tag_user(RequestTag&);
+	void tag_topic(RequestTag&);
 	void tag_trie(RequestTag&);
 
 	BarzerSettings& getSettings() { return settings; }
 	std::ostream& stream() { return os; }
+    const char* getParentTag() const 
+        { return( (tagStack.size() > 1) ?  tagStack[ tagStack.size() -2 ].tagName.c_str() : 0); }
+    
+    bool isParentTag( const char* t ) const
+        { 
+            const char* s = getParentTag();
+            return (s && !strcmp(s,t));
+        }
 };
 
 inline BarzerRequestParser::RequestTag& BarzerRequestParser::getTag()
