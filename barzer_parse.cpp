@@ -11,7 +11,7 @@ struct TopicAnalyzer {
     Barz& barz;
     TopicAnalyzer( QSemanticParser& p, Barz& b ) : semParser(p), barz(b) {}
     void operator() ( ) {
-        std::cerr << __FILE__ << ":" << __LINE__ << " Analyzing topics\n";
+        // std::cerr << __FILE__ << ":" << __LINE__ << " Analyzing topics\n";
         const BeadList& beadList = barz.getBeadList();
         for( BeadList::const_iterator i = beadList.begin(); i!= beadList.end(); ++i ) {
             if( i->isAtomic() ) {

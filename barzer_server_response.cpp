@@ -252,7 +252,7 @@ public:
 		return true;
 	}
 
-	void printEntity(const BarzerEntity &euid) {
+	void printEntity(const BarzerEntity &euid, const char* attrs = 0) {
 		os << "<entity ";
 		const StoredToken *tok = universe.getDtaIdx().tokPool.getTokByIdSafe(euid.tokId);
 		if( tok ) {
@@ -263,8 +263,13 @@ public:
 		} else if( euid.isTokIdValid() ) {
 			os << "INVALID_TOK[" << euid.eclass << "," << std::hex << euid.tokId << "]";
 		}
-		static const char *tmpl = "class=\"%1%\" subclass=\"%2%\" />";
-		os << boost::format(tmpl) % euid.eclass.ec % euid.eclass.subclass;
+        if( attrs ) {
+            static const char *tmpl = "class=\"%1%\" subclass=\"%2%\" %3% />";
+            os << boost::format(tmpl) % euid.eclass.ec % euid.eclass.subclass % attrs;
+        } else {
+            static const char *tmpl = "class=\"%1%\" subclass=\"%2%\" />";
+            os << boost::format(tmpl) % euid.eclass.ec % euid.eclass.subclass;
+        }
 		//os << "</entity>";
 	}
 
@@ -433,6 +438,20 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 		/// end of spell corrections accumulation
 	}
     /// printing topics 
+    const BarzTopics::TopicMap& topicMap = barz.topicInfo.getTopicMap();
+    if( !topicMap.empty() ) {
+        os << "<topics>\n";
+        BarzelBead fakeBead;
+	    BeadVisitor v(os, universe, fakeBead );
+        for( BarzTopics::TopicMap::const_iterator topI = topicMap.begin(); topI != topicMap.end(); ++topI ) {
+            os << "    ";
+            std::stringstream sstr;
+            sstr << "strength=\"" << topI->second << "\"";
+            v.printEntity( topI->first, sstr.str().c_str() );
+        }
+        os << "\n</topics>\n";
+    }
+
 
 	/// printing spell corrections  if any 
 	if( spellCorrections.size( ) ) {
