@@ -19,6 +19,8 @@ public:
     
     EntWeightVec d_vec;
 public:
+    const TopicMap& getTopicMap() const { return d_topics; }
+
     int getTopicWeight( const BarzerEntity& t ) const { 
         TopicMap::const_iterator i = d_topics.find(t);
 

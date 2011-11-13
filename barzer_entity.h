@@ -137,6 +137,10 @@ public:
 				d_lst.insert(i,e);
 		}
 
+	void appendEList( const EList& lst )
+    {
+        d_lst.insert( d_lst.end(), lst.begin(), lst.end() );
+    }
 	void filterEntList( BarzerEntityList& lst, const StoredEntityUniqId& euid ) const
 	{
 		for( EList::const_iterator i = d_lst.begin(); i!= d_lst.end(); ++i ) {

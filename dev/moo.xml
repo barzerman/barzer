@@ -1,9 +1,22 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance" xmlns="http://www.barzer.net/barzel/0.1">
   <stmt n="1"> <pat> <t>moo</t> </pat> <tran> <mkent c="10" s="20" i="moo"/> </tran> </stmt>
-  <stmt n="10"> <pat> <t>zoo</t> </pat> <tran> <mkent c="10" s="20" i="zoo"/> </tran> </stmt>
-  <stmt n="11"> <pat> <t>voo</t> </pat> <tran> <mkent c="10" s="30" i="voo"/> </tran> </stmt>
-  <stmt n="11"> <pat> <t>voo</t> </pat> <tran> <mkent c="10" s="30" i="voo"/> </tran> </stmt>
+  <stmt n="2"> <pat> <t>zoo</t> </pat> <tran> <mkent c="10" s="20" i="zoo"/> </tran> </stmt>
+  <stmt n="3"> <pat> <t>zoo</t> </pat> <tran> <mkent c="10" s="20" i="zoo2" tc="20" ts="1" ti="abc"/> </tran> </stmt>
+  <stmt n="4"> <pat> <t>zoo</t> </pat> <tran> <mkent c="10" s="20" i="zoo3"/> </tran> </stmt>
+  <stmt n="5"> <pat> <t>zoo</t> </pat> <tran> <mkent c="10" s="20" i="zoo4" tc="20" ts="1" ti="abc"/> </tran> </stmt>
+
+  <stmt n="6"> <pat> <t>voo</t> </pat> <tran> <mkent c="10" s="30" i="voo"/> </tran> </stmt>
+  <stmt n="7"> <pat> <t>voo</t> </pat> <tran> <mkent c="10" s="30" i="voo"/> </tran> </stmt>
+  <stmt n="8"> 
+    <pat> <list v="e"><ent c="10" s="20"/></list> </pat>
+    <tran u="y"> 
+        <func n="topicFilterEList">
+            <var n="e"/>
+        </func>
+    </tran> 
+  </stmt>
+
 
   <stmt n="111"> <pat> <t>roo</t> </pat> <tran><ltrl>roo</ltrl></tran> </stmt>
 

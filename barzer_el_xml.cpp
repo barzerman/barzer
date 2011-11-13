@@ -969,8 +969,9 @@ void BELParserXML::taghandle_MKENT( const char_cp * attr, size_t attr_sz , bool 
 		return;
 	}
 	BTND_Rewrite_MkEnt mkent;
-	uint32_t eclass = 0, subclass = 0;
+	uint32_t eclass = 0, subclass = 0, topicClass = 0, topicSubclass=0;
 	const char* idStr = 0;
+    const char*  topicIdStr = 0;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
@@ -978,6 +979,16 @@ void BELParserXML::taghandle_MKENT( const char_cp * attr, size_t attr_sz , bool 
 		case 'c': eclass =  atoi(v); break;
 		case 's': subclass =  atoi(v); break;
 		case 'i': idStr = v; break;
+
+		case 't': {
+            switch(n[1]) {
+                case 'c': topicClass =  atoi(v); break;
+                case 's': topicSubclass =  atoi(v); break;
+                case 'i': topicIdStr = v; break;
+            }
+            break;
+        }
+
 		}
 	}
 
@@ -985,6 +996,12 @@ void BELParserXML::taghandle_MKENT( const char_cp * attr, size_t attr_sz , bool 
 	const StoredEntity& ent  = reader->getGlobalPools().getDtaIdx().addGenericEntity( idStr, eclass, subclass );
 	mkent.setEntId( ent.entId );
 	statement.pushNode( BTND_RewriteData(mkent));
+
+    if( topicClass ) {
+	    const StoredEntity& topicEnt  = reader->getGlobalPools().getDtaIdx().addGenericEntity( topicIdStr, topicClass, topicSubclass);
+        BELTrie& trie = reader->getTrie();
+        trie.linkEntToTopic( topicEnt.getEuid(), ent.getEuid() );
+    }
 }
 
 void BELParserXML::taghandle_RNUMBER( const char_cp * attr, size_t attr_sz , bool close)

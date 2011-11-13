@@ -376,7 +376,8 @@ struct BELFunctionStorage_holder {
 		ADDFN(setUnmatch);
 
 		// --
-		ADDFN(filterEList); // (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
+		ADDFN(filterEList); // filters entity list by class/subclass (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
+        ADDFN(topicFilterEList);
 		ADDFN(mkEntList); // (BarzerEntity, ..., BarzerEntity) will also accept BarzerEntityList
         
         // ent properties 
@@ -1932,6 +1933,39 @@ struct BELFunctionStorage_holder {
                     outlistClassSet = true;
                     outlst.setClass( ent->getClass() );
                 }
+            }
+        }
+        setResult(result, outlst);
+        return true;
+    }
+	STFUN(topicFilterEList) // (BarzerEntityList)
+    {
+        BarzerEntityList outlst;
+        const BELTrie& trie=  ctxt.getTrie();
+
+        // iterating over input parameters
+        for (BarzelEvalResultVec::const_iterator ri = rvec.begin(); ri != rvec.end(); ++ri) {
+            const BarzerEntityList* entLst = getAtomicPtr<BarzerEntityList>(*ri);
+            if( entLst ) {  // current parameter is an entity list
+                // const Barz& barz = ctxt.getBarz();
+                const BarzTopics::TopicMap& topicMap = ctxt.getBarz().topicInfo.getTopicMap();
+                const BarzerEntityList::EList& theEList = entLst->getList();
+                if( topicMap.empty() ) { // no topics in the barz - which means no filtering
+                    outlst.appendEList( theEList );
+                } else { // barz has some topics
+
+                    // iterating over all topics in the barz 
+                    for( BarzTopics::TopicMap::const_iterator topI = topicMap.begin(); topI != topicMap.end(); ++topI ) {
+                        const std::set< BarzerEntity >* topEntSet= trie.getTopicEntities( topI->first ) ;
+                        if( topEntSet ) {// topEntSet for the current topic exists
+                            for( BarzerEntityList::EList::const_iterator ei = theEList.begin(); ei != theEList.end(); ++ei ) {
+                                const BarzerEntity& ee = *ei;
+                                if( topEntSet->find( ee ) != topEntSet->end() ) 
+                                    outlst.addEntity(ee);
+                            }
+                        }
+                    }
+                } 
             }
         }
         setResult(result, outlst);

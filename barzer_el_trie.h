@@ -416,7 +416,26 @@ struct TrieWordInfo {
 	void incrementCount() { ++wordCount; }
 };
 typedef boost::unordered_map< uint32_t, TrieWordInfo > strid_to_triewordinfo_map; 
+struct TopicEntLinkage {
+    typedef std::set< BarzerEntity > BarzerEntitySet;
+    typedef std::map< BarzerEntity, BarzerEntitySet  > BarzerEntitySetMap;
+    BarzerEntitySetMap topicToEnt;
 
+    void link( const BarzerEntity& t, const BarzerEntity& e ) 
+    {
+        BarzerEntitySetMap::iterator i = topicToEnt.find( t );
+        if( i == topicToEnt.end() ) {
+            i = topicToEnt.insert( BarzerEntitySetMap::value_type( t, BarzerEntitySet() ) ).first; 
+        }
+        i->second.insert( e );
+    }
+    
+    const BarzerEntitySet* getTopicEntities( const BarzerEntity& t ) const
+    {
+        BarzerEntitySetMap::const_iterator i = topicToEnt.find( t );
+        return( i == topicToEnt.end() ? 0: &(i->second) );
+    }
+};
 class BELTrie {
 	GlobalPools& globalPools;
 	/// trie shouldnt be copyable
@@ -426,7 +445,8 @@ class BELTrie {
 	BarzelTranslationPool *d_tranPool;
 	BarzelVariableIndex   d_varIndex;
 	EntityCollection      d_entCollection;
-	
+    
+    TopicEntLinkage       d_topicEnt;
 	/// this trie's global id in the global trie pool
 	uint32_t d_globalTriePoolId; 
 	// tokens participating in this trie will have this priority in the localized spelling corrector
@@ -436,6 +456,12 @@ class BELTrie {
 
 	BELTrie( const BELTrie& a );
 public:
+    const std::set< BarzerEntity >* getTopicEntities( const BarzerEntity& t ) const
+    {
+        return d_topicEnt.getTopicEntities( t );
+    }
+    void linkEntToTopic( const BarzerEntity& topicEnt, const BarzerEntity&ent ) { d_topicEnt.link( topicEnt, ent ); }
+
 	// must be called from BELParser::internString
 	void addWordInfo( uint32_t strId ) { d_wordInfoMap[strId].incrementCount(); }
 
