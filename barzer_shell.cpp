@@ -452,8 +452,8 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 		bs.print(*ostr);
 		
 		// << ttVec << std::endl;
+        barz.clearWithTraceAndTopics();
 	}
-    barz.clearWithTraceAndTopics();
 	std::cerr << "All done in " << totalTimer.calcTime() << " seconds\n";
 	return 0;
 }
