@@ -23,7 +23,7 @@ struct TopicAnalyzer {
                     if( entList ) {
                         const BarzerEntityList::EList& el = entList->getList();
                         for( BarzerEntityList::EList::const_iterator ei = el.begin(); ei != el.end(); ++ei ) {
-                            barz.topicInfo.addTopic( *ent );
+                            barz.topicInfo.addTopic( *ei );
                         }
                     } else {
                         const BarzerEntityRangeCombo* erc = i->get<BarzerEntityRangeCombo>();
