@@ -83,8 +83,16 @@ ENDIF(NOT DEFINED INSTALL_DIR)
 set(INSTALL_DATA_DIR "${INSTALL_DIR}/data")
 set(INSTALL_UTIL_DIR "${INSTALL_DIR}/util")
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} $ENV{OPT} -Wall -Wnon-virtual-dtor -fpic")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} $ENV{OPT} -Wall -Wnon-virtual-dtor -fpic -g")
+IF(CMAKE_BUILD_TYPE STREQUAL "")
+    set(CMAKE_BUILD_TYPE Debug)
+ENDIF()
+
+MESSAGE("build type: ${CMAKE_BUILD_TYPE}")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "-g")
+SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
 add_definitions(-DBARZER_HOME=${INSTALL_DIR})
 add_definitions("\$(OPT)")
 
@@ -95,6 +103,7 @@ ENDIF()
 set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
 
 MESSAGE(${CMAKE_CXX_COMPILER_ID})
+
 
 IF( ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" )
     add_definitions("-Wno-parentheses")
