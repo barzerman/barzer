@@ -54,15 +54,20 @@ void Barz::clearBeads()
 {
 	beadChain.clear();
 }
+void Barz::clearWithTraceAndTopics()
+{
+    topicInfo.clear();
+	barzelTrace.clear();
+    clear();
+}
+
 void Barz::clear()
 {
-	barzelTrace.clear();
 	beadChain.clear();
 	ctVec.clear();
 	ttVec.clear();
 
 	question.clear();
-    topicInfo.clear();
 }
 
 int Barz::chainInit( const QuestionParm& qparm ) 

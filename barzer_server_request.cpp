@@ -233,8 +233,14 @@ void BarzerRequestParser::raw_query_parse( const char* query )
 
 	QuestionParm qparm;
 	//qparser.parse( barz, getTag().body.c_str(), qparm );
+    if( !barz.topicInfo.getTopicMap().empty() ) {
+        std::cerr << "SHIT SHIT\n";
+        barz.topicInfo.computeTopTopics();
+    }
 	qparser.parse( barz, query, qparm );
 	response.print(os);
+    /// doing this just in case barz is reused 
+    barz.clearWithTraceAndTopics();
 }
 
 void BarzerRequestParser::tag_topic(RequestTag &tag) {

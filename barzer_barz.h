@@ -91,6 +91,7 @@ public:
 	const BarzelBeadChain& getBeads() const { return beadChain; }
 
 	void clear();
+	void clearWithTraceAndTopics();
 
 	void clearBeads();
 

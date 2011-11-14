@@ -48,9 +48,6 @@ typedef boost::variant<
 	> CmdArg;
 typedef std::vector<CmdArg> CmdArgList;
 
-struct RequestQueryDta {
-};
-
 class BarzerRequestParser {
 public:
 	typedef std::map<const std::string, const std::string> AttrList;
