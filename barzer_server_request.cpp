@@ -270,6 +270,7 @@ void BarzerRequestParser::tag_topic(RequestTag &tag) {
     barz.topicInfo.addTopic( topicEnt );
 }
 
+// <qblock u="23"><topic c="20" s="1" i="abc"/><query>zoo</query></qblock>
 void BarzerRequestParser::tag_qblock(RequestTag &tag) {
 	AttrList &attrs = tag.attrs;
     for( AttrList::const_iterator a = attrs.begin(); a!= attrs.end(); ++a ) {
