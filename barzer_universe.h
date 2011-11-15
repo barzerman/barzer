@@ -243,12 +243,18 @@ class StoredUniverse {
 	// bool  d_stemByDefault; 
 
 	friend class QSemanticParser;
+    TopicEntLinkage d_topicEntLinkage;
 
 	void addWordsFromTriesToBZSpell();
 public:
+    const std::set< BarzerEntity >* getTopicEntities( const BarzerEntity& t ) const 
+        { return d_topicEntLinkage.getTopicEntities( t ); }
+
+    const TopicEntLinkage& getTopicEntLinkage() const { return  d_topicEntLinkage; }
     // doesnt destroy the actual tries
     void clearTrieList() { 
         trieCluster.clearList();
+        d_topicEntLinkage.clear();
     }
     
     typedef boost::shared_mutex Mutex;
@@ -296,9 +302,8 @@ public:
     uint32_t getEntClass() const { return ( GENERIC_CLASS_RANGE_MAX+ d_userId); }
 
 	bool stemByDefault() const { return gp.parseSettings().stemByDefault(); }
-	UniverseTrieCluster& getTrieCluster() { return trieCluster; }
+	// UniverseTrieCluster& getTrieCluster() { return trieCluster; }
 
-	UniverseTrieCluster& getTopicTrieCluster() { return topicTrieCluster; }
 	const UniverseTrieCluster& getTopicTrieCluster() const { return topicTrieCluster; }
     bool hasTopics() const { return !(topicTrieCluster.getTrieList().empty()); }
 
@@ -383,7 +388,22 @@ public:
 	const char* decodeStringById( uint32_t strId ) const 
 		{ return getDtaIdx().resolveStringById( strId ); }
 
-    void appendTriePtr( BELTrie* trie, GrammarInfo* gi ) { trieCluster.appendTriePtr(trie,gi); }
+    void appendTriePtr( BELTrie* trie, GrammarInfo* gi ) { 
+        trieCluster.appendTriePtr(trie,gi); 
+        d_topicEntLinkage.append( trie->getTopicEntLinkage() );
+    }
+	BELTrie& appendTopicTrie( const std::string& trieClass, const std::string& trieId, GrammarInfo* gi )
+    {
+	    BELTrie& t = topicTrieCluster.appendTrie( trieClass, trieId, gi );
+        return t;
+    }
+	BELTrie& appendTrie( const std::string& trieClass, const std::string& trieId, GrammarInfo* gi )
+    {
+	    BELTrie& t = trieCluster.appendTrie( trieClass, trieId, gi );
+        d_topicEntLinkage.append( t.getTopicEntLinkage() );
+        return t;
+    }
+
 }; 
 
 inline StoredUniverse& GlobalPools::produceUniverse( uint32_t id )

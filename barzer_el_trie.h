@@ -435,6 +435,19 @@ struct TopicEntLinkage {
         BarzerEntitySetMap::const_iterator i = topicToEnt.find( t );
         return( i == topicToEnt.end() ? 0: &(i->second) );
     }
+
+    void append( const TopicEntLinkage& lkg ) 
+    {
+        for( BarzerEntitySetMap::const_iterator i = lkg.topicToEnt.begin(); i!= lkg.topicToEnt.end(); ++i ) {
+            const BarzerEntity& topic = i->first;
+            const BarzerEntitySet& linkedSet = i->second;
+            for( BarzerEntitySet::const_iterator lei = linkedSet.begin(); lei != linkedSet.end(); ++lei ) {
+                link( topic, *lei );
+            }
+        }
+    }
+
+    void clear() { topicToEnt.clear(); }
 };
 class BELTrie {
 	GlobalPools& globalPools;
@@ -456,6 +469,7 @@ class BELTrie {
 
 	BELTrie( const BELTrie& a );
 public:
+    const TopicEntLinkage& getTopicEntLinkage() const { return d_topicEnt; }
     const std::set< BarzerEntity >* getTopicEntities( const BarzerEntity& t ) const
     {
         return d_topicEnt.getTopicEntities( t );

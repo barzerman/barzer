@@ -62,9 +62,9 @@ User::Spell& User::createSpell(const char *md, const char *affx)
 
 void User::addTrie(const TriePath &tp, bool isTopicTrie, GrammarInfo* gramInfo ) {
     if( isTopicTrie ) 
-	    universe.getTopicTrieCluster().appendTrie(tp.first, tp.second, gramInfo );
+	    universe.appendTopicTrie(tp.first, tp.second, gramInfo );
     else 
-	    universe.getTrieCluster().appendTrie(tp.first, tp.second, gramInfo );
+	    universe.appendTrie(tp.first, tp.second, gramInfo );
 }
 
 

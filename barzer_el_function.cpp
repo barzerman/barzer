@@ -1941,7 +1941,7 @@ struct BELFunctionStorage_holder {
 	STFUN(topicFilterEList) // (BarzerEntityList)
     {
         BarzerEntityList outlst;
-        const BELTrie& trie=  ctxt.getTrie();
+        // const BELTrie& trie=  ctxt.getTrie();
 
         // iterating over input parameters
         for (BarzelEvalResultVec::const_iterator ri = rvec.begin(); ri != rvec.end(); ++ri) {
@@ -1956,7 +1956,7 @@ struct BELFunctionStorage_holder {
 
                     // iterating over all topics in the barz 
                     for( BarzTopics::TopicMap::const_iterator topI = topicMap.begin(); topI != topicMap.end(); ++topI ) {
-                        const std::set< BarzerEntity >* topEntSet= trie.getTopicEntities( topI->first ) ;
+                        const std::set< BarzerEntity >* topEntSet= q_universe.getTopicEntities( topI->first ) ;
                         if( topEntSet ) {// topEntSet for the current topic exists
                             for( BarzerEntityList::EList::const_iterator ei = theEList.begin(); ei != theEList.end(); ++ei ) {
                                 const BarzerEntity& ee = *ei;

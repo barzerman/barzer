@@ -244,6 +244,7 @@ void StoredUniverse::clear()
 {
     topicTrieCluster.clearTries();
     trieCluster.clearTries();
+    d_topicEntLinkage.clear();
 	clearSpell();
 }
 
