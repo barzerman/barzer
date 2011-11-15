@@ -1956,14 +1956,21 @@ struct BELFunctionStorage_holder {
 
                     // iterating over all topics in the barz 
                     for( BarzTopics::TopicMap::const_iterator topI = topicMap.begin(); topI != topicMap.end(); ++topI ) {
-                        const std::set< BarzerEntity >* topEntSet= q_universe.getTopicEntities( topI->first ) ;
+                        const BarzerEntity& topicEnt = topI->first;
+                        const std::set< BarzerEntity >* topEntSet= q_universe.getTopicEntities( topicEnt );
                         if( topEntSet ) {// topEntSet for the current topic exists
                             for( BarzerEntityList::EList::const_iterator ei = theEList.begin(); ei != theEList.end(); ++ei ) {
                                 const BarzerEntity& ee = *ei;
-                                if( topEntSet->find( ee ) != topEntSet->end() ) 
+                                if( topicEnt == ee || topEntSet->find( ee ) != topEntSet->end() ) 
                                     outlst.addEntity(ee);
                             }
                         }
+                        for( BarzerEntityList::EList::const_iterator ei = theEList.begin(); ei != theEList.end(); ++ei ) {
+                            const BarzerEntity& ee = *ei;
+                            if( topicEnt == ee )
+                                outlst.addEntity(ee);
+                        }
+
                     }
                 } 
             }
