@@ -2034,26 +2034,37 @@ struct BELFunctionStorage_holder {
         }
         // pointers to all eligible entities ARE in eligibleEntVec and all topics to filter on are in filterTopicSet
 
-        /// looping over all topics
-        for( std::set< BarzerEntity >::const_iterator fi = filterTopicSet.begin(); fi != filterTopicSet.end(); ++ fi ) {
-            const BarzerEntity& topicEnt = *fi;
-            const StoredEntityClass& topicEntClass = topicEnt.getClass();
-            const std::set< BarzerEntity >* topEntSet= q_universe.getTopicEntities( topicEnt );
-            if( !topEntSet ) // skipping to next topic if this one has no linked entities
+        // loopin over all entities
+        for( std::vector< const BarzerEntity* >::iterator eei = eligibleEntVec.begin(); eei != eligibleEntVec.end(); ++eei ) {
+            const BarzerEntity* eptr = *eei;
+            if( !eptr )
                 continue;
-            // trying to filter all still eligible entities eei - eligible entity iterator
-            for( std::vector< const BarzerEntity* >::iterator eei = eligibleEntVec.begin(); eei != eligibleEntVec.end(); ++eei ) {
-                const BarzerEntity* eptr = *eei;
-                if( eptr && eptr->eclass != topicEntClass )  {  // topic applicable for filtering if its in a different class
+            /// looping over all topics
+            bool entFilterApplies = false;
+            bool entPassedFilter = false;
+
+            for( std::set< BarzerEntity >::const_iterator fi = filterTopicSet.begin(); fi != filterTopicSet.end(); ++ fi ) {
+                const BarzerEntity& topicEnt = *fi;
+                const StoredEntityClass& topicEntClass = topicEnt.getClass();
+                // trying to filter all still eligible entities eei - eligible entity iterator
+                if( eptr->eclass != topicEntClass )  {  // topic applicable for filtering if its in a different class
                     // continuing to check filter applicability
                     SECFilterMap::const_iterator entFAi=  fltrMap.find(eptr->eclass);
                     if( entFAi != fltrMap.end() && entFAi->second.find(topicEntClass) != entFAi->second.end() ) {
-                        if( topEntSet->find( *(eptr) ) == topEntSet->end() ) 
-                            *eei = 0;
+                        if( !entFilterApplies )
+                            entFilterApplies = true;
+                        const std::set< BarzerEntity >* topEntSet= q_universe.getTopicEntities( topicEnt );
+                        if( topEntSet && topEntSet->find( *(eptr) ) != topEntSet->end() ) {
+                            entPassedFilter = true;
+                            break;
+                        }
                     }
                 }
-            }
-        }
+            } // end of topic loop
+
+            if( entFilterApplies && !entPassedFilter )
+                *eei= 0;
+        } // end of entity loop
         
         /// here all non 0 pointers in eligibleEntVec can be copied to the outresult
         /// filled the vector with all eligible
