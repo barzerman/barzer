@@ -320,6 +320,8 @@ PatternEmitterNode* PatternEmitterNode::make(const BELParseTreeNode& node, VarVe
 
 bool BELParseTreeNode_PatternEmitter::produceSequence()
 {
+    if( !patternTree ) 
+        return false;
 	bool ret = patternTree->step();
     if (ret) {
     	curVec.clear();

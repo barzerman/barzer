@@ -1103,7 +1103,8 @@ struct BELParseTreeNode_PatternEmitter {
 
 	const BTND_PatternDataVec& getCurSequence( )
 	{
-		patternTree->yield(curVec, varVec);
+        if( patternTree )
+		    patternTree->yield(curVec, varVec);
 		return curVec;
 	}
 

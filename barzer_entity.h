@@ -38,15 +38,16 @@ inline std::ostream& operator <<( std::ostream& fp, const StoredEntityClass& x )
 }
 
 inline bool operator ==( const StoredEntityClass& l, const StoredEntityClass& r )
-{
-	return (l.ec == r.ec && l.subclass == r.subclass );
-}
+{ return (l.ec == r.ec && l.subclass == r.subclass ); }
+inline bool operator !=( const StoredEntityClass& l, const StoredEntityClass& r )
+{ return (l.ec != r.ec || l.subclass != r.subclass ); }
 inline bool operator<( const StoredEntityClass& l, const StoredEntityClass& r )
 {
 	if( l.ec < r.ec ) return true;
 	else if( r.ec < l.ec ) return false;
 	else return ( l.subclass < r.subclass );
 }
+typedef std::vector< StoredEntityClass > StoredEntityClassVec;
 
 /// unique id for an entity within the given StoredEntityClass
 struct StoredEntityUniqId {

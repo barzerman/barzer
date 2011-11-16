@@ -1938,46 +1938,135 @@ struct BELFunctionStorage_holder {
         setResult(result, outlst);
         return true;
     }
-	STFUN(topicFilterEList) // (BarzerEntityList)
+    /// list, {class,subclass, filterClass, filterSubclass}[N]
+	STFUN(topicFilterEList) //
     {
+        /// first parm is the list we're filtering 
+        /// followed by list of pairs of class/subclass of topics we want to filter on
+        /// ACHTUNG: extract the list of filter topics 
+        /// filter on them 
+        /// if this list is empty NEVER filter on own class/subclass
+        /// 
         BarzerEntityList outlst;
-        // const BELTrie& trie=  ctxt.getTrie();
-
-        // iterating over input parameters
-        for (BarzelEvalResultVec::const_iterator ri = rvec.begin(); ri != rvec.end(); ++ri) {
-            const BarzerEntityList* entLst = getAtomicPtr<BarzerEntityList>(*ri);
-            if( entLst ) {  // current parameter is an entity list
-                // const Barz& barz = ctxt.getBarz();
-                const BarzTopics::TopicMap& topicMap = ctxt.getBarz().topicInfo.getTopicMap();
-                const BarzerEntityList::EList& theEList = entLst->getList();
-                if( topicMap.empty() ) { // no topics in the barz - which means no filtering
-                    outlst.appendEList( theEList );
-                } else { // barz has some topics
-
-                    // iterating over all topics in the barz 
-                    for( BarzTopics::TopicMap::const_iterator topI = topicMap.begin(); topI != topicMap.end(); ++topI ) {
-                        const BarzerEntity& topicEnt = topI->first;
-                        const std::set< BarzerEntity >* topEntSet= q_universe.getTopicEntities( topicEnt );
-                        if( topEntSet ) {// topEntSet for the current topic exists
-                            for( BarzerEntityList::EList::const_iterator ei = theEList.begin(); ei != theEList.end(); ++ei ) {
-                                const BarzerEntity& ee = *ei;
-                                if( topicEnt == ee || topEntSet->find( ee ) != topEntSet->end() ) 
-                                    outlst.addEntity(ee);
-                            }
-                        }
-                        for( BarzerEntityList::EList::const_iterator ei = theEList.begin(); ei != theEList.end(); ++ei ) {
-                            const BarzerEntity& ee = *ei;
-                            if( topicEnt == ee )
-                                outlst.addEntity(ee);
-                        }
-
-                    }
-                } 
+        const BarzerEntityList* entLst =0;
+        BarzerEntityList tmpList;
+        if( rvec.size() )  {
+    
+            entLst = getAtomicPtr<BarzerEntityList>(rvec[0]);
+            if( !entLst ) {
+                const BarzerEntity* ent = getAtomicPtr<BarzerEntity>(rvec[0]);
+                if( ent ) {
+                    tmpList.addEntity( *ent );
+                    entLst = &tmpList;
+                }
             }
         }
-        setResult(result, outlst);
-        return true;
+
+        if( !entLst ) {
+            setResult(result, outlst);
+            return true; 
+        }
+        // at this point entLst points to the list of all entities that may belong in the outlst 
+        // parsing filtering topic {class,subclass, filterClass,filterSubclass} pairs
+        typedef std::map< StoredEntityClass, std::set<StoredEntityClass> > SECFilterMap;
+        SECFilterMap fltrMap;
+
+        if( rvec.size() > 4 )  {
+            size_t rvec_size_1 = rvec.size()-1;
+            for( size_t i = 1; i< rvec_size_1; i+= 4 ) {
+                StoredEntityClass sec;
+
+                {
+                const BarzerNumber* cn  = getAtomicPtr<BarzerNumber>(rvec[i]);
+                if( cn ) 
+                    sec.setClass( cn->getInt() );
+                const BarzerNumber* scn  = getAtomicPtr<BarzerNumber>(rvec[i+1]);
+                if( scn ) 
+                    sec.setSubclass( scn->getInt() );
+                }
+                StoredEntityClass filterSec;
+                {
+                const BarzerNumber* cn  = getAtomicPtr<BarzerNumber>(rvec[i+2]);
+                if( cn ) 
+                    filterSec.setClass( cn->getInt() );
+                const BarzerNumber* scn  = getAtomicPtr<BarzerNumber>(rvec[i+3]);
+                if( scn ) 
+                    filterSec.setSubclass( scn->getInt() );
+                }
+                fltrMap[ sec ].insert( filterSec );
+            }
+        }
+        /// here ecVec has all entity {c,sc} we're filtering on 
+        const BarzTopics::TopicMap& topicMap = ctxt.getBarz().topicInfo.getTopicMap();
+
+        // computing the list of topics to filter on 
+        std::set< BarzerEntity > filterTopicSet;
+
+        for( BarzTopics::TopicMap::const_iterator topI = topicMap.begin(); topI != topicMap.end(); ++topI ) {
+            const BarzerEntity& topicEnt = topI->first;
+            if( !fltrMap.size() )
+                filterTopicSet.insert( topicEnt );
+            else { 
+                SECFilterMap::const_iterator fi = fltrMap.find( topicEnt.eclass );
+                for( SECFilterMap::const_iterator fi = fltrMap.begin(); fi != fltrMap.end(); ++fi ) {
+                    if( std::find( fi->second.begin(), fi->second.end(), topicEnt.eclass ) != 
+                        fi->second.end())
+                    {
+                        filterTopicSet.insert( topicEnt );
+                    }
+                }
+            }
+        }
+
+        // here filterTopicSet contains every topic we need to filter on 
+        if( !filterTopicSet.size() ) { /// if nothing to filter on we're short circuitin
+            setResult(result, *entLst );
+            return true; 
+        }
+
+        // pointers to all eligible entities will be in eligibleEntVec
+        std::vector< const BarzerEntity* > eligibleEntVec;
+
+        const BarzerEntityList::EList& theEList = entLst->getList();
+        eligibleEntVec.reserve( theEList.size() ); 
+        for( BarzerEntityList::EList::const_iterator ei = theEList.begin(); ei != theEList.end(); ++ei ) {
+            eligibleEntVec.push_back( &(*ei) );
+        }
+        // pointers to all eligible entities ARE in eligibleEntVec and all topics to filter on are in filterTopicSet
+
+        /// looping over all topics
+        for( std::set< BarzerEntity >::const_iterator fi = filterTopicSet.begin(); fi != filterTopicSet.end(); ++ fi ) {
+            const BarzerEntity& topicEnt = *fi;
+            const StoredEntityClass& topicEntClass = topicEnt.getClass();
+            const std::set< BarzerEntity >* topEntSet= q_universe.getTopicEntities( topicEnt );
+            if( !topEntSet ) // skipping to next topic if this one has no linked entities
+                continue;
+            // trying to filter all still eligible entities eei - eligible entity iterator
+            for( std::vector< const BarzerEntity* >::iterator eei = eligibleEntVec.begin(); eei != eligibleEntVec.end(); ++eei ) {
+                const BarzerEntity* eptr = *eei;
+                if( eptr && eptr->eclass != topicEntClass )  {  // topic applicable for filtering if its in a different class
+                    // continuing to check filter applicability
+                    SECFilterMap::const_iterator entFAi=  fltrMap.find(eptr->eclass);
+                    if( entFAi != fltrMap.end() && entFAi->second.find(topicEntClass) != entFAi->second.end() ) {
+                        if( topEntSet->find( *(eptr) ) == topEntSet->end() ) 
+                            *eei = 0;
+                    }
+                }
+            }
+        }
+        
+        /// here all non 0 pointers in eligibleEntVec can be copied to the outresult
+        /// filled the vector with all eligible
+
+        for( std::vector< const BarzerEntity* >::iterator eei = eligibleEntVec.begin(); eei != eligibleEntVec.end(); ++eei ) {
+            if( *eei ) 
+               outlst.addEntity( *(*eei) );
+        }
+
+        setResult(result, outlst );
+        return true; 
     }
+
 	STFUN(filterEList) // (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
 	{
         SETFUNCNAME(filterEList);
