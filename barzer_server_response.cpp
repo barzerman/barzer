@@ -282,6 +282,7 @@ public:
 		const BarzerEntityList::EList &lst = data.getList();
 		for (BarzerEntityList::EList::const_iterator li = lst.begin();
 													 li != lst.end(); ++li) {
+            os << "\n    ";
 			printEntity(*li);
 		}
 		//os << "</entlist>";

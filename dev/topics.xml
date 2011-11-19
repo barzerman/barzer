@@ -1,9 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance" xmlns="http://www.barzer.net/barzel/0.1">
-  <stmt n="159">
-    <pat><t>zomo</t></pat>
-    <tran>
-        <mkent c="20" s="1" i="abc"/>
-    </tran>
-  </stmt>
+  <stmt n="159"> <pat><t>zomo</t></pat> <tran> <mkent c="20" s="1" i="abc"/> </tran> </stmt>
+  <stmt n="160"> <pat><t>zomo</t></pat> <tran> <mkent c="20" s="1" i="fgh"/> </tran> </stmt>
 </stmset>

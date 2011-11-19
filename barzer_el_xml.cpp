@@ -230,7 +230,7 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
 		switch( *n ) {
-		case 'm': {
+		case 'm': 
 			if( !getMacroByName( std::string(v) )) {
 				statement.setMacro(v); // m="MACROXXX"
 			} else {
@@ -238,7 +238,7 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
                 needAbort  = true;
 			}
             break;
-		case 'p':  // 
+		case 'p':  //  proc
 			{ // block
 			uint32_t procNameStrId = reader->getGlobalPools().internString_internal( v );
 
@@ -251,9 +251,11 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 			}  // end of block
             break;
 		case 'n':  // statement number
-			stmtNumber = atoi(v);
+            if( !n[1] )
+			    stmtNumber = atoi(v);
+            // name - is for barsted names 
 			break;
-		}
+		case 't':  // pipe separated tags
 			break;
 		}
 	}

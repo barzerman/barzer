@@ -96,7 +96,8 @@ struct List: public IntermediateNode {
     bool step()
     {
         for(ChildVec::const_iterator it=childs.begin(); it != childs.end(); ++it) {
-        	if((*it)->step()) {
+
+        	if((*it) && (*it)->step()) {
                 return true;
         	}
         }
@@ -106,7 +107,8 @@ struct List: public IntermediateNode {
     void yield(BTND_PatternDataVec& vec, BELVarInfo &vinfo) const
     {
         for(ChildVec::const_iterator it=childs.begin(); it != childs.end(); ++it) {
-            (*it)->yield(vec, vinfo);
+            if( *it ) 
+                (*it)->yield(vec, vinfo);
         }
     }
 private:
