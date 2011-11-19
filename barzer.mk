@@ -9,7 +9,7 @@ ifeq ($(IS32),yes)
 endif 
 CFLAGS :=$(CFLAGS) $(BITMODE) $(OPT) -Wall -Wno-parentheses -Wnon-virtual-dtor \
 	-I/opt/local/include -I/usr/include -g -I. -I./ay -fpic
-LINKFLAGS := $(FLAGS)
+LINKFLAGS := $(FLAGS) 
 BINARY=barzer.exe
 LIBNAME=libbarzer
 SHARED_LIBNAME=libbarzer.so

@@ -418,7 +418,8 @@ const BarzelTrieNode* BELTrie::addPath(
 		//}
 		if( firmKey.isNull() || (!firmKey.isLiteralKey() && path.begin() == i) ) { // either failed to encode firm key or this is a leading wc
 			wcpdList.push_back( WCPatDta(i,BarzelTrieFirmChildKey() ) );
-			WCPatDtaList::iterator firstWC = wcpdList.rbegin().base();
+            // ACHTUNG! was local
+			firstWC = wcpdList.rbegin().base();
 		} else {
 			if( firstWC != wcpdList.end() ) {
 				for( WCPatDtaList::iterator li = firstWC; li != wcpdList.end(); ++li ) {

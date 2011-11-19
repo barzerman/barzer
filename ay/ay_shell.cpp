@@ -170,7 +170,7 @@ int Shell::runCmdLoop(std::istream* fp )
 		std::string cmdStr;
 		std::getline( sstr, cmdStr, ' ');
 		// sstr >> cmdStr;
-		int cmdRc = 0;
+		// int cmdRc = 0;
 		cmdInvoke( rc, cmdStr.c_str(), sstr );
 		if( rc ) 
 			break;

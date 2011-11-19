@@ -252,7 +252,8 @@ public:
 			/// all potential candidate paths and there's nothing left to do 
 			if( key.first.isNull() )
 				return;
-			BarzelWCLookup::const_iterator wci = ( wcLookup.lower_bound(key));
+            // ACHTUNG - fixed this tricky thing
+			wci = ( wcLookup.lower_bound(key));
 		} else {
 			/// otherwise we will iterate over everything
 			wci = wcLookup.begin();

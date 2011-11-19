@@ -492,7 +492,7 @@ static int bshf_anlqry( BarzerShell* shell, char_cp cmd, std::istream& in )
 		if( barzRc.first ) 
 			++numSemanticalBarzes;
 	}
-	std::cout << "\n" << numQueries << " (" << numSemanticalBarzes << " semantical) queries processed read. in "  << totalTimer.calcTime() << std::endl;
+	*ostr << "\n" << numQueries << " (" << numSemanticalBarzes << " semantical) queries processed read. in "  << totalTimer.calcTime() << std::endl;
 	return 0;
 }
 

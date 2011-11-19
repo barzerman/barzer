@@ -168,15 +168,17 @@ void EntityLoader_XML::handle_entlist_close( )
 
 void EntityLoader_XML::handle_token_open( Tag_t parentTag, const char_cp * attr, size_t attr_sz )
 {
-	uint32_t compTokId = INVALID_STORED_ID;
+    // compounded token  - currently unused
+	// uint32_t compTokId = INVALID_STORED_ID;
 	const char* actualTok = 0;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
 		switch( *n ) {
 		case 'c':
-			if( n[1] == 'i' )  // compounded token
-				compTokId = atoi(v);
+            // compounded token  - currently unused
+			// if( n[1] == 'i' )  // compounded token
+				// compTokId = atoi(v);
 			break;
 		case 's': 
 			if( !n[1] ) { // strength

@@ -1812,7 +1812,7 @@ struct BELFunctionStorage_holder {
         
         if( idx < 0 ) 
             FERROR("index must be positive" );
-        else if( idx > arrVec.size() ) 
+        else if( (size_t)idx > arrVec.size() ) 
             FERROR("index out of range" );
 
         result.getBeadDataVec().push_back( arrVec[idx] );
@@ -2007,7 +2007,6 @@ struct BELFunctionStorage_holder {
             if( !fltrMap.size() )
                 filterTopicSet.insert( topicEnt );
             else { 
-                SECFilterMap::const_iterator fi = fltrMap.find( topicEnt.eclass );
                 for( SECFilterMap::const_iterator fi = fltrMap.begin(); fi != fltrMap.end(); ++fi ) {
                     if( std::find( fi->second.begin(), fi->second.end(), topicEnt.eclass ) != 
                         fi->second.end())
