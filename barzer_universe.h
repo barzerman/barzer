@@ -403,7 +403,6 @@ public:
         d_topicEntLinkage.append( t.getTopicEntLinkage() );
         return t;
     }
-
 }; 
 
 inline StoredUniverse& GlobalPools::produceUniverse( uint32_t id )
