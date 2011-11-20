@@ -10,6 +10,7 @@ namespace barzer {
 class QSemanticParser;
 class QLexParser;
 class QTokenizer;
+class StoredUniverse;
 
 struct BarzelTrace {
     struct SingleFrameTrace {
@@ -101,6 +102,8 @@ public:
 	int semanticParse( QSemanticParser&, const QuestionParm& );
 	int analyzeTopics( QSemanticParser&, const QuestionParm& );
 	int postSemanticParse( QSemanticParser&, const QuestionParm& );
+
+    int segregateEntities( const StoredUniverse& u, const QuestionParm& qparm, const char* q );
 
 	/// returns pair. first is the number of units which have been modified semantically
 	/// mening - fluff, date, entity, erc, expression etc

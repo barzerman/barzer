@@ -138,6 +138,9 @@ int QParser::parse( Barz& barz, const char* q, const QuestionParm& qparm )
 	tokenize_only( barz, q, qparm );
 	lex_only( barz, qparm );
 	semanticize_only( barz, qparm );
-	
+    
+    if( universe.needEntitySegregation() ) 
+        barz.segregateEntities( universe, qparm, q );
+    
 	return 0;
 }

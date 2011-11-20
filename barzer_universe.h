@@ -244,6 +244,7 @@ class StoredUniverse {
 
 	friend class QSemanticParser;
     TopicEntLinkage d_topicEntLinkage;
+    EntitySegregatorData d_entSeg;
 
 	void addWordsFromTriesToBZSpell();
 public:
@@ -403,6 +404,11 @@ public:
         d_topicEntLinkage.append( t.getTopicEntLinkage() );
         return t;
     }
+    
+    // entity segregation
+    const EntitySegregatorData& geEntSeg() const { return d_entSeg; }
+    bool needEntitySegregation() const { return !(d_entSeg.empty()); }
+    void addEntClassToSegregate( const StoredEntityClass& ec ) { d_entSeg.add(ec); }
 }; 
 
 inline StoredUniverse& GlobalPools::produceUniverse( uint32_t id )

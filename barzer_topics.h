@@ -133,12 +133,24 @@ public:
         return( d_grammarInfo = gi, *d_grammarInfo );
     }
 }; 
+/// entity segregator is important for post semantical phase 
+/// it holds information used for grouping
+class EntitySegregatorData {
+    std::set< uint32_t > d_classToSeg; // entity classes to segregate
+public:
+    bool empty() const { return d_classToSeg.empty(); }
 
+    void add( const StoredEntityClass& ec ) { d_classToSeg.insert( ec.ec ); }
+    bool needSegregate( const StoredEntityClass& ec ) const 
+        { return ( d_classToSeg.find(ec.ec) != d_classToSeg.end() ); }
+};
+//// topic entity linkage object is responsible for relations between different 
+//// entities
 struct TopicEntLinkage {
     typedef std::set< BarzerEntity > BarzerEntitySet;
     typedef std::map< BarzerEntity, BarzerEntitySet  > BarzerEntitySetMap;
     BarzerEntitySetMap topicToEnt;
-
+    
     void link( const BarzerEntity& t, const BarzerEntity& e ) 
     {
         BarzerEntitySetMap::iterator i = topicToEnt.find( t );

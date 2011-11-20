@@ -369,6 +369,33 @@ void BarzerSettings::loadUserRules(BELReader& reader, User& u, const ptree &node
 		std::cerr << "user rules exception\n";
 	}
 }
+namespace {
+void load_ent_segregate_info(BELReader& reader, User& u, const ptree &node)
+{
+    try {
+        const ptree &entseg = node.get_child("entseg", empty_ptree());
+        if( entseg.empty() ) 
+            return;
+        BOOST_FOREACH(const ptree::value_type &v, entseg ) {
+            StoredEntityClass eclass;
+            StoredUniverse& uni = u.universe;
+            const boost::optional<uint32_t> ec = v.second.get_optional<uint32_t>("c"),
+                                sc = v.second.get_optional<uint32_t>("sc");
+            if( ec ) {
+                eclass.setClass(*ec);
+                if( sc ) 
+                    eclass.setSubclass(*sc);
+                 
+                uni.addEntClassToSegregate( eclass );
+            }
+        } // foreach
+    } catch(...) {
+        std::cerr << "load_ent_segregate_info exception\n";
+    }
+}
+
+} // anonymous namespace ends 
+
 void BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user) 
 {
 	const ptree &children = user.second;
@@ -385,6 +412,7 @@ void BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 
 	std::cout << "Loading user id: " << userId << "\n";
 
+    load_ent_segregate_info(reader, u, children);
 	loadUserRules(reader, u,children);
 	loadTrieset(reader, u, children);
 	loadSpell(u, children);

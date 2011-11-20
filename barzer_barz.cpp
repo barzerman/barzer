@@ -1,6 +1,7 @@
 #include <barzer_barz.h>
 #include <barzer_parse.h>
 #include <barzer_el_chain.h>
+#include <barzer_universe.h>
 
 
 namespace barzer {
@@ -102,5 +103,13 @@ int Barz::postSemanticParse( QSemanticParser& sem, const QuestionParm& qparm )
 	return 0;
 }
 
+/// entity segregation
+int Barz::segregateEntities( const StoredUniverse& u, const QuestionParm& qparm, const char* q )
+{
+	typedef BarzelBeadChain::Range  BeadRange;
+	BeadRange rng = beadChain.getFullRange();
+    std::cerr << "SHIT segregating entities\n";
+    return 0;
+}
 
 } // barzer namepace ends
