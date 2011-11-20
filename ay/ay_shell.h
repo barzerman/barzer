@@ -95,6 +95,11 @@ public:
 	virtual ~Shell() {
 		delete context; // to shut valgrind up
 	}
+
+    std::ostream* setOutStream( std::ostream* p ) { 
+        std::ostream* oldStream = outStream;
+        return( p ? ( outStream=p, oldStream) : 0 );
+    }
 	std::ostream& getOutStream() { return *outStream; }
 	std::ostream& getErrStream() { return *errStream; }
 	std::istream& getInStream() { return *inStream; }

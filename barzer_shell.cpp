@@ -633,8 +633,8 @@ static int bshf_triestats( BarzerShell* shell, char_cp cmd, std::istream& in )
     const TheGrammarList& grammarList = uni.getTrieList();
     for( TheGrammarList::const_iterator i = grammarList.begin(); i!= grammarList.end(); ++i ) {
         const BELTrie& theTrie = i->trie();
-        outFP << theTrie.getTrieClass() << ":" << theTrie.getTrieId() << std::endl;
-        BarzelTrieTraverser_depth trav( sh.trie.getRoot(), theTrie );
+        outFP << "TRIE [" << theTrie.getTrieClass() << ":" << theTrie.getTrieId() << "]" << std::endl;
+        BarzelTrieTraverser_depth trav( theTrie.getRoot(), theTrie );
         BarzelTrieStatsCounter counter;
         trav.traverse( counter, theTrie.getRoot() );
         outFP << counter << std::endl;
@@ -1013,6 +1013,41 @@ static int bshf_stexpand( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
+static int bshf_instance( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+    BarzerShellContext * context = shell->getBarzerContext();
+
+	const GlobalPools &gp = context->getGLobalPools();
+    const GlobalPools::UniverseMap& uniMap = gp.getUniverseMap();
+    
+    std::ostream& outFP = shell->getOutStream() ;
+
+    BarzelTrieStatsCounter instanceCounter;
+    size_t numUsers=0;
+    for( GlobalPools::UniverseMap::const_iterator i = uniMap.begin(); i!= uniMap.end(); ++i, ++numUsers ) {
+        if( !(i->second) ) 
+            continue;
+        const StoredUniverse& uni = *(i->second);
+        const TheGrammarList& grammarList = uni.getTrieList();
+        BarzelTrieStatsCounter userCounter;
+
+        for( TheGrammarList::const_iterator gi = grammarList.begin(); gi!= grammarList.end(); ++gi ) {
+            const BELTrie& theTrie = gi->trie();
+            // outFP << "TRIE [" << theTrie.getTrieClass() << ":" << theTrie.getTrieId() << "]" << std::endl;
+            BarzelTrieTraverser_depth trav( theTrie.getRoot(), theTrie );
+            BarzelTrieStatsCounter counter;
+            trav.traverse( counter, theTrie.getRoot() );
+            // outFP << counter << std::endl;
+            userCounter.add( counter );
+        }
+        userCounter.print( (outFP << "USER:\t" << i->first << "\t"), "\t")  << "\n";
+        
+        instanceCounter.add( userCounter );
+    }
+    instanceCounter.print( (outFP << "#usrs:\t" << numUsers << "\t"), "\t" ) << std::endl;
+
+    return 0;
+}
 static int bshf_user( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	uint32_t uid = 0;
@@ -1081,6 +1116,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_bzspell, "bzspell", "bzspell correction for the user" ),
 	CmdData( (ay::Shell_PROCF)bshf_bzstem, "bzstem", "bz stemming correction for the user domain" ),
 	CmdData( (ay::Shell_PROCF)bshf_dtaan, "dtaan", "data set analyzer. runs through the trie" ),
+	CmdData( (ay::Shell_PROCF)bshf_instance, "instance", "lists all users in the instance" ),
 	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),
 	CmdData( (ay::Shell_PROCF)bshf_grammar, "grammar", "sets trie for given grammar. use 'user' to list grammars" ),
 	CmdData( (ay::Shell_PROCF)bshf_lex, "lex", "tokenize and then classify (lex) the input" ),

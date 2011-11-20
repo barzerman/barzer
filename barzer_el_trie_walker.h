@@ -208,20 +208,28 @@ struct BarzelTrieTraverser_depth {
 };
 
 struct BarzelTrieStatsCounter {
-	size_t numNodes, numWildcards, numLeaves;
+	size_t numNodes, numWildcards, numLeaves, numTries;
 
 	bool operator()( const BarzelTrieNode& tn );
 	BarzelTrieStatsCounter() :
-		numNodes(0), numWildcards(0), numLeaves(0)
+		numNodes(0), numWildcards(0), numLeaves(0),numTries(1)
 	{}
-	std::ostream& print( std::ostream& fp ) const
+	std::ostream& print( std::ostream& fp, const char* sep="\n" ) const
 	{
 		return fp << 
-		"Total nodes: " << numNodes << "\n" <<
-		"Total wildcards: " << numWildcards << "\n" <<
-		"Total leaves: " << numLeaves ;
+		( *sep =='\n' ? "nodes:":"N:" ) << std::setw(10) <<std::setfill('.') <<numNodes << sep <<
+		( *sep =='\n' ? "wildcards:":"W:") << std::setw(10) <<std::setfill('.') <<numWildcards << sep <<
+		( *sep =='\n' ? "leaves:":"L:") << std::setw(10) <<std::setfill('.') <<numLeaves << sep << 
+        ( *sep =='\n' ? "tries:":"T:") << std::setw(10) <<std::setfill('.') <<numTries;
 		
 	}
+    void add( const BarzelTrieStatsCounter& o ) 
+    {
+        numNodes+= o.numNodes;
+        numLeaves+= o.numLeaves;
+        numWildcards+= o.numWildcards;
+        numTries+=o.numTries;
+    }
 };
 inline std::ostream& operator<<( std::ostream& fp, const BarzelTrieStatsCounter& c )
 { return c.print(fp); }
