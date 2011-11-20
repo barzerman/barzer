@@ -12,6 +12,8 @@
 #include <barzer_el_wildcard.h>
 #include <stack>
 #include <vector>
+#include <iostream>
+#include <iomanip>
 #include <ay/ay_logger.h>
 #include <ay/ay_util.h>
 

@@ -5,6 +5,7 @@
 #include <barzer_el_variable.h>
 #include <barzer_el_entcol.h>
 #include <barzer_el_proc.h>
+#include <barzer_topics.h>
 #include <ay_bitflags.h>
 #include <ay_util.h>
 #include <ay_pool_with_id.h>
@@ -416,39 +417,7 @@ struct TrieWordInfo {
 	void incrementCount() { ++wordCount; }
 };
 typedef boost::unordered_map< uint32_t, TrieWordInfo > strid_to_triewordinfo_map; 
-struct TopicEntLinkage {
-    typedef std::set< BarzerEntity > BarzerEntitySet;
-    typedef std::map< BarzerEntity, BarzerEntitySet  > BarzerEntitySetMap;
-    BarzerEntitySetMap topicToEnt;
 
-    void link( const BarzerEntity& t, const BarzerEntity& e ) 
-    {
-        BarzerEntitySetMap::iterator i = topicToEnt.find( t );
-        if( i == topicToEnt.end() ) {
-            i = topicToEnt.insert( BarzerEntitySetMap::value_type( t, BarzerEntitySet() ) ).first; 
-        }
-        i->second.insert( e );
-    }
-    
-    const BarzerEntitySet* getTopicEntities( const BarzerEntity& t ) const
-    {
-        BarzerEntitySetMap::const_iterator i = topicToEnt.find( t );
-        return( i == topicToEnt.end() ? 0: &(i->second) );
-    }
-
-    void append( const TopicEntLinkage& lkg ) 
-    {
-        for( BarzerEntitySetMap::const_iterator i = lkg.topicToEnt.begin(); i!= lkg.topicToEnt.end(); ++i ) {
-            const BarzerEntity& topic = i->first;
-            const BarzerEntitySet& linkedSet = i->second;
-            for( BarzerEntitySet::const_iterator lei = linkedSet.begin(); lei != linkedSet.end(); ++lei ) {
-                link( topic, *lei );
-            }
-        }
-    }
-
-    void clear() { topicToEnt.clear(); }
-};
 class BELTrie {
 	GlobalPools& globalPools;
 	/// trie shouldnt be copyable
