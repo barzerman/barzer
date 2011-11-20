@@ -603,13 +603,42 @@ static int bshf_userstats( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 static int bshf_triestats( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
+	BarzerShellContext *context = shell->getBarzerContext();
 	ShellState sh( shell, cmd, in );
-	{
-	BarzelTrieTraverser_depth trav( sh.trie.getRoot(), shell->getBarzerContext()->getTrie() );
-	BarzelTrieStatsCounter counter;
-	trav.traverse( counter, sh.curTrieNode );
-	std::cerr << counter << std::endl;
+    
+    std::ostream& outFP = shell->getOutStream() ;
+    std::string trieClass;
+
+    StoredUniverse &uni = context->getUniverse();
+	GlobalPools &globalPools = context->getGLobalPools();
+	if (in >> trieClass ) {
+		std::string trieId;
+        if( in >> trieId ) {
+            BELTrie* trie = globalPools.getTrie( trieClass, trieId );
+            if( trie ) {
+                context->setTrie( trie );
+                context->trieWalker.setTrie( trie );
+                outFP << "SETTING TRIE: \"" << trieClass << "\":\"" << trieId << "\"\n";
+            } else {
+                outFP << "Trie not found\n";
+            }
+            BarzelTrieTraverser_depth trav( sh.trie.getRoot(), shell->getBarzerContext()->getTrie() );
+            BarzelTrieStatsCounter counter;
+            trav.traverse( counter, sh.curTrieNode );
+            outFP << counter << std::endl;
+            return 0;
+        }
+    
 	}
+    const TheGrammarList& grammarList = uni.getTrieList();
+    for( TheGrammarList::const_iterator i = grammarList.begin(); i!= grammarList.end(); ++i ) {
+        const BELTrie& theTrie = i->trie();
+        outFP << theTrie.getTrieClass() << ":" << theTrie.getTrieId() << std::endl;
+        BarzelTrieTraverser_depth trav( sh.trie.getRoot(), theTrie );
+        BarzelTrieStatsCounter counter;
+        trav.traverse( counter, theTrie.getRoot() );
+        outFP << counter << std::endl;
+    }
 	return 0;
 }
 
@@ -884,10 +913,13 @@ static int bshf_trieset( BarzerShell* shell, char_cp cmd, std::istream& in )
 	std::string trieClass, trieId;
 	in >> trieClass >> trieId;
 	BELTrie* trie = globalPools.getTrie( trieClass, trieId );
-	context->setTrie( trie );
-	context->trieWalker.setTrie( trie );
-
-	std::cerr << "SETTING TRIE: \"" << trieClass << "\":\"" << trieId << "\"\n";
+    if( trie ) {
+        context->setTrie( trie );
+        context->trieWalker.setTrie( trie );
+        std::cerr << "SETTING TRIE: \"" << trieClass << "\":\"" << trieId << "\"\n";
+    } else {
+        std::cerr << "trie not found\n";
+    }
 	return 0;
 }
 
@@ -1001,6 +1033,7 @@ static int bshf_user( BarzerShell* shell, char_cp cmd, std::istream& in )
         for( TheGrammarList::const_iterator i = trieList.begin(); i!= trieList.end(); ++i ) {
             const BELTrie* trie = &(i->trie());
             outFP << numGrammars << " [" << trie->getTrieClass() << ":" << trie->getTrieId() << "]" << std::endl;
+
             ++numGrammars ;
         }
         outFP << "**** total " << numGrammars << std::endl;
