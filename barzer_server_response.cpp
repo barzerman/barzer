@@ -21,11 +21,12 @@ struct tag_raii {
 	std::vector<const char*> tags;
 
 	tag_raii(std::ostream &s) : os(s) {}
-	tag_raii(std::ostream &s, const char *tag) : os(s) { push(tag); }
+	tag_raii(std::ostream &s, const char *tag, const char* attr = 0) : os(s) 
+        { push(tag,attr); }
 	operator std::ostream&() { return os; }
 
-	void push(const char *tag) {
-		os << "<" << tag << ">";
+	void push(const char *tag, const char* attr=0 ) {
+		os << "<" << tag << ( attr ? attr : "" ) << ">";
 		tags.push_back(tag);
 	}
 
@@ -118,7 +119,7 @@ public:
 			for( TTWPVec::const_iterator ti = ttv.begin(); ti!= ttv.end() ; ++ti ) {
 				const TToken& ttok = ti->first;
 				if( ttok.len && ttok.buf ) {
-					os.write( ttok.buf, ttok.len );
+					os.write( ttok.buf, ttok.len ) << " ";
 				}
 			}
 		}	
@@ -278,14 +279,20 @@ public:
 	// not sure how to properly deconstruct this yet
 	bool operator()(const BarzerEntityList &data) {
 		//os << "<entlist>";
-	    tag_raii el(os, "entlist");
+        std::stringstream sstr;
+        if( data.getClass().isValid() ) {
+            sstr << " class=\"" << data.getClass().ec << "\" subclass=\"" << data.getClass().subclass << "\"";
+        }
+        
+	    tag_raii el(os, "entlist", sstr.str().c_str());
+
 		const BarzerEntityList::EList &lst = data.getList();
 		for (BarzerEntityList::EList::const_iterator li = lst.begin();
 													 li != lst.end(); ++li) {
             os << "\n    ";
 			printEntity(*li);
 		}
-		//os << "</entlist>";
+		os << "\n    ";
 		return true;
 	}
 

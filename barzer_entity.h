@@ -112,6 +112,8 @@ private:
 	StoredEntityClass d_class;
 	
 public:
+    const StoredEntityClass& getClass() const { return d_class; }
+
     void setClass( const StoredEntityClass& cl ) 
         { d_class = cl; }
 	struct comp_ent_less {

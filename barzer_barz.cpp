@@ -98,7 +98,7 @@ int Barz::postSemanticParse( QSemanticParser& sem, const QuestionParm& qparm )
 {
 	/// potprocessing the beadChain
 	typedef BarzelBeadChain::Range  BeadRange;
-	BeadRange rng = beadChain.getFullRange();
+	// BeadRange rng = beadChain.getFullRange();
 	//// collapsing consecutive entities
 	return 0;
 }
@@ -123,9 +123,9 @@ struct BeadList_iteartor_comp_less {
 struct EntListIterPair_comp_less {
     inline bool operator() ( const EntListIterPair& l, const EntListIterPair& r ) const 
     {
-        if( l.first < r.first ) {
+        if( l.first.eclass < r.first.eclass ) {
             return true;
-        } else if( r.first < l.first ) {
+        } else if( r.first.eclass < l.first.eclass ) {
             return false;
         } else 
             return ( &(*(l.second)) < &(*(r.second)) );
@@ -170,26 +170,35 @@ int Barz::segregateEntities( const StoredUniverse& u, const QuestionParm& qparm,
         }
     }
 
-    std::sort( elpVec.begin(), elpVec.end(),  EntListIterPair_comp_less() );
     
     BeadList& beadList = beadChain.getList();
 
 
+    // if all we have is one entity there's really no point in changing anything
     if( elpVec.size() < 2 ) 
         return 0;
+
+    std::sort( elpVec.begin(), elpVec.end(),  EntListIterPair_comp_less() );
 
     std::set< BeadList::iterator, BeadList_iteartor_comp_less > absorbedBeads;
 
     StoredEntityClass prevEC = elpVec[0].first.eclass;
     BarzerEntityList* curEntList = beadChain.appendBlankAtomicVal<BarzerEntityList>();
-    absorbedBeads.insert( elpVec[0].second );
+
+    BeadList::iterator bi = elpVec[0].second;
+    curEntList->addEntity( elpVec[0].first );
+    curEntList->setClass( prevEC );
+    beadList.back().absorbBead( *bi );
+    absorbedBeads.insert( bi );
 
     for( EntListPairVec::const_iterator i=(elpVec.begin()+1); i!= elpVec.end(); ++i ) {
-        BeadList::iterator bi = i->second;
+        bi = i->second;
         if( prevEC != i->first.eclass ) {
             prevEC = i->first.eclass;
 
             curEntList = beadChain.appendBlankAtomicVal<BarzerEntityList>();
+            curEntList->setClass( prevEC );
+
             absorbedBeads.clear();
         }
         if( !curEntList ) {
