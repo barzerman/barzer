@@ -58,11 +58,13 @@ struct BarzelBeadAtomic {
 
 	const BarzerLiteral* getLiteral() const { return boost::get<BarzerLiteral>( &dta ); }
 
+	BarzerEntity* getEntity() { return boost::get<BarzerEntity>( &dta ); }
 	const BarzerEntity* getEntity() const { return boost::get<BarzerEntity>( &dta ); }
 	const BarzerEntityList* getEntityList() const { return boost::get<BarzerEntityList>( &dta ); }
+	BarzerEntityList* getEntityList() { return boost::get<BarzerEntityList>( &dta ); }
 
-    template <typename T>
-    const T* get() const { return boost::get<T>( &dta ); }
+    template <typename T> const T* get() const { return boost::get<T>( &dta ); }
+    template <typename T> T* get() { return boost::get<T>( &dta ); }
 
 	const BarzerNumber& getNumber() const { return boost::get<BarzerNumber>(dta); }
 
@@ -190,6 +192,9 @@ public:
 	/// implement:
 	void absorbBead( const BarzelBead& bead )
 	{ ctokOrigVec.insert( ctokOrigVec.end(), bead.ctokOrigVec.begin(), bead.ctokOrigVec.end() ); }
+    
+    BarzelBead( const BarzerEntity& e ) : dta(BarzelBeadAtomic(e)), d_unmatchable(0) {}
+    BarzelBead( const BarzerEntityList& e ) : dta(BarzelBeadAtomic(e)), d_unmatchable(0) {}
 
 	template <typename T> void become( const T& t ) { dta = t; }
 
@@ -204,6 +209,7 @@ public:
 	bool isAtomic() const { return (dta.which() == BarzelBeadAtomic_TYPE); }
 	bool isExpression() const { return (dta.which() == BarzelBeadExpression_TYPE); }
 
+	BarzelBeadAtomic* getAtomic() { return  boost::get<BarzelBeadAtomic>( &dta ); }
 	const BarzelBeadAtomic* getAtomic() const { return  boost::get<BarzelBeadAtomic>( &dta ); }
 	const BarzelBeadExpression* getExpression() const { return  boost::get<BarzelBeadExpression>( &dta ); }
 
@@ -211,6 +217,19 @@ public:
 		const BarzelBeadAtomic* atomic = getAtomic();
 		return( atomic && atomic->isStringLiteral() )  ;
 	}
+    const BarzerEntityList* getEntityList() const { 
+			const BarzelBeadAtomic* atomic = getAtomic();
+            return( atomic ? atomic->getEntityList() : 0 ); 
+    }
+    BarzerEntityList* getEntityList() { 
+			BarzelBeadAtomic* atomic = getAtomic();
+            return( atomic ? atomic->getEntityList() : 0 ); 
+    }
+    BarzerEntityList* becomeEntityList() 
+        { 
+            dta= BarzelBeadAtomic( BarzerEntityList() );
+            return getEntityList();
+        }
 	bool isBlankLiteral() const { 
 			const BarzelBeadAtomic* atomic = getAtomic();
 			return( atomic && atomic->isBlankLiteral() )  ;
@@ -225,14 +244,16 @@ public:
     }
 
     template <typename T>
+    T* get() {
+        BarzelBeadAtomic* atomic = getAtomic();
+        if( atomic ) { T* t = atomic->get<T>(); return t; } else return 0;
+    }
+    template <typename T>
     const T* get() const {
         const BarzelBeadAtomic* atomic = getAtomic();
-        if( atomic ) {
-            const T* t = atomic->get<T>();
-            return t;
-        } else
-            return 0;
+        if( atomic ) { const T* t = atomic->get<T>(); return t; } else return 0;
     }
+
 
 	size_t getFullNumTokens() const
 	{
@@ -341,6 +362,12 @@ struct BarzelBeadChain {
     void clearUnmatchable() {
 		for( BeadList::iterator i = lst.begin(); i!= lst.end(); ++i ) 
             i->setBeadUnmatchability();
+    }
+    
+    template <typename T>
+    T* appendBlankAtomicVal( ) { 
+        lst.push_back( BarzelBead(T()) );
+        return lst.back().get<T>();
     }
 };
 

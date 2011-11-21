@@ -104,11 +104,110 @@ int Barz::postSemanticParse( QSemanticParser& sem, const QuestionParm& qparm )
 }
 
 /// entity segregation
+namespace {
+
+typedef std::vector< BeadList::iterator > BeadListIterVec;
+
+typedef std::pair< BarzerEntity, BeadList::iterator > EntListIterPair;
+
+struct EntListIterPair_comp_eq {
+    inline bool operator() ( const EntListIterPair& l, const EntListIterPair& r ) const 
+    { return ( l.first == r.first && l.second == r.second ); }
+};
+
+struct BeadList_iteartor_comp_less {
+    inline bool operator() ( const BeadList::iterator& l, const BeadList::iterator& r ) const 
+    { return (&(*l) < &(*r)); }
+};
+
+struct EntListIterPair_comp_less {
+    inline bool operator() ( const EntListIterPair& l, const EntListIterPair& r ) const 
+    {
+        if( l.first < r.first ) {
+            return true;
+        } else if( r.first < l.first ) {
+            return false;
+        } else 
+            return ( &(*(l.second)) < &(*(r.second)) );
+    }
+};
+typedef std::vector< EntListIterPair > EntListPairVec;
+
+} // anon namespace ends
 int Barz::segregateEntities( const StoredUniverse& u, const QuestionParm& qparm, const char* q )
 {
 	typedef BarzelBeadChain::Range  BeadRange;
 	BeadRange rng = beadChain.getFullRange();
-    std::cerr << "SHIT segregating entities\n";
+    
+
+    // vector of beads with entities
+    EntListPairVec elpVec;
+    typedef std::vector< BeadList::iterator > BLIVec ;
+    BLIVec entBeadVec;
+    /// figuring out whether we need to do anything  
+    for( BeadList::iterator i = rng.first; i!= rng.second; ++i ) {
+        const BarzelBeadAtomic* atomic = i->getAtomic();
+        if( !atomic ) 
+            continue;
+         
+        const BarzerEntity* ent = atomic->getEntity();
+        
+        if( ent ) { // entity 
+            elpVec.push_back( EntListIterPair( *ent, i ) );
+            entBeadVec.push_back( i );
+        } else { 
+            const BarzerEntityList* entList =atomic->getEntityList();
+            if( !entList )
+                continue;
+
+            const BarzerEntityList::EList& elst = entList->getList();
+            if( elst.size() ) {
+                entBeadVec.push_back( i );
+                for( BarzerEntityList::EList::const_iterator ei = elst.begin(); ei != elst.end(); ++ei ) 
+                    elpVec.push_back( EntListIterPair( (*ei), i ) );
+            } else 
+                i->become( BarzelBeadBlank() );
+        }
+    }
+
+    std::sort( elpVec.begin(), elpVec.end(),  EntListIterPair_comp_less() );
+    
+    BeadList& beadList = beadChain.getList();
+
+
+    if( elpVec.size() < 2 ) 
+        return 0;
+
+    std::set< BeadList::iterator, BeadList_iteartor_comp_less > absorbedBeads;
+
+    StoredEntityClass prevEC = elpVec[0].first.eclass;
+    BarzerEntityList* curEntList = beadChain.appendBlankAtomicVal<BarzerEntityList>();
+    absorbedBeads.insert( elpVec[0].second );
+
+    for( EntListPairVec::const_iterator i=(elpVec.begin()+1); i!= elpVec.end(); ++i ) {
+        BeadList::iterator bi = i->second;
+        if( prevEC != i->first.eclass ) {
+            prevEC = i->first.eclass;
+
+            curEntList = beadChain.appendBlankAtomicVal<BarzerEntityList>();
+            absorbedBeads.clear();
+        }
+        if( !curEntList ) {
+            std::cerr << "fatal error " << __FILE__ << ":" << __LINE__ << "\n";
+        } else 
+            curEntList->addEntity( i->first );
+        if( absorbedBeads.insert(bi).second ) 
+            beadList.back().absorbBead( *bi );
+    }
+
+    // at this point new beads have been appended to the list 
+    // we will clean out the trash
+    /// starting with beads containing multiple entity classes 
+    for( BLIVec::iterator bi= entBeadVec.begin(); bi != entBeadVec.end(); ++bi ) {
+        beadList.erase( *bi );
+    }
+    /// end of figuring out whether we need anything 
+
     return 0;
 }
 

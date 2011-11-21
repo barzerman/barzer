@@ -152,6 +152,9 @@ public:
 	std::ostream& print( std::ostream& fp ) const;
 };
 
+typedef std::pair< BarzerEntity*, BarzerEntityList* >  EntityOrListPair;
+typedef std::pair< const BarzerEntity*, const BarzerEntityList* >  const_EntityOrListPair;
+
 
 };
 
