@@ -997,7 +997,7 @@ void BELParserXML::taghandle_MKENT( const char_cp * attr, size_t attr_sz , bool 
 	//const StoredEntity& ent  = reader->getUniverse().getDtaIdx().addGenericEntity( idStr, eclass, subclass );
 	const StoredEntity& ent  = reader->getGlobalPools().getDtaIdx().addGenericEntity( idStr, eclass, subclass );
 	mkent.setEntId( ent.entId );
-    if( statement.hasPattern() || statement.isProc() ) 
+    if( statement.hasPattern() || statement.isProc() ) {
 	    statement.pushNode( BTND_RewriteData(mkent));
     }
     if( topicClass ) {
