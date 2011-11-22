@@ -216,9 +216,9 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 				reader->addMacro( statement.macroName, statement.stmt );
 			} else if( statement.isProc() ) {
 				reader->addProc( statement.procNameId, statement.stmt );
-			} else if( statement.hasStatement() ) {
+			} else if( statement.hasStatement() && statement.hasPattern() ) {
 				reader->addStatement( statement.stmt );
-			} 
+            }
 		}
 		statement.clear();
 		return;
@@ -997,8 +997,9 @@ void BELParserXML::taghandle_MKENT( const char_cp * attr, size_t attr_sz , bool 
 	//const StoredEntity& ent  = reader->getUniverse().getDtaIdx().addGenericEntity( idStr, eclass, subclass );
 	const StoredEntity& ent  = reader->getGlobalPools().getDtaIdx().addGenericEntity( idStr, eclass, subclass );
 	mkent.setEntId( ent.entId );
-	statement.pushNode( BTND_RewriteData(mkent));
-
+    if( statement.hasPattern() || statement.isProc() ) 
+	    statement.pushNode( BTND_RewriteData(mkent));
+    }
     if( topicClass ) {
 	    const StoredEntity& topicEnt  = reader->getGlobalPools().getDtaIdx().addGenericEntity( topicIdStr, topicClass, topicSubclass);
         BELTrie& trie = reader->getTrie();
