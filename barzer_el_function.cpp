@@ -1968,7 +1968,8 @@ struct BELFunctionStorage_holder {
         }
         // at this point entLst points to the list of all entities that may belong in the outlst 
         // parsing filtering topic {class,subclass, filterClass,filterSubclass} pairs
-        typedef std::map< StoredEntityClass, std::set<StoredEntityClass> > SECFilterMap;
+        typedef std::vector< StoredEntityClass > StoredEntityClassVec;
+        typedef std::map< StoredEntityClass, StoredEntityClassVec > SECFilterMap;
         SECFilterMap fltrMap;
 
         if( rvec.size() > 4 )  {
@@ -1993,13 +1994,16 @@ struct BELFunctionStorage_holder {
                 if( scn ) 
                     filterSec.setSubclass( scn->getInt() );
                 }
-                fltrMap[ sec ].insert( filterSec );
+                StoredEntityClassVec& filterClassVec = fltrMap[ sec ];
+
+                if( std::find( filterClassVec.begin(), filterClassVec.end(), filterSec ) == filterClassVec.end() )
+                    fltrMap[ sec ].push_back( filterSec );
             }
         }
         /// here ecVec has all entity {c,sc} we're filtering on 
         const BarzTopics::TopicMap& topicMap = ctxt.getBarz().topicInfo.getTopicMap();
 
-        // computing the list of topics to filter on 
+        // computing the list of topics, currently in Barz, to filter on 
         std::set< BarzerEntity > filterTopicSet;
 
         for( BarzTopics::TopicMap::const_iterator topI = topicMap.begin(); topI != topicMap.end(); ++topI ) {
@@ -2042,27 +2046,44 @@ struct BELFunctionStorage_holder {
             bool entFilterApplies = false;
             bool entPassedFilter = false;
 
+            StoredEntityClass  filterPassedOnTopic;
+            SECFilterMap::iterator entFAi;
+
             for( std::set< BarzerEntity >::const_iterator fi = filterTopicSet.begin(); fi != filterTopicSet.end(); ++ fi ) {
                 const BarzerEntity& topicEnt = *fi;
                 const StoredEntityClass& topicEntClass = topicEnt.getClass();
                 // trying to filter all still eligible entities eei - eligible entity iterator
                 if( eptr->eclass != topicEntClass )  {  // topic applicable for filtering if its in a different class
                     // continuing to check filter applicability
-                    SECFilterMap::const_iterator entFAi=  fltrMap.find(eptr->eclass);
-                    if( entFAi != fltrMap.end() && entFAi->second.find(topicEntClass) != entFAi->second.end() ) {
+                    entFAi=  fltrMap.find(eptr->eclass);
+                    if( entFAi != fltrMap.end() && 
+                        std::find( entFAi->second.begin(), entFAi->second.end(), topicEntClass ) != entFAi->second.end() 
+                    ) {
                         if( !entFilterApplies )
                             entFilterApplies = true;
                         const std::set< BarzerEntity >* topEntSet= q_universe.getTopicEntities( topicEnt );
                         if( topEntSet && topEntSet->find( *(eptr) ) != topEntSet->end() ) {
                             entPassedFilter = true;
+                            filterPassedOnTopic  = topicEntClass;
                             break;
                         }
                     }
                 }
             } // end of topic loop
 
-            if( entFilterApplies && !entPassedFilter )
-                *eei= 0;
+            if( entFilterApplies ) {
+                if( !entPassedFilter )
+                    *eei= 0;
+                else { // something was eligible for filtering and passed filtering 
+                    // we will see if there are any topics more junior than filterPassedOnTopic
+                    if( entFAi != fltrMap.end() && entFAi->second.size() > 1 ) {
+                        StoredEntityClassVec::iterator truncIter = 
+                            std::find( entFAi->second.begin(), entFAi->second.end(), filterPassedOnTopic );
+                        if( truncIter != entFAi->second.end() ) 
+                            entFAi->second.erase( ++truncIter, entFAi->second.end() );
+                    }
+                }
+            }
         } // end of entity loop
         
         /// here all non 0 pointers in eligibleEntVec can be copied to the outresult
