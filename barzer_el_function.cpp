@@ -2038,6 +2038,13 @@ struct BELFunctionStorage_holder {
         // pointers to all eligible entities ARE in eligibleEntVec and all topics to filter on are in filterTopicSet
 
         // loopin over all entities
+        typedef std::pair< BarzerEntity, StoredEntityClass > EntFilteredByPair;
+        typedef std::vector< EntFilteredByPair > FilteredEntityVec;
+        FilteredEntityVec fltrEntVec;
+        
+        typedef std::pair< StoredEntityClass, StoredEntityClass > EntClassPair; 
+        std::vector< EntClassPair > matchesToRemove;  // very small vector - things to clear (en class, filtered by class) pairs
+
         for( std::vector< const BarzerEntity* >::iterator eei = eligibleEntVec.begin(); eei != eligibleEntVec.end(); ++eei ) {
             const BarzerEntity* eptr = *eei;
             if( !eptr )
@@ -2079,21 +2086,44 @@ struct BELFunctionStorage_holder {
                     if( entFAi != fltrMap.end() && entFAi->second.size() > 1 ) {
                         StoredEntityClassVec::iterator truncIter = 
                             std::find( entFAi->second.begin(), entFAi->second.end(), filterPassedOnTopic );
-                        if( truncIter != entFAi->second.end() ) 
-                            entFAi->second.erase( ++truncIter, entFAi->second.end() );
+                        if( truncIter != entFAi->second.end() ) {
+                            ++truncIter;
+                            for( StoredEntityClassVec::const_iterator x = truncIter; x != entFAi->second.end(); ++x ) 
+                                matchesToRemove.push_back( EntClassPair((*eei)->eclass, filterPassedOnTopic ) );
+
+                            entFAi->second.erase( truncIter, entFAi->second.end() );
+                        }
                     }
+                    fltrEntVec.push_back( EntFilteredByPair(*(*eei), filterPassedOnTopic) );
                 }
+            } else { // didnt have to filter 
+                fltrEntVec.push_back( EntFilteredByPair(*(*eei), StoredEntityClass()) );
             }
         } // end of entity loop
         
         /// here all non 0 pointers in eligibleEntVec can be copied to the outresult
         /// filled the vector with all eligible
 
+        // before - 
+        /*
         for( std::vector< const BarzerEntity* >::iterator eei = eligibleEntVec.begin(); eei != eligibleEntVec.end(); ++eei ) {
             if( *eei ) 
                outlst.addEntity( *(*eei) );
         }
-
+        */
+        for(FilteredEntityVec::const_iterator i = fltrEntVec.begin(); i!= fltrEntVec.end(); ++i ) {
+            bool shouldKeep = true;
+            for( std::vector< EntClassPair >::const_iterator x = matchesToRemove.begin(); x!= matchesToRemove.end(); ++x ) {
+                if( x->first == i->first.eclass && x->second == i->second ) {
+                    /// this should be cleaned out 
+                    shouldKeep = false;
+                    break;
+                }
+            }
+            if( shouldKeep ) 
+               outlst.addEntity( i->first );
+        }
+        
         setResult(result, outlst );
         return true; 
     }
