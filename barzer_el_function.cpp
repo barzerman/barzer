@@ -2063,16 +2063,30 @@ struct BELFunctionStorage_holder {
                 if( eptr->eclass != topicEntClass )  {  // topic applicable for filtering if its in a different class
                     // continuing to check filter applicability
                     entFAi=  fltrMap.find(eptr->eclass);
-                    if( entFAi != fltrMap.end() && 
-                        std::find( entFAi->second.begin(), entFAi->second.end(), topicEntClass ) != entFAi->second.end() 
-                    ) {
+                    if( entFAi== fltrMap.end() ) 
+                        continue;
+                    
+                    StoredEntityClassVec::iterator truncIter = std::find( entFAi->second.begin(), entFAi->second.end(), topicEntClass );
+                    if( truncIter  != entFAi->second.end() ) {
                         if( !entFilterApplies )
                             entFilterApplies = true;
                         const std::set< BarzerEntity >* topEntSet= q_universe.getTopicEntities( topicEnt );
                         if( topEntSet && topEntSet->find( *(eptr) ) != topEntSet->end() ) {
                             entPassedFilter = true;
                             filterPassedOnTopic  = topicEntClass;
-                            break;
+
+                            if( entFAi->second.size() > 1 ) {
+                                StoredEntityClassVec::iterator xx = truncIter;
+                                ++xx;
+                                if( xx != entFAi->second.end() ) {
+                                    for( StoredEntityClassVec::const_iterator x = xx; x != entFAi->second.end(); ++x ) {
+                                        EntClassPair m2remove( (*eei)->eclass, *x );
+                                        if( std::find( matchesToRemove.begin(), matchesToRemove.end(), m2remove ) == matchesToRemove.end() ) 
+                                            matchesToRemove.push_back( m2remove );
+                                    }
+                                    entFAi->second.erase( xx, entFAi->second.end() );
+                                }
+                            }
                         }
                     }
                 }
@@ -2083,17 +2097,6 @@ struct BELFunctionStorage_holder {
                     *eei= 0;
                 else { // something was eligible for filtering and passed filtering 
                     // we will see if there are any topics more junior than filterPassedOnTopic
-                    if( entFAi != fltrMap.end() && entFAi->second.size() > 1 ) {
-                        StoredEntityClassVec::iterator truncIter = 
-                            std::find( entFAi->second.begin(), entFAi->second.end(), filterPassedOnTopic );
-                        if( truncIter != entFAi->second.end() ) {
-                            ++truncIter;
-                            for( StoredEntityClassVec::const_iterator x = truncIter; x != entFAi->second.end(); ++x ) 
-                                matchesToRemove.push_back( EntClassPair((*eei)->eclass, filterPassedOnTopic ) );
-
-                            entFAi->second.erase( truncIter, entFAi->second.end() );
-                        }
-                    }
                     fltrEntVec.push_back( EntFilteredByPair(*(*eei), filterPassedOnTopic) );
                 }
             } else { // didnt have to filter 
