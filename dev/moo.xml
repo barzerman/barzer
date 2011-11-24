@@ -6,7 +6,7 @@
   <stmt n="4"> <pat> <t>zoo</t> </pat> <tran> <mkent c="10" s="20" i="zoo3"/> </tran> </stmt>
   <stmt n="5"> <pat> <t>zoo</t> </pat> <tran> <mkent c="10" s="20" i="zoo4" tc="20" ts="1" ti="abc"/> </tran> </stmt>
 
-  <stmt n="6"> <pat> <t>voo</t> </pat> <tran> <mkent c="10" s="30" i="voo"/> </tran> </stmt>
+  <stmt n="6"> <pat> <t>voo</t><t>moos</t> </pat> <tran> <mkent c="10" s="30" i="voo"/> </tran> </stmt>
   <stmt n="7"> <pat> <t>voo</t> </pat> <tran> <mkent c="10" s="30" i="voo"/> </tran> </stmt>
   <stmt n="8"> 
     <pat> <list v="e"><ent c="10" s="20"/></list> </pat>
