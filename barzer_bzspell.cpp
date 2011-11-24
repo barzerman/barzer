@@ -190,10 +190,16 @@ inline bool operator<( const s2s& l, const s2s& r ) {
 bool stem_depluralize( std::string& out, const char* s, size_t s_len )
 {
 	if( s_len > 5 ) {
-		if( !strcmp( s+s_len-4, "ches" ) ) {
+		const char* s4 = s+s_len-4;
+		const char* s3 = (s4+1);
+		if( !strcmp( s4, "ches" ) ) { /// XXXches ---> XXXch
 			out.assign( s, s_len-2 );
 			return true;
-		}
+		} else if( !strcmp( s3, "ies" ) ) { ///XXXies -->> XXXy
+            out.assign( s, s_len-2 );
+            *(out.rbegin()) = 'y';
+            return true;
+        } 
 	} else if( s_len > 4 ) {
 		const char* s4 = s+s_len-4;
 		const char* s3 = (s4+1);
@@ -291,12 +297,17 @@ bool stem_depluralize( std::string& out, const char* s, size_t s_len )
 		return true;
 	} else {
         // picking up irregular pluralizations and such 
-        if( s_len > 5 ) {
-		    const char* s2 = s+s_len-2;
+		const char* s2 = s+s_len-2;
+        if( s_len > 4 ) {
             if( s2[0] == 'e' && s2[1] == 's' ) 
                 return ( out.assign( s, s_len-2 ), true );
             else if( (s2[0] != 's') &&  s2[1] == 's' ) 
                 return ( out.assign( s, s_len-1 ), true );
+        } else if( s_len == 4 ) {
+            const char c2 = s2[0];
+            if( s2[1] == 's' && c2 != 's' ) {
+                return ( out.assign( s, s_len-1 ), true );
+            }
         }
     }
 	return false;
