@@ -1941,6 +1941,7 @@ struct BELFunctionStorage_holder {
     /// list, {class,subclass, filterClass, filterSubclass}[N]
 	STFUN(topicFilterEList) //
     {
+
         /// first parm is the list we're filtering 
         /// followed by list of pairs of class/subclass of topics we want to filter on
         /// ACHTUNG: extract the list of filter topics 
@@ -2107,14 +2108,11 @@ struct BELFunctionStorage_holder {
         /// here all non 0 pointers in eligibleEntVec can be copied to the outresult
         /// filled the vector with all eligible
 
-        // before - 
-        /*
-        for( std::vector< const BarzerEntity* >::iterator eei = eligibleEntVec.begin(); eei != eligibleEntVec.end(); ++eei ) {
-            if( *eei ) 
-               outlst.addEntity( *(*eei) );
-        }
-        */
+        Barz& barz = ctxt.getBarz();
+        bool strictMode = barz.topicInfo.isTopicFilterMode_strict();
         for(FilteredEntityVec::const_iterator i = fltrEntVec.begin(); i!= fltrEntVec.end(); ++i ) {
+            if( strictMode && !i->second.isValid() )
+                continue;
             bool shouldKeep = true;
             for( std::vector< EntClassPair >::const_iterator x = matchesToRemove.begin(); x!= matchesToRemove.end(); ++x ) {
                 if( x->first == i->first.eclass && x->second == i->second ) {
@@ -2124,7 +2122,7 @@ struct BELFunctionStorage_holder {
                 }
             }
             if( shouldKeep ) 
-               outlst.addEntity( i->first );
+                outlst.addEntity( i->first );
         }
         
         setResult(result, outlst );

@@ -18,7 +18,24 @@ public:
     TopicMap d_topics;
     
     EntWeightVec d_vec;
+    
+
+    enum { 
+         FILTER_MODE_LIGHT,  /// in light mode entities not filtered by anything will be displayed
+         FILTER_MODE_STRICT  /// in strict mode only entities that resulted from filtering will be displayed
+    };
+    
+    int d_topicFilterMode;
+
 public:
+    BarzTopics() : d_topicFilterMode(FILTER_MODE_LIGHT) {}
+
+    bool isTopicFilterMode_strict() const { return (d_topicFilterMode==FILTER_MODE_STRICT); }
+    void setTopicFilterMode_Strict() 
+        { if( d_topicFilterMode!= FILTER_MODE_STRICT) d_topicFilterMode= FILTER_MODE_STRICT; }
+    void setTopicFilterMode_Light() 
+        { if( d_topicFilterMode!= FILTER_MODE_LIGHT) d_topicFilterMode= FILTER_MODE_LIGHT; }
+
     const TopicMap& getTopicMap() const { return d_topics; }
 
     int getTopicWeight( const BarzerEntity& t ) const { 

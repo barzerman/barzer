@@ -268,6 +268,7 @@ void BarzerRequestParser::tag_topic(RequestTag &tag) {
     StoredTokenId tokId = ( topicIdStr ? gpools.dtaIdx.getTokIdByString(topicIdStr) : 0xffffffff );      
     BarzerEntity topicEnt( tokId, entClass, entSubclass );
     barz.topicInfo.addTopic( topicEnt );
+    barz.topicInfo.setTopicFilterMode_Strict(); 
 }
 
 // <qblock u="23"><topic c="20" s="1" i="abc"/><query>zoo</query></qblock>
@@ -279,6 +280,7 @@ void BarzerRequestParser::tag_qblock(RequestTag &tag) {
         } 
     }
     raw_query_parse( d_query.c_str() );
+    barz.topicInfo.setTopicFilterMode_Light();
     d_query.clear();
 }
 
