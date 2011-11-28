@@ -1393,20 +1393,76 @@ struct BELFunctionStorage_holder {
     }
 	STFUN(entSetSubclass)
     {
-        SETFUNCNAME(entSetSubclass);
-        const BarzerEntity* ent  = ( rvec.size()>= 2 ? getAtomicPtr<BarzerEntity>(rvec[0]) : 0 );
-        if( !ent ) {
-            FERROR( "expected args: entity, new subclass" );
-            return false;
+        // SETFUNCNAME(entSetSubclass);
+        if( rvec.size() < 2 ) {
+            return true;
         }
-        const BarzerNumber* num = getAtomicPtr<BarzerNumber>(rvec[1]);
-        setResult(result, 
-            BarzerEntity(
-                ent->tokId,
-                ent->eclass.ec,
-                (num? num->getInt():0) 
-            )
-        );
+        const BarzerEntity* ent_begin = 0, *ent_end = 0;
+        const BarzerEntity* ent  = getAtomicPtr<BarzerEntity>(rvec[0]);
+        size_t numEntities = 0;
+        if( ent ) {
+            ent_begin = ent;
+            ent_end   = ent_begin + 1;
+            numEntities = 1;
+        } else { /// lests try for entity list
+            const BarzerEntityList* entList  = getAtomicPtr<BarzerEntityList>(rvec[0]);
+            ent_begin = &(entList->getList()[0]);
+            numEntities = entList->getList().size();
+            ent_end = ent_begin + numEntities;
+
+        }
+        if( !numEntities ) 
+            return true;
+
+        if( rvec.size() == 2 ) { /// ent, newSubclass 
+            const BarzerNumber* num = getAtomicPtr<BarzerNumber>(rvec[1]);
+            uint32_t newSubclass = (num? num->getInt():0);
+            if( numEntities == 1 ) { 
+                setResult(result, 
+                    BarzerEntity(
+                        ent_begin->tokId,
+                        ent_begin->eclass.ec,
+                        newSubclass
+                    )
+                );
+            } else {
+                BarzerEntityList& newEntList = setResult(result, BarzerEntityList() );
+                for( const BarzerEntity* x = ent_begin; x!= ent_end; ++x ) {
+                    newEntList.addEntity( BarzerEntity( x->tokId, x->eclass.ec, newSubclass ) );
+                }
+            }
+        } else { ///  ent , oldSubclass, newSubclass, oldSubclass, newSubclass ... 
+            std::map< uint32_t, uint32_t > subclassTranslateMap;
+            size_t i = 1;
+            size_t rvec_sz_1 = rvec.size()-1;
+            for( ; i< rvec_sz_1; i+=2 ) {
+                const BarzerNumber* fromNum = getAtomicPtr<BarzerNumber>(rvec[i]);
+                const BarzerNumber* toNum = getAtomicPtr<BarzerNumber>(rvec[i+1]);
+                uint32_t fromSubclass = ( fromNum ? fromNum->getInt() : 0 ),
+                    toSubclass = ( toNum ? toNum->getInt() : 0 );
+                if( fromSubclass && toSubclass ) 
+                    subclassTranslateMap[ fromSubclass ] = toSubclass;
+            }
+
+            if( numEntities == 1 ) { 
+                std::map< uint32_t, uint32_t >::const_iterator tmi = subclassTranslateMap.find( ent_begin->eclass.subclass );
+                uint32_t newSubclass = ( tmi == subclassTranslateMap.end() ? 0 : tmi->second );
+                setResult(result, 
+                    BarzerEntity(
+                        ent_begin->tokId,
+                        ent_begin->eclass.ec,
+                        newSubclass
+                    )
+                );
+            } else {
+                BarzerEntityList& newEntList = setResult(result, BarzerEntityList() );
+                for( const BarzerEntity* x = ent_begin; x!= ent_end; ++x ) {
+                    std::map< uint32_t, uint32_t >::const_iterator tmi = subclassTranslateMap.find( x->eclass.subclass );
+                    uint32_t newSubclass = ( tmi == subclassTranslateMap.end() ? 0 : tmi->second );
+                    newEntList.addEntity( BarzerEntity( x->tokId, x->eclass.ec, newSubclass ) );
+                }
+            }
+        }
         return true; 
     }
 	STFUN(entSubclass)
