@@ -18,12 +18,30 @@ std::ostream& glob_printRewriterByteCode( std::ostream& fp, const BarzelRewriter
 }
 } // end of anon namespace 
 
+void BELTrie::setTrieClassAndId( const char* c, const char* i ) 
+{ 
+    d_trieClass_strId = ( c ? globalPools.internString_internal( c ) : 0xffffffff );
+    d_trieId_strId    = ( i ? globalPools.internString_internal( i ) : 0xffffffff );
+}
 BELTrie::BELTrie( const BELTrie& a ) : 
 	globalPools(a.globalPools), 
 	d_globalTriePoolId(a.d_globalTriePoolId),
 	d_spellPriority(0),
+    d_trieClass_strId(0xffffffff),
+    d_trieId_strId(0xffffffff),
 	procs(*this)
 {}
+    // const char * s = gp.internalString_resolve( *i );
+
+const char* BELTrie::getTrieClass() const { 
+    const char* s = globalPools.internalString_resolve( d_trieClass_strId );
+    return ( s ? s : "" );
+}
+const char* BELTrie::getTrieId() const 
+{ 
+    const char* s = globalPools.internalString_resolve( d_trieId_strId );
+    return ( s ? s : "" );
+}
 BELTrie::~BELTrie( )
 {
 	delete d_wcPool;
