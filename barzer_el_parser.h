@@ -106,7 +106,9 @@ public:
 	GlobalPools& getGlobalPools();
 	const  GlobalPools& getGlobalPools() const;
 	
-	const BELParseTreeNode* getMacroByName( const std::string&  ) const;
+	const BELParseTreeNode* getMacroByName( const char* ) const;
+    const BELParseTreeNode* getMacroByNameId( uint32_t strId ) const;
+
 	/// strId is internal token id of the proc name 
 	const BarzelEvalNode* getProcByName( uint32_t strId ) const;
 };
@@ -223,7 +225,7 @@ public:
 
 	/// this method is called by the parser for every statement tree 
 	virtual void addStatement( const BELStatementParsed& );
-	virtual void addMacro( const std::string& macro, const BELStatementParsed& );
+	virtual void addMacro( uint32_t macroNameId, const BELStatementParsed& );
 	/// strId is the id of an internal string representing the procedure name
 	virtual void addProc( uint32_t strId, const BELStatementParsed& );
 

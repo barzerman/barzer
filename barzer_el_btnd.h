@@ -1064,13 +1064,13 @@ struct BELParseTreeNode {
 
 /// barzel macros 
 class BarzelMacros {
-	typedef std::map< std::string, BELParseTreeNode >  MacroMap;
+	typedef std::map< uint32_t, BELParseTreeNode >  MacroMap;
 	MacroMap d_macroMap;
 	
 public:
-	BELParseTreeNode& addMacro( const std::string& macro )
+	BELParseTreeNode& addMacro(  uint32_t  macro ) 
 		{ return d_macroMap[ macro ]; }
-	const BELParseTreeNode* getMacro( const std::string& macro ) const
+	const BELParseTreeNode* getMacro( uint32_t macro ) const
 	{
 		MacroMap::const_iterator i = d_macroMap.find( macro );
 		return ( i == d_macroMap.end() ? 0: &(i->second) );

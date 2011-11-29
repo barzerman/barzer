@@ -213,7 +213,7 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 			AYLOG(ERROR) << "skipped invalid statement " << statementCount ;
 		} else {
 			if( statement.isMacro() ) {
-				reader->addMacro( statement.macroName, statement.stmt );
+				reader->addMacro( statement.macroNameId, statement.stmt );
 			} else if( statement.isProc() ) {
 				reader->addProc( statement.procNameId, statement.stmt );
 			} else if( statement.hasStatement() && statement.hasPattern() ) {
@@ -231,8 +231,9 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 		const char* v = attr[i+1]; // attr value
 		switch( *n ) {
 		case 'm': 
-			if( !getMacroByName( std::string(v) )) {
-				statement.setMacro(v); // m="MACROXXX"
+			if( !getMacroByName( v )) {
+                uint32_t macroStrId  = reader->getGlobalPools().internString_internal(v) ;
+				statement.setMacro(macroStrId); // m="MACROXXX"
 			} else {
 				errStrStr << "attempt to REDEFINE MACRO " << v  << " ignored";
                 needAbort  = true;
@@ -850,8 +851,8 @@ void BELParserXML::taghandle_EXPAND( const char_cp * attr, size_t attr_sz , bool
 {
 	if( close ) { return; }
 
-	std::string macroName;
-	const char *varName = 0;
+	const char*  macroName= 0,
+	        *varName = 0;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
@@ -863,7 +864,7 @@ void BELParserXML::taghandle_EXPAND( const char_cp * attr, size_t attr_sz , bool
 		    break;
 		}
 	}
-	
+     
 	const BELParseTreeNode* macroNode = getMacroByName(macroName);
 	if( macroNode ) {
 		BELParseTreeNode* curNode = statement.getCurTreeNode();
@@ -1325,11 +1326,12 @@ void BELParserXML::CurStatementData::clear()
 {
 	bits.clear();
 	procNameId = 0xffffffff;
+	macroNameId=0xffffffff;
+
 	state = STATE_BLANK;
     stmt.clearUnmatchable();
 	stmt.translation.clear();
 	stmt.pattern.clear();
-	macroName.clear();
 	if ( !nodeStack.empty() ) {
 		AYDEBUG(nodeStack.size());
 		while (!nodeStack.empty())

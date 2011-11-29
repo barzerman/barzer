@@ -15,10 +15,18 @@ const BarzelEvalNode* BELParser::getProcByName( uint32_t strId ) const
 	const BELTrie& trie = reader->getTrie();
 	return trie.getProcs().getEvalNode( strId );
 }
-const BELParseTreeNode* BELParser::getMacroByName( const std::string& macroname ) const
+
+const BELParseTreeNode* BELParser::getMacroByNameId( uint32_t i ) const 
 {
 	const BELTrie& trie = reader->getTrie();
-	return trie.getMacros().getMacro( macroname );
+	return trie.getMacros().getMacro( i );
+}
+
+const BELParseTreeNode* BELParser::getMacroByName( const char* macroname ) const
+{
+	const BELTrie& trie = reader->getTrie();
+    uint32_t macroNameId = reader->getGlobalPools().internalString_getId( macroname );
+	return trie.getMacros().getMacro( macroNameId );
 }
 
 uint32_t BELParser::stemAndInternTmpText( const char* s, int len )
@@ -162,9 +170,9 @@ void BELReader::addProc( uint32_t strId, const BELStatementParsed& sp )
 	}
 	++numStatements;
 }
-void BELReader::addMacro( const std::string& macroName, const BELStatementParsed& sp )
+void BELReader::addMacro( uint32_t macroNameId, const BELStatementParsed& sp )
 {
-	BELParseTreeNode& storedMacro = getTrie().getMacros().addMacro( macroName ) ;
+	BELParseTreeNode& storedMacro = getTrie().getMacros().addMacro( macroNameId ) ;
 	storedMacro = sp.pattern;
 	++numMacros;
 	++numStatements;

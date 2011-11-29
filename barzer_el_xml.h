@@ -97,7 +97,8 @@ public:
 
 	struct CurStatementData {
 		BELStatementParsed stmt;
-		std::string macroName;
+		// std::string macroName;
+        uint32_t macroNameId;
 		uint32_t procNameId;
 
 		enum {
@@ -117,7 +118,7 @@ public:
 			STATE_TRANSLATION
 		} state;
 			
-		CurStatementData() : procNameId(0xffffffff), state(STATE_BLANK) {}
+		CurStatementData() : macroNameId(0xffffffff),procNameId(0xffffffff), state(STATE_BLANK) {}
 		void clear(); 
 
 		std::stack< BELParseTreeNode* > nodeStack;
@@ -182,10 +183,17 @@ public:
 			procNameId = strId;
 			bits.set( BIT_IS_PROC );
 		}
+		void setMacro( uint32_t i ) 
+        {
+            macroNameId = i;
+            bits.set( BIT_IS_MACRO );
+        }
+        /*
 		void setMacro(const char* s ) {
 			macroName.assign(s);
 			bits.set( BIT_IS_MACRO );
 		}
+        */
 
 		bool hasStatement() const { return bits[BIT_HAS_STATEMENT];};
 		bool hasPattern() const { return bits[BIT_HAS_PATTERN];};
