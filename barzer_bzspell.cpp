@@ -194,7 +194,25 @@ bool stem_detense( std::string& out, const char* s, size_t s_len )
     if( s_len > 4 ) {
         #define D(x,y) {#x,#y}
         static const s2s exception[] = {
-            D(severed,sever)
+D(adhered,adhere),
+D(cancelled,cancel),
+D(compelled,compel),
+D(compelled,compel),
+D(cupelled,cupel),
+D(dispelled,dispel),
+D(expelled,expel),
+D(gospelled,gospel),
+D(impelled,impel),
+D(lapelled,lapel),
+D(propelled,propel),
+D(rappelled,rapel),
+D(reexpelled,reexpel),
+D(repelled,repel),
+D(repelled,repel),
+D(respelled,repel),
+D(revered,revere),
+D(stirred,stir)
+
         };
         #undef D
 	    s2s chablon = {s,0};
@@ -211,7 +229,7 @@ bool stem_detense( std::string& out, const char* s, size_t s_len )
         
         if( s_len > 6 && s3[0] == 'i' && s3[1] == 'n' && s3[2] == 'g' ) { // ing 
             /// will deal with ING later
-        } else {
+        } else if( s_len >4 ) {
             if( s2[0] == 'e' && s2[1] == 'd' ) {
                 if( *s3 == 'i' ) {
                     out.assign( s, s_len-2 );
@@ -222,8 +240,9 @@ bool stem_detense( std::string& out, const char* s, size_t s_len )
                 }
                 if( is_pure_vowel(*s3) ) // if its VowelED - no stripping
                     return false;
-                if( *s3== 'x' || *s3 == 'y' )
+                if( *s3== 'x' || *s3 == 'y' || *s3 =='r' )
                     return( out.assign( s, s_len-2 ), true );
+
                 if( is_pure_vowel(*s4))  { // VCed --> VCe 
                     if( s_len > 5 ) {
                         const char* s5 = s4-1;
