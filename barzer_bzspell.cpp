@@ -186,6 +186,73 @@ struct s2s{
 inline bool operator<( const s2s& l, const s2s& r ) {
 	return ( strcmp(l.fromS, r.fromS ) < 0 );
 }
+inline bool is_pure_vowel( char c ) 
+    { return( c=='a' || c =='u' || c == 'e' || c =='o' || c == 'i' ); }
+
+bool stem_detense( std::string& out, const char* s, size_t s_len )
+{
+    if( s_len > 4 ) {
+        #define D(x,y) {#x,#y}
+        static const s2s exception[] = {
+            D(severed,sever)
+        };
+        #undef D
+	    s2s chablon = {s,0};
+        const s2s* exception_end = exception + ARR_SZ(exception);
+        const s2s* ew = std::lower_bound( exception, exception_end, chablon );
+        if( ew && ew != exception_end && !strcmp(ew->fromS,s) ) {
+            out.assign( ew->toS );
+            return true;
+        }
+
+		const char* s4 = s+s_len-4;
+		const char* s3 = (s4+1);
+		const char* s2 = (s3+1);
+        
+        if( s_len > 6 && s3[0] == 'i' && s3[1] == 'n' && s3[2] == 'g' ) { // ing 
+            /// will deal with ING later
+        } else {
+            if( s2[0] == 'e' && s2[1] == 'd' ) {
+                if( *s3 == 'i' ) {
+                    out.assign( s, s_len-2 );
+                    *(out.rbegin())='y';
+                    return true;
+                } else if( *s3 == 'u' ) {
+                    return( out.assign( s, s_len-1 ), true );
+                }
+                if( is_pure_vowel(*s3) ) // if its VowelED - no stripping
+                    return false;
+                if( *s3== 'x' || *s3 == 'y' )
+                    return( out.assign( s, s_len-2 ), true );
+                if( is_pure_vowel(*s4))  { // VCed --> VCe 
+                    if( s_len > 5 ) {
+                        const char* s5 = s4-1;
+                        if( is_pure_vowel(*s5) ) // VVCed --> VVC
+                            return( out.assign( s, s_len-2 ), true );
+                        if( *s5 == 'h' && *s4 == 'e' && *s3 =='n') 
+                            return( out.assign( s, s_len-2 ), true );
+                    } 
+                    return( out.assign( s, s_len-1 ), true );
+                } 
+                // s4 definitely not a vowel 
+                if( *s4 == *s3 && *s3 != 'l' ) { /// double consonant followed by ED
+                    if( s_len > 5 ) // we strip ed and the preceding consonant
+                        return( out.assign( s, s_len-3 ), true );
+                } else {
+                    if( s_len > 5 ) {
+                        if( *s3 == 'g' && *s4 == 'n' && *(s4-1) == 'a' ) { // anged 
+                            if( *(s4-2) == 'r' ) // ranged
+                                return( out.assign( s, s_len-1 ), true );
+                        }
+                    }
+                }
+
+                return( out.assign( s, s_len-2 ), true );
+            }
+        }
+    }
+    return false;
+}
 
 bool stem_depluralize( std::string& out, const char* s, size_t s_len )
 {
@@ -370,7 +437,10 @@ bool BZSpell::stem( std::string& out, const char* s ) const
 		if( s_len > d_minWordLengthToCorrect ) {
 			if( ascii::stem_depluralize( out, s, s_len ) ) {
 				return true;
-			}
+			} else 
+			if( ascii::stem_detense( out, s, s_len ) ) {
+				return true;
+            }
 		}
 	}
 	return false;

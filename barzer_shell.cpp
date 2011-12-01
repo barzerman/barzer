@@ -318,13 +318,21 @@ static int bshf_bzstem( BarzerShell* shell, char_cp cmd, std::istream& in )
 		std::cerr << "bzspell is NULL\n";
 		return 0;
 	}
+    bool stemOnly = !strcmp(cmd,"stem");
+
 	ay::InputLineReader reader( in );
 
 	while( reader.nextLine() && reader.str.length() ) {
 		const char*  word = reader.str.c_str();
 		std::string stem;	
-		uint32_t strId = bzSpell->getStemCorrection( stem, word );
-		std::cerr << "stemmed to :" << stem << ":" << std::hex << strId << ":";
+
+        if( stemOnly ) {
+            bzSpell->stem( stem, word );
+            std::cerr << "STEM:" << stem << std::endl;
+        } else {
+            uint32_t strId = bzSpell->getStemCorrection( stem, word );
+            std::cerr << "stemmed to :" << stem << ":" << std::hex << strId << ":" << std::endl;
+        }
 	}	
 	return 0;
 }
@@ -1129,6 +1137,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_euid, "euid", "entity lookup by euid (tok class subclass)" ),
 	//CmdData( (ay::Shell_PROCF)bshf_trieloadxml, "trieloadxml", "loads a trie from an xml file" ),
 	CmdData( (ay::Shell_PROCF)bshf_setloglevel, "setloglevel", "set a log level (DEBUG/WARNINg/ERROR/CRITICAL)" ),
+	CmdData( (ay::Shell_PROCF)bshf_bzstem, "stem", "bz stemming" ),
 	CmdData( (ay::Shell_PROCF)bshf_trans, "trans", "tester for barzel translation" ),
 	CmdData( (ay::Shell_PROCF)bshf_triestats, "triestats", "trie commands" ),
 	CmdData( (ay::Shell_PROCF)bshf_trie, "trie", "trie commands" ),
