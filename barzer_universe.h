@@ -24,8 +24,8 @@ class StoredUniverse;
 /// holds all tries in the system keyed by 2 strings
 /// TrieClass and  TrieId
 class GlobalTriePool {
-	typedef std::map< std::string, BELTrie* > ClassTrieMap;
-	typedef std::map< std::string, ClassTrieMap > TrieMap; 
+	typedef std::map< uint32_t , BELTrie* > ClassTrieMap;
+	typedef std::map< uint32_t , ClassTrieMap > TrieMap; 
 	
 	TrieMap d_trieMap;
 
@@ -39,19 +39,23 @@ class GlobalTriePool {
 public:
 	const BELTrie* getTrie_byGlobalId( uint32_t n ) const { return( n< d_triePool.size() ? (d_triePool[n]) : 0 ); } 
 
-	ClassTrieMap& produceTrieMap( const std::string& trieClass );
+	ClassTrieMap& produceTrieMap( uint32_t trieClass );
 
-	ClassTrieMap* getTrieMap( const std::string& trieClass ) ;
-	const ClassTrieMap* getTrieMap( const std::string& trieClass ) const;
-	const BELTrie* getTrie( const std::string& trieClass, const std::string& trieId ) const;
+	ClassTrieMap* getTrieMap( uint32_t trieClass ) ;
+	const ClassTrieMap* getTrieMap( uint32_t trieClass ) const;
 
-	BELTrie* getTrie( const std::string& trieClass, const std::string& trieId ) ;
-	BELTrie* produceTrie( const std::string& trieClass, const std::string& trieId ) ;
+	const BELTrie* getTrie( uint32_t trieClass, const uint32_t trieId ) const;
+	const BELTrie* getTrie( const char* trieClass, const char* trieId ) const;
+
+	BELTrie* getTrie( const char* trieClass, const char* trieId ) ;
+	BELTrie* getTrie( uint32_t trieClass, uint32_t trieId ) ;
+
+	BELTrie* produceTrie( uint32_t trieClass, uint32_t trieId ) ;
 	BELTrie* mkNewTrie() ;
 	BELTrie& init() 
-		{ return *produceTrie( std::string(), std::string() ); }
+		{ return *produceTrie( 0xffffffff, 0xffffffff ); }
 
-    BELTrie* getDefaultTrie() { return getTrie(std::string(), std::string()); }
+    BELTrie* getDefaultTrie() { return getTrie(0xffffffff,0xffffffff); }
 
 	GlobalTriePool( GlobalPools& gp) : d_gp(gp) { init(); }
 	~GlobalTriePool();
@@ -77,7 +81,8 @@ public:
 
 	UniverseTrieCluster( GlobalTriePool& triePool, StoredUniverse& u ) ;
 
-	BELTrie& appendTrie( const std::string& trieClass, const std::string& trieId, GrammarInfo* gi );
+	BELTrie& appendTrie( const char* , const char* , GrammarInfo* gi );
+	BELTrie& appendTrie( uint32_t trieClass, uint32_t trieId, GrammarInfo* gi );
 	BELTrie*  getFirstTrie() { 
         return ( d_trieList.empty() ?  0 : d_trieList.begin()->triePtr() ); 
     }
@@ -218,10 +223,11 @@ public:
 	/// never returns 0
 	const char* decodeStringById_safe( uint32_t strId ) const
 		{ const char* str = decodeStringById(strId); return (str ? str :"" ); }
-	BELTrie* getTrie( const std::string& cs, const std::string& ids ) 
-		{ return globalTriePool.getTrie( cs, ids ); }
+	BELTrie* getTrie( uint32_t cs, uint32_t ids ) { return globalTriePool.getTrie( cs, ids ); }
 
-	BELTrie* produceTrie( const std::string& trieClass, const std::string& trieId ) 
+	BELTrie* getTrie( const char* cs, const char* ids ) { return globalTriePool.getTrie( cs, ids ); }
+
+	BELTrie* produceTrie( uint32_t trieClass, uint32_t trieId ) 
         { return globalTriePool.produceTrie( trieClass, trieId ) ; }
 };
 
@@ -318,7 +324,7 @@ public:
 	bool isAnalyticalMode() const { return gp.isAnalyticalMode(); }
 	EntPropCompatibility& getEntPropIndex() { return gp.entCompatibility; }
 	const EntPropCompatibility& getEntPropIndex() const { return gp.entCompatibility; }
-	BELTrie& produceTrie( const std::string& trieClass, const std::string& trieId ) 
+	BELTrie& produceTrie( uint32_t trieClass, uint32_t trieId ) 
 		{ return *(gp.globalTriePool.produceTrie( trieClass, trieId )); }
 
 	GlobalPools& getGlobalPools() { return gp; }
@@ -395,12 +401,18 @@ public:
         trieCluster.appendTriePtr(trie,gi); 
         d_topicEntLinkage.append( trie->getTopicEntLinkage() );
     }
-	BELTrie& appendTopicTrie( const std::string& trieClass, const std::string& trieId, GrammarInfo* gi )
+	BELTrie& appendTopicTrie( uint32_t trieClass, uint32_t trieId, GrammarInfo* gi )
+        { return topicTrieCluster.appendTrie( trieClass, trieId, gi ); }
+	BELTrie& appendTopicTrie( const char* trieClass, const char* trieId, GrammarInfo* gi )
+        { return topicTrieCluster.appendTrie( trieClass, trieId, gi ); }
+
+	BELTrie& appendTrie( uint32_t trieClass, uint32_t trieId, GrammarInfo* gi )
     {
-	    BELTrie& t = topicTrieCluster.appendTrie( trieClass, trieId, gi );
+	    BELTrie& t = trieCluster.appendTrie( trieClass, trieId, gi );
+        d_topicEntLinkage.append( t.getTopicEntLinkage() );
         return t;
     }
-	BELTrie& appendTrie( const std::string& trieClass, const std::string& trieId, GrammarInfo* gi )
+	BELTrie& appendTrie( const char* trieClass, const char* trieId, GrammarInfo* gi )
     {
 	    BELTrie& t = trieCluster.appendTrie( trieClass, trieId, gi );
         d_topicEntLinkage.append( t.getTopicEntLinkage() );

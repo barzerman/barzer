@@ -132,10 +132,12 @@ BELReader::BELReader( BELTrie* t, GlobalPools &g, std::ostream* errStream ) :
     numProcs(0) , 
     inputFmt(INPUT_FMT_XML),
     d_currentUniverse(0),
+    d_curTrieId(0xffffffff),
+    d_curTrieClass(0xffffffff),
     d_errStream(errStream? errStream: &(std::cerr))
 {}
 BELReader::BELReader( GlobalPools &g, std::ostream* errStream ) : 
-	trie(g.globalTriePool.produceTrie("", "")) , parser(0), gp(g),
+	trie(g.globalTriePool.produceTrie(0xffffffff,0xffffffff)) , parser(0), gp(g),
 	numStatements(0) ,silentMode(false),  
 	d_trieSpellPriority(0),
 	inputFmt(INPUT_FMT_XML),
@@ -143,7 +145,7 @@ BELReader::BELReader( GlobalPools &g, std::ostream* errStream ) :
     d_errStream(errStream? errStream: &(std::cerr))
 {}
 
-void BELReader::setTrie( const std::string& trieClass, const std::string& trieId )
+void BELReader::setTrie( uint32_t trieClass, uint32_t trieId )
 {
 	if( d_trieIdSet ) {
 		trie = (gp.globalTriePool.produceTrie( d_curTrieClass, d_curTrieId ));
@@ -209,7 +211,12 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 				AYLOG(ERROR) << "null translation returned\n";
 			} else {
 				trie->setTanslationTraceInfo( *tran, sp, i );
-				tran->set(*trie, sp.translation);
+				if( tran->set(*trie, sp.translation) ) {
+                    std::ostream& os = sp.getErrStream();
+                    os << "<error type=\"INVALID TRANSLATION\">" << sp.getSourceName() << ':' << sp.getStmtNumber()  << "</error> " ;
+
+
+                }
                 if( sp.isTranUnmatchable() ) 
                     tran->makeUnmatchable = 1;
 			}	
@@ -271,9 +278,10 @@ int BELReader::loadFromStream( std::istream& fp )
 
 	return numStatements;
 }
-void BELReader::computeImplicitTrieSpellPriority( const std::string& tclass, const std::string& trieId )
+void BELReader::computeImplicitTrieSpellPriority( uint32_t tc, uint32_t tid )
 {
-	d_trieSpellPriority = ( !tclass.length() ? 0 : 10 );
+    const char* tclass = gp.internalString_resolve( tc );
+	d_trieSpellPriority = ( (!tclass || !strlen(tclass)) ? 0 : 10 );
 	d_spellPriority = d_rulesetSpellPriority+d_trieSpellPriority;
 }
 

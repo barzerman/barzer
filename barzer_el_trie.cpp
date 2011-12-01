@@ -131,6 +131,7 @@ void BarzelTrieNode::clear()
 void BELTrie::clear()
 {
 	root.clear();
+    macros.clear();
 	initPools();
 }
 
@@ -657,15 +658,15 @@ void BarzelTranslation::set(BELTrie&, const BTND_Rewrite_Number& x )
 
 namespace {
 
-struct BarzelTranslation_set_visitor : public boost::static_visitor<> {
+struct BarzelTranslation_set_visitor : public boost::static_visitor<int> {
 	BarzelTranslation& d_tran;
 	BELTrie& d_trie;
 
 	BarzelTranslation_set_visitor( BELTrie& trie, BarzelTranslation& tran ) : d_tran(tran), d_trie(trie) {}
 	
 	template <typename T>
-	void operator() ( const T&x ) 
-		{ d_tran.setBtnd( d_trie, x ); }
+	int operator() ( const T&x ) 
+		{ return d_tran.setBtnd( d_trie, x ); }
 };
 
 } // anon namespace ends 
@@ -689,7 +690,7 @@ int BarzelTranslation::encodeIt( BarzelRewriterPool::byte_vec& enc, BELTrie& tri
 	return ENCOD_FAILED;
 }
 
-void BarzelTranslation::set( BELTrie& trie, const BELParseTreeNode& tn ) 
+int BarzelTranslation::set( BELTrie& trie, const BELParseTreeNode& tn ) 
 {
 	/// diagnosing trivial rewrite usually root will have one childless child
 	/// that childless child may be a trivial transform 
@@ -697,13 +698,14 @@ void BarzelTranslation::set( BELTrie& trie, const BELParseTreeNode& tn )
 	const BTND_RewriteData* rwrDta = tn.getTrivialRewriteData();
 	if( rwrDta ) {
 		BarzelTranslation_set_visitor vis( trie, *this  );
-		boost::apply_visitor( vis, *rwrDta );
-		return;
+		return boost::apply_visitor( vis, *rwrDta );
 	} else { // non trivial rewrite 
 		if( trie.getRewriterPool().produceTranslation( *this, tn ) != BarzelRewriterPool::ERR_OK ) {
 			AYTRACE("Failed to produce valid rewrite translation" );
 			setStop();
-		}
+            return 1;
+		} else 
+            return 0;
 	}
 }
 void BarzelTranslation::fillRewriteData( BTND_RewriteData& d ) const

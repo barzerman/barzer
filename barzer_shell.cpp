@@ -614,7 +614,7 @@ static int bshf_triestats( BarzerShell* shell, char_cp cmd, std::istream& in )
 	if (in >> trieClass ) {
 		std::string trieId;
         if( in >> trieId ) {
-            BELTrie* trie = globalPools.getTrie( trieClass, trieId );
+            BELTrie* trie = globalPools.getTrie( trieClass.c_str(), trieId.c_str() );
             if( trie ) {
                 context->setTrie( trie );
                 context->trieWalker.setTrie( trie );
@@ -912,7 +912,7 @@ static int bshf_trieset( BarzerShell* shell, char_cp cmd, std::istream& in )
 	GlobalPools &globalPools = context->getGLobalPools();
 	std::string trieClass, trieId;
 	in >> trieClass >> trieId;
-	BELTrie* trie = globalPools.getTrie( trieClass, trieId );
+	BELTrie* trie = globalPools.getTrie( trieClass.c_str(), trieId.c_str() );
     if( trie ) {
         context->setTrie( trie );
         context->trieWalker.setTrie( trie );

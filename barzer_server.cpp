@@ -156,7 +156,7 @@ int proc_CLEAR_TRIE( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  s
         trieClass.assign( str, pipe-str );
         trieId.assign( pipe+1 );
     }
-    BELTrie* trie = gp.getTrie( trieClass, trieId );
+    BELTrie* trie = gp.getTrie( trieClass.c_str(), trieId.c_str() );
     if( trie ) {
         BELTrie::WriteLock trie_lock( trie->getThreadLock() );
         trie->clear();
@@ -219,7 +219,7 @@ int proc_ADD_TRIE( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  str
             reqEnv.outStream << "<error>Valid universe for user id " << userId << " doesnt exist</error>\n";
             return 0;
         }
-        BELTrie*  trie = gp.getTrie( trieClass, trieId );
+        BELTrie*  trie = gp.getTrie( trieClass.c_str(), trieId.c_str() );
         if( !trie ) {
             reqEnv.outStream << "<error>Cannot produce Trie (" << trieClass << '|' << trieId << ")</error>\n";
             return 0;
@@ -252,9 +252,12 @@ int proc_ADD_STMSET( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  s
 
         // BELTrie* trie = &(uni->produceTrie( trieClass, trieId ));
 
-        BELTrie* trie = gp.getTrie( trieClass, trieId );
-        if( !trie ) 
-            trie = gp.produceTrie( trieClass, trieId );
+        BELTrie* trie = gp.getTrie( trieClass.c_str(), trieId.c_str() );
+        if( !trie ) { 
+            uint32_t trieClass_strId = gp.internString_internal( trieClass.c_str() );
+            uint32_t trieId_strId = gp.internString_internal( trieId.c_str() );
+            trie = gp.produceTrie( trieClass_strId, trieId_strId );
+        }
 
         BELTrie::WriteLock trie_lock(trie->getThreadLock());
 
@@ -289,6 +292,7 @@ int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, c
 	return 0;
 }
 
+int proc_RUN_SCRIPT( RequestEnvironment& reqEnv, GlobalPools& gp, const char* cfgfile  );
 int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os )
 {
     #define IFHEADER_ROUTE(x) if( !strncmp(buf+2, #x":", sizeof( #x) ) ) {\
@@ -309,6 +313,7 @@ int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os )
 		IFHEADER_ROUTE(CLEAR_USER)
 		IFHEADER_ROUTE(LOAD_CONFIG)
 		IFHEADER_ROUTE(LOAD_USRCFG)
+		IFHEADER_ROUTE(RUN_SCRIPT)
 
 		AYLOG(ERROR) << "UNKNOWN header: " << std::string( buf, (len>6 ? 6: len) ) << std::endl;
         return ROUTE_ERROR_UNKNOWN_COMMAND;
@@ -316,6 +321,27 @@ int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os )
 		RequestEnvironment reqEnv(os,buf,len);
 		request::barze( gpools, reqEnv );
 	}
+	return ROUTE_ERROR_OK;
+}
+
+int proc_RUN_SCRIPT( RequestEnvironment& reqEnv, GlobalPools& gp, const char* cfgfile  )
+{
+    char buf[ 512] ;
+    FILE* fp = fopen( cfgfile, "r" );
+    if( !fp ) {
+	    reqEnv.outStream << "<error>cant open script file</error>\n";
+        return ROUTE_ERROR_OK;
+    }
+    while( fgets( buf, sizeof(buf)-1, fp ) ) {
+        size_t len = strlen(buf);
+        if( len <=1 ) 
+            continue;
+        if( isspace(buf[ len -1 ]) ) {
+            --len;
+            buf[ len ]= 0;
+        }
+	    route( gp, buf, len, reqEnv.outStream );
+    }
 	return ROUTE_ERROR_OK;
 }
 

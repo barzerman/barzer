@@ -164,16 +164,15 @@ public:
 private:
 	StoredUniverse *d_currentUniverse;
 	/// false by deault, when true takes trie name and class id from
-	// d_curTrieId, d_curTrieClass
 	bool d_trieIdSet; 
-	std::string d_curTrieId, d_curTrieClass;
+	uint32_t d_curTrieId, d_curTrieClass;
 
     /// errors will be written to this stream 
     std::ostream* d_errStream;
 
 	/// both computeXXXSpellPriority functions update d_spellPriority
 	/// deduces trie spell priority from trie class name ( "" - priority 0, otherwise - 10 )
-	void computeImplicitTrieSpellPriority( const std::string& tclass, const std::string& trieId );
+	void computeImplicitTrieSpellPriority( uint32_t tc, uint32_t tid );
 	/// deduces ruleset spelling priority from ruleset file name ( if has no "_fluff" substring then 
 	/// priority is 5 otherwise 0)
 	void computeRulesetSpellPriority( const char* fileName );
@@ -190,12 +189,12 @@ public:
 
 	const std::string& getInputFileName() const { return inputFileName; }
 
-	void setCurTrieId( const std::string& trieClass, const std::string& trieId )
+	void setCurTrieId( uint32_t  trieClass, uint32_t trieId )
 		{ d_trieIdSet=true; d_curTrieId = trieId; d_curTrieClass = trieClass; }
 
-	void clearCurTrieId() { d_trieIdSet= false; d_curTrieId.clear(); d_curTrieClass.clear(); }
+	void clearCurTrieId() { d_trieIdSet= false; d_curTrieId=0xffffffff; d_curTrieClass= 0xffffffff; }
 
-	void setTrie( const std::string& trieClass, const std::string& trieId ) ;
+	void setTrie( uint32_t trieClass, uint32_t trieId ) ;
 
 	void setTrie(BELTrie *t) { trie = t; }
 

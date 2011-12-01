@@ -237,15 +237,16 @@ public:
 	/// returns one of th ENCOD_XXX constants
 	int encodeIt( BarzelRewriterPool::byte_vec& enc, BELTrie& trie, const BELParseTreeNode& );
 
-	void set( BELTrie& trie, const BELParseTreeNode& );
+	int set( BELTrie& trie, const BELParseTreeNode& );
 
 	void setStop() { type = T_STOP; }
 
 	//// this is invoked from el_parser
 	template <typename T>
-	inline void setBtnd( BELTrie& trie, const T& x ) {
-		AYDEBUG("unsupported trivial rewrite" );
+	inline int setBtnd( BELTrie& trie, const T& x ) {
+		// AYDEBUG("unsupported trivial rewrite" );
 		setStop();
+        return 1;
 	}
 
 	void setRewriter( uint32_t rid ) 
@@ -291,17 +292,18 @@ public:
 
 };
 template <>
-inline void BarzelTranslation::setBtnd<BTND_Rewrite_Function>( BELTrie& trie, const BTND_Rewrite_Function& x ) { 
+inline int BarzelTranslation::setBtnd<BTND_Rewrite_Function>( BELTrie& trie, const BTND_Rewrite_Function& x ) { 
 	set(trie,x);
+    return 0;
 }
 template <>
-inline void BarzelTranslation::setBtnd<BTND_Rewrite_Literal>( BELTrie& trie, const BTND_Rewrite_Literal& x ) { set(trie,x); }
+inline int BarzelTranslation::setBtnd<BTND_Rewrite_Literal>( BELTrie& trie, const BTND_Rewrite_Literal& x ) { set(trie,x); return 0;}
 template <>
-inline void BarzelTranslation::setBtnd<BTND_Rewrite_Number>( BELTrie& trie, const BTND_Rewrite_Number& x ) { set(trie,x); }
+inline int BarzelTranslation::setBtnd<BTND_Rewrite_Number>( BELTrie& trie, const BTND_Rewrite_Number& x ) { set(trie,x); return 0; }
 template <>
-inline void BarzelTranslation::setBtnd<BTND_Rewrite_Variable>( BELTrie& trie, const BTND_Rewrite_Variable& x ) { set(trie,x); }
+inline int BarzelTranslation::setBtnd<BTND_Rewrite_Variable>( BELTrie& trie, const BTND_Rewrite_Variable& x ) { set(trie,x); return 0; }
 template <>
-inline void BarzelTranslation::setBtnd<BTND_Rewrite_MkEnt>( BELTrie& trie, const BTND_Rewrite_MkEnt& x ) { set(trie,x); }
+inline int BarzelTranslation::setBtnd<BTND_Rewrite_MkEnt>( BELTrie& trie, const BTND_Rewrite_MkEnt& x ) { set(trie,x); return 0; }
 class BarzelTrieNode;
 typedef std::map<BarzelTrieFirmChildKey, BarzelTrieNode > BarzelFCMap;
 /// BarzelFirmChildPool contiguously stores BarzelFCMap objects (see el_trie.h for definition)
@@ -468,8 +470,13 @@ private:
     uint32_t d_trieClass_strId, d_trieId_strId;
 public:
 
+    uint32_t getTrieClass_strId() const { return d_trieClass_strId; }
+    uint32_t getTrieId_strId() const { return d_trieId_strId; }
+
     const char* getTrieClass() const;
     const char* getTrieId() const ;
+
+    void setTrieClassAndId( uint32_t cn, uint32_t id ) { d_trieClass_strId= cn; d_trieId_strId= id; }
 
     void setTrieClassAndId( const char* c, const char* i ) ;
 	Lock& getThreadLock() const { return d_threadLock; }

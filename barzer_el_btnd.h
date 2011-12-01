@@ -1075,6 +1075,7 @@ public:
 		MacroMap::const_iterator i = d_macroMap.find( macro );
 		return ( i == d_macroMap.end() ? 0: &(i->second) );
 	}
+    void clear() { d_macroMap.clear(); }
 };
 
 typedef BELVarInfo::value_type VarVec;

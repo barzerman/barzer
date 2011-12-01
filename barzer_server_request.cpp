@@ -154,7 +154,7 @@ struct CmdClear : public CmdProc<CmdClear> {
 		}
 	}
 	void operator()(const TrieId &tid) {
-		BELTrie* trie = parser.getGlobalPools().getTrie( tid.path.first, tid.path.second );
+		BELTrie* trie = parser.getGlobalPools().getTrie( tid.path.first.c_str(), tid.path.second.c_str() );
 		if( trie ) {
 			BELTrie::WriteLock w_lock(trie->getThreadLock());
 

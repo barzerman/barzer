@@ -62,9 +62,9 @@ User::Spell& User::createSpell(const char *md, const char *affx)
 
 void User::addTrie(const TriePath &tp, bool isTopicTrie, GrammarInfo* gramInfo ) {
     if( isTopicTrie ) 
-	    universe.appendTopicTrie(tp.first, tp.second, gramInfo );
+	    universe.appendTopicTrie(tp.first.c_str(), tp.second.c_str(), gramInfo );
     else 
-	    universe.appendTrie(tp.first, tp.second, gramInfo );
+	    universe.appendTrie(tp.first.c_str(), tp.second.c_str(), gramInfo );
 }
 
 
@@ -100,7 +100,12 @@ void BarzerSettings::addRulefile(BELReader& reader, const Rulefile &f)
 					  &tid = f.trie.second;
 	const char *fname = f.fname;
 	reader.setCurrentUniverse( getCurrentUniverse() );
-	reader.setTrie(tclass, tid);
+
+    uint32_t trieClass = gpools.internString_internal(tclass.c_str()) ;
+    uint32_t trieId = gpools.internString_internal(tid.c_str()) ;
+
+	reader.setTrie(trieClass, trieId );
+
 	size_t num = reader.loadFromFile(fname, BELReader::INPUT_FMT_XML);
 	std::cout << num << " statements (" << reader.getNumMacros() << " macros, " << 
 	reader.getNumProcs() << " procs)" << " loaded from `" << fname ;
@@ -151,7 +156,10 @@ void BarzerSettings::loadRules(BELReader& reader, const boost::property_tree::pt
 				const ptree &attrs = file.get_child("<xmlattr>");
 				const std::string &cl = attrs.get<std::string>("class"),
 			                  	  &id = attrs.get<std::string>("name");
-				reader.setCurTrieId( cl, id );
+                uint32_t trieClass = gpools.internString_internal(cl.c_str()) ;
+                uint32_t trieId = gpools.internString_internal(id.c_str()) ;
+
+				reader.setCurTrieId( trieClass, trieId );
 				addRulefile(reader, Rulefile(fname, cl, id));
 			} catch (boost::property_tree::ptree_bad_path&) {
 				reader.clearCurTrieId();

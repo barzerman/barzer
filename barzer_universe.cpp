@@ -44,7 +44,7 @@ static GenericEntData g_genDta[] = {
 };
 } // anon namespace ends
 
-GlobalTriePool::ClassTrieMap& GlobalTriePool::produceTrieMap( const std::string& trieClass ) 
+GlobalTriePool::ClassTrieMap& GlobalTriePool::produceTrieMap( uint32_t trieClass ) 
 {
 	return d_trieMap[trieClass]; 
 }
@@ -64,7 +64,7 @@ BELTrie* GlobalTriePool::mkNewTrie()
 	return new BELTrie( d_gp);
 }
 
-GlobalTriePool::ClassTrieMap* GlobalTriePool::getTrieMap( const std::string& trieClass ) 
+GlobalTriePool::ClassTrieMap* GlobalTriePool::getTrieMap( uint32_t trieClass ) 
 {
 	TrieMap::iterator i = d_trieMap.find( trieClass );
 	if( i == d_trieMap.end() ) 
@@ -72,7 +72,7 @@ GlobalTriePool::ClassTrieMap* GlobalTriePool::getTrieMap( const std::string& tri
 	else
 		return &(i->second);
 }
-const GlobalTriePool::ClassTrieMap* GlobalTriePool::getTrieMap( const std::string& trieClass ) const
+const GlobalTriePool::ClassTrieMap* GlobalTriePool::getTrieMap( uint32_t trieClass ) const
 {
 	TrieMap::const_iterator i = d_trieMap.find( trieClass );
 	if( i == d_trieMap.end() ) 
@@ -80,7 +80,7 @@ const GlobalTriePool::ClassTrieMap* GlobalTriePool::getTrieMap( const std::strin
 	else
 		return &(i->second);
 }
-BELTrie* GlobalTriePool::getTrie( const std::string& trieClass, const std::string& trieId ) 
+BELTrie* GlobalTriePool::getTrie( uint32_t trieClass, uint32_t trieId ) 
 {
 	ClassTrieMap* ctm = getTrieMap( trieClass );
 	if( !ctm )
@@ -93,8 +93,18 @@ BELTrie* GlobalTriePool::getTrie( const std::string& trieClass, const std::strin
 			return (j->second);
 	}
 }
+BELTrie* GlobalTriePool::getTrie( const char* trieClass, const char* trieId ) 
+{
+    uint32_t tc = d_gp.internalString_getId(  trieClass ), tid = d_gp.internalString_getId( trieId ); 
+    return getTrie( tc, tid );
+}
+const BELTrie* GlobalTriePool::getTrie( const char* trieClass, const char* trieId ) const
+{
+    uint32_t tc = d_gp.internalString_getId(  trieClass ), tid = d_gp.internalString_getId( trieId ); 
+    return getTrie( tc, tid );
+}
 
-const BELTrie* GlobalTriePool::getTrie( const std::string& trieClass, const std::string& trieId ) const
+const BELTrie* GlobalTriePool::getTrie( uint32_t trieClass, uint32_t trieId ) const
 {
 	const ClassTrieMap* ctm = getTrieMap( trieClass );
 	if( !ctm )
@@ -118,7 +128,7 @@ GlobalTriePool::~GlobalTriePool()
 	d_trieMap.clear();
 }
 
-BELTrie* GlobalTriePool::produceTrie( const std::string& trieClass, const std::string& trieId ) 
+BELTrie* GlobalTriePool::produceTrie( uint32_t trieClass, uint32_t trieId ) 
 {
 	ClassTrieMap&  ctm = produceTrieMap( trieClass );
 
@@ -126,7 +136,7 @@ BELTrie* GlobalTriePool::produceTrie( const std::string& trieClass, const std::s
 
 	if( i == ctm.end() ) {
 		BELTrie* newTrieP = new BELTrie( d_gp );
-        newTrieP->setTrieClassAndId( trieClass.c_str(), trieId.c_str());
+        newTrieP->setTrieClassAndId( trieClass, trieId );
 
 		i = ctm.insert( ClassTrieMap::value_type(
 			trieId, 
@@ -280,13 +290,20 @@ void StoredUniverse::clearSpelling()
         */
 	}
 
-	BELTrie& UniverseTrieCluster::appendTrie( const std::string& trieClass, const std::string& trieId, GrammarInfo* gi )
+	BELTrie& UniverseTrieCluster::appendTrie( uint32_t trieClass, uint32_t trieId, GrammarInfo* gi )
 	{
 		BELTrie* tr = d_triePool.produceTrie(trieClass,trieId);
 		d_trieList.push_back( TheGrammar(tr,gi) );
 		tr->registerUser( d_universe.getUserId() );
 		return *tr;
 	}
+	BELTrie& UniverseTrieCluster::appendTrie( const char* tc, const char* tid, GrammarInfo* gi )
+    {
+        uint32_t trieClass = d_universe.getGlobalPools().internString_internal( tc );
+        uint32_t trieId = d_universe.getGlobalPools().internString_internal( tid );
+        return appendTrie( trieClass, trieId, gi );
+
+    }
 //// end of generic entities 
 
 } // namespace barzer ends
