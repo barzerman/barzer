@@ -240,7 +240,7 @@ D(stirred,stir)
                 }
                 if( is_pure_vowel(*s3) ) // if its VowelED - no stripping
                     return false;
-                if( *s3== 'x' || *s3 == 'y' || *s3 =='r' )
+                if( is_vowel(*s4) && (*s3== 'x' || *s3 == 'y' || *s3 =='r' || *s3=='l')  )
                     return( out.assign( s, s_len-2 ), true );
 
                 if( is_pure_vowel(*s4))  { // VCed --> VCe 
