@@ -132,12 +132,12 @@ BELReader::BELReader( BELTrie* t, GlobalPools &g, std::ostream* errStream ) :
     numProcs(0) , 
     inputFmt(INPUT_FMT_XML),
     d_currentUniverse(0),
-    d_curTrieId(0xffffffff),
-    d_curTrieClass(0xffffffff),
+    d_curTrieId(g.internString_internal("")),
+    d_curTrieClass(g.internString_internal("")),
     d_errStream(errStream? errStream: &(std::cerr))
-{}
+{ }
 BELReader::BELReader( GlobalPools &g, std::ostream* errStream ) : 
-	trie(g.globalTriePool.produceTrie(0xffffffff,0xffffffff)) , parser(0), gp(g),
+	trie(g.globalTriePool.produceTrie(g.internString_internal(""),g.internString_internal(""))) , parser(0), gp(g),
 	numStatements(0) ,silentMode(false),  
 	d_trieSpellPriority(0),
 	inputFmt(INPUT_FMT_XML),
