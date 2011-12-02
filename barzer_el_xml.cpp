@@ -191,6 +191,7 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 void BELParserXML::taghandle_STMSET( const char_cp * attr, size_t attr_sz, bool close )
 {
 	uint32_t trieClass =0xffffffff, trieId=0xffffffff;
+    const char* tc =0, *ti =0;
 	if( close ) {
         trieClass = reader->getGlobalPools().internString_internal("") ;
         trieId = reader->getGlobalPools().internString_internal("") ;
@@ -203,16 +204,22 @@ void BELParserXML::taghandle_STMSET( const char_cp * attr, size_t attr_sz, bool 
 		switch( *n ) {
 		case 'c': 
             trieClass = reader->getGlobalPools().internString_internal(v) ;
+            tc = v;
             break;
 		case 'i':
             trieId = reader->getGlobalPools().internString_internal(v) ;
+            ti =v;
             break;
 		}
 	}
 
-	if (!(trieClass ==0xffffffff || trieId== 0xffffffff ))
+    if( !tc )
+        trieClass = reader->getGlobalPools().internString_internal("") ;
+    if( !ti )
+        trieId = reader->getGlobalPools().internString_internal("") ;
+        
+	if ( tc || ti ) 
 		reader->setTrie( trieClass , trieId );
-
 }
 void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bool close )
 {
