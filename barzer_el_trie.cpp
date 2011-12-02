@@ -20,15 +20,15 @@ std::ostream& glob_printRewriterByteCode( std::ostream& fp, const BarzelRewriter
 
 void BELTrie::setTrieClassAndId( const char* c, const char* i ) 
 { 
-    d_trieClass_strId = ( c ? globalPools.internString_internal( c ) : 0xffffffff );
-    d_trieId_strId    = ( i ? globalPools.internString_internal( i ) : 0xffffffff );
+    d_trieClass_strId = globalPools.internString_internal( c? c:"" ) ;
+    d_trieId_strId    = globalPools.internString_internal( i?i:"" );
 }
 BELTrie::BELTrie( const BELTrie& a ) : 
 	globalPools(a.globalPools), 
 	d_globalTriePoolId(a.d_globalTriePoolId),
 	d_spellPriority(0),
-    d_trieClass_strId(0xffffffff),
-    d_trieId_strId(0xffffffff),
+    d_trieClass_strId(a.globalPools.internString_internal("")),
+    d_trieId_strId(a.globalPools.internString_internal("")),
 	procs(*this)
 {}
     // const char * s = gp.internalString_resolve( *i );
