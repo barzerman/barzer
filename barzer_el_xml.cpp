@@ -471,6 +471,7 @@ void BELParserXML::taghandle_T( const char_cp * attr, size_t attr_sz , bool clos
 	bool isStop = false;
 	bool doStem = getGlobalPools().parseSettings().stemByDefault() ;
 
+    const char* modeString = 0;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
@@ -486,14 +487,23 @@ void BELParserXML::taghandle_T( const char_cp * attr, size_t attr_sz , bool clos
 			break;
 		case 's':  // s="n" - no stemming
 			if( getGlobalPools().parseSettings().stemByDefault() ) doStem = ( *v != 'n' ); break;
+        case 'x': 
+            modeString = v;
+            break;
 		}
 	}
 	BTND_PatternData dta;
 	if( isStop ) {
-		dta = BTND_Pattern_StopToken();
+		BTND_Pattern_StopToken p;
+        if( modeString ) 
+            p.setMatchModeFromAttribute(modeString);
+		dta = p;
 	} else {
 		BTND_Pattern_Token p;
 		p.doStem = doStem;
+        
+        if( modeString ) 
+            p.setMatchModeFromAttribute(modeString);
 		dta =p ;
 	}
 	statement.pushNode( dta );
@@ -640,6 +650,9 @@ void BELParserXML::taghandle_ERC( const char_cp * attr, size_t attr_sz , bool cl
 				break;
 			}
 			break;
+        case 'x': 
+            pat.setMatchModeFromAttribute(v);
+            break;
 		}
 	}
 
@@ -656,6 +669,9 @@ void BELParserXML::taghandle_ERCEXPR( const char_cp * attr, size_t attr_sz , boo
 		case 'c': // c - eclass
 			pat.setEclass( atoi(v) );
 			break;
+        case 'x': 
+            pat.setMatchModeFromAttribute(v);
+            break;
 		}
 	}
 	statement.pushNode( BTND_PatternData(pat) );
@@ -705,6 +721,9 @@ void BELParserXML::taghandle_RANGE( const char_cp * attr, size_t attr_sz , bool 
 				}
 			}
 			break;
+        case 'x': 
+            pat.setMatchModeFromAttribute(v);
+            break;
 		}
 	}
 	if( isEntity ){
@@ -734,6 +753,7 @@ void BELParserXML::taghandle_ENTITY( const char_cp * attr, size_t attr_sz , bool
 { 
 	if( close ) { statement.popNode(); return; }
 	BTND_Pattern_Entity pat; 
+    
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
@@ -747,6 +767,9 @@ void BELParserXML::taghandle_ENTITY( const char_cp * attr, size_t attr_sz , bool
 		case 't': // id token - t="ABCD011"
 			pat.setTokenId( internString(v,true) );
 			break;
+        case 'x': // match mode 
+            pat.setMatchModeFromAttribute(v);    
+            break;
 		}
 	}
 	statement.pushNode( BTND_PatternData( pat));
@@ -782,6 +805,9 @@ void BELParserXML::taghandle_DATETIME( const char_cp * attr, size_t attr_sz , bo
 				pat.setHiTime( atoi(v) );
 			}
 			break;
+        case 'x': 
+            pat.setMatchModeFromAttribute(v);
+            break;
 		}
 	}
 	statement.pushNode( BTND_PatternData( pat));
@@ -811,6 +837,9 @@ void BELParserXML::taghandle_DATE( const char_cp * attr, size_t attr_sz , bool c
 		case 'l': pat.setLo(atoi(v)); break;
 		// past <date p="yes"/> or <date past="y"/>
 		case 'p': pat.setPast(); break;
+        case 'x': 
+            pat.setMatchModeFromAttribute(v);
+            break;
 		}
 	}	
 	statement.pushNode( BTND_PatternData( pat));
@@ -835,6 +864,9 @@ void BELParserXML::taghandle_TIME( const char_cp * attr, size_t attr_sz , bool c
 			break;
 		case 'f': pat.setFuture(); break;
 		case 'p': pat.setPast(); break;
+        case 'x': 
+            pat.setMatchModeFromAttribute(v);
+            break;
 		}
 	}
 	statement.pushNode( BTND_PatternData( pat));

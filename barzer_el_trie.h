@@ -35,16 +35,48 @@ struct BarzelTrieFirmChildKey {
 	// in other words spaces wont be skipped (!)
 	// tis is needed for patterns defining dates and such
 	uint8_t  noLeftBlanks;
-	BarzelTrieFirmChildKey( uint8_t t, uint32_t i, bool nlb=true) : id(i), type(t), noLeftBlanks(nlb?0:1) {}
+	uint8_t  d_matchMode;
 
-	BarzelTrieFirmChildKey() : id(0xffffffff), type(BTND_Pattern_None_TYPE), noLeftBlanks(0) {}
+	BarzelTrieFirmChildKey( uint8_t t, uint32_t i, bool nlb=true) : 
+        id(i), 
+        type(t), 
+        noLeftBlanks(nlb?0:1),
+        d_matchMode(BTND_Pattern_Base::MATCH_MODE_NORMAL)  
+    {}
 
-	BarzelTrieFirmChildKey(const BTND_Pattern_Token& x) : id(x.stringId), type((uint8_t)BTND_Pattern_Token_TYPE), noLeftBlanks(0) {}
-	BarzelTrieFirmChildKey(const BTND_Pattern_Punct& x) : id(x.theChar),  type((uint8_t)BTND_Pattern_Punct_TYPE), noLeftBlanks(0) {}
+	BarzelTrieFirmChildKey() : 
+        id(0xffffffff), 
+        type(BTND_Pattern_None_TYPE), 
+        noLeftBlanks(0),
+        d_matchMode(BTND_Pattern_Base::MATCH_MODE_NORMAL)  {}
+
+	BarzelTrieFirmChildKey(const BTND_Pattern_Token& x) : 
+        id(x.stringId), 
+        type((uint8_t)BTND_Pattern_Token_TYPE), 
+        noLeftBlanks(0), 
+        d_matchMode(x.d_matchMode)
+        {}
+	BarzelTrieFirmChildKey(const BTND_Pattern_Punct& x) : 
+        id(x.theChar),  
+        type((uint8_t)BTND_Pattern_Punct_TYPE), 
+        noLeftBlanks(0), 
+        d_matchMode(x.d_matchMode)
+    {}
+
 	BarzelTrieFirmChildKey(const BTND_Pattern_CompoundedWord& x) : 
-		id(x.compWordId), type((uint8_t)BTND_Pattern_CompoundedWord_TYPE), noLeftBlanks(0)
+		id(x.compWordId), 
+        type((uint8_t)BTND_Pattern_CompoundedWord_TYPE), noLeftBlanks(0), 
+        d_matchMode(x.d_matchMode)
 	{}
-	
+    
+    bool isNormalKey() const { return d_matchMode== BTND_Pattern_Base::MATCH_MODE_NORMAL; }
+    bool isNegativeKey() const { return d_matchMode== BTND_Pattern_Base::MATCH_MODE_NEGATIVE; }
+    void mkNegativeKey() { 
+        d_matchMode = BTND_Pattern_Base::MATCH_MODE_NEGATIVE; 
+        id = 0;
+        type=0;
+        noLeftBlanks=0;
+    }
 	// default followsBlank is false
 	inline BarzelTrieFirmChildKey& set( const BarzerLiteral& dta, bool followsBlank )
 	{
@@ -94,8 +126,8 @@ struct BarzelTrieFirmChildKey_comp_less {
 	inline bool operator() ( const BarzelTrieFirmChildKey& l, const BarzelTrieFirmChildKey& r ) const 
 		{ 
 			return ay::range_comp().less_than( 
-				l.type, r.id, l.noLeftBlanks,
-				r.type, l.id, r.noLeftBlanks
+				l.d_matchMode, l.type, r.id, l.noLeftBlanks,
+				r.d_matchMode, r.type, l.id, r.noLeftBlanks
 			);
 			// return( l.id < r.id ? true : ( r.id < l.id ? false : (l.type < r.type))); 
 		}

@@ -19,8 +19,32 @@ class BELTrie;
 //// BarzelTrieNodeData - PATTERN types 
 /// all pattern classes must inherit from this 
 struct BTND_Pattern_Base {
+    enum {
+        MATCH_MODE_NORMAL=0, 
+        MATCH_MODE_NEGATIVE,
+        MATCH_MODE_FUZZY,
+        MATCH_MODE_FUZZY_NEGATIVE
+
+        /// cant be greater than 7
+    };
+    uint8_t d_matchMode; // 0 - straight equality match, 1 - negat
 /// match operator 
 template <typename T> bool operator()( const T& t ) const { return false; }
+    BTND_Pattern_Base() : d_matchMode(MATCH_MODE_NORMAL) {}
+    
+    void mkPatternMatch_Normal() { d_matchMode= MATCH_MODE_NORMAL; }
+    void mkPatternMatch_Negative() { d_matchMode= MATCH_MODE_NEGATIVE; }
+    void mkPatternMatch_Fuzzy() { d_matchMode= MATCH_MODE_FUZZY; }
+    void mkPatternMatch_FuzzyNegative() { d_matchMode= MATCH_MODE_FUZZY_NEGATIVE; }
+
+    void setMatchModeFromAttribute( const char* v ) 
+    {
+        switch(*v) {
+        case 'n': mkPatternMatch_Negative(); break;
+        case 'f': mkPatternMatch_Fuzzy(); break;
+        case 'g': mkPatternMatch_FuzzyNegative(); break;
+        }
+    }
 };
 /// simple number wildcard data 
 struct BTND_Pattern_Number : public BTND_Pattern_Base {

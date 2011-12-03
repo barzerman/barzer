@@ -324,7 +324,7 @@ public:
 		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey );
 		const BarzelWildcardPool& wcPool = d_trie.getWildcardPool();
 
-		for( ; i!= fcmap.end() && i->first.type == patternTypeId; ++i ) {
+		for( ; i!= fcmap.end() && i->first.isNormalKey() && i->first.type == patternTypeId; ++i ) {
 			if( i->first.id == 0xffffffff ) {
 				const BarzelTrieNode* ch = &(i->second);
 				BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);
@@ -339,6 +339,37 @@ public:
 				}
 			}
 		}
+        if( i == fcmap.end() ) 
+            return true;
+
+        /// processing negation
+        firmKey.mkNegativeKey();
+        // everything is ordered by match mode 
+        i = fcmap.lower_bound( firmKey );
+
+        for( ; i!= fcmap.end() && i->first.isNegativeKey(); ++i ) {
+            if( i->first.id == 0xffffffff ) {
+                if( i->first.type != patternTypeId ) {
+                    const BarzelTrieNode* ch = &(i->second);
+                    BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);
+                    d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+                }
+            } else {
+				const PatternType* dpat = ( (i->first.type == patternTypeId) ? wcPool.get_BTND_Pattern< PatternType > ( i->first.id ) : 0 );
+                if( dpat ) {
+                    if( !evalWildcard_vis< PatternType >(*dpat)( dta )  ) {
+                        d_mtChild.push_back( NodeAndBeadVec::value_type(
+                            &(i->second),
+                            BarzelBeadChain::Range(d_rng.first,d_rng.first)) );
+                    }
+                } else {
+                    const BarzelTrieNode* ch = &(i->second);
+                    BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);
+                    d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+                }
+                
+            }
+        }
 		return true;
 	}
 
