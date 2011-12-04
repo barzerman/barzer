@@ -256,18 +256,22 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 	{
 		key.type = (uint8_t)BTND_Pattern_StopToken_TYPE;
 		key.id = p.stringId;	
+        key.d_matchMode = p.d_matchMode;
 	}
 	void operator()( const BTND_Pattern_Token& p ) {
 		key.type = (uint8_t)BTND_Pattern_Token_TYPE;
 		key.id = p.stringId;	
+        key.d_matchMode = p.d_matchMode;
 		}
 	void operator()( const BTND_Pattern_Punct& p ) {
 		key.type = (uint8_t) BTND_Pattern_Punct_TYPE;
 		key.id = p.theChar;
+        key.d_matchMode = p.d_matchMode;
 		}
 	void operator()( const BTND_Pattern_CompoundedWord& p ) {
 		key.type = (uint8_t) BTND_Pattern_CompoundedWord_TYPE;
 		key.id = p.compWordId;
+        key.d_matchMode = p.d_matchMode;
 	}
 	void operator()( const BTND_Pattern_DateTime& p ) {
 		BarzelWCKey wcKey;
@@ -277,6 +281,7 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 		}
 		key.type=BTND_Pattern_DateTime_TYPE;
 		key.id=wcKey.wcId;
+        key.d_matchMode = p.d_matchMode;
 	}
 	void operator()( const BTND_Pattern_Date& p ) {
 		switch( p.type ) {
@@ -302,6 +307,7 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 			key.id=0xffffffff;
 			break;
 		}
+        key.d_matchMode = p.d_matchMode;
 	}
 	void operator()( const BTND_Pattern_Number& p ) {
 		BarzelWCKey wcKey;
@@ -310,6 +316,7 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 
 		key.type=BTND_Pattern_Number_TYPE;
 		key.id=wcKey.wcId;
+        key.d_matchMode = p.d_matchMode;
 	}
 	void operator()( const BTND_Pattern_ERCExpr& p ) {
 		BarzelWCKey wcKey;
@@ -318,6 +325,7 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 
 		key.type = BTND_Pattern_ERCExpr_TYPE;
 		key.id = wcKey.wcId;
+        key.d_matchMode = p.d_matchMode;
 	}
 	void operator()( const BTND_Pattern_Entity& p ) {
 		BarzelWCKey wcKey;
@@ -326,6 +334,7 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 
 		key.type=BTND_Pattern_Entity_TYPE;
 		key.id=wcKey.wcId;
+        key.d_matchMode = p.d_matchMode;
 	}
 	void operator()( const BTND_Pattern_ERC& p ) {
 		BarzelWCKey wcKey;
@@ -334,6 +343,7 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 
 		key.type=BTND_Pattern_ERC_TYPE;
 		key.id=wcKey.wcId;
+        key.d_matchMode = p.d_matchMode;
 	}
 	void operator()( const BTND_Pattern_Range& p ) {
 		BarzelWCKey wcKey;
@@ -342,6 +352,7 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 
 		key.type=BTND_Pattern_Range_TYPE;
 		key.id=wcKey.wcId;
+        key.d_matchMode = p.d_matchMode;
 	}
 }; // BarzelTrieFirmChildKey_form
 

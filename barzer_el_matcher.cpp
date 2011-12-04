@@ -395,11 +395,13 @@ public:
 		BarzelTrieFirmChildKey firmKey; 
 		// forming firm key
 		bool curDtaIsBlank = firmKey.set(dta,d_followsBlank).isBlankLiteral();
+        uint32_t theId = firmKey.id;
 		if( !allowBlanks && curDtaIsBlank ) {
 			return false; // this should never happen blanks are skipped
 		}
 
 		const BarzelTrieNode* ch = d_tn->getFirmChild( firmKey, fcmap ); 
+
 		if( ch ) {
 			BeadList::iterator endIt = d_rng.first;
 			//++endIt;
@@ -418,6 +420,30 @@ public:
 				d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
 			}
 		}
+
+        firmKey.mkNegativeKey();
+		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey ); 
+        if( i == fcmap.end() ) 
+            return true;
+		for( ; i!= fcmap.end() && i->first.isNegativeKey(); ++i ) {
+            const BarzelTrieFirmChildKey& i_key = i->first;
+            
+            if( i_key.id == 0xffffffff ) {
+                if( i_key.type != BTND_Pattern_Token_TYPE ) {
+                    const BarzelTrieNode* ch = &(i->second);
+                    BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);
+                    d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+                }
+            } else {
+                if( i_key.type == BTND_Pattern_Token_TYPE ) { 
+                    if( dta.isMysteryString() || (theId != 0xffffffff && i_key.id != theId) ) {
+                        const BarzelTrieNode* ch = &(i->second);
+                        BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);
+                        d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+                    }
+                }
+            }
+        }
 	
 		return true;
 	}
@@ -620,6 +646,7 @@ inline	bool findMatchingChildren_visitor::operator()<BarzerString> ( const Barze
 		const BarzelFCMap* fcmap = d_trie.getBarzelFCMap( *d_tn );
 		if( fcmap ) {
 			BarzerLiteral wcLit;
+            wcLit.setMysteryString();
 			doFirmMatch( *fcmap, wcLit, true );
 			wcLit.setBlank();
 			doFirmMatch( *fcmap, wcLit, true );

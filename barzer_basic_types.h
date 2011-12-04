@@ -265,16 +265,25 @@ public:
 
 		T_MAX
 	};
+    
+    enum {
+        STRT_LITERAL, // literal known to system 
+        STRT_MYSTERY_STRING   // something that is unknown to system yet has been classified as a string
+    };
 private:
 	uint32_t theId;
-	uint8_t  type;
+	uint8_t  type; // one of the T_ constants
+	uint8_t  stringType; // type of the string (normal token, string etc) - distinction 
+                         // between BarzerLiteral and BarzaerString 
 public:
 	BarzerLiteral() : 
 		theId(0xffffffff),
-		type(T_STRING)
+		type(T_STRING),
+        stringType(STRT_LITERAL)
 	{}
-    BarzerLiteral( uint32_t id ) : theId(id), type(T_STRING) {}
-    BarzerLiteral( uint32_t id, uint8_t t ) : theId(id), type(t) {}
+    BarzerLiteral( uint32_t id ) : theId(id), type(T_STRING), stringType(STRT_LITERAL)
+    {}
+    BarzerLiteral( uint32_t id, uint8_t t ) : theId(id), type(t), stringType(STRT_LITERAL) {}
 
 	/// never returns 0, type should be one of the T_XXX constants
 	static const char* getTypeName(int t);
@@ -310,6 +319,9 @@ public:
 	bool isCompound() const { return type == T_COMPOUND; }
 	inline bool isEqual( const BarzerLiteral& r ) const 
 		{  return( type == r.type && theId == r.theId ); }
+
+    bool isMysteryString() const { return (stringType == STRT_MYSTERY_STRING); }
+    void setMysteryString() { stringType=STRT_MYSTERY_STRING; }
 };
 inline bool operator == ( const BarzerLiteral& l, const BarzerLiteral& r ) 
 { return l.isEqual(r); }
