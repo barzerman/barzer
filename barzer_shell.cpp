@@ -426,6 +426,16 @@ static int bshf_greed( BarzerShell* shell, char_cp cmd, std::istream& in )
     return 0;
 }
 
+namespace {
+bool is_all_digits( const char* s )
+{
+    for( const char* x = s; *x; ++x ) 
+        if( !isdigit(*x) ) 
+            return false;
+    return true;
+}
+
+}
 static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
@@ -443,24 +453,36 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 	std::ostream *ostr = &(shell->getOutStream());
 	std::ofstream ofile;
 
-	ay::InputLineReader reader( in );
+    size_t numIterations = 1;
 	if (in >> fname) {
-		ofile.open(fname.c_str());
-		ostr = &ofile;
+        if( is_all_digits(fname.c_str()) ) {
+            numIterations = atoi( fname.c_str() );
+        } else {
+            ofile.open(fname.c_str());
+            ostr = &ofile;
+        }
 	}
+	ay::InputLineReader reader( in );
 
 	QuestionParm qparm;
 
 	ay::stopwatch totalTimer;
 	while( reader.nextLine() && reader.str.length() ) {
+	    ay::stopwatch localTimer;
 		const char* q = reader.str.c_str();
 		*ostr << "parsing: " << q << "\n";
-		parser.parse( barz, q, qparm );
-		*ostr << "parsed. printing\n";
-		bs.print(*ostr);
+
+        for( size_t i = 0; i< numIterations; ++i ) {
+            parser.parse( barz, q, qparm );
+            if( !i ){
+                *ostr << "parsed. printing\n";
+                bs.print(*ostr);
+            }
+            barz.clearWithTraceAndTopics();
+        }
 		
+        std::cerr << numIterations << " iterations done in " << localTimer.calcTime() << " seconds\n";
 		// << ttVec << std::endl;
-        barz.clearWithTraceAndTopics();
 	}
 	std::cerr << "All done in " << totalTimer.calcTime() << " seconds\n";
 	return 0;
