@@ -3,7 +3,9 @@
 
   <stmt macro="MACRO2"> <pat> <perm><t>a</t><t>b</t></perm></pat> </stmt>
 
-  <stmt n="10"> <pat> <t>moo</t><t x="n">cock</t> </pat> <tran> <mkent c="10" s="20" i="moo_not_cock"/> </tran> </stmt>
+  <stmt n="101"> <pat> <t>moo</t><t x="n">cock</t> <t>koko</t></pat> <tran> <mkent c="10" s="20" i="moo_not_cock"/> </tran> </stmt>
+  <stmt n="102"> <pat> <ent x="n"/><t x="n">cock</t><t>fuck</t> </pat> <tran> <mkent c="10" s="20" i="moo_102"/> </tran> </stmt>
+  <stmt n="103"> <pat> <t>popo</t><ent/> </pat> <tran> <mkent c="10" s="20" i="moo_not_cock"/> </tran> </stmt>
 
   <stmt n="1"> <pat> <t>moo</t> </pat> <tran> <mkent c="10" s="20" i="moo"/> </tran> </stmt>
   <stmt n="2"> <pat> <t>zoo</t> </pat> <tran> <mkent c="10" s="20" i="zoo"/> </tran> </stmt>
@@ -14,13 +16,4 @@
 
   <stmt n="6"> <pat> <t>voo</t><t>dogs</t><t>balconies</t> </pat> <tran> <mkent c="10" s="30" i="voo"/> </tran> </stmt>
   <stmt n="7"> <pat> <t>voo</t> </pat> <tran> <mkent c="10" s="30" i="voo"/> </tran> </stmt>
-  <stmt n="8"> 
-    <pat> <list v="e"><ent c="10" s="20"/></list> </pat>
-    <tran u="y"> 
-        <func n="topicFilterEList">
-            <var n="e"/>
-        </func>
-    </tran> 
-  </stmt>
-  <stmt n="70"> <pat><expand n="MACRO2"/></pat><tran> <mkent c="10" s="30" i="vvvoo"/> </tran> </stmt>
 </stmset>
