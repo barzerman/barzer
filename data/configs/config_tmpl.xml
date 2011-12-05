@@ -22,7 +22,7 @@
         <file>barzer.log</file>
     </logging>
     <users>
-    <user id="0" />
+    <user id="0"><trieset><trie class="" name="" /></trieset></user>
     </users>
     <instance>
         <threads>4</threads>
