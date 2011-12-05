@@ -304,12 +304,19 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 		}
 	}
 	void operator()( const BTND_Pattern_Number& p ) {
-		BarzelWCKey wcKey;
-		trie.getWCPool().produceWCKey( wcKey, p );
-		if( wcKey.wcType != BTND_Pattern_Number_TYPE ) { AYDEBUG( "TRIE PANIC" ); }
+        uint32_t id;
+        if( p.isTrivialInt(id) ) { // encoding trivial integer 
+            key.type=BTND_Pattern_Number_TYPE;
+            key.id=id;
+            key.setFirmNonLiteral(); 
+        } else {
+            BarzelWCKey wcKey;
+            trie.getWCPool().produceWCKey( wcKey, p );
+            if( wcKey.wcType != BTND_Pattern_Number_TYPE ) { AYDEBUG( "TRIE PANIC" ); }
 
-		key.type=BTND_Pattern_Number_TYPE;
-		key.id=wcKey.wcId;
+            key.type=BTND_Pattern_Number_TYPE;
+            key.id=wcKey.wcId;
+        }
 	}
 	void operator()( const BTND_Pattern_ERCExpr& p ) {
 		BarzelWCKey wcKey;
@@ -435,7 +442,7 @@ const BarzelTrieNode* BELTrie::addPath(
 		//if( !(shitKey == firmKey) ) {
 			//std::cerr << "SHIT FUCK different keys formed\n";
 		//}
-		if( firmKey.isNull() || (!firmKey.isLiteralKey() && path.begin() == i) ) { // either failed to encode firm key or this is a leading wc
+		if( firmKey.isNull() || (firmKey.isNonFirm() && path.begin() == i) ) { // either failed to encode firm key or this is a leading wc
 			wcpdList.push_back( WCPatDta(i,BarzelTrieFirmChildKey() ) );
             // ACHTUNG! was local
 			firstWC = wcpdList.rbegin().base();

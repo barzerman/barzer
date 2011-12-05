@@ -33,14 +33,17 @@ struct BarzelTrieFirmChildKey {
 	// when noLeftBlanks is !=0 
 	// the firm child will only match if it immediately follows the prior token 
 	// in other words spaces wont be skipped (!)
-	// tis is needed for patterns defining dates and such
+	// tis is needed for patterns defining dates and srzelTrieFirmChildKeyuch
+
 	uint8_t  noLeftBlanks;
-	BarzelTrieFirmChildKey( uint8_t t, uint32_t i, bool nlb=true) : id(i), type(t), noLeftBlanks(nlb?0:1) {}
+    uint8_t  d_isFirmNonLiteral;
 
-	BarzelTrieFirmChildKey() : id(0xffffffff), type(BTND_Pattern_None_TYPE), noLeftBlanks(0) {}
+	BarzelTrieFirmChildKey( uint8_t t, uint32_t i, bool nlb=true) : id(i), type(t), noLeftBlanks(nlb?0:1),d_isFirmNonLiteral(0) {}
 
-	BarzelTrieFirmChildKey(const BTND_Pattern_Token& x) : id(x.stringId), type((uint8_t)BTND_Pattern_Token_TYPE), noLeftBlanks(0) {}
-	BarzelTrieFirmChildKey(const BTND_Pattern_Punct& x) : id(x.theChar),  type((uint8_t)BTND_Pattern_Punct_TYPE), noLeftBlanks(0) {}
+	BarzelTrieFirmChildKey() : id(0xffffffff), type(BTND_Pattern_None_TYPE), noLeftBlanks(0),d_isFirmNonLiteral(0) {}
+
+	BarzelTrieFirmChildKey(const BTND_Pattern_Token& x) : id(x.stringId), type((uint8_t)BTND_Pattern_Token_TYPE), noLeftBlanks(0),d_isFirmNonLiteral(0) {}
+	BarzelTrieFirmChildKey(const BTND_Pattern_Punct& x) : id(x.theChar),  type((uint8_t)BTND_Pattern_Punct_TYPE), noLeftBlanks(0),d_isFirmNonLiteral(0) {}
 	BarzelTrieFirmChildKey(const BTND_Pattern_CompoundedWord& x) : 
 		id(x.compWordId), type((uint8_t)BTND_Pattern_CompoundedWord_TYPE), noLeftBlanks(0)
 	{}
@@ -74,12 +77,17 @@ struct BarzelTrieFirmChildKey {
 	}
 	uint32_t getTokenStringId() const
 		{ return ( type == BTND_Pattern_Token_TYPE ? id : 0xffffffff ); }
-	void setNull( ) { type = BTND_Pattern_None_TYPE; id = 0xffffffff; noLeftBlanks=0;}
+	void setNull( ) { type = BTND_Pattern_None_TYPE; id = 0xffffffff; noLeftBlanks=0;d_isFirmNonLiteral=0;}
 
 	bool isNull() const { return (type == BTND_Pattern_None_TYPE); }
 
 	bool isBlankLiteral() const { return (BTND_Pattern_Token_TYPE ==type && id==0xffffffff); } 
 	bool isStopToken() const { return( BTND_Pattern_StopToken_TYPE == type ); }
+    
+    void setFirmNonLiteral() { d_isFirmNonLiteral=1; }
+    bool isFirmNonLiteral() { return d_isFirmNonLiteral; }
+
+    bool isNonFirm() const { return (!isLiteralKey() && !d_isFirmNonLiteral); }
 
 	bool isNoLeftBlanks() const { return noLeftBlanks; }
 	std::ostream& print( std::ostream& , const BELPrintContext& ctxt ) const;
