@@ -377,6 +377,7 @@ public:
 			d_mtChild.push_back( NodeAndBeadVec::value_type(ch, goodRange ) );
 		} 
 		/// retrying in case the token immediately follows non blank 
+        /*
 		if( !d_followsBlank ) {
 			firmKey.noLeftBlanks = 0;
 			ch = d_tn->getFirmChild( firmKey, fcmap ); 
@@ -387,6 +388,7 @@ public:
 				d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
 			}
 		}
+        */
 	
 		return true;
 	}
