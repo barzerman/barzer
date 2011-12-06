@@ -387,7 +387,8 @@ public:
 		return (d_mtChild.size() > 0);
 	}
 	
-};
+}; // findMatchingChildren_visitor
+
 	bool findMatchingChildren_visitor::doFirmMatch_literal( const BarzelFCMap& fcmap, const BarzerLiteral& dta, bool allowBlanks )
 	{
 		BarzelTrieFirmChildKey firmKey; 
@@ -407,17 +408,6 @@ public:
 			// AYDEBUG(goodRange);
 			d_mtChild.push_back( NodeAndBeadVec::value_type(ch, goodRange ) );
 		} 
-		/// retrying in case the token immediately follows non blank 
-		if( !d_followsBlank ) {
-			firmKey.noLeftBlanks = 0;
-			ch = d_tn->getFirmChild( firmKey, fcmap ); 
-			if( ch ) {
-				BeadList::iterator endIt = d_rng.first;
-
-				BarzelBeadChain::Range goodRange(d_rng.first,endIt);
-				d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
-			}
-		}
 
         firmKey.mkNegativeKey();
 		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey ); 
@@ -521,6 +511,23 @@ public:
 	template <>
 	bool findMatchingChildren_visitor::doFirmMatch<BarzerNumber>( const BarzelFCMap& fcmap, const BarzerNumber& dta, bool allowBlanks) 
 	{
+        if( dta.isInt() ) {
+            int64_t theVal64 = dta.getInt();
+            uint32_t theVal = 0xffffffff;
+            if( theVal64>=0 && theVal64 < 0xffffffff ) {
+                theVal= (uint32_t)(theVal64);
+            }
+		    BarzelTrieFirmChildKey firmKey((uint8_t)(BTND_Pattern_Number_TYPE),theVal); 
+
+            const BarzelTrieNode* ch = d_tn->getFirmChild( firmKey, fcmap ); 
+            if( ch ) {
+                BeadList::iterator endIt = d_rng.first;
+                //++endIt;
+                BarzelBeadChain::Range goodRange(d_rng.first,endIt);
+                // AYDEBUG(goodRange);
+                d_mtChild.push_back( NodeAndBeadVec::value_type(ch, goodRange ) );
+            } 
+        } 
 		BarzelTrieFirmChildKey firmKey((uint8_t)(BTND_Pattern_Number_TYPE),0xffffffff); 
 		// forming firm key
 		// we ignore the whole allow blanks thing for dates - blanks will just always be allowed

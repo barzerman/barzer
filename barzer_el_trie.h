@@ -126,8 +126,8 @@ struct BarzelTrieFirmChildKey_comp_less {
 	inline bool operator() ( const BarzelTrieFirmChildKey& l, const BarzelTrieFirmChildKey& r ) const 
 		{ 
 			return ay::range_comp().less_than( 
-				l.d_matchMode, l.type, r.id, l.noLeftBlanks,
-				r.d_matchMode, r.type, l.id, r.noLeftBlanks
+				l.d_matchMode, l.type, r.id, // l.noLeftBlanks,
+				r.d_matchMode, r.type, l.id// , r.noLeftBlanks
 			);
 			// return( l.id < r.id ? true : ( r.id < l.id ? false : (l.type < r.type))); 
 		}

@@ -70,7 +70,12 @@ struct BTND_Pattern_Number : public BTND_Pattern_Base {
 	
 	uint8_t getAsciiLen() const { return d_asciiLen; }
 	void 	setAsciiLen( uint8_t i ) { d_asciiLen= i; }
-
+    
+    bool isTrivialInt( ) const 
+        { return ( (type == T_RANGE_INT && range.integer.lo == range.integer.hi && (uint32_t)(range.integer.lo)< 0xffffffff) ? true: false); }
+    bool isTrivialInt( uint32_t& id ) const 
+        { return ( (type == T_RANGE_INT && range.integer.lo == range.integer.hi && (uint32_t)(range.integer.lo)< 0xffffffff) ? (id=range.integer.lo,true): false); }
+    
 	inline bool lessThan( const BTND_Pattern_Number& r ) const
 	{
 		if( type < r.type ) 

@@ -239,7 +239,8 @@ namespace {
 
 
 /// forms firm child key given a BTND_Pattern_XXX 
-struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
+/// returns whether or not firmkey could be formed
+struct BarzelTrieFirmChildKey_form : public boost::static_visitor<bool> {
 	BELTrie& trie;
 	BarzelTrieFirmChildKey& key ;
 	BarzelTrieFirmChildKey_form( BarzelTrieFirmChildKey& x, BELTrie& tr ) : 
@@ -248,32 +249,37 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 	{ }
 
 	template <typename T>
-	void operator()( const T& ) {
+	bool operator()( const T& ) {
 		key.type=BTND_Pattern_None_TYPE; // isNone will return true for this
 		key.id=0xffffffff;
+        return false;
 	}
-	void operator()( const  BTND_Pattern_StopToken& p ) 
+	bool operator()( const  BTND_Pattern_StopToken& p ) 
 	{
 		key.type = (uint8_t)BTND_Pattern_StopToken_TYPE;
 		key.id = p.stringId;	
         key.d_matchMode = p.d_matchMode;
+        return true;
 	}
-	void operator()( const BTND_Pattern_Token& p ) {
+	bool operator()( const BTND_Pattern_Token& p ) {
 		key.type = (uint8_t)BTND_Pattern_Token_TYPE;
 		key.id = p.stringId;	
         key.d_matchMode = p.d_matchMode;
+        return true;
 		}
-	void operator()( const BTND_Pattern_Punct& p ) {
+	bool operator()( const BTND_Pattern_Punct& p ) {
 		key.type = (uint8_t) BTND_Pattern_Punct_TYPE;
 		key.id = p.theChar;
         key.d_matchMode = p.d_matchMode;
+        return true;
 		}
-	void operator()( const BTND_Pattern_CompoundedWord& p ) {
+	bool operator()( const BTND_Pattern_CompoundedWord& p ) {
 		key.type = (uint8_t) BTND_Pattern_CompoundedWord_TYPE;
 		key.id = p.compWordId;
         key.d_matchMode = p.d_matchMode;
+        return true;
 	}
-	void operator()( const BTND_Pattern_DateTime& p ) {
+	bool operator()( const BTND_Pattern_DateTime& p ) {
 		BarzelWCKey wcKey;
 		trie.getWCPool().produceWCKey( wcKey, p );
 		if( wcKey.wcType != BTND_Pattern_DateTime_TYPE ) {
@@ -282,8 +288,9 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 		key.type=BTND_Pattern_DateTime_TYPE;
 		key.id=wcKey.wcId;
         key.d_matchMode = p.d_matchMode;
+        return false;
 	}
-	void operator()( const BTND_Pattern_Date& p ) {
+	bool operator()( const BTND_Pattern_Date& p ) {
 		switch( p.type ) {
 		
 		case BTND_Pattern_Date::T_ANY_DATE:
@@ -308,17 +315,26 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 			break;
 		}
         key.d_matchMode = p.d_matchMode;
+        return false;
 	}
-	void operator()( const BTND_Pattern_Number& p ) {
-		BarzelWCKey wcKey;
-		trie.getWCPool().produceWCKey( wcKey, p );
-		if( wcKey.wcType != BTND_Pattern_Number_TYPE ) { AYDEBUG( "TRIE PANIC" ); }
+	bool operator()( const BTND_Pattern_Number& p ) {
+        uint32_t id=0xffffffff;
+        if( p.isTrivialInt(id) ) { // encoding trivial integer 
+            key.type=BTND_Pattern_Number_TYPE;
+            key.id=id;
+            // key.setFirmNonLiteral(); 
+            return true;
+        } else {
+            BarzelWCKey wcKey;
+            trie.getWCPool().produceWCKey( wcKey, p );
+            if( wcKey.wcType != BTND_Pattern_Number_TYPE ) { AYDEBUG( "TRIE PANIC" ); }
 
-		key.type=BTND_Pattern_Number_TYPE;
-		key.id=wcKey.wcId;
-        key.d_matchMode = p.d_matchMode;
+            key.type=BTND_Pattern_Number_TYPE;
+            key.id=wcKey.wcId;
+            return false;
+        }
 	}
-	void operator()( const BTND_Pattern_ERCExpr& p ) {
+	bool operator()( const BTND_Pattern_ERCExpr& p ) {
 		BarzelWCKey wcKey;
 		trie.getWCPool().produceWCKey( wcKey, p );
 		if( wcKey.wcType != BTND_Pattern_ERCExpr_TYPE ) { AYDEBUG( "TRIE PANIC" ); }
@@ -326,8 +342,9 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 		key.type = BTND_Pattern_ERCExpr_TYPE;
 		key.id = wcKey.wcId;
         key.d_matchMode = p.d_matchMode;
+        return false;
 	}
-	void operator()( const BTND_Pattern_Entity& p ) {
+	bool operator()( const BTND_Pattern_Entity& p ) {
 		BarzelWCKey wcKey;
 		trie.getWCPool().produceWCKey( wcKey, p );
 		if( wcKey.wcType != BTND_Pattern_Entity_TYPE ) { AYDEBUG( "TRIE PANIC" ); }
@@ -335,8 +352,9 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 		key.type=BTND_Pattern_Entity_TYPE;
 		key.id=wcKey.wcId;
         key.d_matchMode = p.d_matchMode;
+        return false;
 	}
-	void operator()( const BTND_Pattern_ERC& p ) {
+	bool operator()( const BTND_Pattern_ERC& p ) {
 		BarzelWCKey wcKey;
 		trie.getWCPool().produceWCKey( wcKey, p );
 		if( wcKey.wcType != BTND_Pattern_ERC_TYPE ) { AYDEBUG( "TRIE PANIC" ); }
@@ -344,8 +362,9 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 		key.type=BTND_Pattern_ERC_TYPE;
 		key.id=wcKey.wcId;
         key.d_matchMode = p.d_matchMode;
+        return false;
 	}
-	void operator()( const BTND_Pattern_Range& p ) {
+	bool operator()( const BTND_Pattern_Range& p ) {
 		BarzelWCKey wcKey;
 		trie.getWCPool().produceWCKey( wcKey, p );
 		if( wcKey.wcType != BTND_Pattern_Range_TYPE ) { AYDEBUG( "TRIE PANIC" ); }
@@ -353,6 +372,7 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<> {
 		key.type=BTND_Pattern_Range_TYPE;
 		key.id=wcKey.wcId;
         key.d_matchMode = p.d_matchMode;
+        return false;
 	}
 }; // BarzelTrieFirmChildKey_form
 
@@ -441,12 +461,13 @@ const BarzelTrieNode* BELTrie::addPath(
 
 	for( BTND_PatternDataVec::const_iterator i = path.begin(); i!= path.end(); ++i ) {
 		//BarzelTrieFirmChildKey shitKey(*i);
-		boost::apply_visitor( keyFormer, *i );
+		bool isFirm = boost::apply_visitor( keyFormer, *i );
+
 		firmKey.noLeftBlanks = 0;
 		//if( !(shitKey == firmKey) ) {
 			//std::cerr << "SHIT FUCK different keys formed\n";
 		//}
-		if( firmKey.isNull() || (!firmKey.isLiteralKey() && path.begin() == i) ) { // either failed to encode firm key or this is a leading wc
+		if( firmKey.isNull() || (!isFirm && path.begin() == i) ) { // either failed to encode firm key or this is a leading wc
 			wcpdList.push_back( WCPatDta(i,BarzelTrieFirmChildKey() ) );
             // ACHTUNG! was local
 			firstWC = wcpdList.rbegin().base();

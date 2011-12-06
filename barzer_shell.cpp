@@ -25,6 +25,16 @@
 
 namespace barzer {
 
+namespace {
+bool is_all_digits( const char* s )
+{
+    for( const char* x = s; *x; ++x ) 
+        if( !isdigit(*x) ) 
+            return false;
+    return true;
+}
+
+}
 BarzerShellContext::BarzerShellContext(StoredUniverse& u, BELTrie& trie) : 
 		gp(u.getGlobalPools()),
 		d_universe(&u),
@@ -233,10 +243,18 @@ static int bshf_inspect( BarzerShell* shell, char_cp cmd, std::istream& in )
 }
 static int bshf_lex( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
+
 	BarzerShellContext * context = shell->getBarzerContext();
 	Barz& barz = context->barz;
 	QParser& parser = context->parser;
 
+    std::string parmStr;
+    size_t numIterations = 1;
+    if( in >> parmStr ) {
+        numIterations = atoi( parmStr.c_str() );
+        if( !numIterations ) 
+            numIterations = 1;
+    }
 	ay::InputLineReader reader( in );
 	QuestionParm qparm;
 	std::ostream& outFp = shell->getOutStream() ;
@@ -244,14 +262,19 @@ static int bshf_lex( BarzerShell* shell, char_cp cmd, std::istream& in )
 		const char* q = reader.str.c_str();
 
 		/// tokenize
-		parser.tokenize_only( barz, q, qparm );
-		const TTWPVec& ttVec = barz.getTtVec();
-		outFp << "Tokens:" << ttVec << std::endl;
-
-		/// classify tokens in the barz
-		parser.lex_only( barz, qparm );
-		const CTWPVec& ctVec = barz.getCtVec();
-		outFp << "Classified Tokens:\n" << ctVec << std::endl;
+        for( size_t i =0; i< numIterations; ++i ) {
+		    parser.tokenize_only( barz, q, qparm );
+		    const TTWPVec& ttVec = barz.getTtVec();
+            if( !i ) {
+		        outFp << "Tokens:" << ttVec << std::endl;
+            }
+		    /// classify tokens in the barz
+		    parser.lex_only( barz, qparm );
+            if( !i ) { 
+                const CTWPVec& ctVec = barz.getCtVec();
+                outFp << "Classified Tokens:\n" << ctVec << std::endl;
+            }
+        }
 	}
 	return 0;
 }
@@ -426,16 +449,6 @@ static int bshf_greed( BarzerShell* shell, char_cp cmd, std::istream& in )
     return 0;
 }
 
-namespace {
-bool is_all_digits( const char* s )
-{
-    for( const char* x = s; *x; ++x ) 
-        if( !isdigit(*x) ) 
-            return false;
-    return true;
-}
-
-}
 static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
@@ -487,6 +500,7 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 	std::cerr << "All done in " << totalTimer.calcTime() << " seconds\n";
 	return 0;
 }
+
 static int bshf_anlqry( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();

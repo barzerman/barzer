@@ -1184,7 +1184,7 @@ void BELParserXML::taghandle_CASE( const char_cp * attr, size_t attr_sz , bool c
         statement.popNode();
         return;
     }
-    uint32_t caseId;
+    uint32_t caseId = 0xffffffff;
     for( size_t i=0; i< attr_sz; i+=2 ) {
         const char* n = attr[i]; // attr name
         const char* v = attr[i+1]; // attr value
