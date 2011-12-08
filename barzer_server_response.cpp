@@ -423,7 +423,7 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 	const BarzelBeadChain &bc = barz.getBeads();
 	CToken::SpellCorrections spellCorrections;
 	size_t curBeadNum = 1;
-	for (BeadList::const_iterator bli = bc.getLstBegin(); bc.isIterNotEnd(bli); ++bli, ++curBeadNum) {
+	for (BeadList::const_iterator bli = bc.getLstBegin(); bc.isIterNotEnd(bli); ++bli) {
 	    if (!isBlank(*bli)) {
 	        os << "\n";
 	        // tag_raii beadtag(os, "bead");
@@ -434,6 +434,7 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 	            v.printTTokenTag();
 	        }
 	        os << "\n</bead>\n";
+            ++curBeadNum;
 	    }
 
 
