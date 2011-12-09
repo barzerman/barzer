@@ -445,7 +445,13 @@ protected:
 		MODE_VAL // compares the range value
 	};
 	BarzerRange d_range;
-	int d_mode; 
+	uint8_t d_mode; 
+
+    enum {
+        FLAVOR_NORMAL,
+        FLAVOR_NUMERIC // when this flavor is set match operator will looks at int and real
+    };
+	uint8_t d_rangeFlavor; 
 public:
 	void setModeToType() { d_mode = MODE_TYPE; }
 	void setModeToVal() { d_mode = MODE_VAL; }
@@ -455,41 +461,83 @@ public:
 	BarzerRange& range() { return d_range; }
 	const BarzerRange& range() const { return d_range; }
 
-	BTND_Pattern_Range( ) : d_mode(MODE_TYPE) {}
+	BTND_Pattern_Range( ) : 
+        d_mode(MODE_TYPE) ,
+        d_rangeFlavor(FLAVOR_NORMAL)
+    {}
 	BTND_Pattern_Range( const BarzerRange& r) : 
 		d_range(r),
-		d_mode(MODE_TYPE)
+		d_mode(MODE_TYPE),
+        d_rangeFlavor(FLAVOR_NORMAL)
 	{}
+    bool isFlavorNumeric() const { return(d_rangeFlavor == FLAVOR_NORMAL); }
+    void setFlavorNumeric() { d_rangeFlavor = FLAVOR_NUMERIC; }
+
 	bool isEntity() const { return d_range.isEntity(); }
 	void setEntityClass( const StoredEntityClass& c ) 
 	{ d_range.setEntityClass(c); }
 	bool lessThan( const BTND_Pattern_Range& r ) const { 
+        return( d_mode< r.d_mode ? true :
+            (r.d_mode < d_mode ? false : d_range< r.d_range) 
+        );
+        /*
 		return ay::range_comp().less_than(
 			d_mode, d_range,
 			r.d_mode, r.d_range
 		);
+        */
 	}
 	bool operator()( const BarzerRange& e) const 
 	{ 
-		if( d_mode == MODE_TYPE ) {
-			return ( d_range.getType() == e.getType() );
-		}
-		if( d_mode == MODE_VAL ) {
-			if( d_range.getType() == e.getType() ) {
-				if( !e.isEntity() ) {
-					return ( d_range == e );
-				} else {
-					const BarzerRange::Entity* otherEntPair = e.getEntity();
-					const BarzerRange::Entity* thisEntPair = d_range.getEntity();
-					return (
-						thisEntPair->first.matchOther( otherEntPair->first ) &&
-						thisEntPair->second.matchOther( otherEntPair->second ) 
-					);
-				}
-			} else
-				return false;
-		} else 
-			return false;
+        if( d_rangeFlavor == FLAVOR_NUMERIC ) {
+            if( !d_range.isNumeric() || !e.isNumeric() )  
+                return false;
+
+		    if( d_mode == MODE_TYPE ) {
+			    return true;
+		    }
+		    if( d_mode == MODE_VAL ) {
+                if( d_range.isReal() ) {
+                    if( e.isReal() ) 
+                        return (d_range == e);
+                    else {
+                        BarzerRange eR(e);
+                        return ( eR.promote_toReal() == d_range );
+                    }
+                } else 
+                if( d_range.isInteger() ) {
+                    if( e.isInteger() ) 
+                        return (d_range == e);
+                    else {
+                        // e is a real range 
+                        BarzerRange eR(d_range);
+                        return ( eR.promote_toReal() == e );
+                    }
+                } else 
+                    return false;
+		    } else 
+			    return false;
+        } else {
+		    if( d_mode == MODE_TYPE ) {
+			    return ( d_range.getType() == e.getType() );
+		    } else
+		    if( d_mode == MODE_VAL ) {
+			    if( d_range.getType() == e.getType() ) {
+				    if( !e.isEntity() ) {
+					    return ( d_range == e );
+				    } else {
+					    const BarzerRange::Entity* otherEntPair = e.getEntity();
+					    const BarzerRange::Entity* thisEntPair = d_range.getEntity();
+					    return (
+						    thisEntPair->first.matchOther( otherEntPair->first ) &&
+						    thisEntPair->second.matchOther( otherEntPair->second ) 
+					    );
+				    }
+			    } else
+				    return false;
+		    } else 
+			    return false;
+        }
 	} 
 	std::ostream& printXML( std::ostream& fp, const GlobalPools&  ) const ;
 	std::ostream& print( std::ostream& fp,const BELPrintContext& ) const 

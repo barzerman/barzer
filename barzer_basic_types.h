@@ -367,10 +367,20 @@ struct BarzerRange {
 	bool isValid( ) const {return dta.which(); }
 	bool isInteger( ) const {return (dta.which() ==Integer_TYPE); }
 	bool isReal( ) const {return (dta.which() ==Real_TYPE); }
+    bool isNumeric() const { return (isInteger() || isReal()); }
 	bool isTimeOfDay( ) const {return (dta.which() ==TimeOfDay_TYPE); }
 	bool isDate( ) const {return (dta.which() ==Date_TYPE); }
 	bool isDateTime( ) const {return (dta.which() ==DateTime_TYPE); }
 	bool isEntity( ) const {return (dta.which() ==Entity_TYPE); }
+
+    const BarzerRange& promote_toReal( ) 
+    {
+        if( dta.which() ==Integer_TYPE ) {
+            const Integer& i= boost::get<Integer>(dta);
+            dta = Data( Real( i.first, i.second ) );
+        }
+        return *this;
+    }
 
 	const None* getNone( ) const { return boost::get<None>( &dta ); }
 	const Integer*  getInteger( ) const {return boost::get<Integer>( &dta ); }

@@ -651,7 +651,7 @@ void BELParserXML::taghandle_ERC( const char_cp * attr, size_t attr_sz , bool cl
 			}
 			break;
         case 'x': 
-            pat.setMatchModeFromAttribute(v);
+            // pat.setMatchModeFromAttribute(v);
             break;
 		}
 	}
@@ -670,7 +670,7 @@ void BELParserXML::taghandle_ERCEXPR( const char_cp * attr, size_t attr_sz , boo
 			pat.setEclass( atoi(v) );
 			break;
         case 'x': 
-            pat.setMatchModeFromAttribute(v);
+            // pat.setMatchModeFromAttribute(v);
             break;
 		}
 	}
@@ -687,7 +687,7 @@ void BELParserXML::taghandle_RANGE( const char_cp * attr, size_t attr_sz , bool 
 	const char* id2Str = 0;
 	bool isEntity = false;
 	/// end of entity range related stuff 
-
+    bool isNumericFlavor= false;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
@@ -707,6 +707,9 @@ void BELParserXML::taghandle_RANGE( const char_cp * attr, size_t attr_sz , bool 
 			case 'e': if( !isEntity ) isEntity= true; break;
 			}
 			break;
+		case 'n':
+            isNumericFlavor= true;
+            break;
 		case 'e':
 			if( !isEntity ) isEntity= true;
 
@@ -722,7 +725,7 @@ void BELParserXML::taghandle_RANGE( const char_cp * attr, size_t attr_sz , bool 
 			}
 			break;
         case 'x': 
-            pat.setMatchModeFromAttribute(v);
+            // pat.setMatchModeFromAttribute(v);
             break;
 		}
 	}
@@ -745,8 +748,10 @@ void BELParserXML::taghandle_RANGE( const char_cp * attr, size_t attr_sz , bool 
 				entRange.first = ent2.getEuid();
 			}
 		}
-	}
-
+	} else if( pat.range().isNumeric() )  {
+        if( isNumericFlavor ) 
+            pat.setFlavorNumeric();
+    }
 	statement.pushNode( BTND_PatternData( pat));
 }
 void BELParserXML::taghandle_ENTITY( const char_cp * attr, size_t attr_sz , bool close) 
@@ -768,7 +773,7 @@ void BELParserXML::taghandle_ENTITY( const char_cp * attr, size_t attr_sz , bool
 			pat.setTokenId( internString(v,true) );
 			break;
         case 'x': // match mode 
-            pat.setMatchModeFromAttribute(v);    
+            // pat.setMatchModeFromAttribute(v);    
             break;
 		}
 	}
@@ -806,7 +811,7 @@ void BELParserXML::taghandle_DATETIME( const char_cp * attr, size_t attr_sz , bo
 			}
 			break;
         case 'x': 
-            pat.setMatchModeFromAttribute(v);
+            // pat.setMatchModeFromAttribute(v);
             break;
 		}
 	}
@@ -838,7 +843,7 @@ void BELParserXML::taghandle_DATE( const char_cp * attr, size_t attr_sz , bool c
 		// past <date p="yes"/> or <date past="y"/>
 		case 'p': pat.setPast(); break;
         case 'x': 
-            pat.setMatchModeFromAttribute(v);
+            // pat.setMatchModeFromAttribute(v);
             break;
 		}
 	}	
@@ -865,7 +870,7 @@ void BELParserXML::taghandle_TIME( const char_cp * attr, size_t attr_sz , bool c
 		case 'f': pat.setFuture(); break;
 		case 'p': pat.setPast(); break;
         case 'x': 
-            pat.setMatchModeFromAttribute(v);
+            // pat.setMatchModeFromAttribute(v);
             break;
 		}
 	}

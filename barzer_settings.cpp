@@ -167,7 +167,7 @@ void BarzerSettings::loadRules(BELReader& reader, const boost::property_tree::pt
 			}
 
 		} else {
-			AYLOG(ERROR) << "Unknown tag /rules/" << v.first;
+			// AYLOG(ERROR) << "Unknown tag /rules/" << v.first;
 		}
 	}
 }
