@@ -278,14 +278,22 @@ bool stem_depluralize( std::string& out, const char* s, size_t s_len )
 	if( s_len > 5 ) {
 		const char* s4 = s+s_len-4;
 		const char* s3 = (s4+1);
-		if( !strcmp( s4, "ches" ) ) { /// XXXches ---> XXXch
-			out.assign( s, s_len-2 );
-			return true;
-		} else if( !strcmp( s3, "ies" ) ) { ///XXXies -->> XXXy
-            out.assign( s, s_len-2 );
-            *(out.rbegin()) = 'y';
+        if( s3[1] =='e' && s3[2] =='s' ) { // es 
+		    if( s4[0] =='c' && s4[1] == 'h'  ) { /// XXXches ---> XXXch
+			    out.assign( s, s_len-2 );
+			    return true;
+		    } else if( s3[0] =='i' && s3[1] =='e' ) { ///XXXies -->> XXXy
+                out.assign( s, s_len-2 );
+                *(out.rbegin()) = 'y';
+                return true;
+            } else {
+                out.assign( s, s_len-1 );
+                return true;
+            }
+        } else if( s3[2] == 's' ) {
+            out.assign( s, s_len-1 );
             return true;
-        } 
+        }
 	} else if( s_len > 4 ) {
 		const char* s4 = s+s_len-4;
 		const char* s3 = (s4+1);

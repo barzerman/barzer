@@ -244,6 +244,11 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 			strId = bzSpell->getStemCorrection( stemmedStr, theString );
 			if( strId != 0xffffffff ) {
 				correctedStr = gp.string_resolve( strId ) ;
+                if( correctedStr ) {
+                    isUsersWord =  bzSpell->isUsersWord( strId, correctedStr ) ;
+                    if( isUsersWord ) 
+                        theString = correctedStr;
+                }
 			} else {
 		        ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
 		        return 0;
