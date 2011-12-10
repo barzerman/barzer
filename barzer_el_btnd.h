@@ -28,8 +28,8 @@ struct BTND_Pattern_Base {
         /// cant be greater than 7
     };
     uint8_t d_matchMode; // 0 - straight equality match, 1 - negat
-/// match operator 
-template <typename T> bool operator()( const T& t ) const { return false; }
+    /// match operator 
+    template <typename T> bool operator()( const T& t ) const { return false; }
     BTND_Pattern_Base() : d_matchMode(MATCH_MODE_NORMAL) {}
     
     void mkPatternMatch_Normal() { d_matchMode= MATCH_MODE_NORMAL; }
@@ -161,23 +161,39 @@ inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_Punct& x 
 	{ return( fp << "'" << std::hex << x.theChar << "'" ); }
 
 // simple token wildcard data
-struct BTND_Pattern_Wildcard {
-	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
-	uint8_t minTerms, maxTerms;
+/// no attributes - matches anything
+struct BTND_Pattern_Wildcard : public BTND_Pattern_Base {
+    enum { 
+        WT_ANY, // match any bead (default)
+        WT_ENT  // entity related stuff (erc, ent ...)
+    };
+    uint32_t d_type;
 
-	size_t getMinTokSpan() const { return minTerms; }
-	size_t getMaxTokSpan() const { return maxTerms; }
+    BTND_Pattern_Wildcard() : d_type(WT_ANY) {}
 
-	BTND_Pattern_Wildcard() : minTerms(0), maxTerms(0) {}
-	BTND_Pattern_Wildcard(uint8_t mn, uint8_t mx ) : minTerms(mn), maxTerms(mx) {}
+    uint32_t getType() const { return d_type; } 
 
+    bool isType( int x ) const {
+        return (d_type==x);
+    }
 	bool isLessThan( const BTND_Pattern_Wildcard& r ) const
-	{
-		return( ay::range_comp().less_than( minTerms, maxTerms, r.minTerms, r.maxTerms ) );
-	}
+        { return (d_type< r.d_type); }
+    void setFromAttr( const char* v ) {
+        if(v) {
+            switch( *v ) {
+            case 'a': d_type= WT_ANY; break; 
+            case 'e': d_type= WT_ENT; break; 
+            }
+        }
+    }
+    std::ostream& print( std::ostream& fp ) const { return (fp << d_type); }
+    std::ostream& print( std::ostream& fp, const BELPrintContext&   ) const 
+    { return print(fp); }
 };
 inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_Wildcard& x )
-	{ return( fp << "*[" << x.minTerms << "," << x.maxTerms << "]" ); }
+{ 
+        return x.print(fp);
+}
 inline bool operator <( const BTND_Pattern_Wildcard& l, const BTND_Pattern_Wildcard& r )
 	{ return l.isLessThan( r ); }
 
@@ -694,33 +710,6 @@ template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_ERC
 template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_ERC> ( ) const { return  BTND_Pattern_ERC_TYPE; }
 
 /// pattern tyepe number getter visitor 
-
-/// BTND pattern accessor - ghetto visitor 
-struct BTND_PatternData_Access {
-	bool isWildcard( const BTND_PatternData& btnd ) const 
-	{
-		return( btnd.which() >= BTND_Pattern_Number_TYPE && btnd.which() < BTND_Pattern_MAXWILDCARD_TYPE );
-	}
-
-	/// returns the maximum tok span for the wildcard 
-	/// generally most things except for the 'Wildcard' (this one skips an arbitrary number of terms 
-	/// have the span of 1  
-	inline size_t getMaxTokSpan(const BTND_PatternData& btnd ) const 
-	{
-		if( btnd.which() == BTND_Pattern_Wildcard_TYPE ) 
-			return boost::get< BTND_Pattern_Wildcard >(btnd).getMaxTokSpan();
-		else 
-			return 1;
-	}
-	inline size_t getMinTokSpan(const BTND_PatternData& btnd ) const 
-	{
-		if( btnd.which() == BTND_Pattern_Wildcard_TYPE ) 
-			return boost::get< BTND_Pattern_Wildcard >(btnd).getMinTokSpan();
-		else 
-			return 1;
-	}
-};
-
 
 typedef std::vector< BTND_PatternData > BTND_PatternDataVec;
 

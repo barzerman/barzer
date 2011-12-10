@@ -651,7 +651,7 @@ void BELParserXML::taghandle_ERC( const char_cp * attr, size_t attr_sz , bool cl
 			}
 			break;
         case 'x': 
-            // pat.setMatchModeFromAttribute(v);
+            pat.setMatchModeFromAttribute(v);
             break;
 		}
 	}
@@ -670,7 +670,7 @@ void BELParserXML::taghandle_ERCEXPR( const char_cp * attr, size_t attr_sz , boo
 			pat.setEclass( atoi(v) );
 			break;
         case 'x': 
-            // pat.setMatchModeFromAttribute(v);
+            pat.setMatchModeFromAttribute(v);
             break;
 		}
 	}
@@ -725,7 +725,7 @@ void BELParserXML::taghandle_RANGE( const char_cp * attr, size_t attr_sz , bool 
 			}
 			break;
         case 'x': 
-            // pat.setMatchModeFromAttribute(v);
+            pat.setMatchModeFromAttribute(v);
             break;
 		}
 	}
@@ -773,7 +773,7 @@ void BELParserXML::taghandle_ENTITY( const char_cp * attr, size_t attr_sz , bool
 			pat.setTokenId( internString(v,true) );
 			break;
         case 'x': // match mode 
-            // pat.setMatchModeFromAttribute(v);    
+            pat.setMatchModeFromAttribute(v);    
             break;
 		}
 	}
@@ -811,7 +811,7 @@ void BELParserXML::taghandle_DATETIME( const char_cp * attr, size_t attr_sz , bo
 			}
 			break;
         case 'x': 
-            // pat.setMatchModeFromAttribute(v);
+            pat.setMatchModeFromAttribute(v);
             break;
 		}
 	}
@@ -843,7 +843,7 @@ void BELParserXML::taghandle_DATE( const char_cp * attr, size_t attr_sz , bool c
 		// past <date p="yes"/> or <date past="y"/>
 		case 'p': pat.setPast(); break;
         case 'x': 
-            // pat.setMatchModeFromAttribute(v);
+            pat.setMatchModeFromAttribute(v);
             break;
 		}
 	}	
@@ -870,7 +870,7 @@ void BELParserXML::taghandle_TIME( const char_cp * attr, size_t attr_sz , bool c
 		case 'f': pat.setFuture(); break;
 		case 'p': pat.setPast(); break;
         case 'x': 
-            // pat.setMatchModeFromAttribute(v);
+            pat.setMatchModeFromAttribute(v);
             break;
 		}
 	}
@@ -883,8 +883,30 @@ void BELParserXML::taghandle_TDRV( const char_cp * attr, size_t attr_sz , bool c
 {}
 void BELParserXML::taghandle_WCLS( const char_cp * attr, size_t attr_sz , bool close)
 {}
+/// W - wildcard is a pattern for very wide matches - be careful
+// if no attributes are supplied w matches any bead 
+// otherwise e - anything entity related (erc, ent) 
+// 
 void BELParserXML::taghandle_W( const char_cp * attr, size_t attr_sz , bool close)
 {
+	if( close ) {
+		statement.popNode();
+		return;
+	}
+    
+	BTND_Pattern_Wildcard pat; 
+    const char* modeStr = "a";
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		switch( n[0] ) {
+        case 'm':  // mode 
+            modeStr= v;
+            break;
+        }
+    }
+    pat.setFromAttr(modeStr);
+	statement.pushNode( BTND_PatternData( pat));
 }
 
 void BELParserXML::processAttrForStructTag( BTND_StructData& dta, const char_cp * attr, size_t attr_sz )

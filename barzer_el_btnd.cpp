@@ -374,10 +374,6 @@ std::ostream&  BTND_Pattern_Punct::print( std::ostream& fp, const BELPrintContex
 {
 	return ( fp << "Punct (" << (char)theChar << ")" );
 }
-std::ostream&  BTND_Pattern_Wildcard::print( std::ostream& fp , const BELPrintContext& ) const
-{
-	return ( fp << "Wildcard(" << minTerms << "," << maxTerms << ")");
-}
 
 std::ostream&  BTND_Pattern_Date::print( std::ostream& fp , const BELPrintContext& ) const
 {

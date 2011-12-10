@@ -65,6 +65,30 @@ struct evalWildcard_vis : public boost::static_visitor<bool> {
 		return false;
 	}
 };
+template <>
+struct evalWildcard_vis<BTND_Pattern_Wildcard> : public boost::static_visitor<bool> {
+	const BTND_Pattern_Wildcard& d_pattern;
+
+	evalWildcard_vis( const BTND_Pattern_Wildcard& p ) : d_pattern(p) {}
+	template <typename T>
+	bool operator()( const T& ) const {
+		/// for all types except for the specialized wildcard wont match
+        return !d_pattern.isType( BTND_Pattern_Wildcard::WT_ENT );
+	}
+    bool operator()( const BarzerEntityList& dta ) 
+    {
+        return true;
+    }
+    bool operator()( const BarzerEntity& dta ) 
+    {
+        return true;
+    }
+    bool operator()( const BarzerEntityRangeCombo& dta ) 
+    {
+        return true;
+    }
+};
+
 /// number templates 
 template <>  template<>
 inline bool evalWildcard_vis<BTND_Pattern_Number>::operator()<BarzerLiteral> ( const BarzerLiteral& dta ) const
@@ -108,9 +132,6 @@ template <> template <>
 inline bool evalWildcard_vis<BTND_Pattern_ERC>::operator()<BarzerEntityRangeCombo> ( const BarzerEntityRangeCombo& dta )  const
 { return d_pattern( dta ); }
 
-template <> template <>
-inline bool evalWildcard_vis<BTND_Pattern_Wildcard>::operator()<BarzerLiteral> ( const BarzerLiteral& dta )  const
-{ return true; }
 //// end of other template matching
 
 
@@ -1084,6 +1105,8 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 	const BarzelTranslation& translation = *transP;
 
 	barz.pushTrace( transP->traceInfo );
+    // circuitbreaker  
+    bool lastFrameLoop = barz.lastFrameLoop(); 
 
 	BarzelEvalResult transResult;
 	BarzelEvalNode evalNode;
@@ -1110,6 +1133,9 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 		// creating a childless evalNode 
 		translation.fillRewriteData( evalNode.getBtnd() );
 	}
+    if( lastFrameLoop ) 
+        barz.setError( "loop detected" );
+    
 	if( !evalNode.eval( transResult, ctxt ) ) {
 		d_trie.printTanslationTraceInfo( AYLOG(ERROR) << "evaluation failed:" , transP->traceInfo );
         if( translation.makeUnmatchable )
@@ -1120,8 +1146,7 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 
 	// the range will be replaced with a single bead . 
 	// so we will simply delete everything past the first bead
-
-    int unmatchability = ( (translation.makeUnmatchable || transResult.getUnmatchability()) ? 1:0);
+    int unmatchability = ( (lastFrameLoop|| translation.makeUnmatchable || transResult.getUnmatchability()) ? 1:0);
 	if( transResult.isVec() ) {
 		//std::cerr << "*** BEFORE::::>>\n";
 		//AYDEBUG( chain.getFullRange() );

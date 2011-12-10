@@ -29,6 +29,11 @@ struct BarzelTranslationTraceInfo {
 	BarzelTranslationTraceInfo( ) : source(0xffffffff), statementNum(0xffffffff),emitterSeqNo(0xffffffff) {}
 	void set( uint32_t s, uint32_t st, uint32_t em ) 
 	{ source = s; statementNum = st; emitterSeqNo = em; }
+    
+    bool eq( const BarzelTranslationTraceInfo& o ) const
+    {
+        return ( source == o.source && statementNum == o.statementNum && emitterSeqNo == o.emitterSeqNo );
+    }
 };
 
 struct BarzerNone {

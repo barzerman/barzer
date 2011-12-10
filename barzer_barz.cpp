@@ -6,6 +6,26 @@
 
 namespace barzer {
 
+bool BarzelTrace::detectLoop( ) const
+{
+    if( !d_tvec.size() ) 
+        return false;
+    // lets start with the simplest loop 
+    size_t tailRepeats = 0;
+    TraceVec::const_reverse_iterator lastI = d_tvec.rbegin();
+    TraceVec::const_reverse_iterator i = lastI;
+
+    for( ++i; i != d_tvec.rend(); ++i ) {
+        if( i->eq(*lastI) ) {
+            ++tailRepeats;
+            if( tailRepeats> MAX_TAIL_REPEAT ) 
+                return true;
+        } else
+            return false;
+    }
+    return false;
+}
+
 void Barz::syncQuestionFromTokens()
 {
 	size_t qLen = 0;
