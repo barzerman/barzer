@@ -79,6 +79,31 @@ bool QSemanticParser::needTopicAnalyzis() const
     return universe.hasTopics();
 }
 
+int QSemanticParser::parse_Autocomplete( MatcherCallback& cb,Barz& barz, const QuestionParm& qparm  )
+{
+    err.clear();
+	const UniverseTrieCluster& trieCluster = universe.getTrieCluster();
+	const TheGrammarList& trieList = trieCluster.getTrieList();
+    size_t grammarSeqNo = 0;
+    std::stringstream skipsStream;
+	for( TheGrammarList::const_iterator t = trieList.begin(); t != trieList.end(); ++t ) {
+        // checking whether this grammar applies 
+        if( ! t->grammarInfo() || t->grammarInfo()->autocApplies() ) {
+            // this handles the terminators 
+            // barz.getBeads().clearUnmatchable();        
+		    BarzelMatcher barzelMatcher( universe, t->trie() );
+		    barzelMatcher.match_Autocomplete( cb, barz );
+
+            ++grammarSeqNo; 
+        } else {
+            /// reporting skipped trie
+            skipsStream << t->trie().getTrieClass() << ":" << t->trie().getTrieId() << "|" ;
+        }
+	}
+    barz.barzelTrace.skippedTriesString += skipsStream.str();
+    return 0;
+}
+
 int QSemanticParser::semanticize( Barz& barz, const QuestionParm& qparm  )
 {
 	err.clear();
@@ -132,6 +157,16 @@ int QParser::lex( Barz& barz, const char* q, const QuestionParm& qparm )
     barz.chainInit(qparm);
     return 0;
 }
+int QParser::autocomplete( MatcherCallback& cb, Barz& barz, const char* q, const QuestionParm& qparm )
+{
+    barz.clear();
+    tokenize_only(barz,q,qparm);
+    lex_only( barz, qparm );
+    semanticizer.parse_Autocomplete( cb,barz, qparm  );
+
+    return 0;
+}
+
 int QParser::parse( Barz& barz, const char* q, const QuestionParm& qparm )
 {
 	barz.clear();

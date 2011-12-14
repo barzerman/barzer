@@ -102,6 +102,11 @@ int Barz::analyzeTopics( QSemanticParser& sem, const QuestionParm& qparm )
 	beadChain.init(ctVec);
     return sem.analyzeTopics( *this, qparm );
 }
+int Barz::parse_Autocomplete( MatcherCallback& cb, QSemanticParser& sem, const QuestionParm& qparm )
+{
+	beadChain.init(ctVec);
+	return sem.parse_Autocomplete( cb, *this, qparm );
+}
 int Barz::semanticParse( QSemanticParser& sem, const QuestionParm& qparm )
 {
 	/// invalidating and initializing all higher order objects

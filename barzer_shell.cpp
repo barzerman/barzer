@@ -386,9 +386,7 @@ static int bshf_spell( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
-namespace {
-
-
+namespace { ///// 
 struct TopicAnalyzer {
     QParser& parser;
     std::ostream& fp;
@@ -401,13 +399,16 @@ struct TopicAnalyzer {
         printCtxt( trie, p.getUniverse().getStringPool(), fmt )
 
     {}
-    void operator() ( const NodeAndBead& nb ) {
-        nb.first->print( fp, printCtxt );
-        fp << "{" << nb.second << "}\n";
+    void operator() ( const NodeAndBeadVec& nb ) {
+        if( nb.size() ) {
+            nb.front().first->print( fp, printCtxt );
+            fp << "{" << nb.front().second << "}\n";
+        } else 
+            fp << "{}\n";
     }
 };
 
-}
+} /// end of anon namespace 
 
 static int bshf_greed( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
@@ -445,6 +446,56 @@ static int bshf_greed( BarzerShell* shell, char_cp cmd, std::istream& in )
             std::cerr << "no beads\n";
         }
         barzelMatcher.get_match_greedy( cb, beadChain.lst.begin(), beadChain.lst.end(), false );
+	}
+    return 0;
+}
+
+namespace {
+struct AutocCallback {
+    QParser& parser;
+    std::ostream& fp;
+
+	BELPrintFormat fmt;
+    BELPrintContext printCtxt;
+
+    AutocCallback( QParser& p, std::ostream& os, const BELTrie& trie ) :
+        parser(p), fp(os) ,
+        printCtxt( trie, p.getUniverse().getStringPool(), fmt )
+
+    {}
+    void operator() ( const NodeAndBeadVec& nb ) {
+        fp << "{";
+        for( NodeAndBeadVec::const_iterator i = nb.begin(); i!= nb.end(); ++i ) {
+            i->first->print( fp, printCtxt );
+            fp << "::[" << i->second << "]";
+        }
+        fp << "}\n";
+    }
+};
+} /// end of anon space 
+
+static int bshf_autoc( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext * context = shell->getBarzerContext();
+	Barz& barz = context->barz;
+
+	QParser parser( (context->getUniverse()) );
+
+	BarzStreamerXML bs(barz, context->getUniverse());
+
+    const BELTrie* trie=  &(context->getTrie());
+
+    std::ostream& outFP = shell->getOutStream() ;
+
+
+	ay::InputLineReader reader( in );
+	while( reader.nextLine() && reader.str.length() ) {
+		const char* q = reader.str.c_str();
+
+        AutocCallback acCB(parser, outFP, *trie );
+        MatcherCallbackGeneric<AutocCallback> cb(acCB);
+	    QuestionParm qparm;
+        parser.autocomplete( cb, barz, q, qparm );
 	}
     return 0;
 }
@@ -1157,6 +1208,7 @@ static const CmdData g_cmd[] = {
 	//commented test to reduce the bloat
 	CmdData( bshf_test, "test", "just a test" ),
 	CmdData( (ay::Shell_PROCF)bshf_anlqry, "anlqry", "<filename> analyzes query set" ),
+	CmdData( (ay::Shell_PROCF)bshf_autoc, "autoc", "autocomplete" ),
 	CmdData( (ay::Shell_PROCF)bshf_bzspell, "bzspell", "bzspell correction for the user" ),
 	CmdData( (ay::Shell_PROCF)bshf_bzstem, "bzstem", "bz stemming correction for the user domain" ),
 	CmdData( (ay::Shell_PROCF)bshf_dtaan, "dtaan", "data set analyzer. runs through the trie" ),

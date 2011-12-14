@@ -11,6 +11,7 @@ class QSemanticParser;
 class QLexParser;
 class QTokenizer;
 class StoredUniverse;
+struct MatcherCallback;
 
 struct BarzelTrace {
     enum { 
@@ -154,6 +155,9 @@ public:
 	int tokenize( QTokenizer& , const char* q, const QuestionParm& );
 	int classifyTokens( QLexParser& , const QuestionParm& );
 	int chainInit( const QuestionParm& );
+	int parse_Autocomplete( QSemanticParser&, const QuestionParm& );
+
+	int parse_Autocomplete( MatcherCallback& cb, QSemanticParser&, const QuestionParm& );
 	int semanticParse( QSemanticParser&, const QuestionParm& );
 	int analyzeTopics( QSemanticParser&, const QuestionParm& );
 	int postSemanticParse( QSemanticParser&, const QuestionParm& );

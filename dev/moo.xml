@@ -8,8 +8,8 @@
   <stmt n="103"> <pat> <t>popo</t><ent/> </pat> <tran> <mkent c="10" s="20" i="moo_not_cock"/> </tran> </stmt>
 
   <stmt n="1"> <pat> <t>moo</t> </pat> <tran> <mkent c="10" s="20" i="moo"/> </tran> </stmt>
-  <stmt n="2"> <pat> <t>zoo</t> </pat> <tran> <mkent c="10" s="20" i="zoo"/> </tran> </stmt>
-  <stmt n="3"> <pat> <t>zoo</t> </pat> <tran> <mkent c="10" s="20" i="zoo2" tc="20" ts="1" ti="abc"/> </tran> </stmt>
+  <stmt n="2"> <pat> <t>zoo</t><t>a</t> </pat> <tran> <mkent c="10" s="20" i="zoo"/> </tran> </stmt>
+  <stmt n="3"> <pat> <t>zoo</t><t>b</t> </pat> <tran> <mkent c="10" s="20" i="zoo2" tc="20" ts="1" ti="abc"/> </tran> </stmt>
   <stmt n="4"> <pat> <t>zoo</t> </pat> <tran> <mkent c="10" s="20" i="zoo3"/> </tran> </stmt>
   <stmt n="5"> <pat> <t>dog</t> </pat> <tran> <mkent c="10" s="20" i="zoo4" tc="20" ts="1" ti="abc"/> </tran> </stmt>
   <stmt n="5"> <pat> <t>balcony</t> </pat> <tran> <mkent c="10" s="20" i="zoo5" tc="20" ts="1" ti="abc"/> </tran> </stmt>

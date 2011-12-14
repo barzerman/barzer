@@ -121,9 +121,15 @@ public:
 
 struct GrammarInfo {
     TrieTopics trieTopics;
+    bool  d_autocApplies;
+
     bool goodToGo( const BarzTopics& barzTopics ) const
-    { return trieTopics.goodToGo(barzTopics); }
-    
+        { return trieTopics.goodToGo(barzTopics); }
+
+    GrammarInfo() : d_autocApplies(true) {} 
+
+    void set_autocDontApply() { d_autocApplies= false; }
+    bool autocApplies() const { return d_autocApplies; }
 };
 class TheGrammar {
     BELTrie* d_trie;

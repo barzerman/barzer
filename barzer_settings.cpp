@@ -329,8 +329,11 @@ void BarzerSettings::loadTrieset(BELReader& reader, User &u, const ptree &node) 
 				const ptree &attrs = trieNode.get_child("<xmlattr>");
 				const std::string &cl = attrs.get<std::string>("class"),
 								  &name = attrs.get<std::string>("name");
-                const boost::optional<std::string> optTopic
-                    = attrs.get_optional<std::string>("topic");
+                const boost::optional<std::string> optTopic = attrs.get_optional<std::string>("topic");
+
+                // noac - autocomplete doesnt apply . optional attribute. when set 
+                // when this attribute is set the grammar wont be used in autocomplete 
+                const boost::optional<std::string> optNoAutoc = attrs.get_optional<std::string>("noac");
 
 				std::cerr << "user " << u.getId() << " added trie (" << cl << ":" << name << ") " << (optTopic? "TOPIC" :"") << "\n";
                 
@@ -352,6 +355,9 @@ void BarzerSettings::loadTrieset(BELReader& reader, User &u, const ptree &node) 
                         const StoredEntity& ent = u.getUniverse().getDtaIdx().addGenericEntity( (idOpt? (*idOpt).c_str():0), *classOpt, ( subclassOpt? *subclassOpt: 0) ); 
                         gramInfo->trieTopics.mustHave( ent.getEuid(), (weightOpt? *weightOpt: BarzTopics::DEFAULT_TOPIC_WEIGHT) );
                     }
+                }
+                if( gramInfo && optNoAutoc) {
+                    gramInfo->set_autocDontApply();
                 }
 				u.addTrie(TriePath(cl, name), optTopic, gramInfo);
 

@@ -28,6 +28,18 @@ typedef BarzelBeadChain::Range BeadRange;
 typedef std::pair< const BarzelTrieNode*, BarzelBeadChain::Range > NodeAndBead;
 typedef std::vector< NodeAndBead > NodeAndBeadVec;
 typedef std::vector< const NodeAndBead* > NodeAndBeadPtrVec; 
+struct MatcherCallback {
+    virtual void operator()( const NodeAndBeadVec& nb ) = 0;
+    virtual ~MatcherCallback() {}
+};
+
+template <typename CB>
+struct MatcherCallbackGeneric : public MatcherCallback {
+    CB& d_cb;
+    MatcherCallbackGeneric( CB& cb ) : d_cb(cb) {}
+
+    void operator()( const NodeAndBeadVec& nbv ) { d_cb( nbv ); }
+};
 /// BarzelMatchInfo represents one left side of one substitution 
 /// 
 class BarzelMatchInfo {
@@ -155,28 +167,45 @@ class BTMIterator {
 public:
 	typedef std::vector<const BarzelTrieNode*> BTNVec;
 	NodeAndBeadVec d_matchPath;
+    enum {
+        ITMODE_NORMAL, // default
+        ITMODE_AUTOCOMPLETE,
+    };
 private:
 	/// current path - d_tn is one level below. 
 	BTNVec d_path;
 
 	const BELTrie& d_trie;
+    
+    // one of the ITMODE_XXX values 
+    int d_mode; 
+
 	/// pushes curPath and the accompanying bead range 
 	int addTerminalPath( const NodeAndBead& nb );
+
+public:
+	int addTerminalPath_Autocomplete( MatcherCallback& cb, const NodeAndBead& nb );
 
 	// puts all matching children of tn int mtChild
 	// uses rng[0-...] for matching
 	bool findMatchingChildren( NodeAndBeadVec& mtChild, const BeadRange& rng, const BarzelTrieNode* tn );
-public:
 	BTMBestPaths bestPaths;
-private:
 	// recursive function
 	void matchBeadChain( const BeadRange& rng, const BarzelTrieNode* trieNode );
+    
+	void matchBeadChain_Autocomplete( MatcherCallback& cb, const BeadRange& rng, const BarzelTrieNode* trieNode );
 
-public:
 	const StoredUniverse& universe;
 	const BELTrie&  getTrie() const { return d_trie; }
+    bool mode_is_Autocomplete() const { return (d_mode==ITMODE_AUTOCOMPLETE); }
+    bool mode_is_Normal() const { return (d_mode==ITMODE_NORMAL); }
+    
+    void mode_set_Normal() { d_mode= ITMODE_NORMAL; }
+    void mode_set_Autocomplete() { d_mode= ITMODE_AUTOCOMPLETE; }
+
 	BTMIterator( const BeadRange& rng, const StoredUniverse& u, const BELTrie& trie ) : 
 		d_trie(trie),
+        d_mode(ITMODE_NORMAL),
 		bestPaths(rng,u,trie),
 		universe(u)
 	{ }
@@ -187,18 +216,6 @@ public:
 };
 
 
-struct MatcherCallback {
-    virtual void operator()( const NodeAndBead& nb ) = 0;
-    virtual ~MatcherCallback() {}
-};
-
-template <typename CB>
-struct MatcherCallbackGeneric : public MatcherCallback {
-    CB& d_cb;
-    MatcherCallbackGeneric( CB& cb ) : d_cb(cb) {}
-    void operator()( const NodeAndBead& nb ) 
-    { d_cb( nb ); }
-};
 
 /// BarzelMatcher objects need to be unique per thread
 class BarzelMatcher {
@@ -271,6 +288,8 @@ public:
 	/// and modifies the beads
 	// returns the number of successful rewrites
 	virtual int matchAndRewrite( Barz& );
+    size_t match_Autocomplete( MatcherCallback& cb, Barz& );
+
 	virtual void clear() 
 	{
 		d_err.clear();
