@@ -459,12 +459,20 @@ struct AutocCallback {
     void operator() ( const BTMIterator& bmi ) {
         BELPrintContext printCtxt( bmi.getTrie(), parser.getUniverse().getStringPool(), fmt );
         const NodeAndBeadVec& nb = bmi.getMatchPath();
-        fp << "{";
+        if( nb.size() ) {
+        bool hadSomething = false;
         for( NodeAndBeadVec::const_iterator i = nb.begin(); i!= nb.end(); ++i ) {
             // i->first->print( fp, printCtxt );
-            fp << "::[" << i->second << "]";
+            // if( i->second.first != i->second.second ) { 
+                fp << "\n::[" << i->second << "] ";
+                if( !hadSomething )
+                    hadSomething= true;
+            // }
         }
-        fp << "}\n";
+        fp << " " << nb.back().first;
+        if( hadSomething ) 
+            fp << "\n*******\n";
+        }
     }
 };
 } /// end of anon space 

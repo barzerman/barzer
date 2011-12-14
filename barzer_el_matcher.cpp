@@ -21,6 +21,11 @@ std::ostream& print_NodeAndBeadVec( std::ostream& fp, const NodeAndBeadVec& v, B
 	return fp;
 }
 }
+int BTMIterator::addTerminalPath_Autocomplete( MatcherCallback& cb )
+{
+    cb( *this );
+    return 0;
+}
 int BTMIterator::addTerminalPath_Autocomplete( MatcherCallback& cb, const NodeAndBead& nb )
 {
 	NodeAndBead theNb(nb);
@@ -798,23 +803,25 @@ void BTMIterator::matchBeadChain( const BeadRange& rng, const BarzelTrieNode* tr
 	}
 }
 
-void BTMIterator::matchBeadChain_Autocomplete( MatcherCallback& mcb, const BeadRange& rng, const BarzelTrieNode* trieNode )
+size_t BTMIterator::matchBeadChain_Autocomplete( MatcherCallback& mcb, const BeadRange& rng, const BarzelTrieNode* trieNode )
 {
 	//AYDEBUG( rng );
 	NodeAndBead nbvVal ( trieNode, BarzelBeadChain::Range(rng.first,rng.first));
 	ay::vector_raii<NodeAndBeadVec> raii( d_matchPath, nbvVal );
 
 	if( rng.first == rng.second ) {
-		return; // range is empty
+        addTerminalPath_Autocomplete( mcb, nbvVal );
+		return 0; // range is empty
 	}
 	NodeAndBeadVec mtChild;
 
-	if( !findMatchingChildren( mtChild, rng, trieNode ) ) 
-		return; // no matching children found
-
+	if( !findMatchingChildren( mtChild, rng, trieNode ) ) {
+        // addTerminalPath_Autocomplete( mcb );
+		return 0; // no matching children found
+    }
 	const BarzelTrieNode* tn = 0;
 	BeadList::iterator nextBead = rng.second;
-
+    size_t pathCount = 0;
 	for( NodeAndBeadVec::const_iterator ch = mtChild.begin(); ch != mtChild.end(); ++ ch ) {
 		if(tn && ch->first == tn && ch->second.second == nextBead) 
 			continue;
@@ -841,10 +848,14 @@ void BTMIterator::matchBeadChain_Autocomplete( MatcherCallback& mcb, const BeadR
 			pathRange.second = chRange.second;
 			if( pathRange.second != rng.second ) 
 				++pathRange.second;
+
+            /*
 			if( tn->isLeaf() ) {
 				//AYDEBUG( BarzelBeadChain::makeInclusiveRange(ch->second,rng.second) );
 				addTerminalPath_Autocomplete( mcb, *ch );
+                ++pathCount;
 			}
+            */
 			//BarzelBeadChain::trimBlanksFromRange( d_matchPath.back().second );
 
 			//const BeadRange& shitRange = d_matchPath.back().second;
@@ -853,13 +864,19 @@ void BTMIterator::matchBeadChain_Autocomplete( MatcherCallback& mcb, const BeadR
 			// advancing to the next bead and starting new recursion from there			
 			BeadRange nextRange( nextBead, rng.second );
 			++nextRange.first;
-			matchBeadChain_Autocomplete( mcb, nextRange, tn );
+            size_t recursionSuccess = matchBeadChain_Autocomplete( mcb, nextRange, tn );
+            if( recursionSuccess ) {
+		        // addTerminalPath_Autocomplete( mcb, *ch );
+                pathCount+= recursionSuccess;
+            } else { // recursion failed 
+                // addTerminalPath_Autocomplete( mcb, *ch );
+            }
 		}  else {
-			if( tn->isLeaf() ) {
-				addTerminalPath_Autocomplete( mcb, *ch );
-			}
+		    // addTerminalPath_Autocomplete( mcb, *ch );
+            ++pathCount;
 		}
 	}
+    return pathCount;
 }
 
 

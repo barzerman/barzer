@@ -187,6 +187,7 @@ private:
 
 public:
 	int addTerminalPath_Autocomplete( MatcherCallback& cb, const NodeAndBead& nb );
+	int addTerminalPath_Autocomplete( MatcherCallback& cb );
 
 	// puts all matching children of tn int mtChild
 	// uses rng[0-...] for matching
@@ -195,7 +196,8 @@ public:
 	// recursive function
 	void matchBeadChain( const BeadRange& rng, const BarzelTrieNode* trieNode );
     
-	void matchBeadChain_Autocomplete( MatcherCallback& cb, const BeadRange& rng, const BarzelTrieNode* trieNode );
+    /// returns the number of callbacks. 0 if match failed completely
+	size_t matchBeadChain_Autocomplete( MatcherCallback& cb, const BeadRange& rng, const BarzelTrieNode* trieNode );
 
 	const StoredUniverse& universe;
 	const BELTrie&  getTrie() const { return d_trie; }
