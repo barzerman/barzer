@@ -28,8 +28,10 @@ typedef BarzelBeadChain::Range BeadRange;
 typedef std::pair< const BarzelTrieNode*, BarzelBeadChain::Range > NodeAndBead;
 typedef std::vector< NodeAndBead > NodeAndBeadVec;
 typedef std::vector< const NodeAndBead* > NodeAndBeadPtrVec; 
+class BTMIterator;
+
 struct MatcherCallback {
-    virtual void operator()( const NodeAndBeadVec& nb ) = 0;
+    virtual void operator()( const BTMIterator& nb ) = 0;
     virtual ~MatcherCallback() {}
 };
 
@@ -38,7 +40,7 @@ struct MatcherCallbackGeneric : public MatcherCallback {
     CB& d_cb;
     MatcherCallbackGeneric( CB& cb ) : d_cb(cb) {}
 
-    void operator()( const NodeAndBeadVec& nbv ) { d_cb( nbv ); }
+    void operator()( const BTMIterator& btm ) { d_cb( btm ); }
 };
 /// BarzelMatchInfo represents one left side of one substitution 
 /// 
@@ -213,6 +215,7 @@ public:
 		{ matchBeadChain( bestPaths.getFullRange(), trieNode ); }
 	
 	bool evalWildcard( const BarzelWCKey& wcKey, BeadList::iterator fromI, BeadList::iterator theI, uint8_t tokSkip ) const;
+    const NodeAndBeadVec& getMatchPath() const { return d_matchPath; }
 };
 
 

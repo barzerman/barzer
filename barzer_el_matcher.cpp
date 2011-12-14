@@ -34,7 +34,7 @@ int BTMIterator::addTerminalPath_Autocomplete( MatcherCallback& cb, const NodeAn
 	ay::vector_raii<NodeAndBeadVec> raii( d_matchPath, theNb );
 	//print_NodeAndBeadVec( std::cerr << "**ADD TERMINAL >>>", d_matchPath, bestPaths.getAbsoluteEnd() ) <<
 	//" <<<<< END\n" ;
-	cb( d_matchPath );
+	cb( *this );
     return 0;
 }
 int BTMIterator::addTerminalPath( const NodeAndBead& nb )

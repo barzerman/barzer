@@ -91,6 +91,9 @@ int QSemanticParser::parse_Autocomplete( MatcherCallback& cb,Barz& barz, const Q
         if( ! t->grammarInfo() || t->grammarInfo()->autocApplies() ) {
             // this handles the terminators 
             // barz.getBeads().clearUnmatchable();        
+            BarzelBeadChain& beads = barz.getBeads();
+            BeadRange fullRange( beads.getLstBegin(), beads.getLstEnd() );
+
 		    BarzelMatcher barzelMatcher( universe, t->trie() );
 		    barzelMatcher.match_Autocomplete( cb, barz );
 
@@ -162,7 +165,11 @@ int QParser::autocomplete( MatcherCallback& cb, Barz& barz, const char* q, const
     barz.clear();
     tokenize_only(barz,q,qparm);
     lex_only( barz, qparm );
-    semanticizer.parse_Autocomplete( cb,barz, qparm  );
+
+    BarzelBeadChain& beads = barz.getBeads();
+    BeadRange fullRange( beads.getLstBegin(), beads.getLstEnd() );
+
+    barz.parse_Autocomplete( cb, semanticizer, qparm  );
 
     return 0;
 }
@@ -172,6 +179,10 @@ int QParser::parse( Barz& barz, const char* q, const QuestionParm& qparm )
 	barz.clear();
 	tokenize_only( barz, q, qparm );
 	lex_only( barz, qparm );
+
+    BarzelBeadChain& beads = barz.getBeads();
+    BeadRange fullRange( beads.getLstBegin(), beads.getLstEnd() );
+
 	semanticize_only( barz, qparm );
     
     if( universe.needEntitySegregation() ) 

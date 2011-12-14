@@ -399,12 +399,7 @@ struct TopicAnalyzer {
         printCtxt( trie, p.getUniverse().getStringPool(), fmt )
 
     {}
-    void operator() ( const NodeAndBeadVec& nb ) {
-        if( nb.size() ) {
-            nb.front().first->print( fp, printCtxt );
-            fp << "{" << nb.front().second << "}\n";
-        } else 
-            fp << "{}\n";
+    void operator() ( const BTMIterator& nb ) {
     }
 };
 
@@ -456,17 +451,17 @@ struct AutocCallback {
     std::ostream& fp;
 
 	BELPrintFormat fmt;
-    BELPrintContext printCtxt;
 
     AutocCallback( QParser& p, std::ostream& os, const BELTrie& trie ) :
-        parser(p), fp(os) ,
-        printCtxt( trie, p.getUniverse().getStringPool(), fmt )
+        parser(p), fp(os) 
 
     {}
-    void operator() ( const NodeAndBeadVec& nb ) {
+    void operator() ( const BTMIterator& bmi ) {
+        BELPrintContext printCtxt( bmi.getTrie(), parser.getUniverse().getStringPool(), fmt );
+        const NodeAndBeadVec& nb = bmi.getMatchPath();
         fp << "{";
         for( NodeAndBeadVec::const_iterator i = nb.begin(); i!= nb.end(); ++i ) {
-            i->first->print( fp, printCtxt );
+            // i->first->print( fp, printCtxt );
             fp << "::[" << i->second << "]";
         }
         fp << "}\n";
