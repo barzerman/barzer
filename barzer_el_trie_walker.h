@@ -169,12 +169,16 @@ struct BarzelTrieTraverser_depth {
 		//d_wcPool(wcPool)
 		d_trie(trie)
 	{}
+	BarzelTrieTraverser_depth( const BELTrie& trie  )  :
+		d_trie(trie)
+	{}
 
 	typedef BarzelTrieNodeChildIterator::NodeKey   NodeKey;
 	typedef std::vector< NodeKey >  NodeKeyVec;
 	NodeKeyVec d_stack;
 
 	NodeKeyVec& getPath() { return d_stack; }
+    size_t getStackDepth() const { return d_stack.size(); }
 	const NodeKeyVec& getPath() const { return d_stack; }
 	/// visits every node in the tree until cb returns false, keeps the stack 
 	template <typename T>
@@ -207,6 +211,7 @@ struct BarzelTrieTraverser_depth {
 		}
 		return 0;
 	}
+    const BELTrie& getTrie() const { return d_trie; }
 };
 
 struct BarzelTrieStatsCounter {

@@ -30,6 +30,18 @@ public:
 	std::ostream& print(std::ostream&);
 };
 
-}
+class BestEntities;
 
+class AutocStreamerJSON {
+    const BestEntities& bestEnt;
+    const StoredUniverse &universe;
+    
+public:
+	AutocStreamerJSON(const BestEntities&b, const StoredUniverse &u) : 
+        bestEnt(b), universe(u) 
+    {}
+	std::ostream& print(std::ostream&) const;
+
+};
+} // barzer namespace 
 #endif /* BARZ_SERVER_RESPONSE_H_ */

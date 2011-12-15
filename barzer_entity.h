@@ -1,5 +1,8 @@
 #ifndef BARZER_ENTITY_H 
 #define BARZER_ENTITY_H 
+#include <map>
+// #include <boost/unordered_map.hpp> 
+#include <ay/ay_logger.h>
 
 namespace barzer {
 
@@ -157,6 +160,75 @@ public:
 typedef std::pair< BarzerEntity*, BarzerEntityList* >  EntityOrListPair;
 typedef std::pair< const BarzerEntity*, const BarzerEntityList* >  const_EntityOrListPair;
 
+//// Best entities is a group of up to N entities sorted by BestEntities_EntWeight
+struct BestEntities_EntWeight {
+    uint32_t pathLen;
+    uint32_t relevance;
+    
+    BestEntities_EntWeight( ) : 
+        pathLen(0), relevance(0)
+    {}
+    BestEntities_EntWeight( uint32_t pl, uint32_t rel=0 ) : 
+        pathLen(pl), relevance(rel)
+    {}
+};
+
+inline bool operator <( const BestEntities_EntWeight& l, const BestEntities_EntWeight& r ) 
+{
+    return ( l.pathLen < r.pathLen ?
+        true :
+        l.relevance < r.relevance 
+    );
+}
+
+class BestEntities {
+    uint32_t d_maxEnt; 
+
+public: 
+    enum { DEFAULT_MAX_ENT = 128 };
+    typedef std::multimap< BestEntities_EntWeight, StoredEntityUniqId > EntWeightMap;
+    
+private:
+    EntWeightMap d_weightMap;
+    typedef std::map< StoredEntityUniqId, EntWeightMap::iterator > EntIdMap;
+    EntIdMap d_entMap;
+public:
+    BestEntities( uint32_t mxe = DEFAULT_MAX_ENT ) : d_maxEnt(mxe) {}
+    void addEntity( const StoredEntityUniqId& euid, uint32_t pathLen, uint32_t relevance=0 )
+    {
+        EntIdMap::iterator i = d_entMap.find( euid );
+
+        BestEntities_EntWeight wght( pathLen, relevance );
+        if( i == d_entMap.end() ) { // this entity is not stored 
+            EntWeightMap::iterator wi = d_weightMap.insert( EntWeightMap::value_type(wght, euid) );
+            d_entMap[ euid ] = wi;
+        } else {  // entity is already here
+            if( wght < i->second->first )  { // if this occurence has higher weight 
+                d_weightMap.erase( i->second );
+                EntWeightMap::iterator wi = d_weightMap.insert( EntWeightMap::value_type(wght, euid) );
+                i->second = wi;
+            } else { // else we skip it
+            }
+        }
+        if( d_weightMap.size() > d_maxEnt ) {
+            EntWeightMap::reverse_iterator ri = d_weightMap.rend();
+            EntIdMap::iterator idMapIter = d_entMap.find( ri->second );
+            EntWeightMap::iterator fwdIter = ri.base();
+            if( idMapIter->second != fwdIter ) { // should never happen
+                AYLOG(ERROR) << "BestEntities inconsistency";
+            }
+            d_entMap.erase(idMapIter);
+            d_weightMap.erase(fwdIter);
+        }
+    }
+    const EntWeightMap& getEntitiesAndWeights() const 
+        { return d_weightMap; }
+    void clear() { 
+        d_entMap.clear();
+        d_weightMap.clear();
+    }
+};
+/// end of best entities 
 
 };
 

@@ -446,18 +446,101 @@ static int bshf_greed( BarzerShell* shell, char_cp cmd, std::istream& in )
 }
 
 namespace {
+
+/// g
+struct AutocNodeVisotor_Callback {
+    const QParser& parser;
+    const StoredUniverse& universe;
+    const BarzelTrieTraverser_depth * d_traverser;
+    // this object will accumulate best entities by weight (up to a certain number)
+    BestEntities* d_bestEnt;
+
+    AutocNodeVisotor_Callback( const QParser& p ) :
+        parser(p), universe(parser.getUniverse()) , d_traverser(0), d_bestEnt(0)
+    {}
+    
+    void setBestEntities( BestEntities* be ) { d_bestEnt= be;  }
+
+    void setTraverser( const BarzelTrieTraverser_depth * t ) { d_traverser= t; }
+
+    bool operator()( const BarzelTrieNode& tn )
+    {
+        if( !d_traverser )
+            return true;
+        const BELTrie& trie = d_traverser->getTrie();
+        
+        const BarzelTranslation* translation = trie.getBarzelTranslation(tn);
+
+        if( translation ) {
+            size_t pathLength = d_traverser->getStackDepth();
+
+            std::cerr << "leaf " << &tn << ":";
+            BTND_RewriteData rwrData; 
+            translation->fillRewriteData(rwrData);
+
+            if( rwrData.which() == BTND_Rewrite_MkEnt_TYPE ) {
+                BTND_Rewrite_MkEnt mkent = boost::get<BTND_Rewrite_MkEnt>(rwrData);
+                if( mkent.isValid() ) {
+                    if( mkent.isSingleEnt() ) { // single entity 
+                        uint32_t entId = mkent.getEntId();
+                        const StoredEntity * se = universe.getDtaIdx().getEntById( entId );
+                        if( se ) {  // redundant check but it's safer this way 
+                            const BarzerEntity& euid = se->getEuid();
+                            if( d_bestEnt ) 
+                                d_bestEnt->addEntity( euid, pathLength );
+                        }
+                    } else { // entity list
+                        uint32_t entGroupId = mkent.getEntGroupId();
+                        const EntityGroup* entGrp = trie.getEntGroupById( entGroupId );
+
+		                if( entGrp ) {
+			                // building entity list
+			                BarzerEntityList entList;
+			                for( EntityGroup::Vec::const_iterator i = entGrp->getVec().begin(); i!= entGrp->getVec().end(); ++i )
+			                {
+				                const StoredEntity * se = universe.getDtaIdx().getEntById( *i );
+                                if( se ) {
+				                    const BarzerEntity& euid = se->getEuid();
+                                    if( d_bestEnt ) 
+                                        d_bestEnt->addEntity( euid, pathLength );
+                                }
+			                }
+		                }
+                    }
+                }  else {
+                    // invalid entity 
+                }
+            } else{
+                std::cerr << "NON ENTITY";
+            }
+            std::cerr << "\n";
+        } else {
+            std::cerr << ".. NON-LEAF NODE\n";
+        }
+        return true;
+    }
+};
+
+template <typename T>
 struct AutocCallback {
     QParser& parser;
     std::ostream& fp;
+    
+    T* nodeVisitorCB;
 
 	BELPrintFormat fmt;
 
-    AutocCallback( QParser& p, std::ostream& os, const BELTrie& trie ) :
-        parser(p), fp(os) 
-
+    AutocCallback( QParser& p, std::ostream& os ) :
+        parser(p), fp(os) , nodeVisitorCB(0)
     {}
+    const T* nodeVisitorCB_get() const { return nodeVisitorCB; }
+    T* nodeVisitorCB_get() { return nodeVisitorCB; }
+    void nodeVisitorCB_set( T* t ) { nodeVisitorCB=t; }
+
+
     void operator() ( const BTMIterator& bmi ) {
-        BELPrintContext printCtxt( bmi.getTrie(), parser.getUniverse().getStringPool(), fmt );
+        const BELTrie& theTrie = bmi.getTrie();
+        BELPrintContext printCtxt( theTrie, parser.getUniverse().getStringPool(), fmt );
         const NodeAndBeadVec& nb = bmi.getMatchPath();
         if( nb.size() ) {
         bool hadSomething = false;
@@ -469,7 +552,15 @@ struct AutocCallback {
                     hadSomething= true;
             // }
         }
-        fp << " " << nb.back().first;
+        const BarzelTrieNode* lastNode = nb.back().first;
+        fp << " " << lastNode;
+        if( nodeVisitorCB ) {
+            BarzelTrieTraverser_depth trav( theTrie );
+            nodeVisitorCB->setTraverser( &trav );
+            (*nodeVisitorCB)( *lastNode );
+
+            trav.traverse( *nodeVisitorCB, *lastNode );
+        }
         if( hadSomething ) 
             fp << "\n*******\n";
         }
@@ -484,9 +575,10 @@ static int bshf_autoc( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 	QParser parser( (context->getUniverse()) );
 
-	BarzStreamerXML bs(barz, context->getUniverse());
+    BestEntities bestEnt;
+	AutocStreamerJSON autocStreamer(bestEnt, context->getUniverse());
 
-    const BELTrie* trie=  &(context->getTrie());
+    // const BELTrie* trie=  &(context->getTrie());
 
     std::ostream& outFP = shell->getOutStream() ;
 
@@ -495,10 +587,18 @@ static int bshf_autoc( BarzerShell* shell, char_cp cmd, std::istream& in )
 	while( reader.nextLine() && reader.str.length() ) {
 		const char* q = reader.str.c_str();
 
-        AutocCallback acCB(parser, outFP, *trie );
-        MatcherCallbackGeneric<AutocCallback> cb(acCB);
+        /// this will be invoked for every qualified node 
+        AutocCallback<AutocNodeVisotor_Callback> acCB(parser, outFP );
+
+        AutocNodeVisotor_Callback nodeVisitorCB(parser);
+        nodeVisitorCB.setBestEntities( &bestEnt );
+        acCB.nodeVisitorCB_set( &nodeVisitorCB );
+
+        MatcherCallbackGeneric< AutocCallback<AutocNodeVisotor_Callback> > cb(acCB);
 	    QuestionParm qparm;
         parser.autocomplete( cb, barz, q, qparm );
+        autocStreamer.print( outFP );
+        bestEnt.clear();
 	}
     return 0;
 }

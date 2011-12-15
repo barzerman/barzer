@@ -8,9 +8,9 @@
 #include <barzer_server_response.h>
 #include <ay/ay_logger.h>
 #include <ay/ay_raii.h>
-#include <sstream>
 #include <boost/format.hpp>
 #include <barzer_universe.h>
+#include <sstream>
 
 namespace barzer {
 
@@ -473,6 +473,44 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
     printTraceInfo(os, barz, universe);
 	os << "</barz>\n";
 	return os;
+}
+
+namespace {
+std::ostream& jsonEscape(const char* tokname, std::ostream& os )
+{
+    for( const char* s = tokname; *s; ++s ) {
+        switch( *s ) {
+        case '\\': os << "\\\\"; break;
+        case '"': os << "\\\""; break;
+        default: os << *s; break;
+        }
+    }
+    return os;
+}
+
+}
+std::ostream& AutocStreamerJSON::print(std::ostream &os) const
+{
+    const BestEntities::EntWeightMap& entWMap = bestEnt.getEntitiesAndWeights();
+    os << "{data:[";
+    for( BestEntities::EntWeightMap::const_iterator i = entWMap.begin(); i!= entWMap.end(); ++i ) {
+        const BarzerEntity& euid = i->second;
+        const BestEntities_EntWeight& eweight = i->first;
+		const StoredToken *tok = universe.getDtaIdx().tokPool.getTokByIdSafe(euid.tokId);
+		if( tok ) {
+            os<< ( i != entWMap.begin() ? ",":"" ) << "\n{";
+			const char *tokname = universe.getStringPool().resolveId(tok->stringId);
+			if (tokname) {
+				jsonEscape(tokname, os << "id:\"") << "\"";
+			}
+            uint32_t eclass = euid.eclass.ec, esubclass = euid.eclass.subclass;
+            os << ",cl:\"" << std::dec << eclass<< "\"," << "sc:\"" << esubclass << 
+            "\",ord:\"" << eweight.pathLen << "." << eweight.relevance << "\"}";
+		}
+        
+    }
+    os << "\n]}\n";
+    return os;
 }
 
 }
