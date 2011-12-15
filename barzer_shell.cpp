@@ -452,6 +452,8 @@ struct AutocNodeVisotor_Callback {
     const QParser& parser;
     const StoredUniverse& universe;
     const BarzelTrieTraverser_depth * d_traverser;
+    const QSemanticParser_AutocParms* d_autocParm;
+
     // this object will accumulate best entities by weight (up to a certain number)
     BestEntities* d_bestEnt;
 
@@ -461,7 +463,12 @@ struct AutocNodeVisotor_Callback {
     
     void setBestEntities( BestEntities* be ) { d_bestEnt= be;  }
 
-    void setTraverser( const BarzelTrieTraverser_depth * t ) { d_traverser= t; }
+    void setCallbackData( const BarzelTrieTraverser_depth * t, const QSemanticParser_AutocParms* autocParm ) 
+        { 
+            d_traverser= t; 
+            if( d_autocParm !=  autocParm ) 
+                d_autocParm = autocParm;
+        }
 
     bool operator()( const BarzelTrieNode& tn )
     {
@@ -472,7 +479,7 @@ struct AutocNodeVisotor_Callback {
         const BarzelTranslation* translation = trie.getBarzelTranslation(tn);
 
         if( translation ) {
-            size_t pathLength = d_traverser->getStackDepth();
+            size_t pathLength = ( d_traverser->getStackDepth()*100 + (d_autocParm? d_autocParm->lastTokTailLength:0));
 
             // std::cerr << "leaf " << &tn << ":";
             BTND_RewriteData rwrData; 
@@ -558,7 +565,7 @@ struct AutocCallback {
         // fp << " " << lastNode;
         if( nodeVisitorCB ) {
             BarzelTrieTraverser_depth trav( theTrie );
-            nodeVisitorCB->setTraverser( &trav );
+            nodeVisitorCB->setCallbackData( &trav, bmi.getAutocParm() );
             (*nodeVisitorCB)( *lastNode );
 
             trav.traverse( *nodeVisitorCB, *lastNode );

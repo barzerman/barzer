@@ -163,7 +163,7 @@ struct BTMBestPaths {
 	}
 };
 
-
+struct QSemanticParser_AutocParms;
 // object used by the matcher
 class BTMIterator {
 public:
@@ -184,7 +184,7 @@ private:
 
 	/// pushes curPath and the accompanying bead range 
 	int addTerminalPath( const NodeAndBead& nb );
-
+    const QSemanticParser_AutocParms* d_autocParm;
 public:
 	int addTerminalPath_Autocomplete( MatcherCallback& cb, const NodeAndBead& nb );
 	int addTerminalPath_Autocomplete( MatcherCallback& cb );
@@ -205,14 +205,22 @@ public:
     bool mode_is_Normal() const { return (d_mode==ITMODE_NORMAL); }
     
     void mode_set_Normal() { d_mode= ITMODE_NORMAL; }
-    void mode_set_Autocomplete() { d_mode= ITMODE_AUTOCOMPLETE; }
+    const QSemanticParser_AutocParms* getAutocParm() const { return d_autocParm; }
+    void mode_set_Autocomplete( const QSemanticParser_AutocParms* autocParm) { 
+        d_mode= ITMODE_AUTOCOMPLETE; 
+        if( autocParm ) 
+            d_autocParm= autocParm;
+    }
 
 	BTMIterator( const BeadRange& rng, const StoredUniverse& u, const BELTrie& trie ) : 
 		d_trie(trie),
         d_mode(ITMODE_NORMAL),
+        d_autocParm(0),
 		bestPaths(rng,u,trie),
 		universe(u)
 	{ }
+    void autocParm_set( QSemanticParser_AutocParms* acp ) { d_autocParm= acp; }
+
 	void findPaths( const BarzelTrieNode* trieNode)
 		{ matchBeadChain( bestPaths.getFullRange(), trieNode ); }
 	
@@ -293,7 +301,7 @@ public:
 	/// and modifies the beads
 	// returns the number of successful rewrites
 	virtual int matchAndRewrite( Barz& );
-    size_t match_Autocomplete( MatcherCallback& cb, Barz& );
+    size_t match_Autocomplete( MatcherCallback& cb, Barz&, const QSemanticParser_AutocParms& autocParm );
 
 	virtual void clear() 
 	{

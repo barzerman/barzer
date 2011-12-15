@@ -9,6 +9,8 @@
 
   <stmt n="1"> <pat> <t>moo</t> </pat> <tran> <mkent c="10" s="20" i="moo"/> </tran> </stmt>
   <stmt n="2"> <pat> <t>zoomo</t> </pat> <tran> <mkent c="10" s="20" i="zoomo"/> </tran> </stmt>
+  <stmt n="2"> <pat> <t>zoom</t> </pat> <tran> <mkent c="10" s="20" i="zoom"/> </tran> </stmt>
+  <stmt n="2"> <pat> <t>zoo</t> </pat> <tran> <mkent c="10" s="20" i="shitzoo"/> </tran> </stmt>
   <stmt n="2"> <pat> <t>zoo</t><t>a</t> </pat> <tran> <mkent c="10" s="20" i="zoo"/> </tran> </stmt>
   <stmt n="3"> <pat> <t>zoo</t><t>b</t> </pat> <tran> <mkent c="10" s="20" i="zoo2" tc="20" ts="1" ti="abc"/> </tran> </stmt>
   <stmt n="4"> <pat> <t>zoo</t><t>c</t> </pat> <tran> <mkent c="10" s="20" i="zoo3"/> </tran> </stmt>

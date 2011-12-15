@@ -1061,7 +1061,7 @@ int BarzelMatcher::matchInRange( RewriteUnit& rwrUnit, const BeadRange& curBeadR
 	return score;
 }
 
-size_t BarzelMatcher::match_Autocomplete( MatcherCallback& cb, Barz& barz ) 
+size_t BarzelMatcher::match_Autocomplete( MatcherCallback& cb, Barz& barz, const QSemanticParser_AutocParms& autocParm ) 
 {
 	BELTrie::ReadLock r_lock(d_trie.getThreadLock());
 	// clear();
@@ -1073,7 +1073,7 @@ size_t BarzelMatcher::match_Autocomplete( MatcherCallback& cb, Barz& barz )
 	const BarzelTrieNode* trieRoot = &(d_trie.getRoot());
 
 	BTMIterator btmi(curBeadRange,universe,d_trie);	
-    btmi.mode_set_Autocomplete();
+    btmi.mode_set_Autocomplete(&autocParm);
 	btmi.matchBeadChain_Autocomplete(cb, curBeadRange, trieRoot);
 	
 	// btmi.bestPaths.setRewriteUnit( rwrUnit );

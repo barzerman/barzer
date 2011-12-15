@@ -111,7 +111,7 @@ int Barz::parse_Autocomplete( MatcherCallback& cb, QSemanticParser& sem, const Q
         BeadList::reverse_iterator bi = lst.rbegin();
 
         {
-            sem.parse_Autocomplete( cb, *this, qparm );
+            sem.parse_Autocomplete( cb, *this, qparm, QSemanticParser_AutocParms() );
             CTWPVec& ctVec = bi->getCTokens(); 
             if( ctVec.size() == 1 ) {
                 CToken& ctok = ctVec.front().first;
@@ -135,7 +135,9 @@ int Barz::parse_Autocomplete( MatcherCallback& cb, QSemanticParser& sem, const Q
                             if( stok ) {
                                 ctok.setStoredTok_raw( stok );
                                 bi->initFromCTok( ctok );
-                                sem.parse_Autocomplete( cb, *this, qparm );
+                                uint32_t str_len = strlen(str);
+                                QSemanticParser_AutocParms autocParm( (str_len>ttok.len) ? (str_len-ttok.len): 0 );
+                                sem.parse_Autocomplete( cb, *this, qparm, autocParm );
                             }
                         }
                     }

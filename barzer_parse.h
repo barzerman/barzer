@@ -9,6 +9,15 @@ class StoredUniverse;
 
 class UniverseTrieCluster;
 
+/// autocomplete 
+struct QSemanticParser_AutocParms {
+
+    /// length of the remainder of the last token
+    /// if prefix ends with abc and the partial search located abcDEF
+    /// this value will be 3, for exact match - 0
+    uint32_t lastTokTailLength; 
+    QSemanticParser_AutocParms( uint32_t lttl = 0 ) : lastTokTailLength(lttl) {}
+};
 class QSemanticParser {
 protected:
 	const StoredUniverse& universe;
@@ -18,7 +27,7 @@ public:
 	struct Error : public QPError { } err;
 
     int semanticize_trieList( const UniverseTrieCluster& trieCluster, Barz& barz, const QuestionParm& qparm  );
-	virtual int parse_Autocomplete( MatcherCallback& cb, Barz&, const QuestionParm&  );
+	virtual int parse_Autocomplete( MatcherCallback& cb, Barz&, const QuestionParm&, const QSemanticParser_AutocParms& autocParm  );
 	virtual int semanticize( Barz&, const QuestionParm&  );
 	virtual int analyzeTopics( Barz&, const QuestionParm&  );
 	QSemanticParser( const StoredUniverse& u) : 

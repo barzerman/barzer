@@ -79,7 +79,7 @@ bool QSemanticParser::needTopicAnalyzis() const
     return universe.hasTopics();
 }
 
-int QSemanticParser::parse_Autocomplete( MatcherCallback& cb,Barz& barz, const QuestionParm& qparm  )
+int QSemanticParser::parse_Autocomplete( MatcherCallback& cb,Barz& barz, const QuestionParm& qparm, const QSemanticParser_AutocParms& autocParm  )
 {
     err.clear();
 	const UniverseTrieCluster& trieCluster = universe.getTrieCluster();
@@ -92,7 +92,7 @@ int QSemanticParser::parse_Autocomplete( MatcherCallback& cb,Barz& barz, const Q
             // this handles the terminators 
             // barz.getBeads().clearUnmatchable();        
 		    BarzelMatcher barzelMatcher( universe, t->trie() );
-		    barzelMatcher.match_Autocomplete( cb, barz );
+		    barzelMatcher.match_Autocomplete( cb, barz, autocParm );
 
             ++grammarSeqNo; 
         } else {
