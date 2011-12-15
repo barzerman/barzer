@@ -474,7 +474,7 @@ struct AutocNodeVisotor_Callback {
         if( translation ) {
             size_t pathLength = d_traverser->getStackDepth();
 
-            std::cerr << "leaf " << &tn << ":";
+            // std::cerr << "leaf " << &tn << ":";
             BTND_RewriteData rwrData; 
             translation->fillRewriteData(rwrData);
 
@@ -511,11 +511,11 @@ struct AutocNodeVisotor_Callback {
                     // invalid entity 
                 }
             } else{
-                std::cerr << "NON ENTITY";
+                // std::cerr << "NON ENTITY";
             }
-            std::cerr << "\n";
+            // std::cerr << "\n";
         } else {
-            std::cerr << ".. NON-LEAF NODE\n";
+            // std::cerr << ".. NON-LEAF NODE\n";
         }
         return true;
     }
@@ -543,6 +543,7 @@ struct AutocCallback {
         BELPrintContext printCtxt( theTrie, parser.getUniverse().getStringPool(), fmt );
         const NodeAndBeadVec& nb = bmi.getMatchPath();
         if( nb.size() ) {
+        /*
         bool hadSomething = false;
         for( NodeAndBeadVec::const_iterator i = nb.begin(); i!= nb.end(); ++i ) {
             // i->first->print( fp, printCtxt );
@@ -552,8 +553,9 @@ struct AutocCallback {
                     hadSomething= true;
             // }
         }
+        */
         const BarzelTrieNode* lastNode = nb.back().first;
-        fp << " " << lastNode;
+        // fp << " " << lastNode;
         if( nodeVisitorCB ) {
             BarzelTrieTraverser_depth trav( theTrie );
             nodeVisitorCB->setTraverser( &trav );
@@ -561,8 +563,8 @@ struct AutocCallback {
 
             trav.traverse( *nodeVisitorCB, *lastNode );
         }
-        if( hadSomething ) 
-            fp << "\n*******\n";
+        //if( hadSomething ) 
+            //fp << "\n*******\n";
         }
     }
 };
@@ -581,6 +583,20 @@ static int bshf_autoc( BarzerShell* shell, char_cp cmd, std::istream& in )
     // const BELTrie* trie=  &(context->getTrie());
 
     std::ostream& outFP = shell->getOutStream() ;
+	std::string fname;
+
+	std::ostream *ostr = &(outFP);
+	std::ofstream ofile;
+
+    size_t numIterations = 1;
+	if (in >> fname) {
+        if( is_all_digits(fname.c_str()) ) {
+            numIterations = atoi( fname.c_str() );
+        } else {
+            ofile.open(fname.c_str());
+            ostr = &ofile;
+        }
+	}
 
 
 	ay::InputLineReader reader( in );
@@ -588,17 +604,22 @@ static int bshf_autoc( BarzerShell* shell, char_cp cmd, std::istream& in )
 		const char* q = reader.str.c_str();
 
         /// this will be invoked for every qualified node 
-        AutocCallback<AutocNodeVisotor_Callback> acCB(parser, outFP );
+	    ay::stopwatch localTimer;
+        for( size_t i = 0; i< numIterations; ++i ) {
+            AutocCallback<AutocNodeVisotor_Callback> acCB(parser, outFP );
 
-        AutocNodeVisotor_Callback nodeVisitorCB(parser);
-        nodeVisitorCB.setBestEntities( &bestEnt );
-        acCB.nodeVisitorCB_set( &nodeVisitorCB );
-
-        MatcherCallbackGeneric< AutocCallback<AutocNodeVisotor_Callback> > cb(acCB);
-	    QuestionParm qparm;
-        parser.autocomplete( cb, barz, q, qparm );
-        autocStreamer.print( outFP );
-        bestEnt.clear();
+            AutocNodeVisotor_Callback nodeVisitorCB(parser);
+            nodeVisitorCB.setBestEntities( &bestEnt );
+            acCB.nodeVisitorCB_set( &nodeVisitorCB );
+    
+            MatcherCallbackGeneric< AutocCallback<AutocNodeVisotor_Callback> > cb(acCB);
+	        QuestionParm qparm;
+            parser.autocomplete( cb, barz, q, qparm );
+            if( !i )
+                autocStreamer.print( outFP );
+            bestEnt.clear();
+        }
+        std::cerr << numIterations << " iterations done in " << localTimer.calcTime() << " seconds\n";
 	}
     return 0;
 }

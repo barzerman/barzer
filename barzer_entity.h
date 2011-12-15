@@ -208,17 +208,20 @@ public:
                 EntWeightMap::iterator wi = d_weightMap.insert( EntWeightMap::value_type(wght, euid) );
                 i->second = wi;
             } else { // else we skip it
+                return;
             }
+            
         }
         if( d_weightMap.size() > d_maxEnt ) {
-            EntWeightMap::reverse_iterator ri = d_weightMap.rend();
-            EntIdMap::iterator idMapIter = d_entMap.find( ri->second );
-            EntWeightMap::iterator fwdIter = ri.base();
+            EntWeightMap::iterator fwdIter = d_weightMap.end();
+            --fwdIter;
+            EntIdMap::iterator idMapIter = d_entMap.find( fwdIter->second );
             if( idMapIter->second != fwdIter ) { // should never happen
                 AYLOG(ERROR) << "BestEntities inconsistency";
+            } else {
+                d_entMap.erase(idMapIter);
+                d_weightMap.erase(fwdIter);
             }
-            d_entMap.erase(idMapIter);
-            d_weightMap.erase(fwdIter);
         }
     }
     const EntWeightMap& getEntitiesAndWeights() const 
