@@ -173,7 +173,7 @@ struct BTND_Pattern_Wildcard : public BTND_Pattern_Base {
 
     uint32_t getType() const { return d_type; } 
 
-    bool isType( int x ) const {
+    bool isType( uint32_t x ) const {
         return (d_type==x);
     }
 	bool isLessThan( const BTND_Pattern_Wildcard& r ) const

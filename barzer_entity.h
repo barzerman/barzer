@@ -1,7 +1,7 @@
 #ifndef BARZER_ENTITY_H 
 #define BARZER_ENTITY_H 
 #include <map>
-// #include <boost/unordered_map.hpp> 
+#include <boost/unordered_map.hpp>
 #include <ay/ay_logger.h>
 
 namespace barzer {
@@ -177,20 +177,28 @@ inline bool operator <( const BestEntities_EntWeight& l, const BestEntities_EntW
 {
     return ( l.pathLen < r.pathLen ?
         true :
-        l.relevance < r.relevance 
+        r.relevance < l.relevance 
     );
 }
+
+struct StoredEntityUniqId_Hash {
+    long operator() ( const StoredEntityUniqId& euid ) const 
+    {
+        return( euid.tokId + euid.eclass.ec + euid.eclass.subclass );
+    }
+};
 
 class BestEntities {
     uint32_t d_maxEnt; 
 
 public: 
-    enum { DEFAULT_MAX_ENT = 128 };
+    enum { DEFAULT_MAX_ENT = 64 };
     typedef std::multimap< BestEntities_EntWeight, StoredEntityUniqId > EntWeightMap;
     
 private:
     EntWeightMap d_weightMap;
-    typedef std::map< StoredEntityUniqId, EntWeightMap::iterator > EntIdMap;
+    // typedef std::map< StoredEntityUniqId, EntWeightMap::iterator > EntIdMap;
+    typedef boost::unordered_map< StoredEntityUniqId, EntWeightMap::iterator, StoredEntityUniqId_Hash > EntIdMap;
     EntIdMap d_entMap;
 public:
     BestEntities( uint32_t mxe = DEFAULT_MAX_ENT ) : d_maxEnt(mxe) {}
@@ -199,6 +207,14 @@ public:
         EntIdMap::iterator i = d_entMap.find( euid );
 
         BestEntities_EntWeight wght( pathLen, relevance );
+
+        /// if the set is full
+        if( d_weightMap.size() >= d_maxEnt ) { 
+            // check that wght is better than the worst weight in the set 
+            EntWeightMap::reverse_iterator revI = d_weightMap.rbegin();
+            if( !(wght < revI->first) ) 
+                return;
+        }
         if( i == d_entMap.end() ) { // this entity is not stored 
             EntWeightMap::iterator wi = d_weightMap.insert( EntWeightMap::value_type(wght, euid) );
             d_entMap[ euid ] = wi;
