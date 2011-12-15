@@ -290,6 +290,8 @@ public:
 	// returns stringId of corrected word or 0xffffffff 
 	uint32_t stem( std::string& out, const char* word ) const
 		{ return ( bzSpell ? bzSpell->getStemCorrection( out, word ) : 0 ); }
+	bool isWordValidInUniverse( uint32_t word ) const
+		{ return ( bzSpell ? bzSpell->isWordValidInUniverse( word ) : true ); }
 	bool isWordValidInUniverse( const char* word ) const
 		{ return ( bzSpell ? bzSpell->isWordValidInUniverse( word ) : true ); }
 
@@ -298,6 +300,8 @@ public:
 	/// adds uer specific strings from extra file 
 	/// 
 	size_t   internString( const char*, bool asUserSpecific, uint8_t frequency );
+	bool 	 isStringUserSpecific( uint32_t id ) const
+        { return( id == 0xffffffff ? false : (userSpecificStringSet.find(id) != userSpecificStringSet.end()) ); }
 	bool 	 isStringUserSpecific( const char* s ) const
 		{ 
 			uint32_t id = gp.string_getId( s );

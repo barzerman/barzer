@@ -197,8 +197,8 @@ public:
     
 private:
     EntWeightMap d_weightMap;
-    // typedef std::map< StoredEntityUniqId, EntWeightMap::iterator > EntIdMap;
-    typedef boost::unordered_map< StoredEntityUniqId, EntWeightMap::iterator, StoredEntityUniqId_Hash > EntIdMap;
+    typedef std::map< StoredEntityUniqId, EntWeightMap::iterator > EntIdMap;
+    // typedef boost::unordered_map< StoredEntityUniqId, EntWeightMap::iterator, StoredEntityUniqId_Hash > EntIdMap;
     EntIdMap d_entMap;
 public:
     BestEntities( uint32_t mxe = DEFAULT_MAX_ENT ) : d_maxEnt(mxe) {}

@@ -2,16 +2,10 @@
 
 namespace barzer {
 
-void BarzelBead::init( const CTWPVec::value_type& v )
+void BarzelBead::initFromCTok( const CToken& ct )
 {
-
-	ctokOrigVec.clear();
-	ctokOrigVec.push_back( v );
 	dta = BarzelBeadAtomic();
-
 	BarzelBeadAtomic &a = boost::get< BarzelBeadAtomic >( dta );
-
-	const CToken& ct = v.first;
 	switch( ct.getCTokenClass() ) {
 	case CTokenClassInfo::CLASS_UNCLASSIFIED: 
 		break;
@@ -49,6 +43,15 @@ void BarzelBead::init( const CTWPVec::value_type& v )
 		boost::get<BarzerLiteral>(a.dta).setBlank();
 		break;
 	}
+}
+void BarzelBead::init( const CTWPVec::value_type& v )
+{
+
+	ctokOrigVec.clear();
+	ctokOrigVec.push_back( v );
+
+	const CToken& ct = v.first;
+    initFromCTok(ct);
 }
 
 namespace {

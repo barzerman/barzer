@@ -25,6 +25,7 @@ public:
 		universe(u)
 	{}
 	virtual ~QSemanticParser() {}
+    const StoredUniverse& getUniverse() const { return universe; }
 };
 
 /// invokes tokenizer, lex parser and semantical parser 

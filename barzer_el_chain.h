@@ -187,6 +187,7 @@ public:
 	BarzelBead() : d_unmatchable(0){}
 	const BarzelBeadData& getBeadData() const { return dta; }
 	void init(const CTWPVec::value_type&) ;
+    void initFromCTok( const CToken& ct );
 	BarzelBead(const CTWPVec::value_type& ct) : d_unmatchable(0)
 		{ init(ct); }
 	/// implement:
@@ -287,6 +288,8 @@ public:
 		return true;
 	}
 	const CTWPVec& getCTokens() const 
+		{ return ctokOrigVec; }
+	CTWPVec& getCTokens() 
 		{ return ctokOrigVec; }
 }; 
 

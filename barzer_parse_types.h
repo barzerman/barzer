@@ -121,6 +121,13 @@ struct CToken {
 
 	CToken( ) : storedTok(0), stemTok(0) {}
 
+    // this is for autocomplete only. do not use it 
+    void setStoredTok_raw( const StoredToken* st ) 
+        { 
+            storedTok = st;
+            stemTok = 0;
+            cInfo.theClass = CTokenClassInfo::CLASS_WORD;
+        }
 	std::ostream& print( std::ostream& fp ) const;
 	std::ostream& printQtVec( std::ostream& fp ) const;
 
@@ -133,6 +140,12 @@ struct CToken {
 	bool isPunct() const { return cInfo.theClass == CTokenClassInfo::CLASS_PUNCTUATION; }
 	bool isPunct(char c) const { return ( isPunct() && qtVec.size() == 1 && qtVec[0].first.buf[0] == c ); }
 
+    bool isString() const {
+        return( 
+            cInfo.theClass == CTokenClassInfo::CLASS_WORD ||
+            cInfo.theClass == CTokenClassInfo::CLASS_MYSTERY_WORD
+        );
+    }
 	bool isPunct(const char* s) const { return ( isPunct() && qtVec.size() == 1 && strchr(s,qtVec[0].first.buf[0]) ); }
     char  getPunct() { return ( (isPunct() && qtVec.size() == 1) ? qtVec[0].first.buf[0] : 0 ) ; }
 

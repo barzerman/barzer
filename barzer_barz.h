@@ -177,6 +177,7 @@ public:
 		return rv;
 	}
     const BeadList& getBeadList() const { return beadChain.lst; }
+    BeadList& getBeadList() { return beadChain.lst; }
 };
 }
 #endif // BARZER_BARZ_h

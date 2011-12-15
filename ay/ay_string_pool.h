@@ -42,13 +42,14 @@ public:
 	enum { 
 		ID_NOTFOUND = 0xffffffff 
 	};
+	typedef std::map< char_cp, StrId, ay::char_cp_compare_less > CharIdMap;
 private:
 	char_cp_vec idVec; // idVec[StrId] is the char_cp
-	typedef std::map< char_cp, StrId, ay::char_cp_compare_less > CharIdMap;
 	CharIdMap idMap;
 	// map_by_char_cp<StrId>::Type idMap; // idMap[char_cp] returns id 
 		// ID_NOTFOUND when string cant be found
 public: 
+    const CharIdMap& getCharIdMap() const { return idMap; }
 	void clear() 
 	{
 		idMap.clear();

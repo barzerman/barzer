@@ -133,6 +133,10 @@ public:
 
 	bool isWordValidInUniverse( const char* word ) const;
 
+    bool isWordValidInUniverse( uint32_t  strId ) const
+        { return ( strId == 0xffffffff ? false: (d_wordinfoMap.find( strId ) != d_wordinfoMap.end()) ) ; }
+
+
 	// for each primary spellchecker depth gets incremented by 1 
 	// returns string id of the best match
 	uint32_t getBestWord( uint32_t strId, WordInfoAndDepth& wid ) const;

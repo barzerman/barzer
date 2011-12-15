@@ -161,9 +161,9 @@ int QParser::autocomplete( MatcherCallback& cb, Barz& barz, const char* q, const
 {
     barz.clear();
     tokenize_only(barz,q,qparm);
-	err.lexRc = barz.classifyTokens( lexer, qparm );
-    // lex_only( barz, qparm );
 
+	err.lexRc = barz.classifyTokens( lexer, qparm );
+    
     barz.parse_Autocomplete( cb, semanticizer, qparm  );
 
     return 0;

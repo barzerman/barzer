@@ -105,7 +105,45 @@ int Barz::analyzeTopics( QSemanticParser& sem, const QuestionParm& qparm )
 int Barz::parse_Autocomplete( MatcherCallback& cb, QSemanticParser& sem, const QuestionParm& qparm )
 {
 	beadChain.init(ctVec);
-	return sem.parse_Autocomplete( cb, *this, qparm );
+
+    BeadList& lst = getBeadList();
+    if( !lst.empty()  ) {
+        BeadList::reverse_iterator bi = lst.rbegin();
+
+        {
+            sem.parse_Autocomplete( cb, *this, qparm );
+            CTWPVec& ctVec = bi->getCTokens(); 
+            if( ctVec.size() == 1 ) {
+                CToken& ctok = ctVec.front().first;
+                if( ctok.isString() && ctok.qtVec.size()== 1 ) {
+                    TToken& ttok = ctok.qtVec[0].first;
+                    const StoredUniverse& universe = sem.getUniverse();
+                    const ay::UniqueCharPool& ucpool = universe.getGlobalPools().getStringPool();
+                    const ay::UniqueCharPool::CharIdMap& cidMap = ucpool.getCharIdMap();
+
+                    const DtaIndex& dtaIdx = universe.getDtaIdx(); 
+                    ay::UniqueCharPool::CharIdMap::const_iterator i = cidMap.lower_bound(ttok.buf);
+                    for( ;i!= cidMap.end(); ++i ) {
+                        const char* str = i->first;
+                        if( !str || strncmp(ttok.buf,str,ttok.len) ) 
+                            break;
+                        if( !str[ttok.len] )
+                            continue;
+                        uint32_t strId = i->second;
+                        if( universe.isWordValidInUniverse(strId) ) {
+                            const StoredToken* stok = dtaIdx.getStoredToken( str );
+                            if( stok ) {
+                                ctok.setStoredTok_raw( stok );
+                                bi->initFromCTok( ctok );
+                                sem.parse_Autocomplete( cb, *this, qparm );
+                            }
+                        }
+                    }
+                }
+            }
+        } 
+    }
+	return 0;
 }
 int Barz::semanticParse( QSemanticParser& sem, const QuestionParm& qparm )
 {
