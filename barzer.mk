@@ -20,6 +20,7 @@ libs = -Lay -lay -L/opt/local/lib -L/usr/lib $(LIB_HUNSPELL) \
 	-lboost_system -lboost_filesystem -lboost_thread-mt -lexpat -lstdc++
 ECHO = echo
 lib_objects = \
+barzer_autocomplete.o \
 barzer_el_function_util.o \
 barzer_bzspell.o \
 barzer_el_proc.o \

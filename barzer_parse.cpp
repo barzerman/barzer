@@ -79,10 +79,9 @@ bool QSemanticParser::needTopicAnalyzis() const
     return universe.hasTopics();
 }
 
-int QSemanticParser::parse_Autocomplete( MatcherCallback& cb,Barz& barz, const QuestionParm& qparm, const QSemanticParser_AutocParms& autocParm  )
+int QSemanticParser::parse_Autocomplete_cluster( const UniverseTrieCluster& trieCluster,MatcherCallback& cb,Barz& barz, const QuestionParm& qparm, const QSemanticParser_AutocParms& autocParm  )
 {
     err.clear();
-	const UniverseTrieCluster& trieCluster = universe.getTrieCluster();
 	const TheGrammarList& trieList = trieCluster.getTrieList();
     size_t grammarSeqNo = 0;
     std::stringstream skipsStream;
@@ -101,6 +100,29 @@ int QSemanticParser::parse_Autocomplete( MatcherCallback& cb,Barz& barz, const Q
         }
 	}
     barz.barzelTrace.skippedTriesString += skipsStream.str();
+    return 0;
+}
+int QSemanticParser::parse_Autocomplete( MatcherCallback& cb,Barz& barz, const QuestionParm& qparm, const QSemanticParser_AutocParms& autocParm  )
+{
+    if( qparm.autoc.hasSpecificTrie() ) {
+        const UniverseTrieCluster* cluster = ( qparm.autoc.needOnlyTopic()  ? 
+            &(universe.getTopicTrieCluster()) : &(universe.getTrieCluster()) );
+
+        const BELTrie* trie = cluster->getTrieByUniqueId( qparm.autoc.trieClass, qparm.autoc.trieId );
+        if( trie ) {
+            BarzelMatcher barzelMatcher( universe, *trie );
+            barzelMatcher.match_Autocomplete( cb, barz, autocParm );
+        } else {
+            return 1;
+        }
+    } else {
+        if( qparm.autoc.needTopic() ) {
+            parse_Autocomplete_cluster( universe.getTopicTrieCluster(), cb, barz, qparm, autocParm );
+        }
+        if( qparm.autoc.needRules() ) {
+            parse_Autocomplete_cluster( universe.getTrieCluster(), cb, barz, qparm, autocParm );
+        }
+    }
     return 0;
 }
 

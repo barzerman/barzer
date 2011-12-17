@@ -253,6 +253,29 @@ class LexParser;
 //// comes with every question and is passed to lexers and semanticizers 
 struct QuestionParm {
 	int lang;  // a valid LANG ID see barzer_language.h
+    struct AutocParm {
+        uint32_t trieClass, trieId;
+        
+        enum {
+            TOPICMODE_RULES_ONLY,
+            TOPICMODE_TOPICS_ONLY,
+            TOPICMODE_RULES_AND_TOPICS
+        };
+        uint32_t topicMode;
+
+        bool hasSpecificTrie() const { return( trieClass != 0xffffffff && trieId != 0xffffffff ); }
+        bool needOnlyTopic() const { return ( topicMode == TOPICMODE_TOPICS_ONLY ); }
+        bool needOnlyRules() const { return ( topicMode == TOPICMODE_RULES_ONLY ); }
+        bool needTopic() const { return ( topicMode == TOPICMODE_TOPICS_ONLY || topicMode == TOPICMODE_RULES_AND_TOPICS ); }
+        bool needRules() const { return ( topicMode == TOPICMODE_RULES_ONLY || topicMode == TOPICMODE_RULES_AND_TOPICS ); }
+
+        bool needBoth() const { return ( topicMode == TOPICMODE_RULES_AND_TOPICS ); }
+
+        void clear() { trieClass= 0xffffffff; trieId= 0xffffffff;  topicMode=TOPICMODE_RULES_ONLY; }
+        AutocParm() : trieClass(0xffffffff), trieId(0xffffffff),  topicMode(TOPICMODE_RULES_ONLY)  {}
+    } autoc;
+
+    void clear() { autoc.clear(); }
 	QuestionParm() : lang(0) {}
 };
 

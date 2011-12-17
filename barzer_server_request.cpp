@@ -10,6 +10,7 @@
 #include <boost/mem_fn.hpp>
 #include <cstdlib>
 #include <barzer_universe.h>
+#include <barzer_autocomplete.h>
 extern "C" {
 // cast to XML_StartElementHandler
 static void startElement(void* ud, const XML_Char *n, const XML_Char **a)
@@ -50,6 +51,7 @@ BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s, uint3
     gpools(gp), 
     settings(gp.getSettings()), 
     userId(uid)/* qparser(u), response(barz, u) */, 
+    d_universe(0),
     os(s)
 {
 		parser = XML_ParserCreate(NULL);
@@ -218,6 +220,22 @@ void BarzerRequestParser::tag_trie(RequestTag &tag) {
 
 }
 
+void BarzerRequestParser::raw_autoc_parse( const char* query, QuestionParm& qparm ) 
+{
+    if(!d_universe ) 
+        return ;
+	const StoredUniverse &u = *d_universe;
+	//qparser.parse( barz, getTag().body.c_str(), qparm );
+    if( !barz.topicInfo.getTopicMap().empty() ) {
+        std::cerr << "SHIT SHIT\n";
+        barz.topicInfo.computeTopTopics();
+    }
+    BarzerAutocomplete autoc( barz, u, qparm, os );
+	autoc.parse(query);
+    /// doing this just in case barz is reused 
+    barz.clearWithTraceAndTopics();
+}
+
 void BarzerRequestParser::raw_query_parse( const char* query ) 
 {
 	const GlobalPools& gp = gpools;
@@ -244,7 +262,7 @@ void BarzerRequestParser::raw_query_parse( const char* query )
 }
 
 void BarzerRequestParser::tag_topic(RequestTag &tag) {
-    if( !isParentTag("qblock") ) 
+    if( !isParentTag("qblock") && !isParentTag("autoc")) 
         return;
 
 	AttrList &attrs = tag.attrs;
@@ -269,6 +287,40 @@ void BarzerRequestParser::tag_topic(RequestTag &tag) {
     BarzerEntity topicEnt( tokId, entClass, entSubclass );
     barz.topicInfo.addTopic( topicEnt );
     barz.topicInfo.setTopicFilterMode_Strict(); 
+}
+
+void BarzerRequestParser::tag_autoc(RequestTag &tag) 
+{
+	AttrList &attrs = tag.attrs;
+	const GlobalPools& gp = gpools;
+	d_universe = gp.getUniverse(userId);
+	if( !d_universe ) {
+		os << "<error>invalid user id " << userId << "</error>\n";
+		return;
+	}
+
+	QuestionParm qparm;
+    for( AttrList::const_iterator a = attrs.begin(); a!= attrs.end(); ++a ) {
+        switch( a->first[0] ) {
+        case 'u': 
+            userId = atoi(a->second.c_str()); 
+            break;
+        case 't':
+            switch( a->first[1] ) {
+            case 'c': // trie class (optional)
+                qparm.autoc.trieClass = gp.internalString_getId( a->second.c_str());
+                break;
+            case 'i': // trie id (optional)
+                qparm.autoc.trieId = gp.internalString_getId( a->second.c_str());
+                break;
+            }
+            break;
+        }
+    }
+    d_query = tag.body.c_str();
+
+    raw_autoc_parse( d_query.c_str(), qparm );
+    d_query.clear();
 }
 
 // <qblock u="23"><topic c="20" s="1" i="abc"/><query>zoo</query></qblock>

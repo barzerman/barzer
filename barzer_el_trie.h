@@ -501,6 +501,9 @@ private:
 
     uint32_t d_trieClass_strId, d_trieId_strId;
 public:
+    typedef  std::pair< uint32_t , uint32_t > UniqueTrieId;
+    UniqueTrieId getUniqueTrieId() const 
+        { return UniqueTrieId( d_trieClass_strId, d_trieId_strId ); }
 
     uint32_t getTrieClass_strId() const { return d_trieClass_strId; }
     uint32_t getTrieId_strId() const { return d_trieId_strId; }

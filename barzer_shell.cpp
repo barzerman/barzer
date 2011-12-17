@@ -605,7 +605,6 @@ static int bshf_autoc( BarzerShell* shell, char_cp cmd, std::istream& in )
         }
 	}
 
-
 	ay::InputLineReader reader( in );
 	while( reader.nextLine() && reader.str.length() ) {
 		const char* q = reader.str.c_str();

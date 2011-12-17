@@ -27,7 +27,8 @@ public:
 	struct Error : public QPError { } err;
 
     int semanticize_trieList( const UniverseTrieCluster& trieCluster, Barz& barz, const QuestionParm& qparm  );
-	virtual int parse_Autocomplete( MatcherCallback& cb, Barz&, const QuestionParm&, const QSemanticParser_AutocParms& autocParm  );
+	int parse_Autocomplete_cluster( const UniverseTrieCluster& trieCluster, MatcherCallback& cb, Barz&, const QuestionParm&, const QSemanticParser_AutocParms& autocParm  );
+	int parse_Autocomplete( MatcherCallback& cb, Barz&, const QuestionParm&, const QSemanticParser_AutocParms& autocParm  );
 	virtual int semanticize( Barz&, const QuestionParm&  );
 	virtual int analyzeTopics( Barz&, const QuestionParm&  );
 	QSemanticParser( const StoredUniverse& u) : 

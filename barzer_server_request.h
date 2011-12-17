@@ -68,6 +68,8 @@ private:
 	GlobalPools &gpools;
 	BarzerSettings &settings;
 	uint32_t userId;
+    /// potentially changes with every query 
+    const StoredUniverse* d_universe;
 
 	std::ostream &os;
     std::string d_query; // for query block 
@@ -101,6 +103,9 @@ public:
 	void process(const char *name);
 	/// query is already stripped of the 
 	void raw_query_parse( const char* query );
+	void raw_autoc_parse( const char* query, QuestionParm& qparm );
+
+	void tag_autoc(RequestTag&);
 
 	void tag_qblock(RequestTag&);
 	void tag_query(RequestTag&);

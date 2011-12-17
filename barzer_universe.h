@@ -75,7 +75,9 @@ public:
 private:
 	TheGrammarList d_trieList;
 	friend class UniverseTrieClusterIterator;
-
+    
+    typedef std::map< BELTrie::UniqueTrieId, const BELTrie* > UniqIdTrieMap;
+    UniqIdTrieMap d_ownTrieMap;
 public: 
 	const TheGrammarList& getTrieList() const { return d_trieList; }
 
@@ -93,13 +95,22 @@ public:
             delete i->grammarInfo();
 
         d_trieList.clear(); 
+        d_ownTrieMap.clear();
     }
     ~UniverseTrieCluster() { clearList(); }
 
     void appendTriePtr( BELTrie* trie, GrammarInfo* gi ) { 
 
         d_trieList.push_back( TheGrammar(trie,gi) ); 
+        d_ownTrieMap.insert( UniqIdTrieMap::value_type( trie->getUniqueTrieId(), trie));
     }
+    const BELTrie* getTrieByUniqueId( const BELTrie::UniqueTrieId& tid ) const 
+    {
+        UniqIdTrieMap::const_iterator i = d_ownTrieMap.find(tid);
+        return ( i == d_ownTrieMap.end() ? i->second : 0 );
+    }
+    const BELTrie* getTrieByUniqueId( uint32_t tc, uint32_t tid ) const 
+        { return getTrieByUniqueId( BELTrie::UniqueTrieId(tc,tid) ); }
     void clearTries();
 };
 
@@ -427,11 +438,20 @@ public:
     const EntitySegregatorData& geEntSeg() const { return d_entSeg; }
     bool needEntitySegregation() const { return !(d_entSeg.empty()); }
     void addEntClassToSegregate( const StoredEntityClass& ec ) { d_entSeg.add(ec); }
+
+    const BELTrie* getRuleTrieByUniqueId( const BELTrie::UniqueTrieId& tid ) const
+        { return trieCluster.getTrieByUniqueId(tid); }
+    const BELTrie* getTopicTrieByUniqueId( const BELTrie::UniqueTrieId& tid ) const
+        { return topicTrieCluster.getTrieByUniqueId(tid); }
+
+    const BELTrie* getTrieByUniqueId( const BELTrie::UniqueTrieId& tid, bool topic = false ) 
+        { return( topic ? getTopicTrieByUniqueId(tid) : getRuleTrieByUniqueId(tid) ); }
+    const BELTrie* getTrieByUniqueId( uint32_t tc, uint32_t tid ) const
+        { return getRuleTrieByUniqueId( BELTrie::UniqueTrieId(tc, tid)); }
 }; 
 
 inline StoredUniverse& GlobalPools::produceUniverse( uint32_t id )
 {
-
 	StoredUniverse * p = getUniverse( id );
 	if( !p ) { 
 		p = new StoredUniverse( *this, id );
