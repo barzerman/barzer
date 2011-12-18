@@ -4,6 +4,7 @@
 #include <barzer_parse.h>
 #include <barzer_el_trie_walker.h>
 #include <barzer_universe.h>
+#include <barzer_server_response.h>
 
 namespace barzer {
 
@@ -128,6 +129,7 @@ int BarzerAutocomplete::parse( const char* q )
     BestEntities bestEnt;
     QParser parser(d_universe);
 
+
     AutocCallback<AutocNodeVisotor_Callback> acCB(parser, d_os );
 
     AutocNodeVisotor_Callback nodeVisitorCB(parser);
@@ -135,7 +137,9 @@ int BarzerAutocomplete::parse( const char* q )
     acCB.nodeVisitorCB_set( &nodeVisitorCB );
     
     MatcherCallbackGeneric< AutocCallback<AutocNodeVisotor_Callback> > cb(acCB);
+	AutocStreamerJSON autocStreamer(bestEnt, d_universe );
     parser.autocomplete( cb, d_barz, q, d_qparm );
+    autocStreamer.print( d_os );
     return 0;
 }
 

@@ -72,6 +72,7 @@ typedef std::map<std::string,ReqTagFunc> TagFunMap;
 #define CMDFUN(n) (#n, boost::mem_fn(&BarzerRequestParser::tag_##n))
 static const ReqTagFunc* getCmdFunc(std::string &name) {
 	static TagFunMap funmap = boost::assign::map_list_of
+			CMDFUN(autoc)
 			CMDFUN(qblock)
 			CMDFUN(query)
 			CMDFUN(cmd)
