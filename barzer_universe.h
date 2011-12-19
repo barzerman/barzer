@@ -246,8 +246,9 @@ class BZSpell;
 
 class StoredUniverse {
 	uint32_t d_userId;
+public:
 	GlobalPools& gp;
-
+private:
 	UniverseTrieCluster          trieCluster; 
 	UniverseTrieCluster          topicTrieCluster; 
 

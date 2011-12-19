@@ -19,10 +19,10 @@ struct AutocNodeVisotor_Callback {
 
     // this object will accumulate best entities by weight (up to a certain number)
     BestEntities* d_bestEnt;
-    const GlobalPools& gp;
+    // const GlobalPools& gp;
 
     AutocNodeVisotor_Callback( const QParser& p ) :
-        parser(p), universe(parser.getUniverse()) , d_traverser(0), d_bestEnt(0),gp(universe.getGlobalPools())
+        parser(p), universe(parser.getUniverse()) , d_traverser(0), d_bestEnt(0)
     {}
     
     void setBestEntities( BestEntities* be ) { d_bestEnt= be;  }
@@ -59,8 +59,14 @@ struct AutocNodeVisotor_Callback {
                             const BarzerEntity& euid = se->getEuid();
 
                             if( d_bestEnt ) {
-                                const EntityData::EntProp* edata = gp.entData.getEntPropData( euid );
-                                uint32_t relevance = ( edata ? edata->relevance : 0 );
+                                const EntityData::EntProp* edata = universe.gp.entData.getEntPropData( euid );
+                                uint32_t relevance;
+                                // std::cerr << "SHITFUCK:" << euid << ":" << &(universe.gp) << "\n";
+                                if( edata ) 
+                                    relevance = edata->relevance;
+                                else 
+                                    relevance = 0;
+
                                 d_bestEnt->addEntity( euid, pathLength,relevance );
                             }
                         }
@@ -76,8 +82,13 @@ struct AutocNodeVisotor_Callback {
                                 if( se ) {
 				                    const BarzerEntity& euid = se->getEuid();
                                     if( d_bestEnt ) {
-                                        const EntityData::EntProp* edata = gp.entData.getEntPropData( euid );
-                                        uint32_t relevance = ( edata ? edata->relevance : 0 );
+                                        const EntityData::EntProp* edata = universe.gp.entData.getEntPropData( euid );
+                                        uint32_t relevance ;
+                                        // std::cerr << "SHITFUCK 87:" << euid << "\n";
+                                        if( edata ) {
+                                            relevance = edata->relevance;
+                                        } else 
+                                            relevance = 0;
                                         d_bestEnt->addEntity( euid, pathLength,relevance );
                                     }
                                 }
