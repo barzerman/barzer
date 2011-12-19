@@ -294,17 +294,17 @@ void BarzerRequestParser::tag_autoc(RequestTag &tag)
 {
 	AttrList &attrs = tag.attrs;
 	const GlobalPools& gp = gpools;
-	d_universe = gp.getUniverse(userId);
-	if( !d_universe ) {
-		os << "<error>invalid user id " << userId << "</error>\n";
-		return;
-	}
 
 	QuestionParm qparm;
     for( AttrList::const_iterator a = attrs.begin(); a!= attrs.end(); ++a ) {
         switch( a->first[0] ) {
         case 'u': 
             userId = atoi(a->second.c_str()); 
+            d_universe = gp.getUniverse(userId);
+            if( !d_universe ) {
+                os << "<error>invalid user id " << userId << "</error>\n";
+                return;
+            }
             break;
         case 't':
             switch( a->first[1] ) {
