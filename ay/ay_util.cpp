@@ -127,4 +127,65 @@ int umlautsToAscii( std::string& dest, const char* s )
 	return numDiacritics;
 }
 
+    void FileReader::setBufSz( size_t newSz ) 
+    {
+        if( newSz != d_buf_sz ) {
+            d_buf_sz = newSz;
+            d_buf = static_cast<char*>( realloc( d_buf, d_buf_sz ) );
+        }
+    }
+    FILE* FileReader::openFile( const char* fname) 
+    {
+        if( d_file && d_file != stdin) {
+            fclose(d_file);
+            d_file=0;
+        }
+        if( !fname ) 
+            d_file = stdin;
+        else 
+            d_file = fopen( fname, "r" );
+        return d_file;
+    }
+    FileReader::FileReader( char sep, size_t bufSz): 
+        d_buf_sz(bufSz), 
+        d_buf( static_cast<char*>(malloc(DEFAULT_MAX_LINE_WIDTH))),
+        d_file(0) ,
+        d_separator('|'),
+        d_comment('#')
+    {}
+    FileReader::~FileReader() { 
+        if( d_buf ) free(d_buf); 
+        if( d_file != stdin && d_file ) {
+            fclose(d_file);
+        }
+    }
+    
+
 } // end of ay namespace 
+#ifdef AY_UTIL_TEST_MAIN
+namespace {
+
+struct FileReaderCallback {
+
+    int operator()( ay::FileReader& fr ) {
+        const std::vector< const char* >& tok = fr.tok();
+        std::cerr << tok.size() << " tokens: {";
+        for( std::vector< const char* >::const_iterator i = tok.begin(); i!= tok.end(); ++i ) {
+            std::cerr << '"' << *i << '"' << ',';
+        }
+        std::cerr << "}\n";
+        return 0;
+    }
+};
+
+}
+int main( int argc, char* argv[] ) 
+{
+    const char* fname = ( argc> 1 ? argv[1] : 0 );
+    ay::FileReader fr;
+    FileReaderCallback cb;
+    fr.readFile( cb, fname );
+    return 0;
+}
+#endif 
+

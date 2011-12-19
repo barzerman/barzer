@@ -38,6 +38,7 @@ set(EXTRA_LIBS ${EXTRA_LIBS}
                ay)
 
 set(SOURCES barzer_barz.cpp
+            barzer_entity.cpp
             barzer_basic_types.cpp
             barzer_datelib.cpp
             barzer_date_util.cpp

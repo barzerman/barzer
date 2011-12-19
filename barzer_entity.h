@@ -3,6 +3,8 @@
 #include <map>
 #include <boost/unordered_map.hpp>
 #include <ay/ay_logger.h>
+#include <ay/ay_string_pool.h>
+#include <ay/ay_util.h>
 
 namespace barzer {
 
@@ -197,8 +199,8 @@ public:
     
 private:
     EntWeightMap d_weightMap;
-    typedef std::map< StoredEntityUniqId, EntWeightMap::iterator > EntIdMap;
-    // typedef boost::unordered_map< StoredEntityUniqId, EntWeightMap::iterator, StoredEntityUniqId_Hash > EntIdMap;
+    // typedef std::map< StoredEntityUniqId, EntWeightMap::iterator > EntIdMap;
+    typedef boost::unordered_map< StoredEntityUniqId, EntWeightMap::iterator, StoredEntityUniqId_Hash > EntIdMap;
     EntIdMap d_entMap;
 public:
     BestEntities( uint32_t mxe = DEFAULT_MAX_ENT ) : d_maxEnt(mxe) {}
@@ -248,7 +250,32 @@ public:
     }
 };
 /// end of best entities 
+class GlobalPools;
+/// entity names, relevance scores etc
+class EntityData {
+    ay::CharPool d_namePool;
+public:
+    struct EntProp {
+        std::string  canonicName;
+        uint32_t     relevance;
 
+        EntProp() : relevance(0) {}
+        EntProp( const char* n, uint32_t r ) : canonicName(n), relevance(r) {}
+    };
+    typedef boost::unordered_map< StoredEntityUniqId, EntProp, StoredEntityUniqId_Hash > EntPropDtaMap;
+private:
+    EntPropDtaMap d_autocDtaMap;
+public:
+    void setEntPropData( const StoredEntityUniqId& euid, const char* name, uint32_t rel ) 
+    {
+        EntPropDtaMap::iterator i = d_autocDtaMap.insert( EntPropDtaMap::value_type(euid,EntProp()) ).first;
+        i->second.canonicName.assign(name);
+        i->second.relevance = rel;
+    }
+    const EntProp* getEntPropData( const StoredEntityUniqId& euid ) const 
+        { EntPropDtaMap::const_iterator i = d_autocDtaMap.find( euid ); return ( i==d_autocDtaMap.end()? 0 : &(i->second) ); }
+    size_t readFromFile( GlobalPools& gp, const char* fname ) ;
 };
+} // namespace
 
 #endif // BARZER_ENTITY_H 

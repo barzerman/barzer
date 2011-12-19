@@ -19,9 +19,10 @@ struct AutocNodeVisotor_Callback {
 
     // this object will accumulate best entities by weight (up to a certain number)
     BestEntities* d_bestEnt;
+    const GlobalPools& gp;
 
     AutocNodeVisotor_Callback( const QParser& p ) :
-        parser(p), universe(parser.getUniverse()) , d_traverser(0), d_bestEnt(0)
+        parser(p), universe(parser.getUniverse()) , d_traverser(0), d_bestEnt(0),gp(universe.getGlobalPools())
     {}
     
     void setBestEntities( BestEntities* be ) { d_bestEnt= be;  }
@@ -56,8 +57,12 @@ struct AutocNodeVisotor_Callback {
                         const StoredEntity * se = universe.getDtaIdx().getEntById( entId );
                         if( se ) {  // redundant check but it's safer this way 
                             const BarzerEntity& euid = se->getEuid();
-                            if( d_bestEnt ) 
-                                d_bestEnt->addEntity( euid, pathLength );
+
+                            if( d_bestEnt ) {
+                                const EntityData::EntProp* edata = gp.entData.getEntPropData( euid );
+                                uint32_t relevance = ( edata ? edata->relevance : 0 );
+                                d_bestEnt->addEntity( euid, pathLength,relevance );
+                            }
                         }
                     } else { // entity list
                         uint32_t entGroupId = mkent.getEntGroupId();
@@ -70,8 +75,11 @@ struct AutocNodeVisotor_Callback {
 				                const StoredEntity * se = universe.getDtaIdx().getEntById( *i );
                                 if( se ) {
 				                    const BarzerEntity& euid = se->getEuid();
-                                    if( d_bestEnt ) 
-                                        d_bestEnt->addEntity( euid, pathLength );
+                                    if( d_bestEnt ) {
+                                        const EntityData::EntProp* edata = gp.entData.getEntPropData( euid );
+                                        uint32_t relevance = ( edata ? edata->relevance : 0 );
+                                        d_bestEnt->addEntity( euid, pathLength,relevance );
+                                    }
                                 }
 			                }
 		                }

@@ -157,6 +157,7 @@ public:
 
 	/// every client's domain has this 
 	DtaIndex dtaIdx; // entity-token links
+    EntityData entData; // canonic names and relevance 
 
 	BarzelCompWordPool compWordPool; /// compounded words pool
 	BELFunctionStorage funSt;
@@ -174,7 +175,6 @@ public:
 
 	bool d_isAnalyticalMode;
 	size_t d_maxAnalyticalModeMaxSeqLength;
-
 
 	uint32_t internalString_getId( const char* str ) const { return internalStringPool.getId( str ); }
 	uint32_t string_getId( const char* str ) const { return stringPool.getId( str ); }

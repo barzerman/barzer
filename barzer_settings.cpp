@@ -249,7 +249,11 @@ void BarzerSettings::loadEntities() {
 	using boost::property_tree::ptree;
 	const ptree &ents = pt.get_child("config.entities", empty_ptree());
 	BOOST_FOREACH(const ptree::value_type &v, ents) {
-		addEntityFile(v.second.data().c_str());
+        if( v.first == "prop" ) {
+            const char* propFileName = v.second.data().c_str() ;
+            gpools.entData.readFromFile( gpools, propFileName );
+        } else 
+		    addEntityFile(v.second.data().c_str());
 	}
 }
 
@@ -460,7 +464,6 @@ void BarzerSettings::loadUsers(BELReader& reader ) {
 	    BZSpell* bzs = u.getUniverse().initBZSpell( 0 );
 	    bzs->init( 0 );
 	}
-
 
 	BOOST_FOREACH(ptree::value_type &v, pt.get_child("config.users", empty_ptree())) {
         /// checking whether v has cfgfile attribute

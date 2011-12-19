@@ -79,6 +79,65 @@ struct InputLineReader {
 		
 	bool nextLine();
 };
+/// reads from file and splits on a separator  
+class FileReader {
+    size_t d_buf_sz;
+    char * d_buf;
+    FILE*  d_file;  
+    /// default separator is '|'
+    char d_separator, 
+        d_comment; // default comment char is '#'
+
+    std::vector< const char* > d_tok;
+public:
+    const std::vector< const char* >& tok() const { return d_tok; }
+
+    enum { DEFAULT_MAX_LINE_WIDTH = 256 };
+    void setBufSz( size_t newSz ) ;
+    FILE* openFile( const char* fname=0 ) ;
+    void closeFile( ) 
+        { if( d_file && d_file!= stdin ) { fclose(d_file); } d_file = 0; }
+
+    FileReader( char sep='|', size_t bufSz = DEFAULT_MAX_LINE_WIDTH );
+    ~FileReader();
+    void setSeparator(char s ) { d_separator = s; }
+    void setComment(char s ) { d_comment = s; }
+    
+    double getTok_double( size_t t ) const { return ( (t< d_tok.size())? atof(d_tok[t]): 0  ); }
+    int getTok_int( size_t t ) const { return ( (t< d_tok.size())? atoi(d_tok[t]): 0  ); }
+    const char* getTok_char( size_t t ) const { return( (t< d_tok.size())? d_tok[t]: ""  ); }
+    FILE* getFile() {return d_file; }
+    /// file reading stops immediately after callback returns non 0
+    template <typename CB>
+    size_t readFile( CB& callback, const char* fname )
+    {
+        d_file= openFile(fname);
+        if( !d_file )
+            return 0;
+
+        size_t numRec = 0;
+        while( fgets( d_buf, d_buf_sz, d_file ) ) {
+            ++numRec;
+            d_buf[ d_buf_sz-1 ] = 0;
+            size_t len = strlen(d_buf);
+            if( len > 0 )  {
+                if( *d_buf == d_comment ) 
+                    continue;
+                d_buf[ len-1] =0;
+            } else 
+                continue;
+            
+            d_tok.clear();
+            for( char* s = d_buf; s; s= (s=strchr(s,d_separator),(s?(*s=0,s+1):0)) ) 
+                d_tok.push_back(s);
+            if( callback( *this ) ) 
+                break;
+        }
+        closeFile();
+        return numRec;
+    }
+
+};
 
 typedef std::vector<std::wstring> WstringVec;
 /// streaming utilities
