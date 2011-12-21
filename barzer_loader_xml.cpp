@@ -1,5 +1,6 @@
 #include <barzer_dtaindex.h>
 #include <barzer_loader_xml.h>
+#include <barzer_universe.h>
 
 extern "C" {
 #include <expat.h>
@@ -66,22 +67,27 @@ void EntityLoader_XML::handle_entity_open( Tag_t parentTag, const char_cp * attr
 	StoredEntityUniqId euid;
 	/// forming uniqId based on the attributes
 	StoredToken* idTok_p = 0;
-	int32_t relevance = 0;
+	uint32_t relevance = 0;
+    const char* canonicName = 0;
+    bool hasEntityData = false;
 
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
 		switch( *n ) {
-		case 'c':
+		case 'c': // class
 			if( !n[1] ) euid.eclass.ec = atoi(v);
 			break;
-		case 'r':
-			if( !n[1] ) relevance = atoi(v);
+		case 'r': // relevance 
+			if( !n[1] ) {
+               relevance = atoi(v);
+                if( relevance && !hasEntityData ) hasEntityData= true;
+            }
 			break;
-		case 's':
+		case 's': // subclass 
 			if( !n[1] ) euid.eclass.subclass = atoi(v);
 			break;
-		case 'i':
+		case 'i': // id 
 			if( !n[1] ) {
 				// need to populate euid.tokId 
 				// first must resolve token
@@ -91,6 +97,12 @@ void EntityLoader_XML::handle_entity_open( Tag_t parentTag, const char_cp * attr
 				euid.tokId = tok.tokId;
 			}
 			break;
+        case 'n': // canonic name 
+            if( !n[1] ) {
+                canonicName = v;
+                if( !hasEntityData ) hasEntityData= true;
+            }
+            break;
 		}
 	}
 	if( !euid.isValid() && d_eclass.isValid() ) {
@@ -116,6 +128,9 @@ void EntityLoader_XML::handle_entity_open( Tag_t parentTag, const char_cp * attr
 		teli.setBit_Euid();
 		// dtaIdx->addTokenToEntity( *idTok_p, *d_curEnt, ord, teli );
 	}
+    if( hasEntityData ) {
+        d_gp.entData.setEntPropData( euid, canonicName, relevance );
+    }
 }
 
 void EntityLoader_XML::handle_entity_close( )
@@ -334,7 +349,8 @@ void EntityLoader_XML::resetParsingContext()
 	d_curTELI = TokenEntityLinkInfo();
 }
 
-EntityLoader_XML::EntityLoader_XML(DtaIndex* di):
+EntityLoader_XML::EntityLoader_XML(GlobalPools& gp, DtaIndex* di):
+    d_gp(gp),
 	parser(0),
 	dtaIdx(di),
 	d_curEnt(0),
