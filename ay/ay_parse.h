@@ -38,6 +38,12 @@ public:
         sep(sepChar) { }
     string_tokenizer_iter( const char* s, const char* s_end, char sepChar ): 
         fullRng(s,s_end), rng(s,std::find(s,s_end,sepChar)), sep(sepChar) { }
+    
+
+    void reset() { 
+        rng.first = fullRng.first; 
+        rng.second =std::find(fullRng.first,fullRng.second,sep);
+    }
 
     bool notDone() const { return(rng.first &&(rng.first<fullRng.second)); }
     operator bool() const { return notDone(); }

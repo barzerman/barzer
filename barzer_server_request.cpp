@@ -297,7 +297,30 @@ struct AutocTopicParseCB {
     
     int operator()( size_t num, const char* t, const char* t_end )
     {
-        std::cerr << "SHITFUCK 298:" << std::string( t, t_end-t ) << "\n";
+        ay::string_tokenizer_iter ti( t, t_end, '.' );
+        StoredEntityUniqId euid;
+        std::string str; 
+        if( ti ) {
+            ti.get_string( str );
+            euid.eclass.ec = atoi( str.c_str() );
+            ++ti;
+        } 
+        if( ti ) {
+            ti.get_string( str );
+            euid.eclass.subclass = atoi( str.c_str() );
+            ++ti;
+        } 
+        if( ti ) {
+            ti.get_string( str );
+            ++ti;
+            euid.tokId = brp.getGlobalPools().dtaIdx.getTokIdByString(str.c_str());
+        } 
+        
+        if( euid.eclass.isValid() && euid.tokId != 0xffffffff ) {
+            brp.getBarz().topicInfo.addTopic( euid );
+            brp.getBarz().topicInfo.setTopicFilterMode_Strict(); 
+        }
+
         return 0;
     }
 };
