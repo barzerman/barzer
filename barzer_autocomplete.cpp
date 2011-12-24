@@ -12,6 +12,7 @@ namespace {
 
 /// g
 struct AutocNodeVisotor_Callback {
+    const Barz& barz;
     const QParser& parser;
     const StoredUniverse& universe;
     const BarzelTrieTraverser_depth * d_traverser;
@@ -22,8 +23,8 @@ struct AutocNodeVisotor_Callback {
     // const GlobalPools& gp;
     const QuestionParm& d_qparm;
 
-    AutocNodeVisotor_Callback( const QParser& p, const QuestionParm& qparm ) :
-        parser(p), universe(parser.getUniverse()) , d_traverser(0), d_bestEnt(0),d_qparm(qparm)
+    AutocNodeVisotor_Callback( const Barz& b, const QParser& p, const QuestionParm& qparm ) :
+        barz(b), parser(p), universe(parser.getUniverse()) , d_traverser(0), d_bestEnt(0),d_qparm(qparm)
     {}
     
     void setBestEntities( BestEntities* be ) { d_bestEnt= be;  }
@@ -35,6 +36,19 @@ struct AutocNodeVisotor_Callback {
                 d_autocParm = autocParm;
         }
 
+    bool entOkWithTopics( const StoredEntityUniqId& euid ) {
+        if( barz.topicInfo.hasTopics() ) {
+            const BarzTopics::TopicMap& topicMap = barz.topicInfo.getTopicMap();
+            for( BarzTopics::TopicMap::const_iterator ti = topicMap.begin(); ti != topicMap.end(); ++ti ) {
+                const std::set< BarzerEntity >* topEntSet= universe.getTopicEntities( ti->first );
+        
+                if( topEntSet && topEntSet->find(euid)!= topEntSet->end() ) 
+                    return true;
+            }
+            return false;
+        } else 
+            return true;
+    }
     bool operator()( const BarzelTrieNode& tn )
     {
         if( !d_traverser )
@@ -68,8 +82,13 @@ struct AutocNodeVisotor_Callback {
                                 else 
                                     relevance = 0;
 
-                                if( d_qparm.autoc.entFilter(euid) ) 
-                                    d_bestEnt->addEntity( euid, pathLength,relevance );
+                                if( d_qparm.autoc.entFilter(euid) ) {
+                                    if( barz.topicInfo.hasTopics() ) {
+                                        if( entOkWithTopics(euid) )
+                                            d_bestEnt->addEntity( euid, pathLength,relevance );
+                                    } else
+                                        d_bestEnt->addEntity( euid, pathLength,relevance );
+                                }
                             }
                         }
                     } else { // entity list
@@ -91,8 +110,13 @@ struct AutocNodeVisotor_Callback {
                                             relevance = edata->relevance;
                                         } else 
                                             relevance = 0;
-                                        if( d_qparm.autoc.entFilter(euid) ) 
-                                            d_bestEnt->addEntity( euid, pathLength,relevance );
+                                        if( d_qparm.autoc.entFilter(euid) ) {
+                                            if( barz.topicInfo.hasTopics() ) {
+                                                if( entOkWithTopics(euid) )
+                                                    d_bestEnt->addEntity( euid, pathLength,relevance );
+                                            } else
+                                                d_bestEnt->addEntity( euid, pathLength,relevance );
+                                        }
                                     }
                                 }
 			                }
@@ -154,7 +178,7 @@ int BarzerAutocomplete::parse( const char* q )
 
     AutocCallback<AutocNodeVisotor_Callback> acCB(parser, d_os );
 
-    AutocNodeVisotor_Callback nodeVisitorCB(parser,d_qparm);
+    AutocNodeVisotor_Callback nodeVisitorCB(d_barz,parser,d_qparm);
     nodeVisitorCB.setBestEntities( &bestEnt );
     acCB.nodeVisitorCB_set( &nodeVisitorCB );
     
