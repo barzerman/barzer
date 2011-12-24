@@ -20,9 +20,10 @@ struct AutocNodeVisotor_Callback {
     // this object will accumulate best entities by weight (up to a certain number)
     BestEntities* d_bestEnt;
     // const GlobalPools& gp;
+    const QuestionParm& d_qparm;
 
-    AutocNodeVisotor_Callback( const QParser& p ) :
-        parser(p), universe(parser.getUniverse()) , d_traverser(0), d_bestEnt(0)
+    AutocNodeVisotor_Callback( const QParser& p, const QuestionParm& qparm ) :
+        parser(p), universe(parser.getUniverse()) , d_traverser(0), d_bestEnt(0),d_qparm(qparm)
     {}
     
     void setBestEntities( BestEntities* be ) { d_bestEnt= be;  }
@@ -67,7 +68,8 @@ struct AutocNodeVisotor_Callback {
                                 else 
                                     relevance = 0;
 
-                                d_bestEnt->addEntity( euid, pathLength,relevance );
+                                if( d_qparm.autoc.entFilter(euid) ) 
+                                    d_bestEnt->addEntity( euid, pathLength,relevance );
                             }
                         }
                     } else { // entity list
@@ -89,7 +91,8 @@ struct AutocNodeVisotor_Callback {
                                             relevance = edata->relevance;
                                         } else 
                                             relevance = 0;
-                                        d_bestEnt->addEntity( euid, pathLength,relevance );
+                                        if( d_qparm.autoc.entFilter(euid) ) 
+                                            d_bestEnt->addEntity( euid, pathLength,relevance );
                                     }
                                 }
 			                }
@@ -151,7 +154,7 @@ int BarzerAutocomplete::parse( const char* q )
 
     AutocCallback<AutocNodeVisotor_Callback> acCB(parser, d_os );
 
-    AutocNodeVisotor_Callback nodeVisitorCB(parser);
+    AutocNodeVisotor_Callback nodeVisitorCB(parser,d_qparm);
     nodeVisitorCB.setBestEntities( &bestEnt );
     acCB.nodeVisitorCB_set( &nodeVisitorCB );
     
