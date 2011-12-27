@@ -24,7 +24,7 @@ struct AutocNodeVisotor_Callback {
     const QuestionParm& d_qparm;
 
     AutocNodeVisotor_Callback( const Barz& b, const QParser& p, const QuestionParm& qparm ) :
-        barz(b), parser(p), universe(parser.getUniverse()) , d_traverser(0), d_bestEnt(0),d_qparm(qparm)
+        barz(b), parser(p), universe(p.getUniverse()) , d_traverser(0), d_bestEnt(0),d_qparm(qparm)
     {}
     
     void setBestEntities( BestEntities* be ) { d_bestEnt= be;  }
@@ -143,7 +143,7 @@ struct AutocCallback {
     
     T* nodeVisitorCB;
 
-	BELPrintFormat fmt;
+	// BELPrintFormat fmt;
 
     AutocCallback( QParser& p, std::ostream& os ) :
         parser(p), fp(os) , nodeVisitorCB(0)
@@ -155,7 +155,7 @@ struct AutocCallback {
 
     void operator() ( const BTMIterator& bmi ) {
         const BELTrie& theTrie = bmi.getTrie();
-        BELPrintContext printCtxt( theTrie, parser.getUniverse().getStringPool(), fmt );
+        // BELPrintContext printCtxt( theTrie, parser.getUniverse().getStringPool(), fmt );
         const NodeAndBeadVec& nb = bmi.getMatchPath();
         if( nb.size() ) {
             const BarzelTrieNode* lastNode = nb.back().first;
