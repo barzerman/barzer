@@ -285,7 +285,12 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 			strId = bzSpell->getStemCorrection( stemmedStr, theString );
 			if( strId != 0xffffffff ) {
 				correctedStr = gp.string_resolve( strId ) ;
-			}
+			} else if( (stemmedStr.length() > MIN_SPELL_CORRECT_LEN) && strlen(theString) != stemmedStr.length() ) { 
+                // spelling correction failed but the string got stemmed
+                strId = bzSpell->getSpellCorrection( stemmedStr.c_str() );
+                if( strId != 0xffffffff ) 
+                    correctedStr = gp.string_resolve( strId ) ;
+            }
 		}
 		if( strId == 0xffffffff ) {
 			correctedStr= 0;

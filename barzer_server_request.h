@@ -74,6 +74,8 @@ private:
 	std::ostream &os;
     std::string d_query; // for query block 
 public:
+	Barz& getBarz() { return barz; }
+	const Barz& getBarz() const { return barz; }
 	XML_Parser parser;
 
 	BarzerRequestParser(GlobalPools&, std::ostream &s, uint32_t uid );

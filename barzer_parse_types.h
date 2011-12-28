@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <barzer_token.h>
 #include <barzer_number.h>
+#include <barzer_entity.h>
 
 namespace barzer {
 struct StoredToken;
@@ -263,6 +264,10 @@ struct QuestionParm {
         };
         uint32_t topicMode;
 
+        /// when this is not empty only entities whose class/subclass match anything in the vector, will 
+        /// be reported by autocomplete - this vector will be very small 
+        std::vector< StoredEntityClass > ecVec;
+
         bool hasSpecificTrie() const { return( trieClass != 0xffffffff && trieId != 0xffffffff ); }
         bool needOnlyTopic() const { return ( topicMode == TOPICMODE_TOPICS_ONLY ); }
         bool needOnlyRules() const { return ( topicMode == TOPICMODE_RULES_ONLY ); }
@@ -272,6 +277,31 @@ struct QuestionParm {
         bool needBoth() const { return ( topicMode == TOPICMODE_RULES_AND_TOPICS ); }
 
         void clear() { trieClass= 0xffffffff; trieId= 0xffffffff;  topicMode=TOPICMODE_RULES_ONLY; }
+
+        bool entFilter( const StoredEntityUniqId& euid ) const 
+            {
+              if( ecVec.size() ) {
+                for( std::vector< StoredEntityClass >::const_iterator i = ecVec.begin(); i!= ecVec.end(); ++i ) { 
+                    if( i->matchOther(euid.eclass) )
+                        return true;
+                }
+                return false;
+              } else 
+                return true; 
+            }
+        /// parses a string "c1,s1|..."
+        void parseEntClassList( const char* s)
+        {
+            const char* b = s, *pipe = strchr(b,'|'), *b_end = b+ strlen(b);
+            StoredEntityClass ec;
+            for( ; b &&*b; b= (pipe?pipe+1:0), (pipe = (b? strchr(b,'|'):0)) ) {
+                ec.ec = atoi(b);
+                const char *find_end = (pipe?pipe: b_end), *comma = std::find( b, find_end, ',' );
+                ec.subclass = ( comma!= find_end ? atoi(comma+1): 0 );
+                if( ec.isValid() ) ecVec.push_back( ec );
+            }
+        }
+
         AutocParm() : trieClass(0xffffffff), trieId(0xffffffff),  topicMode(TOPICMODE_RULES_ONLY)  {}
     } autoc;
 

@@ -172,11 +172,13 @@ inline std::ostream& operator <<( std::ostream& fp, const StoredTokenPool& x )
 	x.print( fp );
 	return fp;
 }
+class GlobalPools;
 /// 
 /// DTAINDEX stores all tokens, entities as well as compounded words prefix trees as well as 
 /// semantical FSAs. It is loaded once and then accessed read-only during parsing
 /// some elements can be reloaded at runtime (details of that are TBD)
 class DtaIndex {
+    GlobalPools& d_gp;
 	ay::UniqueCharPool* strPool; // must be a global pool
 public: 
 	StoredTokenPool tokPool;
@@ -239,7 +241,7 @@ public:
 
 	void clear() ;
 	~DtaIndex();
-	DtaIndex( ay::UniqueCharPool* sPool ); // must be a global pool
+	DtaIndex( GlobalPools&, ay::UniqueCharPool* ); // must be a global pool
 
 	int loadEntities_XML( const char* fileName );
 

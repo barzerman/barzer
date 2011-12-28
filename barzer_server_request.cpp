@@ -11,6 +11,8 @@
 #include <cstdlib>
 #include <barzer_universe.h>
 #include <barzer_autocomplete.h>
+#include <ay/ay_parse.h>
+
 extern "C" {
 // cast to XML_StartElementHandler
 static void startElement(void* ud, const XML_Char *n, const XML_Char **a)
@@ -228,7 +230,6 @@ void BarzerRequestParser::raw_autoc_parse( const char* query, QuestionParm& qpar
 	const StoredUniverse &u = *d_universe;
 	//qparser.parse( barz, getTag().body.c_str(), qparm );
     if( !barz.topicInfo.getTopicMap().empty() ) {
-        std::cerr << "SHIT SHIT\n";
         barz.topicInfo.computeTopTopics();
     }
     BarzerAutocomplete autoc( barz, u, qparm, os );
@@ -253,7 +254,6 @@ void BarzerRequestParser::raw_query_parse( const char* query )
 	QuestionParm qparm;
 	//qparser.parse( barz, getTag().body.c_str(), qparm );
     if( !barz.topicInfo.getTopicMap().empty() ) {
-        std::cerr << "SHIT SHIT\n";
         barz.topicInfo.computeTopTopics();
     }
 	qparser.parse( barz, query, qparm );
@@ -290,6 +290,42 @@ void BarzerRequestParser::tag_topic(RequestTag &tag) {
     barz.topicInfo.setTopicFilterMode_Strict(); 
 }
 
+namespace {
+struct AutocTopicParseCB {
+    BarzerRequestParser& brp;
+    AutocTopicParseCB( BarzerRequestParser& p ) : brp(p) {}
+    
+    int operator()( size_t num, const char* t, const char* t_end )
+    {
+        ay::string_tokenizer_iter ti( t, t_end, '.' );
+        StoredEntityUniqId euid;
+        std::string str; 
+        if( ti ) {
+            ti.get_string( str );
+            euid.eclass.ec = atoi( str.c_str() );
+            ++ti;
+        } 
+        if( ti ) {
+            ti.get_string( str );
+            euid.eclass.subclass = atoi( str.c_str() );
+            ++ti;
+        } 
+        if( ti ) {
+            ti.get_string( str );
+            ++ti;
+            euid.tokId = brp.getGlobalPools().dtaIdx.getTokIdByString(str.c_str());
+        } 
+        
+        if( euid.eclass.isValid() && euid.tokId != 0xffffffff ) {
+            brp.getBarz().topicInfo.addTopic( euid );
+            brp.getBarz().topicInfo.setTopicFilterMode_Strict(); 
+        }
+
+        return 0;
+    }
+};
+}
+
 void BarzerRequestParser::tag_autoc(RequestTag &tag) 
 {
 	AttrList &attrs = tag.attrs;
@@ -297,6 +333,7 @@ void BarzerRequestParser::tag_autoc(RequestTag &tag)
 
 	QuestionParm qparm;
     for( AttrList::const_iterator a = attrs.begin(); a!= attrs.end(); ++a ) {
+        const std::string& v = a->second;
         switch( a->first[0] ) {
         case 'u': 
             userId = atoi(a->second.c_str()); 
@@ -308,13 +345,22 @@ void BarzerRequestParser::tag_autoc(RequestTag &tag)
             break;
         case 't':
             switch( a->first[1] ) {
-            case 'c': // trie class (optional)
+            case 'c': // tc trie class (optional)
                 qparm.autoc.trieClass = gp.internalString_getId( a->second.c_str());
                 break;
-            case 'i': // trie id (optional)
+            case 'i': // ti trie id (optional)
                 qparm.autoc.trieId = gp.internalString_getId( a->second.c_str());
                 break;
+            case 'o': // to - topic 
+                {
+                    AutocTopicParseCB cb(*this);
+                    ay::parse_separator( cb, v.c_str(), v.c_str()+v.length(), '|' );
+                }
+                break;
             }
+            break;
+        case 'e':
+            qparm.autoc.parseEntClassList(a->second.c_str());
             break;
         }
     }

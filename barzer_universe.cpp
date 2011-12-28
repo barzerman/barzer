@@ -149,7 +149,7 @@ BELTrie* GlobalTriePool::produceTrie( uint32_t trieClass, uint32_t trieId )
 		return( i->second ); 
 }
 GlobalPools::GlobalPools() :
-	dtaIdx( &stringPool),
+	dtaIdx( *this, &stringPool),
 	funSt(*this),
 	dateLookup(*this),
 	globalTriePool( *this ),

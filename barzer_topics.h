@@ -58,7 +58,7 @@ public:
         d_topics.clear();
         d_vec.clear();
     }
-    
+    bool hasTopics() const { return !d_topics.empty(); }
 };
 inline bool operator<( const BarzTopics::EntWeight& l, const BarzTopics::EntWeight& r )
 { return ( l.second > r.second ); }

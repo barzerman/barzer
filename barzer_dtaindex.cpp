@@ -104,7 +104,8 @@ void DtaIndex::clear()
 	entPool.clear();
 }
 
-DtaIndex::DtaIndex(ay::UniqueCharPool* sPool) :
+DtaIndex::DtaIndex(GlobalPools& gp, ay::UniqueCharPool* sPool) :
+    d_gp(gp),
 	strPool(sPool),
 	tokPool(strPool),
 	cwTree(0),
@@ -135,7 +136,7 @@ void DtaIndex::printStoredToken( std::ostream& fp, StoredTokenId id ) const
 
 int DtaIndex::loadEntities_XML( const char* fileName )
 {
-	EntityLoader_XML xmlLoader(this);
+	EntityLoader_XML xmlLoader(d_gp,this);
 	return xmlLoader.readFile( fileName );
 }
 
