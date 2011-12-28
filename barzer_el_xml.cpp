@@ -476,6 +476,8 @@ void BELParserXML::taghandle_T( const char_cp * attr, size_t attr_sz , bool clos
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
 		switch( *n ) {
+		case 'f':  // force text (ignore number)
+            break;
 		case 't':  // type t=
 			switch( v[0] ) {
 			// stop is the same as fluff
