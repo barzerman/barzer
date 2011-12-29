@@ -17,6 +17,7 @@
     <entities>
         <file>data/entities/time_ent.xml</file>
         <prop>data/entities/vertical_entprop.txt</prop>
+        <prop>data/entities/co_gatech_entprop.txt</prop>
     </entities>
     <logging>
         <level>DEBUG</level>
