@@ -1328,7 +1328,7 @@ void BarzerShellEnv::set( std::ostream& fp, const char* n, const char* v )
                 stemMode = QuestionParm::STEMMODE_NORMAL;
                 fp << "stemMode set to Normal\n";
             } else {
-                fp << "valid options for are normal nd aggressive\n";
+                fp << "valid options for are normal and aggressive\n";
             }
         }
         break;
@@ -1348,7 +1348,7 @@ std::ostream&  BarzerShellEnv::get( std::ostream& fp, const char* n) const
     };
     if( n ) {
         switch( n[0] ) {
-        case 's': if( !strcasecmp(n,"stem") ) fp << "stem is " << ( stemMode == QuestionParm::STEMMODE_NORMAL ? "normal" : "aggressive" ) << std::endl; break;
+        case 's': if( !strcasecmp(n,"stem") ) fp << "stem\t:" << ( stemMode == QuestionParm::STEMMODE_NORMAL ? "normal" : "aggressive" ) << std::endl; break;
         }
     }  else {
         for( const char* *s = ARR_BEGIN(names); s!= ARR_END(names); ++s ) 

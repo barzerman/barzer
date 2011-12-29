@@ -296,8 +296,20 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok, const Qu
             }
 		}
 		if( strId == 0xffffffff ) {
-			correctedStr= 0;
-			theString = 0;
+			std::string stemmedStr; 
+            if( qparm.isStemMode_Aggressive() ) {
+			    strId = bzSpell->getAggressiveStem( stemmedStr, theString );
+                if(strId == 0xffffffff) {
+                    correctedStr= 0;
+                    theString = 0;
+                } else {
+                    correctedStr = gp.string_resolve( strId ) ;
+                    theString= correctedStr;
+                }
+            } else  {
+                correctedStr= 0;
+                theString = 0;
+            }
 		} else
 			theString= correctedStr;
 	}
