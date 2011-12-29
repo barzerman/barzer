@@ -258,6 +258,8 @@ static int bshf_lex( BarzerShell* shell, char_cp cmd, std::istream& in )
     }
 	ay::InputLineReader reader( in );
 	QuestionParm qparm;
+    shell->syncQuestionParm(qparm);
+
 	std::ostream& outFp = shell->getOutStream() ;
 	while( reader.nextLine() && reader.str.length() ) {
 		const char* q = reader.str.c_str();
@@ -288,6 +290,7 @@ static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 	ay::InputLineReader reader( in );
 	QuestionParm qparm;
+    shell->syncQuestionParm(qparm);
 	while( reader.nextLine() && reader.str.length() ) {
 		barz.tokenize( parser.tokenizer, reader.str.c_str(), qparm );
 		const TTWPVec& ttVec = barz.getTtVec();
@@ -426,6 +429,8 @@ static int bshf_greed( BarzerShell* shell, char_cp cmd, std::istream& in )
 	ay::InputLineReader reader( in );
 	while( reader.nextLine() && reader.str.length() ) {
 	    QuestionParm qparm;
+        shell->syncQuestionParm(qparm);
+
 		const char* q = reader.str.c_str();
 		outFP << "lexing: " << q << "\n";
 		parser.lex( barz, q, qparm );
@@ -462,6 +467,7 @@ static int bshf_autoc( BarzerShell* shell, char_cp cmd, std::istream& in )
     std::ostream& outFP = shell->getOutStream() ;
 	std::string fname;
 	QuestionParm qparm;
+    shell->syncQuestionParm(qparm);
 
 	std::ostream *ostr = &(outFP);
 	std::ofstream ofile;
@@ -477,6 +483,7 @@ static int bshf_autoc( BarzerShell* shell, char_cp cmd, std::istream& in )
 	}
 
 	ay::InputLineReader reader( in );
+    qparm.isAutoc = true;
 	while( reader.nextLine() && reader.str.length() ) {
 		const char* q = reader.str.c_str();
 
@@ -521,6 +528,7 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 	ay::InputLineReader reader( in );
 
 	QuestionParm qparm;
+    shell->syncQuestionParm(qparm);
 
 	ay::stopwatch totalTimer;
 	while( reader.nextLine() && reader.str.length() ) {
@@ -564,6 +572,7 @@ static int bshf_anlqry( BarzerShell* shell, char_cp cmd, std::istream& in )
 	}
 
 	QuestionParm qparm;
+    shell->syncQuestionParm(qparm);
 	//std::ostream &os = shell->getOutStream();
 
 	size_t numSemanticalBarzes = 0, numQueries = 0;
@@ -1135,6 +1144,22 @@ static int bshf_instance( BarzerShell* shell, char_cp cmd, std::istream& in )
 
     return 0;
 }
+static int bshf_env( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+    const char* name = 0, *value = 0;
+    std::string n, v;
+	if(in >> n) name=n.c_str();
+    if(in >> v) value=v.c_str();
+
+    std::ostream& outFP = shell->getOutStream() ;
+    if( value ) {
+        shell->shellEnv.set( outFP, name, value );
+    } else {
+        shell->shellEnv.get( outFP, name );
+    }
+    return 0;
+}
+
 static int bshf_user( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	uint32_t uid = 0;
@@ -1203,6 +1228,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_autoc, "autoc", "autocomplete" ),
 	CmdData( (ay::Shell_PROCF)bshf_bzspell, "bzspell", "bzspell correction for the user" ),
 	CmdData( (ay::Shell_PROCF)bshf_bzstem, "bzstem", "bz stemming correction for the user domain" ),
+	CmdData( (ay::Shell_PROCF)bshf_env, "env", "set env parameter. usage: env [name [value]]" ),
 	CmdData( (ay::Shell_PROCF)bshf_dtaan, "dtaan", "data set analyzer. runs through the trie" ),
 	CmdData( (ay::Shell_PROCF)bshf_instance, "instance", "lists all users in the instance" ),
 	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),
@@ -1278,6 +1304,57 @@ int BarzerShell::init( )
 
 	((BarzerShellContext*)context)->trieWalker.loadChildren();
 	return rc;
+}
+
+/// prints result of the setting to the stream
+void BarzerShellEnv::set( std::ostream& fp, const char* n, const char* v ) 
+{
+    if( !n ) {
+        fp << "ERROR: no name specified\n";
+        return;
+    } 
+    if( !v ) {
+        fp << "ERROR: no valid value passed\n";
+        return;
+    } 
+    switch( n[0] ) {
+    case 's': 
+        if( !strcasecmp(n,"stem") ) {
+            if( !strncasecmp(v,"ag",2) ) {
+                stemMode = QuestionParm::STEMMODE_AGGRESSIVE;
+                fp << "stemMode set to Aggressive\n";
+            } else
+            if( !strncasecmp(v,"no",2) ) {
+                stemMode = QuestionParm::STEMMODE_NORMAL;
+                fp << "stemMode set to Normal\n";
+            } else {
+                fp << "valid options for are normal nd aggressive\n";
+            }
+        }
+        break;
+    }
+}
+
+void BarzerShell::syncQuestionParm(QuestionParm& qparm )
+{
+    qparm.stemMode = shellEnv.stemMode;
+}
+
+// when n == 0 prints all valid settings
+std::ostream&  BarzerShellEnv::get( std::ostream& fp, const char* n) const
+{
+    static const char * names[] = { 
+        "stem"
+    };
+    if( n ) {
+        switch( n[0] ) {
+        case 's': if( !strcasecmp(n,"stem") ) fp << "stem is " << ( stemMode == QuestionParm::STEMMODE_NORMAL ? "normal" : "aggressive" ) << std::endl; break;
+        }
+    }  else {
+        for( const char* *s = ARR_BEGIN(names); s!= ARR_END(names); ++s ) 
+            get(fp,*s);
+    }
+    return fp;
 }
 
 } // barzer namespace ends here

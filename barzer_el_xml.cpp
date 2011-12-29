@@ -339,6 +339,7 @@ struct BTND_text_visitor_base  : public boost::static_visitor<> {
 	BELParserXML& d_parser;
 	const char* d_str;
 	int d_len;
+    uint8_t d_noTextToNum;
 
 	GlobalPools& getGlobalPoools() { return d_parser.getGlobalPools(); }
 	const GlobalPools& getGlobalPoools() const { return d_parser.getGlobalPools(); }
@@ -347,17 +348,18 @@ struct BTND_text_visitor_base  : public boost::static_visitor<> {
 	//{ return getUniverse().isAnalyticalMode(); }
 		{ return getGlobalPoools().isAnalyticalMode(); }
 
-	BTND_text_visitor_base( BELParserXML& parser, const char* s, int len ) : 
+	BTND_text_visitor_base( BELParserXML& parser, const char* s, int len, uint8_t noTextToNum ) : 
 		d_parser(parser),
 		d_str(s), 
-		d_len(len) 
+		d_len(len) ,
+        d_noTextToNum(noTextToNum)
 	{}
 };
 
 // rewrite visitor template specifications 
 struct BTND_Rewrite_Text_visitor : public BTND_text_visitor_base {
-	BTND_Rewrite_Text_visitor( BELParserXML& parser, const char* s, int len ) :
-		BTND_text_visitor_base( parser, s, len ) 
+	BTND_Rewrite_Text_visitor( BELParserXML& parser, const char* s, int len, uint8_t noTextToNum ) :
+		BTND_text_visitor_base( parser, s, len, noTextToNum ) 
 	{}
 
 	template <typename T>
@@ -384,8 +386,8 @@ template <> void BTND_Rewrite_Text_visitor::operator()<BTND_Rewrite_Number>(BTND
 // pattern visitor  template specifications 
 struct BTND_Pattern_Text_visitor : public BTND_text_visitor_base {
 	BTND_PatternData& d_pat;
-	BTND_Pattern_Text_visitor( BTND_PatternData& pat, BELParserXML& parser, const char* s, int len ) :
-		BTND_text_visitor_base( parser, s, len ),
+	BTND_Pattern_Text_visitor( BTND_PatternData& pat, BELParserXML& parser, const char* s, int len, uint8_t noTextToNum ) :
+		BTND_text_visitor_base( parser, s, len, noTextToNum ),
 		d_pat(pat)
 	{}
 	template <typename T>
@@ -406,7 +408,7 @@ bool isAllDigits( const char* s,int len  ) {
 template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTND_Pattern_Token& t)  const
 { 
 	/// if d_str is numeric we need to do something
-	bool strIsNum = ( isdigit(d_str[0]) && isAllDigits(d_str,d_len));
+	bool strIsNum = ( !d_noTextToNum && isdigit(d_str[0]) && isAllDigits(d_str,d_len));
 	bool needStem = t.doStem;
 	if( strIsNum ) {
 		if( !isAnalyticalMode() ) {
@@ -446,18 +448,19 @@ template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Punct> (BTND
 
 // general visitor 
 struct BTND_text_visitor : public BTND_text_visitor_base {
-	BTND_text_visitor( BELParserXML& parser, const char* s, int len ) :
-		BTND_text_visitor_base( parser, s, len ) 
+
+	BTND_text_visitor( BELParserXML& parser, const char* s, int len, uint8_t noTextToNum ) :
+		BTND_text_visitor_base( parser, s, len,noTextToNum) 
 	{}
 	void operator()( BTND_PatternData& pat ) const
 		{ 
-			BTND_Pattern_Text_visitor vis(pat,d_parser,d_str,d_len);
+			BTND_Pattern_Text_visitor vis(pat,d_parser,d_str,d_len,d_noTextToNum);
 			boost::apply_visitor( vis, pat ) ; 
 		}
 	void operator()( BTND_None& ) const {}
 	void operator()( BTND_StructData& ) const {}
 	void operator()( BTND_RewriteData& rwr)  const
-		{ boost::apply_visitor( BTND_Rewrite_Text_visitor(d_parser,d_str,d_len), rwr ) ; }
+		{ boost::apply_visitor( BTND_Rewrite_Text_visitor(d_parser,d_str,d_len,0), rwr ) ; }
 };
 
 } // end of anon namespace 
@@ -468,7 +471,7 @@ void BELParserXML::taghandle_T( const char_cp * attr, size_t attr_sz , bool clos
 		statement.popNode();
 		return;
 	}
-	bool isStop = false;
+	bool isStop = false, noTextToNum = false;
 	bool doStem = getGlobalPools().parseSettings().stemByDefault() ;
 
     const char* modeString = 0;
@@ -477,6 +480,7 @@ void BELParserXML::taghandle_T( const char_cp * attr, size_t attr_sz , bool clos
 		const char* v = attr[i+1]; // attr value
 		switch( *n ) {
 		case 'f':  // force text (ignore number)
+            noTextToNum = true;
             break;
 		case 't':  // type t=
 			switch( v[0] ) {
@@ -508,7 +512,11 @@ void BELParserXML::taghandle_T( const char_cp * attr, size_t attr_sz , bool clos
             p.setMatchModeFromAttribute(modeString);
 		dta =p ;
 	}
-	statement.pushNode( dta );
+	BELParseTreeNode* newNode = statement.pushNode( dta );
+    if( newNode && noTextToNum ) {
+        newNode->noTextToNum = noTextToNum;
+    }
+    
 }
 
 void BELParserXML::taghandle_TG( const char_cp * attr, size_t attr_sz , bool close)
@@ -1262,7 +1270,7 @@ void BELParserXML::getElementText( const char* txt, int len )
 		return; // this should never happen 
 	BELParseTreeNode* node = statement.getCurrentNode();
 	if( node ) 	{
-		boost::apply_visitor( BTND_text_visitor(*this,txt,len), node->getVar() ) ; 
+		boost::apply_visitor( BTND_text_visitor(*this,txt,len,node->noTextToNum), node->getVar() ) ; 
 	}
 	return;
 }

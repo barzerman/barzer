@@ -210,7 +210,7 @@ bool isStringAscii( const std::string& s )
 
 } // anonymous namespace ends 
 
-int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
+int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok, const QuestionParm& qparm  )
 {
 	const char* t = ttok.buf;
 	size_t t_len = ttok.len;
@@ -242,6 +242,9 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok )
 	    if( gp.isWordInDictionary(strId) ) {
 			std::string stemmedStr; 
 			strId = bzSpell->getStemCorrection( stemmedStr, theString );
+            if( strId == 0xffffffff && qparm.isStemMode_Aggressive() ) 
+			    strId = bzSpell->getAggressiveStem( stemmedStr, theString );
+            
 			if( strId != 0xffffffff ) {
 				correctedStr = gp.string_resolve( strId ) ;
                 if( correctedStr ) {
@@ -453,12 +456,12 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
 		} else if( (*t) == '.' ) {
             ctok.setClass( CTokenClassInfo::CLASS_PUNCTUATION );
             if( *t == '"' ) isQuoted = !isQuoted;
-        } else if( !tryClassify_integer(ctok,t) ) {
+        } else if( qparm.isAutoc || !tryClassify_integer(ctok,t) ) {
 			uint32_t usersWordStrId = 0xffffffff;
 			const StoredToken* storedTok = ( bzSpell->isUsersWord( usersWordStrId, t ) ? 
 				dtaIdx->getStoredToken( t ): 0 );
 
-            bool isNumber = tryClassify_number(ctok,t); // this should probably always be false
+            bool isNumber = ( !qparm.isAutoc && tryClassify_number(ctok,t)); // this should probably always be false
 			if( storedTok ) { /// 
 				/// 
 				ctok.storedTok = storedTok;
@@ -474,7 +477,7 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
                     if( ispunct(*t) ) {
                     }
 					if( !isQuoted /*d_universe.stemByDefault()*/ ) {
-						if( trySpellCorrectAndClassify( ctok, ttok ) > 0 )
+						if( trySpellCorrectAndClassify( ctok, ttok, qparm ) > 0 )
 							wasStemmed = true;
 	 				} else {
 						ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );

@@ -54,7 +54,8 @@ BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s, uint3
     settings(gp.getSettings()), 
     userId(uid)/* qparser(u), response(barz, u) */, 
     d_universe(0),
-    os(s)
+    os(s),
+    d_aggressiveStem(false)
 {
 		parser = XML_ParserCreate(NULL);
 		XML_SetUserData(parser, this);
@@ -252,6 +253,9 @@ void BarzerRequestParser::raw_query_parse( const char* query )
 	BarzStreamerXML response(barz, u);
 
 	QuestionParm qparm;
+    if( d_aggressiveStem ) 
+        qparm.setStemMode_Aggressive();
+
 	//qparser.parse( barz, getTag().body.c_str(), qparm );
     if( !barz.topicInfo.getTopicMap().empty() ) {
         barz.topicInfo.computeTopTopics();
@@ -365,7 +369,8 @@ void BarzerRequestParser::tag_autoc(RequestTag &tag)
         }
     }
     d_query = tag.body.c_str();
-
+    
+    qparm.isAutoc = true;
     raw_autoc_parse( d_query.c_str(), qparm );
     d_query.clear();
 }
@@ -388,7 +393,13 @@ void BarzerRequestParser::tag_query(RequestTag &tag) {
 	AttrList::iterator it = attrs.find("u");
 	if( it != attrs.end() ) {
 		userId = atoi(it->second.c_str());
-	}
+	} else
+        userId = 0;
+
+	it = attrs.find("as"); // aggressive stemming 
+    if( it != attrs.end() ) 
+        d_aggressiveStem = true;
+
     if( isParentTag("qblock") ) {
         d_query = tag.body.c_str();
     } else {

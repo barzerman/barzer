@@ -300,8 +300,8 @@ public:
 		{ return ( bzSpell ? bzSpell->getSpellCorrection( word ) : 0 ); }
 	//  performs trivial practical stemming
 	// returns stringId of corrected word or 0xffffffff 
-	uint32_t stem( std::string& out, const char* word ) const
-		{ return ( bzSpell ? bzSpell->getStemCorrection( out, word ) : 0 ); }
+	uint32_t stem( std::string& out, const char* word) const
+		{ return ( bzSpell ? bzSpell->getStemCorrection( out, word) : 0 ); }
 	bool isWordValidInUniverse( uint32_t word ) const
 		{ return ( bzSpell ? bzSpell->isWordValidInUniverse( word ) : true ); }
 	bool isWordValidInUniverse( const char* word ) const

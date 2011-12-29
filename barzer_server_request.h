@@ -73,6 +73,7 @@ private:
 
 	std::ostream &os;
     std::string d_query; // for query block 
+    bool d_aggressiveStem;
 public:
 	Barz& getBarz() { return barz; }
 	const Barz& getBarz() const { return barz; }

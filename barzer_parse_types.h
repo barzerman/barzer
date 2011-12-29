@@ -254,6 +254,13 @@ class LexParser;
 //// comes with every question and is passed to lexers and semanticizers 
 struct QuestionParm {
 	int lang;  // a valid LANG ID see barzer_language.h
+    bool isAutoc; // when true this is an autocomplete query rather than a standard barzer one
+    enum {
+        STEMMODE_NORMAL,    // standard cautious stemming mode for unmatched tokens during classification
+        STEMMODE_AGGRESSIVE // after conservative correction stems until 3 characters are left or anything is matched 
+    };
+    int  stemMode;
+
     struct AutocParm {
         uint32_t trieClass, trieId;
         
@@ -305,8 +312,11 @@ struct QuestionParm {
         AutocParm() : trieClass(0xffffffff), trieId(0xffffffff),  topicMode(TOPICMODE_RULES_ONLY)  {}
     } autoc;
 
+    void setStemMode_Aggressive() { stemMode= STEMMODE_AGGRESSIVE; }
+    bool isStemMode_Aggressive() const { return (stemMode==STEMMODE_AGGRESSIVE); }
+
     void clear() { autoc.clear(); }
-	QuestionParm() : lang(0) {}
+	QuestionParm() : lang(0), isAutoc(false), stemMode(STEMMODE_NORMAL) {}
 };
 
 /// non constant string - it's different from barzer literal as the value may not be 

@@ -115,7 +115,9 @@ public:
 
 	/// when fails 0xffffffff is returned 
 	uint32_t getSpellCorrection( const char* s ) const;
-	uint32_t getStemCorrection( std::string& , const char* ) const;
+	uint32_t getStemCorrection( std::string& , const char*) const;
+
+	uint32_t getAggressiveStem( std::string& , const char*) const;
 
 	/// if word isnt found at all returns 0
 	/// 1 - means it's the users word 

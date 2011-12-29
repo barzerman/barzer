@@ -489,6 +489,18 @@ uint32_t BZSpell::getStemCorrection( std::string& out, const char* s ) const
 	}
 	return 0xffffffff;
 }
+uint32_t BZSpell::getAggressiveStem( std::string& out, const char* s ) const
+{
+    enum { MIN_STEM_LEN= 3 };
+    std::string str(s); 
+    // size_t s_len = str.length();
+    for( ; str.length() >= MIN_STEM_LEN; str.resize(str.length()-1)  ) {
+        uint32_t strId = 0xffffffff;
+        if( isUsersWord(strId,str.c_str()) ) 
+            return strId;
+    }
+	return 0xffffffff;
+}
 
 namespace {
 

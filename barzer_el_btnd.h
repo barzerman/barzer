@@ -1036,11 +1036,13 @@ struct BELParseTreeNode {
 
 	typedef std::vector<BELParseTreeNode> ChildrenVec;
 
+    uint8_t noTextToNum;
+
 	ChildrenVec child;
 	/// translation nodes may have things such as <var name="a.b.c"/>
 	/// they get encoded during parsing and stored in BarzelVariableIndex::d_pathInterner
 
-	BELParseTreeNode() {}
+	BELParseTreeNode():noTextToNum(0) {}
 
 	template <typename T>
 	BELParseTreeNode& addChild( const T& t)
