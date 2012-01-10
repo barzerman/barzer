@@ -73,13 +73,13 @@ int ExtractedDocFeature::deserialize( std::istream& fp )
 ////  ann array of DocFeatureLink's is stored for every feature in the corpus 
 int DocFeatureLink::serialize( std::ostream& fp ) const
 {
-    fp << std::hex << docId << " " << std::dec << weight << " " << position ;
+    fp << std::hex << docId << " " << std::dec << weight;
     return 0;
 }
 int DocFeatureLink::deserialize( std::istream& fp )
 {
     char c;
-    fp >> std::hex >> docId >> c >> std::dec >> weight >> c >> position ;
+    fp >> std::hex >> docId >> c >> std::dec >> weight;
     return 0;
 }
 
@@ -183,21 +183,32 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz
 
 size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t& v, size_t numBeads )
 {
-    size_t lastOffset = 0;
     for( auto i = v.begin(); i!= v.end(); ++i ) {
         const ExtractedDocFeature& f = *i;
-        InvertedIdx_t::iterator  fi = d_invertedIdx.find( f.feature );
+        InvertedIdx_t::iterator fi = d_invertedIdx.find( f.feature );
         if( fi == d_invertedIdx.end() ) 
-            fi = d_invertedIdx.insert( std::pair<DocFeature,DocFeatureLink::Vec_t>( f.feature, DocFeatureLink::Vec_t())).first;
-        lastOffset= f.simplePosition(); 
-        fi->second.push_back( DocFeatureLink(docId, f.weight(), (numBeads+lastOffset) ) ) ;
+            fi = d_invertedIdx.insert({ f.feature, InvertedIdx_t::mapped_type() }).first;
+		
+		auto& vec = fi->second;
+
+		const DocFeatureLink link(docId, f.weight());
+		auto linkPos = std::find_if(vec.begin(), vec.end(),
+				[&link] (const DocFeatureLink& other)
+				{ return link.weight == other.weight && link.docId == other.docId; });
+		if (linkPos == vec.end())
+		{
+			vec.push_back(link);
+			linkPos = vec.end() - 1;
+		}
+		
+		++linkPos->count;
     }
     return v.size();
 }
+
 /// should be called after the last doc has been appended . 
 void DocFeatureIndex::sortAll()
 {
-    #warning take DocFeatureIndexHeuristics::BIT_NOUNIQUE and properly compute count (more advanced sort)
     for( InvertedIdx_t::iterator i = d_invertedIdx.begin(); i!= d_invertedIdx.end(); ++i ) 
         std::sort( i->second.begin(), i->second.end() ) ;
 }

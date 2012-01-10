@@ -4,6 +4,7 @@
 #include <ay/ay_pool_with_id.h>
 #include <barzer_parse.h>
 #include <boost/filesystem.hpp>
+#include <boost/unordered_set.hpp>
 
 namespace zurch {
 
@@ -75,15 +76,17 @@ struct ExtractedDocFeature {
 struct DocFeatureLink {
     uint32_t docId; 
     int      weight; /// -1000000, +100000 - negative means disassociation , 0 - neutral association, positive - boost
-    uint32_t position;  /// some 1 dimensional positional number for feature within doc (can be middle between begin and end offset, or phrase number) 
+    
+    // we don't use it yet, and if we'd use we'd still need something more advanced
+    //uint32_t position;  /// some 1 dimensional positional number for feature within doc (can be middle between begin and end offset, or phrase number) 
     uint32_t count; /// count of the feature in the doc 
     
-    DocFeatureLink() : docId(0xffffffff), weight(0), position(0), count(0) {}
-    DocFeatureLink(uint32_t i) : docId(i), weight(0), position(0), count(0) {}
-    DocFeatureLink(uint32_t i, int w ) : docId(i), weight(w), position(0), count(0) {}
-    DocFeatureLink(uint32_t i, int w, uint32_t p ) : docId(i), weight(w), position(p), count(0) {}
+    DocFeatureLink() : docId(0xffffffff), weight(0), count(0) {}
+    DocFeatureLink(uint32_t i) : docId(i), weight(0),count(0) {}
+    DocFeatureLink(uint32_t i, int w ) : docId(i), weight(w), count(0) {}
     
     typedef std::vector< DocFeatureLink > Vec_t;
+	typedef boost::unordered_set< DocFeatureLink > Set_t;
 
     int serialize( std::ostream& ) const;
     int deserialize( std::istream& );
@@ -128,9 +131,6 @@ public:
     uint32_t storeExternalString( const barzer::BarzerLiteral&, const barzer::StoredUniverse& u );
     uint32_t resolveExternalString( const char* str ) const { return d_stringPool.getId(str); }
     uint32_t resolveExternalString( const barzer::BarzerLiteral&, const barzer::StoredUniverse& u ) const;
-
-    int serializeVec( std::ostream&, const DocFeatureLink::Vec_t& v ) const; 
-    int deserializeVec( std::istream&, const DocFeatureLink::Vec_t& v );
 
     DocFeatureIndex();
     ~DocFeatureIndex();
