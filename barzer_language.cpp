@@ -5,6 +5,44 @@
 
 namespace barzer {
 
+int Lang::getLang( const char* str, size_t s_len )
+{
+    const char* s_end = str+s_len, *s_end_1 = s_end + s_len-1;
+    int lang = LANG_UNKNOWN;
+    for( const char* s= str; *s && s< s_end; ++s ) {
+        if( isascii(*s) ) {
+            if( lang>LANG_ENGLISH )  // ascii character and lang was non english
+                return LANG_UNKNOWN;
+            else  if( lang == LANG_UNKNOWN )
+                lang = LANG_ENGLISH;
+        } else {
+            if( lang == LANG_ENGLISH ) {
+                return LANG_UNKNOWN;
+            } else if(s< s_end_1) { // at least theres at least 1 char beore the end
+                int tmpLang =  getLang2Byte( (unsigned char)(s[0]), (unsigned char)(s[1]) );
+                if( tmpLang == LANG_UNKNOWN )  // unknown 2 byte utf8 character
+                    return LANG_UNKNOWN;
+                else if (lang != tmpLang) { // known language character, different from lang
+                    if( lang == LANG_UNKNOWN )  {// if lang was previously unknown 
+                        lang = tmpLang;
+                    } else                        // if this character is from a diff language than lang
+                        return LANG_UNKNOWN;
+                }
+                ++s;
+            } else // character is non ascii and this is the last character 
+                return LANG_UNKNOWN;
+        }
+    }
+    return lang;
+}
+
+const char* Lang::getLangName( int xx ) 
+{
+    if( xx == LANG_ENGLISH ) return "ENGLISH"; 
+    else if( xx == LANG_RUSSIAN ) return "RUSSIAN";
+    else
+        return "UNKNOWN";
+}
 /// the factory method
 QSingleLangLexer* 	QSingleLangLexer::mkLexer( int lg )
 {
