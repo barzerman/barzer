@@ -3,6 +3,7 @@
 
 #include <ay_evovec.h>
 #include <boost/unordered_map.hpp>
+#include <barzer_language.h>
 
 namespace barzer {
 
@@ -16,6 +17,7 @@ struct BZSWordInfo {
 	// ... the higher the number the "heavier" the word is and the likely it is to be selected 
 	// by the spellchecker 
 	uint8_t d_priority;
+    int16_t d_lang; // language code (LANG_XXX) - see barzer_language.h 
 
 	/// frequency of the given word among the user-visible words
 	// 1-100 - the higher the score the heavier the word - this is the 2-nd order factor
@@ -28,7 +30,12 @@ struct BZSWordInfo {
 		WPRI_USER_FLUFF = 10,
 		WPRI_USER_NONFLUFF = 15
 	};
-
+    
+    BZSWordInfo() : 
+        d_priority(WPRI_GENERIC_FLUFF),
+        d_lang(LANG_ENGLISH),
+        d_freq(0)
+    {}
 	void setFrequency( uint32_t f ) { d_freq= f; }
 	bool upgradePriority( uint8_t p ) 
 	{
@@ -38,6 +45,12 @@ struct BZSWordInfo {
 		} else 
 			return false;
 	}
+    void    setLang( int16_t lang ) { d_lang = lang; }
+	int     getLang() const { return d_lang; }
+
+    bool isLang_English() const { return ( d_lang == LANG_ENGLISH); }
+    bool isLang_Russian() const { return ( d_lang == LANG_RUSSIAN); }
+
 	uint32_t getPriority() const { return d_priority; }
 	uint32_t getFrequency() const { return d_freq; }
 
@@ -90,7 +103,7 @@ private:
 	std::string d_extraWordsFileName;
 
 	/// generates edit distance variants 
-	size_t produceWordVariants( uint32_t strId ); 
+	size_t produceWordVariants( uint32_t strId, int lang=LANG_ENGLISH ); 
 public:
 	bool isAscii() const { return ( d_charSize== 1 ); }
 	void addWordToLinkedWordsMap(uint32_t linkTo, uint32_t strId )

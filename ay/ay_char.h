@@ -134,6 +134,50 @@ inline int LevenshteinEditDistance::ascii_no_case(const char *s,const char*t)
 {
 	return ascii( s, t, char_compare_nocase_ascii() );
 }
+// 2 byte char 
+struct Char2B {
+    char b[2];
+
+    Char2B( ) { b[0] = b[1] = 0; }
+    Char2B( const char* s ) { b[0] = *s; b[1] = s[1]; }
+    
+    inline static void mkCharvec( std::vector<char>& out, const std::vector< Char2B >& cv )
+    {
+        out.clear();
+        out.reserve( 2*cv.size() + 1 );
+        for( std::vector< Char2B >::const_iterator i = cv.begin(); i!= cv.end(); ++i ) {
+            out.push_back( i->b[0] );
+            out.push_back( i->b[1] );
+        }
+        out.push_back( 0 );
+    }
+    inline static void mkCharvec( 
+        std::vector<char>& out, 
+        std::vector< Char2B >::const_iterator& beg ,
+        std::vector< Char2B >::const_iterator& end
+        )
+    {
+        out.clear();
+        out.reserve( 2*(end-beg) + 1 );
+        for( std::vector< Char2B >::const_iterator i = beg; i!= end; ++i ) {
+            out.push_back( i->b[0] );
+            out.push_back( i->b[1] );
+        }
+        out.push_back( 0 );
+    }
+};
+
+struct Char2B_iterator {
+    const char* d_s;
+    Char2B_iterator( const char* s ): d_s(s) {}
+    Char2B_iterator& operator++() { d_s += 2; return *this; }
+    Char2B_iterator& operator+( int i) { d_s += (2*i); return *this; }
+    Char2B operator *() { return Char2B(d_s); }
+};
+inline int operator -( const Char2B_iterator& l, const Char2B_iterator& r ) 
+    { return ( (l.d_s - r.d_s)/2 ); }
+inline int operator != (const Char2B_iterator& l, const Char2B_iterator& r ) 
+    { return ( l.d_s != r.d_s); }
 
 } // ay namespace ends 
 #endif // AY_CHAR_H

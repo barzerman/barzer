@@ -13,7 +13,25 @@ bool BZSpell::isWordValidInUniverse( const char* word ) const
 }
 void BZSpell::addExtraWordToDictionary( uint32_t strId, uint32_t frequency )
 {
-	BZSWordInfo& wi = d_wordinfoMap[ strId ];
+    strid_wordinfo_hmap::iterator wmi = d_wordinfoMap.find( strId );
+    if( wmi == d_wordinfoMap.end() ) {
+        wmi = d_wordinfoMap.insert( strid_wordinfo_hmap::value_type(
+            strId, BZSWordInfo()
+        )).first;
+        
+        // determine language here (english is always default)
+	    const char* str = d_universe.getGlobalPools().string_resolve( strId );
+	    if( str ) {
+            size_t s_len = strlen(str);
+            int16_t lang = Lang::getLang( str, s_len );
+	        if( lang != LANG_ENGLISH ) 
+                wmi->second.setLang(lang);
+        }
+        
+    }
+	// BZSWordInfo& wi = d_wordinfoMap[ strId ];
+	BZSWordInfo& wi = wmi->second;
+
 	if( wi.upgradePriority( BZSWordInfo::WPRI_USER_EXTRA ) )
 		wi.setFrequency( frequency );
 }
@@ -432,7 +450,9 @@ int BZSpell::isUsersWord( uint32_t& strId, const char* word ) const
 uint32_t BZSpell::getSpellCorrection( const char* str ) const
 {
 	/// for ascii corrector
-	if( isAscii() ) {
+    size_t s_len = strlen(str);
+    int lang = Lang::getLang( str, s_len );
+	if( lang == LANG_ENGLISH) {
 
 		size_t str_len = strlen( str );
         if( str_len>= MAX_WORD_LEN ) 
@@ -453,7 +473,9 @@ uint32_t BZSpell::getSpellCorrection( const char* str ) const
 			permuter.doAll();
 			return cb.getBestStrId();
 		}
-	} 
+	} else if( Lang::isTwoByteLang(lang)) { // 2 byte char language spell correct
+        /// includes russian
+    }
 	return 0xffffffff;
 }
 
@@ -524,27 +546,60 @@ struct WPCallback {
 		return 0;
 	}
 };
+struct WPCallback_2B {
+
+    typedef std::vector< ay::Char2B > char_2b_vec;
+
+	BZSpell& bzs;
+	uint32_t fullStrId;
+	size_t   varCount; 
+    int d_lang;
+    charvec d_charV; // to save on allocs
+
+	WPCallback_2B( int lang, BZSpell& b, uint32_t l2  ) : bzs(b), fullStrId(l2), varCount(0), d_lang(0)  {}
+
+	int operator()( char_2b_vec::const_iterator fromI, char_2b_vec::const_iterator toI )
+	{
+		ay::Char2B::mkCharvec( d_charV, fromI, toI );
+		GlobalPools& gp = bzs.getUniverse().getGlobalPools();
+		const char* str = &(d_charV[0]);
+
+		uint32_t strId = gp.string_intern( str );
+
+		bzs.addWordToLinkedWordsMap( strId, fullStrId );
+		++varCount;
+		return 0;
+	}
+};
 
 }
 
-size_t BZSpell::produceWordVariants( uint32_t strId )
+size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
 {
 	/// for ascii 
 	const char* str = d_universe.getGlobalPools().string_resolve( strId );
 	if( !str ) 
 		return 0;
-
-	int stringClass = ay::strparse::is_string_ascii(str) ;
-	if( stringClass == 0 ) {
-		size_t str_len = strlen( str );
-	
-		if( str_len > d_minWordLengthToCorrect ) {
-			WPCallback cb( *this, strId );	
-			ay::choose_n<char, WPCallback > variator( cb, str_len-1, str_len-1 );
-			variator( str, str+str_len );
-			return cb.varCount;
-		}
-	} 
+    size_t str_len = strlen( str );
+    if( lang == LANG_ENGLISH ) {
+    	
+        if( str_len > d_minWordLengthToCorrect ) {
+            WPCallback cb( *this, strId );	
+            ay::choose_n<char, WPCallback > variator( cb, str_len-1, str_len-1 );
+            variator( str, str+str_len );
+            return cb.varCount;
+        }
+    } else {
+        if( Lang::isTwoByteLang(lang) ) { /// includes russian
+            size_t numChars = str_len/2;
+            if( numChars > d_minWordLengthToCorrect ) {
+                WPCallback_2B cb( lang, *this, strId );	
+                ay::choose_n<ay::Char2B, WPCallback_2B > variator( cb, numChars-1, numChars-1 );
+                variator( ay::Char2B_iterator(str), ay::Char2B_iterator(str+str_len) );
+                return cb.varCount;
+            }
+        }
+    }
 	return 0;
 }
 
@@ -632,7 +687,7 @@ size_t BZSpell::init( const StoredUniverse* secondaryUniverse )
 	for( strid_wordinfo_hmap::const_iterator wi = d_wordinfoMap.begin(); wi!= d_wordinfoMap.end(); ++wi ) {
 		uint32_t strId = wi->first;
 
-		produceWordVariants( strId );
+		produceWordVariants( strId, wi->second.getLang() );
 	}
 	return d_linkedWordsMap.size();
 }

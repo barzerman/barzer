@@ -31,7 +31,7 @@ struct Lang {
         else 
             return LANG_UNKNOWN;
     }
-
+    inline static bool isTwoByteLang(int lang) { return ( lang == LANG_RUSSIAN ); }
     static int getLang( const char* str, size_t s_len );
 };
 
