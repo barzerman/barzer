@@ -91,6 +91,7 @@ struct CorrectCallback {
 	uint32_t d_bestStrId;
     // original string's length
     size_t   d_str_len; 
+    charvec  d_charvec2B;
 	
     const BZSpell& bzSpell() const { return d_bzSpell; }
 	static bool widLess( const CorrectionQualityInfo& l, const CorrectionQualityInfo& r ) 
@@ -123,13 +124,27 @@ struct CorrectCallback {
 			d_bestStrId= strId;
 		}
 	}
+    
+    typedef std::vector< ay::Char2B > char_2b_vec;
+	int operator()( char_2b_vec::const_iterator fromI, char_2b_vec::const_iterator toI )
+    {
+		ay::Char2B::mkCharvec( d_charvec2B, fromI, toI );
+		const char* str = &(d_charvec2B[0]);
+        if( d_str_len <10 ) {
+            uint32_t id= 0xffffffff;
+            if( !d_bzSpell.isUsersWord( id, str ) ) 
+                return 0;
+        }
+
+		tryUpdateBestMatch( str );
+		return 0;
+    }
 
 	int operator()( charvec_ci fromI, charvec_ci toI )
 	{
 		charvec v( fromI, toI );
 		v.push_back(0);
 		const char* str = &(v[0]);
-
         if( d_str_len <5 ) {
             uint32_t id= 0xffffffff;
             if( !d_bzSpell.isUsersWord( id, str ) ) 
@@ -175,6 +190,38 @@ struct CharPermuter {
             }
 			callback.tryUpdateBestMatch( buf );
 			std::swap( s[0], s[1] );
+		}
+	}
+};
+struct CharPermuter_2B {
+	size_t buf_len;
+	CorrectCallback& callback;
+	char buf[ 128 ];
+
+	CharPermuter_2B( const char* s, CorrectCallback& cb ) : buf_len(strlen(s)), callback(cb)
+	{
+		strncpy( buf, s, sizeof(buf)-1 );
+		buf[ sizeof(buf)-1 ] = 0;
+	}
+	void doAll() {
+		if( buf_len< 6 ) return ;
+
+		char* buf_last = &buf[buf_len-4];
+		for( char* s = buf; s <= buf_last; s+=2 ) {
+			std::swap( s[0], s[2] );
+			std::swap( s[1], s[3] );
+
+            if( buf_len <10 ) {
+                uint32_t id= 0xffffffff;
+                if( !callback.bzSpell().isUsersWord( id, buf ) ) {
+			        std::swap( s[0], s[2] );
+			        std::swap( s[1], s[3] );
+                    continue;
+                }
+            }
+			callback.tryUpdateBestMatch( buf );
+			std::swap( s[0], s[2] );
+			std::swap( s[1], s[3] );
 		}
 	}
 };
@@ -452,9 +499,9 @@ uint32_t BZSpell::getSpellCorrection( const char* str ) const
 	/// for ascii corrector
     size_t s_len = strlen(str);
     int lang = Lang::getLang( str, s_len );
+    size_t str_len = strlen( str );
 	if( lang == LANG_ENGLISH) {
 
-		size_t str_len = strlen( str );
         if( str_len>= MAX_WORD_LEN ) 
             return 0xffffffff;
 
@@ -475,6 +522,19 @@ uint32_t BZSpell::getSpellCorrection( const char* str ) const
 		}
 	} else if( Lang::isTwoByteLang(lang)) { // 2 byte char language spell correct
         /// includes russian
+		if( str_len >= 2*d_minWordLengthToCorrect ) {
+			CorrectCallback cb( *this, str_len );	
+			cb.tryUpdateBestMatch( str );
+
+            if( str_len> d_minWordLengthToCorrect ) {
+			    ay::choose_n<ay::Char2B, CorrectCallback > variator( cb, str_len-1, str_len-1 );
+			    variator( ay::Char2B_iterator(str), ay::Char2B_iterator(str+str_len) );
+            }
+
+			ascii::CharPermuter_2B permuter( str, cb );
+			permuter.doAll();
+			return cb.getBestStrId();
+		}
     }
 	return 0xffffffff;
 }
