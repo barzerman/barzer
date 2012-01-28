@@ -15,7 +15,7 @@ class BZSpell;
 struct Russian_Stemmer {
 
 static uint32_t getStemCorrection( std::string& out, const BZSpell& bzspell, const char* s, size_t s_len );
-
+bool stem( std::string& out, const char* s ) const;
 };
 
 }

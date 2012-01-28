@@ -554,7 +554,11 @@ bool BZSpell::stem( std::string& out, const char* s ) const
 				return true;
             }
 		}
-	} else if( Lang::isTwoByteLang(lang) ) {
+	} else {
+        switch(lang) {
+        case LANG_RUSSIAN: return Russian_Stemmer::stem( out, s );
+        default: return false;
+        }
     }
 	return false;
 }

@@ -178,6 +178,8 @@ inline int operator -( const Char2B_iterator& l, const Char2B_iterator& r )
     { return ( (l.d_s - r.d_s)/2 ); }
 inline int operator != (const Char2B_iterator& l, const Char2B_iterator& r ) 
     { return ( l.d_s != r.d_s); }
+//// end of 2 byte char 
+
 
 } // ay namespace ends 
 #endif // AY_CHAR_H

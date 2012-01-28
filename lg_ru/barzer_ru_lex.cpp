@@ -26,24 +26,10 @@ uint32_t Russian_Stemmer::getStemCorrection( std::string& out, const BZSpell& bz
     if( s_len < 1 || s_len>= BZSpell::MAX_WORD_LEN ) 
         return 0xffffffff;
 
-    char buf[ BZSpell::MAX_WORD_LEN ];
-    memcpy( buf, s, s_len );
-    buf[s_len-1]= 0;
-    char* beg = buf , *end = beg+s_len;
-    size_t buf_len = s_len;
-    for( ;buf_len > 4; buf_len=end-beg) { // word is longer than 3 letters
-        
-        for( ; end>= beg ; end-=2 ) {
-            if( is_vowel(x) ) {
-                *end = 0;
-                uint32_t id= 0xffffffff;
-                if( bzspell.isUsersWord( id, str ) ) 
-                    return ( out.assign(beg) , id );
-            } else 
-                break;
-        }
-    }
     return 0xffffffff;
+}
+bool Russian_Stemmer::stem( std::string& out, const char* s ) const
+{
 }
 
 }
