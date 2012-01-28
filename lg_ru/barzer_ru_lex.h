@@ -10,6 +10,13 @@ int lex( CTWPVec& , const TTWPVec&, const QuestionParm& );
 
 };
 
+class BZSpell;
+/// russian language stemmer 
+struct Russian_Stemmer {
+
+static uint32_t getStemCorrection( std::string& out, const BZSpell& bzspell, const char* s, size_t s_len );
+
+};
 
 }
 #endif // BARZER_RU_LEX_H 
