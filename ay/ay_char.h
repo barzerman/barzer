@@ -169,15 +169,87 @@ struct Char2B {
 
 struct Char2B_iterator {
     const char* d_s;
+    Char2B_iterator( ): d_s(0) {}
     Char2B_iterator( const char* s ): d_s(s) {}
     Char2B_iterator& operator++() { d_s += 2; return *this; }
+    Char2B_iterator& operator--() { d_s -= 2; return *this; }
     Char2B_iterator& operator+( int i) { d_s += (2*i); return *this; }
+    Char2B_iterator& operator-( int i) { d_s -= (2*i); return *this; }
+
     Char2B operator *() { return Char2B(d_s); }
+
+    const char* []( size_t i ) const { return ( d_s + (i*2) ); }
 };
 inline int operator -( const Char2B_iterator& l, const Char2B_iterator& r ) 
     { return ( (l.d_s - r.d_s)/2 ); }
-inline int operator != (const Char2B_iterator& l, const Char2B_iterator& r ) 
-    { return ( l.d_s != r.d_s); }
+
+inline int operator != (const Char2B_iterator& l, const Char2B_iterator& r ) { return ( l.d_s != r.d_s); }
+inline int operator == (const Char2B_iterator& l, const Char2B_iterator& r ) { return ( l.d_s == r.d_s); }
+
+/// prefix matcher  - pfx should be an array of const char* terminated by 0
+/// 
+inline bool c_str_match_prefix( const char* r, const char* s )
+{
+       const char* x = r;
+       for( ; *x && *s; ++x, ++s ) 
+           if( *x != *s ) return false;
+       
+       return (*x || !*s);
+}
+inline bool c_str_match_any_prefix( const char* s, const char* pfx[] ) 
+{
+    for( ; *pfx; ++pfx ) { if( c_str_match_prefix(s,*pfx) ) return true; }
+
+    return false;
+}
+/// Char2B_accessor str("фанат");
+/// str("ф") is true
+/// str(1,"a") is true
+
+struct Char2B_accessor {
+    const char* d_s;
+    
+    Char2B_accessor( const char* s) : d_s(s) {}
+
+    bool isChar( const char* c2b ) const 
+    { return ( *d_s == c2b[0] && d_s[1] == c2b[1] ); }
+
+    bool isChar( int i, const char* c2b ) const 
+    {
+        const char* io = ( d_s +  (2*i) );
+        return ( *io == c2b[0] && io[1] == c2b[1] ); 
+    }
+    
+    bool prefixMatch( const char* s ) 
+    {
+       for( const char* x = d_s; *x && *s; ++x, ++s ) 
+           if( *x != *s ) return false;
+       
+       return (*x || !*s);
+    }
+    /// this does prefix match 
+    bool operator()( const char* s ) { 
+       return c_str_match_prefix(d_s,s);
+    }
+    /// gets array of strings terminated by 0 string
+    /// returns true as soon as the first prefix match returns true
+    /// const char * a[] = { "a", "b"
+    bool operator()( const char* s[] ) { 
+        c_str_match_any_prefix(d_s,s);
+    }
+
+    bool operator==( const char* s ) const { return !strcmp(d_s,s); }
+
+    const char* c_str() const { return d_s; }
+
+    Char2B_accessor offset( int i ) const { return Char2B_accessor( d_s + (2*i) ); }
+    Char2B_accessor prev( ) const { return Char2B_accessor(d_s-2); }
+    Char2B_accessor next( ) const { return Char2B_accessor(d_s+2); }
+    
+    char operator *( ) const { return *d_s; }
+};
+
+
 //// end of 2 byte char 
 
 

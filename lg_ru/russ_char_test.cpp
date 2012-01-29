@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <iostream>
+#include <stdint.h>
 
 namespace barzer {
     
@@ -72,11 +73,14 @@ int main( int argc, char* argv[] )
         c[0] = *s;
         c[1] = s[1];
         unsigned c1 = c[0], c2 = c[2] ;
-        printf( "%s %x,%x\n", c, (unsigned char)(c[0]), (unsigned char)c[1] );
+        uint16_t x = *(const uint16_t*)( c );
+        printf( "%x,%x // %s %x %x\n", (unsigned char)(c[0]), (unsigned char)c[1], c, (unsigned char)c[1],x );
     }
+    if( argc > 1 ) {
     while( fgets(buf,sizeof(buf),stdin) ) {
         buf[ strlen(buf)-1 ] =0;
         const char* langName = Lang::getLangName( Lang::getLang( buf, strlen(buf) ) );
         std::cerr << langName << std::endl;
+    }
     }
 }
