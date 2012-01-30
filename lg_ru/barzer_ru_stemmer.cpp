@@ -1,5 +1,7 @@
 #include <barzer_ru_stemmer.h>
 #include <ay_char.h>
+#include <vector>
+#include <stdint.h>
 
 namespace barzer {
 
@@ -29,7 +31,7 @@ inline bool is_consonant( const char* str )
 /// pure vowel 
 inline bool is_truevowel( const char* s ) 
 {
-    uint8_t b0 = (uint8_t)(str[0]), b1 = (uint8_t)(str[1]);
+    uint8_t b0 = (uint8_t)(s[0]), b1 = (uint8_t)(s[1]);
     return( 
         (b0== 0xd0 && (b1==0xb0||b1==0xb5||b1==0xbe||b1==0xb8||b1==0x8b)) ||
         (b0== 0xd1 && (b1==0x91||b1==0x8f||b1==0x83))
@@ -80,8 +82,8 @@ namespace {
 inline bool chop_into_string( std::string& out, size_t toChop, const char* s, size_t s_len )
     { return( out.assign( s, (s_len-2*toChop) ), true ); }
 } // anonymous namespace 
-
-bool Russian_Stemmer::stem( std::string& out, const char* s ) const
+using namespace ay;
+bool Russian::normalize( std::string& out, const char* s ) 
 {
     size_t s_len = strlen( s );
     size_t numLetters = s_len/2; // number of russian characters (one russian characters s 2 chars)
@@ -123,7 +125,7 @@ bool Russian_Stemmer::stem( std::string& out, const char* s ) const
                     (l3("и")&& l3(suffix::verb_3_i)) ||
                     (l3("ю")&& l3(suffix::verb_3_u)) ||
                     (l3("я")&& l3(suffix::verb_3_ja)) ||
-                    (l3("ы")&& l3(suffix::verb_3_y)) ||
+                    (l3("ы")&& l3(suffix::verb_3_y)) 
                 )
             ) ||
             l3(suffix::verb_3) 

@@ -3,6 +3,7 @@
 
 #include <cstring>
 #include <cstdlib>
+#include <vector>
 /// char string utilities 
 namespace ay {
 
@@ -13,7 +14,7 @@ struct char_compare_nocase_ascii {
 	bool operator()( char l, char r ) const { return( toupper(l) == toupper(r) ); } 
 };
 
-/// tandard levenshtein edit distance algorithm wrapped in a reusable object
+/// standard levenshtein edit distance algorithm wrapped in a reusable object
 /// it takes care of memory allocations and will only allocate a new chunk if its buffer is smaller 
 /// than required 
 /// best way to use it:
@@ -61,7 +62,7 @@ public:
 	template <typename char_type, typename T>
 	int generic(const char_type *s, size_t s_sz, const char_type*t, size_t t_sz, const T& compare);
 };
-
+// levenshtein for generic character type
 template <typename char_type, typename T>
 inline int LevenshteinEditDistance::generic(const char_type *s, size_t s_sz, const char_type*t, size_t t_sz, const T& compare)
 {
@@ -93,7 +94,7 @@ inline int LevenshteinEditDistance::generic(const char_type *s, size_t s_sz, con
   else 
     return ( !n ? m: n ); 
 }
-
+// levenshtein template specialization for ascii char
 template <typename T>
 inline int LevenshteinEditDistance::ascii(const char *s,const char*t, const T& compare )
 {
@@ -178,7 +179,7 @@ struct Char2B_iterator {
 
     Char2B operator *() { return Char2B(d_s); }
 
-    const char* []( size_t i ) const { return ( d_s + (i*2) ); }
+    const char* operator[]( size_t i ) const { return ( d_s + (i*2) ); }
 };
 inline int operator -( const Char2B_iterator& l, const Char2B_iterator& r ) 
     { return ( (l.d_s - r.d_s)/2 ); }
@@ -211,8 +212,7 @@ struct Char2B_accessor {
     
     Char2B_accessor( const char* s) : d_s(s) {}
 
-    bool isChar( const char* c2b ) const 
-    { return ( *d_s == c2b[0] && d_s[1] == c2b[1] ); }
+    bool isChar( const char* c2b ) const { return ( *d_s == c2b[0] && d_s[1] == c2b[1] ); }
 
     bool isChar( int i, const char* c2b ) const 
     {
@@ -220,23 +220,19 @@ struct Char2B_accessor {
         return ( *io == c2b[0] && io[1] == c2b[1] ); 
     }
     
-    bool prefixMatch( const char* s ) 
-    {
-       for( const char* x = d_s; *x && *s; ++x, ++s ) 
-           if( *x != *s ) return false;
-       
-       return (*x || !*s);
-    }
+    bool prefixMatch( const char* s ) const 
+        { 
+            const char* x = d_s;
+            for( ; *x && *s; ++x, ++s ) 
+                { if( *x != *s ) return false; } 
+            return (*x || !*s); 
+        }
     /// this does prefix match 
-    bool operator()( const char* s ) { 
-       return c_str_match_prefix(d_s,s);
-    }
+    bool operator()( const char* s ) const { return c_str_match_prefix(d_s,s); }
     /// gets array of strings terminated by 0 string
     /// returns true as soon as the first prefix match returns true
-    /// const char * a[] = { "a", "b"
-    bool operator()( const char* s[] ) { 
-        c_str_match_any_prefix(d_s,s);
-    }
+    /// const char * a[] = { "a", "b"}
+    bool operator()( const char* s[] ) const { return c_str_match_any_prefix(d_s,s); }
 
     bool operator==( const char* s ) const { return !strcmp(d_s,s); }
 
@@ -247,7 +243,7 @@ struct Char2B_accessor {
     Char2B_accessor next( ) const { return Char2B_accessor(d_s+2); }
     
     char operator *( ) const { return *d_s; }
-};
+}; // Char2B_accessor
 
 
 //// end of 2 byte char 

@@ -78,6 +78,7 @@ set(SOURCES barzer_barz.cpp
             "${EN_DIR}/barzer_en_lex.cpp"
             "${RU_DIR}/barzer_ru_date_util.cpp"
             "${RU_DIR}/barzer_ru_lex.cpp"
+            "${RU_DIR}/barzer_ru_stemmer.cpp"
             )
 IF(NOT DEFINED INSTALL_DIR)
     set(INSTALL_DIR "/usr/share/barzer")

@@ -8,7 +8,7 @@ ifeq ($(IS32),yes)
 	AYBIT="IS32=yes"
 endif 
 CFLAGS :=$(CFLAGS) $(BITMODE) $(OPT) -Wall -Wno-parentheses -Wnon-virtual-dtor \
-	-I/opt/local/include -I/usr/include -g -I. -I./ay -fpic
+	-I/opt/local/include -I/usr/include -g -I. -I./ay -I./lg_ru -fpic
 LINKFLAGS := $(FLAGS) 
 BINARY=barzer.exe
 LIBNAME=libbarzer
@@ -20,6 +20,7 @@ libs = -Lay -lay -L/opt/local/lib -L/usr/lib $(LIB_HUNSPELL) \
 	-lboost_system -lboost_filesystem -lboost_thread-mt -lexpat -lstdc++
 ECHO = echo
 lib_objects = \
+lg_ru/barzer_ru_stemmer.o \
 barzer_entity.o \
 barzer_autocomplete.o \
 barzer_el_function_util.o \

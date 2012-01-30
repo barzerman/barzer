@@ -1,11 +1,16 @@
 #ifndef BARZER_RU_STEMMER_H
 #define BARZER_RU_STEMMER_H
+
+#include <string> 
+/// implementation of stemmers / normalizers for Russian language 
+/// utf8 strings 
 namespace barzer {
 
 namespace Russian {
 
-bool stem( std::string& out, const char* s ) ;
-
+// normalizer - tries to preserve part of speech 
+// 
+bool normalize( std::string& out, const char* s ) ;
 } // namespace Russian
 
 } // namespace barzer

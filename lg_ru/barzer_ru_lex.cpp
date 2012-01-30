@@ -18,9 +18,9 @@ uint32_t Russian_Stemmer::getStemCorrection( std::string& out, const BZSpell& bz
     return 0xffffffff;
 }
 
-bool Russian_Stemmer::stem( std::string& out, const char* s ) const
+bool Russian_Stemmer::stem( std::string& out, const char* s ) 
 {
-    return Russian::stem(out,s);
+    return Russian::normalize(out,s);
 }
 
 }
