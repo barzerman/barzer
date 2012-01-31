@@ -85,6 +85,7 @@ inline bool chop_into_string( std::string& out, size_t toChop, const char* s, si
 using namespace ay;
 bool Russian::normalize( std::string& out, const char* s ) 
 {
+    using namespace suffix;
     size_t s_len = strlen( s );
     size_t numLetters = s_len/2; // number of russian characters (one russian characters s 2 chars)
     enum { RUSSIAN_MIN_STEM_CHAR = 4, RUSSIAN_MIN_STEM_LEN=(2*RUSSIAN_MIN_STEM_CHAR) };
@@ -92,49 +93,49 @@ bool Russian::normalize( std::string& out, const char* s )
     if( s_len< RUSSIAN_MIN_STEM_LEN ) 
         return false;
     /// suffix stemming 
-    Char2B_accessor l1( s+ s_len -3); // last character
-    Char2B_accessor l2( l1.prev() ); // the one before last 
-    Char2B_accessor l3( l2.prev() ); // 3 from last
-    Char2B_accessor l4( l3.prev() );
+    Char2B_accessor l1( s+ s_len -3), // last character
+        l2( l1.prev() ), // the one before last 
+        l3( l2.prev() ), // 3 from last
+        l4( l3.prev() );
     
     if( numLetters > 6 ) {
         Char2B_accessor l5( l4.prev()) , l6( l5.prev() );
         if( numLetters > 8 ) { // 67 suffix
             Char2B_accessor l7(l6.prev());
-            if( l6(suffix::adj_67_nk_truevowel) ) 
+            if( l6(adj_67_nk_truevowel) ) 
                 return( chop_into_string( out, (is_truevowel(l7.c_str()) ? 7:6 ), s, s_len ) );
-            if( l5("ньк") && l5(suffix::adj_56_nk_truevowel) ) 
+            if( l5("ньк") && l5(adj_56_nk_truevowel) ) 
                 return( chop_into_string( out, (is_truevowel(l6.c_str()) ? 6:5 ), s, s_len ) );
-            if( l4("л") && l4(suffix::verb_45_truevowel) ) 
+            if( l4("л") && l4(verb_45_truevowel) ) 
                 return( chop_into_string( out, (is_truevowel(l5.c_str()) ? 5:4 ), s, s_len ) );
-            if( l4(suffix::verb_4) ) 
+            if( l4(verb_4) ) 
                 return( chop_into_string( out, 4, s, s_len ) );
         }
-        if(l3(suffix::noun_34_truevowel) || l3(suffix::verb_34_truevowel)) 
+        if(l3(noun_34_truevowel) || l3(verb_34_truevowel)) 
             return( chop_into_string( out, (is_truevowel(l4.c_str()) ? 4:3 ), s, s_len ) );
     }
     if( is_vowel(l1.c_str()) ) {
         if( 
-            l3(suffix::adj_3_novowel) ||
-            l3(suffix::adj_3_vowel) ||
+            l3(adj_3_novowel) ||
+            l3(adj_3_vowel) ||
             // 2 == л   (а е и ю я ы)
             (
                 (l2("т") || l2("л")) && (
-                    (l3("а")&& l3(suffix::verb_3_a)) ||
-                    (l3("е")&& l3(suffix::verb_3_e)) ||
-                    (l3("и")&& l3(suffix::verb_3_i)) ||
-                    (l3("ю")&& l3(suffix::verb_3_u)) ||
-                    (l3("я")&& l3(suffix::verb_3_ja)) ||
-                    (l3("ы")&& l3(suffix::verb_3_y)) 
+                    (l3("а")&& l3(verb_3_a)) ||
+                    (l3("е")&& l3(verb_3_e)) ||
+                    (l3("и")&& l3(verb_3_i)) ||
+                    (l3("ю")&& l3(verb_3_u)) ||
+                    (l3("я")&& l3(verb_3_ja)) ||
+                    (l3("ы")&& l3(verb_3_y)) 
                 )
             ) ||
-            l3(suffix::verb_3) 
+            l3(verb_3) 
         ) {
             return( chop_into_string( out, 3, s, s_len ) );
         } else {
-            if(l2(suffix::noun_23_truevowel))
+            if(l2(noun_23_truevowel))
                 return( chop_into_string( out, (is_truevowel(l3.c_str()) ? 3:2 ), s, s_len ) );
-            else if(l2(suffix::verb_2) || l2(suffix::adj_2) )
+            else if(l2(verb_2) || l2(adj_2) )
                 return( chop_into_string( out, 2, s, s_len ) );
             else 
                 return( chop_into_string( out, 1, s, s_len ) ); // generic terminal vowel chop

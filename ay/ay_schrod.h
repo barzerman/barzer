@@ -28,7 +28,7 @@ public:
 	Actual* actual() { return ( d_exists? (Actual*)d_buf : 0 ); }
 	const Actual* actual() const { return ( d_exists? (Actual*)d_buf : 0 ); }
 
-	~Schrod() { if( d_exists ) ((Actual*)( d_buf ))->Actual::~Actual(); }
+	~Schrod() { if( d_exists ) (static_cast<Actual*>(d_buf))->Actual::~Actual(); }
 };
 
 }
