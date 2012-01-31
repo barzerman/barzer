@@ -68,8 +68,8 @@ const char* verb_3_ja[] = { "яла" ,"яли" ,"яло" ,"ять",0 };
 const char* verb_3_y[]  = { "ыла" ,"ыли" ,"ыло" ,"ыть",0 };
 const char* verb_3[]        = {"ишь" ,"ись", "ешь" ,"ься",0};
 
-const char* noun_23_truevowel[]        = {"ом","ой","ою","ах","ов","ам", "ей", "ью", "ию","ье","ья","ее", "ие","ия", 0};
-const char* verb_2[]        = {"ил" ,"ал" ,"ол","ел","ыл","ул","ся","им",  0};
+const char* noun_23_truevowel[]        = {"ом","ой","ою","ах","ов","ам", "ем", "ей", "ью", "ию","ье","ья","ее", "ие","ия", "ая", "ую", 0};
+const char* verb_2[]        = {"ил" ,"ят", "ит", "ал" ,"ол","ел","ыл","ул","ся","им","ет", "ут","ёт",  0};
 const char* adj_2[]         = {"ий" ,"ое" , "ых", "ые","ый","ым","ой","ие","их","им","ая",0};
 
 // noun suffixes 
@@ -98,9 +98,9 @@ bool Russian::normalize( std::string& out, const char* s )
         l3( l2.prev() ), // 3 from last
         l4( l3.prev() );
     
-    if( numLetters > 6 ) {
+    if( numLetters > 7 ) {
         Char2B_accessor l5( l4.prev()) , l6( l5.prev() );
-        if( numLetters > 8 ) { // 67 suffix
+        if( numLetters > 9 ) { // 67 suffix
             Char2B_accessor l7(l6.prev());
             if( l6(adj_67_nk_truevowel) ) 
                 return( chop_into_string( out, (is_truevowel(l7.c_str()) ? 7:6 ), s, s_len ) );
@@ -115,6 +115,7 @@ bool Russian::normalize( std::string& out, const char* s )
             return( chop_into_string( out, (is_truevowel(l4.c_str()) ? 4:3 ), s, s_len ) );
     }
     if( 
+        numLetters > 5 && (
         l3(adj_3_novowel) ||
         l3(adj_3_vowel) ||
         // 2 == л   (а е и ю я ы)
@@ -128,18 +129,18 @@ bool Russian::normalize( std::string& out, const char* s )
                 (l3("ы")&& l3(verb_3_y)) 
             )
         ) ||
-        l3(verb_3) 
+        l3(verb_3) )
     ) {
         return( chop_into_string( out, 3, s, s_len ) );
     } else {
-        if(l2(noun_23_truevowel))
+        if(numLetters > 4 && l2(noun_23_truevowel))
             return( chop_into_string( out, (is_truevowel(l3.c_str()) ? 3:2 ), s, s_len ) );
-        else if(l2(verb_2) || l2(adj_2) )
+        else if(numLetters > 3 &&(l2(verb_2) || l2(adj_2)) )
             return( chop_into_string( out, 2, s, s_len ) );
-        else 
+        else if( is_vowel(l1.c_str() ) )  
             return( chop_into_string( out, 1, s, s_len ) ); // generic terminal vowel chop
     }
-    return 0xffffffff;
+    return false;
 } // Russian::stem 
 
 } // namespace barzer

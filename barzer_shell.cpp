@@ -354,8 +354,16 @@ static int bshf_bzstem( BarzerShell* shell, char_cp cmd, std::istream& in )
 		std::string stem;	
 
         if( stemOnly ) {
-            bzSpell->stem( stem, word );
-            std::cerr << "STEM:" << stem << std::endl;
+            std::stringstream sstr(word);
+            std::string tmp;
+            std::cerr << "STEM:";
+            while( sstr >> tmp ) {
+                stem.clear();
+                bool stemSuccess = bzSpell->stem( stem, tmp.c_str() );
+                std::cerr << ( stemSuccess ? stem : tmp ) << " ";
+            }
+            std::cerr << "<<<< ed of stem\n";
+
         } else {
             uint32_t strId = bzSpell->getStemCorrection( stem, word );
             std::cerr << "stemmed to :" << stem << ":" << std::hex << strId << ":" << std::endl;
