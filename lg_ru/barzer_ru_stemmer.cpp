@@ -51,7 +51,7 @@ const char* adj_67_nk_truevowel[]   = {"нькими", "нького",0 };
 // 5 == ньк (6 characters to chop)
 const char* adj_56_nk_truevowel[]    = {"нький","нькое","нькой","нькие","ньким","ньких","нькая",0 };
 // 4 = л (4 or 5 charcters to be chopped)
-const char* verb_45_truevowel[]     = {"лось" ,"лась","лись","лися","лося","ться",0};
+const char* verb_45_truevowel[]     = {"лось" ,"лась","лись","лися","лося","ться","тесь",0};
 
 const char* verb_4[]        = {"айся","ейся","ойся","уйся"};
 const char* noun_34_truevowel[]        = {"ами","ями",0};
@@ -66,7 +66,7 @@ const char* verb_3_i[]  = { "ила" ,"или" ,"ило" ,"ить",0 };
 const char* verb_3_u[]  = { "ула" ,"ули" ,"уло" ,"уть",0 };
 const char* verb_3_ja[] = { "яла" ,"яли" ,"яло" ,"ять",0 };
 const char* verb_3_y[]  = { "ыла" ,"ыли" ,"ыло" ,"ыть",0 };
-const char* verb_3[]        = {"ишь" ,"ешь" ,"ься",0};
+const char* verb_3[]        = {"ишь" ,"ись", "ешь" ,"ься",0};
 
 const char* noun_23_truevowel[]        = {"ом","ой","ою","ах","ов","ам", "ей", "ью", "ию","ье","ья","ее", "ие","ия", 0};
 const char* verb_2[]        = {"ил" ,"ал" ,"ол","ел","ыл","ул","ся","им",0};
@@ -93,7 +93,7 @@ bool Russian::normalize( std::string& out, const char* s )
     if( s_len< RUSSIAN_MIN_STEM_LEN ) 
         return false;
     /// suffix stemming 
-    Char2B_accessor l1( s+ s_len -3), // last character
+    Char2B_accessor l1( s+ s_len -2), // last character
         l2( l1.prev() ), // the one before last 
         l3( l2.prev() ), // 3 from last
         l4( l3.prev() );
@@ -106,7 +106,7 @@ bool Russian::normalize( std::string& out, const char* s )
                 return( chop_into_string( out, (is_truevowel(l7.c_str()) ? 7:6 ), s, s_len ) );
             if( l5("ньк") && l5(adj_56_nk_truevowel) ) 
                 return( chop_into_string( out, (is_truevowel(l6.c_str()) ? 6:5 ), s, s_len ) );
-            if( l4("л") && l4(verb_45_truevowel) ) 
+            if( l4(verb_45_truevowel) ) 
                 return( chop_into_string( out, (is_truevowel(l5.c_str()) ? 5:4 ), s, s_len ) );
             if( l4(verb_4) ) 
                 return( chop_into_string( out, 4, s, s_len ) );
