@@ -69,8 +69,8 @@ const char* verb_3_y[]  = { "ыла" ,"ыли" ,"ыло" ,"ыть",0 };
 const char* verb_3[]        = {"ишь" ,"ись", "ешь" ,"ься",0};
 
 const char* noun_23_truevowel[]        = {"ом","ой","ою","ах","ов","ам", "ей", "ью", "ию","ье","ья","ее", "ие","ия", 0};
-const char* verb_2[]        = {"ил" ,"ал" ,"ол","ел","ыл","ул","ся","им",0};
-const char* adj_2[]         = {"ий" ,"ое" ,"ые","ый","ой","ие","их","им","ая",0};
+const char* verb_2[]        = {"ил" ,"ал" ,"ол","ел","ыл","ул","ся","им",  0};
+const char* adj_2[]         = {"ий" ,"ое" , "ых", "ые","ый","ым","ой","ие","их","им","ая",0};
 
 // noun suffixes 
 
@@ -114,33 +114,31 @@ bool Russian::normalize( std::string& out, const char* s )
         if(l3(noun_34_truevowel) || l3(verb_34_truevowel)) 
             return( chop_into_string( out, (is_truevowel(l4.c_str()) ? 4:3 ), s, s_len ) );
     }
-    if( is_vowel(l1.c_str()) ) {
-        if( 
-            l3(adj_3_novowel) ||
-            l3(adj_3_vowel) ||
-            // 2 == л   (а е и ю я ы)
-            (
-                (l2("т") || l2("л")) && (
-                    (l3("а")&& l3(verb_3_a)) ||
-                    (l3("е")&& l3(verb_3_e)) ||
-                    (l3("и")&& l3(verb_3_i)) ||
-                    (l3("ю")&& l3(verb_3_u)) ||
-                    (l3("я")&& l3(verb_3_ja)) ||
-                    (l3("ы")&& l3(verb_3_y)) 
-                )
-            ) ||
-            l3(verb_3) 
-        ) {
-            return( chop_into_string( out, 3, s, s_len ) );
-        } else {
-            if(l2(noun_23_truevowel))
-                return( chop_into_string( out, (is_truevowel(l3.c_str()) ? 3:2 ), s, s_len ) );
-            else if(l2(verb_2) || l2(adj_2) )
-                return( chop_into_string( out, 2, s, s_len ) );
-            else 
-                return( chop_into_string( out, 1, s, s_len ) ); // generic terminal vowel chop
-        }
-    } 
+    if( 
+        l3(adj_3_novowel) ||
+        l3(adj_3_vowel) ||
+        // 2 == л   (а е и ю я ы)
+        (
+            (l2("т") || l2("л")) && (
+                (l3("а")&& l3(verb_3_a)) ||
+                (l3("е")&& l3(verb_3_e)) ||
+                (l3("и")&& l3(verb_3_i)) ||
+                (l3("ю")&& l3(verb_3_u)) ||
+                (l3("я")&& l3(verb_3_ja)) ||
+                (l3("ы")&& l3(verb_3_y)) 
+            )
+        ) ||
+        l3(verb_3) 
+    ) {
+        return( chop_into_string( out, 3, s, s_len ) );
+    } else {
+        if(l2(noun_23_truevowel))
+            return( chop_into_string( out, (is_truevowel(l3.c_str()) ? 3:2 ), s, s_len ) );
+        else if(l2(verb_2) || l2(adj_2) )
+            return( chop_into_string( out, 2, s, s_len ) );
+        else 
+            return( chop_into_string( out, 1, s, s_len ) ); // generic terminal vowel chop
+    }
     return 0xffffffff;
 } // Russian::stem 
 
