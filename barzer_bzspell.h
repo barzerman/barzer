@@ -129,6 +129,8 @@ public:
 	/// when fails 0xffffffff is returned 
 	uint32_t getSpellCorrection( const char* s ) const;
 	uint32_t getStemCorrection( std::string& , const char*) const;
+	uint32_t get2ByteLangStemCorrection( int lang, const char* str ) const;
+    uint32_t purePermuteCorrect(const char* s, size_t s_len )  const;
 
 	uint32_t getAggressiveStem( std::string& , const char*) const;
 

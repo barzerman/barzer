@@ -83,10 +83,12 @@ inline bool chop_into_string( std::string& out, size_t toChop, const char* s, si
     { return( out.assign( s, (s_len-2*toChop) ), true ); }
 } // anonymous namespace 
 using namespace ay;
-bool Russian::normalize( std::string& out, const char* s ) 
+bool Russian::normalize( std::string& out, const char* s, size_t* len ) 
 {
     using namespace suffix;
     size_t s_len = strlen( s );
+    if( len ) 
+        *len = s_len;
     size_t numLetters = s_len/2; // number of russian characters (one russian characters s 2 chars)
     enum { RUSSIAN_MIN_STEM_CHAR = 4, RUSSIAN_MIN_STEM_LEN=(2*RUSSIAN_MIN_STEM_CHAR) };
 

@@ -10,7 +10,7 @@ namespace Russian {
 
 // normalizer - tries to preserve part of speech 
 // 
-bool normalize( std::string& out, const char* s ) ;
+bool normalize( std::string& out, const char* s, size_t* len=0 ) ;
 } // namespace Russian
 
 } // namespace barzer

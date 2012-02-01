@@ -2,6 +2,7 @@
 #include <barzer_bzspell.h>
 #include <ay/ay_choose.h>
 #include <lg_ru/barzer_ru_lex.h>
+#include <lg_ru/barzer_ru_stemmer.h>
 
 namespace barzer {
 typedef std::vector<char> charvec;
@@ -535,10 +536,60 @@ uint32_t BZSpell::getSpellCorrection( const char* str ) const
 
 			ascii::CharPermuter_2B permuter( str, cb );
 			permuter.doAll();
-			return cb.getBestStrId();
+			uint32_t retStrId =  cb.getBestStrId();
+            if( retStrId != 0xffffffff ) 
+                return retStrId;
+            else 
+                return get2ByteLangStemCorrection( lang, str );
 		}
     }
 	return 0xffffffff;
+}
+
+uint32_t BZSpell::purePermuteCorrect(const char* s, size_t s_len )  const
+{
+    CorrectCallback cb( *this, s_len );	
+    cb.tryUpdateBestMatch( s );
+
+    if( s_len> d_minWordLengthToCorrect ) {
+        size_t numChar = s_len/2;
+        ay::choose_n<ay::Char2B, CorrectCallback > variator( cb, numChar-1, numChar-1 );
+        variator( ay::Char2B_iterator(s), ay::Char2B_iterator(s+s_len) );
+    }
+
+    ascii::CharPermuter_2B permuter( s, cb );
+    permuter.doAll();
+    uint32_t retStrId =  cb.getBestStrId();
+    return retStrId;
+}
+
+uint32_t BZSpell::get2ByteLangStemCorrection( int lang, const char* str ) const
+{
+    size_t s_len = 0;
+    if(lang == LANG_RUSSIAN) {
+        std::string norm;
+        if( Russian::normalize( norm,str,&s_len) ) { // successfully normalized
+            uint32_t strId = 0xffffffff;
+            if( isUsersWord(strId,norm.c_str()) ) 
+                return strId;
+            /// trying to permute correct stemmed word - stem was successful but result of the stem 
+            /// isnt a valid word
+            strId = purePermuteCorrect( norm.c_str(), norm.length() ); 
+            if( strId != 0xffffffff ) 
+                return strId;
+        }
+    } 
+    /// chopping the word down to 3/4 size
+    size_t numLetters = s_len/2, minNumLet = ( (numLetters*3)/4 );
+    if( numLetters <= 4 || numLetters > 16 /* protecting against stupid attack */) 
+        return 0xffffffff;
+    std::string tmp( str, numLetters*2 );
+    for( size_t i = numLetters-1; i>=minNumLet; --i, tmp.resize( i*2 )) {
+        uint32_t strId = 0xffffffff;
+        if( isUsersWord(strId,tmp.c_str()) )
+            return strId;
+    }
+    return 0xffffffff;
 }
 
 bool BZSpell::stem( std::string& out, const char* s ) const
