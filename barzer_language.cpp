@@ -6,11 +6,6 @@
 namespace barzer {
 
 namespace {
-inline bool is_russian_uppercase( const char* s )
-{
-    return ( *s==0xd0 && (s[1] >=0x90 && s[1] <=0xaf ));
-}
-
 const char * rus_letter[] =  {
     "а","б","в","г","д","е","ж","з","и","й","к","л","м","н",
     "о","п","р","с","т","у","ф","х","ц","ч","ш","щ","ь","ы","ъ","э","ю","я"
