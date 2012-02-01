@@ -22,7 +22,7 @@ struct Lang {
     static const char* getLangName( int xx ) ;
 
     inline static bool utf8_2byte_isRussian( unsigned char u0, unsigned char u1  )
-    { return ( (u0 == 0xd0 && (u1 >= 0x90 && u1<= 0xbf ))|| (u0 == 0xd1 && (u1 >= 0x80 && u1<= 0x91 )) ); }
+    { return ( (u0 == 0xd0 && (u1== 0x81 ||(u1 >= 0x90 && u1<= 0xbf) ))|| (u0 == 0xd1 && (u1 >= 0x80 && u1<= 0x91 )) ); }
 
     inline static int getLang2Byte(  unsigned char u0, unsigned char u1 ) 
     {
@@ -33,6 +33,7 @@ struct Lang {
     }
     inline static bool isTwoByteLang(int lang) { return ( lang == LANG_RUSSIAN ); }
     static int getLang( const char* str, size_t s_len );
+    static bool convertTwoByteToLower( char* s, size_t s_len, int lang );
 };
 
 class QSingleLangLexer {

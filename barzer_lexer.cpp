@@ -257,25 +257,33 @@ int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok, const Qu
 		        return 0;
             }
 	    } else {
-
 		    strncpy( buf, theString, BZSpell::MAX_WORD_LEN );
 		    buf[ sizeof(buf)-1 ] = 0;
-		    bool hasUpperCase = false;
-		    for( char* ss = buf; *ss; ++ss ) {
-			    if( isupper(*ss) ) {
-				    if( !hasUpperCase ) hasUpperCase= true;
-				    *ss = tolower(*ss);
-			    } 
-		    }
-		    theString = buf;
-		    if( hasUpperCase ) {
-			    isUsersWord =  bzSpell->isUsersWord( strId, theString ) ;
-		    }
-	    	
-		    if( !isUsersWord && isupper(theString[0]) ) {
-			    ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
-			    return 0;
-		    }
+            size_t buf_len=strlen(buf);
+            int16_t lang = Lang::getLang( buf, buf_len );
+            if( lang == LANG_ENGLISH ) {
+		        bool hasUpperCase = false;
+		        for( char* ss = buf; *ss; ++ss ) {
+			        if( isupper(*ss) ) {
+				        if( !hasUpperCase ) hasUpperCase= true;
+				        *ss = tolower(*ss);
+			        } 
+		        }
+		        theString = buf;
+		        if( hasUpperCase ) {
+			        isUsersWord =  bzSpell->isUsersWord( strId, theString ) ;
+		        }
+	        	
+		        if( !isUsersWord && isupper(theString[0]) ) {
+			        ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
+			        return 0;
+		        }
+            } else if(Lang::isTwoByteLang(lang)) {
+                bool hasUpperCase = Lang::convertTwoByteToLower( buf, buf_len, lang );
+                if( hasUpperCase ) 
+                    isUsersWord =  bzSpell->isUsersWord( strId, buf ) ;
+                theString = buf;
+            }
         }
 	}
 

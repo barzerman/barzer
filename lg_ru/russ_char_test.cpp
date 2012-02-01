@@ -67,7 +67,7 @@ using namespace barzer;
 int main( int argc, char* argv[] ) 
 {
     char buf[ 256 ];
-    const char* rus="абвгдеёжзийклмнопрстуфхцчшчьыъэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯ";
+    const char* rus="абвгдеёжзийклмнопрстуфхцчшщьыъэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯ";
         char c[3]= {0};
     for( const char* s= rus; *s; s+=2 ) {
         c[0] = *s;

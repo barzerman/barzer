@@ -5,6 +5,42 @@
 
 namespace barzer {
 
+namespace {
+inline bool is_russian_uppercase( const char* s )
+{
+    return ( *s==0xd0 && (s[1] >=0x90 && s[1] <=0xaf ));
+}
+
+const char * rus_letter[] =  {
+    "а","б","в","г","д","е","ж","з","и","й","к","л","м","н",
+    "о","п","р","с","т","у","ф","х","ц","ч","ш","щ","ь","ы","ъ","э","ю","я"
+};
+
+}
+bool Lang::convertTwoByteToLower( char* s, size_t s_len, int lang )
+{
+    bool hasUpperCase = false;
+    if( lang == LANG_RUSSIAN ) {
+        // all russian uppercase letters are 0xd0
+        char* s_end = s+s_len;
+        for( char* ss=s; ss< s_end; ss+=2 ) {
+            uint8_t b1= (uint8_t)(ss[1]);
+            if( (b1 >=0x90 && b1 <=0xaf) ) {
+                const char* lc = rus_letter[ (b1-0x90) ];
+                hasUpperCase = true;
+                ss[0] = lc[0];
+                ss[1] = lc[1];
+            } else if( b1 == 0x81 ) {
+                ss[0] = 0xd1;
+                ss[1] = 0x91;
+            }
+        }
+
+        return hasUpperCase;
+    } else 
+        return false;
+}
+
 int Lang::getLang( const char* str, size_t s_len )
 {
     const char* s_end = str+s_len, *s_end_1 = s_end + s_len-1;
