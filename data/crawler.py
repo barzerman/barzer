@@ -68,7 +68,7 @@ for arg in sys.argv:
         try:
             reader = codecs.getreader(charset)(site)
         except:
-            reader = codecs.getreader('windows-1251')
+            reader = codecs.getreader('windows-1251')(site)
 
         url = urlparse.urlparse(url)
         try:
