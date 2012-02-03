@@ -1,5 +1,6 @@
 #include <barzer_universe.h>
 #include <barzer_bzspell.h>
+#include <ay/ay_cmdproc.h>
 
 namespace barzer {
 
@@ -50,6 +51,28 @@ GlobalTriePool::ClassTrieMap& GlobalTriePool::produceTrieMap( uint32_t trieClass
 }
 
 
+void GlobalPools::init_cmdline( ay::CommandLineArgs & cmdlProc)
+{
+    barzer::BarzerSettings &st = getSettings();
+	if( cmdlProc.hasArg("-anlt") ) { /// analytical mode is set
+		std::cerr << "RUNNING IN ANALYTICAL MODE!\n";
+		setAnalyticalMode();
+	}
+
+    bool hasArg = false;
+    const char *fname = cmdlProc.getArgVal(hasArg, "-cfglist", 0);
+    barzer::BELReader reader( *this, &(std::cerr)) ;
+    if (hasArg && fname)
+    	st.loadListOfConfigs(reader, fname);
+    else {
+
+        fname = cmdlProc.getArgVal(hasArg, "-cfg", 0);
+        if (hasArg && fname)
+    	    st.load(reader, fname);
+        else
+    	    st.load(reader);
+    }
+}
 
 GlobalPools::~GlobalPools() 
 {

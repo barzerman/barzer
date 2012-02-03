@@ -18,6 +18,7 @@
 #include <barzer_topics.h>
 
 
+namespace ay { struct CommandLineArgs; }
 namespace barzer {
 
 class StoredUniverse;
@@ -136,6 +137,7 @@ public:
 /// data for 
 /// Barzel, DataIndex and everything else 
 
+
 class GlobalPools {
 	GlobalPools(GlobalPools&); // {}
 	GlobalPools& operator=(GlobalPools&); // {}
@@ -240,6 +242,8 @@ public:
 
 	BELTrie* produceTrie( uint32_t trieClass, uint32_t trieId ) 
         { return globalTriePool.produceTrie( trieClass, trieId ) ; }
+    
+    void init_cmdline( ay::CommandLineArgs & );
 };
 
 class BZSpell;

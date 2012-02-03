@@ -79,28 +79,7 @@ void print_usage(const char* prg_name) {
 }
 
 
-void init_gpools(barzer::GlobalPools &gp, ay::CommandLineArgs &cmdlProc) {
-    barzer::BarzerSettings &st = gp.getSettings();
-	if( cmdlProc.hasArg("-anlt") ) { /// analytical mode is set
-		std::cerr << "RUNNING IN ANALYTICAL MODE!\n";
-		gp.setAnalyticalMode();
-	}
-
-    bool hasArg = false;
-    const char *fname = cmdlProc.getArgVal(hasArg, "-cfglist", 0);
-    barzer::BELReader reader( gp, &(std::cerr)) ;
-    if (hasArg && fname)
-    	st.loadListOfConfigs(reader, fname);
-    else {
-
-        fname = cmdlProc.getArgVal(hasArg, "-cfg", 0);
-        if (hasArg && fname)
-    	    st.load(reader, fname);
-        else
-    	    st.load(reader);
-    }
-}
-
+////////// MAIN
 int main( int argc, char * argv[] ) {
 	if( argc == 1 ) {
 		print_usage( argv[0] );
@@ -113,7 +92,7 @@ int main( int argc, char * argv[] ) {
 	barzer::GlobalPools globPool;
 	// barzer::StoredUniverse &universe = globPool.produceUniverse(0);
 
-	init_gpools(globPool, cmdlProc);
+    globPool.init_cmdline( cmdlProc );
 
 	//g_universe = &universe;
 
@@ -125,13 +104,7 @@ int main( int argc, char * argv[] ) {
                 //return run_shell(argc, argv);
             	return run_shell(globPool, cmdlProc);
             } else if (strcasecmp(argv[1], "server") == 0) {
-                if (argc >= 3) {
-                    // port is specified on command line
-                    return barzer::run_server(globPool, std::atoi(argv[2]));
-                } else {
-                    // run on default port
-                    return barzer::run_server(globPool, SERVER_PORT);
-                }
+                return barzer::run_server(globPool, ( argc>2 ? std::atoi(argv[2]):  SERVER_PORT) );
             } else if (strcasecmp(argv[1], "test") == 0) {
             	return run_test(globPool.produceUniverse(0), cmdlProc);
             }

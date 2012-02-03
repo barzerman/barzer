@@ -1,3 +1,6 @@
+PYINCLUDE := $(shell python-config --includes)
+PYLIBS := $(shell python-config --libs)
+
 FLAGS := $(FLAGS) 
 ifeq ($(IS64),yes)
 	BITMODE=-m64
@@ -7,8 +10,8 @@ ifeq ($(IS32),yes)
 	BITMODE=-m32
 	AYBIT="IS32=yes"
 endif 
-CFLAGS :=$(CFLAGS) $(BITMODE) $(OPT) -Wall -Wno-parentheses -Wnon-virtual-dtor \
-	-I/opt/local/include -I/usr/include -g -I. -I./ay -I./lg_ru -fpic
+CFLAGS :=$(CFLAGS) $(BITMODE) $(OPT) -Wno-array-bounds -Wall -Wno-parentheses -Wnon-virtual-dtor \
+	-I/opt/local/include -I/usr/include -g -I. -I./ay -I./lg_ru -fpic $(PYINCLUDE) 
 LINKFLAGS := $(FLAGS) 
 BINARY=barzer.exe
 LIBNAME=libbarzer
@@ -64,6 +67,8 @@ lg_en/barzer_en_date_util.o \
 lg_ru/barzer_ru_date_util.o \
 
 objects = $(lib_objects) barzer.o
+objects_python=barzer_python.o
+#objects_python=util/pybarzer.o
 
 INSTALL_DIR = /usr/share/barzer
 INSTALL_DATA_DIR = $(INSTALL_DIR)/data
@@ -72,8 +77,11 @@ all: ay/libay.a $(objects)
 	$(CC) $(BITMODE) $(LINKFLAGS) -o  $(BINARY) $(objects) $(libs)
 lib: ay/libay.a $(lib_objects)
 	$(AR) -r $(LIBNAME).a $(lib_objects)
-sharedlib: ay/libay.a $(lib_objects)
-	$(CC) -shared -Wl,-soname,$(LIBNAME).so -o $(LIBNAME).so $(lib_objects) $(libs) 
+sharedlib: ay/libay.a $(lib_objects) 
+	$(CC) -shared -Wl -dylib -o $(LIBNAME).so $(lib_objects) $(libs) 
+pybarzer: sharedlib $(objects_python)
+	$(CC) -shared -Wl -dylib -o pybarzer.so -lboost_python -W-no-array-bounds $(objects_python) $(lib_objects) $(libs)  -lboost_python $(PYLIBS)
+#$(CC) -shared -o pybarzer.so  $(objects_python) $(lib_objects) $(FLAGS) 
 $(PYTHON_LIBNAME): ay/libay.a $(lib_objects)
 	cd util; make -f util.mk rebuild; cd ..
 clean: 

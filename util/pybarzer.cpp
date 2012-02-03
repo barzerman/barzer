@@ -7,6 +7,7 @@
 
 #include <boost/python.hpp>
 #include "umlaut.h"
+#include <pyconfig.h>
 
 using namespace boost::python;
 
