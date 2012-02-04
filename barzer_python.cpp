@@ -7,6 +7,8 @@
 #include <boost/python/object.hpp>
 #include <boost/python/stl_iterator.hpp>
 
+#include <util/pybarzer.h>
+
 using boost::python::stl_input_iterator ;
 using namespace boost::python;
 
@@ -84,4 +86,6 @@ BOOST_PYTHON_MODULE(pybarzer)
     boost::python::class_<barzer::BarzerPython>( "Barzer" )
         .def( "stem", &barzer::BarzerPython::bzstem )
         .def( "init", &barzer::BarzerPython::init );
+
+    def("stripDiacritics", stripDiacritics);
 }

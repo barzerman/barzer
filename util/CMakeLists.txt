@@ -16,13 +16,14 @@ set(EXTRA_LIBS ${EXTRA_LIBS}
                ay)
 
                    
-add_library(pybarzer SHARED pybarzer.cpp umlaut.cpp)
-target_link_libraries (pybarzer ${EXTRA_LIBS})
-SET_TARGET_PROPERTIES(pybarzer PROPERTIES PREFIX "")
+add_library(butil pybarzer.cpp umlaut.cpp)
+target_link_libraries (butil ${EXTRA_LIBS})
+
+#SET_TARGET_PROPERTIES(butil PROPERTIES PREFIX "")
 
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    SET_TARGET_PROPERTIES(pybarzer PROPERTIES SUFFIX ".so")
-ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+#IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+#    SET_TARGET_PROPERTIES(pybarzer PROPERTIES SUFFIX ".so")
+#ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 

@@ -11,16 +11,14 @@
 
 using namespace boost::python;
 
-
-namespace {
 const std::string stripDiacritics(const std::string &src) {
 	std::string out;
 	umlautsToAscii(out, src.c_str());
 	return out;
 }
-}
+/*
 BOOST_PYTHON_MODULE(pybarzer)
 {
     def("stripDiacritics", stripDiacritics);
 
-}
+} */

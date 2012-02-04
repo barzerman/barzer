@@ -10,6 +10,7 @@ set (barzer_VERSION_MINOR 1)
 
 set(EN_DIR "lg_en")
 set(RU_DIR "lg_ru")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} $ENV{OPT} -Wall -Wnon-virtual-dtor -fPIC")
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
@@ -23,9 +24,11 @@ find_package(EXPAT REQUIRED)
 include_directories("${PROJECT_BINARY_DIR}"
                     "${PROJECT_SOURCE_DIR}"
                     "${PROJECT_SOURCE_DIR}/ay"
+                    "${PROJECT_SOURCE_DIR}/util"
                     "${PROJECT_SOURCE_DIR}/${EN_DIR}"
                     "${PROJECT_SOURCE_DIR}/${RU_DIR}"
-                     ${Boost_INCLUDE_DIRS})
+                     ${Boost_INCLUDE_DIRS}
+                     ${PYTHON_INCLUDE_DIRS})
 add_subdirectory (ay)
 add_subdirectory (util)
 
@@ -86,7 +89,10 @@ ENDIF(NOT DEFINED INSTALL_DIR)
 set(INSTALL_DATA_DIR "${INSTALL_DIR}/data")
 set(INSTALL_UTIL_DIR "${INSTALL_DIR}/util")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} $ENV{OPT} -Wall -Wnon-virtual-dtor -fpic")
+SET(CMAKE_SKIP_BUILD_RPATH FALSE)
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
+SET(CMAKE_INSTALL_RPATH "${INSTALL_DIR}")
 
 IF(CMAKE_BUILD_TYPE STREQUAL "")
     set(CMAKE_BUILD_TYPE Debug)
@@ -116,19 +122,46 @@ IF( ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" )
     #list(APPEND CMAKE_CXX_FLAGS "")
 ENDIF( ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" )
 
-add_executable(barzer.exe barzer.cpp ${SOURCES})
-target_link_libraries (barzer.exe  ${EXTRA_LIBS})
+### libbarzer
 
+add_library(barzer SHARED ${SOURCES})
+target_link_libraries (barzer ${EXTRA_LIBS})
+
+add_library(barzer_static ${SOURCES})
+target_link_libraries (barzer_static ${EXTRA_LIBS})
+set_target_properties(barzer_static PROPERTIES OUTPUT_NAME barzer)
+
+### pybarzer
+
+add_library(pybarzer SHARED barzer_python.cpp)
+target_link_libraries (pybarzer barzer butil)
+
+SET_TARGET_PROPERTIES(pybarzer PROPERTIES PREFIX "")
+
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    SET_TARGET_PROPERTIES(pybarzer PROPERTIES SUFFIX ".so")
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+### binary
+
+add_executable(barzer.exe barzer.cpp)
+target_link_libraries (barzer.exe  barzer_static)
 
 add_executable(testme EXCLUDE_FROM_ALL testme.cpp ${SOURCES})
 target_link_libraries (testme  ${EXTRA_LIBS})
 
 
-GET_TARGET_PROPERTY(PYHTON_UTIL_LIBNAME pybarzer LOCATION)
+GET_TARGET_PROPERTY(PYBARZER_LIBNAME pybarzer LOCATION)
+GET_TARGET_PROPERTY(BARZER_LIBNAME barzer LOCATION)
 
-install(PROGRAMS barzer.exe
+#SET(CMAKE_INSTALL_SO_NO_EXE "0")
+
+SET(CMAKE_INSTALL_RPATH "${INSTALL_DIR}")
+INSTALL(TARGETS barzer.exe
+        DESTINATION "${INSTALL_DIR}")
+install(TARGETS barzer
         DESTINATION ${INSTALL_DIR})
-install(PROGRAMS "${PYHTON_UTIL_LIBNAME}"
+install(TARGETS pybarzer
         DESTINATION ${INSTALL_UTIL_DIR})
 install(DIRECTORY "data/configs" "data/entities" "data/rules" "data/spell"
         DESTINATION ${INSTALL_DATA_DIR})
