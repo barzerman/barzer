@@ -7,12 +7,31 @@
 #include <boost/python/object.hpp>
 #include <boost/python/stl_iterator.hpp>
 
+#include <barzer_parse.h>
+#include <barzer_server_response.h>
+
 #include <util/pybarzer.h>
 
 using boost::python::stl_input_iterator ;
 using namespace boost::python;
 
 namespace barzer {
+
+struct QueryParseEnv {
+    QParser qparse;
+    Barz barz;
+    QuestionParm qparm;
+
+    QueryParseEnv( const StoredUniverse& u ) :
+        qparse(u)
+    {}
+
+    void parseXML( BarzStreamerXML& streamer, std::ostream& fp, const char* q ) 
+    {
+        qparse.parse( barz, q, qparm );
+        streamer.print( fp );
+    }
+};
 
 PythonCmdLine::~PythonCmdLine() 
     { delete d_cmdlProc; }
@@ -40,7 +59,8 @@ PythonCmdLine&  PythonCmdLine::init( boost_python_list& ns )
 BarzerPython::BarzerPython() : 
     gp(new GlobalPools),
     shell(0),
-    d_universe(0)
+    d_universe(0),
+    d_parseEnv(0)
 {}
 
 BarzerPython::~BarzerPython()
@@ -53,6 +73,8 @@ int BarzerPython::init( boost_python_list& ns )
 {
     gp->init_cmdline( d_pythCmd.init(ns).cmdlProc() );
     d_universe = gp->getUniverse(0);
+
+    d_parseEnv = new QueryParseEnv( *d_universe );
     return 0;
 }
 
@@ -79,13 +101,56 @@ std::string BarzerPython::bzstem(const std::string& s)
     return s;
 }
 
+#define BPY_ERR(s) PyErr_SetString(PyExc_ValueError, #s ); throw error_already_set();
+int BarzerPython::setUniverse( const std::string& us )
+{
+    int uniNum= atoi( us.c_str() ) ;
+
+    StoredUniverse * newUniverse = gp->getUniverse(uniNum);
+
+    if( newUniverse == d_universe ) 
+        return uniNum;
+
+    d_universe = newUniverse;
+
+    if( d_universe ) {
+        delete d_parseEnv ;
+        d_parseEnv = new QueryParseEnv( *d_universe );
+        return uniNum;
+    } else {
+        const char message[] = "Universe not found"; 
+        PyErr_SetString(PyExc_ValueError, message); 
+        throw error_already_set(); 
+    }
+}
+
+std::string BarzerPython::parse( const std::string& q )
+{
+    if( d_universe ) {
+        if( d_parseEnv ) {
+            std::stringstream sstr;
+            BarzStreamerXML xmlStreamer( d_parseEnv->barz, *d_universe );
+            d_parseEnv->parseXML( xmlStreamer, sstr, q.c_str() ); 
+            return sstr.str();
+        } else {
+            BPY_ERR("Parse Environment not set")
+        }
+    } else {
+        BPY_ERR("No Universe set")
+    }
+}
+
+
 } // barzer
 
 BOOST_PYTHON_MODULE(pybarzer)
 {
     boost::python::class_<barzer::BarzerPython>( "Barzer" )
         .def( "stem", &barzer::BarzerPython::bzstem )
-        .def( "init", &barzer::BarzerPython::init );
-
+        .def( "init", &barzer::BarzerPython::init )
+        .def( "universe", &barzer::BarzerPython::setUniverse )
+        .def( "parse", &barzer::BarzerPython::parse  );
+    
     def("stripDiacritics", stripDiacritics);
+    // boost::python::class_<barzer::BarzerPython>( "Entity" )
 }

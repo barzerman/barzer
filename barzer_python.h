@@ -10,6 +10,7 @@ typedef boost::python::list boost_python_list;
 namespace barzer {
 class GlobalPools;
 struct BarzerShell;
+struct QueryParseEnv;
 
 namespace boost { namespace python { class list; } } 
 //namespace ay { class CommandLineArgs; }
@@ -37,16 +38,21 @@ protected:
 
     PythonCmdLine d_pythCmd;
     StoredUniverse* d_universe;
+    QueryParseEnv*       d_parseEnv;
 public:
     BarzerPython();
     ~BarzerPython();
 
-    int init( boost_python_list& ns );
-    
+    //// functions exposed to Python
+    int             init( boost_python_list& ns );
+    std::string     parse( const std::string& q );
+    int             setUniverse( const std::string& us );
+    /// exported functions 
+    std::string     bzstem(const std::string& s);
+
+
     void shell_cmd( const std::string& cmd, const std::string& args );
 
-    /// exported functions 
-    std::string bzstem(const std::string& s);
 };
 
 
