@@ -79,7 +79,7 @@ lib: ay/libay.a $(LIBNAME).a $(lib_objects)
 	$(AR) -r $(LIBNAME).a $(lib_objects) ay/libay.a
 sharedlib: ay/libay.a $(lib_objects) 
 	$(CC) -shared -Wl -dylib -o $(LIBNAME).so $(lib_objects) $(libs) 
-pybarzer: lib $(objects_python)
+pybarzer: $(LIBNAME).a ay/libay.a $(objects_python)
 	$(CC) -shared -Wl -o pybarzer.so -lboost_python $(objects_python) $(LIBNAME).a $(libs)  -lboost_python $(PYLIBS) ay/libay.a
 #$(CC) -shared -o pybarzer.so  $(objects_python) $(lib_objects) $(FLAGS) 
 $(PYTHON_LIBNAME): ay/libay.a $(lib_objects)
