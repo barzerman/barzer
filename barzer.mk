@@ -67,7 +67,7 @@ lg_en/barzer_en_date_util.o \
 lg_ru/barzer_ru_date_util.o \
 
 objects = $(lib_objects) barzer.o
-objects_python=barzer_python.o
+objects_python=barzer_python.o util/pybarzer.o
 #objects_python=util/pybarzer.o
 
 INSTALL_DIR = /usr/share/barzer
@@ -75,12 +75,12 @@ INSTALL_DATA_DIR = $(INSTALL_DIR)/data
 
 all: ay/libay.a $(objects)
 	$(CC) $(BITMODE) $(LINKFLAGS) -o  $(BINARY) $(objects) $(libs)
-lib: ay/libay.a $(lib_objects)
-	$(AR) -r $(LIBNAME).a $(lib_objects)
+lib: ay/libay.a $(LIBNAME).a $(lib_objects)
+	$(AR) -r $(LIBNAME).a $(lib_objects) ay/libay.a
 sharedlib: ay/libay.a $(lib_objects) 
 	$(CC) -shared -Wl -dylib -o $(LIBNAME).so $(lib_objects) $(libs) 
-pybarzer: sharedlib $(objects_python)
-	$(CC) -shared -Wl -dylib -o pybarzer.so -lboost_python -W-no-array-bounds $(objects_python) $(lib_objects) $(libs)  -lboost_python $(PYLIBS)
+pybarzer: lib $(objects_python)
+	$(CC) -shared -Wl -o pybarzer.so -lboost_python $(objects_python) $(LIBNAME).a $(libs)  -lboost_python $(PYLIBS) ay/libay.a
 #$(CC) -shared -o pybarzer.so  $(objects_python) $(lib_objects) $(FLAGS) 
 $(PYTHON_LIBNAME): ay/libay.a $(lib_objects)
 	cd util; make -f util.mk rebuild; cd ..

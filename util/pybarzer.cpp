@@ -6,14 +6,15 @@
  */
 
 #include <boost/python.hpp>
-#include "umlaut.h"
+// #include "umlaut.h"
 #include <pyconfig.h>
+#include <ay/ay_util.h>
 
 using namespace boost::python;
 
 const std::string stripDiacritics(const std::string &src) {
 	std::string out;
-	umlautsToAscii(out, src.c_str());
+	ay::umlautsToAscii(out, src.c_str());
 	return out;
 }
 /*
