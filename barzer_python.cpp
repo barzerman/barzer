@@ -67,6 +67,7 @@ BarzerPython::~BarzerPython()
 {
     delete shell;
     delete gp;
+    delete d_parseEnv;
 }
 
 int BarzerPython::init( boost_python_list& ns )
