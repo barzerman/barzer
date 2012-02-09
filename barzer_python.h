@@ -4,13 +4,17 @@
 #include <string>
 #include <vector>
 #include <ay/ay_cmdproc.h>
+#include <boost/python.hpp>
+
 
 typedef boost::python::list boost_python_list;
+typedef boost::python::object boost_python_object;
 
 namespace barzer {
 class GlobalPools;
 struct BarzerShell;
 struct QueryParseEnv;
+struct PythonQueryProcessor;
 
 namespace boost { namespace python { class list; } } 
 //namespace ay { class CommandLineArgs; }
@@ -36,10 +40,12 @@ protected:
     
     /// these two are tightly coupled
 
-    PythonCmdLine d_pythCmd;
-    StoredUniverse* d_universe;
-    QueryParseEnv*       d_parseEnv;
+    PythonCmdLine       d_pythCmd;
+    StoredUniverse*     d_universe;
+    QueryParseEnv*      d_parseEnv;
 public:
+    // gp is never null
+    const GlobalPools& getGP() const { return *gp; }
     BarzerPython();
     ~BarzerPython();
 
@@ -53,6 +59,7 @@ public:
 
     void shell_cmd( const std::string& cmd, const std::string& args );
 
+    PythonQueryProcessor*  makeParseEnv( ) const;
 };
 
 
