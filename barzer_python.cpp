@@ -167,20 +167,49 @@ struct bar {
 //// encoding visitors and service functions 
 namespace {
 
+
+namespace exposed {
+
+struct BarzerLiteral {
+    barzer::BarzerLiteral ltrl;
+    std::string txt;
+    
+    BarzerLiteral( const barzer::BarzerLiteral& l, const StoredUniverse& u ) :
+        ltrl(l), txt(u.printableStringById(l.getId()))
+    {}
+};
+
+} // exposed namespace 
+
 namespace visitor {
+
 struct bead_list : public static_visitor<bool> {
     const StoredUniverse&   d_universe;
     const BarzelBead&       d_bead; 
     list&                   d_list;
-    
     size_t                  d_beadNum;
      
     bead_list( list& l, const StoredUniverse& u, const BarzelBead& b, size_t beadNum ) :
         d_universe(u), d_bead(b), d_list(l), d_beadNum(beadNum)
     {}
     
+    bool operator()( const BarzerString& l )
+        { return (d_list.append( l.getStr() ),true); }
+    bool operator()( const BarzerLiteral& l )
+    {
+        if( l.isString() ) {
+            d_list.append( std::string(d_universe.printableStringById(l.getId())) );
+        } else {
+            d_list.append(exposed::BarzerLiteral(l,d_universe));
+        }
+        return true;
+    }
+    bool operator()( const BarzelBeadAtomic& ba )
+        { return( apply_visitor( (*this), ba.getData() ), true ); }
+
     template <typename T>
     bool operator()( const T& t ) {
+        d_list.append(t);
         return false;
     }
 
@@ -194,9 +223,9 @@ struct bead_list : public static_visitor<bool> {
 
 /// 
 struct BarzerResponseObject {
-    list beadList;
+    list beadList;  /// list of beads  
 
-    list topicInfo;
+    list topicInfo; /// information on the topics discovered during parse 
 
     list traceInfo;
     list spellInfo;
@@ -257,7 +286,7 @@ struct PythonQueryProcessor {
         bpy(b)
         {}
     
-    const StoredUniverse*         parse( int userNumber, const std::string& q )
+    const StoredUniverse*         barzeIt( int userNumber, const std::string& q )
     {
         QuestionParm qparm;
         d_barz.clearWithTraceAndTopics();
@@ -275,9 +304,22 @@ struct PythonQueryProcessor {
         return universe;
     }
 
+    BarzerResponseObject* parse( int userNumber, const std::string& q )
+    {
+        const StoredUniverse* universe = barzeIt(userNumber, q );
+        if( universe ) {
+            BarzerResponseObject* resp = new BarzerResponseObject();
+
+            resp->init( *universe, d_barz );
+            return resp;
+        }
+
+        return 0;
+    }
+
     std::string parseXML( int userNumber, const std::string& q ) 
     {
-        const StoredUniverse* universe = parse(userNumber, q );
+        const StoredUniverse* universe = barzeIt(userNumber, q );
         if( universe ) {
             std::stringstream sstr;
             BarzStreamerXML xmlStreamer( d_barz, *universe );
@@ -308,10 +350,15 @@ BOOST_PYTHON_MODULE(pybarzer)
         .def( "parsexml", &barzer::BarzerPython::parse  );
     
     def("stripDiacritics", stripDiacritics);
+    // BarzerResponseObject    
+    boost::python::class_<barzer::BarzerResponseObject>( "response" )
+        .def_readwrite( "beads", &barzer::BarzerResponseObject::beadList );
+
     // boost::python::class_<barzer::BarzerPython>( "Entity" )
     boost::python::class_<barzer::PythonQueryProcessor>( "processor", no_init )
+        .def( "parse", &barzer::PythonQueryProcessor::parse, return_value_policy<manage_new_object>() )
         .def( "parsexml", &barzer::PythonQueryProcessor::parseXML );
-    
+
     boost::python::class_<barzer::bar>( "bar" )
         .def_readwrite( "d", &barzer::bar::d )
         .def_readwrite( "l", &barzer::bar::l )
@@ -320,4 +367,7 @@ BOOST_PYTHON_MODULE(pybarzer)
     boost::python::class_<barzer::foo>( "foo" )
         .def_readwrite( "d", &barzer::foo::id )
         .def( "init", &barzer::foo::init );
+
+    boost::python::class_<barzer::exposed::BarzerLiteral>( "Token", no_init )
+        .def_readonly( "txt", &barzer::exposed::BarzerLiteral::txt );
 }
