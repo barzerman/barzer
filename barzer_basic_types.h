@@ -569,7 +569,9 @@ struct BarzerEntityRangeCombo {
 			(d_range.getType() == other.getRange().getType() || (!matchBlankRange && !d_range.isValid() ))
 		);
 	}
-
+    const BarzerEntity& mainEntity() const { return d_entId; }
+    const BarzerEntity& unitEntity() const { return d_unitEntId; }
+    const BarzerRange& range() const { return d_range; }
 };
 
 inline bool operator ==( const BarzerEntityRangeCombo& l, const BarzerEntityRangeCombo& r )

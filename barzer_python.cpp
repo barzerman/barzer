@@ -185,6 +185,7 @@ struct BarzerEntity {
     uint32_t eclass, esubclass; 
     std::string id;
 
+    bool isValid() const { return euid.isValid(); }
     BarzerEntity( const barzer::BarzerEntity& e, const StoredUniverse& u ) :
         euid(e),
         eclass      (euid.getClass().ec), 
@@ -207,13 +208,14 @@ struct BarzerEntity {
          return sstr.str();
     }
 };
+std::ostream& operator<< ( std::ostream& fp, const BarzerEntity& ent ) { return ent.print(fp); }
 
 struct BarzerRange {
     barzer::BarzerRange br;
 
     list rng;
     
-    BarzerRange( const barzer::BarzerRange& r );
+    BarzerRange( const barzer::BarzerRange& r, const StoredUniverse& u );
     
     object lo() { return rng[0]; } 
     object hi() { return rng[1]; } 
@@ -233,11 +235,70 @@ struct BarzerRange {
 
     bool isAsc() const { return br.isAsc(); }
     bool isDesc() const { return br.isDesc(); }
+    
+    std::ostream& printBoundary( std::ostream& fp, bool isLo ) const;
+    std::ostream& print( std::ostream& fp ) const ;
 };
+
+
+struct BarzerRange_printer_visitor : public static_visitor<void> {
+    const BarzerRange& br;
+    std::ostream& fp;
+    int lohi; // 0 - lo, 1 - hi
+
+    BarzerRange_printer_visitor( const BarzerRange& r, std::ostream& os, bool isLo ) : 
+        br(r), fp(os), lohi(isLo? 0:1) {}
+
+
+    void operator()( const barzer::BarzerRange::Real& r ) 
+        { fp << extract<double>(br.rng[lohi]); }
+    void operator()( const barzer::BarzerRange::Integer& r ) 
+        { fp << extract<int64_t>(br.rng[lohi]); }
+    void operator()( const barzer::BarzerRange::Entity& r ) 
+        { fp << extract<BarzerEntity>(br.rng[lohi]); }
+    template <typename T>
+    void operator()( const T& r ) 
+    {
+        fp << "range(type=" << br.br.dta.which() << ")" ;
+    }
+    
+};
+
+std::ostream& BarzerRange::printBoundary( std::ostream& fp, bool isLo ) const 
+{
+    BarzerRange_printer_visitor v(*this,fp,isLo);
+    apply_visitor( v, br.dta );
+    return fp;
+}
+
+std::ostream& BarzerRange::print( std::ostream& fp ) const 
+{
+    fp << "range(";
+    if( hasLo() ) {
+        fp << "lo=";
+        printBoundary(fp,true);
+    }
+    if( hasHi() ) {
+        if( hasLo() ) fp << ",";
+        fp << "hi=";
+        printBoundary(fp,false);
+    }
+    return fp << ")";
+}
+std::ostream& operator<<( std::ostream& fp, const BarzerRange& r ) 
+    { return r.print(fp); }
+
 struct BarzerRange_packer_visitor : public static_visitor<void> {
     BarzerRange& b;
+    const StoredUniverse& universe;
 
-    BarzerRange_packer_visitor( BarzerRange& bb ) : b(bb) {}
+    BarzerRange_packer_visitor( BarzerRange& bb, const StoredUniverse& u ) : b(bb), universe(u) {}
+
+    void operator()( const barzer::BarzerRange::Entity& i )
+    {
+        b.rng.append( BarzerEntity(i.first,universe) );
+        b.rng.append( i.second );
+    }
     template <typename T>
     void operator()( const T& i )
     {
@@ -246,14 +307,42 @@ struct BarzerRange_packer_visitor : public static_visitor<void> {
     }
 };
 
-inline BarzerRange::BarzerRange( const barzer::BarzerRange& r ) :
+inline BarzerRange::BarzerRange( const barzer::BarzerRange& r, const StoredUniverse& u ) :
     br(r)
 { 
-    BarzerRange_packer_visitor v(*this);
+    BarzerRange_packer_visitor v(*this,u);
     apply_visitor( v, br.getData() ); 
 }
 
-std::ostream& operator<< ( std::ostream& fp, const BarzerEntity& ent ) { return ent.print(fp); }
+
+struct BarzerEntityRangeCombo {
+    BarzerEntity mainEntity;
+    BarzerEntity unitEntity;
+    BarzerRange  range;
+
+    BarzerEntityRangeCombo( const barzer::BarzerEntityRangeCombo& erc, const StoredUniverse& u ) :
+        mainEntity(erc.mainEntity(),u),
+        unitEntity(erc.unitEntity(),u),
+        range(erc.range(),u)
+    {}
+    std::ostream&  print( std::ostream& fp) const 
+    {
+        bool hasStuff = false;
+        fp << "erc(" ;
+        if( mainEntity.isValid() ) {
+            fp << "ent=" << mainEntity;
+            hasStuff =true;
+        }
+        if( unitEntity.isValid() ) {
+            fp << (hasStuff?",":"") << "unit=" << mainEntity;
+        }
+        if( hasStuff ) fp << ",";
+        range.print(fp); 
+        return fp<< ")";
+    }
+};
+std::ostream& operator<<( std::ostream& fp, const BarzerEntityRangeCombo& erc ) 
+    { return erc.print(fp); }
 
 } // exposed namespace 
 
@@ -269,9 +358,13 @@ struct bead_list : public static_visitor<bool> {
         d_universe(u), d_bead(b), d_list(l), d_beadNum(beadNum)
     {}
      
+    bool operator()( const BarzerEntityRangeCombo& r )
+    {
+        return (d_list.append( exposed::BarzerEntityRangeCombo(r,d_universe) ),true);
+    }
     bool operator()( const BarzerRange& r )
     {
-        return ( d_list.append(exposed::BarzerRange(r)), true );
+        return ( d_list.append(exposed::BarzerRange(r,d_universe)), true );
     }
     bool operator()( const BarzerEntityList& l )
     {
@@ -482,6 +575,8 @@ BOOST_PYTHON_MODULE(pybarzer)
         ;
 
     boost::python::class_<barzer::exposed::BarzerRange>( "Range", no_init )
+        .def( self_ns::repr(self_ns::self))
+        .def( self_ns::str(self_ns::self))
         .def( "lo", &barzer::exposed::BarzerRange::lo )
         .def( "hi", &barzer::exposed::BarzerRange::hi )
         .def( "hasHi", &barzer::exposed::BarzerRange::hasHi )
@@ -500,4 +595,11 @@ BOOST_PYTHON_MODULE(pybarzer)
 	    .def( "isAsc", &barzer::exposed::BarzerRange::isAsc )
 	    .def( "isDesc", &barzer::exposed::BarzerRange::isDesc )
         ;
+    boost::python::class_<barzer::exposed::BarzerEntityRangeCombo>( "ERC", no_init )
+        .def( self_ns::repr(self_ns::self))
+        .def( self_ns::str(self_ns::self))
+        .def_readonly( "ent", &barzer::exposed::BarzerEntityRangeCombo::mainEntity )
+        .def_readonly( "unit", &barzer::exposed::BarzerEntityRangeCombo::unitEntity )
+        .def_readonly( "range", &barzer::exposed::BarzerEntityRangeCombo::range )
+    ;
 }
