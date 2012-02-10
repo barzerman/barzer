@@ -147,29 +147,43 @@ std::string BarzerPython::parse( const std::string& q )
     }
 }
 
-struct foo {
-    std::string id;
-    // void init(const std::string& s ) { id = s; }
-    void init() { id = "myid1"; }
-}; 
-
-struct bar {
-    dict d;
-    list l;
-    void init() {
-        foo foo; 
-        foo.init();
-        d[ "foo" ] = foo;
-        l.append( foo );
-    }
-    object f() const { return d.get("foo"); }
-}; 
-
 //// encoding visitors and service functions 
 namespace {
 
 
+//// exposed namespace contains "parallel" implementations of classes which otherwise cant be exported 
+/// for example string ids cant be translated into strings without some barzer data (universe) 
+/// so, for those classes which have this type of information (for now i cant think of anything 
+/// other than string / token ids that woiuld require universe or global pools data for decoding)
+/// we will have exposed::XXXX counterparty 
 namespace exposed {
+
+struct nv_streamer {
+    std::ostream& fp;
+    bool hasStuff;
+    nv_streamer(std::ostream& o, const char* objName ) : 
+        fp(o),hasStuff(false) { fp<< objName << "(";}
+
+    template <typename T>
+    nv_streamer& operator()( bool doAnything, const char* name, const T& t )  
+    {
+        if( doAnything ) {
+            if( hasStuff ) fp << ","; else hasStuff = true;
+            fp << name << '=' << t;
+        }
+        return *this;
+    }
+    nv_streamer& operator()( bool doAnything, const char* name, const uint8_t& t )  
+    {
+        if( doAnything ) {
+            if( hasStuff ) fp << ","; else hasStuff = true;
+            fp << name << '=' << (int)t;
+        }
+        return *this;
+    }
+
+    ~nv_streamer() { fp << ")"; }
+};
 
 struct BarzerLiteral {
     barzer::BarzerLiteral ltrl;
@@ -179,6 +193,46 @@ struct BarzerLiteral {
         ltrl(l), txt(u.printableStringById(l.getId()))
     {}
 };
+///                                                             DATE
+struct BarzerDate : public barzer::BarzerDate {
+    BarzerDate( const barzer::BarzerDate& d, const StoredUniverse& u ) : 
+        barzer::BarzerDate(d) {}
+    
+    std::ostream& print( std::ostream& fp ) const 
+        { return nv_streamer(fp,"date") (isValidDay(),"day",day) (isValidMonth(),"month",month ) (isValidYear(),"year",year ).fp; }
+};
+std::ostream& operator<< ( std::ostream& fp, const BarzerDate& d ) { return d.print(fp); }
+////                                                            TIME OF DAY 
+struct BarzerTimeOfDay : public barzer::BarzerTimeOfDay {
+
+    BarzerTimeOfDay( const barzer::BarzerTimeOfDay& d, const StoredUniverse& u ) : barzer::BarzerTimeOfDay(d) {}
+    
+    std::ostream& print( std::ostream& fp ) const 
+        { return ( isValid() ?  nv_streamer(fp,"time") (true,"hh",getHH()) (true,"mm",getMM()) (true,"ss",getSS() ).fp: fp); }
+};
+std::ostream& operator<< ( std::ostream& fp, const BarzerTimeOfDay& d ) { return d.print(fp); }
+////                                                            (TIMESTAMP) DATE TIME
+struct BarzerDateTime {
+    barzer::BarzerDateTime barzerTimestamp;
+
+    BarzerTimeOfDay timeOfDay;
+    BarzerDate date;
+    const StoredUniverse& universe;
+
+    BarzerDateTime( const barzer::BarzerDateTime& d, const StoredUniverse& u ) : 
+        barzerTimestamp(d),
+        timeOfDay(d.getTime(),u),
+        date(d.getDate(),u),
+        universe(u) 
+    {}
+    
+    const BarzerDate getDate() const { return date; }
+    const BarzerTimeOfDay getTime() const { return timeOfDay; }
+
+    std::ostream& print( std::ostream& fp ) const 
+        { return nv_streamer(fp,"timestamp") (barzerTimestamp.hasDate(),"date",date) (barzerTimestamp.hasTime(),"time",timeOfDay).fp; }
+};
+std::ostream& operator<< ( std::ostream& fp, const BarzerDateTime& d ) { return d.print(fp); }
 
 struct BarzerEntity {
     barzer::BarzerEntity euid;
@@ -186,6 +240,7 @@ struct BarzerEntity {
     std::string id;
 
     bool isValid() const { return euid.isValid(); }
+    BarzerEntity() : eclass(euid.eclass.ec),esubclass(euid.eclass.subclass) {}
     BarzerEntity( const barzer::BarzerEntity& e, const StoredUniverse& u ) :
         euid(e),
         eclass      (euid.getClass().ec), 
@@ -209,6 +264,21 @@ struct BarzerEntity {
     }
 };
 std::ostream& operator<< ( std::ostream& fp, const BarzerEntity& ent ) { return ent.print(fp); }
+
+struct TopicInfo {
+    BarzerEntity ent;
+    int weight;
+    TopicInfo() : weight(0) {}
+    TopicInfo( const barzer::BarzerEntity& e, int w, const StoredUniverse& u ) :
+        ent(e,u), weight(w) {}
+    std::ostream& print( std::ostream& fp ) const 
+    {
+        return ( fp << ent << ",w=" << weight );
+    }
+
+};
+std::ostream& operator<<( std::ostream& fp, const TopicInfo& t )
+    { return t.print(fp); }
 
 struct BarzerRange {
     barzer::BarzerRange br;
@@ -256,6 +326,12 @@ struct BarzerRange_printer_visitor : public static_visitor<void> {
         { fp << extract<int64_t>(br.rng[lohi]); }
     void operator()( const barzer::BarzerRange::Entity& r ) 
         { fp << extract<BarzerEntity>(br.rng[lohi]); }
+    void operator()( const barzer::BarzerRange::Date& r ) 
+        { fp << extract<BarzerDate>(br.rng[lohi]); }
+    void operator()( const barzer::BarzerRange::DateTime& r ) 
+        { fp << extract<BarzerDateTime>(br.rng[lohi]); }
+    void operator()( const barzer::BarzerRange::TimeOfDay& r ) 
+        { fp << extract<BarzerTimeOfDay>(br.rng[lohi]); }
     template <typename T>
     void operator()( const T& r ) 
     {
@@ -297,7 +373,22 @@ struct BarzerRange_packer_visitor : public static_visitor<void> {
     void operator()( const barzer::BarzerRange::Entity& i )
     {
         b.rng.append( BarzerEntity(i.first,universe) );
-        b.rng.append( i.second );
+        b.rng.append( BarzerEntity(i.second,universe) );
+    }
+    void operator()( const barzer::BarzerRange::DateTime& i )
+    {
+        b.rng.append( BarzerDateTime(i.first,universe) );
+        b.rng.append( BarzerDateTime(i.second,universe) );
+    }
+    void operator()( const barzer::BarzerRange::TimeOfDay& i )
+    {
+        b.rng.append( BarzerTimeOfDay(i.first,universe) );
+        b.rng.append( BarzerTimeOfDay(i.second,universe) );
+    }
+    void operator()( const barzer::BarzerRange::Date& i )
+    {
+        b.rng.append( BarzerDate(i.first,universe) );
+        b.rng.append( BarzerDate(i.second,universe) );
     }
     template <typename T>
     void operator()( const T& i )
@@ -327,27 +418,20 @@ struct BarzerEntityRangeCombo {
     {}
     std::ostream&  print( std::ostream& fp) const 
     {
-        bool hasStuff = false;
-        fp << "erc(" ;
-        if( mainEntity.isValid() ) {
-            fp << "ent=" << mainEntity;
-            hasStuff =true;
-        }
-        if( unitEntity.isValid() ) {
-            fp << (hasStuff?",":"") << "unit=" << mainEntity;
-        }
-        if( hasStuff ) fp << ",";
-        range.print(fp); 
-        return fp<< ")";
+        return nv_streamer(fp,"erc")   
+            (mainEntity.isValid(),"ent",mainEntity) 
+            (unitEntity.isValid(),"unit",unitEntity) 
+            (true,"range",range)
+            .fp;
     }
 };
-std::ostream& operator<<( std::ostream& fp, const BarzerEntityRangeCombo& erc ) 
-    { return erc.print(fp); }
+std::ostream& operator<<( std::ostream& fp, const BarzerEntityRangeCombo& erc ) { return erc.print(fp); }
+
 
 } // exposed namespace 
 
 namespace visitor {
-
+/// this static visitor is packing bead list
 struct bead_list : public static_visitor<bool> {
     const StoredUniverse&   d_universe;
     const BarzelBead&       d_bead; 
@@ -358,14 +442,16 @@ struct bead_list : public static_visitor<bool> {
         d_universe(u), d_bead(b), d_list(l), d_beadNum(beadNum)
     {}
      
-    bool operator()( const BarzerEntityRangeCombo& r )
-    {
-        return (d_list.append( exposed::BarzerEntityRangeCombo(r,d_universe) ),true);
-    }
+    bool operator()( const BarzerDateTime& r ) 
+        { return (d_list.append(exposed::BarzerDateTime(r,d_universe)),true); }
+    bool operator()( const BarzerTimeOfDay& r ) 
+        { return (d_list.append(exposed::BarzerTimeOfDay(r,d_universe)),true); }
+    bool operator()( const BarzerDate& r ) 
+        { return (d_list.append(exposed::BarzerDate(r,d_universe)),true); }
+    bool operator()( const BarzerEntityRangeCombo& r ) 
+        { return (d_list.append( exposed::BarzerEntityRangeCombo(r,d_universe) ),true); }
     bool operator()( const BarzerRange& r )
-    {
-        return ( d_list.append(exposed::BarzerRange(r,d_universe)), true );
-    }
+        { return ( d_list.append(exposed::BarzerRange(r,d_universe)), true ); }
     bool operator()( const BarzerEntityList& l )
     {
         list elist;
@@ -421,7 +507,7 @@ struct bead_list : public static_visitor<bool> {
 struct BarzerResponseObject {
     list beadList;  /// list of beads  
 
-    list topicInfo; /// information on the topics discovered during parse 
+    list topicInfo; /// information on the topics discovered during parse - the list will contain exposed::TopicInfo
 
     list traceInfo;
     list spellInfo;
@@ -450,25 +536,24 @@ struct BarzerResponseObject {
             /// end of spell corrections accumulation
         }
         /// printing topics 
-        /* uncomment and try compiling 
         const BarzTopics::TopicMap& topicMap = barz.topicInfo.getTopicMap();
         if( !topicMap.empty() ) {
-            BarzelBead fakeBead;
-            EncoderBeadVisitor v(os, universe, fakeBead );
+            // visitor::bead_list v(topicInfo, universe, fakeBead, curTopicNum );
             for( BarzTopics::TopicMap::const_iterator topI = topicMap.begin(); topI != topicMap.end(); ++topI ) {
-                std::stringstream sstr;
-                sstr << "strength=\"" << topI->second << "\"";
-                v.printEntity( topI->first, sstr.str().c_str() );
+                topicInfo.append( exposed::TopicInfo( topI->first, topI->second, universe ) );
             }
         }
 
 
         /// printing spell corrections  if any 
         if( spellCorrections.size( ) ) {
+            /* uncomment
             for( CToken::SpellCorrections::const_iterator i = spellCorrections.begin(); i!= spellCorrections.end(); ++i ) {
                 os << "<correction before=\"" << i->first << "\" after=\"" << i->second << "\"/>\n";
             }
+            */
         }
+        /* uncomment
         printTraceInfo(os, barz, universe);
         */
     }
@@ -548,6 +633,7 @@ BOOST_PYTHON_MODULE(pybarzer)
     def("stripDiacritics", stripDiacritics);
     // BarzerResponseObject    
     boost::python::class_<barzer::BarzerResponseObject>( "response" )
+        .def_readonly( "topics", &barzer::BarzerResponseObject::topicInfo )
         .def_readwrite( "beads", &barzer::BarzerResponseObject::beadList );
 
     // boost::python::class_<barzer::BarzerPython>( "Entity" )
@@ -555,17 +641,30 @@ BOOST_PYTHON_MODULE(pybarzer)
         .def( "parse", &barzer::PythonQueryProcessor::parse, return_value_policy<manage_new_object>() )
         .def( "parsexml", &barzer::PythonQueryProcessor::parseXML );
 
-    boost::python::class_<barzer::bar>( "bar" )
-        .def_readwrite( "d", &barzer::bar::d )
-        .def_readwrite( "l", &barzer::bar::l )
-        .def( "init", &barzer::bar::init );
-
-    boost::python::class_<barzer::foo>( "foo" )
-        .def_readwrite( "d", &barzer::foo::id )
-        .def( "init", &barzer::foo::init );
+    boost::python::class_<barzer::exposed::BarzerDate>( "Date", no_init )
+        .def( self_ns::repr(self_ns::self))
+        .def( self_ns::str(self_ns::self))
+        .def_readonly( "month", &barzer::exposed::BarzerDate::month )
+        .def_readonly( "day", &barzer::exposed::BarzerDate::day )
+        .def_readonly( "year", &barzer::exposed::BarzerDate::year )
+        ;
+    boost::python::class_<barzer::exposed::BarzerTimeOfDay>( "Time", no_init )
+        .def( self_ns::repr(self_ns::self))
+        .def( self_ns::str(self_ns::self))
+        .def( "hh", &barzer::exposed::BarzerTimeOfDay::getHH )
+        .def( "mm", &barzer::exposed::BarzerTimeOfDay::getMM )
+        .def( "ss", &barzer::exposed::BarzerTimeOfDay::getSS )
+        ;
+    boost::python::class_<barzer::exposed::BarzerDateTime>( "Timestamp", no_init )
+        .def( self_ns::repr(self_ns::self))
+        .def( self_ns::str(self_ns::self))
+        .def_readwrite( "time", &barzer::exposed::BarzerDateTime::timeOfDay)
+        .def_readwrite( "date", &barzer::exposed::BarzerDateTime::date )
+        ;
 
     boost::python::class_<barzer::exposed::BarzerLiteral>( "Token", no_init )
         .def_readonly( "txt", &barzer::exposed::BarzerLiteral::txt );
+
     boost::python::class_<barzer::exposed::BarzerEntity>( "Entity", no_init )
         .def( self_ns::repr(self_ns::self))
         .def( self_ns::str(self_ns::self))
@@ -573,6 +672,11 @@ BOOST_PYTHON_MODULE(pybarzer)
         .def_readonly( "cl", &barzer::exposed::BarzerEntity::eclass )
         .def_readonly( "scl", &barzer::exposed::BarzerEntity::esubclass )
         ;
+    boost::python::class_<barzer::exposed::TopicInfo>( "Topic" )
+        .def( self_ns::repr(self_ns::self))
+        .def( self_ns::str(self_ns::self))
+        .def_readwrite( "ent", &barzer::exposed::TopicInfo::ent )
+        .def_readwrite( "w", &barzer::exposed::TopicInfo::weight );
 
     boost::python::class_<barzer::exposed::BarzerRange>( "Range", no_init )
         .def( self_ns::repr(self_ns::self))
@@ -600,6 +704,6 @@ BOOST_PYTHON_MODULE(pybarzer)
         .def( self_ns::str(self_ns::self))
         .def_readonly( "ent", &barzer::exposed::BarzerEntityRangeCombo::mainEntity )
         .def_readonly( "unit", &barzer::exposed::BarzerEntityRangeCombo::unitEntity )
-        .def_readonly( "range", &barzer::exposed::BarzerEntityRangeCombo::range )
+        .def_readonly( "rng", &barzer::exposed::BarzerEntityRangeCombo::range )
     ;
 }

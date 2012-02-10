@@ -66,7 +66,11 @@ struct BarzerDate {
 
 	BarzerDate() : month(INVALID_MONTH), day(INVALID_DAY), year(INVALID_YEAR) {}
 	
-	bool isValid() const { return( year != INVALID_YEAR && day != INVALID_DAY && month != INVALID_MONTH ); }
+	bool isValidYear() const { return( year != INVALID_YEAR ); }
+	bool isValidMonth() const { return( month != INVALID_MONTH ); }
+	bool isValidDay() const { return( day != INVALID_DAY ); }
+
+	bool isValid() const { return( isValidYear() && isValidMonth() && isValidDay() ); }
 
 
 	void setToday();
