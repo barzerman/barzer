@@ -273,7 +273,7 @@ struct TopicInfo {
         ent(e,u), weight(w) {}
     std::ostream& print( std::ostream& fp ) const 
     {
-        return ( fp << ent << ",w=" << weight );
+        return ( fp << "(" << ent << ",w=" << weight << ")" );
     }
 
 };
@@ -427,6 +427,38 @@ struct BarzerEntityRangeCombo {
 };
 std::ostream& operator<<( std::ostream& fp, const BarzerEntityRangeCombo& erc ) { return erc.print(fp); }
 
+struct TraceInfo {
+    const barzer::BarzelTrace::SingleFrameTrace frameTrace;
+    std::string sourceStr;
+    list        err;
+    TraceInfo( const barzer::BarzelTrace::SingleFrameTrace& ft, const StoredUniverse& u ) :
+        frameTrace(ft) {
+            const char* tmp = u.getGlobalPools().internalString_resolve( ft.tranInfo.source );
+            if( tmp ) sourceStr.assign(tmp);
+            for( std::vector< std::string >::const_iterator ei = ft.errVec.begin(); ei!= ft.errVec.end(); ++ei ) {
+                err.append( *ei );
+            }
+        }
+
+    std::ostream& print( std::ostream& fp ) const 
+    {
+        fp << "frame( src='" << sourceStr << "'-" << frameTrace.tranInfo.statementNum << ":" << frameTrace.tranInfo.emitterSeqNo <<
+        ",gr="<< frameTrace.grammarSeqNo ;
+         
+        size_t err_len = len(err);
+        for (int i = 0; i < err_len; ++i) {
+            std::string s=extract<std::string>(err[i]) ;
+            fp << "err(" << s  << ")\n";
+        }
+        return fp << ")";
+    }
+
+    uint32_t emit() const { return frameTrace.tranInfo.emitterSeqNo; }
+    uint32_t statement() const { return frameTrace.tranInfo.statementNum; }
+    uint32_t grammar() const { return frameTrace.grammarSeqNo; }
+    const std::string source() const { return sourceStr; }
+};
+std::ostream& operator<<( std::ostream& fp, const TraceInfo& ti ) { return ti.print(fp); }
 
 } // exposed namespace 
 
@@ -501,6 +533,20 @@ struct bead_list : public static_visitor<bool> {
 
 } // visitor namespace ends
 
+void encodeTraceInfo(list& traceInfoList, const Barz &barz, const StoredUniverse &uni)
+{
+    const BarzelTrace::TraceVec &tvec = barz.barzelTrace.getTraceVec();
+    if( tvec.size() ) {
+        for( BarzelTrace::TraceVec::const_iterator ti = tvec.begin(),
+                                                  tend = tvec.end();
+                    ti != tend; ++ti ) {
+            traceInfoList.append( 
+                exposed::TraceInfo( *ti , uni )
+            );
+        }
+    }
+}
+
 } //  anonymous namespace ends
 
 /// 
@@ -547,15 +593,15 @@ struct BarzerResponseObject {
 
         /// printing spell corrections  if any 
         if( spellCorrections.size( ) ) {
-            /* uncomment
             for( CToken::SpellCorrections::const_iterator i = spellCorrections.begin(); i!= spellCorrections.end(); ++i ) {
-                os << "<correction before=\"" << i->first << "\" after=\"" << i->second << "\"/>\n";
+                 list corr;
+                 corr.append(i->first);
+                 corr.append(i->second);
+                 spellInfo.append( corr );
             }
-            */
         }
-        /* uncomment
-        printTraceInfo(os, barz, universe);
-        */
+
+        encodeTraceInfo(traceInfo, barz, universe);
     }
 };
 
@@ -633,6 +679,8 @@ BOOST_PYTHON_MODULE(pybarzer)
     def("stripDiacritics", stripDiacritics);
     // BarzerResponseObject    
     boost::python::class_<barzer::BarzerResponseObject>( "response" )
+        .def_readonly( "trace", &barzer::BarzerResponseObject::traceInfo )
+        .def_readonly( "spell", &barzer::BarzerResponseObject::spellInfo )
         .def_readonly( "topics", &barzer::BarzerResponseObject::topicInfo )
         .def_readwrite( "beads", &barzer::BarzerResponseObject::beadList );
 
@@ -706,4 +754,12 @@ BOOST_PYTHON_MODULE(pybarzer)
         .def_readonly( "unit", &barzer::exposed::BarzerEntityRangeCombo::unitEntity )
         .def_readonly( "rng", &barzer::exposed::BarzerEntityRangeCombo::range )
     ;
+    boost::python::class_<barzer::exposed::TraceInfo>( "Trace", no_init )
+        .def( self_ns::repr(self_ns::self))
+        .def( self_ns::str(self_ns::self))
+        .def( "emit", &barzer::exposed::TraceInfo::emit )
+        .def( "statement", &barzer::exposed::TraceInfo::statement )
+        .def( "grammar", &barzer::exposed::TraceInfo::grammar )
+        .def( "source", &barzer::exposed::TraceInfo::source )
+        ;
 }
