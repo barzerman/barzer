@@ -72,7 +72,7 @@ struct StoredEntityUniqId {
 		tokId(0xffffffff),
 		eclass(ec)
 	{}
-
+    
 	inline bool isTokIdValid() const { return (tokId!=0xffffffff); }
 	inline bool isValid() const { return ( isTokIdValid() && eclass.isValid() ); }
 	inline bool isValidForMatching() const { return ( eclass.ec ); }
@@ -85,6 +85,8 @@ struct StoredEntityUniqId {
 		{ return( eclass.matchOther( other.eclass ) && (tokId == other.tokId || !(matchInvalid || isTokIdValid()) ) ); }
 
     const StoredEntityClass& getClass()  const { return eclass; }
+    uint32_t getTokId() const { return tokId; }
+
 };
 inline std::ostream& operator <<(std::ostream& fp, const StoredEntityUniqId& x )
 {

@@ -393,6 +393,14 @@ public:
 	void clearSpell();
 	// purges everything 
 	void clear();
+    
+    const char* printableTokenByid( uint32_t tokId ) const
+    {
+        const StoredToken *tok = gp.dtaIdx.tokPool.getTokByIdSafe(tokId);
+        return( tok ? printableTokenByid(tok->stringId): "" );
+    }
+    const char* printableEntityId( const BarzerEntity& euid ) const
+        { return printableTokenByid(euid.getTokId()); }
 
 	const char* printableStringById( uint32_t id )  const
 		{ return gp.stringPool.printableStr(id); }

@@ -47,7 +47,8 @@ PythonCmdLine&  PythonCmdLine::init( boost_python_list& ns )
     // stl_input_iterator<boost_python_list> ii(ns);
     ns[0];
     d_argv_str.clear();
-    for (int i = 0; i < len(ns); ++i) {
+    size_t ns_len = len(ns);
+    for (int i = 0; i < ns_len; ++i) {
         d_argv_str.push_back( extract<std::string>(ns[i]) );
     }
     argv.clear();
@@ -179,6 +180,81 @@ struct BarzerLiteral {
     {}
 };
 
+struct BarzerEntity {
+    barzer::BarzerEntity euid;
+    uint32_t eclass, esubclass; 
+    std::string id;
+
+    BarzerEntity( const barzer::BarzerEntity& e, const StoredUniverse& u ) :
+        euid(e),
+        eclass      (euid.getClass().ec), 
+        esubclass   (euid.getClass().subclass)
+    {
+        const StoredToken *tok = u.getDtaIdx().tokPool.getTokByIdSafe(euid.tokId);
+        if( tok ) {
+            const char *tokname = u.getStringPool().resolveId(tok->stringId);
+            if( tokname )
+                id.assign(tokname);
+        }
+            
+    }
+    std::ostream& print( std::ostream& fp ) const {
+        return( fp << "ent(cl=" << eclass << ",scl=" << esubclass << ",id='" << id << "'" << ")" );
+    }
+    static std::string str(BarzerEntity const &self) {
+         std::stringstream sstr;
+         self.print(sstr);
+         return sstr.str();
+    }
+};
+
+struct BarzerRange {
+    barzer::BarzerRange br;
+
+    list rng;
+    
+    BarzerRange( const barzer::BarzerRange& r );
+    
+    object lo() { return rng[0]; } 
+    object hi() { return rng[1]; } 
+
+    bool hasHi() const { return br.hasHi(); }
+    bool hasLo() const { return br.hasLo(); }
+
+	bool isNone( ) const { return br.isNone(); }
+	bool isValid( ) const {return br.isValid(); }
+	bool isInteger( ) const {return br.isInteger(); }
+	bool isReal( ) const {return br.isReal(); }
+    bool isNumeric() const { return br.isNumeric(); }
+	bool isTimeOfDay( ) const {return br.isTimeOfDay(); }
+	bool isDate( ) const {return br.isDate(); }
+	bool isDateTime( ) const {return br.isDateTime(); }
+	bool isEntity( ) const {return br.isEntity(); }
+
+    bool isAsc() const { return br.isAsc(); }
+    bool isDesc() const { return br.isDesc(); }
+};
+struct BarzerRange_packer_visitor : public static_visitor<void> {
+    BarzerRange& b;
+
+    BarzerRange_packer_visitor( BarzerRange& bb ) : b(bb) {}
+    template <typename T>
+    void operator()( const T& i )
+    {
+        b.rng.append( i.first );
+        b.rng.append( i.second );
+    }
+};
+
+inline BarzerRange::BarzerRange( const barzer::BarzerRange& r ) :
+    br(r)
+{ 
+    BarzerRange_packer_visitor v(*this);
+    apply_visitor( v, br.getData() ); 
+}
+
+std::ostream& operator<< ( std::ostream& fp, const BarzerEntity& ent ) { return ent.print(fp); }
+
 } // exposed namespace 
 
 namespace visitor {
@@ -192,16 +268,43 @@ struct bead_list : public static_visitor<bool> {
     bead_list( list& l, const StoredUniverse& u, const BarzelBead& b, size_t beadNum ) :
         d_universe(u), d_bead(b), d_list(l), d_beadNum(beadNum)
     {}
-    
+     
+    bool operator()( const BarzerRange& r )
+    {
+        return ( d_list.append(exposed::BarzerRange(r)), true );
+    }
+    bool operator()( const BarzerEntityList& l )
+    {
+        list elist;
+		const BarzerEntityList::EList &lst = l.getList();
+		for (BarzerEntityList::EList::const_iterator li = lst.begin();
+													 li != lst.end(); ++li) {
+			elist.append(
+                exposed::BarzerEntity(*li,d_universe)
+            );
+		}
+        return ( d_list.append(elist), true );
+    }
+
+    bool operator()( const BarzerEntity& l )
+        { return( d_list.append(exposed::BarzerEntity(l,d_universe)), true ); }
+    bool operator()( const BarzerNumber& l )
+        { 
+            if( l.isInt() ) 
+                return (d_list.append( l.getInt() ),true); 
+            else
+                return (d_list.append( l.getReal() ),true); 
+        }
     bool operator()( const BarzerString& l )
         { return (d_list.append( l.getStr() ),true); }
+
     bool operator()( const BarzerLiteral& l )
     {
-        if( l.isString() ) {
+        if( l.isString() ) 
             d_list.append( std::string(d_universe.printableStringById(l.getId())) );
-        } else {
+        else 
             d_list.append(exposed::BarzerLiteral(l,d_universe));
-        }
+        
         return true;
     }
     bool operator()( const BarzelBeadAtomic& ba )
@@ -217,7 +320,7 @@ struct bead_list : public static_visitor<bool> {
     void terminateBead() {}
 }; /// bead_list encoder 
 
-} // encode_visitor namespace ends
+} // visitor namespace ends
 
 } //  anonymous namespace ends
 
@@ -370,4 +473,31 @@ BOOST_PYTHON_MODULE(pybarzer)
 
     boost::python::class_<barzer::exposed::BarzerLiteral>( "Token", no_init )
         .def_readonly( "txt", &barzer::exposed::BarzerLiteral::txt );
+    boost::python::class_<barzer::exposed::BarzerEntity>( "Entity", no_init )
+        .def( self_ns::repr(self_ns::self))
+        .def( self_ns::str(self_ns::self))
+        .def_readonly( "id", &barzer::exposed::BarzerEntity::id )
+        .def_readonly( "cl", &barzer::exposed::BarzerEntity::eclass )
+        .def_readonly( "scl", &barzer::exposed::BarzerEntity::esubclass )
+        ;
+
+    boost::python::class_<barzer::exposed::BarzerRange>( "Range", no_init )
+        .def( "lo", &barzer::exposed::BarzerRange::lo )
+        .def( "hi", &barzer::exposed::BarzerRange::hi )
+        .def( "hasHi", &barzer::exposed::BarzerRange::hasHi )
+        .def( "hasLo", &barzer::exposed::BarzerRange::hasLo )
+
+	    .def( "isNone", &barzer::exposed::BarzerRange::isNone )
+	    .def( "isValid", &barzer::exposed::BarzerRange::isValid )
+	    .def( "isInteger", &barzer::exposed::BarzerRange::isInteger )
+	    .def( "isReal", &barzer::exposed::BarzerRange::isReal )
+        .def( "isNumeric", &barzer::exposed::BarzerRange::isNumeric )
+	    .def( "isTimeOfDay", &barzer::exposed::BarzerRange::isTimeOfDay )
+	    .def( "isDate", &barzer::exposed::BarzerRange::isDate )
+	    .def( "isDateTime", &barzer::exposed::BarzerRange::isDateTime )
+	    .def( "isEntity", &barzer::exposed::BarzerRange::isEntity )
+
+	    .def( "isAsc", &barzer::exposed::BarzerRange::isAsc )
+	    .def( "isDesc", &barzer::exposed::BarzerRange::isDesc )
+        ;
 }
