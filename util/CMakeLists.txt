@@ -16,7 +16,7 @@ set(EXTRA_LIBS ${EXTRA_LIBS}
                ay)
 
                    
-add_library(butil pybarzer.cpp umlaut.cpp)
+add_library(butil pybarzer.cpp)
 target_link_libraries (butil ${EXTRA_LIBS})
 
 #SET_TARGET_PROPERTIES(butil PROPERTIES PREFIX "")
