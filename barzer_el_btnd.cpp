@@ -862,5 +862,8 @@ std::ostream&  BELParseTreeNode::printBarzelXML( std::ostream& fp, const BELTrie
 
 	return fp;
 }
+void BTND_Pattern_Entity::setRange() {
+    if ( d_rangeIsValid == 0 ) d_rangeIsValid= 1;
+}
 
 } // namespace barzer

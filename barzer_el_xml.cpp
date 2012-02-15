@@ -1423,7 +1423,7 @@ void BELParserXML::CurStatementData::clear()
 	}
 }
 //// 
-void BELReaderXMLEmit::addStatement( const BELStatementParsed& sp )
+void ::addStatement( const BELStatementParsed& sp )
 {
 	BELParseTreeNode_PatternEmitter emitter( sp.pattern );
 	int i =0;
@@ -1449,5 +1449,19 @@ BELReaderXMLEmit::BELReaderXMLEmit( BELTrie* t, std::ostream& os ) :
 	{
 	}
 
+
+// BELReaderXMLEmitCounter implementation
+
+BELReaderXMLEmitCounter::BELReaderXMLEmitCounter( BELTrie* t, std::ostream& os ) :
+		BELReader( t, t->getGlobalPools(), &os ),
+		d_outStream(os)
+{
+}
+
+void BELReaderXMLEmitCounter::addStatement(const barzer::BELStatementParsed& sp)
+{
+  //count emits here using BELStatementParsed
+  //output in d_outStream
+}
 
 } // barzer namespace ends

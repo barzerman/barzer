@@ -292,6 +292,29 @@ int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, c
 	return 0;
 }
 
+
+//it's a kind of copy-paste from proc_EMIT - the diff is BELReaderXMLEmitCounter
+int proc_EMIT_COUNT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* str )
+{
+	GlobalPools gp;
+	if( realGlobalPools.parseSettings().stemByDefault() ) 
+		gp.parseSettings().set_stemByDefault( );
+
+	BELTrie* trie  = gp.mkNewTrie();
+	std::ostream &os = reqEnv.outStream;
+	// create BELReaderXMLEmitCounter and use it here
+	BELReaderXMLEmitCounter reader(trie, os);
+	reader.initParser(BELReader::INPUT_FMT_XML);
+	std::stringstream is( str );
+	reader.setSilentMode();
+    os << "<patternset>\n";
+	reader.loadFromStream( is );
+	os << "</patternset>\n";
+	delete trie;
+	return 0;  
+}
+
+
 int proc_RUN_SCRIPT( RequestEnvironment& reqEnv, GlobalPools& gp, const char* cfgfile  );
 int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os )
 {
@@ -307,7 +330,8 @@ int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os )
         char * newLine = strchr( buf, '\r' );
         if( newLine ) 
             *newLine = 0;
-		IFHEADER_ROUTE(EMIT) 
+		IFHEADER_ROUTE(EMIT)
+		IFHEADER_ROUTE(EMIT_COUNT)
 		IFHEADER_ROUTE(ADD_STMSET)
 		IFHEADER_ROUTE(CLEAR_TRIE)
 		IFHEADER_ROUTE(CLEAR_USER)

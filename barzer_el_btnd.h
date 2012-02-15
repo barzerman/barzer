@@ -413,7 +413,7 @@ public:
 	}
 	BTND_Pattern_Entity()  : d_rangeIsValid(0) {}
 
-	void setRange() { if( d_rangeIsValid == 0 ) d_rangeIsValid= 1; }
+	void setRange() ;
 	void setRange( const BarzerRange& r ) { if( d_rangeIsValid==0 ) d_rangeIsValid=1; d_range=r; }
 
 	bool isRangeValid( ) const { return d_rangeIsValid; } 

@@ -275,7 +275,6 @@ int BELReader::loadFromStream( std::istream& fp )
 		return 0;
 	}
 	parser->parse( fp );
-
 	return numStatements;
 }
 void BELReader::computeImplicitTrieSpellPriority( uint32_t tc, uint32_t tid )
