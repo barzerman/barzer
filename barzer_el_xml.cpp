@@ -1423,7 +1423,7 @@ void BELParserXML::CurStatementData::clear()
 	}
 }
 //// 
-void ::addStatement( const BELStatementParsed& sp )
+void BELReaderXMLEmit::addStatement(const barzer::BELStatementParsed& sp)
 {
 	BELParseTreeNode_PatternEmitter emitter( sp.pattern );
 	int i =0;
