@@ -295,5 +295,6 @@ class BELReaderXMLEmitCounter: public BELReader {
     void addStatement(const barzer::BELStatementParsed& sp);
 
 };
+} // barzer namespace ends
 
 #endif // BARZER_EL_XML_H
