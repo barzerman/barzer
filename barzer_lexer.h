@@ -50,12 +50,12 @@ class QLexParser {
 	int trySpellCorrectAndClassify_hunspell( CToken& ctok, TToken& ttok );
 
 	/// resolves single tokens - this is not language specific
-	int singleTokenClassify( CTWPVec& , TTWPVec&, const QuestionParm& );	
+	int singleTokenClassify( Barz&, const QuestionParm& );	
 	/// multitoken non-language specific hardcoded stuff
-	int advancedBasicClassify( CTWPVec& , const TTWPVec&, const QuestionParm& );	
+	int advancedBasicClassify( Barz&, const QuestionParm& );	
 	/// called from advancedBasicClassify
 	/// tries to detect numbers with punctuation 1.5, -5.5 , 1,000,000 etc. 
-	int advancedNumberClassify( CTWPVec& , const TTWPVec&, const QuestionParm& );	
+	int advancedNumberClassify( Barz&, const QuestionParm& );	
 
 	bool tryClassify_number( CToken&, const TToken&  ) const;
 	bool tryClassify_integer( CToken&, const TToken&  ) const;
@@ -66,7 +66,7 @@ public:
 	}; 
 	void setDtaIndex(const DtaIndex * di) { dtaIdx= di; }
 	struct Error : public QPError { } err;
-	virtual int lex( CTWPVec& , TTWPVec&, const QuestionParm& );
+	virtual int lex( Barz&, const QuestionParm& );
 	virtual ~QLexParser() {}
 };
 }

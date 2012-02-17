@@ -4,6 +4,7 @@
 #include <barzer_universe.h>
 #include <sstream>
 #include <ay_char.h>
+#include <barzer_barz.h>
 
 namespace barzer {
 bool QLexParser::tryClassify_number( CToken& ctok, const TToken& ttok ) const
@@ -121,8 +122,11 @@ bool is_comma_delimited_int( const CTWPVec& cvec, size_t fromPos, size_t& endPos
 
 } // end of anon namespace 
 
-int QLexParser::advancedNumberClassify( CTWPVec& cvec, const TTWPVec& tvec, const QuestionParm& qparm )
+int QLexParser::advancedNumberClassify( Barz& barz, const QuestionParm& qparm )
 {
+    CTWPVec& cvec = barz.getCtVec();
+    TTWPVec& tvec = barz.getTtVec();
+
 	//// this only processes positive 
 	BarzerNumber theInt;
 	size_t endPos= 0;
@@ -178,10 +182,13 @@ void removeBlankCTokens( CTWPVec& cvec )
 
 }
 
-int QLexParser::advancedBasicClassify( CTWPVec& cvec, const TTWPVec& tvec, const QuestionParm& qparm )
+int QLexParser::advancedBasicClassify( Barz& barz, const QuestionParm& qparm )
 {
+    CTWPVec& cvec = barz.getCtVec();
+    TTWPVec& tvec = barz.getTtVec();
+
 	// transforms 
-	advancedNumberClassify(cvec,tvec,qparm);
+	advancedNumberClassify(barz, qparm);
 	removeBlankCTokens( cvec );
     /// reclassifying punctuation if needed 
     for( CTWPVec::iterator i = cvec.begin(); i!= cvec.end(); ++i ) {
@@ -454,8 +461,11 @@ int QLexParser::trySpellCorrectAndClassify_hunspell( CToken& ctok, TToken& ttok 
 	return -1;
 }
 
-int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const QuestionParm& qparm )
+int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 {
+    CTWPVec& cVec = barz.getCtVec();
+    TTWPVec& tVec = barz.getTtVec();
+
 	cVec.resize( tVec.size() );
 	if( !dtaIdx ) 
 		return ( err.e = QLPERR_NULL_IDX, 0 );
@@ -522,15 +532,18 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
 	return 0;
 }
 
-int QLexParser::lex( CTWPVec& cVec, TTWPVec& tVec, const QuestionParm& qparm )
+int QLexParser::lex( Barz& barz, const QuestionParm& qparm )
 {
+    CTWPVec& cVec = barz.getCtVec();
+    TTWPVec& tVec = barz.getTtVec();
+
 	err.clear();
 	cVec.clear();
 	/// convert every ttoken into a single ctoken 
-	singleTokenClassify( cVec, tVec, qparm );
+	singleTokenClassify( barz, qparm );
 	/// try grouping tokens and matching basic compounded tokens
 	/// non language specific
-	advancedBasicClassify( cVec, tVec, qparm );
+	advancedBasicClassify( barz, qparm );
 
 	/// perform advanced language specific lexing 
 	langLexer.lex( cVec, tVec, qparm );

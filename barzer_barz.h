@@ -141,6 +141,8 @@ public:
 			barzelTrace.push_back( trace ) ; 
 	}
 
+	TTWPVec& getTtVec() { return  ttVec; }
+	CTWPVec& getCtVec() { return ctVec; }
 	const TTWPVec& getTtVec() const { return  ttVec; }
 	const CTWPVec& getCtVec() const { return ctVec; }
 
