@@ -10,7 +10,11 @@ ifeq ($(IS32),yes)
 	BITMODE=-m32
 	AYBIT="IS32=yes"
 endif 
-CFLAGS :=$(CFLAGS) $(BITMODE) $(OPT) -Wno-array-bounds -Wall -Wno-parentheses -Wnon-virtual-dtor \
+ifeq ($(CC),clang++)
+    CLANG_WARNSUPPRESS=-Wno-array-bounds
+endif
+WARNSUPPRESS=-Wno-parentheses -Wnon-virtual-dtor $(CLANG_WARNSUPPRESS)
+CFLAGS :=$(CFLAGS) $(BITMODE) $(OPT) $(WARNSUPPRESS) \
 	-I/opt/local/include -I/usr/include -g -I. -I./ay -I./lg_ru -fpic $(PYINCLUDE) 
 LINKFLAGS := $(FLAGS) 
 BINARY=barzer.exe
