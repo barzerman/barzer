@@ -1958,8 +1958,8 @@ struct BELFunctionStorage_holder {
 	inline static bool checkId(const BarzerEntity& ent, uint32_t cl, uint32_t scl, uint32_t id)
 		{ return ent.tokId == id && checkSC(ent, cl, scl); }
 
-
-	STFUN(mkEntList) // (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
+    /// mkEntList( entities and entity lists in any order )
+	STFUN(mkEntList) // (BarzerEntityList, EntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
     {
         SETFUNCNAME(mkEntList);
         BarzerEntityList outlst;
