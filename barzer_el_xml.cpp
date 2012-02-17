@@ -1476,34 +1476,32 @@ unsigned long factorial( unsigned long number )
 }
 
 
-size_t BELReaderXMLEmitCounter::Power(const barzer::BELParseTreeNode& node) const
-{
-
+namespace {
 struct Aggregator
 {
 private:
   bool isSum;
   size_t& x;
-  BELReaderXMLEmitCounter& _counter;
+  const BELReaderXMLEmitCounter& _counter;
 public:
-  Aggregator(BELReaderXMLEmitCounter& counter, size_t& xx, bool i=true  ) 
+  Aggregator(const BELReaderXMLEmitCounter& counter, size_t& xx, bool i=true  ) 
   :isSum(i),x(xx), _counter(counter)  {}
   size_t operator() (const barzer::BELParseTreeNode& node ) const
   {
     return x= ( isSum ? std::plus<size_t>()(x,_counter.Power(node)) : std::multiplies<size_t>()(x,_counter.Power(node)));
   }
 };
+} // anon namespace 
+size_t BELReaderXMLEmitCounter::Power(const barzer::BELParseTreeNode& node) const
+{
 
-    switch (node.btndVar.which())
-    {
-    case BTND_StructData_TYPE:
-    {
+
+    switch (node.btndVar.which()) {
+    case BTND_StructData_TYPE: {
       const BTND_StructData &sdata = boost::get<BTND_StructData>(node.btndVar);
       size_t p = 0;
-      if (sdata.getType() == BTND_StructData::T_ANY)
-	p = std::for_each( node.child.begin(), node.child.end(), Aggregator(*this,p));
-      else
-	p = std::for_each( node.child.begin(), node.child.end(), Aggregator(*this,p, false));
+      Aggregator aggr(*this,p,(sdata.getType() == BTND_StructData::T_ANY) );
+	  std::for_each( node.child.begin(), node.child.end(), aggr);
 	
         switch (sdata.getType()) {
         case BTND_StructData::T_LIST:       return p;
@@ -1516,10 +1514,12 @@ public:
             AYLOG(ERROR) << "Invalid BTND_StructData type: " << sdata.getType();
             return 0;
         }
+        return p;
     }
     case BTND_PatternData_TYPE:
         return 1;
     }
+    return 0;
 }
 
 
