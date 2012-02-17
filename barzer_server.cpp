@@ -294,7 +294,7 @@ int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, c
 
 
 //it's a kind of copy-paste from proc_EMIT - the diff is BELReaderXMLEmitCounter
-int proc_EMIT_COUNT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* str )
+int proc_COUNT_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* str )
 {
 	GlobalPools gp;
 	if( realGlobalPools.parseSettings().stemByDefault() ) 
@@ -330,8 +330,8 @@ int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os )
         char * newLine = strchr( buf, '\r' );
         if( newLine ) 
             *newLine = 0;
+		IFHEADER_ROUTE(COUNT_EMIT)
 		IFHEADER_ROUTE(EMIT)
-		IFHEADER_ROUTE(EMIT_COUNT)
 		IFHEADER_ROUTE(ADD_STMSET)
 		IFHEADER_ROUTE(CLEAR_TRIE)
 		IFHEADER_ROUTE(CLEAR_USER)

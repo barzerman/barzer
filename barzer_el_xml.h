@@ -290,10 +290,12 @@ public:
 /// this counts possible emits
 class BELReaderXMLEmitCounter: public BELReader {
     	std::ostream& d_outStream;
-  public:
+public:
     BELReaderXMLEmitCounter(BELTrie* t, std::ostream& os );
     void addStatement(const barzer::BELStatementParsed& sp);
-
+    size_t Power(const BELParseTreeNode& node) const;
+private:
+    //std::vector<size_t> childrenCardinality(const BELParseTreeNode& node);
 };
 }
 #endif // BARZER_EL_XML_H

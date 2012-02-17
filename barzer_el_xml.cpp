@@ -1458,10 +1458,70 @@ BELReaderXMLEmitCounter::BELReaderXMLEmitCounter( BELTrie* t, std::ostream& os )
 {
 }
 
+// split 
 void BELReaderXMLEmitCounter::addStatement(const barzer::BELStatementParsed& sp)
 {
-  //count emits here using BELStatementParsed
-  //output in d_outStream
+    BELParseTreeNode node = sp.pattern;
+    d_outStream << Power(node);
 }
+
+
+//where to put it?
+unsigned long factorial( unsigned long number )
+{
+   if ( number <= 1 )
+      return 1;
+   else
+      return number * factorial( number - 1 );
+}
+
+
+size_t BELReaderXMLEmitCounter::Power(const barzer::BELParseTreeNode& node) const
+{
+
+struct Aggregator
+{
+private:
+  bool isSum;
+  size_t& x;
+  BELReaderXMLEmitCounter& _counter;
+public:
+  Aggregator(BELReaderXMLEmitCounter& counter, size_t& xx, bool i=true  ) 
+  :isSum(i),x(xx), _counter(counter)  {}
+  size_t operator() (const barzer::BELParseTreeNode& node ) const
+  {
+    return x= ( isSum ? std::plus<size_t>()(x,_counter.Power(node)) : std::multiplies<size_t>()(x,_counter.Power(node)));
+  }
+};
+
+    switch (node.btndVar.which())
+    {
+    case BTND_StructData_TYPE:
+    {
+      const BTND_StructData &sdata = boost::get<BTND_StructData>(node.btndVar);
+      size_t p = 0;
+      if (sdata.getType() == BTND_StructData::T_ANY)
+	p = std::for_each( node.child.begin(), node.child.end(), Aggregator(*this,p));
+      else
+	p = std::for_each( node.child.begin(), node.child.end(), Aggregator(*this,p, false));
+	
+        switch (sdata.getType()) {
+        case BTND_StructData::T_LIST:       return p;
+        case BTND_StructData::T_ANY:        return p   ;
+        case BTND_StructData::T_OPT:        return p * 2   ;
+        case BTND_StructData::T_PERM:       return p * factorial(node.child.size());	//do we have any predefined factorial function?
+        case BTND_StructData::T_TAIL:       return p * node.child.size()  ;
+        case BTND_StructData::T_SUBSET:     return p * exp2(node.child.size()) ;
+        default:
+            AYLOG(ERROR) << "Invalid BTND_StructData type: " << sdata.getType();
+            return 0;
+        }
+    }
+    case BTND_PatternData_TYPE:
+        return 1;
+    }
+}
+
+
 
 } // barzer namespace ends
