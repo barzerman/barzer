@@ -1462,37 +1462,34 @@ BELReaderXMLEmitCounter::BELReaderXMLEmitCounter( BELTrie* t, std::ostream& os )
 void BELReaderXMLEmitCounter::addStatement(const barzer::BELStatementParsed& sp)
 {
     BELParseTreeNode node = sp.pattern;
-    d_outStream << Power(node);
-}
-
-
-//where to put it?
-unsigned long factorial( unsigned long number )
-{
-   if ( number <= 1 )
-      return 1;
-   else
-      return number * factorial( number - 1 );
+    d_outStream <<"\n" << power(node) <<std::endl;
 }
 
 
 namespace {
-struct Aggregator
+struct SumProductFunctor
 {
-private:
   bool isSum;
   size_t& x;
-  const BELReaderXMLEmitCounter& _counter;
-public:
-  Aggregator(const BELReaderXMLEmitCounter& counter, size_t& xx, bool i=true  ) 
-  :isSum(i),x(xx), _counter(counter)  {}
+  const BELReaderXMLEmitCounter& c;
+  SumProductFunctor(const BELReaderXMLEmitCounter& counter, size_t& xx, bool i=true  ) 
+  :isSum(i),x(xx), c(counter)  {}
   size_t operator() (const barzer::BELParseTreeNode& node ) const
   {
-    return x= ( isSum ? std::plus<size_t>()(x,_counter.Power(node)) : std::multiplies<size_t>()(x,_counter.Power(node)));
+    return x= ( isSum ? std::plus<size_t>()(x,c.power(node)) : std::multiplies<size_t>()(x,c.power(node)));
   }
 };
+
+
+size_t factorial( size_t n )
+{
+  const size_t answer[] = 
+  {1,1,2,6,24,120,720,5040,40320};
+  return (n > 8) ? 1000000 : answer[n];
+}
+
 } // anon namespace 
-size_t BELReaderXMLEmitCounter::Power(const barzer::BELParseTreeNode& node) const
+size_t BELReaderXMLEmitCounter::power(const barzer::BELParseTreeNode& node) const
 {
 
 
@@ -1500,21 +1497,22 @@ size_t BELReaderXMLEmitCounter::Power(const barzer::BELParseTreeNode& node) cons
     case BTND_StructData_TYPE: {
       const BTND_StructData &sdata = boost::get<BTND_StructData>(node.btndVar);
       size_t p = 0;
-      Aggregator aggr(*this,p,(sdata.getType() == BTND_StructData::T_ANY) );
+      size_t x = 0;
+      SumProductFunctor aggr(*this,p,(sdata.getType() == BTND_StructData::T_ANY) );
 	  std::for_each( node.child.begin(), node.child.end(), aggr);
 	
         switch (sdata.getType()) {
-        case BTND_StructData::T_LIST:       return p;
-        case BTND_StructData::T_ANY:        return p   ;
-        case BTND_StructData::T_OPT:        return p * 2   ;
-        case BTND_StructData::T_PERM:       return p * factorial(node.child.size());	//do we have any predefined factorial function?
-        case BTND_StructData::T_TAIL:       return p * node.child.size()  ;
-        case BTND_StructData::T_SUBSET:     return p * exp2(node.child.size()) ;
+        case BTND_StructData::T_LIST:   x = 1;
+        case BTND_StructData::T_ANY:    x = 1;
+        case BTND_StructData::T_OPT:    x = 2;
+        case BTND_StructData::T_PERM:   x = factorial(node.child.size());
+        case BTND_StructData::T_TAIL:   x = node.child.size();
+        case BTND_StructData::T_SUBSET: x = exp2(node.child.size());
         default:
             AYLOG(ERROR) << "Invalid BTND_StructData type: " << sdata.getType();
             return 0;
-        }
-        return p;
+        }       
+        return p*x;
     }
     case BTND_PatternData_TYPE:
         return 1;

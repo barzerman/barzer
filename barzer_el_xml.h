@@ -293,7 +293,7 @@ class BELReaderXMLEmitCounter: public BELReader {
 public:
     BELReaderXMLEmitCounter(BELTrie* t, std::ostream& os );
     void addStatement(const barzer::BELStatementParsed& sp);
-    size_t Power(const BELParseTreeNode& node) const;
+    size_t power(const BELParseTreeNode& node) const;
 private:
     //std::vector<size_t> childrenCardinality(const BELParseTreeNode& node);
 };
