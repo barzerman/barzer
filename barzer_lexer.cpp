@@ -210,8 +210,29 @@ bool isStringAscii( const std::string& s )
 
 } // anonymous namespace ends
 
-int QLexParser::trySpellCorrectAndClassify( CToken& ctok, TToken& ttok, const QuestionParm& qparm  )
+struct SpellCorrectResult
 {
+	int d_result;
+	barzer::TTWPVec::iterator d_nextTtok;
+	barzer::CTWPVec::iterator d_nextCtok;
+
+	SpellCorrectResult ()
+	{
+	}
+
+	SpellCorrectResult (int res, barzer::TTWPVec::iterator nt, barzer::CTWPVec::iterator ct)
+	: d_result (res)
+	, d_nextTtok (nt)
+	, d_nextCtok (ct)
+	{
+	}
+};
+
+int QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPosVec, PosedVec<TTWPVec> tPosVec, const QuestionParm& qparm)
+{
+	CToken& ctok = cPosVec.d_pos->first;
+	TToken& ttok = tPosVec.d_pos->first;
+
 	const char* t = ttok.buf;
 	size_t t_len = ttok.len;
 	if( t_len > BZSpell::MAX_WORD_LEN )
@@ -347,12 +368,15 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
 
 	const BZSpell* bzSpell = d_universe.getBZSpell();
 	bool isQuoted = false;
-	for( uint32_t i = 0; i< tVec.size(); ++i ) {
-		TToken& ttok = tVec[i].first;
+	CTWPVec::iterator cPos = cVec.begin ();
+	TTWPVec::iterator tPos = tVec.begin ();
+	for (; cPos != cVec.end () && tPos != tVec.end (); ++cPos, ++tPos)
+	{
+		TToken& ttok = tPos->first;
 		const char* t = ttok.buf;
-		cVec[i].second = i;
-		CToken& ctok = cVec[i].first;
-		ctok.setTToken( ttok, i );
+		cPos->second = std::distance (cVec.begin (), cPos);
+		CToken& ctok = cPos->first;
+		ctok.setTToken (ttok, cPos->second);
 		bool wasStemmed = false;
 
 		if( !t || !*t || isspace(*t)  ) { // this should never happen
@@ -381,10 +405,13 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
 					/// lets try to spell correct the token
                     if( ispunct(*t) ) {
                     }
-					if( !isQuoted /*d_universe.stemByDefault()*/ ) {
-						if( trySpellCorrectAndClassify( ctok, ttok, qparm ) > 0 )
+					if( !isQuoted /*d_universe.stemByDefault()*/ )
+					{
+						if (trySpellCorrectAndClassify (PosedVec<CTWPVec> (cVec, cPos), PosedVec<TTWPVec> (tVec, tPos), qparm) > 0)
 							wasStemmed = true;
-	 				} else {
+	 				}
+	 				else
+					{
 						ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
 					}
 				}

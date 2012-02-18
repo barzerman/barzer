@@ -21,6 +21,21 @@ public:
 
 class BarzerHunspellInvoke;
 
+template<typename T>
+struct PosedVec
+{
+	T& d_vec;
+	typename T::iterator d_pos;
+
+	PosedVec (T& vec, typename T::iterator pos)
+	: d_vec (vec)
+	, d_pos (pos)
+	{
+	}
+};
+
+struct SpellCorrectResult;
+
 //// Lexical parser - it classifies TTokens and
 //// manipulates the resulting vector of CTokens
 class QLexParser {
@@ -41,11 +56,12 @@ class QLexParser {
 
 		MAX_CTOKENS_PER_QUERY = 64
 	};
+
 	/// invoked from singleTokenClassify - tries to spell correct
 	/// fluffs the token if it's not correctable otherwise attempts to find something
 	/// returned by hunspell within the maximum Levenshteyn edit distance from t that resolves to
 	/// an actual domain token
-	int trySpellCorrectAndClassify( CToken& ctok, TToken& ttok, const QuestionParm& qparm );
+	int trySpellCorrectAndClassify (PosedVec<CTWPVec>, PosedVec<TTWPVec>, const QuestionParm& qparm);
 
 	/// resolves single tokens - this is not language specific
 	int singleTokenClassify( CTWPVec& , TTWPVec&, const QuestionParm& );
