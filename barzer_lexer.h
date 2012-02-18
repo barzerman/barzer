@@ -61,7 +61,7 @@ class QLexParser {
 	/// fluffs the token if it's not correctable otherwise attempts to find something
 	/// returned by hunspell within the maximum Levenshteyn edit distance from t that resolves to
 	/// an actual domain token
-	int trySpellCorrectAndClassify (PosedVec<CTWPVec>, PosedVec<TTWPVec>, const QuestionParm& qparm);
+	SpellCorrectResult trySpellCorrectAndClassify (PosedVec<CTWPVec>, PosedVec<TTWPVec>, const QuestionParm& qparm);
 
 	/// resolves single tokens - this is not language specific
 	int singleTokenClassify( CTWPVec& , TTWPVec&, const QuestionParm& );

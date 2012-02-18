@@ -220,15 +220,15 @@ struct SpellCorrectResult
 	{
 	}
 
-	SpellCorrectResult (int res, barzer::TTWPVec::iterator nt, barzer::CTWPVec::iterator ct)
+	SpellCorrectResult (int res, barzer::CTWPVec::iterator ct, barzer::TTWPVec::iterator tt)
 	: d_result (res)
-	, d_nextTtok (nt)
+	, d_nextTtok (tt)
 	, d_nextCtok (ct)
 	{
 	}
 };
 
-int QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPosVec, PosedVec<TTWPVec> tPosVec, const QuestionParm& qparm)
+SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPosVec, PosedVec<TTWPVec> tPosVec, const QuestionParm& qparm)
 {
 	CToken& ctok = cPosVec.d_pos->first;
 	TToken& ttok = tPosVec.d_pos->first;
@@ -236,7 +236,7 @@ int QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPosVec, PosedVec<
 	const char* t = ttok.buf;
 	size_t t_len = ttok.len;
 	if( t_len > BZSpell::MAX_WORD_LEN )
-		return 0;
+		return SpellCorrectResult (0, ++cPosVec.d_pos, ++tPosVec.d_pos);
 	const GlobalPools& gp = d_universe.getGlobalPools();
 
 	bool isAsciiToken = ttok.isAscii();
@@ -275,7 +275,7 @@ int QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPosVec, PosedVec<
                 }
 			} else {
 		        ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
-		        return 0;
+		        return SpellCorrectResult (0, ++cPosVec.d_pos, ++tPosVec.d_pos);
             }
 	    } else {
 		    strncpy( buf, theString, BZSpell::MAX_WORD_LEN );
@@ -297,7 +297,7 @@ int QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPosVec, PosedVec<
 
 		        if( !isUsersWord && isupper(theString[0]) ) {
 			        ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
-			        return 0;
+			        return SpellCorrectResult (0, ++cPosVec.d_pos, ++tPosVec.d_pos);
 		        }
             } else if(Lang::isTwoByteLang(lang)) {
                 bool hasUpperCase = Lang::convertTwoByteToLower( buf, buf_len, lang );
@@ -354,10 +354,10 @@ int QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPosVec, PosedVec<
 		}
 		if( correctedStr )
 			ctok.addSpellingCorrection( t, correctedStr );
-		return 1;
+		return SpellCorrectResult (1, ++cPosVec.d_pos, ++tPosVec.d_pos);
 	} else
 		ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
-	return -1;
+	return SpellCorrectResult (-1, ++cPosVec.d_pos, ++tPosVec.d_pos);
 }
 
 int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const QuestionParm& qparm )
@@ -370,7 +370,7 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
 	bool isQuoted = false;
 	CTWPVec::iterator cPos = cVec.begin ();
 	TTWPVec::iterator tPos = tVec.begin ();
-	for (; cPos != cVec.end () && tPos != tVec.end (); ++cPos, ++tPos)
+	while (cPos != cVec.end () && tPos != tVec.end ())
 	{
 		TToken& ttok = tPos->first;
 		const char* t = ttok.buf;
@@ -381,6 +381,8 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
 
 		if( !t || !*t || isspace(*t)  ) { // this should never happen
 			ctok.setClass( CTokenClassInfo::CLASS_SPACE );
+			++cPos;
+			++tPos;
 			continue;
 		} else if( (*t) == '.' ) {
             ctok.setClass( CTokenClassInfo::CLASS_PUNCTUATION );
@@ -407,7 +409,11 @@ int QLexParser::singleTokenClassify( CTWPVec& cVec, TTWPVec& tVec, const Questio
                     }
 					if( !isQuoted /*d_universe.stemByDefault()*/ )
 					{
-						if (trySpellCorrectAndClassify (PosedVec<CTWPVec> (cVec, cPos), PosedVec<TTWPVec> (tVec, tPos), qparm) > 0)
+						SpellCorrectResult scr = trySpellCorrectAndClassify (PosedVec<CTWPVec> (cVec, cPos),
+								PosedVec<TTWPVec> (tVec, tPos), qparm);
+						cPos = scr.d_nextCtok;
+						tPos = scr.d_nextTtok;
+						if (scr.d_result > 0)
 							wasStemmed = true;
 	 				}
 	 				else
