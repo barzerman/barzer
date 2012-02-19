@@ -127,7 +127,7 @@ int QLexParser::advancedNumberClassify( Barz& barz, const QuestionParm& qparm )
     CTWPVec& cvec = barz.getCtVec();
     TTWPVec& tvec = barz.getTtVec();
 
-	//// this only processes positive 
+	//// this only processes positive
 	BarzerNumber theInt;
 	size_t endPos= 0;
 	for( size_t i =0; i< cvec.size(); ++i ) {
@@ -187,7 +187,7 @@ int QLexParser::advancedBasicClassify( Barz& barz, const QuestionParm& qparm )
     CTWPVec& cvec = barz.getCtVec();
     TTWPVec& tvec = barz.getTtVec();
 
-	// transforms 
+	// transforms
 	advancedNumberClassify(barz, qparm);
 	removeBlankCTokens( cvec );
     /// reclassifying punctuation if needed
@@ -331,23 +331,77 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
                     correctedStr = gp.string_resolve( strId ) ;
             }
 		}
+
+		bool lastFailed = false;
 		if( strId == 0xffffffff ) {
 			std::string stemmedStr;
             if( qparm.isStemMode_Aggressive() ) {
 			    strId = bzSpell->getAggressiveStem( stemmedStr, theString );
                 if(strId == 0xffffffff) {
-                    correctedStr= 0;
-                    theString = 0;
+                    lastFailed = true;
                 } else {
                     correctedStr = gp.string_resolve( strId ) ;
                     theString= correctedStr;
                 }
             } else  {
-                correctedStr= 0;
-                theString = 0;
+                lastFailed = true;
             }
 		} else
 			theString= correctedStr;
+
+		const int MultiwordLen = BZSpell::MAX_WORD_LEN / 4;
+		if (strId == 0xffffffff && t_len < MultiwordLen)
+		{
+			char dirty [BZSpell::MAX_WORD_LEN];
+			const int add = Lang::isTwoByteLang (Lang::getLang (theString, t_len)) ? 2 : 1;
+			for (size_t i = MIN_SPELL_CORRECT_LEN; i < t_len - MIN_SPELL_CORRECT_LEN; i += add)
+			{
+				std::memcpy (dirty, theString, i);
+				dirty [i] = 0;
+				uint32_t left = bzSpell->getSpellCorrection (dirty);
+				if (left == 0xffffffff)
+					continue;
+
+				std::memcpy (dirty, theString + i, t_len - i);
+				dirty [t_len - i - 1] = 0;
+				uint32_t right = bzSpell->getSpellCorrection (dirty);
+				if (right == 0xffffffff)
+					continue;
+
+				const char *leftCorr = gp.string_resolve (left);
+				const char *rightCorr = gp.string_resolve (right);
+
+				CToken newTok = ctok;
+				newTok.addSpellingCorrection (t, rightCorr);
+				const StoredToken *st = dtaIdx->getStoredToken (rightCorr);
+				if (st)
+				{
+					newTok.storedTok = st;
+					newTok.syncClassInfoFromSavedTok ();
+				}
+				else
+					newTok.setClass (CTokenClassInfo::CLASS_MYSTERY_WORD);
+
+				ctok.addSpellingCorrection (t, leftCorr);
+				st = dtaIdx->getStoredToken (leftCorr);
+				if (st)
+				{
+					ctok.storedTok = st;
+					ctok.syncClassInfoFromSavedTok ();
+				}
+				else
+					ctok.setClass (CTokenClassInfo::CLASS_MYSTERY_WORD);
+
+				cPosVec.d_vec.insert (++cPosVec.d_pos, std::make_pair (newTok, cPosVec.d_pos->second));
+				return SpellCorrectResult (1, ++cPosVec.d_pos, ++tPosVec.d_pos);
+			}
+		}
+
+		if (lastFailed)
+		{
+			correctedStr = 0;
+			theString = 0;
+		}
 	}
 	if( theString ) {
 		const StoredToken* storedTok = dtaIdx->getStoredToken( theString );
@@ -457,7 +511,7 @@ int QLexParser::lex( Barz& barz, const QuestionParm& qparm )
 
 	err.clear();
 	cVec.clear();
-	/// convert every ttoken into a single ctoken 
+	/// convert every ttoken into a single ctoken
 	singleTokenClassify( barz, qparm );
 	/// try grouping tokens and matching basic compounded tokens
 	/// non language specific
