@@ -294,8 +294,7 @@ public:
     BELReaderXMLEmitCounter(BELTrie* t, std::ostream& os );
     void addStatement(const barzer::BELStatementParsed& sp);
     size_t power(const BELParseTreeNode& node) const;
-private:
-    //std::vector<size_t> childrenCardinality(const BELParseTreeNode& node);
+    enum {MAX_CONSIDERED = 100, INF = 0xffffffff};
 };
 }
 #endif // BARZER_EL_XML_H
