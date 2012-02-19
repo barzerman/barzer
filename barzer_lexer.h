@@ -8,23 +8,38 @@ namespace barzer {
 class DtaIndex;
 class StoredUniverse;
 
-/// converts input const char* quesion 
+/// converts input const char* quesion
 /// into vector of TToken with position (token's number in the input)
 /// blanks will be there as blank tokens
-/// tokenizes on any and all punctuation 
+/// tokenizes on any and all punctuation
 class QTokenizer {
 public:
 	enum { MAX_QUERY_LEN = 1024, MAX_NUM_TOKENS = 96 };
 	struct Error : public QPError { } err;
-	int tokenize( TTWPVec& , const char*, const QuestionParm& );	
+	int tokenize( TTWPVec& , const char*, const QuestionParm& );
 };
 
 class BarzerHunspellInvoke;
 
-//// Lexical parser - it classifies TTokens and 
+template<typename T>
+struct PosedVec
+{
+	T& d_vec;
+	typename T::iterator d_pos;
+
+	PosedVec (T& vec, typename T::iterator pos)
+	: d_vec (vec)
+	, d_pos (pos)
+	{
+	}
+};
+
+struct SpellCorrectResult;
+
+//// Lexical parser - it classifies TTokens and
 //// manipulates the resulting vector of CTokens
 class QLexParser {
-	/// main purpose of lang lexer is to detect ranges 
+	/// main purpose of lang lexer is to detect ranges
 	/// by running through some lang specific code
 	QLangLexer langLexer;
 	const DtaIndex* dtaIdx;
@@ -32,22 +47,21 @@ class QLexParser {
 
 	void collapseCTokens( CTWPVec::iterator beg, CTWPVec::iterator end );
 
-	enum { 
-		// hunspell results with higher levenshteyn distance from original than this will be 
+	enum {
+		// hunspell results with higher levenshteyn distance from original than this will be
 		/// discarded
-		MAX_EDIT_DIST_FROM_SPELL = 2,  
-		/// words shorter than this wont be spell corrected 
+		MAX_EDIT_DIST_FROM_SPELL = 2,
+		/// words shorter than this wont be spell corrected
 		MIN_SPELL_CORRECT_LEN = 4 ,
 
 		MAX_CTOKENS_PER_QUERY = 64
 	};
-	/// invoked from singleTokenClassify - tries to spell correct 
-	/// fluffs the token if it's not correctable otherwise attempts to find something 
-	/// returned by hunspell within the maximum Levenshteyn edit distance from t that resolves to 
-	/// an actual domain token
-	int trySpellCorrectAndClassify( CToken& ctok, TToken& ttok, const QuestionParm& qparm );
 
-	int trySpellCorrectAndClassify_hunspell( CToken& ctok, TToken& ttok );
+	/// invoked from singleTokenClassify - tries to spell correct
+	/// fluffs the token if it's not correctable otherwise attempts to find something
+	/// returned by hunspell within the maximum Levenshteyn edit distance from t that resolves to
+	/// an actual domain token
+	SpellCorrectResult trySpellCorrectAndClassify (PosedVec<CTWPVec>, PosedVec<TTWPVec>, const QuestionParm& qparm);
 
 	/// resolves single tokens - this is not language specific
 	int singleTokenClassify( Barz&, const QuestionParm& );	
@@ -63,7 +77,7 @@ public:
 	QLexParser( const StoredUniverse& u, const DtaIndex * di=0) : dtaIdx(di), d_universe(u) {}
 	enum {
 		QLPERR_NULL_IDX =1 // dtaIdx object is null
-	}; 
+	};
 	void setDtaIndex(const DtaIndex * di) { dtaIdx= di; }
 	struct Error : public QPError { } err;
 	virtual int lex( Barz&, const QuestionParm& );
