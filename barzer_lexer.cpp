@@ -443,10 +443,11 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 		ctok.setTToken (ttok, cPos->second);
 		bool wasStemmed = false;
 
+		++cPos;
+		++tPos;
+
 		if( !t || !*t || isspace(*t)  ) { // this should never happen
 			ctok.setClass( CTokenClassInfo::CLASS_SPACE );
-			++cPos;
-			++tPos;
 			continue;
 		} else if( (*t) == '.' ) {
             ctok.setClass( CTokenClassInfo::CLASS_PUNCTUATION );
@@ -468,13 +469,10 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
                 } else if( !isNumber ) {
 					/// fall thru - this is an unmatched word
 
-					/// lets try to spell correct the token
-                    if( ispunct(*t) ) {
-                    }
 					if( !isQuoted /*d_universe.stemByDefault()*/ )
 					{
-						SpellCorrectResult scr = trySpellCorrectAndClassify (PosedVec<CTWPVec> (cVec, cPos),
-								PosedVec<TTWPVec> (tVec, tPos), qparm);
+						SpellCorrectResult scr = trySpellCorrectAndClassify (PosedVec<CTWPVec> (cVec, --cPos),
+								PosedVec<TTWPVec> (tVec, --tPos), qparm);
 						cPos = scr.d_nextCtok;
 						tPos = scr.d_nextTtok;
 						if (scr.d_result > 0)
