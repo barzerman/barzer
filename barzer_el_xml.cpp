@@ -1094,14 +1094,13 @@ void BELParserXML::taghandle_MKENT( const char_cp * attr, size_t attr_sz , bool 
         /// 
 	    statement.pushNode( BTND_RewriteData(mkent));
     }
-    if( relevance || canonicName )  {
+    /// adding deduced entity name 
+    {
         std::string theName;
-        if( canonicName ) {
-            if( !*canonicName ) {
+        if( !canonicName || !*canonicName ) {
                 statement.stmt.pattern.getDescriptiveNameFromPattern_simple( theName, gp ) ;
-            } else 
-                theName.assign(canonicName);
-        } 
+        } else 
+            theName.assign(canonicName);
             
         gp.entData.setEntPropData( ent.getEuid(), theName.c_str(), relevance );
     }

@@ -868,14 +868,20 @@ namespace {
 struct NameFromPatternGetter :  public boost::static_visitor<void> {
     mutable std::stringstream  d_str;
     const GlobalPools& d_gp;
+    mutable bool  d_hasStuff;
     
     NameFromPatternGetter(const GlobalPools& g ) : 
-        d_gp(g) {}
+        d_gp(g), d_hasStuff(false) {}
     
     void operator()( const BTND_Pattern_Token& p ) const {
         const char* str = d_gp.string_resolve( p.getStringId() );
         if( str ) {
-            d_str << " " << str ;
+            if( d_hasStuff )
+                d_str << " " << str ;
+            else  {
+                d_str << str;
+                d_hasStuff= true;
+            }
         }
     }
     void operator()( const BTND_Pattern_Punct& p ) const {
@@ -894,7 +900,7 @@ struct NameFromPatternGetter :  public boost::static_visitor<void> {
         bool isAny ( sd ? sd->isANY() : false );
         
         for( BELParseTreeNode::ChildrenVec::const_iterator ci = tn.child.begin(); ci!= tn.child.end(); ++ci ) {
-            if( isAny && (ci-tn.child.begin()) > 1 ) 
+            if( isAny && (ci-tn.child.begin()) ) 
                 break;
             const BTND_StructData* tmpSd = ci->getStructData(); 
             if( tmpSd ) 
