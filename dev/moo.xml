@@ -7,7 +7,7 @@
   <stmt n="102"> <pat> <ent x="n"/><t x="n">cock</t><t>fuck</t> </pat> <tran> <mkent c="10" s="20" i="moo_102"/> </tran> </stmt>
   <stmt n="103"> <pat> <t>popo</t><ent/> </pat> <tran> <mkent c="10" s="20" i="moo_not_cock"/> </tran> </stmt>
 
-  <stmt n="10"> <pat> <t>moo</t> </pat> <tran> <mkent c="10" s="20" i="moo"/> </tran> </stmt>
+  <stmt n="10"> <pat> <t>moo</t> </pat> <tran> <mkent c="10" s="20" i="moo" n=""/> </tran> </stmt>
   <stmt n="12"> <pat> <t>zoomo</t> </pat> <tran> <mkent c="10" s="20" i="zoomo"/> </tran> </stmt>
   <stmt n="13"> <pat> <t>zoom</t> </pat> <tran> <mkent c="10" s="20" i="zoom"/> </tran> </stmt>
   <stmt n="14"> <pat> <t>zoo</t> </pat> <tran> <mkent c="10" s="20" i="shitzoo"/> </tran> </stmt>
@@ -17,7 +17,7 @@
   <stmt n="18"> <pat> <t>dog</t> </pat> <tran> <mkent c="10" s="20" i="zoo4" tc="20" ts="1" ti="abc"/> </tran> </stmt>
   <stmt n="19"> <pat> <t>balcony</t> </pat> <tran> <mkent c="10" s="20" i="zoo5" tc="20" ts="1" ti="abc"/> </tran> </stmt>
 
-  <stmt n="20"> <pat> <t>voo</t><t>dogs</t><t>balconies</t> </pat> <tran> <mkent c="10" s="30" i="voo"/> </tran> </stmt>
+  <stmt n="20"> <pat> <t>voo</t><t>dogs</t><t>balconies</t> </pat> <tran> <mkent n="" c="10" s="30" i="voo"/> </tran> </stmt>
   <stmt n="21"> <pat> <t>voo</t> </pat> <tran> <mkent c="10" s="30" i="voo"/> </tran> </stmt>
   <stmt n="30"> <pat> <t f="y">34567</t> </pat> <tran> <mkent c="10" s="20" i="34567"/> </tran> </stmt>
   <stmt n="31"> <pat> <t f="y">348567</t> </pat> <tran> <mkent c="10" s="20" i="348567"/> </tran> </stmt>

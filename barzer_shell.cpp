@@ -463,7 +463,6 @@ static int bshf_autoc( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	Barz& barz = context->barz;
-    // std::cerr << "SHITFUCK:" << &(shell->gp) << "\n";
 
 	QParser parser( (context->getUniverse()) );
 

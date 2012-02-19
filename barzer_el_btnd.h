@@ -156,6 +156,7 @@ struct BTND_Pattern_Punct : public BTND_Pattern_Base {
 	BTND_Pattern_Punct(char c) : theChar(c) {}
 
 	void setChar( char c ) { theChar = c; }
+    int getChar() const { return theChar; }
 };
 inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_Punct& x )
 	{ return( fp << "'" << std::hex << x.theChar << "'" ); }
@@ -376,6 +377,7 @@ struct BTND_Pattern_Token : public BTND_Pattern_Base {
 		stringId(id),
 		doStem(false)
 	{}
+    ay::UniqueCharPool::StrId getStringId() const { return stringId; }
 };
 /// stop token is a regular token literal except it will be ignored 
 /// by any tag matching algorithm
@@ -999,6 +1001,8 @@ public:
 	BTND_StructData() : varId(0xffffffff), type(T_LIST) {}
 	BTND_StructData(int t) : varId(0xffffffff), type(t) {}
 	BTND_StructData(int t, uint32_t vi ) : varId(vi), type(t) {}
+
+    bool isANY() const { return type == T_ANY; }
 };
 
 /// blank data type
@@ -1039,9 +1043,10 @@ struct BELParseTreeNode {
     uint8_t noTextToNum;
 
 	ChildrenVec child;
+    bool isStruct() const { return btndVar.which() == BTND_StructData_TYPE; }
 	/// translation nodes may have things such as <var name="a.b.c"/>
 	/// they get encoded during parsing and stored in BarzelVariableIndex::d_pathInterner
-
+    
 	BELParseTreeNode():noTextToNum(0) {}
 
 	template <typename T>
@@ -1058,6 +1063,7 @@ struct BELParseTreeNode {
 		return( child.back() = node, child.back() );
 	}
 
+	const BTNDVariant& getVar() const { return btndVar; }
 	BTNDVariant& getVar() { return btndVar; }
 	void clear( ) 
 	{
@@ -1128,6 +1134,11 @@ struct BELParseTreeNode {
 
 	/// streams out XML recursively. the result should look like regular barzel xml 
 	std::ostream& printBarzelXML( std::ostream& fp, const BELTrie&  ) const;
+
+    // tries to produce one of the names from pattern 
+    // treats every struct element as a list except for ANY from which only the first element will be extracted  
+    // this is *likely* to produce a decent name. This is guaranteed to be very fast
+    void getDescriptiveNameFromPattern_simple( std::string& , const GlobalPools& u );
 };
 
 /// barzel macros 

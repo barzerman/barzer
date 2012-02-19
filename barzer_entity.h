@@ -271,7 +271,8 @@ public:
     void setEntPropData( const StoredEntityUniqId& euid, const char* name, uint32_t rel ) 
     {
         EntPropDtaMap::iterator i = d_autocDtaMap.insert( EntPropDtaMap::value_type(euid,EntProp()) ).first;
-        i->second.canonicName.assign(name);
+        if( name ) 
+            i->second.canonicName.assign(name);
         i->second.relevance = rel;
     }
     const EntProp* getEntPropData( const StoredEntityUniqId& euid ) const 

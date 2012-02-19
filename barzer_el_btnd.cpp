@@ -863,4 +863,58 @@ std::ostream&  BELParseTreeNode::printBarzelXML( std::ostream& fp, const BELTrie
 	return fp;
 }
 
+namespace {
+
+struct NameFromPatternGetter :  public boost::static_visitor<void> {
+    mutable std::stringstream  d_str;
+    const GlobalPools& d_gp;
+    
+    NameFromPatternGetter(const GlobalPools& g ) : 
+        d_gp(g) {}
+    
+    void operator()( const BTND_Pattern_Token& p ) const {
+        const char* str = d_gp.string_resolve( p.getStringId() );
+        if( str ) {
+            d_str << " " << str ;
+        }
+    }
+    void operator()( const BTND_Pattern_Punct& p ) const {
+        char c = static_cast<char>(p.getChar());
+        if( ispunct(c) ) 
+            d_str << c;
+    }
+    void operator()( const BTND_PatternData& p ) const {
+       boost::apply_visitor( *this, p );
+    } 
+
+    template <typename T>
+    void operator()( const T& ) const { }  // we do nothing for non pattern types
+    void addToName(  const BELParseTreeNode& tn ) const {
+        const BTND_StructData* sd = tn.getStructData();
+        bool isAny ( sd ? sd->isANY() : false );
+        
+        for( BELParseTreeNode::ChildrenVec::const_iterator ci = tn.child.begin(); ci!= tn.child.end(); ++ci ) {
+            if( isAny && (ci-tn.child.begin()) > 1 ) 
+                break;
+            const BTND_StructData* tmpSd = ci->getStructData(); 
+            if( tmpSd ) 
+                addToName( *ci );
+            else {
+                boost::apply_visitor( *this, ci->getVar() );
+            }
+        }
+    }
+    
+    void computeName( std::string& str, const BELParseTreeNode& tn  ) const
+    {
+        addToName(tn);
+        str = d_str.str();
+    }
+}; 
+
+}
+
+void BELParseTreeNode::getDescriptiveNameFromPattern_simple( std::string& outStr, const GlobalPools& gp )
+{ NameFromPatternGetter(gp).computeName( outStr, *this ); }
+
 } // namespace barzer
