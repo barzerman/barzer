@@ -278,23 +278,6 @@ public:
 
 	int parse( std::istream& );
 };
-/// this emits combinations rather than adding 
-class BELReaderXMLEmit : public BELReader {
-	std::ostream& d_outStream;
-public:
-	BELReaderXMLEmit( BELTrie* t, std::ostream& os );
-	void addStatement( const BELStatementParsed& sp );
 
-};
-
-/// this counts possible emits
-class BELReaderXMLEmitCounter: public BELReader {
-    	std::ostream& d_outStream;
-public:
-    BELReaderXMLEmitCounter(BELTrie* t, std::ostream& os );
-    void addStatement(const barzer::BELStatementParsed& sp);
-    size_t power(const BELParseTreeNode& node) const;
-    enum {MAX_CONSIDERED = 100, INF = 0xffffffff};
-};
 }
 #endif // BARZER_EL_XML_H

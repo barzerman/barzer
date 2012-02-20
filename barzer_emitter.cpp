@@ -19,7 +19,7 @@ void BELReaderXMLEmit::addStatement(const barzer::BELStatementParsed& sp)
         i++;
         //AYLOG(DEBUG) << "path added";
     } while( emitter.produceSequence() );
-    d_outStream << "</rule>\n";
+    d_outStream << "</rule>" << std::endl;
 }
 
 
@@ -42,7 +42,7 @@ BELReaderXMLEmitCounter::BELReaderXMLEmitCounter( BELTrie* t, std::ostream& os )
 void BELReaderXMLEmitCounter::addStatement(const barzer::BELStatementParsed& sp)
 {
     BELParseTreeNode node = sp.pattern;
-    d_outStream <<"\n" << power(node) <<std::endl;
+    d_outStream <<"<rn>" << power(node) <<"</rn>" <<std::endl;
 }
 
 

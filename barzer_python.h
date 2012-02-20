@@ -53,6 +53,8 @@ public:
     int             init( boost_python_list& ns );
     std::string     parse( const std::string& q );
     int             setUniverse( const std::string& us );
+    std::string     emit(const std::string& q );
+    std::string     count_emit(const std::string& q );
     /// exported functions 
     std::string     bzstem(const std::string& s);
 
