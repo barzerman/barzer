@@ -1,8 +1,11 @@
 cmake_minimum_required (VERSION 2.6)
 
-IF($ENV{CC} STREQUAL "clang" AND NOT DEFINED ENV{CXX})
+SET(CC $ENV{CC})
+IF(CC STREQUAL "clang" AND NOT DEFINED ENV{CXX} AND NOT DEFINED CMAKE_CXX_COMPILER)
+    MESSAGE("Setting c++ compiler to clang++; set CXX/CMAKE_CXX_COMPILER to override")
     set(CMAKE_CXX_COMPILER "clang++")
 ENDIF()
+
 
 project (barzer)
 set (barzer_VERSION_MAJOR 0)
@@ -123,12 +126,14 @@ ENDIF( ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" )
 
 ### libbarzer
 
-add_library(barzer SHARED ${SOURCES})
-target_link_libraries (barzer ${EXTRA_LIBS})
-
 add_library(barzer_static ${SOURCES})
 target_link_libraries (barzer_static ${EXTRA_LIBS})
 set_target_properties(barzer_static PROPERTIES OUTPUT_NAME barzer)
+
+add_library(barzer SHARED ${SOURCES})
+target_link_libraries (barzer ${EXTRA_LIBS})
+
+
 
 ### pybarzer
 
