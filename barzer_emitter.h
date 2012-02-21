@@ -2,9 +2,74 @@
 #define BARZER_EMITTER_H
 
 #include <barzer_el_parser.h>
+#include <barzer_el_btnd.h>
+
 
 #include <ay/ay_logger.h>
 namespace barzer{
+
+typedef BELVarInfo::value_type VarVec;
+
+struct PatternEmitterNode {
+    virtual bool step() = 0;
+    virtual void yield(BTND_PatternDataVec& vec, BELVarInfo &vinfo) const = 0;
+    virtual ~PatternEmitterNode() {}
+
+    static PatternEmitterNode* make(const BELParseTreeNode& node, VarVec &vars);
+};
+
+struct BELParseTreeNode_PatternEmitter {
+    BTND_PatternDataVec curVec;
+    BELVarInfo varVec;
+
+    const BELParseTreeNode& tree;
+    
+    BELParseTreeNode_PatternEmitter( const BELParseTreeNode& t ) : tree(t)
+        { makePatternTree(); }
+
+
+
+    // the next 3 functions should only be ever called in the order they
+    // are declared. It's very important
+
+    const BTND_PatternDataVec& getCurSequence( )
+    {
+        if( patternTree )
+            patternTree->yield(curVec, varVec);
+        return curVec;
+    }
+
+    // should only be called after getCurSequence and before produceSequence
+    const BELVarInfo& getVarInfo() const { return varVec; }
+
+    /// returns false when fails to produce a sequence
+    bool produceSequence();
+
+    
+    ~BELParseTreeNode_PatternEmitter();
+private:
+    PatternEmitterNode* patternTree;
+    void makePatternTree();
+};
+
+std::ostream& btnd_xml_print( std::ostream&, const BELTrie&, const BTND_PatternData& d );
+
+template<class T>class BELExpandReader : public BELReader {
+    T &functor;
+public:
+    BELExpandReader(T &f, BELTrie* t, GlobalPools &gp, std::ostream* errStream )
+        : BELReader(t,gp,errStream), functor(f) {}
+    void addStatement( const BELStatementParsed& sp)
+    {
+        BELParseTreeNode_PatternEmitter emitter( sp.pattern );
+        do {
+            const BTND_PatternDataVec& seq = emitter.getCurSequence();
+            functor(seq);
+        } while( emitter.produceSequence() );
+        ++numStatements;
+    }
+};
+
   
 /// this emits combinations rather than adding 
 class BELReaderXMLEmit : public BELReader {

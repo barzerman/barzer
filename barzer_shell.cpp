@@ -2,6 +2,7 @@
 #include <barzer_server.h>
 #include <ay_util_time.h>
 
+#include <barzer_emitter.h>
 #include <barzer_el_xml.h>
 #include <barzer_el_trie.h>
 #include <barzer_el_parser.h>

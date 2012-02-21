@@ -5,6 +5,7 @@
 #include <vector>
 #include <cstdio>
 #include <string>
+//#include <barzer_emitter.h>
 #include <barzer_el_btnd.h>
 #include <ay/ay_pool_with_id.h>
 
@@ -15,6 +16,7 @@ namespace barzer {
 class StoredUniverse;
 class GlobalPools;
 class BELReader;
+class BELParseTreeNode_PatternEmitter;
 //// !!!!!!!!!!! NEVER REORDER ANY OF THE ENUMS 
 
 
@@ -245,21 +247,7 @@ inline GlobalPools& BELParser::getGlobalPools() { return reader->getGlobalPools(
 
 inline const GlobalPools& BELParser::getGlobalPools() const { return reader->getGlobalPools(); }
 
-template<class T>class BELExpandReader : public BELReader {
-	T &functor;
-public:
-	BELExpandReader(T &f, BELTrie* t, GlobalPools &gp, std::ostream* errStream )
-		: BELReader(t,gp,errStream), functor(f) {}
-	void addStatement( const BELStatementParsed& sp)
-	{
-		BELParseTreeNode_PatternEmitter emitter( sp.pattern );
-		do {
-			const BTND_PatternDataVec& seq = emitter.getCurSequence();
-			functor(seq);
-		} while( emitter.produceSequence() );
-		++numStatements;
-	}
-};
+
 
 inline std::ostream& BELStatementParsed::getErrStream() const
 { 

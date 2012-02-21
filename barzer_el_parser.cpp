@@ -1,3 +1,4 @@
+#include <barzer_emitter.h>
 #include <barzer_el_parser.h>
 #include <barzer_el_xml.h>
 #include <barzer_universe.h>
