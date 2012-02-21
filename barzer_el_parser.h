@@ -16,7 +16,7 @@ namespace barzer {
 class StoredUniverse;
 class GlobalPools;
 class BELReader;
-class BELParseTreeNode_PatternEmitter;
+struct BELParseTreeNode_PatternEmitter;
 //// !!!!!!!!!!! NEVER REORDER ANY OF THE ENUMS 
 
 

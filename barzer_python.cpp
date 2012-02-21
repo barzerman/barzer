@@ -149,41 +149,36 @@ std::string BarzerPython::parse( const std::string& q )
 }
 
 std::string BarzerPython::emit(const std::string& q )
-{
-    if (d_universe) {
-        BELTrie* trie  = gp->mkNewTrie();
-        
-        std::stringbuf  buf;
-        std::ostream os(&buf);
-        
-        BELReaderXMLEmit reader(trie, os);
-        reader.initParser(BELReader::INPUT_FMT_XML);
-        reader.setSilentMode();     //what does it for? (copied from barzer_server.cpp:288)
-        std::istringstream is(q);
-        reader.loadFromStream( is );
-        return buf.str();
-    } else {
-        BPY_ERR("No Universe set")
-    }
+{   
+    GlobalPools gp_;
+    BELTrie* trie  = gp_.mkNewTrie();
+
+    std::stringbuf  buf;
+    std::ostream os(&buf);
+
+    BELReaderXMLEmit reader(trie, os);
+    reader.initParser(BELReader::INPUT_FMT_XML);
+    reader.setSilentMode();     //what does it for? (copied from barzer_server.cpp:288)
+    std::istringstream is(q);
+    reader.loadFromStream( is );
+    return buf.str();
+
 }
 
-std::string BarzerPython::count_emit(const std::string& q )
+std::string BarzerPython::count_emit(const std::string& q ) const
 {
-    if (d_universe) {
-        BELTrie* trie  = gp->mkNewTrie();
-        
-        std::stringbuf buf;
-        std::ostream os(&buf);
-        
-        BELReaderXMLEmitCounter reader(trie, os);
-        reader.initParser(BELReader::INPUT_FMT_XML);
-        reader.setSilentMode();     //what does it for? (copied from barzer_server.cpp:288)
-        std::istringstream is(q);
-        reader.loadFromStream( is );
-        return buf.str();
-    } else {
-        BPY_ERR("No Universe set")
-    }
+    GlobalPools gp_;
+    BELTrie* trie  = gp_.mkNewTrie();
+
+    std::stringbuf buf;
+    std::ostream os(&buf);
+
+    BELReaderXMLEmitCounter reader(trie, os);
+    reader.initParser(BELReader::INPUT_FMT_XML);
+    reader.setSilentMode();     //what does it for? (copied from barzer_server.cpp:288)
+    std::istringstream is(q);
+    reader.loadFromStream( is );
+    return buf.str();
 }
 
 //// encoding visitors and service functions 

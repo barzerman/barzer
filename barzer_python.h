@@ -54,7 +54,7 @@ public:
     std::string     parse( const std::string& q );
     int             setUniverse( const std::string& us );
     std::string     emit(const std::string& q );
-    std::string     count_emit(const std::string& q );
+    std::string     count_emit(const std::string& q ) const;
     /// exported functions 
     std::string     bzstem(const std::string& s);
 
