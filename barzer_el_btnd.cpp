@@ -574,4 +574,64 @@ void BTND_Pattern_Entity::setRange() {
     if ( d_rangeIsValid == 0 ) d_rangeIsValid= 1;
 }
 
+namespace {
+
+struct NameFromPatternGetter :  public boost::static_visitor<void> {
+    mutable std::stringstream  d_str;
+    const GlobalPools& d_gp;
+    mutable bool  d_hasStuff;
+    
+    NameFromPatternGetter(const GlobalPools& g ) : 
+        d_gp(g), d_hasStuff(false) {}
+    
+    void operator()( const BTND_Pattern_Token& p ) const {
+        const char* str = d_gp.string_resolve( p.getStringId() );
+        if( str ) {
+            if( d_hasStuff )
+                d_str << " " << str ;
+            else  {
+                d_str << str;
+                d_hasStuff= true;
+            }
+        }
+    }
+    void operator()( const BTND_Pattern_Punct& p ) const {
+        char c = static_cast<char>(p.getChar());
+        if( ispunct(c) ) 
+            d_str << c;
+    }
+    void operator()( const BTND_PatternData& p ) const {
+       boost::apply_visitor( *this, p );
+    } 
+
+    template <typename T>
+    void operator()( const T& ) const { }  // we do nothing for non pattern types
+    void addToName(  const BELParseTreeNode& tn ) const {
+        const BTND_StructData* sd = tn.getStructData();
+        bool isAny ( sd ? sd->isANY() : false );
+        
+        for( BELParseTreeNode::ChildrenVec::const_iterator ci = tn.child.begin(); ci!= tn.child.end(); ++ci ) {
+            if( isAny && (ci-tn.child.begin()) ) 
+                break;
+            const BTND_StructData* tmpSd = ci->getStructData(); 
+            if( tmpSd ) 
+                addToName( *ci );
+            else {
+                boost::apply_visitor( *this, ci->getVar() );
+            }
+        }
+    }
+    
+    void computeName( std::string& str, const BELParseTreeNode& tn  ) const
+    {
+        addToName(tn);
+        str = d_str.str();
+    }
+}; 
+
+}
+
+void BELParseTreeNode::getDescriptiveNameFromPattern_simple( std::string& outStr, const GlobalPools& gp )
+{ NameFromPatternGetter(gp).computeName( outStr, *this ); }
+
 } // namespace barzer

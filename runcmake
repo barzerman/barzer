@@ -1,10 +1,19 @@
-#!/usr/bin/ksh
-set -v on
+#!/bin/bash
+#set -v on
 
 OPTS=""
 if [[ -n $CC ]]; then
 OPTS="-DCMAKE_C_COMPILER=$CC"
 fi
 
-cmake $OPTS $* .
+DIR=$(dirname $0)
+CACHEFILE="CMakeCache.txt"
+if [[ -e $CACHEFILE ]]; then
+    rm $CACHEFILE
+fi
 
+if [[ -e "$DIR/$CACHEFILE" ]]; then
+    rm "$DIR/$CACHEFILE"
+fi
+
+cmake $OPTS $* $DIR
