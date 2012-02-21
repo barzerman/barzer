@@ -22,17 +22,32 @@ public:
 class BarzerHunspellInvoke;
 
 template<typename T>
-struct PosedVec
-{
+struct PosedVec {
 	T& d_vec;
-	typename T::iterator d_pos;
+    typedef typename T::value_type value_type;
 
-	PosedVec (T& vec, typename T::iterator pos)
-	: d_vec (vec)
-	, d_pos (pos)
-	{
-	}
+	size_t d_pos;
+
+	PosedVec (T& vec, size_t pos)
+	    : d_vec(vec), d_pos(pos)
+	{}
+
+    size_t operator ++() { return(++d_pos); }
+
+    size_t  pos() const { return 0; }
+
+    value_type&             element() { return d_vec[d_pos]; } 
+    const value_type&       element() const { return d_vec[d_pos]; } 
+
+    typename T::iterator posIterator() { return (d_vec.begin() + d_pos); }
+    T& vec() { return d_vec; }
+    const T& vec() const { return d_vec; }
 };
+
+/*
+template typename<>
+inline PosedVec<CTWPVec>::pos() const { return d_pos; }
+*/
 
 struct SpellCorrectResult;
 
