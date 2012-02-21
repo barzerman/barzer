@@ -211,7 +211,7 @@ public:
 		{ 
 			return ( stem ? 
 			  stemAndInternTmpText( d_tmpText.assign(s,len).c_str(), len ) : 
-			  internString(d_tmpText.assign(s,len).c_str())
+			  internString(d_tmpText.assign(s,len).c_str(),false)
 			); 
 		}
 	const char* setTmpText( const char* s, int len ) 

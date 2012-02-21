@@ -49,6 +49,14 @@ struct StoredTokenClassInfo {
 	bool isCompounded() const { return flags[ BIT_COMPOUNDED ]; }
 	void setCompounded() { flags.set( BIT_COMPOUNDED ); }
 
+	void setStemmed( bool mode ) { 
+        if( mode ) 
+            flags.set(BIT_STEM); 
+        else 
+            flags.unset(BIT_STEM);
+    }
+    bool isStemmed() const { return flags[BIT_STEM]; }
+
 
 	void printClassName( std::ostream& ) const;
 	void printSublassName( std::ostream& ) const;

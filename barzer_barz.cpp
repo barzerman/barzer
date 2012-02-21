@@ -68,7 +68,7 @@ int Barz::classifyTokens( QLexParser& lexer, const QuestionParm& qparm )
 	beadChain.clear();
 	ctVec.clear();
 
-	return lexer.lex( ctVec, ttVec, qparm );
+	return lexer.lex( *this, qparm );
 }
 
 void Barz::clearBeads()

@@ -114,10 +114,16 @@ public:
 
 		const CTWPVec& ctoks = d_bead.getCTokens();
 		os << "<srctok>";
+        const char* lastTokBuf = 0;
 		for( CTWPVec::const_iterator ci = ctoks.begin(); ci != ctoks.end(); ++ci ) {
 			const TTWPVec& ttv = ci->first.getTTokens();
+
 			for( TTWPVec::const_iterator ti = ttv.begin(); ti!= ttv.end() ; ++ti ) {
 				const TToken& ttok = ti->first;
+                if( lastTokBuf == ttok.buf ) 
+                    continue;
+                else
+                    lastTokBuf = ttok.buf;
 				if( ttok.len && ttok.buf ) {
 					os.write( ttok.buf, ttok.len ) << " ";
 				}

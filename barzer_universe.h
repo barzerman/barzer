@@ -394,6 +394,8 @@ public:
 	// purges everything 
 	void clear();
     
+    const StoredToken* getStoredToken( const char* s ) const 
+        { return getDtaIdx().getStoredToken(s); }
     const char* printableTokenByid( uint32_t tokId ) const
     {
         const StoredToken *tok = gp.dtaIdx.tokPool.getTokByIdSafe(tokId);

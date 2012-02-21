@@ -127,9 +127,11 @@ public:
 	size_t init( const StoredUniverse* secondaryUniverse =0 );
 
 	/// when fails 0xffffffff is returned 
-	uint32_t getSpellCorrection( const char* s ) const;
+	uint32_t getSpellCorrection( const char* s, bool doStemCorrect= true ) const;
 	uint32_t getStemCorrection( std::string& , const char*) const;
-	uint32_t get2ByteLangStemCorrection( int lang, const char* str ) const;
+    // when bool doStemCorrect is false it will NOT correct to a string whose token is 
+    // pure stem
+	uint32_t get2ByteLangStemCorrection( int lang, const char* str, bool doStemCorrect ) const;
     uint32_t purePermuteCorrect(const char* s, size_t s_len )  const;
 
 	uint32_t getAggressiveStem( std::string& , const char*) const;
@@ -140,6 +142,9 @@ public:
 	// strId will have stringId or 0xffffffff if string cant be resolved
 	int isUsersWord( uint32_t& strId, const char* word ) const ;
 	int isUsersWordById( uint32_t ) const;
+
+    bool isPureStem( const char* str ) const;
+    bool isPureStem( uint32_t strId ) const;
 
 	/// stems (currently only de-pluralizes) word . returns true if stemming was 
 	/// successful
