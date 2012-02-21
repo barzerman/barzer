@@ -39,9 +39,9 @@ uint32_t BELParser::stemAndInternTmpText( const char* s, int len )
 	if( bzSpell )  {
 		std::string stem;
 		if( bzSpell->stem(stem, scopy.c_str()) ) 
-			internString( stem.c_str() );
+			internString( stem.c_str(),false,true );
 	}
-	return internString( scopy.c_str());
+	return internString( scopy.c_str(),false);
 }
 uint32_t BELParser::stemAndInternTmpText_hunspell( const char* s, int len )
 {
@@ -53,9 +53,9 @@ uint32_t BELParser::stemAndInternTmpText_hunspell( const char* s, int len )
 	const char* stemmed = spellChecker.stem(scopy.c_str());
 
 	if( stemmed && strncmp(scopy.c_str(), stemmed, len) ) 
-		internString( stemmed );
+		internString( stemmed,false );
 
-	return internString( scopy.c_str());
+	return internString( scopy.c_str(),false);
 }
 
 uint32_t BELParser::internVariable( const char* t )
@@ -66,20 +66,20 @@ uint32_t BELParser::internVariable( const char* t )
 	BELSingleVarPath vPath;
 	for( ;end; ) {
 		tmp.assign( beg, end-beg );
-		vPath.push_back( internString(tmp.c_str()));
+		vPath.push_back( internString(tmp.c_str(),false));
 		beg = end+1;
 		end = strchr( beg, '.' );
 	}
 	if( *beg ) {
 		tmp.assign( beg );
-		vPath.push_back( internString(tmp.c_str()));
+		vPath.push_back( internString(tmp.c_str(),false));
 	}
 	return reader->getTrie().getVarIndex().produceVarIdFromPathForTran(vPath);
 }
 
 uint32_t BELParser::addCompoundedWordLiteral( const char* alias )
 {
-	uint32_t aliasId = ( alias ? internString(alias) : 0xffffffff );
+	uint32_t aliasId = ( alias ? internString(alias,false) : 0xffffffff );
 	GlobalPools &gp = reader->getGlobalPools();
 	uint32_t cwid = gp.getCompWordPool().addNewCompWordWithAlias( aliasId );
 	StoredToken& sTok =  gp.getDtaIdx().addCompoundedToken(cwid);
@@ -90,12 +90,15 @@ uint32_t BELParser::internString_internal( const char* t )
 {
 	return reader->getGlobalPools().internString_internal( t );
 }
-uint32_t BELParser::internString( const char* t, bool noSpell  )
+uint32_t BELParser::internString( const char* t, bool noSpell, bool isStemmed )
 {
 	// here we may want to tweak some (nonexistent yet) fields in StoredToken 
 	// to reflect the fact that this thing is actually in the trie
 
-	StoredToken& sTok =  reader->getGlobalPools().getDtaIdx().addToken( t );
+    bool wasNew = false;
+	StoredToken& sTok =  reader->getGlobalPools().getDtaIdx().addToken( wasNew, t );
+    sTok.setStemmed(isStemmed);
+    
     if( !noSpell ) {
 	    BELTrie& trie = reader->getTrie();
         StoredUniverse* curUni = reader->getCurrentUniverse();
@@ -107,9 +110,6 @@ uint32_t BELParser::internString( const char* t, bool noSpell  )
             }
         }
     }
-
-
-
 	return sTok.getStringId();
 }
 

@@ -272,6 +272,10 @@ public:
 	void printEuid( std::ostream& fp, const StoredEntityUniqId& euid ) const
 	{ fp << euid << '|' << resolveStoredTokenStr(euid.tokId ); }
 	
+	StoredToken& addToken( bool& wasNew, const char* t ) {
+		// bool wasNew = false;
+		return tokPool.addSingleTok( wasNew, t );
+	}
 	StoredToken& addToken( const char* t ) {
 		bool wasNew = false;
 		return tokPool.addSingleTok( wasNew, t );

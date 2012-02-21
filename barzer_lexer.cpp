@@ -223,9 +223,7 @@ struct SpellCorrectResult
 	barzer::TTWPVec::iterator d_nextTtok;
 	barzer::CTWPVec::iterator d_nextCtok;
 
-	SpellCorrectResult ()
-	{
-	}
+	SpellCorrectResult () : d_result(0) { }
 
 	SpellCorrectResult (int res, barzer::CTWPVec::iterator ct, barzer::TTWPVec::iterator tt)
 	: d_result (res)
@@ -349,22 +347,45 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 		} else
 			theString= correctedStr;
 
+        //// attempting split correction - 
+        /// trying to split the word into two 
 		const int MultiwordLen = BZSpell::MAX_WORD_LEN / 4;
 		if (strId == 0xffffffff && t_len < MultiwordLen)
 		{
 			char dirty [BZSpell::MAX_WORD_LEN];
-			const int add = Lang::isTwoByteLang (Lang::getLang (theString, t_len)) ? 2 : 1;
-			for (size_t i = MIN_SPELL_CORRECT_LEN; i < t_len - MIN_SPELL_CORRECT_LEN; i += add)
+            int16_t lang = Lang::getLang (theString, t_len);
+			const size_t step = Lang::isTwoByteLang (lang) ? 2 : 1;
+
+			for (size_t i = step; i < t_len - step; i += step)
 			{
 				std::memcpy (dirty, theString, i);
 				dirty [i] = 0;
-				uint32_t left = bzSpell->getSpellCorrection (dirty);
+		        const StoredToken* tmpTok = dtaIdx->getStoredToken( dirty );
+                uint32_t left = 0xffffffff;
+                bool shitfuck = ( tmpTok &&  tmpTok->isStemmed() );
+                if( !tmpTok || tmpTok->isStemmed() ) { // if no token found or token is pure stem
+                    if( i < MIN_SPELL_CORRECT_LEN*step ) 
+                        continue;
+                    else
+                        left = bzSpell->getSpellCorrection (dirty,false) ;
+                } else 
+                    left = tmpTok->getStringId() ;
+                
 				if (left == 0xffffffff)
 					continue;
 
-				std::memcpy (dirty, theString + i, t_len - i);
-				dirty [t_len - i - 1] = 0;
-				uint32_t right = bzSpell->getSpellCorrection (dirty);
+                const char* rightDirty = theString + i;
+
+		        tmpTok = dtaIdx->getStoredToken( rightDirty );
+				uint32_t right = 0xffffffff;
+                if( !tmpTok ) {
+                    if( t_len - step- i < MIN_SPELL_CORRECT_LEN*step ) 
+                        continue;
+                    else 
+                        right = bzSpell->getSpellCorrection (rightDirty,false) ;
+                } else
+                    right = tmpTok->getStringId() ;
+
 				if (right == 0xffffffff)
 					continue;
 
@@ -372,7 +393,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 				const char *rightCorr = gp.string_resolve (right);
 
 				CToken newTok = ctok;
-				newTok.addSpellingCorrection (t, rightCorr);
+				// newTok.addSpellingCorrection (t, rightCorr);
 				const StoredToken *st = dtaIdx->getStoredToken (rightCorr);
 				if (st)
 				{
@@ -382,7 +403,12 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 				else
 					newTok.setClass (CTokenClassInfo::CLASS_MYSTERY_WORD);
 
-				ctok.addSpellingCorrection (t, leftCorr);
+                std::string reportedCorrection(leftCorr);
+                reportedCorrection.reserve( 4+strlen(rightCorr) );
+                reportedCorrection.push_back( ' ' ); 
+                reportedCorrection += rightCorr;
+
+				ctok.addSpellingCorrection (t, reportedCorrection.c_str());
 				st = dtaIdx->getStoredToken (leftCorr);
 				if (st)
 				{
@@ -396,6 +422,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 				return SpellCorrectResult (1, ++cPosVec.d_pos, ++tPosVec.d_pos);
 			}
 		}
+        //// end of split correction attempt 
 
 		if (lastFailed)
 		{
@@ -471,8 +498,11 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 
 					if( !isQuoted /*d_universe.stemByDefault()*/ )
 					{
-						SpellCorrectResult scr = trySpellCorrectAndClassify (PosedVec<CTWPVec> (cVec, --cPos),
-								PosedVec<TTWPVec> (tVec, --tPos), qparm);
+						SpellCorrectResult scr = trySpellCorrectAndClassify (
+                            PosedVec<CTWPVec> (cVec, --cPos),
+                            PosedVec<TTWPVec> (tVec, --tPos), 
+                            qparm
+                        );
 						cPos = scr.d_nextCtok;
 						tPos = scr.d_nextTtok;
 						if (scr.d_result > 0)

@@ -101,6 +101,9 @@ struct StoredToken {
 	
 	bool isSimpleTok() const { return (classInfo.isSimple() && numWords == 1); }
 	bool isCompoundedTok() const { return (numWords> 1 || classInfo.isCompounded()); }
+    
+    void setStemmed( bool mode =true ) { classInfo.setStemmed(mode); }
+    bool isStemmed() const { return classInfo.isStemmed(); }
 
 	inline void setSingle( 
 		StoredTokenId tid, 
