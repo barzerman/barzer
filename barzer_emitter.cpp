@@ -362,10 +362,10 @@ struct SumProductFunctor
     else 
     {   //can be optimised
         switch (type) {
-            case BTND_StructData::T_ANY: return x = std::plus<size_t>()(x,p);   break;
+            case BTND_StructData::T_ANY: return x = x + p;                      break;
             case BTND_StructData::T_TAIL: return x==0? x = p : x = p*(1+x);     break;
             case BTND_StructData::T_SUBSET: return x = x*(1 + p);               break;
-            default: return p==0? x=std::multiplies<size_t>()(x,1) : x=std::multiplies<size_t>()(x,p);
+            default: return p==0? x : x = x*p;
         }       
     }
   }
@@ -406,7 +406,7 @@ case BTND_StructData_TYPE: {
             AYLOG(ERROR) << "Invalid BTND_StructData type: " << sdata.getType();
             return 0;
     }
-        std::cout << "node="<< sdata.getType() <<" p=" <<p << std::endl;
+        ////debug: std::cout << "node="<< sdata.getType() <<" p=" <<p << std::endl;
         return (p > MAX_CONSIDERED)? INF : p;
     }
     case BTND_PatternData_TYPE:
