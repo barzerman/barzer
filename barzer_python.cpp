@@ -11,6 +11,7 @@
 #include <barzer_parse.h>
 #include <barzer_server_response.h>
 #include <barzer_el_chain.h>
+#include <barzer_emitter.h>
 #include <boost/variant.hpp>
 
 #include <util/pybarzer.h>
@@ -133,11 +134,11 @@ int BarzerPython::setUniverse( const std::string& us )
 
 std::string BarzerPython::parse( const std::string& q )
 {
-    if( d_universe ) {
-        if( d_parseEnv ) {
+    if ( d_universe ) {
+        if ( d_parseEnv ) {
             std::stringstream sstr;
             BarzStreamerXML xmlStreamer( d_parseEnv->barz, *d_universe );
-            d_parseEnv->parseXML( xmlStreamer, sstr, q.c_str() ); 
+            d_parseEnv->parseXML( xmlStreamer, sstr, q.c_str() );
             return sstr.str();
         } else {
             BPY_ERR("Parse Environment not set")
@@ -145,6 +146,39 @@ std::string BarzerPython::parse( const std::string& q )
     } else {
         BPY_ERR("No Universe set")
     }
+}
+
+std::string BarzerPython::emit(const std::string& q )
+{   
+    GlobalPools gp_;
+    BELTrie* trie  = gp_.mkNewTrie();
+
+    std::stringbuf  buf;
+    std::ostream os(&buf);
+
+    BELReaderXMLEmit reader(trie, os);
+    reader.initParser(BELReader::INPUT_FMT_XML);
+    reader.setSilentMode();     //what does it for? (copied from barzer_server.cpp:288)
+    std::istringstream is(q);
+    reader.loadFromStream( is );
+    return buf.str();
+
+}
+
+std::string BarzerPython::count_emit(const std::string& q ) const
+{
+    GlobalPools gp_;
+    BELTrie* trie  = gp_.mkNewTrie();
+
+    std::stringbuf buf;
+    std::ostream os(&buf);
+
+    BELReaderXMLEmitCounter reader(trie, os);
+    reader.initParser(BELReader::INPUT_FMT_XML);
+    reader.setSilentMode();     //what does it for? (copied from barzer_server.cpp:288)
+    std::istringstream is(q);
+    reader.loadFromStream( is );
+    return buf.str();
 }
 
 //// encoding visitors and service functions 
@@ -674,7 +708,9 @@ BOOST_PYTHON_MODULE(pybarzer)
         .def( "universe", &barzer::BarzerPython::setUniverse )
         .def( "mkProcessor", &barzer::BarzerPython::makeParseEnv, return_value_policy<manage_new_object>() )
         /// returns Barzer XML for the parsed query 
-        .def( "parsexml", &barzer::BarzerPython::parse  );
+        .def( "parsexml", &barzer::BarzerPython::parse  )
+        .def( "emit", &barzer::BarzerPython::emit)
+        .def( "count_emit", &barzer::BarzerPython::count_emit);
     
     def("stripDiacritics", stripDiacritics);
     // BarzerResponseObject    

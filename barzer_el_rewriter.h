@@ -1,6 +1,7 @@
 #ifndef BARZER_EL_REWRITER_H
 #define BARZER_EL_REWRITER_H
 #include <stack>
+//#include <barzer_emitter.h>
 #include <barzer_el_parser.h>
 #include <barzer_el_chain.h>
 namespace barzer {

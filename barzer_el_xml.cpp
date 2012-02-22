@@ -1,3 +1,4 @@
+#include <barzer_emitter.h>
 #include <barzer_el_xml.h>
 #include <barzer_universe.h>
 #include <ay/ay_debug.h>
@@ -1443,32 +1444,8 @@ void BELParserXML::CurStatementData::clear()
 			nodeStack.pop();
 	}
 }
-//// 
-void BELReaderXMLEmit::addStatement( const BELStatementParsed& sp )
-{
-	BELParseTreeNode_PatternEmitter emitter( sp.pattern );
-	int i =0;
-	d_outStream << "<rule n=\"" <<  sp.getStmtNumber() <<"\">\n";
-	do {
-		const BTND_PatternDataVec& seq = emitter.getCurSequence();
-		if( !seq.size() ) 
-			continue;
-		d_outStream << "    <pat n=\"" << i << "\">";
-		for( BTND_PatternDataVec::const_iterator pi = seq.begin(); pi != seq.end();++pi ) 
-			btnd_xml_print( d_outStream , getTrie(), *pi );
-		d_outStream << "</pat>\n";
-		i++;
-		//AYLOG(DEBUG) << "path added";
-	} while( emitter.produceSequence() );
-	d_outStream << "</rule>\n";
-}
 
 
-BELReaderXMLEmit::BELReaderXMLEmit( BELTrie* t, std::ostream& os ) :
-		BELReader( t, t->getGlobalPools(), &os ),
-		d_outStream(os)
-	{
-	}
 
 
 } // barzer namespace ends

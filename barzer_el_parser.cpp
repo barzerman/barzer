@@ -1,3 +1,4 @@
+#include <barzer_emitter.h>
 #include <barzer_el_parser.h>
 #include <barzer_el_xml.h>
 #include <barzer_universe.h>
@@ -275,7 +276,6 @@ int BELReader::loadFromStream( std::istream& fp )
 		return 0;
 	}
 	parser->parse( fp );
-
 	return numStatements;
 }
 void BELReader::computeImplicitTrieSpellPriority( uint32_t tc, uint32_t tid )

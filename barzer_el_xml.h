@@ -278,15 +278,6 @@ public:
 
 	int parse( std::istream& );
 };
-/// this emits combinations rather than adding 
-class BELReaderXMLEmit : public BELReader {
-	std::ostream& d_outStream;
-public:
-	BELReaderXMLEmit( BELTrie* t, std::ostream& os );
-	void addStatement( const BELStatementParsed& sp );
-
-};
 
 }
-
 #endif // BARZER_EL_XML_H
