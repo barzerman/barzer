@@ -125,7 +125,7 @@ bool is_comma_delimited_int( const CTWPVec& cvec, size_t fromPos, size_t& endPos
 int QLexParser::advancedNumberClassify( Barz& barz, const QuestionParm& qparm )
 {
     CTWPVec& cvec = barz.getCtVec();
-    TTWPVec& tvec = barz.getTtVec();
+    // TTWPVec& tvec = barz.getTtVec();
 
 	//// this only processes positive
 	BarzerNumber theInt;
@@ -185,7 +185,7 @@ void removeBlankCTokens( CTWPVec& cvec )
 int QLexParser::advancedBasicClassify( Barz& barz, const QuestionParm& qparm )
 {
     CTWPVec& cvec = barz.getCtVec();
-    TTWPVec& tvec = barz.getTtVec();
+    // TTWPVec& tvec = barz.getTtVec();
 
 	// transforms
 	advancedNumberClassify(barz, qparm);
@@ -357,7 +357,6 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 				dirty [i] = 0;
 		        const StoredToken* tmpTok = dtaIdx->getStoredToken( dirty );
                 uint32_t left = 0xffffffff;
-                bool shitfuck = ( tmpTok &&  tmpTok->isStemmed() );
                 if( !tmpTok || tmpTok->isStemmed() ) { // if no token found or token is pure stem
                     if( i < MIN_SPELL_CORRECT_LEN*step ) 
                         continue;
