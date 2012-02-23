@@ -308,9 +308,7 @@ int proc_COUNT_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPo
 	reader.initParser(BELReader::INPUT_FMT_XML);
 	std::stringstream is( str );
 	reader.setSilentMode();
-    os << "<patternset>\n";
 	reader.loadFromStream( is );
-	os << "</patternset>\n";
 	delete trie;
 	return 0;  
 }

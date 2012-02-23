@@ -82,13 +82,33 @@ public:
 
 /// this counts possible emits
 class BELReaderXMLEmitCounter: public BELReader {
-        std::ostream& d_outStream;
+    std::ostream& d_outStream;
 public:
-    BELReaderXMLEmitCounter(BELTrie* t, std::ostream& os );
+    enum {MAX_CONSIDERED = 1024 };        
+private: 
+    size_t d_maxConsidered;
+public:
+    BELReaderXMLEmitCounter(BELTrie* t, std::ostream& os ) ;
+
+    size_t  maxConsidered() const { return d_maxConsidered; }
+    void    setMaxConsidered( size_t x ) { d_maxConsidered= x; }
+
     void addStatement(const barzer::BELStatementParsed& sp);
     size_t power(const BELParseTreeNode& node) const;
-    enum {MAX_CONSIDERED = 100, INF = 0xffffffff};
+    enum {INF = 0xffffffff};
+    
 };
-  
+
+class BELStatementParsed_EmitCounter {
+    const BELTrie* d_trie; // this CAN be 0 . make sure to 0 check 
+    size_t d_maxConsidered;
+public:
+    size_t power(const BELParseTreeNode& node) const;
+    BELStatementParsed_EmitCounter( const const BELTrie* trie, size_t x = BELReaderXMLEmitCounter::MAX_CONSIDERED ) : 
+        d_trie(trie) , d_maxConsidered(x)
+    {}
+    size_t  maxConsidered() const { return d_maxConsidered; }
+};
+
 }
 #endif //BARZER_EMITTER_H
