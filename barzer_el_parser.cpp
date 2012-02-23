@@ -11,6 +11,8 @@
 namespace barzer {
 
 
+BELParser::BELParser(BELReader* r ) : reader(r) {}
+
 const BarzelEvalNode* BELParser::getProcByName( uint32_t strId ) const
 {
 	const BELTrie& trie = reader->getTrie();
@@ -135,15 +137,21 @@ BELReader::BELReader( BELTrie* t, GlobalPools &g, std::ostream* errStream ) :
     d_currentUniverse(0),
     d_curTrieId(g.internString_internal("")),
     d_curTrieClass(g.internString_internal("")),
-    d_errStream(errStream? errStream: &(std::cerr))
-{ }
+    d_errStream(errStream? errStream: &(std::cerr)),
+    d_maxEmitCountPerStatement(DEFMAX_EMIT_PER_STMT), 
+    d_maxEmitCountPerTrie(DEFMAX_EMIT_PER_SET), 
+    d_maxStatementsPerTrie(DEFMAX_STMT_PER_SET)
+{}
 BELReader::BELReader( GlobalPools &g, std::ostream* errStream ) : 
 	trie(g.globalTriePool.produceTrie(g.internString_internal(""),g.internString_internal(""))) , parser(0), gp(g),
 	numStatements(0) ,silentMode(false),  
 	d_trieSpellPriority(0),
 	inputFmt(INPUT_FMT_XML),
 	d_trieIdSet(false),
-    d_errStream(errStream? errStream: &(std::cerr))
+    d_errStream(errStream? errStream: &(std::cerr)),
+    d_maxEmitCountPerStatement(DEFMAX_EMIT_PER_STMT), 
+    d_maxEmitCountPerTrie(DEFMAX_EMIT_PER_SET), 
+    d_maxStatementsPerTrie(DEFMAX_STMT_PER_SET)
 {}
 
 void BELReader::setTrie( uint32_t trieClass, uint32_t trieId )
@@ -183,8 +191,21 @@ void BELReader::addMacro( uint32_t macroNameId, const BELStatementParsed& sp )
 
 void BELReader::addStatement( const BELStatementParsed& sp )
 {
+    if( numEmits > d_maxEmitCountPerTrie ) {
+        sp.getErrStream() << "ERROR: statement [" << sp.getSourceName() << ':' << sp.getStmtNumber()  << "] rejected - total number of emits for this statement set exceeds " << d_maxEmitCountPerTrie << std::endl;
+        
+    }
+    size_t emitPower = BELStatementParsed_EmitCounter(trie,d_maxEmitCountPerStatement).power( sp.pattern );
+    
+    if( emitPower>= d_maxEmitCountPerStatement ) {
+        sp.getErrStream() << "ERROR: statement [" << sp.getSourceName() << ':' << sp.getStmtNumber()  << "] rejected - number of emits for this statement " << emitPower << " vs. " << d_maxEmitCountPerStatement << std::endl;
+        return;
+    }
+
+    numEmits += emitPower;
+
+
 	BELParseTreeNode_PatternEmitter emitter( sp.pattern );
-	//AYLOG(DEBUG) << "addStatement called";
 
 	int i = 0, j = 0;
 	ay::stopwatch totalTimer;
@@ -269,13 +290,14 @@ BELParser*  BELReader::initParser(InputFormat fmt )
 
 int BELReader::loadFromStream( std::istream& fp ) 
 {
-	numStatements=numProcs=numMacros=0;
+	numStatements=numProcs=numMacros=numEmits=0;
 
 	if( !parser ) {
 		std::cerr << "BELReader::loadFromStream uninitialized parser\n";
 		return 0;
 	}
 	parser->parse( fp );
+    std::cerr << "Total Number of Emits: " << numEmits << std::endl;
 	return numStatements;
 }
 void BELReader::computeImplicitTrieSpellPriority( uint32_t tc, uint32_t tid )

@@ -258,7 +258,7 @@ private:
     uint32_t d_subsMax, d_subsCurrent;
 };
 
-//} // namespace {
+//
     
 PatternEmitterNode* PatternEmitterNode::make(const BELParseTreeNode& node, VarVec &vars)
 {
@@ -330,7 +330,8 @@ BELReaderXMLEmit::BELReaderXMLEmit( BELTrie* t, std::ostream& os ) :
 
 BELReaderXMLEmitCounter::BELReaderXMLEmitCounter( BELTrie* t, std::ostream& os ) :
         BELReader( t, t->getGlobalPools(), &os ),
-        d_outStream(os)
+        d_outStream(os),
+        d_maxConsidered(MAX_CONSIDERED)
 {
 }
 
@@ -343,32 +344,35 @@ void BELReaderXMLEmitCounter::addStatement(const barzer::BELStatementParsed& sp)
 
 
 namespace {
+
+template <typename T>
 struct SumProductFunctor
 {
     size_t type;
     size_t& x;
-    const BELReaderXMLEmitCounter& c;
-    SumProductFunctor(const BELReaderXMLEmitCounter& counter, size_t& xx, size_t node_t  ) 
-    :type(node_t),x(xx), c(counter)  
+    const T& c;
+    SumProductFunctor(const T& counter, size_t& xx, size_t node_t  ) :
+        type(node_t),
+        x(xx), 
+        c(counter)  
     {
-        if (type == BTND_StructData::T_ANY || type == BTND_StructData::T_TAIL) x = 0;
-        else x = 1;
+        x = (node_t == BTND_StructData::T_ANY || node_t == BTND_StructData::T_TAIL ? 0UL:1UL); 
     }
-  size_t operator() (const barzer::BELParseTreeNode& node ) const
-  {
-    if (x > BELReaderXMLEmitCounter::MAX_CONSIDERED) return x=BELReaderXMLEmitCounter::INF;
-    size_t p = c.power(node);
-    if (p > BELReaderXMLEmitCounter::MAX_CONSIDERED) return x=BELReaderXMLEmitCounter::INF;
-    else 
-    {   //can be optimised
-        switch (type) {
-            case BTND_StructData::T_ANY: return x = x + p;                      break;
-            case BTND_StructData::T_TAIL: return x==0? x = p : x = p*(1+x);     break;
-            case BTND_StructData::T_SUBSET: return x = x*(1 + p);               break;
-            default: return p==0? x : x = x*p;
-        }       
+    size_t operator() (const barzer::BELParseTreeNode& node ) const
+    {
+        if (x > c.maxConsidered() ) return (x=BELReaderXMLEmitCounter::INF);
+        size_t p = c.power(node);
+        if (p > c.maxConsidered() ) return x=BELReaderXMLEmitCounter::INF;
+        else 
+        {   //can be optimised
+            switch (type) {
+                case BTND_StructData::T_ANY: return x = x + p;                      break;
+                case BTND_StructData::T_TAIL: return x==0? x = p : x = p*(1+x);     break;
+                case BTND_StructData::T_SUBSET: return x = x*(1 + p);               break;
+                default: return p==0? x : x = x*p;
+            }       
+        }
     }
-  }
 };
 
 
@@ -381,39 +385,43 @@ inline size_t factorial( size_t n )
 
 } // anon namespace 
 
-/// return BELReaderXMLEmitCounter::INF if the result exceedes BELReaderXMLEmitCounter::MAX_CONSIDERED
-size_t BELReaderXMLEmitCounter::power(const barzer::BELParseTreeNode& node) const
+size_t BELStatementParsed_EmitCounter::power(const barzer::BELParseTreeNode& node) const
 {
-switch (node.btndVar.which()) {
-case BTND_StructData_TYPE: {
-    if (node.child.empty()) return 0;
-    const BTND_StructData &sdata = boost::get<BTND_StructData>(node.btndVar);
-    size_t p = 0;
-    SumProductFunctor aggr(*this, p, sdata.getType());
-    if (BTND_StructData::T_TAIL == sdata.getType()) 
-        for ( int i = node.child.size() - 1; i >= 0; i-- ) aggr(node.child[i]); //reverse order important!
-    else   std::for_each( node.child.begin(), node.child.end(), aggr);
-    
-    if (p > MAX_CONSIDERED) return INF;
-    switch (sdata.getType()) {
-        case BTND_StructData::T_LIST:   /*nothing*/;                            break;
-        case BTND_StructData::T_ANY:    /*nothing*/;                            break;
-        case BTND_StructData::T_OPT:    p++;                                    break;  
-        case BTND_StructData::T_PERM:   p *= factorial(node.child.size());      break;
-        case BTND_StructData::T_TAIL:   /*nothing*/;                            break;
-        case BTND_StructData::T_SUBSET: p--;                                    break;
-        default:
-            AYLOG(ERROR) << "Invalid BTND_StructData type: " << sdata.getType();
-            return 0;
+    enum { MAX_EMIT_COUNTED = 1000000000 };
+    switch (node.btndVar.which()) {
+    case BTND_StructData_TYPE: {
+        if (node.child.empty()) return 0;
+        const BTND_StructData &sdata = boost::get<BTND_StructData>(node.btndVar);
+        size_t p = 0;
+        SumProductFunctor<BELStatementParsed_EmitCounter> aggr(*this, p, sdata.getType());
+        if (BTND_StructData::T_TAIL == sdata.getType()) 
+            for ( int i = node.child.size() - 1; i >= 0; i-- ) aggr(node.child[i]); //reverse order important!
+        else   std::for_each( node.child.begin(), node.child.end(), aggr);
+     
+        if (p > MAX_EMIT_COUNTED) return BELReaderXMLEmitCounter::INF;
+        switch (sdata.getType()) {
+            case BTND_StructData::T_LIST:   /*nothing*/;                            break;
+            case BTND_StructData::T_ANY:    /*nothing*/;                            break;
+            case BTND_StructData::T_OPT:    p++;                                    break;  
+            case BTND_StructData::T_PERM:   p *= factorial(node.child.size());      break;
+            case BTND_StructData::T_TAIL:   /*nothing*/;                            break;
+            case BTND_StructData::T_SUBSET: p--;                                    break;
+            default:
+                AYLOG(ERROR) << "Invalid BTND_StructData type: " << sdata.getType();
+                return 0;
+        }
+            ////debug: std::cout << "node="<< sdata.getType() <<" p=" <<p << std::endl;
+            return ((p > MAX_EMIT_COUNTED)? BELReaderXMLEmitCounter::INF : p );
+        }
+        case BTND_PatternData_TYPE:
+            return 1;
     }
-        ////debug: std::cout << "node="<< sdata.getType() <<" p=" <<p << std::endl;
-        return (p > MAX_CONSIDERED)? INF : p;
-    }
-    case BTND_PatternData_TYPE:
-        return 1;
-}
-AYLOG(ERROR) << "Smth definitly broken.Invalid BTND_TYPE type: " << node.btndVar.which();
-return 0;
+    AYLOG(ERROR) << "Smth definitly broken.Invalid BTND_TYPE type: " << node.btndVar.which();
+    return 0;
 }
 
-}
+/// return BELReaderXMLEmitCounter::INF if the result exceedes BELReaderXMLEmitCounter::MAX_CONSIDERED
+size_t BELReaderXMLEmitCounter::power(const barzer::BELParseTreeNode& node) const
+    { return BELStatementParsed_EmitCounter(getTriePtr(),d_maxConsidered).power( node ); }
+
+} // barzer namespace 

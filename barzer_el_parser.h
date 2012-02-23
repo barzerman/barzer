@@ -83,7 +83,7 @@ class BarzelEvalNode;
 class BELParser {
 protected:
 	BELReader* reader; // parser doesnt own this pointer. reader owns the parser
-
+    
 	enum { MAX_VARNAME_LENGTH };
 	uint32_t internString_internal( const char* s ) ;
 	uint32_t internString( const char* s, bool noSpell, bool isStemmed = false ) ;
@@ -102,7 +102,7 @@ protected:
 public:
 	uint32_t stemAndInternTmpText_hunspell( const char* s, int len );
 	uint32_t stemAndInternTmpText( const char* s, int len );
-	BELParser( BELReader* r ) : reader(r) {}
+	BELParser( BELReader* r ) ;
 	virtual int parse( std::istream& ) = 0;
 	virtual ~BELParser() {}
 	GlobalPools& getGlobalPools();
@@ -130,6 +130,7 @@ protected:
 	size_t numStatements; /// total number of successfully read statements 
 	size_t numMacros; /// total number of successfully loaded macros
 	size_t numProcs; /// total number of successfully loaded procs
+    size_t numEmits; // total currently accumulated number of emits for all rules processed 
 
 	std::string inputFileName; 
 
@@ -150,7 +151,7 @@ protected:
 	/// by default is set to d_trieSpellPriority+ d_rulesetSpellPriority 
 	/// can be overridden (currently this is not done)
 	uint8_t d_spellPriority;
-
+    
 public:
 	/// barzEL input formats
 	typedef enum {
@@ -172,6 +173,8 @@ private:
     /// errors will be written to this stream 
     std::ostream* d_errStream;
 
+    size_t  d_maxEmitCountPerStatement, d_maxEmitCountPerTrie, d_maxStatementsPerTrie; /// max 
+
 	/// both computeXXXSpellPriority functions update d_spellPriority
 	/// deduces trie spell priority from trie class name ( "" - priority 0, otherwise - 10 )
 	void computeImplicitTrieSpellPriority( uint32_t tc, uint32_t tid );
@@ -180,6 +183,15 @@ private:
 	void computeRulesetSpellPriority( const char* fileName );
 	BELReader( const BELReader& r) : gp(r.gp) {}
 public:
+    enum { DEFMAX_EMIT_PER_STMT=1024, DEFMAX_STMT_PER_SET=2048*64, DEFMAX_EMIT_PER_SET=4*(DEFMAX_STMT_PER_SET) };
+    size_t maxEmitCountPerStatement() const { return d_maxEmitCountPerStatement; }
+    size_t maxEmitCountPerTrie() const { return d_maxEmitCountPerTrie; }
+    size_t maxStatementsPerTrie() const { return d_maxStatementsPerTrie; }
+
+    void set_maxEmitCountPerStatement( size_t x ) { d_maxEmitCountPerStatement=x; }
+    void set_maxEmitCountPerTrie(size_t x) { d_maxEmitCountPerTrie=x; }
+    void set_maxStatementsPerTrie(size_t x) { d_maxStatementsPerTrie=x; }
+
 	uint8_t getSpellPriority() const { return d_spellPriority; }
 
 	size_t getNumStatements() const { return numStatements; }
@@ -202,6 +214,7 @@ public:
 
 	BELTrie& getTrie() { return *trie ; }
 	const BELTrie& getTrie() const { return *trie ; }
+	const BELTrie* getTriePtr() const { return trie ; }
 
 	GlobalPools& getGlobalPools() { return gp; }
 	const GlobalPools& getGlobalPools() const { return gp; }
