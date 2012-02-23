@@ -10,11 +10,10 @@
 #include <barzer_date_util.h>
 #include <barzer_settings.h>
 #include <barzer_config.h>
-#include <barzer_spell.h>
 #include <barzer_bzspell.h>
 #include <barzer_el_compwords.h>
-#include <boost/unordered_map.hpp> 
-#include <boost/unordered_set.hpp> 
+#include <boost/unordered_map.hpp>
+#include <boost/unordered_set.hpp>
 #include <barzer_topics.h>
 
 
@@ -26,19 +25,19 @@ class StoredUniverse;
 /// TrieClass and  TrieId
 class GlobalTriePool {
 	typedef std::map< uint32_t , BELTrie* > ClassTrieMap;
-	typedef std::map< uint32_t , ClassTrieMap > TrieMap; 
-	
+	typedef std::map< uint32_t , ClassTrieMap > TrieMap;
+
 	TrieMap d_trieMap;
 
-	// every time new trie is added to d_trieMap its also added to 
+	// every time new trie is added to d_trieMap its also added to
 	// d_triePool
-	
+
 	std::vector< BELTrie* > d_triePool;
 
 	GlobalPools& d_gp;
-	
+
 public:
-	const BELTrie* getTrie_byGlobalId( uint32_t n ) const { return( n< d_triePool.size() ? (d_triePool[n]) : 0 ); } 
+	const BELTrie* getTrie_byGlobalId( uint32_t n ) const { return( n< d_triePool.size() ? (d_triePool[n]) : 0 ); }
 
 	ClassTrieMap& produceTrieMap( uint32_t trieClass );
 
@@ -53,7 +52,7 @@ public:
 
 	BELTrie* produceTrie( uint32_t trieClass, uint32_t trieId ) ;
 	BELTrie* mkNewTrie() ;
-	BELTrie& init() 
+	BELTrie& init()
 		{ return *produceTrie( 0xffffffff, 0xffffffff ); }
 
     BELTrie* getDefaultTrie() { return getTrie(0xffffffff,0xffffffff); }
@@ -64,53 +63,53 @@ public:
 
 typedef std::list< TheGrammar > TheGrammarList;
 
-/// in general there are 2 clusters per customer installation 
-/// the regular trie cluster and the topic trie one 
+/// in general there are 2 clusters per customer installation
+/// the regular trie cluster and the topic trie one
 class UniverseTrieCluster {
 	GlobalTriePool& d_triePool;
 	StoredUniverse& d_universe;
 
 public:
-    
+
 	// typedef std::list< BELTrie* > TheGrammarList; BELTrieList
 private:
 	TheGrammarList d_trieList;
 	friend class UniverseTrieClusterIterator;
-    
+
     typedef std::map< BELTrie::UniqueTrieId, const BELTrie* > UniqIdTrieMap;
     UniqIdTrieMap d_ownTrieMap;
-public: 
+public:
 	const TheGrammarList& getTrieList() const { return d_trieList; }
 
 	UniverseTrieCluster( GlobalTriePool& triePool, StoredUniverse& u ) ;
 
 	BELTrie& appendTrie( const char* , const char* , GrammarInfo* gi );
 	BELTrie& appendTrie( uint32_t trieClass, uint32_t trieId, GrammarInfo* gi );
-	BELTrie*  getFirstTrie() { 
-        return ( d_trieList.empty() ?  0 : d_trieList.begin()->triePtr() ); 
+	BELTrie*  getFirstTrie() {
+        return ( d_trieList.empty() ?  0 : d_trieList.begin()->triePtr() );
     }
 	const BELTrie*  getFirstTrie() const { return ( d_trieList.empty() ?  0 : d_trieList.begin()->triePtr()) ; }
 
-    void clearList() { 
-        for( TheGrammarList::iterator i = d_trieList.begin(); i!= d_trieList.end(); ++i ) 
+    void clearList() {
+        for( TheGrammarList::iterator i = d_trieList.begin(); i!= d_trieList.end(); ++i )
             delete i->grammarInfo();
 
-        d_trieList.clear(); 
+        d_trieList.clear();
         d_ownTrieMap.clear();
     }
     ~UniverseTrieCluster() { clearList(); }
 
-    void appendTriePtr( BELTrie* trie, GrammarInfo* gi ) { 
+    void appendTriePtr( BELTrie* trie, GrammarInfo* gi ) {
 
-        d_trieList.push_back( TheGrammar(trie,gi) ); 
+        d_trieList.push_back( TheGrammar(trie,gi) );
         d_ownTrieMap.insert( UniqIdTrieMap::value_type( trie->getUniqueTrieId(), trie));
     }
-    const BELTrie* getTrieByUniqueId( const BELTrie::UniqueTrieId& tid ) const 
+    const BELTrie* getTrieByUniqueId( const BELTrie::UniqueTrieId& tid ) const
     {
         UniqIdTrieMap::const_iterator i = d_ownTrieMap.find(tid);
         return ( i == d_ownTrieMap.end() ? i->second : 0 );
     }
-    const BELTrie* getTrieByUniqueId( uint32_t tc, uint32_t tid ) const 
+    const BELTrie* getTrieByUniqueId( uint32_t tc, uint32_t tid ) const
         { return getTrieByUniqueId( BELTrie::UniqueTrieId(tc,tid) ); }
     void clearTries();
 };
@@ -120,22 +119,22 @@ class UniverseTrieClusterIterator {
 	const UniverseTrieCluster& d_cluster;
 	TheGrammarList::const_iterator d_i;
 public:
-	UniverseTrieClusterIterator( const UniverseTrieCluster& cluster ) : 
+	UniverseTrieClusterIterator( const UniverseTrieCluster& cluster ) :
 		d_cluster( cluster),
 		d_i( cluster.getTrieList().begin() )
 	{}
-	
+
 	void reset() { d_i = d_cluster.getTrieList().begin(); }
 	const BELTrie& getCurrentTrie() const
 		{ return (d_i->trie()); }
-	bool isAtEnd() const 
+	bool isAtEnd() const
 		{ return (d_i == d_cluster.getTrieList().end()); }
-	bool advance( ) 
+	bool advance( )
 		{ return ( d_i == d_cluster.getTrieList().end() ? false : (++d_i, d_i != d_cluster.getTrieList().end()) ); }
 };
-/// a single data universe encompassing all stored 
-/// data for 
-/// Barzel, DataIndex and everything else 
+/// a single data universe encompassing all stored
+/// data for
+/// Barzel, DataIndex and everything else
 
 
 class GlobalPools {
@@ -146,20 +145,20 @@ class GlobalPools {
 public:
 	void addWordToDictionary( uint32_t w ) { d_dictionary.insert(w); }
 	bool isWordInDictionary( uint32_t w ) const { return (d_dictionary.find(w) != d_dictionary.end()); }
-	size_t readDictionaryFile( const char* name ); 
+	size_t readDictionaryFile( const char* name );
 
-	// 0 should never be used 
-	enum { DEFAULT_UNIVERSE_ID = 0 }; 
+	// 0 should never be used
+	enum { DEFAULT_UNIVERSE_ID = 0 };
 
-	ay::UniqueCharPool stringPool; /// all dictionary strings in the universe 
+	ay::UniqueCharPool stringPool; /// all dictionary strings in the universe
 
-	/// strings for internal use only - file names, trie names, user info stuff etc 
+	/// strings for internal use only - file names, trie names, user info stuff etc
 	/// this pool should be very small compared to stringPool
-	ay::UniqueCharPool internalStringPool; 
+	ay::UniqueCharPool internalStringPool;
 
-	/// every client's domain has this 
+	/// every client's domain has this
 	DtaIndex dtaIdx; // entity-token links
-    EntityData entData; // canonic names and relevance 
+    EntityData entData; // canonic names and relevance
 
 	BarzelCompWordPool compWordPool; /// compounded words pool
 	BELFunctionStorage funSt;
@@ -186,7 +185,7 @@ public:
 
 	uint32_t internString_internal( const char* str ) { return internalStringPool.internIt( str ); }
 	const char* internalString_resolve( uint32_t id ) const { return internalStringPool.resolveId( id ); }
-	
+
 	size_t getMaxAnalyticalModeMaxSeqLength() const { return d_maxAnalyticalModeMaxSeqLength; }
 
 	EntPropCompatibility entCompatibility;
@@ -197,7 +196,7 @@ public:
 	StoredUniverse& produceUniverse( uint32_t id );
 
 	BELTrie* mkNewTrie() { return globalTriePool.mkNewTrie(); }
-	const StoredUniverse* getUniverse( uint32_t id )  const 
+	const StoredUniverse* getUniverse( uint32_t id )  const
 	{
 		UniverseMap::const_iterator i = d_uniMap.find( id );
 		return ( i == d_uniMap.end() ? 0 : i->second );
@@ -231,7 +230,7 @@ public:
 	GlobalPools();
 	~GlobalPools();
 
-	const char* decodeStringById( uint32_t strId ) const 
+	const char* decodeStringById( uint32_t strId ) const
 		{ return dtaIdx.resolveStringById( strId ); }
 	/// never returns 0
 	const char* decodeStringById_safe( uint32_t strId ) const
@@ -240,9 +239,9 @@ public:
 
 	BELTrie* getTrie( const char* cs, const char* ids ) { return globalTriePool.getTrie( cs, ids ); }
 
-	BELTrie* produceTrie( uint32_t trieClass, uint32_t trieId ) 
+	BELTrie* produceTrie( uint32_t trieClass, uint32_t trieId )
         { return globalTriePool.produceTrie( trieClass, trieId ) ; }
-    
+
     void init_cmdline( ay::CommandLineArgs & );
 };
 
@@ -253,18 +252,16 @@ class StoredUniverse {
 public:
 	GlobalPools& gp;
 private:
-	UniverseTrieCluster          trieCluster; 
-	UniverseTrieCluster          topicTrieCluster; 
+	UniverseTrieCluster          trieCluster;
+	UniverseTrieCluster          topicTrieCluster;
 
-	BarzerHunspell      hunspell;
+	BZSpell*             bzSpell;
 
-	BZSpell*             bzSpell; 
-	
 	typedef boost::unordered_map< uint32_t, bool > StringIdSet;
 
-	/// 
+	///
 	StringIdSet userSpecificStringSet;
-	// bool  d_stemByDefault; 
+	// bool  d_stemByDefault;
 
 	friend class QSemanticParser;
     TopicEntLinkage d_topicEntLinkage;
@@ -272,16 +269,16 @@ private:
 
 	void addWordsFromTriesToBZSpell();
 public:
-    const std::set< BarzerEntity >* getTopicEntities( const BarzerEntity& t ) const 
+    const std::set< BarzerEntity >* getTopicEntities( const BarzerEntity& t ) const
         { return d_topicEntLinkage.getTopicEntities( t ); }
 
     const TopicEntLinkage& getTopicEntLinkage() const { return  d_topicEntLinkage; }
     // doesnt destroy the actual tries
-    void clearTrieList() { 
+    void clearTrieList() {
         trieCluster.clearList();
         d_topicEntLinkage.clear();
     }
-    
+
     typedef boost::shared_mutex Mutex;
     mutable Mutex d_theMutex;
 
@@ -299,11 +296,11 @@ public:
 	/// result of spelling correction is in out
 	/// it attempts to do first pass spelling correction (that is correction to a word known to the user)
 	/// uses bzSpell
-	// returns stringId of corrected word or 0xffffffff 
+	// returns stringId of corrected word or 0xffffffff
 	uint32_t spellCorrect( const char* word ) const
 		{ return ( bzSpell ? bzSpell->getSpellCorrection( word ) : 0 ); }
 	//  performs trivial practical stemming
-	// returns stringId of corrected word or 0xffffffff 
+	// returns stringId of corrected word or 0xffffffff
 	uint32_t stem( std::string& out, const char* word) const
 		{ return ( bzSpell ? bzSpell->getStemCorrection( out, word) : 0 ); }
 	bool isWordValidInUniverse( uint32_t word ) const
@@ -313,16 +310,16 @@ public:
 
 	const TheGrammarList& getTrieList() const { return trieCluster.getTrieList(); }
 
-	/// adds uer specific strings from extra file 
-	/// 
+	/// adds uer specific strings from extra file
+	///
 	size_t   internString( const char*, bool asUserSpecific, uint8_t frequency );
 	bool 	 isStringUserSpecific( uint32_t id ) const
         { return( id == 0xffffffff ? false : (userSpecificStringSet.find(id) != userSpecificStringSet.end()) ); }
 	bool 	 isStringUserSpecific( const char* s ) const
-		{ 
+		{
 			uint32_t id = gp.string_getId( s );
 			if( id == 0xffffffff ) return false;
-			return userSpecificStringSet.find(id) != userSpecificStringSet.end(); 
+			return userSpecificStringSet.find(id) != userSpecificStringSet.end();
 		}
 
     enum { GENERIC_CLASS_RANGE_MAX= 100 };
@@ -337,14 +334,12 @@ public:
     bool hasTopics() const { return !(topicTrieCluster.getTrieList().empty()); }
 
 	const UniverseTrieCluster& getTrieCluster() const { return trieCluster; }
-	BarzerHunspell& getHunspell() { return hunspell; }
-	const BarzerHunspell& getHunspell() const { return hunspell; }
 
 	size_t getMaxAnalyticalModeMaxSeqLength() const { return gp.getMaxAnalyticalModeMaxSeqLength(); }
 	bool isAnalyticalMode() const { return gp.isAnalyticalMode(); }
 	EntPropCompatibility& getEntPropIndex() { return gp.entCompatibility; }
 	const EntPropCompatibility& getEntPropIndex() const { return gp.entCompatibility; }
-	BELTrie& produceTrie( uint32_t trieClass, uint32_t trieId ) 
+	BELTrie& produceTrie( uint32_t trieClass, uint32_t trieId )
 		{ return *(gp.globalTriePool.produceTrie( trieClass, trieId )); }
 
 	GlobalPools& getGlobalPools() { return gp; }
@@ -364,8 +359,8 @@ public:
 
 	const BarzelRewriterPool& getRewriterPool( const BELTrie& trie ) const { return trie.getRewriterPool(); }
 		  BarzelRewriterPool& getRewriterPool( BELTrie& trie ) { return trie.getRewriterPool(); }
-	const BarzelWildcardPool& getWildcardPool( const BELTrie& trie) const { return trie.getWildcardPool(); } 
-		  BarzelWildcardPool& getWildcardPool( BELTrie& trie ) { return trie.getWildcardPool(); } 
+	const BarzelWildcardPool& getWildcardPool( const BELTrie& trie) const { return trie.getWildcardPool(); }
+		  BarzelWildcardPool& getWildcardPool( BELTrie& trie ) { return trie.getWildcardPool(); }
 	const BarzelFirmChildPool& getFirmChildPool( const BELTrie& trie ) const { return trie.getFirmChildPool(); }
 		  BarzelFirmChildPool& getFirmChildPool( BELTrie& trie ) { return trie.getFirmChildPool(); }
 	const BarzelTranslationPool& getTranslationPool( const BELTrie& trie ) const { return trie.getTranslationPool(); }
@@ -387,14 +382,14 @@ public:
 	}
 
 
-	// clears all tries 
+	// clears all tries
 	// void clearTries();
 	// void clearTopicTries();
 	void clearSpell();
-	// purges everything 
+	// purges everything
 	void clear();
-    
-    const StoredToken* getStoredToken( const char* s ) const 
+
+    const StoredToken* getStoredToken( const char* s ) const
         { return getDtaIdx().getStoredToken(s); }
     const char* printableTokenByid( uint32_t tokId ) const
     {
@@ -406,12 +401,12 @@ public:
 
 	const char* printableStringById( uint32_t id )  const
 		{ return gp.stringPool.printableStr(id); }
-	
+
 	bool getBarzelRewriter( const BELTrie& trie, BarzelRewriterPool::BufAndSize& bas, const BarzelTranslation& tran ) const
 	{
-		if( tran.isRewriter() ) 
+		if( tran.isRewriter() )
 			return getRewriterPool(trie).resolveTranslation( bas, tran );
-		else 
+		else
 			return ( bas = BarzelRewriterPool::BufAndSize(), false );
 	}
 
@@ -421,14 +416,14 @@ public:
 
 	const BELFunctionStorage& getFunctionStorage() const { return gp.funSt; }
 	const DateLookup& getDateLookup() const { return gp.dateLookup; }
-	
+
 	const char* getGenericSubclassName( uint16_t subcl ) const;
 
-	const char* decodeStringById( uint32_t strId ) const 
+	const char* decodeStringById( uint32_t strId ) const
 		{ return getDtaIdx().resolveStringById( strId ); }
 
-    void appendTriePtr( BELTrie* trie, GrammarInfo* gi ) { 
-        trieCluster.appendTriePtr(trie,gi); 
+    void appendTriePtr( BELTrie* trie, GrammarInfo* gi ) {
+        trieCluster.appendTriePtr(trie,gi);
         d_topicEntLinkage.append( trie->getTopicEntLinkage() );
     }
 	BELTrie& appendTopicTrie( uint32_t trieClass, uint32_t trieId, GrammarInfo* gi )
@@ -448,7 +443,7 @@ public:
         d_topicEntLinkage.append( t.getTopicEntLinkage() );
         return t;
     }
-    
+
     // entity segregation
     const EntitySegregatorData& geEntSeg() const { return d_entSeg; }
     bool needEntitySegregation() const { return !(d_entSeg.empty()); }
@@ -459,18 +454,18 @@ public:
     const BELTrie* getTopicTrieByUniqueId( const BELTrie::UniqueTrieId& tid ) const
         { return topicTrieCluster.getTrieByUniqueId(tid); }
 
-    const BELTrie* getTrieByUniqueId( const BELTrie::UniqueTrieId& tid, bool topic = false ) 
+    const BELTrie* getTrieByUniqueId( const BELTrie::UniqueTrieId& tid, bool topic = false )
         { return( topic ? getTopicTrieByUniqueId(tid) : getRuleTrieByUniqueId(tid) ); }
     const BELTrie* getTrieByUniqueId( uint32_t tc, uint32_t tid ) const
         { return getRuleTrieByUniqueId( BELTrie::UniqueTrieId(tc, tid)); }
-}; 
+};
 
 inline StoredUniverse& GlobalPools::produceUniverse( uint32_t id )
 {
 	StoredUniverse * p = getUniverse( id );
-	if( !p ) { 
+	if( !p ) {
 		p = new StoredUniverse( *this, id );
-		d_uniMap[ id ] = p;	
+		d_uniMap[ id ] = p;
 	}
 	return *p;
 }

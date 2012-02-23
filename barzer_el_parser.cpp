@@ -2,7 +2,6 @@
 #include <barzer_el_parser.h>
 #include <barzer_el_xml.h>
 #include <barzer_universe.h>
-#include <barzer_spell.h>
 #include <fstream>
 
 #include <ay/ay_logger.h>
@@ -19,7 +18,7 @@ const BarzelEvalNode* BELParser::getProcByName( uint32_t strId ) const
 	return trie.getProcs().getEvalNode( strId );
 }
 
-const BELParseTreeNode* BELParser::getMacroByNameId( uint32_t i ) const 
+const BELParseTreeNode* BELParser::getMacroByNameId( uint32_t i ) const
 {
 	const BELTrie& trie = reader->getTrie();
 	return trie.getMacros().getMacro( i );
@@ -35,36 +34,22 @@ const BELParseTreeNode* BELParser::getMacroByName( const char* macroname ) const
 uint32_t BELParser::stemAndInternTmpText( const char* s, int len )
 {
 	StoredUniverse* curUni = reader->getCurrentUniverse();
-	if( !curUni ) 
+	if( !curUni )
 		curUni = &(getGlobalPools().produceUniverse(0));
 	BZSpell* bzSpell = curUni->getBZSpell();
 	std::string scopy(s, len );
 	if( bzSpell )  {
 		std::string stem;
-		if( bzSpell->stem(stem, scopy.c_str()) ) 
+		if( bzSpell->stem(stem, scopy.c_str()) )
 			internString( stem.c_str(),false,true );
 	}
-	return internString( scopy.c_str(),false);
-}
-uint32_t BELParser::stemAndInternTmpText_hunspell( const char* s, int len )
-{
-	std::string scopy(s, len );
-	StoredUniverse* curUni = reader->getCurrentUniverse();
-	if( !curUni ) 
-		curUni = &(getGlobalPools().produceUniverse(0));
-	BarzerHunspellInvoke spellChecker(curUni->getHunspell(), getGlobalPools());
-	const char* stemmed = spellChecker.stem(scopy.c_str());
-
-	if( stemmed && strncmp(scopy.c_str(), stemmed, len) ) 
-		internString( stemmed,false );
-
 	return internString( scopy.c_str(),false);
 }
 
 uint32_t BELParser::internVariable( const char* t )
 {
 	const char* beg = t;
-	const char* end = strchr( t, '.' ); 
+	const char* end = strchr( t, '.' );
 	std::string tmp;
 	BELSingleVarPath vPath;
 	for( ;end; ) {
@@ -95,13 +80,13 @@ uint32_t BELParser::internString_internal( const char* t )
 }
 uint32_t BELParser::internString( const char* t, bool noSpell, bool isStemmed )
 {
-	// here we may want to tweak some (nonexistent yet) fields in StoredToken 
+	// here we may want to tweak some (nonexistent yet) fields in StoredToken
 	// to reflect the fact that this thing is actually in the trie
 
     bool wasNew = false;
 	StoredToken& sTok =  reader->getGlobalPools().getDtaIdx().addToken( wasNew, t );
     sTok.setStemmed(isStemmed);
-    
+
     if( !noSpell ) {
 	    BELTrie& trie = reader->getTrie();
         StoredUniverse* curUni = reader->getCurrentUniverse();
@@ -129,28 +114,28 @@ void BELParseTreeNode::print( std::ostream& fp, int depth ) const
 
 
 BELReader::BELReader( BELTrie* t, GlobalPools &g, std::ostream* errStream ) :
-    trie(t) , parser(0), gp(g), 
-    numStatements(0) , 
-    numMacros(0) , 
-    numProcs(0) , 
+    trie(t) , parser(0), gp(g),
+    numStatements(0) ,
+    numMacros(0) ,
+    numProcs(0) ,
     inputFmt(INPUT_FMT_XML),
     d_currentUniverse(0),
     d_curTrieId(g.internString_internal("")),
     d_curTrieClass(g.internString_internal("")),
     d_errStream(errStream? errStream: &(std::cerr)),
-    d_maxEmitCountPerStatement(DEFMAX_EMIT_PER_STMT), 
-    d_maxEmitCountPerTrie(DEFMAX_EMIT_PER_SET), 
+    d_maxEmitCountPerStatement(DEFMAX_EMIT_PER_STMT),
+    d_maxEmitCountPerTrie(DEFMAX_EMIT_PER_SET),
     d_maxStatementsPerTrie(DEFMAX_STMT_PER_SET)
 {}
-BELReader::BELReader( GlobalPools &g, std::ostream* errStream ) : 
+BELReader::BELReader( GlobalPools &g, std::ostream* errStream ) :
 	trie(g.globalTriePool.produceTrie(g.internString_internal(""),g.internString_internal(""))) , parser(0), gp(g),
-	numStatements(0) ,silentMode(false),  
+	numStatements(0) ,silentMode(false),
 	d_trieSpellPriority(0),
 	inputFmt(INPUT_FMT_XML),
 	d_trieIdSet(false),
     d_errStream(errStream? errStream: &(std::cerr)),
-    d_maxEmitCountPerStatement(DEFMAX_EMIT_PER_STMT), 
-    d_maxEmitCountPerTrie(DEFMAX_EMIT_PER_SET), 
+    d_maxEmitCountPerStatement(DEFMAX_EMIT_PER_STMT),
+    d_maxEmitCountPerTrie(DEFMAX_EMIT_PER_SET),
     d_maxStatementsPerTrie(DEFMAX_STMT_PER_SET)
 {}
 
@@ -165,7 +150,7 @@ void BELReader::setTrie( uint32_t trieClass, uint32_t trieId )
 	}
 }
 
-std::ostream& BELReader::printNode( std::ostream& fp, const BarzelTrieNode& node ) const 
+std::ostream& BELReader::printNode( std::ostream& fp, const BarzelTrieNode& node ) const
 {
 	BELPrintFormat fmt;
 	BELPrintContext ctxt( *trie, gp.getStringPool(), fmt );
@@ -193,10 +178,10 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 {
     if( numEmits > d_maxEmitCountPerTrie ) {
         sp.getErrStream() << "ERROR: statement [" << sp.getSourceName() << ':' << sp.getStmtNumber()  << "] rejected - total number of emits for this statement set exceeds " << d_maxEmitCountPerTrie << std::endl;
-        
+
     }
     size_t emitPower = BELStatementParsed_EmitCounter(trie,d_maxEmitCountPerStatement).power( sp.pattern );
-    
+
     if( emitPower>= d_maxEmitCountPerStatement ) {
         sp.getErrStream() << "ERROR: statement [" << sp.getSourceName() << ':' << sp.getStmtNumber()  << "] rejected - number of emits for this statement " << emitPower << " vs. " << d_maxEmitCountPerStatement << std::endl;
         return;
@@ -215,7 +200,7 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 		const BTND_PatternDataVec& seq = emitter.getCurSequence();
 		const BELVarInfo& varInfo = emitter.getVarInfo();
 
-		if( !seq.size() ) 
+		if( !seq.size() )
 			continue;
 		if( seq.size() > gp.getMaxAnalyticalModeMaxSeqLength() && gp.isAnalyticalMode() ) {
 			continue;
@@ -239,16 +224,16 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 
 
                 }
-                if( sp.isTranUnmatchable() ) 
+                if( sp.isTranUnmatchable() )
                     tran->makeUnmatchable = 1;
-			}	
+			}
 			trie->addPath( sp, seq, tranId, varInfo, i );
 		}
 		i++;
 		//AYLOG(DEBUG) << "path added";
 	} while( emitter.produceSequence() );
 	// AYLOG(DEBUG) << i << " sequences(" <<  j << " nodes) produced in " << totalTimer.calcTime();
-	
+
 	++numStatements;
 	// AYDEBUG(numStatements);
 }
@@ -259,9 +244,9 @@ BELParser*  BELReader::initParser(InputFormat fmt )
 	if( parser ) {
 		if( fmt != inputFmt ) {
 			inputFmt = fmt;
-			delete parser; 
+			delete parser;
 			parser = 0;
-		} else 
+		} else
 			return parser;
 	}
 	if( fmt ==  INPUT_FMT_AUTO ) { // try to determine the format from file
@@ -288,7 +273,7 @@ BELParser*  BELReader::initParser(InputFormat fmt )
 	return 0;
 }
 
-int BELReader::loadFromStream( std::istream& fp ) 
+int BELReader::loadFromStream( std::istream& fp )
 {
 	numStatements=numProcs=numMacros=numEmits=0;
 
@@ -311,7 +296,7 @@ void BELReader::computeRulesetSpellPriority( const char* fileName )
 {
 	d_rulesetSpellPriority = 0;
 	if( fileName ) {
-		if( !strstr( fileName, "_fluff" ) ) 
+		if( !strstr( fileName, "_fluff" ) )
 			d_rulesetSpellPriority= 5;
 	}
 	d_spellPriority = d_rulesetSpellPriority+d_trieSpellPriority;
@@ -325,10 +310,10 @@ int BELReader::loadFromFile( const char* fileName, BELReader::InputFormat fmt )
 	if( !initParser(fmt) )
 		return 0;
 
-	if( inputFileName.length() ) { // trying to load from file 
+	if( inputFileName.length() ) { // trying to load from file
 		std::ifstream fp;
 		fp.open( inputFileName.c_str() );
-		if( fp.is_open() ) { 
+		if( fp.is_open() ) {
 			computeRulesetSpellPriority( fileName );
 			return loadFromStream( fp );
 		}else {
@@ -338,10 +323,10 @@ int BELReader::loadFromFile( const char* fileName, BELReader::InputFormat fmt )
 	} else {
 		return loadFromStream( std::cin );
 	}
-	
-	// should never get here but not all compilers warn about no return 
+
+	// should never get here but not all compilers warn about no return
 	return 0;
 }
 
 
-} // namespace barzer 
+} // namespace barzer

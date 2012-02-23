@@ -1,29 +1,28 @@
 PYINCLUDE := $(shell python-config --includes)
 PYLIBS := $(shell python-config --libs)
 
-FLAGS := $(FLAGS) 
+FLAGS := $(FLAGS)
 ifeq ($(IS64),yes)
 	BITMODE=-m64
 	AYBIT="IS64=yes"
-endif 
+endif
 ifeq ($(IS32),yes)
 	BITMODE=-m32
 	AYBIT="IS32=yes"
-endif 
+endif
 ifeq ($(CC),clang++)
     CLANG_WARNSUPPRESS=-Wno-array-bounds
 endif
 WARNSUPPRESS=-Wno-parentheses -Wnon-virtual-dtor $(CLANG_WARNSUPPRESS)
 CFLAGS :=$(CFLAGS) $(BITMODE) $(OPT) $(WARNSUPPRESS) \
-	-I/opt/local/include -I/usr/include -g -I. -I./ay -I./lg_ru -fpic $(PYINCLUDE) 
-LINKFLAGS := $(FLAGS) 
+	-I/opt/local/include -I/usr/include -g -I. -I./ay -I./lg_ru -fpic $(PYINCLUDE)
+LINKFLAGS := $(FLAGS)
 BINARY=barzer.exe
 LIBNAME=libbarzer
 SHARED_LIBNAME=libbarzer.so
 PYTHON_LIBNAME=util/python_util.so
-LIB_HUNSPELL=-lhunspell-1.2
-#libs = -Lay -lay -L/opt/local/lib -L/opt/local/lib/boost -L/usr/lib $(LIB_HUNSPELL) 
-libs = -Lay -lay -L/opt/local/lib -L/usr/lib $(LIB_HUNSPELL) \
+#libs = -Lay -lay -L/opt/local/lib -L/opt/local/lib/boost -L/usr/lib
+libs = -Lay -lay -L/opt/local/lib -L/usr/lib \
 	-lboost_system -lboost_filesystem -lboost_thread-mt -lexpat -lstdc++
 ECHO = echo
 lib_objects = \
@@ -82,25 +81,25 @@ all: ay/libay.a $(objects)
 	$(CC) $(BITMODE) $(LINKFLAGS) -o  $(BINARY) $(objects) $(libs)
 lib: ay/libay.a $(LIBNAME).a $(lib_objects)
 	$(AR) -r $(LIBNAME).a $(lib_objects) ay/libay.a
-sharedlib: ay/libay.a $(lib_objects) 
-	$(CC) -shared -Wl -dylib -o $(LIBNAME).so $(lib_objects) $(libs) 
+sharedlib: ay/libay.a $(lib_objects)
+	$(CC) -shared -Wl -dylib -o $(LIBNAME).so $(lib_objects) $(libs)
 pybarzer: $(LIBNAME).a $(objects_python)
-	$(CC) -shared -Wl -o pybarzer.so -lboost_python $(objects_python) $(LIBNAME).a $(libs)  -lboost_python $(PYLIBS) 
+	$(CC) -shared -Wl -o pybarzer.so -lboost_python $(objects_python) $(LIBNAME).a $(libs)  -lboost_python $(PYLIBS)
 $(LIBNAME).a: ay/libay.a $(lib_objects)
 	$(AR) -r $(LIBNAME).a $(lib_objects) ay/libay.a
 $(PYTHON_LIBNAME): ay/libay.a $(lib_objects)
 	cd util; make -f util.mk rebuild; cd ..
-clean: 
+clean:
 	rm -f $(objects) $(BINARY)
 cleanall: clean cleanaylib
 	rm -f $(objects) $(BINARY) $(objects_python)
-cleanaylib: 
+cleanaylib:
 	cd ay; make -f aylib.mk clean; cd ..
-aylib_rebuild: 
+aylib_rebuild:
 	cd ay; make -f aylib.mk rebuild $(AYBIT) OPT=$(OPT) FLAGS=$(FLAGS); cd ..
-aylib: 
+aylib:
 	cd ay; make -f aylib.mk $(AYBIT) OPT=$(OPT) FLAGS=$(FLAGS); cd ..
-ay/libay.a: 
+ay/libay.a:
 	cd ay; make -f aylib.mk rebuild $(AYBIT) OPT=$(OPT) $(FLAGS); cd ..
 .cpp.o:
 	$(CC) -DBARZER_HOME=$(INSTALL_DIR) -c $(CFLAGS) $< -o $@
@@ -120,4 +119,4 @@ install:
 	install -m 0644 data/configs/* $(INSTALL_DATA_DIR)/configs
 	install -m 0644 data/entities/* $(INSTALL_DATA_DIR)/entities
 	install -m 0644 data/rules/* $(INSTALL_DATA_DIR)/rules
-	
+

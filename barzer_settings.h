@@ -16,7 +16,6 @@
 
 #include <barzer_config.h>
 #include <barzer_el_parser.h>
-#include <barzer_spell.h>
 
 #include <ay/ay_logger.h>
 #include <ay/ay_bitflags.h>
@@ -25,17 +24,17 @@
 
 namespace barzer {
 struct GrammarInfo;
-/// parsing settings true for all users in the instance 
+/// parsing settings true for all users in the instance
 struct ParseSettings {
 
-	// when true everything gets stemmed both on load and on input 
-	// by default. in order to reduce the load time individual rulesets can 
-	// set presume stemmed 
-	bool d_stem; 
-	ParseSettings() : 
-		d_stem(true) 
+	// when true everything gets stemmed both on load and on input
+	// by default. in order to reduce the load time individual rulesets can
+	// set presume stemmed
+	bool d_stem;
+	ParseSettings() :
+		d_stem(true)
 	{}
-	
+
 	bool stemByDefault() const { return d_stem; }
 	void set_stemByDefault() { d_stem = true; }
 };
@@ -45,25 +44,8 @@ typedef std::pair<std::string, std::string> TriePath;
 class BarzerSettings;
 struct User {
 	typedef uint32_t Id;
-	struct Spell {
-		enum {DICT, EXTRA};
-		typedef std::pair<uint8_t,const char*> Rec;
-		typedef std::vector<Rec> Vec;
-
-		User *user;
-		BarzerHunspell *hunspell;
-		const char *maindict;
-		const char *affx;
-		Vec vec;
-
-		Spell(User *u, const char *md, const char *a);
-		void addExtra(const char *path);
-		void addDict(const char *path);
-
-	};
 	typedef std::vector<TriePath> TrieVec;
 	Id id;
-	boost::optional<Spell> spell;
 	// TrieVec tries;
 	BarzerSettings &settings;
 	StoredUniverse &universe;
@@ -75,9 +57,6 @@ struct User {
 
 	//void addTrie(const std::string&, const std::string&);
 	void addTrie(const TriePath&, bool isTopicTrie, GrammarInfo* );
-
-	Spell* getSpell() { return spell.get_ptr(); }
-	Spell& createSpell(const char *md, const char *affx);
 
 	uint32_t getId() const { return id;}
 	StoredUniverse& getUniverse() { return universe; }
@@ -116,7 +95,7 @@ private:
 	Logging logging;
 
 	/// this makes settings not thread safe
-	
+
 	enum {  MAX_REASONABLE_THREADCOUNT = 8 };
 	size_t d_numThreads;
 	StoredUniverse* d_currentUniverse;
@@ -124,8 +103,8 @@ public:
 	size_t getNumThreads() const { return d_numThreads; }
 	void   setNumThreads( size_t n ) { d_numThreads = n; }
 
-	const ParseSettings& parseSettings() const { return d_parseSettings; } 
-		  ParseSettings& parseSettings() 	    { return d_parseSettings; } 
+	const ParseSettings& parseSettings() const { return d_parseSettings; }
+		  ParseSettings& parseSettings() 	    { return d_parseSettings; }
 
 	StoredUniverse* getCurrentUniverse() ;
 	StoredUniverse* setCurrentUniverse( User& u );
@@ -145,9 +124,7 @@ public:
 	void loadEntities();
 	/// global dictionaries from <dictionaries> tag
 	void loadDictionaries();
-	///loads spellchecker related stuff (hunspell dictionaries, extra word lists and such)
 	void loadSpell(User&, const boost::property_tree::ptree&);
-	void loadHunspell(User&, const boost::property_tree::ptree&);
 
 	void loadTrieset(BELReader&, User&, const boost::property_tree::ptree&);
 	void loadUserRules(BELReader& reader, User&, const boost::property_tree::ptree&);

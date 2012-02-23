@@ -30,14 +30,14 @@ namespace barzer {
 namespace {
 bool is_all_digits( const char* s )
 {
-    for( const char* x = s; *x; ++x ) 
-        if( !isdigit(*x) ) 
+    for( const char* x = s; *x; ++x )
+        if( !isdigit(*x) )
             return false;
     return true;
 }
 
 }
-BarzerShellContext::BarzerShellContext(StoredUniverse& u, BELTrie& trie) : 
+BarzerShellContext::BarzerShellContext(StoredUniverse& u, BELTrie& trie) :
 		gp(u.getGlobalPools()),
 		d_universe(&u),
 		trieWalker(trie),
@@ -48,7 +48,7 @@ BarzerShellContext::BarzerShellContext(StoredUniverse& u, BELTrie& trie) :
 
 BarzerShellContext* BarzerShell::getBarzerContext()
 {
-	return dynamic_cast<BarzerShellContext*>(context);  
+	return dynamic_cast<BarzerShellContext*>(context);
 }
 
 
@@ -59,7 +59,7 @@ typedef ay::Shell::CmdData CmdData;
 
 static int bshf_test( ay::Shell*, char_cp cmd, std::istream& in )
 {
-	/// NEVER REMOVE THIS FUNCTION . it's used in debug scripts in those cases 
+	/// NEVER REMOVE THIS FUNCTION . it's used in debug scripts in those cases
 	/// gdb ctrl-C gets passed to the app - it is unfortunately the case on Mac
 	/// - AY
 	std::cout << "command: " << cmd << ";";
@@ -69,7 +69,7 @@ static int bshf_test( ay::Shell*, char_cp cmd, std::istream& in )
 		std::cout << tmp << "|";
 	}
 	std::cout << ")" << std::endl;
-	
+
 	return 0;
 }
 
@@ -92,7 +92,7 @@ static int bshf_tokid( BarzerShell* shell, char_cp cmd, std::istream& in )
 			}
 			dtaIdx->printStoredToken( fp, tid );
 			fp << std::endl;
-		
+
 			//const StoredToken& tok = tokPool->getTokById( tid );
 			//fp << tok << std::endl;
 		}
@@ -113,7 +113,7 @@ static int bshf_tok( BarzerShell* shell, char_cp cmd, std::istream& in )
 	}
 	std::ostream& fp = shell->getOutStream();
 	fp << *token << std::endl;
-	
+
 	return 0;
 }
 static int bshf_srvroute( BarzerShell* shell, char_cp cmd, std::istream& in )
@@ -178,7 +178,7 @@ static int bshf_entid( BarzerShell* shell, char_cp cmd, std::istream& in )
 				std::cerr << tid << " is not a valid entity id\n";
 				return 0;
 			}
-			fp << 
+			fp <<
 			dtaIdx->resolveStoredTokenStr(ent->euid.tokId)
 			<< '|' << *ent << std::endl;
 		}
@@ -226,7 +226,7 @@ static int bshf_inspect( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	DtaIndex* dtaIdx = context->obtainDtaIdx();
-	
+
 	std::cerr << "per token: StoredToken " << sizeof(StoredToken) << " bytes\n";
 	std::cerr << "per entity: StoredEntity " << sizeof(StoredEntity) << " bytes\n";
 	std::cerr << "extra per entity token: EntTokenOrderInfo " << sizeof(EntTokenOrderInfo) << "+ TokenEntityLinkInfo() " << sizeof(TokenEntityLinkInfo) << " bytes\n";
@@ -254,7 +254,7 @@ static int bshf_lex( BarzerShell* shell, char_cp cmd, std::istream& in )
     size_t numIterations = 1;
     if( in >> parmStr ) {
         numIterations = atoi( parmStr.c_str() );
-        if( !numIterations ) 
+        if( !numIterations )
             numIterations = 1;
     }
 	ay::InputLineReader reader( in );
@@ -274,7 +274,7 @@ static int bshf_lex( BarzerShell* shell, char_cp cmd, std::istream& in )
             }
 		    /// classify tokens in the barz
 		    parser.lex_only( barz, qparm );
-            if( !i ) { 
+            if( !i ) {
                 const CTWPVec& ctVec = barz.getCtVec();
                 outFp << "Classified Tokens:\n" << ctVec << std::endl;
             }
@@ -333,7 +333,7 @@ static int bshf_bzspell( BarzerShell* shell, char_cp cmd, std::istream& in )
 		} else {
 			std::cerr << "cannot correct\n";
 		}
-	}	
+	}
 	return 0;
 }
 static int bshf_bzstem( BarzerShell* shell, char_cp cmd, std::istream& in )
@@ -352,7 +352,7 @@ static int bshf_bzstem( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 	while( reader.nextLine() && reader.str.length() ) {
 		const char*  word = reader.str.c_str();
-		std::string stem;	
+		std::string stem;
 
         if( stemOnly ) {
             std::stringstream sstr(word);
@@ -369,37 +369,11 @@ static int bshf_bzstem( BarzerShell* shell, char_cp cmd, std::istream& in )
             uint32_t strId = bzSpell->getStemCorrection( stem, word );
             std::cerr << "stemmed to :" << stem << ":" << std::hex << strId << ":" << std::endl;
         }
-	}	
-	return 0;
-}
-
-static int bshf_spell( BarzerShell* shell, char_cp cmd, std::istream& in )
-{
-	BarzerShellContext *context = shell->getBarzerContext();
-	const StoredUniverse &uni = context->getUniverse();
-	const BarzerHunspell& hunspell = uni.getHunspell();
-	ay::InputLineReader reader( in );
-	BarzerHunspellInvoke spellChecker(hunspell,uni.getGlobalPools());
-
-	while( reader.nextLine() && reader.str.length() ) {
-		const char*  str = reader.str.c_str();
-		std::pair< int, size_t> scResult = spellChecker.checkSpell( str );	
-		if( !scResult.first ) {
-
-			std::cerr << "misspelling correctin it. got " << scResult.second << " suggestions\n";
-			const char*const* sugg = spellChecker.getAllSuggestions();
-			for( size_t i =0; i< scResult.second; ++i ) {
-				std::cerr << sugg[i] << std::endl;
-			}
-		} else {
-			std::cerr << "valid spelling\n";
-		}
 	}
-
 	return 0;
 }
 
-namespace { ///// 
+namespace { /////
 struct TopicAnalyzer {
     QParser& parser;
     std::ostream& fp;
@@ -416,7 +390,7 @@ struct TopicAnalyzer {
     }
 };
 
-} /// end of anon namespace 
+} /// end of anon namespace
 
 static int bshf_greed( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
@@ -447,7 +421,7 @@ static int bshf_greed( BarzerShell* shell, char_cp cmd, std::istream& in )
 		const CTWPVec& ctVec = barz.getCtVec();
 		outFP << "Classified Tokens: {" << ctVec << "}" << std::endl;
 		bs.print(outFP);
-		
+
 		// << ttVec << std::endl;
 
         BarzelMatcher barzelMatcher( uni, *trie );
@@ -495,7 +469,7 @@ static int bshf_autoc( BarzerShell* shell, char_cp cmd, std::istream& in )
 	while( reader.nextLine() && reader.str.length() ) {
 		const char* q = reader.str.c_str();
 
-        /// this will be invoked for every qualified node 
+        /// this will be invoked for every qualified node
 	    ay::stopwatch localTimer;
         for( size_t i = 0; i< numIterations; ++i ) {
             BarzerAutocomplete autoc( barz, context->getUniverse(), qparm, outFP );
@@ -552,7 +526,7 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
             }
             barz.clearWithTraceAndTopics();
         }
-		
+
         std::cerr << numIterations << " iterations done in " << localTimer.calcTime() << " seconds\n";
 		// << ttVec << std::endl;
 	}
@@ -591,9 +565,9 @@ static int bshf_anlqry( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 		std::pair< size_t, size_t > barzRc = barz.getBeadCount();
 		++numQueries;
-		if( !(numQueries%5000) ) 
+		if( !(numQueries%5000) )
 			std::cerr << '.';
-		if( barzRc.first ) 
+		if( barzRc.first )
 			++numSemanticalBarzes;
 	}
 	*ostr << "\n" << numQueries << " (" << numSemanticalBarzes << " semantical) queries processed read. in "  << totalTimer.calcTime() << std::endl;
@@ -651,7 +625,7 @@ struct ShellState {
 
 };
 
-} // anon namespace ends 
+} // anon namespace ends
 
 static int bshf_userstats( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
@@ -659,13 +633,13 @@ static int bshf_userstats( BarzerShell* shell, char_cp cmd, std::istream& in )
 	std::string tmp;
     std::ostream& outFp = shell->getOutStream() ;
 
-    const GlobalPools & gp = shell->gp; 
+    const GlobalPools & gp = shell->gp;
 	if( in >> tmp ) {
         uint32_t userId = atoi(tmp.c_str()) ;
-        std::string modeStr ; 
+        std::string modeStr ;
         bool doTrieStats = false;
         if( in >> modeStr ) {
-            if( strchr( modeStr.c_str(), 'f' ) ) 
+            if( strchr( modeStr.c_str(), 'f' ) )
                 doTrieStats = true;
         }
 
@@ -674,7 +648,7 @@ static int bshf_userstats( BarzerShell* shell, char_cp cmd, std::istream& in )
             const TheGrammarList& trieList = uni->getTrieList();
             if( trieList.size() ) {
                 int n = 0;
-                for( TheGrammarList::const_iterator i = trieList.begin(); i!= trieList.end(); ++i ) 
+                for( TheGrammarList::const_iterator i = trieList.begin(); i!= trieList.end(); ++i )
                 {
                     const BELTrie& trie = i->trie();
                     outFp << ">> Trie " << ++n << ":" << "(" << trie.getTrieClass()   << "|" << trie.getTrieId()  << ')' << std::endl;
@@ -701,7 +675,7 @@ static int bshf_userstats( BarzerShell* shell, char_cp cmd, std::istream& in )
         outFp << std::endl;
         std::cerr << "to inspect individual universe say: userstats <user id>\n";
     }
-        
+
     return 0;
 }
 
@@ -709,7 +683,7 @@ static int bshf_triestats( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext *context = shell->getBarzerContext();
 	ShellState sh( shell, cmd, in );
-    
+
     std::ostream& outFP = shell->getOutStream() ;
     std::string trieClass;
 
@@ -732,7 +706,7 @@ static int bshf_triestats( BarzerShell* shell, char_cp cmd, std::istream& in )
             outFP << counter << std::endl;
             return 0;
         }
-    
+
 	}
     const TheGrammarList& grammarList = uni.getTrieList();
     for( TheGrammarList::const_iterator i = grammarList.begin(); i!= grammarList.end(); ++i ) {
@@ -762,9 +736,9 @@ static int bshf_trans( BarzerShell* shell, char_cp cmd, std::istream& in )
 	ShellState sh( shell, cmd, in );
 	BELPrintFormat fmt;
 	BELPrintContext prnContext( sh.trie, sh.stringPool, fmt );
-	
+
 	const BarzelTrieNode* aLeaf = 0;
-	/// 
+	///
 	if (sh.curTrieNode.isLeaf()) {
 		aLeaf = &sh.curTrieNode;
 	} else {
@@ -786,9 +760,9 @@ static int bshf_trans( BarzerShell* shell, char_cp cmd, std::istream& in )
 namespace {
 
 struct TAParms {
-static size_t nameThreshold; 
-static size_t fluffThreshold; 
-static size_t maxNameLen; 
+static size_t nameThreshold;
+static size_t fluffThreshold;
+static size_t maxNameLen;
 };
 size_t TAParms::nameThreshold = 2000;
 size_t TAParms::fluffThreshold = 200;
@@ -803,26 +777,26 @@ static int bshf_dtaan( BarzerShell* shell, char_cp cmd, std::istream& in )
 	std::ostream *ostr = &(shell->getOutStream());
 	std::ofstream ofile;
 
-		
+
 	//ay::InputLineReader reader( in );
 	std::string str;
 	if (in >> str) {
 		std::string str1;
 		if( str == "nameth" ) {
-			if( in >> str1 ) { 
-				TAParms::nameThreshold = atoi( str1.c_str() ); 
+			if( in >> str1 ) {
+				TAParms::nameThreshold = atoi( str1.c_str() );
 				std::cerr << "name threshold set to 1/" << TAParms::nameThreshold << "-th\n";
 				return 0;
 			}
 		} else if( str == "maxname" ) {
-			if( in >> str1 ) { 
-				TAParms::maxNameLen = atoi( str1.c_str() ); 
+			if( in >> str1 ) {
+				TAParms::maxNameLen = atoi( str1.c_str() );
 				std::cerr << "maxname length set to:" << TAParms::maxNameLen << "\n";
 				return 0;
 			}
 		} else if( str == "fluffth" ) {
-			if( in >> str1 ) { 
-				TAParms::fluffThreshold = atoi( str1.c_str() ); 
+			if( in >> str1 ) {
+				TAParms::fluffThreshold = atoi( str1.c_str() );
 				std::cerr << "fluff threshold set to 1/" << TAParms::fluffThreshold << "-th\n";
 				return 0;
 			}
@@ -853,7 +827,7 @@ static int bshf_dtaan( BarzerShell* shell, char_cp cmd, std::istream& in )
 	trav.traverse();
 	nameProducer.setMode_output();
 	trav.traverse();
-	
+
 	std::cerr << nameProducer.d_numNames << " names and " << nameProducer.d_numFluff << " fluff patterns saved\n";
 	return 0;
 }
@@ -906,7 +880,7 @@ static int bshf_trls( BarzerShell* shell, char_cp cmd, std::istream& in )
 	}
 
 	if( wcvec.size() ) {
-		std::cout << wcvec.size() << " wildcards lookup[" << 
+		std::cout << wcvec.size() << " wildcards lookup[" <<
 		std::hex << node.getWCLookupId() << "]" << std::endl;
 	} else {
 		std::cout << "<no wildcards>" << std::endl;
@@ -965,7 +939,7 @@ static int bshf_trcdw( BarzerShell* shell, char_cp cmd, std::istream& in )
 }
 static int bshf_trieclear( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
-	
+
 	BarzerShellContext * context = shell->getBarzerContext();
 	BELTrie* trie = context->getCurrentTriePtr();
 	if( !trie ) {
@@ -989,7 +963,7 @@ static int bshf_grammar( BarzerShell* shell, char_cp cmd, std::istream& in )
 	    StoredUniverse &uni = context->getUniverse();
 
         const TheGrammarList& trieList = uni.getTrieList();
-        
+
         int gi =0;
 	    BELTrie* trie = 0;
         for( TheGrammarList::const_iterator i = trieList.begin(); i!= trieList.end(); ++i ) {
@@ -1002,7 +976,7 @@ static int bshf_grammar( BarzerShell* shell, char_cp cmd, std::istream& in )
         } else {
             context->setTrie( trie );
             context->trieWalker.setTrie( trie );
-        
+
             std::cerr << "SETTING TRIE: \"" << trie->getTrieClass() << "\":\"" << trie->getTrieId()<< "\"\n";
         }
     } else {
@@ -1123,13 +1097,13 @@ static int bshf_instance( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 	const GlobalPools &gp = context->getGLobalPools();
     const GlobalPools::UniverseMap& uniMap = gp.getUniverseMap();
-    
+
     std::ostream& outFP = shell->getOutStream() ;
 
     BarzelTrieStatsCounter instanceCounter;
     size_t numUsers=0;
     for( GlobalPools::UniverseMap::const_iterator i = uniMap.begin(); i!= uniMap.end(); ++i, ++numUsers ) {
-        if( !(i->second) ) 
+        if( !(i->second) )
             continue;
         const StoredUniverse& uni = *(i->second);
         const TheGrammarList& grammarList = uni.getTrieList();
@@ -1145,7 +1119,7 @@ static int bshf_instance( BarzerShell* shell, char_cp cmd, std::istream& in )
             userCounter.add( counter );
         }
         userCounter.print( (outFP << "USER:\t" << i->first << "\t"), "\t")  << "\n";
-        
+
         instanceCounter.add( userCounter );
     }
     instanceCounter.print( (outFP << "#usrs:\t" << numUsers << "\t"), "\t" ) << std::endl;
@@ -1174,13 +1148,13 @@ static int bshf_user( BarzerShell* shell, char_cp cmd, std::istream& in )
     std::ostream& outFP = shell->getOutStream() ;
 	if (in >> uid) {
 		int rc = shell->setUser( uid, false ) ;
-		if( rc ) 
+		if( rc )
 			outFP << "error=" << rc << " setting user to " << uid << "\n";
-		else 
+		else
 			outFP << "user is set to " << uid << "\n";
 	} else {
         outFP << "Current user is " << shell->getUser() << "\n";
-        
+
 	    BarzerShellContext *context = shell->getBarzerContext();
 	    StoredUniverse &uni = context->getUniverse();
         const TheGrammarList& trieList = uni.getTrieList();
@@ -1261,7 +1235,6 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_trcd, "trcd", "changes current trie node to the firm child by number" ),
 	CmdData( (ay::Shell_PROCF)bshf_trcdw, "trcdw", "changes current trie node to the wildcard child by number" ),
 	CmdData( (ay::Shell_PROCF)bshf_trup, "trup", "moves back to the parent trie node" ),
-	CmdData( (ay::Shell_PROCF)bshf_spell, "spell", "tests hunspell in the current universe spell checker" ),
 	CmdData( (ay::Shell_PROCF)bshf_srvroute, "srvroute", "tests server queries and routes it same way server mode would" ),
 	CmdData( (ay::Shell_PROCF)bshf_stexpand, "stexpand", "expand and print all statements in a file" ),
 	CmdData( (ay::Shell_PROCF)bshf_strid, "strid", "resolve string id (usage strid id)" ),
@@ -1272,26 +1245,26 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_user, "user", "sets current user by user id" )
 };
 
-ay::ShellContext* BarzerShell::mkContext() { 
+ay::ShellContext* BarzerShell::mkContext() {
 	StoredUniverse& u = gp.produceUniverse(d_uid);
 
 	return new BarzerShellContext( u, u.getSomeTrie() );
 }
 
-ay::ShellContext* BarzerShell::cloneContext() { 
+ay::ShellContext* BarzerShell::cloneContext() {
 	return new BarzerShellContext(*(dynamic_cast<BarzerShellContext*>( context )));
 }
-int BarzerShell::setUser( uint32_t uid, bool forceCreate ) 
+int BarzerShell::setUser( uint32_t uid, bool forceCreate )
 {
 	if( !context ) {
-		AYLOG(ERROR) << "null context\n";	
+		AYLOG(ERROR) << "null context\n";
 		return 666;
 	}
 	StoredUniverse * u = gp.getUniverse(uid);
 	if( !u ) {
-		if( forceCreate ) 
+		if( forceCreate )
 			u = &( gp.produceUniverse(uid) );
-		else  
+		else
 			return 1;
 	}
 	BarzerShellContext* bctxt = getBarzerContext();
@@ -1305,7 +1278,7 @@ int BarzerShell::init( )
 	if( !cmdMap.size() )
 		rc = indexCmdDataRange(ay::Shell::CmdDataRange( ARR_BEGIN(g_cmd),ARR_END(g_cmd)));
 
-	if( context ) 
+	if( context )
 		delete context;
 
 	context = mkContext();
@@ -1315,18 +1288,18 @@ int BarzerShell::init( )
 }
 
 /// prints result of the setting to the stream
-void BarzerShellEnv::set( std::ostream& fp, const char* n, const char* v ) 
+void BarzerShellEnv::set( std::ostream& fp, const char* n, const char* v )
 {
     if( !n ) {
         fp << "ERROR: no name specified\n";
         return;
-    } 
+    }
     if( !v ) {
         fp << "ERROR: no valid value passed\n";
         return;
-    } 
+    }
     switch( n[0] ) {
-    case 's': 
+    case 's':
         if( !strcasecmp(n,"stem") ) {
             if( !strncasecmp(v,"ag",2) ) {
                 stemMode = QuestionParm::STEMMODE_AGGRESSIVE;
@@ -1351,7 +1324,7 @@ void BarzerShell::syncQuestionParm(QuestionParm& qparm )
 // when n == 0 prints all valid settings
 std::ostream&  BarzerShellEnv::get( std::ostream& fp, const char* n) const
 {
-    static const char * names[] = { 
+    static const char * names[] = {
         "stem"
     };
     if( n ) {
@@ -1359,7 +1332,7 @@ std::ostream&  BarzerShellEnv::get( std::ostream& fp, const char* n) const
         case 's': if( !strcasecmp(n,"stem") ) fp << "stem\t:" << ( stemMode == QuestionParm::STEMMODE_NORMAL ? "normal" : "aggressive" ) << std::endl; break;
         }
     }  else {
-        for( const char* *s = ARR_BEGIN(names); s!= ARR_END(names); ++s ) 
+        for( const char* *s = ARR_BEGIN(names); s!= ARR_END(names); ++s )
             get(fp,*s);
     }
     return fp;

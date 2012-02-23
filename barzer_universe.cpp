@@ -4,27 +4,27 @@
 
 namespace barzer {
 
-///////////////// generic entities 
+///////////////// generic entities
 namespace {
 
 struct GenericEntData {
 	uint16_t cl, subcl;
 	const char* id;
 	const char* name;
-	
-	GenericEntData( uint16_t sc, const char* n ) : 
+
+	GenericEntData( uint16_t sc, const char* n ) :
 		cl(1), subcl(sc) , id(0), name(n)
 	{}
-	GenericEntData( uint16_t sc, const char* idStr, const char* n ) : 
+	GenericEntData( uint16_t sc, const char* idStr, const char* n ) :
 		cl(1), subcl(sc) , id(idStr), name(n)
 	{}
 };
 
 static GenericEntData g_genDta[] = {
-	GenericEntData(1,"price"), // price 
+	GenericEntData(1,"price"), // price
 
 	GenericEntData(2,"length"), // length-width-height-distance (cm,inch,m,foot,km,mile,kkm,kmile)
-	GenericEntData(3,"weight"), // weight in 
+	GenericEntData(3,"weight"), // weight in
 	GenericEntData(4,"age"), // age in years, months, days, hours, minutes
 	GenericEntData(5,"area"), // square area
 	GenericEntData(6,"volume"), // cubic volume
@@ -35,7 +35,7 @@ static GenericEntData g_genDta[] = {
 	GenericEntData(69,"shit", "some shit"), // weight
 	// Astronomical units
 
-	/// currencies 
+	/// currencies
 	GenericEntData(1,"USD", "US dollar"),
 	GenericEntData(1,"EUR", "Euro euro!"),
 	GenericEntData(1,"JPY", "Japanese yen"),
@@ -45,9 +45,9 @@ static GenericEntData g_genDta[] = {
 };
 } // anon namespace ends
 
-GlobalTriePool::ClassTrieMap& GlobalTriePool::produceTrieMap( uint32_t trieClass ) 
+GlobalTriePool::ClassTrieMap& GlobalTriePool::produceTrieMap( uint32_t trieClass )
 {
-	return d_trieMap[trieClass]; 
+	return d_trieMap[trieClass];
 }
 
 
@@ -74,23 +74,23 @@ void GlobalPools::init_cmdline( ay::CommandLineArgs & cmdlProc)
     }
 }
 
-GlobalPools::~GlobalPools() 
+GlobalPools::~GlobalPools()
 {
 	for( UniverseMap::iterator i =  d_uniMap.begin(); i!= d_uniMap.end(); ++i ) {
-		if( i->second ) 
+		if( i->second )
 			delete i->second;
 	}
 }
 
-BELTrie* GlobalTriePool::mkNewTrie() 
+BELTrie* GlobalTriePool::mkNewTrie()
 {
 	return new BELTrie( d_gp);
 }
 
-GlobalTriePool::ClassTrieMap* GlobalTriePool::getTrieMap( uint32_t trieClass ) 
+GlobalTriePool::ClassTrieMap* GlobalTriePool::getTrieMap( uint32_t trieClass )
 {
 	TrieMap::iterator i = d_trieMap.find( trieClass );
-	if( i == d_trieMap.end() ) 
+	if( i == d_trieMap.end() )
 		return 0;
 	else
 		return &(i->second);
@@ -98,32 +98,32 @@ GlobalTriePool::ClassTrieMap* GlobalTriePool::getTrieMap( uint32_t trieClass )
 const GlobalTriePool::ClassTrieMap* GlobalTriePool::getTrieMap( uint32_t trieClass ) const
 {
 	TrieMap::const_iterator i = d_trieMap.find( trieClass );
-	if( i == d_trieMap.end() ) 
+	if( i == d_trieMap.end() )
 		return 0;
 	else
 		return &(i->second);
 }
-BELTrie* GlobalTriePool::getTrie( uint32_t trieClass, uint32_t trieId ) 
+BELTrie* GlobalTriePool::getTrie( uint32_t trieClass, uint32_t trieId )
 {
 	ClassTrieMap* ctm = getTrieMap( trieClass );
 	if( !ctm )
 		return 0;
 	else {
 		ClassTrieMap::iterator j = ctm->find( trieId );
-		if( j == ctm->end() ) 
+		if( j == ctm->end() )
 			return 0;
 		else
 			return (j->second);
 	}
 }
-BELTrie* GlobalTriePool::getTrie( const char* trieClass, const char* trieId ) 
+BELTrie* GlobalTriePool::getTrie( const char* trieClass, const char* trieId )
 {
-    uint32_t tc = d_gp.internalString_getId(  trieClass ), tid = d_gp.internalString_getId( trieId ); 
+    uint32_t tc = d_gp.internalString_getId(  trieClass ), tid = d_gp.internalString_getId( trieId );
     return getTrie( tc, tid );
 }
 const BELTrie* GlobalTriePool::getTrie( const char* trieClass, const char* trieId ) const
 {
-    uint32_t tc = d_gp.internalString_getId(  trieClass ), tid = d_gp.internalString_getId( trieId ); 
+    uint32_t tc = d_gp.internalString_getId(  trieClass ), tid = d_gp.internalString_getId( trieId );
     return getTrie( tc, tid );
 }
 
@@ -134,7 +134,7 @@ const BELTrie* GlobalTriePool::getTrie( uint32_t trieClass, uint32_t trieId ) co
 		return 0;
 	else {
 		ClassTrieMap::const_iterator j = ctm->find( trieId );
-		if( j == ctm->end() ) 
+		if( j == ctm->end() )
 			return 0;
 		else
 			return (j->second);
@@ -147,11 +147,11 @@ GlobalTriePool::~GlobalTriePool()
 			delete t->second;
 			t->second = 0;
 		}
-	}	
+	}
 	d_trieMap.clear();
 }
 
-BELTrie* GlobalTriePool::produceTrie( uint32_t trieClass, uint32_t trieId ) 
+BELTrie* GlobalTriePool::produceTrie( uint32_t trieClass, uint32_t trieId )
 {
 	ClassTrieMap&  ctm = produceTrieMap( trieClass );
 
@@ -162,14 +162,14 @@ BELTrie* GlobalTriePool::produceTrie( uint32_t trieClass, uint32_t trieId )
         newTrieP->setTrieClassAndId( trieClass, trieId );
 
 		i = ctm.insert( ClassTrieMap::value_type(
-			trieId, 
+			trieId,
 			newTrieP
 		)).first;
 		newTrieP->setGlobalTriePoolId( d_triePool.size() );
 		d_triePool.push_back( newTrieP );
 		return newTrieP;
-	} else 
-		return( i->second ); 
+	} else
+		return( i->second );
 }
 GlobalPools::GlobalPools() :
 	dtaIdx( *this, &stringPool),
@@ -182,15 +182,15 @@ GlobalPools::GlobalPools() :
 {
     BELTrie* defaultTrie = &(globalTriePool.init());
 
-	/// create default universe 
+	/// create default universe
 	StoredUniverse& defaultUniverse = produceUniverse(DEFAULT_UNIVERSE_ID);
-    defaultUniverse.appendTriePtr( defaultTrie,0 ) ;	
+    defaultUniverse.appendTriePtr( defaultTrie,0 ) ;
 
 	createGenericEntities();
     globalTriePool.init();
 }
 
-size_t GlobalPools::readDictionaryFile( const char* fname ) 
+size_t GlobalPools::readDictionaryFile( const char* fname )
 {
 	FILE* fp = fopen( fname, "r" );
 	if( !fp ) {
@@ -206,14 +206,14 @@ size_t GlobalPools::readDictionaryFile( const char* fname )
 		    buf[ buf_len-1] = 0;
 		addWordToDictionary( string_intern( buf ) );
 	}
-	
+
 	return (d_dictionary.size() - oldSize);
 }
 
 std::ostream& GlobalPools::printTanslationTraceInfo( std::ostream& fp, const BarzelTranslationTraceInfo& traceInfo ) const
 {
 	const char* srcName = internalString_resolve( traceInfo.source );
-	
+
 	return ( fp << ( srcName ? srcName : "(null)" ) << ':' << traceInfo.statementNum << '.' <<
 	traceInfo.emitterSeqNo );
 }
@@ -236,13 +236,12 @@ StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	gp(g),
 	trieCluster(g.globalTriePool,*this),
 	topicTrieCluster(g.globalTriePool,*this),
-	hunspell(*this),
 	bzSpell(new BZSpell(*this))
 {}
 
 size_t   StoredUniverse::internString( const char* s, bool asUserSpecific, uint8_t frequency )
 {
-	uint32_t id = ( gp.string_intern( s ) ); 
+	uint32_t id = ( gp.string_intern( s ) );
 	if( asUserSpecific ) {
 		userSpecificStringSet[ id ] = true;
 	}
@@ -253,24 +252,20 @@ size_t   StoredUniverse::internString( const char* s, bool asUserSpecific, uint8
 }
 void StoredUniverse::clearSpell()
 {
-	/*
-	BarzerHunspellInvoke spellChecker(hunspell,gp);
-	spellChecker.clear();
-	*/
 	delete bzSpell;
 	bzSpell = new BZSpell(*this);
 }
 
 void UniverseTrieCluster::clearTries()
 {
-	for( TheGrammarList::iterator i = d_trieList.begin(); i!= d_trieList.end(); ++i ) { 
+	for( TheGrammarList::iterator i = d_trieList.begin(); i!= d_trieList.end(); ++i ) {
 		BELTrie& trie = i->trie();
 		{
 			BELTrie::WriteLock w_lock(trie.getThreadLock());
-			if( trie.getNumUsers() == 1 ) 
+			if( trie.getNumUsers() == 1 )
 				trie.clear();
 		}
-	} 
+	}
 }
 
 void StoredUniverse::clear()
@@ -289,19 +284,19 @@ BZSpell* StoredUniverse::initBZSpell( const StoredUniverse* secondaryUniverse )
 
 const char* StoredUniverse::getGenericSubclassName( uint16_t subcl ) const
 {
-	if( subcl< ARR_SZ(g_genDta) ) 
+	if( subcl< ARR_SZ(g_genDta) )
 		return g_genDta[subcl].name;
-	else 
+	else
 		return "<unknown>";
 }
-void StoredUniverse::clearSpelling() 
+void StoredUniverse::clearSpelling()
 {
-    if( bzSpell ) 
+    if( bzSpell )
         bzSpell->clear();
 }
 
 
-	UniverseTrieCluster::UniverseTrieCluster( GlobalTriePool& triePool, StoredUniverse& u ) : 
+	UniverseTrieCluster::UniverseTrieCluster( GlobalTriePool& triePool, StoredUniverse& u ) :
 		d_triePool( triePool ) ,
 		d_universe(u)
 	{
@@ -327,6 +322,6 @@ void StoredUniverse::clearSpelling()
         return appendTrie( trieClass, trieId, gi );
 
     }
-//// end of generic entities 
+//// end of generic entities
 
 } // namespace barzer ends

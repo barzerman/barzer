@@ -19,8 +19,6 @@ public:
 	int tokenize( TTWPVec& , const char*, const QuestionParm& );
 };
 
-class BarzerHunspellInvoke;
-
 template<typename T>
 struct PosedVec {
 	T& d_vec;
@@ -36,8 +34,8 @@ struct PosedVec {
 
     size_t  pos() const { return 0; }
 
-    value_type&             element() { return d_vec[d_pos]; } 
-    const value_type&       element() const { return d_vec[d_pos]; } 
+    value_type&             element() { return d_vec[d_pos]; }
+    const value_type&       element() const { return d_vec[d_pos]; }
 
     typename T::iterator posIterator() { return (d_vec.begin() + d_pos); }
     T& vec() { return d_vec; }
@@ -63,7 +61,6 @@ class QLexParser {
 	void collapseCTokens( CTWPVec::iterator beg, CTWPVec::iterator end );
 
 	enum {
-		// hunspell results with higher levenshteyn distance from original than this will be
 		/// discarded
 		MAX_EDIT_DIST_FROM_SPELL = 2,
 		/// words shorter than this wont be spell corrected
@@ -74,17 +71,17 @@ class QLexParser {
 
 	/// invoked from singleTokenClassify - tries to spell correct
 	/// fluffs the token if it's not correctable otherwise attempts to find something
-	/// returned by hunspell within the maximum Levenshteyn edit distance from t that resolves to
+	/// returned within the maximum Levenshteyn edit distance from t that resolves to
 	/// an actual domain token
 	SpellCorrectResult trySpellCorrectAndClassify (PosedVec<CTWPVec>, PosedVec<TTWPVec>, const QuestionParm& qparm);
 
 	/// resolves single tokens - this is not language specific
-	int singleTokenClassify( Barz&, const QuestionParm& );	
+	int singleTokenClassify( Barz&, const QuestionParm& );
 	/// multitoken non-language specific hardcoded stuff
-	int advancedBasicClassify( Barz&, const QuestionParm& );	
+	int advancedBasicClassify( Barz&, const QuestionParm& );
 	/// called from advancedBasicClassify
-	/// tries to detect numbers with punctuation 1.5, -5.5 , 1,000,000 etc. 
-	int advancedNumberClassify( Barz&, const QuestionParm& );	
+	/// tries to detect numbers with punctuation 1.5, -5.5 , 1,000,000 etc.
+	int advancedNumberClassify( Barz&, const QuestionParm& );
 
 	bool tryClassify_number( CToken&, const TToken&  ) const;
 	bool tryClassify_integer( CToken&, const TToken&  ) const;

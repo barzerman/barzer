@@ -20,7 +20,6 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 find_package(Boost COMPONENTS system python thread filesystem REQUIRED)
 link_directories ( ${Boost_LIBRARY_DIRS} )
 
-find_package(Hunspell REQUIRED)
 find_package(PythonLibs REQUIRED)
 find_package(EXPAT REQUIRED)
 
@@ -40,7 +39,6 @@ set(EXTRA_LIBS ${EXTRA_LIBS}
                ${Boost_FILESYSTEM_LIBRARY}
                ${Boost_THREAD_LIBRARY}
                ${EXPAT_LIBRARIES}
-               ${HUNSPELL_LIBRARIES}
                ay)
 
 set(SOURCES barzer_barz.cpp
@@ -74,7 +72,6 @@ set(SOURCES barzer_barz.cpp
             barzer_server_response.cpp
             barzer_settings.cpp
             barzer_shell.cpp
-            barzer_spell.cpp
             barzer_storage_types.cpp
             barzer_token.cpp
             barzer_universe.cpp
@@ -95,7 +92,7 @@ set(INSTALL_UTIL_DIR "${INSTALL_DIR}/util")
 
 SET(CMAKE_SKIP_BUILD_RPATH FALSE)
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
-SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 SET(CMAKE_INSTALL_RPATH "${INSTALL_DIR}")
 SET(CMAKE_INSTALL_NAME_DIR "${INSTALL_DIR}")
 

@@ -26,44 +26,14 @@ static ptree& empty_ptree() {
 
 namespace barzer {
 
-User::Spell::Spell(User *u, const char *md, const char *a)
-	: user(u), hunspell(&(u->getUniverse().getHunspell())), maindict(md), affx(a)
-{
-	std::cout << "initializing hunspell with "
-			  << a << " and " << md << "\n";
-	hunspell->initHunspell(md, a);
-
-}
-
-void User::Spell::addExtra(const char *path)
-{
-	std::cout << "adding extra file " << path << "... " <<
-			hunspell->addWordsFromTextFile(path) << " words added\n";
-	vec.push_back(Rec(EXTRA, path));
-
-} //*/
-void User::Spell::addDict(const char *path)
-{
-	std::cout << "adding dictionary " << path << std::endl;
-	vec.push_back(Rec(DICT, path));
-	hunspell->addDictionary(path);
-} //*/
-
-
 User::User(Id i, BarzerSettings &s)
 	: id(i), settings(s), universe(s.getGlobalPools().produceUniverse(i))
 	{}
 
-User::Spell& User::createSpell(const char *md, const char *affx)
-{
-	spell = Spell(this, md, affx);
-	return spell.get();
-}
-
 void User::addTrie(const TriePath &tp, bool isTopicTrie, GrammarInfo* gramInfo ) {
-    if( isTopicTrie ) 
+    if( isTopicTrie )
 	    universe.appendTopicTrie(tp.first.c_str(), tp.second.c_str(), gramInfo );
-    else 
+    else
 	    universe.appendTrie(tp.first.c_str(), tp.second.c_str(), gramInfo );
 }
 
@@ -90,11 +60,11 @@ User*  BarzerSettings::getUser(User::Id id)
 }
 
 BarzerSettings::BarzerSettings(GlobalPools &gp, std::ostream* os ) : gpools(gp), d_numThreads(0), d_currentUniverse(0)
-{ 
-	init(); 
+{
+	init();
 }
 
-void BarzerSettings::addRulefile(BELReader& reader, const Rulefile &f) 
+void BarzerSettings::addRulefile(BELReader& reader, const Rulefile &f)
 {
 	const std::string &tclass = f.trie.first,
 					  &tid = f.trie.second;
@@ -107,7 +77,7 @@ void BarzerSettings::addRulefile(BELReader& reader, const Rulefile &f)
 	reader.setTrie(trieClass, trieId );
 
 	size_t num = reader.loadFromFile(fname, BELReader::INPUT_FMT_XML);
-	std::cout << num << " statements (" << reader.getNumMacros() << " macros, " << 
+	std::cout << num << " statements (" << reader.getNumMacros() << " macros, " <<
 	reader.getNumProcs() << " procs)" << " loaded from `" << fname ;
 	if (!(tclass.empty() || tid.empty()))
 		std::cout << " into the trie `" << tclass << "." << tid << "'";
@@ -125,12 +95,12 @@ void BarzerSettings::addEntityFile(const char *fname)
 	gpools.getDtaIdx().loadEntities_XML(fname);
 }
 
-StoredUniverse* BarzerSettings::setCurrentUniverse(User& u ) 
+StoredUniverse* BarzerSettings::setCurrentUniverse(User& u )
 {
 	d_currentUniverse = gpools.getUniverse(u.getId());
 	return d_currentUniverse;
 }
-StoredUniverse* BarzerSettings::getCurrentUniverse() 
+StoredUniverse* BarzerSettings::getCurrentUniverse()
 {
 	if( !d_currentUniverse )
 		d_currentUniverse = gpools.getUniverse(0);
@@ -142,7 +112,7 @@ void BarzerSettings::init() {
 
 }
 
-void BarzerSettings::loadRules(BELReader& reader, const boost::property_tree::ptree& rules) 
+void BarzerSettings::loadRules(BELReader& reader, const boost::property_tree::ptree& rules)
 {
 	if (rules.empty()) {
 		// warning goes here
@@ -172,12 +142,12 @@ void BarzerSettings::loadRules(BELReader& reader, const boost::property_tree::pt
 	}
 }
 
-void BarzerSettings::loadRules(BELReader& reader) 
+void BarzerSettings::loadRules(BELReader& reader)
 {
 	using boost::property_tree::ptree;
 
 	StoredUniverse *u = getCurrentUniverse();
-	if (!u) { 
+	if (!u) {
         std::cerr << "Current universe is blank\n";
         return;
     }
@@ -203,7 +173,7 @@ void BarzerSettings::loadInstanceSettings() {
 		const std::string& text =  v.second.data();
 		if( tagName == "threads" )  {
 			size_t nt = atoi( text.c_str() );
-				
+
 			std::cerr << "EXTRA THREADS: " << nt << " created" << std::endl;
 			if( !nt )
 				nt = 1;
@@ -233,7 +203,7 @@ void BarzerSettings::loadParseSettings() {
 	//}
 }
 void BarzerSettings::loadDictionaries() {
-	
+
 	try {
 	using boost::property_tree::ptree;
 	const ptree &ents = pt.get_child("config.dictionaries", empty_ptree());
@@ -252,7 +222,7 @@ void BarzerSettings::loadEntities() {
         if( v.first == "prop" ) {
             const char* propFileName = v.second.data().c_str() ;
             gpools.entData.readFromFile( gpools, propFileName );
-        } else 
+        } else
 		    addEntityFile(v.second.data().c_str());
 	}
 }
@@ -294,37 +264,6 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 	}
 }
 
-void BarzerSettings::loadHunspell(User &u, const ptree &node)
-{
-	const ptree &spell = node.get_child("spell", empty_ptree());
-	if (spell.empty()) {
-		std::cout << "No <spell> tag\n";
-		return;
-	}
-
-	try {
-		const ptree &attrs = spell.get_child("<xmlattr>");
-
-		const std::string &affx = attrs.get<std::string>("affx"),
-			              &dict = attrs.get<std::string>("maindict");
-
-		User::Spell &s = u.createSpell(affx.c_str(), dict.c_str());
-
-		BOOST_FOREACH(const ptree::value_type &v, spell) {
-			const std::string& tagName = v.first;
-			const char* tagVal = v.second.data().c_str();
-			if( tagName == "dict" ) {
-				s.addDict( tagVal );
-			} else if( tagName == "extra" ) {
-				s.addExtra( tagVal );
-		   }
-		}
-	} catch (boost::property_tree::ptree_bad_path &e) {
-		AYLOG(ERROR) << "Can't get " << e.what();
-		return;
-	}
-}
-
 void BarzerSettings::loadTrieset(BELReader& reader, User &u, const ptree &node) {
 	BOOST_FOREACH(const ptree::value_type &v, node.get_child("trieset", empty_ptree())) {
 		if (v.first == "trie") {
@@ -335,12 +274,12 @@ void BarzerSettings::loadTrieset(BELReader& reader, User &u, const ptree &node) 
 								  &name = attrs.get<std::string>("name");
                 const boost::optional<std::string> optTopic = attrs.get_optional<std::string>("topic");
 
-                // noac - autocomplete doesnt apply . optional attribute. when set 
-                // when this attribute is set the grammar wont be used in autocomplete 
+                // noac - autocomplete doesnt apply . optional attribute. when set
+                // when this attribute is set the grammar wont be used in autocomplete
                 const boost::optional<std::string> optNoAutoc = attrs.get_optional<std::string>("noac");
 
 				std::cerr << "user " << u.getId() << " added trie (" << cl << ":" << name << ") " << (optTopic? "TOPIC" :"") << "\n";
-                
+
                 GrammarInfo* gramInfo = 0;
                 /// extracting topic info
                 BOOST_FOREACH(const ptree::value_type &uv, trieNode.get_child("topic", empty_ptree())) {
@@ -354,9 +293,9 @@ void BarzerSettings::loadTrieset(BELReader& reader, User &u, const ptree &node) 
                     if( classOpt ) {
                         if( !gramInfo ) {
                             gramInfo = new GrammarInfo();
-                         
+
                         }
-                        const StoredEntity& ent = u.getUniverse().getDtaIdx().addGenericEntity( (idOpt? (*idOpt).c_str():0), *classOpt, ( subclassOpt? *subclassOpt: 0) ); 
+                        const StoredEntity& ent = u.getUniverse().getDtaIdx().addGenericEntity( (idOpt? (*idOpt).c_str():0), *classOpt, ( subclassOpt? *subclassOpt: 0) );
                         gramInfo->trieTopics.mustHave( ent.getEuid(), (weightOpt? *weightOpt: BarzTopics::DEFAULT_TOPIC_WEIGHT) );
                     }
                 }
@@ -392,7 +331,7 @@ void load_ent_segregate_info(BELReader& reader, User& u, const ptree &node)
 {
     try {
         const ptree &entseg = node.get_child("entseg", empty_ptree());
-        if( entseg.empty() ) 
+        if( entseg.empty() )
             return;
         BOOST_FOREACH(const ptree::value_type &v, entseg ) {
             StoredEntityClass eclass;
@@ -401,9 +340,9 @@ void load_ent_segregate_info(BELReader& reader, User& u, const ptree &node)
                                 sc = v.second.get_optional<uint32_t>("sc");
             if( ec ) {
                 eclass.setClass(*ec);
-                if( sc ) 
+                if( sc )
                     eclass.setSubclass(*sc);
-                 
+
                 uni.addEntClassToSegregate( eclass );
             }
         } // foreach
@@ -412,9 +351,9 @@ void load_ent_segregate_info(BELReader& reader, User& u, const ptree &node)
     }
 }
 
-} // anonymous namespace ends 
+} // anonymous namespace ends
 
-void BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user) 
+void BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 {
 	const ptree &children = user.second;
 	const boost::optional<uint32_t> userIdOpt
@@ -447,7 +386,7 @@ int BarzerSettings::loadUserConfig( BELReader& reader, const char* cfgFileName )
     try {
         read_xml(cfgFileName, userPt);
         BOOST_FOREACH(ptree::value_type &userV, userPt.get_child("config.users")) {
-            if (userV.first == "user") { 
+            if (userV.first == "user") {
                 loadUser( reader, userV );
                 ++numUsersLoaded;
             }
@@ -459,7 +398,7 @@ int BarzerSettings::loadUserConfig( BELReader& reader, const char* cfgFileName )
 }
 
 void BarzerSettings::loadUsers(BELReader& reader ) {
-	if( !gpools.getUniverse(0)) { // hack user 0 must be initialized  
+	if( !gpools.getUniverse(0)) { // hack user 0 must be initialized
 	    User &u = createUser(0);
 	    BZSpell* bzs = u.getUniverse().initBZSpell( 0 );
 	    bzs->init( 0 );
@@ -487,7 +426,7 @@ int BarzerSettings::loadListOfConfigs(BELReader& reader, const char *fname) {
         return -1;
     }
     char cfgFileName[ 512 ];
-    int cfgCount = 0; 
+    int cfgCount = 0;
     while( fgets(cfgFileName, sizeof(cfgFileName)-1, fp ) ) {
         cfgFileName[ sizeof(cfgFileName)-1 ] = 0;
         size_t buf_len = strlen(cfgFileName);
@@ -497,7 +436,7 @@ int BarzerSettings::loadListOfConfigs(BELReader& reader, const char *fname) {
         }
 
         char* comment = strchr( cfgFileName, '#' );
-        if( comment ) 
+        if( comment )
             *comment= 0;
         std::cerr << "loading config from: " << cfgFileName << " ...\n";
         load( reader, cfgFileName );
