@@ -32,7 +32,6 @@ barzer_autocomplete.o \
 barzer_el_function_util.o \
 barzer_bzspell.o \
 barzer_el_proc.o \
-barzer_spell.o \
 barzer_el_analysis.o \
 barzer_server_response.o \
 barzer_server_request.o \
