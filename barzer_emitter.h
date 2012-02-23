@@ -104,7 +104,7 @@ class BELStatementParsed_EmitCounter {
     size_t d_maxConsidered;
 public:
     size_t power(const BELParseTreeNode& node) const;
-    BELStatementParsed_EmitCounter( const const BELTrie* trie, size_t x = BELReaderXMLEmitCounter::MAX_CONSIDERED ) : 
+    BELStatementParsed_EmitCounter( const BELTrie* trie, size_t x = BELReaderXMLEmitCounter::MAX_CONSIDERED ) : 
         d_trie(trie) , d_maxConsidered(x)
     {}
     size_t  maxConsidered() const { return d_maxConsidered; }
