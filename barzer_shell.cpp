@@ -126,17 +126,19 @@ static int bshf_srvroute( BarzerShell* shell, char_cp cmd, std::istream& in )
 	QuestionParm qparm;
     std::ostream& os = std::cerr;
 
-	while( reader.nextLine() && reader.str.length() ) {
-	    char *q = strdup( reader.str.c_str() );
-        //const char* q = reader.str.c_str();
-        int rc = request::route( gp, q, strlen(q), os );
-        if( rc != request::ROUTE_ERROR_OK ) {
-            os << " ERROR " << rc;
-        } else
-            os << " success ";
-        os << "==============\n";
-        free(q);
-    }
+    std::string question;
+    while (reader.nextLine()&& reader.str.length())
+        question.append(reader.str);
+    char *q = strdup( question.c_str() );
+    //const char* q = reader.str.c_str();
+    int rc = request::route( gp, q, strlen(q), os );
+    if( rc != request::ROUTE_ERROR_OK ) {
+        os << " ERROR " << rc;
+    } else
+        os << " success ";
+    os << "==============\n";
+    free(q);
+    
     return 0;
 }
 static int bshf_emit( BarzerShell* shell, char_cp cmd, std::istream& in )
