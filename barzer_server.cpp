@@ -326,9 +326,11 @@ int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os )
     }
     /// command interface !!CMD:
 	if( buf[0] == '!' && buf[1] == '!' && strchr( buf+2, ':') ) {
-        char * newLine = strchr( buf, '\r' );
+        char* cut = strstr(buf, "\r\n.\r\n");
+        if (cut) *cut = 0;
+        /*char * newLine = strchr( buf, '\r' );
         if( newLine ) 
-            *newLine = 0;
+            *newLine = 0;*/
 		IFHEADER_ROUTE(COUNT_EMIT)
 		IFHEADER_ROUTE(EMIT)
 		IFHEADER_ROUTE(ADD_STMSET)

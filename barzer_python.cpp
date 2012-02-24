@@ -165,21 +165,7 @@ std::string BarzerPython::emit(const std::string& q )
 
 }
 
-std::string BarzerPython::count_emit(const std::string& q ) const
-{
-    GlobalPools gp_;
-    BELTrie* trie  = gp_.mkNewTrie();
 
-    std::stringbuf buf;
-    std::ostream os(&buf);
-
-    BELReaderXMLEmitCounter reader(trie, os);
-    reader.initParser(BELReader::INPUT_FMT_XML);
-    reader.setSilentMode();     //what does it for? (copied from barzer_server.cpp:288)
-    std::istringstream is(q);
-    reader.loadFromStream( is );
-    return buf.str();
-}
 
 //// encoding visitors and service functions 
 namespace {
@@ -642,9 +628,10 @@ struct BarzerResponseObject {
 struct PythonQueryProcessor {
     const BarzerPython& bpy;
     Barz d_barz;
-
+    GlobalPools* local_gp;
+    
     PythonQueryProcessor(const BarzerPython&b): 
-        bpy(b)
+        bpy(b), local_gp(new GlobalPools())
         {}
     
     const StoredUniverse*         barzeIt( int userNumber, const std::string& q )
@@ -677,6 +664,21 @@ struct PythonQueryProcessor {
 
         return 0;
     }
+    
+    std::string count_emit(const std::string& q ) const
+    {
+        BELTrie* trie  = local_gp->mkNewTrie();
+
+        std::stringbuf buf;
+        std::ostream os(&buf);
+
+        BELReaderXMLEmitCounter reader(trie, os);   //trie needs to be cut out!
+        reader.initParser(BELReader::INPUT_FMT_XML);
+        reader.setSilentMode();
+        std::istringstream is(q);
+        reader.loadFromStream( is );
+        return buf.str();
+    }    
 
     std::string parseXML( int userNumber, const std::string& q ) 
     {
@@ -709,8 +711,8 @@ BOOST_PYTHON_MODULE(pybarzer)
         .def( "mkProcessor", &barzer::BarzerPython::makeParseEnv, return_value_policy<manage_new_object>() )
         /// returns Barzer XML for the parsed query 
         .def( "parsexml", &barzer::BarzerPython::parse  )
-        .def( "emit", &barzer::BarzerPython::emit)
-        .def( "count_emit", &barzer::BarzerPython::count_emit);
+        .def( "emit", &barzer::BarzerPython::emit);
+
     
     def("stripDiacritics", stripDiacritics);
     // BarzerResponseObject    
@@ -723,7 +725,8 @@ BOOST_PYTHON_MODULE(pybarzer)
     // boost::python::class_<barzer::BarzerPython>( "Entity" )
     boost::python::class_<barzer::PythonQueryProcessor>( "processor", no_init )
         .def( "parse", &barzer::PythonQueryProcessor::parse, return_value_policy<manage_new_object>() )
-        .def( "parsexml", &barzer::PythonQueryProcessor::parseXML );
+        .def( "parsexml", &barzer::PythonQueryProcessor::parseXML )
+        .def( "count_emit", &barzer::PythonQueryProcessor::count_emit);
 
     boost::python::class_<barzer::exposed::BarzerDate>( "Date", no_init )
         .def( self_ns::repr(self_ns::self))
