@@ -630,12 +630,13 @@ struct PythonQueryProcessor {
     const BarzerPython& bpy;
     Barz d_barz;
     GlobalPools* local_gp;
+    BELTrie* local_trie;
     
     PythonQueryProcessor(const BarzerPython&b): 
-        bpy(b), local_gp(new GlobalPools())
+        bpy(b), local_gp(new GlobalPools()), local_trie(local_gp->mkNewTrie())
         {}
     ~PythonQueryProcessor()
-    {delete local_gp;}
+    {delete local_gp; delete local_trie;}
     
     const StoredUniverse*         barzeIt( int userNumber, const std::string& q )
     {
@@ -670,17 +671,14 @@ struct PythonQueryProcessor {
     
     std::string count_emit(const std::string& q ) const
     {
-        BELTrie* trie  = local_gp->mkNewTrie();
-
         std::stringbuf buf;
         std::ostream os(&buf);
 
-        BELReaderXMLEmitCounter reader(trie, os);   //trie needs to be cut out!
+        BELReaderXMLEmitCounter reader(local_trie, os);   //trie needs to be cut out!
         reader.initParser(BELReader::INPUT_FMT_XML);
         reader.setSilentMode();
         std::istringstream is(q);
         reader.loadFromStream( is );
-        delete trie;
         return buf.str();
     }    
 
