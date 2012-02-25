@@ -161,6 +161,7 @@ std::string BarzerPython::emit(const std::string& q )
     reader.setSilentMode();     //what does it for? (copied from barzer_server.cpp:288)
     std::istringstream is(q);
     reader.loadFromStream( is );
+    delete trie;
     return buf.str();
 
 }
@@ -633,6 +634,8 @@ struct PythonQueryProcessor {
     PythonQueryProcessor(const BarzerPython&b): 
         bpy(b), local_gp(new GlobalPools())
         {}
+    ~PythonQueryProcessor()
+    {delete local_gp;}
     
     const StoredUniverse*         barzeIt( int userNumber, const std::string& q )
     {
@@ -677,6 +680,7 @@ struct PythonQueryProcessor {
         reader.setSilentMode();
         std::istringstream is(q);
         reader.loadFromStream( is );
+        delete trie;
         return buf.str();
     }    
 

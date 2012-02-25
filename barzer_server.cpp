@@ -294,7 +294,6 @@ int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, c
 }
 
 
-//it's a kind of copy-paste from proc_EMIT - the diff is BELReaderXMLEmitCounter
 int proc_COUNT_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* str )
 {
 	GlobalPools gp;
@@ -303,7 +302,6 @@ int proc_COUNT_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPo
 
 	BELTrie* trie  = gp.mkNewTrie();
 	std::ostream &os = reqEnv.outStream;
-	// create BELReaderXMLEmitCounter and use it here
 	BELReaderXMLEmitCounter reader(trie, os);
 	reader.initParser(BELReader::INPUT_FMT_XML);
 	std::stringstream is( str );
@@ -328,9 +326,6 @@ int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os )
 	if( buf[0] == '!' && buf[1] == '!' && strchr( buf+2, ':') ) {
         char* cut = strstr(buf, "\r\n.\r\n");
         if (cut) *cut = 0;
-        /*char * newLine = strchr( buf, '\r' );
-        if( newLine ) 
-            *newLine = 0;*/
 		IFHEADER_ROUTE(COUNT_EMIT)
 		IFHEADER_ROUTE(EMIT)
 		IFHEADER_ROUTE(ADD_STMSET)
