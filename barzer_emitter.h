@@ -86,12 +86,16 @@ class BELReaderXMLEmitCounter: public BELReader {
 public:
     enum {MAX_CONSIDERED = 1024 };        
 private: 
-    size_t d_maxConsidered;
+    size_t d_maxConsidered, d_counter;
 public:
     BELReaderXMLEmitCounter(BELTrie* t, std::ostream& os ) ;
 
     size_t  maxConsidered() const { return d_maxConsidered; }
     void    setMaxConsidered( size_t x ) { d_maxConsidered= x; }
+    
+
+    void resetCounter() { d_counter= 0; }
+    size_t getCounter() const { return d_counter; }
 
     void addStatement(const barzer::BELStatementParsed& sp);
     size_t power(const BELParseTreeNode& node) const;

@@ -636,7 +636,7 @@ struct PythonQueryProcessor {
         bpy(b), local_trie(local_gp->mkNewTrie())
     {}
     ~PythonQueryProcessor()
-        { delete local_gp; }
+        { delete local_gp; delete local_trie; }
     
     const StoredUniverse*         barzeIt( int userNumber, const std::string& q )
     {
@@ -669,7 +669,7 @@ struct PythonQueryProcessor {
         return 0;
     }
     
-    std::string count_emit(const std::string& q ) const
+    size_t count_emit(const std::string& q ) const
     {
         std::stringbuf buf;
         std::ostream os(&buf);
@@ -679,7 +679,7 @@ struct PythonQueryProcessor {
         reader.setSilentMode();
         std::istringstream is(q);
         reader.loadFromStream( is );
-        return buf.str();
+        return reader.getCounter();
     }    
 
     std::string parseXML( int userNumber, const std::string& q ) 

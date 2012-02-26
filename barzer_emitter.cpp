@@ -331,7 +331,8 @@ BELReaderXMLEmit::BELReaderXMLEmit( BELTrie* t, std::ostream& os ) :
 BELReaderXMLEmitCounter::BELReaderXMLEmitCounter( BELTrie* t, std::ostream& os ) :
         BELReader( t, t->getGlobalPools(), &os ),
         d_outStream(os),
-        d_maxConsidered(MAX_CONSIDERED)
+        d_maxConsidered(MAX_CONSIDERED),
+        d_counter(0)
 {
 }
 
@@ -339,7 +340,8 @@ BELReaderXMLEmitCounter::BELReaderXMLEmitCounter( BELTrie* t, std::ostream& os )
 void BELReaderXMLEmitCounter::addStatement(const barzer::BELStatementParsed& sp)
 {
     BELParseTreeNode node = sp.pattern;
-    d_outStream <<"<rn>" << power(node) <<"</rn>" <<std::endl;
+    d_counter += power(node);
+    // d_outStream <<"<rn>" << power(node) <<"</rn>" <<std::endl;
 }
 
 

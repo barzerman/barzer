@@ -307,7 +307,8 @@ int proc_COUNT_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPo
 	std::stringstream is( str );
 	reader.setSilentMode();
 	reader.loadFromStream( is );
-	delete trie;
+    os << reader.getCounter() ;
+    delete trie;
 	return 0;  
 }
 
