@@ -75,9 +75,10 @@ objects_python=barzer_python.o util/pybarzer.o
 
 INSTALL_DIR = /usr/share/barzer
 INSTALL_DATA_DIR = $(INSTALL_DIR)/data
+BARZEREXE_OBJ=barzer.o
 
-all: ay/libay.a $(objects)
-	$(CC) $(BITMODE) $(LINKFLAGS) -o  $(BINARY) $(objects) $(libs)
+all: ay/libay.a $(LIBNAME).a $(BARZEREXE_OBJ)
+	$(CC) $(BITMODE) $(LINKFLAGS) -o  $(BINARY) $(BARZEREXE_OBJ) $(LIBNAME).a $(libs)
 lib: ay/libay.a $(LIBNAME).a $(lib_objects)
 	$(AR) -r $(LIBNAME).a $(lib_objects) ay/libay.a
 sharedlib: ay/libay.a $(lib_objects)

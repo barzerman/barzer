@@ -629,14 +629,14 @@ struct BarzerResponseObject {
 struct PythonQueryProcessor {
     const BarzerPython& bpy;
     Barz d_barz;
-    GlobalPools* local_gp;
-    BELTrie* local_trie;
+    GlobalPools*    local_gp;
+    BELTrie*        local_trie;
     
     PythonQueryProcessor(const BarzerPython&b): 
-        bpy(b), local_gp(new GlobalPools()), local_trie(local_gp->mkNewTrie())
-        {}
+        bpy(b), local_trie(local_gp->mkNewTrie())
+    {}
     ~PythonQueryProcessor()
-    {delete local_gp; delete local_trie;}
+        { delete local_gp; }
     
     const StoredUniverse*         barzeIt( int userNumber, const std::string& q )
     {
