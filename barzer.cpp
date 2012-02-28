@@ -11,7 +11,7 @@
 #include <barzer_config.h>
 #include <barzer_universe.h>
 
-
+#if  defined(_WINDOWS_)
 extern "C" void block_ctrlc () 
 {
 	sigset_t newsigset;
@@ -22,7 +22,7 @@ extern "C" void block_ctrlc ()
    else if (sigprocmask(SIG_BLOCK, &newsigset, NULL) == -1)
       perror("Failed to block SIGINT");
 }
-
+#endif
 int run_shell(barzer::GlobalPools & globPool,  ay::CommandLineArgs &cmdlProc) {
 	barzer::BarzerShell shell(0,globPool);;
 	if (int rc = shell.run()) {

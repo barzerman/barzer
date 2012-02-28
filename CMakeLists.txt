@@ -29,11 +29,14 @@ if(WIN32)
 	SET(EXPAT_LIBRARIES ${WINLIB_DIR}/Expat_2_0_1/Bin)
 	SET(Boost_SYSTEM_LIBRARY ${BOOST_LIBRARYDIR}/libboost_system-mgw46-mt-1_46_1.a)
 	SET(Boost_FILESYSTEM_LIBRARY ${BOOST_LIBRARYDIR}/libboost_filesystem-mgw46-mt-1_46_1.a)
-	SET(Boost_THREAD_LIBRARY ${BOOST_LIBRARYDIR}/libboost_thread-mgw46-mt-1_46_1.a)
+	SET(Boost_THREAD_LIBRARY ${BOOST_LIBRARYDIR}/libboost_thread-mgw46-mt-s-1_46_1.a)
+	SET(Boost_PYTHON_LIBRARY ${BOOST_LIBRARYDIR}/libboost_python-mgw46-mt-s-1_46_1.a)
 	if(MSVS)
 		add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4800 /wd4244 /nologo" )
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} $ENV{OPT} -W0 -fPIC")
 	endif()
+	set(MINGW_SPECIFIC_LNK_FLG -lws2_32 -static-libgcc -lwsock32)
+	add_definitions(-DBOOST_THREAD_USE_LIB -DBOOST_PYTHON_STATIC_LIB)
 elseif()
 	find_package(Boost COMPONENTS system python thread filesystem REQUIRED)
 	find_package(EXPAT REQUIRED)
@@ -68,8 +71,14 @@ set(EXTRA_LIBS ${EXTRA_LIBS}
                ${Boost_SYSTEM_LIBRARY}
                ${Boost_FILESYSTEM_LIBRARY}
                ${Boost_THREAD_LIBRARY}
-           	   ${EXPAT_LIBRARIES}/libexpat.lib
                ay)
+if(WIN32)
+	set(EXTRA_LIBS ${EXTRA_LIBS}
+			libwsock32.a
+			libws2_32.a
+	          	${EXPAT_LIBRARIES}/libexpat.lib
+			${Boost_PYTHON_LIBRARY})
+endif()
 
 set(SOURCES barzer_barz.cpp
             barzer_entity.cpp
@@ -152,15 +161,17 @@ IF( ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" )
     #list(APPEND CMAKE_CXX_FLAGS "")
 ENDIF( ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" )
 
-### libbarzer
+### libbarzer static
 
 add_library(barzer_static ${SOURCES})
 target_link_libraries (barzer_static ${EXTRA_LIBS})
 set_target_properties(barzer_static PROPERTIES OUTPUT_NAME barzer )
-SET_TARGET_PROPERTIES(barzer_static PROPERTIES LINK_FLAGS -lws2_32)
+SET_TARGET_PROPERTIES(barzer_static PROPERTIES LINK_FLAGS ${MINGW_SPECIFIC_LNK_FLG})
+
+### libbarzer shared
 add_library(barzer SHARED ${SOURCES})
 target_link_libraries (barzer ${EXTRA_LIBS})
-
+SET_TARGET_PROPERTIES(barzer PROPERTIES LINK_FLAGS ${MINGW_SPECIFIC_LNK_FLG})
 
 
 ### pybarzer
@@ -178,7 +189,9 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 add_executable(barzer.exe barzer.cpp)
 target_link_libraries (barzer.exe  barzer_static)
+SET_TARGET_PROPERTIES(barzer.exe PROPERTIES LINK_FLAGS ${MINGW_SPECIFIC_LNK_FLG})
 
+### test
 add_executable(testme EXCLUDE_FROM_ALL testme.cpp ${SOURCES})
 target_link_libraries (testme  ${EXTRA_LIBS})
 
