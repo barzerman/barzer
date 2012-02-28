@@ -12,6 +12,7 @@
 #include <fstream>
 #include <stdint.h>
 #include <ay_headers.h>
+#include <platform_dependent_defs.h>
 
 #ifndef LOG_DISABLE
 #define AYLOG(l) ay::LogMsg(ay::Logger::l,__FILE__,__LINE__).getStream()
@@ -39,6 +40,7 @@ class Logger {
 public:
 	static VoidStream voidstream;
 	static uint8_t LEVEL;
+
 	enum LogLevelEnum {
 		DEBUG,
 		WARNING,

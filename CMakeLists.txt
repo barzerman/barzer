@@ -1,28 +1,56 @@
 cmake_minimum_required (VERSION 2.6)
-
+SET(Boost_USE_STATIC_LIBS   ON)
 SET(CC $ENV{CC})
 IF(CC STREQUAL "clang" AND NOT DEFINED ENV{CXX} AND NOT DEFINED CMAKE_CXX_COMPILER)
     MESSAGE("Setting c++ compiler to clang++; set CXX/CMAKE_CXX_COMPILER to override")
     set(CMAKE_CXX_COMPILER "clang++")
 ENDIF()
 
-
+if (WIN32)
+	SET(WINLIB_DIR D:/Development/barzer-git/winlibs)
+endif()
 project (barzer)
 set (barzer_VERSION_MAJOR 0)
 set (barzer_VERSION_MINOR 1)
 
 set(EN_DIR "lg_en")
 set(RU_DIR "lg_ru")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} $ENV{OPT} -Wall -Wnon-virtual-dtor -fPIC")
-
+if  (MSVS)
+elseif()
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} $ENV{OPT} -Wall -Wnon-virtual-dtor -fPIC")
+endif()
+	
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
-find_package(Boost COMPONENTS system python thread filesystem REQUIRED)
-link_directories ( ${Boost_LIBRARY_DIRS} )
+if(WIN32)
+	SET(Boost_INCLUDE_DIRS ${WINLIB_DIR}/boost_1_46_1)
+	SET(BOOST_LIBRARYDIR ${WINLIB_DIR}/boost_1_46_1/stage/lib/mingw)
+	SET(EXPAT_INCLUDE_DIRS ${WINLIB_DIR}/Expat_2_0_1/Source/lib)
+	SET(EXPAT_LIBRARIES ${WINLIB_DIR}/Expat_2_0_1/Bin)
+	SET(Boost_SYSTEM_LIBRARY ${BOOST_LIBRARYDIR}/libboost_system-mgw46-mt-1_46_1.a)
+	SET(Boost_FILESYSTEM_LIBRARY ${BOOST_LIBRARYDIR}/libboost_filesystem-mgw46-mt-1_46_1.a)
+	SET(Boost_THREAD_LIBRARY ${BOOST_LIBRARYDIR}/libboost_thread-mgw46-mt-1_46_1.a)
+	if(MSVS)
+		add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4800 /wd4244 /nologo" )
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} $ENV{OPT} -W0 -fPIC")
+	endif()
+elseif()
+	find_package(Boost COMPONENTS system python thread filesystem REQUIRED)
+	find_package(EXPAT REQUIRED)
+endif()
 
 find_package(PythonLibs REQUIRED)
-find_package(EXPAT REQUIRED)
 
+
+link_directories (  ${BOOST_LIBRARYDIR}
+					${EXPAT_LIBRARIES} )
+
+message("include direcroties")
+message("===BOOST===" ${Boost_INCLUDE_DIRS} "===" )
+message("===EXPAT===" ${EXPAT_INCLUDE_DIRS} "===" )
+message("linker directories")
+message("===BOOST===" ${BOOST_LIBRARYDIR} "===" )
+message("===EXPAT===" ${EXPAT_LIBRARIES} "===" )	
 include_directories("${PROJECT_BINARY_DIR}"
                     "${PROJECT_SOURCE_DIR}"
                     "${PROJECT_SOURCE_DIR}/ay"
@@ -30,7 +58,9 @@ include_directories("${PROJECT_BINARY_DIR}"
                     "${PROJECT_SOURCE_DIR}/${EN_DIR}"
                     "${PROJECT_SOURCE_DIR}/${RU_DIR}"
                      ${Boost_INCLUDE_DIRS}
-                     ${PYTHON_INCLUDE_DIRS})
+                     ${PYTHON_INCLUDE_DIRS}
+                     ${EXPAT_INCLUDE_DIRS}
+                   		)
 add_subdirectory (ay)
 add_subdirectory (util)
 
@@ -38,7 +68,7 @@ set(EXTRA_LIBS ${EXTRA_LIBS}
                ${Boost_SYSTEM_LIBRARY}
                ${Boost_FILESYSTEM_LIBRARY}
                ${Boost_THREAD_LIBRARY}
-               ${EXPAT_LIBRARIES}
+           	   ${EXPAT_LIBRARIES}/libexpat.lib
                ay)
 
 set(SOURCES barzer_barz.cpp
@@ -126,8 +156,8 @@ ENDIF( ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" )
 
 add_library(barzer_static ${SOURCES})
 target_link_libraries (barzer_static ${EXTRA_LIBS})
-set_target_properties(barzer_static PROPERTIES OUTPUT_NAME barzer)
-
+set_target_properties(barzer_static PROPERTIES OUTPUT_NAME barzer )
+SET_TARGET_PROPERTIES(barzer_static PROPERTIES LINK_FLAGS -lws2_32)
 add_library(barzer SHARED ${SOURCES})
 target_link_libraries (barzer ${EXTRA_LIBS})
 
@@ -169,5 +199,3 @@ install(TARGETS pybarzer
         DESTINATION ${INSTALL_UTIL_DIR})
 install(DIRECTORY "data/configs" "data/entities" "data/rules" "data/spell"
         DESTINATION ${INSTALL_DATA_DIR})
-
-

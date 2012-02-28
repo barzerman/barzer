@@ -7,13 +7,13 @@
 
 #include <barzer_datelib.h>
 #include <time.h>
-
+#include <platform_dependent_defs.h>
 namespace barzer {
 
 void BarzerDate_calc::set(int year, int month, int day) {
 	time_t t = time(0);
 	struct tm tmdate;
-	localtime_r(&t, &tmdate);
+	LOCALTIME_R(&t, &tmdate);
 	tmdate.tm_year = year - 1900;
 	tmdate.tm_mon = month - 1;
 	tmdate.tm_mday = day;

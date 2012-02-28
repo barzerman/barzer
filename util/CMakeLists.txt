@@ -1,4 +1,9 @@
-find_package(Boost COMPONENTS system python REQUIRED)
+if(WIN32)
+	SET(Boost_INCLUDE_DIRS ../winlibs/boost_1_46_1)
+	SET(Boost_LIBRARY_DIRS ${Boost_INCLUDE_DIRS}/stage/lib)
+elseif()
+	find_package(Boost COMPONENTS system python REQUIRED)
+endif()
 link_directories ( ${boost_LIBRARY_DIRS} )
 
 find_package(PythonLibs REQUIRED)

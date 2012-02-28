@@ -17,11 +17,11 @@
 #include <barzer_server_response.h>
 #include <barzer_settings.h>
 
-
 extern "C" {
 #include <expat.h>
 };
 
+#include <platform_dependent_defs.h>
 namespace barzer {
 typedef std::pair<std::string, std::string> AttrPair;
 
@@ -56,6 +56,9 @@ public:
 		AttrList attrs;
 		std::string body;
 	};
+#ifdef DELETE
+#undef DELETE
+#endif
 	enum Cmd {ADD,DELETE};
 private:
 

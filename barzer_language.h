@@ -1,11 +1,17 @@
 #ifndef BARZER_LANGUAGE_H  
 #define BARZER_LANGUAGE_H  
 
+#include <platform_dependent_defs.h>
 #include <ay/ay_headers.h>
 #include <barzer_parse_types.h>
 
 /// language specific logic 
 namespace barzer {
+
+#undef LANG_ENGLISH
+#undef LANG_RUSSIAN
+#undef LANG_SPANISH
+#undef LANG_FRENCH
 
 enum {
     LANG_UNKNOWN=-1,

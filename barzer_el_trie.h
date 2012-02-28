@@ -12,6 +12,7 @@
 #include <set>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/unordered_map.hpp>
+#include <boost/thread/locks.hpp>
 
 
 /// data structures representing the Barzer Expression Language BarzEL term pattern trie

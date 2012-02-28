@@ -5,7 +5,7 @@
 #include <barzer_storage_types.h>
 
 #include <time.h>
-
+#include <platform_dependent_defs.h>
 namespace barzer {
 
 uint8_t BarzerDate::thisMonth = 0;
@@ -18,7 +18,7 @@ void BarzerDate::initToday()
 {
 	time_t t = time(0);
 	struct tm theTm = {0};
-    localtime_r(&t, & theTm);
+    LOCALTIME_R(&t, & theTm);
 	thisMonth = theTm.tm_mon+1;
 	thisDay = theTm.tm_mday;
 	thisYear = theTm.tm_year + 1900;
@@ -29,7 +29,7 @@ uint8_t BarzerDate::getWeekday() const
 {
 	time_t t = time(0);
 	tm tmdate;
-	localtime_r(&t, &tmdate);
+	LOCALTIME_R(&t, &tmdate);
 	tmdate.tm_year = year - 1900;
 	tmdate.tm_mon = month - 1;
 	tmdate.tm_mday = day;
@@ -41,7 +41,7 @@ time_t BarzerDate::getTime_t() const
 {
 	time_t t = time(0);
 	tm tmdate;
-	localtime_r(&t, &tmdate);
+	LOCALTIME_R(&t, &tmdate);
 	tmdate.tm_year = year - 1900;
 	tmdate.tm_mon = month - 1;
 	tmdate.tm_mday = day;
@@ -51,7 +51,7 @@ time_t BarzerDate::getTime_t() const
 void BarzerDate::setTime_t(time_t t)
 {
 	struct tm tmdate;
-	localtime_r(&t, &tmdate);
+	LOCALTIME_R(&t, &tmdate);
 	year = tmdate.tm_year + 1900;
 	month = tmdate.tm_mon + 1;
 	day = tmdate.tm_mday;

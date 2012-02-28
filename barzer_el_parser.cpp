@@ -6,7 +6,6 @@
 
 #include <ay/ay_logger.h>
 #include <ay_util_time.h>
-
 namespace barzer {
 
 

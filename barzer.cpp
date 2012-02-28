@@ -1,3 +1,4 @@
+#include <platform_dependent_defs.h>
 #include <barzer_shell.h>
 #include <barzer_server.h>
 #include <ay/ay_cmdproc.h>

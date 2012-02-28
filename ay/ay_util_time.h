@@ -1,7 +1,15 @@
 #ifndef AY_UTIL_TIME_H
 #define AY_UTIL_TIME_H
 #include <ay_headers.h>
+
+#include <platform_dependent_defs.h>
+#ifndef _WIN32
 #include <sys/time.h>
+#else
+#include <windows.h>
+#include <time.h>
+#endif
+
 #include <iostream>
 #include <iomanip>
 namespace ay {
