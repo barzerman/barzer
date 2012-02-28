@@ -7,7 +7,7 @@
 
 #include <barzer_datelib.h>
 #include <time.h>
-#include <platform_dependent_defs.h>
+#include <arch/barzer_arch.h>
 namespace barzer {
 
 void BarzerDate_calc::set(int year, int month, int day) {

@@ -1,7 +1,7 @@
 #ifndef AY_UTIL_CHAR_H
 #define AY_UTIL_CHAR_H
 
-#include <platform_dependent_defs.h>
+#include <arch/barzer_arch.h>
 #include <ay_headers.h>
 #include <vector>
 #include <map>

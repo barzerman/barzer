@@ -1,7 +1,7 @@
 #ifndef BARZER_LANGUAGE_H  
 #define BARZER_LANGUAGE_H  
 
-#include <platform_dependent_defs.h>
+#include <arch/barzer_arch.h>
 #include <ay/ay_headers.h>
 #include <barzer_parse_types.h>
 

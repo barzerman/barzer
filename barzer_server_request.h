@@ -21,7 +21,7 @@ extern "C" {
 #include <expat.h>
 };
 
-#include <platform_dependent_defs.h>
+#include <arch/barzer_arch.h>
 namespace barzer {
 typedef std::pair<std::string, std::string> AttrPair;
 

@@ -5,7 +5,7 @@
 #include <barzer_storage_types.h>
 
 #include <time.h>
-#include <platform_dependent_defs.h>
+#include <arch/barzer_arch.h>
 namespace barzer {
 
 uint8_t BarzerDate::thisMonth = 0;
