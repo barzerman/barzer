@@ -185,11 +185,16 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     SET_TARGET_PROPERTIES(pybarzer PROPERTIES SUFFIX ".so")
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+
+
 ### binary
 
 add_executable(barzer.exe barzer.cpp)
 target_link_libraries (barzer.exe  barzer_static)
 SET_TARGET_PROPERTIES(barzer.exe PROPERTIES LINK_FLAGS ${MINGW_SPECIFIC_LNK_FLG})
+if (WIN32)
+	SET_TARGET_PROPERTIES(barzer.exe PROPERTIES SUFFIX "")
+endif()
 
 ### test
 add_executable(testme EXCLUDE_FROM_ALL testme.cpp ${SOURCES})
