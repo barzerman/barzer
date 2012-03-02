@@ -3,7 +3,6 @@ cmake_minimum_required (VERSION 2.6)
 # WINDOWS USING:
 # cmake -G "MinGW Makefiles" -DBOOST_ROOT=<boost> -DEXPAT_INCLUDE_DIR=<expat_include> -DEXPAT_LIBRARY=<expat_lib>
 
-
 SET(CC $ENV{CC})
 IF(CC STREQUAL "clang" AND NOT DEFINED ENV{CXX} AND NOT DEFINED CMAKE_CXX_COMPILER)
     MESSAGE("Setting c++ compiler to clang++; set CXX/CMAKE_CXX_COMPILER to override")
