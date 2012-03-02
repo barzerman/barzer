@@ -3,8 +3,6 @@
 
 #if defined(_WINDOWS_) || defined(WIN32)
 #define LOCALTIME_R(x, y) memcpy(y, localtime(x), sizeof(y))
-#else
-#define LOCALTIME_R(x, y) localtime_r(x, y)
 #endif
 
 

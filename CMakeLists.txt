@@ -1,5 +1,8 @@
 cmake_minimum_required (VERSION 2.6)
-SET(Boost_USE_STATIC_LIBS   ON)
+
+#Should be defined only Win32, I guess.
+#SET(Boost_USE_STATIC_LIBS   ON)
+
 SET(CC $ENV{CC})
 IF(CC STREQUAL "clang" AND NOT DEFINED ENV{CXX} AND NOT DEFINED CMAKE_CXX_COMPILER)
     MESSAGE("Setting c++ compiler to clang++; set CXX/CMAKE_CXX_COMPILER to override")
@@ -15,8 +18,7 @@ set (barzer_VERSION_MINOR 1)
 
 set(EN_DIR "lg_en")
 set(RU_DIR "lg_ru")
-if  (MSVS)
-elseif()
+if (NOT MSVS)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} $ENV{OPT} -Wall -Wnon-virtual-dtor -fPIC")
 endif()
 	
@@ -37,7 +39,7 @@ if(WIN32)
 	endif()
 	set(MINGW_SPECIFIC_LNK_FLG -lws2_32 -static-libgcc -lwsock32)
 	add_definitions(-DBOOST_THREAD_USE_LIB -DBOOST_PYTHON_STATIC_LIB)
-elseif()
+else()
 	find_package(Boost COMPONENTS system python thread filesystem REQUIRED)
 	find_package(EXPAT REQUIRED)
 endif()
@@ -48,12 +50,7 @@ find_package(PythonLibs REQUIRED)
 link_directories (  ${BOOST_LIBRARYDIR}
 					${EXPAT_LIBRARIES} )
 
-message("include direcroties")
-message("===BOOST===" ${Boost_INCLUDE_DIRS} "===" )
-message("===EXPAT===" ${EXPAT_INCLUDE_DIRS} "===" )
-message("linker directories")
-message("===BOOST===" ${BOOST_LIBRARYDIR} "===" )
-message("===EXPAT===" ${EXPAT_LIBRARIES} "===" )	
+
 include_directories("${PROJECT_BINARY_DIR}"
                     "${PROJECT_SOURCE_DIR}"
                     "${PROJECT_SOURCE_DIR}/ay"
@@ -62,7 +59,7 @@ include_directories("${PROJECT_BINARY_DIR}"
                     "${PROJECT_SOURCE_DIR}/${RU_DIR}"
                      ${Boost_INCLUDE_DIRS}
                      ${PYTHON_INCLUDE_DIRS}
-                     ${EXPAT_INCLUDE_DIRS}
+# ${EXPAT_INCLUDE_DIRS}
                    		)
 add_subdirectory (ay)
 add_subdirectory (util)
@@ -71,12 +68,13 @@ set(EXTRA_LIBS ${EXTRA_LIBS}
                ${Boost_SYSTEM_LIBRARY}
                ${Boost_FILESYSTEM_LIBRARY}
                ${Boost_THREAD_LIBRARY}
+               ${EXPAT_LIBRARIES}
                ay)
 if(WIN32)
 	set(EXTRA_LIBS ${EXTRA_LIBS}
 			libwsock32.a
 			libws2_32.a
-	          	${EXPAT_LIBRARIES}/libexpat.lib
+	        ${EXPAT_LIBRARIES}/libexpat.lib
 			${Boost_PYTHON_LIBRARY})
 endif()
 
@@ -165,19 +163,20 @@ ENDIF( ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" )
 
 add_library(barzer_static ${SOURCES})
 target_link_libraries (barzer_static ${EXTRA_LIBS})
-set_target_properties(barzer_static PROPERTIES OUTPUT_NAME barzer )
-SET_TARGET_PROPERTIES(barzer_static PROPERTIES LINK_FLAGS ${MINGW_SPECIFIC_LNK_FLG})
+set_target_properties(barzer_static PROPERTIES OUTPUT_NAME barzer_static )
+SET_TARGET_PROPERTIES(barzer_static PROPERTIES LINK_FLAGS "${MINGW_SPECIFIC_LNK_FLG}")
 
 ### libbarzer shared
-add_library(barzer SHARED ${SOURCES})
-target_link_libraries (barzer ${EXTRA_LIBS})
-SET_TARGET_PROPERTIES(barzer PROPERTIES LINK_FLAGS ${MINGW_SPECIFIC_LNK_FLG})
+add_library(barzer_shared SHARED ${SOURCES})
+target_link_libraries (barzer_shared ${EXTRA_LIBS})
+set_target_properties(barzer_shared PROPERTIES OUTPUT_NAME barzer_shared )
+SET_TARGET_PROPERTIES(barzer_shared PROPERTIES LINK_FLAGS "${MINGW_SPECIFIC_LNK_FLG}")
 
 
 ### pybarzer
 
 add_library(pybarzer SHARED barzer_python.cpp)
-target_link_libraries (pybarzer barzer butil)
+target_link_libraries (pybarzer barzer_shared butil)
 
 SET_TARGET_PROPERTIES(pybarzer PROPERTIES PREFIX "")
 
@@ -189,12 +188,10 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 ### binary
 
-add_executable(barzer.exe barzer.cpp)
-target_link_libraries (barzer.exe  barzer_static)
-SET_TARGET_PROPERTIES(barzer.exe PROPERTIES LINK_FLAGS ${MINGW_SPECIFIC_LNK_FLG})
-if (WIN32)
-	SET_TARGET_PROPERTIES(barzer.exe PROPERTIES SUFFIX "")
-endif()
+add_executable(barzer barzer.cpp)
+target_link_libraries (barzer  barzer_static)
+SET_TARGET_PROPERTIES(barzer PROPERTIES LINK_FLAGS "${MINGW_SPECIFIC_LNK_FLG}")
+
 
 ### test
 add_executable(testme EXCLUDE_FROM_ALL testme.cpp ${SOURCES})
@@ -202,16 +199,16 @@ target_link_libraries (testme  ${EXTRA_LIBS})
 
 
 GET_TARGET_PROPERTY(PYBARZER_LIBNAME pybarzer LOCATION)
-GET_TARGET_PROPERTY(BARZER_LIBNAME barzer LOCATION)
+GET_TARGET_PROPERTY(BARZER_LIBNAME barzer_shared LOCATION)
 
 #SET(CMAKE_INSTALL_SO_NO_EXE "0")
 
 SET(CMAKE_INSTALL_RPATH "${INSTALL_DIR}")
 #SET(CMAKE_INSTALL_NAME_DIR "${INSTALL_DIR}")
 
-INSTALL(TARGETS barzer.exe
+INSTALL(TARGETS barzer
         DESTINATION "${INSTALL_DIR}")
-install(TARGETS barzer
+install(TARGETS barzer_shared
         DESTINATION ${INSTALL_DIR})
 install(TARGETS pybarzer
         DESTINATION ${INSTALL_UTIL_DIR})
