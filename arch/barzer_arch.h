@@ -1,7 +1,7 @@
 #ifndef BARZER_ARCG_H
 #define BARZER_ARCG_H
 
-#ifdef _WINDOWS_
+#if defined(_WINDOWS_) || defined(WIN32)
     #include <arch/barzer_windows.h>
 #else
     #include <sys/time.h>
