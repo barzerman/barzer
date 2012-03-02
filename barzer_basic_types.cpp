@@ -3,6 +3,7 @@
 #include <barzer_dtaindex.h>
 #include <barzer_universe.h>
 #include <barzer_storage_types.h>
+#include <arch/barzer_arch.h>
 
 #include <time.h>
 #include <arch/barzer_arch.h>
