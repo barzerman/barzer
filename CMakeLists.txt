@@ -169,6 +169,9 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 ### binary
 add_executable(barzer.exe barzer.cpp)
 target_link_libraries (barzer.exe  barzer_static)
+IF (WIN32)
+    SET_TARGET_PROPERTIES(barzer.exe PROPERTIES SUFFIX "")
+ENDIF()
 
 ### test
 add_executable(testme EXCLUDE_FROM_ALL testme.cpp ${SOURCES})
