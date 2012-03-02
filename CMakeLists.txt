@@ -1,7 +1,8 @@
 cmake_minimum_required (VERSION 2.6)
 
-#Should be defined only Win32, I guess.
-#SET(Boost_USE_STATIC_LIBS   ON)
+# WINDOWS USING:
+# cmake -G "MinGW Makefiles" -DBOOST_ROOT=<boost> -DEXPAT_INCLUDE_DIR=<expat_include> -DEXPAT_LIBRARY=<expat_lib>
+
 
 SET(CC $ENV{CC})
 IF(CC STREQUAL "clang" AND NOT DEFINED ENV{CXX} AND NOT DEFINED CMAKE_CXX_COMPILER)
@@ -9,46 +10,33 @@ IF(CC STREQUAL "clang" AND NOT DEFINED ENV{CXX} AND NOT DEFINED CMAKE_CXX_COMPIL
     set(CMAKE_CXX_COMPILER "clang++")
 ENDIF()
 
-if (WIN32)
-	SET(WINLIB_DIR D:/Development/barzer-git/winlibs)
-endif()
+
 project (barzer)
 set (barzer_VERSION_MAJOR 0)
 set (barzer_VERSION_MINOR 1)
 
 set(EN_DIR "lg_en")
 set(RU_DIR "lg_ru")
-if (NOT MSVS)
+if (NOT WIN32)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} $ENV{OPT} -Wall -Wnon-virtual-dtor -fPIC")
 endif()
 	
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
-if(WIN32)
-	SET(Boost_INCLUDE_DIRS ${WINLIB_DIR}/boost_1_46_1)
-	SET(BOOST_LIBRARYDIR ${WINLIB_DIR}/boost_1_46_1/stage/lib/mingw)
-	SET(EXPAT_INCLUDE_DIRS ${WINLIB_DIR}/Expat_2_0_1/Source/lib)
-	SET(EXPAT_LIBRARIES ${WINLIB_DIR}/Expat_2_0_1/Bin)
-	SET(Boost_SYSTEM_LIBRARY ${BOOST_LIBRARYDIR}/libboost_system-mgw46-mt-1_46_1.a)
-	SET(Boost_FILESYSTEM_LIBRARY ${BOOST_LIBRARYDIR}/libboost_filesystem-mgw46-mt-1_46_1.a)
-	SET(Boost_THREAD_LIBRARY ${BOOST_LIBRARYDIR}/libboost_thread-mgw46-mt-s-1_46_1.a)
-	SET(Boost_PYTHON_LIBRARY ${BOOST_LIBRARYDIR}/libboost_python-mgw46-mt-s-1_46_1.a)
-	if(MSVS)
-		add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4800 /wd4244 /nologo" )
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} $ENV{OPT} -W0 -fPIC")
-	endif()
-	set(MINGW_SPECIFIC_LNK_FLG -lws2_32 -static-libgcc -lwsock32)
-	add_definitions(-DBOOST_THREAD_USE_LIB -DBOOST_PYTHON_STATIC_LIB)
-else()
-	find_package(Boost COMPONENTS system python thread filesystem REQUIRED)
-	find_package(EXPAT REQUIRED)
-endif()
 
+IF(WIN32)
+	SET(Boost_USE_STATIC_LIBS   ON)
+	add_definitions(-DBOOST_THREAD_USE_LIB -DBOOST_PYTHON_STATIC_LIB)
+	MESSAGE("-- Linking boost thread and python libs statically")
+ENDIF()
+
+find_package(Boost COMPONENTS system python thread filesystem REQUIRED)
+find_package(EXPAT REQUIRED)
 find_package(PythonLibs REQUIRED)
 
 
 link_directories (  ${BOOST_LIBRARYDIR}
-					${EXPAT_LIBRARIES} )
+		    ${EXPAT_LIBRARIES} )
 
 
 include_directories("${PROJECT_BINARY_DIR}"
@@ -59,8 +47,7 @@ include_directories("${PROJECT_BINARY_DIR}"
                     "${PROJECT_SOURCE_DIR}/${RU_DIR}"
                      ${Boost_INCLUDE_DIRS}
                      ${PYTHON_INCLUDE_DIRS}
-# ${EXPAT_INCLUDE_DIRS}
-                   		)
+		     ${EXPAT_INCLUDE_DIRS})
 add_subdirectory (ay)
 add_subdirectory (util)
 
@@ -68,14 +55,15 @@ set(EXTRA_LIBS ${EXTRA_LIBS}
                ${Boost_SYSTEM_LIBRARY}
                ${Boost_FILESYSTEM_LIBRARY}
                ${Boost_THREAD_LIBRARY}
-               ${EXPAT_LIBRARIES}
                ay)
+
 if(WIN32)
 	set(EXTRA_LIBS ${EXTRA_LIBS}
 			libwsock32.a
 			libws2_32.a
-	        ${EXPAT_LIBRARIES}/libexpat.lib
-			${Boost_PYTHON_LIBRARY})
+	        	${EXPAT_LIBRARIES}/libexpat.lib)
+else()
+	set(EXTRA_LIBS ${EXTRA_LIBS} ${EXPAT_LIBRARIES})
 endif()
 
 set(SOURCES barzer_barz.cpp
@@ -121,6 +109,7 @@ set(SOURCES barzer_barz.cpp
             "${RU_DIR}/barzer_ru_lex.cpp"
             "${RU_DIR}/barzer_ru_stemmer.cpp"
             )
+
 IF(NOT DEFINED INSTALL_DIR)
     set(INSTALL_DIR "/usr/share/barzer")
 ENDIF(NOT DEFINED INSTALL_DIR)
@@ -160,38 +149,27 @@ IF( ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" )
 ENDIF( ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" )
 
 ### libbarzer static
-
 add_library(barzer_static ${SOURCES})
 target_link_libraries (barzer_static ${EXTRA_LIBS})
 set_target_properties(barzer_static PROPERTIES OUTPUT_NAME barzer_static )
-SET_TARGET_PROPERTIES(barzer_static PROPERTIES LINK_FLAGS "${MINGW_SPECIFIC_LNK_FLG}")
 
 ### libbarzer shared
 add_library(barzer_shared SHARED ${SOURCES})
 target_link_libraries (barzer_shared ${EXTRA_LIBS})
 set_target_properties(barzer_shared PROPERTIES OUTPUT_NAME barzer_shared )
-SET_TARGET_PROPERTIES(barzer_shared PROPERTIES LINK_FLAGS "${MINGW_SPECIFIC_LNK_FLG}")
-
 
 ### pybarzer
-
 add_library(pybarzer SHARED barzer_python.cpp)
 target_link_libraries (pybarzer barzer_shared butil)
-
 SET_TARGET_PROPERTIES(pybarzer PROPERTIES PREFIX "")
-
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     SET_TARGET_PROPERTIES(pybarzer PROPERTIES SUFFIX ".so")
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 
-
 ### binary
-
 add_executable(barzer barzer.cpp)
 target_link_libraries (barzer  barzer_static)
-SET_TARGET_PROPERTIES(barzer PROPERTIES LINK_FLAGS "${MINGW_SPECIFIC_LNK_FLG}")
-
 
 ### test
 add_executable(testme EXCLUDE_FROM_ALL testme.cpp ${SOURCES})
