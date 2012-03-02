@@ -12,6 +12,7 @@
 #include <fstream>
 #include <stdint.h>
 #include <ay_headers.h>
+
 #include <arch/barzer_arch.h>
 
 #ifndef LOG_DISABLE

@@ -3,9 +3,7 @@
 #include <ay_headers.h>
 
 #include <arch/barzer_arch.h>
-#ifdef __linux__
-#include <sys/time.h>
-#endif
+
 #include <iostream>
 #include <iomanip>
 namespace ay {
