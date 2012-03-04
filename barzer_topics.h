@@ -13,12 +13,15 @@ class BarzTopics {
 public:
     typedef std::map< BarzerEntity, int > TopicMap;
     typedef std::pair<BarzerEntity, int> EntWeight;
+    
+    typedef std::set<uint32_t>           PropertyNameSet;
 
     typedef std::vector< EntWeight > EntWeightVec;
     TopicMap d_topics;
     
     EntWeightVec d_vec;
-    
+    /// string ids of property names
+    PropertyNameSet d_propNames;
 
     enum { 
          FILTER_MODE_LIGHT,  /// in light mode entities not filtered by anything will be displayed
@@ -27,7 +30,6 @@ public:
     
     int d_topicFilterMode;
 
-public:
     BarzTopics() : d_topicFilterMode(FILTER_MODE_LIGHT) {}
 
     bool isTopicFilterMode_strict() const { return (d_topicFilterMode==FILTER_MODE_STRICT); }
@@ -59,6 +61,9 @@ public:
         d_vec.clear();
     }
     bool hasTopics() const { return !d_topics.empty(); }
+    void addPropName( uint32_t n ) { d_propNames.insert(n); }
+
+    const PropertyNameSet& getPropNames() const { return d_propNames; }
 };
 inline bool operator<( const BarzTopics::EntWeight& l, const BarzTopics::EntWeight& r )
 { return ( l.second > r.second ); }

@@ -118,6 +118,8 @@ public:
 	void tag_cmd(RequestTag&);
 
 	void tag_rulefile(RequestTag&);
+    /// <nameval n="propertyname"/>
+	void tag_nameval(RequestTag&);
 	void tag_user(RequestTag&);
 	void tag_topic(RequestTag&);
 	void tag_trie(RequestTag&);

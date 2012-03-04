@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <barzer_universe.h>
 #include <barzer_autocomplete.h>
+#include <barzer_ghettodb.h>
 #include <ay/ay_parse.h>
 
 extern "C" {
@@ -78,6 +79,7 @@ static const ReqTagFunc* getCmdFunc(std::string &name) {
 			CMDFUN(autoc)
 			CMDFUN(qblock)
 			CMDFUN(query)
+			CMDFUN(nameval)
 			CMDFUN(cmd)
 			CMDFUN(rulefile)
 			CMDFUN(topic)
@@ -131,7 +133,7 @@ struct CmdAdd : public CmdProc<CmdAdd> {
     template <typename T>
     void operator()( const T& t )
     {
-        std::cerr << "invalid add\n";
+        parser.stream() << "invalid add\n";
     }
     /*
 	void operator()(const TrieId &tid) {
@@ -156,7 +158,7 @@ struct CmdClear : public CmdProc<CmdClear> {
 		if( up ) 
 			up->clear();
 		else {
-			parser.stream() << "<error>invalid userid " << uid.id << "</error>";
+			parser.stream() << "<error>invalid user id " << uid.id << "</error>";
 		}
 	}
 	void operator()(const TrieId &tid) {
@@ -388,11 +390,31 @@ void BarzerRequestParser::tag_qblock(RequestTag &tag) {
     d_query.clear();
 }
 
+void BarzerRequestParser::tag_nameval(RequestTag &tag) {
+	AttrList &attrs = tag.attrs;
+	AttrList::iterator it = attrs.find("n");
+    if( it != attrs.end() ) {
+        if( d_universe ) {
+            const Ghettodb& ghettoDb = d_universe->getGhettodb();
+            const char* propName = it->second.c_str();
+            uint32_t n = d_universe->getGhettodb().getStringId(propName);
+            if( n!= 0xffffffff ) {
+                barz.topicInfo.addPropName( n );
+            } else {
+                stream() << "<error>field " << propName << " doesnt exist</error>\n";
+            }
+        } else {
+            stream() << "<error>no valid universe</error>\n";
+        }
+    }
+}
+
 void BarzerRequestParser::tag_query(RequestTag &tag) {
 	AttrList &attrs = tag.attrs;
 	AttrList::iterator it = attrs.find("u");
 	if( it != attrs.end() ) {
 		userId = atoi(it->second.c_str());
+        d_universe = gpools.getUniverse(userId);
 	} else
         userId = 0;
 

@@ -10,6 +10,7 @@
 #include <ay/ay_raii.h>
 #include <boost/format.hpp>
 #include <barzer_universe.h>
+#include <barzer_ghettodb.h>
 #include <sstream>
 
 namespace barzer {
@@ -97,16 +98,27 @@ std::ostream& printTo<BarzerDateTime>(std::ostream &os,
 	return printTo(printTo(os, dt.getDate()) << " ", dt.getTime());
 }
 
+namespace {
+    struct PropCallback {
+        std::ostream& d_os;
+        PropCallback( std::ostream& os ) : d_os(os) {}
+        void operator()( const char* n, const char* v ) 
+        {
+            d_os << "\n<nv n=\"" << n << "\" v=\"" << v << "\"/>";
+        }
+    };
+}
 class BeadVisitor : public boost::static_visitor<bool> {
 	std::ostream &os;
 	const StoredUniverse &universe;
 	const BarzelBead	&d_bead;
+    const Barz& d_barz;
 	size_t lvl;
 
 	bool d_ptintTtok;
 public:
-	BeadVisitor(std::ostream &s, const StoredUniverse &u, const BarzelBead& b) : 
-		os(s), universe(u), d_bead(b),  lvl(0), d_ptintTtok(true) {}
+	BeadVisitor(std::ostream &s, const StoredUniverse &u, const BarzelBead& b, const Barz& barz ) : 
+		os(s), universe(u), d_bead(b),  lvl(0), d_ptintTtok(true), d_barz(barz) {}
 
 	void printTTokenTag( )
 	{
@@ -270,14 +282,32 @@ public:
 		} else if( euid.isTokIdValid() ) {
 			os << "INVALID_TOK[" << euid.eclass << "," << std::hex << euid.tokId << "]";
 		}
-        if( attrs ) {
-            static const char *tmpl = "class=\"%1%\" subclass=\"%2%\" %3% />";
-            os << boost::format(tmpl) % euid.eclass.ec % euid.eclass.subclass % attrs;
+
+        if( d_barz.hasProperties() ) {
+            if( attrs ) {
+                static const char *tmpl = "class=\"%1%\" subclass=\"%2%\" %3%>";
+                os << boost::format(tmpl) % euid.eclass.ec % euid.eclass.subclass % attrs;
+            } else {
+                static const char *tmpl = "class=\"%1%\" subclass=\"%2%\">";
+                os << boost::format(tmpl) % euid.eclass.ec % euid.eclass.subclass;
+            }
+            const Ghettodb& gd = universe.getGhettodb();  
+            PropCallback callback(os);
+            gd.iterateProperties( 
+                callback,
+                d_barz.topicInfo.getPropNames().begin(), 
+                d_barz.topicInfo.getPropNames().end(), 
+                euid );
+		    os << "\n</entity>";
         } else {
-            static const char *tmpl = "class=\"%1%\" subclass=\"%2%\" />";
-            os << boost::format(tmpl) % euid.eclass.ec % euid.eclass.subclass;
-        }
-		//os << "</entity>";
+            if( attrs ) {
+                static const char *tmpl = "class=\"%1%\" subclass=\"%2%\" %3% />";
+                os << boost::format(tmpl) % euid.eclass.ec % euid.eclass.subclass % attrs;
+            } else {
+                static const char *tmpl = "class=\"%1%\" subclass=\"%2%\" />";
+                os << boost::format(tmpl) % euid.eclass.ec % euid.eclass.subclass;
+            }
+        } 
 	}
 
 
@@ -434,7 +464,7 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 	        os << "\n";
 	        // tag_raii beadtag(os, "bead");
 			os << "<bead n=\"" << curBeadNum << "\">\n" ;
-	        BeadVisitor v(os, universe, *bli);
+	        BeadVisitor v(os, universe, *bli, barz );
 	        if (boost::apply_visitor(v, bli->getBeadData())) {
 	            os << "\n    ";
 	            v.printTTokenTag();
@@ -457,7 +487,7 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
     if( !topicMap.empty() ) {
         os << "<topics>\n";
         BarzelBead fakeBead;
-	    BeadVisitor v(os, universe, fakeBead );
+	    BeadVisitor v(os, universe, fakeBead, barz  );
         for( BarzTopics::TopicMap::const_iterator topI = topicMap.begin(); topI != topicMap.end(); ++topI ) {
             os << "    ";
             std::stringstream sstr;

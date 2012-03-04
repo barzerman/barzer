@@ -121,11 +121,12 @@ public:
 
 	BarzelTrace barzelTrace;
     BarzTopics  topicInfo;
-	
 
     bool lastFrameLoop() const { return barzelTrace.lastFrameLoop(); }
     void pushError( const char* err ) { barzelTrace.pushError(err); }
     void setError( const char* err ) { barzelTrace.setError(err); }
+    
+    bool hasProperties() const { return topicInfo.getPropNames().size(); }
 
     // analyzing trace to determine whether something is wrong and we're in a rewriting loop
     bool shouldTerminate() const

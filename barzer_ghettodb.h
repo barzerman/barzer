@@ -66,7 +66,24 @@ public:
         Key k;
         return store(k,euid,keyStr,val);
     }
+
+    /// given an entity, a range of iterators pointing to property name ids iterates over all properties and calls back
+    /// callback is passed two const char* for name and value
+    template <typename CB, typename Iterator>
+    void iterateProperties( CB& cb, const Iterator& fromI, const Iterator& toI, const StoredEntityUniqId& euid ) const {
+        for( Iterator i  = fromI; i!= toI; ++i ) {
+            uint32_t    nameStrId = *i;
+            const char* name = d_strPool.resolveId(nameStrId);
+            if( name ) {
+                Key k( euid, nameStrId );
+                const char* v = get_value_str_nullable( k );
+                if( v ) 
+                    cb( name, v );
+            }
+        }
+    }
 };
+
 
 }
 #endif //  BARZER_GHETTODB_H 
