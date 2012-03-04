@@ -25,9 +25,31 @@ static void startElement(void* ud, const XML_Char *n, const XML_Char **a)
 	if( attrCount <=0 || (attrCount & 1) ) attrCount = 0; // odd number of attributes is invalid
 	rp->addTag(name);
     
-	for (int i = 0; i < attrCount; i += 2) {
-		rp->setAttr(atts[i], atts[i+1]);
-	}
+    if( !rp->getUniverse() ) {
+        if( 
+            (name[0] == 'q' &&(!strcmp(name,"query") || !strcmp(name,"qblock"))) ||
+            (name[0] == 'a' && !strcmp(name,"autoc")) 
+        ) 
+        { /// processing query/qblock - resolving universe and userId early on
+            if( !strcmp(name,"query") || !strcmp(name,"qblock") ) {
+                for (int i = 0; i < attrCount; i += 2) {
+                    const char * attrName = atts[i];
+                    const char * attrVal = atts[i+1];
+                    if( attrName[0] == 'u' && !attrName[1] ) {
+                        int userId = atoi(attrVal);
+                        if( !rp->setUniverseId( atoi(attrVal) ) ) {
+                            rp->stream() << "<error>\"" << attrVal << "\" is not a valid user number\n";
+                        }
+                    }
+                    rp->setAttr(attrName, attrVal );
+                }
+            }
+        }
+    } else {
+    }
+    for (int i = 0; i < attrCount; i += 2) {
+        rp->setAttr(atts[i], atts[i+1]);
+    }
 }
 
 // cast to XML_EndElementHandler
@@ -58,10 +80,10 @@ BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s, uint3
     os(s),
     d_aggressiveStem(false)
 {
-		parser = XML_ParserCreate(NULL);
-		XML_SetUserData(parser, this);
-		XML_SetElementHandler(parser, &startElement, &endElement);
-		XML_SetCharacterDataHandler(parser, &charDataHandle);
+    parser = XML_ParserCreate(NULL);
+    XML_SetUserData(parser, this);
+    XML_SetElementHandler(parser, &startElement, &endElement);
+    XML_SetCharacterDataHandler(parser, &charDataHandle);
 }
 
 BarzerRequestParser::~BarzerRequestParser()
@@ -94,6 +116,13 @@ static const ReqTagFunc* getCmdFunc(std::string &name) {
 }
 #undef CMDFUN
 
+
+const StoredUniverse*  BarzerRequestParser::setUniverseId( int id )
+{
+    userId = id;
+    d_universe = gpools.getUniverse(id);
+    return d_universe;
+}
 
 void BarzerRequestParser::setBody(const std::string &s) {
 	getTag().body.append(s);
@@ -342,8 +371,10 @@ void BarzerRequestParser::tag_autoc(RequestTag &tag)
         const std::string& v = a->second;
         switch( a->first[0] ) {
         case 'u': 
-            userId = atoi(a->second.c_str()); 
-            d_universe = gp.getUniverse(userId);
+            if( !d_universe ) {
+                userId = atoi(a->second.c_str()); 
+                d_universe = gp.getUniverse(userId);
+            }
             if( !d_universe ) {
                 os << "<error>invalid user id " << userId << "</error>\n";
                 return;
@@ -411,12 +442,17 @@ void BarzerRequestParser::tag_nameval(RequestTag &tag) {
 
 void BarzerRequestParser::tag_query(RequestTag &tag) {
 	AttrList &attrs = tag.attrs;
-	AttrList::iterator it = attrs.find("u");
-	if( it != attrs.end() ) {
-		userId = atoi(it->second.c_str());
+
+
+    AttrList::iterator it;
+    if( !d_universe ) {
+	    it = attrs.find("u");
+	    if( it != attrs.end() ) {
+		    userId = atoi(it->second.c_str());
+	    } else
+            userId = 0;
         d_universe = gpools.getUniverse(userId);
-	} else
-        userId = 0;
+    }
 
 	it = attrs.find("as"); // aggressive stemming 
     if( it != attrs.end() ) 

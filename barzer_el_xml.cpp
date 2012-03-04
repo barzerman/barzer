@@ -98,8 +98,8 @@ bool BELParserXML::isValidTag( int tag, int parent ) const
 		break;
 	case TAG_TRANSLATION:
 		return true;
-    case TAG_STMSET:
-        return ( tag == TAG_MKENT || tag == TAG_STMSET );
+    case TAG_STMSET: /// MKENT and STATEMENT can be children of STMSET
+        return ( tag == TAG_MKENT || tag == TAG_STATEMENT );
     case TAG_MKENT:
         return ( tag == TAG_NV );
 	default:
