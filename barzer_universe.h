@@ -247,6 +247,7 @@ public:
 
 class BZSpell;
 
+class Ghettodb;
 class StoredUniverse {
 	uint32_t d_userId;
 public:
@@ -256,6 +257,7 @@ private:
 	UniverseTrieCluster          topicTrieCluster;
 
 	BZSpell*             bzSpell;
+    Ghettodb*            d_ghettoDb;
 
 	typedef boost::unordered_map< uint32_t, bool > StringIdSet;
 
@@ -346,6 +348,8 @@ public:
 	const GlobalPools& getGlobalPools() const { return gp; }
 
 	explicit StoredUniverse(GlobalPools& gp, uint32_t id );
+    ~StoredUniverse();
+
 	const DtaIndex& getDtaIdx() const { return gp.dtaIdx; }
 		  DtaIndex& getDtaIdx() 	  { return gp.dtaIdx; }
 
@@ -458,6 +462,9 @@ public:
         { return( topic ? getTopicTrieByUniqueId(tid) : getRuleTrieByUniqueId(tid) ); }
     const BELTrie* getTrieByUniqueId( uint32_t tc, uint32_t tid ) const
         { return getRuleTrieByUniqueId( BELTrie::UniqueTrieId(tc, tid)); }
+    
+    Ghettodb&       getGhettodb()       { return *d_ghettoDb; }
+    const Ghettodb& getGhettodb() const { return *d_ghettoDb; }
 };
 
 inline StoredUniverse& GlobalPools::produceUniverse( uint32_t id )

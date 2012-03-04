@@ -1,6 +1,7 @@
 #include <barzer_emitter.h>
 #include <barzer_el_xml.h>
 #include <barzer_universe.h>
+#include <barzer_ghettodb.h>
 #include <ay/ay_debug.h>
 extern "C" {
 #include <expat.h>
@@ -95,9 +96,12 @@ bool BELParserXML::isValidTag( int tag, int parent ) const
 		return false;
 	}
 		break;
-
 	case TAG_TRANSLATION:
 		return true;
+    case TAG_STMSET:
+        return ( tag == TAG_MKENT || tag == TAG_STMSET );
+    case TAG_MKENT:
+        return ( tag == TAG_NV );
 	default:
 		return true;
 	}
@@ -197,8 +201,12 @@ void BELParserXML::taghandle_STMSET( const char_cp * attr, size_t attr_sz, bool 
         trieClass = reader->getGlobalPools().internString_internal("") ;
         trieId = reader->getGlobalPools().internString_internal("") ;
 		reader->setTrie(trieClass,trieId);
+        reader->setCurrentUniverse(0);
 		return;
 	}
+    enum { BRZ_INVALID_USER_NUMBER  = -1 };
+    int userNumber = BRZ_INVALID_USER_NUMBER;
+
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
@@ -211,6 +219,9 @@ void BELParserXML::taghandle_STMSET( const char_cp * attr, size_t attr_sz, bool 
             trieId = reader->getGlobalPools().internString_internal(v) ;
             ti =v;
             break;
+        case 'u':
+            userNumber = atoi( v );
+            break;
 		}
 	}
 
@@ -221,6 +232,11 @@ void BELParserXML::taghandle_STMSET( const char_cp * attr, size_t attr_sz, bool 
         
 	if ( tc || ti ) 
 		reader->setTrie( trieClass , trieId );
+    // setting current universe  
+    if( userNumber> BRZ_INVALID_USER_NUMBER ) {
+        StoredUniverse& universe = reader->getGlobalPools().produceUniverse(userNumber);
+        reader->setCurrentUniverse( &universe );
+    }
 }
 void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bool close )
 {
@@ -1050,10 +1066,39 @@ void BELParserXML::taghandle_LITERAL( const char_cp * attr, size_t attr_sz , boo
 	statement.pushNode( BTND_RewriteData(literal) );
 }
 
+void BELParserXML::taghandle_NV( const char_cp * attr, size_t attr_sz , bool close)
+{
+    if( close ) {
+        return;
+    }
+    const char* name = 0;
+    const char* value = 0;
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+        switch( n[0] ){
+        case 'n':
+            break;
+        case 'v':
+            break;
+        }
+    }
+    if( name && value ) {
+        StoredUniverse* uni = reader->getCurrentUniverse();
+        if( uni ) {
+            uni->getGhettodb().store( statement.getCurEntity(), name, value );
+        } else {
+            reader->getErrStreamRef() << "<error> NV tags ignored without universe set</error>\n";
+        }
+    }
+}
 void BELParserXML::taghandle_MKENT( const char_cp * attr, size_t attr_sz , bool close)
 {
 	if( close ) {
-		statement.popNode();
+        if( !statement.isBlank() ) 
+		    statement.popNode();
+        else 
+            statement.clearCurEntity();
 		return;
 	}
 	BTND_Rewrite_MkEnt mkent;
@@ -1094,11 +1139,13 @@ void BELParserXML::taghandle_MKENT( const char_cp * attr, size_t attr_sz , bool 
     if( statement.hasPattern() || statement.isProc() ) {
         /// 
 	    statement.pushNode( BTND_RewriteData(mkent));
+    } else {
+        statement.setCurEntity( ent.getEuid() );
     }
     /// adding deduced entity name 
     {
         std::string theName;
-        if( !canonicName || !*canonicName ) {
+        if( statement.hasPattern() && (!canonicName || !*canonicName) ) {
                 statement.stmt.pattern.getDescriptiveNameFromPattern_simple( theName, gp ) ;
         } else 
             theName.assign(canonicName);
@@ -1382,6 +1429,7 @@ int BELParserXML::getTag( const char* s ) const
 		break;
 	case 'n':
 	CHECK_1CW(TAG_N) // <n>
+	CHECK_2CW("v",TAG_NV) // <n>
 	CHECK_3CW("ot",TAG_NOT) // <not>
 		break;
 	case 'o':
@@ -1434,7 +1482,9 @@ void BELParserXML::CurStatementData::clear()
 	procNameId = 0xffffffff;
 	macroNameId=0xffffffff;
 
-	state = STATE_BLANK;
+    /// sets blank and clears current entity
+	setBlank(); 
+
     stmt.clearUnmatchable();
 	stmt.translation.clear();
 	stmt.pattern.clear();

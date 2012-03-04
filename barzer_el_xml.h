@@ -75,6 +75,8 @@ public:
 		TAG_LITERAL, // <ltrl>
 		TAG_RNUMBER, // <rn>
 		TAG_MKENT, // <mkent c="class" sc="subclass" id="UNIQID"> 
+		TAG_NV, // <nv n="somename" v="somevalue">
+
 		TAG_VAR, // <var>
 		TAG_FUNC, // function
 		TAG_SELECT,
@@ -101,6 +103,8 @@ public:
         uint32_t macroNameId;
 		uint32_t procNameId;
 
+        StoredEntityUniqId d_curEntity;        
+
 		enum {
 			BIT_HAS_PATTERN,
 			BIT_HAS_TRANSLATION,
@@ -122,7 +126,10 @@ public:
 		void clear(); 
 
 		std::stack< BELParseTreeNode* > nodeStack;
-
+        
+        const StoredEntityUniqId& getCurEntity() const { return d_curEntity; }
+        void clearCurEntity() { d_curEntity = StoredEntityUniqId(); }
+        void setCurEntity( const StoredEntityUniqId& euid ) { d_curEntity = euid; }
 		BELParseTreeNode* getCurTreeNode()
 		{
 			if( nodeStack.empty() ) {
@@ -159,7 +166,9 @@ public:
 		// when endElement() for pattern/translate should call this 
 		void setBlank() { 
 			state = STATE_BLANK; 
+            clearCurEntity();
 		}
+        bool isBlank() const { return(state==STATE_BLANK) ; }
 		
 		template <typename T>
 		BELParseTreeNode* pushNode( const T& t )
@@ -263,6 +272,10 @@ public:
 	// <rn>
 	void taghandle_RNUMBER( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_MKENT( const char_cp * attr, size_t attr_sz , bool close=false);
+    /// name value pair (can be inside entity or on its own)
+    /// attributes n,v for nme and value 
+	void taghandle_NV( const char_cp * attr, size_t attr_sz , bool close=false);
+
 
 	void taghandle_LITERAL( const char_cp * attr, size_t attr_sz , bool close=false);
 

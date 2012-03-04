@@ -49,16 +49,22 @@ public:
     const char* get_value_str_nullable( const StoredEntityUniqId& euid, const char* s ) const 
         { return get_value_str_nullable( Key(euid, getStringId(s)) ); }
 
-    const char* get_value_str_safe( const StoredEntityUniqId& euid, const char* s ) const 
-        { const char* s =  get_value_str_nullable( Key(euid, getStringId(s)) ); if( s ) return s; else return ""; }
+    const char* get_value_str_safe( const StoredEntityUniqId& euid, const char* k ) const 
+        { const char* s =  get_value_str_nullable( Key(euid, getStringId(k)) ); if( s ) return s; else return ""; }
     
     template <typename T>
     KeyValueMap::const_iterator store( Key& k, const StoredEntityUniqId& euid, const char* keyStr, const T& val ) 
     {
         mkKey( k, euid, keyStr );
         Value v;
-        mkValue( v, euid, val );
+        mkValue( v, val );
         return d_kvMap.insert( KeyValueMap::value_type(k,v) ).first;
+    }
+    template <typename T>
+    KeyValueMap::const_iterator store( const StoredEntityUniqId& euid, const char* keyStr, const T& val ) 
+    {
+        Key k;
+        return store(k,euid,keyStr,val);
     }
 };
 

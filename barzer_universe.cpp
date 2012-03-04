@@ -1,5 +1,6 @@
 #include <barzer_universe.h>
 #include <barzer_bzspell.h>
+#include <barzer_ghettodb.h>
 #include <ay/ay_cmdproc.h>
 
 namespace barzer {
@@ -236,8 +237,15 @@ StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	gp(g),
 	trieCluster(g.globalTriePool,*this),
 	topicTrieCluster(g.globalTriePool,*this),
-	bzSpell(new BZSpell(*this))
+	bzSpell(new BZSpell(*this)),
+    d_ghettoDb(new Ghettodb())
 {}
+
+StoredUniverse::~StoredUniverse()
+{
+    delete bzSpell;
+    delete d_ghettoDb;
+}
 
 size_t   StoredUniverse::internString( const char* s, bool asUserSpecific, uint8_t frequency )
 {
