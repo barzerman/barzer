@@ -100,11 +100,23 @@ std::ostream& printTo<BarzerDateTime>(std::ostream &os,
 
 namespace {
     struct PropCallback {
-        std::ostream& d_os;
-        PropCallback( std::ostream& os ) : d_os(os) {}
+        std::ostream&   d_os;
+        uint32_t        d_otherUniverseNumber; 
+
+        PropCallback( std::ostream& os ) : 
+            d_os(os) ,
+            d_otherUniverseNumber(0xffffffff)
+        {}
+        PropCallback( std::ostream& os, uint32_t u ) : 
+            d_os(os) ,
+            d_otherUniverseNumber(u)
+        {}
         void operator()( const char* n, const char* v ) 
         {
-            d_os << "\n<nv n=\"" << n << "\" v=\"" << v << "\"/>";
+            if( d_otherUniverseNumber == 0xffffffff ) 
+                d_os << "<nv n=\"" << n << "\" v=\"" << v << "\"/>";
+            else
+                d_os << "<nv n=\"" << n << "\" v=\"" << v << "\" u=\"" << d_otherUniverseNumber << "\"/>";
         }
     };
 }
@@ -298,7 +310,22 @@ public:
                 d_barz.topicInfo.getPropNames().begin(), 
                 d_barz.topicInfo.getPropNames().end(), 
                 euid );
-		    os << "\n</entity>";
+
+            // if current univere is not 0 and we have some 0 universe properties
+            if( universe.getUserId() && d_barz.hasZeroUniverseProperties() ) {
+                const StoredUniverse* zeroUniverse = universe.getGlobalPools().getUniverse(0);
+                if( zeroUniverse ) {
+                    const Ghettodb& zeroGd = zeroUniverse->getGhettodb();
+                    PropCallback zeroUniverseCallback(os,0);
+                    zeroGd.iterateProperties(
+                        zeroUniverseCallback,
+                        d_barz.topicInfo.getPropNamesZeroUniverse().begin(), 
+                        d_barz.topicInfo.getPropNamesZeroUniverse().end(), 
+                        euid );
+                }
+            }
+
+		    os << "</entity>";
         } else {
             if( attrs ) {
                 static const char *tmpl = "class=\"%1%\" subclass=\"%2%\" %3% />";

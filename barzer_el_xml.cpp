@@ -168,6 +168,7 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 	CASE_TAG(LITERAL)
 	CASE_TAG(RNUMBER)
 	CASE_TAG(MKENT)
+	CASE_TAG(NV)
 	CASE_TAG(VAR)
 	CASE_TAG(FUNC)
 	CASE_TAG(SELECT)
@@ -201,12 +202,8 @@ void BELParserXML::taghandle_STMSET( const char_cp * attr, size_t attr_sz, bool 
         trieClass = reader->getGlobalPools().internString_internal("") ;
         trieId = reader->getGlobalPools().internString_internal("") ;
 		reader->setTrie(trieClass,trieId);
-        reader->setCurrentUniverse(0);
 		return;
 	}
-    enum { BRZ_INVALID_USER_NUMBER  = -1 };
-    int userNumber = BRZ_INVALID_USER_NUMBER;
-
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
@@ -219,9 +216,6 @@ void BELParserXML::taghandle_STMSET( const char_cp * attr, size_t attr_sz, bool 
             trieId = reader->getGlobalPools().internString_internal(v) ;
             ti =v;
             break;
-        case 'u':
-            userNumber = atoi( v );
-            break;
 		}
 	}
 
@@ -233,10 +227,6 @@ void BELParserXML::taghandle_STMSET( const char_cp * attr, size_t attr_sz, bool 
 	if ( tc || ti ) 
 		reader->setTrie( trieClass , trieId );
     // setting current universe  
-    if( userNumber> BRZ_INVALID_USER_NUMBER ) {
-        StoredUniverse& universe = reader->getGlobalPools().produceUniverse(userNumber);
-        reader->setCurrentUniverse( &universe );
-    }
 }
 void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bool close )
 {
@@ -1078,8 +1068,10 @@ void BELParserXML::taghandle_NV( const char_cp * attr, size_t attr_sz , bool clo
 		const char* v = attr[i+1]; // attr value
         switch( n[0] ){
         case 'n':
+            name = v;
             break;
         case 'v':
+            value = v;
             break;
         }
     }
@@ -1136,16 +1128,16 @@ void BELParserXML::taghandle_MKENT( const char_cp * attr, size_t attr_sz , bool 
     GlobalPools& gp = reader->getGlobalPools();
 	const StoredEntity& ent  = gp.getDtaIdx().addGenericEntity( idStr, eclass, subclass );
 	mkent.setEntId( ent.entId );
+    statement.setCurEntity( ent.getEuid() );
     if( statement.hasPattern() || statement.isProc() ) {
         /// 
 	    statement.pushNode( BTND_RewriteData(mkent));
-    } else {
-        statement.setCurEntity( ent.getEuid() );
     }
     /// adding deduced entity name 
     {
         std::string theName;
-        if( statement.hasPattern() && (!canonicName || !*canonicName) ) {
+        if( !canonicName || !*canonicName ) {
+            if( statement.hasPattern() )
                 statement.stmt.pattern.getDescriptiveNameFromPattern_simple( theName, gp ) ;
         } else 
             theName.assign(canonicName);

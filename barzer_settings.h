@@ -59,8 +59,11 @@ struct User {
 	void addTrie(const TriePath&, bool isTopicTrie, GrammarInfo* );
 
 	uint32_t getId() const { return id;}
+
 	StoredUniverse& getUniverse() { return universe; }
 	const StoredUniverse& getUniverse() const { return universe; }
+	StoredUniverse* getUniversePtr() { return &universe; }
+	const StoredUniverse* getUniversePtr() const { return &universe; }
 };
 
 struct Rulefile {

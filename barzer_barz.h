@@ -126,7 +126,8 @@ public:
     void pushError( const char* err ) { barzelTrace.pushError(err); }
     void setError( const char* err ) { barzelTrace.setError(err); }
     
-    bool hasProperties() const { return topicInfo.getPropNames().size(); }
+    bool hasProperties() const { return topicInfo.hasProperties(); }
+    bool hasZeroUniverseProperties() const { return topicInfo.hasZeroUniverseProperties(); }
 
     // analyzing trace to determine whether something is wrong and we're in a rewriting loop
     bool shouldTerminate() const

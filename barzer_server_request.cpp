@@ -432,6 +432,16 @@ void BarzerRequestParser::tag_nameval(RequestTag &tag) {
             if( n!= 0xffffffff ) {
                 barz.topicInfo.addPropName( n );
             } else {
+                /// implementing fall through into universe 0
+                if( d_universe->getUserId() ) {
+                    const StoredUniverse* zeroUniverse = gpools.getUniverse(0);
+                    n = ( zeroUniverse ? zeroUniverse->getGhettodb().getStringId(propName) : 0xffffffff );
+
+                    if( n!= 0xffffffff ) {
+                        barz.topicInfo.addPropNameZeroUniverse( n );
+                        return;
+                    }
+                }
                 stream() << "<error>field " << propName << " doesnt exist</error>\n";
             }
         } else {

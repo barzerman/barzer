@@ -22,6 +22,8 @@ public:
     EntWeightVec d_vec;
     /// string ids of property names
     PropertyNameSet d_propNames;
+    // property names in zero universe (if any)
+    PropertyNameSet d_zeroUniversePropNames;
 
     enum { 
          FILTER_MODE_LIGHT,  /// in light mode entities not filtered by anything will be displayed
@@ -30,6 +32,8 @@ public:
     
     int d_topicFilterMode;
 
+    bool hasZeroUniverseProperties() const { return d_zeroUniversePropNames.size(); }
+    bool hasProperties() const { return(d_propNames.size() || d_zeroUniversePropNames.size()); }
     BarzTopics() : d_topicFilterMode(FILTER_MODE_LIGHT) {}
 
     bool isTopicFilterMode_strict() const { return (d_topicFilterMode==FILTER_MODE_STRICT); }
@@ -59,11 +63,15 @@ public:
     void clear() {
         d_topics.clear();
         d_vec.clear();
+        d_propNames.clear();
+        d_zeroUniversePropNames.clear();
     }
     bool hasTopics() const { return !d_topics.empty(); }
     void addPropName( uint32_t n ) { d_propNames.insert(n); }
+    void addPropNameZeroUniverse( uint32_t n ) { d_zeroUniversePropNames.insert(n); }
 
     const PropertyNameSet& getPropNames() const { return d_propNames; }
+    const PropertyNameSet& getPropNamesZeroUniverse() const { return d_zeroUniversePropNames; }
 };
 inline bool operator<( const BarzTopics::EntWeight& l, const BarzTopics::EntWeight& r )
 { return ( l.second > r.second ); }

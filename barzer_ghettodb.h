@@ -68,7 +68,7 @@ public:
     }
 
     /// given an entity, a range of iterators pointing to property name ids iterates over all properties and calls back
-    /// callback is passed two const char* for name and value
+    /// callback is passed two const char* for name and value 
     template <typename CB, typename Iterator>
     void iterateProperties( CB& cb, const Iterator& fromI, const Iterator& toI, const StoredEntityUniqId& euid ) const {
         for( Iterator i  = fromI; i!= toI; ++i ) {

@@ -34,6 +34,7 @@ struct StoredEntityClass {
 		if( !ec ) return true;
 		else return ( (ec == other.ec) && (!subclass || subclass == other.subclass) );
 	}
+    bool lowerClass( uint32_t c ) const { return ( ec< c); }
 };
 
 inline std::ostream& operator <<( std::ostream& fp, const StoredEntityClass& x )
@@ -86,7 +87,7 @@ struct StoredEntityUniqId {
 
     const StoredEntityClass& getClass()  const { return eclass; }
     uint32_t getTokId() const { return tokId; }
-
+    bool     lowerClass( uint32_t c ) const { return eclass.lowerClass(c); }
 };
 inline std::ostream& operator <<(std::ostream& fp, const StoredEntityUniqId& x )
 {
