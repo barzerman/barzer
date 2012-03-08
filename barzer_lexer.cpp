@@ -228,6 +228,27 @@ struct SpellCorrectResult
         d_result (res) , d_nextTtok (tt) , d_nextCtok (ct) {}
 };
 
+namespace {
+
+bool forceLowerCase( char* buf, size_t len , int16_t lang )
+{
+    if( Lang::isTwoByteLang(lang) ) {
+        return Lang::convertTwoByteToLower( buf, len, lang );
+    } else {
+        bool hasUpperCase = false;
+        const char* buf_end = buf+len;
+        for( char* ss = buf; (ss< buf_end && *ss); ++ss ) {
+            if( isupper(*ss) ) {
+                if( !hasUpperCase ) hasUpperCase= true;
+                *ss = tolower(*ss);
+            }
+        }
+        return hasUpperCase;
+    }
+}
+
+}
+
 SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPosVec, PosedVec<TTWPVec> tPosVec, const QuestionParm& qparm)
 {
 	CToken& ctok = cPosVec.element().first;
@@ -239,8 +260,12 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 		return SpellCorrectResult (0, ++cPosVec, ++tPosVec);
 	const GlobalPools& gp = d_universe.getGlobalPools();
 
-	bool isAsciiToken = ttok.isAscii();
+    int16_t lang = Lang::getLang( ttok.getBuf(), ttok.getLen() );
+    bool isTwoByteLang = Lang::isTwoByteLang(lang);    
+    size_t bytesPerChar = ( isTwoByteLang ? 2 : 1 );
+	bool isAsciiToken = ( lang == LANG_ENGLISH );
 	std::string ascifiedT;
+
 	// bool startWithSpelling = true;
 	const BZSpell* bzSpell = d_universe.getBZSpell();
 
@@ -248,13 +273,42 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 	/// there are non ascii characters in the string
 	const char* theString = t;
 
-	if( !isAsciiToken ) {
-		if( ay::umlautsToAscii( ascifiedT, t ) )
+    size_t charsInWord = ttok.getNumChar(bytesPerChar);
+
+
+	if( isAsciiToken ) {
+        /// some other special processing for ascii
+    } else { /// encountered a non ascii token ina  1-byte language 
+        /// this will strip euro language accents
+		if( !isTwoByteLang && ay::umlautsToAscii( ascifiedT, t ) )
 			correctedStr = ascifiedT.c_str();
 		theString = ( correctedStr? correctedStr: ascifiedT.c_str() ) ;
 	}
 	uint32_t strId = 0xffffffff;
 	int isUsersWord =  bzSpell->isUsersWord( strId, theString ) ;
+
+    /// short word case - we only do case correction
+    if( !isUsersWord && charsInWord <= MIN_SPELL_CORRECT_LEN ) {
+        char buf[ 32 ];
+		strncpy( buf, theString, sizeof(buf) );
+		buf[ sizeof(buf)-1 ] = 0;
+        bool hasUpperCase = forceLowerCase( buf, t_len, lang );
+        if( hasUpperCase ) {
+		    const StoredToken* tmpTok = dtaIdx->getStoredToken( buf );
+            if( tmpTok ) {
+                ctok.storedTok = tmpTok;
+                ctok.syncClassInfoFromSavedTok ();
+                return SpellCorrectResult (1, ++cPosVec, ++tPosVec);
+            } else {
+		        ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
+                return SpellCorrectResult (-1, ++cPosVec, ++tPosVec);
+            }
+                
+        } else {
+            ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
+		    return SpellCorrectResult (-1, ++cPosVec, ++tPosVec);
+        }
+    }
 
 
 	char buf[ BZSpell::MAX_WORD_LEN ] ;
@@ -281,15 +335,8 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 		    strncpy( buf, theString, BZSpell::MAX_WORD_LEN );
 		    buf[ sizeof(buf)-1 ] = 0;
             size_t buf_len=strlen(buf);
-            int16_t lang = Lang::getLang( buf, buf_len );
             if( lang == LANG_ENGLISH ) {
-		        bool hasUpperCase = false;
-		        for( char* ss = buf; *ss; ++ss ) {
-			        if( isupper(*ss) ) {
-				        if( !hasUpperCase ) hasUpperCase= true;
-				        *ss = tolower(*ss);
-			        }
-		        }
+		        bool hasUpperCase = forceLowerCase( buf, buf_len, lang);
 		        theString = buf;
 		        if( hasUpperCase ) {
 			        isUsersWord =  bzSpell->isUsersWord( strId, theString ) ;
@@ -299,7 +346,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 			        ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
 			        return SpellCorrectResult (0, ++cPosVec, ++tPosVec);
 		        }
-            } else if(Lang::isTwoByteLang(lang)) {
+            } else if(isTwoByteLang) {
                 bool hasUpperCase = Lang::convertTwoByteToLower( buf, buf_len, lang );
                 if( hasUpperCase )
                     isUsersWord =  bzSpell->isUsersWord( strId, buf ) ;

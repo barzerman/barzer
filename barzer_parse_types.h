@@ -37,6 +37,8 @@ struct TToken {
 	int getPunct() const
 		{ return( buf && len ? buf[0] : ((int)'|') ); }
 
+    size_t getLen() const { return len; }
+    const char*  getBuf() const { return buf; }
 	std::ostream& print( FILE* fp ) const;
 	std::ostream& print( std::ostream& fp ) const;
 
@@ -52,6 +54,11 @@ struct TToken {
 
 			return true;
 		}
+    
+    size_t getNumChar( size_t bytesPerChar = 1 ) const 
+    {
+        return ( bytesPerChar<=1 ? len : (len/bytesPerChar) );
+    }
 };
 
 inline std::ostream& operator<<( std::ostream& fp, const TToken& t ) { return (t.print(fp)); }
