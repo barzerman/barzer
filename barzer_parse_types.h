@@ -94,7 +94,7 @@ struct CToken {
 	std::string correctedStr;
 
     const StoredToken*  getStemTok() const { return stemTok; }
-    void                setStemTok(const StoredToken* t) const { stemTok=t; }
+    void                setStemTok(const StoredToken* t) { stemTok=t; }
     bool                stemTokSameAsStored() const { return (storedTok == stemTok); }
     void                syncStemAndStoredTok() 
         { 
