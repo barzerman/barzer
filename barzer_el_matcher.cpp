@@ -211,12 +211,8 @@ public:
 				// going over all ctokens
 				for( CTWPVec::const_iterator i = ctvec.begin(); i != ctvec.end(); ++i ) {
 					/// if more than one word is encountered  we abort
-					if( i->first.isWord() || i->first.isMysteryWord() ) {
-						if( i->first.stemTok ) 
-							id = i->first.stemTok->stringId;
-						else 
-							return 0xffffffff;
-					}
+					if( i->first.isWord() || i->first.isMysteryWord() ) 
+                        id = i->first.getStemTokStringId();
 				}
 			} else if( !bead.isBlankLiteral() ) 
 				return 0xffffffff;

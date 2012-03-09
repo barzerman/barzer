@@ -106,6 +106,8 @@ struct CToken {
                 stemTok = 0;
             }
         }
+    uint32_t            getStemTokStringId() const { return ( stemTok ? stemTok->stringId : 0xffffffff ); }
+
 	void clear() {
 		qtVec.clear();
 		cInfo.clear();
