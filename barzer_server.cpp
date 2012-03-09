@@ -98,7 +98,7 @@ namespace {
 void sanitize_russian_ya( char* s, size_t s_len )
 {
     const unsigned char* s_end = ((unsigned char*)s)+s_len;
-    for( unsigned char* i=(unsigned char*)(s); i!= s_end; ++i ) {
+    for( unsigned char* i=(unsigned char*)(s); i< s_end; ++i ) {
         // workaround the YA character
         if( i[0] == 0xd1 && i[1] == 0xff ) {
             i[1] = 0x8f;
