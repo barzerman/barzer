@@ -10,6 +10,7 @@
 #include <barzer_token.h>
 #include <barzer_number.h>
 #include <barzer_entity.h>
+#include <barzer_storage_types.h>
 
 namespace barzer {
 struct StoredToken;
