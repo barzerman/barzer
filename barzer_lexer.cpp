@@ -276,16 +276,22 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
     size_t charsInWord = ttok.getNumChar(bytesPerChar);
 
 
+	bool isUsersWord =  false;
 	if( isAsciiToken ) {
         /// some other special processing for ascii
     } else { /// encountered a non ascii token ina  1-byte language 
         /// this will strip euro language accents
-		if( !isTwoByteLang && ay::umlautsToAscii( ascifiedT, t ) )
+        if( isTwoByteLang ) {
+            ascifiedT.assign( t );
+        } else if( ay::umlautsToAscii( ascifiedT, t ) ) {
 			correctedStr = ascifiedT.c_str();
+        } else
+            ascifiedT.assign( t );
+
 		theString = ( correctedStr? correctedStr: ascifiedT.c_str() ) ;
 	}
 	uint32_t strId = 0xffffffff;
-	int isUsersWord =  bzSpell->isUsersWord( strId, theString ) ;
+	isUsersWord =  bzSpell->isUsersWord( strId, theString ) ;
 
     /// short word case - we only do case correction
     if( !isUsersWord && charsInWord <= MIN_SPELL_CORRECT_LEN ) {
