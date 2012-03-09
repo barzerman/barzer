@@ -93,6 +93,22 @@ void SearchSession::handle_write(const boost::system::error_code &e, std::size_t
 		delete this;
 }
 
+namespace {
+
+void sanitize_russian_ya( char* s, size_t s_len )
+{
+    const unsigned char* s_end = ((unsigned char*)s)+s_len;
+    for( unsigned char* i=(unsigned char*)(s); i!= s_end; ++i ) {
+        // workaround the YA character
+        if( i[0] == 0xd1 && i[1] == 0xff ) {
+            i[1] = 0x8f;
+            ++i;
+        }
+    }
+}
+
+}
+
 void SearchSession::handle_read(const boost::system::error_code &ec, size_t bytes_transferred) {
 
 	if (!ec) {
@@ -101,6 +117,8 @@ void SearchSession::handle_read(const boost::system::error_code &ec, size_t byte
 		is.read(chunk, bytes_transferred);
 
 		std::ostream os(&outbuf);
+        sanitize_russian_ya( chunk, bytes_transferred );
+
 		server->query_router(chunk, bytes_transferred, os);
 		delete[] chunk;
 
