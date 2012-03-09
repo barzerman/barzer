@@ -95,16 +95,21 @@ void SearchSession::handle_write(const boost::system::error_code &e, std::size_t
 
 namespace {
 
-void sanitize_russian_ya( char* s, size_t s_len )
+void sanitize_russian_ya( char* s, size_t& s_len )
 {
     const unsigned char* s_end = ((unsigned char*)s)+s_len;
-    for( unsigned char* i=(unsigned char*)(s); i!= s_end; ++i ) {
+    unsigned char* j=(unsigned char*)(s); 
+    for( unsigned char* i=(unsigned char*)(s); i< s_end && j< s_end; ++i,++j ) {
         // workaround the YA character
-        if( i[0] == 0xd1 && i[1] == 0xff ) {
-            i[1] = 0x8f;
-            ++i;
-        }
+        if( j[0] == 0xd1 && j[1] == 0xff ) {
+            if( j[2] == 0xf5 && j[3] == 0xff && j[4] == 0xfd && j[5] == 0x06  ) {
+                j[5] = 0x8f;
+                j+= 4;
+            } 
+        } else 
+            *i = *j;
     }
+    s_len= j-(unsigned char*)s;
 }
 
 }
