@@ -560,11 +560,11 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 		    if( !isNumber && bzSpell && ctok.isWord() && d_universe.stemByDefault() && !wasStemmed ) {
 			    std::string strToStem( ttok.buf, ttok.len );
 			    std::string stem;
-			    if( bzSpell->stem( stem, strToStem.c_str() ) )
-				    ctok.stemTok = dtaIdx->getStoredToken( stem.c_str() );
+			    if( bzSpell->stem( stem, strToStem.c_str() ) ) {
+				    ctok.setStemTok( dtaIdx->getStoredToken( stem.c_str() ) );
+                }
 		    }
-		    if( ctok.storedTok && ctok.stemTok == ctok.storedTok )
-			    ctok.stemTok = 0;
+            ctok.syncStemAndStoredTok();
 		}
 	}
 	if( cVec.size() > MAX_CTOKENS_PER_QUERY ) {

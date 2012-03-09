@@ -93,6 +93,19 @@ struct CToken {
 	/// this may be blank 
 	std::string correctedStr;
 
+    const StoredToken*  getStemTok() const { return stemTok; }
+    void                setStemTok(const StoredToken* t) const { stemTok=t; }
+    bool                stemTokSameAsStored() const { return (storedTok == stemTok); }
+    void                syncStemAndStoredTok() 
+        { 
+            if( storedTok ) {
+                if( stemTok && (stemTok == storedTok) ) 
+                    stemTok= 0;
+            } else if( stemTok ) {
+                storedTok = stemTok;
+                stemTok = 0;
+            }
+        }
 	void clear() {
 		qtVec.clear();
 		cInfo.clear();
