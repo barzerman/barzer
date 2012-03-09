@@ -2265,7 +2265,8 @@ bool BELFunctionStorage::call(BarzelEvalContext& ctxt, const uint32_t fid, Barze
 	const BELStoredFunMap::const_iterator frec = holder->funmap.find(fid);
 	if (frec == holder->funmap.end()) {
 		std::stringstream strstr;
-        strstr << "No such function id: " << fid;
+		const char *str = u.getGlobalPools().internalString_resolve(fid);
+        strstr << "No such function: " << (str ? str : "<unknown>") << " (id: " << fid << ")";
         pushFuncError(ctxt, "", strstr.str().c_str() );
 		return false;
 	}
