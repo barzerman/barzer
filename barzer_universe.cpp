@@ -187,7 +187,7 @@ GlobalPools::GlobalPools() :
 	StoredUniverse& defaultUniverse = produceUniverse(DEFAULT_UNIVERSE_ID);
     defaultUniverse.appendTriePtr( defaultTrie,0 ) ;
 
-	createGenericEntities();
+	// createGenericEntities();
     globalTriePool.init();
 }
 
