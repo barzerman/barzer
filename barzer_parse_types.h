@@ -103,8 +103,10 @@ struct CToken {
                 if( stemTok && (stemTok == storedTok) ) 
                     stemTok= 0;
             } else if( stemTok ) {
+                /*
                 storedTok = stemTok;
                 stemTok = 0;
+                */
             }
         }
     uint32_t            getStemTokStringId() const { return ( stemTok ? stemTok->stringId : 0xffffffff ); }

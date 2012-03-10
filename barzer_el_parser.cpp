@@ -90,10 +90,12 @@ uint32_t BELParser::internString( const char* t, bool noSpell, bool isStemmed )
 	    BELTrie& trie = reader->getTrie();
         StoredUniverse* curUni = reader->getCurrentUniverse();
         if( curUni ) {
-	        trie.addWordInfo( sTok.getStringId() );
-            BZSpell* bzSpell= curUni->getBZSpell();
-            if( bzSpell ) {
-                bzSpell->addExtraWordToDictionary( sTok.getStringId() );
+	        trie.addWordInfo( sTok.getStringId(),isStemmed );
+            if( !isStemmed ) {
+                BZSpell* bzSpell= curUni->getBZSpell();
+                if( bzSpell ) {
+                    bzSpell->addExtraWordToDictionary( sTok.getStringId() );
+                }
             }
         }
     }

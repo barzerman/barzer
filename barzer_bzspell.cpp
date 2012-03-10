@@ -123,8 +123,12 @@ struct CorrectCallback {
 		CorrectionQualityInfo wid(0, 0);
 		uint32_t strId = d_bzSpell.getBestWordByString( str, wid);
 		if( (0xffffffff != strId) && widLess(d_bestMatch,wid) ) {
-			d_bestMatch= wid;
-			d_bestStrId= strId;
+            //uint32_t uwId = 0xffffffff;
+            //if( d_bzSpell.isUsersWord( uwId, str ) ) {
+                d_bestMatch= wid;
+                d_bestStrId= strId;
+            //}
+
 		}
 	}
 
@@ -133,11 +137,13 @@ struct CorrectCallback {
     {
 		ay::Char2B::mkCharvec( d_charvec2B, fromI, toI );
 		const char* str = &(d_charvec2B[0]);
-        if( d_str_len <10 ) {
+        /*
+        {
             uint32_t id= 0xffffffff;
             if( !d_bzSpell.isUsersWord( id, str ) )
                 return 0;
         }
+        */
 
 		tryUpdateBestMatch( str );
 		return 0;
@@ -824,10 +830,12 @@ size_t BZSpell::init( const StoredUniverse* secondaryUniverse )
 				const TrieWordInfo& wordInfo = w->second;
 				uint32_t strId = w->first;
 
-				BZSWordInfo& wi = d_wordinfoMap[ strId ];
+                if( wordInfo.getWordCount() ) {
+                    BZSWordInfo& wi = d_wordinfoMap[ strId ];
 
-				if( wi.upgradePriority( t->trie().getSpellPriority()) )
-					wi.setFrequency( wordInfo.wordCount );
+                    if( wi.upgradePriority( t->trie().getSpellPriority()) )
+                        wi.setFrequency( wordInfo.wordCount );
+                }
 			}
 		}
 	}

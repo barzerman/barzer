@@ -443,12 +443,20 @@ typedef std::map< BarzelWCLookupKey, BarzelTrieNode > BarzelWCLookup;
 struct BELStatementParsed;
 class GlobalPools;
 
-/// one of thes eis stored for each unique strId in a trie 
+/// one of these is stored for each unique strId in a trie 
 struct TrieWordInfo {
-	uint32_t wordCount; 
+	uint32_t wordCount;     // number of time the word occurs as itself 
+    uint32_t stemWordCount; // number of times the word occurs as a stem
 	
-	TrieWordInfo() : wordCount(0) {}
-	void incrementCount() { ++wordCount; }
+	TrieWordInfo() : wordCount(0), stemWordCount(0) {}
+	void incrementCount(bool stemmed ) { 
+        if( stemmed ) 
+            ++stemWordCount;
+        else 
+            ++wordCount; 
+    }
+    uint32_t getWordCount() const { return wordCount; }
+    uint32_t getStemWordCount() const { return stemWordCount; }
 };
 typedef boost::unordered_map< uint32_t, TrieWordInfo > strid_to_triewordinfo_map; 
 
@@ -480,7 +488,7 @@ public:
     void linkEntToTopic( const BarzerEntity& topicEnt, const BarzerEntity&ent ) { d_topicEnt.link( topicEnt, ent ); }
 
 	// must be called from BELParser::internString
-	void addWordInfo( uint32_t strId ) { d_wordInfoMap[strId].incrementCount(); }
+	void addWordInfo( uint32_t strId, bool stemmed ) { d_wordInfoMap[strId].incrementCount(stemmed); }
 
 	const strid_to_triewordinfo_map& getWordInfoMap() const { return d_wordInfoMap; }
 
