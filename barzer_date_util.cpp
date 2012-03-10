@@ -55,7 +55,7 @@ void DateLookup::addWeekdays(const char *wdays[], const char* lang) {
         case (LANG_ENGLISH):
             return en::lookupMonth(mname);break;
         case(LANG_RUSSIAN):
-            return 0;break;
+            return ru::lookupMonth(mname);break;
         default: return 0;
     }
 }
@@ -66,14 +66,19 @@ const uint8_t DateLookup::lookupMonth(const uint32_t mid) const {
 
 }
 const uint8_t DateLookup::lookupWeekday(const char* wdname) const {
-	const uint32_t wdid = globPools.stringPool.getId(wdname);
-	if (wdid == ay::UniqueCharPool::ID_NOTFOUND) return 0;
-	return lookupWeekday(wdid);
+    if (wdname == 0) return 0;
+    switch(Lang::getLang(wdname, strlen(wdname))){
+        case (LANG_ENGLISH):
+            return en::lookupWeekday(wdname);break;
+        case(LANG_RUSSIAN):
+            return ru::lookupWeekday(wdname);break;
+        default: return 0;
+    }
 }
 
 const uint8_t DateLookup::lookupWeekday(const uint32_t wdid) const {
-	const DateLookupMap::const_iterator wdrec = weekdayMap.find(wdid);
-	return (wdrec == weekdayMap.end()) ? 0 : wdrec->second;
+    const char* wday = globPools.getStringPool().resolveId(wdid);
+	return (wday == 0) ? 0 : lookupWeekday(wday);
 }
 
 void DateLookup::getMonths(const uint32_t langId, SymbolVec &vec) const {

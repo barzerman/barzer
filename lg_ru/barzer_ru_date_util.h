@@ -9,8 +9,12 @@
 #define BARZER_RU_DATE_UTIL_H_
 
 #include <barzer_date_util.h>
-
+#include <ay_char.h>
 namespace barzer {
+namespace ru {
+    const uint8_t lookupMonth(const char* mname);
+    const uint8_t lookupWeekday(const char* wdname);
+}
 	void fillDateInfo_ru(DateLookup &dl);
 }
 
