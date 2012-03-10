@@ -27,7 +27,7 @@ void DateLookup::addMonth(const char* mname, const uint8_t mnum, const char* lan
 void DateLookup::addMonth(const uint32_t mid, const uint8_t mnum, const char* lang) {
 	monthMap.insert(DateLookupRec(mid, mnum));
 	uint32_t langId = globPools.stringPool.internIt(lang);
-	weekdayStorage[langId].push_back(mid);
+	monthStorage[langId].push_back(mid);
 }
 
 void DateLookup::addWeekday(const char* wdname, const uint8_t wdnum, const char* lang) {
@@ -48,14 +48,21 @@ void DateLookup::addWeekdays(const char *wdays[], const char* lang) {
 	for (int i = 0; i < 7; ++i) addWeekday(wdays[i], i+1, lang);
 }
 
-const uint8_t DateLookup::lookupMonth(const char* mname) const {
-	const uint32_t mid = globPools.stringPool.getId(mname);
-	if (mid == ay::UniqueCharPool::ID_NOTFOUND) return 0;
-	return lookupMonth(mid);
+
+ const uint8_t DateLookup::lookupMonth(const char* mname) const {
+    if (mname == 0) return 0;
+    switch(Lang::getLang(mname, strlen(mname))){
+        case (LANG_ENGLISH):
+            return en::lookupMonth(mname);break;
+        case(LANG_RUSSIAN):
+            return 0;break;
+        default: return 0;
+    }
 }
+
 const uint8_t DateLookup::lookupMonth(const uint32_t mid) const {
-	const DateLookupMap::const_iterator mrec = monthMap.find(mid);
-	return (mrec == monthMap.end()) ? 0 : mrec->second;
+    const char* month = globPools.getStringPool().resolveId(mid);
+	return (month == 0) ? 0 : lookupMonth(month);
 
 }
 const uint8_t DateLookup::lookupWeekday(const char* wdname) const {
