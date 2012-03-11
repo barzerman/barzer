@@ -453,8 +453,56 @@ public:
 		return true;
 	}
 	template <>
+	bool findMatchingChildren_visitor::doFirmMatch<BarzerNumber>( const BarzelFCMap& fcmap, const BarzerNumber& dta, bool allowBlanks)
+	{
+        if( dta.isInt() ) {
+            int64_t theVal64 = dta.getInt();
+            uint32_t theVal = 0xffffffff;
+            if( theVal64>=0 && theVal64 < 0xffffffff ) {
+                theVal= (uint32_t)(theVal64);
+            }
+		    BarzelTrieFirmChildKey firmKey((uint8_t)(BTND_Pattern_Number_TYPE),theVal);
+
+            const BarzelTrieNode* ch = d_tn->getFirmChild( firmKey, fcmap );
+            if( ch ) {
+                BeadList::iterator endIt = d_rng.first;
+                //++endIt;
+                BarzelBeadChain::Range goodRange(d_rng.first,endIt);
+                // AYDEBUG(goodRange);
+                d_mtChild.push_back( NodeAndBeadVec::value_type(ch, goodRange ) );
+            }
+        }
+		BarzelTrieFirmChildKey firmKey((uint8_t)(BTND_Pattern_Number_TYPE),0xffffffff);
+		// forming firm key
+		// we ignore the whole allow blanks thing for dates - blanks will just always be allowed
+		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey );
+		const BarzelWildcardPool& wcPool = d_trie.getWildcardPool();
+		for( ; i!= fcmap.end() && i->first.type == BTND_Pattern_Number_TYPE; ++i ) {
+			/// we're looping over all date wildcards on the current node
+			/// extracting the actual wildcard
+			if( i->first.id == 0xffffffff ) {
+				const BarzelTrieNode* ch = &(i->second);
+				BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);
+				d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+			} else {
+				const BTND_Pattern_Number* dpat = wcPool.get_BTND_Pattern_Number( i->first.id );
+				if( !dpat ) return false;
+				if( evalWildcard_vis<BTND_Pattern_Number>(*dpat)( dta )  ) {
+				//if( boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Number>(*dpat), dta ) ) {}
+					d_mtChild.push_back( NodeAndBeadVec::value_type(
+						&(i->second),
+						BarzelBeadChain::Range(d_rng.first,d_rng.first)) );
+				}
+			}
+		}
+		return true;
+	}
+	template <>
 	bool findMatchingChildren_visitor::doFirmMatch<BarzerLiteral>( const BarzelFCMap& fcmap, const BarzerLiteral& dta, bool allowBlanks) 
 	{
+		if (dta.getNumeralType () != BarzerLiteral::NUMERAL_TYPE_NONE)
+			return doFirmMatch (fcmap, dta.toBNumber (), allowBlanks);
+
 		bool rc = doFirmMatch_literal( fcmap, dta, allowBlanks );
 		if( dta.isString() || dta.isStop() ) {
 			uint32_t stemId = getStemmedStringId();
@@ -517,51 +565,6 @@ public:
 				if( !dpat ) return false;
 				if( evalWildcard_vis<BTND_Pattern_DateTime>(*dpat)( dta )  ) {
 				//if( boost::apply_visitor( evalWildcard_vis<BTND_Pattern_DateTime>(*dpat), dta ) ) {}
-					d_mtChild.push_back( NodeAndBeadVec::value_type(
-						&(i->second),
-						BarzelBeadChain::Range(d_rng.first,d_rng.first)) );
-				}
-			}
-		}
-		return true;
-	}
-	template <>
-	bool findMatchingChildren_visitor::doFirmMatch<BarzerNumber>( const BarzelFCMap& fcmap, const BarzerNumber& dta, bool allowBlanks) 
-	{
-        if( dta.isInt() ) {
-            int64_t theVal64 = dta.getInt();
-            uint32_t theVal = 0xffffffff;
-            if( theVal64>=0 && theVal64 < 0xffffffff ) {
-                theVal= (uint32_t)(theVal64);
-            }
-		    BarzelTrieFirmChildKey firmKey((uint8_t)(BTND_Pattern_Number_TYPE),theVal); 
-
-            const BarzelTrieNode* ch = d_tn->getFirmChild( firmKey, fcmap ); 
-            if( ch ) {
-                BeadList::iterator endIt = d_rng.first;
-                //++endIt;
-                BarzelBeadChain::Range goodRange(d_rng.first,endIt);
-                // AYDEBUG(goodRange);
-                d_mtChild.push_back( NodeAndBeadVec::value_type(ch, goodRange ) );
-            } 
-        } 
-		BarzelTrieFirmChildKey firmKey((uint8_t)(BTND_Pattern_Number_TYPE),0xffffffff); 
-		// forming firm key
-		// we ignore the whole allow blanks thing for dates - blanks will just always be allowed
-		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey );
-		const BarzelWildcardPool& wcPool = d_trie.getWildcardPool();
-		for( ; i!= fcmap.end() && i->first.type == BTND_Pattern_Number_TYPE; ++i ) {
-			/// we're looping over all date wildcards on the current node 
-			/// extracting the actual wildcard 
-			if( i->first.id == 0xffffffff ) {
-				const BarzelTrieNode* ch = &(i->second);
-				BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);
-				d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
-			} else {
-				const BTND_Pattern_Number* dpat = wcPool.get_BTND_Pattern_Number( i->first.id );
-				if( !dpat ) return false;
-				if( evalWildcard_vis<BTND_Pattern_Number>(*dpat)( dta )  ) {
-				//if( boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Number>(*dpat), dta ) ) {}
 					d_mtChild.push_back( NodeAndBeadVec::value_type(
 						&(i->second),
 						BarzelBeadChain::Range(d_rng.first,d_rng.first)) );
