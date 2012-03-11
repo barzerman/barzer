@@ -281,18 +281,32 @@ public:
     };
 private:
 	uint32_t theId;
+    union    { int32_t i4; float r4; } d_num;  
+
 	uint8_t  type; // one of the T_ constants
 	uint8_t  stringType; // type of the string (normal token, string etc) - distinction 
-                         // between BarzerLiteral and BarzaerString 
 public:
+    enum { NUMERAL_TYPE_NONE, NUMERAL_TYPE_INT, NUMERAL_TYPE_REAL };
+private:
+    uint8_t  d_numeralType; /// 
+    
+
+public:
+    int getNumeralType() const { return d_numeralType; }
+    bool isNumeral() const { return ( d_numeralType != NUMERAL_TYPE_NONE ); }
+
+    void setNumeral( float x ) { d_numeralType=NUMERAL_TYPE_REAL; d_num.r4= x; }
+    void setNumeral( int32_t x ) { d_numeralType=NUMERAL_TYPE_INT; d_num.i4= x; }
+    
 	BarzerLiteral() : 
 		theId(0xffffffff),
 		type(T_STRING),
-        stringType(STRT_LITERAL)
+        stringType(STRT_LITERAL),
+        d_numeralType(NUMERAL_TYPE_NONE)
 	{}
-    BarzerLiteral( uint32_t id ) : theId(id), type(T_STRING), stringType(STRT_LITERAL)
+    BarzerLiteral( uint32_t id ) : theId(id), type(T_STRING), stringType(STRT_LITERAL),d_numeralType(NUMERAL_TYPE_NONE)
     {}
-    BarzerLiteral( uint32_t id, uint8_t t ) : theId(id), type(t), stringType(STRT_LITERAL) {}
+    BarzerLiteral( uint32_t id, uint8_t t ) : theId(id), type(t), stringType(STRT_LITERAL), d_numeralType(NUMERAL_TYPE_NONE) {}
 
 	/// never returns 0, type should be one of the T_XXX constants
 	static const char* getTypeName(int t);
