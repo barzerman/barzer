@@ -86,6 +86,19 @@ static const char* g_BarzerLiteral_typeName[] = {
 
 }
 
+BarzerNumber BarzerLiteral::toBNumber () const
+{
+	switch (getNumeralType ())
+	{
+		case NUMERAL_TYPE_INT:
+			return BarzerNumber (d_num.i4);
+		case NUMERAL_TYPE_REAL:
+			return BarzerNumber (d_num.r4);
+		default:
+			throw std::runtime_error ("BarzerLiteral::toBNumber(): requested conversion to BarzerNumber for non-numeral.");
+	}
+}
+
 const char* BarzerLiteral::getTypeName(int t) 
 {
 	return( ARR_NONNULL_STR( g_BarzerLiteral_typeName, (unsigned)t) ) ;
