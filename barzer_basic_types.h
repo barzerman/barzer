@@ -294,11 +294,13 @@ private:
 public:
     int getNumeralType() const { return d_numeralType; }
     bool isNumeral() const { return ( d_numeralType != NUMERAL_TYPE_NONE ); }
+    bool isNumeralInt() const { return ( d_numeralType == NUMERAL_TYPE_INT ); }
+    bool isNumeralFloat() const { return ( d_numeralType == NUMERAL_TYPE_REAL ); }
 
     void setNumeral( float x ) { d_numeralType=NUMERAL_TYPE_REAL; d_num.r4= x; }
     void setNumeral( int32_t x ) { d_numeralType=NUMERAL_TYPE_INT; d_num.i4= x; }
 
-    BarzerNumber toBNumber () const;
+    bool toBNumber ( BarzerNumber& n ) const;
 
 	BarzerLiteral() :
 		theId(0xffffffff),

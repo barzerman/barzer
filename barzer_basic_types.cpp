@@ -9,6 +9,10 @@
 #include <arch/barzer_arch.h>
 namespace barzer {
 
+//// BarzerNumber 
+
+
+//// end of BarzerNumber methonds
 uint8_t BarzerDate::thisMonth = 0;
 uint8_t BarzerDate::thisDay = 0;
 int16_t BarzerDate::thisYear =BarzerDate::INVALID_YEAR;
@@ -86,16 +90,18 @@ static const char* g_BarzerLiteral_typeName[] = {
 
 }
 
-BarzerNumber BarzerLiteral::toBNumber () const
+bool BarzerLiteral::toBNumber (BarzerNumber& n ) const
 {
 	switch (getNumeralType ())
 	{
 		case NUMERAL_TYPE_INT:
-			return BarzerNumber (d_num.i4);
+            n.set( d_num.i4);
+			return true;
 		case NUMERAL_TYPE_REAL:
-			return BarzerNumber (d_num.r4);
+            n.set( d_num.r4);
+			return true;
 		default:
-			throw std::runtime_error ("BarzerLiteral::toBNumber(): requested conversion to BarzerNumber for non-numeral.");
+			return false;
 	}
 }
 

@@ -500,10 +500,13 @@ public:
 	template <>
 	bool findMatchingChildren_visitor::doFirmMatch<BarzerLiteral>( const BarzelFCMap& fcmap, const BarzerLiteral& dta, bool allowBlanks) 
 	{
-		if (dta.getNumeralType () != BarzerLiteral::NUMERAL_TYPE_NONE)
-			return doFirmMatch (fcmap, dta.toBNumber (), allowBlanks);
-
-		bool rc = doFirmMatch_literal( fcmap, dta, allowBlanks );
+		bool rc = false;
+		if (dta.getNumeralType () != BarzerLiteral::NUMERAL_TYPE_NONE) {
+            BarzerNumber num;
+            dta.toBNumber(num);
+			rc = doFirmMatch (fcmap, num, allowBlanks);
+        }
+		rc = doFirmMatch_literal( fcmap, dta, allowBlanks );
 		if( dta.isString() || dta.isStop() ) {
 			uint32_t stemId = getStemmedStringId();
 			if( stemId != 0xffffffff ) {
