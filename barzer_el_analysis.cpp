@@ -85,7 +85,7 @@ bool TrieAnalyzer::getPathTokens( ay::char_cp_vec& tvec ) const
 			return false;
 		}
         
-        if( !isIneligible ) { 
+        if( isIneligible ) { 
             const char* str = gp.string_resolve( stringId );
             if( !str || !is_numeric_string(str) ) {
                 isIneligible = false;
