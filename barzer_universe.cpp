@@ -220,6 +220,7 @@ std::ostream& GlobalPools::printTanslationTraceInfo( std::ostream& fp, const Bar
 }
 void GlobalPools::createGenericEntities()
 {
+    /*
 	for( size_t i=0; i< ARR_SZ( g_genDta ); ++i ) {
 		const GenericEntData& gd = g_genDta[i];
 		if( gd.id ) {
@@ -230,6 +231,7 @@ void GlobalPools::createGenericEntities()
 	}
 
 	dtaIdx.addGenericEntity("wine", 2, 1);
+    */
 }
 
 StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :

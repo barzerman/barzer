@@ -753,15 +753,18 @@ void BELParserXML::taghandle_RANGE( const char_cp * attr, size_t attr_sz , bool 
 			BarzerRange::Entity& entRange = pat.range().setEntityClass( euid.eclass ); 
 	
 			if( id1Str ) {
+                uint32_t id1StrId = reader->getGlobalPools().internString_internal(id1Str) ;
 				const StoredEntity& ent1  = 
 					//reader->getUniverse().getDtaIdx().addGenericEntity( id1Str, euid.eclass.ec, euid.eclass.subclass );
-					reader->getGlobalPools().getDtaIdx().addGenericEntity( id1Str, euid.eclass.ec, euid.eclass.subclass );
+					reader->getGlobalPools().getDtaIdx().addGenericEntity( id1StrId, euid.eclass.ec, euid.eclass.subclass );
 				entRange.first = ent1.getEuid();
 			}
 			if( id2Str ) {
+
+                uint32_t id2StrId = reader->getGlobalPools().internString_internal(id2Str) ;
 				const StoredEntity& ent2  = 
 					//reader->getUniverse().getDtaIdx().addGenericEntity( id2Str, euid.eclass.ec, euid.eclass.subclass );
-					reader->getGlobalPools().getDtaIdx().addGenericEntity( id2Str, euid.eclass.ec, euid.eclass.subclass );
+					reader->getGlobalPools().getDtaIdx().addGenericEntity( id2StrId, euid.eclass.ec, euid.eclass.subclass );
 				entRange.first = ent2.getEuid();
 			}
 		}
@@ -1126,7 +1129,8 @@ void BELParserXML::taghandle_MKENT( const char_cp * attr, size_t attr_sz , bool 
 
 	//const StoredEntity& ent  = reader->getUniverse().getDtaIdx().addGenericEntity( idStr, eclass, subclass );
     GlobalPools& gp = reader->getGlobalPools();
-	const StoredEntity& ent  = gp.getDtaIdx().addGenericEntity( idStr, eclass, subclass );
+    uint32_t idStrId = reader->getGlobalPools().internString_internal(idStr) ;
+	const StoredEntity& ent  = gp.getDtaIdx().addGenericEntity( idStrId, eclass, subclass );
 	mkent.setEntId( ent.entId );
     statement.setCurEntity( ent.getEuid() );
     if( statement.hasPattern() || statement.isProc() ) {
@@ -1145,7 +1149,9 @@ void BELParserXML::taghandle_MKENT( const char_cp * attr, size_t attr_sz , bool 
         gp.entData.setEntPropData( ent.getEuid(), theName.c_str(), relevance );
     }
     if( topicClass ) {
-	    const StoredEntity& topicEnt  = gp.getDtaIdx().addGenericEntity( topicIdStr, topicClass, topicSubclass);
+        uint32_t topicIdStrId = reader->getGlobalPools().internString_internal(topicIdStr) ;
+	    const StoredEntity& topicEnt  = gp.getDtaIdx().addGenericEntity( topicIdStrId, topicClass, topicSubclass);
+
         BELTrie& trie = reader->getTrie();
         trie.linkEntToTopic( topicEnt.getEuid(), ent.getEuid() );
         if( topicRelevance || topicCanonicName ) 
