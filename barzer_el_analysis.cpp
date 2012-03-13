@@ -46,11 +46,28 @@ bool TrieAnalyzer::getPathTokens( std::vector< uint32_t >& tvec ) const
 	}
 	return true;
 }
+namespace {
 
+inline bool is_numeric_string( const char* str )
+{
+    for( const char* s = str;  *s; ++s ) {
+        if( !isdigit(*s) ) {
+            return false;
+        }
+    } 
+
+    return true;
+}
+
+} // anon namespace 
 bool TrieAnalyzer::getPathTokens( ay::char_cp_vec& tvec ) const 
 {
 	tvec.clear();
 	const BarzelTrieTraverser_depth::NodeKeyVec& nkv = d_trav.getPath();
+    const GlobalPools& gp = d_universe.getGlobalPools();
+    
+    bool isIneligible = true;
+
 	for( BarzelTrieTraverser_depth::NodeKeyVec::const_iterator i = nkv.begin(); i != nkv.end(); ++i ) {
 		const BarzelTrieTraverser_depth::NodeKey& nk = *i;
 		/// nk is a variant - the 0 member is firm key , everything above it is a wildcard or other stuff
@@ -67,13 +84,24 @@ bool TrieAnalyzer::getPathTokens( ay::char_cp_vec& tvec ) const
 			tvec.clear();
 			return false;
 		}
-
+        
+        if( !isIneligible ) { 
+            const char* str = gp.string_resolve( stringId );
+            if( !str || !is_numeric_string(str) ) {
+                isIneligible = false;
+            }
+        }
 		const char* tok = d_universe.decodeStringById( stringId );
 		if( tok && *tok ) {
 			tvec.push_back( tok );
 		}
 	}
-	return true;
+
+    if( isIneligible ) {
+        tvec.clear();
+        return false;
+    } else
+	    return true;
 }
 
 void TrieAnalyzer::updateAnalytics( BTN_cp tn, TA_BTN_data& dta )
