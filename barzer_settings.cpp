@@ -295,7 +295,9 @@ void BarzerSettings::loadTrieset(BELReader& reader, User &u, const ptree &node) 
                             gramInfo = new GrammarInfo();
 
                         }
-                        const StoredEntity& ent = u.getUniverse().getDtaIdx().addGenericEntity( (idOpt? (*idOpt).c_str():0), *classOpt, ( subclassOpt? *subclassOpt: 0) );
+                        const char* idStr = (idOpt? (*idOpt).c_str():0);
+                        uint32_t idStrId = ( idStr ? gpools.internString_internal(idStr): 0xffffffff );
+                        const StoredEntity& ent = gpools.getDtaIdx().addGenericEntity( idStrId, *classOpt, ( subclassOpt? *subclassOpt: 0) );
                         gramInfo->trieTopics.mustHave( ent.getEuid(), (weightOpt? *weightOpt: BarzTopics::DEFAULT_TOPIC_WEIGHT) );
                     }
                 }

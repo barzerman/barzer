@@ -1,6 +1,7 @@
 #include <barzer_dtaindex.h>
 //#include <boost/pool/singleton_pool.hpp>
 #include <barzer_loader_xml.h>
+#include <barzer_universe.h>
 
 namespace barzer {
 
@@ -68,10 +69,10 @@ bool DtaIndex::buildEuidFromStream( StoredEntityUniqId& euid, std::istream& in) 
 	std::string tmp;
 	/// token
 	if( in >> tmp ) {
-		const StoredToken* tok = getStoredToken( tmp.c_str() );
-		if( !tok ) 	
+        uint32_t tmpStrId = d_gp.internalString_getId( tmp.c_str() );
+        if( tmpStrId == 0xffffffff )
 			return false;
-		euid.tokId = tok->tokId;
+		euid.tokId = tmpStrId;
 	}
 		else return false;
 	/// class

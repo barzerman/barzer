@@ -299,14 +299,14 @@ public:
 		bool isNew = false;
 		return entPool.addOneEntity( isNew, euid );
 	}
-	StoredEntity& addGenericEntity( const char* t, uint16_t cl, uint16_t scl )
+	StoredEntity& addGenericEntity( uint32_t t, uint16_t cl, uint16_t scl )
 	{
-		StoredTokenId tokId = ( t ? addToken(t).tokId : 0xffffffff );
-		const StoredEntityUniqId euid( tokId, cl, scl );
+		const StoredEntityUniqId euid( t, cl, scl );
 
 		bool isNew = false;
 		return entPool.addOneEntity( isNew, euid );
 	}
+    
 	
 	const StoredEntity* getEntById( uint32_t id ) const
 	{

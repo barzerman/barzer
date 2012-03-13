@@ -285,9 +285,9 @@ public:
 
 	void printEntity(const BarzerEntity &euid, const char* attrs = 0) {
 		os << "<entity ";
-		const StoredToken *tok = universe.getDtaIdx().tokPool.getTokByIdSafe(euid.tokId);
-		if( tok ) {
-			const char *tokname = universe.getStringPool().resolveId(tok->stringId);
+
+        const char* tokname = universe.getGlobalPools().internalString_resolve(euid.tokId);
+		if( tokname ) {
 			if (tokname) {
 				xmlEscape(tokname, os << "id=\"") << "\" ";
 			}
