@@ -204,7 +204,7 @@ public:
 		const  BarzelBead&  bead = *d_dtaBeadIter;
 
 		{
-			if( bead.isStringLiteral() ) {
+			if( bead.isStringLiteralOrString() ) {
 				if( stringNum++ ) return 0xffffffff;
 
 				const CTWPVec& ctvec = bead.getCTokens();
@@ -507,7 +507,7 @@ public:
 			rc = doFirmMatch (fcmap, num, allowBlanks);
         }
 		rc = doFirmMatch_literal( fcmap, dta, allowBlanks );
-		if( dta.isString() || dta.isStop() ) {
+		if( dta.isAnyString()  ) {
 			uint32_t stemId = getStemmedStringId();
 			if( stemId != 0xffffffff ) {
 				/// we have a stem to try
