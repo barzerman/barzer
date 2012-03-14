@@ -95,14 +95,10 @@ uint32_t BELParser::internString( const char* t, bool noSpell, const char* unste
 			trie.addWordInfo( sTok.getStringId(),unstemmed );
 			if( !unstemmed ) {
 				BZSpell* bzSpell= curUni->getBZSpell();
-				if( bzSpell ) {
+				if( bzSpell ) 
 					bzSpell->addExtraWordToDictionary( sTok.getStringId() );
-				}
-			}
-			else
-			{
-				const uint32_t unstmId = reader->getGlobalPools()
-						.getDtaIdx().addToken(unstemmed).getStringId();
+			} else {
+				const uint32_t unstmId = reader->getGlobalPools().getDtaIdx().addToken(unstemmed).getStringId();
 				trie.addStemSrc( origId, unstmId);
 			}
 		}
