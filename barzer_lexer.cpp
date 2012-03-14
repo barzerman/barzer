@@ -563,11 +563,13 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 				}
 			}
 		    /// stemming
-		    if( !isNumber && bzSpell && ctok.isWord() && d_universe.stemByDefault() && !wasStemmed ) {
+		    if( !isNumber && bzSpell && ctok.isString() && d_universe.stemByDefault() && !ctok.getStemTok()) {
 			    std::string strToStem( ttok.buf, ttok.len );
 			    std::string stem;
 			    if( bzSpell->stem( stem, strToStem.c_str() ) ) {
-				    ctok.setStemTok( dtaIdx->getStoredToken( stem.c_str() ) );
+                    const StoredToken* stemTok = dtaIdx->getStoredToken( stem.c_str() ) ;
+                    if( stemTok && stemTok != ctok.getStemTok() ) 
+				        ctok.setStemTok( stemTok );
                 }
 		    }
             ctok.syncStemAndStoredTok();

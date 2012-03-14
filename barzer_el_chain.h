@@ -214,6 +214,10 @@ public:
 	const BarzelBeadAtomic* getAtomic() const { return  boost::get<BarzelBeadAtomic>( &dta ); }
 	const BarzelBeadExpression* getExpression() const { return  boost::get<BarzelBeadExpression>( &dta ); }
 
+	bool isStringLiteralOrString() const { 
+		const BarzelBeadAtomic* atomic = getAtomic();
+        return( atomic && (atomic->isStringLiteral() || atomic->isString()) );
+    }
 	bool isStringLiteral() const { 
 		const BarzelBeadAtomic* atomic = getAtomic();
 		return( atomic && atomic->isStringLiteral() )  ;

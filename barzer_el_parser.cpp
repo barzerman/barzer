@@ -39,8 +39,9 @@ uint32_t BELParser::stemAndInternTmpText( const char* s, int len )
 	std::string scopy(s, len );
 	if( bzSpell )  {
 		std::string stem;
-		if( bzSpell->stem(stem, scopy.c_str()) )
-			internString( stem.c_str(),false,true );
+		if( bzSpell->stem(stem, scopy.c_str()) ) {
+			internString( stem.c_str(), false, scopy.c_str () );
+		}
 	}
 	return internString( scopy.c_str(),false);
 }
@@ -77,28 +78,31 @@ uint32_t BELParser::internString_internal( const char* t )
 {
 	return reader->getGlobalPools().internString_internal( t );
 }
-uint32_t BELParser::internString( const char* t, bool noSpell, bool isStemmed )
+uint32_t BELParser::internString( const char* t, bool noSpell, const char* unstemmed)
 {
 	// here we may want to tweak some (nonexistent yet) fields in StoredToken
 	// to reflect the fact that this thing is actually in the trie
 
-    bool wasNew = false;
+	bool wasNew = false;
 	StoredToken& sTok =  reader->getGlobalPools().getDtaIdx().addToken( wasNew, t );
-    sTok.setStemmed(isStemmed);
+	const uint32_t origId = sTok.getStringId ();
+	sTok.setStemmed(unstemmed);
 
-    if( !noSpell ) {
-	    BELTrie& trie = reader->getTrie();
-        StoredUniverse* curUni = reader->getCurrentUniverse();
-        if( curUni ) {
-	        trie.addWordInfo( sTok.getStringId(),isStemmed );
-            if( !isStemmed ) {
-                BZSpell* bzSpell= curUni->getBZSpell();
-                if( bzSpell ) {
-                    bzSpell->addExtraWordToDictionary( sTok.getStringId() );
-                }
-            }
-        }
-    }
+	if( !noSpell ) {
+		BELTrie& trie = reader->getTrie();
+		StoredUniverse* curUni = reader->getCurrentUniverse();
+		if( curUni ) {
+			trie.addWordInfo( sTok.getStringId(),unstemmed );
+			if( !unstemmed ) {
+				BZSpell* bzSpell= curUni->getBZSpell();
+				if( bzSpell ) 
+					bzSpell->addExtraWordToDictionary( sTok.getStringId() );
+			} else {
+				const uint32_t unstmId = reader->getGlobalPools().getDtaIdx().addToken(unstemmed).getStringId();
+				trie.addStemSrc( origId, unstmId);
+			}
+		}
+	}
 	return sTok.getStringId();
 }
 
