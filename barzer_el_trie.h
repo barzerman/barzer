@@ -16,7 +16,7 @@
 
 
 /// data structures representing the Barzer Expression Language BarzEL term pattern trie
-/// 
+///
 namespace barzer {
 class BELTrie;
 class BarzelRewriterPool;
@@ -30,49 +30,49 @@ struct BELPrintFormat;
 struct BarzelTrieFirmChildKey {
 	uint32_t id;
 	uint8_t  type;
-	// when noLeftBlanks is !=0 
-	// the firm child will only match if it immediately follows the prior token 
+	// when noLeftBlanks is !=0
+	// the firm child will only match if it immediately follows the prior token
 	// in other words spaces wont be skipped (!)
 	// tis is needed for patterns defining dates and such
 	uint8_t  noLeftBlanks;
 	uint8_t  d_matchMode;
 
-	BarzelTrieFirmChildKey( uint8_t t, uint32_t i, bool nlb=true) : 
-        id(i), 
-        type(t), 
+	BarzelTrieFirmChildKey( uint8_t t, uint32_t i, bool nlb=true) :
+        id(i),
+        type(t),
         noLeftBlanks(nlb?0:1),
-        d_matchMode(BTND_Pattern_Base::MATCH_MODE_NORMAL)  
+        d_matchMode(BTND_Pattern_Base::MATCH_MODE_NORMAL)
     {}
 
-	BarzelTrieFirmChildKey() : 
-        id(0xffffffff), 
-        type(BTND_Pattern_None_TYPE), 
+	BarzelTrieFirmChildKey() :
+        id(0xffffffff),
+        type(BTND_Pattern_None_TYPE),
         noLeftBlanks(0),
         d_matchMode(BTND_Pattern_Base::MATCH_MODE_NORMAL)  {}
 
-	BarzelTrieFirmChildKey(const BTND_Pattern_Token& x) : 
-        id(x.stringId), 
-        type((uint8_t)BTND_Pattern_Token_TYPE), 
-        noLeftBlanks(0), 
+	BarzelTrieFirmChildKey(const BTND_Pattern_Token& x) :
+        id(x.stringId),
+        type((uint8_t)BTND_Pattern_Token_TYPE),
+        noLeftBlanks(0),
         d_matchMode(x.d_matchMode)
         {}
-	BarzelTrieFirmChildKey(const BTND_Pattern_Punct& x) : 
-        id(x.theChar),  
-        type((uint8_t)BTND_Pattern_Punct_TYPE), 
-        noLeftBlanks(0), 
+	BarzelTrieFirmChildKey(const BTND_Pattern_Punct& x) :
+        id(x.theChar),
+        type((uint8_t)BTND_Pattern_Punct_TYPE),
+        noLeftBlanks(0),
         d_matchMode(x.d_matchMode)
     {}
 
-	BarzelTrieFirmChildKey(const BTND_Pattern_CompoundedWord& x) : 
-		id(x.compWordId), 
-        type((uint8_t)BTND_Pattern_CompoundedWord_TYPE), noLeftBlanks(0), 
+	BarzelTrieFirmChildKey(const BTND_Pattern_CompoundedWord& x) :
+		id(x.compWordId),
+        type((uint8_t)BTND_Pattern_CompoundedWord_TYPE), noLeftBlanks(0),
         d_matchMode(x.d_matchMode)
 	{}
-    
+
     bool isNormalKey() const { return d_matchMode== BTND_Pattern_Base::MATCH_MODE_NORMAL; }
     bool isNegativeKey() const { return d_matchMode== BTND_Pattern_Base::MATCH_MODE_NEGATIVE; }
-    void mkNegativeKey() { 
-        d_matchMode = BTND_Pattern_Base::MATCH_MODE_NEGATIVE; 
+    void mkNegativeKey() {
+        d_matchMode = BTND_Pattern_Base::MATCH_MODE_NEGATIVE;
         id = 0;
         type=0;
         noLeftBlanks=0;
@@ -87,7 +87,7 @@ struct BarzelTrieFirmChildKey {
 		case BarzerLiteral::T_COMPOUND: type=(uint8_t) BTND_Pattern_CompoundedWord_TYPE; break;
 		case BarzerLiteral::T_STOP:     type=(uint8_t) BTND_Pattern_StopToken_TYPE; break;
 		case BarzerLiteral::T_PUNCT:    type=(uint8_t) BTND_Pattern_Punct_TYPE; break;
-		case BarzerLiteral::T_BLANK: 
+		case BarzerLiteral::T_BLANK:
 			type = (uint8_t) BTND_Pattern_Token_TYPE;
 			id =   0xffffffff;
 			break;
@@ -97,7 +97,7 @@ struct BarzelTrieFirmChildKey {
 	bool isLiteralKey() const
 	{
 		int it = (int)type;
-		return( 
+		return(
 			it == BTND_Pattern_Token_TYPE ||
 			it == BTND_Pattern_StopToken_TYPE ||
 			it == BTND_Pattern_Punct_TYPE ||
@@ -110,12 +110,12 @@ struct BarzelTrieFirmChildKey {
 
 	bool isNull() const { return (type == BTND_Pattern_None_TYPE); }
 
-	bool isBlankLiteral() const { return (BTND_Pattern_Token_TYPE ==type && id==0xffffffff); } 
+	bool isBlankLiteral() const { return (BTND_Pattern_Token_TYPE ==type && id==0xffffffff); }
 	bool isStopToken() const { return( BTND_Pattern_StopToken_TYPE == type ); }
 
 	bool isNoLeftBlanks() const { return noLeftBlanks; }
 	std::ostream& print( std::ostream& , const BELPrintContext& ctxt ) const;
-	
+
 	std::ostream& print( std::ostream& ) const;
 };
 
@@ -123,16 +123,16 @@ inline std::ostream& operator <<( std::ostream& fp, const BarzelTrieFirmChildKey
 { return key.print(fp); }
 
 struct BarzelTrieFirmChildKey_comp_less {
-	inline bool operator() ( const BarzelTrieFirmChildKey& l, const BarzelTrieFirmChildKey& r ) const 
-		{ 
-			return ay::range_comp().less_than( 
+	inline bool operator() ( const BarzelTrieFirmChildKey& l, const BarzelTrieFirmChildKey& r ) const
+		{
+			return ay::range_comp().less_than(
 				l.d_matchMode, l.type, r.id, // l.noLeftBlanks,
 				r.d_matchMode, r.type, l.id// , r.noLeftBlanks
 			);
-			// return( l.id < r.id ? true : ( r.id < l.id ? false : (l.type < r.type))); 
+			// return( l.id < r.id ? true : ( r.id < l.id ? false : (l.type < r.type)));
 		}
 };
-inline bool operator <( const BarzelTrieFirmChildKey& l, const BarzelTrieFirmChildKey& r ) 
+inline bool operator <( const BarzelTrieFirmChildKey& l, const BarzelTrieFirmChildKey& r )
 { return BarzelTrieFirmChildKey_comp_less() ( l, r ); }
 
 struct BarzelTrieFirmChildKey_comp_eq {
@@ -147,23 +147,23 @@ struct BarzelWCKey {
 	uint32_t wcId; // wildcard id unique for the type in a pool
 	uint8_t wcType; // one of BTND_Pattern_XXXX_TYPE enums
 	// longest span of the wildcard
-	// for example if number wildcard has maxSpan of 1 
+	// for example if number wildcard has maxSpan of 1
 	// only 1 bead long sequences will be considered candidates
 	// for matching
-	uint8_t maxSpan; 
+	uint8_t maxSpan;
 	uint8_t noLeftBlanks; // one of BTND_Pattern_XXXX_TYPE enums
-	
-	void clear() 
+
+	void clear()
 		{ wcType = BTND_Pattern_None_TYPE; wcId= 0xffffffff; }
-	bool isBlank() const 
+	bool isBlank() const
 		{ return( wcType == BTND_Pattern_None_TYPE ); }
-	BarzelWCKey() : 
-		wcId(0xffffffff), 
+	BarzelWCKey() :
+		wcId(0xffffffff),
 		wcType(BTND_Pattern_None_TYPE),
 		maxSpan(1),
 		noLeftBlanks(0)
 	{}
-	void set( uint8_t span, bool followsBlank ) 
+	void set( uint8_t span, bool followsBlank )
 	{
 		maxSpan= span;
 		noLeftBlanks = ( followsBlank? 0: 1 );
@@ -174,19 +174,19 @@ struct BarzelWCKey {
 	// BarzelWCKey( BELTrie& trie, const BTND_PatternData& pat );
 
 	inline bool lessThan( const BarzelWCKey& r ) const
-	{ 
-		if( 
-			ay::range_comp().less_than( 
+	{
+		if(
+			ay::range_comp().less_than(
 				maxSpan, 	wcType,
 				r.maxSpan, 	r.wcType
-			) 
+			)
 		) {
 			return true;
-		} else if( 
-			ay::range_comp().less_than( 
+		} else if(
+			ay::range_comp().less_than(
 				r.maxSpan, 	r.wcType,
 				maxSpan, 	wcType
-			) 
+			)
 		) {
 			return false;
 		} else
@@ -195,7 +195,7 @@ struct BarzelWCKey {
 				  wcId,   noLeftBlanks
 			) );
 	}
-	
+
 	std::ostream& print( std::ostream& fp, const BarzelWildcardPool* ) const;
 };
 
@@ -206,7 +206,7 @@ inline bool operator <( const BarzelWCKey& l, const BarzelWCKey& r )
 }
 
 
-/// barzel wildcard child lookup object 
+/// barzel wildcard child lookup object
 /// stored in barzel trie nodes
 
 typedef std::pair<BarzelTrieFirmChildKey, BarzelWCKey> BarzelWCLookupKey;
@@ -218,23 +218,23 @@ inline bool operator< (const BarzelWCLookupKey& l, const BarzelWCLookupKey& r )
 	);
 }
 
-/// right side of the pattern 
+/// right side of the pattern
 class BarzelTranslation {
 public:
 	typedef enum {
-		T_NONE,   // blank translation 
-		T_STOP, // translates into stop token 
+		T_NONE,   // blank translation
+		T_STOP, // translates into stop token
 		T_STRING, // dynamic string or literal
 		T_COMPWORD, // compounded word
-		T_NUMBER_INT, // integer 
+		T_NUMBER_INT, // integer
 		T_NUMBER_REAL, // real number (float)
-		/// this one is very special - this actually creates a tree 
+		/// this one is very special - this actually creates a tree
 		T_REWRITER, // interpreted sequence
 
 		T_BLANK,    // blank literal
 		T_PUNCT,    // punctuation
 		T_VAR_NAME, // variable name rewrite
-		T_VAR_WC_NUM, // variable rewrite on wildcard number 
+		T_VAR_WC_NUM, // variable rewrite on wildcard number
 		T_VAR_EL_NUM, // variable rewrite on raw element number (PN)
 		T_VAR_GN_NUM, // variable rewrite on raw element number
 		T_MKENT, // entity maker
@@ -245,9 +245,9 @@ public:
 	} Type_t;
 	boost::variant< uint32_t, double, int64_t> id;
 	BarzelTranslationTraceInfo traceInfo;
-	uint8_t  type; // one of T_XXX constants 
-	uint8_t  makeUnmatchable; // when !=0 this is a terminating translation ... the value will 
-                                // be assigned to the unmatchability of the affected beads 
+	uint8_t  type; // one of T_XXX constants
+	uint8_t  makeUnmatchable; // when !=0 this is a terminating translation ... the value will
+                                // be assigned to the unmatchability of the affected beads
 
 	void set( BELTrie& trie, const BTND_Rewrite_Literal& );
 	void set( BELTrie& trie, const BTND_Rewrite_Number& );
@@ -281,7 +281,7 @@ public:
         return 1;
 	}
 
-	void setRewriter( uint32_t rid ) 
+	void setRewriter( uint32_t rid )
 	{
 		type = T_REWRITER;
 		id = rid;
@@ -301,17 +301,17 @@ public:
 	bool isMkEntSingle() const  { return ( type == T_MKENT ); }
 	bool isMkEntList() const  { return ( type == T_MKENTLIST ); }
 	bool isRewriter() const  { return ( type == T_REWRITER ); }
-		 
-	// returns if evaluation may theoretically fail - theoretically some rewrites may 
+
+	// returns if evaluation may theoretically fail - theoretically some rewrites may
 	// contain things such as entity searches or other operations resulting in entity lists
-	// as well as potentially fail conditions - post check may be more complicated than the 
+	// as well as potentially fail conditions - post check may be more complicated than the
 	// initial wildcard matching check
-	// this function answers in principle whether the right side may theoretically fail 
+	// this function answers in principle whether the right side may theoretically fail
 	// this check is very cheap because no actual evaluation is performed
-	bool isFallible(const BarzelRewriterPool& rwrPool) const 
+	bool isFallible(const BarzelRewriterPool& rwrPool) const
 		{ return( type != T_REWRITER ? false : isRewriteFallible( rwrPool ) ); }
 
-	/// resolves 
+	/// resolves
 	void fillRewriteData( BTND_RewriteData& ) const;
 
 	bool isRewriteFallible( const BarzelRewriterPool& pool ) const;
@@ -319,12 +319,12 @@ public:
 		{ return ( type != T_NONE ); }
 	BarzelTranslation() : id( 0xffffffff ) , type(T_NONE), makeUnmatchable(0) {}
 	BarzelTranslation(Type_t t , uint32_t i ) : id(i),type((uint8_t)t), makeUnmatchable(0) {}
-	
+
 	std::ostream& print( std::ostream& , const BELPrintContext& ) const;
 
 };
 template <>
-inline int BarzelTranslation::setBtnd<BTND_Rewrite_Function>( BELTrie& trie, const BTND_Rewrite_Function& x ) { 
+inline int BarzelTranslation::setBtnd<BTND_Rewrite_Function>( BELTrie& trie, const BTND_Rewrite_Function& x ) {
 	set(trie,x);
     return 0;
 }
@@ -349,31 +349,31 @@ class BarzelTrieNode {
 	const BarzelTrieNode* d_parent;
 	uint32_t d_firmMapId; // when valid (not 0xffffffff) can it's an id of a firm lookup object  (BarzelFCMap)
 
-	uint32_t d_wcLookupId; // when valid (not 0xffffffff) can it's an id of a wildcard lookup object 
+	uint32_t d_wcLookupId; // when valid (not 0xffffffff) can it's an id of a wildcard lookup object
 	uint32_t d_translationId;
 
 	// BarzelWCLookup wcChild; /// used for wildcard matching (number,date, etc)
 	enum {
-		B_WCCHILD, // it's a wildcard child of its parent 
-		
-		// new bits strictly above this line 
+		B_WCCHILD, // it's a wildcard child of its parent
+
+		// new bits strictly above this line
 		B_MAX
 	};
-	ay::bitflags<B_MAX> d_flags; 
+	ay::bitflags<B_MAX> d_flags;
 
 
 	/// methods
 	void clearFirmMap();
 	void clearWCMap();
-	
-	// given the nature of the trie - it's extremely leaf heavy - most nodes will actually have 
-	// translation 
+
+	// given the nature of the trie - it's extremely leaf heavy - most nodes will actually have
+	// translation
 	//BarzelTranslation d_translation;
 public:
-	/// these functions MAY return 0 if the node has no firm children 
+	/// these functions MAY return 0 if the node has no firm children
 	uint32_t getFirmMapId() const { return d_firmMapId; }
 	uint32_t getTranslationId() const { return d_translationId; }
-	
+
 	BarzelTranslation* getTranslation(BELTrie& trie);
 	const BarzelTranslation* getTranslation(const BELTrie& trie) const;
 
@@ -401,7 +401,7 @@ public:
 	bool hasFirmChildren() const { return (d_firmMapId!=0xffffffff); }
 
 	bool hasWildcardChildren() const { return (d_wcLookupId != 0xffffffff ) ; }
-	bool hasChildren() const 
+	bool hasChildren() const
 		{ return (hasWildcardChildren() || hasFirmChildren() ); }
 
 	bool hasValidTranslation() const { return (d_translationId != 0xffffffff); }
@@ -409,13 +409,13 @@ public:
 
 	/// makes node leaf and sets translation
 	void setTranslation(uint32_t tranId ) { d_translationId = tranId; }
-	
 
-	// locates a child node or creates a new one and returns a reference to it. non-leaf by default 
+
+	// locates a child node or creates a new one and returns a reference to it. non-leaf by default
 	// if pattern data cant be translated into a valid key the same node is returned
-	/// so typically  when we want to add a chain of patterns as a path to the trie 
-	/// we will iterate over the chain calling node = node->addPattern(p) for each pattern 
-	/// and in the end we will call node->setTranslation() 
+	/// so typically  when we want to add a chain of patterns as a path to the trie
+	/// we will iterate over the chain calling node = node->addPattern(p) for each pattern
+	/// and in the end we will call node->setTranslation()
 
 	// if p is a non-firm kind (a wildcard) this is a no-op
 	BarzelTrieNode* addFirmPattern( BELTrie& trie, const BarzelTrieFirmChildKey& key );
@@ -443,22 +443,24 @@ typedef std::map< BarzelWCLookupKey, BarzelTrieNode > BarzelWCLookup;
 struct BELStatementParsed;
 class GlobalPools;
 
-/// one of these is stored for each unique strId in a trie 
+/// one of these is stored for each unique strId in a trie
 struct TrieWordInfo {
-	uint32_t wordCount;     // number of time the word occurs as itself 
+	uint32_t wordCount;     // number of time the word occurs as itself
     uint32_t stemWordCount; // number of times the word occurs as a stem
-	
+
 	TrieWordInfo() : wordCount(0), stemWordCount(0) {}
-	void incrementCount(bool stemmed ) { 
-        if( stemmed ) 
+	void incrementCount(bool stemmed ) {
+        if( stemmed )
             ++stemWordCount;
-        else 
-            ++wordCount; 
+        else
+            ++wordCount;
     }
     uint32_t getWordCount() const { return wordCount; }
     uint32_t getStemWordCount() const { return stemWordCount; }
 };
-typedef boost::unordered_map< uint32_t, TrieWordInfo > strid_to_triewordinfo_map; 
+typedef boost::unordered_map< uint32_t, TrieWordInfo > strid_to_triewordinfo_map;
+typedef std::set< uint32_t > strIds_set;
+typedef boost::unordered_map< uint32_t, strIds_set> stem_to_srcs_map;
 
 class BELTrie {
 	GlobalPools& globalPools;
@@ -469,14 +471,15 @@ class BELTrie {
 	BarzelTranslationPool *d_tranPool;
 	BarzelVariableIndex   d_varIndex;
 	EntityCollection      d_entCollection;
-    
+
     TopicEntLinkage       d_topicEnt;
 	/// this trie's global id in the global trie pool
-	uint32_t d_globalTriePoolId; 
+	uint32_t d_globalTriePoolId;
 	// tokens participating in this trie will have this priority in the localized spelling corrector
 	uint8_t d_spellPriority;
-	
+
 	strid_to_triewordinfo_map d_wordInfoMap;
+	stem_to_srcs_map d_stemSrcs;
 
 	BELTrie( const BELTrie& a );
 public:
@@ -489,6 +492,9 @@ public:
 
 	// must be called from BELParser::internString
 	void addWordInfo( uint32_t strId, bool stemmed ) { d_wordInfoMap[strId].incrementCount(stemmed); }
+
+	void addStemSrc ( uint32_t stemId, uint32_t srcId ) { d_stemSrcs [stemId].insert(srcId); }
+	const strIds_set& getStemSrcs ( uint32_t stemId ) const { return d_stemSrcs.at (stemId); }
 
 	const strid_to_triewordinfo_map& getWordInfoMap() const { return d_wordInfoMap; }
 
@@ -510,7 +516,7 @@ private:
     uint32_t d_trieClass_strId, d_trieId_strId;
 public:
     typedef  std::pair< uint32_t , uint32_t > UniqueTrieId;
-    UniqueTrieId getUniqueTrieId() const 
+    UniqueTrieId getUniqueTrieId() const
         { return UniqueTrieId( d_trieClass_strId, d_trieId_strId ); }
 
     uint32_t getTrieClass_strId() const { return d_trieClass_strId; }
@@ -537,7 +543,7 @@ public:
 	BarzelTrieNode root;
 
 	// allocates the pools
-	void initPools(); 
+	void initPools();
 
 	~BELTrie();
 	BELTrie( GlobalPools& gp );
@@ -549,7 +555,7 @@ public:
 	const BarzelMacros& getMacros() const { return  macros; }
 	BarzelMacros& getMacros() { return  macros; }
 
-	const EntityGroup* getEntGroupById( uint32_t id ) const 
+	const EntityGroup* getEntGroupById( uint32_t id ) const
 	{ return d_entCollection.getEntGroup(id); }
 	const EntityCollection& getEntityCollection() const { return       d_entCollection; }
 	EntityCollection& getEntityCollection() { return       d_entCollection; }
@@ -570,17 +576,17 @@ public:
 	const BarzelVariableIndex& getVarIndex() const { return d_varIndex; }
 
 	std::ostream& printVariableName( std::ostream& fp, uint32_t varId ) const;
-	
-	BarzelTranslation*  makeNewBarzelTranslation( uint32_t& id ) 
+
+	BarzelTranslation*  makeNewBarzelTranslation( uint32_t& id )
 		{ return d_tranPool->addObj( id ); }
 	const BarzelTranslation* getBarzelTranslation( const BarzelTrieNode& node ) const { return d_tranPool->getObjById(node.getTranslationId()); }
 		  BarzelTranslation* getBarzelTranslation( const BarzelTrieNode& node ) 	   { return d_tranPool->getObjById(node.getTranslationId()); }
 
-	/// tries to add another translation to the existing one. 
-	/// initially this will only work for entity lists 
-	bool tryAddingTranslation( BarzelTrieNode* n, uint32_t tranId, const BELStatementParsed& stmt, uint32_t emitterSeqNo ); 
+	/// tries to add another translation to the existing one.
+	/// initially this will only work for entity lists
+	bool tryAddingTranslation( BarzelTrieNode* n, uint32_t tranId, const BELStatementParsed& stmt, uint32_t emitterSeqNo );
 
-	BarzelFCMap*  makeNewBarzelFCMap( uint32_t& id ) 
+	BarzelFCMap*  makeNewBarzelFCMap( uint32_t& id )
 		{ return d_fcPool->addObj( id ); }
 	const BarzelFCMap* getBarzelFCMap( const BarzelTrieNode& node ) const { return d_fcPool->getObjById(node.getFirmMapId()); }
 		  BarzelFCMap* getBarzelFCMap( const BarzelTrieNode& node ) 	  { return d_fcPool->getObjById(node.getFirmMapId()); }
@@ -589,7 +595,7 @@ public:
 	/// this ends up calling d_wcPool->produceWCKey()
 	void produceWCKey( BarzelWCKey&, const BTND_PatternData&   );
 
-	/// adds a new path to the 
+	/// adds a new path to the
 	const BarzelTrieNode* addPath( const BELStatementParsed& stmt, const BTND_PatternDataVec& path, uint32_t tranId, const BELVarInfo& varInfo, uint32_t emitterSeqNo );
 	void setTanslationTraceInfo( BarzelTranslation& tran, const BELStatementParsed& stmt, uint32_t emitterSeqNo );
 	std::ostream& printTanslationTraceInfo( std::ostream& , const BarzelTranslationTraceInfo& traceInfo ) const;
@@ -599,25 +605,25 @@ public:
 	BarzelTrieNode& getRoot() { return root; }
 	const BarzelTrieNode& getRoot() const { return root; }
 
-	/// print methods 
+	/// print methods
 	std::ostream& print( std::ostream&, BELPrintContext& ctxt ) const;
 
 	void clear();
 };
 
-inline BarzelTranslation* BarzelTrieNode::getTranslation(BELTrie& trie) 
-{ 
+inline BarzelTranslation* BarzelTrieNode::getTranslation(BELTrie& trie)
+{
 	return trie.getBarzelTranslation( *this );
 }
-inline const BarzelTranslation* BarzelTrieNode::getTranslation(const BELTrie& trie) const 
-{ 
+inline const BarzelTranslation* BarzelTrieNode::getTranslation(const BELTrie& trie) const
+{
 	return trie.getBarzelTranslation( *this );
 }
 
 /// object necessary for meaningful printing
 struct BELPrintFormat {
 	enum {
-		PFB_NODESCEND, // doesnt recursively print the children 
+		PFB_NODESCEND, // doesnt recursively print the children
 
 		/// add new flags only above this line
 		PFB_MAX
@@ -634,10 +640,10 @@ struct BELTrieContext {
 	const ay::UniqueCharPool& strPool;
 
 	BELTrieContext(
-		BELTrie& t, 
-		const ay::UniqueCharPool& sp 
-	) : 
-		trie(t), 
+		BELTrie& t,
+		const ay::UniqueCharPool& sp
+	) :
+		trie(t),
 		strPool(sp)
 	{}
 };
@@ -649,33 +655,33 @@ struct BELPrintContext {
 
 	std::string prefix;
 	int depth;
-	enum { PREFIX_INDENT_SZ = 4 };	
+	enum { PREFIX_INDENT_SZ = 4 };
 
 	void descend() { ++depth; prefix.resize( prefix.size() + PREFIX_INDENT_SZ, ' ' ); }
-	void ascend() { 
-		if( depth > 0 ) 
+	void ascend() {
+		if( depth > 0 )
 			--depth;
 		if( prefix.size() >= PREFIX_INDENT_SZ )
-			prefix.resize( prefix.size() - PREFIX_INDENT_SZ ); 
+			prefix.resize( prefix.size() - PREFIX_INDENT_SZ );
 	}
-	BELPrintContext( 
-		const BELTrie& t, 
+	BELPrintContext(
+		const BELTrie& t,
 		const ay::UniqueCharPool& sp ,
 		const BELPrintFormat& f
-	) : 
-		trie(t), 
+	) :
+		trie(t),
 		strPool(sp),
 		format(f),
 		depth(0)
 	{}
-	
+
 
 	const char* printableString( uint32_t id )  const
 	{ return strPool.printableStr(id); }
-	
+
 	std::ostream& printVariableName( std::ostream& fp, uint32_t varId ) const
 		{ return trie.printVariableName(fp,varId); }
-	const BarzelWCLookup*  getWildcardLookup( uint32_t id ) const; 
+	const BarzelWCLookup*  getWildcardLookup( uint32_t id ) const;
 
 	bool needDescend() const
 	{
