@@ -2186,6 +2186,11 @@ struct BELFunctionStorage_holder {
             if( shouldKeep )
                 outlst.addEntity( i->first );
         }
+        if( !outlst.getList().size()  ) {
+            for( BarzerEntityList::EList::const_iterator ei = theEList.begin(); ei != theEList.end(); ++ei ) {
+                outlst.addEntity( *ei );
+            }
+        }
 
         setResult(result, outlst );
         return true;
