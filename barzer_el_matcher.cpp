@@ -514,16 +514,18 @@ public:
 				BarzerLiteral stemmedLiteral( dta );
 
 				stemmedLiteral.setId(stemId);
-				if( doFirmMatch_literal( fcmap, stemmedLiteral, allowBlanks ) )
-					rc = true;
-
-				const strIds_set& set = d_trie.getStemSrcs(stemId);
-				for (strIds_set::const_iterator i = set.begin(), end = set.end (); i != end; ++i)
-				{
-					stemmedLiteral.setId(*i);
-					if( doFirmMatch_literal( fcmap, stemmedLiteral, allowBlanks ) )
-						rc = true;
-				}
+				if( doFirmMatch_literal( fcmap, stemmedLiteral, allowBlanks ) ) {
+                    if( !rc ) rc = true;
+                }
+				const strIds_set* stemSet = d_trie.getStemSrcs(stemId);
+                if( stemSet ) {
+				    for (strIds_set::const_iterator i = stemSet->begin(), set_end= stemSet->end(); i != set_end; ++i) {
+					    stemmedLiteral.setId(*i);
+					    if( doFirmMatch_literal( fcmap, stemmedLiteral, allowBlanks ) ) {
+                            if( !rc ) rc = true;
+                        }
+				    }
+                }
 			}
 		}
 		return rc;
