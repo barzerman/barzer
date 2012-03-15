@@ -401,7 +401,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 		if (strId == 0xffffffff && t_len < MultiwordLen)
 		{
 			char dirty [BZSpell::MAX_WORD_LEN];
-            int16_t lang = Lang::getLang (theString, t_len);
+            // int16_t lang = Lang::getLang (theString, t_len);
 			const size_t step = Lang::isTwoByteLang (lang) ? 2 : 1;
 
 			for (size_t i = step; i < t_len - step; i += step)

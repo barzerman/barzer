@@ -1,5 +1,6 @@
 #include <barzer_ru_stemmer.h>
 #include <ay_char.h>
+#include <ay_util.h>
 #include <vector>
 #include <stdint.h>
 
@@ -70,15 +71,48 @@ const char* verb_3[]        = {"ишь" ,"ись", "ешь" ,"ься",0};
 
 const char* noun_23_truevowel[]        = {"ом","ой","ою","ах","ов","ам", "ем", "ей", "ью", "ию","ье","ья","ее", "ии", "ие","ия", "ая", "ую", 0};
 const char* verb_2[]        = {"ил" ,"ят", "ит", "ал" ,"ол","ел","ыл","ул","ся","им","ет", "ут","ёт",  0};
-const char* adj_2[]         = {"ий" ,"ое" , "ых", "ые","ый","ым","ой","ие","их","им","ая",0};
+const char* adj_2[]         = {"ий" ,"ое" , "ых", "ые","ый","ым","ой","ие","их","им","ыя","ия", "ая",0};
 
 // noun suffixes 
+
+typedef std::pair<const char*,const char*> const_char_pair_t;
+
+inline bool operator< ( const const_char_pair_t& l, const const_char_pair_t& r ) 
+    { return (strcasecmp( l.first, r.first )<0); }
+
+const_char_pair_t str_exceptions[] = {
+    const_char_pair_t("недели","недел")
+};
+
+struct const_char_pair_t_comp {
+bool operator()( const const_char_pair_t& l, const const_char_pair_t& r ) const
+    { return (l< r); }
+
+};
+
+inline const char* get_exception_stem( const char* s )
+{
+    std::pair<const const_char_pair_t*,const const_char_pair_t*> i = 
+        std::equal_range(
+            ARR_BEGIN(str_exceptions), 
+            ARR_END(str_exceptions),
+            const_char_pair_t(s,0),
+            const_char_pair_t_comp());
+
+    if( i.first!= i.second ) {
+        return i.first->second;
+    } else {
+        return 0;
+    }
+}
+
 }
 
 namespace {
 // this function is essentially a macro used by Russian::stem
 inline bool chop_into_string( std::string& out, size_t toChop, const char* s, size_t s_len )
     { return( out.assign( s, (s_len-2*toChop) ), true ); }
+
 } // anonymous namespace 
 using namespace ay;
 bool Russian::normalize( std::string& out, const char* s, size_t* len ) 
@@ -87,6 +121,12 @@ bool Russian::normalize( std::string& out, const char* s, size_t* len )
     size_t s_len = strlen( s );
     if( len ) 
         *len = s_len;
+    
+    const char* tmp = get_exception_stem(s);
+    if( tmp ) {
+        out.assign(tmp);
+        return true;
+    }
     size_t numLetters = s_len/2; // number of russian characters (one russian characters s 2 chars)
     enum { RUSSIAN_MIN_STEM_CHAR = 4, RUSSIAN_MIN_STEM_LEN=(2*RUSSIAN_MIN_STEM_CHAR) };
 
