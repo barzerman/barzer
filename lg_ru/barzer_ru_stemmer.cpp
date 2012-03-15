@@ -92,6 +92,7 @@ bool Russian::normalize( std::string& out, const char* s, size_t* len )
 
     if( s_len< RUSSIAN_MIN_STEM_LEN ) 
         return false;
+
     /// suffix stemming 
     Char2B_accessor l1( s+ s_len -2), // last character
         l2( l1.prev() ), // the one before last 
