@@ -73,7 +73,8 @@ struct TrieAnalyzer {
 	}
 	const char* getIdStr( const StoredEntityUniqId& euid ) const
 	{
-		return getUniverse().getDtaIdx().resolveStoredTokenStr( euid.tokId ); 
+        return getUniverse().getGlobalPools().internalString_resolve( euid.tokId );
+		//return getUniverse().getDtaIdx().resolveStoredTokenStr( euid.tokId ); 
 	}
 	const StoredUniverse& getUniverse() const { return d_universe; }
 	size_t getTotalEntCount() const { return getUniverse().getDtaIdx().getNumberOfEntities(); }
