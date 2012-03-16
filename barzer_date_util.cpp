@@ -28,7 +28,7 @@ const uint32_t DateLookup::getMonthID(const uint8_t month_num) const{
 }
 
 const uint32_t DateLookup::getMonthID(const char* month_name) const{
-    return globPools.internalString_getId(MONTHS[(month_name)]);
+    return globPools.internalString_getId(MONTHS[lookupMonth(month_name)]);
 }
 
 const uint8_t DateLookup::resolveMonthID(const uint32_t mid) const {
