@@ -9,26 +9,29 @@
 #include <barzer_universe.h>
 #include <lg_en/barzer_en_date_util.h>
 #include <lg_ru/barzer_ru_date_util.h>
+#include <ay/ay_util.h>
 
 namespace barzer {
-    static const char *MONTHS[] = 
+namespace {
+const char *g_MONTHS[] = 
     {"NUL","JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
+}
 
 void DateLookup::init() {
-    for (int i = 0; i < 12; ++i) 
-        globPools.internString_internal(MONTHS[i]);
+    for (int i = 0; i < ARR_SZ(g_MONTHS); ++i) 
+        globPools.internString_internal(g_MONTHS[i]);
 }
 
 
 const uint32_t DateLookup::getMonthID(const uint8_t month_num) const{
     if (month_num < 0 || month_num > 12) 
-        return globPools.internalString_getId(MONTHS[0]);
+        return globPools.internalString_getId(g_MONTHS[0]);
     else
-        return globPools.internalString_getId(MONTHS[month_num]);
+        return globPools.internalString_getId(g_MONTHS[month_num]);
 }
 
 const uint32_t DateLookup::getMonthID(const char* month_name) const{
-    return globPools.internalString_getId(MONTHS[lookupMonth(month_name)]);
+    return globPools.internalString_getId(g_MONTHS[lookupMonth(month_name)]);
 }
 
 const uint8_t DateLookup::resolveMonthID(const uint32_t mid) const {
