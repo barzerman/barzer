@@ -7,8 +7,6 @@
 
 #include <lg_en/barzer_en_date_util.h>
 
-static const char* lang = "EN";
-
 namespace barzer {
     namespace en {
     const uint8_t lookupMonth(const char* mname) {
@@ -67,22 +65,11 @@ namespace barzer {
             default: return 0;
         }
     }
+
+   /* void fillDateInfo(DateLookup &dl) {
+        //dl.addMonths(en::MONTHS);
+        //dl.addWeekdays(wdays, lang);
+        //dl.addWeekdays(wdaysShort, lang);
+    }*/
 }
-	void fillDateInfo_en(DateLookup &dl) {
-		static const char *months[] =
-			{"january", "february", "march", "april", "may", "june", "july",
-			 "august", "september", "october", "november", "december"};
-		static const char *monthsShort[] =
-			{"jan", "feb", "mar", "apr", "may", "jun",
-			 "jul", "aug", "sep", "oct", "nov", "dec"};
-		static const char *wdays[] =
-			{"monday", "tuesday", "wednesday",
-			 "thursday", "friday", "saturday", "sunday"};
-		static const char *wdaysShort[] =
-			{"mon", "tue", "wed", "thu", "fri", "sat", "sun"};
-		dl.addMonths(months, lang);
-		dl.addMonths(monthsShort, lang);
-		dl.addWeekdays(wdays, lang);
-		dl.addWeekdays(wdaysShort, lang);
-	}
 }

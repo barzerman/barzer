@@ -16,51 +16,25 @@ namespace barzer {
 
 class GlobalPools;
 class DateLookup {
-public:
-	typedef void (*DateLookupFunc)( DateLookup& );
-	typedef boost::unordered_map<uint32_t,uint8_t> DateLookupMap;
-	typedef DateLookupMap::value_type DateLookupRec;
-
-	typedef std::vector<uint32_t> SymbolVec;
-	typedef boost::unordered_map<uint32_t,SymbolVec> SymbolStorage;
-	typedef SymbolStorage::value_type SymbolRec;
-
 private:
 	GlobalPools &globPools;
-	DateLookupMap monthMap;
-	DateLookupMap weekdayMap;
-
-	SymbolStorage monthStorage;
-	SymbolStorage weekdayStorage;
-
-
+    
 public:
-	DateLookup(GlobalPools &u) : globPools(u), monthMap(12*4), weekdayMap(7*4)
+	DateLookup(GlobalPools &u) : globPools(u)
 	{
 		init();
 	}
 
 	void init();
 
-	void addMonths(const char*[], const char*);
-	void addWeekdays(const char*[], const char*);
-
-	void addMonth(const char*, const uint8_t, const char*);
-	void addMonth(const uint32_t, const uint8_t, const char*);
-	void addWeekday(const char*, const uint8_t, const char*);
-	void addWeekday(const uint32_t, const uint8_t, const char*);
-
-
+    const uint32_t getMonthID(const char* month_name) const;
+    const uint32_t getMonthID(const uint8_t month_num) const;
+    const uint8_t resolveMonthID(const uint32_t mid) const;
 	const uint8_t lookupMonth(const char*) const;
 	const uint8_t lookupMonth(const uint32_t) const;
 	const uint8_t lookupWeekday(const char*) const;
 	const uint8_t lookupWeekday(const uint32_t) const;
 
-	void getMonths(const char*, SymbolVec&) const;
-	void getMonths(const uint32_t, SymbolVec&) const;
-
-	void getWeekdays(const char*, SymbolVec&) const;
-	void getWeekdays(const uint32_t, SymbolVec&) const;
 
 };
 

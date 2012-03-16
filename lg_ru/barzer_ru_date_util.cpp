@@ -7,8 +7,6 @@
 
 #include <lg_ru/barzer_ru_date_util.h>
 
-static const char* lang = "RU";
-
 namespace barzer {
 namespace ru {
     const uint8_t lookupMonth(const char* mname){
@@ -65,24 +63,5 @@ namespace ru {
         if (w("ч")) return 4; else     //четверг
         return 0; 
     }
-}
-	void fillDateInfo_ru(DateLookup &dl) {
-		static const char* months[] =
-			{"январь", "февраль", "март", "апрель", "май", "июнь",
-			 "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь"};
-		static const char* monthsShort[] =
-			{"янв", "фев", "мар", "апр", "май", "июн",
-			 "июл", "авг", "сен", "окт", "ноя", "дек"};
-		static const char* wdays[] =
-			{"понедельник", "вторник", "среда", "четверг",
-			 "пятница", "суббота", "воскресенье"};
-		static const char* wdaysShort[] =
-			{"пнд", "втр", "срд", "чтв",
-			 "птн", "сбт", "вск"};
-
-		dl.addMonths(months, lang);
-		dl.addMonths(monthsShort, lang);
-		dl.addWeekdays(wdays, lang);
-		dl.addWeekdays(wdaysShort, lang);
-	}
-}
+}   //namespace ru
+}   //namespace barzer
