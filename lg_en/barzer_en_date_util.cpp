@@ -65,11 +65,5 @@ namespace barzer {
             default: return 0;
         }
     }
-
-   /* void fillDateInfo(DateLookup &dl) {
-        //dl.addMonths(en::MONTHS);
-        //dl.addWeekdays(wdays, lang);
-        //dl.addWeekdays(wdaysShort, lang);
-    }*/
 }
 }

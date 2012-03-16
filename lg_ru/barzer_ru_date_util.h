@@ -14,8 +14,6 @@ namespace barzer {
 namespace ru {
     const uint8_t lookupMonth(const char* mname);
     const uint8_t lookupWeekday(const char* wdname);
-
-//	void fillDateInfo(DateLookup &dl);
 }
 }
 
