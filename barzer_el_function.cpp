@@ -329,6 +329,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(mkDay);
 		ADDFN(mkWday);
 		ADDFN(mkMonth);
+        ADDFN(mkMonthEnt);
 		ADDFN(mkTime);
 		ADDFN(mkDateTime);
 		ADDFN(mkRange);
@@ -339,6 +340,7 @@ struct BELFunctionStorage_holder {
 		// ADDFN(mkLtrl);
 		ADDFN(mkExprTag);
 		ADDFN(mkExprAttrs);
+
 
 		// getters
 		ADDFN(getWeekday); // getWeekday(BarzerDate)
@@ -528,7 +530,7 @@ struct BELFunctionStorage_holder {
         return true;
     }
 	// makers
-	STFUN(mkDate) //(d) | (d,m) | (d,m,y)
+	STFUN(mkDate) //(d) | (d,m) | (d,m,y) where m can be both number or entity
 	{
         SETFUNCNAME(mkDate);
 
@@ -543,7 +545,10 @@ struct BELFunctionStorage_holder {
 		try {
             switch (rvec.size()) {
             case 3: y = getNumber(rvec[2]);
-            case 2: m = getNumber(rvec[1]);
+            case 2: { // Do we need to check if ent is ent(1,3) or not ?
+                const BarzerEntity* be = getAtomicPtr<BarzerEntity>(rvec[1]);
+                m = (be? gpools.dateLookup.resolveMonthID(be->getTokId()) :getNumber(rvec[1]));
+            }
             case 1: d = getNumber(rvec[0]);
             case 0: break; // 0 arguments = today
 
@@ -664,6 +669,33 @@ struct BELFunctionStorage_holder {
         return false;
     }
 
+    STFUN(mkMonthEnt)
+    {
+        SETFUNCNAME(mkMonthEnt);
+        uint8_t m(BarzerDate::thisMonth);
+        try {
+            if (rvec.size()) {
+                const BarzerNumber* bn = getAtomicPtr<BarzerNumber>(rvec[0]);
+                if (bn) m = bn->getInt();
+                else {
+                    const BarzerLiteral &bl = getAtomic<BarzerLiteral>(rvec[0]);
+                    m = gpools.dateLookup.lookupMonth(bl.getId());
+                    if (!m) {
+                        FERROR("Unknown month name");
+                        return false;
+                    }
+                }
+            }
+            uint32_t mid = gpools.dateLookup.getMonthID(m);
+            //check if mid exists
+            const StoredEntityUniqId euid( mid, 1, 3);//put constants somewhere! c1;s3 == months
+            setResult(result, euid);
+            return true;
+        } catch(boost::bad_get) {
+            AYLOG(ERROR) << "Wrong argument type";
+        }
+        return false;
+    }
 
 
 	STFUN(mkTime)
@@ -997,6 +1029,7 @@ struct BELFunctionStorage_holder {
 		setResult(result, euid);
 		return true;
 	}
+	
 
 	// tries to construct an EntityRangeCombo from a sequence of BeadData
 	// first BarzerEntity counts as entity the rest - as units

@@ -7,8 +7,6 @@
 
 #include <lg_ru/barzer_ru_date_util.h>
 
-static const char* lang = "RU";
-
 namespace barzer {
 namespace ru {
     const uint8_t lookupMonth(const char* mname){
@@ -40,45 +38,30 @@ namespace ru {
     }
  
     const uint8_t lookupWeekday(const char* wdname){
-        if (strlen(wdname) < 3) return 0;
+        if (strlen(wdname) < 2) return 0;
         ay::Char2B_accessor w(wdname);
         
         if (w("с")) {
             ay::Char2B_accessor wn = w.next();
-            if (wn("р")) return 3; else //среда
+            if (wn("р")) return 3; else //среда, ср
             if (wn("у")) return 6; else //суббота
+            if (wn("б")) return 6; else //сб
             return 0; } else 
         if (w("в"))  {
             ay::Char2B_accessor  wn = w.next();
-            if (wn("т")) return 2; else //вторник
+            if (wn("т")) return 2; else //вторник, вт
             if (wn("о")) return 7; else //воскресенье
+            if (wn("с")) return 7; else //вс
             return 0;} else
         if (w("п")) {
             ay::Char2B_accessor  wn = w.next();
             if (wn("о")) return 1; else//понедельник
+            if (wn("н")) return 1; else//пн
             if (wn("я")) return 5; else//пятница
+            if (wn("т")) return 5; else//пт
             return 0;} else
         if (w("ч")) return 4; else     //четверг
         return 0; 
     }
-}
-	void fillDateInfo_ru(DateLookup &dl) {
-		static const char* months[] =
-			{"январь", "февраль", "март", "апрель", "май", "июнь",
-			 "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь"};
-		static const char* monthsShort[] =
-			{"янв", "фев", "мар", "апр", "май", "июн",
-			 "июл", "авг", "сен", "окт", "ноя", "дек"};
-		static const char* wdays[] =
-			{"понедельник", "вторник", "среда", "четверг",
-			 "пятница", "суббота", "воскресенье"};
-		static const char* wdaysShort[] =
-			{"пнд", "втр", "срд", "чтв",
-			 "птн", "сбт", "вск"};
-
-		dl.addMonths(months, lang);
-		dl.addMonths(monthsShort, lang);
-		dl.addWeekdays(wdays, lang);
-		dl.addWeekdays(wdaysShort, lang);
-	}
-}
+}   //namespace ru
+}   //namespace barzer
