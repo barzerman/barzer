@@ -40,23 +40,27 @@ namespace ru {
     }
  
     const uint8_t lookupWeekday(const char* wdname){
-        if (strlen(wdname) < 3) return 0;
+        if (strlen(wdname) < 2) return 0;
         ay::Char2B_accessor w(wdname);
         
         if (w("с")) {
             ay::Char2B_accessor wn = w.next();
-            if (wn("р")) return 3; else //среда
+            if (wn("р")) return 3; else //среда, ср
             if (wn("у")) return 6; else //суббота
+            if (wn("б")) return 6; else //сб
             return 0; } else 
         if (w("в"))  {
             ay::Char2B_accessor  wn = w.next();
-            if (wn("т")) return 2; else //вторник
+            if (wn("т")) return 2; else //вторник, вт
             if (wn("о")) return 7; else //воскресенье
+            if (wn("с")) return 7; else //вс
             return 0;} else
         if (w("п")) {
             ay::Char2B_accessor  wn = w.next();
             if (wn("о")) return 1; else//понедельник
+            if (wn("н")) return 1; else//пн
             if (wn("я")) return 5; else//пятница
+            if (wn("т")) return 5; else//пт
             return 0;} else
         if (w("ч")) return 4; else     //четверг
         return 0; 
