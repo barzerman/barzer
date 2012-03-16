@@ -62,6 +62,7 @@ public:
 	// and no errors encountered)
 	int generateStoredProc( uint32_t nameStrId, const BELParseTreeNode& );
 	int callStoredProc( uint32_t nameStrId, BarzelEvalResult& transResult, BarzelEvalContext& ctxt, const BarzelEvalResultVec& inputArgs );
+    void clear() { d_evalNodeMap.clear(); }
 };
 
 } // barzer namespace ends 

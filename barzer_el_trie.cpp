@@ -132,6 +132,7 @@ void BELTrie::clear()
 {
 	root.clear();
     macros.clear();
+    procs.clear();
 	initPools();
 }
 
