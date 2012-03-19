@@ -225,7 +225,7 @@ struct Subset: public IntermediateNode {
 
     Subset(const BELParseTreeNode::ChildrenVec& children, VarVec &v)
         : IntermediateNode(children, v),
-        d_subsMax( (1<< children.size()) ),
+        d_subsMax( (1<< children.size()) - 1 ),
         d_subsCurrent(1)
     {}
     
@@ -242,7 +242,7 @@ struct Subset: public IntermediateNode {
             d_subsCurrent = 1;
             return false;
         }
-        
+
         ++d_subsCurrent;
         return true;
     }
