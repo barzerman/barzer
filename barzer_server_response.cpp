@@ -480,6 +480,14 @@ static void printTraceInfo(std::ostream &os, const Barz &barz, const StoredUnive
 
 }
 
+namespace {
+
+inline bool stringPair_comp_less( const CToken::StringPair& l, const CToken::StringPair& r ) 
+{ return( l.first < r.first ); }
+inline bool stringPair_comp_eq( const CToken::StringPair& l, const CToken::StringPair& r ) 
+{ return( l.first == r.first ); }
+
+}
 std::ostream& BarzStreamerXML::print(std::ostream &os)
 {
 	os << "<barz>";
@@ -528,7 +536,11 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 	/// printing spell corrections  if any 
 	if( spellCorrections.size( ) ) {
 		os << "<spell>\n";
-		for( CToken::SpellCorrections::const_iterator i = spellCorrections.begin(); i!= spellCorrections.end(); ++i ) {
+
+        CToken::SpellCorrections::const_iterator i_end = std::unique( 
+            spellCorrections.begin(), spellCorrections.end(), stringPair_comp_eq
+        );
+		for( CToken::SpellCorrections::const_iterator i = spellCorrections.begin(); i!= i_end; ++i ) {
 			os << "<correction before=\"" << i->first << "\" after=\"" << i->second << "\"/>\n";
 		}
 		os << "</spell>\n";
