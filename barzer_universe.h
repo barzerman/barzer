@@ -15,6 +15,7 @@
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
 #include <barzer_topics.h>
+#include "barzer_locale.h"
 
 
 namespace ay { struct CommandLineArgs; }
@@ -269,6 +270,9 @@ private:
     TopicEntLinkage d_topicEntLinkage;
     EntitySegregatorData d_entSeg;
 
+	BarzerLocale_ptr m_defLocale;
+	std::vector<BarzerLocale_ptr> m_otherLocales;
+
 	void addWordsFromTriesToBZSpell();
 public:
     const std::set< BarzerEntity >* getTopicEntities( const BarzerEntity& t ) const
@@ -289,6 +293,10 @@ public:
 
     typedef boost::unique_lock< Mutex > WriteLock;
     typedef boost::shared_lock< Mutex >  ReadLock;
+
+	void addLocale(BarzerLocale_ptr locale, bool isDefault);
+	BarzerLocale_ptr getDefaultLocale() const { return m_defLocale; }
+	const std::vector<BarzerLocale_ptr>& getOtherLocales() const { return m_otherLocales; }
 
 	const BZSpell* getBZSpell() const { return bzSpell; }
 	BZSpell* getBZSpell() { return bzSpell; }

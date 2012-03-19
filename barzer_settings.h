@@ -130,6 +130,7 @@ public:
 	void loadSpell(User&, const boost::property_tree::ptree&);
 
 	void loadTrieset(BELReader&, User&, const boost::property_tree::ptree&);
+	void loadLocale(BELReader&, User&, const boost::property_tree::ptree&);
 	void loadUserRules(BELReader& reader, User&, const boost::property_tree::ptree&);
 
 	void loadUsers(BELReader& reader );

@@ -315,6 +315,41 @@ void BarzerSettings::loadTrieset(BELReader& reader, User &u, const ptree &node) 
 	std::cerr << "user " << u.getId() << ":" << tcluster.getTrieList().size()	 << " tries loaded\n";
 }
 
+void BarzerSettings::loadLocale(BELReader& reader, User& u, const ptree& node)
+{
+	bool metDefault = false;
+	BOOST_FOREACH(const ptree::value_type &v, node.get_child("locales", empty_ptree()))
+	{
+		if (v.first != "locale")
+			continue;
+
+		try
+		{
+			const ptree& trieNode = v.second;
+			const ptree& attrs = trieNode.get_child("<xmlattr>");
+			const std::string& lang = attrs.get<std::string>("lang");
+
+			const bool def = attrs.get<bool>("default", false);
+			if (def)
+				metDefault = true;
+
+			AYLOG(DEBUG) << "detected locale" << lang << " " << def << std::endl;
+
+			u.getUniverse().addLocale(BarzerLocale::makeLocale(lang), def);
+		}
+		catch (const boost::property_tree::ptree_bad_path &e)
+		{
+			AYLOG(ERROR) << "can't get " << e.what();
+		}
+	}
+
+	if (!metDefault)
+	{
+		AYLOG(WARNING) << "hasn't met a default locale, installing English one";
+		u.getUniverse().addLocale(BarzerLocale::makeLocale("en"), true);
+	}
+}
+
 void BarzerSettings::loadUserRules(BELReader& reader, User& u, const ptree &node )
 {
 	try {
@@ -373,8 +408,9 @@ void BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 
     reader.setCurrentUniverse( u.getUniversePtr() );
     load_ent_segregate_info(reader, u, children);
-	loadUserRules(reader, u,children);
+	loadUserRules(reader, u, children);
 	loadTrieset(reader, u, children);
+	loadLocale(reader, u, children);
 	loadSpell(u, children);
 }
 
@@ -388,7 +424,7 @@ int BarzerSettings::loadUserConfig( BELReader& reader, const char* cfgFileName )
     int numUsersLoaded = 0;
     try {
         read_xml(cfgFileName, userPt);
-        BOOST_FOREACH(ptree::value_type &userV, userPt.get_child("config.users")) {
+        BOOST_FOREACH(const ptree::value_type &userV, userPt.get_child("config.users")) {
             if (userV.first == "user") {
                 loadUser( reader, userV );
                 ++numUsersLoaded;

@@ -299,6 +299,15 @@ const char* StoredUniverse::getGenericSubclassName( uint16_t subcl ) const
 	else
 		return "<unknown>";
 }
+
+void StoredUniverse::addLocale (BarzerLocale_ptr locale, bool isDefault)
+{
+	if (isDefault)
+		m_defLocale = locale;
+	else
+		m_otherLocales.push_back(locale);
+}
+
 void StoredUniverse::clearSpelling()
 {
     if( bzSpell )

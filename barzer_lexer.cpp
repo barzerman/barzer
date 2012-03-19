@@ -11,21 +11,47 @@ bool QLexParser::tryClassify_number( CToken& ctok, const TToken& ttok ) const
 {
 	const char* beg = ttok.buf;
 	const char* end = ttok.buf+ttok.len;
+
+	const char dot = d_universe.getDefaultLocale()->realSeparator();
+
 	bool hasDot = false, hasDigit = false;
-	for( const char* s = beg; s!= end; ++s ) {
-		switch( *s ) {
-		case '.':
-			if( hasDot ) return false; else hasDot=true;
-			break;
-		default:
-			if( !isdigit(*s) ) return false; else hasDigit= true;
-			break;
+	for( const char* s = beg; s!= end; ++s )
+	{
+		if (*s == dot)
+		{
+			if (hasDot)
+				return false;
+			else
+				hasDot = true;
+		}
+		else
+		{
+			std::cout << isdigit(*s) << std::endl;
+			if (!isdigit(*s))
+				return false;
+			else
+				hasDigit = true;
 		}
 	}
 	if( hasDigit ) {
 		ctok.setClass( CTokenClassInfo::CLASS_NUMBER );
 		if( hasDot )
-			ctok.number().setReal( ttok.buf );
+		{
+			// I really hate writing such a kludge, but dunno if
+			// stringstreams or boost::lexical_cast would be better.
+			// Also, we should consider here non-English locales were
+			// atof() may use not a point.
+			if (dot == '.')
+				ctok.number().setReal( ttok.buf );
+			else
+			{
+				char *buf = strndup (ttok.buf, ttok.len);
+				char *pos = strchr (buf, dot);
+				*pos = '.';
+				ctok.number().setReal( buf );
+				free (buf);
+			}
+		}
 		else  {
 			ctok.number().setInt( ttok.buf );
 			ctok.number().setAsciiLen( ttok.len );
