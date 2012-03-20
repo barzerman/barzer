@@ -374,7 +374,7 @@ struct BTND_Rewrite_Text_visitor : public BTND_text_visitor_base {
 };
 template <> void BTND_Rewrite_Text_visitor::operator()<BTND_Rewrite_Literal>(BTND_Rewrite_Literal& t)   const
 	{ 
-		uint32_t i = d_parser.internTmpText(d_str, d_len, false); 
+		uint32_t i = d_parser.internTmpText(d_str, d_len, false,false); 
 		if( t.isCompound() ) {
 			// warning compounded tokens unsupported yet
 		} else {
@@ -415,7 +415,8 @@ bool isAllDigits( const char* s,int len  ) {
 template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTND_Pattern_Token& t)  const
 { 
 	/// if d_str is numeric we need to do something
-	bool strIsNum = ( !d_noTextToNum && isdigit(d_str[0]) && isAllDigits(d_str,d_len));
+    bool isNumeric = (isdigit(d_str[0]) && isAllDigits(d_str,d_len));
+	bool strIsNum = ( !d_noTextToNum && isNumeric );
 	bool needStem = t.doStem;
 	if( strIsNum ) {
 		if( !isAnalyticalMode() ) {
@@ -427,17 +428,17 @@ template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTN
 		}
 	}  else {
 		///
-		if( needStem && !d_parser.getGlobalPools().parseSettings().stemByDefault() ) 
+		if( needStem && (!d_parser.getGlobalPools().parseSettings().stemByDefault() || isNumeric) ) 
 			needStem = false;
 	}
 	if( needStem ) 
 		t.stringId = d_parser.stemAndInternTmpText(d_str, d_len); 
 	else
-		t.stringId = d_parser.internTmpText(  d_str, d_len, false); 
+		t.stringId = d_parser.internTmpText(  d_str, d_len, false, isNumeric); 
 }
 template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_StopToken>  (BTND_Pattern_StopToken& t)  const
 { 
-	t.stringId = d_parser.internTmpText(  d_str, d_len, false  ); 
+	t.stringId = d_parser.internTmpText(  d_str, d_len, false, false /*isNumeric*/ ); 
 }
 template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Punct> (BTND_Pattern_Punct& t) const
 { 
@@ -478,7 +479,7 @@ void BELParserXML::taghandle_T( const char_cp * attr, size_t attr_sz , bool clos
 		statement.popNode();
 		return;
 	}
-	bool isStop = false, noTextToNum = false;
+	bool isStop = false, noTextToNum = true;
 	bool doStem = getGlobalPools().parseSettings().stemByDefault() ;
 
     const char* modeString = 0;
@@ -486,8 +487,8 @@ void BELParserXML::taghandle_T( const char_cp * attr, size_t attr_sz , bool clos
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
 		switch( *n ) {
-		case 'f':  // force text (ignore number)
-            noTextToNum = true;
+		case 'f':  // force number
+            noTextToNum = false;
             break;
 		case 't':  // type t=
 			switch( v[0] ) {
@@ -630,7 +631,7 @@ void BELParserXML::taghandle_ERC( const char_cp * attr, size_t attr_sz , bool cl
 			erc.getEntity().setSubclass( atoi(v) ); 
 			break;
 		case 't': // entity id token - t="ABCD011"
-			erc.getEntity().setTokenId( internString(v,true) );
+			erc.getEntity().setTokenId( internString(v,true).getStringId() );
 			break;
 		case 'u': // unit fields
 			switch(n[1]) {
@@ -639,7 +640,7 @@ void BELParserXML::taghandle_ERC( const char_cp * attr, size_t attr_sz , bool cl
 			case 's': // unit entity subclass - us="1"
 				erc.getUnitEntity().setSubclass( atoi(v) ); break;
 			case 't': // unit entity id token - ut="ABCD011"
-				erc.getUnitEntity().setTokenId( internString(v,true) ); break;
+				erc.getUnitEntity().setTokenId( internString(v,true).getStringId() ); break;
 			}
 			break;
 		case 'r': // range type setting 
@@ -790,7 +791,7 @@ void BELParserXML::taghandle_ENTITY( const char_cp * attr, size_t attr_sz , bool
 			pat.setEntitySubclass( atoi(v) ); 
 			break;
 		case 't': // id token - t="ABCD011"
-			pat.setTokenId( internString(v,true) );
+			pat.setTokenId( internString(v,true).getStringId() );
 			break;
         case 'x': // match mode 
             pat.setMatchModeFromAttribute(v);    
@@ -936,7 +937,7 @@ void BELParserXML::processAttrForStructTag( BTND_StructData& dta, const char_cp 
 		const char* v = attr[i+1]; // attr value
 		switch( n[0] ) {
 		case 'v': 
-			dta.setVarId( internString(v,true) );
+			dta.setVarId( internString(v,true).getStringId() );
 			return;
 		}
 	}
@@ -966,7 +967,7 @@ void BELParserXML::taghandle_EXPAND( const char_cp * attr, size_t attr_sz , bool
 		if (varName) {
 		    // safe as the root of any pattern is always a list
 		    BTND_StructData &sd = boost::get<BTND_StructData>(n.getNodeData());
-		    sd.setVarId(internString(varName,true));
+		    sd.setVarId(internString(varName,true).getStringId());
 		}
 	} else {
 		AYLOG(ERROR) << "macro " << macroName  << " referenced in statement "  << statementCount<< " doesnt exist";
@@ -1294,7 +1295,7 @@ void BELParserXML::taghandle_CASE( const char_cp * attr, size_t attr_sz , bool c
         const char* v = attr[i+1]; // attr value
         switch(n[0]) {
         case 'l':
-            caseId = internString(v,true);
+            caseId = internString(v,true).getStringId();
             break;
         case 'p':
             caseId = (uint32_t)v[0]; // this is a hack really

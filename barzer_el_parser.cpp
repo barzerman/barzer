@@ -43,7 +43,7 @@ uint32_t BELParser::stemAndInternTmpText( const char* s, int len )
 			internString( stem.c_str(), false, scopy.c_str () );
 		}
 	}
-	return internString( scopy.c_str(),false);
+	return internString( scopy.c_str(),false).getStringId();
 }
 
 uint32_t BELParser::internVariable( const char* t )
@@ -54,20 +54,20 @@ uint32_t BELParser::internVariable( const char* t )
 	BELSingleVarPath vPath;
 	for( ;end; ) {
 		tmp.assign( beg, end-beg );
-		vPath.push_back( internString(tmp.c_str(),false));
+		vPath.push_back( internString(tmp.c_str(),false).getStringId());
 		beg = end+1;
 		end = strchr( beg, '.' );
 	}
 	if( *beg ) {
 		tmp.assign( beg );
-		vPath.push_back( internString(tmp.c_str(),false));
+		vPath.push_back( internString(tmp.c_str(),false).getStringId());
 	}
 	return reader->getTrie().getVarIndex().produceVarIdFromPathForTran(vPath);
 }
 
 uint32_t BELParser::addCompoundedWordLiteral( const char* alias )
 {
-	uint32_t aliasId = ( alias ? internString(alias,false) : 0xffffffff );
+	uint32_t aliasId = ( alias ? internString(alias,false).getStringId() : 0xffffffff );
 	GlobalPools &gp = reader->getGlobalPools();
 	uint32_t cwid = gp.getCompWordPool().addNewCompWordWithAlias( aliasId );
 	StoredToken& sTok =  gp.getDtaIdx().addCompoundedToken(cwid);
@@ -78,7 +78,7 @@ uint32_t BELParser::internString_internal( const char* t )
 {
 	return reader->getGlobalPools().internString_internal( t );
 }
-uint32_t BELParser::internString( const char* t, bool noSpell, const char* unstemmed)
+StoredToken& BELParser::internString( const char* t, bool noSpell, const char* unstemmed)
 {
 	// here we may want to tweak some (nonexistent yet) fields in StoredToken
 	// to reflect the fact that this thing is actually in the trie
@@ -103,7 +103,7 @@ uint32_t BELParser::internString( const char* t, bool noSpell, const char* unste
 			}
 		}
 	}
-	return sTok.getStringId();
+	return sTok;
 }
 
 void BELParseTreeNode::print( std::ostream& fp, int depth ) const

@@ -324,9 +324,8 @@ public:
 	bool doFirmMatch_literal( const BarzelFCMap& fcmap, const BarzerLiteral& ltrl, bool allowBlanks );
 
 	template <typename T>
-	bool doFirmMatch( const BarzelFCMap& fcmap, const T& dta, bool allowBlanks=false ) {
-		return false;
-	}
+	bool doFirmMatch( const BarzelFCMap& fcmap, const T& dta, bool allowBlanks=false ) 
+        { return false; }
 
 	template <typename T>
 	bool doFirmMatch_default( const BarzelFCMap& fcmap, const T& dta, bool allowBlanks=false )
@@ -452,9 +451,42 @@ public:
 
 		return true;
 	}
+
+	template <>
+	bool findMatchingChildren_visitor::doFirmMatch<BarzerLiteral>( const BarzelFCMap& fcmap, const BarzerLiteral& dta, bool allowBlanks)
+	{
+		bool rc = doFirmMatch_literal( fcmap, dta, allowBlanks );
+
+		if( dta.isAnyString()  ) {
+			uint32_t stemId = getStemmedStringId();
+			if( stemId != 0xffffffff ) {
+				/// we have a stem to try
+				BarzerLiteral stemmedLiteral( dta );
+
+				stemmedLiteral.setId(stemId);
+				if( doFirmMatch_literal( fcmap, stemmedLiteral, allowBlanks ) ) {
+                    if( !rc ) rc = true;
+                }
+				const strIds_set* stemSet = d_trie.getStemSrcs(stemId);
+                if( stemSet ) {
+				    for (strIds_set::const_iterator i = stemSet->begin(), set_end= stemSet->end(); i != set_end; ++i) {
+					    stemmedLiteral.setId(*i);
+					    if( doFirmMatch_literal( fcmap, stemmedLiteral, allowBlanks ) ) {
+                            if( !rc ) rc = true;
+                        }
+				    }
+                }
+			}
+		}
+		return rc;
+	}
 	template <>
 	bool findMatchingChildren_visitor::doFirmMatch<BarzerNumber>( const BarzelFCMap& fcmap, const BarzerNumber& dta, bool allowBlanks)
 	{
+		if (dta.hasValidStringId()) {
+            BarzerLiteral str( dta.getStringId() );
+			doFirmMatch<BarzerLiteral>(fcmap, str, allowBlanks);
+        }
         if( dta.isInt() ) {
             int64_t theVal64 = dta.getInt();
             uint32_t theVal = 0xffffffff;
@@ -496,39 +528,6 @@ public:
 			}
 		}
 		return true;
-	}
-	template <>
-	bool findMatchingChildren_visitor::doFirmMatch<BarzerLiteral>( const BarzelFCMap& fcmap, const BarzerLiteral& dta, bool allowBlanks)
-	{
-		bool rc = false;
-		if (dta.getNumeralType () != BarzerLiteral::NUMERAL_TYPE_NONE) {
-            BarzerNumber num;
-            dta.toBNumber(num);
-			rc = doFirmMatch (fcmap, num, allowBlanks);
-        }
-		rc = doFirmMatch_literal( fcmap, dta, allowBlanks );
-		if( dta.isAnyString()  ) {
-			uint32_t stemId = getStemmedStringId();
-			if( stemId != 0xffffffff ) {
-				/// we have a stem to try
-				BarzerLiteral stemmedLiteral( dta );
-
-				stemmedLiteral.setId(stemId);
-				if( doFirmMatch_literal( fcmap, stemmedLiteral, allowBlanks ) ) {
-                    if( !rc ) rc = true;
-                }
-				const strIds_set* stemSet = d_trie.getStemSrcs(stemId);
-                if( stemSet ) {
-				    for (strIds_set::const_iterator i = stemSet->begin(), set_end= stemSet->end(); i != set_end; ++i) {
-					    stemmedLiteral.setId(*i);
-					    if( doFirmMatch_literal( fcmap, stemmedLiteral, allowBlanks ) ) {
-                            if( !rc ) rc = true;
-                        }
-				    }
-                }
-			}
-		}
-		return rc;
 	}
 	template <>
 	bool findMatchingChildren_visitor::doFirmMatch<BarzerDate>( const BarzelFCMap& fcmap, const BarzerDate& dta, bool allowBlanks)

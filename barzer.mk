@@ -26,6 +26,7 @@ libs = -Lay -lay -L/opt/local/lib -L/usr/lib \
 	-lboost_system -lboost_filesystem -lboost_thread-mt -lexpat -lstdc++
 ECHO = echo
 lib_objects = \
+barzer_locale.o \
 lg_ru/barzer_ru_stemmer.o \
 barzer_entity.o \
 barzer_autocomplete.o \

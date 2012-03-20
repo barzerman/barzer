@@ -345,7 +345,7 @@ void BarzerSettings::loadLocale(BELReader& reader, User& u, const ptree& node)
 
 	if (!metDefault)
 	{
-		AYLOG(WARNING) << "hasn't met a default locale, installing English one";
+		std::cerr << "*** Using English locale";
 		u.getUniverse().addLocale(BarzerLocale::makeLocale("en"), true);
 	}
 }

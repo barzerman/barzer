@@ -519,13 +519,29 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 
 		++cPos;
 		++tPos;
+        const StoredToken* storedTok = 0;
 		if( !t || !*t || isspace(*t)  ) { // this should never happen
 			ctok.setClass( CTokenClassInfo::CLASS_SPACE );
 			continue;
 		} else if( (*t) == '.' ) {
             ctok.setClass( CTokenClassInfo::CLASS_PUNCTUATION );
             if( *t == '"' ) isQuoted = !isQuoted;
-        } else if( qparm.isAutoc || !tryClassify_integer(ctok,t) ) {
+            continue;
+        } 
+        
+        bool keepClasifying = qparm.isAutoc;
+        if( !keepClasifying ) {
+            bool isInteger = tryClassify_integer(ctok,t);
+            if( isInteger ) {
+			    uint32_t usersWordStrId = 0xffffffff;
+                const StoredToken* storedTok = ( bzSpell->isUsersWord( usersWordStrId, t ) ?
+                    dtaIdx->getStoredToken( t ): 0 );
+                if( storedTok ) 
+                    ctok.number().setStringId( storedTok->getStringId() );
+            } else
+                keepClasifying= true;
+        }
+        if( keepClasifying ) {
 			uint32_t usersWordStrId = 0xffffffff;
 			const StoredToken* storedTok = ( bzSpell->isUsersWord( usersWordStrId, t ) ?
 				dtaIdx->getStoredToken( t ): 0 );

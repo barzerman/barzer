@@ -26,11 +26,13 @@ struct StoredTokenClassInfo {
 	ay::bitflags<CLASS_SPEC_FLAG_MAX>  classFlags; // class specific flags  also see subclass.h
 	
 	enum {
+        /// word flags 
 		BIT_GENERALDICT, // not present in the domain tokens, general english word
 		BIT_COMPOUNDED, // thisis a compounded word
 		BIT_MIXEDCASE, // token is in mixed case
 		BIT_MISSPELLING, // this is a known misspelling
 		BIT_STEM, // this is a  stem (doesn't exist as unstemmed)
+        BIT_NUMBER, // this is a number
 
 		BIT_MAX
 	};
@@ -48,6 +50,9 @@ struct StoredTokenClassInfo {
 
 	bool isCompounded() const { return flags[ BIT_COMPOUNDED ]; }
 	void setCompounded() { flags.set( BIT_COMPOUNDED ); }
+
+	bool isNumber() const { return flags[ BIT_NUMBER ]; }
+	void setNumber() { flags.set( BIT_NUMBER ); }
 
 	void setStemmed( bool mode ) { 
         if( mode ) 

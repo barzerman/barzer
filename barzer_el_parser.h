@@ -13,6 +13,7 @@
 /// as well as the data structures required for the actual parsing
 namespace barzer {
 
+class StoredToken;
 class StoredUniverse;
 class GlobalPools;
 class BELReader;
@@ -89,7 +90,7 @@ protected:
 
 	/// unstemSrc is not null if s is stem. In this case, unstemSrc points to the original
 	/// unstemmed version of the s.
-	uint32_t internString( const char* s, bool noSpell, const char* unstemSrc = 0 ) ;
+	StoredToken& internString( const char* s, bool noSpell, const char* unstemSrc = 0 ) ;
 
 	/// gets variable name v1.v2.v3 ... interns individual parts and
 	/// adds result to the variable pool as a whole vector

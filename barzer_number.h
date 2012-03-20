@@ -23,18 +23,20 @@ private:
 	// if known length of original ascii string representation 
 	// this CAN BE NULL
 	uint8_t d_asciiLen;
+
+    uint32_t d_stringId; /// in case number's string representation exists
 public:
 
 	void 	setAsciiLen( uint8_t l ) { d_asciiLen = l ; } 
 	uint8_t getAsciiLen( ) const { return d_asciiLen; } 
 
-	BarzerNumber() 				: type(NTYPE_NAN), d_asciiLen(0) {n.i = 0;}
-	BarzerNumber( int i ) 		: type(NTYPE_INT), d_asciiLen(0) {n.i = i;}
-	BarzerNumber( uint32_t i ) 		: type(NTYPE_INT), d_asciiLen(0) {n.i = i;}
-	BarzerNumber( uint16_t i ) 		: type(NTYPE_INT), d_asciiLen(0) {n.i = i;}
-	BarzerNumber( uint8_t i ) 		: type(NTYPE_INT), d_asciiLen(0) {n.i = i;}
-	BarzerNumber( int64_t i ) 		: type(NTYPE_INT), d_asciiLen(0) {n.i = i;}
-	BarzerNumber( double i ) 	: type(NTYPE_REAL), d_asciiLen(0) {n.real = i;}
+	BarzerNumber() 				: type(NTYPE_NAN), d_asciiLen(0),d_stringId(0xffffffff) {n.i = 0;}
+	BarzerNumber( int i ) 		: type(NTYPE_INT), d_asciiLen(0),d_stringId(0xffffffff) {n.i = i;}
+	BarzerNumber( uint32_t i ) 		: type(NTYPE_INT), d_asciiLen(0),d_stringId(0xffffffff) {n.i = i;}
+	BarzerNumber( uint16_t i ) 		: type(NTYPE_INT), d_asciiLen(0),d_stringId(0xffffffff) {n.i = i;}
+	BarzerNumber( uint8_t i ) 		: type(NTYPE_INT), d_asciiLen(0),d_stringId(0xffffffff) {n.i = i;}
+	BarzerNumber( int64_t i ) 		: type(NTYPE_INT), d_asciiLen(0),d_stringId(0xffffffff) {n.i = i;}
+	BarzerNumber( double i ) 	: type(NTYPE_REAL), d_asciiLen(0),d_stringId(0xffffffff) {n.real = i;}
 
 	void set( int i ) { type= NTYPE_INT; n.i = i; }
 	void set( int64_t i ) { type= NTYPE_INT; n.i = i; }
@@ -106,6 +108,10 @@ public:
 			}
 		}
 	}
+    
+    void        setStringId( uint32_t stringId ) { d_stringId = stringId; }
+    uint32_t    getStringId( ) const { return d_stringId; }
+    bool        hasValidStringId() const { return (d_stringId!= 0xffffffff); } 
 };
 
 inline bool operator == ( const BarzerNumber& l, const BarzerNumber& r ) 

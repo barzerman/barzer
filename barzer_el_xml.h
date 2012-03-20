@@ -7,6 +7,7 @@
 #include <ay/ay_util_char.h>
 #include <ay/ay_logger.h>
 #include <stack>
+#include <barzer_storage_types.h>
 using ay::char_cp;
 
 extern "C" {
@@ -216,12 +217,19 @@ public:
 	~BELParserXML() ;
 	BELParserXML( BELReader* r);
 
-	uint32_t internTmpText( const char* s, int len, bool stem ) 
+	uint32_t internTmpText( const char* s, int len, bool stem, bool isNumeric ) 
 		{ 
-			return ( stem ? 
-			  stemAndInternTmpText( d_tmpText.assign(s,len).c_str(), len ) : 
-			  internString(d_tmpText.assign(s,len).c_str(),false)
-			); 
+            uint32_t strId ;
+            if( stem ) {
+			    strId = stemAndInternTmpText( d_tmpText.assign(s,len).c_str(), len) ;
+            } else {
+                StoredToken& sTok = internString(d_tmpText.assign(s,len).c_str(),false);
+                if( isNumeric && !sTok.classInfo.isNumber() ) 
+                    sTok.classInfo.setNumber();
+                
+			    strId = sTok.getStringId();
+            }
+			return strId;
 		}
 	const char* setTmpText( const char* s, int len ) 
 		{ return d_tmpText.assign( s, len ).c_str(); }
