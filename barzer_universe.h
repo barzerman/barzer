@@ -207,7 +207,7 @@ public:
 	StoredUniverse* getUniverse( uint32_t id )
 		{ return const_cast<StoredUniverse*>( ((const GlobalPools*)this)->getUniverse(id) ); }
 
-	void createGenericEntities();
+	//void createGenericEntities();
 	      StoredUniverse* getDefaultUniverse()       { return getUniverse( DEFAULT_UNIVERSE_ID ) ; }
 	const StoredUniverse* getDefaultUniverse() const { return getUniverse( DEFAULT_UNIVERSE_ID ) ; }
 
@@ -421,7 +421,7 @@ public:
 	const BELFunctionStorage& getFunctionStorage() const { return gp.funSt; }
 	const DateLookup& getDateLookup() const { return gp.dateLookup; }
 
-	const char* getGenericSubclassName( uint16_t subcl ) const;
+	//const char* getGenericSubclassName( uint16_t subcl ) const;
 
 	const char* decodeStringById( uint32_t strId ) const
 		{ return getDtaIdx().resolveStringById( strId ); }
