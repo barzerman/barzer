@@ -16,7 +16,7 @@
 #include <boost/assign.hpp>
 #include <barzer_barz.h>
 #include <barzer_el_function_util.h>
-
+#include <boost/format.hpp>
 
 namespace barzer {
 
@@ -33,6 +33,11 @@ namespace {
         ss << "</funcerr>";
 
         ctxt.getBarz().barzelTrace.pushError( ss.str().c_str() );
+    }
+    
+    void pushFuncError( BarzelEvalContext& ctxt, const char* funcName, boost::basic_format<char>& error, const char* sig=0 )
+    {
+      pushFuncError(ctxt, funcName, error.str().c_str(), sig);
     }
 // some utility stuff
 
@@ -553,8 +558,7 @@ struct BELFunctionStorage_holder {
             case 0: break; // 0 arguments = today
 
             default: // size > 3
-                AYLOG(ERROR) << "mkDate(): Expected max 3 arguments, "
-                             << rvec.size() << " given";
+            FERROR(boost::format("Expected max 3 arguments,%1%  given") % rvec.size());
                 y = getNumber(rvec[2]);
                 m = getNumber(rvec[1]);
                 d = getNumber(rvec[0]);
@@ -596,12 +600,10 @@ struct BELFunctionStorage_holder {
 				return true;
 			}
 			default:
-                FERROR( "Need 2-4 arguments");
-				// AYLOG(ERROR) << sig << ": Need 2-4 arguments";
+                           FERROR( boost::format("Expected 2-4 arguments,%1%  given") % rvec.size() );
 			}
 		} catch (boost::bad_get) {
-            FERROR( "Wrong argument type");
-			// AYLOG(ERROR) << sig << ": Wrong argument type";
+                     FERROR( "Wrong argument type");
 		}
 		return false;
 	}
@@ -681,7 +683,7 @@ struct BELFunctionStorage_holder {
                     const BarzerLiteral &bl = getAtomic<BarzerLiteral>(rvec[0]);
                     m = gpools.dateLookup.lookupMonth(bl.getId());
                     if (!m) {
-                        FERROR("Unknown month name");
+                        FERROR(boost::format("Unknow month %1%  given") % gpools.string_resolve(bl.getId()));
                         return false;
                     }
                 }
@@ -692,7 +694,7 @@ struct BELFunctionStorage_holder {
             setResult(result, euid);
             return true;
         } catch(boost::bad_get) {
-            AYLOG(ERROR) << "Wrong argument type";
+            FERROR("Wrong argument type");
         }
         return false;
     }
@@ -823,9 +825,9 @@ struct BELFunctionStorage_holder {
 			} else if (ltrl.getId() == spool.internIt("ASC")) {
 				return true;
 			} else {
-                pushFuncError( d_ctxt, d_funcName, "Unknown literal" );
-				AYLOG(ERROR) << "Unknown literal: `"
-							 << spool.resolveId(ltrl.getId()) << "'";
+                           pushFuncError( d_ctxt, d_funcName, boost::format("Invalid order: `%1%` Expected (ASC|DESC)") % spool.resolveId(ltrl.getId()) );
+                           AYLOG(ERROR) << "Invalid order: `"
+                                                   << spool.resolveId(ltrl.getId()) << "'";
 				return false;
 			}
 		}
@@ -883,7 +885,7 @@ struct BELFunctionStorage_holder {
 						= boost::get<BarzerRange::Date>(range.getData());
 					setSecond(dp, rdate);
 				} catch (boost::bad_get) {
-                    pushFuncError( d_ctxt, d_funcName, "Types don't match" );
+                    pushFuncError( d_ctxt, d_funcName, boost::format("Types don't match: %1%")% range.getData().which() );
 					// AYLOG(ERROR) << "Types don't match: " << range.getData().which();
 					return false;
 				}
@@ -917,7 +919,7 @@ struct BELFunctionStorage_holder {
 					todp.second = rtod;
 				} catch (boost::bad_get) {
 					// AYLOG(ERROR) << "Types don't match";
-                    pushFuncError( d_ctxt, d_funcName, "Types don't match" );
+                    pushFuncError( d_ctxt, d_funcName, boost::format("Types don't match: %1%")% range.getData().which() );
 					return false;
 				}
 			} else {
@@ -1178,7 +1180,7 @@ struct BELFunctionStorage_holder {
 
 	STFUN(mkLtrl)
 	{
-        SETFUNCNAME(mkErcExpr);
+        SETFUNCNAME(mkLtrl);
 		if (!rvec.size()) {
             FERROR("Argument is required");
 			return false;
@@ -1187,7 +1189,7 @@ struct BELFunctionStorage_holder {
 		const char* str = extractString(gpools, rvec[0]);
 		if (!str) {
 			// AYLOG(ERROR) << "Need a string";
-            FERROR("Need a string");
+                        FERROR("Need a string");
 			return false;
 		}
 
@@ -1221,8 +1223,8 @@ struct BELFunctionStorage_holder {
 				}
 			}
 		} catch (boost::bad_get&) {
-			// AYLOG(ERROR) << "mkFluff(BarzerLiteral): Wrong argument type";
-            FERROR("Wrong argument type");
+                  // AYLOG(ERROR) << "mkFluff(BarzerLiteral): Wrong argument type";
+                  FERROR("Wrong argument type");
 		}
 	    return true;
 	}
@@ -1950,39 +1952,47 @@ struct BELFunctionStorage_holder {
 
 	STFUN(lookupMonth)
 	{
+           SETFUNCNAME(lookupMonth);
 		if (!rvec.size()) {
-			AYLOG(ERROR) << "Wrong number of agruments";
+			FERROR("Wrong number of agruments");
 			return false;
 		}
 		try {
 			const BarzerLiteral &bl = getAtomic<BarzerLiteral>(rvec[0]);
 			const uint8_t mnum = gpools.dateLookup.lookupMonth(bl.getId());
-			if (!mnum) return false;
+                        if (!mnum) {
+                              FERROR(boost::format("Unknow month name `%1%`  given") % gpools.string_resolve(bl.getId()));
+                              return false;
+                        }
 			BarzerNumber bn(mnum);
 			setResult(result, bn);
 			return true;
 		} catch(boost::bad_get) {
-			AYLOG(ERROR) << "Wrong argument type";
+			FERROR("Wrong argument type");
 		}
 		return false;
 	}
 
 	STFUN(lookupWday)
 	{
+           SETFUNCNAME(lookupWday);
 		//AYLOG(DEBUG) << "lookupwday called";
 		if (!rvec.size()) {
-			AYLOG(ERROR) << "Wrong number of agruments";
+			FERROR("Wrong number of agruments");
 			return false;
 		}
 		try {
 			const BarzerLiteral &bl = getAtomic<BarzerLiteral>(rvec[0]);
 			uint8_t mnum = gpools.dateLookup.lookupWeekday(bl.getId());
-			if (!mnum) return false;
+                        if (!mnum) {
+                              FERROR(boost::format("Unknown weekday name `%1%`  given") % gpools.string_resolve(bl.getId()));
+                              return false;
+                        }
 			BarzerNumber bn(mnum);
 			setResult(result, bn);
 			return true;
 		} catch(boost::bad_get) {
-			AYLOG(ERROR) << "Wrong argument type";
+			FERROR("Wrong argument type");
 		}
 		return false;
 	}
@@ -2290,7 +2300,7 @@ bool BELFunctionStorage::call(BarzelEvalContext& ctxt, const char *fname, Barzel
 	if (fid == ay::UniqueCharPool::ID_NOTFOUND) {
 		std::stringstream strstr;
 		strstr << "No such function name: `" << fname << "'";
-        pushFuncError(ctxt, "", strstr.str().c_str() );
+                pushFuncError(ctxt, "", strstr.str().c_str() );
 		return false;
 	}
 	return call(ctxt,fid, er, ervec, u);
@@ -2304,7 +2314,7 @@ bool BELFunctionStorage::call(BarzelEvalContext& ctxt, const uint32_t fid, Barze
 	if (frec == holder->funmap.end()) {
 		std::stringstream strstr;
 		const char *str = u.getGlobalPools().internalString_resolve(fid);
-        strstr << "No such function: " << (str ? str : "<unknown>") << " (id: " << fid << ")";
+        strstr << "No such function: " << (str ? str : "<unknown>") ;//<< " (id: " << fid << ")";
         pushFuncError(ctxt, "", strstr.str().c_str() );
 		return false;
 	}
