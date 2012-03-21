@@ -5,46 +5,6 @@
 
 namespace barzer {
 
-///////////////// generic entities
-namespace {
-
-struct GenericEntData {
-	uint16_t cl, subcl;
-	const char* id;
-	const char* name;
-
-	GenericEntData( uint16_t sc, const char* n ) :
-		cl(1), subcl(sc) , id(0), name(n)
-	{}
-	GenericEntData( uint16_t sc, const char* idStr, const char* n ) :
-		cl(1), subcl(sc) , id(idStr), name(n)
-	{}
-};
-
-static GenericEntData g_genDta[] = {
-	GenericEntData(1,"price"), // price
-
-	GenericEntData(2,"length"), // length-width-height-distance (cm,inch,m,foot,km,mile,kkm,kmile)
-	GenericEntData(3,"weight"), // weight in
-	GenericEntData(4,"age"), // age in years, months, days, hours, minutes
-	GenericEntData(5,"area"), // square area
-	GenericEntData(6,"volume"), // cubic volume
-	GenericEntData(7,"wearsize"), // clothing/shoe sizes
-	GenericEntData(8,"time"), // time
-
-	// can't take this shit!
-	GenericEntData(69,"shit", "some shit"), // weight
-	// Astronomical units
-
-	/// currencies
-	GenericEntData(1,"USD", "US dollar"),
-	GenericEntData(1,"EUR", "Euro euro!"),
-	GenericEntData(1,"JPY", "Japanese yen"),
-	GenericEntData(1,"CNY", "Renminbi"),
-	GenericEntData(1,"GBP", "Pound sterling"),
-	GenericEntData(1,"RUB", "Рупь")
-};
-} // anon namespace ends
 
 GlobalTriePool::ClassTrieMap& GlobalTriePool::produceTrieMap( uint32_t trieClass )
 {
@@ -187,7 +147,6 @@ GlobalPools::GlobalPools() :
 	StoredUniverse& defaultUniverse = produceUniverse(DEFAULT_UNIVERSE_ID);
     defaultUniverse.appendTriePtr( defaultTrie,0 ) ;
 
-	// createGenericEntities();
     globalTriePool.init();
 }
 
@@ -217,21 +176,6 @@ std::ostream& GlobalPools::printTanslationTraceInfo( std::ostream& fp, const Bar
 
 	return ( fp << ( srcName ? srcName : "(null)" ) << ':' << traceInfo.statementNum << '.' <<
 	traceInfo.emitterSeqNo );
-}
-void GlobalPools::createGenericEntities()
-{
-    /*
-	for( size_t i=0; i< ARR_SZ( g_genDta ); ++i ) {
-		const GenericEntData& gd = g_genDta[i];
-		if( gd.id ) {
-			dtaIdx.addGenericEntity( gd.id, gd.cl, gd.subcl );
-		} else {
-			dtaIdx.addGenericEntity( gd.cl, gd.subcl );
-		}
-	}
-
-	dtaIdx.addGenericEntity("wine", 2, 1);
-    */
 }
 
 StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
@@ -290,22 +234,6 @@ BZSpell* StoredUniverse::initBZSpell( const StoredUniverse* secondaryUniverse )
 {
 	bzSpell->init( secondaryUniverse );
 	return bzSpell;
-}
-
-const char* StoredUniverse::getGenericSubclassName( uint16_t subcl ) const
-{
-	if( subcl< ARR_SZ(g_genDta) )
-		return g_genDta[subcl].name;
-	else
-		return "<unknown>";
-}
-
-void StoredUniverse::addLocale (BarzerLocale_ptr locale, bool isDefault)
-{
-	if (isDefault)
-		m_defLocale = locale;
-	else
-		m_otherLocales.push_back(locale);
 }
 
 void StoredUniverse::clearSpelling()
