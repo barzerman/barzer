@@ -127,14 +127,14 @@ class BeadVisitor : public boost::static_visitor<bool> {
     const Barz& d_barz;
 	size_t lvl;
 
-	bool d_ptintTtok;
+	bool d_printTtok;
 public:
 	BeadVisitor(std::ostream &s, const StoredUniverse &u, const BarzelBead& b, const Barz& barz ) : 
-		os(s), universe(u), d_bead(b),  lvl(0), d_ptintTtok(true), d_barz(barz) {}
+		os(s), universe(u), d_bead(b),d_barz(barz), lvl(0), d_printTtok(true){}
 
 	void printTTokenTag( )
 	{
-		if( !d_ptintTtok ) return;
+		if( !d_printTtok ) return;
 
 		const CTWPVec& ctoks = d_bead.getCTokens();
 		os << "<srctok>";
@@ -371,7 +371,7 @@ public:
 		//os << "<erc>";
 		tag_raii erctag(os, "erc");
 		{ /// block 
-		//ay::valkeep<bool> vk( d_ptintTtok, false );
+		//ay::valkeep<bool> vk( d_printTtok, false );
 		(*this)(ent);
 		if (unit.isValid()) {
 			//os << "<unit>";
@@ -387,7 +387,7 @@ public:
 	bool operator()(const BarzerERCExpr &exp) {
 		os << "<ercexpr type=\"" << exp.getTypeName() << "\">";
 		{ // the block
-		ay::valkeep<bool> vk( d_ptintTtok, false );
+		ay::valkeep<bool> vk( d_printTtok, false );
 		const BarzerERCExpr::DataList &list = exp.getData();
 		for (BarzerERCExpr::DataList::const_iterator it = list.begin();
 													 it != list.end(); ++it) {

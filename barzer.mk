@@ -91,7 +91,7 @@ $(LIBNAME).a: ay/libay.a $(lib_objects)
 $(PYTHON_LIBNAME): ay/libay.a $(lib_objects)
 	cd util; make -f util.mk rebuild; cd ..
 clean:
-	rm -f $(objects) $(BINARY)
+	rm -f $(objects) $(BINARY) $(LIBNAME).a
 cleanall: clean cleanaylib
 	rm -f $(objects) $(BINARY) $(objects_python)
 cleanaylib:

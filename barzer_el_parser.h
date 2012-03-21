@@ -13,7 +13,7 @@
 /// as well as the data structures required for the actual parsing
 namespace barzer {
 
-class StoredToken;
+struct StoredToken;
 class StoredUniverse;
 class GlobalPools;
 class BELReader;

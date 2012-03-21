@@ -37,7 +37,7 @@ static void startElement(void* ud, const XML_Char *n, const XML_Char **a)
                     const char * attrVal = atts[i+1];
                     if( attrName[0] == 'u' && !attrName[1] ) {
                         int userId = atoi(attrVal);
-                        if( !rp->setUniverseId( atoi(attrVal) ) ) {
+                        if( !rp->setUniverseId( userId ) ) {
                             rp->stream() << "<error>\"" << attrVal << "\" is not a valid user number\n";
                         }
                     }
@@ -426,7 +426,7 @@ void BarzerRequestParser::tag_nameval(RequestTag &tag) {
 	AttrList::iterator it = attrs.find("n");
     if( it != attrs.end() ) {
         if( d_universe ) {
-            const Ghettodb& ghettoDb = d_universe->getGhettodb();
+            // const Ghettodb& ghettoDb = d_universe->getGhettodb();
             const char* propName = it->second.c_str();
             uint32_t n = d_universe->getGhettodb().getStringId(propName);
             if( n!= 0xffffffff ) {
