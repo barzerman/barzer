@@ -9,6 +9,7 @@
 #define BARZER_LOCALE_H_
 #include <vector>
 #include <boost/shared_ptr.hpp>
+#include <string>
 
 namespace barzer
 {
