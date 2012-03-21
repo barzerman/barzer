@@ -460,7 +460,7 @@ struct BTND_PatternData_print_XML : public BTND_Base_print_XML {
 	const char* operator()( const BTND_Pattern_Punct& d ) 
 	{
 		const char* tag = "t";
-		d_fp << "<t>" << ( isascii(d.theChar) ? d.theChar : ' ' ) << "</t>";
+		d_fp << "<t>" << ( isascii(d.theChar) ? char(d.theChar) : ' ' ) << "</t>";
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_Number& d ) 
