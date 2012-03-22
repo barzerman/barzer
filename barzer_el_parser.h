@@ -178,15 +178,23 @@ private:
     std::ostream* d_errStream;
 
     size_t  d_maxEmitCountPerStatement, d_maxEmitCountPerTrie, d_maxStatementsPerTrie; /// max
-
+    bool    d_respectLimits; /// when false get_maxEmitXXX returns max unsigned int
 	/// both computeXXXSpellPriority functions update d_spellPriority
 	/// deduces trie spell priority from trie class name ( "" - priority 0, otherwise - 10 )
 	void computeImplicitTrieSpellPriority( uint32_t tc, uint32_t tid );
 	/// deduces ruleset spelling priority from ruleset file name ( if has no "_fluff" substring then
 	/// priority is 5 otherwise 0)
 	void computeRulesetSpellPriority( const char* fileName );
-	BELReader( const BELReader& r) : gp(r.gp) {}
+	BELReader( const BELReader& r) : gp(r.gp),d_respectLimits(true) {}
 public:
+    bool isOk_EmitCountPerStatement( size_t x ) const 
+        { return( d_respectLimits ? x< d_maxEmitCountPerStatement: true ); }
+    bool  isOk_EmitCountPerTrie( size_t x ) const 
+        { return ( d_respectLimits ? (x<d_maxEmitCountPerTrie) : true); }
+    bool  isOk_StatementsPerTrie( size_t x ) const { return (d_respectLimits ? (x<d_maxStatementsPerTrie): true); }
+    
+    void setRespectLimits( bool v ) { d_respectLimits = v; }
+
     enum { DEFMAX_EMIT_PER_STMT=1024, DEFMAX_STMT_PER_SET=2048*64, DEFMAX_EMIT_PER_SET=4*(DEFMAX_STMT_PER_SET) };
     size_t maxEmitCountPerStatement() const { return d_maxEmitCountPerStatement; }
     size_t maxEmitCountPerTrie() const { return d_maxEmitCountPerTrie; }

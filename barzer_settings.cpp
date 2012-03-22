@@ -406,6 +406,7 @@ void BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 
 	std::cout << "Loading user id: " << userId << "\n";
 
+    reader.setRespectLimits( userId );
     reader.setCurrentUniverse( u.getUniversePtr() );
     load_ent_segregate_info(reader, u, children);
 	loadUserRules(reader, u, children);

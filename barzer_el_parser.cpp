@@ -181,15 +181,16 @@ void BELReader::addMacro( uint32_t macroNameId, const BELStatementParsed& sp )
 
 void BELReader::addStatement( const BELStatementParsed& sp )
 {
-    if( numEmits > d_maxEmitCountPerTrie ) {
+    if( !isOk_EmitCountPerTrie(numEmits) ) {
         sp.getErrStream() << "ERROR: statement [" << sp.getSourceName() << ':' << sp.getStmtNumber()  << "] rejected - total number of emits for this statement set exceeds " << d_maxEmitCountPerTrie << std::endl;
 
     }
     size_t emitPower = BELStatementParsed_EmitCounter(trie,d_maxEmitCountPerStatement).power( sp.pattern );
 
-    if( emitPower>= d_maxEmitCountPerStatement ) {
+    if( d_respectLimits && emitPower>= d_maxEmitCountPerStatement ) {
         sp.getErrStream() << "ERROR: statement [" << sp.getSourceName() << ':' << sp.getStmtNumber()  << "] rejected - number of emits for this statement " << emitPower << " vs. " << d_maxEmitCountPerStatement << std::endl;
-        return;
+        if( d_respectLimits )
+            return;
     }
 
     numEmits += emitPower;
