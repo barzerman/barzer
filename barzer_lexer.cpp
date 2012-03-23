@@ -163,6 +163,150 @@ int QLexParser::advancedNumberClassify( Barz& barz, const QuestionParm& qparm )
 	}
 	return 0;
 }
+
+namespace
+{
+    template<typename T>
+    size_t getNumDigits (T num)
+    {
+        size_t result = 0;
+        while (num > 1)
+        {
+            ++result;
+            num /= 10;
+        }
+        return result;
+    }
+
+    int64_t decPow (size_t numDigits)
+    {
+        int64_t result = 1;
+        while (numDigits--)
+            result *= 10;
+        return result;
+    }
+
+    int64_t atoiNIH (const char *buf, size_t i, size_t seqSize, size_t numDigits)
+    {
+        int64_t dec = 0;
+        for (size_t j = i; j < i + seqSize; ++j)
+            dec += (buf [j] - '0') * decPow (numDigits + i - j);
+        return dec;
+    }
+
+    // Guess if a given CToken is a number.
+    // That should try to parse stuff like 10_243_583,00, for example.
+    bool couldBeNum (const CToken& ctok, BarzerNumber& num)
+    {
+        // if it's just a number, don't do anything here
+        if (ctok.isNumber())
+        {
+            num = ctok.getNumber();
+            return true;
+        }
+
+        bool isNegative = false;
+
+        const TTWPVec& ttoks = ctok.getTTokens();
+        // If there is one ttoken, it could be a single shit-separated
+        // string. If there are more ttokens, each of them is considered
+        // as a possible number candidate, and we check their sizes.
+        if (ttoks.size() == 1)
+        {
+            const TToken& ttok = ttoks [0].first;
+
+            const char *buf = ttok.getBuf();
+            size_t i = ttok.getLen();
+            if (i && buf [0] == '-')
+            {
+                isNegative = true;
+                --i;
+                ++buf;
+            }
+            if (!i)
+                return false;
+
+            size_t seqSize = 0, numDigits = 0;
+            char sep = 0;
+            int64_t dec = 0, frac = 0;
+            bool hasChangedPart = false;
+            do
+            {
+                const char c = buf [i];
+                if (c > '0' && c < '9')
+                {
+                    ++seqSize;
+                    ++numDigits;
+                }
+                else if (hasChangedPart && seqSize > 3)
+                    return false;
+                else if (i)
+                {
+                    // We haven't reached the end of string yet.
+
+                    if (hasChangedPart)
+                    {
+                        // If either it was less then block of 3 digits, or
+                        // the separators differ, it's not a number.
+                        if (seqSize < 3 || (sep && sep != c))
+                            return false;
+                        else
+                        {
+                            dec += atoiNIH (buf, i, seqSize, numDigits);
+                            sep = c;
+                        }
+                    }
+                    else
+                    {
+                        hasChangedPart = true;
+                        frac = dec;
+                        dec = 0;
+                        sep = 0;
+                    }
+                }
+
+                if (!i)
+                {
+                    // We have reached the end of string, by induction
+                    // previous stuff contains valid numbers, and current
+                    // sequence also contains valid numbers.
+
+                    dec += atoiNIH (buf, 0, seqSize, numDigits);
+                    if (isNegative)
+                        dec *= -1;
+                    if (!frac)
+                        num.set (dec);
+                    else
+                    {
+                        double fracPart = static_cast<double> (frac) / decPow (getNumDigits (frac) + 1);
+                        num.set (static_cast<double> (dec) + fracPart);
+                    }
+                    return true;
+                }
+
+                seqSize = 0;
+            }
+            while (i);
+        }
+    }
+}
+
+int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
+{
+    CTWPVec& cvec = barz.getCtVec();
+
+    for (size_t i = 0; i < cvec.size (); ++i)
+    {
+        CToken& t = cvec[i].first;
+
+        BarzerNumber num;
+        if (!couldBeNum (t, num))
+            continue;
+    }
+
+    return 0;
+}
+
 namespace {
 
 void removeBlankCTokens( CTWPVec& cvec )
