@@ -288,6 +288,7 @@ namespace
             }
             while (i);
         }
+        return false;
     }
 }
 
@@ -300,8 +301,9 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
         CToken& t = cvec[i].first;
 
         BarzerNumber num;
-        if (!couldBeNum (t, num))
-            continue;
+        if (couldBeNum (t, num)) {
+         
+        }
     }
 
     return 0;
@@ -751,6 +753,7 @@ int QLexParser::lex( Barz& barz, const QuestionParm& qparm )
 	cVec.clear();
 	/// convert every ttoken into a single ctoken
 	singleTokenClassify( barz, qparm );
+    separatorNumberGuess( barz, qparm ); 
 	/// try grouping tokens and matching basic compounded tokens
 	/// non language specific
 	advancedBasicClassify( barz, qparm );
