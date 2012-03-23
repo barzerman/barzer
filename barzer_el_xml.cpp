@@ -475,6 +475,11 @@ struct BTND_text_visitor : public BTND_text_visitor_base {
 
 void BELParserXML::taghandle_T( const char_cp * attr, size_t attr_sz , bool close)
 {
+    if( statement.isState_Translation() ) {
+        taghandle_LITERAL(attr, attr_sz, close);
+        return;
+    } 
+
 	if( close ) {
 		statement.popNode();
 		return;
@@ -543,6 +548,11 @@ void BELParserXML::taghandle_SPC( const char_cp * attr, size_t attr_sz , bool cl
 }
 void BELParserXML::taghandle_N( const char_cp * attr, size_t attr_sz , bool close)
 {
+    if( statement.isState_Translation() ) {
+        taghandle_RNUMBER( attr, attr_sz, close );
+        return;
+    }
+
 	if( close ) {
 		statement.popNode();
 		return;

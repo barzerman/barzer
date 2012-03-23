@@ -210,6 +210,11 @@ public:
 		bool hasTranslation() const { return bits[BIT_HAS_TRANSLATION];};
 		bool isMacro() const { return bits[BIT_IS_MACRO];};
 		bool isProc() const { return bits[BIT_IS_PROC];};
+        
+        bool isState_Blank() const { return (state == STATE_BLANK); }
+        bool isState_Translation() const { return (state == STATE_TRANSLATION); }
+        bool isState_Pattern() const { return (state == STATE_PATTERN); }
+        bool isState_Translation() const { return (state == STATE_TRANSLATION); }
 	} statement;
 
 	mutable std::string d_tmpText; // used by getElementText as a temp buffer
