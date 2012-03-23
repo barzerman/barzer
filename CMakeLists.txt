@@ -153,19 +153,29 @@ add_library(barzer_static ${SOURCES})
 target_link_libraries (barzer_static ${EXTRA_LIBS})
 set_target_properties(barzer_static PROPERTIES OUTPUT_NAME barzer_static )
 
+option (ENABLE_BARZ_SHARED "Build shared version of barzer libraries" ON)
+option (ENABLE_PYBARZER "Build pybarzer" ON)
+
 ### libbarzer shared
-#add_library(barzer SHARED ${SOURCES})
-#target_link_libraries (barzer ${EXTRA_LIBS})
-#set_target_properties(barzer PROPERTIES OUTPUT_NAME barzer )
+if (ENABLE_BARZ_SHARED)
+	add_library(barzer SHARED ${SOURCES})
+	target_link_libraries (barzer ${EXTRA_LIBS})
+	set_target_properties(barzer PROPERTIES OUTPUT_NAME barzer )
+endif (ENABLE_BARZ_SHARED)
 
 ### pybarzer
-#add_library(pybarzer SHARED barzer_python.cpp)
-#target_link_libraries (pybarzer barzer butil)
-#SET_TARGET_PROPERTIES(pybarzer PROPERTIES PREFIX "")
-#IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-#    SET_TARGET_PROPERTIES(pybarzer PROPERTIES SUFFIX ".so")
-#ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if (ENABLE_PYBARZER)
+	if (NOT ENABLE_BARZ_SHARED)
+		MESSAGE (ERROR "Pybarzer requires ENABLE_BARZ_SHARED set to true")
+	endif (NOT ENABLE_BARZ_SHARED)
 
+	add_library(pybarzer SHARED barzer_python.cpp)
+	target_link_libraries (pybarzer barzer butil)
+	SET_TARGET_PROPERTIES(pybarzer PROPERTIES PREFIX "")
+	IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		SET_TARGET_PROPERTIES(pybarzer PROPERTIES SUFFIX ".so")
+	ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+endif (ENABLE_PYBARZER)
 
 ### binary
 add_executable(barzer.exe barzer.cpp)
@@ -187,11 +197,15 @@ GET_TARGET_PROPERTY(BARZER_LIBNAME barzer LOCATION)
 SET(CMAKE_INSTALL_RPATH "${INSTALL_DIR}")
 #SET(CMAKE_INSTALL_NAME_DIR "${INSTALL_DIR}")
 
-INSTALL(TARGETS barzer.exe
+install(TARGETS barzer.exe
         DESTINATION "${INSTALL_DIR}")
-	#install(TARGETS barzer
-	#    DESTINATION ${INSTALL_DIR})
-	#install(TARGETS pybarzer
-	#   DESTINATION ${INSTALL_UTIL_DIR})
+if (ENABLE_BARZ_SHARED)
+	install(TARGETS barzer
+			DESTINATION ${INSTALL_DIR})
+endif (ENABLE_BARZ_SHARED)
+if (ENABLE_PYBARZER)
+	install(TARGETS pybarzer
+		   DESTINATION ${INSTALL_UTIL_DIR})
+endif (ENABLE_PYBARZER)
 install(DIRECTORY "data/configs" "data/entities" "data/rules" "data/spell"
         DESTINATION ${INSTALL_DATA_DIR})
