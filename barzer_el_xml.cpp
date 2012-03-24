@@ -69,6 +69,7 @@ bool BELParserXML::isValidTag( int tag, int parent ) const
 	case TAG_PATTERN:
 	switch( tag ) {
 	case TAG_T:
+	case TAG_VAR:
 	case TAG_TG:
 	case TAG_P:
 	case TAG_SPC:
@@ -1196,6 +1197,11 @@ void BELParserXML::taghandle_RNUMBER( const char_cp * attr, size_t attr_sz , boo
 }
 void BELParserXML::taghandle_VAR( const char_cp * attr, size_t attr_sz , bool close)
 {
+    if( statement.isState_Pattern() ) {
+        taghandle_LIST(attr,attr_sz,close);
+        return;
+    }
+
 	if( close ) {
 		statement.popNode();
 		return;
@@ -1477,6 +1483,7 @@ int BELParserXML::getTag( const char* s ) const
 	case 'w':
 	CHECK_1CW(TAG_W) // <w>
 	CHECK_4CW("cls",TAG_WCLS) // <wcls>
+        break;
 	default:
 		break;
 	} // switch ends
