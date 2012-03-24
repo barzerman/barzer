@@ -68,6 +68,7 @@ bool BELParserXML::isValidTag( int tag, int parent ) const
 		return false;
 	case TAG_PATTERN:
 	switch( tag ) {
+    /// pattern eligible child tags 
 	case TAG_T:
 	case TAG_VAR:
 	case TAG_TG:
