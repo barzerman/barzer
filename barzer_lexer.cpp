@@ -219,7 +219,8 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 
 	BarzerNumber barzNum;
 
-	char sepExcepts[] = "-;";
+	const char sepExcepts[] = "-;";
+	const char listSeparators[] = ",";
 
 	std::vector<CToken*> tokens;
 	char sep = 0;
@@ -280,22 +281,25 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 	{
 		CToken& t = cvec[i].first;
 		const TTWPVec& ttokens = t.getTTokens();
+		const TToken& ttok = ttokens[0].first;
 		if (ttokens.size() != 1)
 		{
 			flush();
 			continue;
 		}
 
-		if (tokens.empty() && ttokens[0].first.getBuf()[0] == '-')
+		if (tokens.empty() && ttok.getBuf()[0] == '-')
 		{
 			isNeg = true;
 			continue;
 		}
 
+		const bool is3Group = !(ttok.getLen() % 3);
+
 		if (t.isNumber())
 		{
 			hadSep = false;
-			if (tokens.size() > 1 && !awaitingFrac && (ttokens[0].first.getLen() % 3))
+			if (tokens.size() > 1 && !awaitingFrac && !is3Group)
 			{
 				tokens.clear();
 				flush();
@@ -315,7 +319,6 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 
 		hadSep = true;
 
-		const TToken& ttok = ttokens [0].first;
 		if (ttok.getLen() != 1)
 		{
 			flush();
