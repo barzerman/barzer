@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <stdint.h>
+#include <stdlib.h>
 namespace barzer {
 /// pure numbers
 class BarzerNumber {
@@ -49,27 +50,10 @@ public:
 	int64_t setInt( const char* s) { return( type= NTYPE_INT, n.i = atoi(s)); }
 	int64_t setReal( const char* s) { return( type= NTYPE_REAL, n.i = atof(s)); }
 
-	inline BarzerNumber& operator+= (const BarzerNumber& num)
-	{
-		if (isNan() || num.isNan())
-			clear();
-		else if (isInt() && num.isInt())
-			set (getInt_unsafe() + num.getInt_unsafe());
-		else
-			set (getRealWiden() + num.getRealWiden());
-		return *this;
-	}
-
-	inline BarzerNumber& operator*= (const BarzerNumber& num)
-	{
-		if (isNan() || num.isNan())
-			clear();
-		else if (isInt() && num.isInt())
-			set (getInt_unsafe() * num.getInt_unsafe());
-		else
-			set (getRealWiden() * num.getRealWiden());
-		return *this;
-	}
+	BarzerNumber& operator+= (const BarzerNumber& num);
+	BarzerNumber& operator-= (const BarzerNumber& num);
+	BarzerNumber& operator*= (const BarzerNumber& num);
+	BarzerNumber& operator/= (const BarzerNumber& num);
 
 	inline bool isNan() const { return type == NTYPE_NAN; }
 	inline bool isInt() const { return type == NTYPE_INT; }
@@ -140,6 +124,39 @@ public:
 
 inline bool operator == ( const BarzerNumber& l, const BarzerNumber& r )
 	{ return l.isEqual(r); }
+
+inline bool operator< (const BarzerNumber& l, const BarzerNumber& r)
+{
+	return l.getRealWiden() < r.getRealWiden();
+}
+
+inline BarzerNumber operator+ (const BarzerNumber& b1, const BarzerNumber& b2)
+{
+	BarzerNumber res = b1;
+	res += b2;
+	return res;
+}
+
+inline BarzerNumber operator- (const BarzerNumber& b1, const BarzerNumber& b2)
+{
+	BarzerNumber res = b1;
+	res -= b2;
+	return res;
+}
+
+inline BarzerNumber operator* (const BarzerNumber& b1, const BarzerNumber& b2)
+{
+	BarzerNumber res = b1;
+	res *= b2;
+	return res;
+}
+
+inline BarzerNumber operator/ (const BarzerNumber& b1, const BarzerNumber& b2)
+{
+	BarzerNumber res = b1;
+	res /= b2;
+	return res;
+}
 
 inline std::ostream& operator <<( std::ostream& fp, const BarzerNumber& n )
 { return n.print(fp); }
