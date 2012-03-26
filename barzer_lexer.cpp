@@ -308,6 +308,8 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 				flush();
 				continue;
 			}
+			else if (tokens.size() == 1 && !is3Group)
+				flush(t.getNumber());
 			else if (awaitingFrac)
 				flush(t.getNumber());
 			else
