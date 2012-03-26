@@ -3,6 +3,7 @@
 #include <barzer_universe.h>
 #include <barzer_ghettodb.h>
 #include <ay/ay_debug.h>
+#include <barzer_server_response.h>
 extern "C" {
 #include <expat.h>
 
@@ -37,17 +38,38 @@ static void charDataHandle( void * ud, const XML_Char *str, int len)
 }
 } // extern "C" ends
 
+
 namespace barzer {
 
+namespace {
+
+void escapeForXmlAndIntern( GlobalPools& gp, uint32_t& srcNameStrId, std::string& s, const char* cs ) 
+{
+    std::stringstream sstr; 
+    xmlEscape( cs, sstr );
+    s=sstr.str();
+    srcNameStrId = gp.internString_internal( s.c_str() );
+}
+
+}
 
 BELParserXML::BELParserXML( BELReader* r) : 
 		BELParser(r),
 		parser(0),
 		statementCount(0)
 	{
-		const char* srcName =reader->getInputFileName().c_str();
-		uint32_t srcNameStrId = reader->getGlobalPools().internString_internal( srcName );
-		statement.stmt.setSrcInfo(srcName, srcNameStrId );
+		const char* tmp_srcName =reader->getInputFileName().c_str();
+
+		uint32_t srcNameStrId ;
+        std::string srcName; 
+        {
+        std::stringstream sstr;
+        xmlEscape( tmp_srcName, sstr );
+        srcName = sstr.str();
+		srcNameStrId = reader->getGlobalPools().internString_internal( srcName.c_str() );
+        }
+
+		statement.stmt.setSrcInfo(srcName.c_str(), srcNameStrId );
         statement.stmt.setReader(r);
 	}
 bool BELParserXML::isValidTag( int tag, int parent ) const
@@ -1368,7 +1390,10 @@ BELParserXML::~BELParserXML()
 int BELParserXML::parse( std::istream& fp )
 {
 	const char* srcName =reader->getInputFileName().c_str();
-	uint32_t srcNameStrId = reader->getGlobalPools().internString_internal( srcName );
+	uint32_t srcNameStrId ;
+    
+    std::string srcNameCpp;
+    escapeForXmlAndIntern( reader->getGlobalPools(), srcNameStrId, srcNameCpp, srcName );
 	statement.stmt.setSrcInfo(srcName, srcNameStrId );
 	//statement.stmt.setSrcInfo(reader->getInputFileName().c_str());
 

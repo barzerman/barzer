@@ -43,5 +43,9 @@ public:
 	std::ostream& print(std::ostream&) const;
 
 };
+
+std::ostream& xmlEscape(const char *src,  std::ostream &os) ;
+
+
 } // barzer namespace 
 #endif /* BARZ_SERVER_RESPONSE_H_ */

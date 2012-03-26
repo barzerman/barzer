@@ -15,6 +15,21 @@
 
 namespace barzer {
 
+// need to find an xml library for this kind of stuff
+std::ostream& xmlEscape(const char *src,  std::ostream &os) {
+	for(;*src != '\0'; ++src) {
+		char c = (char)(*src);
+		switch (c) {
+		case '&': os << "&amp;"; break;
+		case '<': os << "&lt;"; break;
+		case '>': os << "&gt;"; break;
+		case '"': os << "&quot;"; break;
+		case '\'': os << "&apos;"; break;
+		default: os << c;
+		}
+	}
+	return os;
+}
 namespace {
 
 struct tag_raii {
@@ -51,24 +66,9 @@ bool isBlank(const BarzelBead &bead) {
     }
 }
 
-// need to find an xml library for this kind of stuff
-static std::ostream& xmlEscape(const char *src,  std::ostream &os) {
-	for(;*src != '\0'; ++src) {
-		char c = (char)(*src);
-		switch (c) {
-		case '&': os << "&amp;"; break;
-		case '<': os << "&lt;"; break;
-		case '>': os << "&gt;"; break;
-		case '"': os << "&quot;"; break;
-		case '\'': os << "&apos;"; break;
-		default: os << c;
-		}
-	}
-	return os;
-}
 
-static inline std::ostream& xmlEscape(const std::string &src, std::ostream &os) {
-	return xmlEscape(src.c_str(), os);
+inline std::ostream& xmlEscape(const std::string &src, std::ostream &os) {
+	return barzer::xmlEscape(static_cast<const char*>(src.c_str()), os);
 }
 
 
@@ -219,7 +219,7 @@ public:
 	bool operator()(const BarzerString &data) {
 	    tag_raii tok(os, "token");
 		//xmlEscape(data.getStr(), os << "<token>");
-	    xmlEscape(data.getStr(), tok);
+	    xmlEscape(data.getStr(), tok.os);
 		//os << "</token>";
 	    return true;
 	}
