@@ -214,13 +214,16 @@ namespace
 
 int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 {
-	std::cout << __PRETTY_FUNCTION__ << std::endl;
 	CTWPVec& cvec = barz.getCtVec();
 
 	BarzerNumber barzNum;
 
-	const char sepExcepts[] = "-;";
-	const char listSeparators[] = ",";
+	bool isCommaException = true;
+	char sepExcepts[4] = { 0 };
+	if (isCommaException)
+		strcpy (sepExcepts, ",-;");
+	else
+		strcpy (sepExcepts, "-;");
 
 	std::vector<CToken*> tokens;
 	char sep = 0;
