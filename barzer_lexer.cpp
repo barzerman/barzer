@@ -188,12 +188,12 @@ namespace
 
 	BarzerNumber makeReal(const BarzerNumber& integer, const BarzerNumber& frac)
 	{
+		if (!frac.getInt())
+			return integer;
+
 		double intDbl = static_cast<double> (integer.getInt());
-		if (frac.getInt() != 0)
-		{
-			const size_t num = getNumDigits(frac.getInt());
-			intDbl += static_cast<double>(frac.getInt()) / decPow(num);
-		}
+		const size_t num = getNumDigits(frac.getInt());
+		intDbl += static_cast<double>(frac.getInt()) / decPow(num);
 		return BarzerNumber(intDbl);
 	}
 
@@ -255,7 +255,7 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 			if (m_isNeg)
 				res *= -1;
 
-			std::cout << __PRETTY_FUNCTION__ << " " << res.getReal() << std::endl;
+			std::cout << __PRETTY_FUNCTION__ << " " << res.getRealWiden() << std::endl;
 
 			m_tokens[0]->setNumber(res);
 		}
