@@ -210,6 +210,19 @@ namespace
 		}
 		return result;
 	}
+
+	bool isTokenSeparator(const CToken& next, char sep)
+	{
+		const TTWPVec& nextTTokens = next.getTTokens();
+		if (nextTTokens.size() != 1)
+			return false;
+
+		const TToken& ttok = nextTTokens[0].first;
+		if (ttok.getLen() != 1)
+			return false;
+
+		return ttok.getBuf()[0] == sep;
+	}
 }
 
 int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
@@ -322,7 +335,16 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 				continue;
 			}
 			else if (tokens.size() == 1 && !is3Group)
-				flush(t.getNumber());
+			{
+				if (i < cvec.size () - 1 &&
+						isTokenSeparator (cvec[i + 1].first, sep))
+				{
+					tokens.clear();
+					flush();
+				}
+				else
+					flush(t.getNumber());
+			}
 			else if (awaitingFrac)
 				flush(t.getNumber());
 			else
