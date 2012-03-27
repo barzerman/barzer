@@ -99,7 +99,7 @@ public:
 		if( isInt() )
 			return fp << n.i ;
 		else  if( isReal() )
-			return fp << n.real ;
+			return fp << std::fixed << n.real ;
 		else
 			return fp << "NaN";
 	}
