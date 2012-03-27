@@ -226,6 +226,7 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 		strcpy (sepExcepts, "-;");
 
 	std::vector<CToken*> tokens;
+	std::vector<CToken*> allTokens;
 	char sep = 0;
 	bool awaitingFrac = false;
 	bool hadSep = false;
@@ -234,6 +235,7 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 	struct BuildNumStruct
 	{
 		const std::vector<CToken*>& m_tokens;
+		const std::vector<CToken*>& m_allTokens;
 		const char& m_sep;
 		const bool& m_isNeg;
 		void operator() (const BarzerNumber& frac = BarzerNumber())
@@ -256,14 +258,23 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 				res *= -1;
 
 			std::cout << __PRETTY_FUNCTION__ << " " << res.getRealWiden() << std::endl;
+			CToken *resTok = m_tokens[0];
+			resTok->setNumber(res);
 
-			m_tokens[0]->setNumber(res);
+			for (size_t i = 1, size = m_allTokens.size(); i < size; ++i)
+			{
+				CToken *curTok = m_allTokens [i];
+				resTok->qtVec.insert(resTok->qtVec.end(),
+						curTok->qtVec.begin(), curTok->qtVec.end());
+				curTok->clear();
+			}
 		}
-	} buildNum = { tokens, sep, isNeg };
+	} buildNum = { tokens, allTokens, sep, isNeg };
 
 	struct
 	{
 		std::vector<CToken*>& m_tokens;
+		std::vector<CToken*>& m_allTokens;
 		char& m_sep;
 		bool& m_awaiting;
 		bool& m_hadSep;
@@ -273,16 +284,18 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 		{
 			m_buildNum(frac);
 			m_tokens.clear();
+			m_allTokens.clear();
 			m_sep = 0;
 			m_awaiting = false;
 			m_hadSep = false;
 			m_isNeg = false;
 		}
-	} flush = { tokens, sep, awaitingFrac, hadSep, isNeg, buildNum };
+	} flush = { tokens, allTokens, sep, awaitingFrac, hadSep, isNeg, buildNum };
 
 	for (size_t i = 0; i < cvec.size (); ++i)
 	{
 		CToken& t = cvec[i].first;
+		allTokens.push_back(&t);
 		const TTWPVec& ttokens = t.getTTokens();
 		const TToken& ttok = ttokens[0].first;
 		if (ttokens.size() != 1)
