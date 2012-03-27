@@ -715,7 +715,7 @@ struct BarzelTranslation_set_visitor : public boost::static_visitor<int> {
 
 int BarzelTranslation::encodeIt( BarzelRewriterPool::byte_vec& enc, BELTrie& trie, const BELParseTreeNode& tn ) 
 {
-	const BTND_RewriteData* rwrDta = tn.getTrivialRewriteData();
+	const BTND_RewriteData* rwrDta = tn.getTrivialRewriteData();    
 	if( rwrDta ) {
 		BarzelTranslation_set_visitor vis( trie, *this  );
 		boost::apply_visitor( vis, *rwrDta );

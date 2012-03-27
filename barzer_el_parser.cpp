@@ -2,6 +2,7 @@
 #include <barzer_el_parser.h>
 #include <barzer_el_xml.h>
 #include <barzer_universe.h>
+#include <barzer_server_response.h>
 #include <fstream>
 
 #include <ay/ay_logger.h>
@@ -163,11 +164,20 @@ std::ostream& BELReader::printNode( std::ostream& fp, const BarzelTrieNode& node
 }
 void BELReader::addProc( uint32_t strId, const BELStatementParsed& sp )
 {
+        if (   sp.translation.child.size() == 0 ) 
+        {
+                std::ostream& os = sp.getErrStream() ;
+               os << "<error type=\"WARNING\">Empty procedure ";
+               xmlEscape(sp.getSourceName().c_str(), os) << ':' << sp.getStmtNumber()   << " is not permitted. Skipping.</error>\n";
+        }
+        return;
 	int rc = getTrie().getProcs().generateStoredProc( strId, sp.translation );
 	if( rc == BarzelProcs::ERR_OK ) {
 		++numProcs;
 	} else {
-		AYLOG(ERROR) << "error=" << rc << ": failed to load procedure in statement " << numStatements << std::endl;
+                std::ostream& os = sp.getErrStream() ;
+                os << "<error type=\"WARNING\">Failed to load procedure in statement";
+                xmlEscape(sp.getSourceName().c_str(), os) << ':' << sp.getStmtNumber()   << "</error>\n"; 
 	}
 	++numStatements;
 }
@@ -182,14 +192,20 @@ void BELReader::addMacro( uint32_t macroNameId, const BELStatementParsed& sp )
 void BELReader::addStatement( const BELStatementParsed& sp )
 {
     if( !isOk_EmitCountPerTrie(numEmits) ) {
-        sp.getErrStream() << "ERROR: statement [" << sp.getSourceName() << ':' << sp.getStmtNumber()  << "] rejected - total number of emits for this statement set exceeds " << d_maxEmitCountPerTrie << std::endl;
+        std::ostream& os = sp.getErrStream() ;
+        sp.getErrStream() << "<error type=\"ERROR\">";
+        xmlEscape(sp.getSourceName().c_str(), os) << ':' << sp.getStmtNumber()  
+                << " rejected: total number of emits for this statement set exceeds " << d_maxEmitCountPerTrie << "</error>"<<std::endl;
 
     }
     size_t emitPower = BELStatementParsed_EmitCounter(trie,d_maxEmitCountPerStatement).power( sp.pattern );
 
     if( d_respectLimits && emitPower>= d_maxEmitCountPerStatement ) {
-        sp.getErrStream() << "ERROR: statement [" << sp.getSourceName() << ':' << sp.getStmtNumber()  << "] rejected - number of emits for this statement " << emitPower << " vs. " << d_maxEmitCountPerStatement << std::endl;
-        if( d_respectLimits )
+        std::ostream& os = sp.getErrStream() ;
+        sp.getErrStream() << "<error type=\"ERROR\">";
+        xmlEscape(sp.getSourceName().c_str(), os) << ':' << sp.getStmtNumber()  << " rejected: number of emits for this statement is " 
+                << emitPower << " and greater than " << d_maxEmitCountPerStatement<< "</error>"<<std::endl;   
+       if( d_respectLimits )
             return;
     }
 

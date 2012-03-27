@@ -77,8 +77,10 @@ void BarzerSettings::addRulefile(BELReader& reader, const Rulefile &f)
 	reader.setTrie(trieClass, trieId );
 
 	size_t num = reader.loadFromFile(fname, BELReader::INPUT_FMT_XML);
-	std::cout << num << " statements (" << reader.getNumMacros() << " macros, " <<
-	reader.getNumProcs() << " procs)" << " loaded from `" << fname ;
+	std::cout << num << " statements";
+        if (num) std::cout <<"(" << reader.getNumMacros() << " macros, " <<
+                reader.getNumProcs() << " procs)";
+        std::cout << " loaded from `" << fname ;
 	if (!(tclass.empty() || tid.empty()))
 		std::cout << " into the trie `" << tclass << "." << tid << "'";
 	std::cout << "\n";
@@ -345,7 +347,7 @@ void BarzerSettings::loadLocale(BELReader& reader, User& u, const ptree& node)
 
 	if (!metDefault)
 	{
-		std::cerr << "*** Using English locale";
+		std::cerr << "*** Using English locale" << std::endl;
 		u.getUniverse().addLocale(BarzerLocale::makeLocale("en"), true);
 	}
 }

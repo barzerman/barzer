@@ -262,7 +262,6 @@ public:
 
 	enum {
 		ENCOD_FAILED = -1,
-
 		ENCOD_REWRITER=0,
 		ENCOD_TRIVIAL
 	};
