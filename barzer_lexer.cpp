@@ -231,7 +231,7 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 
 	BarzerNumber barzNum;
 
-	bool isCommaException = true;
+	bool isCommaException = false;
 	char sepExcepts[4] = { 0 };
 	if (isCommaException)
 		strcpy (sepExcepts, ",-;");
@@ -305,10 +305,9 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 		}
 	} flush = { tokens, allTokens, sep, awaitingFrac, hadSep, isNeg, buildNum };
 
-	for (size_t i = 0; i < cvec.size (); ++i)
+	for (size_t i = 0; i < cvec.size(); ++i)
 	{
 		CToken& t = cvec[i].first;
-		allTokens.push_back(&t);
 		const TTWPVec& ttokens = t.getTTokens();
 		const TToken& ttok = ttokens[0].first;
 		if (ttokens.size() != 1)
@@ -320,13 +319,13 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 		if (tokens.empty() && ttok.getBuf()[0] == '-')
 		{
 			isNeg = true;
+			allTokens.push_back(&t);
 			continue;
 		}
 
-		const bool is3Group = !(ttok.getLen() % 3);
-
 		if (t.isNumber())
 		{
+			const bool is3Group = !(ttok.getLen() % 3);
 			hadSep = false;
 			if (tokens.size() > 1 && !awaitingFrac && !is3Group)
 			{
@@ -343,15 +342,24 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 					flush();
 				}
 				else
+				{
+					allTokens.push_back(&t);
 					flush(t.getNumber());
+				}
 			}
 			else if (awaitingFrac)
+			{
+				allTokens.push_back(&t);
 				flush(t.getNumber());
+			}
 			else
+			{
 				tokens.push_back(&t);
+				allTokens.push_back(&t);
+			}
 			continue;
 		}
-		else if (hadSep)
+		else if (tokens.empty() || hadSep)
 		{
 			flush();
 			continue;
@@ -364,8 +372,9 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 			flush();
 			continue;
 		}
+		allTokens.push_back(&t);
 		const char *buf = ttok.getBuf();
-		char tSep = buf [0];
+		char tSep = buf[0];
 		if (strchr(sepExcepts, tSep))
 		{
 			flush();
