@@ -178,6 +178,10 @@ std::ostream& GlobalPools::printTanslationTraceInfo( std::ostream& fp, const Bar
 	traceInfo.emitterSeqNo );
 }
 
+uint32_t StoredUniverse::recordLangWord( int16_t lang )
+{
+    return d_langInfo.incrementLangCounter( lang );
+}
 StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	d_userId(id),
 	gp(g),

@@ -82,6 +82,8 @@ class QLexParser {
 	/// called from advancedBasicClassify
 	/// tries to detect numbers with punctuation 1.5, -5.5 , 1,000,000 etc.
 	int advancedNumberClassify( Barz&, const QuestionParm& );
+    /// extra separator logic
+	int advancedNumberClassify_separator( Barz&, const QuestionParm& );
 
 	bool tryClassify_number( CToken&, const TToken&  ) const;
 	bool tryClassify_integer( CToken&, const TToken&  ) const;

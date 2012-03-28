@@ -164,7 +164,6 @@ struct CToken {
 	bool isMysteryWord() const { return cInfo.theClass == CTokenClassInfo::CLASS_MYSTERY_WORD; }
 	bool isWord() const { return cInfo.theClass == CTokenClassInfo::CLASS_WORD; }
 	bool isPunct() const { return cInfo.theClass == CTokenClassInfo::CLASS_PUNCTUATION; }
-	bool isPunct(char c) const { return ( isPunct() && qtVec.size() == 1 && qtVec[0].first.buf[0] == c ); }
 
     bool isString() const {
         return( 
@@ -176,6 +175,7 @@ struct CToken {
     char  getPunct() { return ( (isPunct() && qtVec.size() == 1) ? qtVec[0].first.buf[0] : 0 ) ; }
 
 	bool isSpace() const { return cInfo.theClass == CTokenClassInfo::CLASS_SPACE; }
+	bool isPunct(char c) const { return ( (isPunct() ||(c==' ' && isSpace()) )  && qtVec.size() == 1 && qtVec[0].first.buf[0] == c ); }
 	
 	void setSpellCorrected( bool v = true ) { cInfo.setSpellCorrected(v); }
 	void addSpellingCorrection( const char* wrong, const char*  correct ) 

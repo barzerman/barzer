@@ -89,6 +89,25 @@ struct BarzelTrace {
     bool lastFrameLoop() const { return (d_lastFrame_count>= MAX_TAIL_REPEAT); }
 }; 
 
+/// hints store information which may affect classification strategy (for instance russian classification woiuld treat ',' as a decimal separator 
+class BarzHints {
+    enum {
+        BHB_DECIMAL_COMMA,
+        // add above
+        BHB_MAX
+    };
+    ay::bitflags d_bhb;
+    const StoredUniverse* d_universe;
+public:
+
+    void initFromUniverse( const StoredUniverse* u );
+    void clear() { d_bhb.clear(); }
+
+    BarzHints( ) : d_universe(0) {}
+    BarzHints( const StoredUniverse* u ) : d_universe(0) 
+        { initFromUniverse(u); }
+};
+
 // collection of punits and the original question
 class Barz {
 	/// original question with 0-s terminating tokens
@@ -121,6 +140,7 @@ public:
 
 	BarzelTrace barzelTrace;
     BarzTopics  topicInfo;
+    BarzHints   d_hints;
 
     bool lastFrameLoop() const { return barzelTrace.lastFrameLoop(); }
     void pushError( const char* err ) { barzelTrace.pushError(err); }

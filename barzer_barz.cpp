@@ -6,6 +6,14 @@
 
 namespace barzer {
 
+//// BarzHints 
+void  BarzHints::initFromUniverse( const StoredUniverse* u ) 
+{
+    d_universe = u;
+}
+
+/// end of BarzHints 
+
 bool BarzelTrace::detectLoop( ) const
 {
     if( !d_tvec.size() ) 
@@ -88,8 +96,10 @@ void Barz::clear()
 	ctVec.clear();
 	ttVec.clear();
 
+    d_hints.clear();
 	question.clear();
 }
+
 
 int Barz::chainInit( const QuestionParm& qparm ) 
 {

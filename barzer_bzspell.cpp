@@ -599,10 +599,10 @@ uint32_t BZSpell::get2ByteLangStemCorrection( int lang, const char* str, bool do
     return 0xffffffff;
 }
 
-bool BZSpell::stem( std::string& out, const char* s ) const
+bool BZSpell::stem( std::string& out, const char* s, int16_t& lang ) const
 {
     size_t s_len = strlen( s );
-    int lang = Lang::getLang( s, s_len );
+    lang = Lang::getLang( s, s_len );
 	if( lang == LANG_ENGLISH) {
 		size_t s_len = strlen(s);
 		if( s_len > d_minWordLengthToCorrect ) {
@@ -621,6 +621,12 @@ bool BZSpell::stem( std::string& out, const char* s ) const
     }
 	return false;
 }
+bool BZSpell::stem( std::string& out, const char* s ) const
+{
+    int lang = LANG_ENGLISH;
+    return stem( out, s, lang );
+}
+
 bool BZSpell::isPureStem( const char* str ) const
 {
     const StoredToken* tmpTok = d_universe.getStoredToken( str );

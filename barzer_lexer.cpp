@@ -90,7 +90,7 @@ inline int64_t get_decimal_factor( int numZeroBlocks )
 
 // returns true if this is a comma delimited integer
 // endPos will contain the last token of the number
-bool is_comma_delimited_int( const CTWPVec& cvec, size_t fromPos, size_t& endPos, BarzerNumber& theInt )
+bool is_comma_delimited_int( const CTWPVec& cvec, size_t fromPos, size_t& endPos, BarzerNumber& theInt, char delimiter = ',' )
 {
 	{ // first token
 	const CToken& ctok1 = cvec[fromPos].first;
@@ -101,7 +101,7 @@ bool is_comma_delimited_int( const CTWPVec& cvec, size_t fromPos, size_t& endPos
 	size_t pos = fromPos+1;
 	size_t numZeroBlocks = 0;
 	for( ; pos < lastCommaEnd && numZeroBlocks< 6; ) {
-		if( !cvec[pos].first.isPunct(',') || !ctok_number_can_be_in_commadelim(false,cvec[pos+1].first) ) {
+		if( !cvec[pos].first.isPunct(delimiter) || !ctok_number_can_be_in_commadelim(false,cvec[pos+1].first) ) {
 			break;
 		} else{
 			++numZeroBlocks;
@@ -121,6 +121,49 @@ bool is_comma_delimited_int( const CTWPVec& cvec, size_t fromPos, size_t& endPos
 }
 
 } // end of anon namespace
+
+int QLexParser::advancedNumberClassify_separator( Barz& barz, const QuestionParm& qparm )
+{
+    CTWPVec& cvec = barz.getCtVec();
+    // TTWPVec& tvec = barz.getTtVec();
+
+	//// this only processes positive
+	BarzerNumber theInt;
+	size_t endPos= 0;
+	for( size_t i =0; i< cvec.size(); ++i ) {
+		CToken& t = cvec[i].first;
+		if( is_comma_delimited_int(cvec, i,endPos,theInt, ' ' ) ) {
+			t.setNumber(theInt);
+			for( size_t j = i+1; j< endPos; ++j ) {
+				CToken& clearTok = cvec[j].first;
+				t.qtVec.insert( t.qtVec.end(), clearTok.qtVec.begin(),clearTok.qtVec.end() );
+				clearTok.clear();
+			}
+			// *****
+			continue;
+		}
+		if( t.isNumber() ) {
+			size_t i_dot = i+1, i_frac = i+2;
+			if( i_frac < cvec.size() ) {
+				CToken& dotTok = cvec[i_dot].first;
+				CToken& fracTok = cvec[i_frac].first;
+				if( dotTok.isPunct('.') && fracTok.isNumber() ) {
+					// floating point
+					std::stringstream sstr;
+					sstr << t.number() << '.' << fracTok.number();
+					double x = atof( sstr.str().c_str() );
+					t.setNumber( x );
+					t.qtVec.insert( t.qtVec.end(), dotTok.qtVec.begin(), dotTok.qtVec.end() );
+					t.qtVec.insert( t.qtVec.end(), fracTok.qtVec.begin(), fracTok.qtVec.end() );
+					dotTok.clear();
+					fracTok.clear();
+				}
+			}
+		}
+	}
+	return 0;
+    return 0;
+}
 
 int QLexParser::advancedNumberClassify( Barz& barz, const QuestionParm& qparm )
 {
@@ -188,6 +231,8 @@ int QLexParser::advancedBasicClassify( Barz& barz, const QuestionParm& qparm )
     // TTWPVec& tvec = barz.getTtVec();
 
 	// transforms
+    advancedNumberClassify_separator(barz,qparm);
+
 	advancedNumberClassify(barz, qparm);
 	removeBlankCTokens( cvec );
     /// reclassifying punctuation if needed

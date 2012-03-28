@@ -15,7 +15,8 @@
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
 #include <barzer_topics.h>
-#include "barzer_locale.h"
+#include <barzer_locale.h>
+#include <barzer_language.h>
 
 
 namespace ay { struct CommandLineArgs; }
@@ -272,9 +273,14 @@ private:
 
 	BarzerLocale_ptr m_defLocale;
 	std::vector<BarzerLocale_ptr> m_otherLocales;
+    LangInfoArray    d_langInfo;
 
 	void addWordsFromTriesToBZSpell();
 public:
+    const LangInfoArray& getLangInfo() const { return d_langInfo; }
+    LangInfoArray& getLangInfo() { return d_langInfo; }
+
+    uint32_t recordLangWord( int16_t lang );
     const std::set< BarzerEntity >* getTopicEntities( const BarzerEntity& t ) const
         { return d_topicEntLinkage.getTopicEntities( t ); }
 
