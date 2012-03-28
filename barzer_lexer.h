@@ -85,6 +85,8 @@ class QLexParser {
     /// extra separator logic
 	int advancedNumberClassify_separator( Barz&, const QuestionParm& );
 
+    int separatorNumberGuess (Barz&, const QuestionParm&);
+
 	bool tryClassify_number( CToken&, const TToken&  ) const;
 	bool tryClassify_integer( CToken&, const TToken&  ) const;
 public:

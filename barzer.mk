@@ -27,6 +27,7 @@ libs = -Lay -lay -L/opt/local/lib -L/usr/lib \
 ECHO = echo
 lib_objects = \
 barzer_locale.o \
+barzer_number.o \
 lg_ru/barzer_ru_stemmer.o \
 barzer_entity.o \
 barzer_autocomplete.o \

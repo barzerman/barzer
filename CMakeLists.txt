@@ -103,6 +103,7 @@ set(SOURCES barzer_barz.cpp
             barzer_autocomplete.cpp
             barzer_emitter.cpp
             barzer_locale.cpp
+			barzer_number.cpp
             "${EN_DIR}/barzer_en_date_util.cpp"
             "${EN_DIR}/barzer_en_lex.cpp"
             "${RU_DIR}/barzer_ru_date_util.cpp"
