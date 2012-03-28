@@ -231,12 +231,14 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 
 	BarzerNumber barzNum;
 
-	bool isCommaException = false;
-	char sepExcepts[4] = { 0 };
-	if (isCommaException)
-		strcpy (sepExcepts, ",-;");
+	const char groupSeps[] = " .,'";
+
+	char fracSeps[4] = { 0 };
+	bool isCommaAllowed = true;
+	if (isCommaAllowed)
+		strcpy(fracSeps, ".,");
 	else
-		strcpy (sepExcepts, "-;");
+		strcpy(fracSeps, ".");
 
 	std::vector<CToken*> tokens;
 	std::vector<CToken*> allTokens;
@@ -244,6 +246,7 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 	bool awaitingFrac = false;
 	bool hadSep = false;
 	bool isNeg = false;
+	bool mayBeFrac = false;
 
 	struct BuildNumStruct
 	{
@@ -251,18 +254,17 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 		const std::vector<CToken*>& m_allTokens;
 		const char& m_sep;
 		const bool& m_isNeg;
+		const bool& m_mayBeFrac;
 		void operator() (const BarzerNumber& frac = BarzerNumber())
 		{
 			const size_t numDec = m_tokens.size();
 			if (numDec <= 1 && frac.isNan())
 				return;
 
-			// TODO smarter check form locale here.
-			const bool isFracSep = m_sep == '.' || m_sep == ',';
 			BarzerNumber res;
 			if (numDec == 2 &&
 					frac.isNan() &&
-					isFracSep)
+					m_mayBeFrac)
 				res = makeReal(m_tokens[0]->number(), m_tokens[1]->number());
 			else
 				res = makeReal(joinInts(m_tokens), frac);
@@ -282,7 +284,7 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 				curTok->clear();
 			}
 		}
-	} buildNum = { tokens, allTokens, sep, isNeg };
+	} buildNum = { tokens, allTokens, sep, isNeg, mayBeFrac };
 
 	struct
 	{
@@ -341,10 +343,16 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 					tokens.clear();
 					flush();
 				}
-				else
+				else if (strchr(fracSeps, sep))
 				{
 					allTokens.push_back(&t);
 					flush(t.getNumber());
+				}
+				else
+				{
+					tokens.clear();
+					flush();
+					--i;
 				}
 			}
 			else if (awaitingFrac)
@@ -365,27 +373,37 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 			continue;
 		}
 
-		hadSep = true;
-
 		if (ttok.getLen() != 1)
 		{
 			flush();
 			continue;
 		}
-		allTokens.push_back(&t);
+
 		const char *buf = ttok.getBuf();
 		char tSep = buf[0];
-		if (strchr(sepExcepts, tSep))
+
+		hadSep = true;
+
+		allTokens.push_back(&t);
+
+		if (strchr(groupSeps, tSep))
 		{
-			flush();
+			mayBeFrac = strchr(fracSeps, tSep);
+			if (sep && tSep == sep)
+				continue;
+			else if (!sep)
+			{
+				sep = tSep;
+				continue;
+			}
+		}
+		if (strchr(fracSeps, tSep))
+		{
+			awaitingFrac = true;
+			sep = tSep;
 			continue;
 		}
-		else if (sep && tSep == sep)
-			continue;
-		else if (sep && tSep != sep)
-			awaitingFrac = true;
-		else
-			sep = tSep;
+		flush();
 	}
 
 	if (!tokens.empty())
@@ -419,7 +437,9 @@ int QLexParser::advancedBasicClassify( Barz& barz, const QuestionParm& qparm )
     // TTWPVec& tvec = barz.getTtVec();
 
 	// transforms
-	advancedNumberClassify(barz, qparm);
+
+	// removed in favor of separatorNumberGuess().
+	//advancedNumberClassify(barz, qparm);
 	removeBlankCTokens( cvec );
     /// reclassifying punctuation if needed
     for( CTWPVec::iterator i = cvec.begin(); i!= cvec.end(); ++i ) {
