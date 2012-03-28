@@ -171,6 +171,26 @@ void BarzelBeadChain::collapseRangeLeft( BeadList::iterator origin, Range r ) {
 	lst.erase( r.first, r.second );
 }
 
+void BarzelBeadChain::asjustStemIds( const StoredUniverse& u, const BELTrie& trie  ) 
+{
+    for( BeadList::iterator i = lst.begin(); i!= lst.end(); ++i )
+        if( i->getStemStringId() != 0xffffffff ) {
+            const BarzerLiteral* ltrl = i->getLiteral();
+            if( ltrl &&  ltrl->getId() != 0xffffffff ) {
+                const strIds_set* stridSet = trie.getStemSrcs( i->getStemStringId() );
+                if( stridSet ) {
+                    uint32_t ltrlId = ltrl->getId()  ;
+                    if( stridSet->find(ltrlId) != stridSet->end() ) {
+                        continue;
+                    }
+                }
+            }
+            #warning implement BarzerString -- see of  
+            i->setStemStringId( 0xffffffff );
+        }
+    }
+}
+
 void BarzelBeadChain::collapseRangeLeft( Range r ) {
 	if( r.first == r.second ) 
 		return;
@@ -187,6 +207,7 @@ void BarzelBeadChain::init( const CTWPVec& cv )
 	for( CTWPVec::const_iterator i = cv.begin(); i!= cv.end(); ++i ) {
 		lst.push_back( BarzelBead() );
 		lst.back().init( *i );
+        lst.back().setStemStringId( i->first.getStemTokStringId() );
 	}
 }
 

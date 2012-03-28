@@ -280,7 +280,7 @@ public:
         STRT_MYSTERY_STRING   // something that is unknown to system yet has been classified as a string
     };
 private:
-	uint32_t theId;
+	uint32_t theId; // string id (interned)
     union    { int32_t i4; float r4; } d_num;
 
 	uint8_t  type; // one of the T_ constants
