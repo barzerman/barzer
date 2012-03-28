@@ -91,21 +91,28 @@ struct BarzelTrace {
 
 /// hints store information which may affect classification strategy (for instance russian classification woiuld treat ',' as a decimal separator 
 class BarzHints {
-    enum {
-        BHB_DECIMAL_COMMA,
-        // add above
-        BHB_MAX
-    };
-    ay::bitflags<BHB_MAX> d_bhb;
-    const StoredUniverse* d_universe;
+public:
+	enum HintsFlag
+	{
+		BHB_DECIMAL_COMMA,
+		// add above
+		BHB_MAX
+	};
+private:
+	ay::bitflags<BHB_MAX> d_bhb;
+	const StoredUniverse* d_universe;
 public:
 
-    void initFromUniverse( const StoredUniverse* u );
-    void clear() { d_bhb.clear(); }
+	void initFromUniverse( const StoredUniverse* u );
+	void clear() { d_bhb.clear(); }
 
-    BarzHints( ) : d_universe(0) {}
-    BarzHints( const StoredUniverse* u ) : d_universe(0) 
-        { initFromUniverse(u); }
+	BarzHints( ) : d_universe(0) {}
+	BarzHints( const StoredUniverse* u ) : d_universe(0)
+		{ initFromUniverse(u); }
+
+	void setHint(HintsFlag, bool val = true);
+	void clearHint(HintsFlag);
+	bool testHint(HintsFlag) const;
 };
 
 // collection of punits and the original question

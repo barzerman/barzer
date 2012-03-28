@@ -12,6 +12,21 @@ void  BarzHints::initFromUniverse( const StoredUniverse* u )
     d_universe = u;
 }
 
+void BarzHints::setHint(HintsFlag flag, bool val)
+{
+	d_bhb.set(flag, val);
+}
+
+void BarzHints::clearHint(BarzHints::HintsFlag flag)
+{
+	d_bhb.unset(flag);
+}
+
+bool BarzHints::testHint(BarzHints::HintsFlag flag) const
+{
+	return d_bhb[flag];
+}
+
 /// end of BarzHints 
 
 bool BarzelTrace::detectLoop( ) const
