@@ -12,7 +12,8 @@
 /// Barzer gets a chain of CToken-s (see barzer_parse_types.h) converts it into 
 /// the BarzelChain (a doubly linked list of BarzelBead-s)
 namespace barzer {
-
+class BELTrie;
+class StoredUniverse;
 struct BarzelBeadBlank {
 	int dummy;
 	BarzelBeadBlank() : dummy(0) {}
@@ -56,6 +57,7 @@ struct BarzelBeadAtomic {
 	BarzelBeadAtomic() {}
 	BarzelBeadAtomic(const BarzelBeadAtomic_var &d) : dta(d) {}
 
+	const BarzerString* getString() const { return boost::get<BarzerString>( &dta ); }
 	const BarzerLiteral* getLiteral() const { return boost::get<BarzerLiteral>( &dta ); }
 
 	BarzerEntity* getEntity() { return boost::get<BarzerEntity>( &dta ); }
@@ -224,6 +226,13 @@ public:
         } else 
             return 0;
     }
+    const BarzerString* getString() const {
+        const BarzelBeadAtomic* atomic = getAtomic();
+        if( atomic ) {
+		    return atomic->getString();
+        } else 
+            return 0;
+    }
 	bool isStringLiteral() const { 
 		const BarzelBeadAtomic* atomic = getAtomic();
 		return( atomic && atomic->isStringLiteral() )  ;
@@ -389,7 +398,8 @@ struct BarzelBeadChain {
         return lst.back().get<T>();
     }
 
-    void adjustStemIds( const StoredUniverse& u, const BELTrie& trie );
+    /// returns the number of remaining stems
+    size_t adjustStemIds( const StoredUniverse& u, const BELTrie& trie );
 };
 
 

@@ -1,4 +1,5 @@
 #include <barzer_el_chain.h>
+#include <barzer_el_trie.h>
 
 namespace barzer {
 
@@ -24,6 +25,9 @@ void BarzelBead::initFromCTok( const CToken& ct )
 	case CTokenClassInfo::CLASS_MYSTERY_WORD: {
 		a.dta = BarzerString();
 		BarzerString& bstr = boost::get<BarzerString>(a.dta);
+        if( ct.getStemTok() ) 
+            bstr.setStemStringId( ct.getStemTok()->getStringId() );
+
 		if( ct.isSpellCorrected() ) 
 			bstr.setStr( ct.correctedStr );
 		else
@@ -171,24 +175,34 @@ void BarzelBeadChain::collapseRangeLeft( BeadList::iterator origin, Range r ) {
 	lst.erase( r.first, r.second );
 }
 
-void BarzelBeadChain::asjustStemIds( const StoredUniverse& u, const BELTrie& trie  ) 
+size_t BarzelBeadChain::adjustStemIds( const StoredUniverse& u, const BELTrie& trie  ) 
 {
-    for( BeadList::iterator i = lst.begin(); i!= lst.end(); ++i )
+    size_t numRemainingStems = 0;
+    for( BeadList::iterator i = lst.begin(); i!= lst.end(); ++i ) {
         if( i->getStemStringId() != 0xffffffff ) {
             const BarzerLiteral* ltrl = i->getLiteral();
-            if( ltrl &&  ltrl->getId() != 0xffffffff ) {
-                const strIds_set* stridSet = trie.getStemSrcs( i->getStemStringId() );
-                if( stridSet ) {
-                    uint32_t ltrlId = ltrl->getId()  ;
-                    if( stridSet->find(ltrlId) != stridSet->end() ) {
-                        continue;
+            if( ltrl ) {
+                if( ltrl->getId() != 0xffffffff ) {
+                    const strIds_set* stridSet = trie.getStemSrcs( i->getStemStringId() );
+                    if( stridSet ) {
+                        uint32_t ltrlId = ltrl->getId()  ;
+                        if( stridSet->find(ltrlId) != stridSet->end() ) {
+                            ++numRemainingStems;
+                            continue;
+                        }
                     }
                 }
+            } else {
+                const BarzerString* bstr = i->getString();
+                if( bstr && bstr->getStemStringId() == i->getStemStringId() ) {
+                    ++numRemainingStems;
+                    continue;
+                }
             }
-            #warning implement BarzerString -- see of  
             i->setStemStringId( 0xffffffff );
         }
     }
+    return numRemainingStems;
 }
 
 void BarzelBeadChain::collapseRangeLeft( Range r ) {
