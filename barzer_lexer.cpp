@@ -384,21 +384,24 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 
 		hadSep = true;
 
-		allTokens.push_back(&t);
-
 		if (strchr(groupSeps, tSep))
 		{
 			mayBeFrac = strchr(fracSeps, tSep);
 			if (sep && tSep == sep)
+			{
+				allTokens.push_back(&t);
 				continue;
+			}
 			else if (!sep)
 			{
+				allTokens.push_back(&t);
 				sep = tSep;
 				continue;
 			}
 		}
 		if (strchr(fracSeps, tSep))
 		{
+			allTokens.push_back(&t);
 			awaitingFrac = true;
 			sep = tSep;
 			continue;
