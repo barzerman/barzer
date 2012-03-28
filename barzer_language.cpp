@@ -119,24 +119,25 @@ int QLangLexer::lex( CTWPVec& cv, const TTWPVec& tv, const QuestionParm& qparm )
 	return lexer->lex( cv, tv, qparm );
 }
 
-std::ostream& LangInfoArray::print( std::ostream& fp, const LangInfo& li ) const
+std::ostream& LangInfoArray::print( std::ostream& fp ) const
 {
-    for( int i =0; i< getMaxLang(); ++i ) {
-        int l = i-1;
-        fp << Lang::getLangName( i-1 ) < ":" << langInfo[i] << std::endl;
-    }
+	for( size_t i =0; i< getMaxLang(); ++i )
+		fp << Lang::getLangName( i-1 ) << ": " << langInfo[i] << std::endl;
+	return fp;
 }
 
 std::ostream& operator<< ( std::ostream& fp, const LangInfo& li )
 {
-    return li.print(fp);
+	return fp << li.counter << " times";
 }
+
 int16_t LangInfoArray::getDominantLanguage()
 {
     uint32_t maxCnt = 0;
     int16_t  bestLang = LANG_UNKNOWN;
-    for( int i = 0; i< sizeof(langInfo)/(sizeof(langInfo[0])); ++i ) {
-        if( langInfo[i].getCounter() > maxCnt ) {
+    for( size_t i = 0; i< sizeof(langInfo)/(sizeof(langInfo[0])); ++i ) {
+        if( langInfo[i].getCounter() > maxCnt )
+		{
             maxCnt = langInfo[i].getCounter();
             bestLang = (i-1); /// lang+1 is always i - see incrementLangCounter
         }

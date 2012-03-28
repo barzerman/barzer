@@ -623,7 +623,7 @@ bool BZSpell::stem( std::string& out, const char* s, int16_t& lang ) const
 }
 bool BZSpell::stem( std::string& out, const char* s ) const
 {
-    int lang = LANG_ENGLISH;
+    int16_t lang = LANG_ENGLISH;
     return stem( out, s, lang );
 }
 

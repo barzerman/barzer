@@ -93,15 +93,10 @@ public:
     LangInfoArray() 
         { new(langInfo)(LangInfo[ LANG_MAX+1 ]); }
     uint32_t incrementLangCounter( int16_t i )
-        { return( i>= LANG_UNKNOWN && i< LANG_MAX ?  return langInfo[(i+1)].counterIncrement() : 0 ); }
+        { return( (i>= LANG_UNKNOWN && i< LANG_MAX) ? langInfo[(i+1)].counterIncrement() : 0 ); }
 
-    int16_t getDominantLanguage() 
-    {
-        for( int i = 0; i< getMaxLang(); ++i ) {
-            
-        }
-    }
-    std::ostream& print() const;
+    int16_t getDominantLanguage();
+    std::ostream& print(std::ostream&) const;
 };
 std::ostream& operator<< ( std::ostream& fp, const LangInfo& );
 

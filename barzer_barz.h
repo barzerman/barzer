@@ -96,7 +96,7 @@ class BarzHints {
         // add above
         BHB_MAX
     };
-    ay::bitflags d_bhb;
+    ay::bitflags<BHB_MAX> d_bhb;
     const StoredUniverse* d_universe;
 public:
 
