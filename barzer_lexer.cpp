@@ -403,7 +403,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 			char dirty [BZSpell::MAX_WORD_LEN];
             // int16_t lang = Lang::getLang (theString, t_len);
 			const size_t step = Lang::isTwoByteLang (lang) ? 2 : 1;
-
+            const size_t theString_numChar = strlen(theString)/step;
 			for (size_t i = step; i < t_len - step; i += step)
 			{
 				std::memcpy (dirty, theString, i);
@@ -438,6 +438,22 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 
 				const char *leftCorr = gp.string_resolve (left);
 				const char *rightCorr = gp.string_resolve (right);
+                size_t leftCorr_numChar, rightCorr_numChar;
+                if( step == 1 ) {
+                    leftCorr_numChar = strlen(leftCorr);
+                    rightCorr_numChar = strlen(rightCorr);
+                } else {
+                    leftCorr_numChar = strlen(leftCorr)/step;
+                    rightCorr_numChar = strlen(rightCorr)/step;
+                }
+                if( abs(leftCorr_numChar + rightCorr_numChar -theString_numChar) > 1 )
+                    continue;
+                if( 
+                    (leftCorr_numChar < 4 && !dtaIdx->getStoredToken(leftCorr)) 
+                    || 
+                    (rightCorr_numChar < 4 && !dtaIdx->getStoredToken(rightCorr)) 
+                ) 
+                    continue;
 
 				CToken newTok = ctok;
 				// newTok.addSpellingCorrection (t, rightCorr);
