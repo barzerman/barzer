@@ -192,7 +192,7 @@ namespace
 			return integer;
 
 		double intDbl = static_cast<double> (integer.getInt());
-		const size_t num = getNumDigits(frac.getInt());
+		const size_t num = frac.getAsciiLen();
 		intDbl += static_cast<double>(frac.getInt()) / decPow(num);
 		return BarzerNumber(intDbl);
 	}
@@ -264,7 +264,8 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 			BarzerNumber res;
 			if (numDec == 2 &&
 					frac.isNan() &&
-					m_mayBeFrac)
+					m_mayBeFrac &&
+					m_tokens[1]->number().getInt())
 				res = makeReal(m_tokens[0]->number(), m_tokens[1]->number());
 			else
 				res = makeReal(joinInts(m_tokens), frac);
@@ -279,6 +280,8 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 			for (size_t i = 1, size = m_allTokens.size(); i < size; ++i)
 			{
 				CToken *curTok = m_allTokens [i];
+				if (i == size - 1 && !curTok->isNumber())
+					break;
 				resTok->qtVec.insert(resTok->qtVec.end(),
 						curTok->qtVec.begin(), curTok->qtVec.end());
 				curTok->clear();
@@ -294,6 +297,7 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 		bool& m_awaiting;
 		bool& m_hadSep;
 		bool& m_isNeg;
+		bool& m_mayBeFrac;
 		BuildNumStruct& m_buildNum;
 		void operator() (const BarzerNumber& frac = BarzerNumber())
 		{
@@ -304,8 +308,9 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 			m_awaiting = false;
 			m_hadSep = false;
 			m_isNeg = false;
+			m_mayBeFrac = false;
 		}
-	} flush = { tokens, allTokens, sep, awaitingFrac, hadSep, isNeg, buildNum };
+	} flush = { tokens, allTokens, sep, awaitingFrac, hadSep, isNeg, mayBeFrac, buildNum };
 
 	for (size_t i = 0; i < cvec.size(); ++i)
 	{
@@ -401,6 +406,7 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 		}
 		if (strchr(fracSeps, tSep))
 		{
+			mayBeFrac = true;
 			allTokens.push_back(&t);
 			awaitingFrac = true;
 			sep = tSep;
