@@ -276,13 +276,24 @@ public:
 
 
 	size_t getFullNumTokens() const
+    {
+        size_t n = 0;
+		for( CTWPVec::const_iterator i = ctokOrigVec.begin(); i!= ctokOrigVec.end(); ++i ) {
+            if( !i->first.isBlank() && !i->first.isSpace() ) {
+                ++n;
+            }
+        }
+        return n;
+    }
+	size_t getFullNumTokens_old() const
 	{
 		size_t n = 1;
 		bool wasBlank = false;
 		for( CTWPVec::const_iterator i = ctokOrigVec.begin(); i!= ctokOrigVec.end(); ++i ) {
 			if( i->first.isBlank() ) {
 				if( !wasBlank ) {
-					++n;
+                    if( !i->first.isSpace() ) 
+					   ++n;
 				}
 			} else {
 				wasBlank = false;
