@@ -579,6 +579,8 @@ uint32_t BZSpell::get2ByteLangStemCorrection( int lang, const char* str, bool do
             uint32_t strId = 0xffffffff;
             if( isUsersWord(strId,norm.c_str()) )
                 return strId;
+            if( norm.length() + 2 < strlen(str) )
+                return 0xffffffff;
             /// trying to permute correct stemmed word - stem was successful but result of the stem
             /// isnt a valid word
             strId = purePermuteCorrect( norm.c_str(), norm.length() );
