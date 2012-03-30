@@ -690,7 +690,6 @@ struct BELFunctionStorage_holder {
             }
             uint32_t mid = gpools.dateLookup.getMonthID(m);
             //check if mid exists
-            /// MUST be synch with generic entities list (!)
             const StoredEntityUniqId euid( mid, 1, 3);//put constants somewhere! c1;s3 == months
             setResult(result, euid);
             return true;
@@ -1959,10 +1958,17 @@ struct BELFunctionStorage_holder {
 			return false;
 		}
 		try {
-			const BarzerLiteral &bl = getAtomic<BarzerLiteral>(rvec[0]);
-			const uint8_t mnum = gpools.dateLookup.lookupMonth(bl.getId());
+                        uint8_t mnum = 0;                       
+			const BarzerLiteral* bl = getAtomicPtr<BarzerLiteral>(rvec[0]);
+                        const BarzerString* bs = getAtomicPtr<BarzerString>(rvec[0]);
+                        if (bl) mnum = gpools.dateLookup.lookupMonth(bl->getId());
+                        else if (bs) mnum = gpools.dateLookup.lookupMonth(bs->getStr().c_str());
+                        else {  
+                                FERROR("Wrong argument type");
+                                return false;
+                        }                       
                         if (!mnum) {
-                              FERROR(boost::format("Unknow month name `%1%`  given") % gpools.string_resolve(bl.getId()));
+                              FERROR("Unknown month name given") ;//% gpools.string_resolve());
                               return false;
                         }
 			BarzerNumber bn(mnum);
@@ -2315,8 +2321,8 @@ bool BELFunctionStorage::call(BarzelEvalContext& ctxt, const uint32_t fid, Barze
 	if (frec == holder->funmap.end()) {
 		std::stringstream strstr;
 		const char *str = u.getGlobalPools().internalString_resolve(fid);
-        strstr << "No such function: " << (str ? str : "<unknown>") ;//<< " (id: " << fid << ")";
-        pushFuncError(ctxt, "", strstr.str().c_str() );
+                strstr << "No such function: " << (str ? str : "<unknown>") ;//<< " (id: " << fid << ")";
+                pushFuncError(ctxt, "", strstr.str().c_str() );
 		return false;
 	}
 	return frec->second(holder, er, ervec, u, ctxt);
