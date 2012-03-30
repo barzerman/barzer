@@ -683,13 +683,14 @@ struct BELFunctionStorage_holder {
                     const BarzerLiteral &bl = getAtomic<BarzerLiteral>(rvec[0]);
                     m = gpools.dateLookup.lookupMonth(bl.getId());
                     if (!m) {
-                        FERROR(boost::format("Unknow month %1%  given") % gpools.string_resolve(bl.getId()));
+                        FERROR(boost::format("Unknown month %1%  given") % gpools.string_resolve(bl.getId()));
                         return false;
                     }
                 }
             }
             uint32_t mid = gpools.dateLookup.getMonthID(m);
             //check if mid exists
+            /// MUST be synch with generic entities list (!)
             const StoredEntityUniqId euid( mid, 1, 3);//put constants somewhere! c1;s3 == months
             setResult(result, euid);
             return true;
