@@ -9,7 +9,20 @@ namespace barzer {
 //// BarzHints 
 void  BarzHints::initFromUniverse( const StoredUniverse* u ) 
 {
-    d_universe = u;
+	d_universe = u;
+
+	clear();
+	if (u)
+	{
+		switch (u->getLangInfo().getDominantLanguage())
+		{
+		case LANG_RUSSIAN:
+			setHint(BHB_DECIMAL_COMMA);
+			break;
+		default:
+			break;
+		}
+	}
 }
 
 void BarzHints::setHint(HintsFlag flag, bool val)
@@ -47,6 +60,12 @@ bool BarzelTrace::detectLoop( ) const
             return false;
     }
     return false;
+}
+
+void Barz::setUniverse (const StoredUniverse *u)
+{
+	if (u)
+		m_hints = u->getBarzHints();
 }
 
 void Barz::syncQuestionFromTokens()
@@ -111,7 +130,7 @@ void Barz::clear()
 	ctVec.clear();
 	ttVec.clear();
 
-    d_hints.clear();
+    m_hints.clear();
 	question.clear();
 }
 

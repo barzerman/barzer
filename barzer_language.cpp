@@ -131,17 +131,27 @@ std::ostream& operator<< ( std::ostream& fp, const LangInfo& li )
 	return fp << li.counter << " times";
 }
 
-int16_t LangInfoArray::getDominantLanguage()
+int16_t LangInfoArray::getDominantLanguage() const
 {
     uint32_t maxCnt = 0;
-    int16_t  bestLang = LANG_UNKNOWN;
-    for( size_t i = 0; i< sizeof(langInfo)/(sizeof(langInfo[0])); ++i ) {
-        if( langInfo[i].getCounter() > maxCnt )
+	uint32_t totalCnt = 0;
+    int16_t  bestLang = LANG_ENGLISH;
+    for( size_t i = 0; i< sizeof(langInfo)/(sizeof(langInfo[0])); ++i )
+	{
+		const uint32_t cnt = langInfo[i].getCounter();
+		totalCnt += cnt;
+        if( cnt > maxCnt && i - 1 != LANG_ENGLISH)
 		{
-            maxCnt = langInfo[i].getCounter();
+            maxCnt = cnt;
             bestLang = (i-1); /// lang+1 is always i - see incrementLangCounter
         }
     }
+    const uint32_t threshold = 5;
+    if (totalCnt && 100 * maxCnt / totalCnt < threshold)
+	{
+		AYLOG(WARNING) << "detected garbage language, falling back to English";
+		bestLang = LANG_ENGLISH;
+	}
     return bestLang;
 }
 } // barzer namespace 

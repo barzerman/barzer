@@ -44,7 +44,9 @@ BarzerShellContext::BarzerShellContext(StoredUniverse& u, BELTrie& trie) :
 		d_trie(&trie),
 		parser( u ),
         d_grammarId(0)
-	{}
+{
+	barz.setUniverse(&u);
+}
 
 BarzerShellContext* BarzerShell::getBarzerContext()
 {

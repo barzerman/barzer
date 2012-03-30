@@ -277,8 +277,7 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 	const char groupSeps[] = " .,'";
 
 	char fracSeps[4] = { 0 };
-	bool isCommaAllowed = true;
-	if (isCommaAllowed)
+	if (barz.getHints().testHint(barzer::BarzHints::BHB_DECIMAL_COMMA))
 		strcpy(fracSeps, ".,");
 	else
 		strcpy(fracSeps, ".");

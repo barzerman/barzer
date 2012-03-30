@@ -120,8 +120,14 @@ static const ReqTagFunc* getCmdFunc(std::string &name) {
 const StoredUniverse*  BarzerRequestParser::setUniverseId( int id )
 {
     userId = id;
-    d_universe = gpools.getUniverse(id);
+	setUniverse(gpools.getUniverse(id));
     return d_universe;
+}
+
+void BarzerRequestParser::setUniverse (const StoredUniverse* u)
+{
+	d_universe = u;
+	barz.setUniverse(d_universe);
 }
 
 void BarzerRequestParser::setBody(const std::string &s) {
@@ -372,8 +378,7 @@ void BarzerRequestParser::tag_autoc(RequestTag &tag)
         switch( a->first[0] ) {
         case 'u': 
             if( !d_universe ) {
-                userId = atoi(a->second.c_str()); 
-                d_universe = gp.getUniverse(userId);
+                setUniverseId(atoi(a->second.c_str()));
             }
             if( !d_universe ) {
                 os << "<error>invalid user id " << userId << "</error>\n";
@@ -457,11 +462,7 @@ void BarzerRequestParser::tag_query(RequestTag &tag) {
     AttrList::iterator it;
     if( !d_universe ) {
 	    it = attrs.find("u");
-	    if( it != attrs.end() ) {
-		    userId = atoi(it->second.c_str());
-	    } else
-            userId = 0;
-        d_universe = gpools.getUniverse(userId);
+		setUniverseId(it != attrs.end() ? atoi(it->second.c_str()) : 0);
     }
 
 	it = attrs.find("as"); // aggressive stemming 

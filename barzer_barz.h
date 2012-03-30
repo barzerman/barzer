@@ -139,6 +139,8 @@ class Barz {
 	/// called from tokenize, ensures that question has 0-terminated
 	/// tokens and that ttVec tokens point into it
 	void syncQuestionFromTokens();
+
+	BarzHints m_hints;
 public:
 	enum { 
         MAX_TRACE_LEN = 256, 
@@ -147,7 +149,10 @@ public:
 
 	BarzelTrace barzelTrace;
     BarzTopics  topicInfo;
-    BarzHints   d_hints;
+
+	void setUniverse(const StoredUniverse*);
+
+	const BarzHints& getHints() const { return m_hints; }
 
     bool lastFrameLoop() const { return barzelTrace.lastFrameLoop(); }
     void pushError( const char* err ) { barzelTrace.pushError(err); }

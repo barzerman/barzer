@@ -189,7 +189,9 @@ StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	topicTrieCluster(g.globalTriePool,*this),
 	bzSpell(new BZSpell(*this)),
     d_ghettoDb(new Ghettodb())
-{}
+{
+	m_hints.initFromUniverse(this);
+}
 
 StoredUniverse::~StoredUniverse()
 {

@@ -95,7 +95,7 @@ public:
     uint32_t incrementLangCounter( int16_t i )
         { return( (i > LANG_UNKNOWN && i < LANG_MAX) ? langInfo[(i+1)].counterIncrement() : 0 ); }
 
-    int16_t getDominantLanguage();
+    int16_t getDominantLanguage() const;
     std::ostream& print(std::ostream&) const;
 };
 std::ostream& operator<< ( std::ostream& fp, const LangInfo& );

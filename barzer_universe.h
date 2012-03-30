@@ -17,6 +17,7 @@
 #include <barzer_topics.h>
 #include <barzer_locale.h>
 #include <barzer_language.h>
+#include "barzer_barz.h"
 
 
 namespace ay { struct CommandLineArgs; }
@@ -261,6 +262,8 @@ private:
 	BZSpell*             bzSpell;
     Ghettodb*            d_ghettoDb;
 
+	BarzHints m_hints;
+
 	typedef boost::unordered_map< uint32_t, bool > StringIdSet;
 
 	///
@@ -366,6 +369,9 @@ public:
 
 	const DtaIndex& getDtaIdx() const { return gp.dtaIdx; }
 		  DtaIndex& getDtaIdx() 	  { return gp.dtaIdx; }
+
+	const BarzHints& getBarzHints() const { return m_hints; }
+	BarzHints& getBarzHints() { return m_hints; }
 
 	size_t getEclassEntCount( const StoredEntityClass& eclass ) const { return getDtaIdx().getEclassEntCount( eclass ); }
 	BELTrie& getSomeTrie() { return *(trieCluster.getFirstTrie()); }
