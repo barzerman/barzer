@@ -205,6 +205,8 @@ public:
 
 		{
 			if( bead.isStringLiteralOrString() ) {
+                return bead.getStemStringId();
+                /*
 				if( stringNum++ ) return 0xffffffff;
 
 				const CTWPVec& ctvec = bead.getCTokens();
@@ -218,6 +220,7 @@ public:
                             id = i->first.getStemTokStringId();
                     }
 				}
+                */
 			} else if( !bead.isBlankLiteral() )
 				return 0xffffffff;
 		}
@@ -1256,7 +1259,7 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
             theBead.setBeadUnmatchability( unmatchability );
 		chain.collapseRangeLeft( range );
 	}
-
+    chain.adjustStemIds(universe,d_trie);    
 	return 0;
 }
 int BarzelMatcher::matchAndRewrite( Barz& barz )

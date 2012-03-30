@@ -348,9 +348,10 @@ struct QuestionParm {
 /// among the permanently stored but rather something constructed by barzel
 class BarzerString {
 	std::string str;
+    uint32_t d_stemStringId;
 public:
-	BarzerString() {}
-	BarzerString(const char* s) : str(s) {}
+	BarzerString() : d_stemStringId(0xffffffff){}
+	BarzerString(const char* s) : str(s), d_stemStringId(0xffffffff) {}
 
 	void setFromTTokens( const TTWPVec& v );
 
@@ -361,6 +362,8 @@ public:
 
 	std::ostream& print( std::ostream& fp ) const
 		{ return ( fp << "\"" <<str<< "\"" ); }
+    void setStemStringId( uint32_t i ) { d_stemStringId = i; }
+    uint32_t getStemStringId() const { return d_stemStringId; }
 };
 inline std::ostream& operator <<( std::ostream& fp, const BarzerString& x )
 	{ return( x.print(fp) ); }

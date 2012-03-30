@@ -55,11 +55,14 @@ int QSemanticParser::semanticize_trieList( const UniverseTrieCluster& trieCluste
 	const TheGrammarList& trieList = trieCluster.getTrieList();
     size_t grammarSeqNo = 0;
     std::stringstream skipsStream;
+    size_t numRemainingStems = 1;
 	for( TheGrammarList::const_iterator t = trieList.begin(); t != trieList.end(); ++t ) {
         // checking whether this grammar applies 
         if( ! t->grammarInfo() || t->grammarInfo()->goodToGo(barz.topicInfo) ) {
             // this handles the terminators 
             barz.getBeads().clearUnmatchable();        
+            if( numRemainingStems )
+                numRemainingStems = barz.getBeads().adjustStemIds(universe,t->trie());
     
 		    BarzelMatcher barzelMatcher( universe, t->trie() );
             barz.barzelTrace.setGrammarSeqNo( grammarSeqNo );

@@ -12,7 +12,8 @@
 /// Barzer gets a chain of CToken-s (see barzer_parse_types.h) converts it into 
 /// the BarzelChain (a doubly linked list of BarzelBead-s)
 namespace barzer {
-
+class BELTrie;
+class StoredUniverse;
 struct BarzelBeadBlank {
 	int dummy;
 	BarzelBeadBlank() : dummy(0) {}
@@ -56,6 +57,7 @@ struct BarzelBeadAtomic {
 	BarzelBeadAtomic() {}
 	BarzelBeadAtomic(const BarzelBeadAtomic_var &d) : dta(d) {}
 
+	const BarzerString* getString() const { return boost::get<BarzerString>( &dta ); }
 	const BarzerLiteral* getLiteral() const { return boost::get<BarzerLiteral>( &dta ); }
 
 	BarzerEntity* getEntity() { return boost::get<BarzerEntity>( &dta ); }
@@ -179,23 +181,22 @@ class BarzelBead {
 	/// types 
 	BarzelBeadData dta;
     int d_unmatchable; 
+    uint32_t d_stemStringId;
 public:
+    uint32_t    getStemStringId() const { return d_stemStringId; }
+    void        setStemStringId( uint32_t i ) { d_stemStringId= i; }
+
     int getBeadUnmatchability() const { return d_unmatchable; } 
     void setBeadUnmatchability(int bu=0) { d_unmatchable= bu; } 
 
-	BarzelBead(const BarzelBeadData& d ): dta(d), d_unmatchable(0) {}
-	BarzelBead() : d_unmatchable(0){}
+
 	const BarzelBeadData& getBeadData() const { return dta; }
 	void init(const CTWPVec::value_type&) ;
     void initFromCTok( const CToken& ct );
-	BarzelBead(const CTWPVec::value_type& ct) : d_unmatchable(0)
-		{ init(ct); }
 	/// implement:
 	void absorbBead( const BarzelBead& bead )
 	{ ctokOrigVec.insert( ctokOrigVec.end(), bead.ctokOrigVec.begin(), bead.ctokOrigVec.end() ); }
     
-    BarzelBead( const BarzerEntity& e ) : dta(BarzelBeadAtomic(e)), d_unmatchable(0) {}
-    BarzelBead( const BarzerEntityList& e ) : dta(BarzelBeadAtomic(e)), d_unmatchable(0) {}
 
 	template <typename T> void become( const T& t ) { dta = t; }
 
@@ -217,6 +218,20 @@ public:
 	bool isStringLiteralOrString() const { 
 		const BarzelBeadAtomic* atomic = getAtomic();
         return( atomic && (atomic->isStringLiteral() || atomic->isString()) );
+    }
+    const BarzerLiteral* getLiteral() const {
+        const BarzelBeadAtomic* atomic = getAtomic();
+        if( atomic ) {
+		    return atomic->getLiteral();
+        } else 
+            return 0;
+    }
+    const BarzerString* getString() const {
+        const BarzelBeadAtomic* atomic = getAtomic();
+        if( atomic ) {
+		    return atomic->getString();
+        } else 
+            return 0;
     }
 	bool isStringLiteral() const { 
 		const BarzelBeadAtomic* atomic = getAtomic();
@@ -261,13 +276,24 @@ public:
 
 
 	size_t getFullNumTokens() const
+    {
+        size_t n = 0;
+		for( CTWPVec::const_iterator i = ctokOrigVec.begin(); i!= ctokOrigVec.end(); ++i ) {
+            if( !i->first.isBlank() && !i->first.isSpace() ) {
+                ++n;
+            }
+        }
+        return n;
+    }
+	size_t getFullNumTokens_old() const
 	{
 		size_t n = 1;
 		bool wasBlank = false;
 		for( CTWPVec::const_iterator i = ctokOrigVec.begin(); i!= ctokOrigVec.end(); ++i ) {
 			if( i->first.isBlank() ) {
 				if( !wasBlank ) {
-					++n;
+                    if( !i->first.isSpace() ) 
+					   ++n;
 				}
 			} else {
 				wasBlank = false;
@@ -295,6 +321,12 @@ public:
 		{ return ctokOrigVec; }
 	CTWPVec& getCTokens() 
 		{ return ctokOrigVec; }
+
+	BarzelBead(const BarzelBeadData& d ): dta(d), d_unmatchable(0) {}
+	BarzelBead() : d_unmatchable(0){}
+    BarzelBead( const BarzerEntity& e ) : dta(BarzelBeadAtomic(e)), d_unmatchable(0) {}
+    BarzelBead( const BarzerEntityList& e ) : dta(BarzelBeadAtomic(e)), d_unmatchable(0) {}
+	BarzelBead(const CTWPVec::value_type& ct) : d_unmatchable(0) { init(ct); }
 }; 
 
 typedef std::list< BarzelBead > 	BeadList;
@@ -376,6 +408,9 @@ struct BarzelBeadChain {
         lst.push_back( BarzelBead(T()) );
         return lst.back().get<T>();
     }
+
+    /// returns the number of remaining stems
+    size_t adjustStemIds( const StoredUniverse& u, const BELTrie& trie );
 };
 
 
