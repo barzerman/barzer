@@ -186,8 +186,14 @@ size_t BarzelBeadChain::adjustStemIds( const StoredUniverse& u, const BELTrie& t
                 if( ltrl->getId() != 0xffffffff ) {
                     uint32_t stemStringId = i->getStemStringId();
                     const strIds_set* stridSet = trie.getStemSrcs( stemStringId );
-                    if( !stridSet ) 
-                        stridSet = u.getGlobalPools().getStemSrcs( stemStringId );
+                    if( stridSet ) {
+                        uint32_t ltrlId = ltrl->getId()  ;
+                        if( stridSet->find(ltrlId) != stridSet->end() ) {
+                            ++numRemainingStems;
+                            continue;
+                        }
+                    }
+                    stridSet = u.getGlobalPools().getStemSrcs( stemStringId );
                     if( stridSet ) {
                         uint32_t ltrlId = ltrl->getId()  ;
                         if( stridSet->find(ltrlId) != stridSet->end() ) {
