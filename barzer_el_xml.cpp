@@ -826,7 +826,11 @@ void BELParserXML::taghandle_ENTITY( const char_cp * attr, size_t attr_sz , bool
 			break;
 		case 'i': // 
 		case 't': // id string - t="ABCD011"
-			pat.setTokenId( internString(v,true).getStringId() );
+            {
+            uint32_t idStrId = reader->getGlobalPools().internString_internal(v) ;
+			pat.setTokenId(idStrId);
+            }
+			// pat.setTokenId( internString(v,true).getStringId() );
 			break;
         case 'x': // match mode 
             pat.setMatchModeFromAttribute(v);    
