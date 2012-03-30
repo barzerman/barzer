@@ -1144,6 +1144,25 @@ static int bshf_env( BarzerShell* shell, char_cp cmd, std::istream& in )
     return 0;
 }
 
+static int bshf_entlist( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+        StoredEntityPool entpool = shell->getBarzerContext()->obtainDtaIdx()->entPool;
+        std::ostream& out = shell->getOutStream() ;
+        GlobalPools& gp = shell->getBarzerContext()->getGLobalPools();
+        
+        size_t amount = entpool.getNumberOfEntities();
+        out << "Number of entities: " << amount << std::endl;
+        const StoredEntity* e = 0;
+        for (size_t i = 0; i < amount; i++)
+        {
+                e = entpool.getEntByIdSafe(i);  
+                if (e->euid.getClass().ec < 100)
+                        out << e->euid.getClass() << "\t" << gp.internalString_resolve(e->euid.getTokId()) << std::endl;//<<"/t"<<  gp.string_resolve(e->euid.getTokId())<<std::endl;
+        }
+        return 0;
+}
+
+
 static int bshf_user( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	uint32_t uid = 0;
@@ -1244,7 +1263,8 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_greed, "greed", "non rewriting full match" ),
 	CmdData( (ay::Shell_PROCF)bshf_querytest, "querytest", "peforms given number of queries" ),
 	CmdData( (ay::Shell_PROCF)bshf_userstats, "userstats", "trie stats for a given user" ),
-	CmdData( (ay::Shell_PROCF)bshf_user, "user", "sets current user by user id" )
+	CmdData( (ay::Shell_PROCF)bshf_user, "user", "sets current user by user id" ),
+	CmdData( (ay::Shell_PROCF)bshf_entlist, "entlist", "prints all known entities")
 };
 
 ay::ShellContext* BarzerShell::mkContext() {
