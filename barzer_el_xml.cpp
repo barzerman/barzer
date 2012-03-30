@@ -824,7 +824,8 @@ void BELParserXML::taghandle_ENTITY( const char_cp * attr, size_t attr_sz , bool
 		case 's': // subclass - s="1"
 			pat.setEntitySubclass( atoi(v) ); 
 			break;
-		case 't': // id token - t="ABCD011"
+		case 'i': // 
+		case 't': // id string - t="ABCD011"
 			pat.setTokenId( internString(v,true).getStringId() );
 			break;
         case 'x': // match mode 

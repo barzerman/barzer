@@ -143,7 +143,14 @@ class GlobalPools {
 	GlobalPools& operator=(GlobalPools&); // {}
 	typedef boost::unordered_set< uint32_t > DictionaryMap;
 	DictionaryMap d_dictionary;
+    stem_to_srcs_map d_stemSrcs;
 public:
+    void addStemSrc ( uint32_t stemId, uint32_t srcId ) { d_stemSrcs[stemId].insert(srcId); }
+
+	const strIds_set* getStemSrcs ( uint32_t stemId ) const { 
+        stem_to_srcs_map::const_iterator i  = d_stemSrcs.find(stemId);
+        return ( i == d_stemSrcs.end() ? 0 : &(i->second) );
+    }
 	void addWordToDictionary( uint32_t w ) { d_dictionary.insert(w); }
 	bool isWordInDictionary( uint32_t w ) const { return (d_dictionary.find(w) != d_dictionary.end()); }
 	size_t readDictionaryFile( const char* name );

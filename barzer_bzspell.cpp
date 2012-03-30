@@ -579,6 +579,32 @@ uint32_t BZSpell::get2ByteLangStemCorrection( int lang, const char* str, bool do
             uint32_t strId = 0xffffffff;
             if( isUsersWord(strId,norm.c_str()) )
                 return strId;
+
+            const strIds_set*  stridSet = d_universe.getGlobalPools().getStemSrcs(strId);
+            if( stridSet ) {
+                const BZSWordInfo* bestWTI = 0;
+                uint32_t bestStringId = 0xffffffff;
+                for( strIds_set::const_iterator i = stridSet->begin(); i!= stridSet->end(); ++i ) {
+                    uint32_t protoStrId = *i;
+                    if( isUsersWordById(protoStrId) ) {
+                        const BZSWordInfo* wip = getWordInfo(protoStrId);
+                        
+                        if( bestStringId == 0xffffffff ) {
+                            bestStringId = protoStrId;
+                        }
+                        if( wip ) {
+                            if( !bestWTI || *bestWTI< *wip ) {
+                                bestWTI= wip;
+                                bestStringId = protoStrId;
+                                continue;
+                            }
+                        }
+                    }
+                }
+                if( bestStringId != 0xffffffff )
+                    return bestStringId;
+            }
+
             if( norm.length() + 2 < strlen(str) )
                 return 0xffffffff;
             /// trying to permute correct stemmed word - stem was successful but result of the stem

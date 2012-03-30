@@ -1241,6 +1241,8 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_stexpand, "stexpand", "expand and print all statements in a file" ),
 	CmdData( (ay::Shell_PROCF)bshf_strid, "strid", "resolve string id (usage strid id)" ),
 	CmdData( (ay::Shell_PROCF)bshf_process, "process", "process an input string" ),
+	CmdData( (ay::Shell_PROCF)bshf_process, "proc", "process an input string" ),
+	CmdData( (ay::Shell_PROCF)bshf_process, "проц", "process an input string" ),
 	CmdData( (ay::Shell_PROCF)bshf_greed, "greed", "non rewriting full match" ),
 	CmdData( (ay::Shell_PROCF)bshf_querytest, "querytest", "peforms given number of queries" ),
 	CmdData( (ay::Shell_PROCF)bshf_userstats, "userstats", "trie stats for a given user" ),

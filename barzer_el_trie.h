@@ -493,7 +493,7 @@ public:
 	// must be called from BELParser::internString
 	void addWordInfo( uint32_t strId, bool stemmed ) { d_wordInfoMap[strId].incrementCount(stemmed); }
 
-	void addStemSrc ( uint32_t stemId, uint32_t srcId ) { d_stemSrcs [stemId].insert(srcId); }
+	void addStemSrc ( uint32_t stemId, uint32_t srcId );
 	const strIds_set* getStemSrcs ( uint32_t stemId ) const { 
         stem_to_srcs_map::const_iterator i  = d_stemSrcs.find(stemId);
         return ( i == d_stemSrcs.end() ? 0 : &(i->second) );
