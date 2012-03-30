@@ -674,21 +674,25 @@ struct BELFunctionStorage_holder {
     STFUN(mkMonthEnt)
     {
         SETFUNCNAME(mkMonthEnt);
-        uint8_t m(BarzerDate::thisMonth);
+        uint mnum(BarzerDate::thisMonth);
         try {
-            if (rvec.size()) {
-                const BarzerNumber* bn = getAtomicPtr<BarzerNumber>(rvec[0]);
-                if (bn) m = bn->getInt();
-                else {
-                    const BarzerLiteral &bl = getAtomic<BarzerLiteral>(rvec[0]);
-                    m = gpools.dateLookup.lookupMonth(bl.getId());
-                    if (!m) {
-                        FERROR(boost::format("Unknown month %1%  given") % gpools.string_resolve(bl.getId()));
-                        return false;
-                    }
-                }
-            }
-            uint32_t mid = gpools.dateLookup.getMonthID(m);
+                if (rvec.size()) {                      
+                        const BarzerLiteral* bl = getAtomicPtr<BarzerLiteral>(rvec[0]);
+                        const BarzerString* bs = getAtomicPtr<BarzerString>(rvec[0]);
+                        const BarzerNumber* n = getAtomicPtr<BarzerNumber>(rvec[0]);
+                        if (bl) mnum = gpools.dateLookup.lookupMonth(bl->getId());
+                        else if (bs) mnum = gpools.dateLookup.lookupMonth(bs->getStr().c_str());
+                        else if (n) mnum = ((n->isInt() && n->getInt() > 0 && n->getInt() < 13 )? n->getInt(): 0 );
+                        else {  
+                                FERROR("Wrong argument type");
+                                return false;
+                        }                       
+                        if (!mnum) {
+                                FERROR("Unknown month given");
+                                return false;
+                        }                      
+                }    
+            uint32_t mid = gpools.dateLookup.getMonthID(mnum);
             //check if mid exists
             const StoredEntityUniqId euid( mid, 1, 3);//put constants somewhere! c1;s3 == months
             setResult(result, euid);
@@ -1958,17 +1962,19 @@ struct BELFunctionStorage_holder {
 			return false;
 		}
 		try {
-                        uint8_t mnum = 0;                       
+                        uint mnum = 0;                       
 			const BarzerLiteral* bl = getAtomicPtr<BarzerLiteral>(rvec[0]);
                         const BarzerString* bs = getAtomicPtr<BarzerString>(rvec[0]);
+                        const BarzerNumber* n = getAtomicPtr<BarzerNumber>(rvec[0]);
                         if (bl) mnum = gpools.dateLookup.lookupMonth(bl->getId());
                         else if (bs) mnum = gpools.dateLookup.lookupMonth(bs->getStr().c_str());
+                        else if (n) mnum = ((n->isInt() && n->getInt() > 0 && n->getInt() < 13 )? n->getInt(): 0 );
                         else {  
                                 FERROR("Wrong argument type");
                                 return false;
                         }                       
                         if (!mnum) {
-                              FERROR("Unknown month name given") ;//% gpools.string_resolve());
+                              FERROR("Unknown month name given");
                               return false;
                         }
 			BarzerNumber bn(mnum);
