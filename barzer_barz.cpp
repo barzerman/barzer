@@ -64,8 +64,12 @@ bool BarzelTrace::detectLoop( ) const
 
 void Barz::setUniverse (const StoredUniverse *u)
 {
-	if (u)
-		m_hints = u->getBarzHints();
+	m_universe = u;
+}
+
+BarzHints Barz::getHints() const
+{
+	return m_universe ? m_universe->getBarzHints() : BarzHints();
 }
 
 void Barz::syncQuestionFromTokens()
@@ -130,7 +134,6 @@ void Barz::clear()
 	ctVec.clear();
 	ttVec.clear();
 
-    m_hints.clear();
 	question.clear();
 }
 

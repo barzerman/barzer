@@ -152,6 +152,7 @@ int16_t LangInfoArray::getDominantLanguage() const
 		AYLOG(WARNING) << "detected garbage language, falling back to English";
 		bestLang = LANG_ENGLISH;
 	}
+	AYLOG(DEBUG) << "detected dominant language: " << bestLang;
     return bestLang;
 }
 } // barzer namespace 

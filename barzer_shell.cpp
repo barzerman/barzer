@@ -1273,6 +1273,7 @@ int BarzerShell::setUser( uint32_t uid, bool forceCreate )
 	}
 	BarzerShellContext* bctxt = getBarzerContext();
 	bctxt->setUniverse(u);
+	bctxt->barz.setUniverse(u);
 	d_uid = uid;
 	return 0;
 }

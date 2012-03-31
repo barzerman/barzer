@@ -140,7 +140,7 @@ class Barz {
 	/// tokens and that ttVec tokens point into it
 	void syncQuestionFromTokens();
 
-	BarzHints m_hints;
+	const StoredUniverse *m_universe;
 public:
 	enum { 
         MAX_TRACE_LEN = 256, 
@@ -152,7 +152,7 @@ public:
 
 	void setUniverse(const StoredUniverse*);
 
-	const BarzHints& getHints() const { return m_hints; }
+	BarzHints getHints() const;
 
     bool lastFrameLoop() const { return barzelTrace.lastFrameLoop(); }
     void pushError( const char* err ) { barzelTrace.pushError(err); }
