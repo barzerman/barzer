@@ -105,6 +105,11 @@ private:
 	/// generates edit distance variants 
 	size_t produceWordVariants( uint32_t strId, int lang=LANG_ENGLISH ); 
 public:
+    const BZSWordInfo* getWordInfo( uint32_t id ) const
+    {
+        strid_wordinfo_hmap::const_iterator i = d_wordinfoMap.find( id );
+        return ( i == d_wordinfoMap.end() ? 0 : &(i->second) );
+    }
 	bool isAscii() const { return ( d_charSize== 1 ); }
 	void addWordToLinkedWordsMap(uint32_t linkTo, uint32_t strId )
 	{

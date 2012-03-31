@@ -664,8 +664,10 @@ void BELParserXML::taghandle_ERC( const char_cp * attr, size_t attr_sz , bool cl
 		case 's': // entity subclass - s="1"
 			erc.getEntity().setSubclass( atoi(v) ); 
 			break;
+		case 'i': // entity id token - t="ABCD011"
 		case 't': // entity id token - t="ABCD011"
-			erc.getEntity().setTokenId( internString(v,true).getStringId() );
+			// erc.getEntity().setTokenId( internString(v,true).getStringId() );
+			erc.getEntity().setTokenId( reader->getGlobalPools().internString_internal(v) );
 			break;
 		case 'u': // unit fields
 			switch(n[1]) {
@@ -673,8 +675,10 @@ void BELParserXML::taghandle_ERC( const char_cp * attr, size_t attr_sz , bool cl
 				erc.getUnitEntity().setClass( atoi(v) ); break;
 			case 's': // unit entity subclass - us="1"
 				erc.getUnitEntity().setSubclass( atoi(v) ); break;
+			case 'i': // unit entity id token - ut="ABCD011"
 			case 't': // unit entity id token - ut="ABCD011"
-				erc.getUnitEntity().setTokenId( internString(v,true).getStringId() ); break;
+				// erc.getUnitEntity().setTokenId( internString(v,true).getStringId() ); break;
+				erc.getUnitEntity().setTokenId( reader->getGlobalPools().internString_internal(v) );
 			}
 			break;
 		case 'r': // range type setting 
@@ -824,8 +828,13 @@ void BELParserXML::taghandle_ENTITY( const char_cp * attr, size_t attr_sz , bool
 		case 's': // subclass - s="1"
 			pat.setEntitySubclass( atoi(v) ); 
 			break;
-		case 't': // id token - t="ABCD011"
-			pat.setTokenId( internString(v,true).getStringId() );
+		case 'i': // 
+		case 't': // id string - t="ABCD011"
+            {
+            uint32_t idStrId = reader->getGlobalPools().internString_internal(v) ;
+			pat.setTokenId(idStrId);
+            }
+			// pat.setTokenId( internString(v,true).getStringId() );
 			break;
         case 'x': // match mode 
             pat.setMatchModeFromAttribute(v);    

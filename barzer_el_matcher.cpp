@@ -473,9 +473,12 @@ public:
 				const strIds_set* stemSet = d_trie.getStemSrcs(stemId);
                 if( stemSet ) {
 				    for (strIds_set::const_iterator i = stemSet->begin(), set_end= stemSet->end(); i != set_end; ++i) {
-					    stemmedLiteral.setId(*i);
-					    if( doFirmMatch_literal( fcmap, stemmedLiteral, allowBlanks ) ) {
-                            if( !rc ) rc = true;
+                        if( *i != dta.getId() ) {
+                            // const char* shit = d_btmi.universe.getGlobalPools().decodeStringById( *i );
+					        stemmedLiteral.setId(*i);
+					        if( doFirmMatch_literal( fcmap, stemmedLiteral, allowBlanks ) ) {
+                                if( !rc ) rc = true;
+                            }
                         }
 				    }
                 }

@@ -1,5 +1,6 @@
 #include <barzer_el_chain.h>
 #include <barzer_el_trie.h>
+#include <barzer_universe.h>
 
 namespace barzer {
 
@@ -183,7 +184,16 @@ size_t BarzelBeadChain::adjustStemIds( const StoredUniverse& u, const BELTrie& t
             const BarzerLiteral* ltrl = i->getLiteral();
             if( ltrl ) {
                 if( ltrl->getId() != 0xffffffff ) {
-                    const strIds_set* stridSet = trie.getStemSrcs( i->getStemStringId() );
+                    uint32_t stemStringId = i->getStemStringId();
+                    const strIds_set* stridSet = trie.getStemSrcs( stemStringId );
+                    if( stridSet ) {
+                        uint32_t ltrlId = ltrl->getId()  ;
+                        if( stridSet->find(ltrlId) != stridSet->end() ) {
+                            ++numRemainingStems;
+                            continue;
+                        }
+                    }
+                    stridSet = u.getGlobalPools().getStemSrcs( stemStringId );
                     if( stridSet ) {
                         uint32_t ltrlId = ltrl->getId()  ;
                         if( stridSet->find(ltrlId) != stridSet->end() ) {

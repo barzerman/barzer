@@ -25,7 +25,7 @@ bool Lang::convertTwoByteToLower( char* s, size_t s_len, int lang )
                 hasUpperCase = true;
                 ss[0] = lc[0];
                 ss[1] = lc[1];
-            } else if( b1 == 0x81 ) {
+            } else if( (uint8_t)(ss[0]) == 0xd0 && b1 == 0x81 ) {
                 ss[0] = 0xd1;
                 ss[1] = 0x91;
             }
