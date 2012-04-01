@@ -773,7 +773,6 @@ void BTMIterator::matchBeadChain( const BeadRange& rng, const BarzelTrieNode* tr
 
 	if( !findMatchingChildren( mtChild, rng, trieNode ) )
 		return; // no matching children found
-
 	const BarzelTrieNode* tn = 0;
 	BeadList::iterator nextBead = rng.second;
 
@@ -932,8 +931,11 @@ std::pair< bool, int > BTMBestPaths::scorePath( const NodeAndBeadVec& nb ) const
 		++endBead; // need to look past the end of the last bead in range
 
 	int numTokensConsumed = 0; // number of *tokens* in the match
+    int numBeadsConsumed  = 0;
 	for( BeadList::iterator i = fromBead; i!= endBead; ++i ) {
 		numTokensConsumed += i->getFullNumTokens();
+        if( !i->isBlank() && i->isBlankLiteral() ) 
+            numBeadsConsumed += 100;
 	}
 
 	int matchStyleScore = 0; // wc match gets 10 firm - 100
@@ -941,7 +943,10 @@ std::pair< bool, int > BTMBestPaths::scorePath( const NodeAndBeadVec& nb ) const
 	for( const BarzelTrieNode* tn = nb.rbegin()->first; tn && tn->getParent(); tn= tn->getParent() ) {
 		matchStyleScore += ( tn->isWcChild() ? 10 : 100 );
 	}
-	retVal.second = numTokensConsumed * matchStyleScore;
+
+	retVal.second = numBeadsConsumed + numTokensConsumed * matchStyleScore;
+    if( !retVal.second ) 
+        retVal.second = 1;
 
 	return retVal;
 }
@@ -1247,8 +1252,22 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 				break;
 		}
 		if( di != bbdv.end() ) { // vector is longer than the bead range
-			for( ; di != bbdv.end(); ++di )
-				chain.insertBead( range.second, *di );
+             
+            const BarzelMatchInfo& matchInfo = ctxt.matchInfo;
+            const CTWPVec* tmpCt = 0;
+            if( range.second != range.first ) {
+                BeadList::const_iterator bsi = range.first;
+                if( ++bsi == range.second ) {
+                    /// this means matched range is 1 bead long 
+                    tmpCt = &( range.first->getCTokens() );
+                }
+            }
+			for( ; di != bbdv.end(); ++di ) {
+				BeadList::iterator nbi = chain.insertBead( range.second, *di );
+                if( tmpCt && nbi != chain.getLstEnd() ) {
+                    nbi->getCTokens() = *tmpCt;
+                }
+            }
 		} else if( bi != range.second ) { // vector is shorter than the list and we need to fold the remainder of the list
 			if( bi != range.first )
 				chain.collapseRangeLeft( chain.getFullRange().first,  BeadRange(bi, range.second) );
@@ -1277,6 +1296,12 @@ int BarzelMatcher::matchAndRewrite( Barz& barz )
 
 
 	for( ; ; ++ matchCount ) {
+        /*
+		std::cerr << "**************** SHIT BEFORE {\n";
+		AYDEBUG( beads.getFullRange() );
+		std::cerr << "} **************** end SHIT BEFORE {\n";
+        */
+
 		if( matchCount> MAX_MATCH_COUNT ) {
 			d_err.setCode( Error::ERR_CRCBRK_MATCH );
 			AYLOG(ERROR) << "Match count circuit breaker hit .." << std::endl;
@@ -1284,6 +1309,7 @@ int BarzelMatcher::matchAndRewrite( Barz& barz )
 		}
 
 		RewriteUnit rewrUnit;
+
 		if( !match( rewrUnit, beads) ) {
 			break; // nothing matched
 		}
@@ -1293,17 +1319,15 @@ int BarzelMatcher::matchAndRewrite( Barz& barz )
 			AYLOG(ERROR) << "Rewrite count circuit breaker hit .." << std::endl;
 			break;
 		}
-		/*
-		std::cerr << "**************** SHIT BEFORE {\n";
-		AYDEBUG( beads.getFullRange() );
-		std::cerr << "} **************** end SHIT BEFORE {\n";
-		*/
+
 		int rewrRc = rewriteUnit( rewrUnit, barz );
-		/*
+
+        /*
 		std::cerr << "**************** SHIT AFTER {\n";
 		AYDEBUG( beads.getFullRange() );
 		std::cerr << "} **************** end SHIT AFTER {\n";
-		*/
+        */
+
 		if( rewrRc ) { // should never be the case
 			d_err.setFlag( Error::EF_RWRFAILS );
 			AYLOG(ERROR) << "rewrite failed"  << std::endl;
