@@ -64,12 +64,14 @@ bool BarzelTrace::detectLoop( ) const
 
 void Barz::setUniverse (const StoredUniverse *u)
 {
-	m_universe = u;
+	m_hints.clear();
+	if (u)
+		m_hints = u->getBarzHints();
 }
 
-BarzHints Barz::getHints() const
+const BarzHints& Barz::getHints() const
 {
-	return m_universe ? m_universe->getBarzHints() : BarzHints();
+	return m_hints;
 }
 
 void Barz::syncQuestionFromTokens()
