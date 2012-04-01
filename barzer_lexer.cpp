@@ -287,7 +287,6 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 	char sep = 0;
 	bool awaitingFrac = false;
 	bool hadSep = false;
-	bool isNeg = false;
 	bool mayBeFrac = false;
 
 	struct BuildNumStruct
@@ -295,7 +294,6 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 		const std::vector<CToken*>& m_tokens;
 		const std::vector<CToken*>& m_allTokens;
 		const char& m_sep;
-		const bool& m_isNeg;
 		const bool& m_mayBeFrac;
 		void operator() (const BarzerNumber& frac = BarzerNumber())
 		{
@@ -312,9 +310,6 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 			else
 				res = makeReal(joinInts(m_tokens), frac);
 
-			if (m_isNeg)
-				res *= -1;
-
 			std::cout << __PRETTY_FUNCTION__ << " " << res.getRealWiden() << std::endl;
 			CToken *resTok = m_tokens[0];
 			resTok->setNumber(res);
@@ -329,7 +324,7 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 				curTok->clear();
 			}
 		}
-	} buildNum = { tokens, allTokens, sep, isNeg, mayBeFrac };
+	} buildNum = { tokens, allTokens, sep, mayBeFrac };
 
 	struct
 	{
@@ -338,7 +333,6 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 		char& m_sep;
 		bool& m_awaiting;
 		bool& m_hadSep;
-		bool& m_isNeg;
 		bool& m_mayBeFrac;
 		BuildNumStruct& m_buildNum;
 		void operator() (const BarzerNumber& frac = BarzerNumber())
@@ -349,10 +343,9 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 			m_sep = 0;
 			m_awaiting = false;
 			m_hadSep = false;
-			m_isNeg = false;
 			m_mayBeFrac = false;
 		}
-	} flush = { tokens, allTokens, sep, awaitingFrac, hadSep, isNeg, mayBeFrac, buildNum };
+	} flush = { tokens, allTokens, sep, awaitingFrac, hadSep, mayBeFrac, buildNum };
 
 	for (size_t i = 0; i < cvec.size(); ++i)
 	{
@@ -362,13 +355,6 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 		if (ttokens.size() != 1)
 		{
 			flush();
-			continue;
-		}
-
-		if (tokens.empty() && ttok.getBuf()[0] == '-')
-		{
-			isNeg = true;
-			allTokens.push_back(&t);
 			continue;
 		}
 
