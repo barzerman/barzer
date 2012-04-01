@@ -18,7 +18,7 @@ const char *g_MONTHS[] =
 }
 
 void DateLookup::init() {
-    for (int i = 0; i < ARR_SZ(g_MONTHS); ++i) 
+    for (size_t i = 0; i < ARR_SZ(g_MONTHS); ++i)
         globPools.internString_internal(g_MONTHS[i]);
 }
 

@@ -89,6 +89,32 @@ struct BarzelTrace {
     bool lastFrameLoop() const { return (d_lastFrame_count>= MAX_TAIL_REPEAT); }
 }; 
 
+/// hints store information which may affect classification strategy (for instance russian classification woiuld treat ',' as a decimal separator 
+class BarzHints {
+public:
+	enum HintsFlag
+	{
+		BHB_DECIMAL_COMMA,
+		// add above
+		BHB_MAX
+	};
+private:
+	ay::bitflags<BHB_MAX> d_bhb;
+	const StoredUniverse* d_universe;
+public:
+
+	void initFromUniverse( const StoredUniverse* u );
+	void clear() { d_bhb.clear(); }
+
+	BarzHints( ) : d_universe(0) {}
+	BarzHints( const StoredUniverse* u ) : d_universe(0)
+		{ initFromUniverse(u); }
+
+	void setHint(HintsFlag, bool val = true);
+	void clearHint(HintsFlag);
+	bool testHint(HintsFlag) const;
+};
+
 // collection of punits and the original question
 class Barz {
 	/// original question with 0-s terminating tokens
@@ -113,6 +139,8 @@ class Barz {
 	/// called from tokenize, ensures that question has 0-terminated
 	/// tokens and that ttVec tokens point into it
 	void syncQuestionFromTokens();
+
+	const StoredUniverse *m_universe;
 public:
 	enum { 
         MAX_TRACE_LEN = 256, 
@@ -121,6 +149,10 @@ public:
 
 	BarzelTrace barzelTrace;
     BarzTopics  topicInfo;
+
+	void setUniverse(const StoredUniverse*);
+
+	BarzHints getHints() const;
 
     bool lastFrameLoop() const { return barzelTrace.lastFrameLoop(); }
     void pushError( const char* err ) { barzelTrace.pushError(err); }

@@ -6,6 +6,42 @@
 
 namespace barzer {
 
+//// BarzHints 
+void  BarzHints::initFromUniverse( const StoredUniverse* u ) 
+{
+	d_universe = u;
+
+	clear();
+	if (u)
+	{
+		switch (u->getLangInfo().getDominantLanguage())
+		{
+		case LANG_RUSSIAN:
+			setHint(BHB_DECIMAL_COMMA);
+			break;
+		default:
+			break;
+		}
+	}
+}
+
+void BarzHints::setHint(HintsFlag flag, bool val)
+{
+	d_bhb.set(flag, val);
+}
+
+void BarzHints::clearHint(BarzHints::HintsFlag flag)
+{
+	d_bhb.unset(flag);
+}
+
+bool BarzHints::testHint(BarzHints::HintsFlag flag) const
+{
+	return d_bhb[flag];
+}
+
+/// end of BarzHints 
+
 bool BarzelTrace::detectLoop( ) const
 {
     if( !d_tvec.size() ) 
@@ -24,6 +60,16 @@ bool BarzelTrace::detectLoop( ) const
             return false;
     }
     return false;
+}
+
+void Barz::setUniverse (const StoredUniverse *u)
+{
+	m_universe = u;
+}
+
+BarzHints Barz::getHints() const
+{
+	return m_universe ? m_universe->getBarzHints() : BarzHints();
 }
 
 void Barz::syncQuestionFromTokens()
@@ -90,6 +136,7 @@ void Barz::clear()
 
 	question.clear();
 }
+
 
 int Barz::chainInit( const QuestionParm& qparm ) 
 {

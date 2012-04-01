@@ -178,6 +178,10 @@ std::ostream& GlobalPools::printTanslationTraceInfo( std::ostream& fp, const Bar
 	traceInfo.emitterSeqNo );
 }
 
+uint32_t StoredUniverse::recordLangWord( int16_t lang )
+{
+    return d_langInfo.incrementLangCounter( lang );
+}
 StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	d_userId(id),
 	gp(g),
@@ -185,7 +189,9 @@ StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	topicTrieCluster(g.globalTriePool,*this),
 	bzSpell(new BZSpell(*this)),
     d_ghettoDb(new Ghettodb())
-{}
+{
+	m_hints.initFromUniverse(this);
+}
 
 StoredUniverse::~StoredUniverse()
 {

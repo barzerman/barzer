@@ -413,6 +413,9 @@ void BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 	loadTrieset(reader, u, children);
 	loadLocale(reader, u, children);
 	loadSpell(u, children);
+
+	StoredUniverse& uni = u.getUniverse();
+	uni.getBarzHints().initFromUniverse(&uni);
 }
 
 int BarzerSettings::loadUserConfig( BELReader& reader, const char* cfgFileName ) {
