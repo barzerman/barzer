@@ -404,6 +404,8 @@ template <> void BTND_Rewrite_Text_visitor::operator()<BTND_Rewrite_Literal>(BTN
 		} else {
 			t.setId( i );
 		}
+        // all right side literals will be internally interned as well
+        d_parser.getGlobalPools().internString_internal(d_str) ;
 	}
 template <> void BTND_Rewrite_Text_visitor::operator()<BTND_Rewrite_Number>(BTND_Rewrite_Number& t)   const
 	{ 

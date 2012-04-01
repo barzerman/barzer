@@ -996,7 +996,17 @@ struct BELFunctionStorage_holder {
         {}
 
 		bool operator()(const BarzerLiteral &ltrl) {
-			return (tokId = getTokId(ltrl, universe));
+            /// need to recode ltrl into an internal string id here
+			const char* str = universe.getGlobalPools().string_resolve(ltrl.getId());
+            uint32_t internalStrId = 0xffffffff;
+            if( str ) {
+                uint32_t internalStrId = universe.getGlobalPools().internalString_getId(str);
+                if( internalStrId == 0xffffffff ) {
+                    /// couldnt internally resolve 
+                    // #error must report FERROR here 
+                }
+            }
+            return( tokId = internalStrId );
 		}
 		bool operator()(const BarzerNumber &rnum) {
 			uint32_t ui = (uint32_t) rnum.getInt();
