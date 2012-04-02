@@ -633,7 +633,7 @@ struct PythonQueryProcessor {
     BELTrie*        local_trie;
     
     PythonQueryProcessor(const BarzerPython&b): 
-        bpy(b), local_trie(local_gp->mkNewTrie())
+        bpy(b), local_gp(new GlobalPools()), local_trie(local_gp->mkNewTrie())
     {}
     ~PythonQueryProcessor()
         { delete local_gp; delete local_trie; }
