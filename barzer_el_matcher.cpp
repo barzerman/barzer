@@ -934,7 +934,7 @@ std::pair< bool, int > BTMBestPaths::scorePath( const NodeAndBeadVec& nb ) const
     int numBeadsConsumed  = 0;
 	for( BeadList::iterator i = fromBead; i!= endBead; ++i ) {
 		numTokensConsumed += i->getFullNumTokens();
-        if( !i->isBlank() && i->isBlankLiteral() ) 
+        if( !i->isBlank() && !i->isBlankLiteral() ) 
             numBeadsConsumed += 100;
 	}
 

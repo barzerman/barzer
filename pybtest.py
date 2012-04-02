@@ -1,4 +1,5 @@
 #!/opt/local/bin/python -i
+# -*- coding: utf-8 -*-
 
 import pybarzer
 b=pybarzer.Barzer()
