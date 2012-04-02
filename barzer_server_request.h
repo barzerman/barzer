@@ -98,7 +98,7 @@ public:
 	}
 
     const StoredUniverse*                    setUniverseId( int id );
-    void                    setUniverse( const StoredUniverse* u ) { d_universe=u; }
+    void                    setUniverse( const StoredUniverse* u );
     const StoredUniverse*   getUniverse() const { return d_universe; }
 	void setAttr(const char *name, const char *value) {
 		tagStack.back().attrs.insert(AttrPair(name, value));

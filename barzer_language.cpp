@@ -119,4 +119,40 @@ int QLangLexer::lex( CTWPVec& cv, const TTWPVec& tv, const QuestionParm& qparm )
 	return lexer->lex( cv, tv, qparm );
 }
 
+std::ostream& LangInfoArray::print( std::ostream& fp ) const
+{
+	for( size_t i =0; i< getMaxLang(); ++i )
+		fp << Lang::getLangName( i-1 ) << ": " << langInfo[i] << std::endl;
+	return fp;
 }
+
+std::ostream& operator<< ( std::ostream& fp, const LangInfo& li )
+{
+	return fp << li.counter << " times";
+}
+
+int16_t LangInfoArray::getDominantLanguage() const
+{
+    uint32_t maxCnt = 0;
+	uint32_t totalCnt = 0;
+    int16_t  bestLang = LANG_ENGLISH;
+    for( size_t i = 0; i< sizeof(langInfo)/(sizeof(langInfo[0])); ++i )
+	{
+		const uint32_t cnt = langInfo[i].getCounter();
+		totalCnt += cnt;
+        if( cnt > maxCnt && i - 1 != LANG_ENGLISH)
+		{
+            maxCnt = cnt;
+            bestLang = (i-1); /// lang+1 is always i - see incrementLangCounter
+        }
+    }
+    const uint32_t threshold = 5;
+    if (totalCnt && 100 * maxCnt / totalCnt < threshold)
+	{
+		AYLOG(WARNING) << "detected garbage language, falling back to English";
+		bestLang = LANG_ENGLISH;
+	}
+	AYLOG(DEBUG) << "detected dominant language: " << bestLang;
+    return bestLang;
+}
+} // barzer namespace 

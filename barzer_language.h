@@ -19,7 +19,7 @@ enum {
 	LANG_RUSSIAN,
 	LANG_SPANISH,
 	LANG_FRENCH,
-
+    /// add new language after this only
 	LANG_MAX
 };
 
@@ -72,6 +72,33 @@ public:
 	// routes lexing to an appropriate language specific lexer and lexes
 	int lex( CTWPVec& , const TTWPVec&, const QuestionParm& );
 };
+///  
+struct LangInfo {
+    uint32_t counter;
+
+    LangInfo() : counter(0) {}
+
+    uint32_t  counterIncrement() { return ++counter; }
+    void  counterClear() { counter = 0; }
+    void clear() {
+        counterClear();
+    }
+    uint32_t getCounter() const { return counter; }
+};
+
+struct LangInfoArray {
+    LangInfo langInfo[ LANG_MAX +1 ];
+public:
+    size_t getMaxLang() const { return sizeof(langInfo)/(sizeof(langInfo[0])); } 
+    LangInfoArray() 
+        { new(langInfo)(LangInfo[ LANG_MAX+1 ]); }
+    uint32_t incrementLangCounter( int16_t i )
+        { return( (i > LANG_UNKNOWN && i < LANG_MAX) ? langInfo[(i+1)].counterIncrement() : 0 ); }
+
+    int16_t getDominantLanguage() const;
+    std::ostream& print(std::ostream&) const;
+};
+std::ostream& operator<< ( std::ostream& fp, const LangInfo& );
 
 }
 #endif // BARZER_LANGUAGE_H  

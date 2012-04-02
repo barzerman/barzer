@@ -15,7 +15,9 @@
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
 #include <barzer_topics.h>
-#include "barzer_locale.h"
+#include <barzer_locale.h>
+#include <barzer_language.h>
+#include "barzer_barz.h"
 
 
 namespace ay { struct CommandLineArgs; }
@@ -267,6 +269,8 @@ private:
 	BZSpell*             bzSpell;
     Ghettodb*            d_ghettoDb;
 
+	BarzHints m_hints;
+
 	typedef boost::unordered_map< uint32_t, bool > StringIdSet;
 
 	///
@@ -279,9 +283,14 @@ private:
 
 	BarzerLocale_ptr m_defLocale;
 	std::vector<BarzerLocale_ptr> m_otherLocales;
+    LangInfoArray    d_langInfo;
 
 	void addWordsFromTriesToBZSpell();
 public:
+    const LangInfoArray& getLangInfo() const { return d_langInfo; }
+    LangInfoArray& getLangInfo() { return d_langInfo; }
+
+    uint32_t recordLangWord( int16_t lang );
     const std::set< BarzerEntity >* getTopicEntities( const BarzerEntity& t ) const
         { return d_topicEntLinkage.getTopicEntities( t ); }
 
@@ -367,6 +376,9 @@ public:
 
 	const DtaIndex& getDtaIdx() const { return gp.dtaIdx; }
 		  DtaIndex& getDtaIdx() 	  { return gp.dtaIdx; }
+
+	const BarzHints& getBarzHints() const { return m_hints; }
+	BarzHints& getBarzHints() { return m_hints; }
 
 	size_t getEclassEntCount( const StoredEntityClass& eclass ) const { return getDtaIdx().getEclassEntCount( eclass ); }
 	BELTrie& getSomeTrie() { return *(trieCluster.getFirstTrie()); }

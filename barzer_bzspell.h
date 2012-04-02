@@ -154,6 +154,7 @@ public:
 	/// stems (currently only de-pluralizes) word . returns true if stemming was 
 	/// successful
 	bool     stem( std::string& out, const char* word ) const;
+	bool     stem( std::string& out, const char* word, int16_t& lang ) const;
 
 	size_t loadExtra( const char* fileName );
 	std::ostream& printStats( std::ostream& fp ) const;

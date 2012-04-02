@@ -40,9 +40,13 @@ uint32_t BELParser::stemAndInternTmpText( const char* s, int len )
 	std::string scopy(s, len );
 	if( bzSpell )  {
 		std::string stem;
-		if( bzSpell->stem(stem, scopy.c_str()) ) {
+        int16_t lang = LANG_ENGLISH;
+		if( bzSpell->stem(stem, scopy.c_str(),lang) ) {
 			internString( stem.c_str(), false, scopy.c_str () );
 		}
+        StoredUniverse* curUni = reader->getCurrentUniverse();
+        if( curUni ) 
+            curUni->recordLangWord( lang );
 	}
 	return internString( scopy.c_str(),false).getStringId();
 }
