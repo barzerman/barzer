@@ -267,13 +267,10 @@ struct BarzerEntity {
         eclass      (euid.getClass().ec), 
         esubclass   (euid.getClass().subclass)
     {
-        const StoredToken *tok = u.getDtaIdx().tokPool.getTokByIdSafe(euid.tokId);
-        if( tok ) {
-            const char *tokname = u.getStringPool().resolveId(tok->stringId);
-            if( tokname )
-                id.assign(tokname);
-        }
-            
+        const char *tokname = u.getGlobalPools().internalString_resolve(euid.tokId);
+
+        if( tokname )
+            id.assign(tokname);
     }
     std::ostream& print( std::ostream& fp ) const {
         return( fp << "ent(cl=" << eclass << ",scl=" << esubclass << ",id='" << id << "'" << ")" );

@@ -310,7 +310,7 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 			else
 				res = makeReal(joinInts(m_tokens), frac);
 
-			std::cout << __PRETTY_FUNCTION__ << " " << res.getRealWiden() << std::endl;
+			// std::cout << __PRETTY_FUNCTION__ << " " << res.getRealWiden() << std::endl;
 			CToken *resTok = m_tokens[0];
 			resTok->setNumber(res);
 
