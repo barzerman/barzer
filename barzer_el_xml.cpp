@@ -293,7 +293,7 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 				statement.setProc(procNameStrId); // p="PROCXXX"
 			} else {
 				errStrStr << "attempt to REDEFINE Procedure " << v  << " ignored";
-                needAbort  = true;
+				needAbort  = true;
 			}
 			}  // end of block
             break;
@@ -302,7 +302,17 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 			    stmtNumber = atoi(v);
             // name - is for barsted names 
 			break;
+		case 'd':
+			if (!strncasecmp (v, "true", 4))
+			{
+				statement.clear();
+				return;
+			}
+			break;
 		case 't':  // pipe separated tags
+			break;
+		default:
+			AYLOG(DEBUG) << "unknown statement attribute " << n << ": " << v;
 			break;
 		}
 	}
