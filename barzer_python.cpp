@@ -531,6 +531,11 @@ struct bead_list : public static_visitor<bool> {
     {
         if( l.isString() ) 
             d_list.append( std::string(d_universe.printableStringById(l.getId())) );
+        else if( l.isPunct() ) {
+            std::string ps;
+            ps.push_back( (char)( l.getId() ) );
+            d_list.append( ps );
+        }
         else 
             d_list.append(exposed::BarzerLiteral(l,d_universe));
         
