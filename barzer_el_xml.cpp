@@ -156,6 +156,13 @@ void BELParserXML::startElement( const char* tag, const char_cp * attr, size_t a
 
 void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t attr_sz, bool close )
 {
+    if( statement.isDisabled() ) {
+        if( close ) {
+            if( tid == TAG_STATEMENT ) 
+                statement.setDisabled(false);
+        }
+        return;
+    }
 	//AYDEBUG(tid);
 #define CASE_TAG(x) case TAG_##x: taghandle_##x(attr,attr_sz,close); return;
 
@@ -303,9 +310,8 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
             // name - is for barsted names 
 			break;
 		case 'd':
-			if (!strncasecmp (v, "true", 4))
-			{
-				statement.clear();
+			if( v && (v[0] == 'y'|| v[0]=='Y') ) {
+				statement.setDisabled();
 				return;
 			}
 			break;

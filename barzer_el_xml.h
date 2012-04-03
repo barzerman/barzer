@@ -123,7 +123,10 @@ public:
 			STATE_TRANSLATION
 		} state;
 			
-		CurStatementData() : macroNameId(0xffffffff),procNameId(0xffffffff), state(STATE_BLANK) {}
+        bool d_isDisabled; 
+		CurStatementData() : 
+            macroNameId(0xffffffff),procNameId(0xffffffff), state(STATE_BLANK), d_isDisabled(false) 
+        {}
 		void clear(); 
 
 		std::stack< BELParseTreeNode* > nodeStack;
@@ -214,6 +217,10 @@ public:
         bool isState_Blank() const { return (state == STATE_BLANK); }
         bool isState_Translation() const { return (state == STATE_TRANSLATION); }
         bool isState_Pattern() const { return (state == STATE_PATTERN); }
+
+        bool isDisabled() const { return d_isDisabled; }
+        void setDisabled(bool x=true) { d_isDisabled = x; }
+        
 	} statement;
 
 	mutable std::string d_tmpText; // used by getElementText as a temp buffer
