@@ -1317,7 +1317,9 @@ void BELParserXML::taghandle_FUNC( const char_cp * attr, size_t attr_sz , bool c
 		if( *n == 'n' ) {
             funcNameId = reader->getGlobalPools().internString_internal(v) ;
 		    f.setNameId( funcNameId ) ;
-		}
+		} else if( *n == 'a' ) {
+            f.setArgStrId( reader->getGlobalPools().internString_internal(v) );
+        }
 	}
     if( funcNameId != 0xffffffff ) 
 	    statement.pushNode( BTND_RewriteData( f));

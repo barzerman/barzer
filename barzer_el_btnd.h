@@ -823,12 +823,27 @@ struct BTND_Rewrite_Variable {
 struct BTND_Rewrite_Function {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	uint32_t nameId; // function name id
+	uint32_t argStrId; // string id for the optional arg attribute
 
 	void setNameId( uint32_t i ) { nameId = i ; }
 	uint32_t getNameId() const { return nameId; }
 
-	BTND_Rewrite_Function() : nameId(ay::UniqueCharPool::ID_NOTFOUND) {}
-	BTND_Rewrite_Function(ay::UniqueCharPool::StrId id) : nameId(id) {}
+    void setArgStrId( uint32_t i ) { argStrId = i; }
+    uint32_t getArgStrId( ) const { return argStrId; }
+
+	BTND_Rewrite_Function() : 
+        nameId(ay::UniqueCharPool::ID_NOTFOUND),
+        argStrId(ay::UniqueCharPool::ID_NOTFOUND) 
+    {}
+
+	BTND_Rewrite_Function(ay::UniqueCharPool::StrId id) : 
+        nameId(id), 
+        argStrId(ay::UniqueCharPool::ID_NOTFOUND)  
+    {}
+
+	BTND_Rewrite_Function(ay::UniqueCharPool::StrId id, ay::UniqueCharPool::StrId argId) : 
+        nameId(id), argStrId(argId) 
+    {}
 };
 
 struct BTND_Rewrite_Select {

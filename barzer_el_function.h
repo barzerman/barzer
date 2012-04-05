@@ -11,6 +11,7 @@
 #include <boost/unordered_map.hpp>
 #include <boost/function.hpp>
 #include <barzer_el_rewriter.h>
+#include <ay/ay_vector.h>
 
 namespace barzer {
 
@@ -26,8 +27,9 @@ struct BarzelEvalContext;
 typedef boost::function<bool(
                             const BELFunctionStorage_holder*,
 		                    BarzelEvalResult&,
-		                    const BarzelEvalResultVec&,
-		                    const StoredUniverse&, BarzelEvalContext&)> BELStoredFunction;
+		                    const ay::skippedvector<BarzelEvalResult>&,
+		                    const StoredUniverse&, BarzelEvalContext&, 
+                            const BTND_Rewrite_Function&)> BELStoredFunction;
 
 typedef boost::unordered_map<uint32_t,BELStoredFunction> BELStoredFunMap;
 //typedef std::pair<uint32_t,BELStoredFunction> BELStoredFunRec;
@@ -41,16 +43,18 @@ public:
 	BELFunctionStorage(GlobalPools &u);
 	~BELFunctionStorage();
 
+    /*
 	bool call(
               BarzelEvalContext& ctxt,
               const char *fname, 
               BarzelEvalResult&,
 			  const BarzelEvalResultVec&,
 			  const StoredUniverse& ) const;
+    */
 	bool call(
               BarzelEvalContext& ctxt,
-              const uint32_t, BarzelEvalResult&,
-			  const BarzelEvalResultVec&,
+              const BTND_Rewrite_Function&, BarzelEvalResult&,
+			  const ay::skippedvector<BarzelEvalResult>&,
 			  const StoredUniverse &u ) const;
 
 };
