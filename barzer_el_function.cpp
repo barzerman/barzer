@@ -349,7 +349,7 @@ struct BELFunctionStorage_holder {
 
 
 		// caller
-		ADDFN(call);
+		ADDFN(call); 
 
 		// getters
 		ADDFN(getWeekday); // getWeekday(BarzerDate)
@@ -1387,6 +1387,49 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 
+    STFUN(set) {
+        SETFUNCNAME(set);
+        const char* argStr = GETARGSTR();
+        if( rvec.size() > 1 ) {
+            const BarzelEvalResult& arg0 = rvec[0];
+            const BarzelEvalResult& arg1 = rvec[1];
+
+            const BarzelBeadAtomic* atomic = arg0.getSingleAtomic();
+            if( atomic ) {
+                switch( atomic->getDataWhich() ) {
+                case BarzerEntityRangeCombo_TYPE:{ // ERC setter
+                    const BarzerEntityRangeCombo* erc  = getAtomicPtr<BarzerEntityRangeCombo>(arg0);
+                    if( erc ) {
+                        BarzerEntityRangeCombo outErc(*erc);
+                        const BarzerEntity* e = getAtomicPtr<BarzerEntity>(arg1);
+                        
+                        if( e ) {
+                            if( !strcmp(argStr,"unit") ) { // unit entity
+                                outErc.setUnitEntity(*e);
+                            } else {
+                                outErc.setEntity(*e);
+                            }
+                        }  else {
+                            const BarzerRange* r = getAtomicPtr<BarzerRange>(arg1);
+                            if( r ) 
+                                outErc.setRange( *r );
+                            else {
+                                FERROR( "couldnt deduce set parameters for ERC" );
+                                return true;
+                            }
+                        } // end of trying range
+                        setResult(result, outErc );
+                    } // 
+                    } break; // end of ERC
+                }
+            } else {
+                FERROR("first argument of set is invalid");
+                return true;
+            }
+        }
+        return true;
+    }
+
     STFUN(setMDay) {
         SETFUNCNAME(setMDay);
         BarzerDate bd;
@@ -1671,6 +1714,46 @@ struct BELFunctionStorage_holder {
 
 	// arith
 
+    /// range scale modes
+    enum {
+        RANGE_MOD_SCALE_MULT,
+        RANGE_MOD_SCALE_DIV
+    };
+    bool tryScaleRange( BarzelEvalResult &result, const ay::skippedvector<BarzelEvalResult> &rvec, const StoredUniverse &q_universe, BarzelEvalContext& ctxt, const BTND_Rewrite_Function& fr, int mode /*RANGE_MOD_XXX*/ ) const
+    {
+        if( rvec.size() == 2 ) { // trying to scale range 
+            const char* func_name = ( mode == RANGE_MOD_SCALE_MULT ? "opMult" : "opDiv" );
+
+            const BarzelEvalResult& arg0 = rvec[0];
+            const BarzelEvalResult& arg1 = rvec[1];
+            const BarzerNumber* n = getAtomicPtr<BarzerNumber>(arg1);
+            if( n ) {
+                const BarzerRange* r = getAtomicPtr<BarzerRange>(arg0);
+                if( r ) {
+                    BarzerRange newR(*r);
+                    
+                    if( !newR.scale(*n, mode == RANGE_MOD_SCALE_MULT) ) {
+                        FERROR("failed to scale the range");
+                    } else {
+		                setResult(result, newR);
+                        return true;
+                    }
+                } else {
+                    const BarzerEntityRangeCombo* erc = getAtomicPtr<BarzerEntityRangeCombo>(arg0);
+                    if( erc ) {
+                        BarzerRange newR(erc->getRange());
+                        if( !newR.scale(*n,mode == RANGE_MOD_SCALE_MULT) ) {
+                            FERROR("failed to scale the range");
+                        } else {
+		                    setResult(result, newR);
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
 	STFUN(opPlus)
 	{
         // SETFUNCNAME(opPlus);
@@ -1708,9 +1791,12 @@ struct BELFunctionStorage_holder {
 		//setResult(result, bn); // most likely NaN if something went wrong
 		return false;
 	}
-
+    
+    
 	STFUN(opMult)
 	{
+        if( tryScaleRange( result, rvec, q_universe, ctxt, fr, RANGE_MOD_SCALE_MULT ) ) 
+            return true;
         // SETFUNCNAME(opMult);
 		BarzerNumber bn(1);
 		ArithVisitor<mult> visitor(bn);
@@ -1725,6 +1811,8 @@ struct BELFunctionStorage_holder {
 
 	STFUN(opDiv) // no checks for division by zero yet
 	{
+        if( tryScaleRange( result, rvec, q_universe, ctxt, fr, RANGE_MOD_SCALE_DIV ) ) 
+            return true;
         SETFUNCNAME(opDiv);
 		BarzerNumber &bn = setResult(result, BarzerNumber()); // NaN
 		try {

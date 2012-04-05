@@ -57,6 +57,7 @@ struct BarzelBeadAtomic {
 	BarzelBeadAtomic() {}
 	BarzelBeadAtomic(const BarzelBeadAtomic_var &d) : dta(d) {}
 
+
 	const BarzerString* getString() const { return boost::get<BarzerString>( &dta ); }
 	const BarzerLiteral* getLiteral() const { return boost::get<BarzerLiteral>( &dta ); }
 
@@ -94,6 +95,7 @@ struct BarzelBeadAtomic {
 	BarzelBeadAtomic& setStopLiteral( )
 		{ BarzerLiteral lrl; lrl.setStop(); dta = lrl; return *this; }
 
+    int getDataWhich() const { return dta.which(); }
 	const BarzelBeadAtomic_var& getData() const { return dta; }
 	      BarzelBeadAtomic_var& getData()       { return dta; }
 
