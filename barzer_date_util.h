@@ -29,11 +29,18 @@ public:
 
     const uint32_t getMonthID(const char* month_name) const;
     const uint32_t getMonthID(const uint8_t month_num) const;
+    
+    const uint32_t getWdayID(const char* month_name) const;
+    const uint32_t getWdayID(const uint8_t month_num) const;
+    
     const uint8_t resolveMonthID(const uint32_t mid) const;
+    const uint8_t resolveWdayID(const uint32_t mid) const;
+    
 	const uint8_t lookupMonth(const char*) const;
 	const uint8_t lookupMonth(const uint32_t) const;
 	const uint8_t lookupWeekday(const char*) const;
 	const uint8_t lookupWeekday(const uint32_t) const;
+
 
 
 };

@@ -335,7 +335,8 @@ struct BELFunctionStorage_holder {
 		ADDFN(mkDay);
 		ADDFN(mkWday);
 		ADDFN(mkMonth);
-        ADDFN(mkMonthEnt);
+                ADDFN(mkWdayEnt);
+                ADDFN(mkMonthEnt);
 		ADDFN(mkTime);
 		ADDFN(mkDateTime);
 		ADDFN(mkRange);
@@ -717,6 +718,38 @@ struct BELFunctionStorage_holder {
         return false;
     }
 
+    STFUN(mkWdayEnt)
+    {
+        SETFUNCNAME(mkWdayEnt);
+        uint wnum( (new BarzerDate())->getWeekday()); // that can be done softer, YANIS
+        try {
+                if (rvec.size()) {                      
+                        const BarzerLiteral* bl = getAtomicPtr<BarzerLiteral>(rvec[0]);
+                        const BarzerString* bs = getAtomicPtr<BarzerString>(rvec[0]);
+                        const BarzerNumber* n = getAtomicPtr<BarzerNumber>(rvec[0]);
+                        if (bl) wnum = gpools.dateLookup.lookupWeekday(bl->getId());
+                        else if (bs) wnum = gpools.dateLookup.lookupWeekday(bs->getStr().c_str());
+                        else if (n) wnum = ((n->isInt() && n->getInt() > 0 && n->getInt() < 8 )? n->getInt(): 0 );
+                        else {  
+                                FERROR("Wrong argument type");
+                                return false;
+                        }                       
+                        if (!wnum) {
+                                FERROR("Unknown weekday name given");
+                                return false;
+                        }                      
+                }    
+            uint32_t mid = gpools.dateLookup.getWdayID(wnum);
+            //check if mid exists
+            const StoredEntityUniqId euid( mid, 1, 4);//put constants somewhere! c1;s4 == weekdays
+            setResult(result, euid);
+            return true;
+        } catch(boost::bad_get) {
+            FERROR("Wrong argument type");
+        }
+        return false;
+    }    
+    
     STFUN(mkMonthEnt)
     {
         SETFUNCNAME(mkMonthEnt);

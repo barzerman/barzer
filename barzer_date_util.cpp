@@ -15,11 +15,27 @@ namespace barzer {
 namespace {
 const char *g_MONTHS[] = 
     {"NUL","JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
+const char *g_WDAYS[] = 
+    {"NUL","MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};    
 }
 
 void DateLookup::init() {
-    for (size_t i = 0; i < ARR_SZ(g_MONTHS); ++i)
-        globPools.internString_internal(g_MONTHS[i]);
+        for (size_t i = 0; i < ARR_SZ(g_MONTHS); ++i)
+                globPools.internString_internal(g_MONTHS[i]);
+        for (size_t i = 0; i < ARR_SZ(g_WDAYS); ++i)
+                globPools.internString_internal(g_WDAYS[i]);
+}
+
+
+const uint32_t DateLookup::getWdayID(const char* weekday_name) const{
+    return globPools.internalString_getId(g_WDAYS[lookupWeekday(weekday_name)]);
+}
+
+const uint32_t DateLookup::getWdayID(const uint8_t weekday_num) const{
+    if (weekday_num < 0 || weekday_num > 7) 
+        return globPools.internalString_getId(g_WDAYS[0]);
+    else
+        return globPools.internalString_getId(g_WDAYS[weekday_num]);
 }
 
 
@@ -36,6 +52,10 @@ const uint32_t DateLookup::getMonthID(const char* month_name) const{
 
 const uint8_t DateLookup::resolveMonthID(const uint32_t mid) const {
     return lookupMonth(globPools.internalString_resolve(mid));
+}
+
+const uint8_t DateLookup::resolveWdayID(const uint32_t wid) const {
+    return lookupMonth(globPools.internalString_resolve(wid));
 }
 
 /// case sensitive, suppose input to be lowercased
