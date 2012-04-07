@@ -409,6 +409,7 @@ struct BarzerRange {
         }
         return *this;
     }
+    
 
 	const None* getNone( ) const { return boost::get<None>( &dta ); }
 	const Integer*  getInteger( ) const {return boost::get<Integer>( &dta ); }
@@ -438,6 +439,26 @@ struct BarzerRange {
 	void setNoHI() { rng_mode= RNG_MODE_NO_HI; }
 	void setNoLO() { rng_mode= RNG_MODE_NO_LO; }
 
+    /// scales the range if its numeric . returns false if failed to scale (incompatible types etc)
+    bool scale( const BarzerNumber& n, bool isMult = true /* when false - divides */ ) 
+    {
+        if( isNumeric() ) {
+            promote_toReal();
+            Real* rr = boost::get<Real>( &dta );
+            if( rr ) { // should always be true
+                double factor = n.getRealWiden();
+                if( isMult ) {
+                    rr->first   *= factor;
+                    rr->second  *= factor;
+                } else if( factor != 0 ) {
+                    rr->first   /= factor;
+                    rr->second  /= factor;
+                }
+            }
+            return true;
+        } else 
+            return false;
+    }
 	char geXMLtAttrValueChar( ) const {
 
 		switch( dta.which()) {

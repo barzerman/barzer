@@ -61,7 +61,12 @@ public:
 	std::ostream& logMsg(const uint8_t lvl, const char* filename,
 										   const int lineno);
 
-	std::ostream& getStream() { return *stream_; }
+	std::ostream& getStream() { 
+        if( stream_ )
+            return *stream_; 
+        else 
+            return std::cerr;
+    }
 
 
 	void setFile(const char* filename);

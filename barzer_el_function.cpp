@@ -20,6 +20,7 @@
 
 namespace barzer {
 
+struct BTND_Rewrite_Function;
 namespace {
 
     // sig is the function's signature
@@ -347,6 +348,9 @@ struct BELFunctionStorage_holder {
 		ADDFN(mkExprAttrs);
 
 
+		// caller
+		ADDFN(call); 
+
 		// getters
 		ADDFN(getWeekday); // getWeekday(BarzerDate)
 		ADDFN(getTokId); // (BarzerLiteral|BarzerEntity)
@@ -406,16 +410,31 @@ struct BELFunctionStorage_holder {
 		addFun(fid, fun);
 	}
 
-	void addFun(const uint32_t fid, BELStoredFunction fun) {
-		funmap.insert(BELStoredFunRec(fid, fun));
-	}
+    uint32_t   getInternalStringIdFromLiteral( const StoredUniverse& u, const BarzerLiteral* ltrl ) const {
+        if( !ltrl ) 
+            return 0xffffffff;
+        const char* str = u.getGlobalPools().string_resolve(ltrl->getId());
+        if( !str ) 
+            return 0xffffffff;
+        uint32_t internalStrId = u.getGlobalPools().internalString_getId(str);
+        return internalStrId;
+    }
+
+    const BarzerLiteral* getRvecLiteral( const BarzelEvalResultVec& rvec, size_t i ) const
+    { return ( i < rvec.size() ? getAtomicPtr<BarzerLiteral>( rvec[i] ) : 0 ) ; }
+
+	void addFun(const uint32_t fid, BELStoredFunction fun) 
+        { funmap.insert(BELStoredFunRec(fid, fun)); }
 
 
 	//enum { P_WEEK = 1, P_MONTH, P_YEAR, P_DECADE, P_CENTURY };
 	// stored functions
+	#define GETARGSTR() (q_universe.getGlobalPools().string_resolve(fr.getArgStrId()))
+	#define GETRVECSTR(i) (q_universe.getGlobalPools().string_resolve( getRvecLiteral(rvec,i) ))
+
 	#define STFUN(n) bool stfun_##n( BarzelEvalResult &result,\
-							        const BarzelEvalResultVec &rvec,\
-							        const StoredUniverse &q_universe, BarzelEvalContext& ctxt ) const
+							        const ay::skippedvector<BarzelEvalResult> &rvec,\
+							        const StoredUniverse &q_universe, BarzelEvalContext& ctxt, const BTND_Rewrite_Function& fr ) const
 
     #define SETSIG(x) const char *sig = #x
     #define SETFUNCNAME(x) const char *func_name = #x
@@ -429,6 +448,33 @@ struct BELFunctionStorage_holder {
 		AYLOGDEBUG(result.isVec());
 		return true;
 	}
+    STFUN(call) {
+        SETFUNCNAME(call);
+        if( rvec.size() ) {
+            uint32_t fid = getInternalStringIdFromLiteral( q_universe,getRvecLiteral(rvec.vec(),0) );
+	        const BELStoredFunMap::const_iterator frec = funmap.find(fid);
+	        if (frec == funmap.end()) {
+		        std::stringstream strstr;
+		        const char *str = q_universe.getGlobalPools().internalString_resolve(fid);
+                strstr << "No such function: " << (str ? str : "<unknown>") ;//<< " (id: " << fid << ")";
+                // pushFuncError(ctxt, "", strstr.str().c_str() );
+                FERROR( strstr.str().c_str() );
+		        return true;
+	        }
+            // const char* argStr = GETARGSTR();
+            uint32_t argStrId = getInternalStringIdFromLiteral( q_universe,getRvecLiteral(rvec.vec(),1) );
+
+            BTND_Rewrite_Function rwrFunc;
+            rwrFunc.setNameId(fid);
+            if( argStrId )
+                rwrFunc.setArgStrId(argStrId);
+
+	        return frec->second(this, result, ay::skippedvector<BarzelEvalResult>(rvec.vec(),2), q_universe, ctxt, rwrFunc );
+        }
+
+        FERROR( "expects (ltrl:functionName ltrl:arg ... ). There must be arg literal (blank or non literal ok for default)" );
+        return true;
+    }
     STFUN(getEnt) {
         SETFUNCNAME(getEnt);
         if(rvec.size() )  {
@@ -1345,6 +1391,49 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 
+    STFUN(set) {
+        SETFUNCNAME(set);
+        const char* argStr = GETARGSTR();
+        if( rvec.size() > 1 ) {
+            const BarzelEvalResult& arg0 = rvec[0];
+            const BarzelEvalResult& arg1 = rvec[1];
+
+            const BarzelBeadAtomic* atomic = arg0.getSingleAtomic();
+            if( atomic ) {
+                switch( atomic->getDataWhich() ) {
+                case BarzerEntityRangeCombo_TYPE:{ // ERC setter
+                    const BarzerEntityRangeCombo* erc  = getAtomicPtr<BarzerEntityRangeCombo>(arg0);
+                    if( erc ) {
+                        BarzerEntityRangeCombo outErc(*erc);
+                        const BarzerEntity* e = getAtomicPtr<BarzerEntity>(arg1);
+                        
+                        if( e ) {
+                            if( !strcmp(argStr,"unit") ) { // unit entity
+                                outErc.setUnitEntity(*e);
+                            } else {
+                                outErc.setEntity(*e);
+                            }
+                        }  else {
+                            const BarzerRange* r = getAtomicPtr<BarzerRange>(arg1);
+                            if( r ) 
+                                outErc.setRange( *r );
+                            else {
+                                FERROR( "couldnt deduce set parameters for ERC" );
+                                return true;
+                            }
+                        } // end of trying range
+                        setResult(result, outErc );
+                    } // 
+                    } break; // end of ERC
+                }
+            } else {
+                FERROR("first argument of set is invalid");
+                return true;
+            }
+        }
+        return true;
+    }
+
     STFUN(setMDay) {
         SETFUNCNAME(setMDay);
         BarzerDate bd;
@@ -1629,6 +1718,46 @@ struct BELFunctionStorage_holder {
 
 	// arith
 
+    /// range scale modes
+    enum {
+        RANGE_MOD_SCALE_MULT,
+        RANGE_MOD_SCALE_DIV
+    };
+    bool tryScaleRange( BarzelEvalResult &result, const ay::skippedvector<BarzelEvalResult> &rvec, const StoredUniverse &q_universe, BarzelEvalContext& ctxt, const BTND_Rewrite_Function& fr, int mode /*RANGE_MOD_XXX*/ ) const
+    {
+        if( rvec.size() == 2 ) { // trying to scale range 
+            const char* func_name = ( mode == RANGE_MOD_SCALE_MULT ? "opMult" : "opDiv" );
+
+            const BarzelEvalResult& arg0 = rvec[0];
+            const BarzelEvalResult& arg1 = rvec[1];
+            const BarzerNumber* n = getAtomicPtr<BarzerNumber>(arg1);
+            if( n ) {
+                const BarzerRange* r = getAtomicPtr<BarzerRange>(arg0);
+                if( r ) {
+                    BarzerRange newR(*r);
+                    
+                    if( !newR.scale(*n, mode == RANGE_MOD_SCALE_MULT) ) {
+                        FERROR("failed to scale the range");
+                    } else {
+		                setResult(result, newR);
+                        return true;
+                    }
+                } else {
+                    const BarzerEntityRangeCombo* erc = getAtomicPtr<BarzerEntityRangeCombo>(arg0);
+                    if( erc ) {
+                        BarzerRange newR(erc->getRange());
+                        if( !newR.scale(*n,mode == RANGE_MOD_SCALE_MULT) ) {
+                            FERROR("failed to scale the range");
+                        } else {
+		                    setResult(result, newR);
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
 	STFUN(opPlus)
 	{
         // SETFUNCNAME(opPlus);
@@ -1666,9 +1795,12 @@ struct BELFunctionStorage_holder {
 		//setResult(result, bn); // most likely NaN if something went wrong
 		return false;
 	}
-
+    
+    
 	STFUN(opMult)
 	{
+        if( tryScaleRange( result, rvec, q_universe, ctxt, fr, RANGE_MOD_SCALE_MULT ) ) 
+            return true;
         // SETFUNCNAME(opMult);
 		BarzerNumber bn(1);
 		ArithVisitor<mult> visitor(bn);
@@ -1683,6 +1815,8 @@ struct BELFunctionStorage_holder {
 
 	STFUN(opDiv) // no checks for division by zero yet
 	{
+        if( tryScaleRange( result, rvec, q_universe, ctxt, fr, RANGE_MOD_SCALE_DIV ) ) 
+            return true;
         SETFUNCNAME(opDiv);
 		BarzerNumber &bn = setResult(result, BarzerNumber()); // NaN
 		try {
@@ -1771,7 +1905,7 @@ struct BELFunctionStorage_holder {
 	// should make this more generic
 	template<class T> bool cmpr(
              BarzelEvalResult &result,
-       const BarzelEvalResultVec &rvec,
+       const ay::skippedvector<BarzelEvalResult>&rvec,
        BarzelEvalContext& ctxt,
        const char* func_name ) const
 	{
@@ -2315,6 +2449,7 @@ BELFunctionStorage::~BELFunctionStorage()
 
 
 
+/*
 bool BELFunctionStorage::call(BarzelEvalContext& ctxt, const char *fname, BarzelEvalResult &er,
 		                                   const BarzelEvalResultVec &ervec,
 		                                   const StoredUniverse &u) const
@@ -2328,11 +2463,12 @@ bool BELFunctionStorage::call(BarzelEvalContext& ctxt, const char *fname, Barzel
 	}
 	return call(ctxt,fid, er, ervec, u);
 }
-
-bool BELFunctionStorage::call(BarzelEvalContext& ctxt, const uint32_t fid, BarzelEvalResult &er,
-									              const BarzelEvalResultVec &ervec,
+*/
+bool BELFunctionStorage::call(BarzelEvalContext& ctxt, const BTND_Rewrite_Function& fr, BarzelEvalResult &er,
+									              const ay::skippedvector<BarzelEvalResult> &ervec,
 									              const StoredUniverse &u) const
 {
+    uint32_t fid = fr.getNameId();
 	const BELStoredFunMap::const_iterator frec = holder->funmap.find(fid);
 	if (frec == holder->funmap.end()) {
 		std::stringstream strstr;
@@ -2341,7 +2477,7 @@ bool BELFunctionStorage::call(BarzelEvalContext& ctxt, const uint32_t fid, Barze
                 pushFuncError(ctxt, "", strstr.str().c_str() );
 		return false;
 	}
-	return frec->second(holder, er, ervec, u, ctxt);
+	return frec->second(holder, er, ervec, u, ctxt, fr );
 
 }
 

@@ -156,6 +156,13 @@ void BELParserXML::startElement( const char* tag, const char_cp * attr, size_t a
 
 void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t attr_sz, bool close )
 {
+    if( statement.isDisabled() ) {
+        if( close ) {
+            if( tid == TAG_STATEMENT ) 
+                statement.setDisabled(false);
+        }
+        return;
+    }
 	//AYDEBUG(tid);
 #define CASE_TAG(x) case TAG_##x: taghandle_##x(attr,attr_sz,close); return;
 
@@ -293,7 +300,7 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 				statement.setProc(procNameStrId); // p="PROCXXX"
 			} else {
 				errStrStr << "attempt to REDEFINE Procedure " << v  << " ignored";
-                needAbort  = true;
+				needAbort  = true;
 			}
 			}  // end of block
             break;
@@ -302,7 +309,16 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 			    stmtNumber = atoi(v);
             // name - is for barsted names 
 			break;
+		case 'd':
+			if( v && (v[0] == 'y'|| v[0]=='Y') ) {
+				statement.setDisabled();
+				return;
+			}
+			break;
 		case 't':  // pipe separated tags
+			break;
+		default:
+			AYLOG(DEBUG) << "unknown statement attribute " << n << ": " << v;
 			break;
 		}
 	}
@@ -1301,7 +1317,9 @@ void BELParserXML::taghandle_FUNC( const char_cp * attr, size_t attr_sz , bool c
 		if( *n == 'n' ) {
             funcNameId = reader->getGlobalPools().internString_internal(v) ;
 		    f.setNameId( funcNameId ) ;
-		}
+		} else if( *n == 'a' ) {
+            f.setArgStrId( reader->getGlobalPools().internString_internal(v) );
+        }
 	}
     if( funcNameId != 0xffffffff ) 
 	    statement.pushNode( BTND_RewriteData( f));

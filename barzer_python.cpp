@@ -267,13 +267,10 @@ struct BarzerEntity {
         eclass      (euid.getClass().ec), 
         esubclass   (euid.getClass().subclass)
     {
-        const StoredToken *tok = u.getDtaIdx().tokPool.getTokByIdSafe(euid.tokId);
-        if( tok ) {
-            const char *tokname = u.getStringPool().resolveId(tok->stringId);
-            if( tokname )
-                id.assign(tokname);
-        }
-            
+        const char *tokname = u.getGlobalPools().internalString_resolve(euid.tokId);
+
+        if( tokname )
+            id.assign(tokname);
     }
     std::ostream& print( std::ostream& fp ) const {
         return( fp << "ent(cl=" << eclass << ",scl=" << esubclass << ",id='" << id << "'" << ")" );
@@ -534,6 +531,11 @@ struct bead_list : public static_visitor<bool> {
     {
         if( l.isString() ) 
             d_list.append( std::string(d_universe.printableStringById(l.getId())) );
+        else if( l.isPunct() ) {
+            std::string ps;
+            ps.push_back( (char)( l.getId() ) );
+            d_list.append( ps );
+        }
         else 
             d_list.append(exposed::BarzerLiteral(l,d_universe));
         
@@ -633,7 +635,7 @@ struct PythonQueryProcessor {
     BELTrie*        local_trie;
     
     PythonQueryProcessor(const BarzerPython&b): 
-        bpy(b), local_trie(local_gp->mkNewTrie())
+        bpy(b), local_gp(new GlobalPools()), local_trie(local_gp->mkNewTrie())
     {}
     ~PythonQueryProcessor()
         { delete local_gp; delete local_trie; }
@@ -706,6 +708,9 @@ PythonQueryProcessor* BarzerPython::makeParseEnv( ) const
 
 BOOST_PYTHON_MODULE(pybarzer)
 {
+    AYLOGINIT(DEBUG);
+
+    AYLOG(DEBUG) << "LOADING BARZER PYTHON MODULE\n";
     boost::python::class_<barzer::BarzerPython>( "Barzer" )
         .def( "stem", &barzer::BarzerPython::bzstem )
         .def( "init", &barzer::BarzerPython::init )

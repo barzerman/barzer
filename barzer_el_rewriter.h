@@ -103,6 +103,13 @@ public:
 	const BarzelBeadData& getBeadData() const { return d_val[0]; }
 	      BarzelBeadData& getBeadData()       { return d_val[0]; }
 
+    const BarzelBeadAtomic* getSingleAtomic() const { 
+        if( d_val[0].which() == BarzelBeadAtomic_TYPE) { 
+            return boost::get<BarzelBeadAtomic>( &(d_val[0]) );
+        }  else
+            return 0;
+    }
+
 	const BarzelBeadDataVec& getBeadDataVec() const { return d_val; }
 	      BarzelBeadDataVec& getBeadDataVec()       { return d_val; }
 	bool isVec() const { return (d_val.size() > 1); }
