@@ -1499,17 +1499,28 @@ struct BELFunctionStorage_holder {
 
 	STFUN(entId)
     {
-        SETFUNCNAME(entClass);
+        SETFUNCNAME(entId);
 
         uint32_t stringId = 0xffffffff;
         if( rvec.size() ) {
             const BarzerEntity* ent  = getAtomicPtr<BarzerEntity>(rvec[0]);
             if( !ent ) {
-                FERROR("entity expected");
+                FERROR("Entity expected.");
             } else {
-	            const StoredToken *tok = q_universe.getDtaIdx().getStoredTokenPtrById(ent->tokId);
-                if( tok )
-                    stringId = tok->stringId;
+                 /*
+                   Entity's id usually keeps in internalGP
+                   to make it BarzerLiteral we need to intern it 
+                   from internalGP to GP
+                */
+                const char* entid = q_universe.gp.internalString_resolve(ent->getTokId());
+                if (entid)
+                      stringId = q_universe.gp.string_intern(entid);
+                else
+                {
+                        AYLOG(ERROR) << "Internal error";
+                        FERROR("Internal error");
+                        return false;
+                }         
             }
         }
 
