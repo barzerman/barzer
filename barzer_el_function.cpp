@@ -1546,19 +1546,16 @@ struct BELFunctionStorage_holder {
                    from internalGP to GP
                 */
                 const char* entid = q_universe.gp.internalString_resolve(ent->getTokId());
-                if (entid)
-                      stringId = q_universe.gp.string_intern(entid);
-                else
-                {
-                        AYLOG(ERROR) << "Internal error";
+                if (entid){
+                        setResult(result, BarzerString(entid) );
+                        return true;
+                } else {
                         FERROR("Internal error");
                         return false;
-                }         
+                }
             }
         }
-
-        setResult(result, BarzerLiteral(stringId) );
-        return true;
+        return false;
     }
 	STFUN(entClass)
     {
