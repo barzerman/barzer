@@ -212,8 +212,9 @@ public:
 template <typename T>
 struct skippedvector {
     typedef const std::vector<T> Vector;
-    size_t d_skip;
     const Vector& d_vec;
+    size_t d_skip;
+
 
     skippedvector( const Vector& v, size_t skip=0 ) : 
         d_vec(v), d_skip(skip)

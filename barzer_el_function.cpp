@@ -352,6 +352,9 @@ struct BELFunctionStorage_holder {
 		// caller
 		ADDFN(call); 
 
+                //setter
+                ADDFN(set);
+                
 		// getters
 		ADDFN(getWeekday); // getWeekday(BarzerDate)
 		ADDFN(getTokId); // (BarzerLiteral|BarzerEntity)
@@ -1534,24 +1537,19 @@ struct BELFunctionStorage_holder {
     {
         SETFUNCNAME(entId);
 
-        uint32_t stringId = 0xffffffff;
         if( rvec.size() ) {
             const BarzerEntity* ent  = getAtomicPtr<BarzerEntity>(rvec[0]);
             if( !ent ) {
                 FERROR("Entity expected.");
             } else {
-                 /*
-                   Entity's id usually keeps in internalGP
-                   to make it BarzerLiteral we need to intern it 
-                   from internalGP to GP
-                */
                 const char* entid = q_universe.gp.internalString_resolve(ent->getTokId());
                 if (entid){
                         setResult(result, BarzerString(entid) );
                         return true;
                 } else {
-                        FERROR("Internal error");
-                        return false;
+                        AYLOG(ERROR) << "Internal error";
+                        setResult(result, BarzerString() );
+                        return true;
                 }
             }
         }
