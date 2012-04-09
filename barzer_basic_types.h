@@ -459,6 +459,27 @@ struct BarzerRange {
         } else 
             return false;
     }
+    
+    bool scale( const BarzerNumber& n1,const BarzerNumber& n2, bool isMult = true /* when false - divides */ ) 
+    {
+        if( isNumeric() ) {
+            promote_toReal();
+            Real* rr = boost::get<Real>( &dta );
+            if( rr ) { // should always be true
+                double factor1 = n1.getRealWiden();
+                double factor2 = n2.getRealWiden();
+                if( isMult ) {
+                    rr->first   *= factor1;
+                    rr->second  *= factor2;
+                } else if( factor1 != 0 &&  factor2 != 0  ) {
+                    rr->first   /= factor1;
+                    rr->second  /= factor2;
+                }
+            }
+            return true;
+        } else 
+            return false;
+    }    
 	char geXMLtAttrValueChar( ) const {
 
 		switch( dta.which()) {

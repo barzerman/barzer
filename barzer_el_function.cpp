@@ -1800,6 +1800,38 @@ struct BELFunctionStorage_holder {
                 }
             }
         }
+        if( rvec.size() == 3 ) { // trying to scale range 
+            const char* func_name = ( mode == RANGE_MOD_SCALE_MULT ? "opMult" : "opDiv" );
+
+            const BarzelEvalResult& arg0 = rvec[0];
+            const BarzelEvalResult& arg1 = rvec[1];
+            const BarzelEvalResult& arg2 = rvec[2];
+            const BarzerNumber* n1 = getAtomicPtr<BarzerNumber>(arg1);
+            const BarzerNumber* n2 = getAtomicPtr<BarzerNumber>(arg2);            
+            if( n1 && n2 ) {
+                const BarzerRange* r = getAtomicPtr<BarzerRange>(arg0);
+                if( r ) {
+                    BarzerRange newR(*r);
+                    if( !newR.scale(*n1, *n2, mode == RANGE_MOD_SCALE_MULT) ) 
+                        FERROR("failed to scale the range");
+                    else {
+                        setResult(result, newR);
+                        return true;
+                    }
+                } else {
+                    const BarzerEntityRangeCombo* erc = getAtomicPtr<BarzerEntityRangeCombo>(arg0);
+                    if( erc ) {
+                        BarzerRange newR(erc->getRange());
+                        if( !newR.scale(*n1, *n2,mode == RANGE_MOD_SCALE_MULT) ) 
+                            FERROR("failed to scale the range");
+                        else {
+                            setResult(result, newR);
+                            return true;
+                        }
+                    }
+                }
+            }
+        }        
         return false;
     }
 	STFUN(opPlus)
