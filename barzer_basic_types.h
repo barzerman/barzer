@@ -703,6 +703,29 @@ inline bool operator< ( const BarzerERCExpr& l, const BarzerERCExpr& r )
 inline bool operator== ( const BarzerERCExpr& l, const BarzerERCExpr& r )
 	{ return l.isEqual(r);}
 
+	
+/// BarzerCast(what_is_casted, output_type)
+/// returns true if success
+struct BarzerCast {
+        ///default case
+        template <typename T, typename S>
+        bool operator()(const T& in, S& out) {return false;}
+        
+        bool operator()(const BarzerNumber& in, BarzerNumber& out)
+        {
+                if (out.isInt())                        
+                        out.set(int(in.isInt()? in.getInt() : in.getReal()));
+                else 
+                        out.set(double(in.isInt()? in.getInt() : in.getReal()));
+                return true;
+        }
+};
+
+
+
+
+
+
 } // namespace barzer ends
 
 #endif // BARZER_BASIC_TYPES_H
