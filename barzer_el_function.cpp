@@ -1074,13 +1074,13 @@ struct BELFunctionStorage_holder {
 		uint32_t cnt, tokId;
 		uint32_t cl, scl;
 		//const BELFunctionStorage_holder &holder;
-        const char* d_funcName;
+        const char* func_name;
 		const StoredUniverse &universe;
-        BarzelEvalContext& d_ctxt;
+        BarzelEvalContext& ctxt;
 
 		//EntityPacker(const BELFunctionStorage_holder &h)
 		EntityPacker(const StoredUniverse &u, BarzelEvalContext& ctxt, const char* funcName  )
-			: cnt(0), tokId(INVALID_STORED_ID), cl(0), scl(0), d_funcName(funcName), universe(u), d_ctxt(ctxt)
+			: cnt(0), tokId(INVALID_STORED_ID), cl(0), scl(0), func_name(funcName), universe(u), ctxt(ctxt)
         {}
 
 		bool operator()(const BarzerLiteral &ltrl) {
@@ -1091,7 +1091,7 @@ struct BELFunctionStorage_holder {
                 uint32_t internalStrId = universe.getGlobalPools().internalString_getId(str);
                 if( internalStrId == 0xffffffff ) {
                     /// couldnt internally resolve 
-                    // #error must report FERROR here 
+                    FERROR("Couldn't internally resolve. Use &lt;mkent s=\"\" c=\"\" id=\"\"/&gt; instead");
                 }
             }
             return( tokId = internalStrId );
@@ -1111,7 +1111,7 @@ struct BELFunctionStorage_holder {
 			return false;
 		}
 		template<class T> bool operator()(const T&) {
-            pushFuncError( d_ctxt, d_funcName, "Wrong range type" );
+                    FERROR("Wrong arg type" );
 			return false;
 		}
 	};
