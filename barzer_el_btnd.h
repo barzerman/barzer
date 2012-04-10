@@ -505,58 +505,7 @@ public:
 		);
         */
 	}
-	bool operator()( const BarzerRange& e) const 
-	{ 
-        if( d_rangeFlavor == FLAVOR_NUMERIC ) {
-            if( !d_range.isNumeric() || !e.isNumeric() )  
-                return false;
-
-		    if( d_mode == MODE_TYPE ) {
-			    return true;
-		    }
-		    if( d_mode == MODE_VAL ) {
-                if( d_range.isReal() ) {
-                    if( e.isReal() ) 
-                        return (d_range == e);
-                    else {
-                        BarzerRange eR(e);
-                        return ( eR.promote_toReal() == d_range );
-                    }
-                } else 
-                if( d_range.isInteger() ) {
-                    if( e.isInteger() ) 
-                        return (d_range == e);
-                    else {
-                        // e is a real range 
-                        BarzerRange eR(d_range);
-                        return ( eR.promote_toReal() == e );
-                    }
-                } else 
-                    return false;
-		    } else 
-			    return false;
-        } else {
-		    if( d_mode == MODE_TYPE ) {
-			    return ( d_range.getType() == e.getType() );
-		    } else
-		    if( d_mode == MODE_VAL ) {
-			    if( d_range.getType() == e.getType() ) {
-				    if( !e.isEntity() ) {
-					    return ( d_range == e );
-				    } else {
-					    const BarzerRange::Entity* otherEntPair = e.getEntity();
-					    const BarzerRange::Entity* thisEntPair = d_range.getEntity();
-					    return (
-						    thisEntPair->first.matchOther( otherEntPair->first ) &&
-						    thisEntPair->second.matchOther( otherEntPair->second ) 
-					    );
-				    }
-			    } else
-				    return false;
-		    } else 
-			    return false;
-        }
-	} 
+	bool operator()( const BarzerRange&) const;
 	std::ostream& printXML( std::ostream& fp, const GlobalPools&  ) const ;
 	std::ostream& print( std::ostream& fp,const BELPrintContext& ) const 
 	{ return (fp << '[' << d_range) << ']'; }
