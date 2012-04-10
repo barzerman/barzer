@@ -168,13 +168,13 @@ std::ostream& BELReader::printNode( std::ostream& fp, const BarzelTrieNode& node
 }
 void BELReader::addProc( uint32_t strId, const BELStatementParsed& sp )
 {
-        if (   sp.translation.child.size() == 0 ) 
-        {
-                std::ostream& os = sp.getErrStream() ;
-               os << "<error type=\"WARNING\">Empty procedure ";
-               xmlEscape(sp.getSourceName().c_str(), os) << ':' << sp.getStmtNumber()   << " is not permitted. Skipping.</error>\n";
-        }
-        return;
+    if (   sp.translation.child.size() == 0 ) 
+    {
+            std::ostream& os = sp.getErrStream() ;
+           os << "<error type=\"WARNING\">Empty procedure ";
+           xmlEscape(sp.getSourceName().c_str(), os) << ':' << sp.getStmtNumber()   << " is not permitted. Skipping.</error>\n";
+    }
+    
 	int rc = getTrie().getProcs().generateStoredProc( strId, sp.translation );
 	if( rc == BarzelProcs::ERR_OK ) {
 		++numProcs;

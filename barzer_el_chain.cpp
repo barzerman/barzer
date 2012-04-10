@@ -3,6 +3,16 @@
 #include <barzer_universe.h>
 
 namespace barzer {
+std::ostream& operator<< ( std::ostream& fp, const BarzelBeadData& x)
+{
+    const BarzelBeadAtomic* atomic = boost::get<BarzelBeadAtomic>( &x ); 
+    if( atomic ) {
+        atomic->print(fp);
+    } else {
+        fp << "<non-atomic>";
+    }
+    return fp;
+}
 
 void BarzelBead::initFromCTok( const CToken& ct )
 {

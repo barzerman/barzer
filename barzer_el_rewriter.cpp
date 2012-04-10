@@ -198,6 +198,18 @@ bool Eval_visitor_needToStop::operator()<BTND_Rewrite_Logic>(const BTND_Rewrite_
     return false;
 }
 
+inline std::ostream& operator << ( std::ostream& fp, const BarzelEvalResultVec& v ) 
+{
+    for( BarzelEvalResultVec::const_iterator i = v.begin(); i!= v.end(); ++i ) {
+        fp << *i << "\n";
+    }
+    return fp;
+}
+inline std::ostream& operator << ( std::ostream& fp, const ay::skippedvector<BarzelEvalResult>& v ) 
+{
+    return fp << "ay::skipvec " << v.vec() << std::endl;
+}
+
 struct Eval_visitor_compute : public boost::static_visitor<bool> {  
 	const BarzelEvalResultVec& d_childValVec;
 	BarzelEvalResult& d_val;
@@ -257,8 +269,12 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const B
 	//AYLOG(DEBUG) << "calling funid:" << data.nameId;
 	const BarzelEvalNode* evalNode = ctxt.getTrie().getProcs().getEvalNode( data.nameId );
 	if( evalNode ) {
-		BarzelEvalContext::frame_stack_raii frameRaii( ctxt, d_childValVec );
+        // std::cerr << "SHITFUCK: " << d_childValVec << std::endl;
+		BarzelEvalContext::frame_stack_raii frameRaii( ctxt, ay::skippedvector<BarzelEvalResult>(d_childValVec) );
+        const BarzelEvalProcFrame* topFrame = ctxt.getTopProcFrame();
 		bool ret = evalNode->eval( d_val, ctxt);
+        // BarzerNumber* n = barzel_bead_data_get<BarzerNumber>(d_val.getBeadData());
+
 		return ret;
 	}
 	const StoredUniverse &u = ctxt.universe;
@@ -422,6 +438,8 @@ bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) cons
 {
 	BarzelEvalResultVec childValVec;
 
+    const BarzelEvalProcFrame* topFrame = ctxt.getTopProcFrame();
+
 	if( boost::apply_visitor(Eval_visitor_evalChildren(), d_btnd)
 	        && d_child.size() ) {
 		
@@ -436,8 +454,9 @@ bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) cons
 			size_t substPos= 0xffffffff;
 			if( childNode.isSubstitutionParm( substPos ) ) {
 				const BarzelEvalResult* subsResult = ctxt.getPositionalArg( substPos );
-				if( subsResult )
+				if( subsResult ) {
 					childVal.setBeadData(subsResult->getBeadData());
+                }
 			} else {
 				if( !childNode.eval(childVal, ctxt) )
 					return false; // error in one of the children occured
@@ -452,7 +471,6 @@ bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) cons
 
 	Eval_visitor_compute visitor(childValVec,val,ctxt, *this);
 	bool ret = boost::apply_visitor( visitor, d_btnd );
-
 	
 	return ret;
 

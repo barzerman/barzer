@@ -2513,23 +2513,6 @@ BELFunctionStorage::~BELFunctionStorage()
 	delete holder;
 }
 
-
-
-/*
-bool BELFunctionStorage::call(BarzelEvalContext& ctxt, const char *fname, BarzelEvalResult &er,
-		                                   const BarzelEvalResultVec &ervec,
-		                                   const StoredUniverse &u) const
-{
-	const uint32_t fid = globPools.stringPool.getId(fname);
-	if (fid == ay::UniqueCharPool::ID_NOTFOUND) {
-		std::stringstream strstr;
-		strstr << "No such function name: `" << fname << "'";
-                pushFuncError(ctxt, "", strstr.str().c_str() );
-		return false;
-	}
-	return call(ctxt,fid, er, ervec, u);
-}
-*/
 bool BELFunctionStorage::call(BarzelEvalContext& ctxt, const BTND_Rewrite_Function& fr, BarzelEvalResult &er,
 									              const ay::skippedvector<BarzelEvalResult> &ervec,
 									              const StoredUniverse &u) const

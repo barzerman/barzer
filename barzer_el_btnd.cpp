@@ -138,7 +138,9 @@ std::ostream&  BTND_Rewrite_Variable::print( std::ostream& fp , const BELPrintCo
 	case MODE_WC_NUMBER: // wildcard number
 		return( fp << "$" << varId  );
 	case MODE_VARNAME:   // variable name 
-		return( fp << "$" << ctxt.printVariableName( fp, varId ) );
+        fp <<  "$" ;
+        ctxt.printVariableName( fp, varId ) ;
+		return fp;
 	case MODE_PATEL_NUMBER: // pattern element number
 		return( fp << "p$" << varId );
 	}

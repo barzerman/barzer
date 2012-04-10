@@ -5,7 +5,7 @@ namespace barzer
 	BarzerNumber& BarzerNumber::operator+= (const BarzerNumber& num)
 	{
 		d_asciiLen = 0;
-		d_stringId = 0;
+		d_stringId = 0xffffffff;
 
 		if (isNan() || num.isNan())
 			clear();
@@ -25,7 +25,7 @@ namespace barzer
 	BarzerNumber& BarzerNumber::operator*= (const BarzerNumber& num)
 	{
 		d_asciiLen = 0;
-		d_stringId = 0;
+		d_stringId = 0xffffffff;
 
 		if (isNan() || num.isNan())
 			clear();
@@ -39,7 +39,7 @@ namespace barzer
 	BarzerNumber& BarzerNumber::operator/= (const BarzerNumber& num)
 	{
 		d_asciiLen = 0;
-		d_stringId = 0;
+		d_stringId = 0xffffffff;
 
 		if (isNan() || num.isNan())
 			clear();

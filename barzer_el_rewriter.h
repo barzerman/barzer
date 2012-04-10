@@ -4,6 +4,7 @@
 //#include <barzer_emitter.h>
 #include <barzer_el_parser.h>
 #include <barzer_el_chain.h>
+#include <ay/ay_vector.h>
 namespace barzer {
 /// rewriter is a tree which is evaluated based on input
 /// result of evaluation is a value computed from underlying nodes
@@ -114,8 +115,17 @@ public:
 	      BarzelBeadDataVec& getBeadDataVec()       { return d_val; }
 	bool isVec() const { return (d_val.size() > 1); }
 	template <typename T> void setBeadData( const T& t ) { d_val[0] = t; }
-};
+    
 
+    std::ostream& print( std::ostream& fp ) const
+    {
+        return ( fp << getBeadData() );
+    }
+};
+inline std::ostream& operator<< ( std::ostream& fp, const BarzelEvalResult& x )
+{
+    return x.print(fp);
+}
 template <>
 inline void BarzelEvalResult::setBeadData<BarzelBeadDataVec>( const BarzelBeadDataVec& v )
 {
@@ -145,12 +155,22 @@ inline void BarzelEvalResult::setBeadData<BarzelBeadRange>( const BarzelBeadRang
 typedef std::vector< BarzelEvalResult > BarzelEvalResultVec;
 
 struct BarzelEvalProcFrame {
-	BarzelEvalResultVec resVec;
+    BarzelEvalResultVec d_v;
+    size_t d_skip;
 	
-	BarzelEvalProcFrame( ) {}
-	BarzelEvalProcFrame( const BarzelEvalResultVec& rv ) : resVec( rv ) {}
+	BarzelEvalProcFrame( const BarzelEvalProcFrame& x )  : 
+        d_v(x.d_v), d_skip(x.d_skip){}
+
+	BarzelEvalProcFrame( )  : d_skip(0) {}
+	BarzelEvalProcFrame( const ay::skippedvector<BarzelEvalResult>& rv ) : d_v(rv.vec()), d_skip(rv.getSkip() ) {}
+
 	const BarzelEvalResult* getPositionalArg( size_t pos ) const
-		{ return( pos< resVec.size() ? &(resVec[pos]) : 0 ); }
+		{ return( (pos+ d_skip)< d_v.size() ? &(d_v[d_skip+pos]) : 0 ); }
+    void assign( const ay::skippedvector<BarzelEvalResult>& rv )
+    {
+        d_v = rv.vec();
+        d_skip = rv.getSkip();
+    }
 };
 
 struct BarzelEvalContext {
@@ -167,11 +187,11 @@ struct BarzelEvalContext {
 	std::stack< BarzelEvalProcFrame > d_procFrameStack; 
 	struct frame_stack_raii {
 		BarzelEvalContext& context;
-		frame_stack_raii( BarzelEvalContext& ctxt, const BarzelEvalResultVec& rv ) : 
+		frame_stack_raii( BarzelEvalContext& ctxt, const ay::skippedvector<BarzelEvalResult>& rv ) : 
 			context(ctxt)
 		{ 
 			context.d_procFrameStack.push( BarzelEvalProcFrame() );
-			context.d_procFrameStack.top().resVec = rv;
+			context.d_procFrameStack.top().assign(rv);
 		}
 
 		frame_stack_raii( BarzelEvalContext& ctxt, const BarzelEvalProcFrame& frame ):
@@ -195,6 +215,8 @@ struct BarzelEvalContext {
 		matchInfo(mi), universe(uni) , d_trie(trie),err(EVALERR_OK), d_barz(barz)
 	{}
     BarzelEvalContext& pushBarzelError( const char* err ) ; 
+    const BarzelEvalProcFrame* getTopProcFrame() const 
+        { return ( d_procFrameStack.empty() ? 0: &(d_procFrameStack.top()) ); }
 private:
     BarzelEvalContext( const BarzelEvalContext& x ) :   
 	    matchInfo(x.matchInfo),
