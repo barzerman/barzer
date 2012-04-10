@@ -18,7 +18,7 @@ namespace barzer
 
 	BarzerNumber& BarzerNumber::operator-= (const BarzerNumber& num)
 	{
-		*this += (num * -1);
+		*this += (num * BarzerNumber(-1));
 		return *this;
 	}
 

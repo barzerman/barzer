@@ -1,6 +1,7 @@
 #ifndef BARZER_NUMBER_H
 #define BARZER_NUMBER_H
 
+#include <limits>
 #include <iostream>
 #include <stdint.h>
 #include <stdlib.h>
@@ -54,6 +55,7 @@ public:
 	BarzerNumber& operator-= (const BarzerNumber& num);
 	BarzerNumber& operator*= (const BarzerNumber& num);
 	BarzerNumber& operator/= (const BarzerNumber& num);
+	operator bool () const { return getRealWiden(); }
 
 	inline bool isNan() const { return type == NTYPE_NAN; }
 	inline bool isInt() const { return type == NTYPE_INT; }
@@ -162,4 +164,50 @@ inline std::ostream& operator <<( std::ostream& fp, const BarzerNumber& n )
 { return n.print(fp); }
 
 } // barzer namespace
+
+namespace std
+{
+	template<>
+	class numeric_limits<barzer::BarzerNumber>
+	{
+	public:
+		static const bool is_specialized = true;
+
+		static barzer::BarzerNumber min() throw() { return barzer::BarzerNumber (std::numeric_limits<double>::min()); }
+		static barzer::BarzerNumber max() throw() { return barzer::BarzerNumber (std::numeric_limits<double>::max()); }
+		static const int digits = std::numeric_limits<double>::digits;
+		static const int digits10 = std::numeric_limits<double>::digits;
+		static const bool is_signed = std::numeric_limits<double>::is_signed;
+		static const bool is_integer = std::numeric_limits<double>::is_integer;
+		static const bool is_exact = std::numeric_limits<double>::is_exact;
+		static const int radix = std::numeric_limits<double>::radix;
+		static barzer::BarzerNumber epsilon() throw() { return std::numeric_limits<double>::epsilon(); }
+		static barzer::BarzerNumber round_error() throw() { return std::numeric_limits<double>::round_error(); }
+
+		static const int min_exponent = std::numeric_limits<double>::min_exponent;
+		static const int min_exponent10 = std::numeric_limits<double>::min_exponent10;
+		static const int max_exponent = std::numeric_limits<double>::max_exponent;
+		static const int max_exponent10 = std::numeric_limits<double>::max_exponent10;
+
+		static const bool has_infinity = std::numeric_limits<double>::has_infinity;
+		static const bool has_quiet_NaN = std::numeric_limits<double>::has_quiet_NaN;
+		static const bool has_signaling_NaN = std::numeric_limits<double>::has_signaling_NaN;
+		static const float_denorm_style has_denorm = std::numeric_limits<double>::has_denorm;
+		static const bool has_denorm_loss = std::numeric_limits<double>::has_denorm_loss;
+
+		static barzer::BarzerNumber infinity() throw() { return std::numeric_limits<double>::infinity(); }
+		static barzer::BarzerNumber quiet_NaN() throw() { return std::numeric_limits<double>::quiet_NaN(); }
+		static barzer::BarzerNumber signaling_NaN() throw() { return std::numeric_limits<double>::signaling_NaN(); }
+		static barzer::BarzerNumber denorm_min() throw() { return std::numeric_limits<double>::denorm_min(); }
+
+		static const bool is_iec559 = std::numeric_limits<double>::is_iec559;
+		static const bool is_bounded = std::numeric_limits<double>::is_bounded;
+		static const bool is_modulo = std::numeric_limits<double>::is_modulo;
+
+		static const bool traps = std::numeric_limits<double>::traps;
+		static const bool tinyness_before = std::numeric_limits<double>::tinyness_before;
+		static const float_round_style round_style = std::numeric_limits<double>::round_style;
+	};
+}
+
 #endif //  BARZER_NUMBER_H

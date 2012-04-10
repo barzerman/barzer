@@ -609,7 +609,7 @@ struct BELFunctionStorage_holder {
             case 3: y = getNumber(rvec[2]);
             case 2: { // Do we need to check if ent is ent(1,3) or not ?
                 const BarzerEntity* be = getAtomicPtr<BarzerEntity>(rvec[1]);
-                m = (be? gpools.dateLookup.resolveMonthID(be->getTokId()) :getNumber(rvec[1]));
+                m = (be? BarzerNumber(gpools.dateLookup.resolveMonthID(be->getTokId())) :getNumber(rvec[1]));
             }
             case 1: d = getNumber(rvec[0]);
             case 0: break; // 0 arguments = today
