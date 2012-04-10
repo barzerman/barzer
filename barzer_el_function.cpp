@@ -126,7 +126,14 @@ struct mult {
 	template <class T> T operator()(T v1, T v2) { return v1 * v2; }
 };
 struct div {
-	template <class T> T operator()(T v1, T v2) { return v1 / v2; }
+	template <class T> T operator()(T v1, T v2)
+	{
+		if (v2)
+			return v1 / v2;
+		if (!v1)
+			return std::numeric_limits<T>::quiet_NaN();
+		return std::numeric_limits<T>::infinity();
+	}
 };
 struct lt {
     template <class T> bool operator()(T v1, T v2) { return v1 < v2; }
