@@ -439,28 +439,48 @@ struct BarzerRange {
 	void setNoHI() { rng_mode= RNG_MODE_NO_HI; }
 	void setNoLO() { rng_mode= RNG_MODE_NO_LO; }
 
+	
+        enum {
+            RANGE_MOD_SCALE_MULT,
+            RANGE_MOD_SCALE_DIV,
+            RANGE_MOD_SCALE_PLUS,
+            RANGE_MOD_SCALE_MINUS         
+        } ;
     /// scales the range if its numeric . returns false if failed to scale (incompatible types etc)
-    bool scale( const BarzerNumber& n, bool isMult = true /* when false - divides */ ) 
+    bool scale( const BarzerNumber& n, int mode  ) 
     {
         if( isNumeric() ) {
             promote_toReal();
             Real* rr = boost::get<Real>( &dta );
             if( rr ) { // should always be true
                 double factor = n.getRealWiden();
-                if( isMult ) {
-                    rr->first   *= factor;
-                    rr->second  *= factor;
-                } else if( factor != 0 ) {
-                    rr->first   /= factor;
-                    rr->second  /= factor;
+                switch(mode) {
+                    case RANGE_MOD_SCALE_MULT:{
+                        rr->first   *= factor;
+                        rr->second  *= factor;
+                    } break;
+                    case RANGE_MOD_SCALE_DIV: if( factor != 0 ) {
+                        rr->first   /= factor;
+                        rr->second  /= factor;
+                    } break;   
+                    case RANGE_MOD_SCALE_MINUS: {
+                        rr->first   -= factor;
+                        rr->second  -= factor;
+                    } break;
+                    case RANGE_MOD_SCALE_PLUS: {
+                        rr->first   += factor;
+                        rr->second  += factor;
+                    } break;
+                    default: ;//do nothing
                 }
+
             }
             return true;
         } else 
             return false;
     }
     
-    bool scale( const BarzerNumber& n1,const BarzerNumber& n2, bool isMult = true /* when false - divides */ ) 
+    bool scale( const BarzerNumber& n1,const BarzerNumber& n2, int mode) 
     {
         if( isNumeric() ) {
             promote_toReal();
@@ -468,13 +488,26 @@ struct BarzerRange {
             if( rr ) { // should always be true
                 double factor1 = n1.getRealWiden();
                 double factor2 = n2.getRealWiden();
-                if( isMult ) {
-                    rr->first   *= factor1;
-                    rr->second  *= factor2;
-                } else if( factor1 != 0 &&  factor2 != 0  ) {
-                    rr->first   /= factor1;
-                    rr->second  /= factor2;
+                switch(mode) {
+                    case RANGE_MOD_SCALE_MULT:{
+                        rr->first   *= factor1;
+                        rr->second  *= factor2;
+                    } break;
+                    case RANGE_MOD_SCALE_DIV: if( factor1 != 0 && factor2 != 0 ) {
+                        rr->first   /= factor1;
+                        rr->second  /= factor2;
+                    } break;   
+                    case RANGE_MOD_SCALE_MINUS: {
+                        rr->first   -= factor1;
+                        rr->second  -= factor2;
+                    } break;
+                    case RANGE_MOD_SCALE_PLUS: {
+                        rr->first   += factor1;
+                        rr->second  += factor2;
+                    } break;
+                    default: ;//do nothing
                 }
+
             }
             return true;
         } else 

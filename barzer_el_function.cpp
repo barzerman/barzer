@@ -126,7 +126,9 @@ struct mult {
 	template <class T> T operator()(T v1, T v2) { return v1 * v2; }
 };
 struct div {
-	template <class T> T operator()(T v1, T v2) { return v1 / v2; }
+	template <class T> T operator()(T v1, T v2) {          
+            return (v2 == 0)? v1 : v1 / v2;          
+        }
 };
 struct lt {
     template <class T> bool operator()(T v1, T v2) { return v1 < v2; }
@@ -1757,140 +1759,152 @@ struct BELFunctionStorage_holder {
 
 	// arith
 
-    /// range scale modes
-    enum {
-        RANGE_MOD_SCALE_MULT,
-        RANGE_MOD_SCALE_DIV
-    };
-    bool tryScaleRange( BarzelEvalResult &result, const ay::skippedvector<BarzelEvalResult> &rvec, const StoredUniverse &q_universe, BarzelEvalContext& ctxt, const BTND_Rewrite_Function& fr, int mode /*RANGE_MOD_XXX*/ ) const
+///        mode =  BarzerRange::RANGE_MOD_SCALE_(MULT|DIV|PLUS|MINUS)  
+    bool tryScaleRange( BarzelEvalResult &result, const ay::skippedvector<BarzelEvalResult> &rvec,
+                        const StoredUniverse &q_universe, BarzelEvalContext& ctxt, const BTND_Rewrite_Function& fr, int mode /*RANGE_MOD_XXX*/ ) const
     {
+        const char* func_name = (mode == BarzerRange::RANGE_MOD_SCALE_MULT ? "opMult" :
+                            mode == BarzerRange::RANGE_MOD_SCALE_DIV ? "opDiv" :
+                            mode == BarzerRange::RANGE_MOD_SCALE_PLUS ? "opPlus":
+                            mode == BarzerRange::RANGE_MOD_SCALE_MINUS ?"opMinus" : "<Unknown>");
+       /* switch(mode) {
+            case BarzerRange::RANGE_MOD_SCALE_MULT: func_name = "opMult"; break;
+            case BarzerRange::RANGE_MOD_SCALE_DIV: func_name = "opDiv"; break;
+            case BarzerRange::RANGE_MOD_SCALE_PLUS: func_name = "opPlus"; break;
+            default:{
+                func_name = "opMinus"; //smth wrong
+                AYLOG(ERROR) << "Range_MOD_SCALE is wrong. mode=" << mode;
+            }
+        }*/
         if( rvec.size() == 2 ) { // trying to scale range 
-            const char* func_name = ( mode == RANGE_MOD_SCALE_MULT ? "opMult" : "opDiv" );
-
             const BarzelEvalResult& arg0 = rvec[0];
             const BarzelEvalResult& arg1 = rvec[1];
             const BarzerNumber* n = getAtomicPtr<BarzerNumber>(arg1);
             if( n ) {
                 const BarzerRange* r = getAtomicPtr<BarzerRange>(arg0);
                 if( r ) {
-                    BarzerRange newR(*r);
-                    
-                    if( !newR.scale(*n, mode == RANGE_MOD_SCALE_MULT) ) {
+                    BarzerRange newR(*r);                    
+                    if( !newR.scale(*n, mode) ) 
                         FERROR("failed to scale the range");
-                    } else {
-		                setResult(result, newR);
+                     else {
+		        setResult(result, newR);
                         return true;
                     }
                 } else {
                     const BarzerEntityRangeCombo* erc = getAtomicPtr<BarzerEntityRangeCombo>(arg0);
                     if( erc ) {
                         BarzerRange newR(erc->getRange());
-                        if( !newR.scale(*n,mode == RANGE_MOD_SCALE_MULT) ) {
+                        if( !newR.scale(*n,mode) ) 
                             FERROR("failed to scale the range");
-                        } else {
-		                    setResult(result, newR);
+                         else {
+		            setResult(result, newR);
                             return true;
                         }
-                    }
-                }
-            }
-        }
-        if( rvec.size() == 3 ) { // trying to scale range 
-            const char* func_name = ( mode == RANGE_MOD_SCALE_MULT ? "opMult" : "opDiv" );
-
-            const BarzelEvalResult& arg0 = rvec[0];
-            const BarzelEvalResult& arg1 = rvec[1];
-            const BarzelEvalResult& arg2 = rvec[2];
-            const BarzerNumber* n1 = getAtomicPtr<BarzerNumber>(arg1);
-            const BarzerNumber* n2 = getAtomicPtr<BarzerNumber>(arg2);            
+                    } 
+                } 
+            } 
+        } else  if( rvec.size() == 3 ) { // trying to scale range 
+            const BarzerNumber* n1 = getAtomicPtr<BarzerNumber>(rvec[1]);
+            const BarzerNumber* n2 = getAtomicPtr<BarzerNumber>(rvec[2]);            
             if( n1 && n2 ) {
-                const BarzerRange* r = getAtomicPtr<BarzerRange>(arg0);
+                const BarzerRange* r = getAtomicPtr<BarzerRange>(rvec[0]);
                 if( r ) {
                     BarzerRange newR(*r);
-                    if( !newR.scale(*n1, *n2, mode == RANGE_MOD_SCALE_MULT) ) 
+                    if( !newR.scale(*n1, *n2, mode) ) 
                         FERROR("failed to scale the range");
                     else {
                         setResult(result, newR);
                         return true;
                     }
                 } else {
-                    const BarzerEntityRangeCombo* erc = getAtomicPtr<BarzerEntityRangeCombo>(arg0);
+                    const BarzerEntityRangeCombo* erc = getAtomicPtr<BarzerEntityRangeCombo>(rvec[0]);
                     if( erc ) {
                         BarzerRange newR(erc->getRange());
-                        if( !newR.scale(*n1, *n2,mode == RANGE_MOD_SCALE_MULT) ) 
+                        if( !newR.scale(*n1, *n2,mode) ) 
                             FERROR("failed to scale the range");
                         else {
                             setResult(result, newR);
                             return true;
                         }
-                    }
+                    } 
                 }
-            }
-        }        
+            } 
+        }      
         return false;
     }
-	STFUN(opPlus)
-	{
-        // SETFUNCNAME(opPlus);
-		BarzerNumber bn(0);
-		ArithVisitor<plus> visitor(bn);
+    STFUN(opPlus)
+    {
+        if ( tryScaleRange( result, rvec, q_universe, ctxt, fr, BarzerRange::RANGE_MOD_SCALE_PLUS ) )
+            return true;
+        SETFUNCNAME(opPlus);
+        BarzerNumber bn(0);
+        ArithVisitor<plus> visitor(bn);
+        try {
+            for (BarzelEvalResultVec::const_iterator ri = rvec.begin(); ri != rvec.end(); ++ri) {
+                if (!boost::apply_visitor(visitor, ri->getBeadData())) {FERROR("Wrong argument types"); break;}
+            }
+            setResult(result, bn);
+            return true;
+        } catch (boost::bad_get) {
+            FERROR("Wrong argument types");
+        }
+        return false;
+    }
 
-		for (BarzelEvalResultVec::const_iterator ri = rvec.begin(); ri != rvec.end(); ++ri) {
-			if (!boost::apply_visitor(visitor, ri->getBeadData())) break;
-		}
-
-		setResult(result, bn);
-		return true;
-	}
-
-	STFUN(opMinus)
-	{
+    STFUN(opMinus)
+    {
+        if ( tryScaleRange( result, rvec, q_universe, ctxt, fr, BarzerRange::RANGE_MOD_SCALE_MINUS ) )
+            return true;
         SETFUNCNAME(opMinus);
-		BarzerNumber &bn = setResult(result, BarzerNumber()); // NaN
+        BarzerNumber &bn = setResult(result, BarzerNumber()); // NaN
 
-		try {
-		    if (rvec.size()) {
+        try {
+            if (rvec.size()) {
                 ArithVisitor<minus> visitor(bn);
 
                 BarzelEvalResultVec::const_iterator ri = rvec.begin();
 
                 // sets bn to the value of the first element of rvec
                 bn = getNumber(*ri);
-                while(++ri != rvec.end())
-                    if (!boost::apply_visitor(visitor, ri->getBeadData())) return false;
+                while (++ri != rvec.end())
+                    if (!boost::apply_visitor(visitor, ri->getBeadData())) {FERROR("Wrong argument types"); return false;}
                 return true;
-		    }
-		} catch (boost::bad_get) {
+            }
+        } catch (boost::bad_get) {
             FERROR("Wrong argument types");
-		}
-		//setResult(result, bn); // most likely NaN if something went wrong
-		return false;
-	}
+        }
+        //setResult(result, bn); // most likely NaN if something went wrong
+        return false;
+    }
     
     
-	STFUN(opMult)
-	{
-        if( tryScaleRange( result, rvec, q_universe, ctxt, fr, RANGE_MOD_SCALE_MULT ) ) 
+    STFUN(opMult)
+    {
+        if ( tryScaleRange( result, rvec, q_universe, ctxt, fr, BarzerRange::RANGE_MOD_SCALE_MULT ) )
             return true;
-        // SETFUNCNAME(opMult);
-		BarzerNumber bn(1);
-		ArithVisitor<mult> visitor(bn);
+     SETFUNCNAME(opMult);
+        BarzerNumber bn(1);
+        ArithVisitor<mult> visitor(bn);
+        try {
+            for (BarzelEvalResultVec::const_iterator ri = rvec.begin(); ri != rvec.end(); ++ri) {
+                if (!boost::apply_visitor(visitor, ri->getBeadData())) {FERROR("Wrong argument types"); break;}
+            }
+                setResult(result, bn);
+                return true;
+        } catch (boost::bad_get) {
+            FERROR("Wrong argument types");
+        }
+        return false;
 
-		for (BarzelEvalResultVec::const_iterator ri = rvec.begin(); ri != rvec.end(); ++ri) {
-			if (!boost::apply_visitor(visitor, ri->getBeadData())) break;
-		}
+    }
 
-		setResult(result, bn);
-		return true;
-	}
-
-	STFUN(opDiv) // no checks for division by zero yet
-	{
-        if( tryScaleRange( result, rvec, q_universe, ctxt, fr, RANGE_MOD_SCALE_DIV ) ) 
+    STFUN(opDiv) // no checks for division by zero yet
+    {
+        if ( tryScaleRange( result, rvec, q_universe, ctxt, fr, BarzerRange::RANGE_MOD_SCALE_DIV ) )
             return true;
         SETFUNCNAME(opDiv);
-		BarzerNumber &bn = setResult(result, BarzerNumber()); // NaN
-		try {
+        BarzerNumber &bn = setResult(result, BarzerNumber()); // NaN
+        try {
             if (rvec.size()) {
                 ArithVisitor<div> visitor(bn);
 
@@ -1898,17 +1912,17 @@ struct BELFunctionStorage_holder {
 
                 // sets bn to the value of the first element of rvec
                 bn = getNumber(*ri);
-                while(++ri != rvec.end())
-                    if (!boost::apply_visitor(visitor, ri->getBeadData())) return false;
+                while (++ri != rvec.end())
+                    if (!boost::apply_visitor(visitor, ri->getBeadData())) {FERROR("Wrong argument types");return false;}
                 return true;
             }
-		} catch (boost::bad_get) {
+        } catch (boost::bad_get) {
             FERROR("Wrong argument types");
-		}
-		//setResult(result, bn); // most likely NaN if something went wrong
-		return false;
+        }
+        //setResult(result, bn); // most likely NaN if something went wrong
+        return false;
 
-	}
+    }
 
 
 	// logic
