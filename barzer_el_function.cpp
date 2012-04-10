@@ -159,19 +159,7 @@ template<class U> struct ArithVisitor : public boost::static_visitor<bool> {
 			val.clear();
 			return false;
 		}
-		if (val.isReal()) {
-			if (dt.isReal()) {
-				val.set( op(val.getReal(), dt.getReal()) );
-			} else {
-				val.set( op(val.getReal(), (double) dt.getInt()) );
-			}
-		} else {
-			if (dt.isReal()) {
-				val.set( op((double)val.getInt(), dt.getReal()) );
-			} else {
-				val.set( op(val.getInt(), dt.getInt()) );
-			}
-		}
+		val = op(val, dt);
 		return true;
 	}
 
