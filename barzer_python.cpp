@@ -222,7 +222,7 @@ struct BarzerDate : public barzer::BarzerDate {
     std::ostream& print( std::ostream& fp ) const 
         { return nv_streamer(fp,"date") (isValidDay(),"day",day) (isValidMonth(),"month",month ) (isValidYear(),"year",year ).fp; }
 };
-std::ostream& operator<< ( std::ostream& fp, const BarzerDate& d ) { return d.print(fp); }
+// std::ostream& operator<< ( std::ostream& fp, const BarzerDate& d ) { return d.print(fp); }
 ////                                                            TIME OF DAY 
 struct BarzerTimeOfDay : public barzer::BarzerTimeOfDay {
 
@@ -345,11 +345,17 @@ struct BarzerRange_printer_visitor : public static_visitor<void> {
     void operator()( const barzer::BarzerRange::Entity& r ) 
         { fp << extract<BarzerEntity>(br.rng[lohi]); }
     void operator()( const barzer::BarzerRange::Date& r ) 
-        { fp << extract<BarzerDate>(br.rng[lohi]); }
+        { 
+            const BarzerDate& bd = extract<BarzerDate>(br.rng[lohi]);
+            fp << bd;
+        }
     void operator()( const barzer::BarzerRange::DateTime& r ) 
         { fp << extract<BarzerDateTime>(br.rng[lohi]); }
     void operator()( const barzer::BarzerRange::TimeOfDay& r ) 
-        { fp << extract<BarzerTimeOfDay>(br.rng[lohi]); }
+        { 
+            const BarzerTimeOfDay& tod = extract<BarzerTimeOfDay>(br.rng[lohi]); 
+            fp << tod;
+        }
     template <typename T>
     void operator()( const T& r ) 
     {
