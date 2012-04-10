@@ -271,7 +271,7 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const B
 	if( evalNode ) {
         // std::cerr << "SHITFUCK: " << d_childValVec << std::endl;
 		BarzelEvalContext::frame_stack_raii frameRaii( ctxt, ay::skippedvector<BarzelEvalResult>(d_childValVec) );
-        const BarzelEvalProcFrame* topFrame = ctxt.getTopProcFrame();
+        // const BarzelEvalProcFrame* topFrame = ctxt.getTopProcFrame();
 		bool ret = evalNode->eval( d_val, ctxt);
         // BarzerNumber* n = barzel_bead_data_get<BarzerNumber>(d_val.getBeadData());
 
@@ -438,7 +438,7 @@ bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) cons
 {
 	BarzelEvalResultVec childValVec;
 
-    const BarzelEvalProcFrame* topFrame = ctxt.getTopProcFrame();
+    // const BarzelEvalProcFrame* topFrame = ctxt.getTopProcFrame();
 
 	if( boost::apply_visitor(Eval_visitor_evalChildren(), d_btnd)
 	        && d_child.size() ) {
