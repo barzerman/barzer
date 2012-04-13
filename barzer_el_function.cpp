@@ -1760,15 +1760,6 @@ struct BELFunctionStorage_holder {
                             mode == BarzerRange::RANGE_MOD_SCALE_DIV ? "opDiv" :
                             mode == BarzerRange::RANGE_MOD_SCALE_PLUS ? "opPlus":
                             mode == BarzerRange::RANGE_MOD_SCALE_MINUS ?"opMinus" : "<Unknown>");
-       /* switch(mode) {
-            case BarzerRange::RANGE_MOD_SCALE_MULT: func_name = "opMult"; break;
-            case BarzerRange::RANGE_MOD_SCALE_DIV: func_name = "opDiv"; break;
-            case BarzerRange::RANGE_MOD_SCALE_PLUS: func_name = "opPlus"; break;
-            default:{
-                func_name = "opMinus"; //smth wrong
-                AYLOG(ERROR) << "Range_MOD_SCALE is wrong. mode=" << mode;
-            }
-        }*/
         if( rvec.size() == 2 ) { // trying to scale range 
             const BarzelEvalResult& arg0 = rvec[0];
             const BarzelEvalResult& arg1 = rvec[1];
