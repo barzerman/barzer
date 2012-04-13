@@ -212,22 +212,27 @@ public:
 template <typename T>
 struct skippedvector {
     typedef const std::vector<T> Vector;
-    const Vector& d_vec;
+    const Vector* d_vec;
     size_t d_skip;
 
 
-    skippedvector( const Vector& v, size_t skip=0 ) : 
+    skippedvector( const Vector* v, size_t skip=0 ) : 
         d_vec(v), d_skip(skip)
+    {}
+    skippedvector( const Vector& v, size_t skip=0 ) : 
+        d_vec(&v), d_skip(skip)
     {}
 
     skippedvector& incrementSkip( size_t i ) { d_skip += i; }
-    typename Vector::const_iterator begin()  const { return (d_vec.begin()+d_skip); }
-    typename Vector::const_iterator end()    const { return (d_vec.end()); }
+    typename Vector::const_iterator begin()  const { return (d_vec->begin()+d_skip); }
+    typename Vector::const_iterator end()    const { return (d_vec->end()); }
 
-    const T& operator[]( size_t i ) const { return d_vec[ i+d_skip ]; }
+    const T& operator[]( size_t i ) const { return (*d_vec)[ i+d_skip ]; }
 
-    const Vector& vec() const { return d_vec; }
-    const size_t  size() const { return ( d_vec.size()> d_skip ? d_vec.size()-d_skip: 0 ); }
+    const Vector* vecPtr() const { return d_vec; }
+    const Vector& vec() const { return *d_vec; }
+    const size_t  size() const { return ( d_vec->size()> d_skip ? d_vec->size()-d_skip: 0 ); }
+    size_t getSkip() const { return d_skip; }
 };
 
 }

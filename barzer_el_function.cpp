@@ -126,9 +126,14 @@ struct mult {
 	template <class T> T operator()(T v1, T v2) { return v1 * v2; }
 };
 struct div {
-	template <class T> T operator()(T v1, T v2) {          
-            return (v2 == 0)? v1 : v1 / v2;          
-        }
+	template <class T> T operator()(T v1, T v2)
+	{
+		if (v2)
+			return v1 / v2;
+		if (!v1)
+			return std::numeric_limits<T>::quiet_NaN();
+		return std::numeric_limits<T>::infinity();
+	}
 };
 struct lt {
     template <class T> bool operator()(T v1, T v2) { return v1 < v2; }
@@ -154,19 +159,7 @@ template<class U> struct ArithVisitor : public boost::static_visitor<bool> {
 			val.clear();
 			return false;
 		}
-		if (val.isReal()) {
-			if (dt.isReal()) {
-				val.set( op(val.getReal(), dt.getReal()) );
-			} else {
-				val.set( op(val.getReal(), (double) dt.getInt()) );
-			}
-		} else {
-			if (dt.isReal()) {
-				val.set( op((double)val.getInt(), dt.getReal()) );
-			} else {
-				val.set( op(val.getInt(), dt.getInt()) );
-			}
-		}
+		val = op(val, dt);
 		return true;
 	}
 
@@ -604,7 +597,7 @@ struct BELFunctionStorage_holder {
             case 3: y = getNumber(rvec[2]);
             case 2: { // Do we need to check if ent is ent(1,3) or not ?
                 const BarzerEntity* be = getAtomicPtr<BarzerEntity>(rvec[1]);
-                m = (be? gpools.dateLookup.resolveMonthID(be->getTokId()) :getNumber(rvec[1]));
+                m = (be? BarzerNumber(gpools.dateLookup.resolveMonthID(be->getTokId())) :getNumber(rvec[1]));
             }
             case 1: d = getNumber(rvec[0]);
             case 0: break; // 0 arguments = today
@@ -2532,23 +2525,6 @@ BELFunctionStorage::~BELFunctionStorage()
 	delete holder;
 }
 
-
-
-/*
-bool BELFunctionStorage::call(BarzelEvalContext& ctxt, const char *fname, BarzelEvalResult &er,
-		                                   const BarzelEvalResultVec &ervec,
-		                                   const StoredUniverse &u) const
-{
-	const uint32_t fid = globPools.stringPool.getId(fname);
-	if (fid == ay::UniqueCharPool::ID_NOTFOUND) {
-		std::stringstream strstr;
-		strstr << "No such function name: `" << fname << "'";
-                pushFuncError(ctxt, "", strstr.str().c_str() );
-		return false;
-	}
-	return call(ctxt,fid, er, ervec, u);
-}
-*/
 bool BELFunctionStorage::call(BarzelEvalContext& ctxt, const BTND_Rewrite_Function& fr, BarzelEvalResult &er,
 									              const ay::skippedvector<BarzelEvalResult> &ervec,
 									              const StoredUniverse &u) const

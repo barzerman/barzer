@@ -171,6 +171,7 @@ enum {
 
 inline bool is_BarzelBeadAtomic( const BarzelBeadData& dta ) { return dta.which() == BarzelBeadAtomic_TYPE; }
 
+std::ostream& operator<< ( std::ostream& fp, const BarzelBeadData& );
 /// this class when implemented will keep matching trace information structured as a tree 
 /// to reflect the matching process
 struct BarzelBeadTraceInfo {
@@ -331,6 +332,10 @@ public:
 	BarzelBead(const CTWPVec::value_type& ct) : d_unmatchable(0) { init(ct); }
 }; 
 
+inline std::ostream& operator<<( std::ostream& fp, const BarzelBead& b ) { 
+    return b.print(fp);
+}
+
 typedef std::list< BarzelBead > 	BeadList;
 
 struct BarzelBeadChain {
@@ -449,7 +454,16 @@ inline bool operator==(const BarzelBeadData &left, const BarzelBeadData &right)
 }
 
 
-
+template <typename T> inline const T* barzel_bead_data_get( const BarzelBeadData& d ) 
+{
+    const BarzelBeadAtomic* atomic = boost::get<BarzelBeadAtomic>(&d);
+    return ( atomic ? atomic->get<T>() : 0 );
+}
+template <typename T> inline T* barzel_bead_data_get( BarzelBeadData& d ) 
+{
+    BarzelBeadAtomic* atomic = boost::get<BarzelBeadAtomic>(&d);
+    return ( atomic ? atomic->get<T>() : 0 );
+}
 
 
 }
