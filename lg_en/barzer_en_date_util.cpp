@@ -11,9 +11,12 @@ namespace barzer {
     namespace en {
     const uint8_t lookupMonth(const char* mname) {
         if (strlen(mname) < 3) return 0;
-        switch (*mname) {
+        char c0 = ( mname[0] ? tolower(mname[0]) : 0 );
+        char c1 = ( mname[1] ? tolower(mname[1]) : 0 );
+        char c2 = ( mname[2] ? tolower(mname[2]) : 0 );        
+        switch (c0) {
             case 'a': 
-                switch(mname[1]) {
+                switch(c1) {
                     case 'u': return 8; break;          //august
                     case 'p': return 4; break;          //april
                     default: return 0;
@@ -21,10 +24,10 @@ namespace barzer {
             case 'd': return 12; break;                 //december
             case 'f': return 2; break;                  //february
             case 'j': 
-                switch (mname[1]) {
+                switch (c1) {
                     case 'a': return 1; break;          //january
                     case 'u': 
-                        switch(mname[2]) {
+                        switch(c2) {
                             case 'n': return 6; break;  //june
                             case 'l': return 7; break;  //july
                             default: return 0;
@@ -32,7 +35,7 @@ namespace barzer {
                         default: return 0;
                 } break;                   
             case 'm': 
-                switch (mname[2]) {
+                switch (c2) {
                     case 'y': return 5; break;          //may
                     case 'r': return 3; break;          //march
                     default: return 0;
