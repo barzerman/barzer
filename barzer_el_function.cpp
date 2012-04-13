@@ -2211,16 +2211,22 @@ struct BELFunctionStorage_holder {
 	STFUN(lookupWday)
 	{
            SETFUNCNAME(lookupWday);
-		//AYLOG(DEBUG) << "lookupwday called";
 		if (!rvec.size()) {
 			FERROR("Wrong number of agruments");
 			return false;
 		}
 		try {
-			const BarzerLiteral &bl = getAtomic<BarzerLiteral>(rvec[0]);
-			uint8_t mnum = gpools.dateLookup.lookupWeekday(bl.getId());
+                        const BarzerLiteral* bl = getAtomicPtr<BarzerLiteral>(rvec[0]);
+                        const BarzerString* bs = getAtomicPtr<BarzerString>(rvec[0]);
+			uint8_t mnum = 0;
+                        if (bl) mnum = gpools.dateLookup.lookupWeekday(bl->getId());
+                        else if (bs)  mnum = gpools.dateLookup.lookupWeekday(bs->getStr().c_str());
+                        else {
+                            FERROR("Wrong argument type");
+                            return false;
+                        }
                         if (!mnum) {
-                              FERROR(boost::format("Unknown weekday name `%1%`  given") % gpools.string_resolve(bl.getId()));
+                              FERROR("Unknown weekday name given");
                               return false;
                         }
 			BarzerNumber bn(mnum);

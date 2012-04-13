@@ -49,10 +49,12 @@ namespace barzer {
     const uint8_t lookupWeekday(const char* wdname)
     {
         if (strlen(wdname) < 2) return 0;
-        switch (*wdname) {
+        char c0 = ( wdname[0] ? tolower(wdname[0]) : 0 );
+        char c1 = ( wdname[1] ? tolower(wdname[1]) : 0 );        
+        switch (c0) {
             case 'm': return 1; break;          //monday
             case 't': 
-                switch(wdname[1]) {
+                switch(c1) {
                     case 'u': return 2; break;  //tuesday
                     case 'h': return 4; break;  //thursday
                     default: return 0;
@@ -60,7 +62,7 @@ namespace barzer {
             case 'w': return 3; break;          //wednesday
             case 'f': return 5; break;          //friday
             case 's':
-                switch(wdname[1]){
+                switch(c1){
                     case 'a': return 6; break;  //saturday
                     case 'u': return 7; break;  //sunday
                     default: return 0;
