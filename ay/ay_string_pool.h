@@ -72,6 +72,7 @@ public:
 		}
 				
 	StrId internIt( const char* s ); 
+	StrId internIt( const char* s, size_t s_len ); 
 	UniqueCharPool( size_t cSz = DEFAULT_CHUNK_SIZE ) : 
 		CharPool(cSz ) { }
 

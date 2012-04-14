@@ -65,5 +65,18 @@ UniqueCharPool::StrId UniqueCharPool::internIt( const char* s )
 	
 	return id;
 }
+UniqueCharPool::StrId UniqueCharPool::internIt( const char* s, size_t s_len ) 
+{
+	StrId id = getId(s);
+	if( id!=ID_NOTFOUND ) {
+		return id;
+	}	
+	const char * newS = addStringToPool( s, s_len );
+	id = idVec.size();
+	idVec.push_back( newS );
+	idMap.insert( CharIdMap::value_type(newS, id) );
+	
+	return id;
+}
 
 }
