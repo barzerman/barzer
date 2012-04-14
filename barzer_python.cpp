@@ -716,7 +716,7 @@ BOOST_PYTHON_MODULE(pybarzer)
 {
     AYLOGINIT(DEBUG);
 
-    AYLOG(DEBUG) << "LOADING BARZER PYTHON MODULE\n";
+    // AYLOG(DEBUG) << "LOADING BARZER PYTHON MODULE\n";
     boost::python::class_<barzer::BarzerPython>( "Barzer" )
         .def( "stem", &barzer::BarzerPython::bzstem )
         .def( "init", &barzer::BarzerPython::init )
