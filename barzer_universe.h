@@ -190,6 +190,7 @@ public:
 	uint32_t internalString_getId( const char* str ) const { return internalStringPool.getId( str ); }
 	uint32_t string_getId( const char* str ) const { return stringPool.getId( str ); }
 
+	uint32_t string_intern( const char* str, size_t s_len ) { return stringPool.internIt( str, s_len ); }
 	uint32_t string_intern( const char* str ) { return stringPool.internIt( str ); }
 	const char* string_resolve( uint32_t id ) const { return stringPool.resolveId( id ); }
 

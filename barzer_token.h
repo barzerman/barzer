@@ -33,6 +33,7 @@ struct StoredTokenClassInfo {
 		BIT_MISSPELLING, // this is a known misspelling
 		BIT_STEM, // this is a  stem (doesn't exist as unstemmed)
         BIT_NUMBER, // this is a number
+        BIT_HAS_UPPERCASE, // has upper case characters
 
 		BIT_MAX
 	};
@@ -45,6 +46,9 @@ struct StoredTokenClassInfo {
 	{}
 
 	
+	bool hasUpperCase() const { return flags[ BIT_HAS_UPPERCASE ]; }
+    void setHasUpperCase() { flags.set( BIT_HAS_UPPERCASE, true ); }
+
 	bool isSimple() const { return !flags[ BIT_COMPOUNDED ]; }
 	void setSimple() { flags.set( BIT_COMPOUNDED, false ); }
 

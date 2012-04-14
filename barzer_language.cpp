@@ -11,6 +11,11 @@ const char * rus_letter[] =  {
     "о","п","р","с","т","у","ф","х","ц","ч","ш","щ","ь","ы","ъ","э","ю","я"
 };
 
+inline bool russian_is_upper( const char* ss ) {
+    uint8_t b1= (uint8_t)(ss[1]);
+    return( (b1 >=0x90 && b1 <=0xaf) || ((uint8_t)(ss[0]) && b1 == 0x81) );
+}
+
 }
 bool Lang::convertTwoByteToLower( char* s, size_t s_len, int lang )
 {
@@ -35,6 +40,51 @@ bool Lang::convertTwoByteToLower( char* s, size_t s_len, int lang )
     } else 
         return false;
 }
+bool Lang::stringToLower( char* s, size_t s_len, int lang )
+{
+    if( lang == LANG_ENGLISH ) {
+        const char* s_end = s+s_len;
+        bool hasUpperCase = false;
+        for( char* i = s; i< s_end; ++i ) {
+            if( isupper(*i) ) {
+                if( !hasUpperCase ) 
+                    hasUpperCase = true;
+                *i = tolower(*i);
+            }
+        }
+        return hasUpperCase;
+    } else if( lang == LANG_RUSSIAN ) 
+        return convertTwoByteToLower(s,s_len,lang);
+
+    return false;
+}
+bool Lang::hasTwoByteUpperCase( const char* s, size_t s_len, int lang )
+{
+    if( lang == LANG_RUSSIAN ) {
+        const  char* s_end = s+s_len;
+        for( const char* ss=s; ss< s_end; ss+=2 ) {
+            if( russian_is_upper(ss) )
+                return true;
+        } 
+        return false;
+    } else
+        return false;
+}
+bool Lang::hasUpperCase( const char* s, size_t s_len, int lang )
+{
+    if( lang == LANG_ENGLISH ) {
+        const char* s_end = s+s_len;
+        for( ; s< s_end; ++s ) {
+            if( isupper(*s) ) 
+                return true;
+        }
+        return false;
+    } else if( lang == LANG_RUSSIAN ) 
+        return hasTwoByteUpperCase( s, s_len, lang );
+    
+    return false;
+}
+
 
 int Lang::getLang( const char* str, size_t s_len )
 {

@@ -66,7 +66,6 @@ void EntityLoader_XML::handle_entity_open( Tag_t parentTag, const char_cp * attr
 {
 	StoredEntityUniqId euid;
 	/// forming uniqId based on the attributes
-	StoredToken* idTok_p = 0;
 	uint32_t relevance = 0;
     const char* canonicName = 0;
     bool hasEntityData = false;
@@ -92,9 +91,11 @@ void EntityLoader_XML::handle_entity_open( Tag_t parentTag, const char_cp * attr
 				// need to populate euid.tokId 
 				// first must resolve token
 				bool newAdded = true;
-				StoredToken& tok = dtaIdx->tokPool.addSingleTok( newAdded, v );
-				idTok_p = &tok;
-				euid.tokId = tok.tokId;
+
+				// StoredToken& tok = dtaIdx->tokPool.addSingleTok( newAdded, v );
+                uint32_t idStrId = d_gp.internString_internal(v) ;
+
+				euid.tokId = idStrId;
 			}
 			break;
         case 'n': // canonic name 
@@ -109,7 +110,7 @@ void EntityLoader_XML::handle_entity_open( Tag_t parentTag, const char_cp * attr
 		euid.eclass = d_eclass;
 	}
 	bool madeNew = true;
-	if( !idTok_p || !euid.isValid() ) {
+	if( !euid.isValid() ) {
 		d_curEnt = 0;
 		return;
 	}
@@ -220,13 +221,15 @@ void EntityLoader_XML::handle_token_open( Tag_t parentTag, const char_cp * attr,
 	}
 	if( actualTok ) { // adding token right away
 		bool newAdded = true;
+        /*
 		StoredToken& tok = dtaIdx->tokPool.addSingleTok( newAdded, actualTok );
 		d_curTok = &tok;
+        */
 	}
 }
 void EntityLoader_XML::handle_token_close( )
 {
-	if( !d_curTok || !d_curEnt ) 
+	if( !d_curEnt ) 
 		return;
 	// dtaIdx->addTokenToEntity( *d_curTok, *d_curEnt, d_curTokOrdInfo, d_curTELI );
 
@@ -292,8 +295,8 @@ void EntityLoader_XML::tokenizeAddText_TokOrName( const char* txt, int l )
 		}
 	}
 	if( *str ) {
-		dtaIdx->addTokenToEntity( str, *d_curEnt, d_curTokOrdInfo, d_curTELI );
-		d_curTokOrdInfo.incrementIdx();
+		// dtaIdx->addTokenToEntity( str, *d_curEnt, d_curTokOrdInfo, d_curTELI );
+		// d_curTokOrdInfo.incrementIdx();
 	}
 }
 
