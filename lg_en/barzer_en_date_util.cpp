@@ -10,10 +10,9 @@
 namespace barzer {
     namespace en {
     const uint8_t lookupMonth(const char* mname) {
-        if (strlen(mname) < 3) return 0;
         char c0 = ( mname[0] ? tolower(mname[0]) : 0 );
-        char c1 = ( mname[1] ? tolower(mname[1]) : 0 );
-        char c2 = ( mname[2] ? tolower(mname[2]) : 0 );        
+        char c1 = ( c0 ? tolower(mname[1]) : 0 );
+        char c2 = ( c1 ? tolower(mname[2]) : 0 );        
         switch (c0) {
             case 'a': 
                 switch(c1) {
@@ -48,9 +47,8 @@ namespace barzer {
     }
     const uint8_t lookupWeekday(const char* wdname)
     {
-        if (strlen(wdname) < 2) return 0;
         char c0 = ( wdname[0] ? tolower(wdname[0]) : 0 );
-        char c1 = ( wdname[1] ? tolower(wdname[1]) : 0 );        
+        char c1 = ( c0 ? tolower(wdname[1]) : 0 );        
         switch (c0) {
             case 'm': return 1; break;          //monday
             case 't': 
