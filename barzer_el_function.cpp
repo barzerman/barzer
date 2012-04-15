@@ -1439,7 +1439,7 @@ struct BELFunctionStorage_holder {
                         const BarzerEntity* e = getAtomicPtr<BarzerEntity>(arg1);
                         
                         if( e ) {
-                            if( !strcmp(argStr,"unit") ) { // unit entity
+                            if( argStr && !strcmp(argStr,"unit") ) { // unit entity
                                 outErc.setUnitEntity(*e);
                             } else {
                                 outErc.setEntity(*e);
