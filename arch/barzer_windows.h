@@ -19,7 +19,7 @@
    #include <sys/time.h>
 #endif 
 #if defined(_MSC_VER) || defined(_WINDOWS_)
-   int gettimeofday(struct timeval* tp, void* tzp) 
+   inline int gettimeofday(struct timeval* tp, void* tzp) 
    {
       DWORD t;
       t = timeGetTime();

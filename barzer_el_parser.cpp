@@ -344,7 +344,8 @@ int BELReader::loadFromFile( const char* fileName, BELReader::InputFormat fmt )
 			computeRulesetSpellPriority( fileName );
 			return loadFromStream( fp );
 		}else {
-			std::cerr << "BELReader couldn't open file \"" << fileName << "\"\n";
+			// std::cerr << "ERROR: BELReader cant open file \"" << fileName << "\"\n";
+            ay::print_absolute_file_path( (std::cerr << "ERROR: BELReader cant open file \"" ), fileName ) << "\"\n";
 			return 0;
 		}
 	} else {

@@ -103,7 +103,9 @@ private:
 
 };
 
-}
+/// if fileName is not an absolute path deduces current directory and prints it
+std::ostream& print_absolute_file_path( std::ostream& , const char* fileName );
+} // namespace ay
 
 
 #endif /* AY_LOGGER_H_ */

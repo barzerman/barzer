@@ -7,6 +7,7 @@
 
 #include <ay_logger.h>
 
+
 namespace ay {
 
 Logger *Logger::instance_ = 0;
@@ -69,4 +70,27 @@ std::ostream& Logger::logMsg( const uint8_t lvl, const char* filename,
 	return *stream_;
 }
 
+#if (defined (_WINDOWS_) || defined(WIN32) || defined(_MSC_VER))
+inline char *getcwd(char *buf, size_t size)
+{
+    /// maybe some day someone will implement getcwd for windows (AY 04/15/2012))
+    return ( (size? (*buf=0):0 ), "" );
 }
+#else
+#include <unistd.h>
+#endif
+std::ostream& print_absolute_file_path( std::ostream& fp, const char* fileName )
+{
+    if( !fileName ) 
+        return fp;
+    if( *fileName != '/' ) {
+        // if we're here fileName is not an absolute path
+        char curDir[1024]; 
+        curDir[0] = curDir[ sizeof(curDir)-1 ] = 0;
+        if( getcwd(curDir, sizeof(curDir)-1) ) 
+            fp << curDir << "/";
+    }
+    return ( fp << fileName );
+}
+
+} // namespace ay
