@@ -23,6 +23,10 @@ enum {
 	LANG_MAX
 };
 
+struct WordLangInfo {
+    bool hasNonLowerCase;
+    WordLangInfo() : hasNonLowerCase(false) {}
+};
 /// Lang class determines language of the character/string see getLang function. all methods in it should be static  and inline when possible if they deal with strings 
 struct Lang {
     static const char* getLangName( int xx ) ;
@@ -40,6 +44,9 @@ struct Lang {
     inline static bool isTwoByteLang(int lang) { return ( lang == LANG_RUSSIAN ); }
     static int getLang( const char* str, size_t s_len );
     static bool convertTwoByteToLower( char* s, size_t s_len, int lang );
+    static bool hasTwoByteUpperCase( const char* s, size_t s_len, int lang );
+    static bool hasUpperCase( const char* s, size_t s_len, int lang );
+    static bool stringToLower( char* s, size_t s_len, int lang );
 };
 
 class QSingleLangLexer {

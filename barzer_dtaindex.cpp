@@ -54,6 +54,10 @@ StoredToken& StoredTokenPool::addSingleTok( bool& newAdded, const char* t)
 	StoredTokenId tokId = storTok.vec.size();
 	StoredToken& newTok = storTok.extend();
 	newTok.setSingle( tokId, sid, strlen(internedStr) );
+    size_t t_len = strlen(t);
+    int lang = Lang::getLang( t, t_len );
+    if( Lang::hasUpperCase(t,t_len,lang) ) 
+        newTok.setHasUpperCase();
 
 	singleTokMap.insert( 
 		std::make_pair(

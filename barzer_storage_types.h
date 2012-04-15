@@ -149,6 +149,9 @@ struct StoredToken {
 	uint32_t getSingleTokStringId() const
 		{ return( isSimpleTok() ? stringId : 0xffffffff ); }
 	uint32_t getStringId() const { return stringId; }
+    
+    bool hasUpperCase() const { return classInfo.hasUpperCase(); }
+    void setHasUpperCase() { return classInfo.setHasUpperCase(); }
 };
 inline std::ostream& operator <<( std::ostream& fp, const StoredToken& t )
 { return ( t.print(fp), fp ); }

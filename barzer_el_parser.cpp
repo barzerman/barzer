@@ -92,7 +92,7 @@ StoredToken& BELParser::internString( const char* t, bool noSpell, const char* u
 	StoredToken& sTok =  reader->getGlobalPools().getDtaIdx().addToken( wasNew, t );
 	const uint32_t origId = sTok.getStringId ();
 	sTok.setStemmed(unstemmed);
-
+    
 	if( !noSpell ) {
 		BELTrie& trie = reader->getTrie();
 		StoredUniverse* curUni = reader->getCurrentUniverse();
@@ -100,8 +100,9 @@ StoredToken& BELParser::internString( const char* t, bool noSpell, const char* u
 			trie.addWordInfo( sTok.getStringId(),unstemmed );
 			if( !unstemmed ) {
 				BZSpell* bzSpell= curUni->getBZSpell();
-				if( bzSpell ) 
+				if( bzSpell ) {
 					bzSpell->addExtraWordToDictionary( sTok.getStringId() );
+                }
 			} else {
 				const uint32_t unstmId = reader->getGlobalPools().getDtaIdx().addToken(unstemmed).getStringId();
 				trie.addStemSrc( origId, unstmId);
@@ -343,7 +344,8 @@ int BELReader::loadFromFile( const char* fileName, BELReader::InputFormat fmt )
 			computeRulesetSpellPriority( fileName );
 			return loadFromStream( fp );
 		}else {
-			std::cerr << "BELReader couldn't open file \"" << fileName << "\"\n";
+			// std::cerr << "ERROR: BELReader cant open file \"" << fileName << "\"\n";
+            ay::print_absolute_file_path( (std::cerr << "ERROR: BELReader cant open file \"" ), fileName ) << "\"\n";
 			return 0;
 		}
 	} else {
