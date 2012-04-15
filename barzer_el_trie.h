@@ -343,15 +343,12 @@ typedef ay::PoolWithId< BarzelTranslation > BarzelTranslationPool;
 
 
 class BarzelTrieNode {
-	// BarzelFCMap d_firmMap; /// children of the 'firm' types - token,punctuation,compounded word
-
 	const BarzelTrieNode* d_parent;
 	uint32_t d_firmMapId; // when valid (not 0xffffffff) can it's an id of a firm lookup object  (BarzelFCMap)
 
 	uint32_t d_wcLookupId; // when valid (not 0xffffffff) can it's an id of a wildcard lookup object
 	uint32_t d_translationId;
 
-	// BarzelWCLookup wcChild; /// used for wildcard matching (number,date, etc)
 	enum {
 		B_WCCHILD, // it's a wildcard child of its parent
 
