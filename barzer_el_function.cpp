@@ -1781,7 +1781,10 @@ struct BELFunctionStorage_holder {
                         if( !newR.scale(*n,mode) ) 
                             FERROR("failed to scale the range");
                          else {
-		            setResult(result, newR);
+                            BarzerEntityRangeCombo berc;
+                            berc.setRange(newR);  
+                            berc.setEntity(erc->getEntity());                             
+		            setResult(result, berc);
                             return true;
                         }
                     } 
@@ -1807,7 +1810,10 @@ struct BELFunctionStorage_holder {
                         if( !newR.scale(*n1, *n2,mode) ) 
                             FERROR("failed to scale the range");
                         else {
-                            setResult(result, newR);
+                            BarzerEntityRangeCombo berc;
+                            berc.setRange(newR);  
+                            berc.setEntity(erc->getEntity());                             
+                            setResult(result, berc);
                             return true;
                         }
                     } 
