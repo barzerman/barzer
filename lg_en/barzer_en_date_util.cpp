@@ -10,7 +10,7 @@
 namespace barzer {
     namespace en {
     const uint8_t lookupMonth(const char* mname) {
-        char c0 = ( mname[0] ? tolower(mname[0]) : 0 );
+        char c0 = ( mname ? tolower(mname[0]) : 0 );
         char c1 = ( c0 ? tolower(mname[1]) : 0 );
         char c2 = ( c1 ? tolower(mname[2]) : 0 );        
         switch (c0) {
@@ -47,7 +47,7 @@ namespace barzer {
     }
     const uint8_t lookupWeekday(const char* wdname)
     {
-        char c0 = ( wdname[0] ? tolower(wdname[0]) : 0 );
+        char c0 = ( wdname ? tolower(wdname[0]) : 0 );
         char c1 = ( c0 ? tolower(wdname[1]) : 0 );        
         switch (c0) {
             case 'm': return 1; break;          //monday
