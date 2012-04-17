@@ -351,9 +351,11 @@ struct BELFunctionStorage_holder {
                 ADDFN(set);
                 
 		// getters
-		ADDFN(getWeekday); // getWeekday(BarzerDate)
-		ADDFN(getTokId); // (BarzerLiteral|BarzerEntity)
-		ADDFN(getMDay);
+		ADDFN(getWeekday);      // getWeekday(BarzerDate)
+		ADDFN(getTokId);        // (BarzerLiteral|BarzerEntity)
+		ADDFN(getTime);         // getTime(DateTime)
+		ADDFN(getDate);         // getDate(DateTime)
+		ADDFN(getMDay);         
 		ADDFN(setMDay);
 		ADDFN(getYear);
 		ADDFN(getLow); // (BarzerRange)
@@ -373,6 +375,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(opEq);
 		ADDFN(opSelect);
 		ADDFN(opDateCalc);
+                ADDFN(opTimeCalc);
 		// string
 		ADDFN(strConcat);
 		// lookup
@@ -1672,6 +1675,40 @@ struct BELFunctionStorage_holder {
 		return true;
 	}
 
+	STFUN(getTime)
+        {
+            SETFUNCNAME(getTime);
+            if (rvec.size()) {
+                const BarzerDateTime* dt = getAtomicPtr<BarzerDateTime>(rvec[0]);
+                if (dt) {
+                    BarzerTimeOfDay t(dt->getTime());
+                    setResult(result, t);
+                    return true;
+                } else {
+                    FERROR("Wrong argument type. DateTime expected");
+                    return false;
+                }
+            } else { FERROR("At least one argument is needed"); }
+            return true;
+        }
+   
+        STFUN(getDate)
+        {
+            SETFUNCNAME(getDate);
+            if (rvec.size()) {
+                const BarzerDateTime* dt = getAtomicPtr<BarzerDateTime>(rvec[0]);
+                if (dt) {
+                    BarzerDate d(dt->getDate());
+                    setResult(result, d);
+                    return true;
+                } else {
+                    FERROR("Wrong argument type. DateTime expected");
+                    return false;
+                }
+            } else { FERROR("At least one argument is needed"); }
+            return true;
+        }
+        
 	struct RangeGetter : public boost::static_visitor<bool> {
 		BarzelEvalResult &result;
 		uint8_t pos;
@@ -2074,6 +2111,32 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 
+/// opTimeCalc(Time,HoursOffset[,MinOffset[,SecOffset]])	
+    STFUN(opTimeCalc)   
+    {
+        SETFUNCNAME(opTimeCalc);
+        try {
+            int h = 0, m = 0, s = 0;
+            switch (rvec.size()) {
+            case 4:
+                s = getAtomic<BarzerNumber>(rvec[3]).getInt();
+            case 3:
+                m = getAtomic<BarzerNumber>(rvec[2]).getInt();
+            case 2: {
+                h = getAtomic<BarzerNumber>(rvec[1]).getInt();
+                const BarzerTimeOfDay &time = getAtomic<BarzerTimeOfDay>(rvec[0]);
+                BarzerTimeOfDay out(time.getHH() + h, time.getMM() + m, time.getSS() + s);
+                setResult(result, out);
+                return true;
+            }
+            default:
+                FERROR("Need 2-4 arguments" );
+            }
+        } catch (boost::bad_get) {
+            FERROR("Type mismatch");
+        }
+        return false;
+    }
     // concatenates all parameters as one list
 	STFUN(listCat) { //
         BarzelBeadDataVec& resultVec = result.getBeadDataVec();
