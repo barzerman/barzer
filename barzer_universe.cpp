@@ -139,7 +139,7 @@ GlobalPools::GlobalPools() :
 	globalTriePool( *this ),
 	settings(*this,0),
 	d_isAnalyticalMode(false),
-	d_maxAnalyticalModeMaxSeqLength(3)
+	d_maxAnalyticalModeMaxSeqLength(5)
 {
     BELTrie* defaultTrie = &(globalTriePool.init());
 

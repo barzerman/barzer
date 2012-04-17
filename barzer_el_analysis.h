@@ -145,7 +145,7 @@ struct TANameProducer {
 	TANameProducer( std::ostream& fp ) : 
 		d_numNames(0),
 		d_numFluff(0),
-		d_maxNameLen(3),
+		d_maxNameLen(4),
 		d_minFluffNameLength(2),
 		d_fp(fp),
 		d_mode(MODE_ANALYSIS)

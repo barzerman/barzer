@@ -256,6 +256,21 @@ bool TrieAnalyzer::dtaAboveFluffThreshold( const TA_BTN_data& dta ) const
 }
 ///// name producer 
 
+namespace {
+
+inline size_t getTokVecLen( const ay::char_cp_vec& tv )
+{
+    size_t l = 0;
+    for( ay::char_cp_vec::const_iterator i=tv.begin(); i!= tv.end(); ++i ) {
+        const char* s= *i;
+        if( !ispunct(*s) ) 
+            ++l;
+    }
+    return l;
+}
+
+}
+
 bool TANameProducer::operator()( TrieAnalyzer& analyzer, const BarzelTrieNode& t ) 
 {
 	const BarzelTrieNode* tn = &t;
@@ -283,13 +298,18 @@ bool TANameProducer::operator()( TrieAnalyzer& analyzer, const BarzelTrieNode& t
 
 			if( isMode_output() && analyzer.getPathTokens( tokVec ) ) {
 
-				if( d_maxNameLen < tokVec.size() )
+				if( !tokVec.size() || d_maxNameLen < getTokVecLen(tokVec) )
 					return true;
+                if( ispunct(tokVec.front()[0]) || ispunct(tokVec.back()[0]) )
+                    return true;
 				analyzer.getPathTokens( stringIdVec );
+               
+                /*
 				if( d_fluffTrie.getLongestPath( stringIdVec.begin(), stringIdVec.end()).first ||
 					d_fluffTrie.getLongestPath( stringIdVec.rbegin(), stringIdVec.rend()).first )
 						return true;
-
+                */
+                
 				++d_numNames;
 				/// printing names for all entities 
 				for( size_t i = 0; i< entities.size(); ++i ) {
@@ -327,7 +347,9 @@ bool TANameProducer::operator()( TrieAnalyzer& analyzer, const BarzelTrieNode& t
 			}
 		}
 		//AYDEBUG( dta->entities.size() );
-	}
+	} else {
+        AYLOG(ERROR) << "failed to locate node record\n";
+    }
 	return true;
 }
 } // namespace barzer
