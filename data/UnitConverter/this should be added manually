@@ -1,0 +1,144 @@
+<stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance" xmlns="http://www.barzer.net/barzel/0.1">
+<stmt>
+<pat>
+  <t>сколько</t>
+  <list v="e1">
+    <ent c="1"/>
+  </list>
+  <list v="exp">
+    <expand n="translate_into"/>
+  </list>
+  <list v="e2">
+    <n/>
+    <ent c="1"/>
+  </list>
+</pat>
+<tran>
+  <var n="e2"/>
+  <var n="exp"/>
+  <var n="e1"/>
+</tran>
+</stmt>
+
+<stmt>
+<pat>
+  <t>сколько</t>
+  <list v="e1">
+    <ent c="1"/>
+  </list>
+  <list v="exp">
+    <expand n="translate_into"/>
+  </list>
+  <list v="e2">
+    <ent c="1"/>
+  </list>
+</pat>
+<tran>
+  <n v="1"/>
+  <var n="e2"/>
+  <var n="exp"/>
+  <var n="e1"/>
+</tran>
+</stmt>
+
+
+
+<stmt>
+<pat>
+  <list v="v">
+    <erc c="1" s="7"/>
+    <expand n="translate_into"/>
+  </list>
+  <ent c="1" s="2" i="m"/>
+</pat>
+<tran>
+  <var n="v"/>
+  <mkent c="1" s="7" i="m2"/>
+</tran>
+</stmt>
+
+<stmt>
+<pat>
+  <list v="v">
+    <erc c="1" s="7"/>
+    <expand n="translate_into"/>
+  </list>
+  <ent c="1" s="2" i="km"/>
+</pat>
+<tran>
+  <var n="v"/>
+  <mkent c="1" s="7" i="km2"/>
+</tran>
+</stmt>
+
+<stmt>
+<pat>
+  <list v="v">
+    <erc c="1" s="7"/>
+    <expand n="translate_into"/>
+  </list>
+  <ent c="1" s="2" i="mi"/>
+</pat>
+<tran>
+  <var n="v"/>
+  <mkent c="1" s="7" i="mi2"/>
+</tran>
+</stmt>
+
+<stmt>
+<pat>
+  <list v="v">
+    <erc c="1" s="7"/>
+    <expand n="translate_into"/>
+  </list>
+  <ent c="1" s="2" i="yard"/>
+</pat>
+<tran>
+  <var n="v"/>
+  <mkent c="1" s="7" i="yard2"/>
+</tran>
+</stmt>
+
+<stmt>
+<pat>
+  <list v="v">
+    <erc c="1" s="7"/>
+    <expand n="translate_into"/>
+  </list>
+  <ent c="1" s="2" i="ft"/>
+</pat>
+<tran>
+  <var n="v"/>
+  <mkent c="1" s="7" i="ft2"/>
+</tran>
+</stmt>
+
+<stmt>
+<pat>
+  <list v="v">
+    <erc c="1" s="7"/>
+    <expand n="translate_into"/>
+  </list>
+  <ent c="1" s="2" i="mm"/>
+</pat>
+<tran>
+  <var n="v"/>
+  <mkent c="1" s="7" i="mm2"/>
+</tran>
+</stmt>
+
+<stmt>
+<pat>
+  <list v="v">
+    <erc c="1" s="7"/>
+    <expand n="translate_into"/>
+  </list>
+  <ent c="1" s="2" i="cm"/>
+</pat>
+<tran>
+  <var n="v"/>
+  <mkent c="1" s="7" i="cm2"/>
+</tran>
+</stmt>
+
+</stmset>

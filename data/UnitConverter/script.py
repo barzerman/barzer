@@ -191,6 +191,6 @@ class Ruleset:
 	unitsets= []
 
 
-r = Ruleset('/home/nix/barzer-git/btesting/python-testing/aut/data')
-f = file('/home/nix/barzer-git/btesting/python-testing/aut/result.xml','w')
+r = Ruleset('./data')
+f = file('result.xml','w')
 f.write(r.produce())
