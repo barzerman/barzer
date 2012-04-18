@@ -388,7 +388,8 @@ struct BarzerRange {
 
 	enum {
 		ORDER_ASC,
-		ORDER_DESC
+		ORDER_DESC,
+                ORDER_STRICT
 	};
 
 	bool isNone( ) const {return (dta.which() ==None_TYPE); }
@@ -536,8 +537,10 @@ struct BarzerRange {
 	bool isBlank() const { return !dta.which(); }
 	void setAsc() { order = ORDER_ASC; }
 	void setDesc() { order = ORDER_DESC; }
+	void setStrict() {order = ORDER_STRICT; }
 	bool isAsc() const { return ORDER_ASC== order; }
 	bool isDesc() const { return ORDER_DESC== order; }
+	bool isStrict() const {return ORDER_STRICT == order; }
 
 	BarzerRange( ) : order(ORDER_ASC), rng_mode(RNG_MODE_FULL) {}
 

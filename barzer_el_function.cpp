@@ -908,19 +908,26 @@ struct BELFunctionStorage_holder {
 				return true;
 			} else if (ltrl.getId() == spool.internIt("ASC")) {
 				return true;
-			} else {
-                           pushFuncError( d_ctxt, d_funcName, boost::format("Invalid order: `%1%` Expected (ASC|DESC)") % spool.resolveId(ltrl.getId()) );
-                           AYLOG(ERROR) << "Invalid order: `"
+			} else if (ltrl.getId() == spool.internIt("STRICT") ) {
+                                range.setStrict();
+                                return true;
+                        } else {
+                                pushFuncError( d_ctxt, d_funcName, boost::format("Invalid order: `%1%`. Expected (ASC|DESC|STRICT)") % spool.resolveId(ltrl.getId()) );
+                                AYLOG(ERROR) << "Invalid order: `"
                                                    << spool.resolveId(ltrl.getId()) << "'";
 				return false;
 			}
 		}
 
 		template<class T> void setSecond(std::pair<T,T> &p, const T &v) {
-			if (p.first < v || range.isDesc())
-				p.second = v;
-			else
-				p.first = v;
+                        if (range.isStrict()) {p.second = v; return;}
+                        if (p.first < v) {
+                                if (range.isAsc()) {p.second = v; return;}
+                                else {p.first = v; return;}
+                        } else {
+                                if (range.isDesc()) {p.second = v;return;}
+                                else { p.first = v; return;}
+                        }
 		}
 
 		bool operator()(const BarzerNumber &rnum) {
@@ -1000,7 +1007,7 @@ struct BELFunctionStorage_holder {
 				try {
 					BarzerRange::TimeOfDay &todp
 						= boost::get<BarzerRange::TimeOfDay>(range.getData());
-					todp.second = rtod;
+					setSecond(todp, rtod);
 				} catch (boost::bad_get) {
 					// AYLOG(ERROR) << "Types don't match";
                     pushFuncError( d_ctxt, d_funcName, boost::format("Types don't match: %1%")% range.getData().which() );
@@ -1035,7 +1042,7 @@ struct BELFunctionStorage_holder {
 		}
 
 		template<class T> bool operator()(const T&) {
-            pushFuncError( d_ctxt, d_funcName, "Wrong range type" );
+                        pushFuncError( d_ctxt, d_funcName, "Wrong range type. Number, Time, DateTime, Range or ERC expected" );
 			return false;
 		}
 
