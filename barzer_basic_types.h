@@ -438,6 +438,7 @@ struct BarzerRange {
 
 	void setNoHI() { rng_mode= RNG_MODE_NO_HI; }
 	void setNoLO() { rng_mode= RNG_MODE_NO_LO; }
+	void setFullRange() { rng_mode= RNG_MODE_FULL; }
 
 	
         enum {

@@ -273,6 +273,12 @@ public:
 	bool operator()(const BarzerRange &data) {
 
 		os << "<range order=\"" << (data.isAsc() ? "ASC" : "DESC") <<  "\"";
+        if( !data.isFull() ) {
+            if( data.isNoHi() ) 
+                os << " range=\"NOHI\"";
+            else if( data.isNoLo() ) 
+                os << " range=\"NOLO\"";
+        }
 		if (data.isBlank()) os << " />";
 		else {
 			os << ">";
