@@ -617,7 +617,7 @@ void BELParserXML::taghandle_N( const char_cp * attr, size_t attr_sz , bool clos
 				ihi = (int) fhi;
 			} else {
 				ihi = atoi( v );
-				fhi = (float) fhi;
+				fhi = (float) ihi;
 			}
 			break;
 		case 'l':
@@ -626,10 +626,10 @@ void BELParserXML::taghandle_N( const char_cp * attr, size_t attr_sz , bool clos
 				isReal = strchr(v, '.');
 			if( isReal ) {
 				flo = atof( v );
-				ilo = (int) fhi;
+				ilo = (int) flo;
 			} else {
 				ilo = atoi( v );
-				flo = (float) fhi;
+				flo = (float) ilo;
 			}
 			break;
 		case 'r':

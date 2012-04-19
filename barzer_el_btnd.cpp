@@ -470,10 +470,10 @@ bool BTND_Pattern_Number::operator() ( const BarzerNumber& num ) const
 	case T_RANGE_REAL:
 		if( num.isReal() ) {
 			double n = num.getReal_unsafe();
-			return( n <= range.integer.hi && n>=range.integer.lo );
+			return( n <= range.real.hi && n>=range.real.lo );
 		} else if( num.isInt() ) {
 			double n = num.getInt_unsafe();
-			return( n <= range.integer.hi && n>=range.integer.lo );
+			return( n <= range.real.hi && n>=range.real.lo );
 		} else
 			return false;
 		break;

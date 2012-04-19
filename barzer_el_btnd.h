@@ -139,6 +139,18 @@ struct BTND_Pattern_Number : public BTND_Pattern_Base {
 	}
 	std::ostream& printXML( std::ostream& fp, const GlobalPools&  ) const;
 	bool operator()( const BarzerNumber& num ) const;
+
+    bool isNumberInRange( double x ) const
+        { return( type== T_RANGE_REAL ? 
+            range.real.lo <= x && range.real.hi >= x :
+            range.integer.lo <= x && range.integer.hi >= x );
+        }
+    bool isNumberInRange( const BarzerNumber& x ) const
+    {
+        return( x.isReal() ? 
+            isNumberInRange( x.getReal_unsafe()) :
+            isNumberInRange( x.getInt_unsafe()) );
+    }
 };
 inline bool operator <( const BTND_Pattern_Number& l, const BTND_Pattern_Number& r )
 	{ return l.lessThan( r ); }
