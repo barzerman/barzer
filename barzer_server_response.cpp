@@ -275,9 +275,9 @@ public:
 		os << "<range order=\"" << (data.isAsc() ? "ASC" : "DESC") <<  "\"";
         if( !data.isFull() ) {
             if( data.isNoHi() ) 
-                os << " range=\"NOHI\"";
+                os << " opt=\"NOHI\"";
             else if( data.isNoLo() ) 
-                os << " range=\"NOLO\"";
+                os << " opt=\"NOLO\"";
         }
 		if (data.isBlank()) os << " />";
 		else {
