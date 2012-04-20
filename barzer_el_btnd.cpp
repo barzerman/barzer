@@ -577,9 +577,9 @@ struct BTND_PatternData_print_XML : public BTND_Base_print_XML {
 	const char* operator()( const BTND_Pattern_ERC& d ) 
 	{
 		const char* tag = "erc";
-		d_fp << "<erc";
+		//d_fp << "<erc";
 		d.printXML(d_fp,d_trie.getGlobalPools());
-		d_fp << TAG_CLOSE_STR;
+		//d_fp << TAG_CLOSE_STR;
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_Range& d ) 
