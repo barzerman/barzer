@@ -272,7 +272,13 @@ public:
 	};
 	bool operator()(const BarzerRange &data) {
 
-		os << "<range order=\"" << (data.isAsc() ? "ASC" : ( data.isStrict() ? "STRICT" : "DESC") ) <<  "\"";
+	os << "<range order=\"" << (data.isAsc() ? "ASC" : ( data.isStrict() ? "STRICT" : "DESC") ) <<  "\"";
+        if( !data.isFull() ) {
+            if( data.isNoHi() ) 
+                os << " opt=\"NOHI\"";
+            else if( data.isNoLo() ) 
+                os << " opt=\"NOLO\"";
+        }
 		if (data.isBlank()) os << " />";
 		else {
 			os << ">";

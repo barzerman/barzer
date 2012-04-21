@@ -175,11 +175,11 @@ template<class U> struct ArithVisitor : public boost::static_visitor<bool> {
 
 struct StrConcatVisitor : public boost::static_visitor<bool> {
 	std::stringstream ss;
-	GlobalPools &globPools;
+	const GlobalPools &globPools;
     BarzelEvalContext& d_ctxt;
     const char* d_funcName;
 
-	StrConcatVisitor(GlobalPools &u, BarzelEvalContext& ctxt, const char* funcName ) :
+	StrConcatVisitor(const GlobalPools &u, BarzelEvalContext& ctxt, const char* funcName ) :
         globPools(u),
         d_ctxt(ctxt),
         d_funcName(funcName)
@@ -317,7 +317,7 @@ uint32_t getTokId(const BarzerLiteral &l, const StoredUniverse &u)
 
 
 struct BELFunctionStorage_holder {
-	GlobalPools &gpools;
+	const GlobalPools &gpools;
 	BELStoredFunMap funmap;
 
 	#define ADDFN(n) addFun(#n, boost::mem_fn(&BELFunctionStorage_holder::stfun_##n))
@@ -357,6 +357,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(getDate);         // getDate(DateTime)
 		ADDFN(getMDay);         
 		ADDFN(setMDay);
+		ADDFN(getMonth);         
 		ADDFN(getYear);
 		ADDFN(getLow); // (BarzerRange)
 		ADDFN(getHigh); // (BarzerRange)
@@ -405,9 +406,10 @@ struct BELFunctionStorage_holder {
 
 	}
 	#undef ADDFN
-
+    
 	void addFun(const char *fname, BELStoredFunction fun) {
-		const uint32_t fid = gpools.internString_internal(fname);
+		// const uint32_t fid = gpools.internString_internal(fname);
+		const uint32_t fid = ( const_cast<GlobalPools*>( &gpools ) )->internString_internal(fname);
 		//AYLOG(DEBUG) << "adding function(" << fname << ":" << fid << ")";
 		addFun(fid, fun);
 	}
@@ -886,7 +888,7 @@ struct BELFunctionStorage_holder {
 	// BarzerNumber, BarzerDate and BarzerTimeOfDay
 
 	struct RangePacker : public boost::static_visitor<bool> {
-		GlobalPools &globPools;
+		const GlobalPools &globPools;
 		BarzerRange &range;
 
 		uint32_t cnt;
@@ -895,26 +897,37 @@ struct BELFunctionStorage_holder {
         BarzelEvalContext& d_ctxt;
 
 
-		RangePacker(GlobalPools &u, BarzerRange &r, BarzelEvalContext& ctxt, const char* funcName) :
+		RangePacker(const GlobalPools &u, BarzerRange &r, BarzelEvalContext& ctxt, const char* funcName) :
             globPools(u), range(r), cnt(0) ,
             d_funcName(funcName),
             d_ctxt(ctxt)
         {}
 
 		bool operator()(const BarzerLiteral &ltrl) {
-			ay::UniqueCharPool &spool = globPools.stringPool;
-			if (ltrl.getId() == spool.internIt("DESC")) {
+			// const ay::UniqueCharPool &spool = globPools.stringPool;
+			if (ltrl.getId() == globPools.string_getId("DESC")) {
 				range.setDesc();
 				return true;
-			} else if (ltrl.getId() == spool.internIt("ASC")) {
+			} else if (ltrl.getId() == globPools.string_getId("ASC")) {
 				return true;
-			} else if (ltrl.getId() == spool.internIt("STRICT") ) {
+                        } else if (ltrl.getId() == globPools.string_getId("NOHI")) {
+                            range.setNoHI();
+                            return true;
+			} else if (ltrl.getId() == globPools.string_getId("NOLO")) {
+                            range.setNoLO();
+                            return true;
+			} else if (ltrl.getId() == globPools.string_getId("FULLRANGE")) {
+                            range.setFullRange();
+                            return true;
+                        } else if (ltrl.getId() == globPools.string_getId("STRICT") ) {
                                 range.setStrict();
                                 return true;
                         } else {
-                                pushFuncError( d_ctxt, d_funcName, boost::format("Invalid order: `%1%`. Expected (ASC|DESC|STRICT)") % spool.resolveId(ltrl.getId()) );
-                                AYLOG(ERROR) << "Invalid order: `"
-                                                   << spool.resolveId(ltrl.getId()) << "'";
+                                pushFuncError( d_ctxt, d_funcName,
+                                               boost::format("Invalid modifier: `%1%`. Expected (ASC|DESC|STRICT|NOHI|NOLO|FULLRANGE)") 
+                                                % globPools.string_resolve(ltrl.getId()) );
+                                AYLOG(ERROR) << "Invalid modifier: `"
+                                                   << globPools.string_resolve(ltrl.getId()) << "'";
 				return false;
 			}
 		}
@@ -1217,20 +1230,20 @@ struct BELFunctionStorage_holder {
 
 	struct ErcExprPacker : public boost::static_visitor<bool> {
 		BarzerERCExpr expr;
-		GlobalPools &gpools;
+		const GlobalPools &gpools;
         const char* d_funcName;
         BarzelEvalContext& d_ctxt;
-		ErcExprPacker(GlobalPools &gp, BarzelEvalContext& ctxt, const char* funcName ) :
+		ErcExprPacker(const GlobalPools &gp, BarzelEvalContext& ctxt, const char* funcName ) :
             gpools(gp), d_funcName(funcName), d_ctxt(ctxt)
         {}
 
 
 		bool operator()(const BarzerLiteral &ltrl) {
-			ay::UniqueCharPool &sp = gpools.stringPool;
-			if (ltrl.getId() == sp.internIt("and")) {
+			const ay::UniqueCharPool &sp = gpools.stringPool;
+			if (ltrl.getId() == sp.getId("and")) {
 				//AYLOG(DEBUG) << "AND";
 				expr.setType(BarzerERCExpr::T_LOGIC_AND);
-			} else if (ltrl.getId() == sp.internIt("or")) {
+			} else if (ltrl.getId() == sp.getId("or")) {
 				//AYLOG(DEBUG) << "OR";
 				expr.setType(BarzerERCExpr::T_LOGIC_OR);
 			} else {
@@ -1282,6 +1295,8 @@ struct BELFunctionStorage_holder {
 	STFUN(mkLtrl)
 	{
         SETFUNCNAME(mkLtrl);
+        FERROR("mkLtrl deprecated and disabled");
+        /*
 		if (!rvec.size()) {
             FERROR("Argument is required");
 			return false;
@@ -1299,7 +1314,8 @@ struct BELFunctionStorage_holder {
 		lt.setString(id);
 
 		setResult(result, lt);
-		return true;
+        */
+		return false;
 	}
 
 	// set "stop" type on the incoming literal.
@@ -1497,6 +1513,21 @@ struct BELFunctionStorage_holder {
         return true;
     }
 
+	STFUN(getMonth) {
+        SETFUNCNAME(getMonth);
+		BarzerDate bd;
+		try {
+            if (rvec.size())
+                bd = getAtomic<BarzerDate>(rvec[0]);
+            else bd.setToday();
+            setResult(result, BarzerNumber(bd.month));
+            return true;
+		} catch (boost::bad_get) {
+            FERROR("wrong argument type");
+            setResult(result,BarzerNumber(0));
+            return true;
+        }
+	}
 	STFUN(getYear) {
         SETFUNCNAME(getYear);
 		BarzerDate bd;

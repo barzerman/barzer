@@ -16,12 +16,12 @@ struct EntityDataReaderCB {
 
     int operator()( ay::FileReader& fr ) {
         // const std::vector< const char* >& tok = fr.tok();
-        StoredToken& sTok =  d_gp.getDtaIdx().addToken( fr.getTok_char( T_ENTID ) );
+        uint32_t strId =  d_gp.internString_internal( fr.getTok_char( T_ENTID ) );
         uint32_t cl = fr.getTok_int(T_CLASS), sc = fr.getTok_int(T_SUBCLASS);
         const char* name = fr.getTok_char( T_NAME );
         uint32_t  relevance = fr.getTok_int( T_RELEVANCE );
 
-        StoredEntityUniqId euid( sTok.tokId, cl, sc );
+        StoredEntityUniqId euid( strId, cl, sc );
         // std::cerr << "FUCKSHIT:" << euid << ":" << &d_gp << "\n";
         d_ed.setEntPropData( euid, name, relevance ); 
         return 0;

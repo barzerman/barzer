@@ -445,7 +445,7 @@ std::ostream& BTND_Pattern_Number::printXML( std::ostream& fp, const GlobalPools
 	case T_RANGE_INT: 
 		fp << " l=\"" << range.integer.lo << "\" h=\"" << range.integer.hi << "\""; break;
 	case T_RANGE_REAL: 
-		fp << "l=\"" << range.real.lo << "\" h=\"" << range.real.hi << "\""; break;
+		fp << " l=\"" << range.real.lo << "\" h=\"" << range.real.hi << "\""; break;
 	case T_ANY_NUMBER: break;
 	}
 	return fp << TAG_CLOSE_STR;
@@ -470,10 +470,10 @@ bool BTND_Pattern_Number::operator() ( const BarzerNumber& num ) const
 	case T_RANGE_REAL:
 		if( num.isReal() ) {
 			double n = num.getReal_unsafe();
-			return( n <= range.integer.hi && n>=range.integer.lo );
+			return( n <= range.real.hi && n>=range.real.lo );
 		} else if( num.isInt() ) {
 			double n = num.getInt_unsafe();
-			return( n <= range.integer.hi && n>=range.integer.lo );
+			return( n <= range.real.hi && n>=range.real.lo );
 		} else
 			return false;
 		break;
@@ -577,9 +577,9 @@ struct BTND_PatternData_print_XML : public BTND_Base_print_XML {
 	const char* operator()( const BTND_Pattern_ERC& d ) 
 	{
 		const char* tag = "erc";
-		d_fp << "<erc";
+		//d_fp << "<erc";
 		d.printXML(d_fp,d_trie.getGlobalPools());
-		d_fp << TAG_CLOSE_STR;
+		//d_fp << TAG_CLOSE_STR;
 		return tag;
 	}
 	const char* operator()( const BTND_Pattern_Range& d ) 
