@@ -154,12 +154,20 @@ inline void BarzelEvalResult::setBeadData<BarzelBeadRange>( const BarzelBeadRang
 
 typedef std::vector< BarzelEvalResult > BarzelEvalResultVec;
 
+typedef boost::unordered_map< uint32_t, BarzelEvalResult > VariableEvalMap;
+
 struct BarzelEvalProcFrame {
     BarzelEvalResultVec d_v;
     size_t d_skip;
 	
+    BarzelEvalProcFrame* d_parentFrame;
+    VariableEvalMap*     d_varMap;
+
 	BarzelEvalProcFrame( const BarzelEvalProcFrame& x )  : 
-        d_v(x.d_v), d_skip(x.d_skip){}
+        d_v(x.d_v), d_skip(x.d_skip), d_parentFrame(0), d_varMap(0)
+    {}
+
+    void setParentFrame( BarzelEvalProcFrame* p) { d_parentFrame = p; }
 
 	BarzelEvalProcFrame( )  : d_skip(0) {}
 	BarzelEvalProcFrame( const ay::skippedvector<BarzelEvalResult>& rv ) : d_v(rv.vec()), d_skip(rv.getSkip() ) {}
