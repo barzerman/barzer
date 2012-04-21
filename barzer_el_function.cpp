@@ -357,6 +357,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(getDate);         // getDate(DateTime)
 		ADDFN(getMDay);         
 		ADDFN(setMDay);
+		ADDFN(getMonth);         
 		ADDFN(getYear);
 		ADDFN(getLow); // (BarzerRange)
 		ADDFN(getHigh); // (BarzerRange)
@@ -1502,6 +1503,21 @@ struct BELFunctionStorage_holder {
         return true;
     }
 
+	STFUN(getMonth) {
+        SETFUNCNAME(getMonth);
+		BarzerDate bd;
+		try {
+            if (rvec.size())
+                bd = getAtomic<BarzerDate>(rvec[0]);
+            else bd.setToday();
+            setResult(result, BarzerNumber(bd.month));
+            return true;
+		} catch (boost::bad_get) {
+            FERROR("wrong argument type");
+            setResult(result,BarzerNumber(0));
+            return true;
+        }
+	}
 	STFUN(getYear) {
         SETFUNCNAME(getYear);
 		BarzerDate bd;
