@@ -1,0 +1,3 @@
+#! /bin/sh
+
+LD_LIBRARY_PATH=$(dirname $0) $(dirname $0)/barzer.exe $@
