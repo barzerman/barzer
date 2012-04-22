@@ -909,8 +909,11 @@ struct BTND_Rewrite_Control {
         RWCTLT_LIST,  // evaluates all children returns everything every child produces
         // init is like a scoped declaration in C++ 
         // let is like X=y in javascript - if no surrounding context has X , X will be created 
-        RWCTLT_VAR_ASSIGN, // assigns variable - tries to find it in current context and if fails - creates
-        RWCTLT_VAR_GET  // extracts variable - tries all ascending contexts 
+        RWCTLT_VAR_BIND, // assigns (binds) variable - tries to find it in current context and if fails - creates
+        RWCTLT_VAR_GET,  // extracts variable - tries all ascending contexts 
+        
+        /// add new ones above this line
+        RWCTLT_MAX
     }; 
     uint16_t d_rwctlt; // RWCTLT_XXXX
     uint32_t d_varId;  //  default 0xffffffff - when set results will be also added to the variable 
@@ -920,6 +923,17 @@ struct BTND_Rewrite_Control {
 		{ return fp << "Control(" << d_rwctlt << "," << d_varId << ")"; }
 	std::ostream& print( std::ostream& fp, const BELPrintContext& ) const
 		{ return print(fp); }
+    
+    void setVarId( uint32_t i ) { d_varId= i; }
+    uint32_t getVarId() const { return d_varId; }
+
+    void setCtrl( uint32_t m )
+    {
+        if( m>= RWCTLT_COMMA && m< RWCTLT_MAX ) 
+            d_rwctlt = static_cast<uint16_t>( m );
+    }
+    bool isCtrl( uint32_t m ) 
+        { return ( m == d_rwctlt ); }
 };
 
 typedef boost::variant< 

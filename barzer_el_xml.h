@@ -87,6 +87,7 @@ public:
 		TAG_NOT,
 		TAG_TEST,
 		TAG_COND,
+		TAG_BLOCK, // rewrite control structure (comma, variable let and get and more - extendable)
 
 		TAG_STMSET, // document element
 		
@@ -291,6 +292,7 @@ public:
 	// <rn>
 	void taghandle_RNUMBER( const char_cp * attr, size_t attr_sz , bool close=false);
 	void taghandle_MKENT( const char_cp * attr, size_t attr_sz , bool close=false);
+	void taghandle_BLOCK( const char_cp * attr, size_t attr_sz , bool close=false);
     /// name value pair (can be inside entity or on its own)
     /// attributes n,v for nme and value 
 	void taghandle_NV( const char_cp * attr, size_t attr_sz , bool close=false);

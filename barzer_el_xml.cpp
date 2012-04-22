@@ -204,6 +204,7 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 	CASE_TAG(FUNC)
 	CASE_TAG(SELECT)
 	CASE_TAG(CASE)
+	CASE_TAG(BLOCK)
 
 	// special cases
 	case TAG_AND:
@@ -1222,6 +1223,44 @@ void BELParserXML::taghandle_MKENT( const char_cp * attr, size_t attr_sz , bool 
 }
         
 
+void BELParserXML::taghandle_BLOCK( const char_cp * attr, size_t attr_sz , bool close)
+{
+	if( close ) {
+		statement.popNode();
+		return;
+	}
+    BTND_Rewrite_Control ctrl;
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		switch( n[0] ) {
+        case 'c':{
+                char c0=v[0], c1 = (c0?v[1]: 0), c2= (c1?v[2]:0), c3=(c2?v[3]:0);
+                switch( c0 ) {
+                case 'c': // c(omma) comma
+                    ctrl.setCtrl( BTND_Rewrite_Control::RWCTLT_COMMA );
+                    break;
+                case 'l':  // l(ist) list
+                    ctrl.setCtrl( BTND_Rewrite_Control::RWCTLT_LIST );
+                    break;
+                case 'v': // vb/vg (var bind, var get)
+                    if( c1 == 'b' )
+                        ctrl.setCtrl( BTND_Rewrite_Control::RWCTLT_VAR_BIND );
+                    else if( c1 == 'g' ) 
+                        ctrl.setCtrl( BTND_Rewrite_Control::RWCTLT_VAR_GET );
+                    break;
+                }
+            }
+            break;
+        case 'v':{ /// variable
+            uint32_t varId = reader->getGlobalPools().internString_internal(v) ;
+            ctrl.setVarId( varId );
+            }break;
+            
+        }
+    }
+	statement.pushNode( BTND_RewriteData(ctrl));
+}
 void BELParserXML::taghandle_RNUMBER( const char_cp * attr, size_t attr_sz , bool close)
 {
 	if( close ) {
@@ -1473,6 +1512,9 @@ int BELParserXML::getTag( const char* s ) const
 	CHECK_3CW("ny",TAG_ANY) // <any>
 	CHECK_3CW("nd",TAG_AND) // <and>
 		break;
+	case 'b':
+	CHECK_5CW("lock", TAG_BLOCK ) // <case>
+	    break;
 	case 'c':
 	CHECK_4CW("ase", TAG_CASE ) // <case>
 	CHECK_4CW("ond", TAG_COND ) // <cond>
