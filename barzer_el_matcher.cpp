@@ -200,7 +200,7 @@ public:
 	uint32_t getStemmedStringId( ) const
 	{
 		uint32_t id = 0xffffffff;
-		size_t stringNum = 0;
+		// size_t stringNum = 0;
 		const  BarzelBead&  bead = *d_dtaBeadIter;
 
 		{
@@ -1253,7 +1253,7 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 		}
 		if( di != bbdv.end() ) { // vector is longer than the bead range
              
-            const BarzelMatchInfo& matchInfo = ctxt.matchInfo;
+            // const BarzelMatchInfo& matchInfo = ctxt.matchInfo;
             const CTWPVec* tmpCt = 0;
             if( range.second != range.first ) {
                 BeadList::const_iterator bsi = range.first;

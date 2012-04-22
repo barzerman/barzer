@@ -1235,7 +1235,7 @@ void BELParserXML::taghandle_BLOCK( const char_cp * attr, size_t attr_sz , bool 
 		const char* v = attr[i+1]; // attr value
 		switch( n[0] ) {
         case 'c':{
-                char c0=v[0], c1 = (c0?v[1]: 0), c2= (c1?v[2]:0), c3=(c2?v[3]:0);
+                char c0=v[0], c1 = (c0?v[1]: 0);
                 switch( c0 ) {
                 case 'c': // c(omma) comma
                     ctrl.setCtrl( BTND_Rewrite_Control::RWCTLT_COMMA );

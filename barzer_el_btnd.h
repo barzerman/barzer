@@ -924,9 +924,12 @@ struct BTND_Rewrite_Control {
 	std::ostream& print( std::ostream& fp, const BELPrintContext& ) const
 		{ return print(fp); }
     
+    bool isValidVar() const { return d_varId != 0xffffffff; }
+
     void setVarId( uint32_t i ) { d_varId= i; }
     uint32_t getVarId() const { return d_varId; }
 
+    uint16_t getCtrl() const { return d_rwctlt; }
     void setCtrl( uint32_t m )
     {
         if( m>= RWCTLT_COMMA && m< RWCTLT_MAX ) 

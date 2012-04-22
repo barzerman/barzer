@@ -49,7 +49,7 @@ PythonCmdLine&  PythonCmdLine::init( boost_python_list& ns )
     ns[0];
     d_argv_str.clear();
     size_t ns_len = len(ns);
-    for (int i = 0; i < ns_len; ++i) {
+    for (size_t i = 0; i < ns_len; ++i) {
         d_argv_str.push_back( extract<std::string>(ns[i]) );
     }
     argv.clear();
@@ -470,7 +470,7 @@ struct TraceInfo {
         ",gr="<< frameTrace.grammarSeqNo ;
          
         size_t err_len = len(err);
-        for (int i = 0; i < err_len; ++i) {
+        for (size_t i = 0; i < err_len; ++i) {
             std::string s=extract<std::string>(err[i]) ;
             fp << "err(" << s  << ")\n";
         }

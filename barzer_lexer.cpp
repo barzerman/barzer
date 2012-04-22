@@ -685,7 +685,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 
         //// attempting split correction -
         /// trying to split the word into two
-		const int MultiwordLen = BZSpell::MAX_WORD_LEN / 4;
+		const size_t MultiwordLen = BZSpell::MAX_WORD_LEN / 4;
 		if (strId == 0xffffffff && t_len < MultiwordLen)
 		{
 			char dirty [BZSpell::MAX_WORD_LEN];
@@ -819,11 +819,11 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 		// cPos->second = std::distance (cVec.begin (), cPos);
 		CToken& ctok = cVec[cPos].first;
 		ctok.setTToken (ttok, cPos );
-		bool wasStemmed = false;
+		// bool wasStemmed = false;
 
 		++cPos;
 		++tPos;
-        const StoredToken* storedTok = 0;
+        // const StoredToken* storedTok = 0;
 		if( !t || !*t || isspace(*t)  ) { // this should never happen
 			ctok.setClass( CTokenClassInfo::CLASS_SPACE );
 			continue;
@@ -873,8 +873,8 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 						    cPos = scr.d_nextCtok;
                         if( scr.d_nextTtok < tVec.size() )
 						    tPos = scr.d_nextTtok;
-						if (scr.d_result > 0)
-							wasStemmed = true;
+						// if (scr.d_result > 0)
+							// wasStemmed = true;
 	 				}
 	 				else
 					{

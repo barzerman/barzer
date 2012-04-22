@@ -90,7 +90,7 @@ void EntityLoader_XML::handle_entity_open( Tag_t parentTag, const char_cp * attr
 			if( !n[1] ) {
 				// need to populate euid.tokId 
 				// first must resolve token
-				bool newAdded = true;
+				// bool newAdded = true;
 
 				// StoredToken& tok = dtaIdx->tokPool.addSingleTok( newAdded, v );
                 uint32_t idStrId = d_gp.internString_internal(v) ;
@@ -220,7 +220,7 @@ void EntityLoader_XML::handle_token_open( Tag_t parentTag, const char_cp * attr,
 		}
 	}
 	if( actualTok ) { // adding token right away
-		bool newAdded = true;
+		// bool newAdded = true;
         /*
 		StoredToken& tok = dtaIdx->tokPool.addSingleTok( newAdded, actualTok );
 		d_curTok = &tok;

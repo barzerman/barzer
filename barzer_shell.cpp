@@ -455,7 +455,7 @@ static int bshf_autoc( BarzerShell* shell, char_cp cmd, std::istream& in )
 	QuestionParm qparm;
     shell->syncQuestionParm(qparm);
 
-	std::ostream *ostr = &(outFP);
+	//std::ostream *ostr = &(outFP);
 	std::ofstream ofile;
 
     size_t numIterations = 1;
@@ -464,7 +464,7 @@ static int bshf_autoc( BarzerShell* shell, char_cp cmd, std::istream& in )
             numIterations = atoi( fname.c_str() );
         } else {
             ofile.open(fname.c_str());
-            ostr = &ofile;
+            //ostr = &ofile;
         }
 	}
 

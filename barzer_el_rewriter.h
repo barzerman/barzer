@@ -255,6 +255,9 @@ struct BarzelEvalContext {
     BarzelEvalContext& pushBarzelError( const char* err ) ; 
     const BarzelEvalProcFrame* getTopProcFrame() const 
         { return ( d_procFrameStack.size()==0 ? 0: &(d_procFrameStack.back()) ); }
+
+    // const GlobalPools&  gp() const { return universe.getGlobalPools(); }
+    const StoredUniverse&  getUniverse() const { return universe; }
 private:
     BarzelEvalContext( const BarzelEvalContext& x ) :   
 	    matchInfo(x.matchInfo),

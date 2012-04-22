@@ -4,6 +4,8 @@
 #include <barzer_barz.h>
 #include <barzer_el_matcher.h>
 #include <ay/ay_logger.h>
+#include <barzer_el_rewrite_control.h>
+
 //#include <boost/foreach.hpp>
 
 namespace barzer {
@@ -265,6 +267,11 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Literal>(const BT
 	d_val.setBeadData( 	BarzelBeadAtomic().setData( BarzerLiteral(data) ) );
 	return true;
 }
+template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Control>(const BTND_Rewrite_Control &data) {
+    /// evaluating block
+    return BarzelControlEval( ctxt, d_childValVec, d_evalNode )( d_val, data );
+}
+
 template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const BTND_Rewrite_Function &data) {
 	//AYLOG(DEBUG) << "calling funid:" << data.nameId;
 	const BarzelEvalNode* evalNode = ctxt.getTrie().getProcs().getEvalNode( data.nameId );
