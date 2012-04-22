@@ -190,6 +190,11 @@ public:
         VariableEvalMap::iterator i = d_varMap.insert( VariableEvalMap::value_type(varId, BarzelEvalResult()) ).first;
         return (i->second);
     }
+    BarzelEvalResult* bindPtr( uint32_t varId )
+    {
+        VariableEvalMap::iterator i = d_varMap.insert( VariableEvalMap::value_type(varId, BarzelEvalResult()) ).first;
+        return &(i->second);
+    }
     
     const BarzelEvalResult* getVar( uint32_t varId ) const 
         { return getLocalVar( varId ); }
@@ -230,6 +235,14 @@ struct BarzelEvalContext {
     // let var 
     BarzelEvalResult& bindVar( uint32_t varId ) 
         { return d_procFrameStack.back().bind(varId); }
+    /// binds 
+    BarzelEvalResult* bindVarUpTheStack( uint32_t varId ) 
+        {  
+            if( d_procFrameStack.size()>1 ) 
+                return (d_procFrameStack[ d_procFrameStack.size() -2 ].bindPtr(varId));
+            else
+                return 0;
+        }
     const BarzelEvalResult* getVar( uint32_t varId ) const 
     {
         for( BarzelEvalProcFrameStack::const_reverse_iterator i = d_procFrameStack.rbegin(); i!= d_procFrameStack.rend(); ++i ) {
@@ -292,6 +305,7 @@ private:
 		} else 
 			return ( false );
 	}
+	bool eval_comma(BarzelEvalResult&, BarzelEvalContext& ctxt ) const;
 public:
     // returns true if this node if this is a LET node - let node assigns a variable 
     const BTND_Rewrite_Control* getControl() const 
@@ -315,6 +329,12 @@ public:
 	}
 	/// returns true if evaluation is successful 
 	bool eval(BarzelEvalResult&, BarzelEvalContext& ctxt ) const;
+
+    const BTND_Rewrite_Control* isComma( ) const 
+    {
+        const BTND_Rewrite_Control* ctrl = getControl();
+        return( (ctrl && ctrl->isComma()) ? ctrl:0 ); 
+    }
 };
 //// T must have methods:
 ////   bool T::nodeStart()

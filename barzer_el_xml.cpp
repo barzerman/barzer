@@ -422,7 +422,19 @@ template <> void BTND_Rewrite_Text_visitor::operator()<BTND_Rewrite_Literal>(BTN
 			t.setId( i );
 		}
         // all right side literals will be internally interned as well
-        d_parser.getGlobalPools().internString_internal(d_str,d_len) ;
+        if( d_str[d_len] != 0 ) {
+            char goodStr[ 128 ];
+            strncpy( goodStr, d_str, sizeof(goodStr)-1 );
+            goodStr[ sizeof(goodStr)-1 ] = 0;
+            if( d_len > sizeof(goodStr)-1 ) {
+                d_parser.getReader()->getErrStreamRef() << "in statement " << d_parser.statement.stmt.getStmtNumber() << " String too long \"" << 
+                goodStr << "\"\n";
+            } else
+                goodStr[d_len]=0;
+            d_parser.getGlobalPools().internString_internal(goodStr) ;
+        } else
+            d_parser.getGlobalPools().internString_internal(d_str,d_len) ;
+        // std::cerr << "SHITFUCK: barzer_el_xml.cpp: 426" << shitfuck << std::endl;
 	}
 template <> void BTND_Rewrite_Text_visitor::operator()<BTND_Rewrite_Number>(BTND_Rewrite_Number& t)   const
 	{ 
@@ -1240,15 +1252,8 @@ void BELParserXML::taghandle_BLOCK( const char_cp * attr, size_t attr_sz , bool 
                 case 'c': // c(omma) comma
                     ctrl.setCtrl( BTND_Rewrite_Control::RWCTLT_COMMA );
                     break;
-                case 'l':  // l(ist) list
-                    ctrl.setCtrl( BTND_Rewrite_Control::RWCTLT_LIST );
-                    break;
-                case 'v': // vb/vg (var bind, var get)
-                    if( c1 == 'b' )
-                        ctrl.setCtrl( BTND_Rewrite_Control::RWCTLT_VAR_BIND );
-                    else if( c1 == 'g' ) 
-                        ctrl.setCtrl( BTND_Rewrite_Control::RWCTLT_VAR_GET );
-                    break;
+                case 'v': // var
+                    ctrl.setCtrl( BTND_Rewrite_Control::RWCTLT_VAR_GET );
                 }
             }
             break;
@@ -1358,6 +1363,8 @@ void BELParserXML::taghandle_FUNC( const char_cp * attr, size_t attr_sz , bool c
 		    f.setNameId( funcNameId ) ;
 		} else if( *n == 'a' ) {
             f.setArgStrId( reader->getGlobalPools().internString_internal(v) );
+        } else if( *n == 'v' ) { // variable 
+            f.setVarId( reader->getGlobalPools().internString_internal(v) );
         }
 	}
     if( funcNameId != 0xffffffff ) 

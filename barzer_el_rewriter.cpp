@@ -277,8 +277,14 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const B
 	const BarzelEvalNode* evalNode = ctxt.getTrie().getProcs().getEvalNode( data.nameId );
 	if( evalNode ) {
         // std::cerr << "SHITFUCK: " << d_childValVec << std::endl;
-		BarzelEvalContext::frame_stack_raii frameRaii( ctxt, ay::skippedvector<BarzelEvalResult>(d_childValVec) );
-		bool ret = evalNode->eval( d_val, ctxt);
+        bool ret = false;
+        {
+		    BarzelEvalContext::frame_stack_raii frameRaii( ctxt, ay::skippedvector<BarzelEvalResult>(d_childValVec) );
+		    ret = evalNode->eval( d_val, ctxt);
+        }
+        /// if function call successful and it has output variable
+        if( ret && data.isValidVar() ) 
+            ctxt.bindVar(data.getVarId()) = d_val;
 
 		return ret;
 	}
@@ -286,6 +292,8 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const B
 	const BELFunctionStorage &fs = u.getFunctionStorage();
 
 	bool ret = fs.call(ctxt, data, d_val, ay::skippedvector<BarzelEvalResult>(d_childValVec), u );
+    if( ret && data.isValidVar() ) 
+        ctxt.bindVar(data.getVarId()) = d_val;
 	return ret;
 }
 
@@ -439,8 +447,56 @@ bool BarzelEvalNode::isFallible() const
 	return false;
 }
 
+bool BarzelEvalNode::eval_comma(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) const
+{
+    if( !d_child.size() ) 
+        return false;
+
+    // const BarzelEvalProcFrame* topFrame = ctxt.getTopProcFrame();
+
+	if( d_child.size()> 1 ) {
+		
+		/// forming dependent vector of values 
+        size_t childSize = d_child.size()-1;
+		for( size_t i =0; i< childSize; ++i ) {
+			const BarzelEvalNode& childNode = d_child[i];
+
+            //// if childNode is a let node - assign variable and continue
+
+            BarzelEvalResult childVal;
+
+			size_t substPos= 0xffffffff;
+			if( childNode.isSubstitutionParm( substPos ) ) {
+			} else {
+				if( !childNode.eval(childVal, ctxt) )
+					return false; // error in one of the children occured
+	
+            	Eval_visitor_needToStop visitor(childVal,val);
+            	if( boost::apply_visitor( visitor, d_btnd ) )
+                	break;
+			}
+		}
+		/// vector of dependent values ready
+	}
+    bool ret = d_child.back().eval(val, ctxt) ;
+
+	return ret;
+}
+
 bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) const
 {
+    const BTND_Rewrite_Control* ctrl = isComma();
+    if( ctrl ) { /// this is a block (comma)
+		// BarzelEvalContext::frame_stack_raii frameRaii( ctxt, ay::skippedvector<BarzelEvalResult>(d_childValVec) );
+        if( eval_comma( val, ctxt ) ) {
+            if(ctrl->isValidVar()) // if block has a variable we bind it 
+                ctxt.bindVar(ctrl->getVarId()) = val;
+            
+            return true;
+        } else
+            return false;
+    }
+
 	BarzelEvalResultVec childValVec;
 
     // const BarzelEvalProcFrame* topFrame = ctxt.getTopProcFrame();

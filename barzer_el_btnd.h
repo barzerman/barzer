@@ -785,6 +785,7 @@ struct BTND_Rewrite_Function {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	uint32_t nameId; // function name id
 	uint32_t argStrId; // string id for the optional arg attribute
+    uint32_t varId;    // string id for a variable (optional)
 
 	void setNameId( uint32_t i ) { nameId = i ; }
 	uint32_t getNameId() const { return nameId; }
@@ -794,17 +795,23 @@ struct BTND_Rewrite_Function {
 
 	BTND_Rewrite_Function() : 
         nameId(ay::UniqueCharPool::ID_NOTFOUND),
-        argStrId(ay::UniqueCharPool::ID_NOTFOUND) 
+        argStrId(ay::UniqueCharPool::ID_NOTFOUND) ,
+        varId(ay::UniqueCharPool::ID_NOTFOUND) 
     {}
 
 	BTND_Rewrite_Function(ay::UniqueCharPool::StrId id) : 
         nameId(id), 
-        argStrId(ay::UniqueCharPool::ID_NOTFOUND)  
+        argStrId(ay::UniqueCharPool::ID_NOTFOUND)  ,
+        varId(ay::UniqueCharPool::ID_NOTFOUND)  
     {}
 
 	BTND_Rewrite_Function(ay::UniqueCharPool::StrId id, ay::UniqueCharPool::StrId argId) : 
-        nameId(id), argStrId(argId) 
+        nameId(id), argStrId(argId) , varId(ay::UniqueCharPool::ID_NOTFOUND)
     {}
+    
+    void        setVarId( uint32_t v ) { varId= v; }
+    uint32_t    getVarId() const {return varId; }
+    bool        isValidVar() const { return (varId != ay::UniqueCharPool::ID_NOTFOUND); }
 };
 
 struct BTND_Rewrite_Select {
@@ -937,6 +944,7 @@ struct BTND_Rewrite_Control {
     }
     bool isCtrl( uint32_t m ) 
         { return ( m == d_rwctlt ); }
+    bool isComma() const { return( d_rwctlt == RWCTLT_COMMA ); }
 };
 
 typedef boost::variant< 

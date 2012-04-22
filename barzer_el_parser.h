@@ -99,12 +99,13 @@ protected:
 	/// token will be added
 	uint32_t addCompoundedWordLiteral( const char* alias );
 
+public:
 	const BELReader* getReader() const { return reader; }
 	BELReader* getReader() { return reader; }
 
 	const BELTrie& getTrie() const;
 	BELTrie& getTrie();
-public:
+
 	uint32_t stemAndInternTmpText( const char* s, int len );
 	BELParser( BELReader* r ) ;
 	virtual int parse( std::istream& ) = 0;

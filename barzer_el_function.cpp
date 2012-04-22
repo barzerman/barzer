@@ -1094,7 +1094,7 @@ struct BELFunctionStorage_holder {
 			const char* str = universe.getGlobalPools().string_resolve(ltrl.getId());
             uint32_t internalStrId = 0xffffffff;
             if( str ) {
-                uint32_t internalStrId = universe.getGlobalPools().internalString_getId(str);
+                internalStrId = universe.getGlobalPools().internalString_getId(str);
                 if( internalStrId == 0xffffffff ) {
                     /// couldnt internally resolve 
                     FERROR("Couldn't internally resolve. Use &lt;mkent s=\"\" c=\"\" id=\"\"/&gt; instead");
