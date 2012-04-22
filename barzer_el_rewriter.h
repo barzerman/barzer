@@ -156,29 +156,43 @@ typedef std::vector< BarzelEvalResult > BarzelEvalResultVec;
 
 typedef boost::unordered_map< uint32_t, BarzelEvalResult > VariableEvalMap;
 
-struct BarzelEvalProcFrame {
+class BarzelEvalProcFrame {
     BarzelEvalResultVec d_v;
     size_t d_skip;
-	
-    BarzelEvalProcFrame* d_parentFrame;
-    VariableEvalMap*     d_varMap;
+    VariableEvalMap d_varMap;	
 
+    const BarzelEvalResult* getLocalVar( uint32_t v ) const 
+    {
+        VariableEvalMap::const_iterator i = d_varMap.find(v);
+        return ( i == d_varMap.end() ? 0 : &(i->second) );
+    }
+public:
 	BarzelEvalProcFrame( const BarzelEvalProcFrame& x )  : 
-        d_v(x.d_v), d_skip(x.d_skip), d_parentFrame(0), d_varMap(0)
+        d_v(x.d_v), d_skip(x.d_skip)
     {}
 
-    void setParentFrame( BarzelEvalProcFrame* p) { d_parentFrame = p; }
-
+    
 	BarzelEvalProcFrame( )  : d_skip(0) {}
 	BarzelEvalProcFrame( const ay::skippedvector<BarzelEvalResult>& rv ) : d_v(rv.vec()), d_skip(rv.getSkip() ) {}
 
 	const BarzelEvalResult* getPositionalArg( size_t pos ) const
 		{ return( (pos+ d_skip)< d_v.size() ? &(d_v[d_skip+pos]) : 0 ); }
+
     void assign( const ay::skippedvector<BarzelEvalResult>& rv )
     {
         d_v = rv.vec();
         d_skip = rv.getSkip();
     }
+    
+    /// adds to the current frame - this fucntion should always return non 0
+    BarzelEvalResult& bind( uint32_t varId )
+    {
+        VariableEvalMap::iterator i = d_varMap.insert( VariableEvalMap::value_type(varId, BarzelEvalResult()) ).first;
+        return (i->second);
+    }
+    
+    const BarzelEvalResult* getVar( uint32_t varId ) const 
+        { return getLocalVar( varId ); }
 };
 
 struct BarzelEvalContext {
@@ -192,25 +206,41 @@ struct BarzelEvalContext {
 	};
     Barz& d_barz;
 	
-	std::stack< BarzelEvalProcFrame > d_procFrameStack; 
+	typedef  std::vector< BarzelEvalProcFrame > BarzelEvalProcFrameStack;
+	BarzelEvalProcFrameStack d_procFrameStack; 
 	struct frame_stack_raii {
 		BarzelEvalContext& context;
 		frame_stack_raii( BarzelEvalContext& ctxt, const ay::skippedvector<BarzelEvalResult>& rv ) : 
 			context(ctxt)
 		{ 
-			context.d_procFrameStack.push( BarzelEvalProcFrame() );
-			context.d_procFrameStack.top().assign(rv);
+			context.d_procFrameStack.push_back( BarzelEvalProcFrame() );
+			context.d_procFrameStack.back().assign(rv);
 		}
 
 		frame_stack_raii( BarzelEvalContext& ctxt, const BarzelEvalProcFrame& frame ):
 			context(ctxt)
 		{
-			context.d_procFrameStack.push( frame );
+			context.d_procFrameStack.push_back( frame );
 		}
-		~frame_stack_raii() { context.d_procFrameStack.pop(); }
+		~frame_stack_raii() { 
+            if( context.d_procFrameStack.size() ) 
+                context.d_procFrameStack.resize( context.d_procFrameStack.size()-1 );
+        }
 	};
+    // let var 
+    BarzelEvalResult& bindVar( uint32_t varId ) 
+        { return d_procFrameStack.back().bind(varId); }
+    const BarzelEvalResult* getVar( uint32_t varId ) const 
+    {
+        for( BarzelEvalProcFrameStack::const_reverse_iterator i = d_procFrameStack.rbegin(); i!= d_procFrameStack.rend(); ++i ) {
+            const BarzelEvalResult* ber = i->getVar(varId);
+            if( ber ) 
+                return ber;
+        }
+        return 0;
+    }
 	const BarzelEvalResult* getPositionalArg( size_t pos ) const
-		{ return ( d_procFrameStack.empty() ? 0 : d_procFrameStack.top().getPositionalArg(pos) ); }
+		{ return ( d_procFrameStack.size()==0 ? 0 : d_procFrameStack.back().getPositionalArg(pos) ); }
 
 	bool hasError() { return err != EVALERR_OK; }
 	const uint8_t* setErr_GROW() { return( err = EVALERR_GROW, (const uint8_t*)0); } 
@@ -220,18 +250,19 @@ struct BarzelEvalContext {
     const Barz& getBarz() const { return d_barz; }
 
 	BarzelEvalContext( BarzelMatchInfo& mi, const StoredUniverse& uni, const BELTrie& trie, Barz& barz ) : 
-		matchInfo(mi), universe(uni) , d_trie(trie),err(EVALERR_OK), d_barz(barz)
+		matchInfo(mi), universe(uni) , d_trie(trie),err(EVALERR_OK), d_barz(barz),d_procFrameStack(1)
 	{}
     BarzelEvalContext& pushBarzelError( const char* err ) ; 
     const BarzelEvalProcFrame* getTopProcFrame() const 
-        { return ( d_procFrameStack.empty() ? 0: &(d_procFrameStack.top()) ); }
+        { return ( d_procFrameStack.size()==0 ? 0: &(d_procFrameStack.back()) ); }
 private:
     BarzelEvalContext( const BarzelEvalContext& x ) :   
 	    matchInfo(x.matchInfo),
 	    universe(x.universe),
 	    d_trie(x.d_trie),
 	    err( x.err ),
-        d_barz( x.d_barz )
+        d_barz( x.d_barz ),
+        d_procFrameStack(1)
     {}
 };
 
@@ -259,6 +290,10 @@ private:
 			return ( false );
 	}
 public:
+    // returns true if this node if this is a LET node - let node assigns a variable 
+    const BTND_Rewrite_Control* getControl() const 
+        { return boost::get<BTND_Rewrite_Control>(&d_btnd); }
+
 	BTND_RewriteData& getBtnd() { return d_btnd; }
 	ChildVec& getChild() { return d_child; }
 	const ChildVec& getChild() const { return d_child; }

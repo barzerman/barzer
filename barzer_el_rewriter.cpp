@@ -271,9 +271,7 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const B
 	if( evalNode ) {
         // std::cerr << "SHITFUCK: " << d_childValVec << std::endl;
 		BarzelEvalContext::frame_stack_raii frameRaii( ctxt, ay::skippedvector<BarzelEvalResult>(d_childValVec) );
-        // const BarzelEvalProcFrame* topFrame = ctxt.getTopProcFrame();
 		bool ret = evalNode->eval( d_val, ctxt);
-        // BarzerNumber* n = barzel_bead_data_get<BarzerNumber>(d_val.getBeadData());
 
 		return ret;
 	}
@@ -448,6 +446,9 @@ bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) cons
 		/// forming dependent vector of values 
 		for( size_t i =0; i< d_child.size(); ++i ) {
 			const BarzelEvalNode& childNode = d_child[i];
+
+            //// if childNode is a let node - assign variable and continue
+
             childValVec.resize(i+1);
             BarzelEvalResult& childVal = childValVec.back();
 

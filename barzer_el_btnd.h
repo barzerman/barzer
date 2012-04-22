@@ -900,6 +900,28 @@ typedef boost::variant<
 	BTND_Rewrite_TimeOfDay
 > BTND_Rewrite_DateTime;
 
+/// control structure - BLOCK/LOOP etc 
+/// implementation will start with block 
+/// var=control(...) 
+struct BTND_Rewrite_Control {
+    enum { 
+        RWCTLT_COMMA,  // evaluates all children returns the vlue of the last
+        RWCTLT_LIST,  // evaluates all children returns everything every child produces
+        // init is like a scoped declaration in C++ 
+        // let is like X=y in javascript - if no surrounding context has X , X will be created 
+        RWCTLT_VAR_ASSIGN, // assigns variable - tries to find it in current context and if fails - creates
+        RWCTLT_VAR_GET  // extracts variable - tries all ascending contexts 
+    }; 
+    uint16_t d_rwctlt; // RWCTLT_XXXX
+    uint32_t d_varId;  //  default 0xffffffff - when set results will be also added to the variable 
+    BTND_Rewrite_Control() : d_rwctlt(RWCTLT_COMMA), d_varId(0xffffffff) {}
+    /// here 4 more bytes of something could be used  
+	std::ostream& print( std::ostream& fp ) const
+		{ return fp << "Control(" << d_rwctlt << "," << d_varId << ")"; }
+	std::ostream& print( std::ostream& fp, const BELPrintContext& ) const
+		{ return print(fp); }
+};
+
 typedef boost::variant< 
 	BTND_Rewrite_None,
 	BTND_Rewrite_Literal,
@@ -912,7 +934,8 @@ typedef boost::variant<
 	BTND_Rewrite_MkEnt,
 	BTND_Rewrite_Select,
 	BTND_Rewrite_Case,
-	BTND_Rewrite_Logic
+	BTND_Rewrite_Logic,
+    BTND_Rewrite_Control
 > BTND_RewriteData;
 
 enum {
@@ -927,7 +950,8 @@ enum {
 	BTND_Rewrite_MkEnt_TYPE,
 	BTND_Rewrite_Select_TYPE,
 	BTND_Rewrite_Case_TYPE,
-	BTND_Rewrite_Logic_TYPE
+	BTND_Rewrite_Logic_TYPE,
+	BTND_Rewrite_Control_TYPE
 }; 
 
 /// when updating the enums make sure to sunc up BTNDDecode::typeName_XXX 
