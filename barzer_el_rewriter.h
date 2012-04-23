@@ -229,7 +229,8 @@ struct BarzelEvalContext {
 		}
 		~frame_stack_raii() { 
             if( context.d_procFrameStack.size() ) 
-                context.d_procFrameStack.resize( context.d_procFrameStack.size()-1 );
+                  context.d_procFrameStack.pop_back();
+//                context.d_procFrameStack.resize( context.d_procFrameStack.size()-1 );
         }
 	};
     // let var 
