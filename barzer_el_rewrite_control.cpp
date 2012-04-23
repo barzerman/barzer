@@ -17,7 +17,7 @@ void pushControlError(BarzelEvalContext& ctxt, const char* ctrlName, const char*
     ss << "\">" << ( error ? error: "" ) ;
 
     if( sig ) {
-        ss << "<sig>" << sig << "</sig>";
+        ss << "<name>" << sig << "</name>";
     }
     ss << "</ctrlerr>";
 

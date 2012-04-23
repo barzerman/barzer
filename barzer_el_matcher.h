@@ -58,6 +58,8 @@ class BarzelMatchInfo {
 	// varid is the key to BarzelVariableIndex::d_pathInterner
 	bool getDataByVarId( BeadRange& r, uint32_t varId, const BELTrie& trie ) const;
 public:
+    const BELSingleVarPath* getVarPathByVarId( uint32_t varId ) const;
+
 	bool isFullBeadRangeEmpty() const { return d_beadRng.first == d_beadRng.second ; }
 	bool isSubstitutionBeadRangeEmpty() const
 		{return d_substitutionBeadRange.first == d_substitutionBeadRange.second;}

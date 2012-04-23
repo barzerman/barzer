@@ -1011,7 +1011,7 @@ void BELParserXML::processAttrForStructTag( BTND_StructData& dta, const char_cp 
 		const char* v = attr[i+1]; // attr value
 		switch( n[0] ) {
 		case 'v': 
-			dta.setVarId( internString(v,true).getStringId() );
+			dta.setVarId( internString_internal(v) );
 			return;
 		}
 	}

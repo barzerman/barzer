@@ -272,6 +272,7 @@ struct BarzelEvalContext {
 
     // const GlobalPools&  gp() const { return universe.getGlobalPools(); }
     const StoredUniverse&  getUniverse() const { return universe; }
+    void  pushError( const char* error, const char* e2=0 );
 private:
     BarzelEvalContext( const BarzelEvalContext& x ) :   
 	    matchInfo(x.matchInfo),

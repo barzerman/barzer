@@ -59,13 +59,13 @@ uint32_t BELParser::internVariable( const char* t )
 	BELSingleVarPath vPath;
 	for( ;end; ) {
 		tmp.assign( beg, end-beg );
-		vPath.push_back( internString(tmp.c_str(),false).getStringId());
+		vPath.push_back( internString_internal(tmp.c_str()) );
 		beg = end+1;
 		end = strchr( beg, '.' );
 	}
 	if( *beg ) {
 		tmp.assign( beg );
-		vPath.push_back( internString(tmp.c_str(),false).getStringId());
+		vPath.push_back( internString_internal(tmp.c_str()));
 	}
 	return reader->getTrie().getVarIndex().produceVarIdFromPathForTran(vPath);
 }
