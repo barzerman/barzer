@@ -332,8 +332,8 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Number>( const BT
 
 template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Variable>( const BTND_Rewrite_Variable& n ) 
 {
-    const BELSingleVarPath* varPath = ctxt.matchInfo.getVarPathByVarId(); 
-    const BarzelEvalResult* varResult = ( varPath && varPath->size() == 1 ? ctxt.getVar(varPath[0]) :0 );
+    const BELSingleVarPath* varPath = ( n.isVarId() ? ctxt.matchInfo.getVarPathByVarId(n.getVarId(),ctxt.getTrie()): 0); 
+    const BarzelEvalResult* varResult = ( varPath && varPath->size() == 1 ? ctxt.getVar( (*varPath)[0]) :0 );
     if( varResult ) {
         d_val = *varResult;
         return true;
@@ -360,7 +360,7 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Variable>( const 
 	}
     {
         const GlobalPools& gp = ctxt.universe.getGlobalPools();
-        const char* varName = gp.internalString_resolve( n.getVarId() );
+        const char* varName = ( varPath && varPath->size() == 1? gp.internalString_resolve( (*varPath)[0] ) : 0 );
         std::stringstream ss;
         ss << "<varerr>" << (varName? varName: "")  << "</varerr>" ;
         ctxt.pushBarzelError( ss.str().c_str() );

@@ -970,7 +970,8 @@ void BTMBestPaths::addPath(const NodeAndBeadVec& nb )
 
 uint32_t BarzelMatchInfo::getTranslationId() const
 	{ return (d_thePath.size() ? d_thePath.back().first->getTranslationId() : 0xffffffff); }
-const BELSingleVarPath* BarzelMatchInfo::getVarPathByVarId( uint32_t varId ) const 
+
+const BELSingleVarPath* BarzelMatchInfo::getVarPathByVarId( uint32_t varId, const BELTrie& trie ) const 
 {
     return trie.getVarIndex().getPathFromTranVarId( varId );
 }
