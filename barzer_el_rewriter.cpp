@@ -375,7 +375,8 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Select>
     if( matchInfo.getDataByVar(r, n,ctxt.getTrie())  ) {
         if( r.first == r.second )  {
             if( matchInfo.iteratorIsEnd( r.second ) ) {
-                std::cerr << "ERROR: blank tail range passed\n";
+                // std::cerr << "ERROR: blank tail range passed\n";
+                ctxt.pushBarzelError( "<e>non literal passed into case</e>" ); 
                 return false;
             }
             matchInfo.expandRangeByOne(r);
@@ -383,9 +384,14 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Select>
 
         BarzelBeadChain::trimBlanksFromRange(r);
 
-        const BarzelBeadAtomic &a = boost::get<BarzelBeadAtomic>(r.first->getBeadData());
-        const BarzerLiteral &ltrl = boost::get<BarzerLiteral>(a.getData());
 
+        const BarzelBeadAtomic *a = boost::get<BarzelBeadAtomic>(&(r.first->getBeadData()));
+        const BarzerLiteral *ltrlPtr = ( a ? boost::get<BarzerLiteral>(&(a->getData())) : 0 );
+        if( !ltrlPtr ) {
+            ctxt.pushBarzelError( "<e>non literal passed into case</e>" ); 
+            return false;
+        }
+        const BarzerLiteral& ltrl = *ltrlPtr;
 
         const BarzelEvalNode::ChildVec &child = d_evalNode.getChild();
 
