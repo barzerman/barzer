@@ -336,7 +336,6 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Variable>( const 
     const BarzelEvalResult* varResult = ( varPath && varPath->size() == 1 ? ctxt.getVar( (*varPath)[0]) :0 );
     if( varResult ) {
         d_val = *varResult;
-        return true;
     } else {
 		BarzelMatchInfo& matchInfo = ctxt.matchInfo;
 		BeadRange r;
@@ -355,17 +354,9 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Variable>( const 
 			//std::cerr << "** AFTER COMPUTE *********";
 			//AYDEBUG( r );
 			d_val.setBeadData( r );
-            return true;
 		}
 	}
-    {
-        const GlobalPools& gp = ctxt.universe.getGlobalPools();
-        const char* varName = ( varPath && varPath->size() == 1? gp.internalString_resolve( (*varPath)[0] ) : 0 );
-        std::stringstream ss;
-        ss << "<varerr>" << (varName? varName: "")  << "</varerr>" ;
-        ctxt.pushBarzelError( ss.str().c_str() );
-    }
-	return false;
+    return true;
 }
 
 
