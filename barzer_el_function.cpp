@@ -460,7 +460,7 @@ struct BELFunctionStorage_holder {
 	        if (frec == funmap.end()) {
 		        std::stringstream strstr;
 		        const char *str = q_universe.getGlobalPools().internalString_resolve(fid);
-                strstr << "No such function: " << (str ? str : "<unknown>") ;//<< " (id: " << fid << ")";
+                strstr << "No such function: " << (str ? str : "<unknown/>") ;//<< " (id: " << fid << ")";
                 // pushFuncError(ctxt, "", strstr.str().c_str() );
                 FERROR( strstr.str().c_str() );
 		        return true;
@@ -2628,7 +2628,7 @@ bool BELFunctionStorage::call(BarzelEvalContext& ctxt, const BTND_Rewrite_Functi
 	if (frec == holder->funmap.end()) {
 		std::stringstream strstr;
 		const char *str = u.getGlobalPools().internalString_resolve(fid);
-                strstr << "No such function: " << (str ? str : "<unknown>") ;//<< " (id: " << fid << ")";
+                strstr << "No such function: " << (str ? str : "<unknown/>") ;//<< " (id: " << fid << ")";
                 pushFuncError(ctxt, "", strstr.str().c_str() );
 		return false;
 	}
