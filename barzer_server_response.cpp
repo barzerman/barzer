@@ -583,7 +583,7 @@ std::ostream& AutocStreamerJSON::print(std::ostream &os) const
 		const StoredToken *tok = universe.getDtaIdx().tokPool.getTokByIdSafe(euid.tokId);
 		if( tok ) {
             os<< ( i != entWMap.begin() ? ",":"" ) << "\n{";
-			const char *tokname = universe.getStringPool().resolveId(tok->stringId);
+			const char *tokname = universe.getGlobalPools().internalString_resolve(tok->stringId);
 			if (tokname) {
 				jsonEscape(tokname, os << "id:\"") << "\"";
 			}
