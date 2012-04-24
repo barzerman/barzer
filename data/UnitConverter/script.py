@@ -59,7 +59,7 @@ TO_BASE = """
   <func name="set">
     <func name="opMult">
       <var n="in"/>
-      <rn v="%(scale)s"/>
+      <rn v="%(scale).15f"/>
     </func>
     <mkent c="%(class)s" s="%(sclass)s" i="%(base)s"/>
   </func>
@@ -78,7 +78,7 @@ FROM_BASE = """<pat>
   <func name="set">
     <func name="opDiv">
       <var n="in"/>
-      <rn v="%(scale)s"/>
+      <rn v="%(scale).15f"/>
     </func>
     <mkent c="%(class)s" s="%(sclass)s" i="%(out_id)s"/>
   </func>
@@ -119,7 +119,7 @@ class Unit:
 		return result
 	def mkEnt(self, counter):
 		result=""
-		result+= '\n<stmt tags="" n="' + str(counter) + '" name="mkent('+self.names[0] + ')">\n<pat><any>'
+		result+= '\n<stmt tags="" n="' + str(counter[0]) + '" name="mkent('+self.names[0] + ')">\n<pat><any>'
 		for s in self.names:
 			if s.strip().count(" ") > 0:
 				result += "<list>"

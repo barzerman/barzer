@@ -208,7 +208,7 @@
 </pat>
 <tran>
   <var n="v"/>
-  <mkent c="1" s="7" i="ft3"/>
+  <mkent c="1" s="17" i="ft3"/>
 </tran>
 </stmt>
 
@@ -222,7 +222,7 @@
 </pat>
 <tran>
   <var n="v"/>
-  <mkent c="1" s="7" i="mm3"/>
+  <mkent c="1" s="17" i="mm3"/>
 </tran>
 </stmt>
 
@@ -236,7 +236,7 @@
 </pat>
 <tran>
   <var n="v"/>
-  <mkent c="1" s="7" i="cm3"/>
+  <mkent c="1" s="17" i="cm3"/>
 </tran>
 </stmt>
 
@@ -250,7 +250,7 @@
 </pat>
 <tran>
   <var n="v"/>
-  <mkent c="1" s="7" i="inch3"/>
+  <mkent c="1" s="17" i="inch3"/>
 </tran>
 </stmt>
 
