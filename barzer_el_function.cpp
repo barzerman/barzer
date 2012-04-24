@@ -391,6 +391,7 @@ struct BELFunctionStorage_holder {
 
 		// --
 		ADDFN(filterEList); // filters entity list by class/subclass (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
+        ADDFN(hasTopics);
         ADDFN(topicFilterEList);
 		ADDFN(mkEntList); // (BarzerEntity, ..., BarzerEntity) will also accept BarzerEntityList
 
@@ -2372,9 +2373,43 @@ struct BELFunctionStorage_holder {
         setResult(result, outlst);
         return true;
     }
+    // hasTopics [number - topicThreshold ] topic1 [, ..., topicN ]
+    // returns total weight of all topics in barz, whose weight is > topicThreshold
+	STFUN(hasTopics)
+    {
+        SETFUNCNAME(hasTopic);
+
+        int totalWeight = 0;
+        
+        int weightThreshold = 0;
+        const BarzTopics& topicInfo = ctxt.getBarz().topicInfo;
+        
+		BarzelEvalResultVec::const_iterator ri = rvec.begin(); 
+        if( ri != rvec.end() ) {
+            const BarzerNumber* n  = getAtomicPtr<BarzerNumber>( *ri );
+            if( n ) {
+                weightThreshold = n->getInt();    
+                ++ri;
+            }
+        }
+		for (; ri != rvec.end(); ++ri) {
+            const BarzerEntity* ent = getAtomicPtr<BarzerEntity>(*ri);
+            if( ent ) {
+                bool hasTopic = false;
+                int weight = topicInfo.getTopicWeight( *ent, hasTopic );
+                if( weight > weightThreshold )
+                    totalWeight+= weight;
+            }
+        }
+
+        if( totalWeight > 0 ) 
+            setResult(result, BarzerNumber(totalWeight) );
+        return true;
+    }
     /// list, {class,subclass, filterClass, filterSubclass}[N]
 	STFUN(topicFilterEList) //
     {
+        SETFUNCNAME(topicFilterEList);
 
         /// first parm is the list we're filtering
         /// followed by list of pairs of class/subclass of topics we want to filter on
