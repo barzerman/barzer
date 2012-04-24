@@ -891,19 +891,17 @@ struct BELFunctionStorage_holder {
 	struct RangePacker : public boost::static_visitor<bool> {
 		const GlobalPools &globPools;
 		BarzerRange &range;
-                bool isStrict;
+                bool isAutoOrder;
 		uint32_t cnt;
 
         const char* d_funcName;
         BarzelEvalContext& d_ctxt;
-        
-        void setStrict(bool s) { isStrict = s;};
 
 	RangePacker(const GlobalPools &u, BarzerRange &r, BarzelEvalContext& ctxt, const char* funcName) :
             globPools(u), range(r), cnt(0) ,
             d_funcName(funcName),
             d_ctxt(ctxt),
-            isStrict(false)
+            isAutoOrder(true)
         {}
 
 		bool operator()(const BarzerLiteral &ltrl) {
@@ -922,20 +920,26 @@ struct BELFunctionStorage_holder {
 			} else if (ltrl.getId() == globPools.string_getId("FULLRANGE")) {
                             range.setFullRange();
                             return true;
+                        } else if (ltrl.getId() == globPools.string_getId("AUTO")) {
+                            isAutoOrder = true;
+                            return true;
                         } else {
                                 pushFuncError( d_ctxt, d_funcName,
-                                               boost::format("Invalid modifier: `%1%`. Expected (ASC|DESC|NOHI|NOLO|FULLRANGE)") 
+                                               boost::format("Invalid modifier: `%1%`. Expected (ASC|DESC|NOHI|NOLO|FULLRANGE|AUTO)") 
                                                 % globPools.string_resolve(ltrl.getId()) );
                                 AYLOG(ERROR) << "Invalid modifier: `"
-                                                   << globPools.string_resolve(ltrl.getId()) << "'";
+                                                   << globPools.string_resolve(ltrl.getId()) << "`";
 				return false;
 			}
 		}
 
 		template<class T> void setSecond(std::pair<T,T> &p, const T &v) {
-                        if (isStrict) {
+                        if (isAutoOrder) {
                             p.second = v;                            
-                            return;}
+                            if (p.first < v) range.setAsc();
+                                else range.setDesc();
+                            return; 
+                        }
                         if (p.first < v) {
                                 if (range.isAsc()) {p.second = v; return;}
                                 else {p.first = v; return;}
@@ -1066,11 +1070,8 @@ struct BELFunctionStorage_holder {
 	STFUN(mkRange)
 	{
         SETFUNCNAME(mkRange);
-                const char* argStr = GETARGSTR();
 		BarzerRange br;
 		RangePacker rp(gpools, br,ctxt,func_name);
-                if (argStr && argStr[0] == 's') rp.setStrict(true); // strict mode on
-
 		for (BarzelEvalResultVec::const_iterator ri = rvec.begin();
 								ri != rvec.end(); ++ri)
 			if (!boost::apply_visitor(rp, ri->getBeadData())) return false;
