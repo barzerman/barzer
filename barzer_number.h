@@ -66,10 +66,10 @@ public:
 
 	inline uint32_t 	getUint32() const { return( isInt() ? (uint32_t)(n.i) : 0xffffffff ); }
 
-	inline int64_t 		getInt() const { return( isInt() ? n.i : 0 ); }
-	inline double 	getReal() const { return( isReal() ? n.real : 0. ); }
+	inline int64_t 		getInt() const { return( isInt() ? n.i : n.real ); }
+	inline double 	    getReal() const { return( isReal() ? n.real : n.i ); }
 
-	inline double getRealWiden() const { return isReal() ? n.real : (isInt() ? n.i : 0); }
+	inline double getRealWiden() const { return isReal() ? n.real : (isInt() ? n.i :0); }
 
 	inline bool isInt_Nonnegative() const { return ( isInt() && n.i >= 0 );  }
 	inline bool isReal_Nonnegative() const { return ( isReal() && n.i >= 0. );  }
