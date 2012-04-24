@@ -785,6 +785,7 @@ struct BTND_Rewrite_Function {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	uint32_t nameId; // function name id
 	uint32_t argStrId; // string id for the optional arg attribute
+    uint32_t varId;    // string id for a variable (optional)
 
 	void setNameId( uint32_t i ) { nameId = i ; }
 	uint32_t getNameId() const { return nameId; }
@@ -794,17 +795,23 @@ struct BTND_Rewrite_Function {
 
 	BTND_Rewrite_Function() : 
         nameId(ay::UniqueCharPool::ID_NOTFOUND),
-        argStrId(ay::UniqueCharPool::ID_NOTFOUND) 
+        argStrId(ay::UniqueCharPool::ID_NOTFOUND) ,
+        varId(ay::UniqueCharPool::ID_NOTFOUND) 
     {}
 
 	BTND_Rewrite_Function(ay::UniqueCharPool::StrId id) : 
         nameId(id), 
-        argStrId(ay::UniqueCharPool::ID_NOTFOUND)  
+        argStrId(ay::UniqueCharPool::ID_NOTFOUND)  ,
+        varId(ay::UniqueCharPool::ID_NOTFOUND)  
     {}
 
 	BTND_Rewrite_Function(ay::UniqueCharPool::StrId id, ay::UniqueCharPool::StrId argId) : 
-        nameId(id), argStrId(argId) 
+        nameId(id), argStrId(argId) , varId(ay::UniqueCharPool::ID_NOTFOUND)
     {}
+    
+    void        setVarId( uint32_t v ) { varId= v; }
+    uint32_t    getVarId() const {return varId; }
+    bool        isValidVar() const { return (varId != ay::UniqueCharPool::ID_NOTFOUND); }
 };
 
 struct BTND_Rewrite_Select {
@@ -900,6 +907,46 @@ typedef boost::variant<
 	BTND_Rewrite_TimeOfDay
 > BTND_Rewrite_DateTime;
 
+/// control structure - BLOCK/LOOP etc 
+/// implementation will start with block 
+/// var=control(...) 
+struct BTND_Rewrite_Control {
+    enum { 
+        RWCTLT_COMMA,  // evaluates all children returns the vlue of the last
+        RWCTLT_LIST,  // evaluates all children returns everything every child produces
+        // init is like a scoped declaration in C++ 
+        // let is like X=y in javascript - if no surrounding context has X , X will be created 
+        RWCTLT_VAR_BIND, // assigns (binds) variable - tries to find it in current context and if fails - creates
+        RWCTLT_VAR_GET,  // extracts variable - tries all ascending contexts 
+        
+        /// add new ones above this line
+        RWCTLT_MAX
+    }; 
+    uint16_t d_rwctlt; // RWCTLT_XXXX
+    uint32_t d_varId;  //  default 0xffffffff - when set results will be also added to the variable 
+    BTND_Rewrite_Control() : d_rwctlt(RWCTLT_COMMA), d_varId(0xffffffff) {}
+    /// here 4 more bytes of something could be used  
+	std::ostream& print( std::ostream& fp ) const
+		{ return fp << "Control(" << d_rwctlt << "," << d_varId << ")"; }
+	std::ostream& print( std::ostream& fp, const BELPrintContext& ) const
+		{ return print(fp); }
+    
+    bool isValidVar() const { return d_varId != 0xffffffff; }
+
+    void setVarId( uint32_t i ) { d_varId= i; }
+    uint32_t getVarId() const { return d_varId; }
+
+    uint16_t getCtrl() const { return d_rwctlt; }
+    void setCtrl( uint32_t m )
+    {
+        if( m>= RWCTLT_COMMA && m< RWCTLT_MAX ) 
+            d_rwctlt = static_cast<uint16_t>( m );
+    }
+    bool isCtrl( uint32_t m ) 
+        { return ( m == d_rwctlt ); }
+    bool isComma() const { return( d_rwctlt == RWCTLT_COMMA ); }
+};
+
 typedef boost::variant< 
 	BTND_Rewrite_None,
 	BTND_Rewrite_Literal,
@@ -912,7 +959,8 @@ typedef boost::variant<
 	BTND_Rewrite_MkEnt,
 	BTND_Rewrite_Select,
 	BTND_Rewrite_Case,
-	BTND_Rewrite_Logic
+	BTND_Rewrite_Logic,
+    BTND_Rewrite_Control
 > BTND_RewriteData;
 
 enum {
@@ -927,7 +975,8 @@ enum {
 	BTND_Rewrite_MkEnt_TYPE,
 	BTND_Rewrite_Select_TYPE,
 	BTND_Rewrite_Case_TYPE,
-	BTND_Rewrite_Logic_TYPE
+	BTND_Rewrite_Logic_TYPE,
+	BTND_Rewrite_Control_TYPE
 }; 
 
 /// when updating the enums make sure to sunc up BTNDDecode::typeName_XXX 

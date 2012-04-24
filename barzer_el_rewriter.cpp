@@ -4,6 +4,8 @@
 #include <barzer_barz.h>
 #include <barzer_el_matcher.h>
 #include <ay/ay_logger.h>
+#include <barzer_el_rewrite_control.h>
+
 //#include <boost/foreach.hpp>
 
 namespace barzer {
@@ -20,6 +22,7 @@ BarzelRewriterPool::~BarzelRewriterPool()
 }
 
 namespace {
+
 
 struct Fallible {
 	bool isThatSo;
@@ -265,15 +268,24 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Literal>(const BT
 	d_val.setBeadData( 	BarzelBeadAtomic().setData( BarzerLiteral(data) ) );
 	return true;
 }
+template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Control>(const BTND_Rewrite_Control &data) {
+    /// evaluating block
+    return BarzelControlEval( ctxt, d_childValVec, d_evalNode )( d_val, data );
+}
+
 template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const BTND_Rewrite_Function &data) {
 	//AYLOG(DEBUG) << "calling funid:" << data.nameId;
 	const BarzelEvalNode* evalNode = ctxt.getTrie().getProcs().getEvalNode( data.nameId );
 	if( evalNode ) {
         // std::cerr << "SHITFUCK: " << d_childValVec << std::endl;
-		BarzelEvalContext::frame_stack_raii frameRaii( ctxt, ay::skippedvector<BarzelEvalResult>(d_childValVec) );
-        // const BarzelEvalProcFrame* topFrame = ctxt.getTopProcFrame();
-		bool ret = evalNode->eval( d_val, ctxt);
-        // BarzerNumber* n = barzel_bead_data_get<BarzerNumber>(d_val.getBeadData());
+        bool ret = false;
+        {
+		    BarzelEvalContext::frame_stack_raii frameRaii( ctxt, ay::skippedvector<BarzelEvalResult>(d_childValVec) );
+		    ret = evalNode->eval( d_val, ctxt);
+        }
+        /// if function call successful and it has output variable
+        if( ret && data.isValidVar() ) 
+            ctxt.bindVar(data.getVarId()) = d_val;
 
 		return ret;
 	}
@@ -281,6 +293,8 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const B
 	const BELFunctionStorage &fs = u.getFunctionStorage();
 
 	bool ret = fs.call(ctxt, data, d_val, ay::skippedvector<BarzelEvalResult>(d_childValVec), u );
+    if( ret && data.isValidVar() ) 
+        ctxt.bindVar(data.getVarId()) = d_val;
 	return ret;
 }
 
@@ -315,9 +329,14 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Number>( const BT
 	d_val.setBeadData( BarzelBeadAtomic().setData( bNum ) );
 	return true;
 }
+
 template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Variable>( const BTND_Rewrite_Variable& n ) 
 {
-	{
+    const BELSingleVarPath* varPath = ( n.isVarId() ? ctxt.matchInfo.getVarPathByVarId(n.getVarId(),ctxt.getTrie()): 0); 
+    const BarzelEvalResult* varResult = ( varPath && varPath->size() == 1 ? ctxt.getVar( (*varPath)[0]) :0 );
+    if( varResult ) {
+        d_val = *varResult;
+    } else {
 		BarzelMatchInfo& matchInfo = ctxt.matchInfo;
 		BeadRange r;
 	
@@ -337,7 +356,7 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Variable>( const 
 			d_val.setBeadData( r );
 		}
 	}
-	return true;
+    return true;
 }
 
 
@@ -434,8 +453,56 @@ bool BarzelEvalNode::isFallible() const
 	return false;
 }
 
+bool BarzelEvalNode::eval_comma(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) const
+{
+    if( !d_child.size() ) 
+        return false;
+
+    // const BarzelEvalProcFrame* topFrame = ctxt.getTopProcFrame();
+
+	if( d_child.size()> 1 ) {
+		
+		/// forming dependent vector of values 
+        size_t childSize = d_child.size()-1;
+		for( size_t i =0; i< childSize; ++i ) {
+			const BarzelEvalNode& childNode = d_child[i];
+
+            //// if childNode is a let node - assign variable and continue
+
+            BarzelEvalResult childVal;
+
+			size_t substPos= 0xffffffff;
+			if( childNode.isSubstitutionParm( substPos ) ) {
+			} else {
+				if( !childNode.eval(childVal, ctxt) )
+					return false; // error in one of the children occured
+	
+            	Eval_visitor_needToStop visitor(childVal,val);
+            	if( boost::apply_visitor( visitor, d_btnd ) )
+                	break;
+			}
+		}
+		/// vector of dependent values ready
+	}
+    bool ret = d_child.back().eval(val, ctxt) ;
+
+	return ret;
+}
+
 bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) const
 {
+    const BTND_Rewrite_Control* ctrl = isComma();
+    if( ctrl ) { /// this is a block (comma)
+		// BarzelEvalContext::frame_stack_raii frameRaii( ctxt, ay::skippedvector<BarzelEvalResult>(d_childValVec) );
+        if( eval_comma( val, ctxt ) ) {
+            if(ctrl->isValidVar()) // if block has a variable we bind it 
+                ctxt.bindVar(ctrl->getVarId()) = val;
+            
+            return true;
+        } else
+            return false;
+    }
+
 	BarzelEvalResultVec childValVec;
 
     // const BarzelEvalProcFrame* topFrame = ctxt.getTopProcFrame();
@@ -448,6 +515,9 @@ bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) cons
 		/// forming dependent vector of values 
 		for( size_t i =0; i< d_child.size(); ++i ) {
 			const BarzelEvalNode& childNode = d_child[i];
+
+            //// if childNode is a let node - assign variable and continue
+
             childValVec.resize(i+1);
             BarzelEvalResult& childVal = childValVec.back();
 

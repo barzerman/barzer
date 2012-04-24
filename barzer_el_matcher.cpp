@@ -200,7 +200,7 @@ public:
 	uint32_t getStemmedStringId( ) const
 	{
 		uint32_t id = 0xffffffff;
-		size_t stringNum = 0;
+		// size_t stringNum = 0;
 		const  BarzelBead&  bead = *d_dtaBeadIter;
 
 		{
@@ -970,6 +970,12 @@ void BTMBestPaths::addPath(const NodeAndBeadVec& nb )
 
 uint32_t BarzelMatchInfo::getTranslationId() const
 	{ return (d_thePath.size() ? d_thePath.back().first->getTranslationId() : 0xffffffff); }
+
+const BELSingleVarPath* BarzelMatchInfo::getVarPathByVarId( uint32_t varId, const BELTrie& trie ) const 
+{
+    return trie.getVarIndex().getPathFromTranVarId( varId );
+}
+
 bool BarzelMatchInfo::getDataByVarId( BeadRange& r, uint32_t varId, const BELTrie& trie ) const
 {
 	const BarzelVariableIndex& varIdx = trie.getVarIndex();
@@ -1253,7 +1259,7 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 		}
 		if( di != bbdv.end() ) { // vector is longer than the bead range
              
-            const BarzelMatchInfo& matchInfo = ctxt.matchInfo;
+            // const BarzelMatchInfo& matchInfo = ctxt.matchInfo;
             const CTWPVec* tmpCt = 0;
             if( range.second != range.first ) {
                 BeadList::const_iterator bsi = range.first;

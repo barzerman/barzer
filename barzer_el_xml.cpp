@@ -204,6 +204,7 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 	CASE_TAG(FUNC)
 	CASE_TAG(SELECT)
 	CASE_TAG(CASE)
+	CASE_TAG(BLOCK)
 
 	// special cases
 	case TAG_AND:
@@ -421,7 +422,19 @@ template <> void BTND_Rewrite_Text_visitor::operator()<BTND_Rewrite_Literal>(BTN
 			t.setId( i );
 		}
         // all right side literals will be internally interned as well
-        d_parser.getGlobalPools().internString_internal(d_str,d_len) ;
+        if( d_str[d_len] != 0 ) {
+            char goodStr[ 128 ];
+            strncpy( goodStr, d_str, sizeof(goodStr)-1 );
+            goodStr[ sizeof(goodStr)-1 ] = 0;
+            if( d_len > sizeof(goodStr)-1 ) {
+                d_parser.getReader()->getErrStreamRef() << "in statement " << d_parser.statement.stmt.getStmtNumber() << " String too long \"" << 
+                goodStr << "\"\n";
+            } else
+                goodStr[d_len]=0;
+            d_parser.getGlobalPools().internString_internal(goodStr) ;
+        } else
+            d_parser.getGlobalPools().internString_internal(d_str,d_len) ;
+        // std::cerr << "SHITFUCK: barzer_el_xml.cpp: 426" << shitfuck << std::endl;
 	}
 template <> void BTND_Rewrite_Text_visitor::operator()<BTND_Rewrite_Number>(BTND_Rewrite_Number& t)   const
 	{ 
@@ -998,7 +1011,7 @@ void BELParserXML::processAttrForStructTag( BTND_StructData& dta, const char_cp 
 		const char* v = attr[i+1]; // attr value
 		switch( n[0] ) {
 		case 'v': 
-			dta.setVarId( internString(v,true).getStringId() );
+			dta.setVarId( internString_internal(v) );
 			return;
 		}
 	}
@@ -1222,6 +1235,37 @@ void BELParserXML::taghandle_MKENT( const char_cp * attr, size_t attr_sz , bool 
 }
         
 
+void BELParserXML::taghandle_BLOCK( const char_cp * attr, size_t attr_sz , bool close)
+{
+	if( close ) {
+		statement.popNode();
+		return;
+	}
+    BTND_Rewrite_Control ctrl;
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		switch( n[0] ) {
+        case 'c':{
+                char c0=v[0], c1 = (c0?v[1]: 0);
+                switch( c0 ) {
+                case 'c': // c(omma) comma
+                    ctrl.setCtrl( BTND_Rewrite_Control::RWCTLT_COMMA );
+                    break;
+                case 'v': // var
+                    ctrl.setCtrl( BTND_Rewrite_Control::RWCTLT_VAR_GET );
+                }
+            }
+            break;
+        case 'v':{ /// variable
+            uint32_t varId = reader->getGlobalPools().internString_internal(v) ;
+            ctrl.setVarId( varId );
+            }break;
+            
+        }
+    }
+	statement.pushNode( BTND_RewriteData(ctrl));
+}
 void BELParserXML::taghandle_RNUMBER( const char_cp * attr, size_t attr_sz , bool close)
 {
 	if( close ) {
@@ -1319,6 +1363,8 @@ void BELParserXML::taghandle_FUNC( const char_cp * attr, size_t attr_sz , bool c
 		    f.setNameId( funcNameId ) ;
 		} else if( *n == 'a' ) {
             f.setArgStrId( reader->getGlobalPools().internString_internal(v) );
+        } else if( *n == 'v' ) { // variable 
+            f.setVarId( reader->getGlobalPools().internString_internal(v) );
         }
 	}
     if( funcNameId != 0xffffffff ) 
@@ -1473,6 +1519,9 @@ int BELParserXML::getTag( const char* s ) const
 	CHECK_3CW("ny",TAG_ANY) // <any>
 	CHECK_3CW("nd",TAG_AND) // <and>
 		break;
+	case 'b':
+	CHECK_5CW("lock", TAG_BLOCK ) // <case>
+	    break;
 	case 'c':
 	CHECK_4CW("ase", TAG_CASE ) // <case>
 	CHECK_4CW("ond", TAG_COND ) // <cond>

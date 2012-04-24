@@ -2,7 +2,7 @@
 #define BARZER_EL_MATCHER_H
 
 #include <barzer_el_chain.h>
-
+#include <barzer_el_variable.h>
 /// Barzel matching algorithm is here 
 /// it takes an array of CTokens , converts it to BarzelBeadChain 
 /// and then using BELTrie matches subsequences in the bead chain to terminal pattern paths in 
@@ -58,6 +58,8 @@ class BarzelMatchInfo {
 	// varid is the key to BarzelVariableIndex::d_pathInterner
 	bool getDataByVarId( BeadRange& r, uint32_t varId, const BELTrie& trie ) const;
 public:
+    const BELSingleVarPath* getVarPathByVarId( uint32_t varId, const BELTrie& trie ) const;
+
 	bool isFullBeadRangeEmpty() const { return d_beadRng.first == d_beadRng.second ; }
 	bool isSubstitutionBeadRangeEmpty() const
 		{return d_substitutionBeadRange.first == d_substitutionBeadRange.second;}

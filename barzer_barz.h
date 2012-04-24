@@ -79,10 +79,16 @@ struct BarzelTrace {
                 d_tvec.back().errVec.back().assign( err );
         }
     }
+    // max number of errors to report per trace
+    enum { BARZEL_TRACE_MAX_ERR=8 };
     void pushError( const char* err ) 
     {
         if( d_tvec.size() ) {
-            d_tvec.back().errVec.push_back( err );
+            if( d_tvec.back().errVec.size() < BARZEL_TRACE_MAX_ERR )  
+                d_tvec.back().errVec.push_back( err );
+            else if( d_tvec.back().errVec.back() != "<error>Too many errors to report...</error>" ) {
+                d_tvec.back().errVec.push_back( "<error>Too many errors to report...</error>" );
+            }
         }
     }
     bool detectLoop() const;

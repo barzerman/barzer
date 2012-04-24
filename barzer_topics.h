@@ -44,6 +44,11 @@ public:
 
     const TopicMap& getTopicMap() const { return d_topics; }
 
+    int getTopicWeight( const BarzerEntity& t, bool& hasTopic ) const { 
+        TopicMap::const_iterator i = d_topics.find(t);
+        
+        return ( i == d_topics.end() ? 0 : (hasTopic=true,i->second) );
+    }
     int getTopicWeight( const BarzerEntity& t ) const { 
         TopicMap::const_iterator i = d_topics.find(t);
 

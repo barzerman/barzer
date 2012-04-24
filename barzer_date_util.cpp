@@ -32,7 +32,7 @@ const uint32_t DateLookup::getWdayID(const char* weekday_name) const{
 }
 
 const uint32_t DateLookup::getWdayID(const uint8_t weekday_num) const{
-    if (weekday_num < 0 || weekday_num > 7) 
+    if (weekday_num > 7) 
         return globPools.internalString_getId(g_WDAYS[0]);
     else
         return globPools.internalString_getId(g_WDAYS[weekday_num]);
@@ -40,7 +40,7 @@ const uint32_t DateLookup::getWdayID(const uint8_t weekday_num) const{
 
 
 const uint32_t DateLookup::getMonthID(const uint8_t month_num) const{
-    if (month_num < 0 || month_num > 12) 
+    if (month_num > 12) 
         return globPools.internalString_getId(g_MONTHS[0]);
     else
         return globPools.internalString_getId(g_MONTHS[month_num]);
