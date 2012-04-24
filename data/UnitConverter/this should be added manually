@@ -141,4 +141,194 @@
 </tran>
 </stmt>
 
+
+<stmt>
+<pat>
+  <list v="v">
+    <erc c="1" s="7"/>
+    <expand n="translate_into"/>
+  </list>
+  <ent c="1" s="2" i="m"/>
+</pat>
+<tran>
+  <var n="v"/>
+  <mkent c="1" s="7" i="m2"/>
+</tran>
+</stmt>
+
+<stmt>
+<pat>
+  <list v="v">
+    <erc c="1" s="7"/>
+    <expand n="translate_into"/>
+  </list>
+  <ent c="1" s="2" i="km"/>
+</pat>
+<tran>
+  <var n="v"/>
+  <mkent c="1" s="7" i="km2"/>
+</tran>
+</stmt>
+
+<stmt>
+<pat>
+  <list v="v">
+    <erc c="1" s="7"/>
+    <expand n="translate_into"/>
+  </list>
+  <ent c="1" s="2" i="mi"/>
+</pat>
+<tran>
+  <var n="v"/>
+  <mkent c="1" s="7" i="mi2"/>
+</tran>
+</stmt>
+
+<stmt>
+<pat>
+  <list v="v">
+    <erc c="1" s="7"/>
+    <expand n="translate_into"/>
+  </list>
+  <ent c="1" s="2" i="yard"/>
+</pat>
+<tran>
+  <var n="v"/>
+  <mkent c="1" s="7" i="yard2"/>
+</tran>
+</stmt>
+
+<stmt>
+<pat>
+  <list v="v">
+    <erc c="1" s="17"/>
+    <expand n="translate_into"/>
+  </list>
+  <ent c="1" s="2" i="ft"/>
+</pat>
+<tran>
+  <var n="v"/>
+  <mkent c="1" s="7" i="ft3"/>
+</tran>
+</stmt>
+
+<stmt>
+<pat>
+  <list v="v">
+    <erc c="1" s="17"/>
+    <expand n="translate_into"/>
+  </list>
+  <ent c="1" s="2" i="mm"/>
+</pat>
+<tran>
+  <var n="v"/>
+  <mkent c="1" s="7" i="mm3"/>
+</tran>
+</stmt>
+
+<stmt>
+<pat>
+  <list v="v">
+    <erc c="1" s="17"/>
+    <expand n="translate_into"/>
+  </list>
+  <ent c="1" s="2" i="cm"/>
+</pat>
+<tran>
+  <var n="v"/>
+  <mkent c="1" s="7" i="cm3"/>
+</tran>
+</stmt>
+
+<stmt>
+<pat>
+  <list v="v">
+    <erc c="1" s="17"/>
+    <expand n="translate_into"/>
+  </list>
+  <ent c="1" s="2" i="inch"/>
+</pat>
+<tran>
+  <var n="v"/>
+  <mkent c="1" s="7" i="inch3"/>
+</tran>
+</stmt>
+
+<stmt>
+<pat>
+  <any>
+    <list>
+      <opt>
+	<t>градус</t>
+      </opt>
+      <any>
+	<t>Цельсий</t>
+	<t>Цельсия</t>
+	<t>Celsius</t>
+      </any>
+    </list>
+    <list>
+      <t>градус</t>
+      <t>C</t>
+    </list>
+  </any>
+</pat>
+<tran>
+  <var n="v"/>
+  <mkent c="1" s="10" i="C"/>
+</tran>
+</stmt>
+
+<stmt>
+<pat>
+  <any>
+    <list>
+      <opt>
+	<t>градус</t>
+      </opt>
+      <any>
+	<t>Фаренгейт</t>
+	<t>Фаренгейта</t>
+	<t>Fahrenheit</t>
+      </any>
+    </list>
+    <list>
+      <t>градус</t>
+      <t>F</t>
+    </list>
+  </any>
+</pat>
+<tran>
+  <var n="v"/>
+  <mkent c="1" s="10" i="C"/>
+</tran>
+</stmt>
+
+<stmt>
+<pat>
+  <any>
+    <list>
+      <opt>
+	<t>градус</t>
+      </opt>
+      <any>
+	<t>Кельвин</t>
+	<t>Кельвина</t>
+	<t>Kelvin</t>
+      </any>
+    </list>
+    <list>
+      <t>градус</t>
+      <t>K</t>
+    </list>
+  </any>
+</pat>
+<tran>
+  <var n="v"/>
+  <mkent c="1" s="10" i="C"/>
+</tran>
+</stmt>
+
+
+
 </stmset>
