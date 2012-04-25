@@ -387,9 +387,16 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Select>
 
         const BarzelBeadAtomic *a = boost::get<BarzelBeadAtomic>(&(r.first->getBeadData()));
         const BarzerLiteral *ltrlPtr = ( a ? boost::get<BarzerLiteral>(&(a->getData())) : 0 );
+        BarzerLiteral tmpLiteral;
         if( !ltrlPtr ) {
-            ctxt.pushBarzelError( "<e>non literal passed into case</e>" ); 
-            return false;
+            const BarzerString* s = ( a ? boost::get<BarzerString>(&(a->getData())) : 0 );
+            if( s && s->getStemStringId() != 0xffffffff) {
+                tmpLiteral = BarzerLiteral( s->getStemStringId() );
+                ltrlPtr = &tmpLiteral;
+            } else {
+                ctxt.pushBarzelError( "<e>non literal passed into case</e>" ); 
+                return false;
+            }
         }
         const BarzerLiteral& ltrl = *ltrlPtr;
 
