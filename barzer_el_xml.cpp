@@ -1041,7 +1041,7 @@ void BELParserXML::taghandle_EXPAND( const char_cp * attr, size_t attr_sz , bool
 		if (varName) {
 		    // safe as the root of any pattern is always a list
 		    BTND_StructData &sd = boost::get<BTND_StructData>(n.getNodeData());
-		    sd.setVarId(internString(varName,true).getStringId());
+		    sd.setVarId(internString_internal(varName));
 		}
 	} else {
 		AYLOG(ERROR) << "macro " << macroName  << " referenced in statement "  << statementCount<< " doesnt exist";
