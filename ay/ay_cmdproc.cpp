@@ -19,9 +19,11 @@ const char* CommandLineArgs::getArgVal( bool& hasArg, const char* an, int*argPos
 {
 	const char_cp * end = argv + argc;
 	const char_cp* i = argv;
+    hasArg = false;
 	for( ; i!= end; ++i ) {
 		if( !strcmp( *i, an ) ) {
 			++i;
+            hasArg= true;
 			break;
 		}
 	}
@@ -29,9 +31,8 @@ const char* CommandLineArgs::getArgVal( bool& hasArg, const char* an, int*argPos
 		*argPos = i-argv;
 
 	if( i!= end && *i && **i != '-' ) {
-		return (hasArg= true,*i);
+		return *i;
 	} else {
-		hasArg= false;
 		return 0;
 	}
 }

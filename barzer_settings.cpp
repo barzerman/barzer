@@ -59,7 +59,8 @@ User*  BarzerSettings::getUser(User::Id id)
 	return (it == umap.end() ? 0 : &(it->second));
 }
 
-BarzerSettings::BarzerSettings(GlobalPools &gp, std::ostream* os ) : gpools(gp), d_numThreads(0), d_currentUniverse(0)
+BarzerSettings::BarzerSettings(GlobalPools &gp, std::ostream* os ) : 
+    gpools(gp), d_numThreads(0), d_currentUniverse(0),d_envPath(ENVPATH_BARZER_HOME)
 {
 	init();
 }
@@ -500,10 +501,24 @@ void BarzerSettings::load(BELReader& reader, const char *fname) {
 		read_xml(fname, pt);
 
 		fs::path oldPath = fs::current_path();
-		const char *dataPath = std::getenv("BARZER_HOME");
+		const char *barzerHome = std::getenv("BARZER_HOME");
+		const char *dataPath = ( getHomeOverridePath().length() ? getHomeOverridePath().c_str() : barzerHome );
 		if (dataPath) {
-			fs::current_path(dataPath);
-		}
+            if(isEnvPath_AUTO() && *fname == '/') {
+                reader.getErrStreamRef() << "AUTOMODE Honoring BARZER_HOME " << dataPath << std::endl;
+			    fs::current_path(dataPath);
+            } else if( isEnvPath_BARZER_HOME() || isEnvPath_ENV_IGNORE() ) {
+			    fs::current_path(dataPath);
+            }
+		} else {
+            if( isEnvPath_BARZER_HOME() ) {
+                reader.getErrStreamRef() << "WARNING! BARZER_HOME not set assuming current directory " <<
+                fs::current_path() << std::endl; 
+            } else if( isEnvPath_AUTO() ) {
+                reader.getErrStreamRef() << "Home assumed in current directory " <<
+                fs::current_path() << std::endl; 
+            }
+        }
 
 
 		loadInstanceSettings();

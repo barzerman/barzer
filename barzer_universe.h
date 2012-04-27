@@ -289,6 +289,9 @@ private:
 
 	void addWordsFromTriesToBZSpell();
 public:
+    const BZSpell::char_cp_to_strid_map* getValidWordMapPtr() const 
+        { return bzSpell->getValidWordMapPtr(); }
+        
     const LangInfoArray& getLangInfo() const { return d_langInfo; }
     LangInfoArray& getLangInfo() { return d_langInfo; }
 

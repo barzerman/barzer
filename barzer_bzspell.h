@@ -90,6 +90,9 @@ public:
 	typedef boost::unordered_map< uint32_t, ay::evovec_uint32 > strid_evovec_hmap;
 	typedef boost::unordered_map< uint32_t, BZSWordInfo > strid_wordinfo_hmap;
 	typedef std::pair<const BZSWordInfo*, size_t > WordInfoAndDepth;
+    typedef std::map< ay::char_cp, uint32_t, ay::char_cp_compare_less > char_cp_to_strid_map;
+
+
 	/// sizeof single character - 1 by default for ascii  
 	uint8_t d_charSize; 
 
@@ -99,12 +102,17 @@ public:
 private: 
 	strid_wordinfo_hmap d_wordinfoMap;	// from actual words to universe specific word info 
 	strid_evovec_hmap  	d_linkedWordsMap;  // words linked to partial word
+    char_cp_to_strid_map    d_validTokenMap;
 	
 	std::string d_extraWordsFileName;
 
 	/// generates edit distance variants 
 	size_t produceWordVariants( uint32_t strId, int lang=LANG_ENGLISH ); 
 public:
+
+    const char_cp_to_strid_map* getValidWordMapPtr() const { return &d_validTokenMap; }
+    const char_cp_to_strid_map& getValidWordMap() const { return d_validTokenMap; }
+
     const BZSWordInfo* getWordInfo( uint32_t id ) const
     {
         strid_wordinfo_hmap::const_iterator i = d_wordinfoMap.find( id );

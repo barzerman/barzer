@@ -580,13 +580,11 @@ std::ostream& AutocStreamerJSON::print(std::ostream &os) const
     for( BestEntities::EntWeightMap::const_iterator i = entWMap.begin(); i!= entWMap.end(); ++i ) {
         const BarzerEntity& euid = i->second;
         const BestEntities_EntWeight& eweight = i->first;
-		const StoredToken *tok = universe.getDtaIdx().tokPool.getTokByIdSafe(euid.tokId);
-		if( tok ) {
+		// const StoredToken *tok = universe.getDtaIdx().tokPool.getTokByIdSafe(euid.tokId);
+	    const char *tokname = universe.getGlobalPools().internalString_resolve(euid.tokId);
+		if( tokname ) {
             os<< ( i != entWMap.begin() ? ",":"" ) << "\n{";
-			const char *tokname = universe.getGlobalPools().internalString_resolve(tok->stringId);
-			if (tokname) {
-				jsonEscape(tokname, os << "id:\"") << "\"";
-			}
+			jsonEscape(tokname, os << "id:\"") << "\"";
             const EntityData::EntProp* edata = entDta.getEntPropData( euid );
             uint32_t eclass = euid.eclass.ec, esubclass = euid.eclass.subclass;
             os << ",cl:\"" << std::dec << eclass<< "\"," << "sc:\"" << esubclass << 

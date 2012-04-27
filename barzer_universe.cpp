@@ -21,6 +21,17 @@ void GlobalPools::init_cmdline( ay::CommandLineArgs & cmdlProc)
 	}
 
     bool hasArg = false;
+    const char *homeArg = cmdlProc.getArgVal(hasArg, "-home", 0);
+    if( hasArg ) {
+        std::cerr << "CAUTION: entering HOME path\n";
+        if( !homeArg ) {
+            std::cerr << "BARZER_HOME will be autodeduced" << std::endl;
+            st.setEnvPath_AUTO();
+        } else { 
+            std::cerr << "BARZER_HOME env variable will be ignored " << ( homeArg ? homeArg : "current directory" ) << " used " << std::endl;
+            st.setEnvPath_ENV_IGNORE(homeArg);
+        }
+    }
     const char *fname = cmdlProc.getArgVal(hasArg, "-cfglist", 0);
     barzer::BELReader reader( *this, &(std::cerr)) ;
     if (hasArg && fname)

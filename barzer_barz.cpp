@@ -167,26 +167,31 @@ int Barz::parse_Autocomplete( MatcherCallback& cb, QSemanticParser& sem, const Q
                 if( ctok.isString() && ctok.qtVec.size()== 1 ) {
                     TToken& ttok = ctok.qtVec[0].first;
                     const StoredUniverse& universe = sem.getUniverse();
+                    /*
                     const ay::UniqueCharPool& ucpool = universe.getGlobalPools().getStringPool();
                     const ay::UniqueCharPool::CharIdMap& cidMap = ucpool.getCharIdMap();
+                    */
 
-                    const DtaIndex& dtaIdx = universe.getDtaIdx(); 
-                    ay::UniqueCharPool::CharIdMap::const_iterator i = cidMap.lower_bound(ttok.buf);
-                    for( ;i!= cidMap.end(); ++i ) {
-                        const char* str = i->first;
-                        if( !str || strncmp(ttok.buf,str,ttok.len) ) 
-                            break;
-                        if( !str[ttok.len] )
-                            continue;
-                        uint32_t strId = i->second;
-                        if( universe.isWordValidInUniverse(strId) ) {
-                            const StoredToken* stok = dtaIdx.getStoredToken( str );
-                            if( stok ) {
-                                ctok.setStoredTok_raw( stok );
-                                bi->initFromCTok( ctok );
-                                uint32_t str_len = strlen(str);
-                                QSemanticParser_AutocParms autocParm( (str_len>ttok.len) ? (str_len-ttok.len): 0 );
-                                sem.parse_Autocomplete( cb, *this, qparm, autocParm );
+                    const BZSpell::char_cp_to_strid_map* wordMapPtr = universe.getValidWordMapPtr();
+                    if( wordMapPtr ) {
+                        const DtaIndex& dtaIdx = universe.getDtaIdx(); 
+                        BZSpell::char_cp_to_strid_map::const_iterator i = wordMapPtr->lower_bound(ttok.buf);
+                        for( ;i!= wordMapPtr->end(); ++i ) {
+                            const char* str = i->first;
+                            if( !str || strncmp(ttok.buf,str,ttok.len) ) 
+                                break;
+                            if( !str[ttok.len] )
+                                continue;
+                            uint32_t strId = i->second;
+                            if( universe.isWordValidInUniverse(strId) ) {
+                                const StoredToken* stok = dtaIdx.getStoredToken( str );
+                                if( stok ) {
+                                    ctok.setStoredTok_raw( stok );
+                                    bi->initFromCTok( ctok );
+                                    uint32_t str_len = strlen(str);
+                                    QSemanticParser_AutocParms autocParm( (str_len>ttok.len) ? (str_len-ttok.len): 0 );
+                                    sem.parse_Autocomplete( cb, *this, qparm, autocParm );
+                                }
                             }
                         }
                     }
