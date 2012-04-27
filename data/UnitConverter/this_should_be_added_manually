@@ -9,11 +9,11 @@
     <expand n="translate_into"/>
   </list>
   <list v="e2">
-    <n/>
     <ent c="1"/>
   </list>
 </pat>
 <tran>
+  <n v="1"/>
   <var n="e2"/>
   <var n="exp"/>
   <var n="e1"/>
@@ -22,7 +22,6 @@
 
 <stmt>
 <pat>
-  <t>сколько</t>
   <list v="e1">
     <ent c="1"/>
   </list>
@@ -35,13 +34,69 @@
 </pat>
 <tran>
   <n v="1"/>
+  <var n="e1"/>
+  <var n="exp"/>
   <var n="e2"/>
+</tran>  
+</stmt>
+
+<stmt>
+<pat>
+  <t>сколько</t>
+  <list v="e1">
+    <ent c="1"/>
+  </list>
+  <list v="exp">
+    <expand n="translate_into"/>
+  </list>
+  <list v="n2">
+    <n r="y"/>
+  </list>
+  <list v="e2">
+    <ent c="1"/>
+  </list>
+</pat>
+<tran>
+  <func name="mkERC">
+    <var n="e2"/>
+    <func name="mkRange">
+      <var n="n2"/>
+    </func>
+  </func>
   <var n="exp"/>
   <var n="e1"/>
-</tran>
+</tran>  
+</stmt>
+
+<stmt>
+<pat>
+  <list v="n1">
+    <n r="y"/>
+  </list>
+  <list v="e1">
+    <ent c="1"/>
+  </list>
+  <list v="exp">
+    <expand n="translate_into"/>
+  </list>
+  <list v="e2">
+    <ent c="1"/>
+  </list>
+</pat>
+<tran>
+  <func name="mkERC">
+    <var n="e1"/>
+    <func name="mkRange">
+      <var n="n1"/>
+    </func>
+  </func>
+  <var n="exp"/>
+  <var n="e2"/>
+</tran> 
 </stmt>
 
 
+ <!-- ################################## -->
 
 <stmt>
 <pat>
@@ -253,28 +308,263 @@
   <mkent c="1" s="17" i="inch3"/>
 </tran>
 </stmt>
+ <!-- ################################## -->
+<stmt>
+<pat>
+  <list v="e1">
+    <erc c="1" s="2" i="ft"/>
+  </list>
+  <list v="v">
+    <expand n="translate_into"/>
+    <ent c="1" s="7"/>
+  </list>
+</pat>
+<tran>
+  <func name="mkERC">
+    <func name="getRange">
+      <var n="e1"/>
+    </func>
+    <mkent c="1" s="7" i="ft2"/>
+  </func>
+  <var n="v"/>
+</tran>
+</stmt>
+ 
+<stmt>
+<pat>
+  <list v="e1">
+    <erc c="1" s="2" i="m"/>
+  </list>
+  <list v="v">
+    <expand n="translate_into"/>
+    <ent c="1" s="7"/>
+  </list>
+</pat>
+<tran>
+  <func name="mkERC">
+    <func name="getRange">
+      <var n="e1"/>
+    </func>
+    <mkent c="1" s="7" i="m2"/>
+  </func>
+  <var n="v"/>
+</tran>
+</stmt>
 
+<stmt>
+<pat>
+  <list v="e1">
+    <erc c="1" s="2" i="cm"/>
+  </list>
+  <list v="v">
+    <expand n="translate_into"/>
+    <ent c="1" s="7"/>
+  </list>
+</pat>
+<tran>
+  <func name="mkERC">
+    <func name="getRange">
+      <var n="e1"/>
+    </func>
+    <mkent c="1" s="7" i="cm2"/>
+  </func>
+  <var n="v"/>
+</tran>
+</stmt>
+
+<stmt>
+<pat>
+  <list v="e1">
+    <erc c="1" s="2" i="mm"/>
+  </list>
+  <list v="v">
+    <expand n="translate_into"/>
+    <ent c="1" s="7"/>
+  </list>
+</pat>
+<tran>
+  <func name="mkERC">
+    <func name="getRange">
+      <var n="e1"/>
+    </func>
+    <mkent c="1" s="7" i="mm2"/>
+  </func>
+  <var n="v"/>
+</tran>
+</stmt>
+
+<stmt>
+<pat>
+  <list v="e1">
+    <erc c="1" s="2" i="km"/>
+  </list>
+  <list v="v">
+    <expand n="translate_into"/>
+    <ent c="1" s="7"/>
+  </list>
+</pat>
+<tran>
+  <func name="mkERC">
+    <func name="getRange">
+      <var n="e1"/>
+    </func>
+    <mkent c="1" s="7" i="km2"/>
+  </func>
+  <var n="v"/>
+</tran>
+</stmt>
+
+<stmt>
+<pat>
+  <list v="e1">
+    <erc c="1" s="2" i="mi"/>
+  </list>
+  <list v="v">
+    <expand n="translate_into"/>
+    <ent c="1" s="7"/>
+  </list>
+</pat>
+<tran>
+  <func name="mkERC">
+    <func name="getRange">
+      <var n="e1"/>
+    </func>
+    <mkent c="1" s="7" i="mi2"/>
+  </func>
+  <var n="v"/>
+</tran>
+</stmt>
+
+<stmt>
+<pat>
+  <list v="e1">
+    <erc c="1" s="2" i="yard"/>
+  </list>
+  <list v="v">
+    <expand n="translate_into"/>
+    <ent c="1" s="7"/>
+  </list>
+</pat>
+<tran>
+  <func name="mkERC">
+    <func name="getRange">
+      <var n="e1"/>
+    </func>
+    <mkent c="1" s="7" i="yard2"/>
+  </func>
+  <var n="v"/>
+</tran>
+</stmt>
+
+  <!-- ################################## -->
+<stmt>  
+  <pat>
+  <list v="e1">
+    <erc c="1" s="2" i="m"/>
+  </list>
+  <list v="v">
+    <expand n="translate_into"/>
+    <ent c="1" s="17"/>
+  </list>
+</pat>
+<tran>
+  <func name="mkERC">
+    <func name="getRange">
+      <var n="e1"/>
+    </func>
+    <mkent c="1" s="17" i="m3"/>
+  </func>
+  <var n="v"/>
+</tran>
+</stmt>
+
+<stmt>  
+  <pat>
+  <list v="e1">
+    <erc c="1" s="2" i="сm"/>
+  </list>
+  <list v="v">
+    <expand n="translate_into"/>
+    <ent c="1" s="17"/>
+  </list>
+</pat>
+<tran>
+  <func name="mkERC">
+    <func name="getRange">
+      <var n="e1"/>
+    </func>
+    <mkent c="1" s="17" i="сm3"/>
+  </func>
+  <var n="v"/>
+</tran>
+</stmt>
+
+<stmt>  
+  <pat>
+  <list v="e1">
+    <erc c="1" s="2" i="ft"/>
+  </list>
+  <list v="v">
+    <expand n="translate_into"/>
+    <ent c="1" s="17"/>
+  </list>
+</pat>
+<tran>
+  <func name="mkERC">
+    <func name="getRange">
+      <var n="e1"/>
+    </func>
+    <mkent c="1" s="17" i="ft3"/>
+  </func>
+  <var n="v"/>
+</tran>
+</stmt>
+
+<stmt>  
+  <pat>
+  <list v="e1">
+    <erc c="1" s="2" i="inch"/>
+  </list>
+  <list v="v">
+    <expand n="translate_into"/>
+    <ent c="1" s="17"/>
+  </list>
+</pat>
+<tran>
+  <func name="mkERC">
+    <func name="getRange">
+      <var n="e1"/>
+    </func>
+    <mkent c="1" s="17" i="inch3"/>
+  </func>
+  <var n="v"/>
+</tran>
+</stmt>
+    <!-- ################################## -->
 <stmt>
 <pat>
   <any>
     <list>
       <opt>
-	<t>градус</t>
+        <any>
+          <t>градус</t>
+          <t>гр</t>
+        </any>
       </opt>
       <any>
-	<t>Цельсий</t>
-	<t>Цельсия</t>
-	<t>Celsius</t>
+        <t>Цельсий</t>
+        <t>Цельсия</t>
+        <t>Celsius</t>
+        <t>C</t>
       </any>
     </list>
     <list>
-      <t>градус</t>
-      <t>C</t>
+      <t>по</t>
+      <t>цельсию</t>
     </list>
   </any>
 </pat>
 <tran>
-  <var n="v"/>
   <mkent c="1" s="10" i="C"/>
 </tran>
 </stmt>
@@ -284,23 +574,27 @@
   <any>
     <list>
       <opt>
-	<t>градус</t>
+        <any>
+          <t>градус</t>
+          <t>гр</t>
+        </any>
       </opt>
       <any>
-	<t>Фаренгейт</t>
-	<t>Фаренгейта</t>
-	<t>Fahrenheit</t>
+        <t>Фаренгейт</t>
+        <t>Фаренгейта</t>
+        <t>Fahrenheit</t>
+        <t>F</t>
+        <list>
+          <t>по</t>
+          <t>Фаренгейту</t>
+        </list>
       </any>
-    </list>
-    <list>
-      <t>градус</t>
-      <t>F</t>
     </list>
   </any>
 </pat>
+
 <tran>
-  <var n="v"/>
-  <mkent c="1" s="10" i="C"/>
+  <mkent c="1" s="10" i="F"/>
 </tran>
 </stmt>
 
@@ -309,23 +603,27 @@
   <any>
     <list>
       <opt>
-	<t>градус</t>
+        <any>
+          <t>градус</t>
+          <t>гр</t>
+        </any>
       </opt>
       <any>
-	<t>Кельвин</t>
-	<t>Кельвина</t>
-	<t>Kelvin</t>
+        <t>Кельвин</t>
+        <t>Кельвина</t>
+        <t>Kelvin</t>
+        <t>K</t>
+        <list>
+          <t>по</t>
+          <t>Кельвину</t>
+        </list>
       </any>
-    </list>
-    <list>
-      <t>градус</t>
-      <t>K</t>
     </list>
   </any>
 </pat>
+
 <tran>
-  <var n="v"/>
-  <mkent c="1" s="10" i="C"/>
+  <mkent c="1" s="10" i="K"/>
 </tran>
 </stmt>
 
