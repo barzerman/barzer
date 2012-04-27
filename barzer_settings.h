@@ -85,6 +85,11 @@ public:
 	typedef std::map<User::Id, User> UserMap;
 	typedef std::vector<Rulefile> Rules;
 	// typedef std::vector<const char*> EntityFileVec;
+    enum { 
+        ENVPATH_BARZER_HOME,  // default always reads from BARZER_HOME if its set
+        ENVPATH_AUTO,         // -home  when cfg file path is absolute assumes BARZER_HOME path, otherwise current dir
+        ENVPATH_ENV_IGNORE     // -home curdir always assumes current dir
+    };
 private:
 	GlobalPools &gpools;
 
@@ -102,7 +107,24 @@ private:
 	enum {  MAX_REASONABLE_THREADCOUNT = 8 };
 	size_t d_numThreads;
 	StoredUniverse* d_currentUniverse;
+
+    int d_envPath; // ENVPATH_XXX (ENVPATH_BARZER_HOME default)
+    std::string d_homeOverrideStr; /// when non blank thisis taken over the value of BARZER_HOME
+
 public:
+    bool   isEnvPath_BARZER_HOME() const { return (d_envPath== ENVPATH_BARZER_HOME); }
+    bool   isEnvPath_AUTO() const { return (d_envPath== ENVPATH_AUTO); }
+    bool   isEnvPath_ENV_IGNORE() const { return (d_envPath== ENVPATH_ENV_IGNORE); }
+
+    void   setEnvPath_BARZER_HOME(){ d_envPath= ENVPATH_BARZER_HOME; }
+    void   setEnvPath_AUTO() { d_envPath= ENVPATH_AUTO; }
+
+    void   setEnvPath_ENV_IGNORE( const char* path ) { 
+        d_envPath= ENVPATH_ENV_IGNORE; 
+        d_homeOverrideStr.assign( path );
+    }
+    const std::string& getHomeOverridePath( ) const { return d_homeOverrideStr; }
+
 	size_t getNumThreads() const { return d_numThreads; }
 	void   setNumThreads( size_t n ) { d_numThreads = n; }
 
