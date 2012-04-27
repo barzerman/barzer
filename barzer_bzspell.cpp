@@ -770,6 +770,9 @@ size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
 	const char* str = d_universe.getGlobalPools().string_resolve( strId );
 	if( !str )
 		return 0;
+
+    d_validTokenMap[ str ] = strId;
+
     size_t str_len = strlen( str );
     if( lang == LANG_ENGLISH ) {
 
