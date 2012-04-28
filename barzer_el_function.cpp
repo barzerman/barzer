@@ -365,16 +365,15 @@ struct BELFunctionStorage_holder {
 		// arith
 		ADDFN(textToNum);
 		ADDFN(opPlus);
+		ADDFN(opAdd);
 		ADDFN(opMinus);
+		ADDFN(opSub);
 		ADDFN(opMult);
 		ADDFN(opDiv);
 		//logic
-		ADDFN(opAnd);
-		ADDFN(opOr);
 		ADDFN(opLt);
 		ADDFN(opGt);
 		ADDFN(opEq);
-		ADDFN(opSelect);
 		ADDFN(opDateCalc);
                 ADDFN(opTimeCalc);
 		// string
@@ -1906,6 +1905,7 @@ struct BELFunctionStorage_holder {
         }
         return false;
     }
+    STFUN(opAdd) { return stfun_opPlus(result,rvec,q_universe,ctxt,fr ); }
 
     STFUN(opMinus)
     {
@@ -1932,7 +1932,7 @@ struct BELFunctionStorage_holder {
         //setResult(result, bn); // most likely NaN if something went wrong
         return false;
     }
-    
+    STFUN(opSub) { return stfun_opMinus(result,rvec,q_universe,ctxt,fr ); }
     
     STFUN(opMult)
     {
@@ -1980,68 +1980,6 @@ struct BELFunctionStorage_holder {
 
     }
 
-
-	// logic
-	// no implementation yet for i'm not sure yet what to put into the result
-	// meaning there's no boolean type in barzer (yet?)
-
-	STFUN(opAnd) // stfunc_opAnd(&result, &rvec)
-	{
-        // SETFUNCNAME(opAnd);
-		if (rvec.size()) {
-			BarzelEvalResultVec::const_iterator ri = rvec.begin();
-			do {
-				if ((ri++)->getBeadData().which() == BarzelBeadBlank_TYPE)	break;
-			} while (ri != rvec.end());
-			result.setBeadData((--ri)->getBeadData());
-		} else {
-			BarzelBeadBlank blank;
-			result.setBeadData(blank);
-		}
-		return true;
-	}
-
-	STFUN(opOr)
-	{
-        // SETFUNCNAME(opOr);
-		if (rvec.size()) {
-			BarzelEvalResultVec::const_iterator ri = rvec.begin();
-			do {
-				if ((ri++)->getBeadData().which() != BarzelBeadBlank_TYPE) break;
-			} while (ri != rvec.end());
-			result.setBeadData((--ri)->getBeadData());
-		} else {
-			BarzelBeadBlank blank;
-			result.setBeadData(blank);
-		}
-		return true;
-	}
-
-	STFUN(opSelect) {
-        SETFUNCNAME(opOr);
-
-		if (rvec.size() < 3) {
-            FERROR("need at least 3 arguments");
-			return false;
-		}
-
-		if (!(rvec.size() & 1)) {
-			FERROR("opSelect: need an odd amount of arguments");
-		}
-
-		const BarzelBeadData &var = rvec[0].getBeadData();
-
-		for (BarzelEvalResultVec::const_iterator it = rvec.begin()+1;
-												 it != rvec.end(); it += 2) {
-			const BarzelBeadData &rec = it->getBeadData();
-
-			if (beadsEqual(var, rec)) {
-				result.setBeadData((it+1)->getBeadData());
-				return true;
-			}
-		}
-		return false;
-	}
 
 	// should make this more generic
 	template<class T> bool cmpr(
