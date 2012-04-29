@@ -274,6 +274,9 @@ namespace {
 #define BARZEL_METHOD(T,N) static bool N( BarzelBeadData& out, const StoredUniverse& universe, const T& dta, const BarzelEvalResultVec* rvec ) 
 #define DECL_BARZEL_BINDING_HOLDER(B) template<> struct binding_holder<B>  : public binding_holder_implemented<B>
 
+#define RETURN_ATOMIC( X ) return (out=BarzelBeadAtomic((X)),true)
+#define RETURN_NUMBER( X ) return (out=BarzelBeadAtomic(BarzerNumber(X)),true)
+
 // typedef std::vector< BarzelBeadData > BarzelBeadDataVec;
 template <typename T>
 struct barzel_binding_info {
@@ -305,7 +308,7 @@ struct barzel_binding_info {
         } 
     }
 };
-
+//// catcher template for un-bound classes (classes with no bindings implemented)
 template <typename T>
 struct binding_holder  {
     static typename barzel_binding_info<T>::TFunc* getFunc(const char*) 
@@ -354,26 +357,22 @@ DEF_BARZEL_BINDING_ARR_PTRS(BarzerLiteral)
 
 /// end of BarzerEntity
 DECL_BARZEL_BINDING_HOLDER(BarzerEntity) {
-    BARZEL_METHOD(BarzerEntity,ec)
-        { return( (out = BarzelBeadAtomic( BarzerNumber( (int)(dta.getClass().ec) )) ), true); }
-    BARZEL_METHOD(BarzerEntity,sc)
-        { return( (out = BarzelBeadAtomic( BarzerNumber( (int)(dta.getClass().subclass) ))), true); }
+    BARZEL_METHOD(BarzerEntity,ec) { RETURN_NUMBER(  (int)(dta.getClass().ec) ); }
+    BARZEL_METHOD(BarzerEntity,sc) { RETURN_NUMBER(  (int)(dta.getClass().subclass) ); }
     BARZEL_METHOD(BarzerEntity,id)
     {
         const char* tokname = universe.getGlobalPools().internalString_resolve(dta.tokId);
         if( tokname ) {
             uint32_t strId = universe.getGlobalPools().string_getId( tokname );
             if( strId != 0xffffffff ) 
-                return( out = BarzelBeadAtomic( BarzerNumber(strId) ), true );
-            else {
-                return( out = BarzelBeadAtomic( BarzerString(tokname) ), true );
-            }
+                RETURN_NUMBER( strId ); 
+            else 
+                RETURN_ATOMIC( BarzerString(tokname)  );
         }
         return true;
     }
 };
 
-//template<> barzel_binding_info<BarzerEntity> binding_holder_implemented<BarzerEntity>::array[] = 
 DEF_BARZEL_BINDING_ARR(BarzerEntity)
 {
     BARZEL_BINDING(BarzerEntity,ec), // entity class
@@ -381,7 +380,66 @@ DEF_BARZEL_BINDING_ARR(BarzerEntity)
     BARZEL_BINDING(BarzerEntity,id)  // entity id 
 };
 DEF_BARZEL_BINDING_ARR_PTRS(BarzerEntity)
-/// end of BarzerEntity
+// ERC 
+DECL_BARZEL_BINDING_HOLDER(BarzerEntityRangeCombo) {
+    BARZEL_METHOD(BarzerEntityRangeCombo,unit)      { RETURN_ATOMIC( dta.getUnitEntity() ); }
+    BARZEL_METHOD(BarzerEntityRangeCombo,range)     { RETURN_ATOMIC( dta.getRange() ); }
+    BARZEL_METHOD(BarzerEntityRangeCombo,entity)    { RETURN_ATOMIC( dta.getEntity()) ; }
+    BARZEL_METHOD(BarzerEntityRangeCombo,ec)        { RETURN_NUMBER( ((int)(dta.getEntity().getClass().ec)) ); }
+
+    BARZEL_METHOD(BarzerEntityRangeCombo,lo)     { return BarzerRangeAccessor( dta.getRange() ).getLo(out); }
+    BARZEL_METHOD(BarzerEntityRangeCombo,hi)     { return BarzerRangeAccessor( dta.getRange() ).getHi(out); }
+};
+DEF_BARZEL_BINDING_ARR(BarzerEntityRangeCombo)
+{
+    BARZEL_BINDING(BarzerEntityRangeCombo,ec), // entity class
+    BARZEL_BINDING(BarzerEntityRangeCombo,entity), // entity
+    BARZEL_BINDING(BarzerEntityRangeCombo,hi), // range low
+    BARZEL_BINDING(BarzerEntityRangeCombo,lo), // range low
+    BARZEL_BINDING(BarzerEntityRangeCombo,range), // range
+    BARZEL_BINDING(BarzerEntityRangeCombo,unit), // entity
+};
+DEF_BARZEL_BINDING_ARR_PTRS(BarzerEntityRangeCombo)
+///////  BARZER DATE
+DECL_BARZEL_BINDING_HOLDER(BarzerDate) {
+    BARZEL_METHOD(BarzerDate,mm) { RETURN_NUMBER(dta.getMonth()); }
+    BARZEL_METHOD(BarzerDate,dd) { RETURN_NUMBER(dta.getDay()); }
+    BARZEL_METHOD(BarzerDate,yy) { RETURN_NUMBER(dta.getYear()); }
+    BARZEL_METHOD(BarzerDate,asNumber) { RETURN_NUMBER(dta.getLongDate()); }
+};
+DEF_BARZEL_BINDING_ARR(BarzerDate)
+{
+    BARZEL_BINDING(BarzerDate,asNumber), // long date YYYYMMDD
+    BARZEL_BINDING(BarzerDate,dd), // day
+    BARZEL_BINDING(BarzerDate,mm), // month
+    BARZEL_BINDING(BarzerDate,yy), // year
+};
+DEF_BARZEL_BINDING_ARR_PTRS(BarzerDate)
+/// TIME OF DAY
+DECL_BARZEL_BINDING_HOLDER( BarzerTimeOfDay ) {
+    BARZEL_METHOD(BarzerTimeOfDay,asNumber) { RETURN_NUMBER( dta.getLong() ); }
+    BARZEL_METHOD(BarzerTimeOfDay,hh) { RETURN_NUMBER( dta.getHH() ); }
+    BARZEL_METHOD(BarzerTimeOfDay,mm) { RETURN_NUMBER( dta.getMM() ); }
+    BARZEL_METHOD(BarzerTimeOfDay,ss) { RETURN_NUMBER( dta.getSS() ); }
+};
+DEF_BARZEL_BINDING_ARR(BarzerTimeOfDay )
+{
+    BARZEL_BINDING(BarzerTimeOfDay,asNumber), // hh
+    BARZEL_BINDING(BarzerTimeOfDay,hh), // hh
+    BARZEL_BINDING(BarzerTimeOfDay,mm), // minutes
+    BARZEL_BINDING(BarzerTimeOfDay,ss), // seconds
+};
+DEF_BARZEL_BINDING_ARR_PTRS(BarzerTimeOfDay)
+/* DO NOT ERASE THIS TEMPLATE - for each type youre binding
+DECL_BARZEL_BINDING_HOLDER( BEADDATATYPE ) {
+    BARZEL_METHOD(BarzerDate,xx) { return ( ..., true ); }
+};
+DEF_BARZEL_BINDING_ARR(BEADDATATYPE )
+{
+    BARZEL_BINDING(BEADDATATYPE,xx), // year
+};
+DEF_BARZEL_BINDING_ARR_PTRS(BEADDATATYPE)
+*/
 
 struct binder_visitor : public boost::static_visitor<bool> {
     const StoredUniverse& d_universe;
@@ -431,6 +489,61 @@ void BarzelBeadData_FieldBinder::listFields( std::vector< std::string > & out, c
 {
     lister_visitor vis( out );    
     boost::apply_visitor(vis, d);
+}
+/// range visitor 
+namespace {
+
+	struct RangeGetter : public boost::static_visitor<bool> {
+		BarzelBeadData &result;
+		bool d_isHigh;
+		RangeGetter(BarzelBeadData &r, bool p ) : 
+            result(r), d_isHigh(p)
+        {}
+
+
+		bool set(const BarzerNone&) { return false; }
+		bool set(int i) 
+            { return( result =  BarzelBeadAtomic( BarzerNumber(i)), true ); }
+		bool set(int64_t i) 
+            { return( result =  BarzelBeadAtomic( BarzerNumber(i)), true ); }
+		bool set(float i) 
+            { return( result =  BarzelBeadAtomic( BarzerNumber(i)), true ); }
+		bool set(double i) 
+            { return( result =  BarzelBeadAtomic( BarzerNumber(i)), true ); }
+
+		template<class T> bool set(const T &v) 
+			{ return( result =  BarzelBeadAtomic(v), true ); }
+
+		template<class T> bool operator()(const T&v)
+        {
+             return( result =  BarzelBeadAtomic(v), true );
+        }
+		template<class T> bool operator()(const std::pair<T,T> &dt)
+			{ return set(d_isHigh ? dt.second : dt.first); }
+		bool operator()(const BarzerEntityRangeCombo &erc)
+			{ return operator()(erc.getRange()); }
+		bool operator()(const BarzelBeadAtomic &data)
+			{ return boost::apply_visitor(*this, data.getData()); }
+		bool operator()(const BarzerRange &r)
+			{ return boost::apply_visitor(*this, r.getData()); }
+	};
+} /// end of anon namespace 
+
+bool BarzerRangeAccessor::getHi( BarzelBeadData& out ) const
+{
+    if( d_range.hasHi() ) {
+        RangeGetter vis( out, true );
+        return boost::apply_visitor( vis, d_range.getData() );
+    } else
+        return ( out = BarzelBeadBlank(), false );
+}
+bool BarzerRangeAccessor::getLo( BarzelBeadData& out ) const
+{
+    if( d_range.hasLo() ) {
+        RangeGetter vis( out, false );
+        return boost::apply_visitor( vis, d_range.getData() );
+    } else
+        return ( out = BarzelBeadBlank(), false );
 }
 
 } // barzer namespace

@@ -465,6 +465,12 @@ template <typename T> inline T* barzel_bead_data_get( BarzelBeadData& d )
     return ( atomic ? atomic->get<T>() : 0 );
 }
 
+struct BarzerRangeAccessor {
+    const BarzerRange& d_range;
+    BarzerRangeAccessor( const BarzerRange& r ) : d_range(r) {}
+    bool getLo( BarzelBeadData& ) const;
+    bool getHi( BarzelBeadData& ) const;
+};
 ///// 
 struct BarzelBeadData_FieldBinder {
     const StoredUniverse& d_universe;
