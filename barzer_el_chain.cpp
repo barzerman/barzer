@@ -369,7 +369,7 @@ barzel_binding_info<BarzerEntity> binding_holder<BarzerEntity>::array[] =
 };
 template <> barzel_binding_info<BarzerEntity>::barzel_binding_info_cp barzel_binding_info<BarzerEntity>::storage_begin = ARR_BEGIN(binding_holder<BarzerEntity>::array);
 template <> barzel_binding_info<BarzerEntity>::barzel_binding_info_cp barzel_binding_info<BarzerEntity>::storage_end = ARR_END(binding_holder<BarzerEntity>::array);
-
+/// end of BarzerEntity
 
 struct binder_visitor : public boost::static_visitor<bool> {
     const StoredUniverse& d_universe;
