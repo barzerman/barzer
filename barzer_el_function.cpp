@@ -403,7 +403,9 @@ struct BELFunctionStorage_holder {
         // erc properties
 		ADDFN(getEnt); // ((ERC|Entity)[,entity]) -- when second parm passed replaces entity with it
 		ADDFN(getRange); // ((ERC|Entity)[,range]) -- when second parm passed replaces range with it
-
+        
+        /// generic getter 
+        ADDFN(get);
 	}
 	#undef ADDFN
     
@@ -452,6 +454,27 @@ struct BELFunctionStorage_holder {
 		AYLOGDEBUG(result.isVec());
 		return true;
 	}
+    /// generic getter
+    STFUN(get) {
+        SETFUNCNAME(call);
+        const char* argStr = GETARGSTR();
+        if( !argStr && rvec.size()>1) {
+            const BarzerLiteral* ltrl = getAtomicPtr<BarzerLiteral>( rvec[1] ) ;
+            if( ltrl ) 
+                argStr =  gpools.getStringPool().resolveId(ltrl->getId());
+            else {
+                const BarzerString* bs = getAtomicPtr<BarzerString>( rvec[1] ) ;
+                if( bs ) 
+                    argStr = bs->getStr().c_str();
+            }
+        }
+        if( argStr && rvec.size() ) { 
+            BarzelBeadData_FieldBinder binder( rvec[0].getBeadData(), q_universe );
+            return binder( result.getBeadData(), argStr );
+        }
+        FERROR( "expects arg to be set and at least one argument" );
+        return false;
+    }
     STFUN(call) {
         SETFUNCNAME(call);
         if( rvec.size() ) {
