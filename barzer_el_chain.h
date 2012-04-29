@@ -465,6 +465,15 @@ template <typename T> inline T* barzel_bead_data_get( BarzelBeadData& d )
     return ( atomic ? atomic->get<T>() : 0 );
 }
 
+///// 
+struct BarzelBeadData_FieldBinder {
+    const StoredUniverse& d_universe;
+    const BarzelBeadData& d_data;
+    BarzelBeadData_FieldBinder( const BarzelBeadData& data, const StoredUniverse& universe ) : d_universe(universe), d_data(data) {}
+    bool operator()( BarzelBeadData& out, const char* fieldName ) const;
+
+    static void listFields( std::vector< std::string > & , const BarzelBeadData&  ) ;
+};
 
 }
 #endif // BARZER_EL_CHAIN_H
