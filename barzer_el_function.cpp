@@ -435,7 +435,7 @@ struct BELFunctionStorage_holder {
 
 	//enum { P_WEEK = 1, P_MONTH, P_YEAR, P_DECADE, P_CENTURY };
 	// stored functions
-	#define GETARGSTR() (q_universe.getGlobalPools().string_resolve(fr.getArgStrId()))
+	#define GETARGSTR() (q_universe.getGlobalPools().internalString_resolve(fr.getArgStrId()))
 	#define GETRVECSTR(i) (q_universe.getGlobalPools().string_resolve( getRvecLiteral(rvec,i) ))
 
 	#define STFUN(n) bool stfun_##n( BarzelEvalResult &result,\
