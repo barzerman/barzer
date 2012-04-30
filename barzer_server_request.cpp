@@ -38,7 +38,7 @@ static void startElement(void* ud, const XML_Char *n, const XML_Char **a)
                     if( attrName[0] == 'u' && !attrName[1] ) {
                         int userId = atoi(attrVal);
                         if( !rp->setUniverseId( userId ) ) {
-                            rp->stream() << "<error>\"" << attrVal << "\" is not a valid user number\n";
+							AYLOG(WARNING) << attrVal << " is not a valid user number\n";
                         }
                     }
                     rp->setAttr(attrName, attrVal );
