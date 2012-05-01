@@ -11,6 +11,9 @@ int lex( CTWPVec& , const TTWPVec&, const QuestionParm& );
 
 };
 
+namespace ascii {
+const char* english_exception_depluralize( const char* w, size_t w_len ) ;
+}
 
 }
 #endif // BARZER_EN_LEX_H 

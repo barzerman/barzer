@@ -386,7 +386,7 @@ namespace {
 struct BTND_text_visitor_base  : public boost::static_visitor<> {
 	BELParserXML& d_parser;
 	const char* d_str;
-	int d_len;
+	size_t d_len;
     uint8_t d_noTextToNum;
 
 	GlobalPools& getGlobalPoools() { return d_parser.getGlobalPools(); }

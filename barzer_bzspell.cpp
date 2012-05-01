@@ -4,6 +4,7 @@
 #include <ay_char.h>
 #include <lg_ru/barzer_ru_lex.h>
 #include <lg_ru/barzer_ru_stemmer.h>
+#include <lg_en/barzer_en_lex.h>
 
 namespace barzer {
 typedef std::vector<char> charvec;
@@ -349,6 +350,10 @@ D(stirred,stir)
 
 bool stem_depluralize( std::string& out, const char* s, size_t s_len )
 {
+    const char* exceptionStem = ascii::english_exception_depluralize(s,s_len);
+    if( exceptionStem )
+        return( out.assign( exceptionStem ), true );
+
 	if( s_len > 5 ) {
 		const char* s4 = s+s_len-4;
 		const char* s3 = (s4+1);
@@ -371,12 +376,14 @@ bool stem_depluralize( std::string& out, const char* s, size_t s_len )
 	} else if( s_len > 4 ) {
 		const char* s4 = s+s_len-4;
 		const char* s3 = (s4+1);
-		if( s3[1] == 'e' && s3[2] == 's' && (s3[0]=='s' || s3[0] =='c') ) {
-			if(*s4=='s') {    	  // asses
+		if( s3[1] == 'e' && s3[2] == 's' ) {
+			if(*s4=='s' || *s3 == 'x') {    	  // asses
 				out.assign( s, s_len-2 );
 				return true;
 			}
-			if(  is_vowel(*s4)) { // vases, blouses
+			if(  is_vowel(*s3)) { // shoes
+                return( out.assign( s, s_len-1 ), true );
+            } else if(  is_vowel(*s4)) { // vases, blouses
 				out.assign( s, s_len-1 );
 				return true;
 			} else { 			  // putses
@@ -468,7 +475,7 @@ bool stem_depluralize( std::string& out, const char* s, size_t s_len )
 		const char* s2 = s+s_len-2;
         if( s_len > 4 ) {
             if( s2[0] == 'e' && s2[1] == 's' )
-                return ( out.assign( s, s_len-2 ), true );
+                return ( out.assign( s, s_len-1 ), true );
             else if( (s2[0] != 's') &&  s2[1] == 's' )
                 return ( out.assign( s, s_len-1 ), true );
         } else if( s_len == 4 ) {
