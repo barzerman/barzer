@@ -99,6 +99,9 @@ struct BarzelBeadAtomic {
 	const BarzelBeadAtomic_var& getData() const { return dta; }
 	      BarzelBeadAtomic_var& getData()       { return dta; }
 
+	const BarzelBeadAtomic_var* getDataPtr() const { return &dta; }
+	      BarzelBeadAtomic_var* getDataPtr()       { return &dta; }
+
 	template <typename T> BarzelBeadAtomic& setData( const T& t ) 
 	{ dta = t; return *this; }
 	std::ostream& print( std::ostream& fp ) const;
@@ -477,6 +480,10 @@ struct BarzelBeadData_FieldBinder {
     const BarzelBeadData& d_data;
     BarzelBeadData_FieldBinder( const BarzelBeadData& data, const StoredUniverse& universe ) : d_universe(universe), d_data(data) {}
     bool operator()( BarzelBeadData& out, const char* fieldName ) const;
+
+    /// this is for the setter 
+    /// setter - set( out, "field", originalObject, fieldValue )
+    bool operator()( BarzelBeadData& out, const char* fieldName, const std::vector<BarzelBeadData>* ) const;
 
     static void listFields( std::vector< std::string > & , const BarzelBeadData&  ) ;
 };

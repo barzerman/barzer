@@ -60,8 +60,8 @@ struct StoredEntityUniqId {
 	uint32_t     tokId;
 	StoredEntityClass eclass;
 
-	void setClass( uint16_t c ) { eclass.setClass( c ); }
-	void setSubclass( uint16_t c ) { eclass.setSubclass( c ); }
+	void setClass( uint32_t c ) { eclass.setClass( c ); }
+	void setSubclass( uint32_t c ) { eclass.setSubclass( c ); }
 	void setTokenId( uint32_t i ) { tokId = i; }
 
 	StoredEntityUniqId() : tokId(0xffffffff) {}
@@ -87,6 +87,9 @@ struct StoredEntityUniqId {
 
     const StoredEntityClass& getClass()  const { return eclass; }
     uint32_t getTokId() const { return tokId; }
+    uint32_t getId() const { return tokId ; }
+    void     setId(uint32_t id=0xffffffff) { tokId = id; }
+
     bool     lowerClass( uint32_t c ) const { return eclass.lowerClass(c); }
 };
 inline std::ostream& operator <<(std::ostream& fp, const StoredEntityUniqId& x )

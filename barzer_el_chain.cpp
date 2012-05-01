@@ -265,13 +265,26 @@ void BarzelBeadExpression::addAttribute(uint32_t key, uint32_t value) {
 /// field binder visitor
 namespace {
 
+
+template<class T> const T* getAtomicPtr(const BarzelBeadData &dta)
+{
+    if( is_BarzelBeadAtomic(dta) ) {
+        const BarzelBeadAtomic& atomic = boost::get<BarzelBeadAtomic>(dta);
+        const BarzelBeadAtomic_var& atDta = atomic.getData();
+
+        return boost::get<T>( &atDta );
+    } else
+        return 0;
+}
+
+
 #define DEF_BARZEL_BINDING_ARR(B) template<> barzel_binding_info<B> binding_holder_implemented<B>::array[]=
 #define DEF_BARZEL_BINDING_ARR_PTRS(B) \
     template <> barzel_binding_info<B>::barzel_binding_info_cp barzel_binding_info<B>::storage_begin = ARR_BEGIN(binding_holder<B>::array);\
     template <> barzel_binding_info<B>::barzel_binding_info_cp barzel_binding_info<B>::storage_end = ARR_END(binding_holder<B>::array);
 
 #define BARZEL_BINDING(B,N) barzel_binding_info<B>( #N, binding_holder<B>::N )
-#define BARZEL_METHOD(T,N) static bool N( BarzelBeadData& out, const StoredUniverse& universe, const T& dta, const BarzelEvalResultVec* rvec ) 
+#define BARZEL_METHOD(T,N) static bool N( BarzelBeadData& out, const StoredUniverse& universe, const T& dta, const std::vector<BarzelBeadData>* vec ) 
 #define DECL_BARZEL_BINDING_HOLDER(B) template<> struct binding_holder<B>  : public binding_holder_implemented<B>
 
 #define RETURN_ATOMIC( X ) return (out=BarzelBeadAtomic((X)),true)
@@ -287,7 +300,7 @@ struct barzel_binding_info {
         BarzelBeadData&,
         const StoredUniverse&,
         const T&,
-        const BarzelEvalResultVec*
+        const std::vector<BarzelBeadData>*
     )> TFunc;
     TFunc       func;
     barzel_binding_info( const char* fld, TFunc f ) : field(fld), func(f) {}
@@ -358,16 +371,42 @@ DEF_BARZEL_BINDING_ARR_PTRS(BarzerLiteral)
 /// end of BarzerEntity
 DECL_BARZEL_BINDING_HOLDER(BarzerEntity) {
     BARZEL_METHOD(BarzerEntity,ec) { RETURN_NUMBER(  (int)(dta.getClass().ec) ); }
-    BARZEL_METHOD(BarzerEntity,sc) { RETURN_NUMBER(  (int)(dta.getClass().subclass) ); }
+    BARZEL_METHOD(BarzerEntity,sc) { 
+        if( !vec ) {
+            RETURN_NUMBER(  (int)(dta.getClass().subclass) ); 
+        } else {
+            BarzerEntity ent(dta);
+            const BarzerNumber* n = getAtomicPtr<BarzerNumber>( (*vec)[0]) ;
+            ent.setSubclass( n? n->getUint32(): 0xffffffff );
+            out = BarzelBeadAtomic(ent);
+        }
+
+        return true;
+    }
     BARZEL_METHOD(BarzerEntity,id)
     {
-        const char* tokname = universe.getGlobalPools().internalString_resolve(dta.tokId);
-        if( tokname ) {
-            uint32_t strId = universe.getGlobalPools().string_getId( tokname );
-            if( strId != 0xffffffff ) 
-                RETURN_NUMBER( strId ); 
-            else 
-                RETURN_ATOMIC( BarzerString(tokname)  );
+        if( !vec ) {
+            const char* tokname = universe.getGlobalPools().internalString_resolve(dta.tokId);
+            if( tokname ) {
+                uint32_t strId = universe.getGlobalPools().string_getId( tokname );
+                if( strId != 0xffffffff ) 
+                    RETURN_NUMBER( strId ); 
+                else 
+                    RETURN_ATOMIC( BarzerString(tokname)  );
+            }
+        } else { /// setter
+            // out = BarzelBeadAtomic(dta); 
+            const BarzerLiteral* ltrl = getAtomicPtr<BarzerLiteral>( (*vec)[0]) ;
+
+            BarzerEntity ent(dta);
+            if( ltrl ) {
+                const char* str = universe.getGlobalPools().string_resolve(ltrl->getId());
+                if( str ) {
+                    uint32_t internalStrId = universe.getGlobalPools().internalString_getId(str);
+                    ent.setId( internalStrId );
+                }
+            } 
+            out = BarzelBeadAtomic(ent);
         }
         return true;
     }
@@ -445,17 +484,17 @@ struct binder_visitor : public boost::static_visitor<bool> {
     const StoredUniverse& d_universe;
     BarzelBeadData& d_out;
     const char*             d_field;
-    const BarzelEvalResultVec* d_evalResultVec;
+    const std::vector<BarzelBeadData>* d_beadDataVec;
 
     binder_visitor( BarzelBeadData& d, const StoredUniverse& universe, const char* field ) : 
-        d_universe(universe), d_out(d), d_field(field), d_evalResultVec(0) {}
-    binder_visitor( BarzelBeadData& d, const StoredUniverse& universe, const char* field, const BarzelEvalResultVec* evalResultVec ) : 
-        d_universe(universe), d_out(d), d_field(field), d_evalResultVec(evalResultVec) {}
+        d_universe(universe), d_out(d), d_field(field), d_beadDataVec(0) {}
+    binder_visitor( BarzelBeadData& d, const StoredUniverse& universe, const char* field, const std::vector<BarzelBeadData>* beadDataVec ) : 
+        d_universe(universe), d_out(d), d_field(field), d_beadDataVec(beadDataVec) {}
 
     template <typename T> bool operator()( const T& a ) {
         const typename barzel_binding_info<T>::TFunc* f = binding_holder<T>::getFunc(d_field);
         if( f ) 
-            return (*f)(d_out, d_universe, a, d_evalResultVec );
+            return (*f)(d_out, d_universe, a, d_beadDataVec );
         else
             return false; 
     }
@@ -477,6 +516,17 @@ struct lister_visitor : public boost::static_visitor<> {
 };
 
 } // anon namespace 
+// setter 
+bool BarzelBeadData_FieldBinder::operator()( BarzelBeadData& out, const char* fieldName, const std::vector<BarzelBeadData>* vec ) const
+{
+    if( !vec || !vec->size() )
+        return false;
+    
+    binder_visitor vis( out, d_universe, fieldName, vec );    
+    bool retVal = boost::apply_visitor(vis, d_data);
+    return retVal;
+}
+
 bool BarzelBeadData_FieldBinder::operator()( BarzelBeadData& out, const char* fieldName ) const
 {
     binder_visitor vis( out, d_universe, fieldName );    
