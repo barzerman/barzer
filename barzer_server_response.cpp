@@ -149,7 +149,9 @@ public:
                 else
                     lastTokBuf = ttok.buf;
 				if( ttok.len && ttok.buf ) {
-					os.write( ttok.buf, ttok.len ) << " ";
+                    std::string tokStr( ttok.buf, ttok.len );
+                    xmlEscape(tokStr, os);
+					// os.write( ttok.buf, ttok.len ) << " ";
 				}
 			}
 		}	
