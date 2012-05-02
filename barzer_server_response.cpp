@@ -142,6 +142,8 @@ public:
 		for( CTWPVec::const_iterator ci = ctoks.begin(); ci != ctoks.end(); ++ci ) {
 			const TTWPVec& ttv = ci->first.getTTokens();
 
+            if( ci != ctoks.begin() ) 
+                os << " ";
 			for( TTWPVec::const_iterator ti = ttv.begin(); ti!= ttv.end() ; ++ti ) {
 				const TToken& ttok = ti->first;
                 if( lastTokBuf == ttok.buf ) 
@@ -149,8 +151,6 @@ public:
                 else
                     lastTokBuf = ttok.buf;
 				if( ttok.len && ttok.buf ) {
-                    if( ti != ttv.begin() ) 
-                        os << " ";
                     std::string tokStr( ttok.buf, ttok.len );
                     xmlEscape(tokStr, os);
 					// os.write( ttok.buf, ttok.len ) << " ";
