@@ -149,6 +149,8 @@ public:
                 else
                     lastTokBuf = ttok.buf;
 				if( ttok.len && ttok.buf ) {
+                    if( ti != ttv.begin() ) 
+                        os << " ";
                     std::string tokStr( ttok.buf, ttok.len );
                     xmlEscape(tokStr, os);
 					// os.write( ttok.buf, ttok.len ) << " ";
