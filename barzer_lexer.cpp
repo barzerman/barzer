@@ -716,8 +716,14 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
                 if( !tmpTok ) {
                     if( t_len - step- i < MIN_SPELL_CORRECT_LEN*step )
                         continue;
-                    else
-                        right = bzSpell->getSpellCorrection (rightDirty,false) ;
+                    else {
+                        // right = bzSpell->getSpellCorrection (rightDirty,false) ;
+                        if( i< 4*step || ((t_len - step -i) < 4*step) ) {
+                            std::string stemmedStr;
+                            right = bzSpell->getStemCorrection( stemmedStr, rightDirty );
+                        } else 
+                            right = bzSpell->getSpellCorrection (rightDirty,false) ;
+                    }
                 } else
                     right = tmpTok->getStringId() ;
 

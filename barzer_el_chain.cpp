@@ -469,6 +469,50 @@ DEF_BARZEL_BINDING_ARR(BarzerTimeOfDay )
     BARZEL_BINDING(BarzerTimeOfDay,ss), // seconds
 };
 DEF_BARZEL_BINDING_ARR_PTRS(BarzerTimeOfDay)
+
+/// BarzerDateTime
+DECL_BARZEL_BINDING_HOLDER( BarzerDateTime ) {
+    BARZEL_METHOD(BarzerDateTime,TimeAsNumber)  { RETURN_NUMBER(dta.getTime().getLong() ); }
+    BARZEL_METHOD(BarzerDateTime,h)             { RETURN_NUMBER(dta.getTime().getHH() ); }
+    BARZEL_METHOD(BarzerDateTime,min)           { RETURN_NUMBER(dta.getTime().getMM() ); }
+    BARZEL_METHOD(BarzerDateTime,sec)           { RETURN_NUMBER(dta.getTime().getSS() ); }
+    BARZEL_METHOD(BarzerDateTime,month)         { RETURN_NUMBER(dta.getDate().getMonth()); }
+    BARZEL_METHOD(BarzerDateTime,day)           { RETURN_NUMBER(dta.getDate().getDay()); }
+    BARZEL_METHOD(BarzerDateTime,year)          { RETURN_NUMBER(dta.getDate().getYear()); }
+    BARZEL_METHOD(BarzerDateTime,DateAsNumber)  { RETURN_NUMBER(dta.getDate().getLongDate());}
+    BARZEL_METHOD(BarzerDateTime,date)          { RETURN_ATOMIC(dta.getDate());}
+    BARZEL_METHOD(BarzerDateTime,time)          { RETURN_ATOMIC(dta.getTime());}
+};
+DEF_BARZEL_BINDING_ARR(BarzerDateTime )
+{
+    BARZEL_BINDING(BarzerDateTime,TimeAsNumber),
+    BARZEL_BINDING(BarzerDateTime,h),
+    BARZEL_BINDING(BarzerDateTime,min),
+    BARZEL_BINDING(BarzerDateTime,sec),
+    BARZEL_BINDING(BarzerDateTime,month) ,
+    BARZEL_BINDING(BarzerDateTime,day),
+    BARZEL_BINDING(BarzerDateTime,year),
+    BARZEL_BINDING(BarzerDateTime,DateAsNumber),
+    BARZEL_BINDING(BarzerDateTime,date),
+    BARZEL_BINDING(BarzerDateTime,time)
+};
+DEF_BARZEL_BINDING_ARR_PTRS(BarzerDateTime)
+
+
+/// RANGE
+DECL_BARZEL_BINDING_HOLDER( BarzerRange ) {
+    BARZEL_METHOD(BarzerRange,lo)     { return BarzerRangeAccessor( dta ).getLo(out); }
+    BARZEL_METHOD(BarzerRange,hi)     { return BarzerRangeAccessor( dta ).getHi(out); }
+};
+DEF_BARZEL_BINDING_ARR(BarzerRange )
+{
+    BARZEL_BINDING(BarzerRange,lo), 
+    BARZEL_BINDING(BarzerRange,hi)
+};
+DEF_BARZEL_BINDING_ARR_PTRS(BarzerRange)
+
+
+
 /* DO NOT ERASE THIS TEMPLATE - for each type youre binding
 DECL_BARZEL_BINDING_HOLDER( BEADDATATYPE ) {
     BARZEL_METHOD(BarzerDate,xx) { return ( ..., true ); }

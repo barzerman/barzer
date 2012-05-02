@@ -913,17 +913,17 @@ struct BELFunctionStorage_holder {
 	struct RangePacker : public boost::static_visitor<bool> {
 		const GlobalPools &globPools;
 		BarzerRange &range;
-
+                bool isAutoOrder;
 		uint32_t cnt;
 
         const char* d_funcName;
         BarzelEvalContext& d_ctxt;
 
-
-		RangePacker(const GlobalPools &u, BarzerRange &r, BarzelEvalContext& ctxt, const char* funcName) :
+	RangePacker(const GlobalPools &u, BarzerRange &r, BarzelEvalContext& ctxt, const char* funcName) :
             globPools(u), range(r), cnt(0) ,
             d_funcName(funcName),
-            d_ctxt(ctxt)
+            d_ctxt(ctxt),
+            isAutoOrder(true)
         {}
 
 		bool operator()(const BarzerLiteral &ltrl) {
@@ -933,27 +933,42 @@ struct BELFunctionStorage_holder {
 				return true;
 			} else if (ltrl.getId() == globPools.string_getId("ASC")) {
 				return true;
-			} else if (ltrl.getId() == globPools.string_getId("NOHI")) {
-                range.setNoHI();
-                return true;
+                        } else if (ltrl.getId() == globPools.string_getId("NOHI")) {
+                            range.setNoHI();
+                            return true;
 			} else if (ltrl.getId() == globPools.string_getId("NOLO")) {
-                range.setNoLO();
-                return true;
+                            range.setNoLO();
+                            return true;
 			} else if (ltrl.getId() == globPools.string_getId("FULLRANGE")) {
-                range.setFullRange();
-                return true;
-			} else {
-               pushFuncError( d_ctxt, d_funcName, boost::format("Invalid order: `%1%` Expected (ASC|DESC)") % globPools.string_resolve(ltrl.getId()) );
-               AYLOG(ERROR) << "Invalid order: `" << globPools.string_resolve(ltrl.getId()) << "'";
+                            range.setFullRange();
+                            return true;
+                        } else if (ltrl.getId() == globPools.string_getId("AUTO")) {
+                            isAutoOrder = true;
+                            return true;
+                        } else {
+                                pushFuncError( d_ctxt, d_funcName,
+                                               boost::format("Invalid modifier: `%1%`. Expected (ASC|DESC|NOHI|NOLO|FULLRANGE|AUTO)") 
+                                                % globPools.string_resolve(ltrl.getId()) );
+                                AYLOG(ERROR) << "Invalid modifier: `"
+                                                   << globPools.string_resolve(ltrl.getId()) << "`";
 				return false;
 			}
 		}
 
 		template<class T> void setSecond(std::pair<T,T> &p, const T &v) {
-			if (p.first < v || range.isDesc())
-				p.second = v;
-			else
-				p.first = v;
+                        if (isAutoOrder) {
+                            p.second = v;                            
+                            if (p.first < v) range.setAsc();
+                                else range.setDesc();
+                            return; 
+                        }
+                        if (p.first < v) {
+                                if (range.isAsc()) {p.second = v; return;}
+                                else {p.first = v; return;}
+                        } else {
+                                if (range.isDesc()) {p.second = v;return;}
+                                else { p.first = v; return;}
+                        }
 		}
 
 		bool operator()(const BarzerNumber &rnum) {
@@ -1033,7 +1048,7 @@ struct BELFunctionStorage_holder {
 				try {
 					BarzerRange::TimeOfDay &todp
 						= boost::get<BarzerRange::TimeOfDay>(range.getData());
-					todp.second = rtod;
+					setSecond(todp, rtod);
 				} catch (boost::bad_get) {
 					// AYLOG(ERROR) << "Types don't match";
                     pushFuncError( d_ctxt, d_funcName, boost::format("Types don't match: %1%")% range.getData().which() );
@@ -1068,7 +1083,7 @@ struct BELFunctionStorage_holder {
 		}
 
 		template<class T> bool operator()(const T&) {
-            pushFuncError( d_ctxt, d_funcName, "Wrong range type" );
+                        pushFuncError( d_ctxt, d_funcName, "Wrong range type. Number, Time, DateTime, Range or ERC expected" );
 			return false;
 		}
 
@@ -1079,7 +1094,6 @@ struct BELFunctionStorage_holder {
         SETFUNCNAME(mkRange);
 		BarzerRange br;
 		RangePacker rp(gpools, br,ctxt,func_name);
-
 		for (BarzelEvalResultVec::const_iterator ri = rvec.begin();
 								ri != rvec.end(); ++ri)
 			if (!boost::apply_visitor(rp, ri->getBeadData())) return false;

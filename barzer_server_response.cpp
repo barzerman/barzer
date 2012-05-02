@@ -274,7 +274,7 @@ public:
 	};
 	bool operator()(const BarzerRange &data) {
 
-		os << "<range order=\"" << (data.isAsc() ? "ASC" : "DESC") <<  "\"";
+	os << "<range order=\"" << (data.isAsc() ? "ASC" :  "DESC") <<  "\"";
         if( !data.isFull() ) {
             if( data.isNoHi() ) 
                 os << " opt=\"NOHI\"";

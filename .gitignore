@@ -3,6 +3,7 @@
 *.a
 *.exe
 *.log
+*~
 CMakeCache.txt
 CMakeFiles/
 Makefile
