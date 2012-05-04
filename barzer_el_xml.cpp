@@ -164,19 +164,27 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
         return;
     }
 	//AYDEBUG(tid);
-#define CASE_TAG(x) case TAG_##x: taghandle_##x(attr,attr_sz,close); return;
+#define CASE_TAG(x) case TAG_##x: taghandle_##x(tid,attr,attr_sz,close); return;
 
 	switch( tid ) {
-	CASE_TAG(UNDEFINED)
+	CASE_TAG(T)
+	CASE_TAG(N)
+	CASE_TAG(MKENT)
+	CASE_TAG(VAR)
+	CASE_TAG(FUNC)
+	CASE_TAG(LIST)
+	CASE_TAG(ANY)
+	CASE_TAG(OPT)
 	CASE_TAG(STATEMENT)
+	CASE_TAG(GET)
+	CASE_TAG(SET)
 	CASE_TAG(STMSET)
 	CASE_TAG(PATTERN)
 	CASE_TAG(TRANSLATION)
-	CASE_TAG(T)
 	CASE_TAG(TG)
+	CASE_TAG(UNDEFINED)
 	CASE_TAG(P)
 	CASE_TAG(SPC)
-	CASE_TAG(N)
 	CASE_TAG(RX)
 	CASE_TAG(TDRV)
 	CASE_TAG(WCLS)
@@ -189,19 +197,13 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 	CASE_TAG(EXPAND)
 	CASE_TAG(ERC)
 	CASE_TAG(TIME)
-	CASE_TAG(LIST)
-	CASE_TAG(ANY)
-	CASE_TAG(OPT)
 	CASE_TAG(PERM)
 	CASE_TAG(TAIL)
 	CASE_TAG(SUBSET)
 
 	CASE_TAG(LITERAL)
 	CASE_TAG(RNUMBER)
-	CASE_TAG(MKENT)
 	CASE_TAG(NV)
-	CASE_TAG(VAR)
-	CASE_TAG(FUNC)
 	CASE_TAG(SELECT)
 	CASE_TAG(CASE)
 	CASE_TAG(BLOCK)
@@ -226,7 +228,8 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 
 }
 
-void BELParserXML::taghandle_STMSET( const char_cp * attr, size_t attr_sz, bool close )
+#define DEFINE_BELParserXML_taghandle( X )  void BELParserXML::taghandle_##X(int tid, const char_cp * attr, size_t attr_sz, bool close )
+DEFINE_BELParserXML_taghandle(STMSET)
 {
 	uint32_t trieClass =0xffffffff, trieId=0xffffffff;
     const char* tc =0, *ti =0;
@@ -260,7 +263,7 @@ void BELParserXML::taghandle_STMSET( const char_cp * attr, size_t attr_sz, bool 
 		reader->setTrie( trieClass , trieId );
     // setting current universe  
 }
-void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bool close )
+DEFINE_BELParserXML_taghandle(STATEMENT)
 {
 	if( close ) { /// statement is ready to be sent to the reader for adding to the trie
 		if( !statement.isValid() ) {
@@ -345,10 +348,10 @@ void BELParserXML::taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bo
 	}
 	statement.setStatement();
 }
-void BELParserXML::taghandle_UNDEFINED( const char_cp * attr, size_t attr_sz, bool close )
+DEFINE_BELParserXML_taghandle(UNDEFINED)
 {}
 
-void BELParserXML::taghandle_PATTERN( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(PATTERN)
 {
 	if( close ) { /// tag is being closed
 		statement.setBlank();
@@ -360,7 +363,7 @@ void BELParserXML::taghandle_PATTERN( const char_cp * attr, size_t attr_sz , boo
 	}
 	statement.setPattern();
 }
-void BELParserXML::taghandle_TRANSLATION( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(TRANSLATION)
 {
 	if( close ) { /// tag is being closed
 		statement.setBlank();
@@ -528,10 +531,10 @@ struct BTND_text_visitor : public BTND_text_visitor_base {
 
 } // end of anon namespace 
 
-void BELParserXML::taghandle_T( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(T)
 {
     if( statement.isState_Translation() ) {
-        taghandle_LITERAL(attr, attr_sz, close);
+        taghandle_LITERAL(TAG_T,attr, attr_sz, close);
         return;
     } 
 
@@ -587,10 +590,10 @@ void BELParserXML::taghandle_T( const char_cp * attr, size_t attr_sz , bool clos
     
 }
 
-void BELParserXML::taghandle_TG( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(TG)
 {
 }
-void BELParserXML::taghandle_P( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(P)
 {
 	if (close) {
 		statement.popNode();
@@ -598,13 +601,13 @@ void BELParserXML::taghandle_P( const char_cp * attr, size_t attr_sz , bool clos
 	} 
 	statement.pushNode( BTND_PatternData( BTND_Pattern_Punct()));
 }
-void BELParserXML::taghandle_SPC( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(SPC)
 {
 }
-void BELParserXML::taghandle_N( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(N)
 {
     if( statement.isState_Translation() ) {
-        taghandle_RNUMBER( attr, attr_sz, close );
+        taghandle_RNUMBER( TAG_N, attr, attr_sz, close );
         return;
     }
 
@@ -669,7 +672,7 @@ void BELParserXML::taghandle_N( const char_cp * attr, size_t attr_sz , bool clos
 	}
 	statement.pushNode( BTND_PatternData( pat));
 }
-void BELParserXML::taghandle_ERC( const char_cp * attr, size_t attr_sz , bool close) 
+DEFINE_BELParserXML_taghandle(ERC)
 {
 	if( close ) { statement.popNode(); return; }
 	BTND_Pattern_ERC pat; 
@@ -745,7 +748,7 @@ void BELParserXML::taghandle_ERC( const char_cp * attr, size_t attr_sz , bool cl
 
 	statement.pushNode( BTND_PatternData(pat) );
 }
-void BELParserXML::taghandle_ERCEXPR( const char_cp * attr, size_t attr_sz , bool close) 
+DEFINE_BELParserXML_taghandle(ERCEXPR)
 {
 	if( close ) { statement.popNode(); return; }
 	BTND_Pattern_ERCExpr pat; 
@@ -763,7 +766,7 @@ void BELParserXML::taghandle_ERCEXPR( const char_cp * attr, size_t attr_sz , boo
 	}
 	statement.pushNode( BTND_PatternData(pat) );
 }
-void BELParserXML::taghandle_RANGE( const char_cp * attr, size_t attr_sz , bool close) 
+DEFINE_BELParserXML_taghandle(RANGE)
 { 
 	if( close ) { statement.popNode(); return; }
 	BTND_Pattern_Range pat; 
@@ -844,7 +847,7 @@ void BELParserXML::taghandle_RANGE( const char_cp * attr, size_t attr_sz , bool 
     }
 	statement.pushNode( BTND_PatternData( pat));
 }
-void BELParserXML::taghandle_ENTITY( const char_cp * attr, size_t attr_sz , bool close) 
+DEFINE_BELParserXML_taghandle(ENTITY)
 { 
 	if( close ) { statement.popNode(); return; }
 	BTND_Pattern_Entity pat; 
@@ -853,6 +856,10 @@ void BELParserXML::taghandle_ENTITY( const char_cp * attr, size_t attr_sz , bool
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
 		switch( n[0] ) {
+		case 'e': // class - ec="1" (same as c)
+            if( n[1] == 'c' ) 
+			    pat.setEntityClass( atoi(v) ); 
+            break;
 		case 'c': // class - c="1"
 			pat.setEntityClass( atoi(v) ); 
 			break;
@@ -874,7 +881,7 @@ void BELParserXML::taghandle_ENTITY( const char_cp * attr, size_t attr_sz , bool
 	}
 	statement.pushNode( BTND_PatternData( pat));
 }
-void BELParserXML::taghandle_DATETIME( const char_cp * attr, size_t attr_sz , bool close) 
+DEFINE_BELParserXML_taghandle(DATETIME)
 { 
 	if( close ) {
 		statement.popNode();
@@ -912,7 +919,7 @@ void BELParserXML::taghandle_DATETIME( const char_cp * attr, size_t attr_sz , bo
 	}
 	statement.pushNode( BTND_PatternData( pat));
 }
-void BELParserXML::taghandle_DATE( const char_cp * attr, size_t attr_sz , bool close) 
+DEFINE_BELParserXML_taghandle(DATE)
 { 
 	if( close ) {
 		statement.popNode();
@@ -945,7 +952,7 @@ void BELParserXML::taghandle_DATE( const char_cp * attr, size_t attr_sz , bool c
 	statement.pushNode( BTND_PatternData( pat));
 }
 
-void BELParserXML::taghandle_TIME( const char_cp * attr, size_t attr_sz , bool close) 
+DEFINE_BELParserXML_taghandle(TIME)
 {
 	if( close ) {
 		statement.popNode();
@@ -972,17 +979,17 @@ void BELParserXML::taghandle_TIME( const char_cp * attr, size_t attr_sz , bool c
 	statement.pushNode( BTND_PatternData( pat));
 }
 
-void BELParserXML::taghandle_RX( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(RX)
 {}
-void BELParserXML::taghandle_TDRV( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(TDRV)
 {}
-void BELParserXML::taghandle_WCLS( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(WCLS)
 {}
 /// W - wildcard is a pattern for very wide matches - be careful
 // if no attributes are supplied w matches any bead 
 // otherwise e - anything entity related (erc, ent) 
 // 
-void BELParserXML::taghandle_W( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(W)
 {
 	if( close ) {
 		statement.popNode();
@@ -1016,7 +1023,7 @@ void BELParserXML::processAttrForStructTag( BTND_StructData& dta, const char_cp 
 		}
 	}
 }
-void BELParserXML::taghandle_EXPAND( const char_cp * attr, size_t attr_sz , bool close) 
+DEFINE_BELParserXML_taghandle(EXPAND)
 {
 	if( close ) { return; }
 
@@ -1048,7 +1055,7 @@ void BELParserXML::taghandle_EXPAND( const char_cp * attr, size_t attr_sz , bool
 	}
 }
 
-void BELParserXML::taghandle_LIST( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(LIST)
 {
 	if( close ) { statement.popNode(); return; }
 
@@ -1056,7 +1063,7 @@ void BELParserXML::taghandle_LIST( const char_cp * attr, size_t attr_sz , bool c
 	processAttrForStructTag( node, attr, attr_sz );
 	statement.pushNode( node );
 }
-void BELParserXML::taghandle_ANY( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(ANY)
 {
 	if( close ) { statement.popNode(); return; }
 
@@ -1064,7 +1071,7 @@ void BELParserXML::taghandle_ANY( const char_cp * attr, size_t attr_sz , bool cl
 	processAttrForStructTag( node, attr, attr_sz );
 	statement.pushNode( node );
 }
-void BELParserXML::taghandle_OPT( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(OPT)
 {
 	if( close ) {
 		statement.popNode();
@@ -1074,7 +1081,7 @@ void BELParserXML::taghandle_OPT( const char_cp * attr, size_t attr_sz , bool cl
 	processAttrForStructTag( node, attr, attr_sz );
 	statement.pushNode( node );
 }
-void BELParserXML::taghandle_PERM( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(PERM)
 {
 	if( close ) {
 		statement.popNode();
@@ -1084,7 +1091,7 @@ void BELParserXML::taghandle_PERM( const char_cp * attr, size_t attr_sz , bool c
 	processAttrForStructTag( node, attr, attr_sz );
 	statement.pushNode( node );
 }
-void BELParserXML::taghandle_SUBSET( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(SUBSET)
 {
 	if( close ) {
 		statement.popNode();
@@ -1094,7 +1101,7 @@ void BELParserXML::taghandle_SUBSET( const char_cp * attr, size_t attr_sz , bool
 	processAttrForStructTag( node, attr, attr_sz );
 	statement.pushNode(node);
 }
-void BELParserXML::taghandle_TAIL( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(TAIL)
 {
 	if( close ) {
 		statement.popNode();
@@ -1105,7 +1112,7 @@ void BELParserXML::taghandle_TAIL( const char_cp * attr, size_t attr_sz , bool c
 	statement.pushNode(node);
 }
 /// rewrite tags 
-void BELParserXML::taghandle_LITERAL( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(LITERAL)
 {
 	if( close ) {
 		statement.popNode();
@@ -1134,7 +1141,7 @@ void BELParserXML::taghandle_LITERAL( const char_cp * attr, size_t attr_sz , boo
 	statement.pushNode( BTND_RewriteData(literal) );
 }
 
-void BELParserXML::taghandle_NV( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(NV)
 {
     if( close ) {
         return;
@@ -1162,7 +1169,7 @@ void BELParserXML::taghandle_NV( const char_cp * attr, size_t attr_sz , bool clo
         }
     }
 }
-void BELParserXML::taghandle_MKENT( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(MKENT)
 {
 	if( close ) {
         if( !statement.isBlank() ) 
@@ -1235,7 +1242,7 @@ void BELParserXML::taghandle_MKENT( const char_cp * attr, size_t attr_sz , bool 
 }
         
 
-void BELParserXML::taghandle_BLOCK( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(BLOCK)
 {
 	if( close ) {
 		statement.popNode();
@@ -1266,7 +1273,7 @@ void BELParserXML::taghandle_BLOCK( const char_cp * attr, size_t attr_sz , bool 
     }
 	statement.pushNode( BTND_RewriteData(ctrl));
 }
-void BELParserXML::taghandle_RNUMBER( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(RNUMBER)
 {
 	if( close ) {
 		statement.popNode();
@@ -1289,10 +1296,10 @@ void BELParserXML::taghandle_RNUMBER( const char_cp * attr, size_t attr_sz , boo
 	}
 	statement.pushNode( BTND_RewriteData( num));
 }
-void BELParserXML::taghandle_VAR( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(VAR)
 {
     if( statement.isState_Pattern() ) {
-        taghandle_LIST(attr,attr_sz,close);
+        taghandle_LIST(TAG_VAR,attr,attr_sz,close);
         return;
     }
 
@@ -1347,7 +1354,31 @@ void BELParserXML::taghandle_VAR( const char_cp * attr, size_t attr_sz , bool cl
 	}
 	statement.pushNode( BTND_RewriteData( var));
 }
-void BELParserXML::taghandle_FUNC( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(GET)
+{
+    // alias
+    taghandle_SET(TAG_GET,attr, attr_sz, close);
+}
+DEFINE_BELParserXML_taghandle(SET)
+{
+	if( close ) { statement.popNode(); return; }
+	BTND_Rewrite_Function f;
+    uint32_t funcNameId = 0xffffffff;
+    funcNameId = reader->getGlobalPools().internString_internal( (tid == TAG_SET ? "set": "get") ) ;
+    f.setNameId( funcNameId ) ;
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		if( *n == 'a' ) {
+            f.setArgStrId( reader->getGlobalPools().internString_internal(v) );
+        } else if( *n == 'v' ) { // variable 
+            f.setVarId( reader->getGlobalPools().internString_internal(v) );
+        }
+	}
+
+    statement.pushNode( BTND_RewriteData(f));
+}
+DEFINE_BELParserXML_taghandle(FUNC)
 {
 	if( close ) {
 		statement.popNode();
@@ -1378,7 +1409,7 @@ void BELParserXML::taghandle_FUNC( const char_cp * attr, size_t attr_sz , bool c
     }
 }
 
-void BELParserXML::taghandle_SELECT( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(SELECT)
 {
     if( close ) {
         statement.popNode();
@@ -1397,7 +1428,7 @@ void BELParserXML::taghandle_SELECT( const char_cp * attr, size_t attr_sz , bool
     statement.pushNode( BTND_RewriteData(BTND_Rewrite_Select(varId)) );
 }
 
-void BELParserXML::taghandle_CASE( const char_cp * attr, size_t attr_sz , bool close)
+DEFINE_BELParserXML_taghandle(CASE)
 {
     if( close ) {
         statement.popNode();
@@ -1539,6 +1570,9 @@ int BELParserXML::getTag( const char* s ) const
 	case 'f':
 	CHECK_4CW("unc", TAG_FUNC ) // <func>
 		break;
+	case 'g':
+	CHECK_3CW("et", TAG_GET ) // <get>
+		break;
 	case 'l':
 	CHECK_4CW("ist", TAG_LIST ) // <list>
 	CHECK_4CW("trl", TAG_LITERAL ) // <ltrl>
@@ -1565,6 +1599,7 @@ int BELParserXML::getTag( const char* s ) const
 	CHECK_5CW("ange",TAG_RANGE) // <range>
 		break;
 	case 's':
+	CHECK_3CW("et",TAG_SET ) // <set>
 	CHECK_4CW("tmt",TAG_STATEMENT )  // <stmt>
 	CHECK_6CW("tmset",TAG_STMSET )  // <stmset>
 	CHECK_6CW("elect",TAG_SELECT )  // <select>

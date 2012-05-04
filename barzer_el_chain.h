@@ -478,7 +478,15 @@ struct BarzerRangeAccessor {
 struct BarzelBeadData_FieldBinder {
     const StoredUniverse& d_universe;
     const BarzelBeadData& d_data;
-    BarzelBeadData_FieldBinder( const BarzelBeadData& data, const StoredUniverse& universe ) : d_universe(universe), d_data(data) {}
+    std::ostream&         d_errStream;
+
+    BarzelBeadData_FieldBinder( 
+        const BarzelBeadData& data, 
+        const StoredUniverse& universe,
+        std::ostream& os ) : 
+    d_universe(universe), d_data(data), d_errStream(os) 
+    {}
+
     bool operator()( BarzelBeadData& out, const char* fieldName ) const;
 
     /// this is for the setter 

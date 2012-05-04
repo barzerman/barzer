@@ -347,8 +347,8 @@ struct BELFunctionStorage_holder {
 		// caller
 		ADDFN(call); 
 
-                //setter
-                ADDFN(set);
+        //setter
+        ADDFN(set);
                 
 		// getters
 		ADDFN(getWeekday);      // getWeekday(BarzerDate)
@@ -469,11 +469,40 @@ struct BELFunctionStorage_holder {
             }
         }
         if( argStr && rvec.size() ) { 
-            BarzelBeadData_FieldBinder binder( rvec[0].getBeadData(), q_universe );
+            std::stringstream os;
+            BarzelBeadData_FieldBinder binder( rvec[0].getBeadData(), q_universe, os );
+
             return binder( result.getBeadData(), argStr );
         }
         FERROR( "expects arg to be set and at least one argument" );
         return false;
+    }
+    STFUN(set) {
+        SETFUNCNAME(set);
+        const char* argStr = GETARGSTR();
+        if( argStr && rvec.size() == 2 ) {
+            const BarzelEvalResult& arg0 = rvec[0]; // objecct
+            const BarzelEvalResult& arg1 = rvec[1]; // new property value
+
+
+            const BarzelBeadAtomic* atomic = arg0.getSingleAtomic();
+            if( atomic ) {
+                std::stringstream os;
+                BarzelBeadData_FieldBinder binder( arg0.getBeadData(), q_universe, os );
+
+                std::vector< BarzelBeadData > vv;
+                vv.push_back( arg1.getBeadData() );
+
+                bool rc =  binder( result.getBeadData(), argStr, &vv );
+                if( !rc ) 
+                    FERROR( os.str().c_str() );
+                return rc;
+            }
+            return true;
+        } else {
+            FERROR( "expects: object, new property value. Property name in arg" );
+            return false;
+        }
     }
     STFUN(call) {
         SETFUNCNAME(call);
@@ -1475,48 +1504,6 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 
-    STFUN(set) {
-        SETFUNCNAME(set);
-        const char* argStr = GETARGSTR();
-        if( rvec.size() > 1 ) {
-            const BarzelEvalResult& arg0 = rvec[0];
-            const BarzelEvalResult& arg1 = rvec[1];
-
-            const BarzelBeadAtomic* atomic = arg0.getSingleAtomic();
-            if( atomic ) {
-                switch( atomic->getDataWhich() ) {
-                case BarzerEntityRangeCombo_TYPE:{ // ERC setter
-                    const BarzerEntityRangeCombo* erc  = getAtomicPtr<BarzerEntityRangeCombo>(arg0);
-                    if( erc ) {
-                        BarzerEntityRangeCombo outErc(*erc);
-                        const BarzerEntity* e = getAtomicPtr<BarzerEntity>(arg1);
-                        
-                        if( e ) {
-                            if( argStr && !strcmp(argStr,"unit") ) { // unit entity
-                                outErc.setUnitEntity(*e);
-                            } else {
-                                outErc.setEntity(*e);
-                            }
-                        }  else {
-                            const BarzerRange* r = getAtomicPtr<BarzerRange>(arg1);
-                            if( r ) 
-                                outErc.setRange( *r );
-                            else {
-                                FERROR( "couldnt deduce set parameters for ERC" );
-                                return true;
-                            }
-                        } // end of trying range
-                        setResult(result, outErc );
-                    } // 
-                    } break; // end of ERC
-                }
-            } else {
-                FERROR("first argument of set is invalid");
-                return true;
-            }
-        }
-        return true;
-    }
 
     STFUN(setMDay) {
         SETFUNCNAME(setMDay);

@@ -80,6 +80,8 @@ public:
 
 		TAG_VAR, // <var>
 		TAG_FUNC, // function
+		TAG_GET, // getter function
+		TAG_SET, // setter function
 		TAG_SELECT,
 		TAG_CASE,
 		TAG_AND,
@@ -257,58 +259,65 @@ public:
 	void getElementText( const char* txt, int len );
 	
 	/// tag handles 
-	void taghandle_STATEMENT( const char_cp * attr, size_t attr_sz, bool close=false );
-	void taghandle_UNDEFINED( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_PATTERN( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_TRANSLATION( const char_cp * attr, size_t attr_sz , bool close=false);
+    #define DECL_BELParserXML_taghandle( X )  taghandle_##X(int tid, const char_cp * attr, size_t attr_sz, bool close=false )
+    // #define DEFINE_BELParserXML_taghandle( X )  void BELParserXML::taghandle_##X(const char_cp * attr, size_t attr_sz, bool close )
 
-	void taghandle_T( const char_cp * attr, size_t attr_sz , bool close=false);
+	void DECL_BELParserXML_taghandle(STATEMENT);
+	void DECL_BELParserXML_taghandle(UNDEFINED);
+	void DECL_BELParserXML_taghandle(PATTERN);
+	void DECL_BELParserXML_taghandle(TRANSLATION);
 
-	void taghandle_TG( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_P( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_SPC( const char_cp * attr, size_t attr_sz , bool close=false);
+	void DECL_BELParserXML_taghandle(T);
 
-	void taghandle_N( const char_cp * attr, size_t attr_sz , bool close=false);
+	void DECL_BELParserXML_taghandle(TG);
+	void DECL_BELParserXML_taghandle(P);
+	void DECL_BELParserXML_taghandle(SPC);
 
-	void taghandle_RX( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_TDRV( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_WCLS( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_W( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_DATE( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_DATETIME( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_RANGE( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_ENTITY( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_ERC( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_ERCEXPR( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_EXPAND( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_TIME( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_LIST( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_ANY( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_OPT( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_PERM( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_TAIL( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_SUBSET( const char_cp * attr, size_t attr_sz , bool close=false);
+	void DECL_BELParserXML_taghandle(N);
+
+	void DECL_BELParserXML_taghandle(RX);
+	void DECL_BELParserXML_taghandle(TDRV);
+	void DECL_BELParserXML_taghandle(WCLS);
+	void DECL_BELParserXML_taghandle(W);
+	void DECL_BELParserXML_taghandle(DATE);
+	void DECL_BELParserXML_taghandle(DATETIME);
+	void DECL_BELParserXML_taghandle(RANGE);
+	void DECL_BELParserXML_taghandle(ENTITY);
+	void DECL_BELParserXML_taghandle(ERC);
+	void DECL_BELParserXML_taghandle(ERCEXPR);
+	void DECL_BELParserXML_taghandle(EXPAND);
+	void DECL_BELParserXML_taghandle(TIME);
+	void DECL_BELParserXML_taghandle(LIST);
+	void DECL_BELParserXML_taghandle(ANY);
+	void DECL_BELParserXML_taghandle(OPT);
+	void DECL_BELParserXML_taghandle(PERM);
+	void DECL_BELParserXML_taghandle(TAIL);
+	void DECL_BELParserXML_taghandle(SUBSET);
 
 	// <rn>
-	void taghandle_RNUMBER( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_MKENT( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_BLOCK( const char_cp * attr, size_t attr_sz , bool close=false);
+	void DECL_BELParserXML_taghandle(RNUMBER);
+	void DECL_BELParserXML_taghandle(MKENT);
+	void DECL_BELParserXML_taghandle(BLOCK);
     /// name value pair (can be inside entity or on its own)
     /// attributes n,v for nme and value 
-	void taghandle_NV( const char_cp * attr, size_t attr_sz , bool close=false);
+	void DECL_BELParserXML_taghandle(NV);
 
 
-	void taghandle_LITERAL( const char_cp * attr, size_t attr_sz , bool close=false);
+	void DECL_BELParserXML_taghandle(LITERAL);
 
-	void taghandle_FUNC( const char_cp * attr, size_t attr_sz , bool close=false);
-	void taghandle_VAR( const char_cp * attr, size_t attr_sz , bool close=false);
+	void DECL_BELParserXML_taghandle(FUNC);
+	void DECL_BELParserXML_taghandle(VAR);
 	
-    void taghandle_SELECT( const char_cp * attr, size_t attr_sz , bool close=false);
-    void taghandle_CASE( const char_cp * attr, size_t attr_sz , bool close=false);
+    void DECL_BELParserXML_taghandle(SELECT);
+    void DECL_BELParserXML_taghandle(CASE);
+	// document element
+	void DECL_BELParserXML_taghandle(STMSET);
+
+	void DECL_BELParserXML_taghandle(GET);
+	void DECL_BELParserXML_taghandle(SET);
+
     void processLogic( int , bool);
 
-	// document element
-	void taghandle_STMSET( const char_cp * attr, size_t attr_sz , bool close=false);
 
 	int parse( std::istream& );
 };

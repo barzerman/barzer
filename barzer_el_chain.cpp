@@ -1,6 +1,7 @@
 #include <barzer_el_chain.h>
 #include <barzer_el_trie.h>
 #include <barzer_universe.h>
+#include <barzer_server_response.h>
 
 namespace barzer {
 std::ostream& operator<< ( std::ostream& fp, const BarzelBeadData& x)
@@ -284,6 +285,7 @@ template<class T> const T* getAtomicPtr(const BarzelBeadData &dta)
     template <> barzel_binding_info<B>::barzel_binding_info_cp barzel_binding_info<B>::storage_end = ARR_END(binding_holder<B>::array);
 
 #define BARZEL_BINDING(B,N) barzel_binding_info<B>( #N, binding_holder<B>::N )
+#define BARZEL_BINDING_RW(B,N) barzel_binding_info<B>( #N, binding_holder<B>::N, true )
 #define BARZEL_METHOD(T,N) static bool N( BarzelBeadData& out, const StoredUniverse& universe, const T& dta, const std::vector<BarzelBeadData>* vec ) 
 #define DECL_BARZEL_BINDING_HOLDER(B) template<> struct binding_holder<B>  : public binding_holder_implemented<B>
 
@@ -303,9 +305,22 @@ struct barzel_binding_info {
         const std::vector<BarzelBeadData>*
     )> TFunc;
     TFunc       func;
-    barzel_binding_info( const char* fld, TFunc f ) : field(fld), func(f) {}
+    bool        isReadWrite; // by default false
+    barzel_binding_info( const char* fld, TFunc f ) : field(fld), func(f), isReadWrite(false) {}
+    barzel_binding_info( const char* fld, TFunc f, bool isRw ) : field(fld), func(f), isReadWrite(isRw) {}
+
     typedef const  barzel_binding_info* barzel_binding_info_cp;
     static barzel_binding_info_cp storage_begin, storage_end;
+
+    static const barzel_binding_info_cp getBindingInfo( const char* n ) 
+    {
+        for( barzel_binding_info_cp i = storage_begin; i <storage_end; ++i ) {
+            if( !strcmp( i->field, n) ) 
+                return i;
+        }
+        return 0;
+    }
+
     static const TFunc* getFunc( const char* n )
     {
         for( barzel_binding_info_cp i = storage_begin; i <storage_end; ++i ) {
@@ -324,6 +339,8 @@ struct barzel_binding_info {
 //// catcher template for un-bound classes (classes with no bindings implemented)
 template <typename T>
 struct binding_holder  {
+    static typename barzel_binding_info<T>::barzel_binding_info_cp getBindingInfo(const char*) 
+        { return 0; }
     static typename barzel_binding_info<T>::TFunc* getFunc(const char*) 
         { return 0; }
     static void getAllFields( std::vector< std::string >& ) 
@@ -332,6 +349,9 @@ struct binding_holder  {
 
 template <typename T>
 struct binding_holder_implemented {
+    static const typename barzel_binding_info<T>::barzel_binding_info_cp getBindingInfo(const char* n) 
+        { return barzel_binding_info<T>::getBindingInfo(n); }
+
     static const typename barzel_binding_info<T>::TFunc* getFunc(const char* n) 
         { return barzel_binding_info<T>::getFunc(n); }
     static barzel_binding_info<T> array[];
@@ -415,8 +435,8 @@ DECL_BARZEL_BINDING_HOLDER(BarzerEntity) {
 DEF_BARZEL_BINDING_ARR(BarzerEntity)
 {
     BARZEL_BINDING(BarzerEntity,ec), // entity class
-    BARZEL_BINDING(BarzerEntity,sc), // entity subclass
-    BARZEL_BINDING(BarzerEntity,id)  // entity id 
+    BARZEL_BINDING_RW(BarzerEntity,sc), // entity subclass
+    BARZEL_BINDING_RW(BarzerEntity,id)  // entity id 
 };
 DEF_BARZEL_BINDING_ARR_PTRS(BarzerEntity)
 // ERC 
@@ -529,18 +549,44 @@ struct binder_visitor : public boost::static_visitor<bool> {
     BarzelBeadData& d_out;
     const char*             d_field;
     const std::vector<BarzelBeadData>* d_beadDataVec;
+    bool  d_tryingToWrite;
 
-    binder_visitor( BarzelBeadData& d, const StoredUniverse& universe, const char* field ) : 
-        d_universe(universe), d_out(d), d_field(field), d_beadDataVec(0) {}
-    binder_visitor( BarzelBeadData& d, const StoredUniverse& universe, const char* field, const std::vector<BarzelBeadData>* beadDataVec ) : 
-        d_universe(universe), d_out(d), d_field(field), d_beadDataVec(beadDataVec) {}
+    std::ostream& d_errStream;
 
+    binder_visitor( std::ostream& os, BarzelBeadData& d, const StoredUniverse& universe, const char* field ) : 
+        d_universe(universe), d_out(d), d_field(field), d_beadDataVec(0), d_tryingToWrite(false),d_errStream(os) {}
+    binder_visitor( 
+        std::ostream& os,
+        BarzelBeadData& d, 
+        const StoredUniverse& universe, 
+        const char* field, 
+        const std::vector<BarzelBeadData>* beadDataVec, 
+        bool tryingToWrite ) : 
+            d_universe(universe), d_out(d), d_field(field), d_beadDataVec(beadDataVec), d_tryingToWrite(tryingToWrite),d_errStream(os) {}
+
+    /*
     template <typename T> bool operator()( const T& a ) {
         const typename barzel_binding_info<T>::TFunc* f = binding_holder<T>::getFunc(d_field);
         if( f ) 
             return (*f)(d_out, d_universe, a, d_beadDataVec );
         else
             return false; 
+    }
+    */
+    template <typename T> bool operator()( const T& a ) {
+        const typename barzel_binding_info<T>::barzel_binding_info_cp bi = binding_holder<T>::getBindingInfo(d_field);
+        if( bi ) {
+            if( !d_tryingToWrite || bi->isReadWrite ) {
+                // const typename barzel_binding_info<T>::TFunc* f = &(bi->func);
+                return (bi->func)(d_out, d_universe, a, d_beadDataVec );
+            } else {
+                xmlEscape( d_field, d_errStream<< "property not writable:"  );
+                return false;
+            }
+        } else {
+            xmlEscape( d_field, d_errStream<< "invalid property:"  );
+        }
+        return false; 
     }
 
     bool operator()( const BarzelBeadAtomic& a) 
@@ -566,14 +612,14 @@ bool BarzelBeadData_FieldBinder::operator()( BarzelBeadData& out, const char* fi
     if( !vec || !vec->size() )
         return false;
     
-    binder_visitor vis( out, d_universe, fieldName, vec );    
+    binder_visitor vis( d_errStream, out, d_universe, fieldName, vec, true );    
     bool retVal = boost::apply_visitor(vis, d_data);
     return retVal;
 }
 
 bool BarzelBeadData_FieldBinder::operator()( BarzelBeadData& out, const char* fieldName ) const
 {
-    binder_visitor vis( out, d_universe, fieldName );    
+    binder_visitor vis( d_errStream, out, d_universe, fieldName );    
     bool retVal = boost::apply_visitor(vis, d_data);
     
     return retVal;
