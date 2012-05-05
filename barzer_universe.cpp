@@ -23,8 +23,7 @@ void get_cfg_path( std::string& out, const barzer::BarzerSettings& st, const cha
         std::stringstream ss;
 
         if( dataPath ) {
-            ss<< ( boost::filesystem::path( dataPath ) / boost::filesystem::path(DEFAULT_CONFIG_FILE) );
-            out = ss.str();
+            out = ( boost::filesystem::path( dataPath ) / boost::filesystem::path(DEFAULT_CONFIG_FILE) ).string();
         } else 
             out = DEFAULT_CONFIG_FILE;
     } else 
