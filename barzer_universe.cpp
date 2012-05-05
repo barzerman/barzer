@@ -2,6 +2,8 @@
 #include <barzer_bzspell.h>
 #include <barzer_ghettodb.h>
 #include <ay/ay_cmdproc.h>
+#include <boost/filesystem.hpp>
+
 
 namespace barzer {
 
@@ -11,6 +13,25 @@ GlobalTriePool::ClassTrieMap& GlobalTriePool::produceTrieMap( uint32_t trieClass
 	return d_trieMap[trieClass];
 }
 
+namespace {
+
+void get_cfg_path( std::string& out, const barzer::BarzerSettings& st, const char* fname  )
+{
+    if( !fname ) {
+        const char *barzerHome = std::getenv("BARZER_HOME");
+        const char *dataPath = ( st.getHomeOverridePath().length() ? st.getHomeOverridePath().c_str() : barzerHome );
+        std::stringstream ss;
+
+        if( dataPath ) {
+            ss<< ( boost::filesystem::path( dataPath ) / boost::filesystem::path(DEFAULT_CONFIG_FILE) );
+            out = ss.str();
+        } else 
+            out = DEFAULT_CONFIG_FILE;
+    } else 
+        out.assign(fname);
+}
+
+}
 
 void GlobalPools::init_cmdline( ay::CommandLineArgs & cmdlProc)
 {
@@ -39,10 +60,13 @@ void GlobalPools::init_cmdline( ay::CommandLineArgs & cmdlProc)
     else {
 
         fname = cmdlProc.getArgVal(hasArg, "-cfg", 0);
-        if (hasArg && fname)
-    	    st.load(reader, fname);
-        else
-    	    st.load(reader);
+        std::string fnameStr;
+        if( !fname ) {
+            get_cfg_path(fnameStr, st, fname  );
+            fname=  fnameStr.c_str();
+            std::cerr << "Picked up default config:" << fname << std::endl;
+        }
+    	st.load(reader, fname);
     }
 }
 
