@@ -89,25 +89,37 @@ StoredToken& BELParser::internString( const char* t, bool noSpell, const char* u
 	// to reflect the fact that this thing is actually in the trie
 
 	bool wasNew = false;
-	StoredToken& sTok =  reader->getGlobalPools().getDtaIdx().addToken( wasNew, t );
-	const uint32_t origId = sTok.getStringId ();
+    uint16_t lang = 0;
+	StoredToken& sTok =  reader->getGlobalPools().getDtaIdx().addToken( lang, wasNew, t );
+	const uint32_t origId = sTok.getStringId();
 	sTok.setStemmed(unstemmed);
     
-	if( !noSpell ) {
+    StoredUniverse* curUni = reader->getCurrentUniverse();
+    BZSpell* bzSpell= curUni->getBZSpell();
+    if( wasNew && (sTok.getLength()  < BZSpell::MAX_WORD_LEN) ) {
+        char w[ BZSpell::MAX_WORD_LEN ]; 
+        strncpy( w, t, sTok.getLength() );
+        w[ BZSpell::MAX_WORD_LEN-1 ] = 0;
+
+        bool tolowerWasNew = false;
+        if( Lang::stringToLower( w, sTok.getLength(), lang ) ) {
+            uint32_t tolowerStrId =  reader->getGlobalPools().string_intern( w );
+
+            if( bzSpell ) 
+                bzSpell->addExtraWordToDictionary( tolowerStrId );
+        }
+    }
+	if( curUni && !noSpell ) {
 		BELTrie& trie = reader->getTrie();
-		StoredUniverse* curUni = reader->getCurrentUniverse();
-		if( curUni ) {
-			trie.addWordInfo( sTok.getStringId(),unstemmed );
-			if( !unstemmed ) {
-				BZSpell* bzSpell= curUni->getBZSpell();
-				if( bzSpell ) {
-					bzSpell->addExtraWordToDictionary( sTok.getStringId() );
-                }
-			} else {
-				const uint32_t unstmId = reader->getGlobalPools().getDtaIdx().addToken(unstemmed).getStringId();
-				trie.addStemSrc( origId, unstmId);
-			}
-		}
+        trie.addWordInfo( sTok.getStringId(),unstemmed );
+        if( !unstemmed ) {
+            if( bzSpell ) {
+                bzSpell->addExtraWordToDictionary( sTok.getStringId() );
+            }
+        } else {
+            const uint32_t unstmId = reader->getGlobalPools().getDtaIdx().addToken(unstemmed).getStringId();
+            trie.addStemSrc( origId, unstmId);
+        }
 	}
 	return sTok;
 }

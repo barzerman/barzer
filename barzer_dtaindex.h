@@ -136,7 +136,12 @@ public:
 		}
 	/// newAdded is set to true only if this called resulted in creation of a new token 
 	/// set to false otherwise
-	StoredToken& addSingleTok( bool& newAdded, const char* t);
+	StoredToken& addSingleTok( uint16_t& lang, bool& newAdded, const char* t);
+	StoredToken& addSingleTok( bool& newAdded, const char* t)
+    {
+        uint16_t lang= 0;
+        return addSingleTok(lang,newAdded,t);
+    }
 	/// adds new compounded word
 	StoredToken& addCompoundedTok( bool& newAdded, uint32_t cwId, uint16_t numW, uint16_t len );
 	
@@ -272,13 +277,17 @@ public:
 	void printEuid( std::ostream& fp, const StoredEntityUniqId& euid ) const
 	{ fp << euid << '|' << resolveStoredTokenStr(euid.tokId ); }
 	
+	StoredToken& addToken( uint16_t lang, bool& wasNew, const char* t ) {
+		return tokPool.addSingleTok( lang, wasNew, t );
+    }
 	StoredToken& addToken( bool& wasNew, const char* t ) {
-		// bool wasNew = false;
-		return tokPool.addSingleTok( wasNew, t );
+        uint16_t lang = 0;
+		return addToken(lang,wasNew,t);
 	}
 	StoredToken& addToken( const char* t ) {
 		bool wasNew = false;
-		return tokPool.addSingleTok( wasNew, t );
+        uint16_t lang = 0;
+		return addToken(lang,wasNew,t);
 	}
 	enum {
 		COMPTOK_DEFAULT_NUMW = 2,

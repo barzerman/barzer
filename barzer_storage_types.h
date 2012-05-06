@@ -152,6 +152,8 @@ struct StoredToken {
     
     bool hasUpperCase() const { return classInfo.hasUpperCase(); }
     void setHasUpperCase() { return classInfo.setHasUpperCase(); }
+    
+    size_t getLength() const { return length; }
 };
 inline std::ostream& operator <<( std::ostream& fp, const StoredToken& t )
 { return ( t.print(fp), fp ); }
