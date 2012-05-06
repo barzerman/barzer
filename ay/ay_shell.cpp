@@ -146,8 +146,8 @@ int Shell::cmdInvoke( int& rc, char_cp cmd, std::istream& in )
 	if( cd ) {
 		return( (rc=cd->func( this, cmd, in ), 0) );
 	} else {
-		*errStream << "command " << cmd << " not found. Run 'help [text]' for help\n";
-		return( rc=0,-1 );
+		*errStream << "command " << cmd << " not found. Run 'help [text]' for help. Falling back to `process`.\n";
+		return cmdInvoke(rc, "process", in);
 	}
 }
 
