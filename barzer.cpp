@@ -109,6 +109,11 @@ int main( int argc, char * argv[] ) {
             } else if (strcasecmp(argv[1], "test") == 0) {
             	return run_test(globPool.produceUniverse(0), cmdlProc);
             }
+            else
+			{
+				AYLOG(WARNING) << "no run mode given, falling back to shell";
+				return run_shell(globPool, cmdlProc);
+			}
         } 
 
         // print_usage(argv[0]);
