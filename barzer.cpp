@@ -76,7 +76,7 @@ int run_test(barzer::StoredUniverse &u, ay::CommandLineArgs &cmdlProc) {
 
 void print_usage(const char* prg_name) {
     std::cerr << "Usage: " << prg_name << " [shell|test [-i <input file> -o <output file>]|server <port>]" << std::endl;
-	std::cerr << "Other options: [-anlt] [-cfg <config file>| -cfglist <cfg file list file>]\n";
+	std::cerr << "Other options: [-anlt] [-home BarzerHomeDir] [-cfg <config file>| -cfglist <cfg file list file>]\n";
 }
 
 
