@@ -94,8 +94,8 @@ StoredToken& BELParser::internString( const char* t, bool noSpell, const char* u
 	const uint32_t origId = sTok.getStringId();
 	sTok.setStemmed(unstemmed);
     
-    StoredUniverse* curUni = reader->getCurrentUniverse();
-    BZSpell* bzSpell= curUni->getBZSpell();
+    StoredUniverse* curUni = ( reader ? reader->getCurrentUniverse() : 0 );
+    BZSpell* bzSpell= ( curUni ? curUni->getBZSpell() : 0);
     if( wasNew && (sTok.getLength()  < BZSpell::MAX_WORD_LEN) ) {
         char w[ BZSpell::MAX_WORD_LEN ]; 
         strncpy( w, t, sTok.getLength() );
