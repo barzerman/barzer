@@ -81,7 +81,8 @@ inline bool operator< ( const const_char_pair_t& l, const const_char_pair_t& r )
     { return (strcasecmp( l.first, r.first )<0); }
 
 const_char_pair_t str_exceptions[] = {
-    const_char_pair_t("недели","недел")
+    const_char_pair_t("недели","недел"),
+    const_char_pair_t("память","памят")
 };
 
 struct const_char_pair_t_comp {
