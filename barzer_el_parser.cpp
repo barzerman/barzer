@@ -98,7 +98,7 @@ StoredToken& BELParser::internString( const char* t, bool noSpell, const char* u
     BZSpell* bzSpell= ( curUni ? curUni->getBZSpell() : 0);
     if( wasNew && (sTok.getLength()  < BZSpell::MAX_WORD_LEN) ) {
         char w[ BZSpell::MAX_WORD_LEN ]; 
-        strncpy( w, t, sTok.getLength() );
+        strncpy( w, t, BZSpell::MAX_WORD_LEN-1 );
         w[ BZSpell::MAX_WORD_LEN-1 ] = 0;
 
         bool tolowerWasNew = false;

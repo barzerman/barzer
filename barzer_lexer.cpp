@@ -588,7 +588,9 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 		buf[ sizeof(buf)-1 ] = 0;
         bool hasUpperCase = forceLowerCase( buf, t_len, lang );
         if( hasUpperCase ) {
-		    const StoredToken* tmpTok = dtaIdx->getStoredToken( buf );
+            // bzSpell->isUsersWord( usersWordStrId, t ) 
+            uint32_t usersWordStrId = 0xffffffff;
+		    const StoredToken* tmpTok = ( bzSpell->isUsersWord( usersWordStrId, buf ) ? dtaIdx->getStoredToken( buf ) : 0 );
             if( tmpTok ) {
                 ctok.storedTok = tmpTok;
                 ctok.syncClassInfoFromSavedTok ();
@@ -696,7 +698,11 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 			{
 				std::memcpy (dirty, theString, i);
 				dirty [i] = 0;
-		        const StoredToken* tmpTok = dtaIdx->getStoredToken( dirty );
+                uint32_t tmpTokId = 0xffffffff;
+                // ( bzSpell->isUsersWord( tmpTokId, dirty ) ? dtaIdx->getStoredToken( dirty ) : 0 );
+
+		        const StoredToken* tmpTok = ( bzSpell->isUsersWord( tmpTokId, dirty ) ? dtaIdx->getStoredToken( dirty ) : 0 );
+		        // const StoredToken* tmpTok = dtaIdx->getStoredToken( dirty );
                 uint32_t left = 0xffffffff;
                 if( !tmpTok || tmpTok->isStemmed() ) { // if no token found or token is pure stem
                     if( i < MIN_SPELL_CORRECT_LEN*step )
@@ -711,7 +717,8 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 
                 const char* rightDirty = theString + i;
 
-		        tmpTok = dtaIdx->getStoredToken( rightDirty );
+		        // tmpTok = dtaIdx->getStoredToken( rightDirty );
+		        tmpTok = ( bzSpell->isUsersWord( tmpTokId, rightDirty ) ? dtaIdx->getStoredToken( rightDirty ) : 0 ); 
 				uint32_t right = 0xffffffff;
                 if( !tmpTok ) {
                     if( t_len - step- i < MIN_SPELL_CORRECT_LEN*step )
