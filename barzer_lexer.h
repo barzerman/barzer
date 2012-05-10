@@ -68,6 +68,12 @@ class QLexParser {
 
 		MAX_CTOKENS_PER_QUERY = 64
 	};
+    const StoredToken* getStoredToken(uint32_t& strId, const char* str) const;
+    const StoredToken* getStoredToken(const char* str) const
+    {
+        uint32_t tmpId = 0xffffffff;
+        return getStoredToken(tmpId, str );
+    }
 
 	/// invoked from singleTokenClassify - tries to spell correct
 	/// fluffs the token if it's not correctable otherwise attempts to find something

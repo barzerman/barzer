@@ -537,6 +537,11 @@ bool forceLowerCase( char* buf, size_t len , int16_t lang )
 
 }
 
+const StoredToken* QLexParser::getStoredToken(uint32_t& strId, const char* str) const
+{
+    strId = 0xffffffff;
+    return ( d_universe.getBZSpell()->isUsersWord( strId, str ) ? dtaIdx->getStoredToken( str ) : 0 );
+}
 SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPosVec, PosedVec<TTWPVec> tPosVec, const QuestionParm& qparm)
 {
 	CToken& ctok = cPosVec.element().first;
@@ -589,8 +594,9 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
         bool hasUpperCase = forceLowerCase( buf, t_len, lang );
         if( hasUpperCase ) {
             // bzSpell->isUsersWord( usersWordStrId, t ) 
-            uint32_t usersWordStrId = 0xffffffff;
-		    const StoredToken* tmpTok = ( bzSpell->isUsersWord( usersWordStrId, buf ) ? dtaIdx->getStoredToken( buf ) : 0 );
+            // uint32_t usersWordStrId = 0xffffffff;
+		    // const StoredToken* tmpTok = ( bzSpell->isUsersWord( usersWordStrId, buf ) ? dtaIdx->getStoredToken( buf ) : 0 );
+		    const StoredToken* tmpTok = getStoredToken( buf ); 
             if( tmpTok ) {
                 ctok.storedTok = tmpTok;
                 ctok.syncClassInfoFromSavedTok ();
@@ -701,8 +707,8 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
                 uint32_t tmpTokId = 0xffffffff;
                 // ( bzSpell->isUsersWord( tmpTokId, dirty ) ? dtaIdx->getStoredToken( dirty ) : 0 );
 
-		        const StoredToken* tmpTok = ( bzSpell->isUsersWord( tmpTokId, dirty ) ? dtaIdx->getStoredToken( dirty ) : 0 );
-		        // const StoredToken* tmpTok = dtaIdx->getStoredToken( dirty );
+		        // const StoredToken* tmpTok = ( bzSpell->isUsersWord( tmpTokId, dirty ) ? dtaIdx->getStoredToken( dirty ) : 0 );
+		        const StoredToken* tmpTok = getStoredToken( dirty );
                 uint32_t left = 0xffffffff;
                 if( !tmpTok || tmpTok->isStemmed() ) { // if no token found or token is pure stem
                     if( i < MIN_SPELL_CORRECT_LEN*step )
@@ -717,8 +723,8 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 
                 const char* rightDirty = theString + i;
 
-		        // tmpTok = dtaIdx->getStoredToken( rightDirty );
-		        tmpTok = ( bzSpell->isUsersWord( tmpTokId, rightDirty ) ? dtaIdx->getStoredToken( rightDirty ) : 0 ); 
+		        tmpTok = getStoredToken( rightDirty );
+		        // tmpTok = ( bzSpell->isUsersWord( tmpTokId, rightDirty ) ? dtaIdx->getStoredToken( rightDirty ) : 0 ); 
 				uint32_t right = 0xffffffff;
                 if( !tmpTok ) {
                     if( t_len - step- i < MIN_SPELL_CORRECT_LEN*step )
@@ -750,15 +756,15 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
                 if( abs(leftCorr_numChar + rightCorr_numChar -theString_numChar) > 1 )
                     continue;
                 if( 
-                    (leftCorr_numChar < 4 && !dtaIdx->getStoredToken(leftCorr)) 
+                    (leftCorr_numChar < 4 && !getStoredToken(leftCorr)) 
                     || 
-                    (rightCorr_numChar < 4 && !dtaIdx->getStoredToken(rightCorr)) 
+                    (rightCorr_numChar < 4 && !getStoredToken(rightCorr)) 
                 ) 
                     continue;
 
 				CToken newTok = ctok;
 				// newTok.addSpellingCorrection (t, rightCorr);
-				const StoredToken *st = dtaIdx->getStoredToken (rightCorr);
+				const StoredToken *st = getStoredToken(rightCorr);
 				if (st)
 				{
 					newTok.storedTok = st;
@@ -773,7 +779,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
                 reportedCorrection += rightCorr;
 
 				ctok.addSpellingCorrection (t, reportedCorrection.c_str());
-				st = dtaIdx->getStoredToken (leftCorr);
+				st = getStoredToken (leftCorr);
 				if (st)
 				{
 					ctok.storedTok = st;
@@ -797,7 +803,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 		}
 	}
 	if( theString ) {
-		const StoredToken* storedTok = dtaIdx->getStoredToken( theString );
+		const StoredToken* storedTok = getStoredToken( theString );
 
 		if( storedTok ) {
 			ctok.storedTok = storedTok;
