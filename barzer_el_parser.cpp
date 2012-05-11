@@ -9,7 +9,6 @@
 #include <ay_util_time.h>
 namespace barzer {
 
-
 BELParser::BELParser(BELReader* r ) : reader(r) {}
 
 const BarzelEvalNode* BELParser::getProcByName( uint32_t strId ) const
@@ -101,7 +100,7 @@ StoredToken& BELParser::internString( const char* t, bool noSpell, const char* u
         strncpy( w, t, BZSpell::MAX_WORD_LEN-1 );
         w[ BZSpell::MAX_WORD_LEN-1 ] = 0;
 
-        bool tolowerWasNew = false;
+        //bool tolowerWasNew = false;
         if( Lang::stringToLower( w, sTok.getLength(), lang ) ) {
             uint32_t tolowerStrId =  reader->getGlobalPools().string_intern( w );
 

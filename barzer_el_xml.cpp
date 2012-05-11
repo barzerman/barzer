@@ -1254,7 +1254,7 @@ DEFINE_BELParserXML_taghandle(BLOCK)
 		const char* v = attr[i+1]; // attr value
 		switch( n[0] ) {
         case 'c':{
-                char c0=v[0], c1 = (c0?v[1]: 0);
+                char c0=v[0]; 
                 switch( c0 ) {
                 case 'c': // c(omma) comma
                     ctrl.setCtrl( BTND_Rewrite_Control::RWCTLT_COMMA );
@@ -1415,7 +1415,7 @@ DEFINE_BELParserXML_taghandle(SELECT)
         statement.popNode();
         return;
     }
-    uint32_t varId;
+    uint32_t varId= 0xffffffff;
     for( size_t i=0; i< attr_sz; i+=2 ) {
         const char* n = attr[i]; // attr name
         const char* v = attr[i+1]; // attr value

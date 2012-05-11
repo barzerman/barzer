@@ -13,6 +13,7 @@
 #include <barzer_autocomplete.h>
 #include <barzer_ghettodb.h>
 #include <ay/ay_parse.h>
+#include <barzer_barzxml.h>
 
 extern "C" {
 // cast to XML_StartElementHandler
@@ -78,7 +79,10 @@ BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s, uint3
     userId(uid)/* qparser(u), response(barz, u) */, 
     d_universe(0),
     os(s),
-    d_aggressiveStem(false)
+    d_aggressiveStem(false),
+    d_tagCount(0),
+    d_barzmlInput(false),
+    d_barzXMLParser(0)
 {
     parser = XML_ParserCreate(NULL);
     XML_SetUserData(parser, this);
@@ -89,6 +93,7 @@ BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s, uint3
 BarzerRequestParser::~BarzerRequestParser()
 {
 	XML_ParserFree(parser);
+    delete d_barzXMLParser;
 }
 
 typedef boost::function<void(BarzerRequestParser*, BarzerRequestParser::RequestTag&)> ReqTagFunc;

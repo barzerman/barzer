@@ -839,6 +839,7 @@ struct BTND_Rewrite_Logic {
     Type getType() const { return type; }
     void setType(Type t)
         { type = t; }
+    BTND_Rewrite_Logic(): type(AND) {}
     std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 };
 
