@@ -949,10 +949,11 @@ struct BELFunctionStorage_holder {
         BarzelEvalContext& d_ctxt;
 
 	RangePacker(const GlobalPools &u, BarzerRange &r, BarzelEvalContext& ctxt, const char* funcName) :
-            globPools(u), range(r), cnt(0) ,
+            globPools(u), range(r),
+            isAutoOrder(true),
+            cnt(0),
             d_funcName(funcName),
-            d_ctxt(ctxt),
-            isAutoOrder(true)
+            d_ctxt(ctxt)
         {}
 
 		bool operator()(const BarzerLiteral &ltrl) {
@@ -2339,7 +2340,7 @@ struct BELFunctionStorage_holder {
     // returns total weight of all topics in barz, whose weight is > topicThreshold
 	STFUN(hasTopics)
     {
-        SETFUNCNAME(hasTopic);
+        //SETFUNCNAME(hasTopic);
 
         int totalWeight = 0;
         
@@ -2371,7 +2372,7 @@ struct BELFunctionStorage_holder {
     /// list, {class,subclass, filterClass, filterSubclass}[N]
 	STFUN(topicFilterEList) //
     {
-        SETFUNCNAME(topicFilterEList);
+        //SETFUNCNAME(topicFilterEList);
 
         /// first parm is the list we're filtering
         /// followed by list of pairs of class/subclass of topics we want to filter on

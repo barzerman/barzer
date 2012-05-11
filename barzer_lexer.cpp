@@ -704,7 +704,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 			{
 				std::memcpy (dirty, theString, i);
 				dirty [i] = 0;
-                uint32_t tmpTokId = 0xffffffff;
+                //uint32_t tmpTokId = 0xffffffff;
                 // ( bzSpell->isUsersWord( tmpTokId, dirty ) ? dtaIdx->getStoredToken( dirty ) : 0 );
 
 		        // const StoredToken* tmpTok = ( bzSpell->isUsersWord( tmpTokId, dirty ) ? dtaIdx->getStoredToken( dirty ) : 0 );

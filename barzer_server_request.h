@@ -27,6 +27,7 @@ typedef std::pair<std::string, std::string> AttrPair;
 
 
 class BarzerRequestParser;
+class BarzXMLParser;
 
 struct TrieId {
 	User::Id userId;
@@ -77,6 +78,10 @@ private:
 	std::ostream &os;
     std::string d_query; // for query block 
     bool d_aggressiveStem;
+    int  d_tagCount; // number of tags parsed  
+    // when the tag barz is encountered the mode is set to on
+    bool d_barzmlInput; /// the mode is xml input
+    BarzXMLParser* d_barzXMLParser;
 public:
 	Barz& getBarz() { return barz; }
 	const Barz& getBarz() const { return barz; }
