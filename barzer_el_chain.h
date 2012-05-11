@@ -390,9 +390,11 @@ struct BarzelBeadChain {
 	void clear() { lst.clear(); }
 	
 	BeadList::iterator insertBead( BeadList::iterator at, const BarzelBeadData& d ) 
-	{
-		return lst.insert( at, d );
-	}
+        { return lst.insert( at, d ); }
+	BarzelBead& appendBlankBead()
+        { 
+            return ( lst.insert(lst.end(),BarzelBead()), lst.back() );
+        }
 	const Range getFullRange() 
 		{ return Range( lst.begin(), lst.end() ); }
 	void collapseRangeLeft( Range r );

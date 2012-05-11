@@ -130,8 +130,7 @@ class Barz {
 	std::vector<char> question; 
 	/// exact copy of the original question
 	std::string questionOrig; 
-
-	
+    
 	TTWPVec ttVec; 
 	CTWPVec ctVec; 
 	BarzelBeadChain beadChain;	
