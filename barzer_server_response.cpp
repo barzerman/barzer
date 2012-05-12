@@ -579,7 +579,7 @@ std::ostream& jsonEscape(const char* tokname, std::ostream& os )
 std::ostream& AutocStreamerJSON::print(std::ostream &os) const
 {
     const BestEntities::EntWeightMap& entWMap = bestEnt.getEntitiesAndWeights();
-    os << "{data:[";
+    os << "{\"data\":[";
     const GlobalPools& gp = universe.getGlobalPools();
     const EntityData& entDta = gp.entData;
 
