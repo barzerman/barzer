@@ -8,6 +8,7 @@ namespace {
     enum {
         TAG_BARZ, // top levek barz tag
         TAG_BEAD, // individual bead
+        TAG_TOPICS, // topics (parent barz, contains entity)
         TAG_TOKEN, // token ... attribute (opt) stem
         TAG_FLUFF, // 
         TAG_ERC,   
