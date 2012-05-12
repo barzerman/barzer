@@ -1002,7 +1002,7 @@ int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qpar
 			ttwp.push_back( TTWPVec::value_type( TToken(s,1), ttwp.size() ));
 			prevChar = CHAR_UNKNOWN;
 		} else if( isalnum(c) ) {
-			if( (isalpha(c) && PREVCHAR_NOT(ALPHA) ) ||
+			if( (isalpha(c) && (PREVCHAR_NOT(ALPHA)&&PREVCHAR_NOT(UTF8)) ) ||
 				(isdigit(c) && PREVCHAR_NOT(DIGIT) )
 			) {
 				if( tok ) {
