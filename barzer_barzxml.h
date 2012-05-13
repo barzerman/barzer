@@ -7,6 +7,9 @@ class Barz;
 struct BarzXMLParser {
     Barz& barz;
     
+    // current stack of tags - see .cpp file for tag codes 
+    std::vector< int > tagStack;
+
     const StoredUniverse& universe;
     
     void takeTag( const char* tag, const char** attr, bool open=true );

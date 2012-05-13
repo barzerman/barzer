@@ -219,6 +219,11 @@ public:
 	}
     const BeadList& getBeadList() const { return beadChain.lst; }
     BeadList& getBeadList() { return beadChain.lst; }
+    BarzelBead& appendBlankBead() { return beadChain.appendBlankBead(); }
+    bool isListEmpty() const { return beadChain.lst.empty(); }
+    bool hasBeads() const { return !beadChain.lst.empty(); }
+    BarzelBead& getLastBead() { return beadChain.lst.back(); }
+    const BarzelBead& getLastBead() const { return beadChain.lst.back(); }
 };
 }
 #endif // BARZER_BARZ_h
