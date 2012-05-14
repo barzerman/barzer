@@ -428,7 +428,10 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Logic>
     switch(s.getType()) {
     case BTND_Rewrite_Logic::AND:
     case BTND_Rewrite_Logic::OR:
-        d_val.setBeadData(d_childValVec.back().getBeadData());
+        if( d_childValVec.size() ) {
+            d_val.setBeadData(d_childValVec.back().getBeadData());
+        } else
+            return true;
         break;
     case BTND_Rewrite_Logic::NOT: {
         BarzelBeadDataVec &valVec =  d_val.getBeadDataVec();

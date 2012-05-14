@@ -445,6 +445,7 @@ DECL_BARZEL_BINDING_HOLDER(BarzerEntityRangeCombo) {
     BARZEL_METHOD(BarzerEntityRangeCombo,range)     { RETURN_ATOMIC( dta.getRange() ); }
     BARZEL_METHOD(BarzerEntityRangeCombo,entity)    { RETURN_ATOMIC( dta.getEntity()) ; }
     BARZEL_METHOD(BarzerEntityRangeCombo,ec)        { RETURN_NUMBER( ((int)(dta.getEntity().getClass().ec)) ); }
+    BARZEL_METHOD(BarzerEntityRangeCombo,sc)        { RETURN_NUMBER( ((int)(dta.getEntity().getClass().subclass)) ); }
 
     BARZEL_METHOD(BarzerEntityRangeCombo,lo)     { return BarzerRangeAccessor( dta.getRange() ).getLo(out); }
     BARZEL_METHOD(BarzerEntityRangeCombo,hi)     { return BarzerRangeAccessor( dta.getRange() ).getHi(out); }
