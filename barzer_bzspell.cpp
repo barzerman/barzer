@@ -680,7 +680,6 @@ uint32_t BZSpell::getStemCorrection( std::string& out, const char* s ) const
     size_t s_len = strlen( s );
     int lang = Lang::getLang( s, s_len );
 	if( lang == LANG_ENGLISH) {
-
 		if( stem( out, s) ) {
 			uint32_t strId = d_universe.getGlobalPools().string_getId( out.c_str() );
 			if( strId == 0xffffffff ) {
@@ -691,19 +690,13 @@ uint32_t BZSpell::getStemCorrection( std::string& out, const char* s ) const
 			}
 		}
 	} else if( Lang::isTwoByteLang(lang)) {
-        switch(lang) {
-        case LANG_RUSSIAN:{
-            uint32_t strId =  Russian_Stemmer::getStemCorrection( out, *this, s, s_len );
-            if( strId == 0xffffffff ) {
-                if( d_secondarySpellchecker )
-                    return Russian_Stemmer::getStemCorrection(out, *d_secondarySpellchecker,s,s_len) ;
-                else
-                    return 0xffffffff;
+        uint32_t scorStrId =  get2ByteLangStemCorrection( lang, s, true );
+        if( scorStrId != 0xffffffff && isUsersWordById( scorStrId )) {
+            const char* stemCor =  d_universe.getGlobalPools().string_resolve( scorStrId );
+            if( stemCor ) {
+                return( out.assign( stemCor ) , scorStrId );
+                
             }
-            break;
-            }
-        default:
-            return 0xffffffff;
         }
     }
 	return 0xffffffff;
