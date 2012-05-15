@@ -1112,8 +1112,17 @@ struct BELFunctionStorage_holder {
 			return operator()(combo.getRange());
 		}
 
+            
+		bool operator()(const BarzelBeadBlank&) {
+            if( cnt == 0 ) {
+               range.setNoLO();
+            } else if( cnt ==1 ) {
+               range.setNoHI();
+            }
+            return true;
+        }
 		template<class T> bool operator()(const T&) {
-                        pushFuncError( d_ctxt, d_funcName, "Wrong range type. Number, Time, DateTime, Range or ERC expected" );
+            pushFuncError( d_ctxt, d_funcName, "Wrong range type. Number, Time, DateTime, Range or ERC expected" );
 			return false;
 		}
 

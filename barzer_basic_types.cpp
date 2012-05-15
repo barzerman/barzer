@@ -185,20 +185,20 @@ std::ostream& BarzerRange::print( std::ostream& fp ) const
                 double factor2 = n2.getRealWiden();
                 switch(mode) {
                     case RANGE_MOD_SCALE_MULT:{
-                        rr->first   *= factor1;
-                        rr->second  *= factor2;
+                        if(hasLo()) rr->first   *= factor1;
+                        if(hasHi()) rr->second  *= factor2;
                     } break;
                     case RANGE_MOD_SCALE_DIV: if( factor1 != 0 && factor2 != 0 ) {
-                        rr->first   /= factor1;
-                        rr->second  /= factor2;
+                        if(hasLo()) rr->first   /= factor1;
+                        if(hasHi()) rr->second  /= factor2;
                     } break;   
                     case RANGE_MOD_SCALE_MINUS: {
-                        rr->first   -= factor1;
-                        rr->second  -= factor2;
+                        if(hasLo()) rr->first   -= factor1;
+                        if(hasHi()) rr->second  -= factor2;
                     } break;
                     case RANGE_MOD_SCALE_PLUS: {
-                        rr->first   += factor1;
-                        rr->second  += factor2;
+                        if(hasLo()) rr->first   += factor1;
+                        if(hasHi()) rr->second  += factor2;
                     } break;
                     default: ;//do nothing
                 }
