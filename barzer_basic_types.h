@@ -466,7 +466,7 @@ struct BarzerRange {
             { return ( fabs(val.first - val.second) <  0.0000000000001); }
     };
     bool isEmpty() const
-        { return boost::apply_visitor( Empty_visitor(), dta ); }
+        { return (rng_mode == RNG_MODE_FULL && boost::apply_visitor( Empty_visitor(), dta )); }
 
 	struct Less_visitor : public boost::static_visitor<bool> {
 		// typedef BarzerRange::Data Data;
