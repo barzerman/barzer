@@ -35,7 +35,7 @@ inline bool is_truevowel( const char* s )
     uint8_t b0 = (uint8_t)(s[0]), b1 = (uint8_t)(s[1]);
     return( 
         (b0== 0xd0 && (b1==0xb0||b1==0xb5||b1==0xbe||b1==0xb8||b1==0x8b)) ||
-        (b0== 0xd1 && (b1==0x91||b1==0x8f||b1==0x83))
+        (b0== 0xd1 && (b1==0x91||b1==0x8f||b1==0x83||b1==0x8e))
     );
 }
 
@@ -52,7 +52,10 @@ const char* adj_67_nk_truevowel[]   = {"нькими", "нького",0 };
 // 5 == ньк (6 characters to chop)
 const char* adj_56_nk_truevowel[]    = {"нький","нькое","нькой","нькие","ньким","ньких","нькая",0 };
 // 4 = л (4 or 5 charcters to be chopped)
-const char* verb_45_truevowel[]     = {"лось" ,"лась","лись","лися","лося","ться","тесь",0};
+const char* verb_56_sch[]     = {"щему","щего","щими",0};
+const char* verb_45_sch[]     = { "щая","щую","щей","щие","щих","щее","щий","щим", 0 };
+const char* verb_45_truevowel[]     = {
+"лось" ,"лась","лись","лися","лося","ться","тесь",0};
 
 const char* verb_4[]        = {"айся","ейся","ойся","уйся"};
 const char* noun_34_truevowel[]        = {"ами","ями",0};
@@ -142,14 +145,20 @@ bool Russian::normalize( std::string& out, const char* s, size_t* len )
     
     if( numLetters > 7 ) {
         Char2B_accessor l5( l4.prev()) , l6( l5.prev() );
-        if( numLetters > 9 ) { // 67 suffix
+        if( numLetters >= 8 ) { // 67 suffix
             Char2B_accessor l7(l6.prev());
-            if( l6(adj_67_nk_truevowel) ) 
+            if( numLetters > 9 && l6(adj_67_nk_truevowel) ) 
                 return( chop_into_string( out, (is_truevowel(l7.c_str()) ? 7:6 ), s, s_len ) );
+            bool l5_isVowel = is_truevowel(l5.c_str()),
+                 l4_isVowel = is_truevowel(l4.c_str());
+            if( l5_isVowel && l4(verb_56_sch) )
+                return( chop_into_string( out, (is_truevowel(l6.c_str()) ? 6:5 ), s, s_len ) );
             if( l5("ньк") && l5(adj_56_nk_truevowel) ) 
                 return( chop_into_string( out, (is_truevowel(l6.c_str()) ? 6:5 ), s, s_len ) );
+            if( l4_isVowel && l3(verb_45_sch) ) 
+                return( chop_into_string(out, (l5_isVowel ? 5:4 ), s, s_len) );
             if( l4(verb_45_truevowel) ) 
-                return( chop_into_string( out, (is_truevowel(l5.c_str()) ? 5:4 ), s, s_len ) );
+                return( chop_into_string(out, (l5_isVowel ? 5:4 ), s, s_len) );
             if( l4(verb_4) ) 
                 return( chop_into_string( out, 4, s, s_len ) );
         }
