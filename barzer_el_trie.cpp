@@ -138,6 +138,7 @@ void BELTrie::clear()
 	root.clear();
     macros.clear();
     procs.clear();
+    d_linkedTranInfoMap.clear();
 	initPools();
 }
 
@@ -578,10 +579,13 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELSta
 		}
 		if( entGrp ) {
 			const BarzelTranslation* newTran = d_tranPool->getObjById(id);
+            
 			if( newTran && newTran->isMkEntSingle() ) {
 				uint32_t newEntId = newTran->getId_uint32();
 
 				entGrp->addEntity( newEntId );
+                if( tran )
+                    linkTraceInfo( tran->traceInfo, newTran->traceInfo );
 				return true;
 			} else {
 				// std::cerr <<"\n" <<  __FILE__ << ":" << __LINE__ << "translation clash: " << " types: " << 

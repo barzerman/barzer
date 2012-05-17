@@ -20,6 +20,7 @@ struct BarzelTrace {
     struct SingleFrameTrace {
         size_t grammarSeqNo; // grammar sequence number
         BarzelTranslationTraceInfo tranInfo; // translation trace info for the rule that was hit
+        uint32_t globalTriePoolId; /// global trie pool id of the trie that was hit 
         std::vector< std::string > errVec;
         
         bool eq( const SingleFrameTrace& o )  const
@@ -31,8 +32,8 @@ struct BarzelTrace {
                 grammarSeqNo=gn;
                 tranInfo = ti;
             }
-        SingleFrameTrace( ) : grammarSeqNo(0) {}
-        SingleFrameTrace( const BarzelTranslationTraceInfo& ti, size_t n ) : grammarSeqNo(n), tranInfo(ti) {}
+        SingleFrameTrace( ) : grammarSeqNo(0),globalTriePoolId(0xffffffff) {}
+        SingleFrameTrace( const BarzelTranslationTraceInfo& ti, size_t n, uint32_t trieId ) : grammarSeqNo(n), tranInfo(ti),globalTriePoolId(trieId) {}
     };
 
     typedef std::vector< SingleFrameTrace > TraceVec;
@@ -51,9 +52,9 @@ struct BarzelTrace {
         d_lastFrame_count=0;
     }
     size_t size() const { return d_tvec.size(); }
-    void push_back( const BarzelTranslationTraceInfo& traceInfo ) 
+    void push_back( const BarzelTranslationTraceInfo& traceInfo, uint32_t trieId ) 
     {
-        d_tvec.push_back( SingleFrameTrace( traceInfo, d_grammarSeqNo ) );
+        d_tvec.push_back( SingleFrameTrace( traceInfo, d_grammarSeqNo, trieId ) );
         if( d_lastFrame.eq( d_grammarSeqNo, traceInfo ) ) 
             ++d_lastFrame_count;
         else {
@@ -175,9 +176,9 @@ public:
             return barzelTrace.detectLoop();
     }
 
-	void pushTrace( const BarzelTranslationTraceInfo& trace ) { 
+	void pushTrace( const BarzelTranslationTraceInfo& trace, uint32_t trieId ) { 
 		if( barzelTrace.size() < MAX_TRACE_LEN ) 
-			barzelTrace.push_back( trace ) ; 
+			barzelTrace.push_back( trace, trieId ) ; 
 	}
 
 	TTWPVec& getTtVec() { return  ttVec; }

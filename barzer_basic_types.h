@@ -34,7 +34,15 @@ struct BarzelTranslationTraceInfo {
     {
         return ( source == o.source && statementNum == o.statementNum && emitterSeqNo == o.emitterSeqNo );
     }
+    typedef std::vector< BarzelTranslationTraceInfo > Vec;
 };
+inline bool operator< ( const BarzelTranslationTraceInfo& l, const BarzelTranslationTraceInfo& r )
+{
+    return ay::range_comp( ).less_than(
+        l.source,	l.statementNum, l.emitterSeqNo,
+        r.source,	r.statementNum, r.emitterSeqNo
+    );
+}
 
 struct BarzerNone {
 };

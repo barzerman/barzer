@@ -458,7 +458,9 @@ typedef boost::unordered_map< uint32_t, TrieWordInfo > strid_to_triewordinfo_map
 typedef std::set< uint32_t > strIds_set;
 typedef boost::unordered_map< uint32_t, strIds_set> stem_to_srcs_map;
 
+
 class BELTrie {
+
 	GlobalPools& globalPools;
 	/// trie shouldnt be copyable
 	BarzelRewriterPool* d_rewrPool;
@@ -477,8 +479,18 @@ class BELTrie {
 	strid_to_triewordinfo_map d_wordInfoMap;
 	stem_to_srcs_map d_stemSrcs;
 
+    typedef std::map< BarzelTranslationTraceInfo, BarzelTranslationTraceInfo::Vec > LinkedTranInfoMap;
+    LinkedTranInfoMap d_linkedTranInfoMap;
+
 	BELTrie( const BELTrie& a );
 public:
+    void linkTraceInfo( const BarzelTranslationTraceInfo& key, const BarzelTranslationTraceInfo& v ) 
+        { d_linkedTranInfoMap[ key ].push_back( v ); }
+    const BarzelTranslationTraceInfo::Vec* getLinkedTraceInfo( const BarzelTranslationTraceInfo& key ) const
+    { 
+        LinkedTranInfoMap::const_iterator i = d_linkedTranInfoMap.find(key); 
+        return ( i== d_linkedTranInfoMap.end() ? 0 : &(i->second) ); 
+    }
     const TopicEntLinkage& getTopicEntLinkage() const { return d_topicEnt; }
     const std::set< BarzerEntity >* getTopicEntities( const BarzerEntity& t ) const
     {

@@ -255,6 +255,7 @@ public:
         { return globalTriePool.produceTrie( trieClass, trieId ) ; }
 
     void init_cmdline( ay::CommandLineArgs & );
+	const GlobalTriePool& getTriePool() const { return  globalTriePool; }
 };
 
 class BZSpell;

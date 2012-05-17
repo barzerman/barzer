@@ -1197,7 +1197,7 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 
 	const BarzelTranslation& translation = *transP;
 
-	barz.pushTrace( transP->traceInfo );
+	barz.pushTrace( transP->traceInfo, d_trie.getGlobalTriePoolId() );
     // circuitbreaker
     bool lastFrameLoop = barz.lastFrameLoop();
 
