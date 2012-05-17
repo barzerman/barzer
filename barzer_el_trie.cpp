@@ -584,8 +584,15 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELSta
 				entGrp->addEntity( newEntId );
 				return true;
 			} else {
-				std::cerr <<"\n" <<  __FILE__ << ":" << __LINE__ << "translation clash: " << " types: " << 
-				(size_t)( newTran ? newTran->getType() : -1 ) << " vs " << (size_t)(tran->getType())  << std::endl;
+				// std::cerr <<"\n" <<  __FILE__ << ":" << __LINE__ << "translation clash: " << " types: " << 
+				// (size_t)( newTran ? newTran->getType() : -1 ) << " vs " << (size_t)(tran->getType())  << std::endl;
+                if( !(stmt.getSourceNameStrId()== tran->traceInfo.source && stmt.getStmtNumber() == tran->traceInfo.statementNum) ) {
+                    std::ostream& os = stmt.getErrStream();
+                    os << "<error type=\"RULE CLASH\"> <rule>" << stmt.getSourceName() << ':' << stmt.getStmtNumber()  << '.' << emitterSeqNo <<
+                    " </rule><rule> " ;
+                    printTanslationTraceInfo( stmt.getErrStream(), tran->traceInfo ) << "</rule></error>\n";
+                }	
+                
 				return false;
 			}
 		} else {
