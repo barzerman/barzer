@@ -339,9 +339,9 @@ public:
 	void setString(uint32_t id)
 		{ type = T_STRING; theId = id;  }
 	void setBlank( ) { type = T_BLANK; theId = 0xffffffff; }
-	void setStop( ) { type = T_STOP; theId = 0xffffffff; }
-	void setStop( uint32_t id ) { type = T_STOP; theId = id; }
-	void setPunct(int c) { type = T_PUNCT; theId = c; }
+	BarzerLiteral& setStop( uint32_t id = 0xffffffff ) { type = T_STOP; theId = id; return *this; }
+	// void setStop( uint32_t id ) { type = T_STOP; theId = id; }
+	BarzerLiteral&  setPunct(int c) { type = T_PUNCT; theId = c; return *this; }
 	void setNull() { type = T_STRING; theId = 0xffffffff; }
 
 	uint32_t getId() const { return theId; }

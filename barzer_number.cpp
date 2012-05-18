@@ -1,7 +1,17 @@
-#include "barzer_number.h"
+#include <barzer_number.h>
+#include <string.h>
 
 namespace barzer
 {
+
+    BarzerNumber& BarzerNumber::set( const char* s )
+    {
+        if( strchr(s,'.') )  
+            set(atof(s)) ;
+        else 
+            set(atoi(s)) ;
+        return *this;
+    }
 	BarzerNumber& BarzerNumber::operator+= (const BarzerNumber& num)
 	{
 		d_asciiLen = 0;

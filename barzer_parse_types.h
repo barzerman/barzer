@@ -349,9 +349,21 @@ struct QuestionParm {
 class BarzerString {
 	std::string str;
     uint32_t d_stemStringId;
+    enum {
+        T_NORMAL,
+        T_FLUFF
+    };
+    int d_type;
 public:
-	BarzerString() : d_stemStringId(0xffffffff){}
-	BarzerString(const char* s) : str(s), d_stemStringId(0xffffffff) {}
+	BarzerString() : d_stemStringId(0xffffffff), d_type(T_NORMAL) {}
+	BarzerString(const char* s) : str(s), d_stemStringId(0xffffffff), d_type(T_NORMAL)  {}
+	BarzerString(const char* s,size_t s_len) : str(s,s_len), d_stemStringId(0xffffffff), d_type(T_NORMAL)  {}
+
+	BarzerString(const char* s,size_t s_len, bool isFluff ) : str(s,s_len), d_stemStringId(0xffffffff), d_type(isFluff? T_NORMAL:T_FLUFF )  {}
+
+    bool isFluff() const { return (d_type == T_FLUFF); }
+    void setFluff()     { d_type = T_FLUFF; }
+    void setNormal()    { d_type = T_NORMAL; }
 
 	void setFromTTokens( const TTWPVec& v );
 
@@ -359,6 +371,7 @@ public:
 
 	void setStr(const std::string &s) {	str = s; }
 	void setStr(const char *s) { str = s; }
+	void setStr(const char *s,size_t s_len) { str.assign(s,s_len); }
 
 	std::ostream& print( std::ostream& fp ) const
 		{ return ( fp << "\"" <<str<< "\"" ); }

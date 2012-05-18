@@ -208,6 +208,7 @@ public:
 
 	std::ostream& print( std::ostream& ) const;
 
+	template <typename T> void setAtomicData( const T& t ) { dta = BarzelBeadAtomic(t); }
 	template <typename T> void setData( const T& t ) { dta = t; }
 	void setStopLiteral() { 
 		dta= BarzelBeadAtomic().setStopLiteral();
@@ -291,22 +292,6 @@ public:
         }
         return n;
     }
-	size_t getFullNumTokens_old() const
-	{
-		size_t n = 1;
-		bool wasBlank = false;
-		for( CTWPVec::const_iterator i = ctokOrigVec.begin(); i!= ctokOrigVec.end(); ++i ) {
-			if( i->first.isBlank() ) {
-				if( !wasBlank ) {
-                    if( !i->first.isSpace() ) 
-					   ++n;
-				}
-			} else {
-				wasBlank = false;
-			}
-		}
-		return ( wasBlank ? n-1: n );
-	}
 	/// it's a loosely defined property - semantical bead is anything less than trivial 
 	/// meaning it's either non-atomic, non-number, fluff if string - meaning something prcoessed
 	/// by barzer

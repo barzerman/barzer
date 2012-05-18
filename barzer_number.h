@@ -50,6 +50,8 @@ public:
 	void clear() { type = NTYPE_NAN; }
 	int64_t setInt( const char* s) { return( type= NTYPE_INT, n.i = atoi(s)); }
 	int64_t setReal( const char* s) { return( type= NTYPE_REAL, n.i = atof(s)); }
+    /// figures out from string and sets 
+    BarzerNumber& set( const char* s ); 
 
 	BarzerNumber& operator+= (const BarzerNumber& num);
 	BarzerNumber& operator-= (const BarzerNumber& num);

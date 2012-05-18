@@ -1,5 +1,6 @@
 #include <barzer_barz.h>
 #include <barzer_barzxml.h>
+#include <barzer_universe.h>
 
 namespace barzer {
 
@@ -103,6 +104,8 @@ DECL_TAGHANDLE(TOPICS) {
 }
 DECL_TAGHANDLE(TOKEN) { 
     BarzelBead& b = parser.barz.appendBlankBead();
+    uint32_t strId = 0xffffffff;
+    // b.setAtomicData( );  
     return TAGHANDLE_ERROR_OK;
 }
 
@@ -126,6 +129,10 @@ inline void tagRouter( BarzXMLParser& parser, const char* t, const char** attr, 
 
         break;
     case 'H':
+        break;
+    case 'T':
+        if( !c1 || (c1 == 'O' && c2 == 'K') )
+            SETTAG(TOKEN);
         break;
     }
     if( tagId != TAG_INVALID ) {
@@ -151,32 +158,59 @@ void BarzXMLParser::takeTag( const char* tag, const char** attr, bool open)
     tagRouter(*this,tag,attr,open);
 }
 
-void BarzXMLParser::takeCData( const char* dta, const char* dta_len )
+void BarzXMLParser::setLiteral( BarzelBead& bead, const char* s, size_t s_len, bool isFluff )
+{
+    const BZSpell* spell = universe.getBZSpell();
+    if( spell )  {
+        uint32_t strId = 0xffffffff;
+        
+        bool isUserWord = false;
+        if( s[ s_len ] ) { // non null terminated string 
+            std::string tmp(s,s_len);
+            isUserWord = spell->isUsersWord( strId, tmp.c_str() );
+        } else { // null terminated string
+            isUserWord = spell->isUsersWord( strId, s );
+        }
+        if( isUserWord ) {
+            if( isFluff ) 
+                bead.setAtomicData( BarzerLiteral().setStop(strId) );
+            else
+                bead.setAtomicData( BarzerLiteral(strId) );
+        } else {
+            bead.setAtomicData( BarzerString(s,s_len) );
+        }
+    }
+}
+
+void BarzXMLParser::takeCData( const char* dta, size_t dta_len )
 {
     if( !tagStack.size() || barz.isListEmpty() ) {
         return;
     }
     BarzelBead& bead = barz.getLastBead();
-    BarzerLiteral* ltrl = bead.get<BarzerLiteral>( );
     int curTag = tagStack.back();
     switch( curTag ) {
     case TAG_TOKEN:
-        if( ltrl ) {
-        }
+        setLiteral( bead, dta, dta_len, false );
         break;
     case TAG_FLUFF:
-        if( ltrl ) {
-        }
+        setLiteral( bead, dta, dta_len, true );
         break;
     case TAG_PUNCT:
-        if( ltrl ) {
-        }
+        bead.setAtomicData( BarzerLiteral().setPunct(*dta) );
         break;
     case TAG_NUM:
         {
             BarzerNumber* num = bead.get<BarzerNumber>();
             if( num ) {
+                if( dta[dta_len] ) {
+                    std::string tmp;
+                    tmp.assign( dta, dta_len );
+                    num->set(tmp.c_str());
+                } else 
+                    num->set(dta);
             }
+            bead.setAtomicData( *num );
         }
         break;
     default:
