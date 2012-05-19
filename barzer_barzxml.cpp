@@ -1,6 +1,7 @@
 #include <barzer_barz.h>
 #include <barzer_barzxml.h>
 #include <barzer_universe.h>
+#include <limits>
 
 namespace barzer {
 
@@ -258,12 +259,50 @@ DECL_TAGHANDLE(TIME) {
 DECL_TAGHANDLE(NUM) { 
     if( parser.barz.isListEmpty() || !IS_PARENT_TAG3(BEAD,LO,HI) ) 
         return TAGHANDLE_ERROR_PARENT;
-    
+
+    BarzerNumber num;
+    ALS_BEGIN
+        case 't': /// type 
+            if( v[0] == 'i' )
+                num.setInt();
+            else 
+                num.setReal();
+            break;
+    ALS_END
+
+    BarzerEntityRangeCombo* erc = parser.barz.getLastBead().get<BarzerEntityRangeCombo>();
+    BarzerRange* range = ( erc ?  &(erc->getRange()) : parser.barz.getLastBead().get<BarzerRange>() );
+
+    if( range ) {
+        if( num.isReal() ) {
+            BarzerRange::Real* dr = range->get<BarzerRange::Real>() ;
+            if( !dr ) {
+                dr = range->set<BarzerRange::Real>();
+                if( parser.isCurTag( TAG_LO ) ) {
+                    dr->first = num;
+                } else if( parser.isCurTag( TAG_HI ) ) {
+                    dr->second = num;
+                }
+            }
+        } else if(num.isInt()) {
+            BarzerRange::Integer* dr = range->get<BarzerRange::Integer>() ;
+            if( !dr ) {
+                dr = range->set<BarzerRange::Integer>();
+                if( parser.isCurTag( TAG_LO ) ) {
+                    dr->first = num;
+                } else if( parser.isCurTag( TAG_HI ) ) {
+                    dr->second = num;
+                }
+            }
+        }
+    } else 
+        parser.barz.getLastBead().setAtomicData( num );
     return TAGHANDLE_ERROR_OK;
 }
 DECL_TAGHANDLE(RANGE) { 
     if( parser.barz.isListEmpty() || !IS_PARENT_TAG2(BEAD,ERC) )
         return TAGHANDLE_ERROR_PARENT;
+    parser.barz.getLastBead().setAtomicData( BarzerRange() );
     return TAGHANDLE_ERROR_OK;
 }
 DECL_TAGHANDLE(SRCTOK) { 
@@ -315,6 +354,10 @@ inline void tagRouter( BarzXMLParser& parser, const char* t, const char** attr, 
 
         break;
     case 'H':
+        break;
+    case 'N':
+        if( c1 == 'U' || !c1 ) 
+            SETTAG(NUM);
         break;
     case 'T':
         if( !c1 || (c1 == 'O' && c2 == 'K') )

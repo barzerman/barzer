@@ -462,6 +462,7 @@ struct BarzerRange {
 	const Data& getData() const { return dta; }
     
     template <typename T>  T* get() { return boost::get<T>(&dta); }
+    template <typename T>  T* set() { return (dta = T(), boost::get<T>(&dta)); }
 
 	Data& getData() { return dta; }
 	uint32_t getType() const { return dta.which(); }

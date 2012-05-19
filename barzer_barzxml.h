@@ -17,6 +17,10 @@ struct BarzXMLParser {
     
     bool isCurTag( int tid ) const
         { return ( tagStack.back() == tid ); }
+    bool isParentTag( int tid ) const
+        { 
+            return ( tagStack.size() > 1 && (*(tagStack.rbegin()+1)) == tid );
+        }
 
     BarzXMLParser( Barz& b, const StoredUniverse& u ) :
         barz(b), universe(u) {}
