@@ -126,12 +126,15 @@ struct BarzerDate {
 	/// must be called first thing in the program
 	static void initToday();
 	/// will try to set year to current year
-	void setDay(const BarzerNumber& d) {
-	    day = (uint8_t) d.getInt();
-	}
-    void setMonth(const BarzerNumber& d) {
-        month = (uint8_t) d.getInt();
-    }
+	void setDay(const BarzerNumber& d) 
+        { day = (uint8_t) d.getInt(); }
+	void setDay( int day ) { day = (uint8_t)day; }
+
+    void setMonth(const BarzerNumber& d) { month = (uint8_t) d.getInt(); }
+    void setMonth(int m) { month = (uint8_t) m; }
+
+    void setYear(const BarzerNumber& y) { year = (int16_t)y.getInt(); }
+    void setYear(int y) { year = (int16_t)y; }
 
 	void setDayMonth(const BarzerNumber& d, const BarzerNumber& m) ;
 	void setDayMonthYear(const BarzerNumber& d, const BarzerNumber& m, const BarzerNumber& y ) {
@@ -457,6 +460,9 @@ struct BarzerRange {
 
 	void setData(const Data &d) { dta = d; }
 	const Data& getData() const { return dta; }
+    
+    template <typename T>  T* get() { return boost::get<T>(&dta); }
+
 	Data& getData() { return dta; }
 	uint32_t getType() const { return dta.which(); }
 

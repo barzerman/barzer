@@ -86,9 +86,9 @@ DECL_TAGHANDLE(ENTITY) {
     BarzerEntityRangeCombo* erc = parser.barz.getLastBead().get<BarzerEntityRangeCombo>();
     if( erc ) {
         erc->setEntity( ent );
-    } else if( parser.tagStack.back() == TAG_BEAD ) {
+    } else if( parser.isCurTag(TAG_BEAD)  ) {
         parser.barz.getLastBead().setAtomicData( ent );
-    } else if( parser.tagStack.back() == TAG_ENTLIST ) {
+    } else if( parser.isCurTag(TAG_ENTLIST) ) {
         BarzerEntityList* entList = parser.barz.getLastBead().get<BarzerEntityList>();
         if( entList ) 
             entList->addEntity( ent );
@@ -126,6 +126,133 @@ DECL_TAGHANDLE(PUNCT) {
 
     parser.barz.getLastBead().setAtomicData( BarzerLiteral() );
 
+    return TAGHANDLE_ERROR_OK;
+}
+
+DECL_TAGHANDLE(DATE) { 
+    if( parser.barz.isListEmpty() || !IS_PARENT_TAG3(BEAD,LO,HI) ) 
+        return TAGHANDLE_ERROR_PARENT;
+     
+    BarzerDate date;
+    ALS_BEGIN
+        case 'y': // y - year
+            date.setYear( atoi(v) );
+            break;
+        case 'm': // m[on] - month
+            date.setMonth( atoi(v) );
+            break;
+        case 'd': // d - day
+            date.setDay( atoi(v) );
+            break;
+    ALS_END
+
+    BarzerEntityRangeCombo* erc = parser.barz.getLastBead().get<BarzerEntityRangeCombo>();
+    BarzerRange* range = ( erc ?  &(erc->getRange()) : parser.barz.getLastBead().get<BarzerRange>() );
+
+    if( range ) {
+        BarzerRange::Date* dr = range->get<BarzerRange::Date>() ;
+        if( !dr ) {
+            range->setData( BarzerRange::Date() );
+            dr = range->get<BarzerRange::Date>() ;
+        }
+        if( parser.isCurTag(TAG_LO) ) {
+            dr->first = date;
+        } else if( parser.isCurTag(TAG_HI) ) {
+            dr->second = date;
+        }
+    } else { // standalone date
+        parser.barz.getLastBead().setAtomicData( date );
+    }
+    return TAGHANDLE_ERROR_OK;
+}
+DECL_TAGHANDLE(TIMESTAMP) {
+    if( parser.barz.isListEmpty() || !IS_PARENT_TAG3(BEAD,LO,HI) ) 
+        return TAGHANDLE_ERROR_PARENT;
+    
+     
+    BarzerDateTime tstamp;
+    int hh=0, mm=0, ss=0;
+    ALS_BEGIN
+        case 'y': // y - year
+            tstamp.date.setYear( atoi(v) );
+            break;
+        case 'm': // m - month or minutes
+            if( n[1] == 'o' )  // mo
+                tstamp.date.setMonth( atoi(v) );
+            else if ( n[1] == 'i' ) // mi
+                mm = atoi(v);
+            break;
+        case 'd': // d - day
+            tstamp.date.setDay( atoi(v) );
+            break;
+        case 'h': // d - day
+            hh = atoi(v);
+            break;
+        case 's': // d - day
+            ss = atoi(v);
+            break;
+    ALS_END
+
+    if( hh||mm||ss ) 
+        tstamp.timeOfDay.setHHMMSS( hh, mm, ss );
+
+    BarzerEntityRangeCombo* erc = parser.barz.getLastBead().get<BarzerEntityRangeCombo>();
+    BarzerRange* range = ( erc ?  &(erc->getRange()) : parser.barz.getLastBead().get<BarzerRange>() );
+
+    if( range ) {
+        BarzerRange::DateTime* dr = range->get<BarzerRange::DateTime>() ;
+        if( !dr ) {
+            range->setData( BarzerRange::DateTime() );
+            dr = range->get<BarzerRange::DateTime>() ;
+        }
+        if( parser.isCurTag(TAG_LO) ) {
+            dr->first = tstamp;
+        } else if( parser.isCurTag(TAG_HI) ) {
+            dr->second = tstamp;
+        }
+    } else { // standalone date
+        parser.barz.getLastBead().setAtomicData( tstamp );
+    }
+    return TAGHANDLE_ERROR_OK;
+}
+DECL_TAGHANDLE(TIME) { 
+    if( parser.barz.isListEmpty() || !IS_PARENT_TAG3(BEAD,LO,HI) ) 
+        return TAGHANDLE_ERROR_PARENT;
+    
+    int hh=0, mm=0, ss=0;
+    ALS_BEGIN
+        case 'm': // m - month or minutes
+            mm = atoi(v);
+            break;
+        case 'h': // d - day
+            hh = atoi(v);
+            break;
+        case 's': // d - day
+            ss = atoi(v);
+            break;
+    ALS_END
+
+    BarzerTimeOfDay theTime;
+    if( hh||mm||ss ) 
+        theTime.setHHMMSS( hh, mm, ss );
+
+    BarzerEntityRangeCombo* erc = parser.barz.getLastBead().get<BarzerEntityRangeCombo>();
+    BarzerRange* range = ( erc ?  &(erc->getRange()) : parser.barz.getLastBead().get<BarzerRange>() );
+
+    if( range ) {
+        BarzerRange::TimeOfDay* dr = range->get<BarzerRange::TimeOfDay>() ;
+        if( !dr ) {
+            range->setData( BarzerRange::TimeOfDay() );
+            dr = range->get<BarzerRange::TimeOfDay>() ;
+        }
+        if( parser.isCurTag(TAG_LO) ) {
+            dr->first = theTime;
+        } else if( parser.isCurTag(TAG_HI) ) {
+            dr->second = theTime;
+        }
+    } else { // standalone time
+        parser.barz.getLastBead().setAtomicData( theTime );
+    }
     return TAGHANDLE_ERROR_OK;
 }
 DECL_TAGHANDLE(NUM) { 
@@ -177,6 +304,11 @@ inline void tagRouter( BarzXMLParser& parser, const char* t, const char** attr, 
         else if( c1== 'A' && c2 =='R') // BAR ...
             SETTAG(BARZ);
         break;
+    case 'D':
+        if( c1 == 'A' ) { // DA[te]
+            SETTAG(DATE);
+        }
+        break;
     case 'E':
         if( c1== 'N' && c2 == 'T' )      // ENT
             SETTAG(BEAD);
@@ -187,6 +319,12 @@ inline void tagRouter( BarzXMLParser& parser, const char* t, const char** attr, 
     case 'T':
         if( !c1 || (c1 == 'O' && c2 == 'K') )
             SETTAG(TOKEN);
+        if( c1 == 'I' && c2 =='M' && c3 == 'E' ) {
+            if( t[4] == 'S' ) 
+                SETTAG(TIMESTAMP);
+            else 
+                SETTAG(TIME);
+        }
         break;
     }
     if( tagId != TAG_INVALID ) {
@@ -275,12 +413,6 @@ void BarzXMLParser::takeCData( const char* dta, size_t dta_len )
             }
             bead.setAtomicData( *num );
         }
-        break;
-    case TAG_DATE:
-        break;
-    case TAG_TIMESTAMP:
-        break;
-    case TAG_TIME:
         break;
     default:
         // error can be reported here
