@@ -13,6 +13,11 @@ enum {
     TAG_TOKEN, // token ... attribute (opt) stem
     TAG_FLUFF, // 
     TAG_ERC,   
+    // date related beads
+    TAG_DATE,   
+    TAG_TIMESTAMP,   
+    TAG_TIME,   
+
     TAG_LO,   // range low (parent must be range
     TAG_HI,   // range high (parent must be range
     TAG_PUNCT, // parent entlist, bead, erc 
@@ -28,16 +33,28 @@ enum {
 
 
 /// OPEN handles 
-#define DECL_TAGHANDLE(X) inline int xmlth_##X( BarzXMLParser& parser, int tagId, const char* tag, const char**attr)
+#define DECL_TAGHANDLE(X) inline int xmlth_##X( BarzXMLParser& parser, int tagId, const char* tag, const char**attr, size_t attr_sz)
 
 #define IS_PARENT_TAG(X) ( parser.tagStack.size() && (parser.tagStack.back()== TAG_##X) )
 #define IS_PARENT_TAG2(X,Y) ( parser.tagStack.size() && (parser.tagStack.back()== TAG_##X || parser.tagStack.back()== TAG_##Y) )
 #define IS_PARENT_TAG3(X,Y,Z) ( parser.tagStack.size() && (parser.tagStack.back()== TAG_##X || \
     parser.tagStack.back()== TAG_##Y || parser.tagStack.back()== TAG_##Z) )
 
+#define ALS_BEGIN    const char** attr_end = attr+ attr_sz;\
+	for( const char** a=attr; a< attr_end; a+=2 ) {\
+        const char* n = 0[ a ];\
+        const char* v = 1[ a ]; \
+        switch(n[1]) {
+
+#define ALS_END }}
+
+#define UNIVERSE parser.universe
+#define GLOBALPOOLS parser.universe.getGlobalPools()
+
 enum {
     TAGHANDLE_ERROR_OK,
-    TAGHANDLE_ERROR_PARENT // wrong parent 
+    TAGHANDLE_ERROR_PARENT, // wrong parent 
+    TAGHANDLE_ERROR_ENTITY, // misplaced entity 
 };
 
 DECL_TAGHANDLE(BARZ) { 
@@ -46,55 +63,84 @@ DECL_TAGHANDLE(BARZ) {
 DECL_TAGHANDLE(BEAD) { 
     if( !IS_PARENT_TAG(BARZ) ) 
         return TAGHANDLE_ERROR_PARENT;
+    parser.barz.appendBlankBead();
 
     return TAGHANDLE_ERROR_OK;
 }
 
 DECL_TAGHANDLE(ENTITY) { 
-    if( !IS_PARENT_TAG3(ENTLIST,BEAD,ERC) ) 
+    if( parser.barz.isListEmpty() || !IS_PARENT_TAG3(ENTLIST,BEAD,ERC) ) 
         return TAGHANDLE_ERROR_PARENT;
 
+    BarzerEntity ent; 
+    ALS_BEGIN
+        case 's': ent.setSubclass(atoi(v)); break;
+        case 'c': ent.setClass(atoi(v));    break;
+        case 'i':{
+            uint32_t strId = GLOBALPOOLS.internalString_getId(v);
+            if( strId != 0xffffffff ) 
+                ent.setId(strId);
+            }break;
+    ALS_END
+
+    BarzerEntityRangeCombo* erc = parser.barz.getLastBead().get<BarzerEntityRangeCombo>();
+    if( erc ) {
+        erc->setEntity( ent );
+    } else if( parser.tagStack.back() == TAG_BEAD ) {
+        parser.barz.getLastBead().setAtomicData( ent );
+    } else if( parser.tagStack.back() == TAG_ENTLIST ) {
+        BarzerEntityList* entList = parser.barz.getLastBead().get<BarzerEntityList>();
+        if( entList ) 
+            entList->addEntity( ent );
+        else 
+            return TAGHANDLE_ERROR_ENTITY;
+    }
     return TAGHANDLE_ERROR_OK;
 }
 DECL_TAGHANDLE(ERC) { 
-    if( !IS_PARENT_TAG(BEAD) ) 
+    if( parser.barz.isListEmpty() || !IS_PARENT_TAG(BEAD) ) 
         return TAGHANDLE_ERROR_PARENT;
+
+    parser.barz.getLastBead().setAtomicData( BarzerEntityRangeCombo() );
     return TAGHANDLE_ERROR_OK;
 }
 DECL_TAGHANDLE(FLUFF) { 
-    if( !IS_PARENT_TAG(BEAD) ) 
+    if( parser.barz.isListEmpty() || !IS_PARENT_TAG(BEAD) ) 
         return TAGHANDLE_ERROR_PARENT;
     return TAGHANDLE_ERROR_OK;
 }
 DECL_TAGHANDLE(HI) { 
-    if( !IS_PARENT_TAG(BEAD) ) 
+    if( parser.barz.isListEmpty() || !IS_PARENT_TAG(BEAD) ) 
         return TAGHANDLE_ERROR_PARENT;
     
     return TAGHANDLE_ERROR_OK;
 }
 DECL_TAGHANDLE(LO) { 
-    if( !IS_PARENT_TAG(RANGE) ) 
+    if( parser.barz.isListEmpty() || !IS_PARENT_TAG(RANGE) ) 
         return TAGHANDLE_ERROR_PARENT;
     return TAGHANDLE_ERROR_OK;
 }
 DECL_TAGHANDLE(PUNCT) { 
-    if( !IS_PARENT_TAG(BEAD) ) 
+    if( parser.barz.isListEmpty() || !IS_PARENT_TAG(BEAD) ) 
         return TAGHANDLE_ERROR_PARENT;
+
+    parser.barz.getLastBead().setAtomicData( BarzerLiteral() );
+
     return TAGHANDLE_ERROR_OK;
 }
 DECL_TAGHANDLE(NUM) { 
-    if( !IS_PARENT_TAG3(BEAD,LO,HI) ) 
+    if( parser.barz.isListEmpty() || !IS_PARENT_TAG3(BEAD,LO,HI) ) 
         return TAGHANDLE_ERROR_PARENT;
     
     return TAGHANDLE_ERROR_OK;
 }
 DECL_TAGHANDLE(RANGE) { 
-    if( !IS_PARENT_TAG2(BEAD,ERC) )
+    if( parser.barz.isListEmpty() || !IS_PARENT_TAG2(BEAD,ERC) )
         return TAGHANDLE_ERROR_PARENT;
     return TAGHANDLE_ERROR_OK;
 }
 DECL_TAGHANDLE(SRCTOK) { 
-    if( !IS_PARENT_TAG(BEAD) )
+    if( parser.barz.isListEmpty() || !IS_PARENT_TAG(BEAD) )
         return TAGHANDLE_ERROR_PARENT;
     return TAGHANDLE_ERROR_OK;
 }
@@ -102,18 +148,26 @@ DECL_TAGHANDLE(SRCTOK) {
 DECL_TAGHANDLE(TOPICS) { 
     return TAGHANDLE_ERROR_OK;
 }
+
 DECL_TAGHANDLE(TOKEN) { 
-    BarzelBead& b = parser.barz.appendBlankBead();
-    uint32_t strId = 0xffffffff;
-    // b.setAtomicData( );  
+    uint32_t stemStrId = 0xffffffff;
+     
+    ALS_BEGIN
+        case 's': {
+            uint32_t strId = GLOBALPOOLS.string_getId(v);
+            if( strId != 0xffffffff ) 
+                parser.barz.getLastBead().setStemStringId( strId );
+            }break; 
+    ALS_END // ettr loop switch
+
     return TAGHANDLE_ERROR_OK;
 }
 
 #define SETTAG(X) (handler=((tagId=TAG_##X),xmlth_##X))
-inline void tagRouter( BarzXMLParser& parser, const char* t, const char** attr, bool open)
+inline void tagRouter( BarzXMLParser& parser, const char* t, const char** attr, size_t attr_sz, bool open)
 {
     char c0= toupper(t[0]),c1=(c0?toupper(t[1]):0),c2=(c1?toupper(t[2]):0),c3=(c2? toupper(t[3]):0);
-    typedef int (*TAGHANDLE)( BarzXMLParser& , int , const char* , const char** );
+    typedef int (*TAGHANDLE)( BarzXMLParser& , int , const char* , const char**, size_t );
     TAGHANDLE handler = 0;
     int       tagId   =  TAG_INVALID;
     switch( c0 ) {
@@ -137,7 +191,7 @@ inline void tagRouter( BarzXMLParser& parser, const char* t, const char** attr, 
     }
     if( tagId != TAG_INVALID ) {
         if( handler ) {
-            handler(parser,tagId,t,attr);
+            handler(parser,tagId,t,attr,attr_sz);
         }
         if( open ) {
             parser.tagStack.push_back( tagId );
@@ -153,9 +207,9 @@ inline void tagRouter( BarzXMLParser& parser, const char* t, const char** attr, 
 
 } // end of anonymous namespace 
 
-void BarzXMLParser::takeTag( const char* tag, const char** attr, bool open)
+void BarzXMLParser::takeTag( const char* tag, const char** attr, size_t attr_sz, bool open)
 {
-    tagRouter(*this,tag,attr,open);
+    tagRouter(*this,tag,attr,attr_sz,open);
 }
 
 void BarzXMLParser::setLiteral( BarzelBead& bead, const char* s, size_t s_len, bool isFluff )
@@ -165,6 +219,8 @@ void BarzXMLParser::setLiteral( BarzelBead& bead, const char* s, size_t s_len, b
         uint32_t strId = 0xffffffff;
         
         bool isUserWord = false;
+        BarzerLiteral* ltrl = bead.getLiteral();
+
         if( s[ s_len ] ) { // non null terminated string 
             std::string tmp(s,s_len);
             isUserWord = spell->isUsersWord( strId, tmp.c_str() );
@@ -172,10 +228,17 @@ void BarzXMLParser::setLiteral( BarzelBead& bead, const char* s, size_t s_len, b
             isUserWord = spell->isUsersWord( strId, s );
         }
         if( isUserWord ) {
-            if( isFluff ) 
-                bead.setAtomicData( BarzerLiteral().setStop(strId) );
-            else
-                bead.setAtomicData( BarzerLiteral(strId) );
+            if( isFluff ) {
+                if( ltrl ) 
+                    ltrl->setStop(strId);
+                else
+                    bead.setAtomicData( BarzerLiteral().setStop(strId) );
+            } else {
+                if( ltrl )
+                    ltrl->setId( strId );
+                else 
+                    bead.setAtomicData( BarzerLiteral(strId) );
+            }
         } else {
             bead.setAtomicData( BarzerString(s,s_len) );
         }
@@ -212,6 +275,12 @@ void BarzXMLParser::takeCData( const char* dta, size_t dta_len )
             }
             bead.setAtomicData( *num );
         }
+        break;
+    case TAG_DATE:
+        break;
+    case TAG_TIMESTAMP:
+        break;
+    case TAG_TIME:
         break;
     default:
         // error can be reported here
