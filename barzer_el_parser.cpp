@@ -39,7 +39,7 @@ uint32_t BELParser::stemAndInternTmpText( const char* s, int len )
 	std::string scopy(s, len );
 	if( bzSpell )  {
 		std::string stem;
-        int16_t lang = LANG_ENGLISH;
+        int lang = LANG_UNKNOWN;
 		if( bzSpell->stem(stem, scopy.c_str(),lang) ) {
 			internString( stem.c_str(), false, scopy.c_str () );
 		}

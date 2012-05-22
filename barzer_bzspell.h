@@ -140,11 +140,12 @@ public:
 	size_t init( const StoredUniverse* secondaryUniverse =0 );
 
 	/// when fails 0xffffffff is returned 
-	uint32_t getSpellCorrection( const char* s, bool doStemCorrect= true ) const;
-	uint32_t getStemCorrection( std::string& , const char*) const;
+	uint32_t getSpellCorrection( const char* s, bool doStemCorrect, int lang=LANG_UNKNOWN ) const;
+	uint32_t getStemCorrection( std::string& , const char*, int lang=LANG_UNKNOWN) const;
     // when bool doStemCorrect is false it will NOT correct to a string whose token is 
     // pure stem
-	uint32_t get2ByteLangStemCorrection( int lang, const char* str, bool doStemCorrect ) const;
+    // extNorm - normalized string can be actually passed in
+	uint32_t get2ByteLangStemCorrection( int lang, const char* str, bool doStemCorrect, const char* extNorm = 0 ) const;
     uint32_t purePermuteCorrect(const char* s, size_t s_len )  const;
 
 	uint32_t getAggressiveStem( std::string& , const char*) const;
@@ -162,7 +163,7 @@ public:
 	/// stems (currently only de-pluralizes) word . returns true if stemming was 
 	/// successful
 	bool     stem( std::string& out, const char* word ) const;
-	bool     stem( std::string& out, const char* word, int16_t& lang ) const;
+	bool     stem( std::string& out, const char* word, int& lang ) const;
 
 	size_t loadExtra( const char* fileName );
 	std::ostream& printStats( std::ostream& fp ) const;

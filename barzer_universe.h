@@ -329,8 +329,8 @@ public:
 	/// it attempts to do first pass spelling correction (that is correction to a word known to the user)
 	/// uses bzSpell
 	// returns stringId of corrected word or 0xffffffff
-	uint32_t spellCorrect( const char* word ) const
-		{ return ( bzSpell ? bzSpell->getSpellCorrection( word ) : 0 ); }
+	uint32_t spellCorrect( const char* word, bool doStemCorrect = true ) const
+		{ return ( bzSpell ? bzSpell->getSpellCorrection( word, doStemCorrect ) : 0 ); }
 	//  performs trivial practical stemming
 	// returns stringId of corrected word or 0xffffffff
 	uint32_t stem( std::string& out, const char* word) const
