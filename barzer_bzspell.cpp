@@ -510,11 +510,13 @@ int BZSpell::isUsersWord( uint32_t& strId, const char* word ) const
 }
 
 /// when fails 0xffffffff is returned
-uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect ) const
+uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int lang ) const
 {
 	/// for ascii corrector
     size_t s_len = strlen(str);
-    int lang = Lang::getLang( str, s_len );
+    if( lang == LANG_UNKNOWN )
+        lang = Lang::getLang( str, s_len );
+
     size_t str_len = strlen( str );
 	if( lang == LANG_ENGLISH) {
 
@@ -538,7 +540,30 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect ) cons
 		}
 	} else if( Lang::isTwoByteLang(lang)) { // 2 byte char language spell correct
         /// includes russian
+        std::string stemStr;
+        
 		if( str_len >= 2*d_minWordLengthToCorrect ) {
+            if( doStemCorrect ) {
+                /// first we try to do trivial (close) stem correction
+                if( stem( stemStr, str, lang ) ) {
+                    uint32_t stemStrId = d_universe.getGlobalPools().string_getId(stemStr.c_str());
+                    if( stemStrId == 0xffffffff ) {
+                        doStemCorrect = false;
+                    } else {
+                        //std::cerr << "SHIT " << stemStr << ":" << stemStrId << std::endl;
+                        /// if stem is less than 3 chars shorter than the original we are going to try 
+                        /// stem correction before any other types of correction
+                        if( str_len > stemStr.length() && (str_len-stemStr.length()<3*2) ) {
+                            uint32_t correctedId = get2ByteLangStemCorrection( lang, str, doStemCorrect, stemStr.c_str() );
+                            if( correctedId != 0xffffffff )
+                                return correctedId;
+                            else 
+                                doStemCorrect= false;
+                        }
+                    }
+                }
+            }
+
 			CorrectCallback cb( *this, str_len );
 			cb.tryUpdateBestMatch( str );
 
@@ -553,7 +578,7 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect ) cons
 			uint32_t retStrId =  cb.getBestStrId();
             if( retStrId != 0xffffffff && (doStemCorrect|| !isPureStem(retStrId)) )
                 return retStrId;
-            else
+            else if( doStemCorrect )
                 return get2ByteLangStemCorrection( lang, str, doStemCorrect );
 		}
     }
@@ -577,12 +602,15 @@ uint32_t BZSpell::purePermuteCorrect(const char* s, size_t s_len )  const
     return retStrId;
 }
 
-uint32_t BZSpell::get2ByteLangStemCorrection( int lang, const char* str, bool doStemCorect ) const
+uint32_t BZSpell::get2ByteLangStemCorrection( int lang, const char* str, bool doStemCorect, const char* extNorm ) const
 {
     size_t s_len = 0;
     if(lang == LANG_RUSSIAN) {
         std::string norm;
-        if( Russian::normalize( norm,str,&s_len) ) { // successfully normalized
+        if( extNorm ) 
+            norm.assign(extNorm);
+
+        if( norm.length() || Russian::normalize( norm,str,&s_len) ) { // successfully normalized
             uint32_t strId = 0xffffffff;
             if( isUsersWord(strId,norm.c_str()) )
                 return strId;
@@ -634,10 +662,11 @@ uint32_t BZSpell::get2ByteLangStemCorrection( int lang, const char* str, bool do
     return 0xffffffff;
 }
 
-bool BZSpell::stem( std::string& out, const char* s, int16_t& lang ) const
+bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
 {
     size_t s_len = strlen( s );
-    lang = Lang::getLang( s, s_len );
+    if( lang == LANG_UNKNOWN )
+        lang = Lang::getLang( s, s_len );
 	if( lang == LANG_ENGLISH) {
 		size_t s_len = strlen(s);
 		if( s_len > d_minWordLengthToCorrect ) {
@@ -658,7 +687,7 @@ bool BZSpell::stem( std::string& out, const char* s, int16_t& lang ) const
 }
 bool BZSpell::stem( std::string& out, const char* s ) const
 {
-    int16_t lang = LANG_ENGLISH;
+    int lang = LANG_UNKNOWN;
     return stem( out, s, lang );
 }
 
@@ -675,12 +704,15 @@ bool BZSpell::isPureStem( uint32_t strId ) const
 }
 
 // this implements a simple single suffix stem (not a complete linguistic one)
-uint32_t BZSpell::getStemCorrection( std::string& out, const char* s ) const
+uint32_t BZSpell::getStemCorrection( std::string& out, const char* s, int lang ) const
 {
     size_t s_len = strlen( s );
-    int lang = Lang::getLang( s, s_len );
+
+    if( lang == LANG_UNKNOWN ) 
+        lang = Lang::getLang( s, s_len );
+
 	if( lang == LANG_ENGLISH) {
-		if( stem( out, s) ) {
+		if( stem( out, s, lang) ) {
 			uint32_t strId = d_universe.getGlobalPools().string_getId( out.c_str() );
 			if( strId == 0xffffffff ) {
 				if( d_secondarySpellchecker )

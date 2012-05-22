@@ -658,7 +658,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 	}
 
 	if( !isUsersWord ) {
-		strId = bzSpell->getSpellCorrection( theString );
+		strId = bzSpell->getSpellCorrection( theString, true, lang );
 		if( strId != 0xffffffff ) {
 			 correctedStr = gp.string_resolve( strId ) ;
 		} else { // trying stemming
@@ -668,7 +668,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 				correctedStr = gp.string_resolve( strId ) ;
 			} else if( (stemmedStr.length() > MIN_SPELL_CORRECT_LEN) && strlen(theString) != stemmedStr.length() ) {
                 // spelling correction failed but the string got stemmed
-                strId = bzSpell->getSpellCorrection( stemmedStr.c_str() );
+                strId = bzSpell->getSpellCorrection( stemmedStr.c_str(), true, lang );
                 if( strId != 0xffffffff )
                     correctedStr = gp.string_resolve( strId ) ;
             }
@@ -714,7 +714,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
                     if( i < MIN_SPELL_CORRECT_LEN*step )
                         continue;
                     else
-                        left = bzSpell->getSpellCorrection (dirty,false) ;
+                        left = bzSpell->getSpellCorrection (dirty,false,lang);
                 } else
                     left = tmpTok->getStringId() ;
 
@@ -730,12 +730,11 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
                     if( t_len - step- i < MIN_SPELL_CORRECT_LEN*step )
                         continue;
                     else {
-                        // right = bzSpell->getSpellCorrection (rightDirty,false) ;
                         if( i< 4*step || ((t_len - step -i) < 4*step) ) {
                             std::string stemmedStr;
                             right = bzSpell->getStemCorrection( stemmedStr, rightDirty );
                         } else 
-                            right = bzSpell->getSpellCorrection (rightDirty,false) ;
+                            right = bzSpell->getSpellCorrection (rightDirty,false,lang) ;
                     }
                 } else
                     right = tmpTok->getStringId() ;
