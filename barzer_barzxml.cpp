@@ -153,7 +153,7 @@ inline void tagRouter( BarzXMLParser& parser, const char* t, const char** attr, 
 
 } // end of anonymous namespace 
 
-void BarzXMLParser::takeTag( const char* tag, const char** attr, bool open)
+void BarzXMLParser::takeTag( const char* tag, const char** attr, size_t attr_sz, bool open)
 {
     tagRouter(*this,tag,attr,open);
 }

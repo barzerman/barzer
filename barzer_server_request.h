@@ -78,11 +78,25 @@ private:
 	std::ostream &os;
     std::string d_query; // for query block 
     bool d_aggressiveStem;
-    int  d_tagCount; // number of tags parsed  
+    size_t  d_tagCount; // number of tags parsed  
     // when the tag barz is encountered the mode is set to on
-    bool d_barzmlInput; /// the mode is xml input
+    bool d_xmlIsInvalid; /// when this is true no tags/cdata will be processed
     BarzXMLParser* d_barzXMLParser;
 public:
+    bool isXmlInvalid() const { return d_xmlIsInvalid; }
+    void setXmlInvalid() { d_xmlIsInvalid=true; }
+
+    size_t getTagCount() const { return d_tagCount; }
+    size_t incrementTagCount() { return ( ++d_tagCount); }
+    const BarzXMLParser* getBarzXMLParserPtr() const { return d_barzXMLParser; }
+          BarzXMLParser* getBarzXMLParserPtr()       { return d_barzXMLParser; }
+
+    void setBarzXMLParserPtr( BarzXMLParser* p )
+        { d_barzXMLParser = p; }
+
+    BarzXMLParser& getBarzXMLParser() { return *d_barzXMLParser; }
+    const BarzXMLParser& getBarzXMLParser() const { return *d_barzXMLParser; }
+
 	Barz& getBarz() { return barz; }
 	const Barz& getBarz() const { return barz; }
 	XML_Parser parser;

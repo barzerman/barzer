@@ -16,16 +16,65 @@
 #include <barzer_barzxml.h>
 
 extern "C" {
+
+namespace {
+
+inline const char* getAttr( const char* n, const char** attr, size_t attr_sz )
+{
+    const char** attr_end = attr + attr_sz;
+    for( const char**s = attr; s< attr_end; s+=2 ) {
+        if( n[0] == s[0][0] && !strcmp(n,s[0]) ) {
+            return s[1];
+        }
+    }
+    return 0;
+}
+
+}
+
+// #define STREQ4(x,s) ( 0[x] == 0[s] && 1[x] == 1[s] && 2[x] == 2[s] && 3[x] == 3[s] && !4[x] && !4[s])
+#define AY_STREQ4(x,s) ( *((uint32_t*)(x)) == *(uint32_t*)(s)) 
 // cast to XML_StartElementHandler
 static void startElement(void* ud, const XML_Char *n, const XML_Char **a)
 {
+	barzer::BarzerRequestParser *rp = (barzer::BarzerRequestParser *)ud;
+    if( rp->isXmlInvalid() )
+        return;
+
 	const char* name = (const char*)n;
 	const char** atts = (const char**)a;
-	barzer::BarzerRequestParser *rp = (barzer::BarzerRequestParser *)ud;
 	int attrCount = XML_GetSpecifiedAttributeCount( rp->parser );
 	if( attrCount <=0 || (attrCount & 1) ) attrCount = 0; // odd number of attributes is invalid
 	rp->addTag(name);
     
+    uint32_t attr_sz = static_cast<size_t>(attrCount);
+
+    if( rp->getBarzXMLParserPtr() ) {
+        rp->getBarzXMLParser().takeTag( name, atts , attr_sz, true );
+        return;
+    } else if( !rp->getTagCount() && AY_STREQ4(name,"barz") ) { // this is an opening barz tag
+        const char* universeIdStr= getAttr( "u", atts, attr_sz );
+        uint32_t universeId = 0;
+        const GLobalPools& gpools =rp->getGlobalPools();
+
+        const StoredUniverse* u = gpools.getUniverse(id);    
+        if( universeIdStr ) {
+            uint32_t universeId = atoi( universeIdStr );
+            u = gpools.getUniverse(universeId);
+        } 
+        if( !u ) {
+            rp->setXmlIsInvalid();
+            if( universeIdStr ) 
+                parser.stream() << "BarzXML Error: INVALID universe id: " << universeIdStr << std::endl;
+            else 
+                parser.stream() << "BarzXML Error: Must supply universe in u attribute" << std::endl;
+        } else { // valid universe extracted 
+            rp->setBarzXMLParserPtr( new BarzXMLParser( barz, *u ) );
+        }
+
+        return;
+    }
+
     if( !rp->getUniverse() ) {
         if( 
             (name[0] == 'q' &&(!strcmp(name,"query") || !strcmp(name,"qblock"))) ||
@@ -45,6 +94,7 @@ static void startElement(void* ud, const XML_Char *n, const XML_Char **a)
                     rp->setAttr(attrName, attrVal );
                 }
             }
+        } else {
         }
     } else {
     }
@@ -56,16 +106,26 @@ static void startElement(void* ud, const XML_Char *n, const XML_Char **a)
 // cast to XML_EndElementHandler
 static void endElement(void *ud, const XML_Char *n)
 {
+    barzer::BarzerRequestParser *rp = (barzer::BarzerRequestParser *)ud;
+    if( rp->isXmlInvalid() )
+        return;
 	const char *name = (const char*) n;
-	barzer::BarzerRequestParser *rp = (barzer::BarzerRequestParser *)ud;
-	rp->process(name);
+    if( d_barzXMLParser ) { // barzXML input
+        d_barzXMLParser->takeTag( name, 0, 0, false );
+        return;
+    } else { // standard input
+        rp->process(name);
+    }
 }
 
 // cast to XML_CharacterDataHandler
 static void charDataHandle( void * ud, const XML_Char *str, int len)
 {
-	//const char* s = (const char*)str;
 	barzer::BarzerRequestParser *rp = (barzer::BarzerRequestParser *)ud;
+    if( rp->isXmlInvalid() )
+        return;
+
+	//const char* s = (const char*)str;
 	std::string s((char*) str, len);
 	rp->setBody(s);
 }
@@ -81,7 +141,7 @@ BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s, uint3
     os(s),
     d_aggressiveStem(false),
     d_tagCount(0),
-    d_barzmlInput(false),
+    d_xmlIsInvalid(false),
     d_barzXMLParser(0)
 {
     parser = XML_ParserCreate(NULL);

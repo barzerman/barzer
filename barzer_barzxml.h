@@ -12,7 +12,7 @@ struct BarzXMLParser {
 
     const StoredUniverse& universe;
     
-    void takeTag( const char* tag, const char** attr, bool open=true );
+    void takeTag( const char* tag, const char** attr, size_t attr_sz, bool open=true );
     void takeCData( const char* dta, size_t dta_len );
 
     BarzXMLParser( Barz& b, const StoredUniverse& u ) :
