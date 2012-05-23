@@ -237,19 +237,43 @@ public:
 	}
 	bool operator()(const BarzerDate &data) {
 		//printTo(os << "<date>", data) << "</date>";
-		tag_raii td(os,"date");
+		// tag_raii td(os,"date");
+        os << boost::format("<date y=\"%1%\" mon=\"%2%\" d=\"%3%\">") 
+            % (int)data.getYear() 
+            % (int)data.getMonth() 
+            % (int)data.getDay() ;
 		printTo(os,data);
+        os << "</date>";
 		return true;
 	}
 	bool operator()(const BarzerTimeOfDay &data) {
 
-		tag_raii td(os, "time");
+        os << boost::format("<time h=\"%1%\" min=\"%2%\" s=\"%3%\">") 
+            % (int)data.getHH() 
+            % (int)data.getMM() 
+            % (int)data.getSS() ;
 		printTo(os, data);
+        os << "</time>";
 		return true;
 	}
 	bool operator()(const BarzerDateTime &data) {
-		tag_raii td(os, "timestamp");
+		// tag_raii td(os, "timestamp");
+        os << "<timestamp ";
+        if( data.date.isValid() ) {
+            os << boost::format("y=\"%1%\" mon=\"%2%\" d=\"%3%\" ") 
+            % (int)data.date.getYear() 
+            % (int)data.date.getMonth() 
+            % (int)data.date.getDay() ;
+        }
+        if( data.timeOfDay.isValid() ) {
+            os << boost::format("h=\"%1%\" min=\"%2%\" s=\"%3%\"") 
+                % data.timeOfDay.getHH() 
+                % data.timeOfDay.getMM() 
+                % data.timeOfDay.getSS() ;
+        }
+        os << ">";
 		printTo(os, data);
+        os << "</timestamp>";
 		return true;
 	}
 

@@ -210,9 +210,9 @@ public:
 
 	template <typename T> void setAtomicData( const T& t ) { dta = BarzelBeadAtomic(t); }
 	template <typename T> void setData( const T& t ) { dta = t; }
-	void setStopLiteral() { 
-		dta= BarzelBeadAtomic().setStopLiteral();
-	}
+
+	void setStopLiteral() 
+        { dta= BarzelBeadAtomic().setStopLiteral(); }
 
 	bool isBlank( ) const { return (dta.which() == BarzelBeadBlank_TYPE); }
 	bool isAtomic() const { return (dta.which() == BarzelBeadAtomic_TYPE); }
@@ -233,6 +233,8 @@ public:
         } else 
             return 0;
     }
+    BarzerLiteral* getLiteral() 
+        { return const_cast<BarzerLiteral*>(getLiteral()); }
     const BarzerString* getString() const {
         const BarzelBeadAtomic* atomic = getAtomic();
         if( atomic ) {

@@ -48,8 +48,10 @@ public:
 	void set( double x ) { type= NTYPE_REAL; n.real = x; }
 
 	void clear() { type = NTYPE_NAN; }
+	int64_t setInt() { return( type= NTYPE_INT, n.i = std::numeric_limits<int64_t>::quiet_NaN() ); }
 	int64_t setInt( const char* s) { return( type= NTYPE_INT, n.i = atoi(s)); }
 	int64_t setReal( const char* s) { return( type= NTYPE_REAL, n.i = atof(s)); }
+	int64_t setReal( ) { return( type= NTYPE_REAL, n.i = std::numeric_limits<double>::quiet_NaN()); }
     /// figures out from string and sets 
     BarzerNumber& set( const char* s ); 
 
@@ -61,7 +63,9 @@ public:
 
 	inline bool isNan() const { return type == NTYPE_NAN; }
 	inline bool isInt() const { return type == NTYPE_INT; }
+    inline bool isIntNaN() const { return ( type == NTYPE_INT && n.i == std::numeric_limits<int64_t>::quiet_NaN()); }
 	inline bool isReal() const { return type == NTYPE_REAL; }
+    inline bool isRealNaN() const { return ( type == NTYPE_REAL && n.real == std::numeric_limits<double>::quiet_NaN()); }
 
 	inline int64_t 		getInt_unsafe() const { return( n.i  ); }
 	inline double 	getReal_unsafe() const { return( n.real  ); }
