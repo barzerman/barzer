@@ -55,25 +55,26 @@ static void startElement(void* ud, const XML_Char *n, const XML_Char **a)
     } else if( !rp->getTagCount() && AY_STREQ4(name,"barz") ) { // this is an opening barz tag
         const char* universeIdStr= getAttr( "u", atts, attr_sz );
         uint32_t universeId = 0;
-        const GLobalPools& gpools =rp->getGlobalPools();
+        const barzer::GlobalPools& gpools =rp->getGlobalPools();
 
-        const StoredUniverse* u = gpools.getUniverse(id);    
+        const barzer::StoredUniverse* u = 0;
         if( universeIdStr ) {
             uint32_t universeId = atoi( universeIdStr );
             u = gpools.getUniverse(universeId);
         } 
         if( !u ) {
-            rp->setXmlIsInvalid();
+            rp->setXmlInvalid();
             if( universeIdStr ) 
-                parser.stream() << "BarzXML Error: INVALID universe id: " << universeIdStr << std::endl;
+                rp->stream() << "BarzXML Error: INVALID universe id: " << universeIdStr << std::endl;
             else 
-                parser.stream() << "BarzXML Error: Must supply universe in u attribute" << std::endl;
+                rp->stream() << "BarzXML Error: Must supply universe in u attribute" << std::endl;
         } else { // valid universe extracted 
-            rp->setBarzXMLParserPtr( new BarzXMLParser( barz, *u ) );
+            rp->setBarzXMLParserPtr( new barzer::BarzXMLParser( rp->getBarz(), *rp, *u ) );
         }
 
         return;
     }
+    rp->incrementTagCount();
 
     if( !rp->getUniverse() ) {
         if( 
@@ -110,8 +111,8 @@ static void endElement(void *ud, const XML_Char *n)
     if( rp->isXmlInvalid() )
         return;
 	const char *name = (const char*) n;
-    if( d_barzXMLParser ) { // barzXML input
-        d_barzXMLParser->takeTag( name, 0, 0, false );
+    if(  rp-> getBarzXMLParserPtr() ) { // barzXML input
+        rp->getBarzXMLParser().takeTag( name, 0, 0, false );
         return;
     } else { // standard input
         rp->process(name);

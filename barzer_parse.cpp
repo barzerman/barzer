@@ -194,6 +194,17 @@ int QParser::autocomplete( MatcherCallback& cb, Barz& barz, const char* q, const
     return 0;
 }
 
+int QParser::barz_parse( Barz& barz, const QuestionParm& qparm )
+{
+    analyzeTopics_only(barz,qparm);
+	semanticize_only( barz, qparm );
+    
+    if( universe.needEntitySegregation() ) 
+        barz.segregateEntities( universe, qparm, 0 );
+    
+	return 0;
+}
+
 int QParser::parse( Barz& barz, const char* q, const QuestionParm& qparm )
 {
 	barz.clear();

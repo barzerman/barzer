@@ -1,6 +1,9 @@
 #include <barzer_barz.h>
 #include <barzer_barzxml.h>
 #include <barzer_universe.h>
+#include <barzer_parse.h>
+#include <barzer_server_request.h>
+#include <barzer_server_response.h>
 #include <limits>
 
 namespace barzer {
@@ -34,7 +37,7 @@ enum {
 
 
 /// OPEN handles 
-#define DECL_TAGHANDLE(X) inline int xmlth_##X( BarzXMLParser& parser, int tagId, const char* tag, const char**attr, size_t attr_sz)
+#define DECL_TAGHANDLE(X) inline int xmlth_##X( BarzXMLParser& parser, int tagId, const char* tag, const char**attr, size_t attr_sz, bool open)
 
 #define IS_PARENT_TAG(X) ( parser.tagStack.size() && (parser.tagStack.back()== TAG_##X) )
 #define IS_PARENT_TAG2(X,Y) ( parser.tagStack.size() && (parser.tagStack.back()== TAG_##X || parser.tagStack.back()== TAG_##Y) )
@@ -59,6 +62,14 @@ enum {
 };
 
 DECL_TAGHANDLE(BARZ) { 
+    if( open ) {
+    } else { // closing BARZ - time to process
+        QParser qparser(parser.universe);
+        BarzStreamerXML response(parser.barz, parser.universe);
+        qparser.barz_parse( parser.barz, parser.qparm );
+        response.print(parser.reqParser.stream());
+        parser.barz.clearWithTraceAndTopics();
+    }
     return TAGHANDLE_ERROR_OK;
 } 
 DECL_TAGHANDLE(BEAD) { 
@@ -333,7 +344,7 @@ DECL_TAGHANDLE(TOKEN) {
 inline void tagRouter( BarzXMLParser& parser, const char* t, const char** attr, size_t attr_sz, bool open)
 {
     char c0= toupper(t[0]),c1=(c0?toupper(t[1]):0),c2=(c1?toupper(t[2]):0),c3=(c2? toupper(t[3]):0);
-    typedef int (*TAGHANDLE)( BarzXMLParser& , int , const char* , const char**, size_t );
+    typedef int (*TAGHANDLE)( BarzXMLParser& , int , const char* , const char**, size_t, bool );
     TAGHANDLE handler = 0;
     int       tagId   =  TAG_INVALID;
     switch( c0 ) {
@@ -372,7 +383,7 @@ inline void tagRouter( BarzXMLParser& parser, const char* t, const char** attr, 
     }
     if( tagId != TAG_INVALID ) {
         if( handler ) {
-            handler(parser,tagId,t,attr,attr_sz);
+            handler(parser,tagId,t,attr,attr_sz,open);
         }
         if( open ) {
             parser.tagStack.push_back( tagId );

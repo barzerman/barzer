@@ -80,6 +80,9 @@ public:
 	int autocomplete( MatcherCallback& cb, Barz& barz, const char* q, const QuestionParm& qparm );
 	int parse( Barz& barz, const char* q, const QuestionParm& qparm );
 
+    /// parses "canned" barz - meaning lexical phase was performed externally
+    int barz_parse( Barz& barz, const QuestionParm& qparm );
+
     // tokenizes and lexes (no semantics) 
 	int lex( Barz& barz, const char* q, const QuestionParm& qparm );
     

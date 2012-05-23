@@ -1,12 +1,16 @@
 #ifndef BARZER_BARZXML_H
 #define BARZER_BARZXML_H
 
+#include <barzer_parse_types.h>
 namespace barzer {
 
 class Barz; 
+class BarzerRequestParser; 
 struct BarzXMLParser {
     Barz& barz;
-    
+    BarzerRequestParser& reqParser; 
+    QuestionParm qparm;
+
     // current stack of tags - see .cpp file for tag codes 
     std::vector< int > tagStack;
 
@@ -22,8 +26,8 @@ struct BarzXMLParser {
             return ( tagStack.size() > 1 && (*(tagStack.rbegin()+1)) == tid );
         }
 
-    BarzXMLParser( Barz& b, const StoredUniverse& u ) :
-        barz(b), universe(u) {}
+    BarzXMLParser( Barz& b, BarzerRequestParser& rp, const StoredUniverse& u ) :
+        barz(b), reqParser(rp), universe(u) {}
 private:
     void setLiteral( BarzelBead&, const char*, size_t, bool isFluff );
 };
