@@ -200,8 +200,9 @@ public:
 	int parse_Autocomplete( QSemanticParser&, const QuestionParm& );
 
 	int parse_Autocomplete( MatcherCallback& cb, QSemanticParser&, const QuestionParm& );
-	int semanticParse( QSemanticParser&, const QuestionParm& );
-	int analyzeTopics( QSemanticParser&, const QuestionParm& );
+	int semanticParse( QSemanticParser&, const QuestionParm&, bool needInit=true );
+	int analyzeTopics( QSemanticParser&, const QuestionParm&, bool needInit=true );
+
 	int postSemanticParse( QSemanticParser&, const QuestionParm& );
 
     int segregateEntities( const StoredUniverse& u, const QuestionParm& qparm, const char* q );

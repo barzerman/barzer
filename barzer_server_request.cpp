@@ -45,7 +45,6 @@ static void startElement(void* ud, const XML_Char *n, const XML_Char **a)
 	const char** atts = (const char**)a;
 	int attrCount = XML_GetSpecifiedAttributeCount( rp->parser );
 	if( attrCount <=0 || (attrCount & 1) ) attrCount = 0; // odd number of attributes is invalid
-	rp->addTag(name);
     
     uint32_t attr_sz = static_cast<size_t>(attrCount);
 
@@ -70,10 +69,12 @@ static void startElement(void* ud, const XML_Char *n, const XML_Char **a)
                 rp->stream() << "BarzXML Error: Must supply universe in u attribute" << std::endl;
         } else { // valid universe extracted 
             rp->setBarzXMLParserPtr( new barzer::BarzXMLParser( rp->getBarz(), *rp, *u ) );
+            rp->getBarzXMLParser().takeTag( name, atts , attr_sz, true );
         }
 
         return;
     }
+    rp->addTag(name);
     rp->incrementTagCount();
 
     if( !rp->getUniverse() ) {
@@ -111,7 +112,7 @@ static void endElement(void *ud, const XML_Char *n)
     if( rp->isXmlInvalid() )
         return;
 	const char *name = (const char*) n;
-    if(  rp-> getBarzXMLParserPtr() ) { // barzXML input
+    if(  rp->getBarzXMLParserPtr() ) { // barzXML input
         rp->getBarzXMLParser().takeTag( name, 0, 0, false );
         return;
     } else { // standard input
@@ -125,10 +126,13 @@ static void charDataHandle( void * ud, const XML_Char *str, int len)
 	barzer::BarzerRequestParser *rp = (barzer::BarzerRequestParser *)ud;
     if( rp->isXmlInvalid() )
         return;
-
-	//const char* s = (const char*)str;
-	std::string s((char*) str, len);
-	rp->setBody(s);
+    if( rp->getBarzXMLParserPtr() ) {
+        rp->getBarzXMLParser().takeCData( str, len );
+    } else {
+        //const char* s = (const char*)str;
+        std::string s((char*) str, len);
+        rp->setBody(s);
+    }
 }
 } // extern "C" ends
 
@@ -196,11 +200,19 @@ void BarzerRequestParser::setUniverse (const StoredUniverse* u)
 	barz.setUniverse(d_universe);
 }
 
-void BarzerRequestParser::setBody(const std::string &s) {
-	getTag().body.append(s);
+void BarzerRequestParser::setBody(const std::string &s) 
+{
+    if( tagStack.empty() ) {
+    } else {
+	    // getTag().body.append(s);
+	    tagStack.back().body.append(s);
+    }
 }
 
 void BarzerRequestParser::process(const char *name) {
+    if( tagStack.empty() ) 
+        return;
+
 	RequestTag &t = getTag();
 	if (t.tagName == name) {
 		const ReqTagFunc *fun = getCmdFunc(t.tagName);

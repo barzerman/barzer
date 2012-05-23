@@ -60,6 +60,7 @@ struct BarzelBeadAtomic {
 
 	const BarzerString* getString() const { return boost::get<BarzerString>( &dta ); }
 	const BarzerLiteral* getLiteral() const { return boost::get<BarzerLiteral>( &dta ); }
+	BarzerLiteral* getLiteral() { return boost::get<BarzerLiteral>( &dta ); }
 
 	BarzerEntity* getEntity() { return boost::get<BarzerEntity>( &dta ); }
 	const BarzerEntity* getEntity() const { return boost::get<BarzerEntity>( &dta ); }
@@ -233,8 +234,10 @@ public:
         } else 
             return 0;
     }
-    BarzerLiteral* getLiteral() 
-        { return const_cast<BarzerLiteral*>(getLiteral()); }
+    BarzerLiteral* getLiteral() { 
+        BarzelBeadAtomic* atomic = getAtomic();
+        return( atomic ? atomic->getLiteral() : 0 );
+    }
     const BarzerString* getString() const {
         const BarzelBeadAtomic* atomic = getAtomic();
         if( atomic ) {

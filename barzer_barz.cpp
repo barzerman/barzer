@@ -146,9 +146,10 @@ int Barz::chainInit( const QuestionParm& qparm )
     return 0;
 }
 
-int Barz::analyzeTopics( QSemanticParser& sem, const QuestionParm& qparm )
+int Barz::analyzeTopics( QSemanticParser& sem, const QuestionParm& qparm, bool needInit )
 {
-	beadChain.init(ctVec);
+    if( needInit )
+	    beadChain.init(ctVec);
     return sem.analyzeTopics( *this, qparm );
 }
 int Barz::parse_Autocomplete( MatcherCallback& cb, QSemanticParser& sem, const QuestionParm& qparm )
@@ -201,14 +202,16 @@ int Barz::parse_Autocomplete( MatcherCallback& cb, QSemanticParser& sem, const Q
     }
 	return 0;
 }
-int Barz::semanticParse( QSemanticParser& sem, const QuestionParm& qparm )
+int Barz::semanticParse( QSemanticParser& sem, const QuestionParm& qparm, bool needInit )
 {
-	/// invalidating and initializing all higher order objects
-    if( sem.needTopicAnalyzis() ) {
-        analyzeTopics( sem, qparm );
-        clearBeads(); // we don't need to tokenize again really - just purge the beads  
+    if( needInit ) {
+	    /// invalidating and initializing all higher order objects
+        if( sem.needTopicAnalyzis() ) {
+            analyzeTopics( sem, qparm );
+            clearBeads(); // we don't need to tokenize again really - just purge the beads  
+        }
+	    beadChain.init(ctVec);
     }
-	beadChain.init(ctVec);
 
 	return sem.semanticize( *this, qparm );
 }
