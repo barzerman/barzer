@@ -174,7 +174,7 @@ inline std::ostream& operator <<( std::ostream& fp, const BarzerNumber& n )
 namespace std
 {
 	template<>
-	class numeric_limits<barzer::BarzerNumber>
+	struct numeric_limits<barzer::BarzerNumber>
 	{
 	public:
 		static const bool is_specialized = true;

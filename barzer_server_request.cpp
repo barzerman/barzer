@@ -53,7 +53,7 @@ static void startElement(void* ud, const XML_Char *n, const XML_Char **a)
         return;
     } else if( !rp->getTagCount() && AY_STREQ4(name,"barz") ) { // this is an opening barz tag
         const char* universeIdStr= getAttr( "u", atts, attr_sz );
-        uint32_t universeId = 0;
+        // uint32_t universeId = 0;
         const barzer::GlobalPools& gpools =rp->getGlobalPools();
 
         const barzer::StoredUniverse* u = 0;

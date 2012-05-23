@@ -327,8 +327,6 @@ DECL_TAGHANDLE(TOPICS) {
 }
 
 DECL_TAGHANDLE(TOKEN) { 
-    uint32_t stemStrId = 0xffffffff;
-     
     ALS_BEGIN
         case 's': {
             uint32_t strId = GLOBALPOOLS.string_getId(v);
