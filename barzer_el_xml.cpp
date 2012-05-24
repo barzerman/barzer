@@ -335,7 +335,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 	// const BELParseTreeNode* macroNode = getMacroByName(macroName);
 
 	statement.stmt.setStmtNumber( stmtNumber ) ;
-	if( !reader->isSilentMode() && !(statement.stmt.getStmtNumber() % 100)  ) {
+	if( !reader->isSilentMode() && !(statement.stmt.getStmtNumber() % 512)  ) {
 		std::cerr << '.';
 	}
 	if( statement.isMacro() ) {

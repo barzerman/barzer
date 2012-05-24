@@ -51,6 +51,8 @@ struct IntermediateNode : public PatternEmitterNode {
     IntermediateNode(const BELParseTreeNode::ChildrenVec& children, VarVec &vars)
     {
         //AYLOGDEBUG(children.size());
+
+        childs.reserve(children.size());
         for(BELParseTreeNode::ChildrenVec::const_iterator it=children.begin(); it != children.end(); ++it)
             childs.push_back(make(*it, vars));
         //AYLOG(DEBUG) << "done";

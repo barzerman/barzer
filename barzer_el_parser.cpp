@@ -229,6 +229,7 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 
 
 	BELParseTreeNode_PatternEmitter emitter( sp.pattern );
+    emitter.reserveVecs();
 
 	int i = 0, j = 0;
 	ay::stopwatch totalTimer;
