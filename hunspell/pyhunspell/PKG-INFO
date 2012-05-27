@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: hunspell
+Version: 0.1
+Summary: Module for the Hunspell spellchecker engine
+Home-page: http://code.google.com/p/pyhunspell
+Author: Sayamindu Dasgupta
+Author-email: sayamindu@gmail.com
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
