@@ -6,6 +6,7 @@
 #include <vector>
 #include <ay_util_char.h>
 #include <stdint.h>
+#include <boost/unordered_map.hpp>
 
 namespace ay {
 
@@ -33,6 +34,17 @@ public:
 	~CharPool();
 };
 
+struct char_cp_hash {
+    inline size_t operator()( const char* s ) const
+    {
+        if( !s ) return 0;
+        size_t h=0;
+        for (; *s; ++s)
+            h = 37 * h + *s;
+        return h; // or, h % ARRAY_SIZE;
+    }
+};
+
 /// stores each string only once 
 /// also issues "string ids" - 4-byte integers
 class UniqueCharPool : public CharPool {
@@ -42,7 +54,8 @@ public:
 	enum { 
 		ID_NOTFOUND = 0xffffffff 
 	};
-	typedef std::map< char_cp, StrId, ay::char_cp_compare_less > CharIdMap;
+	// typedef std::map< char_cp, StrId, ay::char_cp_compare_less > CharIdMap;
+	typedef boost::unordered_map< char_cp, StrId, char_cp_hash, ay::char_cp_compare_eq > CharIdMap;
 private:
 	char_cp_vec idVec; // idVec[StrId] is the char_cp
 	CharIdMap idMap;
@@ -71,8 +84,40 @@ public:
 			return( s? s: ""); 
 		}
 				
-	StrId internIt( const char* s ); 
-	StrId internIt( const char* s, size_t s_len ); 
+	inline StrId internIt( const char* s )
+    {
+        
+	    StrId id = getId(s);
+	    if( id!=ID_NOTFOUND ) {
+		    return id;
+	    }	
+	    const char * newS = addStringToPool( s );
+	    id = idVec.size();
+	    idVec.push_back( newS );
+	    idMap.insert( CharIdMap::value_type(newS, id) );
+	
+	    return id;
+    }
+    std::string d_junkBuf;
+
+	inline StrId internIt( const char* s, size_t s_len )
+    {
+        if( !s[s_len] ) 
+            return internIt(s);
+        else {
+            d_junkBuf.assign(s,s_len);
+	        StrId id = getId(d_junkBuf.c_str());
+	        if( id!=ID_NOTFOUND ) {
+		        return id;
+	        }	
+	        const char * newS = addStringToPool( s, s_len );
+	        id = idVec.size();
+	        idVec.push_back( newS );
+	        idMap.insert( CharIdMap::value_type(newS, id) );
+        	
+	        return id;
+        }
+    }
 	UniqueCharPool( size_t cSz = DEFAULT_CHUNK_SIZE ) : 
 		CharPool(cSz ) { }
 

@@ -9,6 +9,7 @@
 #include <barzer_settings.h>
 #include <barzer_universe.h>
 #include <barzer_basic_types.h>
+#include <ay/ay_util_time.h>
 
 #include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
@@ -494,7 +495,8 @@ int BarzerSettings::loadListOfConfigs(BELReader& reader, const char *fname) {
 
 void BarzerSettings::load(BELReader& reader, const char *fname) {
 	//AYLOGDEBUG(fname);
-    time_t start_time = time(0);
+    ay::stopwatch totalTimer;
+
 	std::cout << "Loading config file: " << fname << std::endl;
 	fs::path oldPath = fs::current_path();
 
@@ -533,7 +535,7 @@ void BarzerSettings::load(BELReader& reader, const char *fname) {
 	} catch (boost::property_tree::xml_parser_error &e) {
 		AYLOG(ERROR) << e.what();
 	}
-    reader.getErrStreamRef() << "Done in " << time(0) -  start_time << " seconds" << std::endl;
+    reader.getErrStreamRef() << "Done in " << totalTimer.calcTime()  << " seconds" << std::endl;
 }
 
 const std::string BarzerSettings::get(const char *key) const {
