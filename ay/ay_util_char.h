@@ -6,11 +6,46 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <ctype.h>
 
 namespace ay {
 typedef const char* char_cp;
 typedef char* char_p;
 
+#define AY_TOUPPER(c) ( ('a'<=(c) && 'z'>=(c)) ? ((c)-32) : (c) )
+
+inline int ay_strcmp( const char* l, const char* r )
+{
+    for( ; *l && *r; ++l, ++r ) {
+        if( *l < *r )
+            return -1;
+        else if( *r< *l ) 
+            return 1;
+    }
+
+    return( *l ? 1 : (*r ? -1: 0)  );
+}
+inline bool ay_strcmp_eq( const char* l, const char* r )
+{
+    for( ; *l && *r; ++l, ++r ) {
+        if( *l != *r )
+            return false;
+    }
+
+    return !( *l || *r );
+}
+inline int ay_strcasecmp( const char* l, const char* r )
+{
+    for( ; *l && *r; ++l, ++r ) {
+        char ul = AY_TOUPPER(*l), ur=AY_TOUPPER(*r);
+        if( ul < ur )
+            return -1;
+        else if( ur< ul ) 
+            return 1;
+    }
+
+    return( *l ? 1 : (*r ? -1: 0)  );
+}
 
 struct char_cp_compare_eq {
 	bool operator ()( char_cp l, char_cp r ) const
@@ -20,7 +55,7 @@ struct char_cp_compare_eq {
 		else if(!r )
 			return false;
 		else
-			return (!strcmp( l, r )); 
+			return (ay_strcmp_eq( l, r )); 
 	}
 };
 struct char_cp_compare_nocase_less {
@@ -28,7 +63,7 @@ struct char_cp_compare_nocase_less {
 	{ 
 		if( l ) {
 			if( r ) 
-				return ( strcasecmp(l,r) < 0 );
+				return ( ay_strcasecmp(l,r) < 0 );
 			else 
 				return false;
 		} else
@@ -40,7 +75,7 @@ struct char_cp_compare_less {
 	{ 
 		if( l ) {
 			if( r ) 
-				return ( strcmp(l,r) < 0 );
+				return ( ay_strcmp(l,r) < 0 );
 			else 
 				return false;
 		} else

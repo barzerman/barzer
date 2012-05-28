@@ -21,7 +21,12 @@ struct PatternEmitterNode {
 struct BELParseTreeNode_PatternEmitter {
     BTND_PatternDataVec curVec;
     BELVarInfo varVec;
-
+    
+    void reserveVecs( size_t sz = 8 ) 
+    {
+        curVec.reserve(sz);
+        varVec.reserve(sz);
+    }
     const BELParseTreeNode& tree;
     
     BELParseTreeNode_PatternEmitter( const BELParseTreeNode& t ) : tree(t)

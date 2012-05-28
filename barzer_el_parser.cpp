@@ -35,19 +35,29 @@ uint32_t BELParser::stemAndInternTmpText( const char* s, int len )
 	StoredUniverse* curUni = reader->getCurrentUniverse();
 	if( !curUni )
 		curUni = &(getGlobalPools().produceUniverse(0));
+
 	BZSpell* bzSpell = curUni->getBZSpell();
-	std::string scopy(s, len );
+    
+	std::string scopy;
+    if( s[len] ) {
+	    scopy.assign(s, len );
+        s=scopy.c_str();
+    }
 	if( bzSpell )  {
+        uint32_t i = 0xffffffff;
+        if( bzSpell->isUsersWord(i,s) ) {
+            return i;
+        }
 		std::string stem;
         int lang = LANG_UNKNOWN;
-		if( bzSpell->stem(stem, scopy.c_str(),lang) ) {
-			internString( stem.c_str(), false, scopy.c_str () );
+		if( bzSpell->stem(stem, s,lang) ) {
+			internString( stem.c_str(), false, s );
 		}
         StoredUniverse* curUni = reader->getCurrentUniverse();
         if( curUni ) 
             curUni->recordLangWord( lang );
 	}
-	return internString( scopy.c_str(),false).getStringId();
+	return internString( s,false).getStringId();
 }
 
 uint32_t BELParser::internVariable( const char* t )
@@ -229,6 +239,7 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 
 
 	BELParseTreeNode_PatternEmitter emitter( sp.pattern );
+    emitter.reserveVecs();
 
 	int i = 0, j = 0;
 	ay::stopwatch totalTimer;
