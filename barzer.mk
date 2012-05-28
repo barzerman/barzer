@@ -21,8 +21,9 @@ BINARY=barzer.exe
 LIBNAME=libbarzer
 SHARED_LIBNAME=libbarzer.so
 PYTHON_LIBNAME=util/python_util.so
-#libs = -Lay -lay -L/opt/local/lib -L/opt/local/lib/boost -L/usr/lib
-libs = -Lay -lay -L/opt/local/lib -L/usr/lib \
+LIB_HUNSPELL=-lhunspell-1.2
+#libs = -Lay -lay -L/opt/local/lib -L/opt/local/lib/boost -L/usr/lib $(LIB_HUNSPELL) 
+libs = -Lay -lay -L/opt/local/lib -L/usr/lib $(LIB_HUNSPELL) \
 	-lboost_system -lboost_filesystem -lboost_thread-mt -lexpat -lstdc++
 ECHO = echo
 lib_objects = \
