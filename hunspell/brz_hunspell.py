@@ -13,7 +13,7 @@ class brzHunspell:
 		self.regexp = re.compile(r"[a-zA-ZÀ-ÿ]+|['\"$\%&()\*\+=\-:;,\.\\/<>!?@\[\]^_{|}~]|[0-9]+",flags=re.UNICODE | re.IGNORECASE)
 
 	def tokenize(self,query):
-		return self.regexp.findall(query)
+		return filter(bool,self.regexp.findall(query))
 
 	def spellcorrect(self,wordlist):
 		spellcorrected = []
