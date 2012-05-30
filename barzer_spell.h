@@ -19,7 +19,7 @@ public:
 
 	// this is a hack NEVER call this function
 	BarzerHunspell( StoredUniverse& universe ) : d_hunspell(0), d_universe(universe) {}
-	BarzerHunspell( StoredUniverse& universe, const char* affFile, const char* dictFile );
+	BarzerHunspell(StoredUniverse& universe, const char* affFile, const char* dictFile );
 	~BarzerHunspell( );
 	void initHunspell( const char* affFile, const char* dictFile );
 	const StoredUniverse& getUniverse() const { return d_universe; }

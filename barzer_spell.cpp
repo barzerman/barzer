@@ -36,7 +36,7 @@ void  BarzerHunspell::initHunspell( const char* affFile, const char* dictFile )
 		AYLOG(ERROR) << "Hunspell initialization failed\n";
 	}
 }
-BarzerHunspell::BarzerHunspell( StoredUniverse& universe, const char* affFile, const char* dictFile ) :
+BarzerHunspell::BarzerHunspell(StoredUniverse& universe, const char* affFile, const char* dictFile ) :
 	d_hunspell( new Hunspell( affFile, dictFile )  ),
 	d_universe(universe)
 { }
