@@ -17,6 +17,7 @@ enum {
     LANG_UNKNOWN=-1,
 	LANG_ENGLISH,
 	LANG_RUSSIAN,
+	LANG_UNKNOWN_UTF8,
 	LANG_SPANISH,
 	LANG_FRENCH,
     /// add new language after this only
