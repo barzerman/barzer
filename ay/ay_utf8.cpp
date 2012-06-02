@@ -25,6 +25,7 @@ namespace ay
 	 * 5 →     110 → 0x6
 	 * 7 →       0 → 0x0
 	 */
+    /* what is this for? i dont know (AY)
 	CharUTF8::CharUTF8 (const char *beginning)
 	: m_size (1)
 	, m_int (0)
@@ -37,47 +38,7 @@ namespace ay
 				++m_size)
 			m_buf [m_size] = beginning [m_size];
 	}
-
-	CharUTF8::CharUTF8 (const char *beginning, size_t size)
-	: m_size (size)
-	, m_int (0)
-	{
-		std::memcpy (m_buf, beginning, size);
-	}
-
-	CharUTF8::CharUTF8 (const CharUTF8& other)
-	: m_size (other.size ())
-	, m_int (other.m_int)
-	{
-	}
-
-	CharUTF8& CharUTF8::operator= (const char *beginning)
-	{
-		*this = CharUTF8 (beginning);
-		return *this;
-	}
-
-	CharUTF8& CharUTF8::operator= (const CharUTF8& other)
-	{
-		m_size = other.size ();
-		m_int = other.m_int;
-		return *this;
-	}
-
-	bool CharUTF8::operator== (const CharUTF8& other) const
-	{
-		return m_int == other.m_int;
-	}
-
-	bool CharUTF8::operator< (const CharUTF8& other) const
-	{
-		return m_int < other.m_int;
-	}
-
-	const char* CharUTF8::getBuf () const
-	{
-		return m_buf;
-	}
+    */ 
 
 	StrUTF8::StrUTF8 ()
 	{

@@ -12,17 +12,20 @@ namespace ay
 	// Represents a single glyph.
 	class CharUTF8
 	{
-		size_t m_size;
+		uint8_t d_size;
 
 		enum { MaxBytes = 4 };
-		union
-		{
-			char m_buf [MaxBytes];
-			u_int32_t m_int;
-		};
+		union {
+			char        c4[MaxBytes];
+			uint32_t    u4;
+		} d_data;
 	public:
-		CharUTF8 ();
-		CharUTF8 (const char *beginning);
+		CharUTF8() : d_size(0) { d_data.u4=0; }
+		CharUTF8 (const char *s) 
+            { 
+                d_data.u4=0;
+                s[0] && d_data.c4[0]=s[0] && s[1] && d_data.c4[1]=s[1] && s[2] && d_data.c4[2]=s[2] && s[3] && d_data.c4[3]=s[3];
+            }
 		CharUTF8 (const char *beginning, size_t size);
 		CharUTF8 (const CharUTF8& other);
 
