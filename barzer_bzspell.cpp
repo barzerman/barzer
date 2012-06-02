@@ -134,11 +134,9 @@ struct CorrectCallback {
 		}
 	}
 
-	int operator() (ay::StrUTF8::const_iterator begin, ay::StrUTF8::const_iterator end)
+	int operator() (std::vector<ay::CharUTF8>::const_iterator begin, std::vector<ay::CharUTF8>::const_iterator end)
 	{
-		std::vector<char> vec;
-		ay::StrUTF8::buildString (begin, end, std::back_inserter (vec));
-		tryUpdateBestMatch (&vec [0]);
+		tryUpdateBestMatch (ay::StrUTF8 (begin, end).c_str ());
 		return 0;
 	}
 
@@ -268,18 +266,20 @@ struct CharPermuter_Unicode
 
 		for (ay::StrUTF8::iterator i = m_str.begin (), end = m_str.end () - 1; i != end; ++i)
 		{
-			m_str.swapChars (i, i + 1);
+			m_str.swap (i, i + 1);
 
-			std::vector<char> bufVec = m_str.buildStr ();
-			char *newBuf = &bufVec [0];
-			m_str.swapChars (i, i + 1);
+			const char *newBuf = m_str.c_str ();
 			if (m_str.size () < 5)
 			{
 				uint32_t id = 0xffffffff;
 				if (!m_cb.bzSpell ().isUsersWord (id, newBuf))
+				{
+					m_str.swap (i, i + 1);
 					continue;
+				}
 			}
 			m_cb.tryUpdateBestMatch (newBuf);
+			m_str.swap (i, i + 1);
 		}
 	}
 };
@@ -879,21 +879,18 @@ struct WPCallback_Unicode
 	BZSpell& bzs;
 	uint32_t fullStrId;
 	size_t varCount;
-	
+
 	WPCallback_Unicode (BZSpell& b, uint32_t id)
 	: bzs (b)
 	, fullStrId (id)
 	{
 	}
 
-	int operator() (ay::StrUTF8::const_iterator begin, ay::StrUTF8::const_iterator end)
+	int operator() (std::vector<ay::CharUTF8>::const_iterator begin, std::vector<ay::CharUTF8>::const_iterator end)
 	{
-		std::vector<char> vec;
-		ay::StrUTF8::buildString (begin, end, std::back_inserter (vec));
-
 		GlobalPools& gp = bzs.getUniverse ().getGlobalPools ();
-		uint32_t strId = gp.string_intern (&vec [0]);
-		
+		uint32_t strId = gp.string_intern (ay::StrUTF8 (begin, end).c_str ());
+
 		bzs.addWordToLinkedWordsMap (strId, fullStrId);
 
 		++varCount;
@@ -935,12 +932,12 @@ size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
 		const size_t numGlyphs = uni.size ();
 		if (numGlyphs <= d_minWordLengthToCorrect)
 			return 0;
-		
+
 		WPCallback_Unicode cb (*this, strId);
-		
+
 		ay::choose_n<ay::CharUTF8, WPCallback_Unicode> variator (cb, numGlyphs - 1, numGlyphs - 1);
 		variator (uni.begin (), uni.end ());
-		
+
 		return cb.varCount;
 	}
 	return 0;
