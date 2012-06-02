@@ -581,6 +581,8 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
             else if( doStemCorrect )
                 return get2ByteLangStemCorrection( lang, str, doStemCorrect );
 		}
+    } else { /// generic utf8 string
+        #warning NEED TO IMPLEMENT utf8 permuter
     }
 	return 0xffffffff;
 }
@@ -602,6 +604,11 @@ uint32_t BZSpell::purePermuteCorrect(const char* s, size_t s_len )  const
     return retStrId;
 }
 
+uint32_t BZSpell::getUtf8LangStemCorrection( int lang, const char* str, bool doStemCorect, const char* extNorm ) const
+{
+    #warning NEED to implement getUtf8LangStemCorrection
+    return 0xffffffff;
+}
 uint32_t BZSpell::get2ByteLangStemCorrection( int lang, const char* str, bool doStemCorect, const char* extNorm ) const
 {
     size_t s_len = 0;
@@ -721,8 +728,10 @@ uint32_t BZSpell::getStemCorrection( std::string& out, const char* s, int lang )
 				return strId;
 			}
 		}
-	} else if( Lang::isTwoByteLang(lang)) {
-        uint32_t scorStrId =  get2ByteLangStemCorrection( lang, s, true );
+	} else { 
+        uint32_t scorStrId =  ( Lang::isTwoByteLang(lang) ? 
+            get2ByteLangStemCorrection( lang, s, true ) : 
+            getUtf8LangStemCorrection( lang, s, true ) );
         if( scorStrId != 0xffffffff && isUsersWordById( scorStrId )) {
             const char* stemCor =  d_universe.getGlobalPools().string_resolve( scorStrId );
             if( stemCor ) {
@@ -730,14 +739,14 @@ uint32_t BZSpell::getStemCorrection( std::string& out, const char* s, int lang )
                 
             }
         }
-    }
+    } 
 	return 0xffffffff;
 }
 uint32_t BZSpell::getAggressiveStem( std::string& out, const char* s ) const
 {
     enum { MIN_STEM_LEN= 3 };
     std::string str(s);
-    // size_t s_len = str.length();
+    
     for( ; str.length() >= MIN_STEM_LEN; str.resize(str.length()-1)  ) {
         uint32_t strId = 0xffffffff;
         if( isUsersWord(strId,str.c_str()) )
@@ -823,6 +832,8 @@ size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
                 variator( ay::Char2B_iterator(str), ay::Char2B_iterator(str+str_len) );
                 return cb.varCount;
             }
+        } else { // utf8 
+            #warning need to implement utf8 variator here
         }
     }
 	return 0;

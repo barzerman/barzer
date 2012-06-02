@@ -49,7 +49,13 @@ public:
 	/// get bit-th bit value
 	bool operator[]( uint8_t bit ) const
 		{ return ( (buf[ bit>>3 ] & (1 << ( bit & 0x7 ))) ); }
-	
+    
+    /// call this it's safer
+    bool checkBit( uint8_t bit ) const
+        {
+            size_t b = ( bit>>3 );
+            return( b< sizeof(buf)? ((buf[b] & (1 << ( bit & 0x7 )))) : false);
+        }
 	inline void flip( uint8_t bit )
 	{
 		uint8_t& b = buf[ bit>>3 ];

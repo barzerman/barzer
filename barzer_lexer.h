@@ -49,6 +49,9 @@ inline PosedVec<CTWPVec>::pos() const { return d_pos; }
 
 struct SpellCorrectResult;
 
+// internal parameters 
+struct QLexParser_LocalParms;
+
 //// Lexical parser - it classifies TTokens and
 //// manipulates the resulting vector of CTokens
 class QLexParser {
@@ -74,6 +77,11 @@ class QLexParser {
         uint32_t tmpId = 0xffffffff;
         return getStoredToken(tmpId, str );
     }
+    // inlined in the cpp
+    bool trySplitCorrect (
+        SpellCorrectResult& corrResult, 
+        QLexParser_LocalParms& parms 
+    );
 
 	/// invoked from singleTokenClassify - tries to spell correct
 	/// fluffs the token if it's not correctable otherwise attempts to find something

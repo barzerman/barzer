@@ -13,6 +13,7 @@ typedef const char* char_cp;
 typedef char* char_p;
 
 #define AY_TOUPPER(c) ( ('a'<=(c) && 'z'>=(c)) ? ((c)-32) : (c) )
+#define AY_LOWER(c) ( ('A'<=(c) && 'Z'>=(c)) ? ((c)+32) : (c) )
 
 inline int ay_strcmp( const char* l, const char* r )
 {
