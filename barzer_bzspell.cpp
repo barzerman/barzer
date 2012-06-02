@@ -2,6 +2,7 @@
 #include <barzer_bzspell.h>
 #include <ay/ay_choose.h>
 #include <ay_char.h>
+#include <ay_utf8.h>
 #include <lg_ru/barzer_ru_lex.h>
 #include <lg_ru/barzer_ru_stemmer.h>
 #include <lg_en/barzer_en_lex.h>
@@ -133,6 +134,14 @@ struct CorrectCallback {
 		}
 	}
 
+	int operator() (ay::StrUTF8::const_iterator begin, ay::StrUTF8::const_iterator end)
+	{
+		std::vector<char> vec;
+		ay::StrUTF8::buildString (begin, end, std::back_inserter (vec));
+		tryUpdateBestMatch (&vec [0]);
+		return 0;
+	}
+
     typedef std::vector< ay::Char2B > char_2b_vec;
 	int operator()( char_2b_vec::const_iterator fromI, char_2b_vec::const_iterator toI )
     {
@@ -235,7 +244,45 @@ struct CharPermuter_2B {
 		}
 	}
 };
+struct CharPermuter_Unicode
+{
+	ay::StrUTF8 m_str;
+	CorrectCallback& m_cb;
 
+	CharPermuter_Unicode (const char *s, CorrectCallback& cb)
+	: m_str (s)
+	, m_cb (cb)
+	{
+	}
+
+	CharPermuter_Unicode (const ay::StrUTF8& uni, CorrectCallback& cb)
+	: m_str (uni)
+	, m_cb (cb)
+	{
+	}
+
+	void doAll ()
+	{
+		if (m_str.size () < 3)
+			return;
+
+		for (ay::StrUTF8::iterator i = m_str.begin (), end = m_str.end () - 1; i != end; ++i)
+		{
+			m_str.swapChars (i, i + 1);
+
+			std::vector<char> bufVec = m_str.buildStr ();
+			char *newBuf = &bufVec [0];
+			m_str.swapChars (i, i + 1);
+			if (m_str.size () < 5)
+			{
+				uint32_t id = 0xffffffff;
+				if (!m_cb.bzSpell ().isUsersWord (id, newBuf))
+					continue;
+			}
+			m_cb.tryUpdateBestMatch (newBuf);
+		}
+	}
+};
 
 inline bool is_vowel( char c )
 {
@@ -541,7 +588,7 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 	} else if( Lang::isTwoByteLang(lang)) { // 2 byte char language spell correct
         /// includes russian
         std::string stemStr;
-        
+
 		if( str_len >= 2*d_minWordLengthToCorrect ) {
             if( doStemCorrect ) {
                 /// first we try to do trivial (close) stem correction
@@ -551,13 +598,13 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
                         doStemCorrect = false;
                     } else {
                         //std::cerr << "SHIT " << stemStr << ":" << stemStrId << std::endl;
-                        /// if stem is less than 3 chars shorter than the original we are going to try 
+                        /// if stem is less than 3 chars shorter than the original we are going to try
                         /// stem correction before any other types of correction
                         if( str_len > stemStr.length() && (str_len-stemStr.length()<3*2) ) {
                             uint32_t correctedId = get2ByteLangStemCorrection( lang, str, doStemCorrect, stemStr.c_str() );
                             if( correctedId != 0xffffffff )
                                 return correctedId;
-                            else 
+                            else
                                 doStemCorrect= false;
                         }
                     }
@@ -581,9 +628,32 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
             else if( doStemCorrect )
                 return get2ByteLangStemCorrection( lang, str, doStemCorrect );
 		}
-    } else { /// generic utf8 string
-        #warning NEED TO IMPLEMENT utf8 permuter
     }
+    else
+	{
+		ay::StrUTF8 strUtf8 (str);
+		const size_t uniSize = strUtf8.size ();
+		if (uniSize < d_minWordLengthToCorrect)
+			return 0xffffffff;
+
+		if (doStemCorrect)
+		{
+			// TODO
+		}
+
+		CorrectCallback cb (*this, strUtf8.size ());
+		cb.tryUpdateBestMatch (str);
+
+		if (uniSize > d_minWordLengthToCorrect)
+		{
+			ay::choose_n<ay::CharUTF8, CorrectCallback> variator (cb, uniSize - 1, uniSize + 1);
+			variator (strUtf8.begin (), strUtf8.end ());
+		}
+
+		ascii::CharPermuter_Unicode permuter (strUtf8, cb);
+		permuter.doAll ();
+		return cb.getBestStrId ();
+	}
 	return 0xffffffff;
 }
 
@@ -614,7 +684,7 @@ uint32_t BZSpell::get2ByteLangStemCorrection( int lang, const char* str, bool do
     size_t s_len = 0;
     if(lang == LANG_RUSSIAN) {
         std::string norm;
-        if( extNorm ) 
+        if( extNorm )
             norm.assign(extNorm);
 
         if( norm.length() || Russian::normalize( norm,str,&s_len) ) { // successfully normalized
@@ -630,7 +700,7 @@ uint32_t BZSpell::get2ByteLangStemCorrection( int lang, const char* str, bool do
                     uint32_t protoStrId = *i;
                     if( isUsersWordById(protoStrId) ) {
                         const BZSWordInfo* wip = getWordInfo(protoStrId);
-                        
+
                         if( bestStringId == 0xffffffff ) {
                             bestStringId = protoStrId;
                         }
@@ -715,7 +785,7 @@ uint32_t BZSpell::getStemCorrection( std::string& out, const char* s, int lang )
 {
     size_t s_len = strlen( s );
 
-    if( lang == LANG_UNKNOWN ) 
+    if( lang == LANG_UNKNOWN )
         lang = Lang::getLang( s, s_len );
 
 	if( lang == LANG_ENGLISH) {
@@ -728,25 +798,25 @@ uint32_t BZSpell::getStemCorrection( std::string& out, const char* s, int lang )
 				return strId;
 			}
 		}
-	} else { 
-        uint32_t scorStrId =  ( Lang::isTwoByteLang(lang) ? 
-            get2ByteLangStemCorrection( lang, s, true ) : 
+	} else {
+        uint32_t scorStrId =  ( Lang::isTwoByteLang(lang) ?
+            get2ByteLangStemCorrection( lang, s, true ) :
             getUtf8LangStemCorrection( lang, s, true ) );
         if( scorStrId != 0xffffffff && isUsersWordById( scorStrId )) {
             const char* stemCor =  d_universe.getGlobalPools().string_resolve( scorStrId );
             if( stemCor ) {
                 return( out.assign( stemCor ) , scorStrId );
-                
+
             }
         }
-    } 
+    }
 	return 0xffffffff;
 }
 uint32_t BZSpell::getAggressiveStem( std::string& out, const char* s ) const
 {
     enum { MIN_STEM_LEN= 3 };
     std::string str(s);
-    
+
     for( ; str.length() >= MIN_STEM_LEN; str.resize(str.length()-1)  ) {
         uint32_t strId = 0xffffffff;
         if( isUsersWord(strId,str.c_str()) )
@@ -832,7 +902,7 @@ size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
                 variator( ay::Char2B_iterator(str), ay::Char2B_iterator(str+str_len) );
                 return cb.varCount;
             }
-        } else { // utf8 
+        } else { // utf8
             #warning need to implement utf8 variator here
         }
     }
