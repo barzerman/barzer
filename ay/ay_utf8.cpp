@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <algorithm>
 
 namespace ay
 {
@@ -26,9 +27,8 @@ namespace ay
 	 */
 	CharUTF8::CharUTF8 (const char *beginning)
 	: m_size (1)
+	, m_int (0)
 	{
-		std::memset (m_buf, 0, MaxBytes);
-
 		unsigned char first = *beginning;
 		m_buf [0] = first;
 
@@ -38,10 +38,17 @@ namespace ay
 			m_buf [m_size] = beginning [m_size];
 	}
 
+	CharUTF8::CharUTF8 (const char *beginning, size_t size)
+	: m_size (size)
+	, m_int (0)
+	{
+		std::memcpy (m_buf, beginning, size);
+	}
+
 	CharUTF8::CharUTF8 (const CharUTF8& other)
 	: m_size (other.size ())
+	, m_int (other.m_int)
 	{
-		std::memcpy (m_buf, other.m_buf, MaxBytes);
 	}
 
 	CharUTF8& CharUTF8::operator= (const char *beginning)
@@ -53,14 +60,18 @@ namespace ay
 	CharUTF8& CharUTF8::operator= (const CharUTF8& other)
 	{
 		m_size = other.size ();
-		std::memcpy (m_buf, other.m_buf, MaxBytes);
+		m_int = other.m_int;
 		return *this;
 	}
 
 	bool CharUTF8::operator== (const CharUTF8& other) const
 	{
-		return m_size == other.m_size &&
-			!std::memcmp (m_buf, other.m_buf, m_size);
+		return m_int == other.m_int;
+	}
+
+	bool CharUTF8::operator< (const CharUTF8& other) const
+	{
+		return m_int < other.m_int;
 	}
 
 	const char* CharUTF8::getBuf () const
@@ -70,20 +81,36 @@ namespace ay
 
 	StrUTF8::StrUTF8 ()
 	{
+		appendZero ();
 	}
 
 	StrUTF8::StrUTF8 (const char *string)
 	{
-		while (true)
-		{
-			if (!*string)
-				break;
+		const char *begin = string;
 
-			const CharUTF8 ch (string);
-			m_chars.push_back (ch);
-			string += ch.size ();
+		size_t lastPos = 0;
+		while (*string)
+		{
+			const size_t glyphSize = CharUTF8 (string).size ();
+			m_positions.push_back (lastPos);
+			lastPos += glyphSize;
+			string += glyphSize;
 		}
+
+		m_buf.reserve (lastPos);
+		std::copy (begin, string, std::back_inserter (m_buf));
+		appendZero ();
 	}
+
+	void StrUTF8::clear ()
+	{
+		m_buf.clear ();
+		m_positions.clear ();
+
+		appendZero ();
+	}
+
+	/*
 
 	StrUTF8& StrUTF8::operator+= (const StrUTF8& other)
 	{
@@ -110,52 +137,21 @@ namespace ay
 	{
 		m_chars.insert (at, str.begin (), str.end ());
 	}
+	*/
 
-	void StrUTF8::swapChars (StrUTF8::iterator first, StrUTF8::iterator second)
+	void StrUTF8::swap (StrUTF8::iterator first, StrUTF8::iterator second)
 	{
-		std::swap (*first, *second);
+		const CharUTF8& tmp = *first;
+		*first = *second;
+		*second = tmp;
 	}
 
-	size_t StrUTF8::bytesCount () const
-	{
-		size_t result = 0;
-		for (size_t i = 0, sz = size (); i < sz; ++i)
-			result += m_chars [i].size ();
-		return result;
-	}
-
-	char* StrUTF8::buildRawStr () const
-	{
-		const size_t bytes = bytesCount ();
-		char *result = new char [bytes + 1];
-		char *current = result;
-		for (size_t i = 0, sz = size (); i < sz; ++i)
-		{
-			const CharUTF8& ch = m_chars [i];
-			std::memcpy (current, ch.getBuf (), ch.size ());
-			current += ch.size ();
-		}
-		result [bytes] = 0;
-		return result;
-	}
-	
-	std::vector<char> StrUTF8::buildStr () const
-	{
-		std::vector<char> result (bytesCount () + 1, 0);
-		char *current = &result [0];
-		for (size_t i = 0, sz = size (); i < sz; ++i)
-		{
-			const CharUTF8& ch = m_chars [i];
-			std::memcpy (current, ch.getBuf (), ch.size ());
-			current += ch.size ();
-		}
-		return result;
-	}
-
+	/*
 	StrUTF8 operator+ (const StrUTF8& a, const StrUTF8& b)
 	{
 		StrUTF8 result (a);
 		result += b;
 		return result;
 	}
+	*/
 }
