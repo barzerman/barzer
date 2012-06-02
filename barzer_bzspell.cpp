@@ -847,6 +847,7 @@ struct WPCallback {
 		return 0;
 	}
 };
+
 struct WPCallback_2B {
 
     typedef std::vector< ay::Char2B > char_2b_vec;
@@ -873,6 +874,32 @@ struct WPCallback_2B {
 	}
 };
 
+struct WPCallback_Unicode
+{
+	BZSpell& bzs;
+	uint32_t fullStrId;
+	size_t varCount;
+	
+	WPCallback_Unicode (BZSpell& b, uint32_t id)
+	: bzs (b)
+	, fullStrId (id)
+	{
+	}
+
+	int operator() (ay::StrUTF8::const_iterator begin, ay::StrUTF8::const_iterator end)
+	{
+		std::vector<char> vec;
+		ay::StrUTF8::buildString (begin, end, std::back_inserter (vec));
+
+		GlobalPools& gp = bzs.getUniverse ().getGlobalPools ();
+		uint32_t strId = gp.string_intern (&vec [0]);
+		
+		bzs.addWordToLinkedWordsMap (strId, fullStrId);
+
+		++varCount;
+		return 0;
+	}
+};
 }
 
 size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
@@ -885,27 +912,37 @@ size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
     d_validTokenMap[ str ] = strId;
 
     size_t str_len = strlen( str );
-    if( lang == LANG_ENGLISH ) {
+	if( lang == LANG_ENGLISH ) {
 
-        if( str_len > d_minWordLengthToCorrect ) {
-            WPCallback cb( *this, strId );
-            ay::choose_n<char, WPCallback > variator( cb, str_len-1, str_len-1 );
-            variator( str, str+str_len );
-            return cb.varCount;
-        }
-    } else {
-        if( Lang::isTwoByteLang(lang) ) { /// includes russian
-            size_t numChars = str_len/2;
-            if( numChars > d_minWordLengthToCorrect ) {
-                WPCallback_2B cb( lang, *this, strId );
-                ay::choose_n<ay::Char2B, WPCallback_2B > variator( cb, numChars-1, numChars-1 );
-                variator( ay::Char2B_iterator(str), ay::Char2B_iterator(str+str_len) );
-                return cb.varCount;
-            }
-        } else { // utf8
-            #warning need to implement utf8 variator here
-        }
-    }
+		if( str_len > d_minWordLengthToCorrect ) {
+			WPCallback cb( *this, strId );
+			ay::choose_n<char, WPCallback > variator( cb, str_len-1, str_len-1 );
+			variator( str, str+str_len );
+			return cb.varCount;
+		}
+	} else if( Lang::isTwoByteLang(lang) ) { /// includes russian
+		size_t numChars = str_len/2;
+		if( numChars > d_minWordLengthToCorrect ) {
+			WPCallback_2B cb( lang, *this, strId );
+			ay::choose_n<ay::Char2B, WPCallback_2B > variator( cb, numChars-1, numChars-1 );
+			variator( ay::Char2B_iterator(str), ay::Char2B_iterator(str+str_len) );
+			return cb.varCount;
+		}
+	}
+	else
+	{
+		ay::StrUTF8 uni (str);
+		const size_t numGlyphs = uni.size ();
+		if (numGlyphs <= d_minWordLengthToCorrect)
+			return 0;
+		
+		WPCallback_Unicode cb (*this, strId);
+		
+		ay::choose_n<ay::CharUTF8, WPCallback_Unicode> variator (cb, numGlyphs - 1, numGlyphs - 1);
+		variator (uni.begin (), uni.end ());
+		
+		return cb.varCount;
+	}
 	return 0;
 }
 
