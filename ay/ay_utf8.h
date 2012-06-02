@@ -78,18 +78,25 @@ namespace ay
 		inline size_t size () const { return m_chars.size (); }
 		size_t bytesCount () const;
 
-		char* buildString () const;
-
+		char* buildRawStr () const;
+		std::vector<char> buildStr () const;
+		
 		template<typename OutIterator>
-		OutIterator buildString (OutIterator out) const
+		inline static OutIterator buildString (StrUTF8::const_iterator begin, StrUTF8::const_iterator end, OutIterator out)
 		{
-			for (const_iterator i = begin (), e = end (); i != e; ++i)
+			for ( ; begin != end; ++begin)
 			{
-				const char *buf = i->getBuf ();
+				const char *buf = begin->getBuf ();
 				while (*buf)
 					++(out = *buf++);
 			}
 			return out;
+		}
+
+		template<typename OutIterator>
+		OutIterator buildString (OutIterator out) const
+		{
+			return buildString (begin (), end (), out);
 		}
 
 		inline std::ostream& print (std::ostream& out) const

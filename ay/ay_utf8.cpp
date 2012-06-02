@@ -124,7 +124,7 @@ namespace ay
 		return result;
 	}
 
-	char* StrUTF8::buildString () const
+	char* StrUTF8::buildRawStr () const
 	{
 		const size_t bytes = bytesCount ();
 		char *result = new char [bytes + 1];
@@ -136,6 +136,19 @@ namespace ay
 			current += ch.size ();
 		}
 		result [bytes] = 0;
+		return result;
+	}
+	
+	std::vector<char> StrUTF8::buildStr () const
+	{
+		std::vector<char> result (bytesCount () + 1, 0);
+		char *current = &result [0];
+		for (size_t i = 0, sz = size (); i < sz; ++i)
+		{
+			const CharUTF8& ch = m_chars [i];
+			std::memcpy (current, ch.getBuf (), ch.size ());
+			current += ch.size ();
+		}
 		return result;
 	}
 
