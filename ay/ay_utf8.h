@@ -4,6 +4,7 @@
 #include <vector>
 #include <iterator>
 #include <cstddef>
+#include <boost/bind.hpp>
 #include "ay_headers.h"
 
 namespace ay
@@ -57,6 +58,13 @@ namespace ay
 		{
 			m_buf.pop_back ();
 			m_positions.pop_back ();
+		}
+
+		inline void addSymbol (const CharUTF8& t)
+		{
+			m_positions.push_back (m_buf.size ());
+			const char *buf = t.getBuf ();
+			m_buf.insert (m_buf.end (), buf, buf + t.size ());
 		}
 	public:
 		class iterator;
@@ -355,7 +363,13 @@ namespace ay
 
 		StrUTF8 ();
 		StrUTF8 (const char*);
-		StrUTF8 (const StrUTF8&);
+
+		template<typename Iter>
+		StrUTF8 (Iter begin, Iter end)
+		{
+			std::for_each (begin, end, boost::bind (&ay::StrUTF8::addSymbol, this, _1));
+			appendZero ();
+		}
 
 		const char* c_str () const { return &m_buf [0]; }
 		inline size_t size () const { return m_positions.size () - 1; }
@@ -404,11 +418,7 @@ namespace ay
 		inline void push_back (const value_type& t)
 		{
 			removeZero ();
-
-			m_positions.push_back (m_buf.size ());
-			const char *buf = t.getBuf ();
-			m_buf.insert (m_buf.end (), buf, buf + t.size ());
-
+			addSymbol (t);
 			appendZero ();
 		}
 
