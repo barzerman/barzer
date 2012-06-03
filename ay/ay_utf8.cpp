@@ -6,12 +6,6 @@
 
 namespace ay
 {
-	CharUTF8::CharUTF8 ()
-	: m_size (0)
-	{
-		std::memset (m_buf, 0, MaxBytes);
-	}
-
 	/*
 	 * Bits	Last cp			Byte 1		Byte 2		Byte 3		Byte 4
 	 * 7	U+007F			0xxxxxxx
@@ -25,7 +19,7 @@ namespace ay
 	 * 5 →     110 → 0x6
 	 * 7 →       0 → 0x0
 	 */
-    /* what is this for? i dont know (AY)
+    /* 
 	CharUTF8::CharUTF8 (const char *beginning)
 	: m_size (1)
 	, m_int (0)
@@ -40,79 +34,4 @@ namespace ay
 	}
     */ 
 
-	StrUTF8::StrUTF8 ()
-	{
-		appendZero ();
-	}
-
-	StrUTF8::StrUTF8 (const char *string)
-	{
-		const char *begin = string;
-
-		size_t lastPos = 0;
-		while (*string)
-		{
-			const size_t glyphSize = CharUTF8 (string).size ();
-			m_positions.push_back (lastPos);
-			lastPos += glyphSize;
-			string += glyphSize;
-		}
-
-		m_buf.reserve (lastPos);
-		std::copy (begin, string, std::back_inserter (m_buf));
-		appendZero ();
-	}
-
-	void StrUTF8::clear ()
-	{
-		m_buf.clear ();
-		m_positions.clear ();
-
-		appendZero ();
-	}
-
-	/*
-
-	StrUTF8& StrUTF8::operator+= (const StrUTF8& other)
-	{
-		std::copy (other.begin (), other.end (), std::back_inserter (*this));
-		return *this;
-	}
-
-	StrUTF8::iterator StrUTF8::erase (StrUTF8::iterator pos)
-	{
-		return m_chars.erase (pos);
-	}
-
-	StrUTF8::iterator StrUTF8::erase (StrUTF8::iterator first, StrUTF8::iterator last)
-	{
-		return m_chars.erase (first, last);
-	}
-
-	void StrUTF8::insert (StrUTF8::iterator at, const StrUTF8::value_type& c)
-	{
-		m_chars.insert (at, c);
-	}
-
-	void StrUTF8::insert (StrUTF8::iterator at, const StrUTF8& str)
-	{
-		m_chars.insert (at, str.begin (), str.end ());
-	}
-	*/
-
-	void StrUTF8::swap (StrUTF8::iterator first, StrUTF8::iterator second)
-	{
-		const CharUTF8& tmp = *first;
-		*first = *second;
-		*second = tmp;
-	}
-
-	/*
-	StrUTF8 operator+ (const StrUTF8& a, const StrUTF8& b)
-	{
-		StrUTF8 result (a);
-		result += b;
-		return result;
-	}
-	*/
 }
