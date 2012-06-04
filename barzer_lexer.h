@@ -78,7 +78,12 @@ class QLexParser {
         return getStoredToken(tmpId, str );
     }
     // inlined in the cpp
-    bool trySplitCorrect (
+    bool trySplitCorrect(
+        SpellCorrectResult& corrResult, 
+        QLexParser_LocalParms& parms 
+    );
+    /// 
+    bool trySplitCorrectUTF8(
         SpellCorrectResult& corrResult, 
         QLexParser_LocalParms& parms 
     );

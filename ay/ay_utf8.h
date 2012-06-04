@@ -106,6 +106,11 @@ namespace ay
 			m_buf.insert(m_buf.end(), t.getBuf(), t.getBuf_end() );
 		}
 	public:
+        const char* getGlyphStart( size_t g ) const
+            { return &m_buf[ m_positions[g] ]; }
+        const char* getGlyphEnd( size_t g ) const
+            { return ( (g+1)< m_positions.size() ? &(m_buf[ m_positions[g+1]]): &(m_buf[m_buf.size()]) ); }
+
 		class iterator;
 		class const_iterator;
 		class MutableProxy {
@@ -304,13 +309,14 @@ namespace ay
 		typedef std::reverse_iterator<iterator> reverse_iterator;
 		typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 
-		StrUTF8() {appendZero ();}
-
-		StrUTF8(const char*s)
+        StrUTF8& assign( const char*s, const char* s_end=0 )
         {
 		    const char *begin = s;
 		    size_t lastPos = 0;
-		    while(*s) {
+            if( !s_end ) 
+                s_end = s+strlen(s);
+
+		    while(s< s_end) {
 			    const size_t glyphSize = CharUTF8(s).size();
 			    m_positions.push_back (lastPos);
 			    lastPos += glyphSize;
@@ -320,7 +326,18 @@ namespace ay
 		    m_buf.reserve (lastPos);
 		    std::copy (begin, s, std::back_inserter (m_buf));
 		    appendZero ();
+            return *this;
         }
+        StrUTF8& assign( const StrUTF8& o, size_t fromGlyph, size_t numGlyphs ) 
+            { return assign( o.getGlyphStart(fromGlyph), o.getGlyphEnd(fromGlyph+numGlyphs) ); }
+
+		StrUTF8() {appendZero ();}
+
+		StrUTF8(const char*s)
+            { assign(s); }
+
+		StrUTF8(const char*s, size_t s_sz )
+            { assign(s,s+s_sz); }
 
 		template<typename Iter>
 		StrUTF8 (Iter begin, Iter end)

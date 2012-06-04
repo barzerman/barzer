@@ -562,6 +562,10 @@ struct QLexParser_LocalParms {
 
 };
 
+inline bool QLexParser::trySplitCorrectUTF8 ( SpellCorrectResult& corrResult, QLexParser_LocalParms& parm )
+{
+    return false;
+}
 inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexParser_LocalParms& parm )
 {
     PosedVec<CTWPVec>& cPosVec      = parm.cPosVec;
@@ -578,108 +582,103 @@ inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexPa
 
 	const GlobalPools& gp = d_universe.getGlobalPools();
     if( Lang::isUtf8Lang (lang) ) {
-    #warning NEED to implement split correct for utf8
-    return false;
+        return trySplitCorrectUTF8( corrResult, parm );
     } else {
-    const size_t MultiwordLen = BZSpell::MAX_WORD_LEN / 4;
-    if (strId == 0xffffffff && t_len < MultiwordLen) {
-        char dirty [BZSpell::MAX_WORD_LEN];
-        const size_t step = Lang::isTwoByteLang(lang) ? 2 : 1;
-        const size_t theString_numChar = strlen(theString)/step;
-        for (size_t i = step; i < t_len - step; i += step)
-        {
-            std::memcpy (dirty, theString, i);
-            dirty [i] = 0;
-            //uint32_t tmpTokId = 0xffffffff;
-            // ( bzSpell->isUsersWord( tmpTokId, dirty ) ? dtaIdx->getStoredToken( dirty ) : 0 );
-
-            // const StoredToken* tmpTok = ( bzSpell->isUsersWord( tmpTokId, dirty ) ? dtaIdx->getStoredToken( dirty ) : 0 );
-            const StoredToken* tmpTok = getStoredToken( dirty );
-            uint32_t left = 0xffffffff;
-            if( !tmpTok || tmpTok->isStemmed() ) { // if no token found or token is pure stem
-                if( i < MIN_SPELL_CORRECT_LEN*step )
+        const size_t MultiwordLen = BZSpell::MAX_WORD_LEN / 4;
+        if (strId == 0xffffffff && t_len < MultiwordLen) {
+            char dirty [BZSpell::MAX_WORD_LEN];
+            const size_t step = Lang::isTwoByteLang(lang) ? 2 : 1;
+            const size_t theString_numChar = strlen(theString)/step;
+            for (size_t i = step; i < t_len - step; i += step)
+            {
+                std::memcpy (dirty, theString, i);
+                dirty [i] = 0;
+                const StoredToken* tmpTok = getStoredToken( dirty );
+                uint32_t left = 0xffffffff;
+                if( !tmpTok || tmpTok->isStemmed() ) { // if no token found or token is pure stem
+                    if( i < MIN_SPELL_CORRECT_LEN*step )
+                        continue;
+                    else
+                        left = bzSpell->getSpellCorrection (dirty,false,lang);
+                } else
+                    left = tmpTok->getStringId() ;
+    
+                if (left == 0xffffffff)
                     continue;
-                else
-                    left = bzSpell->getSpellCorrection (dirty,false,lang);
-            } else
-                left = tmpTok->getStringId() ;
+    
+                const char* rightDirty = theString + i;
+    
+                tmpTok = getStoredToken( rightDirty );
 
-            if (left == 0xffffffff)
-                continue;
-
-            const char* rightDirty = theString + i;
-
-            tmpTok = getStoredToken( rightDirty );
-            // tmpTok = ( bzSpell->isUsersWord( tmpTokId, rightDirty ) ? dtaIdx->getStoredToken( rightDirty ) : 0 ); 
-            uint32_t right = 0xffffffff;
-            if( !tmpTok ) {
-                if( t_len - step- i < MIN_SPELL_CORRECT_LEN*step )
+                uint32_t right = 0xffffffff;
+                if( !tmpTok ) {
+                    if( t_len - step- i < MIN_SPELL_CORRECT_LEN*step )
+                        continue;
+                    else {
+                        if( i< 4*step || ((t_len - step -i) < 4*step) ) {
+                            std::string stemmedStr;
+                            right = bzSpell->getStemCorrection( stemmedStr, rightDirty );
+                        } else 
+                            right = bzSpell->getSpellCorrection (rightDirty,false,lang) ;
+                    }
+                } else
+                    right = tmpTok->getStringId() ;
+    
+                if (right == 0xffffffff)
                     continue;
-                else {
-                    if( i< 4*step || ((t_len - step -i) < 4*step) ) {
-                        std::string stemmedStr;
-                        right = bzSpell->getStemCorrection( stemmedStr, rightDirty );
-                    } else 
-                        right = bzSpell->getSpellCorrection (rightDirty,false,lang) ;
+    
+                const char *leftCorr = gp.string_resolve (left);
+                const char *rightCorr = gp.string_resolve (right);
+                size_t leftCorr_numChar, rightCorr_numChar;
+                if( step == 1 ) {
+                    leftCorr_numChar = strlen(leftCorr);
+                    rightCorr_numChar = strlen(rightCorr);
+                } else {
+                    leftCorr_numChar = strlen(leftCorr)/step;
+                    rightCorr_numChar = strlen(rightCorr)/step;
                 }
-            } else
-                right = tmpTok->getStringId() ;
-
-            if (right == 0xffffffff)
-                continue;
-
-            const char *leftCorr = gp.string_resolve (left);
-            const char *rightCorr = gp.string_resolve (right);
-            size_t leftCorr_numChar, rightCorr_numChar;
-            if( step == 1 ) {
-                leftCorr_numChar = strlen(leftCorr);
-                rightCorr_numChar = strlen(rightCorr);
-            } else {
-                leftCorr_numChar = strlen(leftCorr)/step;
-                rightCorr_numChar = strlen(rightCorr)/step;
+                if( abs(leftCorr_numChar + rightCorr_numChar -theString_numChar) > 1 )
+                    continue;
+                if( 
+                    (leftCorr_numChar < 4 && !getStoredToken(leftCorr)) 
+                    || 
+                    (rightCorr_numChar < 4 && !getStoredToken(rightCorr)) 
+                ) 
+                    continue;
+    
+                CToken newTok = ctok;
+                // newTok.addSpellingCorrection (t, rightCorr);
+                const StoredToken *st = getStoredToken(rightCorr);
+                if (st)
+                {
+                    newTok.storedTok = st;
+                    newTok.syncClassInfoFromSavedTok ();
+                }
+                else
+                    newTok.setClass (CTokenClassInfo::CLASS_MYSTERY_WORD);
+    
+                std::string reportedCorrection(leftCorr);
+                reportedCorrection.reserve( 4+strlen(rightCorr) );
+                reportedCorrection.push_back( ' ' );
+                reportedCorrection += rightCorr;
+    
+                ctok.addSpellingCorrection (t, reportedCorrection.c_str());
+                st = getStoredToken (leftCorr);
+                if (st)
+                {
+                    ctok.storedTok = st;
+                    ctok.syncClassInfoFromSavedTok ();
+                }
+                else
+                    ctok.setClass (CTokenClassInfo::CLASS_MYSTERY_WORD);
+    
+                ++cPosVec;
+    
+                cPosVec.vec().insert (cPosVec.posIterator(), std::make_pair (newTok, cPosVec.pos() ));
+                return ( corrResult=SpellCorrectResult(1, ++cPosVec, ++tPosVec), true);
             }
-            if( abs(leftCorr_numChar + rightCorr_numChar -theString_numChar) > 1 )
-                continue;
-            if( 
-                (leftCorr_numChar < 4 && !getStoredToken(leftCorr)) 
-                || 
-                (rightCorr_numChar < 4 && !getStoredToken(rightCorr)) 
-            ) 
-                continue;
-
-            CToken newTok = ctok;
-            // newTok.addSpellingCorrection (t, rightCorr);
-            const StoredToken *st = getStoredToken(rightCorr);
-            if (st)
-            {
-                newTok.storedTok = st;
-                newTok.syncClassInfoFromSavedTok ();
-            }
-            else
-                newTok.setClass (CTokenClassInfo::CLASS_MYSTERY_WORD);
-
-            std::string reportedCorrection(leftCorr);
-            reportedCorrection.reserve( 4+strlen(rightCorr) );
-            reportedCorrection.push_back( ' ' );
-            reportedCorrection += rightCorr;
-
-            ctok.addSpellingCorrection (t, reportedCorrection.c_str());
-            st = getStoredToken (leftCorr);
-            if (st)
-            {
-                ctok.storedTok = st;
-                ctok.syncClassInfoFromSavedTok ();
-            }
-            else
-                ctok.setClass (CTokenClassInfo::CLASS_MYSTERY_WORD);
-
-            ++cPosVec;
-
-            cPosVec.vec().insert (cPosVec.posIterator(), std::make_pair (newTok, cPosVec.pos() ));
-            return ( corrResult=SpellCorrectResult(1, ++cPosVec, ++tPosVec), true);
         }
-    }
-    return false;
+        return false;
     }
 }
 
