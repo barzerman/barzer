@@ -5,6 +5,7 @@
 #include <sstream>
 #include <ay_char.h>
 #include <barzer_barz.h>
+#include <ay_utf8.h>
 
 namespace barzer {
 bool QLexParser::tryClassify_number( CToken& ctok, const TToken& ttok ) const
@@ -564,6 +565,21 @@ struct QLexParser_LocalParms {
 
 inline bool QLexParser::trySplitCorrectUTF8 ( SpellCorrectResult& corrResult, QLexParser_LocalParms& parm )
 {
+    ay::StrUTF8 fullStr(parm.theString);
+    size_t glyphCount = fullStr.getGlyphCount();
+    enum { MIN_SPLIT_SPELL_CORRECT = 6 };
+
+    if( glyphCount < MIN_SPLIT_SPELL_CORRECT )
+        return false;
+    size_t lastGlyph = glyphCount-1;
+    ay::StrUTF8 left, right; 
+    for( size_t i = 1; i< lastGlyph; ++i ) {
+        left.assign( fullStr, 0, i );
+        right.assign( fullStr, i+1, lastGlyph );
+        
+        // std::cerr << "SHIT:\"" << (const char*)left << "\", \"" << (const char*)right << std::endl;
+    }
+    
     return false;
 }
 inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexParser_LocalParms& parm )
@@ -581,12 +597,12 @@ inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexPa
     const char* t                    = parm.t;
 
 	const GlobalPools& gp = d_universe.getGlobalPools();
-    if( Lang::isUtf8Lang (lang) ) {
+    if( Lang::isUtf8Lang(lang) ) {
         return trySplitCorrectUTF8( corrResult, parm );
     } else {
         const size_t MultiwordLen = BZSpell::MAX_WORD_LEN / 4;
         if (strId == 0xffffffff && t_len < MultiwordLen) {
-            char dirty [BZSpell::MAX_WORD_LEN];
+            char dirty[BZSpell::MAX_WORD_LEN];
             const size_t step = Lang::isTwoByteLang(lang) ? 2 : 1;
             const size_t theString_numChar = strlen(theString)/step;
             for (size_t i = step; i < t_len - step; i += step)

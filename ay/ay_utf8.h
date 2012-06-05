@@ -4,7 +4,6 @@
 #include <vector>
 #include <iterator>
 #include <cstddef>
-#include <boost/bind.hpp>
 #include <stdint.h>
 #include <ay/ay_headers.h>
 
@@ -342,14 +341,16 @@ namespace ay
 		template<typename Iter>
 		StrUTF8 (Iter begin, Iter end)
 		{
-			std::for_each(begin, end, boost::bind (&ay::StrUTF8::addSymbol, this, _1));
+            for( Iter i = begin; i!= end; ++i ) addSymbol(*i);
 			appendZero ();
 		}
 
-		const char*     c_str() const           { return &m_buf [0]; }
-		inline size_t   size() const            { return m_positions.size () - 1; }
+		const char*     c_str() const           { return &m_buf[0]; }
+        operator const char* () { return c_str(); }
+
+		inline size_t   size() const            { return m_positions.size()-1; }
 		inline size_t   getGlyphCount() const   { return size(); }
-		inline size_t   bytesCount() const      { return m_buf.size (); }
+		inline size_t   bytesCount() const      { return m_buf.size(); }
 
 		inline void clear() {
             m_buf.clear();
