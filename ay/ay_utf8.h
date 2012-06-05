@@ -58,6 +58,23 @@ namespace ay
             { return( d_size=o.d_size, d_data.u4=o.d_data.u4, *this ); }
 
 		bool operator== (const CharUTF8& o) const { return ( d_data.u4 == o.d_data.u4); }
+		bool operator== (char o) const { return (!d_data.c4[1] && d_data.c4[0] == o); }
+		bool operator== (const char* o) const { 
+            return (
+            ( o[0] == d_data.c4[0]) && (
+                !o[0] || (
+                    (o[1] == d_data.c4[1]) && ( 
+                        !o[1] || (
+                            (o[2] == d_data.c4[2]) &&
+                            ( !o[2] || ((o[3] == d_data.c4[3]) && (!o[3]||!o[4])) )
+                          )
+                        )
+                    )
+                )
+            );
+        }
+
+
 		bool operator<  (const CharUTF8& o) const { return ( d_data.u4 < o.d_data.u4); }
 
 		inline size_t size() const { return d_size; }
