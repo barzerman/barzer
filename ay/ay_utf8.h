@@ -28,9 +28,9 @@ namespace ay
 
             const uint8_t *s = (const uint8_t*) ss;
             s[0]                && (d_data.c4[0]=s[0],d_size=1,s[1]) &&
-            (s[1]>>5) >= 0x6    && (d_data.c4[1]=s[1],d_size=2,s[2]) &&
-            (s[2]>>4) >= 0xE    && (d_data.c4[2]=s[2],d_size=3,s[3]) &&
-            (s[3]>>3) >= 0x1E   && (d_data.c4[3]=s[3],d_size=4);
+            (s[0]>>5) >= 0x6    && (d_data.c4[1]=s[1],d_size=2,s[2]) &&
+            (s[0]>>4) >= 0xE    && (d_data.c4[2]=s[2],d_size=3,s[3]) &&
+            (s[0]>>3) >= 0x1E   && (d_data.c4[3]=s[3],d_size=4);
         }
         void assign(  const char *ss, size_t s_sz )
         {
@@ -39,9 +39,9 @@ namespace ay
 
             const uint8_t *s = (const uint8_t *) ss;
             s[0]                && (d_data.c4[0]=s[0],d_size=1,s[1]&&d_size<s_sz) &&
-            (s[1]>>5) >= 0x6    && (d_data.c4[1]=s[1],d_size=2,s[2]&&d_size<s_sz) &&
-            (s[2]>>4) >= 0xE    && (d_data.c4[2]=s[2],d_size=3,s[3]&&d_size<s_sz) &&
-            (s[3]>>3) >= 0x1E   && (d_data.c4[3]=s[3],d_size=4);
+            (s[0]>>5) >= 0x6    && (d_data.c4[1]=s[1],d_size=2,s[2]&&d_size<s_sz) &&
+            (s[0]>>4) >= 0xE    && (d_data.c4[2]=s[2],d_size=3,s[3]&&d_size<s_sz) &&
+            (s[0]>>3) >= 0x1E   && (d_data.c4[3]=s[3],d_size=4);
         }
 
 		CharUTF8() : d_null(0),d_size(0) { d_data.u4=0; }
