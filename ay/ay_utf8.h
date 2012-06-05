@@ -5,7 +5,7 @@
 #include <iterator>
 #include <cstddef>
 #include <stdint.h>
-#include <ay/ay_headers.h>
+#include "ay_headers.h"
 
 namespace ay
 {
@@ -72,7 +72,7 @@ namespace ay
         char getChar1() const { return d_data.c4[1]; }
         char getChar2() const { return d_data.c4[2]; }
         char getChar3() const { return d_data.c4[3]; }
-        
+
         bool isAscii() const { return( d_size== 1 && isascii(d_data.c4[0]) ); }
 	};
 
@@ -112,56 +112,78 @@ namespace ay
 
 		class iterator;
 		class const_iterator;
-		class MutableProxy {
+
+		class CharWrapper
+		{
 			friend class StrUTF8;
-			friend class StrUTF8::iterator;
-
 			StrUTF8 *m_str;
-			size_t   m_glyph;
 
-			mutable CharUTF8 m_cachedChar;
-
-			inline MutableProxy(size_t glyphPos, StrUTF8 *str) : 
-                m_str(str) , m_glyph(glyphPos) { }
-
-			inline void updatePos(size_t newGlyph)
-                { m_glyph = newGlyph; }
+			CharUTF8 m_ch;
+			const size_t m_glyph;
+			bool m_modified;
+			
+			CharWrapper(StrUTF8 *str, size_t glyph)
+			: m_str(str)
+			, m_ch(str->getGlyph (glyph))
+			, m_glyph(glyph)
+			, m_modified(false)
+			{
+			}
 		public:
-			inline MutableProxy& operator= (const CharUTF8& ch)
-                { return( m_str->setGlyph(m_glyph, ch), *this ); }
-
-			inline MutableProxy& operator= (const MutableProxy& other)
-                { return( m_str->setGlyph (m_glyph, other), *this ); }
-
-			inline operator CharUTF8 () const
-                { return m_str->getGlyph (m_glyph); }
-
-			inline size_t size () const
-                { return m_str->getGlyph (m_glyph).size (); }
-
-			inline const char* getBuf () const
-                { return m_str->getGlyph(m_glyph).getBuf(); }
-
-			inline CharUTF8& getCachedChar ()
+			CharWrapper& operator=(const CharUTF8& ch)
 			{
-				m_cachedChar = *this;
-				return m_cachedChar;
+				m_ch = ch;
+				modified();
+				return *this;
 			}
 
-			inline const CharUTF8& getCachedChar () const
+			CharWrapper& operator=(const CharWrapper& ch)
 			{
-				m_cachedChar = *this;
-				return m_cachedChar;
+				m_ch = ch.m_ch;
+				modified();
+				return *this;
 			}
 
-			inline size_t glyphNum() const
-			    { return m_glyph; }
+			CharUTF8& operator*()
+			{
+				modified();
+				return m_ch;
+			}
+			
+			const CharUTF8& operator*() const
+			{
+				return m_ch;
+			}
 
-			inline bool isEqual (const MutableProxy& other) const
-                { return (m_str == other.m_str && m_glyph == other.m_glyph); }
+			operator CharUTF8() const
+			{
+				return m_ch;
+			}
 
-			inline bool isLess (const MutableProxy& other) const
-                { return ( m_str != other.m_str ?  m_str < other.m_str : m_glyph < other.m_glyph); }
+			operator CharUTF8&()
+			{
+				modified();
+				return m_ch;
+			}
+
+			CharUTF8* operator->()
+			{
+				modified();
+				return &m_ch;
+			}
+
+			const CharUTF8* operator->() const
+			{
+				return &m_ch;
+			}
+
+			~CharWrapper()
+			{
+				if (m_modified)
+					m_str->setGlyph(m_glyph, m_ch);
+			}
+		private:
+			inline void modified() { m_modified = true; }
 		};
 
 		typedef CharUTF8 value_type;
@@ -199,74 +221,77 @@ namespace ay
 		template<typename T>
 		struct DiffMixin
 		{
-            inline T* t_ptr() { return static_cast<T*> (this); }
-            inline const T* t_const_ptr() const { return static_cast<const T*> (this); }
-			inline T& operator++ ()
-                { T *t = t_ptr(); return t->setSymb (t->getSymb () + 1); }
+			inline T* t_ptr() { return static_cast<T*> (this); }
+			inline const T* t_const_ptr() const { return static_cast<const T*> (this); }
+			inline T& operator++()
+                { T *t = t_ptr(); return t->setSymb(t->getSymb() + 1); }
 
-			inline T operator++ (int)
-                { T t = *t_ptr(); return t.setSymb (t.getSymb () + 1); }
+			inline T operator++(int)
+                { T t = *t_ptr(); return t.setSymb(t.getSymb() + 1); }
 
-			inline T& operator-- ()
-                { T *t = t_ptr(); return t->setSymb (t->getSymb () - 1); }
+			inline T& operator--()
+                { T *t = t_ptr(); return t->setSymb(t->getSymb() - 1); }
 
-			inline T operator-- (int)
-                { T t = *t_ptr(); return t.setSymb (t.getSymb () - 1); }
+			inline T operator--(int)
+                { T t = *t_ptr(); return t.setSymb(t.getSymb() - 1); }
 
-			inline T& operator+= (int j)
-                { T *t = t_ptr(); return t->setSymb (t->getSymb () + j); }
+			inline T& operator+=(int j)
+                { T *t = t_ptr(); return t->setSymb(t->getSymb() + j); }
 
-			inline T& operator-= (int j)
-                { T *t = t_ptr(); return t->setSymb (t->getSymb () - j); }
+			inline T& operator-=(int j)
+                { T *t = t_ptr(); return t->setSymb(t->getSymb() - j); }
 
-			inline T operator+ (int j) const
-                { T t = *t_const_ptr(); return t.setSymb (t.getSymb () + j); }
+			inline T operator+(int j) const
+                { T t = *t_const_ptr(); return t.setSymb(t.getSymb() + j); }
 
-			inline T operator- (int j) const
-                { T t = *t_const_ptr(); return t.setSymb (t.getSymb () - j); }
+			inline T operator-(int j) const
+                { T t = *t_const_ptr(); return t.setSymb(t.getSymb() - j); }
 
-			inline ptrdiff_t operator- (const T& other) const
+			inline ptrdiff_t operator-(const T& other) const
 			{
 				const T *thisT = static_cast<const T*> (this);
 				const T *otherT = static_cast<const T*> (&other);
-				return thisT->getSymb () - otherT->getSymb ();
+				return thisT->getSymb() - otherT->getSymb();
 			}
 		};
 
-		class iterator : public CmpMixin<iterator> , public DiffMixin<iterator> {
-			MutableProxy m_proxy;
+		class iterator : public CmpMixin<iterator> , public DiffMixin<iterator>
+		{
+			StrUTF8 *m_str;
+			size_t m_pos;
 
 			friend class const_iterator;
 			friend struct DiffMixin<iterator>;
 		public:
 			typedef std::random_access_iterator_tag iterator_category;
-			typedef MutableProxy value_type;
-			typedef MutableProxy& reference;
-			typedef MutableProxy *pointer;
+			typedef CharWrapper value_type;
+			typedef CharWrapper& reference;
+			typedef CharWrapper pointer;
 			typedef ptrdiff_t difference_type;
 
-			inline iterator (StrUTF8 *str = 0, size_t pos = 0)
-			: m_proxy (pos, str)
+			inline iterator(StrUTF8 *str = 0, size_t pos = 0)
+			: m_str(str)
+			, m_pos(pos)
 			{
 			}
 
-			inline MutableProxy& operator* ()
-                { return m_proxy; }
+			inline CharWrapper operator*()
+                { return CharWrapper(m_str, m_pos); }
 
-			inline MutableProxy* operator-> ()
-                { return &m_proxy; }
+			inline CharWrapper operator->()
+                { return CharWrapper(m_str, m_pos); }
 
 			inline bool operator== (const iterator& other) const
-                { return m_proxy.isEqual (other.m_proxy); }
+                { return m_pos == other.m_pos && m_str == other.m_str; }
 
 			inline bool operator< (const iterator& other) const
-                { return m_proxy.isLess (other.m_proxy); }
+                { return m_str == other.m_str ? m_pos < other.m_pos : m_str < other.m_str; }
 		private:
 			inline size_t getSymb () const
-                { return m_proxy.m_glyph; }
+                { return m_pos; }
 
 			inline iterator& setSymb (size_t glyph)
-                { return( m_proxy.m_glyph = glyph,*this); }
+                { m_pos = glyph; return *this; }
 		};
 
 		class const_iterator : public CmpMixin<const_iterator> , public DiffMixin<const_iterator> {
@@ -286,7 +311,7 @@ namespace ay
 			inline const_iterator (const StrUTF8 *str = 0, size_t pos = 0) : m_str (str) , m_pos (pos) { }
 
 			inline explicit const_iterator (const iterator& iterator) : 
-                m_str (iterator.m_proxy.m_str) , m_pos (iterator.m_proxy.m_glyph) { }
+                m_str (iterator.m_str) , m_pos (iterator.m_pos) { }
 
 			inline CharUTF8 operator* () const
                 { return m_str->getGlyph (m_pos); }
@@ -358,7 +383,7 @@ namespace ay
             appendZero();
         }
 
-		inline MutableProxy operator[] (size_t pos) { return MutableProxy(pos, this); }
+		inline CharWrapper operator[] (size_t pos) { return CharWrapper(this, pos); }
 
 		inline CharUTF8 operator[] (size_t glyphNum) const { return getGlyph(glyphNum); }
 
