@@ -83,7 +83,7 @@ namespace ay
 		const char* getBuf() const { return d_data.c4; }
 		const char* getBuf_end() const { return &(d_data.c4[d_size]); }
 
-        operator const char* () { return d_data.c4; }
+        operator const char* () const { return d_data.c4; }
 
         char getChar0() const { return d_data.c4[0]; }
         char getChar1() const { return d_data.c4[1]; }
@@ -92,7 +92,8 @@ namespace ay
 
         bool isAscii() const { return( d_size== 1 && isascii(d_data.c4[0]) ); }
 	};
-
+    inline std::ostream& operator <<( std::ostream& fp, const CharUTF8& c )
+        { return fp << (const char*) (c); }
 	// Represents a UTF-8 string.
 	class StrUTF8
 	{
@@ -137,6 +138,7 @@ namespace ay
 
 			CharUTF8 m_ch;
 			const size_t m_glyph;
+            #warning remove this 
 			bool m_modified;
 			
 			CharWrapper(StrUTF8 *str, size_t glyph)
@@ -149,6 +151,7 @@ namespace ay
 		public:
 			CharWrapper& operator=(const CharUTF8& ch)
 			{
+                #warning needs to call setglyph
 				m_ch = ch;
 				modified();
 				return *this;
@@ -156,6 +159,7 @@ namespace ay
 
 			CharWrapper& operator=(const CharWrapper& ch)
 			{
+                #warning needs to call setglyph
 				m_ch = ch.m_ch;
 				modified();
 				return *this;
@@ -196,6 +200,7 @@ namespace ay
 
 			~CharWrapper()
 			{
+                #warning this needs to go 
 				if (m_modified)
 					m_str->setGlyph(m_glyph, m_ch);
 			}
@@ -243,14 +248,8 @@ namespace ay
 			inline T& operator++()
                 { T *t = t_ptr(); return t->setSymb(t->getSymb() + 1); }
 
-			inline T operator++(int)
-                { T t = *t_ptr(); return t.setSymb(t.getSymb() + 1); }
-
 			inline T& operator--()
                 { T *t = t_ptr(); return t->setSymb(t->getSymb() - 1); }
-
-			inline T operator--(int)
-                { T t = *t_ptr(); return t.setSymb(t.getSymb() - 1); }
 
 			inline T& operator+=(int j)
                 { T *t = t_ptr(); return t->setSymb(t->getSymb() + j); }
@@ -309,6 +308,7 @@ namespace ay
 
 			inline iterator& setSymb (size_t glyph)
                 { m_pos = glyph; return *this; }
+            size_t getPos() const { return m_pos; }
 		};
 
 		class const_iterator : public CmpMixin<const_iterator> , public DiffMixin<const_iterator> {
@@ -412,6 +412,7 @@ namespace ay
 
 		inline void setGlyph (size_t glyphNum, const CharUTF8& glyph)
 		{
+            #warning this is fucked up needs to recompute all offsets 
 			const size_t pos = m_positions [glyphNum];
 			const size_t wasEnd = m_positions [glyphNum + 1];
 			const size_t wasSize = wasEnd - pos;
