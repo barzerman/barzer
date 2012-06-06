@@ -49,6 +49,8 @@ namespace ay
             { assign(s); }
 		CharUTF8 (const char *s, size_t s_sz) : d_null(0), d_size(0) 
             { assign(s,s_sz); }
+		CharUTF8 (const char *s, const char* s_end) : d_null(0), d_size(0) 
+            { assign(s,(s_end-s)); }
 
 		CharUTF8 (const CharUTF8& o): d_null(0), d_size(o.d_size) 
             { d_data.u4 = o.d_data.u4; }
@@ -91,6 +93,17 @@ namespace ay
         char getChar3() const { return d_data.c4[3]; }
 
         bool isAscii() const { return( d_size== 1 && isascii(d_data.c4[0]) ); }
+        // copies up to the first 0 byte 
+        inline void copyToBufNoNull( char* buf ) const 
+        {
+            
+            d_data.c4[0] && ( buf[0]= d_data.c4[0]) &&
+            d_data.c4[1] && ( buf[1]= d_data.c4[1]) &&
+            d_data.c4[2] && ( buf[2]= d_data.c4[2]) &&
+            d_data.c4[3] && ( buf[3]= d_data.c4[3]);
+        }
+        inline void copyToBufWithNull( char* buf ) const 
+            { copyToBufNoNull(buf); buf[d_size]=0; }
 	};
     inline std::ostream& operator <<( std::ostream& fp, const CharUTF8& c )
         { return fp << (const char*) (c); }
@@ -138,7 +151,6 @@ namespace ay
 
 			CharUTF8 m_ch;
 			const size_t m_glyph;
-            #warning remove this 
 			bool m_modified;
 			
 			CharWrapper(StrUTF8 *str, size_t glyph)
@@ -151,7 +163,6 @@ namespace ay
 		public:
 			CharWrapper& operator=(const CharUTF8& ch)
 			{
-                #warning needs to call setglyph
 				m_ch = ch;
 				modified();
 				return *this;
@@ -159,48 +170,21 @@ namespace ay
 
 			CharWrapper& operator=(const CharWrapper& ch)
 			{
-                #warning needs to call setglyph
 				m_ch = ch.m_ch;
 				modified();
 				return *this;
 			}
 
-			CharUTF8& operator*()
-			{
-				modified();
-				return m_ch;
-			}
-			
-			const CharUTF8& operator*() const
-			{
-				return m_ch;
-			}
+			CharUTF8&           operator*() { modified(); return m_ch; } 
+			const CharUTF8&     operator*() const { return m_ch; }
 
-			operator CharUTF8() const
-			{
-				return m_ch;
-			}
-
-			operator CharUTF8&()
-			{
-				modified();
-				return m_ch;
-			}
-
-			CharUTF8* operator->()
-			{
-				modified();
-				return &m_ch;
-			}
-
-			const CharUTF8* operator->() const
-			{
-				return &m_ch;
-			}
+			operator CharUTF8() const { return m_ch; }
+			operator CharUTF8&() { modified(); return m_ch; }
+			CharUTF8*           operator->() { modified(); return &m_ch; }
+			const CharUTF8*     operator->() const { return &m_ch; } 
 
 			~CharWrapper()
 			{
-                #warning this needs to go 
 				if (m_modified)
 					m_str->setGlyph(m_glyph, m_ch);
 			}
@@ -390,7 +374,7 @@ namespace ay
 		const char*     c_str() const           { return &m_buf[0]; }
         operator const char* () { return c_str(); }
 
-		inline size_t   size() const            { return m_positions.size()-1; }
+		inline size_t   size() const            { return (m_positions.size()-1); }
 		inline size_t   getGlyphCount() const   { return size(); }
 		inline size_t   bytesCount() const      { return m_buf.size(); }
 
@@ -406,25 +390,44 @@ namespace ay
 
 		inline CharUTF8 getGlyph(size_t glyphNum) const
 		{
-			const size_t pos = m_positions [glyphNum];
+			const size_t pos = m_positions[glyphNum];
 			return CharUTF8(&m_buf[pos],m_positions[glyphNum+1]-m_positions[glyphNum]);
 		}
+        size_t getGlyphSize(size_t g) const { 
+            size_t g1 = g+1;
+            return( g1 < m_positions.size() ? (m_positions[g1] - m_positions[g]) : 0 );
+        }
 
 		inline void setGlyph (size_t glyphNum, const CharUTF8& glyph)
 		{
-            #warning this is fucked up needs to recompute all offsets 
-			const size_t pos = m_positions [glyphNum];
-			const size_t wasEnd = m_positions [glyphNum + 1];
-			const size_t wasSize = wasEnd - pos;
-			m_buf.erase (m_buf.begin () + pos, m_buf.begin () + wasEnd);
+            if( glyphNum >= m_positions.size() ) 
+                return;
+            size_t readjustFrom = glyphNum+1;
+            size_t oldGlypSize = getGlyphSize(glyphNum);
 
-			const ptrdiff_t diff = wasSize - glyph.size ();
-			m_buf.insert(m_buf.begin () + pos, glyph.getBuf(), glyph.getBuf_end() );
+            char* glyphDest = &(m_buf[m_positions[glyphNum]]);
 
-			if (diff) {
-				for (std::vector<size_t>::iterator i = m_positions.begin () + glyphNum + 1, end = m_positions.end (); i != end; ++i)
-					*i += diff;
+            if( readjustFrom < m_positions.size() ) {
+                if( glyph.size()> oldGlypSize ) {       // new glyph is larger than the old one
+                    size_t adjustBy = glyph.size()-oldGlypSize;
+                    size_t fromByte = m_positions[readjustFrom], moveSz = m_buf.size()-fromByte;
+                    if( m_buf.capacity() < m_buf.size() + adjustBy ) 
+                        m_buf.resize( m_buf.size() + adjustBy );
+                    char* fromBuf = &( m_buf[fromByte] ), *toBuf   =fromBuf+adjustBy;
+                    memmove( toBuf, fromBuf, moveSz );
+                    // recomputing 
+                    for( size_t i = glyphNum+1;i< m_positions.size();++i ) m_positions[i]+= adjustBy;
+                } else 
+                if( glyph.size()< oldGlypSize ) {     // new glyph is smaller than the current (old)
+                    size_t adjustBy = oldGlypSize-glyph.size();
+                    size_t fromByte = m_positions[readjustFrom], moveSz = m_buf.size()-fromByte;
+                    char* fromBuf = &(m_buf[fromByte]), *toBuf= fromBuf+adjustBy;
+                    memmove( toBuf, fromBuf, moveSz );
+                    for( size_t i = glyphNum+1;i< m_positions.size();++i ) m_positions[i]-= adjustBy;
+                } 
             }
+            /// at this point m_positions[glyphNum] is ready to receive the token 
+            glyph.copyToBufNoNull( glyphDest );
 		}
 
 		inline void push_back (const value_type& t)
@@ -445,17 +448,44 @@ namespace ay
 		inline reverse_iterator rbegin ()       { return reverse_iterator (end ()); }
 		inline reverse_iterator rend ()         { return reverse_iterator (begin ()); }
 
-		inline const_reverse_iterator rbegin () const   { return const_reverse_iterator (end ()); }
-		inline const_reverse_iterator rend () const     { return const_reverse_iterator (begin ()); }
+		inline const_reverse_iterator rbegin () const   { return const_reverse_iterator (end()); }
+		inline const_reverse_iterator rend () const     { return const_reverse_iterator (begin()); }
 
-		void swap (iterator x, iterator y)
-        {
-            const CharUTF8& tmp = *x;
-            *x = *y;
-            *y = tmp;
-        }
 		void swap (size_t x, size_t y)
-            { swap( ith(x), ith(y) ); }
+            { 
+                if( x == y ) return;
+                else if( x> y ) std::swap(x,y);
+                /// guaranteed x< y
+                size_t y1 = y+1;
+                if( y1 >= m_positions.size() ) 
+                    return; 
+
+                size_t x_pos = m_positions[x], y_pos= m_positions[y], y_end_pos = m_positions[y1];
+                char* buf=  &(m_buf[x_pos]);
+                CharUTF8 xg(buf,&(m_buf[y_pos])), 
+                         yg(&(m_buf[y_pos]), &(m_buf[y_end_pos]));
+                if( x+1 == y ) { // swapping adjacent ones
+                    yg.copyToBufNoNull( buf );
+                    m_positions[y] = x_pos + yg.size();
+                    xg.copyToBufNoNull( buf + yg.size() );
+                } else {         // swapping remote ones 
+                    if( xg.size() != yg.size() ) {
+                        size_t x1=x+1,recomputeFrom = x1, recomputeTo = y1;
+                        if( yg.size() > xg.size() ) {
+                            size_t shift =  (yg.size()- xg.size());
+                            for( size_t i= recomputeFrom; i!= recomputeTo; ++i ) m_positions[i] += shift;
+                        } else  {
+                            size_t shift =  (xg.size()- yg.size());
+                            for( size_t i= recomputeFrom; i!= recomputeTo; ++i ) m_positions[i] -= shift;
+                        }
+                        yg.copyToBufNoNull(&(m_buf[m_positions[x]]));
+                        xg.copyToBufNoNull(&(m_buf[m_positions[y]]));
+                    } else {
+                        yg.copyToBufNoNull(&(m_buf[m_positions[x]]));
+                        xg.copyToBufNoNull(&(m_buf[m_positions[y]]));
+                    }
+                }
+            } 
 	};
 
 	//StrUTF8 operator+ (const StrUTF8&, const StrUTF8&);
