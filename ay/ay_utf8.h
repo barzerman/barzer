@@ -166,6 +166,9 @@ namespace ay
 			CharUTF8 result;
 			return result.setUTF32(val);
 		}
+
+		bool toLower();
+		bool toUpper();
 	};
     inline std::ostream& operator <<( std::ostream& fp, const CharUTF8& c )
         { return fp << (const char*) (c); }
@@ -353,7 +356,11 @@ namespace ay
                     xg.copyToBufNoNull(&(m_buf[m_positions[y]]));
                 }
             }
-        } 
+        }
+        
+		void toLower();
+		void toUpper();
+
         struct const_iterator {
             const StrUTF8& m_str;
             size_t   m_pos;
