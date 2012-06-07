@@ -606,8 +606,8 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 			CorrectCallback cb( *this, str_len );
 			cb.tryUpdateBestMatch( str );
 
-            if( str_len> d_minWordLengthToCorrect ) {
-                size_t numChar = str_len/2;
+			const size_t numChar = str_len / 2;
+			if( numChar > d_minWordLengthToCorrect ) {
 			    ay::choose_n<ay::Char2B, CorrectCallback > variator( cb, numChar-1, numChar-1 );
 			    variator( ay::Char2B_iterator(str), ay::Char2B_iterator(str+str_len) );
             }

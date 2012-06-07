@@ -101,7 +101,10 @@ StoredToken& BELParser::internString( const char* t, bool noSpell, const char* u
     uint16_t lang = 0;
 	StoredToken& sTok =  reader->getGlobalPools().getDtaIdx().addToken( lang, wasNew, t );
 	const uint32_t origId = sTok.getStringId();
-	sTok.setStemmed(unstemmed);
+	if (!unstemmed)
+		sTok.setStemmed(false);
+	else if (wasNew)
+		sTok.setStemmed(true);
     
     StoredUniverse* curUni = ( reader ? reader->getCurrentUniverse() : 0 );
     BZSpell* bzSpell= ( curUni ? curUni->getBZSpell() : 0);
