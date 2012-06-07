@@ -1270,8 +1270,11 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
             }
 			for( ; di != bbdv.end(); ++di ) {
 				BeadList::iterator nbi = chain.insertBead( range.second, *di );
-                if( tmpCt && nbi != chain.getLstEnd() ) {
-                    nbi->getCTokens() = *tmpCt;
+                if( nbi != chain.getLstEnd() ) {
+                    if( tmpCt ) 
+                        nbi->getCTokens() = *tmpCt;
+                    if( unmatchability ) 
+                        nbi->setBeadUnmatchability(unmatchability);
                 }
             }
 		} else if( bi != range.second ) { // vector is shorter than the list and we need to fold the remainder of the list
