@@ -541,7 +541,7 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 	} else if( Lang::isTwoByteLang(lang)) { // 2 byte char language spell correct
         /// includes russian
         std::string stemStr;
-        
+
 		if( str_len >= 2*d_minWordLengthToCorrect ) {
             if( doStemCorrect ) {
                 /// first we try to do trivial (close) stem correction
@@ -567,8 +567,8 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 			CorrectCallback cb( *this, str_len );
 			cb.tryUpdateBestMatch( str );
 
-            if( str_len> d_minWordLengthToCorrect ) {
-                size_t numChar = str_len/2;
+			const size_t numChar = str_len / 2;
+			if( numChar > d_minWordLengthToCorrect ) {
 			    ay::choose_n<ay::Char2B, CorrectCallback > variator( cb, numChar-1, numChar-1 );
 			    variator( ay::Char2B_iterator(str), ay::Char2B_iterator(str+str_len) );
             }
