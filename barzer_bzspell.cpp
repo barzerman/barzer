@@ -247,42 +247,34 @@ struct CharPermuter_Unicode
 	ay::StrUTF8 m_str;
 	CorrectCallback& m_cb;
 
-	CharPermuter_Unicode (const char *s, CorrectCallback& cb)
-	: m_str (s)
-	, m_cb (cb)
-	{
-	}
+	CharPermuter_Unicode (const char *s, CorrectCallback& cb) : m_str (s) , m_cb (cb) { }
 
-	CharPermuter_Unicode (const ay::StrUTF8& uni, CorrectCallback& cb)
-	: m_str (uni)
-	, m_cb (cb)
-	{
-	}
+	CharPermuter_Unicode (const ay::StrUTF8& uni, CorrectCallback& cb) : m_str (uni) , m_cb (cb) { }
 
-	void doAll ()
-	{
+    struct raii_swap_adjacent {
+        ay::StrUTF8& s;
+        size_t i;
+        raii_swap_adjacent(ay::StrUTF8& ss, size_t ii ) : s(ss), i(ii) {s.swap(i,i+1);} 
+        ~raii_swap_adjacent() {s.swap(i,i+1);} 
+    };
+	void doAll () {
 		if (m_str.size () < 3)
 			return;
 
-		for (ay::StrUTF8::iterator i = m_str.begin (), end = m_str.end () - 1; i != end; ++i)
-		{
-			m_str.swap (i, i + 1);
-
-			const char *newBuf = m_str.c_str ();
-			if (m_str.size () < 5)
-			{
+        const size_t m_str_size = m_str.size();
+		for (size_t i = 0, end = m_str_size; i != end; ++i) {
+            raii_swap_adjacent(m_str,i);
+			const char *newBuf = m_str.c_str();
+			if (m_str_size < 5) {
 				uint32_t id = 0xffffffff;
-				if (!m_cb.bzSpell ().isUsersWord (id, newBuf))
-				{
-					m_str.swap (i, i + 1);
+				if (!m_cb.bzSpell().isUsersWord(id,newBuf)) {
 					continue;
 				}
 			}
-			m_cb.tryUpdateBestMatch (newBuf);
-			m_str.swap (i, i + 1);
+			m_cb.tryUpdateBestMatch(newBuf);
 		}
-	}
-};
+	} // doAll
+}; // CharPermuter_Unicode
 
 inline bool is_vowel( char c )
 {
@@ -632,7 +624,7 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
     else
 	{
 		ay::StrUTF8 strUtf8 (str);
-		const size_t uniSize = strUtf8.size ();
+		const size_t uniSize = strUtf8.size();
 		if (uniSize < d_minWordLengthToCorrect)
 			return 0xffffffff;
 
@@ -644,13 +636,12 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 		CorrectCallback cb (*this, strUtf8.size ());
 		cb.tryUpdateBestMatch (str);
 
-		if (uniSize > d_minWordLengthToCorrect)
-		{
-			ay::choose_n<ay::CharUTF8, CorrectCallback> variator (cb, uniSize - 1, uniSize + 1);
-			variator (strUtf8.begin (), strUtf8.end ());
+		if (uniSize > d_minWordLengthToCorrect) {
+			ay::choose_n<ay::CharUTF8, CorrectCallback> variator (cb, uniSize-1, uniSize-1);
+			variator(strUtf8.begin(), strUtf8.end());
 		}
 
-		ascii::CharPermuter_Unicode permuter (strUtf8, cb);
+		ascii::CharPermuter_Unicode permuter(strUtf8, cb);
 		permuter.doAll ();
 		return cb.getBestStrId ();
 	}

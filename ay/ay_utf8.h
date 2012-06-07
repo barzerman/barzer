@@ -141,199 +141,6 @@ namespace ay
         const char* getGlyphEnd( size_t g ) const
             { return ( (g+1)< m_positions.size() ? &(m_buf[ m_positions[g+1]]): &(m_buf[m_buf.size()]) ); }
 
-		class iterator;
-		class const_iterator;
-
-		class CharWrapper
-		{
-			friend class StrUTF8;
-			StrUTF8 *m_str;
-
-			CharUTF8 m_ch;
-			const size_t m_glyph;
-			bool m_modified;
-			
-			CharWrapper(StrUTF8 *str, size_t glyph)
-			: m_str(str)
-			, m_ch(str->getGlyph (glyph))
-			, m_glyph(glyph)
-			, m_modified(false)
-			{
-			}
-		public:
-			CharWrapper& operator=(const CharUTF8& ch)
-			{
-				m_ch = ch;
-				modified();
-				return *this;
-			}
-
-			CharWrapper& operator=(const CharWrapper& ch)
-			{
-				m_ch = ch.m_ch;
-				modified();
-				return *this;
-			}
-
-			CharUTF8&           operator*() { modified(); return m_ch; } 
-			const CharUTF8&     operator*() const { return m_ch; }
-
-			operator CharUTF8() const { return m_ch; }
-			operator CharUTF8&() { modified(); return m_ch; }
-			CharUTF8*           operator->() { modified(); return &m_ch; }
-			const CharUTF8*     operator->() const { return &m_ch; } 
-
-			~CharWrapper()
-			{
-				if (m_modified)
-					m_str->setGlyph(m_glyph, m_ch);
-			}
-		private:
-			inline void modified() { m_modified = true; }
-		};
-
-		typedef CharUTF8 value_type;
-		typedef CharUTF8& reference;
-		typedef const CharUTF8& const_reference;
-
-		template<typename T>
-		struct CmpMixin
-		{
-			inline bool operator!= (const T& other) const
-			{
-				const T *t = static_cast<const T*> (this);
-				return !t->operator== (other);
-			}
-
-			inline bool operator<= (const T& other) const
-			{
-				const T *t = static_cast<const T*> (this);
-				return t->operator< (other) || t->operator== (other);
-			}
-
-			inline bool operator> (const T& other) const
-			{
-				const T *t = static_cast<const T*> (this);
-				return !t->operator<= (other);
-			}
-
-			inline bool operator>= (const T& other) const
-			{
-				const T *t = static_cast<const T*> (this);
-				return !t->operator< (other);
-			}
-		};
-
-		template<typename T>
-		struct DiffMixin
-		{
-			inline T* t_ptr() { return static_cast<T*> (this); }
-			inline const T* t_const_ptr() const { return static_cast<const T*> (this); }
-			inline T& operator++()
-                { T *t = t_ptr(); return t->setSymb(t->getSymb() + 1); }
-
-			inline T& operator--()
-                { T *t = t_ptr(); return t->setSymb(t->getSymb() - 1); }
-
-			inline T& operator+=(int j)
-                { T *t = t_ptr(); return t->setSymb(t->getSymb() + j); }
-
-			inline T& operator-=(int j)
-                { T *t = t_ptr(); return t->setSymb(t->getSymb() - j); }
-
-			inline T operator+(int j) const
-                { T t = *t_const_ptr(); return t.setSymb(t.getSymb() + j); }
-
-			inline T operator-(int j) const
-                { T t = *t_const_ptr(); return t.setSymb(t.getSymb() - j); }
-
-			inline ptrdiff_t operator-(const T& other) const
-			{
-				const T *thisT = static_cast<const T*> (this);
-				const T *otherT = static_cast<const T*> (&other);
-				return thisT->getSymb() - otherT->getSymb();
-			}
-		};
-
-		class iterator : public CmpMixin<iterator> , public DiffMixin<iterator>
-		{
-			StrUTF8 *m_str;
-			size_t m_pos;
-
-			friend class const_iterator;
-			friend struct DiffMixin<iterator>;
-		public:
-			typedef std::random_access_iterator_tag iterator_category;
-			typedef CharWrapper value_type;
-			typedef CharWrapper& reference;
-			typedef CharWrapper pointer;
-			typedef ptrdiff_t difference_type;
-
-			inline iterator(StrUTF8 *str = 0, size_t pos = 0)
-			: m_str(str)
-			, m_pos(pos)
-			{
-			}
-
-			inline CharWrapper operator*()
-                { return CharWrapper(m_str, m_pos); }
-
-			inline CharWrapper operator->()
-                { return CharWrapper(m_str, m_pos); }
-
-			inline bool operator== (const iterator& other) const
-                { return m_pos == other.m_pos && m_str == other.m_str; }
-
-			inline bool operator< (const iterator& other) const
-                { return m_str == other.m_str ? m_pos < other.m_pos : m_str < other.m_str; }
-		private:
-			inline size_t getSymb () const
-                { return m_pos; }
-
-			inline iterator& setSymb (size_t glyph)
-                { m_pos = glyph; return *this; }
-            size_t getPos() const { return m_pos; }
-		};
-
-		class const_iterator : public CmpMixin<const_iterator> , public DiffMixin<const_iterator> {
-			const StrUTF8 *m_str;
-			size_t m_pos;
-
-			mutable CharUTF8 m_reqChar;
-
-			friend struct DiffMixin<const_iterator>;
-		public:
-			typedef std::random_access_iterator_tag iterator_category;
-			typedef CharUTF8 value_type;
-			typedef const CharUTF8& reference;
-			typedef const CharUTF8 *pointer;
-			typedef ptrdiff_t difference_type;
-
-			inline const_iterator (const StrUTF8 *str = 0, size_t pos = 0) : m_str (str) , m_pos (pos) { }
-
-			inline explicit const_iterator (const iterator& iterator) : 
-                m_str (iterator.m_str) , m_pos (iterator.m_pos) { }
-
-			inline CharUTF8 operator* () const
-                { return m_str->getGlyph (m_pos); }
-
-			inline CharUTF8* operator-> () const
-                { return ( m_reqChar = **this, &m_reqChar ); }
-
-			inline bool operator== (const const_iterator& other) const
-                { return (m_str == other.m_str && m_pos == other.m_pos); }
-
-			inline bool operator< (const const_iterator& other) const
-                { return m_pos < other.m_pos; }
-		private:
-			inline size_t getSymb () const { return m_pos; }
-
-			inline const_iterator& setSymb(size_t glyph) { return( m_pos = glyph,*this); }
-		};
-
-		typedef std::reverse_iterator<iterator> reverse_iterator;
-		typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
-
         StrUTF8& assign( const char*s, const char* s_end=0 )
         {
 		    const char *begin = s;
@@ -375,6 +182,7 @@ namespace ay
         operator const char* () { return c_str(); }
 
 		inline size_t   size() const            { return (m_positions.size()-1); }
+		inline size_t   length() const            { return size(); }
 		inline size_t   getGlyphCount() const   { return size(); }
 		inline size_t   bytesCount() const      { return m_buf.size(); }
 
@@ -383,8 +191,6 @@ namespace ay
             m_positions.clear();
             appendZero();
         }
-
-		inline CharWrapper operator[] (size_t pos) { return CharWrapper(this, pos); }
 
 		inline CharUTF8 operator[] (size_t glyphNum) const { return getGlyph(glyphNum); }
 
@@ -430,65 +236,82 @@ namespace ay
             glyph.copyToBufNoNull( glyphDest );
 		}
 
-		inline void push_back (const value_type& t)
+		inline void push_back (const CharUTF8& g)
 		{
-			removeZero();
-			addSymbol(t);
-			appendZero();
+            m_buf.resize( m_buf.size() + g.size() );
+            char* buf = &(m_buf[ m_positions.back() ]);
+            m_positions.push_back( m_buf.size()-1);
+            g.copyToBufNoNull( buf );
 		}
+        StrUTF8& append( const CharUTF8& o ) 
+            { push_back(o); return *this; }
+        StrUTF8& append( const StrUTF8& o ) 
+        {
+            m_buf.resize( o.m_buf.size() + m_buf.size() -1 );
+            size_t offset = m_positions.back();
 
-		inline iterator begin ()                { return iterator (this, 0); }
-		inline iterator end ()                  { return iterator (this, size ()); }
-
-		inline iterator ith (size_t i)                { return iterator (this, i); }
-
-		inline const_iterator begin () const    { return const_iterator (this, 0); }
-		inline const_iterator end () const      { return const_iterator (this, size ()); }
-
-		inline reverse_iterator rbegin ()       { return reverse_iterator (end ()); }
-		inline reverse_iterator rend ()         { return reverse_iterator (begin ()); }
-
-		inline const_reverse_iterator rbegin () const   { return const_reverse_iterator (end()); }
-		inline const_reverse_iterator rend () const     { return const_reverse_iterator (begin()); }
+            m_positions.reserve( m_positions.size() + o.m_positions.size()-1 );
+            for( std::vector<size_t>::const_iterator p = o.m_positions.begin(); p!= o.m_positions.end(); ++p ) 
+                m_positions.push_back(*p+offset);
+            memcpy( &(m_buf[ offset ]), &(o.m_buf[0]), o.m_buf.size() );
+            return *this;
+        }
 
 		void swap (size_t x, size_t y)
-            { 
-                if( x == y ) return;
-                else if( x> y ) std::swap(x,y);
-                /// guaranteed x< y
-                size_t y1 = y+1;
-                if( y1 >= m_positions.size() ) 
-                    return; 
+        { 
+            if( x == y ) return;
+            else if( x> y ) std::swap(x,y);
+            /// guaranteed x< y
+            size_t y1 = y+1;
+            if( y1 >= m_positions.size() ) 
+                return; 
 
-                size_t x_pos = m_positions[x], y_pos= m_positions[y], y_end_pos = m_positions[y1];
-                char* buf=  &(m_buf[x_pos]);
-                CharUTF8 xg(buf,&(m_buf[y_pos])), 
-                         yg(&(m_buf[y_pos]), &(m_buf[y_end_pos]));
-                if( x+1 == y ) { // swapping adjacent ones
-                    yg.copyToBufNoNull( buf );
-                    m_positions[y] = x_pos + yg.size();
-                    xg.copyToBufNoNull( buf + yg.size() );
-                } else {         // swapping remote ones 
-                    if( xg.size() != yg.size() ) {
-                        size_t x1=x+1,recomputeFrom = x1, recomputeTo = y1;
-                        if( yg.size() > xg.size() ) {
-                            size_t shift =  (yg.size()- xg.size());
-                            for( size_t i= recomputeFrom; i!= recomputeTo; ++i ) m_positions[i] += shift;
-                        } else  {
-                            size_t shift =  (xg.size()- yg.size());
-                            for( size_t i= recomputeFrom; i!= recomputeTo; ++i ) m_positions[i] -= shift;
-                        }
-                        yg.copyToBufNoNull(&(m_buf[m_positions[x]]));
-                        xg.copyToBufNoNull(&(m_buf[m_positions[y]]));
-                    } else {
-                        yg.copyToBufNoNull(&(m_buf[m_positions[x]]));
-                        xg.copyToBufNoNull(&(m_buf[m_positions[y]]));
+            size_t x_pos = m_positions[x], y_pos= m_positions[y], y_end_pos = m_positions[y1];
+            char* buf=  &(m_buf[x_pos]);
+            CharUTF8 xg(buf,&(m_buf[y_pos])), 
+                     yg(&(m_buf[y_pos]), &(m_buf[y_end_pos]));
+            if( x+1 == y ) { // swapping adjacent ones
+                yg.copyToBufNoNull( buf );
+                m_positions[y] = x_pos + yg.size();
+                xg.copyToBufNoNull( buf + yg.size() );
+            } else {         // swapping remote ones 
+                if( xg.size() != yg.size() ) {
+                    size_t x1=x+1,recomputeFrom = x1, recomputeTo = y1;
+                    if( yg.size() > xg.size() ) {
+                        size_t shift =  (yg.size()- xg.size());
+                        for( size_t i= recomputeFrom; i!= recomputeTo; ++i ) m_positions[i] += shift;
+                    } else  {
+                        size_t shift =  (xg.size()- yg.size());
+                        for( size_t i= recomputeFrom; i!= recomputeTo; ++i ) m_positions[i] -= shift;
                     }
+                    yg.copyToBufNoNull(&(m_buf[m_positions[x]]));
+                    xg.copyToBufNoNull(&(m_buf[m_positions[y]]));
+                } else {
+                    yg.copyToBufNoNull(&(m_buf[m_positions[x]]));
+                    xg.copyToBufNoNull(&(m_buf[m_positions[y]]));
                 }
-            } 
-	};
+            }
+        } 
+        struct const_iterator {
+            const StrUTF8& m_str;
+            size_t   m_pos;
 
-	//StrUTF8 operator+ (const StrUTF8&, const StrUTF8&);
-}
+            const_iterator( const StrUTF8& str, size_t p ) : m_str(str), m_pos(p) {}
+
+            const_iterator& operator ++() { return( ++m_pos, *this ); }
+            const_iterator operator +( int i ) const { return( const_iterator(m_str,m_pos+i) ); }
+            const_iterator operator -( int i ) const { return (*this + (-i)); }
+            size_t operator -( const const_iterator& o ) const { return( m_pos-o.m_pos); }
+
+            bool operator!=( const const_iterator& c ) const { return c.m_pos != m_pos; }
+            bool operator<( const const_iterator& c ) const { return c.m_pos < m_pos; }
+            bool operator==( const const_iterator& c ) const { return c.m_pos == m_pos; }
+			inline CharUTF8 operator* () const
+                { return m_str.getGlyph (m_pos); }
+        };
+        const_iterator begin() const { return const_iterator(*this,0); }
+        const_iterator end() const { return const_iterator(*this,size()); }
+	};
+} // ay namespace
 
 #endif
