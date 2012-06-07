@@ -2,6 +2,7 @@
 
 #include <lg_ru/barzer_ru_lex.h>
 #include <lg_en/barzer_en_lex.h>
+#include <ay_utf8.h>
 
 namespace barzer {
 
@@ -52,10 +53,8 @@ size_t Lang::getNumChars( const char* s, size_t s_len, int lang )
         return s_len;
     else if( lang == LANG_RUSSIAN ) 
         return (s_len/2);
-    else {
-        #warning need to implement the counter
-        return (s_len*2/3);
-    }
+    else
+        return ay::StrUTF8(s, s_len).size();
 }
 bool Lang::stringToLower( char* s, size_t s_len, int lang )
 {
