@@ -169,9 +169,14 @@ namespace ay
 
 		bool toLower();
 		bool toUpper();
+
+		bool isLower() const;
+		bool isUpper() const;
 	};
     inline std::ostream& operator <<( std::ostream& fp, const CharUTF8& c )
         { return fp << (const char*) (c); }
+
+
 	// Represents a UTF-8 string.
 	class StrUTF8
 	{
@@ -214,7 +219,7 @@ namespace ay
 
 		    for(;s< s_end; ++numGlyphs) 
                 s+= CharUTF8(s).size();
-    
+
             return numGlyphs;
         }
         inline StrUTF8& assign( const char*s, const char* s_end=0 )
@@ -371,9 +376,35 @@ namespace ay
                 }
             }
         }
-        
+
+		/** Converts the string to lowercase and returns true if the string has
+		 * been actually modified (that is, if there were uppercase chars).
+		 */
 		bool toLower();
+		/** Converts the string to uppercase and returns true if the string has
+		 * been actually modified (that is, if there were lowercase chars).
+		 */
 		bool toUpper();
+
+		/** Checks if the string contains glyphs for which uppercase
+		 * equivalents do exist. For a string like "$%#—" it will return false.
+		 */
+		bool hasLower() const;
+		/** Checks if the string contains glyphs for which lowercase
+		 * equivalents do exist. For a string like "$%#—" it will return false.
+		 */
+		bool hasUpper() const;
+
+		/** This function doesn't parse the whole string and returns true as
+		 * soon as it founds first lowercase character (if any). So it's better
+		 * to use this function instead of constructing a temporary like this:
+		 * ay::StrUTF8(s, size)::hasLower().
+		 */
+		static bool hasLower(const char *s, size_t size);
+		/** This function is different from the non-static version in the same
+		 * way as hasLower is.
+		 */
+		static bool hasUpper(const char *s, size_t size);
 
         struct const_iterator {
             const StrUTF8& m_str;
