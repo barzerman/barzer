@@ -34,17 +34,6 @@ public:
 	~CharPool();
 };
 
-struct char_cp_hash {
-    inline size_t operator()( const char* s ) const
-    {
-        if( !s ) return 0;
-        size_t h=0;
-        for (; *s; ++s)
-            h = 37 * h + *s;
-        return h; // or, h % ARRAY_SIZE;
-    }
-};
-
 /// stores each string only once 
 /// also issues "string ids" - 4-byte integers
 class UniqueCharPool : public CharPool {

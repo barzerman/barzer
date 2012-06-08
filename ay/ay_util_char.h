@@ -48,6 +48,17 @@ inline int ay_strcasecmp( const char* l, const char* r )
     return( *l ? 1 : (*r ? -1: 0)  );
 }
 
+struct char_cp_compare_eq_nocase {
+	bool operator ()( char_cp l, char_cp r ) const
+	{ 
+		if( !l )
+			return !r;
+		else if(!r )
+			return false;
+		else
+			return (!ay_strcasecmp( l, r )); 
+	}
+};
 struct char_cp_compare_eq {
 	bool operator ()( char_cp l, char_cp r ) const
 	{ 
@@ -124,6 +135,27 @@ inline int is_string_ascii( const char* s )
 }
 
 }
+
+struct char_cp_hash {
+    inline size_t operator()( const char* s ) const
+    {
+        if( !s ) return 0;
+        size_t h=0;
+        for (; *s; ++s)
+            h = 37 * h + *s;
+        return h; // or, h % ARRAY_SIZE;
+    }
+};
+struct char_cp_hash_nocase {
+    inline size_t operator()( const char* s ) const
+    {
+        if( !s ) return 0;
+        size_t h=0;
+        for (; *s; ++s)
+            h = 37 * h + AY_TOUPPER((*s));
+        return h; // or, h % ARRAY_SIZE;
+    }
+};
 
 } // namespace ay
 
