@@ -45,16 +45,16 @@ namespace ay
 	bool CharUTF8::isLower() const
 	{
 		const uint32_t utf32 = toUTF32();
-		p_t *end = tableU2L + sizeof(tableU2L) / sizeof(tableU2L[0]);
-		p_t *pair = std::lower_bound(tableU2L, end, utf32, fstComp);
+		p_t *end = tableL2U + sizeof(tableL2U) / sizeof(tableL2U[0]);
+		p_t *pair = std::lower_bound(tableL2U, end, utf32, fstComp);
 		return pair != end && (*pair)[0] == utf32;
 	}
 
 	bool CharUTF8::isUpper() const
 	{
 		const uint32_t utf32 = toUTF32();
-		p_t *end = tableL2U + sizeof(tableL2U) / sizeof(tableL2U[0]);
-		p_t *pair = std::lower_bound(tableL2U, end, utf32, fstComp);
+		p_t *end = tableU2L + sizeof(tableU2L) / sizeof(tableU2L[0]);
+		p_t *pair = std::lower_bound(tableU2L, end, utf32, fstComp);
 		return pair != end && (*pair)[0] == utf32;
 	}
 
