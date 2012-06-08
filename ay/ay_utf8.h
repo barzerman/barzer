@@ -267,6 +267,12 @@ namespace ay
 			appendZero ();
 		}
 
+		inline bool operator==(const StrUTF8& other) const
+		{
+			return m_buf == other.m_buf &&
+					m_positions == other.m_positions;
+		}
+
 		const char*     c_str() const           { return &m_buf[0]; }
         operator const char* () { return c_str(); }
 
