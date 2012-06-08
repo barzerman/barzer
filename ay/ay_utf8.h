@@ -104,6 +104,71 @@ namespace ay
         }
         inline void copyToBufWithNull( char* buf ) const 
             { copyToBufNoNull(buf); buf[d_size]=0; }
+
+		inline uint32_t toUTF32() const
+		{
+			uint32_t result = 0;
+			switch (d_size)
+			{
+			case 1:
+				result = d_data.c4[0];
+				break;
+			case 2:
+				result = ((d_data.c4[0] & 0x1F) << 6) + (d_data.c4[1] & 0x3F);
+				break;
+			case 3:
+				result = ((d_data.c4[0] & 0xF) << 12) + ((d_data.c4[1] & 0x3F) << 6) + (d_data.c4[2] & 0x3F);
+				break;
+			case 4:
+				result = ((d_data.c4[0] & 0x7) << 18) + ((d_data.c4[1] & 0x3F) << 12) + ((d_data.c4[2] & 0x3F) << 6) + (d_data.c4[3] & 0x3F);
+				break;
+			default:
+				break;
+			}
+			return result;
+		}
+
+		inline CharUTF8& setUTF32(uint32_t val)
+		{
+			d_data.u4 = 0;
+			if (val <= 0x7F)
+			{
+				d_data.c4[0] = val;
+				d_size = 1;
+			}
+			else if (val <= 0x7FF)
+			{
+				d_data.c4[0] = ((val & 0x7C0) >> 6) | 0xC0;
+				d_data.c4[1] = (val & 0x3F) | 0x80;
+				d_size = 2;
+			}
+			else if (val <= 0xFFFF)
+			{
+				d_data.c4[0] = ((val & 0xF000) >> 12) | 0xE0;
+				d_data.c4[1] = ((val & 0xFC0) >> 6) | 0x80;
+				d_data.c4[2] = (val & 0x3F) | 0x80;
+				d_size = 3;
+			}
+			else
+			{
+				d_data.c4[0] = ((val & 0xFC0000) >> 18) | 0xF0;
+				d_data.c4[1] = ((val & 0x3F000) >> 12) | 0x80;
+				d_data.c4[2] = ((val & 0xFC0) >> 6) | 0x80;
+				d_data.c4[3] = (val & 0x3F) | 0x80;
+				d_size = 4;
+			}
+
+			return *this;
+		}
+
+		static CharUTF8 fromUTF32(uint32_t val)
+		{
+			CharUTF8 result;
+			return result.setUTF32(val);
+		}
+
+		bool toLower();
+		bool toUpper();
 	};
     inline std::ostream& operator <<( std::ostream& fp, const CharUTF8& c )
         { return fp << (const char*) (c); }
@@ -302,7 +367,11 @@ namespace ay
                     xg.copyToBufNoNull(&(m_buf[m_positions[y]]));
                 }
             }
-        } 
+        }
+        
+		void toLower();
+		void toUpper();
+
         struct const_iterator {
             const StrUTF8& m_str;
             size_t   m_pos;

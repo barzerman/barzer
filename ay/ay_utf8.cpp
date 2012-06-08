@@ -3,35 +3,62 @@
 #include <cstring>
 #include <iostream>
 #include <algorithm>
+#include "tables/u2l.cpp"
+#include "tables/l2u.cpp"
 
 namespace ay
 {
-	/*
-	 * Bits	Last cp			Byte 1		Byte 2		Byte 3		Byte 4
-	 * 7	U+007F			0xxxxxxx
-	 * 11	U+07FF			110xxxxx	10xxxxxx
-	 * 16	U+FFFF			1110xxxx	10xxxxxx	10xxxxxx
-	 * 21	U+1FFFFF		11110xxx	10xxxxxx	10xxxxxx	10xxxxxx
-	 *
-	 * Shifts:
-	 * 3 →   11110 → 0x1E
-	 * 4 →    1110 → 0xE
-	 * 5 →     110 → 0x6
-	 * 7 →       0 → 0x0
-	 */
-    /* 
-	CharUTF8::CharUTF8 (const char *beginning)
-	: m_size (1)
-	, m_int (0)
+	namespace
 	{
-		unsigned char first = *beginning;
-		m_buf [0] = first;
-
-		char vals [] = { 0x0, 0x6, 0xE, 0x1E };
-		for (; m_size < MaxBytes && first >> (6 - m_size) >= vals [m_size];
-				++m_size)
-			m_buf [m_size] = beginning [m_size];
+		bool fstComp(uint32_t *left, uint32_t right)
+		{
+			return left[0] < right;
+		}
 	}
-    */ 
 
+	bool CharUTF8::toLower()
+	{
+		const uint32_t utf32 = toUTF32();
+		typedef uint32_t p_t[2];
+		p_t *end = tableU2L + sizeof(tableU2L) / sizeof(tableU2L[0]);
+		p_t *pair = std::lower_bound(tableU2L, end, utf32, fstComp);
+		if (pair == end || (*pair)[0] != utf32)
+			return false;
+		
+		setUTF32((*pair)[1]);
+		return true;
+	}
+
+	bool CharUTF8::toUpper()
+	{
+		const uint32_t utf32 = toUTF32();
+		typedef uint32_t p_t[2];
+		p_t *end = tableL2U + sizeof(tableL2U) / sizeof(tableL2U[0]);
+		p_t *pair = std::lower_bound(tableL2U, end, utf32, fstComp);
+		if (pair == end || (*pair)[0] != utf32)
+			return false;
+		
+		setUTF32((*pair)[1]);
+		return true;
+	}
+	
+	void StrUTF8::toLower()
+	{
+		for (size_t i = 0, len = size(); i < len; ++i)
+		{
+			CharUTF8 c = getGlyph(i);
+			if (c.toLower())
+				setGlyph(i, c);
+		}
+	}
+
+	void StrUTF8::toUpper()
+	{
+		for (size_t i = 0, len = size(); i < len; ++i)
+		{
+			CharUTF8 c = getGlyph(i);
+			if (c.toUpper())
+				setGlyph(i, c);
+		}
+	}
 }
