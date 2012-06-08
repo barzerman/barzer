@@ -21,8 +21,12 @@ inline bool russian_is_upper( const char* ss ) {
 
 bool Lang::convertUtf8ToLower( char* s, size_t s_len, int lang )
 {
-    #warning  IMPLEMENT convertUtf8ToLower
-    return false;
+	ay::StrUTF8 utf(s, s_len);
+	if (!utf.toLower())
+		return false;
+
+	std::memcpy(s, utf.c_str(), s_len);
+	return true;
 }
 
 bool Lang::convertTwoByteToLower( char* s, size_t s_len, int lang )
