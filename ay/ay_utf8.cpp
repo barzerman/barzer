@@ -42,23 +42,33 @@ namespace ay
 		return true;
 	}
 	
-	void StrUTF8::toLower()
+	bool StrUTF8::toLower()
 	{
+		bool hasLower = false;
 		for (size_t i = 0, len = size(); i < len; ++i)
 		{
 			CharUTF8 c = getGlyph(i);
-			if (c.toLower())
-				setGlyph(i, c);
+			if (!c.toLower())
+				continue;
+
+			setGlyph(i, c);
+			hasLower = true;
 		}
+		return hasLower;
 	}
 
-	void StrUTF8::toUpper()
+	bool StrUTF8::toUpper()
 	{
+		bool hasUpper = false;
 		for (size_t i = 0, len = size(); i < len; ++i)
 		{
 			CharUTF8 c = getGlyph(i);
-			if (c.toUpper())
-				setGlyph(i, c);
+			if (!c.toUpper())
+				continue;
+
+			setGlyph(i, c);
+			hasUpper = true;
 		}
+		return hasUpper;
 	}
 }

@@ -372,8 +372,8 @@ namespace ay
             }
         }
         
-		void toLower();
-		void toUpper();
+		bool toLower();
+		bool toUpper();
 
         struct const_iterator {
             const StrUTF8& m_str;
