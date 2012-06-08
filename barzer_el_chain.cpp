@@ -476,6 +476,17 @@ DECL_BARZEL_BINDING_HOLDER(BarzerEntityRangeCombo) {
     }
     BARZEL_METHOD(BarzerEntityRangeCombo,ec)        { RETURN_NUMBER( ((int)(dta.getEntity().getClass().ec)) ); }
     BARZEL_METHOD(BarzerEntityRangeCombo,sc)        { RETURN_NUMBER( ((int)(dta.getEntity().getClass().subclass)) ); }
+    BARZEL_METHOD(BarzerEntityRangeCombo,id)        {             
+        const char* tokname = universe.getGlobalPools().internalString_resolve(dta.getEntity().tokId);
+            if( tokname ) {
+                uint32_t strId = universe.getGlobalPools().string_getId( tokname );
+                if( strId != 0xffffffff ) 
+                    RETURN_NUMBER( strId ); 
+                else 
+                    RETURN_ATOMIC( BarzerString(tokname)  );            
+            }
+        return true;
+    }
 
     BARZEL_METHOD(BarzerEntityRangeCombo,lo)     { return BarzerRangeAccessor( dta.getRange() ).getLo(out); }
     BARZEL_METHOD(BarzerEntityRangeCombo,hi)     { return BarzerRangeAccessor( dta.getRange() ).getHi(out); }
@@ -483,6 +494,8 @@ DECL_BARZEL_BINDING_HOLDER(BarzerEntityRangeCombo) {
 DEF_BARZEL_BINDING_ARR(BarzerEntityRangeCombo)
 {
     BARZEL_BINDING(BarzerEntityRangeCombo,ec), // entity class
+    BARZEL_BINDING(BarzerEntityRangeCombo,sc), // entity subclass
+    BARZEL_BINDING(BarzerEntityRangeCombo,id), // entity id
     BARZEL_BINDING_RW(BarzerEntityRangeCombo,entity), // entity
     BARZEL_BINDING(BarzerEntityRangeCombo,hi), // range hi
     BARZEL_BINDING(BarzerEntityRangeCombo,lo), // range low
