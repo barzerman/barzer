@@ -128,7 +128,7 @@ namespace ay
 		return false;
 	}
 
-	bool StrUTF8::hasLower (const char *s, size_t size)
+	bool StrUTF8::hasLower(const char *s, size_t size)
 	{
 		while(s < s + size)
 		{
@@ -141,7 +141,7 @@ namespace ay
 		return false;
 	}
 
-	bool StrUTF8::hasUpper (const char *s, size_t size)
+	bool StrUTF8::hasUpper(const char *s, size_t size)
 	{
 		while(s < s + size)
 		{

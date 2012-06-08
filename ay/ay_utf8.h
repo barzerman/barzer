@@ -335,7 +335,7 @@ namespace ay
 		inline void push_back (const CharUTF8& g)
 		{
             m_buf.resize( m_buf.size() + g.size() );
-            char* buf = &(m_buf[ m_positions.back() ]);
+            char* buf = &(m_buf[ m_positions.empty() ? 0 : m_positions.back() ]);
             m_positions.push_back( m_buf.size()-1);
             g.copyToBufNoNull( buf );
 		}
@@ -388,6 +388,23 @@ namespace ay
                 }
             }
         }
+
+		inline std::vector<uint32_t> toUTF32() const
+		{
+			std::vector<uint32_t> result;
+			result.reserve(size());
+			for (size_t i = 0, sz = size(); i < sz; ++i)
+				result.push_back(getGlyph(i).toUTF32());
+			return result;
+		}
+
+		inline StrUTF8& setUTF32(const std::vector<uint32_t>& ucs)
+		{
+			clear();
+			for (std::vector<uint32_t>::const_iterator i = ucs.begin(), end = ucs.end(); i != end; ++i)
+				append(CharUTF8::fromUTF32(*i));
+			return *this;
+		}
 
 		/** Converts the string to lowercase and returns true if the string has
 		 * been actually modified (that is, if there were uppercase chars).

@@ -16,9 +16,13 @@ int main ()
 	CharUTF8 b1("$");
 	CharUTF8 b2("¢");
 	CharUTF8 b3("€");
-	assert (b1 == CharUTF8::fromUTF32(b1.toUTF32()));
-	assert (b2 == CharUTF8::fromUTF32(b2.toUTF32()));
-	assert (b3 == CharUTF8::fromUTF32(b3.toUTF32()));
+	assert(b1 == CharUTF8::fromUTF32(b1.toUTF32()));
+	assert(b2 == CharUTF8::fromUTF32(b2.toUTF32()));
+	assert(b3 == CharUTF8::fromUTF32(b3.toUTF32()));
+
+	StrUTF8 nstr;
+	nstr.setUTF32(str.toUTF32());
+	assert(str == nstr);
 	
 	str3.toUpper();
 	std::cout << str3.c_str() << std::endl;
