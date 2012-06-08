@@ -8,6 +8,7 @@
 #include <ay_logger.h>
 #include <ay_utf8.h>
 #include <ay_choose.h>
+#include <ay_util_time.h>
 
 void testLogger() {
 	AYLOGINIT(DEBUG);
@@ -25,7 +26,7 @@ void testLogger() {
 	AYLOG(DEBUG) << "lala i have a debug" << i++;
 }
 
-int testUTF8()
+int testUTF8(int argc,char* argv[])
 {
     std::string str;
     while(true) {
@@ -60,9 +61,24 @@ int testUTF8()
         choose_n_utf8char_print chooser( printCb, minSubstrLen-1, minSubstrLen-1 );
         chooser( s.begin(), s.end() ) ;
         std::cerr << chooser.getNumChoices() << " choices produced\n";
+        
+        std::string str2( "helloаьс" );
+        size_t xx = 0, xx_sz = 10000000;
+        if( argc > 1 ) 
+            xx_sz = atoi(argv[1]);
+
+        ay::stopwatch localTimer;
+        for( size_t i =0; i< xx_sz; ++i ) {
+            if( i%2 ) {
+                xx = ay::StrUTF8::glyphCount(str.c_str()) ;
+            } else 
+                xx = ay::StrUTF8::glyphCount(str2.c_str()) ;
+        }
+        std::cerr << std::dec << xx_sz << " iterations done in " << localTimer.calcTime() << " seconds";
+        std::cerr << std::dec << "number of glyphs in \"" << str << "\" =" << ay::StrUTF8::glyphCount(str.c_str(),str.c_str()+str.length()) << std::endl;
     }
 }
-int main() {
+int main(int argc, char* argv[]) {
 	// testLogger();
-    testUTF8();
+    testUTF8(argc,argv);
 }

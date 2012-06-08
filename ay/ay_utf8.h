@@ -141,6 +141,17 @@ namespace ay
         const char* getGlyphEnd( size_t g ) const
             { return ( (g+1)< m_positions.size() ? &(m_buf[ m_positions[g+1]]): &(m_buf[m_buf.size()]) ); }
 
+        inline static size_t glyphCount( const char* s, const char* s_end = 0 )
+        {
+		    size_t numGlyphs = 0;
+            if( !s_end ) 
+                s_end = s+strlen(s);
+
+		    for(;s< s_end; ++numGlyphs) 
+                s+= CharUTF8(s).size();
+    
+            return numGlyphs;
+        }
         StrUTF8& assign( const char*s, const char* s_end=0 )
         {
 		    const char *begin = s;

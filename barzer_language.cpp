@@ -2,6 +2,7 @@
 
 #include <lg_ru/barzer_ru_lex.h>
 #include <lg_en/barzer_en_lex.h>
+#include <ay/ay_utf8.h>
 
 namespace barzer {
 
@@ -20,6 +21,7 @@ inline bool russian_is_upper( const char* ss ) {
 
 bool Lang::convertUtf8ToLower( char* s, size_t s_len, int lang )
 {
+    #warning  IMPLEMENT convertUtf8ToLower
     return false;
 }
 
@@ -53,8 +55,7 @@ size_t Lang::getNumChars( const char* s, size_t s_len, int lang )
     else if( lang == LANG_RUSSIAN ) 
         return (s_len/2);
     else {
-        #warning need to implement the counter
-        return (s_len*2/3);
+        return ay::StrUTF8::glyphCount(s,s+s_len);
     }
 }
 bool Lang::stringToLower( char* s, size_t s_len, int lang )
