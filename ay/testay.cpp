@@ -78,7 +78,29 @@ int testUTF8(int argc,char* argv[])
         std::cerr << std::dec << "number of glyphs in \"" << str << "\" =" << ay::StrUTF8::glyphCount(str.c_str(),str.c_str()+str.length()) << std::endl;
     }
 }
+void testUTF8Fancy(int argc, char* argv[]) 
+{
+    std::string str;
+    while(true) {
+        std::cout << "enter string:";
+        std::cin >> str;
+        if( str == "." )
+            return;
+        ay::StrUTF8 s( str.c_str() );
+        ay::StrUTF8 left,right;
+        size_t glyphCount = s.getGlyphCount();
+        size_t lastGlyph = ( glyphCount> 1 ? glyphCount-1:0 );
+        for( size_t i=0; i< lastGlyph; ++i ) {
+            left.assign( s, 0, i );
+            std::cerr << left << "::" ;
+            right.assign( s, i+1, lastGlyph );
+            std::cerr << right << std::endl;
+        }
+    } 
+}
+
 int main(int argc, char* argv[]) {
 	// testLogger();
-    testUTF8(argc,argv);
+    //testUTF8(argc,argv);
+    testUTF8Fancy(argc,argv);
 }

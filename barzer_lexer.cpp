@@ -573,9 +573,9 @@ inline bool QLexParser::trySplitCorrectUTF8 ( SpellCorrectResult& corrResult, QL
         return false;
     size_t lastGlyph = glyphCount-1;
     ay::StrUTF8 left, right; 
-    for( size_t i = 1; i< lastGlyph; ++i ) {
-        // left.assign( fullStr, 0, i );
-        // right.assign( fullStr, i+1, lastGlyph );
+    for( size_t i = 0; i< lastGlyph; ++i ) {
+        left.assign( fullStr, 0, i );
+        right.assign( fullStr, i+1, lastGlyph );
         // std::cerr << "SHIT:\"" << (const char*)left << "\", \"" << (const char*)right << std::endl;
     }
     

@@ -217,8 +217,10 @@ namespace ay
     
             return numGlyphs;
         }
-        StrUTF8& assign( const char*s, const char* s_end=0 )
+        inline StrUTF8& assign( const char*s, const char* s_end=0 )
         {
+            m_buf.clear();
+            m_positions.clear();
 		    const char *begin = s;
 		    size_t lastPos = 0;
             if( !s_end ) 
@@ -236,8 +238,9 @@ namespace ay
 		    appendZero ();
             return *this;
         }
-        StrUTF8& assign( const StrUTF8& o, size_t fromGlyph, size_t numGlyphs ) 
-            { return assign( o.getGlyphStart(fromGlyph), o.getGlyphEnd(fromGlyph+numGlyphs) ); }
+        // assigns o range of glyphs between fromGlyph,toGLyph (includes both from anfd to)
+        StrUTF8& assign( const StrUTF8& o, size_t fromGlyph, size_t toGlyph ) 
+            { return assign( o.getGlyphStart(fromGlyph), o.getGlyphEnd(toGlyph) ); }
 
 		StrUTF8() {appendZero ();}
 
