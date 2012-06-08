@@ -97,17 +97,19 @@ bool Lang::hasTwoByteUpperCase( const char* s, size_t s_len, int lang )
 }
 bool Lang::hasUpperCase( const char* s, size_t s_len, int lang )
 {
-    if( lang == LANG_ENGLISH ) {
-        const char* s_end = s+s_len;
-        for( ; s< s_end; ++s ) {
-            if( isupper(*s) ) 
-                return true;
-        }
-        return false;
-    } else if( lang == LANG_RUSSIAN ) 
-        return hasTwoByteUpperCase( s, s_len, lang );
-    
-    return false;
+	if( lang == LANG_ENGLISH ) {
+		const char* s_end = s+s_len;
+		for( ; s< s_end; ++s ) {
+			if( isupper(*s) ) 
+				return true;
+		}
+		return false;
+	} else if( lang == LANG_RUSSIAN ) 
+		return hasTwoByteUpperCase( s, s_len, lang );
+	else
+		return ay::StrUTF8::hasUpper(s, s_len);
+
+	return false;
 }
 
 
