@@ -9,6 +9,8 @@
 
 namespace ay
 {
+	class StrUTF8;
+
 	// Represents a single glyph.
 	class CharUTF8
 	{
@@ -172,7 +174,10 @@ namespace ay
 
 		bool isLower() const;
 		bool isUpper() const;
+
+		StrUTF8 decompose() const;
 	};
+
     inline std::ostream& operator <<( std::ostream& fp, const CharUTF8& c )
         { return fp << (const char*) (c); }
 
@@ -265,10 +270,11 @@ namespace ay
 		const char*     c_str() const           { return &m_buf[0]; }
         operator const char* () { return c_str(); }
 
-		inline size_t   size() const            { return (m_positions.size()-1); }
-		inline size_t   length() const            { return size(); }
-		inline size_t   getGlyphCount() const   { return size(); }
-		inline size_t   bytesCount() const      { return m_buf.size(); }
+		inline bool empty() const { return m_positions.size() == 1; }
+		inline size_t size() const            { return (m_positions.size()-1); }
+		inline size_t length() const          { return size(); }
+		inline size_t getGlyphCount() const   { return size(); }
+		inline size_t bytesCount() const      { return m_buf.size(); }
 
 		inline void clear() {
             m_buf.clear();
@@ -405,6 +411,8 @@ namespace ay
 		 * way as hasLower is.
 		 */
 		static bool hasUpper(const char *s, size_t size);
+
+		bool normalize();
 
         struct const_iterator {
             const StrUTF8& m_str;
