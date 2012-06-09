@@ -21,7 +21,11 @@ int main ()
 	assert(b3 == CharUTF8::fromUTF32(b3.toUTF32()));
 
 	StrUTF8 nstr;
-	nstr.setUTF32(str.toUTF32());
+
+    std::vector<uint32_t> utf32str;
+	str.toUTF32( utf32str );
+	nstr.setUTF32( utf32str );
+
 	assert(str == nstr);
 	
 	str3.toUpper();

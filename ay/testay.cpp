@@ -78,7 +78,7 @@ int testUTF8(int argc,char* argv[])
         std::cerr << std::dec << "number of glyphs in \"" << str << "\" =" << ay::StrUTF8::glyphCount(str.c_str(),str.c_str()+str.length()) << std::endl;
     }
 }
-void testUTF8Fancy(int argc, char* argv[]) 
+void testUTF8Split(int argc, char* argv[]) 
 {
     std::string str;
     while(true) {
@@ -98,9 +98,37 @@ void testUTF8Fancy(int argc, char* argv[])
         }
     } 
 }
+void testUTF8Normalizer(int argc, char* argv[]) 
+{
+    std::string str2( "l'lаitéàlaUnñol");
+    uint32_t xx_sz = ( argc >1 ? atoi(argv[1]) : 10000000 );
+    while(true) {
+        std::string str;
+        std::cout << "enter string:";
+        std::cin >> str;
+        if( str == "." )
+            return;
+        ay::StrUTF8 ss( str.c_str() ), ss2(str2.c_str() );
+        ay::stopwatch localTimer;
+        uint32_t xx = 0;
+        for( size_t i =0; i< xx_sz; ++i ) {
+            if( i%2 ) 
+                xx+=(ss.toUpper() ? 1: 2);
+            else 
+                xx+=(ss2.toUpper() ? 2:1 );
 
+        }
+        std::cerr << std::dec << xx_sz << " iterations done in " << localTimer.calcTime() << " seconds salt:" << xx << std::endl;
+
+        ay::StrUTF8 s( str.c_str() );
+        s.toUpper() ;
+        std::cerr << "toupper:" << s << std::endl;
+        s.toLower() ;
+        std::cerr << "tolower:" << s << std::endl;
+    }
+}
 int main(int argc, char* argv[]) {
 	// testLogger();
     //testUTF8(argc,argv);
-    testUTF8Fancy(argc,argv);
+    testUTF8Normalizer(argc,argv);
 }

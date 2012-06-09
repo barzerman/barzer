@@ -175,7 +175,7 @@ namespace ay
 		bool isLower() const;
 		bool isUpper() const;
 
-		StrUTF8 decompose() const;
+		StrUTF8& decompose(StrUTF8&) const;
 	};
 
     inline std::ostream& operator <<( std::ostream& fp, const CharUTF8& c )
@@ -307,7 +307,7 @@ namespace ay
             size_t readjustFrom = glyphNum+1;
             size_t oldGlypSize = getGlyphSize(glyphNum);
 
-            char* glyphDest = &(m_buf[m_positions[glyphNum]]);
+            // char* glyphDest = &(m_buf[m_positions[glyphNum]]);
 
             if( readjustFrom < m_positions.size() ) {
                 if( glyph.size()> oldGlypSize ) {       // new glyph is larger than the old one
@@ -329,7 +329,7 @@ namespace ay
                 } 
             }
             /// at this point m_positions[glyphNum] is ready to receive the token 
-            glyph.copyToBufNoNull( glyphDest );
+            glyph.copyToBufNoNull( &(m_buf[m_positions[glyphNum]]) );
 		}
 
 		inline void push_back (const CharUTF8& g)
@@ -389,11 +389,11 @@ namespace ay
             }
         }
 
-		inline std::vector<uint32_t> toUTF32() const
+		inline std::vector<uint32_t>&  toUTF32( std::vector<uint32_t>& result ) const
 		{
-			std::vector<uint32_t> result;
-			result.reserve(size());
-			for (size_t i = 0, sz = size(); i < sz; ++i)
+            size_t this_size = size();
+			result.reserve(this_size);
+			for (size_t i = 0; i < this_size; ++i)
 				result.push_back(getGlyph(i).toUTF32());
 			return result;
 		}

@@ -65,18 +65,17 @@ namespace ay
 	// Also, here we assume we're in the UCS-2 plane, and that should be fixed
 	// as soon as we introduce CharUTF8::fromUTF16(), since the data is in
 	// UTF-16.
-	StrUTF8 CharUTF8::decompose() const
+	StrUTF8& CharUTF8::decompose(StrUTF8& result) const
 	{
 		uint32_t utf32 = toUTF32();
 
 		const uint16_t index = GET_DECOMPOSITION_INDEX(utf32);
 		if (index == 0xFFFF)
-			return StrUTF8();
+			return result;
 
 		const uint16_t *decomposition = uc_decomposition_map + index;
 		const size_t length = (*decomposition) >> 8;
 
-		StrUTF8 result;
 		for (size_t i = 0; i < length; ++i)
 			result.append(fromUTF32(decomposition [i + 1]));
 		return result;
@@ -171,8 +170,9 @@ namespace ay
 		bool changed = false;
 		for (size_t i = 0; i < sz; ++i)
 		{
-			StrUTF8 dec = getGlyph(i).decompose();
-			if (dec.empty())
+			StrUTF8 dec;
+
+			if (getGlyph(i).decompose(dec).empty())
 				continue;
 
 			dec.removeZero();
