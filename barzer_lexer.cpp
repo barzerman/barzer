@@ -565,7 +565,7 @@ struct QLexParser_LocalParms {
 
 inline bool QLexParser::trySplitCorrectUTF8 ( SpellCorrectResult& corrResult, QLexParser_LocalParms& parm )
 {
-    ay::StrUTF8 fullStr(parm.theString);
+    ay::StrUTF8 fullStr(parm.t);
     size_t glyphCount = fullStr.getGlyphCount();
     enum { MIN_SPLIT_SPELL_CORRECT = 6 };
 
@@ -573,12 +573,61 @@ inline bool QLexParser::trySplitCorrectUTF8 ( SpellCorrectResult& corrResult, QL
         return false;
     size_t lastGlyph = glyphCount-1;
     ay::StrUTF8 left, right; 
+	const GlobalPools& gp = d_universe.getGlobalPools();
     for( size_t i = 0; i< lastGlyph; ++i ) {
         left.assign( fullStr, 0, i );
         right.assign( fullStr, i+1, lastGlyph );
         // std::cerr << "SHIT:\"" << (const char*)left << "\", \"" << (const char*)right << std::endl;
-    }
+
+        const char* leftCorr=left.c_str(), * rightCorr = right.c_str();
+        const StoredToken* rightTok = getStoredToken( rightCorr );
+        const StoredToken* leftTok = 0;
+        bool leftCorrected = false, rightCorrected = false;
+        if( rightTok || right.size() > MIN_SPELL_CORRECT_LEN ) {
+            if( !rightTok ) { // right token is not an immediate token, correcting
+                uint32_t rightId = parm.bzSpell->getSpellCorrection (rightCorr,false,parm.lang) ;
+                rightCorr = ( parm.bzSpell->isUsersWordById(rightId) ? gp.string_resolve(rightId) : 0 );
+                if( !rightCorr )
+                    continue;
+                rightCorrected = true;
+                rightTok = getStoredToken(rightCorr);
+            } 
+            if( rightTok ) {
+                leftTok = getStoredToken(leftCorr);
+                if( !rightCorrected && !leftTok ) {
+                    uint32_t leftId = parm.bzSpell->getSpellCorrection (leftCorr,false,parm.lang) ;
+                    leftCorr = ( parm.bzSpell->isUsersWordById( leftId ) ? gp.string_resolve(leftId) : 0);
+                    if( !leftCorr )
+                        continue;
+                    leftTok = getStoredToken(leftCorr);
+                }
+                if( !leftTok ) 
+                    continue; /// this should technically never happen 
+
+                CToken newTok = parm.ctok;
+                newTok.storedTok = rightTok;
+                newTok.syncClassInfoFromSavedTok ();
+
+                parm.ctok.storedTok = leftTok;
+                parm.ctok.syncClassInfoFromSavedTok ();
+
+                std::string reportedCorrection;
+                reportedCorrection.reserve( left.bytesCount() + 4 + right.bytesCount() );
+                reportedCorrection += leftCorr;
+                reportedCorrection.push_back( ' ' );
+                reportedCorrection += rightCorr;
     
+                parm.ctok.addSpellingCorrection (fullStr, reportedCorrection.c_str());
+    
+                ++parm.cPosVec;
+    
+                parm.cPosVec.vec().insert(
+                    parm.cPosVec.posIterator(), std::make_pair (newTok, parm.cPosVec.pos() )
+                );
+                return ( corrResult=SpellCorrectResult(1, ++parm.cPosVec, ++parm.tPosVec), true);
+            }
+        }
+    }
     return false;
 }
 inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexParser_LocalParms& parm )

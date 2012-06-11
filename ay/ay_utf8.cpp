@@ -111,48 +111,6 @@ namespace ay
 		return hasUpper;
 	}
 
-	bool StrUTF8::hasLower() const
-	{
-		for (size_t i = 0, sz = size(); i < sz; ++i)
-			if (getGlyph(i).isLower())
-				return true;
-		return false;
-	}
-
-	bool StrUTF8::hasUpper() const
-	{
-		for (size_t i = 0, sz = size(); i < sz; ++i)
-			if (getGlyph(i).isUpper())
-				return true;
-		return false;
-	}
-
-	bool StrUTF8::hasLower(const char *s, size_t size)
-	{
-		while(s < s + size)
-		{
-			const CharUTF8 ch(s);
-			if (ch.isLower())
-				return true;
-
-			s += ch.size();
-		}
-		return false;
-	}
-
-	bool StrUTF8::hasUpper(const char *s, size_t size)
-	{
-		while(s < s + size)
-		{
-			const CharUTF8 ch(s);
-			if (ch.isUpper())
-				return true;
-
-			s += ch.size();
-		}
-		return false;
-	}
-	
 	bool StrUTF8::normalize()
 	{
 		size_t sz = size();

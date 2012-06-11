@@ -418,22 +418,56 @@ namespace ay
 		/** Checks if the string contains glyphs for which uppercase
 		 * equivalents do exist. For a string like "$%#—" it will return false.
 		 */
-		bool hasLower() const;
+		bool hasLower() const
+        {
+            for (size_t i = 0, sz = size(); i < sz; ++i)
+                if (getGlyph(i).isLower())
+                    return true;
+            return false;
+        }
 		/** Checks if the string contains glyphs for which lowercase
 		 * equivalents do exist. For a string like "$%#—" it will return false.
 		 */
-		bool hasUpper() const;
-
+		bool hasUpper() const
+        {
+            for (size_t i = 0, sz = size(); i < sz; ++i)
+                if (getGlyph(i).isUpper())
+                    return true;
+            return false;
+        }
 		/** This function doesn't parse the whole string and returns true as
 		 * soon as it founds first lowercase character (if any). So it's better
 		 * to use this function instead of constructing a temporary like this:
 		 * ay::StrUTF8(s, size)::hasLower().
 		 */
-		static bool hasLower(const char *s, size_t size);
+		static bool hasLower(const char *s, size_t size)
+        {
+            const char* s_end = s + size;
+		    while(s < s_end ) {
+			    const CharUTF8 ch(s);
+			    if (ch.isLower())
+				    return true;
+    
+			    s += ch.size();
+		    }
+		    return false;
+        }
 		/** This function is different from the non-static version in the same
 		 * way as hasLower is.
 		 */
-		static bool hasUpper(const char *s, size_t size);
+		static bool hasUpper(const char *s, size_t size)
+        {
+            const char* s_end = s+size;
+		    while(s < s_end)
+		    {
+			    const CharUTF8 ch(s);
+			    if (ch.isUpper())
+				    return true;
+    
+			    s += ch.size();
+		    }
+		    return false;
+        }
 
 		bool normalize();
 
