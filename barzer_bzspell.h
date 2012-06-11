@@ -76,12 +76,14 @@ struct BZSWordTrieInfo {
 	}
 };
 
-
+class StemPool;
 
 class BZSpell {
 	/// the next spell checker in line  
 	const BZSpell* d_secondarySpellchecker; 
 	StoredUniverse& d_universe;
+	
+	StemPool *m_stemPool;
 public:
 
 	/// the evos must be ordered by priority + frequency in descending order 
@@ -133,6 +135,7 @@ public:
 	void addExtraWordToDictionary( uint32_t, uint32_t frequency = 0 );
 
 	BZSpell( StoredUniverse& uni ) ;
+	~BZSpell();
 
 	// returns the size of strid_evovec_hmap
 	// this function should be called after the load. 

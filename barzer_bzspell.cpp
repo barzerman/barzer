@@ -6,6 +6,7 @@
 #include <lg_ru/barzer_ru_lex.h>
 #include <lg_ru/barzer_ru_stemmer.h>
 #include <lg_en/barzer_en_lex.h>
+#include <snowball/libstemmer_c/include/libstemmer.h>
 
 namespace barzer {
 typedef std::vector<char> charvec;
@@ -730,6 +731,43 @@ uint32_t BZSpell::get2ByteLangStemCorrection( int lang, const char* str, bool do
     return 0xffffffff;
 }
 
+class StemPool
+{
+	typedef std::map<int, sb_stemmer*> stemmers_t;
+	stemmers_t m_stemmers;
+public:
+	StemPool()
+	{
+	}
+
+	sb_stemmer* getStemmer(int lang)
+	{
+		sb_stemmer *result = m_stemmers[lang];
+		if (result)
+			return result;
+
+		switch (lang)
+		{
+		case LANG_FRENCH:
+			result = sb_stemmer_new("fr", 0);
+			break;
+		case LANG_SPANISH:
+			result = sb_stemmer_new("es", 0);
+			break;
+		default:
+			break;
+		}
+		return result;
+	}
+
+	~StemPool()
+	{
+		for (stemmers_t::iterator i = m_stemmers.begin(), end = m_stemmers.end();
+				i != end; ++i)
+			sb_stemmer_delete(i->second);
+	}
+};
+
 bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
 {
     size_t s_len = strlen( s );
@@ -745,12 +783,23 @@ bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
 				return true;
             }
 		}
-	} else {
-        switch(lang) {
-        case LANG_RUSSIAN: return Russian_Stemmer::stem( out, s );
-        default: return false;
-        }
-    }
+	}
+	else if (lang == LANG_RUSSIAN)
+		return Russian_Stemmer::stem( out, s );
+	else
+	{
+		sb_stemmer *stemmer = m_stemPool->getStemmer(lang);
+		if (!stemmer)
+			return false;
+
+		const sb_symbol *sbs = reinterpret_cast<const sb_symbol*> (s);
+		const char *result = reinterpret_cast<const char*> (sb_stemmer_stem(stemmer, sbs, s_len));
+		if (!result)
+			return false;
+
+		out.assign(result, sb_stemmer_length(stemmer));
+		return !strcmp(s, result);
+	}
 	return false;
 }
 bool BZSpell::stem( std::string& out, const char* s ) const
@@ -937,10 +986,15 @@ size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
 BZSpell::BZSpell( StoredUniverse& uni ) :
 	d_secondarySpellchecker(0),
 	d_universe( uni ),
+	m_stemPool(new StemPool),
 	d_charSize(1) ,
 	d_minWordLengthToCorrect( d_charSize* 3 )
-
 {}
+
+BZSpell::~BZSpell()
+{
+	delete m_stemPool;
+}
 
 size_t BZSpell::loadExtra( const char* fileName )
 {
