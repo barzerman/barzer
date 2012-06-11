@@ -299,6 +299,7 @@ public:
 private:
     ay::bitflags<UBIT_MAX> d_biflags;
 public:
+    void setBit(size_t bit) { d_biflags.set(bit); }
     bool checkBit(size_t b ) const { return d_biflags.checkBit(b); }
     const BZSpell::char_cp_to_strid_map* getValidWordMapPtr() const 
         { return bzSpell->getValidWordMapPtr(); }
