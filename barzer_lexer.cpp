@@ -857,6 +857,12 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
                     isUsersWord =  bzSpell->isUsersWord( strId, buf ) ;
                 theString = buf;
             } else { /// normal utf8 (variable length utf8 chars)
+                /// first raw conversion 
+                // here we could probably decide based on the universe settings whether to copy from t
+                // or theString (depends on the prevalence of english)
+                strncpy( buf, t, BZSpell::MAX_WORD_LEN );
+                buf[ sizeof(buf)-1 ] = 0;
+
                 bool hasUpperCase = Lang::convertUtf8ToLower( buf, buf_len, lang );
                 if( hasUpperCase )
                     isUsersWord =  bzSpell->isUsersWord( strId, buf ) ;
