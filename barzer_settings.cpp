@@ -182,7 +182,8 @@ void BarzerSettings::loadInstanceSettings() {
 			if( !nt )
 				nt = 1;
 			if( nt > MAX_REASONABLE_THREADCOUNT ) {
-				AYLOG(ERROR) << "threadcoutn of " << nt << " exceeds " <<  MAX_REASONABLE_THREADCOUNT << std::endl;
+				// AYLOG(ERROR) << "threadcoutn of " << nt << " exceeds " <<  MAX_REASONABLE_THREADCOUNT << std::endl;
+				std::cerr << "threadcoutn of " << nt << " exceeds " <<  MAX_REASONABLE_THREADCOUNT << std::endl;
 			}
 			setNumThreads( nt );
 		}
