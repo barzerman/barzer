@@ -18,7 +18,7 @@
 #ifndef LOG_DISABLE
 #define AYLOG(l) ay::LogMsg(ay::Logger::l,__FILE__,__LINE__).getStream()
 #else
-#define AYLOG(l) ay::Logger::voidstream
+#define AYLOG(l) StreamWrap()
 #endif
 
 #define AYLOGDEBUG(l) AYLOG(DEBUG) << #l << " = " << (l)
@@ -27,19 +27,42 @@
 
 namespace ay {
 
-// just for the purpose of overloading  operator<< for supressed log levels
-// and again i'm not sure if i'm doing this correctly
+struct StreamWrap {
+    std::ostream* os;
+    StreamWrap(std::ostream* o=0) : os(o) {}
+};
+inline StreamWrap operator<<(StreamWrap vs, std::ostream& ( *pf )(std::ostream&)) { 
+ if( vs.os ) pf(*(vs.os));
+  return vs;
+}
 
-class VoidStream : public std::ostream {};
+inline StreamWrap operator<<(StreamWrap vs, std::ios& ( *pf )(std::ios&)) { 
+   if( vs.os ) pf(*(vs.os));
+    return vs;
+}
+
+inline StreamWrap operator<<(StreamWrap vs, std::ios_base& ( *pf )(std::ios_base&)) { 
+ if( vs.os ) pf(*(vs.os));
+  return vs;
+}
+template <typename T>
+inline StreamWrap operator<<(StreamWrap vs, const T& t) {
+ if( vs.os ) *(vs.os) << t; 
+  return vs;
+}
+
+/*
+class VoidStream {};
 
 template<class T>
 inline VoidStream& operator<<(VoidStream &vs, const T &v) { return vs; }
+*/
 
 
 // this is awful, should probably just replace it with a bunch of static functions
 class Logger {
 public:
-	static VoidStream voidstream;
+	//static VoidStream voidstream;
 	static uint8_t LEVEL;
 
 	enum LogLevelEnum {
@@ -61,11 +84,11 @@ public:
 	std::ostream& logMsg(const uint8_t lvl, const char* filename,
 										   const int lineno);
 
-	std::ostream& getStream() { 
+	std::ostream* getStream() { 
         if( stream_ )
-            return *stream_; 
+            return stream_; 
         else 
-            return std::cerr;
+            return &std::cerr;
     }
 
 
@@ -94,10 +117,12 @@ public:
 	}
 	~LogMsg()
 	{
-		 (getStream() << "\n").flush();
+         StreamWrap sw = getStream();
+         if( sw.os )
+		    (*(sw.os) << "\n").flush();
 
 	}
-	std::ostream& getStream();
+	StreamWrap getStream();
 
 private:
 

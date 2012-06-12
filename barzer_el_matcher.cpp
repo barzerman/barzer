@@ -1230,7 +1230,8 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
         barz.setError( "loop detected" );
 
 	if( !evalNode.eval( transResult, ctxt ) ) {
-		d_trie.printTanslationTraceInfo( AYLOG(ERROR) << "evaluation failed:" , transP->traceInfo );
+        barz.setError( "evaluation failed" );
+		// d_trie.printTanslationTraceInfo( AYLOG(ERROR) << "evaluation failed:" , transP->traceInfo );
         if( translation.makeUnmatchable )
             theBead.setBeadUnmatchability(1);
 		theBead.setStopLiteral();

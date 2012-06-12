@@ -5,6 +5,7 @@
 #include <sstream>
 #include <ay_char.h>
 #include <barzer_barz.h>
+#include <ay_utf8.h>
 
 namespace barzer {
 bool QLexParser::tryClassify_number( CToken& ctok, const TToken& ttok ) const
@@ -516,32 +517,186 @@ struct SpellCorrectResult
         d_result (res) , d_nextTtok (tt) , d_nextCtok (ct) {}
 };
 
-namespace {
-
-bool forceLowerCase( char* buf, size_t len , int16_t lang )
-{
-    if( Lang::isTwoByteLang(lang) ) {
-        return Lang::convertTwoByteToLower( buf, len, lang );
-    } else {
-        bool hasUpperCase = false;
-        const char* buf_end = buf+len;
-        for( char* ss = buf; (ss< buf_end && *ss); ++ss ) {
-            if( isupper(*ss) ) {
-                if( !hasUpperCase ) hasUpperCase= true;
-                *ss = tolower(*ss);
-            }
-        }
-        return hasUpperCase;
-    }
-}
-
-}
-
 const StoredToken* QLexParser::getStoredToken(uint32_t& strId, const char* str) const
 {
     strId = 0xffffffff;
     return ( d_universe.getBZSpell()->isUsersWord( strId, str ) ? dtaIdx->getStoredToken( str ) : 0 );
 }
+struct QLexParser_LocalParms {
+        PosedVec<CTWPVec>& cPosVec;
+        PosedVec<TTWPVec>& tPosVec;
+        const QuestionParm& qparm;
+        const size_t& t_len;
+        const uint32_t& strId;
+        const int& lang;
+        const char* theString;
+        const BZSpell* bzSpell;
+	    CToken& ctok;
+	    TToken& ttok;
+        const char* t; /// original token
+
+        QLexParser_LocalParms( 
+                PosedVec<CTWPVec>& p_cPosVec, 
+                PosedVec<TTWPVec>& p_tPosVec, 
+                const QuestionParm& p_qparm, 
+                const size_t& p_t_len, 
+                const uint32_t& p_strId, 
+                const int& p_lang, 
+                const char* p_theString,
+                const BZSpell* p_bzSpell,
+                CToken& p_ctok,
+                TToken& p_ttok,
+                const char* p_t
+        ) : 
+            cPosVec(p_cPosVec),
+            tPosVec(p_tPosVec),
+            qparm(p_qparm),
+            t_len(p_t_len),
+            strId(p_strId),
+            lang(p_lang),
+            theString(p_theString),
+            bzSpell(p_bzSpell),
+            ctok(p_ctok),
+            ttok(p_ttok),
+            t(p_t)
+        {}
+
+};
+
+inline bool QLexParser::trySplitCorrectUTF8 ( SpellCorrectResult& corrResult, QLexParser_LocalParms& parm )
+{
+    ay::StrUTF8 fullStr(parm.theString);
+    size_t glyphCount = fullStr.getGlyphCount();
+    enum { MIN_SPLIT_SPELL_CORRECT = 6 };
+
+    if( glyphCount < MIN_SPLIT_SPELL_CORRECT )
+        return false;
+    size_t lastGlyph = glyphCount-1;
+    ay::StrUTF8 left, right; 
+    for( size_t i = 0; i< lastGlyph; ++i ) {
+        left.assign( fullStr, 0, i );
+        right.assign( fullStr, i+1, lastGlyph );
+        // std::cerr << "SHIT:\"" << (const char*)left << "\", \"" << (const char*)right << std::endl;
+    }
+    
+    return false;
+}
+inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexParser_LocalParms& parm )
+{
+    PosedVec<CTWPVec>& cPosVec      = parm.cPosVec;
+    PosedVec<TTWPVec>& tPosVec      = parm.tPosVec;
+    const QuestionParm& qparm       = parm.qparm;
+    const size_t& t_len             = parm.t_len;
+    const uint32_t& strId           = parm.strId;
+    const int& lang                 = parm.lang;
+    const char* theString           = parm.theString;
+    const BZSpell* bzSpell          = parm.bzSpell;
+	CToken& ctok                    = parm.ctok;
+	TToken& ttok                    = parm.ttok;
+    const char* t                    = parm.t;
+
+	const GlobalPools& gp = d_universe.getGlobalPools();
+    if( Lang::isUtf8Lang(lang) ) {
+        return trySplitCorrectUTF8( corrResult, parm );
+    } else {
+        const size_t MultiwordLen = BZSpell::MAX_WORD_LEN / 4;
+        if (strId == 0xffffffff && t_len < MultiwordLen) {
+            char dirty[BZSpell::MAX_WORD_LEN];
+            const size_t step = Lang::isTwoByteLang(lang) ? 2 : 1;
+            const size_t theString_numChar = strlen(theString)/step;
+            for (size_t i = step; i < t_len - step; i += step)
+            {
+                std::memcpy (dirty, theString, i);
+                dirty [i] = 0;
+                const StoredToken* tmpTok = getStoredToken( dirty );
+                uint32_t left = 0xffffffff;
+                if( !tmpTok || tmpTok->isStemmed() ) { // if no token found or token is pure stem
+                    if( i < MIN_SPELL_CORRECT_LEN*step )
+                        continue;
+                    else
+                        left = bzSpell->getSpellCorrection (dirty,false,lang);
+                } else
+                    left = tmpTok->getStringId() ;
+    
+                if (left == 0xffffffff)
+                    continue;
+    
+                const char* rightDirty = theString + i;
+    
+                tmpTok = getStoredToken( rightDirty );
+
+                uint32_t right = 0xffffffff;
+                if( !tmpTok ) {
+                    if( t_len - step- i < MIN_SPELL_CORRECT_LEN*step )
+                        continue;
+                    else {
+                        if( i< 4*step || ((t_len - step -i) < 4*step) ) {
+                            std::string stemmedStr;
+                            right = bzSpell->getStemCorrection( stemmedStr, rightDirty );
+                        } else 
+                            right = bzSpell->getSpellCorrection (rightDirty,false,lang) ;
+                    }
+                } else
+                    right = tmpTok->getStringId() ;
+    
+                if (right == 0xffffffff)
+                    continue;
+    
+                const char *leftCorr = gp.string_resolve (left);
+                const char *rightCorr = gp.string_resolve (right);
+                size_t leftCorr_numChar, rightCorr_numChar;
+                if( step == 1 ) {
+                    leftCorr_numChar = strlen(leftCorr);
+                    rightCorr_numChar = strlen(rightCorr);
+                } else {
+                    leftCorr_numChar = strlen(leftCorr)/step;
+                    rightCorr_numChar = strlen(rightCorr)/step;
+                }
+                if( abs(leftCorr_numChar + rightCorr_numChar -theString_numChar) > 1 )
+                    continue;
+                if( 
+                    (leftCorr_numChar < 4 && !getStoredToken(leftCorr)) 
+                    || 
+                    (rightCorr_numChar < 4 && !getStoredToken(rightCorr)) 
+                ) 
+                    continue;
+    
+                CToken newTok = ctok;
+                // newTok.addSpellingCorrection (t, rightCorr);
+                const StoredToken *st = getStoredToken(rightCorr);
+                if (st)
+                {
+                    newTok.storedTok = st;
+                    newTok.syncClassInfoFromSavedTok ();
+                }
+                else
+                    newTok.setClass (CTokenClassInfo::CLASS_MYSTERY_WORD);
+    
+                std::string reportedCorrection(leftCorr);
+                reportedCorrection.reserve( 4+strlen(rightCorr) );
+                reportedCorrection.push_back( ' ' );
+                reportedCorrection += rightCorr;
+    
+                ctok.addSpellingCorrection (t, reportedCorrection.c_str());
+                st = getStoredToken (leftCorr);
+                if (st)
+                {
+                    ctok.storedTok = st;
+                    ctok.syncClassInfoFromSavedTok ();
+                }
+                else
+                    ctok.setClass (CTokenClassInfo::CLASS_MYSTERY_WORD);
+    
+                ++cPosVec;
+    
+                cPosVec.vec().insert (cPosVec.posIterator(), std::make_pair (newTok, cPosVec.pos() ));
+                return ( corrResult=SpellCorrectResult(1, ++cPosVec, ++tPosVec), true);
+            }
+        }
+        return false;
+    }
+}
+
 SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPosVec, PosedVec<TTWPVec> tPosVec, const QuestionParm& qparm)
 {
 	CToken& ctok = cPosVec.element().first;
@@ -553,21 +708,17 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 		return SpellCorrectResult (0, ++cPosVec, ++tPosVec);
 	const GlobalPools& gp = d_universe.getGlobalPools();
 
-    int16_t lang = Lang::getLang( ttok.getBuf(), ttok.getLen() );
-    bool isTwoByteLang = Lang::isTwoByteLang(lang);
-    size_t bytesPerChar = ( isTwoByteLang ? 2 : 1 );
-	bool isAsciiToken = ( lang == LANG_ENGLISH );
-	std::string ascifiedT;
+    int16_t         lang = Lang::getLang( ttok.getBuf(), ttok.getLen() );
+    bool            isTwoByteLang = Lang::isTwoByteLang(lang);
+	bool            isAsciiToken = ( lang == LANG_ENGLISH );
+	std::string     ascifiedT;
 
 	// bool startWithSpelling = true;
-	const BZSpell* bzSpell = d_universe.getBZSpell();
-
-	const char* correctedStr = 0;
+	const BZSpell*  bzSpell = d_universe.getBZSpell();
+	const char*     correctedStr = 0;
 	/// there are non ascii characters in the string
 	const char* theString = t;
-
-    size_t charsInWord = ttok.getNumChar(bytesPerChar);
-
+    size_t      charsInWord = Lang::getNumChars( ttok.getBuf(), ttok.getLen(), lang );
 
 	bool isUsersWord =  false;
 	if( isAsciiToken ) {
@@ -576,7 +727,10 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
         /// this will strip euro language accents
         if( isTwoByteLang ) {
             ascifiedT.assign( t );
-        } else if( ay::umlautsToAscii( ascifiedT, t ) ) {
+        } else if( 
+            !d_universe.checkBit(StoredUniverse::UBIT_NOSTRIP_DIACTITICS) && 
+            ay::umlautsToAscii( ascifiedT, t ) 
+        ) {
 			correctedStr = ascifiedT.c_str();
         } else
             ascifiedT.assign( t );
@@ -587,11 +741,11 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 	isUsersWord =  bzSpell->isUsersWord( strId, theString ) ;
 
     /// short word case - we only do case correction
-    if( !isUsersWord && charsInWord <= MIN_SPELL_CORRECT_LEN ) {
+    if( /*!isUsersWord &&*/ charsInWord <= MIN_SPELL_CORRECT_LEN ) {
         char buf[ 32 ];
 		strncpy( buf, theString, sizeof(buf) );
 		buf[ sizeof(buf)-1 ] = 0;
-        bool hasUpperCase = forceLowerCase( buf, t_len, lang );
+        bool hasUpperCase = Lang::convertToLower( buf, t_len, lang );
         if( hasUpperCase ) {
             // bzSpell->isUsersWord( usersWordStrId, t ) 
             // uint32_t usersWordStrId = 0xffffffff;
@@ -638,7 +792,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 		    buf[ sizeof(buf)-1 ] = 0;
             size_t buf_len=strlen(buf);
             if( lang == LANG_ENGLISH ) {
-		        bool hasUpperCase = forceLowerCase( buf, buf_len, lang);
+		        bool hasUpperCase = Lang::convertToLower( buf, buf_len, lang);
 		        theString = buf;
 		        if( hasUpperCase ) {
 			        isUsersWord =  bzSpell->isUsersWord( strId, theString ) ;
@@ -648,8 +802,13 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 			        ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
 			        return SpellCorrectResult (0, ++cPosVec, ++tPosVec);
 		        }
-            } else if(isTwoByteLang) {
+            } else if(isTwoByteLang) { // russian or another strictly 2 byte language
                 bool hasUpperCase = Lang::convertTwoByteToLower( buf, buf_len, lang );
+                if( hasUpperCase )
+                    isUsersWord =  bzSpell->isUsersWord( strId, buf ) ;
+                theString = buf;
+            } else { /// normal utf8 (variable length utf8 chars)
+                bool hasUpperCase = Lang::convertUtf8ToLower( buf, buf_len, lang );
                 if( hasUpperCase )
                     isUsersWord =  bzSpell->isUsersWord( strId, buf ) ;
                 theString = buf;
@@ -695,104 +854,12 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
         /// trying to split the word into two
 		const size_t MultiwordLen = BZSpell::MAX_WORD_LEN / 4;
 		if (strId == 0xffffffff && t_len < MultiwordLen)
-		{
-			char dirty [BZSpell::MAX_WORD_LEN];
-            // int16_t lang = Lang::getLang (theString, t_len);
-			const size_t step = Lang::isTwoByteLang (lang) ? 2 : 1;
-            const size_t theString_numChar = strlen(theString)/step;
-			for (size_t i = step; i < t_len - step; i += step)
-			{
-				std::memcpy (dirty, theString, i);
-				dirty [i] = 0;
-                //uint32_t tmpTokId = 0xffffffff;
-                // ( bzSpell->isUsersWord( tmpTokId, dirty ) ? dtaIdx->getStoredToken( dirty ) : 0 );
-
-		        // const StoredToken* tmpTok = ( bzSpell->isUsersWord( tmpTokId, dirty ) ? dtaIdx->getStoredToken( dirty ) : 0 );
-		        const StoredToken* tmpTok = getStoredToken( dirty );
-                uint32_t left = 0xffffffff;
-                if( !tmpTok || tmpTok->isStemmed() ) { // if no token found or token is pure stem
-                    if( i < MIN_SPELL_CORRECT_LEN*step )
-                        continue;
-                    else
-                        left = bzSpell->getSpellCorrection (dirty,false,lang);
-                } else
-                    left = tmpTok->getStringId() ;
-
-				if (left == 0xffffffff)
-					continue;
-
-                const char* rightDirty = theString + i;
-
-		        tmpTok = getStoredToken( rightDirty );
-		        // tmpTok = ( bzSpell->isUsersWord( tmpTokId, rightDirty ) ? dtaIdx->getStoredToken( rightDirty ) : 0 ); 
-				uint32_t right = 0xffffffff;
-                if( !tmpTok ) {
-                    if( t_len - step- i < MIN_SPELL_CORRECT_LEN*step )
-                        continue;
-                    else {
-                        if( i< 4*step || ((t_len - step -i) < 4*step) ) {
-                            std::string stemmedStr;
-                            right = bzSpell->getStemCorrection( stemmedStr, rightDirty );
-                        } else 
-                            right = bzSpell->getSpellCorrection (rightDirty,false,lang) ;
-                    }
-                } else
-                    right = tmpTok->getStringId() ;
-
-				if (right == 0xffffffff)
-					continue;
-
-				const char *leftCorr = gp.string_resolve (left);
-				const char *rightCorr = gp.string_resolve (right);
-                size_t leftCorr_numChar, rightCorr_numChar;
-                if( step == 1 ) {
-                    leftCorr_numChar = strlen(leftCorr);
-                    rightCorr_numChar = strlen(rightCorr);
-                } else {
-                    leftCorr_numChar = strlen(leftCorr)/step;
-                    rightCorr_numChar = strlen(rightCorr)/step;
-                }
-                if( abs(leftCorr_numChar + rightCorr_numChar -theString_numChar) > 1 )
-                    continue;
-                if( 
-                    (leftCorr_numChar < 4 && !getStoredToken(leftCorr)) 
-                    || 
-                    (rightCorr_numChar < 4 && !getStoredToken(rightCorr)) 
-                ) 
-                    continue;
-
-				CToken newTok = ctok;
-				// newTok.addSpellingCorrection (t, rightCorr);
-				const StoredToken *st = getStoredToken(rightCorr);
-				if (st)
-				{
-					newTok.storedTok = st;
-					newTok.syncClassInfoFromSavedTok ();
-				}
-				else
-					newTok.setClass (CTokenClassInfo::CLASS_MYSTERY_WORD);
-
-                std::string reportedCorrection(leftCorr);
-                reportedCorrection.reserve( 4+strlen(rightCorr) );
-                reportedCorrection.push_back( ' ' );
-                reportedCorrection += rightCorr;
-
-				ctok.addSpellingCorrection (t, reportedCorrection.c_str());
-				st = getStoredToken (leftCorr);
-				if (st)
-				{
-					ctok.storedTok = st;
-					ctok.syncClassInfoFromSavedTok ();
-				}
-				else
-					ctok.setClass (CTokenClassInfo::CLASS_MYSTERY_WORD);
-
-                ++cPosVec;
-
-				cPosVec.vec().insert (cPosVec.posIterator(), std::make_pair (newTok, cPosVec.pos() ));
-				return SpellCorrectResult (1, ++cPosVec, ++tPosVec);
-			}
-		}
+        {
+            SpellCorrectResult corrResult;
+            QLexParser_LocalParms lparm(cPosVec, tPosVec, qparm, t_len, strId, lang,theString,bzSpell,ctok,ttok,t);
+            if( trySplitCorrect (corrResult, lparm) ) 
+                return corrResult;
+        }
         //// end of split correction attempt
 
 		if (lastFailed)

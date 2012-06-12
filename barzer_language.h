@@ -17,6 +17,8 @@ enum {
     LANG_UNKNOWN=-1,
 	LANG_ENGLISH,
 	LANG_RUSSIAN,
+
+	LANG_UNKNOWN_UTF8,
 	LANG_SPANISH,
 	LANG_FRENCH,
     /// add new language after this only
@@ -34,19 +36,28 @@ struct Lang {
     inline static bool utf8_2byte_isRussian( unsigned char u0, unsigned char u1  )
     { return ( (u0 == 0xd0 && (u1== 0x81 ||(u1 >= 0x90 && u1<= 0xbf) ))|| (u0 == 0xd1 && (u1 >= 0x80 && u1<= 0x91 )) ); }
 
-    inline static int getLang2Byte(  unsigned char u0, unsigned char u1 ) 
+    inline static int getLangUtf8(  unsigned char u0, unsigned char u1 ) 
     {
         if( utf8_2byte_isRussian(u0,u1) )
             return LANG_RUSSIAN;
         else 
-            return LANG_UNKNOWN;
+            return LANG_UNKNOWN_UTF8;
     }
     inline static bool isTwoByteLang(int lang) { return ( lang == LANG_RUSSIAN ); }
+    inline static bool isUtf8Lang(int lang) { return ( lang == LANG_UNKNOWN_UTF8 ); }
+    inline static bool isEnglish(int lang) { return (lang == LANG_ENGLISH); }
+
     static int getLang( const char* str, size_t s_len );
     static bool convertTwoByteToLower( char* s, size_t s_len, int lang );
+    static bool convertUtf8ToLower( char* s, size_t s_len, int lang );
+
     static bool hasTwoByteUpperCase( const char* s, size_t s_len, int lang );
     static bool hasUpperCase( const char* s, size_t s_len, int lang );
     static bool stringToLower( char* s, size_t s_len, int lang );
+    static bool convertToLower( char* s, size_t s_len, int lang )
+        { return stringToLower(s,s_len,lang); }
+    
+    static size_t getNumChars( const char* s, size_t s_len, int lang );
 };
 
 class QSingleLangLexer {
@@ -106,6 +117,12 @@ public:
     std::ostream& print(std::ostream&) const;
 };
 std::ostream& operator<< ( std::ostream& fp, const LangInfo& );
+
+class QSingleLangLexer_UTF8 : public QSingleLangLexer {
+public:
+QSingleLangLexer_UTF8() : QSingleLangLexer (LANG_UNKNOWN_UTF8) {}
+int lex( CTWPVec& , const TTWPVec&, const QuestionParm& );
+};
 
 }
 #endif // BARZER_LANGUAGE_H  

@@ -146,6 +146,7 @@ public:
     // pure stem
     // extNorm - normalized string can be actually passed in
 	uint32_t get2ByteLangStemCorrection( int lang, const char* str, bool doStemCorrect, const char* extNorm = 0 ) const;
+	uint32_t getUtf8LangStemCorrection( int lang, const char* str, bool doStemCorrect, const char* extNorm = 0 ) const;
     uint32_t purePermuteCorrect(const char* s, size_t s_len )  const;
 
 	uint32_t getAggressiveStem( std::string& , const char*) const;

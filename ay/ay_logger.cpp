@@ -12,7 +12,6 @@ namespace ay {
 
 Logger *Logger::instance_ = 0;
 uint8_t Logger::LEVEL = Logger::WARNING;
-VoidStream Logger::voidstream;
 namespace {
 const char* g_LOG_LVL_STR[] = {"DEBUG", "WARNING","ERROR","CRITICAL"};
 }
@@ -23,16 +22,19 @@ const char* ay::Logger::getLogLvlStr( int x)
 }
 
 
-std::ostream& LogMsg::getStream()
+StreamWrap LogMsg::getStream()
 {
 	// return (level_ >= logger_->LEVEL) ? logger_->getStream() : voidstream;
 	if ( level_ >= logger_->LEVEL )
-		return logger_->getStream();
+		return StreamWrap(logger_->getStream());
 	else
-		return Logger::voidstream;
+		return StreamWrap();
 }
 
-void Logger::init( uint8_t l = WARNING ) { LEVEL = l; }
+void Logger::init( uint8_t l = WARNING ) 
+{ 
+    LEVEL = l; 
+}
 
 Logger* Logger::getLogger()
 {

@@ -101,9 +101,11 @@ private:
 
 	/// single tokens mapped by the actual const char*
 	/// references ponters stored in storTok
-	// typedef std::map<const char*,StoredTokenId,ay::char_cp_compare_nocase_less> SingleTokMap;
-	// typedef std::map<const char*,StoredTokenId,ay::char_cp_compare_nocase_less> SingleTokMap;
-	typedef boost::unordered_map< const char*, StoredTokenId, ay::char_cp_hash, ay::char_cp_compare_eq > SingleTokMap;
+	// old: 
+    // typedef std::map<const char*,StoredTokenId,ay::char_cp_compare_nocase_less> SingleTokMap;
+    // bug:
+	// typedef boost::unordered_map< const char*, StoredTokenId, ay::char_cp_hash, ay::char_cp_compare_eq > SingleTokMap;
+	typedef boost::unordered_map< const char*, StoredTokenId, ay::char_cp_hash_nocase, ay::char_cp_compare_eq_nocase > SingleTokMap;
 	SingleTokMap singleTokMap;
 
 	// cwid to offset in storTok

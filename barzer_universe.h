@@ -289,7 +289,17 @@ private:
     LangInfoArray    d_langInfo;
 
 	void addWordsFromTriesToBZSpell();
+
 public:
+    enum {
+        UBIT_NOSTRIP_DIACTITICS, // when set diacritics wont be stripped and utf8 is going to be processed as is 
+        /// add new bits above this line only 
+        UBIT_MAX
+    };
+private:
+    ay::bitflags<UBIT_MAX> d_biflags;
+public:
+    bool checkBit(size_t b ) const { return d_biflags.checkBit(b); }
     const BZSpell::char_cp_to_strid_map* getValidWordMapPtr() const 
         { return bzSpell->getValidWordMapPtr(); }
         

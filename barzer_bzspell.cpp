@@ -2,6 +2,7 @@
 #include <barzer_bzspell.h>
 #include <ay/ay_choose.h>
 #include <ay_char.h>
+#include <ay_utf8.h>
 #include <lg_ru/barzer_ru_lex.h>
 #include <lg_ru/barzer_ru_stemmer.h>
 #include <lg_en/barzer_en_lex.h>
@@ -133,6 +134,12 @@ struct CorrectCallback {
 		}
 	}
 
+	int operator() (std::vector<ay::CharUTF8>::const_iterator begin, std::vector<ay::CharUTF8>::const_iterator end)
+	{
+		tryUpdateBestMatch (ay::StrUTF8 (begin, end).c_str ());
+		return 0;
+	}
+
     typedef std::vector< ay::Char2B > char_2b_vec;
 	int operator()( char_2b_vec::const_iterator fromI, char_2b_vec::const_iterator toI )
     {
@@ -235,7 +242,39 @@ struct CharPermuter_2B {
 		}
 	}
 };
+struct CharPermuter_Unicode
+{
+	ay::StrUTF8 m_str;
+	CorrectCallback& m_cb;
 
+	CharPermuter_Unicode (const char *s, CorrectCallback& cb) : m_str (s) , m_cb (cb) { }
+
+	CharPermuter_Unicode (const ay::StrUTF8& uni, CorrectCallback& cb) : m_str (uni) , m_cb (cb) { }
+
+    struct raii_swap_adjacent {
+        ay::StrUTF8& s;
+        size_t i;
+        raii_swap_adjacent(ay::StrUTF8& ss, size_t ii ) : s(ss), i(ii) {s.swap(i,i+1);} 
+        ~raii_swap_adjacent() {s.swap(i,i+1);} 
+    };
+	void doAll () {
+		if (m_str.size () < 3)
+			return;
+
+        const size_t m_str_size = m_str.size();
+		for (size_t i = 0, end = m_str_size; i != end; ++i) {
+            raii_swap_adjacent(m_str,i);
+			const char *newBuf = m_str.c_str();
+			if (m_str_size < 5) {
+				uint32_t id = 0xffffffff;
+				if (!m_cb.bzSpell().isUsersWord(id,newBuf)) {
+					continue;
+				}
+			}
+			m_cb.tryUpdateBestMatch(newBuf);
+		}
+	} // doAll
+}; // CharPermuter_Unicode
 
 inline bool is_vowel( char c )
 {
@@ -551,13 +590,13 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
                         doStemCorrect = false;
                     } else {
                         //std::cerr << "SHIT " << stemStr << ":" << stemStrId << std::endl;
-                        /// if stem is less than 3 chars shorter than the original we are going to try 
+                        /// if stem is less than 3 chars shorter than the original we are going to try
                         /// stem correction before any other types of correction
                         if( str_len > stemStr.length() && (str_len-stemStr.length()<3*2) ) {
                             uint32_t correctedId = get2ByteLangStemCorrection( lang, str, doStemCorrect, stemStr.c_str() );
                             if( correctedId != 0xffffffff )
                                 return correctedId;
-                            else 
+                            else
                                 doStemCorrect= false;
                         }
                     }
@@ -582,6 +621,30 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
                 return get2ByteLangStemCorrection( lang, str, doStemCorrect );
 		}
     }
+    else
+	{
+		ay::StrUTF8 strUtf8 (str);
+		const size_t uniSize = strUtf8.size();
+		if (uniSize < d_minWordLengthToCorrect)
+			return 0xffffffff;
+
+		if (doStemCorrect)
+		{
+			// TODO
+		}
+
+		CorrectCallback cb (*this, strUtf8.size ());
+		cb.tryUpdateBestMatch (str);
+
+		if (uniSize > d_minWordLengthToCorrect) {
+			ay::choose_n<ay::CharUTF8, CorrectCallback> variator (cb, uniSize-1, uniSize-1);
+			variator(strUtf8.begin(), strUtf8.end());
+		}
+
+		ascii::CharPermuter_Unicode permuter(strUtf8, cb);
+		permuter.doAll ();
+		return cb.getBestStrId ();
+	}
 	return 0xffffffff;
 }
 
@@ -602,12 +665,17 @@ uint32_t BZSpell::purePermuteCorrect(const char* s, size_t s_len )  const
     return retStrId;
 }
 
+uint32_t BZSpell::getUtf8LangStemCorrection( int lang, const char* str, bool doStemCorect, const char* extNorm ) const
+{
+    #warning NEED to implement getUtf8LangStemCorrection
+    return 0xffffffff;
+}
 uint32_t BZSpell::get2ByteLangStemCorrection( int lang, const char* str, bool doStemCorect, const char* extNorm ) const
 {
     size_t s_len = 0;
     if(lang == LANG_RUSSIAN) {
         std::string norm;
-        if( extNorm ) 
+        if( extNorm )
             norm.assign(extNorm);
 
         if( norm.length() || Russian::normalize( norm,str,&s_len) ) { // successfully normalized
@@ -623,7 +691,7 @@ uint32_t BZSpell::get2ByteLangStemCorrection( int lang, const char* str, bool do
                     uint32_t protoStrId = *i;
                     if( isUsersWordById(protoStrId) ) {
                         const BZSWordInfo* wip = getWordInfo(protoStrId);
-                        
+
                         if( bestStringId == 0xffffffff ) {
                             bestStringId = protoStrId;
                         }
@@ -708,7 +776,7 @@ uint32_t BZSpell::getStemCorrection( std::string& out, const char* s, int lang )
 {
     size_t s_len = strlen( s );
 
-    if( lang == LANG_UNKNOWN ) 
+    if( lang == LANG_UNKNOWN )
         lang = Lang::getLang( s, s_len );
 
 	if( lang == LANG_ENGLISH) {
@@ -721,13 +789,15 @@ uint32_t BZSpell::getStemCorrection( std::string& out, const char* s, int lang )
 				return strId;
 			}
 		}
-	} else if( Lang::isTwoByteLang(lang)) {
-        uint32_t scorStrId =  get2ByteLangStemCorrection( lang, s, true );
+	} else {
+        uint32_t scorStrId =  ( Lang::isTwoByteLang(lang) ?
+            get2ByteLangStemCorrection( lang, s, true ) :
+            getUtf8LangStemCorrection( lang, s, true ) );
         if( scorStrId != 0xffffffff && isUsersWordById( scorStrId )) {
             const char* stemCor =  d_universe.getGlobalPools().string_resolve( scorStrId );
             if( stemCor ) {
                 return( out.assign( stemCor ) , scorStrId );
-                
+
             }
         }
     }
@@ -737,7 +807,7 @@ uint32_t BZSpell::getAggressiveStem( std::string& out, const char* s ) const
 {
     enum { MIN_STEM_LEN= 3 };
     std::string str(s);
-    // size_t s_len = str.length();
+
     for( ; str.length() >= MIN_STEM_LEN; str.resize(str.length()-1)  ) {
         uint32_t strId = 0xffffffff;
         if( isUsersWord(strId,str.c_str()) )
@@ -768,6 +838,7 @@ struct WPCallback {
 		return 0;
 	}
 };
+
 struct WPCallback_2B {
 
     typedef std::vector< ay::Char2B > char_2b_vec;
@@ -794,6 +865,29 @@ struct WPCallback_2B {
 	}
 };
 
+struct WPCallback_Unicode
+{
+	BZSpell& bzs;
+	uint32_t fullStrId;
+	size_t varCount;
+
+	WPCallback_Unicode (BZSpell& b, uint32_t id)
+	: bzs (b)
+	, fullStrId (id)
+	{
+	}
+
+	int operator() (std::vector<ay::CharUTF8>::const_iterator begin, std::vector<ay::CharUTF8>::const_iterator end)
+	{
+		GlobalPools& gp = bzs.getUniverse ().getGlobalPools ();
+		uint32_t strId = gp.string_intern (ay::StrUTF8 (begin, end).c_str ());
+
+		bzs.addWordToLinkedWordsMap (strId, fullStrId);
+
+		++varCount;
+		return 0;
+	}
+};
 }
 
 size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
@@ -806,25 +900,37 @@ size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
     d_validTokenMap[ str ] = strId;
 
     size_t str_len = strlen( str );
-    if( lang == LANG_ENGLISH ) {
+	if( lang == LANG_ENGLISH ) {
 
-        if( str_len > d_minWordLengthToCorrect ) {
-            WPCallback cb( *this, strId );
-            ay::choose_n<char, WPCallback > variator( cb, str_len-1, str_len-1 );
-            variator( str, str+str_len );
-            return cb.varCount;
-        }
-    } else {
-        if( Lang::isTwoByteLang(lang) ) { /// includes russian
-            size_t numChars = str_len/2;
-            if( numChars > d_minWordLengthToCorrect ) {
-                WPCallback_2B cb( lang, *this, strId );
-                ay::choose_n<ay::Char2B, WPCallback_2B > variator( cb, numChars-1, numChars-1 );
-                variator( ay::Char2B_iterator(str), ay::Char2B_iterator(str+str_len) );
-                return cb.varCount;
-            }
-        }
-    }
+		if( str_len > d_minWordLengthToCorrect ) {
+			WPCallback cb( *this, strId );
+			ay::choose_n<char, WPCallback > variator( cb, str_len-1, str_len-1 );
+			variator( str, str+str_len );
+			return cb.varCount;
+		}
+	} else if( Lang::isTwoByteLang(lang) ) { /// includes russian
+		size_t numChars = str_len/2;
+		if( numChars > d_minWordLengthToCorrect ) {
+			WPCallback_2B cb( lang, *this, strId );
+			ay::choose_n<ay::Char2B, WPCallback_2B > variator( cb, numChars-1, numChars-1 );
+			variator( ay::Char2B_iterator(str), ay::Char2B_iterator(str+str_len) );
+			return cb.varCount;
+		}
+	}
+	else
+	{
+		ay::StrUTF8 uni (str);
+		const size_t numGlyphs = uni.size ();
+		if (numGlyphs <= d_minWordLengthToCorrect)
+			return 0;
+
+		WPCallback_Unicode cb (*this, strId);
+
+		ay::choose_n<ay::CharUTF8, WPCallback_Unicode> variator (cb, numGlyphs - 1, numGlyphs - 1);
+		variator (uni.begin (), uni.end ());
+
+		return cb.varCount;
+	}
 	return 0;
 }
 

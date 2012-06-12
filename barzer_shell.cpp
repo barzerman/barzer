@@ -518,7 +518,7 @@ static int bshf_autoc( BarzerShell* shell, char_cp cmd, std::istream& in )
             autoc.parse(q);
             barz.clearWithTraceAndTopics();
         }
-        std::cerr << numIterations << " iterations done in " << localTimer.calcTime() << " seconds\n";
+        std::cerr << std::dec << numIterations << " iterations done in " << localTimer.calcTime() << " seconds\n";
 	}
     return 0;
 }

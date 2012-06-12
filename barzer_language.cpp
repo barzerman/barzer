@@ -2,6 +2,7 @@
 
 #include <lg_ru/barzer_ru_lex.h>
 #include <lg_en/barzer_en_lex.h>
+#include <ay/ay_utf8.h>
 
 namespace barzer {
 
@@ -17,6 +18,13 @@ inline bool russian_is_upper( const char* ss ) {
 }
 
 }
+
+bool Lang::convertUtf8ToLower( char* s, size_t s_len, int lang )
+{
+    #warning  IMPLEMENT convertUtf8ToLower
+    return false;
+}
+
 bool Lang::convertTwoByteToLower( char* s, size_t s_len, int lang )
 {
     bool hasUpperCase = false;
@@ -40,6 +48,16 @@ bool Lang::convertTwoByteToLower( char* s, size_t s_len, int lang )
     } else 
         return false;
 }
+size_t Lang::getNumChars( const char* s, size_t s_len, int lang )
+{
+    if( lang == LANG_ENGLISH) 
+        return s_len;
+    else if( lang == LANG_RUSSIAN ) 
+        return (s_len/2);
+    else {
+        return ay::StrUTF8::glyphCount(s,s+s_len);
+    }
+}
 bool Lang::stringToLower( char* s, size_t s_len, int lang )
 {
     if( lang == LANG_ENGLISH ) {
@@ -53,11 +71,14 @@ bool Lang::stringToLower( char* s, size_t s_len, int lang )
             }
         }
         return hasUpperCase;
+    } else if( lang == LANG_UNKNOWN_UTF8 ) {
+        return convertUtf8ToLower(s,s_len,lang);
     } else if( lang == LANG_RUSSIAN ) 
         return convertTwoByteToLower(s,s_len,lang);
 
     return false;
 }
+
 bool Lang::hasTwoByteUpperCase( const char* s, size_t s_len, int lang )
 {
     if( lang == LANG_RUSSIAN ) {
@@ -93,37 +114,42 @@ int Lang::getLang( const char* str, size_t s_len )
     for( const char* s= str; *s && s< s_end; ++s ) {
         if( isascii(*s) ) {
             if( lang>LANG_ENGLISH )  // ascii character and lang was non english
-                return LANG_UNKNOWN;
+                return LANG_UNKNOWN_UTF8;
             else  if( lang == LANG_UNKNOWN )
                 lang = LANG_ENGLISH;
         } else {
             if( lang == LANG_ENGLISH ) {
-                return LANG_UNKNOWN;
+                return LANG_UNKNOWN_UTF8;
             } else if(s< s_end_1) { // at least theres at least 1 char beore the end
-                int tmpLang =  getLang2Byte( (unsigned char)(s[0]), (unsigned char)(s[1]) );
-                if( tmpLang == LANG_UNKNOWN )  // unknown 2 byte utf8 character
-                    return LANG_UNKNOWN;
-                else if (lang != tmpLang) { // known language character, different from lang
-                    if( lang == LANG_UNKNOWN )  {// if lang was previously unknown 
+                int tmpLang =  getLangUtf8( (unsigned char)(s[0]), (unsigned char)(s[1]) );
+                if( tmpLang == LANG_RUSSIAN )  {
+                    if( lang == LANG_UNKNOWN ) 
                         lang = tmpLang;
-                    } else                        // if this character is from a diff language than lang
-                        return LANG_UNKNOWN;
-                }
+                    else if( lang != LANG_RUSSIAN ) 
+                        return LANG_UNKNOWN_UTF8;
+                } else // utf8 character
+                    return LANG_UNKNOWN_UTF8;
                 ++s;
             } else // character is non ascii and this is the last character 
-                return LANG_UNKNOWN;
+                return LANG_UNKNOWN_UTF8;
         }
     }
-    return lang;
+    return ( lang == LANG_UNKNOWN ? LANG_UNKNOWN_UTF8 : lang );
 }
 
 const char* Lang::getLangName( int xx ) 
 {
     if( xx == LANG_ENGLISH ) return "ENGLISH"; 
     else if( xx == LANG_RUSSIAN ) return "RUSSIAN";
+    else if( xx == LANG_UNKNOWN_UTF8 ) return "UTF8";
     else
         return "UNKNOWN";
 }
+int QSingleLangLexer_UTF8::lex( CTWPVec& , const TTWPVec&, const QuestionParm& )
+{
+    return 0;
+}
+
 /// the factory method
 QSingleLangLexer* 	QSingleLangLexer::mkLexer( int lg )
 {
@@ -132,6 +158,8 @@ QSingleLangLexer* 	QSingleLangLexer::mkLexer( int lg )
 		return new QSingleLangLexer_EN();
 	case LANG_RUSSIAN:
 		return new QSingleLangLexer_RU();
+	case LANG_UNKNOWN_UTF8:
+		return new QSingleLangLexer_UTF8();
 	}
 	return 0;
 }
