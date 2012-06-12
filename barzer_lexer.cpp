@@ -787,7 +787,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 	isUsersWord =  bzSpell->isUsersWord( strId, theString ) ;
 
     /// short word case - we only do case correction
-    if( !isUsersWord && charsInWord <= MIN_SPELL_CORRECT_LEN ) {
+    if( /*!isUsersWord &&*/ charsInWord <= MIN_SPELL_CORRECT_LEN ) {
         char buf[ 32 ];
 		strncpy( buf, theString, sizeof(buf) );
 		buf[ sizeof(buf)-1 ] = 0;
