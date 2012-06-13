@@ -32,7 +32,7 @@ ENDIF()
 find_package(Boost COMPONENTS system python thread filesystem REQUIRED)
 find_package(EXPAT REQUIRED)
 find_package(PythonLibs REQUIRED)
-find_package(Hunspell REQUIRED)
+
 
 
 link_directories (  ${BOOST_LIBRARYDIR}
@@ -55,7 +55,6 @@ set(EXTRA_LIBS ${EXTRA_LIBS}
                ${Boost_SYSTEM_LIBRARY}
                ${Boost_FILESYSTEM_LIBRARY}
                ${Boost_THREAD_LIBRARY}  
-               ${HUNSPELL_LIBRARIES}
                ay)
 
 if(WIN32)
@@ -98,7 +97,6 @@ set(SOURCES barzer_barz.cpp
             barzer_server_response.cpp
             barzer_settings.cpp
             barzer_shell.cpp
-            barzer_spell.cpp
             barzer_storage_types.cpp
             barzer_token.cpp
             barzer_universe.cpp

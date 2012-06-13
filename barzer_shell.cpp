@@ -1,5 +1,4 @@
 #include <barzer_shell.h>
-#include <barzer_spell.h>
 #include <barzer_server.h>
 #include <ay_util_time.h>
 
@@ -164,43 +163,6 @@ static int bshf_emit( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 	request::proc_EMIT( reqEnv, globalPools, q.c_str() );
 	return 0;
-}
-
-static int bshf_hspell( BarzerShell* shell, char_cp cmd, std::istream& in )
-{
-        BarzerShellContext *context = shell->getBarzerContext();
-        StoredUniverse &uni = context->getUniverse();
-        const GlobalPools &globalPools = uni.getGlobalPools();    
-        std::ostream& fp = shell->getOutStream();
-        const BarzerHunspell hspell(uni, "/usr/share/hunspell/en_US.aff", "/usr/share/hunspell/en_US.dic");
-        BarzerHunspellInvoke hinv(hspell, globalPools);
-        
-
-        std::string num;
-        size_t numIterations = 1;
-        if (in >> num) {
-            if( is_all_digits(num.c_str()) ) { numIterations = atoi( num.c_str() );} 
-        }
-        ay::InputLineReader reader( in );        
-        ay::stopwatch totalTimer;
-        while( reader.nextLine() && reader.str.length() ) {
-            ay::stopwatch localTimer;
-            const char* q = reader.str.c_str();
-            for( size_t i = 0; i< numIterations-1; ++i ) { //one iteration is outside the loop
-                hinv.checkSpell(q);  //it calls suggest() function inside
-            }
-            std::pair< int, size_t> spell = hinv.checkSpell(q);
-            fp <<"> ";
-            if (spell.first) { fp << "that's right!"; }
-            else {
-                char* const* suggests = hinv.getAllSuggestions();
-                for (size_t i = 0; i < spell.second; i++)
-                    fp << suggests[i] << " ";
-            }
-            fp <<"\n> "<< numIterations << " iterations done in " << localTimer.calcTime() << " seconds" << std::endl;
-        }
-        std::cerr << "> All done in " << totalTimer.calcTime() << " seconds\n";
-        return 0;
 }
 
 static int bshf_entid( BarzerShell* shell, char_cp cmd, std::istream& in )
@@ -1306,8 +1268,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_querytest, "querytest", "peforms given number of queries" ),
 	CmdData( (ay::Shell_PROCF)bshf_userstats, "userstats", "trie stats for a given user" ),
 	CmdData( (ay::Shell_PROCF)bshf_user, "user", "sets current user by user id" ),
-	CmdData( (ay::Shell_PROCF)bshf_entlist, "entlist", "prints all known entities"),
-        CmdData( (ay::Shell_PROCF)bshf_hspell,"hspell","suggests spellcorrection using hunspellntities")        
+	CmdData( (ay::Shell_PROCF)bshf_entlist, "entlist", "prints all known entities")      
 };
 
 ay::ShellContext* BarzerShell::mkContext() {
