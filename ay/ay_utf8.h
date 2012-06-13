@@ -9,6 +9,8 @@
 
 namespace ay
 {
+	class StrUTF8;
+
 	// Represents a single glyph.
 	class CharUTF8
 	{
@@ -169,9 +171,17 @@ namespace ay
 
 		bool toLower();
 		bool toUpper();
+
+		bool isLower() const;
+		bool isUpper() const;
+
+		StrUTF8& decompose(StrUTF8&) const;
 	};
+
     inline std::ostream& operator <<( std::ostream& fp, const CharUTF8& c )
         { return fp << (const char*) (c); }
+
+
 	// Represents a UTF-8 string.
 	class StrUTF8
 	{
@@ -214,7 +224,7 @@ namespace ay
 
 		    for(;s< s_end; ++numGlyphs) 
                 s+= CharUTF8(s).size();
-    
+
             return numGlyphs;
         }
         inline StrUTF8& assign( const char*s, const char* s_end=0 )
@@ -257,13 +267,20 @@ namespace ay
 			appendZero ();
 		}
 
+		inline bool operator==(const StrUTF8& other) const
+		{
+			return m_buf == other.m_buf &&
+					m_positions == other.m_positions;
+		}
+
 		const char*     c_str() const           { return &m_buf[0]; }
         operator const char* () { return c_str(); }
 
-		inline size_t   size() const            { return (m_positions.size()-1); }
-		inline size_t   length() const            { return size(); }
-		inline size_t   getGlyphCount() const   { return size(); }
-		inline size_t   bytesCount() const      { return m_buf.size(); }
+		inline bool empty() const { return m_positions.size() == 1; }
+		inline size_t size() const            { return (m_positions.size()-1); }
+		inline size_t length() const          { return size(); }
+		inline size_t getGlyphCount() const   { return size(); }
+		inline size_t bytesCount() const      { return m_buf.size(); }
 
 		inline void clear() {
             m_buf.clear();
@@ -290,7 +307,7 @@ namespace ay
             size_t readjustFrom = glyphNum+1;
             size_t oldGlypSize = getGlyphSize(glyphNum);
 
-            char* glyphDest = &(m_buf[m_positions[glyphNum]]);
+            // char* glyphDest = &(m_buf[m_positions[glyphNum]]);
 
             if( readjustFrom < m_positions.size() ) {
                 if( glyph.size()> oldGlypSize ) {       // new glyph is larger than the old one
@@ -312,13 +329,13 @@ namespace ay
                 } 
             }
             /// at this point m_positions[glyphNum] is ready to receive the token 
-            glyph.copyToBufNoNull( glyphDest );
+            glyph.copyToBufNoNull( &(m_buf[m_positions[glyphNum]]) );
 		}
 
 		inline void push_back (const CharUTF8& g)
 		{
             m_buf.resize( m_buf.size() + g.size() );
-            char* buf = &(m_buf[ m_positions.back() ]);
+            char* buf = &(m_buf[ m_positions.empty() ? 0 : m_positions.back() ]);
             m_positions.push_back( m_buf.size()-1);
             g.copyToBufNoNull( buf );
 		}
@@ -371,9 +388,88 @@ namespace ay
                 }
             }
         }
-        
-		void toLower();
-		void toUpper();
+
+		inline std::vector<uint32_t>&  toUTF32( std::vector<uint32_t>& result ) const
+		{
+            size_t this_size = size();
+			result.reserve(this_size);
+			for (size_t i = 0; i < this_size; ++i)
+				result.push_back(getGlyph(i).toUTF32());
+			return result;
+		}
+
+		inline StrUTF8& setUTF32(const std::vector<uint32_t>& ucs)
+		{
+			clear();
+			for (std::vector<uint32_t>::const_iterator i = ucs.begin(), end = ucs.end(); i != end; ++i)
+				append(CharUTF8::fromUTF32(*i));
+			return *this;
+		}
+
+		/** Converts the string to lowercase and returns true if the string has
+		 * been actually modified (that is, if there were uppercase chars).
+		 */
+		bool toLower();
+		/** Converts the string to uppercase and returns true if the string has
+		 * been actually modified (that is, if there were lowercase chars).
+		 */
+		bool toUpper();
+
+		/** Checks if the string contains glyphs for which uppercase
+		 * equivalents do exist. For a string like "$%#—" it will return false.
+		 */
+		bool hasLower() const
+        {
+            for (size_t i = 0, sz = size(); i < sz; ++i)
+                if (getGlyph(i).isLower())
+                    return true;
+            return false;
+        }
+		/** Checks if the string contains glyphs for which lowercase
+		 * equivalents do exist. For a string like "$%#—" it will return false.
+		 */
+		bool hasUpper() const
+        {
+            for (size_t i = 0, sz = size(); i < sz; ++i)
+                if (getGlyph(i).isUpper())
+                    return true;
+            return false;
+        }
+		/** This function doesn't parse the whole string and returns true as
+		 * soon as it founds first lowercase character (if any). So it's better
+		 * to use this function instead of constructing a temporary like this:
+		 * ay::StrUTF8(s, size)::hasLower().
+		 */
+		static bool hasLower(const char *s, size_t size)
+        {
+            const char* s_end = s + size;
+		    while(s < s_end ) {
+			    const CharUTF8 ch(s);
+			    if (ch.isLower())
+				    return true;
+    
+			    s += ch.size();
+		    }
+		    return false;
+        }
+		/** This function is different from the non-static version in the same
+		 * way as hasLower is.
+		 */
+		static bool hasUpper(const char *s, size_t size)
+        {
+            const char* s_end = s+size;
+		    while(s < s_end)
+		    {
+			    const CharUTF8 ch(s);
+			    if (ch.isUpper())
+				    return true;
+    
+			    s += ch.size();
+		    }
+		    return false;
+        }
+
+		bool normalize();
 
         struct const_iterator {
             const StrUTF8& m_str;

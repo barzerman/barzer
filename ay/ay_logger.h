@@ -50,6 +50,10 @@ inline StreamWrap operator<<(StreamWrap vs, const T& t) {
  if( vs.os ) *(vs.os) << t; 
   return vs;
 }
+inline StreamWrap operator<<(StreamWrap vs, const char t[]) {
+ if( vs.os ) *(vs.os) << t; 
+  return vs;
+}
 
 /*
 class VoidStream {};

@@ -4,6 +4,7 @@
 #include <ay/ay_util_char.h>
 namespace barzer {
 class BarzerNumber;
+class BarzelEvalResult;
 namespace strutil {
 
 // text to number errors
@@ -15,6 +16,17 @@ enum {
 };
 int text_to_number( BarzerNumber& , const ay::char_cp_vec&, int langId=0 /*language id*/) ;
 } // namespace strutil 
+
+bool operator== ( const BarzelEvalResult& l, class BarzelEvalResult& r);
+bool operator< ( const BarzelEvalResult& l, class BarzelEvalResult& r);
+inline bool operator> ( const BarzelEvalResult& l, class BarzelEvalResult& r)
+{
+    return !( (l<r) || (l==r) );
+}
+inline bool operator<= ( const BarzelEvalResult& l, class BarzelEvalResult& r)
+    { return( l< r || l==r ); }
+inline bool operator>= ( const BarzelEvalResult& l, class BarzelEvalResult& r)
+    { return( l> r || l==r ); }
 
 }
 

@@ -21,8 +21,12 @@ inline bool russian_is_upper( const char* ss ) {
 
 bool Lang::convertUtf8ToLower( char* s, size_t s_len, int lang )
 {
-    #warning  IMPLEMENT convertUtf8ToLower
-    return false;
+	ay::StrUTF8 utf(s, s_len);
+	if (!utf.toLower())
+		return false;
+
+	std::memcpy(s, utf.c_str(), s_len);
+	return true;
 }
 
 bool Lang::convertTwoByteToLower( char* s, size_t s_len, int lang )
@@ -93,17 +97,19 @@ bool Lang::hasTwoByteUpperCase( const char* s, size_t s_len, int lang )
 }
 bool Lang::hasUpperCase( const char* s, size_t s_len, int lang )
 {
-    if( lang == LANG_ENGLISH ) {
-        const char* s_end = s+s_len;
-        for( ; s< s_end; ++s ) {
-            if( isupper(*s) ) 
-                return true;
-        }
-        return false;
-    } else if( lang == LANG_RUSSIAN ) 
-        return hasTwoByteUpperCase( s, s_len, lang );
-    
-    return false;
+	if( lang == LANG_ENGLISH ) {
+		const char* s_end = s+s_len;
+		for( ; s< s_end; ++s ) {
+			if( isupper(*s) ) 
+				return true;
+		}
+		return false;
+	} else if( lang == LANG_RUSSIAN ) 
+		return hasTwoByteUpperCase( s, s_len, lang );
+	else
+		return ay::StrUTF8::hasUpper(s, s_len);
+
+	return false;
 }
 
 
