@@ -1,6 +1,8 @@
 #include <barzer_el_function_util.h>
 #include <barzer_number.h>
 #include <ay/ay_util.h>
+#include <barzer_el_chain.h>
+#include <barzer_el_rewriter.h>
 
 namespace barzer {
 
@@ -108,5 +110,62 @@ int text_to_number( BarzerNumber& bn, const ay::char_cp_vec& tok, int langId)
 }
 
 } // namespace strutil
+
+namespace {
+
+struct compare_less_vis : public boost::static_visitor<bool> {
+    template <typename L, typename R> 
+    bool operator()( const L& l, const R& r ) const
+        { return false; }
+    template <typename T>
+    bool operator()( const T& l, const T& r ) const
+        { return false; }
+
+    bool operator()( const BarzerNumber& l, const BarzerNumber& r ) const
+        { 
+            #warning Nikita, implement me 
+            return false; 
+        }
+};
+struct compare_eq_vis : public boost::static_visitor<bool> {
+    template <typename L, typename R> 
+    bool operator()( const L& l, const R& r ) const
+        { return false; }
+    template <typename T>
+    bool operator()( const T& l, const T& r ) const
+        { return false; }
+
+    bool operator()( const BarzerNumber& l, const BarzerNumber& r ) const
+        { 
+            #warning Nikita, implement me  too!
+            return false; 
+        }
+};
+
+}
+bool operator< ( const BarzelEvalResult& l, class BarzelEvalResult& r)
+{
+    const BarzelBeadAtomic* lAtomic = l.getSingleAtomic();
+    if( !lAtomic ) 
+        return false;
+    const BarzelBeadAtomic* rAtomic = r.getSingleAtomic();
+    if( !rAtomic ) 
+        return false;
+
+    return boost::apply_visitor( compare_less_vis(), lAtomic->getData(), rAtomic->getData() );
+}
+
+
+bool operator== ( const BarzelEvalResult& l, class BarzelEvalResult& r)
+{
+    const BarzelBeadAtomic* lAtomic = l.getSingleAtomic();
+    if( !lAtomic ) 
+        return false;
+    const BarzelBeadAtomic* rAtomic = r.getSingleAtomic();
+    if( !rAtomic ) 
+        return false;
+
+    return boost::apply_visitor( compare_eq_vis(), lAtomic->getData(), rAtomic->getData() );
+}
 
 }
