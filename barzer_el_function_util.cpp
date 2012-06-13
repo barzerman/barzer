@@ -120,12 +120,29 @@ struct compare_less_vis : public boost::static_visitor<bool> {
     template <typename T>
     bool operator()( const T& l, const T& r ) const
         { return false; }
-
+/// BarzerNumber
     bool operator()( const BarzerNumber& l, const BarzerNumber& r ) const
-        { 
-            #warning Nikita, implement me 
-            return false; 
-        }
+        { return l.isNan() || r.isNan()? false: l < r; }
+///BarzerDate
+    bool operator()( const BarzerDate& l, const BarzerDateTime& r ) const
+        { return  l < r.getDate(); }
+    bool operator()( const BarzerDate& l, const BarzerDate& r ) const
+        { return l < r; }
+///BarzerDateTime
+    bool operator()( const BarzerDateTime& l, const BarzerDate& r ) const
+        { return  l.getDate() < r; }       
+    bool operator()( const BarzerDateTime& l, const BarzerTimeOfDay& r ) const
+        { return  l.getTime() < r; }
+    bool operator()( const BarzerDateTime& l, const BarzerDateTime& r ) const
+        { return  l < r; }        
+///BarzerTime
+    bool operator()( const BarzerTimeOfDay& l, const BarzerDateTime& r ) const
+        { return  l < r.getTime(); }
+    bool operator()( const BarzerTimeOfDay& l, const BarzerTimeOfDay& r ) const
+        { return l < r; }
+///BarzerString
+    bool operator()( const BarzerString& l, const BarzerString& r ) const
+        { return  l.getStr() < r.getStr(); }       
 };
 struct compare_eq_vis : public boost::static_visitor<bool> {
     template <typename L, typename R> 
@@ -135,11 +152,32 @@ struct compare_eq_vis : public boost::static_visitor<bool> {
     bool operator()( const T& l, const T& r ) const
         { return false; }
 
+/// BarzerNumber
     bool operator()( const BarzerNumber& l, const BarzerNumber& r ) const
-        { 
-            #warning Nikita, implement me  too!
-            return false; 
-        }
+        { return l.isNan() || r.isNan()? false: l == r; }
+///BarzerDate
+    bool operator()( const BarzerDate& l, const BarzerDateTime& r ) const
+        { return  l == r.getDate(); }
+    bool operator()( const BarzerDate& l, const BarzerDate& r ) const
+        { return l == r; }
+///BarzerDateTime
+    bool operator()( const BarzerDateTime& l, const BarzerDate& r ) const
+        { return  l.getDate() == r; }       
+    bool operator()( const BarzerDateTime& l, const BarzerTimeOfDay& r ) const
+        { return  l.getTime() == r; }
+    bool operator()( const BarzerDateTime& l, const BarzerDateTime& r ) const
+        { return  l == r; }        
+///BarzerTime
+    bool operator()( const BarzerTimeOfDay& l, const BarzerDateTime& r ) const
+        { return  l == r.getTime(); }
+    bool operator()( const BarzerTimeOfDay& l, const BarzerTimeOfDay& r ) const
+        { return l == r; }
+///BarzerString
+    bool operator()( const BarzerString& l, const BarzerString& r ) const
+        { return  l.getStr() == r.getStr(); } 
+///BarzerLiteral
+    bool operator()( const BarzerLiteral& l, const BarzerLiteral& r ) const
+        { return  l == r; }        
 };
 
 }

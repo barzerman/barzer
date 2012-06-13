@@ -135,13 +135,6 @@ struct div {
 		return std::numeric_limits<T>::infinity();
 	}
 };
-struct lt {
-    template <class T> bool operator()(T v1, T v2) { return v1 < v2; }
-};
-struct gt {
-    template <class T> bool operator()(T v1, T v2) { return v1 > v2; }
-};
-
 
 template<class U> struct ArithVisitor : public boost::static_visitor<bool> {
 	BarzerNumber &val;
@@ -2013,75 +2006,37 @@ struct BELFunctionStorage_holder {
         return false;
 
     }
-
-
-	// should make this more generic
-	template<class T> bool cmpr(
-             BarzelEvalResult &result,
-       const ay::skippedvector<BarzelEvalResult>&rvec,
-       BarzelEvalContext& ctxt,
-       const char* func_name ) const
-	{
-	    T op;
-	    try {
-	        if (rvec.size() >= 2) {
-                BarzelEvalResultVec::const_iterator end = rvec.end(),
-                                                    it = rvec.begin()+1;
-                bool cont = true;
-                for (; cont && it != end; ++it) {
-                    const BarzerNumber &l = getNumber((it-1)->getBeadData()),
-                                       &r = getNumber(it->getBeadData());
-
-                    if (l.isNan() || r.isNan()) {
-                        cont = false;
-                    } else if (l.isReal()) {
-                        if (r.isReal()) {
-                            cont = op(l.getReal(), r.getReal());
-                        } else {
-                            cont = op(l.getReal(), (double) r.getInt());
-                        }
-                    } else {
-                        if (r.isReal()) {
-                            cont = op((double)l.getInt(), r.getReal());
-                        } else {
-                            cont = op(l.getInt(), r.getInt());
-                        }
-                    }
-                }
-                setResult(result, cont);
-	        } else {
-                FERROR("Need at least 2 arguments");
-                setResult(result, false);
-	        }
-	    } catch (boost::bad_get) {
-            FERROR("Trying to compare non-numerics");
-            setResult(result, false);
-        }
-	    return true;
-	}
+    
+    struct lt {
+        template <class T> bool operator()(T v1, T v2) { return v1 < v2; }
+    };
+    struct gt {
+        template <class T> bool operator()(T v1, T v2) { return !(v1 < v2); }
+    };
+    struct eq {
+        template <class T> bool operator()(T v1, T v2) { return v1 == v2; }
+    };
+    
+    template <typename Op>    
+    bool cmpr(BarzelEvalResult &result,
+                const ay::skippedvector<BarzelEvalResult> &rvec,
+                BarzelEvalContext& ctxt,
+                const char* func_name) const
+    {
+        Op op;
+        if (rvec.size() < 2) return (FERROR("At least two arguments are needed"), false);
+        BarzelEvalResultVec::const_iterator end = rvec.end(),
+                                            it = rvec.begin()+1;                    
+        bool res = true;
+        for (; res && it != end; ++it) 
+            res = op(*(it-1), *it);
+        setResult(result, res);
+        return true;
+    }
 
 	STFUN(opLt) { SETFUNCNAME(opLt); return cmpr<lt>(result, rvec,ctxt,func_name); }
-	STFUN(opGt)	{ SETFUNCNAME(opGt); return cmpr<gt>(result, rvec,ctxt,func_name); }
-
-	STFUN(opEq)
-	{
-        SETFUNCNAME(opEq);
-		if (rvec.size() >= 2) {
-		    BarzelEvalResultVec::const_iterator end = rvec.end(),
-		                                        it = rvec.begin()+1;
-		    for (; it != end; ++it) {
-		        if (!beadsEqual((it-1)->getBeadData(), it->getBeadData())) {
-		            setResult(result, false);
-		            return true;
-		        }
-		    }
-		    setResult(result, true);
-		} else {
-            FERROR("need at least 2 arguments");
-		    setResult(result, true);
-		}
-		return true;
-	}
+        STFUN(opGt) { SETFUNCNAME(opGt); return cmpr<gt>(result, rvec,ctxt,func_name); }
+	STFUN(opEq) { SETFUNCNAME(opGt); return cmpr<eq>(result, rvec,ctxt,func_name); }
 
 	STFUN(opDateCalc)
 	{
