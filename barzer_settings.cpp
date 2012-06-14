@@ -249,13 +249,16 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 		const StoredUniverse* secondaryUniverse = ( u.getId() ? gp.getDefaultUniverse() : 0 );
 		BZSpell* bzs = u.getUniverse().initBZSpell( secondaryUniverse );
 
-	    const ptree &attrs = spell.get_child("<xmlattr>");
-        const boost::optional<std::string> optUTF8 = attrs.get_optional<std::string>("utf8");
-        if( optUTF8 ) { 
-            const std::string& utf8Val = optUTF8.get();
-            if( utf8Val == "yes" )
-                u.getUniverse().setBit( StoredUniverse::UBIT_NOSTRIP_DIACTITICS );
-        } 
+	    const boost::optional<const ptree&> optAttrs = spell.get_child_optional("<xmlattr>");
+        if( optAttrs ) {
+            const ptree& attrs = optAttrs.get();
+            const boost::optional<std::string> optUTF8 = attrs.get_optional<std::string>("utf8");
+            if( optUTF8 ) { 
+                const std::string& utf8Val = optUTF8.get();
+                if( utf8Val == "yes" )
+                    u.getUniverse().setBit( StoredUniverse::UBIT_NOSTRIP_DIACTITICS );
+            } 
+        }
 		BOOST_FOREACH(const ptree::value_type &v, spell) {
 			const std::string& tagName = v.first;
 			const char* tagVal = v.second.data().c_str();
