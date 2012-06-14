@@ -1,0 +1,1733 @@
+UTF-8
+
+UTF-8 (UCS transformation format 8 bits) est un moyen de coder les caractères Unicode sous forme de séquences de un à quatre octets.
+
+La norme Unicode définit entre autres un ensemble (ou répertoire) de caractères. Chaque caractère est repéré dans cet ensemble par un index entier aussi appelé « point de code ». Par exemple le caractère "€" (euro) est le 8365ème caractère du répertoire Unicode, son index, ou point de code est donc 8364 (on commence à compter à partir de 0).
+
+Le répertoire Unicode peut contenir plus d'un millions de caractères, les points de code sont compris entre 0 et 0x10FFFF ce qui est bien trop grand pour tenir dans un seul octet (limité à des valeurs entre 0 et 255). La norme Unicode définit donc des méthodes standardisées pour coder et stocker cet index sous forme de séquence d'octets : UTF-8 est l'une d'entre elles, avec UTF-16, UTF32 et leurs différentes variantes.
+
+La principale caractéristique d'UTF-8 est qu'elle est rétro-compatible avec la norme ASCII, c'est-à-dire que tout caractère ASCII se code en UTF-8 sous forme d'un unique octet, identique au code ASCII. Par exemple "A" (A majuscule) a pour code ASCII 65 et se code en UTF-8 par l'octet 65. Chaque caractère dont le point de code est supérieur à 127 (caractère non ASCII) se code sur 2 à 4 octets. Le caractère "€" (euro) se code par exemple sur 3 octets : 0xE2, 0x82, 0xAC (ou 226, 130, 172 en décimal).
+
+Sommaire
+
+1 Lien avec le standard ISO/CEI 10646
+2 Description
+2.1 Exemples
+2.2 Caractéristiques
+2.2.1 Principe et unicité du codage
+2.3 Types d’octets, séquences valides et décodage
+2.4 Séquences interdites
+3 Avantages
+4 Inconvénients
+5 Histoire
+5.1 Restrictions successives
+5.2 Prise en charge
+5.3 Extensions non standards
+5.3.1 Exemple de variante utilisée en Java
+6 Notes et références
+7 Voir aussi
+7.1 Articles connexes
+7.1.1 Blocs de caractères Unicode spéciaux contenant des non-caractères
+7.2 Liens externes
+Lien avec le standard ISO/CEI 10646
+
+UTF-8 est un « format de transformation » de la norme ISO/CEI 10646, c'est-à-dire que UTF-8 définit un codage pour tout point de code scalaire (caractère abstrait ou « non-caractère ») du répertoire du jeu universel de caractères codés (Universal Character Set, ou UCS). Ce répertoire est aujourd’hui commun à la norme ISO/CEI 10646 (depuis sa révision 1) et au standard Unicode (depuis sa version 1.1).
+
+UTF-8 est officiellement défini dans la norme ISO/CEI 10646 depuis son adoption dans un amendement publié en 1996. Il fut aussi décrit dans le standard Unicode et fait partie de ce standard depuis la version 3.0 publiée en 2000. En 1996 fut publiée la RFC 2044 (« UTF-8, a transformation format of ISO 10646 ») dans le but de fournir une spécification accessible d'UTF-8 et d'entamer sa standardisation au sein de l’Internet Engineering Task Force (IETF). Cette RFC fut révisée en 1998 (RFC 2279) puis finalement en 2003 (RFC 3629), cette dernière version faisant d'UTF-8 un des standards de l'internet (STD 63).
+
+L’IETF exige maintenant qu’UTF-8 soit pris en charge par défaut (et non pas simplement supporté en tant qu’extension) par tous les nouveaux protocoles de communication d’Internet (publiés dans ses RFC numérotées) qui échangent du texte (les plus anciens protocoles n’ont toutefois pas été modifiés pour rendre ce support obligatoire, mais seulement étendus si possible, pour le supporter de façon optionnelle, si cela produit des incompatibilités ou introduit de nouveaux risques de sécurité : c’est le cas de protocoles Internet très utilisés comme DNS, HTTP, FTP, Telnet et de HTML dans ses versions initiales non normalisées par le W3C).
+
+Description
+
+Le numéro (valeur scalaire) de chaque point de code dans le jeu universel de caractères (UCS) est donné par la norme ISO/CEI 10646 qui assigne un point de code à chaque caractère valide, puis permet leur codage en leur attribuant une valeur scalaire identique au point de code ; cette norme est reprise dans le standard Unicode (qui utilise depuis la version 1.1 le même répertoire).
+
+Tous les « points de code » (code points en anglais) de U+0000 à U+D7FF et de U+E000 à U+10FFFF sont représentables en UTF-8 (mêmes ceux attribués à des « non-caractères » (non character) et tous ceux qui ne sont pas encore attribués), et uniquement ceux-là. Les seuls points de codes valides dans l’espace de l’UCS et qui ne doivent pas être représentés dans UTF-8 sont ceux attribués aux « demi-codets » (surrogates en anglais), car ils ne sont pas représentables de façon bijective dans le codage UTF-16 et ne sont pas non plus par eux-mêmes des caractères : contrairement aux autres points de codes, les demi-codets n’ont donc pas de « valeur scalaire » (scalar value en anglais) définie.
+
+Les caractères ayant une valeur scalaire de 0 à 127 (point de code attribué de U+0000 à U+007F) sont codés sur un seul octet dont le bit de poids fort est nul.
+
+Les points de code de valeur scalaire supérieure à 127 sont codés sur plusieurs octets. Les bits de poids fort du premier octet forment une suite de 1 de longueur égale au nombre d'octets utilisés pour coder le caractère, les octets suivants ayant 10 comme bits de poids fort.
+
+Caractéristiques
+
+Dans toute chaîne de caractères codée en UTF-8, on remarque que :
+
+tout octet de bit de poids fort nul désigne un unique « point de code » assigné à un caractère du répertoire de l’US-ASCII et codé sur ce seul octet, d’une valeur scalaire identique à celle du codet utilisé dans le codage US-ASCII ;
+tout octet de bits de poids fort valant 11 est le premier octet d’une séquence unique représentant un « point de code » (assigné à un caractère ou un non-caractère) et codé sur plusieurs octets ;
+tout octet de bits de poids fort valant 10 est un des octets suivants d’une séquence unique représentant un « point de code » (assigné à un caractère ou un non-caractère) et codé sur plusieurs octets ;
+aucun octet ne peut prendre une valeur hexadécimale entre C0 et C1, ni entre F5 et FF (le plus haut point de code valide et assigné à un caractère représentable est U+10FFFD ; c’est un caractère à usage privé alloué dans le 17e plan valide).
+Le plus grand point de code valide assignable à un caractère valide non privé est U+EFFFD dans le 15e plan (il n’est pas encore assigné mais peut le devenir dans l’avenir), mais le codage UTF-8 peut être utilisé aussi, de façon conforme aux normes, pour représenter n’importe caractère valide à usage privé (dans une des trois plages U+E000 à U+F8FF, U+F0000 à U+FFFFD, et U+100000 à U+10FFFD).
+
+L’acceptation ou non des non-caractères ou des caractères d’usage privé est laissée aux applications ou protocoles de transport de texte. Cependant les non-caractères ne sont normalement pas acceptés dans des textes strictement conformes au standard Unicode où à la norme ISO/CEI 10646.
+
+Certaines applications imposent des restrictions supplémentaires sur les points de code utilisables (par exemple, les standards HTML et XML interdisent, dans tout document conforme à ces spécifications, la présence de la plupart des caractères de contrôle entre U+0000 et U+001F et entre U+0080 et U+009F, en dehors des contrôles de saut de ligne et de la tabulation U+0009 considérés comme des caractères blancs, et interdisent aussi les non-caractères).
+
+Tout point de code est toujours représenté par exactement la même séquence binaire, quelle que soit sa position relative dans le texte, et ces séquences sont autosynchronisées sur la position indivise des codets significatifs (ici les octets : on peut toujours savoir si un octet débute ou non une séquence binaire effective) ; ce codage autorise donc les algorithmes rapides de recherche de texte, tel que l’algorithme de Boyer-Moore.
+
+Ce n’est pas toujours le cas des codages contextuels (qui utilisent généralement la compression de données, par exemple SCSU défini dans la note technique standard UTS#6 optionnelle complétant le standard Unicode) et qui peuvent nécessiter de lire le texte complètement depuis le début, ni des codages basés sur plus d’une seule variable d’état (ou qui incorporent des codes supplémentaires de redondance) ; au mieux certains de ces codages peuvent demander d’utiliser des algorithmes complexes de resynchronisation, basés souvent sur des heuristiques qui peuvent échouer ou conduire à de fausses interprétations si on ne lit pas le texte depuis le début (par exemple BOCU-1).
+
+Principe et unicité du codage
+
+Dans le tableau ci-dessus on voit que le caractère « € » se trouve au point de code 8364, soit en binaire :00100000 10101100
+
+ donc 14 bits au moins sont nécessaires pour encoder le caractère « € ». Selon le tableau « Définition du nombre d’octets utilisés », il nous faut 3 octets pour placer les 14 bits dont nous avons besoin.
+
+Mais bien sûr si nous avions 4 octets (21 bits), nous pourrions là aussi placer nos 14 bits. Il est dit 2 : « Pour des raisons de sécurité, un programme qui décode des caractères au format UTF-8 ne doit pas accepter les séquences UTF-8 qui sont plus longues que nécessaires pour coder ces caractères. ». (« Il risquerait d’abuser un test de sous-chaîne, qui ne regarderait que les codages les plus courts ».)
+
+Ainsi « € » se codera : 11100010 10000010 10101100, mais ne se codera pas : 11110000 10000010 10000010 10101100.
+
+Une telle forme, plus longue que nécessaire s'appelle en anglais overlong. De telles formes (initialement autorisées dans des spécifications anciennes avant qu’elles soient normalisées successivement par la RFC initiale publiée par le Consortium X/Open, puis parallèlement par la norme ISO 10646 et le standard Unicode) sont interdites et doivent être traitées comme invalides.
+
+Types d’octets, séquences valides et décodage
+
+Le codage est prédictif et permet toujours de retrouver la position du premier octet d’une séquence représentant un point de code, à partir de la valeur d’un octet quelconque et de la lecture d’un nombre limité d’octets voisins, dans les deux directions de lecture (ce sera toujours l’octet lui-même, ou le premier éligible dans un des 1 à 3 octets voisins).
+
+Tout octet de continuation dans une séquence UTF-8 valide ne peut prendre que les valeurs hexadécimales 80 à BF ;
+il ne peut exister qu’à la suite d’un octet de début de séquence (représentant un point de code), qui sera le dernier codé dans un des 1 à 3 octets précédents et qui n’est pas non plus un octet de continuation ;
+le point de code suivant, s’il y en a un, ne peut commencer au maximum que dans les 1 à 3 octets suivants.
+Le premier octet d’une séquence UTF-8 valide ne peut prendre que les valeurs hexadécimales 00 à 7F ou C2 à F4 :
+le premier octet hexadécimal 00 à 7F d’une séquence n’est suivi d’aucun octet de continuation ;
+le premier octet hexadécimal C2 à DF d’une séquence est toujours suivi d’un seul octet de continuation (chacun de valeur hexadécimale entre 80 et BF) ;
+le premier octet hexadécimal E0 à EF d’une séquence est toujours suivi de deux octets de continuation (chacun de valeur hexadécimale entre 80 et BF) ;
+cependant, si le premier octet d’une séquence prend la valeur hexadécimale E0, le premier octet de continuation est restreint à une valeur hexadécimale entre A0 et BF ;
+cependant, si le premier octet d’une séquence prend la valeur hexadécimale ED, le premier octet de continuation est restreint à une valeur hexadécimale entre 80 et 9F ;
+le premier octet hexadécimal F0 à F4 d’une séquence est toujours suivi de trois octets de continuation (chacun de valeur hexadécimale entre 80 et BF) ;
+cependant, si le premier octet d’une séquence prend la valeur hexadécimale F0, le premier octet de continuation est restreint à une valeur hexadécimale entre 90 et BF ;
+cependant, si le premier octet d’une séquence prend la valeur hexadécimale F4, le premier octet de continuation est restreint à une valeur hexadécimale entre 80 et 8F.
+Séquences interdites
+
+Les points de code sont toujours représentés par la séquence d’octets la plus courte possible :
+par conséquent, aucune séquence d’octets ne contient des octets initiaux de valeur hexadécimale C0 ou C1 dans un texte valide codé en UTF-8 ;
+de même, aucune séquence commençant par l’octet initial E0 ne peut avoir un premier octet de continuation de valeur hexadécimale 80 à 9F.
+Les points de code allant de U+D800 à U+DFFF sont interdits (leur valeur scalaire est réservée pour la représentation UTF-16 des points de code supplémentaires avec des paires de demi-codets) :
+par conséquent, le premier octet de continuation d'une séquence qui commence par l’octet hexadécimal ED ne peut prendre aucune des valeurs hexadécimales A0 à BF ;
+ces séquences interdites en UTF-8 sont en revanche autorisées dans la transformation CESU-8 (non recommandée, qui ne doit en aucun cas être confondue avec UTF-8, car CESU-8 utilise ces séquences pour coder les caractères des plans supplémentaires en 2 séquences de 3 octets chacune, au lieu d‘une seule séquence de 4 octets en UTF-8).
+De même que tout codage pouvant donner un point de code de valeur supérieure à U+10FFFF est interdit :
+par conséquent, le premier octet de continuation d'une séquence qui commence par l’octet hexadécimal F4 ne peut prendre aucune des valeurs hexadécimales 90 à BF ;
+et aucune séquence d’octets ne contient des octets initiaux de valeur hexadécimale F5 à FF.
+De telles séquences sont dites mal formées (ill-formed). (Voir la référence ci-dessus, notamment la seconde table dans la clause de conformité D36 du standard ou l’article Unicode).
+
+En revanche, les points de code réservés (pas encore alloués à des caractères) sont autorisés (même si l’interprétation des caractères peut rester ambigüe) : il appartient aux applications de décider si ces caractères sont acceptables ou non, sachant que les mêmes applications continueront probablement à être utilisées alors que ces positions auront été assignées dans les normes Unicode et ISO 10646 à de nouveaux caractères parfaitement valides.
+
+De même les autres points de code assignés de façon permanente aux autres « non-caractères » sont interdits dans les textes conformes à la norme ISO/CEI 10646 ou au standard Unicode : par exemple U+xFFFE à U+xFFFF (où x indique un numéro de plan hexadécimal de 0 à 10). Mais ils restent encodables et décodables en tant que tels en UTF-8 (les non-caractères sont à disposition des applications qui peuvent en faire un usage au sein d’API internes, par exemple comme codes intermédiaires nécessaires à l’implémentation de certains traitements).
+
+La restriction de l’espace de représentation aux seuls points de code inférieurs ou égaux à U+10FFFF (non compris les points de codes assignés aux demi-codets) n’a pas toujours été appliquée :
+
+Cela n’a pas toujours été le cas dans la norme ISO/CEI 10646, qui prévoyait à l’origine de pouvoir coder un très grands nombre de plans possibles (l‘UCS-4 permettait un codage jusqu’à 31 bits), alors que Consortium Unicode (depuis la fusion du répertoire commun dans sa version 1.1) n’utilisait encore que le plan multilingue de base et n’avait pas encore envisagé de couvrir autant d’écritures qu’aujourd’hui.
+L’introduction par Unicode du codage UTF-16 dans une annexe standard (quand il a admis que plus de 65536 caractères seraient rapidement nécessaires) a demandé l’allocation préalable par l’ISO/IEC 10646 d’un bloc de points de codes pour des « demi-codets » qui étaient considérés au début par l’ISO/IEC 10646 comme des caractères spéciaux (une concession faite à Unicode alors que l’UCS-4 avait été créé comme un espace de codage linéaire où tous les points de code avaient une valeur scalaire), alors qu’Unicode n’utilisait encore que le sous-espace UCS-2 et pas l’espace UCS-4 complet.
+Pour éviter des problèmes d’interopérabilité avec les autres applications (non Unicode) basées sur UCS-2, une première révision de l’UTF-8 a été publiée par l’ISO en 1998, mentionnant que ces demi-codets n’avaient donc pas de valeur scalaire définie et qu’aucun point de code assignés aux « demi-codets » dans les deux blocs successifs alloués ne devait pas être encodés en UTF-8.
+Mais selon l’accord final intervenu entre le comité technique du Consortium Unicode et le celui en charge de la norme ISO/CEI 10646, toute utilisation de plus de 17 plans a été proscrite, afin d’assurer l’interopérabilité totale avec le codage UTF-16 défini par Unicode, un codage déjà massivement déployé dans les systèmes d’exploitation (par exemple Microsoft Windows), ou sous-systèmes (par exemple OpenType), ou encore dans de nombreux langages de programmation qui en dépendent pour leur interopérabilité (dont certains issus de normes nationales ou internationales, tels que les langages C et C++ qui ont eu des difficultés à supporter le répertoire universel).
+En effet, après une vingtaine d’années d’efforts pour la définition de l’UCS pour toutes les écritures du monde, des règles plus strictes ont été établies pour limiter les caractères encodables selon un modèle assurant une compatibilité ascendante mais aussi de meilleures pratiques de codage. Pratiquement toutes les écritures modernes du monde ont été codées, et on dispose d’estimations fiables de l’ordre de grandeur sur la quantité de caractères nécessaires pour le support des autres écritures, ainsi que sur les besoins de codage pour de nouveaux caractères.
+La croissance initiale très forte des allocations dans l’UCS (ou des caractères restant encore à coder) s’est fortement ralentie, et seulement 6 des 17 plans sont utilisés fin 2011 (mais deux seulement ont un taux de remplissage significatif : le plan multilingue de base, pratiquement plein, et le plan idéographique supplémentaire ; c’est sur le plan multilingue complémentaire que se concentrent la majorité des autres écritures anciennes restant à encoder, ou des nouveaux ensembles de symboles et caractères de notation technique).
+Le rythme de croissance des allocations dans l’UCS pour la norme ISO/IEC 10646 ne permet pas d’envisager sa saturation avant un terme dépassant de très loin le cycle de vie des normes internationales (et encore plus celui des standards industriels comme Unicode). À ce terme trop lointain, il est tout à fait possible que UTF-16 soit devenu obsolète depuis fort longtemps, ou qu’une nouvelle norme de codification ait vu le jour et ait été massivement déployée (et que les outils de conversion automatique auront aussi été normalisés et déployés). Rien ne justifie encore de maintenir une extension possible non nécessaire au besoin immédiat d’interopérabilité des normes et standards actuels ou des futures normes envisagées.
+Un ou deux autres plans seulement sont envisagés pour les écritures sinographiques, anciennes écritures cunéiformes ou hiéroglyphiques, et éventuellement un autre plan pour des collections de symboles et pictogrammes nécessaires à l’interopérabilité de certaines applications modernes (par exemple les emojis des messageries et services interactifs est-asiatiques, ou des symboles nécessaires à des normes internationales de signalisation ou de sécurité).
+Les « groupes » supplémentaires d’usage privé à la fin de l’UCS-4, ainsi que les « plans » supplémentaires d’usage privé dans l’UCS-4 à la fin du groupe 0, qui avaient été envisagés par l’ISO depuis le début de ses travaux de normalisation, ont été abandonnés pour ne garder, parmi les 17 premiers plans du premier groupe, que les deux derniers plans à cet usage privé (en plus du bloc d’usage privé U+E000 à U+F8FF déjà alloué dans le plan multilingue de base), ce qui s’avère suffisant pour toutes les applications.
+Cela a fait l‘objet de la révision en 2003 de la RFC publiée par le comité technique de l’ISO définissant le codage UTF-8 pour la norme ISO/CEI 10646, et simultanément d’une mise à jour de l’annexe standard au standard Unicode (une annexe standard qui a, depuis, été intégrée au standard lui-même).
+Depuis ces mises à jour de 2003, le codage UCS-4 défini par la norme ISO/CEI 10646 est devenu en pratique équivalent à UTF-32 (défini dans la norme Unicode qui adjoint des propriétés supplémentaires mais sans différence de codage). Et la dernière RFC publiée par l’ISO et approuvée par l’IETF en 2003 fait d’ailleurs maintenant une référence normative à la définition de l’UTF-8 publiée conjointement avec (ou dans) le standard Unicode.
+Avantages
+
+Universalité 
+Ce codage permet de représenter les milliers de caractères du répertoire universel, commun à la norme ISO/CEI 10646 et au standard Unicode (du moins depuis sa version 1.1).
+Compatibilité avec US-ASCII 
+Un texte en US-ASCII est codé identiquement en UTF-8.
+Interopérabilité 
+Du fait qu’un caractère est découpé en une suite d’octets (et non en mots de plusieurs octets), il n'y a pas de problème d’endianness (ou « boutisme »).
+Ce problème apparaît avec les codages UTF-16 et UTF-32 par exemple, si on ne les utilise pas avec un marqueur d’ordonnancement (appelé BOM pour Byte Order Mark) codé en début de fichier à l’aide du caractère U+FEFF, qui était auparavant destiné à un autre usage (ZWNBSP pour zero-width non-breaking space, une fonction d’agglutination de mots à afficher sans espace séparatrice ni césure que remplit aujourd’hui le caractère WJ pour word-joiner). En revanche, les codages dérivés UTF-16BE, UTF-16LE, UTF-32BE et UTF-32LE sont conçus avec un ordonnancement précis ne nécessitant l’emploi d’aucun BOM.
+Pour différentes raisons de compatibilité (notamment via des processus de transcodage), il est cependant resté admis qu’un BOM (U+FEFF), non absolument nécessaire, puisse encore être codé en tête d’un fichier UTF-8 (leur interprétation reste celle du caractère ZWNBSP, même si de nombreux protocoles ont choisi d’ignorer et filtrer silencieusement ce caractère puisqu’il ne sert plus qu’à cet usage et que son ancienne fonction, quand elle reste nécessaire à l’interprétation du texte lui-même, est désormais transférée sur un autre caractère codé exprès).
+Efficacité 
+Pour la plupart des langues à écriture latine, les fichiers de données numériques ou les codes sources de programmes, ou de nombreux protocoles textuels de communication (comme FTP, HTTP ou MIME), qui utilisent abondamment (voire parfois exclusivement dans certaines parties) les caractères US-ASCII, UTF-8 nécessite moins d’octets que l’UTF-16 ou l’UTF-32.
+Réutilisabilité 
+De nombreuses techniques de programmation informatique valables avec les caractères uniformément codés sur un octet le restent avec UTF-8, notamment :
+la manière de repérer la fin d’une chaîne de caractères C, car tout octet binaire 00000000 trouvé dans une chaîne de caractères codés en UTF-8 est toujours le caractère nul (en revanche il est alors impossible de représenter le caractère NUL lui-même comme membre de la chaîne de caractères, à moins que l’information de longueur effective du texte codé soit stockée ou transportée en dehors de celui-ci, auquel cas cet octet sera interprété comme tel au sein même des chaînes codées en UTF-8).
+la manière de trouver une sous-chaîne est identique.
+Fiabilité 
+Il s’agit d’un codage auto-synchronisant (en lisant un seul octet on sait si c’est le premier d’un caractère ou non).
+Il est possible, depuis n’importe quelle position dans un texte codé, de remonter au premier octet de la séquence en lisant une toute petite quantité d’octets antérieurs, soit au maximum 3 octets, ou de trouver facilement le début de la séquence suivante, là encore en ne sautant qu’au maximum 3 octets) ;
+Une séquence décrivant un caractère n’apparaît jamais dans une séquence plus longue décrivant un autre caractère (comme c’est le cas de Shift-JIS).
+Il n’existe pas de code « d’échappement » changeant l’interprétation (comme caractères) de la suite d’une séquence d’octets.
+Inconvénients
+
+Taille variable 
+Les caractères sont représentés en UTF-8 par des séquences d’octets de taille variable, ce qui rend certaines opérations sur les chaînes de caractères plus compliquées : le calcul du nombre de caractères ; le positionnement à une distance donnée (exprimée en caractères) dans un fichier texte et en règle générale toute opération nécessitant l’accès au caractère de position N dans une chaîne.
+Efficacité 
+Pour les langues utilisant beaucoup de caractères extérieurs à US-ASCII, UTF-8 occupe sensiblement plus d’espace.
+Par exemple, les idéogrammes courants employés dans les textes de langues asiatiques comme le chinois, le coréen ou le japonais (kanji, par exemple) utilisent 3 octets en UTF-8 contre 2 octets en UTF-16.
+De manière générale, les écritures employant beaucoup de caractères de valeur égale ou supérieure à U+0800 occupent plus de mémoire que s’ils étaient codés avec UTF-16 (UTF-32 sera plus efficace uniquement pour les textes utilisant majoritairement des écritures anciennes ou rares codées hors du plan multilingue de base, c’est-à-dire à partir de U+100000, mais il peut aussi s’avérer utile localement dans certains traitements pour simplifier les algorithmes, car les caractères y ont toujours une taille fixe, la conversion des données d’entrée ou de sortie depuis ou vers UTF-8 ou UTF-16 étant triviale).
+Séquences invalides 
+Par son système de codage, il était éventuellement possible de représenter un code de différentes manières en UTF-8, ce qui pouvait poser un problème de sécurité : un programme mal écrit peut accepter un certain nombre de représentations UTF-8, normalement invalides selon la RFC 3629 et dans les spécifications (maintenant équivalentes entre elles) publiées par l’ISO 10646 et Unicode ; mais ce n’était pas le cas selon la spécification originale, qui permettait de les convertir comme un seul et même caractère.
+De fait, un logiciel détectant certaines chaînes de caractères (pour prévenir les injections SQL, par exemple) pouvait échouer dans sa tâche (ce n’est plus le cas si la conformité du codage avec la définition stricte et normalisée d’UTF-8 est vérifiée avant toute chose).
+Prenons un exemple tiré d'un cas réel de virus attaquant des serveurs HTTP du Web en 2001 ((en)Crypto-Gram: July 15, 2000 Microsoft IIS and PWS Extended Unicode Directory Traversal Vulnerability Microsoft IIS 4.0/5.0 Web Directory Traversal Vulnerability). Une séquence à détecter pourrait être « /../ » représentée en ASCII (a fortiori en UTF-8) par les octets « 2F 2E 2E 2F » en notation hexadécimale.
+Cependant, une manière malformée de coder cette chaîne en UTF-8 serait « 2F C0 AE 2E 2F », appelée aussi en anglais overlong form (forme superlongue). Si le logiciel n’est pas soigneusement écrit pour rejeter cette chaîne, en la mettant par exemple sous forme canonique, une brèche potentielle de sécurité est ouverte. Cette attaque est appelée directory traversal.
+Les logiciels acceptant du texte codé en UTF-8 ont été blindés pour rejeter systématiquement ces formes longues car non conformes à la norme : soit le texte entier est rejeté ; mais parfois les séquences invalides sont remplacées par un caractère de substitution (généralement U+FFFD si l’application accepte et traite ce caractère normalement ; parfois un point d’interrogation ou le caractère de contrôle de substitution SUB U+001A de l’ASCII, qui peuvent poser d’autres problèmes de compatibilité) ; moins souvent, ces séquences interdites sont éliminées silencieusement (ce qui est très peu recommandé).
+Caractère nul 
+UTF-8 ne peut représenter le caractère de contrôle nul (U+0000) qu’avec un seul octet nul, ce qui pose des problèmes de compatibilité avec le traitement de chaînes qui ne codifient pas séparément leur longueur effective car cet octet nul ne représente alors aucun caractère mais la fin de chaîne (cas très courant en langage C ou C++ et dans les API des systèmes d’exploitation). Si un caractère nul doit être stocké dans un texte sur de tels systèmes, il sera nécessaire de recourir à un système d’échappement, spécifique de ce langage ou système avant de coder en UTF-8 le texte ainsi transformé. En pratique, aucun texte valide ne devrait contenir ce caractère.
+Une autre solution est d’utiliser une des séquences interdites dans le codage UTF-8 standard afin coder le caractère par cette séquence ; mais le texte ainsi codé ne sera pas conforme au codage UTF-8 standard, même si le codage ainsi modifié reste un format de transformation universelle conforme (qui ne doit cependant pas être désigné comme « UTF-8 »). Voir la section ci-dessous relative aux variantes non standards basées sur UTF-8.
+Histoire
+
+UTF-8 a été inventé par Kenneth Thompson lors d'un dîner avec Rob Pike aux alentours de septembre 19923. Appelé alors FSS-UTF, il a été immédiatement utilisé dans le système d'exploitation Plan 9 sur lequel ils travaillaient. Une contrainte à résoudre était de coder les caractères nul et '/' comme en ASCII et qu’aucun octet codant un autre caractère n’ait le même code. Ainsi les systèmes d’exploitation UNIX pouvaient continuer à rechercher ces deux caractères dans une chaîne sans adaptation logicielle.
+
+FSS-UTF a fait l'objet d'un standard préliminaire X/Open de 19934 qui fut proposé à l'ISO. Cette dernière l'adopta dans le cadre de la norme ISO/CEI 10646 sous le nom d'abord d'UTF-2, puis finalement UTF-8.
+
+Restrictions successives
+
+Le codage original FSS-UTF était destiné à remplacer le codage multi-octets UTF-1 initialement proposé par l'ISO 10646. Ce codage initialement permissif, permettait plusieurs représentations binaires pour le même caractère (cela a été interdit dans la version normalisée dans la RFC publiée par le Consortium X/Open, et approuvé par Kenneth Thompson).
+
+De plus il pouvait (dans une version préliminaire non retenue) coder tous les caractères dont la valeur de point de code comprenait jusqu’à 32 bits en définissant un huitième type d’octet (dans des séquences comprenant jusqu’à 6 octets), au lieu des 7 types d’octets finalement retenus pour ne coder (dans des séquences comprenant aussi jusqu’à 6 octets) que les points de code jusqu’à 31 bits dans la version initiale d’UTF-8 (publiée par le Consortium X/Open sous le nom FSS-UTF, puis proposé par le comité technique d’ISO 10646 comme la proposition « UTF-2 » alors encore en concurrence avec la proposition « UTF-1 », jusqu’à ce que la proposition UTF-2 soit retenue et adopte le nom UTF-8 déjà retenu et utilisé dans X/Open et Plan 9).
+
+Ce codage UTF-8 a été restreint encore lorsque Unicode et ISO 10646 ont convenu de n’allouer des caractères que dans les 17 premiers plans afin de maintenir indéfiniment la compatibilité avec UTF-16 (sans devoir le modifier), en restreignant les séquences jusqu’à 4 octets seulement et en n’utilisant que les 5 premiers des 7 types d’octets (ce qui a nécessité de définir comme invalides de nouvelles valeurs d’octet et certaines séquences d’octets pourtant valides individuellement).
+
+Prise en charge
+
+Navigateurs web : la prise en charge d'UTF-8 commença à être répandue à partir de 1998.
+Les anciens navigateurs web ne supportant pas UTF-8 affichent tout de même correctement les 127 premiers caractères ASCII.
+Netscape Navigator supporte UTF-8 à partir de sa version 4 (juin 1997).
+Microsoft Internet Explorer supporte UTF-8 à partir de sa version 4 (octobre 1997) pour Microsoft Windows et pour Mac OS (janvier 1998).
+Les navigateurs basés sur le moteur de rendu Gecko (lancé en 1998) supportent l'UTF-8 : Mozilla, Mozilla Firefox, SeaMonkey etc.
+Opera supporte UTF-8 à partir de sa version 6 (novembre 2001).
+Konqueror supporte UTF-8.
+Safari sur Macintosh et Windows supporte UTF-8.
+OmniWeb sur Macintosh supporte UTF-8.
+Chrome de Google supporte UTF-8.
+Fichiers et noms de fichiers : de plus en plus courant sur les systèmes de fichiers GNU/Linux et Unix, mais pas très bien supporté sous les anciennes versions de Windows (antérieures à Windows 2000 et Windows XP, lesquels peuvent maintenant les prendre en charge sans difficulté puisque le support d’UTF-8 est maintenant totalement intégré au système, en plus d’UTF-16 présent depuis les premières versions de Windows NT et de l’API système Win32).
+Noter que le système de fichiers FAT historique de MS-DOS et Windows a été étendu depuis Window NT 4 et Windows XP pour prendre en charge UTF-16 (pour une meilleure compatibilité avec NTFS) et non UTF-8 (mais cette transformation est équivalente et transparente aux applications) avec quelques restrictions sur les caractères autorisés ou considérés comme équivalents (de telles exceptions ou restrictions existent aussi sur tous les systèmes de fichiers pour GNU/Linux, Unix, Mac OSX et d’autres systèmes, y compris les systèmes de fichiers distribués sur Internet comme HTTP/WebDAV).
+Client de messagerie : tous les logiciels de messagerie utilisés aujourd’hui supportent UTF-8 :
+Thunderbird,
+Windows Mail,
+Microsoft Outlook,
+Lotus Notes, etc.
+Extensions non standards
+
+Toutefois, des variantes d’UTF-8 (basées sur les possibilités de codage de la version initiale non restreinte) ont continué à être utilisées (notamment dans l’implémentation de la sérialisation des chaînes Java) pour permettre de coder sous forme d'un échappement multioctets certains caractères ASCII réservés normalement codés sur un seul octet (par exemple le caractère nul).
+
+De plus, certains systèmes utilisent des chaînes de caractères non restreints : par exemple, Java (et d’autres langages y compris des bibilothèques de manipulation de chaînes en C, PHP, Perl, etc...) représentent les caractères avec des unités de codage sur 16 bits (ce qui permet de stocker les chaînes en utilisant le codage UTF-16, mais sans les contraintes de validité imposées par UTF-16 concernant les valeurs interdites et l'appariement dans l’ordre des « demi-points de code » ou surrogates) ; dans ce cas, les unités de codage sont traitées comme des valeurs binaires et il est nécessaire de les sérialiser de façon individuelle (indépendamment de leur interprétation possible comme caractères ou comme demi-points de code). Dans ce cas, chaque unité de codage 16 bits qui représente un « caractère » (non-contraint) est sérialisé sous forme de séquences comprenant jusqu'à 3 octets chacune, et certains octets interdits par l’implémentation (par exemple les caractères nuls ou la barre de fraction « / » dans un système de fichiers ou d’autres caractères codés sur un octet dans d’autres protocoles) sont codés sous forme de séquences d’échappement à deux octets dont aucun n’est nul, en utilisant simplement le principe de codage de la première spécification de FSS-UTF (avant celle qui a été retenue par le Consortium X/Open dans sa RFC initiale où ces échappements étaient spécifiquement interdits et le sont restés).
+
+Avant l’adoption de la proposition UTF-2 retenue pour UTF-8, il a également existé une variante UTF-1, où les codages multiples étaient impossibles, mais nécessitait un codage/décodage plus difficile devant prendre en compte la position de chaque octet et utilisant un certain nombre de valeurs « magiques ».
+
+Ces variantes ne doivent pas être appelées « UTF-8 ».
+
+Une de ces variantes non standards a fait cependant l’objet d’une standardisation ultérieure (en tant qu’alternative à UTF-16 et utilisant des paires de demi-codets codés chacun sur 3 octets) : voir CESU-8.
+
+Exemple de variante utilisée en Java
+
+Par exemple les API d’intégration des machines virtuelles Java (pour JNI, Java Native Interface ou pour la sérialisation des classes précompilées), qui permettent d’échanger les chaînes Java non contraintes sous forme de séquences d’octets (afin de les manipuler, utiliser ou produire par du code natif, ou pour le stockage sous forme de fichier natif codés en suites d’octets) sont suffixées par "UTFChars" ou "UTF", mais ce codage propre à Java n’est pas UTF-8 (La documentation de Sun la désigne comme modified UTF, mais certains documents plus anciens relatifs à JNI désignent encore ce codage incorrectement sous le nom UTF-85, ce qui a produit des anomalies de comportement de certaines bibliothèques natives JNI, notamment avec les API systèmes d’anciennes plateformes natives qui ne supportent pas nativement les codages de caractères sur plus de 8 bits), car :
+
+le caractère nul, présent en tant que tel dans une chaîne Java, est codé sous forme de deux octets non nuls (et non un seul octet nul utilisé pour indiquer la fin de séquence).
+les surrogates (U+D000 à U+D7FFF) peuvent être codés librement, dans un ordre quelconque, de même que les points de code interdits normalement pour le codage de caractère (par exemple U+FFFF ou U+FFFE) : aucun test de validité n'est demandé
+les séquences d’octets plus longues (sur 4 octets pour représenter les caractères hors du plan multilangue de base) normalisées et valides dans UTF-8 ne sont pas reconnues par la machine virtuelle dans ses API basées sur modified UTF (ce qui déclenche des exceptions lors de la conversion demandée par le code natif de la chaîne 8 bits vers une chaîne Java gérée par la machine virtuelle) : il faut alors réencoder les caractères hors du plan de base (codés sur 4 octets en UTF-8) sous la forme de deux séquences de 3 octets en modified UTF, une pour chaque surrogate.
+les chaînes Java (de la classe système String) et le type numéral char sont utilisés aussi pour le stockage (sous forme compacte, non modifiable et partageable) de données binaires quelconques (pas seulement du texte), et peuvent aussi être manipulées dans d’autres codages que l’UTF-16 (la seule contrainte étant que les unités de codage individuelle ne doivent pas dépasser 16 bits et doivent être de valeur positive, le bit de poids fort n'étant pas évalué comme un bit de signe).
+En conséquence,
+
+les applications écrites en pur Java (sans code natif) et qui nécessitent l’implémentation de contraintes de codage pour être conformes à Unicode pour le texte doivent le demander explicitement et utiliser un des filtres de codage fournis (pour UTF-8, comme aussi pour UTF-16), ou construire et utiliser des classes basées sur la classe String et le type numéral char.
+un texte UTF-8 valide (et manipulé en code natif dans des chaînes sans caractères nuls) nécessite un prétraitement avant de pouvoir être transmis à la machine virtuelle Java via JNI ; notamment, toute séquence codée sur 4 octets (pour un caractère hors du plan de base) doit être transcodée en deux séquences de 3 octets.
+les chaînes obtenues depuis une machine virtuelle Java via les interfaces UTF de JNI nécessitent un prétraitement de contrôle de validité ou de filtrage dans le code natif, avant de pouvoir être utilisées comme du texte UTF-8 valide (il faut détecter les occurrences du caractère null codé en deux octets et, si ce caractère est acceptable par le code natif, le transcoder en un seul octet ; il faut vérifier dans le code natif l’appariement correct des surrogates, codés chacun sur 3 octets, et les filtrer si ces séquences ne sont pas refusées comme invalides, puis transcoder toute paire valide de surrogates en une seule séquence de 4 octets seulement et non deux séquences de 3 octets).
+Notes et références
+
+Cependant sur cette page retraçant l’histoire du codage UTF-8 avant 1996 il est dit : « UTF-8 encoded characters may theoretically be up to six bytes long », faisant par là référence à l’ensemble des valeurs initialement possibles (plus de deux milliards, codées sur 31 bits au maximum) dans la norme ISO/CEI 10646, cf. section Restriction successives.
+UTF-8 and Unicode FAQ
+Histoire de la création d'UTF-8 - par Rob Pike
+File System Safe UCS Transformation Format (FSS-UTF)
+http://java.sun.com/docs/books/jni/html/types.html#58973
+Voir aussi
+
+Articles connexes
+
+UTF-16, UTF-32, CESU-8
+Unicode, ISO/CEI 10646
+ISO 646, ASCII
+ISO 8859, ISO 8859-1
+Analyse syntaxique
+Blocs de caractères Unicode spéciaux contenant des non-caractères
+
+Table des caractères Unicode - Demi-zone haute d’indirection
+Table des caractères Unicode - Demi-zone basse d’indirection
+Table des caractères Unicode - Formes A de présentation arabes (2e partie)
+Table des caractères Unicode - Fins de plans : Caractères spéciaux, plan multilingue complémentaire, plan idéographique complémentaire, plan 3, plan 4, plan 5, plan 6, plan 7, plan 8, plan 9, plan 10, plan 11, plan 12, plan 13, plan complémentaire spécialisé, zone supplémentaire A à usage privé, zone supplémentaire B à usage privé
+
+Norme
+
+Une norme, du latin norma « équerre, règle », désigne un état habituellement répandu ou moyen considéré le plus souvent comme une règle à suivre. Ce terme générique désigne un ensemble de caractéristiques décrivant un objet, un être, qui peut être virtuel ou non. Tout ce qui entre dans une norme est considéré comme « normal », alors que ce qui en sort est « anormal ». Ces termes peuvent sous-entendre ou non des jugements de valeur.
+
+Sommaire
+
+1 Extension de la notion de norme
+1.1 Bref historique
+1.2 Approches respectives États-Unis / Europe
+2 Droit
+2.1 Constitution et lois
+2.2 Hiérarchie des normes
+3 Sciences humaines
+3.1 Philosophie
+3.1.1 Caractéristiques
+3.1.2 Réflexions sur la norme
+3.1.3 Éthique normative
+3.2 Culture
+3.2.1 Listes de patrimoines mondiaux
+3.2.2 Instruments normatifs sur le patrimoine culturel
+3.3 Linguistique
+3.3.1 Historique de la normalisation de la langue française
+3.3.2 Gestion des langues, normes sémantiques
+3.4 Sociologie
+4 Relations internationales
+4.1 Norme et hégémonie, un enjeu des relations internationales?
+4.1.1 Une définition de l'hégémonie
+4.1.2 Le lien entre norme et hégémonie: l'exemple américain
+4.1.3 Norme contre norme, ou l'hégémonie en position d'arbitre
+4.2 Les différentes approches des politiques de normalisation ou l'hégémonie partagée
+4.2.1 Les paradoxes de la normalisation à l’américaine
+5 Mathématiques et sciences physiques
+5.1 Mathématiques
+5.2 Sciences physiques
+6 Économie et industrie
+6.1 Objectif des normes et standards industriels
+6.2 Quelques exemples de normes dans l'économie
+6.2.1 Agroalimentaire
+6.2.2 Environnement, risques et responsabilité sociétale
+6.2.3 Systèmes d'information, télécommunications
+6.2.4 Comptabilité des entreprises
+6.2.5 Comptabilité publique et analyse économique
+7 Organismes de normalisation
+8 Bibliographie
+9 Notes et références
+10 Voir aussi
+11 Lien externe
+Extension de la notion de norme
+
+Bref historique
+
+La norme est traditionnellement l’un des modes d’expression privilégiés de la souveraineté. En France en particulier, la monnaie, pouvoir régalien par excellence, mais aussi les poids et mesures, délimitent l’un des champs d’application les plus anciens de la normalisation, même si le terme, sinon le concept, apparaît ultérieurement.
+
+Émergence de la notion de norme dans les sciences physiques
+
+Historiquement, la notion explicite de norme a été établie dans les sciences sous la forme du système métrique (initié par Louis XVI en 1790), remplacé par le système MKSA (1946) et plus récemment par le système international (1960).
+
+Article détaillé : Système international d'unités.
+Consulter notamment « Histoire et évolutions du Système international d'unités »
+Extension à l'industrie, à l'économie, et aux services
+
+Dans sa présentation de la norme à l'attention du grand public, l’Organisation internationale de normalisation (ISO) évoque deux dates : 1906, avec la mise en place de la Commission électrotechnique internationale (CEI) ; 1926, année de création de la Fédération internationale des associations nationales de normalisation (ISA, AFNOR). Si une telle mise en perspective n’est pas inexacte, elle fait l’économie des accords qui, passés dans le dernier quart du xixe siècle, ont préparé la démarche actuelle de normalisation internationale appliquée à l'économie en général.
+
+Ainsi, la signature en 1865 de la première Convention télégraphique internationale et la création de l’Union du même nom, permit dès cette année la mise en œuvre d’un Règlement télégraphique puis, à partir de 1885, l’élaboration d’une législation internationale dans le domaine de la téléphonie et, plus tard, des communications radiotélégraphiques, de la radiodiffusion, des télécommunications spatiales. De même, exemple d’un produit nécessitant la mise en place d’un certain nombre de normes en raison de son usage transnational, le timbre-poste apparu dans sa forme moderne au Royaume-Uni en 1840 (et adopté dans la décennie par la Suisse, le Brésil, les États-Unis, la France et la Belgique), donna lieu dès 1874, par traité, à la création de l’Union générale des postes, devenue l’Union postale universelle. Enfin, en 1875, la Convention du Mètre, signée dans la forme d’un traité diplomatique auquel 51 États sont aujourd’hui partie, constitue un autre exemple d’une structure permanente dédiée à la coopération internationale en matière de normes.
+
+Après la Seconde Guerre mondiale, le processus d'élaboration des normes s'est considérablement développé dans l'industrie, l'économie, et les systèmes d'information. En fait, le terme de normalisation évoque le plus souvent la normalisation dans l'industrie et les services. En raison de son influence déterminante sur les économies contemporaines, la normalisation vue sous cet angle peut être considérée comme un instrument commercial pour étendre l'influence d'une puissance économique, en utilisant des techniques de lobbying et les réseaux d'organisations non gouvernementales par exemple (voir plus loin, au chapitre Relations internationales, la question de l'hégémonie appliquée à la norme).
+
+À ce jour (2008), l’ISO a publié plus de 16 000 normes depuis 1947.
+
+Extension aux sciences humaines
+
+Même si la recherche implicite d'une certaine normalisation était déjà ancienne, en Europe par exemple en ce qui concerne les règles sur la langue française (grammaire française), la notion de norme s'est élargie depuis quelques décennies pour englober les sciences humaines.
+
+Vers le milieu du xxe siècle, la normalisation a touché le domaine juridique, avec la notion de hiérarchie des normes, même si le droit positif était à cette époque marqué par une certaine idéologie.
+
+On constate d'autre part que la normalisation concerne aussi les domaines culturel et linguistique, comme on peut le constater avec le patrimoine culturel et les questions sémantiques sous-jacentes.
+
+Approches respectives États-Unis / Europe
+
+La standardisation (standardization en américain) a fait l'objet d'une attention très soutenue aux États-Unis depuis les années 1980. L'approche des États-Unis est très commerciale et financière. Elle consiste à définir des communautés d'intérêt, puis à en déduire les standards (en particulier sur les données sémantiques), et enfin à définir les services d'entreprise adéquats. Cette démarche structurée, appuyée par un ensemble d'organismes le plus souvent privés (Oasis, W3C, ...) permet aux États-Unis d'acquérir une certaine domination par la connaissance.
+
+L'attention portée au sujet de la normalisation en Europe est à la fois différente et plus récente.
+
+Tout d'abord, les Européens font la distinction entre un standard (qui n'est pas nécessairement une norme mais peut le devenir) et une norme (qui a fait l'objet d'un processus officiel à l'ISO).
+D'autre part, les Européens semblaient dans un premier temps moins sensibles a priori à l'intérêt des normes (le mot standard est dissonant par rapport à certaines formes d'individualisme). Le monde industriel est paradoxalement demandeur de standardisation pour ses propres besoins (rationalisation économique) et demandeur de moins de normes, qui sont parfois considérées comme entrave au commerce. Certaines normes établies par les industriels (comme la durée de 1000 heure pour les lampes, initiée par le cartel Phœbus) posent des problèmes éthiques et de développement durable avec le développement d'une obsolescence programmée compatible avec les normes.
+Une directive européenne1 a instauré, pour les États-membres, l'obligation d'informer leurs partenaires européens de leurs projets de réglementations techniques ou de normes. Elle couvre les produits industriels et agricoles, ainsi que les services de la société de l'information. Les réglementations sur les services sont également concernées si elles ont une incidence sur les produits. En France, la normalisation a fait l'objet d'un rapport particulier du député Bernard Carayon en 2006. Des ontologies commencent à être étudiées sur le plan normatif pour les archives et le patrimoine culturel (ISO 21127). L'Europe dispose d'un Centre d'information sur les normes et règlements techniques (CINORTECH), dont le point d'information national a été en France confié à l'AFNOR. ref>Directive 98/34/CE modifiée du 22 juin 1998</ref> a instauré, pour les États-membres, l'obligation d'informer leurs partenaires européens de leurs projets de réglementations techniques ou de normes. Elle couvre les produits industriels et agricoles, ainsi que les services de la société de l'information. Les réglementations sur les services sont également concernées si elles ont une incidence sur les produits. En France, la normalisation a fait l'objet d'un rapport particulier du député Bernard Carayon en 2006. Des ontologies commencent à être étudiées sur le plan normatif pour les archives et le patrimoine culturel (ISO 21127). L'Europe dispose d'un Centre d'information sur les normes et règlements techniques (CINORTECH), dont le point d'information national a été en France confié à l'AFNOR.
+
+Droit
+
+Article détaillé : Norme en droit.
+Constitution et lois
+
+Les normes dans un système juridique sont les règles obligatoires qu'elles proviennent de lois, des codes, d'une coutume voire du droit naturel. Les codes sont de deux types : les codes adoptés comme tels, et modifiés, par les organes délibérants, ou bien les codes rassemblés par les éditeurs (Dalloz et Litec en France).
+
+Le terme « norme » désigne au sens large l'ensemble des règles obligatoires édictées par les autorités publiques : la Constitution, la législation, les ordonnances, décrets, règlements et arrêtés (ministériels, préfectoraux, ou communaux).
+
+Les situations normatives sont assez différentes entre les États-Unis (système juridique de common law) et l'Europe continentale (système juridique de droit civil), qui représentent l'essentiel des systèmes juridiques des États dans le monde.
+
+Dans les deux systèmes juridiques, la Constitution se trouve au plus haut niveau.
+
+Dans l'Union européenne, depuis les années 1990, le droit communautaire modifie en profondeur les droits nationaux des différents États-membres, les directives et règlements ainsi que les traités internationaux s'interposant entre les Constitutions et les lois (ou codes), avec la hiérarchie des normes.
+
+Hiérarchie des normes
+
+Article détaillé : Hiérarchie des normes.
+En droit positif, une hiérarchie ordonne les normes (voir hiérarchie des normes). Par exemple :
+
+La constitution est au plus haut niveau de la hiérarchie.
+Au-dessous, on trouve les lois organiques, les traités internationaux et les directives européennes.
+Encore au-dessous, on trouve les lois, qui peuvent être regroupées dans des codes : en France par exemple, on trouve à ce niveau le code civil français, le code pénal, le code de commerce, le code général des collectivités territoriales, le code de l'environnement, etc.
+Le principe de hiérarchie des normes est beaucoup plus développé en Europe continentale, et particulièrement en France, qu'aux États-Unis, qui disposent d'une souplesse jugée quelquefois excessive en Europe continentale grâce à la soft law (droit mou).
+
+La question de l'écologie se trouve au plus haut niveau en France, la charte de l'environnement étant dans le préambule de la constitution de 1958 depuis 2005.
+
+Sciences humaines
+
+Philosophie
+
+En philosophie, une norme est un critère, principe discriminatoire auquel se réfère implicitement ou explicitement un jugement de valeur.
+
+Par la volonté de certains acteurs, ou tout simplement de par son éducation et par le jeu de ses habitudes, l'être humain a tendance à édicter des normes précisant ce qui est normalement attendu et ce qui ne l'est pas. Ces normes varient fortement avec les époques, les individus et de manières plus générales les sociétés.
+
+Caractéristiques
+
+Une caractéristique majeure des normes est que, au contraire des propositions, elles ne sont ni vraies ni fausses puisqu'elles ne proposent pas de décrire quelque chose, mais de prescrire, de créer ou de changer certaines caractéristiques d'une chose.
+
+Si elles ne proposent pas de décrire la validité d'une assertion, alors on ne peut pas lui attribuer des critères de réussite ou d'échec. Suivre la norme n'est pas une philosophie mais repose sur la recherche d'un consensus. Si une personne veut être guidée par une éthique véritable, elle ne peut généralement pas utiliser cette méthode.
+
+Réflexions sur la norme
+
+La norme sous-entend une notion de pouvoir. En effet, pour qu'une norme, une règle de vie entre en vigueur dans une société, elle doit être acceptée par la majorité (loi du plus grand nombre) ou imposée par un pouvoir.
+
+Dans la marge
+
+Une personne vivant hors de la norme est rejetée par l'ensemble. Elle se retrouve alors dans la marge. La personne est ostracisée. Les normes ne sont souvent pas visibles à ceux qui les portent. Dès qu'une personne n'entre pas dans le moule, une personne ou un groupe, parfois même de façon inconsciente, va rejeter cette personne. Cela va jusqu'à ressentir de l'antipathie pour une telle personne. Sans qu'on se rende compte des raisons, c'est la norme plus ou moins inconsciente qui entre ici en ligne de compte. Par exemple, la norme de la société en termes de couple traditionnel est constitué d'un homme et d'une femme. Ce couple fait face à une personne seule dont il sait l'histoire personnelle. Inconsciemment, il adoptera des comportements discriminatoires.
+
+La marge, l'ostracisme, la persécution sont des notions se rapportant à la norme. Par le passé, l'excommunication permettait à l'Église catholique de rejeter la personne qui ne se pliait pas à ses normes. Même si la religion a nettement reculé, la norme est encore aussi forte. Elle ne s'appelle plus au péché. Elle n'est plus brandie par l'Église. La norme aujourd'hui est plus sécularisée, et tend à devenir plus libre dans le domaine du couple. Les normes varient donc d'une époque à l'autre. Le procédé demeure le même. Pour bien vivre en société, il faut en accepter les normes.
+
+Éthique normative
+
+En éthique, il existe une discipline qui s'appelle l'éthique normative, qui vise à établir des normes concernant l'examen critique des fondements et formes de l'action juste. Il s'agit de textes fondamentaux qui peuvent s'appliquer à des domaines plus particuliers en relation avec l'éthique appliquée (voir par exemple éthique sociale).
+L'éthique normative a des rapports avec le droit.
+
+On désigne par méta-éthique l'étude des fondement sur lesquels bâtir une éthique normative.
+
+Culture
+
+La culture est un domaine particulièrement difficile à normer, en raison précisément de la diversité culturelle des populations et communautés humaines qui habitent la planète.
+
+L'Unesco a établi des listes de patrimoines mondiaux, puis défini plus récemment des instruments normatifs.
+
+Listes de patrimoines mondiaux
+
+Les efforts de protection du patrimoine culturel menés depuis le xixe siècle, tout d'abord en France (Prosper Mérimée), puis de manière mondialisée par l'Unesco (dont le siège est à Paris) à partir de 1945 ont abouti à la définition de plusieurs listes du patrimoine mondial :
+
+la liste du patrimoine mondial (1972),
+la liste Mémoire du monde (1992),
+le patrimoine oral et immatériel de l'humanité (1997).
+Instruments normatifs sur le patrimoine culturel
+
+Les critères ayant été identifiés par l'UNESCO pour structurer les données qui sont à la base de ces listes ont permis d'élaborer une déclaration universelle sur la diversité culturelle, qui sert de base à des instruments normatifs pour définir un patrimoine culturel immatériel, autrement dit géré sous une forme électronique.
+
+Plus de détails, voir : Instruments normatifs de l'Unesco sur les cultures et traditions
+
+Linguistique
+
+En linguistique, les normes d'usage d'une langue sont constituées par l'orthographe et la grammaire. Ces normes sont consignées dans des dictionnaires et des ouvrages de grammaire.
+
+Les normes linguistiques varient beaucoup selon les langues. La langue française dispose d'une tradition importante dans la normalisation de la langue.
+
+La norme est partagée entre grammaticalité et acceptabilité.
+
+Historique de la normalisation de la langue française
+
+Au xvie siècle, François de Malherbe chercha à rendre le français plus compréhensible en proscrivant, au nom de la pureté et de la clarté, des fantaisies individuelles, des tournures, des mots, des emplois de mots et d'usages à restriction géographique ou sociolinguistique.
+
+À la même époque, la langue française devint la langue officielle du droit et de l'administration française, par l'édit de Villers-Cotterêts, signé en 1539 par François Ier, ce qui se traduisit par la mention explicite du français dans la constitution (voir Constitution de 1958, article 2).
+
+Les règles de grammaire ont été fixées par des grammairiens tels que Vaugelas. L'Académie française a été créée (1635) afin de jouer un rôle de contrôle et de normalisation sur les mots et leur usage.
+
+Les travaux en logique et en linguistique des jansénistes de Port-Royal eurent un impact très important sur la langue française. La Révolution française a amplifié cette rupture, l'Académie française ayant été fermée pendant dix ans entre 1795 et 1805. Pendant cette période, Destutt de Tracy (école des idéologues) intervint également en linguistique.
+
+On passa de la sorte du français classique au français moderne. Michel Foucault analyse sur un plan épistémologique ce passage, avec le changement de sens des mots (voir les mots et les choses).
+
+Aujourd'hui, la langue française est considérée comme l'une des six langues officielles reconnues au niveau international par les Nations Unies.
+
+L'Académie française a conservé son rôle de contrôle et de normalisation de la langue française, en support à la culture française. Ce rôle présente certaines particularités dans le domaine du langage employé dans les technologies de l'information, car les mots anglais apparaissent très rapidement, et peuvent être francisés (ou non) selon l'intérêt et la durabilité de leur usage.
+
+Exemples (informatique), l'Académie française et le ministère de la culture recommandent :
+
+d'utiliser le terme bogue, et non bug. Ce fut sans doute l'approche de l'an 2000 qui a poussé à cette francisation. Le terme français apparut un peu avant le passage informatique à l'an 2000.
+d'utiliser le terme courriel, plutôt que e-mail.
+Cependant, ces recommandations sont dans les faits peu suivies, et les mot empruntés à l'anglais largement employés au détriment des néologismes français.
+
+Aujourd'hui, le Bon Usage de Maurice Grevisse fait référence sur l'usage de la langue française en ce qui concerne la grammaire.
+
+Gestion des langues, normes sémantiques
+
+La normalisation dans la gestion des langues est un thème difficile, pour les organisations internationales, les États, et les entreprises (voir multilinguisme).
+
+Sur le plan international, et aux Amériques notamment, il existe des initiatives pour normaliser la gestion des langues.
+
+Il est nécessaire de procéder à une normalisation des règles sémantiques. Celle-ci passe par la définition de mots-clés (ou balises, ou tags) employés dans les ressources numériques par les langages sémantiques (dits de balisage, comme HTML et XML par exemple), qui permettent d'accéder aux ressources dans différentes langues.
+
+Certaines balises jouent un rôles plus important que d'autres (métadonnées, metatags). La langue est ainsi un paramètre très important à gérer sur la Toile dans le cadre du Web sémantique.
+
+La normalisation des documents et de la langue passe par la définition de schémas de classification, dont la complexité sera adaptée au sujet à traiter.
+
+Les normes sur la langue sont décrites dans Langue (métadonnée).
+
+Sociologie
+
+Article détaillé : Norme sociale.
+Une norme, au sens sociologique du terme, représente un comportement généralement observé dans un contexte donné.
+
+La conception de normalité ou d'anormalité en sociologie est vierge de tout jugement de valeur et se rapporte plutôt au concept sociologique de déviance.
+
+Il existe deux types de normes en sociologie. La première, la norme formelle, est une loi ou une règle officielle régie par des personnes influentes. La seconde, la norme informelle, est une façon de se comporter dans la société qui n'est pas obligatoire, mais dont les membres de la collectivité trouvent nécessaire à son bon fonctionnement.
+
+Relations internationales
+
+Norme et hégémonie, un enjeu des relations internationales?
+
+Dans le domaine industriel et technologique, mais également dans celui des concepts, dresser la liste des normes existantes permettrait probablement de montrer l’extrême richesse de leurs domaines d’application; la multiplicité de leurs niveaux de mise en œuvre – national, transnational (on pense à l’Union européenne), international (le Protocole de Kyoto de mars 1998, par exemple) -; la diversité de leur présence au quotidien. Pour ces raisons, vouloir établir un lien entre normes et hégémonie n’est pas a priori irrecevable, y compris dans le domaine des concepts: prenant l'exemple du droit international issu de la Renaissance européenne, Bertrand Badie montrait en 1992 dans "L’État importé" que le régime des capitulations accordées à la France par l’Empire ottoman eut pour conséquence "l’unification du système international et sa construction autour d’un centre que le monde occidental pouvait d’autant mieux prétendre incarner qu’il en était le producteur de norme". En 2004, l'ancien secrétaire d'État américain Zbigniew Brzezinski observait, à l'occasion d'un débat au Carnegie Hall ("The Choice: Global Domination or Global Leadership"), que "notre société (...) est capable de transformer le monde. De ce fait, elle a un effet déstabilisant parce que nous sommes économiquement intrusifs et culturellement attractifs. Elle est une source d’envie, de ressentiment et d’hostilité que, pour beaucoup, la mondialisation ne fait qu’exacerber. Car en proposant cette mondialisation au reste du monde, en la véhiculant et en la projetant avec force comme modèle de société au niveau international, les États-Unis ont (...) jeté les bases de quelque chose de totalement nouveau".
+
+Une définition de l'hégémonie
+
+L'apparition du mot hégémonie dans le langage de la science politique est attesté au milieu du xixe siècle en France (1840), mais ce n'est qu'après la défaite de 1870 que l'usage s'en répand, essentiellement dans un sens alors politique et militaire. Au début du xxe siècle, le philosophe italien Antonio Gramsci revisite le terme dans une acception plus proche de la sociologie politique inspirée du marxisme. L’hégémonie peut donc se définir comme la domination d’un État par sa puissance politique, militaire, économique et culturelle sur d’autres États. Encore cette domination n’est-elle pas absolue : en 1990, dans Bound to Lead, The Changing Nature of American Power, Joseph Nye remarquait que l’hégémonie correspond à des situations où le pouvoir est distribué de manière « inégale » entre les différents pays. On pourrait donc tout aussi bien employer les termes de prééminence ou de suprématie, lesquels conviennent également pour évoquer la notion de puissance et de son exercice.
+
+Évidemment, lorsqu'on parle aujourd'hui d'« hégémonie » dans les relations internationales, les regards se tournent le plus souvent vers les États-Unis. Or ceux-ci, réfutant les termes d'« empire » et d'« impérialisme » qui leur sont souvent accolés, préfèrent ceux de « leader » et de « leadership », qui appartiennent à la rhétorique de l’administration américaine depuis plusieurs années. Quelques textes en témoignent: le discours sur l’état de l’Union prononcé par le président Clinton le 3 février 1998 ou celui du président Bush le 31 janvier 2006 : « La seule voie pour protéger notre peuple, la seule pour assurer la paix, la seule pour maîtriser notre destin, c’est d’exercer notre leadership. C’est pourquoi, les États-Unis continueront de diriger [lead] le monde »). Plus récemment, Barack Obama, le soir de son élection disait, au Parc Grant de Chicago le 5 novembre 2008 en s'adressant aux peuples du monde: « Nous avons chacun nos histoires mais nous partageons le même destin, et voici qu'une aube nouvelle est en train de se lever sur le leadership américain » [Our stories are singular, but our destiny is shared, and a new dawn of American leadership is at hand]. On notera au passage que le « leadership » renoue avec l’origine du mot hégémonie, issu du grec hegemon, le chef.
+
+Le lien entre norme et hégémonie: l'exemple américain
+
+En mars 1992, dans un rapport très éclairant (Global Standards, Building Blocks for the Future), le Bureau d’évaluation technologique du Congrès des États-Unis dressait un cadre plutôt pessimiste du positionnement des normes américaines à l’époque : « De nombreux changements structurels se sont fait jour dans l’économie, qui posent la question de savoir si notre système peut continuer à être toujours aussi efficace à l’avenir. Parmi ces changements figure[nt] le développement d’une économie mondiale hautement compétitive que les États-Unis ne peuvent plus espérer dominer ». Le rapport ajoutait : « [Certains] s’inquiètent de surcroît du fait que d’autres pays dans le monde sont mieux organisés et mieux à même d’influencer les procédures d’adoption des normes internationales, et ceci au détriment des relations commerciales américaines ». Enfin : « Certaines normes seront probablement plus importantes que d’autres en termes d’intérêt national. Dans une économie de l’information mondialisée, les technologies de réseau apportent les éléments de base qui contribuent à la productivité et à la croissance. Or, ces technologies formeront le socle des infrastructures utiles à l’ensemble de l’économie. Dès lors, si les réseaux futurs ne parviennent pas à s’interconnecter par suite d’une normalisation déficiente, la nation risque de subir des pertes économiques considérables et d’être menacée dans sa sécurité. C’est pourquoi, même si le gouvernement [fédéral] manifeste peu d’intérêt pour le développement de certaines normes industrielles, il importera qu’il se penche avec un intérêt particulier sur d’autres, comme celles qui soulèvent la question de l’interopérabilité ». Ces propos, au demeurant prophétiques pour ce qui concerne les réseaux et l'interopérabilité, illustrent la conscience qu'avait le législateur du lien existant entre norme et « domination » (pour reprendre l'expression utilisée dans le rapport), en d'autres termes entre norme et hégémonie.
+
+Norme contre norme, ou l'hégémonie en position d'arbitre
+
+Dans le domaine de l’Internet, dont les normes ont été élaborées et diffusées par des entreprises ou des consortiums américains, les États-Unis avaient opposé une fin de non-recevoir aux tentatives de création d’une véritable gouvernance de la Toile lancées par certaines organisations non gouvernementales au sommet des Nations-Unies sur la société de l'information (Tunis, 2005). Désireux de conserver la maîtrise du fonctionnement et de l’avenir des communications par le biais d’Internet et faisant face à la contestation de leur hégémonie dans l’organisation et la maîtrise des réseaux électroniques d’échanges de données, les représentants américains n'avaient pas hésité à renier une norme pourtant d’inspiration américaine elle aussi (la gouvernance), et de surcroît recommandée pour le fonctionnement des grandes structures internationales.
+
+Les différentes approches des politiques de normalisation ou l'hégémonie partagée
+
+Depuis bientôt un siècle (fin de la Première Guerre mondiale et effondrement des empires d'Europe centrale), le "centre économique du monde" s'est déplacé vers les États-Unis. Il est par conséquent impossible de ne pas évoquer la politique américaine de normalisation pour mieux la confronter à d'autres aires économiques: le Japon, dont la production de normes a peut-être été inférieure à ce qu'elle aurait pu être au regard de sa créativité et de son dynamisme commercial, et l'Union européenne, grande productrice de normes s'il en est. États-Unis, Europe, Japon: en citant ces trois zones géographiques tour à tour alliées et concurrentes, on voit bien qu'en matière de normes, notamment techniques, l’hégémonie est partagée.
+
+Les paradoxes de la normalisation à l’américaine
+
+Malgré le poids longtemps écrasant de l'économie américaine, la normalisation a toujours été vécue de manière ambivalente, du moins dans le secteur industriel.
+
+Un premier paradoxe réside dans le fait que le système se réclame de la primauté du marché, tout en accordant une place considérable au gouvernement fédéral (en 2005, ce dernier était à l'origine de la création ou de l’utilisation de plus de 44 000 normes, contre 50 000 créées par le secteur privé).
+
+Le second paradoxe est le fruit de l’histoire : les États-Unis sont à la fois l’un des pays où la mise en œuvre de la normalisation est la plus ancienne (citons l’industrie du médicament, qui mit en place dès 1829 des normes unifiées surtout le territoire; les chemins de fer, dont l’interconnexion des années 1890 a nécessité les efforts de plus de mille exploitants privés; l’automobile enfin, dont le héraut, Henry Ford lança en 1913 le premier modèle de voiture « standard »), mais c'est aussi l’un des rares où celle-ci a été longtemps la moins cohérente. De fait, si la création de l’American National Standards Institute (ANSI) remonte à 1918, date d’installation de son ancêtre, cette instance de normalisation n'avait même pas, au début des années 2000, de charte officielle ou de statut d’agence du gouvernement fédéral: simple organe de coordination, elle est surtout chargée de certifier et de mettre à disposition les normes écrites par d’autres (600 organisations sectorielles dont la puissante ASTM, American Society for Testing Materials, ou l’IEEE, Institute of Electrical and Electronics Engineers).
+
+Le troisième paradoxe n'est pas le moindre et nous ramène à l'hégémonie: les industriels américains se plaignent volontiers que l’ISO soit sous influence européenne. L'ANSI avait d'ailleurs publié il y a quelques années (janvier 2005) une mise en garde dans laquelle elle indiquait qu'« Une préoccupation fréquemment exprimée [aux États-Unis] est le sentiment d’une domination européenne au sein de l’ISO et le fait que les normes sont écrites dans l’optique de la réglementation propre à l’Union européenne. [Or], toute influence indue en provenance d’une région du monde est de nature à se traduire par la mise en œuvre de normes internationales qui peuvent ne pas correspondre aux exigences de régions caractérisées par d’autres régimes légaux et règlementaires, ou qui sont incorporées à des technologies ou à des pratiques différentes ».
+
+La "privatisation" du processus de normalisation au cours des années 1990 et suivantes, même limité à l'industrie de l’électronique, ne fut-il pas une réponse à ces craintes et à ces insatisfactions?
+
+Mathématiques et sciences physiques
+
+Mathématiques
+
+Articles détaillés : Norme (mathématiques) et Norme (arithmétique).
+En mathématiques, les normes correspondent à une manière de traduire une information d'un élément d'une structure plus ou moins complexe vers une structure plus simple. Un exemple est celui qui à un segment associe sa longueur. En topologie, une norme associe à un vecteur un nombre réel comparable à une longueur. Cette norme généralise la valeur absolue ou encore le module d'un nombres complexes.
+
+Dans le cadre de l'arithmétique ou de la théorie de Galois la norme associe à un élément d'un corps ou d'un anneau un élément d'un corps ou d'un anneau plus petit. Par exemple, à un nombre de la forme a - b.1/2(1 + √5), où a et b sont des entiers, on associe le nombre a2 + a.b - b2 qui est un entier. Cet exemple est développé dans l'article entier de Dirichlet.
+
+Sciences physiques
+
+Dans les sciences physiques les normes sont définies par le système international.
+
+Économie et industrie
+
+Article détaillé : Normes et standards industriels.
+L'article Normes et standards industriels, précise les différences entre norme et standard et donne des explications détaillées sur :
+
+La définition d'une norme,
+Les types de normes,
+Le processus d'élaboration d'une norme dans le cadre de l'ISO.
+Le mot norme est d'origine latine et le mot standard est d'origine anglaise. En langue française, les deux mots sont utilisés et le mot standard n'a pas le même sens que le mot norme. Les anglophones n'ont qu'un seul mot pour désigner ces deux notions.
+
+C'est ainsi qu'en informatique, on emploie souvent abusivement le mot standard. Il s'agit d'un anglicisme.
+
+Une norme doit faire l'objet d'un processus de normalisation dans un organisme national ou international indépendant des industriels. L'ISO est le principal organisme mondial de normalisation.
+
+Objectif des normes et standards industriels
+
+Les normes permettent de remplacer aisément un produit par un équivalent quand on rencontre une difficulté d'approvisionnement quelconque. De plus, elles permettent une interopérabilité des systèmes et produits industriels entre eux. Quoique volontaires par nature, elles sont donc devenues indispensables.
+
+Une norme peut être largement adoptée par l'industrie (exemples : IEEE 802.3 CSMA/CD Ethernet, IEEE 802.11 Wi-Fi, ISO 9002), ou être délaissée par celle-ci (exemple : norme OSI de l'ISO).
+
+Exemple de norme : STEP.
+
+En règle générale, une norme n'est pas obligatoire : son application résulte d'un choix du fabriquant ou des exigences d'un client. Dans certains cas, pour des raisons d'ordre public de santé, de sécurité, de partage d'une ressource rare, de préservation de l'environnement, les pouvoirs publics peuvent imposer une norme d'origine volontaire ou considérer que son application donne une présomption raisonnable de conformité à des exigences réglementaires obligatoires.
+
+Quelques exemples de normes dans l'économie
+
+Agroalimentaire
+
+Le Codex alimentarius est le système de normalisation pour les produits alimentaires. Il a été défini par l'Organisation des Nations unies pour l'alimentation et l'agriculture (FAO).
+
+Site du Codex alimentarius.
+
+Environnement, risques et responsabilité sociétale
+
+Au niveau microéconomique, il existe :
+
+la norme ISO 14000, spécifiquement sur l'environnement,
+des standards n'ayant pas valeur de norme.
+Les secteurs industriels font l'objet de normes particulières (par exemple Norme européenne d'émission Euro pour la pollution automobile).
+
+La responsabilité sociétale fait l'objet d'un projet de norme général : ISO 26000.
+
+Voir : liste de normes ISO par domaines
+
+Au niveau macroéconomique, le modèle Pression-État-Réponse de l'OCDE fournit une représentation des pressions exercées par les entreprises sur l'environnement, et des réponses apportées par les organisations.
+
+Aux États-Unis, les normes édictées par l' Environmental Protection Agency (EPA) dont la mission est de protéger la santé humaine et de sauvegarder les éléments naturels (l’air, l’eau et la terre) essentiels à la vie. Ces normes sont largement reprises et/ou utilisées comme bases dans de nombreux pays.
+
+Systèmes d'information, télécommunications
+
+Dans les systèmes d'information, du fait du grand nombre de matériels et de logiciels d'origine américaine, on emploie assez fréquemment le mot standard.
+
+Voir : Normes dans les technologies de l'information et de la communication
+
+Il existe des normes :
+
+dans la sécurité des systèmes d'information.
+ISO/CEI 17799 : Sécurité de l'information (BS 7799),
+ISO 27000 : Série de normes dédiées à la sécurité de l'information
+(voir Normes de sécurité des systèmes d'information);
+dans les télécommunications,
+dans la gestion des documents d'archive (record management) et les métadonnées, en ingénierie des connaissances et en ingénierie documentaire.
+En Europe, l'organisme chargé de la normalisation dans les télécommunications est l'ETSI.
+
+Voir aussi l'article communication sur les enjeux liés aux moyens de télécommunications.
+
+Comptabilité des entreprises
+
+Article détaillé : Normes IFRS.
+Comptabilité publique et analyse économique
+
+Dans l'économie moderne, le développement, depuis les années 1930, de modèles économétriques basés sur les mathématiques stastiques a permis de mettre au point des normes pour l'évaluation des biens et services produits ou achetés.
+
+Ceux-ci sont répartis en biens et services marchands et en services non marchands.
+
+D'autre part, les systèmes de comptes nationaux sont harmonisés autour de normes communes, et les États européens par exemple utilisent le même cadre comptable : le SEC (système européen de comptabilité).
+
+Pour les besoins des comptabilités publiques, on a pu définir des secteurs d'activité normatifs, afin de comptabiliser les échanges de biens et services, ainsi que toutes les ressources employées dans ces échanges.
+
+Ainsi, les systèmes de comptabilité nationale répartissent les agents économiques en six secteurs institutionnels, cinq étant considérés comme résidents, et un non résident.
+
+Voir :
+
+Typologie élémentaire de l'économie,
+Comptabilité nationale et la catégorie des articles Comptabilité nationale,
+Unité institutionnelle.
+En statistiques et en analyse économique, les nomenclatures normalisées sont très utilisées, pour la construction des agrégats. Exemples :
+
+la nomenclature économique de synthèse, NES,
+la nomenclature générale des produits, NGP,
+la nomenclature combinée, NC,
+la nomenclature statistique des activités économiques dans la Communauté européenne, NACE.
+Voir : http://www.insee.fr/fr/nom_def_met/definitions/html/accueil.htm#N
+
+Organismes de normalisation
+
+Article détaillé : Organisme de normalisation.
+Pour essayer de fédérer l'industrie, des organismes publics ou privés, à but non lucratif en général, fondés et soutenus par un syndicat d'industriels concernés, réfléchissent et proposent des référentiels appelés normes ou recommandations.
+
+Toutefois, les organismes de normalisation, qu'ils soient industriels ou surtout ceux spécialisés dans les systèmes d'information (OASIS) touchent, à travers la sémantique notamment, à des domaines qui ne sont pas exclusivement industriels et financiers.
+
+Bibliographie
+
+Management du risque. Approche globale. AFNOR. 2002. (ISBN 2-12-169211-8)
+http://portailgroupe.afnor.fr/v3/pdf/officiel_normes.pdf L'officiel des normes], avec informations sur les normes nouvelles, normes annulées, projets de normes à l'enquête probatoire.
+Pierre Franck, La Normalisation des produits industriels, Que sais-je no 1954, 1981
+Notes et références
+
+Directive 98/34/CE modifiée du 22 juin 1998
+Voir aussi
+
+Généralités :
+Recommandation ; Gestion de la qualité
+Liste de normes ISO ; Liste de normes ISO par domaines
+Droit :
+Hiérarchie des normes
+Culture :
+Patrimoine culturel immatériel
+ISO 21127
+Comptabilité :
+Comptabilité nationale
+IAS/IFRS
+Industrie services :
+Normes et standards industriels
+Normalisation
+Technologies de l'information :
+Norme de métadonnées
+Interopérabilité
+Organisme de normalisation
+Lien externe
+
+Algorithme de Boyer-Moore
+
+L'algorithme de Boyer-Moore est un algorithme de recherche de sous-chaîne
+particulièrement efficace. Il a été développé par Robert S. Boyer (en) et J
+Strother Moore (en)1 en 1977.
+
+Sommaire
+
+1 Efficacité / complexité en temps
+2 Fonctionnement
+2.1 Principe
+2.2 Exemple
+3 Contraintes d’implémentation
+3.1 Pré-traitement
+3.2 Première table de sauts (non-concordance du dernier caractère de clé)
+3.3 Seconde table de saut (non-concordance des caractères de la clé autres que
+le dernier)
+4 Voir aussi
+4.1 Articles connexes
+4.2 Liens externes
+5 Référence
+Efficacité / complexité en temps
+
+L'algorithme de Boyer-Moore pré-traite la sous-chaîne (c'est-à-dire la chaîne
+recherchée), et non pas le texte (c'est-à-dire la chaîne dans laquelle la
+recherche est effectuée), à l'inverse de certains algorithmes, qui amortissent
+le coût du prétraitement du texte en effectuant de très nombreuses recherches
+répétitives. Le coût d'exécution de l'algorithme de Boyer-Moore peut être
+sub-linéaire, c'est-à-dire qu'il n'a pas besoin de vérifier chacun des
+caractères du texte, mais peut au contraire sauter certains d'entre eux. En
+général, l'algorithme devient plus rapide lorsque la longueur de la
+sous-chaîne s'allonge. Cette efficacité provient du fait que, pour chaque
+tentative infructueuse de correspondance entre les deux chaînes (texte et
+sous-chaîne), il utilise les informations déduites de cet échec pour éliminer
+le plus grand nombre possible de positions à vérifier.
+
+En comparaison des méthodes de recherches basiques par la méthode de « force
+brute » (qui recherche la sous-chaîne en commençant par chercher partout dans
+le texte une correspondance du premier caractère de la sous-chaîne, puis en
+vérifiant si les caractères suivants correspondent) et dont la complexité en
+temps (calculée par exemple selon le nombre de paires de caractères à
+comparer) croit en O(L · K) où K est la longueur de la sous-chaîne clé
+recherchée, et L la longueur où l’on recherche s’il existe au moins une
+occurrences de la clé, l’algorithme de Boyer-Moore peut trouver les
+occurrences en un temps :
+
+De l’ordre de O(L / K) dans le cas le plus favorable : dans ce meilleur cas,
+seul un caractère sur M doit être vérifié. Ainsi, plus la sous-chaîne est
+longue, et plus l’algorithme est efficace pour la trouver ;
+de l’ordre de O(L + K) dans le pire cas (en utilisant la variante améliorée de
+l’algorithme avec la seconde table de vérification des occurrences).
+et très souvent en un temps à peine supérieur au meilleur cas (qui devient de
+plus en plus probable quand la longueur K de la clé s’accroit). Le pire cas
+est obtenu quand le texte contient de très nombreuses occurrences d’un même
+caractère, et quand la clé cherchée contient ce caractère fréquent de
+nombreuses fois en fin de chaine sauf pour le premier caractère qui est
+différent.
+Le cas moyen pour établir s’il y a correspondance ou non requiert environ (3 ·
+K) comparaisons. La preuve est due à Richard Cole2.
+
+Dans le pire cas, les performances de l'algorithme de base (sans la variante
+avec la seconde table de vérification des occurrences) pour trouver toutes les
+correspondances est de l'ordre de O(K · L). Le pire cas se produit quand la
+sous-chaîne consiste en une répétition d’un unique caractère, et que le texte
+correspond à la répétition de (K - 1) fois ce même caractère, précédé par un
+seul autre caractère différent. Dans ce cas de figure, l’algorithme doit
+vérifier (L - K+ 1) décalages différents dans le texte pour chaque
+correspondance. Or, chacune de ces vérifications nécessite K comparaisons.
+
+En raison de l’intérêt de la variante avec la seconde table qui permet un
+comportement sous-linéaire même dans le pire cas, cette variante est décrite
+ici (et est celle aujourd'hui intégrée dans de nombreuses librairies de
+traitement du texte pour C/C++, Java, etc.).
+
+Fonctionnement
+
+Principe
+
+L'algorithme de Boyer-Moore est assez surprenant car il effectue la
+vérification, c'est-à-dire qu'il tente d'établir la correspondance de la
+sous-chaîne à une certaine position, à l'envers. Par exemple, s'il commence la
+recherche de la sous-chaîne WIKIPEDIA au début d'un texte, il vérifie d'abord
+la neuvième position en regardant si elle contient un A. Ensuite, s'il a
+trouvé un A, il vérifie la huitième position pour regarder si elle contient le
+dernier I de la sous-chaîne, et ainsi de suite jusqu'à ce qu'il ait vérifié la
+première position du texte pour y trouver un W.
+
+La raison pour laquelle l'algorithme de Boyer-Moore utilise cette approche à
+rebours est plus claire si l'on considère ce qui se produit quand la
+vérification échoue, par exemple si au lieu de trouver un A en neuvième
+position, un X est lu. Le X n'apparaît nulle part dans la sous-chaîne
+WIKIPEDIA, ce qui signifie qu'aucune correspondance avec la sous-chaîne
+n'existe au tout début du texte, ainsi que dans les huit positions qui la
+suivent. Après la vérification d'un seul caractère, l'algorithme est capable
+de passer ces huit caractères et de rechercher le début d'une correspondance à
+partir de la dixième position dans le texte, juste après le X.
+
+Ce principe de fonctionnement à rebours explique la quelque peu
+contre-intuitive affirmation disant que plus la sous-chaîne est longue, et
+plus l'algorithme est efficace pour la trouver.
+
+Exemple
+
+Prenons un exemple plus significatif : on veut rechercher les occurrences de
+la clé de K=6 caractères “string” dans le texte de L=20 caractères
+“stupid_spring_string".
+
+Avec un algorithme classique utilisant une méthode de force brute, on devrait
+rechercher le s dans tout le texte sauf les 5 derniers caractères, et donc
+faire toutes les 15 comparaisons. Et on trouverait 3 occurrences du s au début
+de chaque mot du texte ; pour chacune de ces occurrences on devrait vérifier
+la suite de la clé tant qu'elle correspond : on détecterait le p une fois pour
+rejeter l’occurrence commençant par spring, mais le t serait détecté 2 fois
+dans stupid et string ; on doit alors tester la présence du r après st pour
+éliminer l’occurrence dans stupid ; il reste encore à vérifier chacun des 3
+autres caractères de la clé string, on il faudra donc 23 comparaisons (ce
+serait pire si le texte contenait de nombreuses occurrences de la
+quasi-totalité du début de la clé).
+Avec l’algorithme de Boyer-Moore, on recherchera aussi les occurrences depuis
+le début du texte (en affichant ci-dessous la clé cherchée en dessous du texte
+balayé, les points notés avant la clé indiquant les positions déjà éliminées,
+le surlignage indique les comparaisons effectuées), mais on commencera en
+comparant le dernier caractère de la clé cherchée :
+
+stupid_spring_string
+string
+Les deux caractères d et g ne correspondent pas, on a trouvé à la place un d
+dans le texte, alors qu’il n’y a aucun d dans la clé. On peut sauter
+directement dans le texte les 6 caractères de la clé :
+
+stupid_spring_string
+······string
+Le g de la clé ne correspond pas au n du texte. Cependant, la clé contient un
+n, 1 caractère avant, on peut donc décaler d’1 position, et vérifier à nouveau
+en commençant par la fin de clé :
+
+stupid_spring_string
+·······string
+On a trouvé successivement la correspondance du g, puis du n, puis du i, puis
+du r, mais pas du t de la clé. Au lieu de cela on a trouvé un p dans le texte,
+qui ne figure pas dans la clé, ce qui permet de sauter directement dans le
+texte les 6 caractères de la clé :
+
+stupid_spring_string
+·············string
+Le g de la clé ne correspond pas au n du texte. Cependant, la clé contient un
+n, 1 caractère avant, on peut donc décaler d’1 position, et vérifier à nouveau
+en commençant par la fin de clé :
+
+stupid_spring_string
+··············string
+On trouve successivement les correspondances du g, puis du n, du i, du r, du t
+et du s. Il n'y a plus d’autre caractère dans la clé, on a bien trouvé une
+occurrence en seulement 9 comparaisons (au lieu de 23 avec l’algorithme
+classique). Si on devait chercher les occurrences suivantes, il suffit de
+reprendre l’algorithme dans le texte à partir de la position qui suit la
+position trouvée.
+
+Contraintes d’implémentation
+
+Il faut noter que, pour que l’algorithme de Boyer-Moore puisse fonctionner de
+façon efficace, il est nécessaire de pouvoir parcourir le texte (ainsi que la
+clé cherchée) en le parcourant linéairement en sens inverse, et de pouvoir
+sauter directement à une position ultérieure du texte sans avoir à le lire
+intégralement entre les deux positions, ni à devoir relire le texte ou la clé
+depuis le début, et sans avoir à utiliser de coûteux tampons mémoire
+compliqués à gérer. Ce n’est pas toujours le cas de tous les flux de fichiers
+texte à lecture unidirectionelle.
+
+Et dans le cas où la recherche doit utiliser des comparaisons basées sur la
+collation de chaînes conformes à des règles linguistiques dans lesquelles
+certaines différences sont ignorées dans la recherche des correspondances, les
+éléments à comparer ne seront pas les caractères eux-mêmes mais les éléments
+de collation précalculés sur la clé et ceux obtenus au fil de l’eau dans le
+texte, dans lequel il doit être nécessaire de déterminer si les positions sont
+celles marquant la séparation des éléments de collation (afin de ne pas
+trouver de faux positifs ni oublier des correspondances lorsqu’on saute
+directement certaines positions ou quand on lit le texte ou la clé en sens
+inverse) : cela pose certaines difficultés dans les collations linguistiques
+comprenant des contractions et expansions, ou encore dans des textes Unicode
+non normalisés pour lesquels plusieurs codages sont possibles. Mais des
+algorithmes complémentaires ont été développés pour traiter efficacement cette
+difficulté (et quelques autres liées à l’étendue du jeu de caractères Unicode
+(ou l’étendue numérique encore plus grande des poids de collation
+multiniveau)3.
+
+Pré-traitement
+
+L'algorithme précalcule deux tableaux pour traiter l'information qu'il obtient
+pour chaque vérification ayant échoué. La première indique le nombre de
+positions à sauter avant de reprendre la recherche, en se basant sur l'index
+du caractère qui a provoqué l'échec de la vérification. La seconde donne une
+information similaire, basée sur le nombre de caractères vérifiés avec succès
+avant que la vérification échoue. Comme ces deux tableaux indiquent le nombre
+de positions qu'il faut sauter dans le texte avant de poursuivre la recherche,
+ils sont parfois appelés "tables de sauts".
+
+Première table de sauts (non-concordance du dernier caractère de clé)
+
+Le premier tableau contenant le nombre de caractères suivants à ignorer en cas
+de non-concordance du dernier caractère de la clé est facile à remplir ; il
+correspond à la distance, mesurée depuis la fin de la clé, de la dernière
+occurrence dans la sous-chaîne clé de chaque caractère de l’alphabet (alphabet
+commun à la clé et au texte) :
+
+préremplir toutes les positions du tableau des caractères avec la longueur de
+la sous-chaîne clé ;
+démarrer par le dernier caractère de la sous-chaîne clé avec le compteur à 0,
+et aller en direction du premier caractère :
+pour chaque déplacement vers la gauche, incrémenter le compteur, et si le
+caractère à la position courante n’est pas déjà dans le tableau, l’ajouter
+avec la valeur actuelle du compteur.
+Exemple : avec la sous-chaîne WIKIPEDIA, le premier tableau est rempli comme
+suit (pour plus de clarté, les entrées sont données dans l'ordre où elles sont
+ajoutées dans le tableau) :
+
+Indice
+(caractère de l’alphabet)	Dernière correspondance
+(depuis la fin de clé)
+I	1
+D	2
+E	3
+P	4
+K	6
+W	8
+Autres caractères	9
+Le lecteur attentif remarquera que le A, le dernier caractère de la
+sous-chaîne, n’a pas été ajouté dans le tableau.
+
+La raison est que l’algorithme utilise le tableau après avoir trouvé un
+caractère qui ne correspond pas. Le tableau lui indique le nombre de positions
+vers l’avant que l'algorithme doit sauter avant que ce caractère puisse
+théoriquement correspondre dans le texte. Par exemple, si en vérifiant la
+neuvième position du texte, l’algorithme trouve un I plutôt qu’un A, cela
+indiquerait que la prochaine correspondance potentielle pourrait être trouvée
+une position plus loin vers l’avant, et que la dixième position doit être
+vérifiée pour y chercher un A. S’il s'agit d’un A, soit l’algorithme le trouve
+dans la dernière position, et dans ce cas, la vérification est un succès, soit
+la dernière position a déjà été vérifiée ; dans ce second cas, il n'existe
+aucun endroit dans le reste de la sous-chaîne clé où le A peut correspondre.
+De ce fait, aucune correspondance n’est possible jusqu'à ce que l’algorithme
+cherche complètement au-delà de la position du A.
+
+Notes de performance :
+
+On doit remarquer que ce tableau a une taille (nombre total d‘entrées)
+indépendante de la longueur de la clé, mais dépendante de la taille de
+l’alphabet des caractères possibles.
+Si l’alphabet est très grand (par exemple le répertoire universel UCS
+d’Unicode et ISO/IEC 10646 dont l’alphabet comprend plus d’un million de
+points de code possibles) sa taille pourrait devenir prohibitive, alors que la
+plus grande partie de ce tableau contiendrait la valeur par défaut (la
+longueur de clé), et son préremplissage peut prendre du temps.
+De même les longueurs de saut stockées dans le tableau ne pourront pas être
+supérieures à la taille A de l‘alphabet avec l’algorithme de remplissage
+ci-dessus, et il est donc inutile de traiter la totalité de la clé en dehors
+des A derniers caractères de celle-ci.
+Cette optimisation sera utile si la longueur K de la clé cherchée est
+suffisamment longue (K ≥ A), tout en étant ne dépassant pas la longueur L du
+texte à parcourir, K < L.
+En effet, lorsque K ≥ L la réponse est immédiate et ne nécessite pas cet
+algorithme, puisqu’alors :
+soit on a K > L, et aucune occurrence de la clé n’existe dans le texte ;
+sinon on a K = L, et un simple test d’égalité des deux chaînes (lues chacune
+du début à la fin) détermine si le texte est lui-même la seule occurrence de
+la clé cherchée.
+On doit noter cependant que l’algorithme de Boyer-Moore doit son efficacité à
+sa capacité de sauter des longueurs de texte suffisantes. Quand l’alphabet est
+bien plus grand que la longueur de clé, l’algorithme restera efficace si on
+réduit l’alphabet à des classes de caractères (l’algorithme de Boyer-Moore
+continuera à comparer les caractères, mais il n’est pas nécessaire de sauter
+le nombre maximum de caractères mais seulement un nombre raisonnable (par
+rapport à la longueur de clé) quand on peut aussi sauter (au prix de quelques
+pas supplémentaires si la clé contient des caractères distincts mais
+appartenant à la même classe).
+Dans ce cas, le tableau ne sera pas indexé sur tous les caractères possibles
+mais sur tous les numéros de classes de caractère possibles : une fonction de
+hachage simple réduisant ce grand alphabet à (par exemple) un ensemble réduit
+à 256 classes de caractères convenablement distribués (ou 256 classes de poids
+de collation) sera suffisant et fonctionnera de façon très efficace pour des
+longueurs de clés pouvant aller jusqu'à plusieurs milliers de caractères (ou
+éléments de collation), la table permettant alors d’effectuer des sauts de 1 à
+256 caractères (ou éléments de collation).
+Le saut maximum (256) ne sera en fait possible que pour les caractères
+inexistants dans la clé et correspond dans la table ci-dessus aux index des «
+Autres caractères ». Comme la table ne contient aucune valeur nulle, ce saut
+maximum pour les caractères (ou classes de caractères) inexistants dans la clé
+peut aussi être codé 0 (et il n’est pas nécessaire d’initialiser le tableau à
+autre chose que 0, si le tableau alloué est déjà prérempli à zéro).
+En revanche, si l’alphabet est extrêmement réduit (par exemple, un alphabet
+binaire), l’efficacité de l’algorithme sera totalement nulle (par rapport à un
+algorithme de recherche brute) avec cette table de sauts, qui ne contiendra
+qu’une seule ligne « Autres caractères » pour le caractère autre que celui en
+dernière position de la clé : l’astuce consistera à lire le texte ou la clé
+non pas caractère par caractère, mais par groupe successifs de caractères afin
+d’augmenter l’alphabet à un cardinal suffisant : par exemple on pourra lire le
+texte ou la clé par paquet de 8 caractères, si l’alphabet effectivement
+utilisé dans la clé et le texte est binaire, en fixant un caractère de
+bourrage arbitraire (ou moins probable) pour les caractères (du petit
+alphabet) qui manquent au début de la clé ou au début du texte mais qui sont
+nécessaires à la formation de groupes complets de lettres convertis en lettres
+équivalentes du nouvel alphabet augmenté. On tiendra ensuite compte, lorsque
+des correspondances sont trouvées entre des groupes de caractères, du nombre
+de caractères de bourrage utilisés en début de clé ou de fichier pour ajuster
+la position du groupe trouvé.
+Seconde table de saut (non-concordance des caractères de la clé autres que le
+dernier)
+
+Le second tableau est sensiblement plus compliqué à calculer : pour chaque
+valeur de N inférieure à la longueur K de la sous-chaîne clé, il faut calculer
+le motif composé des N derniers caractères de la sous-chaîne K, précédé d'un
+caractère qui ne correspond pas. Puis, il faut trouver le plus petit nombre de
+caractères pour lequel le motif partiel peut être décalé vers la gauche avant
+que les deux motifs ne correspondent. Par exemple, pour la sous-chaîne clé
+ANPANMAN longue de 8 caractères, le tableau de 8 lignes est rempli de cette
+manière (les motifs déjà trouvés dans le texte sont montrés alignés dans des
+colonnes correspondant à l’éventuel motif suivant possible, pour montrer
+comment s’obtient la valeur de décalage qui est la seule réellement calculée
+et stockée dans la seconde table de saut) :
+
+Indice		Motif suivant	Décalage
+obtenu
+A	N	P	A	N	M	A	N
+0													N		1
+1					A	N									8
+2									M	A	N				3
+3					N	M	A	N							6
+4				A	N	M	A	N							6
+5			P	A	N	M	A	N							6
+6		N	P	A	N	M	A	N							6
+7	A	N	P	A	N	M	A	N							6
+Notes relatives à la complexité de calcul cette table :
+
+On remarque que cette table contient autant de lignes que la longueur de clé.
+Si la clé est longue, les valeurs de décalage dans la table peuvent être elles
+aussi assez importantes, ce qui va nécessiter une allocation de mémoire de
+travail peut-être importante, souvent plus grande en taille elle-même que la
+chaîne clé qui utilise un alphabet plus réduit (par exemple 1 octet par
+caractère) que les entiers alors qu’en fin de compte les longueurs de clé
+seront importantes (typiquement des entiers codés sur 4 octets).
+La constitution de cette table nécessite là aussi de rechercher des
+sous-chaînes (toutes les sous-chaînes possibles de la fin de clé) pour en
+trouver pour chacune la dernière occurrence dans la clé, et l’algorithme de
+Boyer-Moore pourrait être utilisé récursivement (mais en utilisant une
+recherche sur des textes et clés de direction inversée).
+Au delà d’une certaine longueur raisonnable (par exemple jusqu’aux 256
+derniers caractères de la clé), il peut être inutile d’augmenter la taille de
+cette table puisque le seul but sera de savoir si des décalages plus grands
+peuvent être obtenus pour sauter plus vite dans le texte principal. En ne
+pré-traitant que les 256 derniers caractères en fin de clé, on obtiendra une
+longueur déjà suffisante pour accélérer la majorité des recherches (mais si on
+veut aller au delà, on pourra, lorsque cette table contient déjà la longueur
+maximale retenue pour le saut et dans les rares cas où cette longueur serait
+atteinte, et si l’alphabet est assez discriminant, ce que peut indiquer le
+taux de remplissage de la première table, employer l’al
+
+Archéologie
+
+
+Théâtre romain, Alexandrie, Égypte.
+L'archéologie est une discipline scientifique dont l'objectif est d'étudier et
+de reconstituer l’histoire de l’humanité depuis la préhistoire jusqu’à
+l'époque contemporaine à travers l'ensemble des vestiges matériels ayant
+subsisté et qu’il est parfois nécessaire de mettre au jour (objets, outils,
+ossements, poteries, armes, pièces de monnaie, bijoux, vêtements, empreintes,
+traces, peintures, bâtiments, infrastructures, etc.).
+
+L’archéologue, dans une approche diachronique, acquiert donc l’essentiel de sa
+documentation à travers des travaux de terrain (prospections, sondages,
+fouilles, études de collections, analyses du bâti) par opposition à
+l’historien, dont les principales sources sont des textes. Les documents
+écrits sont toutefois souvent utilisés avec profit en archéologie lorsqu’ils
+sont disponibles et conservés.
+
+Le mot « archéologie » vient du grec ancien ἀρχαιολογία1 et est formé à partir
+des racines ἀρχαίος = ancien et λόγος = mot/parole/discours. Toutefois, c'est
+avant à l'étude de l'objet fabriqué par l'homme, donc à la technicité, que
+l'archéologue consacre son travail.
+
+Sommaire
+
+1 Pluridisciplinarité
+2 Origines et définition
+3 L'archéologie en tant qu'approche scientifique
+4 Importance et validité d'application
+5 Méthodes d'études
+6 Approches spécifiques
+7 Théories archéologiques
+8 Historique
+9 Diversité des découvertes archéologiques
+10 Rappels terminologiques
+11 Notes et références
+12 Voir aussi
+12.1 Bibliographie
+12.2 Articles connexes
+12.3 Liens externes
+Pluridisciplinarité
+
+L'archéologie est de plus en plus largement pluridisciplinaire ;
+Si les archéosciences relèvent par essence des sciences humaines, elles font
+aussi appel à une panoplie de méthodes venant des sciences naturelles et
+sciences de la Terre notamment dans le domaine des datations (14C,
+dendrochronologie, thermoluminescence, palynologie, la
+xylologie-anthracologie, archéozoologie, botanique2 etc.). Ces méthodes ne
+relèvent pas des compétences de l'archéologue, mais il doit savoir les
+interroger et en intégrer les résultats dans ses analyses.
+
+Origines et définition
+
+
+Vue en coupe d'un tholos de Mycènes, le « trésor d’Atrée »
+Dans l’« Ancien Monde », l'archéologie a eu tendance à se concentrer sur
+l'étude des restes physiques, les méthodes employées pour les mettre au jour
+et les fondements théoriques et philosophiques sous-tendant ces objectifs.
+
+La discipline prend sa source dans le monde des Antiquaires et dans l'étude du
+latin et du grec ancien, qui l'inscrivent naturellement dans le champ d'étude
+de l'histoire. Cyriaque d'Ancône ou Ciriaco de' Pizzicolli (Ancône, vers 1391
+- Crémone, vers 1455) est un humaniste italien, un voyageur et un épigraphiste
+grâce auquel sont parvenues des copies de nombreuses inscriptions grecques et
+latines perdues depuis son époque. Il a été appelé le père de l'archéologie:
+fut le premier « savant » à redécouvir des sites grecs antiques prestigieux
+tels que Delphes ou Nicopolis d'Épire. Cyriaque d'Ancône se croyait investi
+d'une mission : sauver les antiquités, condamnées à disparaître. L'archéologie
+en tant que science apparaît dans les années 1880, auparavant les restes
+physiques étaient le plus souvent considérés comme des champs de ruines dans
+lesquels les gens se servaient sans vergogne pour les revendre aux
+antiquaires, cette attitude atteignant son apogée au début du xixe siècle dans
+l'Europe en pleine vogue d'antiquarianisme3.
+
+Aux États-Unis et dans un nombre croissant d'autres régions du monde,
+l'archéologie est généralement dévolue à l'étude des sociétés humaines et est
+considérée comme l'une des quatre branches de l'anthropologie. Les autres
+branches de l'anthropologie complètent les résultats de l'archéologie d'une
+façon holistique. Ces branches sont :
+
+l'ethnologie, qui étudie les dimensions comportementales, symboliques, et
+matérielles de la culture ;
+la linguistique, qui étudie le langage, y compris les origines de la langue et
+des groupes de langue ;
+l'anthropologie physique, qui inclut l'étude de l'évolution et des
+caractéristiques physiques et génétiques de l'espèce humaine.
+D'autres disciplines complètent également l'archéologie, comme la
+paléontologie, la paléozoologie, la paléo-ethnobotanique, la paléobotanique,
+l'archéozoologique et l'archéobotanique 4la géographie, la géologie,
+l'histoire de l'art et la philologie.
+
+L'archéologie a été décrite comme un art qui s'assure le concours des sciences
+pour éclairer les sciences humaines. L'archéologue américain Walter Taylor
+(en) a affirmé que « l'archéologie n'est ni l’histoire ni l’anthropologie.
+Comme discipline autonome, elle consiste en une méthode et un ensemble de
+techniques spécialisées destinées à rassembler, ou à « produire » de
+l'information culturelle » 5.
+
+L'archéologie cherche à comprendre la culture humaine à travers ses vestiges
+matériels quelle que soit la période concernée. En Angleterre, les
+archéologues ont ainsi mis au jour les emplacements oubliés depuis longtemps
+des villages médiévaux abandonnés après les crises du xive siècle ainsi que
+ceux des jardins du xviie siècle évincés par un changement de mode. Au cœur de
+New York, des archéologues ont exhumé les restes d’un cimetière renfermant les
+dépouilles de 400 africains et datant des xviie et xviiie siècle.
+
+L'archéologie traditionnelle est considérée comme l'étude des cultures
+préhistoriques, cultures qui existaient avant l’apparition de l'écriture.
+L'archéologie historique est l'étude des cultures qui ont développé des formes
+d'écriture.
+
+Quand l'étude concerne des cultures relativement récentes, observées et
+étudiées par des chercheurs occidentaux, l'archéologie est alors intimement
+liée à l'ethnographie. C'est le cas dans une grande partie de l'Amérique du
+Nord, de l'Océanie, de la Sibérie et de toutes les régions où l'archéologie se
+confond avec l'étude de traditions vivantes des cultures en questions. L'homme
+de Kennewick fournit ainsi l'exemple d'un sujet d'étude archéologique en
+interaction avec la culture moderne et des préoccupations actuelles. Lors de
+l'étude de groupes qui maîtrisaient l'écriture ou qui avaient des voisins qui
+la maîtrisaient, histoire et archéologie se complètent pour permettre une
+compréhension plus large du contexte culturel global, et l'étude du mur
+d'Hadrien nous en fournit un exemple.
+
+L'archéologie en tant qu'approche scientifique
+
+La méthode de l'archéologie s'inscrit dans une démarche scientifique, au même
+titre que les autres sciences palétiologiques. Afin d'appréhender les faits et
+les comprendre, elle doit passer par l'étape d'induction, puis de déduction et
+enfin revenir à l'induction.
+
+En découvrant des nouveaux témoins du passé, l'archéologue se doit de
+pratiquer l'induction. En effet, il faut passer des faits aux idées, des
+observations aux propositions qui peuvent les justifier, des indices aux
+présomptions qui les expliquent. En formulant une hypothèse ou en supposant un
+fait, l’archéologue ne fait donc qu'appliquer une méthodologie scientifique
+usuelle. Il doit simplement vérifier que le problème nouveau relève de sa
+compétence, c’est-à-dire avant tout qu’il dispose – ce qui n’est pas toujours
+le cas – des documents nécessaires, et aussi qu’il présente un intérêt
+suffisant, c’est-à-dire qu’il ne soit ni trop banal ni trop limité ; ce souci
+d'efficacité, qui n’a rien, lui non plus, de particulier à l’archéologie, y
+revêt cependant une grande importance, puisque les documents archéologiques
+sont chargés de plusieurs limitations.
+
+Le problème retenu et l’hypothèse émise, il reste à vérifier cette dernière.
+Cette démarche, prônée déjà par Francis Bacon (Novum Organum Scientiarum,
+1620) et exposée avec une grande clarté par Claude Bernard (Introduction à
+l’étude de la médecine expérimentale, première partie, 1865), consiste d’abord
+à revenir des idées aux faits, par un mouvement déductif ou une phase
+hypothético-déductive. Puisqu’on ne peut pas opérer de démonstration directe,
+ce qui est le privilège des mathématiques, on cherche à vérifier l’hypothèse a
+posteriori, par son efficacité logique ou sa valeur heuristique. Puis on
+revient aux idées par une nouvelle induction et, si l’hypothèse se trouve
+vérifiée, elle devient alors ce que la plupart des sciences appellent une loi,
+mais que l’histoire et l’archéologie ne peuvent appeler, dans le sens le plus
+général du terme, qu’un fait historique.
+
+Toutefois, la recherche de la vérification suppose en premier lieu que
+l’hypothèse soit formulée le plus exactement possible. Comme par définition le
+chercheur à ce stade ne dispose pas encore de toutes les données nécessaires,
+il est conduit à s’avancer un peu au-delà de ce qu’il a observé. Cette
+anticipation de l’expérience consiste en règle générale à décrire les
+conséquences de l’hypothèse et à prévoir quelle sera leur traduction dans les
+vestiges archéologiques : car seule cette traduction sera susceptible d’être
+vérifiée.
+
+Mais l’importance du raisonnement est encore plus capitale à l’étape suivante.
+Il s’agit en effet de vérifier si, dans les données observables, on retrouve
+bien la traduction des conséquences que l’on a prévues. Il faut pour cela
+revenir à la fouille ou, tout au moins, aux documents archéologiques et aux
+relations qui les unissent. Mais il faut y revenir avec une méthode :
+organiser tout un ensemble d’opérations qui permette le contrôle souhaité et
+donne des résultats clairs. Il ne peut donc pas s’agir de recourir à des
+recettes préétablies. C’est même très précisément le contraire : il faut
+imaginer, dans chaque cas, la démarche qui sera à la fois la mieux adaptée au
+but poursuivi et la plus pragmatique en fonction de l’importance du problème
+posé. Autrement dit, les techniques particulières qui seront mises en œuvre
+dans cette démarche n’auront pas d’intérêt par elles-mêmes, mais devront être
+jugées, comme partout, sur leur efficacité. Celles qui permettront d’obtenir
+des réponses pertinentes et claires, pour une somme d’efforts proportionnée à
+l’intérêt de l’entreprise, seront par définition les meilleures.
+
+Au terme du processus, deux possibilités apparaissent :
+
+l’hypothèse est infirmée, elle doit donc être remplacée ou modifiée et de
+nouveau confrontée à l’observation ;
+l'hypothèse est confirmée, il faut alors la transformer en certitude, lui
+donner le statut de fait établi6.
+Importance et validité d'application
+
+
+Stonehenge, Royaume-Uni
+L'archéologie représente souvent le seul moyen de connaître le mode de vie et
+les comportements des groupes du passé. Des milliers de cultures et de
+sociétés, des millions de personnes se sont succédé au cours des millénaires,
+pour lesquels il n'existe aucun témoignage écrit — aucune histoire — ou
+presque. Dans certains cas, les textes peuvent être incomplets ou peuvent
+déformer la réalité.
+
+
+Inscription sumérienne, xxvie siècle av. J.-C. environ.
+Présents du Grand et Puissant de Adab à la Grande Prêtresse, à l'occasion de
+son élection au temple.
+L'écriture telle qu'on la connaît aujourd'hui est apparue il y a seulement 5
+000 ans environ et elle n'était utilisée que par quelques civilisations
+technologiquement avancées7. Ce n'est bien sûr pas par hasard que ces
+civilisations sont relativement bien connues : elles ont fait l'objet de
+recherches de la part des historiens depuis des siècles, tandis que les
+cultures préhistoriques ne sont étudiées que depuis le xixe siècle. Mais même
+dans le cas d'une civilisation utilisant l'écriture, de nombreuses pratiques
+humaines importantes ne sont pas enregistrées. Tout ce qui concerne les
+éléments fondateurs de la civilisation - le développement de l'agriculture,
+des pratiques culturelles, des premières cités - ne pourra être connu que par
+l'archéologie.
+
+Même quand des témoignages écrits existent, ils sont systématiquement
+incomplets ou plus ou moins biaisés. Dans de nombreuses sociétés, n'étaient
+alphabétisés que les membres d'une élite sociale, comme le clergé. Les
+documents écrits de l'aristocratie se limitent souvent à des textes
+bureaucratiques concernant la cour ou les temples, voire à des actes notariés
+ou des contrats. Les intérêts et la vision du monde de l'élite sont souvent
+relativement éloignés de la vie et des préoccupations du reste de la
+population. Les écrits produits par des personnes plus représentatives de
+l'ensemble de la population avaient peu de chance d'aboutir dans les
+bibliothèques et d'y être préservés pour la postérité. Les témoignages écrits
+ont donc tendance à refléter les parti pris, les idées, les valeurs et
+éventuellement les tromperies d'un petit nombre d'individus, correspondant
+généralement à une fraction infime de la population. Il est impossible de se
+fier aux écrits comme seule source d'information. Les vestiges matériels sont
+plus proches d'une représentation fiable de la société, même s'ils posent
+d'autres problèmes de représentativité tels que les biais d'échantillonnage ou
+la conservation différentielle.
+
+Au-delà de leur importance scientifique, les vestiges archéologiques peuvent
+avoir une signification politique pour les descendants des groupes qui les ont
+produits, une valeur matérielle pour les collectionneurs ou simplement une
+forte charge esthétique. Aux yeux du grand public, qui bien souvent méconnait
+le cadre juridique de la matière (droit de l'archéologie, code du patrimoine),
+l'archéologie est souvent associée à une recherche de tels trésors
+esthétiques, religieux, politiques ou économiques plutôt qu'à une
+reconstitution des modes de vie des sociétés passées. Ce point de vue est
+fréquemment conforté dans les œuvres de fiction telles que Indiana Jones et
+les Aventuriers de l'arche perdue, La Momie ou Les Mines du roi Salomon, fort
+heureusement très éloignées des préoccupations effectives de l'archéologie
+moderne.
+
+Musique
+
+
+Allégorie évoquant la musique et les instruments
+La musique est l'art consistant à arranger et à ordonner ou désordonner sons
+et silences au cours du temps : le rythme est le support de cette combinaison
+dans le temps, la hauteur, celle de la combinaison dans les fréquences, etc.
+
+La musique est un art incroyable, celui de la muse Euterpe dans la mythologie
+grecque. Elle est donc à la fois une création (une œuvre d'art), une
+représentation et aussi un mode de communication. Elle utilise certaines
+règles ou systèmes de composition, des plus simples aux plus complexes
+(souvent les notes de musique, les gammes et autres). Elle peut utiliser des
+objets divers, le corps, la voix, mais aussi des instruments de musique
+spécialement conçus, et de plus en plus tous les sons (concrets, de synthèses,
+abstraits, etc.).
+
+La musique est évanescente, elle n'existe que dans l'instant de sa perception
+qui doit en reconstituer son unité dans la durée.
+
+La musique a existé dans toutes les sociétés humaines, depuis la préhistoire.
+Elle est à la fois forme d'expression humaine individuelle (notamment
+l'expression des sentiments), source de rassemblement collectif et de plaisir
+(fête, chant, danse) et symbole d'une communauté ou d'une nation (hymne
+national, style musical officiel, musique religieuse, musique militaire).
+
+Sommaire
+
+1 Approches définitoires
+1.1 Approche intrinsèque et approche extrinsèque
+1.2 Définition anthropocentrique
+1.3 Définition tautologique
+1.4 Définition sociale
+1.4.1 Phénomène social
+1.4.2 « Évolution » de la musique
+1.5 Définition esthétique
+1.5.1 Esthétique de la réception
+1.5.2 Esthétique de la composition
+1.6 La musique comme discipline scientifique
+2 L'œuvre musicale
+2.1 Définition
+2.2 Formalisme et fonctionnalités
+3 Histoire
+4 Technique
+4.1 La musique, un art du temps
+4.1.1 Composantes de la musique
+4.1.2 Dimensions du sonore et son musical
+4.1.3 Intrusion de l’aléatoire
+4.1.3.1 Musique algorithmique
+4.1.3.2 Musique stochastique
+4.2 Notation, théorie et système
+4.2.1 Signes musicaux
+4.2.2 Gammes
+4.2.3 Mesure
+4.3 Instruments de musique
+5 Typologie
+5.1 Genres musicaux
+5.2 Par époque
+5.3 Par pays
+5.4 Exemple de classification
+5.4.1 Classe 1 : Musiques d'influence afro-américaine
+5.4.2 Classe 2 : Rock et variété internationale apparentée
+5.4.3 Classe 3 : Musique classique (musique savante de tradition occidentale)
+5.4.4 Classe 4 : Musiques électroniques
+5.4.5 Classe 5 : Musiques fonctionnelles et divers
+5.4.6 Classe 6 : Musique et cinéma
+5.4.7 Classe 7 : Classe d'usage national ou local (en France : chanson
+francophone)
+5.4.8 Classe 8 : Musiques du monde
+6 Notes et références
+7 Annexes
+7.1 Liens externes
+Approches définitoires
+
+Approche intrinsèque et approche extrinsèque
+
+Il existe alors deux « méthodes » pour définir la musique : l’approche
+intrinsèque (immanente) et l’approche extrinsèque (fonctionnelle).
+
+Dans l'approche intrinsèque, la musique existe chez le compositeur avant même
+d’être entendue ; elle peut même avoir une existence par elle-même, dans la
+nature et par nature (la musique de la rivière, des oiseaux, etc., qui n'a
+aucun besoin d'intervention humaine).
+
+Dans l'approche extrinsèque, la musique est une fonction projetée, une
+perception, sociologique par nature. Elle a tous les sens et au-delà, mais
+n'est perçue que dans un seul : la musique des oiseaux n'est musique que par
+la qualification que l'on veut bien lui donner.
+
+L'idée que l'être est musique est ancienne et semble dater des pythagoriciens
+selon Aristote. Dans la Métaphysique il dit : « Tout ce qu'ils pouvaient
+montrer dans les nombres et dans la musique qui s'accordât avec les phénomènes
+du ciel, ses parties et toute son ordonnance, ils le recueillirent, et ils en
+composèrent un système ; et si quelque chose manquait, ils y suppléaient pour
+que le système fût bien d'accord et complet ».
+
+Définition anthropocentrique
+
+Cette définition intègre l'homme à chaque bout de la chaîne. La musique est
+conçue et reçue par une personne ou un groupe (anthropologique). La définition
+de la musique, comme de tout art, passe alors par la définition d'une certaine
+forme de communication entre les individus. C'est ce qui fait de la musique un
+langage (le mot est souvent utilisé quoique contraire à la définition
+ontologique du langage), une communication universelle susceptible d'être
+entendue par tout le monde, mais comprise uniquement par quelques uns. Boris
+de Schlœzer, dans Problèmes de la musique moderne (1959), dit ainsi : « La
+musique est langage au même titre que la parole qui désigne, que la poésie, la
+peinture, la danse, le cinéma. Ceci revient à dire que tout comme l’œuvre
+poétique ou plastique, l’œuvre musicale a un sens (qui n’apparaît que grâce à
+l’activité de la conscience) ; avec cette différence pourtant qu’il lui est
+totalement immanent, entendant par là que close sur elle-même, l’œuvre
+musicale ne comporte aucune référence à quoi que se soit, ne nous renvoie pas
+à autre chose1. »
+
+Définition tautologique
+
+Selon cette définition, la musique est l’« art des sons » et englobe toute
+construction artistique destinée à être perçue par l’ouïe.
+
+Définition sociale
+
+Article détaillé : Sociologie de la musique.
+Cette définition considère la musique comme un fait de société, qui met en jeu
+des critères tant historiques que géographiques.
+
+La musique passe autant par les symboles de son écriture (les notes de
+musique) que par le sens qu’on accorde à sa valeur affective ou émotionnelle.
+En Occident, le fossé n’a cessé de se creuser entre ces musiques de l’oreille
+(proches de la terre, elles affirment une certaine spiritualité et jouent sur
+le parasympathique) et les musiques de l’œil (marquées par l’écriture, le
+discours, et un certain rejet du folklore). Les cultures occidentales ont
+privilégié l’authenticité et inscrit la musique dans une histoire qui la
+relie, par l’écriture, à la mémoire du passé. Les musiques d’Afrique font plus
+appel à l’imaginaire, au mythe, à la magie, et relient cette puissance
+spirituelle à une corporalité de la musique. L’auditeur participe directement
+à l’expression de ce qu’il ressent, alors qu’un auditeur occidental de
+concerts serait frustré par la théâtralité qui le délie de participation
+corporelle. Le baroque constitue en occident l’époque charnière où fut mise en
+place cette coupure. L’écriture, la notation, grâce au tempérament, devenait
+rationalisation des modes musicaux.
+
+Phénomène social
+
+Chaque époque est tributaire des rapports entre l’art et la société, et plus
+particulièrement entre la musique et les formes de sa perception. Cette étude
+sociale aux travers des âges est menée dans un essai de Jacques Attali
+(Bruits. Paris, PUF, 1978). Les questions qui y sont posées peuvent se
+retrouver aujourd’hui sous la forme : Quel est le rôle de la musique dans la
+vie d’aujourd’hui ? Pourquoi est-elle un produit de consommation différent
+(par rapport aux autres produits de consommation, et par rapport aux autres
+arts) ? La musique devient-elle un instrument de pouvoir (major companies,
+industrie du disque, politique des média) ? Quelles sont aujourd’hui les
+opportunités, les perspectives, de l’internet et des musiques en ligne ? etc.
+
+« Évolution » de la musique
+
+La libération esthétique du compositeur par rapport à certaines règles et
+interdits, fondés au cours de l’histoire de la musique, et celle,
+concomitante, des liens qu’il noue avec l’auditeur est un facteur d’évolution.
+Elle va rarement sans heurts. L’évolution historique des courants stylistiques
+est jalonnée de conflits exprimés notamment à travers la question classique :
+« Ce qui m’est présenté ici, est-ce de la musique ? »
+
+L’histoire évolue également par alternance de phases de préparations et de
+phases de révélation intimement liées entre elles. Ainsi, la place
+prépondérante qu’occupe Jean-Sébastien Bach dans le répertoire de la musique
+religieuse, conséquence du génie créatif de ce musicien d’exception, ne peut
+nous faire oublier tous les compositeurs qui l’ont précédé et qui ont tissé
+ces liens avec le public en le préparant à des évolutions stylistiques
+majeures. L’œuvre de Bach concentre de fait un faisceau d’influences
+allemandes (Schütz, Froberger, Kerll, Pachelbel), italiennes (Frescobaldi,
+Vivaldi), flamandes (Sweelinck, Reincken) et françaises (Grigny et Couperin),
+toutes embrassées par le Cantor.
+
+Ce type d'évolution incite Nikolaus Harnoncourt à considérer que « Mozart
+n’était pas un novateur2 ». Pour lui, Mozart ne fut que le cristallisateur du
+style classique, et le génie qui sut porter à son apogée des éléments dans
+l’air du temps. Concentrer les influences d’une époque, consolider les
+éléments et en tirer une nouvelle sève, c’est là le propre de tout
+classicisme. Contrairement aux musiciens contemporains expérimentateurs qui
+cherchent à la fois « le système et l’idée » (selon un article fondateur de
+Pierre Boulez), Mozart n’aurait ainsi jamais rien inventé qui ne lui
+préexistait. Les mutations radicales qu’il a su imposer proviennent de
+conceptions déjà en germe.
+
+Le lien entre l’évolution des techniques et l’écriture, entre les données
+matérielles (instruments, lieux, espaces) et l’expression, contraint le
+compositeur dans la double ambiguïté du carcan systémique et de la libération
+expressive. Dans cette perspective, la musique se construit autour de
+structures, de catégories, qu’il faut savoir dépasser (« travailler aux
+limites »).
+
+En termes de style, la musique semble avoir souvent oscillé au cours des
+siècles entre une rhétorique de la litote et du minimum d’éléments syntaxiques
+(c’est le cas de Bach ou de Lully, c’est aussi celui, à un degré extrême de
+John Cage) et une excessivité (Richard Wagner ou Brian Ferneyhough par
+exemple), dilution dans l’emphase (autre définition du baroque), révolte
+contre les alignements conceptuels. Avec le recul historique, les phases de
+cette élaboration paraissent suivre des paliers successifs. Le pouvoir
+expressif passe d’apports strictement personnels à une complexification qui
+dénature les premières richesses de la nouveauté en cherchant à épuiser les
+ressources du matériau initial.
+
+Définition esthétique
+
+La musique peut également être définie et approchée dans une perspective de
+recherche esthétique.
+
+Esthétique de la réception
+
+Cette vision esthétique de la musique, peut être, du côté de l’auditeur,
+définie par la définition du philosophe français Jean-Jacques Rousseau : « La
+musique est l’art d'accommoder les sons de manière agréable à l’oreille3. »
+
+De la Renaissance jusqu’au xviiie siècle, la représentation des sentiments et
+des passions s’est effectuée par des figures musicales préétablies, ce que
+Monteverdi a appelé la seconda prattica expressio Verborum.
+La simultanéité dans la dimension des hauteurs (polyphonie, accords), avancée
+de l’Ars nova au xve siècle (Ph. De Vitry), a été codifiée aux xviie et xviiie
+siècles (Traité de l’harmonie universelle du père Marin Mersenne, 1627, Traité
+de l’harmonie réduite à ses principes naturels de Jean-Philippe Rameau, 1722).
+Depuis, la représentation de la musique affiche des tendances plus
+personnalisées. Cette traduction de la personnalité aboutit tout naturellement
+au xixe siècle aux passions développées par la musique romantique.
+
+Certains[Qui ?] estiment que les grandes écoles de style ne sont souvent qu’un
+regroupement factice autour de théories a priori. La musique passe autant par
+les symboles de son écriture que par les sens accordés à sa « valeur »
+(affective, émotionnelle,…). Théorie et réception se rejoignent pour accorder
+à la musique un statut, artistique puisque communication, esthétique puisque
+traduction de représentation (cf. les théories de la réception et de la
+lecture selon l’école de Constance).
+
+Les trois pôles du phénomène musical sont le compositeur, l’interprète et
+l’auditeur. Cependant un fossé n’a cessé de se creuser dans la musique
+occidentale entre le compositeur et son public. Les recherches musicales
+actuelles tendent à faire de la musique un support de la représentation de la
+complexité de notre monde (de l’infiniment petit à l’infiniment grand). Elles
+se seraient alors éloignées de la recherche purement esthétique.
+
+Esthétique de la composition
+
+
+Le chant des anges (œuvre de William Bouguereau - xixe siècle).
+Chaque étape stylistique importante (Renaissance, baroque, classicisme,
+romantisme, et d’une certaine façon modernisme), porte ainsi en elle une ou
+plusieurs bifurcations esthétiques.
+
+Au milieu du xxe siècle, dans les années 1947-1950, après les assauts
+formalistes du sérialisme, le noyau fédérateur qui subsistait à l’arrivée du
+magnétophone et des techniques électroniques résidait dans la manifestation
+d’un sonore perceptible et construit. Les traités d’harmonie de la fin du xixe
+siècle (par exemple le Traité d’harmonie de Th. Dubois), reprenant la théorie
+de Rameau, s’étaient attachés à amarrer la tonalité à une nécessité développée
+par l’histoire depuis Monteverdi. Or, en rompant dès 1920 avec les schémas
+classiques de la tonalité, le xxe siècle aurait confiné le système tonal aux
+seuls xviiie siècle et xixe siècles, et même réduit à cette époque, dans la
+stricte délimitation géographique que nous lui connaissons, à savoir en Europe
+et aux États-Unis4. La définition classique de la musique comme « art de
+combiner les sons » se serait effondrée peu après le milieu du xxe siècle.
+
+La musique comme discipline scientifique
+
+Article détaillé : Musicologie.
+Pythagore étudie la musique comme mettant en jeu des rapports arithmétiques au
+travers des sons. L'harmonie qui en procède se retrouve pour lui et gouverne
+l'ordonnancement de ses sphères célestes. Ainsi Platon dans La République,
+VII, 530d, rappelle que la Musique et l'Astronomie sont des sciences sœurs. Au
+ve siècle, Martianus Capella présente la musique comme un des sept arts
+libéraux. Avec Boèce, la théorie musicale est distinguée de la pratique
+musicale. La musique entendue comme activité (praxis), qui est la musique des
+musiciens, sera alors déconsidérée et considérée comme un art subalterne, un «
+art mécanique », de la musique entendue comme savoir (théoria) qui seule sera
+reconnue comme vraie musique, et enseignée comme un des 7 arts libéraux, parmi
+les 4 disciplines scientifiques du second degré de cet enseignement, et que
+Boèce nomma le « quadrivium ». La musique (théorique) a alors le même statut
+que l'arithmétique, la géométrie et l'astronomie.
+
+La musique est l'une des pratiques culturelles les plus anciennes et comporte
+le plus souvent une dimension artistique. La musique s'inspire toujours d'un «
+matériau sonore » pouvant regrouper l’ensemble des sons perceptibles, pour
+construire ce « matériau musical ». À ce titre elle a, dans les années
+récentes, été étudiée comme une science5,6. La phénoménologie de Husserl,
+réfutait ces points de vue.
+
+L'ouïe, qui est le plus adapté de nos sens pour la connaissance des sentiments
+est, a contrario, le moins apte à la connaissance objective qui fonde la
+science. La musique est donc un concept dont la signification est multiple, il
+en résulte qu'il est difficile d'établir une définition unique regroupant tous
+les genres musicaux.
+
+L'œuvre musicale
+
+
+Ludwig van Beethoven Symphonie no 9, ré mineur, op. 125 – Partition
+autographe, 4e mouvement.
+Définition
+
+La musique, comme art allographique, passe par l'œuvre musicale. Chacune est
+un objet intentionnel dont l'unité et l'identité est réalisée par ses temps,
+espace, mouvement et forme musicaux, comme l'écrit Roman Ingarden7. Objet de
+perception esthétique, l'œuvre est certes d'essence idéale, mais son existence
+hétéronome se concrétise par son exécution devant un public, ou par son
+enregistrement y compris sa numérisation.
+
+Comme toute œuvre, l'œuvre musicale existe avant d'être reçue, et elle
+continue d'exister après. On peut donc s'interroger sur ce qui fait sa
+pérennité : combien d'œuvres subsistent réellement à leurs compositeurs ? Et
+sont-elles vraiment toutes le reflet de son style, de son art ? On entend
+surtout par œuvre musicale le projet particulier d'une réalisation musicale.
+Mais cette réalisation peut être décidée par l'écoute qu'en fait chaque
+auditeur avec sa culture, sa mémoire, ses sentiments particuliers à cet
+instant précis autant que par ou la partition, transcription qui ne comporte
+pas toute la musique.
+
+À partir de la Renaissance et jusqu'au début du xxe siècle, l'unique support
+de la musique a été la partition de musique. Cette intrusion de l'écrit a été
+l'élément-clé de la construction de la polyphonie et de l'harmonie dans la
+musique savante. La partition reste unie au nom du ou des musiciens qui l'ont
+composée ou enregistrée. Certaines œuvres peuvent être collectives, d'autres
+restent anonymes.
+
+Depuis la généralisation des moyens techniques d'enregistrement du son,
+l'œuvre peut également s'identifier à son support : l'album de musique, la
+bande magnétique ou à une simple calligraphie de la représentation du geste
+musical propre à transcrire l'œuvre du compositeur.
+
+L'informatique musicale a fait évoluer encore cette notion d'œuvre, puisqu'à
+présent un logiciel est susceptible d'engendrer « automatiquement » une œuvre
+musicale, ou de produire des sons auxquels l'interprète pourra réagir.
+
+Formalisme et fonctionnalités
+
+Dans son essai sur les « célibataires de l'art» 8, Jean-Marie Schaeffer estime
+que, dans l’art moderne (et a fortiori dans l’art technologique du xxe
+siècle), la question-clé : « Qu’est-ce que l’art ? » ou « Quand y a-t-il art ?
+» s’est progressivement transformée en: « Comment l’art fonctionne-t-il ? ».
+En musique, ce déplacement d’objet a posé le problème des éléments que l’on
+peut distinguer a priori dans l’écoute structurelle d’une œuvre.
+
+En 1945 apparurent les premières formes d'informatique, et en 1957 on a
+assisté, avec l’arrivée de l'électronique musicale, à un point de bifurcation.
+D’abord une nouvelle représentation du sonore qui, bien que difficile à
+maîtriser, a en fait ouvert des perspectives nouvelles. Ensuite, ces
+techniques ont remis en cause certaines réflexions théoriques sur la
+formalisation de la pensée créatrice, renvoyant le compositeur à la
+confrontation, essentielle dans sa démarche, entre un formalisme abstrait et
+l’élaboration d’un matériau fonctionnel. La transition vers l’atonalité a
+détruit les hiérarchies fonctionnelles et transformé le rôle tenu par les
+fonctions tonales, élaboré depuis Monteverdi.
+
+De fait, la logique des formes musicales est donc devenue surtout une logique
+fonctionnelle, dans la mesure où elle permet de maintenir la cohésion de
+l'œuvre, même si les éléments de composition sont multiples (éléments
+rythmiques, contrapuntiques, harmoniques…). La notion de processus
+compositionnel, a permis de passer de la vision statique de l’objet musical
+(celui que l’on peut répertorier, et qui cesserait de vivre en entrant dans le
+patrimoine) à une vision dynamique. Cette vision est évolutive, ce que ne
+prenaient pas en considération les théories fondées sur la GestaltPsychologie
+qui figent la pensée dans des images accumulées dans la mémoire. Le processus
+musical est plus que la structure: il est en effet une forme dynamique, un
+devenir. Ce devenir est marqué par l’empreinte du sonore, c’est-à-dire par un
+matériau musical, et pas uniquement par l’outil ou par la théorie.
+
+À partir de la théorie de la communication de Shannon et Weaver, d'autres
+définitions insistent plus sur les moyens de réception que sur la chaîne de
+production de la musique.
+
+Histoire
+
+Article détaillé : Histoire de la musique.
+L'histoire de la musique est une matière particulièrement riche et complexe du
+fait principalement de ses caractéristiques : la difficuGrâce au développement
+des recherches de l'acoustique musicale et de la psychoacoustique, le son
+musical se définit à partir de ses composantes timbrales et des paramètres
+psychoacoustiques qui entrent en jeu dans sa perception. D'objet sonore,
+matériau brut que le musicien doit travailler, ce matériau devient objet
+musical; la musique permet de passer à une dimension artistique qui
+métamorphose le « donné à entendre ». Le silence n'est plus « absence de son
+». Même le fameux 4'33" de John Cage, est un « donné à entendre ».
+
+Mais ce donné à entendre englobe désormais un matériau de plus en plus large.
+Depuis le début du xxe siècle, cet élargissement s’opère vers l’intégration
+des qualités intrinsèques de notre environnement sonore (concerts bruitistes,
+introduction des sirènes chez Varèse, catalogues d’oiseaux de Messiaen, etc.).
+Comment distinguer alors bruit et signal, comment distinguer ordre et
+désordre, création musicale et nuisance sonore? Le bruit, c’est uniquement ce
+qu’on ne veut pas transmettre et qui s’insinue malgré nous dans le message; en
+lui-même il n’a aucune différence de structure avec un signal utile. On ne
+peut plus distinguer comme auparavant le son purement musical et le bruit.
+Avec l’élaboration d’une formalisation par nature des fonctions du bruit, les
+sons inharmoniques (apériodiques) qui liés à la vie courante participent
+désormais, dans l’intégration du sonore, à la construction musicale. Tous les
+éléments de notre environnement sonore contiennent une certaine part de bruit,
+qui a vocation de devenir fonction structurante par destination.
+
+L’ensemble de ces bouleversements conceptuels accompagne les découvertes
+scientifiques et techniques qui permirent de développer des factures
+instrumentales nouvelles (notamment avec l'électronique). L’instrument de
+musique primitif se voulait représentation des sons naturels (le vent dans les
+arbres se retrouvant dans le son de la flûte, le chant des oiseaux dans celui
+de l’homme…). À cette condition, il était le seul capable de traduire le
+musical (d’opérer une distinction entre sons harmoniques et bruits).
+L’extension des techniques aidant, la notion même d’instrument s’est trouvée
+redéfinie… La machine et l’instrument se sont rejoints. Ce que les hommes
+acceptent de reconnaître comme musical correspond désormais à une
+appropriation d’un matériau sonore étendu, à une intégration de phénomènes
+jusqu’alors considérés comme bruits.
+
+Intrusion de l’aléatoire
+
+Avec la composition assistée par ordinateur, première expérimentation musicale
+à utiliser l’ordinateur, les théories musicales se sont tour à tour
+préoccupées d’infléchir ou de laisser l’initiative à la machine, et,
+parallèlement, de libérer totalement l’homme de certaines tâches de régulation
+ou de lui laisser une part importante de création. La problématique oscille
+ainsi, de façon quasi paradoxale mais finalement foncièrement dialectique,
+entre déterminisme et aléatoire, entre aléa et logique, entre hasard et
+nécessité.
+
+Le formalisme aléatoire (mathématisé) « calcule » sans qu’il n’empiète sur les
+atouts sensibles du compositeur. Les objets mathématiques qui se sont
+développés créent véritablement un intermédiaire vers des paradigmes
+esthétiques que l’expérimentation musicale essaie petit à petit de mettre à
+jour, intermédiaire qui se situerait entre une ordre régulier, périodique, et
+un chaos incontrôlé, aléatoire et singulier. Hiller, le père de la composition
+assistée par ordinateur, sans juger qui pourrait effectuer les compromis,
+considérait déjà que « la musique est un compromis, voire même une médiation,
+entre la monotonie et le chaos. »
+
+Artistiquement, à la théorie de l'information de Shannon répond la théorie de
+l’indétermination de John Cage (l’information est maximale donc nulle). En
+1951, Cage et Feldman s’en remirent à l’aléatoire codifié du I Ching pour
+bâtir leur œuvre Music of Changes. es musicaux…
+5.2 Musiques liées à l'audiovisuel: Musiques de télévision, Musiques de
+publicité, Musiques de jeux vidéo, Jingles
+5.3 Musiques de circonstances, Musique et histoire: Mariages, Baptêmes,
+Compilations
+5.4 Musiques de détente et d'activités physiques: Ambiance, easy listening,
+lounge music, New Age, Relaxation, Sports rythmiques, aérobic
+5.6 Musiques de danses populaires et festives : Danses de salon (tango, valse,
+charleston, etc.), Accordéon, musette, Karaoké
+5.7 Musique de plein air, de sociétés musicales : Hymnes nationaux, Musique
+militaire, Fanfare, harmonie, kiosque, Orphéons, chorales, Musique de vénerie,
+Musiques de rue, Musiques de carnaval
+5.8 Instruments particuliers, musiques mécaniques : carillon, flûte de pan,
+scie musicale, instruments mécaniques et sifflement humain
+5.9 Sons divers : Nature et animaux, paysages sonores, bruits, bruitages,
+Documents sonores (documentaires), créations radiophoniques
+Classe 6 : Musique et cinéma
+
+Bandes originales de films, et apparentés.
+
+Cette section est vide, insuffisamment détaillée ou incomplète. Votre aide est
+la bienvenue !
+Classe 7 : Classe d'usage national ou local (en France : chanson francophone)
+
+Y compris Chansons pour enfants (comptines, berceuses, etc.), Chansons
+sociales, Chansons humoristiques, Chansons à texte (Texte prédominant),
+Chanson de variétés, etc.
+
+Cette section est vide, insuffisamment détaillée ou incomplète. Votre aide est
+la bienvenue !
+Classe 8 : Musiques du monde
+
+9.0x Subdivisions communes générales
+9.08 Peuples en diaspora, regroupements particuliers (faire suivre des
+subdivisions communes spécifiques)
+Subdivisions communes spécifiques :
+1 Musiques savantes ou traditionnelles : Musique savante extra-occidentale,
+Musique rituelle et religieuse, Musique traditionnelle et de collectage,
+Chants de lutte et de travail traditionnels
+2 Musiques modernes ou traditionnelles modernisées: Nouvelles musiques
+d'inspiration traditionnelle (country, traditionnel électrifié), Nouvelles
+musiques du monde (africaine, salsa…), Variété et chanson
+3 Métissages entre deux traditions distinctes
+5 Traditions juives
+6 Traditions islamiques
+7 Tsiganes
+8 Monde méditerranéen
+9.1 Afrique
+9.2 Maghreb, Proche-Orient, Moyen-Orient [Monde arabe]
+9.3 Asie
+9.4 Extrême-Orient
+9.5 Europe de l'Est et méridionale
+9.6 France ( (tranche indiciaire d'usage national ou local)
+9.7 Europe, Ouest et Nord
+9.8 Amérique du Nord
+9.9 Amérique latine]]

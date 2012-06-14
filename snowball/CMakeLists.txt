@@ -26,3 +26,6 @@ set (SNOWBALL_SRCS
 	)
 
 add_library (snowlib STATIC ${SNOWBALL_SRCS})
+
+add_executable (snowtest snowtest.cpp)
+target_link_libraries (snowtest snowlib)
