@@ -745,13 +745,12 @@ bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
 				return true;
             }
 		}
-	} else {
-        switch(lang) {
-        case LANG_RUSSIAN: return Russian_Stemmer::stem( out, s );
-        default: return false;
-        }
-    }
-	return false;
+	}
+	else if (lang == LANG_RUSSIAN)
+		return Russian_Stemmer::stem( out, s );
+	else
+		return d_universe.getGlobalPools().getStemPool()
+				.getThreadStemmer().stem(lang, s, s_len, out);
 }
 bool BZSpell::stem( std::string& out, const char* s ) const
 {
@@ -939,8 +938,11 @@ BZSpell::BZSpell( StoredUniverse& uni ) :
 	d_universe( uni ),
 	d_charSize(1) ,
 	d_minWordLengthToCorrect( d_charSize* 3 )
-
 {}
+
+BZSpell::~BZSpell()
+{
+}
 
 size_t BZSpell::loadExtra( const char* fileName )
 {

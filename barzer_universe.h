@@ -14,11 +14,13 @@
 #include <barzer_el_compwords.h>
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
+#include <boost/thread/thread.hpp>
 #include <barzer_topics.h>
 #include <barzer_locale.h>
 #include <barzer_language.h>
 #include "barzer_barz.h"
 
+class sb_stemmer;
 
 namespace ay { struct CommandLineArgs; }
 namespace barzer {
@@ -139,6 +141,63 @@ public:
 /// data for
 /// Barzel, DataIndex and everything else
 
+class MultilangStem
+{
+	typedef std::map<int, sb_stemmer*> stemmers_t;
+	stemmers_t m_stemmers;
+public:
+	MultilangStem()
+	{
+	}
+
+	inline sb_stemmer* getStemmer(int lang) const
+	{
+		stemmers_t::const_iterator pos = m_stemmers.find(lang);
+		return pos != m_stemmers.end () ? pos->second : 0;
+	}
+
+	void addLang(int lang);
+	bool stem(int lang, const char *in, size_t length, std::string& out);
+
+	~MultilangStem();
+};
+
+class StemThreadPool
+{
+	typedef std::map<boost::thread::id, MultilangStem> multilangs_t;
+	multilangs_t m_multilangs;
+	std::vector<int> langs;
+public:
+	StemThreadPool()
+	{
+	}
+
+	/** This one should better be called before all the threads are created
+	 * and in run state.
+	 */
+	inline void addLang(int lang)
+	{
+		for (multilangs_t::iterator i = m_multilangs.begin(), end = m_multilangs.end();
+				i != end; ++i)
+			 i->second.addLang(lang);
+		
+		langs.push_back(lang);
+	}
+
+	inline MultilangStem& getThreadStemmer()
+	{
+		const boost::thread::id& thisThr = boost::this_thread::get_id();
+		multilangs_t::iterator pos = m_multilangs.find(thisThr);
+		if (pos != m_multilangs.end())
+			return pos->second;
+
+		MultilangStem stem;
+		for (size_t i = 0, size = langs.size(); i < size; ++i)
+			stem.addLang(langs[i]);
+		m_multilangs[thisThr] = stem;
+		return m_multilangs[thisThr];
+	}
+};
 
 class GlobalPools {
 	GlobalPools(GlobalPools&); // {}
@@ -146,7 +205,11 @@ class GlobalPools {
 	typedef boost::unordered_set< uint32_t > DictionaryMap;
 	DictionaryMap d_dictionary;
     stem_to_srcs_map d_stemSrcs;
+	StemThreadPool m_stemPool;
 public:
+	inline StemThreadPool& getStemPool() { return m_stemPool; }
+	inline const StemThreadPool& getStemPool() const { return m_stemPool; }
+
     void addStemSrc ( uint32_t stemId, uint32_t srcId ) { d_stemSrcs[stemId].insert(srcId); }
 
 	const strIds_set* getStemSrcs ( uint32_t stemId ) const { 
