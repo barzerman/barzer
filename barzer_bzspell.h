@@ -76,14 +76,10 @@ struct BZSWordTrieInfo {
 	}
 };
 
-class StemPool;
-
 class BZSpell {
 	/// the next spell checker in line  
 	const BZSpell* d_secondarySpellchecker; 
 	StoredUniverse& d_universe;
-	
-	StemPool *m_stemPool;
 public:
 
 	/// the evos must be ordered by priority + frequency in descending order 
