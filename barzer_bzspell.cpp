@@ -749,8 +749,10 @@ bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
 	else if (lang == LANG_RUSSIAN)
 		return Russian_Stemmer::stem( out, s );
 	else
-		return d_universe.getGlobalPools().getStemPool()
-				.getThreadStemmer().stem(lang, s, s_len, out);
+	{
+		const MultilangStem *stem = d_universe.getGlobalPools().getThreadStemmer();
+		return stem ? stem->stem(lang, s, s_len, out) : false;
+	}
 }
 bool BZSpell::stem( std::string& out, const char* s ) const
 {
