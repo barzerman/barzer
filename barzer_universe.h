@@ -150,7 +150,10 @@ class GlobalPools {
     stem_to_srcs_map d_stemSrcs;
 	ay::StemThreadPool m_stemPool;
 public:
+	void initThreadStemmer() { initThreadStemmer(boost::this_thread::get_id()); }
+	void initThreadStemmer(boost::thread::id id) { m_stemPool.createThreadStemmer(id); }
 	inline const ay::MultilangStem* getThreadStemmer() const { return m_stemPool.getThreadStemmer(); }
+	void addStemLang(int lang) { m_stemPool.addLang(lang); }
 
     void addStemSrc ( uint32_t stemId, uint32_t srcId ) { d_stemSrcs[stemId].insert(srcId); }
 

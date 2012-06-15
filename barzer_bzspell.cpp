@@ -675,7 +675,7 @@ uint32_t BZSpell::getUtf8LangStemCorrection( int lang, const char* str, bool doS
     if( stem && langs.size() ) {
         for( BarzHints::LangArray::const_iterator l = langs.begin();  l!= langs.end(); ++l ) {
             stemStr.clear();
-            if( stem->stem(*l, str, str_len, stemStr ) )
+            if( stem->stem(*l, str, str_len, stemStr, false ) )
                 break;
         }
         #warning NEED to implement getUtf8LangStemCorrection
@@ -749,7 +749,9 @@ bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
     size_t s_len = strlen( s );
     if( lang == LANG_UNKNOWN )
         lang = Lang::getLang( s, s_len );
-	else if( lang == LANG_ENGLISH) {
+
+	if( lang == LANG_ENGLISH)
+	{
 		size_t s_len = strlen(s);
 		if( s_len > d_minWordLengthToCorrect ) {
 			if( ascii::stem_depluralize( out, s, s_len ) ) {
@@ -759,12 +761,19 @@ bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
 				return true;
             }
 		}
-	} else if (lang == LANG_RUSSIAN) {
+	}
+	else if (lang == LANG_RUSSIAN)
 		return Russian_Stemmer::stem( out, s );
-	} else {
-        #warning needs to be redone using BarzHints (same as above look for BarzHint)
+	else
+	{
 		const ay::MultilangStem *stem = d_universe.getGlobalPools().getThreadStemmer();
-		return stem ? stem->stem(lang, s, s_len, out) : false;
+		if (!stem)
+			return false;
+
+		const BarzHints::LangArray& langs = d_universe.getBarzHints().getUtf8Languages();
+		for (BarzHints::LangArray::const_iterator i = langs.begin(), end = langs.end(); i != end; ++i)
+			if (stem->stem(*i, s, s_len, out, false))
+				return true;
 	}
 
     return false;

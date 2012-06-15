@@ -265,9 +265,13 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 			if( tagName == "extra" ) 
 				bzs->loadExtra( tagVal );
             else if( tagName == "lang" ) {
-                int lang = ay::StemWrapper::getLangFromString( tagVal );
-                if( lang != ay::StemWrapper::LG_INVALID ) 
-                u.getUniverse().getBarzHints().addUtf8Language(lang);
+				int lang = ay::StemWrapper::getLangFromString( tagVal );
+				if( lang != ay::StemWrapper::LG_INVALID )
+				{
+					std::cout << "gonna add language: " << lang << std::endl;
+					u.getUniverse().getBarzHints().addUtf8Language(lang);
+					u.getUniverse().getGlobalPools().addStemLang(lang);
+				}
             }
 		}
 		if( bzs ) {
