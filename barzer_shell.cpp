@@ -631,6 +631,24 @@ struct ShellState {
 
 } // anon namespace ends
 
+static int bshf_universe( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	std::string tmp;
+    std::ostream& outFp = shell->getOutStream() ;
+
+    const GlobalPools & gp = shell->gp;
+    in >> tmp;
+    const GlobalPools::UniverseMap& uniMap = gp.getUniverses();
+    for( GlobalPools::UniverseMap::const_iterator i = uniMap.begin(); i!= uniMap.end(); ++i ) {
+        const StoredUniverse* u = i->second;
+        if( u ) {
+            
+            if( !tmp.length() || strstr( u->userName().c_str(), tmp.c_str() ) ) 
+                outFp << u->userName() << ":" << u->getUserId() << std::endl;
+        }
+    }
+    return 0;
+}
 static int bshf_userstats( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	// BarzerShellContext * context = shell->getBarzerContext();
@@ -1268,6 +1286,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_querytest, "querytest", "peforms given number of queries" ),
 	CmdData( (ay::Shell_PROCF)bshf_userstats, "userstats", "trie stats for a given user" ),
 	CmdData( (ay::Shell_PROCF)bshf_user, "user", "sets current user by user id" ),
+	CmdData( (ay::Shell_PROCF)bshf_universe, "universe", "looks up user id from universe name" ),
 	CmdData( (ay::Shell_PROCF)bshf_entlist, "entlist", "prints all known entities")      
 };
 

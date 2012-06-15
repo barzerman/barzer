@@ -468,12 +468,20 @@ void BarzerSettings::loadUsers(BELReader& reader ) {
 	BOOST_FOREACH(ptree::value_type &v, pt.get_child("config.users", empty_ptree())) {
         /// checking whether v has cfgfile attribute
         if( v.first == "user" ) {
-            const std::string &cfgFileName
-                = v.second.get<std::string>("<xmlattr>.cfgfile", "");
+            const std::string &cfgFileName = v.second.get<std::string>("<xmlattr>.cfgfile", "");
+            // const std::string &cfgFileName = v.second.get<std::string>("<xmlattr>.cfgfile", "");
+		    const boost::optional<std::string> userNameOpt = v.second.get_optional<std::string>("<xmlattr>.username");
+
             if (cfgFileName.empty()) {
                 loadUser(reader,v);
             } else {
                 loadUserConfig( reader, cfgFileName.c_str() );
+            }
+
+            if( userNameOpt ) {
+                StoredUniverse* uniPtr = reader.getCurrentUniverse();
+                if( uniPtr ) 
+                    uniPtr->setUserName( userNameOpt.get().c_str() );
             }
         }
 	}

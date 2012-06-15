@@ -246,7 +246,7 @@ public:
 	std::ostream& printTanslationTraceInfo( std::ostream& , const BarzelTranslationTraceInfo& traceInfo ) const;
 	GlobalPools();
 	~GlobalPools();
-
+    const UniverseMap& getUniverses() const { return d_uniMap; }
 	const char* decodeStringById( uint32_t strId ) const
 		{ return dtaIdx.resolveStringById( strId ); }
 	/// never returns 0
@@ -268,6 +268,7 @@ class BZSpell;
 class Ghettodb;
 class StoredUniverse {
 	uint32_t d_userId;
+    std::string d_userName;
 public:
 	GlobalPools& gp;
 private:
@@ -304,6 +305,9 @@ public:
 private:
     ay::bitflags<UBIT_MAX> d_biflags;
 public:
+    const std::string& userName() const { return d_userName; }
+    void setUserName(const char* n) { d_userName.assign(n); }
+
     void setBit(size_t bit) { d_biflags.set(bit); }
     bool checkBit(size_t b ) const { return d_biflags.checkBit(b); }
     const BZSpell::char_cp_to_strid_map* getValidWordMapPtr() const 
