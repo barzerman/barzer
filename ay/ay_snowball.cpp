@@ -58,7 +58,7 @@ void MultilangStem::addLang( int lang )
 
     sb_stemmer* sb = StemWrapper::mkSnowballStemmer(lang);
     if( sb ) 
-        m_stemmers.insert(std::make_pair(lang, StemWrapper(sb))).first;
+        m_stemmers.insert(std::make_pair(lang, StemWrapper(sb)));
 }
 
 bool MultilangStem::stem(int lang, const char *in, size_t length, std::string& out, bool fallback) const
