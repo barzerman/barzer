@@ -3,7 +3,6 @@
 #include <barzer_ghettodb.h>
 #include <ay/ay_cmdproc.h>
 #include <boost/filesystem.hpp>
-#include "snowball/libstemmer_c/include/libstemmer.h"
 
 namespace barzer {
 
@@ -165,66 +164,6 @@ BELTrie* GlobalTriePool::produceTrie( uint32_t trieClass, uint32_t trieId )
 		return newTrieP;
 	} else
 		return( i->second );
-}
-
-StemWrapper::StemWrapper (int lang)
-: m_stemmer(0)
-{
-	switch (lang)
-	{
-	case LANG_FRENCH:
-		m_stemmer = sb_stemmer_new("fr", 0);
-		break;
-	case LANG_SPANISH:
-		m_stemmer = sb_stemmer_new("es", 0);
-		break;
-	default:
-		break;
-	}
-}
-
-StemWrapper::~StemWrapper()
-{
-	sb_stemmer_delete(m_stemmer);
-}
-
-bool StemWrapper::stem (const char* in, size_t len, std::string& out) const
-{
-	const sb_symbol *sbs = reinterpret_cast<const sb_symbol*> (in);
-	const char *result = reinterpret_cast<const char*> (sb_stemmer_stem(m_stemmer, sbs, len));
-	if (!result)
-		return false;
-
-	out.assign(result, sb_stemmer_length(m_stemmer));
-	return !strcmp(in, result);
-}
-
-void MultilangStem::addLang(int lang)
-{
-	if (m_stemmers.find(lang) != m_stemmers.end())
-		return;
-
-	StemWrapper w(lang);
-	if (w.isValid())
-		m_stemmers.insert(std::make_pair(lang, w));
-}
-
-bool MultilangStem::stem(int lang, const char *in, size_t length, std::string& out) const
-{
-	stemmers_t::const_iterator pos = m_stemmers.find(lang);
-	if (pos != m_stemmers.end() && pos->second.stem(in, length, out))
-		return true;
-
-	for (stemmers_t::const_iterator i = m_stemmers.begin(), end = m_stemmers.end(); i != end; ++i)
-	{
-		if (i->first == lang)
-			continue;
-
-		if (i->second.stem(in, length, out))
-			return true;
-	}
-
-	return false;
 }
 
 GlobalPools::GlobalPools() :

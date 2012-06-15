@@ -18,7 +18,7 @@
 #include <barzer_topics.h>
 #include <barzer_locale.h>
 #include <barzer_language.h>
-#include "barzer_barz.h"
+#include <barzer_barz.h>
 
 class sb_stemmer;
 
@@ -140,79 +140,6 @@ public:
 /// a single data universe encompassing all stored
 /// data for
 /// Barzel, DataIndex and everything else
-
-class StemWrapper
-{
-	sb_stemmer *m_stemmer;
-public:
-	explicit StemWrapper(int lang);
-	~StemWrapper();
-
-	inline bool isValid() const { return m_stemmer; }
-
-	bool stem(const char *in, size_t length, std::string& out) const;
-};
-
-class MultilangStem
-{
-	typedef std::map<int, StemWrapper> stemmers_t;
-	stemmers_t m_stemmers;
-public:
-	MultilangStem()
-	{
-	}
-
-	inline const StemWrapper* getStemmer(int lang) const
-	{
-		stemmers_t::const_iterator pos = m_stemmers.find(lang);
-		return pos != m_stemmers.end () ? &pos->second : 0;
-	}
-
-	void addLang(int lang);
-	bool stem(int lang, const char *in, size_t length, std::string& out) const;
-};
-
-class StemThreadPool
-{
-	typedef std::map<boost::thread::id, MultilangStem> multilangs_t;
-	multilangs_t m_multilangs;
-	std::vector<int> langs;
-public:
-	StemThreadPool()
-	{
-	}
-
-	/** This one should better be called before all the threads are created
-	 * and in run state.
-	 */
-	inline void addLang(int lang)
-	{
-		for (multilangs_t::iterator i = m_multilangs.begin(), end = m_multilangs.end();
-				i != end; ++i)
-			 i->second.addLang(lang);
-		
-		langs.push_back(lang);
-	}
-
-	inline void createThreadStemmer(const boost::thread::id& id)
-	{
-		multilangs_t::iterator pos = m_multilangs.find(id);
-		if (pos != m_multilangs.end())
-			return;
-
-		MultilangStem stem;
-		for (size_t i = 0, size = langs.size(); i < size; ++i)
-			stem.addLang(langs[i]);
-		m_multilangs[id] = stem;
-	}
-
-	inline const MultilangStem* getThreadStemmer() const
-	{
-		const boost::thread::id& thisThr = boost::this_thread::get_id();
-		multilangs_t::const_iterator pos = m_multilangs.find(thisThr);
-		return pos != m_multilangs.end() ? &pos->second : 0;
-	}
-};
 
 class GlobalPools {
 	GlobalPools(GlobalPools&); // {}
