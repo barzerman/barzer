@@ -331,6 +331,11 @@ public:
 			os << "INVALID_TOK[" << euid.eclass << "," << std::hex << euid.tokId << "]";
 		}
 
+        const EntityData::EntProp* edata = universe.getGlobalPools().entData.getEntPropData( euid );
+        if( edata && edata->canonicName.length() ) {
+            xmlEscape( edata->canonicName.c_str(), os << "cn=\"" ) << "\" ";
+        }
+
         if( d_barz.hasProperties() ) {
             if( attrs ) {
                 static const char *tmpl = "class=\"%1%\" subclass=\"%2%\" %3%>";
