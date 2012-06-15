@@ -61,29 +61,33 @@ void MultilangStem::addLang( int lang )
         m_stemmers.insert(std::make_pair(lang, StemWrapper(sb)));
 }
 
-void MultilangStem::clear()
-{
-    for(stemmers_t::iterator i = m_stemmers.begin(); i!= m_stemmers.end(); ++i ) {
-        StemWrapper::freeSnowballStemmer( i->second.snowball() );
-    }
-    m_stemmers.clear();
-}
-bool MultilangStem::stem(int lang, const char *in, size_t length, std::string& out) const
+bool MultilangStem::stem(int lang, const char *in, size_t length, std::string& out, bool fallback) const
 {
 	stemmers_t::const_iterator pos = m_stemmers.find(lang);
 	if (pos != m_stemmers.end() && pos->second.stem(in, length, out))
 		return true;
 
-	for (stemmers_t::const_iterator i = m_stemmers.begin(), end = m_stemmers.end(); i != end; ++i)
+	if (fallback)
 	{
-		if (i->first == lang)
-			continue;
+		for (stemmers_t::const_iterator i = m_stemmers.begin(), end = m_stemmers.end(); i != end; ++i)
+		{
+			if (i->first == lang)
+				continue;
 
-		if (i->second.stem(in, length, out))
-			return true;
+			if (i->second.stem(in, length, out))
+				return true;
+		}
 	}
 
 	return false;
+}
+
+void MultilangStem::clear()
+{
+	for(stemmers_t::iterator i = m_stemmers.begin(); i!= m_stemmers.end(); ++i ) {
+		StemWrapper::freeSnowballStemmer( i->second.snowball() );
+	}
+	m_stemmers.clear();
 }
 
 } // namespace ay
