@@ -22,7 +22,7 @@ LIBNAME=libbarzer
 SHARED_LIBNAME=libbarzer.so
 PYTHON_LIBNAME=util/python_util.so
 #libs = -Lay -lay -L/opt/local/lib -L/opt/local/lib/boost -L/usr/lib 
-libs = -Lay -lay -L/opt/local/lib -L/usr/lib \
+libs = -Lay -Lsnowball -lay -lsnowlib -L/opt/local/lib -L/usr/lib \
 	-lboost_system -lboost_filesystem -lboost_thread-mt -lexpat -lstdc++
 ECHO = echo
 lib_objects = \
@@ -81,7 +81,7 @@ INSTALL_DIR = /usr/share/barzer
 INSTALL_DATA_DIR = $(INSTALL_DIR)/data
 BARZEREXE_OBJ=barzer.o
 
-all: ay/libay.a $(LIBNAME).a $(BARZEREXE_OBJ)
+all: snowball/libsnowlib.a ay/libay.a $(LIBNAME).a $(BARZEREXE_OBJ)
 	$(CC) $(BITMODE) $(LINKFLAGS) -o  $(BINARY) $(BARZEREXE_OBJ) $(LIBNAME).a $(libs)
 lib: ay/libay.a $(LIBNAME).a $(lib_objects)
 	$(AR) -r $(LIBNAME).a $(lib_objects) ay/libay.a
@@ -105,6 +105,8 @@ aylib:
 	cd ay; make -f aylib.mk $(AYBIT) OPT=$(OPT) FLAGS=$(FLAGS); cd ..
 ay/libay.a:
 	cd ay; make -f aylib.mk rebuild $(AYBIT) OPT=$(OPT) $(FLAGS); cd ..
+snowball/libsnowlib.a:
+	cd snowball; make; cd ..
 .cpp.o:
 	$(CC) -DBARZER_HOME=$(INSTALL_DIR) -c $(CFLAGS) $< -o $@
 rebuild: clean aylib util all

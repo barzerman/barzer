@@ -264,6 +264,11 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 			const char* tagVal = v.second.data().c_str();
 			if( tagName == "extra" ) 
 				bzs->loadExtra( tagVal );
+            else if( tagName == "lang" ) {
+                int lang = ay::StemWrapper::getLangFromString( tagVal );
+                if( lang != ay::StemWrapper::LG_INVALID ) 
+                u.getUniverse().getBarzHints().addUtf8Language(lang);
+            }
 		}
 		if( bzs ) {
 			bzs->init( secondaryUniverse );

@@ -667,7 +667,21 @@ uint32_t BZSpell::purePermuteCorrect(const char* s, size_t s_len )  const
 
 uint32_t BZSpell::getUtf8LangStemCorrection( int lang, const char* str, bool doStemCorect, const char* extNorm ) const
 {
-    #warning NEED to implement getUtf8LangStemCorrection
+    const BarzHints::LangArray& langs = d_universe.getBarzHints().getUtf8Languages();
+    /// 
+    const ay::MultilangStem *stem = d_universe.getGlobalPools().getThreadStemmer();
+    std::string stemStr;
+    size_t str_len = strlen(str);
+    if( stem && langs.size() ) {
+        for( BarzHints::LangArray::const_iterator l = langs.begin();  l!= langs.end(); ++l ) {
+            stemStr.clear();
+            if( stem->stem(*l, str, str_len, stemStr ) )
+                break;
+        }
+        #warning NEED to implement getUtf8LangStemCorrection
+        // lang[0] - first language to try stemming for 
+        // 
+    }
     return 0xffffffff;
 }
 uint32_t BZSpell::get2ByteLangStemCorrection( int lang, const char* str, bool doStemCorect, const char* extNorm ) const
@@ -735,7 +749,7 @@ bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
     size_t s_len = strlen( s );
     if( lang == LANG_UNKNOWN )
         lang = Lang::getLang( s, s_len );
-	if( lang == LANG_ENGLISH) {
+	else if( lang == LANG_ENGLISH) {
 		size_t s_len = strlen(s);
 		if( s_len > d_minWordLengthToCorrect ) {
 			if( ascii::stem_depluralize( out, s, s_len ) ) {
@@ -745,14 +759,15 @@ bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
 				return true;
             }
 		}
-	}
-	else if (lang == LANG_RUSSIAN)
+	} else if (lang == LANG_RUSSIAN) {
 		return Russian_Stemmer::stem( out, s );
-	else
-	{
-		const MultilangStem *stem = d_universe.getGlobalPools().getThreadStemmer();
+	} else {
+        #warning needs to be redone using BarzHints (same as above look for BarzHint)
+		const ay::MultilangStem *stem = d_universe.getGlobalPools().getThreadStemmer();
 		return stem ? stem->stem(lang, s, s_len, out) : false;
 	}
+
+    return false;
 }
 bool BZSpell::stem( std::string& out, const char* s ) const
 {

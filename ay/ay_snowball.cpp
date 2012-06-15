@@ -1,4 +1,4 @@
-#include <ay_snowball.h>
+#include <ay/ay_snowball.h>
 extern "C" {
 #include "snowball/libstemmer_c/include/libstemmer.h"
 }
@@ -6,6 +6,20 @@ extern "C" {
 namespace ay {
 
 
+int StemWrapper::getLangFromString( const char* langStr )
+{
+    switch(tolower(langStr[0])) {
+    case 'f': 
+        if( tolower(langStr[1]) == 'r' ) 
+            return LG_FRENCH;
+        break;
+    case 'e': 
+        if( tolower(langStr[1]) == 's' ) 
+            return LG_SPANISH;
+        break;
+    }
+        return LG_INVALID;
+}
 const char* StemWrapper::getValidLangString( int lang ) 
 {
     if( lang == LG_FRENCH ) 

@@ -2,6 +2,7 @@
 #define BARZER_UNIVERSE_H
 
 #include <ay_string_pool.h>
+#include <ay_snowball.h>
 #include <barzer_el_rewriter.h>
 #include <barzer_el_wildcard.h>
 #include <barzer_el_trie.h>
@@ -147,9 +148,9 @@ class GlobalPools {
 	typedef boost::unordered_set< uint32_t > DictionaryMap;
 	DictionaryMap d_dictionary;
     stem_to_srcs_map d_stemSrcs;
-	StemThreadPool m_stemPool;
+	ay::StemThreadPool m_stemPool;
 public:
-	inline const MultilangStem* getThreadStemmer() const { return m_stemPool.getThreadStemmer(); }
+	inline const ay::MultilangStem* getThreadStemmer() const { return m_stemPool.getThreadStemmer(); }
 
     void addStemSrc ( uint32_t stemId, uint32_t srcId ) { d_stemSrcs[stemId].insert(srcId); }
 
