@@ -268,7 +268,7 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 				int lang = ay::StemWrapper::getLangFromString( tagVal );
 				if( lang != ay::StemWrapper::LG_INVALID )
 				{
-					std::cout << "gonna add language: " << lang << std::endl;
+					std::cout << "Adding language: " << tagVal << "(" << lang << ")" << std::endl;
 					u.getUniverse().getBarzHints().addUtf8Language(lang);
 					u.getUniverse().getGlobalPools().addStemLang(lang);
 				}
