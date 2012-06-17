@@ -428,13 +428,14 @@ void BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 
 	std::cout << "Loading user id: " << userId << "\n";
 
+	loadSpell(u, children);
     reader.setRespectLimits( userId );
     reader.setCurrentUniverse( u.getUniversePtr() );
     load_ent_segregate_info(reader, u, children);
 	loadUserRules(reader, u, children);
 	loadTrieset(reader, u, children);
 	loadLocale(reader, u, children);
-	loadSpell(u, children);
+	// loadSpell(u, children);
 
 	StoredUniverse& uni = u.getUniverse();
 	uni.getBarzHints().initFromUniverse(&uni);
