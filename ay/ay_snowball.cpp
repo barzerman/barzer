@@ -48,7 +48,7 @@ bool StemWrapper::stem (const char* in, size_t len, std::string& out) const
 		return false;
 
 	out.assign(result, sb_stemmer_length(m_stemmer));
-	return !strcmp(in, result);
+	return strcmp(in, result);
 }
 
 void MultilangStem::addLang( int lang )
