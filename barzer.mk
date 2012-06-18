@@ -105,6 +105,8 @@ aylib:
 	cd ay; make -f aylib.mk $(AYBIT) OPT=$(OPT) FLAGS=$(FLAGS); cd ..
 ay/libay.a:
 	cd ay; make -f aylib.mk rebuild $(AYBIT) OPT=$(OPT) $(FLAGS); cd ..
+snowlib:
+	cd snowball; make; cd ..
 snowball/libsnowlib.a:
 	cd snowball; make; cd ..
 .cpp.o:
