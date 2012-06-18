@@ -368,7 +368,7 @@ public:
 	void setFromTTokens( const TTWPVec& v );
 
 	const std::string& getStr() const { return str; }
-
+    const char* c_str() const { return str.c_str(); }
 	void setStr(const std::string &s) {	str = s; }
 	void setStr(const char *s) { str = s; }
 	void setStr(const char *s,size_t s_len) { str.assign(s,s_len); }

@@ -178,6 +178,10 @@ struct StrConcatVisitor : public boost::static_visitor<bool> {
         d_funcName(funcName)
     {}
 
+	bool operator()( const BarzerNumber &dt ) {
+        ss << dt;
+        return true;
+    }
 	bool operator()( const BarzerString &dt ) {
 		ss << dt.getStr();
 		return true;
@@ -1050,6 +1054,18 @@ struct BELFunctionStorage_holder {
 			return true;
 		}
 
+		bool operator()(const BarzerEntity &e) {
+            if( cnt ) {
+                BarzerRange::Entity* er = range.get<BarzerRange::Entity>() ;
+                if( er ) 
+                    er->second = e;
+                else 
+                    return false;
+            } else 
+                range.set<BarzerRange::Entity>()->first = e;
+            return true;
+        }
+
 		bool operator()(const BarzerDateTime &dt) {
 			if (cnt) {
 				try {
@@ -1158,6 +1174,19 @@ struct BELFunctionStorage_holder {
 			: cnt(0), tokId(INVALID_STORED_ID), cl(0), scl(0), func_name(funcName), universe(u), ctxt(ctxt)
         {}
 
+		bool operator()(const BarzerString &ltrl) {
+            /// need to recode ltrl into an internal string id here
+			const char* str = ltrl.c_str();
+            uint32_t internalStrId = 0xffffffff;
+            if( str ) {
+                internalStrId = universe.getGlobalPools().internalString_getId(str);
+                if( internalStrId == 0xffffffff ) {
+                    /// couldnt internally resolve 
+                    FERROR("Couldn't internally resolve. Use &lt;mkent s=\"\" c=\"\" id=\"\"/&gt; instead");
+                }
+            }
+            return( tokId = internalStrId );
+        }
 		bool operator()(const BarzerLiteral &ltrl) {
             /// need to recode ltrl into an internal string id here
 			const char* str = universe.getGlobalPools().string_resolve(ltrl.getId());

@@ -1088,7 +1088,7 @@ int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qpar
 
 		char c = *s;
 		if( !isascii(c) ) {
-			if( !ay::is_diacritic(s) && PREVCHAR_NOT(UTF8) ) {
+			if( CHAR_DIGIT == prevChar || (!ay::is_diacritic(s) && PREVCHAR_NOT(UTF8)) ) {
 				if( tok ) {
 					ttwp.push_back( TTWPVec::value_type( TToken(tok,s-tok), ttwp.size() ));
 					tok = 0;
