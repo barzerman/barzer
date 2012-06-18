@@ -667,8 +667,61 @@ uint32_t BZSpell::purePermuteCorrect(const char* s, size_t s_len )  const
 
 uint32_t BZSpell::getUtf8LangStemCorrection( int lang, const char* str, bool doStemCorect, const char* extNorm ) const
 {
-    #warning NEED to implement getUtf8LangStemCorrection
-    return 0xffffffff;
+	const BarzHints::LangArray& langs = d_universe.getBarzHints().getUtf8Languages(); 
+	const ay::MultilangStem *stem = d_universe.getGlobalPools().getThreadStemmer();
+	if (!stem)
+		return 0xffffffff;
+
+	std::string stemStr;
+	const size_t str_len = strlen(str);
+	if (langs.empty())
+	{
+		if (!stem->stem(0, str, str_len, stemStr, true))
+			return 0xffffffff;
+	}
+	else
+	{
+		for( BarzHints::LangArray::const_iterator l = langs.begin(); l != langs.end(); ++l )
+		{
+			stemStr.clear();
+			if( stem->stem(*l, str, str_len, stemStr, false) )
+				break;
+		}
+	}
+	if (stemStr.empty())
+		return 0xffffffff;
+
+	uint32_t strId = 0xffffffff;
+	if (isUsersWord(strId, stemStr.c_str()))
+		return strId;
+
+	const strIds_set *stridSet = d_universe.getGlobalPools().getStemSrcs(strId);
+	if (!stridSet)
+		return 0xffffffff; // TODO permute?
+
+	const BZSWordInfo* bestWTI = 0;
+	uint32_t bestStringId = 0xffffffff;
+	for( strIds_set::const_iterator i = stridSet->begin(); i!= stridSet->end(); ++i ) {
+		uint32_t protoStrId = *i;
+		if( isUsersWordById(protoStrId) ) {
+			const BZSWordInfo* wip = getWordInfo(protoStrId);
+
+			if( bestStringId == 0xffffffff ) {
+				bestStringId = protoStrId;
+			}
+			if( wip ) {
+				if( !bestWTI || *bestWTI< *wip ) {
+					bestWTI= wip;
+					bestStringId = protoStrId;
+					continue;
+				}
+			}
+		}
+	}
+	if( bestStringId != 0xffffffff )
+		return bestStringId;
+
+	return 0xffffffff;
 }
 uint32_t BZSpell::get2ByteLangStemCorrection( int lang, const char* str, bool doStemCorect, const char* extNorm ) const
 {
@@ -735,7 +788,9 @@ bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
     size_t s_len = strlen( s );
     if( lang == LANG_UNKNOWN )
         lang = Lang::getLang( s, s_len );
-	if( lang == LANG_ENGLISH) {
+
+	if( lang == LANG_ENGLISH)
+	{
 		size_t s_len = strlen(s);
 		if( s_len > d_minWordLengthToCorrect ) {
 			if( ascii::stem_depluralize( out, s, s_len ) ) {
@@ -745,13 +800,22 @@ bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
 				return true;
             }
 		}
-	} else {
-        switch(lang) {
-        case LANG_RUSSIAN: return Russian_Stemmer::stem( out, s );
-        default: return false;
-        }
-    }
-	return false;
+	}
+	else if (lang == LANG_RUSSIAN)
+		return Russian_Stemmer::stem( out, s );
+	else
+	{
+		const ay::MultilangStem *stem = d_universe.getGlobalPools().getThreadStemmer();
+		if (!stem)
+			return false;
+
+		const BarzHints::LangArray& langs = d_universe.getBarzHints().getUtf8Languages();
+		for (BarzHints::LangArray::const_iterator i = langs.begin(), end = langs.end(); i != end; ++i)
+			if (stem->stem(*i, s, s_len, out, false))
+				return true;
+	}
+
+    return false;
 }
 bool BZSpell::stem( std::string& out, const char* s ) const
 {
@@ -939,8 +1003,11 @@ BZSpell::BZSpell( StoredUniverse& uni ) :
 	d_universe( uni ),
 	d_charSize(1) ,
 	d_minWordLengthToCorrect( d_charSize* 3 )
-
 {}
+
+BZSpell::~BZSpell()
+{
+}
 
 size_t BZSpell::loadExtra( const char* fileName )
 {

@@ -7,6 +7,7 @@
 
 namespace barzer {
 class StoredUniverse;
+
 /// for every word visible by the user this is stored int he universe
 struct BZSWordInfo {
 	// 0 - generic fluff 
@@ -76,8 +77,6 @@ struct BZSWordTrieInfo {
 	}
 };
 
-
-
 class BZSpell {
 	/// the next spell checker in line  
 	const BZSpell* d_secondarySpellchecker; 
@@ -133,6 +132,7 @@ public:
 	void addExtraWordToDictionary( uint32_t, uint32_t frequency = 0 );
 
 	BZSpell( StoredUniverse& uni ) ;
+	~BZSpell();
 
 	// returns the size of strid_evovec_hmap
 	// this function should be called after the load. 

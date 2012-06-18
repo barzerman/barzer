@@ -4,7 +4,6 @@
 #include <ay/ay_cmdproc.h>
 #include <boost/filesystem.hpp>
 
-
 namespace barzer {
 
 
@@ -166,6 +165,7 @@ BELTrie* GlobalTriePool::produceTrie( uint32_t trieClass, uint32_t trieId )
 	} else
 		return( i->second );
 }
+
 GlobalPools::GlobalPools() :
 	dtaIdx( *this, &stringPool),
 	funSt(*this),

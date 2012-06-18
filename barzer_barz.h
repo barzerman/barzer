@@ -105,7 +105,10 @@ public:
 		// add above
 		BHB_MAX
 	};
+    /// ordered array of utf8 languages the engine will try stemming to 
+    typedef std::vector< int > LangArray;
 private:
+    LangArray d_stemUtf8Lang;
 	ay::bitflags<BHB_MAX> d_bhb;
 	const StoredUniverse* d_universe;
 public:
@@ -120,6 +123,9 @@ public:
 	void setHint(HintsFlag, bool val = true);
 	void clearHint(HintsFlag);
 	bool testHint(HintsFlag) const;
+
+    const LangArray& getUtf8Languages() const { return d_stemUtf8Lang; }
+    void  addUtf8Language( int lang ) { d_stemUtf8Lang.push_back(lang); }
 };
 
 // collection of punits and the original question

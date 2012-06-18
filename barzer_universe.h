@@ -2,6 +2,7 @@
 #define BARZER_UNIVERSE_H
 
 #include <ay_string_pool.h>
+#include <ay_snowball.h>
 #include <barzer_el_rewriter.h>
 #include <barzer_el_wildcard.h>
 #include <barzer_el_trie.h>
@@ -14,11 +15,13 @@
 #include <barzer_el_compwords.h>
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
+#include <boost/thread/thread.hpp>
 #include <barzer_topics.h>
 #include <barzer_locale.h>
 #include <barzer_language.h>
-#include "barzer_barz.h"
+#include <barzer_barz.h>
 
+class sb_stemmer;
 
 namespace ay { struct CommandLineArgs; }
 namespace barzer {
@@ -139,14 +142,19 @@ public:
 /// data for
 /// Barzel, DataIndex and everything else
 
-
 class GlobalPools {
 	GlobalPools(GlobalPools&); // {}
 	GlobalPools& operator=(GlobalPools&); // {}
 	typedef boost::unordered_set< uint32_t > DictionaryMap;
 	DictionaryMap d_dictionary;
     stem_to_srcs_map d_stemSrcs;
+	ay::StemThreadPool m_stemPool;
 public:
+	void initThreadStemmer() { initThreadStemmer(boost::this_thread::get_id()); }
+	void initThreadStemmer(boost::thread::id id) { m_stemPool.createThreadStemmer(id); }
+	inline const ay::MultilangStem* getThreadStemmer() const { return m_stemPool.getThreadStemmer(); }
+	void addStemLang(int lang) { m_stemPool.addLang(lang); }
+
     void addStemSrc ( uint32_t stemId, uint32_t srcId ) { d_stemSrcs[stemId].insert(srcId); }
 
 	const strIds_set* getStemSrcs ( uint32_t stemId ) const { 
@@ -241,7 +249,7 @@ public:
 	std::ostream& printTanslationTraceInfo( std::ostream& , const BarzelTranslationTraceInfo& traceInfo ) const;
 	GlobalPools();
 	~GlobalPools();
-
+    const UniverseMap& getUniverses() const { return d_uniMap; }
 	const char* decodeStringById( uint32_t strId ) const
 		{ return dtaIdx.resolveStringById( strId ); }
 	/// never returns 0
@@ -263,6 +271,7 @@ class BZSpell;
 class Ghettodb;
 class StoredUniverse {
 	uint32_t d_userId;
+    std::string d_userName;
 public:
 	GlobalPools& gp;
 private:
@@ -299,6 +308,9 @@ public:
 private:
     ay::bitflags<UBIT_MAX> d_biflags;
 public:
+    const std::string& userName() const { return d_userName; }
+    void setUserName(const char* n) { d_userName.assign(n); }
+
     void setBit(size_t bit) { d_biflags.set(bit); }
     bool checkBit(size_t b ) const { return d_biflags.checkBit(b); }
     const BZSpell::char_cp_to_strid_map* getValidWordMapPtr() const 

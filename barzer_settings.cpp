@@ -264,6 +264,15 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 			const char* tagVal = v.second.data().c_str();
 			if( tagName == "extra" ) 
 				bzs->loadExtra( tagVal );
+            else if( tagName == "lang" ) {
+				int lang = ay::StemWrapper::getLangFromString( tagVal );
+				if( lang != ay::StemWrapper::LG_INVALID )
+				{
+					std::cout << "Adding language: " << tagVal << "(" << lang << ")" << std::endl;
+					u.getUniverse().getBarzHints().addUtf8Language(lang);
+					u.getUniverse().getGlobalPools().addStemLang(lang);
+				}
+            }
 		}
 		if( bzs ) {
 			bzs->init( secondaryUniverse );
@@ -419,13 +428,14 @@ void BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 
 	std::cout << "Loading user id: " << userId << "\n";
 
+	loadSpell(u, children);
     reader.setRespectLimits( userId );
     reader.setCurrentUniverse( u.getUniversePtr() );
     load_ent_segregate_info(reader, u, children);
 	loadUserRules(reader, u, children);
 	loadTrieset(reader, u, children);
 	loadLocale(reader, u, children);
-	loadSpell(u, children);
+	// loadSpell(u, children);
 
 	StoredUniverse& uni = u.getUniverse();
 	uni.getBarzHints().initFromUniverse(&uni);
@@ -463,12 +473,20 @@ void BarzerSettings::loadUsers(BELReader& reader ) {
 	BOOST_FOREACH(ptree::value_type &v, pt.get_child("config.users", empty_ptree())) {
         /// checking whether v has cfgfile attribute
         if( v.first == "user" ) {
-            const std::string &cfgFileName
-                = v.second.get<std::string>("<xmlattr>.cfgfile", "");
+            const std::string &cfgFileName = v.second.get<std::string>("<xmlattr>.cfgfile", "");
+            // const std::string &cfgFileName = v.second.get<std::string>("<xmlattr>.cfgfile", "");
+		    const boost::optional<std::string> userNameOpt = v.second.get_optional<std::string>("<xmlattr>.username");
+
             if (cfgFileName.empty()) {
                 loadUser(reader,v);
             } else {
                 loadUserConfig( reader, cfgFileName.c_str() );
+            }
+
+            if( userNameOpt ) {
+                StoredUniverse* uniPtr = reader.getCurrentUniverse();
+                if( uniPtr ) 
+                    uniPtr->setUserName( userNameOpt.get().c_str() );
             }
         }
 	}
