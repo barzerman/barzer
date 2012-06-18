@@ -265,9 +265,13 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 			if( tagName == "extra" ) 
 				bzs->loadExtra( tagVal );
             else if( tagName == "lang" ) {
-                int lang = ay::StemWrapper::getLangFromString( tagVal );
-                if( lang != ay::StemWrapper::LG_INVALID ) 
-                u.getUniverse().getBarzHints().addUtf8Language(lang);
+				int lang = ay::StemWrapper::getLangFromString( tagVal );
+				if( lang != ay::StemWrapper::LG_INVALID )
+				{
+					std::cout << "Adding language: " << tagVal << "(" << lang << ")" << std::endl;
+					u.getUniverse().getBarzHints().addUtf8Language(lang);
+					u.getUniverse().getGlobalPools().addStemLang(lang);
+				}
             }
 		}
 		if( bzs ) {
@@ -424,13 +428,14 @@ void BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 
 	std::cout << "Loading user id: " << userId << "\n";
 
+	loadSpell(u, children);
     reader.setRespectLimits( userId );
     reader.setCurrentUniverse( u.getUniversePtr() );
     load_ent_segregate_info(reader, u, children);
 	loadUserRules(reader, u, children);
 	loadTrieset(reader, u, children);
 	loadLocale(reader, u, children);
-	loadSpell(u, children);
+	// loadSpell(u, children);
 
 	StoredUniverse& uni = u.getUniverse();
 	uni.getBarzHints().initFromUniverse(&uni);

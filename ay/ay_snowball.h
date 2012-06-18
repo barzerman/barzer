@@ -54,7 +54,7 @@ public:
 		return pos != m_stemmers.end () ? &pos->second : 0;
 	}
 	void addLang( int langId );
-	bool stem(int lang, const char *in, size_t length, std::string& out) const;
+	bool stem(int lang, const char *in, size_t length, std::string& out, bool fallback) const;
 
     void clear();
 };

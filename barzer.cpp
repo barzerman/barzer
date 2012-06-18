@@ -24,7 +24,7 @@ extern "C" void block_ctrlc ()
 }
 #endif
 int run_shell(barzer::GlobalPools & globPool,  ay::CommandLineArgs &cmdlProc) {
-	barzer::BarzerShell shell(0,globPool);;
+	barzer::BarzerShell shell(0,globPool);
 	if (int rc = shell.run()) {
 		std::cerr  << "FATAL: Execution failed\n";
 		exit(rc);
@@ -91,6 +91,7 @@ int main( int argc, char * argv[] ) {
 	ay::CommandLineArgs cmdlProc;
 	cmdlProc.init(argc, argv);
 	barzer::GlobalPools globPool;
+	globPool.initThreadStemmer();
 	// barzer::StoredUniverse &universe = globPool.produceUniverse(0);
 
     globPool.init_cmdline( cmdlProc );
