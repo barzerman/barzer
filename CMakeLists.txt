@@ -176,7 +176,7 @@ if (ENABLE_PYBARZER)
 	endif (NOT ENABLE_BARZ_SHARED)
 
 	add_library(pybarzer SHARED barzer_python.cpp)
-	target_link_libraries (pybarzer barzer butil)
+	target_link_libraries (pybarzer barzer butil snowlib)
 	SET_TARGET_PROPERTIES(pybarzer PROPERTIES PREFIX "")
 	IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		SET_TARGET_PROPERTIES(pybarzer PROPERTIES SUFFIX ".so")
