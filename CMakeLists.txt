@@ -164,7 +164,7 @@ option (ENABLE_PYBARZER "Build pybarzer" ON)
 
 ### libbarzer shared
 if (ENABLE_BARZ_SHARED)
-	add_library(barzer SHARED)
+	add_library(barzer SHARED ${SOURCES})
 	target_link_libraries (barzer barzer_static ${EXTRA_LIBS})
 	set_target_properties(barzer PROPERTIES OUTPUT_NAME barzer )
 endif (ENABLE_BARZ_SHARED)
