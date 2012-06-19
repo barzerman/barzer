@@ -418,26 +418,19 @@ struct BTND_Rewrite_Text_visitor : public BTND_text_visitor_base {
 };
 template <> void BTND_Rewrite_Text_visitor::operator()<BTND_Rewrite_Literal>(BTND_Rewrite_Literal& t)   const
 	{ 
-		uint32_t i = d_parser.internTmpText(d_str, d_len, false,false); 
-		if( t.isCompound() ) {
-			// warning compounded tokens unsupported yet
-		} else {
-			t.setId( i );
-		}
-        // all right side literals will be internally interned as well
-        if( d_str[d_len] != 0 ) {
-            char goodStr[ 128 ];
-            strncpy( goodStr, d_str, sizeof(goodStr)-1 );
-            goodStr[ sizeof(goodStr)-1 ] = 0;
-            if( d_len > sizeof(goodStr)-1 ) {
-                d_parser.getReader()->getErrStreamRef() << "in statement " << d_parser.statement.stmt.getStmtNumber() << " String too long \"" << 
-                goodStr << "\"\n";
-            } else
-                goodStr[d_len]=0;
-            d_parser.getGlobalPools().internString_internal(goodStr) ;
-        } else
-            d_parser.getGlobalPools().internString_internal(d_str,d_len) ;
-        // std::cerr << "SHITFUCK: barzer_el_xml.cpp: 426" << shitfuck << std::endl;
+        const char* theStr = ( d_str[d_len] ? d_parser.setTmpText(d_str,d_len) : d_str );
+        if( t.isInternalString() ) {
+            t.setId( d_parser.getGlobalPools().internString_internal( theStr, d_len ) );
+        } else {
+		    uint32_t i = d_parser.getGlobalPools().string_intern( theStr, d_len );
+		    if( t.isCompound() ) {
+			    // warning compounded tokens unsupported yet
+		    } else {
+			    t.setId( i );
+		    }
+            // all right side literals will be internally interned as well
+            d_parser.getGlobalPools().internString_internal( theStr, d_len );
+        }
 	}
 template <> void BTND_Rewrite_Text_visitor::operator()<BTND_Rewrite_Number>(BTND_Rewrite_Number& t)   const
 	{ 
@@ -473,13 +466,22 @@ bool isAllDigits( const char* s,int len  ) {
 template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTND_Pattern_Token& t)  const
 { 
 	/// if d_str is numeric we need to do something
-    bool isNumeric = (isdigit(d_str[0]) && isAllDigits(d_str,d_len));
+    const char* str = ( d_str[d_len] ? (d_parser.setTmpText(d_str,d_len)) : d_str ); 
+    /*
+    uint32_t tmpId = d_parser.getGlobalPools().string_getId( str );
+    if( tmpId != 0xffffffff ) {
+        t.stringId = tmpId;
+        return;
+    }
+    */
+
+    bool isNumeric = (isdigit(str[0]) && isAllDigits(str,d_len));
 	bool strIsNum = ( !d_noTextToNum && isNumeric );
 	bool needStem = t.doStem;
 	if( strIsNum ) {
 		if( !isAnalyticalMode() ) {
 			BTND_Pattern_Number numPat;
-			int num= atoi(d_str);
+			int num= atoi(str);
 			numPat.setIntRange( num, num );
 			d_pat = numPat;
 			return;
@@ -490,9 +492,9 @@ template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTN
 			needStem = false;
 	}
 	if( needStem ) 
-		t.stringId = d_parser.stemAndInternTmpText(d_str, d_len); 
+		t.stringId = d_parser.stemAndInternTmpText(str, d_len); 
 	else
-		t.stringId = d_parser.internTmpText(  d_str, d_len, false, isNumeric); 
+		t.stringId = d_parser.internTmpText(  str, d_len, false, isNumeric); 
 }
 template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_StopToken>  (BTND_Pattern_StopToken& t)  const
 { 
@@ -1130,12 +1132,17 @@ DEFINE_BELParserXML_taghandle(LITERAL)
 				literal.setStop();
 				break;
 			case 'c': // t="c:ALIASXXX" ~ compounded word with alias ALIASXXX
+                {
 				const char* semicolon = strchr( v, ':' );
 				uint32_t tokId = addCompoundedWordLiteral( semicolon );
 				literal.setCompound(tokId);
+                }
 				break;
 			}
 			break;
+        case 'i': // INTERNAL ONLY STRING
+            literal.setInternalString();
+            break;
 		}
 	}
 	statement.pushNode( BTND_RewriteData(literal) );

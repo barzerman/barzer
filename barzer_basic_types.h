@@ -289,14 +289,17 @@ public:
 	};
 
     enum {
-        STRT_LITERAL, // literal known to system
-        STRT_MYSTERY_STRING   // something that is unknown to system yet has been classified as a string
+        STRT_LITERAL = 0x0,          // literal known to system
+        STRT_MYSTERY_STRING = 0x1,   // something that is unknown to system yet has been classified as a string
+        STRT_INTERNAL       = 0x2    // literal should be looked up in internal pool 
     };
 private:
 	uint32_t theId; // string id (interned)
     union    { int32_t i4; float r4; } d_num;
 
 	uint8_t  type; // one of the T_ constants
+    
+    
 	uint8_t  stringType; // type of the string (normal token, string etc) - distinction
 public:
     enum { NUMERAL_TYPE_NONE, NUMERAL_TYPE_INT, NUMERAL_TYPE_REAL };
@@ -361,8 +364,10 @@ public:
 	inline bool isEqual( const BarzerLiteral& r ) const
 		{  return( type == r.type && theId == r.theId ); }
 
-    bool isMysteryString() const { return (stringType == STRT_MYSTERY_STRING); }
-    void setMysteryString() { stringType=STRT_MYSTERY_STRING; }
+    bool isMysteryString()  const   { return (stringType & 1);  }
+    void setMysteryString()         { stringType |= (1); }
+    void setInternalString()        { stringType |= (2); }
+    bool isInternalString() const   { return (stringType & (2)); }
 };
 inline bool operator == ( const BarzerLiteral& l, const BarzerLiteral& r )
 { return l.isEqual(r); }

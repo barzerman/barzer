@@ -70,8 +70,9 @@ const uint8_t DateLookup::lookupMonth(const char* mname) const {
     }
 }
 
-const uint8_t DateLookup::lookupMonth(const uint32_t mid) const {
-    const char* month = globPools.getStringPool().resolveId(mid);
+const uint8_t DateLookup::lookupMonth(const BarzerLiteral& ltrl) const {
+    const char* month = ( ltrl.isInternalString() ? globPools.internalString_resolve(ltrl.getId()) :
+        globPools.string_resolve(ltrl.getId()) );
 	return (month == 0) ? 0 : lookupMonth(month);
 
 }
@@ -86,9 +87,10 @@ const uint8_t DateLookup::lookupWeekday(const char* wdname) const {
     }
 }
 
-const uint8_t DateLookup::lookupWeekday(const uint32_t wdid) const {
-    const char* wday = globPools.getStringPool().resolveId(wdid);
-	return (wday == 0) ? 0 : lookupWeekday(wday);
+const uint8_t DateLookup::lookupWeekday(const BarzerLiteral& ltrl) const {
+    const char* wday = ( ltrl.isInternalString() ? globPools.internalString_resolve(ltrl.getId()) :
+        globPools.string_resolve(ltrl.getId()) );
+	return ( wday ?  lookupWeekday(wday):0 );
 }
 
 }

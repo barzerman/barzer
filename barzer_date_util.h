@@ -15,6 +15,7 @@
 namespace barzer {
 
 class GlobalPools;
+class BarzerLiteral;;
 class DateLookup {
 private:
 	GlobalPools &globPools;
@@ -37,9 +38,10 @@ public:
     const uint8_t resolveWdayID(const uint32_t mid) const;
     
 	const uint8_t lookupMonth(const char*) const;
-	const uint8_t lookupMonth(const uint32_t) const;
+	const uint8_t lookupMonth(const BarzerLiteral& ltrl) const;
 	const uint8_t lookupWeekday(const char*) const;
-	const uint8_t lookupWeekday(const uint32_t) const;
+	// const uint8_t lookupWeekday(const uint32_t) const;
+	const uint8_t lookupWeekday(const BarzerLiteral& ltrl ) const;
 
 
 

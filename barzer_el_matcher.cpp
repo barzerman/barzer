@@ -410,6 +410,9 @@ public:
 
 	bool findMatchingChildren_visitor::doFirmMatch_literal( const BarzelFCMap& fcmap, const BarzerLiteral& dta, bool allowBlanks )
 	{
+        if( dta.isInternalString() ) 
+            return false;
+
 		BarzelTrieFirmChildKey firmKey;
 		// forming firm key
 		bool curDtaIsBlank = firmKey.set(dta,d_followsBlank).isBlankLiteral();

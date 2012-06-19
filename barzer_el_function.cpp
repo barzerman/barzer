@@ -22,6 +22,25 @@ namespace barzer {
 
 struct BTND_Rewrite_Function;
 namespace {
+    uint32_t   getInternalStringIdFromLiteral( const GlobalPools& g, const BarzerLiteral* ltrl ) {
+        if( !ltrl ) 
+            return 0xffffffff;
+        const char* str = g.string_resolve(ltrl->getId());
+        if( !str ) 
+            return 0xffffffff;
+        uint32_t internalStrId = g.internalString_getId(str);
+        return internalStrId;
+    }
+    uint32_t   getInternalStringIdFromLiteral( const StoredUniverse& u, const BarzerLiteral* ltrl ) {
+        if( !ltrl ) 
+            return 0xffffffff;
+        const char* str = u.getGlobalPools().string_resolve(ltrl->getId());
+        if( !str ) 
+            return 0xffffffff;
+        uint32_t internalStrId = u.getGlobalPools().internalString_getId(str);
+        return internalStrId;
+    }
+
 
     // sig is the function's signature
     void pushFuncError( BarzelEvalContext& ctxt, const char* funcName, const char* error, const char* sig=0 )
@@ -190,14 +209,26 @@ struct StrConcatVisitor : public boost::static_visitor<bool> {
 		switch (dt.getType()) {
 		case BarzerLiteral::T_STRING:
 		case BarzerLiteral::T_COMPOUND: {
-			const char *str = globPools.stringPool.resolveId(dt.getId());
-			if (str) {
-				ss << str;
-				return true;
-			} else {
+			const char *str = 0;
+            if( dt.isInternalString() ) {
+                str = (globPools.internalString_resolve(dt.getId()));
+            } else {
+                uint32_t fid = getInternalStringIdFromLiteral( globPools, &dt );
+                if( fid == 0xffffffff ) {
+			        str = globPools.stringPool.resolveId(dt.getId());
+                } else {
+	                str = (globPools.internalString_resolve(fid));
+                }
+                if( !str ) 
+                    str = globPools.stringPool.resolveId(dt.getId());
+            }
+            if (str) {
+                ss << str;
+                return true;
+            } else {
                 pushFuncError(d_ctxt, d_funcName, "Unknown string ID" );
-				return false;
-			}
+                return false;
+            }
 		}
 		case BarzerLiteral::T_PUNCT:
 			ss << (char)dt.getId();
@@ -413,16 +444,6 @@ struct BELFunctionStorage_holder {
 		addFun(fid, fun);
 	}
 
-    uint32_t   getInternalStringIdFromLiteral( const StoredUniverse& u, const BarzerLiteral* ltrl ) const {
-        if( !ltrl ) 
-            return 0xffffffff;
-        const char* str = u.getGlobalPools().string_resolve(ltrl->getId());
-        if( !str ) 
-            return 0xffffffff;
-        uint32_t internalStrId = u.getGlobalPools().internalString_getId(str);
-        return internalStrId;
-    }
-
     const BarzerLiteral* getRvecLiteral( const BarzelEvalResultVec& rvec, size_t i ) const
     { return ( i < rvec.size() ? getAtomicPtr<BarzerLiteral>( rvec[i] ) : 0 ) ; }
 
@@ -451,15 +472,23 @@ struct BELFunctionStorage_holder {
 		AYLOGDEBUG(result.isVec());
 		return true;
 	}
+    inline const char* literalToCString( const BarzerLiteral& ltrl ) const
+    {
+        return(
+            ltrl.isInternalString() ? 
+            gpools.internalString_resolve(ltrl.getId()) :
+            gpools.string_resolve(ltrl.getId())
+        );
+    }
     /// generic getter
     STFUN(get) {
         SETFUNCNAME(call);
         const char* argStr = GETARGSTR();
         if( !argStr && rvec.size()>1) {
             const BarzerLiteral* ltrl = getAtomicPtr<BarzerLiteral>( rvec[1] ) ;
-            if( ltrl ) 
-                argStr =  gpools.getStringPool().resolveId(ltrl->getId());
-            else {
+            if( ltrl ) {
+                argStr =  literalToCString(*ltrl) ; 
+            } else {
                 const BarzerString* bs = getAtomicPtr<BarzerString>( rvec[1] ) ;
                 if( bs ) 
                     argStr = bs->getStr().c_str();
@@ -610,7 +639,7 @@ struct BELFunctionStorage_holder {
 		for (BarzelEvalResultVec::const_iterator ri = rvec.begin(); ri != rvec.end(); ++ri) {
             const BarzerLiteral* ltrl = getAtomicPtr<BarzerLiteral>( *ri ) ;
             if( ltrl )  {
-                const char * str =  gpools.getStringPool().resolveId(ltrl->getId());
+                const char * str =  literalToCString(*ltrl);
                 if( str ) {
                     tok.push_back( str );
                 } else {
@@ -779,7 +808,7 @@ struct BELFunctionStorage_holder {
                         const BarzerLiteral* bl = getAtomicPtr<BarzerLiteral>(rvec[0]);
                         const BarzerString* bs = getAtomicPtr<BarzerString>(rvec[0]);
                         const BarzerNumber* n = getAtomicPtr<BarzerNumber>(rvec[0]);
-                        if (bl) wnum = gpools.dateLookup.lookupWeekday(bl->getId());
+                        if (bl) wnum = gpools.dateLookup.lookupWeekday(*bl);
                         else if (bs) wnum = gpools.dateLookup.lookupWeekday(bs->getStr().c_str());
                         else if (n) wnum = ((n->isInt() && n->getInt() > 0 && n->getInt() < 8 )? n->getInt(): 0 );
                         else {  
@@ -811,7 +840,7 @@ struct BELFunctionStorage_holder {
                         const BarzerLiteral* bl = getAtomicPtr<BarzerLiteral>(rvec[0]);
                         const BarzerString* bs = getAtomicPtr<BarzerString>(rvec[0]);
                         const BarzerNumber* n = getAtomicPtr<BarzerNumber>(rvec[0]);
-                        if (bl) mnum = gpools.dateLookup.lookupMonth(bl->getId());
+                        if (bl) mnum = gpools.dateLookup.lookupMonth(*bl);
                         else if (bs) mnum = gpools.dateLookup.lookupMonth(bs->getStr().c_str());
                         else if (n) mnum = ((n->isInt() && n->getInt() > 0 && n->getInt() < 13 )? n->getInt(): 0 );
                         else {  
@@ -1181,8 +1210,9 @@ struct BELFunctionStorage_holder {
             if( str ) {
                 internalStrId = universe.getGlobalPools().internalString_getId(str);
                 if( internalStrId == 0xffffffff ) {
-                    /// couldnt internally resolve 
-                    FERROR("Couldn't internally resolve. Use &lt;mkent s=\"\" c=\"\" id=\"\"/&gt; instead");
+                    std::stringstream sstr;
+                    sstr << "Couldn't internally resolve string: " << ( str ? str : "" );
+                    FERROR( sstr.str().c_str() );
                 }
             }
             return( tokId = internalStrId );

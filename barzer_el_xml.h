@@ -234,10 +234,11 @@ public:
 	uint32_t internTmpText( const char* s, int len, bool stem, bool isNumeric ) 
 		{ 
             uint32_t strId ;
+            const char* theStr =  (s[len] ? d_tmpText.assign(s,len).c_str(): s);
             if( stem ) {
-			    strId = stemAndInternTmpText( d_tmpText.assign(s,len).c_str(), len) ;
+			    strId = stemAndInternTmpText( theStr, len);
             } else {
-                StoredToken& sTok = internString(d_tmpText.assign(s,len).c_str(),false);
+                StoredToken& sTok = internString(theStr,false);
                 if( isNumeric && !sTok.classInfo.isNumber() ) 
                     sTok.classInfo.setNumber();
                 
