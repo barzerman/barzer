@@ -582,7 +582,7 @@ inline bool QLexParser::trySplitCorrectUTF8 ( SpellCorrectResult& corrResult, QL
         const char* leftCorr=left.c_str(), * rightCorr = right.c_str();
         const StoredToken* rightTok = getStoredToken( rightCorr );
         const StoredToken* leftTok = 0;
-        bool leftCorrected = false, rightCorrected = false;
+        bool rightCorrected = false;
         if( rightTok || right.size() > MIN_SPELL_CORRECT_LEN ) {
             if( !rightTok ) { // right token is not an immediate token, correcting
                 uint32_t rightId = parm.bzSpell->getSpellCorrection (rightCorr,false,parm.lang) ;
@@ -634,14 +634,14 @@ inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexPa
 {
     PosedVec<CTWPVec>& cPosVec      = parm.cPosVec;
     PosedVec<TTWPVec>& tPosVec      = parm.tPosVec;
-    const QuestionParm& qparm       = parm.qparm;
+    // const QuestionParm& qparm       = parm.qparm;
     const size_t& t_len             = parm.t_len;
     const uint32_t& strId           = parm.strId;
     const int& lang                 = parm.lang;
     const char* theString           = parm.theString;
     const BZSpell* bzSpell          = parm.bzSpell;
 	CToken& ctok                    = parm.ctok;
-	TToken& ttok                    = parm.ttok;
+	// TToken& ttok                    = parm.ttok;
     const char* t                    = parm.t;
 
 	const GlobalPools& gp = d_universe.getGlobalPools();
