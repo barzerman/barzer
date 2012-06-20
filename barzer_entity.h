@@ -137,6 +137,8 @@ public:
 	};
 	const EList& getList() const 
 		{ return d_lst; }
+    size_t size() const { return d_lst.size(); }
+    const BarzerEntity& operator[]( size_t i ) const { return d_lst[i]; }
 
 	bool hasClass( const StoredEntityClass& ec ) const
 		{ return std::binary_search( d_lst.begin(), d_lst.end(), BarzerEntity(ec), comp_ent_less() ); }

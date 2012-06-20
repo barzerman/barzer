@@ -1083,6 +1083,20 @@ struct BELFunctionStorage_holder {
 			return true;
 		}
 
+		bool operator()(const BarzerEntityList &e) { 
+            if( cnt ) {
+                BarzerRange::Entity* er = range.get<BarzerRange::Entity>() ;
+                if( er && e.size() ) {
+
+                    er->second = e[0];
+                } else 
+                    return false;
+            } else if( e.size() ) {
+                range.set<BarzerRange::Entity>()->first  = e[0];
+                range.set<BarzerRange::Entity>()->second = e[0];
+            }
+            return true;
+        }
 		bool operator()(const BarzerEntity &e) {
             if( cnt ) {
                 BarzerRange::Entity* er = range.get<BarzerRange::Entity>() ;
