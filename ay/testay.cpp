@@ -9,6 +9,7 @@
 #include <ay_utf8.h>
 #include <ay_choose.h>
 #include <ay_util_time.h>
+#include <ay_util.h>
 
 void testLogger() {
 	AYLOGINIT(DEBUG);
@@ -127,8 +128,24 @@ void testUTF8Normalizer(int argc, char* argv[])
         std::cerr << "tolower:" << s << std::endl;
     }
 }
+int testStripDiacritics(int argc, char* argv[])
+{
+    while(true) {
+        std::string str;
+        std::cout << "enter string:";
+        std::cin >> str;
+        if( str == "." )
+            return 0;
+        std::string dest;
+        ay::stripDiacrictics( dest, str.c_str() );
+        std::cout << str << ":" << dest << std::endl;
+    }
+    return 0;
+}
+
 int main(int argc, char* argv[]) {
 	// testLogger();
     //testUTF8(argc,argv);
-    testUTF8Normalizer(argc,argv);
+    // testUTF8Normalizer(argc,argv);
+    testStripDiacritics(argc,argv);
 }

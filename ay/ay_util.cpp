@@ -518,31 +518,38 @@ default: return "";
 }
 } // c9
 
-bool is_diacritic( const char* s )
+const char*  is_diacritic( const char* s )
 {
     if( (uint8_t)s[0] >= 0xc3 && (uint8_t)s[0] <= 0xc9 ) {
+        const char* ss = "";
         switch( (uint8_t)s[0] ) {
-        case 0xc3: return diacriticChar2AsciiC3( (uint8_t)(s[1]) )[0] !=0 ;
-        case 0xc4: return diacriticChar2AsciiC4( (uint8_t)(s[1]) )[0] !=0 ;
-        case 0xc5: return diacriticChar2AsciiC5( (uint8_t)(s[1]) )[0] !=0 ;
-        case 0xc6: return diacriticChar2AsciiC6( (uint8_t)(s[1]) )[0] !=0 ;
-        case 0xc7: return diacriticChar2AsciiC7( (uint8_t)(s[1]) )[0] !=0 ;
-        case 0xc8: return diacriticChar2AsciiC8( (uint8_t)(s[1]) )[0] !=0 ;
-        case 0xc9: return diacriticChar2AsciiC9( (uint8_t)(s[1]) )[0] !=0 ;
+        case 0xc3: ss= diacriticChar2AsciiC3( (uint8_t)(s[1]) ); break;
+        case 0xc4: ss= diacriticChar2AsciiC4( (uint8_t)(s[1]) ); break;
+        case 0xc5: ss= diacriticChar2AsciiC5( (uint8_t)(s[1]) ); break;
+        case 0xc6: ss= diacriticChar2AsciiC6( (uint8_t)(s[1]) ); break;
+        case 0xc7: ss= diacriticChar2AsciiC7( (uint8_t)(s[1]) ); break;
+        case 0xc8: ss= diacriticChar2AsciiC8( (uint8_t)(s[1]) ); break;
+        case 0xc9: ss= diacriticChar2AsciiC9( (uint8_t)(s[1]) ); break;
         }
+        return( *ss ? ss: 0) ;
     } 
-    return false;
+    return 0;
 }
+
 
 int umlautsToAscii( std::string& dest, const char* s )
 {
 	int numDiacritics = 0;
 	for( const char* ss = s; *ss; ++ss ) {
-
-		if( (uint8_t)*ss == 0xc3 ) {
+        
+        uint8_t c0 = (uint8_t)(*ss);
+		if( c0 >= 0xc3 && c0 <= 0xc9 ) {
+            const char* prevSS = ss;
 			++numDiacritics;
 			if( !*(++ss) ) return numDiacritics;
-			dest.append( diacriticChar2Ascii(*ss) );
+            const char* diacrStr = is_diacritic(prevSS);
+            if( diacrStr )
+			    dest.append( diacrStr );
 		} else {
 			dest.push_back( *ss );
 		}

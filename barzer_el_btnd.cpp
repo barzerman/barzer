@@ -6,6 +6,7 @@
 #include <ay/ay_logger.h>
 #include <ay/ay_util.h>
 #include <barzer_universe.h>
+#include <barzer_server_response.h>
 
 namespace barzer {
 
@@ -522,7 +523,13 @@ struct BTND_PatternData_print_XML : public BTND_Base_print_XML {
 		if( !d.doStem ) {
 			d_fp << " s=\"n\"";
 		}
-		d_fp << '>' << d_trie.getGlobalPools().decodeStringById_safe( d.stringId ) << "</t>";
+
+		d_fp << '>';
+		const char* txt = d_trie.getGlobalPools().decodeStringById_safe( d.stringId );
+        if( txt ) {
+            xmlEscape( txt, d_fp );
+        }
+		d_fp << "</t>";
 
 		return tag;
 	}
