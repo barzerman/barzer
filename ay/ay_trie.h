@@ -1,7 +1,7 @@
 #ifndef AY_TRIE_H
 #define AY_TRIE_H
 
-#include <ay_vector.h>
+#include "ay_vector.h"
 #include <stack>
 #include <iterator>
 
@@ -44,6 +44,19 @@ public:
 
 	trie& add( const key_type& key, const data_type& d )
 	{ return (d_child.insert( key, d ).first->second); }
+
+	template<typename Updater>
+	trie& addWithUpdate(const key_type& key, Updater upd)
+	{
+		typename VecMap::iterator pos = d_child.find(key);
+		if (pos == d_child.end())
+			return add(key, upd(data_type()));
+		else
+		{
+			pos->second.data() = upd(pos->second.data());
+			return pos->second;
+		}
+	}
 
 	typename VecMap::const_iterator find( const  key_type& key ) const 
 		{ return d_child.find( key ); }
