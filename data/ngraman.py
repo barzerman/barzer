@@ -59,7 +59,7 @@ if __name__ == '__main__':
                 if len(b[j]) > 1 and b[j] not in {'di','s','e','lb','t','c','foo','al','la','lo','de','any','with','the','to','at','a','if','an','in', '', 'of', 'on', 'for', 'and', 'or', '&'}:
                     s[tuple(xs)].push(idd)
     #l = [(','.join(k), v.cnt, ','.join(v.ids)) for k, v in s.iteritems()]
-    l = [(len(k),v.cnt,  ' '.join(k)) for k, v in s.iteritems()]
+    l = [(len(k),v.cnt,  ' '.join(k),k) for k, v in s.iteritems()]
     l.sort(lambda x,y: y[1] - x[1])
     l.sort(lambda x,y: y[0] - x[0])
 
@@ -69,4 +69,4 @@ if __name__ == '__main__':
                 print>>sys.stderr,v[2]
                 continue
         if v[0] ==1 or (v[0] == 3 and v[1]>1) or (v[0]==2) or (v[0]==4 and v[1]>1):
-            print '|'.join(map(str, v))
+            print '|'.join(map(str, v[:-1]))
