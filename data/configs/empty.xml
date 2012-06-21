@@ -4,6 +4,9 @@
     <entities>
         <file>data/entities/time_ent.xml</file>
     </entities>
+    <dictionaries>
+        <file>data/spell/english_words.txt</file>
+    </dictionaries>
     <logging>
         <level>DEBUG</level>
         <file>barzer.log</file>
