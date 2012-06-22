@@ -43,10 +43,12 @@ uint32_t BELParser::stemAndInternTmpText( const char* s, int len )
 	    scopy.assign(s, len );
         s=scopy.c_str();
     }
+    const StoredToken* storedTok = curUni->getStoredToken( s );
+    
 	if( bzSpell )  {
         uint32_t i = 0xffffffff;
         if( bzSpell->isUsersWord(i,s) ) {
-            return i;
+            return ( storedTok? storedTok->getStringId() : i );
         }
 		std::string stem;
         int lang = LANG_UNKNOWN;
@@ -112,7 +114,7 @@ StoredToken& BELParser::internString( const char* t, bool noSpell, const char* u
     StoredUniverse* curUni = ( reader ? reader->getCurrentUniverse() : 0 );
     BZSpell* bzSpell= ( curUni ? curUni->getBZSpell() : 0);
     
-    if( /*wasNew &&*/ (sTok.getLength()  < BZSpell::MAX_WORD_LEN) ) {
+    if( wasNew && (sTok.getLength()  < BZSpell::MAX_WORD_LEN) ) {
         char w[ BZSpell::MAX_WORD_LEN ]; 
         strncpy( w, t, BZSpell::MAX_WORD_LEN-1 );
         w[ BZSpell::MAX_WORD_LEN-1 ] = 0;

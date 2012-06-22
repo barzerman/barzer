@@ -475,6 +475,11 @@ template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTN
     }
     */
 
+    /*
+    if( !strncasecmp(d_str,"lcd",3) ) {
+        std::cerr << "SHIT FUCKbarzer_el_xml.cpp :479\n";
+    }
+    */
     bool isNumeric = (isdigit(str[0]) && isAllDigits(str,d_len));
 	bool strIsNum = ( !d_noTextToNum && isNumeric );
 	bool needStem = t.doStem;
