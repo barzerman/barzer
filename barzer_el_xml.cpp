@@ -31,6 +31,8 @@ static void endElement(void *ud, const XML_Char *n)
 // cast to XML_CharacterDataHandler
 static void charDataHandle( void * ud, const XML_Char *str, int len)
 {
+    if( !len )
+        return;
 	const char* s = (const char*)str;
 	barzer::BELParserXML *loader =(barzer::BELParserXML *)ud;
 	if( len>1 || !isspace(*s) ) 
@@ -1532,10 +1534,11 @@ int BELParserXML::parse( std::istream& fp )
 	
 	char buf[ 128*1024 ];	
 	bool done = false;
+    const size_t buf_len = sizeof(buf)-1;
 	do {
-    	fp.read( buf,sizeof(buf) );
+    	fp.read( buf,buf_len );
     	size_t len = fp.gcount();
-    	done = len < sizeof(buf);
+    	done = len < buf_len;
     	if (!XML_Parse(parser, buf, len, done)) {
       		fprintf(stderr,
 	      		"%s at line %d\n",
