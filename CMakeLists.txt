@@ -120,7 +120,9 @@ IF(NOT DEFINED INSTALL_DIR)
     set(INSTALL_DIR "/usr/share/barzer")
 ENDIF(NOT DEFINED INSTALL_DIR)
 set(INSTALL_DATA_DIR "${INSTALL_DIR}/data")
-set(INSTALL_UTIL_DIR "${INSTALL_DIR}/util")
+#set(INSTALL_UTIL_DIR "${INSTALL_DIR}/util")
+set(INSTALL_UTIL_DIR "${INSTALL_DIR}")
+
 
 SET(CMAKE_SKIP_BUILD_RPATH FALSE)
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
@@ -159,24 +161,24 @@ add_library(barzer_static ${SOURCES})
 target_link_libraries (barzer_static ${EXTRA_LIBS})
 set_target_properties(barzer_static PROPERTIES OUTPUT_NAME barzer_static )
 
-option (ENABLE_BARZ_SHARED "Build shared version of barzer libraries" ON)
+option (ENABLE_BARZ_SHARED "Build shared version of barzer libraries" OFF)
 option (ENABLE_PYBARZER "Build pybarzer" ON)
 
 ### libbarzer shared
 if (ENABLE_BARZ_SHARED)
 	add_library(barzer SHARED ${SOURCES})
-	target_link_libraries (barzer barzer_static ${EXTRA_LIBS})
+	target_link_libraries (barzer barzer_static)
 	set_target_properties(barzer PROPERTIES OUTPUT_NAME barzer )
 endif (ENABLE_BARZ_SHARED)
 
 ### pybarzer
 if (ENABLE_PYBARZER)
-	if (NOT ENABLE_BARZ_SHARED)
-		MESSAGE (ERROR "Pybarzer requires ENABLE_BARZ_SHARED set to true")
-	endif (NOT ENABLE_BARZ_SHARED)
+#	if (NOT ENABLE_BARZ_SHARED)
+#		MESSAGE (ERROR "Pybarzer requires ENABLE_BARZ_SHARED set to true")
+#	endif (NOT ENABLE_BARZ_SHARED)
 
 	add_library(pybarzer SHARED barzer_python.cpp)
-	target_link_libraries (pybarzer barzer butil snowlib)
+	target_link_libraries (pybarzer barzer_static butil snowlib)
 	SET_TARGET_PROPERTIES(pybarzer PROPERTIES PREFIX "")
 	IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		SET_TARGET_PROPERTIES(pybarzer PROPERTIES SUFFIX ".so")
