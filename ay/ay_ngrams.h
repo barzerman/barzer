@@ -9,23 +9,34 @@
 namespace ay
 {
 	typedef std::vector<std::string> StringList_t;
+
 	class NGramModel
 	{
 		const size_t m_gramSize;
-
 		typedef trie<ay::CharUTF8, uint32_t> UTF8Trie_t;
-		typedef std::map<int, UTF8Trie_t> TriesDict_t;
-		TriesDict_t m_tries;
-
-		std::map<int, uint64_t> m_totalSize;
+		UTF8Trie_t m_trie;
+		
+		uint64_t m_totalSize;
 	public:
 		NGramModel(size_t size = 3);
 
-		void dump();
+		void addWord(const char *word);
+		void addWords(const StringList_t& text);
 
-		void learn(const StringList_t& text, int topic);
-		void getProbs(const std::string& word, std::map<int, double>& probs) const;
-	private:
-		void addWord(const std::string& word, int topic);
+		double getProb(const char *word) const;
+
+		void dump();
+	};
+
+	class TopicModelMgr
+	{
+		const size_t m_gramSize;
+
+		typedef std::map<int, NGramModel> ModelsDict_t;
+		ModelsDict_t m_models;
+	public:
+		TopicModelMgr(size_t size = 3);
+
+		NGramModel& getModel(int topic);
 	};
 }

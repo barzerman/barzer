@@ -5,7 +5,64 @@ namespace ay
 {
 	NGramModel::NGramModel(size_t size)
 	: m_gramSize(size)
+	, m_totalSize(0)
 	{
+	}
+	
+	namespace
+	{
+		inline StrUTF8 mangle(const StrUTF8& src)
+		{
+			StrUTF8 mangled(" ");
+			mangled.append(src);
+			mangled.append(CharUTF8(" "));
+			mangled.toLower();
+			return mangled;
+		}
+
+		inline uint32_t increment(uint32_t val)
+		{
+			return val + 1;
+		}
+	}
+
+	void NGramModel::addWord(const char *word)
+	{
+		const StrUTF8& mangled = mangle(StrUTF8(word));
+
+		const size_t numGrams = mangled.size() - m_gramSize + 1;
+		for (size_t i = 0; i < numGrams; ++i)
+		{
+			UTF8Trie_t *t = &m_trie;
+			for (size_t j = 0; j < m_gramSize; ++j)
+				t = &t->addWithUpdate(mangled[i + j], increment);
+		}
+
+		m_totalSize += numGrams;
+	}
+
+	void NGramModel::addWords(const StringList_t& text)
+	{
+		for (size_t i = 0, size = text.size(); i < size; ++i)
+			addWord(text.at(i).c_str());
+	}
+
+	double NGramModel::getProb(const char* word) const
+	{
+		uint64_t totalWeight = 0;
+
+		std::vector<CharUTF8> charBuf(m_gramSize);
+		const StrUTF8& mangled = mangle(StrUTF8(word));
+		for (size_t i = 0; i < mangled.size() - m_gramSize + 1; ++i)
+		{
+			for (size_t j = 0; j < m_gramSize; ++j)
+				charBuf[j] = mangled[i + j];
+
+			const UTF8Trie_t *result = m_trie.getLongestPath(charBuf.begin(), charBuf.end()).first;
+			totalWeight += result ? result->data () : 0;
+		}
+
+		return static_cast<double> (totalWeight) / m_totalSize;
 	}
 
 	namespace
@@ -29,59 +86,20 @@ namespace ay
 	void NGramModel::dump()
 	{
 		CallbackTrieDump cb;
-		for (TriesDict_t::iterator i = m_tries.begin(), end = m_tries.end(); i != end; ++i)
-		{
-			std::cout << "Dump for topic " << i->first << ":" << std::endl;
-			trie_visitor<UTF8Trie_t, CallbackTrieDump> vis(cb);
-			vis.visit(i->second);
-			std::cout << std::endl;
-		}
+		trie_visitor<UTF8Trie_t, CallbackTrieDump> vis(cb);
+		vis.visit(m_trie);
 	}
 
-	void NGramModel::learn(const StringList_t& text, int topic)
-	{
-		uint64_t sum = 0;
-		for (size_t i = 0, size = text.size(); i < size; ++i)
-		{
-			const std::string& word = text.at(i);
-			if (word.size() >= m_gramSize)
-			{
-				addWord(word, topic);
-				sum += word.size();
-			}
-		}
-
-		m_totalSize[topic] += sum;
-	}
-
-	void NGramModel::getProbs(const std::string& word, std::map<int, double>& probs) const
+	TopicModelMgr::TopicModelMgr(size_t size)
+	: m_gramSize(size)
 	{
 	}
-	
-	namespace
+
+	NGramModel& TopicModelMgr::getModel(int topic)
 	{
-		inline uint32_t increment(uint32_t val)
-		{
-			return val + 1;
-		}
-	}
-
-	void NGramModel::addWord(const std::string& word, int topic)
-	{
-		const StrUTF8 src(word.c_str(), word.size());
-		if (src.size() < m_gramSize)
-			return;
-
-		StrUTF8 mangled(" ");
-		mangled.append(src);
-		mangled.append(CharUTF8(" "));
-
-		UTF8Trie_t& topicTrie = m_tries[topic];
-		for (size_t i = 0; i < mangled.size() - m_gramSize + 1; ++i)
-		{
-			UTF8Trie_t *t = &topicTrie;
-			for (size_t j = 0; j < m_gramSize; ++j)
-				t = &t->addWithUpdate(mangled[i + j], increment);
-		}
+		ModelsDict_t::iterator pos = m_models.find(topic);
+		if (pos == m_models.end())
+			pos = m_models.insert(std::make_pair(topic, NGramModel(m_gramSize))).first;
+		return pos->second;
 	}
 }
