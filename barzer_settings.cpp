@@ -437,6 +437,18 @@ void BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 	loadLocale(reader, u, children);
 	// loadSpell(u, children);
 
+    /// initilizing BZ spell
+    {
+    const GlobalPools& gp = u.getUniverse().getGlobalPools();
+	const StoredUniverse* secondaryUniverse = ( u.getId() ? gp.getDefaultUniverse() : 0 );
+    BZSpell* bzs = u.getUniverse().initBZSpell( secondaryUniverse );
+    if( bzs ) {
+        bzs->init( secondaryUniverse );
+        bzs->printStats( std::cerr );
+    }
+    } // end of bzspell initialization
+
+
 	StoredUniverse& uni = u.getUniverse();
 	uni.getBarzHints().initFromUniverse(&uni);
 }
