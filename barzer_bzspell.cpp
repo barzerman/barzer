@@ -846,9 +846,12 @@ uint32_t BZSpell::getStemCorrection( std::string& out, const char* s, int lang )
 	if( lang == LANG_ENGLISH) {
 		if( stem( out, s, lang) ) {
 			uint32_t strId = d_universe.getGlobalPools().string_getId( out.c_str() );
-			if( strId == 0xffffffff ) {
-				if( d_secondarySpellchecker )
-					return( d_secondarySpellchecker->getUniverse().getGlobalPools().string_getId( out.c_str() ) );
+			if(strId == 0xffffffff || !isUsersWordById(strId)) {
+				if( d_secondarySpellchecker ) {
+                    uint32_t secondaryStrId = d_secondarySpellchecker->getUniverse().getGlobalPools().string_getId( out.c_str() );
+
+					return( isUsersWordById(secondaryStrId) ? secondaryStrId: 0xffffffff );
+                }
 			} else {
 				return strId;
 			}
