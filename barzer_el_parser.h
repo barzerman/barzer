@@ -113,6 +113,7 @@ public:
 	GlobalPools& getGlobalPools();
 	const  GlobalPools& getGlobalPools() const;
 
+	const BELParseTreeNode* getMacroByName( const BELTrie& trie, const char* ) const;
 	const BELParseTreeNode* getMacroByName( const char* ) const;
     const BELParseTreeNode* getMacroByNameId( uint32_t strId ) const;
 

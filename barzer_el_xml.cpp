@@ -1036,22 +1036,49 @@ DEFINE_BELParserXML_taghandle(EXPAND)
 {
 	if( close ) { return; }
 
-	const char*  macroName= 0,
-	        *varName = 0;
+	const char  *macroName      = 0,
+	            *varName        = 0,
+                *trieClassName  = 0,
+                *trieName       = 0;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
 		switch( n[0] ) {
-		case 'n': macroName= v; break;
 		case 'a':
 		    if (!strcmp(n, "as"))
 		        varName = v;
 		    break;
+		case 'c': trieClassName= v; break; // trie class 
+		case 'n': macroName= v; break;
+        case 't': trieName = v; break;     // trie name
 		}
 	}
      
-	const BELParseTreeNode* macroNode = getMacroByName(macroName);
+    // StoredUniverse* uni = reader->getCurrentUniverse();
+	const BELParseTreeNode* macroNode = 0;
+    if( trieName ) {
+        const GlobalPools& gp = reader->getGlobalPools();
+        uint32_t trieName_id = internString_internal(trieName); 
+        uint32_t trieClassName_id = 0xffffffff;
+        if( trieClassName ) {
+            trieClassName_id = internString_internal(trieClassName);
+        } else {
+            trieClassName_id = reader->getTrie().getTrieClass_strId();
+        }
+        const BELTrie* trie = gp.getTrie(trieClassName_id, trieName_id);
+        if( trie ) {
+	        macroNode = getMacroByName(*trie,macroName);
+        } else {
+		    AYLOG(ERROR) << "macro " << 
+                gp.internalString_resolve(trieClassName_id) << "." << 
+                gp.internalString_resolve(trieName_id) << "." << 
+                macroName  << " referenced in statement "  << statementCount<< " doesnt exist";
+        }
+    } else
+	    macroNode = getMacroByName(macroName);
+
 	if( macroNode ) {
+
 		BELParseTreeNode* curNode = statement.getCurTreeNode();
 		BELParseTreeNode &n = curNode->addChild(*macroNode);
 		if (varName) {

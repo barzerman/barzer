@@ -23,6 +23,11 @@ const BELParseTreeNode* BELParser::getMacroByNameId( uint32_t i ) const
 	return trie.getMacros().getMacro( i );
 }
 
+const BELParseTreeNode* BELParser::getMacroByName( const BELTrie& trie, const char* macroname ) const
+{
+    uint32_t macroNameId = reader->getGlobalPools().internalString_getId( macroname );
+	return trie.getMacros().getMacro( macroNameId );
+}
 const BELParseTreeNode* BELParser::getMacroByName( const char* macroname ) const
 {
 	const BELTrie& trie = reader->getTrie();

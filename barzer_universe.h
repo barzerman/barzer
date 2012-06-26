@@ -255,6 +255,7 @@ public:
 	/// never returns 0
 	const char* decodeStringById_safe( uint32_t strId ) const
 		{ const char* str = decodeStringById(strId); return (str ? str :"" ); }
+	const BELTrie* getTrie( uint32_t cs, uint32_t ids ) const { return globalTriePool.getTrie( cs, ids ); }
 	BELTrie* getTrie( uint32_t cs, uint32_t ids ) { return globalTriePool.getTrie( cs, ids ); }
 
 	BELTrie* getTrie( const char* cs, const char* ids ) { return globalTriePool.getTrie( cs, ids ); }
