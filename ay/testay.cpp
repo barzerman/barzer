@@ -10,6 +10,7 @@
 #include <ay_choose.h>
 #include <ay_util_time.h>
 #include <ay_util.h>
+#include <ay_xml_util.h>
 
 void testLogger() {
 	AYLOGINIT(DEBUG);
@@ -142,10 +143,24 @@ int testStripDiacritics(int argc, char* argv[])
     }
     return 0;
 }
+#include <ay_xml_util.h>
+int testXMLEscape(int argc, char* argv[])
+{
+    while(true) {
+        std::string str;
+        std::cout << "enter string:";
+        std::cin >> str;
+        if( str == "." )
+            return 0;
+        ay::XMLStream xmlStream(std::cerr);
+        xmlStream << str << std::endl;
+    }
+}
 
 int main(int argc, char* argv[]) {
 	// testLogger();
     //testUTF8(argc,argv);
     // testUTF8Normalizer(argc,argv);
-    testStripDiacritics(argc,argv);
+    // testStripDiacritics(argc,argv);
+    return testXMLEscape(argc,argv);
 }
