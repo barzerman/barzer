@@ -20,18 +20,24 @@ struct XMLStream {
         { return (escape(x), *this); }
     XMLStream& print( const std::string& x)
         { return (escape(x.c_str()), *this); }
+
+    typedef std::ios_base& ( *IOS_BASE_PF )(std::ios_base&);
+    typedef std::ios& ( *IOS_PF )(std::ios&);
+    typedef std::ostream& ( *IOS_OSTREAM )(std::ostream&);
 };
 template <typename T>
 inline XMLStream& operator<<( XMLStream& s, const T& x )
     { return s.print(x); }
+inline XMLStream& operator<<( XMLStream& s, const char* x )
+    { return s.print(x); }
 
-inline XMLStream& operator<<(XMLStream& vs, std::ostream& ( *pf )(std::ostream&)) 
+inline XMLStream& operator <<(XMLStream& vs, XMLStream::IOS_OSTREAM pf )
     { return( pf((vs.os)), vs ); }
 
-inline XMLStream& operator<<(XMLStream& vs, std::ios& ( *pf )(std::ios&)) 
+inline XMLStream& operator<<(XMLStream& vs, XMLStream::IOS_PF pf )
     { return( pf((vs.os)), vs ); }
 
-inline XMLStream& operator<<(XMLStream& vs, std::ios_base& ( *pf )(std::ios_base&)) 
+inline XMLStream& operator<<(XMLStream& vs, XMLStream::IOS_BASE_PF pf ) 
 { return (pf((vs.os)),vs); }
 
 } // ay namespace ends 

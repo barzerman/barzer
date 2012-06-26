@@ -4,6 +4,7 @@
 #include <barzer_ghettodb.h>
 #include <ay/ay_debug.h>
 #include <barzer_server_response.h>
+#include <ay_xml_util.h>
 extern "C" {
 #include <expat.h>
 
@@ -1069,7 +1070,8 @@ DEFINE_BELParserXML_taghandle(EXPAND)
         if( trie ) {
 	        macroNode = getMacroByName(*trie,macroName);
         } else {
-		    AYLOG(ERROR) << "macro " << 
+		    ay::XMLStream xmlStream(reader->getErrStreamRef());
+		    xmlStream << "macro " << 
                 gp.internalString_resolve(trieClassName_id) << "." << 
                 gp.internalString_resolve(trieName_id) << "." << 
                 macroName  << " referenced in statement "  << statementCount<< " doesnt exist";
@@ -1087,7 +1089,7 @@ DEFINE_BELParserXML_taghandle(EXPAND)
 		    sd.setVarId(internString_internal(varName));
 		}
 	} else {
-		AYLOG(ERROR) << "macro " << macroName  << " referenced in statement "  << statementCount<< " doesnt exist";
+		ay::XMLStream(reader->getErrStreamRef()) << "macro " << macroName  << " referenced in statement "  << statementCount<< " doesnt exist";
 	}
 }
 
