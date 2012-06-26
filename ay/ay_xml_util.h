@@ -16,8 +16,6 @@ struct XMLStream {
     XMLStream& print( const T& x)
         { return (os<< x, *this ); }
     
-    XMLStream& print( const char* x)
-        { return (escape(x), *this); }
     XMLStream& print( const std::string& x)
         { return (escape(x.c_str()), *this); }
 
@@ -25,12 +23,10 @@ struct XMLStream {
     typedef std::ios& ( *IOS_PF )(std::ios&);
     typedef std::ostream& ( *IOS_OSTREAM )(std::ostream&);
 };
+
 template <typename T>
 inline XMLStream& operator<<( XMLStream& s, const T& x )
     { return s.print(x); }
-inline XMLStream& operator<<( XMLStream& s, const char* x )
-    { return s.print(x); }
-
 inline XMLStream& operator <<(XMLStream& vs, XMLStream::IOS_OSTREAM pf )
     { return( pf((vs.os)), vs ); }
 

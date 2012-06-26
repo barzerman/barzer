@@ -8,6 +8,7 @@
 //#include <barzer_emitter.h>
 #include <barzer_el_btnd.h>
 #include <ay/ay_pool_with_id.h>
+#include <ay/ay_xml_util.h>
 
 /// wrapper object for various formats in which BarzEL may be fed to the application
 /// as well as the data structures required for the actual parsing

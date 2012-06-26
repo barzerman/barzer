@@ -146,6 +146,8 @@ int testStripDiacritics(int argc, char* argv[])
 #include <ay_xml_util.h>
 int testXMLEscape(int argc, char* argv[])
 {
+    ay::XMLStream shit(std::cerr);
+    shit << "fuckshit" << std::endl;
     while(true) {
         std::string str;
         std::cout << "enter string:";

@@ -1071,10 +1071,10 @@ DEFINE_BELParserXML_taghandle(EXPAND)
 	        macroNode = getMacroByName(*trie,macroName);
         } else {
 		    ay::XMLStream xmlStream(reader->getErrStreamRef());
-		    xmlStream << "macro " << 
+		    xmlStream << "<error>macro " << 
                 gp.internalString_resolve(trieClassName_id) << "." << 
                 gp.internalString_resolve(trieName_id) << "." << 
-                macroName  << " referenced in statement "  << statementCount<< " doesnt exist";
+                macroName  << " referenced in statement "  << statementCount<< " doesnt exist</error>";
         }
     } else
 	    macroNode = getMacroByName(macroName);
@@ -1089,7 +1089,8 @@ DEFINE_BELParserXML_taghandle(EXPAND)
 		    sd.setVarId(internString_internal(varName));
 		}
 	} else {
-		ay::XMLStream(reader->getErrStreamRef()) << "macro " << macroName  << " referenced in statement "  << statementCount<< " doesnt exist";
+		ay::XMLStream xmlStream(reader->getErrStreamRef());
+		xmlStream << "<error>macro " << macroName  << " referenced in statement "  << statementCount<< " doesnt exist</error>";
 	}
 }
 
@@ -1379,7 +1380,8 @@ DEFINE_BELParserXML_taghandle(VAR)
 			if( num > 0 ) 
 				var.setPatternElemNumber( num );
 			else {
-				AYLOG(ERROR) << "invalid pattern element number " << v ;
+		        ay::XMLStream xmlStream(reader->getErrStreamRef());
+				xmlStream << "invalid pattern element number " << v ;
 			}
 		}
 			break;
