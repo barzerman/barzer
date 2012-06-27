@@ -289,7 +289,7 @@ struct BarzXMLErrorStream {
     BarzXMLErrorStream( std::ostream& o ) : os(o) 
         { os.os << "<error>"; }
     BarzXMLErrorStream( std::ostream& o, size_t stmtNum ) : os(o) 
-        { os.os << "<error stmt=\""<< stmtNum << "\"/>"; }
+        { os.os << "<error stmt=\""<< stmtNum << "\">"; }
     ~BarzXMLErrorStream()
         { os.os << "</error>\n"; }
 };
