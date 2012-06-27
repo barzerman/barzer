@@ -174,7 +174,8 @@ BELReader::BELReader( BELTrie* t, GlobalPools &g, std::ostream* errStream ) :
     d_errStream(errStream? errStream: &(std::cerr)),
     d_maxEmitCountPerStatement(DEFMAX_EMIT_PER_STMT),
     d_maxEmitCountPerTrie(DEFMAX_EMIT_PER_SET),
-    d_maxStatementsPerTrie(DEFMAX_STMT_PER_SET)
+    d_maxStatementsPerTrie(DEFMAX_STMT_PER_SET),
+    d_noCanonicalNames(0)
 {}
 BELReader::BELReader( GlobalPools &g, std::ostream* errStream ) :
 	trie(g.globalTriePool.produceTrie(g.internString_internal(""),g.internString_internal(""))) , parser(0), gp(g),
@@ -185,7 +186,8 @@ BELReader::BELReader( GlobalPools &g, std::ostream* errStream ) :
     d_errStream(errStream? errStream: &(std::cerr)),
     d_maxEmitCountPerStatement(DEFMAX_EMIT_PER_STMT),
     d_maxEmitCountPerTrie(DEFMAX_EMIT_PER_SET),
-    d_maxStatementsPerTrie(DEFMAX_STMT_PER_SET)
+    d_maxStatementsPerTrie(DEFMAX_STMT_PER_SET),
+    d_noCanonicalNames(0)
 {}
 
 void BELReader::setTrie( uint32_t trieClass, uint32_t trieId )

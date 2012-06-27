@@ -1263,12 +1263,14 @@ DEFINE_BELParserXML_taghandle(MKENT)
         /// 
 	    statement.pushNode( BTND_RewriteData(mkent));
     }
+    bool isTrivialRewrite = ( statement.stmt.translation.getTrivialRewriteData() != 0 );
     /// adding deduced entity name 
-    {
+    if( isTrivialRewrite &&  !reader->is_noCanonicalNames() ) {
         std::string theName;
         if( !canonicName || !*canonicName ) {
-            if( statement.hasPattern() )
+            if( statement.hasPattern() ) {
                 statement.stmt.pattern.getDescriptiveNameFromPattern_simple( theName, gp ) ;
+            }
         } else 
             theName.assign(canonicName);
             

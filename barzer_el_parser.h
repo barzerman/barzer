@@ -158,6 +158,7 @@ protected:
 	/// by default is set to d_trieSpellPriority+ d_rulesetSpellPriority
 	/// can be overridden (currently this is not done)
 	uint8_t d_spellPriority;
+    uint8_t d_noCanonicalNames;
 
 public:
 	/// barzEL input formats
@@ -221,6 +222,9 @@ public:
 	void setCurTrieId( uint32_t  trieClass, uint32_t trieId )
 		{ d_trieIdSet=true; d_curTrieId = trieId; d_curTrieClass = trieClass; }
 
+    void set_noCanonicalNames() { d_noCanonicalNames = 1; }
+    void set_canonicalNames() { d_noCanonicalNames = 0; }
+    bool is_noCanonicalNames() const { return d_noCanonicalNames; }
 	void clearCurTrieId() { d_trieIdSet= false; d_curTrieId=0xffffffff; d_curTrieClass= 0xffffffff; }
 
 	void setTrie( uint32_t trieClass, uint32_t trieId ) ;
