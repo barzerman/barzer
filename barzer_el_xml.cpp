@@ -150,7 +150,10 @@ void BELParserXML::startElement( const char* tag, const char_cp * attr, size_t a
 	}
 	tagStack.push( tid );
 	if( !isValidTag( tid, parentTag )  ) {
-		std::cerr << "invalid BEL xml(tag: " << tag <<") in statement " << statementCount << "\n";
+        {
+        BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+		errStream.os << "invalid BEL xml(tag: " << tag <<")";
+        }
 		tagStack.pop();
 		return;
 	}	
@@ -270,7 +273,8 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 {
 	if( close ) { /// statement is ready to be sent to the reader for adding to the trie
 		if( !statement.isValid() ) {
-			AYLOG(ERROR) << "skipped invalid statement " << statementCount ;
+            BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+			errStream.os << "skipped invalid statement ";
 		} else {
 			if( statement.isMacro() ) {
 				reader->addMacro( statement.macroNameId, statement.stmt );
@@ -325,13 +329,17 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 		case 't':  // pipe separated tags
 			break;
 		default:
-			AYLOG(DEBUG) << "unknown statement attribute " << n << ": " << v;
+            {
+			BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+            errStream.os << "unknown statement attribute " << n << ": " << v;
+            }
 			break;
 		}
 	}
     if( needAbort ) {
 	    statement.stmt.setStmtNumber( stmtNumber ) ;
-        reader->getErrStreamRef() << "<error stmt=\"" << statement.stmt.getStmtNumber() << "\">" << errStrStr.str() << "</error>\n";
+        BarzXMLErrorStream  errStream(reader->getErrStreamRef(),stmtNumber);
+        errStream.os << errStrStr.str();
         return;
     }
 
@@ -344,8 +352,8 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 	if( statement.isMacro() ) {
 	} else {
 		if( statement.hasStatement() ) { // bad - means we have statement tag nested in another statement
-            reader->getErrStreamRef() << "<error stmt=\"" << statement.stmt.getStmtNumber() << "\">" <<
-			"statement nested in statement </error>\n";
+            BarzXMLErrorStream  errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+            errStream.os << "statement nested in statement";
 			return;
 		} 
 	}
@@ -361,7 +369,8 @@ DEFINE_BELParserXML_taghandle(PATTERN)
 		return;
 	}
 	if( statement.hasPattern() ) { 
-		std::cerr << "duplicate pattern tag in statement " << statementCount << "\n";
+		BarzXMLErrorStream  errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+        errStream.os << "duplicate pattern tag";
 		return;
 	}
 	statement.setPattern();
@@ -373,7 +382,8 @@ DEFINE_BELParserXML_taghandle(TRANSLATION)
 		return;
 	}
 	if( statement.hasTranslation() ) { 
-		std::cerr << "duplicate translation tag in statement " << statementCount << "\n";
+        BarzXMLErrorStream  errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+		errStream.os << "duplicate translation tag in statement";
 		return;
 	}
 	statement.setTranslation();
@@ -470,19 +480,6 @@ template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTN
 { 
 	/// if d_str is numeric we need to do something
     const char* str = ( d_str[d_len] ? (d_parser.setTmpText(d_str,d_len)) : d_str ); 
-    /*
-    uint32_t tmpId = d_parser.getGlobalPools().string_getId( str );
-    if( tmpId != 0xffffffff ) {
-        t.stringId = tmpId;
-        return;
-    }
-    */
-
-    /*
-    if( !strncasecmp(d_str,"lcd",3) ) {
-        std::cerr << "SHIT FUCKbarzer_el_xml.cpp :479\n";
-    }
-    */
     bool isNumeric = (isdigit(str[0]) && isAllDigits(str,d_len));
 	bool strIsNum = ( !d_noTextToNum && isNumeric );
 	bool needStem = t.doStem;
@@ -1070,11 +1067,11 @@ DEFINE_BELParserXML_taghandle(EXPAND)
         if( trie ) {
 	        macroNode = getMacroByName(*trie,macroName);
         } else {
-		    ay::XMLStream xmlStream(reader->getErrStreamRef());
-		    xmlStream << "<error>macro " << 
+            BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+		    errStream.os << "macro " << 
                 gp.internalString_resolve(trieClassName_id) << "." << 
                 gp.internalString_resolve(trieName_id) << "." << 
-                macroName  << " referenced in statement "  << statementCount<< " doesnt exist</error>";
+                macroName  << " doesnt exist";
         }
     } else
 	    macroNode = getMacroByName(macroName);
@@ -1089,8 +1086,8 @@ DEFINE_BELParserXML_taghandle(EXPAND)
 		    sd.setVarId(internString_internal(varName));
 		}
 	} else {
-		ay::XMLStream xmlStream(reader->getErrStreamRef());
-		xmlStream << "<error>macro " << macroName  << " referenced in statement "  << statementCount<< " doesnt exist</error>";
+		BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+		errStream.os << "macro " << macroName  << " doesnt exist";
 	}
 }
 
@@ -1380,8 +1377,8 @@ DEFINE_BELParserXML_taghandle(VAR)
 			if( num > 0 ) 
 				var.setPatternElemNumber( num );
 			else {
-		        ay::XMLStream xmlStream(reader->getErrStreamRef());
-				xmlStream << "invalid pattern element number " << v ;
+                BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+				errStream.os << "invalid pattern element number " << v ;
 			}
 		}
 			break;
@@ -1390,7 +1387,8 @@ DEFINE_BELParserXML_taghandle(VAR)
 			if( num > 0 ) 
 				var.setWildcardNumber( num );
 			else {
-				AYLOG(ERROR) << "invalid wildcard number " << v ;
+				BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+                errStream.os << "invalid wildcard number " << v ;
 			}
 		}
 			break;
@@ -1552,7 +1550,8 @@ int BELParserXML::parse( std::istream& fp )
 	if( !parser ) {
 		parser = XML_ParserCreate(NULL);
 		if( !parser ) {
-			std::cerr << "BELParserXML couldnt create xml parser\n";
+            BarzXMLErrorStream  errStream(reader->getErrStreamRef());
+			errStream.os << "BELParserXML couldnt create xml parser";
 			return 0;
 		}
 	} else 
@@ -1673,7 +1672,10 @@ int BELParserXML::getTag( const char* s ) const
 		break;
 	} // switch ends
 	
-	AYLOG(ERROR) << "UNKNOWN TAG! " << s;
+    {
+        BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+        errStream.os << "Unknown tag " << s;
+    }
 	return TAG_UNDEFINED;
 }
 

@@ -284,6 +284,16 @@ inline std::ostream& BELStatementParsed::getErrStream() const
         std::cerr );
 }
 
+struct BarzXMLErrorStream {
+    ay::XMLStream os;
+    BarzXMLErrorStream( std::ostream& o ) : os(o) 
+        { os.os << "<error>"; }
+    BarzXMLErrorStream( std::ostream& o, size_t stmtNum ) : os(o) 
+        { os.os << "<error stmt=\""<< stmtNum << "\"/>"; }
+    ~BarzXMLErrorStream()
+        { os.os << "</error>\n"; }
+};
+
 }
 
 #endif // BARZER_EL_PARSER_H
