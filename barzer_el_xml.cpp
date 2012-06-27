@@ -1059,6 +1059,9 @@ DEFINE_BELParserXML_taghandle(EXPAND)
         uint32_t trieName_id = internString_internal(trieName); 
         uint32_t trieClassName_id = 0xffffffff;
         if( trieClassName ) {
+            if( !strcmp(trieClassName,"generic") ) 
+                trieClassName="";
+
             trieClassName_id = internString_internal(trieClassName);
         } else {
             trieClassName_id = reader->getTrie().getTrieClass_strId();
