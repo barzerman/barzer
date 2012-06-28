@@ -1,6 +1,12 @@
 #include "ay_ngrams.cpp"
 #include "ay_utf8.cpp"
 #include <fstream>
+#include <sys/time.h>
+
+inline long getDiff(timeval prev, timeval now)
+{
+	return 1000000 * (now.tv_sec - prev.tv_sec) + now.tv_usec - prev.tv_usec;
+}
 
 std::vector<std::string> loadFile(const std::string& filename)
 {
@@ -15,15 +21,43 @@ std::vector<std::string> loadFile(const std::string& filename)
 	return strings;
 }
 
+void runTests (const std::vector<std::string>& words, ay::TopicModelMgr& mgr)
+{
+	std::vector<int> topics;
+	mgr.getAvailableTopics(topics);
+
+	timeval prev, now;
+	gettimeofday(&prev, 0);
+	for (size_t i = 0; i < words.size(); ++i)
+	{
+		const std::string& word = words.at(i);
+		for (size_t j = 0; j < topics.size(); ++j)
+			volatile double spProb = mgr.getModel(topics[j]).getProb(word.c_str());
+	}
+	gettimeofday(&now, 0);
+	std::cout << "guessed " << words.size ()
+			<< " words in " << getDiff(prev, now) << " μs, "
+			<< static_cast<double> (getDiff(prev, now)) / words.size() / topics.size() << " μs per word" << std::endl;
+}
+
 int main()
 {
 	//model.addWords({ "shit", "sheet", "heat", "neat", "leet", "beat" });
 
 	ay::TopicModelMgr mgr;
+	timeval prev, now;
+	gettimeofday(&prev, 0);
 	mgr.getModel(0).addWords(loadFile("ngrams_sample/spanish.txt"));
 	mgr.getModel(1).addWords(loadFile("ngrams_sample/english.txt"));
 	mgr.getModel(2).addWords(loadFile("ngrams_sample/french.txt"));
+	gettimeofday(&now, 0);
+	std::cout << "initial learning took " << getDiff(prev, now) << " μs" << std::endl;
 
+	/*
 	std::cout << mgr.getModel(0).getProb("leechcraft") << " " << mgr.getModel(1).getProb("leechcraft") << " " << mgr.getModel(2).getProb("leechcraft") << std::endl;
 	std::cout << mgr.getModel(0).getProb("barzer") << " " << mgr.getModel(1).getProb("barzer") << " " << mgr.getModel(2).getProb("barzer") << std::endl;
+	*/
+	runTests(loadFile("ngrams_sample/spanish.txt"), mgr);
+	runTests(loadFile("ngrams_sample/english.txt"), mgr);
+	runTests(loadFile("ngrams_sample/french.txt"), mgr);
 }

@@ -38,5 +38,7 @@ namespace ay
 		TopicModelMgr(size_t size = 3);
 
 		NGramModel& getModel(int topic);
+
+		void getAvailableTopics(std::vector<int>&) const;
 	};
 }

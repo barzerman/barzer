@@ -102,4 +102,10 @@ namespace ay
 			pos = m_models.insert(std::make_pair(topic, NGramModel(m_gramSize))).first;
 		return pos->second;
 	}
+
+	void TopicModelMgr::getAvailableTopics(std::vector<int>& result) const
+	{
+		for (ModelsDict_t::const_iterator i = m_models.begin(), end = m_models.end(); i != end; ++i)
+			result.push_back(i->first);
+	}
 }
