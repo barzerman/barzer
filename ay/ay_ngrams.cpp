@@ -21,10 +21,9 @@ namespace ay
 					T m_integral;
 					char m_buf[sizeof(T)];
 				} u;
+				u.m_integral = 0;
 
 				std::memcpy(u.m_buf, str, std::min(size, sizeof(T)));
-				if (size != sizeof(T))
-					std::memset(u.m_buf + size, 0, sizeof(T) - size);
 
 				return u.m_integral;
 			}
