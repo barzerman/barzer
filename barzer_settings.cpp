@@ -10,6 +10,7 @@
 #include <barzer_universe.h>
 #include <barzer_basic_types.h>
 #include <ay/ay_util_time.h>
+#include <ay_ngrams.h>
 
 #include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
@@ -116,6 +117,62 @@ void BarzerSettings::init() {
 
 }
 
+void BarzerSettings::loadLangNGrams()
+{
+	using boost::property_tree::ptree;
+
+	ay::TopicModelMgr *langModel = d_currentUniverse->getGlobalPools().getLangModel();
+
+	try
+	{
+		const ptree& dicts = pt.get_child("config.freqDicts", empty_ptree());
+		BOOST_FOREACH(const ptree::value_type& v, dicts)
+		{
+			const ptree& fileTag = v.second;
+			const char *filePath = fileTag.data().c_str();
+
+			const boost::optional<std::string>& str = fileTag.get_child("<xmlattr>").get_optional<std::string>("lang");
+			if (!str)
+			{
+				std::cerr << "lang not set for a freqDicts.file tag with file path "
+						<< filePath
+						<< std::endl;
+				continue;
+			}
+
+			const int langId = ay::StemWrapper::getLangFromString(str->c_str());
+			if (langId == ay::StemWrapper::LG_INVALID)
+			{
+				std::cerr << "unknown language "
+						<< langId
+						<< std::endl;
+				continue;
+			}
+
+			std::ifstream istr(filePath);
+			int stringsCount = 0;
+			while (istr.good())
+			{
+				std::string str;
+				istr >> str;
+				langModel->getModel(langId).addWord(str.c_str());
+				++stringsCount;
+			}
+			std::cout << "added " << stringsCount << " words" << std::endl;
+		}
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << "error loading language NGrams definitions:"
+				<< e.what()
+				<< std::endl;
+	}
+	catch (...)
+	{
+		std::cerr << "error loading language NGrams definitions: unknown" << std::endl;
+	}
+}
+
 void BarzerSettings::loadRules(BELReader& reader, const boost::property_tree::ptree& rules)
 {
 	if (rules.empty()) {
@@ -213,6 +270,7 @@ void BarzerSettings::loadParseSettings() {
 	}
 	//}
 }
+
 void BarzerSettings::loadDictionaries() {
 
 	try {
@@ -574,6 +632,7 @@ void BarzerSettings::load(BELReader& reader, const char *fname) {
 		loadParseSettings();
 		loadEntities();
 		loadDictionaries();
+		loadLangNGrams();
 		loadRules(reader);
 		loadUsers(reader);
 
