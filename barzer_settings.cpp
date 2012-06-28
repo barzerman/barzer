@@ -128,12 +128,19 @@ void BarzerSettings::loadRules(BELReader& reader, const boost::property_tree::pt
 			const char *fname =  file.data().c_str();
 			try {
 				const ptree &attrs = file.get_child("<xmlattr>");
+                const boost::optional<std::string> noCanonicalNames = attrs.get_optional<std::string>("nonames");
+
 				const std::string &cl = attrs.get<std::string>("class"),
 			                  	  &id = attrs.get<std::string>("name");
                 uint32_t trieClass = gpools.internString_internal(cl.c_str()) ;
                 uint32_t trieId = gpools.internString_internal(id.c_str()) ;
 
+                
 				reader.setCurTrieId( trieClass, trieId );
+                if( noCanonicalNames ) {
+                    reader.set_noCanonicalNames();
+                } else 
+                    reader.set_canonicalNames();
 				addRulefile(reader, Rulefile(fname, cl, id));
 			} catch (boost::property_tree::ptree_bad_path&) {
 				reader.clearCurTrieId();
@@ -436,6 +443,18 @@ void BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 	loadTrieset(reader, u, children);
 	loadLocale(reader, u, children);
 	// loadSpell(u, children);
+
+    /// initilizing BZ spell
+    {
+    const GlobalPools& gp = u.getUniverse().getGlobalPools();
+	const StoredUniverse* secondaryUniverse = ( u.getId() ? gp.getDefaultUniverse() : 0 );
+    BZSpell* bzs = u.getUniverse().initBZSpell( secondaryUniverse );
+    if( bzs ) {
+        bzs->init( secondaryUniverse );
+        bzs->printStats( std::cerr );
+    }
+    } // end of bzspell initialization
+
 
 	StoredUniverse& uni = u.getUniverse();
 	uni.getBarzHints().initFromUniverse(&uni);

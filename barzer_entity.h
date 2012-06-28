@@ -266,24 +266,16 @@ public:
     struct EntProp {
         std::string  canonicName;
         uint32_t     relevance;
+        uint8_t      nameIsExplicit; // when != 0 means the name was hand set and needs to be honored more 
 
-        EntProp() : relevance(0) {}
-        EntProp( const char* n, uint32_t r ) : canonicName(n), relevance(r) {}
+        EntProp() : relevance(0), nameIsExplicit(0) {}
+        EntProp( const char* n, uint32_t r, uint8_t ne ) : canonicName(n), relevance(r), nameIsExplicit(ne) {}
     };
     typedef boost::unordered_map< StoredEntityUniqId, EntProp, StoredEntityUniqId_Hash > EntPropDtaMap;
 private:
     EntPropDtaMap d_autocDtaMap;
 public:
-    void setEntPropData( const StoredEntityUniqId& euid, const char* name, uint32_t rel ) 
-    {
-        EntPropDtaMap::iterator i = d_autocDtaMap.insert( EntPropDtaMap::value_type(euid,EntProp()) ).first;
-        /// longer name always wins
-        if( name && strlen(name)> i->second.canonicName.length()) {
-            i->second.canonicName.assign(name);
-        }
-        if( rel )
-            i->second.relevance = rel;
-    }
+    void setEntPropData( const StoredEntityUniqId& euid, const char* name, uint32_t rel ) ;
     const EntProp* getEntPropData( const StoredEntityUniqId& euid ) const 
         { EntPropDtaMap::const_iterator i = d_autocDtaMap.find( euid ); return ( i==d_autocDtaMap.end()? 0 : &(i->second) ); }
     size_t readFromFile( GlobalPools& gp, const char* fname ) ;

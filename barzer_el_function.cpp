@@ -1092,9 +1092,9 @@ struct BELFunctionStorage_holder {
                 } else 
                     return false;
             } else if( e.size() ) {
-                range.set<BarzerRange::Entity>()->first  = e[0];
-                range.set<BarzerRange::Entity>()->second = e[0];
-            }
+                range.setData( BarzerRange::Entity( e[0], e[0] ) );
+            } else 
+                return false;
             return true;
         }
 		bool operator()(const BarzerEntity &e) {

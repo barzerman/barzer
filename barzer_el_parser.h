@@ -8,6 +8,7 @@
 //#include <barzer_emitter.h>
 #include <barzer_el_btnd.h>
 #include <ay/ay_pool_with_id.h>
+#include <ay/ay_xml_util.h>
 
 /// wrapper object for various formats in which BarzEL may be fed to the application
 /// as well as the data structures required for the actual parsing
@@ -113,6 +114,7 @@ public:
 	GlobalPools& getGlobalPools();
 	const  GlobalPools& getGlobalPools() const;
 
+	const BELParseTreeNode* getMacroByName( const BELTrie& trie, const char* ) const;
 	const BELParseTreeNode* getMacroByName( const char* ) const;
     const BELParseTreeNode* getMacroByNameId( uint32_t strId ) const;
 
@@ -156,6 +158,7 @@ protected:
 	/// by default is set to d_trieSpellPriority+ d_rulesetSpellPriority
 	/// can be overridden (currently this is not done)
 	uint8_t d_spellPriority;
+    uint8_t d_noCanonicalNames;
 
 public:
 	/// barzEL input formats
@@ -219,6 +222,9 @@ public:
 	void setCurTrieId( uint32_t  trieClass, uint32_t trieId )
 		{ d_trieIdSet=true; d_curTrieId = trieId; d_curTrieClass = trieClass; }
 
+    void set_noCanonicalNames() { d_noCanonicalNames = 1; }
+    void set_canonicalNames() { d_noCanonicalNames = 0; }
+    bool is_noCanonicalNames() const { return d_noCanonicalNames; }
 	void clearCurTrieId() { d_trieIdSet= false; d_curTrieId=0xffffffff; d_curTrieClass= 0xffffffff; }
 
 	void setTrie( uint32_t trieClass, uint32_t trieId ) ;
@@ -281,6 +287,16 @@ inline std::ostream& BELStatementParsed::getErrStream() const
         *(getReader()->getErrStream()) :
         std::cerr );
 }
+
+struct BarzXMLErrorStream {
+    ay::XMLStream os;
+    BarzXMLErrorStream( std::ostream& o ) : os(o) 
+        { os.os << "<error>"; }
+    BarzXMLErrorStream( std::ostream& o, size_t stmtNum ) : os(o) 
+        { os.os << "<error stmt=\""<< stmtNum << "\">"; }
+    ~BarzXMLErrorStream()
+        { os.os << "</error>\n"; }
+};
 
 }
 

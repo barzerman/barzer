@@ -23,6 +23,11 @@ const BELParseTreeNode* BELParser::getMacroByNameId( uint32_t i ) const
 	return trie.getMacros().getMacro( i );
 }
 
+const BELParseTreeNode* BELParser::getMacroByName( const BELTrie& trie, const char* macroname ) const
+{
+    uint32_t macroNameId = reader->getGlobalPools().internalString_getId( macroname );
+	return trie.getMacros().getMacro( macroNameId );
+}
 const BELParseTreeNode* BELParser::getMacroByName( const char* macroname ) const
 {
 	const BELTrie& trie = reader->getTrie();
@@ -43,10 +48,12 @@ uint32_t BELParser::stemAndInternTmpText( const char* s, int len )
 	    scopy.assign(s, len );
         s=scopy.c_str();
     }
+    const StoredToken* storedTok = curUni->getStoredToken( s );
+    
 	if( bzSpell )  {
         uint32_t i = 0xffffffff;
         if( bzSpell->isUsersWord(i,s) ) {
-            return i;
+            return ( storedTok? storedTok->getStringId() : i );
         }
 		std::string stem;
         int lang = LANG_UNKNOWN;
@@ -96,18 +103,22 @@ StoredToken& BELParser::internString( const char* t, bool noSpell, const char* u
 {
 	// here we may want to tweak some (nonexistent yet) fields in StoredToken
 	// to reflect the fact that this thing is actually in the trie
-
+    
 	bool wasNew = false;
     uint16_t lang = 0;
-	StoredToken& sTok =  reader->getGlobalPools().getDtaIdx().addToken( lang, wasNew, t );
+
+    GlobalPools& gp  = reader->getGlobalPools();
+	StoredToken& sTok =  gp.getDtaIdx().addToken( lang, wasNew, t );
 	const uint32_t origId = sTok.getStringId();
+    uint32_t       caseSensitiveId = gp.string_intern( t );
+
 	if (!unstemmed)
 		sTok.setStemmed(false);
 	else if (wasNew)
 		sTok.setStemmed(true);
-    
     StoredUniverse* curUni = ( reader ? reader->getCurrentUniverse() : 0 );
     BZSpell* bzSpell= ( curUni ? curUni->getBZSpell() : 0);
+    
     if( wasNew && (sTok.getLength()  < BZSpell::MAX_WORD_LEN) ) {
         char w[ BZSpell::MAX_WORD_LEN ]; 
         strncpy( w, t, BZSpell::MAX_WORD_LEN-1 );
@@ -115,7 +126,7 @@ StoredToken& BELParser::internString( const char* t, bool noSpell, const char* u
 
         //bool tolowerWasNew = false;
         if( Lang::stringToLower( w, sTok.getLength(), lang ) ) {
-            uint32_t tolowerStrId =  reader->getGlobalPools().string_intern( w );
+            uint32_t tolowerStrId =  gp.string_intern( w );
 
             if( bzSpell ) 
                 bzSpell->addExtraWordToDictionary( tolowerStrId );
@@ -127,6 +138,9 @@ StoredToken& BELParser::internString( const char* t, bool noSpell, const char* u
         if( !unstemmed ) {
             if( bzSpell ) {
                 bzSpell->addExtraWordToDictionary( sTok.getStringId() );
+                if( caseSensitiveId != sTok.getStringId()  ) {
+                    bzSpell->addExtraWordToDictionary( caseSensitiveId );
+                }
             }
         } else {
             const uint32_t unstmId = reader->getGlobalPools().getDtaIdx().addToken(unstemmed).getStringId();
@@ -160,7 +174,8 @@ BELReader::BELReader( BELTrie* t, GlobalPools &g, std::ostream* errStream ) :
     d_errStream(errStream? errStream: &(std::cerr)),
     d_maxEmitCountPerStatement(DEFMAX_EMIT_PER_STMT),
     d_maxEmitCountPerTrie(DEFMAX_EMIT_PER_SET),
-    d_maxStatementsPerTrie(DEFMAX_STMT_PER_SET)
+    d_maxStatementsPerTrie(DEFMAX_STMT_PER_SET),
+    d_noCanonicalNames(0)
 {}
 BELReader::BELReader( GlobalPools &g, std::ostream* errStream ) :
 	trie(g.globalTriePool.produceTrie(g.internString_internal(""),g.internString_internal(""))) , parser(0), gp(g),
@@ -171,7 +186,8 @@ BELReader::BELReader( GlobalPools &g, std::ostream* errStream ) :
     d_errStream(errStream? errStream: &(std::cerr)),
     d_maxEmitCountPerStatement(DEFMAX_EMIT_PER_STMT),
     d_maxEmitCountPerTrie(DEFMAX_EMIT_PER_SET),
-    d_maxStatementsPerTrie(DEFMAX_STMT_PER_SET)
+    d_maxStatementsPerTrie(DEFMAX_STMT_PER_SET),
+    d_noCanonicalNames(0)
 {}
 
 void BELReader::setTrie( uint32_t trieClass, uint32_t trieId )

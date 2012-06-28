@@ -4,6 +4,7 @@
 #include <barzer_ghettodb.h>
 #include <ay/ay_debug.h>
 #include <barzer_server_response.h>
+#include <ay_xml_util.h>
 extern "C" {
 #include <expat.h>
 
@@ -31,6 +32,8 @@ static void endElement(void *ud, const XML_Char *n)
 // cast to XML_CharacterDataHandler
 static void charDataHandle( void * ud, const XML_Char *str, int len)
 {
+    if( !len )
+        return;
 	const char* s = (const char*)str;
 	barzer::BELParserXML *loader =(barzer::BELParserXML *)ud;
 	if( len>1 || !isspace(*s) ) 
@@ -147,7 +150,10 @@ void BELParserXML::startElement( const char* tag, const char_cp * attr, size_t a
 	}
 	tagStack.push( tid );
 	if( !isValidTag( tid, parentTag )  ) {
-		std::cerr << "invalid BEL xml(tag: " << tag <<") in statement " << statementCount << "\n";
+        {
+        BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+		errStream.os << "invalid BEL xml(tag: " << tag <<")";
+        }
 		tagStack.pop();
 		return;
 	}	
@@ -267,7 +273,8 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 {
 	if( close ) { /// statement is ready to be sent to the reader for adding to the trie
 		if( !statement.isValid() ) {
-			AYLOG(ERROR) << "skipped invalid statement " << statementCount ;
+            BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+			errStream.os << "skipped invalid statement ";
 		} else {
 			if( statement.isMacro() ) {
 				reader->addMacro( statement.macroNameId, statement.stmt );
@@ -322,13 +329,17 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 		case 't':  // pipe separated tags
 			break;
 		default:
-			AYLOG(DEBUG) << "unknown statement attribute " << n << ": " << v;
+            {
+			BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+            errStream.os << "unknown statement attribute " << n << ": " << v;
+            }
 			break;
 		}
 	}
     if( needAbort ) {
 	    statement.stmt.setStmtNumber( stmtNumber ) ;
-        reader->getErrStreamRef() << "<error stmt=\"" << statement.stmt.getStmtNumber() << "\">" << errStrStr.str() << "</error>\n";
+        BarzXMLErrorStream  errStream(reader->getErrStreamRef(),stmtNumber);
+        errStream.os << errStrStr.str();
         return;
     }
 
@@ -341,8 +352,8 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 	if( statement.isMacro() ) {
 	} else {
 		if( statement.hasStatement() ) { // bad - means we have statement tag nested in another statement
-            reader->getErrStreamRef() << "<error stmt=\"" << statement.stmt.getStmtNumber() << "\">" <<
-			"statement nested in statement </error>\n";
+            BarzXMLErrorStream  errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+            errStream.os << "statement nested in statement";
 			return;
 		} 
 	}
@@ -358,7 +369,8 @@ DEFINE_BELParserXML_taghandle(PATTERN)
 		return;
 	}
 	if( statement.hasPattern() ) { 
-		std::cerr << "duplicate pattern tag in statement " << statementCount << "\n";
+		BarzXMLErrorStream  errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+        errStream.os << "duplicate pattern tag";
 		return;
 	}
 	statement.setPattern();
@@ -370,7 +382,8 @@ DEFINE_BELParserXML_taghandle(TRANSLATION)
 		return;
 	}
 	if( statement.hasTranslation() ) { 
-		std::cerr << "duplicate translation tag in statement " << statementCount << "\n";
+        BarzXMLErrorStream  errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+		errStream.os << "duplicate translation tag in statement";
 		return;
 	}
 	statement.setTranslation();
@@ -467,14 +480,6 @@ template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTN
 { 
 	/// if d_str is numeric we need to do something
     const char* str = ( d_str[d_len] ? (d_parser.setTmpText(d_str,d_len)) : d_str ); 
-    /*
-    uint32_t tmpId = d_parser.getGlobalPools().string_getId( str );
-    if( tmpId != 0xffffffff ) {
-        t.stringId = tmpId;
-        return;
-    }
-    */
-
     bool isNumeric = (isdigit(str[0]) && isAllDigits(str,d_len));
 	bool strIsNum = ( !d_noTextToNum && isNumeric );
 	bool needStem = t.doStem;
@@ -1029,22 +1034,53 @@ DEFINE_BELParserXML_taghandle(EXPAND)
 {
 	if( close ) { return; }
 
-	const char*  macroName= 0,
-	        *varName = 0;
+	const char  *macroName      = 0,
+	            *varName        = 0,
+                *trieClassName  = 0,
+                *trieName       = 0;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
 		switch( n[0] ) {
-		case 'n': macroName= v; break;
 		case 'a':
 		    if (!strcmp(n, "as"))
 		        varName = v;
 		    break;
+		case 'c': trieClassName= v; break; // trie class 
+		case 'n': macroName= v; break;
+        case 't': trieName = v; break;     // trie name
 		}
 	}
      
-	const BELParseTreeNode* macroNode = getMacroByName(macroName);
+    // StoredUniverse* uni = reader->getCurrentUniverse();
+	const BELParseTreeNode* macroNode = 0;
+    if( trieName ) {
+        const GlobalPools& gp = reader->getGlobalPools();
+        uint32_t trieName_id = internString_internal(trieName); 
+        uint32_t trieClassName_id = 0xffffffff;
+        if( trieClassName ) {
+            if( !strcmp(trieClassName,"generic") ) 
+                trieClassName="";
+
+            trieClassName_id = internString_internal(trieClassName);
+        } else {
+            trieClassName_id = reader->getTrie().getTrieClass_strId();
+        }
+        const BELTrie* trie = gp.getTrie(trieClassName_id, trieName_id);
+        if( trie ) {
+	        macroNode = getMacroByName(*trie,macroName);
+        } else {
+            BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+		    errStream.os << "macro " << 
+                gp.internalString_resolve(trieClassName_id) << "." << 
+                gp.internalString_resolve(trieName_id) << "." << 
+                macroName  << " doesnt exist";
+        }
+    } else
+	    macroNode = getMacroByName(macroName);
+
 	if( macroNode ) {
+
 		BELParseTreeNode* curNode = statement.getCurTreeNode();
 		BELParseTreeNode &n = curNode->addChild(*macroNode);
 		if (varName) {
@@ -1053,7 +1089,8 @@ DEFINE_BELParserXML_taghandle(EXPAND)
 		    sd.setVarId(internString_internal(varName));
 		}
 	} else {
-		AYLOG(ERROR) << "macro " << macroName  << " referenced in statement "  << statementCount<< " doesnt exist";
+		BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+		errStream.os << "macro " << macroName  << " doesnt exist";
 	}
 }
 
@@ -1226,12 +1263,14 @@ DEFINE_BELParserXML_taghandle(MKENT)
         /// 
 	    statement.pushNode( BTND_RewriteData(mkent));
     }
+    bool isTrivialRewrite = ( statement.stmt.translation.getTrivialRewriteData() != 0 );
     /// adding deduced entity name 
-    {
+    if( isTrivialRewrite &&  !reader->is_noCanonicalNames() ) {
         std::string theName;
         if( !canonicName || !*canonicName ) {
-            if( statement.hasPattern() )
+            if( statement.hasPattern() ) {
                 statement.stmt.pattern.getDescriptiveNameFromPattern_simple( theName, gp ) ;
+            }
         } else 
             theName.assign(canonicName);
             
@@ -1343,7 +1382,8 @@ DEFINE_BELParserXML_taghandle(VAR)
 			if( num > 0 ) 
 				var.setPatternElemNumber( num );
 			else {
-				AYLOG(ERROR) << "invalid pattern element number " << v ;
+                BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+				errStream.os << "invalid pattern element number " << v ;
 			}
 		}
 			break;
@@ -1352,7 +1392,8 @@ DEFINE_BELParserXML_taghandle(VAR)
 			if( num > 0 ) 
 				var.setWildcardNumber( num );
 			else {
-				AYLOG(ERROR) << "invalid wildcard number " << v ;
+				BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+                errStream.os << "invalid wildcard number " << v ;
 			}
 		}
 			break;
@@ -1514,7 +1555,8 @@ int BELParserXML::parse( std::istream& fp )
 	if( !parser ) {
 		parser = XML_ParserCreate(NULL);
 		if( !parser ) {
-			std::cerr << "BELParserXML couldnt create xml parser\n";
+            BarzXMLErrorStream  errStream(reader->getErrStreamRef());
+			errStream.os << "BELParserXML couldnt create xml parser";
 			return 0;
 		}
 	} else 
@@ -1527,10 +1569,11 @@ int BELParserXML::parse( std::istream& fp )
 	
 	char buf[ 128*1024 ];	
 	bool done = false;
+    const size_t buf_len = sizeof(buf)-1;
 	do {
-    	fp.read( buf,sizeof(buf) );
+    	fp.read( buf,buf_len );
     	size_t len = fp.gcount();
-    	done = len < sizeof(buf);
+    	done = len < buf_len;
     	if (!XML_Parse(parser, buf, len, done)) {
       		fprintf(stderr,
 	      		"%s at line %d\n",
@@ -1634,7 +1677,10 @@ int BELParserXML::getTag( const char* s ) const
 		break;
 	} // switch ends
 	
-	AYLOG(ERROR) << "UNKNOWN TAG! " << s;
+    {
+        BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+        errStream.os << "Unknown tag " << s;
+    }
 	return TAG_UNDEFINED;
 }
 
