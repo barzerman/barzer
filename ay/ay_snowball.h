@@ -19,6 +19,7 @@ public:
     /// lang is one of the 
     /// 
     enum {
+		LG_ENGLISH = -1,// "en"
         LG_INVALID,
         LG_FRENCH,      // "fr"
         LG_SPANISH,     // "es"

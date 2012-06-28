@@ -8,17 +8,22 @@ namespace ay {
 
 int StemWrapper::getLangFromString( const char* langStr )
 {
-    switch(tolower(langStr[0])) {
-    case 'f': 
-        if( tolower(langStr[1]) == 'r' ) 
-            return LG_FRENCH;
-        break;
+	switch(tolower(langStr[0])) {
+	case 'f': 
+		if( tolower(langStr[1]) == 'r' ) 
+			return LG_FRENCH;
+		break;
     case 'e': 
-        if( tolower(langStr[1]) == 's' ) 
-            return LG_SPANISH;
-        break;
-    }
-        return LG_INVALID;
+	{
+		char sec = tolower(langStr[1]);
+		if (sec == 's')
+			return LG_SPANISH;
+		else if (sec == 'n')
+			return LG_ENGLISH;
+		break;
+	}
+	}
+	return LG_INVALID;
 }
 const char* StemWrapper::getValidLangString( int lang ) 
 {
