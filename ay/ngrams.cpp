@@ -21,7 +21,8 @@ std::vector<std::string> loadFile(const std::string& filename)
 	return strings;
 }
 
-void runTests (const std::vector<std::string>& words, ay::TopicModelMgr& mgr)
+template<typename ModelMgr>
+void runTests (const std::vector<std::string>& words, ModelMgr& mgr)
 {
 	std::vector<int> topics;
 	mgr.getAvailableTopics(topics);
@@ -42,9 +43,8 @@ void runTests (const std::vector<std::string>& words, ay::TopicModelMgr& mgr)
 
 int main()
 {
-	//model.addWords({ "shit", "sheet", "heat", "neat", "leet", "beat" });
-
-	ay::TopicModelMgr mgr;
+	//ay::BasicTopicModelMgr<ay::UTF8::NGramModel> mgr;
+	ay::BasicTopicModelMgr<ay::ASCII::NGramModel> mgr;
 	timeval prev, now;
 	gettimeofday(&prev, 0);
 	mgr.getModel(0).addWords(loadFile("ngrams_sample/spanish.txt"));
