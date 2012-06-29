@@ -31,6 +31,8 @@ const char* StemWrapper::getValidLangString( int lang )
         return "fr";
     else if( lang == LG_SPANISH ) 
         return "es";
+	else if (lang == LG_ENGLISH)
+		return "en";
     else
         return 0;
 }

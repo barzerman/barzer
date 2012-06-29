@@ -30,7 +30,7 @@ void runTests (const std::vector<std::string>& words, ModelMgr& mgr)
 	timeval prev, now;
 	gettimeofday(&prev, 0);
 	
-	const int rep = 100;
+	const int rep = 10;
 	for (int k = 0; k < rep; ++k)
 	{
 		for (size_t j = 0; j < topics.size(); ++j)
@@ -51,21 +51,40 @@ void runTests (const std::vector<std::string>& words, ModelMgr& mgr)
 
 int main()
 {
-	//ay::BasicTopicModelMgr<ay::UTF8::NGramModel> mgr;
-	ay::BasicTopicModelMgr<ay::ASCII::NGramModel> mgr;
+	ay::BasicTopicModelMgr<ay::UTF8::NGramModel> mgr;
+	//ay::BasicTopicModelMgr<ay::ASCII::NGramModel> mgr;
 	timeval prev, now;
 	gettimeofday(&prev, 0);
-	mgr.getModel(0).addWords(loadFile("ngrams_sample/spanish.txt"));
-	mgr.getModel(1).addWords(loadFile("ngrams_sample/english.txt"));
-	mgr.getModel(2).addWords(loadFile("ngrams_sample/french.txt"));
+	mgr.getModel(0).addWords(loadFile("ngrams_sample/english.txt"));
+	mgr.getModel(1).addWords(loadFile("ngrams_sample/french.txt"));
+	mgr.getModel(2).addWords(loadFile("ngrams_sample/spanish.txt"));
 	gettimeofday(&now, 0);
 	std::cout << "initial learning took " << getDiff(prev, now) << " μs" << std::endl;
 
+
 	/*
-	std::cout << mgr.getModel(0).getProb("leechcraft") << " " << mgr.getModel(1).getProb("leechcraft") << " " << mgr.getModel(2).getProb("leechcraft") << std::endl;
-	std::cout << mgr.getModel(0).getProb("barzer") << " " << mgr.getModel(1).getProb("barzer") << " " << mgr.getModel(2).getProb("barzer") << std::endl;
-	*/
 	runTests(loadFile("ngrams_sample/spanish.txt"), mgr);
 	runTests(loadFile("ngrams_sample/english.txt"), mgr);
 	runTests(loadFile("ngrams_sample/french.txt"), mgr);
+	*/
+	
+	std::vector<int> topics;
+	mgr.getAvailableTopics(topics);
+
+	std::string str;
+	while (true)
+	{
+		std::cout << "Enter string:" << std::endl;
+		std::getline(std::cin, str);
+		if (str.empty())
+			break;
+
+		for (size_t i = 0; i < topics.size(); ++i)
+		{
+			ay::UTF8::NGramModel& model = mgr.getModel(topics[i]);
+			std::cout << "score for topic " << topics[i] << ": " << model.getProb(str.c_str()) << std::endl;
+		}
+
+		std::cout << std::endl;
+	}
 }
