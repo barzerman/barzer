@@ -287,6 +287,31 @@ static int bshf_lex( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
+static int bshf_guesslang(BarzerShell *shell, char_cp cmd, std::istream& in)
+{
+	BarzerShellContext *context = shell->getBarzerContext();
+	ay::TopicModelMgr *mgr = context->getUniverse().getGlobalPools().getLangModel();
+
+	std::vector<int> langs;
+	mgr->getAvailableTopics(langs);
+
+	ay::InputLineReader reader(in);
+	while (reader.nextLine() && reader.str.length())
+	{
+		const std::string& str = reader.str;
+		for (size_t i = 0; i < langs.size(); ++i)
+		{
+			const char *lang = ay::StemWrapper::getValidLangString(langs[i]);
+			shell->getOutStream() << (lang ? lang : "unknown lang")
+					<< " score: "
+					<< mgr->getModel(langs[i]).getProb(str.c_str())
+					<< std::endl;
+		}
+		shell->getOutStream() << std::endl;
+	}
+	return 0;
+}
+
 static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
@@ -1256,6 +1281,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_instance, "instance", "lists all users in the instance" ),
 	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),
 	CmdData( (ay::Shell_PROCF)bshf_grammar, "grammar", "sets trie for given grammar. use 'user' to list grammars" ),
+	CmdData( (ay::Shell_PROCF)bshf_guesslang, "guesslang", "guess a language from a word/string" ),
 	CmdData( (ay::Shell_PROCF)bshf_lex, "lex", "tokenize and then classify (lex) the input" ),
 	CmdData( (ay::Shell_PROCF)bshf_tokenize, "tokenize", "tests tokenizer" ),
 	CmdData( (ay::Shell_PROCF)bshf_xmload, "xmload", "loads xml from file" ),
