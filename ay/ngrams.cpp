@@ -29,16 +29,24 @@ void runTests (const std::vector<std::string>& words, ModelMgr& mgr)
 
 	timeval prev, now;
 	gettimeofday(&prev, 0);
-	for (size_t i = 0; i < words.size(); ++i)
+	
+	const int rep = 100;
+	for (int k = 0; k < rep; ++k)
 	{
-		const std::string& word = words.at(i);
 		for (size_t j = 0; j < topics.size(); ++j)
-			volatile double spProb = mgr.getModel(topics[j]).getProb(word.c_str());
+		{
+			typename ModelMgr::ModelType_t& model = mgr.getModel(topics[j]);
+			for (size_t i = 0; i < words.size(); ++i)
+			{
+				const std::string& word = words.at(i);
+				volatile double spProb = model.getProb(word.c_str());
+			}
+		}
 	}
 	gettimeofday(&now, 0);
 	std::cout << "guessed " << words.size ()
-			<< " words in " << getDiff(prev, now) << " μs, "
-			<< static_cast<double> (getDiff(prev, now)) / words.size() / topics.size() << " μs per word" << std::endl;
+			<< " words in " << getDiff(prev, now) / static_cast<double> (rep) << " μs, "
+			<< static_cast<double> (getDiff(prev, now)) / words.size() / topics.size() / rep << " μs per word" << std::endl;
 }
 
 int main()

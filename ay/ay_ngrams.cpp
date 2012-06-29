@@ -1,61 +1,69 @@
 #include "ay_ngrams.h"
 #include <iostream>
+#include <alloca.h>
 
 namespace ay
 {
 	namespace ASCII
 	{
-		NGramModel::NGramModel(size_t size)
-		: m_gramSize(size)
-		, m_totalSize(0)
+		NGramModel::NGramModel()
+		: m_totalSize(0)
 		{
-		}
-
-		namespace
-		{
-			template<typename T>
-			inline T toIntegral(const char *str, size_t size)
-			{
-				union
-				{
-					T m_integral;
-					char m_buf[sizeof(T)];
-				} u;
-				u.m_integral = 0;
-
-				std::memcpy(u.m_buf, str, std::min(size, sizeof(T)));
-
-				return u.m_integral;
-			}
-
-			std::string mangle (const std::string& word)
-			{
-				std::string mangled (" ");
-				mangled.reserve(word.size());
-				std::transform(word.begin(), word.end(), std::back_inserter(mangled), tolower);
-				mangled += " ";
-				return mangled;
-			}
 		}
 
 		void NGramModel::addWord (const char *word)
 		{
-			const std::string& mangled = mangle(word);
-			const size_t numGrams = mangled.size() - m_gramSize + 1;
-			word = mangled.c_str();
+			const size_t wordLen = std::strlen(word);
+			if (wordLen < 2)
+				return;
+
+			union
+			{
+				uint32_t m_int;
+				char buf[4];
+			} u;
+			u.m_int = 0;
+
+			const size_t numGrams = wordLen - 2;
 			for (size_t i = 0; i < numGrams; ++i)
 			{
-				const uint32_t val = toIntegral<uint32_t>(word + i, m_gramSize);
-				EncDict_t::iterator pos = m_encounters.find(val);
+				u.buf[0] = word[i];
+				u.buf[1] = word[i + 1];
+				u.buf[2] = word[i + 2];
+
+				EncDict_t::iterator pos = m_encounters.find(u.m_int);
 				if (pos == m_encounters.end())
-					m_encounters.insert(std::make_pair(val, static_cast<uint64_t>(1)));
+					m_encounters.insert(std::make_pair(u.m_int, static_cast<uint64_t>(1)));
 				else
 					++pos->second;
 			}
 
-			m_totalSize += numGrams;
+			if (wordLen >= 2)
+			{
+				u.buf[0] = ' ';
+				u.buf[1] = word[0];
+				u.buf[2] = word[1];
+
+				EncDict_t::iterator pos = m_encounters.find(u.m_int);
+				if (pos == m_encounters.end())
+					m_encounters.insert(std::make_pair(u.m_int, static_cast<uint64_t>(1)));
+				else
+					++pos->second;
+				
+				u.buf[0] = word[wordLen - 2];
+				u.buf[1] = word[wordLen - 1];
+				u.buf[2] = ' ';
+
+				pos = m_encounters.find(u.m_int);
+				if (pos == m_encounters.end())
+					m_encounters.insert(std::make_pair(u.m_int, static_cast<uint64_t>(1)));
+				else
+					++pos->second;
+			}
+
+			m_totalSize += numGrams + 2;
 		}
-		
+
 		void NGramModel::addWords (const StringList_t& text)
 		{
 			for (size_t i = 0, size = text.size(); i < size; ++i)
@@ -66,11 +74,44 @@ namespace ay
 		{
 			uint64_t totalWeight = 0;
 
-			const std::string& mangled = mangle(word);
-			for (size_t i = 0; i < mangled.size() - m_gramSize + 1; ++i)
+			const size_t wordLen = std::strlen(word);
+			if (wordLen < 2)
+				return 0;
+
+			union
 			{
-				const uint32_t val = toIntegral<uint32_t>(&mangled.at(i), m_gramSize);
-				EncDict_t::const_iterator pos = m_encounters.find(val);
+				uint32_t m_int;
+				char buf[4];
+			} u;
+			u.m_int = 0;
+
+			const size_t numGrams = wordLen - 2;
+			for (size_t i = 0; i < numGrams; ++i)
+			{
+				u.buf[0] = word[i];
+				u.buf[1] = word[i + 1];
+				u.buf[2] = word[i + 2];
+
+				EncDict_t::const_iterator pos = m_encounters.find(u.m_int);
+				if (pos != m_encounters.end())
+					totalWeight += pos->second;
+			}
+
+			if (wordLen >= 2)
+			{
+				u.buf[0] = ' ';
+				u.buf[1] = word[0];
+				u.buf[2] = word[1];
+
+				EncDict_t::const_iterator pos = m_encounters.find(u.m_int);
+				if (pos != m_encounters.end())
+					totalWeight += pos->second;
+				
+				u.buf[0] = word[wordLen - 2];
+				u.buf[1] = word[wordLen - 1];
+				u.buf[2] = ' ';
+
+				pos = m_encounters.find(u.m_int);
 				if (pos != m_encounters.end())
 					totalWeight += pos->second;
 			}
@@ -81,12 +122,11 @@ namespace ay
 
 	namespace UTF8
 	{
-		NGramModel::NGramModel(size_t size)
-		: m_gramSize(size)
-		, m_totalSize(0)
+		NGramModel::NGramModel()
+		: m_totalSize(0)
 		{
 		}
-		
+
 		namespace
 		{
 			inline StrUTF8 mangle(const StrUTF8& src)
@@ -94,7 +134,6 @@ namespace ay
 				StrUTF8 mangled(" ");
 				mangled.append(src);
 				mangled.append(CharUTF8(" "));
-				mangled.toLower();
 				return mangled;
 			}
 
@@ -108,11 +147,11 @@ namespace ay
 		{
 			const StrUTF8& mangled = mangle(StrUTF8(word));
 
-			const size_t numGrams = mangled.size() - m_gramSize + 1;
+			const size_t numGrams = mangled.size() - 2;
 			for (size_t i = 0; i < numGrams; ++i)
 			{
 				UTF8Trie_t *t = &m_trie;
-				for (size_t j = 0; j < m_gramSize; ++j)
+				for (size_t j = 0; j < 3; ++j)
 					t = &t->addWithUpdate(mangled[i + j], increment);
 			}
 
@@ -129,14 +168,14 @@ namespace ay
 		{
 			uint64_t totalWeight = 0;
 
-			std::vector<CharUTF8> charBuf(m_gramSize);
+			CharUTF8 charBuf[3];
 			const StrUTF8& mangled = mangle(StrUTF8(word));
-			for (size_t i = 0; i < mangled.size() - m_gramSize + 1; ++i)
+			for (size_t i = 0; i < mangled.size() - 2; ++i)
 			{
-				for (size_t j = 0; j < m_gramSize; ++j)
+				for (size_t j = 0; j < 3; ++j)
 					charBuf[j] = mangled[i + j];
 
-				const UTF8Trie_t *result = m_trie.getLongestPath(charBuf.begin(), charBuf.end()).first;
+				const UTF8Trie_t *result = m_trie.getLongestPath(charBuf, charBuf + 3).first;
 				totalWeight += result ? result->data () : 0;
 			}
 

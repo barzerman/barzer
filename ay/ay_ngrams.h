@@ -15,14 +15,12 @@ namespace ay
 	{
 		class NGramModel
 		{
-			const size_t m_gramSize;
-
 			typedef boost::unordered_map<uint32_t, uint64_t> EncDict_t;
 			EncDict_t m_encounters;
 			uint64_t m_totalSize;
 		public:
-			NGramModel(size_t size = 3);
-			
+			NGramModel();
+
 			void addWord(const char *word);
 			void addWords(const StringList_t& text);
 
@@ -34,14 +32,12 @@ namespace ay
 	{
 		class NGramModel
 		{
-			const size_t m_gramSize;
-
 			typedef trie<ay::CharUTF8, uint32_t> UTF8Trie_t;
 			UTF8Trie_t m_trie;
-			
+
 			uint64_t m_totalSize;
 		public:
-			NGramModel(size_t size = 3);
+			NGramModel();
 
 			void addWord(const char *word);
 			void addWords(const StringList_t& text);
@@ -55,13 +51,12 @@ namespace ay
 	template<typename Model>
 	class BasicTopicModelMgr
 	{
-		const size_t m_gramSize;
-
 		typedef std::map<int, Model> ModelsDict_t;
 		ModelsDict_t m_models;
 	public:
-		inline BasicTopicModelMgr(size_t size = 3)
-		: m_gramSize(size)
+		typedef Model ModelType_t;
+
+		inline BasicTopicModelMgr()
 		{
 		}
 
@@ -69,7 +64,7 @@ namespace ay
 		{
 			typename ModelsDict_t::iterator pos = m_models.find(topic);
 			if (pos == m_models.end())
-				pos = m_models.insert(std::make_pair(topic, Model(m_gramSize))).first;
+				pos = m_models.insert(std::make_pair(topic, Model())).first;
 			return pos->second;
 		}
 
