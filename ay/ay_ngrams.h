@@ -32,8 +32,8 @@ namespace ay
 	{
 		class NGramModel
 		{
-			typedef trie<ay::CharUTF8, uint32_t> UTF8Trie_t;
-			UTF8Trie_t m_trie;
+			typedef boost::unordered_map<uint64_t, uint64_t> EncDict_t;
+			EncDict_t m_encounters;
 
 			uint64_t m_totalSize;
 		public:

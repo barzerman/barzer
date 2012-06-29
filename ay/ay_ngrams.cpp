@@ -150,9 +150,15 @@ namespace ay
 			const size_t numGrams = mangled.size() - 2;
 			for (size_t i = 0; i < numGrams; ++i)
 			{
-				UTF8Trie_t *t = &m_trie;
-				for (size_t j = 0; j < 3; ++j)
-					t = &t->addWithUpdate(mangled[i + j], increment);
+				const uint64_t val = (mangled[i].toUTF32() & 0xFFFF) +
+						((mangled[i + 1].toUTF32() & 0xFFFF) << 16) +
+						((mangled[i + 2].toUTF32() & 0xFFFF) << 24);
+
+				EncDict_t::iterator pos = m_encounters.find(val);
+				if (pos == m_encounters.end())
+					m_encounters.insert(std::make_pair(val, static_cast<uint64_t>(1)));
+				else
+					++pos->second;
 			}
 
 			m_totalSize += numGrams;
@@ -168,15 +174,16 @@ namespace ay
 		{
 			uint64_t totalWeight = 0;
 
-			CharUTF8 charBuf[3];
 			const StrUTF8& mangled = mangle(StrUTF8(word));
 			for (size_t i = 0; i < mangled.size() - 2; ++i)
 			{
-				for (size_t j = 0; j < 3; ++j)
-					charBuf[j] = mangled[i + j];
+				const uint64_t val = (mangled[i].toUTF32() & 0xFFFF) +
+						((mangled[i + 1].toUTF32() & 0xFFFF) << 16) +
+						((mangled[i + 2].toUTF32() & 0xFFFF) << 24);
 
-				const UTF8Trie_t *result = m_trie.getLongestPath(charBuf, charBuf + 3).first;
-				totalWeight += result ? result->data () : 0;
+				EncDict_t::const_iterator pos = m_encounters.find(val);
+				if (pos != m_encounters.end())
+					totalWeight += pos->second;
 			}
 
 			return static_cast<double> (totalWeight) / m_totalSize;
@@ -202,9 +209,11 @@ namespace ay
 
 		void NGramModel::dump()
 		{
+			/*
 			CallbackTrieDump cb;
 			trie_visitor<UTF8Trie_t, CallbackTrieDump> vis(cb);
 			vis.visit(m_trie);
+			*/
 		}
 	}
 }
