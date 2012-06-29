@@ -92,6 +92,18 @@ void BarzerPython::shell_cmd( const std::string& cmd, const std::string& args )
         shell = new BarzerShell(0,*gp);
 }
 
+boost_python_list BarzerPython::guessLang(const std::string& s)
+{
+    list l;
+    if( d_universe ) {
+        list pair;
+        pair.append( "shit" );
+        pair.append( 12 );
+        l.append( pair );
+    }
+
+    return l;
+}
 std::string BarzerPython::bzstem(const std::string& s)
 {
     if( d_universe ) {
@@ -719,6 +731,7 @@ BOOST_PYTHON_MODULE(pybarzer)
     // AYLOG(DEBUG) << "LOADING BARZER PYTHON MODULE\n";
     boost::python::class_<barzer::BarzerPython>( "Barzer" )
         .def( "stem", &barzer::BarzerPython::bzstem )
+        .def( "guessLang", &barzer::BarzerPython::guessLang )
         .def( "init", &barzer::BarzerPython::init )
         .def( "universe", &barzer::BarzerPython::setUniverse )
         .def( "mkProcessor", &barzer::BarzerPython::makeParseEnv, return_value_policy<manage_new_object>() )
@@ -731,6 +744,7 @@ BOOST_PYTHON_MODULE(pybarzer)
     // BarzerResponseObject    
     boost::python::class_<barzer::BarzerResponseObject>( "response" )
         .def_readonly( "trace", &barzer::BarzerResponseObject::traceInfo )
+        .def_readonly( "spell", &barzer::BarzerResponseObject::spellInfo )
         .def_readonly( "spell", &barzer::BarzerResponseObject::spellInfo )
         .def_readonly( "topics", &barzer::BarzerResponseObject::topicInfo )
         .def_readwrite( "beads", &barzer::BarzerResponseObject::beadList );

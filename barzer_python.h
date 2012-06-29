@@ -57,7 +57,7 @@ public:
     //std::string     count_emit(const std::string& q ) const;
     /// exported functions 
     std::string     bzstem(const std::string& s);
-
+    boost_python_list guessLang(const std::string& s);
 
     void shell_cmd( const std::string& cmd, const std::string& args );
 
