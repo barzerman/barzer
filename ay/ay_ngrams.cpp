@@ -129,12 +129,12 @@ namespace ay
 
 		namespace
 		{
-			inline StrUTF8 mangle(const StrUTF8& src)
+			inline std::vector<uint64_t> hashString(const StrUTF8& src)
 			{
-				StrUTF8 mangled(" ");
-				mangled.append(src);
-				mangled.append(CharUTF8(" "));
-				return mangled;
+				std::vector<uint64_t> result (src.size() + 2, 0x20);
+				for (size_t i = 0, sz = src.size(); i < sz; ++i)
+					result[i + 1] = src[i].toUTF32() & 0xFFFF;
+				return result;
 			}
 
 			inline uint32_t increment(uint32_t val)
@@ -145,14 +145,14 @@ namespace ay
 
 		void NGramModel::addWord(const char *word)
 		{
-			const StrUTF8& mangled = mangle(StrUTF8(word));
+			const std::vector<uint64_t>& hashes = hashString(StrUTF8(word));
 
-			const size_t numGrams = mangled.size() - 2;
+			const size_t numGrams = hashes.size() - 2;
 			for (size_t i = 0; i < numGrams; ++i)
 			{
-				const uint64_t val = (mangled[i].toUTF32() & 0xFFFF) +
-						((mangled[i + 1].toUTF32() & 0xFFFF) << 16) +
-						((mangled[i + 2].toUTF32() & 0xFFFF) << 24);
+				const uint64_t val = hashes[i] +
+						(hashes[i + 1] << 16) +
+						(hashes[i + 2] << 32);
 
 				EncDict_t::iterator pos = m_encounters.find(val);
 				if (pos == m_encounters.end())
@@ -174,12 +174,12 @@ namespace ay
 		{
 			uint64_t totalWeight = 0;
 
-			const StrUTF8& mangled = mangle(StrUTF8(word));
-			for (size_t i = 0; i < mangled.size() - 2; ++i)
+			const std::vector<uint64_t>& hashes = hashString(StrUTF8(word));
+			for (size_t i = 0; i < hashes.size() - 2; ++i)
 			{
-				const uint64_t val = (mangled[i].toUTF32() & 0xFFFF) +
-						((mangled[i + 1].toUTF32() & 0xFFFF) << 16) +
-						((mangled[i + 2].toUTF32() & 0xFFFF) << 24);
+				const uint64_t val = hashes[i] +
+						(hashes[i + 1] << 16) +
+						(hashes[i + 2] << 32);
 
 				EncDict_t::const_iterator pos = m_encounters.find(val);
 				if (pos != m_encounters.end())
