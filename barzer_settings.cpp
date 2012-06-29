@@ -150,15 +150,19 @@ void BarzerSettings::loadLangNGrams()
 			}
 
 			std::ifstream istr(filePath);
-			int stringsCount = 0;
-			while (istr.good())
-			{
-				std::string str;
-				istr >> str;
-				langModel->getModel(langId).addWord(str.c_str());
-				++stringsCount;
-			}
-			std::cout << "added " << stringsCount << " words" << std::endl;
+            if( !istr.is_open() ) {
+                std::cerr << "ERROR loading language classifier cannot open file:" << filePath << std::endl;
+            } else {
+			    int stringsCount = 0;
+			    while (istr.good())
+			    {
+				    std::string str;
+				    istr >> str;
+				    langModel->getModel(langId).addWord(str.c_str());
+				    ++stringsCount;
+			    }
+			    std::cout << "Language classifier " << stringsCount << " words from " << filePath << std::endl;
+            }
 		}
 	}
 	catch (const std::exception& e)
