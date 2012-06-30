@@ -290,23 +290,25 @@ static int bshf_lex( BarzerShell* shell, char_cp cmd, std::istream& in )
 static int bshf_guesslang(BarzerShell *shell, char_cp cmd, std::istream& in)
 {
 	BarzerShellContext *context = shell->getBarzerContext();
-	ay::TopicModelMgr *mgr = context->getUniverse().getGlobalPools().getLangModel();
-
-	std::vector<int> langs;
-	mgr->getAvailableTopics(langs);
+	GlobalPools& pools = context->getUniverse().getGlobalPools();
 
 	ay::InputLineReader reader(in);
 	while (reader.nextLine() && reader.str.length())
 	{
 		const std::string& str = reader.str;
-		for (size_t i = 0; i < langs.size(); ++i)
+
+		std::vector<std::pair<int, double> > probs;
+		ay::evalAllLangs(pools.getUTF8LangModel(), pools.getASCIILangModel(), str.c_str(), probs);
+
+		for (size_t i = 0; i < probs.size(); ++i)
 		{
-			const char *lang = ay::StemWrapper::getValidLangString(langs[i]);
+			const char *lang = ay::StemWrapper::getValidLangString(probs[i].first);
 			shell->getOutStream() << (lang ? lang : "unknown lang")
 					<< " score: "
-					<< mgr->getModel(langs[i]).getProb(str.c_str())
+					<< probs.at(i).second
 					<< std::endl;
 		}
+
 		shell->getOutStream() << std::endl;
 	}
 	return 0;

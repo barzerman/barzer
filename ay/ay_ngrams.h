@@ -76,4 +76,25 @@ namespace ay
 	};
 
 	typedef BasicTopicModelMgr<UTF8::NGramModel> TopicModelMgr;
+	
+	typedef BasicTopicModelMgr<UTF8::NGramModel> UTF8TopicModelMgr;
+	typedef BasicTopicModelMgr<ASCII::NGramModel> ASCIITopicModelMgr;
+
+	void evalAllLangs(UTF8TopicModelMgr *utf8, ASCIITopicModelMgr *ascii,
+			const char *str, std::vector<std::pair<int, double> >& probs);
+
+	inline void getScores(UTF8::NGramModel& utf8, ASCII::NGramModel& ascii, const char *str, size_t len, double& utf8Score, double& asciiScore)
+	{
+		const char *ptr = str;
+		while (*ptr)
+			if (*ptr > 127)
+			{
+				utf8Score = 1;
+				asciiScore = 0;
+				return;
+			}
+
+		utf8Score = utf8.getProb(str);
+		asciiScore = ascii.getProb(str);
+	}
 }

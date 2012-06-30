@@ -216,4 +216,24 @@ namespace ay
 			*/
 		}
 	}
+
+	void evalAllLangs (UTF8TopicModelMgr* utf8, ASCIITopicModelMgr* ascii, const char* str, std::vector< std::pair< int, double > >& probs)
+	{
+		std::vector<int> langs;
+
+		utf8->getAvailableTopics(langs);
+		for (size_t i = 0; i < langs.size(); ++i)
+		{
+			const int lang = langs[i];
+			probs.push_back(std::make_pair(lang, utf8->getModel(lang).getProb(str)));
+		}
+
+		langs.clear();
+		ascii->getAvailableTopics(langs);
+		for (size_t i = 0; i < langs.size(); ++i)
+		{
+			const int lang = langs.at(i);
+			probs.push_back(std::make_pair(lang, ascii->getModel(lang).getProb(str)));
+		}
+	}
 }

@@ -25,6 +25,12 @@ int StemWrapper::getLangFromString( const char* langStr )
 	}
 	return LG_INVALID;
 }
+
+bool StemWrapper::isUnicodeLang (int lang)
+{
+	return lang == LG_ENGLISH;
+}
+
 const char* StemWrapper::getValidLangString( int lang ) 
 {
     if( lang == LG_FRENCH ) 

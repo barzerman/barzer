@@ -155,9 +155,11 @@ class GlobalPools {
     stem_to_srcs_map d_stemSrcs;
 	ay::StemThreadPool m_stemPool;
 
-	ay::TopicModelMgr *m_langModelMgr;
+	ay::UTF8TopicModelMgr *m_utf8langModelMgr;
+	ay::ASCIITopicModelMgr *m_asciiLangModelMgr;
 public:
-	ay::TopicModelMgr* getLangModel() const { return m_langModelMgr; }
+	ay::UTF8TopicModelMgr* getUTF8LangModel() const { return m_utf8langModelMgr; }
+	ay::ASCIITopicModelMgr* getASCIILangModel() const { return m_asciiLangModelMgr; }
 
 	void initThreadStemmer() { initThreadStemmer(boost::this_thread::get_id()); }
 	void initThreadStemmer(boost::thread::id id) { m_stemPool.createThreadStemmer(id); }
