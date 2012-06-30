@@ -62,11 +62,10 @@ int main()
 	std::cout << "initial learning took " << getDiff(prev, now) << " μs" << std::endl;
 
 
-	/*
 	runTests(loadFile("ngrams_sample/spanish.txt"), mgr);
 	runTests(loadFile("ngrams_sample/english.txt"), mgr);
 	runTests(loadFile("ngrams_sample/french.txt"), mgr);
-	*/
+
 	
 	std::vector<int> topics;
 	mgr.getAvailableTopics(topics);
@@ -87,4 +86,5 @@ int main()
 
 		std::cout << std::endl;
 	}
+	
 }

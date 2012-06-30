@@ -76,7 +76,8 @@ GlobalPools::~GlobalPools()
 			delete i->second;
 	}
 
-	delete m_langModelMgr;
+	delete m_utf8langModelMgr;
+	delete m_asciiLangModelMgr;
 }
 
 BELTrie* GlobalTriePool::mkNewTrie()
@@ -170,7 +171,8 @@ BELTrie* GlobalTriePool::produceTrie( uint32_t trieClass, uint32_t trieId )
 }
 
 GlobalPools::GlobalPools() :
-	m_langModelMgr(new ay::TopicModelMgr),
+	m_utf8langModelMgr(new ay::UTF8TopicModelMgr),
+	m_asciiLangModelMgr(new ay::ASCIITopicModelMgr),
 	dtaIdx( *this, &stringPool),
 	funSt(*this),
 	dateLookup(*this),

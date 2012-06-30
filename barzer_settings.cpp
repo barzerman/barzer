@@ -117,11 +117,29 @@ void BarzerSettings::init() {
 
 }
 
+namespace
+{
+	template<typename T>
+	void feedStream(T &model, std::istream& istr)
+	{
+		int stringsCount = 0;
+		while (istr.good())
+		{
+			std::string str;
+			istr >> str;
+			model.addWord(str.c_str());
+			++stringsCount;
+		}
+		std::cout << "Language classifier " << stringsCount << " words from " << std::endl;
+	}
+}
+
 void BarzerSettings::loadLangNGrams()
 {
 	using boost::property_tree::ptree;
 
-	ay::TopicModelMgr *langModel = d_currentUniverse->getGlobalPools().getLangModel();
+	ay::UTF8TopicModelMgr *utf8lm = d_currentUniverse->getGlobalPools().getUTF8LangModel();
+	ay::ASCIITopicModelMgr *asciilm = d_currentUniverse->getGlobalPools().getASCIILangModel();
 
 	try
 	{
@@ -150,19 +168,12 @@ void BarzerSettings::loadLangNGrams()
 			}
 
 			std::ifstream istr(filePath);
-            if( !istr.is_open() ) {
-                std::cerr << "ERROR loading language classifier cannot open file:" << filePath << std::endl;
-            } else {
-			    int stringsCount = 0;
-			    while (istr.good())
-			    {
-				    std::string str;
-				    istr >> str;
-				    langModel->getModel(langId).addWord(str.c_str());
-				    ++stringsCount;
-			    }
-			    std::cout << "Language classifier " << stringsCount << " words from " << filePath << std::endl;
-            }
+            if (!istr.is_open())
+				std::cerr << "ERROR loading language classifier cannot open file:" << filePath << std::endl;
+			else if (ay::StemWrapper::isUnicodeLang(langId))
+				feedStream (utf8lm->getModel(langId), istr);
+			else
+				feedStream (asciilm->getModel(langId), istr);
 		}
 	}
 	catch (const std::exception& e)
@@ -656,7 +667,3 @@ const std::string BarzerSettings::get(const std::string &key) const {
 }
 
 }
-
-
-
-
