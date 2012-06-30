@@ -106,9 +106,13 @@ public:
 		BHB_MAX
 	};
     /// ordered array of utf8 languages the engine will try stemming to 
+    // ay:: langs
     typedef std::vector< int > LangArray;
+
 private:
     LangArray d_stemUtf8Lang;
+    bool      d_hasAsciiLang; /// true if universe has ascii language
+
 	ay::bitflags<BHB_MAX> d_bhb;
 	const StoredUniverse* d_universe;
 public:
@@ -116,7 +120,7 @@ public:
 	void initFromUniverse( const StoredUniverse* u );
 	void clear() { d_bhb.clear(); }
 
-	BarzHints( ) : d_universe(0) {}
+	BarzHints( ) : d_hasAsciiLang(true),d_universe(0) {}
 	BarzHints( const StoredUniverse* u ) : d_universe(0)
 		{ initFromUniverse(u); }
 

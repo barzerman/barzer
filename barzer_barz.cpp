@@ -10,10 +10,9 @@ namespace barzer {
 void  BarzHints::initFromUniverse( const StoredUniverse* u ) 
 {
 	d_universe = u;
-
+    d_hasAsciiLang = true;
 	clear();
-	if (u)
-	{
+	if (u) {
 		switch (u->getLangInfo().getDominantLanguage())
 		{
 		case LANG_RUSSIAN:
