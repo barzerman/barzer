@@ -217,6 +217,11 @@ public:
 	uint32_t internString_internal( const char* str ) { return internalStringPool.internIt( str ); }
 	const char* internalString_resolve( uint32_t id ) const { return internalStringPool.resolveId( id ); }
 
+	const char* internalString_resolve_safe( uint32_t id ) const { 
+        const char* s = internalStringPool.resolveId( id );
+        return ( s ? s: "" );
+    }
+
 	size_t getMaxAnalyticalModeMaxSeqLength() const { return d_maxAnalyticalModeMaxSeqLength; }
 
 	EntPropCompatibility entCompatibility;
