@@ -19,6 +19,7 @@ public:
     /// lang is one of the 
     /// 
     enum {
+		LG_ENGLISH = -1,// "en"
         LG_INVALID,
         LG_FRENCH,      // "fr"
         LG_SPANISH,     // "es"
@@ -27,6 +28,7 @@ public:
     };
     static const char* getValidLangString( int lang ) ;
     static int getLangFromString( const char* langStr );
+	static bool isUnicodeLang (int lang);
 
     static sb_stemmer* mkSnowballStemmer( int lang );
     static void        freeSnowballStemmer( sb_stemmer* sb );

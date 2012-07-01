@@ -2,6 +2,7 @@
 #include <barzer_bzspell.h>
 #include <barzer_ghettodb.h>
 #include <ay/ay_cmdproc.h>
+#include <ay/ay_ngrams.h>
 #include <boost/filesystem.hpp>
 
 namespace barzer {
@@ -74,6 +75,9 @@ GlobalPools::~GlobalPools()
 		if( i->second )
 			delete i->second;
 	}
+
+	delete m_utf8langModelMgr;
+	delete m_asciiLangModelMgr;
 }
 
 BELTrie* GlobalTriePool::mkNewTrie()
@@ -167,6 +171,8 @@ BELTrie* GlobalTriePool::produceTrie( uint32_t trieClass, uint32_t trieId )
 }
 
 GlobalPools::GlobalPools() :
+	m_utf8langModelMgr(new ay::UTF8TopicModelMgr),
+	m_asciiLangModelMgr(new ay::ASCIITopicModelMgr),
 	dtaIdx( *this, &stringPool),
 	funSt(*this),
 	dateLookup(*this),

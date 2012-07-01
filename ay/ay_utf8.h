@@ -347,6 +347,7 @@ namespace ay
             size_t offset = m_positions.back();
 
             m_positions.reserve( m_positions.size() + o.m_positions.size()-1 );
+            m_positions.pop_back();
             for( std::vector<size_t>::const_iterator p = o.m_positions.begin(); p!= o.m_positions.end(); ++p ) 
                 m_positions.push_back(*p+offset);
             memcpy( &(m_buf[ offset ]), &(o.m_buf[0]), o.m_buf.size() );

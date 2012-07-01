@@ -148,6 +148,7 @@ public:
 	void loadParseSettings();
 	void loadEntities();
 	/// global dictionaries from <dictionaries> tag
+	void loadLangNGrams();
 	void loadDictionaries();
 	void loadSpell(User&, const boost::property_tree::ptree&);
 

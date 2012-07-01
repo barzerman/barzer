@@ -3,6 +3,7 @@
 
 #include <ay_string_pool.h>
 #include <ay_snowball.h>
+#include <ay_ngrams.h>
 #include <barzer_el_rewriter.h>
 #include <barzer_el_wildcard.h>
 #include <barzer_el_trie.h>
@@ -23,7 +24,11 @@
 
 class sb_stemmer;
 
-namespace ay { struct CommandLineArgs; }
+namespace ay
+{
+	struct CommandLineArgs;
+}
+
 namespace barzer {
 
 class StoredUniverse;
@@ -143,13 +148,19 @@ public:
 /// Barzel, DataIndex and everything else
 
 class GlobalPools {
-	GlobalPools(GlobalPools&); // {}
-	GlobalPools& operator=(GlobalPools&); // {}
+	GlobalPools(GlobalPools&);
+	GlobalPools& operator=(GlobalPools&);
 	typedef boost::unordered_set< uint32_t > DictionaryMap;
 	DictionaryMap d_dictionary;
     stem_to_srcs_map d_stemSrcs;
 	ay::StemThreadPool m_stemPool;
+
+	ay::UTF8TopicModelMgr *m_utf8langModelMgr;
+	ay::ASCIITopicModelMgr *m_asciiLangModelMgr;
 public:
+	ay::UTF8TopicModelMgr* getUTF8LangModel() const { return m_utf8langModelMgr; }
+	ay::ASCIITopicModelMgr* getASCIILangModel() const { return m_asciiLangModelMgr; }
+
 	void initThreadStemmer() { initThreadStemmer(boost::this_thread::get_id()); }
 	void initThreadStemmer(boost::thread::id id) { m_stemPool.createThreadStemmer(id); }
 	inline const ay::MultilangStem* getThreadStemmer() const { return m_stemPool.getThreadStemmer(); }
