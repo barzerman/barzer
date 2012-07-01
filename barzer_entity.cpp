@@ -30,7 +30,7 @@ struct EntityDataReaderCB {
 };
 
 }
-void EntityData::setEntPropData( const StoredEntityUniqId& euid, const char* name, uint32_t rel )
+EntityData::EntProp*  EntityData::setEntPropData( const StoredEntityUniqId& euid, const char* name, uint32_t rel )
 {
     EntPropDtaMap::iterator i = d_autocDtaMap.insert( EntPropDtaMap::value_type(euid,EntProp()) ).first;
     /// longer name always wins
@@ -39,6 +39,7 @@ void EntityData::setEntPropData( const StoredEntityUniqId& euid, const char* nam
     }
     if( rel )
         i->second.relevance = rel;
+    return ( &(i->second) );
 }
 size_t EntityData::readFromFile( GlobalPools& gp, const char* fname ) 
 {

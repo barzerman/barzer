@@ -1266,15 +1266,20 @@ DEFINE_BELParserXML_taghandle(MKENT)
     bool isTrivialRewrite = ( statement.stmt.translation.getTrivialRewriteData() != 0 );
     /// adding deduced entity name 
     if( isTrivialRewrite &&  !reader->is_noCanonicalNames() ) {
-        std::string theName;
-        if( !canonicName || !*canonicName ) {
-            if( statement.hasPattern() ) {
-                statement.stmt.pattern.getDescriptiveNameFromPattern_simple( theName, gp ) ;
-            }
-        } else 
-            theName.assign(canonicName);
+        EntityData::EntProp* eprop = gp.entData.getEntPropData(ent.getEuid());
+        if( !eprop || !eprop->is_nameExplicit() ) {
+            std::string theName;
+            if( !canonicName || !*canonicName ) {
+                if( statement.hasPattern() ) {
+                    statement.stmt.pattern.getDescriptiveNameFromPattern_simple( theName, gp ) ;
+                }
+            } else 
+                theName.assign(canonicName);
             
-        gp.entData.setEntPropData( ent.getEuid(), theName.c_str(), relevance );
+            eprop= gp.entData.setEntPropData( ent.getEuid(), theName.c_str(), relevance );
+            if( canonicName && eprop ) 
+                eprop->set_nameExplicit();
+        }
     }
     if( topicClass ) {
         uint32_t topicIdStrId = reader->getGlobalPools().internString_internal(topicIdStr) ;
@@ -1282,8 +1287,11 @@ DEFINE_BELParserXML_taghandle(MKENT)
 
         BELTrie& trie = reader->getTrie();
         trie.linkEntToTopic( topicEnt.getEuid(), ent.getEuid() );
-        if( topicRelevance || topicCanonicName ) 
-            gp.entData.setEntPropData( topicEnt.getEuid(), topicCanonicName, topicRelevance );
+        if( topicRelevance || topicCanonicName ) {
+            EntityData::EntProp* eprop = gp.entData.setEntPropData( topicEnt.getEuid(), topicCanonicName, topicRelevance );
+            if( topicCanonicName && eprop ) 
+                eprop->set_nameExplicit();
+        }
     }
 }
         

@@ -75,7 +75,6 @@ lg_ru/barzer_ru_date_util.o \
 
 objects = $(lib_objects) barzer.o
 objects_python=barzer_python.o util/pybarzer.o
-#objects_python=util/pybarzer.o
 
 INSTALL_DIR = /usr/share/barzer
 INSTALL_DATA_DIR = $(INSTALL_DIR)/data
@@ -83,18 +82,20 @@ BARZEREXE_OBJ=barzer.o
 
 all: snowball/libsnowlib.a ay/libay.a $(LIBNAME).a $(BARZEREXE_OBJ)
 	$(CC) $(BITMODE) $(LINKFLAGS) -o  $(BINARY) $(BARZEREXE_OBJ) $(LIBNAME).a $(libs)
-lib: ay/libay.a $(LIBNAME).a $(lib_objects)
+lib: ay/libay.a $(LIBNAME).a $(lib_bjects)
 	$(AR) -r $(LIBNAME).a $(lib_objects) ay/libay.a
 sharedlib: ay/libay.a $(lib_objects)
 	$(CC) -shared -Wl -dylib -o $(LIBNAME).so $(lib_objects) $(libs)
-pybarzer: $(LIBNAME).a $(objects_python)
+pybarzer: $(objects_python) $(LIBNAME).a
 	$(CC) -shared -Wl -o pybarzer.so -lboost_python $(objects_python) $(LIBNAME).a $(libs)  -lboost_python $(PYLIBS)
+barzer_python.o: barzer_python.cpp
+    $(CC) -DBARZER_HOME=$(INSTALL_DIR) -c $(CFLAGS) $< -o $@
 $(LIBNAME).a: ay/libay.a $(lib_objects)
 	$(AR) -r $(LIBNAME).a $(lib_objects) ay/libay.a
 $(PYTHON_LIBNAME): ay/libay.a $(lib_objects)
 	cd util; make -f util.mk rebuild; cd ..
 clean:
-	rm -f $(objects) $(BINARY) $(LIBNAME).a
+	rm -f $(objects) $(objects_python) $(BINARY) $(LIBNAME).a
 cleanall: clean cleanaylib
 	rm -f $(objects) $(BINARY) $(objects_python)
 cleanaylib:

@@ -270,14 +270,18 @@ public:
 
         EntProp() : relevance(0), nameIsExplicit(0) {}
         EntProp( const char* n, uint32_t r, uint8_t ne ) : canonicName(n), relevance(r), nameIsExplicit(ne) {}
+        bool  is_nameExplicit() const { return (nameIsExplicit!=0); }
+        void  set_nameExplicit() { nameIsExplicit = 1; }
     };
     typedef boost::unordered_map< StoredEntityUniqId, EntProp, StoredEntityUniqId_Hash > EntPropDtaMap;
 private:
     EntPropDtaMap d_autocDtaMap;
 public:
-    void setEntPropData( const StoredEntityUniqId& euid, const char* name, uint32_t rel ) ;
+    EntProp*  setEntPropData( const StoredEntityUniqId& euid, const char* name, uint32_t rel ) ;
     const EntProp* getEntPropData( const StoredEntityUniqId& euid ) const 
         { EntPropDtaMap::const_iterator i = d_autocDtaMap.find( euid ); return ( i==d_autocDtaMap.end()? 0 : &(i->second) ); }
+    EntProp* getEntPropData( const StoredEntityUniqId& euid ) 
+        { EntPropDtaMap::iterator i = d_autocDtaMap.find( euid ); return ( i==d_autocDtaMap.end()? 0 : &(i->second) ); }
     size_t readFromFile( GlobalPools& gp, const char* fname ) ;
 };
 } // namespace
