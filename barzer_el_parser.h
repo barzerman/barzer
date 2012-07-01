@@ -270,6 +270,8 @@ public:
 	int  loadFromFile( const char* fileName, InputFormat fmt = INPUT_FMT_XML );
 
 	std::ostream& printNode( std::ostream& fp, const BarzelTrieNode& node ) const;
+    const char* getTrieName() const;
+    const char* getTrieClassName() const;
 };
 
 inline BELTrie& BELParser::getTrie() { return reader->getTrie(); }
@@ -294,6 +296,11 @@ struct BarzXMLErrorStream {
         { os.os << "<error>"; }
     BarzXMLErrorStream( std::ostream& o, size_t stmtNum ) : os(o) 
         { os.os << "<error stmt=\""<< stmtNum << "\">"; }
+    BarzXMLErrorStream( BELReader& reader, size_t stmtNum ) : 
+        os(reader.getErrStreamRef())
+    {
+        os.os << "<error file=\"" << reader.getInputFileName() << "\" class=\"" << reader.getTrieClassName() << "\" trie=\"" << reader.getTrieName() << "\">";
+    }
     ~BarzXMLErrorStream()
         { os.os << "</error>\n"; }
 };

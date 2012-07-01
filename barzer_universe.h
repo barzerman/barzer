@@ -217,6 +217,11 @@ public:
 	uint32_t internString_internal( const char* str ) { return internalStringPool.internIt( str ); }
 	const char* internalString_resolve( uint32_t id ) const { return internalStringPool.resolveId( id ); }
 
+	const char* internalString_resolve_safe( uint32_t id ) const { 
+        const char* s = internalStringPool.resolveId( id );
+        return ( s ? s: "" );
+    }
+
 	size_t getMaxAnalyticalModeMaxSeqLength() const { return d_maxAnalyticalModeMaxSeqLength; }
 
 	EntPropCompatibility entCompatibility;
@@ -258,7 +263,8 @@ public:
 	const ay::UniqueCharPool& getStringPool() const { return stringPool; }
 
 	std::ostream& printTanslationTraceInfo( std::ostream& , const BarzelTranslationTraceInfo& traceInfo ) const;
-	GlobalPools();
+    /// when fullMode == false some initialization is omitted (this is a performance tweak for emitter etc)
+	GlobalPools( bool fullMode = true);
 	~GlobalPools();
     const UniverseMap& getUniverses() const { return d_uniMap; }
 	const char* decodeStringById( uint32_t strId ) const

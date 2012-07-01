@@ -15,36 +15,30 @@
 namespace barzer {
 
 class GlobalPools;
+class StoredUniverse;
 class BarzerLiteral;;
 class DateLookup {
 private:
-	GlobalPools &globPools;
-    
+	const GlobalPools &globPools;
 public:
-	DateLookup(GlobalPools &u) : globPools(u)
-	{
-		init();
-	}
+	DateLookup(const GlobalPools &gp) : globPools(gp){}
 
-	void init();
+	void init(GlobalPools &gp);
 
-    const uint32_t getMonthID(const char* month_name) const;
-    const uint32_t getMonthID(const uint8_t month_num) const;
+    const uint32_t getMonthID(const StoredUniverse&, const char* month_name) const;
+    const uint32_t getMonthID(const StoredUniverse&, const uint8_t month_num) const;
     
-    const uint32_t getWdayID(const char* month_name) const;
-    const uint32_t getWdayID(const uint8_t month_num) const;
+    const uint32_t getWdayID(const StoredUniverse&, const char* month_name) const;
+    const uint32_t getWdayID(const StoredUniverse&, const uint8_t month_num) const;
     
-    const uint8_t resolveMonthID(const uint32_t mid) const;
-    const uint8_t resolveWdayID(const uint32_t mid) const;
+    const uint8_t resolveMonthID(const StoredUniverse&, const uint32_t mid) const;
+    const uint8_t resolveWdayID(const StoredUniverse&, const uint32_t mid) const;
     
-	const uint8_t lookupMonth(const char*) const;
-	const uint8_t lookupMonth(const BarzerLiteral& ltrl) const;
-	const uint8_t lookupWeekday(const char*) const;
+	const uint8_t lookupMonth(const StoredUniverse&, const char*) const;
+	const uint8_t lookupMonth(const StoredUniverse&, const BarzerLiteral& ltrl) const;
+	const uint8_t lookupWeekday(const StoredUniverse&, const char*) const;
 	// const uint8_t lookupWeekday(const uint32_t) const;
-	const uint8_t lookupWeekday(const BarzerLiteral& ltrl ) const;
-
-
-
+	const uint8_t lookupWeekday(const StoredUniverse&, const BarzerLiteral& ltrl ) const;
 };
 
 } // namespace barzer

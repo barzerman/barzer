@@ -680,7 +680,7 @@ struct BELFunctionStorage_holder {
             case 3: y = getNumber(rvec[2]);
             case 2: { // Do we need to check if ent is ent(1,3) or not ?
                 const BarzerEntity* be = getAtomicPtr<BarzerEntity>(rvec[1]);
-                m = (be? BarzerNumber(gpools.dateLookup.resolveMonthID(be->getTokId())) :getNumber(rvec[1]));
+                m = (be? BarzerNumber(gpools.dateLookup.resolveMonthID(q_universe,be->getTokId())) :getNumber(rvec[1]));
             }
             case 1: d = getNumber(rvec[0]);
             case 0: break; // 0 arguments = today
@@ -808,8 +808,8 @@ struct BELFunctionStorage_holder {
                         const BarzerLiteral* bl = getAtomicPtr<BarzerLiteral>(rvec[0]);
                         const BarzerString* bs = getAtomicPtr<BarzerString>(rvec[0]);
                         const BarzerNumber* n = getAtomicPtr<BarzerNumber>(rvec[0]);
-                        if (bl) wnum = gpools.dateLookup.lookupWeekday(*bl);
-                        else if (bs) wnum = gpools.dateLookup.lookupWeekday(bs->getStr().c_str());
+                        if (bl) wnum = gpools.dateLookup.lookupWeekday(q_universe,*bl);
+                        else if (bs) wnum = gpools.dateLookup.lookupWeekday(q_universe,bs->getStr().c_str());
                         else if (n) wnum = ((n->isInt() && n->getInt() > 0 && n->getInt() < 8 )? n->getInt(): 0 );
                         else {  
                                 FERROR("Wrong argument type");
@@ -820,7 +820,7 @@ struct BELFunctionStorage_holder {
                                 return false;
                         }                      
                 }    
-            uint32_t mid = gpools.dateLookup.getWdayID(wnum);
+            uint32_t mid = gpools.dateLookup.getWdayID(q_universe,wnum);
             //check if mid exists
             const StoredEntityUniqId euid( mid, 1, 4);//put constants somewhere! c1;s4 == weekdays
             setResult(result, euid);
@@ -840,8 +840,8 @@ struct BELFunctionStorage_holder {
                         const BarzerLiteral* bl = getAtomicPtr<BarzerLiteral>(rvec[0]);
                         const BarzerString* bs = getAtomicPtr<BarzerString>(rvec[0]);
                         const BarzerNumber* n = getAtomicPtr<BarzerNumber>(rvec[0]);
-                        if (bl) mnum = gpools.dateLookup.lookupMonth(*bl);
-                        else if (bs) mnum = gpools.dateLookup.lookupMonth(bs->getStr().c_str());
+                        if (bl) mnum = gpools.dateLookup.lookupMonth(q_universe,*bl);
+                        else if (bs) mnum = gpools.dateLookup.lookupMonth(q_universe,bs->getStr().c_str());
                         else if (n) mnum = ((n->isInt() && n->getInt() > 0 && n->getInt() < 13 )? n->getInt(): 0 );
                         else {  
                                 FERROR("Wrong argument type");
@@ -852,7 +852,7 @@ struct BELFunctionStorage_holder {
                                 return false;
                         }                      
                 }    
-            uint32_t mid = gpools.dateLookup.getMonthID(mnum);
+            uint32_t mid = gpools.dateLookup.getMonthID(q_universe,mnum);
             //check if mid exists
             const StoredEntityUniqId euid( mid, 1, 3);//put constants somewhere! c1;s3 == months
             setResult(result, euid);
@@ -2277,8 +2277,8 @@ struct BELFunctionStorage_holder {
 			const BarzerLiteral* bl = getAtomicPtr<BarzerLiteral>(rvec[0]);
                         const BarzerString* bs = getAtomicPtr<BarzerString>(rvec[0]);
                         const BarzerNumber* n = getAtomicPtr<BarzerNumber>(rvec[0]);
-                        if (bl) mnum = gpools.dateLookup.lookupMonth(bl->getId());
-                        else if (bs) mnum = gpools.dateLookup.lookupMonth(bs->getStr().c_str());
+                        if (bl) mnum = gpools.dateLookup.lookupMonth(q_universe,bl->getId());
+                        else if (bs) mnum = gpools.dateLookup.lookupMonth(q_universe,bs->getStr().c_str());
                         else if (n) mnum = ((n->isInt() && n->getInt() > 0 && n->getInt() < 13 )? n->getInt(): 0 );
                         else {  
                                 FERROR("Wrong argument type");
@@ -2308,8 +2308,8 @@ struct BELFunctionStorage_holder {
                         const BarzerLiteral* bl = getAtomicPtr<BarzerLiteral>(rvec[0]);
                         const BarzerString* bs = getAtomicPtr<BarzerString>(rvec[0]);
 			uint8_t mnum = 0;
-                        if (bl) mnum = gpools.dateLookup.lookupWeekday(bl->getId());
-                        else if (bs)  mnum = gpools.dateLookup.lookupWeekday(bs->getStr().c_str());
+                        if (bl) mnum = gpools.dateLookup.lookupWeekday(q_universe,bl->getId());
+                        else if (bs)  mnum = gpools.dateLookup.lookupWeekday(q_universe,bs->getStr().c_str());
                         else {
                             FERROR("Wrong argument type");
                             return false;

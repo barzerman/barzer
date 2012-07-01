@@ -113,8 +113,38 @@ bool Lang::hasUpperCase( const char* s, size_t s_len, int lang )
 }
 
 
-int Lang::getLang( const char* str, size_t s_len )
+int Lang::getLangNoUniverse( const char* str, size_t s_len )
 {
+    const char* s_end = str+s_len, *s_end_1 = s_end + s_len-1;
+    int lang = LANG_UNKNOWN;
+    for( const char* s= str; *s && s< s_end; ++s ) {
+        if( isascii(*s) ) {
+            if( lang>LANG_ENGLISH )  // ascii character and lang was non english
+                return LANG_UNKNOWN_UTF8;
+            else  if( lang == LANG_UNKNOWN )
+                lang = LANG_ENGLISH;
+        } else {
+            if( lang == LANG_ENGLISH ) {
+                return LANG_UNKNOWN_UTF8;
+            } else if(s< s_end_1) { // at least theres at least 1 char beore the end
+                int tmpLang =  getLangUtf8( (unsigned char)(s[0]), (unsigned char)(s[1]) );
+                if( tmpLang == LANG_RUSSIAN )  {
+                    if( lang == LANG_UNKNOWN ) 
+                        lang = tmpLang;
+                    else if( lang != LANG_RUSSIAN ) 
+                        return LANG_UNKNOWN_UTF8;
+                } else // utf8 character
+                    return LANG_UNKNOWN_UTF8;
+                ++s;
+            } else // character is non ascii and this is the last character 
+                return LANG_UNKNOWN_UTF8;
+        }
+    }
+    return ( lang == LANG_UNKNOWN ? LANG_UNKNOWN_UTF8 : lang );
+}
+int Lang::getLang( const StoredUniverse& universe, const char* str, size_t s_len )
+{
+    #warning GOSHA: here issue_289 magic needs to happen  - somewhere in this function we gotta detect lang differently
     const char* s_end = str+s_len, *s_end_1 = s_end + s_len-1;
     int lang = LANG_UNKNOWN;
     for( const char* s= str; *s && s< s_end; ++s ) {

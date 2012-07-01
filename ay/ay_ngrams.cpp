@@ -136,11 +136,6 @@ namespace ay
 					result[i + 1] = src[i].toUTF32() & 0xFFFF;
 				return result;
 			}
-
-			inline uint32_t increment(uint32_t val)
-			{
-				return val + 1;
-			}
 		}
 
 		void NGramModel::addWord(const char *word)
@@ -205,15 +200,6 @@ namespace ay
 					return TRIE_VISITOR_CONTINUE;
 				}
 			};
-		}
-
-		void NGramModel::dump()
-		{
-			/*
-			CallbackTrieDump cb;
-			trie_visitor<UTF8Trie_t, CallbackTrieDump> vis(cb);
-			vis.visit(m_trie);
-			*/
 		}
 	}
 

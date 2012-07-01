@@ -151,7 +151,7 @@ void BELParserXML::startElement( const char* tag, const char_cp * attr, size_t a
 	tagStack.push( tid );
 	if( !isValidTag( tid, parentTag )  ) {
         {
-        BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+        BarzXMLErrorStream errStream( *reader, statement.stmt.getStmtNumber());
 		errStream.os << "invalid BEL xml(tag: " << tag <<")";
         }
 		tagStack.pop();
@@ -273,7 +273,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 {
 	if( close ) { /// statement is ready to be sent to the reader for adding to the trie
 		if( !statement.isValid() ) {
-            BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+            BarzXMLErrorStream errStream( *reader, statement.stmt.getStmtNumber());
 			errStream.os << "skipped invalid statement ";
 		} else {
 			if( statement.isMacro() ) {
@@ -1070,7 +1070,7 @@ DEFINE_BELParserXML_taghandle(EXPAND)
         if( trie ) {
 	        macroNode = getMacroByName(*trie,macroName);
         } else {
-            BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+            BarzXMLErrorStream errStream( *reader, statement.stmt.getStmtNumber());
 		    errStream.os << "macro " << 
                 gp.internalString_resolve(trieClassName_id) << "." << 
                 gp.internalString_resolve(trieName_id) << "." << 
@@ -1089,7 +1089,8 @@ DEFINE_BELParserXML_taghandle(EXPAND)
 		    sd.setVarId(internString_internal(varName));
 		}
 	} else {
-		BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+        BarzXMLErrorStream errStream( *reader, statement.stmt.getStmtNumber());
+		// BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
 		errStream.os << "macro " << macroName  << " doesnt exist";
 	}
 }
@@ -1266,15 +1267,20 @@ DEFINE_BELParserXML_taghandle(MKENT)
     bool isTrivialRewrite = ( statement.stmt.translation.getTrivialRewriteData() != 0 );
     /// adding deduced entity name 
     if( isTrivialRewrite &&  !reader->is_noCanonicalNames() ) {
-        std::string theName;
-        if( !canonicName || !*canonicName ) {
-            if( statement.hasPattern() ) {
-                statement.stmt.pattern.getDescriptiveNameFromPattern_simple( theName, gp ) ;
-            }
-        } else 
-            theName.assign(canonicName);
+        EntityData::EntProp* eprop = gp.entData.getEntPropData(ent.getEuid());
+        if( !eprop || !eprop->is_nameExplicit() ) {
+            std::string theName;
+            if( !canonicName || !*canonicName ) {
+                if( statement.hasPattern() ) {
+                    statement.stmt.pattern.getDescriptiveNameFromPattern_simple( theName, gp ) ;
+                }
+            } else 
+                theName.assign(canonicName);
             
-        gp.entData.setEntPropData( ent.getEuid(), theName.c_str(), relevance );
+            eprop= gp.entData.setEntPropData( ent.getEuid(), theName.c_str(), relevance );
+            if( canonicName && eprop ) 
+                eprop->set_nameExplicit();
+        }
     }
     if( topicClass ) {
         uint32_t topicIdStrId = reader->getGlobalPools().internString_internal(topicIdStr) ;
@@ -1282,8 +1288,11 @@ DEFINE_BELParserXML_taghandle(MKENT)
 
         BELTrie& trie = reader->getTrie();
         trie.linkEntToTopic( topicEnt.getEuid(), ent.getEuid() );
-        if( topicRelevance || topicCanonicName ) 
-            gp.entData.setEntPropData( topicEnt.getEuid(), topicCanonicName, topicRelevance );
+        if( topicRelevance || topicCanonicName ) {
+            EntityData::EntProp* eprop = gp.entData.setEntPropData( topicEnt.getEuid(), topicCanonicName, topicRelevance );
+            if( topicCanonicName && eprop ) 
+                eprop->set_nameExplicit();
+        }
     }
 }
         
@@ -1382,7 +1391,8 @@ DEFINE_BELParserXML_taghandle(VAR)
 			if( num > 0 ) 
 				var.setPatternElemNumber( num );
 			else {
-                BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+                // BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+                BarzXMLErrorStream errStream( *reader, statement.stmt.getStmtNumber());
 				errStream.os << "invalid pattern element number " << v ;
 			}
 		}
@@ -1392,7 +1402,8 @@ DEFINE_BELParserXML_taghandle(VAR)
 			if( num > 0 ) 
 				var.setWildcardNumber( num );
 			else {
-				BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+				// BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+                BarzXMLErrorStream errStream( *reader, statement.stmt.getStmtNumber());
                 errStream.os << "invalid wildcard number " << v ;
 			}
 		}
@@ -1678,7 +1689,7 @@ int BELParserXML::getTag( const char* s ) const
 	} // switch ends
 	
     {
-        BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
+        BarzXMLErrorStream errStream( *reader, statement.stmt.getStmtNumber());
         errStream.os << "Unknown tag " << s;
     }
 	return TAG_UNDEFINED;

@@ -43,8 +43,6 @@ namespace ay
 			void addWords(const StringList_t& text);
 
 			double getProb(const char *word) const;
-
-			void dump();
 		};
 	}
 

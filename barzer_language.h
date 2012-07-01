@@ -30,6 +30,7 @@ struct WordLangInfo {
     bool hasNonLowerCase;
     WordLangInfo() : hasNonLowerCase(false) {}
 };
+class StoredUniverse;
 /// Lang class determines language of the character/string see getLang function. all methods in it should be static  and inline when possible if they deal with strings 
 struct Lang {
     static const char* getLangName( int xx ) ;
@@ -48,7 +49,8 @@ struct Lang {
     inline static bool isUtf8Lang(int lang) { return ( lang == LANG_UNKNOWN_UTF8 ); }
     inline static bool isEnglish(int lang) { return (lang == LANG_ENGLISH); }
 
-    static int getLang( const char* str, size_t s_len );
+    static int getLangNoUniverse( const char* str, size_t s_len );
+    static int getLang( const StoredUniverse&, const char* str, size_t s_len );
     static bool convertTwoByteToLower( char* s, size_t s_len, int lang );
     static bool convertUtf8ToLower( char* s, size_t s_len, int lang );
 

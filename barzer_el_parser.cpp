@@ -17,6 +17,15 @@ const BarzelEvalNode* BELParser::getProcByName( uint32_t strId ) const
 	return trie.getProcs().getEvalNode( strId );
 }
 
+const char* BELReader::getTrieName( ) const
+{
+    return getGlobalPools().internalString_resolve_safe( getTrie().getTrieId_strId() );
+}
+const char* BELReader::getTrieClassName( ) const
+{
+    return getGlobalPools().internalString_resolve_safe( getTrie().getTrieClass_strId() );
+}
+
 const BELParseTreeNode* BELParser::getMacroByNameId( uint32_t i ) const
 {
 	const BELTrie& trie = reader->getTrie();
