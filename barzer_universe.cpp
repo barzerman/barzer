@@ -170,7 +170,7 @@ BELTrie* GlobalTriePool::produceTrie( uint32_t trieClass, uint32_t trieId )
 		return( i->second );
 }
 
-GlobalPools::GlobalPools() :
+GlobalPools::GlobalPools(bool fullMode) :
 	m_utf8langModelMgr(new ay::UTF8TopicModelMgr),
 	m_asciiLangModelMgr(new ay::ASCIITopicModelMgr),
 	dtaIdx( *this, &stringPool),
@@ -188,6 +188,10 @@ GlobalPools::GlobalPools() :
     defaultUniverse.appendTriePtr( defaultTrie,0 ) ;
 
     globalTriePool.init();
+    ///  full mode only initializations
+    if( fullMode ) {
+        dateLookup.init(*this);
+    }
 }
 
 size_t GlobalPools::readDictionaryFile( const char* fname )

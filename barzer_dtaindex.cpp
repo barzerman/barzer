@@ -55,7 +55,7 @@ StoredToken& StoredTokenPool::addSingleTok( uint16_t& lang, bool& newAdded, cons
 	StoredToken& newTok = storTok.extend();
 	newTok.setSingle( tokId, sid, strlen(internedStr) );
     size_t t_len = strlen(t);
-    lang = Lang::getLang( t, t_len );
+    lang = Lang::getLangNoUniverse( t, t_len );
     if( Lang::hasUpperCase(t,t_len,lang) ) 
         newTok.setHasUpperCase();
 

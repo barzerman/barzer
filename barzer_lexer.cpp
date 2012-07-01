@@ -757,7 +757,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 		return SpellCorrectResult (0, ++cPosVec, ++tPosVec);
 	const GlobalPools& gp = d_universe.getGlobalPools();
 
-    int16_t         lang = Lang::getLang( ttok.getBuf(), ttok.getLen() );
+    int16_t         lang = Lang::getLang( d_universe, ttok.getBuf(), ttok.getLen() );
     bool            isTwoByteLang = Lang::isTwoByteLang(lang);
 	bool            isAsciiToken = ( lang == LANG_ENGLISH );
 	std::string     ascifiedT;

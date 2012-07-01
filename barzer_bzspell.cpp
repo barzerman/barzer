@@ -28,7 +28,7 @@ void BZSpell::addExtraWordToDictionary( uint32_t strId, uint32_t frequency )
 	    const char* str = d_universe.getGlobalPools().string_resolve( strId );
 	    if( str ) {
             size_t s_len = strlen(str);
-            int16_t lang = Lang::getLang( str, s_len );
+            int16_t lang = Lang::getLang(  d_universe, str, s_len );
 	        if( lang != LANG_ENGLISH )
                 wmi->second.setLang(lang);
         }
@@ -554,7 +554,7 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 	/// for ascii corrector
     size_t s_len = strlen(str);
     if( lang == LANG_UNKNOWN )
-        lang = Lang::getLang( str, s_len );
+        lang = Lang::getLang(  d_universe, str, s_len );
 
     size_t str_len = strlen( str );
 	if( lang == LANG_ENGLISH) {
@@ -787,7 +787,7 @@ bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
 {
     size_t s_len = strlen( s );
     if( lang == LANG_UNKNOWN )
-        lang = Lang::getLang( s, s_len );
+        lang = Lang::getLang(  d_universe, s, s_len );
 
 	if( lang == LANG_ENGLISH)
 	{
@@ -841,7 +841,7 @@ uint32_t BZSpell::getStemCorrection( std::string& out, const char* s, int lang )
     size_t s_len = strlen( s );
 
     if( lang == LANG_UNKNOWN )
-        lang = Lang::getLang( s, s_len );
+        lang = Lang::getLang(  d_universe, s, s_len );
 
 	if( lang == LANG_ENGLISH) {
 		if( stem( out, s, lang) ) {

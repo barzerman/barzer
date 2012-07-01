@@ -263,7 +263,8 @@ public:
 	const ay::UniqueCharPool& getStringPool() const { return stringPool; }
 
 	std::ostream& printTanslationTraceInfo( std::ostream& , const BarzelTranslationTraceInfo& traceInfo ) const;
-	GlobalPools();
+    /// when fullMode == false some initialization is omitted (this is a performance tweak for emitter etc)
+	GlobalPools( bool fullMode = true);
 	~GlobalPools();
     const UniverseMap& getUniverses() const { return d_uniMap; }
 	const char* decodeStringById( uint32_t strId ) const

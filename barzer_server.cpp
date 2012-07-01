@@ -299,7 +299,7 @@ int proc_ADD_STMSET( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  s
 }
 int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* str )
 {
-	GlobalPools gp;
+	GlobalPools gp(false);
 	if( realGlobalPools.parseSettings().stemByDefault() ) 
 		gp.parseSettings().set_stemByDefault( );
 
@@ -319,7 +319,7 @@ int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, c
 
 int proc_COUNT_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* str )
 {
-	GlobalPools gp;
+	GlobalPools gp(false);
 	if( realGlobalPools.parseSettings().stemByDefault() ) 
 		gp.parseSettings().set_stemByDefault( );
 
