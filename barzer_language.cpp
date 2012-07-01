@@ -144,6 +144,7 @@ int Lang::getLangNoUniverse( const char* str, size_t s_len )
 }
 int Lang::getLang( const StoredUniverse& universe, const char* str, size_t s_len )
 {
+    #warning GOSHA: here issue_289 magic needs to happen  - somewhere in this function we gotta detect lang differently
     const char* s_end = str+s_len, *s_end_1 = s_end + s_len-1;
     int lang = LANG_UNKNOWN;
     for( const char* s= str; *s && s< s_end; ++s ) {
