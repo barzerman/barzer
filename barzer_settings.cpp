@@ -138,8 +138,8 @@ void BarzerSettings::loadLangNGrams()
 {
 	using boost::property_tree::ptree;
 
-	ay::UTF8TopicModelMgr *utf8lm = d_currentUniverse->getGlobalPools().getUTF8LangModel();
-	ay::ASCIITopicModelMgr *asciilm = d_currentUniverse->getGlobalPools().getASCIILangModel();
+	ay::UTF8TopicModelMgr *utf8lm = d_currentUniverse->getGlobalPools().getUTF8LangMgr();
+	ay::ASCIITopicModelMgr *asciilm = d_currentUniverse->getGlobalPools().getASCIILangMgr();
 
 	try
 	{

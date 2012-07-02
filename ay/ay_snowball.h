@@ -18,14 +18,15 @@ class StemWrapper {
 public:
     /// lang is one of the 
     /// 
-    enum {
+	enum StemmingLang
+	{
 		LG_ENGLISH = -1,// "en"
-        LG_INVALID,
-        LG_FRENCH,      // "fr"
-        LG_SPANISH,     // "es"
-        LG_GERMAN,
-        LG_SWEDISH
-    };
+		LG_INVALID,
+		LG_FRENCH,      // "fr"
+		LG_SPANISH,     // "es"
+		LG_GERMAN,
+		LG_SWEDISH
+	};
     static const char* getValidLangString( int lang ) ;
     static int getLangFromString( const char* langStr );
 	static bool isUnicodeLang (int lang);

@@ -71,6 +71,11 @@ namespace ay
 			for (typename ModelsDict_t::const_iterator i = m_models.begin(), end = m_models.end(); i != end; ++i)
 				result.push_back(i->first);
 		}
+		
+		inline size_t getNumTopics() const
+		{
+			return m_models.size();
+		}
 	};
 
 	typedef BasicTopicModelMgr<UTF8::NGramModel> TopicModelMgr;
@@ -78,14 +83,18 @@ namespace ay
 	typedef BasicTopicModelMgr<UTF8::NGramModel> UTF8TopicModelMgr;
 	typedef BasicTopicModelMgr<ASCII::NGramModel> ASCIITopicModelMgr;
 
+	/** If smartAsciiCheck is set to true, then this function first checks if
+	 * the string contains non-ASCII characters. If any non-ascii characters,
+	 * are found, then no models from ascii manager are queried.
+	 */
 	void evalAllLangs(UTF8TopicModelMgr *utf8, ASCIITopicModelMgr *ascii,
-			const char *str, std::vector<std::pair<int, double> >& probs);
+			const char *str, std::vector<std::pair<int, double> >& probs, bool smartAsciiCheck = false);
 
 	inline void getScores(UTF8::NGramModel& utf8, ASCII::NGramModel& ascii, const char *str, size_t len, double& utf8Score, double& asciiScore)
 	{
 		const char *ptr = str;
-		while (*ptr)
-			if (*ptr > 127)
+		while (ptr < str + len && *ptr)
+			if (*ptr++ > 127)
 			{
 				utf8Score = 1;
 				asciiScore = 0;
