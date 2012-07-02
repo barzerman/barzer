@@ -14,7 +14,7 @@ ifeq ($(CC),clang++)
     CLANG_WARNSUPPRESS=-Wno-array-bounds
 endif
 WARNSUPPRESS=-Wno-parentheses -Wnon-virtual-dtor $(CLANG_WARNSUPPRESS)
-CFLAGS :=$(CFLAGS) $(BITMODE) $(OPT) $(WARNSUPPRESS) \
+CFLAGS :=$(CFLAGS) $(BITMODE) $(OPT) $(WARNSUPPRESS) -std=c++0x\
 	-I/opt/local/include -I/usr/include -g -I. -I./ay -I./lg_ru -fpic $(PYINCLUDE)
 LINKFLAGS := $(FLAGS)
 BINARY=barzer.exe

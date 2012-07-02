@@ -413,7 +413,7 @@ int run_server_mt(GlobalPools &gp, uint16_t port) {
     for (std::size_t i = 0; i < gp.settings.getNumThreads(); ++i)
 	{
 		boost::thread *thread = threads.create_thread(boost::bind(&boost::asio::io_service::run, &io_service));
-		gp.initThreadStemmer(thread->get_id());
+		gp.initThreadStemmer(pthread_self());
 	}
 
 	AsyncServer s(gp, io_service, port);

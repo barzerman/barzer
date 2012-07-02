@@ -6,7 +6,9 @@
 #include <map>
 /// data structures and functions implementing multithreaded c++ wrapper over the standard snowball 
 #include <vector>
-#include <boost/thread.hpp>
+// #include <boost/thread.hpp>
+#include <pthread.h>
+#include <string.h>
 
 /// stemmer 
 struct sb_stemmer;
@@ -62,7 +64,7 @@ public:
 };
 
 class StemThreadPool {
-	typedef std::map<boost::thread::id, MultilangStem> multilangs_t;
+	typedef std::map<pthread_t, MultilangStem> multilangs_t;
 	multilangs_t m_multilangs;
 	typedef std::vector< int > LangVec;
 	LangVec langs;
@@ -83,7 +85,7 @@ public:
 		langs.push_back(lang);
 	}
 
-	inline void createThreadStemmer(const boost::thread::id& id)
+	inline void createThreadStemmer(const pthread_t id)
 	{
 		multilangs_t::iterator pos = m_multilangs.find(id);
 		if (pos != m_multilangs.end())
@@ -97,7 +99,7 @@ public:
 
 	inline const MultilangStem* getThreadStemmer() const
 	{
-		const boost::thread::id& thisThr = boost::this_thread::get_id();
+		const pthread_t thisThr = pthread_self();
 		multilangs_t::const_iterator pos = m_multilangs.find(thisThr);
 		return pos != m_multilangs.end() ? &pos->second : 0;
 	}
