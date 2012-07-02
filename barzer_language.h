@@ -3,6 +3,7 @@
 
 #include <arch/barzer_arch.h>
 #include <ay/ay_headers.h>
+#include <ay_snowball.h>
 #include <barzer_parse_types.h>
 
 /// language specific logic 
@@ -13,7 +14,7 @@ namespace barzer {
 #undef LANG_SPANISH
 #undef LANG_FRENCH
 
-enum
+enum BarzerLangEnum
 {
 	LANG_UNKNOWN=-1,
 	LANG_ENGLISH,
@@ -25,6 +26,21 @@ enum
 	/// add new language after this only
 	LANG_MAX
 };
+
+inline BarzerLangEnum fromAyLang (int lang)
+{
+	switch (lang)
+	{
+	case ay::StemWrapper::LG_ENGLISH:
+		return LANG_ENGLISH;
+	case ay::StemWrapper::LG_SPANISH:
+		return LANG_SPANISH;
+	case ay::StemWrapper::LG_FRENCH:
+		return LANG_FRENCH;
+	default:
+		return LANG_UNKNOWN_UTF8;
+	}
+}
 
 struct WordLangInfo {
     bool hasNonLowerCase;

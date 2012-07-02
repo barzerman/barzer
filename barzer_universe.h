@@ -158,8 +158,8 @@ class GlobalPools {
 	ay::UTF8TopicModelMgr *m_utf8langModelMgr;
 	ay::ASCIITopicModelMgr *m_asciiLangModelMgr;
 public:
-	ay::UTF8TopicModelMgr* getUTF8LangModel() const { return m_utf8langModelMgr; }
-	ay::ASCIITopicModelMgr* getASCIILangModel() const { return m_asciiLangModelMgr; }
+	inline ay::UTF8TopicModelMgr* getUTF8LangMgr() const { return m_utf8langModelMgr; }
+	inline ay::ASCIITopicModelMgr* getASCIILangMgr() const { return m_asciiLangModelMgr; }
 
 	void initThreadStemmer() { initThreadStemmer(pthread_self()); }
 	void initThreadStemmer(pthread_t id) { m_stemPool.createThreadStemmer(id); }

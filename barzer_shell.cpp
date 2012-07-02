@@ -298,7 +298,7 @@ static int bshf_guesslang(BarzerShell *shell, char_cp cmd, std::istream& in)
 		const std::string& str = reader.str;
 
 		std::vector<std::pair<int, double> > probs;
-		ay::evalAllLangs(pools.getUTF8LangModel(), pools.getASCIILangModel(), str.c_str(), probs);
+		ay::evalAllLangs(pools.getUTF8LangMgr(), pools.getASCIILangMgr(), str.c_str(), probs);
 
 		for (size_t i = 0; i < probs.size(); ++i)
 		{

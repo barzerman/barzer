@@ -1,8 +1,10 @@
 #include <barzer_language.h>
 
+#include <numeric>
 #include <lg_ru/barzer_ru_lex.h>
 #include <lg_en/barzer_en_lex.h>
 #include <ay/ay_utf8.h>
+#include "barzer_universe.h"
 
 namespace barzer {
 
@@ -142,9 +144,42 @@ int Lang::getLangNoUniverse( const char* str, size_t s_len )
     }
     return ( lang == LANG_UNKNOWN ? LANG_UNKNOWN_UTF8 : lang );
 }
-int Lang::getLang( const StoredUniverse& universe, const char* str, size_t s_len )
+
+namespace
 {
-    #warning GOSHA: here issue_289 magic needs to happen  - somewhere in this function we gotta detect lang differently
+	std::pair<int, double> accMaxPair(const std::pair<int, double>& left, const std::pair<int, double>& right)
+	{
+		return left.second > right.second ? left : right;
+	}
+}
+
+int Lang::getLang( const StoredUniverse& universe, const char *str, size_t s_len )
+{
+	const char *s_end = str + s_len;
+	for (const char *s = str; *s && s < s_end; ++s)
+		if (s < s_end - 1 &&
+				utf8_2byte_isRussian(static_cast<unsigned char>(*s), static_cast<unsigned char>(*(s + 1))))
+			return LANG_RUSSIAN;
+
+	GlobalPools& gp = universe.gp;
+	ay::ASCIITopicModelMgr *ascii = gp.getASCIILangMgr();
+	ay::UTF8TopicModelMgr *utf8 = gp.getUTF8LangMgr();
+	if (ascii->getNumTopics() == 1 && utf8->getNumTopics() == 1)
+	{
+		std::vector<int> asciiLang, utf8Lang;
+		ascii->getAvailableTopics(asciiLang);
+		utf8->getAvailableTopics(utf8Lang);
+
+		double utf8Score = 0, asciiScore = 0;
+		ay::getScores (utf8->getModel(utf8Lang[0]), ascii->getModel(asciiLang[0]), str, s_len, utf8Score, asciiScore);
+		return fromAyLang(utf8Score > asciiScore ? utf8Lang[0] : asciiLang[0]);
+	}
+
+	std::vector<std::pair<int, double> > probs;
+	ay::evalAllLangs(utf8, ascii, str, probs, true);
+	return fromAyLang(std::accumulate(probs.begin(), probs.end(), std::make_pair(0, 0.0), accMaxPair).first);
+
+	/*
     const char* s_end = str+s_len, *s_end_1 = s_end + s_len-1;
     int lang = LANG_UNKNOWN;
     for( const char* s= str; *s && s< s_end; ++s ) {
@@ -171,6 +206,7 @@ int Lang::getLang( const StoredUniverse& universe, const char* str, size_t s_len
         }
     }
     return ( lang == LANG_UNKNOWN ? LANG_UNKNOWN_UTF8 : lang );
+    */
 }
 
 const char* Lang::getLangName( int xx ) 
