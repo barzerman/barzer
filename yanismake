@@ -1,8 +1,15 @@
 #!/bin/ksh
 # this make file is for yanises macbook 
+# /opt/local/libexec/llvm-3.1/bin/clang++
 
-if [[ $(hostname) == "shmuel" ]]; then
-    make -f barzer.mk CC=/usr/local/bin/gcc CX=yes $*
+if [[ $(hostname) == "shmuel.local" ]]; then
+    if [[ $1 == "gcc" ]]; then
+        COMPILER="CC=/usr/local/bin/gcc"
+    else
+        COMPILER="CC=/opt/local/libexec/llvm-3.1/bin/clang++"
+    fi
+    echo make -f barzer.mk $(COMPILER) CX=yes $*
+    make -f barzer.mk ${COMPILER} CX=yes $*
 else
     make -f barzer.mk CX=yes $*
 fi
