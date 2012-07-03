@@ -91,8 +91,7 @@ int main( int argc, char * argv[] ) {
 	ay::CommandLineArgs cmdlProc;
 	cmdlProc.init(argc, argv);
 	barzer::GlobalPools globPool;
-	globPool.initThreadStemmer();
-	// barzer::StoredUniverse &universe = globPool.produceUniverse(0);
+	globPool.getStemPool().createThreadStemmer(pthread_self());
 
     globPool.init_cmdline( cmdlProc );
 

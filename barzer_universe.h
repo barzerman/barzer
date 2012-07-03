@@ -161,10 +161,7 @@ public:
 	inline ay::UTF8TopicModelMgr* getUTF8LangMgr() const { return m_utf8langModelMgr; }
 	inline ay::ASCIITopicModelMgr* getASCIILangMgr() const { return m_asciiLangModelMgr; }
 
-	void initThreadStemmer() { initThreadStemmer(pthread_self()); }
-	void initThreadStemmer(pthread_t id) { m_stemPool.createThreadStemmer(id); }
-	inline const ay::MultilangStem* getThreadStemmer() const { return m_stemPool.getThreadStemmer(); }
-	void addStemLang(int lang) { m_stemPool.addLang(lang); }
+	inline ay::StemThreadPool& getStemPool() { return m_stemPool; }
 
     void addStemSrc ( uint32_t stemId, uint32_t srcId ) { d_stemSrcs[stemId].insert(srcId); }
 
