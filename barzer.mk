@@ -10,11 +10,14 @@ ifeq ($(IS32),yes)
 	BITMODE=-m32
 	AYBIT="IS32=yes"
 endif
+ifeq ($(CX),yes)
+    C11=-std=c++0x
+endif
 ifeq ($(CC),clang++)
     CLANG_WARNSUPPRESS=-Wno-array-bounds
 endif
 WARNSUPPRESS=-Wno-parentheses -Wnon-virtual-dtor $(CLANG_WARNSUPPRESS)
-CFLAGS :=$(CFLAGS) $(BITMODE) $(OPT) $(WARNSUPPRESS) \
+CFLAGS :=$(CFLAGS) $(BITMODE) $(OPT) $(WARNSUPPRESS) $(C11)\
 	-I/opt/local/include -I/usr/include -g -I. -I./ay -I./lg_ru -fpic $(PYINCLUDE)
 LINKFLAGS := $(FLAGS)
 BINARY=barzer.exe
@@ -101,11 +104,11 @@ cleanall: clean cleanaylib
 cleanaylib:
 	cd ay; make -f aylib.mk clean; cd ..
 aylib_rebuild:
-	cd ay; make -f aylib.mk rebuild $(AYBIT) OPT=$(OPT) FLAGS=$(FLAGS); cd ..
+	cd ay; make -f aylib.mk rebuild $(AYBIT) OPT=$(OPT) C11=$(C11) FLAGS=$(FLAGS); cd ..
 aylib:
-	cd ay; make -f aylib.mk $(AYBIT) OPT=$(OPT) FLAGS=$(FLAGS); cd ..
+	cd ay; make -f aylib.mk $(AYBIT) OPT=$(OPT) C11=$(C11) FLAGS=$(FLAGS); cd ..
 ay/libay.a:
-	cd ay; make -f aylib.mk rebuild $(AYBIT) OPT=$(OPT) $(FLAGS); cd ..
+	cd ay; make -f aylib.mk rebuild $(AYBIT) OPT=$(OPT) C11=$(C11) $(FLAGS); cd ..
 snowlib:
 	cd snowball; make; cd ..
 snowball/libsnowlib.a:

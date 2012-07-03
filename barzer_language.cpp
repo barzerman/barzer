@@ -156,11 +156,23 @@ namespace
 int Lang::getLang( const StoredUniverse& universe, const char *str, size_t s_len )
 {
 	const char *s_end = str + s_len;
-	for (const char *s = str; *s && s < s_end; ++s)
-		if (s < s_end - 1 &&
-				utf8_2byte_isRussian(static_cast<unsigned char>(*s), static_cast<unsigned char>(*(s + 1))))
-			return LANG_RUSSIAN;
 
+    
+    int curLang = LANG_UNKNOWN;
+    if( !(s_len&1) ) { // for even s_len
+	    for (const char *s = str; s < s_end; s+=2) {
+            unsigned char 
+                c0 = static_cast<unsigned char>(*s), 
+                c1 = static_cast<unsigned char>(s[1]);
+            if( curLang == LANG_UNKNOWN ) {
+		        if (utf8_2byte_isRussian(c0,c1))
+			        curLang= LANG_RUSSIAN;
+                else
+                    break;
+            } else if( curLang != LANG_RUSSIAN || !utf8_2byte_isRussian(c0,c1)) 
+                break;
+        }
+    }
 	GlobalPools& gp = universe.gp;
 	ay::ASCIITopicModelMgr *ascii = gp.getASCIILangMgr();
 	ay::UTF8TopicModelMgr *utf8 = gp.getUTF8LangMgr();

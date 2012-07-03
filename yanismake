@@ -1,0 +1,8 @@
+#!/bin/ksh
+# this make file is for yanises macbook 
+
+if [[ $(hostname) == "shmuel" ]]; then
+    make -f barzer.mk CC=/usr/local/bin/gcc CX=yes $*
+else
+    make -f barzer.mk CX=yes $*
+fi
