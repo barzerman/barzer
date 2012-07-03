@@ -413,7 +413,7 @@ int run_server_mt(GlobalPools &gp, uint16_t port) {
     for (std::size_t i = 0; i < gp.settings.getNumThreads(); ++i)
 	{
 		boost::thread *thread = threads.create_thread(boost::bind(&boost::asio::io_service::run, &io_service));
-		gp.initThreadStemmer(pthread_self());
+		gp.getStemPool().createThreadStemmer(thread->native_handle());
 	}
 
 	AsyncServer s(gp, io_service, port);
@@ -433,8 +433,6 @@ int run_server(GlobalPools &gp, uint16_t port) {
 	std::cerr << "Running barzer search server on port " << port << "..." << std::endl;
 
 	boost::asio::io_service io_service;
-
-	gp.initThreadStemmer();
 
 	AsyncServer s(gp, io_service, port);
 	s.init();

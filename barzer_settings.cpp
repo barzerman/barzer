@@ -350,7 +350,7 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 				{
 					std::cout << "Adding language: " << tagVal << "(" << lang << ")" << std::endl;
 					u.getUniverse().getBarzHints().addUtf8Language(lang);
-					u.getUniverse().getGlobalPools().addStemLang(lang);
+					u.getUniverse().getGlobalPools().getStemPool().addLang(lang);
 				}
             }
 		}
