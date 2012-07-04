@@ -75,7 +75,8 @@ int run_test(barzer::StoredUniverse &u, ay::CommandLineArgs &cmdlProc) {
 }
 
 void print_usage(const char* prg_name) {
-    std::cerr << "Usage: " << prg_name << " [shell|test [-i <input file> -o <output file>]|server <port>]" << std::endl;
+	std::cerr << "Barzer " << BARZER_VERSION_STR << "\n" << std::endl;
+	std::cerr << "Usage: " << prg_name << " [shell|test [-i <input file> -o <output file>]|server <port>]" << std::endl;
 	std::cerr << "Other options: [-anlt] [-home BarzerHomeDir] [-cfg <config file>| -cfglist <cfg file list file>]\n";
 }
 
@@ -100,7 +101,14 @@ int main( int argc, char * argv[] ) {
 	//AYLOGINIT(WARNING);
     try {
         if (argc >= 2) {
-            if (strcasecmp(argv[1], "shell") == 0) {
+			if (strcasecmp(argv[1], "version") == 0 ||
+					strcasecmp(argv[1], "ver") == 0 ||
+					strcasecmp(argv[1], "-V") == 0 ||
+					strcasecmp(argv[1], "-ver") == 0) {
+				std::cerr << "\n\nBarzer " << BARZER_VERSION_STR << "\n" << std::endl;
+				return 0;
+			}
+            else if (strcasecmp(argv[1], "shell") == 0) {
                 // ay shell
                 //return run_shell(argc, argv);
             	return run_shell(globPool, cmdlProc);
