@@ -88,7 +88,7 @@ void SearchSession::handle_write(const boost::system::error_code &e, std::size_t
 		if (e) {
 			AYLOG(ERROR) << "Error writing into buffer: " << e;
 		} else {
-			AYLOG(DEBUG) << len << " written into the socket";
+			// AYLOG(DEBUG) << len << " written into the socket";
 		}
 		delete this;
 }

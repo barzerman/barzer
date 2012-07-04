@@ -14,6 +14,8 @@ project (barzer)
 set (barzer_VERSION_MAJOR 0)
 set (barzer_VERSION_MINOR 1)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+
 set(EN_DIR "lg_en")
 set(RU_DIR "lg_ru")
 if (NOT WIN32)
