@@ -66,6 +66,14 @@ namespace ay
 			return pos->second;
 		}
 
+		inline void getAvailableTopics(std::vector<int>& result, const std::vector<int>& filter ) const
+        {
+			for (typename ModelsDict_t::const_iterator i = m_models.begin(), end = m_models.end(); i != end; ++i) {
+                if( std::find( filter.begin(), filter.end(), i->first ) != filter.end() ) {
+				    result.push_back(i->first);
+                }
+            }
+        }
 		inline void getAvailableTopics(std::vector<int>& result) const
 		{
 			for (typename ModelsDict_t::const_iterator i = m_models.begin(), end = m_models.end(); i != end; ++i)

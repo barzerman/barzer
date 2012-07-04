@@ -968,6 +968,7 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
         }
 
         bool keepClasifying = qparm.isAutoc;
+        bool shouldStem = false;
         if( !keepClasifying ) {
             bool isInteger = tryClassify_integer(ctok,t);
             if( isInteger ) {
@@ -1003,6 +1004,7 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
                             PosedVec<TTWPVec> (tVec, tPos-1),
                             qparm
                         );
+                        shouldStem = true;
                         if( scr.d_nextCtok < cVec.size() )
 						    cPos = scr.d_nextCtok;
                         if( scr.d_nextTtok < tVec.size() )
@@ -1017,7 +1019,8 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 				}
 			}
 		    /// stemming
-		    if( !isNumber && bzSpell && ctok.isString() && d_universe.stemByDefault() && !ctok.getStemTok()) {
+		    if( shouldStem || (!isNumber && bzSpell && ctok.isString() && d_universe.stemByDefault() && !ctok.getStemTok()) ) 
+            {
 			    std::string strToStem( ttok.buf, ttok.len );
 			    std::string stem;
 			    if( bzSpell->stem( stem, strToStem.c_str() ) ) {

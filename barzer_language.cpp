@@ -159,7 +159,7 @@ int Lang::getLang( const StoredUniverse& universe, const char *str, size_t s_len
 
     
     int curLang = LANG_UNKNOWN;
-    if( !(s_len&1) ) { // for even s_len
+    if( !(s_len&1) ) { // for even s_len determine whether this is Russian
 	    for (const char *s = str; s < s_end; s+=2) {
             unsigned char 
                 c0 = static_cast<unsigned char>(*s), 
@@ -173,25 +173,33 @@ int Lang::getLang( const StoredUniverse& universe, const char *str, size_t s_len
                 break;
         }
     }
-	GlobalPools& gp = universe.gp;
-	ay::ASCIITopicModelMgr *ascii = gp.getASCIILangMgr();
-	ay::UTF8TopicModelMgr *utf8 = gp.getUTF8LangMgr();
-	if (ascii->getNumTopics() == 1 && utf8->getNumTopics() == 1)
-	{
-		std::vector<int> asciiLang, utf8Lang;
-		ascii->getAvailableTopics(asciiLang);
-		utf8->getAvailableTopics(utf8Lang);
+    if( universe.getBarzHints().getUtf8Languages().size() ) {
+	    GlobalPools& gp = universe.gp;
+	    ay::ASCIITopicModelMgr *ascii = gp.getASCIILangMgr();
+	    ay::UTF8TopicModelMgr *utf8 = gp.getUTF8LangMgr();
+	    if (ascii->getNumTopics() == 1 && utf8->getNumTopics() == 1)
+	    {
+		    std::vector<int> asciiLang, utf8Lang;
+		    ascii->getAvailableTopics(asciiLang, universe.getBarzHints().getUtf8Languages() );
+		    utf8->getAvailableTopics(utf8Lang, universe.getBarzHints().getUtf8Languages() );
+    
+            if( !utf8Lang.size() )
+                return LANG_ENGLISH;
+            else if( !asciiLang.size() )
+                return ( utf8Lang.size() ? fromAyLang(utf8Lang[0]) : LANG_ENGLISH );
+            else {
+		        double utf8Score = 0, asciiScore = 0;
 
-		double utf8Score = 0, asciiScore = 0;
-		ay::getScores (utf8->getModel(utf8Lang[0]), ascii->getModel(asciiLang[0]), str, s_len, utf8Score, asciiScore);
-		return fromAyLang(utf8Score > asciiScore ? utf8Lang[0] : asciiLang[0]);
-	}
-
-	std::vector<std::pair<int, double> > probs;
-	ay::evalAllLangs(utf8, ascii, str, probs, true);
-	return fromAyLang(std::accumulate(probs.begin(), probs.end(), std::make_pair(0, 0.0), accMaxPair).first);
-
-	/*
+		        ay::getScores (utf8->getModel(utf8Lang[0]), ascii->getModel(asciiLang[0]), str, s_len, utf8Score, asciiScore);
+		        return fromAyLang(utf8Score > asciiScore ? utf8Lang[0] : asciiLang[0]);
+            }
+	    }
+    
+	    std::vector<std::pair<int, double> > probs;
+	    ay::evalAllLangs(utf8, ascii, str, probs, true);
+	    return fromAyLang(std::accumulate(probs.begin(), probs.end(), std::make_pair(0, 0.0), accMaxPair).first);
+    } 
+    {
     const char* s_end = str+s_len, *s_end_1 = s_end + s_len-1;
     int lang = LANG_UNKNOWN;
     for( const char* s= str; *s && s< s_end; ++s ) {
@@ -218,7 +226,7 @@ int Lang::getLang( const StoredUniverse& universe, const char *str, size_t s_len
         }
     }
     return ( lang == LANG_UNKNOWN ? LANG_UNKNOWN_UTF8 : lang );
-    */
+    }
 }
 
 const char* Lang::getLangName( int xx ) 

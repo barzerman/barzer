@@ -190,12 +190,18 @@ void BarzelBeadChain::collapseRangeLeft( BeadList::iterator origin, Range r ) {
 size_t BarzelBeadChain::adjustStemIds( const StoredUniverse& u, const BELTrie& trie  ) 
 {
     size_t numRemainingStems = 0;
+    const BZSpell* bzSpell = u.getBZSpell();
+
     for( BeadList::iterator i = lst.begin(); i!= lst.end(); ++i ) {
         if( i->getStemStringId() != 0xffffffff ) {
             const BarzerLiteral* ltrl = i->getLiteral();
             if( ltrl ) {
                 if( ltrl->getId() != 0xffffffff ) {
                     uint32_t stemStringId = i->getStemStringId();
+                    if( bzSpell && bzSpell->isUsersWordById(stemStringId) ) {
+                        ++numRemainingStems;
+                        continue;
+                    }
                     const strIds_set* stridSet = trie.getStemSrcs( stemStringId );
                     if( stridSet ) {
                         uint32_t ltrlId = ltrl->getId()  ;
