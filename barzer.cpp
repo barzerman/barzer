@@ -87,7 +87,7 @@ int main( int argc, char * argv[] ) {
 		print_usage( argv[0] );
 		return 1;
 	} else if( argc> 1 ) {
-            // version
+            // version reporting and exit
             char c0 = tolower( argv[1][0] ), c1 = ( c0 ? argv[1][1] : 0 );
             if( c0 == 'v' || (c0 == '-' && c1 == 'v') ) {
 			    if (strcasecmp(argv[1], "version") == 0 ||
