@@ -8,6 +8,7 @@
 #include <ay/ay_logger.h>
 #include <stack>
 #include <barzer_storage_types.h>
+#include <barzer_language.h>
 using ay::char_cp;
 
 extern "C" {
@@ -238,7 +239,7 @@ public:
             if( stem ) {
 			    strId = stemAndInternTmpText( theStr, len);
             } else {
-                StoredToken& sTok = internString(theStr,false);
+                StoredToken& sTok = internString(LANG_UNKNOWN,theStr,false,0);
                 if( isNumeric && !sTok.classInfo.isNumber() ) 
                     sTok.classInfo.setNumber();
                 

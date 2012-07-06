@@ -91,7 +91,7 @@ protected:
 
 	/// unstemSrc is not null if s is stem. In this case, unstemSrc points to the original
 	/// unstemmed version of the s.
-	StoredToken& internString( const char* s, bool noSpell, const char* unstemSrc = 0 ) ;
+	StoredToken& internString( int lang, const char* s, bool noSpell, const char* unstemSrc ) ;
 
 	/// gets variable name v1.v2.v3 ... interns individual parts and
 	/// adds result to the variable pool as a whole vector

@@ -41,7 +41,7 @@ StoredToken& StoredTokenPool::addCompoundedTok( bool& newAdded, uint32_t cwid, u
 	return newTok;
 }
 
-StoredToken& StoredTokenPool::addSingleTok( uint16_t& lang, bool& newAdded, const char* t)
+StoredToken& StoredTokenPool::addSingleTok( int& lang, bool& newAdded, const char* t)
 {
 	newAdded = false;
 	StoredToken* sTok = getTokByString(t);
@@ -55,7 +55,8 @@ StoredToken& StoredTokenPool::addSingleTok( uint16_t& lang, bool& newAdded, cons
 	StoredToken& newTok = storTok.extend();
 	newTok.setSingle( tokId, sid, strlen(internedStr) );
     size_t t_len = strlen(t);
-    lang = Lang::getLangNoUniverse( t, t_len );
+    if( lang == LANG_UNKNOWN )
+        lang = Lang::getLangNoUniverse( t, t_len );
     if( Lang::hasUpperCase(t,t_len,lang) ) 
         newTok.setHasUpperCase();
 

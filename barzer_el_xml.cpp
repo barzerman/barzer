@@ -1499,7 +1499,7 @@ DEFINE_BELParserXML_taghandle(CASE)
         const char* v = attr[i+1]; // attr value
         switch(n[0]) {
         case 'l':
-            caseId = internString(v,true).getStringId();
+            caseId = internString(LANG_UNKNOWN,v,true,0).getStringId();
             break;
         case 'p':
             caseId = (uint32_t)v[0]; // this is a hack really

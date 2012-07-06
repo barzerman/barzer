@@ -7,6 +7,7 @@
 #include <ay/ay_string_pool.h>
 #include <ay/ay_util_char.h>
 #include <boost/unordered_map.hpp>
+#include <barzer_language.h>
 
 namespace barzer {
 
@@ -140,10 +141,10 @@ public:
 		}
 	/// newAdded is set to true only if this called resulted in creation of a new token 
 	/// set to false otherwise
-	StoredToken& addSingleTok( uint16_t& lang, bool& newAdded, const char* t);
+	StoredToken& addSingleTok( int& lang, bool& newAdded, const char* t);
 	StoredToken& addSingleTok( bool& newAdded, const char* t)
     {
-        uint16_t lang= 0;
+        int lang= LANG_UNKNOWN;
         return addSingleTok(lang,newAdded,t);
     }
 	/// adds new compounded word
@@ -281,16 +282,16 @@ public:
 	void printEuid( std::ostream& fp, const StoredEntityUniqId& euid ) const
 	{ fp << euid << '|' << resolveStoredTokenStr(euid.tokId ); }
 	
-	StoredToken& addToken( uint16_t lang, bool& wasNew, const char* t ) {
+	StoredToken& addToken( int lang, bool& wasNew, const char* t ) {
 		return tokPool.addSingleTok( lang, wasNew, t );
     }
 	StoredToken& addToken( bool& wasNew, const char* t ) {
-        uint16_t lang = 0;
+        int lang = 0;
 		return addToken(lang,wasNew,t);
 	}
 	StoredToken& addToken( const char* t ) {
 		bool wasNew = false;
-        uint16_t lang = 0;
+        int lang = LANG_UNKNOWN;
 		return addToken(lang,wasNew,t);
 	}
 	enum {

@@ -59,21 +59,21 @@ uint32_t BELParser::stemAndInternTmpText( const char* s, int len )
     }
     const StoredToken* storedTok = curUni->getStoredToken( s );
     
+    int lang = LANG_UNKNOWN;
 	if( bzSpell )  {
         uint32_t i = 0xffffffff;
         if( bzSpell->isUsersWord(i,s) ) {
             return ( storedTok? storedTok->getStringId() : i );
         }
 		std::string stem;
-        int lang = LANG_UNKNOWN;
 		if( bzSpell->stem(stem, s,lang) ) {
-			internString( stem.c_str(), false, s );
+			internString( lang, stem.c_str(), false, s );
 		}
         StoredUniverse* curUni = reader->getCurrentUniverse();
         if( curUni ) 
             curUni->recordLangWord( lang );
 	}
-	return internString( s,false).getStringId();
+	return internString( lang,s,false,0).getStringId();
 }
 
 uint32_t BELParser::internVariable( const char* t )
@@ -97,7 +97,7 @@ uint32_t BELParser::internVariable( const char* t )
 
 uint32_t BELParser::addCompoundedWordLiteral( const char* alias )
 {
-	uint32_t aliasId = ( alias ? internString(alias,false).getStringId() : 0xffffffff );
+	uint32_t aliasId = ( alias ? internString(LANG_UNKNOWN,alias,false,0).getStringId() : 0xffffffff );
 	GlobalPools &gp = reader->getGlobalPools();
 	uint32_t cwid = gp.getCompWordPool().addNewCompWordWithAlias( aliasId );
 	StoredToken& sTok =  gp.getDtaIdx().addCompoundedToken(cwid);
@@ -108,13 +108,12 @@ uint32_t BELParser::internString_internal( const char* t )
 {
 	return reader->getGlobalPools().internString_internal( t );
 }
-StoredToken& BELParser::internString( const char* t, bool noSpell, const char* unstemmed)
+StoredToken& BELParser::internString( int lang, const char* t, bool noSpell, const char* unstemmed)
 {
 	// here we may want to tweak some (nonexistent yet) fields in StoredToken
 	// to reflect the fact that this thing is actually in the trie
     
 	bool wasNew = false;
-    uint16_t lang = 0;
 
     GlobalPools& gp  = reader->getGlobalPools();
 	StoredToken& sTok =  gp.getDtaIdx().addToken( lang, wasNew, t );
