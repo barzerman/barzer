@@ -101,6 +101,7 @@ int main( int argc, char * argv[] ) {
 	//AYLOGINIT(WARNING);
     try {
         if (argc >= 2) {
+            // version
             char c0 = tolower( argv[1][0] ), c1 = ( c0 ? argv[1][1] : 0 );
             if( c0 == 'v' || (c0 == '-' && c1 == 'v') ) {
 			    if (strcasecmp(argv[1], "version") == 0 ||
