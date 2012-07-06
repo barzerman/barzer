@@ -89,19 +89,10 @@ void print_usage(const char* prg_name) {
 int main( int argc, char * argv[] ) {
 	if( argc == 1 ) {
 		print_usage( argv[0] );
-		return 1;
-	} else if( argc> 1 ) {
-            // version reporting and exit
-            char c0 = tolower( argv[1][0] ), c1 = ( c0 ? argv[1][1] : 0 );
-            if( c0 == 'v' || (c0 == '-' && c1 == 'v') ) {
-			    if (strcasecmp(argv[1], "version") == 0 ||
-					    strcasecmp(argv[1], "ver") == 0 ||
-					    strcasecmp(argv[1], "-V") == 0 ||
-					    strcasecmp(argv[1], "-ver") == 0) {
-				    std::cerr << "Barzer " << BARZER_VERSION_STR << std::endl;
-				    exit(1);
-			    }
-            }
+		exit(1);
+	} else if( argc== 2 && !strcasecmp("-v",argv[1]) ) {
+        std::cerr << "Barzer " << BARZER_VERSION_STR << std::endl;
+        exit(0);
     }
 	AYLOGINIT(DEBUG);
 	//ay::Logger::getLogger()->setFile("barzer.log");
