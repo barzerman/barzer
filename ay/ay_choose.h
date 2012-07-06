@@ -105,6 +105,37 @@ public:
 
 typedef choose_n<char, iterator_range_print_callback<char> > choose_n_char_print;
 
+template <typename T, typename CB>
+struct unique_chars {
+	std::vector<T> d_result;
+	CB& d_callback;
+    size_t d_numDups;
+
+	unique_chars( CB& cb ) :
+		d_callback(cb),
+        d_numDups(0)
+	{}	
+    void clear() { d_result.clear(); d_numDups=0; }
+	template <typename Iter>
+	void operator()( Iter fromI, Iter toI ) {
+		clear();
+        auto lastChar = d_result.rend();
+        for( Iter i=fromI; i!= toI; ++i ) {
+            if( d_result.size() ) {
+                if( (*d_result.rbegin()) == *i ) {
+                    ++d_numDups;
+                } else {
+                    d_result.push_back(*i);
+                }
+            } else {
+                d_result.push_back( *i );
+            }
+        }
+        if( d_numDups )
+	        d_callback( d_result.begin(), d_result.end() );
+    }
+    size_t getNumDups() const { return d_numDups; }
+    };
 } // end of anon namespace 
 
 #ifdef TEST_AY_CHOOSE_CPP

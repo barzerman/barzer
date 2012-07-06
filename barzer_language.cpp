@@ -170,8 +170,12 @@ int Lang::getLang( const StoredUniverse& universe, const char *str, size_t s_len
                 else
                     break;
             } else if( curLang != LANG_RUSSIAN || !utf8_2byte_isRussian(c0,c1)) 
+                if( curLang == LANG_RUSSIAN )
+                    curLang = LANG_UNKNOWN;
                 break;
         }
+        if( curLang == LANG_RUSSIAN )
+            return LANG_RUSSIAN;
     }
     if( universe.getBarzHints().getUtf8Languages().size() ) {
 	    GlobalPools& gp = universe.gp;

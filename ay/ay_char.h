@@ -168,6 +168,12 @@ struct Char2B {
     }
 };
 
+inline bool operator==( const Char2B& l, const Char2B& r ) { return( l.b[0] == r.b[0] && l.b[1] == r.b[1]); }
+inline bool operator!=( const Char2B& l, const Char2B& r ) { return !(l == r ); }
+
+inline bool operator<( const Char2B& l, const Char2B& r ) 
+    { return( l.b[0] < r.b[0] || ( l.b[0] == r.b[0] && (l.b[1] < r.b[1]) ) ); }
+
 struct Char2B_iterator {
     const char* d_s;
     Char2B_iterator( ): d_s(0) {}

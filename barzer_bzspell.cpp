@@ -569,8 +569,14 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 			cb.tryUpdateBestMatch( str );
 
             if( str_len> d_minWordLengthToCorrect ) {
+                { // omission variator
 			    ay::choose_n<char, CorrectCallback > variator( cb, str_len-1, str_len-1 );
 			    variator( str, str+str_len );
+                }
+                { // char deduplicator variator
+			    ay::unique_chars<char, CorrectCallback > variator( cb );
+			    variator( str, str+str_len );
+                }
             }
 
 			ascii::CharPermuter permuter( str, cb );
@@ -608,8 +614,14 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 
 			const size_t numChar = str_len / 2;
 			if( numChar > d_minWordLengthToCorrect ) {
+                { // omission variator
 			    ay::choose_n<ay::Char2B, CorrectCallback > variator( cb, numChar-1, numChar-1 );
 			    variator( ay::Char2B_iterator(str), ay::Char2B_iterator(str+str_len) );
+                }
+                { // char deduplicato variator
+			    ay::unique_chars<ay::Char2B, CorrectCallback > variator(cb);
+			    variator( ay::Char2B_iterator(str), ay::Char2B_iterator(str+str_len) );
+                }
             }
 
 			ascii::CharPermuter_2B permuter( str, cb );
@@ -637,8 +649,14 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 		cb.tryUpdateBestMatch (str);
 
 		if (uniSize > d_minWordLengthToCorrect) {
+            { // omission variator
 			ay::choose_n<ay::CharUTF8, CorrectCallback> variator (cb, uniSize-1, uniSize-1);
 			variator(strUtf8.begin(), strUtf8.end());
+            }
+            { // character deduplicator
+			ay::unique_chars<ay::CharUTF8, CorrectCallback> variator (cb);
+			variator(strUtf8.begin(), strUtf8.end());
+            }
 		}
 
 		ascii::CharPermuter_Unicode permuter(strUtf8, cb);
@@ -971,16 +989,30 @@ size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
 
 		if( str_len > d_minWordLengthToCorrect ) {
 			WPCallback cb( *this, strId );
+            { // omission variator 
 			ay::choose_n<char, WPCallback > variator( cb, str_len-1, str_len-1 );
 			variator( str, str+str_len );
+            }
+            { // character de-duplicator
+			ay::unique_chars<char, WPCallback > variator(cb);
+			variator( str, str+str_len );
+            }
 			return cb.varCount;
 		}
 	} else if( Lang::isTwoByteLang(lang) ) { /// includes russian
 		size_t numChars = str_len/2;
 		if( numChars > d_minWordLengthToCorrect ) {
 			WPCallback_2B cb( lang, *this, strId );
+
+            { // omission variator
 			ay::choose_n<ay::Char2B, WPCallback_2B > variator( cb, numChars-1, numChars-1 );
 			variator( ay::Char2B_iterator(str), ay::Char2B_iterator(str+str_len) );
+            }
+
+            { // character de-duplicator
+			ay::unique_chars<ay::Char2B, WPCallback_2B > variator( cb );
+			variator( ay::Char2B_iterator(str), ay::Char2B_iterator(str+str_len) );
+            }
 			return cb.varCount;
 		}
 	}
@@ -993,8 +1025,15 @@ size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
 
 		WPCallback_Unicode cb (*this, strId);
 
+        { // omission variator
 		ay::choose_n<ay::CharUTF8, WPCallback_Unicode> variator (cb, numGlyphs - 1, numGlyphs - 1);
 		variator (uni.begin (), uni.end ());
+        }
+
+        { // character de-duplicator
+		ay::unique_chars<ay::CharUTF8, WPCallback_Unicode> variator (cb);
+		variator (uni.begin (), uni.end ());
+        }
 
 		return cb.varCount;
 	}
