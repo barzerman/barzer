@@ -101,13 +101,16 @@ int main( int argc, char * argv[] ) {
 	//AYLOGINIT(WARNING);
     try {
         if (argc >= 2) {
-			if (strcasecmp(argv[1], "version") == 0 ||
-					strcasecmp(argv[1], "ver") == 0 ||
-					strcasecmp(argv[1], "-V") == 0 ||
-					strcasecmp(argv[1], "-ver") == 0) {
-				std::cerr << "\n\nBarzer " << BARZER_VERSION_STR << "\n" << std::endl;
-				return 0;
-			}
+            char c0 = tolower( argv[1][0] ), c1 = ( c0 ? argv[1][1] : 0 );
+            if( c0 == 'v' || (c0 == '-' && c1 == 'v') ) {
+			    if (strcasecmp(argv[1], "version") == 0 ||
+					    strcasecmp(argv[1], "ver") == 0 ||
+					    strcasecmp(argv[1], "-V") == 0 ||
+					    strcasecmp(argv[1], "-ver") == 0) {
+				    std::cerr << "\n\nBarzer " << BARZER_VERSION_STR << "\n" << std::endl;
+				    return 0;
+			    }
+            }
             else if (strcasecmp(argv[1], "shell") == 0) {
                 // ay shell
                 //return run_shell(argc, argv);
