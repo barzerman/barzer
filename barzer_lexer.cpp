@@ -1023,10 +1023,21 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
             {
 			    std::string strToStem( ttok.buf, ttok.len );
 			    std::string stem;
-			    if( bzSpell->stem( stem, strToStem.c_str() ) ) {
+                int lang = LANG_UNKNOWN;
+			    if( bzSpell->stem(stem, strToStem.c_str(), lang) ) {
                     const StoredToken* stemTok = dtaIdx->getStoredToken( stem.c_str() ) ;
-                    if( stemTok && stemTok != ctok.getStemTok() )
-				        ctok.setStemTok( stemTok );
+                    if( stemTok ) {
+                        if( stemTok != ctok.getStemTok() )
+				            ctok.setStemTok( stemTok );
+                    } else {
+                        enum { MIN_DEDUPE_LENGTH = 5 };
+                        std::string dedupedStem;
+                        if( bzSpell->dedupeChars( stem, strToStem.c_str(), strToStem.length(), lang, MIN_DEDUPE_LENGTH )) { 
+                            stemTok = dtaIdx->getStoredToken( stem.c_str() ) ;
+                            if( stemTok && stemTok != ctok.getStemTok() )
+                                ctok.setStemTok( stemTok );
+                        }
+                    }
                 }
 		    }
             ctok.syncStemAndStoredTok();

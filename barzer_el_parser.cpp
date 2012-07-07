@@ -66,9 +66,17 @@ uint32_t BELParser::stemAndInternTmpText( const char* s, int len )
             return ( storedTok? storedTok->getStringId() : i );
         }
 		std::string stem;
-		if( bzSpell->stem(stem, s,lang) ) {
+        bool gotStemmed = bzSpell->stem(stem, s,lang);
+
+		if( gotStemmed ) {
 			internString( lang, stem.c_str(), false, s );
+            std::string stemDeduped;
+            enum { MIN_DEDUPE_LENGTH = 5 };
+            if( bzSpell->dedupeChars(stemDeduped,stem.c_str(),stem.length(),lang,MIN_DEDUPE_LENGTH) ) {
+                internString( lang, stemDeduped.c_str(), false, s );
+            }
 		}
+
         StoredUniverse* curUni = reader->getCurrentUniverse();
         if( curUni ) 
             curUni->recordLangWord( lang );

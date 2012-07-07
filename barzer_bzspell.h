@@ -165,7 +165,9 @@ public:
 	/// successful
 	bool     stem( std::string& out, const char* word ) const;
 	bool     stem( std::string& out, const char* word, int& lang ) const;
-
+    // deduplicates all characters in s (does not recompute lang)
+    size_t   dedupeChars( std::string& out, const char* s, size_t str_len, int lang, const size_t minDedupeLength ) const;
+    
 	size_t loadExtra( const char* fileName );
 	std::ostream& printStats( std::ostream& fp ) const;
 

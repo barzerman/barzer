@@ -135,7 +135,11 @@ struct unique_chars {
 	        d_callback( d_result.begin(), d_result.end() );
     }
     size_t getNumDups() const { return d_numDups; }
-    };
+
+    const std::vector<T>& result() const { return d_result; }
+    typedef T char_type;
+    size_t                result_sz() const { return d_result.size(); }
+};
 } // end of anon namespace 
 
 #ifdef TEST_AY_CHOOSE_CPP

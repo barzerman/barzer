@@ -923,6 +923,16 @@ struct WPCallback {
 		return 0;
 	}
 };
+struct WPCallback_dummy { 
+    int operator()( charvec_ci fromI, charvec_ci toI ){ return 0; } 
+    std::string& getString( std::string& s, charvec_ci fromI, charvec_ci toI  ) const
+    {
+        charvec v( fromI, toI );
+        v.push_back(0);
+        return s.assign( &(v[0]) );
+    }
+};
+
 
 struct WPCallback_2B {
 
@@ -949,13 +959,25 @@ struct WPCallback_2B {
 		return 0;
 	}
 };
+struct WPCallback_2B_dummy { 
+    typedef std::vector< ay::Char2B > char_2b_vec;
+
+    int operator()( char_2b_vec::const_iterator fromI, char_2b_vec::const_iterator toI ) { return 0; } 
+
+    std::string& getString( std::string& s, char_2b_vec::const_iterator fromI, char_2b_vec::const_iterator toI ) const
+    {   
+        std::vector< char > d_charV;
+        ay::Char2B::mkCharvec( d_charV, fromI, toI );
+        return s.assign(&(d_charV[0]));
+    }
+};
 
 struct WPCallback_Unicode
 {
 	BZSpell& bzs;
 	uint32_t fullStrId;
 	size_t varCount;
-
+    
 	WPCallback_Unicode (BZSpell& b, uint32_t id)
 	: bzs (b)
 	, fullStrId (id)
@@ -972,13 +994,63 @@ struct WPCallback_Unicode
 		++varCount;
 		return 0;
 	}
+
 };
+struct WPCallback_Unicode_dummy { 
+    int operator() (std::vector<ay::CharUTF8>::const_iterator begin, std::vector<ay::CharUTF8>::const_iterator end) { return 0; } 
+    std::string& getString( std::string& s, std::vector<ay::CharUTF8>::const_iterator begin, std::vector<ay::CharUTF8>::const_iterator end ) const
+        { return s.assign( ay::StrUTF8(begin,end).c_str() ); }
+};
+
+}  /// anon namespace
+
+size_t BZSpell::dedupeChars( std::string& out, const char* str, size_t str_len, int lang, const size_t minDedupeLength ) const
+{
+	/// for ascii
+	if( lang == LANG_ENGLISH ) {
+		if( str_len > d_minWordLengthToCorrect ) {
+			WPCallback_dummy cb;
+			ay::unique_chars<char, WPCallback_dummy > variator(cb);
+			variator( str, str+str_len );
+            if( variator.getNumDups() && variator.result_sz() > minDedupeLength ) 
+                cb.getString( out, variator.result().begin(), variator.result().end() );
+			return variator.getNumDups();
+		}
+	} else if( Lang::isTwoByteLang(lang) ) { /// includes russian
+		size_t numChars = str_len/2;
+		if( numChars > d_minWordLengthToCorrect ) {
+			WPCallback_2B_dummy cb;
+
+			ay::unique_chars<ay::Char2B, WPCallback_2B_dummy > variator( cb );
+			variator( ay::Char2B_iterator(str), ay::Char2B_iterator(str+str_len) );
+            if( variator.getNumDups() && variator.result_sz() > minDedupeLength ) 
+                cb.getString( out, variator.result().begin(), variator.result().end() );
+			return variator.getNumDups();
+		}
+	}
+	else {
+		ay::StrUTF8 uni (str);
+		const size_t numGlyphs = uni.size ();
+		if (numGlyphs <= d_minWordLengthToCorrect)
+			return 0;
+
+		WPCallback_Unicode_dummy cb;
+
+		ay::unique_chars<ay::CharUTF8, WPCallback_Unicode_dummy> variator (cb);
+		variator (uni.begin (), uni.end ());
+        if( variator.getNumDups() && variator.result_sz() > minDedupeLength ) 
+            cb.getString( out, variator.result().begin(), variator.result().end() );
+		return variator.getNumDups();
+	}
+	return 0;
 }
+
 
 size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
 {
 	/// for ascii
-	const char* str = d_universe.getGlobalPools().string_resolve( strId );
+    GlobalPools& gp = d_universe.getGlobalPools();
+	const char* str = gp.string_resolve( strId );
 	if( !str )
 		return 0;
 
@@ -993,10 +1065,6 @@ size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
 			ay::choose_n<char, WPCallback > variator( cb, str_len-1, str_len-1 );
 			variator( str, str+str_len );
             }
-            { // character de-duplicator
-			ay::unique_chars<char, WPCallback > variator(cb);
-			variator( str, str+str_len );
-            }
 			return cb.varCount;
 		}
 	} else if( Lang::isTwoByteLang(lang) ) { /// includes russian
@@ -1006,11 +1074,6 @@ size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
 
             { // omission variator
 			ay::choose_n<ay::Char2B, WPCallback_2B > variator( cb, numChars-1, numChars-1 );
-			variator( ay::Char2B_iterator(str), ay::Char2B_iterator(str+str_len) );
-            }
-
-            { // character de-duplicator
-			ay::unique_chars<ay::Char2B, WPCallback_2B > variator( cb );
 			variator( ay::Char2B_iterator(str), ay::Char2B_iterator(str+str_len) );
             }
 			return cb.varCount;
@@ -1029,12 +1092,6 @@ size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
 		ay::choose_n<ay::CharUTF8, WPCallback_Unicode> variator (cb, numGlyphs - 1, numGlyphs - 1);
 		variator (uni.begin (), uni.end ());
         }
-
-        { // character de-duplicator
-		ay::unique_chars<ay::CharUTF8, WPCallback_Unicode> variator (cb);
-		variator (uni.begin (), uni.end ());
-        }
-
 		return cb.varCount;
 	}
 	return 0;
