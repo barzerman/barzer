@@ -158,7 +158,6 @@ protected:
 	/// by default is set to d_trieSpellPriority+ d_rulesetSpellPriority
 	/// can be overridden (currently this is not done)
 	uint8_t d_spellPriority;
-    uint8_t d_noCanonicalNames;
 
 public:
 	/// barzEL input formats
@@ -183,6 +182,7 @@ private:
 
     size_t  d_maxEmitCountPerStatement, d_maxEmitCountPerTrie, d_maxStatementsPerTrie; /// max
     bool    d_respectLimits; /// when false get_maxEmitXXX returns max unsigned int
+    uint8_t d_noCanonicalNames;
 	/// both computeXXXSpellPriority functions update d_spellPriority
 	/// deduces trie spell priority from trie class name ( "" - priority 0, otherwise - 10 )
 	void computeImplicitTrieSpellPriority( uint32_t tc, uint32_t tid );

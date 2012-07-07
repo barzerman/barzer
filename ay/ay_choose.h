@@ -119,7 +119,6 @@ struct unique_chars {
 	template <typename Iter>
 	void operator()( Iter fromI, Iter toI ) {
 		clear();
-        auto lastChar = d_result.rend();
         for( Iter i=fromI; i!= toI; ++i ) {
             if( d_result.size() ) {
                 if( (*d_result.rbegin()) == *i ) {
