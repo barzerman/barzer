@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys, os
-uname=os.popen('uname').read()
+uname=os.popen('uname').read().strip()
 LDD='ldd ' if uname=='Linux' else 'otool -L '
 g_visited=set()
 def recurse(arr):
@@ -30,6 +30,9 @@ def recurse(arr):
                             descendArr.append(l0)
             recurse(descendArr)
 
+if len(sys.argv)<=1:
+    sys.stderr.write( "usage: getdeplibs.py <file>\n")
+    quit()
 firstbin= sys.argv[1] if len(sys.argv)>1 else "./barzer.exe"
 arr=[firstbin]
 recurse(arr)
