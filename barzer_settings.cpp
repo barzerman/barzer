@@ -492,7 +492,7 @@ void load_ent_segregate_info(BELReader& reader, User& u, const ptree &node)
 
 } // anonymous namespace ends
 
-void BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
+int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 {
 	const ptree &children = user.second;
 	const boost::optional<uint32_t> userIdOpt
@@ -500,7 +500,7 @@ void BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 
 	if (!userIdOpt) {
 		AYLOG(ERROR) << "No user id in tag <user>";
-		return;
+		return 0;
 	}
     uint32_t userId = userIdOpt.get();
 
@@ -531,6 +531,7 @@ void BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 
 	StoredUniverse& uni = u.getUniverse();
 	uni.getBarzHints().initFromUniverse(&uni);
+    return 1;
 }
 
 int BarzerSettings::loadUserConfig( BELReader& reader, const char* cfgFileName ) {
@@ -569,17 +570,20 @@ void BarzerSettings::loadUsers(BELReader& reader ) {
             // const std::string &cfgFileName = v.second.get<std::string>("<xmlattr>.cfgfile", "");
 		    const boost::optional<std::string> userNameOpt = v.second.get_optional<std::string>("<xmlattr>.username");
 
+            int loadedUsers = 0;
             if (cfgFileName.empty()) {
-                loadUser(reader,v);
+                loadedUsers = loadUser(reader,v);
             } else {
-                loadUserConfig( reader, cfgFileName.c_str() );
+                loadedUsers = loadUserConfig( reader, cfgFileName.c_str() );
             }
 
-            if( userNameOpt ) {
+            if( loadedUsers && userNameOpt ) {
                 StoredUniverse* uniPtr = reader.getCurrentUniverse();
+
                 if( uniPtr ) 
                     uniPtr->setUserName( userNameOpt.get().c_str() );
-            }
+            } else 
+                reader.setCurrentUniverse(0);
         }
 	}
 }
