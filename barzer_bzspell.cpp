@@ -841,6 +841,17 @@ bool BZSpell::stem( std::string& out, const char* s ) const
     return stem( out, s, lang );
 }
 
+const StoredToken* BZSpell::tryGetStoredTokenFromLinkedWords( uint32_t strId ) const
+{
+    WordInfoAndDepth wid;
+    uint32_t id = getBestWord( strId, wid );
+    if( id != 0xffffffff ) {
+        const char* str = d_universe.getGlobalPools().string_resolve( id );
+        return ( str ? d_universe.getStoredToken( str ) : 0 );
+    } else 
+        return 0;
+}
+
 bool BZSpell::isPureStem( const char* str ) const
 {
     const StoredToken* tmpTok = d_universe.getStoredToken( str );

@@ -183,6 +183,9 @@ public:
 
 	uint32_t getBestWordByString( const char* word, WordInfoAndDepth& wid ) const;
 	void setSecondarySpellchecker( const BZSpell* bzs ) { d_secondarySpellchecker= bzs; }
+
+    // calls getBestWord for strId and then returns StoredToken 
+    const StoredToken* tryGetStoredTokenFromLinkedWords( uint32_t ) const;
 };
 
 }
