@@ -844,8 +844,9 @@ bool BZSpell::stem( std::string& out, const char* s ) const
 const StoredToken* BZSpell::tryGetStoredTokenFromLinkedWords( uint32_t strId ) const
 {
     WordInfoAndDepth wid;
+
     uint32_t id = getBestWord( strId, wid );
-    if( id != 0xffffffff ) {
+    if( id != 0xffffffff && isUsersWordById(id)) {
         const char* str = d_universe.getGlobalPools().string_resolve( id );
         return ( str ? d_universe.getStoredToken( str ) : 0 );
     } else 
