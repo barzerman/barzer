@@ -1,13 +1,26 @@
 #!/bin/ksh
 
 
-CURDIR=$(pwd)
-BINDIR=$(dirname $0)
-DISTROFILE=${BINDIR}/linuxdistrofiles.txt
+VERSION=""
+if [[ -n $1 ]]; then
+    VERSION=$1
+fi
+
+CURDIR=${PWD}
+_s_dir=$(dirname $0)
+BINDIR="$(cd $_s_dir && pwd)"
+DISTROFILE=${BINDIR}/macdistrofiles.txt
 OUTDIR=barzer
 OUTFILE=${CURDIR}/barzer.mac${VERSION}.tar.bz2
 BUILDDIR=macbuild
 BINFILELIST=binfilelist.out
+
+
+CACHEFILE="CMakeCache.txt"
+if [[ -e $CACHEFILE ]]; then
+    rm $CACHEFILE
+fi
+
 
 if [[ ! -d  $BUILDDIR ]]; then
     mkdir -p $BUILDDIR
@@ -17,12 +30,8 @@ cd $BUILDDIR
 
 echo "cmake .. -DCMAKE_BUILD_TYPE=Release"
 cmake .. -DCMAKE_BUILD_TYPE="Release"
-make -j5
+make -j2
 
-VERSION=""
-if [[ -n $1 ]]; then
-    VERSION=$1
-fi
 
 
 echo "making ${OUTFILE} in ${OUTDIR}"
@@ -32,10 +41,10 @@ mkdir -p ${OUTDIR}
 
 for i in $(<$DISTROFILE)
 do
-    if [[ $i = *.so || $i = *.exe || $i = *.dylib]]; then
+    if [[ $i = *.so || $i = *.exe || $i = *.dylib ]]; then
         echo "processing $i" >&2
         ${BINDIR}/getdeplibs.py $i
-        strip $i
+        strip $i  2>"strip_$i.log"
     fi
 done | sort -u > ${BINFILELIST}
 {
