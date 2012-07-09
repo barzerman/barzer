@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys, os, re
-
+from os.path import isfile
 
 uname = os.uname()[0]
 
@@ -20,7 +20,7 @@ RE = re.compile(PAT)
 STOPLIST = {
     '*': {},
     'Linux': {'libpython'},
-    'Darwin': {'libSystem'}
+    'Darwin': {'libSystem', 'Python'}
 }
 
 def in_stoplist(w):
@@ -39,7 +39,7 @@ def recurse(arr):
                 m = RE.search(line.strip())
                 if m:
                     fname = m.group(1).strip()
-                    if fname and os.path.isfile(fname) and fname not in g_visited:
+                    if fname and isfile(fname) and fname not in g_visited:
                         descendArr.append(fname)
             recurse(descendArr)
 
