@@ -786,6 +786,18 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 	uint32_t strId = 0xffffffff;
 	isUsersWord =  bzSpell->isUsersWord( strId, theString ) ;
 
+    if( strId != 0xffffffff ) { // word is known to system but isnt a user's word
+        const StoredToken* tmpTok = bzSpell->tryGetStoredTokenFromLinkedWords(strId);
+        if( tmpTok ) {
+            ctok.storedTok = tmpTok;
+            ctok.syncClassInfoFromSavedTok ();
+
+		    const char* correction = gp.string_resolve( tmpTok->getStringId() ) ;
+            if( correction ) 
+			    ctok.addSpellingCorrection( theString, correction );
+            return SpellCorrectResult (1, ++cPosVec, ++tPosVec);
+        }
+    }
     /// short word case - we only do case correction
     if( /*!isUsersWord &&*/ charsInWord <= MIN_SPELL_CORRECT_LEN ) {
         char buf[ 32 ];
