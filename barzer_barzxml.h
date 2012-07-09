@@ -7,6 +7,8 @@ namespace barzer {
 class Barz; 
 class BarzerRequestParser; 
 struct BarzXMLParser {
+	bool m_shouldInternStrings;
+
     Barz& barz;
     BarzerRequestParser& reqParser; 
     QuestionParm qparm;
@@ -27,7 +29,10 @@ struct BarzXMLParser {
         }
 
     BarzXMLParser( Barz& b, BarzerRequestParser& rp, const StoredUniverse& u ) :
-        barz(b), reqParser(rp), universe(u) {}
+        m_shouldInternStrings(false), barz(b), reqParser(rp), universe(u) {}
+
+	void setInternStrings(bool);
+	bool internStrings() const;
 private:
     void setLiteral( BarzelBead&, const char*, size_t, bool isFluff );
 };

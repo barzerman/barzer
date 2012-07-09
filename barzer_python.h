@@ -16,6 +16,11 @@ struct BarzerShell;
 struct QueryParseEnv;
 struct PythonQueryProcessor;
 
+namespace autotester
+{
+	class CompareSettings;
+}
+
 namespace boost { namespace python { class list; } } 
 //namespace ay { class CommandLineArgs; }
 
@@ -58,6 +63,8 @@ public:
     /// exported functions 
     std::string     bzstem(const std::string& s);
     boost_python_list guessLang(const std::string& s);
+
+    int matchXML(const std::string& pattern, const std::string& result, const autotester::CompareSettings&);
 
     void shell_cmd( const std::string& cmd, const std::string& args );
 

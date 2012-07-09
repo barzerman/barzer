@@ -16,6 +16,8 @@
 
 #include <util/pybarzer.h>
 
+#include <autotester/comparators.h>
+
 
 using boost::python::stl_input_iterator ;
 using namespace boost::python;
@@ -104,6 +106,17 @@ boost_python_list BarzerPython::guessLang(const std::string& s)
 
     return l;
 }
+
+int BarzerPython::matchXML(const std::string& pattern, const std::string& result, const autotester::CompareSettings& settings)
+{
+	if (!d_universe)
+		return -1;
+
+	return autotester::matches(pattern.c_str(), result.c_str(),
+			{ d_universe->getGlobalPools(), d_universe->getUserId() },
+			settings);
+}
+
 std::string BarzerPython::bzstem(const std::string& s)
 {
     if( d_universe ) {
@@ -724,6 +737,15 @@ PythonQueryProcessor* BarzerPython::makeParseEnv( ) const
 
 } // barzer
 
+namespace
+{
+	template<typename Class, typename Val, Class& (Class::*method) (Val)>
+	void nonReturn(Class& self, Val val)
+	{
+		(self.*method)(val);
+	}
+}
+
 BOOST_PYTHON_MODULE(pybarzer)
 {
     AYLOGINIT(DEBUG);
@@ -737,9 +759,9 @@ BOOST_PYTHON_MODULE(pybarzer)
         .def( "mkProcessor", &barzer::BarzerPython::makeParseEnv, return_value_policy<manage_new_object>() )
         /// returns Barzer XML for the parsed query 
         .def( "parsexml", &barzer::BarzerPython::parse  )
-        .def( "emit", &barzer::BarzerPython::emit);
+        .def( "emit", &barzer::BarzerPython::emit)
+        .def( "matchXML", &barzer::BarzerPython::matchXML);
 
-    
     def("stripDiacritics", stripDiacritics);
     // BarzerResponseObject    
     boost::python::class_<barzer::BarzerResponseObject>( "response" )
@@ -828,4 +850,17 @@ BOOST_PYTHON_MODULE(pybarzer)
         .def( "grammar", &barzer::exposed::TraceInfo::grammar )
         .def( "source", &barzer::exposed::TraceInfo::source )
         ;
+
+	namespace at = barzer::autotester;
+
+	boost::python::class_<at::BeadMatchOptions>("BeadMatchOptions")
+		.def("matchType", &at::BeadMatchOptions::matchType)
+		.def("setMatchType", nonReturn<at::BeadMatchOptions, at::BeadMatchType, &at::BeadMatchOptions::setMatchType>)
+		.def("classMatchType", &at::BeadMatchOptions::classMatchType)
+		.def("setClassMatchType", nonReturn<at::BeadMatchOptions, at::ClassMatchType, &at::BeadMatchOptions::setClassMatchType>)
+		.def("skipFluff", &at::BeadMatchOptions::skipFluff)
+		.def("setSkipFluff", nonReturn<at::BeadMatchOptions, bool, &at::BeadMatchOptions::setSkipFluff>);
+
+	boost::python::class_<at::CompareSettings>("CompareSettings")
+		.def("setBeadOptions", &at::CompareSettings::setBeadOption);
 }

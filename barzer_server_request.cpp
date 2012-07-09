@@ -68,7 +68,9 @@ static void startElement(void* ud, const XML_Char *n, const XML_Char **a)
             else 
                 rp->stream() << "BarzXML Error: Must supply universe in u attribute" << std::endl;
         } else { // valid universe extracted 
-            rp->setBarzXMLParserPtr( new barzer::BarzXMLParser( rp->getBarz(), *rp, *u ) );
+            barzer::BarzXMLParser *parser = new barzer::BarzXMLParser( rp->getBarz(), *rp, *u );
+            parser->setInternStrings(rp->shouldInternStrings());
+            rp->setBarzXMLParserPtr(parser);
             rp->getBarzXMLParser().takeTag( name, atts , attr_sz, true );
         }
 
@@ -139,6 +141,7 @@ static void charDataHandle( void * ud, const XML_Char *str, int len)
 namespace barzer {
 
 BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s, uint32_t uid ) : 
+    m_internStrings(false),
     gpools(gp), 
     settings(gp.getSettings()), 
     userId(uid)/* qparser(u), response(barz, u) */, 
@@ -186,6 +189,15 @@ static const ReqTagFunc* getCmdFunc(std::string &name) {
 }
 #undef CMDFUN
 
+void BarzerRequestParser::setInternStrings (bool should)
+{
+	m_internStrings = should;
+}
+
+bool BarzerRequestParser::shouldInternStrings() const
+{
+	return m_internStrings;
+}
 
 const StoredUniverse*  BarzerRequestParser::setUniverseId( int id )
 {

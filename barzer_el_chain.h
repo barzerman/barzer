@@ -1,5 +1,5 @@
-#ifndef BARZER_EL_CHAIN_H  
-#define BARZER_EL_CHAIN_H  
+#ifndef BARZER_EL_CHAIN_H
+#define BARZER_EL_CHAIN_H
 
 #include <barzer_storage_types.h>
 #include <barzer_parse_types.h>
@@ -8,8 +8,8 @@
 #include <ay/ay_util.h>
 #include <list>
 
-/// Barzel chain is the sequence manipulated during rewriting 
-/// Barzer gets a chain of CToken-s (see barzer_parse_types.h) converts it into 
+/// Barzel chain is the sequence manipulated during rewriting
+/// Barzer gets a chain of CToken-s (see barzer_parse_types.h) converts it into
 /// the BarzelChain (a doubly linked list of BarzelBead-s)
 namespace barzer {
 class BELTrie;
@@ -21,13 +21,13 @@ struct BarzelBeadBlank {
 	std::ostream& print( std::ostream& fp ) const
 		 { return ( fp << "<blankbead>" ); }
 };
-inline bool operator< ( const BarzelBeadBlank& l, const BarzelBeadBlank& r ) 
+inline bool operator< ( const BarzelBeadBlank& l, const BarzelBeadBlank& r )
 { return false; }
 
-/// combination 
+/// combination
 typedef boost::variant<
 	BarzerLiteral, // constant string literal
-	BarzerString, // non constant string (something constructed from the input) 
+	BarzerString, // non constant string (something constructed from the input)
 	BarzerNumber,
 	BarzerDate,
 	BarzerTimeOfDay,
@@ -39,7 +39,7 @@ typedef boost::variant<
 	BarzerERCExpr
 > BarzelBeadAtomic_var;
 enum {
-	BarzerLiteral_TYPE, 
+	BarzerLiteral_TYPE,
 	BarzerString_TYPE,
 	BarzerNumber_TYPE,
 	BarzerDate_TYPE,
@@ -53,7 +53,7 @@ enum {
 };
 struct BarzelBeadAtomic {
 	BarzelBeadAtomic_var dta;
-	
+
 	BarzelBeadAtomic() {}
 	BarzelBeadAtomic(const BarzelBeadAtomic_var &d) : dta(d) {}
 
@@ -74,23 +74,23 @@ struct BarzelBeadAtomic {
 
 	bool isEntity() const { return dta.which() == BarzerEntity_TYPE; }
 	bool isLiteral() const { return dta.which() == BarzerLiteral_TYPE; }
-	bool isStopLiteral() const { 
+	bool isStopLiteral() const {
 		const BarzerLiteral* bl = getLiteral();
 		return( bl && bl->isStop() );
 	}
 	bool isDate() const { return dta.which() == BarzerDate_TYPE; }
 	bool isNumber() const { return dta.which() == BarzerNumber_TYPE; }
-	bool isBlankLiteral() const { 
+	bool isBlankLiteral() const {
 		const BarzerLiteral* bl = getLiteral();
 		return( bl && bl->isBlank() );
 	}
 	bool isString() const {  return (dta.which() == BarzerString_TYPE); }
 
-	bool isStringLiteral() const { 
+	bool isStringLiteral() const {
 		const BarzerLiteral* bl = getLiteral();
 		return( bl && bl->isString() );
 	}
-	int getType() const 
+	int getType() const
 		{ return dta.which(); }
 
 	BarzelBeadAtomic& setStopLiteral( )
@@ -103,15 +103,15 @@ struct BarzelBeadAtomic {
 	const BarzelBeadAtomic_var* getDataPtr() const { return &dta; }
 	      BarzelBeadAtomic_var* getDataPtr()       { return &dta; }
 
-	template <typename T> BarzelBeadAtomic& setData( const T& t ) 
+	template <typename T> BarzelBeadAtomic& setData( const T& t )
 	{ dta = t; return *this; }
 	std::ostream& print( std::ostream& fp ) const;
 };
 
-/// this is a tree type. beads of this type are expresions on top of whatever 
+/// this is a tree type. beads of this type are expresions on top of whatever
 /// was discerned from the input
-/// for future implementation - 
-// 
+/// for future implementation -
+//
 struct BarzelBeadExpression {
 	typedef std::pair<uint32_t, uint32_t> Attr;
 	typedef std::vector<Attr> AttrList;
@@ -122,8 +122,8 @@ struct BarzelBeadExpression {
 	uint32_t sid;
 	AttrList attrs;
 
-	
-	typedef boost::variant< 
+
+	typedef boost::variant<
 		BarzelBeadAtomic,
 		BarzelBeadExpression
 	> SubExpr;
@@ -151,7 +151,7 @@ struct BarzelBeadExpression {
 	void addChild(const BarzelBeadExpression&);
 	*/
 
-	std::ostream& print( std::ostream& fp ) const 
+	std::ostream& print( std::ostream& fp ) const
 	{
 		return ( fp << "<expression>" );
 	}
@@ -176,25 +176,25 @@ enum {
 inline bool is_BarzelBeadAtomic( const BarzelBeadData& dta ) { return dta.which() == BarzelBeadAtomic_TYPE; }
 
 std::ostream& operator<< ( std::ostream& fp, const BarzelBeadData& );
-/// this class when implemented will keep matching trace information structured as a tree 
+/// this class when implemented will keep matching trace information structured as a tree
 /// to reflect the matching process
 struct BarzelBeadTraceInfo {
 };
-//// Barzel bead starts as a CToken 
+//// Barzel bead starts as a CToken
 /// Barzel matcher matches the beads sequences and rewrites until no rewrites were made
-///  Barzel bead ma be a constant or an expression 
+///  Barzel bead ma be a constant or an expression
 class BarzelBead {
-	CTWPVec ctokOrigVec; // pre-barzel CToken list participating in this bead 
-	/// types 
+	CTWPVec ctokOrigVec; // pre-barzel CToken list participating in this bead
+	/// types
 	BarzelBeadData dta;
-    int d_unmatchable; 
+    int d_unmatchable;
     uint32_t d_stemStringId;
 public:
     uint32_t    getStemStringId() const { return d_stemStringId; }
     void        setStemStringId( uint32_t i ) { d_stemStringId= i; }
 
-    int getBeadUnmatchability() const { return d_unmatchable; } 
-    void setBeadUnmatchability(int bu=0) { d_unmatchable= bu; } 
+    int getBeadUnmatchability() const { return d_unmatchable; }
+    void setBeadUnmatchability(int bu=0) { d_unmatchable= bu; }
 
 
 	const BarzelBeadData& getBeadData() const { return dta; }
@@ -203,7 +203,7 @@ public:
 	/// implement:
 	void absorbBead( const BarzelBead& bead )
 	{ ctokOrigVec.insert( ctokOrigVec.end(), bead.ctokOrigVec.begin(), bead.ctokOrigVec.end() ); }
-    
+
 
 	template <typename T> void become( const T& t ) { dta = t; }
 
@@ -212,7 +212,7 @@ public:
 	template <typename T> void setAtomicData( const T& t ) { dta = BarzelBeadAtomic(t); }
 	template <typename T> void setData( const T& t ) { dta = t; }
 
-	void setStopLiteral() 
+	void setStopLiteral()
         { dta= BarzelBeadAtomic().setStopLiteral(); }
 
 	bool isBlank( ) const { return (dta.which() == BarzelBeadBlank_TYPE); }
@@ -223,7 +223,7 @@ public:
 	const BarzelBeadAtomic* getAtomic() const { return  boost::get<BarzelBeadAtomic>( &dta ); }
 	const BarzelBeadExpression* getExpression() const { return  boost::get<BarzelBeadExpression>( &dta ); }
 
-	bool isStringLiteralOrString() const { 
+	bool isStringLiteralOrString() const {
 		const BarzelBeadAtomic* atomic = getAtomic();
         return( atomic && (atomic->isStringLiteral() || atomic->isString()) );
     }
@@ -231,10 +231,10 @@ public:
         const BarzelBeadAtomic* atomic = getAtomic();
         if( atomic ) {
 		    return atomic->getLiteral();
-        } else 
+        } else
             return 0;
     }
-    BarzerLiteral* getLiteral() { 
+    BarzerLiteral* getLiteral() {
         BarzelBeadAtomic* atomic = getAtomic();
         return( atomic ? atomic->getLiteral() : 0 );
     }
@@ -242,31 +242,31 @@ public:
         const BarzelBeadAtomic* atomic = getAtomic();
         if( atomic ) {
 		    return atomic->getString();
-        } else 
+        } else
             return 0;
     }
-	bool isStringLiteral() const { 
+	bool isStringLiteral() const {
 		const BarzelBeadAtomic* atomic = getAtomic();
 		return( atomic && atomic->isStringLiteral() )  ;
 	}
-    const BarzerEntityList* getEntityList() const { 
+    const BarzerEntityList* getEntityList() const {
 			const BarzelBeadAtomic* atomic = getAtomic();
-            return( atomic ? atomic->getEntityList() : 0 ); 
+            return( atomic ? atomic->getEntityList() : 0 );
     }
-    BarzerEntityList* getEntityList() { 
+    BarzerEntityList* getEntityList() {
 			BarzelBeadAtomic* atomic = getAtomic();
-            return( atomic ? atomic->getEntityList() : 0 ); 
+            return( atomic ? atomic->getEntityList() : 0 );
     }
-    BarzerEntityList* becomeEntityList() 
-        { 
+    BarzerEntityList* becomeEntityList()
+        {
             dta= BarzelBeadAtomic( BarzerEntityList() );
             return getEntityList();
         }
-	bool isBlankLiteral() const { 
+	bool isBlankLiteral() const {
 			const BarzelBeadAtomic* atomic = getAtomic();
 			return( atomic && atomic->isBlankLiteral() )  ;
 		}
-	bool isEntity(StoredEntityClass& ec) const { 
+	bool isEntity(StoredEntityClass& ec) const {
         const BarzelBeadAtomic* atomic = getAtomic();
         if( atomic ) {
             const BarzerEntity* ent = atomic->getEntity();
@@ -297,7 +297,7 @@ public:
         }
         return n;
     }
-	/// it's a loosely defined property - semantical bead is anything less than trivial 
+	/// it's a loosely defined property - semantical bead is anything less than trivial
 	/// meaning it's either non-atomic, non-number, fluff if string - meaning something prcoessed
 	/// by barzer
 	bool isSemantical() const {
@@ -305,7 +305,7 @@ public:
 		// not blank
 		const BarzelBeadAtomic* atomic = getAtomic();
 		if( !atomic ) return true; // non atomic and non blank - must be semantical
-		const BarzerLiteral* ltrl = atomic->getLiteral(); 
+		const BarzerLiteral* ltrl = atomic->getLiteral();
 		if( ltrl ) return ltrl->isStop();
 		// not literal at this point
 		if( atomic->isString() ) return false;
@@ -313,9 +313,9 @@ public:
 
 		return true;
 	}
-	const CTWPVec& getCTokens() const 
+	const CTWPVec& getCTokens() const
 		{ return ctokOrigVec; }
-	CTWPVec& getCTokens() 
+	CTWPVec& getCTokens()
 		{ return ctokOrigVec; }
 
 	BarzelBead(const BarzelBeadData& d ): dta(d), d_unmatchable(0) {}
@@ -323,9 +323,9 @@ public:
     BarzelBead( const BarzerEntity& e ) : dta(BarzelBeadAtomic(e)), d_unmatchable(0) {}
     BarzelBead( const BarzerEntityList& e ) : dta(BarzelBeadAtomic(e)), d_unmatchable(0) {}
 	BarzelBead(const CTWPVec::value_type& ct) : d_unmatchable(0) { init(ct); }
-}; 
+};
 
-inline std::ostream& operator<<( std::ostream& fp, const BarzelBead& b ) { 
+inline std::ostream& operator<<( std::ostream& fp, const BarzelBead& b ) {
     return b.print(fp);
 }
 
@@ -334,33 +334,33 @@ typedef std::list< BarzelBead > 	BeadList;
 struct BarzelBeadChain {
 	typedef std::pair< BeadList::iterator, BeadList::iterator > Range;
 
-	static inline bool 	iteratorAtBlank( BeadList::iterator i ) 
+	static inline bool 	iteratorAtBlank( BeadList::iterator i )
 	{
 		const BarzelBeadAtomic* atomic = i->getAtomic();
 		return( atomic && atomic->isBlankLiteral() );
 	}
-	static inline void 	trimBlanksFromRange( Range& rng ) 
+	static inline void 	trimBlanksFromRange( Range& rng )
 	{
 		while( rng.first != rng.second ) {
 			BeadList::iterator lastElem = rng.second;
 			--lastElem;
-			if( lastElem == rng.first ) 
+			if( lastElem == rng.first )
 				break;
-			if( BarzelBeadChain::iteratorAtBlank(lastElem) ) 
+			if( BarzelBeadChain::iteratorAtBlank(lastElem) )
 				rng.second= lastElem;
-			else if( BarzelBeadChain::iteratorAtBlank(rng.first) ) 
+			else if( BarzelBeadChain::iteratorAtBlank(rng.first) )
 				++rng.first;
 			else
 				break;
 		}
 	}
 
-	
+
 	BeadList lst;
-	/// implement 
+	/// implement
 	/// - fold ( BeadList::iterator from, to )
-	/// - externally Matcher will provide these iterator ranges for fold 
-	
+	/// - externally Matcher will provide these iterator ranges for fold
+
 	BeadList::iterator getLstBegin() { return lst.begin(); }
 	BeadList::const_iterator getLstBegin() const { return lst.begin(); }
 
@@ -378,35 +378,35 @@ struct BarzelBeadChain {
 
 	void init( const CTWPVec& cv );
 	void clear() { lst.clear(); }
-	
-	BeadList::iterator insertBead( BeadList::iterator at, const BarzelBeadData& d ) 
+
+	BeadList::iterator insertBead( BeadList::iterator at, const BarzelBeadData& d )
         { return lst.insert( at, d ); }
 	BarzelBead& appendBlankBead()
-        { 
+        {
             return ( lst.insert(lst.end(),BarzelBead()), lst.back() );
         }
-	const Range getFullRange() 
+	const Range getFullRange()
 		{ return Range( lst.begin(), lst.end() ); }
 	void collapseRangeLeft( Range r );
 	void collapseRangeLeft( BeadList::iterator origin, Range r );
-	
+
 	/// will try to print rng.first through rng.second including second, unless it equals end
-	static Range makeInclusiveRange( const Range& rng, BeadList::const_iterator end ) 
+	static Range makeInclusiveRange( const Range& rng, BeadList::const_iterator end )
 	{
 		Range r = rng;
-		if( r.second != end ) 
+		if( r.second != end )
 			++(r.second);
 
 		return r;
 	}
-    /// runs through the list and sets unmathabilities for all beads to 0  
+    /// runs through the list and sets unmathabilities for all beads to 0
     void clearUnmatchable() {
-		for( BeadList::iterator i = lst.begin(); i!= lst.end(); ++i ) 
+		for( BeadList::iterator i = lst.begin(); i!= lst.end(); ++i )
             i->setBeadUnmatchability();
     }
-    
+
     template <typename T>
-    T* appendBlankAtomicVal( ) { 
+    T* appendBlankAtomicVal( ) {
         lst.push_back( BarzelBead(T()) );
         return lst.back().get<T>();
     }
@@ -449,12 +449,12 @@ inline bool operator==(const BarzelBeadData &left, const BarzelBeadData &right)
 }
 
 
-template <typename T> inline const T* barzel_bead_data_get( const BarzelBeadData& d ) 
+template <typename T> inline const T* barzel_bead_data_get( const BarzelBeadData& d )
 {
     const BarzelBeadAtomic* atomic = boost::get<BarzelBeadAtomic>(&d);
     return ( atomic ? atomic->get<T>() : 0 );
 }
-template <typename T> inline T* barzel_bead_data_get( BarzelBeadData& d ) 
+template <typename T> inline T* barzel_bead_data_get( BarzelBeadData& d )
 {
     BarzelBeadAtomic* atomic = boost::get<BarzelBeadAtomic>(&d);
     return ( atomic ? atomic->get<T>() : 0 );
@@ -466,22 +466,22 @@ struct BarzerRangeAccessor {
     bool getLo( BarzelBeadData& ) const;
     bool getHi( BarzelBeadData& ) const;
 };
-///// 
+/////
 struct BarzelBeadData_FieldBinder {
     const StoredUniverse& d_universe;
     const BarzelBeadData& d_data;
     std::ostream&         d_errStream;
 
-    BarzelBeadData_FieldBinder( 
-        const BarzelBeadData& data, 
+    BarzelBeadData_FieldBinder(
+        const BarzelBeadData& data,
         const StoredUniverse& universe,
-        std::ostream& os ) : 
-    d_universe(universe), d_data(data), d_errStream(os) 
+        std::ostream& os ) :
+    d_universe(universe), d_data(data), d_errStream(os)
     {}
 
     bool operator()( BarzelBeadData& out, const char* fieldName ) const;
 
-    /// this is for the setter 
+    /// this is for the setter
     /// setter - set( out, "field", originalObject, fieldValue )
     bool operator()( BarzelBeadData& out, const char* fieldName, const std::vector<BarzelBeadData>* ) const;
 

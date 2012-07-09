@@ -62,7 +62,7 @@ public:
 #endif
 	enum Cmd {ADD,DELETE};
 private:
-
+	bool m_internStrings;
 	std::vector<RequestTag> tagStack;
 
 	CmdArgList arglist;
@@ -103,6 +103,9 @@ public:
 
 	BarzerRequestParser(GlobalPools&, std::ostream &s, uint32_t uid );
 	~BarzerRequestParser();
+
+	void setInternStrings(bool);
+	bool shouldInternStrings() const;
 
 	int parse(const char *buf, const size_t len) {
 		return XML_Parse(parser, buf, len, true);
