@@ -1,5 +1,5 @@
-PYINCLUDE := $(shell python-config --includes)
-PYLIBS := $(shell python-config --libs)
+PYINCLUDE := $(shell /usr/bin/python2.7-config --includes)
+PYLIBS := $(shell /usr/bin/python2.7-config --libs)
 
 FLAGS := $(FLAGS)
 ifeq ($(IS64),yes)
