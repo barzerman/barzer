@@ -10,9 +10,10 @@ ifeq ($(IS32),yes)
 	BITMODE=-m32
 	AYBIT="IS32=yes"
 endif
-ifeq ($(CX),yes)
-    C11=-std=c++0x
-endif
+#ifeq ($(CX),yes)
+#    C11=-std=c++0x
+#endif
+C11=-std=c++0x
 ifeq ($(CC),clang++)
     CLANG_WARNSUPPRESS=-Wno-array-bounds
 endif

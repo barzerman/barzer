@@ -1,4 +1,4 @@
-#!/opt/local/bin/python -i
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import pybarzer
