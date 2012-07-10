@@ -157,7 +157,7 @@ public:
 	void loadUserRules(BELReader& reader, User&, const boost::property_tree::ptree&);
 
 	void loadUsers(BELReader& reader );
-	void loadUser(BELReader& reader, const boost::property_tree::ptree::value_type &);
+	int loadUser(BELReader& reader, const boost::property_tree::ptree::value_type &);
 
     int loadUserConfig( BELReader&, const char* cfgFileName );
 
