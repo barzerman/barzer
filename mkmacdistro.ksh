@@ -56,9 +56,10 @@ echo "*** copying files to ===> ${OUTDIR}"
 cp $(<$DISTROFILE) $(<$BINFILELIST) ${OUTDIR}
 cd ${OUTDIR}
 
+# relinking dynamic binary to the local libraries
 do_subs()
 {
-   for lname in `otool -L $1 | tail -n +2 | awk '{print $1}' | grep "^/"| grep -vE "$1|@"`; do
+   for lname in $(otool -L $1 | awk '/^\t+\// {print $1}' | grep -vE "$1|@"); do
         LOCALNAME=$(basename $lname)
         if [[ -f $LOCALNAME ]]; then
             echo "$1: $lname -> @$2/$LOCALNAME"
