@@ -67,8 +67,9 @@ DECL_TAGHANDLE(BARZ) {
         QParser qparser(parser.universe);
         BarzStreamerXML response(parser.barz, parser.universe);
         qparser.barz_parse( parser.barz, parser.qparm );
-        response.print(parser.reqParser.stream());
-        parser.barz.clearWithTraceAndTopics();
+        response.print(parser.ostream);
+		if (parser.shouldPerformCleanup())
+			parser.barz.clearWithTraceAndTopics();
     }
     return TAGHANDLE_ERROR_OK;
 } 
@@ -90,7 +91,7 @@ DECL_TAGHANDLE(ENTITY) {
 		case 'c': ent.setClass(atoi(v));    break;
 		case 'i':{
 			uint32_t strId = parser.internStrings() ?
-					parser.reqParser.getGlobalPools().internString_internal(v) :
+					parser.gpools.internString_internal(v) :
 					GLOBALPOOLS.internalString_getId(v);
 			if( strId != 0xffffffff ) 
 				ent.setId(strId);
@@ -332,7 +333,7 @@ DECL_TAGHANDLE(TOKEN) {
     ALS_BEGIN
         case 's': {
             uint32_t strId = parser.internStrings() ?
-					parser.reqParser.getGlobalPools().string_intern(v) :
+					parser.gpools.string_intern(v) :
 					GLOBALPOOLS.string_getId(v);
             if( strId != 0xffffffff ) 
                 parser.barz.getLastBead().setStemStringId( strId );
@@ -414,6 +415,16 @@ void BarzXMLParser::setInternStrings (bool should)
 bool BarzXMLParser::internStrings() const
 {
 	return m_shouldInternStrings;
+}
+
+void BarzXMLParser::setPerformCleanup (bool clean)
+{
+	m_performCleanup = clean;
+}
+
+bool BarzXMLParser::shouldPerformCleanup() const
+{
+	return m_performCleanup;
 }
 
 void BarzXMLParser::setLiteral( BarzelBead& bead, const char* s, size_t s_len, bool isFluff )

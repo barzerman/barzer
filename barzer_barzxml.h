@@ -5,12 +5,13 @@
 namespace barzer {
 
 class Barz; 
-class BarzerRequestParser; 
 struct BarzXMLParser {
 	bool m_shouldInternStrings;
+	bool m_performCleanup;
 
     Barz& barz;
-    BarzerRequestParser& reqParser; 
+	std::ostream& ostream;
+	GlobalPools& gpools;
     QuestionParm qparm;
 
     // current stack of tags - see .cpp file for tag codes 
@@ -28,11 +29,21 @@ struct BarzXMLParser {
             return ( tagStack.size() > 1 && (*(tagStack.rbegin()+1)) == tid );
         }
 
-    BarzXMLParser( Barz& b, BarzerRequestParser& rp, const StoredUniverse& u ) :
-        m_shouldInternStrings(false), barz(b), reqParser(rp), universe(u) {}
+	BarzXMLParser( Barz& b, std::ostream& os, GlobalPools& gp, const StoredUniverse& u )
+	: m_shouldInternStrings(false)
+	, m_performCleanup(true)
+	, barz(b)
+	, ostream(os)
+	, gpools(gp)
+	, universe(u)
+	{
+	}
 
 	void setInternStrings(bool);
 	bool internStrings() const;
+	
+	void setPerformCleanup(bool);
+	bool shouldPerformCleanup() const;
 private:
     void setLiteral( BarzelBead&, const char*, size_t, bool isFluff );
 };

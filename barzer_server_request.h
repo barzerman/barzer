@@ -14,7 +14,6 @@
 #include <boost/function.hpp>
 #include <barzer_barz.h>
 #include <barzer_parse.h>
-#include <barzer_server_response.h>
 #include <barzer_settings.h>
 
 extern "C" {

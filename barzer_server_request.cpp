@@ -14,6 +14,7 @@
 #include <barzer_ghettodb.h>
 #include <ay/ay_parse.h>
 #include <barzer_barzxml.h>
+#include "barzer_server_response.h"
 
 extern "C" {
 
@@ -68,7 +69,7 @@ static void startElement(void* ud, const XML_Char *n, const XML_Char **a)
             else 
                 rp->stream() << "BarzXML Error: Must supply universe in u attribute" << std::endl;
         } else { // valid universe extracted 
-            barzer::BarzXMLParser *parser = new barzer::BarzXMLParser( rp->getBarz(), *rp, *u );
+            barzer::BarzXMLParser *parser = new barzer::BarzXMLParser( rp->getBarz(), rp->stream(), rp->getGlobalPools(), *u );
             parser->setInternStrings(rp->shouldInternStrings());
             rp->setBarzXMLParserPtr(parser);
             rp->getBarzXMLParser().takeTag( name, atts , attr_sz, true );
