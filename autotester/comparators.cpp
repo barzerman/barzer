@@ -4,13 +4,86 @@
 #include "../barzer_barz.h"
 #include "../barzer_barzxml.h"
 #include "../barzer_server_request.h"
-#include <barzer_universe.h>
-#include <barzer_server_request.h>
+#include "../barzer_universe.h"
+
+extern "C"
+{
+#include <expat.h>
+}
 
 namespace barzer
 {
 namespace autotester
 {
+	namespace
+	{
+		void startElement(void *ud, const XML_Char *n, const XML_Char **a);
+		void endElement(void *ud, const XML_Char *n);
+		void charDataHandle( void * ud, const XML_Char *str, int len);
+
+		class EnbarzParser
+		{
+			Barz& m_result;
+
+			XML_Parser m_parser;
+			std::stringstream m_barzXMLOstr;
+			BarzXMLParser m_barzXML;
+		public:
+			EnbarzParser(Barz& result, StoredUniverse& u)
+			: m_result(result)
+			, m_parser(XML_ParserCreate(NULL))
+			, m_barzXML(m_result, m_barzXMLOstr, u.getGlobalPools(), u)
+			{
+				m_barzXML.setInternStrings(true);
+				m_barzXML.setPerformCleanup(false);
+
+				XML_SetUserData(m_parser, this);
+				XML_SetElementHandler(m_parser, &startElement, &endElement);
+				XML_SetCharacterDataHandler(m_parser, &charDataHandle);
+			}
+
+			~EnbarzParser()
+			{
+				XML_ParserFree(m_parser);
+			}
+
+			int operator()(const char *str)
+			{
+				return XML_Parse(m_parser, str, std::strlen(str), true);
+			}
+
+			void start(const char *n, const char **a)
+			{
+				m_barzXML.takeTag(n, a, XML_GetSpecifiedAttributeCount(m_parser), true);
+			}
+
+			void end(const char *n)
+			{
+				m_barzXML.takeTag(n, 0, 0, false);
+			}
+
+			void cdata(const char *str, int len)
+			{
+				m_barzXML.takeCData(str, len);
+			}
+		};
+
+		void startElement(void *ud, const XML_Char *n, const XML_Char **a)
+		{
+			static_cast<EnbarzParser*>(ud)->start(n, a);
+		}
+		
+		void endElement(void *ud, const XML_Char *n)
+		{
+			static_cast<EnbarzParser*>(ud)->end(n);
+		}
+
+		void charDataHandle (void *ud, const XML_Char *str, int len)
+		{
+			static_cast<EnbarzParser*>(ud)->cdata(str, len);
+		}
+	}
+
 	BeadMatchOptions::BeadMatchOptions()
 	: m_matchType(BeadMatchType::Value)
 	, m_classMatchType(ClassMatchType::Full)
@@ -44,7 +117,7 @@ namespace autotester
 	{
 		return m_skipFluff;
 	}
-	
+
 	BeadMatchOptions& BeadMatchOptions::setSkipFluff(bool skip)
 	{
 		m_skipFluff = skip;
@@ -193,11 +266,7 @@ namespace autotester
 
 	int parseXML(const char *string, Barz& barz, const ParseContext& ctx)
 	{
-		std::stringstream stream;
-		BarzerRequestParser p(ctx.m_gp, stream, ctx.m_userId);
-		p.setInternStrings(true);
-		auto res = p.parse(string, std::strlen(string));
-		return res;
+		return EnbarzParser(barz, *ctx.m_gp.getUniverse(ctx.m_userId))(string);
 	}
 
 	uint16_t matches(const Barz& pattern, const Barz& result, const CompareSettings& cmpSettings)
@@ -212,8 +281,6 @@ namespace autotester
 			auto str = iter->get<BarzerString>();
 			return str ? str->isFluff() : false;
 		};
-		
-		std::cout << "SHI~~~~~~~~~~ " << pBeads.size() << " " << rBeads.size() << std::endl;
 
 		if (pBeads.size() != rBeads.size())
 			return Scores::RootLengthFailure;
@@ -226,14 +293,13 @@ namespace autotester
 		{
 			score += boost::apply_visitor(BeadComparator(cmpSettings.getOptions(pos++)),
 					pIter->getBeadData(), rIter->getBeadData());
-			std::cout << "new score: " << score << std::endl;
 
 			do
 				++pIter;
-			while (skipBead(pIter) && pIter != pEnd);
+			while (pIter != pEnd && skipBead(pIter));
 			do
 				++rIter;
-			while (skipBead(rIter) && rIter != rEnd);
+			while (rIter != rEnd && skipBead(rIter));
 		}
 
 		return score;
@@ -242,8 +308,8 @@ namespace autotester
 	uint16_t matches(const char *pattern, const char *result, const ParseContext& ctx, const CompareSettings& settings)
 	{
 		Barz pattBarz, resBarz;
-		std::cout << parseXML(pattern, pattBarz, ctx) << std::endl;
-		std::cout << parseXML(result, resBarz, ctx) << std::endl;
+		parseXML(pattern, pattBarz, ctx);
+		parseXML(result, resBarz, ctx);
 		return matches(pattBarz, resBarz, settings);
 	}
 }
