@@ -90,6 +90,8 @@ namespace autotester
 
 		namespace Scores
 		{
+			const int RootLengthFailure = 100;
+
 			const int StringsEqFailure = 1;
 			const int EListLengthFailure = 3;
 			const int EListClassFailure = 3;
@@ -194,7 +196,8 @@ namespace autotester
 		std::stringstream stream;
 		BarzerRequestParser p(ctx.m_gp, stream, ctx.m_userId);
 		p.setInternStrings(true);
-		return p.parse(string, std::strlen(string));
+		auto res = p.parse(string, std::strlen(string));
+		return res;
 	}
 
 	uint16_t matches(const Barz& pattern, const Barz& result, const CompareSettings& cmpSettings)
@@ -202,21 +205,18 @@ namespace autotester
 		auto pBeads = pattern.getBeadList();
 		auto rBeads = result.getBeadList();
 
-		if (cmpSettings.removeFluff())
+		auto skipBead = [&cmpSettings] (decltype(pBeads.begin()) iter) -> bool
 		{
-			auto fluffRemover = [] (const BarzelBead& bead) -> bool
-			{
-				auto str = bead.get<BarzerString>();
-				return str ? str->isFluff() : false;
-			};
-			auto pos = std::remove_if(pBeads.begin(), pBeads.end(), fluffRemover);
-			pBeads.erase(pos, pBeads.end());
-			pos = std::remove_if(rBeads.begin(), rBeads.end(), fluffRemover);
-			rBeads.erase(pos, rBeads.end());
-		}
+			if (!cmpSettings.removeFluff())
+				return false;
+			auto str = iter->get<BarzerString>();
+			return str ? str->isFluff() : false;
+		};
+		
+		std::cout << "SHI~~~~~~~~~~ " << pBeads.size() << " " << rBeads.size() << std::endl;
 
 		if (pBeads.size() != rBeads.size())
-			return false;
+			return Scores::RootLengthFailure;
 
 		auto pIter = pBeads.begin(), pEnd = pBeads.end();
 		auto rIter = rBeads.begin(), rEnd = rBeads.end();
@@ -226,8 +226,14 @@ namespace autotester
 		{
 			score += boost::apply_visitor(BeadComparator(cmpSettings.getOptions(pos++)),
 					pIter->getBeadData(), rIter->getBeadData());
-			++pIter;
-			++rIter;
+			std::cout << "new score: " << score << std::endl;
+
+			do
+				++pIter;
+			while (skipBead(pIter) && pIter != pEnd);
+			do
+				++rIter;
+			while (skipBead(rIter) && rIter != rEnd);
 		}
 
 		return score;
@@ -236,8 +242,8 @@ namespace autotester
 	uint16_t matches(const char *pattern, const char *result, const ParseContext& ctx, const CompareSettings& settings)
 	{
 		Barz pattBarz, resBarz;
-		parseXML(pattern, pattBarz, ctx);
-		parseXML(result, resBarz, ctx);
+		std::cout << parseXML(pattern, pattBarz, ctx) << std::endl;
+		std::cout << parseXML(result, resBarz, ctx) << std::endl;
 		return matches(pattBarz, resBarz, settings);
 	}
 }
