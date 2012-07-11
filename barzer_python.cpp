@@ -96,15 +96,25 @@ void BarzerPython::shell_cmd( const std::string& cmd, const std::string& args )
 
 boost_python_list BarzerPython::guessLang(const std::string& s)
 {
-    list l;
-    if( d_universe ) {
-        list pair;
-        pair.append( "shit" );
-        pair.append( 12 );
-        l.append( pair );
-    }
+	list l;
+	if (!d_universe)
+		return l;
 
-    return l;
+	auto& pools = d_universe->getGlobalPools();
+
+	std::vector<std::pair<int, double>> probs;
+	ay::evalAllLangs(pools.getUTF8LangMgr(), pools.getASCIILangMgr(), s.c_str(), probs);
+
+	for (size_t i = 0; i < probs.size(); ++i)
+	{
+		const char *lang = ay::StemWrapper::getValidLangString(probs[i].first);
+		list pair;
+		pair.append(lang ? lang : "unknown lang");
+		pair.append(probs.at(i).second);
+		l.append(pair);
+	}
+
+	return l;
 }
 
 int BarzerPython::matchXML(const std::string& pattern, const std::string& result, const autotester::CompareSettings& settings)
