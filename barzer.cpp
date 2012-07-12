@@ -10,6 +10,7 @@
 
 #include <barzer_config.h>
 #include <barzer_universe.h>
+#include <barzer_server_response.h>
 
 #if  defined(_WINDOWS_)
 extern "C" void block_ctrlc () 
