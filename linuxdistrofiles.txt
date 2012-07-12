@@ -4,3 +4,4 @@ barzer_client.py
 barzer.exe
 pybarzer.so
 libbarzer.so
+pybtest.py
