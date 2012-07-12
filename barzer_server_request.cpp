@@ -147,7 +147,8 @@ BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s, uint3
     d_aggressiveStem(false),
     d_tagCount(0),
     d_xmlIsInvalid(false),
-    d_barzXMLParser(0)
+    d_barzXMLParser(0),
+    d_queryId( std::numeric_limits<uint64_t>::max() )
 {
     parser = XML_ParserCreate(NULL);
     XML_SetUserData(parser, this);
@@ -365,7 +366,7 @@ void BarzerRequestParser::raw_query_parse( const char* query )
 	const StoredUniverse &u = *up;
 
 	QParser qparser(u);
-	BarzStreamerXML response(barz, u);
+	BarzStreamerXML response( barz, u );
 
 	QuestionParm qparm;
     if( d_aggressiveStem ) 
@@ -543,9 +544,12 @@ void BarzerRequestParser::tag_query(RequestTag &tag) {
 		setUniverseId(it != attrs.end() ? atoi(it->second.c_str()) : 0);
     }
 
-	it = attrs.find("as"); // aggressive stemming 
-    if( it != attrs.end() ) 
-        d_aggressiveStem = true;
+    for( auto i = attrs.begin(); i!= attrs.end(); ++i ) {
+        if( i->first == "qid" ) 
+            barz.setQueryId( atoi( i->second.c_str() ) );
+        else if( i->first == "as" ) 
+            d_aggressiveStem = true;
+    }
 
     if( isParentTag("qblock") ) {
         d_query = tag.body.c_str();

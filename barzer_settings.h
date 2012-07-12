@@ -16,11 +16,10 @@
 
 #include <barzer_config.h>
 #include <barzer_el_parser.h>
+#include <barzer_server_response.h>
 
 #include <ay/ay_logger.h>
 #include <ay/ay_bitflags.h>
-
-
 
 namespace barzer {
 struct GrammarInfo;

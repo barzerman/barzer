@@ -38,6 +38,8 @@ public:
     };
     typedef ay::bitflags<BF_MAX> ModeFlags;
     ModeFlags d_outputMode; 
+
+    void setComparatorMode(const ModeFlags& m ) { d_outputMode= m; }
     void setComparatorMode() { 
         d_outputMode.set( BF_NOTRACE );
         d_outputMode.set( BF_USERID );
@@ -45,10 +47,14 @@ public:
         d_outputMode.set( BF_QUERYID );
         d_outputMode.set( BF_NOTRACE );
     }
-
+    void setBit( int i , bool val = true ) { d_outputMode.set(i,val); }
     bool checkBit( int i ) const { return d_outputMode.checkBit( i ); }
 
 	BarzStreamerXML(const Barz &b, const StoredUniverse &u) : BarzResponseStreamer(b, u) {}
+	BarzStreamerXML(const Barz &b, const StoredUniverse &u, const ModeFlags& mf) : 
+        BarzResponseStreamer(b, u), d_outputMode(mf) 
+    {}
+
 	std::ostream& print(std::ostream&);
     void setWholeMode( const ModeFlags& m ) { d_outputMode= m; }
 

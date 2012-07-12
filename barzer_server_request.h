@@ -82,7 +82,11 @@ private:
     // when the tag barz is encountered the mode is set to on
     bool d_xmlIsInvalid; /// when this is true no tags/cdata will be processed
     BarzXMLParser* d_barzXMLParser;
+    /// unique query id 
+    uint64_t       d_queryId;
 public:
+    bool isQueryIdValid() const { return std::numeric_limits<uint64_t>::max() != d_queryId; }
+
     bool isXmlInvalid() const { return d_xmlIsInvalid; }
     void setXmlInvalid() { d_xmlIsInvalid=true; }
 
