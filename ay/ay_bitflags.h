@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <stdint.h>
+#include <map>
 
 namespace ay {
 // bitflags works around a nasty limitation of bitset which seems to alsways be 
@@ -16,7 +17,9 @@ template <uint8_t SZ>
 class bitflags {
 	uint8_t buf[ (SZ-1)/8+1 ];
 public:
+    enum { NUMOFBITS = SZ } ;
 	uint8_t getSz() const { return SZ; }
+	uint8_t size() const { return SZ; }
 	const uint8_t * getBuf() const { return buf; }
 	uint8_t getBufSz() const { return SZ; }
 
@@ -81,6 +84,65 @@ inline bool operator <(const bitflags<SZL>& l,const bitflags<SZR>& r )
 template <uint8_t SZ>
 inline std::ostream& operator <<( std::ostream& fp , const bitflags<SZ>& bs ) 
 { return bs.print( fp ); }
+
+/// this interface is for slow mnemonic way of working with a particular set of bitflags
+/// bits can be "named" and then accessed using the names
+/// this is not a memory efficient structure nor is it particularly fast but because 
+/// bitmaps are extremely unlikely to have a lot of bits this would work
+
+template <typename Bitflags>
+class named_bits {
+    typedef std::map< std::string, uint8_t > NameToBitMap;
+    typedef std::map< uint8_t, std::string > BitToNameMap;
+    NameToBitMap nbmap;
+    BitToNameMap bnmap;
+    Bitflags& bf;
+public:
+    named_bits( Bitflags& b ) : bf(b) {}
+    Bitflags& theBits() { return bf; }
+    const Bitflags& theBits() const { return bf; }
+
+    void name( uint8_t b, const char* n )
+    { 
+        std::string s(n);
+         
+        nbmap[ s ] = b; 
+        bnmap[ b ] = s;
+    }
+
+    std::string getBitName(uint8_t b) const
+    {
+        auto i = bnmap.find(b);
+        return( i == bnmap.end() ? std::string() : i->second );
+    }
+
+    void set( const std::string& name, bool val=true )
+    {
+        auto i = nbmap.find( name );
+        if( i != nbmap.end() && i->second < bf.size() ) 
+            bf.set( i->second, val );
+    }
+    bool check( const std::string& name )
+    {
+        auto i = nbmap.find(name);
+        return( i!= nbmap.end() ? bf.checkBit(i->second) : false);
+    }
+    
+    std::ostream& print( std::ostream& os ) const
+    {
+        for( auto i = bnmap.begin() ; i!= bnmap.end(); ++i ) {
+            os << static_cast<int>(i->first) << ":" << i->second << ( bf.checkBit(i->first) ? "\tON" : "\tOFF" ) << std::endl;
+        }
+        return os;
+    }
+};
+
+template <typename B>
+inline std::ostream& operator<< ( std::ostream& os, const named_bits<B>& b )
+{
+    return b.print( os );
+}
+
 
 } // namespace ay 
 #endif // AY_BITFLAGS_H
