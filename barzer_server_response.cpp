@@ -552,7 +552,15 @@ inline bool stringPair_comp_eq( const CToken::StringPair& l, const CToken::Strin
 }
 std::ostream& BarzStreamerXML::print(std::ostream &os)
 {
-	os << "<barz>";
+    /// BARZ header tag 
+	os << "<barz";
+    if( checkBit(BF_USERID) ) 
+        os << " u=\"" << std::dec << universe.getUserId() << "\"";
+    if( checkBit(BF_QUERYID) && barz.isQueryIdValid() ) 
+        os << " qid=\"" << std::dec << barz.getQueryId() << "\"";
+    os << ">";
+    /// end of BARZ header tag
+    
 	const BarzelBeadChain &bc = barz.getBeads();
 	CToken::SpellCorrections spellCorrections;
 	size_t curBeadNum = 1;
@@ -607,7 +615,12 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 		}
 		os << "</spell>\n";
 	}
-    printTraceInfo(os, barz, universe);
+    if( !checkBit( BF_NOTRACE ) )
+        printTraceInfo(os, barz, universe);
+    if( checkBit( BF_ORIGQUERY ) ) {
+        os << "\n<query>";
+        xmlEscape( barz.getOrigQuestion().c_str(),  os) << "</query>\n";
+    }
 	os << "</barz>\n";
 	return os;
 }

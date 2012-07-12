@@ -10,6 +10,8 @@
 
 #include <barzer_barz.h>
 #include <ay/ay_logger.h>
+#include <ay/ay_bitflags.h>
+
 namespace  barzer {
 class StoredUniverse;
 
@@ -26,8 +28,30 @@ public:
 
 class BarzStreamerXML : public BarzResponseStreamer {
 public:
+    enum { 
+        BF_NOTRACE, // by default trace is printed
+        BF_USERID,
+        BF_ORIGQUERY,
+        BF_QUERYID,
+        /// add new flags above this line
+        BF_MAX
+    };
+    typedef ay::bitflags<BF_MAX> ModeFlags;
+    ModeFlags d_outputMode; 
+    void setComparatorMode() { 
+        d_outputMode.set( BF_NOTRACE );
+        d_outputMode.set( BF_USERID );
+        d_outputMode.set( BF_ORIGQUERY );
+        d_outputMode.set( BF_QUERYID );
+        d_outputMode.set( BF_NOTRACE );
+    }
+
+    bool checkBit( int i ) const { return d_outputMode.checkBit( i ); }
+
 	BarzStreamerXML(const Barz &b, const StoredUniverse &u) : BarzResponseStreamer(b, u) {}
 	std::ostream& print(std::ostream&);
+    void setWholeMode( const ModeFlags& m ) { d_outputMode= m; }
+
 };
 
 class BestEntities;

@@ -141,6 +141,8 @@ class Barz {
 	std::vector<char> question; 
 	/// exact copy of the original question
 	std::string questionOrig; 
+    /// this is a user-supplied id of the question (optional)
+    uint64_t    d_origQuestionId; 
     
 	TTWPVec ttVec; 
 	CTWPVec ctVec; 
@@ -158,6 +160,7 @@ class Barz {
 
 	BarzHints m_hints;
 public:
+    Barz() : d_origQuestionId(std::numeric_limits<uint64_t>::max()) {}
 	enum { 
         MAX_TRACE_LEN = 256, 
         LONG_TRACE_LEN = 32  
@@ -236,6 +239,11 @@ public:
     bool hasBeads() const { return !beadChain.lst.empty(); }
     BarzelBead& getLastBead() { return beadChain.lst.back(); }
     const BarzelBead& getLastBead() const { return beadChain.lst.back(); }
+
+    const       std::string& getOrigQuestion() const { return questionOrig; }
+    uint64_t    getQueryId() const { return d_origQuestionId; }
+    void        setQueryId( uint64_t i ) { d_origQuestionId = i ; }
+    bool        isQueryIdValid() const { return std::numeric_limits<uint64_t>::max() != d_origQuestionId; }
 };
 }
 #endif // BARZER_BARZ_h

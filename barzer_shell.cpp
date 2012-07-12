@@ -43,9 +43,16 @@ BarzerShellContext::BarzerShellContext(StoredUniverse& u, BELTrie& trie) :
 		trieWalker(trie),
 		d_trie(&trie),
 		parser( u ),
-        d_grammarId(0)
+        d_grammarId(0),
+        streamerModeFlags(streamerModeFlags_bits)
 {
 	barz.setUniverse(&u);
+#define NAME_MODE_BIT( x ) streamerModeFlags.name( BarzStreamerXML::BF_##x, #x )
+    NAME_MODE_BIT(NOTRACE);
+    NAME_MODE_BIT(USERID);
+    NAME_MODE_BIT(ORIGQUERY);
+    NAME_MODE_BIT(QUERYID);
+#undef NAME_MODE_BIT
 }
 
 BarzerShellContext* BarzerShell::getBarzerContext()
@@ -512,6 +519,32 @@ static int bshf_autoc( BarzerShell* shell, char_cp cmd, std::istream& in )
     return 0;
 }
 
+static int bshf_smf( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+    BarzerShellContext * context = shell->getBarzerContext();
+
+	std::vector< std::string > parm;
+    std::ostream& fp = shell->getOutStream() ;
+    std::string tmp;
+	while( in >>tmp )  
+        parm.push_back( tmp );
+    if( parm.size() == 2 ) { // NAME VAL
+        bool val = (parm[1] != "OFF" );
+        context->streamerModeFlags.set( parm[0], val );
+        fp << "set " << parm[0] << " to " << val << std::endl;
+    } else if( parm.size() ==1 ) { // NAME 
+        if( parm[0]== "CLEAR" ) {
+            context->streamerModeFlags.theBits().clear();
+            fp << "cleared all bits" << std::endl;
+        } else {
+            fp << parm[0] << "=" << context->streamerModeFlags.check( parm[0] ) << std::endl;
+        }
+    } else { // no parameters specified
+        fp << context->streamerModeFlags;
+    }
+    return 0;
+}
+
 static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
         BarzerShellContext * context = shell->getBarzerContext();
@@ -524,6 +557,8 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
         QParser parser( (context->getUniverse()) );
 
         BarzStreamerXML bs(barz, context->getUniverse());
+        bs.setWholeMode( context->streamerModeFlags.theBits() );
+
         std::string fname;
 
         std::ostream *ostr = &(shell->getOutStream());
@@ -1305,6 +1340,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_trcdw, "trcdw", "changes current trie node to the wildcard child by number" ),
 	CmdData( (ay::Shell_PROCF)bshf_trup, "trup", "moves back to the parent trie node" ),
 	CmdData( (ay::Shell_PROCF)bshf_srvroute, "srvroute", "tests server queries and routes it same way server mode would" ),
+	CmdData( (ay::Shell_PROCF)bshf_smf, "smf", "streamer mode flag: smf [ NAME [ON|OFF] ]" ),
 	CmdData( (ay::Shell_PROCF)bshf_stexpand, "stexpand", "expand and print all statements in a file" ),
 	CmdData( (ay::Shell_PROCF)bshf_strid, "strid", "resolve string id (usage strid id)" ),
 	CmdData( (ay::Shell_PROCF)bshf_process, "process", "process an input string" ),

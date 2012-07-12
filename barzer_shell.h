@@ -10,6 +10,7 @@
 #include <barzer_universe.h>
 #include <barzer_el_trie_walker.h>
 #include <barzer_el_wildcard.h>
+#include <barzer_server_response.h>
 
 #include <iostream>
 namespace barzer {
@@ -26,6 +27,8 @@ struct BarzerShellContext : public ay::ShellContext {
 	QParser parser;
 
     int d_grammarId;
+    BarzStreamerXML::ModeFlags streamerModeFlags_bits;
+    ay::named_bits< BarzStreamerXML::ModeFlags > streamerModeFlags;
 
 	DtaIndex* obtainDtaIdx() { return &(d_universe->getDtaIdx()); }
 	BELTrie& getTrie() { return *d_trie; }
