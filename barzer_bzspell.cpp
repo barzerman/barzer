@@ -3,6 +3,7 @@
 #include <ay/ay_choose.h>
 #include <ay_char.h>
 #include <ay_utf8.h>
+#include <ay_keymaps.h>
 #include <lg_ru/barzer_ru_lex.h>
 #include <lg_ru/barzer_ru_stemmer.h>
 #include <lg_en/barzer_en_lex.h>
@@ -88,7 +89,10 @@ uint32_t BZSpell::getBestWordByString( const char* word, WordInfoAndDepth& wid )
 
 namespace {
 
-struct CorrectCallback {
+struct CorrectCallback
+{
+	bool d_tryTranslit;
+
 	const BZSpell& d_bzSpell;
 	typedef BZSpell::WordInfoAndDepth CorrectionQualityInfo;
 
@@ -114,6 +118,7 @@ struct CorrectCallback {
 	}
 
 	CorrectCallback( const BZSpell& bzs, size_t str_len ) :
+		d_tryTranslit(true),
 		d_bzSpell(bzs) ,
 		d_bestMatch(0,0),
 		d_bestStrId(0xffffffff),
@@ -161,14 +166,23 @@ struct CorrectCallback {
 	{
 		charvec v( fromI, toI );
 		v.push_back(0);
-		const char* str = &(v[0]);
-        if( d_str_len <5 ) {
-            uint32_t id= 0xffffffff;
-            if( !d_bzSpell.isUsersWord( id, str ) )
-                return 0;
-        }
+		const char *str = &(v[0]);
+
+		if( d_str_len < 5 )
+		{
+			uint32_t id = 0xffffffff;
+			if( !d_bzSpell.isUsersWord( id, str ) )
+				return 0;
+		}
 
 		tryUpdateBestMatch( str );
+
+		if (d_tryTranslit)
+		{
+			std::string translit;
+			if (ay::km::engToRus(str, v.size(), translit))
+				tryUpdateBestMatch(translit.c_str());
+		}
 		return 0;
 	}
 
@@ -564,19 +578,24 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 
         enum { SHORT_WORD_LEN = 4 };
 
-		if( str_len >= d_minWordLengthToCorrect ) {
-			CorrectCallback cb( *this, str_len );
-			cb.tryUpdateBestMatch( str );
+		if( str_len < d_minWordLengthToCorrect )
+			return 0xffffffff;
 
-            if( str_len> d_minWordLengthToCorrect ) {
-			    ay::choose_n<char, CorrectCallback > variator( cb, str_len-1, str_len-1 );
-			    variator( str, str+str_len );
-            }
+		CorrectCallback cb( *this, str_len );
+		cb.tryUpdateBestMatch( str );
 
-			ascii::CharPermuter permuter( str, cb );
-			permuter.doAll();
-			return cb.getBestStrId();
+		std::string translit;
+		if (ay::km::engToRus(str, str_len, translit))
+			cb.tryUpdateBestMatch(translit.c_str());
+
+		if( str_len> d_minWordLengthToCorrect ) {
+			ay::choose_n<char, CorrectCallback > variator( cb, str_len-1, str_len-1 );
+			variator( str, str+str_len );
 		}
+
+		ascii::CharPermuter permuter( str, cb );
+		permuter.doAll();
+		return cb.getBestStrId();
 	} else if( Lang::isTwoByteLang(lang)) { // 2 byte char language spell correct
         /// includes russian
         std::string stemStr;
