@@ -803,7 +803,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
         char buf[ 32 ];
 		strncpy( buf, theString, sizeof(buf) );
 		buf[ sizeof(buf)-1 ] = 0;
-        bool hasUpperCase = Lang::convertToLower( buf, t_len, lang );
+        bool hasUpperCase = Lang::convertToLower( buf, strlen(buf), lang );
         if( hasUpperCase ) {
             // bzSpell->isUsersWord( usersWordStrId, t ) 
             // uint32_t usersWordStrId = 0xffffffff;
