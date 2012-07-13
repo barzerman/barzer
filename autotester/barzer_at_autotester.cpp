@@ -1,4 +1,4 @@
-#include "autotester.h"
+#include "barzer_at_autotester.h"
 #include <iostream>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>

@@ -16,7 +16,7 @@
 
 #include <util/pybarzer.h>
 
-#include <autotester/comparators.h>
+#include <autotester/barzer_at_comparators.h>
 
 
 using boost::python::stl_input_iterator ;

@@ -62,6 +62,12 @@ namespace autotester
 	{
 		GlobalPools& m_gp;
 		uint32_t m_userId;
+
+		ParseContext (GlobalPools& gp, uint32_t userId)
+		: m_gp(gp)
+		, m_userId(userId)
+		{
+		}
 	};
 
 	int parseXML(const char *string, Barz& barz, const ParseContext&);
