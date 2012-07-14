@@ -75,7 +75,6 @@ public:
 	/// - groups consecutive entities of the same type  
 	int interpret_only( Barz& barz, const QuestionParm& qparm );
 
-	 
 	/// tokenizes, classifies and semanticizes 
 	int autocomplete( MatcherCallback& cb, Barz& barz, const char* q, const QuestionParm& qparm );
 	int parse( Barz& barz, const char* q, const QuestionParm& qparm );
@@ -85,6 +84,9 @@ public:
 
     // tokenizes and lexes (no semantics) 
 	int lex( Barz& barz, const char* q, const QuestionParm& qparm );
+
+	int lex_strat_advanced( Barz& barz, const char* q, const QuestionParm& qparm );
+	int lex_strat_default( Barz& barz, const char* q, const QuestionParm& qparm );
     
     const StoredUniverse& getUniverse() const { return universe; }
 };

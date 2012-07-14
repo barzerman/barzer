@@ -4,6 +4,7 @@
 #include <barzer_el_chain.h>
 #include <barzer_parse_types.h>
 #include <barzer_topics.h>
+#include <ay/ay_utf8.h>
 
 namespace barzer {
 
@@ -141,6 +142,8 @@ class Barz {
 	std::vector<char> question; 
 	/// exact copy of the original question
 	std::string questionOrig; 
+    ay::StrUTF8 questionOrigUTF8; /// our utf8 representation of questionOrig
+
     /// this is a user-supplied id of the question (optional)
     uint64_t    d_origQuestionId; 
     
@@ -208,6 +211,10 @@ public:
 	void clearBeads();
 
 	int tokenize( QTokenizer& , const char* q, const QuestionParm& );
+
+    //// advanced classification method
+	int classifyTokens( const TokenizerStrategy&, QTokenizer& , QLexParser&, const char* q, const QuestionParm& );
+
 	int classifyTokens( QLexParser& , const QuestionParm& );
 	int chainInit( const QuestionParm& );
 	int parse_Autocomplete( QSemanticParser&, const QuestionParm& );

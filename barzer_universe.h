@@ -317,6 +317,7 @@ private:
 public:
     enum {
         UBIT_NOSTRIP_DIACTITICS, // when set diacritics wont be stripped and utf8 is going to be processed as is 
+        UBIT_TWOSTAGE_TOKENIZER, // when 1 tries to tokenize in 2 stages - first just by spaces then by everything
         /// add new bits above this line only 
         UBIT_MAX
     };

@@ -95,6 +95,19 @@ void Barz::syncQuestionFromTokens()
 	
 }
 
+int Barz::tokenize( const TokenizerStrategy& strat, QTokenizer& tokenizer, const char* q, const QuestionParm& qparm )
+{
+	beadChain.clear();
+	ctVec.clear();
+	ttVec.clear();
+	questionOrig.assign(q);
+	questionOrigUTF8.assign(q);
+    
+    
+	int rc = tokenizer.tokenize( strat, ttVec, ctVec, questionOrig.c_str(), qparm );
+
+    return 0;
+}
 int Barz::tokenize( QTokenizer& tokenizer, const char* q, const QuestionParm& qparm )
 {
 	/// invalidating all higher order objects
@@ -103,18 +116,26 @@ int Barz::tokenize( QTokenizer& tokenizer, const char* q, const QuestionParm& qp
 	ttVec.clear();
 
 	questionOrig.assign(q);
+	questionOrigUTF8.assign(q);
+
 	int rc = tokenizer.tokenize( ttVec, questionOrig.c_str(), qparm );
 	
 	syncQuestionFromTokens();
 	return rc;
 }
 
+int Barz::classifyTokens( const TokenizerStrategy& strat, QTokenizer& tokenizer, QLexParser& lexer, const char* q, const QuestionParm& qparm )
+{
+	/// invalidating all higher order objects
+	beadChain.clear();
+	ctVec.clear();
+    return lexer.lex( Barz& barz, strat, tokenizer, q, qparm );
+}
 int Barz::classifyTokens( QLexParser& lexer, const QuestionParm& qparm )
 {
 	/// invalidating all higher order objects
 	beadChain.clear();
 	ctVec.clear();
-
 	return lexer.lex( *this, qparm );
 }
 

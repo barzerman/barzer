@@ -1,23 +1,13 @@
 #ifndef BARZER_LEXER_H
 #define BARZER_LEXER_H
 #include <ay/ay_headers.h>
+#include <ay/ay_utf8.h>
 #include <barzer_parse_types.h>
 #include <barzer_language.h>
 
 namespace barzer {
 class DtaIndex;
 class StoredUniverse;
-
-/// converts input const char* quesion
-/// into vector of TToken with position (token's number in the input)
-/// blanks will be there as blank tokens
-/// tokenizes on any and all punctuation
-class QTokenizer {
-public:
-	enum { MAX_QUERY_LEN = 1024, MAX_NUM_TOKENS = 96 };
-	struct Error : public QPError { } err;
-	int tokenize( TTWPVec& , const char*, const QuestionParm& );
-};
 
 template<typename T>
 struct PosedVec {
@@ -115,7 +105,9 @@ public:
 	};
 	void setDtaIndex(const DtaIndex * di) { dtaIdx= di; }
 	struct Error : public QPError { } err;
-	virtual int lex( Barz&, const QuestionParm& );
+	int lex( Barz&, const QuestionParm& );
+
+	int lex( Barz& barz, const TokenizerStrategy& strat, QTokenizer& tokenizer, const char* q, const QuestionParm& qparm );
 	virtual ~QLexParser() {}
 };
 }

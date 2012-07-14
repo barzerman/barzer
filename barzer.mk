@@ -30,6 +30,7 @@ libs = -Lay -Lsnowball -lay -lsnowlib -L/opt/local/lib -L/usr/lib \
 	-lboost_system -lboost_filesystem -lboost_thread-mt -lexpat -lstdc++
 ECHO = echo
 lib_objects = \
+barzer_tokenizer.o \
 barzer_barzxml.o \
 barzer_el_rewrite_control.o \
 barzer_locale.o \
