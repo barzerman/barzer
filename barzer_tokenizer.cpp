@@ -1,12 +1,16 @@
 #include <barzer_tokenizer.h>
+#include <barzer_barz.h>
 
 namespace barzer {
 
 ////////////// TOKENIZE
 ///////////////////////////////////
 
-int QTokenizer::tokenize( const TokenizerStrategy& , TTWPVec& , CTWPVec&, const char*, const QuestionParm& )
+int QTokenizer::tokenize( Barz& barz, const TokenizerStrategy& strat, const QuestionParm& qparm )
 {
+    TTWPVec& ttVec = barz.getTtVec();
+    CTWPVec& ctVec = barz.getCtVec();
+    ///  Barz has current question to be tokenize as well as the utf8 representation (it's up to date)
     return 0;
 }
 int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qparm  )

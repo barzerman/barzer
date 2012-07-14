@@ -102,10 +102,8 @@ int Barz::tokenize( const TokenizerStrategy& strat, QTokenizer& tokenizer, const
 	ttVec.clear();
 	questionOrig.assign(q);
 	questionOrigUTF8.assign(q);
-    
-    
-	int rc = tokenizer.tokenize( strat, ttVec, ctVec, questionOrig.c_str(), qparm );
 
+	int rc = tokenizer.tokenize( *this, strat, qparm );
     return 0;
 }
 int Barz::tokenize( QTokenizer& tokenizer, const char* q, const QuestionParm& qparm )

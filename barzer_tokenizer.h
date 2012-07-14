@@ -45,7 +45,7 @@ public:
 	struct Error : public QPError { } err;
 
 	int tokenize( TTWPVec& , const char*, const QuestionParm& );
-	int tokenize( const TokenizerStrategy& , TTWPVec& , CTWPVec&, const char*, const QuestionParm& );
+	int tokenize( Barz& barz, const TokenizerStrategy& , const QuestionParm& );
 };
 
 } // namespace barzer
