@@ -1,4 +1,4 @@
-#include "comparators.h"
+#include "barzer_at_comparators.h"
 #include <algorithm>
 #include <iterator>
 #include "../barzer_barz.h"
@@ -72,7 +72,7 @@ namespace autotester
 		{
 			static_cast<EnbarzParser*>(ud)->start(n, a);
 		}
-		
+
 		void endElement(void *ud, const XML_Char *n)
 		{
 			static_cast<EnbarzParser*>(ud)->end(n);
@@ -302,7 +302,7 @@ namespace autotester
 			while (rIter != rEnd && skipBead(rIter));
 		}
 
-		return score;
+		return 1 - 1 / (1 + static_cast<double> (score) * score);
 	}
 
 	uint16_t matches(const char *pattern, const char *result, const ParseContext& ctx, const CompareSettings& settings)

@@ -129,11 +129,16 @@ public:
     size_t getMaxLang() const { return sizeof(langInfo)/(sizeof(langInfo[0])); } 
     LangInfoArray() 
         { new(langInfo)(LangInfo[ LANG_MAX+1 ]); }
+    bool isLangValid( int i ) const { return (i > LANG_UNKNOWN && i < LANG_MAX); }
+
     uint32_t incrementLangCounter( int16_t i )
-        { return( (i > LANG_UNKNOWN && i < LANG_MAX) ? langInfo[(i+1)].counterIncrement() : 0 ); }
+        { return( isLangValid(i) ? langInfo[(i+1)].counterIncrement() : 0 ); }
+    uint32_t getLangCounter(int i) const { return(isLangValid(i)? langInfo[i+1].getCounter() : 0) ; }
 
     int16_t getDominantLanguage() const;
     std::ostream& print(std::ostream&) const;
+
+    bool hasLang( int16_t i ) const { return (getLangCounter(i)> 0); }
 };
 std::ostream& operator<< ( std::ostream& fp, const LangInfo& );
 
