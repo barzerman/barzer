@@ -14,7 +14,6 @@
 #include <boost/function.hpp>
 #include <barzer_barz.h>
 #include <barzer_parse.h>
-#include <barzer_server_response.h>
 #include <barzer_settings.h>
 
 extern "C" {
@@ -62,7 +61,7 @@ public:
 #endif
 	enum Cmd {ADD,DELETE};
 private:
-
+	bool m_internStrings;
 	std::vector<RequestTag> tagStack;
 
 	CmdArgList arglist;
@@ -107,6 +106,9 @@ public:
 
 	BarzerRequestParser(GlobalPools&, std::ostream &s, uint32_t uid );
 	~BarzerRequestParser();
+
+	void setInternStrings(bool);
+	bool shouldInternStrings() const;
 
 	int parse(const char *buf, const size_t len) {
 		return XML_Parse(parser, buf, len, true);

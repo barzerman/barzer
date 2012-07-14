@@ -67,8 +67,9 @@ DECL_TAGHANDLE(BARZ) {
         QParser qparser(parser.universe);
         BarzStreamerXML response(parser.barz, parser.universe);
         qparser.barz_parse( parser.barz, parser.qparm );
-        response.print(parser.reqParser.stream());
-        parser.barz.clearWithTraceAndTopics();
+        response.print(parser.ostream);
+		if (parser.shouldPerformCleanup())
+			parser.barz.clearWithTraceAndTopics();
     }
     return TAGHANDLE_ERROR_OK;
 } 
@@ -85,15 +86,17 @@ DECL_TAGHANDLE(ENTITY) {
         return TAGHANDLE_ERROR_PARENT;
 
     BarzerEntity ent; 
-    ALS_BEGIN
-        case 's': ent.setSubclass(atoi(v)); break;
-        case 'c': ent.setClass(atoi(v));    break;
-        case 'i':{
-            uint32_t strId = GLOBALPOOLS.internalString_getId(v);
-            if( strId != 0xffffffff ) 
-                ent.setId(strId);
-            }break;
-    ALS_END
+	ALS_BEGIN
+		case 's': ent.setSubclass(atoi(v)); break;
+		case 'c': ent.setClass(atoi(v));    break;
+		case 'i':{
+			uint32_t strId = parser.internStrings() ?
+					parser.gpools.internString_internal(v) :
+					GLOBALPOOLS.internalString_getId(v);
+			if( strId != 0xffffffff ) 
+				ent.setId(strId);
+			}break;
+	ALS_END
 
     BarzerEntityRangeCombo* erc = parser.barz.getLastBead().get<BarzerEntityRangeCombo>();
     if( erc ) {
@@ -329,7 +332,9 @@ DECL_TAGHANDLE(TOPICS) {
 DECL_TAGHANDLE(TOKEN) { 
     ALS_BEGIN
         case 's': {
-            uint32_t strId = GLOBALPOOLS.string_getId(v);
+            uint32_t strId = parser.internStrings() ?
+					parser.gpools.string_intern(v) :
+					GLOBALPOOLS.string_getId(v);
             if( strId != 0xffffffff ) 
                 parser.barz.getLastBead().setStemStringId( strId );
             }break; 
@@ -400,6 +405,26 @@ inline void tagRouter( BarzXMLParser& parser, const char* t, const char** attr, 
 void BarzXMLParser::takeTag( const char* tag, const char** attr, size_t attr_sz, bool open)
 {
     tagRouter(*this,tag,attr,attr_sz,open);
+}
+
+void BarzXMLParser::setInternStrings (bool should)
+{
+	m_shouldInternStrings = should;
+}
+
+bool BarzXMLParser::internStrings() const
+{
+	return m_shouldInternStrings;
+}
+
+void BarzXMLParser::setPerformCleanup (bool clean)
+{
+	m_performCleanup = clean;
+}
+
+bool BarzXMLParser::shouldPerformCleanup() const
+{
+	return m_performCleanup;
 }
 
 void BarzXMLParser::setLiteral( BarzelBead& bead, const char* s, size_t s_len, bool isFluff )

@@ -1,0 +1,17 @@
+<tests>
+	<user id="34">
+		<test>
+			<request>Hey bro!</request>
+			<outxml>
+				<foo/>
+				<blah v="5"/>
+			</outxml>
+		</test>
+		<test>
+			<request>I have some DZHIGURDA for you</request>
+			<outxml/>
+		</test>
+	</user>
+	<user id="35">
+	</user>
+</tests>

@@ -79,13 +79,15 @@ include_directories("${PROJECT_BINARY_DIR}"
 add_subdirectory (ay)
 add_subdirectory (util)
 add_subdirectory (snowball)
+add_subdirectory (autotester)
 
 set(EXTRA_LIBS ${EXTRA_LIBS}
                ${Boost_SYSTEM_LIBRARY}
                ${Boost_FILESYSTEM_LIBRARY}
                ${Boost_THREAD_LIBRARY}  
                ay
-               snowlib)
+               snowlib
+               autotester)
 
 if(WIN32)
 	set(EXTRA_LIBS ${EXTRA_LIBS}

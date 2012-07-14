@@ -2,6 +2,7 @@ add_library(ay
 	ay_xml_util.cpp
 	ay_snowball.cpp
 	ay_cmdproc.cpp
+	ay_keymaps.cpp
 	ay_logger.cpp
 	ay_ngrams.cpp
 	ay_shell.cpp
