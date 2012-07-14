@@ -4,6 +4,7 @@
 #include <ay/ay_utf8.h>
 #include <barzer_parse_types.h>
 #include <barzer_language.h>
+#include <barzer_tokenizer.h>
 
 namespace barzer {
 class DtaIndex;

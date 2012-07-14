@@ -1,5 +1,7 @@
 #ifndef BARZER_TOKENIZER_H
 #define BARZER_TOKENIZER_H
+
+#include <barzer_parse_types.h>
 namespace barzer {
 
 class StoredUniverse;
@@ -27,7 +29,7 @@ struct TokenizerStrategy {
     std::vector< TokenizerRuleset > d_ruleset;
     
     bool isDefault() const { return (type==STRAT_TYPE_DEFAULT); }
-    int getType() const 
+    int getType() const { return type; }
     TokenizerStrategy() : type(STRAT_TYPE_DEFAULT) {}
 };
 
@@ -43,6 +45,7 @@ public:
 	struct Error : public QPError { } err;
 
 	int tokenize( TTWPVec& , const char*, const QuestionParm& );
+	int tokenize( const TokenizerStrategy& , TTWPVec& , CTWPVec&, const char*, const QuestionParm& );
 };
 
 } // namespace barzer

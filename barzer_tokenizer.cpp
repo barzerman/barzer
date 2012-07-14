@@ -4,6 +4,11 @@ namespace barzer {
 
 ////////////// TOKENIZE
 ///////////////////////////////////
+
+int QTokenizer::tokenize( const TokenizerStrategy& , TTWPVec& , CTWPVec&, const char*, const QuestionParm& )
+{
+    return 0;
+}
 int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qparm  )
 {
 	err.clear();

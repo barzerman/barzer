@@ -129,7 +129,7 @@ int Barz::classifyTokens( const TokenizerStrategy& strat, QTokenizer& tokenizer,
 	/// invalidating all higher order objects
 	beadChain.clear();
 	ctVec.clear();
-    return lexer.lex( Barz& barz, strat, tokenizer, q, qparm );
+    return lexer.lex( *this, strat, tokenizer, q, qparm );
 }
 int Barz::classifyTokens( QLexParser& lexer, const QuestionParm& qparm )
 {

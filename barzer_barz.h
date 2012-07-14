@@ -4,6 +4,7 @@
 #include <barzer_el_chain.h>
 #include <barzer_parse_types.h>
 #include <barzer_topics.h>
+#include <barzer_tokenizer.h>
 #include <ay/ay_utf8.h>
 
 namespace barzer {
@@ -211,6 +212,8 @@ public:
 	void clearBeads();
 
 	int tokenize( QTokenizer& , const char* q, const QuestionParm& );
+	int tokenize( const TokenizerStrategy& strat, QTokenizer& tokenizer, const char* q, const QuestionParm& qparm );
+
 
     //// advanced classification method
 	int classifyTokens( const TokenizerStrategy&, QTokenizer& , QLexParser&, const char* q, const QuestionParm& );

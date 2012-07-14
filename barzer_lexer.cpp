@@ -1085,11 +1085,13 @@ int QLexParser::lex( Barz& barz, const QuestionParm& qparm )
 	}
 	return 0;
 }
-int QLexParser::lex( const TokenizerStrategy& strat, QTokenizer& tokenizer, Barz& barz, const QuestionParm& qparm )
+int QLexParser::lex( Barz& barz, const TokenizerStrategy& strat, QTokenizer& tokenizer, const char* q, const QuestionParm& qparm )
 {
     if( strat.getType() == TokenizerStrategy::STRAT_TYPE_SPACE_DEFAULT ) {
         /// space + default 
+        return 0;
     } else if( strat.getType() == TokenizerStrategy::STRAT_TYPE_CASCADE ) {
+        return 0;
     } else {
         AYLOG(ERROR) << "unknown type of tokenizer strategy " << strat.getType()  << std::endl;
         barz.tokenize( tokenizer, q, qparm ) ;

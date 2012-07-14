@@ -311,10 +311,12 @@ private:
 	BarzerLocale_ptr m_defLocale;
 	std::vector<BarzerLocale_ptr> m_otherLocales;
     LangInfoArray    d_langInfo;
+    TokenizerStrategy d_tokenizerStrat;
 
 	void addWordsFromTriesToBZSpell();
 
 public:
+    const TokenizerStrategy& getTokenizerStrategy() const { return d_tokenizerStrat; }
     enum {
         UBIT_NOSTRIP_DIACTITICS, // when set diacritics wont be stripped and utf8 is going to be processed as is 
         UBIT_TWOSTAGE_TOKENIZER, // when 1 tries to tokenize in 2 stages - first just by spaces then by everything
