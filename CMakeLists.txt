@@ -98,7 +98,8 @@ else()
 	set(EXTRA_LIBS ${EXTRA_LIBS} ${EXPAT_LIBRARIES})
 endif()
 
-set(SOURCES barzer_barz.cpp
+set(SOURCES barzer_tokenizer.cpp 
+            barzer_barz.cpp
             barzer_entity.cpp
             barzer_basic_types.cpp
             barzer_datelib.cpp
