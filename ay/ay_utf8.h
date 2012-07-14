@@ -236,7 +236,7 @@ namespace ay
             if( !s_end ) 
                 s_end = s+strlen(s);
 
-		    while(s< s_end) {
+		    while(s< s_end && *s) {
 			    const size_t glyphSize = CharUTF8(s).size();
 			    m_positions.push_back (lastPos);
 			    lastPos += glyphSize;
