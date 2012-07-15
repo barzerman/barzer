@@ -31,6 +31,7 @@ struct TokenizerStrategy {
     bool isDefault() const { return (type==STRAT_TYPE_DEFAULT); }
     int getType() const { return type; }
     TokenizerStrategy() : type(STRAT_TYPE_DEFAULT) {}
+    void setType( int i ) { type = i; }
 };
 
 /// converts input const char* quesion
@@ -46,6 +47,8 @@ public:
 
 	int tokenize( TTWPVec& , const char*, const QuestionParm& );
 	int tokenize( Barz& barz, const TokenizerStrategy& , const QuestionParm& );
+    //// special (hardcoded) strategy tokenizer
+	int tokenize_strat_space( Barz& , const QuestionParm& );
 };
 
 } // namespace barzer

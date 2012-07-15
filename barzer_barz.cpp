@@ -155,6 +155,8 @@ void Barz::clear()
 	ttVec.clear();
 
 	question.clear();
+	questionOrig.clear();
+	questionOrigUTF8.clear();
 }
 
 

@@ -1089,8 +1089,11 @@ int QLexParser::lex( Barz& barz, const TokenizerStrategy& strat, QTokenizer& tok
 {
     if( strat.getType() == TokenizerStrategy::STRAT_TYPE_SPACE_DEFAULT ) {
         /// space + default 
+        tokenizer.tokenize_strat_space( barz, qparm );
+        #warning here we do some special lexing / standard classifiers and only case correction 
         return 0;
     } else if( strat.getType() == TokenizerStrategy::STRAT_TYPE_CASCADE ) {
+        AYLOG(ERROR) << "cascade tokenizer strategy not implemented yet" << std::endl;
         return 0;
     } else {
         AYLOG(ERROR) << "unknown type of tokenizer strategy " << strat.getType()  << std::endl;

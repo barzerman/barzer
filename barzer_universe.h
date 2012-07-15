@@ -316,6 +316,7 @@ private:
 	void addWordsFromTriesToBZSpell();
 
 public:
+    TokenizerStrategy& tokenizerStrategy() { return d_tokenizerStrat; }
     const TokenizerStrategy& getTokenizerStrategy() const { return d_tokenizerStrat; }
     enum {
         UBIT_NOSTRIP_DIACTITICS, // when set diacritics wont be stripped and utf8 is going to be processed as is 

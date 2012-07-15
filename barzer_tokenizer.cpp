@@ -6,6 +6,33 @@ namespace barzer {
 ////////////// TOKENIZE
 ///////////////////////////////////
 
+int QTokenizer::tokenize_strat_space(Barz& barz, const QuestionParm& qparm )
+{
+    TTWPVec& ttwp = barz.getTtVec();
+    ttwp.clear();
+
+    /// moving thru all glyphs (utf8 chars) in qutf8 and breaking it up on spaces
+    bool lastWasSpace = false;
+    const char* prevGlyphStart = 0;
+    for( size_t i = 0; i< barz.questionOrigUTF8.length(); ++i ) {
+        const char* s = barz.questionOrigUTF8.getGlyphStart(i);
+        if( s && isspace(*s) ) { // we got the space 
+            if( !lastWasSpace ) {
+                if( prevGlyphStart )
+                    ttwp.push_back( TTWPVec::value_type(TToken(prevGlyphStart,(s-prevGlyphStart)), ttwp.size() ));
+                ttwp.push_back( TTWPVec::value_type(TToken(" ",1), ttwp.size() ));
+                lastWasSpace= true;
+            } /// 
+        } else if( (lastWasSpace || !prevGlyphStart) ) { /// this is not space but last one was space 
+            prevGlyphStart= s;
+            lastWasSpace=false;
+        }   // this is not a space and last one wasnt space - nothing to do 
+    }
+    if( prevGlyphStart ) 
+        ttwp.push_back( TTWPVec::value_type(TToken(prevGlyphStart,(barz.questionOrigUTF8.getBufEnd()-prevGlyphStart)), ttwp.size() ));
+
+    return 0;
+}
 int QTokenizer::tokenize( Barz& barz, const TokenizerStrategy& strat, const QuestionParm& qparm )
 {
     TTWPVec& ttVec = barz.getTtVec();

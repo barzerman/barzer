@@ -211,6 +211,8 @@ namespace ay
 			m_buf.insert(m_buf.end(), t.getBuf(), t.getBuf_end() );
 		}
 	public:
+        const char* getBufEnd() const { return &(m_buf.back()); }
+
         const char* getGlyphStart( size_t g ) const
             { return &m_buf[ m_positions[g] ]; }
         const char* getGlyphEnd( size_t g ) const
