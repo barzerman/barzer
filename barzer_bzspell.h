@@ -165,6 +165,11 @@ public:
 	/// successful
 	bool     stem( std::string& out, const char* word ) const;
 	bool     stem( std::string& out, const char* word, int& lang ) const;
+
+    /// punctuation based stemming (for space-default tokenizer)
+    /// will use tok.getGlyphXXX  / END for glyphs in word
+    uint32_t     stem_utf8_punct( std::string& out, const ay::StrUTF8& word, const TToken& tok ) const;
+
     // deduplicates all characters in s (does not recompute lang)
     size_t   dedupeChars( std::string& out, const char* s, size_t str_len, int lang, const size_t minDedupeLength ) const;
     

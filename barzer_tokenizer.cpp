@@ -28,17 +28,19 @@ int QTokenizer::tokenize_strat_space(Barz& barz, const QuestionParm& qparm )
             lastWasSpace=false;
         }   // this is not a space and last one wasnt space - nothing to do 
     }
-    if( prevGlyphStart ) 
+    if( prevGlyphStart && !lastWasSpace ) 
         ttwp.push_back( TTWPVec::value_type(TToken(prevGlyphStart,(barz.questionOrigUTF8.getBufEnd()-prevGlyphStart)), ttwp.size() ));
 
     return 0;
 }
 int QTokenizer::tokenize( Barz& barz, const TokenizerStrategy& strat, const QuestionParm& qparm )
 {
-    TTWPVec& ttVec = barz.getTtVec();
-    CTWPVec& ctVec = barz.getCtVec();
-    ///  Barz has current question to be tokenize as well as the utf8 representation (it's up to date)
-    return 0;
+    if( strat.isDefault() ) {
+        return tokenize(barz.getTtVec(), barz.getOrigQuestion().c_str(), qparm );
+    } else {
+        ///  Barz has current question to be tokenize as well as the utf8 representation (it's up to date)
+        return tokenize_strat_space(barz, qparm );
+    }
 }
 int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qparm  )
 {

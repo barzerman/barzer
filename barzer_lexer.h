@@ -87,6 +87,7 @@ class QLexParser {
 
 	/// resolves single tokens - this is not language specific
 	int singleTokenClassify( Barz&, const QuestionParm& );
+	int singleTokenClassify_space( Barz&, const QuestionParm& );
 	/// multitoken non-language specific hardcoded stuff
 	int advancedBasicClassify( Barz&, const QuestionParm& );
 	/// called from advancedBasicClassify

@@ -326,6 +326,24 @@ static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
 	BarzerShellContext * context = shell->getBarzerContext();
 	Barz& barz = context->barz;
 	QParser& parser = context->parser;
+	const StoredUniverse &uni = context->getUniverse();
+
+	ay::InputLineReader reader( in );
+	QuestionParm qparm;
+    shell->syncQuestionParm(qparm);
+	while( reader.nextLine() && reader.str.length() ) {
+		barz.tokenize( uni.getTokenizerStrategy(), parser.tokenizer, reader.str.c_str(), qparm );
+		const TTWPVec& ttVec = barz.getTtVec();
+		shell->getOutStream() << ttVec << std::endl;
+	}
+	return 0;
+}
+
+static int bshf_tokenize_old( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext * context = shell->getBarzerContext();
+	Barz& barz = context->barz;
+	QParser& parser = context->parser;
 
 	ay::InputLineReader reader( in );
 	QuestionParm qparm;

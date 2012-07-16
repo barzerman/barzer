@@ -77,7 +77,9 @@ namespace ay
                 )
             );
         }
-
+        
+        bool isPunct() const 
+            { return( ispunct(d_data.c4[0]) || (*this == "'" ) ); }
 
 		bool operator<  (const CharUTF8& o) const { return ( d_data.u4 < o.d_data.u4); }
 

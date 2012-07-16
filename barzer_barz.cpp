@@ -106,6 +106,7 @@ int Barz::tokenize( const TokenizerStrategy& strat, QTokenizer& tokenizer, const
 	int rc = tokenizer.tokenize( *this, strat, qparm );
     return 0;
 }
+
 int Barz::tokenize( QTokenizer& tokenizer, const char* q, const QuestionParm& qparm )
 {
 	/// invalidating all higher order objects

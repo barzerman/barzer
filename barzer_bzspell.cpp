@@ -826,6 +826,28 @@ uint32_t BZSpell::get2ByteLangStemCorrection( int lang, const char* str, bool do
     return 0xffffffff;
 }
 
+uint32_t BZSpell::stem_utf8_punct( std::string& out, const ay::StrUTF8& word, const TToken& tok ) const
+{
+    if( !tok.glyphsAreValid() ) 
+        return 0xffffffff;
+    
+    size_t bg = tok.getGlyphBeg(), eg = tok.getGlyphEnd();
+    uint32_t strId = 0xffffffff;
+    if( eg > bg && (eg-bg) > 5 ) {
+        if( !word[bg].isPunct() ) { 
+            if( word[bg+1].isPunct()) {
+                const char* gs =word.getGlyphStart(bg+2);
+                out.assign( gs, word.getGlyphEnd(eg)-gs );
+                if( isUsersWord(strId,out.c_str()) )
+                    return strId;
+            }  else {
+            }
+        } else if( word[bg].isPunct() ) {
+        }
+    }
+    return 0xffffffff;
+}
+
 bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
 {
     size_t s_len = strlen( s );

@@ -214,7 +214,6 @@ public:
 	int tokenize( QTokenizer& , const char* q, const QuestionParm& );
 	int tokenize( const TokenizerStrategy& strat, QTokenizer& tokenizer, const char* q, const QuestionParm& qparm );
 
-
     //// advanced classification method
 	int classifyTokens( const TokenizerStrategy&, QTokenizer& , QLexParser&, const char* q, const QuestionParm& );
 

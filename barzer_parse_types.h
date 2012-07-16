@@ -28,12 +28,19 @@ enum {
 
 struct TToken {
 	uint16_t  len; 
+	uint16_t  d_utf8beg, d_utf8end; // starting and ending glyphs for utf8  the string assumed to be elsewhere
+
 	const char* buf;
-	
-	TToken( ) : len(0), buf("") {}
-	TToken( const char* s ) : len( strlen(s) ), buf(s) {}
+    	
+    bool glyphsAreValid() const { return ( d_utf8beg!= 0xffff && d_utf8end != 0xffff ); }  
+    size_t getGlyphBeg() const { return d_utf8beg; }
+    size_t getGlyphEnd() const { return d_utf8end; }
+    
+	TToken( ) : len(0), d_utf8beg(0xffff), d_utf8end(0xffff), buf("") {}
+	TToken( const char* s ) : len( strlen(s) ), d_utf8beg(0xffff), d_utf8end(0xffff), buf(s) {}
 	// watch out for data consistency
-	TToken( const char* s, short l ) : len(l), buf(s) {}
+	TToken( const char* s, short l ) : len(l), d_utf8beg(0xffff), d_utf8end(0xffff), buf(s) {}
+	TToken( const char* s, short l, size_t bg, size_t eg ) : len(l), d_utf8beg(bg), d_utf8end(eg), buf(s) {}
 	
 	int getPunct() const
 		{ return( buf && len ? buf[0] : ((int)'|') ); }

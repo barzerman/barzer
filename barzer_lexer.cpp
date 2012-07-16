@@ -947,6 +947,87 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 	return SpellCorrectResult (-1, ++cPosVec, ++tPosVec);
 }
 
+int QLexParser::singleTokenClassify_space( Barz& barz, const QuestionParm& qparm )
+{
+    CTWPVec& cVec = barz.getCtVec();
+    TTWPVec& tVec = barz.getTtVec();
+
+	cVec.resize( tVec.size() );
+	if( !dtaIdx )
+		return ( err.e = QLPERR_NULL_IDX, 0 );
+
+	const BZSpell* bzSpell = d_universe.getBZSpell();
+    size_t cPos = 0, tPos = 0;
+	while (cPos < cVec.size() && tPos < tVec.size()) {
+		TToken& ttok = tVec[tPos].first;
+		const char* t = ttok.buf;
+		// cPos->second = std::distance (cVec.begin (), cPos);
+		CToken& ctok = cVec[cPos].first;
+		ctok.setTToken (ttok, cPos );
+		// bool wasStemmed = false;
+
+		++cPos;
+		++tPos;
+        // const StoredToken* storedTok = 0;
+		if( !t || !*t || isspace(*t)  ) { // this should never happen
+			ctok.setClass( CTokenClassInfo::CLASS_SPACE );
+			continue;
+		} 
+
+        bool keepClasifying = qparm.isAutoc;
+        bool shouldStem = false;
+        if( !keepClasifying ) {
+            bool isInteger = tryClassify_integer(ctok,t);
+            if( isInteger ) {
+			    uint32_t usersWordStrId = 0xffffffff;
+                const StoredToken* storedTok = ( bzSpell->isUsersWord( usersWordStrId, t ) ?
+                    dtaIdx->getStoredToken( t ): 0 );
+                if( storedTok )
+                    ctok.number().setStringId( storedTok->getStringId() );
+            } else
+                keepClasifying= true;
+        }
+        if( keepClasifying ) {
+			uint32_t usersWordStrId = 0xffffffff;
+			const StoredToken* storedTok = ( bzSpell->isUsersWord( usersWordStrId, t ) ?
+				dtaIdx->getStoredToken( t ): 0 );
+
+            bool isNumber = ( !qparm.isAutoc && tryClassify_number(ctok,t)); // this should probably always be false
+			if( storedTok ) { ///
+				///
+				ctok.storedTok = storedTok;
+				ctok.syncClassInfoFromSavedTok();
+			} else { /// token NOT matched in the data set
+                if( ispunct(*t)) {
+                    ctok.setClass( CTokenClassInfo::CLASS_PUNCTUATION );
+                } else if( !isNumber ) {
+					/// fall thru - this is an unmatched word
+
+                    ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
+				}
+			}
+		    /// stemming
+		    if( shouldStem || (!isNumber && bzSpell && ctok.isString() && d_universe.stemByDefault() && !ctok.getStemTok()) ) 
+            {
+			    std::string strToStem( ttok.buf, ttok.len );
+			    std::string stem;
+                int lang = LANG_UNKNOWN;
+			    if( bzSpell->stem(stem, strToStem.c_str(), lang) ) {
+                    const StoredToken* stemTok = dtaIdx->getStoredToken( stem.c_str() ) ;
+                    if( stemTok ) {
+                        if( stemTok != ctok.getStemTok() )
+				            ctok.setStemTok( stemTok );
+                    }
+                }
+		    }
+            ctok.syncStemAndStoredTok();
+		}
+	}
+	if( cVec.size() > MAX_CTOKENS_PER_QUERY ) 
+		cVec.resize( MAX_CTOKENS_PER_QUERY );
+
+	return 0;
+}
 int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 {
     CTWPVec& cVec = barz.getCtVec();
@@ -1089,8 +1170,13 @@ int QLexParser::lex( Barz& barz, const TokenizerStrategy& strat, QTokenizer& tok
 {
     if( strat.getType() == TokenizerStrategy::STRAT_TYPE_SPACE_DEFAULT ) {
         /// space + default 
-        tokenizer.tokenize_strat_space( barz, qparm );
-        #warning here we do some special lexing / standard classifiers and only case correction 
+        barz.tokenize( strat , tokenizer, q, qparm );
+        err.clear();
+        barz.getCtVec().clear();
+        singleTokenClassify_space( barz, qparm );
+
+        separatorNumberGuess( barz, qparm );
+        advancedBasicClassify( barz, qparm );
         return 0;
     } else if( strat.getType() == TokenizerStrategy::STRAT_TYPE_CASCADE ) {
         AYLOG(ERROR) << "cascade tokenizer strategy not implemented yet" << std::endl;
