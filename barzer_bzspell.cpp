@@ -840,7 +840,7 @@ uint32_t BZSpell::get2ByteLangStemCorrection( int lang, const char* str, bool do
 
 const StoredToken* BZSpell::stem_utf8_punct( std::string& out, const ay::StrUTF8& phrase, const TToken& tok ) const
 {
-    if( !tok.glyphsAreValid() || tok.getNumGlyphs()<= 5) 
+    if( !tok.glyphsAreValid() || tok.getNumGlyphs()<= 1) 
         return 0;
     
     size_t firstGlyph = tok.getFirstGlyph(), numGlyphs = tok.getNumGlyphs(), endGlyph = firstGlyph+numGlyphs;
@@ -849,12 +849,15 @@ const StoredToken* BZSpell::stem_utf8_punct( std::string& out, const ay::StrUTF8
         numGlyphs = endGlyph-firstGlyph;
     }
     size_t lastGlyph = endGlyph-1;  // last valid glyph
+    
+    if( numGlyphs < 2 )
+        return 0;
 
     std::string tmp;
     /// prefix stem
     const StoredToken* sTok = 0; 
     if( !phrase[firstGlyph].isPunct() ) { 
-        if( phrase[firstGlyph+1].isApostrophe()) {
+        if( tok.getNumGlyphs() > 3 && phrase[firstGlyph+1].isApostrophe()) {
             tmp = phrase.getSubstring( firstGlyph+2, (numGlyphs-2) );
             if( (sTok=getUsersWordTok(tmp.c_str())) !=0 ) return ( out=tmp,sTok);
         }  

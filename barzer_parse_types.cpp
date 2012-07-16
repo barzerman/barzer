@@ -55,6 +55,10 @@ std::ostream& TToken::print ( std::ostream& fp ) const
 	if( !buf || !len ) {
 		return ( fp << 0 <<':' );
 	} else {
+        if( glyphsAreValid() ) {
+            fp << "GLYPH[" << getFirstGlyph() << " " << getNumGlyphs() << "]:" ;
+        } else 
+            fp << "NOGLYPH" << ":";
 		return ( fp << len << ':' ).write( buf, len );
 	}
 }

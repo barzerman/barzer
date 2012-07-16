@@ -78,7 +78,7 @@ namespace ay
             );
         }
         
-        bool isInStr( const char* s ) const { return ( strstr(c_str(),s)!=0 ); }
+        bool isInStr( const char* s ) const { return ( strstr(s,c_str())!=0 ); }
         bool isPunct() const { return( ispunct(d_data.c4[0]) || isApostrophe() ); }
 
         bool isPunctOtherThan( const char* s ) const 
@@ -87,7 +87,7 @@ namespace ay
         bool isWordTerminator() const 
             { return( (d_data.c4[0]=='.' && !d_data.c4[1]) || isApostrophe() ); }
 
-        bool isApostrophe() const { return isInStr( "'‘’‛" ); }
+        bool isApostrophe() const { return isInStr( "`'‘’‛" ); }
 		bool operator<  (const CharUTF8& o) const { return ( d_data.u4 < o.d_data.u4); }
 
 		inline size_t size() const { return d_size; }

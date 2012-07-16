@@ -230,7 +230,10 @@ int QParser::parse( Barz& barz, const char* q, const QuestionParm& qparm )
 	    tokenize_only( barz, q, qparm );
 	    lex_only( barz, qparm );
     } else {
-        lex_strat_advanced(barz,q,qparm);
+        barz.classifyTokens( universe.getTokenizerStrategy(), tokenizer, lexer, q, qparm ) ;
+	    // lex_only( barz, qparm );
+        // lex_strat_advanced(barz,q,qparm);
+
     }
 
 	semanticize_only( barz, qparm );

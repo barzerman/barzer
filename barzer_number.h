@@ -50,7 +50,7 @@ public:
 	void clear() { type = NTYPE_NAN; }
 	int64_t setInt() { return( type= NTYPE_INT, n.i = std::numeric_limits<int64_t>::quiet_NaN() ); }
 	int64_t setInt( const char* s) { return( type= NTYPE_INT, n.i = atoi(s)); }
-	int64_t setReal( const char* s) { return( type= NTYPE_REAL, n.i = atof(s)); }
+	int64_t setReal( const char* s) { return( type= NTYPE_REAL, n.real = atof(s)); }
 	int64_t setReal( ) { return( type= NTYPE_REAL, n.i = std::numeric_limits<double>::quiet_NaN()); }
     /// figures out from string and sets 
     BarzerNumber& set( const char* s ); 

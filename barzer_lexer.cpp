@@ -25,9 +25,9 @@ bool QLexParser::tryClassify_number( CToken& ctok, const TToken& ttok ) const
 	}
 	if( hasDigit ) {
 		ctok.setClass( CTokenClassInfo::CLASS_NUMBER );
-		if( hasDot )
+		if( hasDot ) {
 			ctok.number().setReal( ttok.buf );
-		else  {
+		} else  {
 			ctok.number().setInt( ttok.buf );
 			ctok.number().setAsciiLen( ttok.len );
 		}
@@ -958,9 +958,11 @@ int QLexParser::singleTokenClassify_space( Barz& barz, const QuestionParm& qparm
 
 	const BZSpell* bzSpell = d_universe.getBZSpell();
     size_t cPos = 0,tPos = 0;
+    std::string theString; 
 	while (cPos < cVec.size() && tPos < tVec.size()) {
 		TToken& ttok = tVec[tPos].first;
-		const char* t = ttok.buf;
+        theString.assign( ttok.buf, ttok.len );
+		const char* t = theString.c_str();
 		// cPos->second = std::distance (cVec.begin (), cPos);
 		CToken& ctok = cVec[cPos].first;
 		ctok.setTToken (ttok, cPos );
@@ -975,9 +977,10 @@ int QLexParser::singleTokenClassify_space( Barz& barz, const QuestionParm& qparm
 		} 
 
         bool keepClasifying = qparm.isAutoc;
+        bool isNumber=false;
         if( !keepClasifying ) {
-            bool isInteger = tryClassify_integer(ctok,t);
-            if( isInteger ) {
+            isNumber = tryClassify_number(ctok,ttok);
+            if( isNumber ) {
 			    uint32_t usersWordStrId = 0xffffffff;
                 const StoredToken* storedTok = ( bzSpell->isUsersWord( usersWordStrId, t ) ?
                     dtaIdx->getStoredToken( t ): 0 );
@@ -991,7 +994,6 @@ int QLexParser::singleTokenClassify_space( Barz& barz, const QuestionParm& qparm
 			const StoredToken* storedTok = ( bzSpell->isUsersWord( usersWordStrId, t ) ?
 				dtaIdx->getStoredToken( t ): 0 );
 
-            bool isNumber = ( !qparm.isAutoc && tryClassify_number(ctok,t)); // this should probably always be false
 			if( storedTok ) { ///
 				///
 				ctok.storedTok = storedTok;
@@ -1170,6 +1172,7 @@ int QLexParser::lex( Barz& barz, const TokenizerStrategy& strat, QTokenizer& tok
 
         separatorNumberGuess( barz, qparm );
         advancedBasicClassify( barz, qparm );
+	    // langLexer.lex( barz.getCtVec(), barz.getTtVec(), qparm );
         return 0;
     } else if( strat.getType() == TokenizerStrategy::STRAT_TYPE_CASCADE ) {
         AYLOG(ERROR) << "cascade tokenizer strategy not implemented yet" << std::endl;
