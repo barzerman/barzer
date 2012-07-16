@@ -78,9 +78,16 @@ namespace ay
             );
         }
         
-        bool isPunct() const 
-            { return( ispunct(d_data.c4[0]) || (*this == "'" ) ); }
+        bool isInStr( const char* s ) const { return ( strstr(c_str(),s)!=0 ); }
+        bool isPunct() const { return( ispunct(d_data.c4[0]) || isApostrophe() ); }
 
+        bool isPunctOtherThan( const char* s ) const 
+            { return( !isInStr(s) || ispunct(d_data.c4[0]) || isApostrophe() ); }
+        /// can be a word terminator
+        bool isWordTerminator() const 
+            { return( (d_data.c4[0]=='.' && !d_data.c4[1]) || isApostrophe() ); }
+
+        bool isApostrophe() const { return isInStr( "'‘’‛" ); }
 		bool operator<  (const CharUTF8& o) const { return ( d_data.u4 < o.d_data.u4); }
 
 		inline size_t size() const { return d_size; }
@@ -218,8 +225,24 @@ namespace ay
         const char* getGlyphStart( size_t g ) const
             { return &m_buf[ m_positions[g] ]; }
         const char* getGlyphEnd( size_t g ) const
-            { return ( (g+1)< m_positions.size() ? &(m_buf[ m_positions[g+1]]): &(m_buf[m_buf.size()]) ); }
+            { return ( (g+1)< m_positions.size() ? &(m_buf[ m_positions[g+1]]): ( (&(m_buf[0])) +m_buf.size()) ); }
+        
+        // substring from len glyphs starting with i-th glyph 
+        std::string getSubstring( size_t i, size_t len ) const
+        {
+            if( i< m_positions.size() ) {
+                size_t i_end = i+len;
+                if( i_end >= m_positions.size() )
+                    i_end = m_positions.size()-1;
 
+                if( i_end > i ) { 
+                    const char* b = getGlyphStart(i);
+                    size_t buf_len = (m_positions[i_end]-m_positions[i]);
+                    return( std::string(b, buf_len) );
+                }
+            } 
+            return std::string();
+        }
         inline static size_t glyphCount( const char* s, const char* s_end = 0 )
         {
 		    size_t numGlyphs = 0;

@@ -28,19 +28,20 @@ enum {
 
 struct TToken {
 	uint16_t  len; 
-	uint16_t  d_utf8beg, d_utf8end; // starting and ending glyphs for utf8  the string assumed to be elsewhere
+	uint16_t  d_utf8beg, d_utf8len; // starting glyphs and num of following glyphs for utf8  the string assumed to be elsewhere
 
 	const char* buf;
     	
-    bool glyphsAreValid() const { return ( d_utf8beg!= 0xffff && d_utf8end != 0xffff ); }  
-    size_t getGlyphBeg() const { return d_utf8beg; }
-    size_t getGlyphEnd() const { return d_utf8end; }
+    bool glyphsAreValid() const { return ( d_utf8beg!= 0xffff && d_utf8len != 0xffff ); }  
+
+    size_t getFirstGlyph() const { return d_utf8beg; }
+    size_t getNumGlyphs() const { return d_utf8len; }
     
-	TToken( ) : len(0), d_utf8beg(0xffff), d_utf8end(0xffff), buf("") {}
-	TToken( const char* s ) : len( strlen(s) ), d_utf8beg(0xffff), d_utf8end(0xffff), buf(s) {}
+	TToken( ) : len(0), d_utf8beg(0xffff), d_utf8len(0xffff), buf("") {}
+	TToken( const char* s ) : len( strlen(s) ), d_utf8beg(0xffff), d_utf8len(0xffff), buf(s) {}
 	// watch out for data consistency
-	TToken( const char* s, short l ) : len(l), d_utf8beg(0xffff), d_utf8end(0xffff), buf(s) {}
-	TToken( const char* s, short l, size_t bg, size_t eg ) : len(l), d_utf8beg(bg), d_utf8end(eg), buf(s) {}
+	TToken( const char* s, short l ) : len(l), d_utf8beg(0xffff), d_utf8len(0xffff), buf(s) {}
+	TToken( const char* s, short l, size_t bg, size_t eg ) : len(l), d_utf8beg(bg), d_utf8len(eg), buf(s) {}
 	
 	int getPunct() const
 		{ return( buf && len ? buf[0] : ((int)'|') ); }

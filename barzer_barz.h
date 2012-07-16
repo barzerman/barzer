@@ -250,6 +250,8 @@ public:
     const BarzelBead& getLastBead() const { return beadChain.lst.back(); }
 
     const       std::string& getOrigQuestion() const { return questionOrig; }
+    const ay::StrUTF8& getQuestionOrigUTF8() const { return questionOrigUTF8; } /// our utf8 representation of questionOrig
+
     uint64_t    getQueryId() const { return d_origQuestionId; }
     void        setQueryId( uint64_t i ) { d_origQuestionId = i ; }
     bool        isQueryIdValid() const { return std::numeric_limits<uint64_t>::max() != d_origQuestionId; }

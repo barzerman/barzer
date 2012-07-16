@@ -555,6 +555,18 @@ int BZSpell::isUsersWordById( uint32_t strId ) const
 	} else
 		return 1;
 }
+const StoredToken* BZSpell::getUsersWordTok( const char* word ) const 
+{
+    uint32_t strId = d_universe.getGlobalPools().string_getId( word ) ;
+    if( strId != 0xffffffff ) {
+        if( isUsersWordById(strId) ) {
+            const DtaIndex& dtaIdx = d_universe.getGlobalPools().getDtaIdx(); 
+            return dtaIdx.getStoredToken(word);
+        } else 
+            return 0;
+    }
+    return 0;
+}
 
 int BZSpell::isUsersWord( uint32_t& strId, const char* word ) const
 {
@@ -826,26 +838,51 @@ uint32_t BZSpell::get2ByteLangStemCorrection( int lang, const char* str, bool do
     return 0xffffffff;
 }
 
-uint32_t BZSpell::stem_utf8_punct( std::string& out, const ay::StrUTF8& word, const TToken& tok ) const
+const StoredToken* BZSpell::stem_utf8_punct( std::string& out, const ay::StrUTF8& phrase, const TToken& tok ) const
 {
-    if( !tok.glyphsAreValid() ) 
-        return 0xffffffff;
+    if( !tok.glyphsAreValid() || tok.getNumGlyphs()<= 5) 
+        return 0;
     
-    size_t bg = tok.getGlyphBeg(), eg = tok.getGlyphEnd();
-    uint32_t strId = 0xffffffff;
-    if( eg > bg && (eg-bg) > 5 ) {
-        if( !word[bg].isPunct() ) { 
-            if( word[bg+1].isPunct()) {
-                const char* gs =word.getGlyphStart(bg+2);
-                out.assign( gs, word.getGlyphEnd(eg)-gs );
-                if( isUsersWord(strId,out.c_str()) )
-                    return strId;
-            }  else {
-            }
-        } else if( word[bg].isPunct() ) {
-        }
+    size_t firstGlyph = tok.getFirstGlyph(), numGlyphs = tok.getNumGlyphs(), endGlyph = firstGlyph+numGlyphs;
+    if( endGlyph > phrase.length() ) { 
+        endGlyph= phrase.length();
+        numGlyphs = endGlyph-firstGlyph;
     }
-    return 0xffffffff;
+    size_t lastGlyph = endGlyph-1;  // last valid glyph
+
+    std::string tmp;
+    /// prefix stem
+    const StoredToken* sTok = 0; 
+    if( !phrase[firstGlyph].isPunct() ) { 
+        if( phrase[firstGlyph+1].isApostrophe()) {
+            tmp = phrase.getSubstring( firstGlyph+2, (numGlyphs-2) );
+            if( (sTok=getUsersWordTok(tmp.c_str())) !=0 ) return ( out=tmp,sTok);
+        }  
+    } else {
+        tmp = phrase.getSubstring( firstGlyph+1, (numGlyphs-1) );
+        if( (sTok=getUsersWordTok(tmp.c_str())) !=0 ) return ( out=tmp,sTok);
+    }
+
+    /// suffix stem
+    /// chopping trailing dots/apostrophes 
+    if( phrase[lastGlyph].isWordTerminator() ) {
+        size_t numGlyphs_1 = numGlyphs-1;
+        size_t i = 0;
+        tmp = phrase.getSubstring( firstGlyph, (numGlyphs_1) );
+        if( (sTok=getUsersWordTok(tmp.c_str())) !=0 ) return ( out=tmp,sTok);
+
+        for( i=1; i< numGlyphs_1; ++i ) {
+            if( phrase[lastGlyph-i].isWordTerminator() ) {
+                tmp = phrase.getSubstring( firstGlyph, (numGlyphs_1-i) );
+                if( (sTok=getUsersWordTok(tmp.c_str())) !=0 ) return ( out=tmp,sTok);
+            }
+        }
+    } else if( phrase[lastGlyph-1].isApostrophe() && !phrase[lastGlyph-2].isPunct() ) { // is its x'x
+        tmp = phrase.getSubstring( firstGlyph, (numGlyphs-2) );
+        if( (sTok=getUsersWordTok(tmp.c_str())) !=0 ) return ( out=tmp,sTok);
+    }
+        
+    return 0;
 }
 
 bool BZSpell::stem( std::string& out, const char* s, int& lang ) const

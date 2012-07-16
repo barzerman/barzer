@@ -957,7 +957,7 @@ int QLexParser::singleTokenClassify_space( Barz& barz, const QuestionParm& qparm
 		return ( err.e = QLPERR_NULL_IDX, 0 );
 
 	const BZSpell* bzSpell = d_universe.getBZSpell();
-    size_t cPos = 0, tPos = 0;
+    size_t cPos = 0,tPos = 0;
 	while (cPos < cVec.size() && tPos < tVec.size()) {
 		TToken& ttok = tVec[tPos].first;
 		const char* t = ttok.buf;
@@ -966,8 +966,8 @@ int QLexParser::singleTokenClassify_space( Barz& barz, const QuestionParm& qparm
 		ctok.setTToken (ttok, cPos );
 		// bool wasStemmed = false;
 
-		++cPos;
 		++tPos;
+		++cPos;
         // const StoredToken* storedTok = 0;
 		if( !t || !*t || isspace(*t)  ) { // this should never happen
 			ctok.setClass( CTokenClassInfo::CLASS_SPACE );
@@ -975,7 +975,6 @@ int QLexParser::singleTokenClassify_space( Barz& barz, const QuestionParm& qparm
 		} 
 
         bool keepClasifying = qparm.isAutoc;
-        bool shouldStem = false;
         if( !keepClasifying ) {
             bool isInteger = tryClassify_integer(ctok,t);
             if( isInteger ) {
@@ -1007,18 +1006,12 @@ int QLexParser::singleTokenClassify_space( Barz& barz, const QuestionParm& qparm
 				}
 			}
 		    /// stemming
-		    if( shouldStem || (!isNumber && bzSpell && ctok.isString() && d_universe.stemByDefault() && !ctok.getStemTok()) ) 
-            {
-			    std::string strToStem( ttok.buf, ttok.len );
+		    if( (!isNumber && bzSpell) ) {
+
 			    std::string stem;
-                int lang = LANG_UNKNOWN;
-			    if( bzSpell->stem(stem, strToStem.c_str(), lang) ) {
-                    const StoredToken* stemTok = dtaIdx->getStoredToken( stem.c_str() ) ;
-                    if( stemTok ) {
-                        if( stemTok != ctok.getStemTok() )
-				            ctok.setStemTok( stemTok );
-                    }
-                }
+                const StoredToken* stemTok= bzSpell->stem_utf8_punct( stem, barz.getQuestionOrigUTF8(), ttok );
+			    if( stemTok && stemTok != ctok.getStemTok() ) 
+                    ctok.setStemTok( stemTok );
 		    }
             ctok.syncStemAndStoredTok();
 		}
