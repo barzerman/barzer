@@ -4,6 +4,7 @@
 #include <ay_evovec.h>
 #include <boost/unordered_map.hpp>
 #include <barzer_language.h>
+#include <ay_utf8.h>
 
 namespace barzer {
 class StoredUniverse;
