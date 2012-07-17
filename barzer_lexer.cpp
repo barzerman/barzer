@@ -1023,23 +1023,70 @@ int QLexParser::singleTokenClassify_space( Barz& barz, const QuestionParm& qparm
 
 	return 0;
 }
-int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
+
+int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm, bool reclassify )
 {
     CTWPVec& cVec = barz.getCtVec();
     TTWPVec& tVec = barz.getTtVec();
 
-	cVec.resize( tVec.size() );
+    if( reclassify && cVec.size() == tVec.size() ) {
+        // we'll try to re-tokenize some tokens and adjust the sizes accordingly
+        size_t oldVecSize = tVec.size() ;
+        std::vector< std::pair< size_t, TTWPVec > > cVecInserts;
+        std::string tokStr;
+        QTokenizer retokenizer(d_universe);
+        /// retokenizing all tokens that need this - updating cVecInserts
+        size_t newVecSize = cVec.size();
+        for( size_t i = 0; i< tVec.size(); ++i ) {
+		    CToken& ctok = cVec[i].first;
+            if( ctok.isMysteryWord() ) { /// re-tokenizing mystery words 
+		        TToken& ttok = tVec[i].first;
+                tokStr.assign( ttok.buf, ttok.len );
+
+                TTWPVec tmpVec;
+                retokenizer.tokenize( tmpVec, tokStr.c_str(), qparm );
+                if( tmpVec.size() > 1 ) {
+                    newVecSize+= ( tmpVec.size()-1 );
+                    /// updating positions
+                    for( TTWPVec::iterator ti = tmpVec.begin(); ti!= tmpVec.end(); ++ti ) {
+                        ti->second+= i;
+                    }
+                    cVecInserts.push_back( std::pair< size_t, TTWPVec >(i, tmpVec) );
+                }
+            }
+        }
+        /// cVecInserts now has pairs (position, TTokenVector) to update. vecSizeIncrease - by how much both vectors need to grow
+        if( cVecInserts.size() ) {
+            cVec.reserve( newVecSize );
+            tVec.reserve( newVecSize );
+            for( auto i = cVecInserts.begin(); i!= cVecInserts.end(); ++i ) {
+                size_t   pos = i->first, pos_1 = pos+1;
+                TTWPVec& vec = i->second; // replace tVec[pos] with vec , expand cVec post i by vec.size()-1
+                tVec[pos] = vec[0];
+                cVec[pos]= CTWPVec::value_type( CToken(),pos );
+
+                tVec.insert( tVec.begin()+pos_1, vec.begin()+1, vec.end());
+                cVec.insert( cVec.begin()+pos_1, vec.size()-1, cVec[pos] ); 
+            }
+        }
+    } else {
+	    cVec.resize( tVec.size() );
+    }
 	if( !dtaIdx )
 		return ( err.e = QLPERR_NULL_IDX, 0 );
 
 	const BZSpell* bzSpell = d_universe.getBZSpell();
 	bool isQuoted = false;
     size_t cPos = 0, tPos = 0;
+    std::string ttokStr;
 	while (cPos < cVec.size() && tPos < tVec.size()) {
 		TToken& ttok = tVec[tPos].first;
-		const char* t = ttok.buf;
+        ttokStr.assign( ttok.buf, ttok.len );
+
+		const char* t = ttokStr.c_str();
 		// cPos->second = std::distance (cVec.begin (), cPos);
 		CToken& ctok = cVec[cPos].first;
+
 		ctok.setTToken (ttok, cPos );
 		// bool wasStemmed = false;
 
@@ -1146,7 +1193,7 @@ int QLexParser::lex( Barz& barz, const QuestionParm& qparm )
 	err.clear();
 	cVec.clear();
 	/// convert every ttoken into a single ctoken
-	singleTokenClassify( barz, qparm );
+	singleTokenClassify( barz, qparm, false );
     separatorNumberGuess( barz, qparm );
 	/// try grouping tokens and matching basic compounded tokens
 	/// non language specific
@@ -1161,6 +1208,7 @@ int QLexParser::lex( Barz& barz, const QuestionParm& qparm )
 	}
 	return 0;
 }
+
 int QLexParser::lex( Barz& barz, const TokenizerStrategy& strat, QTokenizer& tokenizer, const char* q, const QuestionParm& qparm )
 {
     if( strat.getType() == TokenizerStrategy::STRAT_TYPE_SPACE_DEFAULT ) {
