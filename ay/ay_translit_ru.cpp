@@ -1,4 +1,6 @@
 #include "ay_translit_ru.h"
+#include "ay_utf8.h"
+#include <iostream>
 
 namespace ay
 {
@@ -72,7 +74,7 @@ namespace tl
 			RULE1("т", 't');
 			RULE1("у", 'u');
 			RULE1("ф", 'f');
-			RULE1("ц", 'f');
+			RULE1("ц", 'c');
 			RULE1("ь", '\'');
 			RULE1("э", 'e');
 
@@ -80,6 +82,96 @@ namespace tl
 		}
 	}
 	*/
+
+	void ru2en (const char *src, size_t len, std::string& english, const TLExceptionList_t& exceptions)
+	{
+		if (!exceptions.empty())
+		{
+			const std::string srcStr(src);
+			auto pos = std::lower_bound(exceptions.begin(), exceptions.end(), srcStr,
+					[] (decltype(exceptions.front()) pair, const std::string& val) { return pair.first < val; });
+			if (pos != exceptions.end() && pos->first == srcStr)
+			{
+				english = pos->second;
+				return;
+			}
+		}
+
+		const StrUTF8 russian(src, len);
+		for (size_t i = 0; i < russian.size(); ++i)
+		{
+			const auto& c = russian[i];
+
+			if (c == CharUTF8("a"))
+				english.append("a");
+			else if (c == CharUTF8("б"))
+				english.append("b");
+			else if (c == CharUTF8("в"))
+				english.append("v");
+			else if (c == CharUTF8("г"))
+				english.append("g");
+			else if (c == CharUTF8("д"))
+				english.append("d");
+			else if (c == CharUTF8("е"))
+				english.append("e");
+			else if (c == CharUTF8("ё"))
+				english.append("jo");
+			else if (c == CharUTF8("ж"))
+				english.append("zh");
+			else if (c == CharUTF8("з"))
+				english.append("z");
+			else if (c == CharUTF8("и"))
+				english.append("i");
+			else if (c == CharUTF8("й"))
+				english.append("y");
+			else if (c == CharUTF8("к"))
+				english.append("k");
+			else if (c == CharUTF8("л"))
+				english.append("l");
+			else if (c == CharUTF8("м"))
+				english.append("m");
+			else if (c == CharUTF8("н"))
+				english.append("n");
+			else if (c == CharUTF8("о"))
+				english.append("o");
+			else if (c == CharUTF8("п"))
+				english.append("p");
+			else if (c == CharUTF8("р"))
+				english.append("r");
+			else if (c == CharUTF8("с"))
+				english.append("s");
+			else if (c == CharUTF8("т"))
+				english.append("t");
+			else if (c == CharUTF8("у"))
+				english.append("u");
+			else if (c == CharUTF8("ф"))
+				english.append("f");
+			else if (c == CharUTF8("х"))
+				english.append("kh");
+			else if (c == CharUTF8("ц"))
+				english.append("c");
+			else if (c == CharUTF8("ч"))
+				english.append("ch");
+			else if (c == CharUTF8("ш"))
+				english.append("sh");
+			else if (c == CharUTF8("щ"))
+				english.append("sch");
+			else if (c == CharUTF8("ъ"))
+				english.append("yh");
+			else if (c == CharUTF8("ы"))
+				english.append("ee");
+			else if (c == CharUTF8("ь"))
+				english.append("'");
+			else if (c == CharUTF8("э"))
+				english.append("a");
+			else if (c == CharUTF8("ю"))
+				english.append("ju");
+			else if (c == CharUTF8("я"))
+				english.append("ya");
+			else
+				english.append(c);
+		}
+	}
 
 	namespace
 	{
@@ -100,8 +192,20 @@ namespace tl
 		}
 	}
 
-	void en2ru(const char *src, size_t len, std::string& russian)
+	void en2ru(const char *src, size_t len, std::string& russian, const TLExceptionList_t& exceptions)
 	{
+		if (!exceptions.empty())
+		{
+			const std::string srcStr(src);
+			auto pos = std::lower_bound(exceptions.begin(), exceptions.end(), srcStr,
+					[] (decltype(exceptions.front()) pair, const std::string& val) { return pair.first < val; });
+			if (pos != exceptions.end() && pos->first == srcStr)
+			{
+				russian = pos->second;
+				return;
+			}
+		}
+
 		const char * const end = src + len;
 		char prev = 0;
 		while (src < end)
@@ -120,9 +224,11 @@ namespace tl
 					++src;
 					break;
 				default:
-					russian.append("а");
+					russian.append("э");
 					break;
 				}
+
+				break;
 			}
 			case 'b':
 			{
@@ -133,16 +239,23 @@ namespace tl
 					russian.append("б");
 					break;
 				}
+
+				break;
 			}
 			case 'c':
 			{
 				char c1 = src + 1 < end ? src[1] : 0;
 				switch (c1)
 				{
+				case 'h':
+					russian.append("ч");
+					break;
 				default:
 					russian.append("ц");
 					break;
 				}
+
+				break;
 			}
 			case 'd':
 			{
@@ -153,6 +266,8 @@ namespace tl
 					russian.append("д");
 					break;
 				}
+
+				break;
 			}
 			case 'e':
 			{
@@ -172,6 +287,8 @@ namespace tl
 					russian.append("е");
 					break;
 				}
+
+				break;
 			}
 			case 'f':
 			{
@@ -182,16 +299,22 @@ namespace tl
 					russian.append("ф");
 					break;
 				}
+
+				break;
 			}
 			case 'g':
 			{
 				char c1 = src + 1 < end ? src[1] : 0;
 				switch (c1)
 				{
+				case 'h':
+					++src;
 				default:
 					russian.append("г");
 					break;
 				}
+
+				break;
 			}
 			case 'h':
 			{
@@ -202,6 +325,8 @@ namespace tl
 					russian.append("х");
 					break;
 				}
+
+				break;
 			}
 			case 'i':
 			{
@@ -212,6 +337,8 @@ namespace tl
 					russian.append("и");
 					break;
 				}
+
+				break;
 			}
 			case 'j':
 			{
@@ -222,6 +349,8 @@ namespace tl
 					russian.append("ж");
 					break;
 				}
+
+				break;
 			}
 			case 'k':
 			{
@@ -236,6 +365,8 @@ namespace tl
 					russian.append("к");
 					break;
 				}
+
+				break;
 			}
 			case 'l':
 			{
@@ -246,6 +377,8 @@ namespace tl
 					russian.append("л");
 					break;
 				}
+
+				break;
 			}
 			case 'm':
 			{
@@ -256,6 +389,8 @@ namespace tl
 					russian.append("м");
 					break;
 				}
+
+				break;
 			}
 			case 'n':
 			{
@@ -266,36 +401,64 @@ namespace tl
 					russian.append("н");
 					break;
 				}
+
+				break;
 			}
 			case 'o':
 			{
 				char c1 = src + 1 < end ? src[1] : 0;
+
+				if (src + 4 <= end &&
+					c1 == 'u' &&
+					src[2] == 'g' &&
+					src[3] == 'h')
+				{
+					if (src + 4 < end)
+						russian.append("о");
+					else
+						russian.append("ф");
+					src += 3;
+					break;
+				}
+
 				switch (c1)
 				{
 				default:
 					russian.append("о");
 					break;
 				}
+
+				break;
 			}
 			case 'p':
 			{
 				char c1 = src + 1 < end ? src[1] : 0;
 				switch (c1)
 				{
+				case 'h':
+					russian.append("ф");
 				default:
 					russian.append("п");
 					break;
 				}
+
+				break;
 			}
 			case 'q':
 			{
 				char c1 = src + 1 < end ? src[1] : 0;
 				switch (c1)
 				{
+				case 'u':
+					russian.append("кв");
+					++src;
+					break;
 				default:
 					russian.append("к");
 					break;
 				}
+
+				break;
 			}
 			case 'r':
 			{
@@ -306,10 +469,24 @@ namespace tl
 					russian.append("р");
 					break;
 				}
+
+				break;
 			}
 			case 's':
 			{
 				char c1 = src + 1 < end ? src[1] : 0;
+				if (src + 2 < end && c1 == 'c' && src[2] == 'h')
+				{
+					russian.append("щ");
+					src += 2;
+					break;
+				}
+				if (isVowel(prev) && isVowel(c1))
+				{
+					russian.append("z");
+					break;
+				}
+
 				switch (c1)
 				{
 				case 'h':
@@ -320,10 +497,19 @@ namespace tl
 					russian.append("с");
 					break;
 				}
+
+				break;
 			}
 			case 't':
 			{
 				char c1 = src + 1 < end ? src[1] : 0;
+				if (src + 2 < end && c1 == 'c' && src[2] == 'h')
+				{
+					russian.append("ч");
+					src += 2;
+					break;
+				}
+
 				switch (c1)
 				{
 				case 'z':
@@ -342,17 +528,26 @@ namespace tl
 					russian.append("т");
 					break;
 				}
+
 				break;
 			}
 			case 'u':
 			{
 				char c1 = src + 1 < end ? src[1] : 0;
+				if (c1 && !isVowel(c1))
+				{
+					russian.append("а");
+					break;
+				}
+
 				switch (c1)
 				{
 				default:
 					russian.append("у");
 					break;
 				}
+
+				break;
 			}
 			case 'v':
 			{
@@ -363,6 +558,8 @@ namespace tl
 					russian.append("в");
 					break;
 				}
+
+				break;
 			}
 			case 'w':
 			{
@@ -373,6 +570,8 @@ namespace tl
 					russian.append("уа");
 					break;
 				}
+
+				break;
 			}
 			case 'x':
 			{
@@ -383,29 +582,56 @@ namespace tl
 					russian.append("кс");
 					break;
 				}
+
+				break;
 			}
 			case 'y':
 			{
 				char c1 = src + 1 < end ? src[1] : 0;
+				if (prev && !isVowel(prev))
+				{
+					if (c1 == 'a')
+					{
+						russian.append("ья");
+						++src;
+						break;
+					}
+					else if (c1 == 'e')
+					{
+						russian.append("ье");
+						++src;
+						break;
+					}
+				}
+
 				switch (c1)
 				{
 				default:
 					russian.append("ы");
 					break;
 				}
+
+				break;
 			}
 			case 'z':
 			{
 				char c1 = src + 1 < end ? src[1] : 0;
 				switch (c1)
 				{
+				case 'z':
+					russian.append("ц");
+					++src;
+					break;
 				case 'h':
 					russian.append("ж");
 					++src;
+					break;
 				default:
 					russian.append("з");
 					break;
 				}
+
+				break;
 			}
 			default:
 				russian.push_back(c0);
