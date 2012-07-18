@@ -27,27 +27,26 @@ enum {
 }; 
 
 struct TToken {
-	uint16_t  len; 
 	uint16_t  d_utf8beg, d_utf8len; // starting glyphs and num of following glyphs for utf8  the string assumed to be elsewhere
 
-	const char* buf;
+	std::string buf;
     	
     bool glyphsAreValid() const { return ( d_utf8beg!= 0xffff && d_utf8len != 0xffff ); }  
 
     size_t getFirstGlyph() const { return d_utf8beg; }
     size_t getNumGlyphs() const { return d_utf8len; }
     
-	TToken( ) : len(0), d_utf8beg(0xffff), d_utf8len(0xffff), buf("") {}
-	TToken( const char* s ) : len( strlen(s) ), d_utf8beg(0xffff), d_utf8len(0xffff), buf(s) {}
+	TToken( ) : d_utf8beg(0xffff), d_utf8len(0xffff), buf("") {}
+	TToken( const char* s ) : d_utf8beg(0xffff), d_utf8len(0xffff), buf(s) {}
 	// watch out for data consistency
-	TToken( const char* s, short l ) : len(l), d_utf8beg(0xffff), d_utf8len(0xffff), buf(s) {}
-	TToken( const char* s, short l, size_t bg, size_t eg ) : len(l), d_utf8beg(bg), d_utf8len(eg), buf(s) {}
+	TToken( const char* s, short l ) : d_utf8beg(0xffff), d_utf8len(0xffff), buf(s,l) {}
+	TToken( const char* s, short l, size_t bg, size_t eg ) : d_utf8beg(bg), d_utf8len(eg), buf(s,l) {}
 	
 	int getPunct() const
-		{ return( buf && len ? buf[0] : ((int)'|') ); }
+		{ return( buf.length() ? buf[0] : ((int)'|') ); }
 
-    size_t getLen() const { return len; }
-    const char*  getBuf() const { return buf; }
+    size_t getLen() const { return buf.length(); }
+    const char*  getBuf() const { return buf.c_str(); }
 	std::ostream& print( FILE* fp ) const;
 	std::ostream& print( std::ostream& fp ) const;
 
@@ -58,7 +57,7 @@ struct TToken {
 	/// returns true if every character in the token is ASCII
 	bool isAscii() const
 		{ 
-			for( const char* s = buf; *s; ++s ) 
+			for( const char* s = buf.c_str(); *s; ++s ) 
 				if( !isascii(*s) ) return false; 
 
 			return true;
@@ -66,7 +65,7 @@ struct TToken {
     
     size_t getNumChar( size_t bytesPerChar = 1 ) const 
     {
-        return ( bytesPerChar<=1 ? len : (len/bytesPerChar) );
+        return ( bytesPerChar<=1 ? buf.length(): (buf.length()/bytesPerChar) );
     }
 };
 
@@ -234,8 +233,8 @@ inline std::ostream& CTWPVec_origTok_print( std::ostream& os,  const CTWPVec& ct
 		const TTWPVec& ttv = ci->first.getTTokens();
 		for( TTWPVec::const_iterator ti = ttv.begin(); ti!= ttv.end() ; ++ti ) {
 			const TToken& ttok = ti->first;
-			if( ttok.len && ttok.buf ) {
-				os.write( ttok.buf, ttok.len );
+			if( ttok.buf.length() ) {
+				os.write( ttok.buf.c_str(), ttok.buf.length() );
 			}
 		}
 	}	

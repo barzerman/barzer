@@ -77,7 +77,7 @@ void Barz::syncQuestionFromTokens()
 {
 	size_t qLen = 0;
 	for( TTWPVec::const_iterator i = ttVec.begin(); i!= ttVec.end(); ++i ) {
-		qLen+= (i->first.len+1);
+		qLen+= (i->first.buf.length()+1);
 	}
 	if( !qLen ) 
 		return ;
@@ -87,10 +87,10 @@ void Barz::syncQuestionFromTokens()
 	for( TTWPVec::iterator i = ttVec.begin(); i!= ttVec.end(); ++i ) {
 		TToken& t = i->first;
 		char* pBuf = &(question[pos]);
-		memcpy( pBuf, t.buf, t.len );
+		memcpy( pBuf, t.buf.c_str(), t.buf.length() );
 		t.buf = pBuf;
-		pBuf[t.len] = 0;
-		pos+= (t.len+1);
+		pBuf[t.buf.length()] = 0;
+		pos+= (t.buf.length()+1);
 	}
 	
 }
@@ -197,12 +197,12 @@ int Barz::parse_Autocomplete( MatcherCallback& cb, QSemanticParser& sem, const Q
                     const BZSpell::char_cp_to_strid_map* wordMapPtr = universe.getValidWordMapPtr();
                     if( wordMapPtr ) {
                         const DtaIndex& dtaIdx = universe.getDtaIdx(); 
-                        BZSpell::char_cp_to_strid_map::const_iterator i = wordMapPtr->lower_bound(ttok.buf);
+                        BZSpell::char_cp_to_strid_map::const_iterator i = wordMapPtr->lower_bound(ttok.buf.c_str());
                         for( ;i!= wordMapPtr->end(); ++i ) {
                             const char* str = i->first;
-                            if( !str || strncmp(ttok.buf,str,ttok.len) ) 
+                            if( !str || strncmp(ttok.buf.c_str(),str,ttok.buf.length()) ) 
                                 break;
-                            if( !str[ttok.len] )
+                            if( !str[ttok.buf.length()] )
                                 continue;
                             uint32_t strId = i->second;
                             if( universe.isWordValidInUniverse(strId) ) {
@@ -211,7 +211,7 @@ int Barz::parse_Autocomplete( MatcherCallback& cb, QSemanticParser& sem, const Q
                                     ctok.setStoredTok_raw( stok );
                                     bi->initFromCTok( ctok );
                                     uint32_t str_len = strlen(str);
-                                    QSemanticParser_AutocParms autocParm( (str_len>ttok.len) ? (str_len-ttok.len): 0 );
+                                    QSemanticParser_AutocParms autocParm( (str_len>ttok.buf.length()) ? (str_len-ttok.buf.length()): 0 );
                                     sem.parse_Autocomplete( cb, *this, qparm, autocParm );
                                 }
                             }

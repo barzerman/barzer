@@ -10,8 +10,8 @@
 namespace barzer {
 bool QLexParser::tryClassify_number( CToken& ctok, const TToken& ttok ) const
 {
-	const char* beg = ttok.buf;
-	const char* end = ttok.buf+ttok.len;
+	const char* beg = ttok.buf.c_str();
+	const char* end = ttok.buf.c_str()+ttok.buf.length();
 	bool hasDot = false, hasDigit = false;
 	for( const char* s = beg; s!= end; ++s ) {
 		switch( *s ) {
@@ -26,10 +26,10 @@ bool QLexParser::tryClassify_number( CToken& ctok, const TToken& ttok ) const
 	if( hasDigit ) {
 		ctok.setClass( CTokenClassInfo::CLASS_NUMBER );
 		if( hasDot ) {
-			ctok.number().setReal( ttok.buf );
+			ctok.number().setReal( ttok.buf.c_str() );
 		} else  {
-			ctok.number().setInt( ttok.buf );
-			ctok.number().setAsciiLen( ttok.len );
+			ctok.number().setInt( ttok.buf.c_str() );
+			ctok.number().setAsciiLen( ttok.buf.length() );
 		}
 		return true;
 	}
@@ -37,15 +37,15 @@ bool QLexParser::tryClassify_number( CToken& ctok, const TToken& ttok ) const
 }
 bool QLexParser::tryClassify_integer( CToken& ctok, const TToken& ttok ) const
 {
-	const char* beg = ttok.buf;
-	const char* end = ttok.buf+ttok.len;
+	const char* beg = ttok.buf.c_str();
+	const char* end = ttok.buf.c_str()+ttok.buf.length();
 	for( const char* s = beg; s!= end; ++s ) {
 		if( *s < '0' || *s > '9' )
 			return false;
 	}
 	ctok.setClass( CTokenClassInfo::CLASS_NUMBER );
-	ctok.number().setInt( ttok.buf );
-	ctok.number().setAsciiLen( ttok.len );
+	ctok.number().setInt( ttok.buf.c_str() );
+	ctok.number().setAsciiLen( ttok.buf.length() );
 	return true;
 }
 
@@ -71,10 +71,10 @@ inline bool ctok_number_can_be_in_commadelim( bool isFirst, const CToken& ctok )
 	if( ctok.getTTokens().size() > 1 || !ctok.getNumber().isInt() )
 		return false;
 	const TToken*  ttok = ctok.getFirstTToken();
-	if( !ttok || ttok->len > 3 )
+	if( !ttok || ttok->buf.length() > 3 )
 		return false;
 
-	return (isFirst || ttok->len == 3);
+	return (isFirst || ttok->buf.length() == 3);
 }
 
 inline int64_t get_decimal_factor( int numZeroBlocks )
@@ -751,8 +751,8 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 	CToken& ctok = cPosVec.element().first;
 	TToken& ttok = tPosVec.element().first;
 
-	const char* t = ttok.buf;
-	size_t t_len = ttok.len;
+	const char* t = ttok.buf.c_str();
+	size_t t_len = ttok.buf.length();
 	if( t_len > BZSpell::MAX_WORD_LEN )
 		return SpellCorrectResult (0, ++cPosVec, ++tPosVec);
 	const GlobalPools& gp = d_universe.getGlobalPools();
@@ -961,7 +961,7 @@ int QLexParser::singleTokenClassify_space( Barz& barz, const QuestionParm& qparm
     std::string theString; 
 	while (cPos < cVec.size() && tPos < tVec.size()) {
 		TToken& ttok = tVec[tPos].first;
-        theString.assign( ttok.buf, ttok.len );
+        theString.assign( ttok.buf.c_str(), ttok.buf.length() );
 		const char* t = theString.c_str();
 		// cPos->second = std::distance (cVec.begin (), cPos);
 		CToken& ctok = cVec[cPos].first;
@@ -1024,66 +1024,69 @@ int QLexParser::singleTokenClassify_space( Barz& barz, const QuestionParm& qparm
 	return 0;
 }
 
-int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm, bool reclassify )
+size_t QLexParser::retokenize( Barz& barz, const QuestionParm& qparm )
+{
+    CTWPVec& cVec = barz.getCtVec();
+    TTWPVec& tVec = barz.getTtVec();
+    if( cVec.size() != tVec.size() ) 
+        return 0;
+
+    // we'll try to re-tokenize some tokens and adjust the sizes accordingly
+    size_t oldVecSize = tVec.size() ;
+    std::vector< std::pair< size_t, TTWPVec > > cVecInserts;
+    QTokenizer retokenizer(d_universe);
+    /// retokenizing all tokens that need this - updating cVecInserts
+    size_t newVecSize = cVec.size();
+    for( size_t i = 0; i< tVec.size(); ++i ) {
+        CToken& ctok = cVec[i].first;
+        if( ctok.isMysteryWord() ) { /// re-tokenizing mystery words 
+            TToken& ttok = tVec[i].first;
+
+            TTWPVec tmpVec;
+            retokenizer.tokenize( tmpVec, ttok.buf.c_str(), qparm );
+            if( tmpVec.size() > 1 ) {
+                newVecSize+= ( tmpVec.size()-1 );
+                /// updating positions
+                for( TTWPVec::iterator ti = tmpVec.begin(); ti!= tmpVec.end(); ++ti ) {
+                    ti->second+= i;
+                }
+                cVecInserts.push_back( std::pair< size_t, TTWPVec >(i, tmpVec) );
+            }
+        }
+    }
+    /// cVecInserts now has pairs (position, TTokenVector) to update. vecSizeIncrease - by how much both vectors need to grow
+    if( cVecInserts.size() ) {
+        cVec.reserve( newVecSize );
+        tVec.reserve( newVecSize );
+        for( auto i = cVecInserts.begin(); i!= cVecInserts.end(); ++i ) {
+            size_t   pos = i->first, pos_1 = pos+1;
+            TTWPVec& vec = i->second; // replace tVec[pos] with vec , expand cVec post i by vec.size()-1
+            tVec[pos] = vec[0];
+            cVec[pos]= CTWPVec::value_type( CToken(),pos );
+
+            tVec.insert( tVec.begin()+pos_1, vec.begin()+1, vec.end());
+            cVec.insert( cVec.begin()+pos_1, vec.size()-1, cVec[pos] ); 
+        }
+    }
+    return cVecInserts.size();
+}
+
+int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 {
     CTWPVec& cVec = barz.getCtVec();
     TTWPVec& tVec = barz.getTtVec();
 
-    if( reclassify && cVec.size() == tVec.size() ) {
-        // we'll try to re-tokenize some tokens and adjust the sizes accordingly
-        size_t oldVecSize = tVec.size() ;
-        std::vector< std::pair< size_t, TTWPVec > > cVecInserts;
-        std::string tokStr;
-        QTokenizer retokenizer(d_universe);
-        /// retokenizing all tokens that need this - updating cVecInserts
-        size_t newVecSize = cVec.size();
-        for( size_t i = 0; i< tVec.size(); ++i ) {
-		    CToken& ctok = cVec[i].first;
-            if( ctok.isMysteryWord() ) { /// re-tokenizing mystery words 
-		        TToken& ttok = tVec[i].first;
-                tokStr.assign( ttok.buf, ttok.len );
-
-                TTWPVec tmpVec;
-                retokenizer.tokenize( tmpVec, tokStr.c_str(), qparm );
-                if( tmpVec.size() > 1 ) {
-                    newVecSize+= ( tmpVec.size()-1 );
-                    /// updating positions
-                    for( TTWPVec::iterator ti = tmpVec.begin(); ti!= tmpVec.end(); ++ti ) {
-                        ti->second+= i;
-                    }
-                    cVecInserts.push_back( std::pair< size_t, TTWPVec >(i, tmpVec) );
-                }
-            }
-        }
-        /// cVecInserts now has pairs (position, TTokenVector) to update. vecSizeIncrease - by how much both vectors need to grow
-        if( cVecInserts.size() ) {
-            cVec.reserve( newVecSize );
-            tVec.reserve( newVecSize );
-            for( auto i = cVecInserts.begin(); i!= cVecInserts.end(); ++i ) {
-                size_t   pos = i->first, pos_1 = pos+1;
-                TTWPVec& vec = i->second; // replace tVec[pos] with vec , expand cVec post i by vec.size()-1
-                tVec[pos] = vec[0];
-                cVec[pos]= CTWPVec::value_type( CToken(),pos );
-
-                tVec.insert( tVec.begin()+pos_1, vec.begin()+1, vec.end());
-                cVec.insert( cVec.begin()+pos_1, vec.size()-1, cVec[pos] ); 
-            }
-        }
-    } else {
-	    cVec.resize( tVec.size() );
-    }
+    cVec.resize( tVec.size() );
 	if( !dtaIdx )
 		return ( err.e = QLPERR_NULL_IDX, 0 );
 
 	const BZSpell* bzSpell = d_universe.getBZSpell();
 	bool isQuoted = false;
     size_t cPos = 0, tPos = 0;
-    std::string ttokStr;
 	while (cPos < cVec.size() && tPos < tVec.size()) {
 		TToken& ttok = tVec[tPos].first;
-        ttokStr.assign( ttok.buf, ttok.len );
 
-		const char* t = ttokStr.c_str();
+		const char* t = ttok.buf.c_str();
 		// cPos->second = std::distance (cVec.begin (), cPos);
 		CToken& ctok = cVec[cPos].first;
 
@@ -1105,7 +1108,7 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm, bool
         bool keepClasifying = qparm.isAutoc;
         bool shouldStem = false;
         if( !keepClasifying ) {
-            bool isInteger = tryClassify_integer(ctok,t);
+            bool isInteger = tryClassify_integer(ctok,ttok);
             if( isInteger ) {
 			    uint32_t usersWordStrId = 0xffffffff;
                 const StoredToken* storedTok = ( bzSpell->isUsersWord( usersWordStrId, t ) ?
@@ -1120,7 +1123,7 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm, bool
 			const StoredToken* storedTok = ( bzSpell->isUsersWord( usersWordStrId, t ) ?
 				dtaIdx->getStoredToken( t ): 0 );
 
-            bool isNumber = ( !qparm.isAutoc && tryClassify_number(ctok,t)); // this should probably always be false
+            bool isNumber = ( !qparm.isAutoc && tryClassify_number(ctok,ttok)); // this should probably always be false
 			if( storedTok ) { ///
 				///
 				ctok.storedTok = storedTok;
@@ -1156,7 +1159,7 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm, bool
 		    /// stemming
 		    if( shouldStem || (!isNumber && bzSpell && ctok.isString() && d_universe.stemByDefault() && !ctok.getStemTok()) ) 
             {
-			    std::string strToStem( ttok.buf, ttok.len );
+			    std::string strToStem( ttok.buf, ttok.buf.length() );
 			    std::string stem;
                 int lang = LANG_UNKNOWN;
 			    if( bzSpell->stem(stem, strToStem.c_str(), lang) ) {
@@ -1193,7 +1196,7 @@ int QLexParser::lex( Barz& barz, const QuestionParm& qparm )
 	err.clear();
 	cVec.clear();
 	/// convert every ttoken into a single ctoken
-	singleTokenClassify( barz, qparm, false );
+	singleTokenClassify( barz, qparm );
     separatorNumberGuess( barz, qparm );
 	/// try grouping tokens and matching basic compounded tokens
 	/// non language specific
@@ -1217,6 +1220,8 @@ int QLexParser::lex( Barz& barz, const TokenizerStrategy& strat, QTokenizer& tok
         err.clear();
         barz.getCtVec().clear();
         singleTokenClassify_space( barz, qparm );
+        retokenize( barz, qparm );
+        singleTokenClassify( barz, qparm );
 
         separatorNumberGuess( barz, qparm );
         advancedBasicClassify( barz, qparm );
