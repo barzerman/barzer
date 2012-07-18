@@ -216,6 +216,12 @@ namespace tl
 			case 'a':
 			{
 				char c1 = src + 1 < end ? src[1] : 0;
+				if (!c1 || !isVowel(c1))
+				{
+					russian.append("а");
+					break;
+				}
+
 				switch (c1)
 				{
 				case 'e':
@@ -319,6 +325,9 @@ namespace tl
 			case 'h':
 			{
 				char c1 = src + 1 < end ? src[1] : 0;
+				if (!c1 || !isVowel(c1))
+					break;
+
 				switch (c1)
 				{
 				default:
