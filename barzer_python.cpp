@@ -138,7 +138,7 @@ int BarzerPython::matchXML(const std::string& pattern, const std::string& result
 		return -1;
 
 	return autotester::matches(pattern.c_str(), result.c_str(),
-			{ d_universe->getGlobalPools(), d_universe->getUserId() },
+			autotester::ParseContext(d_universe->getGlobalPools(), d_universe->getUserId()),
 			settings);
 }
 
