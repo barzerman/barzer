@@ -426,11 +426,7 @@ namespace tl
 			{
 				char c1 = src + 1 < end ? src[1] : 0;
 
-				if (src + 4 <= end &&
-					c1 == 'u' &&
-					src[2] == 'g' &&
-					src[3] == 'h')
-				{
+				if (src + 4 <= end && c1 == 'u' && src[2] == 'g' && src[3] == 'h') {
 					if (src + 4 < end)
 						russian.append("о");
 					else
