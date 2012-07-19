@@ -1,6 +1,7 @@
 #include <barzer_shell.h>
 #include <barzer_server.h>
 #include <ay_util_time.h>
+#include <ay_translit_ru.h>
 
 #include <barzer_emitter.h>
 #include <barzer_el_xml.h>
@@ -833,7 +834,24 @@ struct TrieLeafFinder {
 
 }
 
-static int bshf_trans( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_translit( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+    bool engToRus = ( !cmd || cmd[0] == 't'  );
+	ay::InputLineReader reader( in );
+    while( reader.nextLine() && reader.str.length() ) {
+        const char* q = reader.str.c_str();
+	    std::stringstream ss(q);
+        std::string tmp ;
+        while( ss >> tmp ) {
+            std::string result;
+            ay::tl::en2ru(tmp.c_str(), tmp.length(), result);
+            std::cout << result << " ";
+        }
+        std::cout << std::endl;
+    }
+    return 0;
+}
+static int bshf_xtrans( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	ShellState sh( shell, cmd, in );
 	BELPrintFormat fmt;
@@ -1348,7 +1366,9 @@ static const CmdData g_cmd[] = {
 	//CmdData( (ay::Shell_PROCF)bshf_trieloadxml, "trieloadxml", "loads a trie from an xml file" ),
 	CmdData( (ay::Shell_PROCF)bshf_setloglevel, "setloglevel", "set a log level (DEBUG/WARNINg/ERROR/CRITICAL)" ),
 	CmdData( (ay::Shell_PROCF)bshf_bzstem, "stem", "bz stemming" ),
-	CmdData( (ay::Shell_PROCF)bshf_trans, "trans", "tester for barzel translation" ),
+	CmdData( (ay::Shell_PROCF)bshf_xtrans, "trans", "tester for barzel translation" ),
+	CmdData( (ay::Shell_PROCF)bshf_translit, "translit", "transliterate english to russian (input must all lower case )" ),
+	CmdData( (ay::Shell_PROCF)bshf_translit, "ru2en", "transliterate russian to english" ),
 	CmdData( (ay::Shell_PROCF)bshf_triestats, "triestats", "trie commands" ),
 	CmdData( (ay::Shell_PROCF)bshf_trie, "trie", "trie commands" ),
 	CmdData( (ay::Shell_PROCF)bshf_trieclear, "trieclear", "out the current trie (trieset to set current trie)" ),

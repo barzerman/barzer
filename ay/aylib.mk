@@ -5,7 +5,7 @@ endif
 ifeq ($(IS32),yes)
 	BITMODE=-m32
 endif 
-CFLAGS := $(OPT) $(C11) $(BITMODE) $(FLAGS) -Wall -g -I. -fpic -I../ -I/usr/local/include -I/opt/local/include -Wno-parentheses
+CFLAGS := $(OPT) -std=c++0x $(BITMODE) $(FLAGS) -Wall -g -I. -fpic -I../ -I/usr/local/include -I/opt/local/include -Wno-parentheses
 LIBNAME=libay.a
 SHARED_LIBNAME=libay.so
 
