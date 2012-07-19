@@ -83,13 +83,22 @@ namespace tl
 	}
 	*/
 
+    namespace {
+        struct TLException_t_compare_less {
+            bool operator()( const TLException_t& x, const std::string& s ) const 
+            {
+                return( x.first< s );
+            }
+        };
+    }
 	void ru2en (const char *src, size_t len, std::string& english, const TLExceptionList_t& exceptions)
 	{
 		if (!exceptions.empty())
 		{
-			const std::string srcStr(src);
-			auto pos = std::lower_bound(exceptions.begin(), exceptions.end(), srcStr,
-					[] (decltype(exceptions.front()) pair, const std::string& val) { return pair.first < val; });
+			const std::string srcStr(src,len);
+
+			auto pos = std::lower_bound( exceptions.begin(), exceptions.end(), srcStr, TLException_t_compare_less() );
+
 			if (pos != exceptions.end() && pos->first == srcStr)
 			{
 				english = pos->second;
@@ -197,8 +206,8 @@ namespace tl
 		if (!exceptions.empty())
 		{
 			const std::string srcStr(src);
-			auto pos = std::lower_bound(exceptions.begin(), exceptions.end(), srcStr,
-					[] (decltype(exceptions.front()) pair, const std::string& val) { return pair.first < val; });
+
+			auto pos = std::lower_bound(exceptions.begin(), exceptions.end(), srcStr, TLException_t_compare_less() );
 			if (pos != exceptions.end() && pos->first == srcStr)
 			{
 				russian = pos->second;

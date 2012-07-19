@@ -30,7 +30,12 @@ namespace autotester
 				if (testElem.first != "test")
 					continue;
 
-				tests.push_back({ testElem.second.get<std::string> ("request"), testElem.second.get_child("outxml") });
+				tests.push_back( 
+                    TestSet_t::value_type( 
+                    testElem.second.get<std::string>("request"), 
+                    testElem.second.get_child("outxml") 
+                    ) 
+                );
 			}
 
 			m_tests[userId] = tests;
