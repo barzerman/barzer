@@ -3,6 +3,7 @@
 #include <boost/python.hpp>
 #include <barzer_python.h>
 #include <ay/ay_cmdproc.h>
+#include <ay_translit_ru.h>
 #include <boost/python/list.hpp>
 #include <boost/python/dict.hpp>
 #include <boost/python/object.hpp>
@@ -88,6 +89,20 @@ int BarzerPython::init( boost_python_list& ns )
     return 0;
 }
 
+std::string BarzerPython::translitEn2Ru(const std::string& from/*, const ay::tl::TLExceptionList_t& excs*/)
+{
+	std::string result;
+	ay::tl::en2ru(from.c_str(), from.size(), result);
+	return result;
+}
+
+std::string BarzerPython::translitRu2En(const std::string& from/*, const ay::tl::TLExceptionList_t& excs*/)
+{
+	std::string result;
+	ay::tl::ru2en(from.c_str(), from.size(), result);
+	return result;
+}
+
 void BarzerPython::shell_cmd( const std::string& cmd, const std::string& args )
 {
     if( !shell ) 
@@ -123,7 +138,7 @@ int BarzerPython::matchXML(const std::string& pattern, const std::string& result
 		return -1;
 
 	return autotester::matches(pattern.c_str(), result.c_str(),
-			{ d_universe->getGlobalPools(), d_universe->getUserId() },
+			autotester::ParseContext(d_universe->getGlobalPools(), d_universe->getUserId()),
 			settings);
 }
 
@@ -770,6 +785,8 @@ BOOST_PYTHON_MODULE(pybarzer)
         /// returns Barzer XML for the parsed query 
         .def( "parsexml", &barzer::BarzerPython::parse  )
         .def( "emit", &barzer::BarzerPython::emit)
+		.def( "ru2en", &barzer::BarzerPython::translitRu2En)
+		.def( "en2ru", &barzer::BarzerPython::translitEn2Ru)
         .def( "matchXML", &barzer::BarzerPython::matchXML);
 
     def("stripDiacritics", stripDiacritics);
