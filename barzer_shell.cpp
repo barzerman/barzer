@@ -843,6 +843,8 @@ static int bshf_translit( BarzerShell* shell, char_cp cmd, std::istream& in )
 	    std::stringstream ss(q);
         std::string tmp ;
         while( ss >> tmp ) {
+            for( std::string::iterator i = tmp.begin(); i!= tmp.end(); ++i) 
+                *i = tolower(*i);
             std::string result;
             ay::tl::en2ru(tmp.c_str(), tmp.length(), result);
             std::cout << result << " ";
