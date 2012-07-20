@@ -273,8 +273,12 @@ char_cp_pair("i","ай"),
 char_cp_pair("if","иф"),
 char_cp_pair("in","ин"),
 char_cp_pair("into","инту"),
+char_cp_pair("is","из"),
+char_cp_pair("isn't","изнт"),
 char_cp_pair("it","ит"),
 char_cp_pair("its","итс"),
+char_cp_pair("june","джун"),
+char_cp_pair("july","джулай"),
 char_cp_pair("know","ноу"),
 char_cp_pair("large","лардж"),
 char_cp_pair("last","ласт"),
@@ -340,6 +344,7 @@ char_cp_pair("think","сынк"),
 char_cp_pair("this","зыс"),
 char_cp_pair("time","тайм"),
 char_cp_pair("to","ту"),
+char_cp_pair("today","тудей"),
 char_cp_pair("try","трай"),
 char_cp_pair("two","ту"),
 char_cp_pair("under","андер"),
@@ -455,6 +460,8 @@ const char* getSingleEnCharTranslit( char c )
                 } else if( s[1] == 'l' && s[2] == 'l' && s[3] =='e' && s[4] =='d' ) {
                     russian.append("олд");
                     s+=4;
+                } else if( s[1] && !isVowel(s[1]) && s[1] != 'r' && (s[2]=='e') ) {
+                    russian.append("эй"); 
                 } else if( s[1] == 'l' && s[2] == 'l' ) {
                     russian.append("ол");
                     s+=2;
@@ -465,8 +472,11 @@ const char* getSingleEnCharTranslit( char c )
 				} else { 
                     switch (c1) {
                     case 'e':
-                    case 'y':
                         russian.append("э");
+                        ++s;
+                        break;
+                    case 'y':
+                        russian.append("эй");
                         ++s;
                         break;
                     default:
@@ -517,7 +527,10 @@ const char* getSingleEnCharTranslit( char c )
 			case 'e':
 			{
                
-                if( s[1] =='v' && s[2] == 'e' && s[3] == 'r' && s[4] == 'y' ) {
+                if( s[1] =='i' && s[2] == 'v'  ) {
+                    russian.append("ив");
+                    s+=2;
+                } else if( s[1] =='v' && s[2] == 'e' && s[3] == 'r' && s[4] == 'y' ) {
                     russian.append("эври");
                     s+=4;
                 } else 
@@ -544,7 +557,7 @@ const char* getSingleEnCharTranslit( char c )
 					    ++s;
 					    break;
 				     default:
-					    russian.append("е");
+					    russian.append(!c_prev ? "э": "е" );
 					    break;
 				    }
                 }
@@ -596,12 +609,17 @@ const char* getSingleEnCharTranslit( char c )
 			}
 			case 'i':
 			{
-                if( s[1] =='d' && s[2] == 'e' && s[3] =='n' && (s[4] =='c' || s[4] =='t') ) {
+                if( (s[1]=='d'||s[1] =='t') && s[2] == 'i' && s[3] =='e')  {
                     russian.append("и");
-                } else if( s[1] =='e' && !s[2]  ) {
+                } else if( s[1] =='d' && s[2] == 'e' && s[3] =='n' && (s[4] =='c' || s[4] =='t') ) {
+                    russian.append("и");
+                } else if( s[1] =='e' && s[2] =='s' && !s[3]  ) {
+                    russian.append("ис");
+                    s+=2;
+                } else if( s[1] =='e' ) {
                     russian.append((++s,"и"));
                 } else
-                if( s[1] && s[2] =='e' && !isVowel(s[1]) ) {
+                if( s[1] && (s[2] =='e'||s[2] =='i') && !isVowel(s[1]) ) {
                     russian.append("ай");
                 } else {
 				    switch (c1)
@@ -636,7 +654,7 @@ const char* getSingleEnCharTranslit( char c )
 				    switch (c1)
 				    {
                     case 'j': russian.append("дж"); s+=1; break;
-                    case 'u': russian.append("ю"); s+=1; break;
+                    case 'u': russian.append( "джу"); s+=1; break;
                     case 'e': russian.append("ж"); break;
 				    default:
 					    russian.append(c0default);
@@ -665,6 +683,8 @@ const char* getSingleEnCharTranslit( char c )
 			{
                 if( s[1] =='i' && s[2] =='v' && s[3] =='e' ) {
 					russian.append((s+=2,"лив"));
+                } else if(s[1] =='e' && !s[2] ) { // le
+					russian.append((++s,"л"));
                 } else {
 				switch (c1)
 				{
@@ -774,6 +794,9 @@ const char* getSingleEnCharTranslit( char c )
 					    russian.append((s+=3,"ша"));
                     else 
 					    russian.append((s+=2,"ш"));
+				}else if (s[1] =='i' && s[2] =='v' && s[3] =='e' ) {
+                    s+=3;
+					russian.append("сив");
 				}else if (s[1] =='o' && s[2] =='m' && s[3] =='e' ) {
                     s+=3;
 					russian.append("сам");
@@ -806,8 +829,10 @@ const char* getSingleEnCharTranslit( char c )
                 if( s[1] =='i' && s[2] =='o' && s[3] =='n' ) {
                     russian.append("шен");
                     s+=3;
-                } else 
-				if (s + 2 < end && c1 == 'c' && s[2] == 'h')
+                } else if( s[1] =='i' && s[2] =='a' && s[3] =='l' ) {
+                    russian.append("шиал");
+                    s+=3;
+                } else if (s + 2 < end && c1 == 'c' && s[2] == 'h')
 				{
 					russian.append("ч");
 					s += 2;
@@ -838,9 +863,14 @@ const char* getSingleEnCharTranslit( char c )
 			case 'u':
 			{
                 if( !c_prev ) {
-                    russian.append("а");
+                    russian.append( s[1] && !isVowel(s[1]) && s[2] && isVowel(s[2]) ? "ю":"а");
+                } else if ( s[1] =='d' && s[2] =='e' && s[3] != 'r' ) {
+                    russian.append("юд"); 
+                    s+=2;
                 } else if ( s[1] && !isVowel(s[1]) && c_prev && !isVowel(c_prev) && (s[2] =='e' || s[2] =='i') ) {
-					russian.append("ью");
+					russian.append("ю");
+                } else if ( (s[1] =='n' ||s[1] =='m' ||s[1] =='s') && (s[2]=='p'||s[2] =='d'||s[2]=='t') ) {
+                    russian.append("а");
                 } else if ( s[1] && s[1] == s[2] ) {
 					russian.append("а");
                 } else if (c1 && !isVowel(c1) && !isVowel(s[2]) )
