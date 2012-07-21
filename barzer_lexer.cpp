@@ -1159,7 +1159,7 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 		    /// stemming
 		    if( shouldStem || (!isNumber && bzSpell && ctok.isString() && d_universe.stemByDefault() && !ctok.getStemTok()) ) 
             {
-			    std::string strToStem( ttok.buf, ttok.buf.length() );
+			    std::string strToStem( ttok.buf );
 			    std::string stem;
                 int lang = LANG_UNKNOWN;
 			    if( bzSpell->stem(stem, strToStem.c_str(), lang) ) {
