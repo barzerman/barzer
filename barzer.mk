@@ -30,6 +30,8 @@ libs = -Lay -Lsnowball -lay -lsnowlib -L/opt/local/lib -L/usr/lib \
 	-lboost_system -lboost_filesystem -lboost_thread-mt -lexpat -lstdc++
 ECHO = echo
 lib_objects = \
+autotester/barzer_at_autotester.o \
+autotester/barzer_at_comparators.o \
 barzer_tokenizer.o \
 barzer_barzxml.o \
 barzer_el_rewrite_control.o \
@@ -92,7 +94,7 @@ lib: ay/libay.a $(LIBNAME).a $(lib_bjects)
 sharedlib: ay/libay.a $(lib_objects)
 	$(CC) -shared -Wl -dylib -o $(LIBNAME).so $(lib_objects) $(libs)
 pybarzer: $(objects_python) $(LIBNAME).a
-	$(CC) -shared -Wl -o pybarzer.so -lboost_python $(objects_python) $(LIBNAME).a $(libs)  -lboost_python $(PYLIBS)
+	$(CC) -shared -Wl -o pybarzer.so -lboost_python $(objects_python) $(LIBNAME).a $(libs)  -lboost_python $(PYLIBS) 
 barzer_python.o: barzer_python.cpp
     $(CC) -DBARZER_HOME=$(INSTALL_DIR) -c $(CFLAGS) $< -o $@
 $(LIBNAME).a: ay/libay.a $(lib_objects)

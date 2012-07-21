@@ -154,8 +154,9 @@ namespace autotester
 		inline Container<std::pair<LeftElem, RightElem>, Alloc> zip(const Container<LeftElem, Alloc>& c1, const Container<RightElem, Alloc>& c2)
 		{
 			decltype(zip(c1, c2)) result;
-			auto pIter = std::begin(c1), pEnd = std::end(c1);
-			auto rIter = std::begin(c2), rEnd = std::end(c2);
+			auto pIter = c1.begin(), pEnd = c1.end();
+			// auto pIter = std::begin(c1), pEnd = std::end(c1);
+			auto rIter = c2.begin(), rEnd = c2.end();
 			while (pIter != pEnd && rIter != rEnd)
 				result.push_back(std::make_pair(*pIter++, *rIter++));
 			return result;
@@ -207,8 +208,14 @@ namespace autotester
 					result += Scores::EListClassFailure;
 
 				const auto& zipped = zip(left.getList(), right.getList());
+
+                for( auto i = zipped.begin(); i!= zipped.end(); ++i ) {
+                    result += (*this) (i->first, i->second);
+                }
+                /* GOSHA how is the stuff below faster/more readable than the code above?  
 				result += std::accumulate(zipped.begin(), zipped.end(), 0,
 						[this] (uint16_t val, decltype(zipped.front()) item) { return val + (*this) (item.first, item.second); });
+                */
 				return result;
 			}
 
@@ -269,18 +276,20 @@ namespace autotester
 		return EnbarzParser(barz, *ctx.m_gp.getUniverse(ctx.m_userId))(string);
 	}
 
+    namespace {
+    inline bool skipBead( const BeadList::const_iterator iter, const CompareSettings& cmpSettings )
+    {
+        if (!cmpSettings.removeFluff())
+            return false;
+        auto str = iter->get<BarzerString>();
+        return str ? str->isFluff() : false;
+    }
+
+    } // namespace 
 	uint16_t matches(const Barz& pattern, const Barz& result, const CompareSettings& cmpSettings)
 	{
 		auto pBeads = pattern.getBeadList();
 		auto rBeads = result.getBeadList();
-
-		auto skipBead = [&cmpSettings] (decltype(pBeads.begin()) iter) -> bool
-		{
-			if (!cmpSettings.removeFluff())
-				return false;
-			auto str = iter->get<BarzerString>();
-			return str ? str->isFluff() : false;
-		};
 
 		if (pBeads.size() != rBeads.size())
 			return Scores::RootLengthFailure;
@@ -296,10 +305,10 @@ namespace autotester
 
 			do
 				++pIter;
-			while (pIter != pEnd && skipBead(pIter));
+			while (pIter != pEnd && skipBead(pIter,cmpSettings));
 			do
 				++rIter;
-			while (rIter != rEnd && skipBead(rIter));
+			while (rIter != rEnd && skipBead(rIter,cmpSettings));
 		}
 
 		return 1 - 1 / (1 + static_cast<double> (score) * score);
