@@ -54,6 +54,11 @@ namespace autotester
 				return XML_Parse(m_parser, str, std::strlen(str), true);
 			}
 
+			int operator()(const char *str, size_t len)
+			{
+				return XML_Parse(m_parser, str, len, true);
+			}
+
 			void start(const char *n, const char **a)
 			{
 				m_barzXML.takeTag(n, a, XML_GetSpecifiedAttributeCount(m_parser), true);
@@ -266,11 +271,6 @@ namespace autotester
 		};
 	}
 
-	int parseXML(const char *string, Barz& barz, const ParseContext& ctx)
-	{
-		return EnbarzParser(barz, *ctx.m_gp.getUniverse(ctx.m_userId))(string);
-	}
-
 	uint16_t matches(const Barz& pattern, const Barz& result, const CompareSettings& cmpSettings)
 	{
 		auto pBeads = pattern.getBeadList();
@@ -307,12 +307,13 @@ namespace autotester
 		return 100 * (std::atan(static_cast<double>(score) / 10) * 2 / 3.14160);
 	}
 
-	uint16_t matches(const char *pattern, const char *result, const ParseContext& ctx, const CompareSettings& settings)
+	uint16_t matches(const char *pattern, size_t patSize, const char *result, size_t resSize,
+			const ParseContext& ctx, const CompareSettings& settings)
 	{
-		Barz pattBarz, resBarz;
-		parseXML(pattern, pattBarz, ctx);
-		parseXML(result, resBarz, ctx);
-		return matches(pattBarz, resBarz, settings);
+		Barz patBarz, resBarz;
+		EnbarzParser(patBarz, *ctx.m_gp.getUniverse(ctx.m_userId))(pattern, patSize);
+		EnbarzParser(resBarz, *ctx.m_gp.getUniverse(ctx.m_userId))(result, resSize);
+		return matches(patBarz, resBarz, settings);
 	}
 }
 }
