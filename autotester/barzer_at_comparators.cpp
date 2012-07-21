@@ -1,6 +1,8 @@
 #include "barzer_at_comparators.h"
 #include <algorithm>
 #include <iterator>
+#include <cmath>
+#include <iostream>
 #include "../barzer_barz.h"
 #include "../barzer_barzxml.h"
 #include "../barzer_server_request.h"
@@ -302,7 +304,7 @@ namespace autotester
 			while (rIter != rEnd && skipBead(rIter));
 		}
 
-		return 1 - 1 / (1 + static_cast<double> (score) * score);
+		return 100 * (std::atan(static_cast<double>(score) / 10) * 2 / 3.14160);
 	}
 
 	uint16_t matches(const char *pattern, const char *result, const ParseContext& ctx, const CompareSettings& settings)
