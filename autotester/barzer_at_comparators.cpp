@@ -173,10 +173,19 @@ namespace autotester
 			const int RootLengthFailure = 100;
 
 			const int StringsEqFailure = 1;
+
 			const int EListLengthFailure = 3;
 			const int EListClassFailure = 3;
+
 			const int SECPrimaryFailure = 4;
 			const int SECSecondaryFailure = 5;
+
+			const int ExprSidMismatch = 7;
+			const int ExprAttrsSizeMismatch = 6;
+			const int ExprAttrKeyMismatch = 5;
+			const int ExprAttrValueMismatch = 4;
+			const int ExprChildrenCountMismatch = 5;
+
 			const int GenericValueMismatch = 1;
 			const int GenericTypeMismatch = 20;
 		}
@@ -252,6 +261,50 @@ namespace autotester
 			uint16_t operator()(const BarzelBeadAtomic& at1, const BarzelBeadAtomic& at2) const
 			{
 				return boost::apply_visitor(*this, at1.getData(), at2.getData());
+			}
+
+			uint16_t operator()(const BarzelBeadExpression& ex1, const BarzelBeadExpression& ex2) const
+			{
+				uint16_t score = 0;
+				if (ex1.getSid() != ex2.getSid())
+					score += Scores::ExprSidMismatch;
+
+				const BarzelBeadExpression::AttrList& leftAttrs = ex1.getAttrs();
+				const BarzelBeadExpression::AttrList& rightAttrs = ex2.getAttrs();
+				if (leftAttrs.size() != rightAttrs.size())
+					score += Scores::ExprAttrsSizeMismatch;
+				else
+					for (size_t i = 0; i < leftAttrs.size(); ++i)
+					{
+						const BarzelBeadExpression::Attr& leftAttr = leftAttrs[i];
+						const BarzelBeadExpression::Attr& rightAttr = rightAttrs[i];
+						if (leftAttr.first != rightAttr.first)
+							score += Scores::ExprAttrKeyMismatch;
+						if (leftAttr.second != rightAttr.second)
+							score += Scores::ExprAttrValueMismatch;
+					}
+
+				const BarzelBeadExpression::SubExprList& leftChildren = ex1.getChildren();
+				const BarzelBeadExpression::SubExprList& rightChildren = ex2.getChildren();
+				if (leftChildren.size() != rightChildren.size())
+					score += Scores::ExprChildrenCountMismatch;
+				else
+					for (BarzelBeadExpression::SubExprList::const_iterator left = leftChildren.begin(),
+																		   right = rightChildren.begin();
+							left != leftChildren.end(); ++left, ++right)
+						score += boost::apply_visitor(*this, *left, *right);
+
+				return score;
+			}
+
+			uint16_t operator()(const BarzelBeadBlank&, const BarzelBeadBlank&) const
+			{
+				return 0;
+			}
+
+			uint16_t operator()(const BarzelBeadData& d1, const BarzelBeadData& d2) const
+			{
+				return boost::apply_visitor(*this, d1, d2);
 			}
 
 			template<typename T>
