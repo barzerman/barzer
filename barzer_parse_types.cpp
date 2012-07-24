@@ -9,7 +9,7 @@ std::ostream& CToken::printQtVec( std::ostream& fp ) const
 {
 	for( TTWPVec::const_iterator i = qtVec.begin(); i!= qtVec.end(); ++i ) {
 		fp << i->second << ":\"" ;
-		fp.write( i->first.buf, i->first.len );
+		fp.write( i->first.buf.c_str(), i->first.buf.length() );
 		fp <<"\" ";
 	}
 	return fp;
@@ -52,10 +52,14 @@ void CToken::syncClassInfoFromSavedTok()
 /// TToken service functions and output
 std::ostream& TToken::print ( std::ostream& fp ) const
 {
-	if( !buf || !len ) {
+	if( !buf.length() ) {
 		return ( fp << 0 <<':' );
 	} else {
-		return ( fp << len << ':' ).write( buf, len );
+        if( glyphsAreValid() ) {
+            fp << "GLYPH[" << getFirstGlyph() << " " << getNumGlyphs() << "]:" ;
+        } else 
+            fp << "NOGLYPH" << ":";
+		return ( fp << buf.length() << ':' ).write( buf.c_str(), buf.length() );
 	}
 }
 
@@ -72,7 +76,7 @@ void BarzerString::setFromTTokens( const TTWPVec& v )
 	/// most of the time there will only be 1 iteration here
 	for( TTWPVec::const_iterator i = v.begin(); i!= v.end(); ++i ) {
 		const TToken& ttok = i->first;
-		str.append( ttok.buf, ttok.len );
+		str.append( ttok.buf.c_str(), ttok.buf.length() );
 	}
 }
 

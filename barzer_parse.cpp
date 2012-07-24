@@ -140,6 +140,7 @@ int QSemanticParser::semanticize( Barz& barz, const QuestionParm& qparm  )
 /// general parser 
 QParser::QParser( const StoredUniverse& u ) : 
 	universe(u),
+    tokenizer(u),
 	lexer(u,&(u.getDtaIdx())),
 	semanticizer(u)
 {}
@@ -174,12 +175,28 @@ int QParser::tokenize_only( Barz& barz, const char* q, const QuestionParm& qparm
 }
 
 
-int QParser::lex( Barz& barz, const char* q, const QuestionParm& qparm )
+int QParser::lex_strat_advanced( Barz& barz, const char* q, const QuestionParm& qparm )
 {
 	barz.clear();
-	tokenize_only( barz, q, qparm );
-	lex_only( barz, qparm );
+    barz.classifyTokens( universe.getTokenizerStrategy(), tokenizer, lexer, q, qparm ) ;
+    return 0;
+}
+int QParser::lex_strat_default( Barz& barz, const char* q, const QuestionParm& qparm )
+{
+	barz.clear();
+    tokenize_only( barz, q, qparm );
+    lex_only( barz, qparm );
     barz.chainInit(qparm);
+    return 0;
+}
+
+int QParser::lex( Barz& barz, const char* q, const QuestionParm& qparm )
+{
+    if( universe.getTokenizerStrategy().isDefault() ) {
+        return lex_strat_default(barz,q,qparm);
+    } else {
+        return lex_strat_advanced(barz,q,qparm);
+    }
     return 0;
 }
 int QParser::autocomplete( MatcherCallback& cb, Barz& barz, const char* q, const QuestionParm& qparm )
@@ -208,8 +225,16 @@ int QParser::barz_parse( Barz& barz, const QuestionParm& qparm )
 int QParser::parse( Barz& barz, const char* q, const QuestionParm& qparm )
 {
 	barz.clear();
-	tokenize_only( barz, q, qparm );
-	lex_only( barz, qparm );
+
+    if( universe.getTokenizerStrategy().isDefault() ) {
+	    tokenize_only( barz, q, qparm );
+	    lex_only( barz, qparm );
+    } else {
+        barz.classifyTokens( universe.getTokenizerStrategy(), tokenizer, lexer, q, qparm ) ;
+	    // lex_only( barz, qparm );
+        // lex_strat_advanced(barz,q,qparm);
+
+    }
 
 	semanticize_only( barz, qparm );
     

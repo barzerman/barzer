@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <ay/ay_cmdproc.h>
+#include <ay_translit_ru.h>
 #include <boost/python.hpp>
 
 
@@ -65,6 +66,9 @@ public:
     boost_python_list guessLang(const std::string& s);
 
     int matchXML(const std::string& pattern, const std::string& result, const autotester::CompareSettings&);
+	
+	std::string translitEn2Ru(const std::string& from/*, const ay::tl::TLExceptionList_t&*/);
+	std::string translitRu2En(const std::string& from/*, const ay::tl::TLExceptionList_t&*/);
 
     void shell_cmd( const std::string& cmd, const std::string& args );
 

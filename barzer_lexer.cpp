@@ -10,8 +10,8 @@
 namespace barzer {
 bool QLexParser::tryClassify_number( CToken& ctok, const TToken& ttok ) const
 {
-	const char* beg = ttok.buf;
-	const char* end = ttok.buf+ttok.len;
+	const char* beg = ttok.buf.c_str();
+	const char* end = ttok.buf.c_str()+ttok.buf.length();
 	bool hasDot = false, hasDigit = false;
 	for( const char* s = beg; s!= end; ++s ) {
 		switch( *s ) {
@@ -25,11 +25,11 @@ bool QLexParser::tryClassify_number( CToken& ctok, const TToken& ttok ) const
 	}
 	if( hasDigit ) {
 		ctok.setClass( CTokenClassInfo::CLASS_NUMBER );
-		if( hasDot )
-			ctok.number().setReal( ttok.buf );
-		else  {
-			ctok.number().setInt( ttok.buf );
-			ctok.number().setAsciiLen( ttok.len );
+		if( hasDot ) {
+			ctok.number().setReal( ttok.buf.c_str() );
+		} else  {
+			ctok.number().setInt( ttok.buf.c_str() );
+			ctok.number().setAsciiLen( ttok.buf.length() );
 		}
 		return true;
 	}
@@ -37,15 +37,15 @@ bool QLexParser::tryClassify_number( CToken& ctok, const TToken& ttok ) const
 }
 bool QLexParser::tryClassify_integer( CToken& ctok, const TToken& ttok ) const
 {
-	const char* beg = ttok.buf;
-	const char* end = ttok.buf+ttok.len;
+	const char* beg = ttok.buf.c_str();
+	const char* end = ttok.buf.c_str()+ttok.buf.length();
 	for( const char* s = beg; s!= end; ++s ) {
 		if( *s < '0' || *s > '9' )
 			return false;
 	}
 	ctok.setClass( CTokenClassInfo::CLASS_NUMBER );
-	ctok.number().setInt( ttok.buf );
-	ctok.number().setAsciiLen( ttok.len );
+	ctok.number().setInt( ttok.buf.c_str() );
+	ctok.number().setAsciiLen( ttok.buf.length() );
 	return true;
 }
 
@@ -71,10 +71,10 @@ inline bool ctok_number_can_be_in_commadelim( bool isFirst, const CToken& ctok )
 	if( ctok.getTTokens().size() > 1 || !ctok.getNumber().isInt() )
 		return false;
 	const TToken*  ttok = ctok.getFirstTToken();
-	if( !ttok || ttok->len > 3 )
+	if( !ttok || ttok->buf.length() > 3 )
 		return false;
 
-	return (isFirst || ttok->len == 3);
+	return (isFirst || ttok->buf.length() == 3);
 }
 
 inline int64_t get_decimal_factor( int numZeroBlocks )
@@ -751,8 +751,8 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 	CToken& ctok = cPosVec.element().first;
 	TToken& ttok = tPosVec.element().first;
 
-	const char* t = ttok.buf;
-	size_t t_len = ttok.len;
+	const char* t = ttok.buf.c_str();
+	size_t t_len = ttok.buf.length();
 	if( t_len > BZSpell::MAX_WORD_LEN )
 		return SpellCorrectResult (0, ++cPosVec, ++tPosVec);
 	const GlobalPools& gp = d_universe.getGlobalPools();
@@ -803,7 +803,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
         char buf[ 32 ];
 		strncpy( buf, theString, sizeof(buf) );
 		buf[ sizeof(buf)-1 ] = 0;
-        bool hasUpperCase = Lang::convertToLower( buf, t_len, lang );
+        bool hasUpperCase = Lang::convertToLower( buf, strlen(buf), lang );
         if( hasUpperCase ) {
             // bzSpell->isUsersWord( usersWordStrId, t ) 
             // uint32_t usersWordStrId = 0xffffffff;
@@ -947,7 +947,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 	return SpellCorrectResult (-1, ++cPosVec, ++tPosVec);
 }
 
-int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
+int QLexParser::singleTokenClassify_space( Barz& barz, const QuestionParm& qparm )
 {
     CTWPVec& cVec = barz.getCtVec();
     TTWPVec& tVec = barz.getTtVec();
@@ -957,13 +957,139 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 		return ( err.e = QLPERR_NULL_IDX, 0 );
 
 	const BZSpell* bzSpell = d_universe.getBZSpell();
+    size_t cPos = 0,tPos = 0;
+    std::string theString; 
+	while (cPos < cVec.size() && tPos < tVec.size()) {
+		TToken& ttok = tVec[tPos].first;
+        theString.assign( ttok.buf.c_str(), ttok.buf.length() );
+		const char* t = theString.c_str();
+		// cPos->second = std::distance (cVec.begin (), cPos);
+		CToken& ctok = cVec[cPos].first;
+		ctok.setTToken (ttok, cPos );
+		// bool wasStemmed = false;
+
+		++tPos;
+		++cPos;
+        // const StoredToken* storedTok = 0;
+		if( !t || !*t || isspace(*t)  ) { // this should never happen
+			ctok.setClass( CTokenClassInfo::CLASS_SPACE );
+			continue;
+		} 
+
+        bool keepClasifying = qparm.isAutoc;
+        bool isNumber=false;
+        if( !keepClasifying ) {
+            isNumber = tryClassify_number(ctok,ttok);
+            if( isNumber ) {
+			    uint32_t usersWordStrId = 0xffffffff;
+                const StoredToken* storedTok = ( bzSpell->isUsersWord( usersWordStrId, t ) ?
+                    dtaIdx->getStoredToken( t ): 0 );
+                if( storedTok )
+                    ctok.number().setStringId( storedTok->getStringId() );
+            } else
+                keepClasifying= true;
+        }
+        if( keepClasifying ) {
+			uint32_t usersWordStrId = 0xffffffff;
+			const StoredToken* storedTok = ( bzSpell->isUsersWord( usersWordStrId, t ) ?
+				dtaIdx->getStoredToken( t ): 0 );
+
+			if( storedTok ) { ///
+				///
+				ctok.storedTok = storedTok;
+				ctok.syncClassInfoFromSavedTok();
+			} else { /// token NOT matched in the data set
+                if( ispunct(*t)) {
+                    ctok.setClass( CTokenClassInfo::CLASS_PUNCTUATION );
+                } else if( !isNumber ) {
+					/// fall thru - this is an unmatched word
+
+                    ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
+				}
+			}
+		    /// stemming
+		    if( (!isNumber && bzSpell) ) {
+
+			    std::string stem;
+                const StoredToken* stemTok= bzSpell->stem_utf8_punct( stem, barz.getQuestionOrigUTF8(), ttok );
+			    if( stemTok && stemTok != ctok.getStemTok() ) 
+                    ctok.setStemTok( stemTok );
+		    }
+            ctok.syncStemAndStoredTok();
+		}
+	}
+	if( cVec.size() > MAX_CTOKENS_PER_QUERY ) 
+		cVec.resize( MAX_CTOKENS_PER_QUERY );
+
+	return 0;
+}
+
+size_t QLexParser::retokenize( Barz& barz, const QuestionParm& qparm )
+{
+    CTWPVec& cVec = barz.getCtVec();
+    TTWPVec& tVec = barz.getTtVec();
+    if( cVec.size() != tVec.size() ) 
+        return 0;
+
+    // we'll try to re-tokenize some tokens and adjust the sizes accordingly
+    size_t oldVecSize = tVec.size() ;
+    std::vector< std::pair< size_t, TTWPVec > > cVecInserts;
+    QTokenizer retokenizer(d_universe);
+    /// retokenizing all tokens that need this - updating cVecInserts
+    size_t newVecSize = cVec.size();
+    for( size_t i = 0; i< tVec.size(); ++i ) {
+        CToken& ctok = cVec[i].first;
+        if( ctok.isMysteryWord() ) { /// re-tokenizing mystery words 
+            TToken& ttok = tVec[i].first;
+
+            TTWPVec tmpVec;
+            retokenizer.tokenize( tmpVec, ttok.buf.c_str(), qparm );
+            if( tmpVec.size() > 1 ) {
+                newVecSize+= ( tmpVec.size()-1 );
+                /// updating positions
+                for( TTWPVec::iterator ti = tmpVec.begin(); ti!= tmpVec.end(); ++ti ) {
+                    ti->second+= i;
+                }
+                cVecInserts.push_back( std::pair< size_t, TTWPVec >(i, tmpVec) );
+            }
+        }
+    }
+    /// cVecInserts now has pairs (position, TTokenVector) to update. vecSizeIncrease - by how much both vectors need to grow
+    if( cVecInserts.size() ) {
+        cVec.reserve( newVecSize );
+        tVec.reserve( newVecSize );
+        for( auto i = cVecInserts.begin(); i!= cVecInserts.end(); ++i ) {
+            size_t   pos = i->first, pos_1 = pos+1;
+            TTWPVec& vec = i->second; // replace tVec[pos] with vec , expand cVec post i by vec.size()-1
+            tVec[pos] = vec[0];
+            cVec[pos]= CTWPVec::value_type( CToken(),pos );
+
+            tVec.insert( tVec.begin()+pos_1, vec.begin()+1, vec.end());
+            cVec.insert( cVec.begin()+pos_1, vec.size()-1, cVec[pos] ); 
+        }
+    }
+    return cVecInserts.size();
+}
+
+int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
+{
+    CTWPVec& cVec = barz.getCtVec();
+    TTWPVec& tVec = barz.getTtVec();
+
+    cVec.resize( tVec.size() );
+	if( !dtaIdx )
+		return ( err.e = QLPERR_NULL_IDX, 0 );
+
+	const BZSpell* bzSpell = d_universe.getBZSpell();
 	bool isQuoted = false;
     size_t cPos = 0, tPos = 0;
 	while (cPos < cVec.size() && tPos < tVec.size()) {
 		TToken& ttok = tVec[tPos].first;
-		const char* t = ttok.buf;
+
+		const char* t = ttok.buf.c_str();
 		// cPos->second = std::distance (cVec.begin (), cPos);
 		CToken& ctok = cVec[cPos].first;
+
 		ctok.setTToken (ttok, cPos );
 		// bool wasStemmed = false;
 
@@ -982,7 +1108,7 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
         bool keepClasifying = qparm.isAutoc;
         bool shouldStem = false;
         if( !keepClasifying ) {
-            bool isInteger = tryClassify_integer(ctok,t);
+            bool isInteger = tryClassify_integer(ctok,ttok);
             if( isInteger ) {
 			    uint32_t usersWordStrId = 0xffffffff;
                 const StoredToken* storedTok = ( bzSpell->isUsersWord( usersWordStrId, t ) ?
@@ -997,7 +1123,7 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 			const StoredToken* storedTok = ( bzSpell->isUsersWord( usersWordStrId, t ) ?
 				dtaIdx->getStoredToken( t ): 0 );
 
-            bool isNumber = ( !qparm.isAutoc && tryClassify_number(ctok,t)); // this should probably always be false
+            bool isNumber = ( !qparm.isAutoc && tryClassify_number(ctok,ttok)); // this should probably always be false
 			if( storedTok ) { ///
 				///
 				ctok.storedTok = storedTok;
@@ -1033,7 +1159,7 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 		    /// stemming
 		    if( shouldStem || (!isNumber && bzSpell && ctok.isString() && d_universe.stemByDefault() && !ctok.getStemTok()) ) 
             {
-			    std::string strToStem( ttok.buf, ttok.len );
+			    std::string strToStem( ttok.buf );
 			    std::string stem;
                 int lang = LANG_UNKNOWN;
 			    if( bzSpell->stem(stem, strToStem.c_str(), lang) ) {
@@ -1085,95 +1211,30 @@ int QLexParser::lex( Barz& barz, const QuestionParm& qparm )
 	}
 	return 0;
 }
-////////////// TOKENIZE
-///////////////////////////////////
-int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qparm  )
+
+int QLexParser::lex( Barz& barz, const TokenizerStrategy& strat, QTokenizer& tokenizer, const char* q, const QuestionParm& qparm )
 {
-	err.clear();
+    if( strat.getType() == TokenizerStrategy::STRAT_TYPE_SPACE_DEFAULT ) {
+        /// space + default 
+        barz.tokenize( strat , tokenizer, q, qparm );
+        err.clear();
+        barz.getCtVec().clear();
+        singleTokenClassify_space( barz, qparm );
+        retokenize( barz, qparm );
+        singleTokenClassify( barz, qparm );
 
-	size_t origSize = ttwp.size();
-	char lc = 0;
-	const char* tok = 0;
-	enum {
-		CHAR_UNKNOWN=0,
-		CHAR_ALPHA,
-		CHAR_DIGIT,
-		CHAR_UTF8
-	};
-	int prevChar = CHAR_UNKNOWN;
-#define PREVCHAR_NOT( t ) ( prevChar && (CHAR_##t != prevChar) )
-
-
-	size_t q_len = strlen(q);
-	if( q_len > MAX_QUERY_LEN ) {
-		q_len = MAX_QUERY_LEN;
-	}
-	const char* s_end = q+ q_len;
-	const char* s = q;
-	for( ; s!= s_end; ++s ) {
-
-		char c = *s;
-		if( !isascii(c) ) {
-			if( CHAR_DIGIT == prevChar || (!ay::is_diacritic(s) && PREVCHAR_NOT(UTF8)) ) {
-				if( tok ) {
-					ttwp.push_back( TTWPVec::value_type( TToken(tok,s-tok), ttwp.size() ));
-					tok = 0;
-				}
-				--s;
-			} else {
-				if( !tok )
-					tok = s;
-			}
-			prevChar = CHAR_UTF8;
-		} else
-		if( isspace(c) ) {
-			if( !lc || lc != c ) {
-				if( tok ) {
-					ttwp.push_back( TTWPVec::value_type( TToken(tok,s-tok), ttwp.size() ));
-					tok = 0;
-				}
-				ttwp.push_back( TTWPVec::value_type( TToken(s,1), ttwp.size() ));
-			}
-			prevChar = CHAR_UNKNOWN;
-		} else if( ispunct(c) ) {
-			if( tok ) {
-				ttwp.push_back( TTWPVec::value_type( TToken(tok,s-tok), ttwp.size() ));
-				tok = 0;
-			}
-			ttwp.push_back( TTWPVec::value_type( TToken(s,1), ttwp.size() ));
-			prevChar = CHAR_UNKNOWN;
-		} else if( isalnum(c) ) {
-			if( (isalpha(c) && (PREVCHAR_NOT(ALPHA)&&PREVCHAR_NOT(UTF8)) ) ||
-				(isdigit(c) && PREVCHAR_NOT(DIGIT) )
-			) {
-				if( tok ) {
-					ttwp.push_back( TTWPVec::value_type( TToken(tok,s-tok), ttwp.size() ));
-					tok = 0;
-				}
-				--s;
-			} else  {
-				if( !tok ) tok = s;
-			}
-			if( isdigit(c) ) {
-				prevChar = CHAR_DIGIT;
-			} else {
-				prevChar =CHAR_ALPHA;
-			}
-		} else
-			prevChar = CHAR_ALPHA;
-	    lc=c;
-	}
-	if( tok ) {
-		ttwp.push_back( TTWPVec::value_type( TToken(tok,s-tok), ttwp.size() ));
-		tok = 0;
-	}
-
-	if( ttwp.size()  > MAX_NUM_TOKENS ) {
-		ttwp.resize(MAX_NUM_TOKENS);
-	}
-
-	return ( ttwp.size() - origSize );
-#undef PREVCHAR_NOT
+        separatorNumberGuess( barz, qparm );
+        advancedBasicClassify( barz, qparm );
+	    // langLexer.lex( barz.getCtVec(), barz.getTtVec(), qparm );
+        return 0;
+    } else if( strat.getType() == TokenizerStrategy::STRAT_TYPE_CASCADE ) {
+        AYLOG(ERROR) << "cascade tokenizer strategy not implemented yet" << std::endl;
+        return 0;
+    } else {
+        AYLOG(ERROR) << "unknown type of tokenizer strategy " << strat.getType()  << std::endl;
+        barz.tokenize( tokenizer, q, qparm ) ;
+        return lex( barz, qparm );
+    }
 }
 
 } // barzer namespace
