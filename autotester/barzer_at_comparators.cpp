@@ -95,6 +95,7 @@ namespace autotester
 	: m_matchType(BeadMatchType::Value)
 	, m_classMatchType(ClassMatchType::Full)
 	, m_skipFluff(true)
+	, m_matchERCRange(true)
 	{
 	}
 
@@ -128,6 +129,17 @@ namespace autotester
 	BeadMatchOptions& BeadMatchOptions::setSkipFluff(bool skip)
 	{
 		m_skipFluff = skip;
+		return *this;
+	}
+
+	bool BeadMatchOptions::matchERCRange () const
+	{
+		return m_matchERCRange;
+	}
+
+	BeadMatchOptions& BeadMatchOptions::setMatchERCRange (bool match)
+	{
+		m_matchERCRange = match;
 		return *this;
 	}
 
@@ -186,8 +198,16 @@ namespace autotester
 			const int ExprAttrValueMismatch = 4;
 			const int ExprChildrenCountMismatch = 5;
 
+			const int RangeTypeMismatch = 5;
+
 			const int GenericValueMismatch = 1;
 			const int GenericTypeMismatch = 20;
+
+			const double PairKeyMultiplier = 1.5;
+			const double PairValueMultiplier = 1.2;
+
+			const double ERCEntityMultiplier = 1.1;
+			const double ERCUnitEntityMultiplier = 2;
 		}
 
 		struct BeadComparator : public boost::static_visitor<uint16_t>
@@ -255,6 +275,38 @@ namespace autotester
 					left.getTokId() != right.getTokId())
 					score += Scores::StringsEqFailure;
 
+				return score;
+			}
+
+			template<typename T, typename U>
+			uint16_t operator()(const std::pair<T, U>& p1, const std::pair<T, U>& p2) const
+			{
+				return (*this)(p1.first, p2.first) * Scores::PairKeyMultiplier +
+					(*this)(p1.second, p2.second) * Scores::PairValueMultiplier;
+			}
+
+			uint16_t operator()(const BarzerRange& rng1, const BarzerRange& rng2) const
+			{
+				uint16_t score = 0;
+
+				if (rng1.getType() != rng2.getType())
+					score += Scores::RangeTypeMismatch;
+
+				if (m_opts.matchType() == BeadMatchType::Type)
+					return score;
+
+				score += boost::apply_visitor(*this, rng1.getData(), rng2.getData());
+
+				return score;
+			}
+
+			uint16_t operator()(const BarzerEntityRangeCombo& erc1, const BarzerEntityRangeCombo& erc2) const
+			{
+				uint16_t score = 0;
+				score += (*this)(erc1.getEntity(), erc2.getEntity()) * Scores::ERCEntityMultiplier;
+				score += (*this)(erc1.getUnitEntity(), erc2.getUnitEntity()) * Scores::ERCUnitEntityMultiplier;
+				if (m_opts.matchERCRange())
+					score += (*this)(erc1.getRange(), erc2.getRange());
 				return score;
 			}
 

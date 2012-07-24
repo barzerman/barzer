@@ -30,6 +30,7 @@ namespace autotester
 		BeadMatchType m_matchType;
 		ClassMatchType m_classMatchType;
 		bool m_skipFluff;
+		bool m_matchERCRange;
 	public:
 		BeadMatchOptions();
 
@@ -41,6 +42,9 @@ namespace autotester
 
 		bool skipFluff() const;
 		BeadMatchOptions& setSkipFluff(bool);
+
+		bool matchERCRange() const;
+		BeadMatchOptions& setMatchERCRange(bool);
 	};
 
 	class CompareSettings
