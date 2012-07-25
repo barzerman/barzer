@@ -85,7 +85,7 @@ class BarzerClient:
                     node.attrib.update(attrs)
                 return sock.send_xml(node)
         except socket.error:
-            print 'Connectivity error for :', self.address
+            #print 'Connectivity error for :', self.address
             return '<barz error="Connectivity error"/>'
 
  

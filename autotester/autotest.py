@@ -2,240 +2,163 @@
 # -*- coding: utf-8 -*-
 
 import sys, operator
-import BarzerClient
+import BarzerClient # must not write anything to standart output (!)
 from lxml import etree
-from lxml.etree import XMLSyntaxError
 from Queue import Queue
 from threading import Thread
 import argparse
+import datetime
 
-def usage(args):
-	print """
-Usage: 
-queries in_filename [out_filename]  -  read queries line by line from file
-test [in_filename]                  -  testing barz xmls
-	"""
-# querymap = {id: Query}
-querymap = {}
+now = datetime.datetime.now()
+DELIM = "<<<"
+NUM_WORKER_THREADS = 8
 
-#resultmap = {id: score}
-resultmap = {}
+LEVEL = 0
 
-#max id
-max_id = 0
+BARZER_HOST = BarzerClient.DEFAULT_HOST
+BARZER_PORT = BarzerClient.DEFAULT_PORT
 
-#lxml object with all right answers
-xml_root = None
-
-num_worker_threads = 8
+statistics = {"passed": 0, "not_passed": 0 ,"updated": 0, "error": 0, "over_level":0}
 
 class Query:
-	def __init__(self, user,query, active = True):
+	"""\
+	Represents a single test query
+	"""
+	def __init__(self, user,query):
 		self.query = query.strip()
 		self.user = user.strip()
-		self.active = active
+		self.bc = BarzerClient.BarzerClient(BARZER_HOST, BARZER_PORT)
 
-def load_data(queries_fname, tests_fname):
-	def load_queries():
-		global max_id
-		for line in open(queries_fname, 'r'):
-			active = line[0]!="#"
-			chunks = line.split("<<<") if active else line[1:].split("<<<")
-			if len(chunks) == 3:
-				id = int(chunks[0])
-				max_id = max(id,max_id)
-				querymap[id] = Query(chunks[1], chunks[2],active)
-	def load_xmls():
-		global xml_root
-		try:
-   			f = open(tests_fname,'r') 
-   			xml_root = etree.parse(f).getroot()
-   			return
-		except (IOError,XMLSyntaxError) as e:
-   			print tests_fname + ": " + str(e)
+	def ask_barzer(self):	
+		return self.bc.query(self.query.decode("utf-8"), self.user)
 
-		xml_root = etree.Element("tests")
-
-	load_queries()
-	load_xmls()
+	def get_barzer(self):
+		return self.bc
 
 
-def save_data(queries_fname, tests_fname):
+def generate(args):
+	connectivity_error = False
+	tests = open(args.tests_fname,'w')
+	tests.write('<tests gen_time="' +now.strftime("%Y-%m-%d %H:%M")+'">')
+	for line in open(args.queries_fname, 'r'):
+		line.strip()
+		if line[0]!="#":
+			chunks = line.split(DELIM)
+			if len(chunks) > 2:
+				id = int(chunks[0].strip())
+				q = Query(chunks[1].strip(), chunks[2].strip())
+				barzxml = q.ask_barzer()
+				if barzxml.startswith('<barz error="Connectivity error"'):
+					connectivity_error = True
+					statistics["error"] += 1
+					break
+				if barzxml.startswith('<error>invalid user id'):
+					print '<error id="' + str(id) + '"> Invalid user id ' + str(q.user) + '</test>'
+					statistics["error"] += 1
+					continue
+				statistics["updated"] += 1
+				tests.write('\n<test id="' + str(id) + '">')
+				tests.write(barzxml)
+				tests.write('</test>')
+	if connectivity_error:
+		print '<error> No connection to barzer (' + BARZER_HOST + ":" + str(BARZER_PORT) + '</error>'		
+	tests.write("</tests>")
 
-	def save_queries():	
-		f = open(queries_fname,'w')
-		for (i,q) in querymap.items():
-			f.write(("" if q.active else "#")+str(i) + "<<<" + q.user +  "<<<" + q.query + "\n")
-
-	def save_xmls():
-		global xml_root
-		f = open(tests_fname,'w')
-		f.write(etree.tostring(xml_root,pretty_print=True,  encoding='utf-8'))
-
-	save_queries()
-	save_xmls()
-
-def update_one(id):
-	if not querymap[id].active:
-		print "Query with id #"+str(id)+" is disabled. You can use: -a enable -id " + str(id)
-		return 
-	bc = BarzerClient.BarzerClient(BarzerClient.DEFAULT_HOST,BarzerClient.DEFAULT_PORT)
-	new_barz = bc.query(querymap[id].query.decode("utf-8"), querymap[id].user)
-	new_barz = etree.fromstring(new_barz)
-	if (new_barz.tag == "error"):
-		print "query #" + str(id) + ": BarzerClient: " + new_barz.text
-		return
-	new_barz.set("id", str(id))
-	old_barz = xml_root.find('./*[@id="'+str(id)+'"]')
-	if old_barz is not None:
-		xml_root.replace(old_barz, new_barz)
-		print "Xml with id #" + str(id)+ " has been replaced"
-	else:
-		xml_root.append(new_barz)
-		print "Xml with id #" + str(id)+ " was created"
-
-def update():
-	counter = 0
-	for (i,q) in querymap.items():
-		if q.active:
-			counter+=1
-			update_one(i)
-	print str(counter) + " tests has been updated"
-
-def check_and_update():
-	counter = 0
-	for (i,q) in querymap.items():
-		if q.active:
-			counter+=1
-			xml_query = xml_root.find('./*[@id="'+str(i)+'"]/query')
-			if xml_query is not None:
-				if q.query.decode("utf-8")!=xml_query.text:
-					print "ole query: " + q.query + "\nnew query: " + xml_query.text
-					update_one(i)
-			else:
-				update_one(i)
-	print str(counter) + " tests has been updated"
-
-def bulk_update(ids):
-	for id in ids.split(","):
-		update_one(id)
-
-def append(user, query):
-	max_id += 1
-	querymap[max_id] = Query(user, query)
-	return max_id - 1
-
-def do_test(barz):
-	user = barz.get("u")
-	id = int(barz.get("id"))
-	bc = BarzerClient.BarzerClient(BarzerClient.DEFAULT_HOST,BarzerClient.DEFAULT_PORT)
-	new_xml = bc.query(querymap[id].query.decode("utf-8"), user)
-	resultxml = bc.match_xml(new_xml, etree.tostring(barz, encoding='utf-8'))
+def do_test(test):
+	global LEVEL
+	q = Query(test[1], test[2])
+	new_xml = q.ask_barzer()
+	resultxml = q.get_barzer().match_xml(new_xml, test[3])
 	resultxml = etree.fromstring(resultxml)
-	if (resultxml.tag == "error"):
-		print "query #" + str(id) + ": BarzerClient: " + resultxml.text
-		return
-	resultmap[int(id)] = int(resultxml[0].text)
+	if (resultxml[0].tag == "score"):
+		score = int(resultxml[0].text)
+		statistics["passed" if score == 0 else "not_passed"] += 1
+		if score > LEVEL:
+			statistics["over_level"] += 1
+			test[4].put((str(score), test[0], test[1],test[2]))
 
-def test():
+
+def run_all(args):
+
 	def worker():
 	    while True:
-	        barz = q.get()
-	        do_test(barz)
+	        test = q.get()
+	        do_test(test)
 	        q.task_done()
+	def print_worker():
+		while True:
+			r = print_queue.get()
+			print '<test score="' + r[0] + '" id="' + r[1] + '" user="' + r[2] +'">' + r[3] + '</test>'
+			print_queue.task_done()
 	q = Queue()
-	for i in range(num_worker_threads):
+	for i in range(NUM_WORKER_THREADS):
 	    t = Thread(target=worker)
 	    t.setDaemon(True)
 	    t.start()
-	for t in xml_root.iter("barz"):
-		q.put(t)
+
+	print_queue = Queue()
+	t=Thread(target=print_worker)
+	t.setDaemon(True)
+	t.start()
+	for event, elem in etree.iterparse(args.tests_fname, events = ('end',)):
+		if elem.tag =="test":
+			id = elem.get("id")	
+			barz = elem.find("./barz")
+			user = barz.get("u")
+			testxml = etree.tostring(barz, encoding="utf-8")
+			query = barz.find("./query").text.encode("utf-8")
+			if (query is not None) and (user is not None) and (id is not None) and (testxml is not None):
+				q.put((id, user, query, testxml, print_queue))
 	q.join()
+	print_queue.join()
 
-def test_one(id):
-	barz = xml_root.find('./*[@id="'+str(id)+'"]')
-	if barz is not None:
-		do_test(barz)
-	else:
-		print "query #" + str(id) + ": No such barz test.\nMaybe you need to run: -a update -id "+ str(id)
+def default_action():
+	print "Usage:\n -r for running tests\n -g for generating tests\nAdditional information: -h"
 
-def bulk_test(ids):
-	for id in ids.split(','):
-		test_one(id)
+def print_stat(args):
+	global statistics
+	print '<stat',
+	for (k,v) in statistics.items():
+		if args.generate and k in ["updated", "error"]:
+		 	print k + '="' + str(v) + '" ' ,
+		if args.run and k in ["over_level", "passed", "not_passed"]:
+			print k + '="' + str(v) + '" ' ,
+	print '></stat>'
 
-def disable_user(ids):
-	for userid in ids.split(','):
-		for (i,q) in querymap.items():
-			if (q.user == userid):
-				q.active = False
-	print "Queries with user id " + ids + " have been disabled"
-
-def enable_user(ids):
-	for userid in ids.split(','):
-		for (i,q) in querymap.items():
-			if (q.user == userid):
-				q.active = True
-	print "Queries with user id " + ids + " have been enabled"
-
-def enable_all():
-	counter = 0
-	for (i,q) in querymap.items():
-		q.active = True
-		counter +=1
-	print "All "+str(counter) + " queries have been enabled"
-
-
-def unknow_action():
-	print "Unknow action"
-
-def show_max_id():
-	print "The biggest id used is " + str(max_id)
-
-def report():
-	passed = 0
-	not_passed = 0
-	for (i,v) in resultmap.items():
-		if v==0:
-			passed+=1
-		else:
-			not_passed+=1
-	if passed + not_passed != 0:
-		for i in sorted(resultmap.iteritems(), key=operator.itemgetter(1)):
-			print "#" + str(i[0]) + "\t:" + str(i[1])
-		print "----------------------" 
-		print "Passed: " + str(passed)
-		print "Not passed: " + str(not_passed)
 def main():
+	global BARZER_PORT, BARZER_HOST, LEVEL
 	parser = argparse.ArgumentParser(description='Barzer autotesting script',
-	 epilog="""Note that update action synchronizes query file with test file,
-	 			 while full_update regenerates the test whole file.
-	 			 max_id acrion shows the biggest id used in query file""")
-	parser.add_argument('-a', action="store", help="Action to do", choices=('test', 'update','full_update','disable_user', 'max_id','enable_user'), required = True ) 
-	parser.add_argument('-id', action='store', default="all", help='Action arguments can be id or id1,id2,id3. Makes sense only for test and update actions')
-	parser.add_argument('-q','--query_fname', default="queries", help='File with queries in format like\nid<<<user_id<<<query')
-	parser.add_argument('-x', '--xml_fname', default="answers.xml", help='File with barz xmls in format      <tests><barz id="">...<barz>....</tests>')
+	 epilog="""Run: autotest.py -g first to generate file with correct responses""")
+	parser.add_argument('-g', '--generate',action="store_true", default=False, help="generate test.xml with correct answers") 
+	parser.add_argument('-r','--run', action='store_true', default=False, help='run all the tests')
+	parser.add_argument('-l', '--level',action='store', default=0, type=int, help='show tests result with score higher than level. User level = -1 to show all the results ')
+	parser.add_argument('-in','--queries_fname', default="queries", help='File with queries in format: id<<<user_id<<<query')
+	parser.add_argument('-out', '--tests_fname', default="answers.xml", help='File with barz xmls. Can be generated using -g option')
+	parser.add_argument('-barzer', default=BARZER_HOST+ ":" + str(BARZER_PORT), help="barzer instance location. Default:"+BARZER_HOST+ ":" + str(BARZER_PORT))
 	args = parser.parse_args(sys.argv[1:])
-#	print args.a, args.id
-#	return 
-	try:
-		load_data(args.query_fname, args.xml_fname)
-	except Exception as e:
-		print e
+
+	if not (args.generate or args.run):
+		default_action()
 		return
-	if args.id == "all":
-		{'test': test,
-		 'update': check_and_update,
-		 'full_update':update,
-		 'max_id':show_max_id
-		}.get(args.a,unknow_action)()
-	else:
-		{'test': bulk_test,
-		 'update': bulk_update,
-		 'disable_user':disable_user,
-		 'enable_user':enable_user 
-		}.get(args.a,unknow_action)(args.id)
-	report()
-	save_data(args.query_fname, args.xml_fname)
-	
+	if args.level:
+		LEVEL = args.level
+	try:
+		if args.barzer:
+			b_arg  = args.barzer.split(":")
+			if len(b_arg):
+				BARZER_HOST = b_arg[0]
+			if len(b_arg) > 1:
+				BARZER_PORT = int(b_arg[1])
+	finally:
+		BARZER_HOST = BarzerClient.DEFAULT_HOST
+		BARZER_PORT = BarzerClient.DEFAULT_PORT
+	print '<autotest time="'+ now.strftime("%Y-%m-%d %H:%M") + '" level="'+ str(LEVEL) + '">'
+	if args.generate:
+		generate(args)
+	elif args.run:
+		run_all(args)
+
+	print_stat(args)
+	print '</autotest>'
 if __name__ == "__main__":
     main()
