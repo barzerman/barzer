@@ -7,6 +7,7 @@
 #include <barzer_emitter.h>
 #include <barzer_universe.h>
 #include <autotester/barzer_at_comparators.h>
+#include <ay_translit_ru.h>
 
 
 extern "C" {
@@ -298,6 +299,21 @@ int proc_ADD_STMSET( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  s
 
     return 0;
 }
+int proc_EN2RU( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* q )
+{
+	std::ostream &os = reqEnv.outStream;
+    std::stringstream ss(q);
+    std::string tmp ;
+    while( ss >> tmp ) {
+        for( std::string::iterator i = tmp.begin(); i!= tmp.end(); ++i) 
+            *i = tolower(*i);
+        std::string result;
+        ay::tl::en2ru(tmp.c_str(), tmp.length(), result);
+        os << result << " ";
+    }
+    os << std::endl;
+    return 0;
+}
 int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* str )
 {
 	GlobalPools gp(false);
@@ -353,6 +369,7 @@ int proc_MATCH_XML(RequestEnvironment& reqEnv, GlobalPools& gp, const char *str)
 			autotester::ParseContext(gp, reqEnv.userId));
 	reqEnv.outStream << "<score>" << score << "</score>\n";
 	//autotester::matches();
+    return 0;
 }
 
 
@@ -372,6 +389,7 @@ int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os )
         if (cut) *cut = 0;
 		IFHEADER_ROUTE(COUNT_EMIT)
 		IFHEADER_ROUTE(EMIT)
+		IFHEADER_ROUTE(EN2RU)
 		IFHEADER_ROUTE(ADD_STMSET)
 		IFHEADER_ROUTE(CLEAR_TRIE)
 		IFHEADER_ROUTE(CLEAR_USER)
