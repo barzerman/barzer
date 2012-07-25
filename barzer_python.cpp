@@ -136,19 +136,8 @@ int BarzerPython::matchXML(const std::string& pattern, const std::string& result
 {
 	if (!d_universe)
 		return -1;
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-	return autotester::matches(pattern.c_str(), result.c_str(),
-=======
-	return autotester::matches(pattern.c_str(), result.size(), result.c_str(), result.size(),
->>>>>>> 758eba5a8ea15064f4ea80e651878404a335f8de
-=======
-	return autotester::matches(pattern.c_str(), result.c_str(),
-
->>>>>>> 6eeb0b2fb7b5a0634a51341fceaa8c97ac6ba482
-			autotester::ParseContext(d_universe->getGlobalPools(), d_universe->getUserId()),
-			settings);
+    std::cerr << "FAIL BarzerPython::matchXML unimplemented\n"; 
+	return 0;
 }
 
 std::string BarzerPython::bzstem(const std::string& s)
