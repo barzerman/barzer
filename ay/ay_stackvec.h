@@ -41,12 +41,16 @@ namespace ay
 		}
 
 		StackVec(const StackVec& sv)
+		: m_size(0)
 		{
 			*this = sv;
 		}
 
 		StackVec& operator=(const StackVec& sv)
 		{
+			if (isEx())
+				dealloc();
+
 			m_size = sv.m_size;
 			if (isEx())
 				new (m_u.m_rawData) ContClass(*sv.cont());
