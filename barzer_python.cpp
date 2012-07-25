@@ -137,7 +137,11 @@ int BarzerPython::matchXML(const std::string& pattern, const std::string& result
 	if (!d_universe)
 		return -1;
 
+<<<<<<< HEAD
 	return autotester::matches(pattern.c_str(), result.c_str(),
+=======
+	return autotester::matches(pattern.c_str(), result.size(), result.c_str(), result.size(),
+>>>>>>> 758eba5a8ea15064f4ea80e651878404a335f8de
 			autotester::ParseContext(d_universe->getGlobalPools(), d_universe->getUserId()),
 			settings);
 }
