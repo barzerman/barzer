@@ -5,6 +5,7 @@
 #include <barzer_el_entcol.h>
 #include <barzer_el_proc.h>
 #include <barzer_topics.h>
+#include <barzer_meaning.h>
 #include <ay_bitflags.h>
 #include <ay_util.h>
 #include <ay_pool_with_id.h>
@@ -50,6 +51,12 @@ struct BarzelTrieFirmChildKey {
         noLeftBlanks(0),
         d_matchMode(BTND_Pattern_Base::MATCH_MODE_NORMAL)  {}
 
+	BarzelTrieFirmChildKey(const BTND_Pattern_Meaning& x) :
+        id(x.meaningId),
+        type((uint8_t)BTND_Pattern_Meaning_TYPE),
+        noLeftBlanks(0),
+        d_matchMode(x.d_matchMode)
+        {}
 	BarzelTrieFirmChildKey(const BTND_Pattern_Token& x) :
         id(x.stringId),
         type((uint8_t)BTND_Pattern_Token_TYPE),
@@ -78,6 +85,15 @@ struct BarzelTrieFirmChildKey {
         noLeftBlanks=0;
     }
 	// default followsBlank is false
+	inline BarzelTrieFirmChildKey& setMeaning( uint32_t meaningId, bool followsBlank )
+    {
+        return( 
+		    noLeftBlanks = ( followsBlank ? 0:1 ),
+		    id =   meaningId,
+            type=((uint8_t) BTND_Pattern_Meaning_TYPE),
+            *this
+        );
+    }
 	inline BarzelTrieFirmChildKey& set( const BarzerLiteral& dta, bool followsBlank )
 	{
 		noLeftBlanks = ( followsBlank ? 0:1 );
@@ -87,6 +103,7 @@ struct BarzelTrieFirmChildKey {
 		case BarzerLiteral::T_COMPOUND: type=(uint8_t) BTND_Pattern_CompoundedWord_TYPE; break;
 		case BarzerLiteral::T_STOP:     type=(uint8_t) BTND_Pattern_StopToken_TYPE; break;
 		case BarzerLiteral::T_PUNCT:    type=(uint8_t) BTND_Pattern_Punct_TYPE; break;
+		case BarzerLiteral::T_MEANING:    type=(uint8_t) BTND_Pattern_Meaning_TYPE; break;
 		case BarzerLiteral::T_BLANK:
 			type = (uint8_t) BTND_Pattern_Token_TYPE;
 			id =   0xffffffff;
@@ -101,6 +118,7 @@ struct BarzelTrieFirmChildKey {
 			it == BTND_Pattern_Token_TYPE ||
 			it == BTND_Pattern_StopToken_TYPE ||
 			it == BTND_Pattern_Punct_TYPE ||
+			it == BTND_Pattern_Meaning_TYPE ||
 			it == BTND_Pattern_CompoundedWord_TYPE
 		);
 	}
@@ -112,6 +130,9 @@ struct BarzelTrieFirmChildKey {
 
 	bool isBlankLiteral() const { return (BTND_Pattern_Token_TYPE ==type && id==0xffffffff); }
 	bool isStopToken() const { return( BTND_Pattern_StopToken_TYPE == type ); }
+
+	bool isBlankMeaning() const { return (BTND_Pattern_Meaning_TYPE ==type && id==0xffffffff); }
+	bool isMeaning() const { return (BTND_Pattern_Meaning_TYPE ==type ); }
 
 	bool isNoLeftBlanks() const { return noLeftBlanks; }
 	std::ostream& print( std::ostream& , const BELPrintContext& ctxt ) const;
@@ -529,6 +550,8 @@ public:
     typedef  std::pair< uint32_t , uint32_t > UniqueTrieId;
     UniqueTrieId getUniqueTrieId() const
         { return UniqueTrieId( d_trieClass_strId, d_trieId_strId ); }
+
+    WordMeaningBufPtr getMeanings( const BarzerLiteral& l ) const { return WordMeaningBufPtr(0,0); }
 
     uint32_t getTrieClass_strId() const { return d_trieClass_strId; }
     uint32_t getTrieId_strId() const { return d_trieId_strId; }

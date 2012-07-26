@@ -284,6 +284,7 @@ public:
 		T_STOP, /// rewrites into a blank yet unmatcheable token
 		T_PUNCT,
 		T_BLANK,
+		T_MEANING,
 
 		T_MAX
 	};
@@ -350,6 +351,8 @@ public:
 	BarzerLiteral&  setPunct(int c) { type = T_PUNCT; theId = c; return *this; }
 	void setNull() { type = T_STRING; theId = 0xffffffff; }
 
+	void setMeaning(uint32_t id) { type = T_MEANING; theId = id;  }
+
 	uint32_t getId() const { return theId; }
 	//uint32_t getType() const { return theId; } // pfft
 	uint8_t getType() const { return type; }
@@ -361,6 +364,8 @@ public:
 	bool isStop() const { return type == T_STOP; }
 	bool isPunct() const { return type == T_PUNCT; }
 	bool isCompound() const { return type == T_COMPOUND; }
+	bool isMeaning() const { return type == T_MEANING; }
+
 	inline bool isEqual( const BarzerLiteral& r ) const
 		{  return( type == r.type && theId == r.theId ); }
 

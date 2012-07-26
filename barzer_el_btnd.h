@@ -377,6 +377,15 @@ struct BTND_Pattern_CompoundedWord : public BTND_Pattern_Base {
 inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_CompoundedWord& x )
 	{ return( fp << "compw[" << std::hex << x.compWordId << "]");}
 
+struct BTND_Pattern_Meaning : public BTND_Pattern_Base {
+    uint32_t meaningId; /// 0xffffffff - default value means any meaning is acceptable 
+
+    BTND_Pattern_Meaning(): meaningId(0xffffffff) {}
+    std::ostream& print( std::ostream& fp, const BELPrintContext& ctxt ) const
+    {
+        return ( fp << "m:" << meaningId << std::endl );
+    }
+};
 struct BTND_Pattern_Token : public BTND_Pattern_Base {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	ay::UniqueCharPool::StrId stringId;
@@ -643,6 +652,7 @@ enum {
 	BTND_Pattern_ERCExpr_TYPE,          // 11
 	BTND_Pattern_ERC_TYPE,          // 12
 	BTND_Pattern_Range_TYPE,          // 13
+	BTND_Pattern_Meaning_TYPE,          // 14
 
 
 	/// end of wildcard types - add new ones ONLY ABOVE THIS LINE
