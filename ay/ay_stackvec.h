@@ -103,5 +103,9 @@ namespace ay
 		{
 			return isEx() ? (*cont())[pos] : m_u.m_objs[pos];
 		}
+
+		// I hate myself for doing this.
+		inline const T* getRawBuf() const { return isEx() ? &(*cont())[0] : m_u.m_objs; }
+		inline T* getRawBuf() { return isEx() ? &(*cont())[0] : m_u.m_objs; }
 	};
 }
