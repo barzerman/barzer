@@ -4,6 +4,8 @@
 #include <barzer_el_chain.h>
 #include <barzer_parse_types.h>
 #include <barzer_topics.h>
+#include <barzer_tokenizer.h>
+#include <ay/ay_utf8.h>
 
 namespace barzer {
 
@@ -141,6 +143,8 @@ class Barz {
 	std::vector<char> question; 
 	/// exact copy of the original question
 	std::string questionOrig; 
+    ay::StrUTF8 questionOrigUTF8; /// our utf8 representation of questionOrig
+
     /// this is a user-supplied id of the question (optional)
     uint64_t    d_origQuestionId; 
     
@@ -208,6 +212,11 @@ public:
 	void clearBeads();
 
 	int tokenize( QTokenizer& , const char* q, const QuestionParm& );
+	int tokenize( const TokenizerStrategy& strat, QTokenizer& tokenizer, const char* q, const QuestionParm& qparm );
+
+    //// advanced classification method
+	int classifyTokens( const TokenizerStrategy&, QTokenizer& , QLexParser&, const char* q, const QuestionParm& );
+
 	int classifyTokens( QLexParser& , const QuestionParm& );
 	int chainInit( const QuestionParm& );
 	int parse_Autocomplete( QSemanticParser&, const QuestionParm& );
@@ -241,6 +250,8 @@ public:
     const BarzelBead& getLastBead() const { return beadChain.lst.back(); }
 
     const       std::string& getOrigQuestion() const { return questionOrig; }
+    const ay::StrUTF8& getQuestionOrigUTF8() const { return questionOrigUTF8; } /// our utf8 representation of questionOrig
+
     uint64_t    getQueryId() const { return d_origQuestionId; }
     void        setQueryId( uint64_t i ) { d_origQuestionId = i ; }
     bool        isQueryIdValid() const { return std::numeric_limits<uint64_t>::max() != d_origQuestionId; }

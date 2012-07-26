@@ -6,6 +6,8 @@
 #include <barzer_el_xml.h>
 #include <barzer_emitter.h>
 #include <barzer_universe.h>
+#include <autotester/barzer_at_comparators.h>
+#include <ay_translit_ru.h>
 
 
 extern "C" {
@@ -297,6 +299,21 @@ int proc_ADD_STMSET( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  s
 
     return 0;
 }
+int proc_EN2RU( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* q )
+{
+	std::ostream &os = reqEnv.outStream;
+    std::stringstream ss(q);
+    std::string tmp ;
+    while( ss >> tmp ) {
+        for( std::string::iterator i = tmp.begin(); i!= tmp.end(); ++i) 
+            *i = tolower(*i);
+        std::string result;
+        ay::tl::en2ru(tmp.c_str(), tmp.length(), result);
+        os << result << " ";
+    }
+    os << std::endl;
+    return 0;
+}
 int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* str )
 {
 	GlobalPools gp(false);
@@ -335,6 +352,26 @@ int proc_COUNT_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPo
 	return 0;  
 }
 
+int proc_MATCH_XML(RequestEnvironment& reqEnv, GlobalPools& gp, const char *str)
+{
+	const char *firstEnd = strstr(str, "<<");
+	const char *secondEnd = 0;
+	if (firstEnd)
+		secondEnd = strstr(firstEnd + 2, "<<");
+	if (!firstEnd || !secondEnd)
+	{
+		reqEnv.outStream << "<error>Wrong format for </error>\n";
+		return 0;
+	}
+
+	const uint16_t score = autotester::matches(str, firstEnd - str,
+			firstEnd + 2, secondEnd - firstEnd - 2,
+			autotester::ParseContext(gp, reqEnv.userId));
+	reqEnv.outStream << "<score>" << score << "</score>\n";
+	//autotester::matches();
+    return 0;
+}
+
 
 int proc_RUN_SCRIPT( RequestEnvironment& reqEnv, GlobalPools& gp, const char* cfgfile  );
 int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os )
@@ -352,12 +389,14 @@ int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os )
         if (cut) *cut = 0;
 		IFHEADER_ROUTE(COUNT_EMIT)
 		IFHEADER_ROUTE(EMIT)
+		IFHEADER_ROUTE(EN2RU)
 		IFHEADER_ROUTE(ADD_STMSET)
 		IFHEADER_ROUTE(CLEAR_TRIE)
 		IFHEADER_ROUTE(CLEAR_USER)
 		IFHEADER_ROUTE(LOAD_CONFIG)
 		IFHEADER_ROUTE(LOAD_USRCFG)
 		IFHEADER_ROUTE(RUN_SCRIPT)
+		IFHEADER_ROUTE(MATCH_XML)
 
 		AYLOG(ERROR) << "UNKNOWN header: " << std::string( buf, (len>6 ? 6: len) ) << std::endl;
         return ROUTE_ERROR_UNKNOWN_COMMAND;

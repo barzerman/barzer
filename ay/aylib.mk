@@ -5,11 +5,11 @@ endif
 ifeq ($(IS32),yes)
 	BITMODE=-m32
 endif 
-CFLAGS := $(OPT) $(C11) $(BITMODE) $(FLAGS) -Wall -g -I. -fpic -I../ -I/usr/local/include -I/opt/local/include -Wno-parentheses
+CFLAGS := $(OPT) -std=c++0x $(BITMODE) $(FLAGS) -Wall -g -I. -fpic -I../ -I/usr/local/include -I/opt/local/include -Wno-parentheses
 LIBNAME=libay.a
 SHARED_LIBNAME=libay.so
 
-objects=ay_keymaps.o ay_ngrams.o ay_xml_util.o ay_snowball.o ay_utf8.o ay_cmdproc.o ay_shell.o ay_util.o ay_string_pool.o ay_util_time.o ay_logger.o
+objects=ay_translit_ru.o ay_keymaps.o ay_ngrams.o ay_xml_util.o ay_snowball.o ay_utf8.o ay_cmdproc.o ay_shell.o ay_util.o ay_string_pool.o ay_util_time.o ay_logger.o
 
 all: $(objects)
 	$(AR) -r  $(LIBNAME) $(objects)

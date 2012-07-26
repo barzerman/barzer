@@ -1,6 +1,8 @@
 #include "barzer_at_comparators.h"
 #include <algorithm>
 #include <iterator>
+#include <cmath>
+#include <iostream>
 #include "../barzer_barz.h"
 #include "../barzer_barzxml.h"
 #include "../barzer_server_request.h"
@@ -52,6 +54,11 @@ namespace autotester
 				return XML_Parse(m_parser, str, std::strlen(str), true);
 			}
 
+			int operator()(const char *str, size_t len)
+			{
+				return XML_Parse(m_parser, str, len, true);
+			}
+
 			void start(const char *n, const char **a)
 			{
 				m_barzXML.takeTag(n, a, XML_GetSpecifiedAttributeCount(m_parser), true);
@@ -88,6 +95,7 @@ namespace autotester
 	: m_matchType(BeadMatchType::Value)
 	, m_classMatchType(ClassMatchType::Full)
 	, m_skipFluff(true)
+	, m_matchERCRange(true)
 	{
 	}
 
@@ -124,6 +132,17 @@ namespace autotester
 		return *this;
 	}
 
+	bool BeadMatchOptions::matchERCRange () const
+	{
+		return m_matchERCRange;
+	}
+
+	BeadMatchOptions& BeadMatchOptions::setMatchERCRange (bool match)
+	{
+		m_matchERCRange = match;
+		return *this;
+	}
+
 	CompareSettings::CompareSettings(bool removeFluff, const BeadMatchOptions& defOpts)
 	: m_defaultOptions(defOpts)
 	, m_removeFluff(removeFluff)
@@ -154,8 +173,9 @@ namespace autotester
 		inline Container<std::pair<LeftElem, RightElem>, Alloc> zip(const Container<LeftElem, Alloc>& c1, const Container<RightElem, Alloc>& c2)
 		{
 			decltype(zip(c1, c2)) result;
-			auto pIter = std::begin(c1), pEnd = std::end(c1);
-			auto rIter = std::begin(c2), rEnd = std::end(c2);
+			auto pIter = c1.begin(), pEnd = c1.end();
+			// auto pIter = std::begin(c1), pEnd = std::end(c1);
+			auto rIter = c2.begin(), rEnd = c2.end();
 			while (pIter != pEnd && rIter != rEnd)
 				result.push_back(std::make_pair(*pIter++, *rIter++));
 			return result;
@@ -166,12 +186,29 @@ namespace autotester
 			const int RootLengthFailure = 100;
 
 			const int StringsEqFailure = 1;
+
 			const int EListLengthFailure = 3;
 			const int EListClassFailure = 3;
+
 			const int SECPrimaryFailure = 4;
 			const int SECSecondaryFailure = 5;
+
+			const int ExprSidMismatch = 7;
+			const int ExprAttrsSizeMismatch = 6;
+			const int ExprAttrKeyMismatch = 5;
+			const int ExprAttrValueMismatch = 4;
+			const int ExprChildrenCountMismatch = 5;
+
+			const int RangeTypeMismatch = 5;
+
 			const int GenericValueMismatch = 1;
 			const int GenericTypeMismatch = 20;
+
+			const double PairKeyMultiplier = 1.5;
+			const double PairValueMultiplier = 1.2;
+
+			const double ERCEntityMultiplier = 1.1;
+			const double ERCUnitEntityMultiplier = 2;
 		}
 
 		struct BeadComparator : public boost::static_visitor<uint16_t>
@@ -207,8 +244,14 @@ namespace autotester
 					result += Scores::EListClassFailure;
 
 				const auto& zipped = zip(left.getList(), right.getList());
+
+                for( auto i = zipped.begin(); i!= zipped.end(); ++i ) {
+                    result += (*this) (i->first, i->second);
+                }
+                /* GOSHA how is the stuff below faster/more readable than the code above?  
 				result += std::accumulate(zipped.begin(), zipped.end(), 0,
 						[this] (uint16_t val, decltype(zipped.front()) item) { return val + (*this) (item.first, item.second); });
+                */
 				return result;
 			}
 
@@ -242,9 +285,85 @@ namespace autotester
 				return score;
 			}
 
+			template<typename T, typename U>
+			uint16_t operator()(const std::pair<T, U>& p1, const std::pair<T, U>& p2) const
+			{
+				return (*this)(p1.first, p2.first) * Scores::PairKeyMultiplier +
+					(*this)(p1.second, p2.second) * Scores::PairValueMultiplier;
+			}
+
+			uint16_t operator()(const BarzerRange& rng1, const BarzerRange& rng2) const
+			{
+				uint16_t score = 0;
+
+				if (rng1.getType() != rng2.getType())
+					score += Scores::RangeTypeMismatch;
+
+				if (m_opts.matchType() == BeadMatchType::Type)
+					return score;
+
+				score += boost::apply_visitor(*this, rng1.getData(), rng2.getData());
+
+				return score;
+			}
+
+			uint16_t operator()(const BarzerEntityRangeCombo& erc1, const BarzerEntityRangeCombo& erc2) const
+			{
+				uint16_t score = 0;
+				score += (*this)(erc1.getEntity(), erc2.getEntity()) * Scores::ERCEntityMultiplier;
+				score += (*this)(erc1.getUnitEntity(), erc2.getUnitEntity()) * Scores::ERCUnitEntityMultiplier;
+				if (m_opts.matchERCRange())
+					score += (*this)(erc1.getRange(), erc2.getRange());
+				return score;
+			}
+
 			uint16_t operator()(const BarzelBeadAtomic& at1, const BarzelBeadAtomic& at2) const
 			{
 				return boost::apply_visitor(*this, at1.getData(), at2.getData());
+			}
+
+			uint16_t operator()(const BarzelBeadExpression& ex1, const BarzelBeadExpression& ex2) const
+			{
+				uint16_t score = 0;
+				if (ex1.getSid() != ex2.getSid())
+					score += Scores::ExprSidMismatch;
+
+				const BarzelBeadExpression::AttrList& leftAttrs = ex1.getAttrs();
+				const BarzelBeadExpression::AttrList& rightAttrs = ex2.getAttrs();
+				if (leftAttrs.size() != rightAttrs.size())
+					score += Scores::ExprAttrsSizeMismatch;
+				else
+					for (size_t i = 0; i < leftAttrs.size(); ++i)
+					{
+						const BarzelBeadExpression::Attr& leftAttr = leftAttrs[i];
+						const BarzelBeadExpression::Attr& rightAttr = rightAttrs[i];
+						if (leftAttr.first != rightAttr.first)
+							score += Scores::ExprAttrKeyMismatch;
+						if (leftAttr.second != rightAttr.second)
+							score += Scores::ExprAttrValueMismatch;
+					}
+
+				const BarzelBeadExpression::SubExprList& leftChildren = ex1.getChildren();
+				const BarzelBeadExpression::SubExprList& rightChildren = ex2.getChildren();
+				if (leftChildren.size() != rightChildren.size())
+					score += Scores::ExprChildrenCountMismatch;
+				else
+					for (BarzelBeadExpression::SubExprList::const_iterator left = leftChildren.begin(),
+																		   right = rightChildren.begin();
+							left != leftChildren.end(); ++left, ++right)
+						score += boost::apply_visitor(*this, *left, *right);
+
+				return score;
+			}
+
+			uint16_t operator()(const BarzelBeadBlank&, const BarzelBeadBlank&) const
+			{
+				return 0;
+			}
+
+			uint16_t operator()(const BarzelBeadData& d1, const BarzelBeadData& d2) const
+			{
+				return boost::apply_visitor(*this, d1, d2);
 			}
 
 			template<typename T>
@@ -269,18 +388,20 @@ namespace autotester
 		return EnbarzParser(barz, *ctx.m_gp.getUniverse(ctx.m_userId))(string);
 	}
 
+    namespace {
+    inline bool skipBead( const BeadList::const_iterator iter, const CompareSettings& cmpSettings )
+    {
+        if (!cmpSettings.removeFluff())
+            return false;
+        auto str = iter->get<BarzerString>();
+        return str ? str->isFluff() : false;
+    }
+
+    } // namespace 
 	uint16_t matches(const Barz& pattern, const Barz& result, const CompareSettings& cmpSettings)
 	{
 		auto pBeads = pattern.getBeadList();
 		auto rBeads = result.getBeadList();
-
-		auto skipBead = [&cmpSettings] (decltype(pBeads.begin()) iter) -> bool
-		{
-			if (!cmpSettings.removeFluff())
-				return false;
-			auto str = iter->get<BarzerString>();
-			return str ? str->isFluff() : false;
-		};
 
 		if (pBeads.size() != rBeads.size())
 			return Scores::RootLengthFailure;
@@ -296,21 +417,22 @@ namespace autotester
 
 			do
 				++pIter;
-			while (pIter != pEnd && skipBead(pIter));
+			while (pIter != pEnd && skipBead(pIter,cmpSettings));
 			do
 				++rIter;
-			while (rIter != rEnd && skipBead(rIter));
+			while (rIter != rEnd && skipBead(rIter,cmpSettings));
 		}
 
-		return 1 - 1 / (1 + static_cast<double> (score) * score);
+		return 100 * (std::atan(static_cast<double>(score) / 10) * 2 / 3.14160);
 	}
 
-	uint16_t matches(const char *pattern, const char *result, const ParseContext& ctx, const CompareSettings& settings)
+	uint16_t matches(const char *pattern, size_t patSize, const char *result, size_t resSize,
+			const ParseContext& ctx, const CompareSettings& settings)
 	{
-		Barz pattBarz, resBarz;
-		parseXML(pattern, pattBarz, ctx);
-		parseXML(result, resBarz, ctx);
-		return matches(pattBarz, resBarz, settings);
+		Barz patBarz, resBarz;
+		EnbarzParser(patBarz, *ctx.m_gp.getUniverse(ctx.m_userId))(pattern, patSize);
+		EnbarzParser(resBarz, *ctx.m_gp.getUniverse(ctx.m_userId))(result, resSize);
+		return matches(patBarz, resBarz, settings);
 	}
 }
 }

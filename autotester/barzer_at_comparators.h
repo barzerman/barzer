@@ -2,7 +2,7 @@
 
 #include <map>
 #include <cstddef>
-#include <cstdint>
+#include <stdint.h>
 
 namespace barzer
 {
@@ -30,6 +30,7 @@ namespace autotester
 		BeadMatchType m_matchType;
 		ClassMatchType m_classMatchType;
 		bool m_skipFluff;
+		bool m_matchERCRange;
 	public:
 		BeadMatchOptions();
 
@@ -41,6 +42,9 @@ namespace autotester
 
 		bool skipFluff() const;
 		BeadMatchOptions& setSkipFluff(bool);
+
+		bool matchERCRange() const;
+		BeadMatchOptions& setMatchERCRange(bool);
 	};
 
 	class CompareSettings
@@ -70,9 +74,9 @@ namespace autotester
 		}
 	};
 
-	int parseXML(const char *string, Barz& barz, const ParseContext&);
-
 	uint16_t matches(const Barz& pattern, const Barz& result, const CompareSettings& = CompareSettings());
-	uint16_t matches(const char *pattern, const char *result, const ParseContext&, const CompareSettings& = CompareSettings());
+	uint16_t matches(const char *pattern, size_t patSize,
+			const char *result, size_t resSize,
+			const ParseContext&, const CompareSettings& = CompareSettings());
 }
 }

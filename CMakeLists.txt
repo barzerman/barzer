@@ -79,15 +79,13 @@ include_directories("${PROJECT_BINARY_DIR}"
 add_subdirectory (ay)
 add_subdirectory (util)
 add_subdirectory (snowball)
-add_subdirectory (autotester)
 
 set(EXTRA_LIBS ${EXTRA_LIBS}
                ${Boost_SYSTEM_LIBRARY}
                ${Boost_FILESYSTEM_LIBRARY}
                ${Boost_THREAD_LIBRARY}  
                ay
-               snowlib
-               autotester)
+               snowlib)
 
 if(WIN32)
 	set(EXTRA_LIBS ${EXTRA_LIBS}
@@ -98,7 +96,8 @@ else()
 	set(EXTRA_LIBS ${EXTRA_LIBS} ${EXPAT_LIBRARIES})
 endif()
 
-set(SOURCES barzer_barz.cpp
+set(SOURCES barzer_tokenizer.cpp 
+            barzer_barz.cpp
             barzer_entity.cpp
             barzer_basic_types.cpp
             barzer_datelib.cpp
@@ -139,6 +138,8 @@ set(SOURCES barzer_barz.cpp
 			barzer_number.cpp
 			barzer_barzxml.cpp
 			barzer_el_rewrite_control.cpp
+			autotester/barzer_at_autotester.cpp
+			autotester/barzer_at_comparators.cpp
             "${EN_DIR}/barzer_en_date_util.cpp"
             "${EN_DIR}/barzer_en_lex.cpp"
             "${RU_DIR}/barzer_ru_date_util.cpp"

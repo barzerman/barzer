@@ -352,6 +352,20 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 					u.getUniverse().getBarzHints().addUtf8Language(lang);
 					u.getUniverse().getGlobalPools().getStemPool().addLang(lang);
 				}
+            } else if(tagName =="tokenizer") { /// 
+                const boost::optional<const ptree&> optAttrs = spell.get_child_optional("tokenizer.<xmlattr>");
+                if( optAttrs ) {
+                    const ptree& attrs = optAttrs.get();
+                    const boost::optional<std::string> tmpOpt = attrs.get_optional<std::string>("strat");
+                    if( tmpOpt  ) { 
+                        if( !strcasecmp( tmpOpt.get().c_str(),"SPACE_DEFAULT" ) ) 
+                            u.getUniverse().tokenizerStrategy().setType( TokenizerStrategy::STRAT_TYPE_SPACE_DEFAULT);
+                        else if( !strcasecmp( tmpOpt.get().c_str(),"CASCADE" ) ) 
+                            u.getUniverse().tokenizerStrategy().setType( TokenizerStrategy::STRAT_TYPE_CASCADE);
+                        else
+                            u.getUniverse().tokenizerStrategy().setType( TokenizerStrategy::STRAT_TYPE_DEFAULT);
+                    }
+                }
             }
 		}
 		if( bzs ) {
