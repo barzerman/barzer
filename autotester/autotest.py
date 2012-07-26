@@ -113,7 +113,7 @@ def run_all(args):
 	print_queue.join()
 
 def default_action():
-	print "Usage:\n -r for running tests\n -g for generating tests\nAdditional information: -h"
+	print "Type:\n -r for running tests\n -g for generating tests\n -h for more information:"
 
 def print_stat(args):
 	global statistics
@@ -128,13 +128,13 @@ def print_stat(args):
 def main():
 	global BARZER_PORT, BARZER_HOST, LEVEL
 	parser = argparse.ArgumentParser(description='Barzer autotesting script',
-	 epilog="""Run: autotest.py -g first to generate file with correct responses""")
-	parser.add_argument('-g', '--generate',action="store_true", default=False, help="generate test.xml with correct answers") 
+	 epilog="""Run autotest.py -g first to generate file with correct responses""")
+	parser.add_argument('-g', '--generate',action="store_true", default=False, help="generate xml with correct answers") 
 	parser.add_argument('-r','--run', action='store_true', default=False, help='run all the tests')
-	parser.add_argument('-l', '--level',action='store', default=0, type=int, help='show tests result with score higher than level. User level = -1 to show all the results ')
-	parser.add_argument('-in','--queries_fname', default="queries", help='File with queries in format: id<<<user_id<<<query')
-	parser.add_argument('-out', '--tests_fname', default="answers.xml", help='File with barz xmls. Can be generated using -g option')
-	parser.add_argument('-barzer', default=BARZER_HOST+ ":" + str(BARZER_PORT), help="barzer instance location. Default:"+BARZER_HOST+ ":" + str(BARZER_PORT))
+	parser.add_argument('-l', '--level',action='store', default=0, type=int, help='show tests result with score higher than level. Use level = -1 to show all the results. Default level: 0 ')
+	parser.add_argument('-in','--queries_fname', default="queries", help='File with queries in format: id<<<user_id<<<query. Default filename: queries')
+	parser.add_argument('-out', '--tests_fname', default="answers.xml", help='File with barz xmls. Can be generated using -g option. Default filename: answers.xml')
+	parser.add_argument('-barzer', default=BARZER_HOST+ ":" + str(BARZER_PORT), help="barzer instance location. Default: "+BARZER_HOST+ ":" + str(BARZER_PORT))
 	args = parser.parse_args(sys.argv[1:])
 
 	if not (args.generate or args.run):
