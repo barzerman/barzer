@@ -425,11 +425,25 @@ public:
 
 		if( ch ) {
 			BeadList::iterator endIt = d_rng.first;
-			//++endIt;
 			BarzelBeadChain::Range goodRange(d_rng.first,endIt);
-			// AYDEBUG(goodRange);
 			d_mtChild.push_back( NodeAndBeadVec::value_type(ch, goodRange ) );
 		}
+
+        /// handling meanings 
+        if( dta.isString() ) {
+            WordMeaningBufPtr wmb = d_trie.getMeanings( dta );
+            if( wmb.first ) {
+                for( const WordMeaning* m = wmb.first, *m_end = wmb.first+wmb.second; m!= m_end; ++m ) {
+                    BarzelTrieFirmChildKey meaningKey;
+                    meaningKey.setMeaning(*m,d_followsBlank);
+                    const BarzelTrieNode* ch = d_tn->getFirmChild( meaningKey, fcmap );
+                    if( ch ) 
+                        d_mtChild.push_back( NodeAndBeadVec::value_type(ch, BarzelBeadChain::Range(d_rng.first,d_rng.first) ) );
+                }
+            }
+
+        }
+        /// end of meanings
 
         firmKey.mkNegativeKey();
 		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey );
