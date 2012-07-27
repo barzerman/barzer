@@ -243,10 +243,10 @@ namespace autotester
 				if ((*this) (left.getClass (), right.getClass()))
 					result += Scores::EListClassFailure;
 
-				const auto& zipped = zip(left.getList(), right.getList());
-
-                for( auto i = zipped.begin(); i!= zipped.end(); ++i ) {
-                    result += (*this) (i->first, i->second);
+				// const auto& zipped = zip(left.getList(), right.getList());
+                
+                for( auto i = left.getList().begin(), j=right.getList().begin(); i!= left.getList().end() && j!= right.getList().end(); ++j, ++i ) {
+                    result += (*this) (*i, *j );
                 }
                 /* GOSHA how is the stuff below faster/more readable than the code above?  
 				result += std::accumulate(zipped.begin(), zipped.end(), 0,

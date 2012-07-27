@@ -5,7 +5,7 @@
 
 namespace ay
 {
-	template<typename T, template<typename T, typename Alloc> class Cont = std::vector, typename Alloc = std::allocator<T>>
+	template<typename T, template<typename TT, typename Alloc> class Cont = std::vector, typename Alloc = std::allocator<T>>
 	class StackVec
 	{
 		typedef Cont<T, Alloc> ContClass;

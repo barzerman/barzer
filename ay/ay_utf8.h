@@ -4,6 +4,7 @@
 #include <vector>
 #include <iterator>
 #include <cstddef>
+#include <string>
 #include <stdint.h>
 #include "ay_headers.h"
 

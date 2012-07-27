@@ -1,7 +1,8 @@
 #ifndef BARZER_MEANING_H
 #define BARZER_MEANING_H
 
-#include <unordered_map>
+#include <boost/unordered_map.hpp>
+
 #include <ay/ay_stackvec.h>
 
 namespace barzer
@@ -13,7 +14,7 @@ namespace barzer
 	{
 		typedef ay::StackVec<WordMeaning> MVec_t;
 
-		std::unordered_map<uint32_t, MVec_t> m_word2meanings;
+		boost::unordered_map<uint32_t, MVec_t> m_word2meanings;
 	public:
 		MeaningsStorage();
 
@@ -24,7 +25,7 @@ namespace barzer
 
 		WordMeaningBufPtr getMeanings(uint32_t wordId) const
 		{
-			std::unordered_map<uint32_t, MVec_t>::const_iterator pos = m_word2meanings.find(wordId);
+			boost::unordered_map<uint32_t, MVec_t>::const_iterator pos = m_word2meanings.find(wordId);
 			return pos != m_word2meanings.end() ?
 					std::make_pair(pos->second.getRawBuf(), pos->second.size()) :
 					WordMeaningBufPtr();
