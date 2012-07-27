@@ -228,6 +228,7 @@ public:
 	int postSemanticParse( QSemanticParser&, const QuestionParm& );
 
     int segregateEntities( const StoredUniverse& u, const QuestionParm& qparm, const char* q );
+    int sortEntitiesByRelevance( const StoredUniverse& u, const QuestionParm& qparm, const char* q );
 
 	/// returns pair. first is the number of units which have been modified semantically
 	/// mening - fluff, date, entity, erc, expression etc

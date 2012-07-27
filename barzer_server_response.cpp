@@ -332,8 +332,10 @@ public:
 		}
 
         const EntityData::EntProp* edata = universe.getGlobalPools().entData.getEntPropData( euid );
-        if( edata && edata->canonicName.length() ) {
-            xmlEscape( edata->canonicName.c_str(), os << "n=\"" ) << "\" ";
+        if( edata ) { 
+            if( edata->canonicName.length() ) 
+                xmlEscape( edata->canonicName.c_str(), os << "n=\"" ) << "\" ";
+            os << " r=\"" << edata->relevance << "\" " ;
         }
 
         if( d_barz.hasProperties() ) {

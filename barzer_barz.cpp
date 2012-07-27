@@ -276,6 +276,28 @@ struct EntListIterPair_comp_less {
 };
 typedef std::vector< EntListIterPair > EntListPairVec;
 
+struct EntityRelevanceEstimator {
+    const StoredUniverse& universe;
+    EntityRelevanceEstimator( const StoredUniverse& u ) : universe(u) {}
+
+    /// compares relevances 
+    bool operator()( const BarzerEntity& l, const BarzerEntity& r ) const {
+        const EntityData::EntProp* rd = universe.getGlobalPools().entData.getEntPropData( r );
+        if( rd ) {
+            const EntityData::EntProp* ld = universe.getGlobalPools().entData.getEntPropData( l );
+            if( ld ) 
+                return( ld->relevance < rd->relevance );
+            else 
+                return true;
+        } else 
+            return false;
+    }
+    bool operator()( const BarzerEntity& l) const {
+        const EntityData::EntProp* ld = universe.getGlobalPools().entData.getEntPropData( l );
+        return( ld && ld->relevance );
+    }
+};
+
 } // anon namespace ends
 int Barz::segregateEntities( const StoredUniverse& u, const QuestionParm& qparm, const char* q )
 {
@@ -358,8 +380,22 @@ int Barz::segregateEntities( const StoredUniverse& u, const QuestionParm& qparm,
     for( BLIVec::iterator bi= entBeadVec.begin(); bi != entBeadVec.end(); ++bi ) {
         beadList.erase( *bi );
     }
-    /// end of figuring out whether we need anything 
 
+    return 0;
+}
+int Barz::sortEntitiesByRelevance( const StoredUniverse& u, const QuestionParm& qparm, const char* q )
+{
+    /// end of figuring out whether we need anything 
+	BeadRange rng = beadChain.getFullRange();
+    for( BeadList::iterator i = rng.first; i!= rng.second; ++i ) {
+        BarzelBeadAtomic* atomic = i->getAtomic();
+        if( atomic ) {
+            BarzerEntityList* entList =atomic->getEntityList();
+            if( entList && entList->theList().size() ) {
+                ay::zerosort( entList->theList().begin(), entList->theList().end(), EntityRelevanceEstimator(u) );
+            }
+        }
+    }
     return 0;
 }
 

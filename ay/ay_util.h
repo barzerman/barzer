@@ -266,6 +266,22 @@ inline int stripDiacrictics( std::string& dest, const char* s ) { return umlauts
 /// returns true if s points at the beginning of a diacritic char 
 const char* is_diacritic( const char* s );
 
+
+//// zerosort - this is a more efficient stable sort than std::stable_sort in cases when sorting is conducted 
+//// on a non negative integer field and for most objects in the range the value of the field is 0
+template <typename Iter, typename Comparator>
+inline void zerosort(Iter begin, Iter end, const Comparator& comp)
+{
+    Iter out=begin;
+    for(Iter cur=begin ; cur != end ; ++cur) {
+        if(comp(*cur)) {
+            std::iter_swap(cur, out);
+            ++out;
+        }
+    }
+    std::stable_sort(out, end, comp);
 }
+
+} // ay namespace
 
 #endif

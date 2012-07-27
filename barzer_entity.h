@@ -135,6 +135,8 @@ public:
 		bool operator() ( const BarzerEntity& l, const BarzerEntity& r ) const 
 			{ return ( l.eclass < r.eclass ); }
 	};
+	EList& theList() { return d_lst; }
+
 	const EList& getList() const 
 		{ return d_lst; }
     size_t size() const { return d_lst.size(); }
