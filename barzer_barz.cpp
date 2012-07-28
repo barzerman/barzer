@@ -281,7 +281,7 @@ struct EntityRelevanceEstimator {
     EntityRelevanceEstimator( const StoredUniverse& u ) : universe(u) {}
 
     /// compares relevances 
-    bool operator()( const BarzerEntity& r, const BarzerEntity& l ) const {
+    bool operator()( const BarzerEntity& l, const BarzerEntity& r ) const {
         const EntityData::EntProp* rd = universe.getGlobalPools().entData.getEntPropData( r );
         if( rd ) {
             const EntityData::EntProp* ld = universe.getGlobalPools().entData.getEntPropData( l );
