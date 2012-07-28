@@ -294,7 +294,7 @@ struct EntityRelevanceEstimator {
     }
     bool operator()( const BarzerEntity& l) const {
         const EntityData::EntProp* ld = universe.getGlobalPools().entData.getEntPropData( l );
-        return( ld && ld->relevance );
+        return( !ld || !ld->relevance );
     }
 };
 
@@ -392,7 +392,7 @@ int Barz::sortEntitiesByRelevance( const StoredUniverse& u, const QuestionParm& 
         if( atomic ) {
             BarzerEntityList* entList =atomic->getEntityList();
             if( entList && entList->theList().size() ) {
-                ay::zerosort( entList->theList().begin(), entList->theList().end(), EntityRelevanceEstimator(u) );
+                ay::zerosort( entList->theList().rbegin(), entList->theList().rend(), EntityRelevanceEstimator(u) );
             }
         }
     }
