@@ -435,7 +435,7 @@ public:
             if( wmb.first ) {
                 for( const WordMeaning* m = wmb.first, *m_end = wmb.first+wmb.second; m!= m_end; ++m ) {
                     BarzelTrieFirmChildKey meaningKey;
-                    meaningKey.setMeaning(*m,d_followsBlank);
+                    meaningKey.setMeaning(m->id, d_followsBlank);
                     const BarzelTrieNode* ch = d_tn->getFirmChild( meaningKey, fcmap );
                     if( ch ) 
                         d_mtChild.push_back( NodeAndBeadVec::value_type(ch, BarzelBeadChain::Range(d_rng.first,d_rng.first) ) );

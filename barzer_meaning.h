@@ -18,10 +18,12 @@ namespace barzer
 	class MeaningsStorage
 	{
 		typedef ay::StackVec<WordMeaning> MVec_t;
-		typedef ay::StackVec<uint32> WVec_t;
+		typedef ay::StackVec<uint32_t> WVec_t;
 
-		boost::unordered_map<uint32_t, MVec_t> m_word2meanings;
-		boost::unordered_map<uint32_t, WVec_t> m_meaning2words;
+		typedef boost::unordered_map<uint32_t, MVec_t> W2MDict_t;
+		typedef boost::unordered_map<uint32_t, WVec_t> M2WDict_t;
+		W2MDict_t m_word2meanings;
+		M2WDict_t m_meaning2words;
 	public:
 		MeaningsStorage();
 
@@ -33,14 +35,18 @@ namespace barzer
 
 		WordMeaningBufPtr getMeanings(uint32_t wordId) const
 		{
-			boost::unordered_map<uint32_t, MVec_t>::const_iterator pos = m_word2meanings.find(wordId);
+			W2MDict_t::const_iterator pos = m_word2meanings.find(wordId);
 			return pos != m_word2meanings.end() ?
 					std::make_pair(pos->second.getRawBuf(), pos->second.size()) :
-					WordMeaningBufPtr();
+					WordMeaningBufPtr(0, 0);
 		}
 		
 		MeaningSetBufPtr getWords(uint32_t meaningId) const
 		{
+			M2WDict_t::const_iterator pos = m_meaning2words.find(meaningId);
+			return pos != m_meaning2words.end() ?
+					std::make_pair(pos->second.getRawBuf(), pos->second.size()) :
+					MeaningSetBufPtr(0, 0);
 		}
 	};
 } // namespace barzer 
