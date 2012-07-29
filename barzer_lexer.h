@@ -58,7 +58,7 @@ class QLexParser {
 		/// discarded
 		MAX_EDIT_DIST_FROM_SPELL = 2,
 		/// words shorter than this wont be spell corrected
-		MIN_SPELL_CORRECT_LEN = 4 ,
+		MIN_SPELL_CORRECT_LEN = 4,
 
 		MAX_CTOKENS_PER_QUERY = 64
 	};
