@@ -326,12 +326,12 @@ void BELReader::addStatement( const BELStatementParsed& sp )
 BELParser*  BELReader::initParser(InputFormat fmt )
 {
 	if( parser ) {
+        
 		if( fmt != inputFmt ) {
 			inputFmt = fmt;
-			delete parser;
-			parser = 0;
-		} else
-			return parser;
+		} 
+        delete parser;
+        parser = 0;
 	}
 	if( fmt ==  INPUT_FMT_AUTO ) { // try to determine the format from file
 		if( inputFileName.length() < 4 ) {
