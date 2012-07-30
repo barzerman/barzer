@@ -30,6 +30,7 @@ libs = -Lay -Lsnowball -lay -lsnowlib -L/usr/local/lib -L/opt/local/lib -L/usr/l
 	-lboost_system -lboost_filesystem -lboost_thread-mt -lexpat -lstdc++
 ECHO = echo
 lib_objects = \
+barzer_meaning.o \
 autotester/barzer_at_autotester.o \
 autotester/barzer_at_comparators.o \
 barzer_tokenizer.o \
