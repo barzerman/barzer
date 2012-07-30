@@ -474,7 +474,7 @@ const BarzelTrieNode* BELTrie::addPath(
 
 	BarzelTrieFirmChildKey firmKey;
 	BarzelTrieFirmChildKey_form keyFormer( firmKey, *this ) ;
-
+    
 	for( BTND_PatternDataVec::const_iterator i = path.begin(); i!= path.end(); ++i ) {
 		//BarzelTrieFirmChildKey shitKey(*i);
 		bool isFirm = boost::apply_visitor( keyFormer, *i );
