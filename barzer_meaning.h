@@ -2,7 +2,7 @@
 #define BARZER_MEANING_H
 
 #include <boost/unordered_map.hpp>
-
+#include <ay/ay_stackvec.h>
 #include <vector>
 
 namespace barzer {
@@ -20,8 +20,8 @@ struct WordMeaning {
 typedef std::pair<const WordMeaning*, size_t> WordMeaningBufPtr;
 typedef std::pair<const uint32_t*, size_t> MeaningSetBufPtr;
 
-typedef std::vector<WordMeaning> MVec_t;
-typedef std::vector<uint32_t> WVec_t;
+typedef ay::StackVec<WordMeaning> MVec_t;
+typedef ay::StackVec<uint32_t> WVec_t;
 
 typedef boost::unordered_map<uint32_t, MVec_t> W2MDict_t;
 typedef boost::unordered_map<uint32_t, WVec_t> M2WDict_t;
