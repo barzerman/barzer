@@ -139,6 +139,7 @@ bool BELParserXML::isValidTag( int tag, int parent ) const
 // attr_sz number of attribute pairs
 void BELParserXML::startElement( const char* tag, const char_cp * attr, size_t attr_sz )
 {
+    cdataBuf.clear();
 	int tid = getTag( tag );
 	if( tid == TAG_UNDEFINED && statement.hasStatement() ) 
 		statement.setInvalid();
@@ -1550,6 +1551,7 @@ void BELParserXML::getElementText( const char* txt, int len )
         cdataBuf.clear();
 		return; // this should never happen 
     }
+    
     cdataBuf.append( txt, len );
 	return;
 }
