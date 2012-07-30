@@ -16,10 +16,12 @@ namespace ay
 		};
 
 		size_t m_size;
-		union
+		union U
 		{
 			char m_rawData[ObjSize];
 			T m_objs[SSize];
+			
+			U() {}
 		} m_u;
 	protected:
 		inline const ContClass* cont() const { return reinterpret_cast<const ContClass*>(m_u.m_rawData); }
