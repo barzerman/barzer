@@ -149,14 +149,43 @@ void  MeaningsXMLParser_anon::parse( std::istream& fp )
 
 void MeaningsXMLParser::tagOpen( const char* tag, const char** attr, size_t attr_sz )
 {
+	const char c = tag[0];
+	switch (c)
+	{
+	case 'm':
+		for (size_t i = 0; i < attr_sz; i += 2)
+			if (attr[i][0] == 'n')
+			{
+				m_meaningName.assign(attr[i + 1]);
+				break;
+			}
+		break;
+	case 'w':
+		for (size_t i = 0; i < attr_sz; i += 2)
+			if (attr[i][0] == 'v')
+			{
+				m_curWords.push_back(std::string(attr[i + 1]));
+				break;
+			}
+		break;
+	}
+	
 }
 
 void MeaningsXMLParser::tagClose( const char* tag )
 {
+	if (tag[0] == 'm')
+	{
+		m_parsedMeanings.push_back(RawMeaning_t(m_meaningName, m_curWords));
+		m_meaningName.clear();
+		m_curWords.clear();
+	}
 }
+
 void MeaningsXMLParser::takeCData( const char* dta, size_t dta_len )
 {
 }
+
 void MeaningsXMLParser::readFromFile( const char* fname )
 {
     std::ifstream fp;
@@ -167,6 +196,13 @@ void MeaningsXMLParser::readFromFile( const char* fname )
     } else {
         ay::print_absolute_file_path( (std::cerr << "ERROR: MeaningsXMLParser cant open file \"" ), fname ) << "\"\n";
     }
+}
+
+void MeaningsXMLParser::clear()
+{
+	m_meaningName.clear();
+	m_curWords.clear();
+	m_parsedMeanings.clear();
 }
 
 } // namespace barzer
