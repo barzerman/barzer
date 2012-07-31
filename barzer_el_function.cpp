@@ -2443,7 +2443,7 @@ struct BELFunctionStorage_holder {
         SECFilterMap fltrMap;
 
         if( rvec.size() > 4 )  {
-            size_t rvec_size_1 = rvec.size()-1;
+            size_t rvec_size_1 = rvec.size()-3;
             for( size_t i = 1; i< rvec_size_1; i+= 4 ) {
                 StoredEntityClass sec;
 
