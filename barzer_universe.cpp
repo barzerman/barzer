@@ -1,6 +1,7 @@
 #include <barzer_universe.h>
 #include <barzer_bzspell.h>
 #include <barzer_ghettodb.h>
+#include <barzer_meaning.h>
 #include <ay/ay_cmdproc.h>
 #include <ay/ay_ngrams.h>
 #include <boost/filesystem.hpp>
@@ -232,7 +233,8 @@ StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	trieCluster(g.globalTriePool,*this),
 	topicTrieCluster(g.globalTriePool,*this),
 	bzSpell(new BZSpell(*this)),
-    d_ghettoDb(new Ghettodb())
+    d_ghettoDb(new Ghettodb()),
+    m_meanings(new MeaningsStorage)
 {
 	m_hints.initFromUniverse(this);
 }
