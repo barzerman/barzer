@@ -176,7 +176,13 @@ void MeaningsXMLParser::tagClose( const char* tag )
 {
 	if (tag[0] == 'm')
 	{
-		m_parsedMeanings.push_back(RawMeaning_t(m_meaningName, m_curWords));
+		RawMeaning m =
+		{
+			m_meaningName,
+			m_curWords,
+			0 // todo
+		};
+		m_parsedMeanings.push_back(m);
 		m_meaningName.clear();
 		m_curWords.clear();
 	}

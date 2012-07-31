@@ -95,9 +95,13 @@ struct MeaningsXMLParser {
 
     std::vector<int> tagStack;
     */
-	
-	typedef std::pair<std::string, std::vector<std::string>> RawMeaning_t;
-	std::vector<RawMeaning_t> m_parsedMeanings;
+	struct RawMeaning
+	{
+		std::string name;
+		std::vector<std::string> words;
+		uint8_t prio;
+	};
+	std::vector<RawMeaning> m_parsedMeanings;
 
     /// tag functions are needed for external connectivity so that this object can be invoked from other XML parsers
     void tagOpen( const char* tag, const char** attr, size_t attr_sz );
