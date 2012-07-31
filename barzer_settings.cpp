@@ -311,6 +311,51 @@ void BarzerSettings::loadEntities() {
 	}
 }
 
+void BarzerSettings::loadMeanings (User &u, const ptree& node)
+{
+	const ptree& meanings = node.get_child("meanings", empty_ptree());
+
+	try
+	{
+		StoredUniverse& uni = u.getUniverse();
+		GlobalPools& gp = uni.gp;
+		MeaningsStorage *mst = uni.getMeanings();
+
+		MeaningsXMLParser p;
+		uint32_t numMeanings = 0;
+		uint32_t numWords = 0;
+		BOOST_FOREACH (const ptree::value_type& v, meanings)
+		{
+			if (v.first != "mmap")
+				continue;
+
+			p.clear();
+			p.readFromFile(v.second.data().c_str());
+
+			numMeanings += p.m_parsedMeanings.size();
+
+			BOOST_FOREACH (const MeaningsXMLParser::RawMeaning& raw, p.m_parsedMeanings)
+			{
+				const uint32_t mid = gp.internString_internal(raw.name.c_str(), raw.name.size());
+				const WordMeaning wm (mid, raw.prio);
+
+				numWords += raw.words.size();
+
+				BOOST_FOREACH (const std::string& word, raw.words)
+				{
+					const uint32_t wid = gp.internString_internal(word.c_str(), word.size());
+					mst->addMeaning (wid, wm);
+				}
+			}
+		}
+
+		AYLOG(DEBUG) << "!!Meanings: loaded " << numMeanings << " with " << numWords << " words (non-unique) total for user " << u.id;
+	}
+	catch (const boost::property_tree::ptree_bad_path& e)
+	{
+		AYLOG(ERROR) << e.what();
+	}
+}
 
 void BarzerSettings::loadSpell(User &u, const ptree &node)
 {
@@ -523,6 +568,7 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 	std::cout << "Loading user id: " << userId << "\n";
 
 	loadSpell(u, children);
+	loadMeanings(u, children);
     reader.setRespectLimits( userId );
     reader.setCurrentUniverse( u.getUniversePtr() );
     load_ent_segregate_info(reader, u, children);

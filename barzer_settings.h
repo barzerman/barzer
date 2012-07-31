@@ -149,6 +149,7 @@ public:
 	/// global dictionaries from <dictionaries> tag
 	void loadLangNGrams();
 	void loadDictionaries();
+	void loadMeanings(User&, const boost::property_tree::ptree&);
 	void loadSpell(User&, const boost::property_tree::ptree&);
 
 	void loadTrieset(BELReader&, User&, const boost::property_tree::ptree&);
