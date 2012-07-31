@@ -30,7 +30,13 @@ typedef boost::unordered_map<uint32_t, WVec_t> M2WDict_t;
 class MeaningsStorage {
     W2MDict_t m_word2meanings;
     M2WDict_t m_meaning2words;
+	
+	MeaningsStorage *m_fallback;
 public:
+	MeaningsStorage() : m_fallback(0) {}
+	
+	void setFallback(MeaningsStorage *fb) { m_fallback = fb; }
+
     const W2MDict_t& getWordsToMeaningsDict() const { return m_word2meanings; }
     const M2WDict_t& getMeaningsToWordsDict() const { return m_meaning2words; }
 
@@ -41,17 +47,21 @@ public:
 
     WordMeaningBufPtr getMeanings(uint32_t wordId) const {
         W2MDict_t::const_iterator pos = m_word2meanings.find(wordId);
-        if( pos != m_word2meanings.end() && pos->second.size() ) {
-           return WordMeaningBufPtr( &(pos->second[0]), pos->second.size() ); 
-        } else
+        if( pos != m_word2meanings.end() )
+            return WordMeaningBufPtr( &(pos->second[0]), pos->second.size() ); 
+		else if (m_fallback)
+			return m_fallback->getMeanings(wordId);
+        else
             return WordMeaningBufPtr(0,0);
     }
-    
+
     MeaningSetBufPtr getWords(uint32_t meaningId) const {
         M2WDict_t::const_iterator pos = m_meaning2words.find(meaningId);
-        if( pos != m_meaning2words.end() && pos->second.size()) {
+        if( pos != m_meaning2words.end() )
             return MeaningSetBufPtr( &(pos->second[0]), pos->second.size());
-        } else 
+        else if (m_fallback)
+			return m_fallback->getWords(meaningId);
+		else
             return MeaningSetBufPtr(0, 0);
     }
 };
