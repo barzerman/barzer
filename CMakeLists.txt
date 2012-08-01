@@ -83,7 +83,7 @@ add_subdirectory (snowball)
 set(EXTRA_LIBS ${EXTRA_LIBS}
                ${Boost_SYSTEM_LIBRARY}
                ${Boost_FILESYSTEM_LIBRARY}
-               ${Boost_THREAD_LIBRARY}  
+               ${Boost_THREAD_LIBRARY}
                ay
                snowlib)
 
@@ -96,7 +96,7 @@ else()
 	set(EXTRA_LIBS ${EXTRA_LIBS} ${EXPAT_LIBRARIES})
 endif()
 
-set(SOURCES barzer_tokenizer.cpp 
+set(SOURCES barzer_tokenizer.cpp
             barzer_barz.cpp
             barzer_entity.cpp
             barzer_basic_types.cpp
@@ -138,6 +138,7 @@ set(SOURCES barzer_tokenizer.cpp
 			barzer_number.cpp
 			barzer_barzxml.cpp
 			barzer_el_rewrite_control.cpp
+			barzer_relbits.cpp
 			autotester/barzer_at_autotester.cpp
 			autotester/barzer_at_comparators.cpp
             "${EN_DIR}/barzer_en_date_util.cpp"
@@ -208,7 +209,7 @@ if (ENABLE_PYBARZER)
 #		MESSAGE (ERROR "Pybarzer requires ENABLE_BARZ_SHARED set to true")
 #	endif (NOT ENABLE_BARZ_SHARED)
 
-	add_library(pybarzer SHARED barzer_python.cpp) 
+	add_library(pybarzer SHARED barzer_python.cpp)
 	target_link_libraries (pybarzer barzer_static butil ${EXTRA_LIBS})
 	SET_TARGET_PROPERTIES(pybarzer PROPERTIES PREFIX "")
 	IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
