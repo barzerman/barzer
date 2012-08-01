@@ -101,7 +101,7 @@ public:
 	XML_ParserStruct* parser;
 	int statementCount;  // siply counts statetent tags for err diag
 	std::stack< int > tagStack;
-
+    std::string cdataBuf;
 	struct CurStatementData {
 		BELStatementParsed stmt;
 		// std::string macroName;

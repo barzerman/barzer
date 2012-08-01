@@ -139,6 +139,7 @@ bool BELParserXML::isValidTag( int tag, int parent ) const
 // attr_sz number of attribute pairs
 void BELParserXML::startElement( const char* tag, const char_cp * attr, size_t attr_sz )
 {
+    cdataBuf.clear();
 	int tid = getTag( tag );
 	if( tid == TAG_UNDEFINED && statement.hasStatement() ) 
 		statement.setInvalid();
@@ -551,7 +552,6 @@ DEFINE_BELParserXML_taghandle(T)
 	}
 	bool isStop = false, noTextToNum = true;
 	bool doStem = getGlobalPools().parseSettings().stemByDefault() ;
-
     const char* modeString = 0;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
@@ -1527,23 +1527,32 @@ void BELParserXML::processLogic( int tid , bool close = false)
     statement.pushNode(BTND_RewriteData(l));
 }
 
-
 void BELParserXML::endElement( const char* tag )
 {
+    if( cdataBuf.length() ) {
+	    BELParseTreeNode* node = statement.getCurrentNode();
+	    if( node ) 	{
+		    boost::apply_visitor( BTND_text_visitor(*this,cdataBuf.c_str(),cdataBuf.length(),node->noTextToNum), node->getVar() ) ; 
+	    }
+    }
+
 	int tid = getTag( tag );
+    
 	elementHandleRouter(tid,0,0,true);
 	if( !tagStack.empty() ) 
 		tagStack.pop();
+
+    cdataBuf.clear();
 }
 
 void BELParserXML::getElementText( const char* txt, int len )
 {
-	if( tagStack.empty() )
+	if( tagStack.empty() ) {
+        cdataBuf.clear();
 		return; // this should never happen 
-	BELParseTreeNode* node = statement.getCurrentNode();
-	if( node ) 	{
-		boost::apply_visitor( BTND_text_visitor(*this,txt,len,node->noTextToNum), node->getVar() ) ; 
-	}
+    }
+    
+    cdataBuf.append( txt, len );
 	return;
 }
 BELParserXML::~BELParserXML()
