@@ -4,23 +4,27 @@
 
 namespace barzer
 {
-	enum class RelBit
-	{
-		Synonyms,
-		RBMAX
-	};
-
 	class RelBitsMgr
 	{
 		std::vector<bool> m_bits;
 	public:
+        enum { RBMAX=1024 };
 		RelBitsMgr();
 
 		static RelBitsMgr& inst();
-		inline bool check(RelBit b) const { return m_bits[static_cast<std::size_t>(b)]; }
+		inline bool check(size_t b) const 
+            { return ( b< m_bits.size() ? m_bits[b] : false ); }
 
 		void reparse(const char*);
 	private:
-		void setBit(RelBit b, bool val) { m_bits[static_cast<std::size_t>(b)] = val; }
+        bool setBit(size_t b, bool v=true) 
+        {
+            if( b< m_bits.size() ) {
+                m_bits[b]= v;
+                return true;
+            } else {
+                return false;
+            }
+        }
 	};
 }
