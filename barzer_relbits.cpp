@@ -7,7 +7,7 @@
 namespace barzer
 {
 	RelBitsMgr::RelBitsMgr()
-	: m_bits(static_cast<std::size_t>(RBMAX), false)
+	: m_bits(static_cast<size_t>(RBMAX), false)
 	{
 	}
 
@@ -19,7 +19,7 @@ namespace barzer
 
 	size_t RelBitsMgr::reparse (std::ostream& outStream, const char *filename)
 	{
-		m_bits = std::vector<bool>(static_cast<std::size_t>(RBMAX), false);
+		m_bits = std::vector<bool>(static_cast<size_t>(RBMAX), false);
 
 		FILE* fp = fopen( filename, "r" );
         outStream << "loading release bits from " << filename << "...";

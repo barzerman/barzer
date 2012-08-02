@@ -1,7 +1,8 @@
 #pragma once
 
 #include <vector>
-#include <iostream>
+#include <cstring>
+#include <ostream>
 
 namespace barzer
 {

@@ -169,18 +169,6 @@ namespace autotester
 
 	namespace
 	{
-		template<typename LeftElem, typename RightElem, typename Alloc, template<typename, typename> class Container>
-		inline Container<std::pair<LeftElem, RightElem>, Alloc> zip(const Container<LeftElem, Alloc>& c1, const Container<RightElem, Alloc>& c2)
-		{
-			decltype(zip(c1, c2)) result;
-			auto pIter = c1.begin(), pEnd = c1.end();
-			// auto pIter = std::begin(c1), pEnd = std::end(c1);
-			auto rIter = c2.begin(), rEnd = c2.end();
-			while (pIter != pEnd && rIter != rEnd)
-				result.push_back(std::make_pair(*pIter++, *rIter++));
-			return result;
-		}
-
 		namespace Scores
 		{
 			const int RootLengthFailure = 100;
@@ -243,12 +231,13 @@ namespace autotester
 				if ((*this) (left.getClass (), right.getClass()))
 					result += Scores::EListClassFailure;
 
-				// const auto& zipped = zip(left.getList(), right.getList());
-                
-                for( auto i = left.getList().begin(), j=right.getList().begin(); i!= left.getList().end() && j!= right.getList().end(); ++j, ++i ) {
-                    result += (*this) (*i, *j );
+                for (BarzerEntityList::EList::const_iterator i = left.getList().begin(), j = right.getList().begin();
+						i != left.getList().end() && j != right.getList().end(); ++j, ++i)
+				{
+                    result += (*this) (*i, *j);
                 }
                 /* GOSHA how is the stuff below faster/more readable than the code above?  
+				 * It's a matter of experience IMO. It's actually more readable and I guess is just as fast. The formatting above is quite hell also :)
 				result += std::accumulate(zipped.begin(), zipped.end(), 0,
 						[this] (uint16_t val, decltype(zipped.front()) item) { return val + (*this) (item.first, item.second); });
                 */

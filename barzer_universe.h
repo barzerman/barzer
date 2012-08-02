@@ -284,6 +284,8 @@ public:
 class BZSpell;
 
 class Ghettodb;
+class MeaningsStorage;
+
 class StoredUniverse {
 	uint32_t d_userId;
     std::string d_userName;
@@ -314,6 +316,8 @@ private:
     TokenizerStrategy d_tokenizerStrat;
 
 	void addWordsFromTriesToBZSpell();
+	
+	MeaningsStorage *m_meanings;
 
 public:
     TokenizerStrategy& tokenizerStrategy() { return d_tokenizerStrat; }
@@ -331,6 +335,8 @@ private:
 public:
     const std::string& userName() const { return d_userName; }
     void setUserName(const char* n) { d_userName.assign(n); }
+
+	MeaningsStorage* getMeanings() const { return m_meanings; }
 
     void setBit(size_t bit) { d_biflags.set(bit); }
     bool checkBit(size_t b ) const { return d_biflags.checkBit(b); }

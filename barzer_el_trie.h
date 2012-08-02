@@ -551,7 +551,7 @@ public:
     UniqueTrieId getUniqueTrieId() const
         { return UniqueTrieId( d_trieClass_strId, d_trieId_strId ); }
 
-    WordMeaningBufPtr getMeanings( const BarzerLiteral& l ) const { return WordMeaningBufPtr(0,0); }
+    WordMeaningBufPtr getMeanings( const BarzerLiteral& l ) const;
 
     uint32_t getTrieClass_strId() const { return d_trieClass_strId; }
     uint32_t getTrieId_strId() const { return d_trieId_strId; }

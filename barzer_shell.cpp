@@ -322,6 +322,72 @@ static int bshf_guesslang(BarzerShell *shell, char_cp cmd, std::istream& in)
 	return 0;
 }
 
+static int bshf_wordMeanings(BarzerShell *shell, char_cp cmd, std::istream& in)
+{
+	BarzerShellContext *context = shell->getBarzerContext();
+	GlobalPools& pools = context->getUniverse().getGlobalPools();
+	MeaningsStorage *mst = context->getUniverse().getMeanings();
+
+	ay::InputLineReader reader(in);
+	while (reader.nextLine() && reader.str.length())
+	{
+		const std::string& str = reader.str;
+
+		const WordMeaningBufPtr buf = mst->getMeanings(pools.internalString_getId(str.c_str()));
+		shell->getOutStream() << "got " << buf.second << " meanings:\n";
+		for (size_t i = 0; i < buf.second; ++i)
+		{
+			const char *mstr = pools.internalString_resolve_safe(buf.first[i].id);
+			shell->getOutStream() << mstr << " (prio " << static_cast<int>(buf.first[i].prio) << ")\n";
+		}
+
+		shell->getOutStream() << std::endl;
+	}
+	return 0;
+}
+
+static int bshf_listMeaning(BarzerShell *shell, char_cp cmd, std::istream& in)
+{
+	BarzerShellContext *context = shell->getBarzerContext();
+	GlobalPools& pools = context->getUniverse().getGlobalPools();
+	MeaningsStorage *mst = context->getUniverse().getMeanings();
+
+	ay::InputLineReader reader(in);
+	while (reader.nextLine() && reader.str.length())
+	{
+		const std::string& str = reader.str;
+
+		const MeaningSetBufPtr buf = mst->getWords(pools.internalString_getId(str.c_str()));
+		shell->getOutStream() << "got " << buf.second << " words in meaning:\n";
+		for (size_t i = 0; i < buf.second; ++i)
+		{
+			const char *mstr = pools.internalString_resolve_safe(buf.first[i]);
+			shell->getOutStream() << mstr << std::endl;
+		}
+
+		shell->getOutStream() << std::endl;
+	}
+	return 0;
+}
+
+static int bshf_allMeanings(BarzerShell *shell, char_cp cmd, std::istream& in)
+{
+	BarzerShellContext *context = shell->getBarzerContext();
+	GlobalPools& pools = context->getUniverse().getGlobalPools();
+	MeaningsStorage *mst = context->getUniverse().getMeanings();
+
+	const M2WDict_t& dict = mst->getMeaningsToWordsDict();
+
+	for (M2WDict_t::const_iterator i = dict.begin(), end = dict.end();
+			i != end; ++i)
+		shell->getOutStream() << pools.internalString_resolve_safe(i->first)
+				<< " (" << i->second.size() << " words)\n";
+
+	shell->getOutStream() << std::endl;
+
+	return 0;
+}
+
 static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
@@ -1357,6 +1423,9 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),
 	CmdData( (ay::Shell_PROCF)bshf_grammar, "grammar", "sets trie for given grammar. use 'user' to list grammars" ),
 	CmdData( (ay::Shell_PROCF)bshf_guesslang, "guesslang", "guess a language from a word/string" ),
+	CmdData( (ay::Shell_PROCF)bshf_wordMeanings, "wordmeanings", "list meanings for a word" ),
+	CmdData( (ay::Shell_PROCF)bshf_listMeaning, "listmeaning", "list contents of a meaning" ),
+	CmdData( (ay::Shell_PROCF)bshf_allMeanings, "allmeanings", "get all meanings" ),
 	CmdData( (ay::Shell_PROCF)bshf_lex, "lex", "tokenize and then classify (lex) the input" ),
 	CmdData( (ay::Shell_PROCF)bshf_tokenize, "tokenize", "tests tokenizer" ),
 	CmdData( (ay::Shell_PROCF)bshf_xmload, "xmload", "loads xml from file" ),
