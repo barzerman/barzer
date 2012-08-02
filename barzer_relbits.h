@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <iostream>
 
 namespace barzer
 {
@@ -15,8 +16,8 @@ namespace barzer
 		inline bool check(size_t b) const 
             { return ( b< m_bits.size() ? m_bits[b] : false ); }
 
-		void reparse(const char*);
-	private:
+		size_t reparse(std::ostream&, const char*);
+    private:
         bool setBit(size_t b, bool v=true) 
         {
             if( b< m_bits.size() ) {
