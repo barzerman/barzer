@@ -430,30 +430,18 @@ public:
 			BarzelBeadChain::Range goodRange(d_rng.first,endIt);
 			d_mtChild.push_back( NodeAndBeadVec::value_type(ch, goodRange ) );
 		}
-
-		/// Handling meanings, with check for feature.
-		if (true /*RelBitsMgr::inst().check()*/ && std::distance(d_rng.first, d_rng.second) == 1)
-		{
-			uint32_t id = 0xffffffff;
-			if (d_rng.first->getLiteral())
-				id = d_rng.first->getLiteral()->getId();
-			else if (d_rng.first->getString())
-				id = d_uni.getGlobalPools().internalString_getId(d_rng.first->getString()->c_str());
-
-			if( id != 0xffffffff) {
-				WordMeaningBufPtr wmb = d_uni.getMeanings()->getMeanings(id);
-				std::cout << "Num meanings: " << wmb.second << std::endl;
-				if( wmb.second ) {
-					for( const WordMeaning* m = wmb.first, *m_end = wmb.first+wmb.second; m!= m_end; ++m ) {
-						BarzelTrieFirmChildKey meaningKey;
-						meaningKey.setMeaning(m->id, d_followsBlank);
-						BarzelFCMap::const_iterator i = fcmap.find( meaningKey );
-						if (i != fcmap.end()) 
-							d_mtChild.push_back( NodeAndBeadVec::value_type(&(i->second), BarzelBeadChain::Range(d_rng.first,d_rng.first) ) );
-					}
-				}
-
-			}
+		
+        if( dta.isString() ) {
+            WordMeaningBufPtr wmb = d_uni.getMeanings()->getMeanings(dta.getId());
+            if( wmb.first ) {
+                for( const WordMeaning* m = wmb.first, *m_end = wmb.first+wmb.second; m!= m_end; ++m ) {
+                    BarzelTrieFirmChildKey meaningKey;
+                    meaningKey.setMeaning(m->id, d_followsBlank);
+                    const BarzelTrieNode* ch = d_tn->getFirmChild( meaningKey, fcmap );
+                    if( ch ) 
+                        d_mtChild.push_back( NodeAndBeadVec::value_type(ch, BarzelBeadChain::Range(d_rng.first,d_rng.first) ) );
+                }
+            }
 		}
 
         firmKey.mkNegativeKey();
