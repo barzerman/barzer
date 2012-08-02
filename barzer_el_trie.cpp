@@ -38,6 +38,11 @@ BELTrie::BELTrie( const BELTrie& a ) :
 {}
     // const char * s = gp.internalString_resolve( *i );
 
+WordMeaningBufPtr BELTrie::getMeanings (const BarzerLiteral& l) const
+{
+	return WordMeaningBufPtr(0, 0);
+}
+
 const char* BELTrie::getTrieClass() const { 
     const char* s = globalPools.internalString_resolve( d_trieClass_strId );
     return ( s ? s : "" );

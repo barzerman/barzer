@@ -345,6 +345,7 @@ void BarzerSettings::loadMeanings (User &u, const ptree& node)
 				{
 					const uint32_t wid = gp.internString_internal(word.c_str(), word.size());
 					mst->addMeaning (wid, wm);
+					uni.getBZSpell()->addExtraWordToDictionary(wid);
 				}
 			}
 		}

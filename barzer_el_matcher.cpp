@@ -4,6 +4,7 @@
 #include <barzer_universe.h>
 #include <barzer_barz.h>
 #include <ay_logger.h>
+#include "barzer_relbits.h"
 
 namespace barzer {
 
@@ -182,7 +183,7 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 	BTMIterator& 			d_btmi;
 private: // making sure nobody ever uses this directly
 	NodeAndBeadVec& 		d_mtChild;
-
+	const StoredUniverse&	d_uni;
 public:
 	const BeadRange&		d_rng; // full range
 
@@ -227,7 +228,8 @@ public:
 		return id;
 	}
 
-	findMatchingChildren_visitor( BTMIterator& bi, bool followsBlanks, NodeAndBeadVec& mC, const BeadRange& r, const BarzelTrieNode* t, BeadList::const_iterator dtaBeadIter, const BELTrie& trie):
+	findMatchingChildren_visitor( const StoredUniverse& uni, BTMIterator& bi, bool followsBlanks, NodeAndBeadVec& mC, const BeadRange& r, const BarzelTrieNode* t, BeadList::const_iterator dtaBeadIter, const BELTrie& trie):
+		d_uni(uni),
 		d_btmi(bi),
 		d_mtChild(mC),
 		d_rng(r),
@@ -416,7 +418,7 @@ public:
 		BarzelTrieFirmChildKey firmKey;
 		// forming firm key
 		bool curDtaIsBlank = firmKey.set(dta,d_followsBlank).isBlankLiteral();
-        uint32_t theId = firmKey.id;
+		uint32_t theId = firmKey.id;
 		if( !allowBlanks && curDtaIsBlank ) {
 			return false; // this should never happen blanks are skipped
 		}
@@ -429,21 +431,30 @@ public:
 			d_mtChild.push_back( NodeAndBeadVec::value_type(ch, goodRange ) );
 		}
 
-        /// handling meanings 
-        if( dta.isString() ) {
-            WordMeaningBufPtr wmb = d_trie.getMeanings( dta );
-            if( wmb.first ) {
-                for( const WordMeaning* m = wmb.first, *m_end = wmb.first+wmb.second; m!= m_end; ++m ) {
-                    BarzelTrieFirmChildKey meaningKey;
-                    meaningKey.setMeaning(m->id, d_followsBlank);
-                    const BarzelTrieNode* ch = d_tn->getFirmChild( meaningKey, fcmap );
-                    if( ch ) 
-                        d_mtChild.push_back( NodeAndBeadVec::value_type(ch, BarzelBeadChain::Range(d_rng.first,d_rng.first) ) );
-                }
-            }
+		/// Handling meanings, with check for feature.
+		if (true /*RelBitsMgr::inst().check()*/ && std::distance(d_rng.first, d_rng.second) == 1)
+		{
+			uint32_t id = 0xffffffff;
+			if (d_rng.first->getLiteral())
+				id = d_rng.first->getLiteral()->getId();
+			else if (d_rng.first->getString())
+				id = d_uni.getGlobalPools().internalString_getId(d_rng.first->getString()->c_str());
 
-        }
-        /// end of meanings
+			if( id != 0xffffffff) {
+				WordMeaningBufPtr wmb = d_uni.getMeanings()->getMeanings(id);
+				std::cout << "Num meanings: " << wmb.second << std::endl;
+				if( wmb.second ) {
+					for( const WordMeaning* m = wmb.first, *m_end = wmb.first+wmb.second; m!= m_end; ++m ) {
+						BarzelTrieFirmChildKey meaningKey;
+						meaningKey.setMeaning(m->id, d_followsBlank);
+						BarzelFCMap::const_iterator i = fcmap.find( meaningKey );
+						if (i != fcmap.end()) 
+							d_mtChild.push_back( NodeAndBeadVec::value_type(&(i->second), BarzelBeadChain::Range(d_rng.first,d_rng.first) ) );
+					}
+				}
+
+			}
+		}
 
         firmKey.mkNegativeKey();
 		BarzelFCMap::const_iterator i = fcmap.lower_bound( firmKey );
@@ -771,7 +782,7 @@ bool BTMIterator::findMatchingChildren( NodeAndBeadVec& mtChild, const BeadRange
 
     if( rng.second == rng.first ) return false;
 
-	findMatchingChildren_visitor vis( *this, precededByBlanks, mtChild, rng, tn, dtaBeadIter, d_trie);
+	findMatchingChildren_visitor vis(universe, *this, precededByBlanks, mtChild, rng, tn, dtaBeadIter, d_trie);
 
 	boost::apply_visitor( vis, bead->dta );
 	return ( mtChild.size() != 0 );
