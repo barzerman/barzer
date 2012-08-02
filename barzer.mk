@@ -31,6 +31,7 @@ libs = -Lay -Lsnowball -lay -lsnowlib -L/usr/local/lib -L/opt/local/lib -L/usr/l
 ECHO = echo
 lib_objects = \
 barzer_meaning.o \
+barzer_relbits.o \
 autotester/barzer_at_autotester.o \
 autotester/barzer_at_comparators.o \
 barzer_tokenizer.o \

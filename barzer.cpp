@@ -11,6 +11,7 @@
 #include <barzer_config.h>
 #include <barzer_universe.h>
 #include <barzer_server_response.h>
+#include <barzer_relbits.h>
 
 #if  defined(_WINDOWS_)
 extern "C" void block_ctrlc () 
@@ -96,6 +97,18 @@ int main( int argc, char * argv[] ) {
         exit(0);
     }
 	AYLOGINIT(DEBUG);
+
+    const char *barzerHome = std::getenv("BARZER_HOME");
+    std::string relbitsFile;
+    if( barzerHome ) 
+        relbitsFile.assign(barzerHome);
+    if( relbitsFile.size() && relbitsFile[ relbitsFile.size()-1 ] != '/' ) {
+        relbitsFile.push_back( '/' );
+    }
+    relbitsFile.append( "relbits.txt" );
+    std::cerr << "loading release bits from " << relbitsFile << std::endl; 
+    barzer::RelBitsMgr::inst().reparse( std::cerr, relbitsFile.c_str() );
+
 	//ay::Logger::getLogger()->setFile("barzer.log");
 	ay::CommandLineArgs cmdlProc;
 	cmdlProc.init(argc, argv);

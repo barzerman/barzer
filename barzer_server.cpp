@@ -8,6 +8,7 @@
 #include <barzer_universe.h>
 #include <autotester/barzer_at_comparators.h>
 #include <ay_translit_ru.h>
+#include <barzer_relbits.h>
 
 
 extern "C" {
@@ -334,6 +335,14 @@ int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, c
 }
 
 
+int proc_CHKBIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* str )
+{
+    size_t b = ( str ? atoi(str) : 0 );
+    reqEnv.outStream << "<bits>\n";
+    reqEnv.outStream << "  <b n=\"" << b << "\" v=\"" << RelBitsMgr::inst().check( b ) << "\"/>\n";
+    reqEnv.outStream << "</bits>\n";
+    return 0;
+}
 int proc_COUNT_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* str )
 {
 	GlobalPools gp(false);
@@ -389,6 +398,7 @@ int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os )
         if (cut) *cut = 0;
 		IFHEADER_ROUTE(COUNT_EMIT)
 		IFHEADER_ROUTE(EMIT)
+		IFHEADER_ROUTE(CHKBIT)
 		IFHEADER_ROUTE(EN2RU)
 		IFHEADER_ROUTE(ADD_STMSET)
 		IFHEADER_ROUTE(CLEAR_TRIE)
