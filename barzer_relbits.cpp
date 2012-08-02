@@ -50,6 +50,7 @@ namespace barzer
             ++line;
         }
         outStream << line << " lines read" << std::endl;
+        fclose(fp);
         return line;
 	}
 }
