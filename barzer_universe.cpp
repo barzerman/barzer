@@ -243,6 +243,7 @@ StoredUniverse::~StoredUniverse()
 {
     delete bzSpell;
     delete d_ghettoDb;
+    delete m_meanings;
 }
 
 size_t   StoredUniverse::internString( const char* s, bool asUserSpecific, uint8_t frequency )
@@ -279,7 +280,90 @@ void StoredUniverse::clear()
     topicTrieCluster.clearTries();
     trieCluster.clearTries();
     d_topicEntLinkage.clear();
+    delete m_meanings;
+    m_meanings = ( delete m_meanings, new MeaningsStorage() );
 	clearSpell();
+}
+
+StoredToken& StoredUniverse::internString( int lang, const char* t, BELTrie* triePtr, const char* unstemmed)
+{
+	// here we may want to tweak some (nonexistent yet) fields in StoredToken
+	// to reflect the fact that this thing is actually in the trie
+	bool wasNew = false;
+
+	StoredToken& sTok =  gp.getDtaIdx().addToken( lang, wasNew, t );
+	const uint32_t origId = sTok.getStringId();
+    uint32_t       caseSensitiveId = gp.string_intern( t );
+
+	if (!unstemmed)
+		sTok.setStemmed(false);
+	else if (wasNew)
+		sTok.setStemmed(true);
+
+    BZSpell* bzSpell= getBZSpell();
+    
+    if( wasNew && (sTok.getLength()  < BZSpell::MAX_WORD_LEN) ) {
+        char w[ BZSpell::MAX_WORD_LEN ]; 
+        strncpy( w, t, BZSpell::MAX_WORD_LEN-1 );
+        w[ BZSpell::MAX_WORD_LEN-1 ] = 0;
+
+        //bool tolowerWasNew = false;
+        if( Lang::stringToLower( w, sTok.getLength(), lang ) ) {
+            uint32_t tolowerStrId =  gp.string_intern( w );
+
+            if( bzSpell ) 
+                bzSpell->addExtraWordToDictionary( tolowerStrId );
+        }
+    }
+	if( triePtr ) {
+		BELTrie& trie = *triePtr; 
+        trie.addWordInfo( sTok.getStringId(),unstemmed );
+        if( !unstemmed ) {
+            if( bzSpell ) {
+                bzSpell->addExtraWordToDictionary( sTok.getStringId() );
+                if( caseSensitiveId != sTok.getStringId()  ) {
+                    bzSpell->addExtraWordToDictionary( caseSensitiveId );
+                }
+            }
+        } else {
+            const uint32_t unstmId = gp.getDtaIdx().addToken(unstemmed).getStringId();
+            trie.addStemSrc( origId, unstmId);
+        }
+	}
+	return sTok;
+}
+
+uint32_t StoredUniverse::stemAndIntern( const char* s, size_t len, BELTrie* triePtr )
+{
+	BZSpell* bzSpell = getBZSpell();
+    
+	std::string scopy;
+    if( s[len] ) {
+	    scopy.assign(s, len );
+        s=scopy.c_str();
+    }
+    const StoredToken* storedTok = getStoredToken( s );
+    
+    int lang = LANG_UNKNOWN;
+	if( bzSpell )  {
+        uint32_t i = 0xffffffff;
+        if( bzSpell->isUsersWord(i,s) ) {
+            return ( storedTok? storedTok->getStringId() : i );
+        }
+		std::string stem;
+        bool gotStemmed = bzSpell->stem(stem, s,lang);
+
+		if( gotStemmed ) {
+			internString( lang, stem.c_str(), triePtr, s );
+            std::string stemDeduped;
+            enum { MIN_DEDUPE_LENGTH = 5 };
+            if( bzSpell->dedupeChars(stemDeduped,stem.c_str(),stem.length(),lang,MIN_DEDUPE_LENGTH) ) {
+                internString( lang, stemDeduped.c_str(), triePtr, s );
+            }
+		}
+        recordLangWord( lang );
+	}
+	return internString( lang,s,triePtr,0).getStringId();
 }
 
 BZSpell* StoredUniverse::initBZSpell( const StoredUniverse* secondaryUniverse )

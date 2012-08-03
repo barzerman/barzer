@@ -319,7 +319,12 @@ private:
 	
 	MeaningsStorage *m_meanings;
 
+    
 public:
+    /// much fancier interner than the overloaded one - this function will try to work with the trie 
+    StoredToken& internString( int lang, const char* t, BELTrie* triePtr, const char* unstemmed);
+    uint32_t stemAndIntern( const char* s, size_t lem, BELTrie* triePtr );
+
     TokenizerStrategy& tokenizerStrategy() { return d_tokenizerStrat; }
     const TokenizerStrategy& getTokenizerStrategy() const { return d_tokenizerStrat; }
     enum {
@@ -336,7 +341,8 @@ public:
     const std::string& userName() const { return d_userName; }
     void setUserName(const char* n) { d_userName.assign(n); }
 
-	MeaningsStorage* getMeanings() const { return m_meanings; }
+	MeaningsStorage& meanings() { return *m_meanings; }
+	const MeaningsStorage& meanings() const { return *m_meanings; }
 
     void setBit(size_t bit) { d_biflags.set(bit); }
     bool checkBit(size_t b ) const { return d_biflags.checkBit(b); }

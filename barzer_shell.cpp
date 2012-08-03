@@ -326,14 +326,14 @@ static int bshf_wordMeanings(BarzerShell *shell, char_cp cmd, std::istream& in)
 {
 	BarzerShellContext *context = shell->getBarzerContext();
 	GlobalPools& pools = context->getUniverse().getGlobalPools();
-	MeaningsStorage *mst = context->getUniverse().getMeanings();
+	const MeaningsStorage&mst = context->getUniverse().meanings();
 
 	ay::InputLineReader reader(in);
 	while (reader.nextLine() && reader.str.length())
 	{
 		const std::string& str = reader.str;
 
-		const WordMeaningBufPtr buf = mst->getMeanings(pools.internalString_getId(str.c_str()));
+		const WordMeaningBufPtr buf = mst.getMeanings(pools.internalString_getId(str.c_str()));
 		shell->getOutStream() << "got " << buf.second << " meanings:\n";
 		for (size_t i = 0; i < buf.second; ++i)
 		{
@@ -350,14 +350,14 @@ static int bshf_listMeaning(BarzerShell *shell, char_cp cmd, std::istream& in)
 {
 	BarzerShellContext *context = shell->getBarzerContext();
 	GlobalPools& pools = context->getUniverse().getGlobalPools();
-	MeaningsStorage *mst = context->getUniverse().getMeanings();
+	const MeaningsStorage&mst = context->getUniverse().meanings();
 
 	ay::InputLineReader reader(in);
 	while (reader.nextLine() && reader.str.length())
 	{
 		const std::string& str = reader.str;
 
-		const MeaningSetBufPtr buf = mst->getWords(pools.internalString_getId(str.c_str()));
+		const MeaningSetBufPtr buf = mst.getWords(pools.internalString_getId(str.c_str()));
 		shell->getOutStream() << "got " << buf.second << " words in meaning:\n";
 		for (size_t i = 0; i < buf.second; ++i)
 		{
@@ -374,9 +374,9 @@ static int bshf_allMeanings(BarzerShell *shell, char_cp cmd, std::istream& in)
 {
 	BarzerShellContext *context = shell->getBarzerContext();
 	GlobalPools& pools = context->getUniverse().getGlobalPools();
-	MeaningsStorage *mst = context->getUniverse().getMeanings();
+	const MeaningsStorage &mst = context->getUniverse().meanings();
 
-	const M2WDict_t& dict = mst->getMeaningsToWordsDict();
+	const M2WDict_t& dict = mst.getMeaningsToWordsDict();
 
 	for (M2WDict_t::const_iterator i = dict.begin(), end = dict.end();
 			i != end; ++i)

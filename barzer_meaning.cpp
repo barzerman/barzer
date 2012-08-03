@@ -1,4 +1,5 @@
 #include <barzer_meaning.h>
+#include <barzer_universe.h>
 #include <ay/ay_logger.h>
 extern "C" {
 #include <expat.h>
@@ -9,7 +10,9 @@ namespace {
 
 enum {
     TAG_INVALID,
-    TAG_M,
+    TAG_SYNONYMS, // top level tag - constains meanings
+    TAG_M, // meaning - contains words
+    TAG_W, // single word (part of one meaning)
     /// add new tags above this line only
     TAG_MAX
 };
@@ -46,9 +49,46 @@ struct MeaningsXMLParser_anon {
 };
 
 /// handlers
+DECL_TAGHANDLE(SYNONYMS) {
+    parser.d_meaningNameId = 0xffffffff;
+    ALS_BEGIN /// attributes
+    ALS_END  /// end of attributes
+    return TAGHANDLE_ERROR_OK;
+}
+
 DECL_TAGHANDLE(M) {
-    ALS_BEGIN
-    ALS_END
+    if( !IS_PARENT_TAG(SYNONYMS) ) 
+        return TAGHANDLE_ERROR_PARENT;
+
+    if( open ) { // tag opening 
+        ALS_BEGIN /// attributes
+        case 'n': 
+            if( !n[1] ) // N - meaning name attribute
+                parser.d_meaningNameId= parser.d_gp.internString_internal( v ); 
+                break;
+        ALS_END  /// end of attributes
+    } else       // tag closing 
+        parser.d_meaningNameId = 0xffffffff;
+
+    return TAGHANDLE_ERROR_OK;
+}
+DECL_TAGHANDLE(W) {
+    if( !IS_PARENT_TAG(M) ) 
+        return TAGHANDLE_ERROR_PARENT;
+
+    ALS_BEGIN // attributes  loop
+        case 'v': 
+        if( !n[1] ) { ///  V attribute - value of the word within meaning
+            if( parser.d_meaningNameId != 0xffffffff ) { 
+                const uint8_t frequency = 0; /// maybe we'll start passing frequency here some day
+                const bool addAsUserSpecificString = true; /// this is just done for clarity 
+
+                uint32_t wordId = parser.d_universe->stemAndIntern(v,strlen(v),0);
+                parser.d_universe->meanings().addMeaning( wordId, parser.d_meaningNameId );
+            }
+        }
+            break;
+    ALS_END  // end of attributes
     return TAGHANDLE_ERROR_OK;
 }
 
@@ -60,10 +100,22 @@ inline void tagRouter( MeaningsXMLParser& parser, const char* t, const char** at
     TAGHANDLE handler = 0;
     int       tagId   =  TAG_INVALID;
     switch( c0 ) {
-    case 'M': 
-        if( !c1 ) 
-            SETTAG(M);
-        break;
+    case 'M': if( !c1 )     SETTAG(M); break;
+    case 'W': if( !c1 )     SETTAG(W); break;
+
+    case 'S': if( c1=='Y' && !strcasecmp(t,"synonyms") ) SETTAG(SYNONYMS); break;
+    }
+    if( tagId != TAG_INVALID ) {
+        if( handler )
+            handler(parser,tagId,t,attr,attr_sz,open);
+
+        if( open ) {
+            parser.tagStack.push_back( tagId );
+        } else if( parser.tagStack.size()  ) {
+            parser.tagStack.pop_back();
+        } else { // closing tag mismatch
+            // maybe we will report an error (however silent non reporting is safer) 
+        }
     }
 }
 
@@ -149,43 +201,12 @@ void  MeaningsXMLParser_anon::parse( std::istream& fp )
 
 void MeaningsXMLParser::tagOpen( const char* tag, const char** attr, size_t attr_sz )
 {
-	const char c = tag[0];
-	switch (c)
-	{
-	case 'm':
-		for (size_t i = 0; i < attr_sz; i += 2)
-			if (attr[i][0] == 'n')
-			{
-				m_meaningName.assign(attr[i + 1]);
-				break;
-			}
-		break;
-	case 'w':
-		for (size_t i = 0; i < attr_sz; i += 2)
-			if (attr[i][0] == 'v')
-			{
-				m_curWords.push_back(std::string(attr[i + 1]));
-				break;
-			}
-		break;
-	}
-	
+    tagRouter(*this,tag,attr,attr_sz,true);
 }
 
 void MeaningsXMLParser::tagClose( const char* tag )
 {
-	if (tag[0] == 'm')
-	{
-		RawMeaning m =
-		{
-			m_meaningName,
-			m_curWords,
-			0 // todo
-		};
-		m_parsedMeanings.push_back(m);
-		m_meaningName.clear();
-		m_curWords.clear();
-	}
+    tagRouter(*this,tag,0,0,false);
 }
 
 void MeaningsXMLParser::takeCData( const char* dta, size_t dta_len )
@@ -202,13 +223,6 @@ void MeaningsXMLParser::readFromFile( const char* fname )
     } else {
         ay::print_absolute_file_path( (std::cerr << "ERROR: MeaningsXMLParser cant open file \"" ), fname ) << "\"\n";
     }
-}
-
-void MeaningsXMLParser::clear()
-{
-	m_meaningName.clear();
-	m_curWords.clear();
-	m_parsedMeanings.clear();
 }
 
 } // namespace barzer

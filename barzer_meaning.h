@@ -87,41 +87,24 @@ public:
 
 //// meanings XML parser 
 struct MeaningsXMLParser {
-	/* Not sure if we need these.
     GlobalPools&    d_gp;
     StoredUniverse* d_universe;
 
-    MeaningsXMLParser( GlobalPools& gp ) : d_gp(gp), d_universe(0){}
-
+    MeaningsXMLParser( GlobalPools& gp, StoredUniverse* u=0 ) : d_gp(gp), d_universe(u), d_meaningNameId(0xffffffff){}
     std::vector<int> tagStack;
-    */
-	struct RawMeaning
-	{
-		std::string name;
-		std::vector<std::string> words;
-		uint8_t prio;
-	};
-	std::vector<RawMeaning> m_parsedMeanings;
 
     /// tag functions are needed for external connectivity so that this object can be invoked from other XML parsers
     void tagOpen( const char* tag, const char** attr, size_t attr_sz );
     void tagClose( const char* tag );
     void takeCData( const char* dta, size_t dta_len );
 
-	/*
     bool isCurTag( int tid ) const { return ( tagStack.back() == tid ); }
     bool isParentTag( int tid ) const { return ( tagStack.size() > 1 && (*(tagStack.rbegin()+1)) == tid ); }
-    */
 
     void readFromFile( const char* fname );
-
-	/*
     void clear() { tagStack.clear(); }
-    */
-	void clear();
-private:
-	std::string m_meaningName;
-	std::vector<std::string> m_curWords;
+
+	uint32_t d_meaningNameId; /// volatile frequently updated thing
 };
 
 } // namespace barzer 

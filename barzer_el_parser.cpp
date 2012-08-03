@@ -49,39 +49,7 @@ uint32_t BELParser::stemAndInternTmpText( const char* s, int len )
 	StoredUniverse* curUni = reader->getCurrentUniverse();
 	if( !curUni )
 		curUni = &(getGlobalPools().produceUniverse(0));
-
-	BZSpell* bzSpell = curUni->getBZSpell();
-    
-	std::string scopy;
-    if( s[len] ) {
-	    scopy.assign(s, len );
-        s=scopy.c_str();
-    }
-    const StoredToken* storedTok = curUni->getStoredToken( s );
-    
-    int lang = LANG_UNKNOWN;
-	if( bzSpell )  {
-        uint32_t i = 0xffffffff;
-        if( bzSpell->isUsersWord(i,s) ) {
-            return ( storedTok? storedTok->getStringId() : i );
-        }
-		std::string stem;
-        bool gotStemmed = bzSpell->stem(stem, s,lang);
-
-		if( gotStemmed ) {
-			internString( lang, stem.c_str(), false, s );
-            std::string stemDeduped;
-            enum { MIN_DEDUPE_LENGTH = 5 };
-            if( bzSpell->dedupeChars(stemDeduped,stem.c_str(),stem.length(),lang,MIN_DEDUPE_LENGTH) ) {
-                internString( lang, stemDeduped.c_str(), false, s );
-            }
-		}
-
-        StoredUniverse* curUni = reader->getCurrentUniverse();
-        if( curUni ) 
-            curUni->recordLangWord( lang );
-	}
-	return internString( lang,s,false,0).getStringId();
+    return curUni->stemAndIntern( s, len, &(reader->getTrie()) );
 }
 
 uint32_t BELParser::internVariable( const char* t )
@@ -120,50 +88,8 @@ StoredToken& BELParser::internString( int lang, const char* t, bool noSpell, con
 {
 	// here we may want to tweak some (nonexistent yet) fields in StoredToken
 	// to reflect the fact that this thing is actually in the trie
-    
-	bool wasNew = false;
-
-    GlobalPools& gp  = reader->getGlobalPools();
-	StoredToken& sTok =  gp.getDtaIdx().addToken( lang, wasNew, t );
-	const uint32_t origId = sTok.getStringId();
-    uint32_t       caseSensitiveId = gp.string_intern( t );
-
-	if (!unstemmed)
-		sTok.setStemmed(false);
-	else if (wasNew)
-		sTok.setStemmed(true);
-    StoredUniverse* curUni = ( reader ? reader->getCurrentUniverse() : 0 );
-    BZSpell* bzSpell= ( curUni ? curUni->getBZSpell() : 0);
-    
-    if( wasNew && (sTok.getLength()  < BZSpell::MAX_WORD_LEN) ) {
-        char w[ BZSpell::MAX_WORD_LEN ]; 
-        strncpy( w, t, BZSpell::MAX_WORD_LEN-1 );
-        w[ BZSpell::MAX_WORD_LEN-1 ] = 0;
-
-        //bool tolowerWasNew = false;
-        if( Lang::stringToLower( w, sTok.getLength(), lang ) ) {
-            uint32_t tolowerStrId =  gp.string_intern( w );
-
-            if( bzSpell ) 
-                bzSpell->addExtraWordToDictionary( tolowerStrId );
-        }
-    }
-	if( curUni && !noSpell ) {
-		BELTrie& trie = reader->getTrie();
-        trie.addWordInfo( sTok.getStringId(),unstemmed );
-        if( !unstemmed ) {
-            if( bzSpell ) {
-                bzSpell->addExtraWordToDictionary( sTok.getStringId() );
-                if( caseSensitiveId != sTok.getStringId()  ) {
-                    bzSpell->addExtraWordToDictionary( caseSensitiveId );
-                }
-            }
-        } else {
-            const uint32_t unstmId = reader->getGlobalPools().getDtaIdx().addToken(unstemmed).getStringId();
-            trie.addStemSrc( origId, unstmId);
-        }
-	}
-	return sTok;
+    StoredUniverse* curUni = reader->getCurrentUniverse();
+    return curUni->internString( lang, t, (noSpell ? 0: &(reader->getTrie()) ), unstemmed );
 }
 
 void BELParseTreeNode::print( std::ostream& fp, int depth ) const

@@ -432,7 +432,7 @@ public:
 		}
 		
         if( dta.isString() ) {
-            WordMeaningBufPtr wmb = d_uni.getMeanings()->getMeanings(dta.getId());
+            WordMeaningBufPtr wmb = d_uni.meanings().getMeanings(dta.getId());
             if( wmb.first ) {
                 for( const WordMeaning* m = wmb.first, *m_end = wmb.first+wmb.second; m!= m_end; ++m ) {
                     BarzelTrieFirmChildKey meaningKey;
