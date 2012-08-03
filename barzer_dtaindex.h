@@ -307,13 +307,13 @@ public:
 		return tokPool.addCompoundedTok( wasNew, cwId, numW, len );
 	}
 	/// add generic entity does not link storedtoken and the newly minted entity
-	StoredEntity& addGenericEntity( uint16_t cl, uint16_t scl )
+	StoredEntity& addGenericEntity( uint32_t cl, uint32_t scl )
 	{
 		const StoredEntityUniqId euid( 0xffffffff, cl, scl );
 		bool isNew = false;
 		return entPool.addOneEntity( isNew, euid );
 	}
-	StoredEntity& addGenericEntity( uint32_t t, uint16_t cl, uint16_t scl )
+	StoredEntity& addGenericEntity( uint32_t t, uint32_t cl, uint32_t scl )
 	{
 		const StoredEntityUniqId euid( t, cl, scl );
 
