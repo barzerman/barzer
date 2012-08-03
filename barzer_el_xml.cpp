@@ -598,7 +598,6 @@ DEFINE_BELParserXML_taghandle(T)
 		if( modeString ) 
 			m.setMatchModeFromAttribute(modeString);
 		dta = m;
-		BELParseTreeNode* newNode = statement.pushNode(dta);
 	}
 	else
 	{
