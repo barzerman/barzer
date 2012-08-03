@@ -591,6 +591,15 @@ DEFINE_BELParserXML_taghandle(T)
             p.setMatchModeFromAttribute(modeString);
 		dta = p;
 	}
+	else if (meaningId != 0xffffffff)
+	{
+		BTND_Pattern_Meaning m;
+		m.meaningId = meaningId;
+		if( modeString ) 
+			m.setMatchModeFromAttribute(modeString);
+		dta = m;
+		BELParseTreeNode* newNode = statement.pushNode(dta);
+	}
 	else
 	{
 		BTND_Pattern_Token p;
@@ -604,17 +613,6 @@ DEFINE_BELParserXML_taghandle(T)
     if( newNode && noTextToNum ) {
         newNode->noTextToNum = noTextToNum;
     }
-
-    if (meaningId != 0xffffffff)
-	{
-		BTND_Pattern_Meaning m;
-		m.meaningId = meaningId;
-		if( modeString ) 
-			m.setMatchModeFromAttribute(modeString);
-		BTND_PatternData md;
-		md = m;
-		BELParseTreeNode* newNode = statement.pushNode(md);
-	}
 }
 
 DEFINE_BELParserXML_taghandle(TG)
