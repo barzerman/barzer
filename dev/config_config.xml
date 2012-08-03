@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<config>
+  <users>
+    <user id="34">
+      <entseg c="134"/>
+      <rules>
+        <file class="34" name="topics">/usr/share/barzer/site/alpha/34/topics.xml</file>
+      </rules>
+      <trieset>
+        <trie class="34" name="topics"/>
+      </trieset>
+	  <locales>
+		<locale lang="en"/>
+		<locale lang="ru" default="true"/>
+	  </locales>
+	  <spell>
+	    <lang>fr</lang>
+	  </spell>
+	  <meanings file="/usr/share/barzer/site/alpha/34/meanings.xml"/>
+    </user>
+  </users>
+</config>
