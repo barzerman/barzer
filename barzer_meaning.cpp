@@ -28,7 +28,7 @@ enum {
 	for( const char** a=attr; a< attr_end; a+=2 ) {\
         const char* n = 0[ a ];\
         const char* v = 1[ a ]; \
-        switch(n[1]) {
+        switch(n[0]) {
 
 #define ALS_END }}
 
@@ -63,9 +63,9 @@ DECL_TAGHANDLE(M) {
     if( open ) { // tag opening 
         ALS_BEGIN /// attributes
         case 'n': 
-            if( !n[1] ) // N - meaning name attribute
-                parser.d_meaningNameId= parser.d_gp.internString_internal( v ); 
-                break;
+			if( !n[1] ) // N - meaning name attribute
+				parser.d_meaningNameId = parser.d_gp.internString_internal( v ); 
+			break;
         ALS_END  /// end of attributes
     } else       // tag closing 
         parser.d_meaningNameId = 0xffffffff;
@@ -84,6 +84,7 @@ DECL_TAGHANDLE(W) {
                 const bool addAsUserSpecificString = true; /// this is just done for clarity 
 
                 uint32_t wordId = parser.d_universe->stemAndIntern(v,strlen(v),0);
+				parser.d_universe->getBZSpell()->addExtraWordToDictionary(wordId);
                 parser.d_universe->meanings().addMeaning( wordId, parser.d_meaningNameId );
             }
         }
