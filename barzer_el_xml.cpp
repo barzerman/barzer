@@ -553,6 +553,7 @@ DEFINE_BELParserXML_taghandle(T)
 	bool isStop = false, noTextToNum = true;
 	bool doStem = getGlobalPools().parseSettings().stemByDefault() ;
     const char* modeString = 0;
+	uint32_t meaningId = 0xffffffff;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
@@ -570,10 +571,17 @@ DEFINE_BELParserXML_taghandle(T)
 			}
 			break;
 		case 's':  // s="n" - no stemming
-			if( getGlobalPools().parseSettings().stemByDefault() ) doStem = ( *v != 'n' ); break;
+			if( getGlobalPools().parseSettings().stemByDefault() )
+				doStem = ( *v != 'n' );
+			break;
         case 'x': 
             modeString = v;
             break;
+		case 'm':
+			meaningId = getGlobalPools().internalString_getId(v);
+			if (meaningId == 0xffffffff)
+				AYLOG(ERROR) << "unknown meaning " << v;
+			break;
 		}
 	}
 	BTND_PatternData dta;
@@ -582,7 +590,17 @@ DEFINE_BELParserXML_taghandle(T)
         if( modeString ) 
             p.setMatchModeFromAttribute(modeString);
 		dta = p;
-	} else {
+	}
+	else if (meaningId != 0xffffffff)
+	{
+		BTND_Pattern_Meaning m;
+		m.meaningId = meaningId;
+		if( modeString ) 
+			m.setMatchModeFromAttribute(modeString);
+		dta = m;
+	}
+	else
+	{
 		BTND_Pattern_Token p;
 		p.doStem = doStem;
         
@@ -594,7 +612,6 @@ DEFINE_BELParserXML_taghandle(T)
     if( newNode && noTextToNum ) {
         newNode->noTextToNum = noTextToNum;
     }
-    
 }
 
 DEFINE_BELParserXML_taghandle(TG)

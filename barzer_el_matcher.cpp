@@ -431,13 +431,14 @@ public:
 			d_mtChild.push_back( NodeAndBeadVec::value_type(ch, goodRange ) );
 		}
 		
-        if( dta.isString() ) {
-            WordMeaningBufPtr wmb = d_uni.meanings().getMeanings(dta.getId());
-            if( wmb.first ) {
+		if( dta.isString() ) {
+			WordMeaningBufPtr wmb = d_uni.meanings().getMeanings(dta.getId());
+            if( wmb.second ) {
                 for( const WordMeaning* m = wmb.first, *m_end = wmb.first+wmb.second; m!= m_end; ++m ) {
                     BarzelTrieFirmChildKey meaningKey;
                     meaningKey.setMeaning(m->id, d_followsBlank);
                     const BarzelTrieNode* ch = d_tn->getFirmChild( meaningKey, fcmap );
+					std::cout << ch << std::endl;
                     if( ch ) 
                         d_mtChild.push_back( NodeAndBeadVec::value_type(ch, BarzelBeadChain::Range(d_rng.first,d_rng.first) ) );
                 }

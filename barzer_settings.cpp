@@ -17,6 +17,7 @@
 #include <time.h>
 #include <cstdlib>
 #include <barzer_bzspell.h>
+#include "barzer_relbits.h"
 
 using boost::property_tree::ptree;
 namespace fs = boost::filesystem;
@@ -313,6 +314,11 @@ void BarzerSettings::loadEntities() {
 
 void BarzerSettings::loadMeanings (User &u, const ptree& node)
 {
+	if (!RelBitsMgr::inst().check(1))
+		return;
+	
+	AYLOG(DEBUG) << "meanings bit is set, gotta load" << std::endl;
+
 	const ptree& meanings = node.get_child("meanings", empty_ptree());
 
     StoredUniverse& uni = u.getUniverse();

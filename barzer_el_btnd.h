@@ -630,7 +630,8 @@ typedef boost::variant<
 		BTND_Pattern_Entity,		    // 10
 		BTND_Pattern_ERCExpr,			// 11
 		BTND_Pattern_ERC,			    // 12
-		BTND_Pattern_Range				// 13
+		BTND_Pattern_Range,				// 13
+		BTND_Pattern_Meaning			// 14
 > BTND_PatternData;
 
 /// these enums MUST mirror the order of the types in BTND_PatternData
