@@ -65,7 +65,7 @@ struct StoredEntityUniqId {
 	void setTokenId( uint32_t i ) { tokId = i; }
 
 	StoredEntityUniqId() : tokId(0xffffffff) {}
-	StoredEntityUniqId(uint32_t tid, uint16_t cl, uint16_t sc ) : 
+	StoredEntityUniqId(uint32_t tid, uint32_t  cl, uint32_t  sc ) : 
 		tokId(tid),
 		eclass(cl,sc)
 	{}
