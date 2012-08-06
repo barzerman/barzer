@@ -438,7 +438,6 @@ public:
                     BarzelTrieFirmChildKey meaningKey;
                     meaningKey.setMeaning(m->id, d_followsBlank);
                     const BarzelTrieNode* ch = d_tn->getFirmChild( meaningKey, fcmap );
-					std::cout << ch << std::endl;
                     if( ch ) 
                         d_mtChild.push_back( NodeAndBeadVec::value_type(ch, BarzelBeadChain::Range(d_rng.first,d_rng.first) ) );
                 }
