@@ -166,6 +166,10 @@ public:
 				lst.d_lst.push_back( *i );
 		}
 	}
+    void clear() { 
+        d_class = StoredEntityClass();
+        d_lst.clear(); 
+    }
 	std::ostream& print( std::ostream& fp ) const;
 };
 

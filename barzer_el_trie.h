@@ -320,6 +320,7 @@ public:
 	void clear() { type= T_NONE; }
 	bool isMkEntSingle() const  { return ( type == T_MKENT ); }
 	bool isMkEntList() const  { return ( type == T_MKENTLIST ); }
+    bool isEntity() const { return ( isMkEntSingle() || isMkEntList() ); }
 	bool isRewriter() const  { return ( type == T_REWRITER ); }
 
 	// returns if evaluation may theoretically fail - theoretically some rewrites may

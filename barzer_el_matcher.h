@@ -3,6 +3,7 @@
 
 #include <barzer_el_chain.h>
 #include <barzer_el_variable.h>
+#include <barzer_el_trie.h>
 /// Barzel matching algorithm is here 
 /// it takes an array of CTokens , converts it to BarzelBeadChain 
 /// and then using BELTrie matches subsequences in the bead chain to terminal pattern paths in 
@@ -42,6 +43,45 @@ struct MatcherCallbackGeneric : public MatcherCallback {
 
     void operator()( const BTMIterator& btm ) { d_cb( btm ); }
 };
+
+/// state type (contained and used only by BarzelMatchInfo 
+struct BarzelMatchAmbiguities {
+    BarzerEntityList                          entList;
+    std::vector< BarzelTranslationTraceInfo > traceInfoVec;
+    bool                                      isAmbiguos;
+    
+    BarzelMatchAmbiguities() : isAmbiguos(false){}
+    void clear()
+    {
+        isAmbiguos= false;
+        traceInfoVec.clear();
+        entList.clear();
+    }
+    bool ambiguous() const { return isAmbiguos; }
+    
+    void addEntity( const BarzerEntity& e ) 
+    {
+        if( !isAmbiguos ) isAmbiguos= true;
+        entList.addEntity(e);
+    }
+
+    void addEntity( const BarzerEntityList& e ) 
+    {
+        if( !isAmbiguos ) isAmbiguos= true;
+        entList.appendEList(e.getList());
+    }
+
+    void addEntity( const BarzerEntityList::EList& e ) 
+    {
+        if( !isAmbiguos ) isAmbiguos= true;
+        entList.appendEList(e);
+    }
+
+    void addEntity( const BELTrie& trie, const BarzelTranslation& tran );
+
+    void addTrace( const BarzelTranslationTraceInfo& t ) { traceInfoVec.push_back(t); }
+};
+
 /// BarzelMatchInfo represents one left side of one substitution 
 /// 
 class BarzelMatchInfo {
@@ -54,10 +94,20 @@ class BarzelMatchInfo {
 	///  for each trie node stores the node + the range of beads that matched the node
 	NodeAndBeadVec    d_thePath;
 	std::vector< size_t > d_wcVec; // $n would get translated to wcVec[n] (stores offsets in thePath)
-
+    
+    /// careful! this is a state object 
+    BarzelMatchAmbiguities d_ambiguities; 
 	// varid is the key to BarzelVariableIndex::d_pathInterner
 	bool getDataByVarId( BeadRange& r, uint32_t varId, const BELTrie& trie ) const;
 public:
+    const BarzelMatchAmbiguities& ambiguities() const   { return d_ambiguities; }
+          BarzelMatchAmbiguities& ambiguities()         { return d_ambiguities; }
+
+    bool isAmbiguous() const { return d_ambiguities.ambiguous(); }
+
+    const std::vector< BarzelTranslationTraceInfo >&    ambiguousTraceInfo() const { return d_ambiguities.traceInfoVec; }
+    std::vector< BarzelTranslationTraceInfo >&          ambiguousTraceInfo() { return d_ambiguities.traceInfoVec; }
+
     const BELSingleVarPath* getVarPathByVarId( uint32_t varId, const BELTrie& trie ) const;
 
 	bool isFullBeadRangeEmpty() const { return d_beadRng.first == d_beadRng.second ; }
@@ -102,6 +152,7 @@ public:
 	void clear() {
 		d_thePath.clear();
 		d_wcVec.clear();
+        d_ambiguities.clear();
 		d_beadRng = BeadRange();
 	}
 
@@ -123,27 +174,35 @@ struct BTMBestPaths {
 	// ghetto - technically evaluation may be required for right side backout
 	// so the best path with right sides that guarantee no backout
 	// such paths are called INFALLIBLE
-	NodeAndBeadVec d_bestInfalliblePath;
-	int d_bestInfallibleScore;
-	
-
+    Barz&           d_barz;
+    RewriteUnit&    d_rwrUnit;
+	NodeAndBeadVec  d_bestInfalliblePath;
+	int             d_bestInfallibleScore;
+        
 	// fallible paths (the ones with potential backout) potentially better than 
 	// the best infallible
 	// this will be implemented LATER (?) 
 	typedef std::pair< NodeAndBeadVec, int > NABVScore;
-	std::list<NABVScore> d_falliblePaths;
 	const BELTrie& d_trie;
 
 	/// information of the best terminal paths matched 
 	/// 
 	BeadRange d_fullRange; // original range of the top level matcher 
 	const StoredUniverse& universe;
-	BTMBestPaths( const BeadRange& r, const StoredUniverse& u, const BELTrie& trie ) : 
+    
+	BTMBestPaths( Barz& barz,RewriteUnit&  ru, const BeadRange& r, const StoredUniverse& u, const BELTrie& trie ) : 
+        d_barz(barz),
+        d_rwrUnit(ru),
 		d_bestInfallibleScore(0),
 		d_trie(trie),
 		d_fullRange(r),
 		universe(u) 
 	{}
+    void clear() 
+    {
+        d_bestInfallibleScore= 0;
+    }
+
 	const BeadList::iterator getAbsoluteEnd() const { return d_fullRange.second; }
 	const BeadRange& getFullRange() const { return d_fullRange; }
 	void setFullRange(const BeadRange& br ) { d_fullRange = br; }
@@ -154,7 +213,7 @@ struct BTMBestPaths {
 
 	void addPath( const NodeAndBeadVec& nb );
 	/// returns the score of the winning match
-	int setRewriteUnit( RewriteUnit& ru );
+	int setRewriteUnit( );
 
 	int getBestScore() const
 		{ return d_bestInfallibleScore; }
@@ -163,6 +222,17 @@ struct BTMBestPaths {
 		const NodeAndBeadVec& p = getBestPath();
 		return( p.size() ? p.rbegin()->first : 0 ); 
 	}
+
+    bool isAmbiguous() const { return d_rwrUnit.first.isAmbiguous(); }
+    void disambiguate() { return d_rwrUnit.first.ambiguities().clear(); }
+    BarzelMatchAmbiguities& ambiguities() { return d_rwrUnit.first.ambiguities(); }
+    const BarzelMatchAmbiguities& ambiguities() const { return d_rwrUnit.first.ambiguities(); }
+private:
+    const BarzelTranslation* getTranslation( const NodeAndBeadVec& nb ) const 
+    {
+        const BarzelTrieNode* node = getTrieNode();
+        return ( node ? node->getTranslation(d_trie): 0 );
+    }
 };
 
 struct QSemanticParser_AutocParms;
@@ -214,11 +284,11 @@ public:
             d_autocParm= autocParm;
     }
 
-	BTMIterator( const BeadRange& rng, const StoredUniverse& u, const BELTrie& trie ) : 
+	BTMIterator( Barz& barz, RewriteUnit& ru, const BeadRange& rng, const StoredUniverse& u, const BELTrie& trie ) : 
 		d_trie(trie),
         d_mode(ITMODE_NORMAL),
         d_autocParm(0),
-		bestPaths(rng,u,trie),
+		bestPaths(barz,ru,rng,u,trie),
 		universe(u)
 	{ }
     void autocParm_set( QSemanticParser_AutocParms* acp ) { d_autocParm= acp; }
@@ -250,10 +320,10 @@ protected:
 	/// returns the score of the match beginning wht the bead pointed 
 	/// to by fullRange.first and ending before or at fullRange.second
 	/// score of 0 means no match was found
-	int matchInRange( RewriteUnit& , const BeadRange& fullRange );
+	int matchInRange( Barz& barz, RewriteUnit& , const BeadRange& fullRange );
 
 
-	virtual bool match( RewriteUnit&, BarzelBeadChain& );
+	virtual bool match( Barz& barz, RewriteUnit&, BarzelBeadChain& );
 
 	int rewriteUnit( RewriteUnit&, Barz& );	 	
 
@@ -286,12 +356,6 @@ protected:
 		void clear() { err = ERR_OK; failFlag.clear(); }
 	};
 	Error d_err;
-	
-	/// evaluates highest scoring paths and returns the first suitable one
-	/// fills out rwrUnit
-	//int findWinningPath( RewriteUnit& rwrUnit, BTMBestPaths& bestPaths )
-	//{ return bestPaths.setRewriteUnit( rwrUnit ); }	
-
 public:
 
 	BarzelMatcher( const StoredUniverse& u, const BELTrie& trie ) : universe(u), d_trie(trie) {}

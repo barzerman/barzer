@@ -4,10 +4,33 @@
 #include <barzer_universe.h>
 #include <barzer_barz.h>
 #include <ay_logger.h>
-#include "barzer_relbits.h"
+#include <barzer_relbits.h>
 
 namespace barzer {
 
+void BarzelMatchAmbiguities::addEntity( const BELTrie& trie, const BarzelTranslation& translation )
+{
+	if( !translation.isRewriter() ) { /// translation is trivial non-rewriter 
+        BTND_RewriteData rwr;
+		translation.fillRewriteData( rwr );
+        if( rwr.which() == BTND_Rewrite_MkEnt_TYPE ) {
+            BTND_Rewrite_MkEnt& mkent = boost::get<BTND_Rewrite_MkEnt>(rwr);
+            if( mkent.isSingleEnt() ) {
+                auto p = trie.getGlobalPools().getDtaIdx().getEntById( mkent.getEntId() );
+                if( p ) addEntity(p->euid);
+            } else if( mkent.isEntList() ) {
+                auto entGrp = trie.getEntGroupById( mkent.getEntGroupId() );
+                if( entGrp ) {
+                    auto dtaIdx = trie.getGlobalPools().getDtaIdx();
+                    for( EntityGroup::Vec::const_iterator i = entGrp->getVec().begin(); i!= entGrp->getVec().end(); ++i ){
+                        auto se = dtaIdx.getEntById( *i );
+                        if( se ) addEntity(se->euid);
+                    }
+                }
+            } // e list
+        } // mkent
+    } // simple translation (non rewriter)
+}
 namespace {
 std::ostream& print_NodeAndBeadVec( std::ostream& fp, const NodeAndBeadVec& v, BeadList::iterator end )
 {
@@ -916,15 +939,15 @@ size_t BTMIterator::matchBeadChain_Autocomplete( MatcherCallback& mcb, const Bea
 }
 
 
-int BTMBestPaths::setRewriteUnit( RewriteUnit& ru )
+int BTMBestPaths::setRewriteUnit( )
 {
-	BarzelMatchInfo& ruMatchInfo = ru.first;
+	BarzelMatchInfo& ruMatchInfo = d_rwrUnit.first;
 	ruMatchInfo.setScore( getBestScore() );
 	ruMatchInfo.setFullBeadRange( getFullRange() );
 	const NodeAndBeadVec& winningPath = getBestPath();
 	ruMatchInfo.setPath( winningPath );
 	const BarzelTrieNode* tn = getTrieNode();
-	ru.second = ( tn ? tn->getTranslation(d_trie) : 0 );
+	d_rwrUnit.second = ( tn ? tn->getTranslation(d_trie) : 0 );
 
 	return 0;
 }
@@ -971,14 +994,44 @@ void BTMBestPaths::addPath(const NodeAndBeadVec& nb )
 {
 	// ghetto
 	std::pair< bool, int > score = scorePath( nb );
-	if( score.second <= d_bestInfallibleScore )
-		return;
-	d_bestInfallibleScore = score.second;
-	if( score.first ) { /// fallible
-		d_falliblePaths.push_back( NABVScore(nb,score.second) );
-	} else {
-		d_bestInfalliblePath = nb;
-	}
+	if( score.second < d_bestInfallibleScore ) {
+        /// if score is smaller than best score we ignore this match. 
+        /// soon we will need to add some fuzziness here and replace < with a "much smaller" operator
+        return;
+    } else if( score.second == d_bestInfallibleScore && d_bestInfalliblePath.size() ) { /// new score same as old and we already have something
+        // path with the same or lower score found - ignoring it 
+        // we should add ambiguation here whenever paths resolve to entities for example 
+        // this is especially needed for meanings
+
+        const BarzelTranslation* newTran = getTranslation(nb); // new translation
+        if( newTran && newTran->isEntity() ) {
+            if( isAmbiguous() ) {
+                ambiguities().addEntity( d_trie, *newTran );
+            } else {
+                /// previously unambiguous best path ... may need to ambiguate if it was entity 
+                const BarzelTranslation* bestTran = getTranslation(d_bestInfalliblePath); // new translation
+                if( bestTran && bestTran->isEntity() ) {
+                    /// ambiguating
+                    ambiguities().addEntity( d_trie, *bestTran );
+                    ambiguities().addEntity( d_trie, *newTran );
+                } else { // old best path didnt resolve to entity - this is a bug in the ruleset 
+                    if( bestTran ) { 
+	                    d_barz.pushTrace( newTran->traceInfo, d_trie.getGlobalTriePoolId() );
+                        d_barz.setError( "ambiguity between entity and nonentity" );
+                    }
+                    /// the else here is impossible
+                }
+            }
+        } else 
+		    return;
+    } else {
+        if( isAmbiguous() ) 
+            disambiguate();
+        d_bestInfallibleScore = score.second;
+        if( !score.first ) { /// non-fallible
+            d_bestInfalliblePath = nb;
+        }
+    }
 }
 
 
@@ -1094,16 +1147,18 @@ void BarzelMatchInfo::setPath( const NodeAndBeadVec& p )
 			++d_substitutionBeadRange.second;
 	}
 }
-int BarzelMatcher::matchInRange( RewriteUnit& rwrUnit, const BeadRange& curBeadRange )
+int BarzelMatcher::matchInRange( Barz& barz, RewriteUnit& rwrUnit, const BeadRange& curBeadRange )
 {
 	int  score = 0;
 	const BarzelTrieNode* trieRoot = &(d_trie.getRoot());
 
-	BTMIterator btmi(curBeadRange,universe,d_trie);
+    // will alter rwrUnit
+	BTMIterator btmi(barz,rwrUnit,curBeadRange,universe,d_trie);
 	btmi.findPaths(trieRoot);
 
-	btmi.bestPaths.setRewriteUnit( rwrUnit );
-	// findWinningPath( rwrUnit, btmi.bestPaths );
+    // will alter rwrUnit some more
+	btmi.bestPaths.setRewriteUnit();
+
 	score = rwrUnit.first.getScore();
 
 	return score;
@@ -1112,7 +1167,6 @@ int BarzelMatcher::matchInRange( RewriteUnit& rwrUnit, const BeadRange& curBeadR
 size_t BarzelMatcher::match_Autocomplete( MatcherCallback& cb, Barz& barz, const QSemanticParser_AutocParms& autocParm )
 {
 	BELTrie::ReadLock r_lock(d_trie.getThreadLock());
-	// clear();
 	BarzelBeadChain& beads = barz.getBeads();
 	BeadRange curBeadRange( beads.getLstBegin(), beads.getLstEnd() );
 
@@ -1120,13 +1174,10 @@ size_t BarzelMatcher::match_Autocomplete( MatcherCallback& cb, Barz& barz, const
 
 	const BarzelTrieNode* trieRoot = &(d_trie.getRoot());
 
-	BTMIterator btmi(curBeadRange,universe,d_trie);
+    RewriteUnit dummyRewriteUnit; // unused - just for the interface
+	BTMIterator btmi(barz,dummyRewriteUnit,curBeadRange,universe,d_trie);
     btmi.mode_set_Autocomplete(&autocParm);
 	btmi.matchBeadChain_Autocomplete(cb, curBeadRange, trieRoot);
-
-	// btmi.bestPaths.setRewriteUnit( rwrUnit );
-	// findWinningPath( rwrUnit, btmi.bestPaths );
-	// score = rwrUnit.first.getScore();
 
 	return score;
 }
@@ -1156,7 +1207,7 @@ namespace {
 
 }
 
-bool BarzelMatcher::match( RewriteUnit& ru, BarzelBeadChain& beadChain )
+bool BarzelMatcher::match( Barz& barz, RewriteUnit& ru, BarzelBeadChain& beadChain )
 {
 	// trie always has at least one node (root)
 	//AYDEBUG( BeadRange(beadChain.getLstBegin(), beadChain.getLstEnd()) );
@@ -1166,7 +1217,7 @@ bool BarzelMatcher::match( RewriteUnit& ru, BarzelBeadChain& beadChain )
 		BeadRange fullRange( i, beadChain.getLstEnd() );
 
 		RewriteUnit rwrUnit;
-		int score = matchInRange( rwrUnit, fullRange );
+		int score = matchInRange( barz, rwrUnit, fullRange );
 
 		if( score ) {
 			rwScoreVec.push_back(
@@ -1336,7 +1387,7 @@ int BarzelMatcher::matchAndRewrite( Barz& barz )
 
 		RewriteUnit rewrUnit;
 
-		if( !match( rewrUnit, beads) ) {
+		if( !match( barz, rewrUnit, beads) ) {
 			break; // nothing matched
 		}
 		/// here we can add some debugging where we would log rewrUnit.first (matching info)
