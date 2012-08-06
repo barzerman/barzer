@@ -1,6 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <config>
   <users>
+	<meanings file="/usr/share/barzer/site/alpha/34/meanings.xml"/>
     <user id="34">
       <entseg c="134"/>
       <rules>
@@ -16,7 +17,6 @@
 	  <spell>
 	    <lang>fr</lang>
 	  </spell>
-	  <meanings file="/usr/share/barzer/site/alpha/34/meanings.xml"/>
     </user>
   </users>
 </config>

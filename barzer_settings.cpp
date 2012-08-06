@@ -314,8 +314,6 @@ void BarzerSettings::loadEntities() {
 
 void BarzerSettings::loadMeanings (User &u, const ptree& node)
 {
-	if (!RelBitsMgr::inst().check(1))
-		return;
 	
 	AYLOG(DEBUG) << "meanings bit is set, gotta load" << std::endl;
 
@@ -542,7 +540,9 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 	std::cout << "Loading user id: " << userId << "\n";
 
 	loadSpell(u, children);
+
 	loadMeanings(u, children);
+
     reader.setRespectLimits( userId );
     reader.setCurrentUniverse( u.getUniversePtr() );
     load_ent_segregate_info(reader, u, children);

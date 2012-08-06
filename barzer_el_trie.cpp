@@ -282,6 +282,12 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<bool> {
         key.d_matchMode = p.d_matchMode;
         return true;
 	}
+	bool operator()( const BTND_Pattern_Meaning& m ) {
+		key.type = (uint8_t)BTND_Pattern_Meaning_TYPE;
+		key.id = m.meaningId;	
+        key.d_matchMode = m.d_matchMode;
+        return true;
+		}
 	bool operator()( const BTND_Pattern_Token& p ) {
 		key.type = (uint8_t)BTND_Pattern_Token_TYPE;
 		key.id = p.stringId;	
