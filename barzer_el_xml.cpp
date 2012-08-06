@@ -480,7 +480,7 @@ bool isAllDigits( const char* s,int len  ) {
 template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTND_Pattern_Token& t)  const
 { 
 	/// if d_str is numeric we need to do something
-    const char* str = ( d_str[d_len] ? (d_parser.setTmpText(d_str,d_len)) : d_str ); 
+    const char* str = ( d_str[d_len] ? (d_parser.setTmpText(d_str,d_len)) : d_str );
     bool isNumeric = (isdigit(str[0]) && isAllDigits(str,d_len));
 	bool strIsNum = ( !d_noTextToNum && isNumeric );
 	bool needStem = t.doStem;
@@ -520,6 +520,38 @@ template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Punct> (BTND
 }
 // pattern visitor  template specifications 
 
+uint32_t tryGetPrioMeaning(const StoredUniverse *uni, uint32_t wordId)
+{
+	const WordMeaningBufPtr& buf = uni->meanings().getMeanings(wordId);
+	for (const WordMeaning *m = buf.first; m < buf.first + buf.second; ++m)
+	{
+		if (m->prio > 10)
+			continue;
+
+		return m->id;
+	}
+	return 0xffffffff;
+}
+
+void tryExpandMeaning(BTND_PatternData& pat, const StoredUniverse *uni)
+{
+	if (!uni)
+		return;
+
+	if (pat.which() != BTND_Pattern_Token_TYPE)
+		return;
+
+	const BTND_Pattern_Token& tok = boost::get<BTND_Pattern_Token>(pat);
+	const uint32_t meaningId = tryGetPrioMeaning(uni, tok.getStringId());
+	if (meaningId == 0xffffffff)
+		return;
+
+	BTND_Pattern_Meaning m;
+	m.meaningId = meaningId;
+	m.d_matchMode = tok.d_matchMode;
+	pat = m;
+}
+
 // general visitor 
 struct BTND_text_visitor : public BTND_text_visitor_base {
 
@@ -529,14 +561,15 @@ struct BTND_text_visitor : public BTND_text_visitor_base {
 	void operator()( BTND_PatternData& pat ) const
 		{ 
 			BTND_Pattern_Text_visitor vis(pat,d_parser,d_str,d_len,d_noTextToNum);
-			boost::apply_visitor( vis, pat ) ; 
+			boost::apply_visitor( vis, pat ) ;
+
+			tryExpandMeaning(pat, d_parser.getReader()->getCurrentUniverse());
 		}
 	void operator()( BTND_None& ) const {}
 	void operator()( BTND_StructData& ) const {}
 	void operator()( BTND_RewriteData& rwr)  const
 		{ boost::apply_visitor( BTND_Rewrite_Text_visitor(d_parser,d_str,d_len,0), rwr ) ; }
 };
-
 } // end of anon namespace 
 
 DEFINE_BELParserXML_taghandle(T)
@@ -584,6 +617,7 @@ DEFINE_BELParserXML_taghandle(T)
 			break;
 		}
 	}
+
 	BTND_PatternData dta;
 	if( isStop ) {
 		BTND_Pattern_StopToken p;
