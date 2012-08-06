@@ -1075,6 +1075,10 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 {
     CTWPVec& cVec = barz.getCtVec();
     TTWPVec& tVec = barz.getTtVec();
+// start ghetto
+#warning "the line below is a ghetto fix. please investigate"
+    cVec.reserve( tVec.size() * 2 + 2 );
+// end ghetto
 
     cVec.resize( tVec.size() );
 	if( !dtaIdx )
