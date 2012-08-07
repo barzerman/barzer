@@ -1103,12 +1103,12 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 			continue;
 		} else if( (*t) == '.' ) {
             ctok.setClass( CTokenClassInfo::CLASS_PUNCTUATION );
-            if( *t == '"' ) isQuoted = !isQuoted;
             continue;
         }
 
         bool keepClasifying = qparm.isAutoc;
         bool shouldStem = false;
+        bool wasSplitCorrected = false;
         if( !keepClasifying ) {
             bool isInteger = tryClassify_integer(ctok,ttok);
             if( isInteger ) {
@@ -1137,13 +1137,16 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
                 } else if( !isNumber ) {
 					/// fall thru - this is an unmatched word
 
-					if( !isQuoted /*d_universe.stemByDefault()*/ )
-					{
+					if( !isQuoted /*d_universe.stemByDefault()*/ ) {
+                        //// THIS RELOCATES cVec (potentially) 
+                        size_t oldCvecSz = cVec.size();
 						SpellCorrectResult scr = trySpellCorrectAndClassify (
                             PosedVec<CTWPVec> (cVec, cPos-1),
                             PosedVec<TTWPVec> (tVec, tPos-1),
                             qparm
                         );
+                        ////// ATTENTION!!! ctok is INVALID past this point
+                        wasSplitCorrected = (oldCvecSz != cVec.size());
                         shouldStem = true;
                         if( scr.d_nextCtok < cVec.size() )
 						    cPos = scr.d_nextCtok;
@@ -1151,14 +1154,11 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 						    tPos = scr.d_nextTtok;
 						// if (scr.d_result > 0)
 							// wasStemmed = true;
-	 				}
-	 				else
-					{
+	 				} else
 						ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
-					}
 				}
 			}
-            { /// post processing AFTER trySpellCorrectAndClassify cVec buffer has moved 
+            if( !wasSplitCorrected ) { /// post processing AFTER trySpellCorrectAndClassify cVec buffer has moved 
                 CToken& tmpCtok = cVec[ctokCpos].first;
 		        /// stemming
 		        if( shouldStem || (!isNumber && bzSpell && tmpCtok.isString() && d_universe.stemByDefault() && !tmpCtok.getStemTok()) ) 
