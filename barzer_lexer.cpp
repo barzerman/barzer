@@ -1101,7 +1101,6 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 			continue;
 		} else if( (*t) == '.' ) {
             ctok.setClass( CTokenClassInfo::CLASS_PUNCTUATION );
-            if( *t == '"' ) isQuoted = !isQuoted;
             continue;
         }
 
@@ -1131,6 +1130,7 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 			} else { /// token NOT matched in the data set
                 if( ispunct(*t)) {
                     ctok.setClass( CTokenClassInfo::CLASS_PUNCTUATION );
+                    shouldStem=false;
                     if( *t == '"' ) isQuoted = !isQuoted;
                 } else if( !isNumber ) {
 					/// fall thru - this is an unmatched word
