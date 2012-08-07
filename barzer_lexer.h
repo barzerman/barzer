@@ -23,7 +23,7 @@ struct PosedVec {
 
     size_t operator ++() { return(++d_pos); }
 
-    size_t  pos() const { return 0; }
+    size_t  pos() const { return d_pos; }
 
     value_type&             element() { return d_vec[d_pos]; }
     const value_type&       element() const { return d_vec[d_pos]; }
