@@ -1246,6 +1246,8 @@ bool BarzelMatcher::match( Barz& barz, RewriteUnit& ru, BarzelBeadChain& beadCha
 ///
 int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 {
+    #warning check for ru.first.isAmbiguous() if so do special rewrite  (return rewriteUnitAmbiguous(ru,barz) 
+
 	BarzelBeadChain& chain = barz.getBeads();
 	BarzelMatchInfo& matchInfo = ru.first;
 
