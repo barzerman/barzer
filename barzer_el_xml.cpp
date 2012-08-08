@@ -5,6 +5,7 @@
 #include <ay/ay_debug.h>
 #include <barzer_server_response.h>
 #include <ay_xml_util.h>
+#include "barzer_relbits.h"
 extern "C" {
 #include <expat.h>
 
@@ -563,7 +564,8 @@ struct BTND_text_visitor : public BTND_text_visitor_base {
 			BTND_Pattern_Text_visitor vis(pat,d_parser,d_str,d_len,d_noTextToNum);
 			boost::apply_visitor( vis, pat ) ;
 
-			tryExpandMeaning(pat, d_parser.getReader()->getCurrentUniverse());
+			if (RelBitsMgr::inst().check(1))
+				tryExpandMeaning(pat, d_parser.getReader()->getCurrentUniverse());
 		}
 	void operator()( BTND_None& ) const {}
 	void operator()( BTND_StructData& ) const {}

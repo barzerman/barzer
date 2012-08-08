@@ -4,6 +4,12 @@
 #include <ay/ay_logger.h>
 #include <ay/ay_util.h>
 
+/** Ok, so since we don't want to keep an enum for this, let's describe
+ * the release bits here.
+ * 
+ * 1: use synonyms autoexpansion.
+ */
+
 namespace barzer
 {
 	RelBitsMgr::RelBitsMgr()
