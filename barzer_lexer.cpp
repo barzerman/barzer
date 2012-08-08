@@ -739,7 +739,8 @@ inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexPa
                 ++cPosVec;
     
                 cPosVec.vec().insert (cPosVec.posIterator(), std::make_pair (newTok, cPosVec.pos() ));
-                return ( corrResult=SpellCorrectResult(1, ++cPosVec, ++tPosVec), true);
+                corrResult=SpellCorrectResult(1, ++cPosVec, ++tPosVec);
+                return true;
             }
         }
         return false;
@@ -1089,6 +1090,7 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 		const char* t = ttok.buf.c_str();
 		// cPos->second = std::distance (cVec.begin (), cPos);
 		CToken& ctok = cVec[cPos].first;
+        size_t ctokCpos = cPos;
 
 		ctok.setTToken (ttok, cPos );
 		// bool wasStemmed = false;
@@ -1101,12 +1103,12 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 			continue;
 		} else if( (*t) == '.' ) {
             ctok.setClass( CTokenClassInfo::CLASS_PUNCTUATION );
-            if( *t == '"' ) isQuoted = !isQuoted;
             continue;
         }
 
         bool keepClasifying = qparm.isAutoc;
         bool shouldStem = false;
+        bool wasSplitCorrected = false;
         if( !keepClasifying ) {
             bool isInteger = tryClassify_integer(ctok,ttok);
             if( isInteger ) {
@@ -1135,13 +1137,16 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
                 } else if( !isNumber ) {
 					/// fall thru - this is an unmatched word
 
-					if( !isQuoted /*d_universe.stemByDefault()*/ )
-					{
+					if( !isQuoted /*d_universe.stemByDefault()*/ ) {
+                        //// THIS RELOCATES cVec (potentially) 
+                        size_t oldCvecSz = cVec.size();
 						SpellCorrectResult scr = trySpellCorrectAndClassify (
                             PosedVec<CTWPVec> (cVec, cPos-1),
                             PosedVec<TTWPVec> (tVec, tPos-1),
                             qparm
                         );
+                        ////// ATTENTION!!! ctok is INVALID past this point
+                        wasSplitCorrected = (oldCvecSz != cVec.size());
                         shouldStem = true;
                         if( scr.d_nextCtok < cVec.size() )
 						    cPos = scr.d_nextCtok;
@@ -1149,36 +1154,36 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 						    tPos = scr.d_nextTtok;
 						// if (scr.d_result > 0)
 							// wasStemmed = true;
-	 				}
-	 				else
-					{
+	 				} else
 						ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
-					}
 				}
 			}
-		    /// stemming
-		    if( shouldStem || (!isNumber && bzSpell && ctok.isString() && d_universe.stemByDefault() && !ctok.getStemTok()) ) 
-            {
-			    std::string strToStem( ttok.buf );
-			    std::string stem;
-                int lang = LANG_UNKNOWN;
-			    if( bzSpell->stem(stem, strToStem.c_str(), lang) ) {
-                    const StoredToken* stemTok = dtaIdx->getStoredToken( stem.c_str() ) ;
-                    if( stemTok ) {
-                        if( stemTok != ctok.getStemTok() )
-				            ctok.setStemTok( stemTok );
-                    } else {
-                        enum { MIN_DEDUPE_LENGTH = 5 };
-                        std::string dedupedStem;
-                        if( bzSpell->dedupeChars( stem, strToStem.c_str(), strToStem.length(), lang, MIN_DEDUPE_LENGTH )) { 
-                            stemTok = dtaIdx->getStoredToken( stem.c_str() ) ;
-                            if( stemTok && stemTok != ctok.getStemTok() )
-                                ctok.setStemTok( stemTok );
+            if( !wasSplitCorrected ) { /// post processing AFTER trySpellCorrectAndClassify cVec buffer has moved 
+                CToken& tmpCtok = cVec[ctokCpos].first;
+		        /// stemming
+		        if( shouldStem || (!isNumber && bzSpell && tmpCtok.isString() && d_universe.stemByDefault() && !tmpCtok.getStemTok()) ) 
+                {
+			        std::string strToStem( ttok.buf );
+			        std::string stem;
+                    int lang = LANG_UNKNOWN;
+			        if( bzSpell->stem(stem, strToStem.c_str(), lang) ) {
+                        const StoredToken* stemTok = dtaIdx->getStoredToken( stem.c_str() ) ;
+                        if( stemTok ) {
+                            if( stemTok != tmpCtok.getStemTok() )
+				                tmpCtok.setStemTok( stemTok );
+                        } else {
+                            enum { MIN_DEDUPE_LENGTH = 5 };
+                            std::string dedupedStem;
+                            if( bzSpell->dedupeChars( stem, strToStem.c_str(), strToStem.length(), lang, MIN_DEDUPE_LENGTH )) { 
+                                stemTok = dtaIdx->getStoredToken( stem.c_str() ) ;
+                                if( stemTok && stemTok != tmpCtok.getStemTok() )
+                                    tmpCtok.setStemTok( stemTok );
+                            }
                         }
                     }
-                }
-		    }
-            ctok.syncStemAndStoredTok();
+		        }
+                tmpCtok.syncStemAndStoredTok();
+            }
 		}
 	}
 	if( cVec.size() > MAX_CTOKENS_PER_QUERY ) {
