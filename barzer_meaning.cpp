@@ -66,9 +66,17 @@ DECL_TAGHANDLE(M) {
 			if( !n[1] ) // N - meaning name attribute
 				parser.d_meaningNameId = parser.d_gp.internString_internal( v ); 
 			break;
+		case 'p':
+			if (!n[1]) // p - priority attribute
+				parser.d_priority = atoi(v);
+			break;
         ALS_END  /// end of attributes
-    } else       // tag closing 
+    }
+    else // tag closing 
+	{
         parser.d_meaningNameId = 0xffffffff;
+		parser.d_priority = 100;
+	}
 
     return TAGHANDLE_ERROR_OK;
 }
@@ -85,7 +93,7 @@ DECL_TAGHANDLE(W) {
 
                 uint32_t wordId = parser.d_universe->stemAndIntern(v,strlen(v),0);
 				parser.d_universe->getBZSpell()->addExtraWordToDictionary(wordId);
-                parser.d_universe->meanings().addMeaning( wordId, parser.d_meaningNameId );
+                parser.d_universe->meanings().addMeaning( wordId, WordMeaning(parser.d_meaningNameId, parser.d_priority));
             }
         }
             break;

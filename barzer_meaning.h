@@ -14,7 +14,7 @@ struct WordMeaning {
     uint8_t prio;
 
     WordMeaning() : id(0xffffffff), prio(0) {}
-    WordMeaning(uint32_t i, uint8_t p=0) : id(i), prio(p) {}
+    explicit WordMeaning(uint32_t i, uint8_t p=0) : id(i), prio(p) {}
 };
 
 typedef std::pair<const WordMeaning*, size_t> WordMeaningBufPtr;
@@ -90,7 +90,13 @@ struct MeaningsXMLParser {
     GlobalPools&    d_gp;
     StoredUniverse* d_universe;
 
-    MeaningsXMLParser( GlobalPools& gp, StoredUniverse* u=0 ) : d_gp(gp), d_universe(u), d_meaningNameId(0xffffffff){}
+    MeaningsXMLParser( GlobalPools& gp, StoredUniverse* u=0 )
+	: d_gp(gp)
+	, d_universe(u)
+	, d_meaningNameId(0xffffffff)
+	, d_priority(100)
+	{}
+
     std::vector<int> tagStack;
 
     /// tag functions are needed for external connectivity so that this object can be invoked from other XML parsers
@@ -105,6 +111,7 @@ struct MeaningsXMLParser {
     void clear() { tagStack.clear(); }
 
 	uint32_t d_meaningNameId; /// volatile frequently updated thing
+	uint8_t d_priority;
 };
 
 } // namespace barzer 
