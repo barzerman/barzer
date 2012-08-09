@@ -1300,7 +1300,7 @@ struct BELFunctionStorage_holder {
             for( auto i = el.getList().begin(); i!= el.getList().end(); ++i ) {
                 auto rel = d_ctxt.universe.getEntityRelevance(*i);
                 if( maxRel == 0xffffffff || rel> maxRel ) 
-                    bestEntIndex= ( maxRel=rel, (i-el.getList().begin()) );
+                    bestEntIndex= ( (maxRel=rel), (i-el.getList().begin()) );
             }
 			return (*this)( el.getList()[bestEntIndex] ); 
 		}
