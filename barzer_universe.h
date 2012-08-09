@@ -344,6 +344,22 @@ public:
 	MeaningsStorage& meanings() { return *m_meanings; }
 	const MeaningsStorage& meanings() const { return *m_meanings; }
 
+	enum class MeaningsAutoexp
+	{
+		None,
+		One,
+		Dominant
+	};
+private:
+	MeaningsAutoexp m_autoexpMode;
+	uint8_t m_autoexpThreshold;
+public:
+	void setAutoexpMode(MeaningsAutoexp mode) { m_autoexpMode = mode; }
+	MeaningsAutoexp getAutoexpMode() const { return m_autoexpMode; }
+	
+	void setAutoexpansionThreshold(uint8_t thres) { m_autoexpThreshold = thres; }
+	uint8_t getAutoexpThreshold() const { return m_autoexpThreshold; }
+
     void setBit(size_t bit) { d_biflags.set(bit); }
     bool checkBit(size_t b ) const { return d_biflags.checkBit(b); }
     const BZSpell::char_cp_to_strid_map* getValidWordMapPtr() const 
