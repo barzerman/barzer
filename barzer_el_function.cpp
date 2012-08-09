@@ -1292,7 +1292,17 @@ struct BELFunctionStorage_holder {
             num(0), d_funcName(funcName), d_ctxt(ctxt), erc(e) {}
 
 		bool operator()(const BarzerEntityList &el) {
-			return (*this)(el.getList().front());
+            if( !el.getList().size() )
+                return false;
+
+            uint32_t maxRel = 0xffffffff;
+            size_t   bestEntIndex = 0; /// front by default
+            for( auto i = el.getList().begin(); i!= el.getList().end(); ++i ) {
+                auto rel = d_ctxt.universe.getEntityRelevance(*i);
+                if( maxRel == 0xffffffff || rel> maxRel ) 
+                    bestEntIndex= (i-el.getList().begin());
+            }
+			return (*this)( el.getList()[bestEntIndex] ); 
 		}
 		bool operator()(const BarzerEntity &euid) {
 			if (num) {

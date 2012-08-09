@@ -329,6 +329,11 @@ public:
 private:
     ay::bitflags<UBIT_MAX> d_biflags;
 public:
+    uint32_t getEntityRelevance( const BarzerEntity& ent ) const
+    {
+        EntityData::EntProp* eprop = gp.entData.getEntPropData(ent);
+        return( eprop ? eprop->relevance : 0 );
+    }
     const std::string& userName() const { return d_userName; }
     void setUserName(const char* n) { d_userName.assign(n); }
 
