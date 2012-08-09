@@ -1295,11 +1295,11 @@ struct BELFunctionStorage_holder {
             if( !el.getList().size() )
                 return false;
 
-            uint32_t maxRel = 0xffffffff;
+            uint32_t maxRel = 0;
             size_t   bestEntIndex = 0; /// front by default
             for( auto i = el.getList().begin(); i!= el.getList().end(); ++i ) {
                 auto rel = d_ctxt.universe.getEntityRelevance(*i);
-                if( maxRel == 0xffffffff || rel> maxRel ) 
+                if( rel> maxRel ) 
                     bestEntIndex= ( (maxRel=rel), (i-el.getList().begin()) );
             }
 			return (*this)( el.getList()[bestEntIndex] ); 
