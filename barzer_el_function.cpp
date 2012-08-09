@@ -1083,7 +1083,22 @@ struct BELFunctionStorage_holder {
 			return true;
 		}
 
-		bool operator()(const BarzerEntityList &e) { 
+		bool operator()(const BarzerEntityList &el) {
+		    const BarzerEntityList::EList &elist = el.getList();
+            if( !elist.size() )
+                return false;
+
+            uint32_t maxRel = 0;
+            size_t  bestEntIndex = 0; /// front by default
+            for( auto i = elist.begin(); i!= elist.end(); ++i ) {
+                auto rel = d_ctxt.universe.getEntityRelevance(*i);
+                if( rel> maxRel )
+                    bestEntIndex= ( (maxRel=rel), (i-elist.begin()) );
+            }
+            return (*this)( elist[bestEntIndex] );
+
+
+		    /*
             if( cnt ) {
                 BarzerRange::Entity* er = range.get<BarzerRange::Entity>() ;
                 if( er && e.size() ) {
@@ -1096,6 +1111,7 @@ struct BELFunctionStorage_holder {
             } else 
                 return false;
             return true;
+            */
         }
 		bool operator()(const BarzerEntity &e) {
             if( cnt ) {
