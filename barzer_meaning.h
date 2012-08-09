@@ -89,12 +89,14 @@ public:
 struct MeaningsXMLParser {
     GlobalPools&    d_gp;
     StoredUniverse* d_universe;
+	const uint8_t d_defPrio;
 
-    MeaningsXMLParser( GlobalPools& gp, StoredUniverse* u=0 )
+    MeaningsXMLParser( GlobalPools& gp, StoredUniverse* u=0, uint8_t defPrio = 100 )
 	: d_gp(gp)
 	, d_universe(u)
+	, d_defPrio(defPrio)
 	, d_meaningNameId(0xffffffff)
-	, d_priority(100)
+	, d_priority(defPrio)
 	{}
 
     std::vector<int> tagStack;

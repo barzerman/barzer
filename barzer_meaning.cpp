@@ -75,7 +75,7 @@ DECL_TAGHANDLE(M) {
     else // tag closing 
 	{
         parser.d_meaningNameId = 0xffffffff;
-		parser.d_priority = 100;
+		parser.d_priority = parser.d_defPrio;
 	}
 
     return TAGHANDLE_ERROR_OK;
