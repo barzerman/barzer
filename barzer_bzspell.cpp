@@ -7,6 +7,7 @@
 #include <lg_ru/barzer_ru_lex.h>
 #include <lg_ru/barzer_ru_stemmer.h>
 #include <lg_en/barzer_en_lex.h>
+#include <barzer_lexer.h>
 
 namespace barzer {
 typedef std::vector<char> charvec;
@@ -578,11 +579,10 @@ int BZSpell::isUsersWord( uint32_t& strId, const char* word ) const
 uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int lang ) const
 {
 	/// for ascii corrector
-    size_t s_len = strlen(str);
-    if( lang == LANG_UNKNOWN )
-        lang = Lang::getLang(  d_universe, str, s_len );
-
     size_t str_len = strlen( str );
+    if( lang == LANG_UNKNOWN )
+        lang = Lang::getLang(  d_universe, str, str_len );
+
 	if( lang == LANG_ENGLISH) {
 
         if( str_len>= MAX_WORD_LEN )
@@ -703,13 +703,14 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 	return 0xffffffff;
 }
 
-uint32_t BZSpell::purePermuteCorrect(const char* s, size_t s_len )  const
+uint32_t BZSpell::purePermuteCorrect2B(const char* s, size_t s_len )  const
 {
+    size_t numChar = (s_len/2);
+
     CorrectCallback cb( *this, s_len );
     cb.tryUpdateBestMatch( s );
 
-    if( s_len> d_minWordLengthToCorrect ) {
-        size_t numChar = s_len/2;
+    if( numChar> d_minWordLengthToCorrect ) {
         ay::choose_n<ay::Char2B, CorrectCallback > variator( cb, numChar-1, numChar-1 );
         variator( ay::Char2B_iterator(s), ay::Char2B_iterator(s+s_len) );
     }
@@ -820,7 +821,7 @@ uint32_t BZSpell::get2ByteLangStemCorrection( int lang, const char* str, bool do
                 return 0xffffffff;
             /// trying to permute correct stemmed word - stem was successful but result of the stem
             /// isnt a valid word
-            strId = purePermuteCorrect( norm.c_str(), norm.length() );
+            strId = purePermuteCorrect2B( norm.c_str(), norm.length() );
             if( strId != 0xffffffff )
                 return strId;
         }
@@ -1200,7 +1201,8 @@ BZSpell::BZSpell( StoredUniverse& uni ) :
 	d_secondarySpellchecker(0),
 	d_universe( uni ),
 	d_charSize(1) ,
-	d_minWordLengthToCorrect( d_charSize* 3 )
+
+	d_minWordLengthToCorrect( d_charSize* (QLexParser::MIN_SPELL_CORRECT_LEN) )
 {}
 
 BZSpell::~BZSpell()

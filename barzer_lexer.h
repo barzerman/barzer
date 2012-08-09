@@ -53,7 +53,7 @@ class QLexParser {
 	const StoredUniverse& d_universe;
 
 	void collapseCTokens( CTWPVec::iterator beg, CTWPVec::iterator end );
-
+public:
 	enum {
 		/// discarded
 		MAX_EDIT_DIST_FROM_SPELL = 2,
@@ -62,6 +62,7 @@ class QLexParser {
 
 		MAX_CTOKENS_PER_QUERY = 64
 	};
+private:
     const StoredToken* getStoredToken(uint32_t& strId, const char* str) const;
     const StoredToken* getStoredToken(const char* str) const
     {
