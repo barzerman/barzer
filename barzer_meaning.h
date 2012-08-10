@@ -33,7 +33,31 @@ class MeaningsStorage {
 	
 	MeaningsStorage *m_fallback;
 public:
-	MeaningsStorage() : m_fallback(0) {}
+	enum class MeaningsAutoexp {
+		None,
+		One,
+		Dominant
+	};
+    enum {
+        AUTOEXPAND_DEFAULT_THRESHOLD=10,
+        AUTOEXPAND_DEFAULT_PRIORITY =100
+    };
+private:
+	MeaningsAutoexp m_autoexpMode;
+	uint8_t m_autoexpThreshold;
+public:
+	void setAutoexpMode(MeaningsAutoexp mode) { m_autoexpMode = mode; }
+	MeaningsAutoexp getAutoexpMode() const { return m_autoexpMode; }
+    
+    void setAutoextModeByName( const char* name );
+	void setAutoexpansionThreshold(uint8_t thres) { m_autoexpThreshold = thres; }
+	uint8_t getAutoexpThreshold() const { return m_autoexpThreshold; }
+
+	MeaningsStorage() : 
+        m_fallback(0),
+        m_autoexpMode(MeaningsAutoexp::None),
+        m_autoexpThreshold(AUTOEXPAND_DEFAULT_THRESHOLD) 
+        {}
 	
 	void setFallback(MeaningsStorage *fb) { m_fallback = fb; }
 

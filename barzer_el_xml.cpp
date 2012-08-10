@@ -521,53 +521,45 @@ template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Punct> (BTND
 }
 // pattern visitor  template specifications 
 
-uint32_t tryGetPrioMeaning(const StoredUniverse *uni, uint32_t wordId)
+uint32_t tryGetPrioMeaning(const StoredUniverse& uni, uint32_t wordId)
 {
-	const uint8_t threshold = uni->getAutoexpThreshold();
+    const MeaningsStorage& meanings = uni.meanings();
+	const uint8_t threshold = meanings.getAutoexpThreshold();
 
-	switch (uni->getAutoexpMode())
-	{
-	case StoredUniverse::MeaningsAutoexp::None:
+	switch (meanings.getAutoexpMode()) {
+	case MeaningsStorage::MeaningsAutoexp::None:
 		return 0xffffffff;
-	case StoredUniverse::MeaningsAutoexp::One:
-	{
-		const WordMeaningBufPtr& buf = uni->meanings().getMeanings(wordId);
+	case MeaningsStorage::MeaningsAutoexp::One: {
+		const WordMeaningBufPtr& buf = meanings.getMeanings(wordId);
 		if (buf.second == 1 && buf.first->prio <= threshold)
 			return buf.first->id;
 		else
 			return 0xffffffff;
-	}
-	case StoredUniverse::MeaningsAutoexp::Dominant:
-	{
-		uint8_t max = 255, preMax = 255;
-		uint32_t maxId = 0xffffffff;
+    }
+        break;
+	case MeaningsStorage::MeaningsAutoexp::Dominant: {
+		uint8_t     max = 0xff, preMax = 0xff;
+		uint32_t    maxId = 0xffffffff;
 
-		const WordMeaningBufPtr& buf = uni->meanings().getMeanings(wordId);
-		for (const WordMeaning *m = buf.first, *end = buf.first + buf.second; m < end; ++m)
-		{
-			if (m->prio >= max)
-				continue;
-
-			maxId = m->id;
-			preMax = max;
-			max = m->prio;
+		const WordMeaningBufPtr& buf = meanings.getMeanings(wordId);
+		for (const WordMeaning *m = buf.first, *end = buf.first + buf.second; m < end; ++m) {
+			if (m->prio < max) {
+                maxId = m->id;
+                preMax = max;
+                max = m->prio;
+            }
 		}
 
-		return preMax - max >= threshold ?
-				maxId :
-				0xffffffff;
-	}
-	}
+		return (preMax >= (max+threshold) ?  maxId : 0xffffffff );
+    }
+        break;
+	} // switch ends
 
-	AYLOG(ERROR) << "unknown autoexpansion mode";
 	return 0xffffffff;
 }
 
-void tryExpandMeaning(BTND_PatternData& pat, const StoredUniverse *uni)
+void tryExpandMeaning(BTND_PatternData& pat, const StoredUniverse& uni)
 {
-	if (!uni)
-		return;
-
 	if (pat.which() != BTND_Pattern_Token_TYPE)
 		return;
 
@@ -589,13 +581,17 @@ struct BTND_text_visitor : public BTND_text_visitor_base {
 		BTND_text_visitor_base( parser, s, len,noTextToNum) 
 	{}
 	void operator()( BTND_PatternData& pat ) const
-		{ 
-			BTND_Pattern_Text_visitor vis(pat,d_parser,d_str,d_len,d_noTextToNum);
-			boost::apply_visitor( vis, pat ) ;
+    { 
+        BTND_Pattern_Text_visitor vis(pat,d_parser,d_str,d_len,d_noTextToNum);
+        boost::apply_visitor( vis, pat ) ;
 
-			if (RelBitsMgr::inst().check(1))
-				tryExpandMeaning(pat, d_parser.getReader()->getCurrentUniverse());
-		}
+        //// relelase bit - by defaults autoexpansion is on
+        if (!RelBitsMgr::inst().check(1)) {
+            StoredUniverse* uni = d_parser.getReader()->getCurrentUniverse();
+            if( uni ) 
+                tryExpandMeaning(pat, *uni );
+        }
+    }
 	void operator()( BTND_None& ) const {}
 	void operator()( BTND_StructData& ) const {}
 	void operator()( BTND_RewriteData& rwr)  const

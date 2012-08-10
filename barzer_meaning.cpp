@@ -6,6 +6,25 @@ extern "C" {
 }
 
 namespace barzer {
+
+void MeaningsStorage::setAutoextModeByName( const char* n )
+{
+    auto autoxpMode = MeaningsStorage::MeaningsAutoexp::None;
+    if( !n || !strcmp(n,"none") ) {
+        autoxpMode= MeaningsStorage::MeaningsAutoexp::None;
+    } else if( !strcmp(n,"one") ) {
+        autoxpMode = MeaningsStorage::MeaningsAutoexp::One;
+    } else if( !strcmp(n,"dominant") ) {
+        autoxpMode = MeaningsStorage::MeaningsAutoexp::Dominant;
+    } else {
+        AYLOG(ERROR) << "unknown autoexpansion mode " << n << "; falling back to none";
+        autoxpMode = MeaningsStorage::MeaningsAutoexp::None;
+    }
+    setAutoexpMode( autoxpMode );
+
+}
+
+/// XML parser
 namespace {
 
 enum {

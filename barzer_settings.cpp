@@ -314,64 +314,37 @@ void BarzerSettings::loadEntities() {
 
 void BarzerSettings::loadMeanings (User &u, const ptree& node)
 {
-	const ptree& meanings = node.get_child("meanings", empty_ptree());
+	const ptree& meaningsNode = node.get_child("meanings", empty_ptree());
 
     StoredUniverse& uni = u.getUniverse();
-    GlobalPools& gp = uni.gp;
+    MeaningsStorage& meanings = uni.meanings();
 
+    GlobalPools& gp = uni.gp;
     // within one user tag there may be several MEANING tags with file attributes 
     // for each of these tags we read meanings from the file 
-	const boost::optional<const ptree&> optAttrs = meanings.get_child_optional("<xmlattr>");
+	const boost::optional<const ptree&> optAttrs = meaningsNode.get_child_optional("<xmlattr>");
 	if (!optAttrs)
 		return;
 
 	const ptree& attrs = optAttrs.get();
 	const boost::optional<std::string> optFname = attrs.get_optional<std::string>("file");
-	if (!optFname)
+	if (!optFname || optFname.get().empty()) 
 		return;
-
 	const boost::optional<std::string> mode = attrs.get_optional<std::string>("automode");
-	if (!mode || *mode == "none")
-		uni.setAutoexpMode(StoredUniverse::MeaningsAutoexp::None);
-	else if (*mode == "one")
-		uni.setAutoexpMode(StoredUniverse::MeaningsAutoexp::One);
-	else if (*mode == "dominant")
-		uni.setAutoexpMode(StoredUniverse::MeaningsAutoexp::Dominant);
-	else
-	{
-		AYLOG(ERROR) << "unknown autoexpansion mode " << mode << "; falling back to none";
-		uni.setAutoexpMode(StoredUniverse::MeaningsAutoexp::None);
-	}
+
+    const char* modeStr = ( mode ? mode.get().c_str(): 0 );
+    meanings.setAutoextModeByName( modeStr );
 
 	const boost::optional<uint8_t> threshold = attrs.get_optional<uint8_t>("threshold");
-	uni.setAutoexpansionThreshold(threshold ? *threshold : 10);
+	meanings.setAutoexpansionThreshold(threshold ? *threshold : MeaningsStorage::AUTOEXPAND_DEFAULT_THRESHOLD);
 
 	const boost::optional<uint8_t> defPrio = attrs.get_optional<uint8_t>("defprio");
-	MeaningsXMLParser p(gp, &uni, defPrio ? *defPrio : 100);
+	MeaningsXMLParser p(gp, &uni, defPrio ? *defPrio : MeaningsStorage::AUTOEXPAND_DEFAULT_PRIORITY);
 
 	std::string fullPath;
 	const std::string& fname = optFname.get();
-	if (fname.empty())
-	{
-		AYLOG(ERROR) << "empty meanings filename";
-		return;
-	}
 	
-	if (fname.at(0) == '/')
-		fullPath = fname;
-	else
-	{
-		const char *home = std::getenv("BARZER_HOME");
-		if (home)
-			fullPath = std::string(home) + '/' + fname;
-		else
-		{
-			AYLOG(ERROR) << "relative meanings file name given and no home path set, bailing out";
-			return;
-		}
-	}
-
-	p.readFromFile(fullPath.c_str());
+	p.readFromFile(fname.c_str());
 }
 
 void BarzerSettings::loadSpell(User &u, const ptree &node)
