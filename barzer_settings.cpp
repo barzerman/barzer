@@ -348,7 +348,21 @@ void BarzerSettings::loadMeanings (User &u, const ptree& node)
 
 	const boost::optional<uint8_t> defPrio = attrs.get_optional<uint8_t>("defprio");
 	MeaningsXMLParser p(gp, &uni, defPrio ? *defPrio : 100);
-	p.readFromFile(optFname.get().c_str());
+
+	std::string fullPath;
+	const std::string& fname = optFname.get();
+	if (fname.empty())
+	{
+		AYLOG(ERROR) << "empty meanings filename";
+		return;
+	}
+	
+	if (fname.at(0) == '/')
+		fullPath = fname;
+	else
+		fullPath = std::string(std::getenv("BARZER_HOME")) + '/' + fname;
+
+	p.readFromFile(fullPath.c_str());
 }
 
 void BarzerSettings::loadSpell(User &u, const ptree &node)
