@@ -585,11 +585,14 @@ struct BTND_text_visitor : public BTND_text_visitor_base {
         BTND_Pattern_Text_visitor vis(pat,d_parser,d_str,d_len,d_noTextToNum);
         boost::apply_visitor( vis, pat ) ;
 
+
         //// relelase bit - by defaults autoexpansion is on
         if (!RelBitsMgr::inst().check(1)) {
-            StoredUniverse* uni = d_parser.getReader()->getCurrentUniverse();
-            if( uni ) 
-                tryExpandMeaning(pat, *uni );
+            if( pat.which() == BTND_Pattern_Token_TYPE ) {
+                StoredUniverse* uni = d_parser.getReader()->getCurrentUniverse();
+                if( uni ) 
+                    tryExpandMeaning(pat, *uni );
+            }
         }
     }
 	void operator()( BTND_None& ) const {}
