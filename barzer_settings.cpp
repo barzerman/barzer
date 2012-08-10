@@ -360,7 +360,16 @@ void BarzerSettings::loadMeanings (User &u, const ptree& node)
 	if (fname.at(0) == '/')
 		fullPath = fname;
 	else
-		fullPath = std::string(std::getenv("BARZER_HOME")) + '/' + fname;
+	{
+		const char *home = std::getenv("BARZER_HOME");
+		if (home)
+			fullPath = std::string(home) + '/' + fname;
+		else
+		{
+			AYLOG(ERROR) << "relative meanings file name given and no home path set, bailing out";
+			return;
+		}
+	}
 
 	p.readFromFile(fullPath.c_str());
 }
