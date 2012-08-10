@@ -718,6 +718,11 @@ struct BTND_Rewrite_Number : public BarzerNumber {
 		x = *(static_cast<const BarzerNumber*>(this));
 	}
 };
+/// this is a runtime rewrite - potentially large type 
+/// it's not stored but constructed on the fly in the matcher
+struct BTND_Rewrite_RuntimeEntlist {
+    BarzerEntityList lst;
+};
 struct BTND_Rewrite_MkEnt {
 	uint32_t d_entId;
 	/// when mode is 0 d_entId is the single entity Id 
@@ -971,7 +976,8 @@ typedef boost::variant<
 	BTND_Rewrite_Select,
 	BTND_Rewrite_Case,
 	BTND_Rewrite_Logic,
-    BTND_Rewrite_Control
+    BTND_Rewrite_Control,
+    BTND_Rewrite_RuntimeEntlist
 > BTND_RewriteData;
 
 enum {
@@ -987,7 +993,8 @@ enum {
 	BTND_Rewrite_Select_TYPE,
 	BTND_Rewrite_Case_TYPE,
 	BTND_Rewrite_Logic_TYPE,
-	BTND_Rewrite_Control_TYPE
+	BTND_Rewrite_Control_TYPE,
+    BTND_Rewrite_RuntimeEntlist_TYPE
 }; 
 
 /// when updating the enums make sure to sunc up BTNDDecode::typeName_XXX 

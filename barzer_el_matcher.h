@@ -45,15 +45,23 @@ struct MatcherCallbackGeneric : public MatcherCallback {
 };
 
 /// state type (contained and used only by BarzelMatchInfo 
+/// ambiguity
 struct BarzelMatchAmbiguities {
     BarzerEntityList                          entList;
     std::vector< BarzelTranslationTraceInfo > traceInfoVec;
     bool                                      isAmbiguos;
-    
-    BarzelMatchAmbiguities() : isAmbiguos(false){}
+    bool                                      d_makeUnmatchable;
+
+    void makeUnmatchable() { if( !d_makeUnmatchable ) d_makeUnmatchable= true; }
+    bool isUnmatchable() const { return d_makeUnmatchable; }
+
+    const BarzerEntityList& getEntList() const { return entList; }
+    BarzerEntityList& getEntList() { return entList; }
+    BarzelMatchAmbiguities() : isAmbiguos(false),d_makeUnmatchable(false){}
     void clear()
     {
         isAmbiguos= false;
+        d_makeUnmatchable= false;
         traceInfoVec.clear();
         entList.clear();
     }
