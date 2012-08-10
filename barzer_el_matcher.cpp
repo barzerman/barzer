@@ -1007,6 +1007,8 @@ void BTMBestPaths::addPath(const NodeAndBeadVec& nb )
         if( newTran && newTran->isEntity() ) {
             if( isAmbiguous() ) {
                 ambiguities().addEntity( d_trie, *newTran );
+                if( newTran->makeUnmatchable ) 
+                    ambiguities().makeUnmatchable();
             } else {
                 /// previously unambiguous best path ... may need to ambiguate if it was entity 
                 const BarzelTranslation* bestTran = getTranslation(d_bestInfalliblePath); // new translation
@@ -1014,6 +1016,8 @@ void BTMBestPaths::addPath(const NodeAndBeadVec& nb )
                     /// ambiguating
                     ambiguities().addEntity( d_trie, *bestTran );
                     ambiguities().addEntity( d_trie, *newTran );
+                    if( newTran->makeUnmatchable )
+                        ambiguities().makeUnmatchable();
                 } else { // old best path didnt resolve to entity - this is a bug in the ruleset 
                     if( bestTran ) { 
 	                    d_barz.pushTrace( newTran->traceInfo, d_trie.getGlobalTriePoolId() );
@@ -1246,8 +1250,6 @@ bool BarzelMatcher::match( Barz& barz, RewriteUnit& ru, BarzelBeadChain& beadCha
 ///
 int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 {
-    #warning check for ru.first.isAmbiguous() if so do special rewrite  (return rewriteUnitAmbiguous(ru,barz) 
-
 	BarzelBeadChain& chain = barz.getBeads();
 	BarzelMatchInfo& matchInfo = ru.first;
 
@@ -1275,7 +1277,12 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 
 	//AYDEBUG( matchInfo.getSubstitutionBeadRange() );
 	BarzelEvalContext ctxt( matchInfo, universe, d_trie, barz );
-	if( translation.isRewriter() ) { /// translation is a rewriter
+    
+    if( ru.first.isAmbiguous() ) {
+        BTND_Rewrite_RuntimeEntlist rtEntList;
+        rtEntList.lst = ru.first.ambiguities().getEntList();
+        evalNode.getBtnd() =rtEntList;
+    } else if( translation.isRewriter() ) { /// translation is a rewriter
 		BarzelRewriterPool::BufAndSize bas;
 		if( !universe.getBarzelRewriter( d_trie,bas, translation )) {
 			AYLOG(ERROR) << "no bytecode in rewriter" << std::endl;
@@ -1309,7 +1316,13 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 
 	// the range will be replaced with a single bead .
 	// so we will simply delete everything past the first bead
-    int unmatchability = ( (lastFrameLoop|| translation.makeUnmatchable || transResult.getUnmatchability()) ? 1:0);
+    int unmatchability = ( (
+        lastFrameLoop|| 
+        translation.makeUnmatchable || 
+        (ru.first.isAmbiguous() && ru.first.ambiguities().isUnmatchable()) || 
+        transResult.getUnmatchability()
+        ) ? 1:0
+    );
 	if( transResult.isVec() ) {
 		//std::cerr << "*** BEFORE::::>>\n";
 		//AYDEBUG( chain.getFullRange() );

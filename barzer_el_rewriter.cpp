@@ -298,6 +298,11 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const B
 	return ret;
 }
 
+template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_RuntimeEntlist>( const BTND_Rewrite_RuntimeEntlist& n ) 
+{
+    d_val.setBeadData( BarzelBeadAtomic().setData( n.lst ) );
+    return true;
+}
 template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_MkEnt>( const BTND_Rewrite_MkEnt& n ) 
 {
 	if( n.isSingleEnt() ) {
@@ -601,6 +606,8 @@ struct BTND_RewriteData_printer : public boost::static_visitor<> {
 	template <typename T> void operator()( const T& t ) const { t.print( fp, ctxt ); }
 };
 
+template <> void BTND_RewriteData_printer::operator()<BTND_Rewrite_RuntimeEntlist>( const BTND_Rewrite_RuntimeEntlist& t ) const 
+{ fp << "runtime ent list"; }
 template <> void BTND_RewriteData_printer::operator()<BTND_Rewrite_DateTime>( const BTND_Rewrite_DateTime& t ) const 
 { fp << "DateTime"; }
 template <> void BTND_RewriteData_printer::operator()<BTND_Rewrite_EntitySearch>( const BTND_Rewrite_EntitySearch& t ) const 
