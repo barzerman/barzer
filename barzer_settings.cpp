@@ -314,9 +314,6 @@ void BarzerSettings::loadEntities() {
 
 void BarzerSettings::loadMeanings (User &u, const ptree& node)
 {
-	
-	AYLOG(DEBUG) << "meanings bit is set, gotta load" << std::endl;
-
 	const ptree& meanings = node.get_child("meanings", empty_ptree());
 
     StoredUniverse& uni = u.getUniverse();
@@ -324,15 +321,34 @@ void BarzerSettings::loadMeanings (User &u, const ptree& node)
 
     // within one user tag there may be several MEANING tags with file attributes 
     // for each of these tags we read meanings from the file 
-    const boost::optional<const ptree&> optAttrs = meanings.get_child_optional("<xmlattr>");
-    if( optAttrs ) {
-        const ptree& attrs = optAttrs.get();
-        const boost::optional<std::string> optFname  = attrs.get_optional<std::string>("file");
-        if( optFname ) { 
-            MeaningsXMLParser p(gp, &uni);
-            p.readFromFile(optFname.get().c_str());
-        }
-    }
+	const boost::optional<const ptree&> optAttrs = meanings.get_child_optional("<xmlattr>");
+	if (!optAttrs)
+		return;
+
+	const ptree& attrs = optAttrs.get();
+	const boost::optional<std::string> optFname = attrs.get_optional<std::string>("file");
+	if (!optFname)
+		return;
+
+	const boost::optional<std::string> mode = attrs.get_optional<std::string>("automode");
+	if (!mode || *mode == "none")
+		uni.setAutoexpMode(StoredUniverse::MeaningsAutoexp::None);
+	else if (*mode == "one")
+		uni.setAutoexpMode(StoredUniverse::MeaningsAutoexp::One);
+	else if (*mode == "dominant")
+		uni.setAutoexpMode(StoredUniverse::MeaningsAutoexp::Dominant);
+	else
+	{
+		AYLOG(ERROR) << "unknown autoexpansion mode " << mode << "; falling back to none";
+		uni.setAutoexpMode(StoredUniverse::MeaningsAutoexp::None);
+	}
+
+	const boost::optional<uint8_t> threshold = attrs.get_optional<uint8_t>("threshold");
+	uni.setAutoexpansionThreshold(threshold ? *threshold : 10);
+
+	const boost::optional<uint8_t> defPrio = attrs.get_optional<uint8_t>("defprio");
+	MeaningsXMLParser p(gp, &uni, defPrio ? *defPrio : 100);
+	p.readFromFile(optFname.get().c_str());
 }
 
 void BarzerSettings::loadSpell(User &u, const ptree &node)

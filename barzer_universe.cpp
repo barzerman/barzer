@@ -233,8 +233,10 @@ StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	trieCluster(g.globalTriePool,*this),
 	topicTrieCluster(g.globalTriePool,*this),
 	bzSpell(new BZSpell(*this)),
-    d_ghettoDb(new Ghettodb()),
-    m_meanings(new MeaningsStorage)
+	d_ghettoDb(new Ghettodb()),
+	m_meanings(new MeaningsStorage),
+	m_autoexpMode(MeaningsAutoexp::None),
+	m_autoexpThreshold(10)
 {
 	m_hints.initFromUniverse(this);
 }

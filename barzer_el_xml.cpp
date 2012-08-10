@@ -523,14 +523,43 @@ template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Punct> (BTND
 
 uint32_t tryGetPrioMeaning(const StoredUniverse *uni, uint32_t wordId)
 {
-	const WordMeaningBufPtr& buf = uni->meanings().getMeanings(wordId);
-	for (const WordMeaning *m = buf.first; m < buf.first + buf.second; ++m)
-	{
-		if (m->prio > 10)
-			continue;
+	const uint8_t threshold = uni->getAutoexpThreshold();
 
-		return m->id;
+	switch (uni->getAutoexpMode())
+	{
+	case StoredUniverse::MeaningsAutoexp::None:
+		return 0xffffffff;
+	case StoredUniverse::MeaningsAutoexp::One:
+	{
+		const WordMeaningBufPtr& buf = uni->meanings().getMeanings(wordId);
+		if (buf.second == 1 && buf.first->prio <= threshold)
+			return buf.first->id;
+		else
+			return 0xffffffff;
 	}
+	case StoredUniverse::MeaningsAutoexp::Dominant:
+	{
+		uint8_t max = 255, preMax = 255;
+		uint32_t maxId = 0xffffffff;
+
+		const WordMeaningBufPtr& buf = uni->meanings().getMeanings(wordId);
+		for (const WordMeaning *m = buf.first, *end = buf.first + buf.second; m < end; ++m)
+		{
+			if (m->prio >= max)
+				continue;
+
+			maxId = m->id;
+			preMax = max;
+			max = m->prio;
+		}
+
+		return preMax - max >= threshold ?
+				maxId :
+				0xffffffff;
+	}
+	}
+
+	AYLOG(ERROR) << "unknown autoexpansion mode";
 	return 0xffffffff;
 }
 
