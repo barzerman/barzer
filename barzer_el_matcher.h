@@ -219,7 +219,7 @@ struct BTMBestPaths {
 	/// int is the score in case path doesnt fail
 	std::pair< bool, int > scorePath( const NodeAndBeadVec& nb ) const;
 
-	void addPath( const NodeAndBeadVec& nb );
+	void addPath( const NodeAndBeadVec& nb, const NodeAndBead& lastNB );
 	/// returns the score of the winning match
 	int setRewriteUnit( );
 
@@ -240,6 +240,10 @@ private:
     {
         const BarzelTrieNode* node = getTrieNode();
         return ( node ? node->getTranslation(d_trie): 0 );
+    }
+    const BarzelTranslation* getTranslation( const NodeAndBead& nb ) const 
+    {
+        return( nb.first ? nb.first->getTranslation(d_trie) : 0 );
     }
 };
 

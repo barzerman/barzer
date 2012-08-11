@@ -79,7 +79,7 @@ int BTMIterator::addTerminalPath( const NodeAndBead& nb )
 	ay::vector_raii<NodeAndBeadVec> raii( d_matchPath, theNb );
 	//print_NodeAndBeadVec( std::cerr << "**ADD TERMINAL >>>", d_matchPath, bestPaths.getAbsoluteEnd() ) <<
 	//" <<<<< END\n" ;
-	bestPaths.addPath( d_matchPath );
+	bestPaths.addPath( d_matchPath, nb );
 	return 0;
 }
 
@@ -990,7 +990,7 @@ std::pair< bool, int > BTMBestPaths::scorePath( const NodeAndBeadVec& nb ) const
 	return retVal;
 }
 
-void BTMBestPaths::addPath(const NodeAndBeadVec& nb )
+void BTMBestPaths::addPath(const NodeAndBeadVec& nb, const NodeAndBead& lastNB )
 {
 	// ghetto
 	std::pair< bool, int > score = scorePath( nb );
@@ -1015,9 +1015,12 @@ void BTMBestPaths::addPath(const NodeAndBeadVec& nb )
                 if( bestTran && bestTran->isEntity() ) {
                     /// ambiguating
                     ambiguities().addEntity( d_trie, *bestTran );
-                    ambiguities().addEntity( d_trie, *newTran );
-                    if( newTran->makeUnmatchable )
-                        ambiguities().makeUnmatchable();
+                    newTran= getTranslation(lastNB);
+                    if( newTran ) {
+                        ambiguities().addEntity( d_trie, *newTran );
+                        if( newTran->makeUnmatchable )
+                            ambiguities().makeUnmatchable();
+                    }
                 } else { // old best path didnt resolve to entity - this is a bug in the ruleset 
                     if( bestTran ) { 
 	                    d_barz.pushTrace( newTran->traceInfo, d_trie.getGlobalTriePoolId() );
