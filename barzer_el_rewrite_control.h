@@ -8,7 +8,7 @@ struct BarzelEvalContext;
 class GlobalPools;
 
 class BarzelEvalResult;
-class BTND_Rewrite_Control;
+struct BTND_Rewrite_Control;
 class BarzelEvalNode;
 
 class BarzelControlEval {

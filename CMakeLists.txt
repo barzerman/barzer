@@ -14,12 +14,12 @@ project (barzer)
 set (barzer_VERSION_MAJOR 0)
 set (barzer_VERSION_MINOR 1)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -Wnon-virtual-dtor -Wno-unused-variable -Wno-unused-function")
 
 set(EN_DIR "lg_en")
 set(RU_DIR "lg_ru")
 if (NOT WIN32)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} $ENV{OPT} -Wall -Wnon-virtual-dtor -fPIC")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} $ENV{OPT} -fPIC")
 endif()
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")

@@ -26,7 +26,7 @@ typedef std::pair<std::string, std::string> AttrPair;
 
 
 class BarzerRequestParser;
-class BarzXMLParser;
+struct BarzXMLParser;
 
 struct TrieId {
 	User::Id userId;

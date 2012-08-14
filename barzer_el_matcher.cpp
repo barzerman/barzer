@@ -252,9 +252,9 @@ public:
 	}
 
 	findMatchingChildren_visitor( const StoredUniverse& uni, BTMIterator& bi, bool followsBlanks, NodeAndBeadVec& mC, const BeadRange& r, const BarzelTrieNode* t, BeadList::const_iterator dtaBeadIter, const BELTrie& trie):
-		d_uni(uni),
 		d_btmi(bi),
 		d_mtChild(mC),
+		d_uni(uni),
 		d_rng(r),
 		d_tn(t),
 		d_followsBlank(followsBlanks),
