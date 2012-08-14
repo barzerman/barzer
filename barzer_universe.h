@@ -22,7 +22,7 @@
 #include <barzer_language.h>
 #include <barzer_barz.h>
 
-class sb_stemmer;
+struct sb_stemmer;
 
 namespace ay
 {

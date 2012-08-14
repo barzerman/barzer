@@ -1,10 +1,14 @@
 PYINCLUDE := $(shell /usr/bin/python2.7-config --includes)
 PYLIBS := $(shell /usr/bin/python2.7-config --libs)
-
+UNAME := $(shell uname -a | cut -d' ' -f1)
 FLAGS := $(FLAGS)
+BOOST_SYSLIB=-lboost_system -lboost_filesystem
 ifeq ($(IS64),yes)
 	BITMODE=-m64
 	AYBIT="IS64=yes"
+endif
+ifeq ($(UNAME),Darwin)
+    BOOST_SYSLIB=/opt/local/lib/libboost_system-mt.dylib /opt/local/lib/libboost_filesystem-mt.dylib
 endif
 ifeq ($(IS32),yes)
 	BITMODE=-m32
@@ -27,7 +31,7 @@ SHARED_LIBNAME=libbarzer.so
 PYTHON_LIBNAME=util/python_util.so
 #libs = -Lay -lay -L/opt/local/lib -L/opt/local/lib/boost -L/usr/lib 
 libs = -Lay -Lsnowball -lay -lsnowlib -L/usr/local/lib -L/opt/local/lib -L/usr/lib \
-	-lboost_system -lboost_filesystem -lboost_thread-mt -lexpat -lstdc++
+	$(BOOST_SYSLIB) -lboost_thread-mt -lexpat -lstdc++
 ECHO = echo
 lib_objects = \
 barzer_meaning.o \
