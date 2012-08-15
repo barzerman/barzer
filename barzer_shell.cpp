@@ -1290,10 +1290,27 @@ static int bshf_instance( BarzerShell* shell, char_cp cmd, std::istream& in )
 
     BarzelTrieStatsCounter instanceCounter;
     size_t numUsers=0;
+
+    uint32_t fromUserId = 0, toUserId = 0xffffffff;
+    uint32_t tmp =0xffffffff;
+    if( in >> tmp ) {
+        fromUserId = tmp;
+
+        if( in >> tmp && tmp>= fromUserId ) 
+            toUserId = tmp;
+        else
+            toUserId = fromUserId;
+    }
+
+    size_t numUniverses = 0;
     for( GlobalPools::UniverseMap::const_iterator i = uniMap.begin(); i!= uniMap.end(); ++i, ++numUsers ) {
         if( !(i->second) )
             continue;
         const StoredUniverse& uni = *(i->second);
+        if( !(uni.getUserId() >= fromUserId && uni.getUserId() <= toUserId ))  {
+            continue;
+        }
+        ++numUniverses;
         const TheGrammarList& grammarList = uni.getTrieList();
         BarzelTrieStatsCounter userCounter;
 
@@ -1306,11 +1323,12 @@ static int bshf_instance( BarzerShell* shell, char_cp cmd, std::istream& in )
             // outFP << counter << std::endl;
             userCounter.add( counter );
         }
-        userCounter.print( (outFP << "USER:\t" << i->first << "\t"), "\t")  << "\n";
+        userCounter.print( (outFP << "USER:\t" << i->first << "\t" << std::setw(16) << uni.userName() << "\t"), "\t")  << "\n";
 
         instanceCounter.add( userCounter );
     }
-    instanceCounter.print( (outFP << "#usrs:\t" << numUsers << "\t"), "\t" ) << std::endl;
+    if( numUniverses > 1 )
+        instanceCounter.print( (outFP << "#usrs:\t" << numUniverses << "\t" << std::setw(16)  << "Total" << "\t"), "\t" ) << std::endl;
 
     return 0;
 }
