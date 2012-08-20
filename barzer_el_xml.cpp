@@ -1310,6 +1310,7 @@ DEFINE_BELParserXML_taghandle(MKENT)
     const char*  topicIdStr = 0;
     int relevance = 0, topicRelevance = 0;
     const char* canonicName = 0, *topicCanonicName = 0;
+    uint32_t topicStrength = 0;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
@@ -1320,14 +1321,15 @@ DEFINE_BELParserXML_taghandle(MKENT)
         
 		case 'n': canonicName = v; break;       // canonic name of the entity if its an empty string getDescriptiveNameFromPattern_simple will be used
 		case 'r': relevance = atoi(v); break;   // relevance of the entity 
-
+        
 		case 't': {
             switch(n[1]) {
                 case 'c': topicClass =  atoi(v); break;
-                case 's': topicSubclass =  atoi(v); break;
+                case 'g': topicStrength = atoi(v); break;
                 case 'i': topicIdStr = v; break;
-                case 'r': topicRelevance = atoi(v); break;
                 case 'n': topicCanonicName = v; break;
+                case 'r': topicRelevance = atoi(v); break;
+                case 's': topicSubclass =  atoi(v); break;
             }
             break;
         }
@@ -1368,7 +1370,7 @@ DEFINE_BELParserXML_taghandle(MKENT)
 	    const StoredEntity& topicEnt  = gp.getDtaIdx().addGenericEntity( topicIdStrId, topicClass, topicSubclass);
 
         BELTrie& trie = reader->getTrie();
-        trie.linkEntToTopic( topicEnt.getEuid(), ent.getEuid() );
+        trie.linkEntToTopic( topicEnt.getEuid(), ent.getEuid(), topicStrength );
         if( topicRelevance || topicCanonicName ) {
             EntityData::EntProp* eprop = gp.entData.setEntPropData( topicEnt.getEuid(), topicCanonicName, topicRelevance );
             if( topicCanonicName && eprop ) 

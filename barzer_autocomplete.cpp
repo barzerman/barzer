@@ -40,7 +40,7 @@ struct AutocNodeVisotor_Callback {
         if( barz.topicInfo.hasTopics() ) {
             const BarzTopics::TopicMap& topicMap = barz.topicInfo.getTopicMap();
             for( BarzTopics::TopicMap::const_iterator ti = topicMap.begin(); ti != topicMap.end(); ++ti ) {
-                const std::set< BarzerEntity >* topEntSet= universe.getTopicEntities( ti->first );
+                const TopicEntLinkage::BarzerEntitySet* topEntSet= universe.getTopicEntities( ti->first );
         
                 if( topEntSet && topEntSet->find(euid)!= topEntSet->end() ) 
                     return true;
