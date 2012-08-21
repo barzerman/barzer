@@ -141,14 +141,15 @@ public:
 
         bool needOffsetLengthVec = !d_streamer.checkBit( BarzStreamerXML::BF_NO_ORIGOFFSETS );
         std::vector< std::pair<uint32_t,uint32_t> >  offsetLengthVec; 
+        
+        std::stringstream sstrBody;
 
-        os << "<srctok>";
         std::string lastTokBuf;
 		for( CTWPVec::const_iterator ci = ctoks.begin(); ci != ctoks.end(); ++ci ) {
 			const TTWPVec& ttv = ci->first.getTTokens();
 
             if( ci != ctoks.begin() ) 
-                os << " ";
+                sstrBody << " ";
 			for( TTWPVec::const_iterator ti = ttv.begin(); ti!= ttv.end() ; ++ti ) {
 				const TToken& ttok = ti->first;
                 if( lastTokBuf == ttok.buf ) 
@@ -158,26 +159,29 @@ public:
 
 				if( ttok.buf.length() ) {
                     if( ti != ttv.begin() && ci != ctoks.begin() ) 
-                        os << " ";
+                        sstrBody << " ";
                     std::string tokStr( ttok.buf.c_str(), ttok.buf.length() );
-                    xmlEscape(tokStr, os);
+                    xmlEscape(tokStr, sstrBody);
 
                     if( needOffsetLengthVec ) 
                         offsetLengthVec.push_back( ttok.getOrigOffsetAndLength() );
 				}
 			}
 		}	
-		os << "</srctok>";
 
+        os << "<srctok";
         if( needOffsetLengthVec ) {
-            os << "<origmarkup t=\"" ;
+            os << " origmarkup=\"" ;
             for( auto i = offsetLengthVec.begin(); i!= offsetLengthVec.end(); ++i ) {
                 if(i!= offsetLengthVec.begin() )
                     os << ";";
                 os << i->first << "," << i->second;
             }
-            os << "\"/>";
+            os << "\">";
+        } else {
+            os << ">";
         }
+		os << sstrBody.str() << "</srctok>";
 	}
 	bool operator()(const BarzerLiteral &data) {
 		//AYLOG(DEBUG) << "BarzerLiteral";
