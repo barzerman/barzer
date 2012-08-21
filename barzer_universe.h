@@ -319,7 +319,7 @@ private:
 	
 	MeaningsStorage *m_meanings;
 
-    
+	bool m_soundsLike;
 public:
     /// much fancier interner than the overloaded one - this function will try to work with the trie 
     StoredToken& internString( int lang, const char* t, BELTrie* triePtr, const char* unstemmed);
@@ -348,7 +348,10 @@ public:
 
 	      MeaningsStorage& meanings()       { return *m_meanings; }
 	const MeaningsStorage& meanings() const { return *m_meanings; }
-public:
+	
+	bool soundsLikeEnabled() const { return m_soundsLike; }
+	void setSoundsLike(bool set) { m_soundsLike = set; }
+
     void setBit(size_t bit) { d_biflags.set(bit); }
     bool checkBit(size_t b ) const { return d_biflags.checkBit(b); }
     const BZSpell::char_cp_to_strid_map* getValidWordMapPtr() const 

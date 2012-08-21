@@ -312,6 +312,12 @@ void BarzerSettings::loadEntities() {
 	}
 }
 
+void BarzerSettings::loadSoundslike (User& u, const ptree& node)
+{
+	const ptree& slNode = node.get_child("soundslike", empty_ptree());
+	u.getUniverse().setSoundsLike(slNode != empty_ptree());
+}
+
 void BarzerSettings::loadMeanings (User &u, const ptree& node)
 {
 	const ptree& meaningsNode = node.get_child("meanings", empty_ptree());
@@ -552,7 +558,7 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 	std::cout << "Loading user id: " << userId << "\n";
 
 	loadSpell(u, children);
-
+	loadSoundslike(u, children);
 	loadMeanings(u, children);
 
     reader.setRespectLimits( userId );
