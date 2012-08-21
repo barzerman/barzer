@@ -1145,6 +1145,24 @@ size_t BZSpell::dedupeChars( std::string& out, const char* str, size_t str_len, 
 	return 0;
 }
 
+void SoundsLikeInfo::addSource (uint32_t soundsLike, uint32_t source)
+{
+	SourceDictionary_t::iterator pos = m_sources.find(soundsLike);
+	if (pos == m_sources.end())
+	{
+		ay::StackVec<uint32_t> sv;
+		sv.push_back(source);
+		m_sources.insert(std::make_pair(soundsLike, sv));
+	}
+	else
+		pos->second.push_back(source);
+}
+
+const SoundsLikeInfo::SourceList_t* SoundsLikeInfo::findSources (uint32_t like) const
+{
+	SourceDictionary_t::const_iterator pos = m_sources.find(like);
+	return pos == m_sources.end() ? 0 : &pos->second;
+}
 
 size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
 {
