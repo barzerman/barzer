@@ -3,7 +3,8 @@
 
 import sys, operator
 import BarzerClient # must not write anything to standart output (!)
-from lxml import etree
+import xml.etree.ElementTree as ET
+from xml.etree.ElementTree import iterparse
 from Queue import Queue
 from threading import Thread
 import argparse
@@ -53,7 +54,7 @@ def generate(args):
 					statistics["error"] += 1
 					break
 				if barzxml.startswith('<error>invalid user id'):
-					print '<error id="' + str(id) + '"> Invalid user id ' + str(q.user) + '</test>'
+					print '<error id="' + str(id) + '"> Invalid user id ' + str(q.user) + '</error>'
 					statistics["error"] += 1
 					continue
 				statistics["updated"] += 1
@@ -69,7 +70,7 @@ def do_test(test):
 	q = Query(test[1], test[2])
 	new_xml = q.ask_barzer()
 	resultxml = q.get_barzer().match_xml(new_xml, test[3])
-	resultxml = etree.fromstring(resultxml)
+	resultxml = ET.fromstring(resultxml)
 	if (resultxml[0].tag == "score"):
 		score = int(resultxml[0].text)
 		statistics["passed" if score == 0 else "not_passed"] += 1
@@ -88,7 +89,7 @@ def run_all(args):
 	def print_worker():
 		while True:
 			r = print_queue.get()
-			print '<test score="' + r[0] + '" id="' + r[1] + '" user="' + r[2] +'">' + r[3] + '</test>'
+			#print '<test score="' + r[0] + '" id="' + r[1] + '" user="' + r[2] +'">' + r[3] + '</test>'
 			print_queue.task_done()
 	q = Queue()
 	for i in range(NUM_WORKER_THREADS):
@@ -100,12 +101,12 @@ def run_all(args):
 	t=Thread(target=print_worker)
 	t.setDaemon(True)
 	t.start()
-	for event, elem in etree.iterparse(args.tests_fname, events = ('end',)):
+	for event, elem in iterparse(args.tests_fname, events = ('end',)):
 		if elem.tag =="test":
 			id = elem.get("id")	
 			barz = elem.find("./barz")
 			user = barz.get("u")
-			testxml = etree.tostring(barz, encoding="utf-8")
+			testxml = ET.tostring(barz, encoding="utf-8")
 			query = barz.find("./query").text.encode("utf-8")
 			if (query is not None) and (user is not None) and (id is not None) and (testxml is not None):
 				q.put((id, user, query, testxml, print_queue))
