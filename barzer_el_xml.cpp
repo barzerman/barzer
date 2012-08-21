@@ -5,6 +5,7 @@
 #include <ay/ay_debug.h>
 #include <barzer_server_response.h>
 #include <ay_xml_util.h>
+#include <ay_translit_ru.h>
 #include <barzer_relbits.h>
 extern "C" {
 #include <expat.h>
@@ -558,20 +559,43 @@ uint32_t tryGetPrioMeaning(const StoredUniverse& uni, uint32_t wordId)
 	return 0xffffffff;
 }
 
-void tryExpandMeaning(BTND_PatternData& pat, const StoredUniverse& uni)
+bool tryExpandMeaning(BTND_PatternData& pat, const StoredUniverse& uni)
 {
 	if (pat.which() != BTND_Pattern_Token_TYPE)
-		return;
+		return false;
 
 	const BTND_Pattern_Token& tok = boost::get<BTND_Pattern_Token>(pat);
 	const uint32_t meaningId = tryGetPrioMeaning(uni, tok.getStringId());
 	if (meaningId == 0xffffffff)
-		return;
+		return false;
 
 	BTND_Pattern_Meaning m;
 	m.meaningId = meaningId;
 	m.d_matchMode = tok.d_matchMode;
 	pat = m;
+	return true;
+}
+
+void addSLInfo (StoredUniverse *uni, const BTND_Pattern_Token& patTok)
+{
+	const uint32_t strId = patTok.getStringId();
+	BZSpell *spell = uni->getBZSpell();
+	if (!spell)
+		return;
+	
+	GlobalPools& gp = uni->getGlobalPools();
+	const char *str = gp.string_resolve(strId);
+	if (!str)
+		return;
+	
+	const size_t len = std::strlen(str);
+	if (Lang::getLang(*uni, str, len) != LANG_ENGLISH)
+		return;
+	
+	std::string russian;
+	ay::tl::en2ru(str, len, russian);
+	const uint32_t soundsId = gp.internString_internal(russian.c_str(), russian.size());
+	spell->getEnglishSL().addSource(soundsId, strId);
 }
 
 // general visitor 
@@ -582,18 +606,20 @@ struct BTND_text_visitor : public BTND_text_visitor_base {
 	{}
 	void operator()( BTND_PatternData& pat ) const
     { 
-        BTND_Pattern_Text_visitor vis(pat,d_parser,d_str,d_len,d_noTextToNum);
-        boost::apply_visitor( vis, pat ) ;
+		BTND_Pattern_Text_visitor vis(pat, d_parser, d_str, d_len, d_noTextToNum);
+		boost::apply_visitor( vis, pat ) ;
+		
+		const bool isToken = pat.which() == BTND_Pattern_Token_TYPE;
 
+		StoredUniverse* uni = d_parser.getReader()->getCurrentUniverse();
 
-        //// relelase bit - by defaults autoexpansion is on
-        if (!RelBitsMgr::inst().check(1)) {
-            if( pat.which() == BTND_Pattern_Token_TYPE ) {
-                StoredUniverse* uni = d_parser.getReader()->getCurrentUniverse();
-                if( uni ) 
-                    tryExpandMeaning(pat, *uni );
-            }
-        }
+		bool meaningExpanded = false;
+		//// relelase bit - by defaults autoexpansion is on
+		if (uni && !RelBitsMgr::inst().check(1) && isToken )
+			meaningExpanded = tryExpandMeaning(pat, *uni);
+
+		if (!meaningExpanded && uni && uni->soundsLikeEnabled() && isToken)
+			addSLInfo(uni, boost::get<BTND_Pattern_Token>(pat));
     }
 	void operator()( BTND_None& ) const {}
 	void operator()( BTND_StructData& ) const {}
