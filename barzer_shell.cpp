@@ -661,7 +661,7 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
         ay::InputLineReader reader( in );
 
         QuestionParm qparm;
-    shell->syncQuestionParm(qparm);
+        shell->syncQuestionParm(qparm);
 
         ay::stopwatch totalTimer;
         while( reader.nextLine() && reader.str.length() ) {
