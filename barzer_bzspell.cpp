@@ -4,6 +4,7 @@
 #include <ay_char.h>
 #include <ay_utf8.h>
 #include <ay_keymaps.h>
+#include <ay_translit_ru.h>
 #include <lg_ru/barzer_ru_lex.h>
 #include <lg_ru/barzer_ru_stemmer.h>
 #include <lg_en/barzer_en_lex.h>
@@ -611,6 +612,25 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 		    if (ay::km::engToRus(str, str_len, translit))
 			    cb.tryUpdateBestMatch(translit.c_str());
         } // end of kbd mapping and translit
+
+		if (d_universe.soundsLikeEnabled())
+		{
+			std::string russian;
+			ay::tl::en2ru(str, str_len, russian);
+
+			GlobalPools& gp = d_universe.getGlobalPools();
+			const uint32_t id = gp.internalString_getId(russian.c_str());
+			if (id != 0xffffffff)
+			{
+				if (const ay::StackVec<uint32_t> *slSources = m_englishSL.findSources(id))
+				{
+					const size_t size = slSources->size();
+					const uint32_t *buf = slSources->getRawBuf();
+					for (const uint32_t *pos = buf, *end = buf + size; pos < end; ++pos)
+						cb.tryUpdateBestMatch(gp.string_resolve(*pos));
+				}
+			}
+		}
 
 		if( str_len> d_minWordLengthToCorrect ) {
 			ay::choose_n<char, CorrectCallback > variator( cb, str_len-1, str_len-1 );
