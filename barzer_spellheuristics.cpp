@@ -33,7 +33,7 @@ namespace barzer
 		return m_gp;
 	}
 	
-	void HashingSpellHeuristic::addSource(const char* sourceWord, size_t len, uint32_t sourceId)
+	void HashingSpellHeuristic::addSource(const char *sourceWord, size_t len, uint32_t sourceId)
 	{
 		std::string out;
 		transform(sourceWord, len, out);
@@ -42,7 +42,7 @@ namespace barzer
 		m_mapping.addSource(soundsId, sourceId);
 	}
 	
-	const SoundsLikeInfo::SourceList_t* HashingSpellHeuristic::findSources(const char* domainWord, size_t len) const
+	const SoundsLikeInfo::SourceList_t* HashingSpellHeuristic::findSources(const char *domainWord, size_t len) const
 	{
 		std::string out;
 		transform(domainWord, len, out);
@@ -56,9 +56,45 @@ namespace barzer
 	{
 	}
 	
-	void EnglishSLHeuristic::transform(const char* src, size_t srcLen, std::string& out) const
+	void EnglishSLHeuristic::transform(const char *src, size_t srcLen, std::string& out) const
 	{
 		ay::tl::en2ru(src, srcLen, out);
+	}
+	
+	RuBastardizeHeuristic::RuBastardizeHeuristic (GlobalPools& gp)
+	: HashingSpellHeuristic(gp)
+	{
+	}
+	
+	namespace
+	{
+		bool contains2b(const char *begin, size_t len, const char *ch)
+		{
+			for (const char *end = begin + len; begin < end; begin += 2)
+				if (begin[0] == ch[0] && begin[1] == ch[1])
+					return true;
+			
+			return false;
+		}
+	}
+	
+	void RuBastardizeHeuristic::transform(const char *src, size_t srcLen, std::string& out) const
+	{
+		const char vowels[] = "уеыаоэяию";
+		char prev1 = 0;
+		char prev2 = 0;
+		for (const char *pos = src, *end = src + srcLen; pos < end; pos += 2)
+		{
+			if (contains2b(vowels, sizeof(vowels)/sizeof(vowels[0]), pos))
+				continue;
+			
+			if (pos[0] == prev1 && pos[1] == prev2)
+				continue;
+			
+			out.append(pos, 2);
+			prev1 = pos[0];
+			prev2 = pos[1];
+		}
 	}
 	
 	ChainHeuristic::ChainHeuristic(HashingSpellHeuristic& in, HashingSpellHeuristic& out)

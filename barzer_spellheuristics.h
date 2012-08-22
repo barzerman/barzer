@@ -44,10 +44,18 @@ namespace barzer
 	{
 	public:
 		EnglishSLHeuristic(GlobalPools&);
-		
+	protected:
 		void transform(const char* src, size_t srcLen, std::string& out) const;
 	};
-
+	
+	class RuBastardizeHeuristic : public HashingSpellHeuristic
+	{
+	public:
+		RuBastardizeHeuristic(GlobalPools&);
+		
+		void transform (const char* src, size_t srcLen, std::string& out) const;
+	};
+	
 	class ChainHeuristic : public HashingSpellHeuristic
 	{
 		HashingSpellHeuristic& m_in;
