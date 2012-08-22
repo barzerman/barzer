@@ -79,16 +79,7 @@ struct BZSWordTrieInfo {
 	}
 };
 
-class SoundsLikeInfo
-{
-public:
-	typedef ay::StackVec<uint32_t> SourceList_t;
-	typedef boost::unordered_map<uint32_t, SourceList_t> SourceDictionary_t;
-	SourceDictionary_t m_sources;
-public:
-	void addSource(uint32_t soundsLike, uint32_t source);
-	const SourceList_t* findSources(uint32_t like) const;
-};
+class EnglishSLHeuristic;
 
 class BZSpell {
 	/// the next spell checker in line  
@@ -121,10 +112,10 @@ private:
 	/// generates edit distance variants 
 	size_t produceWordVariants( uint32_t strId, int lang=LANG_ENGLISH );
 	
-	SoundsLikeInfo m_englishSL;
+	EnglishSLHeuristic *m_englishSL;
 public:
-	SoundsLikeInfo& getEnglishSL() { return m_englishSL; }
-	const SoundsLikeInfo& getEnglishSL() const { return m_englishSL; }
+	EnglishSLHeuristic& getEnglishSL() { return *m_englishSL; }
+	const EnglishSLHeuristic& getEnglishSL() const { return *m_englishSL; }
 
     const char_cp_to_strid_map* getValidWordMapPtr() const { return &d_validTokenMap; }
     const char_cp_to_strid_map& getValidWordMap() const { return d_validTokenMap; }

@@ -9,6 +9,7 @@
 #include <lg_ru/barzer_ru_stemmer.h>
 #include <lg_en/barzer_en_lex.h>
 #include <barzer_lexer.h>
+#include <barzer_spellheuristics.h>
 
 namespace barzer {
 typedef std::vector<char> charvec;
@@ -615,20 +616,13 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 
 		if (d_universe.soundsLikeEnabled())
 		{
-			std::string russian;
-			ay::tl::en2ru(str, str_len, russian);
-
 			GlobalPools& gp = d_universe.getGlobalPools();
-			const uint32_t id = gp.internalString_getId(russian.c_str());
-			if (id != 0xffffffff)
+			if (const ay::StackVec<uint32_t> *slSources = m_englishSL->findSources(str, str_len))
 			{
-				if (const ay::StackVec<uint32_t> *slSources = m_englishSL.findSources(id))
-				{
-					const size_t size = slSources->size();
-					const uint32_t *buf = slSources->getRawBuf();
-					for (const uint32_t *pos = buf, *end = buf + size; pos < end; ++pos)
-						cb.tryUpdateBestMatch(gp.string_resolve(*pos));
-				}
+				const size_t size = slSources->size();
+				const uint32_t *buf = slSources->getRawBuf();
+				for (const uint32_t *pos = buf, *end = buf + size; pos < end; ++pos)
+					cb.tryUpdateBestMatch(gp.string_resolve(*pos));
 			}
 		}
 
@@ -1165,25 +1159,6 @@ size_t BZSpell::dedupeChars( std::string& out, const char* str, size_t str_len, 
 	return 0;
 }
 
-void SoundsLikeInfo::addSource (uint32_t soundsLike, uint32_t source)
-{
-	SourceDictionary_t::iterator pos = m_sources.find(soundsLike);
-	if (pos == m_sources.end())
-	{
-		ay::StackVec<uint32_t> sv;
-		sv.push_back(source);
-		m_sources.insert(std::make_pair(soundsLike, sv));
-	}
-	else
-		pos->second.push_back(source);
-}
-
-const SoundsLikeInfo::SourceList_t* SoundsLikeInfo::findSources (uint32_t like) const
-{
-	SourceDictionary_t::const_iterator pos = m_sources.find(like);
-	return pos == m_sources.end() ? 0 : &pos->second;
-}
-
 size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
 {
 	/// for ascii
@@ -1239,12 +1214,13 @@ BZSpell::BZSpell( StoredUniverse& uni ) :
 	d_secondarySpellchecker(0),
 	d_universe( uni ),
 	d_charSize(1) ,
-
-	d_minWordLengthToCorrect( d_charSize* (QLexParser::MIN_SPELL_CORRECT_LEN) )
+	d_minWordLengthToCorrect( d_charSize* (QLexParser::MIN_SPELL_CORRECT_LEN) ),
+	m_englishSL(new EnglishSLHeuristic(uni.getGlobalPools()))
 {}
 
 BZSpell::~BZSpell()
 {
+	delete m_englishSL;
 }
 
 size_t BZSpell::loadExtra( const char* fileName )

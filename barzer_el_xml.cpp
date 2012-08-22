@@ -7,6 +7,7 @@
 #include <ay_xml_util.h>
 #include <ay_translit_ru.h>
 #include <barzer_relbits.h>
+#include "barzer_spellheuristics.h"
 extern "C" {
 #include <expat.h>
 
@@ -592,10 +593,7 @@ void addSLInfo (StoredUniverse *uni, const BTND_Pattern_Token& patTok)
 	if (Lang::getLang(*uni, str, len) != LANG_ENGLISH)
 		return;
 	
-	std::string russian;
-	ay::tl::en2ru(str, len, russian);
-	const uint32_t soundsId = gp.internString_internal(russian.c_str(), russian.size());
-	spell->getEnglishSL().addSource(soundsId, strId);
+	spell->getEnglishSL().addSource(str, len, strId);
 }
 
 // general visitor 
