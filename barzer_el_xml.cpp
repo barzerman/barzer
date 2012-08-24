@@ -461,12 +461,16 @@ template <> void BTND_Rewrite_Text_visitor::operator()<BTND_Rewrite_Number>(BTND
 // pattern visitor  template specifications 
 struct BTND_Pattern_Text_visitor : public BTND_text_visitor_base {
 	BTND_PatternData& d_pat;
+    bool d_isNotNew; 
 	BTND_Pattern_Text_visitor( BTND_PatternData& pat, BELParserXML& parser, const char* s, int len, uint8_t noTextToNum ) :
 		BTND_text_visitor_base( parser, s, len, noTextToNum ),
-		d_pat(pat)
+		d_pat(pat),
+        d_isNotNew(false)
 	{}
+    bool tokenWasNew() const { return !d_isNotNew; }
+
 	template <typename T>
-	void operator() (T& t) const {}
+	void operator() (T& t) {}
 };
 
 namespace {
@@ -480,10 +484,16 @@ bool isAllDigits( const char* s,int len  ) {
 }
 } // anon namespace ends 
 
-template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTND_Pattern_Token& t)  const
+template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTND_Pattern_Token& t)
 { 
 	/// if d_str is numeric we need to do something
     const char* str = ( d_str[d_len] ? (d_parser.setTmpText(d_str,d_len)) : d_str );
+
+    if( const StoredUniverse* uni = d_parser.getReader()->getCurrentUniverse() ) {
+        if( const StoredToken* storedTok = uni->getStoredToken(str) )
+            d_isNotNew = ( storedTok != 0 );
+    }
+
     bool isNumeric = (isdigit(str[0]) && isAllDigits(str,d_len));
 	bool strIsNum = ( !d_noTextToNum && isNumeric );
 	bool needStem = t.doStem;
@@ -505,11 +515,11 @@ template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTN
 	else
 		t.stringId = d_parser.internTmpText(  str, d_len, false, isNumeric); 
 }
-template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_StopToken>  (BTND_Pattern_StopToken& t)  const
+template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_StopToken>  (BTND_Pattern_StopToken& t)
 { 
 	t.stringId = d_parser.internTmpText(  d_str, d_len, false, false /*isNumeric*/ ); 
 }
-template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Punct> (BTND_Pattern_Punct& t) const
+template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Punct> (BTND_Pattern_Punct& t)
 { 
 	// may want to do something fancy for chinese punctuation (whatever that is)
 	const char* str_end = d_str + d_len;
@@ -613,11 +623,12 @@ struct BTND_text_visitor : public BTND_text_visitor_base {
 
 		bool meaningExpanded = false;
 		//// relelase bit - by defaults autoexpansion is on
-		if (uni && !RelBitsMgr::inst().check(1) && isToken )
-			meaningExpanded = tryExpandMeaning(pat, *uni);
+        if( isToken && uni ) {
+            tryExpandMeaning(pat, *uni);
 
-		if (!meaningExpanded && uni && uni->soundsLikeEnabled() && isToken)
-			addSLInfo(uni, boost::get<BTND_Pattern_Token>(pat));
+            if(uni->soundsLikeEnabled() && vis.tokenWasNew() )
+                addSLInfo(uni, boost::get<BTND_Pattern_Token>(pat));
+        }
     }
 	void operator()( BTND_None& ) const {}
 	void operator()( BTND_StructData& ) const {}

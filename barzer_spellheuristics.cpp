@@ -7,30 +7,16 @@ namespace barzer
 	void SoundsLikeInfo::addSource(uint32_t soundsLike, uint32_t source)
 	{
 		SourceDictionary_t::iterator pos = m_sources.find(soundsLike);
-		if (pos == m_sources.end())
-		{
-			ay::StackVec<uint32_t> sv;
-			sv.push_back(source);
-			m_sources.insert(std::make_pair(soundsLike, sv));
-		}
-		else
-			pos->second.push_back(source);
+		if (pos == m_sources.end()) 
+			pos = m_sources.insert(std::make_pair(soundsLike, ay::StackVec<uint32_t>())).first;
+
+        pos->second.push_back(source);
 	}
 
 	const SoundsLikeInfo::SourceList_t* SoundsLikeInfo::findSources(uint32_t like) const
 	{
 		SourceDictionary_t::const_iterator pos = m_sources.find(like);
 		return pos == m_sources.end() ? 0 : &pos->second;
-	}
-	
-	HashingSpellHeuristic::HashingSpellHeuristic(GlobalPools& gp)
-	: m_gp(gp)
-	{
-	}
-	
-	GlobalPools& HashingSpellHeuristic::getGP() const
-	{
-		return m_gp;
 	}
 	
 	void HashingSpellHeuristic::addSource(const char *sourceWord, size_t len, uint32_t sourceId)
@@ -51,44 +37,18 @@ namespace barzer
 		return m_mapping.findSources(id);
 	}
 	
-	EnglishSLHeuristic::EnglishSLHeuristic(GlobalPools& gp)
-	: HashingSpellHeuristic(gp)
-	{
-	}
-	
 	void EnglishSLHeuristic::transform(const char *src, size_t srcLen, std::string& out) const
 	{
 		ay::tl::en2ru(src, srcLen, out);
 	}
 	
-	RuBastardizeHeuristic::RuBastardizeHeuristic (GlobalPools& gp)
-	: HashingSpellHeuristic(gp)
-	{
-	}
-	
-	namespace
-	{
-		bool contains2b(const char *begin, size_t len, const char *ch)
-		{
-			for (const char *end = begin + len; begin < end; begin += 2)
-				if (begin[0] == ch[0] && begin[1] == ch[1])
-					return true;
-			
-			return false;
-		}
-	}
-	
 	void RuBastardizeHeuristic::transform(const char *src, size_t srcLen, std::string& out) const
 	{
-		const char vowels[] = "уеыаоэяию";
 		char prev1 = 0;
 		char prev2 = 0;
 		for (const char *pos = src, *end = src + srcLen; pos < end; pos += 2)
 		{
-			if (contains2b(vowels, sizeof(vowels)/sizeof(vowels[0]), pos))
-				continue;
-			
-			if (pos[0] == prev1 && pos[1] == prev2)
+			if (ay::tl::is_not_russian_consonant(pos) || (pos[0] == prev1&& pos[1] == prev2) )
 				continue;
 			
 			out.append(pos, 2);
@@ -97,7 +57,7 @@ namespace barzer
 		}
 	}
 	
-	ChainHeuristic::ChainHeuristic(HashingSpellHeuristic& in, HashingSpellHeuristic& out)
+	ChainHeuristic::ChainHeuristic(const HashingSpellHeuristic& in, const HashingSpellHeuristic& out)
 	: HashingSpellHeuristic(in.getGP())
 	, m_in(in)
 	, m_out(out)

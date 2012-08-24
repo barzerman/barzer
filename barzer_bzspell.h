@@ -6,6 +6,7 @@
 #include <barzer_language.h>
 #include <ay_utf8.h>
 #include <ay_stackvec.h>
+#include <barzer_spellheuristics.h>
 
 namespace barzer {
 class StoredUniverse;
@@ -112,10 +113,10 @@ private:
 	/// generates edit distance variants 
 	size_t produceWordVariants( uint32_t strId, int lang=LANG_ENGLISH );
 	
-	EnglishSLHeuristic *m_englishSL;
+	EnglishSLHeuristic m_englishSL;
 public:
-	EnglishSLHeuristic& getEnglishSL() { return *m_englishSL; }
-	const EnglishSLHeuristic& getEnglishSL() const { return *m_englishSL; }
+	EnglishSLHeuristic& getEnglishSL() { return m_englishSL; }
+	const EnglishSLHeuristic& getEnglishSL() const { return m_englishSL; }
 
     const char_cp_to_strid_map* getValidWordMapPtr() const { return &d_validTokenMap; }
     const char_cp_to_strid_map& getValidWordMap() const { return d_validTokenMap; }
@@ -140,7 +141,6 @@ public:
 	void addExtraWordToDictionary( uint32_t, uint32_t frequency = 0 );
 
 	BZSpell( StoredUniverse& uni ) ;
-	~BZSpell();
 
 	// returns the size of strid_evovec_hmap
 	// this function should be called after the load. 

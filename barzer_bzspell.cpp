@@ -616,13 +616,14 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 
 		if (d_universe.soundsLikeEnabled())
 		{
-			GlobalPools& gp = d_universe.getGlobalPools();
-			if (const ay::StackVec<uint32_t> *slSources = m_englishSL->findSources(str, str_len))
+			if (const ay::StackVec<uint32_t> *slSources = m_englishSL.findSources(str, str_len))
 			{
 				const size_t size = slSources->size();
 				const uint32_t *buf = slSources->getRawBuf();
-				for (const uint32_t *pos = buf, *end = buf + size; pos < end; ++pos)
-					cb.tryUpdateBestMatch(gp.string_resolve(*pos));
+			    const GlobalPools& gp = d_universe.getGlobalPools();
+				for (const uint32_t *pos = buf, *end = buf + size; pos < end; ++pos) {
+                    if( const char* x = gp.string_resolve(*pos) ) cb.tryUpdateBestMatch(x);
+                }
 			}
 		}
 
@@ -1215,13 +1216,8 @@ BZSpell::BZSpell( StoredUniverse& uni ) :
 	d_universe( uni ),
 	d_charSize(1) ,
 	d_minWordLengthToCorrect( d_charSize* (QLexParser::MIN_SPELL_CORRECT_LEN) ),
-	m_englishSL(new EnglishSLHeuristic(uni.getGlobalPools()))
+	m_englishSL(uni.getGlobalPools())
 {}
-
-BZSpell::~BZSpell()
-{
-	delete m_englishSL;
-}
 
 size_t BZSpell::loadExtra( const char* fileName )
 {

@@ -312,11 +312,6 @@ void BarzerSettings::loadEntities() {
 	}
 }
 
-void BarzerSettings::loadSoundslike (User& u, const ptree& node)
-{
-	const ptree& slNode = node.get_child("soundslike", empty_ptree());
-	u.getUniverse().setSoundsLike(slNode != empty_ptree());
-}
 
 void BarzerSettings::loadMeanings (User &u, const ptree& node)
 {
@@ -367,12 +362,12 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 	    const boost::optional<const ptree&> optAttrs = spell.get_child_optional("<xmlattr>");
         if( optAttrs ) {
             const ptree& attrs = optAttrs.get();
-            const boost::optional<std::string> optUTF8 = attrs.get_optional<std::string>("utf8");
-            if( optUTF8 ) { 
-                const std::string& utf8Val = optUTF8.get();
-                if( utf8Val == "yes" )
-                    u.getUniverse().setBit( StoredUniverse::UBIT_NOSTRIP_DIACTITICS );
-            } 
+
+            if( const auto p = attrs.get_optional<std::string>("utf8") ) 
+                if( *p== "yes" ) u.getUniverse().setBit( StoredUniverse::UBIT_NOSTRIP_DIACTITICS );
+
+            if( const auto p = attrs.get_optional<std::string>("soundslike") ) 
+                u.getUniverse().setSoundsLike( *p !="no" );
         }
 		BOOST_FOREACH(const ptree::value_type &v, spell) {
 			const std::string& tagName = v.first;
@@ -558,7 +553,6 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 	std::cout << "Loading user id: " << userId << "\n";
 
 	loadSpell(u, children);
-	loadSoundslike(u, children);
 	loadMeanings(u, children);
 
     reader.setRespectLimits( userId );
