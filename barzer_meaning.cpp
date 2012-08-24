@@ -1,6 +1,7 @@
 #include <barzer_meaning.h>
 #include <barzer_universe.h>
 #include <ay/ay_logger.h>
+#include "barzer_spellheuristics.h"
 extern "C" {
 #include <expat.h>
 }
@@ -110,8 +111,13 @@ DECL_TAGHANDLE(W) {
                 const uint8_t frequency = 0; /// maybe we'll start passing frequency here some day
                 const bool addAsUserSpecificString = true; /// this is just done for clarity 
 
-                uint32_t wordId = parser.d_universe->stemAndIntern(v,strlen(v),0);
-				parser.d_universe->getBZSpell()->addExtraWordToDictionary(wordId);
+                const size_t len = strlen(v);
+                uint32_t wordId = parser.d_universe->stemAndIntern(v, len, 0);
+				
+				BZSpell *spell = parser.d_universe->getBZSpell();
+				spell->addExtraWordToDictionary(wordId);
+				if (parser.d_universe->soundsLikeEnabled())
+					spell->getEnglishSL().addSource(v, len, wordId);
                 parser.d_universe->meanings().addMeaning( wordId, WordMeaning(parser.d_meaningNameId, parser.d_priority));
             }
         }
