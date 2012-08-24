@@ -28,6 +28,8 @@ enum {
 
 struct TToken {
 	uint16_t  d_utf8beg, d_utf8len; // starting glyphs and num of following glyphs for utf8  the string assumed to be elsewhere
+    
+    uint32_t  d_origOffset, d_origLength;  // offset and length in the original question 
 
 	std::string buf;
     	
@@ -36,14 +38,20 @@ struct TToken {
     size_t getFirstGlyph() const { return d_utf8beg; }
     size_t getNumGlyphs() const { return d_utf8len; }
     
-	TToken( ) : d_utf8beg(0xffff), d_utf8len(0xffff), buf("") {}
-	TToken( const char* s ) : d_utf8beg(0xffff), d_utf8len(0xffff), buf(s) {}
+	TToken( ) : d_utf8beg(0xffff), d_utf8len(0xffff), d_origOffset(0), d_origLength(0), buf("") {}
+	TToken( const char* s ) : d_utf8beg(0xffff), d_utf8len(0xffff), d_origOffset(0), d_origLength(0), buf(s) {}
 	// watch out for data consistency
-	TToken( const char* s, short l ) : d_utf8beg(0xffff), d_utf8len(0xffff), buf(s,l) {}
-	TToken( const char* s, short l, size_t bg, size_t eg ) : d_utf8beg(bg), d_utf8len(eg), buf(s,l) {}
+	TToken( const char* s, short l ) : d_utf8beg(0xffff), d_utf8len(0xffff), d_origOffset(0), d_origLength(0), buf(s,l) {}
+	TToken( const char* s, short l, size_t bg, size_t eg ) : d_utf8beg(bg), d_utf8len(eg), d_origOffset(0), d_origLength(0), buf(s,l) {}
 	
 	int getPunct() const
 		{ return( buf.length() ? buf[0] : ((int)'|') ); }
+    
+    TToken& setOrigOffsetAndLength( uint32_t offset, uint32_t length ) { return( d_origOffset=offset, d_origLength=length, *this ); }
+    TToken& setOrigOffset( uint32_t offset) { return( d_origOffset=offset, *this ); }
+    std::pair< uint32_t , uint32_t > getOrigOffsetAndLength() const { return std::make_pair(d_origOffset,d_origLength); }
+    uint32_t getOrigOffset() const { return d_origOffset; }
+    uint32_t getOrigLength() const { return d_origLength; }
 
     size_t getLen() const { return buf.length(); }
     const char*  getBuf() const { return buf.c_str(); }

@@ -1000,7 +1000,7 @@ int QLexParser::singleTokenClassify_space( Barz& barz, const QuestionParm& qparm
 				ctok.storedTok = storedTok;
 				ctok.syncClassInfoFromSavedTok();
 			} else { /// token NOT matched in the data set
-                if( ispunct(*t)) {
+                if( ispunct(*t) && !t[1]) {
                     ctok.setClass( CTokenClassInfo::CLASS_PUNCTUATION );
                 } else if( !isNumber ) {
 					/// fall thru - this is an unmatched word
