@@ -48,6 +48,16 @@ void RuBastardizeHeuristic::transform(const char *src, size_t srcLen, std::strin
 	char prev2 = 0;
 	for (const char *pos = src, *end = src + srcLen; pos < end; pos += 2)
 	{
+		if (pos == src)
+		{
+			out.append(ay::tl::is_russian_vowel(pos) ? "а" : pos, 2);
+			
+			prev1 = pos[0];
+			prev2 = pos[1];
+			
+			continue;
+		}
+		
 		if (ay::tl::is_not_russian_consonant(pos) || (pos[0] == prev1&& pos[1] == prev2) )
 			continue;
 		
