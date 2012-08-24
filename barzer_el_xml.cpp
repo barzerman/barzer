@@ -490,8 +490,11 @@ template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTN
     const char* str = ( d_str[d_len] ? (d_parser.setTmpText(d_str,d_len)) : d_str );
 
     if( const StoredUniverse* uni = d_parser.getReader()->getCurrentUniverse() ) {
-        if( const StoredToken* storedTok = uni->getStoredToken(str) )
-            d_isNotNew = ( storedTok != 0 );
+        if( const StoredToken* storedTok = uni->getStoredToken(str) ) {
+            if( const BZSpell* bzSpell = uni->getBZSpell() ) {
+                d_isNotNew =  bzSpell->isUsersWordById(storedTok->getStringId());
+            }
+        }
     }
 
     bool isNumeric = (isdigit(str[0]) && isAllDigits(str,d_len));
