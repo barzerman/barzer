@@ -55,6 +55,9 @@ void RuBastardizeHeuristic::transform(const char *src, size_t srcLen, std::strin
 		prev1 = pos[0];
 		prev2 = pos[1];
 	}
+	
+	if (out.size() < 6)
+		out.assign(src, srcLen);
 }
 
 ChainHeuristic::ChainHeuristic(const HashingSpellHeuristic& in, const HashingSpellHeuristic& out)
