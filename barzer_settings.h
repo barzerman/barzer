@@ -149,7 +149,6 @@ public:
 	/// global dictionaries from <dictionaries> tag
 	void loadLangNGrams();
 	void loadDictionaries();
-	void loadSoundslike(User&, const boost::property_tree::ptree&);
 	void loadMeanings(User&, const boost::property_tree::ptree&);
 	void loadSpell(User&, const boost::property_tree::ptree&);
 
