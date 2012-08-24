@@ -5,6 +5,7 @@
 #include <boost/unordered_map.hpp>
 #include <barzer_language.h>
 #include <ay_utf8.h>
+#include <ay_stackvec.h>
 
 namespace barzer {
 class StoredUniverse;
@@ -78,6 +79,8 @@ struct BZSWordTrieInfo {
 	}
 };
 
+class EnglishSLHeuristic;
+
 class BZSpell {
 	/// the next spell checker in line  
 	const BZSpell* d_secondarySpellchecker; 
@@ -107,8 +110,12 @@ private:
 	std::string d_extraWordsFileName;
 
 	/// generates edit distance variants 
-	size_t produceWordVariants( uint32_t strId, int lang=LANG_ENGLISH ); 
+	size_t produceWordVariants( uint32_t strId, int lang=LANG_ENGLISH );
+	
+	EnglishSLHeuristic *m_englishSL;
 public:
+	EnglishSLHeuristic& getEnglishSL() { return *m_englishSL; }
+	const EnglishSLHeuristic& getEnglishSL() const { return *m_englishSL; }
 
     const char_cp_to_strid_map* getValidWordMapPtr() const { return &d_validTokenMap; }
     const char_cp_to_strid_map& getValidWordMap() const { return d_validTokenMap; }
