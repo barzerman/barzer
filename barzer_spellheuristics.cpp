@@ -70,4 +70,15 @@ namespace barzer
 		m_in.transform(src, srcLen, temp);
 		m_out.transform(temp.c_str(), temp.size(), out);
 	}
+	
+	void ChainListHeuristic::transform(const char *src, size_t srcLen, std::string& out) const
+	{
+		std::string prevResult(src, srcLen);
+		for (size_t i = 0; i < m_heuristics.size(); ++i)
+		{
+			out.clear();
+			m_heuristics[i]->transform(prevResult.c_str(), prevResult.size(), out);
+			prevResult = out;
+		}
+	}
 }

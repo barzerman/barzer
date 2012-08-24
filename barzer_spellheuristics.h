@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <boost/unordered_map.hpp>
 #include <ay/ay_stackvec.h>
 
@@ -53,7 +54,7 @@ class RuBastardizeHeuristic : public HashingSpellHeuristic
 {
 public:
     RuBastardizeHeuristic(GlobalPools& g) : HashingSpellHeuristic(g) {}
-    
+
     void transform (const char* src, size_t srcLen, std::string& out) const;
 };
 
@@ -63,7 +64,18 @@ class ChainHeuristic : public HashingSpellHeuristic
     const HashingSpellHeuristic& m_out;
 public:
     ChainHeuristic (const HashingSpellHeuristic&, const HashingSpellHeuristic&);
-    
+
     void transform (const char* src, size_t srcLen, std::string& out) const;
+};
+
+class ChainListHeuristic : public HashingSpellHeuristic
+{
+	std::vector<HashingSpellHeuristic*> m_heuristics;
+public:
+	ChainListHeuristic (GlobalPools& g) : HashingSpellHeuristic(g) {}
+	
+	void add(HashingSpellHeuristic *h) { m_heuristics.push_back(h); }
+	
+	void transform(const char *src, size_t srcLen, std::string& out) const;
 };
 } //namespace barzer
