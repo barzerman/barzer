@@ -113,10 +113,12 @@ private:
 	/// generates edit distance variants 
 	size_t produceWordVariants( uint32_t strId, int lang=LANG_ENGLISH );
 	
-	EnglishSLHeuristic m_englishSL;
+	EnglishSLHeuristic m_englishSLTransform;
+	RuBastardizeHeuristic m_englishSLBastard;
+	ChainHeuristic m_englishSLSuperposition;
 public:
-	EnglishSLHeuristic& getEnglishSL() { return m_englishSL; }
-	const EnglishSLHeuristic& getEnglishSL() const { return m_englishSL; }
+	HashingSpellHeuristic& getEnglishSL() { return m_englishSLSuperposition; }
+	const HashingSpellHeuristic& getEnglishSL() const { return m_englishSLSuperposition; }
 
     const char_cp_to_strid_map* getValidWordMapPtr() const { return &d_validTokenMap; }
     const char_cp_to_strid_map& getValidWordMap() const { return d_validTokenMap; }

@@ -616,7 +616,7 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 
 		if (d_universe.soundsLikeEnabled())
 		{
-			if (const ay::StackVec<uint32_t> *slSources = m_englishSL.findSources(str, str_len))
+			if (const auto slSources = getEnglishSL().findSources(str, str_len))
 			{
 				const size_t size = slSources->size();
 				const uint32_t *buf = slSources->getRawBuf();
@@ -1216,7 +1216,9 @@ BZSpell::BZSpell( StoredUniverse& uni ) :
 	d_universe( uni ),
 	d_charSize(1) ,
 	d_minWordLengthToCorrect( d_charSize* (QLexParser::MIN_SPELL_CORRECT_LEN) ),
-	m_englishSL(uni.getGlobalPools())
+	m_englishSLTransform(uni.getGlobalPools()),
+	m_englishSLBastard(uni.getGlobalPools()),
+	m_englishSLSuperposition(m_englishSLTransform, m_englishSLBastard)
 {}
 
 size_t BZSpell::loadExtra( const char* fileName )
