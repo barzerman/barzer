@@ -45,7 +45,7 @@ class EnglishSLHeuristic : public HashingSpellHeuristic
 {
 public:
     EnglishSLHeuristic(GlobalPools& g) : HashingSpellHeuristic(g) {}
-protected:
+
     void transform(const char* src, size_t srcLen, std::string& out) const;
 };
 /// this class 'barstardizes' russian text input in transform
@@ -56,6 +56,14 @@ public:
     RuBastardizeHeuristic(GlobalPools& g) : HashingSpellHeuristic(g) {}
 
     void transform (const char* src, size_t srcLen, std::string& out) const;
+};
+
+class IdentityHeuristic : public HashingSpellHeuristic
+{
+public:
+	IdentityHeuristic(GlobalPools& g) : HashingSpellHeuristic(g) {}
+	
+	void transform(const char* src, size_t srcLen, std::string& out) const { out.assign(src, srcLen); }
 };
 
 class ChainHeuristic : public HashingSpellHeuristic
