@@ -31,7 +31,7 @@ SHARED_LIBNAME=libbarzer.so
 PYTHON_LIBNAME=util/python_util.so
 #libs = -Lay -lay -L/opt/local/lib -L/opt/local/lib/boost -L/usr/lib 
 libs = -Lay -Lsnowball -lay -lsnowlib -L/usr/local/lib -L/opt/local/lib -L/usr/lib \
-	$(BOOST_SYSLIB) -lboost_thread-mt -lexpat -lstdc++
+	$(BOOST_SYSLIB) -lboost_thread -lexpat -lstdc++
 ECHO = echo
 lib_objects = \
 barzer_meaning.o \
