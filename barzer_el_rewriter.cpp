@@ -171,9 +171,9 @@ struct Eval_visitor_evalChildren :  public boost::static_visitor<bool> {
 /// control structures 
 struct Eval_visitor_needToStop : public boost::static_visitor<bool> {  
 	const BarzelEvalResult& d_childVal;
-	BarzelEvalResult& d_val;
+	const BarzelEvalResult& d_val;
 
-	Eval_visitor_needToStop( BarzelEvalResult& cv, BarzelEvalResult& v ) : 
+	Eval_visitor_needToStop( BarzelEvalResult& cv, const BarzelEvalResult& v ) : 
 		d_childVal(cv),
 		d_val(v)
 	{}
@@ -486,16 +486,16 @@ bool BarzelEvalNode::eval_comma(BarzelEvalResult& val, BarzelEvalContext&  ctxt 
 		/// forming dependent vector of values 
         size_t childSize = d_child.size()-1;
 		for( size_t i =0; i< childSize; ++i ) {
-			const BarzelEvalNode& childNode = d_child[i];
+			// const BarzelEvalNode& childNode = d_child[i];
 
             //// if childNode is a let node - assign variable and continue
 
             BarzelEvalResult childVal;
 
 			size_t substPos= 0xffffffff;
-			if( childNode.isSubstitutionParm( substPos ) ) {
+			if( d_child[i].isSubstitutionParm( substPos ) ) {
 			} else {
-				if( !childNode.eval(childVal, ctxt) )
+				if( !d_child[i].eval(childVal, ctxt) )
 					return false; // error in one of the children occured
 	
             	Eval_visitor_needToStop visitor(childVal,val);
@@ -535,24 +535,24 @@ bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) cons
 
 		/// forming dependent vector of values 
 		for( size_t i =0; i< d_child.size(); ++i ) {
-			const BarzelEvalNode& childNode = d_child[i];
+			/// const BarzelEvalNode& childNode = d_child[i];
 
             //// if childNode is a let node - assign variable and continue
 
             childValVec.resize(i+1);
-            BarzelEvalResult& childVal = childValVec.back();
+            // BarzelEvalResult& childVal = childValVec.back();
 
 			size_t substPos= 0xffffffff;
-			if( childNode.isSubstitutionParm( substPos ) ) {
+			if( d_child[i].isSubstitutionParm( substPos ) ) {
 				const BarzelEvalResult* subsResult = ctxt.getPositionalArg( substPos );
 				if( subsResult ) {
-					childVal.setBeadData(subsResult->getBeadData());
+					childValVec.back().setBeadData(subsResult->getBeadData());
                 }
 			} else {
-				if( !childNode.eval(childVal, ctxt) )
+				if( !d_child[i].eval(childValVec.back(), ctxt) )
 					return false; // error in one of the children occured
 	
-            	Eval_visitor_needToStop visitor(childVal,val);
+            	Eval_visitor_needToStop visitor(childValVec.back(),val);
             	if( boost::apply_visitor( visitor, d_btnd ) )
                 	break;
 			}

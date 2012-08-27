@@ -114,7 +114,11 @@ public:
 	const BarzelBeadDataVec& getBeadDataVec() const { return d_val; }
 	      BarzelBeadDataVec& getBeadDataVec()       { return d_val; }
 	bool isVec() const { return (d_val.size() > 1); }
-	template <typename T> void setBeadData( const T& t ) { d_val[0] = t; }
+	template <typename T> void setBeadData( const T& t ) { 
+        if( d_val.size() > 1 ) 
+            d_val.resize(1);
+        d_val[0] = t; 
+    }
     
 
     std::ostream& print( std::ostream& fp ) const
