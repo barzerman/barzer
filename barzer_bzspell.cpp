@@ -582,7 +582,7 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 {
 	/// for ascii corrector
     size_t str_len = strlen( str );
-    if( lang == LANG_UNKNOWN )
+    if( lang == LANG_UNKNOWN || lang == LANG_UNKNOWN_UTF8 )
         lang = Lang::getLang(  d_universe, str, str_len );
 
 	if( lang == LANG_ENGLISH) {
