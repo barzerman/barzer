@@ -188,17 +188,31 @@ public:
 //// topic entity linkage object is responsible for relations between different 
 //// entities
 struct TopicEntLinkage {
-    typedef std::set< BarzerEntity > BarzerEntitySet;
+    struct EntityData {
+        BarzerEntity ent;
+        uint32_t     strength;
+        EntityData( const BarzerEntity& e, uint32_t s=0 ) : ent(e), strength(s) {}
+    };
+    struct EntityData_comp_less { bool operator()( const EntityData& l, const EntityData& r ) const { return( l.ent< r.ent ); } };
+
+    typedef std::set< EntityData, EntityData_comp_less > BarzerEntitySet;
     typedef std::map< BarzerEntity, BarzerEntitySet  > BarzerEntitySetMap;
     BarzerEntitySetMap topicToEnt;
     
-    void link( const BarzerEntity& t, const BarzerEntity& e ) 
+    void link( const BarzerEntity& t, const EntityData& e )
     {
         BarzerEntitySetMap::iterator i = topicToEnt.find( t );
-        if( i == topicToEnt.end() ) {
+        if( i == topicToEnt.end() ) 
             i = topicToEnt.insert( BarzerEntitySetMap::value_type( t, BarzerEntitySet() ) ).first; 
-        }
-        i->second.insert( e );
+        i->second.insert(e);
+    }
+
+    void link( const BarzerEntity& t, const BarzerEntity& e, uint32_t strength ) 
+    {
+        BarzerEntitySetMap::iterator i = topicToEnt.find( t );
+        if( i == topicToEnt.end() ) 
+            i = topicToEnt.insert( BarzerEntitySetMap::value_type( t, BarzerEntitySet() ) ).first; 
+        i->second.insert( EntityData(e,strength) );
     }
     
     const BarzerEntitySet* getTopicEntities( const BarzerEntity& t ) const

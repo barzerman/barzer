@@ -15,13 +15,22 @@ int QTokenizer::tokenize_strat_space(Barz& barz, const QuestionParm& qparm )
     bool lastWasSpace = false;
     const char* prevGlyphStart = 0;
     size_t     startGlyph = 0;
-    for( size_t i = 0; i< barz.questionOrigUTF8.length(); ++i ) {
+
+    size_t questionOrigUTF8_len = barz.questionOrigUTF8.length();
+    const char* questionOrigUTF8_start = ( questionOrigUTF8_len ? barz.questionOrigUTF8.getGlyphStart(0) : 0 );
+
+    for( size_t i = 0; i< questionOrigUTF8_len; ++i ) {
         const char* s = barz.questionOrigUTF8.getGlyphStart(i);
         if( s && isspace(*s) ) { // we got the space 
             if( !lastWasSpace ) {
                 if( prevGlyphStart )
                     ttwp.push_back( TTWPVec::value_type(TToken(prevGlyphStart,(s-prevGlyphStart),startGlyph,(i-startGlyph)), ttwp.size() ));
-                ttwp.push_back( TTWPVec::value_type(TToken(s,1), ttwp.size() ));
+                ttwp.push_back( 
+                    TTWPVec::value_type(
+                        TToken(s,1).setOrigOffsetAndLength((s-questionOrigUTF8_start),1), 
+                        ttwp.size() 
+                    )
+                );
                 lastWasSpace= true;
             } /// 
         } else if( (lastWasSpace || !prevGlyphStart) ) { /// this is not space but last one was space 
@@ -37,7 +46,7 @@ int QTokenizer::tokenize_strat_space(Barz& barz, const QuestionParm& qparm )
                 (barz.questionOrigUTF8.getBufEnd()-prevGlyphStart),
                 startGlyph, 
                 (barz.questionOrigUTF8.length()-startGlyph)
-            ), 
+            ).setOrigOffset(prevGlyphStart-questionOrigUTF8_start), 
             ttwp.size() 
         ));
 
@@ -81,7 +90,7 @@ int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qpar
 		if( !isascii(c) ) {
 			if( CHAR_DIGIT == prevChar || (!ay::is_diacritic(s) && PREVCHAR_NOT(UTF8)) ) {
 				if( tok ) {
-					ttwp.push_back( TTWPVec::value_type( TToken(tok,s-tok), ttwp.size() ));
+					ttwp.push_back( TTWPVec::value_type( TToken(tok,s-tok).setOrigOffsetAndLength(tok-q,(s-tok)), ttwp.size() ));
 					tok = 0;
 				}
 				--s;
@@ -94,25 +103,25 @@ int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qpar
 		if( isspace(c) ) {
 			if( !lc || lc != c ) {
 				if( tok ) {
-					ttwp.push_back( TTWPVec::value_type( TToken(tok,s-tok), ttwp.size() ));
+					ttwp.push_back( TTWPVec::value_type( TToken(tok,s-tok).setOrigOffsetAndLength(tok-q,(s-tok)), ttwp.size() ));
 					tok = 0;
 				}
-				ttwp.push_back( TTWPVec::value_type( TToken(s,1), ttwp.size() ));
+				ttwp.push_back( TTWPVec::value_type( TToken(s,1).setOrigOffsetAndLength(s-q,1), ttwp.size() ));
 			}
 			prevChar = CHAR_UNKNOWN;
 		} else if( ispunct(c) ) {
 			if( tok ) {
-				ttwp.push_back( TTWPVec::value_type( TToken(tok,s-tok), ttwp.size() ));
+				ttwp.push_back( TTWPVec::value_type( TToken(tok,s-tok).setOrigOffsetAndLength(tok-q,s-tok), ttwp.size() ));
 				tok = 0;
 			}
-			ttwp.push_back( TTWPVec::value_type( TToken(s,1), ttwp.size() ));
+			ttwp.push_back( TTWPVec::value_type( TToken(s,1).setOrigOffsetAndLength(s-q,1), ttwp.size() ));
 			prevChar = CHAR_UNKNOWN;
 		} else if( isalnum(c) ) {
 			if( (isalpha(c) && (PREVCHAR_NOT(ALPHA)&&PREVCHAR_NOT(UTF8)) ) ||
 				(isdigit(c) && PREVCHAR_NOT(DIGIT) )
 			) {
 				if( tok ) {
-					ttwp.push_back( TTWPVec::value_type( TToken(tok,s-tok), ttwp.size() ));
+					ttwp.push_back( TTWPVec::value_type( TToken(tok,s-tok).setOrigOffsetAndLength(tok-q,s-tok), ttwp.size() ));
 					tok = 0;
 				}
 				--s;
@@ -129,7 +138,7 @@ int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qpar
 	    lc=c;
 	}
 	if( tok ) {
-		ttwp.push_back( TTWPVec::value_type( TToken(tok,s-tok), ttwp.size() ));
+		ttwp.push_back( TTWPVec::value_type( TToken(tok,s-tok).setOrigOffsetAndLength(tok-q,s-tok), ttwp.size() ));
 		tok = 0;
 	}
 

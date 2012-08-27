@@ -33,6 +33,7 @@ public:
         BF_USERID,
         BF_ORIGQUERY,
         BF_QUERYID,
+        BF_NO_ORIGOFFSETS, // when set no original markup is returned inside the beads 
         /// add new flags above this line
         BF_MAX
     };
@@ -46,6 +47,7 @@ public:
         d_outputMode.set( BF_ORIGQUERY );
         d_outputMode.set( BF_QUERYID );
         d_outputMode.set( BF_NOTRACE );
+        d_outputMode.set( BF_NO_ORIGOFFSETS );
     }
     void setBit( int i , bool val = true ) { d_outputMode.set(i,val); }
     bool checkBit( int i ) const { return d_outputMode.checkBit( i ); }

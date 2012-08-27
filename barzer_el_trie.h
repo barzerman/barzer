@@ -514,11 +514,11 @@ public:
         return ( i== d_linkedTranInfoMap.end() ? 0 : &(i->second) ); 
     }
     const TopicEntLinkage& getTopicEntLinkage() const { return d_topicEnt; }
-    const std::set< BarzerEntity >* getTopicEntities( const BarzerEntity& t ) const
+    const TopicEntLinkage::BarzerEntitySet* getTopicEntities( const BarzerEntity& t ) const
     {
         return d_topicEnt.getTopicEntities( t );
     }
-    void linkEntToTopic( const BarzerEntity& topicEnt, const BarzerEntity&ent ) { d_topicEnt.link( topicEnt, ent ); }
+    void linkEntToTopic( const BarzerEntity& topicEnt, const BarzerEntity&ent, uint32_t strength ) { d_topicEnt.link( topicEnt, ent, strength ); }
 
 	// must be called from BELParser::internString
 	void addWordInfo( uint32_t strId, bool stemmed ) { d_wordInfoMap[strId].incrementCount(stemmed); }

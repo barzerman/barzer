@@ -2566,7 +2566,7 @@ struct BELFunctionStorage_holder {
                     if( truncIter  != entFAi->second.end() ) {
                         if( !entFilterApplies )
                             entFilterApplies = true;
-                        const std::set< BarzerEntity >* topEntSet= q_universe.getTopicEntities( topicEnt );
+                        const TopicEntLinkage::BarzerEntitySet  * topEntSet= q_universe.getTopicEntities( topicEnt );
                         if( topEntSet && topEntSet->find( *(eptr) ) != topEntSet->end() ) {
                             entPassedFilter = true;
                             filterPassedOnTopic  = topicEntClass;

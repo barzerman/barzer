@@ -128,38 +128,60 @@ class BeadVisitor : public boost::static_visitor<bool> {
 	size_t lvl;
 
 	bool d_printTtok;
+    const BarzStreamerXML& d_streamer;
 public:
-	BeadVisitor(std::ostream &s, const StoredUniverse &u, const BarzelBead& b, const Barz& barz ) : 
-		os(s), universe(u), d_bead(b),d_barz(barz), lvl(0), d_printTtok(true){}
+	BeadVisitor(std::ostream &s, const StoredUniverse &u, const BarzelBead& b, const Barz& barz, const BarzStreamerXML& streamer ) : 
+		os(s), universe(u), d_bead(b),d_barz(barz), lvl(0), d_printTtok(true), d_streamer(streamer){}
 
 	void printTTokenTag( )
 	{
 		if( !d_printTtok ) return;
 
 		const CTWPVec& ctoks = d_bead.getCTokens();
-		os << "<srctok>";
+
+        bool needOffsetLengthVec = !d_streamer.checkBit( BarzStreamerXML::BF_NO_ORIGOFFSETS );
+        std::vector< std::pair<uint32_t,uint32_t> >  offsetLengthVec; 
+        
+        std::stringstream sstrBody;
+
         std::string lastTokBuf;
 		for( CTWPVec::const_iterator ci = ctoks.begin(); ci != ctoks.end(); ++ci ) {
 			const TTWPVec& ttv = ci->first.getTTokens();
 
             if( ci != ctoks.begin() ) 
-                os << " ";
+                sstrBody << " ";
 			for( TTWPVec::const_iterator ti = ttv.begin(); ti!= ttv.end() ; ++ti ) {
 				const TToken& ttok = ti->first;
                 if( lastTokBuf == ttok.buf ) 
                     continue;
                 else
                     lastTokBuf = ttok.buf.c_str();
+
 				if( ttok.buf.length() ) {
                     if( ti != ttv.begin() && ci != ctoks.begin() ) 
-                        os << " ";
+                        sstrBody << " ";
                     std::string tokStr( ttok.buf.c_str(), ttok.buf.length() );
-                    xmlEscape(tokStr, os);
-					// os.write( ttok.buf, ttok.len ) << " ";
+                    xmlEscape(tokStr, sstrBody);
+
+                    if( needOffsetLengthVec ) 
+                        offsetLengthVec.push_back( ttok.getOrigOffsetAndLength() );
 				}
 			}
 		}	
-		os << "</srctok>";
+
+        os << "<srctok";
+        if( needOffsetLengthVec ) {
+            os << " origmarkup=\"" ;
+            for( auto i = offsetLengthVec.begin(); i!= offsetLengthVec.end(); ++i ) {
+                if(i!= offsetLengthVec.begin() )
+                    os << ";";
+                os << i->first << "," << i->second;
+            }
+            os << "\">";
+        } else {
+            os << ">";
+        }
+		os << sstrBody.str() << "</srctok>";
 	}
 	bool operator()(const BarzerLiteral &data) {
 		//AYLOG(DEBUG) << "BarzerLiteral";
@@ -569,7 +591,7 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 	        os << "\n";
 	        // tag_raii beadtag(os, "bead");
 			os << "<bead n=\"" << curBeadNum << "\">\n" ;
-	        BeadVisitor v(os, universe, *bli, barz );
+	        BeadVisitor v(os, universe, *bli, barz, *this );
 	        if (boost::apply_visitor(v, bli->getBeadData())) {
 	            os << "\n    ";
 	            v.printTTokenTag();
@@ -592,7 +614,7 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
     if( !topicMap.empty() ) {
         os << "<topics>\n";
         BarzelBead fakeBead;
-	    BeadVisitor v(os, universe, fakeBead, barz  );
+	    BeadVisitor v(os, universe, fakeBead, barz, *this  );
         for( BarzTopics::TopicMap::const_iterator topI = topicMap.begin(); topI != topicMap.end(); ++topI ) {
             os << "    ";
             std::stringstream sstr;

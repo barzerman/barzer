@@ -358,7 +358,7 @@ public:
     LangInfoArray& getLangInfo() { return d_langInfo; }
 
     uint32_t recordLangWord( int16_t lang );
-    const std::set< BarzerEntity >* getTopicEntities( const BarzerEntity& t ) const
+    const TopicEntLinkage::BarzerEntitySet*  getTopicEntities( const BarzerEntity& t ) const
         { return d_topicEntLinkage.getTopicEntities( t ); }
 
     const TopicEntLinkage& getTopicEntLinkage() const { return  d_topicEntLinkage; }
