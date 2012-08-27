@@ -120,9 +120,9 @@ class BarzerClient:
 
     def add_trie(self, user_id, trie_class, trie_name):
         with self.get_socket() as s:
-            t = ET.Element("trie",{'u': str(user_id), 'class': trie_class, 'name': trie_name})
-            c = ET.Element("cmd", {'name':'add'}, t)
-            return s.send_xml(c)
+            c = ET.Element("cmd", {'name':'add'})
+            t = ET.SubElement(c, ET.Element("trie",{'u': str(user_id), 'class': trie_class, 'name': trie_name}))
+            return s.send_xml(t)
 
     def clear_trie(self, trie_class, trie_name):
         with self.get_socket() as s:

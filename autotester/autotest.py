@@ -6,20 +6,20 @@ import BarzerClient # must not write anything to standart output (!)
 import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import iterparse
 from Queue import Queue
-from threading import Thread
+from threading import Thread,Lock
 import argparse
-import datetime
+import datetime, time
 
 now = datetime.datetime.now()
+lock = Lock()
+
 DELIM = "<<<"
-NUM_WORKER_THREADS = 8
-
+NUM_WORKER_THREADS = 24
 LEVEL = 0
-
 BARZER_HOST = BarzerClient.DEFAULT_HOST
 BARZER_PORT = BarzerClient.DEFAULT_PORT
 
-statistics = {"passed": 0, "not_passed": 0 ,"updated": 0, "error": 0, "over_level":0}
+statistics = {"passed": 0, "not_passed": 0 ,"updated": 0, "error": 0, "over_level":0, "total": 0, "time":""}
 
 class Query:
 	"""\
@@ -73,11 +73,13 @@ def do_test(test):
 	resultxml = ET.fromstring(resultxml)
 	if (resultxml[0].tag == "score"):
 		score = int(resultxml[0].text)
+		lock.acquire() 
 		statistics["passed" if score == 0 else "not_passed"] += 1
+		statistics["total"] += 1
 		if score > LEVEL:
 			statistics["over_level"] += 1
 			test[4].put((str(score), test[0], test[1],test[2]))
-
+		lock.release()
 
 def run_all(args):
 
@@ -89,7 +91,7 @@ def run_all(args):
 	def print_worker():
 		while True:
 			r = print_queue.get()
-			#print '<test score="' + r[0] + '" id="' + r[1] + '" user="' + r[2] +'">' + r[3] + '</test>'
+			print '<test score="' + r[0] + '" id="' + r[1] + '" user="' + r[2] +'">' + r[3] + '</test>'
 			print_queue.task_done()
 	q = Queue()
 	for i in range(NUM_WORKER_THREADS):
@@ -120,10 +122,10 @@ def print_stat(args):
 	global statistics
 	print '<stat',
 	for (k,v) in statistics.items():
-		if args.generate and k in ["updated", "error"]:
-		 	print k + '="' + str(v) + '" ' ,
-		if args.run and k in ["over_level", "passed", "not_passed"]:
-			print k + '="' + str(v) + '" ' ,
+		if args.generate and k in ["updated", "error", "time"]:
+		 	print k + '="' + str(v) + '"' ,
+		if args.run and k in ["total","passed", "not_passed", "over_level",  "time"]:
+			print k + '="' + str(v) + '"' ,
 	print '></stat>'
 
 def main():
@@ -154,11 +156,15 @@ def main():
 		BARZER_HOST = BarzerClient.DEFAULT_HOST
 		BARZER_PORT = BarzerClient.DEFAULT_PORT
 	print '<autotest time="'+ now.strftime("%Y-%m-%d %H:%M") + '" level="'+ str(LEVEL) + '">'
+	t1 = time.time()
 	if args.generate:
 		generate(args)
 	elif args.run:
 		run_all(args)
-
+	t2 = time.time()
+	m, s = divmod(t2-t1, 60)
+	h, m = divmod(m, 60)
+	statistics["time"] = "%d:%02d:%02d" % (h, m, s)
 	print_stat(args)
 	print '</autotest>'
 if __name__ == "__main__":
