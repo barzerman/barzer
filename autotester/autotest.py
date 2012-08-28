@@ -3,22 +3,23 @@
 
 import sys, operator
 import BarzerClient # must not write anything to standart output (!)
-from lxml import etree
+import xml.etree.ElementTree as ET
+from xml.etree.ElementTree import iterparse
 from Queue import Queue
-from threading import Thread
+from threading import Thread,Lock
 import argparse
-import datetime
+import datetime, time
 
 now = datetime.datetime.now()
+lock = Lock()
+
 DELIM = "<<<"
-NUM_WORKER_THREADS = 8
-
+NUM_WORKER_THREADS = 24
 LEVEL = 0
-
 BARZER_HOST = BarzerClient.DEFAULT_HOST
 BARZER_PORT = BarzerClient.DEFAULT_PORT
 
-statistics = {"passed": 0, "not_passed": 0 ,"updated": 0, "error": 0, "over_level":0}
+statistics = {"passed": 0, "not_passed": 0 ,"updated": 0, "error": 0, "over_level":0, "total": 0, "time":""}
 
 class Query:
 	"""\
@@ -53,7 +54,7 @@ def generate(args):
 					statistics["error"] += 1
 					break
 				if barzxml.startswith('<error>invalid user id'):
-					print '<error id="' + str(id) + '"> Invalid user id ' + str(q.user) + '</test>'
+					print '<error id="' + str(id) + '"> Invalid user id ' + str(q.user) + '</error>'
 					statistics["error"] += 1
 					continue
 				statistics["updated"] += 1
@@ -69,14 +70,16 @@ def do_test(test):
 	q = Query(test[1], test[2])
 	new_xml = q.ask_barzer()
 	resultxml = q.get_barzer().match_xml(new_xml, test[3])
-	resultxml = etree.fromstring(resultxml)
+	resultxml = ET.fromstring(resultxml)
 	if (resultxml[0].tag == "score"):
 		score = int(resultxml[0].text)
+		lock.acquire() 
 		statistics["passed" if score == 0 else "not_passed"] += 1
+		statistics["total"] += 1
 		if score > LEVEL:
 			statistics["over_level"] += 1
 			test[4].put((str(score), test[0], test[1],test[2]))
-
+		lock.release()
 
 def run_all(args):
 
@@ -100,12 +103,12 @@ def run_all(args):
 	t=Thread(target=print_worker)
 	t.setDaemon(True)
 	t.start()
-	for event, elem in etree.iterparse(args.tests_fname, events = ('end',)):
+	for event, elem in iterparse(args.tests_fname, events = ('end',)):
 		if elem.tag =="test":
 			id = elem.get("id")	
 			barz = elem.find("./barz")
 			user = barz.get("u")
-			testxml = etree.tostring(barz, encoding="utf-8")
+			testxml = ET.tostring(barz, encoding="utf-8")
 			query = barz.find("./query").text.encode("utf-8")
 			if (query is not None) and (user is not None) and (id is not None) and (testxml is not None):
 				q.put((id, user, query, testxml, print_queue))
@@ -119,10 +122,10 @@ def print_stat(args):
 	global statistics
 	print '<stat',
 	for (k,v) in statistics.items():
-		if args.generate and k in ["updated", "error"]:
-		 	print k + '="' + str(v) + '" ' ,
-		if args.run and k in ["over_level", "passed", "not_passed"]:
-			print k + '="' + str(v) + '" ' ,
+		if args.generate and k in ["updated", "error", "time"]:
+		 	print k + '="' + str(v) + '"' ,
+		if args.run and k in ["total","passed", "not_passed", "over_level",  "time"]:
+			print k + '="' + str(v) + '"' ,
 	print '></stat>'
 
 def main():
@@ -153,11 +156,15 @@ def main():
 		BARZER_HOST = BarzerClient.DEFAULT_HOST
 		BARZER_PORT = BarzerClient.DEFAULT_PORT
 	print '<autotest time="'+ now.strftime("%Y-%m-%d %H:%M") + '" level="'+ str(LEVEL) + '">'
+	t1 = time.time()
 	if args.generate:
 		generate(args)
 	elif args.run:
 		run_all(args)
-
+	t2 = time.time()
+	m, s = divmod(t2-t1, 60)
+	h, m = divmod(m, 60)
+	statistics["time"] = "%d:%02d:%02d" % (h, m, s)
 	print_stat(args)
 	print '</autotest>'
 if __name__ == "__main__":

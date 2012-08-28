@@ -5,9 +5,8 @@ from collections import defaultdict
 
 from os import path
 
-from lxml import etree
-from lxml.etree import tostring #@UnresolvedImport
-from lxml.builder import E
+from xml.etree.ElementTree import tostring
+import xml.etree.ElementTree as ET
 
 DEFAULT_HOST = 'localhost'
 DEFAULT_PORT = 5666
@@ -40,11 +39,6 @@ class Socket(socket.socket):
             r += s
         return r
     
-    """
-    def sendall(self, s, *args):
-        sys.stderr.write(s)
-        return socket.socket.sendall(self, s, *args)
-    """
     def send_xml(self, xml):
         s = tostring(xml, encoding='UTF-8') #@UndefinedVariable
         #print >>sys.stderr, s
@@ -71,11 +65,12 @@ class BarzerClient:
                 #print 'BarzerClient::query self.get_socket'
                 attrs = kwargs
                 if user_id: attrs['u'] = str(user_id)
-                node = E.query(data)
+                node = ET.Element("query",attrs)
+                node.text = data
                 if topic_info:
                     try:
                         q_node = node
-                        node = E.qblock(attrs)
+                        node = ET.Element("qblock",attrs)
                         for c, s, i in topic_info:
                             node.append(E.topic(c=str(c), s=str(s), i=i))
                         node.append(q_node)
@@ -97,7 +92,7 @@ class BarzerClient:
 
     def add_user(self, user_id):
         with self.get_socket() as s:
-            c = E.cmd({'name': 'add'}, E.user({'id': str(user_id)}))
+            c = ET.SubElement(ET.Element("cmd", {'name': 'add'}), ET.Element("user",{'id': str(user_id)}))
             return s.send_xml(c)
 
     def clear_user(self, user_id):
@@ -116,8 +111,8 @@ class BarzerClient:
 
     def add_rulefile(self, file_name, trie_class=None, trie_name=None):
         with self.get_socket() as s:
-            c = E.cmd({'name': 'add'})
-            f = etree.SubElement(c, "rulefile") #@UndefinedVariable
+            c = ET.Element("cmd",{'name': 'add'})
+            f = ET.SubElement(c, "rulefile") #@UndefinedVariable
             f.text = file_name
             if trie_class and trie_name:
                 f.attrib.update({'class':trie_class, 'name':trie_name})
@@ -125,9 +120,9 @@ class BarzerClient:
 
     def add_trie(self, user_id, trie_class, trie_name):
         with self.get_socket() as s:
-            t = E.trie({'u': str(user_id), 'class': trie_class, 'name': trie_name})
-            c = E.cmd({'name':'add'}, t)
-            return s.send_xml(c)
+            c = ET.Element("cmd", {'name':'add'})
+            t = ET.SubElement(c, ET.Element("trie",{'u': str(user_id), 'class': trie_class, 'name': trie_name}))
+            return s.send_xml(t)
 
     def clear_trie(self, trie_class, trie_name):
         with self.get_socket() as s:
