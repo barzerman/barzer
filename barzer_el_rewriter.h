@@ -158,7 +158,8 @@ inline void BarzelEvalResult::setBeadData<BarzelBeadRange>( const BarzelBeadRang
 
 typedef std::vector< BarzelEvalResult > BarzelEvalResultVec;
 
-typedef boost::unordered_map< uint32_t, BarzelEvalResult > VariableEvalMap;
+// typedef boost::unordered_map< uint32_t, BarzelEvalResult > VariableEvalMap;
+typedef std::map< uint32_t, BarzelEvalResult > VariableEvalMap;
 
 class BarzelEvalProcFrame {
     BarzelEvalResultVec d_v;
@@ -188,6 +189,14 @@ public:
         d_skip = rv.getSkip();
     }
     
+    void bindValue( uint32_t varId, const BarzelEvalResult& ber )
+    {
+        auto i = d_varMap.find(varId);
+        if( i == d_varMap.end() ) {
+            d_varMap.insert( std::make_pair<uint32_t,BarzelEvalResult>(varId, ber) );
+        } else
+            i->second=ber;
+    }
     /// adds to the current frame - this fucntion should always return non 0
     BarzelEvalResult& bind( uint32_t varId )
     {
@@ -237,8 +246,15 @@ struct BarzelEvalContext {
         }
 	};
     // let var 
+    void bindVar( uint32_t varId, const BarzelEvalResult& val ) 
+        { 
+            if( !d_procFrameStack.empty() ) {
+                d_procFrameStack.back().bindValue( varId, val );
+            }
+        }
     BarzelEvalResult& bindVar( uint32_t varId ) 
         { return d_procFrameStack.back().bind(varId); }
+
     /// binds 
     BarzelEvalResult* bindVarUpTheStack( uint32_t varId ) 
         {  

@@ -293,8 +293,10 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const B
 	const BELFunctionStorage &fs = u.getFunctionStorage();
 
 	bool ret = fs.call(ctxt, data, d_val, ay::skippedvector<BarzelEvalResult>(d_childValVec), u );
-    if( ret && data.isValidVar() ) 
-        ctxt.bindVar(data.getVarId()) = d_val;
+    if( ret && data.isValidVar() ) {
+        // ctxt.bindVar(data.getVarId()) = d_val;
+        ctxt.bindVar(data.getVarId(), d_val );
+    }
 	return ret;
 }
 
