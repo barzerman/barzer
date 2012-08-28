@@ -193,7 +193,7 @@ public:
     {
         auto i = d_varMap.find(varId);
         if( i == d_varMap.end() ) {
-            d_varMap.insert( std::make_pair<uint32_t,BarzelEvalResult>(varId, ber) );
+            d_varMap.insert( VariableEvalMap::value_type(varId, ber) );
         } else
             i->second=ber;
     }
