@@ -14,8 +14,7 @@ inline bool is_vowel( const char* str )
         b1 = (unsigned char)(str[1]);
     return( 
         (b0 == 0xd0 && ( b1 == 0xb0 || b1 == 0xb5 || b1 == 0xb8 || b1 == 0xb9 || b1 == 0xbe)) ||
-        (b0 == 0xd1 && 
-            (b1 == 0x91 || b1 == 0x83 || b1 == 0x8b || b1 == 0x8c || b1 == 0x8d || b1 == 0x8e || b1 == 0x8f)) 
+        (b0 == 0xd1 && (b1 == 0x91 || b1 == 0x83 || b1 == 0x8b || b1 == 0x8c || b1 == 0x8a || b1 == 0x8d || b1 == 0x8e || b1 == 0x8f)) 
     );
 }
 inline bool is_consonant( const char* str ) 
