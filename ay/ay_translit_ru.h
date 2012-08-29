@@ -17,7 +17,7 @@ namespace tl
     {
         return( 
             (b0== 0xd0 && (b1==0xb0||b1==0xb5||b1==0xbe||b1==0xb8||b1==0x8b)) ||
-            (b0== 0xd1 && (b1==0x91||b1==0x8f||b1==0x83||b1==0x8e))
+            (b0== 0xd1 && (b1==0x91||b1==0x8f||b1==0x83||b1==0x8d||b1==0x8e))
         );  
     }
     inline bool is_russian_vowel( const char *s ) { return is_russian_vowel( (uint8_t)(s[0]), (uint8_t)(s[1]) ); }
