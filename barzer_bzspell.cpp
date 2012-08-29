@@ -614,19 +614,6 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 			    cb.tryUpdateBestMatch(translit.c_str());
         } // end of kbd mapping and translit
 
-		if (d_universe.soundsLikeEnabled())
-		{
-			if (const auto slSources = getEnglishSL().findSources(str, str_len))
-			{
-				const size_t size = slSources->size();
-				const uint32_t *buf = slSources->getRawBuf();
-			    const GlobalPools& gp = d_universe.getGlobalPools();
-				for (const uint32_t *pos = buf, *end = buf + size; pos < end; ++pos) {
-                    if( const char* x = gp.string_resolve(*pos) ) cb.tryUpdateBestMatch(x);
-                }
-			}
-		}
-
 		if( str_len> d_minWordLengthToCorrect ) {
 			ay::choose_n<char, CorrectCallback > variator( cb, str_len-1, str_len-1 );
 			variator( str, str+str_len );
@@ -634,6 +621,20 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 
 		ascii::CharPermuter permuter( str, cb );
 		permuter.doAll();
+		
+		if (d_universe.soundsLikeEnabled() && cb.d_bestStrId == 0xffffffff)
+		{
+			if (const auto slSources = getEnglishSL().findSources(str, str_len))
+			{
+				const size_t size = slSources->size();
+				const uint32_t *buf = slSources->getRawBuf();
+			    const GlobalPools& gp = d_universe.getGlobalPools();
+				for (const uint32_t *pos = buf, *end = buf + size; pos < end; ++pos) {
+					if( const char* x = gp.string_resolve(*pos) ) cb.tryUpdateBestMatch(x);
+				}
+			}
+		}
+
 		return cb.getBestStrId();
 	} else if( Lang::isTwoByteLang(lang)) { // 2 byte char language spell correct
         /// includes russian
