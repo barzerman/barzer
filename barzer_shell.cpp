@@ -423,6 +423,27 @@ static int bshf_tokenize_old( BarzerShell* shell, char_cp cmd, std::istream& in 
 	return 0;
 }
 
+static int bshf_soundslike(BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext *context = shell->getBarzerContext();
+	const StoredUniverse &uni = context->getUniverse();
+	const GlobalPools& gp = uni.getGlobalPools();
+	const BZSpell* bzSpell = uni.getBZSpell();
+
+	if( !bzSpell ) {
+		std::cerr << "bzspell is NULL\n";
+		return 0;
+	}
+	ay::InputLineReader reader( in );
+
+	while( reader.nextLine() && reader.str.length() ) {
+		std::string out;
+		bzSpell->getEnglishSL().transform(reader.str.c_str(), reader.str.size(), out);
+		std::cout << "result: " << out << std::endl;
+	}
+	return 0;
+}
+
 static int bshf_bzspell( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext *context = shell->getBarzerContext();
@@ -459,6 +480,7 @@ static int bshf_bzspell( BarzerShell* shell, char_cp cmd, std::istream& in )
 	}
 	return 0;
 }
+
 static int bshf_bzstem( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext *context = shell->getBarzerContext();
@@ -747,7 +769,6 @@ static int bshf_setloglevel( BarzerShell* shell, char_cp cmd, std::istream& in )
 	ay::Logger::LEVEL = il;
 	return 0;
 }
-
 
 static int bshf_trie( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
@@ -1454,6 +1475,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_euid, "euid", "entity lookup by euid (tok class subclass)" ),
 	//CmdData( (ay::Shell_PROCF)bshf_trieloadxml, "trieloadxml", "loads a trie from an xml file" ),
 	CmdData( (ay::Shell_PROCF)bshf_setloglevel, "setloglevel", "set a log level (DEBUG/WARNINg/ERROR/CRITICAL)" ),
+	CmdData( (ay::Shell_PROCF)bshf_soundslike, "soundslike", "check the Soundslike heuristics for user words" ),
 	CmdData( (ay::Shell_PROCF)bshf_bzstem, "stem", "bz stemming" ),
 	CmdData( (ay::Shell_PROCF)bshf_xtrans, "trans", "tester for barzel translation" ),
 	CmdData( (ay::Shell_PROCF)bshf_translit, "translit", "transliterate english to russian (input must all lower case )" ),

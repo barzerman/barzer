@@ -4,10 +4,12 @@
 #include <ay_char.h>
 #include <ay_utf8.h>
 #include <ay_keymaps.h>
+#include <ay_translit_ru.h>
 #include <lg_ru/barzer_ru_lex.h>
 #include <lg_ru/barzer_ru_stemmer.h>
 #include <lg_en/barzer_en_lex.h>
 #include <barzer_lexer.h>
+#include <barzer_spellheuristics.h>
 
 namespace barzer {
 typedef std::vector<char> charvec;
@@ -580,7 +582,7 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 {
 	/// for ascii corrector
     size_t str_len = strlen( str );
-    if( lang == LANG_UNKNOWN )
+    if( lang == LANG_UNKNOWN || lang == LANG_UNKNOWN_UTF8 )
         lang = Lang::getLang(  d_universe, str, str_len );
 
 	if( lang == LANG_ENGLISH) {
@@ -611,6 +613,19 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 		    if (ay::km::engToRus(str, str_len, translit))
 			    cb.tryUpdateBestMatch(translit.c_str());
         } // end of kbd mapping and translit
+
+		if (d_universe.soundsLikeEnabled())
+		{
+			if (const auto slSources = getEnglishSL().findSources(str, str_len))
+			{
+				const size_t size = slSources->size();
+				const uint32_t *buf = slSources->getRawBuf();
+			    const GlobalPools& gp = d_universe.getGlobalPools();
+				for (const uint32_t *pos = buf, *end = buf + size; pos < end; ++pos) {
+                    if( const char* x = gp.string_resolve(*pos) ) cb.tryUpdateBestMatch(x);
+                }
+			}
+		}
 
 		if( str_len> d_minWordLengthToCorrect ) {
 			ay::choose_n<char, CorrectCallback > variator( cb, str_len-1, str_len-1 );
@@ -1145,7 +1160,6 @@ size_t BZSpell::dedupeChars( std::string& out, const char* str, size_t str_len, 
 	return 0;
 }
 
-
 size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
 {
 	/// for ascii
@@ -1201,13 +1215,11 @@ BZSpell::BZSpell( StoredUniverse& uni ) :
 	d_secondarySpellchecker(0),
 	d_universe( uni ),
 	d_charSize(1) ,
-
-	d_minWordLengthToCorrect( d_charSize* (QLexParser::MIN_SPELL_CORRECT_LEN) )
+	d_minWordLengthToCorrect( d_charSize* (QLexParser::MIN_SPELL_CORRECT_LEN) ),
+	m_englishSLTransform(uni.getGlobalPools()),
+	m_englishSLBastard(uni.getGlobalPools()),
+	m_englishSLSuperposition(m_englishSLTransform, m_englishSLBastard)
 {}
-
-BZSpell::~BZSpell()
-{
-}
 
 size_t BZSpell::loadExtra( const char* fileName )
 {

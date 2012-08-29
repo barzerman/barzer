@@ -57,8 +57,8 @@ public:
 	enum {
 		/// discarded
 		MAX_EDIT_DIST_FROM_SPELL = 2,
-		/// words shorter than this wont be spell corrected
-		MIN_SPELL_CORRECT_LEN = 4,
+		/// words equal or shorter than this wont be spell corrected
+		MIN_SPELL_CORRECT_LEN = 3,
 
 		MAX_CTOKENS_PER_QUERY = 64
 	};
