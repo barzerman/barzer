@@ -368,6 +368,9 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 
             if( const auto p = attrs.get_optional<std::string>("soundslike") ) 
                 u.getUniverse().setSoundsLike( *p !="no" );
+            
+            if( const auto p = attrs.get_optional<std::string>("dictcorr") ) 
+                if( *p== "yes" ) u.getUniverse().setBit( StoredUniverse::UBIT_CORRECT_FROM_DICTIONARY );
         }
 		BOOST_FOREACH(const ptree::value_type &v, spell) {
 			const std::string& tagName = v.first;

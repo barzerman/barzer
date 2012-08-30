@@ -622,7 +622,7 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 		ascii::CharPermuter permuter( str, cb );
 		permuter.doAll();
 		
-		if (d_universe.soundsLikeEnabled() && cb.d_bestStrId == 0xffffffff)
+		if (d_universe.soundsLikeEnabled() && cb.getBestStrId() == 0xffffffff)
 		{
 			if (const auto slSources = getEnglishSL().findSources(str, str_len))
 			{

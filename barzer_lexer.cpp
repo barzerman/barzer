@@ -840,7 +840,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
                     if( isUsersWord )
                         theString = correctedStr;
                 }
-			} else {
+			} else if(!d_universe.checkBit(StoredUniverse::UBIT_CORRECT_FROM_DICTIONARY) ) {
 		        ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
 		        return SpellCorrectResult (0, ++cPosVec, ++tPosVec);
             }
