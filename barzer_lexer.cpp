@@ -1012,9 +1012,17 @@ int QLexParser::singleTokenClassify_space( Barz& barz, const QuestionParm& qparm
 		    if( (!isNumber && bzSpell) ) {
 
 			    std::string stem;
-                const StoredToken* stemTok= bzSpell->stem_utf8_punct( stem, barz.getQuestionOrigUTF8(), ttok );
-			    if( stemTok && stemTok != ctok.getStemTok() ) 
-                    ctok.setStemTok( stemTok );
+                const StoredToken* stemTok = bzSpell->stem_utf8_punct( stem, barz.getQuestionOrigUTF8(), ttok );
+				if( stemTok ) 
+				{
+					if (d_universe.checkBit(StoredUniverse::UBIT_LEX_STEMPUNCT))
+					{
+						ctok.storedTok = stemTok;
+						ctok.setClass(CTokenClassInfo::CLASS_WORD);
+					}
+					else if (stemTok != ctok.getStemTok())
+						ctok.setStemTok( stemTok );
+				}
 		    }
             ctok.syncStemAndStoredTok();
 		}
