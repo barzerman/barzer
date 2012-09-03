@@ -141,6 +141,7 @@ set(SOURCES barzer_meaning.cpp
 			barzer_el_rewrite_control.cpp
 			barzer_relbits.cpp
 			barzer_spellheuristics.cpp
+			barzer_geoindex.cpp
 			autotester/barzer_at_autotester.cpp
 			autotester/barzer_at_comparators.cpp
             "${EN_DIR}/barzer_en_date_util.cpp"
