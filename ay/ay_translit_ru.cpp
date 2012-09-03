@@ -660,6 +660,13 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
 
 				switch (c1)
 				{
+                case 'e': // he
+                    if( s[2]=='a' && s[3] == 'r' && s[4]=='t' ){
+					    russian.append("харт");
+                        s+=4;
+                    }
+                        
+                    break;
 				default:
 					russian.append("х");
 					break;
