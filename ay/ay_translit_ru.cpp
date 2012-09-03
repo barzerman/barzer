@@ -536,6 +536,10 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
 			}
 			case 'b':
 			{
+                if( c1=='u'&&s[2]=='r'&&(s[3]=='y'||s[3]=='i') ) {
+                    russian.append("бе");
+                    ++s;
+                } else {
 				switch (c1)
 				{
                 case 'r':  // br
@@ -548,6 +552,7 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
 					russian.append("б");
 					break;
 				}
+                }
 
 				break;
 			}
@@ -607,6 +612,9 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                 } else if( s[1] =='d' && s[2] == 'i' && s[3] == 't' ) {
                     russian.append("эдит");
                     s+=3;
+                } else if( s[1] =='u' ) {
+                    russian.append("ю");
+                    ++s;
                 } else if( s[1] =='v' && s[2] == 'e' && s[3] == 'r' && s[4] == 'y' ) {
                     russian.append("эври");
                     s+=4;
@@ -720,7 +728,10 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                 if( s[1]=='n' && s[2] == 'i' && s[3]=='t' )  {
                     russian.append((s+=2,"ини"));
                 } else if( s[1]=='e' && s[2] == 'd' )  {
-                    russian.append((s+=1,"ай"));
+                    if( c_prev == 'r' && c_prev_1 == 'r' || isVowel(c_prev_1) )
+                        russian.append((s+=1,"и"));
+                    else
+                        russian.append((s+=1,"ай"));
                 } else if( s[1]=='e' && s[2] == 'r' )  {
                     russian.append((s+=1,"ие"));
                 } else if( s[1] == 'a' && isNonVowel(s[2]) )  {
@@ -1054,6 +1065,10 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                     russian.append("с");
                     s+=3;
                 } else if ( s[1] =='f' && isNonVowel(s[2]) ) { 
+                    russian.append("а");
+                } else if ( s[1] =='r' && s[2] =='l' ) {
+                    russian.append("ё");
+                } else if ( s[1] =='r' && s[2] =='r' ) {
                     russian.append("а");
                 } else if ( s[1] =='n' && s[2] =='n' ) {
                     russian.append("а");
