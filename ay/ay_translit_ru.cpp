@@ -984,6 +984,11 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                 } else if( s[1] =='h' && s[2] =='r' ) {
                     russian.append("т");
                     s+=1;
+                } else if( s[1] =='u' && isNonVowel(s[2])  ) {
+                    if( s[3] == 'e' || s[3] =='i') 
+                        russian.append((s+=1,"тью"));
+                    else 
+                        russian.append((s+=1,"ту"));
                 //// add T* patterns above this line
                 } else if( s[1] =='h' && (s[2] =='e'||!c_prev)  ) {
 					russian.append((s+=1,"з"));
