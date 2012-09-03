@@ -485,6 +485,8 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                 } else if( s[1] == 'l' && s[2] == 'l' && s[3] =='e' && s[4] =='d' ) {
                     russian.append("олд");
                     s+=4;
+                } else if( s[1] =='g' && !isVowel(s[2]) ) {
+                    russian.append("э"); 
                 } else if( s[1] =='a' ) {
                     russian.append("аа");
                     ++s;
