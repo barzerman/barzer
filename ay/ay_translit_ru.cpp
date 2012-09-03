@@ -480,6 +480,11 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                     russian.append("а");
                 } else if( s[1] && !isVowel(s[1]) && s[1] != 'r' && (s[2]=='e') ) {
                     russian.append(!strchr("cxhk",s[1])?"эй":"ей"); 
+                } else if ( isNonVowel(c_prev) && s[1]=='l' &&s[2]=='k' ) {
+                    russian.append("ок");
+                    s+=2;
+                } else if ( isNonVowel(c_prev) && s[1]=='l' && (s[2]=='t'||s[2]=='d') ) {
+                    russian.append("о");
                 } else if( s[1] && !isVowel(s[1]) && s[2] && !isVowel(s[2])) {
                     russian.append("э"); 
                 } else if( s[1] == 'u'  ) {
@@ -515,7 +520,9 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
 				{
                 case 'r':  // br
                     if( s[2]=='e'&&s[3]=='a'&&s[4]=='k')  // break
-                        russian.append("брэйк"); s+=4;
+                        {    russian.append("брэйк"); s+=4; }
+                    else
+                        russian.append("б");
                     break;
 				default:
 					russian.append("б");
@@ -877,6 +884,9 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                 if( s[1] == 'u' && s[2] == 's' && s[3] =='s' ) {
                     russian.append("ра" );
                     ++s;
+                } else if( s[1] == 'e' && s[2] == 'a' && s[3] == 'd' && !terminating_char(c_prev) ) {
+                    russian.append( "ред" );
+                    s+=3;
                 } else if( s[1] == 'o' && s[2] == 'w' && !c_prev ) {
                     russian.append((s+=2,"роу"));
                 } else {
@@ -939,11 +949,15 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
 					russian.append((s+=4,"тру"));
                 } else if( s[1] =='i' && s[2] =='v' && s[3] =='e') {
                     russian.append((s+=3,"тив"));
-                } else if( s[1] =='h' && (s[2] =='e'||!c_prev)  ) {
-					russian.append((s+=1,"з"));
                 } else if( s[1] =='i' && s[2] =='a' && s[3] =='l' ) {
                     russian.append("шиал");
                     s+=3;
+                } else if( s[1] =='h' && s[2] =='r' ) {
+                    russian.append("т");
+                    s+=1;
+                //// add T* patterns above this line
+                } else if( s[1] =='h' && (s[2] =='e'||!c_prev)  ) {
+					russian.append((s+=1,"з"));
                 } else if (s + 2 < end && c1 == 'c' && s[2] == 'h')
 				{
 					russian.append("ч");
