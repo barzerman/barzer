@@ -631,6 +631,8 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
 			{
                 if( s[1] == 'u' && s[2] =='t' && s[3] == 'u' ) {
                     russian.append((s+=3,"фьюче"));
+                } else if( s[1] =='o'&& s[2]=='r'&& s[3]=='t'&& s[4]=='u') {
+                    russian.append((s+=4,"форчу"));
                 } else if( s[1] =='f' ) {
 					russian.append("ф");
                     ++s;
