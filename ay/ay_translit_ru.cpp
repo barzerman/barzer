@@ -473,6 +473,8 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                         russian.append(tmp);
                     russian.append("с");
                     s+=3;
+                } else if( c1=='r' && s[2] =='e' && terminating_char(c_prev) ) {
+                    russian.append("а");
                 } else if( c1=='u' && s[2]=='g' && s[3]=='h' ) { // augh
                     if( s[4] == 't' ) {
                         if( c_prev == 'l' ) {
@@ -540,7 +542,10 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
 			}
 			case 'b':
 			{
-                if( c1=='u'&&s[2]=='r'&&(s[3]=='y'||s[3]=='i') ) {
+                if( c1=='u'&&s[2]=='s'&&s[3]=='i'&& !strncmp(s+4,"ness",4) ) {
+                    russian.append("бизнес");
+                    s+=7;
+                } else if( c1=='u'&&s[2]=='r'&&(s[3]=='y'||s[3]=='i') ) {
                     russian.append("бе");
                     ++s;
                 } else {
@@ -985,6 +990,8 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                     s+=3;
 					russian.append("сам");
 				}else if (isVowel(s[1]) && isVowel(c_prev)  ) {
+					russian.append("з");
+				}else if ( ((c_prev_1 =='a' && c_prev =='y')||(c_prev_1=='o'&&c_prev=='w')) && terminating_char(s[1])  ) {
 					russian.append("з");
                 } else 
 				if (s + 2 < end && c1 == 'c' && s[2] == 'h')
