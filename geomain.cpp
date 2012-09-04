@@ -43,6 +43,14 @@ void test(const GI& gi, const Vec& points, typename GI::Coord_t dist)
 	gettimeofday(&now, 0);
 	
 	std::cout << "smarter approach:\t\t" << getDiff (prev, now) / retries / points.size() << " μs avg" << std::endl;
+	
+	gettimeofday(&prev, 0);
+	for (int i = 0; i < retries; ++i)
+		for (const auto& pt : points)
+			gi.findPoints3(pt, Callback(), [](const typename GI::Point& p) { return true; }, dist);
+	gettimeofday(&now, 0);
+	
+	std::cout << "badass approach:\t\t" << getDiff (prev, now) / retries / points.size() << " μs avg" << std::endl;
 	std::cout << std::endl << std::endl;
 }
 
@@ -72,5 +80,7 @@ int main()
 	test(gi, testPts, 2);
 	test(gi, testPts, 5);
 	test(gi, testPts, 20);
+	test(gi, testPts, 30);
 	test(gi, testPts, 50);
+	test(gi, testPts, 100);
 }

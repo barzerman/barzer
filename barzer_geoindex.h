@@ -60,28 +60,28 @@ public:
 	typedef std::vector<Point> Points_t;
 	typedef Coord Coord_t;
 private:
-	Points_t m_points;
+	Points_t m_xpoints;
 public:
 	GeoIndex() {}
 	
 	void addPoint(const Point& point)
 	{
-		auto it = std::upper_bound (m_points.begin(), m_points.end(), point, isXLess<Point>);
-		m_points.insert(it, point);
+		auto xit = std::upper_bound (m_xpoints.begin(), m_xpoints.end(), point, isXLess<Point>);
+		m_xpoints.insert(xit, point);
 	}
 	
 	void setPoints(const Points_t& points)
 	{
-		m_points = points;
-		std::sort(m_points.begin(), m_points.end(), isXLess<Point>);
+		m_xpoints = points;
+		std::sort(m_xpoints.begin(), m_xpoints.end(), isXLess<Point>);
 	}
 	
 	template<typename CallbackT, typename PredT>
 	void findPoints(const Point& center, CallbackT cb, PredT pred, Coord maxDist) const
 	{
-		auto upper = std::upper_bound(m_points.begin(), m_points.end(), center.x() + maxDist,
+		auto upper = std::upper_bound(m_xpoints.begin(), m_xpoints.end(), center.x() + maxDist,
 				[](Coord x, const Point& p) { return x < p.x(); });
-		auto lower = std::lower_bound(m_points.begin(), upper, center.x() - maxDist,
+		auto lower = std::lower_bound(m_xpoints.begin(), upper, center.x() - maxDist,
 				[](const Point& p, Coord x) { return p.x() < x; });
 
 		Points_t sub;
@@ -111,9 +111,9 @@ public:
 	template<typename CallbackT, typename PredT>
 	void findPoints2(const Point& center, CallbackT cb, PredT pred, Coord maxDist) const
 	{
-		auto upper = std::upper_bound(m_points.begin(), m_points.end(), center.x() + maxDist,
+		auto upper = std::upper_bound(m_xpoints.begin(), m_xpoints.end(), center.x() + maxDist,
 				[](Coord x, const Point& p) { return x < p.x(); });
-		auto lower = std::lower_bound(m_points.begin(), upper, center.x() - maxDist,
+		auto lower = std::lower_bound(m_xpoints.begin(), upper, center.x() - maxDist,
 				[](const Point& p, Coord x) { return p.x() < x; });
 
 		Points_t sub;
@@ -141,6 +141,44 @@ public:
 		std::sort(lower2, upper2, Sorter(center));
 		for (auto i = lower2; i != upper2; ++i)
 			if (*i - center >= maxDist * maxDist || !cb(*i))
+				break;
+	}
+	
+	template<typename CallbackT, typename PredT>
+	void findPoints3(const Point& center, CallbackT cb, PredT pred, Coord maxDist) const
+	{
+		auto upper = std::upper_bound(m_xpoints.begin(), m_xpoints.end(), center.x() + maxDist,
+				[](Coord x, const Point& p) { return x < p.x(); });
+		auto lower = std::lower_bound(m_xpoints.begin(), upper, center.x() - maxDist,
+				[](const Point& p, Coord x) { return p.x() < x; });
+
+		Points_t sub;
+		sub.reserve(upper - lower);
+		auto upY = center.y() + maxDist;
+		auto downY = center.y() - maxDist;
+		std::copy_if(lower, upper, std::back_inserter (sub),
+				[pred, upY, downY] (const Point& p)
+				{
+					return p.y() < upY && p.y() >= downY && pred(p);
+				});
+		
+		struct Sorter
+		{
+			const Point& m_p;
+			Sorter(const Point& p)
+			: m_p(p) {}
+			
+			bool operator()(const Point& left, const Point& right) const
+			{
+				return m_p - left < m_p - right;
+			}
+		};
+		
+		const auto powedDist = maxDist * maxDist;
+		
+		std::sort(sub.begin(), sub.end(), Sorter(center));
+		for (typename Points_t::const_iterator i = sub.begin(); i != sub.end(); ++i)
+			if (*i - center >= powedDist || !cb(*i))
 				break;
 	}
 };
