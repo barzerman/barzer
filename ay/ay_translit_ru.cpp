@@ -223,6 +223,7 @@ char_cp_pair("and","энд"),
 char_cp_pair("any","эни"),
 char_cp_pair("anyone","эниван"),
 char_cp_pair("anyones","эниванс"),
+char_cp_pair("are","ар"),
 char_cp_pair("as","аз"),
 char_cp_pair("ask","аск"),
 char_cp_pair("at","эт"),
@@ -319,6 +320,7 @@ char_cp_pair("people","пипл"),
 char_cp_pair("person","пёрсон"),
 char_cp_pair("place","плейс"),
 char_cp_pair("point","пойнт"),
+char_cp_pair("police","полис"),
 char_cp_pair("problem",""),
 char_cp_pair("public","паблик"),
 char_cp_pair("right","райт"),
@@ -355,13 +357,15 @@ char_cp_pair("up","ап"),
 char_cp_pair("us","ас"),
 char_cp_pair("use","юз"),
 char_cp_pair("want","уонт"),
-char_cp_pair("was","воз"),
+char_cp_pair("was","уоз"),
 char_cp_pair("way","уэй"),
 char_cp_pair("we","уи"),
 char_cp_pair("week","уик"),
 char_cp_pair("well","уэлл"),
+char_cp_pair("were","вёр"),
 char_cp_pair("what","уот"),
 char_cp_pair("when","уэн"),
+char_cp_pair("where","уэйр"),
 char_cp_pair("which","уич"),
 char_cp_pair("who","ху"),
 char_cp_pair("will","уил"),
@@ -750,7 +754,15 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                     russian.append("ис");
                     s+=2;
                 } else if( s[1] =='e' ) {
-                    russian.append((++s,"и"));
+                    if( !terminating_char(c_prev) && strchr("dt",c_prev) ) {
+                        russian.append( (s+=1,"ай") );
+                    } else if( c_prev == 'x' ) {
+                        russian.append( (s+=1,"и") );
+                    } else if( c_prev == 'r' ) {
+                        russian.append( (s+=1,"е") );
+                    } else {
+                        russian.append( "и" );
+                    }
                 } else
                 if( s[1] && (s[2] =='e'||s[2] =='i') && !isVowel(s[1]) ) {
                     russian.append("ай");
@@ -1104,6 +1116,11 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
 			{
                 if( s[1] == 'y' && !isVowel(s[2]) ) {
                     russian.append((++s,"ви"));
+                } else if( s[1] =='i' && s[2]=='c' && s[3] =='e' && !terminating_char(c_prev)) {
+                    if( s[4]!='s' )
+                        russian.append((s+=3,"вис"));
+                    else
+                        russian.append((s+=2,"вис"));
                 } else {
 				switch (c1)
 				{
