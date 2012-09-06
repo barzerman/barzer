@@ -49,9 +49,11 @@ namespace
 int main()
 {
 	typedef GeoIndex<Point, Payload, double> GI;
-	GI gi;
-	for (int i = 0; i < 3000; ++i)
-		for (int j = 0; j < 3000; ++j)
+	
+	const int size = 3000;
+	GI gi(3000);
+	for (int i = 0; i < size; ++i)
+		for (int j = 0; j < size; ++j)
 			gi.addPoint(GI::Point(i, j));
 		
 	std::vector<GI::Point> testPts = {GI::Point(5, 5), GI::Point(5, 505), GI::Point(505, 5), GI::Point(505, 505), GI::Point(0, 0)};
@@ -59,14 +61,11 @@ int main()
 	/*
 	timeval prev, now;
 	gettimeofday(&prev, 0);
-	gi.findPoints2(GI::Point(5, 5, 0), Callback(), [](const GI::Point& p) { return true; }, 2);
+	gi.findPoints(GI::Point(0, 5), Callback(), [](const GI::Point& p) { return true; }, 2);
 	gettimeofday(&now, 0);
 	std::cout << getDiff(prev, now) << std::endl;
 	
-	gettimeofday(&prev, 0);
-	gi.findPoints2(GI::Point(50, 50, 0), Callback(), [](const GI::Point& p) { return true; }, 2);
-	gettimeofday(&now, 0);
-	std::cout << getDiff(prev, now) << std::endl;
+	return 0;
 	*/
 	
 	test(gi, testPts, 2);

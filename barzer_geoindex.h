@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <iostream>
 
 namespace barzer
 {
@@ -20,6 +21,9 @@ public:
 	
 	Coord x() const { return m_x; }
 	Coord y() const { return m_y; }
+	
+	void setX(Coord x) { m_x = x; }
+	void setY(Coord y) { m_y = y; }
 
 	const PayloadT& getPayload() const { return m_payload; }
 	
@@ -47,11 +51,29 @@ inline bool isXScalarLess(Coord x, const Point& p) { return x < p.x(); }
 template<typename Point, typename Coord>
 inline bool isXLessScalar(const Point& p, Coord x) { return p.x() < x; }
 
+template<typename Point, typename Coord>
+inline double wrapDist(const Point& p1, const Point& p2, Coord wrapAround)
+{
+	auto dumbDiff = p1 - p2;
+	if (!wrapAround)
+		return dumbDiff;
+	
+	const bool isFirstLeft = isXLess(p1, p2);
+	
+	auto tmpPoint = isFirstLeft ? p1 : p2;
+	const auto& right = isFirstLeft ? p2 : p1;
+	
+	tmpPoint.setX(tmpPoint.x() + wrapAround);
+	
+	return std::min(dumbDiff, tmpPoint - right);
+}
+
 template<template<typename PayloadT, typename Coord> class PointT,
 		typename PayloadT,
 		typename Coord = double>
 class GeoIndex
 {
+	const Coord m_wrapAround;
 public:
 	typedef PointT<PayloadT, Coord> Point;
 	typedef std::vector<Point> Points_t;
@@ -59,7 +81,7 @@ public:
 private:
 	Points_t m_xpoints;
 public:
-	GeoIndex() {}
+	GeoIndex(Coord wrapAround = 0) : m_wrapAround(wrapAround) {}
 	
 	void addPoint(const Point& point)
 	{
@@ -76,20 +98,17 @@ public:
 	template<typename CallbackT, typename PredT>
 	void findPoints(const Point& center, CallbackT cb, PredT pred, Coord maxDist) const
 	{
-		auto upper = std::upper_bound(m_xpoints.begin(), m_xpoints.end(), center.x() + maxDist, isXScalarLess<Point, Coord>);
-		auto lower = std::lower_bound(m_xpoints.begin(), upper, center.x() - maxDist, isXLessScalar<Point, Coord>);
-
 		Points_t sub;
-		sub.reserve(upper - lower);
-		auto upY = center.y() + maxDist;
-		auto downY = center.y() - maxDist;
+		
+		const auto upY = center.y() + maxDist;
+		const auto downY = center.y() - maxDist;
 		
 		struct CopyPred
 		{
-			Coord m_downY;
-			Coord m_upY;
+			const Coord m_downY;
+			const Coord m_upY;
 			
-			PredT m_pred;
+			const PredT m_pred;
 		public:
 			CopyPred (Coord down, Coord up, PredT pred)
 			: m_downY(down)
@@ -102,28 +121,54 @@ public:
 			{
 				return p.y() < m_upY && p.y() >= m_downY && m_pred(p);
 			}
-		};
+		} copyPred(downY, upY, pred);
 		
-		std::copy_if(lower, upper, std::back_inserter (sub), CopyPred(downY, upY, pred));
+		const auto downX = center.x() - maxDist;
+		const auto upX = center.x() + maxDist;
+		
+		if (!m_wrapAround || (downX >= 0 && upX <= m_wrapAround))
+			addPointsInDist(sub, downX, upX, copyPred);
+		else if (downX < 0)
+		{
+			addPointsInDist(sub, 0, upX, copyPred);
+			addPointsInDist(sub, m_wrapAround + downX, m_wrapAround, copyPred);
+		}
+		else if (upX > m_wrapAround)
+		{
+			addPointsInDist(sub, downX, m_wrapAround, copyPred);
+			addPointsInDist(sub, 0, upX - m_wrapAround, copyPred);
+		}
 		
 		struct Sorter
 		{
 			const Point& m_p;
-			Sorter(const Point& p)
-			: m_p(p) {}
+			Coord m_wrap;
+			Sorter(const Point& p, Coord wrap)
+			: m_p(p)
+			, m_wrap(wrap)
+			{}
 			
 			bool operator()(const Point& left, const Point& right) const
 			{
-				return m_p - left < m_p - right;
+				return wrapDist(m_p, left, m_wrap) < wrapDist(m_p, right, m_wrap);
 			}
 		};
+		std::sort(sub.begin(), sub.end(), Sorter(center, m_wrapAround));
 		
-		const auto powedDist = maxDist * maxDist;
-		
-		std::sort(sub.begin(), sub.end(), Sorter(center));
+		const auto powedDist = maxDist * maxDist;		
 		for (auto i = sub.begin(); i != sub.end(); ++i)
-			if (*i - center >= powedDist || !cb(*i))
+			if (wrapDist(*i, center, m_wrapAround) >= powedDist || !cb(*i))
 				break;
+	}
+private:
+	template<typename PredT>
+	void addPointsInDist(Points_t& out, Coord from, Coord to, PredT pred) const
+	{
+		auto upper = std::upper_bound(m_xpoints.begin(), m_xpoints.end(), to, isXScalarLess<Point, Coord>);
+		auto lower = std::lower_bound(m_xpoints.begin(), upper, from, isXLessScalar<Point, Coord>);
+
+		out.reserve(out.size() + (upper - lower));
+		std::copy_if(lower, upper, std::back_inserter(out), pred);
 	}
 };
 }
