@@ -27,42 +27,34 @@ void test(const GI& gi, const Vec& points, typename GI::Coord_t dist)
 	
 	std::cout << "testing with distance " << dist << std::endl;
 	
-	timeval prev, now;
+	timeval prev, now;	
 	gettimeofday(&prev, 0);
 	for (int i = 0; i < retries; ++i)
 		for (const auto& pt : points)
 			gi.findPoints(pt, Callback(), [](const typename GI::Point& p) { return true; }, dist);
 	gettimeofday(&now, 0);
 	
-	std::cout << "bruter approach:\t\t" << getDiff (prev, now) / retries / points.size() << " μs avg" << std::endl;
-	
-	gettimeofday(&prev, 0);
-	for (int i = 0; i < retries; ++i)
-		for (const auto& pt : points)
-			gi.findPoints2(pt, Callback(), [](const typename GI::Point& p) { return true; }, dist);
-	gettimeofday(&now, 0);
-	
-	std::cout << "smarter approach:\t\t" << getDiff (prev, now) / retries / points.size() << " μs avg" << std::endl;
-	
-	gettimeofday(&prev, 0);
-	for (int i = 0; i < retries; ++i)
-		for (const auto& pt : points)
-			gi.findPoints3(pt, Callback(), [](const typename GI::Point& p) { return true; }, dist);
-	gettimeofday(&now, 0);
-	
 	std::cout << "badass approach:\t\t" << getDiff (prev, now) / retries / points.size() << " μs avg" << std::endl;
 	std::cout << std::endl << std::endl;
 }
 
+namespace
+{
+	struct Payload
+	{
+		char m_data[32];
+	};
+}
+
 int main()
 {
-	typedef GeoIndex<Point, double> GI;
+	typedef GeoIndex<Point, Payload, double> GI;
 	GI gi;
 	for (int i = 0; i < 3000; ++i)
 		for (int j = 0; j < 3000; ++j)
-			gi.addPoint(GI::Point(i, j, i * 1000 + j));
+			gi.addPoint(GI::Point(i, j));
 		
-	std::vector<GI::Point> testPts = {GI::Point(5, 5, 0), GI::Point(5, 505, 0), GI::Point(505, 5, 0), GI::Point(505, 505, 0), GI::Point(0, 0, 0)};
+	std::vector<GI::Point> testPts = {GI::Point(5, 5), GI::Point(5, 505), GI::Point(505, 5), GI::Point(505, 505), GI::Point(0, 0)};
 	
 	/*
 	timeval prev, now;

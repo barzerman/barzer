@@ -86,81 +86,30 @@ public:
 
 		Points_t sub;
 		sub.reserve(upper - lower);
-		std::copy_if(lower, upper, std::back_inserter (sub), pred);
-		
-		struct Sorter
-		{
-			const Point& m_p;
-			Sorter(const Point& p)
-			: m_p(p) {}
-			
-			bool operator()(const Point& left, const Point& right) const
-			{
-				return m_p - left < m_p - right;
-			}
-		};
-		
-		const auto powedDist = maxDist * maxDist;
-		
-		std::sort(sub.begin(), sub.end(), Sorter(center));
-		for (typename Points_t::const_iterator i = sub.begin(); i != sub.end(); ++i)
-			if (*i - center >= powedDist || !cb(*i))
-				break;
-	}
-
-	template<typename CallbackT, typename PredT>
-	void findPoints2(const Point& center, CallbackT cb, PredT pred, Coord maxDist) const
-	{
-		auto upper = std::upper_bound(m_xpoints.begin(), m_xpoints.end(), center.x() + maxDist,
-				[](Coord x, const Point& p) { return x < p.x(); });
-		auto lower = std::lower_bound(m_xpoints.begin(), upper, center.x() - maxDist,
-				[](const Point& p, Coord x) { return p.x() < x; });
-
-		Points_t sub;
-		sub.reserve(upper - lower);
-		std::copy_if(lower, upper, std::back_inserter (sub), pred);
-		
-		struct Sorter
-		{
-			const Point& m_p;
-			Sorter(const Point& p)
-			: m_p(p) {}
-			
-			bool operator()(const Point& left, const Point& right) const
-			{
-				return m_p - left < m_p - right;
-			}
-		};
-		
-		std::sort(sub.begin(), sub.end(), isYLess<Point>);
-		auto upper2 = std::upper_bound(sub.begin(), sub.end(), center.y() + maxDist,
-				[](Coord y, const Point& p) { return y < p.y(); });
-		auto lower2 = std::lower_bound(sub.begin(), upper2, center.y() - maxDist,
-				[](const Point& p, Coord y) { return p.y() < y; });
-		
-		std::sort(lower2, upper2, Sorter(center));
-		for (auto i = lower2; i != upper2; ++i)
-			if (*i - center >= maxDist * maxDist || !cb(*i))
-				break;
-	}
-	
-	template<typename CallbackT, typename PredT>
-	void findPoints3(const Point& center, CallbackT cb, PredT pred, Coord maxDist) const
-	{
-		auto upper = std::upper_bound(m_xpoints.begin(), m_xpoints.end(), center.x() + maxDist,
-				[](Coord x, const Point& p) { return x < p.x(); });
-		auto lower = std::lower_bound(m_xpoints.begin(), upper, center.x() - maxDist,
-				[](const Point& p, Coord x) { return p.x() < x; });
-
-		Points_t sub;
-		sub.reserve(upper - lower);
 		auto upY = center.y() + maxDist;
 		auto downY = center.y() - maxDist;
-		std::copy_if(lower, upper, std::back_inserter (sub),
-				[pred, upY, downY] (const Point& p)
-				{
-					return p.y() < upY && p.y() >= downY && pred(p);
-				});
+		
+		struct CopyPred
+		{
+			Coord m_downY;
+			Coord m_upY;
+			
+			PredT m_pred;
+		public:
+			CopyPred (Coord down, Coord up, PredT pred)
+			: m_downY(down)
+			, m_upY(up)
+			, m_pred(pred)
+			{
+			}
+			
+			bool operator()(const Point& p) const
+			{
+				return p.y() < m_upY && p.y() >= m_downY && m_pred(p);
+			}
+		};
+		
+		std::copy_if(lower, upper, std::back_inserter (sub), CopyPred(downY, upY, pred));
 		
 		struct Sorter
 		{
@@ -177,7 +126,7 @@ public:
 		const auto powedDist = maxDist * maxDist;
 		
 		std::sort(sub.begin(), sub.end(), Sorter(center));
-		for (typename Points_t::const_iterator i = sub.begin(); i != sub.end(); ++i)
+		for (auto i = sub.begin(); i != sub.end(); ++i)
 			if (*i - center >= powedDist || !cb(*i))
 				break;
 	}
