@@ -39,16 +39,13 @@ public:
 };
 
 template<typename Point>
-inline bool isXLess(const Point& p1, const Point& p2)
-{
-	return p1.x() < p2.x();
-}
+inline bool isXLess(const Point& p1, const Point& p2) { return p1.x() < p2.x(); }
 
-template<typename Point>
-inline bool isYLess(const Point& p1, const Point& p2)
-{
-	return p1.y() < p2.y();
-}
+template<typename Point, typename Coord>
+inline bool isXScalarLess(Coord x, const Point& p) { return x < p.x(); }
+
+template<typename Point, typename Coord>
+inline bool isXLessScalar(const Point& p, Coord x) { return p.x() < x; }
 
 template<template<typename PayloadT, typename Coord> class PointT,
 		typename PayloadT,
@@ -79,10 +76,8 @@ public:
 	template<typename CallbackT, typename PredT>
 	void findPoints(const Point& center, CallbackT cb, PredT pred, Coord maxDist) const
 	{
-		auto upper = std::upper_bound(m_xpoints.begin(), m_xpoints.end(), center.x() + maxDist,
-				[](Coord x, const Point& p) { return x < p.x(); });
-		auto lower = std::lower_bound(m_xpoints.begin(), upper, center.x() - maxDist,
-				[](const Point& p, Coord x) { return p.x() < x; });
+		auto upper = std::upper_bound(m_xpoints.begin(), m_xpoints.end(), center.x() + maxDist, isXScalarLess<Point, Coord>);
+		auto lower = std::lower_bound(m_xpoints.begin(), upper, center.x() - maxDist, isXLessScalar<Point, Coord>);
 
 		Points_t sub;
 		sub.reserve(upper - lower);
