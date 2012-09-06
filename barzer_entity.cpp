@@ -30,11 +30,11 @@ struct EntityDataReaderCB {
 };
 
 }
-EntityData::EntProp*  EntityData::setEntPropData( const StoredEntityUniqId& euid, const char* name, uint32_t rel )
+EntityData::EntProp*  EntityData::setEntPropData( const StoredEntityUniqId& euid, const char* name, uint32_t rel, bool overrideName )
 {
     EntPropDtaMap::iterator i = d_autocDtaMap.insert( EntPropDtaMap::value_type(euid,EntProp()) ).first;
     /// longer name always wins
-    if( name && strlen(name)> i->second.canonicName.length()) {
+    if( name && (overrideName ||(strlen(name)> i->second.canonicName.length()) )) {
         i->second.canonicName.assign(name);
     }
     if( rel )
