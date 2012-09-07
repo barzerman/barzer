@@ -283,7 +283,9 @@ public:
 private:
     EntPropDtaMap d_autocDtaMap;
 public:
-    EntProp*  setEntPropData( const StoredEntityUniqId& euid, const char* name, uint32_t rel ) ;
+    /// if overrideName is false then if entity exists its name will only be altered if the new name is longer than the old one
+    /// otherwise the exact name will be set
+    EntProp*  setEntPropData( const StoredEntityUniqId& euid, const char* name, uint32_t rel, bool overrideName=false ) ;
     const EntProp* getEntPropData( const StoredEntityUniqId& euid ) const 
         { EntPropDtaMap::const_iterator i = d_autocDtaMap.find( euid ); return ( i==d_autocDtaMap.end()? 0 : &(i->second) ); }
     EntProp* getEntPropData( const StoredEntityUniqId& euid ) 

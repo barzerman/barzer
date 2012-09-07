@@ -1,6 +1,7 @@
 #include <barzer_ru_stemmer.h>
 #include <ay_char.h>
 #include <ay_util.h>
+#include <ay_translit_ru.h>
 #include <vector>
 #include <stdint.h>
 
@@ -10,32 +11,20 @@ namespace {
 
 inline bool is_vowel( const char* str ) 
 {
-    uint8_t b0 = (unsigned char)(str[0]),
-        b1 = (unsigned char)(str[1]);
-    return( 
-        (b0 == 0xd0 && ( b1 == 0xb0 || b1 == 0xb5 || b1 == 0xb8 || b1 == 0xb9 || b1 == 0xbe)) ||
-        (b0 == 0xd1 && (b1 == 0x91 || b1 == 0x83 || b1 == 0x8b || b1 == 0x8c || b1 == 0x8a || b1 == 0x8d || b1 == 0x8e || b1 == 0x8f)) 
-    );
+    const uint8_t b0 = (unsigned char)(str[0]), b1 = (unsigned char)(str[1]);
+
+    return (ay::tl::is_russian_vowel(b0,b1) || ay::tl::is_russian_iota(b0,b1) || ay::tl::is_russian_znak(b0,b1) );
 }
 inline bool is_consonant( const char* str ) 
 {
     uint8_t b0 = (uint8_t)(str[0]), b1 = (uint8_t)(str[1]);
-    return( 
-        !(
-        (b0==0xd0 && (b1==0xb0||b1==0xb5||b1==0xb8||b1==0xb9||b1==0xbe))||
-        (b0==0xd1 && (b1==0x91||b1==0x83||b1==0x8b||b1==0x8c||b1==0x8d||b1==0x8e||b1==0x8f))
-        )
-    );
+    return ( (!ay::tl::is_russian_vowel(b0,b1)) && (!ay::tl::is_russian_znak(b0,b1)) && (!ay::tl::is_russian_iota(b0,b1)) );
 }
 
 /// pure vowel 
 inline bool is_truevowel( const char* s ) 
 {
-    uint8_t b0 = (uint8_t)(s[0]), b1 = (uint8_t)(s[1]);
-    return( 
-        (b0== 0xd0 && (b1==0xb0||b1==0xb5||b1==0xbe||b1==0xb8||b1==0x8b)) ||
-        (b0== 0xd1 && (b1==0x91||b1==0x8f||b1==0x83||b1==0x8e))
-    );
+    return ay::tl::is_russian_vowel((uint8_t)(s[0]), (uint8_t)(s[1]) );
 }
 
 } // anonymous namespace 

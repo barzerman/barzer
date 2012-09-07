@@ -1389,7 +1389,7 @@ DEFINE_BELParserXML_taghandle(MKENT)
     /// adding deduced entity name 
     if( isTrivialRewrite &&  !reader->is_noCanonicalNames() ) {
         EntityData::EntProp* eprop = gp.entData.getEntPropData(ent.getEuid());
-        if( !eprop || !eprop->is_nameExplicit() ) {
+        if( !eprop || canonicName || !eprop->is_nameExplicit() ) {
             std::string theName;
             if( !canonicName || !*canonicName ) {
                 if( statement.hasPattern() ) {
@@ -1398,7 +1398,7 @@ DEFINE_BELParserXML_taghandle(MKENT)
             } else 
                 theName.assign(canonicName);
             
-            eprop= gp.entData.setEntPropData( ent.getEuid(), theName.c_str(), relevance );
+            eprop= gp.entData.setEntPropData( ent.getEuid(), theName.c_str(), relevance, (canonicName!=0) );
             if( canonicName && eprop ) 
                 eprop->set_nameExplicit();
         }

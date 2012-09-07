@@ -16,14 +16,17 @@ namespace tl
     inline bool is_russian_vowel( uint8_t b0, uint8_t b1 )
     {
         return( 
-            (b0== 0xd0 && (b1==0xb0||b1==0xb5||b1==0xbe||b1==0xb8||b1==0x8b)) ||
-            (b0== 0xd1 && (b1==0x91||b1==0x8f||b1==0x83||b1==0x8d||b1==0x8e))
+            (b0== 0xd0 && (b1==0xb0||b1==0xb5||b1==0xbe||b1==0xb8)) ||
+            (b0== 0xd1 && (b1==0x91||b1==0x8f||b1==0x83||b1==0x8d||b1==0x8e||b1==0x8b))
         );  
     }
     inline bool is_russian_vowel( const char *s ) { return is_russian_vowel( (uint8_t)(s[0]), (uint8_t)(s[1]) ); }
 
     inline bool is_russian_znak( uint8_t b0, uint8_t b1 ) { return( b0 == 0xd1 && (b1 == 0x8c || b1 == 0x8a)); }
     inline bool is_russian_znak( const char *s ) { return is_russian_znak((uint8_t)(s[0]), (uint8_t)(s[1]) ); }
+
+    inline bool is_russian_iota( uint8_t b0, uint8_t b1 ) { return (b0==0xd0 && b1==0xd9); }
+    inline bool is_russian_iota( const char *s ) { return is_russian_iota((uint8_t)(s[0]), (uint8_t)(s[1]) ); }
 
     inline bool is_not_russian_consonant( uint8_t b0, uint8_t b1 ) { 
         return ( is_russian_vowel(b0,b1) ||  is_russian_znak(b0,b1) );
