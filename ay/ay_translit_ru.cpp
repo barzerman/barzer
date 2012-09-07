@@ -737,7 +737,7 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                 if( s[1]=='n' && s[2] == 'i' && s[3]=='t' )  {
                     russian.append((s+=2,"ини"));
                 } else if( s[1]=='e' && s[2] == 'd' )  {
-                    if( c_prev == 'r' && c_prev_1 == 'r' || isVowel(c_prev_1) )
+                    if( c_prev == 'r' && (c_prev_1 == 'r' || isVowel(c_prev_1)) )
                         russian.append((s+=1,"и"));
                     else
                         russian.append((s+=1,"ай"));
