@@ -126,7 +126,8 @@ public:
 		const auto downX = center.x() - maxDist;
 		const auto upX = center.x() + maxDist;
 		
-		if (!m_wrapAround || (downX >= 0 && upX <= m_wrapAround))
+		const bool shouldWrap = m_wrapAround && (downX < 0 || upX > m_wrapAround);
+		if (!shouldWrap)
 			addPointsInDist(sub, downX, upX, copyPred);
 		else if (downX < 0)
 		{
@@ -153,11 +154,11 @@ public:
 				return wrapDist(m_p, left, m_wrap) < wrapDist(m_p, right, m_wrap);
 			}
 		};
-		std::sort(sub.begin(), sub.end(), Sorter(center, m_wrapAround));
+		std::sort(sub.begin(), sub.end(), Sorter(center, shouldWrap ? m_wrapAround : 0));
 		
 		const auto powedDist = maxDist * maxDist;		
 		for (auto i = sub.begin(); i != sub.end(); ++i)
-			if (wrapDist(*i, center, m_wrapAround) >= powedDist || !cb(*i))
+			if (wrapDist(*i, center, shouldWrap ? m_wrapAround : 0) >= powedDist || !cb(*i))
 				break;
 	}
 private:
