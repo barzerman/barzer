@@ -8,6 +8,7 @@
 #include <ay_translit_ru.h>
 #include <barzer_relbits.h>
 #include "barzer_spellheuristics.h"
+#include "barzer_geoindex.h"
 extern "C" {
 #include <expat.h>
 
@@ -1333,6 +1334,16 @@ DEFINE_BELParserXML_taghandle(NV)
         }
     }
 }
+
+namespace
+{
+	bool parseCoord(const char *coordStr, std::pair<double, double>& out)
+	{
+		return sscanf(coordStr, "%lg, %lg", &out.first, &out.second) == 2 ||
+				sscanf(coordStr, "%lgN %lgW", &out.first, &out.second) == 2;
+	}
+}
+
 DEFINE_BELParserXML_taghandle(MKENT)
 {
 	if( close ) {
@@ -1344,10 +1355,11 @@ DEFINE_BELParserXML_taghandle(MKENT)
 	}
 	BTND_Rewrite_MkEnt mkent;
 	uint32_t eclass = 0, subclass = 0, topicClass = 0, topicSubclass=0;
-	const char* idStr = 0;
-    const char*  topicIdStr = 0;
+	const char *idStr = 0;
+	const char *topicIdStr = 0;
     int relevance = 0, topicRelevance = 0;
-    const char* canonicName = 0, *topicCanonicName = 0;
+	const char *canonicName = 0, *topicCanonicName = 0;
+	const char *rawCoord = 0;
     uint32_t topicStrength = 0;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
@@ -1359,7 +1371,6 @@ DEFINE_BELParserXML_taghandle(MKENT)
         
 		case 'n': canonicName = v; break;       // canonic name of the entity if its an empty string getDescriptiveNameFromPattern_simple will be used
 		case 'r': relevance = atoi(v); break;   // relevance of the entity 
-        
 		case 't': {
             switch(n[1]) {
                 case 'c': topicClass =  atoi(v); break;
@@ -1371,7 +1382,7 @@ DEFINE_BELParserXML_taghandle(MKENT)
             }
             break;
         }
-
+		case 'p': rawCoord = v; break;
 		} // n[0] switch
 	}
 
@@ -1379,6 +1390,17 @@ DEFINE_BELParserXML_taghandle(MKENT)
     GlobalPools& gp = reader->getGlobalPools();
     uint32_t idStrId = reader->getGlobalPools().internString_internal(idStr) ;
 	const StoredEntity& ent  = gp.getDtaIdx().addGenericEntity( idStrId, eclass, subclass );
+	if (rawCoord)
+	{
+		std::pair<double, double> coords;
+		if (parseCoord(rawCoord, coords))
+			getReader()->getCurrentUniverse()->getGeo()->addEntity(ent, coords);
+		else
+			AYLOG(ERROR) << "failed to parse coords for entity "
+					<< ent.getClass() << " "
+					<< ent.getSubclass() << " "
+					<< (canonicName ? canonicName : "<no name>");
+	}
 	mkent.setEntId( ent.entId );
     statement.setCurEntity( ent.getEuid() );
     if( statement.hasPattern() || statement.isProc() ) {

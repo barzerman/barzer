@@ -285,6 +285,7 @@ class BZSpell;
 
 class Ghettodb;
 class MeaningsStorage;
+class BarzerGeo;
 
 class StoredUniverse {
 	uint32_t d_userId;
@@ -318,6 +319,7 @@ private:
 	void addWordsFromTriesToBZSpell();
 	
 	MeaningsStorage *m_meanings;
+	BarzerGeo *m_geo;
 
 	bool m_soundsLike;
 public:
@@ -563,6 +565,9 @@ public:
     
     Ghettodb&       getGhettodb()       { return *d_ghettoDb; }
     const Ghettodb& getGhettodb() const { return *d_ghettoDb; }
+
+	const BarzerGeo* getGeo() const { return m_geo; }
+	BarzerGeo* getGeo() { return m_geo; }
 };
 
 inline StoredUniverse& GlobalPools::produceUniverse( uint32_t id )
