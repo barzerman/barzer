@@ -415,6 +415,19 @@ static int bshf_findEntities(BarzerShell *shell, char_cp cmd, std::istream& in)
 			geo.findEntities(ents, BarzerGeo::Point_t(lon, lat), EntClassPred(ec, esc, uni), dist);
 		else
 			geo.findEntities(ents, BarzerGeo::Point_t(lon, lat), DumbPred(), dist);
+		
+		shell->getOutStream() << "found " << ents.size() << " entities:" << std::endl << "{\n";
+		for(size_t i = 0; i < ents.size(); ++i)
+		{
+			auto ent = uni.getGlobalPools().getDtaIdx().getEntById(ents[i]);
+			if (!ent)
+			{
+				shell->getOutStream() << "\tinvalid entity " << ents[i] << std::endl;
+				continue;
+			}
+			shell->getOutStream() << "\t" << ent->getClass() << " " << ent->getSubclass() << std::endl;
+		}
+		shell->getOutStream() << "}" << std::endl;
 	}
 }
 

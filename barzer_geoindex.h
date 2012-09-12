@@ -34,13 +34,12 @@ public:
 			, m_counter(0)
 			, m_max(num)
 			{
-				m_out.reserve(m_max);
 			}
 			
 			bool operator()(const Point_t& p)
 			{
 				m_out.push_back(p.getPayload());
-				return ++m_counter >= m_max;
+				return ++m_counter < m_max;
 			}
 		};
 		
