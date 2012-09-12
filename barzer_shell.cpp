@@ -19,6 +19,7 @@
 #include <boost/function.hpp>
 
 #include <barzer_server_request.h>
+#include "barzer_geoindex.h"
 //
 #include <sstream>
 #include <fstream>
@@ -386,6 +387,35 @@ static int bshf_allMeanings(BarzerShell *shell, char_cp cmd, std::istream& in)
 	shell->getOutStream() << std::endl;
 
 	return 0;
+}
+
+static int bshf_findEntities(BarzerShell *shell, char_cp cmd, std::istream& in)
+{
+	BarzerShellContext *context = shell->getBarzerContext();
+	const auto& uni = context->getUniverse();
+	const auto& geo = *uni.getGeo();
+	
+	shell->getOutStream() << "the format is:\n"
+			<< "longitude latitude distance class subclass\n"
+			<< "where longitude and latitude are doublee, "
+				"class and subclass can be negative to disable check"
+			<< std::endl;
+	
+	ay::InputLineReader reader(in);
+	while (reader.nextLine() && reader.str.length())
+	{
+		std::istringstream istr(reader.str);
+		double lon, lat, dist;
+		int64_t ec, esc;
+		istr >> lon >> lat >> dist >> ec >> esc;
+		
+		shell->getOutStream() << "entities (" << ec << "; " << esc << ") near (" << lon << ", " << lat << "):" << std::endl;
+		std::vector<uint32_t> ents;
+		if (ec >= 0 && esc >= 0)
+			geo.findEntities(ents, BarzerGeo::Point_t(lon, lat), EntClassPred(ec, esc, uni), dist);
+		else
+			geo.findEntities(ents, BarzerGeo::Point_t(lon, lat), DumbPred(), dist);
+	}
 }
 
 static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
@@ -1465,6 +1495,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_wordMeanings, "wordmeanings", "list meanings for a word" ),
 	CmdData( (ay::Shell_PROCF)bshf_listMeaning, "listmeaning", "list contents of a meaning" ),
 	CmdData( (ay::Shell_PROCF)bshf_allMeanings, "allmeanings", "get all meanings" ),
+	CmdData( (ay::Shell_PROCF)bshf_findEntities, "findents", "find entities near a point" ),
 	CmdData( (ay::Shell_PROCF)bshf_lex, "lex", "tokenize and then classify (lex) the input" ),
 	CmdData( (ay::Shell_PROCF)bshf_tokenize, "tokenize", "tests tokenizer" ),
 	CmdData( (ay::Shell_PROCF)bshf_xmload, "xmload", "loads xml from file" ),
