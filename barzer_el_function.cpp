@@ -337,19 +337,20 @@ uint32_t getTokId(const BarzerLiteral &l, const StoredUniverse &u)
 	}
 	return getTokId(tokStr, u);
 }
+struct DateGetter_vis : public boost::static_visitor<const BarzerDate*>  {
+    template <typename T>
+    const BarzerDate* operator()( const T& d ) const { return 0; }
+
+    const BarzerDate* operator()( const BarzerDate& d )     const { return &d; }
+    const BarzerDate* operator()( const BarzerDateTime& d ) const { return &(d.date); }
+    const BarzerDate* operator()( const BarzerRange& d )    const {
+        const BarzerRange::Date* p = d.getDate();
+        return ( p ? &(p->first) : 0);
+    }
+    const BarzerDate* operator()( const BarzerEntityRangeCombo& d ) const { return (*this)( d.getRange() ); }
+};
 inline const BarzerDate* getBarzerDateFromAtomic( const BarzelBeadAtomic* atomic )
 {
-    struct DateGetter_vis : public boost::static_visitor<const BarzerDate*>  {
-        const BarzerDate* operator()( const BarzerDate& d )     const { return &d; }
-        const BarzerDate* operator()( const BarzerDateTime& d ) const { return &(d.date); }
-        const BarzerDate* operator()( const BarzerRange& d )    const {
-            const BarzerRange::Date* p = d.getDate();
-            return ( p ? &(p->first) : 0);
-        }
-        const BarzerDate* operator()( const BarzerEntityRangeCombo& d ) const { return (*this)( d.getRange() ); }
-        template <typename T>
-        const BarzerDate* operator()( const T& d ) const { return 0; }
-    };
     return boost::apply_visitor(DateGetter_vis(), atomic->getData());
 }
 
