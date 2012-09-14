@@ -17,6 +17,7 @@
 #include <barzer_barz.h>
 #include <barzer_el_function_util.h>
 #include <boost/format.hpp>
+#include <barzer_el_matcher.h>
 
 namespace barzer {
 
@@ -336,6 +337,22 @@ uint32_t getTokId(const BarzerLiteral &l, const StoredUniverse &u)
 	}
 	return getTokId(tokStr, u);
 }
+struct DateGetter_vis : public boost::static_visitor<const BarzerDate*>  {
+    template <typename T>
+    const BarzerDate* operator()( const T& d ) const { return 0; }
+
+    const BarzerDate* operator()( const BarzerDate& d )     const { return &d; }
+    const BarzerDate* operator()( const BarzerDateTime& d ) const { return &(d.date); }
+    const BarzerDate* operator()( const BarzerRange& d )    const {
+        const BarzerRange::Date* p = d.getDate();
+        return ( p ? &(p->first) : 0);
+    }
+    const BarzerDate* operator()( const BarzerEntityRangeCombo& d ) const { return (*this)( d.getRange() ); }
+};
+inline const BarzerDate* getBarzerDateFromAtomic( const BarzelBeadAtomic* atomic )
+{
+    return boost::apply_visitor(DateGetter_vis(), atomic->getData());
+}
 
 }
 // Stores map ay::UniqueCharPool::StrId -> BELFunctionStorage::function
@@ -358,8 +375,8 @@ struct BELFunctionStorage_holder {
 		ADDFN(mkDay);
 		ADDFN(mkWday);
 		ADDFN(mkMonth);
-                ADDFN(mkWdayEnt);
-                ADDFN(mkMonthEnt);
+        ADDFN(mkWdayEnt);
+        ADDFN(mkMonthEnt);
 		ADDFN(mkTime);
 		ADDFN(mkDateTime);
 		ADDFN(mkRange);
@@ -390,6 +407,8 @@ struct BELFunctionStorage_holder {
 		ADDFN(getLow); // (BarzerRange)
 		ADDFN(getHigh); // (BarzerRange)
 		ADDFN(isRangeEmpty); // (BarzerRange or ERC) - returns true if range.lo == range.hi
+
+        ADDFN(getLeftBead);  // returns closest bead on the left of the type matching arg . null otherwise
 		// arith
 		ADDFN(textToNum);
 		ADDFN(opPlus);
@@ -403,7 +422,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(opGt);
 		ADDFN(opEq);
 		ADDFN(opDateCalc);
-                ADDFN(opTimeCalc);
+        ADDFN(opTimeCalc);
 		// string
 		ADDFN(strConcat);
 		// lookup
@@ -529,6 +548,33 @@ struct BELFunctionStorage_holder {
             FERROR( "expects: object, new property value. Property name in arg" );
             return false;
         }
+    }
+    STFUN(getLeftBead)
+    {
+        SETFUNCNAME(getLeftBead);
+        const char* argStr = GETARGSTR();
+        if( argStr ) {
+            BarzelBeadAtomic_type_t t = BarzelBeadAtomic_type_MAX;
+            if( !strcmp( argStr,"date" ) ) {
+                t= BarzerDate_TYPE;
+            } 
+            bool  foundAtomic = false;
+            const BarzelBeadAtomic*  atomic = ( t!= BarzelBeadAtomic_type_MAX ? ctxt.matchInfo.getClosestAtomicFromLeft(t,foundAtomic) : 0 );
+            if( !atomic ) 
+                return true;
+
+            if(t== BarzerDate_TYPE){
+                const BarzerDate * dataPtr = getBarzerDateFromAtomic( atomic );
+                if( dataPtr ) 
+                    setResult( result, *dataPtr );
+                else {
+                    BarzerDate_calc calc;
+                    calc.setToday();
+                    setResult(result,calc.getDate());
+                }
+            }
+        }
+        return true;
     }
     STFUN(call) {
         SETFUNCNAME(call);
@@ -1859,7 +1905,11 @@ struct BELFunctionStorage_holder {
                     FERROR("Wrong argument type. DateTime expected");
                     return false;
                 }
-            } else { FERROR("At least one argument is needed"); }
+            } else { 
+                BarzerDate_calc calc;
+                calc.setToday();
+                setResult(result,calc.getDate());
+            }
             return true;
         }
         

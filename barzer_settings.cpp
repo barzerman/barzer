@@ -371,6 +371,9 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
             
             if( const auto p = attrs.get_optional<std::string>("dictcorr") ) 
                 if( *p== "yes" ) u.getUniverse().setBit( StoredUniverse::UBIT_CORRECT_FROM_DICTIONARY );
+
+			if( const auto p = attrs.get_optional<std::string>("stempunct") )
+				if (*p == "yes") u.getUniverse().setBit(StoredUniverse::UBIT_LEX_STEMPUNCT);
         }
 		BOOST_FOREACH(const ptree::value_type &v, spell) {
 			const std::string& tagName = v.first;

@@ -29,6 +29,7 @@ struct BarzerDate_calc {
 	BarzerDate_calc( int8_t fut ) : d_defaultFuture(fut) {}
 
 
+    const BarzerDate& getDate() const { return d_date; }
 	void set(int year, int month, int day);
 
 	void setFuture(int8_t);

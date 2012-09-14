@@ -270,6 +270,8 @@ public:
 	uint8_t  makeUnmatchable; // when !=0 this is a terminating translation ... the value will
                                 // be assigned to the unmatchability of the affected beads
 
+    uint32_t argStrId;
+
 	void set( BELTrie& trie, const BTND_Rewrite_Literal& );
 	void set( BELTrie& trie, const BTND_Rewrite_Number& );
 	void set( BELTrie& trie, const BTND_Rewrite_MkEnt& );
@@ -315,6 +317,7 @@ public:
 	uint32_t getId_uint32() const { return ( id.which() ==0 ? boost::get<uint32_t>(id) : 0xffffffff ); }
 	int64_t getId_int() const { return ( id.which() ==2  ? boost::get<int64_t>(id) : 0 ); }
 	double getId_double() const { return ( id.which() ==1  ? boost::get<double>(id) : 0.0 ); }
+    uint32_t getArgStrId() const { return argStrId; }
 
 
 	void clear() { type= T_NONE; }
@@ -338,8 +341,8 @@ public:
 	bool isRewriteFallible( const BarzelRewriterPool& pool ) const;
 	bool nonEmpty() const
 		{ return ( type != T_NONE ); }
-	BarzelTranslation() : id( 0xffffffff ) , type(T_NONE), makeUnmatchable(0) {}
-	BarzelTranslation(Type_t t , uint32_t i ) : id(i),type((uint8_t)t), makeUnmatchable(0) {}
+	BarzelTranslation() : id( 0xffffffff ) , type(T_NONE), makeUnmatchable(0), argStrId(0xffffffff) {}
+	// BarzelTranslation(Type_t t , uint32_t i ) : id(i),type((uint8_t)t), makeUnmatchable(0), argStrId(0xffffffff) {}
 
 	std::ostream& print( std::ostream& , const BELPrintContext& ) const;
 
