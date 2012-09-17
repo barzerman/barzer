@@ -877,7 +877,7 @@ size_t BTMIterator::matchBeadChain_Autocomplete( MatcherCallback& mcb, const Bea
 
 	if( !findMatchingChildren( mtChild, rng, trieNode ) ) {
         // addTerminalPath_Autocomplete( mcb );
-		if (oldFirst->isBlankLiteral())
+		if (oldFirst->isBlankLiteral() && std::distance(oldFirst, rng.second) == 1)
 			addTerminalPath_Autocomplete( mcb, nbvVal );
 		return 0; // no matching children found
     }
