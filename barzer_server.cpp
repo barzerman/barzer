@@ -312,8 +312,12 @@ int proc_EN2RU( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, 
 			continue;
 		}
 
+		std::string tmp;
+		tmp.assign(prevStart, q);
+		for (auto i = tmp.begin(), end = tmp.end(); i != end; ++i)
+			*i = tolower(*i);
 		std::string result;
-		ay::tl::en2ru(prevStart, q - prevStart, result);
+		ay::tl::en2ru(tmp.c_str(), tmp.size(), result);
 		os << result;
 		if (*q)
 		{
