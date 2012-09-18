@@ -303,16 +303,29 @@ int proc_ADD_STMSET( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  s
 int proc_EN2RU( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* q )
 {
 	std::ostream &os = reqEnv.outStream;
-    std::stringstream ss(q);
-    std::string tmp ;
-    while( ss >> tmp ) {
-        for( std::string::iterator i = tmp.begin(); i!= tmp.end(); ++i) 
-            *i = tolower(*i);
-        std::string result;
-        ay::tl::en2ru(tmp.c_str(), tmp.length(), result);
-        os << result << " ";
-    }
-    os << std::endl;
+	const char *prevStart = q;
+	while (true)
+	{
+		if (!isspace(*q) && *q)
+		{
+			++q;
+			continue;
+		}
+
+		std::string result;
+		ay::tl::en2ru(prevStart, q - prevStart, result);
+		os << result;
+		if (*q)
+		{
+			os << *q;
+			prevStart = ++q;
+		}
+		else
+		{
+			os << std::endl;
+			break;
+		}
+	}
     return 0;
 }
 int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* str )
