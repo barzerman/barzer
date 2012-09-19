@@ -140,6 +140,7 @@ public:
 	void raw_autoc_parse( const char* query, QuestionParm& qparm );
 
 	void tag_autoc(RequestTag&);
+	void tag_findents(RequestTag&);
 
 	void tag_qblock(RequestTag&);
 	void tag_query(RequestTag&);

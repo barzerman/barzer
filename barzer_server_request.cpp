@@ -8,13 +8,15 @@
 #include <barzer_server_request.h>
 #include <boost/assign.hpp>
 #include <boost/mem_fn.hpp>
+#include <boost/lexical_cast.hpp>
 #include <cstdlib>
 #include <barzer_universe.h>
 #include <barzer_autocomplete.h>
 #include <barzer_ghettodb.h>
 #include <ay/ay_parse.h>
 #include <barzer_barzxml.h>
-#include "barzer_server_response.h"
+#include <barzer_server_response.h>
+#include <barzer_geoindex.h>
 
 extern "C" {
 
@@ -83,7 +85,8 @@ static void startElement(void* ud, const XML_Char *n, const XML_Char **a)
     if( !rp->getUniverse() ) {
         if( 
             (name[0] == 'q' &&(!strcmp(name,"query") || !strcmp(name,"qblock"))) ||
-            (name[0] == 'a' && !strcmp(name,"autoc")) 
+            ((name[0] == 'a' && !strcmp(name,"autoc")) ||
+			((name[0] == 'f' && !strcmp(name,"findents")))) 
         ) 
         { /// processing query/qblock - resolving universe and userId early on
             if( !strcmp(name,"query") || !strcmp(name,"qblock") ) {
@@ -174,6 +177,7 @@ typedef std::map<std::string,ReqTagFunc> TagFunMap;
 static const ReqTagFunc* getCmdFunc(std::string &name) {
 	static TagFunMap funmap = boost::assign::map_list_of
 			CMDFUN(autoc)
+			CMDFUN(findents)
 			CMDFUN(qblock)
 			CMDFUN(query)
 			CMDFUN(nameval)
@@ -503,6 +507,125 @@ void BarzerRequestParser::tag_autoc(RequestTag &tag)
     qparm.isAutoc = true;
     raw_autoc_parse( d_query.c_str(), qparm );
     d_query.clear();
+}
+
+void BarzerRequestParser::tag_findents (RequestTag& tag)
+{
+	const auto& attrs = tag.attrs;
+	double lon = -1, lat = -1, dist = -1;
+	int64_t ec = -1, esc = -1;
+	for (auto attr = attrs.begin(), end = attrs.end(); attr != end; ++attr)
+	{
+		const auto& name = attr->first;
+		const auto& val = attr->second;
+		switch (name[0])
+		{
+		case 'u':
+			if (!d_universe)
+				setUniverseId(atoi(val.c_str()));
+			break;
+		case 'l':
+			switch (name[1])
+			{
+			case 'o': // longitude
+				try
+				{
+					lon = boost::lexical_cast<double>(val);
+				}
+				catch (...)
+				{
+					os << "<error>invalid longitude " << val << "</error>\n";
+					return;
+				}
+				break;
+			case 'a': // latitude
+				try
+				{
+					lat = boost::lexical_cast<double>(val);
+				}
+				catch (...)
+				{
+					os << "<error>invalid latitude " << val << "</error>\n";
+					return;
+				}
+				break;
+			}
+			break;
+		case 'd':
+			try
+			{
+				dist = boost::lexical_cast<double>(val);
+			}
+			catch (...)
+			{
+				os << "<error>invalid distance " << val << "</error>\n";
+				return;
+			}
+			break;
+		case 'e':
+			switch (name[1])
+			{
+			case 'c': // entity class
+				try
+				{
+					ec = boost::lexical_cast<int64_t>(val);
+				}
+				catch (...)
+				{
+					os << "<error>invalid entity class " << val << "</error>\n";
+					return;
+				}
+				break;
+			case 's': // entity class
+				try
+				{
+					esc = boost::lexical_cast<int64_t>(val);
+				}
+				catch (...)
+				{
+					os << "<error>invalid entity subclass " << val << "</error>\n";
+					return;
+				}
+				break;
+			}
+			break;
+		}
+	}
+	
+	if (lon < 0 || lat < 0 || dist < 0)
+	{
+		os << "<error>invalid parameters lon/lat/dist: " << lon << " " << " " << lat << " " << dist<< "</error>\n";
+		return;
+	}
+	
+	if (!d_universe)
+	{
+		os << "<error>invalid user id " << userId << "</error>\n";
+		return;
+	}
+	
+	const auto& geo = d_universe->getGeo();
+	
+	std::vector<uint32_t> ents;
+	if (ec >= 0 && esc >= 0)
+		geo->findEntities(ents, BarzerGeo::Point_t(lon, lat), EntClassPred(ec, esc, *d_universe), dist);
+	else
+		geo->findEntities(ents, BarzerGeo::Point_t(lon, lat), DumbPred(), dist);
+	
+	os << "<entities count='" << ents.size() << "'>\n";
+	const auto& gp = d_universe->getGlobalPools();
+	for(size_t i = 0; i < ents.size(); ++i)
+	{
+		auto ent = gp.getDtaIdx().getEntById(ents[i]);
+		if (!ent)
+		{
+			os << "<ent invalid='true'/>";
+			continue;
+		}
+		
+		os << "\t<ent id='" << ents[i] << "' class='" << ent->getClass() << "' subclass='" << ent->getSubclass() << "'/>\n";
+	}
+	os << "</entities>\n";
 }
 
 // <qblock u="23"><topic c="20" s="1" i="abc"/><query>zoo</query></qblock>
