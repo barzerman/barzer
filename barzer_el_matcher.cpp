@@ -868,6 +868,7 @@ size_t BTMIterator::matchBeadChain_Autocomplete( MatcherCallback& mcb, const Bea
 	NodeAndBead nbvVal ( trieNode, BarzelBeadChain::Range(rng.first,rng.first));
 	ay::vector_raii<NodeAndBeadVec> raii( d_matchPath, nbvVal );
 
+	auto oldFirst = rng.first;
 	if( rng.first == rng.second ) {
         addTerminalPath_Autocomplete( mcb, nbvVal );
 		return 0; // range is empty
@@ -876,6 +877,8 @@ size_t BTMIterator::matchBeadChain_Autocomplete( MatcherCallback& mcb, const Bea
 
 	if( !findMatchingChildren( mtChild, rng, trieNode ) ) {
         // addTerminalPath_Autocomplete( mcb );
+		if (oldFirst->isBlankLiteral() && std::distance(oldFirst, rng.second) == 1)
+			addTerminalPath_Autocomplete( mcb, nbvVal );
 		return 0; // no matching children found
     }
 	const BarzelTrieNode* tn = 0;

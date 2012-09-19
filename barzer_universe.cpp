@@ -352,6 +352,7 @@ uint32_t StoredUniverse::stemAndIntern( const char* s, size_t len, BELTrie* trie
 	if( bzSpell )  {
         uint32_t i = 0xffffffff;
         if( bzSpell->isUsersWord(i,s) ) {
+			bzSpell->addExtraWordToDictionary(i);
             return ( storedTok? storedTok->getStringId() : i );
         }
 		std::string stem;
