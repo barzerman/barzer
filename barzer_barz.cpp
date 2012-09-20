@@ -2,6 +2,7 @@
 #include <barzer_parse.h>
 #include <barzer_el_chain.h>
 #include <barzer_universe.h>
+#include <barzer_server.h>
 
 
 namespace barzer {
@@ -399,4 +400,35 @@ int Barz::sortEntitiesByRelevance( const StoredUniverse& u, const QuestionParm& 
     return 0;
 }
 
+const RequestVariableMap* Barz::getRequestVariableMap()  const 
+    { if( const RequestEnvironment* p = getServerReqEnv() ) return p->getReqVarPtr(); else return 0; }
+RequestVariableMap* Barz::getRequestVariableMap() 
+    { if( RequestEnvironment* p = getServerReqEnv() ) return p->getReqVarPtr(); else return 0; }
+
+bool Barz::getReqVarValue( BarzelBeadAtomic_var& v, const char* n ) const
+{
+    if( const RequestEnvironment* p = getServerReqEnv() ) 
+        return p->getReqVar().getValue(v,n);
+    else 
+        return false;
+}
+const BarzelBeadAtomic_var*  Barz::getReqVarValue( const char* n ) const
+{
+    if( const RequestEnvironment* p = getServerReqEnv() ) 
+        return p->getReqVar().getValue(n);
+    else 
+        return 0;
+}
+
+void Barz::setReqVarValue( const char* n, const BarzelBeadAtomic_var& v )
+{
+    if( RequestEnvironment* p = getServerReqEnv() ) 
+        p->getReqVar().setValue(n,v);
+}
+
+void Barz::unsetReqVar( const char* n )
+{
+    if( RequestEnvironment* p = getServerReqEnv() ) 
+        return p->getReqVar().unset(n);
+}
 } // barzer namepace ends

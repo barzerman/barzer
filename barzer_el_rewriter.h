@@ -5,6 +5,7 @@
 #include <barzer_el_parser.h>
 #include <barzer_el_chain.h>
 #include <ay/ay_vector.h>
+
 namespace barzer {
 /// rewriter is a tree which is evaluated based on input
 /// result of evaluation is a value computed from underlying nodes

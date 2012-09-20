@@ -173,15 +173,16 @@ typedef std::map<std::string,ReqTagFunc> TagFunMap;
 #define CMDFUN(n) (#n, boost::mem_fn(&BarzerRequestParser::tag_##n))
 static const ReqTagFunc* getCmdFunc(std::string &name) {
 	static TagFunMap funmap = boost::assign::map_list_of
-			CMDFUN(autoc)
-			CMDFUN(qblock)
-			CMDFUN(query)
-			CMDFUN(nameval)
-			CMDFUN(cmd)
+			CMDFUN(autoc) // autocomplete query (can be contained in qblock)
+			CMDFUN(qblock) // can envelop various tags (query/autoc/var/nameval) 
+			CMDFUN(query)  // traditional barer query (semantic search)
+			CMDFUN(nameval) // request for a ghettodb value
+			CMDFUN(cmd)     
 			CMDFUN(rulefile)
 			CMDFUN(topic)
 			CMDFUN(trie)
 			CMDFUN(user)
+			CMDFUN(var)
 			;
 			//("query", boost::mem_fn(&BarzerRequestParser::command_query));
 
@@ -516,6 +517,30 @@ void BarzerRequestParser::tag_qblock(RequestTag &tag) {
     raw_query_parse( d_query.c_str() );
     barz.topicInfo.setTopicFilterMode_Light();
     d_query.clear();
+}
+
+void BarzerRequestParser::tag_var(RequestTag &tag) {
+    if( RequestEnvironment* env = barz.getServerReqEnv() ) {
+        const char* n=0, *v=0, *t=0;
+        for( auto i = tag.attrs.begin(); i!= tag.attrs.end(); ++i ) {
+            if( i->first =="n" ) {
+                n = i->second.c_str();
+            } else if( i->first == "v" ) {
+                v = i->second.c_str();
+            } else if( i->first == "t" ) { // type NOT SUPPORTED YET
+                t = i->second.c_str();
+            }
+        }
+        if( n && v ) {
+            barz.setReqVarValue( n, BarzelBeadAtomic_var(BarzerString(v)) );
+        } else {
+	        stream() << "<error>var:";
+            if( !n ) stream() << "n attribute must be set. ";
+            if( !v ) stream() << "v attribute must be set. ";
+	        stream() << "</error>\n";
+        }
+    } else 
+	    stream() << "<error>var: request environment not set</error>\n";
 }
 
 void BarzerRequestParser::tag_nameval(RequestTag &tag) {

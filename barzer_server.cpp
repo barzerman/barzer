@@ -158,7 +158,9 @@ int barze( GlobalPools& gp, RequestEnvironment& reqEnv )
 {
 	BarzerRequestParser rp(gp, reqEnv.outStream, 0 );
 
+    rp.getBarz().setServerReqEnv( &reqEnv );
 	rp.parse(reqEnv.buf, reqEnv.len);
+
 	return 0;
 }
 
