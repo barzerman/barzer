@@ -88,7 +88,7 @@ public:
 	}
 
 	template<typename CallbackT, typename PredT>
-	void findPoints(const Point& center, CallbackT cb, const PredT& pred, Coord maxDist) const
+	void findPoints(const Point& center, CallbackT cb, const PredT& pred, Coord maxDist, bool sort = true) const
 	{
 		Points_t sub;
 
@@ -132,25 +132,28 @@ public:
 			addPointsInDist(sub, 0, upX - m_wrapAround, copyPred);
 		}
 
-		struct Sorter
+		if (sort)
 		{
-			const Point& m_p;
-			Coord m_wrap;
-			Sorter(const Point& p, Coord wrap)
-			: m_p(p)
-			, m_wrap(wrap)
-			{}
-
-			bool operator()(const Point& left, const Point& right) const
+			struct Sorter
 			{
-				return wrapDist(m_p, left, m_wrap) < wrapDist(m_p, right, m_wrap);
-			}
-		};
-		std::sort(sub.begin(), sub.end(), Sorter(center, shouldWrap ? m_wrapAround : 0));
+				const Point& m_p;
+				Coord m_wrap;
+				Sorter(const Point& p, Coord wrap)
+				: m_p(p)
+				, m_wrap(wrap)
+				{}
+
+				bool operator()(const Point& left, const Point& right) const
+				{
+					return wrapDist(m_p, left, m_wrap) < wrapDist(m_p, right, m_wrap);
+				}
+			};
+			std::sort(sub.begin(), sub.end(), Sorter(center, shouldWrap ? m_wrapAround : 0));
+		}
 
 		const auto powedDist = maxDist * maxDist;
 		for (auto i = sub.begin(); i != sub.end(); ++i)
-			if (wrapDist(*i, center, shouldWrap ? m_wrapAround : 0) >= powedDist || !cb(*i))
+			if ((sort && wrapDist(*i, center, shouldWrap ? m_wrapAround : 0) >= powedDist) || !cb(*i))
 				break;
 	}
 private:

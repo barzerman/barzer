@@ -12,6 +12,7 @@ typedef ay::geo::GeoIndex<ay::geo::Point, StoredEntityId> GeoIndex_t;
 class BarzerGeo
 {
 	GeoIndex_t m_idx;
+	boost::unordered_map<StoredEntityId, GeoIndex_t::Point> m_entity2point;
 public:
 	typedef GeoIndex_t::Point Point_t;
 	
@@ -45,6 +46,9 @@ public:
 		
 		return m_idx.findPoints(center, SerializingCB(out, num), pred, dist);
 	}
+	
+	void proximityFilter(std::vector<StoredEntityId>& ents,
+			const Point_t& center, GeoIndex_t::Coord_t dist, bool sorted) const;
 };
 
 class DumbPred
