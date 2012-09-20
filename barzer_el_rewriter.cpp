@@ -274,19 +274,25 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Control>(const BT
 }
 
 template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const BTND_Rewrite_Function &data) {
-	//AYLOG(DEBUG) << "calling funid:" << data.nameId;
 	const BarzelEvalNode* evalNode = ctxt.getTrie().getProcs().getEvalNode( data.nameId );
 	if( evalNode ) {
-        // std::cerr << "SHITFUCK: " << d_childValVec << std::endl;
         bool ret = false;
         {
 		    BarzelEvalContext::frame_stack_raii frameRaii( ctxt, ay::skippedvector<BarzelEvalResult>(d_childValVec) );
 		    ret = evalNode->eval( d_val, ctxt);
         }
         /// if function call successful and it has output variable
-        if( ret && data.isValidVar() ) 
-            ctxt.bindVar(data.getVarId()) = d_val;
-
+        if( ret )  {
+            if( data.isValidVar() ) {
+                if( data.isRewriteVar() ) { // default output variable is for rewrite
+                    ctxt.bindVar(data.getVarId()) = d_val;
+                } else if( data.isReqVar() ) {
+                    const char* requestVar = ctxt.getUniverse().getGlobalPools().internalString_resolve_safe(data.getVarId());
+                    if( const BarzelBeadAtomic* atomic = d_val.getSingleAtomic() )
+                        ctxt.getBarz().setReqVarValue(requestVar, atomic->getData() );
+                }
+             }
+        }
 		return ret;
 	}
 	const StoredUniverse &u = ctxt.universe;
@@ -339,6 +345,15 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Number>( const BT
 
 template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Variable>( const BTND_Rewrite_Variable& n ) 
 {
+    if( n.isRequestVar() ) {
+        const char * vname = ctxt.resolveStringInternal(n.getVarId());
+        if( vname ) {
+            if( const BarzelBeadAtomic_var* p= ctxt.getBarz().getReqVarValue( vname ) )
+                return( d_val.setBeadData( BarzelBeadAtomic().setData(*p) ), true );
+        } 
+
+        return false;
+    }
     const BELSingleVarPath* varPath = ( n.isVarId() ? ctxt.matchInfo.getVarPathByVarId(n.getVarId(),ctxt.getTrie()): 0); 
     const BarzelEvalResult* varResult = ( varPath && varPath->size() == 1 ? ctxt.getVar( (*varPath)[0]) :0 );
     if( varResult ) {
@@ -640,6 +655,11 @@ BarzelEvalContext& BarzelEvalContext::pushBarzelError( const char* err )
 {
     d_barz.barzelTrace.pushError( err );
     return *this;
+}
+
+const char* BarzelEvalContext::resolveStringInternal( uint32_t i ) const
+{
+    return universe.getGlobalPools().internalString_resolve(i);
 }
 
 } /// barzer namespace ends
