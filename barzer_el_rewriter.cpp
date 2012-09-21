@@ -350,6 +350,10 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Variable>( const 
         if( vname ) {
             if( const BarzelBeadAtomic_var* p= ctxt.getBarz().getReqVarValue( vname ) )
                 return( d_val.setBeadData( BarzelBeadAtomic().setData(*p) ), true );
+            else {
+                d_val.setBeadData( BarzelBeadAtomic() );
+                return true;
+            }
         } 
 
         return false;

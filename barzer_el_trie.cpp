@@ -657,6 +657,10 @@ void BarzelTranslation::set(BELTrie& ,const BTND_Rewrite_Variable& x )
 		type = T_VAR_GN_NUM;
 		id =  x.getVarId();
 		return;
+	case BTND_Rewrite_Variable::MODE_REQUEST_VAR:
+		type = T_REQUEST_VAR_NAME;
+		id =  x.getVarId();
+		return;
 	default: 
 		AYTRACE( "inconsistent literal encountered in Barzel rewrite" );
 		setStop(); // this should never happen
@@ -799,6 +803,7 @@ void BarzelTranslation::fillRewriteData( BTND_RewriteData& d ) const
 	case T_MKENT: { BTND_Rewrite_MkEnt n; n.setEntId( getId_uint32() ); d=n; } return;
 	case T_MKENTLIST: { BTND_Rewrite_MkEnt n; n.setEntGroupId( getId_uint32() ); d=n; } return;
 	case T_FUNCTION: { BTND_Rewrite_Function n; n.setNameId( getId_uint32() ); n.setArgStrId( getArgStrId() ); d=n; } return;
+	case T_REQUEST_VAR_NAME: { BTND_Rewrite_Variable n; n.setRequestVarId(getId_uint32()); d=n; } return;
 
 	default: d = BTND_Rewrite_None(); return;
 	}

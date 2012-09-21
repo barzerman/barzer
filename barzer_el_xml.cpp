@@ -1546,8 +1546,8 @@ DEFINE_BELParserXML_taghandle(VAR)
 
 		}
 	}
-    if( isReqVar && var.isVarId() ) {
-        var.changeToReqVar();
+    if( isReqVar && varName ) {
+        var.setRequestVarId( reader->getGlobalPools().internString_internal(varName) );
     }
 	statement.pushNode( BTND_RewriteData( var));
 }
