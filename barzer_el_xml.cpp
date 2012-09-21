@@ -1462,6 +1462,11 @@ DEFINE_BELParserXML_taghandle(BLOCK)
                 }
             }
             break;
+        case 'r':{ /// variable
+            if( *v == 'y' ) 
+                ctrl.setVarModeRequest();
+            }
+            break;
         case 'v':{ /// variable
             uint32_t varId = reader->getGlobalPools().internString_internal(v) ;
             ctrl.setVarId( varId );
@@ -1506,6 +1511,8 @@ DEFINE_BELParserXML_taghandle(VAR)
 		return;
 	}
 	BTND_Rewrite_Variable var;
+    const char* varName = 0;
+    bool isReqVar = false;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
@@ -1526,6 +1533,7 @@ DEFINE_BELParserXML_taghandle(VAR)
 		case 'n': { // <var name=""/> - named variable
 			/// intern
 			var.setVarId( internVariable(v) );
+            varName = v;
 		}
 			break;
 		case 'p': { // <var pn="1"/> - pattern element number - if pattern is "a * b * c" then pn[1] is a, pn[2] is the first * etc
@@ -1540,6 +1548,12 @@ DEFINE_BELParserXML_taghandle(VAR)
 			}
 		}
 			break;
+		case 'r': { /// r - variable is a request var
+            if( v && *v == 'y' ) {
+                isReqVar = true;
+            }
+        }
+            break;
 		case 'w': { // <var w="1"/> - wildcard number like $1 
 			int num  = atoi(v);
 			if( num > 0 ) 
@@ -1554,6 +1568,9 @@ DEFINE_BELParserXML_taghandle(VAR)
 
 		}
 	}
+    if( isReqVar && varName ) {
+        var.setRequestVarId( reader->getGlobalPools().internString_internal(varName) );
+    }
 	statement.pushNode( BTND_RewriteData( var));
 }
 DEFINE_BELParserXML_taghandle(GET)
@@ -1598,6 +1615,9 @@ DEFINE_BELParserXML_taghandle(FUNC)
             f.setArgStrId( reader->getGlobalPools().internString_internal(v) );
         } else if( *n == 'v' ) { // variable 
             f.setVarId( reader->getGlobalPools().internString_internal(v) );
+        } else if( *n == 'r' ) { // request variable RequestEnvironment::d_reqVar
+            if( *v == 'y' ) 
+                f.setVarModeRequest();
         }
 	}
     if( funcNameId != 0xffffffff ) 

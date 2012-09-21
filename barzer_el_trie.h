@@ -261,6 +261,7 @@ public:
 		T_MKENT, // entity maker
 		T_MKENTLIST, // entity list maker
 		T_FUNCTION, // fucntion(void)
+        T_REQUEST_VAR_NAME, // request wide variable MODE_REQUEST_VAR (RequestEnvironment::d_reqVar)
 
 		T_MAX
 	} Type_t;
