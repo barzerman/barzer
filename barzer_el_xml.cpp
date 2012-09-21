@@ -1440,6 +1440,11 @@ DEFINE_BELParserXML_taghandle(BLOCK)
                 }
             }
             break;
+        case 'r':{ /// variable
+            if( *v == 'y' ) 
+                ctrl.setVarModeRequest();
+            }
+            break;
         case 'v':{ /// variable
             uint32_t varId = reader->getGlobalPools().internString_internal(v) ;
             ctrl.setVarId( varId );
@@ -1589,7 +1594,8 @@ DEFINE_BELParserXML_taghandle(FUNC)
         } else if( *n == 'v' ) { // variable 
             f.setVarId( reader->getGlobalPools().internString_internal(v) );
         } else if( *n == 'r' ) { // request variable RequestEnvironment::d_reqVar
-            f.setVarModeRequest();
+            if( *v == 'y' ) 
+                f.setVarModeRequest();
         }
 	}
     if( funcNameId != 0xffffffff ) 

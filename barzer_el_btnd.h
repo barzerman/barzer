@@ -800,16 +800,19 @@ struct BTND_Rewrite_Variable {
 	{}
 };
 
+struct RewriteVariableMode {
+};
+typedef enum {
+    VARMODE_REWRITE,// variable local to a single rewrite (DEFAULT)
+    VARMODE_REQUEST // variable local to the entire request RequestEnvironment::d_reqVar RequestVariableMap
+} Btnd_Rewrite_Varmode_t;
+
 struct BTND_Rewrite_Function {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	uint32_t nameId; // function name id
 	uint32_t argStrId; // string id for the optional arg attribute
     uint32_t varId;    // string id for a variable (optional)
-    enum {
-        VARMODE_REWRITE,// variable local to a single rewrite (DEFAULT)
-        VARMODE_REQUEST // variable local to the entire request RequestEnvironment::d_reqVar RequestVariableMap
-    };
-    
+
     uint8_t  d_varMode; // VARMODE_XXX 
 
 	void setNameId( uint32_t i ) { nameId = i ; }
@@ -842,7 +845,6 @@ struct BTND_Rewrite_Function {
 
     void setVarModeRequest( ) { d_varMode=VARMODE_REQUEST; }
     bool isReqVar() const    { return (d_varMode== VARMODE_REQUEST); }
-
     void setVarModeRewrite( ) { d_varMode=VARMODE_REWRITE; } // default
     bool isRewriteVar() const    { return (d_varMode== VARMODE_REWRITE); }
 };
@@ -958,7 +960,13 @@ struct BTND_Rewrite_Control {
     }; 
     uint16_t d_rwctlt; // RWCTLT_XXXX
     uint32_t d_varId;  //  default 0xffffffff - when set results will be also added to the variable 
-    BTND_Rewrite_Control() : d_rwctlt(RWCTLT_COMMA), d_varId(0xffffffff) {}
+    uint8_t  d_varMode;
+
+    void setVarModeRequest( ) { d_varMode=VARMODE_REQUEST; }
+    bool isReqVar() const    { return (d_varMode== VARMODE_REQUEST); }
+    void setVarModeRewrite( ) { d_varMode=VARMODE_REWRITE; } // default
+    bool isRewriteVar() const    { return (d_varMode== VARMODE_REWRITE); }
+    BTND_Rewrite_Control() : d_rwctlt(RWCTLT_COMMA), d_varId(0xffffffff), d_varMode(VARMODE_REWRITE) {}
     /// here 4 more bytes of something could be used  
 	std::ostream& print( std::ostream& fp ) const
 		{ return fp << "Control(" << d_rwctlt << "," << d_varId << ")"; }
