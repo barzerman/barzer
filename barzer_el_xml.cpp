@@ -1522,7 +1522,7 @@ DEFINE_BELParserXML_taghandle(VAR)
 		}
 			break;
 		case 'r': { /// r - variable is a request var
-            if( v && *v == 'r' ) {
+            if( v && *v == 'y' ) {
                 isReqVar = true;
             }
         }
