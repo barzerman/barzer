@@ -47,6 +47,13 @@ namespace
 
 int main()
 {
+	std::cout.precision (10);
+	std::cout << std::fixed;
+	std::cout << convertUnit (10., Unit::Metre, Unit::Metre) << std::endl;
+	std::cout << convertUnit (10., Unit::Metre, Unit::Kilometre) << std::endl;
+	std::cout << convertUnit (10., Unit::Metre, Unit::Degree) << std::endl;
+	std::cout << convertUnit (1., Unit::Degree, Unit::Metre) << std::endl;
+#if 0
 	typedef GeoIndex<Point, Payload, double> GI;
 
 	const int size = 3000;
@@ -73,4 +80,5 @@ int main()
 	test(gi, testPts, 30);
 	test(gi, testPts, 50);
 	test(gi, testPts, 100);
+#endif
 }

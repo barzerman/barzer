@@ -8,6 +8,41 @@ namespace ay
 {
 namespace geo
 {
+enum Unit
+{
+	Degree,
+	Metre,
+	Kilometre,
+	Mile,
+	MAX
+};
+
+template<typename Coord>
+Coord convertUnit(Coord unit, Unit from, Unit to)
+{
+	if (from == to || from >= Unit::MAX || to >= Unit::MAX)
+		return unit;
+	
+	const double circum = 40000; // somewhat average circumference in km
+	const double kmPerDeg = circum / 360;
+	const double mPerDeg = 1000 * kmPerDeg;
+	
+	const double kmPerMile = 1.609344;
+	const double milePerKm = 1 / kmPerMile;
+	const double milePerDeg = kmPerDeg / kmPerMile;
+	
+	// diag(m_coeffs) should be identity matrix, obv, and a[i][j] = 1 / a[j][i].
+	const double m_coeffs [Unit::MAX] [Unit::MAX] =
+	{
+		{ 1, 				mPerDeg,			kmPerDeg,	milePerDeg },					// degree to { degree, metre, kilometre, mile }
+		{ 1 / mPerDeg,		1,					0.001,		0.001 * milePerKm},				// metre to { degree, metre, kilometre, mile }
+		{ 1 / kmPerDeg,		1000,				1,			milePerKm },					// kilometre to { degree, metre, kilometre, mile }
+		{ 1 / milePerDeg,	1000 * kmPerMile,	kmPerMile,	1 }								// mile to { degree, metre, kilometre, mile }
+	};
+	
+	return unit * m_coeffs [from] [to];
+}
+
 template<typename PayloadT, typename Coord = double>
 class Point
 {
