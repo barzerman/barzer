@@ -14,8 +14,11 @@ enum Unit
 	Metre,
 	Kilometre,
 	Mile,
-	MAX
+	MAX,
+	Invalid
 };
+
+Unit unitFromString(std::string);
 
 template<typename Coord>
 Coord convertUnit(Coord unit, Unit from, Unit to)
