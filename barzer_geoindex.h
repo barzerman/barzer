@@ -22,7 +22,7 @@ public:
 	
 	template<typename Pred>
 	void findEntities(std::vector<uint32_t>& out, const Point_t& center,
-			const Pred& pred, size_t dist, size_t num = std::string::npos) const
+			const Pred& pred, GeoIndex_t::Coord_t dist, size_t num = std::string::npos) const
 	{
 		class SerializingCB
 		{
