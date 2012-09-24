@@ -172,7 +172,7 @@ struct AutocCallback {
 } /// end of anon space 
 int BarzerAutocomplete::parse( const char* q )
 {
-    BestEntities bestEnt;
+    BestEntities bestEnt(d_qparm.autoc.numResults);
     QParser parser(d_universe);
 
 

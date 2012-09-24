@@ -314,6 +314,8 @@ struct QuestionParm {
         /// when this is not empty only entities whose class/subclass match anything in the vector, will 
         /// be reported by autocomplete - this vector will be very small 
         std::vector< StoredEntityClass > ecVec;
+		
+		uint16_t numResults;
 
         bool hasSpecificTrie() const { return( trieClass != 0xffffffff && trieId != 0xffffffff ); }
         bool needOnlyTopic() const { return ( topicMode == TOPICMODE_TOPICS_ONLY ); }
@@ -349,7 +351,7 @@ struct QuestionParm {
             }
         }
 
-        AutocParm() : trieClass(0xffffffff), trieId(0xffffffff),  topicMode(TOPICMODE_RULES_ONLY)  {}
+        AutocParm() : trieClass(0xffffffff), trieId(0xffffffff), topicMode(TOPICMODE_RULES_ONLY), numResults(10)  {}
     } autoc;
 
     void setStemMode_Aggressive() { stemMode= STEMMODE_AGGRESSIVE; }

@@ -497,6 +497,10 @@ void BarzerRequestParser::tag_autoc(RequestTag &tag)
         case 'e':
             qparm.autoc.parseEntClassList(a->second.c_str());
             break;
+		case 'n':
+			if (int numResults = atoi(a->second.c_str()))
+				qparm.autoc.numResults = numResults;
+			break;
         }
     }
     d_query = tag.body.c_str();
