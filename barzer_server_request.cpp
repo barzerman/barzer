@@ -515,6 +515,7 @@ void BarzerRequestParser::tag_findents (RequestTag& tag)
 	const auto& attrs = tag.attrs;
 	double lon = -1, lat = -1, dist = -1;
 	int64_t ec = -1, esc = -1;
+	std::string distUnitStr;
 	for (auto attr = attrs.begin(), end = attrs.end(); attr != end; ++attr)
 	{
 		const auto& name = attr->first;
@@ -553,14 +554,22 @@ void BarzerRequestParser::tag_findents (RequestTag& tag)
 			}
 			break;
 		case 'd':
-			try
+			switch (name[1])
 			{
-				dist = boost::lexical_cast<double>(val);
-			}
-			catch (...)
-			{
-				os << "<error>invalid distance " << val << "</error>\n";
-				return;
+			case 'i':
+				try
+				{
+					dist = boost::lexical_cast<double>(val);
+				}
+				catch (...)
+				{
+					os << "<error>invalid distance " << val << "</error>\n";
+					return;
+				}
+				break;
+			case 'u':
+				distUnitStr = attr->second;
+				break;
 			}
 			break;
 		case 'e':
@@ -595,7 +604,14 @@ void BarzerRequestParser::tag_findents (RequestTag& tag)
 	
 	if (lon < 0 || lat < 0 || dist < 0)
 	{
-		os << "<error>invalid parameters lon/lat/dist: " << lon << " " << " " << lat << " " << dist<< "</error>\n";
+		os << "<error>invalid parameters lon/lat/dist: " << lon << " " << " " << lat << " " << dist << "</error>\n";
+		return;
+	}
+	
+	auto unit = distUnitStr.empty() ? ay::geo::Unit::Metre : ay::geo::unitFromString(distUnitStr);
+	if (unit >= ay::geo::Unit::MAX)
+	{
+		os << "<error>invalid unit: " << distUnitStr << "</error>\n";
 		return;
 	}
 	
@@ -604,6 +620,8 @@ void BarzerRequestParser::tag_findents (RequestTag& tag)
 		os << "<error>invalid user id " << userId << "</error>\n";
 		return;
 	}
+	
+	dist = ay::geo::convertUnit(dist, unit, ay::geo::Unit::Degree);
 	
 	const auto& geo = d_universe->getGeo();
 	
