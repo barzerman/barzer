@@ -508,5 +508,13 @@ int run_server(GlobalPools &gp, uint16_t port) {
 
 	return 0;
 }
+std::ostream& RequestVariableMap::print( std::ostream& fp ) const
+{
+    auto m = getAllVars();
+    for( auto i = m.begin(); i!= m.end(); ++i ) {
+        fp << i->first << "=" << i->second << std::endl;
+    }
+    return fp;
+}
 
 }

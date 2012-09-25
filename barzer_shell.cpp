@@ -45,9 +45,11 @@ BarzerShellContext::BarzerShellContext(StoredUniverse& u, BELTrie& trie) :
 		d_trie(&trie),
 		parser( u ),
         d_grammarId(0),
-        streamerModeFlags(streamerModeFlags_bits)
+        streamerModeFlags(streamerModeFlags_bits),
+        reqEnv(std::cerr)
 {
 	barz.setUniverse(&u);
+    barz.setServerReqEnv(&reqEnv);
 #define NAME_MODE_BIT( x ) streamerModeFlags.name( BarzStreamerXML::BF_##x, #x )
     NAME_MODE_BIT(NOTRACE);
     NAME_MODE_BIT(USERID);
@@ -1355,6 +1357,55 @@ static int bshf_instance( BarzerShell* shell, char_cp cmd, std::istream& in )
 }
 static int bshf_env( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
+    auto ctxt = shell->getBarzerContext();
+    RequestEnvironment& reqEnv = ctxt->reqEnv;
+    RequestVariableMap& reqEnvVar = reqEnv.getReqVar();
+
+    std::ostream& outFP = shell->getOutStream() ;
+    
+    std::string tmp;
+    bool hasVariableName = true;
+    
+    std::string varName;
+    auto vmap = reqEnv.getAllVars();
+    std::string mode;
+    in >> mode;
+    if(mode =="help") { // first argument is set (second argument must be variable name)
+        std::cerr << "USAGE: env [MODE]. Mode is get/set/clear\n";
+    } else if(mode =="clear") { // first argument is set (second argument must be variable name)
+        if( in >> varName ) {
+            if( !reqEnvVar.unset(varName.c_str()) )
+                std::cerr << varName << " never set. nothing to unset\n";
+        } else
+            vmap.clear();
+    } else if( mode =="set" ) { // first argument is set (second argument must be variable name)
+        if( in >> varName ) {
+            outFP << "enter new value for " << varName << ":";
+            char buf[ 256 ];
+            fgets( buf,sizeof(buf)-1,stdin);
+            buf[ sizeof(buf)-1 ] =0;
+            buf[ strlen(buf) ] =0;
+            reqEnvVar.setValue( varName.c_str(), BarzelBeadAtomic_var( BarzerString(buf) ) );
+            
+            auto tmp  = reqEnvVar.getValue( varName );
+            if( tmp ) 
+                std::cout << "SHIT:" << *tmp << std::endl;
+        }
+    } else { // get mode 
+        if( mode == "get" ) {
+            in >> mode;
+        }
+
+        for( auto i = vmap.begin(); i!= vmap.end(); ++i ) {
+            if( !mode.length() || strstr(i->first.c_str(), mode.c_str()) ) {
+                outFP << i->first  << "=" << i->second << std::endl;
+            }
+        }
+    }
+    return 0;
+}
+static int bshf_shenv( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
     const char* name = 0, *value = 0;
     std::string n, v;
 	if(in >> n) name=n.c_str();
@@ -1456,7 +1507,8 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_autoc, "autoc", "autocomplete" ),
 	CmdData( (ay::Shell_PROCF)bshf_bzspell, "bzspell", "bzspell correction for the user" ),
 	CmdData( (ay::Shell_PROCF)bshf_bzstem, "bzstem", "bz stemming correction for the user domain" ),
-	CmdData( (ay::Shell_PROCF)bshf_env, "env", "set env parameter. usage: env [name [value]]" ),
+	CmdData( (ay::Shell_PROCF)bshf_shenv, "shenv", "set shell environment parameter. usage: shenv [name [value]]" ),
+	CmdData( (ay::Shell_PROCF)bshf_env, "env", "set request environment parameter. usage: env [name [value]]" ),
 	CmdData( (ay::Shell_PROCF)bshf_dtaan, "dtaan", "data set analyzer. runs through the trie" ),
 	CmdData( (ay::Shell_PROCF)bshf_instance, "instance", "lists all users in the instance" ),
 	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),

@@ -4,6 +4,7 @@
 #include <ay/ay_headers.h>
 #include <ay/ay_shell.h>
 #include <barzer_dtaindex.h>
+#include <set>
 #include <barzer_parse.h>
 //#include <barzer_parse_types.h>
 #include <barzer_barz.h>
@@ -11,6 +12,8 @@
 #include <barzer_el_trie_walker.h>
 #include <barzer_el_wildcard.h>
 #include <barzer_server_response.h>
+#include <barzer_server.h>
+
 
 #include <iostream>
 namespace barzer {
@@ -25,6 +28,7 @@ struct BarzerShellContext : public ay::ShellContext {
 
 	Barz barz;
 	QParser parser;
+    RequestEnvironment reqEnv;
 
     int d_grammarId;
     BarzStreamerXML::ModeFlags streamerModeFlags_bits;
