@@ -665,42 +665,42 @@ static int bshf_smf( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
-        BarzerShellContext * context = shell->getBarzerContext();
-        if( !context || !context->isUniverseValid() ) {
-                std::cerr << "barzer shell FATAL - context oruniverse is NULL\n";
-                return 0;
-        }
-        Barz& barz = context->barz;
-        // Barz barz;
-        QParser parser( (context->getUniverse()) );
+    BarzerShellContext * context = shell->getBarzerContext();
+    if( !context || !context->isUniverseValid() ) {
+            std::cerr << "barzer shell FATAL - context oruniverse is NULL\n";
+            return 0;
+    }
+    Barz& barz = context->barz;
+    // Barz barz;
+    QParser parser( (context->getUniverse()) );
 
-        BarzStreamerXML bs(barz, context->getUniverse());
-        bs.setWholeMode( context->streamerModeFlags.theBits() );
+    BarzStreamerXML bs(barz, context->getUniverse());
+    bs.setWholeMode( context->streamerModeFlags.theBits() );
 
-        std::string fname;
+    std::string fname;
 
-        std::ostream *ostr = &(shell->getOutStream());
-        std::ofstream ofile;
+    std::ostream *ostr = &(shell->getOutStream());
+    std::ofstream ofile;
 
     size_t numIterations = 1;
-        if (in >> fname) {
+    if (in >> fname) {
         if( is_all_digits(fname.c_str()) ) {
             numIterations = atoi( fname.c_str() );
         } else {
             ofile.open(fname.c_str());
             ostr = &ofile;
         }
-        }
-        ay::InputLineReader reader( in );
+    }
+    ay::InputLineReader reader( in );
 
-        QuestionParm qparm;
-        shell->syncQuestionParm(qparm);
+    QuestionParm qparm;
+    shell->syncQuestionParm(qparm);
 
-        ay::stopwatch totalTimer;
-        while( reader.nextLine() && reader.str.length() ) {
-            ay::stopwatch localTimer;
-                const char* q = reader.str.c_str();
-                *ostr << "parsing: " << q << "\n";
+    ay::stopwatch totalTimer;
+    while( reader.nextLine() && reader.str.length() ) {
+        ay::stopwatch localTimer;
+        const char* q = reader.str.c_str();
+        *ostr << "parsing: " << q << "\n";
 
         for( size_t i = 0; i< numIterations; ++i ) {
             parser.parse( barz, q, qparm );
@@ -712,10 +712,10 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
         }
 
         std::cerr << numIterations << " iterations done in " << localTimer.calcTime() << " seconds\n";
-                // << ttVec << std::endl;
-        }
-        std::cerr << "All done in " << totalTimer.calcTime() << " seconds\n";
-        return 0;
+        // << ttVec << std::endl;
+    }
+    std::cerr << "All done in " << totalTimer.calcTime() << " seconds\n";
+    return 0;
 }
 
 static int bshf_anlqry( BarzerShell* shell, char_cp cmd, std::istream& in )
