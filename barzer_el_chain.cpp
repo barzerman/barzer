@@ -752,6 +752,9 @@ struct BarzelBeadAtomic_var_print_visitor : public boost::static_visitor<> {
 } // namespace 
 std::ostream& operator<<( std::ostream& fp, const BarzelBeadAtomic_var& v )
 {
+    print_visitor vis(fp);
+    boost::apply_visitor( vis, v );
+
     return fp;
 }
 } // barzer namespace

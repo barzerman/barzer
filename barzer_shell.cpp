@@ -37,6 +37,15 @@ bool is_all_digits( const char* s )
     return true;
 }
 
+void strip_newline( char* buf ) 
+{
+    if( size_t len = strlen(buf) ) {
+        if( buf[ len-1 ] == '\n' ) {
+            buf[ len-1 ] = 0;
+        }
+    }
+}
+
 }
 BarzerShellContext::BarzerShellContext(StoredUniverse& u, BELTrie& trie) :
 		gp(u.getGlobalPools()),
@@ -1367,7 +1376,6 @@ static int bshf_env( BarzerShell* shell, char_cp cmd, std::istream& in )
     bool hasVariableName = true;
     
     std::string varName;
-    auto vmap = reqEnv.getAllVars();
     std::string mode;
     in >> mode;
     if(mode =="help") { // first argument is set (second argument must be variable name)
@@ -1377,26 +1385,23 @@ static int bshf_env( BarzerShell* shell, char_cp cmd, std::istream& in )
             if( !reqEnvVar.unset(varName.c_str()) )
                 std::cerr << varName << " never set. nothing to unset\n";
         } else
-            vmap.clear();
+            reqEnvVar.clear();
     } else if( mode =="set" ) { // first argument is set (second argument must be variable name)
         if( in >> varName ) {
             outFP << "enter new value for " << varName << ":";
             char buf[ 256 ];
             fgets( buf,sizeof(buf)-1,stdin);
             buf[ sizeof(buf)-1 ] =0;
-            buf[ strlen(buf) ] =0;
+            strip_newline(buf);
             reqEnvVar.setValue( varName.c_str(), BarzelBeadAtomic_var( BarzerString(buf) ) );
-            
-            auto tmp  = reqEnvVar.getValue( varName );
-            if( tmp ) 
-                std::cout << "SHIT:" << *tmp << std::endl;
+            BarzerString shitString(buf);
         }
     } else { // get mode 
         if( mode == "get" ) {
             in >> mode;
         }
 
-        for( auto i = vmap.begin(); i!= vmap.end(); ++i ) {
+        for( auto i = reqEnvVar.getAllVars().begin(); i!= reqEnvVar.getAllVars().end(); ++i ) {
             if( !mode.length() || strstr(i->first.c_str(), mode.c_str()) ) {
                 outFP << i->first  << "=" << i->second << std::endl;
             }
