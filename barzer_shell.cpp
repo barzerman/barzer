@@ -1549,6 +1549,8 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_smf, "smf", "streamer mode flag: smf [ NAME [ON|OFF] ]" ),
 	CmdData( (ay::Shell_PROCF)bshf_stexpand, "stexpand", "expand and print all statements in a file" ),
 	CmdData( (ay::Shell_PROCF)bshf_strid, "strid", "resolve string id (usage strid id)" ),
+
+	CmdData( (ay::Shell_PROCF)bshf_process, "q", "process an input string" ),
 	CmdData( (ay::Shell_PROCF)bshf_process, "process", "process an input string" ),
 	CmdData( (ay::Shell_PROCF)bshf_process, "proc", "process an input string" ),
 	CmdData( (ay::Shell_PROCF)bshf_process, "проц", "process an input string" ),
