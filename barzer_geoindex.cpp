@@ -46,12 +46,15 @@ namespace
 
 void BarzerGeo::proximityFilter(std::vector<StoredEntityId>& ents, const Point_t& center, GeoIndex_t::Coord_t dist, bool sorted) const
 {
+	std::vector<StoredEntityId> geolessEnts;
 	std::vector<Point_t> points;
 	for (std::vector<StoredEntityId>::const_iterator i = ents.begin(), end = ents.end(); i != end; ++i)
 	{
 		auto pos = m_entity2point.find(*i);
 		if (pos != m_entity2point.end())
 			points.push_back(pos->second);
+		else
+			geolessEnts.push_back(*i);
 	}
 	
 	GeoIndex_t tmpIdx(WrapAround);
@@ -59,6 +62,8 @@ void BarzerGeo::proximityFilter(std::vector<StoredEntityId>& ents, const Point_t
 	
 	ents.clear();
 	tmpIdx.findPoints(center, makePushingCB(ents), DumbPred(), dist, sorted);
+	
+	std::copy(geolessEnts.begin(), geolessEnts.end(), std::back_inserter(ents));
 }
 
 bool BarzerGeo::proximityFilter(const StoredEntityId& singleEnt, const Point_t& center, GeoIndex_t::Coord_t dist) const
