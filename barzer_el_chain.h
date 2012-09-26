@@ -54,6 +54,8 @@ typedef enum {
     BarzelBeadAtomic_type_MAX
 } BarzelBeadAtomic_type_t;
 
+std::ostream& operator<<( std::ostream& fp, const BarzelBeadAtomic_var& v );
+
 struct BarzelBeadAtomic {
 	BarzelBeadAtomic_var dta;
 

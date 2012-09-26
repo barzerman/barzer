@@ -18,6 +18,7 @@ struct RequestVariableMap {
     typedef std::map< std::string, BarzelBeadAtomic_var > Map;
     Map d_map;
     
+    const Map& getAllVars() const { return d_map; }
     bool getValue( BarzelBeadAtomic_var& v, const char* n ) const 
     {
         auto i = d_map.find(n);
@@ -38,8 +39,12 @@ struct RequestVariableMap {
     
     void setValue( const char* n, const BarzelBeadAtomic_var& v ) 
         { d_map[ n ] = v; }
-    void unset( const char* n ) 
-        { d_map.erase(n); }
+    bool unset( const char* n ) 
+        { return(d_map.erase(n) !=0); }
+    
+    void clear() { d_map.clear(); }
+    
+    std::ostream& print( std::ostream& ) const;
 };
 
 
@@ -55,6 +60,8 @@ struct RequestEnvironment {
 	size_t      len;
 
 	std::ostream& outStream;
+
+    const RequestVariableMap::Map& getAllVars() const { return d_reqVar.getAllVars(); }
 
     const RequestVariableMap& getReqVar() const { return d_reqVar; }
           RequestVariableMap& getReqVar() { return d_reqVar; }
@@ -74,6 +81,14 @@ struct RequestEnvironment {
 		len(l),
 		outStream(os)
 	{}
+    
+    void clear() 
+    {
+        userId=0;
+        buf=0;
+        len=0;
+        d_reqVar.clear();
+    }
 };
 
 int run_server(GlobalPools&, uint16_t);

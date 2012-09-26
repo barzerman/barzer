@@ -525,28 +525,42 @@ struct BELFunctionStorage_holder {
     STFUN(set) {
         SETFUNCNAME(set);
         const char* argStr = GETARGSTR();
-        if( argStr && rvec.size() == 2 ) {
-            const BarzelEvalResult& arg0 = rvec[0]; // objecct
-            const BarzelEvalResult& arg1 = rvec[1]; // new property value
+        if( fr.isReqVar() ){ 
+            // for now only single values are supported (no tupples yet) 
+            if( rvec.size() ) {/// set<x>( rvec ) - assigns variable x to rvec[0]
+                const char * vname = ctxt.resolveStringInternal(fr.getVarId());
 
-
-            const BarzelBeadAtomic* atomic = arg0.getSingleAtomic();
-            if( atomic ) {
-                std::stringstream os;
-                BarzelBeadData_FieldBinder binder( arg0.getBeadData(), q_universe, os );
-
-                std::vector< BarzelBeadData > vv;
-                vv.push_back( arg1.getBeadData() );
-
-                bool rc =  binder( result.getBeadData(), argStr, &vv );
-                if( !rc ) 
-                    FERROR( os.str().c_str() );
-                return rc;
-            }
-            return true;
+                const BarzelBeadAtomic* atomic = rvec[0].getSingleAtomic();
+                if( atomic ) {
+                    ctxt.getBarz().setReqVarValue( vname, atomic->getData() );
+                }
+                return true;
+            } else
+                return false;
         } else {
-            FERROR( "expects: object, new property value. Property name in arg" );
-            return false;
+            if( argStr && rvec.size() == 2 ) {
+                const BarzelEvalResult& arg0 = rvec[0]; // objecct
+                const BarzelEvalResult& arg1 = rvec[1]; // new property value
+    
+    
+                const BarzelBeadAtomic* atomic = arg0.getSingleAtomic();
+                if( atomic ) {
+                    std::stringstream os;
+                    BarzelBeadData_FieldBinder binder( arg0.getBeadData(), q_universe, os );
+    
+                    std::vector< BarzelBeadData > vv;
+                    vv.push_back( arg1.getBeadData() );
+    
+                    bool rc =  binder( result.getBeadData(), argStr, &vv );
+                    if( !rc ) 
+                        FERROR( os.str().c_str() );
+                    return rc;
+                }
+                return true;
+            } else {
+                FERROR( "expects: object, new property value. Property name in arg" );
+                return false;
+            }
         }
     }
     STFUN(getLeftBead)

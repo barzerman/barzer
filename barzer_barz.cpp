@@ -426,9 +426,11 @@ void Barz::setReqVarValue( const char* n, const BarzelBeadAtomic_var& v )
         p->getReqVar().setValue(n,v);
 }
 
-void Barz::unsetReqVar( const char* n )
+bool Barz::unsetReqVar( const char* n )
 {
     if( RequestEnvironment* p = getServerReqEnv() ) 
         return p->getReqVar().unset(n);
+    else return false;
+        
 }
 } // barzer namepace ends

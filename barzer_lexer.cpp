@@ -1130,8 +1130,9 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
         }
         if( keepClasifying ) {
 			uint32_t usersWordStrId = 0xffffffff;
-			const StoredToken* storedTok = ( bzSpell->isUsersWord( usersWordStrId, t ) ?
-				dtaIdx->getStoredToken( t ): 0 );
+            bool isUsersWord = bzSpell->isUsersWord( usersWordStrId, t ) ;
+
+			const StoredToken* storedTok = ( isUsersWord  ?  dtaIdx->getStoredToken( t ): 0 );
 
             bool isNumber = ( !qparm.isAutoc && tryClassify_number(ctok,ttok)); // this should probably always be false
 			if( storedTok ) { ///
@@ -1175,19 +1176,21 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 			        std::string strToStem( ttok.buf );
 			        std::string stem;
                     int lang = LANG_UNKNOWN;
-			        if( bzSpell->stem(stem, strToStem.c_str(), lang) ) {
-                        const StoredToken* stemTok = dtaIdx->getStoredToken( stem.c_str() ) ;
-                        if( stemTok ) {
-                            if( stemTok != tmpCtok.getStemTok() )
-				                tmpCtok.setStemTok( stemTok );
-                        } else {
-                            enum { MIN_DEDUPE_LENGTH = 5 };
-                            std::string dedupedStem;
-                            if( bzSpell->dedupeChars( stem, strToStem.c_str(), strToStem.length(), lang, MIN_DEDUPE_LENGTH )) { 
-                                stemTok = dtaIdx->getStoredToken( stem.c_str() ) ;
-                                if( stemTok && stemTok != tmpCtok.getStemTok() )
-                                    tmpCtok.setStemTok( stemTok );
-                            }
+                    const StoredToken* partialWordTok = dtaIdx->getStoredToken( strToStem.c_str() );
+                    bool gotStemmed = bzSpell->stem(stem, strToStem.c_str(), lang) ;
+
+                    const StoredToken* stemTok = ( gotStemmed ? dtaIdx->getStoredToken( stem.c_str() )  : partialWordTok );
+                     
+                    if( stemTok ) {
+                        if( stemTok != tmpCtok.getStemTok() )
+                            tmpCtok.setStemTok( stemTok );
+                    } else {
+                        enum { MIN_DEDUPE_LENGTH = 5 };
+                        std::string dedupedStem;
+                        if( bzSpell->dedupeChars( stem, strToStem.c_str(), strToStem.length(), lang, MIN_DEDUPE_LENGTH )) { 
+                            stemTok = dtaIdx->getStoredToken( stem.c_str() ) ;
+                            if( stemTok && stemTok != tmpCtok.getStemTok() )
+                                tmpCtok.setStemTok( stemTok );
                         }
                     }
 		        }
