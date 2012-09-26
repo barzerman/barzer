@@ -175,17 +175,23 @@ namespace
 		{
 			const auto& dta = m_uni.getDtaIdx();
 			
-			std::vector<StoredEntityId> ents;
+			std::vector<StoredEntityId> ents, toPreserve;
 			ents.reserve(e.size());
 			auto& list = e.theList();
 			for (auto i = list.begin(); i != list.end(); ++i)
 			{
 				auto se = dta.getEntByEuid(*i);
-				if (se)
+				if (!se)
+					continue;
+				
+				if (subclassBelongs(se))
 					ents.push_back(se->entId);
+				else
+					toPreserve.push_back(se->entId);
 			}
 			
 			m_uni.getGeo()->proximityFilter(ents, m_center, m_dist, false);
+			std::copy(toPreserve.begin(), toPreserve.end(), std::back_inserter(ents));
 			if (ents.size() == e.size())
 				return FilterResult(false, false);
 			
@@ -196,7 +202,7 @@ namespace
 			while (pos != list.end())
 			{
 				auto se = dta.getEntByEuid(*pos);
-				if (!se || !subclassBelongs(se))
+				if (!se)
 				{
 					++pos;
 					continue;
