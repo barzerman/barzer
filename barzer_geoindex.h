@@ -49,7 +49,11 @@ public:
 	
 	void proximityFilter(std::vector<StoredEntityId>& ents,
 			const Point_t& center, GeoIndex_t::Coord_t dist, bool sorted) const;
+	bool proximityFilter(const StoredEntityId& singleEnt,
+			const Point_t& center, GeoIndex_t::Coord_t dist) const;
 };
+
+void proximityFilter(Barz& barz, const StoredUniverse& geo);
 
 class DumbPred
 {

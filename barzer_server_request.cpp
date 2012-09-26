@@ -395,6 +395,11 @@ void BarzerRequestParser::raw_query_parse( const char* query )
         barz.topicInfo.computeTopTopics();
     }
 	qparser.parse( barz, query, qparm );
+	BarzelBeadAtomic_var geoVar;
+	barz.getReqVarValue(geoVar, "geo::enableFilter");
+	if (geoVar.which() == BarzerString_TYPE &&
+			boost::get<BarzerString>(geoVar).getStr() != "false")
+		proximityFilter(barz, *up);
 	response.print(os);
     /// doing this just in case barz is reused 
     barz.clearWithTraceAndTopics();
@@ -587,15 +592,7 @@ void BarzerRequestParser::tag_findents (RequestTag& tag)
 				}
 				break;
 			case 's': // entity class
-				try
-				{
-					esc = boost::lexical_cast<int64_t>(val);
-				}
-				catch (...)
-				{
-					os << "<error>invalid entity subclass " << val << "</error>\n";
-					return;
-				}
+				
 				break;
 			}
 			break;
