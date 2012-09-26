@@ -89,6 +89,40 @@ namespace
 		}
 	}
 	
+	double GetDist(const BarzelBeadAtomic_var *distVar, const BarzelBeadAtomic_var *unitVar)
+	{
+		double dist = String2Double(distVar);
+	
+		auto unit = ay::geo::Unit::Kilometre;
+		if (unitVar && unitVar->which() == BarzerString_TYPE)
+		{
+			const auto& unitStr = boost::get<BarzerString>(*unitVar).getStr();
+			const auto parsedUnit = ay::geo::unitFromString(unitStr);
+			if (parsedUnit < ay::geo::Unit::MAX)
+				unit = parsedUnit;
+		}
+
+		dist = ay::geo::convertUnit(dist, unit, ay::geo::Unit::Degree);
+		return dist;
+	}
+	
+	std::vector<uint32_t> ParseEntSC(const BarzelBeadAtomic_var *escVar)
+	{
+		std::vector<uint32_t> result;
+		if (!escVar || escVar->which() != BarzerString_TYPE)
+			return result;
+		
+		const auto& str = boost::get<BarzerString>(*escVar).getStr();
+		std::istringstream istr(str);
+		while (istr.good())
+		{
+			uint32_t sc = 0;
+			istr >> sc;
+			result.push_back(sc);
+		}
+		return result;
+	}
+	
 	struct FilterResult
 	{
 		bool updated;
@@ -112,20 +146,29 @@ namespace
 		const StoredUniverse& m_uni;
 		const GeoIndex_t::Point& m_center;
 		GeoIndex_t::Coord_t m_dist;
+		const std::vector<uint32_t>& m_subclasses;
 	public:
-		EntityFilterVisitor(const StoredUniverse& uni, const GeoIndex_t::Point& center, GeoIndex_t::Coord_t dist)
+		EntityFilterVisitor(const StoredUniverse& uni,
+				const GeoIndex_t::Point& center,
+				GeoIndex_t::Coord_t dist,
+				const std::vector<uint32_t>& subclasses)
 		: m_uni(uni)
 		, m_center(center)
 		, m_dist(dist)
+		, m_subclasses(subclasses)
 		{
 		}
 		
 		FilterResult operator()(BarzerEntity& e) const
 		{
 			auto se = m_uni.getDtaIdx().getEntByEuid(e);
-			return se ?
-					FilterResult(false, !m_uni.getGeo()->proximityFilter(se->entId, m_center, m_dist)) :
-					FilterResult();
+			if (!se)
+				return FilterResult();
+			
+			if (!subclassBelongs(se))
+				return FilterResult();
+			
+			return FilterResult(false, !m_uni.getGeo()->proximityFilter(se->entId, m_center, m_dist));
 		}
 		
 		FilterResult operator()(BarzerEntityList& e) const
@@ -153,7 +196,7 @@ namespace
 			while (pos != list.end())
 			{
 				auto se = dta.getEntByEuid(*pos);
-				if (!se)
+				if (!se || !subclassBelongs(se))
 				{
 					++pos;
 					continue;
@@ -172,6 +215,12 @@ namespace
 		{
 			return FilterResult();
 		}
+	private:
+		bool subclassBelongs(const StoredEntity* ent) const
+		{
+			return m_subclasses.empty() ||
+					std::find(m_subclasses.begin(), m_subclasses.end(), ent->getSubclass()) != m_subclasses.end();
+		}
 	};
 }
 
@@ -184,7 +233,6 @@ void proximityFilter(Barz& barz, const StoredUniverse& uni)
 	auto lonVar = reqMap->getValue("geo::lon");
 	auto latVar = reqMap->getValue("geo::lat");
 	auto distVar = reqMap->getValue("geo::dist");
-	auto unitVar = reqMap->getValue("geo::dunit");
 	if (!lonVar || !latVar || !distVar ||
 			lonVar->which() != BarzerString_TYPE ||
 			latVar->which () != BarzerString_TYPE ||
@@ -193,21 +241,12 @@ void proximityFilter(Barz& barz, const StoredUniverse& uni)
 	
 	const double lon = String2Double(lonVar);
 	const double lat = String2Double(latVar);
-	double dist = String2Double(distVar);
+	const double dist = GetDist(distVar, reqMap->getValue("geo::dunit"));
 	
-	auto unit = ay::geo::Unit::Kilometre;
-	if (unitVar && unitVar->which() == BarzerString_TYPE)
-	{
-		const auto& unitStr = boost::get<BarzerString>(*unitVar).getStr();
-		const auto parsedUnit = ay::geo::unitFromString(unitStr);
-		if (parsedUnit < ay::geo::Unit::MAX)
-			unit = parsedUnit;
-	}
-	
-	dist = ay::geo::convertUnit(dist, unit, ay::geo::Unit::Degree);
+	const auto& subclasses = ParseEntSC(reqMap->getValue("geo::subclasses"));
 	
 	BarzelBeadChain& bc = barz.getBeads();
-	const EntityFilterVisitor filterVis(uni, GeoIndex_t::Point(lon, lat), dist);
+	const EntityFilterVisitor filterVis(uni, GeoIndex_t::Point(lon, lat), dist, subclasses);
 	
 	auto bli = bc.getLstBegin();
 	while (bc.isIterNotEnd(bli))
