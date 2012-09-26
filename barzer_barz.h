@@ -15,7 +15,7 @@ class QTokenizer;
 class StoredUniverse;
 struct MatcherCallback;
 
-class RequestVariableMap;
+struct RequestVariableMap;
 class RequestEnvironment; // server request environment
 
 struct BarzelTrace {
