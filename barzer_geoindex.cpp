@@ -266,7 +266,6 @@ void proximityFilter(Barz& barz, const StoredUniverse& uni)
 		
 		auto atomic = boost::get<BarzelBeadAtomic>(data).dta;
 		const auto& result = boost::apply_visitor(filterVis, atomic);
-		std::cout << "result " << result.shouldRemove << result.updated << std::endl;
 		if (result.shouldRemove)
 			bli = bc.lst.erase(bli);
 		else
