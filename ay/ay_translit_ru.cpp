@@ -443,6 +443,8 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                     s+=2;
                 } else if( c1 =='c' && s[2] == 'k' ) {
                     russian.append("э");
+                } else if( c1 =='i' ) {
+                    russian.append((++s,"эй"));
                 } else if (!c1 || !isVowel(c1)) {
 					russian.append( c_prev == 'i'&& terminating_char(s[1]) && beg+3<s ? "я" : "а");
 				} else { 
@@ -560,6 +562,8 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
 					    russian.append((++s,"ью"));
                     } else 
                         russian.append("е");
+                } else if( s[1] =='i'  ) {
+                        russian.append((++s,"ей"));
                 } else {
                     
 				    switch (c1)
@@ -648,6 +652,16 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                     }
                         
                     break;
+                case 'o': // ho
+                    if( s[2]=='u' ){ // hou
+                        if( s[3] == 'r' ) {
+                            russian.append("ауар");
+                            s+=3;
+                        } else 
+                            russian.append((s+=2,"хау"));
+                    } else 
+                        russian.append((s++,"хо"));
+                    break;
 				default:
 					russian.append("х");
 					break;
@@ -659,6 +673,8 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
 			{
                 if( s[1]=='n' && s[2] == 'i' && s[3]=='t' )  {
                     russian.append((s+=2,"ини"));
+                } else if( s[1]=='s' && s[2] == 'l' && terminating_char(c_prev) )  {
+                    russian.append((s+=2,"айл"));
                 } else if( s[1]=='e' && s[2] == 'd' )  {
                     if( c_prev == 'r' && (c_prev_1 == 'r' || isVowel(c_prev_1)) )
                         russian.append((s+=1,"и"));
@@ -896,6 +912,8 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                 } else if( s[1] == 'e' && s[2] == 'a' && s[3] == 'd' && !terminating_char(c_prev) ) {
                     russian.append( "ред" );
                     s+=3;
+                } else if( s[1] == 'h' ) {
+                    russian.append( (s++,"р") );
                 } else if( s[1] == 'a' && s[2] == 'w' ) {
                     russian.append((s+=2,"ро"));
                 } else if( s[1] == 'o' && s[2] == 'w' && !c_prev ) {
