@@ -540,7 +540,7 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                 } else if( s[1] =='i' && s[2]=='g' && s[3] =='h'  ) {
                     russian.append((s+=3,(c_prev =='h'? "ай":"ей") ));
                 } else if( s[1] =='e' && isNonVowel(s[2]) && isVowel(s[3]) ) {
-                    russian.append((s+=3,"из"));
+                    russian.append((s++,"и"));
                 } else if( s[1] =='d' && s[2] == 'i' && s[3] == 't' ) {
                     russian.append("эдит");
                     s+=3;
