@@ -625,7 +625,7 @@ inline bool operator <( const BarzerEntityRangeCombo& l, const BarzerEntityRange
 struct BarzerERCExpr {
 	typedef boost::variant<
 		BarzerEntityRangeCombo,
-		BarzerERCExpr
+		boost::recursive_wrapper<BarzerERCExpr>
 	> Data;
 
 	typedef std::list< Data > DataList;
