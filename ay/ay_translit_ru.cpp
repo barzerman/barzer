@@ -779,12 +779,17 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
 			}
 			case 'm':
 			{
-				switch (c1)
-				{
-				default:
-					russian.append("м");
-					break;
-				}
+                if( s[1] =='c' && isNonVowel(s[2]) ) {
+                    russian.append("мак");
+                    ++s;
+                } else {
+				    switch (c1)
+				    {
+				    default:
+					    russian.append("м");
+					    break;
+				    }
+                }
 
 				break;
 			}
@@ -885,6 +890,8 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                 } else if( s[1] == 'e' && s[2] == 'a' && s[3] == 'd' && !terminating_char(c_prev) ) {
                     russian.append( "ред" );
                     s+=3;
+                } else if( s[1] == 'a' && s[2] == 'w' ) {
+                    russian.append((s+=2,"ро"));
                 } else if( s[1] == 'o' && s[2] == 'w' && !c_prev ) {
                     russian.append((s+=2,"роу"));
                 } else {
@@ -1014,6 +1021,8 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                     russian.append("а");
                 } else if ( s[1] =='n' && s[2] =='n' ) {
                     russian.append("а");
+                } else if ( s[1] =='c' && s[2] =='k' ) {
+                    russian.append("у");
                 } else if ( s[1] =='s' && s[2] =='t' && c_prev == 'j' ) {
                     russian.append("а");
                 } else if ( s[1] =='p' && (terminating_char(s[2])|| (isNonVowel(s[2])&&terminating_char(s[3])))  ) {
