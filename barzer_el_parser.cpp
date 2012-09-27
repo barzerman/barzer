@@ -84,6 +84,13 @@ uint32_t BELParser::internString_internal( const char* t )
 {
 	return reader->getGlobalPools().internString_internal( t );
 }
+void BELReader::initCurrentUniverseToZero()
+{
+    if( !d_currentUniverse ) {
+        d_currentUniverse = &(getGlobalPools().produceUniverse(0));
+    }
+}
+
 StoredToken& BELParser::internString( int lang, const char* t, bool noSpell, const char* unstemmed)
 {
 	// here we may want to tweak some (nonexistent yet) fields in StoredToken

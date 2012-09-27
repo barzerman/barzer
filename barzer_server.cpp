@@ -340,6 +340,7 @@ int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, c
 	if( realGlobalPools.parseSettings().stemByDefault() ) 
 		gp.parseSettings().set_stemByDefault( );
 
+
 	BELTrie* trie  = gp.mkNewTrie();
 	std::ostream &os = reqEnv.outStream;
 	BELReaderXMLEmit reader(trie, os);
@@ -347,6 +348,8 @@ int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, c
 	std::stringstream is( str );
 	reader.setSilentMode();
     os << "<patternset>\n";
+    reader.initCurrentUniverseToZero();
+
 	reader.loadFromStream( is );
 	os << "</patternset>\n";
 	delete trie;

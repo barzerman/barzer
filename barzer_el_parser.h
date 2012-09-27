@@ -253,6 +253,10 @@ public:
 	}
 
 	void setCurrentUniverse( StoredUniverse* u ) { d_currentUniverse=u; }
+    /// initializes current universe to universe for user 0 
+    /// this fucntion is ONLY needed for EMITTER. do NOT call it anywhere else
+    void initCurrentUniverseToZero();
+    //// 
 	StoredUniverse* getCurrentUniverse() { return d_currentUniverse; }
 	const StoredUniverse* getCurrentUniverse() const { return d_currentUniverse; }
 
