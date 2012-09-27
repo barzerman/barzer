@@ -16,7 +16,7 @@ class StoredUniverse;
 struct MatcherCallback;
 
 struct RequestVariableMap;
-class RequestEnvironment; // server request environment
+struct RequestEnvironment; // server request environment
 
 struct BarzelTrace {
     enum { 
