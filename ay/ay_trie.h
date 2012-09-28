@@ -13,7 +13,7 @@ class trie
 {
 	D d_data;
 public:
-	typedef vecmap< K, trie, Comp > VecMap;
+	typedef vecmap< K, boost::recursive_wrapper<trie>, Comp > VecMap;
 protected:
 	VecMap d_child;
 public:
@@ -43,7 +43,7 @@ public:
 	const data_type& data() const { return d_data; }
 
 	trie& add( const key_type& key, const data_type& d )
-	{ return (d_child.insert( key, d ).first->second); }
+	{ return (d_child.insert( key, boost::recursive_wrapper<trie>(d) ).first->second).get(); }
 
 	template<typename Updater>
 	trie& addWithUpdate(const key_type& key, Updater upd)

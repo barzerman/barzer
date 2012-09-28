@@ -130,7 +130,7 @@ struct BarzelBeadExpression {
 
 	typedef boost::variant<
 		BarzelBeadAtomic,
-		BarzelBeadExpression
+		boost::recursive_wrapper<BarzelBeadExpression>
 	> SubExpr;
 
 	typedef std::list< SubExpr >  SubExprList;

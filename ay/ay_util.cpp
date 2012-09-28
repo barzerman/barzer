@@ -32,7 +32,7 @@ int wstring_vec_read( WstringVec& vec, std::wistream& in )
 	{
 		if( !isStdin() && !fs.is_open() ) 
 			return false;
-		return( std::getline( *fp, str ) );
+		return( std::getline( *fp, str ) ).good();
 	}
 
 const char* diacriticChar2AsciiC3( uint8_t x ) {
