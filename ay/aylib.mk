@@ -5,8 +5,8 @@ endif
 ifeq ($(IS32),yes)
 	BITMODE=-m32
 endif 
-C0x=-std=c++0x -libstd=libc++
-CFLAGS := $(OPT) $(C0x) $(BITMODE) $(FLAGS) -Wall -g -I. -fpic -I../ -I/usr/local/include -I/opt/local/include -Wno-parentheses
+C0x=-std=c++0x
+CFLAGS := $(OPT) $(C0x) -stdlib=libc++ $(BITMODE) $(FLAGS) -Wall -g -I. -fpic -I../ -I/usr/local/include -I/opt/local/include -Wno-parentheses
 LIBNAME=libay.a
 SHARED_LIBNAME=libay.so
 
