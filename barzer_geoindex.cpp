@@ -230,11 +230,11 @@ namespace
 	};
 }
 
-void proximityFilter(Barz& barz, const StoredUniverse& uni)
+FilterParams FilterParams::fromBarz(const Barz& barz)
 {
 	const auto reqMap = barz.getRequestVariableMap();
 	if (!reqMap)
-		return;
+		return FilterParams();
 	
 	auto lonVar = reqMap->getValue("geo::lon");
 	auto latVar = reqMap->getValue("geo::lat");
@@ -243,16 +243,21 @@ void proximityFilter(Barz& barz, const StoredUniverse& uni)
 			lonVar->which() != BarzerString_TYPE ||
 			latVar->which () != BarzerString_TYPE ||
 			distVar->which () != BarzerString_TYPE)
+		return FilterParams();
+	
+	return FilterParams (GeoIndex_t::Point(String2Double(lonVar), String2Double(latVar)),
+			GetDist(distVar, reqMap->getValue("geo::dunit")),
+			ParseEntSC(reqMap->getValue("geo::subclasses")));
+}
+
+void proximityFilter(Barz& barz, const StoredUniverse& uni)
+{
+	const auto& params = FilterParams::fromBarz(barz);
+	if (!params.m_valid)
 		return;
 	
-	const double lon = String2Double(lonVar);
-	const double lat = String2Double(latVar);
-	const double dist = GetDist(distVar, reqMap->getValue("geo::dunit"));
-	
-	const auto& subclasses = ParseEntSC(reqMap->getValue("geo::subclasses"));
-	
 	BarzelBeadChain& bc = barz.getBeads();
-	const EntityFilterVisitor filterVis(uni, GeoIndex_t::Point(lon, lat), dist, subclasses);
+	const EntityFilterVisitor filterVis(uni, params.m_point, params.m_dist, params.m_subclasses);
 	
 	auto bli = bc.getLstBegin();
 	while (bc.isIterNotEnd(bli))

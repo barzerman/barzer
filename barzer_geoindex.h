@@ -15,6 +15,7 @@ class BarzerGeo
 	boost::unordered_map<StoredEntityId, GeoIndex_t::Point> m_entity2point;
 public:
 	typedef GeoIndex_t::Point Point_t;
+	typedef GeoIndex_t::Coord_t Coord_t;
 	
 	BarzerGeo();
 	
@@ -49,8 +50,30 @@ public:
 	
 	void proximityFilter(std::vector<StoredEntityId>& ents,
 			const Point_t& center, GeoIndex_t::Coord_t dist, bool sorted) const;
+	/** Returns true if the entity identified by singleEnt passes the proximity
+	 * filter.
+	 */
 	bool proximityFilter(const StoredEntityId& singleEnt,
 			const Point_t& center, GeoIndex_t::Coord_t dist) const;
+};
+
+struct FilterParams
+{
+	bool m_valid;
+	BarzerGeo::Point_t m_point;
+	BarzerGeo::Coord_t m_dist;
+	std::vector<uint32_t> m_subclasses;
+	
+	FilterParams() : m_valid(false) {}
+	FilterParams(const BarzerGeo::Point_t& point, BarzerGeo::Coord_t dist, const std::vector<uint32_t>& sc)
+	: m_valid(true)
+	, m_point(point)
+	, m_dist(dist)
+	, m_subclasses(sc)
+	{
+	}
+	
+	static FilterParams fromBarz(const Barz& barz);
 };
 
 void proximityFilter(Barz& barz, const StoredUniverse& geo);
