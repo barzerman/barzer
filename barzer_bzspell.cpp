@@ -1169,7 +1169,7 @@ size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
 	if( !str )
 		return 0;
     
-    if( !d_validTokenMap.insert( std::make_pair<ay::char_cp, uint32_t>( str, strId ) ).second )
+    if( !d_validTokenMap.insert( char_cp_to_strid_map::value_type( str, strId ) ).second )
         return 0;
 
     // d_validTokenMap[ str ] = strId;
