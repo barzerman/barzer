@@ -36,6 +36,10 @@ public:
 			return false;
 		
 		const auto id = se->entId;
+		if (!m_params.m_subclasses.empty() &&
+				std::find(m_params.m_subclasses.begin(), m_params.m_subclasses.end(), se->getSubclass()) == m_params.m_subclasses.end())
+			return true;
+		
 		return m_uni.getGeo()->proximityFilter(id, m_params.m_point, m_params.m_dist);
 	}
 };
