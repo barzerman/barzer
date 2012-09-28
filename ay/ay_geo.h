@@ -52,6 +52,13 @@ class Point
 	Coord m_x, m_y;
 	PayloadT m_payload;
 public:
+	Point()
+	: m_x(Coord())
+	, m_y(Coord())
+	, m_payload(PayloadT())
+	{
+	}
+	
 	Point(Coord x, Coord y, PayloadT payload = PayloadT())
 	: m_x(x)
 	, m_y(y)
