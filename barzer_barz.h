@@ -15,8 +15,8 @@ class QTokenizer;
 class StoredUniverse;
 struct MatcherCallback;
 
-class RequestVariableMap;
-class RequestEnvironment; // server request environment
+struct RequestVariableMap;
+struct RequestEnvironment; // server request environment
 
 struct BarzelTrace {
     enum { 

@@ -292,6 +292,7 @@ int proc_ADD_STMSET( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  s
 
         BELReader  reader( trie, gp, &(reqEnv.outStream)  );
         reader.setCurrentUniverse( uni );
+        reader.setLiveCommandMode();
 	    std::stringstream is( str );
 	   
 	    reader.initParser(BELReader::INPUT_FMT_XML);
@@ -340,6 +341,7 @@ int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, c
 	if( realGlobalPools.parseSettings().stemByDefault() ) 
 		gp.parseSettings().set_stemByDefault( );
 
+
 	BELTrie* trie  = gp.mkNewTrie();
 	std::ostream &os = reqEnv.outStream;
 	BELReaderXMLEmit reader(trie, os);
@@ -347,6 +349,8 @@ int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, c
 	std::stringstream is( str );
 	reader.setSilentMode();
     os << "<patternset>\n";
+    reader.initCurrentUniverseToZero();
+
 	reader.loadFromStream( is );
 	os << "</patternset>\n";
 	delete trie;
