@@ -334,7 +334,7 @@ StoredToken& StoredUniverse::internString( int lang, const char* t, BELTrie* tri
 	return sTok;
 }
 
-uint32_t StoredUniverse::stemAndIntern( const char* s, size_t len, BELTrie* triePtr )
+uint32_t StoredUniverse::stemAndIntern( int& lang, const char* s, size_t len, BELTrie* triePtr )
 {
 	BZSpell* bzSpell = getBZSpell();
     
@@ -345,7 +345,7 @@ uint32_t StoredUniverse::stemAndIntern( const char* s, size_t len, BELTrie* trie
     }
     const StoredToken* storedTok = getStoredToken( s );
     
-    int lang = LANG_UNKNOWN;
+    lang = LANG_UNKNOWN;
 	if( bzSpell )  {
         uint32_t i = 0xffffffff;
         if( bzSpell->isUsersWord(i,s) ) {

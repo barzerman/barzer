@@ -49,7 +49,14 @@ uint32_t BELParser::stemAndInternTmpText( const char* s, int len )
 	StoredUniverse* curUni = reader->getCurrentUniverse();
 	if( !curUni )
 		curUni = &(getGlobalPools().produceUniverse(0));
-    return curUni->stemAndIntern( s, len, &(reader->getTrie()) );
+    int lang = LANG_UNKNOWN;
+    uint32_t strId = curUni->stemAndIntern( lang, s, len, &(reader->getTrie()) );
+    
+    if( reader->isLiveCommandMode() ) {
+        if( BZSpell* bzSpell = curUni->getBZSpell() )
+            bzSpell->produceWordVariants(strId,lang);
+    }
+    return strId;
 }
 
 uint32_t BELParser::internVariable( const char* t )
@@ -124,7 +131,10 @@ BELReader::BELReader( BELTrie* t, GlobalPools &g, std::ostream* errStream ) :
     d_maxEmitCountPerStatement(DEFMAX_EMIT_PER_STMT),
     d_maxEmitCountPerTrie(DEFMAX_EMIT_PER_SET),
     d_maxStatementsPerTrie(DEFMAX_STMT_PER_SET),
-    d_noCanonicalNames(0)
+    d_noCanonicalNames(0),
+    d_spellPriority(0),
+    d_rulesetSpellPriority(0),
+    d_liveCommand(false)
 {}
 BELReader::BELReader( GlobalPools &g, std::ostream* errStream ) :
 	trie(g.globalTriePool.produceTrie(g.internString_internal(""),g.internString_internal(""))) , parser(0), gp(g),
@@ -136,7 +146,10 @@ BELReader::BELReader( GlobalPools &g, std::ostream* errStream ) :
     d_maxEmitCountPerStatement(DEFMAX_EMIT_PER_STMT),
     d_maxEmitCountPerTrie(DEFMAX_EMIT_PER_SET),
     d_maxStatementsPerTrie(DEFMAX_STMT_PER_SET),
-    d_noCanonicalNames(0)
+    d_noCanonicalNames(0),
+    d_spellPriority(0),
+    d_rulesetSpellPriority(0),
+    d_liveCommand(false)
 {}
 
 void BELReader::setTrie( uint32_t trieClass, uint32_t trieId )

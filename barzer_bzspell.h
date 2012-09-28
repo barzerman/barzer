@@ -110,13 +110,14 @@ private:
 	
 	std::string d_extraWordsFileName;
 
-	/// generates edit distance variants 
-	size_t produceWordVariants( uint32_t strId, int lang=LANG_ENGLISH );
 	
 	EnglishSLHeuristic m_englishSLTransform;
 	RuBastardizeHeuristic m_englishSLBastard;
 	ChainHeuristic m_englishSLSuperposition;
 public:
+	/// generates edit distance variants 
+	size_t produceWordVariants( uint32_t strId, int lang=LANG_ENGLISH );
+
 	HashingSpellHeuristic& getEnglishSL() { return m_englishSLSuperposition; }
 	const HashingSpellHeuristic& getEnglishSL() const { return m_englishSLSuperposition; }
 

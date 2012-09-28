@@ -292,6 +292,7 @@ int proc_ADD_STMSET( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  s
 
         BELReader  reader( trie, gp, &(reqEnv.outStream)  );
         reader.setCurrentUniverse( uni );
+        reader.setLiveCommandMode();
 	    std::stringstream is( str );
 	   
 	    reader.initParser(BELReader::INPUT_FMT_XML);

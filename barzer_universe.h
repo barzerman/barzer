@@ -323,7 +323,7 @@ private:
 public:
     /// much fancier interner than the overloaded one - this function will try to work with the trie 
     StoredToken& internString( int lang, const char* t, BELTrie* triePtr, const char* unstemmed);
-    uint32_t stemAndIntern( const char* s, size_t lem, BELTrie* triePtr );
+    uint32_t stemAndIntern( int& lang, const char* s, size_t lem, BELTrie* triePtr );
 
     TokenizerStrategy& tokenizerStrategy() { return d_tokenizerStrat; }
     const TokenizerStrategy& getTokenizerStrategy() const { return d_tokenizerStrat; }
