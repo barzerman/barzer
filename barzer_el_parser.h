@@ -158,8 +158,13 @@ protected:
 	/// by default is set to d_trieSpellPriority+ d_rulesetSpellPriority
 	/// can be overridden (currently this is not done)
 	uint8_t d_spellPriority;
-
+    /// default - false . when true this means it's being called from a server command 
+    /// then things such as produceWordVariants are always invoked etc
+    bool    d_liveCommand; 
 public:
+    void setLiveCommandMode() { d_liveCommand= true; }
+    bool isLiveCommandMode() const { return d_liveCommand; }
+
 	/// barzEL input formats
 	typedef enum {
 		INPUT_FMT_AUTO, // will try to figure out from file extension . this only works when fileName !=0
@@ -189,7 +194,10 @@ private:
 	/// deduces ruleset spelling priority from ruleset file name ( if has no "_fluff" substring then
 	/// priority is 5 otherwise 0)
 	void computeRulesetSpellPriority( const char* fileName );
-	BELReader( const BELReader& r) : gp(r.gp),d_respectLimits(true) {}
+    // blocker constructor
+	BELReader( const BELReader& r) : gp(r.gp),d_respectLimits(true) {
+        std::cerr << "PANIC: BELReader copy constructor invoked barzer_el_parser.h \n" ;
+    }
 public:
     bool isOk_EmitCountPerStatement( size_t x ) const 
         { return( d_respectLimits ? x< d_maxEmitCountPerStatement: true ); }
@@ -253,6 +261,10 @@ public:
 	}
 
 	void setCurrentUniverse( StoredUniverse* u ) { d_currentUniverse=u; }
+    /// initializes current universe to universe for user 0 
+    /// this fucntion is ONLY needed for EMITTER. do NOT call it anywhere else
+    void initCurrentUniverseToZero();
+    //// 
 	StoredUniverse* getCurrentUniverse() { return d_currentUniverse; }
 	const StoredUniverse* getCurrentUniverse() const { return d_currentUniverse; }
 

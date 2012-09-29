@@ -8,6 +8,7 @@
 #include <barzer_server_request.h>
 #include <boost/assign.hpp>
 #include <boost/mem_fn.hpp>
+#include <boost/lexical_cast.hpp>
 #include <cstdlib>
 #include <barzer_universe.h>
 #include <barzer_autocomplete.h>
@@ -497,10 +498,6 @@ void BarzerRequestParser::tag_autoc(RequestTag &tag)
         case 'e':
             qparm.autoc.parseEntClassList(a->second.c_str());
             break;
-		case 'n':
-			if (int numResults = atoi(a->second.c_str()))
-				qparm.autoc.numResults = numResults;
-			break;
         }
     }
     d_query = tag.body.c_str();

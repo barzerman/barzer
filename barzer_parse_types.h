@@ -375,6 +375,7 @@ public:
 	BarzerString() : d_stemStringId(0xffffffff), d_type(T_NORMAL) {}
 	BarzerString(const char* s) : str(s), d_stemStringId(0xffffffff), d_type(T_NORMAL)  {}
 	BarzerString(const char* s,size_t s_len) : str(s,s_len), d_stemStringId(0xffffffff), d_type(T_NORMAL)  {}
+    BarzerString( const std::string& s ) : str(s), d_stemStringId(0xffffffff), d_type(T_NORMAL) {}
 
 	BarzerString(const char* s,size_t s_len, bool isFluff ) : str(s,s_len), d_stemStringId(0xffffffff), d_type(isFluff? T_NORMAL:T_FLUFF )  {}
 

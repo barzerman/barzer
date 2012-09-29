@@ -15,8 +15,8 @@ class QTokenizer;
 class StoredUniverse;
 struct MatcherCallback;
 
-class RequestVariableMap;
-class RequestEnvironment; // server request environment
+struct RequestVariableMap;
+struct RequestEnvironment; // server request environment
 
 struct BarzelTrace {
     enum { 
@@ -194,7 +194,7 @@ public:
     bool getReqVarValue( BarzelBeadAtomic_var& v, const char* n ) const;
     const BarzelBeadAtomic_var*  getReqVarValue( const char* n ) const;
     void setReqVarValue( const char* n, const BarzelBeadAtomic_var& v );
-    void unsetReqVar( const char* n );
+    bool unsetReqVar( const char* n );
     //// end of request variable context functions 
 
 	void setUniverse(const StoredUniverse*);
