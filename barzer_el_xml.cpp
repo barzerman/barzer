@@ -1337,10 +1337,21 @@ DEFINE_BELParserXML_taghandle(NV)
 
 namespace
 {
+	bool parseComma(const char *coordStr, std::pair<double, double>& out)
+	{
+		std::istringstream istr(coordStr);
+		istr >> out.first;
+		char sep;
+		istr >> sep;
+		if (sep != ',')
+			return false;
+		istr >> out.second;
+		return !istr.fail();
+	}
+
 	bool parseCoord(const char *coordStr, std::pair<double, double>& out)
 	{
-		return sscanf(coordStr, "%lg, %lg", &out.first, &out.second) == 2 ||
-				sscanf(coordStr, "%lgN %lgW", &out.first, &out.second) == 2;
+		return parseComma(coordStr, out);
 	}
 }
 
