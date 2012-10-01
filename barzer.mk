@@ -116,7 +116,7 @@ clean:
 cleanall: clean cleanaylib
 	rm -f $(objects) $(BINARY) $(objects_python)
 cleanaylib:
-	rm ay/*.o ay/*.a
+	rm -f ay/*.o ay/*.a
 aylib_rebuild:
 	cd ay; make -f aylib.mk rebuild $(AYBIT) OPT=$(OPT) C11=$(C11) FLAGS=$(FLAGS); cd ..
 aylib:
