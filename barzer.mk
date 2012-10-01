@@ -128,7 +128,7 @@ snowlib:
 snowball/libsnowlib.a:
 	cd snowball; make; cd ..
 .cpp.o:
-	$(CC) -DBARZER_HOME=$(INSTALL_DIR) -c $(CFLAGS) $< -o $@
+	$(CC) $(C11LIB) -DBARZER_HOME=$(INSTALL_DIR) -c $(CFLAGS) $< -o $@
 rebuild: clean aylib util all
 
 .PHONY : test util
