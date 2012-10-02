@@ -15,6 +15,9 @@ class QTokenizer;
 class StoredUniverse;
 struct MatcherCallback;
 
+struct RequestVariableMap;
+struct RequestEnvironment; // server request environment
+
 struct BarzelTrace {
     enum { 
         MAX_TAIL_REPEAT = 16  // if more than this many consecutive occurrences are detected its a loop
@@ -163,8 +166,8 @@ class Barz {
 	void syncQuestionFromTokens();
 
 	BarzHints m_hints;
+    RequestEnvironment* d_serverReqEnv;
 public:
-    Barz() : d_origQuestionId(std::numeric_limits<uint64_t>::max()) {}
 	enum { 
         MAX_TRACE_LEN = 256, 
         LONG_TRACE_LEN = 32  
@@ -172,6 +175,27 @@ public:
 
 	BarzelTrace barzelTrace;
     BarzTopics  topicInfo;
+    
+    Barz() : 
+        d_origQuestionId(std::numeric_limits<uint64_t>::max()),
+        d_serverReqEnv(0)
+    {}
+
+    void setServerReqEnv( RequestEnvironment* env ) { d_serverReqEnv = env; }
+    RequestEnvironment* getServerReqEnv() { return d_serverReqEnv; }
+    const RequestEnvironment* getServerReqEnv() const { return d_serverReqEnv; }
+
+
+    /// working with request variables - these variables reside in the top level request context. they live through the whole request
+    /// and aren't tied to any one rewrite
+    const RequestVariableMap* getRequestVariableMap()  const ;
+    RequestVariableMap* getRequestVariableMap() ;
+
+    bool getReqVarValue( BarzelBeadAtomic_var& v, const char* n ) const;
+    const BarzelBeadAtomic_var*  getReqVarValue( const char* n ) const;
+    void setReqVarValue( const char* n, const BarzelBeadAtomic_var& v );
+    bool unsetReqVar( const char* n );
+    //// end of request variable context functions 
 
 	void setUniverse(const StoredUniverse*);
 

@@ -868,6 +868,7 @@ size_t BTMIterator::matchBeadChain_Autocomplete( MatcherCallback& mcb, const Bea
 	NodeAndBead nbvVal ( trieNode, BarzelBeadChain::Range(rng.first,rng.first));
 	ay::vector_raii<NodeAndBeadVec> raii( d_matchPath, nbvVal );
 
+	auto oldFirst = rng.first;
 	if( rng.first == rng.second ) {
         addTerminalPath_Autocomplete( mcb, nbvVal );
 		return 0; // range is empty
@@ -876,6 +877,8 @@ size_t BTMIterator::matchBeadChain_Autocomplete( MatcherCallback& mcb, const Bea
 
 	if( !findMatchingChildren( mtChild, rng, trieNode ) ) {
         // addTerminalPath_Autocomplete( mcb );
+		if (oldFirst->isBlankLiteral() && std::distance(oldFirst, rng.second) == 1)
+			addTerminalPath_Autocomplete( mcb, nbvVal );
 		return 0; // no matching children found
     }
 	const BarzelTrieNode* tn = 0;
@@ -1044,6 +1047,29 @@ void BTMBestPaths::addPath(const NodeAndBeadVec& nb, const NodeAndBead& lastNB )
 
 
 
+const BarzelBeadAtomic*  BarzelMatchInfo::getClosestAtomicFromLeft( BarzelBeadAtomic_type_t typ, bool& found ) const
+{
+    if( !d_barz ) 
+        return 0;
+    const BeadList& lst = d_barz->getBeads().getList();
+
+    auto retVal = lst.end();
+    bool hitLeft = false;
+    found = false;
+
+    for( auto i = lst.begin(); i!= lst.end(); ++i ) {
+        if( hitLeft )
+            break;
+        else if( i->isAtomicType(typ) ) {
+            retVal = i;
+            if( !found ) found=true;
+            if( i == d_substitutionBeadRange.first ) // we hit left edge of the substitution range
+                hitLeft = true;
+        }
+    }
+
+    return ( (found&&retVal != lst.end()) ? retVal->getAtomic() : 0 );
+}
 uint32_t BarzelMatchInfo::getTranslationId() const
 	{ return (d_thePath.size() ? d_thePath.back().first->getTranslationId() : 0xffffffff); }
 
@@ -1243,6 +1269,7 @@ bool BarzelMatcher::match( Barz& barz, RewriteUnit& ru, BarzelBeadChain& beadCha
 		ru = bestI->first;
 		/// it's better to keep the scores separte in case we decide to massage the scores later
 		ru.first.setScore( bestI->second );
+        ru.first.setBarz( &barz) ;
 		return true;
 	} else { // should never happen
 		AYLOG(ERROR) << "no valid rewrite unit for a valid match" << std::endl;

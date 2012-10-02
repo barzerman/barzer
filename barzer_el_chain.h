@@ -38,7 +38,7 @@ typedef boost::variant<
 	BarzerEntityRangeCombo,
 	BarzerERCExpr
 > BarzelBeadAtomic_var;
-enum {
+typedef enum {
 	BarzerLiteral_TYPE,
 	BarzerString_TYPE,
 	BarzerNumber_TYPE,
@@ -49,8 +49,13 @@ enum {
 	BarzerEntityList_TYPE,
 	BarzerEntity_TYPE,
 	BarzerEntityRangeCombo_TYPE,
-	BarzerERCExpr_TYPE
-};
+	BarzerERCExpr_TYPE,
+    /// new atomic types above this line only
+    BarzelBeadAtomic_type_MAX
+} BarzelBeadAtomic_type_t;
+
+std::ostream& operator<<( std::ostream& fp, const BarzelBeadAtomic_var& v );
+
 struct BarzelBeadAtomic {
 	BarzelBeadAtomic_var dta;
 
@@ -125,7 +130,7 @@ struct BarzelBeadExpression {
 
 	typedef boost::variant<
 		BarzelBeadAtomic,
-		BarzelBeadExpression
+		boost::recursive_wrapper<BarzelBeadExpression>
 	> SubExpr;
 
 	typedef std::list< SubExpr >  SubExprList;
@@ -222,6 +227,14 @@ public:
 	BarzelBeadAtomic* getAtomic() { return  boost::get<BarzelBeadAtomic>( &dta ); }
 	const BarzelBeadAtomic* getAtomic() const { return  boost::get<BarzelBeadAtomic>( &dta ); }
 	const BarzelBeadExpression* getExpression() const { return  boost::get<BarzelBeadExpression>( &dta ); }
+
+    bool isAtomicType( BarzelBeadAtomic_type_t t ) const 
+    { 
+        if( const BarzelBeadAtomic* p = getAtomic() ) 
+            return p->getType() == t; 
+        else 
+            return false;
+    }
 
 	bool isStringLiteralOrString() const {
 		const BarzelBeadAtomic* atomic = getAtomic();

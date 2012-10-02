@@ -52,6 +52,13 @@ public:
 	int64_t setInt( const char* s) { return( type= NTYPE_INT, n.i = atoi(s)); }
 	int64_t setReal( const char* s) { return( type= NTYPE_REAL, n.real = atof(s)); }
 	int64_t setReal( ) { return( type= NTYPE_REAL, n.i = std::numeric_limits<double>::quiet_NaN()); }
+
+    void negate() { 
+        if( NTYPE_INT == type) 
+            n.i=-n.i;
+        else if( NTYPE_REAL == type ) 
+            n.real=-n.real;
+    }
     /// figures out from string and sets 
     BarzerNumber& set( const char* s ); 
 

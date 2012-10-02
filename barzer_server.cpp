@@ -158,7 +158,9 @@ int barze( GlobalPools& gp, RequestEnvironment& reqEnv )
 {
 	BarzerRequestParser rp(gp, reqEnv.outStream, 0 );
 
+    rp.getBarz().setServerReqEnv( &reqEnv );
 	rp.parse(reqEnv.buf, reqEnv.len);
+
 	return 0;
 }
 
@@ -290,6 +292,7 @@ int proc_ADD_STMSET( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  s
 
         BELReader  reader( trie, gp, &(reqEnv.outStream)  );
         reader.setCurrentUniverse( uni );
+        reader.setLiveCommandMode();
 	    std::stringstream is( str );
 	   
 	    reader.initParser(BELReader::INPUT_FMT_XML);
@@ -303,16 +306,33 @@ int proc_ADD_STMSET( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  s
 int proc_EN2RU( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* q )
 {
 	std::ostream &os = reqEnv.outStream;
-    std::stringstream ss(q);
-    std::string tmp ;
-    while( ss >> tmp ) {
-        for( std::string::iterator i = tmp.begin(); i!= tmp.end(); ++i) 
-            *i = tolower(*i);
-        std::string result;
-        ay::tl::en2ru(tmp.c_str(), tmp.length(), result);
-        os << result << " ";
-    }
-    os << std::endl;
+	const char *prevStart = q;
+	while (true)
+	{
+		if (!isspace(*q) && *q)
+		{
+			++q;
+			continue;
+		}
+
+		std::string tmp;
+		tmp.assign(prevStart, q);
+		for (auto i = tmp.begin(), end = tmp.end(); i != end; ++i)
+			*i = tolower(*i);
+		std::string result;
+		ay::tl::en2ru(tmp.c_str(), tmp.size(), result);
+		os << result;
+		if (*q)
+		{
+			os << *q;
+			prevStart = ++q;
+		}
+		else
+		{
+			os << std::endl;
+			break;
+		}
+	}
     return 0;
 }
 int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* str )
@@ -321,6 +341,7 @@ int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, c
 	if( realGlobalPools.parseSettings().stemByDefault() ) 
 		gp.parseSettings().set_stemByDefault( );
 
+
 	BELTrie* trie  = gp.mkNewTrie();
 	std::ostream &os = reqEnv.outStream;
 	BELReaderXMLEmit reader(trie, os);
@@ -328,6 +349,8 @@ int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, c
 	std::stringstream is( str );
 	reader.setSilentMode();
     os << "<patternset>\n";
+    reader.initCurrentUniverseToZero();
+
 	reader.loadFromStream( is );
 	os << "</patternset>\n";
 	delete trie;
@@ -488,6 +511,14 @@ int run_server(GlobalPools &gp, uint16_t port) {
 	io_service.run();
 
 	return 0;
+}
+std::ostream& RequestVariableMap::print( std::ostream& fp ) const
+{
+    auto m = getAllVars();
+    for( auto i = m.begin(); i!= m.end(); ++i ) {
+        fp << i->first << "=" << i->second << std::endl;
+    }
+    return fp;
 }
 
 }

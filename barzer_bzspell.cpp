@@ -1168,9 +1168,11 @@ size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
 	const char* str = gp.string_resolve( strId );
 	if( !str )
 		return 0;
+    
+    if( !d_validTokenMap.insert( char_cp_to_strid_map::value_type( str, strId ) ).second )
+        return 0;
 
-    d_validTokenMap[ str ] = strId;
-
+    // d_validTokenMap[ str ] = strId;
     size_t str_len = strlen( str );
 	if( lang == LANG_ENGLISH ) {
 

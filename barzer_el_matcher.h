@@ -105,9 +105,14 @@ class BarzelMatchInfo {
     
     /// careful! this is a state object 
     BarzelMatchAmbiguities d_ambiguities; 
+    const Barz*            d_barz;
 	// varid is the key to BarzelVariableIndex::d_pathInterner
 	bool getDataByVarId( BeadRange& r, uint32_t varId, const BELTrie& trie ) const;
+
 public:
+    void setBarz( const Barz* b ) { d_barz=b; }
+    const Barz* getBarz() const { return d_barz; }
+    const BarzelBeadAtomic*  getClosestAtomicFromLeft( BarzelBeadAtomic_type_t typ, bool& found ) const;
     const BarzelMatchAmbiguities& ambiguities() const   { return d_ambiguities; }
           BarzelMatchAmbiguities& ambiguities()         { return d_ambiguities; }
 
@@ -123,7 +128,7 @@ public:
 		{return d_substitutionBeadRange.first == d_substitutionBeadRange.second;}
 	
 
-	BarzelMatchInfo() : d_score(0)  {}
+	BarzelMatchInfo() : d_score(0), d_barz(0)  {}
 	void setScore( int s ) 	{ d_score = s; }
 	int getScore() const 	{ return d_score; }
 	
