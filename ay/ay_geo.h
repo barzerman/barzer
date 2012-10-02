@@ -22,7 +22,7 @@ enum Unit
 Unit unitFromString(std::string);
 
 template<typename Coord>
-Coord convertUnit(Coord unit, Unit from, Unit to)
+inline Coord convertUnit(Coord unit, Unit from, Unit to)
 {
 	if (from == to || from >= Unit::MAX || to >= Unit::MAX)
 		return unit;
@@ -106,6 +106,43 @@ inline double wrapDist(const Point& p1, const Point& p2, Coord wrapAround)
 	return std::min(dumbDiff, tmpPoint - (isFirstLeft ? p2 : p1));
 }
 
+template<typename Coord, typename PredT, typename Point>
+struct CopyPred
+{
+	const Coord m_downY;
+	const Coord m_upY;
+
+	const PredT& m_pred;
+public:
+	CopyPred (Coord down, Coord up, const PredT& pred)
+	: m_downY(down)
+	, m_upY(up)
+	, m_pred(pred)
+	{
+	}
+
+	bool operator()(const Point& p) const
+	{
+		return p.y() < m_upY && p.y() >= m_downY && m_pred(p);
+	}
+};
+
+template<typename Point, typename Coord>
+struct Sorter
+{
+	const Point& m_p;
+	Coord m_wrap;
+	Sorter(const Point& p, Coord wrap)
+	: m_p(p)
+	, m_wrap(wrap)
+	{}
+
+	bool operator()(const Point& left, const Point& right) const
+	{
+		return wrapDist(m_p, left, m_wrap) < wrapDist(m_p, right, m_wrap);
+	}
+};
+
 template<template<typename PayloadT, typename Coord> class PointT,
 		typename PayloadT,
 		typename Coord = double>
@@ -141,25 +178,7 @@ public:
 		const auto upY = center.y() + maxDist;
 		const auto downY = center.y() - maxDist;
 
-		struct CopyPred
-		{
-			const Coord m_downY;
-			const Coord m_upY;
-
-			const PredT& m_pred;
-		public:
-			CopyPred (Coord down, Coord up, const PredT& pred)
-			: m_downY(down)
-			, m_upY(up)
-			, m_pred(pred)
-			{
-			}
-
-			bool operator()(const Point& p) const
-			{
-				return p.y() < m_upY && p.y() >= m_downY && m_pred(p);
-			}
-		} copyPred(downY, upY, pred);
+		CopyPred<Coord, PredT, Point> copyPred(downY, upY, pred);
 
 		const auto downX = center.x() - maxDist;
 		const auto upX = center.x() + maxDist;
@@ -179,23 +198,7 @@ public:
 		}
 
 		if (sort)
-		{
-			struct Sorter
-			{
-				const Point& m_p;
-				Coord m_wrap;
-				Sorter(const Point& p, Coord wrap)
-				: m_p(p)
-				, m_wrap(wrap)
-				{}
-
-				bool operator()(const Point& left, const Point& right) const
-				{
-					return wrapDist(m_p, left, m_wrap) < wrapDist(m_p, right, m_wrap);
-				}
-			};
-			std::sort(sub.begin(), sub.end(), Sorter(center, shouldWrap ? m_wrapAround : 0));
-		}
+			std::sort(sub.begin(), sub.end(), Sorter<Point, Coord>(center, shouldWrap ? m_wrapAround : 0));
 
 		const auto powedDist = maxDist * maxDist;
 		for (auto i = sub.begin(); i != sub.end(); ++i)
