@@ -5,8 +5,13 @@ endif
 ifeq ($(IS32),yes)
 	BITMODE=-m32
 endif 
+
+ifeq ($(UNAME),Darwin)
+    C11LIB=-stdlib=libc++
+endif
+
 C0x=-std=c++0x
-CFLAGS := $(OPT) $(C0x) -stdlib=libc++ $(BITMODE) $(FLAGS) -Wall -g -I. -fpic -I../ -I/usr/local/include -I/opt/local/include -Wno-parentheses
+CFLAGS := $(OPT) $(C0x) $(C11LIB) $(BITMODE) $(FLAGS) -Wall -g -I. -fpic -I../ -I/usr/local/include -I/opt/local/include -Wno-parentheses
 LIBNAME=libay.a
 SHARED_LIBNAME=libay.so
 
@@ -17,7 +22,7 @@ all: $(objects)
 shared: $(objects)
 	$(CC) -shared -Wl,-soname,$(SHARED_LIBNAME) -o $(SHARED_LIBNAME) $(objects)
 test: $(LIBNAME)
-	$(CC) -o testay testay.cpp $(CFLAGS) -L. -lay -lstdc++
+	$(CC) -o testay testay.cpp $(CFLAGS) -L. -lay $(C11LIB)
 clean: 
 	rm -f $(objects) $(LIBNAME)
 
