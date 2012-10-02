@@ -277,6 +277,9 @@ public:
 	BELTrie* produceTrie( uint32_t trieClass, uint32_t trieId )
         { return globalTriePool.produceTrie( trieClass, trieId ) ; }
 
+    const char* resolveLiteral( const BarzerLiteral& l ) const
+        { return stringPool.resolveId(l.getId()); }
+
     void init_cmdline( ay::CommandLineArgs & );
 	const GlobalTriePool& getTriePool() const { return  globalTriePool; }
 };
@@ -285,6 +288,7 @@ class BZSpell;
 
 class Ghettodb;
 class MeaningsStorage;
+class BarzerGeo;
 
 class StoredUniverse {
 	uint32_t d_userId;
@@ -318,12 +322,13 @@ private:
 	void addWordsFromTriesToBZSpell();
 	
 	MeaningsStorage *m_meanings;
+	BarzerGeo *m_geo;
 
 	bool m_soundsLike;
 public:
     /// much fancier interner than the overloaded one - this function will try to work with the trie 
     StoredToken& internString( int lang, const char* t, BELTrie* triePtr, const char* unstemmed);
-    uint32_t stemAndIntern( const char* s, size_t lem, BELTrie* triePtr );
+    uint32_t stemAndIntern( int& lang, const char* s, size_t lem, BELTrie* triePtr );
 
     TokenizerStrategy& tokenizerStrategy() { return d_tokenizerStrat; }
     const TokenizerStrategy& getTokenizerStrategy() const { return d_tokenizerStrat; }
@@ -564,6 +569,11 @@ public:
     
     Ghettodb&       getGhettodb()       { return *d_ghettoDb; }
     const Ghettodb& getGhettodb() const { return *d_ghettoDb; }
+
+	const BarzerGeo* getGeo() const { return m_geo; }
+	BarzerGeo* getGeo() { return m_geo; }
+    const char* resolveLiteral( const BarzerLiteral& l ) const
+        { return gp.resolveLiteral(l);}
 };
 
 inline StoredUniverse& GlobalPools::produceUniverse( uint32_t id )

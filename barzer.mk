@@ -11,6 +11,7 @@ endif
 ifeq ($(UNAME),Darwin)
     BOOST_SYSLIB=/opt/local/lib/libboost_system-mt.dylib /opt/local/lib/libboost_filesystem-mt.dylib
     BOOST_THREADLIB=-lboost_thread-mt
+    C11LIB_SHIT=-stdlib=libc++
 endif
 ifeq ($(IS32),yes)
 	BITMODE=-m32
@@ -24,7 +25,7 @@ ifeq ($(CC),clang++)
     CLANG_WARNSUPPRESS=-Wno-array-bounds
 endif
 WARNSUPPRESS=-Wno-parentheses -Wnon-virtual-dtor $(CLANG_WARNSUPPRESS)
-CFLAGS :=$(CFLAGS) $(BITMODE) $(OPT) $(WARNSUPPRESS) $(C11)\
+CFLAGS :=$(CFLAGS) $(BITMODE) $(OPT) $(WARNSUPPRESS) $(C11) $(C11LIB) \
 	-I/opt/local/include -I/usr/include -g -I. -I./ay -I./lg_ru -fpic $(PYINCLUDE)
 LINKFLAGS := $(FLAGS)
 BINARY=barzer.exe
@@ -36,6 +37,8 @@ libs = -Lay -Lsnowball -lay -lsnowlib -L/usr/local/lib -L/opt/local/lib -L/usr/l
 	$(BOOST_SYSLIB) $(BOOST_THREADLIB) -lexpat -lstdc++
 ECHO = echo
 lib_objects = \
+barzer_geoindex.o \
+barzer_el_cast.o \
 barzer_meaning.o \
 barzer_relbits.o \
 autotester/barzer_at_autotester.o \
@@ -97,13 +100,13 @@ INSTALL_DATA_DIR = $(INSTALL_DIR)/data
 BARZEREXE_OBJ=barzer.o
 
 all: snowball/libsnowlib.a ay/libay.a $(LIBNAME).a $(BARZEREXE_OBJ)
-	$(CC) $(BITMODE) $(LINKFLAGS) -o  $(BINARY) $(BARZEREXE_OBJ) $(LIBNAME).a $(libs)
+	$(CC) $(C11LIB) $(BITMODE) $(LINKFLAGS) -o  $(BINARY) $(BARZEREXE_OBJ) $(LIBNAME).a $(libs)
 lib: ay/libay.a $(LIBNAME).a $(lib_bjects)
 	$(AR) -r $(LIBNAME).a $(lib_objects) ay/libay.a
 sharedlib: ay/libay.a $(lib_objects)
-	$(CC) -shared -Wl -dylib -o $(LIBNAME).so $(lib_objects) $(libs)
+	$(CC) $(C11LIB) -shared -Wl -dylib -o $(LIBNAME).so $(lib_objects) $(libs)
 pybarzer: $(objects_python) $(LIBNAME).a
-	$(CC) -shared -Wl -o pybarzer.so -lboost_python $(objects_python) $(LIBNAME).a $(libs)  -lboost_python $(PYLIBS) 
+	$(CC) $(C11LIB) -shared -Wl -o pybarzer.so -lboost_python $(objects_python) $(LIBNAME).a $(libs)  -lboost_python $(PYLIBS) 
 barzer_python.o: barzer_python.cpp
     $(CC) -DBARZER_HOME=$(INSTALL_DIR) -c $(CFLAGS) $< -o $@
 $(LIBNAME).a: ay/libay.a $(lib_objects)
@@ -115,7 +118,7 @@ clean:
 cleanall: clean cleanaylib
 	rm -f $(objects) $(BINARY) $(objects_python)
 cleanaylib:
-	cd ay; make -f aylib.mk clean; cd ..
+	rm -f ay/*.o ay/*.a
 aylib_rebuild:
 	cd ay; make -f aylib.mk rebuild $(AYBIT) OPT=$(OPT) C11=$(C11) FLAGS=$(FLAGS); cd ..
 aylib:
@@ -127,7 +130,7 @@ snowlib:
 snowball/libsnowlib.a:
 	cd snowball; make; cd ..
 .cpp.o:
-	$(CC) -DBARZER_HOME=$(INSTALL_DIR) -c $(CFLAGS) $< -o $@
+	$(CC) $(C11LIB) -DBARZER_HOME=$(INSTALL_DIR) -c $(CFLAGS) $< -o $@
 rebuild: clean aylib util all
 
 .PHONY : test util

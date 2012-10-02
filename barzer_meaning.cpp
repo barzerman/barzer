@@ -112,7 +112,8 @@ DECL_TAGHANDLE(W) {
                 const bool addAsUserSpecificString = true; /// this is just done for clarity 
 
                 const size_t len = strlen(v);
-                uint32_t wordId = parser.d_universe->stemAndIntern(v, len, 0);
+                int lang = LANG_UNKNOWN;
+                uint32_t wordId = parser.d_universe->stemAndIntern(lang, v, len, 0);
 				
 				BZSpell *spell = parser.d_universe->getBZSpell();
 				spell->addExtraWordToDictionary(wordId);

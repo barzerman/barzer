@@ -1,3 +1,4 @@
+#include <boost/shared_ptr.hpp>
 #include <barzer_autocomplete.h>
 #include <barzer_barz.h>
 #include <barzer_el_matcher.h>
@@ -5,10 +6,43 @@
 #include <barzer_el_trie_walker.h>
 #include <barzer_universe.h>
 #include <barzer_server_response.h>
+#include <barzer_geoindex.h>
 
 namespace barzer {
 
 namespace {
+	
+class AutocFilter
+{
+public:
+	virtual ~AutocFilter() {}
+	
+	virtual bool acceptEntity(const StoredEntity*) const = 0;
+};
+
+class ProximityFilter : public AutocFilter
+{
+	const FilterParams m_params;
+	const StoredUniverse& m_uni;
+public:
+	ProximityFilter(const FilterParams& params, const StoredUniverse& uni)
+	: m_params(params)
+	, m_uni(uni)
+	{}
+	
+	bool acceptEntity (const StoredEntity *se) const
+	{
+		if (!se)
+			return false;
+		
+		const auto id = se->entId;
+		if (!m_params.m_subclasses.empty() &&
+				std::find(m_params.m_subclasses.begin(), m_params.m_subclasses.end(), se->getSubclass()) == m_params.m_subclasses.end())
+			return true;
+		
+		return m_uni.getGeo()->proximityFilter(id, m_params.m_point, m_params.m_dist);
+	}
+};
 
 /// g
 struct AutocNodeVisotor_Callback {
@@ -17,6 +51,7 @@ struct AutocNodeVisotor_Callback {
     const StoredUniverse& universe;
     const BarzelTrieTraverser_depth * d_traverser;
     const QSemanticParser_AutocParms* d_autocParm;
+	const AutocFilter* d_filter;
 
     // this object will accumulate best entities by weight (up to a certain number)
     BestEntities* d_bestEnt;
@@ -24,9 +59,11 @@ struct AutocNodeVisotor_Callback {
     const QuestionParm& d_qparm;
 
     AutocNodeVisotor_Callback( const Barz& b, const QParser& p, const QuestionParm& qparm ) :
-        barz(b), parser(p), universe(p.getUniverse()) , d_traverser(0), d_bestEnt(0),d_qparm(qparm)
+        barz(b), parser(p), universe(p.getUniverse()) , d_traverser(0), d_autocParm(0), d_filter(0), d_bestEnt(0), d_qparm(qparm)
     {}
-    
+
+    void setFilter(const AutocFilter *filter) { d_filter = filter; }
+
     void setBestEntities( BestEntities* be ) { d_bestEnt= be;  }
 
     void setCallbackData( const BarzelTrieTraverser_depth * t, const QSemanticParser_AutocParms* autocParm ) 
@@ -70,7 +107,7 @@ struct AutocNodeVisotor_Callback {
                     if( mkent.isSingleEnt() ) { // single entity 
                         uint32_t entId = mkent.getEntId();
                         const StoredEntity * se = universe.getDtaIdx().getEntById( entId );
-                        if( se ) {  // redundant check but it's safer this way 
+                        if( se && (!d_filter || d_filter->acceptEntity(se))) {
                             const BarzerEntity& euid = se->getEuid();
 
                             if( d_bestEnt ) {
@@ -100,7 +137,7 @@ struct AutocNodeVisotor_Callback {
 			                BarzerEntityList entList;
 			                for( EntityGroup::Vec::const_iterator i = entGrp->getVec().begin(); i!= entGrp->getVec().end(); ++i ) {
 				                const StoredEntity * se = universe.getDtaIdx().getEntById( *i );
-                                if( se ) {
+                                if( se && (!d_filter || d_filter->acceptEntity(se)) ) {
 				                    const BarzerEntity& euid = se->getEuid();
                                     if( d_bestEnt ) {
                                         const EntityData::EntProp* edata = universe.gp.entData.getEntPropData( euid );
@@ -172,13 +209,20 @@ struct AutocCallback {
 } /// end of anon space 
 int BarzerAutocomplete::parse( const char* q )
 {
-    BestEntities bestEnt;
+    BestEntities bestEnt(d_qparm.autoc.numResults);
     QParser parser(d_universe);
-
+	
+	boost::shared_ptr<AutocFilter> filterPtr;
+	if( d_barz.hasReqVarNotEqualTo("geo::enableFilter","false") ) {
+        const auto& params = FilterParams::fromBarz(d_barz);
+        if (params.m_valid)
+            filterPtr.reset(new ProximityFilter(params, d_universe));
+	}
 
     AutocCallback<AutocNodeVisotor_Callback> acCB(parser, d_os );
 
     AutocNodeVisotor_Callback nodeVisitorCB(d_barz,parser,d_qparm);
+	nodeVisitorCB.setFilter(filterPtr.get());
     nodeVisitorCB.setBestEntities( &bestEnt );
     acCB.nodeVisitorCB_set( &nodeVisitorCB );
     

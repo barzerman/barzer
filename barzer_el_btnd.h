@@ -767,7 +767,8 @@ struct BTND_Rewrite_Variable {
 		MODE_VARNAME,   // variable name 
 		MODE_PATEL_NUMBER, // pattern element number
 		MODE_WCGAP_NUMBER, // wildcard gap number
-		MODE_POSARG // positional argument number
+		MODE_POSARG, // positional argument number
+        MODE_REQUEST_VAR /// variable lives in RequestEnvironment::d_reqVar
 	};
 	uint8_t idMode; 
 	uint32_t varId; /// when idMode is MODE_VARNAME this is a variable path id (see el_variables.h)
@@ -779,6 +780,7 @@ struct BTND_Rewrite_Variable {
 	uint32_t getVarId() const { return varId; }
 		
 	bool isPosArg() const { return idMode == MODE_POSARG; }
+	bool isRequestVar() const { return idMode == MODE_REQUEST_VAR; }
 	bool isVarId() const { return idMode == MODE_VARNAME; }
 	bool isWildcardNum() const { return idMode == MODE_WC_NUMBER; }
 	bool isPatternElemNumber() const { return idMode == MODE_PATEL_NUMBER; }
@@ -789,6 +791,8 @@ struct BTND_Rewrite_Variable {
 	void setWildcardNumber( uint32_t vid ){ varId = vid; idMode= MODE_WC_NUMBER; }
 	void setPatternElemNumber( uint32_t vid ){ varId = vid; idMode= MODE_PATEL_NUMBER; }
 	void setWildcardGapNumber( uint32_t vid ){ varId = vid; idMode= MODE_WCGAP_NUMBER; }
+	void setRequestVarId( uint32_t vid ){ varId = vid; idMode= MODE_REQUEST_VAR; }
+	void changeToReqVar( ){ idMode= MODE_REQUEST_VAR; }
 
 	BTND_Rewrite_Variable() : 
 		idMode(MODE_WC_NUMBER), 
@@ -796,11 +800,20 @@ struct BTND_Rewrite_Variable {
 	{}
 };
 
+struct RewriteVariableMode {
+};
+typedef enum {
+    VARMODE_REWRITE,// variable local to a single rewrite (DEFAULT)
+    VARMODE_REQUEST // variable local to the entire request RequestEnvironment::d_reqVar RequestVariableMap
+} Btnd_Rewrite_Varmode_t;
+
 struct BTND_Rewrite_Function {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	uint32_t nameId; // function name id
 	uint32_t argStrId; // string id for the optional arg attribute
     uint32_t varId;    // string id for a variable (optional)
+
+    uint8_t  d_varMode; // VARMODE_XXX 
 
 	void setNameId( uint32_t i ) { nameId = i ; }
 	uint32_t getNameId() const { return nameId; }
@@ -811,22 +824,29 @@ struct BTND_Rewrite_Function {
 	BTND_Rewrite_Function() : 
         nameId(ay::UniqueCharPool::ID_NOTFOUND),
         argStrId(ay::UniqueCharPool::ID_NOTFOUND) ,
-        varId(ay::UniqueCharPool::ID_NOTFOUND) 
+        varId(ay::UniqueCharPool::ID_NOTFOUND) ,
+        d_varMode(VARMODE_REWRITE)
     {}
 
 	BTND_Rewrite_Function(ay::UniqueCharPool::StrId id) : 
         nameId(id), 
         argStrId(ay::UniqueCharPool::ID_NOTFOUND)  ,
-        varId(ay::UniqueCharPool::ID_NOTFOUND)  
+        varId(ay::UniqueCharPool::ID_NOTFOUND)  ,
+        d_varMode(VARMODE_REWRITE)
     {}
 
 	BTND_Rewrite_Function(ay::UniqueCharPool::StrId id, ay::UniqueCharPool::StrId argId) : 
-        nameId(id), argStrId(argId) , varId(ay::UniqueCharPool::ID_NOTFOUND)
+        nameId(id), argStrId(argId) , varId(ay::UniqueCharPool::ID_NOTFOUND),d_varMode(VARMODE_REWRITE)
     {}
     
     void        setVarId( uint32_t v ) { varId= v; }
     uint32_t    getVarId() const {return varId; }
     bool        isValidVar() const { return (varId != ay::UniqueCharPool::ID_NOTFOUND); }
+
+    void setVarModeRequest( ) { d_varMode=VARMODE_REQUEST; }
+    bool isReqVar() const    { return (d_varMode== VARMODE_REQUEST); }
+    void setVarModeRewrite( ) { d_varMode=VARMODE_REWRITE; } // default
+    bool isRewriteVar() const    { return (d_varMode== VARMODE_REWRITE); }
 };
 
 struct BTND_Rewrite_Select {
@@ -940,7 +960,13 @@ struct BTND_Rewrite_Control {
     }; 
     uint16_t d_rwctlt; // RWCTLT_XXXX
     uint32_t d_varId;  //  default 0xffffffff - when set results will be also added to the variable 
-    BTND_Rewrite_Control() : d_rwctlt(RWCTLT_COMMA), d_varId(0xffffffff) {}
+    uint8_t  d_varMode;
+
+    void setVarModeRequest( ) { d_varMode=VARMODE_REQUEST; }
+    bool isReqVar() const    { return (d_varMode== VARMODE_REQUEST); }
+    void setVarModeRewrite( ) { d_varMode=VARMODE_REWRITE; } // default
+    bool isRewriteVar() const    { return (d_varMode== VARMODE_REWRITE); }
+    BTND_Rewrite_Control() : d_rwctlt(RWCTLT_COMMA), d_varId(0xffffffff), d_varMode(VARMODE_REWRITE) {}
     /// here 4 more bytes of something could be used  
 	std::ostream& print( std::ostream& fp ) const
 		{ return fp << "Control(" << d_rwctlt << "," << d_varId << ")"; }

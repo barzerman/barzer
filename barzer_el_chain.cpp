@@ -736,4 +736,25 @@ bool BarzerRangeAccessor::getLo( BarzelBeadData& out ) const
         return ( out = BarzelBeadBlank(), false );
 }
 
+namespace {
+
+struct BarzelBeadAtomic_var_print_visitor : public boost::static_visitor<> {
+    std::ostream& fp;
+    BarzelBeadAtomic_var_print_visitor( std::ostream& s ) : fp(s) {}
+
+    template <typename T>
+    void operator()( const T& v ) 
+    {
+        fp << v;
+    }
+};
+
+} // namespace 
+std::ostream& operator<<( std::ostream& fp, const BarzelBeadAtomic_var& v )
+{
+    print_visitor vis(fp);
+    boost::apply_visitor( vis, v );
+
+    return fp;
+}
 } // barzer namespace

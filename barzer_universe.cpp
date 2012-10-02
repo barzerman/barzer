@@ -2,6 +2,7 @@
 #include <barzer_bzspell.h>
 #include <barzer_ghettodb.h>
 #include <barzer_meaning.h>
+#include <barzer_geoindex.h>
 #include <ay/ay_cmdproc.h>
 #include <ay/ay_ngrams.h>
 #include <boost/filesystem.hpp>
@@ -235,6 +236,7 @@ StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	bzSpell(new BZSpell(*this)),
 	d_ghettoDb(new Ghettodb()),
 	m_meanings(new MeaningsStorage),
+	m_geo(new BarzerGeo),
 	m_soundsLike(false)
 {
 	m_hints.initFromUniverse(this);
@@ -245,6 +247,7 @@ StoredUniverse::~StoredUniverse()
     delete bzSpell;
     delete d_ghettoDb;
     delete m_meanings;
+	delete m_geo;
 }
 
 size_t   StoredUniverse::internString( const char* s, bool asUserSpecific, uint8_t frequency )
@@ -334,7 +337,7 @@ StoredToken& StoredUniverse::internString( int lang, const char* t, BELTrie* tri
 	return sTok;
 }
 
-uint32_t StoredUniverse::stemAndIntern( const char* s, size_t len, BELTrie* triePtr )
+uint32_t StoredUniverse::stemAndIntern( int& lang, const char* s, size_t len, BELTrie* triePtr )
 {
 	BZSpell* bzSpell = getBZSpell();
     
@@ -345,10 +348,11 @@ uint32_t StoredUniverse::stemAndIntern( const char* s, size_t len, BELTrie* trie
     }
     const StoredToken* storedTok = getStoredToken( s );
     
-    int lang = LANG_UNKNOWN;
+    lang = LANG_UNKNOWN;
 	if( bzSpell )  {
         uint32_t i = 0xffffffff;
         if( bzSpell->isUsersWord(i,s) ) {
+			bzSpell->addExtraWordToDictionary(i);
             return ( storedTok? storedTok->getStringId() : i );
         }
 		std::string stem;

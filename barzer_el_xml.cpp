@@ -8,6 +8,7 @@
 #include <ay_translit_ru.h>
 #include <barzer_relbits.h>
 #include "barzer_spellheuristics.h"
+#include "barzer_geoindex.h"
 extern "C" {
 #include <expat.h>
 
@@ -1333,6 +1334,27 @@ DEFINE_BELParserXML_taghandle(NV)
         }
     }
 }
+
+namespace
+{
+	bool parseComma(const char *coordStr, std::pair<double, double>& out)
+	{
+		std::istringstream istr(coordStr);
+		istr >> out.first;
+		char sep;
+		istr >> sep;
+		if (sep != ',')
+			return false;
+		istr >> out.second;
+		return !istr.fail();
+	}
+
+	bool parseCoord(const char *coordStr, std::pair<double, double>& out)
+	{
+		return parseComma(coordStr, out);
+	}
+}
+
 DEFINE_BELParserXML_taghandle(MKENT)
 {
 	if( close ) {
@@ -1344,10 +1366,11 @@ DEFINE_BELParserXML_taghandle(MKENT)
 	}
 	BTND_Rewrite_MkEnt mkent;
 	uint32_t eclass = 0, subclass = 0, topicClass = 0, topicSubclass=0;
-	const char* idStr = 0;
-    const char*  topicIdStr = 0;
+	const char *idStr = 0;
+	const char *topicIdStr = 0;
     int relevance = 0, topicRelevance = 0;
-    const char* canonicName = 0, *topicCanonicName = 0;
+	const char *canonicName = 0, *topicCanonicName = 0;
+	const char *rawCoord = 0;
     uint32_t topicStrength = 0;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
@@ -1359,7 +1382,6 @@ DEFINE_BELParserXML_taghandle(MKENT)
         
 		case 'n': canonicName = v; break;       // canonic name of the entity if its an empty string getDescriptiveNameFromPattern_simple will be used
 		case 'r': relevance = atoi(v); break;   // relevance of the entity 
-        
 		case 't': {
             switch(n[1]) {
                 case 'c': topicClass =  atoi(v); break;
@@ -1371,7 +1393,7 @@ DEFINE_BELParserXML_taghandle(MKENT)
             }
             break;
         }
-
+		case 'p': rawCoord = v; break;
 		} // n[0] switch
 	}
 
@@ -1379,6 +1401,17 @@ DEFINE_BELParserXML_taghandle(MKENT)
     GlobalPools& gp = reader->getGlobalPools();
     uint32_t idStrId = reader->getGlobalPools().internString_internal(idStr) ;
 	const StoredEntity& ent  = gp.getDtaIdx().addGenericEntity( idStrId, eclass, subclass );
+	if (rawCoord)
+	{
+		std::pair<double, double> coords;
+		if (parseCoord(rawCoord, coords))
+			getReader()->getCurrentUniverse()->getGeo()->addEntity(ent, coords);
+		else
+			AYLOG(ERROR) << "failed to parse coords for entity "
+					<< ent.getClass() << " "
+					<< ent.getSubclass() << " "
+					<< (canonicName ? canonicName : "<no name>");
+	}
 	mkent.setEntId( ent.entId );
     statement.setCurEntity( ent.getEuid() );
     if( statement.hasPattern() || statement.isProc() ) {
@@ -1440,6 +1473,11 @@ DEFINE_BELParserXML_taghandle(BLOCK)
                 }
             }
             break;
+        case 'r':{ /// variable
+            if( *v == 'y' ) 
+                ctrl.setVarModeRequest();
+            }
+            break;
         case 'v':{ /// variable
             uint32_t varId = reader->getGlobalPools().internString_internal(v) ;
             ctrl.setVarId( varId );
@@ -1484,6 +1522,8 @@ DEFINE_BELParserXML_taghandle(VAR)
 		return;
 	}
 	BTND_Rewrite_Variable var;
+    const char* varName = 0;
+    bool isReqVar = false;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
@@ -1504,6 +1544,7 @@ DEFINE_BELParserXML_taghandle(VAR)
 		case 'n': { // <var name=""/> - named variable
 			/// intern
 			var.setVarId( internVariable(v) );
+            varName = v;
 		}
 			break;
 		case 'p': { // <var pn="1"/> - pattern element number - if pattern is "a * b * c" then pn[1] is a, pn[2] is the first * etc
@@ -1518,6 +1559,12 @@ DEFINE_BELParserXML_taghandle(VAR)
 			}
 		}
 			break;
+		case 'r': { /// r - variable is a request var
+            if( v && *v == 'y' ) {
+                isReqVar = true;
+            }
+        }
+            break;
 		case 'w': { // <var w="1"/> - wildcard number like $1 
 			int num  = atoi(v);
 			if( num > 0 ) 
@@ -1532,6 +1579,9 @@ DEFINE_BELParserXML_taghandle(VAR)
 
 		}
 	}
+    if( isReqVar && varName ) {
+        var.setRequestVarId( reader->getGlobalPools().internString_internal(varName) );
+    }
 	statement.pushNode( BTND_RewriteData( var));
 }
 DEFINE_BELParserXML_taghandle(GET)
@@ -1576,6 +1626,9 @@ DEFINE_BELParserXML_taghandle(FUNC)
             f.setArgStrId( reader->getGlobalPools().internString_internal(v) );
         } else if( *n == 'v' ) { // variable 
             f.setVarId( reader->getGlobalPools().internString_internal(v) );
+        } else if( *n == 'r' ) { // request variable RequestEnvironment::d_reqVar
+            if( *v == 'y' ) 
+                f.setVarModeRequest();
         }
 	}
     if( funcNameId != 0xffffffff ) 

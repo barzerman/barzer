@@ -201,7 +201,8 @@ public:
                         os << "</token>";
                     }
                 } else {
-                    AYLOG(ERROR) << "Illegal literal ID: " << std::hex << data.getId();
+                    // AYLOG(ERROR) << "Illegal literal ID: " << std::hex << data.getId();
+                    os << "<null/>";
                 }
 			}
 			break;

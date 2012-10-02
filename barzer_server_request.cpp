@@ -14,7 +14,10 @@
 #include <barzer_ghettodb.h>
 #include <ay/ay_parse.h>
 #include <barzer_barzxml.h>
-#include "barzer_server_response.h"
+#include <barzer_server_response.h>
+#include <barzer_geoindex.h>
+#include <barzer_el_cast.h>
+#include <boost/lexical_cast.hpp>
 
 extern "C" {
 
@@ -83,7 +86,8 @@ static void startElement(void* ud, const XML_Char *n, const XML_Char **a)
     if( !rp->getUniverse() ) {
         if( 
             (name[0] == 'q' &&(!strcmp(name,"query") || !strcmp(name,"qblock"))) ||
-            (name[0] == 'a' && !strcmp(name,"autoc")) 
+            ((name[0] == 'a' && !strcmp(name,"autoc")) ||
+			((name[0] == 'f' && !strcmp(name,"findents")))) 
         ) 
         { /// processing query/qblock - resolving universe and userId early on
             if( !strcmp(name,"query") || !strcmp(name,"qblock") ) {
@@ -173,15 +177,17 @@ typedef std::map<std::string,ReqTagFunc> TagFunMap;
 #define CMDFUN(n) (#n, boost::mem_fn(&BarzerRequestParser::tag_##n))
 static const ReqTagFunc* getCmdFunc(std::string &name) {
 	static TagFunMap funmap = boost::assign::map_list_of
-			CMDFUN(autoc)
-			CMDFUN(qblock)
-			CMDFUN(query)
-			CMDFUN(nameval)
-			CMDFUN(cmd)
+			CMDFUN(autoc) // autocomplete query (can be contained in qblock)
+			CMDFUN(findents) // find nearest entities query
+			CMDFUN(qblock) // can envelop various tags (query/autoc/var/nameval) 
+			CMDFUN(query)  // traditional barer query (semantic search)
+			CMDFUN(nameval) // request for a ghettodb value
+			CMDFUN(cmd)     
 			CMDFUN(rulefile)
 			CMDFUN(topic)
 			CMDFUN(trie)
 			CMDFUN(user)
+			CMDFUN(var)
 			;
 			//("query", boost::mem_fn(&BarzerRequestParser::command_query));
 
@@ -390,6 +396,10 @@ void BarzerRequestParser::raw_query_parse( const char* query )
         barz.topicInfo.computeTopTopics();
     }
 	qparser.parse( barz, query, qparm );
+
+    if( barz.hasReqVarNotEqualTo("geo::enableFilter","false") )
+		    proximityFilter(barz, *up);
+
 	response.print(os);
     /// doing this just in case barz is reused 
     barz.clearWithTraceAndTopics();
@@ -499,10 +509,148 @@ void BarzerRequestParser::tag_autoc(RequestTag &tag)
         }
     }
     d_query = tag.body.c_str();
+	
+    if( barz.hasReqVar("numResults") ) {
+	    const auto numResVar = barz.getReqVarValue("numResults");
+	    if (numResVar) {
+		    BarzerNumber num;
+		    if (BarzerAtomicCast(d_universe).convert(num, *numResVar) == BarzerAtomicCast::CASTERR_OK)
+			    qparm.autoc.numResults = num.getInt();
+	    }
+    }
     
     qparm.isAutoc = true;
     raw_autoc_parse( d_query.c_str(), qparm );
     d_query.clear();
+}
+
+void BarzerRequestParser::tag_findents (RequestTag& tag)
+{
+	const auto& attrs = tag.attrs;
+	double lon = -1, lat = -1, dist = -1;
+	int64_t ec = -1, esc = -1;
+	std::string distUnitStr;
+	for (auto attr = attrs.begin(), end = attrs.end(); attr != end; ++attr)
+	{
+		const auto& name = attr->first;
+		const auto& val = attr->second;
+		switch (name[0])
+		{
+		case 'u':
+			if (!d_universe)
+				setUniverseId(atoi(val.c_str()));
+			break;
+		case 'l':
+			switch (name[1])
+			{
+			case 'o': // longitude
+				try
+				{
+					lon = boost::lexical_cast<double>(val);
+				}
+				catch (...)
+				{
+					os << "<error>invalid longitude " << val << "</error>\n";
+					return;
+				}
+				break;
+			case 'a': // latitude
+				try
+				{
+					lat = boost::lexical_cast<double>(val);
+				}
+				catch (...)
+				{
+					os << "<error>invalid latitude " << val << "</error>\n";
+					return;
+				}
+				break;
+			}
+			break;
+		case 'd':
+			switch (name[1])
+			{
+			case 'i':
+				try
+				{
+					dist = boost::lexical_cast<double>(val);
+				}
+				catch (...)
+				{
+					os << "<error>invalid distance " << val << "</error>\n";
+					return;
+				}
+				break;
+			case 'u':
+				distUnitStr = attr->second;
+				break;
+			}
+			break;
+		case 'e':
+			switch (name[1])
+			{
+			case 'c': // entity class
+				try
+				{
+					ec = boost::lexical_cast<int64_t>(val);
+				}
+				catch (...)
+				{
+					os << "<error>invalid entity class " << val << "</error>\n";
+					return;
+				}
+				break;
+			case 's': // entity class
+				
+				break;
+			}
+			break;
+		}
+	}
+	
+	if (lon < 0 || lat < 0 || dist < 0)
+	{
+		os << "<error>invalid parameters lon/lat/dist: " << lon << " " << " " << lat << " " << dist << "</error>\n";
+		return;
+	}
+	
+	auto unit = distUnitStr.empty() ? ay::geo::Unit::Metre : ay::geo::unitFromString(distUnitStr);
+	if (unit >= ay::geo::Unit::MAX)
+	{
+		os << "<error>invalid unit: " << distUnitStr << "</error>\n";
+		return;
+	}
+	
+	if (!d_universe)
+	{
+		os << "<error>invalid user id " << userId << "</error>\n";
+		return;
+	}
+	
+	dist = ay::geo::convertUnit(dist, unit, ay::geo::Unit::Degree);
+	
+	const auto& geo = d_universe->getGeo();
+	
+	std::vector<uint32_t> ents;
+	if (ec >= 0 && esc >= 0)
+		geo->findEntities(ents, BarzerGeo::Point_t(lon, lat), EntClassPred(ec, esc, *d_universe), dist);
+	else
+		geo->findEntities(ents, BarzerGeo::Point_t(lon, lat), DumbPred(), dist);
+	
+	os << "<entities count='" << ents.size() << "'>\n";
+	const auto& gp = d_universe->getGlobalPools();
+	for(size_t i = 0; i < ents.size(); ++i)
+	{
+		auto ent = gp.getDtaIdx().getEntById(ents[i]);
+		if (!ent)
+		{
+			os << "<ent invalid='true'/>";
+			continue;
+		}
+		
+		os << "\t<ent id='" << ents[i] << "' class='" << ent->getClass() << "' subclass='" << ent->getSubclass() << "'/>\n";
+	}
+	os << "</entities>\n";
 }
 
 // <qblock u="23"><topic c="20" s="1" i="abc"/><query>zoo</query></qblock>
@@ -516,6 +664,30 @@ void BarzerRequestParser::tag_qblock(RequestTag &tag) {
     raw_query_parse( d_query.c_str() );
     barz.topicInfo.setTopicFilterMode_Light();
     d_query.clear();
+}
+
+void BarzerRequestParser::tag_var(RequestTag &tag) {
+    if( RequestEnvironment* env = barz.getServerReqEnv() ) {
+        const char* n=0, *v=0, *t=0;
+        for( auto i = tag.attrs.begin(); i!= tag.attrs.end(); ++i ) {
+            if( i->first =="n" ) {
+                n = i->second.c_str();
+            } else if( i->first == "v" ) {
+                v = i->second.c_str();
+            } else if( i->first == "t" ) { // type NOT SUPPORTED YET
+                t = i->second.c_str();
+            }
+        }
+        if( n && v ) {
+            barz.setReqVarValue( n, BarzelBeadAtomic_var(BarzerString(v)) );
+        } else {
+	        stream() << "<error>var:";
+            if( !n ) stream() << "n attribute must be set. ";
+            if( !v ) stream() << "v attribute must be set. ";
+	        stream() << "</error>\n";
+        }
+    } else 
+	    stream() << "<error>var: request environment not set</error>\n";
 }
 
 void BarzerRequestParser::tag_nameval(RequestTag &tag) {

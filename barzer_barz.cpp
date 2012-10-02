@@ -2,6 +2,8 @@
 #include <barzer_parse.h>
 #include <barzer_el_chain.h>
 #include <barzer_universe.h>
+#include <barzer_server.h>
+#include <barzer_el_cast.h>
 
 
 namespace barzer {
@@ -399,4 +401,87 @@ int Barz::sortEntitiesByRelevance( const StoredUniverse& u, const QuestionParm& 
     return 0;
 }
 
+const RequestVariableMap* Barz::getRequestVariableMap()  const 
+    { if( const RequestEnvironment* p = getServerReqEnv() ) return p->getReqVarPtr(); else return 0; }
+RequestVariableMap* Barz::getRequestVariableMap() 
+    { if( RequestEnvironment* p = getServerReqEnv() ) return p->getReqVarPtr(); else return 0; }
+
+bool Barz::getReqVarValue( BarzerString& v, const char* n ) const
+{
+    v.clear();
+    if( const RequestEnvironment* p = getServerReqEnv()  ) {
+        if( const BarzelBeadAtomic_var*  var = p->getReqVar().getValue(n) )
+            return BarzerAtomicCast(getUniverse()).convert(v,*var) < BarzerAtomicCast::CASTERR_FAIL;
+        else
+            return false;
+    } 
+    return false;
+}
+bool Barz::getReqVarValue( BarzelBeadAtomic_var& v, const char* n ) const
+{
+    if( const RequestEnvironment* p = getServerReqEnv() ) 
+        return p->getReqVar().getValue(v,n);
+    else 
+        return false;
+}
+const char* Barz::getReqVarAsChars( const char* n ) const
+{
+    if( const RequestEnvironment* p = getServerReqEnv() ) {
+        const BarzelBeadAtomic_var*  v =  p->getReqVar().getValue(n);
+        if( v ) {
+            if( const BarzerString* s = boost::get<BarzerString>(v) ) {
+                return s->c_str();
+            }
+        }
+    } 
+
+    return 0;
+        
+}
+bool Barz::hasReqVarEqualTo( const char* n, const char* val ) const
+{
+    if( const RequestEnvironment* p = getServerReqEnv() ) {
+       const BarzelBeadAtomic_var*  v =  p->getReqVar().getValue(n);
+       if( const BarzerString* s = boost::get<BarzerString>(v) ) 
+           return (s->getStr()==val);
+    }
+    return false;
+}
+bool Barz::hasReqVarNotEqualTo( const char* n, const char* val ) const
+{
+    if( const RequestEnvironment* p = getServerReqEnv() ) {
+       const BarzelBeadAtomic_var*  v =  p->getReqVar().getValue(n);
+       if( const BarzerString* s = boost::get<BarzerString>(v) ) 
+           return (s->getStr()!=val);
+    }
+    return false;
+}
+bool Barz::hasReqVar( const char* n) const
+{ 
+    if( const RequestEnvironment* p = getServerReqEnv() ) 
+       return p->getReqVar().hasVar(n);
+    else
+        return false;
+}
+const BarzelBeadAtomic_var*  Barz::getReqVarValue( const char* n ) const
+{
+    if( const RequestEnvironment* p = getServerReqEnv() ) 
+        return p->getReqVar().getValue(n);
+    else 
+        return 0;
+}
+
+void Barz::setReqVarValue( const char* n, const BarzelBeadAtomic_var& v )
+{
+    if( RequestEnvironment* p = getServerReqEnv() ) 
+        p->getReqVar().setValue(n,v);
+}
+
+bool Barz::unsetReqVar( const char* n )
+{
+    if( RequestEnvironment* p = getServerReqEnv() ) 
+        return p->getReqVar().unset(n);
+    else return false;
+        
+}
 } // barzer namepace ends

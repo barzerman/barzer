@@ -15,6 +15,9 @@ class QTokenizer;
 class StoredUniverse;
 struct MatcherCallback;
 
+struct RequestVariableMap;
+struct RequestEnvironment; // server request environment
+
 struct BarzelTrace {
     enum { 
         MAX_TAIL_REPEAT = 16  // if more than this many consecutive occurrences are detected its a loop
@@ -132,6 +135,7 @@ public:
 
     const LangArray& getUtf8Languages() const { return d_stemUtf8Lang; }
     void  addUtf8Language( int lang ) { d_stemUtf8Lang.push_back(lang); }
+    const StoredUniverse* getUniverse() const { return d_universe; }
 };
 
 // collection of punits and the original question
@@ -163,8 +167,9 @@ class Barz {
 	void syncQuestionFromTokens();
 
 	BarzHints m_hints;
+    RequestEnvironment* d_serverReqEnv;
+    const char* getReqVarAsChars( const char* ) const;
 public:
-    Barz() : d_origQuestionId(std::numeric_limits<uint64_t>::max()) {}
 	enum { 
         MAX_TRACE_LEN = 256, 
         LONG_TRACE_LEN = 32  
@@ -172,6 +177,34 @@ public:
 
 	BarzelTrace barzelTrace;
     BarzTopics  topicInfo;
+    const StoredUniverse* getUniverse() const { return m_hints.getUniverse(); } 
+    Barz() : 
+        d_origQuestionId(std::numeric_limits<uint64_t>::max()),
+        d_serverReqEnv(0)
+    {}
+
+    void setServerReqEnv( RequestEnvironment* env ) { d_serverReqEnv = env; }
+    RequestEnvironment* getServerReqEnv() { return d_serverReqEnv; }
+    const RequestEnvironment* getServerReqEnv() const { return d_serverReqEnv; }
+
+
+    /// working with request variables - these variables reside in the top level request context. they live through the whole request
+    /// and aren't tied to any one rewrite
+    const RequestVariableMap* getRequestVariableMap()  const ;
+    RequestVariableMap* getRequestVariableMap() ;
+
+    bool getReqVarValue( BarzelBeadAtomic_var& v, const char* n ) const;
+    bool getReqVarValue( BarzerString& str, const char* n ) const;
+    bool hasReqVar( const char* ) const;
+    /// true if request variable n exists and is equal to val
+    bool hasReqVarEqualTo( const char* n, const char* val ) const;
+    /// true if request variable n exists and is NOT equal to val 
+    bool hasReqVarNotEqualTo( const char* n, const char* val ) const;
+
+    const BarzelBeadAtomic_var*  getReqVarValue( const char* n ) const;
+    void setReqVarValue( const char* n, const BarzelBeadAtomic_var& v );
+    bool unsetReqVar( const char* n );
+    //// end of request variable context functions 
 
 	void setUniverse(const StoredUniverse*);
 

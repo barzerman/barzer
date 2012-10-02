@@ -19,6 +19,7 @@
 #include <boost/function.hpp>
 
 #include <barzer_server_request.h>
+#include "barzer_geoindex.h"
 //
 #include <sstream>
 #include <fstream>
@@ -37,6 +38,15 @@ bool is_all_digits( const char* s )
     return true;
 }
 
+void strip_newline( char* buf ) 
+{
+    if( size_t len = strlen(buf) ) {
+        if( buf[ len-1 ] == '\n' ) {
+            buf[ len-1 ] = 0;
+        }
+    }
+}
+
 }
 BarzerShellContext::BarzerShellContext(StoredUniverse& u, BELTrie& trie) :
 		gp(u.getGlobalPools()),
@@ -45,9 +55,11 @@ BarzerShellContext::BarzerShellContext(StoredUniverse& u, BELTrie& trie) :
 		d_trie(&trie),
 		parser( u ),
         d_grammarId(0),
-        streamerModeFlags(streamerModeFlags_bits)
+        streamerModeFlags(streamerModeFlags_bits),
+        reqEnv(std::cerr)
 {
 	barz.setUniverse(&u);
+    barz.setServerReqEnv(&reqEnv);
 #define NAME_MODE_BIT( x ) streamerModeFlags.name( BarzStreamerXML::BF_##x, #x )
     NAME_MODE_BIT(NOTRACE);
     NAME_MODE_BIT(USERID);
@@ -388,6 +400,50 @@ static int bshf_allMeanings(BarzerShell *shell, char_cp cmd, std::istream& in)
 	return 0;
 }
 
+static int bshf_findEntities(BarzerShell *shell, char_cp cmd, std::istream& in)
+{
+	BarzerShellContext *context = shell->getBarzerContext();
+	const auto& uni = context->getUniverse();
+	const auto& geo = *uni.getGeo();
+	
+	shell->getOutStream() << "the format is:\n"
+			<< "longitude latitude distance class subclass\n"
+			<< "where longitude and latitude are doublee, "
+				"class and subclass can be negative to disable check"
+			<< std::endl;
+	
+	ay::InputLineReader reader(in);
+	while (reader.nextLine() && reader.str.length())
+	{
+		std::istringstream istr(reader.str);
+		double lon, lat, dist;
+		int64_t ec, esc;
+		istr >> lon >> lat >> dist >> ec >> esc;
+		
+		shell->getOutStream() << "entities (" << ec << "; " << esc << ") near (" << lon << ", " << lat << "):" << std::endl;
+		std::vector<uint32_t> ents;
+		if (ec >= 0 && esc >= 0)
+			geo.findEntities(ents, BarzerGeo::Point_t(lon, lat), EntClassPred(ec, esc, uni), dist);
+		else
+			geo.findEntities(ents, BarzerGeo::Point_t(lon, lat), DumbPred(), dist);
+		
+		shell->getOutStream() << "found " << ents.size() << " entities:" << std::endl << "{\n";
+		for(size_t i = 0; i < ents.size(); ++i)
+		{
+			auto ent = uni.getGlobalPools().getDtaIdx().getEntById(ents[i]);
+			if (!ent)
+			{
+				shell->getOutStream() << "\tinvalid entity " << ents[i] << std::endl;
+				continue;
+			}
+			shell->getOutStream() << "\t" << ents[i] << "; class/subclass: " << ent->getClass() << " " << ent->getSubclass() << std::endl;
+		}
+		shell->getOutStream() << "}" << std::endl;
+	}
+	
+	return 0;
+}
+
 static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
@@ -654,42 +710,42 @@ static int bshf_smf( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
-        BarzerShellContext * context = shell->getBarzerContext();
-        if( !context || !context->isUniverseValid() ) {
-                std::cerr << "barzer shell FATAL - context oruniverse is NULL\n";
-                return 0;
-        }
-        Barz& barz = context->barz;
-        // Barz barz;
-        QParser parser( (context->getUniverse()) );
+    BarzerShellContext * context = shell->getBarzerContext();
+    if( !context || !context->isUniverseValid() ) {
+            std::cerr << "barzer shell FATAL - context oruniverse is NULL\n";
+            return 0;
+    }
+    Barz& barz = context->barz;
+    // Barz barz;
+    QParser parser( (context->getUniverse()) );
 
-        BarzStreamerXML bs(barz, context->getUniverse());
-        bs.setWholeMode( context->streamerModeFlags.theBits() );
+    BarzStreamerXML bs(barz, context->getUniverse());
+    bs.setWholeMode( context->streamerModeFlags.theBits() );
 
-        std::string fname;
+    std::string fname;
 
-        std::ostream *ostr = &(shell->getOutStream());
-        std::ofstream ofile;
+    std::ostream *ostr = &(shell->getOutStream());
+    std::ofstream ofile;
 
     size_t numIterations = 1;
-        if (in >> fname) {
+    if (in >> fname) {
         if( is_all_digits(fname.c_str()) ) {
             numIterations = atoi( fname.c_str() );
         } else {
             ofile.open(fname.c_str());
             ostr = &ofile;
         }
-        }
-        ay::InputLineReader reader( in );
+    }
+    ay::InputLineReader reader( in );
 
-        QuestionParm qparm;
-        shell->syncQuestionParm(qparm);
+    QuestionParm qparm;
+    shell->syncQuestionParm(qparm);
 
-        ay::stopwatch totalTimer;
-        while( reader.nextLine() && reader.str.length() ) {
-            ay::stopwatch localTimer;
-                const char* q = reader.str.c_str();
-                *ostr << "parsing: " << q << "\n";
+    ay::stopwatch totalTimer;
+    while( reader.nextLine() && reader.str.length() ) {
+        ay::stopwatch localTimer;
+        const char* q = reader.str.c_str();
+        *ostr << "parsing: " << q << "\n";
 
         for( size_t i = 0; i< numIterations; ++i ) {
             parser.parse( barz, q, qparm );
@@ -701,10 +757,10 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
         }
 
         std::cerr << numIterations << " iterations done in " << localTimer.calcTime() << " seconds\n";
-                // << ttVec << std::endl;
-        }
-        std::cerr << "All done in " << totalTimer.calcTime() << " seconds\n";
-        return 0;
+        // << ttVec << std::endl;
+    }
+    std::cerr << "All done in " << totalTimer.calcTime() << " seconds\n";
+    return 0;
 }
 
 static int bshf_anlqry( BarzerShell* shell, char_cp cmd, std::istream& in )
@@ -1355,6 +1411,51 @@ static int bshf_instance( BarzerShell* shell, char_cp cmd, std::istream& in )
 }
 static int bshf_env( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
+    auto ctxt = shell->getBarzerContext();
+    RequestEnvironment& reqEnv = ctxt->reqEnv;
+    RequestVariableMap& reqEnvVar = reqEnv.getReqVar();
+
+    std::ostream& outFP = shell->getOutStream() ;
+    
+    std::string tmp;
+    bool hasVariableName = true;
+    
+    std::string varName;
+    std::string mode;
+    in >> mode;
+    if(mode =="help") { // first argument is set (second argument must be variable name)
+        std::cerr << "USAGE: env [MODE]. Mode is get/set/clear\n";
+    } else if(mode =="clear") { // first argument is set (second argument must be variable name)
+        if( in >> varName ) {
+            if( !reqEnvVar.unset(varName.c_str()) )
+                std::cerr << varName << " never set. nothing to unset\n";
+        } else
+            reqEnvVar.clear();
+    } else if( mode =="set" ) { // first argument is set (second argument must be variable name)
+        if( in >> varName ) {
+            outFP << "enter new value for " << varName << ":";
+            char buf[ 256 ];
+            fgets( buf,sizeof(buf)-1,stdin);
+            buf[ sizeof(buf)-1 ] =0;
+            strip_newline(buf);
+            reqEnvVar.setValue( varName.c_str(), BarzelBeadAtomic_var( BarzerString(buf) ) );
+            BarzerString shitString(buf);
+        }
+    } else { // get mode 
+        if( mode == "get" ) {
+            in >> mode;
+        }
+
+        for( auto i = reqEnvVar.getAllVars().begin(); i!= reqEnvVar.getAllVars().end(); ++i ) {
+            if( !mode.length() || strstr(i->first.c_str(), mode.c_str()) ) {
+                outFP << i->first  << "=" << i->second << std::endl;
+            }
+        }
+    }
+    return 0;
+}
+static int bshf_shenv( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
     const char* name = 0, *value = 0;
     std::string n, v;
 	if(in >> n) name=n.c_str();
@@ -1456,7 +1557,8 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_autoc, "autoc", "autocomplete" ),
 	CmdData( (ay::Shell_PROCF)bshf_bzspell, "bzspell", "bzspell correction for the user" ),
 	CmdData( (ay::Shell_PROCF)bshf_bzstem, "bzstem", "bz stemming correction for the user domain" ),
-	CmdData( (ay::Shell_PROCF)bshf_env, "env", "set env parameter. usage: env [name [value]]" ),
+	CmdData( (ay::Shell_PROCF)bshf_shenv, "shenv", "set shell environment parameter. usage: shenv [name [value]]" ),
+	CmdData( (ay::Shell_PROCF)bshf_env, "env", "set request environment parameter. usage: env [name [value]]" ),
 	CmdData( (ay::Shell_PROCF)bshf_dtaan, "dtaan", "data set analyzer. runs through the trie" ),
 	CmdData( (ay::Shell_PROCF)bshf_instance, "instance", "lists all users in the instance" ),
 	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),
@@ -1465,6 +1567,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_wordMeanings, "wordmeanings", "list meanings for a word" ),
 	CmdData( (ay::Shell_PROCF)bshf_listMeaning, "listmeaning", "list contents of a meaning" ),
 	CmdData( (ay::Shell_PROCF)bshf_allMeanings, "allmeanings", "get all meanings" ),
+	CmdData( (ay::Shell_PROCF)bshf_findEntities, "findents", "find entities near a point" ),
 	CmdData( (ay::Shell_PROCF)bshf_lex, "lex", "tokenize and then classify (lex) the input" ),
 	CmdData( (ay::Shell_PROCF)bshf_tokenize, "tokenize", "tests tokenizer" ),
 	CmdData( (ay::Shell_PROCF)bshf_xmload, "xmload", "loads xml from file" ),
@@ -1492,6 +1595,8 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_smf, "smf", "streamer mode flag: smf [ NAME [ON|OFF] ]" ),
 	CmdData( (ay::Shell_PROCF)bshf_stexpand, "stexpand", "expand and print all statements in a file" ),
 	CmdData( (ay::Shell_PROCF)bshf_strid, "strid", "resolve string id (usage strid id)" ),
+
+	CmdData( (ay::Shell_PROCF)bshf_process, "q", "process an input string" ),
 	CmdData( (ay::Shell_PROCF)bshf_process, "process", "process an input string" ),
 	CmdData( (ay::Shell_PROCF)bshf_process, "proc", "process an input string" ),
 	CmdData( (ay::Shell_PROCF)bshf_process, "проц", "process an input string" ),
