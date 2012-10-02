@@ -210,7 +210,7 @@ private:
 		auto lower = std::lower_bound(m_xpoints.begin(), upper, from, isXLessScalar<Point, Coord>);
 
 		out.reserve(out.size() + (upper - lower));
-		copy_if(lower, upper, std::back_inserter(out), pred);
+		ay::copy_if(lower, upper, std::back_inserter(out), pred);
 	}
 };
 }
