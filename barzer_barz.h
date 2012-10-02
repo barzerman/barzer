@@ -135,6 +135,7 @@ public:
 
     const LangArray& getUtf8Languages() const { return d_stemUtf8Lang; }
     void  addUtf8Language( int lang ) { d_stemUtf8Lang.push_back(lang); }
+    const StoredUniverse* getUniverse() const { return d_universe; }
 };
 
 // collection of punits and the original question
@@ -167,6 +168,7 @@ class Barz {
 
 	BarzHints m_hints;
     RequestEnvironment* d_serverReqEnv;
+    const char* getReqVarAsChars( const char* ) const;
 public:
 	enum { 
         MAX_TRACE_LEN = 256, 
@@ -175,7 +177,7 @@ public:
 
 	BarzelTrace barzelTrace;
     BarzTopics  topicInfo;
-    
+    const StoredUniverse* getUniverse() const { return m_hints.getUniverse(); } 
     Barz() : 
         d_origQuestionId(std::numeric_limits<uint64_t>::max()),
         d_serverReqEnv(0)
@@ -192,6 +194,13 @@ public:
     RequestVariableMap* getRequestVariableMap() ;
 
     bool getReqVarValue( BarzelBeadAtomic_var& v, const char* n ) const;
+    bool getReqVarValue( BarzerString& str, const char* n ) const;
+    bool hasReqVar( const char* ) const;
+    /// true if request variable n exists and is equal to val
+    bool hasReqVarEqualTo( const char* n, const char* val ) const;
+    /// true if request variable n exists and is NOT equal to val 
+    bool hasReqVarNotEqualTo( const char* n, const char* val ) const;
+
     const BarzelBeadAtomic_var*  getReqVarValue( const char* n ) const;
     void setReqVarValue( const char* n, const BarzelBeadAtomic_var& v );
     bool unsetReqVar( const char* n );

@@ -213,16 +213,10 @@ int BarzerAutocomplete::parse( const char* q )
     QParser parser(d_universe);
 	
 	boost::shared_ptr<AutocFilter> filterPtr;
-	{
-		BarzelBeadAtomic_var geoVar;
-		d_barz.getReqVarValue(geoVar, "geo::enableFilter");
-		if (geoVar.which() == BarzerString_TYPE &&
-				boost::get<BarzerString>(geoVar).getStr() != "false")
-		{
-			const auto& params = FilterParams::fromBarz(d_barz);
-			if (params.m_valid)
-				filterPtr.reset(new ProximityFilter(params, d_universe));
-		}
+	if( d_barz.hasVarNotEqualTo("geo::enableFilter","false") ) {
+        const auto& params = FilterParams::fromBarz(d_barz);
+        if (params.m_valid)
+            filterPtr.reset(new ProximityFilter(params, d_universe));
 	}
 
     AutocCallback<AutocNodeVisotor_Callback> acCB(parser, d_os );

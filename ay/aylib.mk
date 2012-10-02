@@ -16,7 +16,7 @@ CFLAGS := $(OPT) $(C0X) $(C11LIB) $(BITMODE) $(FLAGS) -Wall -g -I. -fpic -I../ -
 LIBNAME=libay.a
 SHARED_LIBNAME=libay.so
 
-objects=ay_translit_ru.o ay_keymaps.o ay_ngrams.o ay_xml_util.o ay_snowball.o ay_utf8.o ay_cmdproc.o ay_shell.o ay_util.o ay_string_pool.o ay_util_time.o ay_logger.o
+objects=ay_geo.o ay_translit_ru.o ay_keymaps.o ay_ngrams.o ay_xml_util.o ay_snowball.o ay_utf8.o ay_cmdproc.o ay_shell.o ay_util.o ay_string_pool.o ay_util_time.o ay_logger.o
 
 all: $(objects)
 	$(AR) -r  $(LIBNAME) $(objects)

@@ -28,6 +28,8 @@ struct RequestVariableMap {
             return false;
     }
 
+    bool hasVar( const char* n ) const 
+        { return( d_map.find(n) != d_map.end() ); }
     const BarzelBeadAtomic_var*  getValue( const char* n ) const 
     {
         auto i = d_map.find(n);

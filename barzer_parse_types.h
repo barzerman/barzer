@@ -379,6 +379,7 @@ public:
 
 	BarzerString(const char* s,size_t s_len, bool isFluff ) : str(s,s_len), d_stemStringId(0xffffffff), d_type(isFluff? T_NORMAL:T_FLUFF )  {}
 
+    void clear() { d_type= T_NORMAL; d_stemStringId=0xffffffff; str.clear(); }
     bool isFluff() const { return (d_type == T_FLUFF); }
     void setFluff()     { d_type = T_FLUFF; }
     void setNormal()    { d_type = T_NORMAL; }
@@ -386,6 +387,7 @@ public:
 	void setFromTTokens( const TTWPVec& v );
 
 	const std::string& getStr() const { return str; }
+    std::string& getStr() { return str; }
     char operator[]( const size_t i ) const { return ( (i<str.length()) ? str[i]: 0 ); }
 
     const char* c_str() const { return str.c_str(); }
@@ -393,7 +395,11 @@ public:
 	void setStr(const std::string &s) {	str = s; }
 	void setStr(const char *s) { str = s; }
 	void setStr(const char *s,size_t s_len) { str.assign(s,s_len); }
-    
+    BarzerString& assign( const char* s ) 
+        { return ( str.assign(s), *this ); }
+    BarzerString& operator =( const char* s ) { return assign(s); }
+    BarzerString& operator =( const std::string& s ) { return ( str=s,this); }
+
     const char* find_char( char c ) const {
         auto x = str.find(c);
         return( x == std::string::npos ? 0: str.c_str()+x );

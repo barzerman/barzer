@@ -39,6 +39,20 @@ struct BarzerAtomicCast {
         { return convert( n,s.c_str(), s.length() ); }
     Err_t convert( BarzerNumber& , const BarzerLiteral& )  const ;
     Err_t convert( BarzerNumber& n, const BarzelBeadAtomic_var& v )  const;
+
+    Err_t convert( BarzerString& n, const BarzelBeadAtomic_var& v )  const;
+
+    Err_t convert( BarzerString& n, const BarzerNumber& v )  const;
+    Err_t convert( BarzerString& n, const BarzerLiteral& v )  const;
+
+    template <typename T>
+    Err_t convert( T& n, const BarzelBeadAtomic_var& v )  const
+    {
+        if( const T* x = boost::get<typename T>(&v) )
+            return (n=*x,CASTERR_OK);
+        else 
+            return CASTERR_UNIMPLEMENTED;
+    }
 };
 
 } // namespace barzer

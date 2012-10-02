@@ -396,11 +396,10 @@ void BarzerRequestParser::raw_query_parse( const char* query )
         barz.topicInfo.computeTopTopics();
     }
 	qparser.parse( barz, query, qparm );
-	BarzelBeadAtomic_var geoVar;
-	barz.getReqVarValue(geoVar, "geo::enableFilter");
-	if (geoVar.which() == BarzerString_TYPE &&
-			boost::get<BarzerString>(geoVar).getStr() != "false")
-		proximityFilter(barz, *up);
+
+    if( barz.hasReqVarNotEqualTo("geo::enableFilter","false") )
+		    proximityFilter(barz, *up);
+
 	response.print(os);
     /// doing this just in case barz is reused 
     barz.clearWithTraceAndTopics();
@@ -511,13 +510,14 @@ void BarzerRequestParser::tag_autoc(RequestTag &tag)
     }
     d_query = tag.body.c_str();
 	
-	const auto numResVar = barz.getReqVarValue("numResults");
-	if (numResVar)
-	{
-		BarzerNumber num;
-		if (BarzerAtomicCast(d_universe).convert(num, *numResVar) == BarzerAtomicCast::CASTERR_OK)
-			qparm.autoc.numResults = num.getInt();
-	}
+    if( barz.hasReqVar("numResults") ) {
+	    const auto numResVar = barz.getReqVarValue("numResults");
+	    if (numResVar) {
+		    BarzerNumber num;
+		    if (BarzerAtomicCast(d_universe).convert(num, *numResVar) == BarzerAtomicCast::CASTERR_OK)
+			    qparm.autoc.numResults = num.getInt();
+	    }
+    }
     
     qparm.isAutoc = true;
     raw_autoc_parse( d_query.c_str(), qparm );

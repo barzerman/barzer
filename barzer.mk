@@ -37,6 +37,7 @@ libs = -Lay -Lsnowball -lay -lsnowlib -L/usr/local/lib -L/opt/local/lib -L/usr/l
 	$(BOOST_SYSLIB) $(BOOST_THREADLIB) -lexpat -lstdc++
 ECHO = echo
 lib_objects = \
+barzer_geoindex.o \
 barzer_el_cast.o \
 barzer_meaning.o \
 barzer_relbits.o \
