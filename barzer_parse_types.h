@@ -314,6 +314,8 @@ struct QuestionParm {
         /// when this is not empty only entities whose class/subclass match anything in the vector, will 
         /// be reported by autocomplete - this vector will be very small 
         std::vector< StoredEntityClass > ecVec;
+		
+		uint16_t numResults;
 
         bool hasSpecificTrie() const { return( trieClass != 0xffffffff && trieId != 0xffffffff ); }
         bool needOnlyTopic() const { return ( topicMode == TOPICMODE_TOPICS_ONLY ); }
@@ -349,7 +351,7 @@ struct QuestionParm {
             }
         }
 
-        AutocParm() : trieClass(0xffffffff), trieId(0xffffffff),  topicMode(TOPICMODE_RULES_ONLY)  {}
+        AutocParm() : trieClass(0xffffffff), trieId(0xffffffff), topicMode(TOPICMODE_RULES_ONLY), numResults(10)  {}
     } autoc;
 
     void setStemMode_Aggressive() { stemMode= STEMMODE_AGGRESSIVE; }
@@ -384,11 +386,18 @@ public:
 	void setFromTTokens( const TTWPVec& v );
 
 	const std::string& getStr() const { return str; }
+    char operator[]( const size_t i ) const { return ( (i<str.length()) ? str[i]: 0 ); }
+
     const char* c_str() const { return str.c_str(); }
+    size_t length() const { return str.length(); }
 	void setStr(const std::string &s) {	str = s; }
 	void setStr(const char *s) { str = s; }
 	void setStr(const char *s,size_t s_len) { str.assign(s,s_len); }
-
+    
+    const char* find_char( char c ) const {
+        auto x = str.find(c);
+        return( x == std::string::npos ? 0: str.c_str()+x );
+    }
 	std::ostream& print( std::ostream& fp ) const
 		{ return ( fp << "\"" <<str<< "\"" ); }
     void setStemStringId( uint32_t i ) { d_stemStringId = i; }

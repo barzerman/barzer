@@ -509,6 +509,19 @@ void BarzerRequestParser::tag_autoc(RequestTag &tag)
         }
     }
     d_query = tag.body.c_str();
+	
+	const auto numResVar = barz.getReqVarValue("numResults");
+	if (numResVar && numResVar->which() == BarzerString_TYPE)
+	{
+		try
+		{
+			const auto& str = boost::get<BarzerString>(*numResVar);
+			qparm.autoc.numResults = boost::lexical_cast<uint16_t>(str.getStr());
+		}
+		catch (...)
+		{
+		}
+	}
     
     qparm.isAutoc = true;
     raw_autoc_parse( d_query.c_str(), qparm );
