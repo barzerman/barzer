@@ -11,6 +11,7 @@ endif
 ifeq ($(UNAME),Darwin)
     BOOST_SYSLIB=/opt/local/lib/libboost_system-mt.dylib /opt/local/lib/libboost_filesystem-mt.dylib
     BOOST_THREADLIB=-lboost_thread-mt
+    C11LIB=-stdlib=libc++
 endif
 ifeq ($(IS32),yes)
 	BITMODE=-m32
@@ -20,7 +21,6 @@ endif
 #    C11=-std=c++0x
 #endif
 C11=-std=c++0x
-C11LIB=-stdlib=libc++
 ifeq ($(CC),clang++)
     CLANG_WARNSUPPRESS=-Wno-array-bounds
 endif
