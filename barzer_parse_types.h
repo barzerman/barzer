@@ -398,7 +398,7 @@ public:
     BarzerString& assign( const char* s ) 
         { return ( str.assign(s), *this ); }
     BarzerString& operator =( const char* s ) { return assign(s); }
-    BarzerString& operator =( const std::string& s ) { return ( str=s,this); }
+    BarzerString& operator =( const std::string& s ) { return ( str=s,*this); }
 
     const char* find_char( char c ) const {
         auto x = str.find(c);

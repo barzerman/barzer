@@ -54,7 +54,7 @@ BarzerAtomicCast::Err_t BarzerAtomicCast::convert( BarzerString& n , const Barze
 {
     std::stringstream sstr;
     sstr << l;
-    return ( n.assign( sstr.str() ), CASTERR_OK );
+    return ( n= sstr.str(), CASTERR_OK );
 }
 
 BarzerAtomicCast::Err_t BarzerAtomicCast::convert( BarzerString& n , const BarzerLiteral& l )  const 
@@ -74,7 +74,7 @@ namespace {
         VarVis_BarzerNumber( BarzerNumber& n, const BarzerAtomicCast& c ) : dest(n), caster(c) {}
      
         BarzerAtomicCast::Err_t operator()( const BarzerNumber& v ) { 
-            return(dest=v,true);
+            return(dest=v,BarzerAtomicCast::CASTERR_OK);
         }
         template <typename V>
         BarzerAtomicCast::Err_t operator()( const V& v ) { 
@@ -87,7 +87,7 @@ namespace {
         VarVis_BarzerString( BarzerString& n, const BarzerAtomicCast& c ) : dest(n), caster(c) {}
      
         BarzerAtomicCast::Err_t operator()( const BarzerString& v ) { 
-            return(dest=v,true);
+            return(dest=v,BarzerAtomicCast::CASTERR_OK);
         }
         template <typename V>
         BarzerAtomicCast::Err_t operator()( const V& v ) { 

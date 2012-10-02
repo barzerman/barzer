@@ -213,7 +213,7 @@ int BarzerAutocomplete::parse( const char* q )
     QParser parser(d_universe);
 	
 	boost::shared_ptr<AutocFilter> filterPtr;
-	if( d_barz.hasVarNotEqualTo("geo::enableFilter","false") ) {
+	if( d_barz.hasReqVarNotEqualTo("geo::enableFilter","false") ) {
         const auto& params = FilterParams::fromBarz(d_barz);
         if (params.m_valid)
             filterPtr.reset(new ProximityFilter(params, d_universe));

@@ -48,7 +48,7 @@ struct BarzerAtomicCast {
     template <typename T>
     Err_t convert( T& n, const BarzelBeadAtomic_var& v )  const
     {
-        if( const T* x = boost::get<typename T>(&v) )
+        if( const T* x = boost::get<T>(&v) )
             return (n=*x,CASTERR_OK);
         else 
             return CASTERR_UNIMPLEMENTED;

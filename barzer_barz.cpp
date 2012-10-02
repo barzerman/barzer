@@ -3,6 +3,7 @@
 #include <barzer_el_chain.h>
 #include <barzer_universe.h>
 #include <barzer_server.h>
+#include <barzer_el_cast.h>
 
 
 namespace barzer {
@@ -437,21 +438,21 @@ const char* Barz::getReqVarAsChars( const char* n ) const
     return 0;
         
 }
-bool hasReqVarEqualTo( const char* n, const char* val ) const
+bool Barz::hasReqVarEqualTo( const char* n, const char* val ) const
 {
     if( const RequestEnvironment* p = getServerReqEnv() ) {
        const BarzelBeadAtomic_var*  v =  p->getReqVar().getValue(n);
        if( const BarzerString* s = boost::get<BarzerString>(v) ) 
-           return (s==val);
+           return (s->getStr()==val);
     }
     return false;
 }
-bool hasReqVarNotEqualTo( const char* n, const char* val ) const
+bool Barz::hasReqVarNotEqualTo( const char* n, const char* val ) const
 {
     if( const RequestEnvironment* p = getServerReqEnv() ) {
        const BarzelBeadAtomic_var*  v =  p->getReqVar().getValue(n);
        if( const BarzerString* s = boost::get<BarzerString>(v) ) 
-           return (s!=val);
+           return (s->getStr()!=val);
     }
     return false;
 }
