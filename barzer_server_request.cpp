@@ -8,14 +8,14 @@
 #include <barzer_server_request.h>
 #include <boost/assign.hpp>
 #include <boost/mem_fn.hpp>
-#include <boost/lexical_cast.hpp>
 #include <cstdlib>
 #include <barzer_universe.h>
 #include <barzer_autocomplete.h>
 #include <barzer_ghettodb.h>
 #include <ay/ay_parse.h>
 #include <barzer_barzxml.h>
-#include "barzer_server_response.h"
+#include <barzer_server_response.h>
+#include <barzer_el_cast.h>
 
 extern "C" {
 
@@ -507,8 +507,9 @@ void BarzerRequestParser::tag_autoc(RequestTag &tag)
 	{
 		try
 		{
-			const auto& str = boost::get<BarzerString>(*numResVar);
-			qparm.autoc.numResults = boost::lexical_cast<uint16_t>(str.getStr());
+			BarzerNumber num;
+			if (BarzerAtomicCast().convert(num, boost::get<BarzerString>(*numResVar)) == BarzerAtomicCast::CASTERR_OK)
+				qparm.autoc.numResults = num.getUint32();
 		}
 		catch (...)
 		{
