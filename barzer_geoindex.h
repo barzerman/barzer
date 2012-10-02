@@ -9,6 +9,26 @@ namespace barzer
 {
 typedef ay::geo::GeoIndex<ay::geo::Point, StoredEntityId> GeoIndex_t;
 
+class SerializingCB
+{
+	std::vector<uint32_t>& m_out;
+	size_t m_counter;
+	const size_t m_max;
+public:
+	SerializingCB(std::vector<uint32_t>& out, size_t num)
+	: m_out(out)
+	, m_counter(0)
+	, m_max(num)
+	{
+	}
+	
+	bool operator()(const GeoIndex_t::Point& p)
+	{
+		m_out.push_back(p.getPayload());
+		return ++m_counter < m_max;
+	}
+};
+
 class BarzerGeo
 {
 	GeoIndex_t m_idx;
@@ -25,26 +45,6 @@ public:
 	void findEntities(std::vector<uint32_t>& out, const Point_t& center,
 			const Pred& pred, GeoIndex_t::Coord_t dist, size_t num = std::string::npos) const
 	{
-		class SerializingCB
-		{
-			std::vector<uint32_t>& m_out;
-			size_t m_counter;
-			const size_t m_max;
-		public:
-			SerializingCB(std::vector<uint32_t>& out, size_t num)
-			: m_out(out)
-			, m_counter(0)
-			, m_max(num)
-			{
-			}
-			
-			bool operator()(const Point_t& p)
-			{
-				m_out.push_back(p.getPayload());
-				return ++m_counter < m_max;
-			}
-		};
-		
 		return m_idx.findPoints(center, SerializingCB(out, num), pred, dist);
 	}
 	
