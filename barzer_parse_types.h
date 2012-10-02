@@ -315,7 +315,7 @@ struct QuestionParm {
         /// be reported by autocomplete - this vector will be very small 
         std::vector< StoredEntityClass > ecVec;
 		
-		uint16_t numResults;
+		uint32_t numResults;
 
         bool hasSpecificTrie() const { return( trieClass != 0xffffffff && trieId != 0xffffffff ); }
         bool needOnlyTopic() const { return ( topicMode == TOPICMODE_TOPICS_ONLY ); }
