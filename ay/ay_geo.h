@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <vector>
 #include <iostream>
+#include <ay_util.h>
 
 namespace ay
 {
@@ -209,7 +210,7 @@ private:
 		auto lower = std::lower_bound(m_xpoints.begin(), upper, from, isXLessScalar<Point, Coord>);
 
 		out.reserve(out.size() + (upper - lower));
-		std::copy_if(lower, upper, std::back_inserter(out), pred);
+		copy_if(lower, upper, std::back_inserter(out), pred);
 	}
 };
 }
