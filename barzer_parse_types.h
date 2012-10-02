@@ -386,11 +386,18 @@ public:
 	void setFromTTokens( const TTWPVec& v );
 
 	const std::string& getStr() const { return str; }
+    char operator[]( const size_t i ) const { return ( (i<str.length()) ? str[i]: 0 ); }
+
     const char* c_str() const { return str.c_str(); }
+    size_t length() const { return str.length(); }
 	void setStr(const std::string &s) {	str = s; }
 	void setStr(const char *s) { str = s; }
 	void setStr(const char *s,size_t s_len) { str.assign(s,s_len); }
-
+    
+    const char* find_char( char c ) const {
+        auto x = str.find(c);
+        return( x == std::string::npos ? 0: str.c_str()+x );
+    }
 	std::ostream& print( std::ostream& fp ) const
 		{ return ( fp << "\"" <<str<< "\"" ); }
     void setStemStringId( uint32_t i ) { d_stemStringId = i; }

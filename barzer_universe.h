@@ -277,6 +277,9 @@ public:
 	BELTrie* produceTrie( uint32_t trieClass, uint32_t trieId )
         { return globalTriePool.produceTrie( trieClass, trieId ) ; }
 
+    const char* resolveLiteral( const BarzerLiteral& l ) const
+        { return stringPool.resolveId(l.getId()); }
+
     void init_cmdline( ay::CommandLineArgs & );
 	const GlobalTriePool& getTriePool() const { return  globalTriePool; }
 };
@@ -564,6 +567,8 @@ public:
     
     Ghettodb&       getGhettodb()       { return *d_ghettoDb; }
     const Ghettodb& getGhettodb() const { return *d_ghettoDb; }
+    const char* resolveLiteral( const BarzerLiteral& l ) const
+        { return gp.resolveLiteral(l);}
 };
 
 inline StoredUniverse& GlobalPools::produceUniverse( uint32_t id )
