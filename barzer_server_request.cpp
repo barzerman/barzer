@@ -17,6 +17,7 @@
 #include <barzer_server_response.h>
 #include <barzer_geoindex.h>
 #include <barzer_el_cast.h>
+#include <boost/lexical_cast.hpp>
 
 extern "C" {
 
