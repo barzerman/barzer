@@ -436,10 +436,12 @@ static int bshf_findEntities(BarzerShell *shell, char_cp cmd, std::istream& in)
 				shell->getOutStream() << "\tinvalid entity " << ents[i] << std::endl;
 				continue;
 			}
-			shell->getOutStream() << "\t" << ent->getClass() << " " << ent->getSubclass() << std::endl;
+			shell->getOutStream() << "\t" << ents[i] << "; class/subclass: " << ent->getClass() << " " << ent->getSubclass() << std::endl;
 		}
 		shell->getOutStream() << "}" << std::endl;
 	}
+	
+	return 0;
 }
 
 static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )

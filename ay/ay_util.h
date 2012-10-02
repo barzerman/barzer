@@ -283,6 +283,18 @@ inline void zerosort(Iter begin, Iter end, const Comparator& comp)
     std::stable_sort(out, end, comp);
 }
 
+template<typename Input, typename Output, typename Pred>
+Output copy_if(Input first, Input last, Output result, Pred pred)
+{
+	for (; first != last; ++first)
+		if (pred(*first))
+		{
+			*result = *first;
+			++result;
+		}
+	return result;
+}
+
 } // ay namespace
 
 #endif

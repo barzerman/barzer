@@ -3,17 +3,63 @@
 #include <algorithm>
 #include <vector>
 #include <iostream>
+#include <ay_util.h>
 
 namespace ay
 {
 namespace geo
 {
+enum Unit
+{
+	Degree,
+	Metre,
+	Kilometre,
+	Mile,
+	MAX,
+	Invalid
+};
+
+Unit unitFromString(std::string);
+
+template<typename Coord>
+Coord convertUnit(Coord unit, Unit from, Unit to)
+{
+	if (from == to || from >= Unit::MAX || to >= Unit::MAX)
+		return unit;
+	
+	const double circum = 40000; // somewhat average circumference in km
+	const double kmPerDeg = circum / 360;
+	const double mPerDeg = 1000 * kmPerDeg;
+	
+	const double kmPerMile = 1.609344;
+	const double milePerKm = 1 / kmPerMile;
+	const double milePerDeg = kmPerDeg / kmPerMile;
+	
+	// diag(m_coeffs) should be identity matrix, obv, and a[i][j] = 1 / a[j][i].
+	const double m_coeffs [Unit::MAX] [Unit::MAX] =
+	{
+		{ 1, 				mPerDeg,			kmPerDeg,	milePerDeg },					// degree to { degree, metre, kilometre, mile }
+		{ 1 / mPerDeg,		1,					0.001,		0.001 * milePerKm},				// metre to { degree, metre, kilometre, mile }
+		{ 1 / kmPerDeg,		1000,				1,			milePerKm },					// kilometre to { degree, metre, kilometre, mile }
+		{ 1 / milePerDeg,	1000 * kmPerMile,	kmPerMile,	1 }								// mile to { degree, metre, kilometre, mile }
+	};
+	
+	return unit * m_coeffs [from] [to];
+}
+
 template<typename PayloadT, typename Coord = double>
 class Point
 {
 	Coord m_x, m_y;
 	PayloadT m_payload;
 public:
+	Point()
+	: m_x(Coord())
+	, m_y(Coord())
+	, m_payload(PayloadT())
+	{
+	}
+	
 	Point(Coord x, Coord y, PayloadT payload = PayloadT())
 	: m_x(x)
 	, m_y(y)
@@ -88,7 +134,7 @@ public:
 	}
 
 	template<typename CallbackT, typename PredT>
-	void findPoints(const Point& center, CallbackT cb, const PredT& pred, Coord maxDist) const
+	void findPoints(const Point& center, CallbackT cb, const PredT& pred, Coord maxDist, bool sort = true) const
 	{
 		Points_t sub;
 
@@ -132,25 +178,28 @@ public:
 			addPointsInDist(sub, 0, upX - m_wrapAround, copyPred);
 		}
 
-		struct Sorter
+		if (sort)
 		{
-			const Point& m_p;
-			Coord m_wrap;
-			Sorter(const Point& p, Coord wrap)
-			: m_p(p)
-			, m_wrap(wrap)
-			{}
-
-			bool operator()(const Point& left, const Point& right) const
+			struct Sorter
 			{
-				return wrapDist(m_p, left, m_wrap) < wrapDist(m_p, right, m_wrap);
-			}
-		};
-		std::sort(sub.begin(), sub.end(), Sorter(center, shouldWrap ? m_wrapAround : 0));
+				const Point& m_p;
+				Coord m_wrap;
+				Sorter(const Point& p, Coord wrap)
+				: m_p(p)
+				, m_wrap(wrap)
+				{}
+
+				bool operator()(const Point& left, const Point& right) const
+				{
+					return wrapDist(m_p, left, m_wrap) < wrapDist(m_p, right, m_wrap);
+				}
+			};
+			std::sort(sub.begin(), sub.end(), Sorter(center, shouldWrap ? m_wrapAround : 0));
+		}
 
 		const auto powedDist = maxDist * maxDist;
 		for (auto i = sub.begin(); i != sub.end(); ++i)
-			if (wrapDist(*i, center, shouldWrap ? m_wrapAround : 0) >= powedDist || !cb(*i))
+			if ((sort && wrapDist(*i, center, shouldWrap ? m_wrapAround : 0) >= powedDist) || !cb(*i))
 				break;
 	}
 private:
@@ -161,7 +210,7 @@ private:
 		auto lower = std::lower_bound(m_xpoints.begin(), upper, from, isXLessScalar<Point, Coord>);
 
 		out.reserve(out.size() + (upper - lower));
-		std::copy_if(lower, upper, std::back_inserter(out), pred);
+		copy_if(lower, upper, std::back_inserter(out), pred);
 	}
 };
 }
