@@ -38,6 +38,7 @@ struct BarzerAtomicCast {
     Err_t convert( BarzerNumber& n, const BarzerString& s)  const 
         { return convert( n,s.c_str(), s.length() ); }
     Err_t convert( BarzerNumber& , const BarzerLiteral& )  const ;
+    Err_t convert( BarzerNumber& n, const BarzelBeadAtomic_var& v )  const;
 };
 
 } // namespace barzer

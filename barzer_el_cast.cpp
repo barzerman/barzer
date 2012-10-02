@@ -51,4 +51,19 @@ BarzerAtomicCast::Err_t BarzerAtomicCast::convert( BarzerNumber& n , const Barze
     return ( n.setInt((int)0), CASTERR_OK );
 }
 
+namespace {
+    struct VarVis : public boost::static_visitor<BarzerAtomicCast::Err_t> {
+     const BarzerAtomicCast& caster;
+     BarzerNumber& dest;
+     VarVis( BarzerNumber& n, const BarzerAtomicCast& c ) : dest(n), caster(c) {}
+
+     template <typename V>
+     BarzerAtomicCast::Err_t operator()( const V& v ) { return caster.convert(dest, v );          }
+    };
+}
+BarzerAtomicCast::Err_t BarzerAtomicCast::convert( BarzerNumber& n, const BarzelBeadAtomic_var& v )  const
+{
+    VarVis vis( n, *this );
+    return boost::apply_visitor( vis, v );
+}
 } // namespace barzer 
