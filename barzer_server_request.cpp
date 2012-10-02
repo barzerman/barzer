@@ -505,15 +505,9 @@ void BarzerRequestParser::tag_autoc(RequestTag &tag)
 	const auto numResVar = barz.getReqVarValue("numResults");
 	if (numResVar && numResVar->which() == BarzerString_TYPE)
 	{
-		try
-		{
-			BarzerNumber num;
-			if (BarzerAtomicCast().convert(num, boost::get<BarzerString>(*numResVar)) == BarzerAtomicCast::CASTERR_OK)
-				qparm.autoc.numResults = num.getUint32();
-		}
-		catch (...)
-		{
-		}
+		BarzerNumber num;
+		if (BarzerAtomicCast().convert(num, boost::get<BarzerString>(*numResVar)) == BarzerAtomicCast::CASTERR_OK)
+			qparm.autoc.numResults = num.getUint32();
 	}
     
     qparm.isAutoc = true;
