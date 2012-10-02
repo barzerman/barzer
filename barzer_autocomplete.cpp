@@ -1,4 +1,4 @@
-#include <memory>
+#include <boost/shared_ptr.hpp>
 #include <barzer_autocomplete.h>
 #include <barzer_barz.h>
 #include <barzer_el_matcher.h>
@@ -212,7 +212,7 @@ int BarzerAutocomplete::parse( const char* q )
     BestEntities bestEnt(d_qparm.autoc.numResults);
     QParser parser(d_universe);
 	
-	std::unique_ptr<AutocFilter> filterPtr;
+	boost::shared_ptr<AutocFilter> filterPtr;
 	{
 		BarzelBeadAtomic_var geoVar;
 		d_barz.getReqVarValue(geoVar, "geo::enableFilter");
