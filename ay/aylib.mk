@@ -1,3 +1,5 @@
+UNAME := $(shell uname -a | cut -d' ' -f1)
+
 FLAGS := $(FLAGS) 
 ifeq ($(IS64),yes)
 	BITMODE=-m64
@@ -7,11 +9,10 @@ ifeq ($(IS32),yes)
 endif 
 
 ifeq ($(UNAME),Darwin)
-    C11LIB=-stdlib=libc++
+    C11LIB_SHIT=-stdlib=libc++
 endif
-
-C0x=-std=c++0x
-CFLAGS := $(OPT) $(C0x) $(C11LIB) $(BITMODE) $(FLAGS) -Wall -g -I. -fpic -I../ -I/usr/local/include -I/opt/local/include -Wno-parentheses
+C0X=-std=c++0x
+CFLAGS := $(OPT) $(C0X) $(C11LIB) $(BITMODE) $(FLAGS) -Wall -g -I. -fpic -I../ -I/usr/local/include -I/opt/local/include -Wno-parentheses
 LIBNAME=libay.a
 SHARED_LIBNAME=libay.so
 
@@ -20,7 +21,7 @@ objects=ay_translit_ru.o ay_keymaps.o ay_ngrams.o ay_xml_util.o ay_snowball.o ay
 all: $(objects)
 	$(AR) -r  $(LIBNAME) $(objects)
 shared: $(objects)
-	$(CC) -shared -Wl,-soname,$(SHARED_LIBNAME) -o $(SHARED_LIBNAME) $(objects)
+	$(CC) $(C0X) $(C11LIB) -shared -Wl,-soname,$(SHARED_LIBNAME) -o $(SHARED_LIBNAME) $(objects)
 test: $(LIBNAME)
 	$(CC) -o testay testay.cpp $(CFLAGS) -L. -lay $(C11LIB)
 clean: 
