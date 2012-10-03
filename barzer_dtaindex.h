@@ -253,7 +253,7 @@ public:
 	~DtaIndex();
 	DtaIndex( GlobalPools&, ay::UniqueCharPool* ); // must be a global pool
 
-	int loadEntities_XML( const char* fileName );
+	int loadEntities_XML( const char* fileName, StoredUniverse* universe );
 
 	inline const StoredEntity* getEntByEuid( const StoredEntityUniqId& euid ) const
 		{ return entPool.getEntByEuid(euid); }

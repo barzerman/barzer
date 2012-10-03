@@ -55,6 +55,11 @@ public:
 	 */
 	bool proximityFilter(const StoredEntityId& singleEnt,
 			const Point_t& center, GeoIndex_t::Coord_t dist) const;
+    void clear()
+        { 
+            m_entity2point.clear(); 
+            m_idx.clear();
+        }
 };
 
 struct FilterParams

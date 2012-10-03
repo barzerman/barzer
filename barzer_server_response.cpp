@@ -354,7 +354,7 @@ public:
 			os << "INVALID_TOK[" << euid.eclass << "," << std::hex << euid.tokId << "]";
 		}
 
-        const EntityData::EntProp* edata = universe.getGlobalPools().entData.getEntPropData( euid );
+        const EntityData::EntProp* edata = universe.getEntPropData( euid );
         if( edata ) { 
             if( edata->canonicName.length() ) 
                 xmlEscape( edata->canonicName.c_str(), os << "n=\"" ) << "\" ";
@@ -667,8 +667,6 @@ std::ostream& AutocStreamerJSON::print(std::ostream &os) const
     const BestEntities::EntWeightMap& entWMap = bestEnt.getEntitiesAndWeights();
     os << "{\"data\":[";
     const GlobalPools& gp = universe.getGlobalPools();
-    const EntityData& entDta = gp.entData;
-
     for( BestEntities::EntWeightMap::const_iterator i = entWMap.begin(); i!= entWMap.end(); ++i ) {
         const BarzerEntity& euid = i->second;
         const BestEntities_EntWeight& eweight = i->first;
@@ -677,7 +675,7 @@ std::ostream& AutocStreamerJSON::print(std::ostream &os) const
 		if( tokname ) {
             os<< ( i != entWMap.begin() ? ",":"" ) << "\n{";
 			jsonEscape(tokname, os << "\"id\":\"") << "\"";
-            const EntityData::EntProp* edata = entDta.getEntPropData( euid );
+            const EntityData::EntProp* edata = universe.getEntPropData( euid );
             uint32_t eclass = euid.eclass.ec, esubclass = euid.eclass.subclass;
             os << ",\"cl\":\"" << std::dec << eclass<< "\"," << "\"sc\":\"" << esubclass << 
             "\",\"ord\":\"" << eweight.pathLen << "." << eweight.relevance << "\"";

@@ -18,12 +18,14 @@ namespace barzer
 	
 	class BarzerLocale
 	{
+    protected:
 		std::string m_name;
 	public:
 		static BarzerLocale_ptr makeLocale(const std::string&);
 
 		virtual ~BarzerLocale();
 
+		virtual void clear() { m_name.clear(); }
 		virtual char realSeparator() const = 0;
 		virtual std::string dateTimeFormat() const = 0;
 	};

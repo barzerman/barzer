@@ -140,9 +140,9 @@ void DtaIndex::printStoredToken( std::ostream& fp, StoredTokenId id ) const
 		fp << "UNDEFINED";
 }
 
-int DtaIndex::loadEntities_XML( const char* fileName )
+int DtaIndex::loadEntities_XML( const char* fileName, StoredUniverse* universe )
 {
-	EntityLoader_XML xmlLoader(d_gp,this);
+	EntityLoader_XML xmlLoader(d_gp,universe,this);
 	return xmlLoader.readFile( fileName );
 }
 

@@ -240,7 +240,8 @@ static int bshf_xmload( BarzerShell* shell, char_cp cmd, std::istream& in )
 	while( in >> tmp ) {
 		ay::stopwatch tmr;
 		const char* fname = tmp.c_str();
-		dtaIdx->loadEntities_XML( fname );
+
+		dtaIdx->loadEntities_XML( fname, &(context->getUniverse()) );
 		std::cerr << "done in " << tmr.calcTime() << " seconds\n";
 	}
 	std::cerr << "All done in " << totalTimer.calcTime() << " seconds\n";

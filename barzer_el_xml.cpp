@@ -1401,17 +1401,22 @@ DEFINE_BELParserXML_taghandle(MKENT)
     GlobalPools& gp = reader->getGlobalPools();
     uint32_t idStrId = reader->getGlobalPools().internString_internal(idStr) ;
 	const StoredEntity& ent  = gp.getDtaIdx().addGenericEntity( idStrId, eclass, subclass );
+    StoredUniverse* universe = getReader()->getCurrentUniverse();
+    const uint32_t curUserId = universe->getUserId();
+
 	if (rawCoord)
 	{
 		std::pair<double, double> coords;
-		if (parseCoord(rawCoord, coords))
-			getReader()->getCurrentUniverse()->getGeo()->addEntity(ent, coords);
-		else
+		if (parseCoord(rawCoord, coords)) {
+			if( universe ) 
+                universe->getGeo()->addEntity(ent, coords);
+		} else
 			AYLOG(ERROR) << "failed to parse coords for entity "
 					<< ent.getClass() << " "
 					<< ent.getSubclass() << " "
 					<< (canonicName ? canonicName : "<no name>");
 	}
+    
 	mkent.setEntId( ent.entId );
     statement.setCurEntity( ent.getEuid() );
     if( statement.hasPattern() || statement.isProc() ) {
@@ -1421,7 +1426,8 @@ DEFINE_BELParserXML_taghandle(MKENT)
     bool isTrivialRewrite = ( statement.stmt.translation.getTrivialRewriteData() != 0 );
     /// adding deduced entity name 
     if( isTrivialRewrite &&  !reader->is_noCanonicalNames() ) {
-        EntityData::EntProp* eprop = gp.entData.getEntPropData(ent.getEuid());
+        EntityData::EntProp* eprop = ( universe ? universe->getEntPropData(ent.getEuid()) : gp.getEntPropData(ent.getEuid()) );
+
         if( !eprop || canonicName || !eprop->is_nameExplicit() ) {
             std::string theName;
             if( !canonicName || !*canonicName ) {
@@ -1431,7 +1437,11 @@ DEFINE_BELParserXML_taghandle(MKENT)
             } else 
                 theName.assign(canonicName);
             
-            eprop= gp.entData.setEntPropData( ent.getEuid(), theName.c_str(), relevance, (canonicName!=0) );
+            if( universe&& curUserId )
+                eprop= universe->setEntPropData( ent.getEuid(), theName.c_str(), relevance, (canonicName!=0) );
+            else 
+                eprop= gp.setEntPropData( ent.getEuid(), theName.c_str(), relevance, (canonicName!=0) );
+
             if( canonicName && eprop ) 
                 eprop->set_nameExplicit();
         }
@@ -1443,7 +1453,7 @@ DEFINE_BELParserXML_taghandle(MKENT)
         BELTrie& trie = reader->getTrie();
         trie.linkEntToTopic( topicEnt.getEuid(), ent.getEuid(), topicStrength );
         if( topicRelevance || topicCanonicName ) {
-            EntityData::EntProp* eprop = gp.entData.setEntPropData( topicEnt.getEuid(), topicCanonicName, topicRelevance );
+            EntityData::EntProp* eprop = ( universe ? universe->getEntPropData(ent.getEuid()) : gp.getEntPropData(ent.getEuid()) );
             if( topicCanonicName && eprop ) 
                 eprop->set_nameExplicit();
         }

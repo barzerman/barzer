@@ -98,7 +98,7 @@ void BarzerSettings::addDictionaryFile(const char *fname)
 void BarzerSettings::addEntityFile(const char *fname)
 {
 	// entityFiles.push_back(fname);
-	gpools.getDtaIdx().loadEntities_XML(fname);
+	gpools.getDtaIdx().loadEntities_XML(fname,getCurrentUniverse());
 }
 
 StoredUniverse* BarzerSettings::setCurrentUniverse(User& u )
@@ -306,7 +306,7 @@ void BarzerSettings::loadEntities() {
 	BOOST_FOREACH(const ptree::value_type &v, ents) {
         if( v.first == "prop" ) {
             const char* propFileName = v.second.data().c_str() ;
-            gpools.entData.readFromFile( gpools, propFileName );
+            gpools.getEntData().readFromFile( gpools, propFileName );
         } else
 		    addEntityFile(v.second.data().c_str());
 	}

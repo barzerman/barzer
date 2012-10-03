@@ -130,7 +130,10 @@ void EntityLoader_XML::handle_entity_open( Tag_t parentTag, const char_cp * attr
 		// dtaIdx->addTokenToEntity( *idTok_p, *d_curEnt, ord, teli );
 	}
     if( hasEntityData ) {
-        d_gp.entData.setEntPropData( euid, canonicName, relevance );
+        if( !d_universe || !d_universe->getUserId() ) 
+            d_gp.setEntPropData( euid, canonicName, relevance );
+        else 
+            d_universe->setEntPropData( euid, canonicName, relevance );
     }
 }
 
@@ -352,8 +355,9 @@ void EntityLoader_XML::resetParsingContext()
 	d_curTELI = TokenEntityLinkInfo();
 }
 
-EntityLoader_XML::EntityLoader_XML(GlobalPools& gp, DtaIndex* di):
+EntityLoader_XML::EntityLoader_XML(GlobalPools& gp, StoredUniverse* uni, DtaIndex* di):
     d_gp(gp),
+    d_universe(uni),
 	parser(0),
 	dtaIdx(di),
 	d_curEnt(0),

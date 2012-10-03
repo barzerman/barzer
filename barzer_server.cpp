@@ -209,8 +209,7 @@ int proc_CLEAR_USER( RequestEnvironment& reqEnv, GlobalPools& gp, const char* st
     } else {
         reqEnv.outStream << "<info>Cleared universe for userid " <<  userId << "</info>";
         StoredUniverse::WriteLock universe_lock( uni->getMutex() );
-        uni->clearTrieList();
-        uni->clearSpelling();
+        uni->clear();
     }
     return 0;
 }

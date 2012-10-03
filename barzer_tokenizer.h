@@ -32,6 +32,12 @@ struct TokenizerStrategy {
     int getType() const { return type; }
     TokenizerStrategy() : type(STRAT_TYPE_DEFAULT) {}
     void setType( int i ) { type = i; }
+    
+    void clear()
+    {
+        type=STRAT_TYPE_DEFAULT;
+        d_ruleset.clear();
+    }
 };
 
 /// converts input const char* quesion

@@ -157,7 +157,29 @@ class GlobalPools {
 
 	ay::UTF8TopicModelMgr *m_utf8langModelMgr;
 	ay::ASCIITopicModelMgr *m_asciiLangModelMgr;
+
+    EntityData entData; // canonic names and relevance
 public:
+    EntityData& getEntData() { return entData; }
+    const EntityData& getEntData() const { return entData; }
+    EntityData::EntProp*  setEntPropData( const StoredEntityUniqId& euid, const char* name, uint32_t rel, bool overrideName=false ) 
+        { return entData.setEntPropData(euid, name,rel, overrideName); }
+    const EntityData::EntProp* getEntPropData( const BarzerEntity& ent ) const 
+        { return entData.getEntPropData(ent); }
+    EntityData::EntProp* getEntPropData( const BarzerEntity& ent )
+        { return entData.getEntPropData(ent); }
+
+    uint32_t getEntityRelevance( const BarzerEntity& ent ) const
+    {
+        if( const EntityData::EntProp* eprop = getEntPropData(ent) )
+            return eprop->relevance;
+
+        return 0;
+    }
+    bool isGenericEntity( const BarzerEntity& ent ) const
+    {
+        return ( ent.getEntityClass() );
+    }
 	inline ay::UTF8TopicModelMgr* getUTF8LangMgr() const { return m_utf8langModelMgr; }
 	inline ay::ASCIITopicModelMgr* getASCIILangMgr() const { return m_asciiLangModelMgr; }
 
@@ -184,7 +206,6 @@ public:
 
 	/// every client's domain has this
 	DtaIndex dtaIdx; // entity-token links
-    EntityData entData; // canonic names and relevance
 
 	BarzelCompWordPool compWordPool; /// compounded words pool
 	BELFunctionStorage funSt;
@@ -343,12 +364,33 @@ public:
         UBIT_MAX
     };
 private:
+    EntityData entData; // canonic names and relevance
     ay::bitflags<UBIT_MAX> d_biflags;
 public:
+    EntityData::EntProp*  setEntPropData( const StoredEntityUniqId& euid, const char* name, uint32_t rel, bool overrideName=false ) 
+        { return entData.setEntPropData(euid, name,rel, overrideName); }
+
+    const EntityData::EntProp* getEntPropData( const BarzerEntity& ent ) const 
+    {
+        if( const EntityData::EntProp* eprop = entData.getEntPropData(ent) ) 
+            return eprop;
+        else if( gp.isGenericEntity(ent) ) 
+            return gp.getEntPropData(ent);
+        else
+            return 0;
+    }
+    EntityData::EntProp* getEntPropData( const BarzerEntity& ent ) 
+        { 
+            return const_cast<EntityData::EntProp*>( const_cast<const StoredUniverse*>(this)->getEntPropData(ent) );
+        }
     uint32_t getEntityRelevance( const BarzerEntity& ent ) const
     {
-        EntityData::EntProp* eprop = gp.entData.getEntPropData(ent);
-        return( eprop ? eprop->relevance : 0 );
+        if( const EntityData::EntProp* eprop = entData.getEntPropData(ent) ) {
+            return eprop->relevance;
+        } else if( gp.isGenericEntity(ent) ) {
+            return gp.getEntityRelevance(ent);
+        } else 
+            return 0;
     }
     const std::string& userName() const { return d_userName; }
     void setUserName(const char* n) { d_userName.assign(n); }
@@ -396,6 +438,8 @@ public:
 	BZSpell* initBZSpell( const StoredUniverse* secondaryUniverse = 0);
     // clears the dictionary
     void clearSpelling();
+    void clearMeanings();
+    void clearGeo();
 	/// result of spelling correction is in out
 	/// it attempts to do first pass spelling correction (that is correction to a word known to the user)
 	/// uses bzSpell

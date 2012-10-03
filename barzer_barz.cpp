@@ -284,9 +284,9 @@ struct EntityRelevanceEstimator {
 
     /// compares relevances 
     bool operator()( const BarzerEntity& l, const BarzerEntity& r ) const {
-        const EntityData::EntProp* rd = universe.getGlobalPools().entData.getEntPropData( r );
+        const EntityData::EntProp* rd = universe.getEntPropData( r );
         if( rd ) {
-            const EntityData::EntProp* ld = universe.getGlobalPools().entData.getEntPropData( l );
+            const EntityData::EntProp* ld = universe.getEntPropData( l );
             if( ld ) 
                 return( ld->relevance < rd->relevance );
             else 
@@ -295,7 +295,7 @@ struct EntityRelevanceEstimator {
             return false;
     }
     bool operator()( const BarzerEntity& l) const {
-        const EntityData::EntProp* ld = universe.getGlobalPools().entData.getEntPropData( l );
+        const EntityData::EntProp* ld = universe.getEntPropData( l );
         return( !ld || !ld->relevance );
     }
 };

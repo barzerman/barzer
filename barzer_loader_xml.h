@@ -26,6 +26,7 @@ struct EntityLoader_EntListFlags  {
 
 struct EntityLoader_XML {
     GlobalPools& d_gp;
+    StoredUniverse* d_universe;
 	XML_ParserStruct* parser; // initialized in constructor, deleted in destru
 	DtaIndex* dtaIdx;
 	/// tags and attributes are case sensitive - everything is in lower case
@@ -104,7 +105,7 @@ struct EntityLoader_XML {
 		ELXML_ERR_PARSER,   // failed to create parser
 		ELXML_ERR_FILE   // failed to open file
 	};
-	EntityLoader_XML(GlobalPools&gp, DtaIndex*);
+	EntityLoader_XML(GlobalPools&gp, StoredUniverse* uni, DtaIndex*);
 	// initializes the parser. returns 0 if success
 	int init();
 

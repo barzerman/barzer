@@ -157,6 +157,8 @@ private:
 	Points_t m_xpoints;
 public:
 	GeoIndex(Coord wrapAround = 0) : m_wrapAround(wrapAround) {}
+    void clear() 
+        { m_xpoints.clear(); }
 
 	void addPoint(const Point& point)
 	{

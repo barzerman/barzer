@@ -27,7 +27,8 @@ private:
 
     void mkValue( Value& v, const ay::char_cp& x ) { v = d_strPool.internIt( x ); }
 public: 
-    
+    void clear() { d_kvMap.clear(); }
+
     void mkKey( Key& key, const StoredEntityUniqId& euid, const char* s ) 
     {
         key.first = euid;

@@ -139,6 +139,11 @@ public:
     std::ostream& print(std::ostream&) const;
 
     bool hasLang( int16_t i ) const { return (getLangCounter(i)> 0); }
+    void clear() 
+    {
+        for( LangInfo* i= langInfo, *i_end = i+getMaxLang(); i< i_end; ++i ) 
+            i->clear();
+    }
 };
 std::ostream& operator<< ( std::ostream& fp, const LangInfo& );
 

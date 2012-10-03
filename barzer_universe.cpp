@@ -279,14 +279,40 @@ void UniverseTrieCluster::clearTries()
 	}
 }
 
+void StoredUniverse::clearMeanings()
+{
+    m_meanings = ( delete m_meanings, new MeaningsStorage() );
+}
+void StoredUniverse::clearGeo()
+{
+    m_geo->clear();
+}
 void StoredUniverse::clear()
 {
     topicTrieCluster.clearTries();
-    trieCluster.clearTries();
-    d_topicEntLinkage.clear();
-    delete m_meanings;
-    m_meanings = ( delete m_meanings, new MeaningsStorage() );
-	clearSpell();
+    clearTrieList();
+    m_hints.clear();
+    clearMeanings();
+	clearSpelling();
+    clearGeo();
+    userSpecificStringSet.clear();
+    d_entSeg.clear();
+    m_defLocale->clear();
+    m_otherLocales.clear();
+    d_langInfo.clear();
+    d_tokenizerStrat.clear();
+    m_soundsLike=false;
+    d_ghettoDb->clear();
+    d_biflags.clear();
+	m_hints.initFromUniverse(this);
+
+    /*
+	bzSpell(new BZSpell(*this)),
+	d_ghettoDb(new Ghettodb()),
+	m_meanings(new MeaningsStorage),
+	m_geo(new BarzerGeo),
+	m_soundsLike(false)
+    */
 }
 
 StoredToken& StoredUniverse::internString( int lang, const char* t, BELTrie* triePtr, const char* unstemmed)

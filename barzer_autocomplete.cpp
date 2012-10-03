@@ -111,7 +111,7 @@ struct AutocNodeVisotor_Callback {
                             const BarzerEntity& euid = se->getEuid();
 
                             if( d_bestEnt ) {
-                                const EntityData::EntProp* edata = universe.gp.entData.getEntPropData( euid );
+                                const EntityData::EntProp* edata = universe.getEntPropData( euid );
                                 uint32_t relevance;
                                 // std::cerr << "SHITFUCK:" << euid << ":" << &(universe.gp) << "\n";
                                 if( edata ) 
@@ -140,7 +140,7 @@ struct AutocNodeVisotor_Callback {
                                 if( se && (!d_filter || d_filter->acceptEntity(se)) ) {
 				                    const BarzerEntity& euid = se->getEuid();
                                     if( d_bestEnt ) {
-                                        const EntityData::EntProp* edata = universe.gp.entData.getEntPropData( euid );
+                                        const EntityData::EntProp* edata = universe.getEntPropData( euid );
                                         uint32_t relevance ;
                                         // std::cerr << "SHITFUCK 87:" << euid << "\n";
                                         if( edata ) {

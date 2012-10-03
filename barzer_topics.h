@@ -184,6 +184,7 @@ public:
     void add( const StoredEntityClass& ec ) { d_classToSeg.insert( ec.ec ); }
     bool needSegregate( const StoredEntityClass& ec ) const 
         { return ( d_classToSeg.find(ec.ec) != d_classToSeg.end() ); }
+    void clear() { d_classToSeg.clear(); }
 };
 //// topic entity linkage object is responsible for relations between different 
 //// entities
