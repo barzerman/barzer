@@ -123,6 +123,12 @@ BELReader::BELReader( BELTrie* t, GlobalPools &g, std::ostream* errStream ) :
     numStatements(0) ,
     numMacros(0) ,
     numProcs(0) ,
+    numEmits(0),
+    silentMode(false),
+    d_trieSpellPriority(0),
+    d_rulesetSpellPriority(0),
+    d_spellPriority(0),
+    d_liveCommand(false),
     inputFmt(INPUT_FMT_XML),
     d_currentUniverse(0),
     d_curTrieId(g.internString_internal("")),
@@ -131,25 +137,23 @@ BELReader::BELReader( BELTrie* t, GlobalPools &g, std::ostream* errStream ) :
     d_maxEmitCountPerStatement(DEFMAX_EMIT_PER_STMT),
     d_maxEmitCountPerTrie(DEFMAX_EMIT_PER_SET),
     d_maxStatementsPerTrie(DEFMAX_STMT_PER_SET),
-    d_noCanonicalNames(0),
-    d_spellPriority(0),
-    d_rulesetSpellPriority(0),
-    d_liveCommand(false)
+    d_respectLimits(true),
+    d_noCanonicalNames(0)
 {}
 BELReader::BELReader( GlobalPools &g, std::ostream* errStream ) :
 	trie(g.globalTriePool.produceTrie(g.internString_internal(""),g.internString_internal(""))) , parser(0), gp(g),
 	numStatements(0) ,silentMode(false),
 	d_trieSpellPriority(0),
+    d_rulesetSpellPriority(0),
+    d_spellPriority(0),
+    d_liveCommand(false),
 	inputFmt(INPUT_FMT_XML),
 	d_trieIdSet(false),
     d_errStream(errStream? errStream: &(std::cerr)),
     d_maxEmitCountPerStatement(DEFMAX_EMIT_PER_STMT),
     d_maxEmitCountPerTrie(DEFMAX_EMIT_PER_SET),
     d_maxStatementsPerTrie(DEFMAX_STMT_PER_SET),
-    d_noCanonicalNames(0),
-    d_spellPriority(0),
-    d_rulesetSpellPriority(0),
-    d_liveCommand(false)
+    d_noCanonicalNames(0)
 {}
 
 void BELReader::setTrie( uint32_t trieClass, uint32_t trieId )

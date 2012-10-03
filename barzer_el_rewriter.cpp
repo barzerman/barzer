@@ -537,7 +537,7 @@ bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) cons
     if( ctrl ) { /// this is a block (comma)
 		// BarzelEvalContext::frame_stack_raii frameRaii( ctxt, ay::skippedvector<BarzelEvalResult>(d_childValVec) );
         if( eval_comma( val, ctxt ) ) {
-            if(ctrl->isValidVar()) // if block has a variable we bind it 
+            if(ctrl->isValidVar()) { // if block has a variable we bind it 
                 if( ctrl->isRewriteVar() ) { // default output variable is for rewrite
                     ctxt.bindVar(ctrl->getVarId()) = val;
                 } else if( ctrl->isReqVar() ) {
@@ -546,7 +546,7 @@ bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) cons
                     if( const BarzelBeadAtomic* atomic = val.getSingleAtomic() )
                         ctxt.getBarz().setReqVarValue(requestVar, atomic->getData() );
                 }
-            
+            } 
             return true;
         } else
             return false;

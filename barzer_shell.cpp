@@ -54,9 +54,9 @@ BarzerShellContext::BarzerShellContext(StoredUniverse& u, BELTrie& trie) :
 		trieWalker(trie),
 		d_trie(&trie),
 		parser( u ),
+        reqEnv(std::cerr),
         d_grammarId(0),
-        streamerModeFlags(streamerModeFlags_bits),
-        reqEnv(std::cerr)
+        streamerModeFlags(streamerModeFlags_bits)
 {
 	barz.setUniverse(&u);
     barz.setServerReqEnv(&reqEnv);
@@ -1435,11 +1435,12 @@ static int bshf_env( BarzerShell* shell, char_cp cmd, std::istream& in )
         if( in >> varName ) {
             outFP << "enter new value for " << varName << ":";
             char buf[ 256 ];
-            fgets( buf,sizeof(buf)-1,stdin);
-            buf[ sizeof(buf)-1 ] =0;
-            strip_newline(buf);
-            reqEnvVar.setValue( varName.c_str(), BarzelBeadAtomic_var( BarzerString(buf) ) );
-            BarzerString shitString(buf);
+            if( fgets( buf,sizeof(buf)-1,stdin) ) {
+                buf[ sizeof(buf)-1 ] =0;
+                strip_newline(buf);
+                reqEnvVar.setValue( varName.c_str(), BarzelBeadAtomic_var( BarzerString(buf) ) );
+                BarzerString shitString(buf);
+            }
         }
     } else { // get mode 
         if( mode == "get" ) {

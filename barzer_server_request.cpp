@@ -668,14 +668,14 @@ void BarzerRequestParser::tag_qblock(RequestTag &tag) {
 
 void BarzerRequestParser::tag_var(RequestTag &tag) {
     if( RequestEnvironment* env = barz.getServerReqEnv() ) {
-        const char* n=0, *v=0, *t=0;
+        const char* n=0, *v=0 /*, *t=0*/;
         for( auto i = tag.attrs.begin(); i!= tag.attrs.end(); ++i ) {
             if( i->first =="n" ) {
                 n = i->second.c_str();
             } else if( i->first == "v" ) {
                 v = i->second.c_str();
             } else if( i->first == "t" ) { // type NOT SUPPORTED YET
-                t = i->second.c_str();
+                // t = i->second.c_str();
             }
         }
         if( n && v ) {

@@ -69,8 +69,8 @@ BarzerAtomicCast::Err_t BarzerAtomicCast::convert( BarzerString& n , const Barze
 
 namespace {
     struct VarVis_BarzerNumber : public boost::static_visitor<BarzerAtomicCast::Err_t> {
-        const BarzerAtomicCast& caster;
         BarzerNumber& dest;
+        const BarzerAtomicCast& caster;
         VarVis_BarzerNumber( BarzerNumber& n, const BarzerAtomicCast& c ) : dest(n), caster(c) {}
      
         BarzerAtomicCast::Err_t operator()( const BarzerNumber& v ) { 
@@ -82,8 +82,8 @@ namespace {
         }
     };
     struct VarVis_BarzerString : public boost::static_visitor<BarzerAtomicCast::Err_t> {
-        const BarzerAtomicCast& caster;
         BarzerString& dest;
+        const BarzerAtomicCast& caster;
         VarVis_BarzerString( BarzerString& n, const BarzerAtomicCast& c ) : dest(n), caster(c) {}
      
         BarzerAtomicCast::Err_t operator()( const BarzerString& v ) { 
