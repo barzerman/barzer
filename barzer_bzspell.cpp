@@ -1277,9 +1277,9 @@ std::ostream& BZSpell::printStats( std::ostream& fp ) const
 }
 size_t BZSpell::init( const StoredUniverse* secondaryUniverse )
 {
-	if( secondaryUniverse ) {
+	if(secondaryUniverse ) {
 		d_secondarySpellchecker = secondaryUniverse->getBZSpell();
-	} else {
+	}  {
 		const TheGrammarList& trieList = d_universe.getTrieList();
 		for( TheGrammarList::const_iterator t = trieList.begin(); t!= trieList.end(); ++t ) {
 			const strid_to_triewordinfo_map& wiMap = t->trie().getWordInfoMap();
@@ -1287,12 +1287,12 @@ size_t BZSpell::init( const StoredUniverse* secondaryUniverse )
 				const TrieWordInfo& wordInfo = w->second;
 				uint32_t strId = w->first;
 
-                if( wordInfo.getWordCount() ) {
-                    BZSWordInfo& wi = d_wordinfoMap[ strId ];
+				if (d_wordinfoMap.find(strId) == d_wordinfoMap.end())
+					addExtraWordToDictionary(strId, wordInfo.wordCount);
+				BZSWordInfo& wi = d_wordinfoMap[ strId ];
 
-                    if( wi.upgradePriority( t->trie().getSpellPriority()) )
-                        wi.setFrequency( wordInfo.wordCount );
-                }
+				if( wi.upgradePriority( t->trie().getSpellPriority()) )
+					wi.setFrequency( wordInfo.wordCount );
 			}
 		}
 	}
