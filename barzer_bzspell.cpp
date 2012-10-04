@@ -75,7 +75,7 @@ uint32_t  BZSpell::getBestWord( uint32_t strId, WordInfoAndDepth& wid ) const
 	}
 
 	++(wid.second);
-	return ( d_secondarySpellchecker ? d_secondarySpellchecker->getBestWord(strId,wid): 0xffffffff ) ;
+	return 0xffffffff;
 }
 
 uint32_t BZSpell::getBestWordByString( const char* word, WordInfoAndDepth& wid ) const
@@ -549,14 +549,8 @@ bool stem_depluralize( std::string& out, const char* s, size_t s_len )
 int BZSpell::isUsersWordById( uint32_t strId ) const
 {
 	strid_wordinfo_hmap::const_iterator i =d_wordinfoMap.find( strId );
-	if( i == d_wordinfoMap.end() ) {
-		if( d_secondarySpellchecker ) {
-			int rc = d_secondarySpellchecker->isUsersWordById( strId );
-			return ( rc ? rc+1 : 0 );
-		} else
-			return 0;
-	} else
-		return 1;
+	
+	return i != d_wordinfoMap.end();
 }
 const StoredToken* BZSpell::getUsersWordTok( const char* word ) const 
 {
@@ -980,13 +974,7 @@ uint32_t BZSpell::getStemCorrection( std::string& out, const char* s, int lang )
 	if( lang == LANG_ENGLISH) {
 		if( stem( out, s, lang) ) {
 			uint32_t strId = d_universe.getGlobalPools().string_getId( out.c_str() );
-			if(strId == 0xffffffff || !isUsersWordById(strId)) {
-				if( d_secondarySpellchecker ) {
-                    uint32_t secondaryStrId = d_secondarySpellchecker->getUniverse().getGlobalPools().string_getId( out.c_str() );
-
-					return( isUsersWordById(secondaryStrId) ? secondaryStrId: 0xffffffff );
-                }
-			} else {
+			if(strId != 0xffffffff && isUsersWordById(strId)) {
 				return strId;
 			}
 		}
@@ -1215,7 +1203,6 @@ size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
 }
 
 BZSpell::BZSpell( StoredUniverse& uni ) :
-	d_secondarySpellchecker(0),
 	d_universe( uni ),
 	d_charSize(1) ,
 	d_minWordLengthToCorrect( d_charSize* (QLexParser::MIN_SPELL_CORRECT_LEN) ),
@@ -1277,23 +1264,19 @@ std::ostream& BZSpell::printStats( std::ostream& fp ) const
 }
 size_t BZSpell::init( const StoredUniverse* secondaryUniverse )
 {
-	if(secondaryUniverse ) {
-		d_secondarySpellchecker = secondaryUniverse->getBZSpell();
-	}  {
-		const TheGrammarList& trieList = d_universe.getTrieList();
-		for( TheGrammarList::const_iterator t = trieList.begin(); t!= trieList.end(); ++t ) {
-			const strid_to_triewordinfo_map& wiMap = t->trie().getWordInfoMap();
-			for( strid_to_triewordinfo_map::const_iterator w = wiMap.begin(); w != wiMap.end(); ++w ) {
-				const TrieWordInfo& wordInfo = w->second;
-				uint32_t strId = w->first;
+	const TheGrammarList& trieList = d_universe.getTrieList();
+	for( TheGrammarList::const_iterator t = trieList.begin(); t!= trieList.end(); ++t ) {
+		const strid_to_triewordinfo_map& wiMap = t->trie().getWordInfoMap();
+		for( strid_to_triewordinfo_map::const_iterator w = wiMap.begin(); w != wiMap.end(); ++w ) {
+			const TrieWordInfo& wordInfo = w->second;
+			uint32_t strId = w->first;
 
-				if (d_wordinfoMap.find(strId) == d_wordinfoMap.end())
-					addExtraWordToDictionary(strId, wordInfo.wordCount);
-				BZSWordInfo& wi = d_wordinfoMap[ strId ];
+			if (d_wordinfoMap.find(strId) == d_wordinfoMap.end())
+				addExtraWordToDictionary(strId, wordInfo.wordCount);
+			BZSWordInfo& wi = d_wordinfoMap[ strId ];
 
-				if( wi.upgradePriority( t->trie().getSpellPriority()) )
-					wi.setFrequency( wordInfo.wordCount );
-			}
+			if( wi.upgradePriority( t->trie().getSpellPriority()) )
+				wi.setFrequency( wordInfo.wordCount );
 		}
 	}
 

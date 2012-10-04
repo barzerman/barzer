@@ -83,8 +83,6 @@ struct BZSWordTrieInfo {
 class EnglishSLHeuristic;
 
 class BZSpell {
-	/// the next spell checker in line  
-	const BZSpell* d_secondarySpellchecker; 
 	StoredUniverse& d_universe;
 public:
 
@@ -200,7 +198,6 @@ public:
 	uint32_t getBestWord( uint32_t strId, WordInfoAndDepth& wid ) const;
 
 	uint32_t getBestWordByString( const char* word, WordInfoAndDepth& wid ) const;
-	void setSecondarySpellchecker( const BZSpell* bzs ) { d_secondarySpellchecker= bzs; }
 
     // calls getBestWord for strId and then returns StoredToken 
     const StoredToken* tryGetStoredTokenFromLinkedWords( uint32_t ) const;
