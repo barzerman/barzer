@@ -563,7 +563,7 @@ struct QLexParser_LocalParms {
 
 };
 
-inline bool QLexParser::trySplitCorrectUTF8 ( SpellCorrectResult& corrResult, QLexParser_LocalParms& parm )
+inline bool QLexParser::trySplitCorrectUTF8 ( SpellCorrectResult& corrResult, QLexParser_LocalParms& parm, bool isAutoc )
 {
     ay::StrUTF8 fullStr(parm.t);
     size_t glyphCount = fullStr.getGlyphCount();
@@ -589,6 +589,9 @@ inline bool QLexParser::trySplitCorrectUTF8 ( SpellCorrectResult& corrResult, QL
                 rightCorr = ( parm.bzSpell->isUsersWordById(rightId) ? gp.string_resolve(rightId) : 0 );
                 if( !rightCorr )
                     continue;
+                else if( isAutoc && left[0] != fullStr[0] )
+                    continue;
+
                 rightCorrected = true;
                 rightTok = getStoredToken(rightCorr);
             } 
@@ -630,7 +633,7 @@ inline bool QLexParser::trySplitCorrectUTF8 ( SpellCorrectResult& corrResult, QL
     }
     return false;
 }
-inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexParser_LocalParms& parm )
+inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexParser_LocalParms& parm, bool isAutoc )
 {
     PosedVec<CTWPVec>& cPosVec      = parm.cPosVec;
     PosedVec<TTWPVec>& tPosVec      = parm.tPosVec;
@@ -646,7 +649,7 @@ inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexPa
 
 	const GlobalPools& gp = d_universe.getGlobalPools();
     if( Lang::isUtf8Lang(lang) ) {
-        return trySplitCorrectUTF8( corrResult, parm );
+        return trySplitCorrectUTF8( corrResult, parm, isAutoc );
     } else {
         const size_t MultiwordLen = BZSpell::MAX_WORD_LEN / 4;
         if (strId == 0xffffffff && t_len < MultiwordLen) {
@@ -674,6 +677,7 @@ inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexPa
     
                 tmpTok = getStoredToken( rightDirty );
 
+
                 uint32_t right = 0xffffffff;
                 if( !tmpTok ) {
                     if( t_len - step- i < MIN_SPELL_CORRECT_LEN*step )
@@ -690,9 +694,15 @@ inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexPa
     
                 if (right == 0xffffffff)
                     continue;
-    
+                else {
+                    if( !bzSpell->isUsersWordById( right ) )
+                        continue;
+                } 
                 const char *leftCorr = gp.string_resolve (left);
                 const char *rightCorr = gp.string_resolve (right);
+                if( isAutoc && leftCorr && *leftCorr!=*theString) {
+                    continue;
+                }
                 size_t leftCorr_numChar, rightCorr_numChar;
                 if( step == 1 ) {
                     leftCorr_numChar = strlen(leftCorr);
@@ -919,7 +929,8 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
         {
             SpellCorrectResult corrResult;
             QLexParser_LocalParms lparm(cPosVec, tPosVec, qparm, t_len, strId, lang,theString,bzSpell,ctok,ttok,t);
-            if( trySplitCorrect (corrResult, lparm) ) 
+
+            if( trySplitCorrect (corrResult, lparm, qparm.isAutoc ) ) 
                 return corrResult;
         }
         //// end of split correction attempt

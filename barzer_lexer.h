@@ -72,12 +72,14 @@ private:
     // inlined in the cpp
     bool trySplitCorrect(
         SpellCorrectResult& corrResult, 
-        QLexParser_LocalParms& parms 
+        QLexParser_LocalParms& parms ,
+        bool isAutoc
     );
     /// 
     bool trySplitCorrectUTF8(
         SpellCorrectResult& corrResult, 
-        QLexParser_LocalParms& parms 
+        QLexParser_LocalParms& parms ,
+        bool isAutoc
     );
 
 	/// invoked from singleTokenClassify - tries to spell correct

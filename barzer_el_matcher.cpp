@@ -771,7 +771,7 @@ bool BTMIterator::findMatchingChildren( NodeAndBeadVec& mtChild, const BeadRange
 		return 0; // this should never happen bu just in case
 
 	bool precededByBlanks = false;
-	const BarzelBeadAtomic* bead;
+	const BarzelBeadAtomic* bead=0;
 	BeadRange rng(r);
 	BeadList::const_iterator dtaBeadIter;
 	do {

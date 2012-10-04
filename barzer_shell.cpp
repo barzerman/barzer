@@ -1593,6 +1593,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_trcd, "trcd", "changes current trie node to the firm child by number" ),
 	CmdData( (ay::Shell_PROCF)bshf_trcdw, "trcdw", "changes current trie node to the wildcard child by number" ),
 	CmdData( (ay::Shell_PROCF)bshf_trup, "trup", "moves back to the parent trie node" ),
+	CmdData( (ay::Shell_PROCF)bshf_srvroute, "sr", "same as srvroute tests server queries and routes it same way server mode would" ),
 	CmdData( (ay::Shell_PROCF)bshf_srvroute, "srvroute", "tests server queries and routes it same way server mode would" ),
 	CmdData( (ay::Shell_PROCF)bshf_smf, "smf", "streamer mode flag: smf [ NAME [ON|OFF] ]" ),
 	CmdData( (ay::Shell_PROCF)bshf_stexpand, "stexpand", "expand and print all statements in a file" ),
