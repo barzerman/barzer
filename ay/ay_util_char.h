@@ -7,11 +7,13 @@
 #include <map>
 #include <set>
 #include <ctype.h>
+#include <ay_ru_chars.h>
 
 namespace ay {
 typedef const char* char_cp;
 typedef char* char_p;
 
+#define AY_MAYBE_RUSSIAN(s) ((static_cast<uint8_t>((s)[0])==0xd0) || (static_cast<uint8_t>((s)[0])==0xd1))
 #define AY_TOUPPER(c) ( ('a'<=(c) && 'z'>=(c)) ? ((c)-32) : (c) )
 #define AY_LOWER(c) ( ('A'<=(c) && 'Z'>=(c)) ? ((c)+32) : (c) )
 
@@ -35,14 +37,30 @@ inline bool ay_strcmp_eq( const char* l, const char* r )
 
     return !( *l || *r );
 }
+
 inline int ay_strcasecmp( const char* l, const char* r )
 {
     for( ; *l && *r; ++l, ++r ) {
-        char ul = AY_TOUPPER(*l), ur=AY_TOUPPER(*r);
-        if( ul < ur )
-            return -1;
-        else if( ur< ul ) 
-            return 1;
+        if( AY_MAYBE_RUSSIAN(l) && AY_MAYBE_RUSSIAN(r) ) {
+            russian::RuChar ll= russian::single_char_tolower(l);
+            russian::RuChar rl= russian::single_char_tolower(r);
+            if( ll < rl ) 
+                return -1;
+            else if( rl< ll ) 
+                return 1;
+            else if( !ll.second )  // ll == rr and this is the end
+                    return 0;
+            else { // ll ==rr and this is not the end - skipping to next char
+                ++l;
+                ++r;
+            }
+        } else {
+            char ul = AY_TOUPPER(*l), ur=AY_TOUPPER(*r);
+            if( ul < ur )
+                return -1;
+            else if( ur< ul ) 
+                return 1;
+        }
     }
 
     return( *l ? 1 : (*r ? -1: 0)  );
