@@ -15,7 +15,7 @@ typedef char* char_p;
 
 #define AY_MAYBE_RUSSIAN(s) ((static_cast<uint8_t>((s)[0])==0xd0) || (static_cast<uint8_t>((s)[0])==0xd1))
 #define AY_TOUPPER(c) ( ('a'<=(c) && 'z'>=(c)) ? ((c)-32) : (c) )
-#define AY_LOWER(c) ( ('A'<=(c) && 'Z'>=(c)) ? ((c)+32) : (c) )
+#define AY_TOLOWER(c) ( ('A'<=(c) && 'Z'>=(c)) ? ((c)+32) : (c) )
 
 inline int ay_strcmp( const char* l, const char* r )
 {
@@ -169,8 +169,16 @@ struct char_cp_hash_nocase {
     {
         if( !s ) return 0;
         size_t h=0;
-        for (; *s; ++s)
-            h = 37 * h + AY_TOUPPER((*s));
+        for (; *s; ++s) {
+            if( AY_MAYBE_RUSSIAN(s) ) {
+                russian::RuChar sl= russian::single_char_tolower(s);
+                if( sl.second ) 
+                    ++s;
+                h = 37 * h + sl.second;
+            } else {
+                h = 37 * h + AY_TOLOWER((*s));
+            }
+        }
         return h; // or, h % ARRAY_SIZE;
     }
 };

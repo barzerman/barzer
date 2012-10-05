@@ -164,11 +164,13 @@ int test_ay_strcasecmp (int argc, char* argv[])
     while( true ) {
         std::string l, r;
         std::cerr << "enter left: ";
-        std::cin >> l;
+        std::getline( std::cin, l );
         std::cerr << "enter right: ";
-        std::cin >> r;
+        std::getline( std::cin, r );
         
-        std::cerr << ay::ay_strcasecmp( l.c_str(), r.c_str() ) << std::endl;
+        std::cerr << "comparison: " << ay::ay_strcasecmp( l.c_str(), r.c_str() ) << std::endl;
+        std::cerr << "left hash:" << ay::char_cp_hash_nocase()(l.c_str()) << std::endl;
+        std::cerr << "right hash:" << ay::char_cp_hash_nocase()(r.c_str()) << std::endl;
     }
     return 0;
 }
