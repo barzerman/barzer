@@ -159,6 +159,10 @@ int testXMLEscape(int argc, char* argv[])
     }
 }
 
+int testXMLEscape(int argc, char* argv[])
+{
+}
+
 int main(int argc, char* argv[]) {
 	// testLogger();
     //testUTF8(argc,argv);
