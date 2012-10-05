@@ -159,8 +159,18 @@ int testXMLEscape(int argc, char* argv[])
     }
 }
 
-int testXMLEscape(int argc, char* argv[])
+int test_ay_strcasecmp (int argc, char* argv[])
 {
+    while( true ) {
+        std::string l, r;
+        std::cerr << "enter left: ";
+        std::cin >> l;
+        std::cerr << "enter right: ";
+        std::cin >> r;
+        
+        std::cerr << ay::ay_strcasecmp( l.c_str(), r.c_str() ) << std::endl;
+    }
+    return 0;
 }
 
 int main(int argc, char* argv[]) {
@@ -168,5 +178,6 @@ int main(int argc, char* argv[]) {
     //testUTF8(argc,argv);
     // testUTF8Normalizer(argc,argv);
     // testStripDiacritics(argc,argv);
-    return testXMLEscape(argc,argv);
+    // testXMLEscape(argc,argv);
+    return test_ay_strcasecmp(argc,argv);
 }

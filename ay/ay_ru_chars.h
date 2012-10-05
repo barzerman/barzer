@@ -13,6 +13,7 @@ inline RuChar single_char_tolower( const char* src )
     const uint8_t c0=static_cast<uint8_t>(src[0]);
     const uint8_t c1=static_cast<uint8_t>(src[1]);
     if( c0 == 0xd0 ) {
+        switch(c1) {
         case 0x81 : return RuChar(0xd1,0x91); // Ё 81 81d0
         case 0x90 : return RuChar(0xd0,0xb0); // А 90 90d0
         case 0x91 : return RuChar(0xd0,0xb1);// Б 91 91d0
@@ -47,10 +48,12 @@ inline RuChar single_char_tolower( const char* src )
         case 0xae : return RuChar(0xd1,0x8e); // Ю ae aed0
         case 0xaf : return RuChar(0xd1,0x8f); // Я af afd0
         default: return RuChar(c0,c1);
+        }
     } else 
     if( c0 == 0xd1 ) { // there are no uppercase russian letters in 0xd1
         return RuChar(c0,c1);
-    }
+    } else
+        return RuChar(c0,c1);
 }
 
 } // namespace ru

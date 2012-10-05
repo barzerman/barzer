@@ -23,7 +23,7 @@ all: $(objects)
 shared: $(objects)
 	$(CC) $(C0X) $(C11LIB) -shared -Wl,-soname,$(SHARED_LIBNAME) -o $(SHARED_LIBNAME) $(objects)
 test: $(LIBNAME)
-	$(CC) -o testay testay.cpp $(CFLAGS) -L. -lay $(C11LIB)
+	$(CC) -o testay testay.cpp $(CFLAGS) -lstdc++ -L. -lay $(C11LIB)
 clean: 
 	rm -f $(objects) $(LIBNAME)
 
