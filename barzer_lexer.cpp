@@ -1071,6 +1071,10 @@ size_t QLexParser::retokenize( Barz& barz, const QuestionParm& qparm )
                     ti->second+= i;
                 }
                 cVecInserts.push_back( std::pair< size_t, TTWPVec >(i, tmpVec) );
+            } else if( tmpVec.size()==1 ) {
+                ttok.setOrigOffsetAndLength( 
+                    ttok.getOrigOffset()+tmpVec[0].first.getOrigOffset(), 
+                    tmpVec[0].first.getOrigLength() );
             }
         }
     }

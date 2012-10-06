@@ -175,6 +175,13 @@ public:
             for( auto i = offsetLengthVec.begin(); i!= offsetLengthVec.end(); ++i ) {
                 if(i!= offsetLengthVec.begin() )
                     os << ";";
+                std::pair< size_t, size_t > pp = d_barz.getGlyphFromOffsets(i->first,i->second);
+                os << pp.first << "," << pp.second;
+            }
+            os << "\" bytemarkup=\"" ;
+            for( auto i = offsetLengthVec.begin(); i!= offsetLengthVec.end(); ++i ) {
+                if(i!= offsetLengthVec.begin() )
+                    os << ";";
                 os << i->first << "," << i->second;
             }
             os << "\">";

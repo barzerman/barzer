@@ -170,6 +170,18 @@ class Barz {
     RequestEnvironment* d_serverReqEnv;
     const char* getReqVarAsChars( const char* ) const;
 public:
+    /// given offset and length in bytes in the original quesstion 
+    /// returns a pair(glyph, lengthinGlyphs) - for utf8
+    std::pair<size_t,size_t> getGlyphFromOffsets( size_t offset, size_t length ) const
+    {
+        size_t o = questionOrigUTF8.getGlyphFromOffset(offset);
+        size_t end_o = questionOrigUTF8.getGlyphFromOffset(offset+length);
+        if( end_o> o ) {
+            return std::pair<size_t,size_t>(o,end_o-o);
+        } else
+            return std::pair<size_t,size_t>(o,0);
+    }
+
 	enum { 
         MAX_TRACE_LEN = 256, 
         LONG_TRACE_LEN = 32  

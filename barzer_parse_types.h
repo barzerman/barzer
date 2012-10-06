@@ -42,7 +42,9 @@ struct TToken {
 	TToken( const char* s ) : d_utf8beg(0xffff), d_utf8len(0xffff), d_origOffset(0), d_origLength(0), buf(s) {}
 	// watch out for data consistency
 	TToken( const char* s, short l ) : d_utf8beg(0xffff), d_utf8len(0xffff), d_origOffset(0), d_origLength(0), buf(s,l) {}
-	TToken( const char* s, short l, size_t bg, size_t eg ) : d_utf8beg(bg), d_utf8len(eg), d_origOffset(0), d_origLength(0), buf(s,l) {}
+	TToken( const char* s, short l, size_t bg, size_t ng, size_t o ) : 
+        d_utf8beg(bg), d_utf8len(ng), d_origOffset(o), d_origLength(l), buf(s,l) 
+    {}
 	
 	int getPunct() const
 		{ return( buf.length() ? buf[0] : ((int)'|') ); }

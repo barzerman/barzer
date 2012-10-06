@@ -24,7 +24,18 @@ int QTokenizer::tokenize_strat_space(Barz& barz, const QuestionParm& qparm )
         if( s && isspace(*s) ) { // we got the space 
             if( !lastWasSpace ) {
                 if( prevGlyphStart )
-                    ttwp.push_back( TTWPVec::value_type(TToken(prevGlyphStart,(s-prevGlyphStart),startGlyph,(i-startGlyph)), ttwp.size() ));
+                    ttwp.push_back( 
+                        TTWPVec::value_type(
+                            TToken(
+                                prevGlyphStart,
+                                (s-prevGlyphStart),
+                                startGlyph,
+                                (i-startGlyph),
+                                (prevGlyphStart-questionOrigUTF8_start)
+                            ), 
+                            ttwp.size() 
+                        )
+                    );
                 ttwp.push_back( 
                     TTWPVec::value_type(
                         TToken(s,1).setOrigOffsetAndLength((s-questionOrigUTF8_start),1), 
@@ -45,8 +56,9 @@ int QTokenizer::tokenize_strat_space(Barz& barz, const QuestionParm& qparm )
                 prevGlyphStart,
                 (barz.questionOrigUTF8.getBufEnd()-prevGlyphStart),
                 startGlyph, 
-                (barz.questionOrigUTF8.length()-startGlyph)
-            ).setOrigOffset(prevGlyphStart-questionOrigUTF8_start), 
+                (barz.questionOrigUTF8.length()-startGlyph),
+                prevGlyphStart-questionOrigUTF8_start
+            ),
             ttwp.size() 
         ));
 

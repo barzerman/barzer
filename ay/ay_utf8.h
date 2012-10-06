@@ -201,6 +201,7 @@ namespace ay
 		// byte of the i'th glyph in the m_buf.
 		std::vector<size_t> m_positions;
 
+
 		inline void appendZero()
 		{
 			m_buf.push_back(0);
@@ -221,6 +222,15 @@ namespace ay
 			m_buf.insert(m_buf.end(), t.getBuf(), t.getBuf_end() );
 		}
 	public:
+        /// given offset in bytes returns the glyph containing this offset
+        size_t getGlyphFromOffset( size_t o ) const
+        {
+            auto i = std::lower_bound( m_positions.begin(), m_positions.end(), o );
+            if( i == m_positions.end() ) 
+                return ( m_positions.size() ? m_positions.back() : 0 );
+            else 
+                return (i-m_positions.begin());
+        }
         const char* getBufEnd() const { return &(m_buf.back()); }
 
         const char* getGlyphStart( size_t g ) const
