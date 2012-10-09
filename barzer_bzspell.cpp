@@ -550,7 +550,7 @@ int BZSpell::isUsersWordById( uint32_t strId ) const
 {
 	strid_wordinfo_hmap::const_iterator i =d_wordinfoMap.find( strId );
 	
-	return i != d_wordinfoMap.end();
+	return ( i != d_wordinfoMap.end() && i->second.getFrequency() );
 }
 const StoredToken* BZSpell::getUsersWordTok( const char* word ) const 
 {
@@ -1274,9 +1274,11 @@ size_t BZSpell::init( const StoredUniverse* secondaryUniverse )
 			if (d_wordinfoMap.find(strId) == d_wordinfoMap.end())
 				addExtraWordToDictionary(strId, wordInfo.wordCount);
 			BZSWordInfo& wi = d_wordinfoMap[ strId ];
-
+                
 			if( wi.upgradePriority( t->trie().getSpellPriority()) )
 				wi.setFrequency( wordInfo.wordCount );
+            else if( wordInfo.wordCount && !wi.getFrequency() )
+                wi.setFrequency( wordInfo.wordCount );
 		}
 	}
 
