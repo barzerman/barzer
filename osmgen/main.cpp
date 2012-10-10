@@ -2,6 +2,8 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <set>
+#include <map>
 #include <expat.h>
 #include <string.h>
 
@@ -17,6 +19,9 @@ class Parser
 
 	double m_lat, m_lon;
 	std::vector<std::pair<std::string, std::string>> m_tags;
+	std::set<std::string> m_keys;
+
+	std::map<std::string, std::set<std::string>> m_keyvals;
 public:
 	Parser();
 
@@ -37,6 +42,17 @@ public:
 				return;
 			}
 		} while (!done);
+	}
+
+	void dumpStats() const
+	{
+		std::cout << "Tags:" << std::endl;
+		for (const auto& str : m_keys)
+		{
+			std::cout << str << std::endl;
+			for (const auto& val : m_keyvals.at(str))
+				std::cout << "\t" << val << std::endl;
+		}
 	}
 
 	void startElem(const XML_Char *n, const XML_Char **a)
@@ -89,6 +105,8 @@ private:
 				tag.second.assign(a[i + 1]);
 		}
 		m_tags.push_back(tag);
+		m_keys.insert(tag.first);
+		m_keyvals[tag.first].insert(tag.second);
 	}
 
 	void flushNode()
@@ -134,4 +152,6 @@ int main (int argc, char **argv)
 
 	Parser p;
 	p.parse(istr);
+	std::cout << "DUMPING STATS" << std::endl;
+	p.dumpStats();
 }
