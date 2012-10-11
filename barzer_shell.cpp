@@ -20,6 +20,7 @@
 
 #include <barzer_server_request.h>
 #include "barzer_geoindex.h"
+#include "zurch_tokenizer.h"
 //
 #include <sstream>
 #include <fstream>
@@ -452,14 +453,34 @@ static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
 	QParser& parser = context->parser;
 	const StoredUniverse &uni = context->getUniverse();
 
-	ay::InputLineReader reader( in );
-	QuestionParm qparm;
-    shell->syncQuestionParm(qparm);
-	while( reader.nextLine() && reader.str.length() ) {
-		barz.tokenize( uni.getTokenizerStrategy(), parser.tokenizer, reader.str.c_str(), qparm );
-		const TTWPVec& ttVec = barz.getTtVec();
-		shell->getOutStream() << ttVec << std::endl;
-	}
+    RequestEnvironment& reqEnv = context->reqEnv;
+    RequestVariableMap& reqEnvVar = reqEnv.getReqVar();
+    
+    const BarzerString* tokenMode = reqEnv.getVarVal<BarzerString>( "tokmode" );
+    if( tokenMode ) {
+        /// 
+        zurch::ZurchTokenizer zt( );
+        zurch::ZurchTokenVec tokVec;
+        char buf[ 1024 ];
+        while( fgets( buf,sizeof(buf)-1,stdin) ) {
+            size_t buf_sz = strlen(buf)-1;
+            buf[ buf_sz ] =0;
+            zt.tokenize( tokVec, buf, buf_sz );
+            for( auto i = tokVec.begin(); i!= tokVec.end(); ++i ) {
+
+                std::cerr<< (i-tokVec.begin()) << ":" << *i << std::endl;
+            }
+        }
+    } else {
+	    ay::InputLineReader reader( in );
+	    QuestionParm qparm;
+        shell->syncQuestionParm(qparm);
+	    while( reader.nextLine() && reader.str.length() ) {
+		    barz.tokenize( uni.getTokenizerStrategy(), parser.tokenizer, reader.str.c_str(), qparm );
+		    const TTWPVec& ttVec = barz.getTtVec();
+		    shell->getOutStream() << ttVec << std::endl;
+	    }
+    }
 	return 0;
 }
 
@@ -855,6 +876,11 @@ struct ShellState {
 };
 
 } // anon namespace ends
+
+static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+    return 0;
+}
 
 static int bshf_universe( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
@@ -1571,7 +1597,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_allMeanings, "allmeanings", "get all meanings" ),
 	CmdData( (ay::Shell_PROCF)bshf_findEntities, "findents", "find entities near a point" ),
 	CmdData( (ay::Shell_PROCF)bshf_lex, "lex", "tokenize and then classify (lex) the input" ),
-	CmdData( (ay::Shell_PROCF)bshf_tokenize, "tokenize", "tests tokenizer" ),
+	CmdData( (ay::Shell_PROCF)bshf_tokenize, "tokenize", "tests tokenizer if tokmode variable is set will use fast tokenizer" ),
 	CmdData( (ay::Shell_PROCF)bshf_xmload, "xmload", "loads xml from file" ),
 	CmdData( (ay::Shell_PROCF)bshf_tok, "tok", "token lookup by string" ),
 	CmdData( (ay::Shell_PROCF)bshf_tokid, "tokid", "token lookup by string" ),
@@ -1608,6 +1634,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_userstats, "userstats", "trie stats for a given user" ),
 	CmdData( (ay::Shell_PROCF)bshf_user, "user", "sets current user by user id" ),
 	CmdData( (ay::Shell_PROCF)bshf_universe, "universe", "looks up user id from universe name" ),
+	CmdData( (ay::Shell_PROCF)bshf_zurch, "zurch", "initializes zurch from an XML file" ),
 	CmdData( (ay::Shell_PROCF)bshf_entlist, "entlist", "prints all known entities")      
 };
 

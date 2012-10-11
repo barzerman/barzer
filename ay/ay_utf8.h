@@ -55,6 +55,8 @@ namespace ay
 		CharUTF8 (const char *s, const char* s_end) : d_null(0), d_size(0) 
             { assign(s,(s_end-s)); }
 
+		CharUTF8 (const char o): d_null(0), d_size(o? 1:0) 
+            { d_data.c4[0]=o; d_data.c4[1]=d_data.c4[2]=d_data.c4[3]=0; }
 		CharUTF8 (const CharUTF8& o): d_null(0), d_size(o.d_size) 
             { d_data.u4 = o.d_data.u4; }
 
