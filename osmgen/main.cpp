@@ -153,7 +153,7 @@ private:
 			m_ostr << "</any>";
 		m_ostr << "</pat>" << std::endl << "\t\t<tran>";
 		m_ostr << "<mkent c='0' s='0' p='" << m_lat << ", " << m_lon << "' ";
-		m_ostr << "/>\n\t</stmt>" << std::endl;
+		m_ostr << "/></tran>\n\t</stmt>" << std::endl;
 	}
 };
 
