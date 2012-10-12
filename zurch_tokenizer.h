@@ -36,10 +36,16 @@ public:
     ay::bitflags< ZTF_MAX >&       bits()       { return d_bit; }
     const ay::bitflags< ZTF_MAX >& bits() const { return d_bit; }
     
-    ZurchTokenizer( const char* sep=ZURCH_DEFAULT_SEPARATORS ) {
+    ZurchTokenizer( const char* sep=0 ) {
         if( sep ) 
             d_tokenizer.addSeparators(sep);
+        else {
+            d_tokenizer.heuristicBit.set( ay::callback_tokenizer::TOK_HEURBIT_ASCII_SPACE );
+            d_tokenizer.heuristicBit.set( ay::callback_tokenizer::TOK_HEURBIT_ASCII_ISPUNCT );
+            d_tokenizer.heuristicPotentialBit.set( ay::callback_tokenizer::TOK_HEURBIT_ASCII_NONALNUM );
+        }
     }
+    void addSeparators( const char* s ) { d_tokenizer.addSeparators(s); }
 
     void tokenize( ZurchTokenVec&, const char* str, size_t str_sz );
     void config( const boost::property_tree::ptree& );

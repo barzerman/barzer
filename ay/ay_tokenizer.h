@@ -60,8 +60,21 @@ class callback_tokenizer {
 
     SepCharVec d_sep;
     bool        d_hasNonAsciiSeparators;  // default false
+    
     SepCharVec& separator() { return d_sep; }
 public:
+    // heuristic bits
+    enum : uint8_t {
+        TOK_HEURBIT_ASCII_SPACE, /// will tokenize on spaces isspace
+        TOK_HEURBIT_ASCII_NONALNUM, /// will separate on all ascii chars for which isalnum() is false and spaces
+        TOK_HEURBIT_ASCII_ISPUNCT, /// will separate on all ascii punctuation and spaces
+        
+        TOK_HEURBIT_MAX
+    };
+
+    ay::bitflags<TOK_HEURBIT_MAX>  heuristicBit;
+    ay::bitflags<TOK_HEURBIT_MAX>  heuristicPotentialBit; // stuff matching this heuristic is treated as potential separators unless its in heuristicBit
+    
     const SepCharVec& separator() const { return d_sep; }
 
     callback_tokenizer( const SepCharVec& v ) : d_sep(v), d_hasNonAsciiSeparators(false) {}
@@ -74,6 +87,23 @@ public:
 
     inline int findCharSeparator( char c ) const
     {
+        if( heuristicBit.checkAnyBit() ) {
+            if( heuristicBit.checkBit(TOK_HEURBIT_ASCII_NONALNUM) && !isalnum(c) ) 
+                return IS_SEPARATOR_YES;
+            else if( heuristicBit.checkBit(TOK_HEURBIT_ASCII_SPACE) && isspace(c) ) 
+                return IS_SEPARATOR_YES;
+            else if( heuristicBit.checkBit(TOK_HEURBIT_ASCII_ISPUNCT) && ispunct(c) ) 
+                return IS_SEPARATOR_YES;
+        } 
+        if( heuristicPotentialBit.checkAnyBit() ) {
+            if( heuristicPotentialBit.checkBit(TOK_HEURBIT_ASCII_NONALNUM) && !isalnum(c) ) 
+                return IS_SEPARATOR_POTENTIAL;
+            else if( heuristicPotentialBit.checkBit(TOK_HEURBIT_ASCII_SPACE) && isspace(c) ) 
+                return IS_SEPARATOR_POTENTIAL;
+            else if( heuristicPotentialBit.checkBit(TOK_HEURBIT_ASCII_ISPUNCT) && ispunct(c) ) 
+                return IS_SEPARATOR_POTENTIAL;
+        }
+
         for( SepCharVec::const_iterator i = d_sep.begin(); i!= d_sep.end(); ++i ) {
             if( i->first.size() ==1 && c== i->first.getChar0() ) 
                 return ( i->second ? IS_SEPARATOR_YES : IS_SEPARATOR_POTENTIAL );
@@ -120,7 +150,13 @@ public:
         }
         return 0;
     }
-
+    void clearSeparators() 
+    {
+        heuristicBit.clear();
+        heuristicPotentialBit.clear();
+        d_sep.clear();
+        d_hasNonAsciiSeparators=false;
+    }
     void addSeparator( char c, bool isReal=true ) 
     {
         if( IS_SEPARATOR_NO == findCharSeparator(c) ) {
@@ -145,7 +181,10 @@ public:
     void addSeparator( const StrUTF8& str, bool isReal=true ) 
     {
         for( auto i = str.begin(), i_end = str.end(); i!= i_end; ++i ) {
-            d_sep.push_back( SepChar((*i),isReal) );
+            CharUTF8 uc(*i);
+            d_sep.push_back( SepChar(uc,isReal) );
+            if( !d_hasNonAsciiSeparators && !uc.isAscii() ) 
+                d_hasNonAsciiSeparators=true;
         }
     }
     /// converts s to utf8 and treats every glyph in the string as a separator 

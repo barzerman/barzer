@@ -1233,5 +1233,42 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
 			++s;
 		}
 	}
+    
+bool dedupeRussianConsonants( std::string& dest, const char* buf, size_t buf_len )
+{
+    if( buf_len < 2 ) 
+        return (dest.assign(buf,buf_len),false);
+
+    const char* priorConsonant = 0;
+
+    bool skippedAny = false;
+    const char* src = buf, *buf_end=buf+buf_len-1;
+    for( ; src< buf_end;  ) {
+        uint8_t b0 = static_cast<uint8_t>(src[0]), b1=static_cast<uint8_t>(src[1]);
+        if( is_russian_consonant(b0,b1) ) { 
+            if( priorConsonant&& priorConsonant[0] == src[0] && priorConsonant[1] == src[1] ) { // same consonant
+                priorConsonant= src;
+                src+=2;
+            } else {
+                priorConsonant= src;
+                dest.push_back( src[0] );
+                dest.push_back( src[1] );
+                src+=2;
+                if( !skippedAny ) 
+                    skippedAny = true;
+            }
+        }  else { // not a consonant
+            priorConsonant= 0;
+            dest.push_back( src[0] );
+            dest.push_back( src[1] );
+
+            src+=2;
+        }
+    }
+    if( src== (buf_end+1) ) 
+        dest.push_back(*(src));
+
+    return skippedAny;
+}
 }
 }

@@ -459,7 +459,7 @@ static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
     const BarzerString* tokenMode = reqEnv.getVarVal<BarzerString>( "tokmode" );
     if( tokenMode ) {
         /// 
-        zurch::ZurchTokenizer zt( );
+        zurch::ZurchTokenizer zt;
         zurch::ZurchTokenVec tokVec;
         char buf[ 1024 ];
         while( fgets( buf,sizeof(buf)-1,stdin) ) {
@@ -481,23 +481,6 @@ static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
 		    shell->getOutStream() << ttVec << std::endl;
 	    }
     }
-	return 0;
-}
-
-static int bshf_tokenize_old( BarzerShell* shell, char_cp cmd, std::istream& in )
-{
-	BarzerShellContext * context = shell->getBarzerContext();
-	Barz& barz = context->barz;
-	QParser& parser = context->parser;
-
-	ay::InputLineReader reader( in );
-	QuestionParm qparm;
-    shell->syncQuestionParm(qparm);
-	while( reader.nextLine() && reader.str.length() ) {
-		barz.tokenize( parser.tokenizer, reader.str.c_str(), qparm );
-		const TTWPVec& ttVec = barz.getTtVec();
-		shell->getOutStream() << ttVec << std::endl;
-	}
 	return 0;
 }
 
@@ -879,6 +862,32 @@ struct ShellState {
 
 static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
+	BarzerShellContext * context = shell->getBarzerContext();
+	Barz& barz = context->barz;
+	QParser& parser = context->parser;
+	const StoredUniverse &uni = context->getUniverse();
+
+    RequestEnvironment& reqEnv = context->reqEnv;
+    RequestVariableMap& reqEnvVar = reqEnv.getReqVar();
+    
+    const BarzerString* tokenMode = reqEnv.getVarVal<BarzerString>( "tokmode" );
+    const char* sepString = ( tokenMode ?  tokenMode->c_str() : 0 );
+
+    zurch::ZurchTokenizer zt( sepString );
+    
+    /// 
+    zurch::ZurchTokenVec tokVec;
+    char buf[ 1024 ];
+    while( fgets( buf,sizeof(buf)-1,stdin) && buf[0] != '\n') {
+        size_t buf_sz = strlen(buf)-1;
+        buf[ buf_sz ] =0;
+        tokVec.clear();
+        zt.tokenize( tokVec, buf, buf_sz );
+        for( auto i = tokVec.begin(); i!= tokVec.end(); ++i ) {
+
+            std::cerr<< (i-tokVec.begin()) << ":" << *i << std::endl;
+        }
+    }
     return 0;
 }
 

@@ -20,6 +20,10 @@ namespace tl
             (b0== 0xd1 && (b1==0x91||b1==0x8f||b1==0x83||b1==0x8d||b1==0x8e||b1==0x8b))
         );  
     }
+    /// buf must be a valid all utf8 russian string (utf8 russian has 2 byte charafcters)
+    /// dedupes in place, returns true if anything was removed
+    bool dedupeRussianConsonants( std::string& dest, const char* buf, size_t buf_len );
+
     inline bool is_russian_vowel( const char *s ) { return is_russian_vowel( (uint8_t)(s[0]), (uint8_t)(s[1]) ); }
 
     inline bool is_russian_znak( uint8_t b0, uint8_t b1 ) { return( b0 == 0xd1 && (b1 == 0x8c || b1 == 0x8a)); }
@@ -31,6 +35,7 @@ namespace tl
     inline bool is_not_russian_consonant( uint8_t b0, uint8_t b1 ) { 
         return ( is_russian_vowel(b0,b1) ||  is_russian_znak(b0,b1) );
     }
+    inline bool is_russian_consonant( uint8_t b0, uint8_t b1 ) { return !is_not_russian_consonant(b0,b1); }
 
     inline bool is_not_russian_consonant( const char *s ) { return (is_russian_vowel(s) ||  is_russian_znak(s)); }
 }
