@@ -177,6 +177,8 @@ Parser::Parser(std::ostream& ostr)
 {
 	XML_SetUserData (m_expat, this);
 	XML_SetElementHandler (m_expat, startElement, endElement);
+
+	m_ostr.precision(8);
 }
 
 int main (int argc, char **argv)
