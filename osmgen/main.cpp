@@ -21,9 +21,11 @@ class Parser
 	std::map<std::string, std::string> m_tags;
 	std::set<std::string> m_keys;
 
-	std::map<std::string, std::set<std::string>> m_keyvals;
+	std::map<std::string, std::map<std::string, size_t>> m_keyvals;
 
 	std::ostream& m_ostr;
+
+	size_t m_numEntities;
 public:
 	Parser(std::ostream&);
 
@@ -48,12 +50,13 @@ public:
 
 	void dumpStats() const
 	{
+		std::cout << "Entities generated: " << m_numEntities << std::endl;
 		std::cout << "Tags:" << std::endl;
 		for (const auto& str : m_keys)
 		{
 			std::cout << str << std::endl;
 			for (const auto& val : m_keyvals.at(str))
-				std::cout << "\t" << val << std::endl;
+				std::cout << "\t" << val.second << "\t\t" << val.first << std::endl;
 		}
 	}
 
@@ -108,7 +111,7 @@ private:
 		}
 		m_tags[name] = val;
 		m_keys.insert(name);
-		m_keyvals[name].insert(val);
+		m_keyvals[name][val]++;
 	}
 
 	void flushNode()
@@ -144,6 +147,8 @@ private:
 		if (possibleNames.empty())
 			return;
 
+		++m_numEntities;
+
 		m_ostr << "\t<stmt>\n\t\t<pat>";
 		if (possibleNames.size() > 1)
 			m_ostr << "<any>";
@@ -174,6 +179,7 @@ Parser::Parser(std::ostream& ostr)
 : m_expat(XML_ParserCreate(NULL))
 , m_state(State::AwaitingNode)
 , m_ostr(ostr)
+, m_numEntities(0)
 {
 	XML_SetUserData (m_expat, this);
 	XML_SetElementHandler (m_expat, startElement, endElement);
@@ -222,8 +228,8 @@ int main (int argc, char **argv)
 		std::ifstream istr(argv[i]);
 		p.parse(istr);
 	}
-	//std::cout << "DUMPING STATS" << std::endl;
-	//p.dumpStats();
+	std::cout << "DUMPING STATS" << std::endl;
+	p.dumpStats();
 
-	ostr << "</stmset>";
+	ostr << "</stmset>" << std::endl;
 }
