@@ -18,12 +18,14 @@ class Parser
 	} m_state;
 
 	double m_lat, m_lon;
-	std::vector<std::pair<std::string, std::string>> m_tags;
+	std::map<std::string, std::string> m_tags;
 	std::set<std::string> m_keys;
 
 	std::map<std::string, std::set<std::string>> m_keyvals;
+
+	std::ostream& m_ostr;
 public:
-	Parser();
+	Parser(std::ostream&);
 
 	void parse(std::istream& istr)
 	{
@@ -96,17 +98,17 @@ private:
 	void handleTag(const XML_Char **a)
 	{
 		const int attrCount = XML_GetSpecifiedAttributeCount(m_expat);
-		std::pair<std::string, std::string> tag;
+		std::string name, val;
 		for (int i = 0; i < attrCount; i += 2)
 		{
 			if (*a[i] == 'k')
-				tag.first.assign(a[i + 1]);
+				name.assign(a[i + 1]);
 			else if (*a[i] == 'v')
-				tag.second.assign(a[i + 1]);
+				val.assign(a[i + 1]);
 		}
-		m_tags.push_back(tag);
-		m_keys.insert(tag.first);
-		m_keyvals[tag.first].insert(tag.second);
+		m_tags[name] = val;
+		m_keys.insert(name);
+		m_keyvals[name].insert(val);
 	}
 
 	void flushNode()
@@ -114,11 +116,44 @@ private:
 		if (m_tags.empty())
 			return;
 
+		/*
 		std::cout << "items for node " << m_lat << " " << m_lon << std::endl;
 		for (const auto& p : m_tags)
 			std::cout << p.first << " => " << p.second << "; ";
 		std::cout << std::endl;
+		*/
+		auto tags = m_tags;
 		m_tags.clear();
+
+		if (tags.find("traffic_sign") != tags.end())
+			return;
+
+		std::vector<std::string> possibleNames;
+		auto tryTag = [&possibleNames, &tags](const std::string& tagName)
+		{
+			const auto name = tags.find(tagName);
+			if (name != tags.end())
+				possibleNames.push_back(name->second);
+		};
+		tryTag("name");
+		tryTag("alt_name");
+		tryTag("amenity");
+		tryTag("shop");
+		tryTag("operator");
+
+		if (possibleNames.empty())
+			return;
+
+		m_ostr << "\t<stmt>\n\t\t<pat>";
+		if (possibleNames.size() > 1)
+			m_ostr << "<any>";
+		for (const auto& str : possibleNames)
+			m_ostr << "<t>" << str << "</t>";
+		if (possibleNames.size() > 1)
+			m_ostr << "</any>";
+		m_ostr << "</pat>" << std::endl << "\t\t<tran>";
+		m_ostr << "<mkent c='0' s='0' p='" << m_lat << ", " << m_lon << "' ";
+		m_ostr << "/>\n\t</stmt>" << std::endl;
 	}
 };
 
@@ -135,9 +170,10 @@ namespace
 	}
 }
 
-Parser::Parser()
+Parser::Parser(std::ostream& ostr)
 : m_expat(XML_ParserCreate(NULL))
 , m_state(State::AwaitingNode)
+, m_ostr(ostr)
 {
 	XML_SetUserData (m_expat, this);
 	XML_SetElementHandler (m_expat, startElement, endElement);
@@ -145,13 +181,43 @@ Parser::Parser()
 
 int main (int argc, char **argv)
 {
-	if (argc < 2)
-		std::cerr << "Usage: " << argv [0] << " map.osm" << std::endl;
+	if (argc < 3)
+	{
+		std::cerr << "Usage: " << argv [0] << " map.osm outfile.xml" << std::endl;
+		return 1;
+	}
 
 	std::ifstream istr(argv[1]);
+	std::ofstream ostr(argv[2]);
 
-	Parser p;
+	ostr << "<?xml version='1.0' encoding='UTF-8'?>" << std::endl;
+	ostr << "<stmset xmlns:xsi='http://www.w3.org/2000/10/XMLSchema-instance' xmlns='http://www.barzer.net/barzel/0.1'>" << std::endl;
+
+	static const std::map<std::string, std::vector<std::string>> amenitySynonyms =
+	{
+		{ "atm", { "банкомат" } },
+		{ "doctor", { "врач", "больница" } },
+		{ "dentist", { "врач", "зубной</t><t>врач"} },
+		{ "kindergarten", { "детский</t><t>сад", "дошкольное</t><t>учреждение" } }
+	};
+	ostr << "\t<!-- amenity synonyms block -->\n";
+	for (const auto& pair : amenitySynonyms)
+	{
+		for (const auto& syn : pair.second)
+		{
+			ostr << "\t<stmt>";
+			ostr << "\n\t\t<pat><t>" + syn + "</t></pat>";
+			ostr << "\n\t\t<tran><t>" << pair.first << "</t></tran>";
+			ostr << "\n\t</stmt>\n";
+		}
+	}
+
+	ostr << "\n\t<!-- generated rules -->\n";
+
+	Parser p(ostr);
 	p.parse(istr);
 	std::cout << "DUMPING STATS" << std::endl;
 	p.dumpStats();
+
+	ostr << "</stmset>";
 }
