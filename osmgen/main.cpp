@@ -183,12 +183,11 @@ int main (int argc, char **argv)
 {
 	if (argc < 3)
 	{
-		std::cerr << "Usage: " << argv [0] << " map.osm outfile.xml" << std::endl;
+		std::cerr << "Usage: " << argv [0] << " outfile.xml map1.osm [map2.osm ...]" << std::endl;
 		return 1;
 	}
 
-	std::ifstream istr(argv[1]);
-	std::ofstream ostr(argv[2]);
+	std::ofstream ostr(argv[1]);
 
 	ostr << "<?xml version='1.0' encoding='UTF-8'?>" << std::endl;
 	ostr << "<stmset xmlns:xsi='http://www.w3.org/2000/10/XMLSchema-instance' xmlns='http://www.barzer.net/barzel/0.1'>" << std::endl;
@@ -215,9 +214,14 @@ int main (int argc, char **argv)
 	ostr << "\n\t<!-- generated rules -->\n";
 
 	Parser p(ostr);
-	p.parse(istr);
-	std::cout << "DUMPING STATS" << std::endl;
-	p.dumpStats();
+	for (int i = 2; i < argc; ++i)
+	{
+		std::cout << "parsing " << argv[i] << "..." << std::endl;
+		std::ifstream istr(argv[i]);
+		p.parse(istr);
+	}
+	//std::cout << "DUMPING STATS" << std::endl;
+	//p.dumpStats();
 
 	ostr << "</stmset>";
 }
