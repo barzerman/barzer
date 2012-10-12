@@ -878,14 +878,20 @@ static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in )
     /// 
     zurch::ZurchTokenVec tokVec;
     char buf[ 1024 ];
+    RuBastardizeHeuristic      bastardizer( context->getUniverse().getGlobalPools() );
+    zurch::ZurchWordNormalizer::NormalizerEnvironment normEnv(&bastardizer);
+    zurch::ZurchWordNormalizer znorm(context->getUniverse().getBZSpell());
+
+    std::string normStr;
     while( fgets( buf,sizeof(buf)-1,stdin) && buf[0] != '\n') {
         size_t buf_sz = strlen(buf)-1;
         buf[ buf_sz ] =0;
         tokVec.clear();
         zt.tokenize( tokVec, buf, buf_sz );
         for( auto i = tokVec.begin(); i!= tokVec.end(); ++i ) {
-
-            std::cerr<< (i-tokVec.begin()) << ":" << *i << std::endl;
+            normEnv.clear();
+            znorm.normalize( normStr, i->str.c_str(), normEnv );
+            std::cerr<< (i-tokVec.begin()) << ":" << *i << " norm \"" << normStr << "\"" << std::endl;
         }
     }
     return 0;

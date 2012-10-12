@@ -23,8 +23,11 @@ inline std::ostream& operator<<( std::ostream& fp, const ZurchToken& zt )
 }
 typedef std::vector<ZurchToken> ZurchTokenVec;
 
-#define ZURCH_DEFAULT_SEPARATORS ",./ \n-;'`|"
 /// optimized for tokenizing large documents 
+/// there are two ways of specifying separators:
+/// heuristicBit.set - see the flags in ay_tokenizer - this is preferred 
+/// for potential tokenizers it's d_tokenizer.heuristicPotentialBit 
+/// in addition to heuristics a list of arbitrary separators can be added 
 class ZurchTokenizer {
     enum { ZTF_DETECTID, ZTF_MAX };
     ay::bitflags< ZTF_MAX > d_bit;
@@ -47,6 +50,10 @@ public:
     }
     void addSeparators( const char* s ) { d_tokenizer.addSeparators(s); }
 
+    void clearHeuristics() { d_tokenizer.heuristicBit.clear(); }
+    void clearPotentialHeuristics() { d_tokenizer.heuristicPotentialBit.clear(); }
+    void clearExtraSeparators() { d_tokenizer.clearSeparators(); }
+
     void tokenize( ZurchTokenVec&, const char* str, size_t str_sz );
     void config( const boost::property_tree::ptree& );
 };
@@ -60,13 +67,25 @@ public:
     };
     /// MUST be single threaded  . this object is needed so that intermediate heap objects dont get reallocated all the time 
     struct NormalizerEnvironment {
-        std::string stem, translit, dedupe;
+        std::string stem, translit, dedupe, bastardized;
         int  strategy;
-        NormalizerEnvironment( int st = STRAT_RU_TRANSLIT_CONSONANT ) : strategy(st) {}
+        const barzer::HashingSpellHeuristic* bastardizer;
+
+        NormalizerEnvironment( int st = STRAT_RU_TRANSLIT_CONSONANT ) : strategy(st), bastardizer(0) {}
+        NormalizerEnvironment( const barzer::HashingSpellHeuristic* b, int st = STRAT_RU_TRANSLIT_CONSONANT ) : strategy(st), bastardizer(b) {}
+        void clear()
+        {
+            stem.clear();
+            translit.clear();
+            dedupe.clear();
+            bastardized.clear();
+        }
     };
 
     ZurchWordNormalizer( barzer::BZSpell* spell ) : d_bzspell(spell) {}
     void normalize( std::string& dest, const char* src, NormalizerEnvironment& env ) const;
+
+    // void normalize( ZurchTokenVec& dest, const ZurchTokenVec& src, NormalizerEnvironment& env ) const;
 };
 
 } // namespace zurch

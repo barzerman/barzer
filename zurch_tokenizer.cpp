@@ -2,16 +2,41 @@
 #include <ay/ay_translit_ru.h>
 
 namespace zurch {
+/*
+void ZurchWordNormalizer::normalize( ZurchTokenVec& dest, const ZurchTokenVec& src, NormalizerEnvironment& env ) const
+{
+    dest.clear();
+    dest.reserve( src.size() );
+
+    for( ZurchTokenVec::const_iterator i = src.begin(); i!= src.end(); ++i ) 
+    {
+        if( i->str.length() > 1 ) {
+            dest.resize( dest.size() +1 );
+            ZurchToken& t = dest.back();
+            t=*i;
+            if( d_bzspell->stem( env.stem, i->str.c_str() ) ) {
+                dest.str = env.stem;
+            } else {
+                
+            }
+        }
+    }
+}
+*/
 void ZurchWordNormalizer::normalize( std::string& dest, const char* src, NormalizerEnvironment& env ) const
 {
     env.stem.clear();
-    d_bzspell->stem( env.stem, src );
+    if( !d_bzspell->stem( env.stem, src ) )
+        env.stem=src;
     env.translit.clear();
     ay::tl::en2ru(env.stem.c_str(), env.stem.length(), env.translit);
     env.dedupe.clear();
     ay::tl::dedupeRussianConsonants(env.dedupe, env.translit.c_str(), env.translit.size() );
+    if( env.bastardizer ) {
+        env.bastardizer->transform( env.dedupe.c_str(), env.dedupe.length(), env.bastardized );
+    }
     
-    dest = env.dedupe;
+    dest = env.bastardized;
 }
 
 void ZurchTokenizer::config( const boost::property_tree::ptree& pt )

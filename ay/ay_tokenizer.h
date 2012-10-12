@@ -150,7 +150,13 @@ public:
         }
         return 0;
     }
+
     void clearSeparators() 
+    {
+        d_sep.clear();
+        d_hasNonAsciiSeparators=false;
+    }
+    void clear() 
     {
         heuristicBit.clear();
         heuristicPotentialBit.clear();
