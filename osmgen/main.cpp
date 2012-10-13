@@ -139,10 +139,15 @@ private:
 				possibleNames.push_back(name->second);
 		};
 		tryTag("name");
+		tryTag("name:en");
+		tryTag("name:ru");
 		tryTag("alt_name");
 		tryTag("amenity");
 		tryTag("shop");
 		tryTag("operator");
+		tryTag("old_name");
+		tryTag("official_name");
+		tryTag("int_name");
 
 		if (possibleNames.empty())
 			return;
