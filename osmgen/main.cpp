@@ -56,7 +56,8 @@ public:
 		{
 			std::cout << str << std::endl;
 			for (const auto& val : m_keyvals.at(str))
-				std::cout << "\t" << val.second << "\t\t" << val.first << std::endl;
+				if (val.second > 1)
+					std::cout << "\t" << val.second << "\t\t" << val.first << std::endl;
 		}
 	}
 
