@@ -2,28 +2,7 @@
 #include <ay/ay_translit_ru.h>
 
 namespace zurch {
-/*
-void ZurchWordNormalizer::normalize( ZurchTokenVec& dest, const ZurchTokenVec& src, NormalizerEnvironment& env ) const
-{
-    dest.clear();
-    dest.reserve( src.size() );
-
-    for( ZurchTokenVec::const_iterator i = src.begin(); i!= src.end(); ++i ) 
-    {
-        if( i->str.length() > 1 ) {
-            dest.resize( dest.size() +1 );
-            ZurchToken& t = dest.back();
-            t=*i;
-            if( d_bzspell->stem( env.stem, i->str.c_str() ) ) {
-                dest.str = env.stem;
-            } else {
-                
-            }
-        }
-    }
-}
-*/
-void ZurchWordNormalizer::normalize( std::string& dest, const char* src, NormalizerEnvironment& env ) const
+const char* ZurchWordNormalizer::normalize( std::string& dest, const char* src, NormalizerEnvironment& env ) const
 {
     env.stem.clear();
     if( !d_bzspell->stem( env.stem, src ) )
@@ -37,6 +16,7 @@ void ZurchWordNormalizer::normalize( std::string& dest, const char* src, Normali
     }
     
     dest = env.bastardized;
+    return dest.c_str();
 }
 
 void ZurchTokenizer::config( const boost::property_tree::ptree& pt )

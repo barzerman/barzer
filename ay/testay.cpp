@@ -5,13 +5,23 @@
  *      Author: polter
  */
 
+#ifndef DONTCOMMENTALLOUT
 #include <ay_logger.h>
 #include <ay_utf8.h>
 #include <ay_choose.h>
 #include <ay_util_time.h>
 #include <ay_util.h>
 #include <ay_xml_util.h>
+#include <boost/format.hpp>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
+#endif 
+#include <ay_statistics.h>
 
+
+#ifndef DONTCOMMENTALLOUT
 void testLogger() {
 	AYLOGINIT(DEBUG);
 	int i  = 0;
@@ -174,6 +184,49 @@ int test_ay_strcasecmp (int argc, char* argv[])
     }
     return 0;
 }
+#endif /// DONTCOMMENTALLOUT
+int test_ay_statistics(int argc, char* argv[])
+{
+    {
+    ay::double_standardized_moments acc;
+    acc(1);
+    acc(2);
+    acc(3);
+    acc(4);
+    acc(5);
+    acc(6);
+    acc(7);
+    acc(8);
+    acc(9);
+    acc(10);
+    std::cerr << 
+        "suM:" << boost::accumulators::sum(acc) << std::endl <<
+        "mean:" << boost::accumulators::mean(acc) << std::endl <<
+        "count:" << boost::accumulators::count(acc) << std::endl <<
+        "variance:" << boost::accumulators::variance(acc) << std::endl <<
+        "skewness:" << boost::accumulators::skewness(acc) << std::endl <<
+        "kurtosis:" << boost::accumulators::kurtosis(acc) << std::endl;
+        //"variance:" << boost::accumulators::sum(acc) << std::endl <<
+        //"suM:" << boost::accumulators::sum(acc) << std::endl;
+
+    }
+    {
+    ay::double_standardized_moments_weighted acc;
+    acc(1,boost::accumulators::weight=.6);
+    acc(1,boost::accumulators::weight=.6);
+    acc(2,boost::accumulators::weight=.6);
+    acc(3,boost::accumulators::weight=1.6);
+
+    std::cerr << 
+        "suM:" << boost::accumulators::sum(acc) << std::endl <<
+        "mean:" << boost::accumulators::mean(acc) << std::endl <<
+        "count:" << boost::accumulators::count(acc) << std::endl <<
+        "variance:" << boost::accumulators::variance(acc) << std::endl <<
+        "skewness:" << boost::accumulators::skewness(acc) << std::endl <<
+        "kurtosis:" << boost::accumulators::kurtosis(acc) << std::endl;
+    }
+    return 0;
+}
 
 int main(int argc, char* argv[]) {
 	// testLogger();
@@ -181,5 +234,6 @@ int main(int argc, char* argv[]) {
     // testUTF8Normalizer(argc,argv);
     // testStripDiacritics(argc,argv);
     // testXMLEscape(argc,argv);
-    return test_ay_strcasecmp(argc,argv);
+    // test_ay_strcasecmp(argc,argv);
+    return test_ay_statistics(argc,argv);
 }

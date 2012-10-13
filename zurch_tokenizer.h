@@ -83,7 +83,7 @@ public:
     };
 
     ZurchWordNormalizer( barzer::BZSpell* spell ) : d_bzspell(spell) {}
-    void normalize( std::string& dest, const char* src, NormalizerEnvironment& env ) const;
+    const char* normalize( std::string& dest, const char* src, NormalizerEnvironment& env ) const;
 
     // void normalize( ZurchTokenVec& dest, const ZurchTokenVec& src, NormalizerEnvironment& env ) const;
 };
