@@ -212,11 +212,15 @@ int test_ay_statistics(int argc, char* argv[])
     }
     {
     ay::double_standardized_moments_weighted acc;
+    /*
     acc(1,boost::accumulators::weight=.6);
     acc(1,boost::accumulators::weight=.6);
     acc(2,boost::accumulators::weight=.6);
     acc(3,boost::accumulators::weight=1.6);
+    */
 
+    double x = boost::accumulators::skewness(acc);
+    std::cerr << (boost::math::isnan(x) ? "SHIT NAN" : "NOT NAN") << std::endl;
     std::cerr << 
         "suM:" << boost::accumulators::sum(acc) << std::endl <<
         "mean:" << boost::accumulators::mean(acc) << std::endl <<
@@ -224,6 +228,16 @@ int test_ay_statistics(int argc, char* argv[])
         "variance:" << boost::accumulators::variance(acc) << std::endl <<
         "skewness:" << boost::accumulators::skewness(acc) << std::endl <<
         "kurtosis:" << boost::accumulators::kurtosis(acc) << std::endl;
+    }
+    {
+        std::vector< ay::double_standardized_moments_weighted > acc;
+        acc.resize(1);
+        acc[0](1,boost::accumulators::weight=.6);
+        acc[0](1,boost::accumulators::weight=.6);
+        acc[0](2,boost::accumulators::weight=.6);
+        acc[0](3,boost::accumulators::weight=1.6);
+        std::cerr << sizeof( ay::double_standardized_moments_weighted ) << std::endl;
+
     }
     return 0;
 }

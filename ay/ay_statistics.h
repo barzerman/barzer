@@ -22,6 +22,9 @@
 #include <boost/accumulators/statistics/weighted_peaks_over_threshold.hpp>
 #include <boost/accumulators/statistics/weighted_skewness.hpp>
 #include <boost/accumulators/statistics/weighted_sum.hpp>
+
+#include <boost/math/special_functions/fpclassify.hpp>
+
 namespace ay {
 //// wrapper of boost accumulators
 
