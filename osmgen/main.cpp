@@ -53,6 +53,8 @@ public:
 
 	void parse(std::istream& istr)
 	{
+		XML_ParserReset(m_expat, NULL);
+
 		const size_t bufSize = 1048576;
 		char buf[bufSize];
 		bool end = false;
