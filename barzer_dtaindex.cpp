@@ -48,15 +48,22 @@ StoredToken& StoredTokenPool::addSingleTok( int& lang, bool& newAdded, const cha
 	if( sTok ) 
 		return *sTok;
 	
-	StoredTokenId sid = strPool->internIt( t );
+    size_t t_len = strlen(t);
+    if( lang == LANG_UNKNOWN )
+        lang = Lang::getLangNoUniverse( t, t_len );
+
+	StoredTokenId sid = 0xffffffff;
+    if( Lang::isTwoByteLang(lang) && Lang::hasTwoByteDiacritics(t,t_len,lang)) {
+        std::string out; 
+        Lang::twoByteStripDiacritics( out, t,t_len,lang);
+	    sid = strPool->internIt( out.c_str() );
+    } else 
+	    sid = strPool->internIt( t );
 	const char* internedStr = strPool->resolveId( sid );
 
 	StoredTokenId tokId = storTok.vec.size();
 	StoredToken& newTok = storTok.extend();
 	newTok.setSingle( tokId, sid, strlen(internedStr) );
-    size_t t_len = strlen(t);
-    if( lang == LANG_UNKNOWN )
-        lang = Lang::getLangNoUniverse( t, t_len );
     if( Lang::hasUpperCase(t,t_len,lang) ) 
         newTok.setHasUpperCase();
 
