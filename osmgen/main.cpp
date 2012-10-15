@@ -286,6 +286,7 @@ int main (int argc, char **argv)
 		{ "place_of_worship", { "храм", "церковь", "мечеть" } }
 	};
 	ostr << "\t<!-- amenity synonyms block -->\n";
+	/*
 	for (const auto& pair : amenitySynonyms)
 	{
 		ostr << "\t<stmt>\n\t\t<pat>";
@@ -305,6 +306,7 @@ int main (int argc, char **argv)
 		ostr << "</pat>\n\t\t<tran><t>" << pair.first << "</t></tran>";
 		ostr << "\n\t</stmt>\n";
 	}
+	*/
 
 	ostr << "\n\t<!-- generated rules -->\n";
 
