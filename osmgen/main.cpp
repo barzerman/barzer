@@ -15,17 +15,16 @@ namespace
 		const auto withLen = strlen(with);
 		while ((pos = str.find(what, pos)) != std::string::npos)
 		{
-			str.replace(pos, what, with);
+			str.replace(pos, 1, with);
 			pos += withLen;
 		}
 	}
 
-	std::string xmlEscape(std::string str)
+	void xmlEscape(std::string& str)
 	{
 		replace(str, '&', "&amp;");
 		replace(str, '<', "&lt;");
 		replace(str, '>', "&gt;");
-		return str;
 	}
 }
 
@@ -68,10 +67,6 @@ public:
 				return;
 			}
 		} while (!done);
-
-		XML_ParserReset(m_expat, NULL);
-		XML_SetUserData (m_expat, this);
-		XML_SetElementHandler (m_expat, startElement, endElement);
 	}
 
 	void dumpStats() const
@@ -163,7 +158,12 @@ private:
 		{
 			const auto name = tags.find(tagName);
 			if (name != tags.end())
-				possibleNames.push_back(name->second);
+			{
+				auto val = name->second;
+				xmlEscape(val);
+				replace(val, ' ', "</t><t>");
+				possibleNames.push_back("<t>" + val + "</t>");
+			}
 		};
 		tryTag("name");
 		tryTag("name:en");
@@ -185,7 +185,14 @@ private:
 		if (possibleNames.size() > 1)
 			m_ostr << "<any>";
 		for (const auto& str : possibleNames)
-			m_ostr << "<t>" << xmlEscape(str) << "</t>";
+		{
+			const bool isMultiterm = str.find("</t><t>") != std::string::npos;
+			if (isMultiterm)
+				m_ostr << "<list>";
+			m_ostr << str;
+			if (isMultiterm)
+				m_ostr << "</list>";
+		}
 		if (possibleNames.size() > 1)
 			m_ostr << "</any>";
 		m_ostr << "</pat>" << std::endl << "\t\t<tran>";
@@ -213,6 +220,8 @@ Parser::Parser(std::ostream& ostr)
 , m_ostr(ostr)
 , m_numEntities(0)
 {
+	XML_SetUserData (m_expat, this);
+	XML_SetElementHandler (m_expat, startElement, endElement);
 	m_ostr.precision(8);
 }
 
@@ -289,15 +298,14 @@ int main (int argc, char **argv)
 
 	ostr << "\n\t<!-- generated rules -->\n";
 
-	Parser p(ostr);
 	for (int i = 2; i < argc; ++i)
 	{
 		std::cout << "parsing " << argv[i] << "..." << std::endl;
 		std::ifstream istr(argv[i]);
+		Parser p(ostr);
 		p.parse(istr);
+		p.dumpStats();
 	}
-	std::cout << "DUMPING STATS" << std::endl;
-	p.dumpStats();
 
 	ostr << "</stmset>" << std::endl;
 }
