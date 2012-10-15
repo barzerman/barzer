@@ -7,6 +7,28 @@
 #include <expat.h>
 #include <string.h>
 
+namespace
+{
+	void replace(std::string& str, char what, const char *with)
+	{
+		auto pos = 0;
+		const auto withLen = strlen(with);
+		while ((pos = str.find(what, pos)) != std::string::npos)
+		{
+			str.replace(pos, what, with);
+			pos += withLen;
+		}
+	}
+
+	std::string xmlEscape(std::string str)
+	{
+		replace(str, '&', "&amp;");
+		replace(str, '<', "&lt;");
+		replace(str, '>', "&gt;");
+		return str;
+	}
+}
+
 class Parser
 {
 	XML_Parser m_expat;
@@ -159,7 +181,7 @@ private:
 		if (possibleNames.size() > 1)
 			m_ostr << "<any>";
 		for (const auto& str : possibleNames)
-			m_ostr << "<t>" << str << "</t>";
+			m_ostr << "<t>" << xmlEscape(str) << "</t>";
 		if (possibleNames.size() > 1)
 			m_ostr << "</any>";
 		m_ostr << "</pat>" << std::endl << "\t\t<tran>";
