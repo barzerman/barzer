@@ -53,8 +53,6 @@ public:
 
 	void parse(std::istream& istr)
 	{
-		XML_ParserReset(m_expat, NULL);
-
 		const size_t bufSize = 1048576;
 		char buf[bufSize];
 		bool end = false;
@@ -70,6 +68,10 @@ public:
 				return;
 			}
 		} while (!done);
+
+		XML_ParserReset(m_expat, NULL);
+		XML_SetUserData (m_expat, this);
+		XML_SetElementHandler (m_expat, startElement, endElement);
 	}
 
 	void dumpStats() const
@@ -211,9 +213,6 @@ Parser::Parser(std::ostream& ostr)
 , m_ostr(ostr)
 , m_numEntities(0)
 {
-	XML_SetUserData (m_expat, this);
-	XML_SetElementHandler (m_expat, startElement, endElement);
-
 	m_ostr.precision(8);
 }
 
