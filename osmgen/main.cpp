@@ -287,13 +287,13 @@ int main (int argc, char **argv)
 	ostr << "\t<!-- amenity synonyms block -->\n";
 	for (const auto& pair : amenitySynonyms)
 	{
+		ostr << "\t<stmt>\n\t\t<pat><any>";
 		for (const auto& syn : pair.second)
 		{
-			ostr << "\t<stmt>";
-			ostr << "\n\t\t<pat><t>" + syn + "</t></pat>";
-			ostr << "\n\t\t<tran><t>" << pair.first << "</t></tran>";
-			ostr << "\n\t</stmt>\n";
+			ostr << "<list><t>" + syn + "</t></list>";
 		}
+		ostr << "</any></pat>\n\t\t<tran><t>" << pair.first << "</t></tran>";
+		ostr << "\n\t</stmt>\n";
 	}
 
 	ostr << "\n\t<!-- generated rules -->\n";
