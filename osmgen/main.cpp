@@ -153,7 +153,7 @@ private:
 		if (tags.find("traffic_sign") != tags.end())
 			return;
 
-		std::vector<std::string> possibleNames;
+		std::set<std::string> possibleNames;
 		auto tryTag = [&possibleNames, &tags](const std::string& tagName)
 		{
 			const auto name = tags.find(tagName);
@@ -162,7 +162,8 @@ private:
 				auto val = name->second;
 				xmlEscape(val);
 				replace(val, ' ', "</t><t>");
-				possibleNames.push_back("<t>" + val + "</t>");
+				val = "<t>" + val + "</t>";
+				possibleNames.insert(val);
 			}
 		};
 		tryTag("name");
