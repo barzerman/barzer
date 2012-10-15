@@ -288,12 +288,21 @@ int main (int argc, char **argv)
 	ostr << "\t<!-- amenity synonyms block -->\n";
 	for (const auto& pair : amenitySynonyms)
 	{
-		ostr << "\t<stmt>\n\t\t<pat><any>";
+		ostr << "\t<stmt>\n\t\t<pat>";
+		if (pair.second.size() > 1)
+			ostr << "<any>";
 		for (const auto& syn : pair.second)
 		{
-			ostr << "<list><t>" + syn + "</t></list>";
+			const bool isMultiterm = syn.find("</t><t>") != std::string::npos;
+			if (isMultiterm)
+				ostr << "<list>";
+			ostr << "<t>" + syn + "</t>";
+			if (isMultiterm)
+				ostr << "</list>";
 		}
-		ostr << "</any></pat>\n\t\t<tran><t>" << pair.first << "</t></tran>";
+		if (pair.second.size() > 1)
+			ostr << "</any>";
+		ostr << "</pat>\n\t\t<tran><t>" << pair.first << "</t></tran>";
 		ostr << "\n\t</stmt>\n";
 	}
 
