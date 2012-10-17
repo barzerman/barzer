@@ -68,6 +68,10 @@ struct Lang {
     static int getLangNoUniverse( const char* str, size_t s_len );
     static int getLang( const StoredUniverse&, const char* str, size_t s_len );
     static bool convertTwoByteToLower( char* s, size_t s_len, int lang );
+    /// returns true if diacritics were found
+    /// only call it if s_len is an even number
+    static bool hasTwoByteDiacritics( const char*, size_t s_len, int lang );
+    static bool twoByteStripDiacritics( std::string& dest, const char*, size_t s_len, int lang );
     static bool convertUtf8ToLower( char* s, size_t s_len, int lang );
 
     static bool hasTwoByteUpperCase( const char* s, size_t s_len, int lang );

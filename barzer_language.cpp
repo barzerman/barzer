@@ -31,6 +31,54 @@ bool Lang::convertUtf8ToLower( char* s, size_t s_len, int lang )
 	return true;
 }
 
+bool Lang::hasTwoByteDiacritics( const char* str, size_t str_len, int lang )
+{
+    if( lang == LANG_RUSSIAN ) {
+        for( const char* s = str, *s_end = str+str_len; s< s_end; s+=2 ) {
+            if( (uint8_t)(s[0]) == 0xd0 ) {
+                if( (uint8_t)(s[1]) == 0x81 ) {// Ё
+                    return true;
+                }
+            } else if((uint8_t)(s[0]) == 0xd1 ) { 
+                if( (uint8_t)(s[1]) == 0x91 ) { // ё
+                    return true;
+                }
+            }
+        }
+    } 
+    return false;
+}
+bool Lang::twoByteStripDiacritics( std::string& dest, const char* str, size_t str_len, int lang )
+{
+    dest.clear();
+    dest.reserve( str_len );
+    bool hasDiacritics = false;
+    if( lang == LANG_RUSSIAN ) {
+        for( const char* s = str, *s_end = str+str_len; s< s_end; s+=2 ) {
+            if( (uint8_t)(s[0]) == 0xd0 ) {
+                if( (uint8_t)(s[1]) == 0x81 ) {// Ё
+                    dest.push_back( (char)(0xd0) );
+                    dest.push_back( (char)(0x95) );
+                    if( !hasDiacritics )
+                        hasDiacritics= true;
+                    continue;
+                }
+            } else if((uint8_t)(s[0]) == 0xd1 ) { 
+                if( (uint8_t)(s[1]) == 0x91 ) { // ё
+                    dest.push_back( (char)(0xd0) );
+                    dest.push_back( (char)(0xb5) );
+                    if( !hasDiacritics )
+                        hasDiacritics= true;
+                    continue;
+                }
+            }
+
+            dest.push_back( s[0] );
+            dest.push_back( s[1] );
+        }
+    }
+    return hasDiacritics;
+}
 bool Lang::convertTwoByteToLower( char* s, size_t s_len, int lang )
 {
     bool hasUpperCase = false;
@@ -44,7 +92,7 @@ bool Lang::convertTwoByteToLower( char* s, size_t s_len, int lang )
                 hasUpperCase = true;
                 ss[0] = lc[0];
                 ss[1] = lc[1];
-            } else if( (uint8_t)(ss[0]) == 0xd0 && b1 == 0x81 ) {
+            } else if( (uint8_t)(ss[0]) == 0xd0 && b1 == 0x81 ) { // Ё
                 ss[0] = 0xd1;
                 ss[1] = 0x91;
             }

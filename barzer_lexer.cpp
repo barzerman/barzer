@@ -796,6 +796,12 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 	}
 	uint32_t strId = 0xffffffff;
 	isUsersWord =  bzSpell->isUsersWord( strId, theString ) ;
+    /// extra normalization for russian diacritic 
+    if( isTwoByteLang && !isUsersWord ) {
+        Lang::twoByteStripDiacritics( ascifiedT, t, t_len, lang );
+        theString = ascifiedT.c_str();
+	    isUsersWord =  bzSpell->isUsersWord( strId, theString ) ;
+    }
 
     if( strId != 0xffffffff && charsInWord >= MIN_SPELL_CORRECT_LEN ) { // word is known to system but isnt a user's word
         const StoredToken* tmpTok = bzSpell->tryGetStoredTokenFromLinkedWords(strId);
@@ -804,7 +810,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
             ctok.syncClassInfoFromSavedTok ();
 
 		    const char* correction = gp.string_resolve( tmpTok->getStringId() ) ;
-            if( correction ) 
+            if( correction && strcmp(correction,theString)) 
 			    ctok.addSpellingCorrection( theString, correction );
             return SpellCorrectResult (1, ++cPosVec, ++tPosVec);
         }
