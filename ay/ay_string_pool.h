@@ -110,6 +110,7 @@ public:
 	UniqueCharPool( size_t cSz = DEFAULT_CHUNK_SIZE ) : 
 		CharPool(cSz ) { }
 
+    size_t getMaxId() const { return idVec.size(); }
 };
 
 }

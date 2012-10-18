@@ -6,10 +6,28 @@
 
 namespace zurch {
 
+class FeatureStatsAccumulator;
 struct FeatureStats {
     double mean, stdDev; //  
-    bool   isBlank;
-    FeatureStats() : mean(0), stdDev(0), isBlank(true) {}
+    FeatureStats() : mean(0), stdDev(0) {}
+    void zero() { mean = stdDev= 0.0; }
+    
+    void init( const FeatureStatsAccumulator& o ); 
+
+    static double distance( const std::vector<double>& doc, const FeatureStatsVec& centroid )
+    {
+        if( doc.size() != centroid.size() ) 
+            return 
+        FeatureStatsVec::const_iterator ci = centroid.begin();
+        const std::vector<double>::const_iterator di = doc.begin();
+        const double stdDevEpsilon = 1.0/centroid.size();
+        double cumulative = 0.0;
+        for( auto centroid_end = centroid.end(); ci != centroid_end; ++ci, ++di ) {
+            double x = *di-ci->mean;
+            cumulative += x*x/(stdDevEpsilon+ci->stdDev);
+        }
+        return sqrt(cumulative);
+    }
 };
 
 typedef std::vector<FeatureStats> FeatureStatsVec;
@@ -59,38 +77,65 @@ public:
     double sum_safe( size_t idx ) const 
         { return ( idx < d_feature.size() ? sum(idx) : 0 ); }
     
-    void getFeatureStatsVec( FeatureStatsVec& vec )
-    {
-        if( !d_feature.size() )
-            return;
-        vec.reserve( d_feature.size() );
-        vec.clear();
-        vec.resize( d_feature.size() );
-        FeatureStatsVec::iterator vi = vec.begin(); 
-        for( auto i = d_feature.begin(); i != d_feature.end(); ++i, ++vi ) {
-            double x = boost::accumulators::mean(*i);
-            if( !boost::math::isnan(x) ) {
-                vi->mean = x;
-            }
-                
-            x = boost::accumulators::variance(*i);
-            if( !boost::math::isnan(x) && x> 0 ) 
-                vi->stdDev = sqrt(x);
-        }
+    void getFeatureStatsVec( FeatureStatsVec& vec );
+};
+
+inline void FeatureStats::init( const FeatureStatsAccumulator& o )
+{
+    double x = boost::accumulators::mean(o);
+    if( !boost::math::isnan(x) ) 
+        mean = x;
+    x = boost::accumulators::variance(o);
+    if( !boost::math::isnan(x) && x> 0 ) 
+        stdDev = sqrt(x);
+}
+inline void FeatureStatsAccumulator::getFeatureStatsVec( FeatureStatsVec& vec )
+{
+    if( !d_feature.size() )
+        return;
+    vec.reserve( d_feature.size() );
+    vec.clear();
+    vec.resize( d_feature.size() );
+    FeatureStatsVec::iterator vi = vec.begin(); 
+    for( auto i = d_feature.begin(); i != d_feature.end(); ++i, ++vi ) 
+        vi->init(*i);
+}
+
+struct TagStatsAccumulator;
+/// results of accumulation, needed for classification proper. can be initialized from TagStatsAccumulator or another source (stored on disk)
+struct TagStats {
+    FeatureStatsVec hasVec, hasNotVec;
+    size_t  hasCount, hasNotCount; 
+    
+    TagStats(): hasCount(0), hasNotCount(0) {}
+
+    TagStats( const TagStatsAccumulator& x ) ;
+    void zero() { 
+        for( auto i = hasVec.begin();i!= hasVec.end(); ++i ) 
+            i->zero();
+        for( auto i = hasNotVec.begin();i!= hasNotVec.end(); ++i ) 
+            i->zero();
     }
-    static double distance( const std::vector<double>& doc, const FeatureStatsVec& centroid )
+    void init( const TagStatsAccumulator& x ) ; 
+
+    double yesDistance( const std::vector<double>& doc ) const
     {
-        if( doc.size() != centroid.size() ) 
-            return 
-        FeatureStatsVec::const_iterator ci = centroid.begin();
-        const std::vector<double>::const_iterator di = doc.begin();
-        const double stdDevEpsilon = 1.0/centroid.size();
-        double cumulative = 0.0;
-        for( auto centroid_end = centroid.end(); ci != centroid_end; ++ci, ++di ) {
-            double x = *di-ci->mean;
-            cumulative += x*x/(stdDevEpsilon+ci->stdDev);
-        }
-        return sqrt(cumulative);
+        return FeatureStats::distance( doc, hasVec );
+    }
+    double noDistance( const std::vector<double>& doc ) const
+    {
+        return FeatureStats::distance( doc, hasNotVec );
+    }
+
+    double getYesProbability(const std::vector<double>& doc) const
+    {
+        double yesDist = yesDistance(doc);
+        double noDist = noDistance(doc);
+        double sumDist = noDist+yesDist; 
+        if( sumDist )
+            return .5;
+        else 
+            return noDist/sumDist;
     }
 };
 /// for each tag accumulates YES and NO feature stats in two separate accumulators
@@ -118,94 +163,136 @@ struct TagStatsAccumulator {
         }
     }
 };
-/// results of accumulation, needed for classification proper. can be initialized from TagStatsAccumulator or another source (stored on disk)
-struct TagStats {
-    FeatureStatsVec has, hasNot;
-    size_t  hasCount, hasNotCount; 
-    
-    TagStats(): hasCount(0), hasNotCount(0) {}
+inline void TagStats::init( const TagStatsAccumulator& x ) 
+{
+    has.init(x.has);
+    hasNot.init(x.hasNot);
+}
+inline TagStats::TagStats( const TagStatsAccumulator& x ) :
+    hasCount(x.hasCount),
+    hasNotCount(x.hasNotCount)
+{
+    x.has.getFeatureStatsVec(has);
+    x.hasNot.getFeatureStatsVec(hasNot);
+}
 
-    TagStats( const TagStatsAccumulator& x ) :
-        hasCount(x.hasCount),
-        hasNotCount(x.hasNotCount)
-    {
-        x.has.getFeatureStatsVec(has);
-        x.hasNot.getFeatureStatsVec(hasNot);
-    }
-};
 
 /// accumulates stats for all tags for all docs 
-struct DocStatsAccumulator {
+struct DocSetStatsAccumulator {
     ay::UniqueCharPool&  d_tokPool;
     ZurchTokenizer&      d_tokenizer;
     
-    std::vector< TagStats > d_tagStats;
 
     /// for each tag this type of accumulator will be 
-    typedef std::pair< FeatureStatsAccumulator, FeatureStatsAccumulator > TagStatsAccumulator;
-    enum {
-        FM_TOKEN, // features are tokens
-        FM_BARZER // features are barzer types 
-    };
+    std::vector< TagStatsAccumulator > d_tagStats;
 
     /// zero out the stats
     void zero() 
     {
+        for( auto i = d_tagStats.begin(); i!= d_tagStats.end(); ++i ) 
+            i->zero();
     }
     void setNumOfTags( size_t n ) { d_tagStats.resize(); }
+    size_t getNumOfTags() const { return d_tagStats.size(); }
+    
+    void accumulate( size_t tagId, std::vector<double>& f, bool hasTag, double docWeight=1.0 )
+    {
+        if( tagId< d_tagStats.size() ) 
+            d_tagStats[tagId].accumulate(f,hasTag,docWeight);
+    }
+    const std::vector< TagStatsAccumulator >& getAccumulatedStats() const { return d_tagStats; }
 };
 
-class DocumentStatsAccumulator {
-    ay::UniqueCharPool&  d_tokPool;
-    ZurchTokenizer&      d_tokenizer;
-public: 
-    /// for each tag this type of accumulator will be 
-    typedef std::pair< FeatureStatsAccumulator, FeatureStatsAccumulator > TagStatsAccumulator;
-    enum {
-        FM_TOKEN, // features are tokens
-        FM_BARZER // features are barzer types 
-    };
-private:
-    TagStatsAccumulator  
-    int d_featureMode;
-public:
-    DocumentStatsAccumulator() : d_featureMode(FM_TOKEN) {}
-    /// features are tokens
-    int classifyDoc_FeToken( const char* buf );
-    /// features are barzer types
-    int classifyDoc_Barzer( const char* buf );
+struct DocSetStats {
+    std::vector< TagStats > tagStats;
     
-    int classifyDoc( const char* doc )
+    void zero() { 
+        for( auto i = tagStats.begin(); i!= tagStats.end(); ++i ) 
+            i->zero();
+    }
+    void init( const DocSetStatsAccumulator& x )
     {
-        if( d_featureMode == FM_TOKEN )
-            return classifyDoc_FeToken(doc);
-        else
-            return classifyDoc_Barzer(doc);
+        const std::vector< TagStatsAccumulator >& accVec = acc.getAccumulatedStats();
+        tagStats.clear();
+        tagStats.resize( accVec.size() );
+        for( auto i = accVec.begin(), i_end = accVec.end();  i != i_end; ++i ) 
+            tagStats[ (i-accVec.begin()) ].init( *i );
     }
 };
 
+/// basic token / normalization based feature extractor
+class FeatureExtractor {
+    ay::UniqueCharPool&     d_tokPool;
+    ZurchTokenizer&         d_tokenizer;
+    
+    FeatureExtractor( UniqueCharPool&   tokPool, ZurchTokenizer& tokenizer ):
+        tokPool( d_tokPool), 
+        d_tokenizer(tokenizer)
+    {
+    }
+    size_t getNumFeatures() const { return d_tokPool.getMaxId(); }
+    /// if learnmode = true will add tokens to the token pool
+    int extractFeatures( std::vector<double>& features, const char* buf, bool learnMode=true );
+};
 
-/// corresponds to single tag classification. Every tag corresponds to 2 classes 
-struct SingleTagClassifier {
-protected:
-    ay::UniqueCharPool&  d_tokPool;
-    ZurchTokenizer&      d_tokenizer;
+/// ACHTUNG!! we may wanna templatize on FeatureExtractor
+class DataSetTrainer {
+    DocSetStatsAccumulator& d_acc;
+    FeatureExtractor& d_featureExtractor; 
+public: 
+    DataSetTrainer( FeatureExtractor& featureExtractor, DocSetStatsAccumulator& acc ) : 
+        d_featureExtractor(featureExtractor),
+        d_acc(acc)
+    {}
 
-    /// this can be initialized from saved state or actually populated from d_statsAcc
-    FeatureStatsVec     d_featureStats; // result of accumulation
+    void init( size_t numOfTags ) 
+    {
+        d_acc.zero();
+        d_acc.setNumOfTags(numOfTags);
+    }
 
-    FeatureStatsAccumulator d_statsAcc;
+    int addDoc( std::vector<double>& features, const char* doc, const std::set< size_t > hasTags, double docWeight = 1.0 )
+    {
+        d_featureExtractor.extractFeatures( features, doc, true );
+        for( size_t i = 0, i_end = hasTags.size(); i< i_end; ++i ) {
+            bool gotTag = (hasTags.find(i) != hasTags.end() );
+            d_acc.accumulate( i, features, gotTag, docWeight);
+        }
+        return 0;
+    }
+};
+/// use this object after initializing DocSetStats (as a result of training or otherwise)
+struct  DocClassifier {
+    DocSetStats d_stats;
+    FeatureExtractor& d_featureExtractor;
 public:
-    /// features are tokens
-    int classifyDoc_FeToken( const char* buf );
-    /// features are barzer types
-    int classifyDoc_FeToken( const char* buf );
+    DocClassifier( FeatureExtractor& featureExtractor ) : d_featureExtractor(featureExtractor) {}
 
-    /// adding documents (training) 
-    /// features are tokens
-    int addDoc_FeToken( const char* buf );
-    /// features are barzer types
-    int addDoc_FeToken( const char* buf );
+    DocSetStats& stats() { return d_stats; }
+    const DocSetStats& stats() const { return d_stats; }
+
+
+    size_t getNumOfTags() const { d_stats.getNumOfTags(); }
+    
+    void extractFeatures( std::vector<double>& features, const char* doc )
+    {
+        d_featureExtractor.extractFeatures( features, doc, true );
+    }
+
+    double classify( size_t tagId, const std::vector<double>& features ) const
+    {
+        if(tagId< getNumOfTags()) {
+            double yesProb= d_stats.tagStats[ tagId ].getYesProbability(features);
+            return yesProb;
+        }
+        return 0.0;
+    }
+    void classifyAll( std::vector<double>& tagYesProbs, const std::vector<double>& features ) const
+    {
+        tagYesProb.resize( d_stats.getNumOfTags() );
+        for( size_t i = 0, i_end = tagYesProb.size(); i< i_end; ++i ) 
+            tagYesProb[i] = classify(i,features);
+    }
 };
 
 } // namespace zurch 
