@@ -13,9 +13,13 @@ typedef ay::double_standardized_moments_weighted FeatureAccumulatedStats;
 
 struct FeatureStats {
     double mean, stdDev; //  
-    FeatureStats() : mean(0), stdDev(0) {}
+    bool ignore;
+
+    FeatureStats() : mean(0), stdDev(0), ignore(false) {}
     void zero() { mean = stdDev= 0.0; }
     
+    bool equals( const FeatureStats& o, double epsilon ) const
+        { return ( ay::epsilon_equals(mean,o.mean)&&ay::epsilon_equals(stdDev,o.stdDev) ); }
 
     inline void init( const FeatureAccumulatedStats& o )
     {
@@ -27,6 +31,7 @@ struct FeatureStats {
             stdDev = sqrt(x);
     }
 
+    void setIgnore( bool v = true ) { ignore=v; }
     static double distance( const std::vector<double>& doc, const std::vector<FeatureStats>& centroid );
 };
 
@@ -40,8 +45,10 @@ double FeatureStats::distance( const std::vector<double>& doc, const std::vector
     const double stdDevEpsilon = 1.0/centroid.size();
         double cumulative = 0.0;
     for( std::vector<FeatureStats>::const_iterator centroid_end = centroid.end(); ci != centroid_end; ++ci, ++di ) {
-        double x = *di-ci->mean;
-        cumulative += x*x/(stdDevEpsilon+ci->stdDev);
+        if( !ci->ignore ) {
+            double x = *di -ci->mean;
+            cumulative += x*x/(stdDevEpsilon+ci->stdDev);
+        }
     }
     return sqrt(cumulative);
 }
@@ -116,7 +123,19 @@ struct TagStats {
     void init( const TagStatsAccumulator& x ) ; 
 
     TagStats( const TagStatsAccumulator& x ) { init(x); }
-
+    
+    bool checkIntegrity() const { return hasVec.size() == hasNotVec.size(); }
+    void setIgnore( double epsilon) 
+    {
+        for( size_t i = 0; i< hasVec.size(); ++i ) {
+            FeatureStats& y = hasVec[i];
+            FeatureStats& n = hasNotVec[i];
+            if( y.equals( n, epsilon ) ) {
+                y.setIgnore();
+                n.setIgnore();
+            }
+        }
+    }
     void zero() 
     {
         for( auto i = hasVec.begin();i!= hasVec.end(); ++i ) 
@@ -168,6 +187,10 @@ struct TagStatsAccumulator {
 };
 inline void TagStats::init( const TagStatsAccumulator& x ) 
 {
+    if( x.has.getNumberOfFeatures() != x.hasNot.getNumberOfFeatures() ) {
+        std::cerr << "PANIC: TagStats::init has/hasNot mismatch\n";
+        return;
+    }
     hasVec.clear();
     hasVec.resize( x.has.getNumberOfFeatures() ); 
     hasNotVec.clear();
