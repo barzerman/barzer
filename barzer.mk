@@ -37,6 +37,7 @@ libs = -Lay -Lsnowball -lay -lsnowlib -L/usr/local/lib -L/opt/local/lib -L/usr/l
 	$(BOOST_SYSLIB) $(BOOST_THREADLIB) -lexpat -lstdc++
 ECHO = echo
 lib_objects = \
+zurch_classifier.o \
 zurch_tokenizer.o \
 barzer_geoindex.o \
 barzer_el_cast.o \

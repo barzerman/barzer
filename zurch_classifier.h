@@ -3,6 +3,8 @@
 #include <math.h>
 #include <ay_statistics.h>
 #include <ay_string_pool.h>
+#include <limits>
+#include <zurch_tokenizer.h>
 
 namespace zurch {
 
@@ -14,7 +16,8 @@ struct FeatureStats {
     FeatureStats() : mean(0), stdDev(0) {}
     void zero() { mean = stdDev= 0.0; }
     
-    inline init( const FeatureAccumulatedStats& o )
+
+    inline void init( const FeatureAccumulatedStats& o )
     {
         double x = boost::accumulators::mean(o);
         if( !boost::math::isnan(x) ) 
@@ -24,28 +27,32 @@ struct FeatureStats {
             stdDev = sqrt(x);
     }
 
-    static double distance( const std::vector<double>& doc, const FeatureStatsVec& centroid )
-    {
-        if( doc.size() != centroid.size() ) 
-            return 
-        FeatureStatsVec::const_iterator ci = centroid.begin();
-        const std::vector<double>::const_iterator di = doc.begin();
-        const double stdDevEpsilon = 1.0/centroid.size();
-        double cumulative = 0.0;
-        for( auto centroid_end = centroid.end(); ci != centroid_end; ++ci, ++di ) {
-            double x = *di-ci->mean;
-            cumulative += x*x/(stdDevEpsilon+ci->stdDev);
-        }
-        return sqrt(cumulative);
-    }
+    static double distance( const std::vector<double>& doc, const std::vector<FeatureStats>& centroid );
 };
 
-typedef std::vector<FeatureStats> FeatureStatsVec;
+double FeatureStats::distance( const std::vector<double>& doc, const std::vector<FeatureStats>& centroid )
+{
+    if( doc.size() != centroid.size() ) 
+        return std::numeric_limits<double>::quiet_NaN();
+
+    std::vector<FeatureStats>::const_iterator ci = centroid.begin();
+    std::vector<double>::const_iterator di = doc.begin();
+    const double stdDevEpsilon = 1.0/centroid.size();
+        double cumulative = 0.0;
+    for( std::vector<FeatureStats>::const_iterator centroid_end = centroid.end(); ci != centroid_end; ++ci, ++di ) {
+        double x = *di-ci->mean;
+        cumulative += x*x/(stdDevEpsilon+ci->stdDev);
+    }
+    return sqrt(cumulative);
+}
+
 /// 
 /// features are assumed to correspond to numbers 0 - getNumberOfFeatures()
 class FeatureStatsAccumulator {
     std::vector< FeatureAccumulatedStats > d_feature;
 public:
+    std::vector< FeatureAccumulatedStats >& vec() { return d_feature; }
+    const std::vector< FeatureAccumulatedStats >& vec() const { return d_feature; }
     void setNumberOfFeatures( size_t n ) { d_feature.resize(n); }
     size_t getNumberOfFeatures( ) const { return d_feature.size(); }
 
@@ -53,12 +60,12 @@ public:
     void operator()( size_t idx, double val, double w=1.0 )
     {
         if( idx < d_feature.size() ) 
-            d_feature[ idx ]( val, boost::accumulators::weight=weight);
+            d_feature[ idx ]( val, boost::accumulators::weight=w);
     }
     void zero() 
     {
         for( auto i = d_feature.begin(); i!= d_feature.end(); ++i ) 
-            i->clear();
+            *i = FeatureAccumulatedStats();
     }
     double variance( size_t idx ) const 
         { return ( boost::accumulators::variance(d_feature[ idx ]) ); }
@@ -86,13 +93,13 @@ public:
     double sum_safe( size_t idx ) const 
         { return ( idx < d_feature.size() ? sum(idx) : 0 ); }
     
-    void getFeatureStatsVec( FeatureStatsVec& vec )
+    void getFeatureStatsVec( std::vector< FeatureStats> && vec )
     {
         vec.clear();
         if( !d_feature.size() )
             return;
         vec.resize( d_feature.size() );
-        FeatureStatsVec::iterator vi = vec.begin(); 
+        std::vector< FeatureStats>::iterator vi = vec.begin(); 
         for( auto i = d_feature.begin(); i != d_feature.end(); ++i, ++vi ) 
             vi->init(*i);
     }
@@ -101,7 +108,7 @@ public:
 struct TagStatsAccumulator;
 /// results of accumulation, needed for classification proper. can be initialized from TagStatsAccumulator or another source (stored on disk)
 struct TagStats {
-    FeatureStatsVec hasVec, hasNotVec;
+    std::vector< FeatureStats > hasVec, hasNotVec;
     size_t  hasCount, hasNotCount;  /// number of docs with and without the tag
     
     TagStats(): hasCount(0), hasNotCount(0) {}
@@ -161,8 +168,19 @@ struct TagStatsAccumulator {
 };
 inline void TagStats::init( const TagStatsAccumulator& x ) 
 {
-    has.init(x.has);
-    hasNot.init(x.hasNot);
+    hasVec.clear();
+    hasVec.resize( x.has.getNumberOfFeatures() ); 
+    hasNotVec.clear();
+    hasNotVec.resize( x.hasNot.getNumberOfFeatures() );
+
+    size_t j = 0;
+    for( const auto& i : x.has.vec() ) 
+        hasVec[ j++ ].init( i );
+
+    j = 0;
+    for( const auto& i : x.hasNot.vec() ) 
+        hasNotVec[ j++ ].init( i );
+
     hasCount = x.hasCount;
     hasNotCount = x.hasNotCount;
 }
@@ -172,9 +190,9 @@ inline void TagStats::init( const TagStatsAccumulator& x )
 class FeatureExtractor {
     ay::UniqueCharPool&     d_tokPool;
     ZurchTokenizer&         d_tokenizer;
-    
-    FeatureExtractor( UniqueCharPool&   tokPool, ZurchTokenizer& tokenizer ):
-        tokPool( d_tokPool), 
+public:
+    FeatureExtractor( ay::UniqueCharPool&   tokPool, ZurchTokenizer& tokenizer ):
+        d_tokPool( tokPool), 
         d_tokenizer(tokenizer)
     {
     }
@@ -194,7 +212,7 @@ struct DocSetStatsAccumulator {
     /// zero out the stats
     void zero() { for( auto& i : d_tagStats ) i.zero(); }
 
-    void setNumOfTags( size_t n ) { d_tagStats.resize(); }
+    void setNumOfTags( size_t n ) { d_tagStats.resize(n); }
     size_t getNumOfTags() const { return d_tagStats.size(); }
     
     void accumulate( size_t tagId, std::vector<double>& f, bool hasTag, double docWeight=1.0 )
@@ -211,17 +229,18 @@ struct DocSetStats {
     void zero() 
         { for( auto i = tagStats.begin(); i!= tagStats.end(); ++i ) i->zero(); }
 
-    void init( const DocSetStatsAccumulator& x )
+    void init( const DocSetStatsAccumulator& acc )
     {
         tagStats.clear();
-        if( !x.size() ) 
-            return;
 
         const std::vector< TagStatsAccumulator >& accVec = acc.getAccumulatedStats();
+        if( !accVec.size() )
+            return;
         tagStats.resize( accVec.size() );
         for( auto i = accVec.begin(), i_end = accVec.end();  i != i_end; ++i ) 
             tagStats[ (i-accVec.begin()) ].init( *i );
     }
+    size_t getNumOfTags() const { return tagStats.size(); }
 };
 
 
@@ -262,7 +281,7 @@ public:
     const DocSetStats& stats() const { return d_stats; }
 
 
-    size_t getNumOfTags() const { d_stats.getNumOfTags(); }
+    size_t getNumOfTags() const { return d_stats.getNumOfTags(); }
     
     void extractFeatures( std::vector<double>& features, const char* doc )
     {
@@ -277,7 +296,7 @@ public:
         }
         return 0.0;
     }
-    void classifyAll( std::vector<double>& tagYesProbs, const std::vector<double>& features ) const
+    void classifyAll( std::vector<double>& tagYesProb, const std::vector<double>& features ) const
     {
         tagYesProb.resize( d_stats.getNumOfTags() );
         for( size_t i = 0, i_end = tagYesProb.size(); i< i_end; ++i ) 
