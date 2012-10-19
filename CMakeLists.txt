@@ -143,6 +143,8 @@ set(SOURCES barzer_el_cast.cpp
 			barzer_relbits.cpp
 			barzer_spellheuristics.cpp
 			barzer_geoindex.cpp
+            zurch_classifier.cpp
+            zurch_tokenizer.cpp
 			autotester/barzer_at_autotester.cpp
 			autotester/barzer_at_comparators.cpp
             "${EN_DIR}/barzer_en_date_util.cpp"
