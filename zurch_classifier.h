@@ -1,6 +1,6 @@
 #pragma once
 
-#include <math.h>
+#include <ay_math.h>
 #include <ay_statistics.h>
 #include <ay_string_pool.h>
 #include <limits>
@@ -19,7 +19,7 @@ struct FeatureStats {
     void zero() { mean = stdDev= 0.0; }
     
     bool equals( const FeatureStats& o, double epsilon ) const
-        { return ( ay::epsilon_equals(mean,o.mean)&&ay::epsilon_equals(stdDev,o.stdDev) ); }
+        { return ( ay::epsilon_equals(mean,o.mean,epsilon)&&ay::epsilon_equals(stdDev,o.stdDev,epsilon) ); }
 
     inline void init( const FeatureAccumulatedStats& o )
     {
@@ -269,8 +269,8 @@ struct DocSetStats {
 
 /// ACHTUNG!! we may wanna templatize on FeatureExtractor
 class DataSetTrainer {
-    DocSetStatsAccumulator& d_acc;
     FeatureExtractor& d_featureExtractor; 
+    DocSetStatsAccumulator& d_acc;
 public: 
     DataSetTrainer( FeatureExtractor& featureExtractor, DocSetStatsAccumulator& acc ) : 
         d_featureExtractor(featureExtractor),
