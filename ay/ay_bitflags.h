@@ -72,16 +72,18 @@ public:
 
     bool checkAnyBit( ) const
     {
-        if( sizeof(buf) == 1 ) {
-            return *(static_cast<const uint8_t*>(buf));
-        } else if( sizeof(buf) == 2 ) {
-            return *(const uint16_t*)(buf);
-        } else if( sizeof(buf) == 3 ) {
-            return ( *(const uint16_t*)(buf) || *(buf+2) );
-        } else if( sizeof(buf) == 4 ) {
-            return *(const uint32_t*)(buf);
+        const uint8_t* x = buf;
+
+        if( sizeof(x) == 1 ) {
+            return *x;
+        } else if( sizeof(x) == 2 ) {
+            return x[0] || x[1];
+        } else if( sizeof(x) == 3 ) {
+            return ( x[0] || x[1] || x[2] );
+        } else if( sizeof(x) == 4 ) {
+            return ( x[0] || x[1] || x[2] || x[4] );
         } else {
-            for( auto i = buf, i_end = i+sizeof(buf); i< i_end; ++i ) {
+            for( auto i = x, i_end = i+sizeof(x); i< i_end; ++i ) {
                 if( *i )
                     return true;
             }
