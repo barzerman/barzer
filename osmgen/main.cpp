@@ -47,8 +47,9 @@ class Parser
 	std::ostream& m_ostr;
 
 	size_t m_numEntities;
+	size_t m_entId;
 public:
-	Parser(std::ostream&);
+	Parser(std::ostream&, size_t&);
 
 	void parse(std::istream& istr)
 	{
@@ -182,7 +183,7 @@ private:
 
 		++m_numEntities;
 
-		m_ostr << "\t<stmt>\n\t\t<pat>";
+		m_ostr << "\t<stmt n='" << ++m_entId << "'>\n\t\t<pat>";
 		if (possibleNames.size() > 1)
 			m_ostr << "<any>";
 		for (const auto& str : possibleNames)
@@ -215,11 +216,12 @@ namespace
 	}
 }
 
-Parser::Parser(std::ostream& ostr)
+Parser::Parser(std::ostream& ostr, size_t& entId)
 : m_expat(XML_ParserCreate(NULL))
 , m_state(State::AwaitingNode)
 , m_ostr(ostr)
 , m_numEntities(0)
+, m_entId (entId)
 {
 	XML_SetUserData (m_expat, this);
 	XML_SetElementHandler (m_expat, startElement, endElement);
@@ -280,16 +282,18 @@ int main (int argc, char **argv)
 		{ "theatre", { "театр" } },
 		{ "toilet", { "туалет" } },
 		{ "university", { "вуз", "университет", "институт" } },
-		{ "waste_basket", { "waste_disposal" } },
+		{ "waste_basket", { "урна", "мусорная</t><t>корзина" } },
 		{ "waste_disposal", { "урна", "мусорная</t><t>корзина" } },
 		{ "kindergarten", { "детский</t><t>сад", "дошкольное</t><t>учреждение" } },
 		{ "place_of_worship", { "храм", "церковь", "мечеть" } }
 	};
 	ostr << "\t<!-- amenity synonyms block -->\n";
-	/*
+
+	size_t entId = 0;
+
 	for (const auto& pair : amenitySynonyms)
 	{
-		ostr << "\t<stmt>\n\t\t<pat>";
+		ostr << "\t<stmt n='" << ++entId << "'>\n\t\t<pat>";
 		if (pair.second.size() > 1)
 			ostr << "<any>";
 		for (const auto& syn : pair.second)
@@ -306,7 +310,6 @@ int main (int argc, char **argv)
 		ostr << "</pat>\n\t\t<tran><t>" << pair.first << "</t></tran>";
 		ostr << "\n\t</stmt>\n";
 	}
-	*/
 
 	ostr << "\n\t<!-- generated rules -->\n";
 
@@ -314,7 +317,7 @@ int main (int argc, char **argv)
 	{
 		std::cout << "parsing " << argv[i] << "..." << std::endl;
 		std::ifstream istr(argv[i]);
-		Parser p(ostr);
+		Parser p(ostr, entId);
 		p.parse(istr);
 		p.dumpStats();
 	}
