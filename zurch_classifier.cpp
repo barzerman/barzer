@@ -2,8 +2,9 @@
 
 namespace zurch {
 
-int FeatureExtractor::extractFeatures( std::vector<double>& features, const char* buf, bool learnMode )
+int FeatureExtractor::extractFeatures( ExtractedFeatureMap& features, const char* buf, bool learnMode )
 {
+
     return 0;
 }
 

@@ -1,4 +1,3 @@
-#pragma once
 
 #include <ay_math.h>
 #include <ay_statistics.h>
@@ -8,21 +7,28 @@
 
 namespace zurch {
 
+
 class FeatureStatsAccumulator;
 typedef ay::double_standardized_moments_weighted FeatureAccumulatedStats;
 
-struct FeatureStats {
-    double mean, stdDev; //  
-    bool ignore;
+/// first is feature id 
 
-    FeatureStats() : mean(0), stdDev(0), ignore(false) {}
+typedef std::map<size_t,double> ExtractedFeatureMap;
+
+struct FeatureStats {
+    size_t featureId; // unique feature id 
+    double mean, stdDev; // 
+    bool ignore;  // unused for now 
+
+    FeatureStats() : mean(0), stdDev(0), ignore(false), featureId(0xffffffff) {}
     void zero() { mean = stdDev= 0.0; }
     
     bool equals( const FeatureStats& o, double epsilon ) const
         { return ( ay::epsilon_equals(mean,o.mean,epsilon)&&ay::epsilon_equals(stdDev,o.stdDev,epsilon) ); }
 
-    inline void init( const FeatureAccumulatedStats& o )
+    inline void init( size_t fid, const FeatureAccumulatedStats& o )
     {
+        featureId = fid;
         double x = boost::accumulators::mean(o);
         if( !boost::math::isnan(x) ) 
             mean = x;
@@ -32,90 +38,15 @@ struct FeatureStats {
     }
 
     void setIgnore( bool v = true ) { ignore=v; }
-    static double distance( const std::vector<double>& doc, const std::vector<FeatureStats>& centroid );
-};
-
-double FeatureStats::distance( const std::vector<double>& doc, const std::vector<FeatureStats>& centroid )
-{
-    if( doc.size() != centroid.size() ) 
-        return std::numeric_limits<double>::quiet_NaN();
-
-    std::vector<FeatureStats>::const_iterator ci = centroid.begin();
-    std::vector<double>::const_iterator di = doc.begin();
-    const double stdDevEpsilon = 1.0/centroid.size();
-        double cumulative = 0.0;
-    for( std::vector<FeatureStats>::const_iterator centroid_end = centroid.end(); ci != centroid_end; ++ci, ++di ) {
-        if( !ci->ignore ) {
-            double x = *di -ci->mean;
-            cumulative += x*x/(stdDevEpsilon+ci->stdDev);
-        }
-    }
-    return sqrt(cumulative);
-}
-
-/// 
-/// features are assumed to correspond to numbers 0 - getNumberOfFeatures()
-class FeatureStatsAccumulator {
-    std::vector< FeatureAccumulatedStats > d_feature;
-public:
-    std::vector< FeatureAccumulatedStats >& vec() { return d_feature; }
-    const std::vector< FeatureAccumulatedStats >& vec() const { return d_feature; }
-    void setNumberOfFeatures( size_t n ) { d_feature.resize(n); }
-    size_t getNumberOfFeatures( ) const { return d_feature.size(); }
-
-    // adds data point to a feature accumulator
-    void operator()( size_t idx, double val, double w=1.0 )
-    {
-        if( idx < d_feature.size() ) 
-            d_feature[ idx ]( val, boost::accumulators::weight=w);
-    }
-    void zero() 
-    {
-        for( auto i = d_feature.begin(); i!= d_feature.end(); ++i ) 
-            *i = FeatureAccumulatedStats();
-    }
-    double variance( size_t idx ) const 
-        { return ( boost::accumulators::variance(d_feature[ idx ]) ); }
-    size_t count( size_t idx ) const 
-        { return ( boost::accumulators::count(d_feature[ idx ]) ); }
-    double skewness( size_t idx ) const 
-        { return ( boost::accumulators::skewness(d_feature[ idx ]) ); }
-    double kurtosis( size_t idx ) const 
-        { return ( boost::accumulators::kurtosis(d_feature[ idx ]) ); }
-    double mean( size_t idx ) const 
-        { return ( boost::accumulators::mean(d_feature[ idx ]) ); }
-    double sum( size_t idx ) const 
-        { return ( boost::accumulators::sum(d_feature[ idx ]) ); }
-
-    double variance_safe( size_t idx ) const 
-        { return ( idx < d_feature.size() ? variance(idx) : 0 ); }
-    double count_safe( size_t idx ) const 
-        { return ( idx < d_feature.size() ? count(idx) : 0 ); }
-    double skewness_safe( size_t idx ) const 
-        { return ( idx < d_feature.size() ? skewness(idx) : 0 ); }
-    double kurtosis_safe( size_t idx ) const 
-        { return ( idx < d_feature.size() ? kurtosis(idx) : 0 ); }
-    double mean_safe( size_t idx ) const 
-        { return ( idx < d_feature.size() ? mean(idx) : 0 ); }
-    double sum_safe( size_t idx ) const 
-        { return ( idx < d_feature.size() ? sum(idx) : 0 ); }
-    
-    void getFeatureStatsVec( std::vector< FeatureStats> && vec )
-    {
-        vec.clear();
-        if( !d_feature.size() )
-            return;
-        vec.resize( d_feature.size() );
-        std::vector< FeatureStats>::iterator vi = vec.begin(); 
-        for( auto i = d_feature.begin(); i != d_feature.end(); ++i, ++vi ) 
-            vi->init(*i);
-    }
 };
 
 struct TagStatsAccumulator;
 /// results of accumulation, needed for classification proper. can be initialized from TagStatsAccumulator or another source (stored on disk)
 struct TagStats {
-    std::vector< FeatureStats > hasVec, hasNotVec;
+    typedef std::map< size_t , FeatureStats > Map;
+
+    Map hasMap, hasNotMap;
+
     size_t  hasCount, hasNotCount;  /// number of docs with and without the tag
     
     TagStats(): hasCount(0), hasNotCount(0) {}
@@ -124,32 +55,50 @@ struct TagStats {
 
     TagStats( const TagStatsAccumulator& x ) { init(x); }
     
-    bool checkIntegrity() const { return hasVec.size() == hasNotVec.size(); }
     void setIgnore( double epsilon) 
     {
-        for( size_t i = 0; i< hasVec.size(); ++i ) {
-            FeatureStats& y = hasVec[i];
-            FeatureStats& n = hasNotVec[i];
-            if( y.equals( n, epsilon ) ) {
-                y.setIgnore();
-                n.setIgnore();
+        Map newHas, newHasNot;
+
+        for( Map::iterator i = hasMap.begin(); i!=  hasMap.end(); ++i ) {
+            Map::iterator not_i = hasNotMap.find(i->first);
+            if( not_i != hasNotMap.end() ) {
+                if( !i->second.equals( not_i->second, epsilon ) ) 
+                    continue;
+                newHasNot.insert( newHasNot.end(), *i );
             }
+            newHas.insert( newHas.end(), *i );
         }
+        hasMap.swap(newHas);
+        hasNotMap.swap(newHasNot);
     }
     void zero() 
     {
-        for( auto i = hasVec.begin();i!= hasVec.end(); ++i ) 
-            i->zero();
-        for( auto i = hasNotVec.begin();i!= hasNotVec.end(); ++i ) 
-            i->zero();
+        for( auto i = hasMap.begin();i!= hasMap.end(); ++i ) 
+            i->second.zero();
+        for( auto i = hasNotMap.begin();i!= hasNotMap.end(); ++i ) 
+            i->second.zero();
     }
 
-    double yesDistance( const std::vector<double>& doc ) const
-        { return FeatureStats::distance( doc, hasVec ); }
-    double noDistance( const std::vector<double>& doc ) const
-        { return FeatureStats::distance( doc, hasNotVec ); }
+    static double distance( const ExtractedFeatureMap& doc, const Map& centroid )
+    {
+        const double stdDevEpsilon = 1.0/centroid.size();
+            double cumulative = 0.0;
+        for( TagStats::Map::const_iterator ci = centroid.begin(), centroid_end = centroid.end(); ci != centroid_end; ++ci ) {
+            if( !ci->second.ignore ) {
+                ExtractedFeatureMap::const_iterator di = doc.find(ci->second.featureId);
 
-    double getYesProbability(const std::vector<double>& doc) const
+                double x = ( di == doc.end() ? ci->second.mean : (di->second - ci->second.mean) );
+                cumulative += (x*x)/(stdDevEpsilon+ci->second.stdDev);
+            }
+        }
+        return sqrt(cumulative);
+    }
+    double yesDistance( const ExtractedFeatureMap& doc ) const
+        { return distance( doc, hasMap ); }
+    double noDistance( const ExtractedFeatureMap& doc ) const
+        { return distance( doc, hasNotMap ); }
+
+    double getYesProbability(const ExtractedFeatureMap& doc) const
     {
         double yesDist = yesDistance(doc);
         double noDist = noDistance(doc);
@@ -160,9 +109,63 @@ struct TagStats {
             return noDist/sumDist;
     }
 };
+/// 
+/// features are assumed to correspond to numbers 0 - getNumberOfFeatures()
+
+class FeatureStatsAccumulator {
+    /// key is featureId 
+public: 
+    typedef std::map< size_t, FeatureAccumulatedStats > Map;
+private:
+    Map d_feature;
+public:
+    Map& featureMap() { return d_feature; }
+    const Map& featureMap() const { return d_feature; }
+    size_t getNumberOfFeatures( ) const { return d_feature.size(); }
+
+    // adds data point to a feature accumulator
+    void operator()( size_t idx, double val, double w=1.0 )
+    {
+        Map::iterator i = d_feature.find(idx);
+        if( i == d_feature.end() ) 
+            i = d_feature.insert( std::make_pair(idx,FeatureAccumulatedStats()) ).first;
+
+        i->second( val, boost::accumulators::weight=w);
+    }
+    void zero() 
+    {
+        for( Map::iterator i = d_feature.begin(); i!= d_feature.end(); ++i ) 
+            i->second = FeatureAccumulatedStats();
+    }
+    
+    #define DECL_GET(ACC) double ACC(size_t idx) { \
+        Map::const_iterator i = d_feature.find(idx);\
+        return ( i==d_feature.end() ? 0 : boost::accumulators::ACC( i->second ) );\
+        }
+    DECL_GET(variance)
+    DECL_GET(count)
+    DECL_GET(skewness)
+    DECL_GET(kurtosis)
+    DECL_GET(sum)
+    #undef DECL_GET 
+
+    void getCentroid( TagStats::Map& centroid )
+    {
+        centroid.clear();
+        for( Map::const_iterator i = d_feature.begin(); i != d_feature.end(); ++i ){
+
+            FeatureStats st;
+            st.init(i->first,i->second);
+            centroid.insert( std::make_pair( i->first, st ) );
+        }
+    }
+};
+
 /// for each tag accumulates YES and NO feature stats in two separate accumulators
 struct TagStatsAccumulator {
     FeatureStatsAccumulator has, hasNot;
+    std::set< size_t > featureIdMap;
+
     size_t  hasCount, hasNotCount; 
     
     TagStatsAccumulator(): hasCount(0), hasNotCount(0) {}
@@ -171,15 +174,16 @@ struct TagStatsAccumulator {
         hasNot.zero();
     }
     // idx, double val, double w=1.0
-    void accumulate( std::vector<double>& f, bool hasTag, double docWeight=1.0 )
+    void accumulate( const ExtractedFeatureMap& f, bool hasTag, double docWeight=1.0 )
     {
         for( auto i = f.begin(); i!= f.end(); ++i ) {
-            size_t idx = (i-f.begin());
+            size_t idx = i->first;
+            featureIdMap.insert( idx );
             if( hasTag ) {
-                has( idx, *i, docWeight );
+                has( idx, i->second, docWeight );
                 ++hasCount;
             } else {
-                hasNot( idx, *i, docWeight );
+                hasNot( idx, i->second, docWeight );
                 ++hasNotCount;
             }
         }
@@ -187,23 +191,19 @@ struct TagStatsAccumulator {
 };
 inline void TagStats::init( const TagStatsAccumulator& x ) 
 {
-    if( x.has.getNumberOfFeatures() != x.hasNot.getNumberOfFeatures() ) {
-        std::cerr << "PANIC: TagStats::init has/hasNot mismatch\n";
-        return;
+    hasMap.clear();
+    hasNotMap.clear();
+
+    for( const auto& i : x.has.featureMap() ) {
+        FeatureStats fs;
+        fs.init( i.first, i.second);
+        hasMap.insert( std::make_pair<size_t,FeatureStats>(i.first, fs) );
     }
-    hasVec.clear();
-    hasVec.resize( x.has.getNumberOfFeatures() ); 
-    hasNotVec.clear();
-    hasNotVec.resize( x.hasNot.getNumberOfFeatures() );
-
-    size_t j = 0;
-    for( const auto& i : x.has.vec() ) 
-        hasVec[ j++ ].init( i );
-
-    j = 0;
-    for( const auto& i : x.hasNot.vec() ) 
-        hasNotVec[ j++ ].init( i );
-
+    for( const auto& i : x.hasNot.featureMap() ) {
+        FeatureStats fs;
+        fs.init( i.first, i.second);
+        hasNotMap.insert( std::make_pair<size_t,FeatureStats>(i.first, fs) );
+    }
     hasCount = x.hasCount;
     hasNotCount = x.hasNotCount;
 }
@@ -221,7 +221,7 @@ public:
     }
     size_t getNumFeatures() const { return d_tokPool.getMaxId(); }
     /// if learnmode = true will add tokens to the token pool
-    int extractFeatures( std::vector<double>& features, const char* buf, bool learnMode=true );
+    int extractFeatures( ExtractedFeatureMap& features, const char* buf, bool learnMode=true );
 };
 /// accumulates stats for all tags for all docs 
 struct DocSetStatsAccumulator {
@@ -238,7 +238,8 @@ struct DocSetStatsAccumulator {
     void setNumOfTags( size_t n ) { d_tagStats.resize(n); }
     size_t getNumOfTags() const { return d_tagStats.size(); }
     
-    void accumulate( size_t tagId, std::vector<double>& f, bool hasTag, double docWeight=1.0 )
+
+    void accumulate( size_t tagId, const ExtractedFeatureMap& f, bool hasTag, double docWeight=1.0 )
     {
         if( tagId< d_tagStats.size() ) 
             d_tagStats[tagId].accumulate(f,hasTag,docWeight);
@@ -283,7 +284,7 @@ public:
         d_acc.setNumOfTags(numOfTags);
     }
 
-    int addDoc( std::vector<double>& features, const char* doc, const std::set< size_t > hasTags, double docWeight = 1.0 )
+    int addDoc( ExtractedFeatureMap& features, const char* doc, const std::set< size_t > hasTags, double docWeight = 1.0 )
     {
         d_featureExtractor.extractFeatures( features, doc, true );
         for( size_t i = 0, i_end = hasTags.size(); i< i_end; ++i ) {
@@ -306,12 +307,12 @@ public:
 
     size_t getNumOfTags() const { return d_stats.getNumOfTags(); }
     
-    void extractFeatures( std::vector<double>& features, const char* doc )
+    void extractFeatures( ExtractedFeatureMap& features, const char* doc )
     {
         d_featureExtractor.extractFeatures( features, doc, true );
     }
 
-    double classify( size_t tagId, const std::vector<double>& features ) const
+    double classify( size_t tagId, const ExtractedFeatureMap& features ) const
     {
         if(tagId< getNumOfTags()) {
             double yesProb= d_stats.tagStats[ tagId ].getYesProbability(features);
@@ -319,7 +320,7 @@ public:
         }
         return 0.0;
     }
-    void classifyAll( std::vector<double>& tagYesProb, const std::vector<double>& features ) const
+    void classifyAll( std::vector<double>& tagYesProb, const ExtractedFeatureMap& features ) const
     {
         tagYesProb.resize( d_stats.getNumOfTags() );
         for( size_t i = 0, i_end = tagYesProb.size(); i< i_end; ++i ) 
