@@ -26,6 +26,60 @@ namespace
 		replace(str, '<', "&lt;");
 		replace(str, '>', "&gt;");
 	}
+
+	void fillAlts(const std::string& word, std::vector<std::string>& out)
+	{
+		static const std::map<std::string, std::vector<std::string>> amenitySynonyms =
+		{
+			{ "air-raid_shelter", { "бомбоубежище" } },
+			{ "atm", { "банкомат" } },
+			{ "bank", { "банк" } },
+			{ "bench", { "лавочка", "лавка", "скамейка" } },
+			{ "bureau_de_change", { "обменный</t><t>пункт", "обмен" } },
+			{ "bus_station", { "автобусная</t><t>остановка", "автобус" } },
+			{ "cafe", { "кафе" } },
+			{ "car_wash", { "автомойка" } },
+			{ "cinema", { "кино", "кинотеатр" } },
+			{ "college", { "колледж", "ПТУ" } },
+			{ "courthouse", { "суд" } },
+			{ "drinking_water", { "вода" } },
+			{ "driving_school", { "автокурс", "курс</t><t>вождения" } },
+			{ "embassy", { "посольство" } },
+			{ "doctor", { "врач", "больница" } },
+			{ "dentist", { "врач", "зубной</t><t>врач"} },
+			{ "fast_food", { "забегаловка", "фастфуд" } },
+			{ "fountain", { "фонтан" } },
+			{ "fuel", { "заправка", "топливо", "заправочная</t><t>станция" } },
+			{ "hospital", { "госпиталь", "больница" } },
+			{ "ice_cream", { "мороженое" } },
+			{ "library", { "библиотека" } },
+			{ "nightclub", { "ночной</t><t>клуб", "клуб" } },
+			{ "parking", { "парковка", "стоянка", "автостоянка" } },
+			{ "payment_terminal", { "платежный</t><t>терминал", "оплата" } },
+			{ "pharmacy", { "аптека" } },
+			{ "police", { "милиция", "полиция" } },
+			{ "post_office", { "почта", "почтовое</t><t>отделение" } },
+			{ "pub", { "бар", "паб" } },
+			{ "recycling", { "урна", "мусор" } },
+			{ "restaurant", { "ресторан" } },
+			{ "school", { "школа" } },
+			{ "shelter", { "приют" } },
+			{ "swimming_pool", { "бассейн" } },
+			{ "taxi", { "такси" } },
+			{ "telephone", { "телефон", "таксофон" } },
+			{ "theatre", { "театр" } },
+			{ "toilet", { "туалет" } },
+			{ "university", { "вуз", "университет", "институт" } },
+			{ "waste_basket", { "урна", "мусорная</t><t>корзина" } },
+			{ "waste_disposal", { "урна", "мусорная</t><t>корзина" } },
+			{ "kindergarten", { "детский</t><t>сад", "дошкольное</t><t>учреждение" } },
+			{ "place_of_worship", { "храм", "церковь", "мечеть" } }
+		};
+
+		const auto pos = amenitySynonyms.find(word);
+		if (pos != amenitySynonyms.end())
+			out = pos->second;
+	}
 }
 
 class Parser
@@ -163,8 +217,15 @@ private:
 				auto val = name->second;
 				xmlEscape(val);
 				replace(val, ' ', "</t><t>");
+
+				std::vector<std::string> altNames;
+				fillAlts(val, altNames);
+
 				val = "<t>" + val + "</t>";
 				possibleNames.insert(val);
+
+				for (const auto& name : altNames)
+					possibleNames.insert("<t>" + name + "</t>");
 			}
 		};
 		tryTag("name");
@@ -241,56 +302,7 @@ int main (int argc, char **argv)
 	ostr << "<?xml version='1.0' encoding='UTF-8'?>" << std::endl;
 	ostr << "<stmset xmlns:xsi='http://www.w3.org/2000/10/XMLSchema-instance' xmlns='http://www.barzer.net/barzel/0.1'>" << std::endl;
 
-	static const std::map<std::string, std::vector<std::string>> amenitySynonyms =
-	{
-		{ "air-raid_shelter", { "бомбоубежище" } },
-		{ "atm", { "банкомат" } },
-		{ "bank", { "банк" } },
-		{ "bench", { "лавочка", "лавка", "скамейка" } },
-		{ "bureau_de_change", { "обменный</t><t>пункт", "обмен" } },
-		{ "bus_station", { "автобусная</t><t>остановка", "автобус" } },
-		{ "cafe", { "кафе" } },
-		{ "car_wash", { "автомойка" } },
-		{ "cinema", { "кино", "кинотеатр" } },
-		{ "college", { "колледж", "ПТУ" } },
-		{ "courthouse", { "суд" } },
-		{ "drinking_water", { "вода" } },
-		{ "driving_school", { "автокурс", "курс</t><t>вождения" } },
-		{ "embassy", { "посольство" } },
-		{ "doctor", { "врач", "больница" } },
-		{ "dentist", { "врач", "зубной</t><t>врач"} },
-		{ "fast_food", { "забегаловка", "фастфуд" } },
-		{ "fountain", { "фонтан" } },
-		{ "fuel", { "заправка", "топливо", "заправочная</t><t>станция" } },
-		{ "hospital", { "госпиталь", "больница" } },
-		{ "ice_cream", { "мороженое" } },
-		{ "library", { "библиотека" } },
-		{ "nightclub", { "ночной</t><t>клуб", "клуб" } },
-		{ "parking", { "парковка", "стоянка", "автостоянка" } },
-		{ "payment_terminal", { "платежный</t><t>терминал", "оплата" } },
-		{ "pharmacy", { "аптека" } },
-		{ "police", { "милиция", "полиция" } },
-		{ "post_office", { "почта", "почтовое</t><t>отделение" } },
-		{ "pub", { "бар", "паб" } },
-		{ "recycling", { "урна", "мусор" } },
-		{ "restaurant", { "ресторан" } },
-		{ "school", { "школа" } },
-		{ "shelter", { "приют" } },
-		{ "swimming_pool", { "бассейн" } },
-		{ "taxi", { "такси" } },
-		{ "telephone", { "телефон", "таксофон" } },
-		{ "theatre", { "театр" } },
-		{ "toilet", { "туалет" } },
-		{ "university", { "вуз", "университет", "институт" } },
-		{ "waste_basket", { "урна", "мусорная</t><t>корзина" } },
-		{ "waste_disposal", { "урна", "мусорная</t><t>корзина" } },
-		{ "kindergarten", { "детский</t><t>сад", "дошкольное</t><t>учреждение" } },
-		{ "place_of_worship", { "храм", "церковь", "мечеть" } }
-	};
-	ostr << "\t<!-- amenity synonyms block -->\n";
-
-	size_t entId = 0;
-
+	/*
 	for (const auto& pair : amenitySynonyms)
 	{
 		ostr << "\t<stmt n='" << ++entId << "'>\n\t\t<pat>";
@@ -310,8 +322,9 @@ int main (int argc, char **argv)
 		ostr << "</pat>\n\t\t<tran><t>" << pair.first << "</t></tran>";
 		ostr << "\n\t</stmt>\n";
 	}
+	*/
 
-	ostr << "\n\t<!-- generated rules -->\n";
+	size_t entId = 0;
 
 	for (int i = 2; i < argc; ++i)
 	{
