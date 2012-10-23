@@ -845,7 +845,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 	if( !isUsersWord ) {
 	    if( gp.isWordInDictionary(strId) ) {
 			std::string stemmedStr;
-			strId = bzSpell->getStemCorrection( stemmedStr, theString );
+			strId = bzSpell->getStemCorrection( stemmedStr, theString, lang );
             if( strId == 0xffffffff && qparm.isStemMode_Aggressive() )
 			    strId = bzSpell->getAggressiveStem( stemmedStr, theString );
 
@@ -1208,7 +1208,7 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
                     } else {
                         enum { MIN_DEDUPE_LENGTH = 5 };
                         std::string dedupedStem;
-                        if( bzSpell->dedupeChars( stem, strToStem.c_str(), strToStem.length(), lang, MIN_DEDUPE_LENGTH )) { 
+                        if( bzSpell->dedupeChars( stem, strToStem.c_str(), strToStem.length(), lang, MIN_DEDUPE_LENGTH ) && stem.length() ) { 
                             stemTok = dtaIdx->getStoredToken( stem.c_str() ) ;
                             if( stemTok && stemTok != tmpCtok.getStemTok() )
                                 tmpCtok.setStemTok( stemTok );
