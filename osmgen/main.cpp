@@ -259,7 +259,7 @@ private:
 		if (possibleNames.size() > 1)
 			m_ostr << "</any>";
 		m_ostr << "</pat>" << std::endl << "\t\t<tran>";
-		m_ostr << "<mkent c='0' s='0' p='" << m_lat << ", " << m_lon << "' ";
+		m_ostr << "<mkent n='osmgen-" << m_entId << "' i='osmgen-" << m_entId << "' c='0' s='0' p='" << m_lat << ", " << m_lon << "' ";
 		m_ostr << "/></tran>\n\t</stmt>" << std::endl;
 	}
 };
