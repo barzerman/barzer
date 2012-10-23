@@ -11,6 +11,7 @@
 #include <boost/format.hpp>
 #include <barzer_universe.h>
 #include <barzer_ghettodb.h>
+#include "barzer_geoindex.h"
 #include <sstream>
 
 namespace barzer {
@@ -367,6 +368,18 @@ public:
                 xmlEscape( edata->canonicName.c_str(), os << "n=\"" ) << "\" ";
             os << " r=\"" << edata->relevance << "\" " ;
         }
+        
+		if (const auto se = universe.getDtaIdx().getEntByEuid(euid))
+		{
+			GeoIndex_t::Point p;
+			if (universe.getGeo()->getEntity(se->entId, p))
+			{
+				const auto oldPrec = os.precision();
+				os.precision(8);
+				os << "lon=\"" << p.x() << "\" lat=\"" << p.y() << "\" ";
+				os.precision(oldPrec);
+			}
+		}
 
         if( d_barz.hasProperties() ) {
             if( attrs ) {
