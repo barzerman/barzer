@@ -40,6 +40,7 @@ public:
 	BarzerGeo();
 	
 	void addEntity(const StoredEntity&, const std::pair<double, double>&);
+	bool getEntity(StoredEntityId, GeoIndex_t::Point& out) const;
 	
 	template<typename Pred>
 	void findEntities(std::vector<uint32_t>& out, const Point_t& center,

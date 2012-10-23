@@ -18,6 +18,16 @@ void BarzerGeo::addEntity (const StoredEntity& entity, const std::pair<double, d
 	m_entity2point.insert(std::make_pair(entity.entId, point));
 }
 
+bool BarzerGeo::getEntity (StoredEntityId id, GeoIndex_t::Point& out) const
+{
+	const auto pos = m_entity2point.find(id);
+	if (pos == m_entity2point.end())
+		return false;
+	
+	out = pos->second;
+	return true;
+}
+
 namespace
 {
 	template<typename Cont>
