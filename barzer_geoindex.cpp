@@ -33,7 +33,7 @@ namespace
 		bool operator()(const GeoIndex_t::Point& val)
 		{
 			m_container.push_back(val.getPayload());
-			return false;
+			return true;
 		}
 	};
 
