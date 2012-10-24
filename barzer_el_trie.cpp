@@ -595,7 +595,7 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELSta
 				uint32_t newEntId = newTran->getId_uint32();
 
 				entGrp->addEntity( newEntId );
-                if( tran )
+                if( tran && !tran->traceInfo.sameStatement(newTran->traceInfo) )
                     linkTraceInfo( tran->traceInfo, newTran->traceInfo );
 				return true;
 			} else {
