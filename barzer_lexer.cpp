@@ -662,11 +662,15 @@ inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexPa
                 dirty [i] = 0;
                 const StoredToken* tmpTok = getStoredToken( dirty );
                 uint32_t left = 0xffffffff;
+
+                bool leftCorrected = false;
                 if( !tmpTok || tmpTok->isStemmed() ) { // if no token found or token is pure stem
                     if( i < MIN_SPELL_CORRECT_LEN*step )
                         continue;
-                    else
+                    else {
                         left = bzSpell->getSpellCorrection (dirty,false,lang);
+                        leftCorrected = true;
+                    }
                 } else
                     left = tmpTok->getStringId() ;
     
@@ -677,10 +681,9 @@ inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexPa
     
                 tmpTok = getStoredToken( rightDirty );
 
-
                 uint32_t right = 0xffffffff;
                 if( !tmpTok ) {
-                    if( t_len - step- i < MIN_SPELL_CORRECT_LEN*step )
+                    if( leftCorrected || t_len - step- i < MIN_SPELL_CORRECT_LEN*step )
                         continue;
                     else {
                         if( i< 4*step || ((t_len - step -i) < 4*step) ) {
