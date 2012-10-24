@@ -394,7 +394,62 @@ DEF_BARZEL_BINDING_ARR(BarzerLiteral)
 
 DEF_BARZEL_BINDING_ARR_PTRS(BarzerLiteral)
 
-/// end of BarzerEntity
+/// BarzerEntityList
+DECL_BARZEL_BINDING_HOLDER(BarzerEntityList) {
+    BARZEL_METHOD(BarzerEntityList,ec) { RETURN_NUMBER(  (int)(dta.getClass().ec) ); }
+    BARZEL_METHOD(BarzerEntityList,sc) { 
+        if( !dta.getList().size() ) return true;
+
+        
+        if( !vec ) {
+            RETURN_NUMBER(  (int)(dta.getList()[0].getClass().subclass) ); 
+        } else {
+            BarzerEntity ent(dta.getList()[0]);
+            const BarzerNumber* n = getAtomicPtr<BarzerNumber>( (*vec)[0]) ;
+            ent.setSubclass( n? n->getUint32(): 0xffffffff );
+            out = BarzelBeadAtomic(ent);
+        }
+
+        return true;
+    }
+    BARZEL_METHOD(BarzerEntityList,id)
+    {
+        if( !dta.getList().size() ) return true;
+        if( !vec ) {
+            const char* tokname = universe.getGlobalPools().internalString_resolve(dta.getList()[0].tokId);
+            if( tokname ) {
+                uint32_t strId = universe.getGlobalPools().string_getId( tokname );
+                if( strId != 0xffffffff ) 
+                    RETURN_NUMBER( strId ); 
+                else 
+                    RETURN_ATOMIC( BarzerString(tokname)  );
+            }
+        } else { /// setter
+            // out = BarzelBeadAtomic(dta); 
+            const BarzerLiteral* ltrl = getAtomicPtr<BarzerLiteral>( (*vec)[0]) ;
+
+            BarzerEntity ent(dta.getList()[0]);
+            if( ltrl ) {
+                const char* str = universe.getGlobalPools().string_resolve(ltrl->getId());
+                if( str ) {
+                    uint32_t internalStrId = universe.getGlobalPools().internalString_getId(str);
+                    ent.setId( internalStrId );
+                }
+            } 
+            out = BarzelBeadAtomic(ent);
+        }
+        return true;
+    }
+};
+
+DEF_BARZEL_BINDING_ARR(BarzerEntityList)
+{
+    BARZEL_BINDING(BarzerEntityList,ec), // entity class
+    BARZEL_BINDING_RW(BarzerEntityList,sc), // entity subclass
+    BARZEL_BINDING_RW(BarzerEntityList,id)  // entity id 
+};
+DEF_BARZEL_BINDING_ARR_PTRS(BarzerEntityList)
+/// BarzerEntity
 DECL_BARZEL_BINDING_HOLDER(BarzerEntity) {
     BARZEL_METHOD(BarzerEntity,ec) { RETURN_NUMBER(  (int)(dta.getClass().ec) ); }
     BARZEL_METHOD(BarzerEntity,sc) { 
