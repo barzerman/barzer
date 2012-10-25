@@ -197,6 +197,8 @@ struct CToken {
 	void setSpellCorrected( bool v = true ) { cInfo.setSpellCorrected(v); }
 	void addSpellingCorrection( const char* wrong, const char*  correct ) 
 	{ 
+        if( !ay::ay_strcasecmp(wrong,correct) )  
+            return;
 		setSpellCorrected();
 		spellCorrections.resize( spellCorrections.size() +1 ) ;
 		spellCorrections.back().first.assign(wrong);
