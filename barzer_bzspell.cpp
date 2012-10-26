@@ -10,6 +10,7 @@
 #include <lg_en/barzer_en_lex.h>
 #include <barzer_lexer.h>
 #include <barzer_spellheuristics.h>
+#include <barzer_spell_features.h>
 
 namespace barzer {
 typedef std::vector<char> charvec;
@@ -1208,8 +1209,14 @@ BZSpell::BZSpell( StoredUniverse& uni ) :
 	d_minWordLengthToCorrect( d_charSize* (QLexParser::MIN_SPELL_CORRECT_LEN) ),
 	m_englishSLTransform(uni.getGlobalPools()),
 	m_englishSLBastard(uni.getGlobalPools()),
-	m_englishSLSuperposition(m_englishSLTransform, m_englishSLBastard)
+	m_englishSLSuperposition(m_englishSLTransform, m_englishSLBastard),
+	m_featuredSC(new FeaturedSpellCorrector(uni.getStringPool()))
 {}
+
+BZSpell::~BZSpell()
+{
+	delete m_featuredSC;
+}
 
 size_t BZSpell::loadExtra( const char* fileName )
 {
