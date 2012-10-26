@@ -215,7 +215,7 @@ if (ENABLE_PYBARZER)
 #		MESSAGE (ERROR "Pybarzer requires ENABLE_BARZ_SHARED set to true")
 #	endif (NOT ENABLE_BARZ_SHARED)
 
-	add_library(pybarzer SHARED barzer_python.cpp)
+	add_library(pybarzer SHARED barzer_python.cpp zurch_python.cpp)
 	target_link_libraries (pybarzer barzer_static butil ${EXTRA_LIBS})
 	SET_TARGET_PROPERTIES(pybarzer PROPERTIES PREFIX "")
 	IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")

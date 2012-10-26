@@ -1,4 +1,3 @@
-
 #include <ay_math.h>
 #include <ay_statistics.h>
 #include <ay_string_pool.h>
@@ -13,14 +12,16 @@ typedef ay::double_standardized_moments_weighted FeatureAccumulatedStats;
 
 /// first is feature id 
 
-typedef std::map<size_t,double> ExtractedFeatureMap;
+typedef std::map<uint32_t,double> ExtractedFeatureMap;
 
+
+///// 
 struct FeatureStats {
     size_t featureId; // unique feature id 
     double mean, stdDev; // 
     bool ignore;  // unused for now 
 
-    FeatureStats() : mean(0), stdDev(0), ignore(false), featureId(0xffffffff) {}
+    FeatureStats() : featureId(0xffffffff), mean(0), stdDev(0), ignore(false){}
     void zero() { mean = stdDev= 0.0; }
     
     bool equals( const FeatureStats& o, double epsilon ) const
@@ -38,7 +39,17 @@ struct FeatureStats {
     }
 
     void setIgnore( bool v = true ) { ignore=v; }
+    std::ostream& print( std::ostream& fp ) const 
+    {
+        return (
+            fp << featureId << ":" << mean << ":" << stdDev 
+        );
+    }
 };
+inline std::ostream& operator<< ( std::ostream& fp, const FeatureStats& fs ) 
+{
+    return fs.print( fp );
+}
 
 struct TagStatsAccumulator;
 /// results of accumulation, needed for classification proper. can be initialized from TagStatsAccumulator or another source (stored on disk)
@@ -55,6 +66,26 @@ struct TagStats {
 
     TagStats( const TagStatsAccumulator& x ) { init(x); }
     
+    std::ostream& print( std::ostream& fp ) const
+    {
+        return(
+            fp << "hasMap:" << hasMap.size() <<  ",hasNotMap:" << hasNotMap.size() << ",hasCount:" << hasCount << ",hasNotCount:" << hasNotCount 
+        );
+    }
+    std::ostream& printFeatureStatsMap( std::ostream& fp, const Map& m ) const 
+    {
+        for( auto i = m.begin(); i != m.end(); ++i ) {
+            fp << i->first << ":" << "(" << i->second << ")";
+        }
+        return fp;
+    }
+        
+    std::ostream& printDeep( std::ostream& fp ) const
+    {
+        printFeatureStatsMap( fp << "hasMap[" << hasMap.size()  << "]{", hasMap ) << "}" << std::endl;
+        printFeatureStatsMap( fp << "hasNotMap[" << hasNotMap.size()  << "]{", hasNotMap ) << "}" << std::endl;
+        return fp;
+    }
     void setIgnore( double epsilon) 
     {
         Map newHas, newHasNot;
@@ -222,6 +253,11 @@ public:
     size_t getNumFeatures() const { return d_tokPool.getMaxId(); }
     /// if learnmode = true will add tokens to the token pool
     int extractFeatures( ExtractedFeatureMap& features, const char* buf, bool learnMode=true );
+
+    void normalizeFeatures( ExtractedFeatureMap& features, double normalizeBy ) {
+        for( ExtractedFeatureMap::iterator i = features.begin(); i!= features.end(); ++i ) 
+            i->second/= normalizeBy;
+    }
 };
 /// accumulates stats for all tags for all docs 
 struct DocSetStatsAccumulator {
@@ -265,6 +301,22 @@ struct DocSetStats {
             tagStats[ (i-accVec.begin()) ].init( *i );
     }
     size_t getNumOfTags() const { return tagStats.size(); }
+
+    std::ostream& printDeep( std::ostream& fp ) const
+    {
+        for( auto i = tagStats.begin(); i!= tagStats.end(); ++i ) {
+            i->printDeep(fp) << std::endl;
+        }
+        return fp;
+    }
+    std::ostream& print( std::ostream& fp ) const
+    {
+        for( auto i = tagStats.begin(); i!= tagStats.end(); ++i ) {
+            fp << "tag[" << (i-tagStats.begin()) << "]";
+            i->print(fp) << std::endl;
+        }
+        return fp;
+    }
 };
 
 
@@ -282,6 +334,13 @@ public:
     {
         d_acc.zero();
         d_acc.setNumOfTags(numOfTags);
+    }
+
+    int addDoc( ExtractedFeatureMap& features, const char* doc, size_t tagId, bool hasIt, double docWeight = 1.0 )
+    {
+        d_featureExtractor.extractFeatures( features, doc, true );
+        d_acc.accumulate( tagId, features, hasIt, docWeight);
+        return 0;
     }
 
     int addDoc( ExtractedFeatureMap& features, const char* doc, const std::set< size_t > hasTags, double docWeight = 1.0 )
@@ -308,9 +367,7 @@ public:
     size_t getNumOfTags() const { return d_stats.getNumOfTags(); }
     
     void extractFeatures( ExtractedFeatureMap& features, const char* doc )
-    {
-        d_featureExtractor.extractFeatures( features, doc, true );
-    }
+        { d_featureExtractor.extractFeatures( features, doc, true ); }
 
     double classify( size_t tagId, const ExtractedFeatureMap& features ) const
     {

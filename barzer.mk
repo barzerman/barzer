@@ -10,8 +10,11 @@ ifeq ($(IS64),yes)
 endif
 ifeq ($(UNAME),Darwin)
     BOOST_SYSLIB=/opt/local/lib/libboost_system-mt.dylib /opt/local/lib/libboost_filesystem-mt.dylib
+    BOOST_LIB=boost_python-mt
     BOOST_THREADLIB=-lboost_thread-mt
     C11LIB_SHIT=-stdlib=libc++
+else
+    BOOST_LIB=boost_python
 endif
 ifeq ($(IS32),yes)
 	BITMODE=-m32
@@ -95,7 +98,7 @@ lg_en/barzer_en_date_util.o \
 lg_ru/barzer_ru_date_util.o \
 
 objects = $(lib_objects) barzer.o
-objects_python=barzer_python.o util/pybarzer.o
+objects_python=zurch_python.o barzer_python.o util/pybarzer.o
 
 INSTALL_DIR = /usr/share/barzer
 INSTALL_DATA_DIR = $(INSTALL_DIR)/data
@@ -108,7 +111,7 @@ lib: ay/libay.a $(LIBNAME).a $(lib_bjects)
 sharedlib: ay/libay.a $(lib_objects)
 	$(CC) $(C11LIB) -shared -Wl -dylib -o $(LIBNAME).so $(lib_objects) $(libs)
 pybarzer: $(objects_python) $(LIBNAME).a
-	$(CC) $(C11LIB) -shared -Wl -o pybarzer.so -lboost_python $(objects_python) $(LIBNAME).a $(libs)  -lboost_python $(PYLIBS) 
+	$(CC) $(C11LIB) -shared -Wl -o pybarzer.so -l$(BOOST_LIB) $(objects_python) $(LIBNAME).a $(libs)  -l$(BOOST_LIB) $(PYLIBS) 
 barzer_python.o: barzer_python.cpp
     $(CC) -DBARZER_HOME=$(INSTALL_DIR) -c $(CFLAGS) $< -o $@
 $(LIBNAME).a: ay/libay.a $(lib_objects)
