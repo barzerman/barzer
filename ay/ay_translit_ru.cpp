@@ -1277,8 +1277,10 @@ bool dedupeRussianConsonants( std::string& dest, const char* buf, size_t buf_len
 
 bool normalize_eng_onevowel( std::string& dest, const char* buf, size_t buf_len )
 {
-    if(buf_len<2) return false;
-    
+    if(buf_len<2) {
+        dest.assign( buf, buf_len );
+        return false;
+    } 
     dest.clear();
     bool wasVowel = false;
     for( const char* s=buf, *s_end=buf+buf_len; s< s_end; ) {
