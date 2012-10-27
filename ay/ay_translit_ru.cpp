@@ -1242,18 +1242,22 @@ bool dedupeRussianConsonants( std::string& dest, const char* buf, size_t buf_len
     const char* priorConsonant = 0;
 
     bool skippedAny = false;
-    const char* src = buf, *buf_end=buf+buf_len-1;
+    const char* src = buf, *buf_end=buf+buf_len;
     for( ; src< buf_end;  ) {
         uint8_t b0 = static_cast<uint8_t>(src[0]), b1=static_cast<uint8_t>(src[1]);
+        if( isascii(*src) ){
+            dest.push_back( *src) ;
+            ++src;
+            continue;
+        }
+            
         if( is_russian_consonant(b0,b1) ) { 
             if( priorConsonant&& priorConsonant[0] == src[0] && priorConsonant[1] == src[1] ) { // same consonant
                 priorConsonant= src;
-                src+=2;
             } else {
                 priorConsonant= src;
                 dest.push_back( src[0] );
                 dest.push_back( src[1] );
-                src+=2;
                 if( !skippedAny ) 
                     skippedAny = true;
             }
@@ -1261,14 +1265,44 @@ bool dedupeRussianConsonants( std::string& dest, const char* buf, size_t buf_len
             priorConsonant= 0;
             dest.push_back( src[0] );
             dest.push_back( src[1] );
-
-            src+=2;
-        }
+        } 
+        src+=2;
+            
     }
     if( src== (buf_end+1) ) 
         dest.push_back(*(src));
 
     return skippedAny;
 }
+
+bool normalize_eng_onevowel( std::string& dest, const char* buf, size_t buf_len )
+{
+    if(buf_len<2) return false;
+    
+    dest.clear();
+    bool wasVowel = false;
+    for( const char* s=buf, *s_end=buf+buf_len; s< s_end; ) {
+        if( isascii(*s) )  {
+            dest.push_back(*s);
+            ++s;
+            continue;
+        }
+        const char* toAdd = s;
+        if( is_russian_vowel(s) ) {
+            if( wasVowel ) {
+                s+=2;
+                continue;
+            }
+            wasVowel=true;
+            toAdd="a";
+        } else if( wasVowel )
+            wasVowel=false;
+            
+        dest.append( ru_to_ascii(toAdd) );
+        s+=2;
+    }
+    return true;
 }
-}
+
+} // namespace tl 
+} // namespace ay

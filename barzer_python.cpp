@@ -788,7 +788,8 @@ BOOST_PYTHON_MODULE(pybarzer)
 		.def( "en2ru", &barzer::BarzerPython::translitEn2Ru)
         .def( "matchXML", &barzer::BarzerPython::matchXML);
 
-    zurch::pythonInit();
+    /// ZURCH
+    zurch::ZurchPython::init();
         
     def("stripDiacritics", stripDiacritics);
     // BarzerResponseObject    

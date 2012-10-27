@@ -52,6 +52,14 @@ protected:
 public:
     // gp is never null
     const GlobalPools& getGP() const { return *gp; }
+    GlobalPools& getGP() { return *gp; }
+
+
+    StoredUniverse* getUniversePtr() { return d_universe; }
+    StoredUniverse& guaranteeUniverse() { if( !d_universe) d_universe=gp->getUniverse(0); return *d_universe; }
+
+    const StoredUniverse* getUniversePtr() const { return d_universe; }
+
     BarzerPython();
     ~BarzerPython();
 

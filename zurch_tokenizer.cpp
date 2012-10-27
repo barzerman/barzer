@@ -11,11 +11,9 @@ const char* ZurchWordNormalizer::normalize( std::string& dest, const char* src, 
     ay::tl::en2ru(env.stem.c_str(), env.stem.length(), env.translit);
     env.dedupe.clear();
     ay::tl::dedupeRussianConsonants(env.dedupe, env.translit.c_str(), env.translit.size() );
-    if( env.bastardizer ) {
-        env.bastardizer->transform( env.dedupe.c_str(), env.dedupe.length(), env.bastardized );
-    }
+
+    ay::tl::normalize_eng_onevowel( dest, env.dedupe.c_str(), env.dedupe.length() );
     
-    dest = env.bastardized;
     return dest.c_str();
 }
 
