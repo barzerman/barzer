@@ -29,7 +29,11 @@ typedef std::vector<ZurchToken> ZurchTokenVec;
 /// for potential tokenizers it's d_tokenizer.heuristicPotentialBit 
 /// in addition to heuristics a list of arbitrary separators can be added 
 class ZurchTokenizer {
-    enum { ZTF_DETECTID, ZTF_MAX };
+    enum { 
+        ZTF_DETECTID, /// apply id detection heuristic (numbers+dots+...)
+        ZTF_EMIT_SPACES, /// when on "a b" becomes "a" " " "b" otherwise "a" "b"
+        ZTF_MAX 
+    };
     ay::bitflags< ZTF_MAX > d_bit;
     ay::callback_tokenizer d_tokenizer;
 public:
@@ -38,6 +42,7 @@ public:
 
     ay::bitflags< ZTF_MAX >&       bits()       { return d_bit; }
     const ay::bitflags< ZTF_MAX >& bits() const { return d_bit; }
+    bool emit_spaces() const { return d_bit.checkBit(ZTF_EMIT_SPACES); }
     
     ZurchTokenizer( const char* sep=0 ) {
         if( sep ) 
@@ -59,7 +64,7 @@ public:
 };
 
 class ZurchWordNormalizer {
-    barzer::BZSpell* d_bzspell;
+    const barzer::BZSpell* d_bzspell;
 public:
     enum {
         STRAT_RU_TRANSLIT_CONSONANT, 
@@ -82,10 +87,9 @@ public:
         }
     };
 
-    ZurchWordNormalizer( barzer::BZSpell* spell ) : d_bzspell(spell) {}
+    ZurchWordNormalizer( const barzer::BZSpell* spell=0 ) : d_bzspell(spell) {}
+    void setBZSpell( const barzer::BZSpell* spell ) { d_bzspell = spell; }
     const char* normalize( std::string& dest, const char* src, NormalizerEnvironment& env ) const;
-
-    // void normalize( ZurchTokenVec& dest, const ZurchTokenVec& src, NormalizerEnvironment& env ) const;
 };
 
 } // namespace zurch

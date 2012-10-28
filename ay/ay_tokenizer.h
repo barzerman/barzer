@@ -10,14 +10,19 @@ struct parse_token {
     const char* buf;
     size_t buf_sz;
     size_t offset; // offset in the original doc
-    bool hasSeparators; /// will be set to true if potential separators are in the token
-public:
-    parse_token( const char* b) : buf(b), buf_sz(0), offset(0), hasSeparators(false) {}
-    parse_token( const char* b, size_t b_sz, size_t of ) : buf(b), buf_sz(b_sz), offset(of), hasSeparators(false) {}
 
-    void clear() { buf=0; buf_sz=0; offset=0; hasSeparators=false; }
+    bool hasSeparators; /// will be set to true if potential separators are in the token
+    bool isNonAscii; /// will be set to true if potential separators are in the token
+public:
+    parse_token( const char* b) : buf(b), buf_sz(0), offset(0), hasSeparators(false), isNonAscii(false) {}
+    parse_token( const char* b, size_t b_sz, size_t of ) : buf(b), buf_sz(b_sz), offset(of), hasSeparators(false), isNonAscii(false) {}
+
+    void clear() { buf=0; buf_sz=0; offset=0; hasSeparators=false; isNonAscii=false;}
     void set( const char* b, size_t sz, size_t o )
         { buf=b; buf_sz=sz; offset=o; hasSeparators=false; }
+
+    void setAscii(bool x) { isNonAscii=!x;}
+
     bool empty() { return !buf; }
     void extend() { ++buf_sz; }
     bool isHasSeparators() const { return hasSeparators; }
@@ -123,7 +128,6 @@ public:
     {
         separatorStatus=IS_SEPARATOR_NO;
         if( !d_hasNonAsciiSeparators || s_end<=s ) {
-
             return ( (separatorStatus=IS_SEPARATOR_NO),nullptr);
         }
         char theS[5] = {0};
@@ -226,9 +230,10 @@ public:
             const char* endSeparator=0;
             if( isascii(*s) ) {
                 separatorStatus =  findCharSeparator(*s);
-            } else 
+            } else {
                 endSeparator = findUtf8Separator(s, str_end, separatorStatus);
-             
+                tok.setAscii(false);
+            } 
             if( separatorStatus == IS_SEPARATOR_YES ) {
                 ++numTok;
                 if( !tok.getBuf_sz() ) {

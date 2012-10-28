@@ -10,7 +10,7 @@ struct PythonNormalizer;
 struct ZurchPython {
     barzer::BarzerPython* barzerPython;
 
-    PythonClassifier* mkClassifier() const;
+    PythonClassifier* mkClassifier();
     PythonTokenizer*  mkTokenizer() const;
     PythonNormalizer* mkNormalizer() const;
 

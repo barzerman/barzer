@@ -29,14 +29,10 @@ using namespace boost::python;
 using namespace boost;
 
 namespace zurch {
-struct PythonClassifier {
-    const ZurchPython& zp;
-    PythonClassifier(const const ZurchPython& z): zp(z){}
-};
 struct PythonTokenizer {
     ZurchTokenizer tokenizer;
     const ZurchPython& zp;
-    PythonTokenizer(const const ZurchPython& z): zp(z){}
+    PythonTokenizer(const ZurchPython& z): zp(z){}
     list tokenize( const std::string & s )
     {
         list retList;
@@ -54,27 +50,91 @@ struct PythonNormalizer {
     ZurchTokenizer tokenizer;
     ZurchWordNormalizer normalizer;
 
-    PythonNormalizer(const const ZurchPython& z): zp(z), 
+    PythonNormalizer(const ZurchPython& z): zp(z), 
     normalizer(zp.barzerPython->guaranteeUniverse().getBZSpell())
     {}
-    list normalize( const std::string& s ) 
+    /// must delete the returned pointer
+    char* internal_tokenize( ZurchTokenVec& tokVec, const std::string& sorig )
     {
-        list retList;
+        size_t lc_sz = sorig.length()+1;
+        int lang = barzer::Lang::getLangNoUniverse( sorig.c_str(), sorig.length() );
+
+        char * lc= new char[ lc_sz ];
+
+        memcpy( lc, sorig.c_str(), sorig.length() );
+        lc[ lc_sz-1 ] =0;
+        barzer::Lang::stringToLower( lc, lc_sz, lang );
+
+        tokenizer.tokenize( tokVec, lc, lc_sz );
+        return lc;
+    }
+
+    list tokenize( const std::string& s ) 
+    {
+        list retList; 
         ZurchTokenVec tokVec;
         tokenizer.tokenize( tokVec, s.c_str(), s.length() );
+        for( ZurchTokenVec::const_iterator i = tokVec.begin(); i!= tokVec.end(); ++i ) {
+            retList.append(i->str);
+        }
+        return retList;
+    }
+    void internal_normalize( std::vector< std::string > & vec, const std::string& s ) 
+    {
+        ZurchTokenVec tokVec;
+        /// this is needed so that the char* inside tokVec are valid
+        std::auto_ptr<char>( internal_tokenize( tokVec, s ) );
         std::string norm;
         ZurchWordNormalizer::NormalizerEnvironment normEnv;
         for( ZurchTokenVec::const_iterator i = tokVec.begin(); i!= tokVec.end(); ++i ) {
             norm.clear();
-            normalizer.normalize(norm,i->str.c_str(),normEnv);
-            retList.append(norm);
+            if( i->str.length() > 3 ) {
+                normalizer.normalize(norm,i->str.c_str(),normEnv);
+                vec.push_back( norm );
+            } else 
+                vec.push_back(i->str);
+        }
+    }
+    list normalize( const std::string& sorig ) 
+    {
+        list retList;
+        ZurchTokenVec tokVec;
+        /// this is needed so that the char* inside tokVec are valid
+        std::auto_ptr<char>( internal_tokenize( tokVec, sorig ) );
+        std::string norm;
+        ZurchWordNormalizer::NormalizerEnvironment normEnv;
+        for( ZurchTokenVec::const_iterator i = tokVec.begin(); i!= tokVec.end(); ++i ) {
+            norm.clear();
+            if( i->str.length() > 3 ) {
+                normalizer.normalize(norm,i->str.c_str(),normEnv);
+                retList.append(norm);
+            } else 
+                retList.append(i->str);
+
         }
         return retList;
     }
 };
 
 
-PythonClassifier* ZurchPython::mkClassifier() const
+struct PythonClassifier {
+    ZurchPython& zp;
+    PythonNormalizer normalizer; 
+    PythonClassifier(ZurchPython& z): zp(z), normalizer(zp){}
+
+    list tokenize( const std::string& s ) 
+        { return normalizer.tokenize(s); }
+    list normalize( const std::string& s ) 
+        { return normalizer.normalize(s); }
+    void classify( const list& l )
+    {
+        for( size_t i = 0, i_end = len(l); i< i_end; ++i ) {
+            std::string s = boost::python::extract<std::string>(l[i]);
+            std::cerr << s << std::endl;
+        }
+    }
+};
+PythonClassifier* ZurchPython::mkClassifier() 
 {
     return new PythonClassifier(*this);
 }
@@ -111,6 +171,10 @@ void ZurchPython::init()
         .def( "tokenize", &zurch::PythonTokenizer::tokenize );
     boost::python::class_<zurch::PythonNormalizer>( "normalizer", no_init )
         .def( "normalize", &zurch::PythonNormalizer::normalize );
+    boost::python::class_<zurch::PythonClassifier>( "classifier", no_init )
+        .def( "tokenize", &zurch::PythonClassifier::tokenize )
+        .def( "normalize", &zurch::PythonClassifier::normalize )
+        .def( "classify", &zurch::PythonClassifier::classify );
     // std::cerr << "pythonInit" << std::endl;
 }
 

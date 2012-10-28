@@ -4,6 +4,8 @@
 #include <limits>
 #include <zurch_tokenizer.h>
 
+namespace barzer { class BZSpell; }
+
 namespace zurch {
 
 
@@ -241,79 +243,125 @@ inline void TagStats::init( const TagStatsAccumulator& x )
 
 
 /// basic token / normalization based feature extractor
-class FeatureExtractor {
+struct FeatureExtractor_Base {
     ay::UniqueCharPool&     d_tokPool;
-    ZurchTokenizer&         d_tokenizer;
-public:
-    FeatureExtractor( ay::UniqueCharPool&   tokPool, ZurchTokenizer& tokenizer ):
-        d_tokPool( tokPool), 
-        d_tokenizer(tokenizer)
-    {
-    }
-    size_t getNumFeatures() const { return d_tokPool.getMaxId(); }
-    /// if learnmode = true will add tokens to the token pool
-    int extractFeatures( ExtractedFeatureMap& features, const char* buf, bool learnMode=true );
 
+    FeatureExtractor_Base(ay::UniqueCharPool& pool) : d_tokPool(pool) {}
+
+    typedef std::vector< std::string > StringVec;
+    virtual int extractFeatures( ExtractedFeatureMap& features, const FeatureExtractor_Base::StringVec& ntVec, bool learnMode=true )=0;
+    virtual int extractFeatures( ExtractedFeatureMap& features, const char* buf, bool learnMode=true ) = 0;
+
+    size_t getNumTokensInPool()const { return d_tokPool.getMaxId(); }
+    virtual size_t getNumFeatures() const { return d_tokPool.getMaxId(); }
     void normalizeFeatures( ExtractedFeatureMap& features, double normalizeBy ) {
         for( ExtractedFeatureMap::iterator i = features.begin(); i!= features.end(); ++i ) 
             i->second/= normalizeBy;
     }
+    virtual ~FeatureExtractor_Base() {}
+};
+
+/// most basic feature extractor (no normalization)
+class FeatureExtractor : public FeatureExtractor_Base {
+protected:
+    ZurchTokenizer&         d_tokenizer;
+public:
+    FeatureExtractor( ay::UniqueCharPool&   tokPool, ZurchTokenizer& tokenizer ):
+        FeatureExtractor_Base(tokPool),
+        d_tokenizer(tokenizer)
+        {}
+    /// if learnmode = true will add tokens to the token pool
+    int extractFeatures( ExtractedFeatureMap& features, const FeatureExtractor_Base::StringVec& ntVec, bool learnMode=true );
+    int extractFeatures( ExtractedFeatureMap& features, const char* buf, bool learnMode=true );
+};
+/// normalizing extarctor - in addition to tokenizing the document also 
+/// normalizes the tokens 
+class FeatureExtractor_Normalizing : public FeatureExtractor_Base {
+protected:
+    ZurchTokenizer&      d_tokenizer;
+    ZurchWordNormalizer d_normalizer;
+public:
+    FeatureExtractor_Normalizing( ay::UniqueCharPool& pool, ZurchTokenizer& tokenizer, const barzer::BZSpell* spell ):
+        FeatureExtractor_Base(pool),
+        d_tokenizer(tokenizer),
+        d_normalizer(spell)
+    {}
+    virtual int extractFeatures( ExtractedFeatureMap& features, const FeatureExtractor_Base::StringVec& ntVec, bool learnMode=true );
+    virtual int extractFeatures( ExtractedFeatureMap& features, const char* buf, bool learnMode=true );
 };
 /// accumulates stats for all tags for all docs 
 struct DocSetStatsAccumulator {
-    FeatureExtractor& d_featureExtractor;
-
     /// for each tag this type of accumulator will be 
-    std::vector< TagStatsAccumulator > d_tagStats;
-
-    DocSetStatsAccumulator( FeatureExtractor& fe ) : d_featureExtractor(fe) {}
+    typedef  std::map< uint32_t, TagStatsAccumulator > TagStatsAccumulatorMap;
+    TagStatsAccumulatorMap d_tagStats;
 
     /// zero out the stats
-    void zero() { for( auto& i : d_tagStats ) i.zero(); }
+    void zero() { for( auto& i : d_tagStats ) i.second.zero(); }
 
-    void setNumOfTags( size_t n ) { d_tagStats.resize(n); }
-    size_t getNumOfTags() const { return d_tagStats.size(); }
-    
-
+    TagStatsAccumulator& obtainTagStatsAccumulator( uint32_t tagId ) 
+    {
+        TagStatsAccumulatorMap::iterator i = d_tagStats.find( tagId );
+        if( i == d_tagStats.end() ) 
+            i = d_tagStats.insert( TagStatsAccumulatorMap::value_type(tagId,TagStatsAccumulator()) ).first;
+        return i->second;
+    }
     void accumulate( size_t tagId, const ExtractedFeatureMap& f, bool hasTag, double docWeight=1.0 )
     {
-        if( tagId< d_tagStats.size() ) 
-            d_tagStats[tagId].accumulate(f,hasTag,docWeight);
+        obtainTagStatsAccumulator(tagId).accumulate(f,hasTag,docWeight);
     }
-    const std::vector< TagStatsAccumulator >& getAccumulatedStats() const { return d_tagStats; }
+    TagStatsAccumulatorMap& getAccumulatedStats() { return d_tagStats; }
+    const TagStatsAccumulatorMap& getAccumulatedStats() const{ return d_tagStats; }
 };
 
 struct DocSetStats {
-    std::vector< TagStats > tagStats;
+    typedef std::map< uint32_t, TagStats > TagStatsMap;
+    TagStatsMap tagStats;
     
     void zero() 
-        { for( auto i = tagStats.begin(); i!= tagStats.end(); ++i ) i->zero(); }
+        { for( auto i = tagStats.begin(); i!= tagStats.end(); ++i ) i->second.zero(); }
 
+    TagStatsMap& getTagStatsMap() { return tagStats; }
+    const TagStatsMap& getTagStatsMap() const { return tagStats; }
+
+    const TagStats* getTagStatsPtr( uint32_t tagId )  const
+    {
+        TagStatsMap::const_iterator i = tagStats.find(tagId);
+        return( i == tagStats.end() ? 0 : &(i->second) );
+    }
+    TagStats* getTagStatsPtr( uint32_t tagId ) 
+    {
+        TagStatsMap::iterator i = tagStats.find(tagId);
+        return( i == tagStats.end() ? 0 : &(i->second) );
+    }
+
+    TagStats& obtainTagStats( uint32_t tagId ) 
+    {
+        TagStatsMap::iterator i = tagStats.find(tagId);
+        if( i== tagStats.end() )
+            i= tagStats.insert( TagStatsMap::value_type( tagId, TagStats() ) ).first;
+        return i->second;
+    }
     void init( const DocSetStatsAccumulator& acc )
     {
         tagStats.clear();
 
-        const std::vector< TagStatsAccumulator >& accVec = acc.getAccumulatedStats();
-        if( !accVec.size() )
-            return;
-        tagStats.resize( accVec.size() );
-        for( auto i = accVec.begin(), i_end = accVec.end();  i != i_end; ++i ) 
-            tagStats[ (i-accVec.begin()) ].init( *i );
+        for( auto i = acc.getAccumulatedStats().begin(), i_end = acc.getAccumulatedStats().end();  i != i_end; ++i ) 
+            obtainTagStats( i->first ).init( i->second );
     }
     size_t getNumOfTags() const { return tagStats.size(); }
 
     std::ostream& printDeep( std::ostream& fp ) const
     {
         for( auto i = tagStats.begin(); i!= tagStats.end(); ++i ) {
-            i->printDeep(fp) << std::endl;
+            i->second.printDeep(fp) << std::endl;
         }
         return fp;
     }
     std::ostream& print( std::ostream& fp ) const
     {
         for( auto i = tagStats.begin(); i!= tagStats.end(); ++i ) {
-            fp << "tag[" << (i-tagStats.begin()) << "]";
-            i->print(fp) << std::endl;
+            fp << "tag[" << i->first <<  "]";
+            i->second.print(fp) << std::endl;
         }
         return fp;
     }
@@ -322,10 +370,10 @@ struct DocSetStats {
 
 /// ACHTUNG!! we may wanna templatize on FeatureExtractor
 class DataSetTrainer {
-    FeatureExtractor& d_featureExtractor; 
+    FeatureExtractor_Base& d_featureExtractor; 
     DocSetStatsAccumulator& d_acc;
 public: 
-    DataSetTrainer( FeatureExtractor& featureExtractor, DocSetStatsAccumulator& acc ) : 
+    DataSetTrainer( FeatureExtractor_Base& featureExtractor, DocSetStatsAccumulator& acc ) : 
         d_featureExtractor(featureExtractor),
         d_acc(acc)
     {}
@@ -333,7 +381,6 @@ public:
     void init( size_t numOfTags ) 
     {
         d_acc.zero();
-        d_acc.setNumOfTags(numOfTags);
     }
 
     int addDoc( ExtractedFeatureMap& features, const char* doc, size_t tagId, bool hasIt, double docWeight = 1.0 )
@@ -363,7 +410,6 @@ public:
     DocSetStats& stats() { return d_stats; }
     const DocSetStats& stats() const { return d_stats; }
 
-
     size_t getNumOfTags() const { return d_stats.getNumOfTags(); }
     
     void extractFeatures( ExtractedFeatureMap& features, const char* doc )
@@ -371,17 +417,81 @@ public:
 
     double classify( size_t tagId, const ExtractedFeatureMap& features ) const
     {
-        if(tagId< getNumOfTags()) {
-            double yesProb= d_stats.tagStats[ tagId ].getYesProbability(features);
+        const TagStats* tstat = d_stats.getTagStatsPtr( tagId );
+        if( tstat ) {
+            double yesProb= tstat->getYesProbability(features);
             return yesProb;
         }
         return 0.0;
     }
-    void classifyAll( std::vector<double>& tagYesProb, const ExtractedFeatureMap& features ) const
+    typedef std::map< uint32_t, double > TagIdToProbabilityMap;
+    void classifyAll( TagIdToProbabilityMap& tagYesProb, const ExtractedFeatureMap& features ) const
     {
-        tagYesProb.resize( d_stats.getNumOfTags() );
-        for( size_t i = 0, i_end = tagYesProb.size(); i< i_end; ++i ) 
-            tagYesProb[i] = classify(i,features);
+        for( DocSetStats::TagStatsMap::const_iterator i= d_stats.getTagStatsMap().begin(), i_end=d_stats.getTagStatsMap().end();i != i_end; ++i ) 
+            tagYesProb.insert( TagIdToProbabilityMap::value_type( i->first,classify(i->first,features) ) );
+    }
+};
+
+class ZurchTrainerAndClassifier {
+    ay::UniqueCharPool& stringPool;
+    const barzer::BZSpell* bzSpell;
+    
+    ZurchTokenizer  tokenizer;
+    ZurchWordNormalizer normalizer;
+
+    FeatureExtractor_Base* extractor;
+    DocSetStats* stats;
+    DocSetStatsAccumulator* accumulator;
+    DataSetTrainer*         trainer;
+    
+    int extractor_type; /// one of the EXTRACTOR_TYPE constants (see below)
+    ZurchTrainerAndClassifier( const ZurchTrainerAndClassifier& o ): 
+        stringPool(o.stringPool),
+        extractor(o.extractor) {}
+    void clear()
+    {
+        delete trainer;
+        trainer = 0;
+        delete accumulator;
+        accumulator = 0;
+        delete stats;
+        stats = 0;
+        delete extractor;
+        extractor = 0;
+    }
+public:
+    typedef enum {
+        EXTRACTOR_TYPE_BASIC,
+        EXTRACTOR_TYPE_NORMALIZING
+    } extractor_type_t;
+
+    ZurchTrainerAndClassifier(ay::UniqueCharPool& pool) : 
+        stringPool(pool),
+        extractor(0),
+        stats(0),
+        accumulator(0),
+        trainer(0),
+        extractor_type(EXTRACTOR_TYPE_BASIC) 
+    {}
+    
+    ~ZurchTrainerAndClassifier() 
+    {
+        clear();
+    }
+    void init( extractor_type_t t, const barzer::BZSpell* spell=0 ) 
+    {
+        clear();
+        switch( t ) {
+        case EXTRACTOR_TYPE_NORMALIZING:
+            extractor = new FeatureExtractor_Normalizing(stringPool,tokenizer,spell);
+            break;
+        case EXTRACTOR_TYPE_BASIC:
+        default:
+            extractor = new FeatureExtractor(stringPool,tokenizer);
+            break;
+        }
+        accumulator = new DocSetStatsAccumulator();
+        trainer     = new DataSetTrainer( *extractor,*accumulator );
     }
 };
 
