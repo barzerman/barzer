@@ -119,20 +119,64 @@ struct PythonNormalizer {
 
 struct PythonClassifier {
     ZurchPython& zp;
-    PythonNormalizer normalizer; 
-    PythonClassifier(ZurchPython& z): zp(z), normalizer(zp){}
 
+    PythonNormalizer normalizer; 
+    ZurchTrainerAndClassifier* cfier;
+
+    /// standalone tokenizer
     list tokenize( const std::string& s ) 
         { return normalizer.tokenize(s); }
+    /// standalone normalizer
     list normalize( const std::string& s ) 
         { return normalizer.normalize(s); }
-    void classify( const list& l )
+
+    /// returns list of tag probabilities for all known tags 
+    /// for tags, whose probability exceeds threshold
+    list classify( double threshold, const std::string& s )
     {
-        for( size_t i = 0, i_end = len(l); i< i_end; ++i ) {
-            std::string s = boost::python::extract<std::string>(l[i]);
-            std::cerr << s << std::endl;
+        list retList;
+        ExtractedFeatureMap featureMap;
+        cfier->extractFeaturesClassification( featureMap, s.c_str());
+        DocClassifier::TagIdToProbabilityMap tagProbMap;
+        cfier->classifyAll( tagProbMap, featureMap );
+
+        for( DocClassifier::TagIdToProbabilityMap::const_iterator i= tagProbMap.begin(); i!= tagProbMap.end(); ++i ) {
+            if( i->second > threshold ) {
+                list l;
+                l.append( i->first );
+                l.append( i->second);
+                retList.append(l);
+            }
         }
+        return retList;
     }
+    /// learning function
+    /// accumulates tag data for a document. tagList contains tags the document is tagged with
+    list accumulate( list tagList, const std::string& s )
+    {
+        ExtractedFeatureMap featureMap;
+        cfier->extractFeaturesLearning( featureMap, s.c_str() );
+        for( size_t i = 0, i_end = len(tagList); i< i_end; ++i ) {
+            std::string tmp= extract<std::string>( tagList[i] );
+            uint32_t tagId = static_cast<uint32_t>(atoi(tmp.c_str()));
+            cfier->accumulate(tagId,featureMap,true);
+        }
+        return list();
+    }
+    /// should be called when accumulation is complete and stats need to be synced with the accumulators
+    list computeStats()
+    {
+        cfier->computeStats();
+        return list();
+    }
+    PythonClassifier(ZurchPython& z): 
+        zp(z), 
+        normalizer(zp) ,
+        cfier(0) 
+    { 
+        cfier= new ZurchTrainerAndClassifier( z.barzerPython->getGP().getStringPool() );
+    }
+    ~PythonClassifier() { delete cfier; }
 };
 PythonClassifier* ZurchPython::mkClassifier() 
 {
@@ -171,9 +215,12 @@ void ZurchPython::init()
         .def( "tokenize", &zurch::PythonTokenizer::tokenize );
     boost::python::class_<zurch::PythonNormalizer>( "normalizer", no_init )
         .def( "normalize", &zurch::PythonNormalizer::normalize );
+
     boost::python::class_<zurch::PythonClassifier>( "classifier", no_init )
         .def( "tokenize", &zurch::PythonClassifier::tokenize )
         .def( "normalize", &zurch::PythonClassifier::normalize )
+        .def( "accumulate", &zurch::PythonClassifier::accumulate )
+        .def( "computeStats", &zurch::PythonClassifier::computeStats )
         .def( "classify", &zurch::PythonClassifier::classify );
     // std::cerr << "pythonInit" << std::endl;
 }

@@ -403,16 +403,16 @@ public:
 /// use this object after initializing DocSetStats (as a result of training or otherwise)
 struct  DocClassifier {
     DocSetStats d_stats;
-    FeatureExtractor& d_featureExtractor;
+    FeatureExtractor_Base& d_featureExtractor;
 public:
-    DocClassifier( FeatureExtractor& featureExtractor ) : d_featureExtractor(featureExtractor) {}
+    DocClassifier( FeatureExtractor_Base& featureExtractor ) : d_featureExtractor(featureExtractor) {}
 
     DocSetStats& stats() { return d_stats; }
     const DocSetStats& stats() const { return d_stats; }
 
     size_t getNumOfTags() const { return d_stats.getNumOfTags(); }
     
-    void extractFeatures( ExtractedFeatureMap& features, const char* doc )
+    void extractFeatures( ExtractedFeatureMap& features, const char* doc, bool learnMode  )
         { d_featureExtractor.extractFeatures( features, doc, true ); }
 
     double classify( size_t tagId, const ExtractedFeatureMap& features ) const
@@ -440,7 +440,7 @@ class ZurchTrainerAndClassifier {
     ZurchWordNormalizer normalizer;
 
     FeatureExtractor_Base* extractor;
-    DocSetStats* stats;
+    DocClassifier* classifier;
     DocSetStatsAccumulator* accumulator;
     DataSetTrainer*         trainer;
     
@@ -454,8 +454,8 @@ class ZurchTrainerAndClassifier {
         trainer = 0;
         delete accumulator;
         accumulator = 0;
-        delete stats;
-        stats = 0;
+        delete classifier;
+        classifier = 0;
         delete extractor;
         extractor = 0;
     }
@@ -468,10 +468,10 @@ public:
     ZurchTrainerAndClassifier(ay::UniqueCharPool& pool) : 
         stringPool(pool),
         extractor(0),
-        stats(0),
+        classifier(0),
         accumulator(0),
         trainer(0),
-        extractor_type(EXTRACTOR_TYPE_BASIC) 
+        extractor_type(EXTRACTOR_TYPE_NORMALIZING) 
     {}
     
     ~ZurchTrainerAndClassifier() 
@@ -490,9 +490,29 @@ public:
             extractor = new FeatureExtractor(stringPool,tokenizer);
             break;
         }
+        classifier = new DocClassifier(*extractor);
         accumulator = new DocSetStatsAccumulator();
         trainer     = new DataSetTrainer( *extractor,*accumulator );
     }
+    void accumulate( size_t tagId, const ExtractedFeatureMap& f, bool hasTag, double docWeight=1.0 )
+    {
+        accumulator->accumulate(tagId,f,hasTag,docWeight);
+    }
+    void computeStats()
+    {
+        if( classifier && accumulator )
+            classifier->stats().init(*accumulator);
+    }
+
+    void extractFeatures(ExtractedFeatureMap& features, const char* doc, bool learnMode)
+        { classifier->extractFeatures(features,doc,learnMode); }
+    void extractFeaturesLearning(ExtractedFeatureMap& features, const char* doc)
+        { classifier->extractFeatures(features,doc,true); }
+    void extractFeaturesClassification( ExtractedFeatureMap& features, const char* doc)
+        { classifier->extractFeatures(features,doc,false); }
+
+    void classifyAll( DocClassifier::TagIdToProbabilityMap& tagYesProb, const ExtractedFeatureMap& features ) const
+        { classifier->classifyAll(tagYesProb,features); }
 };
 
 } // namespace zurch 

@@ -758,6 +758,10 @@ PythonQueryProcessor* BarzerPython::makeParseEnv( ) const
     return new PythonQueryProcessor(*this);
 }
 
+ay::UniqueCharPool& BarzerPython::getStringPool()
+{
+    return getGP().getStringPool();
+}
 
 } // barzer
 
