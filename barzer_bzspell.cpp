@@ -36,6 +36,8 @@ void BZSpell::addExtraWordToDictionary( uint32_t strId, uint32_t frequency )
             int16_t lang = Lang::getLang(  d_universe, str, s_len );
 	        if( lang != LANG_ENGLISH )
                 wmi->second.setLang(lang);
+			
+			m_featuredSC->addWord(strId, str, lang);
         }
 
     }
@@ -1276,7 +1278,7 @@ size_t BZSpell::init( const StoredUniverse* secondaryUniverse )
 		const strid_to_triewordinfo_map& wiMap = t->trie().getWordInfoMap();
 		for( strid_to_triewordinfo_map::const_iterator w = wiMap.begin(); w != wiMap.end(); ++w ) {
 			const TrieWordInfo& wordInfo = w->second;
-			uint32_t strId = w->first;
+			const uint32_t strId = w->first;
 
 			if (d_wordinfoMap.find(strId) == d_wordinfoMap.end())
 				addExtraWordToDictionary(strId, wordInfo.wordCount);
