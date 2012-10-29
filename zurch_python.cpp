@@ -21,6 +21,7 @@
 #include <boost/variant.hpp>
 
 #include <util/pybarzer.h>
+#include <ay/ay_python.h>
 
 #include <autotester/barzer_at_comparators.h>
 
@@ -156,8 +157,10 @@ struct PythonClassifier {
     {
         ExtractedFeatureMap featureMap;
         cfier->extractFeaturesLearning( featureMap, s.c_str() );
+        ay::python::object_extract xtr;
         for( size_t i = 0, i_end = len(tagList); i< i_end; ++i ) {
-            std::string tmp= extract<std::string>( tagList[i] );
+            std::string tmp;
+            xtr( tmp, tagList[i] );
             uint32_t tagId = static_cast<uint32_t>(atoi(tmp.c_str()));
             cfier->accumulate(tagId,featureMap,true);
         }
@@ -169,12 +172,18 @@ struct PythonClassifier {
         cfier->computeStats();
         return list();
     }
+    void print()
+    {
+        PrintContext ctxt( &(zp.barzerPython->getGP().getStringPool()) );
+        cfier->print( std::cerr, ctxt );
+    }
     PythonClassifier(ZurchPython& z): 
         zp(z), 
         normalizer(zp) ,
         cfier(0) 
     { 
         cfier= new ZurchTrainerAndClassifier( z.barzerPython->getGP().getStringPool() );
+        cfier->init(ZurchTrainerAndClassifier::EXTRACTOR_TYPE_NORMALIZING,zp.barzerPython->guaranteeUniverse().getBZSpell());
     }
     ~PythonClassifier() { delete cfier; }
 };
@@ -221,6 +230,7 @@ void ZurchPython::init()
         .def( "normalize", &zurch::PythonClassifier::normalize )
         .def( "accumulate", &zurch::PythonClassifier::accumulate )
         .def( "computeStats", &zurch::PythonClassifier::computeStats )
+        .def( "show", &zurch::PythonClassifier::print )
         .def( "classify", &zurch::PythonClassifier::classify );
     // std::cerr << "pythonInit" << std::endl;
 }

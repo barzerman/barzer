@@ -12,6 +12,16 @@ namespace zurch {
 class FeatureStatsAccumulator;
 typedef ay::double_standardized_moments_weighted FeatureAccumulatedStats;
 
+struct PrintContext {
+    const ay::UniqueCharPool*     stringPool;
+    
+    const char* getString( uint32_t i ) const 
+        { return ( stringPool? stringPool->printableStr( i ) : "" ); }
+
+    std::ostream& printStringById( std::ostream& fp, uint32_t i ) const ;
+    PrintContext( const ay::UniqueCharPool* s ) : stringPool(s) {}
+};
+
 /// first is feature id 
 
 typedef std::map<uint32_t,double> ExtractedFeatureMap;
@@ -41,12 +51,8 @@ struct FeatureStats {
     }
 
     void setIgnore( bool v = true ) { ignore=v; }
-    std::ostream& print( std::ostream& fp ) const 
-    {
-        return (
-            fp << featureId << ":" << mean << ":" << stdDev 
-        );
-    }
+    std::ostream& print( std::ostream& fp) const ;
+    std::ostream& print( std::ostream& fp, const PrintContext& ) const ;
 };
 inline std::ostream& operator<< ( std::ostream& fp, const FeatureStats& fs ) 
 {
@@ -68,64 +74,14 @@ struct TagStats {
 
     TagStats( const TagStatsAccumulator& x ) { init(x); }
     
-    std::ostream& print( std::ostream& fp ) const
-    {
-        return(
-            fp << "hasMap:" << hasMap.size() <<  ",hasNotMap:" << hasNotMap.size() << ",hasCount:" << hasCount << ",hasNotCount:" << hasNotCount 
-        );
-    }
-    std::ostream& printFeatureStatsMap( std::ostream& fp, const Map& m ) const 
-    {
-        for( auto i = m.begin(); i != m.end(); ++i ) {
-            fp << i->first << ":" << "(" << i->second << ")";
-        }
-        return fp;
-    }
+    std::ostream& print( std::ostream& fp ) const;
+    std::ostream& printFeatureStatsMap( std::ostream& fp, const Map& m, const PrintContext& ctxt ) const ;
         
-    std::ostream& printDeep( std::ostream& fp ) const
-    {
-        printFeatureStatsMap( fp << "hasMap[" << hasMap.size()  << "]{", hasMap ) << "}" << std::endl;
-        printFeatureStatsMap( fp << "hasNotMap[" << hasNotMap.size()  << "]{", hasNotMap ) << "}" << std::endl;
-        return fp;
-    }
-    void setIgnore( double epsilon) 
-    {
-        Map newHas, newHasNot;
+    std::ostream& printDeep( std::ostream& fp, const PrintContext& ctxt ) const;
+    void setIgnore( double epsilon) ;
+    void zero() ;
 
-        for( Map::iterator i = hasMap.begin(); i!=  hasMap.end(); ++i ) {
-            Map::iterator not_i = hasNotMap.find(i->first);
-            if( not_i != hasNotMap.end() ) {
-                if( !i->second.equals( not_i->second, epsilon ) ) 
-                    continue;
-                newHasNot.insert( newHasNot.end(), *i );
-            }
-            newHas.insert( newHas.end(), *i );
-        }
-        hasMap.swap(newHas);
-        hasNotMap.swap(newHasNot);
-    }
-    void zero() 
-    {
-        for( auto i = hasMap.begin();i!= hasMap.end(); ++i ) 
-            i->second.zero();
-        for( auto i = hasNotMap.begin();i!= hasNotMap.end(); ++i ) 
-            i->second.zero();
-    }
-
-    static double distance( const ExtractedFeatureMap& doc, const Map& centroid )
-    {
-        const double stdDevEpsilon = 1.0/centroid.size();
-            double cumulative = 0.0;
-        for( TagStats::Map::const_iterator ci = centroid.begin(), centroid_end = centroid.end(); ci != centroid_end; ++ci ) {
-            if( !ci->second.ignore ) {
-                ExtractedFeatureMap::const_iterator di = doc.find(ci->second.featureId);
-
-                double x = ( di == doc.end() ? ci->second.mean : (di->second - ci->second.mean) );
-                cumulative += (x*x)/(stdDevEpsilon+ci->second.stdDev);
-            }
-        }
-        return sqrt(cumulative);
-    }
+    static double distance( const ExtractedFeatureMap& doc, const Map& centroid );
     double yesDistance( const ExtractedFeatureMap& doc ) const
         { return distance( doc, hasMap ); }
     double noDistance( const ExtractedFeatureMap& doc ) const
@@ -207,40 +163,9 @@ struct TagStatsAccumulator {
         hasNot.zero();
     }
     // idx, double val, double w=1.0
-    void accumulate( const ExtractedFeatureMap& f, bool hasTag, double docWeight=1.0 )
-    {
-        for( auto i = f.begin(); i!= f.end(); ++i ) {
-            size_t idx = i->first;
-            featureIdMap.insert( idx );
-            if( hasTag ) {
-                has( idx, i->second, docWeight );
-                ++hasCount;
-            } else {
-                hasNot( idx, i->second, docWeight );
-                ++hasNotCount;
-            }
-        }
-    }
+    void accumulate( const ExtractedFeatureMap& f, bool hasTag, double docWeight=1.0 );
+    std::ostream& print( std::ostream& fp, const PrintContext& ) const;
 };
-inline void TagStats::init( const TagStatsAccumulator& x ) 
-{
-    hasMap.clear();
-    hasNotMap.clear();
-
-    for( const auto& i : x.has.featureMap() ) {
-        FeatureStats fs;
-        fs.init( i.first, i.second);
-        hasMap.insert( std::make_pair<size_t,FeatureStats>(i.first, fs) );
-    }
-    for( const auto& i : x.hasNot.featureMap() ) {
-        FeatureStats fs;
-        fs.init( i.first, i.second);
-        hasNotMap.insert( std::make_pair<size_t,FeatureStats>(i.first, fs) );
-    }
-    hasCount = x.hasCount;
-    hasNotCount = x.hasNotCount;
-}
-
 
 /// basic token / normalization based feature extractor
 struct FeatureExtractor_Base {
@@ -311,6 +236,9 @@ struct DocSetStatsAccumulator {
     }
     TagStatsAccumulatorMap& getAccumulatedStats() { return d_tagStats; }
     const TagStatsAccumulatorMap& getAccumulatedStats() const{ return d_tagStats; }
+
+    std::ostream& printTagStatsAccumulation( std::ostream& fp, uint32_t tagId, const PrintContext& ctxt ) const;
+    std::ostream& print( std::ostream& fp, const PrintContext& ctxt ) const;
 };
 
 struct DocSetStats {
@@ -350,21 +278,8 @@ struct DocSetStats {
     }
     size_t getNumOfTags() const { return tagStats.size(); }
 
-    std::ostream& printDeep( std::ostream& fp ) const
-    {
-        for( auto i = tagStats.begin(); i!= tagStats.end(); ++i ) {
-            i->second.printDeep(fp) << std::endl;
-        }
-        return fp;
-    }
-    std::ostream& print( std::ostream& fp ) const
-    {
-        for( auto i = tagStats.begin(); i!= tagStats.end(); ++i ) {
-            fp << "tag[" << i->first <<  "]";
-            i->second.print(fp) << std::endl;
-        }
-        return fp;
-    }
+    std::ostream& printDeep( std::ostream& fp, const PrintContext& ctxt ) const;
+    std::ostream& print( std::ostream& fp ) const;
 };
 
 
@@ -399,6 +314,7 @@ public:
         }
         return 0;
     }
+    std::ostream& print( std::ostream& fp, const PrintContext& ctxt ) const;
 };
 /// use this object after initializing DocSetStats (as a result of training or otherwise)
 struct  DocClassifier {
@@ -430,6 +346,8 @@ public:
         for( DocSetStats::TagStatsMap::const_iterator i= d_stats.getTagStatsMap().begin(), i_end=d_stats.getTagStatsMap().end();i != i_end; ++i ) 
             tagYesProb.insert( TagIdToProbabilityMap::value_type( i->first,classify(i->first,features) ) );
     }
+
+    std::ostream& print( std::ostream& fp, const PrintContext& ctxt )  const;
 };
 
 class ZurchTrainerAndClassifier {
@@ -448,18 +366,10 @@ class ZurchTrainerAndClassifier {
     ZurchTrainerAndClassifier( const ZurchTrainerAndClassifier& o ): 
         stringPool(o.stringPool),
         extractor(o.extractor) {}
-    void clear()
-    {
-        delete trainer;
-        trainer = 0;
-        delete accumulator;
-        accumulator = 0;
-        delete classifier;
-        classifier = 0;
-        delete extractor;
-        extractor = 0;
-    }
+    void clear();
 public:
+    std::ostream& print( std::ostream& fp, const PrintContext& ctxt ) const;
+
     typedef enum {
         EXTRACTOR_TYPE_BASIC,
         EXTRACTOR_TYPE_NORMALIZING
@@ -474,30 +384,11 @@ public:
         extractor_type(EXTRACTOR_TYPE_NORMALIZING) 
     {}
     
-    ~ZurchTrainerAndClassifier() 
-    {
-        clear();
-    }
-    void init( extractor_type_t t, const barzer::BZSpell* spell=0 ) 
-    {
-        clear();
-        switch( t ) {
-        case EXTRACTOR_TYPE_NORMALIZING:
-            extractor = new FeatureExtractor_Normalizing(stringPool,tokenizer,spell);
-            break;
-        case EXTRACTOR_TYPE_BASIC:
-        default:
-            extractor = new FeatureExtractor(stringPool,tokenizer);
-            break;
-        }
-        classifier = new DocClassifier(*extractor);
-        accumulator = new DocSetStatsAccumulator();
-        trainer     = new DataSetTrainer( *extractor,*accumulator );
-    }
+    ~ZurchTrainerAndClassifier() ;
+    void init( extractor_type_t t, const barzer::BZSpell* spell=0 ) ;
+
     void accumulate( size_t tagId, const ExtractedFeatureMap& f, bool hasTag, double docWeight=1.0 )
-    {
-        accumulator->accumulate(tagId,f,hasTag,docWeight);
-    }
+        { accumulator->accumulate(tagId,f,hasTag,docWeight); }
     void computeStats()
     {
         if( classifier && accumulator )
