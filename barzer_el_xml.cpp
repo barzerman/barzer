@@ -245,6 +245,8 @@ DEFINE_BELParserXML_taghandle(STMSET)
 	uint32_t trieClass =0xffffffff, trieId=0xffffffff;
     const char* tc =0, *ti =0;
 	if( close ) {
+		if (auto uni = reader->getCurrentUniverse())
+			uni->getGeo()->flushDelayed();
         trieClass = reader->getGlobalPools().internString_internal("") ;
         trieId = reader->getGlobalPools().internString_internal("") ;
 		reader->setTrie(trieClass,trieId);
@@ -1409,7 +1411,7 @@ DEFINE_BELParserXML_taghandle(MKENT)
 		std::pair<double, double> coords;
 		if (parseCoord(rawCoord, coords)) {
 			if( universe ) 
-                universe->getGeo()->addEntity(ent, coords);
+                universe->getGeo()->addEntity(ent, coords, true);
 		} else
 			AYLOG(ERROR) << "failed to parse coords for entity "
 					<< ent.getClass() << " "

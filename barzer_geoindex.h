@@ -33,14 +33,16 @@ class BarzerGeo
 {
 	GeoIndex_t m_idx;
 	boost::unordered_map<StoredEntityId, GeoIndex_t::Point> m_entity2point;
+	GeoIndex_t::Points_t m_delayedPoints;
 public:
 	typedef GeoIndex_t::Point Point_t;
 	typedef GeoIndex_t::Coord_t Coord_t;
 	
 	BarzerGeo();
 	
-	void addEntity(const StoredEntity&, const std::pair<double, double>&);
+	void addEntity(const StoredEntity&, const std::pair<double, double>&, bool delayed = false);
 	bool getEntity(StoredEntityId, GeoIndex_t::Point& out) const;
+	void flushDelayed();
 	
 	template<typename Pred>
 	void findEntities(std::vector<uint32_t>& out, const Point_t& center,

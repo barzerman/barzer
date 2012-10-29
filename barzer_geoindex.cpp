@@ -11,11 +11,29 @@ BarzerGeo::BarzerGeo()
 {
 }
 
-void BarzerGeo::addEntity (const StoredEntity& entity, const std::pair<double, double>& coords)
+void BarzerGeo::addEntity (const StoredEntity& entity, const std::pair<double, double>& coords, bool delayed)
 {
 	const Point_t point(coords.first, coords.second, entity.entId);
-	m_idx.addPoint(point);
 	m_entity2point.insert(std::make_pair(entity.entId, point));
+	
+	if (delayed)
+		m_delayedPoints.push_back(point);
+	else
+		m_idx.addPoint(point);
+}
+
+void BarzerGeo::flushDelayed()
+{
+	if (m_delayedPoints.empty())
+		return;
+	
+	const auto& present = m_idx.getPoints();
+	m_delayedPoints.reserve(m_delayedPoints.size() + present.size());
+	if (!present.empty())
+		std::copy(present.begin(), present.end(), std::back_inserter(m_delayedPoints));
+	
+	m_idx.setPoints(m_delayedPoints);
+	m_delayedPoints.clear();
 }
 
 bool BarzerGeo::getEntity (StoredEntityId id, GeoIndex_t::Point& out) const

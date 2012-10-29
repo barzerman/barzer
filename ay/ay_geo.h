@@ -171,6 +171,11 @@ public:
 		m_xpoints = points;
 		std::sort(m_xpoints.begin(), m_xpoints.end(), isXLess<Point>);
 	}
+	
+	const Points_t& getPoints() const
+	{
+		return m_xpoints;
+	}
 
 	template<typename CallbackT, typename PredT>
 	void findPoints(const Point& center, CallbackT cb, const PredT& pred, Coord maxDist, bool sort = true) const

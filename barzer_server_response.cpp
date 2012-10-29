@@ -658,8 +658,8 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 		}
 		os << "</spell>\n";
 	}
-    if( !checkBit( BF_NOTRACE ) )
-        printTraceInfo(os, barz, universe);
+    //if( !checkBit( BF_NOTRACE ) )
+    //    printTraceInfo(os, barz, universe);
     if( !checkBit( BF_ORIGQUERY ) ) {
         os << "\n<query>";
         xmlEscape( barz.getOrigQuestion().c_str(),  os) << "</query>\n";
