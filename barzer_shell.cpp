@@ -878,7 +878,7 @@ static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in )
     /// 
     zurch::ZurchTokenVec tokVec;
     char buf[ 1024 ];
-    RuBastardizeHeuristic      bastardizer( context->getUniverse().getGlobalPools() );
+    RuBastardizeHeuristic      bastardizer( &context->getUniverse().getGlobalPools() );
     zurch::ZurchWordNormalizer::NormalizerEnvironment normEnv(&bastardizer);
     zurch::ZurchWordNormalizer znorm(context->getUniverse().getBZSpell());
 

@@ -7,6 +7,7 @@
 #include <boost/variant.hpp>
 #include <ay/ay_char.h>
 #include <ay/ay_string_pool.h>
+#include <barzer_universe.h>
 
 namespace barzer {
 
@@ -123,9 +124,6 @@ struct TFE_storage {
 			};
 			d_fm[stf].push_back(strId);
 		}
-    }
-    void extractFeatures( ExtractedStringFeatureVec&, const char* str, int lang ) const
-    {
     }
 
     /// performs simple lookup

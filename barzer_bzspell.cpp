@@ -1209,8 +1209,8 @@ BZSpell::BZSpell( StoredUniverse& uni ) :
 	d_universe( uni ),
 	d_charSize(1) ,
 	d_minWordLengthToCorrect( d_charSize* (QLexParser::MIN_SPELL_CORRECT_LEN) ),
-	m_englishSLTransform(uni.getGlobalPools()),
-	m_englishSLBastard(uni.getGlobalPools()),
+	m_englishSLTransform(&uni.getGlobalPools()),
+	m_englishSLBastard(&uni.getGlobalPools()),
 	m_englishSLSuperposition(m_englishSLTransform, m_englishSLBastard),
 	m_featuredSC(new FeaturedSpellCorrector(uni.getStringPool()))
 {}

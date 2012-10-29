@@ -34,11 +34,10 @@ namespace barzer
 	{
 		std::string out;
 		
-		GlobalPools gp;
 		if (lang == LANG_ENGLISH)
-			ChainHeuristic(EnglishSLHeuristic(gp), RuBastardizeHeuristic(gp)).transform(str, str_len, out);
+			ChainHeuristic(EnglishSLHeuristic(0), RuBastardizeHeuristic(0)).transform(str, str_len, out);
 		else if (lang == LANG_RUSSIAN)
-			RuBastardizeHeuristic(gp).transform(str, str_len, out);
+			RuBastardizeHeuristic(0).transform(str, str_len, out);
 		
 		if (!out.empty())
 			outVec.push_back(ExtractedStringFeature(out, 0));
