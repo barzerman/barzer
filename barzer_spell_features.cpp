@@ -15,7 +15,7 @@ namespace barzer
 			const size_t step = lang == LANG_ENGLISH ? 1 : 2;
 			const size_t gramSize = step * nGramSymbs;
 			if (str_len >= gramSize)
-				for (size_t i = 0; i < str_len - gramSize; i += step)
+				for (size_t i = 0, end = str_len - gramSize + 1; i < end; i += step)
 				{
 					tmp.assign(str + i, gramSize);
 					outVec.push_back(ExtractedStringFeature(tmp, i / step));
@@ -25,7 +25,7 @@ namespace barzer
 		{
 			const ay::StrUTF8 utf8(str, str_len);
 			if (utf8.size() >= nGramSymbs)
-				for (size_t i = 0, size = utf8.size(); i < size - nGramSymbs; ++i)
+				for (size_t i = 0, end = utf8.size() - nGramSymbs + 1; i < end; ++i)
 					outVec.push_back(ExtractedStringFeature(utf8.getSubstring(i, nGramSymbs), nGramSymbs));
 		}
 	}
