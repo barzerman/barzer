@@ -143,6 +143,7 @@ set(SOURCES barzer_el_cast.cpp
 			barzer_relbits.cpp
 			barzer_spellheuristics.cpp
 			barzer_geoindex.cpp
+			barzer_spell_features.cpp
             zurch_classifier.cpp
             zurch_tokenizer.cpp
 			autotester/barzer_at_autotester.cpp

@@ -10,6 +10,7 @@
 #include <lg_en/barzer_en_lex.h>
 #include <barzer_lexer.h>
 #include <barzer_spellheuristics.h>
+#include <barzer_spell_features.h>
 
 namespace barzer {
 typedef std::vector<char> charvec;
@@ -35,6 +36,8 @@ void BZSpell::addExtraWordToDictionary( uint32_t strId, uint32_t frequency )
             int16_t lang = Lang::getLang(  d_universe, str, s_len );
 	        if( lang != LANG_ENGLISH )
                 wmi->second.setLang(lang);
+			
+			m_featuredSC->addWord(strId, str, lang);
         }
 
     }
@@ -1206,10 +1209,16 @@ BZSpell::BZSpell( StoredUniverse& uni ) :
 	d_universe( uni ),
 	d_charSize(1) ,
 	d_minWordLengthToCorrect( d_charSize* (QLexParser::MIN_SPELL_CORRECT_LEN) ),
-	m_englishSLTransform(uni.getGlobalPools()),
-	m_englishSLBastard(uni.getGlobalPools()),
-	m_englishSLSuperposition(m_englishSLTransform, m_englishSLBastard)
+	m_englishSLTransform(&uni.getGlobalPools()),
+	m_englishSLBastard(&uni.getGlobalPools()),
+	m_englishSLSuperposition(m_englishSLTransform, m_englishSLBastard),
+	m_featuredSC(new FeaturedSpellCorrector(uni.getStringPool()))
 {}
+
+BZSpell::~BZSpell()
+{
+	delete m_featuredSC;
+}
 
 size_t BZSpell::loadExtra( const char* fileName )
 {
@@ -1269,7 +1278,7 @@ size_t BZSpell::init( const StoredUniverse* secondaryUniverse )
 		const strid_to_triewordinfo_map& wiMap = t->trie().getWordInfoMap();
 		for( strid_to_triewordinfo_map::const_iterator w = wiMap.begin(); w != wiMap.end(); ++w ) {
 			const TrieWordInfo& wordInfo = w->second;
-			uint32_t strId = w->first;
+			const uint32_t strId = w->first;
 
 			if (d_wordinfoMap.find(strId) == d_wordinfoMap.end())
 				addExtraWordToDictionary(strId, wordInfo.wordCount);
