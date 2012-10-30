@@ -163,12 +163,12 @@ void TagStats::init( const TagStatsAccumulator& x )
     for( const auto& i : x.has.featureMap() ) {
         FeatureStats fs;
         fs.init( i.first, i.second);
-        hasMap.insert( std::make_pair<size_t,FeatureStats>(i.first, fs) );
+        hasMap.insert( std::make_pair(i.first, fs) );
     }
     for( const auto& i : x.hasNot.featureMap() ) {
         FeatureStats fs;
         fs.init( i.first, i.second);
-        hasNotMap.insert( std::make_pair<size_t,FeatureStats>(i.first, fs) );
+        hasNotMap.insert( std::make_pair(i.first, fs) );
     }
     hasCount = x.hasCount;
     hasNotCount = x.hasNotCount;
