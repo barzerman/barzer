@@ -1,10 +1,10 @@
 #pragma once
 
 #include <vector>
-#include <tuple>
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
 #include <boost/variant.hpp>
+#include <boost/tuple/tuple.hpp>
 #include <ay/ay_char.h>
 #include <ay/ay_string_pool.h>
 #include <barzer_universe.h>
@@ -96,14 +96,13 @@ struct TFE_TmpBuffers {
 template <typename FE>
 struct TFE_storage {
     InvertedFeatureMap d_fm;
-    ay::UniqueCharPool& d_pool;
+    ay::UniqueCharPool *d_pool;
     FE d_extractor;
 
     typedef boost::unordered_set< uint32_t > StringSet;
     StringSet d_strSet;
 
-    TFE_storage( ay::UniqueCharPool&  p ) : d_pool(p) {}
-
+    TFE_storage( ay::UniqueCharPool&  p ) : d_pool(&p) {}
     /// extracts all features and adds entries to d_fm strId is id of str - we're passing str
     void extractAndStore( TFE_TmpBuffers& tmp, uint32_t strId, const char* str, int lang )
     {
@@ -115,7 +114,7 @@ struct TFE_storage {
 		
 		for (const auto& feature : tmp.extractedVec)
 		{
-			const auto id = d_pool.internIt(feature.m_str.c_str(), feature.m_str.size());
+			const auto id = d_pool->internIt(feature.m_str.c_str(), feature.m_str.size());
 			StoredStringFeature stf =
 			{
 				id,
@@ -134,10 +133,38 @@ struct TFE_storage {
     const FE& extractor() const { return d_extractor; }
 };
 
-typedef boost::variant<TFE_storage<TFE_ngram>, TFE_storage<TFE_bastard>> InvertedIdxVar;
+enum InvertedIdxVarEnum
+{
+	NGram,
+	Bastard
+};
+
+typedef boost::variant<
+		TFE_storage<TFE_ngram>,
+		TFE_storage<TFE_bastard>
+	> InvertedIdxVar;
 typedef std::vector<InvertedIdxVar> InvertedIdxVarVec;
 
-typedef std::tuple<TFE_storage<TFE_ngram>, TFE_storage<TFE_bastard>> AllInvIdxStoragesTuple;
+class FeaturedSpellCorrector
+{
+	InvertedIdxVarVec m_storages;
+public:
+	void init(ay::UniqueCharPool& p)
+	{
+		m_storages.push_back(InvertedIdxVar(TFE_storage<TFE_ngram>(p)));
+		m_storages.push_back(InvertedIdxVar(TFE_storage<TFE_bastard>(p)));
+	}
+	
+	void addHeuristic(const InvertedIdxVar& var)
+	{
+		m_storages.push_back(var);
+	}
+	
+	void addWord(uint32_t strId, const char *str, int lang);
+};
+
+/*
+typedef boost::tuple<TFE_storage<TFE_ngram>, TFE_storage<TFE_bastard>> AllInvIdxStoragesTuple;
 
 template<typename Tuple, typename F, size_t pos>
 struct foreachStorageImpl
@@ -161,13 +188,13 @@ struct foreachStorageImpl<Tuple, F, 0>
 template<typename Tuple, typename F>
 void foreachStorage(Tuple& t, F f)
 {
-	foreachStorageImpl<Tuple, F, std::tuple_size<Tuple>::value - 1>(t, f);
+	foreachStorageImpl<Tuple, F, boost::tuple_size<Tuple>::value - 1>(t, f);
 }
 
 template<typename Tuple, typename Heur, typename TElem, size_t pos>
-struct HeurIdxHelper : HeurIdxHelper<Tuple, Heur, typename std::tuple_element<pos - 1, Tuple>::type, pos - 1>
+struct HeurIdxHelper : HeurIdxHelper<Tuple, Heur, typename boost::tuple_element<pos - 1, Tuple>::type, pos - 1>
 {
-	static_assert(pos < std::tuple_size<Tuple>::value, "tuple element not found");
+	static_assert(pos < boost::tuple_size<Tuple>::value, "tuple element not found");
 };
 
 template<typename Tuple, typename Heur, size_t pos>
@@ -179,7 +206,7 @@ struct HeurIdxHelper<Tuple, Heur, TFE_storage<Heur>, pos>
 template<typename Heur, typename Tuple>
 TFE_storage<Heur>& findHeuristic(Tuple& t)
 {
-	return std::get<HeurIdxHelper<Tuple, Heur, typename std::tuple_element<std::tuple_size<Tuple>::value - 1, Tuple>::type, std::tuple_size<Tuple>::value - 1>::ResType::Result>(t);
+	return std::get<HeurIdxHelper<Tuple, Heur, typename boost::tuple_element<boost::tuple_size<Tuple>::value - 1, Tuple>::type, boost::tuple_size<Tuple>::value - 1>::ResType::Result>(t);
 }
 
 struct WordAdderLambda
@@ -223,5 +250,6 @@ public:
 		foreachStorage(m_storages, WordAdderLambda(strId, str, lang));
 	}
 };
+*/
 
 } // namespace barzer

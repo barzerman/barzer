@@ -1212,8 +1212,9 @@ BZSpell::BZSpell( StoredUniverse& uni ) :
 	m_englishSLTransform(&uni.getGlobalPools()),
 	m_englishSLBastard(&uni.getGlobalPools()),
 	m_englishSLSuperposition(m_englishSLTransform, m_englishSLBastard),
-	m_featuredSC(new FeaturedSpellCorrector(uni.getStringPool()))
-{}
+	m_featuredSC(new FeaturedSpellCorrector())
+{
+}
 
 BZSpell::~BZSpell()
 {
@@ -1273,6 +1274,8 @@ std::ostream& BZSpell::printStats( std::ostream& fp ) const
 }
 size_t BZSpell::init( const StoredUniverse* secondaryUniverse )
 {
+	m_featuredSC->init(d_universe.getStringPool());
+
 	const TheGrammarList& trieList = d_universe.getTrieList();
 	for( TheGrammarList::const_iterator t = trieList.begin(); t!= trieList.end(); ++t ) {
 		const strid_to_triewordinfo_map& wiMap = t->trie().getWordInfoMap();
