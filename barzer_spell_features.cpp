@@ -2,10 +2,11 @@
 #include "barzer_universe.h"
 #include "barzer_spellheuristics.h"
 #include "barzer_language.h"
+#include "ay/ay_char.h"
 
 namespace barzer
 {
-void TFE_ngram::operator()(ExtractedStringFeatureVec& outVec, const char *str, size_t str_len, int lang)
+void TFE_ngram::operator()(ExtractedStringFeatureVec& outVec, const char *str, size_t str_len, int lang) const
 {
 	const size_t nGramSymbs = 3;
 	
@@ -30,7 +31,7 @@ void TFE_ngram::operator()(ExtractedStringFeatureVec& outVec, const char *str, s
 	}
 }
 
-void TFE_bastard::operator()(ExtractedStringFeatureVec& outVec, const char *str, size_t str_len, int lang)
+void TFE_bastard::operator()(ExtractedStringFeatureVec& outVec, const char *str, size_t str_len, int lang) const
 {
 	std::string out;
 	
@@ -77,5 +78,148 @@ void FeaturedSpellCorrector::addWord(uint32_t strId, const char* str, int lang)
 	WordAdderVis adderVis(strId, str, lang);
 	for (auto& heur : m_storages)
 		boost::apply_visitor(adderVis, heur);
+}
+
+namespace
+{
+	struct MatchResult
+	{
+		uint32_t m_strId;
+		uint8_t m_confidence;
+		
+		MatchResult()
+		: m_strId(0xffffffff)
+		, m_confidence(0)
+		{
+		}
+		
+		MatchResult(uint32_t strId, uint8_t conf)
+		: m_strId(strId)
+		, m_confidence(conf)
+		{
+		}
+	};
+	
+	struct MatchVisitor : public boost::static_visitor<MatchResult>
+	{
+		const char *m_str;
+		size_t m_strLen;
+		int m_lang;
+		
+		MatchVisitor(const char *str, size_t strLen, int lang)
+		: m_str(str)
+		, m_strLen(strLen)
+		, m_lang(lang)
+		{
+		}
+		
+		template<typename T>
+		MatchResult operator()(const TFE_storage<T>& storage) const
+		{
+			StoredStringFeatureVec storedVec;
+			ExtractedStringFeatureVec extractedVec;
+			TFE_TmpBuffers tmpBuf(storedVec, extractedVec);
+			storage.extractSTF(tmpBuf, m_str, m_strLen, m_lang);
+			
+			typedef std::map<uint32_t, double> CounterMap_t;
+			CounterMap_t counterMap;
+			for (const auto& feature : storedVec)
+			{
+				const auto srcs = storage.getSrcsForFeature(feature);
+				if (!srcs)
+					continue;
+				
+				for (uint32_t source : *srcs)
+				{
+					auto pos = counterMap.find(source);
+					if (pos == counterMap.end())
+						pos = counterMap.insert(std::make_pair(source, 0)).first;
+					pos->second += 1. / (srcs->size() * srcs->size());
+				}
+			}
+			
+			if (counterMap.empty())
+				return MatchResult();
+			
+			/*
+			auto bestMatch = CounterMap_t::value_type(0xffffffff, 0);
+			for (const auto& pair : counterMap)
+				if (pair.second > bestMatch.second)
+					bestMatch = pair;
+			return bestMatch.first;
+			*/
+			
+			std::vector<std::pair<uint32_t, double>> sorted;
+			sorted.reserve(counterMap.size());
+			std::copy(counterMap.begin(), counterMap.end(), std::back_inserter(sorted));
+			
+			struct SortOrderer
+			{
+				bool operator()(const std::pair<uint32_t, double>& v1, const std::pair<uint32_t, double>& v2) const
+				{
+					return v1.second < v2.second;
+				}
+			};
+			
+			std::sort(sorted.rbegin(), sorted.rend(), SortOrderer());
+			
+			ay::LevenshteinEditDistance levDist;
+			ay::StrUTF8 ourStr(m_str, m_strLen);
+			for (const auto& best : sorted)
+			{
+				const char *str = storage.getPool()->resolveId(best.first);
+				const auto strLen = strlen(str);
+				auto lang = Lang::getLangNoUniverse(str, strLen);
+				if (lang != m_lang)
+					continue;
+				
+				int dist = 100;
+				if (lang == LANG_ENGLISH)
+					dist = levDist.ascii_no_case(str, m_str);
+				else if (Lang::isTwoByteLang(lang))
+					dist = levDist.twoByte(str, strLen / 2, m_str, m_strLen / 2);
+				else
+					dist = levDist.utf8(ourStr, ay::StrUTF8(str, strLen));
+				
+				if (dist > 3)
+					continue;
+				
+				return MatchResult(best.first, best.second);
+			}
+			
+			return MatchResult();
+		}
+	};
+}
+
+uint32_t FeaturedSpellCorrector::getBestMatch(const char *str, size_t strLen, int lang)
+{
+	MatchVisitor vis(str, strLen, lang);
+	if (m_matchStrategy == MatchStrategy::FirstWins)
+	{
+		for (const auto& storage : m_storages)
+		{
+			const auto& res = boost::apply_visitor(vis, storage);
+			if (res.m_strId != 0xffffffff)
+				return res.m_strId;
+		}
+		return 0xffffffff;
+	}
+	else if (m_matchStrategy == MatchStrategy::BestWins)
+	{
+		MatchResult bestRes;
+		for (const auto& storage : m_storages)
+		{
+			const auto& res = boost::apply_visitor(vis, storage);
+			if (res.m_confidence > bestRes.m_confidence)
+				bestRes = res;
+		}
+		return bestRes.m_strId;
+	}
+	else
+	{
+		AYLOG(ERROR) << "unknown match strategy " << static_cast<int>(m_matchStrategy);
+		return 0xffffffff;
+	}
 }
 }

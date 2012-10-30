@@ -582,6 +582,13 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
     if( lang == LANG_UNKNOWN || lang == LANG_UNKNOWN_UTF8 )
         lang = Lang::getLang(  d_universe, str, str_len );
 
+	if (d_universe.checkBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT))
+	{
+		uint32_t featuredStrId = m_featuredSC->getBestMatch(str, str_len, lang);
+		if (featuredStrId != 0xffffffff)
+			return featuredStrId;
+	}
+	
 	if( lang == LANG_ENGLISH) {
 
         if( str_len>= MAX_WORD_LEN )
