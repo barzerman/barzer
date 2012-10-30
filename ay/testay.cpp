@@ -11,6 +11,7 @@
 #include <ay_choose.h>
 #include <ay_util_time.h>
 #include <ay_util.h>
+#include <ay_char.h>
 #include <ay_xml_util.h>
 #include <boost/format.hpp>
 #include <fstream>
@@ -249,5 +250,9 @@ int main(int argc, char* argv[]) {
     // testStripDiacritics(argc,argv);
     // testXMLEscape(argc,argv);
     // test_ay_strcasecmp(argc,argv);
+    const char *x = "фывфыфы", *y="жфывфыфффыф";
+    ay::LevenshteinEditDistance dist;
+    dist.twoByte( x, strlen(x)/2, y, strlen(y)/2 );
+
     return test_ay_statistics(argc,argv);
 }
