@@ -24,7 +24,7 @@ void HashingSpellHeuristic::addSource(const char *sourceWord, size_t len, uint32
 	std::string out;
 	transform(sourceWord, len, out);
 	
-	const uint32_t soundsId = m_gp.internString_internal(out.c_str(), out.size());
+	const uint32_t soundsId = m_gp->internString_internal(out.c_str(), out.size());
 	m_mapping.addSource(soundsId, sourceId);
 }
 
@@ -33,7 +33,7 @@ const SoundsLikeInfo::SourceList_t* HashingSpellHeuristic::findSources(const cha
 	std::string out;
 	transform(domainWord, len, out);
 	
-	const uint32_t id = m_gp.internalString_getId(out.c_str());
+	const uint32_t id = m_gp->internalString_getId(out.c_str());
 	return m_mapping.findSources(id);
 }
 
@@ -71,7 +71,7 @@ void RuBastardizeHeuristic::transform(const char *src, size_t srcLen, std::strin
 }
 
 ChainHeuristic::ChainHeuristic(const HashingSpellHeuristic& in, const HashingSpellHeuristic& out)
-: HashingSpellHeuristic(in.getGP())
+: HashingSpellHeuristic(&in.getGP())
 , m_in(in)
 , m_out(out)
 {

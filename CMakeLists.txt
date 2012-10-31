@@ -143,6 +143,7 @@ set(SOURCES barzer_el_cast.cpp
 			barzer_relbits.cpp
 			barzer_spellheuristics.cpp
 			barzer_geoindex.cpp
+			barzer_spell_features.cpp
             zurch_classifier.cpp
             zurch_tokenizer.cpp
 			autotester/barzer_at_autotester.cpp
@@ -215,7 +216,7 @@ if (ENABLE_PYBARZER)
 #		MESSAGE (ERROR "Pybarzer requires ENABLE_BARZ_SHARED set to true")
 #	endif (NOT ENABLE_BARZ_SHARED)
 
-	add_library(pybarzer SHARED barzer_python.cpp)
+	add_library(pybarzer SHARED barzer_python.cpp zurch_python.cpp)
 	target_link_libraries (pybarzer barzer_static butil ${EXTRA_LIBS})
 	SET_TARGET_PROPERTIES(pybarzer PROPERTIES PREFIX "")
 	IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")

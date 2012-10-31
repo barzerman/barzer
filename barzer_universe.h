@@ -359,6 +359,7 @@ public:
         UBIT_NO_ENTRELEVANCE_SORT, // when 1 wont sort entities by relevance on output
         UBIT_CORRECT_FROM_DICTIONARY, // when 1 will correct words away from generic dictionary otherwise leaves those words intact
 		UBIT_LEX_STEMPUNCT, // when 1, space_default token classifier will consider <term>'s (and other similar) as <term> if <term> is valid
+		UBIT_FEATURED_SPELLCORRECT, // when 1, feature extraction-based spell corrector will be active
 
         /// add new bits above this line only 
         UBIT_MAX

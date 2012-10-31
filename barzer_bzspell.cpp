@@ -10,6 +10,7 @@
 #include <lg_en/barzer_en_lex.h>
 #include <barzer_lexer.h>
 #include <barzer_spellheuristics.h>
+#include <barzer_spell_features.h>
 
 namespace barzer {
 typedef std::vector<char> charvec;
@@ -35,6 +36,8 @@ void BZSpell::addExtraWordToDictionary( uint32_t strId, uint32_t frequency )
             int16_t lang = Lang::getLang(  d_universe, str, s_len );
 	        if( lang != LANG_ENGLISH )
                 wmi->second.setLang(lang);
+			
+			m_featuredSC->addWord(strId, str, lang);
         }
 
     }
@@ -579,6 +582,13 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
     if( lang == LANG_UNKNOWN || lang == LANG_UNKNOWN_UTF8 )
         lang = Lang::getLang(  d_universe, str, str_len );
 
+	if (d_universe.checkBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT))
+	{
+		uint32_t featuredStrId = m_featuredSC->getBestMatch(str, str_len, lang);
+		if (featuredStrId != 0xffffffff)
+			return featuredStrId;
+	}
+	
 	if( lang == LANG_ENGLISH) {
 
         if( str_len>= MAX_WORD_LEN )
@@ -1206,10 +1216,17 @@ BZSpell::BZSpell( StoredUniverse& uni ) :
 	d_universe( uni ),
 	d_charSize(1) ,
 	d_minWordLengthToCorrect( d_charSize* (QLexParser::MIN_SPELL_CORRECT_LEN) ),
-	m_englishSLTransform(uni.getGlobalPools()),
-	m_englishSLBastard(uni.getGlobalPools()),
-	m_englishSLSuperposition(m_englishSLTransform, m_englishSLBastard)
-{}
+	m_englishSLTransform(&uni.getGlobalPools()),
+	m_englishSLBastard(&uni.getGlobalPools()),
+	m_englishSLSuperposition(m_englishSLTransform, m_englishSLBastard),
+	m_featuredSC(new FeaturedSpellCorrector())
+{
+}
+
+BZSpell::~BZSpell()
+{
+	delete m_featuredSC;
+}
 
 size_t BZSpell::loadExtra( const char* fileName )
 {
@@ -1264,12 +1281,14 @@ std::ostream& BZSpell::printStats( std::ostream& fp ) const
 }
 size_t BZSpell::init( const StoredUniverse* secondaryUniverse )
 {
+	m_featuredSC->init(d_universe.getStringPool());
+
 	const TheGrammarList& trieList = d_universe.getTrieList();
 	for( TheGrammarList::const_iterator t = trieList.begin(); t!= trieList.end(); ++t ) {
 		const strid_to_triewordinfo_map& wiMap = t->trie().getWordInfoMap();
 		for( strid_to_triewordinfo_map::const_iterator w = wiMap.begin(); w != wiMap.end(); ++w ) {
 			const TrieWordInfo& wordInfo = w->second;
-			uint32_t strId = w->first;
+			const uint32_t strId = w->first;
 
 			if (d_wordinfoMap.find(strId) == d_wordinfoMap.end())
 				addExtraWordToDictionary(strId, wordInfo.wordCount);

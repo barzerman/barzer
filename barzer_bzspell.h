@@ -81,6 +81,7 @@ struct BZSWordTrieInfo {
 };
 
 class EnglishSLHeuristic;
+class FeaturedSpellCorrector;
 
 class BZSpell {
 	StoredUniverse& d_universe;
@@ -108,10 +109,11 @@ private:
 	
 	std::string d_extraWordsFileName;
 
-	
 	EnglishSLHeuristic m_englishSLTransform;
 	RuBastardizeHeuristic m_englishSLBastard;
 	ChainHeuristic m_englishSLSuperposition;
+	
+	FeaturedSpellCorrector *m_featuredSC;
 public:
 	/// generates edit distance variants 
 	size_t produceWordVariants( uint32_t strId, int lang=LANG_ENGLISH );
@@ -142,6 +144,7 @@ public:
 	void addExtraWordToDictionary( uint32_t, uint32_t frequency = 0 );
 
 	BZSpell( StoredUniverse& uni ) ;
+	~BZSpell();
 
 	// returns the size of strid_evovec_hmap
 	// this function should be called after the load. 

@@ -17,7 +17,14 @@
 #include <boost/accumulators/statistics/weighted_mean.hpp>
 #include <boost/accumulators/statistics/weighted_median.hpp>
 #include <boost/accumulators/statistics/weighted_moment.hpp>
+
+#include <boost/version.hpp>
+#if BOOST_VERSION >= 105000
 #include <boost/accumulators/statistics/weighted_p_square_cumul_dist.hpp>
+#else
+#include <boost/accumulators/statistics/weighted_p_square_cumulative_distribution.hpp>
+#endif
+
 #include <boost/accumulators/statistics/weighted_p_square_quantile.hpp>
 #include <boost/accumulators/statistics/weighted_peaks_over_threshold.hpp>
 #include <boost/accumulators/statistics/weighted_skewness.hpp>
