@@ -136,11 +136,7 @@ public:
 	}
 	StoredUniverse& getUniverse() { return d_universe; }
 	const StoredUniverse& getUniverse() const { return d_universe; }
-	void clear()
-	{
-		d_wordinfoMap.clear();
-		d_linkedWordsMap.clear();
-	}
+	void clear();
 	void addExtraWordToDictionary( uint32_t, uint32_t frequency = 0 );
 
 	BZSpell( StoredUniverse& uni ) ;
