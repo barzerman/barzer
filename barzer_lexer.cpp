@@ -1044,7 +1044,7 @@ int QLexParser::singleTokenClassify_space( Barz& barz, const QuestionParm& qparm
 						ctok.setStemTok( stemTok );
 				}
 		    }
-            ctok.syncStemAndStoredTok();
+            ctok.syncStemAndStoredTok(d_universe);
 		}
 	}
 	if( cVec.size() > MAX_CTOKENS_PER_QUERY ) 
@@ -1218,7 +1218,7 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
                         }
                     }
 		        }
-                tmpCtok.syncStemAndStoredTok();
+                tmpCtok.syncStemAndStoredTok(d_universe);
             }
 		}
 	}

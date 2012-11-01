@@ -15,6 +15,7 @@
 namespace barzer {
 struct StoredToken;
 struct StoredEntity;
+struct StoredUniverse;
 struct TToken ;
 struct CToken;
 struct PUnit ;
@@ -114,18 +115,7 @@ struct CToken {
     const StoredToken*  getStemTok() const { return stemTok; }
     void                setStemTok(const StoredToken* t) { stemTok=t; }
     bool                stemTokSameAsStored() const { return (storedTok == stemTok); }
-    void                syncStemAndStoredTok() 
-        { 
-            if( storedTok ) {
-                if( stemTok && (stemTok == storedTok) ) 
-                    stemTok= 0;
-            } else if( stemTok ) {
-                /*
-                storedTok = stemTok;
-                stemTok = 0;
-                */
-            }
-        }
+    void                syncStemAndStoredTok(const StoredUniverse& u) ;
     uint32_t            getStemTokStringId() const { return ( stemTok ? stemTok->stringId : 0xffffffff ); }
 
 	void clear() {
