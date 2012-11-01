@@ -33,8 +33,6 @@ class LevenshteinEditDistance {
 	{
 		size_t newSz = m*n*sizeof(int);
 		if( newSz> d_curBufSz ) {
-			if( d_buf ) 
-				free(d_buf);
 			d_buf = (int*)realloc( d_buf, newSz );
 			d_curBufSz = newSz;
 		}
