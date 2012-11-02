@@ -414,21 +414,25 @@ public:
 
 	// not sure how to properly deconstruct this yet
 	bool operator()(const BarzerEntityList &data) {
-		//os << "<entlist>";
-        std::stringstream sstr;
-        if( data.getClass().isValid() ) {
-            sstr << " class=\"" << data.getClass().ec << "\" subclass=\"" << data.getClass().subclass << "\"";
-        }
-        
-	    tag_raii el(os, "entlist", sstr.str().c_str());
+        if( data.getList().size() == 1 ) {
+            printEntity(data.getList()[0]);
+        } else {
+		    //os << "<entlist>";
+            std::stringstream sstr;
+            if( data.getClass().isValid() ) {
+                sstr << " class=\"" << data.getClass().ec << "\" subclass=\"" << data.getClass().subclass << "\"";
+            }
+         
+	        tag_raii el(os, "entlist", sstr.str().c_str());
 
-		const BarzerEntityList::EList &lst = data.getList();
-		for (BarzerEntityList::EList::const_iterator li = lst.begin();
-													 li != lst.end(); ++li) {
-            os << "\n    ";
-			printEntity(*li);
-		}
-		os << "\n    ";
+		    const BarzerEntityList::EList &lst = data.getList();
+		    for (BarzerEntityList::EList::const_iterator li = lst.begin();
+													    li != lst.end(); ++li) {
+                os << "\n    ";
+			    printEntity(*li);
+		    }
+		    os << "\n    ";
+        }
 		return true;
 	}
 
