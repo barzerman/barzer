@@ -578,7 +578,15 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELSta
 			entGrp = getEntityCollection().getEntGroup( tran->getId_uint32() );
 			break;
 		default: { // CLASH 
-            if( !(stmt.getSourceNameStrId()== tran->traceInfo.source && stmt.getStmtNumber() == tran->traceInfo.statementNum) ) {
+            if( stmt.ruleClashOverride() ) {
+                n->setTranslation( id );
+                std::ostream& os = stmt.getErrStream();
+			    os << "<warning type=\"rule clash overridden\"> <rule>" << stmt.getSourceName() << ':' << stmt.getStmtNumber()  << '.' << emitterSeqNo <<
+			    " </rule><rule> " ;
+			    printTanslationTraceInfo( stmt.getErrStream(), tran->traceInfo ) << "</rule></warning>\n";
+
+                return true;
+            } else if( !(stmt.getSourceNameStrId()== tran->traceInfo.source && stmt.getStmtNumber() == tran->traceInfo.statementNum) ) {
                 std::ostream& os = stmt.getErrStream();
 			    os << "<error type=\"RULE CLASH\"> <rule>" << stmt.getSourceName() << ':' << stmt.getStmtNumber()  << '.' << emitterSeqNo <<
 			    " </rule><rule> " ;

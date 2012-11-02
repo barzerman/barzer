@@ -331,6 +331,10 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 				return;
 			}
 			break;
+        case 'o':
+            if( v && v[0] != 'n'&&v[0]!='N' ) 
+                statement.stmt.setRuleClashOverride();
+            break;
 		case 't':  // pipe separated tags
 			break;
 		default:
