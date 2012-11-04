@@ -1,9 +1,23 @@
 #include <barzer_parse_types.h>
 #include <barzer_storage_types.h>
 #include <barzer_parse.h>
+#include <barzer_universe.h>
 #include <iomanip>
 
 namespace barzer {
+void  CToken::syncStemAndStoredTok(const StoredUniverse& u)
+{
+
+    if( storedTok ) {
+        if( stemTok && (stemTok == storedTok) && !u.getGlobalPools().getStemSrcs(storedTok->stringId) )
+            stemTok= 0;
+    } else if( stemTok ) {
+        /*
+        storedTok = stemTok;
+        stemTok = 0;
+        */
+    }
+}
 
 std::ostream& CToken::printQtVec( std::ostream& fp ) const
 {

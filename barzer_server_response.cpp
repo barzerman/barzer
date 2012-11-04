@@ -145,10 +145,10 @@ public:
         std::stringstream sstrBody;
 
         std::string lastTokBuf;
-		for( CTWPVec::const_iterator ci = ctoks.begin(); ci != ctoks.end(); ++ci ) {
+		for( CTWPVec::const_iterator ci = ctoks.begin(), ci_before_last = ( ctoks.size() ? ci+ctoks.size()-1: ctoks.end()); ci != ctoks.end(); ++ci ) {
 			const TTWPVec& ttv = ci->first.getTTokens();
 
-            if( ci != ctoks.begin() ) 
+            if( ci != ctoks.begin() && ci != ci_before_last) 
                 sstrBody << " ";
 			for( TTWPVec::const_iterator ti = ttv.begin(); ti!= ttv.end() ; ++ti ) {
 				const TToken& ttok = ti->first;
@@ -158,7 +158,7 @@ public:
                     lastTokBuf = ttok.buf.c_str();
 
 				if( ttok.buf.length() ) {
-                    if( ti != ttv.begin() && ci != ctoks.begin() ) 
+                    if( ti != ttv.begin() && ci != ctoks.begin() && ttok.buf[0] !=' ') 
                         sstrBody << " ";
                     std::string tokStr( ttok.buf.c_str(), ttok.buf.length() );
                     xmlEscape(tokStr, sstrBody);
@@ -414,21 +414,25 @@ public:
 
 	// not sure how to properly deconstruct this yet
 	bool operator()(const BarzerEntityList &data) {
-		//os << "<entlist>";
-        std::stringstream sstr;
-        if( data.getClass().isValid() ) {
-            sstr << " class=\"" << data.getClass().ec << "\" subclass=\"" << data.getClass().subclass << "\"";
-        }
-        
-	    tag_raii el(os, "entlist", sstr.str().c_str());
+        if( data.getList().size() == 1 ) {
+            printEntity(data.getList()[0]);
+        } else {
+		    //os << "<entlist>";
+            std::stringstream sstr;
+            if( data.getClass().isValid() ) {
+                sstr << " class=\"" << data.getClass().ec << "\" subclass=\"" << data.getClass().subclass << "\"";
+            }
+         
+	        tag_raii el(os, "entlist", sstr.str().c_str());
 
-		const BarzerEntityList::EList &lst = data.getList();
-		for (BarzerEntityList::EList::const_iterator li = lst.begin();
-													 li != lst.end(); ++li) {
-            os << "\n    ";
-			printEntity(*li);
-		}
-		os << "\n    ";
+		    const BarzerEntityList::EList &lst = data.getList();
+		    for (BarzerEntityList::EList::const_iterator li = lst.begin();
+													    li != lst.end(); ++li) {
+                os << "\n    ";
+			    printEntity(*li);
+		    }
+		    os << "\n    ";
+        }
 		return true;
 	}
 
