@@ -44,7 +44,7 @@ int FeatureExtractor::extractFeatures( ExtractedFeatureMap& efmap, const char* b
 int FeatureExtractor_Normalizing::extractFeatures( ExtractedFeatureMap& efmap, const FeatureExtractor_Base::StringVec &ntVec, bool learnMode )
 {
     for( FeatureExtractor_Base::StringVec::const_iterator i = ntVec.begin(); i!= ntVec.end(); ++i ) {
-        uint32_t    featureId       = ( learnMode d_tokPool.internIt( i->c_str() ) : d_tokPool.getId(zt.str.c_str() ) );
+        uint32_t    featureId       = ( learnMode ? d_tokPool.internIt( i->c_str() ) : d_tokPool.getId(i->c_str() ) );
         if( featureId == 0xffffffff ) // we're in classification mode and feature is new
             continue;
         ExtractedFeatureMap::iterator emi = efmap.find(featureId);
@@ -65,7 +65,7 @@ int FeatureExtractor_Normalizing::extractFeatures( ExtractedFeatureMap& efmap, c
     char* buf= new char[ buf_sz +1 ];
     std::auto_ptr<char> raii( buf );
 
-    memcpy( buf, buf_orig, buf_sz );
+    barzer::Lang::lowLevelNormalization( buf, buf_sz, buf_orig, buf_sz );
     buf[buf_sz]=0;
     int lang = barzer::Lang::getLangNoUniverse( buf, buf_sz );
     barzer::Lang::stringToLower( buf, buf_sz, lang );
@@ -76,13 +76,17 @@ int FeatureExtractor_Normalizing::extractFeatures( ExtractedFeatureMap& efmap, c
 
     ZurchWordNormalizer::NormalizerEnvironment normEnv;
     std::string norm;
+    size_t numFeatures = 0;
     for( auto i = tokVec.begin(); i!= tokVec.end(); ++i ) {
         const       ZurchToken& zt  = *i;
         const char* z_str = zt.str.c_str();
+        if( isspace(*z_str) ) {
+            continue;
+        }
+        ++numFeatures;
         size_t      z_str_sz;
         norm.clear();
         d_normalizer.normalize(norm,z_str,normEnv);
-        featureId=d_tokPool.internIt(norm.c_str());
         uint32_t    featureId       = ( learnMode ? d_tokPool.internIt( norm.c_str() ) : d_tokPool.getId( norm.c_str() ) );
         if( featureId == 0xffffffff ) // we're in classification mode and feature is new
             continue;
@@ -93,7 +97,7 @@ int FeatureExtractor_Normalizing::extractFeatures( ExtractedFeatureMap& efmap, c
         emi->second++;
     }
 
-    normalizeFeatures( efmap, tokVec.size() );
+    normalizeFeatures( efmap, numFeatures );
     return 0;
 }
 

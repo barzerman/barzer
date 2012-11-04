@@ -550,6 +550,15 @@ int umlautsToAscii( std::string& dest, const char* s )
             const char* diacrStr = is_diacritic(prevSS);
             if( diacrStr )
 			    dest.append( diacrStr );
+		} else if( c0 == 0xe2 ) { /// wikipedia hyphen
+            uint8_t c1 = (uint8_t)(ss[1]);
+            uint8_t c2 = ( c1? (uint8_t)(ss[2]) : 0 );
+            if( c1 == 0x80 && c2 == 0x94 ) {
+                dest.push_back('-');
+                ss+=2;
+            } else {
+			    dest.push_back( *ss );
+            }
 		} else {
 			dest.push_back( *ss );
 		}
