@@ -368,6 +368,10 @@ class ZurchTrainerAndClassifier {
         extractor(o.extractor) {}
     void clear();
 public:
+    ZurchTokenizer& getTokenizer() { return tokenizer; }
+    const ZurchTokenizer& getTokenizer() const { return tokenizer; }
+    ZurchWordNormalizer& getNormalizer() { return normalizer; }
+    const ZurchWordNormalizer& getNormalizer() const { return normalizer; }
     std::ostream& print( std::ostream& fp, const PrintContext& ctxt ) const;
 
     typedef enum {

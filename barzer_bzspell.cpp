@@ -16,6 +16,13 @@ namespace barzer {
 typedef std::vector<char> charvec;
 typedef charvec::const_iterator charvec_ci;
 
+void BZSpell::clear( )
+{
+    delete m_featuredSC;
+	m_featuredSC = new FeaturedSpellCorrector();
+    d_wordinfoMap.clear();
+    d_linkedWordsMap.clear();
+}
 bool BZSpell::isWordValidInUniverse( const char* word ) const
 {
 	uint32_t strId = d_universe.getGlobalPools().string_getId( word );

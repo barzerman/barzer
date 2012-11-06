@@ -331,6 +331,10 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 				return;
 			}
 			break;
+        case 'o':
+            if( v && v[0] != 'n'&&v[0]!='N' ) 
+                statement.stmt.setRuleClashOverride();
+            break;
 		case 't':  // pipe separated tags
 			break;
 		default:
@@ -1428,7 +1432,7 @@ DEFINE_BELParserXML_taghandle(MKENT)
     if( isTrivialRewrite &&  !reader->is_noCanonicalNames() ) {
         EntityData::EntProp* eprop = ( universe ? universe->getEntPropData(ent.getEuid()) : gp.getEntPropData(ent.getEuid()) );
 
-        if( !eprop || canonicName || !eprop->is_nameExplicit() ) {
+        if( !eprop || canonicName /*|| !eprop->is_nameExplicit()*/ ) {
             std::string theName;
             if( !canonicName || !*canonicName ) {
                 if( statement.hasPattern() ) {

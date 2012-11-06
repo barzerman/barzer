@@ -112,6 +112,24 @@ size_t Lang::getNumChars( const char* s, size_t s_len, int lang )
         return ay::StrUTF8::glyphCount(s,s+s_len);
     }
 }
+void Lang::lowLevelNormalization( char* d, size_t d_len, const char* s, size_t s_sz )
+{
+    const char* d_end = d+d_len;
+    for( const char* ss = s, *ss_end = s+s_sz; ss < ss_end && d< d_end; ++ss ) {
+        if( static_cast<uint8_t>(ss[0])== 0xe2 ) {
+            if( 0x80 == static_cast<uint8_t>(ss[1]) && 0x94 == static_cast<uint8_t>(ss[2])) { // wikipedia hyphen
+                *d='-';
+                ++d;
+                ss+=2;
+                continue;
+            } 
+        } 
+
+        *d++=*ss;
+    }
+    if( d< d_end )
+        *d=0;
+}
 bool Lang::stringToLower( char* s, size_t s_len, int lang )
 {
     if( lang == LANG_ENGLISH ) {

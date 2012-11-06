@@ -81,6 +81,7 @@ struct Lang {
         { return stringToLower(s,s_len,lang); }
     
     static size_t getNumChars( const char* s, size_t s_len, int lang );
+    static void   lowLevelNormalization( char* d, size_t d_len, const char* s, size_t s_sz );
 };
 
 class QSingleLangLexer {

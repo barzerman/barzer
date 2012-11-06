@@ -57,13 +57,15 @@ struct PythonNormalizer {
     /// must delete the returned pointer
     char* internal_tokenize( ZurchTokenVec& tokVec, const std::string& sorig )
     {
-        size_t lc_sz = sorig.length()+1;
+        size_t lc_sz = sorig.length();
         int lang = barzer::Lang::getLangNoUniverse( sorig.c_str(), sorig.length() );
 
-        char * lc= new char[ lc_sz ];
-
-        memcpy( lc, sorig.c_str(), sorig.length() );
-        lc[ lc_sz-1 ] =0;
+        char * lc= new char[ lc_sz+1 ] ;
+    
+        // memcpy( lc, sorig.c_str(), sorig.length() );
+        barzer::Lang::lowLevelNormalization( lc, lc_sz, sorig.c_str(), sorig.length() );
+        lc[ lc_sz ] =0;
+        
         barzer::Lang::stringToLower( lc, lc_sz, lang );
 
         tokenizer.tokenize( tokVec, lc, lc_sz );
@@ -98,6 +100,7 @@ struct PythonNormalizer {
     }
     list normalize( const std::string& sorig ) 
     {
+
         list retList;
         ZurchTokenVec tokVec;
         /// this is needed so that the char* inside tokVec are valid
@@ -184,6 +187,7 @@ struct PythonClassifier {
     { 
         cfier= new ZurchTrainerAndClassifier( z.barzerPython->getGP().getStringPool() );
         cfier->init(ZurchTrainerAndClassifier::EXTRACTOR_TYPE_NORMALIZING,zp.barzerPython->guaranteeUniverse().getBZSpell());
+        // cfier->getTokenizer().tokenizer().addSingleCharSeparators("()-!?");
     }
     ~PythonClassifier() { delete cfier; }
 };
