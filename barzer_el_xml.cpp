@@ -345,6 +345,9 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 			break;
 		}
 	}
+    if( stmtNumber == 145705 ) {
+        std::cerr << 145705 << " reached\n";
+    }
     if( needAbort ) {
 	    statement.stmt.setStmtNumber( stmtNumber ) ;
         BarzXMLErrorStream  errStream(reader->getErrStreamRef(),stmtNumber);

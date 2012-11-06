@@ -158,10 +158,12 @@ public:
                     lastTokBuf = ttok.buf.c_str();
 
 				if( ttok.buf.length() ) {
-                    if( ti != ttv.begin() && ci != ctoks.begin() && ttok.buf[0] !=' ') 
+                    if( ttok.buf[0] !=' ' && (ti != ttv.begin() || ci != ctoks.begin() )) 
                         sstrBody << " ";
-                    std::string tokStr( ttok.buf.c_str(), ttok.buf.length() );
-                    xmlEscape(tokStr, sstrBody);
+                    if( ttok.buf[0] !=' ' ) {
+                        std::string tokStr( ttok.buf.c_str(), ttok.buf.length() );
+                        xmlEscape(tokStr, sstrBody);
+                    }
 
                     if( needOffsetLengthVec ) 
                         offsetLengthVec.push_back( ttok.getOrigOffsetAndLength() );
