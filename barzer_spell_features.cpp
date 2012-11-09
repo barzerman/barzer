@@ -100,6 +100,15 @@ namespace
 		}
 	};
 	
+	template<typename Pair>
+	struct PairSortOrderer
+	{
+		bool operator()(const Pair& v1, const Pair& v2) const
+		{
+			return v1.second < v2.second;
+		}
+	};
+	
 	struct MatchVisitor : public boost::static_visitor<MatchResult>
 	{
 		const char *m_str;
@@ -141,33 +150,23 @@ namespace
 			if (counterMap.empty())
 				return MatchResult();
 			
-			/*
-			auto bestMatch = CounterMap_t::value_type(0xffffffff, 0);
-			for (const auto& pair : counterMap)
-				if (pair.second > bestMatch.second)
-					bestMatch = pair;
-			return bestMatch.first;
-			*/
-			
 			std::vector<std::pair<uint32_t, double>> sorted;
 			sorted.reserve(counterMap.size());
 			std::copy(counterMap.begin(), counterMap.end(), std::back_inserter(sorted));
 			
-			struct SortOrderer
-			{
-				bool operator()(const std::pair<uint32_t, double>& v1, const std::pair<uint32_t, double>& v2) const
-				{
-					return v1.second < v2.second;
-				}
-			};
-			
-			std::sort(sorted.rbegin(), sorted.rend(), SortOrderer());
+			std::sort(sorted.rbegin(), sorted.rend(), PairSortOrderer<std::pair<uint32_t, double>>());
 			
 			ay::LevenshteinEditDistance levDist;
 			ay::StrUTF8 ourStr(m_str, m_strLen);
-			for (const auto& best : sorted)
+			//std::cout << __PRETTY_FUNCTION__ << " got num words: " << sorted.size() << std::endl;
+
+			typedef std::pair<uint32_t, int> LevInfo_t;
+			std::vector<LevInfo_t> levInfos;
+			const size_t topNum = 100;
+			const int maxDist = 3;
+			for (size_t i = 0, max = std::min(topNum, sorted.size()); i < max; ++i)
 			{
-				const char *str = storage.getPool()->resolveId(best.first);
+				const char *str = storage.getPool()->resolveId(sorted[i].first);
 				const auto strLen = strlen(str);
 				auto lang = Lang::getLangNoUniverse(str, strLen);
 				if (lang != m_lang)
@@ -180,14 +179,20 @@ namespace
 					dist = levDist.twoByte(str, strLen / 2, m_str, m_strLen / 2);
 				else
 					dist = levDist.utf8(ourStr, ay::StrUTF8(str, strLen));
-				
-				if (dist > 3)
+				if (dist > maxDist)
 					continue;
-				
-				return MatchResult(best.first, best.second);
+
+				levInfos.push_back(LevInfo_t(sorted[i].first, dist));
 			}
+			std::sort(levInfos.begin(), levInfos.end(), PairSortOrderer<LevInfo_t>());
+			/*
+			for (const auto& info : levInfos)
+				std::cout << storage.getPool()->resolveId(info.first) << " " << info.second << std::endl;
+			*/
 			
-			return MatchResult();
+			return !levInfos.empty() ?
+					MatchResult(levInfos[0].first, maxDist + 1 - levInfos[0].second) :
+					MatchResult();
 		}
 	};
 }
