@@ -197,6 +197,9 @@ public:
 	
 	void init(ay::UniqueCharPool& p)
 	{
+		if (!m_storages.empty())
+			return;
+		
 		m_storages.push_back(TFE_storage<TFE_ngram>(p));
 		m_storages.push_back(TFE_storage<TFE_bastard>(p));
 	}
