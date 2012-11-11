@@ -581,6 +581,45 @@ int BZSpell::isUsersWord( uint32_t& strId, const char* word ) const
 	return( strId == 0xffffffff ? 0 : isUsersWordById(strId) );
 }
 
+namespace
+{
+	class FeaturedMatchComparator
+	{
+		const char *m_srcStr;
+		const StoredUniverse& m_sc;
+		const int m_lang;
+		const FeaturedSpellCorrector::FeaturedMatchInfo m_featuredRes;
+		
+		mutable ay::LevenshteinEditDistance m_levDist;
+	public:
+		FeaturedMatchComparator(const char *srcStr, const StoredUniverse& sc, int lang, const FeaturedSpellCorrector::FeaturedMatchInfo& res)
+		: m_srcStr(srcStr)
+		, m_sc(sc)
+		, m_lang(lang)
+		, m_featuredRes(res)
+		{
+		}
+		
+		uint32_t operator()(uint32_t dumbRes) const
+		{
+			if (dumbRes == 0xffffffff)
+				return m_featuredRes.m_strId;
+			
+			const char *str = m_sc.getDtaIdx().resolveStringById(dumbRes);
+			
+			int dist = 100;
+			if (m_lang == LANG_ENGLISH)
+				dist = m_levDist.ascii_no_case(str, m_srcStr);
+			else if (Lang::isTwoByteLang(m_lang))
+				dist = m_levDist.twoByte(str, std::strlen(str) / 2, m_srcStr, std::strlen(m_srcStr) / 2);
+			else
+				dist = m_levDist.utf8(m_srcStr, ay::StrUTF8(str));
+			
+			return dist <= m_featuredRes.m_levDist ? dumbRes : m_featuredRes.m_strId;
+		}
+	};
+}
+
 /// when fails 0xffffffff is returned
 uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int lang ) const
 {
@@ -589,28 +628,21 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
     if( lang == LANG_UNKNOWN || lang == LANG_UNKNOWN_UTF8 )
         lang = Lang::getLang(d_universe, str, str_len);
 
-	if (d_universe.checkBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT))
-	{
-		const auto& res = m_featuredSC->getBestMatch(str, str_len, lang);
-		uint32_t featuredStrId = res.m_strId;
-		if (featuredStrId != 0xffffffff)
-			return featuredStrId;
-		else
-		{
-			std::string out;
-			return getStemCorrection(out, str, lang);
-		}
-	}
+	const bool useFeaturedSC = d_universe.checkBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT);
+	const FeaturedMatchComparator featuredCmp(str, d_universe, lang,
+			useFeaturedSC ?
+				m_featuredSC->getBestMatch(str, str_len, lang) :
+				FeaturedSpellCorrector::FeaturedMatchInfo());
 	
 	if( lang == LANG_ENGLISH) {
 
         if( str_len>= MAX_WORD_LEN )
-            return 0xffffffff;
+            return featuredCmp(0xffffffff);
 
         enum { SHORT_WORD_LEN = 4 };
 
 		if( str_len < d_minWordLengthToCorrect )
-			return 0xffffffff;
+			return featuredCmp(0xffffffff);
         CorrectCallback cb( *this, str_len );
         { // omission variator
         ay::choose_n<char, CorrectCallback > variator( cb, str_len-1, str_len-1 );
@@ -652,7 +684,7 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 			}
 		}
 
-		return cb.getBestStrId();
+		return featuredCmp(cb.getBestStrId());
 	} else if( Lang::isTwoByteLang(lang)) { // 2 byte char language spell correct
         /// includes russian
         std::string stemStr;
@@ -671,7 +703,7 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
                         if( str_len > stemStr.length() && (str_len-stemStr.length()<3*2) ) {
                             uint32_t correctedId = get2ByteLangStemCorrection( lang, str, doStemCorrect, stemStr.c_str() );
                             if( correctedId != 0xffffffff )
-                                return correctedId;
+                                return featuredCmp(correctedId);
                             else
                                 doStemCorrect= false;
                         }
@@ -698,9 +730,9 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 			permuter.doAll();
 			uint32_t retStrId =  cb.getBestStrId();
             if( retStrId != 0xffffffff && (doStemCorrect|| !isPureStem(retStrId)) )
-                return retStrId;
+                return featuredCmp(retStrId);
             else if( doStemCorrect )
-                return get2ByteLangStemCorrection( lang, str, doStemCorrect );
+                return featuredCmp(get2ByteLangStemCorrection( lang, str, doStemCorrect ));
 		}
     }
     else
@@ -708,7 +740,7 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 		ay::StrUTF8 strUtf8 (str);
 		const size_t uniSize = strUtf8.size();
 		if (uniSize < d_minWordLengthToCorrect)
-			return 0xffffffff;
+			return featuredCmp(0xffffffff);
 
 		if (doStemCorrect)
 		{
@@ -731,9 +763,9 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 
 		ascii::CharPermuter_Unicode permuter(strUtf8, cb);
 		permuter.doAll ();
-		return cb.getBestStrId ();
+		return featuredCmp(cb.getBestStrId ());
 	}
-	return 0xffffffff;
+	return featuredCmp(0xffffffff);
 }
 
 uint32_t BZSpell::purePermuteCorrect2B(const char* s, size_t s_len )  const
