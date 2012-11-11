@@ -587,13 +587,19 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 	/// for ascii corrector
     size_t str_len = strlen( str );
     if( lang == LANG_UNKNOWN || lang == LANG_UNKNOWN_UTF8 )
-        lang = Lang::getLang(  d_universe, str, str_len );
+        lang = Lang::getLang(d_universe, str, str_len);
 
 	if (d_universe.checkBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT))
 	{
-		uint32_t featuredStrId = m_featuredSC->getBestMatch(str, str_len, lang);
+		const auto& res = m_featuredSC->getBestMatch(str, str_len, lang);
+		uint32_t featuredStrId = res.m_strId;
 		if (featuredStrId != 0xffffffff)
 			return featuredStrId;
+		else
+		{
+			std::string out;
+			return getStemCorrection(out, str, lang);
+		}
 	}
 	
 	if( lang == LANG_ENGLISH) {

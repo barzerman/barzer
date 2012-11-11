@@ -210,7 +210,25 @@ public:
 	}
 	
 	void addWord(uint32_t strId, const char *str, int lang);
-	uint32_t getBestMatch(const char *str, size_t strLen, int lang);
+	
+	struct FeaturedMatchInfo
+	{
+		uint32_t m_strId;
+		int m_levDist;
+		
+		FeaturedMatchInfo()
+		: m_strId(0xffffffff)
+		, m_levDist(255)
+		{
+		}
+		
+		FeaturedMatchInfo(uint32_t strId, int levDist)
+		: m_strId(strId)
+		, m_levDist(levDist)
+		{
+		}
+	};
+	FeaturedMatchInfo getBestMatch(const char *str, size_t strLen, int lang);
 };
 
 } // namespace barzer

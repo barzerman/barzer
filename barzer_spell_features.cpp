@@ -85,17 +85,17 @@ namespace
 	struct MatchResult
 	{
 		uint32_t m_strId;
-		uint8_t m_confidence;
+		int m_dist;
 		
 		MatchResult()
 		: m_strId(0xffffffff)
-		, m_confidence(0)
+		, m_dist(255)
 		{
 		}
 		
-		MatchResult(uint32_t strId, uint8_t conf)
+		MatchResult(uint32_t strId, int conf)
 		: m_strId(strId)
-		, m_confidence(conf)
+		, m_dist(conf)
 		{
 		}
 	};
@@ -191,13 +191,13 @@ namespace
 			*/
 			
 			return !levInfos.empty() ?
-					MatchResult(levInfos[0].first, maxDist + 1 - levInfos[0].second) :
+					MatchResult(levInfos[0].first, levInfos[0].second) :
 					MatchResult();
 		}
 	};
 }
 
-uint32_t FeaturedSpellCorrector::getBestMatch(const char *str, size_t strLen, int lang)
+FeaturedSpellCorrector::FeaturedMatchInfo FeaturedSpellCorrector::getBestMatch(const char *str, size_t strLen, int lang)
 {
 	MatchVisitor vis(str, strLen, lang);
 	if (m_matchStrategy == MatchStrategy::FirstWins)
@@ -206,9 +206,9 @@ uint32_t FeaturedSpellCorrector::getBestMatch(const char *str, size_t strLen, in
 		{
 			const auto& res = boost::apply_visitor(vis, storage);
 			if (res.m_strId != 0xffffffff)
-				return res.m_strId;
+				return FeaturedMatchInfo(res.m_strId, res.m_dist);
 		}
-		return 0xffffffff;
+		return FeaturedMatchInfo();
 	}
 	else if (m_matchStrategy == MatchStrategy::BestWins)
 	{
@@ -216,15 +216,15 @@ uint32_t FeaturedSpellCorrector::getBestMatch(const char *str, size_t strLen, in
 		for (const auto& storage : m_storages)
 		{
 			const auto& res = boost::apply_visitor(vis, storage);
-			if (res.m_confidence > bestRes.m_confidence)
+			if (res.m_dist <= bestRes.m_dist)
 				bestRes = res;
 		}
-		return bestRes.m_strId;
+		return FeaturedMatchInfo(bestRes.m_strId, bestRes.m_dist);;
 	}
 	else
 	{
 		AYLOG(ERROR) << "unknown match strategy " << static_cast<int>(m_matchStrategy);
-		return 0xffffffff;
+		return FeaturedMatchInfo();
 	}
 }
 }
