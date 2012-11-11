@@ -369,6 +369,9 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 
 			if( const auto p = attrs.get_optional<std::string>("stempunct") )
 				if (*p == "yes") u.getUniverse().setBit(StoredUniverse::UBIT_LEX_STEMPUNCT);
+				
+			if (const auto p = attrs.get_optional<std::string>("featuredsc"))
+				if (*p == "yes") u.getUniverse().setBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT);
         }
 		BOOST_FOREACH(const ptree::value_type &v, spell) {
 			const std::string& tagName = v.first;
