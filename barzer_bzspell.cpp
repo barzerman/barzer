@@ -604,8 +604,10 @@ namespace
 		{
 			if (dumbRes == 0xffffffff)
 				return m_featuredRes.m_strId;
-			
-			const char *str = m_sc.getDtaIdx().resolveStringById(dumbRes);
+	        else if ( m_featuredRes.m_strId == 0xffffffff )
+                return dumbRes;
+
+			const char *str = m_sc.getGlobalPools().string_resolve(dumbRes);
 			
 			int dist = 100;
 			if (m_lang == LANG_ENGLISH)
@@ -628,7 +630,7 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
     if( lang == LANG_UNKNOWN || lang == LANG_UNKNOWN_UTF8 )
         lang = Lang::getLang(d_universe, str, str_len);
 
-	const bool useFeaturedSC = d_universe.checkBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT);
+	const bool useFeaturedSC = true; /*d_universe.checkBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT);*/
 	const FeaturedMatchComparator featuredCmp(str, d_universe, lang,
 			useFeaturedSC ?
 				m_featuredSC->getBestMatch(str, str_len, lang) :
