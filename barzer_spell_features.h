@@ -191,7 +191,7 @@ public:
 	} m_matchStrategy;
 	
 	FeaturedSpellCorrector()
-	: m_matchStrategy(MatchStrategy::FirstWins)
+	: m_matchStrategy(MatchStrategy::BestWins)
 	{
 	}
 	
