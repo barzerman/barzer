@@ -86,16 +86,19 @@ namespace
 	{
 		uint32_t m_strId;
 		int m_dist;
+		double m_confidence;
 		
 		MatchResult()
 		: m_strId(0xffffffff)
 		, m_dist(255)
+		, m_confidence(0)
 		{
 		}
 		
-		MatchResult(uint32_t strId, int conf)
+		MatchResult(uint32_t strId, int dist, double conf)
 		: m_strId(strId)
-		, m_dist(conf)
+		, m_dist(dist)
+		, m_confidence(conf)
 		{
 		}
 	};
@@ -191,7 +194,7 @@ namespace
 			*/
 			
 			return !levInfos.empty() ?
-					MatchResult(levInfos[0].first, levInfos[0].second) :
+					MatchResult(levInfos[0].first, levInfos[0].second, 1 / static_cast<double>(sorted.size())) :
 					MatchResult();
 		}
 	};
@@ -216,7 +219,9 @@ FeaturedSpellCorrector::FeaturedMatchInfo FeaturedSpellCorrector::getBestMatch(c
 		for (const auto& storage : m_storages)
 		{
 			const auto& res = boost::apply_visitor(vis, storage);
-			if (res.m_dist <= bestRes.m_dist)
+			if (res.m_strId != 0xffffffff &&
+					res.m_dist <= bestRes.m_dist &&
+					res.m_confidence > bestRes.m_confidence)
 				bestRes = res;
 		}
 		return FeaturedMatchInfo(bestRes.m_strId, bestRes.m_dist);;
