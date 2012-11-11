@@ -615,7 +615,7 @@ namespace
 			else if (Lang::isTwoByteLang(m_lang))
 				dist = m_levDist.twoByte(str, std::strlen(str) / 2, m_srcStr, std::strlen(m_srcStr) / 2);
 			else
-				dist = m_levDist.utf8(m_srcStr, ay::StrUTF8(str));
+				dist = m_levDist.utf8(ay::StrUTF8(m_srcStr), ay::StrUTF8(str));
 			
 			return dist <= m_featuredRes.m_levDist ? dumbRes : m_featuredRes.m_strId;
 		}
