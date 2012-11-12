@@ -384,7 +384,7 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 				{
 					std::cout << "Adding language: " << tagVal << "(" << lang << ")" << std::endl;
 					u.getUniverse().getBarzHints().addUtf8Language(lang);
-					u.getUniverse().getGlobalPools().getStemPool().addLang(lang);
+					ay::StemThreadPool::inst().addLang(lang);
 				}
             } else if(tagName =="tokenizer") { /// 
                 const boost::optional<const ptree&> optAttrs = spell.get_child_optional("tokenizer.<xmlattr>");

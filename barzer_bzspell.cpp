@@ -791,7 +791,7 @@ uint32_t BZSpell::purePermuteCorrect2B(const char* s, size_t s_len )  const
 uint32_t BZSpell::getUtf8LangStemCorrection( int lang, const char* str, bool doStemCorect, const char* extNorm ) const
 {
 	const BarzHints::LangArray& langs = d_universe.getBarzHints().getUtf8Languages(); 
-	const ay::MultilangStem *stem = d_universe.getGlobalPools().getStemPool().getThreadStemmer();
+	const ay::MultilangStem *stem = ay::StemThreadPool::inst().getThreadStemmer();
 	if (!stem)
 		return 0xffffffff;
 
@@ -978,7 +978,7 @@ bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
 		return Russian_Stemmer::stem( out, s );
 	else
 	{
-		const ay::MultilangStem *stem = d_universe.getGlobalPools().getStemPool().getThreadStemmer();
+		const ay::MultilangStem *stem = ay::StemThreadPool::inst().getThreadStemmer();
 		if (!stem)
 			return false;
 
