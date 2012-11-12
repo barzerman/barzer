@@ -961,11 +961,20 @@ bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
     size_t s_len = strlen( s );
     if( lang == LANG_UNKNOWN )
         lang = Lang::getLang(  d_universe, s, s_len );
+	
+	return stem(out, s, lang, d_minWordLengthToCorrect, d_universe.getBarzHints().getUtf8Languages());
+}
+
+bool BZSpell::stem(std::string& out, const char *s, int& lang, size_t minWordLength, const BarzHints::LangArray& langs)
+{
+	size_t s_len = strlen( s );
+    if( lang == LANG_UNKNOWN || lang == LANG_UNKNOWN_UTF8)
+        lang = Lang::getLangNoUniverse(s, s_len);
 
 	if( lang == LANG_ENGLISH)
 	{
 		size_t s_len = strlen(s);
-		if( s_len > d_minWordLengthToCorrect ) {
+		if( s_len > minWordLength ) {
 			if( ascii::stem_depluralize( out, s, s_len ) ) {
 				return true;
 			} else
@@ -982,7 +991,6 @@ bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
 		if (!stem)
 			return false;
 
-		const BarzHints::LangArray& langs = d_universe.getBarzHints().getUtf8Languages();
 		for (BarzHints::LangArray::const_iterator i = langs.begin(), end = langs.end(); i != end; ++i)
 			if (stem->stem(*i, s, s_len, out, false))
 				return true;
@@ -990,6 +998,7 @@ bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
 
     return false;
 }
+
 bool BZSpell::stem( std::string& out, const char* s ) const
 {
     int lang = LANG_UNKNOWN;
@@ -1262,7 +1271,7 @@ size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
 BZSpell::BZSpell( StoredUniverse& uni ) :
 	d_universe( uni ),
 	d_charSize(1) ,
-	d_minWordLengthToCorrect( d_charSize* (QLexParser::MIN_SPELL_CORRECT_LEN) ),
+	d_minWordLengthToCorrect(d_charSize * (QLexParser::MIN_SPELL_CORRECT_LEN)),
 	m_englishSLTransform(&uni.getGlobalPools()),
 	m_englishSLBastard(&uni.getGlobalPools()),
 	m_englishSLSuperposition(m_englishSLTransform, m_englishSLBastard),
