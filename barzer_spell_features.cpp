@@ -9,12 +9,21 @@ namespace barzer
 void TFE_ngram::operator()(ExtractedStringFeatureVec& outVec, const char *str, size_t str_len, int lang) const
 {
 	const size_t nGramSymbs = 3;
+	const size_t stemThreshold = 4;
 	
 	std::string tmp;
 	if (lang == LANG_ENGLISH || lang == LANG_RUSSIAN)
 	{
 		const size_t step = lang == LANG_ENGLISH ? 1 : 2;
 		const size_t gramSize = step * nGramSymbs;
+
+		std::string stemmed;
+		if (str_len / step >= stemThreshold)
+		{
+			if (BZSpell::stem(stemmed, str, lang, stemThreshold))
+				str = stemmed.c_str();
+		}
+		
 		if (str_len >= gramSize)
 			for (size_t i = 0, end = str_len - gramSize + 1; i < end; i += step)
 			{
@@ -24,7 +33,14 @@ void TFE_ngram::operator()(ExtractedStringFeatureVec& outVec, const char *str, s
 	}
 	else
 	{
-		const ay::StrUTF8 utf8(str, str_len);
+		ay::StrUTF8 utf8(str, str_len);
+		if (utf8.size() >= stemThreshold)
+		{
+			std::string stemmed;
+			if (BZSpell::stem(stemmed, str, lang, stemThreshold))
+				utf8.assign(stemmed.c_str());
+		}
+		
 		if (utf8.size() >= nGramSymbs)
 			for (size_t i = 0, end = utf8.size() - nGramSymbs + 1; i < end; ++i)
 				outVec.push_back(ExtractedStringFeature(utf8.getSubstring(i, nGramSymbs), nGramSymbs));
