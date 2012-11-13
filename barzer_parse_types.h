@@ -15,7 +15,7 @@
 namespace barzer {
 struct StoredToken;
 struct StoredEntity;
-struct StoredUniverse;
+class StoredUniverse;
 struct TToken ;
 struct CToken;
 struct PUnit ;
