@@ -7,6 +7,7 @@
 #include <ay_utf8.h>
 #include <ay_stackvec.h>
 #include <barzer_spellheuristics.h>
+#include "barzer_barz.h"
 
 namespace barzer {
 class StoredUniverse;
@@ -99,7 +100,7 @@ public:
 	/// sizeof single character - 1 by default for ascii  
 	uint8_t d_charSize; 
 
-	size_t  d_minWordLengthToCorrect;
+	size_t d_minWordLengthToCorrect;
 
 	enum { MAX_WORD_LEN = 128 };
 private: 
@@ -173,8 +174,9 @@ public:
 
 	/// stems (currently only de-pluralizes) word . returns true if stemming was 
 	/// successful
-	bool     stem( std::string& out, const char* word ) const;
-	bool     stem( std::string& out, const char* word, int& lang ) const;
+	bool stem( std::string& out, const char* word ) const;
+	bool stem( std::string& out, const char* word, int& lang ) const;
+	static bool stem(std::string& out, const char *word, int& lang, size_t minWordLength, const BarzHints::LangArray& = BarzHints::LangArray());
 
     /// punctuation based stemming (for space-default tokenizer)
     /// will use tok.getGlyphXXX  / END for glyphs in word

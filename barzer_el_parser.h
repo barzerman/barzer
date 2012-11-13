@@ -34,7 +34,7 @@ struct BELStatementParsed {
     int d_tranUnmatchable;
 
 	BELStatementParsed() :
-		d_stmtNumber(0),d_sourceNameStrId(0xffffffff), d_reader(0), d_tranUnmatchable(0),d_ruleClashOverride(false)
+		d_stmtNumber(0), d_sourceNameStrId(0xffffffff), d_ruleClashOverride(false), d_reader(0), d_tranUnmatchable(0)
 	{}
 	BELParseTreeNode pattern; // points at the node under statement
 	BELParseTreeNode translation; // points at the node under statement

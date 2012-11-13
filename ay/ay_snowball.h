@@ -69,9 +69,18 @@ class StemThreadPool {
 	multilangs_t m_multilangs;
 	typedef std::vector< int > LangVec;
 	LangVec langs;
-public:
+	
 	StemThreadPool()
 	{
+	}
+	
+	StemThreadPool(const StemThreadPool&);
+	StemThreadPool& operator=(const StemThreadPool&);
+public:
+	static StemThreadPool& inst()
+	{
+		static StemThreadPool pool;
+		return pool;
 	}
 
 	/** This one should better be called before all the threads are created

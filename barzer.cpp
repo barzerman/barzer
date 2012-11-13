@@ -113,7 +113,7 @@ int main( int argc, char * argv[] ) {
 	ay::CommandLineArgs cmdlProc;
 	cmdlProc.init(argc, argv);
 	barzer::GlobalPools globPool;
-	globPool.getStemPool().createThreadStemmer(pthread_self());
+	ay::StemThreadPool::inst().createThreadStemmer(pthread_self());
 
     globPool.init_cmdline( cmdlProc );
 

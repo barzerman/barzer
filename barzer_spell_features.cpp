@@ -9,12 +9,21 @@ namespace barzer
 void TFE_ngram::operator()(ExtractedStringFeatureVec& outVec, const char *str, size_t str_len, int lang) const
 {
 	const size_t nGramSymbs = 3;
+	const size_t stemThreshold = 4;
 	
 	std::string tmp;
 	if (lang == LANG_ENGLISH || lang == LANG_RUSSIAN)
 	{
 		const size_t step = lang == LANG_ENGLISH ? 1 : 2;
 		const size_t gramSize = step * nGramSymbs;
+
+		std::string stemmed;
+		if (str_len / step >= stemThreshold)
+		{
+			if (BZSpell::stem(stemmed, str, lang, stemThreshold))
+				str = stemmed.c_str();
+		}
+		
 		if (str_len >= gramSize)
 			for (size_t i = 0, end = str_len - gramSize + 1; i < end; i += step)
 			{
@@ -24,7 +33,14 @@ void TFE_ngram::operator()(ExtractedStringFeatureVec& outVec, const char *str, s
 	}
 	else
 	{
-		const ay::StrUTF8 utf8(str, str_len);
+		ay::StrUTF8 utf8(str, str_len);
+		if (utf8.size() >= stemThreshold)
+		{
+			std::string stemmed;
+			if (BZSpell::stem(stemmed, str, lang, stemThreshold))
+				utf8.assign(stemmed.c_str());
+		}
+		
 		if (utf8.size() >= nGramSymbs)
 			for (size_t i = 0, end = utf8.size() - nGramSymbs + 1; i < end; ++i)
 				outVec.push_back(ExtractedStringFeature(utf8.getSubstring(i, nGramSymbs), nGramSymbs));
@@ -85,18 +101,30 @@ namespace
 	struct MatchResult
 	{
 		uint32_t m_strId;
-		uint8_t m_confidence;
+		int m_dist;
+		double m_confidence;
 		
 		MatchResult()
 		: m_strId(0xffffffff)
+		, m_dist(255)
 		, m_confidence(0)
 		{
 		}
 		
-		MatchResult(uint32_t strId, uint8_t conf)
+		MatchResult(uint32_t strId, int dist, double conf)
 		: m_strId(strId)
+		, m_dist(dist)
 		, m_confidence(conf)
 		{
+		}
+	};
+	
+	template<typename Pair>
+	struct PairSortOrderer
+	{
+		bool operator()(const Pair& v1, const Pair& v2) const
+		{
+			return v1.second < v2.second;
 		}
 	};
 	
@@ -141,33 +169,23 @@ namespace
 			if (counterMap.empty())
 				return MatchResult();
 			
-			/*
-			auto bestMatch = CounterMap_t::value_type(0xffffffff, 0);
-			for (const auto& pair : counterMap)
-				if (pair.second > bestMatch.second)
-					bestMatch = pair;
-			return bestMatch.first;
-			*/
-			
 			std::vector<std::pair<uint32_t, double>> sorted;
 			sorted.reserve(counterMap.size());
 			std::copy(counterMap.begin(), counterMap.end(), std::back_inserter(sorted));
 			
-			struct SortOrderer
-			{
-				bool operator()(const std::pair<uint32_t, double>& v1, const std::pair<uint32_t, double>& v2) const
-				{
-					return v1.second < v2.second;
-				}
-			};
-			
-			std::sort(sorted.rbegin(), sorted.rend(), SortOrderer());
+			std::sort(sorted.rbegin(), sorted.rend(), PairSortOrderer<std::pair<uint32_t, double>>());
 			
 			ay::LevenshteinEditDistance levDist;
 			ay::StrUTF8 ourStr(m_str, m_strLen);
-			for (const auto& best : sorted)
+			//std::cout << __PRETTY_FUNCTION__ << " got num words: " << sorted.size() << std::endl;
+
+			typedef std::pair<uint32_t, int> LevInfo_t;
+			std::vector<LevInfo_t> levInfos;
+			const size_t topNum = 100;
+			const int maxDist = 3;
+			for (size_t i = 0, max = std::min(topNum, sorted.size()); i < max; ++i)
 			{
-				const char *str = storage.getPool()->resolveId(best.first);
+				const char *str = storage.getPool()->resolveId(sorted[i].first);
 				const auto strLen = strlen(str);
 				auto lang = Lang::getLangNoUniverse(str, strLen);
 				if (lang != m_lang)
@@ -180,19 +198,25 @@ namespace
 					dist = levDist.twoByte(str, strLen / 2, m_str, m_strLen / 2);
 				else
 					dist = levDist.utf8(ourStr, ay::StrUTF8(str, strLen));
-				
-				if (dist > 3)
+				if (dist > maxDist)
 					continue;
-				
-				return MatchResult(best.first, best.second);
+
+				levInfos.push_back(LevInfo_t(sorted[i].first, dist));
 			}
+			std::sort(levInfos.begin(), levInfos.end(), PairSortOrderer<LevInfo_t>());
+			/*
+			for (const auto& info : levInfos)
+				std::cout << storage.getPool()->resolveId(info.first) << " " << info.second << std::endl;
+			*/
 			
-			return MatchResult();
+			return !levInfos.empty() ?
+					MatchResult(levInfos[0].first, levInfos[0].second, 1 / static_cast<double>(sorted.size())) :
+					MatchResult();
 		}
 	};
 }
 
-uint32_t FeaturedSpellCorrector::getBestMatch(const char *str, size_t strLen, int lang)
+FeaturedSpellCorrector::FeaturedMatchInfo FeaturedSpellCorrector::getBestMatch(const char *str, size_t strLen, int lang)
 {
 	MatchVisitor vis(str, strLen, lang);
 	if (m_matchStrategy == MatchStrategy::FirstWins)
@@ -201,9 +225,9 @@ uint32_t FeaturedSpellCorrector::getBestMatch(const char *str, size_t strLen, in
 		{
 			const auto& res = boost::apply_visitor(vis, storage);
 			if (res.m_strId != 0xffffffff)
-				return res.m_strId;
+				return FeaturedMatchInfo(res.m_strId, res.m_dist);
 		}
-		return 0xffffffff;
+		return FeaturedMatchInfo();
 	}
 	else if (m_matchStrategy == MatchStrategy::BestWins)
 	{
@@ -211,15 +235,17 @@ uint32_t FeaturedSpellCorrector::getBestMatch(const char *str, size_t strLen, in
 		for (const auto& storage : m_storages)
 		{
 			const auto& res = boost::apply_visitor(vis, storage);
-			if (res.m_confidence > bestRes.m_confidence)
+			if (res.m_strId != 0xffffffff &&
+					res.m_dist <= bestRes.m_dist &&
+					res.m_confidence > bestRes.m_confidence)
 				bestRes = res;
 		}
-		return bestRes.m_strId;
+		return FeaturedMatchInfo(bestRes.m_strId, bestRes.m_dist);;
 	}
 	else
 	{
 		AYLOG(ERROR) << "unknown match strategy " << static_cast<int>(m_matchStrategy);
-		return 0xffffffff;
+		return FeaturedMatchInfo();
 	}
 }
 }

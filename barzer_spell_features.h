@@ -4,7 +4,6 @@
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
 #include <boost/variant.hpp>
-#include <boost/tuple/tuple.hpp>
 #include <ay/ay_char.h>
 #include <ay/ay_string_pool.h>
 #include <barzer_universe.h>
@@ -192,12 +191,15 @@ public:
 	} m_matchStrategy;
 	
 	FeaturedSpellCorrector()
-	: m_matchStrategy(MatchStrategy::FirstWins)
+	: m_matchStrategy(MatchStrategy::BestWins)
 	{
 	}
 	
 	void init(ay::UniqueCharPool& p)
 	{
+		if (!m_storages.empty())
+			return;
+		
 		m_storages.push_back(TFE_storage<TFE_ngram>(p));
 		m_storages.push_back(TFE_storage<TFE_bastard>(p));
 	}
@@ -208,96 +210,25 @@ public:
 	}
 	
 	void addWord(uint32_t strId, const char *str, int lang);
-	uint32_t getBestMatch(const char *str, size_t strLen, int lang);
-};
-
-/*
-typedef boost::tuple<TFE_storage<TFE_ngram>, TFE_storage<TFE_bastard>> AllInvIdxStoragesTuple;
-
-template<typename Tuple, typename F, size_t pos>
-struct foreachStorageImpl
-{
-	foreachStorageImpl(Tuple& t, F f)
-	{
-		f(std::get<pos>(t));
-		foreachStorageImpl<Tuple, F, pos - 1>(t, f);
-	}
-};
-
-template<typename Tuple, typename F>
-struct foreachStorageImpl<Tuple, F, 0>
-{
-	foreachStorageImpl(Tuple& t, F f)
-	{
-		f(std::get<0>(t));
-	}
-};
-
-template<typename Tuple, typename F>
-void foreachStorage(Tuple& t, F f)
-{
-	foreachStorageImpl<Tuple, F, boost::tuple_size<Tuple>::value - 1>(t, f);
-}
-
-template<typename Tuple, typename Heur, typename TElem, size_t pos>
-struct HeurIdxHelper : HeurIdxHelper<Tuple, Heur, typename boost::tuple_element<pos - 1, Tuple>::type, pos - 1>
-{
-	static_assert(pos < boost::tuple_size<Tuple>::value, "tuple element not found");
-};
-
-template<typename Tuple, typename Heur, size_t pos>
-struct HeurIdxHelper<Tuple, Heur, TFE_storage<Heur>, pos>
-{
-	enum class ResType : size_t { Result = pos };
-};
-
-template<typename Heur, typename Tuple>
-TFE_storage<Heur>& findHeuristic(Tuple& t)
-{
-	return std::get<HeurIdxHelper<Tuple, Heur, typename boost::tuple_element<boost::tuple_size<Tuple>::value - 1, Tuple>::type, boost::tuple_size<Tuple>::value - 1>::ResType::Result>(t);
-}
-
-struct WordAdderLambda
-{
-	const uint32_t m_strId;
-	const char * const m_str;
-	const uint32_t m_lang;
 	
-	StoredStringFeatureVec m_storedVec;
-    ExtractedStringFeatureVec m_extractedVec;
-	TFE_TmpBuffers m_buf;
-	
-	WordAdderLambda(uint32_t strId, const char *str, uint32_t lang)
-	: m_strId(strId)
-	, m_str(str)
-	, m_lang(lang)
-	, m_buf(m_storedVec, m_extractedVec)
+	struct FeaturedMatchInfo
 	{
-	}
-	
-	template<typename T>
-	void operator()(TFE_storage<T>& storage)
-	{
-		m_buf.clear();
-		storage.extractAndStore(m_buf, m_strId, m_str, m_lang);
-	}
+		uint32_t m_strId;
+		int m_levDist;
+		
+		FeaturedMatchInfo()
+		: m_strId(0xffffffff)
+		, m_levDist(255)
+		{
+		}
+		
+		FeaturedMatchInfo(uint32_t strId, int levDist)
+		: m_strId(strId)
+		, m_levDist(levDist)
+		{
+		}
+	};
+	FeaturedMatchInfo getBestMatch(const char *str, size_t strLen, int lang);
 };
-
-class FeaturedSpellCorrector
-{
-	AllInvIdxStoragesTuple m_storages;
-public:
-	FeaturedSpellCorrector(ay::UniqueCharPool& p)
-	: m_storages(std::make_tuple(TFE_storage<TFE_ngram>(p), TFE_storage<TFE_bastard>(p)))
-	{
-	}
-	
-	void addWord(uint32_t strId, const char *str, int lang)
-	{
-		// that would be waaaaaaay more beautiful with real lambdas :(
-		foreachStorage(m_storages, WordAdderLambda(strId, str, lang));
-	}
-};
-*/
 
 } // namespace barzer

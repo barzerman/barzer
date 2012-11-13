@@ -153,7 +153,6 @@ class GlobalPools {
 	typedef boost::unordered_set< uint32_t > DictionaryMap;
 	DictionaryMap d_dictionary;
     stem_to_srcs_map d_stemSrcs;
-	ay::StemThreadPool m_stemPool;
 
 	ay::UTF8TopicModelMgr *m_utf8langModelMgr;
 	ay::ASCIITopicModelMgr *m_asciiLangModelMgr;
@@ -182,8 +181,6 @@ public:
     }
 	inline ay::UTF8TopicModelMgr* getUTF8LangMgr() const { return m_utf8langModelMgr; }
 	inline ay::ASCIITopicModelMgr* getASCIILangMgr() const { return m_asciiLangModelMgr; }
-
-	inline ay::StemThreadPool& getStemPool() { return m_stemPool; }
 
     void addStemSrc ( uint32_t stemId, uint32_t srcId ) { d_stemSrcs[stemId].insert(srcId); }
 

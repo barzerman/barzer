@@ -5,7 +5,7 @@ namespace zurch {
 int FeatureExtractor::extractFeatures( ExtractedFeatureMap& efmap, const FeatureExtractor_Base::StringVec &ntVec, bool learnMode )
 {
     for( FeatureExtractor_Base::StringVec::const_iterator i = ntVec.begin(); i!= ntVec.end(); ++i ) {
-        uint32_t    featureId       = d_tokPool.internIt( i->c_str() );
+        uint32_t    featureId       = ( learnMode ? d_tokPool.internIt( i->c_str() ) : d_tokPool.getId(i->c_str() ));
         
         ExtractedFeatureMap::iterator emi = efmap.find(featureId);
         if( emi == efmap.end() ) 
@@ -26,7 +26,9 @@ int FeatureExtractor::extractFeatures( ExtractedFeatureMap& efmap, const char* b
         return 0;
     for( auto i = tokVec.begin(); i!= tokVec.end(); ++i ) {
         const       ZurchToken& zt  = *i;
-        uint32_t    featureId       = d_tokPool.internIt( zt.str.c_str() );
+        uint32_t    featureId       = ( learnMode ? d_tokPool.internIt( zt.str.c_str() ) : d_tokPool.getId(zt.str.c_str() ) );
+        if( featureId == 0xffffffff ) // we're in classification mode and feature is new 
+            continue;
         
         ExtractedFeatureMap::iterator emi = efmap.find(featureId);
         if( emi == efmap.end() ) 
@@ -42,8 +44,9 @@ int FeatureExtractor::extractFeatures( ExtractedFeatureMap& efmap, const char* b
 int FeatureExtractor_Normalizing::extractFeatures( ExtractedFeatureMap& efmap, const FeatureExtractor_Base::StringVec &ntVec, bool learnMode )
 {
     for( FeatureExtractor_Base::StringVec::const_iterator i = ntVec.begin(); i!= ntVec.end(); ++i ) {
-        uint32_t    featureId       = d_tokPool.internIt( i->c_str() );
-        
+        uint32_t    featureId       = ( learnMode ? d_tokPool.internIt( i->c_str() ) : d_tokPool.getId(i->c_str() ) );
+        if( featureId == 0xffffffff ) // we're in classification mode and feature is new
+            continue;
         ExtractedFeatureMap::iterator emi = efmap.find(featureId);
         if( emi == efmap.end() ) 
             emi = efmap.insert( ExtractedFeatureMap::value_type(featureId,0)).first;
@@ -62,7 +65,7 @@ int FeatureExtractor_Normalizing::extractFeatures( ExtractedFeatureMap& efmap, c
     char* buf= new char[ buf_sz +1 ];
     std::auto_ptr<char> raii( buf );
 
-    memcpy( buf, buf_orig, buf_sz );
+    barzer::Lang::lowLevelNormalization( buf, buf_sz, buf_orig, buf_sz );
     buf[buf_sz]=0;
     int lang = barzer::Lang::getLangNoUniverse( buf, buf_sz );
     barzer::Lang::stringToLower( buf, buf_sz, lang );
@@ -73,16 +76,20 @@ int FeatureExtractor_Normalizing::extractFeatures( ExtractedFeatureMap& efmap, c
 
     ZurchWordNormalizer::NormalizerEnvironment normEnv;
     std::string norm;
+    size_t numFeatures = 0;
     for( auto i = tokVec.begin(); i!= tokVec.end(); ++i ) {
         const       ZurchToken& zt  = *i;
         const char* z_str = zt.str.c_str();
-        size_t      z_str_sz;
-        uint32_t    featureId       = d_tokPool.getId( zt.str.c_str() );
-        if( featureId == 0xffffffff ) { /// may need to transform
-            norm.clear();
-            d_normalizer.normalize(norm,z_str,normEnv);
-            featureId=d_tokPool.internIt(norm.c_str());
+        if( isspace(*z_str) ) {
+            continue;
         }
+        ++numFeatures;
+        size_t      z_str_sz;
+        norm.clear();
+        d_normalizer.normalize(norm,z_str,normEnv);
+        uint32_t    featureId       = ( learnMode ? d_tokPool.internIt( norm.c_str() ) : d_tokPool.getId( norm.c_str() ) );
+        if( featureId == 0xffffffff ) // we're in classification mode and feature is new
+            continue;
         ExtractedFeatureMap::iterator emi = efmap.find(featureId);
         if( emi == efmap.end() ) 
             emi = efmap.insert( ExtractedFeatureMap::value_type(featureId,0)).first;
@@ -90,7 +97,7 @@ int FeatureExtractor_Normalizing::extractFeatures( ExtractedFeatureMap& efmap, c
         emi->second++;
     }
 
-    normalizeFeatures( efmap, tokVec.size() );
+    normalizeFeatures( efmap, numFeatures );
     return 0;
 }
 
@@ -241,16 +248,16 @@ std::ostream& TagStats::print( std::ostream& fp ) const
 }
 std::ostream& TagStats::printDeep( std::ostream& fp, const PrintContext& ctxt ) const
 {
-    printFeatureStatsMap( fp << "hasMap[" << hasMap.size()  << "]{", hasMap, ctxt ) << "}" << std::endl;
-    printFeatureStatsMap( fp << "hasNotMap[" << hasNotMap.size()  << "]{", hasNotMap, ctxt ) << "}" << std::endl;
+    printFeatureStatsMap( fp << "hasMap[" << hasMap.size()  << "] {\n", hasMap, ctxt ) << "\n}" << std::endl;
+    printFeatureStatsMap( fp << "hasNotMap[" << hasNotMap.size()  << "] {\n", hasNotMap, ctxt ) << "\n}" << std::endl;
     return fp;
 }
 std::ostream& TagStats::printFeatureStatsMap( std::ostream& fp, const Map& m, const PrintContext& ctxt ) const 
 {
     for( auto i = m.begin(); i != m.end(); ++i ) {
         fp << i->first << ":";
-        ctxt.printStringById(fp,i->first) << std::endl;
-        fp << ":" << "(" << i->second << ")";
+        ctxt.printStringById(fp,i->first) <<
+        ":" << "(" << i->second << ")" << std::endl;
     }
     return fp;
 }

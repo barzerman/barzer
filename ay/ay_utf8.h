@@ -294,7 +294,7 @@ namespace ay
 
 		StrUTF8() {appendZero ();}
 
-		StrUTF8(const char*s)
+		explicit StrUTF8(const char*s)
             { assign(s); }
 
 		StrUTF8(const char*s, size_t s_sz )
