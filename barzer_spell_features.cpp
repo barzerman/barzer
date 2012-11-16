@@ -176,7 +176,8 @@ namespace
 			std::sort(sorted.rbegin(), sorted.rend(), PairSortOrderer<std::pair<uint32_t, double>>());
 			
 			ay::LevenshteinEditDistance levDist;
-			ay::StrUTF8 ourStr(m_str, m_strLen);
+			const ay::StrUTF8 ourStr(m_str, m_strLen);
+			const size_t numGlyphs = ourStr.getGlyphCount();
 			//std::cout << __PRETTY_FUNCTION__ << " got num words: " << sorted.size() << std::endl;
 
 			typedef std::pair<uint32_t, int> LevInfo_t;
@@ -198,7 +199,9 @@ namespace
 					dist = levDist.twoByte(str, strLen / 2, m_str, m_strLen / 2);
 				else
 					dist = levDist.utf8(ourStr, ay::StrUTF8(str, strLen));
-				if (dist > maxDist)
+				if (dist > maxDist ||
+						(dist == 2 && numGlyphs < 5) ||
+						(dist == 3 && numGlyphs < 7))
 					continue;
 
 				levInfos.push_back(LevInfo_t(sorted[i].first, dist));
