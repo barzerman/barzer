@@ -149,7 +149,8 @@ public:
 	size_t init( const StoredUniverse* secondaryUniverse =0 );
 
 	/// when fails 0xffffffff is returned 
-	uint32_t getSpellCorrection( const char* s, bool doStemCorrect, int lang=LANG_UNKNOWN ) const;
+    enum { LEV_DIST_UNLIMITED = 100 };
+	uint32_t getSpellCorrection( const char* s, bool doStemCorrect, int lang /*=LANG_UNKNOWN*/, size_t levMax=LEV_DIST_UNLIMITED ) const;
 	uint32_t getStemCorrection( std::string& , const char*, int lang=LANG_UNKNOWN) const;
     // when bool doStemCorrect is false it will NOT correct to a string whose token is 
     // pure stem

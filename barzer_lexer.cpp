@@ -585,7 +585,7 @@ inline bool QLexParser::trySplitCorrectUTF8 ( SpellCorrectResult& corrResult, QL
         bool rightCorrected = false;
         if( rightTok || right.size() > MIN_SPELL_CORRECT_LEN ) {
             if( !rightTok ) { // right token is not an immediate token, correcting
-                uint32_t rightId = parm.bzSpell->getSpellCorrection (rightCorr,false,parm.lang) ;
+                uint32_t rightId = parm.bzSpell->getSpellCorrection (rightCorr,false,parm.lang,1) ;
                 rightCorr = ( parm.bzSpell->isUsersWordById(rightId) ? gp.string_resolve(rightId) : 0 );
                 if( !rightCorr )
                     continue;
@@ -598,7 +598,7 @@ inline bool QLexParser::trySplitCorrectUTF8 ( SpellCorrectResult& corrResult, QL
             if( rightTok ) {
                 leftTok = getStoredToken(leftCorr);
                 if( !rightCorrected && !leftTok ) {
-                    uint32_t leftId = parm.bzSpell->getSpellCorrection (leftCorr,false,parm.lang) ;
+                    uint32_t leftId = parm.bzSpell->getSpellCorrection (leftCorr,false,parm.lang,1) ;
                     leftCorr = ( parm.bzSpell->isUsersWordById( leftId ) ? gp.string_resolve(leftId) : 0);
                     if( !leftCorr )
                         continue;
@@ -668,7 +668,7 @@ inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexPa
                     if( i < MIN_SPELL_CORRECT_LEN*step )
                         continue;
                     else {
-                        left = bzSpell->getSpellCorrection (dirty,false,lang);
+                        left = bzSpell->getSpellCorrection (dirty,false,lang,1);
                         leftCorrected = true;
                     }
                 } else
@@ -690,7 +690,7 @@ inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexPa
                             std::string stemmedStr;
                             right = bzSpell->getStemCorrection( stemmedStr, rightDirty );
                         } else 
-                            right = bzSpell->getSpellCorrection (rightDirty,false,lang) ;
+                            right = bzSpell->getSpellCorrection (rightDirty,false,lang,1) ;
                     }
                 } else
                     right = tmpTok->getStringId() ;

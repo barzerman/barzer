@@ -210,6 +210,17 @@ int Lang::getLangNoUniverse( const char* str, size_t s_len )
     }
     return ( lang == LANG_UNKNOWN ? LANG_UNKNOWN_UTF8 : lang );
 }
+int Lang::getLangAndLengthNoUniverse( size_t& numGlyphs, const char* str, size_t s_len )
+{
+    int lang = getLangNoUniverse(str,s_len);
+    if(lang == LANG_ENGLISH) {
+        return ( numGlyphs=s_len, lang );
+    } else if( Lang::isTwoByteLang(lang)) {
+        return ( numGlyphs=s_len/2, lang );
+    } else { // utf8
+        return ( numGlyphs= ay::StrUTF8::glyphCount(str,str+s_len), lang );
+    }
+}
 
 namespace
 {

@@ -66,6 +66,7 @@ struct Lang {
     inline static bool isEnglish(int lang) { return (lang == LANG_ENGLISH); }
 
     static int getLangNoUniverse( const char* str, size_t s_len );
+    static int getLangAndLengthNoUniverse( size_t& numGlyphs, const char* str, size_t s_len );
     static int getLang( const StoredUniverse&, const char* str, size_t s_len );
     static bool convertTwoByteToLower( char* s, size_t s_len, int lang );
     /// returns true if diacritics were found

@@ -592,7 +592,11 @@ namespace
 		
 		mutable ay::LevenshteinEditDistance m_levDist;
 	public:
-		FeaturedMatchComparator(const char *srcStr, const StoredUniverse& sc, int lang, const FeaturedSpellCorrector::FeaturedMatchInfo& res)
+		FeaturedMatchComparator(
+            const char *srcStr, 
+            const StoredUniverse& sc, 
+            int lang, 
+            const FeaturedSpellCorrector::FeaturedMatchInfo& res)
 		: m_srcStr(srcStr)
 		, m_sc(sc)
 		, m_lang(lang)
@@ -623,7 +627,7 @@ namespace
 }
 
 /// when fails 0xffffffff is returned
-uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int lang ) const
+uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int lang, size_t levMax ) const
 {
 	/// for ascii corrector
     size_t str_len = strlen( str );
@@ -633,7 +637,7 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 	const bool useFeaturedSC = true; /*d_universe.checkBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT);*/
 	const FeaturedMatchComparator featuredCmp(str, d_universe, lang,
 			useFeaturedSC ?
-				m_featuredSC->getBestMatch(str, str_len, lang) :
+				m_featuredSC->getBestMatch(str, str_len, lang, levMax ) :
 				FeaturedSpellCorrector::FeaturedMatchInfo());
 	
 	if( lang == LANG_ENGLISH) {

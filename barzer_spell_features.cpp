@@ -127,23 +127,32 @@ namespace
 			return v1.second < v2.second;
 		}
 	};
-	
+    
+    inline size_t diff_by_more_than( size_t x, size_t y, size_t delta ) 
+    {
+        return( x>y ? (x-y>delta) : (y-x>delta) );
+    }
 	struct MatchVisitor : public boost::static_visitor<MatchResult>
 	{
 		const char *m_str;
 		size_t m_strLen;
 		int m_lang;
+        size_t m_maxLevDist;
+        size_t m_glyphCount;
 		
-		MatchVisitor(const char *str, size_t strLen, int lang)
-		: m_str(str)
-		, m_strLen(strLen)
-		, m_lang(lang)
-		{
-		}
+		MatchVisitor(const char *str, size_t strLen, int lang, size_t maxLevDist) : 
+            m_str(str)
+		    , m_strLen(strLen)
+		    , m_lang(lang)
+		    , m_maxLevDist(maxLevDist)
+            , m_glyphCount(ay::StrUTF8::glyphCount(str,str+strLen))
+		{}
 		
 		template<typename T>
 		MatchResult operator()(const TFE_storage<T>& storage) const
 		{
+			const int maxDist = (m_maxLevDist<  3? m_maxLevDist: 3);
+
 			StoredStringFeatureVec storedVec;
 			ExtractedStringFeatureVec extractedVec;
 			TFE_TmpBuffers tmpBuf(storedVec, extractedVec);
@@ -182,23 +191,32 @@ namespace
 
 			typedef std::pair<uint32_t, int> LevInfo_t;
 			std::vector<LevInfo_t> levInfos;
-			const size_t topNum = 100;
-			const int maxDist = 3;
-			for (size_t i = 0, max = std::min(topNum, sorted.size()); i < max; ++i)
+			const size_t topNum = 2048;
+            bool langIsTwoByte = Lang::isTwoByteLang(m_lang);
+			for (size_t i = 0, takenCnt = 0, max = sorted.size(); i < max && takenCnt<topNum; ++i)
 			{
 				const char *str = storage.getPool()->resolveId(sorted[i].first);
-				const auto strLen = strlen(str);
-				auto lang = Lang::getLangNoUniverse(str, strLen);
+				const size_t strLen = strlen(str);
+                
+                size_t numGlyphs = 0;
+				auto lang = Lang::getLangAndLengthNoUniverse(numGlyphs,str, strLen);
 				if (lang != m_lang)
 					continue;
 				
+                // m_glyphCount
+                if( diff_by_more_than( m_glyphCount, numGlyphs, maxDist ) )
+                    continue;
+                else 
+                    ++takenCnt;
+
 				int dist = 100;
-				if (lang == LANG_ENGLISH)
+				if (lang == LANG_ENGLISH) {
 					dist = levDist.ascii_no_case(str, m_str);
-				else if (Lang::isTwoByteLang(lang))
+				} else if (langIsTwoByte) {
 					dist = levDist.twoByte(str, strLen / 2, m_str, m_strLen / 2);
-				else
+				} else {
 					dist = levDist.utf8(ourStr, ay::StrUTF8(str, strLen));
+                }
 				if (dist > maxDist ||
 						(dist == 2 && numGlyphs < 5) ||
 						(dist == 3 && numGlyphs < 7))
@@ -219,9 +237,9 @@ namespace
 	};
 }
 
-FeaturedSpellCorrector::FeaturedMatchInfo FeaturedSpellCorrector::getBestMatch(const char *str, size_t strLen, int lang)
+FeaturedSpellCorrector::FeaturedMatchInfo FeaturedSpellCorrector::getBestMatch(const char *str, size_t strLen, int lang, size_t maxLevDist)
 {
-	MatchVisitor vis(str, strLen, lang);
+	MatchVisitor vis(str, strLen, lang, maxLevDist);
 	if (m_matchStrategy == MatchStrategy::FirstWins)
 	{
 		for (const auto& storage : m_storages)

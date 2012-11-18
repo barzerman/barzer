@@ -443,7 +443,7 @@ public:
 	/// uses bzSpell
 	// returns stringId of corrected word or 0xffffffff
 	uint32_t spellCorrect( const char* word, bool doStemCorrect = true ) const
-		{ return ( bzSpell ? bzSpell->getSpellCorrection( word, doStemCorrect ) : 0 ); }
+		{ return ( bzSpell ? bzSpell->getSpellCorrection( word, doStemCorrect, LANG_UNKNOWN ) : 0 ); }
 	//  performs trivial practical stemming
 	// returns stringId of corrected word or 0xffffffff
 	uint32_t stem( std::string& out, const char* word) const

@@ -526,7 +526,7 @@ static int bshf_bzspell( BarzerShell* shell, char_cp cmd, std::istream& in )
 			std::cerr << "this is a valid " << ( isUsersWord == 1 ? "user's " : "secondary " ) << "word\n";
 			continue;
 		}
-		uint32_t strId = bzSpell->getSpellCorrection( word, true );
+		uint32_t strId = bzSpell->getSpellCorrection( word, true, LANG_UNKNOWN );
 		if( strId != 0xffffffff ) {
 			std::cerr << "corrected to " << std::hex << strId << ":";
 			const char* corrected = gp.string_resolve( strId ) ;
