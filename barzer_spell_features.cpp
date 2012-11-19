@@ -28,8 +28,19 @@ void TFE_ngram::operator()(ExtractedStringFeatureVec& outVec, const char *str, s
 			for (size_t i = 0, end = str_len - gramSize + 1; i < end; i += step)
 			{
 				tmp.assign(str + i, gramSize);
-				outVec.push_back(ExtractedStringFeature(tmp, i / step));
+				outVec.push_back(ExtractedStringFeature(tmp, i / step + 1));
 			}
+		
+		if (str_len >= gramSize - 1)
+		{
+			tmp = ' ';
+			tmp.append(str, gramSize - 1);
+			outVec.push_back(ExtractedStringFeature(tmp, 0));
+			
+			tmp.assign(str + str_len - gramSize, gramSize - 1);
+			tmp.append(" ");
+			outVec.push_back(ExtractedStringFeature(tmp, 2 + (str_len - gramSize + 1) / step));
+		}
 	}
 	else
 	{
@@ -43,7 +54,18 @@ void TFE_ngram::operator()(ExtractedStringFeatureVec& outVec, const char *str, s
 		
 		if (utf8.size() >= nGramSymbs)
 			for (size_t i = 0, end = utf8.size() - nGramSymbs + 1; i < end; ++i)
-				outVec.push_back(ExtractedStringFeature(utf8.getSubstring(i, nGramSymbs), nGramSymbs));
+				outVec.push_back(ExtractedStringFeature(utf8.getSubstring(i, nGramSymbs), i + 1));
+			
+		if (utf8.size() >= nGramSymbs - 1)
+		{
+			std::string tmp(" ");
+			tmp.append(utf8.getSubstring(0, nGramSymbs - 1));
+			outVec.push_back(ExtractedStringFeature(tmp, 0));
+			
+			tmp.assign(utf8.getSubstring(utf8.size() - nGramSymbs + 1, nGramSymbs - 1));
+			tmp.append(" ");
+			outVec.push_back(ExtractedStringFeature(tmp, utf8.size() - nGramSymbs + 2));
+		}
 	}
 }
 
