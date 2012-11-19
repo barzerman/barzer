@@ -620,7 +620,7 @@ inline bool QLexParser::trySplitCorrectUTF8 ( SpellCorrectResult& corrResult, QL
                 reportedCorrection.push_back( ' ' );
                 reportedCorrection += rightCorr;
     
-                parm.ctok.addSpellingCorrection (fullStr, reportedCorrection.c_str());
+                parm.ctok.addSpellingCorrection (fullStr, reportedCorrection.c_str(), d_universe);
     
                 ++parm.cPosVec;
     
@@ -739,7 +739,7 @@ inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexPa
                 reportedCorrection.push_back( ' ' );
                 reportedCorrection += rightCorr;
     
-                ctok.addSpellingCorrection (t, reportedCorrection.c_str());
+                ctok.addSpellingCorrection (t, reportedCorrection.c_str(), d_universe);
                 st = getStoredToken (leftCorr);
                 if (st)
                 {
@@ -814,7 +814,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 
 		    const char* correction = gp.string_resolve( tmpTok->getStringId() ) ;
             if( correction && strcmp(correction,theString)) 
-			    ctok.addSpellingCorrection( theString, correction );
+			    ctok.addSpellingCorrection( theString, correction, d_universe );
             return SpellCorrectResult (1, ++cPosVec, ++tPosVec);
         }
     }
@@ -961,7 +961,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 			ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
 		}
 		if( correctedStr )
-			ctok.addSpellingCorrection( t, correctedStr );
+			ctok.addSpellingCorrection( t, correctedStr, d_universe );
 		return SpellCorrectResult (1, ++cPosVec, ++tPosVec);
 	} else
 		ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );

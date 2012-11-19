@@ -19,6 +19,26 @@ void  CToken::syncStemAndStoredTok(const StoredUniverse& u)
     }
 }
 
+void CToken::addSpellingCorrection(const char* wrong, const char* correct, const StoredUniverse& uni)
+{ 
+	if( !ay::ay_strcasecmp(wrong,correct) )  
+		return;
+	
+	std::string wrongStem, correctStem;
+	if (uni.stem(wrongStem, wrong) &&
+			uni.stem(correctStem, correct) &&
+			wrongStem == correctStem)
+		return;
+	
+	setSpellCorrected();
+	spellCorrections.resize( spellCorrections.size() +1 ) ;
+	spellCorrections.back().first.assign(wrong);
+	spellCorrections.back().second.assign(correct);
+	if( isMysteryWord() ) {
+		correctedStr.assign( correct );
+	}
+}
+
 std::ostream& CToken::printQtVec( std::ostream& fp ) const
 {
 	for( TTWPVec::const_iterator i = qtVec.begin(); i!= qtVec.end(); ++i ) {

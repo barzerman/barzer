@@ -185,18 +185,8 @@ struct CToken {
 	bool isPunct(char c) const { return ( (isPunct() ||(c==' ' && isSpace()) )  && qtVec.size() == 1 && qtVec[0].first.buf[0] == c ); }
 	
 	void setSpellCorrected( bool v = true ) { cInfo.setSpellCorrected(v); }
-	void addSpellingCorrection( const char* wrong, const char*  correct ) 
-	{ 
-        if( !ay::ay_strcasecmp(wrong,correct) )  
-            return;
-		setSpellCorrected();
-		spellCorrections.resize( spellCorrections.size() +1 ) ;
-		spellCorrections.back().first.assign(wrong);
-		spellCorrections.back().second.assign(correct);
-		if( isMysteryWord() ) {
-			correctedStr.assign( correct );
-		}
-	}
+	void addSpellingCorrection(const char* wrong, const char*  correct, const StoredUniverse& uni);
+
 	void setStemmed( bool v = true ) { cInfo.setStemmed(v); }
 	bool isSpellCorrected( ) const { return cInfo.isSpellCorrected(); }
 	bool isStemmed( ) const { return cInfo.isStemmed(); }
