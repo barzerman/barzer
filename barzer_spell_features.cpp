@@ -149,7 +149,7 @@ namespace
 			, m_strUtf8(m_str, m_strLen)
 			, m_lang(lang)
 			, m_maxLevDist(maxLevDist)
-			, m_glyphCount(ay::StrUTF8::glyphCount(str,str+strLen))
+			, m_glyphCount(m_strUtf8.getGlyphCount())
 		{}
 		
 		template<typename T>
