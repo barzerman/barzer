@@ -44,6 +44,9 @@ void BZSpell::addExtraWordToDictionary( uint32_t strId, uint32_t frequency )
 	        if( lang != LANG_ENGLISH )
                 wmi->second.setLang(lang);
 			
+            if( !strncmp(str,"дедушк", 12)) {
+                std::cerr << "SHIT dedushk\n";
+            }
 			m_featuredSC->addWord(strId, str, lang);
         }
 
@@ -1350,8 +1353,15 @@ size_t BZSpell::init( const StoredUniverse* secondaryUniverse )
 			const TrieWordInfo& wordInfo = w->second;
 			const uint32_t strId = w->first;
 
-			if (d_wordinfoMap.find(strId) == d_wordinfoMap.end())
-				addExtraWordToDictionary(strId, wordInfo.wordCount);
+			if (d_wordinfoMap.find(strId) == d_wordinfoMap.end()) {
+	            const char* SHIT = d_universe.getGlobalPools().string_resolve( strId );
+                if( !strcmp(SHIT,"дедушк") ) {
+                    const auto& shit=w->second;
+                    std::cerr << "SHIT dedushk \n";
+                }
+                if( w->second.wordCount )
+				    addExtraWordToDictionary(strId, wordInfo.wordCount);
+            }
 			BZSWordInfo& wi = d_wordinfoMap[ strId ];
                 
 			if( wi.upgradePriority( t->trie().getSpellPriority()) )
