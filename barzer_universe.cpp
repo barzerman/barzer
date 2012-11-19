@@ -347,9 +347,6 @@ StoredToken& StoredUniverse::internString( int lang, const char* t, BELTrie* tri
     }
 	if( triePtr ) {
 		BELTrie& trie = *triePtr; 
-        if( unstemmed && !strncmp( unstemmed, "дедушк",12 ) ) {
-            std::cerr << "SHIT dedushk univers.cpp\n";
-        }
         trie.addWordInfo( sTok.getStringId(),unstemmed );
         if( !unstemmed ) {
             if( bzSpell ) {

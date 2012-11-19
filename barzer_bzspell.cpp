@@ -44,9 +44,6 @@ void BZSpell::addExtraWordToDictionary( uint32_t strId, uint32_t frequency )
 	        if( lang != LANG_ENGLISH )
                 wmi->second.setLang(lang);
 			
-            if( !strncmp(str,"дедушк", 12)) {
-                std::cerr << "SHIT dedushk\n";
-            }
 			m_featuredSC->addWord(strId, str, lang);
         }
 
@@ -738,7 +735,7 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 			ascii::CharPermuter_2B permuter( str, cb );
 			permuter.doAll();
 			uint32_t retStrId =  cb.getBestStrId();
-            if( retStrId != 0xffffffff && (doStemCorrect|| !isPureStem(retStrId)) )
+            if( retStrId != 0xffffffff && isUsersWordById(retStrId) && (doStemCorrect|| !isPureStem(retStrId)) )
                 return featuredCmp(retStrId);
             else if( doStemCorrect )
                 return featuredCmp(get2ByteLangStemCorrection( lang, str, doStemCorrect ));
@@ -1354,11 +1351,6 @@ size_t BZSpell::init( const StoredUniverse* secondaryUniverse )
 			const uint32_t strId = w->first;
 
 			if (d_wordinfoMap.find(strId) == d_wordinfoMap.end()) {
-	            const char* SHIT = d_universe.getGlobalPools().string_resolve( strId );
-                if( !strcmp(SHIT,"дедушк") ) {
-                    const auto& shit=w->second;
-                    std::cerr << "SHIT dedushk \n";
-                }
                 if( w->second.wordCount )
 				    addExtraWordToDictionary(strId, wordInfo.wordCount);
             }

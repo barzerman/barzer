@@ -106,10 +106,6 @@ namespace
 		void operator()(TFE_storage<T>& storage)
 		{
 			m_buf.clear();
-            if( !strcmp(m_str,"дедушк") ) {
-                std::cerr << "SHIT dedushk\n";
-            }
-            
 			storage.extractAndStore(m_buf, m_strId, m_str, m_lang);
 		}
 	};
