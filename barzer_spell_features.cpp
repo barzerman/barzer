@@ -16,7 +16,7 @@ void TFE_ngram::operator()(ExtractedStringFeatureVec& outVec, const char *str, s
 	{
 		const size_t step = lang == LANG_ENGLISH ? 1 : 2;
 		const size_t gramSize = step * nGramSymbs;
-
+		
 		std::string stemmed;
 		if (str_len / step >= stemThreshold)
 		{
@@ -196,13 +196,13 @@ namespace
 			std::vector<LevInfo_t> levInfos;
 			const size_t topNum = 2048;
             bool langIsTwoByte = Lang::isTwoByteLang(m_lang);
-			for (size_t i = 0, takenCnt = 0, max = sorted.size(); i < max && takenCnt<topNum; ++i)
+			for (size_t i = 0, takenCnt = 0, max = sorted.size(); i < max && takenCnt < topNum; ++i)
 			{
 				const char *str = storage.getPool()->resolveId(sorted[i].first);
 				const size_t strLen = strlen(str);
 				
 				size_t numGlyphs = 0;
-				auto lang = Lang::getLangAndLengthNoUniverse(numGlyphs,str, strLen);
+				auto lang = Lang::getLangAndLengthNoUniverse(numGlyphs, str, strLen);
 				if (lang != m_lang)
 					continue;
 				
