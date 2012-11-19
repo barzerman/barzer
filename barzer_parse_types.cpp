@@ -24,6 +24,12 @@ void CToken::addSpellingCorrection(const char* wrong, const char* correct, const
 	if( !ay::ay_strcasecmp(wrong,correct) )  
 		return;
 	
+	std::string wrongStem, correctStem;
+	if (uni.stem(wrongStem, wrong) &&
+			uni.stem(correctStem, correct) &&
+			wrongStem == correctStem)
+		return;
+	
 	setSpellCorrected();
 	spellCorrections.resize( spellCorrections.size() +1 ) ;
 	spellCorrections.back().first.assign(wrong);
