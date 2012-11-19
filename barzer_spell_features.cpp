@@ -241,6 +241,12 @@ namespace
 
 FeaturedSpellCorrector::FeaturedMatchInfo FeaturedSpellCorrector::getBestMatch(const char *str, size_t strLen, int lang, size_t maxLevDist)
 {
+	if (lang < 0 || lang >= LANG_MAX)
+	{
+		AYLOG(ERROR) << "erroneous language " << lang << std::endl;
+		return FeaturedMatchInfo();
+	}
+	
 	MatchVisitor vis(str, strLen, lang, maxLevDist);
 	if (m_matchStrategy == MatchStrategy::FirstWins)
 	{
