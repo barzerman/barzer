@@ -50,16 +50,12 @@ struct StoredStringFeature {
 
 inline bool operator<(const StoredStringFeature& left, const StoredStringFeature& right)
 {
-	return ay::range_comp()
-			.less_than(left.m_strId, left.m_u41, left.m_u42,
-				right.m_strId, right.m_u41, right.m_u42);
+	return left.m_strId < right.m_strId;
 }
 
 inline bool operator==(const StoredStringFeature& f1, const StoredStringFeature& f2)
 {
-	return f1.m_strId == f2.m_strId &&
-			f1.m_u41 == f2.m_u41 &&
-			f1.m_u42 == f2.m_u42;
+	return f1.m_strId == f2.m_strId;
 }
 
 inline size_t hash_value(const StoredStringFeature& f)
