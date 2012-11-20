@@ -553,8 +553,8 @@ static void printTraceInfo(std::ostream &os, const Barz &barz, const StoredUnive
                 if( btiVec ) {
                     os << ">";
                     for( BarzelTranslationTraceInfo::Vec::const_iterator i= btiVec->begin(); i!= btiVec->end(); ++i) {
-                        // const char *linkedName = gp.internalString_resolve( i->source );
-                        os << "\n  " << boost::format(linkedTmpl) % (name ? name : "")
+                        const char *linkedName = gp.internalString_resolve( i->source );
+                        os << "\n  " << boost::format(linkedTmpl) % (linkedName ? linkedName : "")
                                                   % i->statementNum
                                                   % i->emitterSeqNo
                                                   << "/>";

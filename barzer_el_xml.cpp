@@ -1755,7 +1755,7 @@ BELParserXML::~BELParserXML()
 int BELParserXML::parse( std::istream& fp )
 {
 	const char* srcName =reader->getInputFileName().c_str();
-	uint32_t srcNameStrId ;
+	uint32_t srcNameStrId = 0xffffffff; // will be set in escapeForXmlAndIntern
     
     std::string srcNameCpp;
     escapeForXmlAndIntern( reader->getGlobalPools(), srcNameStrId, srcNameCpp, srcName );
