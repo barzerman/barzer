@@ -319,11 +319,13 @@ int proc_EN2RU( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, 
 		for (auto i = tmp.begin(), end = tmp.end(); i != end; ++i)
 			*i = tolower(*i);
 		std::string result;
+
 		ay::tl::en2ru(tmp.c_str(), tmp.size(), result);
-		os << result;
+		xmlEscape( result.c_str(), os ) << " ";
 		if (*q)
 		{
-			os << *q;
+            // xmlEscape( q, os );
+			// os << *q;
 			prevStart = ++q;
 		}
 		else
