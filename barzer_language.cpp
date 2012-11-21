@@ -210,6 +210,10 @@ int Lang::getLangNoUniverse( const char* str, size_t s_len )
     }
     return ( lang == LANG_UNKNOWN ? LANG_UNKNOWN_UTF8 : lang );
 }
+size_t Lang::getNumGlyphs(int lang, const char* str, size_t s_len )
+{
+    return( lang == LANG_ENGLISH ? s_len : ( Lang::isTwoByteLang(lang) ? s_len/2 : ay::StrUTF8::glyphCount(str,str+s_len)));
+}
 int Lang::getLangAndLengthNoUniverse( size_t& numGlyphs, const char* str, size_t s_len )
 {
     int lang = getLangNoUniverse(str,s_len);

@@ -111,9 +111,22 @@ namespace
 	};
 }
 
-void FeaturedSpellCorrector::addWord(uint32_t strId, const char* str, int lang)
+void FeaturedSpellCorrector::addWord(uint32_t strId, const char* str, int lang, BZSpell& bzSpell )
 {
 	WordAdderVis adderVis(strId, str, lang);
+    /// need to memoize stem and lang so that we dont have to do it all over again
+    if( !getWordData(strId) ) {
+        std::string stem;
+        FeatureCorrectorWordData wd;
+        wd.lang = lang;
+        /// here we probly need to do a deep deep stem  
+        wd.numGlyphs = Lang::getNumGlyphs(lang, str, strlen(str));
+        if( bzSpell.stem( stem, str, wd.lang ) ) {
+            wd.stemStrId = bzSpell.getUniverse().getGlobalPools().string_intern( stem.c_str() ) ;
+            wd.numGlyphsInStem=Lang::getNumGlyphs(lang,stem.c_str(), stem.length());
+        }
+        setWordData( strId, wd );
+    }
 	for (auto& heur : m_storages)
 		boost::apply_visitor(adderVis, heur);
 }
@@ -162,17 +175,42 @@ namespace
 		const ay::StrUTF8 m_strUtf8;
 		
 		int m_lang;
+        bool m_langIsTwoByte;
 		size_t m_maxLevDist;
 		size_t m_glyphCount;
+        FeaturedSpellCorrector& d_corrector;
+        const BZSpell& d_spell;
+        std::string m_stem;
+        bool m_gotStemmed;
+		ay::StrUTF8 m_stemStrUtf8;
+	    mutable ay::LevenshteinEditDistance m_levDist;
 		
-		MatchVisitor(const char *str, size_t strLen, int lang, size_t maxLevDist)
+        inline size_t get_lev_dist( const char* str, size_t strLen, const char* str1, size_t strLen1, ay::StrUTF8& strUtf8, const ay::StrUTF8& str1Utf8 ) const
+        {
+            if (m_lang == LANG_ENGLISH) {
+                return m_levDist.ascii_no_case(str, str1);
+            } else if (m_langIsTwoByte) {
+                return m_levDist.twoByte(str, strLen / 2, str1, strLen1 / 2);
+            } else {
+                strUtf8.assign( str, str+strLen );
+                return m_levDist.utf8(strUtf8, str1Utf8 ) ; 
+            }
+        }
+		MatchVisitor(const char *str, size_t strLen, int lang, size_t maxLevDist,FeaturedSpellCorrector& corrector, const BZSpell& spell )
 			: m_str(str)
 			, m_strLen(strLen)
 			, m_strUtf8(m_str, m_strLen)
 			, m_lang(lang)
+			, m_langIsTwoByte(Lang::isTwoByteLang(lang))
 			, m_maxLevDist(maxLevDist)
 			, m_glyphCount(m_strUtf8.getGlyphCount())
-		{}
+			, d_corrector(corrector)
+            , d_spell(spell)
+            , m_gotStemmed( spell.stem(m_stem,str,lang) )
+		{
+            if( m_gotStemmed )
+                m_stemStrUtf8= ay::StrUTF8(m_stem.c_str(),m_stem.length());
+        }
 		
 		template<typename T>
 		MatchResult operator()(const TFE_storage<T>& storage) const
@@ -210,42 +248,57 @@ namespace
 			
 			std::sort(sorted.rbegin(), sorted.rend(), PairSortOrderer<std::pair<uint32_t, double>>());
 			
-			ay::LevenshteinEditDistance levDist;
-			const size_t numGlyphs = m_strUtf8.getGlyphCount();
 			//std::cout << __PRETTY_FUNCTION__ << " got num words: " << sorted.size() << std::endl;
 			
 			typedef std::pair<uint32_t, int> LevInfo_t;
 			std::vector<LevInfo_t> levInfos;
 			const size_t topNum = 2048;
             bool langIsTwoByte = Lang::isTwoByteLang(m_lang);
+            ay::StrUTF8 currentStem;
 			for (size_t i = 0, takenCnt = 0, max = sorted.size(); i < max && takenCnt < topNum; ++i)
 			{
-				const char *str = storage.getPool()->resolveId(sorted[i].first);
+                uint32_t strId = sorted[i].first;
+                const FeatureCorrectorWordData* wd = d_corrector.getWordData( strId );
+                if( !wd ) { // this should never happen
+                    AYLOG(ERROR) << "wd is null\n";
+                    continue;
+                }
+
+				const char *str = storage.getPool()->resolveId(strId);
 				const size_t strLen = strlen(str);
-				
-				size_t numGlyphs = 0;
-				auto lang = Lang::getLangAndLengthNoUniverse(numGlyphs, str, strLen);
-				if (lang != m_lang)
+			    
+				if (wd->lang != m_lang)
 					continue;
 				
-				if (diff_by_more_than(m_glyphCount, numGlyphs, maxDist))
+				if (diff_by_more_than(m_glyphCount, wd->numGlyphs, maxDist))
 					continue;
 				else
 					++takenCnt;
 				
 				int dist = 100;
-				if (lang == LANG_ENGLISH) {
-					dist = levDist.ascii_no_case(str, m_str);
+				if (m_lang == LANG_ENGLISH) {
+					dist = m_levDist.ascii_no_case(str, m_str);
 				} else if (langIsTwoByte) {
-					dist = levDist.twoByte(str, strLen / 2, m_str, m_strLen / 2);
+					dist = m_levDist.twoByte(str, strLen / 2, m_str, m_strLen / 2);
 				} else {
-					dist = levDist.utf8(m_strUtf8, ay::StrUTF8(str, strLen));
+					dist = m_levDist.utf8(m_strUtf8, ay::StrUTF8(str, strLen));
                 }
-				if (dist > maxDist ||
-						(dist == 2 && numGlyphs < 5) ||
-						(dist == 3 && numGlyphs < 7))
+
+				if (dist > maxDist || (dist == 2 && wd->numGlyphs < 5) || (dist == 3 && wd->numGlyphs < 7))
 					continue;
 
+                // if more than 1 character is different we compare stems 
+                if(dist > 1 && m_gotStemmed && wd->hasStem()) {
+                    const char *stemStr = storage.getPool()->resolveId(wd->stemStrId);
+                    if( !stemStr ) {
+                    AYLOG(ERROR) << "stemStr is null\n";
+                    }
+                    const size_t stemStrLen = strlen(stemStr);
+
+                    size_t stemDist = get_lev_dist( stemStr, stemStrLen, m_stem.c_str(), m_stem.length(), currentStem, m_stemStrUtf8 ); 
+                    if (stemDist > maxDist || (stemDist == 2 && wd->numGlyphsInStem <= 5) || (stemDist == 3 && wd->numGlyphsInStem <= 7))
+                        continue;
+                }
 				levInfos.push_back(LevInfo_t(sorted[i].first, dist));
 			}
 			std::sort(levInfos.begin(), levInfos.end(), PairSortOrderer<LevInfo_t>());
@@ -261,7 +314,7 @@ namespace
 	};
 }
 
-FeaturedSpellCorrector::FeaturedMatchInfo FeaturedSpellCorrector::getBestMatch(const char *str, size_t strLen, int lang, size_t maxLevDist)
+FeaturedSpellCorrector::FeaturedMatchInfo FeaturedSpellCorrector::getBestMatch(const char *str, size_t strLen, int lang, size_t maxLevDist,const BZSpell& spell)
 {
 	if (lang < 0 || lang >= LANG_MAX)
 	{
@@ -269,7 +322,7 @@ FeaturedSpellCorrector::FeaturedMatchInfo FeaturedSpellCorrector::getBestMatch(c
 		return FeaturedMatchInfo();
 	}
 	
-	MatchVisitor vis(str, strLen, lang, maxLevDist);
+	MatchVisitor vis(str, strLen, lang, maxLevDist,*this,spell);
 	if (m_matchStrategy == MatchStrategy::FirstWins)
 	{
 		for (const auto& storage : m_storages)

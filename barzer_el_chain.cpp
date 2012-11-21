@@ -376,7 +376,7 @@ DECL_BARZEL_BINDING_HOLDER(BarzerLiteral) {
     BARZEL_METHOD(BarzerLiteral,stem) 
     {
         std::string str;
-        uint32_t strId = universe.stem( str, getStr(universe,dta) );
+        uint32_t strId = universe.stemCorrect( str, getStr(universe,dta) );
         if( strId != 0xffffffff ) 
             out = BarzelBeadAtomic( BarzerLiteral(strId) );
         else 

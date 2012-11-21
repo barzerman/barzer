@@ -44,7 +44,7 @@ void BZSpell::addExtraWordToDictionary( uint32_t strId, uint32_t frequency )
 	        if( lang != LANG_ENGLISH )
                 wmi->second.setLang(lang);
 			
-			m_featuredSC->addWord(strId, str, lang);
+			m_featuredSC->addWord(strId, str, lang,*this);
         }
 
     }
@@ -637,7 +637,7 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 	const bool useFeaturedSC = true; /*d_universe.checkBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT);*/
 	const FeaturedMatchComparator featuredCmp(str, d_universe, lang,
 			useFeaturedSC ?
-				m_featuredSC->getBestMatch(str, str_len, lang, levMax ) :
+				m_featuredSC->getBestMatch(str, str_len, lang, levMax, *this ) :
 				FeaturedSpellCorrector::FeaturedMatchInfo());
 	
 	if( lang == LANG_ENGLISH) {

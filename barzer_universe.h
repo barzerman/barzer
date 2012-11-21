@@ -446,8 +446,12 @@ public:
 		{ return ( bzSpell ? bzSpell->getSpellCorrection( word, doStemCorrect, LANG_UNKNOWN ) : 0 ); }
 	//  performs trivial practical stemming
 	// returns stringId of corrected word or 0xffffffff
-	uint32_t stem( std::string& out, const char* word) const
+	uint32_t stemCorrect( std::string& out, const char* word) const
 		{ return ( bzSpell ? bzSpell->getStemCorrection( out, word) : 0 ); }
+    bool stem( std::string& out, const char* word ) const
+    {
+        return ( bzSpell ? bzSpell->stem( out, word ) : false );
+    }
 	bool isWordValidInUniverse( uint32_t word ) const
 		{ return ( bzSpell ? bzSpell->isWordValidInUniverse( word ) : true ); }
 	bool isWordValidInUniverse( const char* word ) const
@@ -616,6 +620,10 @@ public:
 	BarzerGeo* getGeo() { return m_geo; }
     const char* resolveLiteral( const BarzerLiteral& l ) const
         { return gp.resolveLiteral(l);}
+    const char* resolveStoredTok( const StoredToken& stok ) const
+    {
+        return gp.string_resolve( stok.getStringId() );
+    }
 };
 
 inline StoredUniverse& GlobalPools::produceUniverse( uint32_t id )

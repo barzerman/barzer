@@ -12,6 +12,8 @@ namespace barzer {
 
 typedef std::vector< uint32_t > FeatureStrIdVec;
 
+class FeaturedSpellCorrector;
+
 struct ExtractedStringFeature {
     std::string m_str;
     uint16_t m_offset;
@@ -104,7 +106,7 @@ struct TFE_storage {
     typedef boost::unordered_set< uint32_t > StringSet;
     StringSet d_strSet;
 
-    TFE_storage( ay::UniqueCharPool&  p ) : d_pool(&p) {}
+    TFE_storage( ay::UniqueCharPool&  p) : d_pool(&p) {}
     
     const InvertedFeatureMap::mapped_type* getSrcsForFeature(const StoredStringFeature& f) const
     {
@@ -176,10 +178,36 @@ typedef boost::variant<
 	> InvertedIdxVar;
 typedef std::vector<InvertedIdxVar> InvertedIdxVarVec;
 
+struct FeatureCorrectorWordData {
+    uint32_t stemStrId;
+    size_t   numGlyphsInStem;
+    size_t   numGlyphs;
+    int      lang;
+    FeatureCorrectorWordData() : stemStrId(0xffffffff), numGlyphsInStem(0),numGlyphs(0),lang(LANG_UNKNOWN) {}
+    // FeatureCorrectorWordData(uint32_t i, int l ) : stemStrId(i), lang(l){}
+    bool hasStem() const { return stemStrId!= 0xffffffff; }
+};
+
 class FeaturedSpellCorrector
 {
 	InvertedIdxVarVec m_storages;
+    boost::unordered_map< uint32_t, FeatureCorrectorWordData > d_wordDataMap;
 public:
+    const FeatureCorrectorWordData* getWordData(uint32_t i ) const
+    {
+        boost::unordered_map< uint32_t, FeatureCorrectorWordData >::const_iterator x = d_wordDataMap.find(i);
+        return ( x == d_wordDataMap.end() ? 0: &(x->second) );
+    }
+    void setWordData( uint32_t i, const FeatureCorrectorWordData& fwd  ) 
+    {
+        boost::unordered_map< uint32_t, FeatureCorrectorWordData >::iterator x = d_wordDataMap.find(i);
+        if( x == d_wordDataMap.end() ) 
+            d_wordDataMap[i] = fwd;
+        else 
+            x->second = fwd;
+    }
+
+
 	enum class MatchStrategy
 	{
 		FirstWins,
@@ -205,7 +233,7 @@ public:
 		m_storages.push_back(var);
 	}
 	
-	void addWord(uint32_t strId, const char *str, int lang);
+	void addWord(uint32_t strId, const char *str, int lang,BZSpell& bzSpell);
 	
 	struct FeaturedMatchInfo
 	{
@@ -224,7 +252,7 @@ public:
 		{
 		}
 	};
-	FeaturedMatchInfo getBestMatch(const char *str, size_t strLen, int lang, size_t maxLevDist);
+	FeaturedMatchInfo getBestMatch(const char *str, size_t strLen, int lang, size_t maxLevDist, const BZSpell& spell );
 };
 
 } // namespace barzer
