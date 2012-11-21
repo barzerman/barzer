@@ -491,9 +491,6 @@ const BarzelTrieNode* BELTrie::addPath(
 		bool isFirm = boost::apply_visitor( keyFormer, *i );
 
 		firmKey.noLeftBlanks = 0;
-		//if( !(shitKey == firmKey) ) {
-			//std::cerr << "SHIT FUCK different keys formed\n";
-		//}
 		if( firmKey.isNull() || (!isFirm && path.begin() == i) ) { // either failed to encode firm key or this is a leading wc
 			wcpdList.push_back( WCPatDta(i,BarzelTrieFirmChildKey() ) );
             // ACHTUNG! was local
