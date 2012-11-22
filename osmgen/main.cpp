@@ -6,6 +6,7 @@
 #include <map>
 #include <expat.h>
 #include <string.h>
+#include "../ay/ay_utf8.cpp"
 
 namespace
 {
@@ -79,6 +80,14 @@ namespace
 		const auto pos = amenitySynonyms.find(word);
 		if (pos != amenitySynonyms.end())
 			out = pos->second;
+	}
+
+	std::string toLowerGeneric(const std::string& str)
+	{
+		ay::StrUTF8 utf8(str.c_str());
+		return utf8.toLower() ?
+				std::string(utf8.c_str()) :
+				str;
 	}
 }
 
@@ -221,11 +230,11 @@ private:
 				std::vector<std::string> altNames;
 				fillAlts(val, altNames);
 
-				val = "<t>" + val + "</t>";
+				val = "<t>" + toLowerGeneric(val) + "</t>";
 				possibleNames.insert(val);
 
 				for (const auto& name : altNames)
-					possibleNames.insert("<t>" + name + "</t>");
+					possibleNames.insert("<t>" + toLowerGeneric(name) + "</t>");
 			}
 		};
 		tryTag("name");
