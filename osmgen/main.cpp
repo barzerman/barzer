@@ -112,6 +112,22 @@ namespace
 		return result;
 	}
 
+	std::string fixPunct(std::string str)
+	{
+		const std::string sep("</t><t>");
+		for (size_t i = 0; i < str.size(); )
+		{
+			if (str[i] == ' ' || ispunct(str[i]))
+			{
+				str.replace(i, 1, sep);
+				i += sep.size();
+			}
+			else
+				++i;
+		}
+		return str;
+	}
+
 	std::vector<std::string> processWord(std::string val)
 	{
 		std::vector<std::string> result;
@@ -124,8 +140,7 @@ namespace
 				continue;
 
 			xmlEscape(variant);
-			replace(variant, ' ', "</t><t>");
-			result.push_back(variant);
+			result.push_back(fixPunct(variant));
 
 			altNames.clear();
 			fillAlts(variant, altNames);
