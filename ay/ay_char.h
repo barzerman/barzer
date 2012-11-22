@@ -3,7 +3,9 @@
 
 #include <cstring>
 #include <cstdlib>
+#include <stdlib.h>
 #include <vector>
+#include <ay_utf8.h>
 /// char string utilities 
 namespace ay {
 
@@ -31,9 +33,7 @@ class LevenshteinEditDistance {
 	{
 		size_t newSz = m*n*sizeof(int);
 		if( newSz> d_curBufSz ) {
-			if( d_buf ) 
-				free(d_buf);
-			d_buf = (int*)malloc( newSz );
+			d_buf = (int*)realloc( d_buf, newSz );
 			d_curBufSz = newSz;
 		}
 		return d_buf;
@@ -56,13 +56,80 @@ public:
 
 	int ascii_with_case(const char *s,const char*t);
 	int ascii_no_case(const char *s,const char*t);
+
 	template <typename T>
 	int ascii(const char *s,const char*t, const T& compare);
 
+    /// _sz is size in 2 byte glyphs. make sure you pass 2 chains with even number of characters
+	int twoByte(const char *s,size_t s_sz, const char*t, size_t t_sz);
+
 	template <typename char_type, typename T>
 	int generic(const char_type *s, size_t s_sz, const char_type*t, size_t t_sz, const T& compare);
+    
+	int utf8(const StrUTF8& s,const StrUTF8& t);
 };
 // levenshtein for generic character type
+
+inline int LevenshteinEditDistance::utf8(const StrUTF8& s,const StrUTF8& t )
+{
+  int n=s.length();
+  int m=t.length();
+  if(n!=0&&m!=0)
+  {
+    ++m;
+    ++n;
+    int * d= setBuf(m,n);
+    //Step 2	
+    for(int k=0;k<n;++k) d[k]=k;
+    for(int k=0;k<m;++k) d[k*n]=k;
+    //Step 3 and 4	
+    CharUTF8 tchar, schar;
+    for(int i=1;i<n;++i) {
+	  schar = s[i-1]; 
+      for(int j=1;j<m;++j) {
+        //Step 5
+		tchar = t[j-1];
+		int cost = ( (schar!=tchar) ? 0: 1 );
+        //Step 6			 
+        d[j*n+i]=min3(d[(j-1)*n+i]+1,d[j*n+i-1]+1,d[(j-1)*n+i-1]+cost);
+      }
+	}
+    int distance=d[n*m-1];
+    return distance;
+  } else
+    return ( !n ? m: n ); 
+}
+
+inline int LevenshteinEditDistance::twoByte(const char *s, size_t s_sz, const char*t, size_t t_sz )
+{
+  //Step 1
+  int n=s_sz;
+  int m=t_sz;
+  if(n!=0&&m!=0)
+  {
+    ++m;
+    ++n;
+    int * d= setBuf(m,n);
+    //Step 2	
+    for(int k=0;k<n;++k) d[k]=k;
+    for(int k=0;k<m;++k) d[k*n]=k;
+    //Step 3 and 4	
+    for(int i=1;i<n;++i) {
+	  const char * schar = (s+2*(i-1));
+      for(int j=1;j<m;++j) {
+        //Step 5
+		const char * tchar = t+2*(j-1);
+		int cost = ( (schar[0]==tchar[0]&&schar[1]==tchar[1]) ? 0: 1 );
+        //Step 6			 
+        d[j*n+i]=min3(d[(j-1)*n+i]+1,d[j*n+i-1]+1,d[(j-1)*n+i-1]+cost);
+      }
+	}
+    int distance=d[n*m-1];
+    return distance;
+  }
+  else 
+    return ( !n ? m: n ); 
+}
 template <typename char_type, typename T>
 inline int LevenshteinEditDistance::generic(const char_type *s, size_t s_sz, const char_type*t, size_t t_sz, const T& compare)
 {

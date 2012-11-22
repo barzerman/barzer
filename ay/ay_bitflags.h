@@ -59,6 +59,38 @@ public:
             size_t b = ( bit>>3 );
             return( b< sizeof(buf)? ((buf[b] & (1 << ( bit & 0x7 )))) : false);
         }
+
+    bool checkAnyBit( uint8_t b1, uint8_t b2 ) const { return (checkBit(b1)||checkBit(b2)); }
+    bool checkAnyBit( uint8_t b1, uint8_t b2, uint8_t b3 ) const { return (checkBit(b1)||checkBit(b2)||checkBit(b3)); }
+    bool checkAnyBit( uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4 ) const { return (checkBit(b1)||checkBit(b2)||checkBit(b3)||checkBit(b4)); }
+    bool checkAnyBit( uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4, uint8_t b5 ) const { return (checkBit(b1)||checkBit(b2)||checkBit(b3)||checkBit(b4)||checkBit(b5)); }
+
+    bool checkAllBit( uint8_t b1, uint8_t b2 ) const { return (checkBit(b1)&&checkBit(b2)); }
+    bool checkAllBit( uint8_t b1, uint8_t b2, uint8_t b3 ) const { return (checkBit(b1)&&checkBit(b2)&&checkBit(b3)); }
+    bool checkAllBit( uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4 ) const { return (checkBit(b1)&&checkBit(b2)&&checkBit(b3)&&checkBit(b4)); }
+    bool checkAllBit( uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4, uint8_t b5 ) const { return (checkBit(b1)&&checkBit(b2)&&checkBit(b3)&&checkBit(b4)&&checkBit(b5)); }
+
+    bool checkAnyBit( ) const
+    {
+        const uint8_t* x = buf;
+
+        if( sizeof(x) == 1 ) {
+            return *x;
+        } else if( sizeof(x) == 2 ) {
+            return x[0] || x[1];
+        } else if( sizeof(x) == 3 ) {
+            return ( x[0] || x[1] || x[2] );
+        } else if( sizeof(x) == 4 ) {
+            return ( x[0] || x[1] || x[2] || x[4] );
+        } else {
+            for( auto i = x, i_end = i+sizeof(x); i< i_end; ++i ) {
+                if( *i )
+                    return true;
+            }
+            return false;
+        }
+    }
+
 	inline void flip( uint8_t bit )
 	{
 		uint8_t& b = buf[ bit>>3 ];

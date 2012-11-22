@@ -1,9 +1,43 @@
 #include <barzer_parse_types.h>
 #include <barzer_storage_types.h>
 #include <barzer_parse.h>
+#include <barzer_universe.h>
 #include <iomanip>
 
 namespace barzer {
+void  CToken::syncStemAndStoredTok(const StoredUniverse& u)
+{
+
+    if( storedTok ) {
+        if( stemTok && (stemTok == storedTok) && !u.getGlobalPools().getStemSrcs(storedTok->stringId) )
+            stemTok= 0;
+    } else if( stemTok ) {
+        /*
+        storedTok = stemTok;
+        stemTok = 0;
+        */
+    }
+}
+
+void CToken::addSpellingCorrection(const char* wrong, const char* correct, const StoredUniverse& uni)
+{ 
+	if( !ay::ay_strcasecmp(wrong,correct) )  
+		return;
+	
+	std::string wrongStem, correctStem;
+	if (uni.stem(wrongStem, wrong) &&
+			uni.stem(correctStem, correct) &&
+			wrongStem == correctStem)
+		return;
+	
+	setSpellCorrected();
+	spellCorrections.resize( spellCorrections.size() +1 ) ;
+	spellCorrections.back().first.assign(wrong);
+	spellCorrections.back().second.assign(correct);
+	if( isMysteryWord() ) {
+		correctedStr.assign( correct );
+	}
+}
 
 std::ostream& CToken::printQtVec( std::ostream& fp ) const
 {

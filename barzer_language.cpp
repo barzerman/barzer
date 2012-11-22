@@ -31,6 +31,54 @@ bool Lang::convertUtf8ToLower( char* s, size_t s_len, int lang )
 	return true;
 }
 
+bool Lang::hasTwoByteDiacritics( const char* str, size_t str_len, int lang )
+{
+    if( lang == LANG_RUSSIAN ) {
+        for( const char* s = str, *s_end = str+str_len; s< s_end; s+=2 ) {
+            if( (uint8_t)(s[0]) == 0xd0 ) {
+                if( (uint8_t)(s[1]) == 0x81 ) {// Ё
+                    return true;
+                }
+            } else if((uint8_t)(s[0]) == 0xd1 ) { 
+                if( (uint8_t)(s[1]) == 0x91 ) { // ё
+                    return true;
+                }
+            }
+        }
+    } 
+    return false;
+}
+bool Lang::twoByteStripDiacritics( std::string& dest, const char* str, size_t str_len, int lang )
+{
+    dest.clear();
+    dest.reserve( str_len );
+    bool hasDiacritics = false;
+    if( lang == LANG_RUSSIAN ) {
+        for( const char* s = str, *s_end = str+str_len; s< s_end; s+=2 ) {
+            if( (uint8_t)(s[0]) == 0xd0 ) {
+                if( (uint8_t)(s[1]) == 0x81 ) {// Ё
+                    dest.push_back( (char)(0xd0) );
+                    dest.push_back( (char)(0x95) );
+                    if( !hasDiacritics )
+                        hasDiacritics= true;
+                    continue;
+                }
+            } else if((uint8_t)(s[0]) == 0xd1 ) { 
+                if( (uint8_t)(s[1]) == 0x91 ) { // ё
+                    dest.push_back( (char)(0xd0) );
+                    dest.push_back( (char)(0xb5) );
+                    if( !hasDiacritics )
+                        hasDiacritics= true;
+                    continue;
+                }
+            }
+
+            dest.push_back( s[0] );
+            dest.push_back( s[1] );
+        }
+    }
+    return hasDiacritics;
+}
 bool Lang::convertTwoByteToLower( char* s, size_t s_len, int lang )
 {
     bool hasUpperCase = false;
@@ -44,7 +92,7 @@ bool Lang::convertTwoByteToLower( char* s, size_t s_len, int lang )
                 hasUpperCase = true;
                 ss[0] = lc[0];
                 ss[1] = lc[1];
-            } else if( (uint8_t)(ss[0]) == 0xd0 && b1 == 0x81 ) {
+            } else if( (uint8_t)(ss[0]) == 0xd0 && b1 == 0x81 ) { // Ё
                 ss[0] = 0xd1;
                 ss[1] = 0x91;
             }
@@ -63,6 +111,24 @@ size_t Lang::getNumChars( const char* s, size_t s_len, int lang )
     else {
         return ay::StrUTF8::glyphCount(s,s+s_len);
     }
+}
+void Lang::lowLevelNormalization( char* d, size_t d_len, const char* s, size_t s_sz )
+{
+    const char* d_end = d+d_len;
+    for( const char* ss = s, *ss_end = s+s_sz; ss < ss_end && d< d_end; ++ss ) {
+        if( static_cast<uint8_t>(ss[0])== 0xe2 ) {
+            if( 0x80 == static_cast<uint8_t>(ss[1]) && 0x94 == static_cast<uint8_t>(ss[2])) { // wikipedia hyphen
+                *d='-';
+                ++d;
+                ss+=2;
+                continue;
+            } 
+        } 
+
+        *d++=*ss;
+    }
+    if( d< d_end )
+        *d=0;
 }
 bool Lang::stringToLower( char* s, size_t s_len, int lang )
 {
@@ -143,6 +209,17 @@ int Lang::getLangNoUniverse( const char* str, size_t s_len )
         }
     }
     return ( lang == LANG_UNKNOWN ? LANG_UNKNOWN_UTF8 : lang );
+}
+int Lang::getLangAndLengthNoUniverse( size_t& numGlyphs, const char* str, size_t s_len )
+{
+    int lang = getLangNoUniverse(str,s_len);
+    if(lang == LANG_ENGLISH) {
+        return ( numGlyphs=s_len, lang );
+    } else if( Lang::isTwoByteLang(lang)) {
+        return ( numGlyphs=s_len/2, lang );
+    } else { // utf8
+        return ( numGlyphs= ay::StrUTF8::glyphCount(str,str+s_len), lang );
+    }
 }
 
 namespace

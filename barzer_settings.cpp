@@ -351,14 +351,9 @@ void BarzerSettings::loadMeanings (User &u, const ptree& node)
 void BarzerSettings::loadSpell(User &u, const ptree &node)
 {
 	const ptree &spell = node.get_child("spell", empty_ptree());
+	BZSpell* bzs = u.getUniverse().initBZSpell(0);
+
 	try {
-		// here we can add some fancier secondary spellchecker  logic
-		// for now all users that are not 0 will get 0 passed in
-		const GlobalPools& gp = u.getUniverse().getGlobalPools();
-
-		const StoredUniverse* secondaryUniverse = ( u.getId() ? gp.getDefaultUniverse() : 0 );
-		BZSpell* bzs = u.getUniverse().initBZSpell( secondaryUniverse );
-
 	    const boost::optional<const ptree&> optAttrs = spell.get_child_optional("<xmlattr>");
         if( optAttrs ) {
             const ptree& attrs = optAttrs.get();
@@ -374,6 +369,9 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 
 			if( const auto p = attrs.get_optional<std::string>("stempunct") )
 				if (*p == "yes") u.getUniverse().setBit(StoredUniverse::UBIT_LEX_STEMPUNCT);
+				
+			if (const auto p = attrs.get_optional<std::string>("featuredsc"))
+				if (*p == "yes") u.getUniverse().setBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT);
         }
 		BOOST_FOREACH(const ptree::value_type &v, spell) {
 			const std::string& tagName = v.first;
@@ -386,7 +384,7 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 				{
 					std::cout << "Adding language: " << tagVal << "(" << lang << ")" << std::endl;
 					u.getUniverse().getBarzHints().addUtf8Language(lang);
-					u.getUniverse().getGlobalPools().getStemPool().addLang(lang);
+					ay::StemThreadPool::inst().addLang(lang);
 				}
             } else if(tagName =="tokenizer") { /// 
                 const boost::optional<const ptree&> optAttrs = spell.get_child_optional("tokenizer.<xmlattr>");
@@ -405,7 +403,6 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
             }
 		}
 		if( bzs ) {
-			bzs->init( secondaryUniverse );
 			bzs->printStats( std::cerr );
 		} else {
 			AYLOG(ERROR) << "Null BZSpell object for user id " << u.getId() << std::endl;
@@ -567,21 +564,9 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 	loadUserRules(reader, u, children);
 	loadTrieset(reader, u, children);
 	loadLocale(reader, u, children);
-	// loadSpell(u, children);
-
-    /// initilizing BZ spell
-    {
-    const GlobalPools& gp = u.getUniverse().getGlobalPools();
-	const StoredUniverse* secondaryUniverse = ( u.getId() ? gp.getDefaultUniverse() : 0 );
-    BZSpell* bzs = u.getUniverse().initBZSpell( secondaryUniverse );
-    if( bzs ) {
-        bzs->init( secondaryUniverse );
-        bzs->printStats( std::cerr );
-    }
-    } // end of bzspell initialization
-
 
 	StoredUniverse& uni = u.getUniverse();
+	uni.initBZSpell(0);
 	uni.getBarzHints().initFromUniverse(&uni);
     return 1;
 }

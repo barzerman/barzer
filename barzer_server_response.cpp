@@ -146,10 +146,10 @@ public:
         std::stringstream sstrBody;
 
         std::string lastTokBuf;
-		for( CTWPVec::const_iterator ci = ctoks.begin(); ci != ctoks.end(); ++ci ) {
+		for( CTWPVec::const_iterator ci = ctoks.begin(), ci_before_last = ( ctoks.size() ? ci+ctoks.size()-1: ctoks.end()); ci != ctoks.end(); ++ci ) {
 			const TTWPVec& ttv = ci->first.getTTokens();
 
-            if( ci != ctoks.begin() ) 
+            if( ci != ctoks.begin() && ci != ci_before_last) 
                 sstrBody << " ";
 			for( TTWPVec::const_iterator ti = ttv.begin(); ti!= ttv.end() ; ++ti ) {
 				const TToken& ttok = ti->first;
@@ -159,10 +159,12 @@ public:
                     lastTokBuf = ttok.buf.c_str();
 
 				if( ttok.buf.length() ) {
-                    if( ti != ttv.begin() && ci != ctoks.begin() ) 
+                    if( ttok.buf[0] !=' ' && (ti != ttv.begin() || ci != ctoks.begin() )) 
                         sstrBody << " ";
-                    std::string tokStr( ttok.buf.c_str(), ttok.buf.length() );
-                    xmlEscape(tokStr, sstrBody);
+                    if( ttok.buf[0] !=' ' ) {
+                        std::string tokStr( ttok.buf.c_str(), ttok.buf.length() );
+                        xmlEscape(tokStr, sstrBody);
+                    }
 
                     if( needOffsetLengthVec ) 
                         offsetLengthVec.push_back( ttok.getOrigOffsetAndLength() );
@@ -427,21 +429,25 @@ public:
 
 	// not sure how to properly deconstruct this yet
 	bool operator()(const BarzerEntityList &data) {
-		//os << "<entlist>";
-        std::stringstream sstr;
-        if( data.getClass().isValid() ) {
-            sstr << " class=\"" << data.getClass().ec << "\" subclass=\"" << data.getClass().subclass << "\"";
-        }
-        
-	    tag_raii el(os, "entlist", sstr.str().c_str());
+        if( data.getList().size() == 1 ) {
+            printEntity(data.getList()[0]);
+        } else {
+		    //os << "<entlist>";
+            std::stringstream sstr;
+            if( data.getClass().isValid() ) {
+                sstr << " class=\"" << data.getClass().ec << "\" subclass=\"" << data.getClass().subclass << "\"";
+            }
+         
+	        tag_raii el(os, "entlist", sstr.str().c_str());
 
-		const BarzerEntityList::EList &lst = data.getList();
-		for (BarzerEntityList::EList::const_iterator li = lst.begin();
-													 li != lst.end(); ++li) {
-            os << "\n    ";
-			printEntity(*li);
-		}
-		os << "\n    ";
+		    const BarzerEntityList::EList &lst = data.getList();
+		    for (BarzerEntityList::EList::const_iterator li = lst.begin();
+													    li != lst.end(); ++li) {
+                os << "\n    ";
+			    printEntity(*li);
+		    }
+		    os << "\n    ";
+        }
 		return true;
 	}
 
@@ -560,8 +566,8 @@ static void printTraceInfo(std::ostream &os, const Barz &barz, const StoredUnive
                 if( btiVec ) {
                     os << ">";
                     for( BarzelTranslationTraceInfo::Vec::const_iterator i= btiVec->begin(); i!= btiVec->end(); ++i) {
-                        // const char *linkedName = gp.internalString_resolve( i->source );
-                        os << "\n  " << boost::format(linkedTmpl) % (name ? name : "")
+                        const char *linkedName = gp.internalString_resolve( i->source );
+                        os << "\n  " << boost::format(linkedTmpl) % (linkedName ? linkedName : "")
                                                   % i->statementNum
                                                   % i->emitterSeqNo
                                                   << "/>";

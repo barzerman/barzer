@@ -28,33 +28,32 @@ struct BELStatementParsed {
 	size_t d_stmtNumber;
 	std::string d_sourceName;
 	uint32_t d_sourceNameStrId;
+    bool     d_ruleClashOverride; // when true will override the ruleclash and se the latest translation (stmt attribute "o")
 
     BELReader* d_reader;
     int d_tranUnmatchable;
 
 	BELStatementParsed() :
-		d_stmtNumber(0),d_sourceNameStrId(0xffffffff), d_reader(0), d_tranUnmatchable(0)
+		d_stmtNumber(0), d_sourceNameStrId(0xffffffff), d_ruleClashOverride(false), d_reader(0), d_tranUnmatchable(0)
 	{}
-
-
 	BELParseTreeNode pattern; // points at the node under statement
 	BELParseTreeNode translation; // points at the node under statement
-
-
 	void clear()
 		{ pattern.clear(); translation.clear(); }
-
     BELReader* getReader() const { return const_cast<BELReader*>(d_reader); }
     std::ostream& getErrStream() const;
 
     void setReader( BELReader* rdr ) { d_reader = rdr; }
-
 	void setSrcInfo( const char* srcName, uint32_t strId )
 	{
 		d_stmtNumber = 0;
 		d_sourceNameStrId = strId;
 		d_sourceName.assign( srcName );
 	}
+
+    void setRuleClashOverride( bool x = true ) { d_ruleClashOverride=x; }
+    bool ruleClashOverride( ) const { return (d_ruleClashOverride); }
+
 	void stmtNumberIncrement() { ++d_stmtNumber; }
 
 	size_t setStmtNumber( size_t num = 0) {

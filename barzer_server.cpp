@@ -319,11 +319,13 @@ int proc_EN2RU( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, 
 		for (auto i = tmp.begin(), end = tmp.end(); i != end; ++i)
 			*i = tolower(*i);
 		std::string result;
+
 		ay::tl::en2ru(tmp.c_str(), tmp.size(), result);
-		os << result;
+		xmlEscape( result.c_str(), os ) << " ";
 		if (*q)
 		{
-			os << *q;
+            // xmlEscape( q, os );
+			// os << *q;
 			prevStart = ++q;
 		}
 		else
@@ -484,7 +486,7 @@ int run_server_mt(GlobalPools &gp, uint16_t port) {
     for (std::size_t i = 0; i < gp.settings.getNumThreads(); ++i)
 	{
 		boost::thread *thread = threads.create_thread(boost::bind(&boost::asio::io_service::run, &io_service));
-		gp.getStemPool().createThreadStemmer(thread->native_handle());
+		ay::StemThreadPool::inst().createThreadStemmer(thread->native_handle());
 	}
 
 	AsyncServer s(gp, io_service, port);

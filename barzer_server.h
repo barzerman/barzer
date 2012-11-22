@@ -38,6 +38,7 @@ struct RequestVariableMap {
         else
             return 0;
     }
+
     
     void setValue( const char* n, const BarzelBeadAtomic_var& v ) 
         { d_map[ n ] = v; }
@@ -70,6 +71,15 @@ struct RequestEnvironment {
 
     RequestVariableMap*       getReqVarPtr() { return &d_reqVar; }
     const RequestVariableMap*       getReqVarPtr() const { return &d_reqVar; }
+
+    template <typename T>
+    const T* getVarVal( const char* n ) const 
+    {
+        if( auto var= d_reqVar.getValue(n) ) 
+            return boost::get<T>(var);
+        else 
+            return 0;
+    }
 
 	RequestEnvironment( std::ostream& os ): 
 		userId(0),

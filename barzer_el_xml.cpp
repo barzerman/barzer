@@ -333,6 +333,10 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 				return;
 			}
 			break;
+        case 'o':
+            if( v && v[0] != 'n'&&v[0]!='N' ) 
+                statement.stmt.setRuleClashOverride();
+            break;
 		case 't':  // pipe separated tags
 			break;
 		default:
@@ -343,6 +347,9 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 			break;
 		}
 	}
+    if( stmtNumber == 145705 ) {
+        std::cerr << 145705 << " reached\n";
+    }
     if( needAbort ) {
 	    statement.stmt.setStmtNumber( stmtNumber ) ;
         BarzXMLErrorStream  errStream(reader->getErrStreamRef(),stmtNumber);
@@ -1430,7 +1437,7 @@ DEFINE_BELParserXML_taghandle(MKENT)
     if( isTrivialRewrite &&  !reader->is_noCanonicalNames() ) {
         EntityData::EntProp* eprop = ( universe ? universe->getEntPropData(ent.getEuid()) : gp.getEntPropData(ent.getEuid()) );
 
-        if( !eprop || canonicName || !eprop->is_nameExplicit() ) {
+        if( !eprop || canonicName /*|| !eprop->is_nameExplicit()*/ ) {
             std::string theName;
             if( !canonicName || !*canonicName ) {
                 if( statement.hasPattern() ) {
@@ -1750,7 +1757,7 @@ BELParserXML::~BELParserXML()
 int BELParserXML::parse( std::istream& fp )
 {
 	const char* srcName =reader->getInputFileName().c_str();
-	uint32_t srcNameStrId ;
+	uint32_t srcNameStrId = 0xffffffff; // will be set in escapeForXmlAndIntern
     
     std::string srcNameCpp;
     escapeForXmlAndIntern( reader->getGlobalPools(), srcNameStrId, srcNameCpp, srcName );

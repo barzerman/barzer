@@ -7,6 +7,7 @@
 #include <ay_utf8.h>
 #include <ay_stackvec.h>
 #include <barzer_spellheuristics.h>
+#include "barzer_barz.h"
 
 namespace barzer {
 class StoredUniverse;
@@ -81,6 +82,7 @@ struct BZSWordTrieInfo {
 };
 
 class EnglishSLHeuristic;
+class FeaturedSpellCorrector;
 
 class BZSpell {
 	StoredUniverse& d_universe;
@@ -98,7 +100,7 @@ public:
 	/// sizeof single character - 1 by default for ascii  
 	uint8_t d_charSize; 
 
-	size_t  d_minWordLengthToCorrect;
+	size_t d_minWordLengthToCorrect;
 
 	enum { MAX_WORD_LEN = 128 };
 private: 
@@ -108,10 +110,11 @@ private:
 	
 	std::string d_extraWordsFileName;
 
-	
 	EnglishSLHeuristic m_englishSLTransform;
 	RuBastardizeHeuristic m_englishSLBastard;
 	ChainHeuristic m_englishSLSuperposition;
+	
+	FeaturedSpellCorrector *m_featuredSC;
 public:
 	/// generates edit distance variants 
 	size_t produceWordVariants( uint32_t strId, int lang=LANG_ENGLISH );
@@ -134,14 +137,11 @@ public:
 	}
 	StoredUniverse& getUniverse() { return d_universe; }
 	const StoredUniverse& getUniverse() const { return d_universe; }
-	void clear()
-	{
-		d_wordinfoMap.clear();
-		d_linkedWordsMap.clear();
-	}
+	void clear();
 	void addExtraWordToDictionary( uint32_t, uint32_t frequency = 0 );
 
 	BZSpell( StoredUniverse& uni ) ;
+	~BZSpell();
 
 	// returns the size of strid_evovec_hmap
 	// this function should be called after the load. 
@@ -149,7 +149,8 @@ public:
 	size_t init( const StoredUniverse* secondaryUniverse =0 );
 
 	/// when fails 0xffffffff is returned 
-	uint32_t getSpellCorrection( const char* s, bool doStemCorrect, int lang=LANG_UNKNOWN ) const;
+    enum { LEV_DIST_UNLIMITED = 100 };
+	uint32_t getSpellCorrection( const char* s, bool doStemCorrect, int lang /*=LANG_UNKNOWN*/, size_t levMax=LEV_DIST_UNLIMITED ) const;
 	uint32_t getStemCorrection( std::string& , const char*, int lang=LANG_UNKNOWN) const;
     // when bool doStemCorrect is false it will NOT correct to a string whose token is 
     // pure stem
@@ -174,8 +175,9 @@ public:
 
 	/// stems (currently only de-pluralizes) word . returns true if stemming was 
 	/// successful
-	bool     stem( std::string& out, const char* word ) const;
-	bool     stem( std::string& out, const char* word, int& lang ) const;
+	bool stem( std::string& out, const char* word ) const;
+	bool stem( std::string& out, const char* word, int& lang ) const;
+	static bool stem(std::string& out, const char *word, int& lang, size_t minWordLength, const BarzHints::LangArray& = BarzHints::LangArray());
 
     /// punctuation based stemming (for space-default tokenizer)
     /// will use tok.getGlyphXXX  / END for glyphs in word

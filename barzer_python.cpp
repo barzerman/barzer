@@ -18,6 +18,7 @@
 #include <util/pybarzer.h>
 
 #include <autotester/barzer_at_comparators.h>
+#include <zurch_python.h>
 
 
 using boost::python::stl_input_iterator ;
@@ -757,6 +758,10 @@ PythonQueryProcessor* BarzerPython::makeParseEnv( ) const
     return new PythonQueryProcessor(*this);
 }
 
+ay::UniqueCharPool& BarzerPython::getStringPool()
+{
+    return getGP().getStringPool();
+}
 
 } // barzer
 
@@ -787,6 +792,9 @@ BOOST_PYTHON_MODULE(pybarzer)
 		.def( "en2ru", &barzer::BarzerPython::translitEn2Ru)
         .def( "matchXML", &barzer::BarzerPython::matchXML);
 
+    /// ZURCH
+    zurch::ZurchPython::init();
+        
     def("stripDiacritics", stripDiacritics);
     // BarzerResponseObject    
     boost::python::class_<barzer::BarzerResponseObject>( "response" )

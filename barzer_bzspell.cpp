@@ -10,11 +10,19 @@
 #include <lg_en/barzer_en_lex.h>
 #include <barzer_lexer.h>
 #include <barzer_spellheuristics.h>
+#include <barzer_spell_features.h>
 
 namespace barzer {
 typedef std::vector<char> charvec;
 typedef charvec::const_iterator charvec_ci;
 
+void BZSpell::clear( )
+{
+    delete m_featuredSC;
+	m_featuredSC = new FeaturedSpellCorrector();
+    d_wordinfoMap.clear();
+    d_linkedWordsMap.clear();
+}
 bool BZSpell::isWordValidInUniverse( const char* word ) const
 {
 	uint32_t strId = d_universe.getGlobalPools().string_getId( word );
@@ -35,6 +43,8 @@ void BZSpell::addExtraWordToDictionary( uint32_t strId, uint32_t frequency )
             int16_t lang = Lang::getLang(  d_universe, str, s_len );
 	        if( lang != LANG_ENGLISH )
                 wmi->second.setLang(lang);
+			
+			m_featuredSC->addWord(strId, str, lang);
         }
 
     }
@@ -571,23 +581,74 @@ int BZSpell::isUsersWord( uint32_t& strId, const char* word ) const
 	return( strId == 0xffffffff ? 0 : isUsersWordById(strId) );
 }
 
+namespace
+{
+	class FeaturedMatchComparator
+	{
+		const char *m_srcStr;
+		const StoredUniverse& m_sc;
+		const int m_lang;
+		const FeaturedSpellCorrector::FeaturedMatchInfo m_featuredRes;
+		
+		mutable ay::LevenshteinEditDistance m_levDist;
+	public:
+		FeaturedMatchComparator(
+            const char *srcStr, 
+            const StoredUniverse& sc, 
+            int lang, 
+            const FeaturedSpellCorrector::FeaturedMatchInfo& res)
+		: m_srcStr(srcStr)
+		, m_sc(sc)
+		, m_lang(lang)
+		, m_featuredRes(res)
+		{
+		}
+		
+		uint32_t operator()(uint32_t dumbRes) const
+		{
+			if (dumbRes == 0xffffffff)
+				return m_featuredRes.m_strId;
+	        else if ( m_featuredRes.m_strId == 0xffffffff )
+                return dumbRes;
+
+			const char *str = m_sc.getGlobalPools().string_resolve(dumbRes);
+			
+			int dist = 100;
+			if (m_lang == LANG_ENGLISH)
+				dist = m_levDist.ascii_no_case(str, m_srcStr);
+			else if (Lang::isTwoByteLang(m_lang))
+				dist = m_levDist.twoByte(str, std::strlen(str) / 2, m_srcStr, std::strlen(m_srcStr) / 2);
+			else
+				dist = m_levDist.utf8(ay::StrUTF8(m_srcStr), ay::StrUTF8(str));
+			
+			return dist <= m_featuredRes.m_levDist ? dumbRes : m_featuredRes.m_strId;
+		}
+	};
+}
+
 /// when fails 0xffffffff is returned
-uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int lang ) const
+uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int lang, size_t levMax ) const
 {
 	/// for ascii corrector
     size_t str_len = strlen( str );
     if( lang == LANG_UNKNOWN || lang == LANG_UNKNOWN_UTF8 )
-        lang = Lang::getLang(  d_universe, str, str_len );
+        lang = Lang::getLang(d_universe, str, str_len);
 
+	const bool useFeaturedSC = true; /*d_universe.checkBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT);*/
+	const FeaturedMatchComparator featuredCmp(str, d_universe, lang,
+			useFeaturedSC ?
+				m_featuredSC->getBestMatch(str, str_len, lang, levMax ) :
+				FeaturedSpellCorrector::FeaturedMatchInfo());
+	
 	if( lang == LANG_ENGLISH) {
 
         if( str_len>= MAX_WORD_LEN )
-            return 0xffffffff;
+            return featuredCmp(0xffffffff);
 
         enum { SHORT_WORD_LEN = 4 };
 
 		if( str_len < d_minWordLengthToCorrect )
-			return 0xffffffff;
+			return featuredCmp(0xffffffff);
         CorrectCallback cb( *this, str_len );
         { // omission variator
         ay::choose_n<char, CorrectCallback > variator( cb, str_len-1, str_len-1 );
@@ -629,7 +690,7 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 			}
 		}
 
-		return cb.getBestStrId();
+		return featuredCmp(cb.getBestStrId());
 	} else if( Lang::isTwoByteLang(lang)) { // 2 byte char language spell correct
         /// includes russian
         std::string stemStr;
@@ -648,7 +709,7 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
                         if( str_len > stemStr.length() && (str_len-stemStr.length()<3*2) ) {
                             uint32_t correctedId = get2ByteLangStemCorrection( lang, str, doStemCorrect, stemStr.c_str() );
                             if( correctedId != 0xffffffff )
-                                return correctedId;
+                                return featuredCmp(correctedId);
                             else
                                 doStemCorrect= false;
                         }
@@ -674,10 +735,10 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 			ascii::CharPermuter_2B permuter( str, cb );
 			permuter.doAll();
 			uint32_t retStrId =  cb.getBestStrId();
-            if( retStrId != 0xffffffff && (doStemCorrect|| !isPureStem(retStrId)) )
-                return retStrId;
+            if( retStrId != 0xffffffff && isUsersWordById(retStrId) && (doStemCorrect|| !isPureStem(retStrId)) )
+                return featuredCmp(retStrId);
             else if( doStemCorrect )
-                return get2ByteLangStemCorrection( lang, str, doStemCorrect );
+                return featuredCmp(get2ByteLangStemCorrection( lang, str, doStemCorrect ));
 		}
     }
     else
@@ -685,7 +746,7 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 		ay::StrUTF8 strUtf8 (str);
 		const size_t uniSize = strUtf8.size();
 		if (uniSize < d_minWordLengthToCorrect)
-			return 0xffffffff;
+			return featuredCmp(0xffffffff);
 
 		if (doStemCorrect)
 		{
@@ -708,9 +769,9 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 
 		ascii::CharPermuter_Unicode permuter(strUtf8, cb);
 		permuter.doAll ();
-		return cb.getBestStrId ();
+		return featuredCmp(cb.getBestStrId ());
 	}
-	return 0xffffffff;
+	return featuredCmp(0xffffffff);
 }
 
 uint32_t BZSpell::purePermuteCorrect2B(const char* s, size_t s_len )  const
@@ -734,7 +795,7 @@ uint32_t BZSpell::purePermuteCorrect2B(const char* s, size_t s_len )  const
 uint32_t BZSpell::getUtf8LangStemCorrection( int lang, const char* str, bool doStemCorect, const char* extNorm ) const
 {
 	const BarzHints::LangArray& langs = d_universe.getBarzHints().getUtf8Languages(); 
-	const ay::MultilangStem *stem = d_universe.getGlobalPools().getStemPool().getThreadStemmer();
+	const ay::MultilangStem *stem = ay::StemThreadPool::inst().getThreadStemmer();
 	if (!stem)
 		return 0xffffffff;
 
@@ -904,11 +965,20 @@ bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
     size_t s_len = strlen( s );
     if( lang == LANG_UNKNOWN )
         lang = Lang::getLang(  d_universe, s, s_len );
+	
+	return stem(out, s, lang, d_minWordLengthToCorrect, d_universe.getBarzHints().getUtf8Languages());
+}
+
+bool BZSpell::stem(std::string& out, const char *s, int& lang, size_t minWordLength, const BarzHints::LangArray& langs)
+{
+	size_t s_len = strlen( s );
+    if( lang == LANG_UNKNOWN || lang == LANG_UNKNOWN_UTF8)
+        lang = Lang::getLangNoUniverse(s, s_len);
 
 	if( lang == LANG_ENGLISH)
 	{
 		size_t s_len = strlen(s);
-		if( s_len > d_minWordLengthToCorrect ) {
+		if( s_len > minWordLength ) {
 			if( ascii::stem_depluralize( out, s, s_len ) ) {
 				return true;
 			} else
@@ -921,11 +991,10 @@ bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
 		return Russian_Stemmer::stem( out, s );
 	else
 	{
-		const ay::MultilangStem *stem = d_universe.getGlobalPools().getStemPool().getThreadStemmer();
+		const ay::MultilangStem *stem = ay::StemThreadPool::inst().getThreadStemmer();
 		if (!stem)
 			return false;
 
-		const BarzHints::LangArray& langs = d_universe.getBarzHints().getUtf8Languages();
 		for (BarzHints::LangArray::const_iterator i = langs.begin(), end = langs.end(); i != end; ++i)
 			if (stem->stem(*i, s, s_len, out, false))
 				return true;
@@ -933,6 +1002,7 @@ bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
 
     return false;
 }
+
 bool BZSpell::stem( std::string& out, const char* s ) const
 {
     int lang = LANG_UNKNOWN;
@@ -1205,11 +1275,18 @@ size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
 BZSpell::BZSpell( StoredUniverse& uni ) :
 	d_universe( uni ),
 	d_charSize(1) ,
-	d_minWordLengthToCorrect( d_charSize* (QLexParser::MIN_SPELL_CORRECT_LEN) ),
-	m_englishSLTransform(uni.getGlobalPools()),
-	m_englishSLBastard(uni.getGlobalPools()),
-	m_englishSLSuperposition(m_englishSLTransform, m_englishSLBastard)
-{}
+	d_minWordLengthToCorrect(d_charSize * (QLexParser::MIN_SPELL_CORRECT_LEN)),
+	m_englishSLTransform(&uni.getGlobalPools()),
+	m_englishSLBastard(&uni.getGlobalPools()),
+	m_englishSLSuperposition(m_englishSLTransform, m_englishSLBastard),
+	m_featuredSC(new FeaturedSpellCorrector())
+{
+}
+
+BZSpell::~BZSpell()
+{
+	delete m_featuredSC;
+}
 
 size_t BZSpell::loadExtra( const char* fileName )
 {
@@ -1264,15 +1341,19 @@ std::ostream& BZSpell::printStats( std::ostream& fp ) const
 }
 size_t BZSpell::init( const StoredUniverse* secondaryUniverse )
 {
+	m_featuredSC->init(d_universe.getStringPool());
+
 	const TheGrammarList& trieList = d_universe.getTrieList();
 	for( TheGrammarList::const_iterator t = trieList.begin(); t!= trieList.end(); ++t ) {
 		const strid_to_triewordinfo_map& wiMap = t->trie().getWordInfoMap();
 		for( strid_to_triewordinfo_map::const_iterator w = wiMap.begin(); w != wiMap.end(); ++w ) {
 			const TrieWordInfo& wordInfo = w->second;
-			uint32_t strId = w->first;
+			const uint32_t strId = w->first;
 
-			if (d_wordinfoMap.find(strId) == d_wordinfoMap.end())
-				addExtraWordToDictionary(strId, wordInfo.wordCount);
+			if (d_wordinfoMap.find(strId) == d_wordinfoMap.end()) {
+                if( w->second.wordCount )
+				    addExtraWordToDictionary(strId, wordInfo.wordCount);
+            }
 			BZSWordInfo& wi = d_wordinfoMap[ strId ];
                 
 			if( wi.upgradePriority( t->trie().getSpellPriority()) )

@@ -12,7 +12,7 @@ ifeq ($(UNAME),Darwin)
     C11LIB_SHIT=-stdlib=libc++
 endif
 C0X=-std=c++0x
-CFLAGS := $(OPT) $(C0X) $(C11LIB) $(BITMODE) $(FLAGS) -Wall -g -I. -fpic -I../ -I/usr/local/include -I/opt/local/include -Wno-parentheses
+CFLAGS := $(OPT) $(C0X) $(C11LIB) $(BITMODE) $(FLAGS) -Wall -Wno-unneeded-internal-declaration -Wno-unused-variable -g -I. -fpic -I../ -I/usr/local/include -I/opt/local/include -Wno-parentheses
 LIBNAME=libay.a
 SHARED_LIBNAME=libay.so
 

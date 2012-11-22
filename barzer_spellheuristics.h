@@ -27,13 +27,13 @@ public:
  */
 class HashingSpellHeuristic
 {
-    GlobalPools& m_gp;
+    GlobalPools *m_gp;
     SoundsLikeInfo m_mapping;
 public:
-    HashingSpellHeuristic(GlobalPools& g) : m_gp(g) {}
+    HashingSpellHeuristic(GlobalPools *g) : m_gp(g) {}
     virtual ~HashingSpellHeuristic() {}
     
-    GlobalPools& getGP() const { return m_gp; }
+    GlobalPools& getGP() const { return *m_gp; }
     
     void addSource(const char *sourceWord, size_t len, uint32_t sourceId);
     const SoundsLikeInfo::SourceList_t* findSources(const char *domainWord, size_t len) const;
@@ -44,7 +44,7 @@ public:
 class EnglishSLHeuristic : public HashingSpellHeuristic
 {
 public:
-    EnglishSLHeuristic(GlobalPools& g) : HashingSpellHeuristic(g) {}
+    EnglishSLHeuristic(GlobalPools *g) : HashingSpellHeuristic(g) {}
 
     void transform(const char* src, size_t srcLen, std::string& out) const;
 };
@@ -53,7 +53,7 @@ public:
 class RuBastardizeHeuristic : public HashingSpellHeuristic
 {
 public:
-    RuBastardizeHeuristic(GlobalPools& g) : HashingSpellHeuristic(g) {}
+    RuBastardizeHeuristic(GlobalPools *g) : HashingSpellHeuristic(g) {}
 
     void transform (const char* src, size_t srcLen, std::string& out) const;
 };
@@ -61,7 +61,7 @@ public:
 class IdentityHeuristic : public HashingSpellHeuristic
 {
 public:
-	IdentityHeuristic(GlobalPools& g) : HashingSpellHeuristic(g) {}
+	IdentityHeuristic(GlobalPools *g) : HashingSpellHeuristic(g) {}
 	
 	void transform(const char* src, size_t srcLen, std::string& out) const { out.assign(src, srcLen); }
 };
@@ -80,7 +80,7 @@ class ChainListHeuristic : public HashingSpellHeuristic
 {
 	std::vector<HashingSpellHeuristic*> m_heuristics;
 public:
-	ChainListHeuristic (GlobalPools& g) : HashingSpellHeuristic(g) {}
+	ChainListHeuristic (GlobalPools *g) : HashingSpellHeuristic(g) {}
 	
 	void add(HashingSpellHeuristic *h) { m_heuristics.push_back(h); }
 	

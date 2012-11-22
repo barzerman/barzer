@@ -15,6 +15,7 @@
 namespace barzer {
 struct StoredToken;
 struct StoredEntity;
+class StoredUniverse;
 struct TToken ;
 struct CToken;
 struct PUnit ;
@@ -114,18 +115,7 @@ struct CToken {
     const StoredToken*  getStemTok() const { return stemTok; }
     void                setStemTok(const StoredToken* t) { stemTok=t; }
     bool                stemTokSameAsStored() const { return (storedTok == stemTok); }
-    void                syncStemAndStoredTok() 
-        { 
-            if( storedTok ) {
-                if( stemTok && (stemTok == storedTok) ) 
-                    stemTok= 0;
-            } else if( stemTok ) {
-                /*
-                storedTok = stemTok;
-                stemTok = 0;
-                */
-            }
-        }
+    void                syncStemAndStoredTok(const StoredUniverse& u) ;
     uint32_t            getStemTokStringId() const { return ( stemTok ? stemTok->stringId : 0xffffffff ); }
 
 	void clear() {
@@ -195,16 +185,8 @@ struct CToken {
 	bool isPunct(char c) const { return ( (isPunct() ||(c==' ' && isSpace()) )  && qtVec.size() == 1 && qtVec[0].first.buf[0] == c ); }
 	
 	void setSpellCorrected( bool v = true ) { cInfo.setSpellCorrected(v); }
-	void addSpellingCorrection( const char* wrong, const char*  correct ) 
-	{ 
-		setSpellCorrected();
-		spellCorrections.resize( spellCorrections.size() +1 ) ;
-		spellCorrections.back().first.assign(wrong);
-		spellCorrections.back().second.assign(correct);
-		if( isMysteryWord() ) {
-			correctedStr.assign( correct );
-		}
-	}
+	void addSpellingCorrection(const char* wrong, const char*  correct, const StoredUniverse& uni);
+
 	void setStemmed( bool v = true ) { cInfo.setStemmed(v); }
 	bool isSpellCorrected( ) const { return cInfo.isSpellCorrected(); }
 	bool isStemmed( ) const { return cInfo.isStemmed(); }

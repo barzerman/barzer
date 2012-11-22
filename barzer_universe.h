@@ -153,7 +153,6 @@ class GlobalPools {
 	typedef boost::unordered_set< uint32_t > DictionaryMap;
 	DictionaryMap d_dictionary;
     stem_to_srcs_map d_stemSrcs;
-	ay::StemThreadPool m_stemPool;
 
 	ay::UTF8TopicModelMgr *m_utf8langModelMgr;
 	ay::ASCIITopicModelMgr *m_asciiLangModelMgr;
@@ -182,8 +181,6 @@ public:
     }
 	inline ay::UTF8TopicModelMgr* getUTF8LangMgr() const { return m_utf8langModelMgr; }
 	inline ay::ASCIITopicModelMgr* getASCIILangMgr() const { return m_asciiLangModelMgr; }
-
-	inline ay::StemThreadPool& getStemPool() { return m_stemPool; }
 
     void addStemSrc ( uint32_t stemId, uint32_t srcId ) { d_stemSrcs[stemId].insert(srcId); }
 
@@ -359,6 +356,7 @@ public:
         UBIT_NO_ENTRELEVANCE_SORT, // when 1 wont sort entities by relevance on output
         UBIT_CORRECT_FROM_DICTIONARY, // when 1 will correct words away from generic dictionary otherwise leaves those words intact
 		UBIT_LEX_STEMPUNCT, // when 1, space_default token classifier will consider <term>'s (and other similar) as <term> if <term> is valid
+		UBIT_FEATURED_SPELLCORRECT, // when 1, feature extraction-based spell corrector will be active
 
         /// add new bits above this line only 
         UBIT_MAX
@@ -445,7 +443,7 @@ public:
 	/// uses bzSpell
 	// returns stringId of corrected word or 0xffffffff
 	uint32_t spellCorrect( const char* word, bool doStemCorrect = true ) const
-		{ return ( bzSpell ? bzSpell->getSpellCorrection( word, doStemCorrect ) : 0 ); }
+		{ return ( bzSpell ? bzSpell->getSpellCorrection( word, doStemCorrect, LANG_UNKNOWN ) : 0 ); }
 	//  performs trivial practical stemming
 	// returns stringId of corrected word or 0xffffffff
 	uint32_t stem( std::string& out, const char* word) const
