@@ -89,6 +89,51 @@ namespace
 				std::string(utf8.c_str()) :
 				str;
 	}
+
+	void trim(std::string& str)
+	{
+		while (!str.empty() && str[0] == ' ')
+			str.erase(str.begin());
+		while (!str.empty() && str[str.size() - 1] == ' ')
+			str.erase(str.end() - 1);
+	}
+
+	std::vector<std::string> split(const std::string& str, char sep)
+	{
+		std::vector<std::string> result;
+		size_t pos = 0, oldPos = 0;
+		while ((pos = str.find(sep, pos)) != std::string::npos)
+		{
+			if (pos - oldPos)
+				result.push_back(str.substr(oldPos, pos - oldPos));
+			oldPos = ++pos;
+		}
+		result.push_back(str.substr(oldPos, pos));
+		return result;
+	}
+
+	std::vector<std::string> processWord(std::string val)
+	{
+		std::vector<std::string> result;
+		std::vector<std::string> altNames;
+		val = toLowerGeneric(val);
+		for (auto variant : split(val, ';'))
+		{
+			trim(variant);
+			if (variant.empty())
+				continue;
+
+			xmlEscape(variant);
+			replace(variant, ' ', "</t><t>");
+			result.push_back(variant);
+
+			altNames.clear();
+			fillAlts(variant, altNames);
+			for (const auto& name : altNames)
+				result.push_back(name);
+		}
+		return result;
+	}
 }
 
 class Parser
@@ -222,20 +267,8 @@ private:
 		{
 			const auto name = tags.find(tagName);
 			if (name != tags.end())
-			{
-				auto val = name->second;
-				xmlEscape(val);
-				replace(val, ' ', "</t><t>");
-
-				std::vector<std::string> altNames;
-				fillAlts(val, altNames);
-
-				val = "<t>" + toLowerGeneric(val) + "</t>";
-				possibleNames.insert(val);
-
-				for (const auto& name : altNames)
-					possibleNames.insert("<t>" + toLowerGeneric(name) + "</t>");
-			}
+				for (const auto& res : processWord(name->second))
+					possibleNames.insert("<t>" + res + "</t>");
 		};
 		tryTag("name");
 		tryTag("name:en");
