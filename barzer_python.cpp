@@ -145,7 +145,7 @@ std::string BarzerPython::bzstem(const std::string& s)
 {
     if( d_universe ) {
         std::string stem;
-        if( d_universe->getBZSpell()->getStemCorrection( stem, s.c_str() ) )
+        if( d_universe->getBZSpell()->getStemCorrection( stem, s.c_str(), LANG_UNKNOWN, BZSpell::CORRECTION_MODE_NORMAL ) )
             return stem;
         else 
             return s;

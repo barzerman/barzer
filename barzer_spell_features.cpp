@@ -215,7 +215,7 @@ namespace
 		template<typename T>
 		MatchResult operator()(const TFE_storage<T>& storage) const
 		{
-			const int maxDist = (m_maxLevDist < 3 ? m_maxLevDist : 3);
+			const size_t maxDist = (m_maxLevDist < 3 ? m_maxLevDist : 3);
 			
 			StoredStringFeatureVec storedVec;
 			ExtractedStringFeatureVec extractedVec;
@@ -283,8 +283,10 @@ namespace
 				} else {
 					dist = m_levDist.utf8(m_strUtf8, ay::StrUTF8(str, strLen));
                 }
+                if( dist < 0 ) 
+                    dist = 0;
 
-				if (dist > maxDist || (dist == 2 && wd->numGlyphs < 5) || (dist == 3 && wd->numGlyphs < 7))
+				if ((size_t)dist > maxDist || (dist == 2 && wd->numGlyphs < 5) || (dist == 3 && wd->numGlyphs < 7))
 					continue;
 
                 // if more than 1 character is different we compare stems 
