@@ -447,7 +447,7 @@ public:
 	//  performs trivial practical stemming
 	// returns stringId of corrected word or 0xffffffff
 	uint32_t stemCorrect( std::string& out, const char* word) const
-		{ return ( bzSpell ? bzSpell->getStemCorrection( out, word) : 0 ); }
+		{ return ( bzSpell ? bzSpell->getStemCorrection( out, word, LANG_UNKNOWN, BZSpell::CORRECTION_MODE_NORMAL) : 0 ); }
     bool stem( std::string& out, const char* word ) const
     {
         return ( bzSpell ? bzSpell->stem( out, word ) : false );

@@ -707,7 +707,7 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
                         /// if stem is less than 3 chars shorter than the original we are going to try
                         /// stem correction before any other types of correction
                         if( str_len > stemStr.length() && (str_len-stemStr.length()<3*2) ) {
-                            uint32_t correctedId = get2ByteLangStemCorrection( lang, str, doStemCorrect, stemStr.c_str() );
+                            uint32_t correctedId = get2ByteLangStemCorrection( lang, str, doStemCorrect, stemStr.c_str(), BZSpell::CORRECTION_MODE_NORMAL );
                             if( correctedId != 0xffffffff )
                                 return featuredCmp(correctedId);
                             else
@@ -738,7 +738,7 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
             if( retStrId != 0xffffffff && isUsersWordById(retStrId) && (doStemCorrect|| !isPureStem(retStrId)) )
                 return featuredCmp(retStrId);
             else if( doStemCorrect )
-                return featuredCmp(get2ByteLangStemCorrection( lang, str, doStemCorrect ));
+                return featuredCmp(get2ByteLangStemCorrection( lang, str, doStemCorrect,0,BZSpell::CORRECTION_MODE_NORMAL ));
 		}
     }
     else
@@ -792,7 +792,7 @@ uint32_t BZSpell::purePermuteCorrect2B(const char* s, size_t s_len )  const
     return retStrId;
 }
 
-uint32_t BZSpell::getUtf8LangStemCorrection( int lang, const char* str, bool doStemCorect, const char* extNorm ) const
+uint32_t BZSpell::getUtf8LangStemCorrection( int lang, const char* str, bool doStemCorect, const char* extNorm, int mode ) const
 {
 	const BarzHints::LangArray& langs = d_universe.getBarzHints().getUtf8Languages(); 
 	const ay::MultilangStem *stem = ay::StemThreadPool::inst().getThreadStemmer();
@@ -850,7 +850,7 @@ uint32_t BZSpell::getUtf8LangStemCorrection( int lang, const char* str, bool doS
 
 	return 0xffffffff;
 }
-uint32_t BZSpell::get2ByteLangStemCorrection( int lang, const char* str, bool doStemCorect, const char* extNorm ) const
+uint32_t BZSpell::get2ByteLangStemCorrection( int lang, const char* str, bool doStemCorect, const char* extNorm, int mode ) const
 {
     size_t s_len = 0;
     if(lang == LANG_RUSSIAN) {
@@ -888,10 +888,13 @@ uint32_t BZSpell::get2ByteLangStemCorrection( int lang, const char* str, bool do
                     return bestStringId;
             }
 
-            if( norm.length() + 2 < strlen(str) )
+            if( norm.length() + 2 < s_len )
                 return 0xffffffff;
             /// trying to permute correct stemmed word - stem was successful but result of the stem
             /// isnt a valid word
+            if( mode == CORRECTION_MODE_CAUTIOUS && norm.length() < s_len && norm.length()<=8 ) 
+                return 0xffffffff;
+
             strId = purePermuteCorrect2B( norm.c_str(), norm.length() );
             if( strId != 0xffffffff )
                 return strId;
@@ -1034,7 +1037,7 @@ bool BZSpell::isPureStem( uint32_t strId ) const
 }
 
 // this implements a simple single suffix stem (not a complete linguistic one)
-uint32_t BZSpell::getStemCorrection( std::string& out, const char* s, int lang ) const
+uint32_t BZSpell::getStemCorrection( std::string& out, const char* s, int lang, int mode ) const
 {
     size_t s_len = strlen( s );
 
@@ -1050,8 +1053,8 @@ uint32_t BZSpell::getStemCorrection( std::string& out, const char* s, int lang )
 		}
 	} else {
         uint32_t scorStrId =  ( Lang::isTwoByteLang(lang) ?
-            get2ByteLangStemCorrection( lang, s, true ) :
-            getUtf8LangStemCorrection( lang, s, true ) );
+            get2ByteLangStemCorrection( lang, s, true, 0, mode ) :
+            getUtf8LangStemCorrection( lang, s, true,0, mode ) );
         if( scorStrId != 0xffffffff && isUsersWordById( scorStrId )) {
             const char* stemCor =  d_universe.getGlobalPools().string_resolve( scorStrId );
             if( stemCor ) {

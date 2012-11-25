@@ -688,7 +688,7 @@ inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexPa
                     else {
                         if( i< 4*step || ((t_len - step -i) < 4*step) ) {
                             std::string stemmedStr;
-                            right = bzSpell->getStemCorrection( stemmedStr, rightDirty );
+                            right = bzSpell->getStemCorrection( stemmedStr, rightDirty, lang, BZSpell::CORRECTION_MODE_CAUTIOUS );
                         } else 
                             right = bzSpell->getSpellCorrection (rightDirty,false,lang,1) ;
                     }
@@ -848,7 +848,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 	if( !isUsersWord ) {
 	    if( gp.isWordInDictionary(strId) ) {
 			std::string stemmedStr;
-			strId = bzSpell->getStemCorrection( stemmedStr, theString, lang );
+			strId = bzSpell->getStemCorrection( stemmedStr, theString, lang, BZSpell::CORRECTION_MODE_NORMAL );
             if( strId == 0xffffffff && qparm.isStemMode_Aggressive() )
 			    strId = bzSpell->getAggressiveStem( stemmedStr, theString );
 
@@ -903,7 +903,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 			 correctedStr = gp.string_resolve( strId ) ;
 		} else { // trying stemming
 			std::string stemmedStr;
-			strId = bzSpell->getStemCorrection( stemmedStr, theString );
+			strId = bzSpell->getStemCorrection( stemmedStr, theString, lang, BZSpell::CORRECTION_MODE_NORMAL );
 			if( strId != 0xffffffff ) {
 				correctedStr = gp.string_resolve( strId ) ;
 			} else if( (stemmedStr.length() > MIN_SPELL_CORRECT_LEN) && strlen(theString) != stemmedStr.length() ) {

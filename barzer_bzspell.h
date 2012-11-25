@@ -117,6 +117,10 @@ private:
 	FeaturedSpellCorrector *m_featuredSC;
 public:
 	/// generates edit distance variants 
+    enum { 
+        CORRECTION_MODE_NORMAL,
+        CORRECTION_MODE_CAUTIOUS
+    };
 	size_t produceWordVariants( uint32_t strId, int lang=LANG_ENGLISH );
 
 	HashingSpellHeuristic& getEnglishSL() { return m_englishSLSuperposition; }
@@ -151,12 +155,12 @@ public:
 	/// when fails 0xffffffff is returned 
     enum { LEV_DIST_UNLIMITED = 100 };
 	uint32_t getSpellCorrection( const char* s, bool doStemCorrect, int lang /*=LANG_UNKNOWN*/, size_t levMax=LEV_DIST_UNLIMITED ) const;
-	uint32_t getStemCorrection( std::string& , const char*, int lang=LANG_UNKNOWN) const;
+	uint32_t getStemCorrection( std::string& , const char*, int lang, int mode ) const;
     // when bool doStemCorrect is false it will NOT correct to a string whose token is 
     // pure stem
     // extNorm - normalized string can be actually passed in
-	uint32_t get2ByteLangStemCorrection( int lang, const char* str, bool doStemCorrect, const char* extNorm = 0 ) const;
-	uint32_t getUtf8LangStemCorrection( int lang, const char* str, bool doStemCorrect, const char* extNorm = 0 ) const;
+	uint32_t get2ByteLangStemCorrection( int lang, const char* str, bool doStemCorrect, const char* extNorm, int mode ) const;
+	uint32_t getUtf8LangStemCorrection( int lang, const char* str, bool doStemCorrect, const char* extNorm, int mode ) const;
     uint32_t purePermuteCorrect2B(const char* s, size_t s_len )  const;
 
 	uint32_t getAggressiveStem( std::string& , const char*) const;

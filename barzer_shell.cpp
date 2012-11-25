@@ -572,7 +572,7 @@ static int bshf_bzstem( BarzerShell* shell, char_cp cmd, std::istream& in )
             std::cerr << "<<<< ed of stem\n";
 
         } else {
-            uint32_t strId = bzSpell->getStemCorrection( stem, word );
+            uint32_t strId = bzSpell->getStemCorrection( stem, word, LANG_UNKNOWN, BZSpell::CORRECTION_MODE_NORMAL );
             std::cerr << "stemmed to :" << stem << ":" << std::hex << strId << ":" << std::endl;
         }
 	}
