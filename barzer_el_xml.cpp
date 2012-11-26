@@ -1262,7 +1262,7 @@ DEFINE_BELParserXML_taghandle(PERM)
 		case 't': // t or type (optional attribute can be FLIP, other types to come)
             if( !n[1] || !strcasecmp(n,"type") ) {
                 if( v[0] == 'f' ) {
-                    if( !v[1] || !strcasecmp(n,"flip")  ) 
+                    if( !v[1] || !strcasecmp(v,"flip")  ) 
                         structType = BTND_StructData::T_FLIP;
                 }
             }
