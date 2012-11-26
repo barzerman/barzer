@@ -364,6 +364,7 @@ struct StoredEntityPrinter {
     bool operator()( const BarzerEntity& ent ) 
     {
         ent.print( fp, universe, fmt );
+        fp << std::endl;
         return false;
     }
     virtual std::ostream& print(const StoredEntityClass& ec ) ;

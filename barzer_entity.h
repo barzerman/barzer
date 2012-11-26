@@ -113,12 +113,22 @@ inline bool operator ==(const StoredEntityUniqId& l, const StoredEntityUniqId& r
 
 inline bool operator <(const StoredEntityUniqId& l, const StoredEntityUniqId& r ) 
 {
+	return( l.eclass< r.eclass ?
+		true :
+		(r.eclass< l.eclass ? false: (l.tokId < r.tokId)) 
+	);
+		
+}
+/*
+inline bool operator <(const StoredEntityUniqId& l, const StoredEntityUniqId& r ) 
+{
 	return( l.tokId< r.tokId ?
 		true :
 		(r.tokId< l.tokId ? false: (l.eclass < r.eclass)) 
 	);
 		
 }
+*/
 
 typedef StoredEntityUniqId BarzerEntity;
 
