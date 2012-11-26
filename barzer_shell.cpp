@@ -211,6 +211,24 @@ static int bshf_entid( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 	return 0;
 }
+static int bshf_entfind( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext * context = shell->getBarzerContext();
+    StoredEntityPrinter printer( shell->getOutStream(), context->getUniverse() );
+    std::string tmp;
+    StoredEntityClass ec;
+    if( (in >> tmp) ) {
+        ec.ec = atoi(tmp.c_str());
+        const char* sep=strchr(tmp.c_str(), ',' );
+        if( sep ) {
+            ec.subclass=atoi(sep+1);
+        }
+    }
+    printer.print( ec );
+    
+    return 0;
+}
+
 static int bshf_euid( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
@@ -1618,6 +1636,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_tokid, "tokid", "token lookup by string" ),
 	CmdData( (ay::Shell_PROCF)bshf_emit, "emit", "emit [filename] emitter test" ),
 	CmdData( (ay::Shell_PROCF)bshf_entid, "entid", "entity lookup by entity id" ),
+	CmdData( (ay::Shell_PROCF)bshf_entid, "entfind", "finds and prints entities : class,subclass [,regexp for id ]" ),
 	CmdData( (ay::Shell_PROCF)bshf_euid, "euid", "entity lookup by euid (tok class subclass)" ),
 	//CmdData( (ay::Shell_PROCF)bshf_trieloadxml, "trieloadxml", "loads a trie from an xml file" ),
 	CmdData( (ay::Shell_PROCF)bshf_setloglevel, "setloglevel", "set a log level (DEBUG/WARNINg/ERROR/CRITICAL)" ),

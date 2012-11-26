@@ -590,6 +590,40 @@ struct BELFunctionStorage_holder {
         }
         return true;
     }
+    STFUN(filterRegex)
+    {
+        /// parms: 0 - regex
+        ///        1 - whats being filtered  - either a list of entities or an id-less entity (class/subclass) 
+        ///       
+        SETFUNCNAME(filterRegex);
+        const char* argStr = GETARGSTR();
+        /// argstr - can be 0, name, id, ... 
+        
+        if( rvec.size() > 1 ) {
+            const BarzerEntityList* entList  = getAtomicPtr<BarzerEntityList>(rvec[0]);
+            if( entList ) {
+                return true;
+            }
+
+            const BarzerEntity* ent = getAtomicPtr<BarzerEntity>(rvec[0]);
+            if( ent ) {
+                /// if id is 0xffffffff we will filter all entities of the class 
+                if( ent->isTokIdValid() ) {
+                } else {
+                    struct SubclassCB {
+                        BarzerEntityList lst;
+
+                        bool operator()( const StoredEntityUniqId& ent ) { lst.theList().push_back( ent ); return false; }
+                    } cb;
+
+                    gpools.getDtaIdx().entPool.iterateSubclass( cb, ent->getClass() );
+                    setResult( result, cb.lst );
+                }
+                return true;
+            }
+        }
+        return true;
+    }
     STFUN(call) {
         SETFUNCNAME(call);
         if( rvec.size() ) {

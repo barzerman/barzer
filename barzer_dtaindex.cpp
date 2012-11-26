@@ -153,5 +153,9 @@ int DtaIndex::loadEntities_XML( const char* fileName, StoredUniverse* universe )
 	return xmlLoader.readFile( fileName );
 }
 
-
+std::ostream& StoredEntityPrinter::print(const StoredEntityClass& ec ) 
+{
+    universe.getGlobalPools().getDtaIdx().entPool.iterateSubclass( *this, ec );
+    return fp;
+}
 } // namespace barzer
