@@ -1254,7 +1254,23 @@ DEFINE_BELParserXML_taghandle(PERM)
 		statement.popNode();
 		return;
 	}
-	BTND_StructData node( BTND_StructData::T_PERM);
+    int structType = BTND_StructData::T_PERM;
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		switch( n[0] ) {
+		case 't': // t or type (optional attribute can be FLIP, other types to come)
+            if( !n[1] || !strcasecmp(n,"type") ) {
+                if( v[0] == 'f' ) {
+                    if( !v[1] || !strcasecmp(n,"flip")  ) 
+                        structType = BTND_StructData::T_FLIP;
+                }
+            }
+            break;
+        }
+    }
+
+	BTND_StructData node( structType );
 	processAttrForStructTag( node, attr, attr_sz );
 	statement.pushNode( node );
 }

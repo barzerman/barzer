@@ -191,6 +191,9 @@ std::ostream&  BTND_StructData::printXML( std::ostream& fp, const BELTrie& trie 
 	if( hasVar() ) {
 		trie.printVariableName( fp << " v=\"", varId ) << "\"";
 	}
+    if( type == T_FLIP ) {
+        fp << " type=\"flip\"";
+    }
 	return fp;
 }
 

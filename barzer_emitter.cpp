@@ -127,6 +127,41 @@ private:
 
     ChildVec::const_iterator position;
 };
+struct Flip: public IntermediateNode {
+    Flip(const BELParseTreeNode::ChildrenVec& children, VarVec &v)
+        : IntermediateNode(children, v), flipped(false)
+    { }
+    
+    bool step()
+    {
+        if( !flipped )
+            return ( flipped=true, true );
+        else 
+            flipped = false;
+
+        for(ChildVec::const_iterator it=childs.begin(); it != childs.end(); ++it) {
+            if((*it)->step()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    void yield(BTND_PatternDataVec& vec, BELVarInfo &vinfo) const
+    {
+        if(flipped) {
+            for(ChildVec::const_iterator it=childs.begin(); it != childs.end(); ++it)
+                (*it)->yield(vec, vinfo);
+        } else {
+            for(ChildVec::const_reverse_iterator it=childs.rbegin(); it != childs.rend(); ++it)
+                (*it)->yield(vec, vinfo);
+        }
+    }
+    
+private:
+    bool flipped;
+
+};
 
 struct Opt: public IntermediateNode {
     Opt(const BELParseTreeNode::ChildrenVec& children, VarVec &v)
@@ -284,6 +319,8 @@ PatternEmitterNode* PatternEmitterNode::make(const BELParseTreeNode& node, VarVe
                     return new Tail(node.child, vars);
                 case BTND_StructData::T_SUBSET:
                     return new Subset(node.child, vars);
+                case BTND_StructData::T_FLIP:
+                    return new Flip(node.child, vars);
                 default:
                     AYLOG(ERROR) << "Invalid BTND_StructData type: " << sdata.getType();
                     return new List(node.child, vars);

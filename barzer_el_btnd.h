@@ -1034,8 +1034,9 @@ struct BTND_StructData {
 		T_PERM, // permutation of children
 		T_TAIL, // if children are A,B,C this translates into [A], [A,B] and [A,B,C]
 
-		/// add new types above this line only
 		T_SUBSET, // if children are A,B,C this translates into A,B,C,AB,AC,BC,ABC
+        T_FLIP,   // ABCD = (ABCD,DCBA)
+		/// add new types above this line only
 
 		BEL_STRUCT_MAX
 	};
@@ -1051,10 +1052,10 @@ public:
 		case T_PERM: return "perm";
 		case T_TAIL: return "tail";
 		case T_SUBSET: return "subs";
+		case T_FLIP: return "perm";
 		default: return "badstruct";
 		}
 	}
-
 
 	std::ostream& printXML( std::ostream&, const BELTrie& ) const;
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
