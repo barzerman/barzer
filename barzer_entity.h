@@ -106,9 +106,9 @@ inline bool operator ==(const StoredEntityUniqId& l, const StoredEntityUniqId& r
 
 inline bool operator <(const StoredEntityUniqId& l, const StoredEntityUniqId& r ) 
 {
-	return( l.tokId< r.tokId ?
+	return( l.eclass< r.eclass ?
 		true :
-		(r.tokId< l.tokId ? false: (l.eclass < r.eclass)) 
+		(r.eclass< l.eclass ? false: (l.tokId < r.tokId)) 
 	);
 		
 }
