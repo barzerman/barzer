@@ -65,7 +65,7 @@ void BarzerEntity::print( std::ostream& fp, const StoredUniverse& universe, int 
         if( id ) 
             xmlEscape( id, fp );
     } else { // ENT_PRINT_FMT_XML
-        fp << "<entity class=\"" << eclass.ec << "\" esubclass=\"" << eclass.subclass;
+        fp << "<entity class=\"" << eclass.ec << "\" esubclass=\"" << eclass.subclass << "\"";
         if( id ) 
             xmlEscape( id, fp<< " id=\"" ) << "\"";
         fp << "/>";
