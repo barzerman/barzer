@@ -57,7 +57,7 @@ IF(WIN32)
 	MESSAGE("-- Linking boost thread and python libs statically")
 ENDIF()
 
-find_package(Boost COMPONENTS system python thread regex regex-mt filesystem REQUIRED)
+find_package(Boost COMPONENTS system python thread regex filesystem REQUIRED)
 find_package(EXPAT REQUIRED)
 find_package(PythonLibs REQUIRED)
 
