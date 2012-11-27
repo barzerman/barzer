@@ -2,14 +2,14 @@ PYINCLUDE := $(shell /usr/bin/python2.7-config --includes)
 PYLIBS := $(shell /usr/bin/python2.7-config --libs)
 UNAME := $(shell uname -a | cut -d' ' -f1)
 FLAGS := $(FLAGS)
-BOOST_SYSLIB=-lboost_system -lboost_filesystem
+BOOST_SYSLIB=-lboost_system -lboost_filesystem -lboost_regex-mt
 BOOST_THREADLIB=-lboost_thread
 ifeq ($(IS64),yes)
 	BITMODE=-m64
 	AYBIT="IS64=yes"
 endif
 ifeq ($(UNAME),Darwin)
-    BOOST_SYSLIB=/opt/local/lib/libboost_system-mt.dylib /opt/local/lib/libboost_filesystem-mt.dylib
+    BOOST_SYSLIB=/opt/local/lib/libboost_system-mt.dylib /opt/local/lib/libboost_filesystem-mt.dylib /opt/local/lib/libboost_regex-mt.dylib
     BOOST_LIB=boost_python-mt
     BOOST_THREADLIB=-lboost_thread-mt
     C11LIB_SHIT=-stdlib=libc++

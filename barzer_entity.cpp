@@ -57,5 +57,22 @@ size_t EntityData::readFromFile( GlobalPools& gp, const char* fname )
     }
     return numRec;
 }
+void BarzerEntity::print( std::ostream& fp, const StoredUniverse& universe, int fmt ) const
+{
+    const char* id = universe.getGlobalPools().internalString_resolve(tokId);
+    if( fmt == ENT_PRINT_FMT_PIPE ) {
+        fp << eclass.ec << '|' << eclass.subclass << '|' ;
+        if( id ) 
+            xmlEscape( id, fp );
+    } else { // ENT_PRINT_FMT_XML
+        fp << "<entity class=\"" << eclass.ec << "\" esubclass=\"" << eclass.subclass << "\"";
+        if( id ) 
+            xmlEscape( id, fp<< " id=\"" ) << "\"";
+        if( const EntityData::EntProp* edata = universe.getEntPropData( *this ) )
+            xmlEscape( edata->canonicName.c_str(), fp << "n=\"" ) << "\" ";
+
+        fp << "/>";
+    }
+}
 
 } // barzer namespace ends

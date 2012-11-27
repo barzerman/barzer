@@ -211,6 +211,50 @@ static int bshf_entid( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 	return 0;
 }
+static int bshf_entfind( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext * context = shell->getBarzerContext();
+    const StoredUniverse & universe = context->getUniverse();
+    StoredEntityPrinter printer( shell->getOutStream(), universe );
+    std::string tmp;
+    StoredEntityClass ec;
+    if( (in >> tmp) ) {
+        ec.ec = atoi(tmp.c_str());
+        const char* sep=strchr(tmp.c_str(), ',' );
+        if( sep ) {
+            ec.subclass=atoi(sep+1);
+        }
+    }
+
+    RequestEnvironment& reqEnv = context->reqEnv;
+    RequestVariableMap& reqEnvVar = reqEnv.getReqVar();
+
+    std::string rex;
+    if( !(in >> rex) ) { /// trying to read the regex
+        if( reqEnvVar.hasVar("regex") ) { 
+            if( const BarzerString* x = reqEnv.getVarVal<BarzerString>( "ENTREGEX" ) ) 
+                rex = x->getStr();
+        }
+    }
+    if( rex.length() )  {
+        int entFilterMode = StoredEntityRegexFilter::ENT_FILTER_MODE_ID;
+        if( const BarzerString* x = reqEnv.getVarVal<BarzerString>( "ENTFILTER" )  ) {
+            if( x->getStr() == "ID" ) 
+                entFilterMode= StoredEntityRegexFilter::ENT_FILTER_MODE_ID;
+            else if( x->getStr() == "BOTH" )
+                entFilterMode= StoredEntityRegexFilter::ENT_FILTER_MODE_BOTH;
+            else if( x->getStr() == "NAME" )
+                entFilterMode= StoredEntityRegexFilter::ENT_FILTER_MODE_NAME;
+        }
+            
+        StoredEntityRegexFilter filter( context->getUniverse(), rex.c_str(), entFilterMode  );
+        universe.getGlobalPools().getDtaIdx().entPool.iterateSubclassFilter( printer, filter, ec );
+    } else {
+        printer.print( ec );
+    } 
+    return 0;
+}
+
 static int bshf_euid( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
@@ -1618,6 +1662,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_tokid, "tokid", "token lookup by string" ),
 	CmdData( (ay::Shell_PROCF)bshf_emit, "emit", "emit [filename] emitter test" ),
 	CmdData( (ay::Shell_PROCF)bshf_entid, "entid", "entity lookup by entity id" ),
+	CmdData( (ay::Shell_PROCF)bshf_entfind, "entfind", "finds and prints entities : class,subclass [,regexp for id ]" ),
 	CmdData( (ay::Shell_PROCF)bshf_euid, "euid", "entity lookup by euid (tok class subclass)" ),
 	//CmdData( (ay::Shell_PROCF)bshf_trieloadxml, "trieloadxml", "loads a trie from an xml file" ),
 	CmdData( (ay::Shell_PROCF)bshf_setloglevel, "setloglevel", "set a log level (DEBUG/WARNINg/ERROR/CRITICAL)" ),

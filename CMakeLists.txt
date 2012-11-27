@@ -57,7 +57,7 @@ IF(WIN32)
 	MESSAGE("-- Linking boost thread and python libs statically")
 ENDIF()
 
-find_package(Boost COMPONENTS system python thread filesystem REQUIRED)
+find_package(Boost COMPONENTS system python thread regex regex-mt filesystem REQUIRED)
 find_package(EXPAT REQUIRED)
 find_package(PythonLibs REQUIRED)
 
@@ -84,6 +84,7 @@ set(EXTRA_LIBS ${EXTRA_LIBS}
                ${Boost_SYSTEM_LIBRARY}
                ${Boost_FILESYSTEM_LIBRARY}
                ${Boost_THREAD_LIBRARY}
+               ${Boost_REGEX_LIBRARY}
                ay
                snowlib)
 

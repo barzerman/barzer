@@ -8,6 +8,7 @@
 #include <ay/ay_util_char.h>
 #include <boost/unordered_map.hpp>
 #include <barzer_language.h>
+#include <boost/regex.hpp>
 
 namespace barzer {
 
@@ -19,10 +20,10 @@ class StoredTokenPool;
 
 class StoredEntityPool {
 	ay::slogrovector<StoredEntity> storEnt;
-
+public:
 	typedef std::map< StoredEntityUniqId, StoredEntityId > UniqIdToEntIdMap;
 	typedef std::map< StoredEntityClass, uint32_t > EclassStatsMap;
-
+private:
 	UniqIdToEntIdMap euidMap;
 
 	EclassStatsMap eclassMap;
@@ -48,6 +49,45 @@ public:
 		EclassStatsMap::const_iterator i = eclassMap.find( eclass );
 		return( i == eclassMap.end() ? 0: i->second );
 	}
+
+    const UniqIdToEntIdMap& getEuidMap() const { return euidMap; }
+
+    // CB must take StoredEntityUniqId and return bool . when callback returns true 
+    // the iteration will be terminated
+    template <typename CB> 
+    size_t iterateSubclass( CB& cb, const StoredEntityClass& eclass ) const
+    {
+        StoredEntityUniqId id( eclass, 0 );
+        // std::pair< StoredEntityUniqId, unsigned int> id( StoredEntityUniqId( eclass, 0 ), 0 );
+        size_t count = 0;
+        for( UniqIdToEntIdMap::const_iterator i = euidMap.lower_bound( id ); 
+             i!= euidMap.end() && i->first.eclass == eclass; ++i )
+         {
+            if( cb(i->first) )
+                break;
+            ++count;
+         }
+        return count;
+    }
+    /// filtered iterator
+    /// F is a filter object must have bool operator()( const BarzeEntity& )
+    template <typename CB,typename F>
+    size_t iterateSubclassFilter( CB& cb, F& filter, const StoredEntityClass& eclass ) const
+    {
+        StoredEntityUniqId id( eclass, 0 );
+        // std::pair< StoredEntityUniqId, unsigned int> id( StoredEntityUniqId( eclass, 0 ), 0 );
+        size_t count = 0;
+        for( UniqIdToEntIdMap::const_iterator i = euidMap.lower_bound( id ); 
+             i!= euidMap.end() && i->first.eclass == eclass; ++i )
+         {
+            if( filter(i->first) && cb(i->first) )
+                break;
+            ++count;
+         }
+        return count;
+    }
+
+
 	inline const StoredEntityId getEntIdByEuid( const StoredEntityUniqId& euid ) const
 	{
 		UniqIdToEntIdMap::const_iterator i = euidMap.find( euid );
@@ -329,6 +369,57 @@ public:
 	uint32_t getEclassEntCount( const StoredEntityClass& eclass ) const 
 		{ return entPool.getEclassEntCount( eclass ); }
 }; 
+
+struct StoredEntityRegexFilter {
+    enum { 
+        ENT_FILTER_MODE_ID,
+        ENT_FILTER_MODE_NAME,
+        ENT_FILTER_MODE_BOTH 
+    };
+
+    int entFilterMode; /// ENT_FILTER_MODE_ID default
+
+    const StoredUniverse&   universe;
+    boost::regex            pattern;
+    
+    StoredEntityRegexFilter( const StoredUniverse& u, const char* p, int m=ENT_FILTER_MODE_ID ) :
+        entFilterMode(m),
+        universe(u),
+        pattern(p)
+    {}
+    bool operator()( const BarzerEntity& ent ) const;
+};
+struct EntListAdder {
+
+    std::vector< BarzerEntity >& vec;
+    bool operator()( const BarzerEntity& ent )
+    {
+        vec.push_back( ent );
+        return false;
+    }
+    EntListAdder(std::vector< BarzerEntity >&v): vec(v){}
+};
+
+struct StoredEntityPrinter {
+    const StoredUniverse& universe;
+    std::ostream& fp;
+    int fmt; /// BarzerEntity::ENT_PRINT_FMT_PIPE or ::ENT_PRINT_FMT_XML 
+    StoredEntityPrinter( std::ostream& f, const StoredUniverse& u, int fm = BarzerEntity::ENT_PRINT_FMT_XML ) :
+        universe(u),
+        fp(f),
+        fmt(fm)
+    {}
+
+    bool operator()( const BarzerEntity& ent ) 
+    {
+        ent.print( fp, universe, fmt );
+        fp << std::endl;
+        return false;
+    }
+    virtual std::ostream& print(const StoredEntityClass& ec ) ;
+    virtual ~StoredEntityPrinter() {}
+};
+
 /// EntPropCompatibility is an index used to determine whether a particular entity can serve as a property for 
 /// another entity
 ///

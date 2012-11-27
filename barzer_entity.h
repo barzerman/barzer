@@ -7,7 +7,7 @@
 #include <ay/ay_util.h>
 
 namespace barzer {
-
+class StoredUniverse;
 /// class of the stored entity . for now we assume the hierarchy is 
 /// 1-2 levels deep 
 struct StoredEntityClass {
@@ -74,11 +74,18 @@ struct StoredEntityUniqId {
 		tokId(0xffffffff),
 		eclass(ec)
 	{}
+	explicit StoredEntityUniqId( const StoredEntityClass& ec, uint32_t tid  ) : 
+        tokId(tid),
+        eclass(ec)
+    {}
     
 	inline bool isTokIdValid() const { return (tokId!=0xffffffff); }
 	inline bool isValid() const { return ( isTokIdValid() && eclass.isValid() ); }
 	inline bool isValidForMatching() const { return ( eclass.ec ); }
 	void print( std::ostream& fp ) const { fp << eclass << "," << tokId ; }
+
+    enum { ENT_PRINT_FMT_PIPE /*pipe separated*/, ENT_PRINT_FMT_XML /*xml*/};
+	void print( std::ostream& fp, const StoredUniverse& universe, int fmt = ENT_PRINT_FMT_XML ) const;
 	
 	bool matchOther( const StoredEntityUniqId& other ) const
 		{ return( eclass.matchOther( other.eclass ) && ( !isTokIdValid() || tokId == other.tokId ) ); }
