@@ -389,6 +389,17 @@ struct StoredEntityRegexFilter {
     {}
     bool operator()( const BarzerEntity& ent ) const;
 };
+struct EntListAdder {
+
+    std::vector< BarzerEntity >& vec;
+    bool operator()( const BarzerEntity& ent )
+    {
+        vec.push_back( ent );
+        return false;
+    }
+    EntListAdder(std::vector< BarzerEntity >&v): vec(v){}
+};
+
 struct StoredEntityPrinter {
     const StoredUniverse& universe;
     std::ostream& fp;

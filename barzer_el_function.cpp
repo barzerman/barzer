@@ -465,7 +465,27 @@ struct BELFunctionStorage_holder {
 
     const BarzerLiteral* getRvecLiteral( const BarzelEvalResultVec& rvec, size_t i ) const
     { return ( i < rvec.size() ? getAtomicPtr<BarzerLiteral>( rvec[i] ) : 0 ) ; }
-
+    
+    inline const char* literalToCString( const BarzerLiteral& ltrl ) const
+    {
+        return(
+            ltrl.isInternalString() ? 
+            gpools.internalString_resolve(ltrl.getId()) :
+            gpools.string_resolve(ltrl.getId())
+        );
+    }
+    const char* getCharPtr( const BarzelEvalResultVec& rvec, size_t i ) const
+    {
+        if( i >= rvec.size() )
+            return 0;
+        if( const BarzerLiteral* x = getRvecLiteral(rvec,i) ) {
+            if( x )
+                return literalToCString(*x);
+        } else if( const BarzerString* x = getAtomicPtr<BarzerString>( rvec[i] )  ) {
+            return x->c_str();
+        } 
+        return 0;
+    }
 	void addFun(const uint32_t fid, BELStoredFunction fun) 
         { funmap.insert(BELStoredFunRec(fid, fun)); }
 
@@ -491,14 +511,6 @@ struct BELFunctionStorage_holder {
 		AYLOGDEBUG(result.isVec());
 		return true;
 	}
-    inline const char* literalToCString( const BarzerLiteral& ltrl ) const
-    {
-        return(
-            ltrl.isInternalString() ? 
-            gpools.internalString_resolve(ltrl.getId()) :
-            gpools.string_resolve(ltrl.getId())
-        );
-    }
     /// generic getter
     STFUN(get) {
         SETFUNCNAME(call);
@@ -598,28 +610,51 @@ struct BELFunctionStorage_holder {
         SETFUNCNAME(filterRegex);
         const char* argStr = GETARGSTR();
         /// argstr - can be 0, name, id, ... 
-        
         if( rvec.size() > 1 ) {
-            const BarzerEntityList* entList  = getAtomicPtr<BarzerEntityList>(rvec[0]);
-            if( entList ) {
+            const char* rex = getCharPtr(rvec.vec(),0);
+            if( !rex )
                 return true;
-            }
+            
+            int entFilterMode = StoredEntityRegexFilter::ENT_FILTER_MODE_ID;
+            if( !strcasecmp(argStr,"name") )
+                entFilterMode = StoredEntityRegexFilter::ENT_FILTER_MODE_NAME;
+            else if( !strcasecmp(argStr,"both") )
+                entFilterMode = StoredEntityRegexFilter::ENT_FILTER_MODE_BOTH;
+                
+            StoredEntityRegexFilter filter(  q_universe, rex, entFilterMode );
+            const BarzelEvalResult& r1=rvec[1];
+            const BarzerEntityList* entList  = getAtomicPtr<BarzerEntityList>(r1);
+            if( entList ) 
+                return true;
 
-            const BarzerEntity* ent = getAtomicPtr<BarzerEntity>(rvec[0]);
+            const BarzerEntity* ent = getAtomicPtr<BarzerEntity>(r1);
             if( ent ) {
                 /// if id is 0xffffffff we will filter all entities of the class 
                 if( ent->isTokIdValid() ) {
+                    if( filter(*ent) )
+                        setResult( result, *ent );
+                    else
+                        return true;
                 } else {
+                    BarzerEntityList outEList;
                     struct SubclassCB {
                         BarzerEntityList lst;
 
                         bool operator()( const StoredEntityUniqId& ent ) { lst.theList().push_back( ent ); return false; }
                     } cb;
 
-                    gpools.getDtaIdx().entPool.iterateSubclass( cb, ent->getClass() );
-                    setResult( result, cb.lst );
+                    gpools.getDtaIdx().entPool.iterateSubclassFilter( cb, filter, ent->getClass() );
+                    setResult( result, outEList );
                 }
                 return true;
+            } else if(const BarzerEntityList* entList=getAtomicPtr<BarzerEntityList>(r1) ) {
+                BarzerEntityList outEList;
+                for( std::vector< BarzerEntity >::const_iterator i = entList->getList().begin(); i!= entList->getList().end(); ++i ) {
+                    if( filter(*i) ) 
+                        outEList.theList().push_back( *i );
+                }
+                if( outEList.theList().size() ) 
+                    setResult( result, outEList );
             }
         }
         return true;
