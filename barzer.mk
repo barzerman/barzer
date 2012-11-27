@@ -2,7 +2,7 @@ PYINCLUDE := $(shell /usr/bin/python2.7-config --includes)
 PYLIBS := $(shell /usr/bin/python2.7-config --libs)
 UNAME := $(shell uname -a | cut -d' ' -f1)
 FLAGS := $(FLAGS)
-BOOST_SYSLIB=-lboost_system -lboost_filesystem
+BOOST_SYSLIB=-lboost_system -lboost_filesystem -lboost_regex-mt
 BOOST_THREADLIB=-lboost_thread
 ifeq ($(IS64),yes)
 	BITMODE=-m64
