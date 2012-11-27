@@ -214,7 +214,8 @@ static int bshf_entid( BarzerShell* shell, char_cp cmd, std::istream& in )
 static int bshf_entfind( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
-    StoredEntityPrinter printer( shell->getOutStream(), context->getUniverse() );
+    const StoredUniverse & universe = context->getUniverse();
+    StoredEntityPrinter printer( shell->getOutStream(), universe );
     std::string tmp;
     StoredEntityClass ec;
     if( (in >> tmp) ) {
@@ -224,8 +225,33 @@ static int bshf_entfind( BarzerShell* shell, char_cp cmd, std::istream& in )
             ec.subclass=atoi(sep+1);
         }
     }
-    printer.print( ec );
-    
+
+    RequestEnvironment& reqEnv = context->reqEnv;
+    RequestVariableMap& reqEnvVar = reqEnv.getReqVar();
+
+    std::string rex;
+    if( !(in >> rex) ) { /// trying to read the regex
+        if( reqEnvVar.hasVar("regex") ) { 
+            if( const BarzerString* x = reqEnv.getVarVal<BarzerString>( "ENTREGEX" ) ) 
+                rex = x->getStr();
+        }
+    }
+    if( rex.length() )  {
+        int entFilterMode = StoredEntityRegexFilter::ENT_FILTER_MODE_ID;
+        if( const BarzerString* x = reqEnv.getVarVal<BarzerString>( "ENTFILTER" )  ) {
+            if( x->getStr() == "ID" ) 
+                entFilterMode= StoredEntityRegexFilter::ENT_FILTER_MODE_ID;
+            else if( x->getStr() == "BOTH" )
+                entFilterMode= StoredEntityRegexFilter::ENT_FILTER_MODE_BOTH;
+            else if( x->getStr() == "NAME" )
+                entFilterMode= StoredEntityRegexFilter::ENT_FILTER_MODE_NAME;
+        }
+            
+        StoredEntityRegexFilter filter( context->getUniverse(), rex.c_str(), entFilterMode  );
+        universe.getGlobalPools().getDtaIdx().entPool.iterateSubclassFilter( printer, filter, ec );
+    } else {
+        printer.print( ec );
+    } 
     return 0;
 }
 

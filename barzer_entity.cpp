@@ -68,6 +68,9 @@ void BarzerEntity::print( std::ostream& fp, const StoredUniverse& universe, int 
         fp << "<entity class=\"" << eclass.ec << "\" esubclass=\"" << eclass.subclass << "\"";
         if( id ) 
             xmlEscape( id, fp<< " id=\"" ) << "\"";
+        if( const EntityData::EntProp* edata = universe.getEntPropData( *this ) )
+            xmlEscape( edata->canonicName.c_str(), fp << "n=\"" ) << "\" ";
+
         fp << "/>";
     }
 }

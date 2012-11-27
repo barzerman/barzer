@@ -9,7 +9,7 @@ ifeq ($(IS64),yes)
 	AYBIT="IS64=yes"
 endif
 ifeq ($(UNAME),Darwin)
-    BOOST_SYSLIB=/opt/local/lib/libboost_system-mt.dylib /opt/local/lib/libboost_filesystem-mt.dylib
+    BOOST_SYSLIB=/opt/local/lib/libboost_system-mt.dylib /opt/local/lib/libboost_filesystem-mt.dylib /opt/local/lib/libboost_regex-mt.dylib
     BOOST_LIB=boost_python-mt
     BOOST_THREADLIB=-lboost_thread-mt
     C11LIB_SHIT=-stdlib=libc++

@@ -8,6 +8,7 @@
 #include <ay/ay_util_char.h>
 #include <boost/unordered_map.hpp>
 #include <barzer_language.h>
+#include <boost/regex.hpp>
 
 namespace barzer {
 
@@ -68,6 +69,24 @@ public:
          }
         return count;
     }
+    /// filtered iterator
+    /// F is a filter object must have bool operator()( const BarzeEntity& )
+    template <typename CB,typename F>
+    size_t iterateSubclassFilter( CB& cb, F& filter, const StoredEntityClass& eclass ) const
+    {
+        StoredEntityUniqId id( eclass, 0 );
+        // std::pair< StoredEntityUniqId, unsigned int> id( StoredEntityUniqId( eclass, 0 ), 0 );
+        size_t count = 0;
+        for( UniqIdToEntIdMap::const_iterator i = euidMap.lower_bound( id ); 
+             i!= euidMap.end() && i->first.eclass == eclass; ++i )
+         {
+            if( filter(i->first) && cb(i->first) )
+                break;
+            ++count;
+         }
+        return count;
+    }
+
 
 	inline const StoredEntityId getEntIdByEuid( const StoredEntityUniqId& euid ) const
 	{
@@ -351,6 +370,25 @@ public:
 		{ return entPool.getEclassEntCount( eclass ); }
 }; 
 
+struct StoredEntityRegexFilter {
+    enum { 
+        ENT_FILTER_MODE_ID,
+        ENT_FILTER_MODE_NAME,
+        ENT_FILTER_MODE_BOTH 
+    };
+
+    int entFilterMode; /// ENT_FILTER_MODE_ID default
+
+    const StoredUniverse&   universe;
+    boost::regex            pattern;
+    
+    StoredEntityRegexFilter( const StoredUniverse& u, const char* p, int m=ENT_FILTER_MODE_ID ) :
+        entFilterMode(m),
+        universe(u),
+        pattern(p)
+    {}
+    bool operator()( const BarzerEntity& ent ) const;
+};
 struct StoredEntityPrinter {
     const StoredUniverse& universe;
     std::ostream& fp;

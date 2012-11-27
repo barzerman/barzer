@@ -2,6 +2,7 @@
 //#include <boost/pool/singleton_pool.hpp>
 #include <barzer_loader_xml.h>
 #include <barzer_universe.h>
+#include <boost/regex.hpp>
 
 namespace barzer {
 
@@ -158,4 +159,29 @@ std::ostream& StoredEntityPrinter::print(const StoredEntityClass& ec )
     universe.getGlobalPools().getDtaIdx().entPool.iterateSubclass( *this, ec );
     return fp;
 }
+bool StoredEntityRegexFilter::operator()( const BarzerEntity& ent ) const
+{
+    if( entFilterMode == ENT_FILTER_MODE_ID )  { // looking for pattern in id 
+        if( const char* id = universe.getGlobalPools().internalString_resolve(ent.tokId) )
+            return boost::regex_search (id, pattern);
+        else 
+            return false;
+    } else if( entFilterMode == ENT_FILTER_MODE_NAME ) { // looking for pattern in name 
+        if( const EntityData::EntProp* edata = universe.getEntPropData( ent ) ) {
+            return boost::regex_search (edata->canonicName, pattern);
+        } else
+            return false;
+    } else if( entFilterMode == ENT_FILTER_MODE_BOTH ) { /// looking for pattern in either name or id
+        if( const char* id = universe.getGlobalPools().internalString_resolve(ent.tokId) ) {
+            if( boost::regex_search (id, pattern) ) 
+                return true;
+            else if( const EntityData::EntProp* edata = universe.getEntPropData( ent ) ) {
+                return boost::regex_search (edata->canonicName, pattern);
+            } 
+        }
+           
+    }
+    return false;
+}
+
 } // namespace barzer
