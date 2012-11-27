@@ -1422,7 +1422,7 @@ DEFINE_BELParserXML_taghandle(MKENT)
 
 	//const StoredEntity& ent  = reader->getUniverse().getDtaIdx().addGenericEntity( idStr, eclass, subclass );
     GlobalPools& gp = reader->getGlobalPools();
-    uint32_t idStrId = reader->getGlobalPools().internString_internal(idStr) ;
+    uint32_t idStrId = ( idStr ? reader->getGlobalPools().internString_internal(idStr) : 0xffffffff );
 	const StoredEntity& ent  = gp.getDtaIdx().addGenericEntity( idStrId, eclass, subclass );
     StoredUniverse* universe = getReader()->getCurrentUniverse();
     const uint32_t curUserId = universe->getUserId();

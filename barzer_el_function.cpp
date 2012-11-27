@@ -433,6 +433,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(arrSz);
 		ADDFN(arrIndex);
 		ADDFN(typeFilter);
+		ADDFN(filterRegex);
 		ADDFN(setUnmatch);
 
 		// --
@@ -616,16 +617,14 @@ struct BELFunctionStorage_holder {
                 return true;
             
             int entFilterMode = StoredEntityRegexFilter::ENT_FILTER_MODE_ID;
-            if( !strcasecmp(argStr,"name") )
-                entFilterMode = StoredEntityRegexFilter::ENT_FILTER_MODE_NAME;
-            else if( !strcasecmp(argStr,"both") )
-                entFilterMode = StoredEntityRegexFilter::ENT_FILTER_MODE_BOTH;
-                
+            if( argStr ) {
+                if( !strcasecmp(argStr,"name") )
+                    entFilterMode = StoredEntityRegexFilter::ENT_FILTER_MODE_NAME;
+                else if( !strcasecmp(argStr,"both") )
+                    entFilterMode = StoredEntityRegexFilter::ENT_FILTER_MODE_BOTH;
+            }
             StoredEntityRegexFilter filter(  q_universe, rex, entFilterMode );
             const BarzelEvalResult& r1=rvec[1];
-            const BarzerEntityList* entList  = getAtomicPtr<BarzerEntityList>(r1);
-            if( entList ) 
-                return true;
 
             const BarzerEntity* ent = getAtomicPtr<BarzerEntity>(r1);
             if( ent ) {
@@ -636,7 +635,6 @@ struct BELFunctionStorage_holder {
                     else
                         return true;
                 } else {
-                    BarzerEntityList outEList;
                     struct SubclassCB {
                         BarzerEntityList lst;
 
@@ -644,7 +642,7 @@ struct BELFunctionStorage_holder {
                     } cb;
 
                     gpools.getDtaIdx().entPool.iterateSubclassFilter( cb, filter, ent->getClass() );
-                    setResult( result, outEList );
+                    setResult( result, cb.lst );
                 }
                 return true;
             } else if(const BarzerEntityList* entList=getAtomicPtr<BarzerEntityList>(r1) ) {
