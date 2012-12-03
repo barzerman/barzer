@@ -380,7 +380,10 @@ int proc_ENTRULES(RequestEnvironment& reqEnv, const GlobalPools& gp, const char 
 	uni->getEntRevLookup().lookup(LookupEntityTriple(c, sc, entIdStrId), out);
 	reqEnv.outStream << "<results count='" << out.size() << "'>";
 	for (const auto& info : out)
-		reqEnv.outStream << "\n\t<match file=\"" << gp.internalString_resolve_safe(info.source) << "\" stmt=\"" << info.statementNum << "\"/>";
+	{
+		reqEnv.outStream << "\n\t<match file=\"";
+		xmlEscape(gp.internalString_resolve_safe(info.source), reqEnv.outStream) << "\" stmt=\"" << info.statementNum << "\"/>";
+	}
 	reqEnv.outStream << "\n</results>\n";
 	return 0;
 }
