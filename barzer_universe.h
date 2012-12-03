@@ -308,6 +308,27 @@ class Ghettodb;
 class MeaningsStorage;
 class BarzerGeo;
 
+class EntReverseLookup
+{
+	typedef boost::unordered_map<LookupEntityTriple, std::vector<BarzelTranslationTraceInfo>> dict_t;
+	dict_t m_hash;
+public:
+	void add(const LookupEntityTriple& triple, const BarzelTranslationTraceInfo& info)
+	{
+		auto pos = m_hash.find(triple);
+		if (pos == m_hash.end())
+			pos = m_hash.insert(dict_t::value_type(triple, dict_t::mapped_type())).first;
+		pos->second.push_back(info);
+	}
+	
+	void lookup(const LookupEntityTriple& triple, std::vector<BarzelTranslationTraceInfo>& out) const
+	{
+		auto pos = m_hash.find(triple);
+		if (pos != m_hash.end())
+			out = pos->second;
+	}
+};
+
 class StoredUniverse {
 	uint32_t d_userId;
     std::string d_userName;
@@ -343,6 +364,8 @@ private:
 	BarzerGeo *m_geo;
 
 	bool m_soundsLike;
+	
+	EntReverseLookup m_revEntLookup;
 public:
     /// much fancier interner than the overloaded one - this function will try to work with the trie 
     StoredToken& internString( int lang, const char* t, BELTrie* triePtr, const char* unstemmed);
@@ -392,6 +415,9 @@ public:
     }
     const std::string& userName() const { return d_userName; }
     void setUserName(const char* n) { d_userName.assign(n); }
+
+	EntReverseLookup& getEntRevLookup() { return m_revEntLookup; }
+	const EntReverseLookup& getEntRevLookup() const { return m_revEntLookup; }
 
 	      MeaningsStorage& meanings()       { return *m_meanings; }
 	const MeaningsStorage& meanings() const { return *m_meanings; }

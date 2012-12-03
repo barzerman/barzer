@@ -253,27 +253,6 @@ inline size_t hash_value(const LookupEntityTriple& t)
 	return (t.m_c << 24) + (t.m_sc << 16) + t.m_id;
 }
 
-class EntReverseLookup
-{
-	typedef boost::unordered_map<LookupEntityTriple, std::vector<BarzelTranslationTraceInfo>> dict_t;
-	dict_t m_hash;
-public:
-	void add(const LookupEntityTriple& triple, const BarzelTranslationTraceInfo& info)
-	{
-		auto pos = m_hash.find(triple);
-		if (pos == m_hash.end())
-			pos = m_hash.insert(dict_t::value_type(triple, dict_t::mapped_type())).first;
-		pos->second.push_back(info);
-	}
-	
-	void lookup(const LookupEntityTriple& triple, std::vector<BarzelTranslationTraceInfo>& out) const
-	{
-		auto pos = m_hash.find(triple);
-		if (pos != m_hash.end())
-			out = pos->second;
-	}
-};
-
 class GlobalPools;
 /// 
 /// DTAINDEX stores all tokens, entities as well as compounded words prefix trees as well as 
@@ -285,8 +264,6 @@ class DtaIndex {
 public: 
 	StoredTokenPool tokPool;
 	StoredEntityPool entPool;
-	
-	EntReverseLookup entRevLookup;
 private:
 	StoredToken* getStoredToken( const char* s) 
 		{ return tokPool.getTokByString( s ); }

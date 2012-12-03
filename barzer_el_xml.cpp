@@ -1444,7 +1444,7 @@ DEFINE_BELParserXML_taghandle(MKENT)
 	traceInfo.source = statement.stmt.getSourceNameStrId();
 	traceInfo.statementNum = statement.stmt.getStmtNumber();
 	traceInfo.emitterSeqNo = 0;
-	gp.getDtaIdx().entRevLookup.add(LookupEntityTriple(eclass, subclass, idStrId), traceInfo);
+	universe->getEntRevLookup().add(LookupEntityTriple(eclass, subclass, idStrId), traceInfo);
     
 	mkent.setEntId( ent.entId );
     statement.setCurEntity( ent.getEuid() );

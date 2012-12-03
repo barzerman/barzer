@@ -515,7 +515,7 @@ static int bshf_entrevlookup(BarzerShell* shell, char_cp cmd, std::istream& in)
 		}
 		
 		std::vector<BarzelTranslationTraceInfo> infos;
-		dtaIdx->entRevLookup.lookup(LookupEntityTriple(c, sc, strId), infos);
+		uni.getEntRevLookup().lookup(LookupEntityTriple(c, sc, strId), infos);
 		shell->getOutStream() << "found " << infos.size() << " sources:" << std::endl;
 		for (const auto& info : infos)
 			shell->getOutStream() << info.source
