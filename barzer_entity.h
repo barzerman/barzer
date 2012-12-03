@@ -120,6 +120,11 @@ inline bool operator <(const StoredEntityUniqId& l, const StoredEntityUniqId& r 
 		
 }
 
+inline size_t hash_value(const StoredEntityUniqId& t)
+{
+	return (t.eclass.ec << 24) + (t.eclass.subclass << 16) + t.tokId;
+}
+
 typedef StoredEntityUniqId BarzerEntity;
 
 //// generic type used by Barzel among other things

@@ -310,10 +310,10 @@ class BarzerGeo;
 
 class EntReverseLookup
 {
-	typedef boost::unordered_map<LookupEntityTriple, std::vector<BarzelTranslationTraceInfo>> dict_t;
+	typedef boost::unordered_map<StoredEntityUniqId, std::vector<BarzelTranslationTraceInfo>> dict_t;
 	dict_t m_hash;
 public:
-	void add(const LookupEntityTriple& triple, const BarzelTranslationTraceInfo& info)
+	void add(const StoredEntityUniqId& triple, const BarzelTranslationTraceInfo& info)
 	{
 		auto pos = m_hash.find(triple);
 		if (pos == m_hash.end())
@@ -321,7 +321,7 @@ public:
 		pos->second.push_back(info);
 	}
 	
-	void lookup(const LookupEntityTriple& triple, std::vector<BarzelTranslationTraceInfo>& out) const
+	void lookup(const StoredEntityUniqId& triple, std::vector<BarzelTranslationTraceInfo>& out) const
 	{
 		auto pos = m_hash.find(triple);
 		if (pos != m_hash.end())
