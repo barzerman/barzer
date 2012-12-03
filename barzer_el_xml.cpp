@@ -250,6 +250,7 @@ DEFINE_BELParserXML_taghandle(STMSET)
 		reader->setTrie(trieClass,trieId);
 		return;
 	}
+    reader->setDefaultExecMode( BELStatementParsed::EXEC_MODE_REWRITE );
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
@@ -261,6 +262,12 @@ DEFINE_BELParserXML_taghandle(STMSET)
 		case 'i':
             trieId = reader->getGlobalPools().internString_internal(v) ;
             ti =v;
+            break;
+        case 'm': // execute mode (imperative is one option)
+            if( v[0] == 'p' ) // imperative PRE
+                reader->setDefaultExecMode( BELStatementParsed::EXEC_MODE_IMPERATIVE_PRE );
+            else if( v[0] =='s' ) 
+                reader->setDefaultExecMode( BELStatementParsed::EXEC_MODE_IMPERATIVE_POST );
             break;
 		}
 	}

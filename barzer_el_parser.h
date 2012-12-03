@@ -25,6 +25,13 @@ struct BELParseTreeNode_PatternEmitter;
 /// statement parse tree represents a single BarzEL  statement as parsed on load
 /// this tree is evaluated and resulting paths are added to a barzel trie by the parser
 struct BELStatementParsed {
+    enum { 
+        EXEC_MODE_REWRITE,  // standard 
+        EXEC_MODE_IMPERATIVE_PRE,  // imperative befiore rewriting
+        EXEC_MODE_IMPERATIVE_POST  // imperative after rewriting
+    };
+    int    d_execMode; // EXEC_MODE_XXXX
+
 	size_t d_stmtNumber;
 	std::string d_sourceName;
 	uint32_t d_sourceNameStrId;
@@ -34,12 +41,30 @@ struct BELStatementParsed {
     int d_tranUnmatchable;
 
 	BELStatementParsed() :
-		d_stmtNumber(0), d_sourceNameStrId(0xffffffff), d_ruleClashOverride(false), d_reader(0), d_tranUnmatchable(0)
+		d_execMode(EXEC_MODE_REWRITE), 
+        d_stmtNumber(0), 
+        d_sourceNameStrId(0xffffffff), 
+        d_ruleClashOverride(false), 
+        d_reader(0), 
+        d_tranUnmatchable(0)
 	{}
 	BELParseTreeNode pattern; // points at the node under statement
 	BELParseTreeNode translation; // points at the node under statement
+
+
+    void setExecImperative( bool pre )
+        { d_execMode = ( pre ? EXEC_MODE_IMPERATIVE_PRE : EXEC_MODE_IMPERATIVE_POST ); }
+    void setExecRewrite()
+        { d_execMode = EXEC_MODE_IMPERATIVE_REWRITE;}
+
+    int getExecMode() const { return d_execMode; }
+    bool isImperativeExec() const { return d_execMode!= EXEC_MODE_IMPERATIVE_REWRITE; }
 	void clear()
-		{ pattern.clear(); translation.clear(); }
+    { 
+        d_execMode=EXEC_MODE_IMPERATIVE_REWRITE;
+        pattern.clear(); 
+        translation.clear(); 
+    }
     BELReader* getReader() const { return const_cast<BELReader*>(d_reader); }
     std::ostream& getErrStream() const;
 
@@ -137,6 +162,8 @@ protected:
 	size_t numMacros; /// total number of successfully loaded macros
 	size_t numProcs; /// total number of successfully loaded procs
     size_t numEmits; // total currently accumulated number of emits for all rules processed
+    int    d_defaultExecMode; // BELStatementParsed::EXEC_MODE_XXX
+
 
 	std::string inputFileName;
 
@@ -161,6 +188,9 @@ protected:
     /// then things such as produceWordVariants are always invoked etc
     bool    d_liveCommand; 
 public:
+    void    setDefaultExecMode( int m ) { d_defaultExecMode = m; }
+    int     getDefaultExecMode() const { return d_defaultExecMode; }
+
     void setLiveCommandMode() { d_liveCommand= true; }
     bool isLiveCommandMode() const { return d_liveCommand; }
 
@@ -269,6 +299,7 @@ public:
 
 	/// this method is called by the parser for every statement tree
 	virtual void addStatement( const BELStatementParsed& );
+	virtual void addStatement_imperative( const BELStatementParsed&, bool  );
 	virtual void addMacro( uint32_t macroNameId, const BELStatementParsed& );
 	/// strId is the id of an internal string representing the procedure name
 	virtual void addProc( uint32_t strId, const BELStatementParsed& );

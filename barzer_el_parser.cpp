@@ -124,6 +124,7 @@ BELReader::BELReader( BELTrie* t, GlobalPools &g, std::ostream* errStream ) :
     numMacros(0) ,
     numProcs(0) ,
     numEmits(0),
+    d_defaultExecMode(BELStatementParsed::EXEC_MODE_REWRITE),
     silentMode(false),
     d_trieSpellPriority(0),
     d_rulesetSpellPriority(0),
@@ -142,7 +143,12 @@ BELReader::BELReader( BELTrie* t, GlobalPools &g, std::ostream* errStream ) :
 {}
 BELReader::BELReader( GlobalPools &g, std::ostream* errStream ) :
 	trie(g.globalTriePool.produceTrie(g.internString_internal(""),g.internString_internal(""))) , parser(0), gp(g),
-	numStatements(0) ,silentMode(false),
+	numStatements(0) ,
+    numMacros(0) ,
+    numProcs(0) ,
+    numEmits(0),
+    d_defaultExecMode(BELStatementParsed::EXEC_MODE_REWRITE),
+    silentMode(false),
 	d_trieSpellPriority(0),
     d_rulesetSpellPriority(0),
     d_spellPriority(0),
@@ -200,8 +206,17 @@ void BELReader::addMacro( uint32_t macroNameId, const BELStatementParsed& sp )
 	++numStatements;
 }
 
+void BELReader::addStatement_imperative( const BELStatementParsed& sp, bool pre )
+{
+    trie->addImperative( sp, pre );
+}
 void BELReader::addStatement( const BELStatementParsed& sp )
 {
+    if( sp.isImperativeExec() )
+    {
+        addStatement_imperative( sp, sp.getExecMode() == BELStatementParsed::EXEC_MODE_IMPERATIVE_PRE );
+        return;
+    }
     if( !isOk_EmitCountPerTrie(numEmits) ) {
         std::ostream& os = sp.getErrStream() ;
         sp.getErrStream() << "<error type=\"ERROR\">";

@@ -484,6 +484,12 @@ typedef boost::unordered_map< uint32_t, TrieWordInfo > strid_to_triewordinfo_map
 typedef std::set< uint32_t > strIds_set;
 typedef boost::unordered_map< uint32_t, strIds_set> stem_to_srcs_map;
 
+struct BELTrieImperative {
+    BarzelTranslation          translation;
+    BarzelTranslationTraceInfo trace;
+};
+
+typedef std::vec< BELTrieImperative > BELTrieImperativeVec;
 
 class BELTrie {
 
@@ -581,6 +587,12 @@ public:
 	const GlobalPools& getGlobalPools() const { return globalPools; }
 	BarzelTrieNode root;
 
+    //  imperatives . Imperative statement is a translation which is executed 
+    //  unconditionally before or after the rewriting 
+    //  its rvec always contains the entire bead list, as iw it has matched all beads 
+    BELTrieImperativeVec d_imperativePre; // array of imperatives executed in order BEFORE rewriting 
+    BELTrieImperativeVec d_imperativePost; // array of imperatives executed in order AFTER rewriting
+
 	// allocates the pools
 	void initPools();
 
@@ -634,7 +646,9 @@ public:
 	/// this ends up calling d_wcPool->produceWCKey()
 	void produceWCKey( BarzelWCKey&, const BTND_PatternData&   );
 
-	/// adds a new path to the
+    const addImperative( const BELStatementParsed& stmt, bool pre );
+
+	/// adds a new path to the  trie
 	const BarzelTrieNode* addPath( const BELStatementParsed& stmt, const BTND_PatternDataVec& path, uint32_t tranId, const BELVarInfo& varInfo, uint32_t emitterSeqNo );
 	void setTanslationTraceInfo( BarzelTranslation& tran, const BELStatementParsed& stmt, uint32_t emitterSeqNo );
 	std::ostream& printTanslationTraceInfo( std::ostream& , const BarzelTranslationTraceInfo& traceInfo ) const;
