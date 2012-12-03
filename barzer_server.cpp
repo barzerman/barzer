@@ -360,12 +360,15 @@ int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, c
 
 int proc_ENTRULES(RequestEnvironment& reqEnv, const GlobalPools& gp, const char *str)
 {
-	std::istringstream istr(str);
-	uint32_t uid = 0, c = 0, sc = 0;
-	istr >> uid >> c >> sc;
-	std::string entIdStr;
-	std::getline(istr, entIdStr);
-	entIdStr.erase(0, 1);
+	const auto strLen = std::strlen(str);
+	const auto strEnd = str + strLen;
+	const auto firstComma = std::find(str, strEnd, ',');
+	const auto secondComma = std::find(firstComma + 1, strEnd, ',');
+	const auto thirdComma = std::find(secondComma + 1, strEnd, ',');
+	uint32_t uid = atoi(std::string(str, firstComma).c_str()),
+			c = atoi(std::string(firstComma + 1, secondComma).c_str()),
+			sc = atoi(std::string(secondComma + 1, thirdComma).c_str());
+	const std::string entIdStr(thirdComma + 1, strEnd);
 	
 	const auto uni = gp.getUniverse(uid);
 	if (!uni)
