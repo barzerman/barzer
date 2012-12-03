@@ -377,7 +377,7 @@ int proc_ENTRULES(RequestEnvironment& reqEnv, const GlobalPools& gp, const char 
 	const auto entIdStrId = gp.internalString_getId(entIdStr.c_str());
 	
 	std::vector<BarzelTranslationTraceInfo> out;
-	uni->getEntRevLookup().lookup(LookupEntityTriple(c, sc, entIdStrId), out);
+	uni->getEntRevLookup().lookup(StoredEntityUniqId(entIdStrId, c, sc), out);
 	reqEnv.outStream << "<results count='" << out.size() << "'>";
 	for (const auto& info : out)
 	{
