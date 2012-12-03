@@ -358,6 +358,32 @@ int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, c
 	return 0;
 }
 
+int proc_ENTRULES(RequestEnvironment& reqEnv, const GlobalPools& gp, const char *str)
+{
+	std::istringstream istr(str);
+	uint32_t uid = 0, c = 0, sc = 0;
+	istr >> uid >> c >> sc;
+	std::string entIdStr;
+	std::getline(istr, entIdStr);
+	entIdStr.erase(0, 1);
+	
+	const auto uni = gp.getUniverse(uid);
+	if (!uni)
+	{
+		reqEnv.outStream << "<error>\nNo universe for user " << reqEnv.userId << "</error>\n";
+		return 0;
+	}
+	
+	const auto entIdStrId = gp.internalString_getId(entIdStr.c_str());
+	
+	std::vector<BarzelTranslationTraceInfo> out;
+	uni->getEntRevLookup().lookup(LookupEntityTriple(c, sc, entIdStrId), out);
+	reqEnv.outStream << "<results count='" << out.size() << "'>";
+	for (const auto& info : out)
+		reqEnv.outStream << "\n\t<match file=\"" << gp.internalString_resolve_safe(info.source) << "\" stmt=\"" << info.statementNum << "\"/>";
+	reqEnv.outStream << "\n</results>\n";
+	return 0;
+}
 
 int proc_CHKBIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* str )
 {
@@ -422,6 +448,7 @@ int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os )
         if (cut) *cut = 0;
 		IFHEADER_ROUTE(COUNT_EMIT)
 		IFHEADER_ROUTE(EMIT)
+		IFHEADER_ROUTE(ENTRULES)
 		IFHEADER_ROUTE(CHKBIT)
 		IFHEADER_ROUTE(EN2RU)
 		IFHEADER_ROUTE(ADD_STMSET)
