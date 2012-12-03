@@ -55,13 +55,13 @@ struct BELStatementParsed {
     void setExecImperative( bool pre )
         { d_execMode = ( pre ? EXEC_MODE_IMPERATIVE_PRE : EXEC_MODE_IMPERATIVE_POST ); }
     void setExecRewrite()
-        { d_execMode = EXEC_MODE_IMPERATIVE_REWRITE;}
+        { d_execMode = EXEC_MODE_REWRITE;}
 
     int getExecMode() const { return d_execMode; }
-    bool isImperativeExec() const { return d_execMode!= EXEC_MODE_IMPERATIVE_REWRITE; }
+    bool isImperativeExec() const { return d_execMode!= EXEC_MODE_REWRITE; }
 	void clear()
     { 
-        d_execMode=EXEC_MODE_IMPERATIVE_REWRITE;
+        d_execMode=EXEC_MODE_REWRITE;
         pattern.clear(); 
         translation.clear(); 
     }

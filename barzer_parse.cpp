@@ -64,9 +64,16 @@ int QSemanticParser::semanticize_trieList( const UniverseTrieCluster& trieCluste
             if( numRemainingStems )
                 numRemainingStems = barz.getBeads().adjustStemIds(universe,t->trie());
     
-		    BarzelMatcher barzelMatcher( universe, t->trie() );
+            const BELTrie&  trie = t->trie();
+		    BarzelMatcher barzelMatcher( universe, trie );
             barz.barzelTrace.setGrammarSeqNo( grammarSeqNo );
+
+            if( trie.d_imperativePre.size() ) 
+		        barzelMatcher.runImperatives_Pre( barz );
 		    barzelMatcher.matchAndRewrite( barz );
+
+            if( trie.d_imperativePost.size() ) 
+		        barzelMatcher.runImperatives_Post( barz );
             ++grammarSeqNo; 
         } else {
             /// reporting skipped trie

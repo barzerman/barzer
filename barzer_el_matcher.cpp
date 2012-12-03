@@ -1406,6 +1406,97 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
     chain.adjustStemIds(universe,d_trie);    
 	return 0;
 }
+
+
+int BarzelMatcher::imperativeRewrite(Barz& barz, const BELTrieImperative& imperative )
+{
+	BarzelBeadChain& chain = barz.getBeads();
+    BarzelMatchInfo matchInfo(&barz);
+
+	const BeadRange& range = BeadRange(barz.getBeads().getFullRange());
+	BarzelBead& theBead = *(range.first);
+
+	const BarzelTranslation& translation = imperative.translation;
+
+	BarzelEvalResult transResult;
+	BarzelEvalNode evalNode;
+
+	BarzelEvalContext ctxt( matchInfo, universe, d_trie, barz );
+    
+    if( translation.isRewriter() ) { /// translation is a rewriter
+		BarzelRewriterPool::BufAndSize bas;
+		if( !universe.getBarzelRewriter( d_trie,bas, translation )) {
+			AYLOG(ERROR) << "no bytecode in rewriter" << std::endl;
+			theBead.setStopLiteral();
+			return 0;
+		}
+
+		/// constructing eval tree
+		if( !evalNode.growTree( bas, ctxt.err ) ) {
+			AYLOG(ERROR) << "eval tree construction failed" << std::endl;
+			theBead.setStopLiteral();
+			return 0;
+		}
+		/// end of custom rewriter handling
+	} else /// trivial translation (non-rewrite - no bytecode there)
+		translation.fillRewriteData( evalNode.getBtnd() );
+
+	if( !evalNode.eval( transResult, ctxt ) ) {
+        barz.setError( "evaluation failed" );
+		theBead.setStopLiteral();
+		return 0;
+	}
+
+	if( transResult.isVec() ) {
+		const BarzelEvalResult::BarzelBeadDataVec& bbdv = transResult.getBeadDataVec();
+		BeadList::iterator bi = range.first;
+		BarzelEvalResult::BarzelBeadDataVec::const_iterator di = bbdv.begin();
+		for( ; di != bbdv.end() && bi!= range.second; )  {
+			bi->setData( *di );
+			if( ++di == bbdv.end() )
+				break;
+			if( ++bi == range.second )
+				break;
+		}
+		if( di != bbdv.end() ) { // vector is longer than the bead range
+            const CTWPVec* tmpCt = 0;
+            if( range.second != range.first ) {
+                BeadList::const_iterator bsi = range.first;
+                if( ++bsi == range.second ) {
+                    /// this means matched range is 1 bead long 
+                    tmpCt = &( range.first->getCTokens() );
+                }
+            }
+			for( ; di != bbdv.end(); ++di ) {
+				BeadList::iterator nbi = chain.insertBead( range.second, *di );
+                if( nbi != chain.getLstEnd() ) {
+                    if( tmpCt ) 
+                        nbi->getCTokens() = *tmpCt;
+                }
+            }
+		} else if( bi != range.second ) { // vector is shorter than the list and we need to fold the remainder of the list
+			if( bi != range.first )
+				chain.collapseRangeLeft( chain.getFullRange().first,  BeadRange(bi, range.second) );
+		}
+	} else {
+		theBead.setData(  transResult.getBeadData() );
+		chain.collapseRangeLeft( range );
+	}
+	return 0;
+}
+
+int BarzelMatcher::runImperatives( Barz& barz, bool isPre )
+{
+	BELTrie::ReadLock r_lock(d_trie.getThreadLock());
+    clear();
+    BELTrieImperativeVec::const_iterator i_beg = ( isPre ? d_trie.d_imperativePre.begin() : d_trie.d_imperativePost.begin() );
+    BELTrieImperativeVec::const_iterator i_end = ( isPre ? d_trie.d_imperativePre.begin() : d_trie.d_imperativePost.begin() );
+    for( BELTrieImperativeVec::const_iterator i = i_beg; i!= i_end; ++i ) {
+        imperativeRewrite( barz, *i );
+    }
+    return 0;
+}
+
 int BarzelMatcher::matchAndRewrite( Barz& barz )
 {
 	BELTrie::ReadLock r_lock(d_trie.getThreadLock());

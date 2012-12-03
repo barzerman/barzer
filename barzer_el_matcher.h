@@ -129,6 +129,7 @@ public:
 	
 
 	BarzelMatchInfo() : d_score(0), d_barz(0)  {}
+	BarzelMatchInfo(const Barz* b ) : d_score(0), d_barz(b)  {}
 	void setScore( int s ) 	{ d_score = s; }
 	int getScore() const 	{ return d_score; }
 	
@@ -384,6 +385,13 @@ public:
 	/// and modifies the beads
 	// returns the number of successful rewrites
 	virtual int matchAndRewrite( Barz& );
+
+    int imperativeRewrite(Barz& barz, const BELTrieImperative& imperative );
+
+    int runImperatives( Barz&, bool isPre );
+	int runImperatives_Pre( Barz& b ) { return runImperatives(b,true); }
+	int runImperatives_Post( Barz& b ) { return runImperatives(b,false); }
+
     size_t match_Autocomplete( MatcherCallback& cb, Barz&, const QSemanticParser_AutocParms& autocParm );
 
 	virtual void clear() 

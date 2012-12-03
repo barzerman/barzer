@@ -489,7 +489,7 @@ struct BELTrieImperative {
     BarzelTranslationTraceInfo trace;
 };
 
-typedef std::vec< BELTrieImperative > BELTrieImperativeVec;
+typedef std::vector< BELTrieImperative > BELTrieImperativeVec;
 
 class BELTrie {
 
@@ -646,7 +646,7 @@ public:
 	/// this ends up calling d_wcPool->produceWCKey()
 	void produceWCKey( BarzelWCKey&, const BTND_PatternData&   );
 
-    const addImperative( const BELStatementParsed& stmt, bool pre );
+    void addImperative( const BELStatementParsed& stmt, bool pre );
 
 	/// adds a new path to the  trie
 	const BarzelTrieNode* addPath( const BELStatementParsed& stmt, const BTND_PatternDataVec& path, uint32_t tranId, const BELVarInfo& varInfo, uint32_t emitterSeqNo );

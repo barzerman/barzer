@@ -18,6 +18,7 @@ std::ostream& glob_printRewriterByteCode( std::ostream& fp, const BarzelRewriter
 }
 } // end of anon namespace 
 
+
 void BELTrie::addStemSrc ( uint32_t stemId, uint32_t srcId ) 
 { 
     d_stemSrcs [stemId].insert(srcId); 
@@ -556,6 +557,14 @@ const BarzelTrieNode* BELTrie::addPath(
 std::ostream& BELTrie::printTanslationTraceInfo( std::ostream& fp, const BarzelTranslationTraceInfo& traceInfo ) const
 {
 	return globalPools.printTanslationTraceInfo( fp, traceInfo );
+}
+void BELTrie::addImperative( const BELStatementParsed& stmt, bool pre )
+{
+    BELTrieImperativeVec* imperativeVec = ( pre ? &d_imperativePre : &d_imperativePost );
+    imperativeVec->resize( imperativeVec->size() + 1 );
+
+    imperativeVec->back().translation.set(*this, stmt.translation) ;
+    imperativeVec->back().trace.set( stmt.getSourceNameStrId(), stmt.getStmtNumber(), 0 );
 }
 bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELStatementParsed& stmt, uint32_t emitterSeqNo )
 {
