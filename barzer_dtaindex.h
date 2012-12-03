@@ -8,6 +8,7 @@
 #include <ay/ay_util_char.h>
 #include <boost/unordered_map.hpp>
 #include <barzer_language.h>
+#include "barzer_basic_types.h"
 #include <boost/regex.hpp>
 
 namespace barzer {
@@ -222,6 +223,57 @@ inline std::ostream& operator <<( std::ostream& fp, const StoredTokenPool& x )
 	x.print( fp );
 	return fp;
 }
+
+struct LookupEntityTriple
+{
+	uint32_t m_c, m_sc, m_id;
+	
+	LookupEntityTriple()
+	: m_c(0)
+	, m_sc(0)
+	, m_id(0)
+	{
+	}
+	
+	LookupEntityTriple(uint32_t c, uint32_t sc, uint32_t id)
+	: m_c(c)
+	, m_sc(sc)
+	, m_id(id)
+	{
+	}
+	
+	bool operator==(const LookupEntityTriple& other) const
+	{
+		return m_c == other.m_c && m_sc == other.m_sc && m_id == other.m_id;
+	}
+};
+
+inline size_t hash_value(const LookupEntityTriple& t)
+{
+	return (t.m_c << 24) + (t.m_sc << 16) + t.m_id;
+}
+
+class EntReverseLookup
+{
+	typedef boost::unordered_map<LookupEntityTriple, std::vector<BarzelTranslationTraceInfo>> dict_t;
+	dict_t m_hash;
+public:
+	void add(const LookupEntityTriple& triple, const BarzelTranslationTraceInfo& info)
+	{
+		auto pos = m_hash.find(triple);
+		if (pos == m_hash.end())
+			pos = m_hash.insert(dict_t::value_type(triple, dict_t::mapped_type())).first;
+		pos->second.push_back(info);
+	}
+	
+	void lookup(const LookupEntityTriple& triple, std::vector<BarzelTranslationTraceInfo>& out) const
+	{
+		auto pos = m_hash.find(triple);
+		if (pos != m_hash.end())
+			out = pos->second;
+	}
+};
+
 class GlobalPools;
 /// 
 /// DTAINDEX stores all tokens, entities as well as compounded words prefix trees as well as 
@@ -233,6 +285,8 @@ class DtaIndex {
 public: 
 	StoredTokenPool tokPool;
 	StoredEntityPool entPool;
+	
+	EntReverseLookup entRevLookup;
 private:
 	StoredToken* getStoredToken( const char* s) 
 		{ return tokPool.getTokByString( s ); }
