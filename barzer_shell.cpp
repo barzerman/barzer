@@ -490,6 +490,44 @@ static int bshf_findEntities(BarzerShell *shell, char_cp cmd, std::istream& in)
 	return 0;
 }
 
+static int bshf_entrevlookup(BarzerShell* shell, char_cp cmd, std::istream& in)
+{
+	auto context = shell->getBarzerContext();
+	const auto& uni = context->getUniverse();
+	const auto dtaIdx = context->obtainDtaIdx();
+	
+	shell->getOutStream() << "enter two numbers and the ID string on next line for each entity:" << std::endl;
+	
+	ay::InputLineReader reader(in);
+	while (reader.nextLine() && reader.str.length())
+	{
+		uint32_t c = 0, sc = 0;
+		std::istringstream istr(reader.str);
+		istr >> c >> sc;
+		
+		reader.nextLine();
+		const uint32_t strId = uni.gp.internalString_getId(reader.str.c_str());
+		
+		if (strId == 0xffffffff)
+		{
+			shell->getOutStream() << "string ID not found for " << reader.str << std::endl;
+			continue;
+		}
+		
+		std::vector<BarzelTranslationTraceInfo> infos;
+		uni.getEntRevLookup().lookup(LookupEntityTriple(c, sc, strId), infos);
+		shell->getOutStream() << "found " << infos.size() << " sources:" << std::endl;
+		for (const auto& info : infos)
+			shell->getOutStream() << info.source
+					<< ":"
+					<< uni.gp.internalString_resolve_safe(info.source)
+					<< ":"
+					<< info.statementNum << std::endl;
+	}
+	
+	return 0;
+}
+
 static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
@@ -1664,6 +1702,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_entid, "entid", "entity lookup by entity id" ),
 	CmdData( (ay::Shell_PROCF)bshf_entfind, "entfind", "finds and prints entities : class,subclass [,regexp for id ]" ),
 	CmdData( (ay::Shell_PROCF)bshf_euid, "euid", "entity lookup by euid (tok class subclass)" ),
+	CmdData( (ay::Shell_PROCF)bshf_entrevlookup, "entrevlookup", "reverse entity lookup by (class, subclass, id)" ),
 	//CmdData( (ay::Shell_PROCF)bshf_trieloadxml, "trieloadxml", "loads a trie from an xml file" ),
 	CmdData( (ay::Shell_PROCF)bshf_setloglevel, "setloglevel", "set a log level (DEBUG/WARNINg/ERROR/CRITICAL)" ),
 	CmdData( (ay::Shell_PROCF)bshf_soundslike, "soundslike", "check the Soundslike heuristics for user words" ),
