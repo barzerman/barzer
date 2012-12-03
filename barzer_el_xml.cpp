@@ -1439,6 +1439,12 @@ DEFINE_BELParserXML_taghandle(MKENT)
 					<< ent.getSubclass() << " "
 					<< (canonicName ? canonicName : "<no name>");
 	}
+	
+	BarzelTranslationTraceInfo traceInfo;
+	traceInfo.source = statement.stmt.getSourceNameStrId();
+	traceInfo.statementNum = statement.stmt.getStmtNumber();
+	traceInfo.emitterSeqNo = 0;
+	gp.getDtaIdx().entRevLookup.add(LookupEntityTriple(eclass, subclass, idStrId), traceInfo);
     
 	mkent.setEntId( ent.entId );
     statement.setCurEntity( ent.getEuid() );
