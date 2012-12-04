@@ -700,7 +700,9 @@ void BarzerSettings::load(BELReader& reader, const char *fname) {
 		fs::current_path(oldPath);
 	} catch (boost::property_tree::xml_parser_error &e) {
 		AYLOG(ERROR) << e.what();
-	}
+	} catch(...) {
+        AYLOG(ERROR) << "Fatal error reading file" << std::endl;
+    }
     reader.getErrStreamRef() << "Done in " << totalTimer.calcTime()  << " seconds" << std::endl;
 }
 
