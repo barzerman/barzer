@@ -295,6 +295,21 @@ Output copy_if(Input first, Input last, Output result, Pred pred)
 	return result;
 }
 
+template <typename Iter>
+bool set_intersection_nonempty( Iter b1, Iter e1, Iter b2, Iter e2 ) 
+{
+    for( Iter i = b1, j= b2; i!= e1 && j!= e2; ) {
+        if( *i < *j )
+            ++i;
+        else if( *j < *i ) 
+            ++j;
+        else
+            return true;
+    }
+    return false;
+}
+
+
 } // ay namespace
 
 #endif

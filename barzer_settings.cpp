@@ -208,7 +208,12 @@ void BarzerSettings::loadRules(BELReader& reader, const boost::property_tree::pt
                 uint32_t trieClass = gpools.internString_internal(cl.c_str()) ;
                 uint32_t trieId = gpools.internString_internal(id.c_str()) ;
 
-                
+                const boost::optional<std::string> tagsToFilter = attrs.get_optional<std::string>("tag");
+                if( tagsToFilter )
+                    reader.setTagFilter(tagsToFilter.get().c_str());
+                else
+                    reader.clearTagFilter();
+
 				reader.setCurTrieId( trieClass, trieId );
                 if( noCanonicalNames ) {
                     reader.set_noCanonicalNames();

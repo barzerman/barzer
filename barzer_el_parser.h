@@ -4,11 +4,13 @@
 #include <iostream>
 #include <vector>
 #include <cstdio>
+#include <set>
 #include <string>
 //#include <barzer_emitter.h>
 #include <barzer_el_btnd.h>
 #include <ay/ay_pool_with_id.h>
 #include <ay/ay_xml_util.h>
+#include <ay/ay_parse.h>
 
 /// wrapper object for various formats in which BarzEL may be fed to the application
 /// as well as the data structures required for the actual parsing
@@ -187,7 +189,26 @@ protected:
     /// default - false . when true this means it's being called from a server command 
     /// then things such as produceWordVariants are always invoked etc
     bool    d_liveCommand; 
+
+    std::set< std::string > d_tagFilter;
 public:
+    void    clearTagFilter() { d_tagFilter.clear(); }
+    void    addTagToFilter(const std::string& s) { d_tagFilter.insert(s); }
+    bool    hasTagFilters() const { return d_tagFilter.size(); }
+    bool    tagsPassFilter( const char* tagStr ) const
+    {
+        std::set<std::string> tmpSet;
+        ay::separated_string_to_set x(tmpSet);
+
+        return (tmpSet.size() ? ay::set_intersection_nonempty( tmpSet.begin(), tmpSet.end(), d_tagFilter.begin(), d_tagFilter.end() ) : false );
+    }
+    void    setTagFilter(const char* s) 
+    { 
+        d_tagFilter.clear();
+        ay::separated_string_to_set x( d_tagFilter );
+        x( s );
+    }
+
     void    setDefaultExecMode( int m ) { d_defaultExecMode = m; }
     int     getDefaultExecMode() const { return d_defaultExecMode; }
 

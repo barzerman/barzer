@@ -269,6 +269,9 @@ DEFINE_BELParserXML_taghandle(STMSET)
             else if( v[0] =='s' ) 
                 reader->setDefaultExecMode( BELStatementParsed::EXEC_MODE_IMPERATIVE_POST );
             break;
+        case 't':
+            reader->setTagFilter(v);
+            break;
 		}
 	}
 
@@ -302,6 +305,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 	size_t stmtNumber = 0;
     bool needAbort = false;
     std::stringstream errStrStr ;
+    bool tagsPassFilter = false;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
@@ -343,6 +347,13 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
                 statement.stmt.setRuleClashOverride();
             break;
 		case 't':  // pipe separated tags
+            if( reader->hasTagFilters() ) {
+                if( !reader->tagsPassFilter( v ) ) {
+                    statement.setInvalid();
+                    return;
+                } else
+                    tagsPassFilter = true;
+            }
 			break;
 		default:
             {
@@ -352,6 +363,11 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 			break;
 		}
 	}
+    if( !tagsPassFilter && reader->hasTagFilters() ) {
+        statement.setInvalid();
+        return;
+    }
+        
     if( stmtNumber == 145705 ) {
         std::cerr << 145705 << " reached\n";
     }
