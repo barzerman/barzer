@@ -346,7 +346,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
             if( v && v[0] != 'n'&&v[0]!='N' ) 
                 statement.stmt.setRuleClashOverride();
             break;
-		case 't':  // pipe separated tags
+		case 'x':  // pipe separated tags
             if( reader->hasTagFilters() ) {
                 if( !reader->tagsPassFilter( v ) ) {
                     statement.setInvalid();
