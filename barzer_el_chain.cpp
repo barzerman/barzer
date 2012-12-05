@@ -15,6 +15,25 @@ std::ostream& operator<< ( std::ostream& fp, const BarzelBeadData& x)
     return fp;
 }
 
+size_t BarzelBead::streamSrcTokens( std::ostream& sstr ) const
+{
+    size_t printed = 0;
+    char lastChar = 0;
+    for( CTWPVec::const_iterator ti = ctokOrigVec.begin(); ti!= ctokOrigVec.end(); ++ti ) {
+        for( TTWPVec::const_iterator tt = ti->first.getTTokens().begin(); tt != ti->first.getTTokens().end(); ++tt )  {
+            if( lastChar && !isspace(lastChar) && tt->first.buf.size()  && !isspace(tt->first.buf[0]) ) {
+                sstr << ' ';
+                ++printed;
+            }
+            if( tt->first.buf.size() )
+                lastChar= *(tt->first.buf.rbegin());
+            sstr << tt->first.buf;
+            printed+= tt->first.buf.size();
+        }
+    }
+    return printed;
+}
+
 void BarzelBead::initFromCTok( const CToken& ct )
 {
 	dta = BarzelBeadAtomic();

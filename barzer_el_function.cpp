@@ -409,6 +409,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(isRangeEmpty); // (BarzerRange or ERC) - returns true if range.lo == range.hi
 
         ADDFN(getLeftBead);  // returns closest bead on the left of the type matching arg . null otherwise
+        ADDFN(getBeadSrcTok);  // a string contactenated with spaces from scrtokens of all beads in substitution sequence
 		// arith
 		ADDFN(textToNum);
 		ADDFN(opPlus);
@@ -575,6 +576,21 @@ struct BELFunctionStorage_holder {
                 return false;
             }
         }
+    }
+    /// get bead source tokens 
+    STFUN(getBeadSrcTok)
+    {
+        SETFUNCNAME(getLeftBead);
+        if( ctxt.matchInfo.isSubstitutionBeadRangeEmpty() ) {
+            setResult(result,BarzerString());
+            return true;
+        }
+        std::stringstream sstr;
+        const BeadRange& rng = ctxt.matchInfo.getSubstitutionBeadRange();
+        for( BeadList::const_iterator i = rng.first; i!= rng.second; ++i) 
+            i->streamSrcTokens(sstr);
+        setResult(result,BarzerString(sstr.str())) ;
+        return true;
     }
     STFUN(getLeftBead)
     {

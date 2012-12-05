@@ -336,6 +336,8 @@ public:
     BarzelBead( const BarzerEntity& e ) : dta(BarzelBeadAtomic(e)), d_unmatchable(0) {}
     BarzelBead( const BarzerEntityList& e ) : dta(BarzelBeadAtomic(e)), d_unmatchable(0) {}
 	BarzelBead(const CTWPVec::value_type& ct) : d_unmatchable(0) { init(ct); }
+
+    size_t streamSrcTokens( std::ostream& fp ) const;
 };
 
 inline std::ostream& operator<<( std::ostream& fp, const BarzelBead& b ) {
