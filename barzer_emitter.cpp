@@ -230,7 +230,7 @@ struct Tail: public IntermediateNode {
     Tail(const BELParseTreeNode::ChildrenVec& children, VarVec &v)
         : IntermediateNode(children, v)
     {
-        endPosition = childs.begin() + 1;
+        endPosition = ( childs.size() ? childs.begin() + 1 : childs.end() );
     }
     
     bool step()
