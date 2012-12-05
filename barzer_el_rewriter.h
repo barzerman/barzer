@@ -94,11 +94,20 @@ private:
 	CTokVecVec        d_origToks;
 
     int d_unmatchable;
+    int d_confidenceBoost;
 public:
 
-	BarzelEvalResult() : d_val(1), d_unmatchable(0) {}
+	BarzelEvalResult() : 
+        d_val(1), 
+        d_unmatchable(0),
+        d_confidenceBoost(0)
+    {}
 
-    int getUnmatchability() const { return d_unmatchable; }
+    void boostConfidence( int x = 1 ) { d_confidenceBoost+=x; }
+    int  getConfidenceBoost() const { return d_confidenceBoost; }
+    void  setConfidenceBoost( int x ) { d_confidenceBoost=x; }
+
+    int  getUnmatchability() const { return d_unmatchable; }
     
     void setUnmatchability(int mb=1) { d_unmatchable= mb; }
 

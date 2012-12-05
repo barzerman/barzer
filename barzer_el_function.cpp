@@ -435,7 +435,8 @@ struct BELFunctionStorage_holder {
 		ADDFN(arrIndex);
 		ADDFN(typeFilter);
 		ADDFN(filterRegex);
-		ADDFN(setUnmatch);
+		ADDFN(setUnmatch); // bead
+		ADDFN(confBoost);  // bead confidence
 
 		// --
 		ADDFN(filterEList); // filters entity list by class/subclass (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
@@ -2347,6 +2348,17 @@ struct BELFunctionStorage_holder {
             for( BarzelBeadDataVec::const_iterator vi = v.begin(); vi !=v.end(); ++vi )
                 resultVec.push_back( *vi );
         }
+        return true;
+    }
+	STFUN(confBoost) { //
+        BarzelBeadDataVec& resultVec = result.getBeadDataVec();
+        for( BarzelEvalResultVec::const_iterator i = rvec.begin(); i!= rvec.end(); ++i ) {
+            const BarzelBeadDataVec& v = i->getBeadDataVec();
+            for( BarzelBeadDataVec::const_iterator vi = v.begin(); vi !=v.end(); ++vi )
+                resultVec.push_back( *vi );
+        }
+        std::pair< int, int > oldBoost = ctxt.matchInfo.getConfidenceRange();
+        result.setConfidenceBoost( oldBoost.second+1 );
         return true;
     }
 	STFUN(setUnmatch) { //

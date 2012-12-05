@@ -1353,6 +1353,8 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
         transResult.getUnmatchability()
         ) ? 1:0
     );
+    int confidenceBoost = transResult.getConfidenceBoost();
+
 	if( transResult.isVec() ) {
 		//std::cerr << "*** BEFORE::::>>\n";
 		//AYDEBUG( chain.getFullRange() );
@@ -1365,6 +1367,9 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 			bi->setData( *di );
             if( unmatchability )
                 bi->setBeadUnmatchability(unmatchability);
+            if( confidenceBoost )
+                bi->setConfidenceBoost(confidenceBoost);
+                
 			if( ++di == bbdv.end() )
 				break;
 			if( ++bi == range.second )
@@ -1388,6 +1393,8 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
                         nbi->getCTokens() = *tmpCt;
                     if( unmatchability ) 
                         nbi->setBeadUnmatchability(unmatchability);
+                    if( confidenceBoost ) 
+                        nbi->setConfidenceBoost(confidenceBoost);
                 }
             }
 		} else if( bi != range.second ) { // vector is shorter than the list and we need to fold the remainder of the list
@@ -1401,6 +1408,8 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 		theBead.setData(  transResult.getBeadData() );
         if( unmatchability )
             theBead.setBeadUnmatchability( unmatchability );
+        if( confidenceBoost )
+            theBead.setConfidenceBoost( confidenceBoost );
 		chain.collapseRangeLeft( range );
 	}
     chain.adjustStemIds(universe,d_trie);    

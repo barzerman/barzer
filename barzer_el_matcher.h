@@ -139,6 +139,25 @@ public:
 	{
 		if( r.second != d_beadRng.second ) ++r.second;
 	}
+
+    std::pair<int,int> getConfidenceRange() const 
+    {
+        std::pair<int,int> confBoost(0,0);
+        bool gotSome = false;
+        for( BeadList::const_iterator i = d_substitutionBeadRange.first; i!= d_substitutionBeadRange.second; ++i ) 
+        {
+            int tmpBoost = i->getConfidenceBoost();
+            if( !gotSome ) {
+                confBoost.first= confBoost.second = i->getConfidenceBoost();
+                gotSome= true;
+            } else if( tmpBoost< confBoost.first  ) {
+                confBoost.first= tmpBoost;
+            } else if( tmpBoost> confBoost.second ) {
+                confBoost.second= tmpBoost;
+            }
+        }
+        return confBoost;
+    }
 	const BeadRange& getSubstitutionBeadRange( ) const { return  d_substitutionBeadRange; }
 	const BeadRange& getFullBeadRange( ) const { return  d_beadRng; }
 	void setFullBeadRange( const BeadRange& br ) { d_beadRng= br; }

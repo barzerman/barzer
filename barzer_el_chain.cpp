@@ -15,6 +15,19 @@ std::ostream& operator<< ( std::ostream& fp, const BarzelBeadData& x)
     return fp;
 }
 
+BarzelBead::Confidence  BarzelBead::getBeadConfidence( const StoredUniverse* u ) const
+{
+    /// sum of squares of edit distances
+    size_t spellCorrSquare = 0;
+    BarzelBead::Confidence conf( ctokOrigVec.size(), 0 );
+    for( CTWPVec::const_iterator i = ctokOrigVec.begin(); i!= ctokOrigVec.end(); ++i ) {
+        const CToken& ctok = i->first;
+        for( CToken::SpellCorrections::const_iterator ci = ctok.spellCorrections.begin(); ci!= ctok.spellCorrections.end(); ++ci ) {
+            conf.numSpellCorr++;
+        }
+    }
+    return conf;
+}
 size_t BarzelBead::streamSrcTokens( std::ostream& sstr ) const
 {
     size_t printed = 0;

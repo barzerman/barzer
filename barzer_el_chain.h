@@ -193,10 +193,14 @@ class BarzelBead {
 	/// types
 	BarzelBeadData dta;
     int d_unmatchable;
+    int d_confidenceBoost;
     uint32_t d_stemStringId;
 public:
     uint32_t    getStemStringId() const { return d_stemStringId; }
     void        setStemStringId( uint32_t i ) { d_stemStringId= i; }
+
+    void setConfidenceBoost( int x ) { d_confidenceBoost=x; }
+    int getConfidenceBoost() const { return d_confidenceBoost; }
 
     int getBeadUnmatchability() const { return d_unmatchable; }
     void setBeadUnmatchability(int bu=0) { d_unmatchable= bu; }
@@ -331,13 +335,23 @@ public:
 	CTWPVec& getCTokens()
 		{ return ctokOrigVec; }
 
-	BarzelBead(const BarzelBeadData& d ): dta(d), d_unmatchable(0) {}
-	BarzelBead() : d_unmatchable(0){}
-    BarzelBead( const BarzerEntity& e ) : dta(BarzelBeadAtomic(e)), d_unmatchable(0) {}
-    BarzelBead( const BarzerEntityList& e ) : dta(BarzelBeadAtomic(e)), d_unmatchable(0) {}
-	BarzelBead(const CTWPVec::value_type& ct) : d_unmatchable(0) { init(ct); }
+	BarzelBead(const BarzelBeadData& d ): dta(d), d_unmatchable(0), d_confidenceBoost(0) {}
+	BarzelBead() : d_unmatchable(0), d_confidenceBoost(0){}
+    BarzelBead( const BarzerEntity& e ) : dta(BarzelBeadAtomic(e)), d_unmatchable(0), d_confidenceBoost(0) {}
+    BarzelBead( const BarzerEntityList& e ) : dta(BarzelBeadAtomic(e)), d_unmatchable(0), d_confidenceBoost(0) {}
+	BarzelBead(const CTWPVec::value_type& ct) : d_unmatchable(0), d_confidenceBoost(0) { init(ct); }
 
     size_t streamSrcTokens( std::ostream& fp ) const;
+
+    struct Confidence {
+        uint16_t numTok; // number of separate tokens
+        uint16_t numSpellCorr; // number of spell corrections
+        uint32_t editDistancePunishment;  // sum(ed^2) for all spell corrections
+        
+        Confidence( uint16_t nt, uint16_t nc ) : numTok(nt), numSpellCorr(nc), editDistancePunishment(0) {}
+        Confidence() : numTok(0), numSpellCorr(0), editDistancePunishment(0) {}
+    }; 
+    Confidence  getBeadConfidence( const StoredUniverse* u=0 ) const;
 };
 
 inline std::ostream& operator<<( std::ostream& fp, const BarzelBead& b ) {
