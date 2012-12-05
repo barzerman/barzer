@@ -138,6 +138,28 @@ public:
     const StoredUniverse* getUniverse() const { return d_universe; }
 };
 
+/// confidence data and alternative representations
+/// assuming three levels of confidence LOW,MEDIUM,HIGH
+/// contains the data 
+struct  BarzConfidenceData {
+   typedef std::vector< std::pair<size_t,size_t> >  OffsetAndLengthPairVec;
+   
+   OffsetAndLengthPairVec d_noHi  // no highs 
+                        , d_noMed // no mediums or highs 
+                        , d_noLo; // no highs, mediums or lows 
+
+    void clear() 
+    { 
+        d_noHi.clear();
+        d_noMed.clear();
+        d_noLo.clear();
+    }
+    
+    void sortAndInvert( const std::string& origStr, OffsetAndLengthPairVec&  );
+    void sortAndInvert( const std::string& origStr );
+    void        fillString( std::vector<std::string>& dest, const std::string& src, int conf );
+};
+
 // collection of punits and the original question
 class Barz {
 	/// original question with 0-s terminating tokens
@@ -170,6 +192,8 @@ class Barz {
     RequestEnvironment* d_serverReqEnv;
     const char* getReqVarAsChars( const char* ) const;
 public:
+    BarzConfidenceData confidenceData;
+
     /// given offset and length in bytes in the original quesstion 
     /// returns a pair(glyph, lengthinGlyphs) - for utf8
     std::pair<size_t,size_t> getGlyphFromOffsets( size_t offset, size_t length ) const
@@ -274,6 +298,7 @@ public:
 
     int segregateEntities( const StoredUniverse& u, const QuestionParm& qparm, const char* q );
     int sortEntitiesByRelevance( const StoredUniverse& u, const QuestionParm& qparm, const char* q );
+    int computeConfidence( const StoredUniverse& u, const QuestionParm& qparm, const char* q );
 
 	/// returns pair. first is the number of units which have been modified semantically
 	/// mening - fluff, date, entity, erc, expression etc

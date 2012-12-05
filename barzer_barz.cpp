@@ -143,6 +143,7 @@ int Barz::classifyTokens( QLexParser& lexer, const QuestionParm& qparm )
 void Barz::clearBeads()
 {
 	beadChain.clear();
+    confidenceData.clear();
 }
 void Barz::clearWithTraceAndTopics()
 {
@@ -153,7 +154,7 @@ void Barz::clearWithTraceAndTopics()
 
 void Barz::clear()
 {
-	beadChain.clear();
+    clearBeads();
 	ctVec.clear();
 	ttVec.clear();
 
@@ -382,6 +383,95 @@ int Barz::segregateEntities( const StoredUniverse& u, const QuestionParm& qparm,
     for( BLIVec::iterator bi= entBeadVec.begin(); bi != entBeadVec.end(); ++bi ) {
         beadList.erase( *bi );
     }
+
+    return 0;
+}
+namespace {
+
+void offset_sz_vec_add( std::vector<std::pair<size_t,size_t>>& vec, const std::pair<size_t,size_t>& p ) 
+{
+    if( !vec.size() ) 
+        vec.push_back( p );
+    else if( p.first == vec.back().first + vec.back().second )
+        vec.back().second += p.second;
+    else 
+        vec.push_back( p );
+}
+
+} // anon namespace
+
+void BarzConfidenceData::sortAndInvert( const std::string& origStr, OffsetAndLengthPairVec& vec )
+{
+    struct sort_by_offset_sz {
+        bool operator()( const const std::pair<size_t,size_t>& l, const std::pair<size_t,size_t>&r ) const {
+            return( l.first < r.first ? true : ( r.first < l.first ? false : r.second < l.second) );
+        }
+    } ;
+
+    std::sort( vec.begin(), vec.end(), sort_by_offset_sz() );
+    OffsetAndLengthPairVec newVec;
+    for( OffsetAndLengthPairVec::const_iterator i = vec.begin(); i!= vec.end(); ++i ) 
+        offset_sz_vec_add( newVec, *i );
+
+    newVec.swap( vec );
+    newVec.clear();
+    
+    /// at this point the vector has been compacted (contained in vec) newVec is empty 
+    size_t offs = 0;
+    for( OffsetAndLengthPairVec::const_iterator i = vec.begin(); i!= vec.end(); ++i ) 
+        newVec.push_back( std::pair< size_t, size_t >(offs, i->first-offs ) );
+
+    if( offs < origStr.length() ) 
+        newVec.push_back( std::pair< size_t, size_t >(offs, origStr.length()-offs ) );
+    newVec.swap( vec );
+}
+void BarzConfidenceData::sortAndInvert( const std::string& origStr )
+{
+
+    sortAndInvert( origStr, d_noHi );
+    sortAndInvert( origStr, d_noMed );
+    sortAndInvert( origStr, d_noLo );
+}
+void BarzConfidenceData::fillString( std::vector<std::string>& dest, const std::string& src, int conf )
+{
+    const std::vector<std::pair<size_t,size_t>>* vec = ( conf == BarzelBead::CONFIDENCE_HIGH ? &d_noHi : 
+            ( conf == BarzelBead::CONFIDENCE_MEDIUM ? &d_noMed : &d_noLo )
+        );
+    for( OffsetAndLengthPairVec::const_iterator i = vec->begin(); i!= vec->end(); ++i ) {
+        if( i->first< src.length() && i->first+i->second < src.length() ) 
+            dest.push_back( src.substr(i->first, i->second ) ) ;
+    }
+}
+int Barz::computeConfidence( const StoredUniverse& u, const QuestionParm& qparm, const char* q )
+{
+	BeadRange rng = beadChain.getFullRange();
+    for( BeadList::iterator i = rng.first; i!= rng.second; ++i ) {
+        int conf = i->computeBeadConfidence( &u );
+        i->setBeadConfidence( conf );
+
+        const CTWPVec& ctoks = i->getCTokens();
+        for( CTWPVec::const_iterator ci = ctoks.begin(), ci_before_last = ( ctoks.size() ? ci+ctoks.size()-1: ctoks.end()); ci != ctoks.end(); ++ci ) {
+            const TTWPVec& ttv = ci->first.getTTokens();
+
+            for( TTWPVec::const_iterator ti = ttv.begin(); ti!= ttv.end() ; ++ti ) {
+                const TToken& ttok = ti->first;
+                if( !ttok.buf.length() ) 
+                    continue;
+
+                std::pair<size_t,size_t> szAndLength = ttok.getOrigOffsetAndLength();
+                switch( conf ) {
+                case BarzelBead::CONFIDENCE_LOW:
+                    confidenceData.d_noLo.push_back( szAndLength );
+                case BarzelBead::CONFIDENCE_MEDIUM:
+                    confidenceData.d_noMed.push_back( szAndLength );
+                case BarzelBead::CONFIDENCE_HIGH:
+                    confidenceData.d_noHi.push_back( szAndLength );
+                }
+            }
+        }
+    }
+    confidenceData.sortAndInvert(questionOrig);
+    /// inverting 
 
     return 0;
 }

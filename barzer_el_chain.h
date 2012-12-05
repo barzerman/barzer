@@ -111,6 +111,23 @@ struct BarzelBeadAtomic {
 	template <typename T> BarzelBeadAtomic& setData( const T& t )
 	{ dta = t; return *this; }
 	std::ostream& print( std::ostream& fp ) const;
+    bool isComplexType() const
+    {
+        switch(dta.which() ) {
+        case BarzerLiteral_TYPE: return false;
+        case BarzerString_TYPE: return false;
+        case BarzerNumber_TYPE: return false;
+        case BarzerDate_TYPE: return true;
+        case BarzerTimeOfDay_TYPE: return true;
+        case BarzerDateTime_TYPE: return true;
+        case BarzerRange_TYPE: return true;
+        case BarzerEntityList_TYPE: return true;
+        case BarzerEntity_TYPE: return true;
+        case BarzerEntityRangeCombo_TYPE: return true;
+        case BarzerERCExpr_TYPE: return true;
+        default: return false;
+        }
+    }
 };
 
 /// this is a tree type. beads of this type are expresions on top of whatever
@@ -195,6 +212,19 @@ class BarzelBead {
     int d_unmatchable;
     int d_confidenceBoost;
     uint32_t d_stemStringId;
+public:
+    /// 0 - low confidence
+    /// 1 - medium confidence
+    /// 3 - high confidence
+    enum {
+        CONFIDENCE_UNKNOWN,
+
+        CONFIDENCE_LOW,
+        CONFIDENCE_MEDIUM,
+        CONFIDENCE_HIGH
+    };
+private:
+    int d_confidence;
 public:
     uint32_t    getStemStringId() const { return d_stemStringId; }
     void        setStemStringId( uint32_t i ) { d_stemStringId= i; }
@@ -291,6 +321,21 @@ public:
         } else
             return false;
     }
+	bool isEntity() const {
+        if( const BarzelBeadAtomic* atomic = getAtomic() ) 
+            return atomic->getEntity();
+        else 
+            return false;
+    }
+
+    /// true if bead is range, ent, erc, date , time or date time
+    bool isComplexAtomicType() const 
+    {
+        if( const BarzelBeadAtomic* atomic = getAtomic() ) {
+            return atomic->isComplexType();
+        } else
+            return false;
+    }
 
     template <typename T>
     T* get() {
@@ -335,23 +380,17 @@ public:
 	CTWPVec& getCTokens()
 		{ return ctokOrigVec; }
 
-	BarzelBead(const BarzelBeadData& d ): dta(d), d_unmatchable(0), d_confidenceBoost(0) {}
-	BarzelBead() : d_unmatchable(0), d_confidenceBoost(0){}
-    BarzelBead( const BarzerEntity& e ) : dta(BarzelBeadAtomic(e)), d_unmatchable(0), d_confidenceBoost(0) {}
-    BarzelBead( const BarzerEntityList& e ) : dta(BarzelBeadAtomic(e)), d_unmatchable(0), d_confidenceBoost(0) {}
-	BarzelBead(const CTWPVec::value_type& ct) : d_unmatchable(0), d_confidenceBoost(0) { init(ct); }
+	BarzelBead(const BarzelBeadData& d ): dta(d), d_unmatchable(0), d_confidenceBoost(0), d_confidence(CONFIDENCE_UNKNOWN) {}
+	BarzelBead() : d_unmatchable(0), d_confidenceBoost(0), d_confidence(CONFIDENCE_UNKNOWN){}
+    BarzelBead( const BarzerEntity& e ) : dta(BarzelBeadAtomic(e)), d_unmatchable(0), d_confidenceBoost(0) , d_confidence(CONFIDENCE_UNKNOWN){}
+    BarzelBead( const BarzerEntityList& e ) : dta(BarzelBeadAtomic(e)), d_unmatchable(0), d_confidenceBoost(0) , d_confidence(CONFIDENCE_UNKNOWN){}
+	BarzelBead(const CTWPVec::value_type& ct) : d_unmatchable(0), d_confidenceBoost(0), d_confidence(CONFIDENCE_UNKNOWN) { init(ct); }
 
     size_t streamSrcTokens( std::ostream& fp ) const;
 
-    struct Confidence {
-        uint16_t numTok; // number of separate tokens
-        uint16_t numSpellCorr; // number of spell corrections
-        uint32_t editDistancePunishment;  // sum(ed^2) for all spell corrections
-        
-        Confidence( uint16_t nt, uint16_t nc ) : numTok(nt), numSpellCorr(nc), editDistancePunishment(0) {}
-        Confidence() : numTok(0), numSpellCorr(0), editDistancePunishment(0) {}
-    }; 
-    Confidence  getBeadConfidence( const StoredUniverse* u=0 ) const;
+    int  computeBeadConfidence( const StoredUniverse* u=0 ) const;
+    void setBeadConfidence( int x ) { d_confidence = x; }
+    int getBeadConfidence( ) const { return d_confidence; }
 };
 
 inline std::ostream& operator<<( std::ostream& fp, const BarzelBead& b ) {

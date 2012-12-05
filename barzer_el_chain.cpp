@@ -2,6 +2,7 @@
 #include <barzer_el_trie.h>
 #include <barzer_universe.h>
 #include <barzer_server_response.h>
+#include <ay/ay_char.h>
 
 namespace barzer {
 std::ostream& operator<< ( std::ostream& fp, const BarzelBeadData& x)
@@ -15,19 +16,45 @@ std::ostream& operator<< ( std::ostream& fp, const BarzelBeadData& x)
     return fp;
 }
 
-BarzelBead::Confidence  BarzelBead::getBeadConfidence( const StoredUniverse* u ) const
+int  BarzelBead::computeBeadConfidence( const StoredUniverse* u ) const
 {
+    if( !isComplexAtomicType() || d_confidenceBoost > 1 )
+        return CONFIDENCE_HIGH;
+
     /// sum of squares of edit distances
+    ay::LevenshteinEditDistance lev;
     size_t spellCorrSquare = 0;
-    BarzelBead::Confidence conf( ctokOrigVec.size(), 0 );
+
+    size_t sum_ed = 0, sum_corr_len=0, sum_len = 0, numTokens = ctokOrigVec.size(), numSpellCorr=0;
+
     for( CTWPVec::const_iterator i = ctokOrigVec.begin(); i!= ctokOrigVec.end(); ++i ) {
         const CToken& ctok = i->first;
         for( CToken::SpellCorrections::const_iterator ci = ctok.spellCorrections.begin(); ci!= ctok.spellCorrections.end(); ++ci ) {
-            conf.numSpellCorr++;
+            numSpellCorr++;
+            size_t levDist = Lang::getLevenshteinDistance(lev, ci->first.c_str(), ci->second.c_str() );
+            sum_ed += levDist;
+            sum_corr_len += std::max( ci->first.length(), ci->second.length() );
+        }
+        for( TTWPVec::const_iterator ti = ctok.qtVec.begin(); ti != ctok.qtVec.end(); ++ti) {
+            sum_len+= ti->first.buf.length();
         }
     }
-    return conf;
+    int conf = CONFIDENCE_HIGH;
+
+    if( !numSpellCorr )
+        return CONFIDENCE_HIGH;
+
+    if( sum_ed > 3 ) {
+        return ( d_confidenceBoost? CONFIDENCE_MEDIUM: CONFIDENCE_LOW );
+    } else if( sum_ed> 2 ) {
+        if( sum_ed*100 < sum_len*20 ) 
+            return( d_confidenceBoost? CONFIDENCE_HIGH: CONFIDENCE_MEDIUM );
+        else  // 20% or more chars corrected (more than 1 out of 5)
+            return( d_confidenceBoost? CONFIDENCE_MEDIUM: CONFIDENCE_LOW );
+    } 
+    return CONFIDENCE_LOW;
 }
+
 size_t BarzelBead::streamSrcTokens( std::ostream& sstr ) const
 {
     size_t printed = 0;

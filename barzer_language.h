@@ -3,6 +3,7 @@
 
 #include <arch/barzer_arch.h>
 #include <ay/ay_headers.h>
+#include <ay/ay_char.h>
 #include <ay_snowball.h>
 #include <barzer_parse_types.h>
 
@@ -84,6 +85,12 @@ struct Lang {
     
     static size_t getNumChars( const char* s, size_t s_len, int lang );
     static void   lowLevelNormalization( char* d, size_t d_len, const char* s, size_t s_sz );
+
+    static size_t getLevenshteinDistance( ay::LevenshteinEditDistance& lev, const char* s1, size_t s1_len, const char* s2, size_t s2_len ) ;
+    static size_t getLevenshteinDistance( ay::LevenshteinEditDistance& lev, const std::string& s1, const std::string& s2 ) 
+    {
+        return getLevenshteinDistance( lev, s1.c_str(), s1.length(), s2.c_str(), s2.length() );
+    }
 };
 
 class QSingleLangLexer {

@@ -227,6 +227,9 @@ int QParser::barz_parse( Barz& barz, const QuestionParm& qparm )
         barz.segregateEntities( universe, qparm, 0 );
     if( !universe.checkBit(StoredUniverse::UBIT_NO_ENTRELEVANCE_SORT))  
         barz.sortEntitiesByRelevance( universe, qparm, 0 );
+
+    if( universe.checkBit(StoredUniverse::UBIT_NEED_CONFIDENCE))  
+        barz.computeConfidence( universe, qparm, 0 );
     
 	return 0;
 }

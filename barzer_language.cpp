@@ -112,6 +112,22 @@ size_t Lang::getNumChars( const char* s, size_t s_len, int lang )
         return ay::StrUTF8::glyphCount(s,s+s_len);
     }
 }
+size_t Lang::getLevenshteinDistance( ay::LevenshteinEditDistance& lev, const char* s1, size_t s1_len, const char* s2, size_t s2_len )
+{
+    int lang1 = getLangNoUniverse( s1, s1_len );
+    int lang2 = getLangNoUniverse( s2, s2_len );
+    
+    if( lang1 != lang2 ) {
+	    ay::StrUTF8 u1(s1, s1_len);
+	    ay::StrUTF8 u2(s2, s2_len);
+
+        return  lev.utf8( u1, u2 );
+    } else if( isTwoByteLang(lang1) ) {
+        return lev.twoByte(s1, s1_len / 2, s1, s2_len / 2);
+    } else 
+        return lev.ascii_no_case(s1, s2);
+}
+
 void Lang::lowLevelNormalization( char* d, size_t d_len, const char* s, size_t s_sz )
 {
     const char* d_end = d+d_len;
