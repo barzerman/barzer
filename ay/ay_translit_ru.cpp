@@ -35,7 +35,7 @@ namespace tl
 		{
 			const auto& c = russian[i];
 
-			if (c == CharUTF8("a"))
+			if (c == CharUTF8("а"))
 				english.append("a");
 			else if (c == CharUTF8("б"))
 				english.append("b");
