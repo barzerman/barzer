@@ -588,6 +588,10 @@ inline bool stringPair_comp_eq( const CToken::StringPair& l, const CToken::Strin
 { return( l.first == r.first ); }
 
 }
+std::ostream& BarzStreamerXML::printConfidence(std::ostream &os)
+{
+    return os;
+}
 std::ostream& BarzStreamerXML::print(std::ostream &os)
 {
     /// BARZ header tag 
@@ -604,7 +608,10 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 	    if (!isBlank(*bli)) {
 	        os << "\n";
 	        // tag_raii beadtag(os, "bead");
-			os << "<bead n=\"" << curBeadNum << "\">\n" ;
+			os << "<bead n=\"" << curBeadNum ;
+            if( bli->getConfidence() ) {
+            }
+            os << "\">\n" ;
 	        BeadVisitor v(os, universe, *bli, barz, *this );
 	        if (boost::apply_visitor(v, bli->getBeadData())) {
 	            os << "\n    ";
@@ -657,6 +664,11 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
         os << "\n<query>";
         xmlEscape( barz.getOrigQuestion().c_str(),  os) << "</query>\n";
     }
+
+    /// confidence
+    if( d_universe.checkBit(StoredUniverse::UBIT_NEED_CONFIDENCE) ) 
+        printConfidence(os);
+
 	os << "</barz>\n";
 	return os;
 }

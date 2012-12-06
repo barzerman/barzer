@@ -426,6 +426,7 @@ public:
 	bool soundsLikeEnabled() const { return m_soundsLike; }
 	void setSoundsLike(bool set) { m_soundsLike = set; }
 
+    void setUBits( const char* ) ;
     void setBit(size_t bit) { d_biflags.set(bit); }
     bool checkBit(size_t b ) const { return d_biflags.checkBit(b); }
     const BZSpell::char_cp_to_strid_map* getValidWordMapPtr() const 

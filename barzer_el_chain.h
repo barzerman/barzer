@@ -226,6 +226,7 @@ public:
 private:
     int d_confidence;
 public:
+    bool hasKnownConfidence() const { return ( d_confidence>= CONFIDENCE_LOW && d_confidence <=CONFIDENCE_HIGH ); }
     uint32_t    getStemStringId() const { return d_stemStringId; }
     void        setStemStringId( uint32_t i ) { d_stemStringId= i; }
 
@@ -390,7 +391,7 @@ public:
 
     int  computeBeadConfidence( const StoredUniverse* u=0 ) const;
     void setBeadConfidence( int x ) { d_confidence = x; }
-    int getBeadConfidence( ) const { return d_confidence; }
+    int getConfidence( ) const { return d_confidence; }
 };
 
 inline std::ostream& operator<<( std::ostream& fp, const BarzelBead& b ) {

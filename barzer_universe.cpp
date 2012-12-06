@@ -224,6 +224,16 @@ std::ostream& GlobalPools::printTanslationTraceInfo( std::ostream& fp, const Bar
 	traceInfo.emitterSeqNo );
 }
 
+void StoredUniverse::setUBits( const char* str )
+{
+    /// setting ubits from FLAG
+    for( const char* s = str; *s; ++s ) {
+        switch( *s ) {
+        case 'c': setBit(StoredUniverse::UBIT_NEED_CONFIDENCE); break;
+        }
+    }
+}
+
 uint32_t StoredUniverse::recordLangWord( int16_t lang )
 {
     return d_langInfo.incrementLangCounter( lang );
