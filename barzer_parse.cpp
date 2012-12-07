@@ -255,5 +255,8 @@ int QParser::parse( Barz& barz, const char* q, const QuestionParm& qparm )
     if( !universe.checkBit(StoredUniverse::UBIT_NO_ENTRELEVANCE_SORT))  
         barz.sortEntitiesByRelevance( universe, qparm, q );
     
+    if( universe.checkBit(StoredUniverse::UBIT_NEED_CONFIDENCE))  
+        barz.computeConfidence( universe, qparm, 0 );
+
 	return 0;
 }

@@ -595,9 +595,9 @@ void print_conf_leftovers( std::ostream& os, const std::vector<std::string>& vec
 {
         os << "<leftover t=\"" << attr << "\">\n";
         for( auto i = vec.begin(); i!= vec.end(); ++i ) {
-            xmlEscape( *i, (os << " <text s=\"")) << "\"/>";
+            xmlEscape( *i, (os << "    <text s=\"")) << "\"/>\n";
         }
-        os << "</leftover>" ;
+        os << "</leftover>\n" ;
 }
 
 }

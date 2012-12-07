@@ -428,8 +428,11 @@ void BarzConfidenceData::sortAndInvert( const std::string& origStr, OffsetAndLen
 void BarzConfidenceData::sortAndInvert( const std::string& origStr )
 {
 
+    d_hiCnt = d_noHi.size();
     sortAndInvert( origStr, d_noHi );
+    d_medCnt = d_noMed.size();
     sortAndInvert( origStr, d_noMed );
+    d_loCnt  = d_noLo .size();
     sortAndInvert( origStr, d_noLo );
 }
 void BarzConfidenceData::fillString( std::vector<std::string>& dest, const std::string& src, int conf ) const
@@ -438,7 +441,7 @@ void BarzConfidenceData::fillString( std::vector<std::string>& dest, const std::
             ( conf == BarzelBead::CONFIDENCE_MEDIUM ? &d_noMed : &d_noLo )
         );
     for( OffsetAndLengthPairVec::const_iterator i = vec->begin(); i!= vec->end(); ++i ) {
-        if( i->first< src.length() && i->first+i->second < src.length() ) 
+        if( i->second && i->first< src.length() && i->first+i->second <= src.length() ) 
             dest.push_back( src.substr(i->first, i->second ) ) ;
     }
 }
