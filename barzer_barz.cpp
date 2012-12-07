@@ -432,7 +432,7 @@ void BarzConfidenceData::sortAndInvert( const std::string& origStr )
     sortAndInvert( origStr, d_noMed );
     sortAndInvert( origStr, d_noLo );
 }
-void BarzConfidenceData::fillString( std::vector<std::string>& dest, const std::string& src, int conf )
+void BarzConfidenceData::fillString( std::vector<std::string>& dest, const std::string& src, int conf ) const
 {
     const std::vector<std::pair<size_t,size_t>>* vec = ( conf == BarzelBead::CONFIDENCE_HIGH ? &d_noHi : 
             ( conf == BarzelBead::CONFIDENCE_MEDIUM ? &d_noMed : &d_noLo )
@@ -460,12 +460,12 @@ int Barz::computeConfidence( const StoredUniverse& u, const QuestionParm& qparm,
 
                 std::pair<size_t,size_t> szAndLength = ttok.getOrigOffsetAndLength();
                 switch( conf ) {
-                case BarzelBead::CONFIDENCE_LOW:
-                    confidenceData.d_noLo.push_back( szAndLength );
-                case BarzelBead::CONFIDENCE_MEDIUM:
-                    confidenceData.d_noMed.push_back( szAndLength );
                 case BarzelBead::CONFIDENCE_HIGH:
                     confidenceData.d_noHi.push_back( szAndLength );
+                case BarzelBead::CONFIDENCE_MEDIUM:
+                    confidenceData.d_noMed.push_back( szAndLength );
+                case BarzelBead::CONFIDENCE_LOW:
+                    confidenceData.d_noLo.push_back( szAndLength );
                 }
             }
         }

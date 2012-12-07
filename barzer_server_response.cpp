@@ -588,8 +588,43 @@ inline bool stringPair_comp_eq( const CToken::StringPair& l, const CToken::Strin
 { return( l.first == r.first ); }
 
 }
+
+namespace {
+
+void print_conf_leftovers( std::ostream& os, const std::vector<std::string>& vec, const char* attr  ) 
+{
+        os << "<leftover t=\"" << attr << "\">\n";
+        for( auto i = vec.begin(); i!= vec.end(); ++i ) {
+            xmlEscape( *i, (os << " <text s=\"")) << "\"/>";
+        }
+        os << "</leftover>" ;
+}
+
+}
+
 std::ostream& BarzStreamerXML::printConfidence(std::ostream &os)
 {
+    const BarzConfidenceData& confidenceData = barz.confidenceData; 
+    if( !confidenceData.hasAnyConfidence() ) 
+        return os;
+
+    os << "<confidence>\n";
+    if( confidenceData.d_loCnt ) {
+        std::vector< std::string > tmp ;
+        confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_LOW );
+        print_conf_leftovers( os, tmp, "nolo" );
+    }
+    if( confidenceData.d_medCnt ) {
+        std::vector< std::string > tmp ;
+        confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_MEDIUM );
+        print_conf_leftovers( os, tmp, "nomed" );
+    }
+    if( confidenceData.d_hiCnt ) {
+        std::vector< std::string > tmp ;
+        confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_HIGH );
+        print_conf_leftovers( os, tmp, "nohi" );
+    }
+    os << "</confidence>\n";
     return os;
 }
 std::ostream& BarzStreamerXML::print(std::ostream &os)
@@ -609,8 +644,8 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 	        os << "\n";
 	        // tag_raii beadtag(os, "bead");
 			os << "<bead n=\"" << curBeadNum ;
-            if( bli->getConfidence() ) {
-            }
+            if( bli->isComplexAtomicType() && bli->getConfidence()!= BarzelBead::CONFIDENCE_UNKNOWN ) 
+                os << " c=\"" << bli->getConfidence() << "\"";
             os << "\">\n" ;
 	        BeadVisitor v(os, universe, *bli, barz, *this );
 	        if (boost::apply_visitor(v, bli->getBeadData())) {
@@ -620,7 +655,6 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 	        os << "\n</bead>\n";
             ++curBeadNum;
 	    }
-
 
 		//// accumulating spell corrections in spellCorrections vector 
 		const CTWPVec& ctoks = bli->getCTokens();
@@ -666,7 +700,7 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
     }
 
     /// confidence
-    if( d_universe.checkBit(StoredUniverse::UBIT_NEED_CONFIDENCE) ) 
+    if( universe.checkBit(StoredUniverse::UBIT_NEED_CONFIDENCE) ) 
         printConfidence(os);
 
 	os << "</barz>\n";

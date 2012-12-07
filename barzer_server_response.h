@@ -57,6 +57,7 @@ public:
         BarzResponseStreamer(b, u), d_outputMode(mf) 
     {}
 
+	std::ostream& printConfidence(std::ostream&);
 	std::ostream& print(std::ostream&);
     void setWholeMode( const ModeFlags& m ) { d_outputMode= m; }
 

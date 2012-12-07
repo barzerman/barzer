@@ -144,20 +144,26 @@ public:
 struct  BarzConfidenceData {
    typedef std::vector< std::pair<size_t,size_t> >  OffsetAndLengthPairVec;
    
-   OffsetAndLengthPairVec d_noHi  // no highs 
-                        , d_noMed // no mediums or highs 
-                        , d_noLo; // no highs, mediums or lows 
+   size_t d_hiCnt, d_medCnt, d_loCnt; 
+
+   bool hasAnyConfidence() const { return ( d_hiCnt|| d_medCnt|| d_loCnt ); } 
+
+   OffsetAndLengthPairVec d_noHi  // no highs
+                        , d_noMed // no mediums or lows 
+                        , d_noLo; // no lows , meds or highs
 
     void clear() 
     { 
+        d_hiCnt= d_medCnt= d_loCnt=0;
         d_noHi.clear();
         d_noMed.clear();
         d_noLo.clear();
     }
     
+    BarzConfidenceData() : d_hiCnt(0) , d_medCnt(0), d_loCnt(0) {}
     void sortAndInvert( const std::string& origStr, OffsetAndLengthPairVec&  );
     void sortAndInvert( const std::string& origStr );
-    void        fillString( std::vector<std::string>& dest, const std::string& src, int conf );
+    void fillString( std::vector<std::string>& dest, const std::string& src, int conf ) const;
 };
 
 // collection of punits and the original question
