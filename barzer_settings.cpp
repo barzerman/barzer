@@ -377,9 +377,6 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 				
 			if (const auto p = attrs.get_optional<std::string>("featuredsc"))
 				if (*p == "yes") u.getUniverse().setBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT);
-
-			if (const auto p = attrs.get_optional<std::string>("flags"))
-				u.getUniverse().setUBits( p->c_str() );
         }
 		BOOST_FOREACH(const ptree::value_type &v, spell) {
 			const std::string& tagName = v.first;
@@ -521,6 +518,21 @@ void BarzerSettings::loadUserRules(BELReader& reader, User& u, const ptree &node
 	}
 }
 namespace {
+void load_user_flags(BELReader& reader, User& u, const ptree &node)
+{
+    try {
+        const ptree &entseg = node.get_child("flags", empty_ptree());
+        BOOST_FOREACH(const ptree::value_type &v, entseg ) {
+            StoredEntityClass eclass;
+            const boost::optional<std::string> valOpt = v.second.get_optional<std::string>("value");
+
+			if (valOpt)
+				u.universe.setUBits( valOpt->c_str() );
+        } // foreach
+    } catch(...) {
+        std::cerr << "load_user_flags exception\n";
+    }
+}
 void load_ent_segregate_info(BELReader& reader, User& u, const ptree &node)
 {
     try {
@@ -569,6 +581,7 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
     reader.setRespectLimits( userId );
     reader.setCurrentUniverse( u.getUniversePtr() );
     load_ent_segregate_info(reader, u, children);
+    load_user_flags(reader, u, children);
 	loadUserRules(reader, u, children);
 	loadTrieset(reader, u, children);
 	loadLocale(reader, u, children);
