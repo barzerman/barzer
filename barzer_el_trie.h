@@ -271,8 +271,8 @@ public:
 	uint8_t  makeUnmatchable; // when !=0 this is a terminating translation ... the value will
                                 // be assigned to the unmatchability of the affected beads
 
-    int8_t  confidenceBoost; // can be between -CONFIDENCE_HIGH and +CONFIDENCE_HIGH 
     uint32_t argStrId;
+    int8_t  confidenceBoost; // can be between -CONFIDENCE_HIGH and +CONFIDENCE_HIGH 
 
 	void set( BELTrie& trie, const BTND_Rewrite_Literal& );
 	void set( BELTrie& trie, const BTND_Rewrite_Number& );
