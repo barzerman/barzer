@@ -388,14 +388,19 @@ int Barz::segregateEntities( const StoredUniverse& u, const QuestionParm& qparm,
 }
 namespace {
 
-void offset_sz_vec_add( std::vector<std::pair<size_t,size_t>>& vec, const std::pair<size_t,size_t>& p ) 
+void offset_sz_vec_add( std::vector<std::pair<size_t,size_t>>& vec, const std::pair<size_t,size_t>& p, const std::string& str ) 
 {
     if( !vec.size() ) 
         vec.push_back( p );
-    else if( p.first == vec.back().first + vec.back().second )
-        vec.back().second += p.second;
-    else 
-        vec.push_back( p );
+    else { 
+        size_t prevEnd = vec.back().first + vec.back().second;
+        if( p.first == prevEnd )
+            vec.back().second += p.second;
+        else if( prevEnd+1== p.first && isspace(str[prevEnd]))
+            vec.back().second += (p.second+1);
+        else 
+            vec.push_back( p );
+    } 
 }
 
 } // anon namespace
@@ -411,29 +416,49 @@ void BarzConfidenceData::sortAndInvert( const std::string& origStr, OffsetAndLen
     std::sort( vec.begin(), vec.end(), sort_by_offset_sz() );
     OffsetAndLengthPairVec newVec;
     for( OffsetAndLengthPairVec::const_iterator i = vec.begin(); i!= vec.end(); ++i ) 
-        offset_sz_vec_add( newVec, *i );
+        offset_sz_vec_add( newVec, *i, origStr );
 
     newVec.swap( vec );
     newVec.clear();
     
     /// at this point the vector has been compacted (contained in vec) newVec is empty 
     size_t offs = 0;
-    for( OffsetAndLengthPairVec::const_iterator i = vec.begin(); i!= vec.end(); ++i ) 
-        newVec.push_back( std::pair< size_t, size_t >(offs, i->first-offs ) );
-
-    if( offs < origStr.length() ) 
-        newVec.push_back( std::pair< size_t, size_t >(offs, origStr.length()-offs ) );
+    for( OffsetAndLengthPairVec::const_iterator i = vec.begin(); i!= vec.end(); ++i )  {
+        if( i->first != offs ) {
+            size_t len = i->first-offs;
+            for( size_t j=0; j< len && isspace(origStr[offs]); ++j ) {
+                    ++offs;
+                    --len;
+            }
+            while( len && isspace(origStr[offs+len-1]) ) --len; 
+            newVec.push_back( std::pair< size_t, size_t >(offs, len ) );
+        }
+        offs= i->second+i->first;
+    }
+    if( offs < origStr.length() ) {
+        size_t len = origStr.length()-offs;
+        
+        for( size_t j=0; j< len && len && isspace(origStr[offs]); ++j ) {
+            ++offs;
+            --len;
+        }
+        while( len && isspace(origStr[offs+len-1]) ) --len; 
+        newVec.push_back( std::pair< size_t, size_t >(offs, len) );
+    }
     newVec.swap( vec );
 }
 void BarzConfidenceData::sortAndInvert( const std::string& origStr )
 {
 
-    d_hiCnt = d_noHi.size();
-    sortAndInvert( origStr, d_noHi );
-    d_medCnt = d_noMed.size();
-    sortAndInvert( origStr, d_noMed );
-    d_loCnt  = d_noLo .size();
-    sortAndInvert( origStr, d_noLo );
+    if( d_hiCnt ) 
+        sortAndInvert( origStr, d_noHi );
+
+    if( d_medCnt ) {
+        sortAndInvert( origStr, d_noMed );
+    }
+    if( d_loCnt ) {
+        sortAndInvert( origStr, d_noLo );
+    }
 }
 void BarzConfidenceData::fillString( std::vector<std::string>& dest, const std::string& src, int conf ) const
 {
@@ -441,14 +466,18 @@ void BarzConfidenceData::fillString( std::vector<std::string>& dest, const std::
             ( conf == BarzelBead::CONFIDENCE_MEDIUM ? &d_noMed : &d_noLo )
         );
     for( OffsetAndLengthPairVec::const_iterator i = vec->begin(); i!= vec->end(); ++i ) {
-        if( i->second && i->first< src.length() && i->first+i->second <= src.length() ) 
-            dest.push_back( src.substr(i->first, i->second ) ) ;
+        if( i->second && i->first< src.length() && i->first+i->second <= src.length() ) {
+            std::string tmp= src.substr(i->first, i->second );
+            dest.push_back( tmp );
+        }
     }
 }
 int Barz::computeConfidence( const StoredUniverse& u, const QuestionParm& qparm, const char* q )
 {
 	BeadRange rng = beadChain.getFullRange();
     for( BeadList::iterator i = rng.first; i!= rng.second; ++i ) {
+        if( !i->isComplexAtomicType() ) 
+            continue;
         int conf = i->computeBeadConfidence( &u );
         i->setBeadConfidence( conf );
 
@@ -465,10 +494,19 @@ int Barz::computeConfidence( const StoredUniverse& u, const QuestionParm& qparm,
                 switch( conf ) {
                 case BarzelBead::CONFIDENCE_HIGH:
                     confidenceData.d_noHi.push_back( szAndLength );
+                    confidenceData.d_hiCnt++;
+                    break;
                 case BarzelBead::CONFIDENCE_MEDIUM:
                     confidenceData.d_noMed.push_back( szAndLength );
+                    confidenceData.d_noHi.push_back( szAndLength );
+                    confidenceData.d_medCnt++;
+                    break;
                 case BarzelBead::CONFIDENCE_LOW:
+                    confidenceData.d_noHi.push_back( szAndLength );
+                    confidenceData.d_noMed.push_back( szAndLength );
                     confidenceData.d_noLo.push_back( szAndLength );
+                    confidenceData.d_loCnt++;
+                    break;
                 }
             }
         }

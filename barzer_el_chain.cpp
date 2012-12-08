@@ -42,7 +42,7 @@ int  BarzelBead::computeBeadConfidence( const StoredUniverse* u ) const
     int conf = CONFIDENCE_HIGH;
 
     if( !numSpellCorr )
-        return CONFIDENCE_HIGH;
+        return ( (numTokens>1 || d_confidenceBoost) ? CONFIDENCE_HIGH : CONFIDENCE_MEDIUM );
 
     if( sum_ed > 3 ) {
         return ( d_confidenceBoost? CONFIDENCE_MEDIUM: CONFIDENCE_LOW );
@@ -51,8 +51,8 @@ int  BarzelBead::computeBeadConfidence( const StoredUniverse* u ) const
             return( d_confidenceBoost? CONFIDENCE_HIGH: CONFIDENCE_MEDIUM );
         else  // 20% or more chars corrected (more than 1 out of 5)
             return( d_confidenceBoost? CONFIDENCE_MEDIUM: CONFIDENCE_LOW );
-    } 
-    return CONFIDENCE_LOW;
+    }  
+    return( d_confidenceBoost? CONFIDENCE_HIGH: CONFIDENCE_MEDIUM );
 }
 
 size_t BarzelBead::streamSrcTokens( std::ostream& sstr ) const

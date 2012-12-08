@@ -422,12 +422,24 @@ DEFINE_BELParserXML_taghandle(TRANSLATION)
 		return;
 	}
 	statement.setTranslation();
+    statement.stmt.setTranConfidenceBoost(0); 
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
         if(!n) continue;
         switch( n[0] ) {
         case 'u': if( v && v[0] == 'y' ) statement.stmt.setTranUnmatchable(); break;
+        case 'c': // confidence boost
+            {
+            int  cBoost = atoi(v);
+            if( cBoost < -BarzelBead::CONFIDENCE_HIGH ) {
+                cBoost = -BarzelBead::CONFIDENCE_HIGH;
+            } else if( cBoost> BarzelBead::CONFIDENCE_HIGH ) {
+                cBoost = BarzelBead::CONFIDENCE_HIGH;
+            }
+            statement.stmt.setTranConfidenceBoost(cBoost); 
+            break;
+            }
         }
     }
 }

@@ -271,6 +271,7 @@ public:
 	uint8_t  makeUnmatchable; // when !=0 this is a terminating translation ... the value will
                                 // be assigned to the unmatchability of the affected beads
 
+    int8_t  confidenceBoost; // can be between -CONFIDENCE_HIGH and +CONFIDENCE_HIGH 
     uint32_t argStrId;
 
 	void set( BELTrie& trie, const BTND_Rewrite_Literal& );
@@ -342,7 +343,7 @@ public:
 	bool isRewriteFallible( const BarzelRewriterPool& pool ) const;
 	bool nonEmpty() const
 		{ return ( type != T_NONE ); }
-	BarzelTranslation() : id( 0xffffffff ) , type(T_NONE), makeUnmatchable(0), argStrId(0xffffffff) {}
+	BarzelTranslation() : id( 0xffffffff ) , type(T_NONE), makeUnmatchable(0), argStrId(0xffffffff), confidenceBoost(0) {}
 	// BarzelTranslation(Type_t t , uint32_t i ) : id(i),type((uint8_t)t), makeUnmatchable(0), argStrId(0xffffffff) {}
 
 	std::ostream& print( std::ostream& , const BELPrintContext& ) const;

@@ -41,6 +41,7 @@ struct BELStatementParsed {
 
     BELReader* d_reader;
     int d_tranUnmatchable;
+    int d_confidenceBoost;
 
 	BELStatementParsed() :
 		d_execMode(EXEC_MODE_REWRITE), 
@@ -48,7 +49,8 @@ struct BELStatementParsed {
         d_sourceNameStrId(0xffffffff), 
         d_ruleClashOverride(false), 
         d_reader(0), 
-        d_tranUnmatchable(0)
+        d_tranUnmatchable(0),
+        d_confidenceBoost(0)
 	{}
 	BELParseTreeNode pattern; // points at the node under statement
 	BELParseTreeNode translation; // points at the node under statement
@@ -63,6 +65,8 @@ struct BELStatementParsed {
     bool isImperativeExec() const { return d_execMode!= EXEC_MODE_REWRITE; }
 	void clear()
     { 
+        d_tranUnmatchable= 0;
+        d_confidenceBoost=0;
         d_execMode=EXEC_MODE_REWRITE;
         pattern.clear(); 
         translation.clear(); 
@@ -97,6 +101,8 @@ struct BELStatementParsed {
 
     int isTranUnmatchable() const { return d_tranUnmatchable;  }
     void setTranUnmatchable() { d_tranUnmatchable = 1; }
+    int getTranConfidenceBoost() const { return d_confidenceBoost; }
+    void setTranConfidenceBoost(int x) { d_confidenceBoost = x; }
     void clearUnmatchable() { d_tranUnmatchable= 0; }
 };
 

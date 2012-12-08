@@ -1353,7 +1353,7 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
         transResult.getUnmatchability()
         ) ? 1:0
     );
-    int confidenceBoost = transResult.getConfidenceBoost();
+    int confidenceBoost = translation.confidenceBoost;
 
 	if( transResult.isVec() ) {
 		//std::cerr << "*** BEFORE::::>>\n";

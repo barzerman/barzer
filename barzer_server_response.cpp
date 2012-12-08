@@ -612,17 +612,20 @@ std::ostream& BarzStreamerXML::printConfidence(std::ostream &os)
     if( confidenceData.d_loCnt ) {
         std::vector< std::string > tmp ;
         confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_LOW );
-        print_conf_leftovers( os, tmp, "nolo" );
+        if( tmp.size() )
+            print_conf_leftovers( os, tmp, "nolo" );
     }
     if( confidenceData.d_medCnt ) {
         std::vector< std::string > tmp ;
         confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_MEDIUM );
-        print_conf_leftovers( os, tmp, "nomed" );
+        if( tmp.size() )
+            print_conf_leftovers( os, tmp, "nomed" );
     }
     if( confidenceData.d_hiCnt ) {
         std::vector< std::string > tmp ;
         confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_HIGH );
-        print_conf_leftovers( os, tmp, "nohi" );
+        if( tmp.size() )
+            print_conf_leftovers( os, tmp, "nohi" );
     }
     os << "</confidence>\n";
     return os;
@@ -643,10 +646,10 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 	    if (!isBlank(*bli)) {
 	        os << "\n";
 	        // tag_raii beadtag(os, "bead");
-			os << "<bead n=\"" << curBeadNum ;
+			os << "<bead n=\"" << curBeadNum << "\"";
             if( bli->isComplexAtomicType() && bli->getConfidence()!= BarzelBead::CONFIDENCE_UNKNOWN ) 
                 os << " c=\"" << bli->getConfidence() << "\"";
-            os << "\">\n" ;
+            os << ">\n" ;
 	        BeadVisitor v(os, universe, *bli, barz, *this );
 	        if (boost::apply_visitor(v, bli->getBeadData())) {
 	            os << "\n    ";

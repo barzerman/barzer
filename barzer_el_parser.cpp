@@ -275,6 +275,7 @@ void BELReader::addStatement( const BELStatementParsed& sp )
                 }
                 if( sp.isTranUnmatchable() )
                     tran->makeUnmatchable = 1;
+                tran->confidenceBoost = sp.getTranConfidenceBoost();
 			}
 			trie->addPath( sp, seq, tranId, varInfo, i );
 		}
