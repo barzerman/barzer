@@ -51,7 +51,13 @@ int  BarzelBead::computeBeadConfidence( const StoredUniverse* u ) const
             return( d_confidenceBoost? CONFIDENCE_HIGH: CONFIDENCE_MEDIUM );
         else  // 20% or more chars corrected (more than 1 out of 5)
             return( d_confidenceBoost? CONFIDENCE_MEDIUM: CONFIDENCE_LOW );
-    }  
+    } if( sum_ed == 2 ) {
+        if( numTokens> 3) 
+            return( ( sum_ed*100 < sum_len*20 && d_confidenceBoost) ? CONFIDENCE_HIGH: CONFIDENCE_MEDIUM );
+        else
+            return( (d_confidenceBoost && sum_len>4)? CONFIDENCE_MEDIUM: CONFIDENCE_LOW );
+    }
+    // total edit distance is 1 
     return( d_confidenceBoost? CONFIDENCE_HIGH: CONFIDENCE_MEDIUM );
 }
 
