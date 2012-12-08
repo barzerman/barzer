@@ -408,7 +408,7 @@ void offset_sz_vec_add( std::vector<std::pair<size_t,size_t>>& vec, const std::p
 void BarzConfidenceData::sortAndInvert( const std::string& origStr, OffsetAndLengthPairVec& vec )
 {
     struct sort_by_offset_sz {
-        bool operator()( const const std::pair<size_t,size_t>& l, const std::pair<size_t,size_t>&r ) const {
+        bool operator()( const std::pair<size_t,size_t>& l, const std::pair<size_t,size_t>&r ) const {
             return( l.first < r.first ? true : ( r.first < l.first ? false : r.second < l.second) );
         }
     } ;
@@ -482,7 +482,7 @@ int Barz::computeConfidence( const StoredUniverse& u, const QuestionParm& qparm,
         i->setBeadConfidence( conf );
 
         const CTWPVec& ctoks = i->getCTokens();
-        for( CTWPVec::const_iterator ci = ctoks.begin(), ci_before_last = ( ctoks.size() ? ci+ctoks.size()-1: ctoks.end()); ci != ctoks.end(); ++ci ) {
+        for( CTWPVec::const_iterator ci = ctoks.begin() /*, ci_before_last = ( ctoks.size() ? ci+ctoks.size()-1: ctoks.end())*/; ci != ctoks.end(); ++ci ) {
             const TTWPVec& ttv = ci->first.getTTokens();
 
             for( TTWPVec::const_iterator ti = ttv.begin(); ti!= ttv.end() ; ++ti ) {
