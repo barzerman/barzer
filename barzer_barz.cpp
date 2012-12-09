@@ -494,16 +494,16 @@ int Barz::computeConfidence( const StoredUniverse& u, const QuestionParm& qparm,
                 switch( conf ) {
                 case BarzelBead::CONFIDENCE_HIGH:
                     confidenceData.d_noHi.push_back( szAndLength );
+                    confidenceData.d_noMed.push_back( szAndLength );
+                    confidenceData.d_noLo.push_back( szAndLength );
                     confidenceData.d_hiCnt++;
                     break;
                 case BarzelBead::CONFIDENCE_MEDIUM:
                     confidenceData.d_noMed.push_back( szAndLength );
-                    confidenceData.d_noHi.push_back( szAndLength );
+                    confidenceData.d_noLo.push_back( szAndLength );
                     confidenceData.d_medCnt++;
                     break;
                 case BarzelBead::CONFIDENCE_LOW:
-                    confidenceData.d_noHi.push_back( szAndLength );
-                    confidenceData.d_noMed.push_back( szAndLength );
                     confidenceData.d_noLo.push_back( szAndLength );
                     confidenceData.d_loCnt++;
                     break;

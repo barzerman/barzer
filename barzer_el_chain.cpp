@@ -56,9 +56,10 @@ int  BarzelBead::computeBeadConfidence( const StoredUniverse* u ) const
             return( ( sum_ed*100 < sum_len*20 && d_confidenceBoost) ? CONFIDENCE_HIGH: CONFIDENCE_MEDIUM );
         else
             return( (d_confidenceBoost && sum_len>4)? CONFIDENCE_MEDIUM: CONFIDENCE_LOW );
-    }
+    } else if( numTokens>= 3 || (d_confidenceBoost&& numTokens>1) )
+        return CONFIDENCE_HIGH;
     // total edit distance is 1 
-    return( d_confidenceBoost? CONFIDENCE_HIGH: CONFIDENCE_MEDIUM );
+    return( (d_confidenceBoost|| sum_ed*100 < sum_len*20) ? CONFIDENCE_MEDIUM: CONFIDENCE_LOW );
 }
 
 size_t BarzelBead::streamSrcTokens( std::ostream& sstr ) const
