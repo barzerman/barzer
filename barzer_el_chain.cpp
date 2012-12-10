@@ -20,6 +20,8 @@ int  BarzelBead::computeBeadConfidence( const StoredUniverse* u ) const
 {
     if( !isComplexAtomicType() || d_confidenceBoost > 1 )
         return CONFIDENCE_HIGH;
+    if( d_confidenceBoost < 0 ) 
+        return CONFIDENCE_LOW;
 
     /// sum of squares of edit distances
     ay::LevenshteinEditDistance lev;
