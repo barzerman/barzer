@@ -656,6 +656,9 @@ inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexPa
             char dirty[BZSpell::MAX_WORD_LEN];
             const size_t step = Lang::isTwoByteLang(lang) ? 2 : 1;
             const size_t theString_numChar = strlen(theString)/step;
+            if( step ==2 && theString_numChar < 6 ) 
+                return false;
+
             for (size_t i = step; i < t_len - step; i += step)
             {
                 std::memcpy (dirty, theString, i);
@@ -663,7 +666,7 @@ inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexPa
                 const StoredToken* tmpTok = getStoredToken( dirty );
                 uint32_t left = 0xffffffff;
 
-                bool leftCorrected = false;
+                bool leftCorrected = false, rightCorrected = false;
                 if( !tmpTok || tmpTok->isStemmed() ) { // if no token found or token is pure stem
                     if( i < MIN_SPELL_CORRECT_LEN*step )
                         continue;
@@ -691,6 +694,7 @@ inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexPa
                             right = bzSpell->getStemCorrection( stemmedStr, rightDirty, lang, BZSpell::CORRECTION_MODE_CAUTIOUS );
                         } else 
                             right = bzSpell->getSpellCorrection (rightDirty,false,lang,1) ;
+                        rightCorrected = true;
                     }
                 } else
                     right = tmpTok->getStringId() ;
@@ -721,6 +725,8 @@ inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexPa
                     || 
                     (rightCorr_numChar < 4 && !getStoredToken(rightCorr)) 
                 ) 
+                    continue;
+                if( (rightCorrected && rightCorr_numChar<4) || (leftCorrected && leftCorr_numChar<4) ) 
                     continue;
     
                 CToken newTok = ctok;

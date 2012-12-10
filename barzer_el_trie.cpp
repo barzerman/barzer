@@ -24,6 +24,11 @@ void BELTrie::addStemSrc ( uint32_t stemId, uint32_t srcId )
     d_stemSrcs [stemId].insert(srcId); 
     globalPools.addStemSrc( stemId, srcId );
 }
+void BELTrie::addWordInfo( uint32_t strId, bool stemmed ) 
+{
+    d_wordInfoMap[strId].incrementCount(stemmed);
+
+}
 void BELTrie::setTrieClassAndId( const char* c, const char* i ) 
 { 
     d_trieClass_strId = globalPools.internString_internal( c? c:"" ) ;

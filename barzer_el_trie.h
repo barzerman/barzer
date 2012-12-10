@@ -532,7 +532,7 @@ public:
     void linkEntToTopic( const BarzerEntity& topicEnt, const BarzerEntity&ent, uint32_t strength ) { d_topicEnt.link( topicEnt, ent, strength ); }
 
 	// must be called from BELParser::internString
-	void addWordInfo( uint32_t strId, bool stemmed ) { d_wordInfoMap[strId].incrementCount(stemmed); }
+	void addWordInfo( uint32_t strId, bool stemmed );
 
 	void addStemSrc ( uint32_t stemId, uint32_t srcId );
 	const strIds_set* getStemSrcs ( uint32_t stemId ) const { 

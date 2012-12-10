@@ -706,7 +706,7 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
                         //std::cerr << "SHIT " << stemStr << ":" << stemStrId << std::endl;
                         /// if stem is less than 3 chars shorter than the original we are going to try
                         /// stem correction before any other types of correction
-                        if( str_len > stemStr.length() && (str_len-stemStr.length()<3*2) ) {
+                        if( stemStr.length() > 2*2 && str_len > stemStr.length() && (str_len-stemStr.length()<3*2) ) {
                             uint32_t correctedId = get2ByteLangStemCorrection( lang, str, doStemCorrect, stemStr.c_str(), BZSpell::CORRECTION_MODE_NORMAL );
                             if( correctedId != 0xffffffff )
                                 return featuredCmp(correctedId);
