@@ -20,14 +20,6 @@ protected:
 	const Barz &barz;
 	const StoredUniverse &universe;
 public:
-	BarzResponseStreamer(const Barz &b, const StoredUniverse &u) : barz(b), universe(u) {}
-	virtual std::ostream& print(std::ostream& os) { return os; }
-	virtual ~BarzResponseStreamer() {}
-};
-
-
-class BarzStreamerXML : public BarzResponseStreamer {
-public:
     enum { 
         BF_NOTRACE, // by default trace is printed
         BF_USERID,
@@ -51,16 +43,27 @@ public:
     }
     void setBit( int i , bool val = true ) { d_outputMode.set(i,val); }
     bool checkBit( int i ) const { return d_outputMode.checkBit( i ); }
+    void setWholeMode( const ModeFlags& m ) { d_outputMode= m; }
 
+	BarzResponseStreamer(const Barz &b, const StoredUniverse &u) : barz(b), universe(u) {}
+	BarzResponseStreamer(const Barz &b, const StoredUniverse &u, const ModeFlags& mf) : 
+        BarzResponseStreamer(b, u), d_outputMode(mf) 
+    {}
+
+	virtual std::ostream& print(std::ostream& os) { return os; }
+	virtual ~BarzResponseStreamer() {}
+};
+
+
+class BarzStreamerXML : public BarzResponseStreamer {
+public:
 	BarzStreamerXML(const Barz &b, const StoredUniverse &u) : BarzResponseStreamer(b, u) {}
 	BarzStreamerXML(const Barz &b, const StoredUniverse &u, const ModeFlags& mf) : 
-        BarzResponseStreamer(b, u), d_outputMode(mf) 
+        BarzResponseStreamer(b, u, mf)
     {}
 
 	std::ostream& printConfidence(std::ostream&);
 	std::ostream& print(std::ostream&);
-    void setWholeMode( const ModeFlags& m ) { d_outputMode= m; }
-
 };
 
 class BestEntities;

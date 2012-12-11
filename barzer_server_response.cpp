@@ -139,7 +139,7 @@ public:
 
 		const CTWPVec& ctoks = d_bead.getCTokens();
 
-        bool needOffsetLengthVec = !d_streamer.checkBit( BarzStreamerXML::BF_NO_ORIGOFFSETS );
+        bool needOffsetLengthVec = !d_streamer.checkBit( BarzResponseStreamer::BF_NO_ORIGOFFSETS );
         std::vector< std::pair<uint32_t,uint32_t> >  offsetLengthVec; 
         
         std::stringstream sstrBody;

@@ -600,8 +600,15 @@ int umlautsToAscii( std::string& dest, const char* s )
     }
     
 
-std::ostream& jsonEscape(const char* tokname, std::ostream& os )
+std::ostream& jsonEscape(const char* tokname, std::ostream& os, const char* surroundWith )
 {
+    struct Junk {
+        std::ostream& fp;
+        const char* str;
+        raii( std::ostream& f, const char* s ) : fp(f), str(s) { if(s) fp << s; }
+        ~raii() { if(s) fp << s; }
+    } raii(os,surroundWith);
+
     for( const char* s = tokname; *s; ++s ) {
         switch( *s ) {
         case '\\': os << "\\\\"; break;
@@ -612,6 +619,7 @@ std::ostream& jsonEscape(const char* tokname, std::ostream& os )
         default: os << *s; break;
         }
     }
+
     return os;
 }
 
