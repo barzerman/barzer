@@ -97,7 +97,8 @@ else()
 	set(EXTRA_LIBS ${EXTRA_LIBS} ${EXPAT_LIBRARIES})
 endif()
 
-set(SOURCES barzer_el_cast.cpp
+set(SOURCES barzer_json_output.cpp 
+            barzer_el_cast.cpp
             barzer_meaning.cpp 
             barzer_tokenizer.cpp 
             barzer_barz.cpp
