@@ -600,6 +600,18 @@ int umlautsToAscii( std::string& dest, const char* s )
     }
     
 
+std::ostream& jsonEscape(const char* tokname, std::ostream& os )
+{
+    for( const char* s = tokname; *s; ++s ) {
+        switch( *s ) {
+        case '\\': os << "\\\\"; break;
+        case '"': os << "\\\""; break;
+        default: os << *s; break;
+        }
+    }
+    return os;
+}
+
 } // end of ay namespace 
 #ifdef AY_UTIL_TEST_MAIN
 namespace {

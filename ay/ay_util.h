@@ -309,6 +309,7 @@ bool set_intersection_nonempty( Iter b1, Iter e1, Iter b2, Iter e2 )
     return false;
 }
 
+std::ostream& jsonEscape(const char* tokname, std::ostream& os );
 
 } // ay namespace
 
