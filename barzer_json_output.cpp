@@ -118,12 +118,14 @@ public:
             raii.startField( "origmarkup" );
 
             if( needOffsetLengthVec ) {
+                std::stringstream xstr;
                 for( auto i = offsetLengthVec.begin(); i!= offsetLengthVec.end(); ++i ) {
                     if(i!= offsetLengthVec.begin() )
-                        os << ";";
+                        xstr << ";";
                     std::pair< size_t, size_t > pp = d_barz.getGlyphFromOffsets(i->first,i->second);
-                    os << pp.first << "," << pp.second;
+                    xstr << pp.first << "," << pp.second;
                 }
+                os << "\"" << xstr.str() << "\"";
             }
         }
 	}
@@ -472,7 +474,7 @@ std::ostream& BarzStreamerJSON::print(std::ostream &os)
         printTraceInfo(os, barz, universe);
     */
     if( !checkBit( BF_ORIGQUERY ) ) 
-        ay::jsonEscape( barz.getOrigQuestion().c_str(),  raii.startField( "query" ) );
+        ay::jsonEscape( barz.getOrigQuestion().c_str(),  raii.startField( "query" ), "\"" );
 
     /// confidence
     if( universe.checkBit(StoredUniverse::UBIT_NEED_CONFIDENCE) )  {

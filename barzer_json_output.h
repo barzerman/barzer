@@ -28,13 +28,15 @@ struct JSONRaii {
     }
     std::ostream& startFieldNoindent( const char* f="" ) 
     {
-        d_fp << (d_count++ ? "": ", ");
-        return ( isArray() ? d_fp : ay::jsonEscape( f, d_fp<< "\"") << "\":" );
+        d_fp << (d_count++ ? ", ": "");
+        return ( isArray() ? d_fp : ay::jsonEscape( f, d_fp<< "\"") << "\": " );
     }
     std::ostream& startField( const char* f="" ) 
     {
-        indent( d_fp << (d_count++ ? "": ",\n") );
-        return ( isArray() ? d_fp : ay::jsonEscape( f, d_fp<< "\"") << "\":" );
+        if( !d_count )
+            d_fp << "\n";
+        indent( d_fp << (d_count++ ? ",\n":"") );
+        return ( isArray() ? d_fp : ay::jsonEscape( f, d_fp<< "\"") << "\": " );
     }
 
     std::ostream& addKeyVal( const char* k, const char* v ) 
