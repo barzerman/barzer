@@ -60,7 +60,9 @@ public:
 #undef DELETE
 #endif
 	enum Cmd {ADD,DELETE};
+	enum ReturnType { XML_TYPE, JSON_TYPE };
 private:
+
 	bool m_internStrings;
 	std::vector<RequestTag> tagStack;
 
@@ -83,6 +85,7 @@ private:
     BarzXMLParser* d_barzXMLParser;
     /// unique query id 
     uint64_t       d_queryId;
+	ReturnType ret;
 public:
     bool isQueryIdValid() const { return std::numeric_limits<uint64_t>::max() != d_queryId; }
 
@@ -136,7 +139,7 @@ public:
 
 	void process(const char *name);
 	/// query is already stripped of the 
-	void raw_query_parse( const char* query );
+	void raw_query_parse( const char* query);
 	void raw_autoc_parse( const char* query, QuestionParm& qparm );
 
 	void tag_autoc(RequestTag&);
