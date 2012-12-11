@@ -156,7 +156,8 @@ BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s, uint3
     d_tagCount(0),
     d_xmlIsInvalid(false),
     d_barzXMLParser(0),
-    d_queryId( std::numeric_limits<uint64_t>::max() )
+    d_queryId( std::numeric_limits<uint64_t>::max() ),
+    ret(XML_TYPE)
 {
     parser = XML_ParserCreate(NULL);
     XML_SetUserData(parser, this);
@@ -374,7 +375,7 @@ void BarzerRequestParser::raw_autoc_parse( const char* query, QuestionParm& qpar
     barz.clearWithTraceAndTopics();
 }
 
-void BarzerRequestParser::raw_query_parse( const char* query ) 
+void BarzerRequestParser::raw_query_parse( const char* query)
 {
 	const GlobalPools& gp = gpools;
 	const StoredUniverse * up = gp.getUniverse(userId);
@@ -385,7 +386,8 @@ void BarzerRequestParser::raw_query_parse( const char* query )
 	const StoredUniverse &u = *up;
 
 	QParser qparser(u);
-	BarzStreamerXML response( barz, u );
+
+
 
 	QuestionParm qparm;
     if( d_aggressiveStem ) 
@@ -400,7 +402,22 @@ void BarzerRequestParser::raw_query_parse( const char* query )
     if( barz.hasReqVarNotEqualTo("geo::enableFilter","false") )
 		    proximityFilter(barz, *up);
 
-	response.print(os);
+    switch(ret) {
+    case XML_TYPE: {
+    	BarzStreamerXML response( barz, u );
+    	response.print(os);
+    }
+    break;
+    case JSON_TYPE: {
+    	//
+    	AYLOG(WARNING) << "unimplemented";
+    }
+    break;
+    default:
+    	AYLOG(ERROR) << "unknown return type";
+    	break;
+    }
+
     /// doing this just in case barz is reused 
     barz.clearWithTraceAndTopics();
 }
@@ -728,18 +745,21 @@ void BarzerRequestParser::tag_query(RequestTag &tag) {
 	    it = attrs.find("u");
 		setUniverseId(it != attrs.end() ? atoi(it->second.c_str()) : 0);
     }
-
+    //ReturnType t = XML_TYPE;
     for( auto i = attrs.begin(); i!= attrs.end(); ++i ) {
         if( i->first == "qid" ) 
             barz.setQueryId( atoi( i->second.c_str() ) );
         else if( i->first == "as" ) 
             d_aggressiveStem = true;
+        else if (i->first == "ret" && i->second == "json")
+        	ret = JSON_TYPE;
+
     }
 
     if( isParentTag("qblock") ) {
         d_query = tag.body.c_str();
     } else {
-        raw_query_parse( tag.body.c_str() );
+        raw_query_parse( tag.body.c_str());
     }
 }
 
