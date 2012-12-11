@@ -120,10 +120,10 @@ public:
 				const char *cstr = universe.getStringPool().resolveId(data.getId());
                 if( cstr ) {
                     if( ispunct(*cstr) ) {
-                        raii.startField( "type" ) << "\"punct\"";
+                        raii.addKeyVal( "type", "punct" );
                         ay::jsonEscape(cstr, raii.startField( "value"), "\"");
                     } else {
-                        raii.startField( "type" ) << "\"token\"";
+                        raii.addKeyVal( "type", "token" );
                         ay::jsonEscape(cstr, raii.startField( "value"), "\"");
                     }
                 }
@@ -132,11 +132,11 @@ public:
 		case BarzerLiteral::T_STOP:
 			{
 				if (data.getId() == INVALID_STORED_ID) {
-                    raii.startField( "type" ) << "\"fluff\"";
+                    raii.addKeyVal( "type", "fluff" ) ;
 				} else {
 					const char *cstr = universe.getStringPool().resolveId(data.getId());
 					if (cstr) {
-                        raii.startField( "type" ) << "\"fluff\"";
+                        raii.addKeyVal( "type", "fluff" ) ;
                         if( !ispunct(*cstr) ) {
                             ay::jsonEscape(cstr, raii.startField( "value"), "\"");
                         } 
@@ -148,7 +148,7 @@ public:
 		case BarzerLiteral::T_PUNCT:
 			{ // need to somehow make this localised
 				const char str[] = { (char)data.getId(), '\0' };
-                raii.startField( "type" ) << "\"punct\"";
+                raii.addKeyVal( "type", "punct" ) ;
                 ay::jsonEscape(str, raii.startField( "value"), "\"");
 			}
 			break;
@@ -156,7 +156,7 @@ public:
 		    return false;
 			break;
 		default:
-            raii.startField( "type" ) << "\"error\"";
+            raii.addKeyVal( "type", "error" );
             ay::jsonEscape( "unknown literal type", raii.startField( "value" ), "\"" );
 		}
 		return true;
@@ -165,93 +165,82 @@ public:
 		return false;
 	}
 	bool operator()(const BarzerString &data) {
-        raii.startField( "type" ) << "\"token\"";
+        raii.addKeyVal( "type", "token" );
         ay::jsonEscape( data.getStr(), raii.startField( "value" ), "\"" );
 	    return true;
 	}
 	bool operator()(const BarzerNumber &data) {
-        raii.startField( "type" ) << "\"number\"";
+        raii.addKeyVal( "type", "number" );
 		const char *type =  data.isReal() ? "real" : (data.isInt() ? "int" : "NaN");
         data.print( raii.startField( "value" ) );
 		return true;
 	}
 	bool operator()(const BarzerDate &data) {
-        raii.startField( "type" ) << "\"date\"";
-        raii.startField( "value" ) << boost::format("\"%1%-%2%-%3%\"") 
-            % (int)data.getYear() 
-            % (int)data.getMonth() 
-            % (int)data.getDay() ;
+        raii.addKeyVal( "type", "date" );
+        raii.startField( "value" ) << boost::format("\"%1%-%2%-%3%\"") % (int)data.getYear() % (int)data.getMonth() % (int)data.getDay() ;
 		return true;
 	}
 	bool operator()(const BarzerTimeOfDay &data) {
-
-        os << boost::format("<time h=\"%1%\" min=\"%2%\" s=\"%3%\">") 
-            % (int)data.getHH() 
-            % (int)data.getMM() 
-            % (int)data.getSS() ;
-		printTo(os, data);
-        os << "</time>";
+        raii.addKeyVal( "type", "time" );
+        raii.startField( "value" ) << boost::format("\"%1%:%2%:%3%\"") % (int)data.getHH() % (int)data.getMM() % (int)data.getSS() ;
 		return true;
 	}
 	bool operator()(const BarzerDateTime &data) {
 		// tag_raii td(os, "timestamp");
-        os << "<timestamp ";
-        if( data.date.isValid() ) {
-            os << boost::format("y=\"%1%\" mon=\"%2%\" d=\"%3%\" ") 
-            % (int)data.date.getYear() 
-            % (int)data.date.getMonth() 
-            % (int)data.date.getDay() ;
-        }
-        if( data.timeOfDay.isValid() ) {
-            os << boost::format("h=\"%1%\" min=\"%2%\" s=\"%3%\"") 
-                % data.timeOfDay.getHH() 
-                % data.timeOfDay.getMM() 
-                % data.timeOfDay.getSS() ;
-        }
-        os << ">";
-		printTo(os, data);
-        os << "</timestamp>";
+        raii.addKeyVal( "type", "timestamp" );
+
+        /*
+        raii.startField( "value" ) << 
+            boost::format("\"%1%-%2%-%3%T") % (int)data.date.getYear() % (int)data.date.getMonth() % (int)data.date.getDay() <<
+            boost::format("%1%:%2%:%3%\"") % (int)data.timeOfDay.getHH() % (int)data.timeOfDay.getMM() % (int)data.timeOfDay.getSS() ;
+            */
+        if( data.date.isValid() ) 
+            raii.startField( "date" ) << boost::format("\"%1%-%2%-%3%\"") % (int)data.date.getYear() % (int)data.date.getMonth() % (int)data.date.getDay() ;
+
+        if( data.timeOfDay.isValid() )
+            raii.startField( "time" ) << boost::format("\"%1%:%2%:%3%\"") % (int)data.timeOfDay.getHH() % (int)data.timeOfDay.getMM() % (int)data.timeOfDay.getSS() ;
 		return true;
 	}
 
 	struct RangeVisitor : boost::static_visitor<>  {
 		BeadVisitor& bvis;
-		RangeVisitor( BeadVisitor& bv ) : bvis(bv) {}
+        JSONRaii&    raii;
+		RangeVisitor( BeadVisitor& bv, JSONRaii& ri  ) : bvis(bv), raii(ri) {}
 
 		void operator() ( const BarzerRange::Integer& i ) 
 		{
-			bvis.os << "<lo><num>" << i.first << "</num></lo>";
-			bvis.os << "<hi><num>" << i.second << "</num></hi>";
+            raii.startFieldNoindent( "lo" ) << i.first;
+            raii.startFieldNoindent( "hi" ) << i.second;
 		}
 		void operator() ( const BarzerRange::Real& i ) 
 		{
-			bvis.os << "<lo><num>" << i.first << "</num></lo>";
-			bvis.os << "<hi><num>" << i.second << "</num></hi>";
+            raii.startFieldNoindent( "lo" ) << i.first;
+            raii.startFieldNoindent( "hi" ) << i.second;
 		}
 		void operator() ( const BarzerRange::None& i ) {}
 
 		template <typename T>
 		void operator()( const T& d ) 
 		{ 
-			bvis.os << "<lo>"; bvis.operator()( d.first ); bvis.os << "</lo>";
-			bvis.os << "<hi>"; bvis.operator()( d.second ); bvis.os << "</hi>";
+            raii.startFieldNoindent( "lo" );
+
+            BeadVisitor visClone(bvis,false);
+			visClone( d.first );
+
+            raii.startFieldNoindent( "hi" );
+			visClone( d.second );
 		}
 	};
 	bool operator()(const BarzerRange &data) {
 
-	os << "<range order=\"" << (data.isAsc() ? "ASC" :  "DESC") <<  "\"";
-        if( !data.isFull() ) {
-            if( data.isNoHi() ) 
-                os << " opt=\"NOHI\"";
-            else if( data.isNoLo() ) 
-                os << " opt=\"NOLO\"";
-        }
-		if (data.isBlank()) os << " />";
-		else {
-			os << ">";
-			RangeVisitor v( *this );
+        raii.addKeyVal( "type", "range" );
+        raii.addKeyVal( "rangetype", data.jsonGetTypeName() );
+        raii.addKeyVal( "order", (data.isAsc() ? "ASC" :  "DESC") );
+        if( !data.isFull() )
+            raii.addKeyVal( "opt", (data.isNoHi() ? "NOHI" : "NOLO" ) );
+		if (!data.isBlank()) {
+			RangeVisitor v( *this, raii );
 			boost::apply_visitor( v, data.dta );
-			os << "</range>";
 		}
 		return true;
 	}
@@ -391,6 +380,13 @@ public:
 		lvl = 0;
 	}
 };
+
+void print_conf_leftovers( JSONRaii&& raii, const std::vector<std::string>& vec )
+{
+        for( auto i = vec.begin(); i!= vec.end(); ++i ) {
+            ay::jsonEscape( *i, raii.startField(), "\"") ;
+        }
+}
 } // anon namespace
 
 std::ostream& BarzStreamerJSON::print(std::ostream &os)
@@ -443,6 +439,7 @@ std::ostream& BarzStreamerJSON::print(std::ostream &os)
         }
     }
 
+    /*
 	/// printing spell corrections  if any 
 	if( spellCorrections.size( ) ) {
 		os << "<spell>\n";
@@ -457,16 +454,38 @@ std::ostream& BarzStreamerJSON::print(std::ostream &os)
 	}
     if( !checkBit( BF_NOTRACE ) )
         printTraceInfo(os, barz, universe);
-    if( !checkBit( BF_ORIGQUERY ) ) {
-        os << "\n<query>";
-        ay::jsonEscape( barz.getOrigQuestion().c_str(),  os) << "</query>\n";
-    }
+    */
+    if( !checkBit( BF_ORIGQUERY ) ) 
+        ay::jsonEscape( barz.getOrigQuestion().c_str(),  raii.startField( "query" ) );
 
     /// confidence
-    if( universe.checkBit(StoredUniverse::UBIT_NEED_CONFIDENCE) ) 
-        printConfidence(os);
+    if( universe.checkBit(StoredUniverse::UBIT_NEED_CONFIDENCE) )  {
+    const BarzConfidenceData& confidenceData = barz.confidenceData; 
+    if( !confidenceData.hasAnyConfidence() ) 
+        return os;
 
-	os << "</barz>\n";
+    {
+        JSONRaii confidenceRaii( raii.startField("topics"), false, 1 );
+        if( confidenceData.d_loCnt ) {
+            std::vector< std::string > tmp ;
+            confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_LOW );
+            if( tmp.size() ) 
+                print_conf_leftovers( JSONRaii(confidenceRaii.startField("nolo"),true,2), tmp );
+        }
+        if( confidenceData.d_medCnt ) {
+            std::vector< std::string > tmp ;
+            confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_MEDIUM );
+            if( tmp.size() )
+                print_conf_leftovers( JSONRaii(confidenceRaii.startField("nomed"),true,2), tmp );
+        }
+        if( confidenceData.d_hiCnt ) {
+            std::vector< std::string > tmp ;
+            confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_HIGH );
+            if( tmp.size() )
+                print_conf_leftovers( JSONRaii(confidenceRaii.startField("nohi"),true,2), tmp );
+        }
+    } // confidence block ends
+    }
 	return os;
 }
 

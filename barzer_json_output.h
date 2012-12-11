@@ -36,6 +36,11 @@ struct JSONRaii {
         indent( d_fp << (d_count++ ? "": ",\n") );
         return ( isArray() ? d_fp : ay::jsonEscape( f, d_fp<< "\"") << "\":" );
     }
+
+    std::ostream& addKeyVal( const char* k, const char* v ) 
+        { startField(k) << "\"" << v << "\""; }
+    std::ostream& addKeyValNoIndent( const char* k, const char* v ) 
+        { startFieldNoindent(k) << "\"" << v << "\""; }
     size_t getDepth() const { d_depth; }
 };
 
@@ -46,7 +51,6 @@ public:
         BarzResponseStreamer(b, u), d_outputMode(mf) 
     {}
 
-	std::ostream& printConfidence(std::ostream&);
 	std::ostream& print(std::ostream&);
 };
 

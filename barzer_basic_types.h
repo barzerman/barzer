@@ -420,7 +420,18 @@ struct BarzerRange {
 		ORDER_ASC,
 		ORDER_DESC
 	};
-
+    const char* jsonGetTypeName() const {
+        switch( dta.which() ) {
+		case None_TYPE: return "none";
+		case Integer_TYPE: return "integer";
+		case Real_TYPE: return "real";
+		case TimeOfDay_TYPE: return "time";
+		case Date_TYPE:  return "date";
+		case DateTime_TYPE: return "timestamp";
+		case Entity_TYPE: sreturn "entity";
+        default: return "none";
+        }
+    }
 	bool isNone( ) const {return (dta.which() ==None_TYPE); }
 	bool isValid( ) const {return dta.which(); }
 	bool isInteger( ) const {return (dta.which() ==Integer_TYPE); }
