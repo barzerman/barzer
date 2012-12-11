@@ -606,6 +606,9 @@ std::ostream& jsonEscape(const char* tokname, std::ostream& os )
         switch( *s ) {
         case '\\': os << "\\\\"; break;
         case '"': os << "\\\""; break;
+        case '\r': os << "\\r"; break;
+        case '\n': os << "\\n"; break;
+        case '\t': os << "\\t"; break;
         default: os << *s; break;
         }
     }
