@@ -38,17 +38,17 @@ struct JSONRaii {
     }
 
     std::ostream& addKeyVal( const char* k, const char* v ) 
-        { startField(k) << "\"" << v << "\""; }
+        { return startField(k) << "\"" << v << "\""; }
     std::ostream& addKeyValNoIndent( const char* k, const char* v ) 
-        { startFieldNoindent(k) << "\"" << v << "\""; }
-    size_t getDepth() const { d_depth; }
+        { return startFieldNoindent(k) << "\"" << v << "\""; }
+    size_t getDepth() const { return d_depth; }
 };
 
 class BarzStreamerJSON : public BarzResponseStreamer {
 public:
 	BarzStreamerJSON(const Barz &b, const StoredUniverse &u) : BarzResponseStreamer(b, u) {}
 	BarzStreamerJSON(const Barz &b, const StoredUniverse &u, const ModeFlags& mf) : 
-        BarzResponseStreamer(b, u), d_outputMode(mf) 
+        BarzResponseStreamer(b, u, mf)
     {}
 
 	std::ostream& print(std::ostream&);

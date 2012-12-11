@@ -428,7 +428,7 @@ struct BarzerRange {
 		case TimeOfDay_TYPE: return "time";
 		case Date_TYPE:  return "date";
 		case DateTime_TYPE: return "timestamp";
-		case Entity_TYPE: sreturn "entity";
+		case Entity_TYPE: return "entity";
         default: return "none";
         }
     }

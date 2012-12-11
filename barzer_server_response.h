@@ -47,7 +47,7 @@ public:
 
 	BarzResponseStreamer(const Barz &b, const StoredUniverse &u) : barz(b), universe(u) {}
 	BarzResponseStreamer(const Barz &b, const StoredUniverse &u, const ModeFlags& mf) : 
-        BarzResponseStreamer(b, u), d_outputMode(mf) 
+        barz(b), universe(u), d_outputMode(mf) 
     {}
 
 	virtual std::ostream& print(std::ostream& os) { return os; }

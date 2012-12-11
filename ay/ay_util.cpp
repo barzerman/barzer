@@ -599,16 +599,17 @@ int umlautsToAscii( std::string& dest, const char* s )
         }
     }
     
-
-std::ostream& jsonEscape(const char* tokname, std::ostream& os, const char* surroundWith )
-{
-    struct Junk {
+namespace {
+    struct JunkRaii {
         std::ostream& fp;
         const char* str;
-        raii( std::ostream& f, const char* s ) : fp(f), str(s) { if(s) fp << s; }
-        ~raii() { if(s) fp << s; }
-    } raii(os,surroundWith);
-
+        JunkRaii( std::ostream& f, const char* s ) : fp(f), str(s) { if(str) fp << s; }
+        ~JunkRaii() { if(str) fp << str; }
+    };
+}
+std::ostream& jsonEscape(const char* tokname, std::ostream& os, const char* surroundWith )
+{
+    JunkRaii raii(os,surroundWith);
     for( const char* s = tokname; *s; ++s ) {
         switch( *s ) {
         case '\\': os << "\\\\"; break;

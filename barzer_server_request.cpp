@@ -15,6 +15,7 @@
 #include <ay/ay_parse.h>
 #include <barzer_barzxml.h>
 #include <barzer_server_response.h>
+#include <barzer_json_output.h>
 #include <barzer_geoindex.h>
 #include <barzer_el_cast.h>
 #include <boost/lexical_cast.hpp>
@@ -409,8 +410,8 @@ void BarzerRequestParser::raw_query_parse( const char* query)
     }
     break;
     case JSON_TYPE: {
-    	//
-    	AYLOG(WARNING) << "unimplemented";
+    	BarzStreamerJSON response( barz, u );
+    	response.print(os);
     }
     break;
     default:
@@ -753,7 +754,6 @@ void BarzerRequestParser::tag_query(RequestTag &tag) {
             d_aggressiveStem = true;
         else if (i->first == "ret" && i->second == "json")
         	ret = JSON_TYPE;
-
     }
 
     if( isParentTag("qblock") ) {

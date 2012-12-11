@@ -1,9 +1,23 @@
+#include <barzer_universe.h>
 #include <barzer_json_output.h>
+#include <boost/format.hpp>
+#include <barzer_ghettodb.h>
+
 
 namespace barzer {
 
 namespace {
 
+inline bool isBlank(const BarzelBead &bead) {
+    if (bead.isBlank()) return true;
+    try {
+        const BarzelBeadAtomic &atm = boost::get<BarzelBeadAtomic>(bead.getBeadData());
+        const BarzerLiteral &ltrl = boost::get<BarzerLiteral>(atm.getData());
+        return ltrl.isBlank();
+    } catch (boost::bad_get) {
+        return false;
+    }
+}
     struct PropCallback {
         std::ostream&   d_os;
         uint32_t        d_otherUniverseNumber; 
@@ -12,22 +26,22 @@ namespace {
         PropCallback( std::ostream& os, size_t depth ) : 
             d_os(os) ,
             d_otherUniverseNumber(0xffffffff),
-            raii(s,false,depth)
+            raii(os,false,depth)
         {}
         PropCallback( std::ostream& os, uint32_t u, size_t depth ) : 
             d_os(os) ,
             d_otherUniverseNumber(u),
-            raii(s,false,depth)
+            raii(os,false,depth)
         { }
         void operator()( const char* n, const char* v ) 
         {
             {
-            std::strstream sstr;
+            std::stringstream sstr;
             ay::jsonEscape( n, sstr, "\"" );
             ay::jsonEscape( v, raii.startFieldNoindent( sstr.str().c_str() ), "\"" );
             }
             if( d_otherUniverseNumber != 0xffffffff ) 
-                ay::jsonEscape( d_otherUniverseNumber, raii.startFieldNoindent("u") );
+                raii.startFieldNoindent("u") << d_otherUniverseNumber;
         }
     };
 
@@ -51,12 +65,14 @@ public:
         if( b.isComplexAtomicType() && b.getConfidence()!= BarzelBead::CONFIDENCE_UNKNOWN ) 
             raii.startField("confidence") << b.getConfidence();
     }
-    BeadVisitor( BeadVisitor& v, bool isArr)
+    BeadVisitor( BeadVisitor& v, bool isArr):
         os(v.os),
         universe(v.universe),
         d_bead(v.d_bead),
         d_barz(v.d_barz),
         lvl(0),
+        d_printTtok(v.d_printTtok),
+        d_streamer(v.d_streamer),
         raii(v.os,isArr,v.raii.getDepth()+1 )
     {
     }
@@ -88,7 +104,7 @@ public:
                         sstrBody << " ";
                     if( ttok.buf[0] !=' ' ) {
                         std::string tokStr( ttok.buf.c_str(), ttok.buf.length() );
-                        ay::jsonEscape(tokStr, sstrBody);
+                        ay::jsonEscape(tokStr.c_str(), sstrBody);
                     }
 
                     if( needOffsetLengthVec ) 
@@ -166,7 +182,7 @@ public:
 	}
 	bool operator()(const BarzerString &data) {
         raii.addKeyVal( "type", "token" );
-        ay::jsonEscape( data.getStr(), raii.startField( "value" ), "\"" );
+        ay::jsonEscape( data.getStr().c_str(), raii.startField( "value" ), "\"" );
 	    return true;
 	}
 	bool operator()(const BarzerNumber &data) {
@@ -245,9 +261,9 @@ public:
 		return true;
 	}
 
-	void printEntity(const BarzerEntity &euid, bool needType, const JSONRaii* otherRaii =0 ) 
+	void printEntity(const BarzerEntity &euid, bool needType, JSONRaii* otherRaii =0 ) 
     {
-        const JSONRaii* theRaii = ( otherRaii ? otherRaii: &raii );
+        JSONRaii* theRaii = ( otherRaii ? otherRaii: &raii );
         if( needType )
 		    theRaii->startField("type") << "\"entity\"";
 
@@ -384,7 +400,7 @@ public:
 void print_conf_leftovers( JSONRaii&& raii, const std::vector<std::string>& vec )
 {
         for( auto i = vec.begin(); i!= vec.end(); ++i ) {
-            ay::jsonEscape( *i, raii.startField(), "\"") ;
+            ay::jsonEscape( i->c_str(), raii.startField(), "\"") ;
         }
 }
 } // anon namespace
@@ -394,9 +410,9 @@ std::ostream& BarzStreamerJSON::print(std::ostream &os)
     /// BARZ header tag 
     JSONRaii raii( os, false, 0 );
     os << std::dec;
-    raii.startFeild( "uid" ) << universe.getUserId() ;
+    raii.startField( "uid" ) << universe.getUserId() ;
     if( barz.isQueryIdValid() ) 
-        raii.startFeild( "qid" ) << barz.getQueryId() ;
+        raii.startField( "qid" ) << barz.getQueryId() ;
 
     /// end of BARZ header tag
     
