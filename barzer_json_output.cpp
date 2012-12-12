@@ -105,7 +105,7 @@ public:
                         sstrBody << " ";
                     if( ttok.buf[0] !=' ' ) {
                         std::string tokStr( ttok.buf.c_str(), ttok.buf.length() );
-                        ay::jsonEscape(tokStr.c_str(), sstrBody);
+                        sstrBody << tokStr;
                     }
 
                     if( needOffsetLengthVec ) 
