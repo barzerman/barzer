@@ -7,6 +7,7 @@
 namespace barzer {
 
 namespace {
+static char g_version[] = "1.05";
 
 inline bool isBlank(const BarzelBead &bead) {
     if (bead.isBlank()) return true;
@@ -504,6 +505,7 @@ std::ostream& BarzStreamerJSON::print(std::ostream &os)
         }
     } // confidence block ends
     }
+    raii.addKeyVal( "ver", g_version );
 	return os;
 }
 
