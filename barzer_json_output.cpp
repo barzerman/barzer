@@ -484,7 +484,7 @@ std::ostream& BarzStreamerJSON::print(std::ostream &os)
         return os;
 
     {
-        JSONRaii confidenceRaii( raii.startField("topics"), false, 1 );
+        JSONRaii confidenceRaii( raii.startField("confidence"), false, 1 );
         if( confidenceData.d_loCnt ) {
             std::vector< std::string > tmp ;
             confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_LOW );
