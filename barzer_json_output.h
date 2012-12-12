@@ -13,6 +13,7 @@ struct JSONRaii {
 
     bool isArray() const { return d_isArray; }
     bool isObject() const { return !d_isArray; }
+    std::ostream& getFP() { return d_fp; }
 
     JSONRaii( std::ostream& fp, bool arr, size_t depth ) : 
         d_fp(fp), d_count(0), d_depth(depth),d_isArray(arr)  
@@ -31,11 +32,11 @@ struct JSONRaii {
         d_fp << (d_count++ ? ", ": "");
         return ( isArray() ? d_fp : ay::jsonEscape( f, d_fp<< "\"") << "\": " );
     }
-    std::ostream& startField( const char* f="" ) 
+    std::ostream& startField( const char* f, bool noNewLine=false ) 
     {
-        if( !d_count )
+        if( !d_count && !noNewLine)
             d_fp << "\n";
-        indent( d_fp << (d_count++ ? ",\n":"") );
+        indent( d_fp << (d_count++ ? (noNewLine ? ",":",\n"):"") );
         return ( isArray() ? d_fp : ay::jsonEscape( f, d_fp<< "\"") << "\": " );
     }
 

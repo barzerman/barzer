@@ -196,28 +196,37 @@ public:
 	}
 	bool operator()(const BarzerDate &data) {
         raii.addKeyVal( "type", "date" );
-        raii.startField( "value" ) << boost::format("\"%1%-%2%-%3%\"") % (int)data.getYear() % (int)data.getMonth() % (int)data.getDay() ;
+        raii.startFieldNoindent( "value" ) << 
+                 "\"" <<
+                std::setw(2) << std::setfill('0') <<  (int)data.getYear() <<  "-" <<
+                std::setw(2) << std::setfill('0') << (int)data.getMonth() << "-" <<
+                std::setw(2) << std::setfill('0') << (int)data.getDay() << "\"";
 		return true;
 	}
 	bool operator()(const BarzerTimeOfDay &data) {
         raii.addKeyVal( "type", "time" );
-        raii.startField( "value" ) << boost::format("\"%1%:%2%:%3%\"") % (int)data.getHH() % (int)data.getMM() % (int)data.getSS() ;
+        raii.startFieldNoindent( "value" ) << "\"" ;
+            os << "\"" << std::setw(2) << std::setfill('0') << (int)data.getHH() << ":" << 
+            std::setw(2) << std::setfill('0') << (int)data.getMM() << ":" << 
+            std::setw(2) << std::setfill('0') << (int)data.getSS()  << "\"" ;
 		return true;
 	}
 	bool operator()(const BarzerDateTime &data) {
 		// tag_raii td(os, "timestamp");
         raii.addKeyVal( "type", "timestamp" );
 
-        /*
-        raii.startField( "value" ) << 
-            boost::format("\"%1%-%2%-%3%T") % (int)data.date.getYear() % (int)data.date.getMonth() % (int)data.date.getDay() <<
-            boost::format("%1%:%2%:%3%\"") % (int)data.timeOfDay.getHH() % (int)data.timeOfDay.getMM() % (int)data.timeOfDay.getSS() ;
-            */
         if( data.date.isValid() ) 
-            raii.startField( "date" ) << boost::format("\"%1%-%2%-%3%\"") % (int)data.date.getYear() % (int)data.date.getMonth() % (int)data.date.getDay() ;
+            raii.startFieldNoindent( "date" ) << 
+                 "\"" <<
+                std::setw(2) << std::setfill('0') <<  (int)data.date.getYear() <<  "-" <<
+                std::setw(2) << std::setfill('0') << (int)data.date.getMonth() << "-" <<
+                std::setw(2) << std::setfill('0') << (int)data.date.getDay() << "\"";
 
         if( data.timeOfDay.isValid() )
-            raii.startField( "time" ) << boost::format("\"%1%:%2%:%3%\"") % (int)data.timeOfDay.getHH() % (int)data.timeOfDay.getMM() % (int)data.timeOfDay.getSS() ;
+            raii.startFieldNoindent( "time" ) <<   "\"" <<
+            std::setw(2) << std::setfill('0') << (int)data.timeOfDay.getHH() << ":" << 
+            std::setw(2) << std::setfill('0') << (int)data.timeOfDay.getMM() << ":" << 
+            std::setw(2) << std::setfill('0') << (int)data.timeOfDay.getSS() << "\"";
 		return true;
 	}
 
@@ -241,27 +250,41 @@ public:
 		template <typename T>
 		void operator()( const T& d ) 
 		{ 
-            raii.startFieldNoindent( "lo" );
+            raii.startField( "lo" );
 
+            {
             BeadVisitor visClone(bvis,false);
 			visClone( d.first );
+            }
 
-            raii.startFieldNoindent( "hi" );
+            raii.startField( "hi" );
+            {
+            BeadVisitor visClone(bvis,false);
 			visClone( d.second );
+            }
 		}
 	};
-	bool operator()(const BarzerRange &data) {
+    bool printRange( const BarzerRange &data, JSONRaii* xraii = 0 )
+    {
+        JSONRaii* theRaii = ( xraii ? xraii: &raii );
 
-        raii.addKeyVal( "type", "range" );
-        raii.addKeyVal( "rangetype", data.jsonGetTypeName() );
-        raii.addKeyVal( "order", (data.isAsc() ? "ASC" :  "DESC") );
+        theRaii->addKeyVal( "type", "range" );
+        theRaii->addKeyValNoIndent( "rangetype", data.jsonGetTypeName() );
+        theRaii->addKeyValNoIndent( "order", (data.isAsc() ? "ASC" :  "DESC") );
         if( !data.isFull() )
-            raii.addKeyVal( "opt", (data.isNoHi() ? "NOHI" : "NOLO" ) );
+            theRaii->addKeyValNoIndent( "opt", (data.isNoHi() ? "NOHI" : "NOLO" ) );
 		if (!data.isBlank()) {
-			RangeVisitor v( *this, raii );
+            // theRaii->startField( "data" );
+            // JSONRaii rangeRaii( os , true, theRaii->getDepth()+1 );
+
+			RangeVisitor v( *this, *theRaii );
 			boost::apply_visitor( v, data.dta );
 		}
 		return true;
+        
+    }
+	bool operator()(const BarzerRange &data) {
+        return printRange(data);
 	}
 
 	void printEntity(const BarzerEntity &euid, bool needType, JSONRaii* otherRaii =0 ) 
@@ -280,8 +303,8 @@ public:
         const EntityData::EntProp* edata = universe.getEntPropData( euid );
         if( edata ) { 
             if( edata->canonicName.length() ) 
-                ay::jsonEscape( edata->canonicName.c_str(), theRaii->startField("name"), "\"" );
-            theRaii->startField("rel") << edata->relevance;
+                ay::jsonEscape( edata->canonicName.c_str(), theRaii->startFieldNoindent("name"), "\"" );
+            theRaii->startFieldNoindent("rel") << edata->relevance;
         }
 
 
@@ -330,7 +353,9 @@ public:
                 JSONRaii listRaii( raii.startField("data"), true, raii.getDepth()+1 );
 		        const BarzerEntityList::EList &lst = data.getList();
 		        for (BarzerEntityList::EList::const_iterator li = lst.begin(); li != lst.end(); ++li) {
-			        printEntity(*li,false,&listRaii);
+                    listRaii.startField("");
+                    JSONRaii eraii( os , false, raii.getDepth()+2 );
+			        printEntity(*li,false,&eraii);
 		        }
             }
         }
@@ -342,24 +367,42 @@ public:
 		return true;
 	}
 
+    template <typename T>
+    std::ostream& cloneObject( JSONRaii& parentRaii, const char* fieldName, const T& t, bool noNewLine=false )
+    {
+        parentRaii.startField(fieldName,noNewLine);
+        BeadVisitor clone(*this,false);
+        clone( t );
+        return parentRaii.getFP();
+    }
+
+
 	bool operator()(const BarzerEntityRangeCombo &data) {
+        /*
 		const StoredEntityUniqId &ent = data.getEntity(),
 						         &unit = data.getUnitEntity();
+        */
+        raii.addKeyVal("type","erc") ;
 
-        raii.startField("type") << "\"erc\"";
-
-		{ /// block 
-        BeadVisitor clone(*this,false);
-		clone(ent);
-		if (unit.isValid()) {
-            clone(unit);
-		}
-		clone(data.getRange());
-		} // end of block
+        {
+        raii.startField("ent");
+        JSONRaii eraii( os , false, raii.getDepth()+1 );
+        printEntity(data.getEntity(),false,&eraii);
+        }
+        {
+        raii.startField("unit");
+        JSONRaii eraii( os , false, raii.getDepth()+1 );
+        printEntity(data.getUnitEntity(),false,&eraii);
+        }
+        {
+        raii.startField("range");
+        JSONRaii eraii( os , false, raii.getDepth()+1 );
+        printRange(data.getRange(),&eraii) ; 
+        }
 		return true;
 	}
 	bool operator()(const BarzerERCExpr &exp) {
-        raii.startField("type") << "\"ercexpr\"";
+        raii.addKeyVal( "type", "ercexpr" );
         raii.startField("value") << "\"UNSUPPORTED_TYPE\"";
 		return true;
 	}
@@ -403,7 +446,7 @@ public:
 void print_conf_leftovers( JSONRaii&& raii, const std::vector<std::string>& vec )
 {
         for( auto i = vec.begin(); i!= vec.end(); ++i ) {
-            ay::jsonEscape( i->c_str(), raii.startField(), "\"") ;
+            ay::jsonEscape( i->c_str(), raii.startField(""), "\"") ;
         }
 }
 } // anon namespace
@@ -427,7 +470,7 @@ std::ostream& BarzStreamerJSON::print(std::ostream &os)
 
 	for (BeadList::const_iterator bli = bc.getLstBegin(); bc.isIterNotEnd(bli); ++bli) {
 	    if (!isBlank(*bli)) {
-	        beadsRaii.startField();
+	        beadsRaii.startField("");
 
 	        BeadVisitor v(os, universe, *bli, barz, *this, 2 );
 	        if (boost::apply_visitor(v, bli->getBeadData())) {
