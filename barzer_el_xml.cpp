@@ -194,7 +194,7 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 	CASE_TAG(TRANSLATION)
 	CASE_TAG(TG)
 	CASE_TAG(UNDEFINED)
-	CASE_TAG(P)
+	//CASE_TAG(P)
 	CASE_TAG(SPC)
 	CASE_TAG(RX)
 	CASE_TAG(TDRV)
@@ -231,6 +231,10 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 	case TAG_COND:
 	    processLogic(TAG_AND, close);
 	    return;
+	 // short circuit to <t>
+	 case TAG_P:
+	     taghandle_T(TAG_T,attr,attr_sz,close);
+	     return;
 	}
 #undef CASE_TAG
 
