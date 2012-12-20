@@ -297,6 +297,10 @@ public:
 
 	int loadEntities_XML( const char* fileName, StoredUniverse* universe );
 
+	inline const StoredEntityId getEntIdByEuid( const StoredEntityUniqId& euid ) const
+    {
+        return entPool.getEntIdByEuid(euid);
+    }
 	inline const StoredEntity* getEntByEuid( const StoredEntityUniqId& euid ) const
 		{ return entPool.getEntByEuid(euid); }
 	inline const StoredToken* getTokByString( const char* s ) const

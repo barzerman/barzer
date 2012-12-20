@@ -2,6 +2,7 @@
 #include <barzer_json_output.h>
 #include <boost/format.hpp>
 #include <barzer_ghettodb.h>
+#include <barzer_geoindex.h>
 
 
 namespace barzer {
@@ -308,6 +309,16 @@ public:
         }
 
 
+        if( const BarzerGeo* geo = universe.getGeo() ) {
+            StoredEntityId entId = universe.getDtaIdx().getEntIdByEuid( euid );
+            if( entId != 0xffffffff ) {
+                if( const GeoIndex_t::Point* point = geo->getCoords( entId ) ) {
+                    JSONRaii xraii( theRaii->startField("geo"), true, theRaii->getDepth()+1 );
+                    xraii.startField("") << point->x();
+                    xraii.startField("") << point->y();
+                }
+            }
+        }
         if( d_barz.hasProperties() ) {
             JSONRaii propRaii( theRaii->startField("extra"), false, theRaii->getDepth()+1 );
 

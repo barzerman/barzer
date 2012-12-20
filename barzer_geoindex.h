@@ -60,6 +60,13 @@ public:
             m_entity2point.clear(); 
             m_idx.clear();
         }
+    
+    /// longitude GeoIndex_t::Point::x() lattitude GeoIndex_t::Point::y() 
+    const GeoIndex_t::Point* getCoords( const StoredEntityId& ent ) const
+    {
+        auto i= m_entity2point.find( ent );
+        return( i == m_entity2point.end() ? 0: &(i->second) );
+    }
 };
 
 struct FilterParams
