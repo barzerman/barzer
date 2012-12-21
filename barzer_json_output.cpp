@@ -314,8 +314,10 @@ public:
             if( entId != 0xffffffff ) {
                 if( const GeoIndex_t::Point* point = geo->getCoords( entId ) ) {
                     JSONRaii xraii( theRaii->startField("geo"), true, theRaii->getDepth()+1 );
-                    xraii.startField("") << point->x();
-                    xraii.startField("") << point->y();
+                    xraii.getFP();
+
+                    xraii.startField("") << std::setprecision(8) << point->x();
+                    xraii.startField("") << std::setprecision(8) << point->y();
                 }
             }
         }
