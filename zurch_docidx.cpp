@@ -1,6 +1,10 @@
 #include <zurch_docidx.h>
 namespace zurch {
 
+class DocFeatureIndexHeuristics {
+
+};
+
 /// feature we keep track off (can be an entity or a token - potentially we will add more classes to it)
 int DocFeature::serialize( std::ostream& fp ) const
 {
@@ -70,14 +74,9 @@ void DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeature:
     for( auto i = v.begin(); i!= v.end(); ++i ) {
         const ExtractedDocFeature& f = *i;
         InvertedIdx_t::iterator  fi = d_invertedIdx.find( f.feature );
-        if( fi == d_invertedIdx.end() ) {
-            fi = d_invertedIdx.insert( 
-                std::pair<DocFeature,DocFeatureLink::Vec_t>(
-                    f.feature,
-                    DocFeatureLink::Vec_t()
-                ).first;
-            );
-        }
+        if( fi == d_invertedIdx.end() ) 
+            fi = d_invertedIdx.insert( std::pair<DocFeature,DocFeatureLink::Vec_t>( f.feature, DocFeatureLink::Vec_t())).first;
+        
         fi->second.push_back( DocFeatureLink(docId, f.weight(), f.simplePosition()) ) ;
     }
 }
@@ -145,8 +144,8 @@ int DocFeatureIndex::deserialize( std::istream& fp )
                     std::pair<DocFeature,DocFeatureLink::Vec_t>(
                         feature,
                         DocFeatureLink::Vec_t()
-                    ).first;
-                );
+                    )
+                ).first;
             }
             /// this could simply reserve sz but in case this is an artificially produced file with the same feature 
             /// spread across 

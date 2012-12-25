@@ -26,10 +26,10 @@ struct DocFeature {
     bool isClassValid() const { return ( featureClass >= CLASS_ENTITY && featureClass <= CLASS_TOKEN ); }
     bool isValid() const { return (featureId!= 0xffffffff || isClassValid() ); }
 
-    typedef DocFeature::Id_t;
+    typedef DocFeature Id_t;
 };
 
-inline operator< ( const DocFeature& l, const DocFeature& r ) 
+inline bool operator< ( const DocFeature& l, const DocFeature& r ) 
 {
     return( l.featureClass == r.featureClass ? (l.featureId < r.featureId) : l.featureClass < r.featureClass );
 }
@@ -63,6 +63,7 @@ struct DocFeatureLink {
     DocFeatureLink() : docId(0xffffffff), weight(0), position(0) {}
     DocFeatureLink(uint32_t i) : docId(i), weight(0), position(0) {}
     DocFeatureLink(uint32_t i, int w ) : docId(i), weight(w), position(0) {}
+    DocFeatureLink(uint32_t i, int w, uint32_t p ) : docId(i), weight(w), position(p) {}
     
     typedef std::vector< DocFeatureLink > Vec_t;
 
@@ -70,13 +71,13 @@ struct DocFeatureLink {
     int deserialize( std::istream& );
 };
 
-inline operator < ( const DocFeatureLink& l, const DocFeatureLink& r ) 
+inline bool operator < ( const DocFeatureLink& l, const DocFeatureLink& r ) 
     { return ( l.weight == r.weight ? (l.docId< r.docId): r.weight< l.weight ); }
 
 /// document id - uint32_t 
 /// feature id  - uint32_t 
 class DocFeatureIndex {
-    typedef boost::map< DocFeature::Id_t,  DocFeatureLink::Vec_t > InvertedIdx_t;
+    typedef std::map< DocFeature::Id_t,  DocFeatureLink::Vec_t > InvertedIdx_t;
     InvertedIdx_t d_invertedIdx;
     
     DocFeatureIndexHeuristics* d_heuristics; // /never 0 - guaranteed too be initialized in constructor
@@ -94,7 +95,7 @@ public:
     void sortAll();
 
     typedef std::pair< uint32_t, double > DocWithScore_t;
-    typedef std::vector< DocWithScore > DocWithScoreVec_t;
+    typedef std::vector< DocWithScore_t > DocWithScoreVec_t;
 
     void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f );
 
