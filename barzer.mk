@@ -42,6 +42,7 @@ ECHO = echo
 lib_objects = \
 barzer_json_output.o \
 barzer_spell_features.o \
+zurch_docidx.o \
 zurch_classifier.o \
 zurch_tokenizer.o \
 barzer_geoindex.o \
