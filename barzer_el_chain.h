@@ -297,6 +297,12 @@ public:
 		const BarzelBeadAtomic* atomic = getAtomic();
 		return( atomic && atomic->isStringLiteral() )  ;
 	}
+    const BarzerEntity* getEntity() const {
+			if( const BarzelBeadAtomic* atomic = getAtomic() ) 
+                return atomic->getEntity();
+            else
+                return 0;
+    }
     const BarzerEntityList* getEntityList() const {
 			const BarzelBeadAtomic* atomic = getAtomic();
             return( atomic ? atomic->getEntityList() : 0 );

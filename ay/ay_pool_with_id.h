@@ -27,11 +27,11 @@ private:
 	T2IdMap theMap;
 	
 	IdType pushNewObj( T_cp tp ) 
-		{ 
-			IdType idx = theVec.size();
-			theVec.push_back( tp ) ;
-			return idx;
-		}
+    { 
+        IdType idx = theVec.size();
+        theVec.push_back( tp ) ;
+        return idx;
+    }
 public:
 	void clear() { 
 		theMap.clear();
@@ -63,6 +63,35 @@ public:
 
 		return( (i->second = pushNewObj( &(i->first) )) );
 	}
+    /// ascii serializer 
+    /// size object[size]
+    /// both size and object are written usint SRLZR object 
+    /// which must have operator () defined for ostream,size_t and ostream,T 
+    template <typename SRLZR>
+    int serialize( SRLZR& srlzr, std::ostream& fp) const
+    {
+        srlzr(fp,theVec.size());
+        for( size_t i = 0; i< theVec.size(); ++i ) 
+            srlzr( fp, *(theVec[i]) );
+        return 0;
+    }
+    /// ascii de-serializer 
+    /// both size and object are read using SRLZR object 
+    /// which must have operator () defined for istream,size_t and istream,T 
+    template <typename SRLZR>
+    int deserialize( SRLZR& srlzr, std::istream& fp )
+    {
+        theMap.clear();
+        theVec.clear();
+        size_t sz = 0;
+        if( !srlzr(sz,fp) || !sz ) 
+            return -1;
+        theVec.reserve(sz);
+        T t;
+        for( size_t i =0; i< sz && srlzr(t,fp); ++i ) 
+            produceIdByObj(t);
+        return 0;
+    }
 };
 
 /// simple PoolWithId does not ensure uniqueness it simply stores 

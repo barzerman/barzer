@@ -91,6 +91,24 @@ static const char* g_BarzerLiteral_typeName[] = {
 
 }
 
+std::pair< const char*, size_t> BarzerLiteral::toString (const StoredUniverse& universe ) const
+{
+    switch(getType()) {
+    case BarzerLiteral::T_STRING:
+    case BarzerLiteral::T_COMPOUND:
+    case BarzerLiteral::T_STOP:
+        {
+        const char* s = universe.getStringPool().resolveId(theId);
+        return std::pair< const char*, size_t>( s, (s? strlen(s): 0 ) );
+        }
+    case BarzerLiteral::T_PUNCT:
+		return std::pair< const char*, size_t>( (const char*)( &theId ), 1 );
+    case BarzerLiteral::T_BLANK:
+		return std::pair< const char*, size_t>( " ", 1 ) ;
+    }
+    return std::pair< const char*, size_t>( 0, 0 );
+}
+
 bool BarzerLiteral::toBNumber (BarzerNumber& n ) const
 {
 	switch (getNumeralType ())
@@ -117,10 +135,6 @@ std::ostream& BarzerLiteral::print( std::ostream& fp ) const
 }
 
 std::ostream& BarzerLiteral::print( std::ostream& fp, const BELPrintContext& ) const
-{
-	return print( fp );
-}
-std::ostream& BarzerLiteral::print( std::ostream& fp, const Universe& ) const
 {
 	return print( fp );
 }

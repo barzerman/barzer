@@ -1,5 +1,7 @@
 #pragma once
 #include <barzer_entity.h>
+#include <barzer_barz.h>
+#include <ay/ay_pool_with_id.h>
 
 namespace zurch {
 
@@ -79,10 +81,26 @@ inline bool operator < ( const DocFeatureLink& l, const DocFeatureLink& r )
 class DocFeatureIndex {
     typedef std::map< DocFeature::Id_t,  DocFeatureLink::Vec_t > InvertedIdx_t;
     InvertedIdx_t d_invertedIdx;
-    
+
+    ay::UniqueCharPool d_stringPool; // both internal strings and literals will be in the pool 
+    ay::InternerWithId<barzer::BarzerEntity> d_entPool; // internal representation of entities
+
     DocFeatureIndexHeuristics* d_heuristics; // /never 0 - guaranteed too be initialized in constructor
-    
 public:
+    /// given an entity from the univere returns internal representation of the entity 
+    /// if it can be found and null entity (isValid() == false) otherwise
+    barzer::BarzerEntity translateExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u ) const;
+
+    uint32_t resolveExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u ) const 
+        { return d_entPool.getIdByObj(translateExternalEntity(ent,u)); }
+
+    /// place external entity into the pool (add all relevant strings to pool as well)
+    uint32_t storeExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u );
+
+    uint32_t storeExternalString( const char*, const barzer::StoredUniverse& u );
+    uint32_t storeExternalString( const barzer::BarzerLiteral&, const barzer::StoredUniverse& u );
+    uint32_t resolveExternalString( const char* str ) const { return d_stringPool.getId(str); }
+    uint32_t resolveExternalString( const barzer::BarzerLiteral&, const barzer::StoredUniverse& u ) const;
 
     int serializeVec( std::ostream&, const DocFeatureLink::Vec_t& v ) const; 
     int deserializeVec( std::istream&, const DocFeatureLink::Vec_t& v );
@@ -91,6 +109,7 @@ public:
     ~DocFeatureIndex();
     
     void appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t&  );
+    void appendDocument( uint32_t docId, const barzer::Barz&  );
     /// should be called after the last doc has been appended . 
     void sortAll();
 

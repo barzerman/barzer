@@ -16,7 +16,7 @@
 
 namespace barzer {
 struct BELPrintContext;
-struct Universe;
+class StoredUniverse;
 
 struct BarzelTranslationTraceInfo {
 	// string id of the source name
@@ -341,7 +341,7 @@ public:
 
 	std::ostream& print( std::ostream& ) const;
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
-	std::ostream& print( std::ostream&, const Universe& ) const;
+	// std::ostream& print( std::ostream&, const Universe& ) const;
 
 	void setCompound(uint32_t id )
 		{ type = T_COMPOUND; theId = id; }
@@ -380,6 +380,8 @@ public:
     void setMysteryString()         { stringType |= (1); }
     void setInternalString()        { stringType |= (2); }
     bool isInternalString() const   { return (stringType & (2)); }
+
+    std::pair< const char*, size_t>  toString( const StoredUniverse& u ) const;
 };
 inline bool operator == ( const BarzerLiteral& l, const BarzerLiteral& r )
 { return l.isEqual(r); }
