@@ -146,8 +146,20 @@ class DocFeatureLoader {
     DocFeatureIndex&                      d_index;
     barzer::Barz                          d_barz;
 public:
+    enum : size_t  { DEFAULT_BUF_SZ = 1024*128 };
+private:
+    size_t d_bufSz;
+public:
+    const barzer::QParser& parser() const { return parser(); }
+    barzer::QParser& parser() { return parser(); }
+    barzer::QuestionParm& qparm() { return d_qparm; }
+    const barzer::QuestionParm& qparm() const { return d_qparm; }
     DocFeatureLoader( DocFeatureIndex& index, const barzer::StoredUniverse& u );
+    size_t getBufSz() const { return d_bufSz; }
+    void setBufSz( size_t x ) { d_bufSz = x; }
+
     void addPieceOfDoc( uint32_t docId, const char* str );
+    void addDocFromStream( uint32_t docId, std::istream& );
 };
 
 } // namespace zurch 

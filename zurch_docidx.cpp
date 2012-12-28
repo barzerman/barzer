@@ -286,13 +286,19 @@ std::ostream& DocFeatureIndex::printStats( std::ostream& fp ) const
 DocFeatureLoader::DocFeatureLoader( DocFeatureIndex& index, const barzer::StoredUniverse& u ) : 
     d_universe(u),
     d_parser(u),
-    d_index(index)
+    d_index(index),
+    d_bufSz( DEFAULT_BUF_SZ )
 {
     d_barz.setUniverse( &d_universe );
 }
 void DocFeatureLoader::addPieceOfDoc( uint32_t docId, const char* str )
 {
     d_parser.parse( d_barz, str, d_qparm );
+}
+
+void DocFeatureLoader::addDocFromStream( uint32_t docId, std::istream& fp )
+{
+#warning DocFeatureLoader::addDocFromStream
 }
 
 } // namespace zurch

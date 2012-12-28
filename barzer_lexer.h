@@ -60,7 +60,7 @@ public:
 		/// words equal or shorter than this wont be spell corrected
 		MIN_SPELL_CORRECT_LEN = 3,
 
-		MAX_CTOKENS_PER_QUERY = 64
+		MAX_CTOKENS_PER_QUERY = 64*2
 	};
 private:
     const StoredToken* getStoredToken(uint32_t& strId, const char* str) const;

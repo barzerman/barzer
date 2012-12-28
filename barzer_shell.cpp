@@ -26,6 +26,7 @@
 #include <fstream>
 #include <string.h>
 
+#include <zurch_docidx.h>
 
 
 namespace barzer {
@@ -312,6 +313,85 @@ static int bshf_inspect( BarzerShell* shell, char_cp cmd, std::istream& in )
 		dtaIdx->print(fp);
 	}
 	return 0;
+}
+
+namespace {
+
+struct PrintStringCB {
+    std::ostream& fp;
+    size_t count;
+    PrintStringCB( std::ostream& f ) : fp(f), count(0) {}
+    void operator()( const char* s, size_t s_len ) { fp << "PHRASE[" << count << "] {{"; fp.write( s, s_len )<< "}}" ; }
+};
+struct BreakIntoPhrases {
+    Barz&    barz;
+    QParser& parser;
+    std::vector< char > buf;
+    BreakIntoPhrases( Barz& b, QParser& p ) : barz(b), parser(p), buf( zurch::DocFeatureLoader::DEFAULT_BUF_SZ ) {}
+    
+    // breaks the buffer into phrases . callback is invoked for each phrase
+    // phrase delimiter is a new line character 
+    // returns the size  of the processed text
+    template <typename CB>
+    size_t breakBuf( CB& cb, const char* str, size_t str_sz ) 
+    {
+        const char *s_to = str;
+        for( const char* s_from=str, *s_end = str+str_sz; s_to <= s_end && s_from< s_end; ) {
+            char c = *s_to;
+            if( c  == '\n' || c == '\r' || c=='\t' || (c =='.'&&c==' ') ) {
+                if( s_to> s_from ) 
+                    cb( s_from, s_to-s_from );
+                s_from = ++s_to;
+            }
+            ++s_to;
+        }
+        return s_to-str;
+    }
+
+
+    template <typename CB>
+    void breakStream( CB& cb, std::istream& fp ) 
+    {
+        size_t curOffset = 0;
+        while( true ) {
+            size_t bytesRead = fp.readsome( &(buf[curOffset]), (buf.size()-curOffset-1) );
+            if( !bytesRead )   
+                return;
+            if( bytesRead < buf.size() ) {
+                buf[ bytesRead ] = 0;
+                size_t endOffset = breakBuf(cb, &(buf[curOffset]), bytesRead );
+                if( endOffset < bytesRead ) { /// something is left over
+                    for( size_t dest = 0, src = endOffset; src< bytesRead; ++src, ++dest ) 
+                        buf[dest] = buf[src];
+                }
+                curOffset= bytesRead-endOffset;
+            } 
+        }
+    }
+};
+
+} // anonymous namespace 
+static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext * context = shell->getBarzerContext();
+	Barz& barz = context->barz;
+
+    zurch::DocFeatureIndex docIndex;
+    zurch::DocFeatureLoader docLoader( docIndex, context->getUniverse() );
+
+    std::string fileName;
+    std::ifstream fp;
+    if( !(in >> fileName) ) {
+        std::cerr << "couldnt open input file " << fileName << std::endl;
+        return 0;
+    }
+    std::ifstream inFile;
+    inFile.open(fileName.c_str() );
+    BreakIntoPhrases phraser( barz, docLoader.parser() );
+    PrintStringCB cb( std::cerr );
+    phraser.breakStream( cb, inFile );
+     
+    return 0;
 }
 static int bshf_lex( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
@@ -1647,6 +1727,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_shenv, "shenv", "set shell environment parameter. usage: shenv [name [value]]" ),
 	CmdData( (ay::Shell_PROCF)bshf_env, "env", "set request environment parameter. usage: env [name [value]]" ),
 	CmdData( (ay::Shell_PROCF)bshf_dtaan, "dtaan", "data set analyzer. runs through the trie" ),
+	CmdData( (ay::Shell_PROCF)bshf_doc, "doc", "doc loader doc filename" ),
 	CmdData( (ay::Shell_PROCF)bshf_instance, "instance", "lists all users in the instance" ),
 	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),
 	CmdData( (ay::Shell_PROCF)bshf_grammar, "grammar", "sets trie for given grammar. use 'user' to list grammars" ),
