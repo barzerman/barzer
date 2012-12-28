@@ -319,16 +319,47 @@ namespace {
 
 struct PrintStringCB {
     std::ostream& fp;
+    QParser& parser;
+    Barz& barz;
+    const QuestionParm& qparm;
+
     size_t count;
-    PrintStringCB( std::ostream& f ) : fp(f), count(0) {}
-    void operator()( const char* s, size_t s_len ) { fp << "PHRASE[" << count << "] {{"; fp.write( s, s_len )<< "}}" ; }
+    std::string queryBuf; 
+
+    PrintStringCB( std::ostream& f, QParser& p, Barz& b, QuestionParm& qp ) : fp(f), parser(p), barz(b), qparm(qp), count(0) {}
+    void operator()( const char* s, size_t s_len ) { 
+        queryBuf.assign( s, s_len );
+        parser.tokenize_only( barz, queryBuf.c_str(), qparm );
+        const TTWPVec& ttVec = barz.getTtVec();
+        fp << "[" << count++ << "](" << ttVec.size() << ")";
+        for( auto ti = ttVec.begin(); ti != ttVec.end(); ++ti )  {
+            if( ti != ttVec.begin() )
+                fp << " ";
+            fp << ti->first.buf;
+        }
+        fp << std::endl;
+        /// classify tokens in the barz
+        // parser.lex_only( barz, qparm );
+    }
+    // void operator()( const char* s, size_t s_len ) { fp << "PHRASE[" << count++ << "]**|"; fp.write( s, s_len )<< "|**\n" ; }
 };
 struct BreakIntoPhrases {
     Barz&    barz;
     QParser& parser;
     std::vector< char > buf;
-    BreakIntoPhrases( Barz& b, QParser& p ) : barz(b), parser(p), buf( zurch::DocFeatureLoader::DEFAULT_BUF_SZ ) {}
     
+    bool d_breakOnPunctSpace; /// when true 
+    // std::string d_extraSeparators;
+    BreakIntoPhrases( Barz& b, QParser& p ) : 
+        barz(b), 
+        parser(p), 
+        buf( zurch::DocFeatureLoader::DEFAULT_BUF_SZ ), 
+        d_breakOnPunctSpace(true) {}
+
+    bool breakOnPunctuation( const char* s ) 
+    {
+        return( d_breakOnPunctSpace && ( ispunct(*s) && s[1] ==' ' ) );
+    }
     // breaks the buffer into phrases . callback is invoked for each phrase
     // phrase delimiter is a new line character 
     // returns the size  of the processed text
@@ -338,12 +369,13 @@ struct BreakIntoPhrases {
         const char *s_to = str;
         for( const char* s_from=str, *s_end = str+str_sz; s_to <= s_end && s_from< s_end; ) {
             char c = *s_to;
-            if( c  == '\n' || c == '\r' || c=='\t' || (c =='.'&&c==' ') ) {
+            if( c  == '\n' || c == '\r' || c=='(' || c==')' || c=='\t' || c ==';' || (c ==' '&&s_to[1]=='.'&&s_to[2]==' ') || 
+            breakOnPunctuation(s_to) ) {
                 if( s_to> s_from ) 
                     cb( s_from, s_to-s_from );
                 s_from = ++s_to;
-            }
-            ++s_to;
+            } else
+                ++s_to;
         }
         return s_to-str;
     }
@@ -388,7 +420,10 @@ static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
     std::ifstream inFile;
     inFile.open(fileName.c_str() );
     BreakIntoPhrases phraser( barz, docLoader.parser() );
-    PrintStringCB cb( std::cerr );
+    // PrintStringCB( std::ostream& f, QParser& p, Barz& b ) : fp(f), parser(p), barz(b), count(0) {}
+	QuestionParm qparm;
+    PrintStringCB cb( std::cerr, context->parser, barz, qparm );
+
     phraser.breakStream( cb, inFile );
      
     return 0;

@@ -151,7 +151,7 @@ private:
     size_t d_bufSz;
 public:
     const barzer::QParser& parser() const { return parser(); }
-    barzer::QParser& parser() { return parser(); }
+    barzer::QParser& parser() { return d_parser; }
     barzer::QuestionParm& qparm() { return d_qparm; }
     const barzer::QuestionParm& qparm() const { return d_qparm; }
     DocFeatureLoader( DocFeatureIndex& index, const barzer::StoredUniverse& u );
