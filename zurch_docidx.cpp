@@ -2,10 +2,6 @@
 #include <barzer_universe.h>
 namespace zurch {
 
-class DocFeatureIndexHeuristics {
-
-};
-
 /// feature we keep track off (can be an entity or a token - potentially we will add more classes to it)
 int DocFeature::serialize( std::ostream& fp ) const
 {
@@ -67,10 +63,10 @@ int DocFeatureLink::deserialize( std::istream& fp )
     return 0;
 }
 
-DocFeatureIndex::DocFeatureIndex() : d_heuristics( new DocFeatureIndexHeuristics ) { }
-DocFeatureIndex::~DocFeatureIndex() { delete d_heuristics; }
+DocFeatureIndex::DocFeatureIndex() {}
+DocFeatureIndex::~DocFeatureIndex() {}
 
-/// given an entity from the univere returns internal representation of the entity 
+/// given an entity from the universe returns internal representation of the entity 
 /// if it can be found and null entity (isValid() == false) otherwise
 barzer::BarzerEntity DocFeatureIndex::translateExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u ) const
 {
@@ -111,32 +107,63 @@ uint32_t DocFeatureIndex::resolveExternalString( const barzer::BarzerLiteral& l,
         return 0xffffffff;
 }
 
-void DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz )
+size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz, size_t posOffset )
 {
-    #warning implement DocFeatureIndex::appendDocument
-    for( auto i = barz.getBeadList().begin(); i!= barz.getBeadList().end(); ++i ) {
+    const barzer::StoredUniverse* universe = barz.getUniverse() ;
+    if( !universe ) 
+        return posOffset;
+    
+    ExtractedDocFeature::Vec_t featureVec;
+    size_t curOffset =0;
+    for( auto i = barz.getBeadList().begin(); i!= barz.getBeadList().end(); ++i, ++curOffset ) {
         if( const barzer::BarzerLiteral* x = i->get<barzer::BarzerLiteral>() ) {
+            uint32_t strId = storeExternalString( *x, *universe );
+            featureVec.push_back( 
+                ExtractedDocFeature( 
+                    DocFeature( DocFeature::CLASS_TOKEN, strId ), 
+                    FeatureDocPosition(curOffset)
+                ) 
+            );
         } else if( const barzer::BarzerEntity* x = i->getEntity() ) {
-           
+            uint32_t entId = storeExternalEntity( *x, *universe );
+            featureVec.push_back( 
+                ExtractedDocFeature( 
+                    DocFeature( DocFeature::CLASS_ENTITY, entId ), 
+                    FeatureDocPosition(curOffset)
+                ) 
+            );
         } else if( const barzer::BarzerEntityList* x = i->getEntityList() ) {
+            for (barzer::BarzerEntityList::EList::const_iterator li = x->getList().begin();li != x->getList().end(); ++li) {
+                uint32_t entId = storeExternalEntity( *li, *universe );
+                featureVec.push_back( 
+                    ExtractedDocFeature( 
+                        DocFeature( DocFeature::CLASS_ENTITY, entId ), 
+                        FeatureDocPosition(curOffset)
+                    ) 
+                );
+            }
         }
     }
+    return appendDocument( docId, featureVec, posOffset );
 }
 
-void DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t& v )
+size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t& v, size_t posOffset )
 {
+    size_t lastOffset = 0;
     for( auto i = v.begin(); i!= v.end(); ++i ) {
         const ExtractedDocFeature& f = *i;
         InvertedIdx_t::iterator  fi = d_invertedIdx.find( f.feature );
         if( fi == d_invertedIdx.end() ) 
             fi = d_invertedIdx.insert( std::pair<DocFeature,DocFeatureLink::Vec_t>( f.feature, DocFeatureLink::Vec_t())).first;
-        
-        fi->second.push_back( DocFeatureLink(docId, f.weight(), f.simplePosition()) ) ;
+        lastOffset= f.simplePosition(); 
+        fi->second.push_back( DocFeatureLink(docId, f.weight(), (posOffset+lastOffset) ) ) ;
     }
+    return posOffset+lastOffset;
 }
 /// should be called after the last doc has been appended . 
 void DocFeatureIndex::sortAll()
 {
+    #warning take DocFeatureIndexHeuristics::BIT_NOUNIQUE and properly compute count (more advanced sort)
     for( InvertedIdx_t::iterator i = d_invertedIdx.begin(); i!= d_invertedIdx.end(); ++i ) 
         std::sort( i->second.begin(), i->second.end() ) ;
 }
@@ -254,6 +281,18 @@ int DocFeatureIndex::deserialize( std::istream& fp )
 std::ostream& DocFeatureIndex::printStats( std::ostream& fp ) const 
 {
     return fp << d_invertedIdx.size();
+}
+
+DocFeatureLoader::DocFeatureLoader( DocFeatureIndex& index, const barzer::StoredUniverse& u ) : 
+    d_universe(u),
+    d_parser(u),
+    d_index(index)
+{
+    d_barz.setUniverse( &d_universe );
+}
+void DocFeatureLoader::addPieceOfDoc( uint32_t docId, const char* str )
+{
+    d_parser.parse( d_barz, str, d_qparm );
 }
 
 } // namespace zurch
