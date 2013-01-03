@@ -1,5 +1,6 @@
 #include <zurch_docidx.h>
 #include <barzer_universe.h>
+#include <boost/filesystem.hpp>
 namespace zurch {
 
 /// feature we keep track off (can be an entity or a token - potentially we will add more classes to it)
@@ -283,6 +284,7 @@ std::ostream& DocFeatureIndex::printStats( std::ostream& fp ) const
     return fp << d_invertedIdx.size();
 }
 
+DocFeatureLoader::~DocFeatureLoader() {}
 DocFeatureLoader::DocFeatureLoader( DocFeatureIndex& index, const barzer::StoredUniverse& u ) : 
     d_universe(u),
     d_parser(u),
@@ -299,6 +301,23 @@ void DocFeatureLoader::addPieceOfDoc( uint32_t docId, const char* str )
 void DocFeatureLoader::addDocFromStream( uint32_t docId, std::istream& fp )
 {
 #warning DocFeatureLoader::addDocFromStream
+}
+DocFeatureLoaderFilesystem::~DocFeatureLoaderFilesystem( ){}
+DocFeatureLoaderFilesystem::DocFeatureLoaderFilesystem( DocFeatureIndex& index, const barzer::StoredUniverse& u ) :
+    DocFeatureLoader(index,u)
+{}
+namespace fs = boost::filesystem;
+void DocFeatureLoaderFilesystem::addAllFilesAtPath( const char* path, const DocFeatureLoaderFilesystem::LoaderOptions& opt )
+{
+    if ( fs::exists(path) && fs::is_directory(path)) {
+        fs::directory_iterator end_iter;
+        for( fs::directory_iterator dir_iter(path) ; dir_iter != end_iter ; ++dir_iter) {
+            if (fs::is_regular_file(dir_iter->status()) ) {
+
+                // result_set.insert(result_set_t::value_type(fs::last_write_time(dir_iter->status()), *dir_iter));
+            }
+        }
+    }
 }
 
 } // namespace zurch

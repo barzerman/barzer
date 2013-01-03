@@ -155,11 +155,33 @@ public:
     barzer::QuestionParm& qparm() { return d_qparm; }
     const barzer::QuestionParm& qparm() const { return d_qparm; }
     DocFeatureLoader( DocFeatureIndex& index, const barzer::StoredUniverse& u );
+    virtual ~DocFeatureLoader();
     size_t getBufSz() const { return d_bufSz; }
     void setBufSz( size_t x ) { d_bufSz = x; }
 
     void addPieceOfDoc( uint32_t docId, const char* str );
     void addDocFromStream( uint32_t docId, std::istream& );
+};
+
+class DocFeatureLoaderFilesystem : public DocFeatureLoader {
+    ay::UniqueCharPool d_docnamePool; // both internal strings and literals will be in the pool 
+public: 
+    DocFeatureLoaderFilesystem( DocFeatureIndex& index, const barzer::StoredUniverse& u  );
+    ~DocFeatureLoaderFilesystem( );
+    
+    uint32_t addDoc( const char* docName ) { return d_docnamePool.internIt(docName); }
+    uint32_t getDocIdByName( const char* s ) const { return d_docnamePool.getId( s ); }
+    const char* getDocNameById( uint32_t id ) const { return d_docnamePool.resolveId( id ); }
+    
+    struct LoaderOptions {
+        std::string regex; /// only add files amtching the regexp
+        enum {
+            BIT_DIR_RECURSE,
+            BIT_MAX
+        };
+        ay::bitflags<BIT_MAX> d_bits;
+    };
+    void addAllFilesAtPath( const char* path, const LoaderOptions& opt );
 };
 
 } // namespace zurch 
