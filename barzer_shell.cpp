@@ -27,7 +27,9 @@
 #include <string.h>
 
 #include <zurch_docidx.h>
-#include <boost/filesystem.hpp>
+#include <ay_filesystem.h>
+
+#include <boost/regex.hpp>
 
 namespace barzer {
 
@@ -407,81 +409,23 @@ struct BreakIntoPhrases {
 
 } // anonymous namespace 
 
-namespace {
-// namespace fs = boost::filesystem;
-
-struct  dir_iter_t {
-public: 
-    enum { 
-        BIT_DIR_RECURSE,
-        BIT_FOLLOW_LINKS,
-        BIT_MAX
-    };
-    ay::bitflags<BIT_MAX> d_bits;
-    
-    template <typename CB>
-    void operator()( CB& cb, boost::filesystem::path path, size_t depth=0 ) 
-    {
-        if ( boost::filesystem::exists(path) && boost::filesystem::is_directory(path)) {
-            boost::filesystem::directory_iterator end_iter;
-            for( boost::filesystem::directory_iterator di(path) ; di != end_iter ; ++di) {
-                if( !cb(di,depth) ) 
-                    return;
-                if (boost::filesystem::is_regular_file(di->status()) ) {
-                    ;
-                } else if (boost::filesystem::is_directory(di->status()) ) {
-                    dir_iter_t nextLevel(*this);
-                    if( d_bits.check(BIT_DIR_RECURSE) )
-                        nextLevel(cb,di->path(),depth+1);
-                } 
-                // std::cerr << boost::filesystem::basename( di->path() ) << boost::filesystem::extension(di->path()) << std::endl;
-            }
-        }
-    }
-};
-
-struct dir_iter_print_t {
-    std::ostream& fp;
-    dir_iter_print_t( std::ostream& f ) : fp(f) {}
-
-    /// returns false if wants recursion terminated 
-    bool operator()( boost::filesystem::directory_iterator& di, size_t depth ) {
-        for( size_t i=0; i< depth; ++i ) fp << '\t';
-        fp << di->path().leaf().string() << ( boost::filesystem::is_directory(di->status()) ? "/" : ""  ) << std::endl; 
-        return true;
-    }
-};
-
-template <typename CB>
-struct fs_filter_regex {
-    bool operator()( boost::filesystem::directory_iterator& di, size_t depth ) {
-    }
-};
-
-void print_dirs( std::ostream& fp, const char* path, bool recurse )
-{
-    dir_iter_t dirIterator;
-    if( recurse ) 
-        dirIterator.d_bits.set( dir_iter_t::BIT_DIR_RECURSE );
-    
-    dir_iter_print_t dip(fp);
-    dirIterator( dip, std::string(path) );
-}
-
-} 
 
 static int bshf_dir( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	Barz& barz = context->barz;
-    std::string dirName;
+
+    std::string dirName(".");
+    std::string patternString;
+    const char* pattern = 0;
+    if( in >> patternString )
+        pattern = patternString.c_str();
+
     std::ifstream fp;
-    if( !(in >> dirName) ) 
-        dirName =".";
     const char* path = dirName.c_str();
 
     zurch::DocFeatureIndex docIndex;
-    print_dirs( std::cerr, path, true );
+    ay::dir_list( std::cerr, path, true, pattern );
     return 0;
 }
 static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
