@@ -1,6 +1,9 @@
 #include <zurch_docidx.h>
 #include <barzer_universe.h>
 #include <boost/filesystem.hpp>
+#include <ay/ay_filesystem.h>
+#include <boost/filesystem/fstream.hpp>
+
 namespace zurch {
 
 /// feature we keep track off (can be an entity or a token - potentially we will add more classes to it)
@@ -302,22 +305,31 @@ void DocFeatureLoader::addDocFromStream( uint32_t docId, std::istream& fp )
 {
 #warning DocFeatureLoader::addDocFromStream
 }
-DocFeatureLoaderFilesystem::~DocFeatureLoaderFilesystem( ){}
-DocFeatureLoaderFilesystem::DocFeatureLoaderFilesystem( DocFeatureIndex& index, const barzer::StoredUniverse& u ) :
+DocFeatureIndexFilesystem::~DocFeatureIndexFilesystem( ){}
+DocFeatureIndexFilesystem::DocFeatureIndexFilesystem( DocFeatureIndex& index, const barzer::StoredUniverse& u ) :
     DocFeatureLoader(index,u)
 {}
 namespace fs = boost::filesystem;
-void DocFeatureLoaderFilesystem::addAllFilesAtPath( const char* path, const DocFeatureLoaderFilesystem::LoaderOptions& opt )
+void DocFeatureIndexFilesystem::addAllFilesAtPath( const char* path, const DocFeatureIndexFilesystem::LoaderOptions& opt )
 {
-    if ( fs::exists(path) && fs::is_directory(path)) {
-        fs::directory_iterator end_iter;
-        for( fs::directory_iterator dir_iter(path) ; dir_iter != end_iter ; ++dir_iter) {
-            if (fs::is_regular_file(dir_iter->status()) ) {
-
-                // result_set.insert(result_set_t::value_type(fs::last_write_time(dir_iter->status()), *dir_iter));
-            }
-        }
-    }
+    fs_iter_callback cb( *this );
+    ay::dir_regex_iterate( cb, path, opt.regex.c_str(), opt.d_bits.checkBit(LoaderOptions::BIT_DIR_RECURSE) );
 }
 
+bool DocFeatureIndexFilesystem::fs_iter_callback::operator()( boost::filesystem::directory_iterator& di, size_t depth )
+{
+    std::string docName;
+    if( usePureFileNames ) {
+        docName = di->path().parent_path().string() + "/" + di->path().filename().string();
+    } else 
+        docName = di->path().filename().string();
+    uint32_t docId = index.addDocName( docName.c_str() );
+    
+    fs::ifstream fp(di->path());
+    if( fp.is_open() ) 
+        index.addDocFromStream( docId, fp );
+    else 
+        std::cerr << "cant open " << di->path() << std::endl;
+    return true;
+}
 } // namespace zurch

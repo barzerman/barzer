@@ -77,4 +77,18 @@ inline void dir_list( std::ostream& fp, const char* path, bool recurse=false, co
     dip( fs_regex_iter, std::string(path) );
 }
 
+template <typename CB>
+inline void dir_regex_iterate( CB& cb, const char* path, const char* regex, bool recurse=false )
+{
+    fs_filter_regex<CB> fs_regex_iter(cb);
+
+    dir_iter_t dip;
+    if( recurse ) 
+        dip.d_bits.set( dir_iter_t::BIT_DIR_RECURSE );
+    if( regex ) 
+        fs_regex_iter.pattern= regex;
+
+    dip( fs_regex_iter, std::string(path) );
+}
+
 } // namespace ay

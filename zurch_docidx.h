@@ -3,6 +3,7 @@
 #include <barzer_barz.h>
 #include <ay/ay_pool_with_id.h>
 #include <barzer_parse.h>
+#include <boost/filesystem.hpp>
 
 namespace zurch {
 
@@ -163,13 +164,13 @@ public:
     void addDocFromStream( uint32_t docId, std::istream& );
 };
 
-class DocFeatureLoaderFilesystem : public DocFeatureLoader {
+class DocFeatureIndexFilesystem : public DocFeatureLoader {
     ay::UniqueCharPool d_docnamePool; // both internal strings and literals will be in the pool 
 public: 
-    DocFeatureLoaderFilesystem( DocFeatureIndex& index, const barzer::StoredUniverse& u  );
-    ~DocFeatureLoaderFilesystem( );
+    DocFeatureIndexFilesystem( DocFeatureIndex& index, const barzer::StoredUniverse& u  );
+    ~DocFeatureIndexFilesystem( );
     
-    uint32_t addDoc( const char* docName ) { return d_docnamePool.internIt(docName); }
+    uint32_t addDocName( const char* docName ) { return d_docnamePool.internIt(docName); }
     uint32_t getDocIdByName( const char* s ) const { return d_docnamePool.getId( s ); }
     const char* getDocNameById( uint32_t id ) const { return d_docnamePool.resolveId( id ); }
     
@@ -182,6 +183,16 @@ public:
         ay::bitflags<BIT_MAX> d_bits;
     };
     void addAllFilesAtPath( const char* path, const LoaderOptions& opt );
+    
+    /// filesystem iterator callback 
+    struct fs_iter_callback {
+        DocFeatureIndexFilesystem& index;
+        bool usePureFileNames; /// when true (default) only file name (no path) is used. this is good when all file names are unique
+
+        fs_iter_callback( DocFeatureIndexFilesystem& idx ) : index(idx), usePureFileNames(true) {}
+
+        bool operator()( boost::filesystem::directory_iterator& di, size_t depth );
+    };
 };
 
 } // namespace zurch 
