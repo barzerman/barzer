@@ -300,10 +300,35 @@ void DocFeatureLoader::addPieceOfDoc( uint32_t docId, const char* str )
 {
     d_parser.parse( d_barz, str, d_qparm );
 }
+namespace {
+/// this callback is invoked for every phrase in a document 
+struct DocAdderCB {
+    uint32_t docId;
+    size_t posOffset; /// offset of the current phrase 
+    DocFeatureLoader& docLoader;
+    const barzer::QuestionParm& qparm;
+    
+    DocAdderCB( uint32_t did , DocFeatureLoader& dl, const barzer::QuestionParm& qp ) : 
+        docId(did), posOffset(0), 
+        docLoader(dl), 
+        qparm(qp) 
+    {}
+    void operator() ( barzer::Barz& /* same as docLoader.barz() */ ) {
+        docLoader.parseTokenized();
 
+        docLoader.index().appendDocument( docId, docLoader.barz(), posOffset );
+        posOffset+= docLoader.barz().getBeads().getList().size();
+    }
+};
+
+}
 void DocFeatureLoader::addDocFromStream( uint32_t docId, std::istream& fp )
 {
-#warning DocFeatureLoader::addDocFromStream
+    zurch::PhraseBreaker phraser;
+    DocAdderCB adderCb( docId, *this, qparm() );
+    BarzerTokenizerCB<DocAdderCB> cb( adderCb, parser(), barz(), qparm() );
+    phraser.breakStream( cb, fp );
+
 }
 DocFeatureIndexFilesystem::~DocFeatureIndexFilesystem( ){}
 DocFeatureIndexFilesystem::DocFeatureIndexFilesystem( DocFeatureIndex& index, const barzer::StoredUniverse& u ) :

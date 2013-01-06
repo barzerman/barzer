@@ -151,6 +151,11 @@ public:
 private:
     size_t d_bufSz;
 public:
+    DocFeatureIndex& index() { return d_index; }
+    const DocFeatureIndex& index() const { return d_index; }
+
+    barzer::Barz& barz() { return d_barz; }
+    const barzer::Barz& barz() const { return d_barz; }
     const barzer::QParser& parser() const { return parser(); }
     barzer::QParser& parser() { return d_parser; }
     barzer::QuestionParm& qparm() { return d_qparm; }
@@ -162,6 +167,12 @@ public:
 
     void addPieceOfDoc( uint32_t docId, const char* str );
     void addDocFromStream( uint32_t docId, std::istream& );
+
+    void parseTokenized() 
+    {
+        d_parser.lex_only( d_barz, d_qparm );
+        d_parser.semanticize_only( d_barz, d_qparm );
+    }
 };
 
 class DocFeatureIndexFilesystem : public DocFeatureLoader {
@@ -193,6 +204,97 @@ public:
 
         bool operator()( boost::filesystem::directory_iterator& di, size_t depth );
     };
+};
+
+
+// CB must have operator()( Barz& )
+struct BarzTokPrintCB {
+    std::ostream& fp;
+    size_t count;
+    BarzTokPrintCB(std::ostream& f ) : fp(f), count(0) {}
+    void operator() ( barzer::Barz& barz ) {
+        const auto& ttVec = barz.getTtVec();
+        fp << "[" << count++ << "]:" << "(" << ttVec.size()/2+1 << ")";
+        for( auto ti = ttVec.begin(); ti != ttVec.end(); ++ti )  {
+            if( ti != ttVec.begin() )
+                fp << " ";
+            fp << ti->first.buf;
+        }
+        fp << std::endl;
+    }
+};
+template <typename CB>
+struct BarzerTokenizerCB {
+    CB& callback;
+    barzer::QParser& parser;
+    barzer::Barz& barz;
+    const barzer::QuestionParm& qparm;
+
+    size_t count;
+    std::string queryBuf; 
+
+    BarzerTokenizerCB( CB& cb, barzer::QParser& p, barzer::Barz& b, const barzer::QuestionParm& qp ) : callback(cb), parser(p), barz(b), qparm(qp), count(0) {}
+    void operator()( const char* s, size_t s_len ) { 
+        ++count;
+        queryBuf.assign( s, s_len );
+        barz.clear();
+        parser.tokenize_only( barz, queryBuf.c_str(), qparm );
+        callback( barz );
+    }
+};
+typedef BarzerTokenizerCB<BarzTokPrintCB> PrintStringCB;
+
+struct PhraseBreaker {
+    std::vector< char > buf;
+    
+    bool d_breakOnPunctSpace; /// when true 
+    PhraseBreaker( ) : 
+        buf( zurch::DocFeatureLoader::DEFAULT_BUF_SZ ), 
+        d_breakOnPunctSpace(true) {}
+
+    bool breakOnPunctuation( const char* s ) 
+    {
+        return( d_breakOnPunctSpace && ( ispunct(*s) && s[1] ==' ' ) );
+    }
+    // breaks the buffer into phrases . callback is invoked for each phrase
+    // phrase delimiter is a new line character 
+    // returns the size  of the processed text
+    template <typename CB>
+    size_t breakBuf( CB& cb, const char* str, size_t str_sz ) 
+    {
+        const char *s_to = str;
+        for( const char* s_from=str, *s_end = str+str_sz; s_to <= s_end && s_from< s_end; ) {
+            char c = *s_to;
+            if( c  == '\n' || c == '\r' || c=='(' || c==')' || c=='\t' || c ==';' || (c ==' '&&s_to[1]=='.'&&s_to[2]==' ') || 
+            breakOnPunctuation(s_to) ) {
+                if( s_to> s_from ) 
+                    cb( s_from, s_to-s_from );
+                s_from = ++s_to;
+            } else
+                ++s_to;
+        }
+        return s_to-str;
+    }
+
+    template <typename CB>
+    void breakStream( CB& cb, std::istream& fp ) 
+    {
+        size_t curOffset = 0;
+        while( true ) {
+            size_t bytesRead = fp.readsome( &(buf[curOffset]), (buf.size()-curOffset-1) );
+            if( !bytesRead )   
+                return;
+            if( bytesRead < buf.size() ) {
+                buf[ bytesRead ] = 0;
+                size_t endOffset = breakBuf(cb, &(buf[curOffset]), bytesRead );
+                if( endOffset < bytesRead ) { /// something is left over
+                    for( size_t dest = 0, src = endOffset; src< bytesRead; ++src, ++dest ) 
+                        buf[dest] = buf[src];
+                }
+                curOffset= bytesRead-endOffset;
+            } 
+        }
+    }
 };
 
 } // namespace zurch 
