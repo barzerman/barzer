@@ -961,6 +961,8 @@ struct BELFunctionStorage_holder {
 		
 		return false;
 	}
+	
+	
 
     STFUN(mkMonth)
     {
@@ -987,7 +989,7 @@ struct BELFunctionStorage_holder {
     STFUN(mkWdayEnt)
     {
         SETFUNCNAME(mkWdayEnt);
-        uint wnum( (new BarzerDate())->getWeekday()); // that can be done softer, YANIS
+        uint wnum(BarzerDate().getWeekday()); // that can be done softer, YANIS
         try {
                 if (rvec.size()) {                      
                         const BarzerLiteral* bl = getAtomicPtr<BarzerLiteral>(rvec[0]);
