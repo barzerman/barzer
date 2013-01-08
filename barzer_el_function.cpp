@@ -375,6 +375,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(mkDay);
 		ADDFN(mkWday);
 		ADDFN(mkWeekRange);
+		ADDFN(mkMonthRange);
 		ADDFN(mkMonth);
         ADDFN(mkWdayEnt);
         ADDFN(mkMonthEnt);
@@ -967,7 +968,46 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 	
-	
+	STFUN(mkMonthRange)
+	{
+		SETFUNCNAME(mkMonthRange);
+		
+		try
+		{
+			int offset = 0;
+			if (rvec.size() > 0)
+				offset = getAtomic<BarzerNumber>(rvec[0]).getInt();
+			
+			BarzerDate_calc calc;
+			if (rvec.size() > 1)
+				calc.d_date = getAtomic<BarzerDate>(rvec[1]);
+			else
+			{
+				calc.setNowPtr ( ctxt.getNowPtr() ) ;
+				calc.setToday();
+			}
+			
+			std::pair<BarzerDate, BarzerDate> pair;
+			calc.getMonth(pair, offset);
+			
+			BarzerRange range;
+			range.dta = pair;
+			
+			setResult(result, range);
+			
+			return true;
+		}
+		catch (const boost::bad_get&)
+		{
+			FERROR("Wrong arg type");
+		}
+		catch (const std::exception& e)
+		{
+			FERROR(e.what());
+		}
+		
+		return false;
+	}
 
     STFUN(mkMonth)
     {
