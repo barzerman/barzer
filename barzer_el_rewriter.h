@@ -18,6 +18,7 @@ namespace barzer {
 /// stuff
 
 class BarzelTranslation;
+struct RequestEnvironment;
 
 /// unique at least per BarzelTrie (most likely globally unique)
 /// the pool stores binary buffers with barzel rewrite instructions
@@ -289,6 +290,8 @@ struct BarzelEvalContext {
 	const uint8_t* setErr_GROW() { return( err = EVALERR_GROW, (const uint8_t*)0); } 
 	const BELTrie& getTrie() const { return d_trie; }
 
+    const RequestEnvironment* getRequestEnvironment() ;
+    const BarzerDateTime* getNowPtr() const;
     Barz& getBarz() { return d_barz; }
     const Barz& getBarz() const { return d_barz; }
 

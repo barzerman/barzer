@@ -53,6 +53,7 @@ struct RequestVariableMap {
 
 /// manifest info for a given request
 struct RequestEnvironment {
+    BarzerDateTime     d_now;
     RequestVariableMap d_reqVar;
 
 	/// user information
@@ -101,6 +102,11 @@ struct RequestEnvironment {
         len=0;
         d_reqVar.clear();
     }
+    
+    const BarzerDateTime* getNowPtr() const { return &d_now; }
+    // returns non 0 in case of error
+    /// format must be YYYY-MM-DD HH:MM:SS 
+    int setNow( const std::string& );
 };
 
 int run_server(GlobalPools&, uint16_t);

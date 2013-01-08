@@ -612,6 +612,7 @@ struct BELFunctionStorage_holder {
                     setResult( result, *dataPtr );
                 else {
                     BarzerDate_calc calc;
+                    calc.setNowPtr ( ctxt.getNowPtr() ) ;
                     calc.setToday();
                     setResult(result,calc.getDate());
                 }
@@ -864,6 +865,7 @@ struct BELFunctionStorage_holder {
 				day = getAtomic<BarzerNumber>(rvec[1]).getInt();
 				const BarzerDate &date = getAtomic<BarzerDate>(rvec[0]);
 				BarzerDate_calc c;
+                c.setNowPtr ( ctxt.getNowPtr() ) ;
 				c.set(date.year + year, date.month + month, date.day + day);
 				BarzerRange range;
 				range.setData(BarzerRange::Date(date, c.d_date));
@@ -888,6 +890,7 @@ struct BELFunctionStorage_holder {
 			return false;
 		}
         BarzerDate_calc calc;
+        calc.setNowPtr ( ctxt.getNowPtr() ) ;
         calc.setToday();
 		try {
 			calc.dayOffset(getNumber(rvec[0]).getInt());
@@ -911,6 +914,7 @@ struct BELFunctionStorage_holder {
 			int fut  = getAtomic<BarzerNumber>(rvec[0]).getInt();
 			uint8_t wday = getAtomic<BarzerNumber>(rvec[1]).getInt();
 			BarzerDate_calc calc(fut);
+            calc.setNowPtr ( ctxt.getNowPtr() ) ;
 			calc.setToday();
 			calc.setWeekday(wday);
 			setResult(result, calc.d_date);
@@ -932,6 +936,7 @@ struct BELFunctionStorage_holder {
             int fut  = getAtomic<BarzerNumber>(rvec[0]).getInt();
             uint8_t month = getAtomic<BarzerNumber>(rvec[1]).getInt();
             BarzerDate_calc calc(fut);
+            calc.setNowPtr ( ctxt.getNowPtr() ) ;
             calc.setToday();
             calc.setMonth(month);
             setResult(result, calc.d_date);
@@ -2004,6 +2009,7 @@ struct BELFunctionStorage_holder {
                 }
             } else { 
                 BarzerDate_calc calc;
+                calc.setNowPtr ( ctxt.getNowPtr() ) ;
                 calc.setToday();
                 setResult(result,calc.getDate());
             }
@@ -2298,6 +2304,7 @@ struct BELFunctionStorage_holder {
 				day = getAtomic<BarzerNumber>(rvec[1]).getInt();
 				const BarzerDate &date = getAtomic<BarzerDate>(rvec[0]);
 				BarzerDate_calc c;
+                c.setNowPtr ( ctxt.getNowPtr() ) ;
 				c.set(date.year + year,
 				      date.month + month,
 				      date.day + day);

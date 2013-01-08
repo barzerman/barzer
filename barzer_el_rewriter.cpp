@@ -5,6 +5,7 @@
 #include <barzer_el_matcher.h>
 #include <ay/ay_logger.h>
 #include <barzer_el_rewrite_control.h>
+#include <barzer_server.h>
 
 //#include <boost/foreach.hpp>
 
@@ -662,12 +663,20 @@ template <> void BTND_RewriteData_printer::operator()<BTND_Rewrite_EntitySearch>
 		return true; 
 	}
 
+
+const RequestEnvironment* BarzelEvalContext::getRequestEnvironment() { return d_barz.getServerReqEnv(); }
 BarzelEvalContext& BarzelEvalContext::pushBarzelError( const char* err )
 {
     d_barz.barzelTrace.pushError( err );
     return *this;
 }
 
+const BarzerDateTime* BarzelEvalContext::getNowPtr( ) const
+{
+    if( const RequestEnvironment* reqEnv = d_barz.getServerReqEnv() )
+        return reqEnv->getNowPtr() ;
+    return 0;
+}
 const char* BarzelEvalContext::resolveStringInternal( uint32_t i ) const
 {
     return universe.getGlobalPools().internalString_resolve(i);

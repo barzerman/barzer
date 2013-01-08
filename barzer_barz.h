@@ -227,6 +227,7 @@ public:
 
     void setServerReqEnv( RequestEnvironment* env ) { d_serverReqEnv = env; }
     RequestEnvironment* getServerReqEnv() { return d_serverReqEnv; }
+    const BarzerDateTime*  getNowPtr() const;
     const RequestEnvironment* getServerReqEnv() const { return d_serverReqEnv; }
 
 

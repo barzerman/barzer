@@ -157,7 +157,18 @@ struct BarzerDate {
 	}
 	std::ostream& print( std::ostream& fp ) const
 		{ return ( fp << std::dec << (int)month << '/' << (int)day << '/' << year ); }
-
+    
+    std::istream& deserialize( std::istream& fp ) 
+    {
+        char c;
+        int y, m, d;
+        fp >> y >> c >> m>> c >> d ;
+        year = y;
+        month = m;
+        day = d;
+         
+        return fp;
+    }
 	bool lessThan( const BarzerDate& r ) const
 	{
 		return ay::range_comp( ).less_than(
@@ -227,6 +238,14 @@ struct BarzerTimeOfDay {
 	{
 		return (secSinceMidnight == r.secSinceMidnight);
 	}
+    std::istream& deserialize( std::istream& fp ) 
+    {
+        char c;
+        int hour=0, minute=0, sec=0;
+        fp>> hour >> c >> minute >> c >> sec;
+        setHHMMSS( hour, minute, sec );
+        return fp;
+    }
 };
 inline bool operator ==( const BarzerTimeOfDay& l, const BarzerTimeOfDay& r )
 { return l.isEqual(r); }
@@ -271,6 +290,11 @@ struct BarzerDateTime {
 		{ timeOfDay.setHHMMSS((x/10000),(x%10000)/100,x%100); }
 	void setTime( const BarzerTimeOfDay &t )
 		{ timeOfDay = t; }
+    
+    std::istream& deserialize( std::istream& fp ) 
+    {
+        return( timeOfDay.deserialize( date.deserialize(fp) ) ) ;
+    }
 };
 
 

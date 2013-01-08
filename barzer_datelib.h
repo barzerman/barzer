@@ -11,9 +11,10 @@ namespace barzer {
 /// DATE 
 /// operator date + days 
 
-
 /// single date calculator assuming today as a reference point
 struct BarzerDate_calc {
+    BarzerDateTime d_now; // if d_now.getDate() is valid the value will be used otherwise current time computed
+
 	/// date being calculated 
 	BarzerDate d_date;
 
@@ -32,6 +33,13 @@ struct BarzerDate_calc {
     const BarzerDate& getDate() const { return d_date; }
 	void set(int year, int month, int day);
 
+          BarzerDateTime& getNow() { return d_now; }
+    const BarzerDateTime& getNow() const { return d_now; }
+
+    void setNow( const BarzerDateTime& n ) {d_now = n; }
+    bool isNowSet() { return d_now.isValid();}
+
+    void setNowPtr( const BarzerDateTime* n ) { if( n ) d_now= *n; }
 	void setFuture(int8_t);
 
 	void setToday( );

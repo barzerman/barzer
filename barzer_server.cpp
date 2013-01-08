@@ -555,4 +555,10 @@ std::ostream& RequestVariableMap::print( std::ostream& fp ) const
     return fp;
 }
 
+int RequestEnvironment::setNow( const std::string& str )
+{
+    std::stringstream sstr(str);
+    d_now.deserialize( sstr );
+    return 0;
+}
 }

@@ -19,6 +19,7 @@
 #include <barzer_geoindex.h>
 #include <barzer_el_cast.h>
 #include <boost/lexical_cast.hpp>
+#include <barzer_server.h>
 
 extern "C" {
 
@@ -754,6 +755,10 @@ void BarzerRequestParser::tag_query(RequestTag &tag) {
             d_aggressiveStem = true;
         else if (i->first == "ret" && i->second == "json")
         	ret = JSON_TYPE;
+        else if (i->first == "now" ) {
+            if( RequestEnvironment* env = barz.getServerReqEnv() )
+                env->setNow( i->second );
+        }
     }
 
     if( isParentTag("qblock") ) {

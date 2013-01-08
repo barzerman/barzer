@@ -4,7 +4,7 @@
 #include <barzer_universe.h>
 #include <barzer_server.h>
 #include <barzer_el_cast.h>
-
+#include <barzer_server.h>
 
 namespace barzer {
 
@@ -63,6 +63,10 @@ bool BarzelTrace::detectLoop( ) const
     return false;
 }
 
+const BarzerDateTime* Barz::getNowPtr() const
+{
+    return ( d_serverReqEnv? d_serverReqEnv->getNowPtr() : 0 ) ;  
+}
 void Barz::setUniverse (const StoredUniverse *u)
 {
 	m_hints.clear();

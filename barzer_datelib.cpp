@@ -30,7 +30,10 @@ void BarzerDate_calc::setFuture(int8_t fut) {
 
 
 void BarzerDate_calc::setToday() {
-	d_date.setToday();
+    if( d_now.getDate().isValid() ) 
+        d_date = d_now.getDate();
+    else
+	    d_date.setToday();
 }
 
 

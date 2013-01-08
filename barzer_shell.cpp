@@ -92,7 +92,7 @@ static int bshf_test( ay::Shell*, char_cp cmd, std::istream& in )
 		std::cout << tmp << "|";
 	}
 	std::cout << ")" << std::endl;
-
+    
 	return 0;
 }
 
