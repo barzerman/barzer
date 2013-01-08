@@ -67,6 +67,7 @@ struct BarzerDate_calc {
 		FUTURE
 	};
 
+	void getWeek(std::pair<BarzerDate, BarzerDate>& out, int offset = 0) const;
 };
 
 struct BarzerTime_calc {

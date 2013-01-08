@@ -7,7 +7,9 @@
 
 #include <barzer_datelib.h>
 #include <time.h>
+#include <boost/date_time/gregorian/gregorian_types.hpp>
 #include <arch/barzer_arch.h>
+
 namespace barzer {
 
 void BarzerDate_calc::set(int year, int month, int day) {
@@ -114,6 +116,32 @@ void BarzerDate_calc::setMonth(uint8_t month) {
     }
 }
 
+namespace bg = boost::gregorian;
 
+namespace
+{
+	void boost2barzer (const bg::date& d, BarzerDate& out)
+	{
+		out.setDayMonthYear(d.day().as_number(), d.month().as_number(), BarzerNumber(d.year()));
+	}
+}
+
+void BarzerDate_calc::getWeek (std::pair<BarzerDate, BarzerDate>& out, int offset) const
+{
+	bg::date d(d_date.getYear(), d_date.getMonth(), d_date.getDay());
+	auto start = bg::previous_weekday(d, bg::greg_weekday(bg::Monday));
+	auto end = start + bg::days(6);
+	
+	if (offset)
+	{
+		bg::date_period dp(start, end);
+		dp.shift(bg::weeks(offset));
+		start = dp.begin();
+		end = dp.end();
+	}
+	
+	boost2barzer(start, out.first);
+	boost2barzer(end, out.second);
+}
 
 }
