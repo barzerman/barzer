@@ -67,7 +67,15 @@ struct BarzerDate_calc {
 		FUTURE
 	};
 
+	/** It's better to surround this in try block, especially if source date
+	 * isn't validated on input.
+	 */
 	void getWeek(std::pair<BarzerDate, BarzerDate>& out, int offset = 0) const;
+	
+	/** It's better to surround this in try block, especially if source date
+	 * isn't validated on input.
+	 */
+	void getMonth(std::pair<BarzerDate, BarzerDate>& out, int offset = 0) const;
 };
 
 struct BarzerTime_calc {

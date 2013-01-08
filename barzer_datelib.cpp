@@ -120,25 +120,43 @@ namespace bg = boost::gregorian;
 
 namespace
 {
-	void boost2barzer (const bg::date& d, BarzerDate& out)
+	void boost2barzer(const bg::date& d, BarzerDate& out)
 	{
 		out.setDayMonthYear(d.day().as_number(), d.month().as_number(), BarzerNumber(d.year()));
 	}
+	
+	template<typename DurationType>
+	void updateOffset(bg::date& start, bg::date& end, int offset)
+	{
+		if (!offset)
+			return;
+		
+		const DurationType diff(offset);
+		
+		start += diff;
+		end += diff;
+	}
 }
 
-void BarzerDate_calc::getWeek (std::pair<BarzerDate, BarzerDate>& out, int offset) const
+void BarzerDate_calc::getWeek(std::pair<BarzerDate, BarzerDate>& out, int offset) const
 {
 	bg::date d(d_date.getYear(), d_date.getMonth(), d_date.getDay());
 	auto start = bg::previous_weekday(d, bg::greg_weekday(bg::Monday));
 	auto end = start + bg::days(6);
 	
-	if (offset)
-	{
-		bg::date_period dp(start, end);
-		dp.shift(bg::weeks(offset));
-		start = dp.begin();
-		end = dp.end();
-	}
+	updateOffset<bg::weeks>(start, end, offset);
+	
+	boost2barzer(start, out.first);
+	boost2barzer(end, out.second);
+}
+
+void BarzerDate_calc::getMonth(std::pair<BarzerDate, BarzerDate>& out, int offset) const
+{
+	bg::date start(d_date.getYear(), d_date.getMonth(), 1);
+	bg::date end(d_date.getYear(), d_date.getMonth(),
+			bg::gregorian_calendar::end_of_month_day(d_date.getYear(), d_date.getMonth()));
+	
+	updateOffset<bg::months>(start, end, offset);
 	
 	boost2barzer(start, out.first);
 	boost2barzer(end, out.second);
