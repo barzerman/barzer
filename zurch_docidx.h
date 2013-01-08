@@ -122,9 +122,10 @@ public:
     DocFeatureIndex();
     ~DocFeatureIndex();
     
-    /// return new offset (assuming it begins with posOffset)
+    /// returns the number of counted features 
     size_t appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t&, size_t posOffset );
     size_t appendDocument( uint32_t docId, const barzer::Barz&, size_t posOffset  );
+
     /// should be called after the last doc has been appended . 
     void sortAll();
 
@@ -151,6 +152,8 @@ public:
 private:
     size_t d_bufSz;
 public:
+    enum { MAX_QUERY_LEN = 1024*64, MAX_NUM_TOKENS = 1024*32 };
+     
     DocFeatureIndex& index() { return d_index; }
     const DocFeatureIndex& index() const { return d_index; }
 
@@ -166,7 +169,17 @@ public:
     void setBufSz( size_t x ) { d_bufSz = x; }
 
     void addPieceOfDoc( uint32_t docId, const char* str );
-    void addDocFromStream( uint32_t docId, std::istream& );
+    // returns roughly the number of all beads the document had been broken into  (this is at least as high as the number of features and in most cases equal to it)
+    struct DocStats {
+        size_t numPhrases;
+        size_t numBeads; // total number of beads 
+        size_t numFeatureBeads; /// total number of beads counted as features 
+
+        DocStats() : numPhrases(0) , numBeads(0), numFeatureBeads(0) {} 
+
+        std::ostream& print( std::ostream& ) const;
+    };
+    size_t addDocFromStream( uint32_t docId, std::istream&, DocStats&  );
 
     void parseTokenized() 
     {
@@ -266,7 +279,8 @@ struct PhraseBreaker {
         for( const char* s_from=str, *s_end = str+str_sz; s_to <= s_end && s_from< s_end; ) {
             char c = *s_to;
             if( c  == '\n' || c == '\r' || c=='(' || c==')' || c=='\t' || c ==';' || (c ==' '&&s_to[1]=='.'&&s_to[2]==' ') || 
-            breakOnPunctuation(s_to) ) {
+                breakOnPunctuation(s_to) 
+            ) {
                 if( s_to> s_from ) 
                     cb( s_from, s_to-s_from );
                 s_from = ++s_to;

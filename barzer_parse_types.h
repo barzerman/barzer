@@ -21,12 +21,6 @@ struct CToken;
 struct PUnit ;
 class Barz ;
 
-// global constnts 
-enum {
-	BGC_MAX_TOKLEN = 1024, // maximum length of token
-	BGC_MAX_NUMTOK = 1024 // maximum number of tokens in the question
-}; 
-
 struct TToken {
 	uint16_t  d_utf8beg, d_utf8len; // starting glyphs and num of following glyphs for utf8  the string assumed to be elsewhere
     

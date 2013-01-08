@@ -349,7 +349,9 @@ static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
         std::cerr << "couldnt open input file " << fileName << std::endl;
         return 0;
     }
+
     std::ifstream inFile;
+    /*
     inFile.open(fileName.c_str() );
     zurch::PhraseBreaker phraser; 
 	QuestionParm qparm;
@@ -357,6 +359,11 @@ static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
     zurch::BarzTokPrintCB printCb( std::cerr );
     zurch::PrintStringCB cb( printCb, context->parser, barz, qparm );
     phraser.breakStream( cb, inFile );
+    */
+    zurch::DocFeatureIndex index;
+    zurch::DocFeatureIndexFilesystem::LoaderOptions ldrOpt;
+    zurch::DocFeatureIndexFilesystem fsIndex( index, context->getUniverse() );
+    fsIndex.addAllFilesAtPath( fileName.c_str(), ldrOpt );
      
     return 0;
 }

@@ -111,11 +111,11 @@ uint32_t DocFeatureIndex::resolveExternalString( const barzer::BarzerLiteral& l,
         return 0xffffffff;
 }
 
-size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz, size_t posOffset )
+size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz, size_t numBeads )
 {
     const barzer::StoredUniverse* universe = barz.getUniverse() ;
     if( !universe ) 
-        return posOffset;
+        return 0;
     
     ExtractedDocFeature::Vec_t featureVec;
     size_t curOffset =0;
@@ -148,10 +148,10 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz
             }
         }
     }
-    return appendDocument( docId, featureVec, posOffset );
+    return appendDocument( docId, featureVec, numBeads );
 }
 
-size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t& v, size_t posOffset )
+size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t& v, size_t numBeads )
 {
     size_t lastOffset = 0;
     for( auto i = v.begin(); i!= v.end(); ++i ) {
@@ -160,9 +160,9 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeatur
         if( fi == d_invertedIdx.end() ) 
             fi = d_invertedIdx.insert( std::pair<DocFeature,DocFeatureLink::Vec_t>( f.feature, DocFeatureLink::Vec_t())).first;
         lastOffset= f.simplePosition(); 
-        fi->second.push_back( DocFeatureLink(docId, f.weight(), (posOffset+lastOffset) ) ) ;
+        fi->second.push_back( DocFeatureLink(docId, f.weight(), (numBeads+lastOffset) ) ) ;
     }
-    return posOffset+lastOffset;
+    return v.size();
 }
 /// should be called after the last doc has been appended . 
 void DocFeatureIndex::sortAll()
@@ -304,32 +304,50 @@ namespace {
 /// this callback is invoked for every phrase in a document 
 struct DocAdderCB {
     uint32_t docId;
-    size_t posOffset; /// offset of the current phrase 
+    DocFeatureLoader::DocStats stats;
+
     DocFeatureLoader& docLoader;
     const barzer::QuestionParm& qparm;
     
     DocAdderCB( uint32_t did , DocFeatureLoader& dl, const barzer::QuestionParm& qp ) : 
-        docId(did), posOffset(0), 
+        docId(did),
         docLoader(dl), 
         qparm(qp) 
     {}
     void operator() ( barzer::Barz& /* same as docLoader.barz() */ ) {
+        ++stats.numPhrases;
         docLoader.parseTokenized();
 
-        docLoader.index().appendDocument( docId, docLoader.barz(), posOffset );
-        posOffset+= docLoader.barz().getBeads().getList().size();
+        stats.numFeatureBeads =docLoader.index().appendDocument( docId, docLoader.barz(), stats.numBeads );
+        stats.numBeads+= docLoader.barz().getBeads().getList().size();
     }
 };
 
 }
-void DocFeatureLoader::addDocFromStream( uint32_t docId, std::istream& fp )
+
+std::ostream& DocFeatureLoader::DocStats::print( std::ostream& fp ) const
+{
+    return (
+        fp << "PH:" << numPhrases << ", BD:" << numBeads << ", FT:" << numFeatureBeads 
+    );
+}
+
+size_t DocFeatureLoader::addDocFromStream( uint32_t docId, std::istream& fp, DocFeatureLoader::DocStats& stats )
 {
     zurch::PhraseBreaker phraser;
     DocAdderCB adderCb( docId, *this, qparm() );
+
+    parser().tokenizer.setMax( MAX_QUERY_LEN, MAX_NUM_TOKENS );
+    parser().lexer.setMaxCTokensPerQuery( MAX_NUM_TOKENS/2 );
+
     BarzerTokenizerCB<DocAdderCB> cb( adderCb, parser(), barz(), qparm() );
     phraser.breakStream( cb, fp );
 
+    stats = adderCb.stats;
+
+    return stats.numBeads;
 }
+
 DocFeatureIndexFilesystem::~DocFeatureIndexFilesystem( ){}
 DocFeatureIndexFilesystem::DocFeatureIndexFilesystem( DocFeatureIndex& index, const barzer::StoredUniverse& u ) :
     DocFeatureLoader(index,u)
@@ -351,9 +369,12 @@ bool DocFeatureIndexFilesystem::fs_iter_callback::operator()( boost::filesystem:
     uint32_t docId = index.addDocName( docName.c_str() );
     
     fs::ifstream fp(di->path());
-    if( fp.is_open() ) 
-        index.addDocFromStream( docId, fp );
-    else 
+    if( fp.is_open() )  {
+        DocFeatureLoader::DocStats stats;
+        size_t totalNumBeads = index.addDocFromStream( docId, fp, stats );
+
+        stats.print( std::cerr << "ADDED DOC[" << docId << "]|" << docName << "|" ) << "\n";
+    } else 
         std::cerr << "cant open " << di->path() << std::endl;
     return true;
 }
