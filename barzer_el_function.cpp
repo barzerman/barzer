@@ -937,8 +937,13 @@ struct BELFunctionStorage_holder {
 				offset = getAtomic<BarzerNumber>(rvec[0]).getInt();
 			
 			BarzerDate_calc calc;
-			calc.setNowPtr ( ctxt.getNowPtr() ) ;
-			calc.setToday();
+			if (rvec.size() > 1)
+				calc.d_date = getAtomic<BarzerDate>(rvec[1]);
+			else
+			{
+				calc.setNowPtr ( ctxt.getNowPtr() ) ;
+				calc.setToday();
+			}
 			
 			std::pair<BarzerDate, BarzerDate> pair;
 			calc.getWeek(pair, offset);
