@@ -933,9 +933,7 @@ struct BELFunctionStorage_holder {
 		
 		try
 		{
-			int offset = 0;
-			if (rvec.size() > 0)
-				offset = getAtomic<BarzerNumber>(rvec[0]).getInt();
+			int offset = ( rvec.size() ? getAtomic<BarzerNumber>(rvec[0]).getInt() : 0 );
 			
 			BarzerDate_calc calc;
 			if (rvec.size() > 1)
