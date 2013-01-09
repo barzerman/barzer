@@ -23,7 +23,10 @@ struct DocFeature {
 
     typedef enum : uint8_t {
         CLASS_ENTITY,
-        CLASS_TOKEN
+        CLASS_TOKEN, /// legitimate token known to the barzer Universe
+        CLASS_STEM, /// low grade token stem not known to barzer Universe 
+
+        CLASS_MAX
     } class_t;
     class_t featureClass;
 
@@ -33,7 +36,7 @@ struct DocFeature {
     int serialize( std::ostream& ) const;
     int deserialize( std::istream& );
     
-    bool isClassValid() const { return ( featureClass >= CLASS_ENTITY && featureClass <= CLASS_TOKEN ); }
+    bool isClassValid() const { return ( featureClass >= CLASS_ENTITY && featureClass < CLASS_MAX ); }
     bool isValid() const { return (featureId!= 0xffffffff || isClassValid() ); }
 
     typedef DocFeature Id_t;
@@ -100,6 +103,16 @@ class DocFeatureIndex {
 
     DocFeatureIndexHeuristics d_heuristics; // /never 0 - guaranteed too be initialized in constructor
 public:
+    
+    enum {
+        BIT_INTERN_STEMS,  /// interns all stems ergardless of whether or not they had been stored as literals in barzer Universe
+
+        BIT_MAX
+    };
+    ay::bitflags<BIT_MAX> d_bits;
+    
+    bool internStems( ) const { return d_bits.check( BIT_INTERN_STEMS ); }
+    void setInternStems( bool x=true ) { d_bits.set( BIT_INTERN_STEMS, x ); }
 
     /// given an entity from the universe returns internal representation of the entity 
     /// if it can be found and null entity (isValid() == false) otherwise

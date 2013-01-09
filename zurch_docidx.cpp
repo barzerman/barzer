@@ -6,20 +6,35 @@
 
 namespace zurch {
 
+namespace {
+
+inline const char* decodeFeatureClassSerializationId( int x ) {
+    if( x == DocFeature::CLASS_ENTITY ) return "e";
+    else if( x == DocFeature::CLASS_TOKEN ) return "t";
+    else if( x == DocFeature::CLASS_STEM ) return "s";
+    else return "s";
+}
+DocFeature::class_t encodeFeatureClassSerializationId( const char c )
+{
+    if( c == 'e' ) return DocFeature::CLASS_ENTITY;
+    else if( c == 't' ) return DocFeature::CLASS_TOKEN;
+    else if( c == 's' ) return DocFeature::CLASS_STEM;
+    else return DocFeature::CLASS_STEM;
+}
+
+}
+
 /// feature we keep track off (can be an entity or a token - potentially we will add more classes to it)
 int DocFeature::serialize( std::ostream& fp ) const
 {
-    fp << ( featureClass == CLASS_ENTITY ? "e" : "t" ) << " " << std::hex << featureId;
+    fp << decodeFeatureClassSerializationId( featureClass ) << " " << std::hex << featureId;
     return 0;
 }
 int DocFeature::deserialize( std::istream& fp )
 {
     char s;
     fp >> s;
-    if( s== 'e' )
-        featureClass = CLASS_ENTITY;
-    else 
-        featureClass = CLASS_TOKEN;
+    featureClass = encodeFeatureClassSerializationId(s);
     fp >> std::hex >> featureId;
     return 0;
 }
@@ -119,6 +134,8 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz
     
     ExtractedDocFeature::Vec_t featureVec;
     size_t curOffset =0;
+    bool neesToInternStems = internStems();
+
     for( auto i = barz.getBeadList().begin(); i!= barz.getBeadList().end(); ++i, ++curOffset ) {
         if( const barzer::BarzerLiteral* x = i->get<barzer::BarzerLiteral>() ) {
             uint32_t strId = storeExternalString( *x, *universe );
@@ -142,6 +159,18 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz
                 featureVec.push_back( 
                     ExtractedDocFeature( 
                         DocFeature( DocFeature::CLASS_ENTITY, entId ), 
+                        FeatureDocPosition(curOffset)
+                    ) 
+                );
+            }
+        } else { 
+            const barzer::BarzerString* s = (neesToInternStems ? i->get<barzer::BarzerString>():0) ;
+            if( s ) {
+                const char* theString = (s->stemStr().length() ? s->stemStr().c_str(): s->getStr().c_str());
+                uint32_t strId = storeExternalString( theString, *universe );
+                featureVec.push_back( 
+                    ExtractedDocFeature( 
+                        DocFeature( DocFeature::CLASS_STEM, strId ), 
                         FeatureDocPosition(curOffset)
                     ) 
                 );

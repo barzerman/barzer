@@ -27,6 +27,7 @@ struct TToken {
     uint32_t  d_origOffset, d_origLength;  // offset and length in the original question 
 
 	std::string buf;
+    std::string normBuf; /// normalized buf (converted to lower case, de-asciied etc)
     	
     bool glyphsAreValid() const { return ( d_utf8beg!= 0xffff && d_utf8len != 0xffff ); }  
 
@@ -103,7 +104,8 @@ struct CToken {
 	const StoredToken* storedTok;
 	// this can be 0. token resulting from stemming of stroedTok
 	const StoredToken* stemTok; 
-
+    
+    std::string stem; 
 	/// this may be blank 
 	std::string correctedStr;
 
@@ -118,7 +120,10 @@ struct CToken {
 		cInfo.clear();
 		ling.clear();
 		bNum.clear();
+        stem.clear();
+        stemTok = storedTok= 0;
 	}
+
 	const SpellCorrections& getSpellCorrections() const { return spellCorrections; }
 
 	size_t getTokenSpan() const
@@ -343,7 +348,7 @@ struct QuestionParm {
 /// non constant string - it's different from barzer literal as the value may not be 
 /// among the permanently stored but rather something constructed by barzel
 class BarzerString {
-	std::string str;
+	std::string str, d_stemStr;
     uint32_t d_stemStringId;
     enum {
         T_NORMAL,
@@ -364,6 +369,9 @@ public:
     void setNormal()    { d_type = T_NORMAL; }
 
 	void setFromTTokens( const TTWPVec& v );
+
+	const std::string& stemStr() const { return d_stemStr; }
+    std::string& stemStr() { return d_stemStr; }
 
 	const std::string& getStr() const { return str; }
     std::string& getStr() { return str; }

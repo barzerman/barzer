@@ -325,9 +325,12 @@ static int bshf_dir( BarzerShell* shell, char_cp cmd, std::istream& in )
     std::string dirName(".");
     std::string patternString;
     const char* pattern = 0;
-    if( in >> patternString )
+    if( !(in >> dirName) )
+        dirName= ".";
+    else { 
+        in >> patternString;
         pattern = patternString.c_str();
-
+    }
     std::ifstream fp;
     const char* path = dirName.c_str();
 
@@ -361,10 +364,32 @@ static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
     phraser.breakStream( cb, inFile );
     */
     zurch::DocFeatureIndex index;
+    index.setInternStems();
     zurch::DocFeatureIndexFilesystem::LoaderOptions ldrOpt;
     zurch::DocFeatureIndexFilesystem fsIndex( index, context->getUniverse() );
     fsIndex.addAllFilesAtPath( fileName.c_str(), ldrOpt );
      
+    std::cerr << "***** INDEX STATS:\n";
+    index.printStats( std::cerr );
+    std::cerr << "***** END OF INDEX STATS:\n";
+    
+    std::stringstream sstr; 
+    sstr << "shell_idx_" << std::hex << context->getUniverse().getUserId() << ".dix";
+    std::string dixFileName( sstr.str() );
+
+    {
+    std::cerr << "Serializing to " << dixFileName << std::endl;
+    std::ofstream dixFile;
+    dixFile.open( dixFileName.c_str() );
+    index.serialize( dixFile );
+    }
+
+    {
+    std::cerr << "Deserializing from " << dixFileName << std::endl;
+    std::ifstream dixFile;
+    dixFile.open( dixFileName.c_str() );
+    index.deserialize( dixFile );
+    }
     return 0;
 }
 static int bshf_lex( BarzerShell* shell, char_cp cmd, std::istream& in )

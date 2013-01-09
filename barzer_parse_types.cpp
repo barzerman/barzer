@@ -50,10 +50,8 @@ std::ostream& CToken::printQtVec( std::ostream& fp ) const
 }
 std::ostream& CToken::print( std::ostream& fp ) const
 {
-	fp << "[" ;
-	printQtVec(fp) << "]";
+	printQtVec(fp << "[") << "]" << cInfo << ling;
 
-	fp << cInfo << ling;
 	if( isNumber() ) {
 		fp << "=" << bNum;
 	}

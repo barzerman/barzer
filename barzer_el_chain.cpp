@@ -105,6 +105,12 @@ void BarzelBead::initFromCTok( const CToken& ct )
 	case CTokenClassInfo::CLASS_MYSTERY_WORD: {
 		a.dta = BarzerString();
 		BarzerString& bstr = boost::get<BarzerString>(a.dta);
+
+        if( ct.stem.length() ) 
+            bstr.stemStr() = ct.stem;
+        else 
+            bstr.stemStr().clear();
+
         if( ct.getStemTok() ) 
             bstr.setStemStringId( ct.getStemTok()->getStringId() );
 
