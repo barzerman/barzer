@@ -48,6 +48,14 @@ struct BarzelTrace {
     SingleFrameTrace d_lastFrame;
     size_t d_lastFrame_count;
 
+    enum : int {
+        ERRBIT_TRUNCATED_LENGTH, /// 
+        ERRBIT_TRUNCATED_TOKENS, /// 
+        /// add new error bits above this
+        ERRBIT_MAX
+    };
+    ay::bitflags< ERRBIT_MAX > d_errBit;
+
     TraceVec d_tvec;
     std::string skippedTriesString;
 
@@ -55,7 +63,11 @@ struct BarzelTrace {
         d_tvec.clear(); 
         skippedTriesString.clear();  
         d_lastFrame_count=0;
+        d_errBit.clear();
     }
+    void setErrBit( int b ) { if( b< ERRBIT_MAX ) d_errBit.set( b ); }
+    bool checkErrBit( int b ) const { return d_errBit.checkBit( b ); }
+
     size_t size() const { return d_tvec.size(); }
     void push_back( const BarzelTranslationTraceInfo& traceInfo, uint32_t trieId ) 
     {

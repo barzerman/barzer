@@ -147,6 +147,7 @@ set(SOURCES barzer_json_output.cpp
 			barzer_geoindex.cpp
 			barzer_spell_features.cpp
             zurch_classifier.cpp
+            zurch_docidx.cpp
             zurch_tokenizer.cpp
 			autotester/barzer_at_autotester.cpp
 			autotester/barzer_at_comparators.cpp

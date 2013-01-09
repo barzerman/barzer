@@ -60,8 +60,9 @@ public:
 		/// words equal or shorter than this wont be spell corrected
 		MIN_SPELL_CORRECT_LEN = 3,
 
-		MAX_CTOKENS_PER_QUERY = 64
+		MAX_CTOKENS_PER_QUERY = 64*4
 	};
+    size_t d_maxCtokensPerQuery;
 private:
     const StoredToken* getStoredToken(uint32_t& strId, const char* str) const;
     const StoredToken* getStoredToken(const char* str) const
@@ -105,7 +106,9 @@ private:
 	bool tryClassify_number( CToken&, const TToken&  ) const;
 	bool tryClassify_integer( CToken&, const TToken&  ) const;
 public:
-	QLexParser( const StoredUniverse& u, const DtaIndex * di=0) : dtaIdx(di), d_universe(u) {}
+	QLexParser( const StoredUniverse& u, const DtaIndex * di=0) : dtaIdx(di), d_universe(u), d_maxCtokensPerQuery(MAX_CTOKENS_PER_QUERY) {}
+    void setMaxCTokensPerQuery( size_t sz ) { d_maxCtokensPerQuery= sz; }
+
 	enum {
 		QLPERR_NULL_IDX =1 // dtaIdx object is null
 	};

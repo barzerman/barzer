@@ -26,7 +26,10 @@
 #include <fstream>
 #include <string.h>
 
+#include <zurch_docidx.h>
+#include <ay_filesystem.h>
 
+#include <boost/regex.hpp>
 
 namespace barzer {
 
@@ -312,6 +315,57 @@ static int bshf_inspect( BarzerShell* shell, char_cp cmd, std::istream& in )
 		dtaIdx->print(fp);
 	}
 	return 0;
+}
+
+static int bshf_dir( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext * context = shell->getBarzerContext();
+	Barz& barz = context->barz;
+
+    std::string dirName(".");
+    std::string patternString;
+    const char* pattern = 0;
+    if( in >> patternString )
+        pattern = patternString.c_str();
+
+    std::ifstream fp;
+    const char* path = dirName.c_str();
+
+    zurch::DocFeatureIndex docIndex;
+    ay::dir_list( std::cerr, path, true, pattern );
+    return 0;
+}
+static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext * context = shell->getBarzerContext();
+	Barz& barz = context->barz;
+
+    zurch::DocFeatureIndex docIndex;
+    zurch::DocFeatureLoader docLoader( docIndex, context->getUniverse() );
+
+    std::string fileName;
+    std::ifstream fp;
+    if( !(in >> fileName) ) {
+        std::cerr << "couldnt open input file " << fileName << std::endl;
+        return 0;
+    }
+
+    std::ifstream inFile;
+    /*
+    inFile.open(fileName.c_str() );
+    zurch::PhraseBreaker phraser; 
+	QuestionParm qparm;
+
+    zurch::BarzTokPrintCB printCb( std::cerr );
+    zurch::PrintStringCB cb( printCb, context->parser, barz, qparm );
+    phraser.breakStream( cb, inFile );
+    */
+    zurch::DocFeatureIndex index;
+    zurch::DocFeatureIndexFilesystem::LoaderOptions ldrOpt;
+    zurch::DocFeatureIndexFilesystem fsIndex( index, context->getUniverse() );
+    fsIndex.addAllFilesAtPath( fileName.c_str(), ldrOpt );
+     
+    return 0;
 }
 static int bshf_lex( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
@@ -1647,6 +1701,8 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_shenv, "shenv", "set shell environment parameter. usage: shenv [name [value]]" ),
 	CmdData( (ay::Shell_PROCF)bshf_env, "env", "set request environment parameter. usage: env [name [value]]" ),
 	CmdData( (ay::Shell_PROCF)bshf_dtaan, "dtaan", "data set analyzer. runs through the trie" ),
+	CmdData( (ay::Shell_PROCF)bshf_dir, "dir", "dir listing" ),
+	CmdData( (ay::Shell_PROCF)bshf_doc, "doc", "doc loader doc filename" ),
 	CmdData( (ay::Shell_PROCF)bshf_instance, "instance", "lists all users in the instance" ),
 	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),
 	CmdData( (ay::Shell_PROCF)bshf_grammar, "grammar", "sets trie for given grammar. use 'user' to list grammars" ),

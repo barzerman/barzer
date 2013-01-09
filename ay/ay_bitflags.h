@@ -59,7 +59,7 @@ public:
             size_t b = ( bit>>3 );
             return( b< sizeof(buf)? ((buf[b] & (1 << ( bit & 0x7 )))) : false);
         }
-
+    bool check( uint8_t bit ) const { return checkBit(bit); }
     bool checkAnyBit( uint8_t b1, uint8_t b2 ) const { return (checkBit(b1)||checkBit(b2)); }
     bool checkAnyBit( uint8_t b1, uint8_t b2, uint8_t b3 ) const { return (checkBit(b1)||checkBit(b2)||checkBit(b3)); }
     bool checkAnyBit( uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4 ) const { return (checkBit(b1)||checkBit(b2)||checkBit(b3)||checkBit(b4)); }

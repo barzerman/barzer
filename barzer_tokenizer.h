@@ -47,9 +47,19 @@ struct TokenizerStrategy {
 class QTokenizer {
     const StoredUniverse& d_universe;
 public:
-    QTokenizer( const StoredUniverse& u ) : d_universe(u) {}
 	enum { MAX_QUERY_LEN = 1024, MAX_NUM_TOKENS = 96 };
 	struct Error : public QPError { } err;
+
+    size_t d_maxQueryLen,  // default MAX_QUERY_LEN
+           d_maxNumTokens; // default MAX_NUM_TOKENS
+
+    void setMax( size_t mqlen, size_t mnt ) 
+    {
+        d_maxQueryLen = mqlen;
+        d_maxNumTokens = mnt;
+    }
+
+    QTokenizer( const StoredUniverse& u ) : d_universe(u), d_maxQueryLen(MAX_QUERY_LEN), d_maxNumTokens(MAX_NUM_TOKENS) {}
 
 	int tokenize( TTWPVec& , const char*, const QuestionParm& );
 	int tokenize( Barz& barz, const TokenizerStrategy& , const QuestionParm& );

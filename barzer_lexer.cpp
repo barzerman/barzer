@@ -1053,9 +1053,10 @@ int QLexParser::singleTokenClassify_space( Barz& barz, const QuestionParm& qparm
             ctok.syncStemAndStoredTok(d_universe);
 		}
 	}
-	if( cVec.size() > MAX_CTOKENS_PER_QUERY ) 
-		cVec.resize( MAX_CTOKENS_PER_QUERY );
-
+	if( cVec.size() > d_maxCtokensPerQuery ) {
+		cVec.resize( d_maxCtokensPerQuery );
+        barz.barzelTrace.setErrBit( BarzelTrace::ERRBIT_TRUNCATED_TOKENS );
+    }
 	return 0;
 }
 
@@ -1247,8 +1248,9 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
             }
 		}
 	}
-	if( cVec.size() > MAX_CTOKENS_PER_QUERY ) {
-		cVec.resize( MAX_CTOKENS_PER_QUERY );
+	if( cVec.size() > d_maxCtokensPerQuery ) {
+		cVec.resize( d_maxCtokensPerQuery );
+        barz.barzelTrace.setErrBit( BarzelTrace::ERRBIT_TRUNCATED_TOKENS );
 	}
 
 	return 0;
@@ -1271,9 +1273,10 @@ int QLexParser::lex( Barz& barz, const QuestionParm& qparm )
 	/// perform advanced language specific lexing
 	langLexer.lex( cVec, tVec, qparm );
 
-	if( cVec.size() > MAX_CTOKENS_PER_QUERY ) {
-		cVec.resize( MAX_CTOKENS_PER_QUERY );
+	if( cVec.size() > d_maxCtokensPerQuery ) {
+		cVec.resize( d_maxCtokensPerQuery );
 		AYLOG(ERROR) << "query truncated\n";
+        barz.barzelTrace.setErrBit( BarzelTrace::ERRBIT_TRUNCATED_TOKENS );
 	}
 	return 0;
 }

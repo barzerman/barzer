@@ -34,6 +34,44 @@ public:
 	~CharPool();
 };
 
+/// default string serializer (escapes newlines)
+struct StringSerializer {
+    enum : size_t { DEFAULT_BUF_SZ = 16*1024 };
+    std::vector<char> buf;
+    char delim;
+
+    StringSerializer( size_t sz = DEFAULT_BUF_SZ ) : buf(sz), delim('\n') {}
+    bool operator()( std::ostream& fp, const char* s ) const
+    {
+        size_t sz = strlen(s);
+        (fp <<  sz << " ").write( s, sz ) << '\n';
+        return true;
+    }
+    bool operator()( std::ostream& fp, size_t s ) const
+    {
+        fp << s << '\n';
+        return true;
+    }
+    bool operator()( std::string& s, std::istream& fp ) 
+    {
+        size_t sz = 0;
+        fp >> sz;
+        if( sz > buf.size() ) 
+            sz = buf.size();
+        if( !fp.read( &(buf[0]), sz+1 ) )  // +1 to account for the trailing newline
+            return false;
+        s.assign( &(buf[0]), sz );
+        return true;
+    }
+    bool operator()( size_t& s, std::istream& fp ) 
+    {
+        fp.getline( &(buf[0]), buf.size()-1, delim );
+        buf.back()= (char)(0);
+        s = atoi( &(buf[0])) ;
+        return( s> 0 ) ;
+    }
+};
+
 /// stores each string only once 
 /// also issues "string ids" - 4-byte integers
 class UniqueCharPool : public CharPool {
@@ -51,6 +89,37 @@ private:
 	// map_by_char_cp<StrId>::Type idMap; // idMap[char_cp] returns id 
 		// ID_NOTFOUND when string cant be found
 public: 
+    template <typename SRLZR>
+    int serialize( SRLZR& srlzr, std::ostream& fp )  const
+    {
+        srlzr( fp, idVec.size() );
+        for( auto i = idVec.begin(); i!= idVec.end(); ++i ) {
+            srlzr( fp, *i );
+        }
+        return 0;
+    }
+    template <typename SRLZR>
+    int deserialize( SRLZR& srlzr, std::istream& fp )  
+    {
+        size_t sz = 0;
+        if( !srlzr( sz, fp ) || !sz ) 
+            return -1;
+
+        std::string s;
+        for( size_t i=0; i< sz && srlzr(s,fp); ++i )
+            internIt(s.c_str());
+        return 0;
+    }
+    int deserialize( std::istream& fp )
+    {
+        StringSerializer srlzr;
+        return deserialize( srlzr, fp );
+    }
+    int serialize( std::ostream& fp ) const 
+    {
+        StringSerializer srlzr;
+        return serialize( srlzr, fp );
+    }
     const CharIdMap& getCharIdMap() const { return idMap; }
 	void clear() 
 	{
@@ -111,6 +180,8 @@ public:
 		CharPool(cSz ) { }
 
     size_t getMaxId() const { return idVec.size(); }
+    
+
 };
 
 }

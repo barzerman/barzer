@@ -414,6 +414,8 @@ public:
         } else 
             return 0;
     }
+    const char* getEntIdString(const BarzerEntity& euid ) const { return getGlobalPools().internalString_resolve(euid.tokId); }
+
     const std::string& userName() const { return d_userName; }
     void setUserName(const char* n) { d_userName.assign(n); }
 

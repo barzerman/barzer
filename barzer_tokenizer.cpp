@@ -91,9 +91,10 @@ int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qpar
 
 
 	size_t q_len = strlen(q);
-	if( q_len > MAX_QUERY_LEN ) {
-		q_len = MAX_QUERY_LEN;
-	}
+
+	if( q_len > d_maxQueryLen ) 
+		q_len = d_maxQueryLen;
+	
 	const char* s_end = q+ q_len;
 	const char* s = q;
 	for( ; s!= s_end; ++s ) {
@@ -154,9 +155,8 @@ int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qpar
 		tok = 0;
 	}
 
-	if( ttwp.size()  > MAX_NUM_TOKENS ) {
-		ttwp.resize(MAX_NUM_TOKENS);
-	}
+	if( ttwp.size()  > d_maxNumTokens ) 
+		ttwp.resize(d_maxNumTokens);
 
 	return ( ttwp.size() - origSize );
 #undef PREVCHAR_NOT
