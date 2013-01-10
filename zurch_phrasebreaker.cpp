@@ -62,6 +62,8 @@ const char* PhraseBreaker::whereToBreak( const char* s, const char* s_beg, const
 
     for( auto i = d_delim.begin(); i!= d_delim.end(); ++i ) {
         if( const char* delimStr = i->match(s, s_end) ) {
+            if( i->cantBePrecededBy.empty() ) 
+                return s;
             auto precedeBeg = i->cantBePrecededBy.begin();
             const char* x = delimStr-1;
             for( ; x>= s_beg; --x ) {

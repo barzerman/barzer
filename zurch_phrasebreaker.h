@@ -76,7 +76,7 @@ struct PhraseBreaker {
         for( const char* s_from=str, *s_end = str+str_sz; s_to <= s_end && s_from< s_end; ) {
             char c = *s_to;
             const char* newTo = 0;
-            if( c=='\n' || (!isalnum(c) && whereToBreak(s_from, str, s_end ) )) {
+            if( c=='\n' || (isspace(c) && c!=' ')|| ( ispunct(c) && whereToBreak(s_to, str, s_end ) )) {
                 if( s_to> s_from ) 
                     cb( s_from, s_to-s_from );
                 s_from = ++s_to;

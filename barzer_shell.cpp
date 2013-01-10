@@ -27,6 +27,7 @@
 #include <string.h>
 
 #include <zurch_docidx.h>
+#include <zurch_phrasebreaker.h>
 #include <ay_filesystem.h>
 
 #include <boost/regex.hpp>
@@ -338,6 +339,35 @@ static int bshf_dir( BarzerShell* shell, char_cp cmd, std::istream& in )
     ay::dir_list( std::cerr, path, true, pattern );
     return 0;
 }
+static int bshf_phrase( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+    std::string fileName;
+    if( !(in >> fileName ) ) {
+        std::cerr << "must specify file name file \n";
+        return 0;
+    }
+    std::ifstream inFile;
+    inFile.open(fileName.c_str() );
+    if( !inFile.is_open() ) {
+        std::cerr << "coiuldnt open file " << fileName << std::endl;
+        return 0;
+    }
+    zurch::PhraseBreaker phraser; 
+	QuestionParm qparm;
+
+    zurch::BarzTokPrintCB printCb( std::cerr );
+	BarzerShellContext * context = shell->getBarzerContext();
+	Barz& barz = context->barz;
+    zurch::PrintStringCB cb( printCb, context->parser, barz, qparm );
+    phraser.addSingleCharDelimiters( "?!;.,", true );
+    zurch::PhraseDelimiterData* dd = phraser.getDelimiterData(".");
+    if( dd ) {
+        dd->addNoPreceed( "тов" );
+    }
+    phraser.breakStream( cb, inFile );
+
+    return 0;
+}
 static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
@@ -354,15 +384,6 @@ static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
     }
 
     std::ifstream inFile;
-    /*
-    inFile.open(fileName.c_str() );
-    zurch::PhraseBreaker phraser; 
-	QuestionParm qparm;
-
-    zurch::BarzTokPrintCB printCb( std::cerr );
-    zurch::PrintStringCB cb( printCb, context->parser, barz, qparm );
-    phraser.breakStream( cb, inFile );
-    */
     zurch::DocFeatureIndex index;
     index.setInternStems();
     zurch::DocFeatureIndexFilesystem::LoaderOptions ldrOpt;
@@ -1727,6 +1748,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_env, "env", "set request environment parameter. usage: env [name [value]]" ),
 	CmdData( (ay::Shell_PROCF)bshf_dtaan, "dtaan", "data set analyzer. runs through the trie" ),
 	CmdData( (ay::Shell_PROCF)bshf_dir, "dir", "dir listing" ),
+	CmdData( (ay::Shell_PROCF)bshf_phrase, "phrase", "breaks file into phrases - test driver for phrasebreaker" ),
 	CmdData( (ay::Shell_PROCF)bshf_doc, "doc", "doc loader doc filename" ),
 	CmdData( (ay::Shell_PROCF)bshf_instance, "instance", "lists all users in the instance" ),
 	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),
