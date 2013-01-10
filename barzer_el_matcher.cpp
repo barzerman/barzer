@@ -21,7 +21,7 @@ void BarzelMatchAmbiguities::addEntity( const BELTrie& trie, const BarzelTransla
             } else if( mkent.isEntList() ) {
                 auto entGrp = trie.getEntGroupById( mkent.getEntGroupId() );
                 if( entGrp ) {
-                    auto dtaIdx = trie.getGlobalPools().getDtaIdx();
+                    const auto& dtaIdx = trie.getGlobalPools().getDtaIdx();
                     for( EntityGroup::Vec::const_iterator i = entGrp->getVec().begin(); i!= entGrp->getVec().end(); ++i ){
                         auto se = dtaIdx.getEntById( *i );
                         if( se ) addEntity(se->euid);
