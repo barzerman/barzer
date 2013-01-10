@@ -1,4 +1,5 @@
 #include <zurch_docidx.h>
+#include <zurch_phrasebreaker.h>
 #include <barzer_universe.h>
 #include <boost/filesystem.hpp>
 #include <ay/ay_filesystem.h>
