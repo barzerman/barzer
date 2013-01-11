@@ -246,7 +246,7 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, con
 	std::copy(doc2score.begin(), doc2score.end(), std::back_inserter(out));
 	
 	std::sort(out.begin(), out.end(),
-			[] (const std::pair<uint32_t, double> l, const std::pair<uint32_t, double>& r)
+			[] (const DocWithScore_t& l, const DocWithScore_t& r)
 				{ return l.second > r.second; });
 }
 
