@@ -83,7 +83,10 @@ int DocFeatureLink::deserialize( std::istream& fp )
     return 0;
 }
 
-DocFeatureIndex::DocFeatureIndex() {}
+DocFeatureIndex::DocFeatureIndex() 
+: d_classBoosts{ 5, 1, 0.5 }
+{}
+
 DocFeatureIndex::~DocFeatureIndex() {}
 
 /// given an entity from the universe returns internal representation of the entity 
@@ -223,6 +226,8 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, con
 		if (invertedPos == d_invertedIdx.end())
 			continue;
 		
+		const double classBoost = d_classBoosts[feature.feature.featureClass];
+		
 		const auto& sources = invertedPos->second;
 		
 		const auto numSources = sources.size() * sources.size();
@@ -237,7 +242,7 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, con
 			if (pos == doc2score.end())
 				pos = doc2score.insert({ link.docId, 0 }).first;
 			
-			pos->second += (link.weight * (1 + std::log(link.count))) / numSources;
+			pos->second += classBoost * (link.weight * (1 + std::log(link.count))) / numSources;
 		}
 	}
 	
