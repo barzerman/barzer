@@ -213,9 +213,41 @@ void DocFeatureIndex::sortAll()
         std::sort( i->second.begin(), i->second.end() ) ;
 }
 
-void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f )
+void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, const ExtractedDocFeature::Vec_t& fVec )
 {
-#warning implement DocFeatureIndex::findDocument
+	std::map<uint32_t, double> doc2score;
+	
+	for (const auto& feature : fVec)
+	{
+		const auto invertedPos = d_invertedIdx.find(feature.feature);
+		if (invertedPos == d_invertedIdx.end())
+			continue;
+		
+		const auto& sources = invertedPos->second;
+		
+		const auto numSources = sources.size() * sources.size();
+		
+		for (const auto& link : sources)
+		{
+			// dumb safeguard, but I think we don't want to fuck up later in logarithm.
+			if (link.count <= 0)
+				continue;
+			
+			auto pos = doc2score.find(link.docId);
+			if (pos == doc2score.end())
+				pos = doc2score.insert({ link.docId, 0 }).first;
+			
+			pos->second += (link.weight * (1 + std::log(link.count))) / numSources;
+		}
+	}
+	
+	out.clear();
+	out.reserve(doc2score.size());
+	std::copy(doc2score.begin(), doc2score.end(), std::back_inserter(out));
+	
+	std::sort(out.begin(), out.end(),
+			[] (const std::pair<uint32_t, double> l, const std::pair<uint32_t, double>& r)
+				{ return l.second > r.second; });
 }
 
 namespace {
