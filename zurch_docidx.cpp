@@ -184,6 +184,15 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz
     return appendDocument( docId, featureVec, numBeads );
 }
 
+/** This function keeps only one link per given doc ID, feature ID and weight,
+ * increasing the link count when it encounters the same link another time.
+ * 
+ * Link weight participates in this uniqueness check so that we can take into
+ * account links that have different weights but otherwise are identical (for
+ * example, the same word encountered in document title would have higher
+ * weight then the word deep in the text). This makes sense since we also take
+ * link count in the example later in findDocument().
+ */
 size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t& v, size_t numBeads )
 {
     for( auto i = v.begin(); i!= v.end(); ++i ) {
