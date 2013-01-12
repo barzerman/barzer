@@ -25,7 +25,8 @@ namespace barzer {
 struct BarzerShellContext : public ay::ShellContext {
 	GlobalPools& gp;
 	StoredUniverse* d_universe;
-    zurch::DocFeatureIndex* d_zurch;
+
+    zurch::DocIndexOnFileSystem       d_zurchFS;
 
 	BELTrieWalker trieWalker;
 	BELTrie* d_trie;

@@ -226,7 +226,11 @@ void DocFeatureIndex::sortAll()
         std::sort( i->second.begin(), i->second.end() ) ;
 }
 
-void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, const ExtractedDocFeature::Vec_t& fVec )
+void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, const char* query, const barzer::QuestionParm& qparm ) const 
+{
+}
+
+void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, const ExtractedDocFeature::Vec_t& fVec ) const
 {
 	std::map<uint32_t, double> doc2score;
 	
@@ -446,10 +450,10 @@ DocFeatureIndexFilesystem::DocFeatureIndexFilesystem( DocFeatureIndex& index, co
     DocFeatureLoader(index,u)
 {}
 namespace fs = boost::filesystem;
-void DocFeatureIndexFilesystem::addAllFilesAtPath( const char* path, const DocFeatureIndexFilesystem::LoaderOptions& opt )
+void DocFeatureIndexFilesystem::addAllFilesAtPath( const char* path )
 {
     fs_iter_callback cb( *this );
-    ay::dir_regex_iterate( cb, path, opt.regex.c_str(), opt.d_bits.checkBit(LoaderOptions::BIT_DIR_RECURSE) );
+    ay::dir_regex_iterate( cb, path, d_loaderOpt.regex.c_str(), d_loaderOpt.d_bits.checkBit(LoaderOptions::BIT_DIR_RECURSE) );
 }
 
 bool DocFeatureIndexFilesystem::loadProperties( const boost::property_tree::ptree& pt )
@@ -477,4 +481,14 @@ bool DocFeatureIndexFilesystem::fs_iter_callback::operator()( boost::filesystem:
         std::cerr << "cant open " << di->path() << std::endl;
     return true;
 }
+
+void DocIndexOnFileSystem::init(const barzer::StoredUniverse& u)
+{
+    delete loader;
+    delete index;
+
+    index   = new DocFeatureIndex();
+    loader  = new DocFeatureIndexFilesystem(*index, u );
+}
+
 } // namespace zurch

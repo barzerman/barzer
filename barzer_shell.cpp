@@ -56,7 +56,6 @@ void strip_newline( char* buf )
 BarzerShellContext::BarzerShellContext(StoredUniverse& u, BELTrie& trie) :
 		gp(u.getGlobalPools()),
 		d_universe(&u),
-        d_zurch(0),
 		trieWalker(trie),
 		d_trie(&trie),
 		parser( u ),
@@ -368,14 +367,67 @@ static int bshf_phrase( BarzerShell* shell, char_cp cmd, std::istream& in )
 
     return 0;
 }
+static int bshf_zurch_old( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext * context = shell->getBarzerContext();
+	Barz& barz = context->barz;
+	QParser& parser = context->parser;
+	const StoredUniverse &uni = context->getUniverse();
+
+    RequestEnvironment& reqEnv = context->reqEnv;
+    RequestVariableMap& reqEnvVar = reqEnv.getReqVar();
+    
+    const BarzerString* tokenMode = reqEnv.getVarVal<BarzerString>( "tokmode" );
+    const char* sepString = ( tokenMode ?  tokenMode->c_str() : 0 );
+
+    zurch::ZurchTokenizer zt( sepString );
+    
+    /// 
+    zurch::ZurchTokenVec tokVec;
+    char buf[ 1024 ];
+    RuBastardizeHeuristic      bastardizer( &context->getUniverse().getGlobalPools() );
+    zurch::ZurchWordNormalizer::NormalizerEnvironment normEnv(&bastardizer);
+    zurch::ZurchWordNormalizer znorm(context->getUniverse().getBZSpell());
+
+    std::string normStr;
+    while( fgets( buf,sizeof(buf)-1,stdin) && buf[0] != '\n') {
+        size_t buf_sz = strlen(buf)-1;
+        buf[ buf_sz ] =0;
+        tokVec.clear();
+        zt.tokenize( tokVec, buf, buf_sz );
+        for( auto i = tokVec.begin(); i!= tokVec.end(); ++i ) {
+            normEnv.clear();
+            znorm.normalize( normStr, i->str.c_str(), normEnv );
+            std::cerr<< (i-tokVec.begin()) << ":" << *i << " norm \"" << normStr << "\"" << std::endl;
+        }
+    }
+    return 0;
+}
+
+static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext * context = shell->getBarzerContext();
+	Barz& barz = context->barz;
+
+    if( !context->d_zurchFS.getIndex() ) {
+        std::cerr << "Zurch Doc Index is not initialized\n";
+        return 0;
+    }
+    const zurch::DocFeatureIndexFilesystem* loader = context->d_zurchFS.getLoader();
+    if( !loader ) {
+        std::cerr << "ZurchIndex not initialized\n";
+        return 0;
+    }
+    const zurch::DocFeatureIndex& index = loader->index();
+
+    return 0;
+}
 static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	Barz& barz = context->barz;
 
-    delete context->d_zurch;
-    context->d_zurch = new zurch::DocFeatureIndex();
-    zurch::DocFeatureLoader docLoader( *(context->d_zurch), context->getUniverse() );
+    context->d_zurchFS.init( context->getUniverse() );
 
     std::string fileName;
     std::ifstream fp;
@@ -385,11 +437,10 @@ static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
     }
 
     std::ifstream inFile;
-    zurch::DocFeatureIndex index;
+    zurch::DocFeatureIndex& index = *(context->d_zurchFS.getIndex());
     index.setInternStems();
-    zurch::DocFeatureIndexFilesystem::LoaderOptions ldrOpt;
-    zurch::DocFeatureIndexFilesystem fsIndex( index, context->getUniverse() );
-    fsIndex.addAllFilesAtPath( fileName.c_str(), ldrOpt );
+    zurch::DocFeatureIndexFilesystem& fsIndex = *(context->d_zurchFS.getLoader());
+    fsIndex.addAllFilesAtPath( fileName.c_str() );
      
     std::cerr << "***** INDEX STATS:\n";
     index.printStats( std::cerr );
@@ -1004,43 +1055,6 @@ struct ShellState {
 };
 
 } // anon namespace ends
-
-static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in )
-{
-	BarzerShellContext * context = shell->getBarzerContext();
-	Barz& barz = context->barz;
-	QParser& parser = context->parser;
-	const StoredUniverse &uni = context->getUniverse();
-
-    RequestEnvironment& reqEnv = context->reqEnv;
-    RequestVariableMap& reqEnvVar = reqEnv.getReqVar();
-    
-    const BarzerString* tokenMode = reqEnv.getVarVal<BarzerString>( "tokmode" );
-    const char* sepString = ( tokenMode ?  tokenMode->c_str() : 0 );
-
-    zurch::ZurchTokenizer zt( sepString );
-    
-    /// 
-    zurch::ZurchTokenVec tokVec;
-    char buf[ 1024 ];
-    RuBastardizeHeuristic      bastardizer( &context->getUniverse().getGlobalPools() );
-    zurch::ZurchWordNormalizer::NormalizerEnvironment normEnv(&bastardizer);
-    zurch::ZurchWordNormalizer znorm(context->getUniverse().getBZSpell());
-
-    std::string normStr;
-    while( fgets( buf,sizeof(buf)-1,stdin) && buf[0] != '\n') {
-        size_t buf_sz = strlen(buf)-1;
-        buf[ buf_sz ] =0;
-        tokVec.clear();
-        zt.tokenize( tokVec, buf, buf_sz );
-        for( auto i = tokVec.begin(); i!= tokVec.end(); ++i ) {
-            normEnv.clear();
-            znorm.normalize( normStr, i->str.c_str(), normEnv );
-            std::cerr<< (i-tokVec.begin()) << ":" << *i << " norm \"" << normStr << "\"" << std::endl;
-        }
-    }
-    return 0;
-}
 
 static int bshf_universe( BarzerShell* shell, char_cp cmd, std::istream& in )
 {

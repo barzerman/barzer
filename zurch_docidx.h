@@ -149,7 +149,9 @@ public:
     typedef std::pair< uint32_t, double > DocWithScore_t;
     typedef std::vector< DocWithScore_t > DocWithScoreVec_t;
 
-    void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f );
+    void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f ) const;
+
+    void findDocument( DocWithScoreVec_t&, const char* query, const const barzer::QuestionParm& qparm ) const;
 
     int serialize( std::ostream& fp ) const;
     int deserialize( std::istream& fp ); 
@@ -228,8 +230,9 @@ public:
             BIT_MAX
         };
         ay::bitflags<BIT_MAX> d_bits;
-    };
-    void addAllFilesAtPath( const char* path, const LoaderOptions& opt );
+    } d_loaderOpt;
+
+    void addAllFilesAtPath( const char* path );
     
     /// filesystem iterator callback 
     struct fs_iter_callback {
@@ -244,6 +247,19 @@ public:
     virtual bool loadProperties( const boost::property_tree::ptree& );
 };
 
+class DocIndexOnFileSystem {
+    DocFeatureIndex*           index;
+    DocFeatureIndexFilesystem* loader;
+public:
+    DocIndexOnFileSystem() : index(0), loader(0) {}
+
+    DocFeatureIndex* getIndex() { return index; }
+    const DocFeatureIndex* getIndex() const { return index; }
+    DocFeatureIndexFilesystem* getLoader() { return loader; }
+    const DocFeatureIndexFilesystem* getLoader() const { return loader; }
+    
+    void init( const barzer::StoredUniverse& u );
+};
 
 // CB must have operator()( Barz& )
 struct BarzTokPrintCB {

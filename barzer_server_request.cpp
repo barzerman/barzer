@@ -159,7 +159,8 @@ BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s, uint3
     d_xmlIsInvalid(false),
     d_barzXMLParser(0),
     d_queryId( std::numeric_limits<uint64_t>::max() ),
-    ret(XML_TYPE)
+    ret(XML_TYPE),
+    d_queryType(QType::BARZER)
 {
     parser = XML_ParserCreate(NULL);
     XML_SetUserData(parser, this);
@@ -377,8 +378,16 @@ void BarzerRequestParser::raw_autoc_parse( const char* query, QuestionParm& qpar
     barz.clearWithTraceAndTopics();
 }
 
+void BarzerRequestParser::raw_query_parse_zurch( const char* query)
+{
+    AYLOG(ERROR) << "BarzerRequestParser::raw_query_parse_zurch unimplemented\n";
+}
+
 void BarzerRequestParser::raw_query_parse( const char* query)
 {
+    if( d_queryType == QType::ZURCH ) 
+        raw_query_parse_zurch(query);
+
 	const GlobalPools& gp = gpools;
 	const StoredUniverse * up = gp.getUniverse(userId);
 	if( !up ) {
@@ -758,6 +767,8 @@ void BarzerRequestParser::tag_query(RequestTag &tag) {
         else if (i->first == "now" ) {
             if( RequestEnvironment* env = barz.getServerReqEnv() )
                 env->setNow( i->second );
+        } else if( i->first == "zurch" ) {
+            setQueryType( QType::ZURCH );
         }
     }
 
