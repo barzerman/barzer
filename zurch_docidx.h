@@ -105,8 +105,9 @@ class DocFeatureIndex {
     ay::InternerWithId<barzer::BarzerEntity> d_entPool; // internal representation of entities
 
     DocFeatureIndexHeuristics d_heuristics; // /never 0 - guaranteed too be initialized in constructor
-public:
     
+    const double d_classBoosts[DocFeature::CLASS_MAX];
+public:
     enum {
         BIT_INTERN_STEMS,  /// interns all stems ergardless of whether or not they had been stored as literals in barzer Universe
 

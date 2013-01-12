@@ -83,7 +83,10 @@ int DocFeatureLink::deserialize( std::istream& fp )
     return 0;
 }
 
-DocFeatureIndex::DocFeatureIndex() {}
+DocFeatureIndex::DocFeatureIndex() 
+: d_classBoosts{ 5, 1, 0.5 }
+{}
+
 DocFeatureIndex::~DocFeatureIndex() {}
 
 /// given an entity from the universe returns internal representation of the entity 
@@ -181,6 +184,15 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz
     return appendDocument( docId, featureVec, numBeads );
 }
 
+/** This function keeps only one link per given doc ID, feature ID and weight,
+ * increasing the link count when it encounters the same link another time.
+ * 
+ * Link weight participates in this uniqueness check so that we can take into
+ * account links that have different weights but otherwise are identical (for
+ * example, the same word encountered in document title would have higher
+ * weight then the word deep in the text). This makes sense since we also take
+ * link count in the example later in findDocument().
+ */
 size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t& v, size_t numBeads )
 {
     for( auto i = v.begin(); i!= v.end(); ++i ) {
@@ -223,6 +235,8 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, con
 		if (invertedPos == d_invertedIdx.end())
 			continue;
 		
+		const double classBoost = d_classBoosts[feature.feature.featureClass];
+		
 		const auto& sources = invertedPos->second;
 		
 		const auto numSources = sources.size() * sources.size();
@@ -237,7 +251,7 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, con
 			if (pos == doc2score.end())
 				pos = doc2score.insert({ link.docId, 0 }).first;
 			
-			pos->second += (link.weight * (1 + std::log(link.count))) / numSources;
+			pos->second += classBoost * (link.weight * (1 + std::log(link.count))) / numSources;
 		}
 	}
 	
@@ -246,7 +260,7 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, con
 	std::copy(doc2score.begin(), doc2score.end(), std::back_inserter(out));
 	
 	std::sort(out.begin(), out.end(),
-			[] (const std::pair<uint32_t, double> l, const std::pair<uint32_t, double>& r)
+			[] (const DocWithScore_t& l, const DocWithScore_t& r)
 				{ return l.second > r.second; });
 }
 
