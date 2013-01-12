@@ -5,6 +5,8 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <boost/property_tree/ptree.hpp>
+
 namespace zurch {
 
 struct compare_string_rev_less {
@@ -44,6 +46,14 @@ struct PhraseDelimiterData {
     }
 };
 
+/// this gets used by PhraseBreaker to keep the state of phrasebreaking. 
+/// it keeps track of things such as whether the current phrase is ina  heading etc
+struct PhraseBreakerState {
+   int phraseBoost;  // 0 - default
+   PhraseBreakerState() : phraseBoost(0) {}
+    void clear() { phraseBoost= 0; }
+};
+
 struct PhraseBreaker {
     std::vector< char > buf;
     
@@ -54,6 +64,7 @@ struct PhraseBreaker {
     std::map< std::string, string_vec_t > d_noBreak;
 
     bool d_breakOnPunctSpace; /// when true 
+    PhraseBreakerState state;
     PhraseBreaker( ) ;
 
     const PhraseDelimiterData* getDelimiterData( const char* d ) const;
@@ -77,8 +88,10 @@ struct PhraseBreaker {
             char c = *s_to;
             const char* newTo = 0;
             if( c=='\n' || (isspace(c) && c!=' ')|| ( ispunct(c) && whereToBreak(s_to, str, s_end ) )) {
-                if( s_to> s_from ) 
-                    cb( s_from, s_to-s_from );
+                if( s_to> s_from ) {
+                    cb( s_from, s_to-s_from, state );
+                    state.clear();
+                }
                 s_from = ++s_to;
             } else
                 ++s_to;
@@ -106,6 +119,9 @@ struct PhraseBreaker {
         }
     }
     //// delimiters file format 
+
+    void clear() {}
+    bool loadProperties( const boost::property_tree::ptree& );
 };
 
 } // namespace zurch 

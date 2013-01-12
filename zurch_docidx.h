@@ -5,6 +5,9 @@
 #include <barzer_parse.h>
 #include <boost/filesystem.hpp>
 #include <boost/unordered_set.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <zurch_phrasebreaker.h>
+
 
 namespace zurch {
 
@@ -152,6 +155,9 @@ public:
     int deserialize( std::istream& fp ); 
 
     std::ostream& printStats( std::ostream& ) const ;
+
+    friend class ZurchSettings;    
+    bool loadProperties( const boost::property_tree::ptree& );
 };
 
 /// objects to process actual documents and load them into an index
@@ -161,6 +167,7 @@ class DocFeatureLoader {
     barzer::QParser                       d_parser;
     DocFeatureIndex&                      d_index;
     barzer::Barz                          d_barz;
+    zurch::PhraseBreaker                  d_phraser;
 public:
     enum : size_t  { DEFAULT_BUF_SZ = 1024*128 };
 private:
@@ -200,6 +207,8 @@ public:
         d_parser.lex_only( d_barz, d_qparm );
         d_parser.semanticize_only( d_barz, d_qparm );
     }
+    friend class ZurchSettings;    
+    virtual bool loadProperties( const boost::property_tree::ptree& );
 };
 
 class DocFeatureIndexFilesystem : public DocFeatureLoader {
@@ -231,6 +240,8 @@ public:
 
         bool operator()( boost::filesystem::directory_iterator& di, size_t depth );
     };
+    friend class ZurchSettings;    
+    virtual bool loadProperties( const boost::property_tree::ptree& );
 };
 
 
@@ -261,7 +272,7 @@ struct BarzerTokenizerCB {
     std::string queryBuf; 
 
     BarzerTokenizerCB( CB& cb, barzer::QParser& p, barzer::Barz& b, const barzer::QuestionParm& qp ) : callback(cb), parser(p), barz(b), qparm(qp), count(0) {}
-    void operator()( const char* s, size_t s_len ) { 
+    void operator()( const char* s, size_t s_len, const PhraseBreakerState& state) { 
         ++count;
         queryBuf.assign( s, s_len );
         barz.clear();

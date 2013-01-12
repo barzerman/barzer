@@ -146,6 +146,7 @@ set(SOURCES barzer_json_output.cpp
 			barzer_spellheuristics.cpp
 			barzer_geoindex.cpp
 			barzer_spell_features.cpp
+            zurch_settings.cpp
             zurch_classifier.cpp
             zurch_docidx.cpp
             zurch_phrasebreaker.cpp

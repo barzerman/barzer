@@ -1,4 +1,5 @@
 #include <zurch_phrasebreaker.h>
+#include <zurch_settings.h>
 #include <zurch_docidx.h>
 namespace zurch {
 
@@ -19,6 +20,12 @@ void PhraseDelimiterData::addNoPreceed( const char** s, size_t s_sz  )
 PhraseBreaker::PhraseBreaker( ) : 
         buf( zurch::DocFeatureLoader::DEFAULT_BUF_SZ ), 
         d_breakOnPunctSpace(true) {}
+
+bool PhraseBreaker::loadProperties( const boost::property_tree::ptree& pt)
+{
+    // AYLOG(ERROR) << "PhraseBreaker::loadProperties unimplemented\n";
+    return ZurchSettings()( *this, pt );
+}
 
 const PhraseDelimiterData* PhraseBreaker::getDelimiterData( const char* d ) const
 {

@@ -1,5 +1,6 @@
 #include <zurch_docidx.h>
 #include <zurch_phrasebreaker.h>
+#include <zurch_settings.h>
 #include <barzer_universe.h>
 #include <boost/filesystem.hpp>
 #include <ay/ay_filesystem.h>
@@ -387,6 +388,11 @@ void DocFeatureLoader::addPieceOfDoc( uint32_t docId, const char* str )
 {
     d_parser.parse( d_barz, str, d_qparm );
 }
+bool DocFeatureLoader::loadProperties( const boost::property_tree::ptree& pt )
+{
+    // AYLOG(ERROR) << "DocFeatureLoader::loadProperties unimplemented\n";
+    return ZurchSettings()( *this, pt );
+}
 namespace {
 /// this callback is invoked for every phrase in a document 
 struct DocAdderCB {
@@ -421,14 +427,14 @@ std::ostream& DocFeatureLoader::DocStats::print( std::ostream& fp ) const
 
 size_t DocFeatureLoader::addDocFromStream( uint32_t docId, std::istream& fp, DocFeatureLoader::DocStats& stats )
 {
-    zurch::PhraseBreaker phraser;
+    d_phraser.clear();
     DocAdderCB adderCb( docId, *this, qparm() );
 
     parser().tokenizer.setMax( MAX_QUERY_LEN, MAX_NUM_TOKENS );
     parser().lexer.setMaxCTokensPerQuery( MAX_NUM_TOKENS/2 );
 
     BarzerTokenizerCB<DocAdderCB> cb( adderCb, parser(), barz(), qparm() );
-    phraser.breakStream( cb, fp );
+    d_phraser.breakStream( cb, fp );
 
     stats = adderCb.stats;
 
@@ -444,6 +450,12 @@ void DocFeatureIndexFilesystem::addAllFilesAtPath( const char* path, const DocFe
 {
     fs_iter_callback cb( *this );
     ay::dir_regex_iterate( cb, path, opt.regex.c_str(), opt.d_bits.checkBit(LoaderOptions::BIT_DIR_RECURSE) );
+}
+
+bool DocFeatureIndexFilesystem::loadProperties( const boost::property_tree::ptree& pt )
+{
+    // AYLOG(ERROR) << "DocFeatureLoader::loadProperties unimplemented\n";
+    return ZurchSettings()( *this, pt );
 }
 
 bool DocFeatureIndexFilesystem::fs_iter_callback::operator()( boost::filesystem::directory_iterator& di, size_t depth )
