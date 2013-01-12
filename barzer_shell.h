@@ -13,6 +13,7 @@
 #include <barzer_el_wildcard.h>
 #include <barzer_server_response.h>
 #include <barzer_server.h>
+#include <zurch_docidx.h>
 
 
 #include <iostream>
@@ -20,9 +21,12 @@ namespace barzer {
 
 //struct BarzerShellContext;
 
+
 struct BarzerShellContext : public ay::ShellContext {
 	GlobalPools& gp;
 	StoredUniverse* d_universe;
+    zurch::DocFeatureIndex* d_zurch;
+
 	BELTrieWalker trieWalker;
 	BELTrie* d_trie;
 

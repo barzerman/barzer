@@ -56,6 +56,7 @@ void strip_newline( char* buf )
 BarzerShellContext::BarzerShellContext(StoredUniverse& u, BELTrie& trie) :
 		gp(u.getGlobalPools()),
 		d_universe(&u),
+        d_zurch(0),
 		trieWalker(trie),
 		d_trie(&trie),
 		parser( u ),
@@ -335,7 +336,6 @@ static int bshf_dir( BarzerShell* shell, char_cp cmd, std::istream& in )
     std::ifstream fp;
     const char* path = dirName.c_str();
 
-    zurch::DocFeatureIndex docIndex;
     ay::dir_list( std::cerr, path, true, pattern );
     return 0;
 }
@@ -373,8 +373,9 @@ static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
 	BarzerShellContext * context = shell->getBarzerContext();
 	Barz& barz = context->barz;
 
-    zurch::DocFeatureIndex docIndex;
-    zurch::DocFeatureLoader docLoader( docIndex, context->getUniverse() );
+    delete context->d_zurch;
+    context->d_zurch = new zurch::DocFeatureIndex();
+    zurch::DocFeatureLoader docLoader( *(context->d_zurch), context->getUniverse() );
 
     std::string fileName;
     std::ifstream fp;
