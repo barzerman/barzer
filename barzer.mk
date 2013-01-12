@@ -40,6 +40,7 @@ libs = -Lay -Lsnowball -lay -lsnowlib -L/usr/local/lib -L/opt/local/lib -L/usr/l
 	$(BOOST_SYSLIB) $(BOOST_THREADLIB) -lexpat -lstdc++
 ECHO = echo
 lib_objects = \
+barzer_global_pools.o \
 barzer_json_output.o \
 barzer_spell_features.o \
 zurch_phrasebreaker.o \
