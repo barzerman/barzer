@@ -88,6 +88,9 @@ private:
 	ReturnType ret;
     
 public:
+    uint32_t d_zurchDocIdxId; /// which zurch index to use - this  id is used to get a specific ZurchIUndex from global Pools
+
+    /// zurch doc indices uniquely correspond to the pair (userId,zurchDocIdxId)
     enum class QType {
         BARZER, /// default
         ZURCH
