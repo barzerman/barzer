@@ -156,7 +156,7 @@ public:
 
     void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f ) const;
 
-    void findDocument( DocWithScoreVec_t&, const char* query, const const barzer::QuestionParm& qparm ) const;
+    void findDocument( DocWithScoreVec_t&, const char* query, const barzer::QuestionParm& qparm ) const;
 
     int serialize( std::ostream& fp ) const;
     int deserialize( std::istream& fp ); 
