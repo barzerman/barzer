@@ -8,7 +8,7 @@ class ZurchSettings {
 public:
 bool operator()( DocFeatureIndex& index, const boost::property_tree::ptree& );
 bool operator()( DocFeatureLoader& loader, const boost::property_tree::ptree& );
-bool operator()( DocFeatureIndexFilesystem& loader, const boost::property_tree::ptree& ) ;
+bool operator()( DocIndexLoaderNamedDocs& loader, const boost::property_tree::ptree& ) ;
 bool operator()( PhraseBreaker& phraser, const boost::property_tree::ptree& ) ;
 
 };

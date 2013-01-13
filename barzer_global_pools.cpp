@@ -232,4 +232,26 @@ void UniverseTrieCluster::clearTries()
 		}
 	}
 }
-} // nanespace barzer 
+
+
+UniverseTrieCluster::UniverseTrieCluster( GlobalTriePool& triePool, StoredUniverse& u ) :
+    d_triePool( triePool ) ,
+    d_universe(u)
+{ }
+
+BELTrie& UniverseTrieCluster::appendTrie( uint32_t trieClass, uint32_t trieId, GrammarInfo* gi )
+{
+    BELTrie* tr = d_triePool.produceTrie(trieClass,trieId);
+    d_trieList.push_back( TheGrammar(tr,gi) );
+    tr->registerUser( d_universe.getUserId() );
+    return *tr;
+}
+BELTrie& UniverseTrieCluster::appendTrie( const char* tc, const char* tid, GrammarInfo* gi )
+{
+    uint32_t trieClass = d_universe.getGlobalPools().internString_internal( tc );
+    uint32_t trieId = d_universe.getGlobalPools().internString_internal( tid );
+    return appendTrie( trieClass, trieId, gi );
+
+}
+
+} // namespace barzer 

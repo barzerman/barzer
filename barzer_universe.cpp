@@ -6,6 +6,7 @@
 #include <ay/ay_cmdproc.h>
 #include <ay/ay_ngrams.h>
 #include <boost/filesystem.hpp>
+#include <zurch_docidx.h>
 
 namespace barzer {
 
@@ -39,6 +40,13 @@ StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 
 StoredUniverse::~StoredUniverse()
 {
+    // cleaning zurch 
+    for( auto i= d_zurchIndexPool.begin(); i != d_zurchIndexPool.end(); ++i )  {
+        delete i->second;
+        i->second = 0;
+    }
+    d_zurchIndexPool.clear();
+        
     delete bzSpell;
     delete d_ghettoDb;
     delete m_meanings;
@@ -191,33 +199,27 @@ void StoredUniverse::clearSpelling()
         bzSpell->clear();
 }
 
-
-	UniverseTrieCluster::UniverseTrieCluster( GlobalTriePool& triePool, StoredUniverse& u ) :
-		d_triePool( triePool ) ,
-		d_universe(u)
-	{
-		// https://github.com/barzerman/barzer/issues/108
-        /*
-        if( !d_universe.getUserId() ) {
-            d_trieList.push_back( &(d_triePool.init()) ) ;
-        }
-        */
-	}
-
-	BELTrie& UniverseTrieCluster::appendTrie( uint32_t trieClass, uint32_t trieId, GrammarInfo* gi )
-	{
-		BELTrie* tr = d_triePool.produceTrie(trieClass,trieId);
-		d_trieList.push_back( TheGrammar(tr,gi) );
-		tr->registerUser( d_universe.getUserId() );
-		return *tr;
-	}
-	BELTrie& UniverseTrieCluster::appendTrie( const char* tc, const char* tid, GrammarInfo* gi )
-    {
-        uint32_t trieClass = d_universe.getGlobalPools().internString_internal( tc );
-        uint32_t trieId = d_universe.getGlobalPools().internString_internal( tid );
-        return appendTrie( trieClass, trieId, gi );
-
+zurch::DocIndexAndLoader* StoredUniverse::resetZurchIndex( uint32_t id )
+{
+    auto i = d_zurchIndexPool.find(id);
+    if( i == d_zurchIndexPool.end() )  {
+        i= d_zurchIndexPool.insert( std::pair< uint32_t, zurch::DocIndexAndLoader*>(id,new zurch::DocIndexAndLoader()) ).first;
     }
+    i->second->init( *this );
+    return (i->second);
+}
+
+zurch::DocIndexAndLoader* StoredUniverse::getZurchIndex( uint32_t idxId )
+{
+    auto i = d_zurchIndexPool.find(idxId);
+    return( i == d_zurchIndexPool.end() ? 0: i->second );
+}
+
+const zurch::DocIndexAndLoader* StoredUniverse::getZurchIndex( uint32_t idxId ) const
+{
+    auto i = d_zurchIndexPool.find(idxId);
+    return( i == d_zurchIndexPool.end() ? 0: i->second );
+}
 //// end of generic entities
 
 } // namespace barzer ends

@@ -110,6 +110,8 @@ class DocFeatureIndex {
     DocFeatureIndexHeuristics d_heuristics; // /never 0 - guaranteed too be initialized in constructor
     
     const double d_classBoosts[DocFeature::CLASS_MAX];
+
+    int   getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz, bool needToInternStems );
 public:
     enum {
         BIT_INTERN_STEMS,  /// interns all stems ergardless of whether or not they had been stored as literals in barzer Universe
@@ -140,6 +142,9 @@ public:
     ~DocFeatureIndex();
     
     /// returns the number of counted features 
+
+    int   fillFeatureVecFromQueryBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz ) const;
+
     size_t appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t&, size_t posOffset );
     size_t appendDocument( uint32_t docId, const barzer::Barz&, size_t posOffset  );
 
@@ -213,11 +218,11 @@ public:
     virtual bool loadProperties( const boost::property_tree::ptree& );
 };
 
-class DocFeatureIndexFilesystem : public DocFeatureLoader {
+class DocIndexLoaderNamedDocs : public DocFeatureLoader {
     ay::UniqueCharPool d_docnamePool; // both internal strings and literals will be in the pool 
 public: 
-    DocFeatureIndexFilesystem( DocFeatureIndex& index, const barzer::StoredUniverse& u  );
-    ~DocFeatureIndexFilesystem( );
+    DocIndexLoaderNamedDocs( DocFeatureIndex& index, const barzer::StoredUniverse& u  );
+    ~DocIndexLoaderNamedDocs( );
     
     uint32_t addDocName( const char* docName ) { return d_docnamePool.internIt(docName); }
     uint32_t getDocIdByName( const char* s ) const { return d_docnamePool.getId( s ); }
@@ -236,10 +241,10 @@ public:
     
     /// filesystem iterator callback 
     struct fs_iter_callback {
-        DocFeatureIndexFilesystem& index;
+        DocIndexLoaderNamedDocs& index;
         bool usePureFileNames; /// when true (default) only file name (no path) is used. this is good when all file names are unique
 
-        fs_iter_callback( DocFeatureIndexFilesystem& idx ) : index(idx), usePureFileNames(true) {}
+        fs_iter_callback( DocIndexLoaderNamedDocs& idx ) : index(idx), usePureFileNames(true) {}
 
         bool operator()( boost::filesystem::directory_iterator& di, size_t depth );
     };
@@ -247,18 +252,19 @@ public:
     virtual bool loadProperties( const boost::property_tree::ptree& );
 };
 
-class DocIndexOnFileSystem {
+class DocIndexAndLoader {
     DocFeatureIndex*           index;
-    DocFeatureIndexFilesystem* loader;
+    DocIndexLoaderNamedDocs* loader;
 public:
-    DocIndexOnFileSystem() : index(0), loader(0) {}
+    DocIndexAndLoader() : index(0), loader(0) {}
 
     DocFeatureIndex* getIndex() { return index; }
     const DocFeatureIndex* getIndex() const { return index; }
-    DocFeatureIndexFilesystem* getLoader() { return loader; }
-    const DocFeatureIndexFilesystem* getLoader() const { return loader; }
+    DocIndexLoaderNamedDocs* getLoader() { return loader; }
+    const DocIndexLoaderNamedDocs* getLoader() const { return loader; }
     
     void init( const barzer::StoredUniverse& u );
+    void destroy() { delete loader; delete index; loader = 0; index = 0;}
 };
 
 // CB must have operator()( Barz& )

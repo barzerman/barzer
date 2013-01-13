@@ -413,7 +413,7 @@ static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in )
         std::cerr << "Zurch Doc Index is not initialized\n";
         return 0;
     }
-    const zurch::DocFeatureIndexFilesystem* loader = context->d_zurchFS.getLoader();
+    const zurch::DocIndexLoaderNamedDocs* loader = context->d_zurchFS.getLoader();
     if( !loader ) {
         std::cerr << "ZurchIndex not initialized\n";
         return 0;
@@ -439,7 +439,7 @@ static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
     std::ifstream inFile;
     zurch::DocFeatureIndex& index = *(context->d_zurchFS.getIndex());
     index.setInternStems();
-    zurch::DocFeatureIndexFilesystem& fsIndex = *(context->d_zurchFS.getLoader());
+    zurch::DocIndexLoaderNamedDocs& fsIndex = *(context->d_zurchFS.getLoader());
     fsIndex.addAllFilesAtPath( fileName.c_str() );
      
     std::cerr << "***** INDEX STATS:\n";

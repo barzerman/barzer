@@ -154,7 +154,7 @@ public:
 	void process(const char *name);
 	/// query is already stripped of the 
 	void raw_query_parse( const char* query);
-	void raw_query_parse_zurch( const char* query);
+	void raw_query_parse_zurch( const char* query, const StoredUniverse& );
 	void raw_autoc_parse( const char* query, QuestionParm& qparm );
 
 	void tag_autoc(RequestTag&);

@@ -12,7 +12,7 @@ bool ZurchSettings::operator()( DocFeatureLoader& loader, const boost::property_
 {
     return true;
 }
-bool ZurchSettings::operator()( DocFeatureIndexFilesystem& loader, const boost::property_tree::ptree& pt )
+bool ZurchSettings::operator()( DocIndexLoaderNamedDocs& loader, const boost::property_tree::ptree& pt )
 {
     return true;
 }

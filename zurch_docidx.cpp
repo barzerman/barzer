@@ -101,7 +101,6 @@ barzer::BarzerEntity DocFeatureIndex::translateExternalEntity( const barzer::Bar
     
     return newEnt;
 }
-/// place external entity into the pool (add all relevant strings to pool as well)
 uint32_t DocFeatureIndex::storeExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u )
 {
     barzer::BarzerEntity newEnt;
@@ -131,15 +130,65 @@ uint32_t DocFeatureIndex::resolveExternalString( const barzer::BarzerLiteral& l,
         return 0xffffffff;
 }
 
-size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz, size_t numBeads )
+int   DocFeatureIndex::fillFeatureVecFromQueryBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz ) const
 {
     const barzer::StoredUniverse* universe = barz.getUniverse() ;
     if( !universe ) 
         return 0;
     
-    ExtractedDocFeature::Vec_t featureVec;
     size_t curOffset =0;
-    bool neesToInternStems = internStems();
+
+    for( auto i = barz.getBeadList().begin(); i!= barz.getBeadList().end(); ++i, ++curOffset ) {
+        if( const barzer::BarzerLiteral* x = i->get<barzer::BarzerLiteral>() ) {
+            uint32_t strId = resolveExternalString( *x, *universe );
+            featureVec.push_back( 
+                ExtractedDocFeature( 
+                    DocFeature( DocFeature::CLASS_TOKEN, strId ), 
+                    FeatureDocPosition(curOffset)
+                ) 
+            );
+        } else if( const barzer::BarzerEntity* x = i->getEntity() ) {
+            uint32_t entId = resolveExternalEntity( *x, *universe );
+            featureVec.push_back( 
+                ExtractedDocFeature( 
+                    DocFeature( DocFeature::CLASS_ENTITY, entId ), 
+                    FeatureDocPosition(curOffset)
+                ) 
+            );
+        } else if( const barzer::BarzerEntityList* x = i->getEntityList() ) {
+            for (barzer::BarzerEntityList::EList::const_iterator li = x->getList().begin();li != x->getList().end(); ++li) {
+                uint32_t entId = resolveExternalEntity( *li, *universe );
+                featureVec.push_back( 
+                    ExtractedDocFeature( 
+                        DocFeature( DocFeature::CLASS_ENTITY, entId ), 
+                        FeatureDocPosition(curOffset)
+                    ) 
+                );
+            }
+        } else { 
+            const barzer::BarzerString* s = i->get<barzer::BarzerString>();
+            if( s ) {
+                const char* theString = (s->stemStr().length() ? s->stemStr().c_str(): s->getStr().c_str());
+                uint32_t strId = d_stringPool.getId(theString); 
+                featureVec.push_back( 
+                    ExtractedDocFeature( 
+                        DocFeature( DocFeature::CLASS_STEM, strId ), 
+                        FeatureDocPosition(curOffset)
+                    ) 
+                );
+            }
+        }
+    }
+    return featureVec.size();
+    return 0;
+}
+int   DocFeatureIndex::getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz, bool needToInternStems ) 
+{
+    const barzer::StoredUniverse* universe = barz.getUniverse() ;
+    if( !universe ) 
+        return 0;
+    
+    size_t curOffset =0;
 
     for( auto i = barz.getBeadList().begin(); i!= barz.getBeadList().end(); ++i, ++curOffset ) {
         if( const barzer::BarzerLiteral* x = i->get<barzer::BarzerLiteral>() ) {
@@ -169,19 +218,30 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz
                 );
             }
         } else { 
-            const barzer::BarzerString* s = (neesToInternStems ? i->get<barzer::BarzerString>():0) ;
-            if( s ) {
-                const char* theString = (s->stemStr().length() ? s->stemStr().c_str(): s->getStr().c_str());
-                uint32_t strId = storeExternalString( theString, *universe );
-                featureVec.push_back( 
-                    ExtractedDocFeature( 
-                        DocFeature( DocFeature::CLASS_STEM, strId ), 
-                        FeatureDocPosition(curOffset)
-                    ) 
-                );
+            if( needToInternStems ) {
+                const barzer::BarzerString* s = i->get<barzer::BarzerString>();
+                if( s ) {
+                    const char* theString = (s->stemStr().length() ? s->stemStr().c_str(): s->getStr().c_str());
+                    uint32_t strId = const_cast<DocFeatureIndex*>(this)->storeExternalString( theString, *universe );
+                    featureVec.push_back( 
+                        ExtractedDocFeature( 
+                            DocFeature( DocFeature::CLASS_STEM, strId ), 
+                            FeatureDocPosition(curOffset)
+                        ) 
+                    );
+                }
             }
         }
     }
+    return featureVec.size();
+}
+
+size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz, size_t numBeads )
+{
+    ExtractedDocFeature::Vec_t featureVec;
+    if( !getFeaturesFromBarz(featureVec, barz, internStems()) ) 
+        return 0;
+    
     return appendDocument( docId, featureVec, numBeads );
 }
 
@@ -445,24 +505,24 @@ size_t DocFeatureLoader::addDocFromStream( uint32_t docId, std::istream& fp, Doc
     return stats.numBeads;
 }
 
-DocFeatureIndexFilesystem::~DocFeatureIndexFilesystem( ){}
-DocFeatureIndexFilesystem::DocFeatureIndexFilesystem( DocFeatureIndex& index, const barzer::StoredUniverse& u ) :
+DocIndexLoaderNamedDocs::~DocIndexLoaderNamedDocs( ){}
+DocIndexLoaderNamedDocs::DocIndexLoaderNamedDocs( DocFeatureIndex& index, const barzer::StoredUniverse& u ) :
     DocFeatureLoader(index,u)
 {}
 namespace fs = boost::filesystem;
-void DocFeatureIndexFilesystem::addAllFilesAtPath( const char* path )
+void DocIndexLoaderNamedDocs::addAllFilesAtPath( const char* path )
 {
     fs_iter_callback cb( *this );
     ay::dir_regex_iterate( cb, path, d_loaderOpt.regex.c_str(), d_loaderOpt.d_bits.checkBit(LoaderOptions::BIT_DIR_RECURSE) );
 }
 
-bool DocFeatureIndexFilesystem::loadProperties( const boost::property_tree::ptree& pt )
+bool DocIndexLoaderNamedDocs::loadProperties( const boost::property_tree::ptree& pt )
 {
     // AYLOG(ERROR) << "DocFeatureLoader::loadProperties unimplemented\n";
     return ZurchSettings()( *this, pt );
 }
 
-bool DocFeatureIndexFilesystem::fs_iter_callback::operator()( boost::filesystem::directory_iterator& di, size_t depth )
+bool DocIndexLoaderNamedDocs::fs_iter_callback::operator()( boost::filesystem::directory_iterator& di, size_t depth )
 {
     std::string docName;
     if( usePureFileNames ) {
@@ -482,13 +542,13 @@ bool DocFeatureIndexFilesystem::fs_iter_callback::operator()( boost::filesystem:
     return true;
 }
 
-void DocIndexOnFileSystem::init(const barzer::StoredUniverse& u)
+void DocIndexAndLoader::init(const barzer::StoredUniverse& u)
 {
     delete loader;
     delete index;
 
     index   = new DocFeatureIndex();
-    loader  = new DocFeatureIndexFilesystem(*index, u );
+    loader  = new DocIndexLoaderNamedDocs(*index, u );
 }
 
 } // namespace zurch

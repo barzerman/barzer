@@ -26,6 +26,9 @@
 struct sb_stemmer;
 
 namespace ay { struct CommandLineArgs; }
+namespace zurch { 
+    class DocIndexAndLoader; 
+}
 
 namespace barzer {
 
@@ -40,6 +43,12 @@ class StoredUniverse {
     std::string d_userName;
 public:
 	GlobalPools& gp;
+
+    boost::unordered_map< uint32_t, zurch::DocIndexAndLoader* > d_zurchIndexPool;
+    
+    zurch::DocIndexAndLoader* resetZurchIndex( uint32_t idxId ); 
+    zurch::DocIndexAndLoader* getZurchIndex( uint32_t idxId );
+    const zurch::DocIndexAndLoader* getZurchIndex( uint32_t idxId ) const;
 private:
 	UniverseTrieCluster          trieCluster;
 	UniverseTrieCluster          topicTrieCluster;
