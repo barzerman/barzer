@@ -30,30 +30,8 @@ std::ostream& xmlEscape(const char *src,  std::ostream &os) {
 	}
 	return os;
 }
+using ay::tag_raii;
 namespace {
-
-struct tag_raii {
-	std::ostream &os;
-	std::vector<const char*> tags;
-
-	tag_raii(std::ostream &s) : os(s) {}
-	tag_raii(std::ostream &s, const char *tag, const char* attr = 0) : os(s) 
-        { push(tag,attr); }
-	operator std::ostream&() { return os; }
-
-	void push(const char *tag, const char* attr=0 ) {
-		os << "<" << tag << ( attr ? attr : "" ) << ">";
-		tags.push_back(tag);
-	}
-
-	~tag_raii() {
-		size_t i = tags.size();
-		while(i--) {
-			os << "</" << tags.back() << ">";
-			tags.pop_back();
-		}
-	}
-};
 
 bool isBlank(const BarzelBead &bead) {
     if (bead.isBlank()) return true;

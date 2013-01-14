@@ -23,7 +23,7 @@ inline bool isBlank(const BarzelBead &bead) {
     struct PropCallback {
         std::ostream&   d_os;
         uint32_t        d_otherUniverseNumber; 
-        JSONRaii raii;
+        json_raii raii;
 
         PropCallback( std::ostream& os, size_t depth ) : 
             d_os(os) ,
@@ -57,10 +57,10 @@ class BeadVisitor : public boost::static_visitor<bool> {
 	bool d_printTtok;
     const BarzStreamerJSON& d_streamer;
 
-    JSONRaii raii;
+    json_raii raii;
 public:
-    const JSONRaii& getRaii() const { return raii; }
-    JSONRaii& getRaii() { return raii; }
+    const json_raii& getRaii() const { return raii; }
+    json_raii& getRaii() { return raii; }
 	BeadVisitor(std::ostream &s, const StoredUniverse &u, const BarzelBead& b, const Barz& barz, const BarzStreamerJSON& streamer, size_t depth ) : 
 		os(s), universe(u), d_bead(b),d_barz(barz), lvl(0), d_printTtok(true), d_streamer(streamer), raii(s,false,depth)
     {
@@ -233,8 +233,8 @@ public:
 
 	struct RangeVisitor : boost::static_visitor<>  {
 		BeadVisitor& bvis;
-        JSONRaii&    raii;
-		RangeVisitor( BeadVisitor& bv, JSONRaii& ri  ) : bvis(bv), raii(ri) {}
+        json_raii&    raii;
+		RangeVisitor( BeadVisitor& bv, json_raii& ri  ) : bvis(bv), raii(ri) {}
 
 		void operator() ( const BarzerRange::Integer& i ) 
 		{
@@ -265,9 +265,9 @@ public:
             }
 		}
 	};
-    bool printRange( const BarzerRange &data, JSONRaii* xraii = 0 )
+    bool printRange( const BarzerRange &data, json_raii* xraii = 0 )
     {
-        JSONRaii* theRaii = ( xraii ? xraii: &raii );
+        json_raii* theRaii = ( xraii ? xraii: &raii );
 
         theRaii->addKeyVal( "type", "range" );
         theRaii->addKeyValNoIndent( "rangetype", data.jsonGetTypeName() );
@@ -276,7 +276,7 @@ public:
             theRaii->addKeyValNoIndent( "opt", (data.isNoHi() ? "NOHI" : "NOLO" ) );
 		if (!data.isBlank()) {
             // theRaii->startField( "data" );
-            // JSONRaii rangeRaii( os , true, theRaii->getDepth()+1 );
+            // json_raii rangeRaii( os , true, theRaii->getDepth()+1 );
 
 			RangeVisitor v( *this, *theRaii );
 			boost::apply_visitor( v, data.dta );
@@ -288,9 +288,9 @@ public:
         return printRange(data);
 	}
 
-	void printEntity(const BarzerEntity &euid, bool needType, JSONRaii* otherRaii =0 ) 
+	void printEntity(const BarzerEntity &euid, bool needType, json_raii* otherRaii =0 ) 
     {
-        JSONRaii* theRaii = ( otherRaii ? otherRaii: &raii );
+        json_raii* theRaii = ( otherRaii ? otherRaii: &raii );
         if( needType )
 		    theRaii->startField("type") << "\"entity\"";
 
@@ -313,7 +313,7 @@ public:
             StoredEntityId entId = universe.getDtaIdx().getEntIdByEuid( euid );
             if( entId != 0xffffffff ) {
                 if( const GeoIndex_t::Point* point = geo->getCoords( entId ) ) {
-                    JSONRaii xraii( theRaii->startField("geo"), true, theRaii->getDepth()+1 );
+                    json_raii xraii( theRaii->startField("geo"), true, theRaii->getDepth()+1 );
                     xraii.getFP();
 
                     xraii.startField("") << std::setprecision(8) << point->x();
@@ -322,7 +322,7 @@ public:
             }
         }
         if( d_barz.hasProperties() ) {
-            JSONRaii propRaii( theRaii->startField("extra"), false, theRaii->getDepth()+1 );
+            json_raii propRaii( theRaii->startField("extra"), false, theRaii->getDepth()+1 );
 
             const Ghettodb& gd = universe.getGhettodb();  
             PropCallback callback(os, theRaii->getDepth()+2);
@@ -363,11 +363,11 @@ public:
             }
          
             {
-                JSONRaii listRaii( raii.startField("data"), true, raii.getDepth()+1 );
+                json_raii listRaii( raii.startField("data"), true, raii.getDepth()+1 );
 		        const BarzerEntityList::EList &lst = data.getList();
 		        for (BarzerEntityList::EList::const_iterator li = lst.begin(); li != lst.end(); ++li) {
                     listRaii.startField("");
-                    JSONRaii eraii( os , false, raii.getDepth()+2 );
+                    json_raii eraii( os , false, raii.getDepth()+2 );
 			        printEntity(*li,false,&eraii);
 		        }
             }
@@ -381,7 +381,7 @@ public:
 	}
 
     template <typename T>
-    std::ostream& cloneObject( JSONRaii& parentRaii, const char* fieldName, const T& t, bool noNewLine=false )
+    std::ostream& cloneObject( json_raii& parentRaii, const char* fieldName, const T& t, bool noNewLine=false )
     {
         parentRaii.startField(fieldName,noNewLine);
         BeadVisitor clone(*this,false);
@@ -399,17 +399,17 @@ public:
 
         {
         raii.startField("ent");
-        JSONRaii eraii( os , false, raii.getDepth()+1 );
+        json_raii eraii( os , false, raii.getDepth()+1 );
         printEntity(data.getEntity(),false,&eraii);
         }
         {
         raii.startField("unit");
-        JSONRaii eraii( os , false, raii.getDepth()+1 );
+        json_raii eraii( os , false, raii.getDepth()+1 );
         printEntity(data.getUnitEntity(),false,&eraii);
         }
         {
         raii.startField("range");
-        JSONRaii eraii( os , false, raii.getDepth()+1 );
+        json_raii eraii( os , false, raii.getDepth()+1 );
         printRange(data.getRange(),&eraii) ; 
         }
 		return true;
@@ -456,7 +456,7 @@ public:
 	}
 };
 
-void print_conf_leftovers( JSONRaii&& raii, const std::vector<std::string>& vec )
+void print_conf_leftovers( json_raii&& raii, const std::vector<std::string>& vec )
 {
         for( auto i = vec.begin(); i!= vec.end(); ++i ) {
             ay::jsonEscape( i->c_str(), raii.startField(""), "\"") ;
@@ -467,7 +467,7 @@ void print_conf_leftovers( JSONRaii&& raii, const std::vector<std::string>& vec 
 std::ostream& BarzStreamerJSON::print(std::ostream &os)
 {
     /// BARZ header tag 
-    JSONRaii raii( os, false, 0 );
+    json_raii raii( os, false, 0 );
     os << std::dec;
     raii.startField( "uid" ) << universe.getUserId() ;
     if( barz.isQueryIdValid() ) 
@@ -479,7 +479,7 @@ std::ostream& BarzStreamerJSON::print(std::ostream &os)
 	CToken::SpellCorrections spellCorrections;
 	size_t curBeadNum = 1;
     { // beads context
-    JSONRaii beadsRaii( raii.startField("beads"), true, 1 );
+    json_raii beadsRaii( raii.startField("beads"), true, 1 );
 
 	for (BeadList::const_iterator bli = bc.getLstBegin(); bc.isIterNotEnd(bli); ++bli) {
 	    if (!isBlank(*bli)) {
@@ -504,7 +504,7 @@ std::ostream& BarzStreamerJSON::print(std::ostream &os)
     /// printing topics 
     const BarzTopics::TopicMap& topicMap = barz.topicInfo.getTopicMap();
     if( !topicMap.empty() ) {
-        JSONRaii topicsRaii( raii.startField("topics"), true, 1 );
+        json_raii topicsRaii( raii.startField("topics"), true, 1 );
 
         BarzelBead fakeBead;
 	    BeadVisitor v(os, universe, fakeBead, barz, *this, 2  );
@@ -540,24 +540,24 @@ std::ostream& BarzStreamerJSON::print(std::ostream &os)
         return os;
 
     {
-        JSONRaii confidenceRaii( raii.startField("confidence"), false, 1 );
+        json_raii confidenceRaii( raii.startField("confidence"), false, 1 );
         if( confidenceData.d_loCnt ) {
             std::vector< std::string > tmp ;
             confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_LOW );
             if( tmp.size() ) 
-                print_conf_leftovers( JSONRaii(confidenceRaii.startField("nolo"),true,2), tmp );
+                print_conf_leftovers( json_raii(confidenceRaii.startField("nolo"),true,2), tmp );
         }
         if( confidenceData.d_medCnt ) {
             std::vector< std::string > tmp ;
             confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_MEDIUM );
             if( tmp.size() )
-                print_conf_leftovers( JSONRaii(confidenceRaii.startField("nomed"),true,2), tmp );
+                print_conf_leftovers( json_raii(confidenceRaii.startField("nomed"),true,2), tmp );
         }
         if( confidenceData.d_hiCnt ) {
             std::vector< std::string > tmp ;
             confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_HIGH );
             if( tmp.size() )
-                print_conf_leftovers( JSONRaii(confidenceRaii.startField("nohi"),true,2), tmp );
+                print_conf_leftovers( json_raii(confidenceRaii.startField("nohi"),true,2), tmp );
         }
     } // confidence block ends
     }

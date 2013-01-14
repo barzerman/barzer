@@ -262,6 +262,9 @@ public:
     const DocFeatureIndex* getIndex() const { return index; }
     DocIndexLoaderNamedDocs* getLoader() { return loader; }
     const DocIndexLoaderNamedDocs* getLoader() const { return loader; }
+
+    const char* getDocName ( uint32_t id ) const
+        { return loader->getDocNameById( id ); }
     
     void init( const barzer::StoredUniverse& u );
     void destroy() { delete loader; delete index; loader = 0; index = 0;}
