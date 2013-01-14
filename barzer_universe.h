@@ -46,7 +46,7 @@ public:
 
     boost::unordered_map< uint32_t, zurch::DocIndexAndLoader* > d_zurchIndexPool;
     
-    zurch::DocIndexAndLoader* resetZurchIndex( uint32_t idxId ); 
+    zurch::DocIndexAndLoader* initZurchIndex( uint32_t idxId ); 
     zurch::DocIndexAndLoader* getZurchIndex( uint32_t idxId );
     const zurch::DocIndexAndLoader* getZurchIndex( uint32_t idxId ) const;
 private:

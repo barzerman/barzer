@@ -199,7 +199,7 @@ void StoredUniverse::clearSpelling()
         bzSpell->clear();
 }
 
-zurch::DocIndexAndLoader* StoredUniverse::resetZurchIndex( uint32_t id )
+zurch::DocIndexAndLoader* StoredUniverse::initZurchIndex( uint32_t id )
 {
     auto i = d_zurchIndexPool.find(id);
     if( i == d_zurchIndexPool.end() )  {

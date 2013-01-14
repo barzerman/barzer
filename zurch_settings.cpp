@@ -1,22 +1,55 @@
 #include <zurch_settings.h>
+#include <boost/foreach.hpp>
+#include <barzer_universe.h>
+
+
+using boost::property_tree::ptree;
 
 namespace zurch {
 
+bool ZurchSettings::loadIndex( const boost::property_tree::ptree& pt )
+{
+    ++d_indexCounter;
+    const boost::optional<const ptree&> attr = pt.get_child_optional("<xmlattr>");
+    if( !attr ) {
+        d_errFP << "<error>ZURCH index " << d_indexCounter << " has no attributes</error>" << std::endl;
+        return false;
+    }
+    uint32_t id = 0;
 
-bool ZurchSettings::operator()( DocFeatureIndex& index, const boost::property_tree::ptree& pt )
-{
+    if( const boost::optional< std::string > x = attr.get().get_optional<std::string>("id") ) 
+        id = atoi( x.get().c_str() );
 
+    zurch::DocIndexAndLoader* dixl = universe.initZurchIndex( id );
+    if( !dixl )  /// this should never happen
+        return false;
+    DocIndexLoaderNamedDocs* loader = dixl->getLoader(); 
+
+    if( const boost::optional< const::ptree &> x = pt.get_child_optional("phraser") ) 
+        (*this)( loader->phraser(), x.get() );
+
+    if( const boost::optional< const::ptree &> x = pt.get_child_optional("loader") ) 
+        (*this)( loader->loaderOpt(), x.get() );
+
+    if( const boost::optional< std::string > x = attr.get().get_optional<std::string>("dir") )  
+        dixl->addAllFilesAtPath(x.get().c_str());
     return true;
 }
-bool ZurchSettings::operator()( DocFeatureLoader& loader, const boost::property_tree::ptree& pt )
+
+bool ZurchSettings::operator()( const boost::property_tree::ptree& pt )
+{
+    d_indexCounter= 0;
+    BOOST_FOREACH(const ptree::value_type &v, pt) {
+        if( v.first == "index" )  
+            loadIndex(v.second );
+    }
+    return true;
+}
+bool ZurchSettings::operator()( PhraseBreaker& phraser, const boost::property_tree::ptree& pt )
 {
     return true;
 }
-bool ZurchSettings::operator()( DocIndexLoaderNamedDocs& loader, const boost::property_tree::ptree& pt )
-{
-    return true;
-}
-bool ZurchSettings::operator()( PhraseBreaker& phraser, const boost::property_tree::ptree& pt)
+bool ZurchSettings::operator()( DocIndexLoaderNamedDocs::LoaderOptions& loaderOpt, const boost::property_tree::ptree& pt )
 {
     return true;
 }

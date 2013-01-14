@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <barzer_bzspell.h>
 #include "barzer_relbits.h"
+#include "zurch_settings.h"
 
 using boost::property_tree::ptree;
 namespace fs = boost::filesystem;
@@ -518,6 +519,13 @@ void BarzerSettings::loadUserRules(BELReader& reader, User& u, const ptree &node
 	}
 }
 namespace {
+void load_zurch(BELReader& reader, User& u, const ptree &node)
+{
+    zurch::ZurchSettings zs(u.universe,reader.getErrStreamRef());
+    if( !zs( node ) )  {
+        std::cerr << "ERROR LOADING ZURCH" << std::endl;
+    } 
+}
 void load_user_flags(BELReader& reader, User& u, const ptree &node)
 {
     try {
@@ -581,6 +589,11 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
     reader.setRespectLimits( userId );
     reader.setCurrentUniverse( u.getUniversePtr() );
     load_ent_segregate_info(reader, u, children);
+    load_user_flags(reader, u, children);
+
+    if( boost::optional< const ptree& > zurchChild = children.get_child_optional("zurch") )
+        load_zurch( reader, u, zurchChild.get() );
+
     load_user_flags(reader, u, children);
 	loadUserRules(reader, u, children);
 	loadTrieset(reader, u, children);

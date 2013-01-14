@@ -3,13 +3,19 @@
 
 namespace zurch {
 
-//// reads properties for doc idx using boost property tree 
+
 class ZurchSettings {
+    barzer::StoredUniverse& universe;
+    std::ostream& d_errFP;
+    size_t d_indexCounter; /// sequential number of the index currently being processed
 public:
-bool operator()( DocFeatureIndex& index, const boost::property_tree::ptree& );
-bool operator()( DocFeatureLoader& loader, const boost::property_tree::ptree& );
-bool operator()( DocIndexLoaderNamedDocs& loader, const boost::property_tree::ptree& ) ;
-bool operator()( PhraseBreaker& phraser, const boost::property_tree::ptree& ) ;
+    ZurchSettings( barzer::StoredUniverse& u, std::ostream& errFp ) : universe(u), d_errFP(errFp), d_indexCounter(0) {}
+    bool loadIndex( const boost::property_tree::ptree& );
+
+    bool operator()( const boost::property_tree::ptree& );
+
+    bool operator()( DocIndexLoaderNamedDocs::LoaderOptions& loader, const boost::property_tree::ptree& ) ;
+    bool operator()( PhraseBreaker& phraser, const boost::property_tree::ptree& ) ;
 
 };
 

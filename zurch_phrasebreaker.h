@@ -121,7 +121,6 @@ struct PhraseBreaker {
     //// delimiters file format 
 
     void clear() {}
-    bool loadProperties( const boost::property_tree::ptree& );
 };
 
 } // namespace zurch 

@@ -452,11 +452,6 @@ void DocFeatureLoader::addPieceOfDoc( uint32_t docId, const char* str )
 {
     d_parser.parse( d_barz, str, d_qparm );
 }
-bool DocFeatureLoader::loadProperties( const boost::property_tree::ptree& pt )
-{
-    // AYLOG(ERROR) << "DocFeatureLoader::loadProperties unimplemented\n";
-    return ZurchSettings()( *this, pt );
-}
 namespace {
 /// this callback is invoked for every phrase in a document 
 struct DocAdderCB {
@@ -514,12 +509,6 @@ void DocIndexLoaderNamedDocs::addAllFilesAtPath( const char* path )
 {
     fs_iter_callback cb( *this );
     ay::dir_regex_iterate( cb, path, d_loaderOpt.regex.c_str(), d_loaderOpt.d_bits.checkBit(LoaderOptions::BIT_DIR_RECURSE) );
-}
-
-bool DocIndexLoaderNamedDocs::loadProperties( const boost::property_tree::ptree& pt )
-{
-    // AYLOG(ERROR) << "DocFeatureLoader::loadProperties unimplemented\n";
-    return ZurchSettings()( *this, pt );
 }
 
 bool DocIndexLoaderNamedDocs::fs_iter_callback::operator()( boost::filesystem::directory_iterator& di, size_t depth )

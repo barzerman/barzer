@@ -164,7 +164,7 @@ public:
     std::ostream& printStats( std::ostream& ) const ;
 
     friend class ZurchSettings;    
-    bool loadProperties( const boost::property_tree::ptree& );
+    // bool loadProperties( const boost::property_tree::ptree& );
 };
 
 /// objects to process actual documents and load them into an index
@@ -174,12 +174,15 @@ class DocFeatureLoader {
     barzer::QParser                       d_parser;
     DocFeatureIndex&                      d_index;
     barzer::Barz                          d_barz;
-    zurch::PhraseBreaker                  d_phraser;
+    PhraseBreaker                         d_phraser;
 public:
     enum : size_t  { DEFAULT_BUF_SZ = 1024*128 };
 private:
     size_t d_bufSz;
 public:
+    PhraseBreaker& phraser() { return d_phraser; }
+    const PhraseBreaker& phraser() const  { return d_phraser; }
+
     enum { MAX_QUERY_LEN = 1024*64, MAX_NUM_TOKENS = 1024*32 };
      
     DocFeatureIndex& index() { return d_index; }
@@ -215,7 +218,7 @@ public:
         d_parser.semanticize_only( d_barz, d_qparm );
     }
     friend class ZurchSettings;    
-    virtual bool loadProperties( const boost::property_tree::ptree& );
+    // virtual bool loadProperties( const boost::property_tree::ptree& );
 };
 
 class DocIndexLoaderNamedDocs : public DocFeatureLoader {
@@ -237,6 +240,9 @@ public:
         ay::bitflags<BIT_MAX> d_bits;
     } d_loaderOpt;
 
+    LoaderOptions& loaderOpt() { return d_loaderOpt; }
+    const LoaderOptions& loaderOpt() const { return d_loaderOpt; }
+
     void addAllFilesAtPath( const char* path );
     
     /// filesystem iterator callback 
@@ -249,7 +255,7 @@ public:
         bool operator()( boost::filesystem::directory_iterator& di, size_t depth );
     };
     friend class ZurchSettings;    
-    virtual bool loadProperties( const boost::property_tree::ptree& );
+    // virtual bool loadProperties( const boost::property_tree::ptree& );
 };
 
 class DocIndexAndLoader {
@@ -268,6 +274,8 @@ public:
     
     void init( const barzer::StoredUniverse& u );
     void destroy() { delete loader; delete index; loader = 0; index = 0;}
+
+    void addAllFilesAtPath( const char* path ) { loader->addAllFilesAtPath(path); }
 };
 
 // CB must have operator()( Barz& )

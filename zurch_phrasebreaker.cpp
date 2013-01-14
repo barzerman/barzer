@@ -21,12 +21,6 @@ PhraseBreaker::PhraseBreaker( ) :
         buf( zurch::DocFeatureLoader::DEFAULT_BUF_SZ ), 
         d_breakOnPunctSpace(true) {}
 
-bool PhraseBreaker::loadProperties( const boost::property_tree::ptree& pt)
-{
-    // AYLOG(ERROR) << "PhraseBreaker::loadProperties unimplemented\n";
-    return ZurchSettings()( *this, pt );
-}
-
 const PhraseDelimiterData* PhraseBreaker::getDelimiterData( const char* d ) const
 {
     for( auto i = d_delim.begin(); i!= d_delim.end(); ++i ) {
