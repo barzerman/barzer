@@ -12,7 +12,7 @@ bool ZurchSettings::loadIndex( const boost::property_tree::ptree& pt )
     ++d_indexCounter;
     const boost::optional<const ptree&> attr = pt.get_child_optional("<xmlattr>");
     if( !attr ) {
-        d_errFP << "<error>ZURCH index " << d_indexCounter << " has no attributes</error>" << std::endl;
+        d_errFP << "<error>ZURCH index " << d_indexCounter << " in user " << universe.getUserId() << " has no attributes</error>" << std::endl;
         return false;
     }
     uint32_t id = 0;
@@ -42,6 +42,9 @@ bool ZurchSettings::operator()( const boost::property_tree::ptree& pt )
     BOOST_FOREACH(const ptree::value_type &v, pt) {
         if( v.first == "index" )  
             loadIndex(v.second );
+    }
+    if( !d_indexCounter ) {
+        d_errFP << "<error>ZURCH in user " << universe.getUserId() << " has no index tags</error>" << std::endl;
     }
     return true;
 }

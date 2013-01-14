@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+
+    <dictionaries>
+        <file>data/spell/english_words.txt</file>
+    </dictionaries>
+    <users>
+        <user id="0">
+            <zurch>
+                <index dir="/Users/yanis/barzer/data/ukrf"/>
+            </zurch>
+            <!-- 
+            <spell soundslike="yes"><tokenizer strat="SPACE_DEFAULT"/></spell>
+            -->
+            <!-- 
+            -->
+            <flags value="c"/>
+            <spell dictcorr="yes"><tokenizer strat="SPACE_DEFAULT"/></spell>
+
+            <rules> <file class="" name="shit">dev/shit.xml</file> </rules>
+            <trieset>
+                <!-- explicitly adding basic default fluff trie  -->
+                <trie class="" name="shit" />
+            </trieset>
+		</user>
+        <!--
+        <user id="1">
+			<rules>
+				<file class="class1" name="sepulka" >data/vendor/sepulka/rules/sepulka.xml</file>
+				<file class="class1" name="sepulka_auto" >data/vendor/sepulka/rules/sepulka_auto.xml</file>
+			</rules>
+            <trieset>
+                <trie class="" name="" />
+                <trie class="class1" name="sepulka" />
+                <trie class="class1" name="sepulka_auto" />
+                <trie class="" name="fluff" />
+            </trieset>
+        </user>
+        -->
+    </users>
+</config>
