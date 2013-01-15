@@ -17,6 +17,20 @@ struct xhtml_parser_state {
     std::istream& d_stream;
 
     std::vector<std::string> d_tagStack;
+    
+    std::string getTag( size_t i ) const 
+    {
+        if( i< d_tagStack.size() ) {
+            const char* tbeg = d_tagStack[i].c_str()+1;
+            if( *tbeg == '/' ) ++tbeg;
+            const char* tend = tbeg;
+            for( ;isalnum(*tend); ++tend ) ;
+
+            return ( tend> tbeg ? std::string( tbeg, tend-tbeg ): std::string() );
+        } else
+            return std::string();
+    }
+
     std::vector< char > d_buf; /// always contains txt between the tags 
     size_t d_bufOffset, d_readOffset;
     bool d_endReached;
@@ -31,12 +45,46 @@ struct xhtml_parser_state {
         CB_TEXT
     };
     int d_cbReason;
+
+    enum {
+        MODE_HTML,
+        MODE_XHTML
+    };
+    int d_mode; // MODE_HTML 
+
+    void setModeHtml() { d_mode = MODE_HTML; }
+    bool isModeHtml() const { return d_mode == MODE_HTML; }
+    void setModeXhtml() { d_mode = MODE_XHTML; }
+    bool isModeXhtml() const { return d_mode == MODE_XHTML; }
+
+    inline static bool isHtmlTagAlwaysComplete( const char* lt, const char* gt ) 
+    {
+        while( *lt == '<' || *lt == '/' ) ++lt ; 
+        if( gt<= lt ) return true;
+        size_t sz = gt-lt; 
+
+        size_t len = 0;
+        char c0 = ( isalnum(*lt) ? (len=1,*lt): 0 ) , 
+            c1 = (c0 && isalpha(lt[1]) ? (len=2,lt[1]) : 0),
+            c2 = (c1 && isalpha(lt[2]) ? (len=3,lt[2]) : 0);
+
+        if( len == 2 ) { // 2 letter tags 
+            if( c1 == 'r' || c1=='R' ) // bR hR
+                return (c0 == 'b' || c0=='B' || c0 =='h' || c0=='H');
+            else if( c1 == 'l' || c1=='L' )  // hl
+                return (c0 =='h' || c0=='H');
+            else 
+                return false;
+        } 
+        return false;
+    }
     xhtml_parser_state( std::istream& fp, size_t bufSz = DEFAULT_BUF_SZ ) : 
         d_stream(fp), 
         d_buf(bufSz), 
         d_bufOffset(0), d_readOffset(0),
         d_endReached(false),
-        d_cbReason(CB_UNKNOWN)
+        d_cbReason(CB_UNKNOWN),
+        d_mode(MODE_HTML)
         { d_buf.back()=0; }
 };
 
@@ -44,6 +92,7 @@ struct xhtml_parser_state {
 template <typename CB>
 class xhtml_parser : public xhtml_parser_state {
 public:
+
     CB& d_cbTagOpen, d_cbTagClose, d_cbTxt; 
 
     xhtml_parser_state& state(int cbReason) { return ( d_cbReason=cbReason, *(static_cast<xhtml_parser*>(this))); }
@@ -74,6 +123,14 @@ public:
     bool textIsGood( const char* beg, const char* end ) const {
         return( end > beg && *beg != '<' && *beg != '>' );
     }
+     
+    bool isCompleteTag( const char* lt, const char* gt ) const
+    {
+        if( gt> lt )  {
+            return( *(gt-1) =='/' || (isModeHtml() && isHtmlTagAlwaysComplete(lt,gt) ) );
+        } else
+            return false;
+    }
     void drainBuffer( )
     {
         /// buffer to drain starts at d_bufOffset
@@ -92,14 +149,15 @@ public:
                         d_tagStack.pop_back( );
                     d_cbTagClose( state(CB_TAG_CLOSE), lt, (gt-lt)+1 );
                 } else {              /// this is an opening tag
-                    if( gt>lt && *(gt-1) == '/' ) { /// this is a complete tag <XXX/> 
-                        d_tagStack.push_back( std::string(lt, (gt-lt)+1 ) );
-                        d_cbTagOpen( state(CB_TAG_OPEN), lt, (gt-lt)+1 );
-                        d_cbTagClose( state(CB_TAG_CLOSE), lt, (gt-lt)+1 );
+                    const size_t xsz = (gt-lt)+1 ;
+                    if( isCompleteTag(lt,gt) ) { /// this is a complete tag <XXX/> 
+                        d_tagStack.push_back( std::string(lt, xsz ) );
+                        d_cbTagOpen( state(CB_TAG_OPEN), lt, xsz );
+                        d_cbTagClose( state(CB_TAG_CLOSE), lt, xsz );
                         d_tagStack.pop_back( );
                     } else { /// this is just a regular opening tag
-                        d_tagStack.push_back( std::string(lt, (gt-lt)+1 ) );
-                        d_cbTagOpen( state(CB_TAG_OPEN), lt, (gt-lt)+1 );
+                        d_tagStack.push_back( std::string(lt, xsz) );
+                        d_cbTagOpen( state(CB_TAG_OPEN), lt, xsz );
                     }
                 }
                 d_bufOffset = 1+(gt-buf_start);
@@ -120,17 +178,18 @@ public:
                     d_readOffset=0;
                     gt = strchr(lt,'>');
                     if( gt ) { // read more stuff from disk and now the tag is closing
-                        if( gt>lt && *(gt-1) == '/' ) { // complete tag
-                            d_tagStack.push_back( std::string(lt, (gt-lt)+1 ) );
-                            d_cbTagOpen( state(CB_TAG_OPEN), lt, (gt-lt)+1 );
-                            d_cbTagClose( state(CB_TAG_CLOSE), lt, (gt-lt)+1 );
+                        const size_t xsz = (gt-lt)+1 ;
+                        if( isCompleteTag(lt,gt) ) { // complete tag
+                            d_tagStack.push_back( std::string(lt, xsz) );
+                            d_cbTagOpen( state(CB_TAG_OPEN), lt, xsz );
+                            d_cbTagClose( state(CB_TAG_CLOSE), lt, xsz );
                             d_tagStack.pop_back( );
                         }  else if(lt[1] =='/') { // closing tag
-                            d_cbTagClose( state(CB_TAG_CLOSE), lt, (gt-lt)+1 );
+                            d_cbTagClose( state(CB_TAG_CLOSE), lt, xsz );
                             if( d_tagStack.size() ) 
                                 d_tagStack.pop_back( );
                         } else { // opening tag
-                            d_cbTagOpen( state(CB_TAG_OPEN), lt, (gt-lt)+1 );
+                            d_cbTagOpen( state(CB_TAG_OPEN), lt, xsz );
                         }
                     } else if(d_endReached) { // even after reading more stuff from disk the tag isnt closing end has been reached
                         break;

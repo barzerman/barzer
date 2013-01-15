@@ -22,6 +22,7 @@
 #endif 
 #include <ay/ay_tag_markup_parser.h>
 #include <fstream>
+#include <sstream>
 
 
 #ifdef DONTCOMMENTALLOUT
@@ -247,9 +248,24 @@ int test_ay_statistics(int argc, char* argv[])
 namespace {
 
 struct xhtml_cb {
+    size_t counter, maxStackDepth;
+    xhtml_cb(): counter(0), maxStackDepth(0) {}
+    std::string longestPath;
     void operator()( const ay::xhtml_parser_state& state, const char* s, size_t s_sz ) 
     {
-       ( std::cerr << "\n" << state.d_cbReason << ":" ).write( s, s_sz ) ;
+        ++counter;
+        if( state.d_tagStack.size()> maxStackDepth ) {
+            maxStackDepth= state.d_tagStack.size();
+            std::stringstream sstr;
+            for( size_t i = 0; i< state.d_tagStack.size(); ++i ) {
+                sstr << state.getTag(i) << "/";
+            }
+            longestPath = sstr.str();
+        }
+        if( state.d_cbReason ==ay::xhtml_parser_state::CB_TEXT ) {
+            (std::cout << std::endl ).write( s, s_sz );
+        }
+       // ( std::cerr << "\n" << state.d_cbReason << ":" ).write( s, s_sz ) ;
     }
 };
 int test_ay_xhtml_parser(int argc,char* argv[])
@@ -267,6 +283,7 @@ int test_ay_xhtml_parser(int argc,char* argv[])
 
     ay::xhtml_parser<xhtml_cb> parser( fp , cb );
     parser.parse();
+    std::cerr << cb.counter << "," << cb.maxStackDepth << "@" << cb.longestPath << std::endl;
     return 0;
 }
 } // anonymous namespace 
