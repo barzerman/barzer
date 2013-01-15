@@ -5,7 +5,7 @@
  *      Author: polter
  */
 
-#ifndef DONTCOMMENTALLOUT
+#ifdef DONTCOMMENTALLOUT
 #include <ay_logger.h>
 #include <ay_utf8.h>
 #include <ay_choose.h>
@@ -18,11 +18,13 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#endif 
 #include <ay_statistics.h>
+#endif 
+#include <ay/ay_tag_markup_parser.h>
+#include <fstream>
 
 
-#ifndef DONTCOMMENTALLOUT
+#ifdef DONTCOMMENTALLOUT
 void testLogger() {
 	AYLOGINIT(DEBUG);
 	int i  = 0;
@@ -185,7 +187,6 @@ int test_ay_strcasecmp (int argc, char* argv[])
     }
     return 0;
 }
-#endif /// DONTCOMMENTALLOUT
 int test_ay_statistics(int argc, char* argv[])
 {
     {
@@ -242,7 +243,33 @@ int test_ay_statistics(int argc, char* argv[])
     }
     return 0;
 }
+#endif /// DONTCOMMENTALLOUT
+namespace {
 
+struct xhtml_cb {
+    void operator()( const ay::xhtml_parser_state& state, const char* s, size_t s_sz ) 
+    {
+       ( std::cerr << "\n" << state.d_cbReason << ":" ).write( s, s_sz ) ;
+    }
+};
+int test_ay_xhtml_parser(int argc,char* argv[])
+{
+    if( argc < 2 ) {
+        std::cerr << "provide input file\n";
+        return -1;
+    }
+         
+    xhtml_cb cb;
+    std::ifstream fp;
+    fp.open( argv[1] );
+    if( !fp.is_open() ) 
+        return( std::cerr << "cant open " << argv[1] << std::endl, -1 );
+
+    ay::xhtml_parser<xhtml_cb> parser( fp , cb );
+    parser.parse();
+    return 0;
+}
+} // anonymous namespace 
 int main(int argc, char* argv[]) {
 	// testLogger();
     //testUTF8(argc,argv);
@@ -250,9 +277,6 @@ int main(int argc, char* argv[]) {
     // testStripDiacritics(argc,argv);
     // testXMLEscape(argc,argv);
     // test_ay_strcasecmp(argc,argv);
-    const char *x = "фывфыфы", *y="жфывфыфффыф";
-    ay::LevenshteinEditDistance dist;
-    dist.twoByte( x, strlen(x)/2, y, strlen(y)/2 );
 
-    return test_ay_statistics(argc,argv);
+    return test_ay_xhtml_parser(argc,argv);
 }
