@@ -8,7 +8,7 @@ inline const char*  PhraseDelimiterData::match( const char* s, const char* s_end
 {
     if( delim.length() == 1 ) 
         return( s< s_end && delim[0] == *s && (!mustBeFollowedBySpace || (s+1<s_end && isspace(s[1]))) ? s:0);
-    else if( delim.length() < s_end-s ) 
+    else if( s_end > s && delim.length() < static_cast<size_t>(s_end-s) ) 
         return ( !strncmp( delim.c_str(), s, delim.length() ) && (!mustBeFollowedBySpace || (s+1<s_end && isspace(s[1]))) ? s : 0 );
     else 
         return 0;
