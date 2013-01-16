@@ -444,7 +444,9 @@ DocFeatureLoader::DocFeatureLoader( DocFeatureIndex& index, const barzer::Stored
     d_universe(u),
     d_parser(u),
     d_index(index),
-    d_bufSz( DEFAULT_BUF_SZ )
+    d_bufSz( DEFAULT_BUF_SZ ),
+    d_xhtmlMode(ay::xhtml_parser_state::MODE_HTML),
+    d_loadMode(LOAD_MODE_TEXT)
 {
     d_barz.setUniverse( &d_universe );
 }
@@ -475,6 +477,22 @@ struct DocAdderCB {
     }
 };
 
+struct DocAdderXhtmlCB {
+    DocFeatureLoader& loader;
+    BarzerTokenizerCB<DocAdderCB>& docAdderCB;
+
+    DocAdderXhtmlCB( DocFeatureLoader& ldr, BarzerTokenizerCB<DocAdderCB>& dacb ) : loader(ldr), docAdderCB(dacb) {}
+
+    void operator()( const ay::xhtml_parser_state& state, const char* s, size_t s_sz )
+    {
+        /// ATTENTION!!! here using state we can see whats in the tagStack  and boost confidence if needed etc
+        /// we update loader.phraser().state with that
+
+        if( state.isCallbackText() ) 
+            loader.phraser().breakBuf( docAdderCB, s, s_sz );
+    }
+};
+
 }
 
 std::ostream& DocFeatureLoader::DocStats::print( std::ostream& fp ) const
@@ -493,8 +511,20 @@ size_t DocFeatureLoader::addDocFromStream( uint32_t docId, std::istream& fp, Doc
     parser().lexer.setMaxCTokensPerQuery( MAX_NUM_TOKENS/2 );
 
     BarzerTokenizerCB<DocAdderCB> cb( adderCb, parser(), barz(), qparm() );
-    d_phraser.breakStream( cb, fp );
 
+    if( d_loadMode== LOAD_MODE_TEXT )
+        d_phraser.breakStream( cb, fp );
+    else 
+    if( d_loadMode== LOAD_MODE_XHTML ) {
+        DocAdderXhtmlCB xhtmlCb( *this, cb );
+        ay::xhtml_parser<DocAdderXhtmlCB> parser( fp , xhtmlCb );
+
+        parser.setMode( d_xhtmlMode );
+        parser.parse();
+    } else if( d_loadMode== LOAD_MODE_AUTO ) {
+        AYLOG(ERROR) << "LOAD_MODE_AUTO unimplemented" << std::endl;
+    }
+        
     stats = adderCb.stats;
 
     return stats.numBeads;

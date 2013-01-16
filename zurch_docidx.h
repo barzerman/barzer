@@ -7,6 +7,7 @@
 #include <boost/unordered_set.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <zurch_phrasebreaker.h>
+#include <ay/ay_tag_markup_parser.h>
 
 
 namespace zurch {
@@ -175,11 +176,20 @@ class DocFeatureLoader {
     DocFeatureIndex&                      d_index;
     barzer::Barz                          d_barz;
     PhraseBreaker                         d_phraser;
+
 public:
     enum : size_t  { DEFAULT_BUF_SZ = 1024*128 };
+    typedef enum { 
+        LOAD_MODE_TEXT, // plain text
+        LOAD_MODE_XHTML, // something tagged (XHTML or HTML)
+        LOAD_MODE_AUTO // UNIMPLEMENTED tries to automatically decide between txt and tags  
+    } load_mode_t;
 private:
     size_t d_bufSz;
 public:
+    ay::xhtml_parser_state::xhtml_mode_t    d_xhtmlMode; // ay::xhtml_parser_state::MODE_XXX (HTML - default or XHTML)
+    load_mode_t                             d_loadMode; // one of LOAD_MODE_XXX constants LOAD_MODE_TEXT - default
+
     PhraseBreaker& phraser() { return d_phraser; }
     const PhraseBreaker& phraser() const  { return d_phraser; }
 

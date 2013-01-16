@@ -46,17 +46,19 @@ struct xhtml_parser_state {
     };
     int d_cbReason;
 
-    enum {
+    typedef enum {
         MODE_HTML,
         MODE_XHTML
-    };
-    int d_mode; // MODE_HTML 
+    } xhtml_mode_t;
+    xhtml_mode_t d_mode; // MODE_HTML 
 
+    xhtml_parser_state& setMode( xhtml_mode_t m) { return (d_mode = m,*this); }
     void setModeHtml() { d_mode = MODE_HTML; }
     bool isModeHtml() const { return d_mode == MODE_HTML; }
     void setModeXhtml() { d_mode = MODE_XHTML; }
     bool isModeXhtml() const { return d_mode == MODE_XHTML; }
-
+    
+    bool isCallbackText( ) const { return d_cbReason ==CB_TEXT ; }
     inline static bool isHtmlTagAlwaysComplete( const char* lt, const char* gt ) 
     {
         while( *lt == '<' || *lt == '/' ) ++lt ; 
@@ -68,6 +70,9 @@ struct xhtml_parser_state {
             c1 = (c0 && isalpha(lt[1]) ? (len=2,lt[1]) : 0),
             c2 = (c1 && isalpha(lt[2]) ? (len=3,lt[2]) : 0);
 
+        if( c2 && isalnum(lt[3]) ) 
+            len = 4; // at least 4
+
         if( len == 2 ) { // 2 letter tags 
             if( c1 == 'r' || c1=='R' ) // bR hR
                 return (c0 == 'b' || c0=='B' || c0 =='h' || c0=='H');
@@ -75,7 +80,10 @@ struct xhtml_parser_state {
                 return (c0 =='h' || c0=='H');
             else 
                 return false;
-        } 
+        }  else if( len == 3 ) {
+            if( !strncasecmp( lt, "img", 3) )
+                return true;
+        }
         return false;
     }
     xhtml_parser_state( std::istream& fp, size_t bufSz = DEFAULT_BUF_SZ ) : 
@@ -104,6 +112,20 @@ public:
         d_cbTagClose(cCB),
         d_cbTxt(txtCB)
     {}
+
+    xhtml_parser( CB& ocb, CB& ccb, CB& tcb, const xhtml_parser_state& state ) :
+        xhtml_parser_state(state),
+        d_cbTagOpen(ocb),
+        d_cbTagClose(ccb),
+        d_cbTxt(tcb)
+    { }
+
+    xhtml_parser( CB& cb, const xhtml_parser_state& state ) :
+        xhtml_parser_state(state),
+        d_cbTagOpen(cb),
+        d_cbTagClose(cb),
+        d_cbTxt(cb)
+    { }
 
     xhtml_parser( std::istream& fp, CB& cb, size_t bufSz = xhtml_parser_state::DEFAULT_BUF_SZ ) : 
         xhtml_parser_state(fp,bufSz ) ,
