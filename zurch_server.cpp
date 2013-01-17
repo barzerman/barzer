@@ -7,16 +7,13 @@ namespace zurch {
 
 std::ostream& DocIdxSearchResponseXML::print( std::ostream& os, const DocFeatureIndex::DocWithScoreVec_t& docVec ) const 
 {
-    ay::tag_raii( os, "zurch" );
+    ay::tag_raii zurchRaii( os, "zurch" );
     for( auto i= docVec.begin(); i!= docVec.end() ; ++i ) {
-        std::stringstream sstr;
         const char* docName = d_ixl.getDocName(i->first);
-        sstr << "n=\"";
+		os << "<doc n=\"";
         if( docName ) 
-            ay::XMLStream(sstr).escape(docName);
-        sstr << "\"";
-        sstr << "s=\"" << i->second << "\"";
-        ay::tag_raii( os, "doc", sstr.str().c_str() );
+            ay::XMLStream(os).escape(docName);
+        os << "\" s=\"" << i->second << "\"/>\n";
     }
     return os;
 }
