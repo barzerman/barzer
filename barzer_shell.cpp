@@ -418,7 +418,31 @@ static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in )
         std::cerr << "ZurchIndex not initialized\n";
         return 0;
     }
-    const zurch::DocFeatureIndex& index = loader->index();
+	
+	// here we want a copy since we modify/etc it
+	auto index = loader->index();
+	
+	ay::InputLineReader reader(in);
+	while (reader.nextLine() && !reader.str.empty())
+	{
+		barz.clear();
+		QuestionParm qparm;
+		context->parser.tokenize_only( barz, reader.str.c_str(), qparm );
+		context->parser.lex_only( barz, qparm );
+		context->parser.semanticize_only( barz, qparm );
+		
+		zurch::ExtractedDocFeature::Vec_t extracted;
+		index.getFeaturesFromBarz(extracted, barz, index.internStems());
+		zurch::DocFeatureIndex::DocWithScoreVec_t scores;
+		index.findDocument(scores, extracted);
+		
+		for (size_t i = 0; i < std::min(static_cast<size_t>(10), scores.size()); ++i)
+		{
+			const auto& doc = scores[i];
+			const char *docName = loader->getDocNameById(doc.first);
+			std::cout << (docName ? docName : "<no name>") << ": " << doc.second << std::endl;
+		}
+	}
 
     return 0;
 }
@@ -444,12 +468,13 @@ static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
      
     std::cerr << "***** INDEX STATS:\n";
     index.printStats( std::cerr );
-    std::cerr << "***** END OF INDEX STATS:\n";
+    std::cerr << "***** END OF INDEX STATS\n";
     
     std::stringstream sstr; 
     sstr << "shell_idx_" << std::hex << context->getUniverse().getUserId() << ".dix";
     std::string dixFileName( sstr.str() );
 
+	/*
     {
     std::cerr << "Serializing to " << dixFileName << std::endl;
     std::ofstream dixFile;
@@ -463,6 +488,7 @@ static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
     dixFile.open( dixFileName.c_str() );
     index.deserialize( dixFile );
     }
+    */
     return 0;
 }
 static int bshf_lex( BarzerShell* shell, char_cp cmd, std::istream& in )
