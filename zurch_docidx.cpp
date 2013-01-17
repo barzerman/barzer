@@ -319,7 +319,7 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, con
 			if (pos == doc2score.end())
 				pos = doc2score.insert({ link.docId, 0 }).first;
 			
-			pos->second += classBoost * (link.weight * (1 + std::log(link.count))) / numSources;
+			pos->second += classBoost * ((1 + link.weight) * (1 + std::log(link.count))) / numSources;
 		}
 	}
 	
