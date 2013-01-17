@@ -432,7 +432,7 @@ static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in )
 		context->parser.semanticize_only( barz, qparm );
 		
 		zurch::ExtractedDocFeature::Vec_t extracted;
-		index.getFeaturesFromBarz(extracted, barz, index.internStems());
+		index.fillFeatureVecFromQueryBarz(extracted, barz);
 		zurch::DocFeatureIndex::DocWithScoreVec_t scores;
 		index.findDocument(scores, extracted);
 		
