@@ -185,8 +185,11 @@ int   DocFeatureIndex::fillFeatureVecFromQueryBarz( ExtractedDocFeature::Vec_t& 
 int   DocFeatureIndex::getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz, bool needToInternStems ) 
 {
     const barzer::StoredUniverse* universe = barz.getUniverse() ;
-    if( !universe ) 
+    if( !universe )
+	{
+		AYLOG(ERROR) << "universe for the barz should be set";
         return 0;
+	}
     
     size_t curOffset =0;
 
@@ -436,7 +439,7 @@ int DocFeatureIndex::deserialize( std::istream& fp )
 
 std::ostream& DocFeatureIndex::printStats( std::ostream& fp ) const 
 {
-    return fp << d_invertedIdx.size();
+    return fp << "Inverse index size: " << d_invertedIdx.size() << std::endl;
 }
 
 DocFeatureLoader::~DocFeatureLoader() {}
