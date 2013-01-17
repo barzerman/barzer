@@ -24,6 +24,8 @@ bool ZurchSettings::loadIndex( const boost::property_tree::ptree& pt )
     if( !dixl )  /// this should never happen
         return false;
     DocIndexLoaderNamedDocs* loader = dixl->getLoader(); 
+	
+	dixl->getIndex()->setInternStems();
 
     if( const boost::optional< const::ptree &> x = pt.get_child_optional("phraser") ) 
         (*this)( loader->phraser(), x.get() );
