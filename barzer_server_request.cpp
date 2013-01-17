@@ -386,21 +386,28 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
     const zurch::DocIndexAndLoader* ixl = u.getZurchIndex( d_zurchDocIdxId );
     if( !ixl || !ixl->getIndex() ) {
         if( ret == XML_TYPE )
-		os << "<error>invalid zurch index id " << d_zurchDocIdxId << "for universe " << userId << "</error>\n";
+		os << "<error>invalid zurch index id " << d_zurchDocIdxId << " for universe " << userId << "</error>\n";
         else if( ret == JSON_TYPE ) 
             os<< "{ error: 'invalid zurch index id'" << d_zurchDocIdxId << "'}" ;
 
 		return;
     }
-    zurch::DocFeatureIndex::DocWithScoreVec_t docVec; 
+    
+    barz.clear();
+
 	QuestionParm qparm;
     QParser qparser(u);
 
-    qparser.parse( barz, query, qparm );
+	std::cout << "handling '" << query << "'" << std::endl;
+	qparser.tokenize_only( barz, query, qparm );
+	qparser.lex_only( barz, qparm );
+	qparser.semanticize_only( barz, qparm );
     
     const zurch::DocFeatureIndex* index = ixl->getIndex();
+	
     zurch::ExtractedDocFeature::Vec_t featureVec;
-    if( index ->fillFeatureVecFromQueryBarz( featureVec, barz ) ) 
+	zurch::DocFeatureIndex::DocWithScoreVec_t docVec;  
+    if( index->fillFeatureVecFromQueryBarz( featureVec, barz ) ) 
         index->findDocument( docVec, featureVec );
 
     if( ret == XML_TYPE ) {
