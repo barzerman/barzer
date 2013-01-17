@@ -112,8 +112,9 @@ class DocFeatureIndex {
     
     const double d_classBoosts[DocFeature::CLASS_MAX];
 
-    int   getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz, bool needToInternStems );
 public:
+	int   getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz, bool needToInternStems );
+	
     enum {
         BIT_INTERN_STEMS,  /// interns all stems ergardless of whether or not they had been stored as literals in barzer Universe
 
