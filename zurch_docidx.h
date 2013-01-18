@@ -4,6 +4,11 @@
 #include <ay/ay_pool_with_id.h>
 #include <barzer_parse.h>
 #include <boost/filesystem.hpp>
+#include <boost/unordered_set.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <zurch_phrasebreaker.h>
+#include <ay/ay_tag_markup_parser.h>
+
 
 namespace zurch {
 
@@ -23,7 +28,10 @@ struct DocFeature {
 
     typedef enum : uint8_t {
         CLASS_ENTITY,
-        CLASS_TOKEN
+        CLASS_TOKEN, /// legitimate token known to the barzer Universe
+        CLASS_STEM, /// low grade token stem not known to barzer Universe 
+
+        CLASS_MAX
     } class_t;
     class_t featureClass;
 
@@ -33,7 +41,7 @@ struct DocFeature {
     int serialize( std::ostream& ) const;
     int deserialize( std::istream& );
     
-    bool isClassValid() const { return ( featureClass >= CLASS_ENTITY && featureClass <= CLASS_TOKEN ); }
+    bool isClassValid() const { return ( featureClass >= CLASS_ENTITY && featureClass < CLASS_MAX ); }
     bool isValid() const { return (featureId!= 0xffffffff || isClassValid() ); }
 
     typedef DocFeature Id_t;
@@ -72,15 +80,17 @@ struct ExtractedDocFeature {
 struct DocFeatureLink {
     uint32_t docId; 
     int      weight; /// -1000000, +100000 - negative means disassociation , 0 - neutral association, positive - boost
-    uint32_t position;  /// some 1 dimensional positional number for feature within doc (can be middle between begin and end offset, or phrase number) 
+    
+    // we don't use it yet, and if we'd use we'd still need something more advanced
+    //uint32_t position;  /// some 1 dimensional positional number for feature within doc (can be middle between begin and end offset, or phrase number) 
     uint32_t count; /// count of the feature in the doc 
     
-    DocFeatureLink() : docId(0xffffffff), weight(0), position(0), count(0) {}
-    DocFeatureLink(uint32_t i) : docId(i), weight(0), position(0), count(0) {}
-    DocFeatureLink(uint32_t i, int w ) : docId(i), weight(w), position(0), count(0) {}
-    DocFeatureLink(uint32_t i, int w, uint32_t p ) : docId(i), weight(w), position(p), count(0) {}
+    DocFeatureLink() : docId(0xffffffff), weight(0), count(0) {}
+    DocFeatureLink(uint32_t i) : docId(i), weight(0),count(0) {}
+    DocFeatureLink(uint32_t i, int w ) : docId(i), weight(w), count(0) {}
     
     typedef std::vector< DocFeatureLink > Vec_t;
+	typedef boost::unordered_set< DocFeatureLink > Set_t;
 
     int serialize( std::ostream& ) const;
     int deserialize( std::istream& );
@@ -99,7 +109,21 @@ class DocFeatureIndex {
     ay::InternerWithId<barzer::BarzerEntity> d_entPool; // internal representation of entities
 
     DocFeatureIndexHeuristics d_heuristics; // /never 0 - guaranteed too be initialized in constructor
+    
+    const double d_classBoosts[DocFeature::CLASS_MAX];
+
 public:
+	int   getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz, bool needToInternStems );
+	
+    enum {
+        BIT_INTERN_STEMS,  /// interns all stems ergardless of whether or not they had been stored as literals in barzer Universe
+
+        BIT_MAX
+    };
+    ay::bitflags<BIT_MAX> d_bits;
+    
+    bool internStems( ) const { return d_bits.check( BIT_INTERN_STEMS ); }
+    void setInternStems( bool x=true ) { d_bits.set( BIT_INTERN_STEMS, x ); }
 
     /// given an entity from the universe returns internal representation of the entity 
     /// if it can be found and null entity (isValid() == false) otherwise
@@ -116,13 +140,13 @@ public:
     uint32_t resolveExternalString( const char* str ) const { return d_stringPool.getId(str); }
     uint32_t resolveExternalString( const barzer::BarzerLiteral&, const barzer::StoredUniverse& u ) const;
 
-    int serializeVec( std::ostream&, const DocFeatureLink::Vec_t& v ) const; 
-    int deserializeVec( std::istream&, const DocFeatureLink::Vec_t& v );
-
     DocFeatureIndex();
     ~DocFeatureIndex();
     
     /// returns the number of counted features 
+
+    int   fillFeatureVecFromQueryBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz ) const;
+
     size_t appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t&, size_t posOffset );
     size_t appendDocument( uint32_t docId, const barzer::Barz&, size_t posOffset  );
 
@@ -132,12 +156,17 @@ public:
     typedef std::pair< uint32_t, double > DocWithScore_t;
     typedef std::vector< DocWithScore_t > DocWithScoreVec_t;
 
-    void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f );
+    void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f ) const;
+
+    void findDocument( DocWithScoreVec_t&, const char* query, const barzer::QuestionParm& qparm ) const;
 
     int serialize( std::ostream& fp ) const;
     int deserialize( std::istream& fp ); 
 
     std::ostream& printStats( std::ostream& ) const ;
+
+    friend class ZurchSettings;    
+    // bool loadProperties( const boost::property_tree::ptree& );
 };
 
 /// objects to process actual documents and load them into an index
@@ -147,11 +176,24 @@ class DocFeatureLoader {
     barzer::QParser                       d_parser;
     DocFeatureIndex&                      d_index;
     barzer::Barz                          d_barz;
+    PhraseBreaker                         d_phraser;
+
 public:
     enum : size_t  { DEFAULT_BUF_SZ = 1024*128 };
+    typedef enum { 
+        LOAD_MODE_TEXT, // plain text
+        LOAD_MODE_XHTML, // something tagged (XHTML or HTML)
+        LOAD_MODE_AUTO // UNIMPLEMENTED tries to automatically decide between txt and tags  
+    } load_mode_t;
 private:
     size_t d_bufSz;
 public:
+    ay::xhtml_parser_state::xhtml_mode_t    d_xhtmlMode; // ay::xhtml_parser_state::MODE_XXX (HTML - default or XHTML)
+    load_mode_t                             d_loadMode; // one of LOAD_MODE_XXX constants LOAD_MODE_TEXT - default
+
+    PhraseBreaker& phraser() { return d_phraser; }
+    const PhraseBreaker& phraser() const  { return d_phraser; }
+
     enum { MAX_QUERY_LEN = 1024*64, MAX_NUM_TOKENS = 1024*32 };
      
     DocFeatureIndex& index() { return d_index; }
@@ -186,13 +228,15 @@ public:
         d_parser.lex_only( d_barz, d_qparm );
         d_parser.semanticize_only( d_barz, d_qparm );
     }
+    friend class ZurchSettings;    
+    // virtual bool loadProperties( const boost::property_tree::ptree& );
 };
 
-class DocFeatureIndexFilesystem : public DocFeatureLoader {
+class DocIndexLoaderNamedDocs : public DocFeatureLoader {
     ay::UniqueCharPool d_docnamePool; // both internal strings and literals will be in the pool 
 public: 
-    DocFeatureIndexFilesystem( DocFeatureIndex& index, const barzer::StoredUniverse& u  );
-    ~DocFeatureIndexFilesystem( );
+    DocIndexLoaderNamedDocs( DocFeatureIndex& index, const barzer::StoredUniverse& u  );
+    ~DocIndexLoaderNamedDocs( );
     
     uint32_t addDocName( const char* docName ) { return d_docnamePool.internIt(docName); }
     uint32_t getDocIdByName( const char* s ) const { return d_docnamePool.getId( s ); }
@@ -205,20 +249,45 @@ public:
             BIT_MAX
         };
         ay::bitflags<BIT_MAX> d_bits;
-    };
-    void addAllFilesAtPath( const char* path, const LoaderOptions& opt );
+    } d_loaderOpt;
+
+    LoaderOptions& loaderOpt() { return d_loaderOpt; }
+    const LoaderOptions& loaderOpt() const { return d_loaderOpt; }
+
+    void addAllFilesAtPath( const char* path );
     
     /// filesystem iterator callback 
     struct fs_iter_callback {
-        DocFeatureIndexFilesystem& index;
+        DocIndexLoaderNamedDocs& index;
         bool usePureFileNames; /// when true (default) only file name (no path) is used. this is good when all file names are unique
 
-        fs_iter_callback( DocFeatureIndexFilesystem& idx ) : index(idx), usePureFileNames(true) {}
+        fs_iter_callback( DocIndexLoaderNamedDocs& idx ) : index(idx), usePureFileNames(true) {}
 
         bool operator()( boost::filesystem::directory_iterator& di, size_t depth );
     };
+    friend class ZurchSettings;    
+    // virtual bool loadProperties( const boost::property_tree::ptree& );
 };
 
+class DocIndexAndLoader {
+    DocFeatureIndex*           index;
+    DocIndexLoaderNamedDocs* loader;
+public:
+    DocIndexAndLoader() : index(0), loader(0) {}
+
+    DocFeatureIndex* getIndex() { return index; }
+    const DocFeatureIndex* getIndex() const { return index; }
+    DocIndexLoaderNamedDocs* getLoader() { return loader; }
+    const DocIndexLoaderNamedDocs* getLoader() const { return loader; }
+
+    const char* getDocName ( uint32_t id ) const
+        { return loader->getDocNameById( id ); }
+    
+    void init( const barzer::StoredUniverse& u );
+    void destroy() { delete loader; delete index; loader = 0; index = 0;}
+
+    void addAllFilesAtPath( const char* path ) { loader->addAllFilesAtPath(path); }
+};
 
 // CB must have operator()( Barz& )
 struct BarzTokPrintCB {
@@ -247,7 +316,7 @@ struct BarzerTokenizerCB {
     std::string queryBuf; 
 
     BarzerTokenizerCB( CB& cb, barzer::QParser& p, barzer::Barz& b, const barzer::QuestionParm& qp ) : callback(cb), parser(p), barz(b), qparm(qp), count(0) {}
-    void operator()( const char* s, size_t s_len ) { 
+    void operator()( const char* s, size_t s_len, const PhraseBreakerState& state) { 
         ++count;
         queryBuf.assign( s, s_len );
         barz.clear();
@@ -256,59 +325,5 @@ struct BarzerTokenizerCB {
     }
 };
 typedef BarzerTokenizerCB<BarzTokPrintCB> PrintStringCB;
-
-struct PhraseBreaker {
-    std::vector< char > buf;
-    
-    bool d_breakOnPunctSpace; /// when true 
-    PhraseBreaker( ) : 
-        buf( zurch::DocFeatureLoader::DEFAULT_BUF_SZ ), 
-        d_breakOnPunctSpace(true) {}
-
-    bool breakOnPunctuation( const char* s ) 
-    {
-        return( d_breakOnPunctSpace && ( ispunct(*s) && s[1] ==' ' ) );
-    }
-    // breaks the buffer into phrases . callback is invoked for each phrase
-    // phrase delimiter is a new line character 
-    // returns the size  of the processed text
-    template <typename CB>
-    size_t breakBuf( CB& cb, const char* str, size_t str_sz ) 
-    {
-        const char *s_to = str;
-        for( const char* s_from=str, *s_end = str+str_sz; s_to <= s_end && s_from< s_end; ) {
-            char c = *s_to;
-            if( c  == '\n' || c == '\r' || c=='(' || c==')' || c=='\t' || c ==';' || (c ==' '&&s_to[1]=='.'&&s_to[2]==' ') || 
-                breakOnPunctuation(s_to) 
-            ) {
-                if( s_to> s_from ) 
-                    cb( s_from, s_to-s_from );
-                s_from = ++s_to;
-            } else
-                ++s_to;
-        }
-        return s_to-str;
-    }
-
-    template <typename CB>
-    void breakStream( CB& cb, std::istream& fp ) 
-    {
-        size_t curOffset = 0;
-        while( true ) {
-            size_t bytesRead = fp.readsome( &(buf[curOffset]), (buf.size()-curOffset-1) );
-            if( !bytesRead )   
-                return;
-            if( bytesRead < buf.size() ) {
-                buf[ bytesRead ] = 0;
-                size_t endOffset = breakBuf(cb, &(buf[curOffset]), bytesRead );
-                if( endOffset < bytesRead ) { /// something is left over
-                    for( size_t dest = 0, src = endOffset; src< bytesRead; ++src, ++dest ) 
-                        buf[dest] = buf[src];
-                }
-                curOffset= bytesRead-endOffset;
-            } 
-        }
-    }
-};
 
 } // namespace zurch 

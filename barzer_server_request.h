@@ -86,7 +86,21 @@ private:
     /// unique query id 
     uint64_t       d_queryId;
 	ReturnType ret;
+    
 public:
+    uint32_t d_zurchDocIdxId; /// which zurch index to use - this  id is used to get a specific ZurchIUndex from global Pools
+
+    /// zurch doc indices uniquely correspond to the pair (userId,zurchDocIdxId)
+    enum class QType {
+        BARZER, /// default
+        ZURCH
+    } d_queryType; /// 
+
+    bool isQueryTypeBarzer() const { return (d_queryType == QType::BARZER); }
+    bool isQueryTypeZurch() const { return (d_queryType == QType::ZURCH); }
+    void     setQueryType( QType qt ){ d_queryType = qt; }
+    QType getQueryType( ) const { return d_queryType; }
+
     bool isQueryIdValid() const { return std::numeric_limits<uint64_t>::max() != d_queryId; }
 
     bool isXmlInvalid() const { return d_xmlIsInvalid; }
@@ -140,6 +154,7 @@ public:
 	void process(const char *name);
 	/// query is already stripped of the 
 	void raw_query_parse( const char* query);
+	void raw_query_parse_zurch( const char* query, const StoredUniverse& );
 	void raw_autoc_parse( const char* query, QuestionParm& qparm );
 
 	void tag_autoc(RequestTag&);

@@ -781,6 +781,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
     bool            isTwoByteLang = Lang::isTwoByteLang(lang);
 	bool            isAsciiToken = ( lang == LANG_ENGLISH );
 	std::string     ascifiedT;
+    bool hasUpperCase = false;
 
 	// bool startWithSpelling = true;
 	const BZSpell*  bzSpell = d_universe.getBZSpell();
@@ -829,11 +830,12 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
         char buf[ 32 ];
 		strncpy( buf, theString, sizeof(buf) );
 		buf[ sizeof(buf)-1 ] = 0;
-        bool hasUpperCase = Lang::convertToLower( buf, strlen(buf), lang );
+        hasUpperCase = Lang::convertToLower( buf, strlen(buf), lang );
         if( hasUpperCase ) {
             // bzSpell->isUsersWord( usersWordStrId, t ) 
             // uint32_t usersWordStrId = 0xffffffff;
 		    // const StoredToken* tmpTok = ( bzSpell->isUsersWord( usersWordStrId, buf ) ? dtaIdx->getStoredToken( buf ) : 0 );
+            ttok.normBuf = buf;
 		    const StoredToken* tmpTok = getStoredToken( buf ); 
             if( tmpTok ) {
                 ctok.storedTok = tmpTok;
@@ -850,6 +852,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
         }
     }
 	char buf[ BZSpell::MAX_WORD_LEN ] ;
+    buf[0] = 0;
 	// trying lower case
 	if( !isUsersWord ) {
 	    if( gp.isWordInDictionary(strId) ) {
@@ -874,20 +877,22 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 		    buf[ sizeof(buf)-1 ] = 0;
             size_t buf_len=strlen(buf);
             if( lang == LANG_ENGLISH ) {
-		        bool hasUpperCase = Lang::convertToLower( buf, buf_len, lang);
+		        hasUpperCase = Lang::convertToLower( buf, buf_len, lang);
 		        theString = buf;
 		        if( hasUpperCase ) {
 			        isUsersWord =  bzSpell->isUsersWord( strId, theString ) ;
-		        }
-
+                    ttok.normBuf = buf;
+                }
 		        if( !isUsersWord && isupper(theString[0]) ) {
 			        ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
 			        return SpellCorrectResult (0, ++cPosVec, ++tPosVec);
 		        }
             } else if(isTwoByteLang) { // russian or another strictly 2 byte language
-                bool hasUpperCase = Lang::convertTwoByteToLower( buf, buf_len, lang );
-                if( hasUpperCase )
+                hasUpperCase = Lang::convertTwoByteToLower( buf, buf_len, lang );
+                if( hasUpperCase ) {
                     isUsersWord =  bzSpell->isUsersWord( strId, buf ) ;
+                    ttok.normBuf = buf;
+                }
                 theString = buf;
             } else { /// normal utf8 (variable length utf8 chars)
                 if(d_universe.checkBit(StoredUniverse::UBIT_NOSTRIP_DIACTITICS)) {
@@ -895,9 +900,11 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
                     buf[ sizeof(buf)-1 ] = 0;
                     buf_len = strlen(buf);
                 }
-                bool hasUpperCase = Lang::convertUtf8ToLower( buf, buf_len, lang );
-                if( hasUpperCase )
+                hasUpperCase = Lang::convertUtf8ToLower( buf, buf_len, lang );
+                if( hasUpperCase ) {
                     isUsersWord =  bzSpell->isUsersWord( strId, buf ) ;
+                    ttok.normBuf = buf;
+                }
                 theString = buf;
             }
         }
@@ -1037,8 +1044,8 @@ int QLexParser::singleTokenClassify_space( Barz& barz, const QuestionParm& qparm
 		    /// stemming
 		    if( (!isNumber && bzSpell) ) {
 
-			    std::string stem;
-                const StoredToken* stemTok = bzSpell->stem_utf8_punct( stem, barz.getQuestionOrigUTF8(), ttok );
+			    // std::string stem;
+                const StoredToken* stemTok = bzSpell->stem_utf8_punct( ctok.stem, barz.getQuestionOrigUTF8(), ttok );
 				if( stemTok ) 
 				{
 					if (d_universe.checkBit(StoredUniverse::UBIT_LEX_STEMPUNCT))
@@ -1206,13 +1213,13 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 		        /// stemming
 		        if( shouldStem || (!isNumber && bzSpell && tmpCtok.isString() && d_universe.stemByDefault() && !tmpCtok.getStemTok()) ) 
                 {
-			        std::string strToStem( ttok.buf );
-			        std::string stem;
+			        std::string strToStem( ttok.normBuf.length() ? ttok.normBuf : ttok.buf ); 
+			        // std::string stem;
                     int lang = LANG_UNKNOWN;
                     const StoredToken* partialWordTok = dtaIdx->getStoredToken( strToStem.c_str() );
-                    bool gotStemmed = bzSpell->stem(stem, strToStem.c_str(), lang) ;
+                    bool gotStemmed = bzSpell->stem(tmpCtok.stem, strToStem.c_str(), lang) ;
 
-                    const StoredToken* stemTok = ( gotStemmed ? dtaIdx->getStoredToken( stem.c_str() )  : partialWordTok );
+                    const StoredToken* stemTok = ( gotStemmed ? dtaIdx->getStoredToken( tmpCtok.stem.c_str() )  : partialWordTok );
                      
                     if( !stemTok ) {
                         /// here we could not find a good stem for the original token 
@@ -1222,9 +1229,9 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
                                 const char* x = d_universe.resolveStoredTok( *(tmpCtok.getStoredTok()) );
                                 if( x ) {
                                     strToStem.assign( x );
-                                    gotStemmed = bzSpell->stem(stem, strToStem.c_str(), lang) ;
+                                    gotStemmed = bzSpell->stem(tmpCtok.stem, strToStem.c_str(), lang) ;
                                     if( gotStemmed )
-                                        stemTok = dtaIdx->getStoredToken( stem.c_str() );
+                                        stemTok = dtaIdx->getStoredToken( tmpCtok.stem.c_str() );
                                 }
                             }
                         }
@@ -1234,16 +1241,22 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
                         if( stemTok != tmpCtok.getStemTok() )
                             tmpCtok.setStemTok( stemTok );
                     } else {
-
+                        std::string dedupeStr;
                         enum { MIN_DEDUPE_LENGTH = 5 };
                         std::string dedupedStem;
-                        if( bzSpell->dedupeChars( stem, strToStem.c_str(), strToStem.length(), lang, MIN_DEDUPE_LENGTH ) && stem.length() ) { 
-                            stemTok = dtaIdx->getStoredToken( stem.c_str() ) ;
+                        if( bzSpell->dedupeChars( dedupeStr, strToStem.c_str(), strToStem.length(), lang, MIN_DEDUPE_LENGTH ) && dedupeStr.length() ) { 
+                            stemTok = dtaIdx->getStoredToken( dedupeStr.c_str() ) ;
                             if( stemTok && stemTok != tmpCtok.getStemTok() )
                                 tmpCtok.setStemTok( stemTok );
+                            if( !tmpCtok.stem.length() ) 
+                                tmpCtok.stem = dedupedStem;
                         }
+
                     }
 		        }
+                if( !tmpCtok.stem.length() && ttok.normBuf.length() )   
+                    tmpCtok.stem=ttok.normBuf;
+
                 tmpCtok.syncStemAndStoredTok(d_universe);
             }
 		}

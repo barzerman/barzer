@@ -20,6 +20,8 @@
 #include <barzer_el_cast.h>
 #include <boost/lexical_cast.hpp>
 #include <barzer_server.h>
+#include <zurch_docidx.h>
+#include <zurch_server.h>
 
 extern "C" {
 
@@ -159,7 +161,9 @@ BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s, uint3
     d_xmlIsInvalid(false),
     d_barzXMLParser(0),
     d_queryId( std::numeric_limits<uint64_t>::max() ),
-    ret(XML_TYPE)
+    ret(XML_TYPE),
+    d_zurchDocIdxId(0xffffffff),
+    d_queryType(QType::BARZER)
 {
     parser = XML_ParserCreate(NULL);
     XML_SetUserData(parser, this);
@@ -377,19 +381,63 @@ void BarzerRequestParser::raw_autoc_parse( const char* query, QuestionParm& qpar
     barz.clearWithTraceAndTopics();
 }
 
+void BarzerRequestParser::raw_query_parse_zurch( const char* query, const StoredUniverse& u )
+{
+    const zurch::DocIndexAndLoader* ixl = u.getZurchIndex( d_zurchDocIdxId );
+    if( !ixl || !ixl->getIndex() ) {
+        if( ret == XML_TYPE )
+		os << "<error>invalid zurch index id " << d_zurchDocIdxId << " for universe " << userId << "</error>\n";
+        else if( ret == JSON_TYPE ) 
+            os<< "{ error: 'invalid zurch index id'" << d_zurchDocIdxId << "'}" ;
+
+		return;
+    }
+    
+    barz.clear();
+
+	QuestionParm qparm;
+    QParser qparser(u);
+
+	std::cout << "handling '" << query << "'" << std::endl;
+	qparser.tokenize_only( barz, query, qparm );
+	qparser.lex_only( barz, qparm );
+	qparser.semanticize_only( barz, qparm );
+    
+    const zurch::DocFeatureIndex* index = ixl->getIndex();
+	
+    zurch::ExtractedDocFeature::Vec_t featureVec;
+	zurch::DocFeatureIndex::DocWithScoreVec_t docVec;  
+    if( index->fillFeatureVecFromQueryBarz( featureVec, barz ) ) 
+        index->findDocument( docVec, featureVec );
+
+    if( ret == XML_TYPE ) {
+        zurch::DocIdxSearchResponseXML response( *ixl, barz ); 
+        response.print(os, docVec);
+    } else if ( ret == JSON_TYPE ) {
+        zurch::DocIdxSearchResponseJSON response( *ixl, barz ); 
+        response.print(os, docVec);
+    }
+}
+
 void BarzerRequestParser::raw_query_parse( const char* query)
 {
 	const GlobalPools& gp = gpools;
 	const StoredUniverse * up = gp.getUniverse(userId);
 	if( !up ) {
-		os << "<error>invalid user id " << userId << "</error>\n";
+        if( ret == XML_TYPE ) 
+		    os << "<error>invalid user id " << userId << "</error>\n";
+        else  if( ret == JSON_TYPE ) 
+            os<< "{ error: 'invalid user id'" << userId << "'}" ;
+            
 		return;
 	}
 	const StoredUniverse &u = *up;
+    if( d_queryType == QType::ZURCH ) {
+        raw_query_parse_zurch(query,u);
+        return;
+    }
 
 	QParser qparser(u);
-
-
 
 	QuestionParm qparm;
     if( d_aggressiveStem ) 
@@ -758,6 +806,9 @@ void BarzerRequestParser::tag_query(RequestTag &tag) {
         else if (i->first == "now" ) {
             if( RequestEnvironment* env = barz.getServerReqEnv() )
                 env->setNow( i->second );
+        } else if( i->first == "zurch" ) {
+            setQueryType( QType::ZURCH );
+            d_zurchDocIdxId = atoi(i->second.c_str());
         }
     }
 

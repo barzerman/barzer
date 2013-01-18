@@ -1,8 +1,8 @@
-#ifndef AY_XML_UTIL_H
-#define AY_XML_UTIL_H
-
+#pragma  once
 #include <string>
 #include <iostream>
+#include <vector>
+#include <ay_util.h>
 /// char string utilities 
 namespace ay {
 /// ensures that stream receives properly escaped XML
@@ -36,5 +36,68 @@ inline XMLStream& operator<<(XMLStream& vs, XMLStream::IOS_PF pf )
 inline XMLStream& operator<<(XMLStream& vs, XMLStream::IOS_BASE_PF pf ) 
 { return (pf((vs.os)),vs); }
 
+struct tag_raii {
+	std::ostream &os;
+	std::vector<const char*> tags;
+
+	tag_raii(std::ostream &s) : os(s) {}
+	tag_raii(std::ostream &s, const char *tag, const char* attr = 0) : os(s) 
+        { push(tag,attr); }
+	operator std::ostream&() { return os; }
+
+	void push(const char *tag, const char* attr=0 ) {
+		os << "<" << tag << ( attr ? attr : "" ) << ">";
+		tags.push_back(tag);
+	}
+
+	~tag_raii() {
+		size_t i = tags.size();
+		while(i--) {
+			os << "</" << tags.back() << ">";
+			tags.pop_back();
+		}
+	}
+};
+
+struct json_raii {
+    std::ostream& d_fp;
+    size_t d_count, d_depth;
+
+    bool d_isArray; /// when false this is an object
+
+    bool isArray() const { return d_isArray; }
+    bool isObject() const { return !d_isArray; }
+    std::ostream& getFP() { return d_fp; }
+
+    json_raii( std::ostream& fp, bool arr, size_t depth ) : 
+        d_fp(fp), d_count(0), d_depth(depth),d_isArray(arr)  
+        { d_fp << ( isArray() ? "[" : "{" ); }
+    
+    ~json_raii() 
+        { d_fp << ( isArray() ? "]" : "}" ); }
+    
+    std::ostream& indent(std::ostream& fp) 
+    {
+        for( size_t i=0; i< d_depth; ++i ) fp << "    ";
+        return fp;
+    }
+    std::ostream& startFieldNoindent( const char* f="" ) 
+    {
+        d_fp << (d_count++ ? ", ": "");
+        return ( isArray() ? d_fp : ay::jsonEscape( f, d_fp<< "\"") << "\": " );
+    }
+    std::ostream& startField( const char* f, bool noNewLine=false ) 
+    {
+        if( !d_count && !noNewLine)
+            d_fp << "\n";
+        indent( d_fp << (d_count++ ? (noNewLine ? ",":",\n"):"") );
+        return ( isArray() ? d_fp : ay::jsonEscape( f, d_fp<< "\"") << "\": " );
+    }
+
+    std::ostream& addKeyVal( const char* k, const char* v ) 
+        { return startField(k) << "\"" << v << "\""; }
+    std::ostream& addKeyValNoIndent( const char* k, const char* v ) 
+        { return startFieldNoindent(k) << "\"" << v << "\""; }
+    size_t getDepth() const { return d_depth; }
+};
 } // ay namespace ends 
-#endif // AY_XML_UTIL_H 

@@ -27,6 +27,7 @@
 #include <string.h>
 
 #include <zurch_docidx.h>
+#include <zurch_phrasebreaker.h>
 #include <ay_filesystem.h>
 
 #include <boost/regex.hpp>
@@ -325,14 +326,124 @@ static int bshf_dir( BarzerShell* shell, char_cp cmd, std::istream& in )
     std::string dirName(".");
     std::string patternString;
     const char* pattern = 0;
-    if( in >> patternString )
+    if( !(in >> dirName) )
+        dirName= ".";
+    else { 
+        in >> patternString;
         pattern = patternString.c_str();
-
+    }
     std::ifstream fp;
     const char* path = dirName.c_str();
 
-    zurch::DocFeatureIndex docIndex;
     ay::dir_list( std::cerr, path, true, pattern );
+    return 0;
+}
+static int bshf_phrase( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+    std::string fileName;
+    if( !(in >> fileName ) ) {
+        std::cerr << "must specify file name file \n";
+        return 0;
+    }
+    std::ifstream inFile;
+    inFile.open(fileName.c_str() );
+    if( !inFile.is_open() ) {
+        std::cerr << "coiuldnt open file " << fileName << std::endl;
+        return 0;
+    }
+    zurch::PhraseBreaker phraser; 
+	QuestionParm qparm;
+
+    zurch::BarzTokPrintCB printCb( std::cerr );
+	BarzerShellContext * context = shell->getBarzerContext();
+	Barz& barz = context->barz;
+    zurch::PrintStringCB cb( printCb, context->parser, barz, qparm );
+    phraser.addSingleCharDelimiters( "?!;.,", true );
+    zurch::PhraseDelimiterData* dd = phraser.getDelimiterData(".");
+    if( dd ) {
+        dd->addNoPreceed( "тов" );
+    }
+    phraser.breakStream( cb, inFile );
+
+    return 0;
+}
+static int bshf_zurch_old( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext * context = shell->getBarzerContext();
+	Barz& barz = context->barz;
+	QParser& parser = context->parser;
+	const StoredUniverse &uni = context->getUniverse();
+
+    RequestEnvironment& reqEnv = context->reqEnv;
+    RequestVariableMap& reqEnvVar = reqEnv.getReqVar();
+    
+    const BarzerString* tokenMode = reqEnv.getVarVal<BarzerString>( "tokmode" );
+    const char* sepString = ( tokenMode ?  tokenMode->c_str() : 0 );
+
+    zurch::ZurchTokenizer zt( sepString );
+    
+    /// 
+    zurch::ZurchTokenVec tokVec;
+    char buf[ 1024 ];
+    RuBastardizeHeuristic      bastardizer( &context->getUniverse().getGlobalPools() );
+    zurch::ZurchWordNormalizer::NormalizerEnvironment normEnv(&bastardizer);
+    zurch::ZurchWordNormalizer znorm(context->getUniverse().getBZSpell());
+
+    std::string normStr;
+    while( fgets( buf,sizeof(buf)-1,stdin) && buf[0] != '\n') {
+        size_t buf_sz = strlen(buf)-1;
+        buf[ buf_sz ] =0;
+        tokVec.clear();
+        zt.tokenize( tokVec, buf, buf_sz );
+        for( auto i = tokVec.begin(); i!= tokVec.end(); ++i ) {
+            normEnv.clear();
+            znorm.normalize( normStr, i->str.c_str(), normEnv );
+            std::cerr<< (i-tokVec.begin()) << ":" << *i << " norm \"" << normStr << "\"" << std::endl;
+        }
+    }
+    return 0;
+}
+
+static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in )
+{
+	BarzerShellContext * context = shell->getBarzerContext();
+	Barz& barz = context->barz;
+
+    if( !context->d_zurchFS.getIndex() ) {
+        std::cerr << "Zurch Doc Index is not initialized\n";
+        return 0;
+    }
+    const zurch::DocIndexLoaderNamedDocs* loader = context->d_zurchFS.getLoader();
+    if( !loader ) {
+        std::cerr << "ZurchIndex not initialized\n";
+        return 0;
+    }
+	
+	// here we want a copy since we modify/etc it
+	auto index = loader->index();
+	
+	ay::InputLineReader reader(in);
+	while (reader.nextLine() && !reader.str.empty())
+	{
+		barz.clear();
+		QuestionParm qparm;
+		context->parser.tokenize_only( barz, reader.str.c_str(), qparm );
+		context->parser.lex_only( barz, qparm );
+		context->parser.semanticize_only( barz, qparm );
+		
+		zurch::ExtractedDocFeature::Vec_t extracted;
+		index.fillFeatureVecFromQueryBarz(extracted, barz);
+		zurch::DocFeatureIndex::DocWithScoreVec_t scores;
+		index.findDocument(scores, extracted);
+		
+		for (size_t i = 0; i < std::min(static_cast<size_t>(10), scores.size()); ++i)
+		{
+			const auto& doc = scores[i];
+			const char *docName = loader->getDocNameById(doc.first);
+			std::cout << (docName ? docName : "<no name>") << ": " << doc.second << std::endl;
+		}
+	}
+
     return 0;
 }
 static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
@@ -340,8 +451,7 @@ static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
 	BarzerShellContext * context = shell->getBarzerContext();
 	Barz& barz = context->barz;
 
-    zurch::DocFeatureIndex docIndex;
-    zurch::DocFeatureLoader docLoader( docIndex, context->getUniverse() );
+    context->d_zurchFS.init( context->getUniverse() );
 
     std::string fileName;
     std::ifstream fp;
@@ -351,20 +461,34 @@ static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
     }
 
     std::ifstream inFile;
-    /*
-    inFile.open(fileName.c_str() );
-    zurch::PhraseBreaker phraser; 
-	QuestionParm qparm;
-
-    zurch::BarzTokPrintCB printCb( std::cerr );
-    zurch::PrintStringCB cb( printCb, context->parser, barz, qparm );
-    phraser.breakStream( cb, inFile );
-    */
-    zurch::DocFeatureIndex index;
-    zurch::DocFeatureIndexFilesystem::LoaderOptions ldrOpt;
-    zurch::DocFeatureIndexFilesystem fsIndex( index, context->getUniverse() );
-    fsIndex.addAllFilesAtPath( fileName.c_str(), ldrOpt );
+    zurch::DocFeatureIndex& index = *(context->d_zurchFS.getIndex());
+    index.setInternStems();
+    zurch::DocIndexLoaderNamedDocs& fsIndex = *(context->d_zurchFS.getLoader());
+    fsIndex.addAllFilesAtPath( fileName.c_str() );
      
+    std::cerr << "***** INDEX STATS:\n";
+    index.printStats( std::cerr );
+    std::cerr << "***** END OF INDEX STATS\n";
+    
+    std::stringstream sstr; 
+    sstr << "shell_idx_" << std::hex << context->getUniverse().getUserId() << ".dix";
+    std::string dixFileName( sstr.str() );
+
+	/*
+    {
+    std::cerr << "Serializing to " << dixFileName << std::endl;
+    std::ofstream dixFile;
+    dixFile.open( dixFileName.c_str() );
+    index.serialize( dixFile );
+    }
+
+    {
+    std::cerr << "Deserializing from " << dixFileName << std::endl;
+    std::ifstream dixFile;
+    dixFile.open( dixFileName.c_str() );
+    index.deserialize( dixFile );
+    }
+    */
     return 0;
 }
 static int bshf_lex( BarzerShell* shell, char_cp cmd, std::istream& in )
@@ -957,43 +1081,6 @@ struct ShellState {
 };
 
 } // anon namespace ends
-
-static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in )
-{
-	BarzerShellContext * context = shell->getBarzerContext();
-	Barz& barz = context->barz;
-	QParser& parser = context->parser;
-	const StoredUniverse &uni = context->getUniverse();
-
-    RequestEnvironment& reqEnv = context->reqEnv;
-    RequestVariableMap& reqEnvVar = reqEnv.getReqVar();
-    
-    const BarzerString* tokenMode = reqEnv.getVarVal<BarzerString>( "tokmode" );
-    const char* sepString = ( tokenMode ?  tokenMode->c_str() : 0 );
-
-    zurch::ZurchTokenizer zt( sepString );
-    
-    /// 
-    zurch::ZurchTokenVec tokVec;
-    char buf[ 1024 ];
-    RuBastardizeHeuristic      bastardizer( &context->getUniverse().getGlobalPools() );
-    zurch::ZurchWordNormalizer::NormalizerEnvironment normEnv(&bastardizer);
-    zurch::ZurchWordNormalizer znorm(context->getUniverse().getBZSpell());
-
-    std::string normStr;
-    while( fgets( buf,sizeof(buf)-1,stdin) && buf[0] != '\n') {
-        size_t buf_sz = strlen(buf)-1;
-        buf[ buf_sz ] =0;
-        tokVec.clear();
-        zt.tokenize( tokVec, buf, buf_sz );
-        for( auto i = tokVec.begin(); i!= tokVec.end(); ++i ) {
-            normEnv.clear();
-            znorm.normalize( normStr, i->str.c_str(), normEnv );
-            std::cerr<< (i-tokVec.begin()) << ":" << *i << " norm \"" << normStr << "\"" << std::endl;
-        }
-    }
-    return 0;
-}
 
 static int bshf_universe( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
@@ -1702,6 +1789,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_env, "env", "set request environment parameter. usage: env [name [value]]" ),
 	CmdData( (ay::Shell_PROCF)bshf_dtaan, "dtaan", "data set analyzer. runs through the trie" ),
 	CmdData( (ay::Shell_PROCF)bshf_dir, "dir", "dir listing" ),
+	CmdData( (ay::Shell_PROCF)bshf_phrase, "phrase", "breaks file into phrases - test driver for phrasebreaker" ),
 	CmdData( (ay::Shell_PROCF)bshf_doc, "doc", "doc loader doc filename" ),
 	CmdData( (ay::Shell_PROCF)bshf_instance, "instance", "lists all users in the instance" ),
 	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),

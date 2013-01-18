@@ -97,7 +97,9 @@ else()
 	set(EXTRA_LIBS ${EXTRA_LIBS} ${EXPAT_LIBRARIES})
 endif()
 
-set(SOURCES barzer_json_output.cpp 
+set(SOURCES barzer_universe.cpp 
+            barzer_global_pools.cpp 
+            barzer_json_output.cpp 
             barzer_el_cast.cpp
             barzer_meaning.cpp 
             barzer_tokenizer.cpp 
@@ -134,7 +136,6 @@ set(SOURCES barzer_json_output.cpp
             barzer_shell.cpp
             barzer_storage_types.cpp
             barzer_token.cpp
-            barzer_universe.cpp
             barzer_bzspell.cpp
             barzer_autocomplete.cpp
             barzer_emitter.cpp
@@ -146,8 +147,11 @@ set(SOURCES barzer_json_output.cpp
 			barzer_spellheuristics.cpp
 			barzer_geoindex.cpp
 			barzer_spell_features.cpp
+            zurch_server.cpp
+            zurch_settings.cpp
             zurch_classifier.cpp
             zurch_docidx.cpp
+            zurch_phrasebreaker.cpp
             zurch_tokenizer.cpp
 			autotester/barzer_at_autotester.cpp
 			autotester/barzer_at_comparators.cpp
