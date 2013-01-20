@@ -311,7 +311,6 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 			else
 				res = makeReal(joinInts(m_tokens), frac);
 
-			// std::cout << __PRETTY_FUNCTION__ << " " << res.getRealWiden() << std::endl;
 			CToken *resTok = m_tokens[0];
 			resTok->setNumber(res);
 
@@ -526,9 +525,9 @@ struct QLexParser_LocalParms {
         PosedVec<CTWPVec>& cPosVec;
         PosedVec<TTWPVec>& tPosVec;
         const QuestionParm& qparm;
-        const size_t& t_len;
-        const uint32_t& strId;
-        const int& lang;
+        const size_t t_len;
+        const uint32_t strId;
+        const int lang;
         const char* theString;
         const BZSpell* bzSpell;
 	    CToken& ctok;
@@ -539,9 +538,9 @@ struct QLexParser_LocalParms {
                 PosedVec<CTWPVec>& p_cPosVec, 
                 PosedVec<TTWPVec>& p_tPosVec, 
                 const QuestionParm& p_qparm, 
-                const size_t& p_t_len, 
-                const uint32_t& p_strId, 
-                const int& p_lang, 
+                const size_t p_t_len, 
+                const uint32_t p_strId, 
+                const int p_lang, 
                 const char* p_theString,
                 const BZSpell* p_bzSpell,
                 CToken& p_ctok,
@@ -638,9 +637,9 @@ inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexPa
     PosedVec<CTWPVec>& cPosVec      = parm.cPosVec;
     PosedVec<TTWPVec>& tPosVec      = parm.tPosVec;
     // const QuestionParm& qparm       = parm.qparm;
-    const size_t& t_len             = parm.t_len;
-    const uint32_t& strId           = parm.strId;
-    const int& lang                 = parm.lang;
+    const size_t t_len             = parm.t_len;
+    const uint32_t strId           = parm.strId;
+    const int lang                 = parm.lang;
     const char* theString           = parm.theString;
     const BZSpell* bzSpell          = parm.bzSpell;
 	CToken& ctok                    = parm.ctok;
