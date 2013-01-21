@@ -11,7 +11,7 @@ namespace km
 	bool engToRus(const char *eng, size_t size, std::string& rus)
 	{
 		bool converted = false;
-		rus.reserve(size);
+		rus.reserve(size * 2);
 		for (size_t i = 0; i < size; ++i)
 		{
 			const char ch = eng[i];
@@ -21,8 +21,7 @@ namespace km
 
 			rus.append(ycuken[pos - qwerty], 2);
 
-			if (!converted && ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')))
-				converted = true;
+			converted = true;
 		}
 
 		return converted;
