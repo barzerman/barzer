@@ -64,38 +64,14 @@ const char* noun_23_truevowel[]        = {"ом","ой","ою","ах","ов","а
 const char* verb_2[]        = {"ил" ,"ят", "ит", "ал" ,"ол","ел","ыл","ул","ся","им","ет", "ут","ёт",  0};
 const char* adj_2[]         = {"ий" ,"ое" , "ых", "ые","ый","ым","ой","ие","их","им","ыя","ия", "ая",0};
 
-// noun suffixes 
-
-typedef std::pair<const char*,const char*> const_char_pair_t;
-
-inline bool operator< ( const const_char_pair_t& l, const const_char_pair_t& r ) 
-    { return (strcasecmp( l.first, r.first )<0); }
-
-const_char_pair_t str_exceptions[] = {
-    const_char_pair_t("недели","недел"),
-    const_char_pair_t("память","памят")
-};
-
-struct const_char_pair_t_comp {
-bool operator()( const const_char_pair_t& l, const const_char_pair_t& r ) const
-    { return (l< r); }
-
-};
-
 inline const char* get_exception_stem( const char* s )
 {
-    std::pair<const const_char_pair_t*,const const_char_pair_t*> i = 
-        std::equal_range(
-            ARR_BEGIN(str_exceptions), 
-            ARR_END(str_exceptions),
-            const_char_pair_t(s,0),
-            const_char_pair_t_comp());
-
-    if( i.first!= i.second ) {
-        return i.first->second;
-    } else {
-        return 0;
-    }
+	if (!strcmp(s, "недели"))
+		return "недель";
+	else if (!strcmp(s, "память"))
+		return "памят";
+	else
+		return 0;
 }
 
 }
