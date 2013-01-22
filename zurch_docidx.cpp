@@ -512,6 +512,7 @@ size_t DocFeatureLoader::addDocFromStream( uint32_t docId, std::istream& fp, Doc
 
     parser().tokenizer.setMax( MAX_QUERY_LEN, MAX_NUM_TOKENS );
     parser().lexer.setMaxCTokensPerQuery( MAX_NUM_TOKENS/2 );
+	parser().lexer.setDontSpell(true);
 
     BarzerTokenizerCB<DocAdderCB> cb( adderCb, parser(), barz(), qparm() );
 
@@ -529,6 +530,8 @@ size_t DocFeatureLoader::addDocFromStream( uint32_t docId, std::istream& fp, Doc
     }
         
     stats = adderCb.stats;
+	
+	parser().lexer.setDontSpell(false);
 
     return stats.numBeads;
 }

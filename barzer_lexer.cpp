@@ -767,6 +767,9 @@ inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexPa
 
 SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPosVec, PosedVec<TTWPVec> tPosVec, const QuestionParm& qparm)
 {
+	if (m_dontSpell)
+		return SpellCorrectResult (0, ++cPosVec, ++tPosVec);
+	
 	CToken& ctok = cPosVec.element().first;
 	TToken& ttok = tPosVec.element().first;
 

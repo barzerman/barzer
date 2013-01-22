@@ -51,6 +51,8 @@ class QLexParser {
 	QLangLexer langLexer;
 	const DtaIndex* dtaIdx;
 	const StoredUniverse& d_universe;
+	
+	bool m_dontSpell;
 
 	void collapseCTokens( CTWPVec::iterator beg, CTWPVec::iterator end );
 public:
@@ -105,8 +107,11 @@ private:
 
 	bool tryClassify_number( CToken&, const TToken&  ) const;
 	bool tryClassify_integer( CToken&, const TToken&  ) const;
+	
 public:
-	QLexParser( const StoredUniverse& u, const DtaIndex * di=0) : dtaIdx(di), d_universe(u), d_maxCtokensPerQuery(MAX_CTOKENS_PER_QUERY) {}
+	void setDontSpell(bool dont) { m_dontSpell = dont; }
+	
+	QLexParser( const StoredUniverse& u, const DtaIndex * di=0) : dtaIdx(di), d_universe(u), m_dontSpell(false), d_maxCtokensPerQuery(MAX_CTOKENS_PER_QUERY) {}
     void setMaxCTokensPerQuery( size_t sz ) { d_maxCtokensPerQuery= sz; }
 
 	enum {
