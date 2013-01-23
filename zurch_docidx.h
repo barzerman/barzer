@@ -70,6 +70,8 @@ public:
 	
 	const size_t size() const { return m_features.size(); }
 	
+	const T& operator[](size_t pos) const { return m_features[pos]; }
+	
 	decltype(m_maxClass) getClass() const { return m_maxClass; }
 };
 

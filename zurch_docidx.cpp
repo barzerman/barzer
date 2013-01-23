@@ -185,6 +185,21 @@ namespace
 				}
 			}
 		}
+		
+		const auto unigramCount = featureVec.size();
+		for (size_t gramSize = 2; gramSize < 4; ++gramSize)
+		{
+			if (unigramCount + 1 > gramSize)
+				for (size_t i = 0; i < unigramCount - gramSize + 1; ++i)
+				{
+					const auto& source = featureVec[i];
+					
+					ExtractedDocFeature gram(source.feature[0], source.docPos);
+					for (size_t gc = 1; gc < gramSize; ++gc)
+						gram.feature.add(featureVec[i + gc].feature[0]);
+					featureVec.push_back(gram);
+				}
+		}
 		return featureVec.size();
 	}
 }
