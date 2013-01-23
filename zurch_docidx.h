@@ -43,14 +43,25 @@ struct DocFeature {
     
     bool isClassValid() const { return ( featureClass >= CLASS_ENTITY && featureClass < CLASS_MAX ); }
     bool isValid() const { return (featureId!= 0xffffffff || isClassValid() ); }
-
-    typedef DocFeature Id_t;
 };
 
 inline bool operator< ( const DocFeature& l, const DocFeature& r ) 
 {
     return( l.featureClass == r.featureClass ? (l.featureId < r.featureId) : l.featureClass < r.featureClass );
 }
+
+template<typename T>
+class NGram
+{
+	std::vector<T> m_features;
+public:
+	explicit NGram(const T& f) : m_features({ f }) {}
+	
+	void add(const T& f) { m_features.push_back(f); }
+	
+	const std::vector<T>& getFeatures() const { return m_features; }
+};
+
 //// position  and weight of feature in the document
 struct FeatureDocPosition {
     std::pair< uint32_t, uint32_t > offset; /// begin and end byte offsets
@@ -98,11 +109,20 @@ struct DocFeatureLink {
 
 inline bool operator < ( const DocFeatureLink& l, const DocFeatureLink& r ) 
     { return ( l.weight == r.weight ? (l.docId< r.docId): r.weight< l.weight ); }
-
+    
+struct StatItem
+{
+	/// human-readable text
+	std::string m_hrText;
+	
+	/// a list of stats, like top ngrams
+	std::vector<std::string> m_values;
+};
+    
 /// document id - uint32_t 
 /// feature id  - uint32_t 
 class DocFeatureIndex {
-    typedef std::map< DocFeature::Id_t,  DocFeatureLink::Vec_t > InvertedIdx_t;
+    typedef std::map< DocFeature,  DocFeatureLink::Vec_t > InvertedIdx_t;
     InvertedIdx_t d_invertedIdx;
 
     ay::UniqueCharPool d_stringPool; // both internal strings and literals will be in the pool 
@@ -121,7 +141,7 @@ public:
         BIT_MAX
     };
     ay::bitflags<BIT_MAX> d_bits;
-    
+
     bool internStems( ) const { return d_bits.check( BIT_INTERN_STEMS ); }
     void setInternStems( bool x=true ) { d_bits.set( BIT_INTERN_STEMS, x ); }
 
@@ -135,7 +155,7 @@ public:
     /// place external entity into the pool (add all relevant strings to pool as well)
     uint32_t storeExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u );
 
-    uint32_t storeExternalString( const char*, const barzer::StoredUniverse& u );
+    uint32_t storeExternalString( const char*);
     uint32_t storeExternalString( const barzer::BarzerLiteral&, const barzer::StoredUniverse& u );
     uint32_t resolveExternalString( const char* str ) const { return d_stringPool.getId(str); }
     uint32_t resolveExternalString( const barzer::BarzerLiteral&, const barzer::StoredUniverse& u ) const;

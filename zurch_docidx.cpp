@@ -110,7 +110,7 @@ uint32_t DocFeatureIndex::storeExternalEntity( const barzer::BarzerEntity& ent, 
     return d_entPool.produceIdByObj( newEnt );
 }
 
-uint32_t DocFeatureIndex::storeExternalString( const char* s, const barzer::StoredUniverse& u )
+uint32_t DocFeatureIndex::storeExternalString( const char* s )
 {
     return d_stringPool.internIt(s);
 }
@@ -130,113 +130,79 @@ uint32_t DocFeatureIndex::resolveExternalString( const barzer::BarzerLiteral& l,
         return 0xffffffff;
 }
 
-int   DocFeatureIndex::fillFeatureVecFromQueryBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz ) const
+namespace
 {
-    const barzer::StoredUniverse* universe = barz.getUniverse() ;
-    if( !universe ) 
-        return 0;
-    
-    size_t curOffset =0;
-
-    for( auto i = barz.getBeadList().begin(); i!= barz.getBeadList().end(); ++i, ++curOffset ) {
-        if( const barzer::BarzerLiteral* x = i->get<barzer::BarzerLiteral>() ) {
-            uint32_t strId = resolveExternalString( *x, *universe );
-            featureVec.push_back( 
-                ExtractedDocFeature( 
-                    DocFeature( DocFeature::CLASS_TOKEN, strId ), 
-                    FeatureDocPosition(curOffset)
-                ) 
-            );
-        } else if( const barzer::BarzerEntity* x = i->getEntity() ) {
-            uint32_t entId = resolveExternalEntity( *x, *universe );
-            featureVec.push_back( 
-                ExtractedDocFeature( 
-                    DocFeature( DocFeature::CLASS_ENTITY, entId ), 
-                    FeatureDocPosition(curOffset)
-                ) 
-            );
-        } else if( const barzer::BarzerEntityList* x = i->getEntityList() ) {
-            for (barzer::BarzerEntityList::EList::const_iterator li = x->getList().begin();li != x->getList().end(); ++li) {
-                uint32_t entId = resolveExternalEntity( *li, *universe );
-                featureVec.push_back( 
-                    ExtractedDocFeature( 
-                        DocFeature( DocFeature::CLASS_ENTITY, entId ), 
-                        FeatureDocPosition(curOffset)
-                    ) 
-                );
-            }
-        } else { 
-            const barzer::BarzerString* s = i->get<barzer::BarzerString>();
-            if( s ) {
-                const char* theString = (s->stemStr().length() ? s->stemStr().c_str(): s->getStr().c_str());
-                uint32_t strId = d_stringPool.getId(theString); 
-                featureVec.push_back( 
-                    ExtractedDocFeature( 
-                        DocFeature( DocFeature::CLASS_STEM, strId ), 
-                        FeatureDocPosition(curOffset)
-                    ) 
-                );
-            }
-        }
-    }
-    return featureVec.size();
-    return 0;
-}
-int   DocFeatureIndex::getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz, bool needToInternStems ) 
-{
-    const barzer::StoredUniverse* universe = barz.getUniverse() ;
-    if( !universe )
+	template<typename IndexType, typename EntGetter, typename StringGetter, typename RawStringGetter>
+	int vecFiller(IndexType idx,
+			EntGetter getEnt, StringGetter getStr, RawStringGetter getRawStr,
+			ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz)
 	{
-		AYLOG(ERROR) << "universe for the barz should be set";
-        return 0;
-	}
-    
-    size_t curOffset =0;
+		const barzer::StoredUniverse* universe = barz.getUniverse() ;
+		if( !universe ) 
+			return 0;
+		
+		size_t curOffset =0;
 
-    for( auto i = barz.getBeadList().begin(); i!= barz.getBeadList().end(); ++i, ++curOffset ) {
-        if( const barzer::BarzerLiteral* x = i->get<barzer::BarzerLiteral>() ) {
-            uint32_t strId = storeExternalString( *x, *universe );
-            featureVec.push_back( 
-                ExtractedDocFeature( 
-                    DocFeature( DocFeature::CLASS_TOKEN, strId ), 
-                    FeatureDocPosition(curOffset)
-                ) 
-            );
-        } else if( const barzer::BarzerEntity* x = i->getEntity() ) {
-            uint32_t entId = storeExternalEntity( *x, *universe );
-            featureVec.push_back( 
-                ExtractedDocFeature( 
-                    DocFeature( DocFeature::CLASS_ENTITY, entId ), 
-                    FeatureDocPosition(curOffset)
-                ) 
-            );
-        } else if( const barzer::BarzerEntityList* x = i->getEntityList() ) {
-            for (barzer::BarzerEntityList::EList::const_iterator li = x->getList().begin();li != x->getList().end(); ++li) {
-                uint32_t entId = storeExternalEntity( *li, *universe );
-                featureVec.push_back( 
-                    ExtractedDocFeature( 
-                        DocFeature( DocFeature::CLASS_ENTITY, entId ), 
-                        FeatureDocPosition(curOffset)
-                    ) 
-                );
-            }
-        } else { 
-            if( needToInternStems ) {
-                const barzer::BarzerString* s = i->get<barzer::BarzerString>();
-                if( s ) {
-                    const char* theString = (s->stemStr().length() ? s->stemStr().c_str(): s->getStr().c_str());
-                    uint32_t strId = const_cast<DocFeatureIndex*>(this)->storeExternalString( theString, *universe );
-                    featureVec.push_back( 
-                        ExtractedDocFeature( 
-                            DocFeature( DocFeature::CLASS_STEM, strId ), 
-                            FeatureDocPosition(curOffset)
-                        ) 
-                    );
-                }
-            }
-        }
-    }
-    return featureVec.size();
+		for( auto i = barz.getBeadList().begin(); i!= barz.getBeadList().end(); ++i, ++curOffset ) {
+			if( const barzer::BarzerLiteral* x = i->get<barzer::BarzerLiteral>() ) {
+				uint32_t strId = (idx->*getStr)( *x, *universe );
+				featureVec.push_back( 
+					ExtractedDocFeature( 
+						DocFeature( DocFeature::CLASS_TOKEN, strId ), 
+						FeatureDocPosition(curOffset)
+					) 
+				);
+			} else if( const barzer::BarzerEntity* x = i->getEntity() ) {
+				uint32_t entId = (idx->*getEnt)( *x, *universe );
+				featureVec.push_back( 
+					ExtractedDocFeature( 
+						DocFeature( DocFeature::CLASS_ENTITY, entId ), 
+						FeatureDocPosition(curOffset)
+					) 
+				);
+			} else if( const barzer::BarzerEntityList* x = i->getEntityList() ) {
+				for (barzer::BarzerEntityList::EList::const_iterator li = x->getList().begin();li != x->getList().end(); ++li) {
+					uint32_t entId = (idx->*getEnt)( *li, *universe );
+					featureVec.push_back( 
+						ExtractedDocFeature( 
+							DocFeature( DocFeature::CLASS_ENTITY, entId ), 
+							FeatureDocPosition(curOffset)
+						) 
+					);
+				}
+			} else { 
+				const barzer::BarzerString* s = i->get<barzer::BarzerString>();
+				if( s ) {
+					const char* theString = (s->stemStr().length() ? s->stemStr().c_str(): s->getStr().c_str());
+					uint32_t strId = (idx->*getRawStr)(theString);//d_stringPool.getId(theString); 
+					featureVec.push_back( 
+						ExtractedDocFeature( 
+							DocFeature( DocFeature::CLASS_STEM, strId ), 
+							FeatureDocPosition(curOffset)
+						) 
+					);
+				}
+			}
+		}
+		return featureVec.size();
+	}
+}
+
+int DocFeatureIndex::fillFeatureVecFromQueryBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz ) const
+{
+	return vecFiller(this,
+			&DocFeatureIndex::resolveExternalEntity,
+			static_cast<uint32_t (DocFeatureIndex::*)(const barzer::BarzerLiteral&, const barzer::StoredUniverse&) const>(&DocFeatureIndex::resolveExternalString),
+			static_cast<uint32_t (DocFeatureIndex::*)(const char*) const>(&DocFeatureIndex::resolveExternalString),
+			featureVec, barz);
+}
+int DocFeatureIndex::getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz, bool needToInternStems ) 
+{
+	return vecFiller(this,
+			&DocFeatureIndex::storeExternalEntity,
+			static_cast<uint32_t (DocFeatureIndex::*)(const barzer::BarzerLiteral&, const barzer::StoredUniverse&)>(&DocFeatureIndex::storeExternalString),
+			static_cast<uint32_t (DocFeatureIndex::*)(const char*)>(&DocFeatureIndex::storeExternalString),
+			featureVec, barz);
 }
 
 size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz, size_t numBeads )
