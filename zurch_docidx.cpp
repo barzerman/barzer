@@ -271,6 +271,7 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, con
 			continue;
 		
 		const double classBoost = d_classBoosts[ngram.feature.getClass()];
+		const int sizeBoost = ngram.feature.size() * ngram.feature.size();
 		
 		const auto& sources = invertedPos->second;
 		
@@ -286,7 +287,7 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, con
 			if (pos == doc2score.end())
 				pos = doc2score.insert({ link.docId, 0 }).first;
 			
-			pos->second += classBoost * ((1 + link.weight) * (1 + std::log(link.count))) / numSources;
+			pos->second += sizeBoost * classBoost * ((1 + link.weight) * (1 + std::log(link.count))) / numSources;
 		}
 	}
 	

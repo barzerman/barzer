@@ -68,6 +68,8 @@ public:
 	
 	const std::vector<T>& getFeatures() const { return m_features; }
 	
+	const size_t size() const { return m_features.size(); }
+	
 	decltype(m_maxClass) getClass() const { return m_maxClass; }
 };
 
