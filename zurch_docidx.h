@@ -57,7 +57,8 @@ class NGram
 	decltype(T().featureClass) m_maxClass;
 public:
 	NGram() : m_maxClass(static_cast<decltype(m_maxClass)>(0)) {}
-	explicit NGram(const T& f) : m_features({ f }), m_maxClass(f.featureClass) {}
+	explicit NGram(const T& f) : m_maxClass(f.featureClass) 
+        { m_features.push_back( f ); }
 	
 	void add(const T& f)
 	{
