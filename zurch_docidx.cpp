@@ -5,6 +5,7 @@
 #include <boost/filesystem.hpp>
 #include <ay/ay_filesystem.h>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/concept_check.hpp>
 
 namespace zurch {
 
@@ -55,13 +56,13 @@ int FeatureDocPosition::deserialize( std::istream& fp )
 /// every document is a vector of ExtractedDocFeature 
 int ExtractedDocFeature::serialize( std::ostream& fp ) const
 {
-    feature.serialize(fp);
+    //feature.serialize(fp);
     docPos.serialize(fp << ",");
     return 0;
 }
 int ExtractedDocFeature::deserialize( std::istream& fp )
 {
-    feature.deserialize( fp );
+    //feature.deserialize( fp );
     char c;
     fp>> c;
     if( c!= ',' ) 
@@ -85,7 +86,7 @@ int DocFeatureLink::deserialize( std::istream& fp )
 }
 
 DocFeatureIndex::DocFeatureIndex() 
-: d_classBoosts{ 5, 1, 0.5 }
+: d_classBoosts{ 0.5, 1, 5 }
 {}
 
 DocFeatureIndex::~DocFeatureIndex() {}
@@ -263,13 +264,13 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, con
 {
 	std::map<uint32_t, double> doc2score;
 	
-	for (const auto& feature : fVec)
+	for (const auto& ngram : fVec)
 	{
-		const auto invertedPos = d_invertedIdx.find(feature.feature);
+		const auto invertedPos = d_invertedIdx.find(ngram.feature);
 		if (invertedPos == d_invertedIdx.end())
 			continue;
 		
-		const double classBoost = d_classBoosts[feature.feature.featureClass];
+		const double classBoost = d_classBoosts[ngram.feature.getClass()];
 		
 		const auto& sources = invertedPos->second;
 		
@@ -319,6 +320,7 @@ struct EntSerializer {
 } // anonymous namespace 
 int DocFeatureIndex::serialize( std::ostream& fp ) const
 {
+	/*
     fp << "BEGIN_STRINGPOOL\n";
     d_stringPool.serialize(fp);
     fp << "END_STRINGPOOL\n";
@@ -333,7 +335,7 @@ int DocFeatureIndex::serialize( std::ostream& fp ) const
     /// inverted index
     fp << "BEGIN_IDX\n";
     for( auto i = d_invertedIdx.begin(); i!= d_invertedIdx.end(); ++i ) {
-        i->first.serialize( fp << "F " << std::dec << i->second.size() << " ");
+        //i->first.serialize( fp << "F " << std::dec << i->second.size() << " ");
         fp << " [ ";
         /// serializing the vector for this feature
         const DocFeatureLink::Vec_t& vec = i->second; 
@@ -345,10 +347,12 @@ int DocFeatureIndex::serialize( std::ostream& fp ) const
         fp << " ]";
     }
     fp << "END_IDX\n";
+	*/
     return 0;
 }
 int DocFeatureIndex::deserialize( std::istream& fp )
 {
+	/*
     std::string tmp;
     if( !(fp>> tmp) || tmp != "BEGIN_STRINGPOOL" ) return 1;
     d_stringPool.deserialize(fp);
@@ -401,11 +405,47 @@ int DocFeatureIndex::deserialize( std::istream& fp )
         }
     }
     return errCount;
+	*/
+	return 0;
 }
 
 std::ostream& DocFeatureIndex::printStats( std::ostream& fp ) const 
 {
     return fp << "Inverse index size: " << d_invertedIdx.size() << std::endl;
+}
+
+StatItem DocFeatureIndex::getImportantFeatures(size_t count) const
+{
+	StatItem item;
+	item.m_hrText = "important features";
+	
+	typedef std::pair<NGram<DocFeature>, double> ScoredFeature_t;
+	std::vector<ScoredFeature_t> scores;
+	scores.reserve(d_invertedIdx.size());
+	for (const auto& pair : d_invertedIdx)
+	{
+		const auto& links = pair.second;
+		if (links.empty())
+			continue;
+		
+		// http://www.sureiscute.com/images/50360e401d41c87726000130.jpg :)
+		double score = 1;
+		for (const auto& link : links)
+			score *= link.count + 1;
+		score = score >= 1 ? std::log(score) / links.size() : 0;
+		
+		scores.push_back({ pair.first, score });
+	}
+	
+	std::sort(scores.begin(), scores.end(),
+			[] (const ScoredFeature_t& l, const ScoredFeature_t& r) { return l.second > r.second; });
+	
+	for (auto pos = scores.begin(), end = scores.begin() + std::min(count, scores.size()); pos != end; ++pos)
+	{
+		const auto& pair = *pos;
+	}
+	
+	return item;
 }
 
 DocFeatureLoader::~DocFeatureLoader() {}

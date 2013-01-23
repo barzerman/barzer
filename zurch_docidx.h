@@ -27,9 +27,9 @@ struct DocFeature {
     uint32_t featureId;
 
     typedef enum : uint8_t {
-        CLASS_ENTITY,
-        CLASS_TOKEN, /// legitimate token known to the barzer Universe
         CLASS_STEM, /// low grade token stem not known to barzer Universe 
+        CLASS_TOKEN, /// legitimate token known to the barzer Universe
+        CLASS_ENTITY,
 
         CLASS_MAX
     } class_t;
@@ -54,13 +54,39 @@ template<typename T>
 class NGram
 {
 	std::vector<T> m_features;
+	decltype(T().featureClass) m_maxClass;
 public:
-	explicit NGram(const T& f) : m_features({ f }) {}
+	NGram() : m_maxClass(static_cast<decltype(m_maxClass)>(0)) {}
+	explicit NGram(const T& f) : m_features({ f }), m_maxClass(f.featureClass) {}
 	
-	void add(const T& f) { m_features.push_back(f); }
+	void add(const T& f)
+	{
+		m_features.push_back(f);
+		if (f.featureClass > m_maxClass)
+			m_maxClass = f.featureClass;
+	}
 	
 	const std::vector<T>& getFeatures() const { return m_features; }
+	
+	decltype(m_maxClass) getClass() const { return m_maxClass; }
 };
+
+template<typename T>
+bool operator<(const NGram<T>& l, const NGram<T>& r)
+{
+	const auto& lv = l.getFeatures();
+	const auto& rv = r.getFeatures();
+	if (lv.size() != rv.size())
+		return lv.size() < rv.size();
+	
+	for (size_t i = 0; i < lv.size(); ++i)
+		if (lv[i] < rv[i])
+			return true;
+		else if (rv[i] < lv[i])
+			return false;
+		
+	return false;
+}
 
 //// position  and weight of feature in the document
 struct FeatureDocPosition {
@@ -74,7 +100,7 @@ struct FeatureDocPosition {
 };
 /// every document is a vector of ExtractedDocFeature 
 struct ExtractedDocFeature {
-    DocFeature feature;
+    NGram<DocFeature> feature;
     FeatureDocPosition docPos;
     ExtractedDocFeature( const DocFeature& f, const FeatureDocPosition& p ) : 
         feature(f), docPos(p) {}
@@ -122,7 +148,7 @@ struct StatItem
 /// document id - uint32_t 
 /// feature id  - uint32_t 
 class DocFeatureIndex {
-    typedef std::map< DocFeature,  DocFeatureLink::Vec_t > InvertedIdx_t;
+    typedef std::map< NGram<DocFeature>,  DocFeatureLink::Vec_t > InvertedIdx_t;
     InvertedIdx_t d_invertedIdx;
 
     ay::UniqueCharPool d_stringPool; // both internal strings and literals will be in the pool 
@@ -184,6 +210,8 @@ public:
     int deserialize( std::istream& fp ); 
 
     std::ostream& printStats( std::ostream& ) const ;
+	
+	StatItem getImportantFeatures(size_t count = 20) const;
 
     friend class ZurchSettings;    
     // bool loadProperties( const boost::property_tree::ptree& );
