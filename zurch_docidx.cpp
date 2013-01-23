@@ -5,6 +5,7 @@
 #include <boost/filesystem.hpp>
 #include <ay/ay_filesystem.h>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/concept_check.hpp>
 
 namespace zurch {
 
@@ -55,13 +56,13 @@ int FeatureDocPosition::deserialize( std::istream& fp )
 /// every document is a vector of ExtractedDocFeature 
 int ExtractedDocFeature::serialize( std::ostream& fp ) const
 {
-    feature.serialize(fp);
+    //feature.serialize(fp);
     docPos.serialize(fp << ",");
     return 0;
 }
 int ExtractedDocFeature::deserialize( std::istream& fp )
 {
-    feature.deserialize( fp );
+    //feature.deserialize( fp );
     char c;
     fp>> c;
     if( c!= ',' ) 
@@ -85,7 +86,7 @@ int DocFeatureLink::deserialize( std::istream& fp )
 }
 
 DocFeatureIndex::DocFeatureIndex() 
-: d_classBoosts{ 5, 1, 0.5 }
+: d_classBoosts{ 0.5, 1, 5 }
 {}
 
 DocFeatureIndex::~DocFeatureIndex() {}
@@ -110,7 +111,7 @@ uint32_t DocFeatureIndex::storeExternalEntity( const barzer::BarzerEntity& ent, 
     return d_entPool.produceIdByObj( newEnt );
 }
 
-uint32_t DocFeatureIndex::storeExternalString( const char* s, const barzer::StoredUniverse& u )
+uint32_t DocFeatureIndex::storeExternalString( const char* s )
 {
     return d_stringPool.internIt(s);
 }
@@ -130,113 +131,94 @@ uint32_t DocFeatureIndex::resolveExternalString( const barzer::BarzerLiteral& l,
         return 0xffffffff;
 }
 
-int   DocFeatureIndex::fillFeatureVecFromQueryBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz ) const
+namespace
 {
-    const barzer::StoredUniverse* universe = barz.getUniverse() ;
-    if( !universe ) 
-        return 0;
-    
-    size_t curOffset =0;
-
-    for( auto i = barz.getBeadList().begin(); i!= barz.getBeadList().end(); ++i, ++curOffset ) {
-        if( const barzer::BarzerLiteral* x = i->get<barzer::BarzerLiteral>() ) {
-            uint32_t strId = resolveExternalString( *x, *universe );
-            featureVec.push_back( 
-                ExtractedDocFeature( 
-                    DocFeature( DocFeature::CLASS_TOKEN, strId ), 
-                    FeatureDocPosition(curOffset)
-                ) 
-            );
-        } else if( const barzer::BarzerEntity* x = i->getEntity() ) {
-            uint32_t entId = resolveExternalEntity( *x, *universe );
-            featureVec.push_back( 
-                ExtractedDocFeature( 
-                    DocFeature( DocFeature::CLASS_ENTITY, entId ), 
-                    FeatureDocPosition(curOffset)
-                ) 
-            );
-        } else if( const barzer::BarzerEntityList* x = i->getEntityList() ) {
-            for (barzer::BarzerEntityList::EList::const_iterator li = x->getList().begin();li != x->getList().end(); ++li) {
-                uint32_t entId = resolveExternalEntity( *li, *universe );
-                featureVec.push_back( 
-                    ExtractedDocFeature( 
-                        DocFeature( DocFeature::CLASS_ENTITY, entId ), 
-                        FeatureDocPosition(curOffset)
-                    ) 
-                );
-            }
-        } else { 
-            const barzer::BarzerString* s = i->get<barzer::BarzerString>();
-            if( s ) {
-                const char* theString = (s->stemStr().length() ? s->stemStr().c_str(): s->getStr().c_str());
-                uint32_t strId = d_stringPool.getId(theString); 
-                featureVec.push_back( 
-                    ExtractedDocFeature( 
-                        DocFeature( DocFeature::CLASS_STEM, strId ), 
-                        FeatureDocPosition(curOffset)
-                    ) 
-                );
-            }
-        }
-    }
-    return featureVec.size();
-    return 0;
-}
-int   DocFeatureIndex::getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz, bool needToInternStems ) 
-{
-    const barzer::StoredUniverse* universe = barz.getUniverse() ;
-    if( !universe )
+	template<typename IndexType, typename EntGetter, typename StringGetter, typename RawStringGetter>
+	int vecFiller(IndexType idx,
+			EntGetter getEnt, StringGetter getStr, RawStringGetter getRawStr,
+			ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz)
 	{
-		AYLOG(ERROR) << "universe for the barz should be set";
-        return 0;
-	}
-    
-    size_t curOffset =0;
+		const barzer::StoredUniverse* universe = barz.getUniverse() ;
+		if( !universe ) 
+			return 0;
+		
+		size_t curOffset =0;
 
-    for( auto i = barz.getBeadList().begin(); i!= barz.getBeadList().end(); ++i, ++curOffset ) {
-        if( const barzer::BarzerLiteral* x = i->get<barzer::BarzerLiteral>() ) {
-            uint32_t strId = storeExternalString( *x, *universe );
-            featureVec.push_back( 
-                ExtractedDocFeature( 
-                    DocFeature( DocFeature::CLASS_TOKEN, strId ), 
-                    FeatureDocPosition(curOffset)
-                ) 
-            );
-        } else if( const barzer::BarzerEntity* x = i->getEntity() ) {
-            uint32_t entId = storeExternalEntity( *x, *universe );
-            featureVec.push_back( 
-                ExtractedDocFeature( 
-                    DocFeature( DocFeature::CLASS_ENTITY, entId ), 
-                    FeatureDocPosition(curOffset)
-                ) 
-            );
-        } else if( const barzer::BarzerEntityList* x = i->getEntityList() ) {
-            for (barzer::BarzerEntityList::EList::const_iterator li = x->getList().begin();li != x->getList().end(); ++li) {
-                uint32_t entId = storeExternalEntity( *li, *universe );
-                featureVec.push_back( 
-                    ExtractedDocFeature( 
-                        DocFeature( DocFeature::CLASS_ENTITY, entId ), 
-                        FeatureDocPosition(curOffset)
-                    ) 
-                );
-            }
-        } else { 
-            if( needToInternStems ) {
-                const barzer::BarzerString* s = i->get<barzer::BarzerString>();
-                if( s ) {
-                    const char* theString = (s->stemStr().length() ? s->stemStr().c_str(): s->getStr().c_str());
-                    uint32_t strId = const_cast<DocFeatureIndex*>(this)->storeExternalString( theString, *universe );
-                    featureVec.push_back( 
-                        ExtractedDocFeature( 
-                            DocFeature( DocFeature::CLASS_STEM, strId ), 
-                            FeatureDocPosition(curOffset)
-                        ) 
-                    );
-                }
-            }
-        }
-    }
-    return featureVec.size();
+		for( auto i = barz.getBeadList().begin(); i!= barz.getBeadList().end(); ++i, ++curOffset ) {
+			if( const barzer::BarzerLiteral* x = i->get<barzer::BarzerLiteral>() ) {
+				uint32_t strId = (idx->*getStr)( *x, *universe );
+				featureVec.push_back( 
+					ExtractedDocFeature( 
+						DocFeature( DocFeature::CLASS_TOKEN, strId ), 
+						FeatureDocPosition(curOffset)
+					) 
+				);
+			} else if( const barzer::BarzerEntity* x = i->getEntity() ) {
+				uint32_t entId = (idx->*getEnt)( *x, *universe );
+				featureVec.push_back( 
+					ExtractedDocFeature( 
+						DocFeature( DocFeature::CLASS_ENTITY, entId ), 
+						FeatureDocPosition(curOffset)
+					) 
+				);
+			} else if( const barzer::BarzerEntityList* x = i->getEntityList() ) {
+				for (barzer::BarzerEntityList::EList::const_iterator li = x->getList().begin();li != x->getList().end(); ++li) {
+					uint32_t entId = (idx->*getEnt)( *li, *universe );
+					featureVec.push_back( 
+						ExtractedDocFeature( 
+							DocFeature( DocFeature::CLASS_ENTITY, entId ), 
+							FeatureDocPosition(curOffset)
+						) 
+					);
+				}
+			} else { 
+				const barzer::BarzerString* s = i->get<barzer::BarzerString>();
+				if( s ) {
+					const char* theString = (s->stemStr().length() ? s->stemStr().c_str(): s->getStr().c_str());
+					uint32_t strId = (idx->*getRawStr)(theString);//d_stringPool.getId(theString); 
+					featureVec.push_back( 
+						ExtractedDocFeature( 
+							DocFeature( DocFeature::CLASS_STEM, strId ), 
+							FeatureDocPosition(curOffset)
+						) 
+					);
+				}
+			}
+		}
+		
+		const auto unigramCount = featureVec.size();
+		for (size_t gramSize = 2; gramSize < 4; ++gramSize)
+		{
+			if (unigramCount + 1 > gramSize)
+				for (size_t i = 0; i < unigramCount - gramSize + 1; ++i)
+				{
+					const auto& source = featureVec[i];
+					
+					ExtractedDocFeature gram(source.feature[0], source.docPos);
+					for (size_t gc = 1; gc < gramSize; ++gc)
+						gram.feature.add(featureVec[i + gc].feature[0]);
+					featureVec.push_back(gram);
+				}
+		}
+		return featureVec.size();
+	}
+}
+
+int DocFeatureIndex::fillFeatureVecFromQueryBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz ) const
+{
+	return vecFiller(this,
+			&DocFeatureIndex::resolveExternalEntity,
+			static_cast<uint32_t (DocFeatureIndex::*)(const barzer::BarzerLiteral&, const barzer::StoredUniverse&) const>(&DocFeatureIndex::resolveExternalString),
+			static_cast<uint32_t (DocFeatureIndex::*)(const char*) const>(&DocFeatureIndex::resolveExternalString),
+			featureVec, barz);
+}
+int DocFeatureIndex::getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz, bool needToInternStems ) 
+{
+	return vecFiller(this,
+			&DocFeatureIndex::storeExternalEntity,
+			static_cast<uint32_t (DocFeatureIndex::*)(const barzer::BarzerLiteral&, const barzer::StoredUniverse&)>(&DocFeatureIndex::storeExternalString),
+			static_cast<uint32_t (DocFeatureIndex::*)(const char*)>(&DocFeatureIndex::storeExternalString),
+			featureVec, barz);
 }
 
 size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz, size_t numBeads )
@@ -297,13 +279,14 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, con
 {
 	std::map<uint32_t, double> doc2score;
 	
-	for (const auto& feature : fVec)
+	for (const auto& ngram : fVec)
 	{
-		const auto invertedPos = d_invertedIdx.find(feature.feature);
+		const auto invertedPos = d_invertedIdx.find(ngram.feature);
 		if (invertedPos == d_invertedIdx.end())
 			continue;
 		
-		const double classBoost = d_classBoosts[feature.feature.featureClass];
+		const double classBoost = d_classBoosts[ngram.feature.getClass()];
+		const int sizeBoost = ngram.feature.size() * ngram.feature.size();
 		
 		const auto& sources = invertedPos->second;
 		
@@ -319,7 +302,7 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, con
 			if (pos == doc2score.end())
 				pos = doc2score.insert({ link.docId, 0 }).first;
 			
-			pos->second += classBoost * ((1 + link.weight) * (1 + std::log(link.count))) / numSources;
+			pos->second += sizeBoost * classBoost * ((1 + link.weight) * (1 + std::log(link.count))) / numSources;
 		}
 	}
 	
@@ -353,6 +336,7 @@ struct EntSerializer {
 } // anonymous namespace 
 int DocFeatureIndex::serialize( std::ostream& fp ) const
 {
+	/*
     fp << "BEGIN_STRINGPOOL\n";
     d_stringPool.serialize(fp);
     fp << "END_STRINGPOOL\n";
@@ -367,7 +351,7 @@ int DocFeatureIndex::serialize( std::ostream& fp ) const
     /// inverted index
     fp << "BEGIN_IDX\n";
     for( auto i = d_invertedIdx.begin(); i!= d_invertedIdx.end(); ++i ) {
-        i->first.serialize( fp << "F " << std::dec << i->second.size() << " ");
+        //i->first.serialize( fp << "F " << std::dec << i->second.size() << " ");
         fp << " [ ";
         /// serializing the vector for this feature
         const DocFeatureLink::Vec_t& vec = i->second; 
@@ -379,10 +363,12 @@ int DocFeatureIndex::serialize( std::ostream& fp ) const
         fp << " ]";
     }
     fp << "END_IDX\n";
+	*/
     return 0;
 }
 int DocFeatureIndex::deserialize( std::istream& fp )
 {
+	/*
     std::string tmp;
     if( !(fp>> tmp) || tmp != "BEGIN_STRINGPOOL" ) return 1;
     d_stringPool.deserialize(fp);
@@ -435,11 +421,47 @@ int DocFeatureIndex::deserialize( std::istream& fp )
         }
     }
     return errCount;
+	*/
+	return 0;
 }
 
 std::ostream& DocFeatureIndex::printStats( std::ostream& fp ) const 
 {
     return fp << "Inverse index size: " << d_invertedIdx.size() << std::endl;
+}
+
+StatItem DocFeatureIndex::getImportantFeatures(size_t count) const
+{
+	StatItem item;
+	item.m_hrText = "important features";
+	
+	typedef std::pair<NGram<DocFeature>, double> ScoredFeature_t;
+	std::vector<ScoredFeature_t> scores;
+	scores.reserve(d_invertedIdx.size());
+	for (const auto& pair : d_invertedIdx)
+	{
+		const auto& links = pair.second;
+		if (links.empty())
+			continue;
+		
+		// http://www.sureiscute.com/images/50360e401d41c87726000130.jpg :)
+		double score = 1;
+		for (const auto& link : links)
+			score *= link.count + 1;
+		score = score >= 1 ? std::log(score) / links.size() : 0;
+		
+		scores.push_back({ pair.first, score });
+	}
+	
+	std::sort(scores.begin(), scores.end(),
+			[] (const ScoredFeature_t& l, const ScoredFeature_t& r) { return l.second > r.second; });
+	
+	for (auto pos = scores.begin(), end = scores.begin() + std::min(count, scores.size()); pos != end; ++pos)
+	{
+		const auto& pair = *pos;
+	}
+	
+	return item;
 }
 
 DocFeatureLoader::~DocFeatureLoader() {}
