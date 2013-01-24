@@ -789,6 +789,8 @@ DEFINE_BELParserXML_taghandle(N)
 		return;
 	}
 	bool isReal = false, isRange = false;
+
+    bool rangeLoSet = false, rangeHiSet =false;
 	float flo=0., fhi = 0.;
 	int   ilo = 0, ihi = 0;
 	BTND_Pattern_Number pat; 
@@ -808,6 +810,7 @@ DEFINE_BELParserXML_taghandle(N)
 				ihi = atoi( v );
 				fhi = (float) ihi;
 			}
+            rangeHiSet = true;
 			break;
 		case 'l':
 			if( !isRange ) isRange = true;
@@ -820,6 +823,7 @@ DEFINE_BELParserXML_taghandle(N)
 				ilo = atoi( v );
 				flo = (float) ilo;
 			}
+            rangeLoSet = true;
 			break;
 		case 'r':
 			if( !isReal ) isReal = true;
@@ -833,10 +837,21 @@ DEFINE_BELParserXML_taghandle(N)
 	}
 	
 	if( isRange ) {
-		if( isReal ) 
-			pat.setRealRange( flo, fhi );
-		else 
-			pat.setIntRange( ilo, ihi );
+		if( isReal )  {
+            if( rangeLoSet && rangeHiSet ) 
+			    pat.setRealRange( flo, fhi );
+            else if( !rangeLoSet ) 
+                pat.setRealRange_Partial( fhi, false );
+            else if( !rangeHiSet ) 
+                pat.setRealRange_Partial( flo, true );
+		} else  {
+            if( rangeLoSet && rangeHiSet ) 
+			    pat.setIntRange( ilo, ihi );
+            else if( !rangeLoSet ) 
+                pat.setIntRange_Partial( ihi, false );
+            else if( !rangeHiSet ) 
+                pat.setIntRange_Partial( ilo, true );
+        }
 	} else {
 		if( isReal ) 
 			pat.setAnyReal();

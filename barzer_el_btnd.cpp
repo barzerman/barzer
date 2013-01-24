@@ -468,18 +468,29 @@ bool BTND_Pattern_Number::operator() ( const BarzerNumber& num ) const
 	case T_RANGE_INT:
 		if( num.isInt() ) {
 			int n = num.getInt_unsafe();
-			return( n <= range.integer.hi && n>=range.integer.lo );
+            if( rangeType == RT_FULL ) 
+			    return( n <= range.integer.hi && n>=range.integer.lo );
+            else if( rangeType == RT_NOHI ) 
+			    return( n>=range.integer.lo );
+            else if( rangeType == RT_NOLO ) 
+			    return( n <= range.integer.hi );
+            else
+                return true;
 		} else 
 			return false;
 	case T_RANGE_REAL:
-		if( num.isReal() ) {
-			double n = num.getReal_unsafe();
-			return( n <= range.real.hi && n>=range.real.lo );
-		} else if( num.isInt() ) {
-			double n = num.getInt_unsafe();
-			return( n <= range.real.hi && n>=range.real.lo );
-		} else
-			return false;
+        {
+			double n =  num.getReal();
+
+            if( rangeType == RT_FULL ) 
+			    return( n <= range.real.hi && n>=range.real.lo );
+            else if( rangeType == RT_NOHI ) 
+			    return( n>=range.real.lo );
+            else if( rangeType == RT_NOLO ) 
+			    return( n <= range.real.hi );
+            else
+                return true;
+        }
 		break;
 	default: 
 		return false;
