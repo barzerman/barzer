@@ -154,6 +154,8 @@ struct FeaturesStatItem
 class DocFeatureIndex {
     typedef std::map< NGram<DocFeature>,  DocFeatureLink::Vec_t > InvertedIdx_t;
     InvertedIdx_t d_invertedIdx;
+	
+	std::map<uint32_t, std::pair<NGram<DocFeature>, size_t>> d_doc2topFeature;
 
     ay::UniqueCharPool d_stringPool; // both internal strings and literals will be in the pool 
     ay::InternerWithId<barzer::BarzerEntity> d_entPool; // internal representation of entities

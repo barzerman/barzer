@@ -243,10 +243,11 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz
  * weight then the word deep in the text). This makes sense since we also take
  * link count in the example later in findDocument().
  */
-size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t& v, size_t numBeads )
+size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t& features, size_t numBeads )
 {
-    for( auto i = v.begin(); i!= v.end(); ++i ) {
-        const ExtractedDocFeature& f = *i;
+	std::map<NGram<DocFeature>, size_t> sumFCount;
+	for (const auto& f : features)
+	{
         InvertedIdx_t::iterator fi = d_invertedIdx.find( f.feature );
         if( fi == d_invertedIdx.end() ) 
             fi = d_invertedIdx.insert({ f.feature, InvertedIdx_t::mapped_type() }).first;
@@ -264,8 +265,20 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeatur
 		}
 		
 		++linkPos->count;
+		
+		auto sfci = sumFCount.find(f.feature);
+		if (sfci == sumFCount.end())
+			sfci = sumFCount.insert({ f.feature, 0 }).first;
+		++sfci->second;
     }
-    return v.size();
+    
+    auto pos = d_doc2topFeature.insert({ docId, { NGram<DocFeature> (), 0 } }).first;
+	
+	for (const auto& pair : sumFCount)
+		if (pair.second > pos->second.second)
+			pos->second = pair;
+	
+    return features.size();
 }
 
 /// should be called after the last doc has been appended . 
