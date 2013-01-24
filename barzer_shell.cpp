@@ -468,6 +468,19 @@ static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
      
     std::cerr << "***** INDEX STATS:\n";
     index.printStats( std::cerr );
+	
+	std::cerr << "***** IMPORTANT NGRAMS:\n";
+	
+	const auto& important = index.getImportantFeatures();
+	for (const auto& ngram : important.m_values)
+	{
+		const auto& features = ngram.first.getFeatures();
+		std::cerr << "\t" << features.size() << "-gram: ";
+		for (const auto& f : features)
+			std::cerr << "'" << index.resolveFeature(f) << "' ";
+		std::cerr << std::endl;
+	}
+	
     std::cerr << "***** END OF INDEX STATS\n";
     
     std::stringstream sstr; 

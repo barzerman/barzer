@@ -430,9 +430,27 @@ std::ostream& DocFeatureIndex::printStats( std::ostream& fp ) const
     return fp << "Inverse index size: " << d_invertedIdx.size() << std::endl;
 }
 
-StatItem DocFeatureIndex::getImportantFeatures(size_t count) const
+std::string DocFeatureIndex::resolveFeature(const DocFeature& f) const
 {
-	StatItem item;
+	switch (f.featureClass)
+	{
+	case DocFeature::CLASS_STEM:
+	case DocFeature::CLASS_TOKEN:
+		return d_stringPool.resolveId(f.featureId);
+	case DocFeature::CLASS_ENTITY:
+	{
+		auto ent = d_entPool.getObjById(f.featureId);
+		return ent ? d_stringPool.resolveId(ent->tokId) : "<no entity>";
+	}
+	default:
+		AYLOG(ERROR) << "unknown feature class " << f.featureClass;
+		return 0;
+	}
+}
+
+FeaturesStatItem DocFeatureIndex::getImportantFeatures(size_t count) const
+{
+	FeaturesStatItem item;
 	item.m_hrText = "important features";
 	
 	typedef std::pair<NGram<DocFeature>, double> ScoredFeature_t;
@@ -455,11 +473,7 @@ StatItem DocFeatureIndex::getImportantFeatures(size_t count) const
 	
 	std::sort(scores.begin(), scores.end(),
 			[] (const ScoredFeature_t& l, const ScoredFeature_t& r) { return l.second > r.second; });
-	
-	for (auto pos = scores.begin(), end = scores.begin() + std::min(count, scores.size()); pos != end; ++pos)
-	{
-		const auto& pair = *pos;
-	}
+	std::copy(scores.begin(), scores.begin() + std::min(count, scores.size()), std::back_inserter(item.m_values));
 	
 	return item;
 }

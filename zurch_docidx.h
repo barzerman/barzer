@@ -140,13 +140,13 @@ struct DocFeatureLink {
 inline bool operator < ( const DocFeatureLink& l, const DocFeatureLink& r ) 
     { return ( l.weight == r.weight ? (l.docId< r.docId): r.weight< l.weight ); }
     
-struct StatItem
+struct FeaturesStatItem
 {
 	/// human-readable text
 	std::string m_hrText;
 	
-	/// a list of stats, like top ngrams
-	std::vector<std::string> m_values;
+	/// a list of stats, like top ngrams and their scores
+	std::vector<std::pair<NGram<DocFeature>, double>> m_values;
 };
     
 /// document id - uint32_t 
@@ -215,7 +215,9 @@ public:
 
     std::ostream& printStats( std::ostream& ) const ;
 	
-	StatItem getImportantFeatures(size_t count = 20) const;
+	std::string resolveFeature(const DocFeature&) const;
+	
+	FeaturesStatItem getImportantFeatures(size_t count = 20) const;
 
     friend class ZurchSettings;    
     // bool loadProperties( const boost::property_tree::ptree& );
