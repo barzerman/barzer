@@ -465,13 +465,12 @@ std::string DocFeatureIndex::resolveFeature(const DocFeature& f) const
 	}
 }
 
-FeaturesStatItem DocFeatureIndex::getImportantFeatures(size_t count) const
+FeaturesStatItem DocFeatureIndex::getImportantFeatures(size_t count, double skipPerc) const
 {
 	FeaturesStatItem item;
 	item.m_hrText = "important features";
 	
-	typedef std::pair<NGram<DocFeature>, double> ScoredFeature_t;
-	std::vector<ScoredFeature_t> scores;
+	std::vector<FeaturesStatItem::GramInfo> scores;
 	scores.reserve(d_invertedIdx.size());
 	for (const auto& pair : d_invertedIdx)
 	{
@@ -481,16 +480,23 @@ FeaturesStatItem DocFeatureIndex::getImportantFeatures(size_t count) const
 		
 		// http://www.sureiscute.com/images/50360e401d41c87726000130.jpg :)
 		double score = 1;
+		size_t encounters = 0;
 		for (const auto& link : links)
-			score *= link.count + 1;
-		score = score >= 1 ? std::log(score) / links.size() : 0;
+		{
+			const auto fullPos = d_doc2topFeature.find(link.docId);
+			score *= static_cast<double>(link.count) / fullPos->second.second + 1;
+			encounters += link.count;
+		}
+		score = score >= 1 ? score / links.size() : 0;
 		
-		scores.push_back({ pair.first, score });
+		scores.push_back({ pair.first, score, links.size(), encounters });
 	}
 	
 	std::sort(scores.begin(), scores.end(),
-			[] (const ScoredFeature_t& l, const ScoredFeature_t& r) { return l.second > r.second; });
-	std::copy(scores.begin(), scores.begin() + std::min(count, scores.size()), std::back_inserter(item.m_values));
+			[] (const FeaturesStatItem::GramInfo& l, const FeaturesStatItem::GramInfo& r) { return l.score > r.score; });
+	auto start = scores.begin();
+	std::advance(start, scores.size() * skipPerc);
+	std::copy(start, std::min(start + count, scores.end()), std::back_inserter(item.m_values));
 	
 	return item;
 }

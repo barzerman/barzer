@@ -146,7 +146,14 @@ struct FeaturesStatItem
 	std::string m_hrText;
 	
 	/// a list of stats, like top ngrams and their scores
-	std::vector<std::pair<NGram<DocFeature>, double>> m_values;
+	struct GramInfo
+	{
+		NGram<DocFeature> gram;
+		double score;
+		size_t numDocs;
+		size_t encounters;
+	};
+	std::vector<GramInfo> m_values;
 };
     
 /// document id - uint32_t 
@@ -219,7 +226,7 @@ public:
 	
 	std::string resolveFeature(const DocFeature&) const;
 	
-	FeaturesStatItem getImportantFeatures(size_t count = 20) const;
+	FeaturesStatItem getImportantFeatures(size_t count, double skipPerc) const;
 
     friend class ZurchSettings;    
     // bool loadProperties( const boost::property_tree::ptree& );
