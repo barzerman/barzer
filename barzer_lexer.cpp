@@ -910,7 +910,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 	}
 
 	if( !isUsersWord ) {
-		strId = bzSpell->getSpellCorrection( theString, true, lang );
+		strId = m_dontSpell ? 0xffffffff : bzSpell->getSpellCorrection( theString, true, lang );
 		if( strId != 0xffffffff ) {
 			 correctedStr = gp.string_resolve( strId ) ;
 		} else { // trying stemming
@@ -918,7 +918,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 			strId = bzSpell->getStemCorrection( stemmedStr, theString, lang, BZSpell::CORRECTION_MODE_NORMAL );
 			if( strId != 0xffffffff ) {
 				correctedStr = gp.string_resolve( strId ) ;
-			} else if( (stemmedStr.length() > MIN_SPELL_CORRECT_LEN) && strlen(theString) != stemmedStr.length() ) {
+			} else if( !m_dontSpell && (stemmedStr.length() > MIN_SPELL_CORRECT_LEN) && strlen(theString) != stemmedStr.length() ) {
                 // spelling correction failed but the string got stemmed
                 strId = bzSpell->getSpellCorrection( stemmedStr.c_str(), true, lang );
                 if( strId != 0xffffffff )
@@ -951,7 +951,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
             SpellCorrectResult corrResult;
             QLexParser_LocalParms lparm(cPosVec, tPosVec, qparm, t_len, strId, lang,theString,bzSpell,ctok,ttok,t);
 
-            if( trySplitCorrect (corrResult, lparm, qparm.isAutoc ) ) 
+            if( !m_dontSpell && trySplitCorrect (corrResult, lparm, qparm.isAutoc ) ) 
                 return corrResult;
         }
         //// end of split correction attempt
