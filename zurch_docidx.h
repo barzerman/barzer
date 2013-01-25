@@ -5,6 +5,7 @@
 #include <barzer_parse.h>
 #include <boost/filesystem.hpp>
 #include <boost/unordered_set.hpp>
+#include <boost/unordered_map.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <zurch_phrasebreaker.h>
 #include <ay/ay_tag_markup_parser.h>
@@ -50,6 +51,11 @@ inline bool operator< ( const DocFeature& l, const DocFeature& r )
     return( l.featureClass == r.featureClass ? (l.featureId < r.featureId) : l.featureClass < r.featureClass );
 }
 
+inline bool operator==(const DocFeature& l, const DocFeature& r)
+{
+	return l.featureClass == r.featureClass && l.featureId == r.featureId;
+}
+
 template<typename T>
 class NGram
 {
@@ -74,10 +80,12 @@ public:
 	const T& operator[](size_t pos) const { return m_features[pos]; }
 	
 	decltype(m_maxClass) getClass() const { return m_maxClass; }
+	
+	bool operator==(const NGram<T>& other) const { return getClass() == other.getClass() && getFeatures() == other.getFeatures(); }
 };
 
 template<typename T>
-bool operator<(const NGram<T>& l, const NGram<T>& r)
+inline bool operator<(const NGram<T>& l, const NGram<T>& r)
 {
 	const auto& lv = l.getFeatures();
 	const auto& rv = r.getFeatures();
@@ -91,6 +99,14 @@ bool operator<(const NGram<T>& l, const NGram<T>& r)
 			return false;
 		
 	return false;
+}
+
+inline size_t hash_value(const NGram<DocFeature>& gram)
+{
+	size_t val = 0;
+	for (const auto& f : gram.getFeatures())
+		val += f.featureId * (f.featureClass == DocFeature::CLASS_ENTITY ? 1 : 10000);
+	return val;
 }
 
 //// position  and weight of feature in the document
