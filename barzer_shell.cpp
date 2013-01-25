@@ -459,12 +459,17 @@ static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
         std::cerr << "couldnt open input file " << fileName << std::endl;
         return 0;
     }
+    
+    ay::stopwatch localTimer;
 
     std::ifstream inFile;
     zurch::DocFeatureIndex& index = *(context->d_zurchFS.getIndex());
     index.setInternStems();
     zurch::DocIndexLoaderNamedDocs& fsIndex = *(context->d_zurchFS.getLoader());
+	fsIndex.d_loaderOpt.d_bits.set(zurch::DocIndexLoaderNamedDocs::LoaderOptions::BIT_DIR_RECURSE);
     fsIndex.addAllFilesAtPath( fileName.c_str() );
+	
+	std::cerr << "loaded in " << localTimer.calcTime() << " seconds\n";
      
     std::cerr << "***** INDEX STATS:\n";
     index.printStats( std::cerr );
