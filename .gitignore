@@ -2,6 +2,7 @@
 *.py
 *.so
 *.gz
+*.txt
 *.a
 *.xml
 *.exe
