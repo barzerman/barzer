@@ -1,6 +1,9 @@
 *
 !*.cpp
 !*.h
+!ay/*.cpp
+!ay/*.h
+!*.h
 *.o
 *.py
 *.so
