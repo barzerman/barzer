@@ -5,6 +5,7 @@
 #include <barzer_parse.h>
 #include <boost/filesystem.hpp>
 #include <boost/unordered_set.hpp>
+#include <boost/unordered_map.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <zurch_phrasebreaker.h>
 #include <ay/ay_tag_markup_parser.h>
@@ -50,6 +51,11 @@ inline bool operator< ( const DocFeature& l, const DocFeature& r )
     return( l.featureClass == r.featureClass ? (l.featureId < r.featureId) : l.featureClass < r.featureClass );
 }
 
+inline bool operator==(const DocFeature& l, const DocFeature& r)
+{
+	return l.featureClass == r.featureClass && l.featureId == r.featureId;
+}
+
 template<typename T>
 class NGram
 {
@@ -74,10 +80,12 @@ public:
 	const T& operator[](size_t pos) const { return m_features[pos]; }
 	
 	decltype(m_maxClass) getClass() const { return m_maxClass; }
+	
+	bool operator==(const NGram<T>& other) const { return getClass() == other.getClass() && getFeatures() == other.getFeatures(); }
 };
 
 template<typename T>
-bool operator<(const NGram<T>& l, const NGram<T>& r)
+inline bool operator<(const NGram<T>& l, const NGram<T>& r)
 {
 	const auto& lv = l.getFeatures();
 	const auto& rv = r.getFeatures();
@@ -91,6 +99,14 @@ bool operator<(const NGram<T>& l, const NGram<T>& r)
 			return false;
 		
 	return false;
+}
+
+inline size_t hash_value(const NGram<DocFeature>& gram)
+{
+	size_t val = 0;
+	for (const auto& f : gram.getFeatures())
+		val += f.featureId * (f.featureClass == DocFeature::CLASS_ENTITY ? 1 : 10000);
+	return val;
 }
 
 //// position  and weight of feature in the document
@@ -141,13 +157,20 @@ struct DocFeatureLink {
 inline bool operator < ( const DocFeatureLink& l, const DocFeatureLink& r ) 
     { return ( l.weight == r.weight ? (l.docId< r.docId): r.weight< l.weight ); }
     
-struct StatItem
+struct FeaturesStatItem
 {
 	/// human-readable text
 	std::string m_hrText;
 	
-	/// a list of stats, like top ngrams
-	std::vector<std::string> m_values;
+	/// a list of stats, like top ngrams and their scores
+	struct GramInfo
+	{
+		NGram<DocFeature> gram;
+		double score;
+		size_t numDocs;
+		size_t encounters;
+	};
+	std::vector<GramInfo> m_values;
 };
     
 /// document id - uint32_t 
@@ -155,6 +178,8 @@ struct StatItem
 class DocFeatureIndex {
     typedef std::map< NGram<DocFeature>,  DocFeatureLink::Vec_t > InvertedIdx_t;
     InvertedIdx_t d_invertedIdx;
+	
+	std::map<uint32_t, std::pair<NGram<DocFeature>, size_t>> d_doc2topFeature;
 
     ay::UniqueCharPool d_stringPool; // both internal strings and literals will be in the pool 
     ay::InternerWithId<barzer::BarzerEntity> d_entPool; // internal representation of entities
@@ -216,7 +241,9 @@ public:
 
     std::ostream& printStats( std::ostream& ) const ;
 	
-	StatItem getImportantFeatures(size_t count = 20) const;
+	std::string resolveFeature(const DocFeature&) const;
+	
+	FeaturesStatItem getImportantFeatures(size_t count, double skipPerc) const;
 
     friend class ZurchSettings;    
     // bool loadProperties( const boost::property_tree::ptree& );

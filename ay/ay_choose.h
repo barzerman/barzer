@@ -85,7 +85,9 @@ public:
 		d_minN(minN), d_maxN(maxN),
 		d_numChoices(0) ,
 		d_callback(cb)
-	{}	
+	{
+		d_result.reserve(maxN);
+	}	
 	
 	size_t getMinChoiceLength() const { return d_minN; } 
 	size_t getMaxChoiceLength() const { return d_maxN; } 

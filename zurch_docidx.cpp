@@ -146,13 +146,17 @@ namespace
 
 		for( auto i = barz.getBeadList().begin(); i!= barz.getBeadList().end(); ++i, ++curOffset ) {
 			if( const barzer::BarzerLiteral* x = i->get<barzer::BarzerLiteral>() ) {
-				uint32_t strId = (idx->*getStr)( *x, *universe );
-				featureVec.push_back( 
-					ExtractedDocFeature( 
-						DocFeature( DocFeature::CLASS_TOKEN, strId ), 
-						FeatureDocPosition(curOffset)
-					) 
-				);
+				const auto& pair = x->toString(*universe);
+				if (!x->isPunct() && pair.second && !(pair.second == 1 && isspace(pair.first[0])))
+				{
+					uint32_t strId = (idx->*getStr)( *x, *universe );
+					featureVec.push_back( 
+						ExtractedDocFeature( 
+							DocFeature( DocFeature::CLASS_TOKEN, strId ), 
+							FeatureDocPosition(curOffset)
+						) 
+					);
+				}
 			} else if( const barzer::BarzerEntity* x = i->getEntity() ) {
 				uint32_t entId = (idx->*getEnt)( *x, *universe );
 				featureVec.push_back( 
@@ -239,10 +243,11 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz
  * weight then the word deep in the text). This makes sense since we also take
  * link count in the example later in findDocument().
  */
-size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t& v, size_t numBeads )
+size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t& features, size_t numBeads )
 {
-    for( auto i = v.begin(); i!= v.end(); ++i ) {
-        const ExtractedDocFeature& f = *i;
+	std::map<NGram<DocFeature>, size_t> sumFCount;
+	for (const auto& f : features)
+	{
         InvertedIdx_t::iterator fi = d_invertedIdx.find( f.feature );
         if( fi == d_invertedIdx.end() ) 
             fi = d_invertedIdx.insert({ f.feature, InvertedIdx_t::mapped_type() }).first;
@@ -260,8 +265,20 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeatur
 		}
 		
 		++linkPos->count;
+		
+		auto sfci = sumFCount.find(f.feature);
+		if (sfci == sumFCount.end())
+			sfci = sumFCount.insert({ f.feature, 0 }).first;
+		++sfci->second;
     }
-    return v.size();
+    
+    auto pos = d_doc2topFeature.insert({ docId, { NGram<DocFeature> (), 0 } }).first;
+	
+	for (const auto& pair : sumFCount)
+		if (pair.second > pos->second.second)
+			pos->second = pair;
+	
+    return features.size();
 }
 
 /// should be called after the last doc has been appended . 
@@ -430,13 +447,30 @@ std::ostream& DocFeatureIndex::printStats( std::ostream& fp ) const
     return fp << "Inverse index size: " << d_invertedIdx.size() << std::endl;
 }
 
-StatItem DocFeatureIndex::getImportantFeatures(size_t count) const
+std::string DocFeatureIndex::resolveFeature(const DocFeature& f) const
 {
-	StatItem item;
+	switch (f.featureClass)
+	{
+	case DocFeature::CLASS_STEM:
+	case DocFeature::CLASS_TOKEN:
+		return d_stringPool.resolveId(f.featureId);
+	case DocFeature::CLASS_ENTITY:
+	{
+		auto ent = d_entPool.getObjById(f.featureId);
+		return ent ? d_stringPool.resolveId(ent->tokId) : "<no entity>";
+	}
+	default:
+		AYLOG(ERROR) << "unknown feature class " << f.featureClass;
+		return 0;
+	}
+}
+
+FeaturesStatItem DocFeatureIndex::getImportantFeatures(size_t count, double skipPerc) const
+{
+	FeaturesStatItem item;
 	item.m_hrText = "important features";
 	
-	typedef std::pair<NGram<DocFeature>, double> ScoredFeature_t;
-	std::vector<ScoredFeature_t> scores;
+	std::vector<FeaturesStatItem::GramInfo> scores;
 	scores.reserve(d_invertedIdx.size());
 	for (const auto& pair : d_invertedIdx)
 	{
@@ -446,20 +480,23 @@ StatItem DocFeatureIndex::getImportantFeatures(size_t count) const
 		
 		// http://www.sureiscute.com/images/50360e401d41c87726000130.jpg :)
 		double score = 1;
+		size_t encounters = 0;
 		for (const auto& link : links)
-			score *= link.count + 1;
-		score = score >= 1 ? std::log(score) / links.size() : 0;
+		{
+			const auto fullPos = d_doc2topFeature.find(link.docId);
+			score *= static_cast<double>(link.count) / fullPos->second.second + 1;
+			encounters += link.count;
+		}
+		score = score >= 1 ? score / links.size() : 0;
 		
-		scores.push_back({ pair.first, score });
+		scores.push_back({ pair.first, score, links.size(), encounters });
 	}
 	
 	std::sort(scores.begin(), scores.end(),
-			[] (const ScoredFeature_t& l, const ScoredFeature_t& r) { return l.second > r.second; });
-	
-	for (auto pos = scores.begin(), end = scores.begin() + std::min(count, scores.size()); pos != end; ++pos)
-	{
-		const auto& pair = *pos;
-	}
+			[] (const FeaturesStatItem::GramInfo& l, const FeaturesStatItem::GramInfo& r) { return l.score > r.score; });
+	auto start = scores.begin();
+	std::advance(start, scores.size() * skipPerc);
+	std::copy(start, std::min(start + count, scores.end()), std::back_inserter(item.m_values));
 	
 	return item;
 }
@@ -534,6 +571,7 @@ size_t DocFeatureLoader::addDocFromStream( uint32_t docId, std::istream& fp, Doc
 
     parser().tokenizer.setMax( MAX_QUERY_LEN, MAX_NUM_TOKENS );
     parser().lexer.setMaxCTokensPerQuery( MAX_NUM_TOKENS/2 );
+	parser().lexer.setDontSpell(true);
 
     BarzerTokenizerCB<DocAdderCB> cb( adderCb, parser(), barz(), qparm() );
 
@@ -551,6 +589,8 @@ size_t DocFeatureLoader::addDocFromStream( uint32_t docId, std::istream& fp, Doc
     }
         
     stats = adderCb.stats;
+	
+	parser().lexer.setDontSpell(false);
 
     return stats.numBeads;
 }
