@@ -59,14 +59,21 @@ struct PhraseBreaker {
     
     std::vector<PhraseDelimiterData> d_delim;
 
+    std::string                      d_extraSingleCharDelim;
+
     typedef std::vector< std::string > string_vec_t;
 
     std::map< std::string, string_vec_t > d_noBreak;
 
     bool d_breakOnPunctSpace; /// when true 
     PhraseBreakerState state;
+
+    size_t d_numBuffers, // total number of buffers 
+           d_numPhrases; // total number of phrases
+
     PhraseBreaker( ) ;
 
+    void clear();
     const PhraseDelimiterData* getDelimiterData( const char* d ) const;
     PhraseDelimiterData* getDelimiterData(  const char* d );
     PhraseDelimiterData* addDelimiterData( const char* d, bool spaceMustFollow=false ) ;
@@ -83,13 +90,17 @@ struct PhraseBreaker {
     template <typename CB>
     size_t breakBuf( CB& cb, const char* str, size_t str_sz ) 
     {
+        ++d_numBuffers;
         const char *s_to = str;
         for( const char* s_from=str, *s_end = str+str_sz; s_to <= s_end && s_from< s_end; ) {
             char c = *s_to;
             const char* newTo = 0;
-            if( c=='\n' || (isspace(c) && c!=' ')|| ( ispunct(c) && whereToBreak(s_to, str, s_end ) )) {
+            if( c=='\n' || (isspace(c) && c!=' ')|| 
+                ( (ispunct(c)||isspace(c)) && whereToBreak(s_to, str, s_end ) )
+            ) {
                 if( s_to> s_from ) {
-                    cb( s_from, s_to-s_from, state );
+                    cb( *this, s_from, s_to-s_from );
+                    ++d_numPhrases;
                     state.clear();
                 }
                 s_from = ++s_to;
@@ -113,14 +124,15 @@ struct PhraseBreaker {
                 if( endOffset < bytesRead ) { /// something is left over
                     for( size_t dest = 0, src = endOffset; src< bytesRead; ++src, ++dest ) 
                         buf[dest] = buf[src];
-                }
-                curOffset= bytesRead-endOffset;
+                } else if( endOffset > bytesRead )
+                    curOffset = 0;
+                else
+                    curOffset= bytesRead-endOffset;
             } 
         }
     }
     //// delimiters file format 
 
-    void clear() {}
 };
 
 } // namespace zurch 

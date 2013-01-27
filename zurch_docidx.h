@@ -369,25 +369,7 @@ public:
     void addAllFilesAtPath( const char* path ) { loader->addAllFilesAtPath(path); }
 };
 
-// CB must have operator()( Barz& )
-struct BarzTokPrintCB {
-    std::ostream& fp;
-    size_t count;
-    BarzTokPrintCB(std::ostream& f ) : fp(f), count(0) {}
-    void operator() ( barzer::Barz& barz ) {
-        const auto& ttVec = barz.getTtVec();
-        fp << "[" << count++ << "]:" << "(" << ttVec.size()/2+1 << ")";
-        for( auto ti = ttVec.begin(); ti != ttVec.end(); ++ti )  {
-            if( ti != ttVec.begin() )
-                fp << " ";
-            fp << ti->first.buf;
-        }
-        fp << std::endl;
-    }
-};
-template <typename CB>
-struct BarzerTokenizerCB {
-    CB& callback;
+struct BarzerTokenizerCB_data {
     barzer::QParser& parser;
     barzer::Barz& barz;
     const barzer::QuestionParm& qparm;
@@ -395,13 +377,32 @@ struct BarzerTokenizerCB {
     size_t count;
     std::string queryBuf; 
 
-    BarzerTokenizerCB( CB& cb, barzer::QParser& p, barzer::Barz& b, const barzer::QuestionParm& qp ) : callback(cb), parser(p), barz(b), qparm(qp), count(0) {}
-    void operator()( const char* s, size_t s_len, const PhraseBreakerState& state) { 
-        ++count;
-        queryBuf.assign( s, s_len );
-        barz.clear();
-        parser.tokenize_only( barz, queryBuf.c_str(), qparm );
-        callback( barz );
+    BarzerTokenizerCB_data( barzer::QParser& p, barzer::Barz& b, const barzer::QuestionParm& qp ) : 
+        parser(p), barz(b), qparm(qp), count(0) {}
+};
+
+// CB must have operator()( Barz& )
+struct BarzTokPrintCB {
+    std::ostream& fp;
+    size_t count;
+    BarzTokPrintCB(std::ostream& f ) : fp(f), count(0) {}
+    void operator() ( BarzerTokenizerCB_data& dta, PhraseBreaker& phraser, barzer::Barz& barz );
+};
+
+template <typename CB>
+struct BarzerTokenizerCB {
+    BarzerTokenizerCB_data dta;
+    CB& callback;
+
+    BarzerTokenizerCB( CB& cb, barzer::QParser& p, barzer::Barz& b, const barzer::QuestionParm& qp ) : 
+        dta(p,b,qp), callback(cb) {}
+
+    void operator()( PhraseBreaker& phraser, const char* s, size_t s_len ) { 
+        ++dta.count;
+        dta.queryBuf.assign( s, s_len );
+        dta.barz.clear();
+        dta.parser.tokenize_only( dta.barz, dta.queryBuf.c_str(), dta.qparm );
+        callback( dta, phraser, dta.barz );
     }
 };
 typedef BarzerTokenizerCB<BarzTokPrintCB> PrintStringCB;

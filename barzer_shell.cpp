@@ -338,6 +338,31 @@ static int bshf_dir( BarzerShell* shell, char_cp cmd, std::istream& in )
     ay::dir_list( std::cerr, path, true, pattern );
     return 0;
 }
+namespace {
+
+struct PhraserStatsCB {
+double sumLength;
+size_t maxLength, numPhrases;
+
+PhraserStatsCB() : 
+    sumLength(0.0) ,
+    maxLength(0), numPhrases(0)
+{}
+void operator() ( zurch::BarzerTokenizerCB_data& dta, zurch::PhraseBreaker& phraser, barzer::Barz& barz )
+{
+    ++numPhrases;
+    if( !(numPhrases%10000) )
+        std::cerr << ".";
+
+    sumLength += dta.queryBuf.length();
+    if( dta.queryBuf.length() > maxLength) 
+        maxLength = dta.queryBuf.length();
+}
+double getAvg() const { return ( numPhrases ? sumLength/numPhrases : 0 ); }
+
+};
+
+} // end of anon namespace
 static int bshf_phrase( BarzerShell* shell, char_cp cmd, std::istream& in )
 {
     std::string fileName;
@@ -348,22 +373,37 @@ static int bshf_phrase( BarzerShell* shell, char_cp cmd, std::istream& in )
     std::ifstream inFile;
     inFile.open(fileName.c_str() );
     if( !inFile.is_open() ) {
-        std::cerr << "coiuldnt open file " << fileName << std::endl;
+        std::cerr << "couldnt open file " << fileName << std::endl;
         return 0;
     }
     zurch::PhraseBreaker phraser; 
 	QuestionParm qparm;
 
-    zurch::BarzTokPrintCB printCb( std::cerr );
 	BarzerShellContext * context = shell->getBarzerContext();
 	Barz& barz = context->barz;
-    zurch::PrintStringCB cb( printCb, context->parser, barz, qparm );
-    phraser.addSingleCharDelimiters( "?!;.,", true );
-    zurch::PhraseDelimiterData* dd = phraser.getDelimiterData(".");
-    if( dd ) {
-        dd->addNoPreceed( "тов" );
+
+    if( false ) { // actually prints out hrased stuff 
+        zurch::BarzTokPrintCB printCb( std::cerr );
+        zurch::PrintStringCB cb( printCb, context->parser, barz, qparm );
+        phraser.addSingleCharDelimiters( "?!;.,", true );
+        zurch::PhraseDelimiterData* dd = phraser.getDelimiterData(".");
+        if( dd ) {
+            dd->addNoPreceed( "тов" );
+        }
+        phraser.breakStream( cb, inFile );
+    } else { // prints out phraser stats 
+        PhraserStatsCB statsCb;
+        zurch::BarzerTokenizerCB<PhraserStatsCB> cb( statsCb, context->parser, barz, qparm );
+
+        ay::stopwatch localTimer;
+        phraser.breakStream( cb, inFile );
+
+	    std::cerr << phraser.d_numBuffers << " buffers, " <<
+        phraser.d_numPhrases << " phrases, " <<
+        statsCb.getAvg() << " average, " <<
+        statsCb.maxLength << " max " <<
+        "phrased in " << localTimer.calcTime() << " seconds\n";
     }
-    phraser.breakStream( cb, inFile );
 
     return 0;
 }

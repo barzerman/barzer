@@ -17,9 +17,22 @@ void PhraseDelimiterData::addNoPreceed( const char* s ) { cantBePrecededBy.inser
 void PhraseDelimiterData::addNoPreceed( const char** s, size_t s_sz  ) 
     { for( const char** x = s, **x_end = s+s_sz; x< x_end && *x; ++x  ) addNoPreceed(*x); }
 
+void PhraseBreaker::clear()
+{
+    d_numBuffers=d_numPhrases = 0;
+    state.clear();
+}
 PhraseBreaker::PhraseBreaker( ) : 
         buf( zurch::DocFeatureLoader::DEFAULT_BUF_SZ ), 
-        d_breakOnPunctSpace(true) {}
+        d_extraSingleCharDelim( "\"';:\t|()" ),
+        d_breakOnPunctSpace(true),
+        d_numBuffers(0),
+        d_numPhrases(0)
+{
+    addDelimiterData("«");
+    addDelimiterData("»");
+    addDelimiterData("–");
+}
 
 const PhraseDelimiterData* PhraseBreaker::getDelimiterData( const char* d ) const
 {
@@ -56,9 +69,15 @@ void PhraseBreaker::addSingleCharDelimiters( const char * delim, bool spaceMustF
 const char* PhraseBreaker::whereToBreak( const char* s, const char* s_beg, const char* s_end )  const
 {    
     char c=*s;
-    if( c  == '\n' || c == '\r' || c=='(' || c=='|' || c==')' || c=='\t' || c ==';' || (c ==' '&&s[1]=='.'&&s[2]==' ') )
+    if( 
+        (c==' ' && s[1]==' ') || 
+        (c==' ' && s[1] == 0xb7) || 
+        c  == '\n' || c == '\r' || c=='(' || c=='|' || c==')' || c=='\t' || c ==';' || (c ==' '&&s[1]=='.'&&s[2]==' ') )
         return s;
         
+    if( d_extraSingleCharDelim.length() && strchr( d_extraSingleCharDelim.c_str(), c ) ) 
+        return s;
+
     std::string tmp;
 
     for( auto i = d_delim.begin(); i!= d_delim.end(); ++i ) {

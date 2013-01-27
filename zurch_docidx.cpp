@@ -530,8 +530,10 @@ struct DocAdderCB {
         docLoader(dl), 
         qparm(qp) 
     {}
-    void operator() ( barzer::Barz& /* same as docLoader.barz() */ ) {
-        ++stats.numPhrases;
+    void operator() ( BarzerTokenizerCB_data& dta, PhraseBreaker& phraser, barzer::Barz& /* same as docLoader.barz() */ ) {
+        if( !(++stats.numPhrases % 10000) ) {
+            std::cerr << ".";
+        }
         docLoader.parseTokenized();
 
         stats.numFeatureBeads =docLoader.index().appendDocument( docId, docLoader.barz(), stats.numBeads );
@@ -633,6 +635,18 @@ void DocIndexAndLoader::init(const barzer::StoredUniverse& u)
 
     index   = new DocFeatureIndex();
     loader  = new DocIndexLoaderNamedDocs(*index, u );
+}
+
+void BarzTokPrintCB::operator() ( BarzerTokenizerCB_data& dta, PhraseBreaker& phraser, barzer::Barz& barz )
+{
+    const auto& ttVec = barz.getTtVec();
+    fp << "[" << count++ << "]:" << "(" << ttVec.size()/2+1 << ")";
+    for( auto ti = ttVec.begin(); ti != ttVec.end(); ++ti )  {
+        if( ti != ttVec.begin() )
+            fp << " ";
+        fp << ti->first.buf;
+    }
+    fp << std::endl;
 }
 
 } // namespace zurch
