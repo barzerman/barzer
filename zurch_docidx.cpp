@@ -147,7 +147,7 @@ namespace
 		for( auto i = barz.getBeadList().begin(); i!= barz.getBeadList().end(); ++i, ++curOffset ) {
 			if( const barzer::BarzerLiteral* x = i->get<barzer::BarzerLiteral>() ) {
 				const auto& pair = x->toString(*universe);
-				if (!x->isPunct() && pair.second && !(pair.second == 1 && isspace(pair.first[0])))
+				if (!x->isPunct() && pair.second && !(pair.second == 1 && (isspace(pair.first[0]) || ispunct(pair.first[0]))))
 				{
 					uint32_t strId = (idx->*getStr)( *x, *universe );
 					featureVec.push_back( 
