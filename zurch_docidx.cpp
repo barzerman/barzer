@@ -4,6 +4,7 @@
 #include <barzer_universe.h>
 #include <boost/filesystem.hpp>
 #include <ay/ay_filesystem.h>
+#include <ay/ay_util_time.h>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/concept_check.hpp>
 
@@ -479,15 +480,15 @@ FeaturesStatItem DocFeatureIndex::getImportantFeatures(size_t count, double skip
 			continue;
 		
 		// http://www.sureiscute.com/images/50360e401d41c87726000130.jpg :)
-		double score = 1;
+		long double score = 1;
 		size_t encounters = 0;
 		for (const auto& link : links)
 		{
 			const auto fullPos = d_doc2topFeature.find(link.docId);
-			score *= static_cast<double>(link.count) / fullPos->second.second + 1;
+			score += std::log(static_cast<double>(link.count) / fullPos->second.second + 1);
 			encounters += link.count;
 		}
-		score = score >= 1 ? std::log(score) / links.size() : 0;
+		score /= links.size();
 		
 		scores.push_back({ pair.first, score, links.size(), encounters });
 	}
