@@ -487,7 +487,7 @@ FeaturesStatItem DocFeatureIndex::getImportantFeatures(size_t count, double skip
 			score *= static_cast<double>(link.count) / fullPos->second.second + 1;
 			encounters += link.count;
 		}
-		score = score >= 1 ? score / links.size() : 0;
+		score = score >= 1 ? std::log(score) / links.size() : 0;
 		
 		scores.push_back({ pair.first, score, links.size(), encounters });
 	}
