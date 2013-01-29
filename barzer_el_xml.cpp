@@ -152,7 +152,10 @@ void BELParserXML::startElement( const char* tag, const char_cp * attr, size_t a
 	
 	if( tid == TAG_STATEMENT ) {
 		++statementCount;
-	}
+	} if( statement.isToSkip() ) { /// skipped statement non statement tag encountered
+        return;
+    }
+
 	tagStack.push( tid );
 	if( !isValidTag( tid, parentTag )  ) {
         {
@@ -294,6 +297,8 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 		if( !statement.isValid() ) {
             BarzXMLErrorStream errStream( *reader, statement.stmt.getStmtNumber());
 			errStream.os << "skipped invalid statement ";
+		} else if( statement.isToSkip() ) {
+            /// this is simply the statement that needs skipped
 		} else {
 			if( statement.isMacro() ) {
 				reader->addMacro( statement.macroNameId, statement.stmt );
@@ -353,7 +358,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 		case 'x':  // pipe separated tags
             if( reader->hasTagFilters() ) {
                 if( !reader->tagsPassFilter( v ) ) {
-                    statement.setInvalid();
+                    statement.setToSkip();
                     return;
                 } else
                     tagsPassFilter = true;
@@ -368,7 +373,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 		}
 	}
     if( !tagsPassFilter && reader->hasTagFilters() ) {
-        statement.setInvalid();
+        statement.setToSkip();
         return;
     }
         
@@ -1804,6 +1809,8 @@ void BELParserXML::endElement( const char* tag )
     }
 
 	int tid = getTag( tag );
+	if( tid != TAG_STATEMENT &&  statement.isToSkip() ) 
+        return;
     
 	elementHandleRouter(tid,0,0,true);
 	if( !tagStack.empty() ) 
@@ -1819,7 +1826,9 @@ void BELParserXML::getElementText( const char* txt, int len )
 		return; // this should never happen 
     }
     
-    cdataBuf.append( txt, len );
+    if( !statement.isToSkip() )
+        cdataBuf.append( txt, len );
+
 	return;
 }
 BELParserXML::~BELParserXML()

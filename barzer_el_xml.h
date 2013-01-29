@@ -117,6 +117,7 @@ public:
 			BIT_IS_MACRO,  // is macro (no translation - pattern only)
 			BIT_IS_PROC,   // is "stored procedure" - all translation, no pattern
 			BIT_IS_INVALID,
+			BIT_IS_TO_SKIP, // statement will be skipped
 
 			BIT_MAX
 		};
@@ -162,6 +163,9 @@ public:
 			bits.set(BIT_HAS_TRANSLATION);
 			stmt.translation.setNodeData( BTND_RewriteData() );
 		}
+
+		void setToSkip() { bits.set(BIT_IS_TO_SKIP); }
+		bool isToSkip() { return bits[ BIT_IS_TO_SKIP ] ; }
 
 		void setInvalid() { bits.set(BIT_IS_INVALID); }
 		bool isValid() { return !bits[ BIT_IS_INVALID ] ; }
