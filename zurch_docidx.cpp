@@ -144,6 +144,10 @@ namespace
 			return 0;
 		
 		size_t curOffset =0;
+		
+		const size_t maxGramSize = 3;
+		
+		featureVec.reserve(barz.getBeadList().size() * maxGramSize);
 
 		for( auto i = barz.getBeadList().begin(); i!= barz.getBeadList().end(); ++i, ++curOffset ) {
 			if( const barzer::BarzerLiteral* x = i->get<barzer::BarzerLiteral>() ) {
@@ -192,7 +196,7 @@ namespace
 		}
 		
 		const auto unigramCount = featureVec.size();
-		for (size_t gramSize = 2; gramSize < 4; ++gramSize)
+		for (size_t gramSize = 2; gramSize <= maxGramSize; ++gramSize)
 		{
 			if (unigramCount + 1 > gramSize)
 				for (size_t i = 0; i < unigramCount - gramSize + 1; ++i)
