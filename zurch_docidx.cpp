@@ -627,9 +627,14 @@ bool DocIndexLoaderNamedDocs::fs_iter_callback::operator()( boost::filesystem::d
     fs::ifstream fp(di->path());
     if( fp.is_open() )  {
         DocFeatureLoader::DocStats stats;
+		
+		ay::stopwatch timer;
+		
         size_t totalNumBeads = index.addDocFromStream( docId, fp, stats );
 
-        stats.print( std::cerr << "ADDED DOC[" << docId << "]|" << docName << "|" ) << "\n";
+		const auto ksize = boost::filesystem::file_size(di->path()) / 1024.0;
+		const auto time = timer.calcTimeAsDouble();
+        stats.print( std::cerr << "ADDED DOC[" << docId << "]|" << docName << "|\t" ) << "\t\t nt: " << ksize / time << " KiB/sec" << "\n";
     } else 
         std::cerr << "cant open " << di->path() << std::endl;
     return true;
