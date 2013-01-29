@@ -476,6 +476,8 @@ static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in )
 		zurch::DocFeatureIndex::DocWithScoreVec_t scores;
 		index.findDocument(scores, extracted);
 		
+		std::cout << "found " << scores.size() << " documents" << std::endl;
+		
 		for (size_t i = 0; i < std::min(static_cast<size_t>(10), scores.size()); ++i)
 		{
 			const auto& doc = scores[i];
@@ -551,12 +553,57 @@ static int bshf_zstat(BarzerShell *shell, char_cp cmd, std::istream& in)
 	{
 		const auto& features = ngram.gram.getFeatures();
 		std::cerr << "\t" << features.size() << "-gram: ";
+		std::cerr << "\t" << ngram.numDocs << "\t" << ngram.encounters << "\t";
 		for (const auto& f : features)
 			std::cerr << "'" << index.resolveFeature(f) << "' ";
-		std::cerr << "\t\t" << ngram.numDocs << "\t" << ngram.encounters;
 		std::cerr << std::endl;
 	}
 	
+	return 0;
+}
+
+static int bshf_zdump(BarzerShell *shell, char_cp cmd, std::istream& in)
+{
+	auto context = shell->getBarzerContext();
+	const auto& index = *context->d_zurchFS.getIndex();
+	
+	std::string filename;
+	in >> filename;
+	
+	if (filename.empty())
+	{
+		std::cerr << "invalid filename" << std::endl;
+		return 0;
+	}
+	
+	const auto& grams = index.getImportantFeatures(0, 0);
+	std::cout << "dumping " << grams.m_values.size() << " features" << std::endl;
+	
+    ay::stopwatch localTimer;
+	
+	std::ofstream ostr(filename);
+	size_t numDumped = 0;
+	for (const auto& ngram : grams.m_values)
+	{
+		ostr << ngram.score << '|' << ngram.numDocs << '|' << ngram.encounters << '|';
+		
+		bool isFirst = true;
+		for (const auto& f : ngram.gram.getFeatures())
+		{
+			if (isFirst)
+			{
+				isFirst = false;
+				ostr << ' ';
+			}
+			ostr << index.resolveFeature(f);
+		}
+		ostr << '\n';
+		
+		if (!(++numDumped % 100000))
+			std::cerr << "Dumped " << numDumped << " records..." << std::endl;
+	}
+	
+	std::cerr << "done in " << localTimer.calcTime() << std::endl;
 	return 0;
 }
 
@@ -1861,6 +1908,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)bshf_phrase, "phrase", "breaks file into phrases - test driver for phrasebreaker" ),
 	CmdData( (ay::Shell_PROCF)bshf_doc, "doc", "doc loader doc filename" ),
 	CmdData( (ay::Shell_PROCF)bshf_zstat, "zstat", "zurch indexer stats [count] [percentage]" ),
+	CmdData( (ay::Shell_PROCF)bshf_zdump, "zdump", "dump zurch indexer ngrams data into file. Usage: zdump [filename]" ),
 	CmdData( (ay::Shell_PROCF)bshf_instance, "instance", "lists all users in the instance" ),
 	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),
 	CmdData( (ay::Shell_PROCF)bshf_grammar, "grammar", "sets trie for given grammar. use 'user' to list grammars" ),
