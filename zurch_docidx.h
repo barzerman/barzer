@@ -137,15 +137,15 @@ struct ExtractedDocFeature {
 ////  ann array of DocFeatureLink's is stored for every feature in the corpus 
 struct DocFeatureLink {
     uint32_t docId; 
-    int      weight; /// -1000000, +100000 - negative means disassociation , 0 - neutral association, positive - boost
+    uint16_t weight; /// -1000000, +100000 - negative means disassociation , 0 - neutral association, positive - boost
     
     // we don't use it yet, and if we'd use we'd still need something more advanced
     //uint32_t position;  /// some 1 dimensional positional number for feature within doc (can be middle between begin and end offset, or phrase number) 
-    uint32_t count; /// count of the feature in the doc 
+    uint16_t count; /// count of the feature in the doc 
     
     DocFeatureLink() : docId(0xffffffff), weight(0), count(0) {}
     DocFeatureLink(uint32_t i) : docId(i), weight(0),count(0) {}
-    DocFeatureLink(uint32_t i, int w ) : docId(i), weight(w), count(0) {}
+    DocFeatureLink(uint32_t i, uint16_t w ) : docId(i), weight(w), count(0) {}
     
     typedef std::vector< DocFeatureLink > Vec_t;
 	typedef boost::unordered_set< DocFeatureLink > Set_t;
