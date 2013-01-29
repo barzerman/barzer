@@ -590,11 +590,9 @@ static int bshf_zdump(BarzerShell *shell, char_cp cmd, std::istream& in)
 		bool isFirst = true;
 		for (const auto& f : ngram.gram.getFeatures())
 		{
-			if (isFirst)
-			{
-				isFirst = false;
+			if (!isFirst)
 				ostr << ' ';
-			}
+			isFirst = false;
 			ostr << index.resolveFeature(f);
 		}
 		ostr << '\n';
