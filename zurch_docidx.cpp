@@ -494,10 +494,15 @@ FeaturesStatItem DocFeatureIndex::getImportantFeatures(size_t count, double skip
 	
 	std::sort(scores.begin(), scores.end(),
 			[] (const FeaturesStatItem::GramInfo& l, const FeaturesStatItem::GramInfo& r) { return l.score > r.score; });
-	auto start = scores.begin();
-	std::advance(start, scores.size() * skipPerc);
-	std::copy(start, count ? std::min(start + count, scores.end()) : scores.end(),
-			std::back_inserter(item.m_values));
+	if (count)
+	{
+		auto start = scores.begin();
+		std::advance(start, scores.size() * skipPerc);
+		std::copy(start, std::min(start + count, scores.end()),
+				std::back_inserter(item.m_values));
+	}
+	else
+		scores.swap(item.m_values);
 	
 	return item;
 }
