@@ -9,6 +9,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <zurch_phrasebreaker.h>
 #include <ay/ay_tag_markup_parser.h>
+#include <type_traits>
 
 
 namespace zurch {
@@ -57,49 +58,83 @@ inline bool operator==(const DocFeature& l, const DocFeature& r)
 }
 
 template<typename T>
+struct IsConstPtr : std::false_type {};
+template<typename T>
+struct IsConstPtr<const T*> : std::true_type {};
+
+template<typename T, size_t MaxSize = 3>
 class NGram
 {
-	std::vector<T> m_features;
+	T m_features[MaxSize];
+	
 	decltype(T().featureClass) m_maxClass;
 public:
-	NGram() : m_maxClass(static_cast<decltype(m_maxClass)>(0)) {}
-	explicit NGram(const T& f) : m_maxClass(f.featureClass) 
-        { m_features.push_back( f ); }
+	enum { MaxGramSize = MaxSize };
+	
+	template<typename U>
+	class NGramRange
+	{
+		U m_begin;
+		U m_end;
+		
+		friend class NGram;
+		
+		NGramRange (U begin, U end)
+		: m_begin(begin)
+		, m_end(end)
+		{
+		}
+	public:
+		U begin() { return m_begin; }
+		const U begin() const { return m_begin; }
+		
+		U end() { return m_end; }
+		const U end() const { return m_end; }
+	};
+	
+	NGram()
+	: m_maxClass(static_cast<decltype(m_maxClass)>(0)) {}
+	
+	explicit NGram(const T& f)
+	: m_maxClass(f.featureClass) 
+	{
+		add(f);
+	}
 	
 	void add(const T& f)
 	{
-		m_features.push_back(f);
-		if (f.featureClass > m_maxClass)
-			m_maxClass = f.featureClass;
+		const size_t s = size();
+		if (s == MaxSize)
+			return;
+		m_features[s] = f;
 	}
 	
-	const std::vector<T>& getFeatures() const { return m_features; }
+	NGramRange<const T*> getFeatures() const { return NGramRange<const T*>(m_features, m_features + size()); }
+	NGramRange<T*> getFeatures() { return NGramRange<T*>(m_features, m_features + size()); }
 	
-	const size_t size() const { return m_features.size(); }
+	const size_t size() const
+	{
+		for (size_t i = 0; i < MaxSize; ++i)
+			if (m_features[i].featureId == 0xffffffff)
+				return i;
+		return MaxSize;
+	}
 	
 	const T& operator[](size_t pos) const { return m_features[pos]; }
 	
 	decltype(m_maxClass) getClass() const { return m_maxClass; }
 	
-	bool operator==(const NGram<T>& other) const { return getClass() == other.getClass() && getFeatures() == other.getFeatures(); }
-};
-
-template<typename T>
-inline bool operator<(const NGram<T>& l, const NGram<T>& r)
-{
-	const auto& lv = l.getFeatures();
-	const auto& rv = r.getFeatures();
-	if (lv.size() != rv.size())
-		return lv.size() < rv.size();
+	bool operator==(const NGram<T>& other) const
+	{
+		return getClass() == other.getClass() &&
+				!memcmp(m_features, other.m_features, sizeof(m_features));
+	}
 	
-	for (size_t i = 0; i < lv.size(); ++i)
-		if (lv[i] < rv[i])
-			return true;
-		else if (rv[i] < lv[i])
-			return false;
-		
-	return false;
-}
+	bool operator<(const NGram<T>& other) const
+	{
+		return memcmp(m_features, other.m_features, sizeof(m_features)) < 0;
+	}
+};
 
 inline size_t hash_value(const NGram<DocFeature>& gram)
 {

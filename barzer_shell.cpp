@@ -552,7 +552,7 @@ static int bshf_zstat(BarzerShell *shell, char_cp cmd, std::istream& in)
 	for (const auto& ngram : important.m_values)
 	{
 		const auto& features = ngram.gram.getFeatures();
-		std::cerr << "\t" << features.size() << "-gram: ";
+		std::cerr << "\t" << std::distance(features.begin(), features.end()) << "-gram: ";
 		std::cerr << "\t" << ngram.numDocs << "\t" << ngram.encounters << "\t";
 		for (const auto& f : features)
 			std::cerr << "'" << index.resolveFeature(f) << "' ";
