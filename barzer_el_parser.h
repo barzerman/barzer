@@ -167,6 +167,7 @@ protected:
 	GlobalPools &gp;
 
 	size_t numStatements; /// total number of successfully read statements
+	size_t numSkippedStatements; /// total of statements skipped
 	size_t numMacros; /// total number of successfully loaded macros
 	size_t numProcs; /// total number of successfully loaded procs
     size_t numEmits; // total currently accumulated number of emits for all rules processed
@@ -198,6 +199,8 @@ protected:
 
     std::set< std::string > d_tagFilter;
 public:
+    const std::set< std::string >& getTagFilter()  const { return d_tagFilter; }
+
     void    clearTagFilter() { d_tagFilter.clear(); }
     void    addTagToFilter(const std::string& s) { d_tagFilter.insert(s); }
     bool    hasTagFilters() const { return d_tagFilter.size(); }
@@ -205,6 +208,7 @@ public:
     {
         std::set<std::string> tmpSet;
         ay::separated_string_to_set x(tmpSet);
+        x( tagStr );
 
         return (tmpSet.size() ? ay::set_intersection_nonempty( tmpSet.begin(), tmpSet.end(), d_tagFilter.begin(), d_tagFilter.end() ) : false );
     }
@@ -273,6 +277,10 @@ public:
     void set_maxStatementsPerTrie(size_t x) { d_maxStatementsPerTrie=x; }
 
 	uint8_t getSpellPriority() const { return d_spellPriority; }
+
+	size_t getNumSkippedStatements() const { return numSkippedStatements; }
+	void   incrementNumSkippedStatements() { ++numSkippedStatements; }
+	void   resetNumSkippedStatements() { numSkippedStatements=0; }
 
 	size_t getNumStatements() const { return numStatements; }
 	size_t getNumMacros() const { return numMacros; }

@@ -82,7 +82,7 @@ void BarzerSettings::addRulefile(BELReader& reader, const Rulefile &f)
 	reader.setTrie(trieClass, trieId );
 
 	size_t num = reader.loadFromFile(fname, BELReader::INPUT_FMT_XML);
-	std::cout << num << " statements";
+	std::cout << num << " statements (-" << reader.getNumSkippedStatements() << ")";
         if (num) std::cout <<"(" << reader.getNumMacros() << " macros, " <<
                 reader.getNumProcs() << " procs)";
         std::cout << " loaded from `" << fname ;
@@ -210,9 +210,9 @@ void BarzerSettings::loadRules(BELReader& reader, const boost::property_tree::pt
                 uint32_t trieId = gpools.internString_internal(id.c_str()) ;
 
                 const boost::optional<std::string> tagsToFilter = attrs.get_optional<std::string>("tag");
-                if( tagsToFilter )
+                if( tagsToFilter ) {
                     reader.setTagFilter(tagsToFilter.get().c_str());
-                else
+                } else
                     reader.clearTagFilter();
 
 				reader.setCurTrieId( trieClass, trieId );

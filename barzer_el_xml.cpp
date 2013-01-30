@@ -298,7 +298,8 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
             BarzXMLErrorStream errStream( *reader, statement.stmt.getStmtNumber());
 			errStream.os << "skipped invalid statement ";
 		} else if( statement.isToSkip() ) {
-            /// this is simply the statement that needs skipped
+            statement.clear();
+            return;
 		} else {
 			if( statement.isMacro() ) {
 				reader->addMacro( statement.macroNameId, statement.stmt );
@@ -356,9 +357,12 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
                 statement.stmt.setRuleClashOverride();
             break;
 		case 'x':  // pipe separated tags
-            if( reader->hasTagFilters() ) {
+            if( !*v )
+                tagsPassFilter = true;
+            else if( reader->hasTagFilters() ) {
                 if( !reader->tagsPassFilter( v ) ) {
                     statement.setToSkip();
+                    reader->incrementNumSkippedStatements();
                     return;
                 } else
                     tagsPassFilter = true;
@@ -374,6 +378,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 	}
     if( !tagsPassFilter && reader->hasTagFilters() ) {
         statement.setToSkip();
+        reader->incrementNumSkippedStatements();
         return;
     }
         

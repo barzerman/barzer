@@ -121,6 +121,7 @@ void BELParseTreeNode::print( std::ostream& fp, int depth ) const
 BELReader::BELReader( BELTrie* t, GlobalPools &g, std::ostream* errStream ) :
     trie(t) , parser(0), gp(g),
     numStatements(0) ,
+    numSkippedStatements(0) ,
     numMacros(0) ,
     numProcs(0) ,
     numEmits(0),
@@ -144,6 +145,7 @@ BELReader::BELReader( BELTrie* t, GlobalPools &g, std::ostream* errStream ) :
 BELReader::BELReader( GlobalPools &g, std::ostream* errStream ) :
 	trie(g.globalTriePool.produceTrie(g.internString_internal(""),g.internString_internal(""))) , parser(0), gp(g),
 	numStatements(0) ,
+	numSkippedStatements(0) ,
     numMacros(0) ,
     numProcs(0) ,
     numEmits(0),
@@ -325,7 +327,7 @@ BELParser*  BELReader::initParser(InputFormat fmt )
 
 int BELReader::loadFromStream( std::istream& fp )
 {
-	numStatements=numProcs=numMacros=numEmits=0;
+	numStatements=numSkippedStatements=numProcs=numMacros=numEmits=0;
 
 	if( !parser ) {
 		std::cerr << "BELReader::loadFromStream uninitialized parser\n";
