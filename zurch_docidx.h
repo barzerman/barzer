@@ -97,6 +97,17 @@ public:
 		add(f);
 	}
 	
+	NGram(const NGram& other)
+	{
+		memcpy(m_features, other.m_features, sizeof(m_features));
+	}
+	
+	NGram& operator=(const NGram& other)
+	{
+		memcpy(m_features, other.m_features, sizeof(m_features));
+		return *this;
+	}
+	
 	void add(const T& f)
 	{
 		const size_t s = size();
