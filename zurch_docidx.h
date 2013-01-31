@@ -183,7 +183,7 @@ struct DocFeatureLink {
     
     // we don't use it yet, and if we'd use we'd still need something more advanced
     //uint32_t position;  /// some 1 dimensional positional number for feature within doc (can be middle between begin and end offset, or phrase number) 
-    uint32_t count; /// count of the feature in the doc 
+    uint16_t count; /// count of the feature in the doc 
     
     DocFeatureLink() : docId(0xffffffff), weight(0), count(0) {}
     DocFeatureLink(uint32_t i) : docId(i), weight(0),count(0) {}
