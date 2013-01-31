@@ -307,7 +307,12 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, con
 		if (invertedPos == d_invertedIdx.end())
 			continue;
 		
-		const double classBoost = d_classBoosts[ngram.feature.getClass()];
+		auto maxClass = DocFeature::CLASS_STEM;
+		for (const auto& f : ngram.feature.getFeatures())
+			if (f.featureClass > maxClass)
+				maxClass = f.featureClass;
+		
+		const double classBoost = d_classBoosts[maxClass];
 		const int sizeBoost = ngram.feature.size() * ngram.feature.size();
 		
 		const auto& sources = invertedPos->second;

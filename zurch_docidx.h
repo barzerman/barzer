@@ -66,8 +66,6 @@ template<typename T, size_t MaxSize = 3>
 class NGram
 {
 	T m_features[MaxSize];
-	
-	decltype(T().featureClass) m_maxClass;
 public:
 	enum { MaxGramSize = MaxSize };
 	
@@ -92,11 +90,9 @@ public:
 		const U end() const { return m_end; }
 	};
 	
-	NGram()
-	: m_maxClass(static_cast<decltype(m_maxClass)>(0)) {}
+	NGram() {}
 	
 	explicit NGram(const T& f)
-	: m_maxClass(f.featureClass) 
 	{
 		add(f);
 	}
@@ -122,12 +118,9 @@ public:
 	
 	const T& operator[](size_t pos) const { return m_features[pos]; }
 	
-	decltype(m_maxClass) getClass() const { return m_maxClass; }
-	
 	bool operator==(const NGram<T>& other) const
 	{
-		return getClass() == other.getClass() &&
-				!memcmp(m_features, other.m_features, sizeof(m_features));
+		return !memcmp(m_features, other.m_features, sizeof(m_features));
 	}
 	
 	bool operator<(const NGram<T>& other) const
