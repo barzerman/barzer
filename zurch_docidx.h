@@ -24,6 +24,7 @@ struct DocFeatureIndexHeuristics {
     ay::bitflags<BIT_MAX> d_bits;
 };
 
+#pragma pack(push, 1)
 /// feature we keep track off (can be an entity or a token - potentially we will add more classes to it)
 struct DocFeature {
     uint32_t featureId;
@@ -46,6 +47,7 @@ struct DocFeature {
     bool isClassValid() const { return ( featureClass >= CLASS_ENTITY && featureClass < CLASS_MAX ); }
     bool isValid() const { return (featureId!= 0xffffffff || isClassValid() ); }
 };
+#pragma pack(pop)
 
 inline bool operator< ( const DocFeature& l, const DocFeature& r ) 
 {
@@ -174,6 +176,7 @@ struct ExtractedDocFeature {
     int weight() const { return docPos.weight; }
 };
 ////  ann array of DocFeatureLink's is stored for every feature in the corpus 
+#pragma pack(push, 1)
 struct DocFeatureLink {
     uint32_t docId; 
     uint16_t weight; /// -1000000, +100000 - negative means disassociation , 0 - neutral association, positive - boost
@@ -192,6 +195,7 @@ struct DocFeatureLink {
     int serialize( std::ostream& ) const;
     int deserialize( std::istream& );
 };
+#pragma pack(pop)
 
 inline bool operator < ( const DocFeatureLink& l, const DocFeatureLink& r ) 
     { return ( l.weight == r.weight ? (l.docId< r.docId): r.weight< l.weight ); }
