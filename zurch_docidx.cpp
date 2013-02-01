@@ -132,11 +132,18 @@ uint32_t DocFeatureIndex::resolveExternalString( const barzer::BarzerLiteral& l,
         return 0xffffffff;
 }
 
+void DocFeatureIndex::setStopWords(const std::vector<std::string>& words)
+{
+	for (const auto& word : words)
+		m_stopWords.insert(storeExternalString(word.c_str()));
+}
+
 namespace
 {
 	template<typename IndexType, typename EntGetter, typename StringGetter, typename RawStringGetter>
 	int vecFiller(IndexType idx,
 			EntGetter getEnt, StringGetter getStr, RawStringGetter getRawStr,
+			const std::set<uint32_t>& stopWords,
 			ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz)
 	{
 		const barzer::StoredUniverse* universe = barz.getUniverse() ;
@@ -195,12 +202,16 @@ namespace
 			}
 		}
 		
-		const auto unigramCount = featureVec.size();
+		auto unigramCount = featureVec.size();
 		for (size_t gramSize = 2; gramSize <= maxGramSize; ++gramSize)
 		{
 			if (unigramCount + 1 > gramSize)
 				for (size_t i = 0; i < unigramCount - gramSize + 1; ++i)
 				{
+					const auto& last = featureVec[i + gramSize - 1].feature[0];
+					if (last.featureClass == DocFeature::CLASS_STEM && stopWords.find(last.featureId) != stopWords.end())
+						continue;
+					
 					const auto& source = featureVec[i];
 					
 					ExtractedDocFeature gram(source.feature[0], source.docPos);
@@ -209,6 +220,19 @@ namespace
 					featureVec.push_back(gram);
 				}
 		}
+		
+		for (auto pos = featureVec.begin(); pos < featureVec.begin() + unigramCount; )
+		{
+			const auto& f = pos->feature[0];
+			if (f.featureClass == DocFeature::CLASS_STEM && stopWords.find(f.featureId) != stopWords.end())
+			{
+				pos = featureVec.erase(pos);
+				--unigramCount;
+			}
+			else
+				++pos;
+		}
+		
 		return featureVec.size();
 	}
 }
@@ -219,6 +243,7 @@ int DocFeatureIndex::fillFeatureVecFromQueryBarz( ExtractedDocFeature::Vec_t& fe
 			&DocFeatureIndex::resolveExternalEntity,
 			static_cast<uint32_t (DocFeatureIndex::*)(const barzer::BarzerLiteral&, const barzer::StoredUniverse&) const>(&DocFeatureIndex::resolveExternalString),
 			static_cast<uint32_t (DocFeatureIndex::*)(const char*) const>(&DocFeatureIndex::resolveExternalString),
+			m_stopWords,
 			featureVec, barz);
 }
 int DocFeatureIndex::getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz, bool needToInternStems ) 
@@ -227,6 +252,7 @@ int DocFeatureIndex::getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec
 			&DocFeatureIndex::storeExternalEntity,
 			static_cast<uint32_t (DocFeatureIndex::*)(const barzer::BarzerLiteral&, const barzer::StoredUniverse&)>(&DocFeatureIndex::storeExternalString),
 			static_cast<uint32_t (DocFeatureIndex::*)(const char*)>(&DocFeatureIndex::storeExternalString),
+			m_stopWords,
 			featureVec, barz);
 }
 

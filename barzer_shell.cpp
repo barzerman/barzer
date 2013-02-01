@@ -493,7 +493,7 @@ static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
 	BarzerShellContext * context = shell->getBarzerContext();
 	Barz& barz = context->barz;
 
-    context->d_zurchFS.init( context->getUniverse() );
+	context->d_zurchFS.init( context->getUniverse() );
 
     std::string fileName;
     std::ifstream fp;
@@ -501,6 +501,23 @@ static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
         std::cerr << "couldnt open input file " << fileName << std::endl;
         return 0;
     }
+    
+    std::string stopWords;
+	in >> stopWords;
+	if (!stopWords.empty())
+	{
+		std::ifstream istr(stopWords);
+		std::vector<std::string> words;
+		while (istr)
+		{
+			std::string word;
+			istr >> word;
+			words.push_back(word);
+		}
+		
+		context->d_zurchFS.getIndex()->setStopWords(words);
+		std::cerr << "loaded " << words.size() << " stopwords" << std::endl;
+	}
     
     ay::stopwatch localTimer;
 

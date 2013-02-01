@@ -231,6 +231,7 @@ class DocFeatureIndex {
     
     const double d_classBoosts[DocFeature::CLASS_MAX];
 
+	std::set<uint32_t> m_stopWords;
 public:
 	int   getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz, bool needToInternStems );
 	
@@ -264,11 +265,13 @@ public:
     
     /// returns the number of counted features 
 
+	void setStopWords(const std::vector<std::string>&);
+
     int   fillFeatureVecFromQueryBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz ) const;
 
     size_t appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t&, size_t posOffset );
     size_t appendDocument( uint32_t docId, const barzer::Barz&, size_t posOffset  );
-
+	
     /// should be called after the last doc has been appended . 
     void sortAll();
 
