@@ -61,6 +61,7 @@ public:
 
     QTokenizer( const StoredUniverse& u ) : d_universe(u), d_maxQueryLen(MAX_QUERY_LEN), d_maxNumTokens(MAX_NUM_TOKENS) {}
 
+    const StoredUniverse& universe() const { return d_universe; }
 	int tokenize( TTWPVec& , const char*, const QuestionParm& );
 	int tokenize( Barz& barz, const TokenizerStrategy& , const QuestionParm& );
     //// special (hardcoded) strategy tokenizer

@@ -532,6 +532,9 @@ namespace ay
         const_iterator begin() const { return const_iterator(*this,0); }
         const_iterator end() const { return const_iterator(*this,size()); }
 	};
+
+int unicode_normalize_punctuation( std::string& outStr, const char* srcStr, size_t srcStr_sz ) ;
+int unicode_normalize_punctuation( std::string& qstr ) ;
 } // ay namespace
 
 #endif

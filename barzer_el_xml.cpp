@@ -502,8 +502,15 @@ template <> void BTND_Rewrite_Text_visitor::operator()<BTND_Rewrite_Literal>(BTN
 		    } else {
 			    t.setId( i );
 		    }
-            // all right side literals will be internally interned as well
-            d_parser.getGlobalPools().internString_internal( theStr, d_len );
+            const StoredUniverse* uverse = d_parser.getReader()->getCurrentUniverse();
+            if( uverse && !uverse->checkBit( StoredUniverse::UBIT_NO_EXTRA_NORMALIZATION ) ) {
+                std::string tmpStr;
+                ay::unicode_normalize_punctuation( tmpStr, theStr, d_len );
+                d_parser.getGlobalPools().internString_internal( tmpStr.c_str(), tmpStr.length() );
+            } else {
+                // all right side literals will be internally interned as well
+                d_parser.getGlobalPools().internString_internal( theStr, d_len );
+            }
         }
 	}
 template <> void BTND_Rewrite_Text_visitor::operator()<BTND_Rewrite_Number>(BTND_Rewrite_Number& t)   const
@@ -545,6 +552,14 @@ template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTN
 { 
 	/// if d_str is numeric we need to do something
     const char* str = ( d_str[d_len] ? (d_parser.setTmpText(d_str,d_len)) : d_str );
+    std::string tmpString;
+    if( const StoredUniverse* uverse = d_parser.getReader()->getCurrentUniverse() ) {
+        if( !uverse->checkBit(StoredUniverse::UBIT_NO_EXTRA_NORMALIZATION) ) {
+            ay::unicode_normalize_punctuation( tmpString, str, strlen(str) );
+            str = tmpString.c_str();
+            d_len = tmpString.length();
+        }
+    }
 
     if( const StoredUniverse* uni = d_parser.getReader()->getCurrentUniverse() ) {
         if( const StoredToken* storedTok = uni->getStoredToken(str) ) {
@@ -581,6 +596,14 @@ template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_StopToken>  
 }
 template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Punct> (BTND_Pattern_Punct& t)
 { 
+    std::string tmpString;
+    if( const StoredUniverse* uverse = d_parser.getReader()->getCurrentUniverse() ) {
+        if( !uverse->checkBit(StoredUniverse::UBIT_NO_EXTRA_NORMALIZATION) ) {
+            ay::unicode_normalize_punctuation( tmpString, d_str, d_len );
+            d_str = tmpString.c_str();
+            d_len = tmpString.length();
+        }
+    }
 	// may want to do something fancy for chinese punctuation (whatever that is)
 	const char* str_end = d_str + d_len;
 	for( const char* s = d_str; s< str_end; ++s ) {

@@ -1,5 +1,6 @@
 #include <barzer_tokenizer.h>
 #include <barzer_barz.h>
+#include <barzer_universe.h>
 
 namespace barzer {
 
@@ -67,6 +68,10 @@ int QTokenizer::tokenize_strat_space(Barz& barz, const QuestionParm& qparm )
 int QTokenizer::tokenize( Barz& barz, const TokenizerStrategy& strat, const QuestionParm& qparm )
 {
     if( strat.isDefault() ) {
+        /*
+        if( !d_universe.checkBit( StoredUniverse::UBIT_NO_EXTRA_NORMALIZATION ) )
+            barz.extraNormalization(qparm);
+        */
         return tokenize(barz.getTtVec(), barz.getOrigQuestion().c_str(), qparm );
     } else {
         ///  Barz has current question to be tokenize as well as the utf8 representation (it's up to date)

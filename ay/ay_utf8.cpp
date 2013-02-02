@@ -161,4 +161,71 @@ namespace ay
 
 		return changed;
 	}
+
+int unicode_normalize_punctuation( std::string& outStr, const char* srcStr, size_t srcStr_sz ) 
+{
+    std::vector<char> tmp;
+    tmp.reserve( srcStr_sz+16 );
+
+    const char * s_beg = srcStr, *s_end =srcStr+ srcStr_sz, *s_end_2= ( s_end > s_beg+2 ? s_end -2: 0), *s_end_1 = (s_end > s_beg ? s_end -1: 0);
+
+    for( const char* s = s_beg; s< s_end; ++s ) {
+        char c= *s;
+        const uint8_t uc = (uint8_t)(c);
+        if( isascii(c) ) {
+            switch(c) {
+            case '`': c = '\''; break;
+            }
+        } else if( !(uc == 0xd0 || uc == 0xd1 ) ) { // non russian chars
+            if( uc == 0xe2 && s< s_end_2 ) {  // 3 byte punctuation
+                switch( uc ) {
+                case 0xe2: 
+                    switch( (uint8_t)(s[1]) ) {
+                    case 0x80:
+                        switch( (uint8_t)(s[2]) ) {
+                            // single quote
+                            case 0x98: case 0x99: case 0x9b: case 0x9a: case 0xb2: case 0xb5:
+                                s+=2; c = '\''; break;
+                            // double quote
+                            case 0x9c: case 0x9d: case 0x9e: case 0x9f: case 0xb3: case 0xb6:
+                                s+=2; c = '"'; break;
+                            // hyphens
+                            case 0x90: case 0x91: case 0x92: case 0x93: case 0x94: case 0x95:
+                                s+=2; c = '-'; break;
+                            // dots
+                            case 0xa4: case 0xa7:
+                                s+=2; c = '.'; break;
+                        }
+                        break;
+                    }
+                    case 0x81:
+                        switch( (uint8_t)(s[2]) ) {
+                        case 0x83:
+                            s+=2; c = '-'; break;
+                        case 0x8f:
+                            s+=2; c = ';'; break;
+                        }
+                    break;
+                }
+
+            } else if( s< s_end_1 ) { // two byte 
+                switch( uc ) {
+                case 0xc2:  // double quotes russian style
+                    if( (uint8_t)(s[1]) == 0xab || (uint8_t)(s[1]) == 0xbb ) {
+                        ++s; c='"';
+                    }
+                    break;
+                }
+            }
+        }
+
+        tmp.push_back( c );
+    }
+    outStr.assign( &(tmp[0]), tmp.size() );
+    return 0;
 }
+int unicode_normalize_punctuation( std::string& qstr ) 
+{
+    return unicode_normalize_punctuation( qstr, qstr.c_str(), qstr.length() );
+}
+} // namespace ay

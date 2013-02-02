@@ -107,7 +107,9 @@ int Barz::tokenize( const TokenizerStrategy& strat, QTokenizer& tokenizer, const
 	ctVec.clear();
 	ttVec.clear();
 	questionOrig.assign(q);
-	questionOrigUTF8.assign(q);
+    if( !tokenizer.universe().checkBit( StoredUniverse::UBIT_NO_EXTRA_NORMALIZATION ) )
+        extraNormalization(qparm);
+	questionOrigUTF8.assign(questionOrig.c_str());
 
 	int rc = tokenizer.tokenize( *this, strat, qparm );
     return 0;
@@ -121,7 +123,10 @@ int Barz::tokenize( QTokenizer& tokenizer, const char* q, const QuestionParm& qp
 	ttVec.clear();
 
 	questionOrig.assign(q);
-	questionOrigUTF8.assign(q);
+
+    if( !tokenizer.universe().checkBit( StoredUniverse::UBIT_NO_EXTRA_NORMALIZATION ) )
+        extraNormalization(qparm);
+	questionOrigUTF8.assign(questionOrig.c_str());
 
 	int rc = tokenizer.tokenize( ttVec, questionOrig.c_str(), qparm );
 	
@@ -618,5 +623,10 @@ bool Barz::unsetReqVar( const char* n )
         return p->getReqVar().unset(n);
     else return false;
         
+}
+///// extra normalization
+int Barz::extraNormalization( const QuestionParm& qparm )
+{
+    return ay::unicode_normalize_punctuation( questionOrig );
 }
 } // barzer namepace ends

@@ -97,6 +97,8 @@ public:
 		UBIT_FEATURED_SPELLCORRECT, // when 1, feature extraction-based spell corrector will be active
 		UBIT_NEED_CONFIDENCE, // when 1 output will contain confidence info(which needs to be separately computed)
 
+        /// extra normalization includes single quotes, utf8 punctuation etc.
+        UBIT_NO_EXTRA_NORMALIZATION, /// when set no extra normalization is performed
         /// add new bits above this line only 
         UBIT_MAX
     };
