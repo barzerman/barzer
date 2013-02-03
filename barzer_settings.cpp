@@ -321,7 +321,12 @@ void BarzerSettings::loadEntities() {
 
 void BarzerSettings::loadMeanings (User &u, const ptree& node)
 {
-	const ptree& meaningsNode = node.get_child("meanings", empty_ptree());
+
+    const boost::optional<const ptree&> optMeaningNode = node.get_child_optional("meanings");
+
+    if( !optMeaningNode )
+        return;
+	const ptree& meaningsNode = optMeaningNode.get();
 
     StoredUniverse& uni = u.getUniverse();
     MeaningsStorage& meanings = uni.meanings();
@@ -351,7 +356,9 @@ void BarzerSettings::loadMeanings (User &u, const ptree& node)
 	std::string fullPath;
 	const std::string& fname = optFname.get();
 	
+    std::cerr << "loading meanings from " << fname << "... ";
 	p.readFromFile(fname.c_str());
+    std::cerr << "done meanings:" << p.d_countMeaningsRead << ", words: " << p.d_countWordsRead << std::endl;
 }
 
 void BarzerSettings::loadSpell(User &u, const ptree &node)

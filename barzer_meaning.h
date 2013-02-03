@@ -115,10 +115,14 @@ struct MeaningsXMLParser {
     StoredUniverse* d_universe;
 	const uint8_t d_defPrio;
 
+    size_t d_countMeaningsRead, d_countWordsRead;
+
     MeaningsXMLParser( GlobalPools& gp, StoredUniverse* u=0, uint8_t defPrio = 100 )
 	: d_gp(gp)
 	, d_universe(u)
 	, d_defPrio(defPrio)
+    , d_countMeaningsRead(0)
+    , d_countWordsRead(0)
 	, d_meaningNameId(0xffffffff)
 	, d_priority(defPrio)
 	{}

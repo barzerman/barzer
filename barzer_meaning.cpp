@@ -81,6 +81,8 @@ DECL_TAGHANDLE(M) {
         return TAGHANDLE_ERROR_PARENT;
 
     if( open ) { // tag opening 
+        ++parser.d_countMeaningsRead;
+
         ALS_BEGIN /// attributes
         case 'n': 
 			if( !n[1] ) // N - meaning name attribute
@@ -104,26 +106,29 @@ DECL_TAGHANDLE(W) {
     if( !IS_PARENT_TAG(M) ) 
         return TAGHANDLE_ERROR_PARENT;
 
-    ALS_BEGIN // attributes  loop
-        case 'v': 
-        if( !n[1] ) { ///  V attribute - value of the word within meaning
-            if( parser.d_meaningNameId != 0xffffffff ) { 
-                const uint8_t frequency = 0; /// maybe we'll start passing frequency here some day
-                const bool addAsUserSpecificString = true; /// this is just done for clarity 
-
-                const size_t len = strlen(v);
-                int lang = LANG_UNKNOWN;
-                uint32_t wordId = parser.d_universe->stemAndIntern(lang, v, len, 0);
-				
-				BZSpell *spell = parser.d_universe->getBZSpell();
-				spell->addExtraWordToDictionary(wordId);
-				if (parser.d_universe->soundsLikeEnabled())
-					spell->getEnglishSL().addSource(v, len, wordId);
-                parser.d_universe->meanings().addMeaning( wordId, WordMeaning(parser.d_meaningNameId, parser.d_priority));
+    if( open ) {
+        ++parser.d_countWordsRead;
+        ALS_BEGIN // attributes  loop
+            case 'v': 
+            if( !n[1] ) { ///  V attribute - value of the word within meaning
+                if( parser.d_meaningNameId != 0xffffffff ) { 
+                    const uint8_t frequency = 0; /// maybe we'll start passing frequency here some day
+                    const bool addAsUserSpecificString = true; /// this is just done for clarity 
+    
+                    const size_t len = strlen(v);
+                    int lang = LANG_UNKNOWN;
+                    uint32_t wordId = parser.d_universe->stemAndIntern(lang, v, len, 0);
+			    	
+				    BZSpell *spell = parser.d_universe->getBZSpell();
+				    spell->addExtraWordToDictionary(wordId,1);
+				    if (parser.d_universe->soundsLikeEnabled())
+					    spell->getEnglishSL().addSource(v, len, wordId);
+                    parser.d_universe->meanings().addMeaning( wordId, WordMeaning(parser.d_meaningNameId, parser.d_priority));
+                }
             }
-        }
-            break;
-    ALS_END  // end of attributes
+                break;
+        ALS_END  // end of attributes
+    }
     return TAGHANDLE_ERROR_OK;
 }
 
