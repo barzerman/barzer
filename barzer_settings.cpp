@@ -326,7 +326,7 @@ void BarzerSettings::loadMeanings (User &u, const ptree& node)
 
     if( !optMeaningNode )
         return;
-	const ptree& meaningsNode = optMeaningNode.get();
+	const ptree meaningsNode = optMeaningNode.get();
 
     StoredUniverse& uni = u.getUniverse();
     MeaningsStorage& meanings = uni.meanings();
