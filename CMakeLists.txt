@@ -261,5 +261,7 @@ if (ENABLE_PYBARZER)
 	install(TARGETS pybarzer
 		   DESTINATION ${INSTALL_UTIL_DIR})
 endif (ENABLE_PYBARZER)
-install(DIRECTORY "data/configs" "data/entities" "data/rules" "data/spell" "proxy"
+install(DIRECTORY "data/configs" "data/entities" "data/rules" "data/spell"
         DESTINATION ${INSTALL_DATA_DIR})
+install(DIRECTORY "proxy"
+        DESTINATION ${INSTALL_DIR})
