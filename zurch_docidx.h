@@ -31,6 +31,7 @@ struct DocFeature {
 
     typedef enum : uint8_t {
         CLASS_STEM, /// low grade token stem not known to barzer Universe 
+		CLASS_SYNGROUP, /// a group of synonyms
         CLASS_TOKEN, /// legitimate token known to the barzer Universe
         CLASS_ENTITY,
 
@@ -226,12 +227,15 @@ class DocFeatureIndex {
 
     ay::UniqueCharPool d_stringPool; // both internal strings and literals will be in the pool 
     ay::InternerWithId<barzer::BarzerEntity> d_entPool; // internal representation of entities
+    uint32_t m_meaningsCounter;
 
     DocFeatureIndexHeuristics d_heuristics; // /never 0 - guaranteed too be initialized in constructor
     
     const double d_classBoosts[DocFeature::CLASS_MAX];
 
 	std::set<uint32_t> m_stopWords;
+	
+	barzer::MeaningsStorage m_meanings;
 public:
 	int   getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz, bool needToInternStems );
 	
@@ -244,10 +248,12 @@ public:
 
     bool internStems( ) const { return d_bits.check( BIT_INTERN_STEMS ); }
     void setInternStems( bool x=true ) { d_bits.set( BIT_INTERN_STEMS, x ); }
-
+    
     /// given an entity from the universe returns internal representation of the entity 
     /// if it can be found and null entity (isValid() == false) otherwise
     barzer::BarzerEntity translateExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u ) const;
+	
+	void addSynonymsGroup(const std::vector<std::string>&);
 
     uint32_t resolveExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u ) const 
         { return d_entPool.getIdByObj(translateExternalEntity(ent,u)); }
