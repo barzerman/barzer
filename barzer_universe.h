@@ -49,6 +49,8 @@ public:
     zurch::DocIndexAndLoader* initZurchIndex( uint32_t idxId ); 
     zurch::DocIndexAndLoader* getZurchIndex( uint32_t idxId );
     const zurch::DocIndexAndLoader* getZurchIndex( uint32_t idxId ) const;
+    
+    std::map< uint32_t, std::string > d_subclassNameMap;
 private:
 	UniverseTrieCluster          trieCluster;
 	UniverseTrieCluster          topicTrieCluster;

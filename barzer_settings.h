@@ -63,6 +63,7 @@ struct User {
 	const StoredUniverse& getUniverse() const { return universe; }
 	StoredUniverse* getUniversePtr() { return &universe; }
 	const StoredUniverse* getUniversePtr() const { return &universe; }
+    int readClassNames( const boost::property_tree::ptree& node ) ;
 };
 
 struct Rulefile {

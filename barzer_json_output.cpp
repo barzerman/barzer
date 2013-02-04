@@ -296,8 +296,17 @@ public:
 
         const char* tokname = universe.getGlobalPools().internalString_resolve(euid.tokId);
 
-        theRaii->startFieldNoindent("class") << euid.eclass.ec;
-        theRaii->startFieldNoindent("subclass") << euid.eclass.subclass;
+        if( !d_streamer.isSimplified() )
+            theRaii->startFieldNoindent("class") << euid.eclass.ec;
+
+        ay::jsonEscape( universe.userName().c_str(), theRaii->startFieldNoindent("type"), "\"" );
+        {
+            const auto& i = universe.d_subclassNameMap.find(euid.eclass.subclass);
+            if( i!= universe.d_subclassNameMap.end() ) 
+                ay::jsonEscape( i->second.c_str(), theRaii->startFieldNoindent("subtype") , "\"" );
+        }
+        if( !d_streamer.isSimplified() )
+            theRaii->startFieldNoindent("subclass") << euid.eclass.subclass;
 		if( tokname ) 
             ay::jsonEscape(tokname, theRaii->startFieldNoindent("id"), "\"" );
 

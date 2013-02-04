@@ -574,6 +574,32 @@ void load_ent_segregate_info(BELReader& reader, User& u, const ptree &node)
 
 } // anonymous namespace ends
 
+int User::readClassNames( const ptree& node )
+{
+    int numSubclasses = 0;
+    if( boost::optional< const ptree& > optNode = node.get_child_optional("entity") ) {
+	    boost::optional< const ptree& > optAttr = optNode.get().get_child_optional("<xmlattr>");
+
+        const std::string classNameStr = optNode.get().get<std::string>("<xmlattr>.class_name", "");
+        if( classNameStr.length() ) 
+            universe.setUserName( classNameStr.c_str() );
+
+        BOOST_FOREACH(const ptree::value_type &i, optNode.get() ) {
+            if( i.first == "subclass" ) {
+		        const ptree attrs = i.second.get_child("<xmlattr>");
+    
+                if( const boost::optional<std::string> idOpt = attrs.get_optional<std::string>("id") ) {
+                    if( const boost::optional<std::string> nameOpt = attrs.get_optional<std::string>("name") ) {
+                        universe.d_subclassNameMap[atoi( idOpt.get().c_str() )] = nameOpt.get();
+                        ++numSubclasses;
+                    }
+                }
+            }
+        }
+
+    } 
+    return numSubclasses;
+}
 int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 {
 	const ptree &children = user.second;
@@ -589,6 +615,8 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 	User &u = createUser(userId);
 
 	std::cout << "Loading user id: " << userId << "\n";
+
+	u.readClassNames(children);
 
 	loadSpell(u, children);
 	loadMeanings(u, children);

@@ -85,6 +85,8 @@ private:
     BarzXMLParser* d_barzXMLParser;
     /// unique query id 
     uint64_t       d_queryId;
+    
+    bool           d_simplified;
 	ReturnType ret;
     
 public:
