@@ -47,9 +47,9 @@ def error_html(s):
     return '<h3 style="color:red">{}</h3>'.format(s)
 
 def application(env, start_response):
-    type = env['PATH_INFO'].rsplit('/', 1)[-1] #@ReservedAssignment
-    if type == 'json':
-        ct, error, add = 'application/json', error_json, ' ret="json"' 
+    typ = env['PATH_INFO'].rsplit('/', 1)[-1] #@ReservedAssignment
+    if typ in ('json', 'sjson'):
+        ct, error, add = 'application/json', error_json, ' ret="{}"'.format(typ)
     else:
         ct, error, add = 'text/xml', error_xml, ''
     start_response('200 OK', [('Content-Type', ct)])
