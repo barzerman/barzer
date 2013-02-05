@@ -580,10 +580,11 @@ int User::readClassNames( const ptree& node )
     if( boost::optional< const ptree& > optNode = node.get_child_optional("entity") ) {
 	    boost::optional< const ptree& > optAttr = optNode.get().get_child_optional("<xmlattr>");
 
-        const std::string classNameStr = optNode.get().get<std::string>("<xmlattr>.class_name", "");
-        if( classNameStr.length() ) 
-            universe.setUserName( classNameStr.c_str() );
-
+        if( const boost::optional< uint32_t > classIdOpt = optNode.get().get_optional<uint32_t>( "<xmlattr>.class_id" ) ) 
+        {
+            if( const boost::optional< std::string > classNameOpt = optNode.get().get_optional<std::string>("<xmlattr>.class_name") ) 
+                universe.getGlobalPools().d_entClassToNameMap[ classIdOpt.get() ] = classNameOpt.get();
+        }
         BOOST_FOREACH(const ptree::value_type &i, optNode.get() ) {
             if( i.first == "subclass" ) {
 		        const ptree attrs = i.second.get_child("<xmlattr>");

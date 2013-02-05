@@ -299,7 +299,7 @@ public:
         if( !d_streamer.isSimplified() )
             theRaii->startFieldNoindent("class") << euid.eclass.ec;
 
-        ay::jsonEscape( universe.userName().c_str(), theRaii->startFieldNoindent("scope"), "\"" );
+        ay::jsonEscape( universe.getGlobalPools().getEntClassName(euid.eclass.ec), theRaii->startFieldNoindent("scope"), "\"" );
         {
             const auto& i = universe.d_subclassNameMap.find(euid.eclass.subclass);
             if( i!= universe.d_subclassNameMap.end() ) 
