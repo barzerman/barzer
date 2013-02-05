@@ -133,13 +133,20 @@ void DocFeatureIndex::loadSynonyms(const std::string& filename, const barzer::St
 			std::string word;
 			lineIstr >> word;
 			
+			if (word.empty())
+				continue;
+			
 			std::string stem;
 			spell->stem(stem, word.c_str());
 			words.push_back(stem.empty() ? word : stem);
 		}
+		if (words.empty())
+			continue;
 		
+		std::cout << words.size() << ' ';
 		addSynonymsGroup(words);
 	}
+	std::cout << std::endl;
 }
 
 uint32_t DocFeatureIndex::storeExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u )
