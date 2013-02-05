@@ -115,6 +115,27 @@ void DocFeatureIndex::addSynonymsGroup(const std::vector<std::string>& group)
 		m_meanings.addMeaning(storeExternalString(string.c_str()), meaning);
 }
 
+void DocFeatureIndex::loadSynonymsFromMeanings(const std::string& filename)
+{
+	std::ifstream istr(filename);
+	while (istr)
+	{
+		std::string line;
+		std::getline(istr, line);
+		
+		std::istringstream lineIstr(line);
+		std::vector<std::string> words;
+		while (lineIstr)
+		{
+			std::string word;
+			lineIstr >> word;
+			words.push_back(word);
+		}
+		
+		addSynonymsGroup(words);
+	}
+}
+
 uint32_t DocFeatureIndex::storeExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u )
 {
     barzer::BarzerEntity newEnt;
