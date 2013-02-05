@@ -34,7 +34,7 @@ bool ZurchSettings::loadIndex( const boost::property_tree::ptree& pt )
         (*this)( loader->loaderOpt(), x.get() );
 	
 	if (const auto x = pt.get_child_optional("synonyms"))
-		dixl->getIndex()->loadSynonymsFromMeanings(x->data());
+		dixl->getIndex()->loadSynonyms(x->data(), universe);
 
     if( const boost::optional< std::string > x = attr.get().get_optional<std::string>("dir") )  
         dixl->addAllFilesAtPath(x.get().c_str());

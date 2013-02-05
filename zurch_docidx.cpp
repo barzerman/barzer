@@ -115,8 +115,11 @@ void DocFeatureIndex::addSynonymsGroup(const std::vector<std::string>& group)
 		m_meanings.addMeaning(storeExternalString(string.c_str()), meaning);
 }
 
-void DocFeatureIndex::loadSynonymsFromMeanings(const std::string& filename)
+void DocFeatureIndex::loadSynonyms(const std::string& filename, const barzer::StoredUniverse& universe)
 {
+	std::cout << "LOADING SYNONYMS FROM " << filename << std::endl;
+	auto spell = universe.getBZSpell();
+	
 	std::ifstream istr(filename);
 	while (istr)
 	{
@@ -129,7 +132,10 @@ void DocFeatureIndex::loadSynonymsFromMeanings(const std::string& filename)
 		{
 			std::string word;
 			lineIstr >> word;
-			words.push_back(word);
+			
+			std::string stem;
+			spell->stem(stem, word.c_str());
+			words.push_back(stem.empty() ? word : stem);
 		}
 		
 		addSynonymsGroup(words);

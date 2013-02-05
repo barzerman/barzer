@@ -254,7 +254,7 @@ public:
     barzer::BarzerEntity translateExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u ) const;
 	
 	void addSynonymsGroup(const std::vector<std::string>&);
-	void loadSynonymsFromMeanings(const std::string&);
+	void loadSynonyms(const std::string&, const barzer::StoredUniverse&);
 
     uint32_t resolveExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u ) const 
         { return d_entPool.getIdByObj(translateExternalEntity(ent,u)); }
