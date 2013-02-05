@@ -253,6 +253,11 @@ public:
     /// if it can be found and null entity (isValid() == false) otherwise
     barzer::BarzerEntity translateExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u ) const;
 	
+	/** Adds the synonyms from the given universe.
+	 * 
+	 * Obviously they should be already loaded in the universe.
+	 */
+	void addSynonyms(const barzer::StoredUniverse& universe);
 	void addSynonymsGroup(const std::vector<std::string>&);
 	void loadSynonyms(const std::string&, const barzer::StoredUniverse&);
 

@@ -105,6 +105,24 @@ barzer::BarzerEntity DocFeatureIndex::translateExternalEntity( const barzer::Bar
     return newEnt;
 }
 
+void DocFeatureIndex::addSynonyms(const barzer::StoredUniverse& universe)
+{
+	const auto& meanings = universe.meanings();
+	for (const auto& meaning2words : meanings.getMeaningsToWordsDict())
+	{
+		const auto& universeIds = meaning2words.second;
+		
+		std::vector<std::string> words;
+		words.reserve(universeIds.size());
+		
+		for (size_t i = 0; i < universeIds.size(); ++i)
+			if (auto s = universe.getStringPool().resolveId(universeIds[i])
+				words.push_back(s);
+		
+		addSynonymsGroup(words);
+	}
+}
+
 void DocFeatureIndex::addSynonymsGroup(const std::vector<std::string>& group)
 {
 	if (group.size() < 2)
