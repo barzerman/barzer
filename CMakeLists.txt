@@ -263,3 +263,5 @@ if (ENABLE_PYBARZER)
 endif (ENABLE_PYBARZER)
 install(DIRECTORY "data/configs" "data/entities" "data/rules" "data/spell"
         DESTINATION ${INSTALL_DATA_DIR})
+install(DIRECTORY "proxy"
+        DESTINATION ${INSTALL_DIR})
