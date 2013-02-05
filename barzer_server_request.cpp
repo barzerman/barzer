@@ -461,7 +461,7 @@ void BarzerRequestParser::raw_query_parse( const char* query)
     break;
     case JSON_TYPE: {
     	BarzStreamerJSON response( barz, u );
-        response.setSimplified();
+        response.setSimplified(d_simplified);
     	response.print(os);
     }
     break;
