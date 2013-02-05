@@ -34,7 +34,7 @@ public:
     ModeFlags d_outputMode; 
 
     void setSimplified( bool x= true ) 
-        { d_outputMode.set( BF_SIMPLIFIED ); }
+        { d_outputMode.set( BF_SIMPLIFIED,x ); }
     bool isSimplified() const { return d_outputMode.check( BF_SIMPLIFIED ); }
 
     void setComparatorMode(const ModeFlags& m ) { d_outputMode= m; }

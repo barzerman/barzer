@@ -797,6 +797,7 @@ void BarzerRequestParser::tag_query(RequestTag &tag) {
 	    it = attrs.find("u");
 		setUniverseId(it != attrs.end() ? atoi(it->second.c_str()) : 0);
     }
+    d_simplified = false;
     //ReturnType t = XML_TYPE;
     for( auto i = attrs.begin(); i!= attrs.end(); ++i ) {
         if( i->first == "qid" ) 
