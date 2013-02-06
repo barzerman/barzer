@@ -26,11 +26,16 @@ public:
         BF_ORIGQUERY,
         BF_QUERYID,
         BF_NO_ORIGOFFSETS, // when set no original markup is returned inside the beads 
+        BF_SIMPLIFIED, // when set simplified mode is assumed
         /// add new flags above this line
         BF_MAX
     };
     typedef ay::bitflags<BF_MAX> ModeFlags;
     ModeFlags d_outputMode; 
+
+    void setSimplified( bool x= true ) 
+        { d_outputMode.set( BF_SIMPLIFIED,x ); }
+    bool isSimplified() const { return d_outputMode.check( BF_SIMPLIFIED ); }
 
     void setComparatorMode(const ModeFlags& m ) { d_outputMode= m; }
     void setComparatorMode() { 

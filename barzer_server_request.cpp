@@ -161,6 +161,7 @@ BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s, uint3
     d_xmlIsInvalid(false),
     d_barzXMLParser(0),
     d_queryId( std::numeric_limits<uint64_t>::max() ),
+    d_simplified(false),
     ret(XML_TYPE),
     d_zurchDocIdxId(0xffffffff),
     d_queryType(QType::BARZER)
@@ -460,6 +461,7 @@ void BarzerRequestParser::raw_query_parse( const char* query)
     break;
     case JSON_TYPE: {
     	BarzStreamerJSON response( barz, u );
+        response.setSimplified(d_simplified);
     	response.print(os);
     }
     break;
@@ -795,15 +797,21 @@ void BarzerRequestParser::tag_query(RequestTag &tag) {
 	    it = attrs.find("u");
 		setUniverseId(it != attrs.end() ? atoi(it->second.c_str()) : 0);
     }
+    d_simplified = false;
     //ReturnType t = XML_TYPE;
     for( auto i = attrs.begin(); i!= attrs.end(); ++i ) {
         if( i->first == "qid" ) 
             barz.setQueryId( atoi( i->second.c_str() ) );
         else if( i->first == "as" ) 
             d_aggressiveStem = true;
-        else if (i->first == "ret" && i->second == "json")
-        	ret = JSON_TYPE;
-        else if (i->first == "now" ) {
+        else if (i->first == "ret" ) { 
+            if( i->second == "json") {
+        	    ret = JSON_TYPE;
+            } else if( i->second == "sjson" ) {
+                d_simplified = true;
+        	    ret = JSON_TYPE;
+            }
+        } else if (i->first == "now" ) {
             if( RequestEnvironment* env = barz.getServerReqEnv() )
                 env->setNow( i->second );
         } else if( i->first == "zurch" ) {

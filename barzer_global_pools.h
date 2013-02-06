@@ -152,6 +152,14 @@ class GlobalPools {
 
     EntityData entData; // canonic names and relevance
 public:
+    std::map< uint32_t, std::string > d_entClassToNameMap;
+
+    const char* getEntClassName( uint32_t eclass ) const
+    {
+            const auto i = d_entClassToNameMap.find( eclass );
+            return( i== d_entClassToNameMap.end() ?  "" : i->second.c_str() );
+    }
+
     EntityData& getEntData() { return entData; }
     const EntityData& getEntData() const { return entData; }
     EntityData::EntProp*  setEntPropData( const StoredEntityUniqId& euid, const char* name, uint32_t rel, bool overrideName=false ) 
