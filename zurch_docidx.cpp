@@ -116,7 +116,7 @@ void DocFeatureIndex::addSynonyms(const barzer::StoredUniverse& universe)
 		words.reserve(universeIds.size());
 		
 		for (size_t i = 0; i < universeIds.size(); ++i)
-			if (auto s = universe.getStringPool().resolveId(universeIds[i])
+			if (auto s = universe.getStringPool().resolveId(universeIds[i]))
 				words.push_back(s);
 		
 		addSynonymsGroup(words);
