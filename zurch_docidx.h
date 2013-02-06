@@ -9,7 +9,6 @@
 #include <boost/property_tree/ptree.hpp>
 #include <zurch_phrasebreaker.h>
 #include <ay/ay_tag_markup_parser.h>
-#include <type_traits>
 
 
 namespace zurch {
@@ -59,11 +58,6 @@ inline bool operator==(const DocFeature& l, const DocFeature& r)
 {
 	return l.featureClass == r.featureClass && l.featureId == r.featureId;
 }
-
-template<typename T>
-struct IsConstPtr : std::false_type {};
-template<typename T>
-struct IsConstPtr<const T*> : std::true_type {};
 
 template<typename T, size_t MaxSize = 3>
 class NGram
@@ -213,6 +207,13 @@ struct FeaturesStatItem
 		double score;
 		size_t numDocs;
 		size_t encounters;
+
+        GramInfo( const NGram<DocFeature>& g, double s, size_t nd, size_t enc ) : 
+            gram(g), 
+            score(s),
+            numDocs(nd),
+            encounters(enc)
+        {}
 	};
 	std::vector<GramInfo> m_values;
 };

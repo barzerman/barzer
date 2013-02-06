@@ -604,7 +604,7 @@ FeaturesStatItem DocFeatureIndex::getImportantFeatures(size_t count, double skip
 		}
 		score /= links.size();
 		
-		scores.push_back({ pair.first, score, links.size(), encounters });
+		scores.push_back( FeaturesStatItem::GramInfo(pair.first, score, links.size(), encounters));
 	}
 	
 	std::sort(scores.begin(), scores.end(),

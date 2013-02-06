@@ -506,7 +506,7 @@ static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
 	in >> stopWords;
 	if (!stopWords.empty())
 	{
-		std::ifstream istr(stopWords);
+		std::ifstream istr(stopWords.c_str());
 		std::vector<std::string> words;
 		while (istr)
 		{
@@ -598,7 +598,7 @@ static int bshf_zdump(BarzerShell *shell, char_cp cmd, std::istream& in)
 	
     ay::stopwatch localTimer;
 	
-	std::ofstream ostr(filename);
+	std::ofstream ostr(filename.c_str());
 	size_t numDumped = 0;
 	for (const auto& ngram : grams.m_values)
 	{
