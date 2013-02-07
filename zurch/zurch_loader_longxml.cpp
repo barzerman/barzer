@@ -156,6 +156,8 @@ DECL_TAGHANDLE(TABLE) {
                 break;
         ALS_END  // end of attributes
     }
+    parser.callback();
+
     return TAGHANDLE_ERROR_OK;
 }
 
@@ -185,6 +187,20 @@ void tagRouter( ZurchLongXMLParser& parser, const char* t, const char** attr, si
 }
 
 } // anonymous namespace 
+
+int ZurchLongXMLParser::callback()
+{
+    std::cout << d_data.d_ModuleID << ":" << d_data.d_ID << "|" << d_data.d_DocName << std::endl;
+    return 0;
+}
+int ZurchLongXMLParser_DocLoader::callback()
+{
+    std::string docName = d_data.d_ModuleID + "." + d_data.d_ID;
+    uint32_t docId = d_loader.addDocName( docName.c_str() );
+
+    
+    return 0;
+}
 
 void ZurchLongXMLParser::readFromFile( const char* fname )
 {

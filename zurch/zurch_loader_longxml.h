@@ -3,6 +3,7 @@
 #include <boost/unordered_map.hpp>
 #include <ay/ay_stackvec.h>
 #include <vector>
+#include <zurch_docidx.h>
 
 namespace zurch {
 
@@ -27,6 +28,15 @@ struct ZurchLongXMLParser {
     /// tag functions are needed for external connectivity so that this object can be invoked from other XML parsers
     void readFromFile( const char* fname );
     void clear() { tagStack.clear(); }
+
+    virtual int callback();
+    virtual ~ZurchLongXMLParser() {}
 };
 
+
+struct ZurchLongXMLParser_DocLoader : public ZurchLongXMLParser {
+    DocIndexLoaderNamedDocs& d_loader;
+    ZurchLongXMLParser_DocLoader( DocIndexLoaderNamedDocs& ldr ) : d_loader(ldr) {}
+    virtual int callback();
+};
 } // namespace barzer 
