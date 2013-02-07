@@ -330,11 +330,14 @@ int DocFeatureIndex::getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec
 			featureVec, barz);
 }
 
-size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz, size_t numBeads )
+size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz, size_t numBeads, DocFeatureLink::Weight_t weight )
 {
     ExtractedDocFeature::Vec_t featureVec;
     if( !getFeaturesFromBarz(featureVec, barz, internStems()) ) 
         return 0;
+	
+	for (auto& f : featureVec)
+		f.docPos.weight = weight;
     
     return appendDocument( docId, featureVec, numBeads );
 }
@@ -359,7 +362,7 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeatur
 		
 		auto& vec = fi->second;
 
-		const DocFeatureLink link(docId, f.weight());
+		const DocFeatureLink link(docId, f.docPos.weight);
 		auto linkPos = std::find_if(vec.begin(), vec.end(),
 				[&link] (const DocFeatureLink& other)
 				{ return link.weight == other.weight && link.docId == other.docId; });
@@ -627,6 +630,7 @@ DocFeatureLoader::DocFeatureLoader( DocFeatureIndex& index, const barzer::Stored
     d_universe(u),
     d_parser(u),
     d_index(index),
+    m_curWeight(0),
     d_bufSz( DEFAULT_BUF_SZ ),
     d_xhtmlMode(ay::xhtml_parser_state::MODE_HTML),
     d_loadMode(LOAD_MODE_TEXT)
@@ -657,8 +661,8 @@ struct DocAdderCB {
         }
         docLoader.parseTokenized();
 
-        stats.numFeatureBeads =docLoader.index().appendDocument( docId, docLoader.barz(), stats.numBeads );
-        stats.numBeads+= docLoader.barz().getBeads().getList().size();
+        stats.numFeatureBeads = docLoader.index().appendDocument( docId, docLoader.barz(), stats.numBeads, docLoader.getCurrentWeight() );
+        stats.numBeads += docLoader.barz().getBeads().getList().size();
     }
 };
 

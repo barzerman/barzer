@@ -168,13 +168,14 @@ struct ExtractedDocFeature {
     int deserialize( std::istream& );
     
     uint32_t simplePosition() const { return((docPos.offset.first+docPos.offset.second)/2) ; }
-    int weight() const { return docPos.weight; }
 };
 ////  ann array of DocFeatureLink's is stored for every feature in the corpus 
 #pragma pack(push, 1)
 struct DocFeatureLink {
     uint32_t docId; 
-    uint16_t weight; /// -1000000, +100000 - negative means disassociation , 0 - neutral association, positive - boost
+	
+	typedef uint16_t Weight_t;
+    Weight_t weight; /// -1000000, +100000 - negative means disassociation , 0 - neutral association, positive - boost
     
     // we don't use it yet, and if we'd use we'd still need something more advanced
     //uint32_t position;  /// some 1 dimensional positional number for feature within doc (can be middle between begin and end offset, or phrase number) 
@@ -283,7 +284,7 @@ public:
     int   fillFeatureVecFromQueryBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz ) const;
 
     size_t appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t&, size_t posOffset );
-    size_t appendDocument( uint32_t docId, const barzer::Barz&, size_t posOffset  );
+    size_t appendDocument( uint32_t docId, const barzer::Barz&, size_t posOffset, DocFeatureLink::Weight_t weight );
 	
     /// should be called after the last doc has been appended . 
     void sortAll();
@@ -316,6 +317,8 @@ class DocFeatureLoader {
     DocFeatureIndex&                      d_index;
     barzer::Barz                          d_barz;
     PhraseBreaker                         d_phraser;
+	
+	DocFeatureLink::Weight_t m_curWeight;
 
 public:
     enum : size_t  { DEFAULT_BUF_SZ = 1024*128 };
@@ -329,9 +332,20 @@ private:
 public:
     ay::xhtml_parser_state::xhtml_mode_t    d_xhtmlMode; // ay::xhtml_parser_state::MODE_XXX (HTML - default or XHTML)
     load_mode_t                             d_loadMode; // one of LOAD_MODE_XXX constants LOAD_MODE_TEXT - default
+    
+    DocFeatureLoader( DocFeatureIndex& index, const barzer::StoredUniverse& u );
+    virtual ~DocFeatureLoader();
 
     PhraseBreaker& phraser() { return d_phraser; }
     const PhraseBreaker& phraser() const  { return d_phraser; }
+    
+    DocFeatureLink::Weight_t setCurrentWeight(DocFeatureLink::Weight_t weight)
+	{
+		auto old = m_curWeight;
+		m_curWeight = weight;
+		return old;
+	}
+	DocFeatureLink::Weight_t getCurrentWeight() const { return m_curWeight; }
 
     enum { MAX_QUERY_LEN = 1024*64, MAX_NUM_TOKENS = 1024*32 };
      
@@ -344,8 +358,6 @@ public:
     barzer::QParser& parser() { return d_parser; }
     barzer::QuestionParm& qparm() { return d_qparm; }
     const barzer::QuestionParm& qparm() const { return d_qparm; }
-    DocFeatureLoader( DocFeatureIndex& index, const barzer::StoredUniverse& u );
-    virtual ~DocFeatureLoader();
     size_t getBufSz() const { return d_bufSz; }
     void setBufSz( size_t x ) { d_bufSz = x; }
 
