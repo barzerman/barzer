@@ -87,7 +87,8 @@ int DocFeatureLink::deserialize( std::istream& fp )
 }
 
 DocFeatureIndex::DocFeatureIndex() 
-: d_classBoosts{ 0.5, 1, 5 }
+: m_meaningsCounter(0)
+, d_classBoosts{ 0.5, 0.5, 1, 5 }
 {}
 
 DocFeatureIndex::~DocFeatureIndex() {}
@@ -103,6 +104,69 @@ barzer::BarzerEntity DocFeatureIndex::translateExternalEntity( const barzer::Bar
     
     return newEnt;
 }
+
+void DocFeatureIndex::addSynonyms(const barzer::StoredUniverse& universe)
+{
+	const auto& meanings = universe.meanings();
+	for (const auto& meaning2words : meanings.getMeaningsToWordsDict())
+	{
+		const auto& universeIds = meaning2words.second;
+		
+		std::vector<std::string> words;
+		words.reserve(universeIds.size());
+		
+		for (size_t i = 0; i < universeIds.size(); ++i)
+			if (auto s = universe.getStringPool().resolveId(universeIds[i]))
+				words.push_back(s);
+		
+		addSynonymsGroup(words);
+	}
+}
+
+void DocFeatureIndex::addSynonymsGroup(const std::vector<std::string>& group)
+{
+	if (group.size() < 2)
+		return;
+	
+	const barzer::WordMeaning meaning(m_meaningsCounter++);
+	for (const auto& string : group)
+		m_meanings.addMeaning(storeExternalString(string.c_str()), meaning);
+}
+
+void DocFeatureIndex::loadSynonyms(const std::string& filename, const barzer::StoredUniverse& universe)
+{
+	std::cout << "LOADING SYNONYMS FROM " << filename << std::endl;
+	auto spell = universe.getBZSpell();
+	
+	std::ifstream istr(filename);
+	while (istr)
+	{
+		std::string line;
+		std::getline(istr, line);
+		
+		std::istringstream lineIstr(line);
+		std::vector<std::string> words;
+		while (lineIstr)
+		{
+			std::string word;
+			lineIstr >> word;
+			
+			if (word.empty())
+				continue;
+			
+			std::string stem;
+			spell->stem(stem, word.c_str());
+			words.push_back(stem.empty() ? word : stem);
+		}
+		if (words.empty())
+			continue;
+		
+		std::cout << words.size() << ' ';
+		addSynonymsGroup(words);
+	}
+	std::cout << std::endl;
+}
+
 uint32_t DocFeatureIndex::storeExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u )
 {
     barzer::BarzerEntity newEnt;
@@ -144,6 +208,7 @@ namespace
 	int vecFiller(IndexType idx,
 			EntGetter getEnt, StringGetter getStr, RawStringGetter getRawStr,
 			const std::set<uint32_t>& stopWords,
+			const barzer::MeaningsStorage& meanings,
 			ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz)
 	{
 		const barzer::StoredUniverse* universe = barz.getUniverse() ;
@@ -187,18 +252,25 @@ namespace
 						) 
 					);
 				}
-			} else { 
-				const barzer::BarzerString* s = i->get<barzer::BarzerString>();
-				if( s ) {
-					const char* theString = (s->stemStr().length() ? s->stemStr().c_str(): s->getStr().c_str());
-					uint32_t strId = (idx->*getRawStr)(theString);//d_stringPool.getId(theString); 
+			} else if (const barzer::BarzerString* s = i->get<barzer::BarzerString>()) { 
+				const char *theString = (s->stemStr().length() ? s->stemStr().c_str(): s->getStr().c_str());
+				uint32_t strId = (idx->*getRawStr)(theString);//d_stringPool.getId(theString); 
+				
+				const auto& wm = meanings.getMeanings(strId);
+				if (wm.second == 1)
+					featureVec.push_back(
+						ExtractedDocFeature(
+							DocFeature( DocFeature::CLASS_SYNGROUP, wm.first->id ),
+							FeatureDocPosition(curOffset)
+						)
+					);
+				else
 					featureVec.push_back( 
 						ExtractedDocFeature( 
 							DocFeature( DocFeature::CLASS_STEM, strId ), 
 							FeatureDocPosition(curOffset)
 						) 
 					);
-				}
 			}
 		}
 		
@@ -244,6 +316,7 @@ int DocFeatureIndex::fillFeatureVecFromQueryBarz( ExtractedDocFeature::Vec_t& fe
 			static_cast<uint32_t (DocFeatureIndex::*)(const barzer::BarzerLiteral&, const barzer::StoredUniverse&) const>(&DocFeatureIndex::resolveExternalString),
 			static_cast<uint32_t (DocFeatureIndex::*)(const char*) const>(&DocFeatureIndex::resolveExternalString),
 			m_stopWords,
+			m_meanings,
 			featureVec, barz);
 }
 int DocFeatureIndex::getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz, bool needToInternStems ) 
@@ -253,6 +326,7 @@ int DocFeatureIndex::getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec
 			static_cast<uint32_t (DocFeatureIndex::*)(const barzer::BarzerLiteral&, const barzer::StoredUniverse&)>(&DocFeatureIndex::storeExternalString),
 			static_cast<uint32_t (DocFeatureIndex::*)(const char*)>(&DocFeatureIndex::storeExternalString),
 			m_stopWords,
+			m_meanings,
 			featureVec, barz);
 }
 
@@ -490,6 +564,11 @@ std::string DocFeatureIndex::resolveFeature(const DocFeature& f) const
 	case DocFeature::CLASS_STEM:
 	case DocFeature::CLASS_TOKEN:
 		return d_stringPool.resolveId(f.featureId);
+	case DocFeature::CLASS_SYNGROUP:
+	{
+		const auto words = m_meanings.getWords(f.featureId);
+		return words.second ? d_stringPool.resolveId(*words.first) : "<unknown syngroup>";
+	}
 	case DocFeature::CLASS_ENTITY:
 	{
 		auto ent = d_entPool.getObjById(f.featureId);
