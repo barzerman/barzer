@@ -1,6 +1,7 @@
 #include <zurch_settings.h>
 #include <boost/foreach.hpp>
 #include <barzer_universe.h>
+#include <zurch/zurch_loader_longxml.h>
 
 
 using boost::property_tree::ptree;
@@ -36,8 +37,18 @@ bool ZurchSettings::loadIndex( const boost::property_tree::ptree& pt )
 	if (const auto x = pt.get_child_optional("synonyms"))
 		dixl->getIndex()->loadSynonyms(x->data(), universe);
 
-    if( const boost::optional< std::string > x = attr.get().get_optional<std::string>("dir") )  
+    if( const boost::optional< std::string > x = attr.get().get_optional<std::string>("dir") )   {
+        loader->d_loadMode = DocFeatureLoader::LOAD_MODE_TEXT;
         dixl->addAllFilesAtPath(x.get().c_str());
+    }
+
+    if( const boost::optional< std::string > x = attr.get().get_optional<std::string>("xml") ) {
+        DocFeatureLoader::DocStats stats;
+        loader->d_loadMode = DocFeatureLoader::LOAD_MODE_XHTML;
+        ZurchLongXMLParser_DocLoader parser( stats, *loader );
+        parser.readFromFile( x.get().c_str() );
+        stats.print( std::cerr << "\n" ) << std::endl;
+    }
     return true;
 }
 

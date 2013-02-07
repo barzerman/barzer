@@ -175,7 +175,7 @@ struct DocFeatureLink {
     uint32_t docId; 
 	
 	typedef uint16_t Weight_t;
-    Weight_t weight; /// -1000000, +100000 - negative means disassociation , 0 - neutral association, positive - boost
+    Weight_t weight; /// negative means disassociation , 0 - neutral association, positive - boost
     
     // we don't use it yet, and if we'd use we'd still need something more advanced
     //uint32_t position;  /// some 1 dimensional positional number for feature within doc (can be middle between begin and end offset, or phrase number) 

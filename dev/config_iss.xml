@@ -7,7 +7,10 @@
     <users>
         <user id="0">
             <zurch>
+                <!--
                 <index dir="/Users/yanis/barzer/data/ukrf"/>
+                -->
+                <index xml="/Users/yanis/barzer/data/ArtDocExport.xml"/>
             </zurch>
             <!-- 
             <spell soundslike="yes"><tokenizer strat="SPACE_DEFAULT"/></spell>

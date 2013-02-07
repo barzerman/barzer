@@ -24,19 +24,22 @@ struct ZurchLongXMLParser {
     Zurch_Moedelo_Doc_FAQ  d_data;
 
     std::vector<int> tagStack;
+    size_t d_numCallbacks;
 
     /// tag functions are needed for external connectivity so that this object can be invoked from other XML parsers
     void readFromFile( const char* fname );
     void clear() { tagStack.clear(); }
 
     virtual int callback();
+    ZurchLongXMLParser() : d_numCallbacks(0){}
     virtual ~ZurchLongXMLParser() {}
 };
 
 
 struct ZurchLongXMLParser_DocLoader : public ZurchLongXMLParser {
     DocIndexLoaderNamedDocs& d_loader;
-    ZurchLongXMLParser_DocLoader( DocIndexLoaderNamedDocs& ldr ) : d_loader(ldr) {}
+    DocFeatureLoader::DocStats& d_loadStats;
+    ZurchLongXMLParser_DocLoader(DocFeatureLoader::DocStats& ds, DocIndexLoaderNamedDocs& ldr) : d_loader(ldr), d_loadStats(ds){}
     virtual int callback();
 };
 } // namespace barzer 

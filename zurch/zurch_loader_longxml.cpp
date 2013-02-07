@@ -156,6 +156,10 @@ DECL_TAGHANDLE(TABLE) {
                 break;
         ALS_END  // end of attributes
     }
+    ++parser.d_numCallbacks;
+
+    if( !(parser.d_numCallbacks%500) )
+        std::cerr << "."; // trace
     parser.callback();
 
     return TAGHANDLE_ERROR_OK;
@@ -198,7 +202,25 @@ int ZurchLongXMLParser_DocLoader::callback()
     std::string docName = d_data.d_ModuleID + "." + d_data.d_ID;
     uint32_t docId = d_loader.addDocName( docName.c_str() );
 
+    enum : DocFeatureLink::Weight_t {
+        WEIGHT_BOOST_NONE=0, 
+        WEIGHT_BOOST_NAME=1000,
+        WEIGHT_BOOST_KEYWORD=2000
+    };
     
+    std::stringstream sstr;
+
+    sstr << d_data.d_Content;
+    d_loader.setCurrentWeight(WEIGHT_BOOST_NONE);
+    d_loader.addDocFromStream( docId, sstr, d_loadStats );
+    
+    sstr << d_data.d_DocName;
+    d_loader.setCurrentWeight(WEIGHT_BOOST_NAME);
+    d_loader.addDocFromStream( docId, sstr, d_loadStats );
+
+    sstr << d_data.d_Keywords;
+    d_loader.setCurrentWeight(WEIGHT_BOOST_KEYWORD);
+    d_loader.addDocFromStream( docId, sstr, d_loadStats );
     return 0;
 }
 

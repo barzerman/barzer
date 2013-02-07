@@ -138,7 +138,7 @@ void DocFeatureIndex::loadSynonyms(const std::string& filename, const barzer::St
 	std::cout << "LOADING SYNONYMS FROM " << filename << std::endl;
 	auto spell = universe.getBZSpell();
 	
-	std::ifstream istr(filename);
+	std::ifstream istr(filename.c_str());
 	while (istr)
 	{
 		std::string line;
