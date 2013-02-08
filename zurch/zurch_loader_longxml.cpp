@@ -143,7 +143,7 @@ DECL_TAGHANDLE(TABLE) {
                 CASEIF(DocName)
                 break;
             case 'I': 
-                CASEIF(BegDate)
+                CASEIF(ID)
                 break;
             case 'K': 
                 CASEIF(Keywords)
