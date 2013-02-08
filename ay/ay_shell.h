@@ -4,7 +4,7 @@
 namespace ay {
 
 class Shell;
-typedef int (*Shell_PROCF)( Shell*, char_cp cmd, std::istream& in );
+typedef int (*Shell_PROCF)( Shell*, char_cp cmd, std::istream& in, const std::string& str );
 
 struct ShellContext {
 	virtual ~ShellContext() {}
@@ -24,11 +24,11 @@ protected:
 public:
 	bool echo; /// when on prints commands to std:cerr 
 	/// individual commands 
-	static int cmd_set( Shell*, char_cp cmd, std::istream& in );
-	static int cmd_run( Shell*, char_cp cmd, std::istream& in );
-	static int cmd_help( Shell*, char_cp cmd, std::istream& in );
-	static int cmd_exit( Shell*, char_cp cmd, std::istream& in );
-	static int cmd_quit( Shell*, char_cp cmd, std::istream& in );
+	static int cmd_set( Shell*, char_cp cmd, std::istream& in, const std::string&  );
+	static int cmd_run( Shell*, char_cp cmd, std::istream& in, const std::string&  );
+	static int cmd_help( Shell*, char_cp cmd, std::istream& in, const std::string&  );
+	static int cmd_exit( Shell*, char_cp cmd, std::istream& in, const std::string&  );
+	static int cmd_quit( Shell*, char_cp cmd, std::istream& in, const std::string&  );
 	// end of commands 
 
 	/// 
@@ -56,7 +56,7 @@ protected:
 		CmdDataMap::const_iterator i = cmdMap.find( cmd );
 		return( i!= cmdMap.end() ? i->second : 0 );
 	}
-	inline int cmdInvoke( int& rc, char_cp cmd, std::istream& in );
+	inline int cmdInvoke( int& rc, char_cp cmd, std::istream& in, const std::string& argStr );
 
 	CmdDataRange getProcs() const; // own procedures and fallback ones (BaseProcs)
 	virtual int printPrompt();

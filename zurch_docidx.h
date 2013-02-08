@@ -332,7 +332,13 @@ private:
 public:
     ay::xhtml_parser_state::xhtml_mode_t    d_xhtmlMode; // ay::xhtml_parser_state::MODE_XXX (HTML - default or XHTML)
     load_mode_t                             d_loadMode; // one of LOAD_MODE_XXX constants LOAD_MODE_TEXT - default
+    boost::unordered_map< uint32_t, std::string > d_docTitleMap; 
     
+    void setDocTitle( uint32_t docId, const std::string& s ) 
+        { d_docTitleMap[ docId ] = s; }
+    const std::string getDocTitle( uint32_t docId ) const
+        { const auto i = d_docTitleMap.find( docId ); return (i == d_docTitleMap.end() ?  std::string() : i->second ); }
+
     DocFeatureLoader( DocFeatureIndex& index, const barzer::StoredUniverse& u );
     virtual ~DocFeatureLoader();
 
@@ -371,6 +377,13 @@ public:
         DocStats() : numPhrases(0) , numBeads(0), numFeatureBeads(0) {} 
 
         std::ostream& print( std::ostream& ) const;
+        DocStats& operator+=( const DocStats& o ) 
+        {
+            numPhrases+=o.numPhrases;
+            numBeads+=o.numBeads;
+            numFeatureBeads+=o.numFeatureBeads;
+            return *this;
+        }
     };
     size_t addDocFromStream( uint32_t docId, std::istream&, DocStats&  );
 

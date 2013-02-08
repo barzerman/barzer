@@ -25,6 +25,8 @@ namespace barzer {
 struct BarzerShellContext : public ay::ShellContext {
 	GlobalPools& gp;
 	StoredUniverse* d_universe;
+    
+    std::string d_queryRet;
 
     zurch::DocIndexAndLoader       d_zurchFS;
 

@@ -201,6 +201,9 @@ int ZurchLongXMLParser_DocLoader::callback()
 {
     std::string docName = d_data.d_ModuleID + "." + d_data.d_ID;
     uint32_t docId = d_loader.addDocName( docName.c_str() );
+    
+    if(d_data.d_DocName.length() )
+        d_loader.setDocTitle( docId, d_data.d_DocName ); 
 
     enum : DocFeatureLink::Weight_t {
         WEIGHT_BOOST_NONE=0, 

@@ -711,11 +711,12 @@ size_t DocFeatureLoader::addDocFromStream( uint32_t docId, std::istream& fp, Doc
 
         parser.setMode( d_xhtmlMode );
         parser.parse();
+        
     } else if( d_loadMode== LOAD_MODE_AUTO ) {
         AYLOG(ERROR) << "LOAD_MODE_AUTO unimplemented" << std::endl;
     }
         
-    stats = adderCb.stats;
+    stats += adderCb.stats;
 	
 	parser().lexer.setDontSpell(false);
 
