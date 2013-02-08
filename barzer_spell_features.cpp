@@ -11,6 +11,8 @@ void TFE_ngram::operator()(ExtractedStringFeatureVec& outVec, const char *str, s
 	const size_t nGramSymbs = 3;
 	const size_t stemThreshold = 4;
 	
+	outVec.reserve(outVec.size() + str_len - nGramSymbs + 3);
+	
 	std::string tmp;
 	if (lang == LANG_ENGLISH || lang == LANG_RUSSIAN)
 	{

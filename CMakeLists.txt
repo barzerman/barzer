@@ -147,6 +147,7 @@ set(SOURCES barzer_universe.cpp
 			barzer_spellheuristics.cpp
 			barzer_geoindex.cpp
 			barzer_spell_features.cpp
+            zurch/zurch_loader_longxml.cpp
             zurch_server.cpp
             zurch_settings.cpp
             zurch_classifier.cpp

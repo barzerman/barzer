@@ -385,6 +385,9 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 				
 			if (const auto p = attrs.get_optional<std::string>("featuredsc"))
 				if (*p == "yes") u.getUniverse().setBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT);
+				
+			if (const auto p = attrs.get_optional<std::string>("fsconly"))
+				if (*p == "yes") u.getUniverse().setBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT_ONLY);
         }
 		BOOST_FOREACH(const ptree::value_type &v, spell) {
 			const std::string& tagName = v.first;

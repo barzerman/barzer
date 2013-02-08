@@ -311,7 +311,6 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 			else
 				res = makeReal(joinInts(m_tokens), frac);
 
-			// std::cout << __PRETTY_FUNCTION__ << " " << res.getRealWiden() << std::endl;
 			CToken *resTok = m_tokens[0];
 			resTok->setNumber(res);
 
@@ -526,9 +525,9 @@ struct QLexParser_LocalParms {
         PosedVec<CTWPVec>& cPosVec;
         PosedVec<TTWPVec>& tPosVec;
         const QuestionParm& qparm;
-        const size_t& t_len;
-        const uint32_t& strId;
-        const int& lang;
+        const size_t t_len;
+        const uint32_t strId;
+        const int lang;
         const char* theString;
         const BZSpell* bzSpell;
 	    CToken& ctok;
@@ -539,9 +538,9 @@ struct QLexParser_LocalParms {
                 PosedVec<CTWPVec>& p_cPosVec, 
                 PosedVec<TTWPVec>& p_tPosVec, 
                 const QuestionParm& p_qparm, 
-                const size_t& p_t_len, 
-                const uint32_t& p_strId, 
-                const int& p_lang, 
+                const size_t p_t_len, 
+                const uint32_t p_strId, 
+                const int p_lang, 
                 const char* p_theString,
                 const BZSpell* p_bzSpell,
                 CToken& p_ctok,
@@ -638,9 +637,9 @@ inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexPa
     PosedVec<CTWPVec>& cPosVec      = parm.cPosVec;
     PosedVec<TTWPVec>& tPosVec      = parm.tPosVec;
     // const QuestionParm& qparm       = parm.qparm;
-    const size_t& t_len             = parm.t_len;
-    const uint32_t& strId           = parm.strId;
-    const int& lang                 = parm.lang;
+    const size_t t_len             = parm.t_len;
+    const uint32_t strId           = parm.strId;
+    const int lang                 = parm.lang;
     const char* theString           = parm.theString;
     const BZSpell* bzSpell          = parm.bzSpell;
 	CToken& ctok                    = parm.ctok;
@@ -911,7 +910,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 	}
 
 	if( !isUsersWord ) {
-		strId = bzSpell->getSpellCorrection( theString, true, lang );
+		strId = m_dontSpell ? 0xffffffff : bzSpell->getSpellCorrection( theString, true, lang );
 		if( strId != 0xffffffff ) {
 			 correctedStr = gp.string_resolve( strId ) ;
 		} else { // trying stemming
@@ -919,7 +918,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 			strId = bzSpell->getStemCorrection( stemmedStr, theString, lang, BZSpell::CORRECTION_MODE_NORMAL );
 			if( strId != 0xffffffff ) {
 				correctedStr = gp.string_resolve( strId ) ;
-			} else if( (stemmedStr.length() > MIN_SPELL_CORRECT_LEN) && strlen(theString) != stemmedStr.length() ) {
+			} else if( !m_dontSpell && (stemmedStr.length() > MIN_SPELL_CORRECT_LEN) && strlen(theString) != stemmedStr.length() ) {
                 // spelling correction failed but the string got stemmed
                 strId = bzSpell->getSpellCorrection( stemmedStr.c_str(), true, lang );
                 if( strId != 0xffffffff )
@@ -952,7 +951,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
             SpellCorrectResult corrResult;
             QLexParser_LocalParms lparm(cPosVec, tPosVec, qparm, t_len, strId, lang,theString,bzSpell,ctok,ttok,t);
 
-            if( trySplitCorrect (corrResult, lparm, qparm.isAutoc ) ) 
+            if( !m_dontSpell && trySplitCorrect (corrResult, lparm, qparm.isAutoc ) ) 
                 return corrResult;
         }
         //// end of split correction attempt

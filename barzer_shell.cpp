@@ -84,7 +84,7 @@ typedef ay::Shell::CmdData CmdData;
 ///// specific shell routines
 
 
-static int bshf_test( ay::Shell*, char_cp cmd, std::istream& in )
+static int bshf_test( ay::Shell*, char_cp cmd, std::istream& in, const std::string& argStr )
 {
 	/// NEVER REMOVE THIS FUNCTION . it's used in debug scripts in those cases
 	/// gdb ctrl-C gets passed to the app - it is unfortunately the case on Mac
@@ -100,7 +100,7 @@ static int bshf_test( ay::Shell*, char_cp cmd, std::istream& in )
 	return 0;
 }
 
-static int bshf_tokid( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_tokid( BarzerShell* shell, char_cp cmd, std::istream& in, const std::string& argStr )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	const DtaIndex* dtaIdx = context->obtainDtaIdx();
@@ -126,7 +126,7 @@ static int bshf_tokid( BarzerShell* shell, char_cp cmd, std::istream& in )
 	}
 	return 0;
 }
-static int bshf_tok( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_tok( BarzerShell* shell, char_cp cmd, std::istream& in, const std::string& argStr )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	DtaIndex* dtaIdx = context->obtainDtaIdx();
@@ -143,32 +143,58 @@ static int bshf_tok( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 	return 0;
 }
-static int bshf_srvroute( BarzerShell* shell, char_cp cmd, std::istream& in )
-{
 
+static int bshf_srvroute( BarzerShell* shell, char_cp cmd, std::istream& in, const std::string& argStr )
+{
 	// BarzerShellContext * context = shell->getBarzerContext();
 	GlobalPools& gp = shell->gp;
-
+    
 	ay::InputLineReader reader( in );
 	QuestionParm qparm;
     std::ostream& os = std::cerr;
 
+    char *q = 0;
     std::string question;
-    while (reader.nextLine()&& reader.str.length())
-        question.append(reader.str);
-    char *q = strdup( question.c_str() );
-    //const char* q = reader.str.c_str();
-    int rc = request::route( gp, q, strlen(q), os );
-    if( rc != request::ROUTE_ERROR_OK ) {
-        os << " ERROR " << rc;
-    } else
-        os << " success ";
-    os << "==============\n";
-    free(q);
+    std::string attrStr;
+
+    std::string theTag;
+    std::string shit; 
+    if( argStr.length() ) {
+        theTag = "query";
+        std::string bufStr;
+        while( true ) {
+            std::getline(std::cin,bufStr);
+            if( ! bufStr.length() ) 
+                break;
+            std::stringstream sstr;
+            sstr << "<" << theTag << " " << argStr << ">" << bufStr << "</" << theTag <<">";
+            q = strdup( sstr.str().c_str() );
+            std::cerr << "QUERY:" << q << std::endl;
+            int rc = request::route( gp, q, strlen(q), os );
+            if( rc != request::ROUTE_ERROR_OK ) {
+                os << " ERROR " << rc;
+            } else
+                os << " success ";
+            std::cerr << std::endl;
+            free(q);
+        }
+    } else {
+        while (reader.nextLine()&& reader.str.length())
+            question.append(reader.str);
+        q = strdup( question.c_str() );
+        //const char* q = reader.str.c_str();
+        int rc = request::route( gp, q, strlen(q), os );
+        if( rc != request::ROUTE_ERROR_OK ) {
+            os << " ERROR " << rc;
+        } else
+            os << " success ";
+        os << "==============\n";
+        free(q);
+    }
     
     return 0;
 }
-static int bshf_emit( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_emit( BarzerShell* shell, char_cp cmd, std::istream& in, const std::string& argStr )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	const StoredUniverse &uni = context->getUniverse();
@@ -190,7 +216,7 @@ static int bshf_emit( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
-static int bshf_entid( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_entid( BarzerShell* shell, char_cp cmd, std::istream& in, const std::string& argStr )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	DtaIndex* dtaIdx = context->obtainDtaIdx();
@@ -215,7 +241,7 @@ static int bshf_entid( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 	return 0;
 }
-static int bshf_entfind( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_entfind( BarzerShell* shell, char_cp cmd, std::istream& in, const std::string& argStr )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
     const StoredUniverse & universe = context->getUniverse();
@@ -259,7 +285,7 @@ static int bshf_entfind( BarzerShell* shell, char_cp cmd, std::istream& in )
     return 0;
 }
 
-static int bshf_euid( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_euid( BarzerShell* shell, char_cp cmd, std::istream& in, const std::string& argStr )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	DtaIndex* dtaIdx = context->obtainDtaIdx();
@@ -279,7 +305,7 @@ static int bshf_euid( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
-static int bshf_xmload( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_xmload( BarzerShell* shell, char_cp cmd, std::istream& in, const std::string& argStr )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	DtaIndex* dtaIdx = context->obtainDtaIdx();
@@ -296,7 +322,7 @@ static int bshf_xmload( BarzerShell* shell, char_cp cmd, std::istream& in )
 	std::cerr << "All done in " << totalTimer.calcTime() << " seconds\n";
 	return 0;
 }
-static int bshf_inspect( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_inspect( BarzerShell* shell, char_cp cmd, std::istream& in, const std::string& argStr )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	DtaIndex* dtaIdx = context->obtainDtaIdx();
@@ -318,7 +344,7 @@ static int bshf_inspect( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
-static int bshf_dir( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_dir( BarzerShell* shell, char_cp cmd, std::istream& in, const std::string& argStr )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	Barz& barz = context->barz;
@@ -338,7 +364,32 @@ static int bshf_dir( BarzerShell* shell, char_cp cmd, std::istream& in )
     ay::dir_list( std::cerr, path, true, pattern );
     return 0;
 }
-static int bshf_phrase( BarzerShell* shell, char_cp cmd, std::istream& in )
+namespace {
+
+struct PhraserStatsCB {
+double sumLength;
+size_t maxLength, numPhrases;
+
+PhraserStatsCB() : 
+    sumLength(0.0) ,
+    maxLength(0), numPhrases(0)
+{}
+void operator() ( zurch::BarzerTokenizerCB_data& dta, zurch::PhraseBreaker& phraser, barzer::Barz& barz )
+{
+    ++numPhrases;
+    if( !(numPhrases%10000) )
+        std::cerr << ".";
+
+    sumLength += dta.queryBuf.length();
+    if( dta.queryBuf.length() > maxLength) 
+        maxLength = dta.queryBuf.length();
+}
+double getAvg() const { return ( numPhrases ? sumLength/numPhrases : 0 ); }
+
+};
+
+} // end of anon namespace
+static int bshf_phrase( BarzerShell* shell, char_cp cmd, std::istream& in, const std::string& argStr )
 {
     std::string fileName;
     if( !(in >> fileName ) ) {
@@ -348,26 +399,41 @@ static int bshf_phrase( BarzerShell* shell, char_cp cmd, std::istream& in )
     std::ifstream inFile;
     inFile.open(fileName.c_str() );
     if( !inFile.is_open() ) {
-        std::cerr << "coiuldnt open file " << fileName << std::endl;
+        std::cerr << "couldnt open file " << fileName << std::endl;
         return 0;
     }
     zurch::PhraseBreaker phraser; 
 	QuestionParm qparm;
 
-    zurch::BarzTokPrintCB printCb( std::cerr );
 	BarzerShellContext * context = shell->getBarzerContext();
 	Barz& barz = context->barz;
-    zurch::PrintStringCB cb( printCb, context->parser, barz, qparm );
-    phraser.addSingleCharDelimiters( "?!;.,", true );
-    zurch::PhraseDelimiterData* dd = phraser.getDelimiterData(".");
-    if( dd ) {
-        dd->addNoPreceed( "тов" );
+
+    if( false ) { // actually prints out hrased stuff 
+        zurch::BarzTokPrintCB printCb( std::cerr );
+        zurch::PrintStringCB cb( printCb, context->parser, barz, qparm );
+        phraser.addSingleCharDelimiters( "?!;.,", true );
+        zurch::PhraseDelimiterData* dd = phraser.getDelimiterData(".");
+        if( dd ) {
+            dd->addNoPreceed( "тов" );
+        }
+        phraser.breakStream( cb, inFile );
+    } else { // prints out phraser stats 
+        PhraserStatsCB statsCb;
+        zurch::BarzerTokenizerCB<PhraserStatsCB> cb( statsCb, context->parser, barz, qparm );
+
+        ay::stopwatch localTimer;
+        phraser.breakStream( cb, inFile );
+
+	    std::cerr << phraser.d_numBuffers << " buffers, " <<
+        phraser.d_numPhrases << " phrases, " <<
+        statsCb.getAvg() << " average, " <<
+        statsCb.maxLength << " max " <<
+        "phrased in " << localTimer.calcTime() << " seconds\n";
     }
-    phraser.breakStream( cb, inFile );
 
     return 0;
 }
-static int bshf_zurch_old( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_zurch_old( BarzerShell* shell, char_cp cmd, std::istream& in, const std::string& argStr )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	Barz& barz = context->barz;
@@ -404,7 +470,7 @@ static int bshf_zurch_old( BarzerShell* shell, char_cp cmd, std::istream& in )
     return 0;
 }
 
-static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in, const std::string& argStr )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	Barz& barz = context->barz;
@@ -436,6 +502,8 @@ static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in )
 		zurch::DocFeatureIndex::DocWithScoreVec_t scores;
 		index.findDocument(scores, extracted);
 		
+		std::cout << "found " << scores.size() << " documents" << std::endl;
+		
 		for (size_t i = 0; i < std::min(static_cast<size_t>(10), scores.size()); ++i)
 		{
 			const auto& doc = scores[i];
@@ -446,12 +514,12 @@ static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in )
 
     return 0;
 }
-static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	Barz& barz = context->barz;
 
-    context->d_zurchFS.init( context->getUniverse() );
+	context->d_zurchFS.init( context->getUniverse() );
 
     std::string fileName;
     std::ifstream fp;
@@ -459,12 +527,34 @@ static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
         std::cerr << "couldnt open input file " << fileName << std::endl;
         return 0;
     }
+    
+    std::string stopWords;
+	in >> stopWords;
+	if (!stopWords.empty())
+	{
+		std::ifstream istr(stopWords.c_str());
+		std::vector<std::string> words;
+		while (istr)
+		{
+			std::string word;
+			istr >> word;
+			words.push_back(word);
+		}
+		
+		context->d_zurchFS.getIndex()->setStopWords(words);
+		std::cerr << "loaded " << words.size() << " stopwords" << std::endl;
+	}
+    
+    ay::stopwatch localTimer;
 
     std::ifstream inFile;
     zurch::DocFeatureIndex& index = *(context->d_zurchFS.getIndex());
     index.setInternStems();
     zurch::DocIndexLoaderNamedDocs& fsIndex = *(context->d_zurchFS.getLoader());
+	fsIndex.d_loaderOpt.d_bits.set(zurch::DocIndexLoaderNamedDocs::LoaderOptions::BIT_DIR_RECURSE);
     fsIndex.addAllFilesAtPath( fileName.c_str() );
+	
+	std::cerr << "loaded in " << localTimer.calcTime() << " seconds\n";
      
     std::cerr << "***** INDEX STATS:\n";
     index.printStats( std::cerr );
@@ -474,24 +564,76 @@ static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in )
     sstr << "shell_idx_" << std::hex << context->getUniverse().getUserId() << ".dix";
     std::string dixFileName( sstr.str() );
 
-	/*
-    {
-    std::cerr << "Serializing to " << dixFileName << std::endl;
-    std::ofstream dixFile;
-    dixFile.open( dixFileName.c_str() );
-    index.serialize( dixFile );
-    }
-
-    {
-    std::cerr << "Deserializing from " << dixFileName << std::endl;
-    std::ifstream dixFile;
-    dixFile.open( dixFileName.c_str() );
-    index.deserialize( dixFile );
-    }
-    */
     return 0;
 }
-static int bshf_lex( BarzerShell* shell, char_cp cmd, std::istream& in )
+
+static int bshf_zstat(BarzerShell *shell, char_cp cmd, std::istream& in, const std::string& argStr)
+{
+	auto context = shell->getBarzerContext();
+	const auto& index = *context->d_zurchFS.getIndex();
+	
+	size_t count = 20;
+	double perc = 0.05;
+	in >> count >> perc;
+	
+	const auto& important = index.getImportantFeatures(count, perc);
+	for (const auto& ngram : important.m_values)
+	{
+		const auto& features = ngram.gram.getFeatures();
+		std::cerr << "\t" << std::distance(features.begin(), features.end()) << "-gram: ";
+		std::cerr << "\t" << ngram.numDocs << "\t" << ngram.encounters << "\t";
+		for (const auto& f : features)
+			std::cerr << "'" << index.resolveFeature(f) << "' ";
+		std::cerr << std::endl;
+	}
+	
+	return 0;
+}
+
+static int bshf_zdump(BarzerShell *shell, char_cp cmd, std::istream& in, const std::string& argStr)
+{
+	auto context = shell->getBarzerContext();
+	const auto& index = *context->d_zurchFS.getIndex();
+	
+	std::string filename;
+	in >> filename;
+	
+	if (filename.empty())
+	{
+		std::cerr << "invalid filename" << std::endl;
+		return 0;
+	}
+	
+	const auto& grams = index.getImportantFeatures(0, 0);
+	std::cout << "dumping " << grams.m_values.size() << " features" << std::endl;
+	
+    ay::stopwatch localTimer;
+	
+	std::ofstream ostr(filename.c_str());
+	size_t numDumped = 0;
+	for (const auto& ngram : grams.m_values)
+	{
+		ostr << ngram.score << '|' << ngram.numDocs << '|' << ngram.encounters << '|';
+		
+		bool isFirst = true;
+		for (const auto& f : ngram.gram.getFeatures())
+		{
+			if (!isFirst)
+				ostr << ' ';
+			isFirst = false;
+			ostr << index.resolveFeature(f);
+		}
+		ostr << '\n';
+		
+		if (!(++numDumped % 100000))
+			std::cerr << "Dumped " << numDumped << " records..." << std::endl;
+	}
+	
+	std::cerr << "done in " << localTimer.calcTime() << std::endl;
+	return 0;
+}
+
+static int bshf_lex( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 
 	BarzerShellContext * context = shell->getBarzerContext();
@@ -531,7 +673,7 @@ static int bshf_lex( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
-static int bshf_guesslang(BarzerShell *shell, char_cp cmd, std::istream& in)
+static int bshf_guesslang(BarzerShell *shell, char_cp cmd, std::istream& in, const std::string& argStr)
 {
 	BarzerShellContext *context = shell->getBarzerContext();
 	GlobalPools& pools = context->getUniverse().getGlobalPools();
@@ -558,7 +700,7 @@ static int bshf_guesslang(BarzerShell *shell, char_cp cmd, std::istream& in)
 	return 0;
 }
 
-static int bshf_wordMeanings(BarzerShell *shell, char_cp cmd, std::istream& in)
+static int bshf_wordMeanings(BarzerShell *shell, char_cp cmd, std::istream& in, const std::string& argStr)
 {
 	BarzerShellContext *context = shell->getBarzerContext();
 	GlobalPools& pools = context->getUniverse().getGlobalPools();
@@ -582,7 +724,7 @@ static int bshf_wordMeanings(BarzerShell *shell, char_cp cmd, std::istream& in)
 	return 0;
 }
 
-static int bshf_listMeaning(BarzerShell *shell, char_cp cmd, std::istream& in)
+static int bshf_listMeaning(BarzerShell *shell, char_cp cmd, std::istream& in, const std::string& argStr)
 {
 	BarzerShellContext *context = shell->getBarzerContext();
 	GlobalPools& pools = context->getUniverse().getGlobalPools();
@@ -606,7 +748,7 @@ static int bshf_listMeaning(BarzerShell *shell, char_cp cmd, std::istream& in)
 	return 0;
 }
 
-static int bshf_allMeanings(BarzerShell *shell, char_cp cmd, std::istream& in)
+static int bshf_allMeanings(BarzerShell *shell, char_cp cmd, std::istream& in, const std::string& argStr)
 {
 	BarzerShellContext *context = shell->getBarzerContext();
 	GlobalPools& pools = context->getUniverse().getGlobalPools();
@@ -624,7 +766,7 @@ static int bshf_allMeanings(BarzerShell *shell, char_cp cmd, std::istream& in)
 	return 0;
 }
 
-static int bshf_findEntities(BarzerShell *shell, char_cp cmd, std::istream& in)
+static int bshf_findEntities(BarzerShell *shell, char_cp cmd, std::istream& in, const std::string& argStr)
 {
 	BarzerShellContext *context = shell->getBarzerContext();
 	const auto& uni = context->getUniverse();
@@ -668,7 +810,7 @@ static int bshf_findEntities(BarzerShell *shell, char_cp cmd, std::istream& in)
 	return 0;
 }
 
-static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	Barz& barz = context->barz;
@@ -706,7 +848,7 @@ static int bshf_tokenize( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
-static int bshf_soundslike(BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_soundslike(BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	BarzerShellContext *context = shell->getBarzerContext();
 	const StoredUniverse &uni = context->getUniverse();
@@ -727,7 +869,7 @@ static int bshf_soundslike(BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
-static int bshf_bzspell( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_bzspell( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	BarzerShellContext *context = shell->getBarzerContext();
 	const StoredUniverse &uni = context->getUniverse();
@@ -764,7 +906,7 @@ static int bshf_bzspell( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
-static int bshf_bzstem( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_bzstem( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	BarzerShellContext *context = shell->getBarzerContext();
 	const StoredUniverse &uni = context->getUniverse();
@@ -820,7 +962,7 @@ struct TopicAnalyzer {
 
 } /// end of anon namespace
 
-static int bshf_greed( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_greed( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	Barz& barz = context->barz;
@@ -862,7 +1004,7 @@ static int bshf_greed( BarzerShell* shell, char_cp cmd, std::istream& in )
     return 0;
 }
 
-static int bshf_autoc( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_autoc( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	Barz& barz = context->barz;
@@ -909,7 +1051,7 @@ static int bshf_autoc( BarzerShell* shell, char_cp cmd, std::istream& in )
     return 0;
 }
 
-static int bshf_smf( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_smf( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
     BarzerShellContext * context = shell->getBarzerContext();
 
@@ -935,7 +1077,7 @@ static int bshf_smf( BarzerShell* shell, char_cp cmd, std::istream& in )
     return 0;
 }
 
-static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
     BarzerShellContext * context = shell->getBarzerContext();
     if( !context || !context->isUniverseValid() ) {
@@ -990,7 +1132,7 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in )
     return 0;
 }
 
-static int bshf_anlqry( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_anlqry( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	Barz& barz = context->barz;
@@ -1032,7 +1174,7 @@ static int bshf_anlqry( BarzerShell* shell, char_cp cmd, std::istream& in )
 
 
 
-static int bshf_setloglevel( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_setloglevel( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	static std::map<std::string,int> m;
 
@@ -1053,7 +1195,7 @@ static int bshf_setloglevel( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
-static int bshf_trie( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_trie( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	return bshtrie_process( shell, in );
 }
@@ -1082,7 +1224,7 @@ struct ShellState {
 
 } // anon namespace ends
 
-static int bshf_universe( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_universe( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	std::string tmp;
     std::ostream& outFp = shell->getOutStream() ;
@@ -1100,7 +1242,7 @@ static int bshf_universe( BarzerShell* shell, char_cp cmd, std::istream& in )
     }
     return 0;
 }
-static int bshf_userstats( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_userstats( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	// BarzerShellContext * context = shell->getBarzerContext();
 	std::string tmp;
@@ -1152,7 +1294,7 @@ static int bshf_userstats( BarzerShell* shell, char_cp cmd, std::istream& in )
     return 0;
 }
 
-static int bshf_triestats( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_triestats( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	BarzerShellContext *context = shell->getBarzerContext();
 	ShellState sh( shell, cmd, in );
@@ -1204,7 +1346,7 @@ struct TrieLeafFinder {
 
 }
 
-static int bshf_translit( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_translit( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
     bool engToRus = ( !cmd || cmd[0] == 't'  );
 	ay::InputLineReader reader( in );
@@ -1223,7 +1365,7 @@ static int bshf_translit( BarzerShell* shell, char_cp cmd, std::istream& in )
     }
     return 0;
 }
-static int bshf_xtrans( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_xtrans( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	ShellState sh( shell, cmd, in );
 	BELPrintFormat fmt;
@@ -1264,7 +1406,7 @@ size_t TAParms::maxNameLen     = 3;
 }
 
 /// data analysis entry point
-static int bshf_dtaan( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_dtaan( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	std::ostream *ostr = &(shell->getOutStream());
 	std::ofstream ofile;
@@ -1324,7 +1466,7 @@ static int bshf_dtaan( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
-static int bshf_trls( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_trls( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	BarzerShellContext *context = shell->getBarzerContext();
 	StoredUniverse &uni = context->getUniverse();
@@ -1395,7 +1537,7 @@ static int bshf_trls( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
-static int bshf_trcd( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_trcd( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	BELTrieWalker &w = shell->getBarzerContext()->trieWalker;
 	std::string s;
@@ -1410,10 +1552,10 @@ static int bshf_trcd( BarzerShell* shell, char_cp cmd, std::istream& in )
 	} else {
 		std::cout << "trie moveto <#Child>" << std::endl;
 	}
-	return bshf_trls(shell, cmd, in );
+	return bshf_trls(shell, cmd, in, argStr );
 }
 
-static int bshf_trcdw( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_trcdw( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	BELTrieWalker &w = shell->getBarzerContext()->trieWalker;
 	std::string s;
@@ -1427,9 +1569,9 @@ static int bshf_trcdw( BarzerShell* shell, char_cp cmd, std::istream& in )
 	} else {
 		std::cout << "trie moveto <#Child>" << std::endl;
 	}
-	return bshf_trls(shell, cmd, in );;
+	return bshf_trls(shell, cmd, in, argStr );
 }
-static int bshf_trieclear( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_trieclear( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 
 	BarzerShellContext * context = shell->getBarzerContext();
@@ -1444,7 +1586,7 @@ static int bshf_trieclear( BarzerShell* shell, char_cp cmd, std::istream& in )
 	}
 	return 0;
 }
-static int bshf_grammar( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_grammar( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	// GlobalPools &globalPools = context->getGLobalPools();
@@ -1476,7 +1618,7 @@ static int bshf_grammar( BarzerShell* shell, char_cp cmd, std::istream& in )
     }
 	return 0;
 }
-static int bshf_trieset( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_trieset( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	BarzerShellContext * context = shell->getBarzerContext();
 	GlobalPools &globalPools = context->getGLobalPools();
@@ -1494,7 +1636,7 @@ static int bshf_trieset( BarzerShell* shell, char_cp cmd, std::istream& in )
 }
 
 
-static int bshf_trup( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_trup( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	BELTrieWalker &w = shell->getBarzerContext()->trieWalker;
 	w.moveBack();
@@ -1541,7 +1683,7 @@ public:
 	}
 };
 
-static int bshf_strid( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_strid( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
     BarzerShellContext * context = shell->getBarzerContext();
 
@@ -1556,7 +1698,7 @@ static int bshf_strid( BarzerShell* shell, char_cp cmd, std::istream& in )
     }
     return 0;
 }
-static int bshf_stexpand( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_stexpand( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	BarzerShellContext *context = shell->getBarzerContext();
 	StoredUniverse &uni = context->getUniverse();
@@ -1583,7 +1725,7 @@ static int bshf_stexpand( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
-static int bshf_instance( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_instance( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
     BarzerShellContext * context = shell->getBarzerContext();
 
@@ -1636,7 +1778,7 @@ static int bshf_instance( BarzerShell* shell, char_cp cmd, std::istream& in )
 
     return 0;
 }
-static int bshf_env( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_env( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
     auto ctxt = shell->getBarzerContext();
     RequestEnvironment& reqEnv = ctxt->reqEnv;
@@ -1682,7 +1824,7 @@ static int bshf_env( BarzerShell* shell, char_cp cmd, std::istream& in )
     }
     return 0;
 }
-static int bshf_shenv( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_shenv( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
     const char* name = 0, *value = 0;
     std::string n, v;
@@ -1698,7 +1840,7 @@ static int bshf_shenv( BarzerShell* shell, char_cp cmd, std::istream& in )
     return 0;
 }
 
-static int bshf_entlist( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_entlist( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
         StoredEntityPool entpool = shell->getBarzerContext()->obtainDtaIdx()->entPool;
         std::ostream& out = shell->getOutStream() ;
@@ -1717,7 +1859,7 @@ static int bshf_entlist( BarzerShell* shell, char_cp cmd, std::istream& in )
 }
 
 
-static int bshf_user( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_user( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	uint32_t uid = 0;
     std::ostream& outFP = shell->getOutStream() ;
@@ -1745,7 +1887,7 @@ static int bshf_user( BarzerShell* shell, char_cp cmd, std::istream& in )
 	return 0;
 }
 
-static int bshf_querytest( BarzerShell* shell, char_cp cmd, std::istream& in )
+static int bshf_querytest( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	BarzerShellContext *context = shell->getBarzerContext();
 	StoredUniverse &uni = context->getUniverse();
@@ -1780,66 +1922,68 @@ static const CmdData g_cmd[] = {
 	CmdData( ay::Shell::cmd_quit, "quit", "exit the current barzer shell" ),
 	CmdData( ay::Shell::cmd_run, "run", "execute script(s)" ),
 	//commented test to reduce the bloat
-	CmdData( bshf_test, "test", "just a test" ),
-	CmdData( (ay::Shell_PROCF)bshf_anlqry, "anlqry", "<filename> analyzes query set" ),
-	CmdData( (ay::Shell_PROCF)bshf_autoc, "autoc", "autocomplete" ),
-	CmdData( (ay::Shell_PROCF)bshf_bzspell, "bzspell", "bzspell correction for the user" ),
-	CmdData( (ay::Shell_PROCF)bshf_bzstem, "bzstem", "bz stemming correction for the user domain" ),
-	CmdData( (ay::Shell_PROCF)bshf_shenv, "shenv", "set shell environment parameter. usage: shenv [name [value]]" ),
-	CmdData( (ay::Shell_PROCF)bshf_env, "env", "set request environment parameter. usage: env [name [value]]" ),
-	CmdData( (ay::Shell_PROCF)bshf_dtaan, "dtaan", "data set analyzer. runs through the trie" ),
-	CmdData( (ay::Shell_PROCF)bshf_dir, "dir", "dir listing" ),
-	CmdData( (ay::Shell_PROCF)bshf_phrase, "phrase", "breaks file into phrases - test driver for phrasebreaker" ),
-	CmdData( (ay::Shell_PROCF)bshf_doc, "doc", "doc loader doc filename" ),
-	CmdData( (ay::Shell_PROCF)bshf_instance, "instance", "lists all users in the instance" ),
-	CmdData( (ay::Shell_PROCF)bshf_inspect, "inspect", "inspects types as well as the actual content" ),
-	CmdData( (ay::Shell_PROCF)bshf_grammar, "grammar", "sets trie for given grammar. use 'user' to list grammars" ),
-	CmdData( (ay::Shell_PROCF)bshf_guesslang, "guesslang", "guess a language from a word/string" ),
-	CmdData( (ay::Shell_PROCF)bshf_wordMeanings, "wordmeanings", "list meanings for a word" ),
-	CmdData( (ay::Shell_PROCF)bshf_listMeaning, "listmeaning", "list contents of a meaning" ),
-	CmdData( (ay::Shell_PROCF)bshf_allMeanings, "allmeanings", "get all meanings" ),
-	CmdData( (ay::Shell_PROCF)bshf_findEntities, "findents", "find entities near a point" ),
-	CmdData( (ay::Shell_PROCF)bshf_lex, "lex", "tokenize and then classify (lex) the input" ),
-	CmdData( (ay::Shell_PROCF)bshf_tokenize, "tokenize", "tests tokenizer if tokmode variable is set will use fast tokenizer" ),
-	CmdData( (ay::Shell_PROCF)bshf_xmload, "xmload", "loads xml from file" ),
-	CmdData( (ay::Shell_PROCF)bshf_tok, "tok", "token lookup by string" ),
-	CmdData( (ay::Shell_PROCF)bshf_tokid, "tokid", "token lookup by string" ),
-	CmdData( (ay::Shell_PROCF)bshf_emit, "emit", "emit [filename] emitter test" ),
-	CmdData( (ay::Shell_PROCF)bshf_entid, "entid", "entity lookup by entity id" ),
-	CmdData( (ay::Shell_PROCF)bshf_entfind, "entfind", "finds and prints entities : class,subclass [,regexp for id ]" ),
-	CmdData( (ay::Shell_PROCF)bshf_euid, "euid", "entity lookup by euid (tok class subclass)" ),
-	//CmdData( (ay::Shell_PROCF)bshf_trieloadxml, "trieloadxml", "loads a trie from an xml file" ),
-	CmdData( (ay::Shell_PROCF)bshf_setloglevel, "setloglevel", "set a log level (DEBUG/WARNINg/ERROR/CRITICAL)" ),
-	CmdData( (ay::Shell_PROCF)bshf_soundslike, "soundslike", "check the Soundslike heuristics for user words" ),
-	CmdData( (ay::Shell_PROCF)bshf_bzstem, "stem", "bz stemming" ),
-	CmdData( (ay::Shell_PROCF)bshf_xtrans, "trans", "tester for barzel translation" ),
-	CmdData( (ay::Shell_PROCF)bshf_translit, "translit", "transliterate english to russian (input must all lower case )" ),
-	CmdData( (ay::Shell_PROCF)bshf_translit, "ru2en", "transliterate russian to english" ),
-	CmdData( (ay::Shell_PROCF)bshf_triestats, "triestats", "trie commands" ),
-	CmdData( (ay::Shell_PROCF)bshf_trie, "trie", "trie commands" ),
-	CmdData( (ay::Shell_PROCF)bshf_trieclear, "trieclear", "out the current trie (trieset to set current trie)" ),
-	CmdData( (ay::Shell_PROCF)bshf_trieset, "trieset", " [trieclass] [trieid] - sets current trie trie" ),
-	CmdData( (ay::Shell_PROCF)bshf_trls, "trls", "lists current trie node children" ),
-	CmdData( (ay::Shell_PROCF)bshf_trcd, "trcd", "changes current trie node to the firm child by number" ),
-	CmdData( (ay::Shell_PROCF)bshf_trcdw, "trcdw", "changes current trie node to the wildcard child by number" ),
-	CmdData( (ay::Shell_PROCF)bshf_trup, "trup", "moves back to the parent trie node" ),
-	CmdData( (ay::Shell_PROCF)bshf_srvroute, "sr", "same as srvroute tests server queries and routes it same way server mode would" ),
-	CmdData( (ay::Shell_PROCF)bshf_srvroute, "srvroute", "tests server queries and routes it same way server mode would" ),
-	CmdData( (ay::Shell_PROCF)bshf_smf, "smf", "streamer mode flag: smf [ NAME [ON|OFF] ]" ),
-	CmdData( (ay::Shell_PROCF)bshf_stexpand, "stexpand", "expand and print all statements in a file" ),
-	CmdData( (ay::Shell_PROCF)bshf_strid, "strid", "resolve string id (usage strid id)" ),
+	CmdData( (ay::Shell_PROCF)(bshf_test), "test", "just a test" ),
+	CmdData( (ay::Shell_PROCF)(bshf_anlqry), "anlqry", "<filename> analyzes query set" ),
+	CmdData( (ay::Shell_PROCF)(bshf_autoc), "autoc", "autocomplete" ),
+	CmdData( (ay::Shell_PROCF)(bshf_bzspell), "bzspell", "bzspell correction for the user" ),
+	CmdData( (ay::Shell_PROCF)(bshf_bzstem), "bzstem", "bz stemming correction for the user domain" ),
+	CmdData( (ay::Shell_PROCF)(bshf_shenv), "shenv", "set shell environment parameter. usage: shenv [name [value]]" ),
+	CmdData( (ay::Shell_PROCF)(bshf_env), "env", "set request environment parameter. usage: env [name [value]]" ),
+	CmdData( (ay::Shell_PROCF)(bshf_dtaan), "dtaan", "data set analyzer. runs through the trie" ),
+	CmdData( (ay::Shell_PROCF)(bshf_dir), "dir", "dir listing" ),
+	CmdData( (ay::Shell_PROCF)(bshf_phrase), "phrase", "breaks file into phrases - test driver for phrasebreaker" ),
+	CmdData( (ay::Shell_PROCF)(bshf_doc), "doc", "doc loader doc filename" ),
+	CmdData( (ay::Shell_PROCF)(bshf_zstat), "zstat", "zurch indexer stats [count] [percentage]" ),
+	CmdData( (ay::Shell_PROCF)(bshf_zdump), "zdump", "dump zurch indexer ngrams data into file. Usage: zdump [filename]" ),
+	CmdData( (ay::Shell_PROCF)(bshf_instance), "instance", "lists all users in the instance" ),
+	CmdData( (ay::Shell_PROCF)(bshf_inspect), "inspect", "inspects types as well as the actual content" ),
+	CmdData( (ay::Shell_PROCF)(bshf_grammar), "grammar", "sets trie for given grammar. use 'user' to list grammars" ),
+	CmdData( (ay::Shell_PROCF)(bshf_guesslang), "guesslang", "guess a language from a word/string" ),
+	CmdData( (ay::Shell_PROCF)(bshf_wordMeanings), "wordmeanings", "list meanings for a word" ),
+	CmdData( (ay::Shell_PROCF)(bshf_listMeaning), "listmeaning", "list contents of a meaning" ),
+	CmdData( (ay::Shell_PROCF)(bshf_allMeanings), "allmeanings", "get all meanings" ),
+	CmdData( (ay::Shell_PROCF)(bshf_findEntities), "findents", "find entities near a point" ),
+	CmdData( (ay::Shell_PROCF)(bshf_lex), "lex", "tokenize and then classify (lex) the input" ),
+	CmdData( (ay::Shell_PROCF)(bshf_tokenize), "tokenize", "tests tokenizer if tokmode variable is set will use fast tokenizer" ),
+	CmdData( (ay::Shell_PROCF)(bshf_xmload), "xmload", "loads xml from file" ),
+	CmdData( (ay::Shell_PROCF)(bshf_tok), "tok", "token lookup by string" ),
+	CmdData( (ay::Shell_PROCF)(bshf_tokid), "tokid", "token lookup by string" ),
+	CmdData( (ay::Shell_PROCF)(bshf_emit), "emit", "emit [filename] emitter test" ),
+	CmdData( (ay::Shell_PROCF)(bshf_entid), "entid", "entity lookup by entity id" ),
+	CmdData( (ay::Shell_PROCF)(bshf_entfind), "entfind", "finds and prints entities : class,subclass [,regexp for id ]" ),
+	CmdData( (ay::Shell_PROCF)(bshf_euid), "euid", "entity lookup by euid (tok class subclass)" ),
+	//CmdData( (ay::Shell_PROCF)(bshf_trieloadxml), "trieloadxml", "loads a trie from an xml file" ),
+	CmdData( (ay::Shell_PROCF)(bshf_setloglevel), "setloglevel", "set a log level (DEBUG/WARNINg/ERROR/CRITICAL)" ),
+	CmdData( (ay::Shell_PROCF)(bshf_soundslike), "soundslike", "check the Soundslike heuristics for user words" ),
+	CmdData( (ay::Shell_PROCF)(bshf_bzstem), "stem", "bz stemming" ),
+	CmdData( (ay::Shell_PROCF)(bshf_xtrans), "trans", "tester for barzel translation" ),
+	CmdData( (ay::Shell_PROCF)(bshf_translit), "translit", "transliterate english to russian (input must all lower case )" ),
+	CmdData( (ay::Shell_PROCF)(bshf_translit), "ru2en", "transliterate russian to english" ),
+	CmdData( (ay::Shell_PROCF)(bshf_triestats), "triestats", "trie commands" ),
+	CmdData( (ay::Shell_PROCF)(bshf_trie), "trie", "trie commands" ),
+	CmdData( (ay::Shell_PROCF)(bshf_trieclear), "trieclear", "out the current trie (trieset to set current trie)" ),
+	CmdData( (ay::Shell_PROCF)(bshf_trieset), "trieset", " [trieclass] [trieid] - sets current trie trie" ),
+	CmdData( (ay::Shell_PROCF)(bshf_trls), "trls", "lists current trie node children" ),
+	CmdData( (ay::Shell_PROCF)(bshf_trcd), "trcd", "changes current trie node to the firm child by number" ),
+	CmdData( (ay::Shell_PROCF)(bshf_trcdw), "trcdw", "changes current trie node to the wildcard child by number" ),
+	CmdData( (ay::Shell_PROCF)(bshf_trup), "trup", "moves back to the parent trie node" ),
+	CmdData( (ay::Shell_PROCF)(bshf_srvroute), "sr", "same as srvroute tests server queries and routes it same way server mode would" ),
+	CmdData( (ay::Shell_PROCF)(bshf_srvroute), "srvroute", "tests server queries and routes it same way server mode would" ),
+	CmdData( (ay::Shell_PROCF)(bshf_smf), "smf", "streamer mode flag: smf [ NAME [ON|OFF] ]" ),
+	CmdData( (ay::Shell_PROCF)(bshf_stexpand), "stexpand", "expand and print all statements in a file" ),
+	CmdData( (ay::Shell_PROCF)(bshf_strid), "strid", "resolve string id (usage strid id)" ),
 
-	CmdData( (ay::Shell_PROCF)bshf_process, "q", "process an input string" ),
-	CmdData( (ay::Shell_PROCF)bshf_process, "process", "process an input string" ),
-	CmdData( (ay::Shell_PROCF)bshf_process, "proc", "process an input string" ),
-	CmdData( (ay::Shell_PROCF)bshf_process, "проц", "process an input string" ),
-	CmdData( (ay::Shell_PROCF)bshf_greed, "greed", "non rewriting full match" ),
-	CmdData( (ay::Shell_PROCF)bshf_querytest, "querytest", "peforms given number of queries" ),
-	CmdData( (ay::Shell_PROCF)bshf_userstats, "userstats", "trie stats for a given user" ),
-	CmdData( (ay::Shell_PROCF)bshf_user, "user", "sets current user by user id" ),
-	CmdData( (ay::Shell_PROCF)bshf_universe, "universe", "looks up user id from universe name" ),
-	CmdData( (ay::Shell_PROCF)bshf_zurch, "zurch", "initializes zurch from an XML file" ),
-	CmdData( (ay::Shell_PROCF)bshf_entlist, "entlist", "prints all known entities")      
+	CmdData( (ay::Shell_PROCF)(bshf_process), "q", "process an input string" ),
+	CmdData( (ay::Shell_PROCF)(bshf_process), "process", "process an input string" ),
+	CmdData( (ay::Shell_PROCF)(bshf_process), "proc", "process an input string" ),
+	CmdData( (ay::Shell_PROCF)(bshf_process), "проц", "process an input string" ),
+	CmdData( (ay::Shell_PROCF)(bshf_greed), "greed", "non rewriting full match" ),
+	CmdData( (ay::Shell_PROCF)(bshf_querytest), "querytest", "peforms given number of queries" ),
+	CmdData( (ay::Shell_PROCF)(bshf_userstats), "userstats", "trie stats for a given user" ),
+	CmdData( (ay::Shell_PROCF)(bshf_user), "user", "sets current user by user id" ),
+	CmdData( (ay::Shell_PROCF)(bshf_universe), "universe", "looks up user id from universe name" ),
+	CmdData( (ay::Shell_PROCF)(bshf_zurch), "zurch", "initializes zurch from an XML file" ),
+	CmdData( (ay::Shell_PROCF)(bshf_entlist), "entlist", "prints all known entities")
 };
 
 ay::ShellContext* BarzerShell::mkContext() {

@@ -5,6 +5,7 @@
 #include <barzer_parse.h>
 #include <boost/filesystem.hpp>
 #include <boost/unordered_set.hpp>
+#include <boost/unordered_map.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <zurch_phrasebreaker.h>
 #include <ay/ay_tag_markup_parser.h>
@@ -22,14 +23,16 @@ struct DocFeatureIndexHeuristics {
     ay::bitflags<BIT_MAX> d_bits;
 };
 
+#pragma pack(push, 1)
 /// feature we keep track off (can be an entity or a token - potentially we will add more classes to it)
 struct DocFeature {
     uint32_t featureId;
 
     typedef enum : uint8_t {
-        CLASS_ENTITY,
-        CLASS_TOKEN, /// legitimate token known to the barzer Universe
         CLASS_STEM, /// low grade token stem not known to barzer Universe 
+		CLASS_SYNGROUP, /// a group of synonyms
+        CLASS_TOKEN, /// legitimate token known to the barzer Universe
+        CLASS_ENTITY,
 
         CLASS_MAX
     } class_t;
@@ -43,14 +46,105 @@ struct DocFeature {
     
     bool isClassValid() const { return ( featureClass >= CLASS_ENTITY && featureClass < CLASS_MAX ); }
     bool isValid() const { return (featureId!= 0xffffffff || isClassValid() ); }
-
-    typedef DocFeature Id_t;
 };
+#pragma pack(pop)
 
 inline bool operator< ( const DocFeature& l, const DocFeature& r ) 
 {
     return( l.featureClass == r.featureClass ? (l.featureId < r.featureId) : l.featureClass < r.featureClass );
 }
+
+inline bool operator==(const DocFeature& l, const DocFeature& r)
+{
+	return l.featureClass == r.featureClass && l.featureId == r.featureId;
+}
+
+template<typename T, size_t MaxSize = 3>
+class NGram
+{
+	T m_features[MaxSize];
+public:
+	enum { MaxGramSize = MaxSize };
+	
+	template<typename U>
+	class NGramRange
+	{
+		U m_begin;
+		U m_end;
+		
+		friend class NGram;
+		
+		NGramRange (U begin, U end)
+		: m_begin(begin)
+		, m_end(end)
+		{
+		}
+	public:
+		U begin() { return m_begin; }
+		const U begin() const { return m_begin; }
+		
+		U end() { return m_end; }
+		const U end() const { return m_end; }
+	};
+	
+	NGram() {}
+	
+	explicit NGram(const T& f)
+	{
+		add(f);
+	}
+	
+	NGram(const NGram& other)
+	{
+		memcpy(m_features, other.m_features, sizeof(m_features));
+	}
+	
+	NGram& operator=(const NGram& other)
+	{
+		memcpy(m_features, other.m_features, sizeof(m_features));
+		return *this;
+	}
+	
+	void add(const T& f)
+	{
+		const size_t s = size();
+		if (s == MaxSize)
+			return;
+		m_features[s] = f;
+	}
+	
+	NGramRange<const T*> getFeatures() const { return NGramRange<const T*>(m_features, m_features + size()); }
+	NGramRange<T*> getFeatures() { return NGramRange<T*>(m_features, m_features + size()); }
+	
+	const size_t size() const
+	{
+		for (size_t i = 0; i < MaxSize; ++i)
+			if (m_features[i].featureId == 0xffffffff)
+				return i;
+		return MaxSize;
+	}
+	
+	const T& operator[](size_t pos) const { return m_features[pos]; }
+	
+	bool operator==(const NGram<T>& other) const
+	{
+		return !memcmp(m_features, other.m_features, sizeof(m_features));
+	}
+	
+	bool operator<(const NGram<T>& other) const
+	{
+		return memcmp(m_features, other.m_features, sizeof(m_features)) < 0;
+	}
+};
+
+inline size_t hash_value(const NGram<DocFeature>& gram)
+{
+	size_t val = 0;
+	for (const auto& f : gram.getFeatures())
+		val += f.featureId * (f.featureClass == DocFeature::CLASS_ENTITY ? 1 : 10000);
+	return val;
+}
+
 //// position  and weight of feature in the document
 struct FeatureDocPosition {
     std::pair< uint32_t, uint32_t > offset; /// begin and end byte offsets
@@ -63,7 +157,7 @@ struct FeatureDocPosition {
 };
 /// every document is a vector of ExtractedDocFeature 
 struct ExtractedDocFeature {
-    DocFeature feature;
+    NGram<DocFeature> feature;
     FeatureDocPosition docPos;
     ExtractedDocFeature( const DocFeature& f, const FeatureDocPosition& p ) : 
         feature(f), docPos(p) {}
@@ -74,20 +168,22 @@ struct ExtractedDocFeature {
     int deserialize( std::istream& );
     
     uint32_t simplePosition() const { return((docPos.offset.first+docPos.offset.second)/2) ; }
-    int weight() const { return docPos.weight; }
 };
 ////  ann array of DocFeatureLink's is stored for every feature in the corpus 
+#pragma pack(push, 1)
 struct DocFeatureLink {
     uint32_t docId; 
-    int      weight; /// -1000000, +100000 - negative means disassociation , 0 - neutral association, positive - boost
+	
+	typedef uint16_t Weight_t;
+    Weight_t weight; /// negative means disassociation , 0 - neutral association, positive - boost
     
     // we don't use it yet, and if we'd use we'd still need something more advanced
     //uint32_t position;  /// some 1 dimensional positional number for feature within doc (can be middle between begin and end offset, or phrase number) 
-    uint32_t count; /// count of the feature in the doc 
+    uint16_t count; /// count of the feature in the doc 
     
     DocFeatureLink() : docId(0xffffffff), weight(0), count(0) {}
     DocFeatureLink(uint32_t i) : docId(i), weight(0),count(0) {}
-    DocFeatureLink(uint32_t i, int w ) : docId(i), weight(w), count(0) {}
+    DocFeatureLink(uint32_t i, uint16_t w ) : docId(i), weight(w), count(0) {}
     
     typedef std::vector< DocFeatureLink > Vec_t;
 	typedef boost::unordered_set< DocFeatureLink > Set_t;
@@ -95,23 +191,53 @@ struct DocFeatureLink {
     int serialize( std::ostream& ) const;
     int deserialize( std::istream& );
 };
+#pragma pack(pop)
 
 inline bool operator < ( const DocFeatureLink& l, const DocFeatureLink& r ) 
     { return ( l.weight == r.weight ? (l.docId< r.docId): r.weight< l.weight ); }
+    
+struct FeaturesStatItem
+{
+	/// human-readable text
+	std::string m_hrText;
+	
+	/// a list of stats, like top ngrams and their scores
+	struct GramInfo
+	{
+		NGram<DocFeature> gram;
+		double score;
+		size_t numDocs;
+		size_t encounters;
 
+        GramInfo( const NGram<DocFeature>& g, double s, size_t nd, size_t enc ) : 
+            gram(g), 
+            score(s),
+            numDocs(nd),
+            encounters(enc)
+        {}
+	};
+	std::vector<GramInfo> m_values;
+};
+    
 /// document id - uint32_t 
 /// feature id  - uint32_t 
 class DocFeatureIndex {
-    typedef std::map< DocFeature::Id_t,  DocFeatureLink::Vec_t > InvertedIdx_t;
+    typedef std::map< NGram<DocFeature>,  DocFeatureLink::Vec_t > InvertedIdx_t;
     InvertedIdx_t d_invertedIdx;
+	
+	std::map<uint32_t, std::pair<NGram<DocFeature>, size_t>> d_doc2topFeature;
 
     ay::UniqueCharPool d_stringPool; // both internal strings and literals will be in the pool 
     ay::InternerWithId<barzer::BarzerEntity> d_entPool; // internal representation of entities
+    uint32_t m_meaningsCounter;
 
     DocFeatureIndexHeuristics d_heuristics; // /never 0 - guaranteed too be initialized in constructor
     
     const double d_classBoosts[DocFeature::CLASS_MAX];
 
+	std::set<uint32_t> m_stopWords;
+	
+	barzer::MeaningsStorage m_meanings;
 public:
 	int   getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz, bool needToInternStems );
 	
@@ -121,13 +247,21 @@ public:
         BIT_MAX
     };
     ay::bitflags<BIT_MAX> d_bits;
-    
+
     bool internStems( ) const { return d_bits.check( BIT_INTERN_STEMS ); }
     void setInternStems( bool x=true ) { d_bits.set( BIT_INTERN_STEMS, x ); }
-
+    
     /// given an entity from the universe returns internal representation of the entity 
     /// if it can be found and null entity (isValid() == false) otherwise
     barzer::BarzerEntity translateExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u ) const;
+	
+	/** Adds the synonyms from the given universe.
+	 * 
+	 * Obviously they should be already loaded in the universe.
+	 */
+	void addSynonyms(const barzer::StoredUniverse& universe);
+	void addSynonymsGroup(const std::vector<std::string>&);
+	void loadSynonyms(const std::string&, const barzer::StoredUniverse&);
 
     uint32_t resolveExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u ) const 
         { return d_entPool.getIdByObj(translateExternalEntity(ent,u)); }
@@ -135,7 +269,7 @@ public:
     /// place external entity into the pool (add all relevant strings to pool as well)
     uint32_t storeExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u );
 
-    uint32_t storeExternalString( const char*, const barzer::StoredUniverse& u );
+    uint32_t storeExternalString( const char*);
     uint32_t storeExternalString( const barzer::BarzerLiteral&, const barzer::StoredUniverse& u );
     uint32_t resolveExternalString( const char* str ) const { return d_stringPool.getId(str); }
     uint32_t resolveExternalString( const barzer::BarzerLiteral&, const barzer::StoredUniverse& u ) const;
@@ -145,18 +279,20 @@ public:
     
     /// returns the number of counted features 
 
+	void setStopWords(const std::vector<std::string>&);
+
     int   fillFeatureVecFromQueryBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz ) const;
 
     size_t appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t&, size_t posOffset );
-    size_t appendDocument( uint32_t docId, const barzer::Barz&, size_t posOffset  );
-
+    size_t appendDocument( uint32_t docId, const barzer::Barz&, size_t posOffset, DocFeatureLink::Weight_t weight );
+	
     /// should be called after the last doc has been appended . 
     void sortAll();
 
     typedef std::pair< uint32_t, double > DocWithScore_t;
     typedef std::vector< DocWithScore_t > DocWithScoreVec_t;
 
-    void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f ) const;
+    void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f, size_t maxBack=16 ) const;
 
     void findDocument( DocWithScoreVec_t&, const char* query, const barzer::QuestionParm& qparm ) const;
 
@@ -164,6 +300,10 @@ public:
     int deserialize( std::istream& fp ); 
 
     std::ostream& printStats( std::ostream& ) const ;
+	
+	std::string resolveFeature(const DocFeature&) const;
+	
+	FeaturesStatItem getImportantFeatures(size_t count, double skipPerc) const;
 
     friend class ZurchSettings;    
     // bool loadProperties( const boost::property_tree::ptree& );
@@ -177,6 +317,8 @@ class DocFeatureLoader {
     DocFeatureIndex&                      d_index;
     barzer::Barz                          d_barz;
     PhraseBreaker                         d_phraser;
+	
+	DocFeatureLink::Weight_t m_curWeight;
 
 public:
     enum : size_t  { DEFAULT_BUF_SZ = 1024*128 };
@@ -190,9 +332,26 @@ private:
 public:
     ay::xhtml_parser_state::xhtml_mode_t    d_xhtmlMode; // ay::xhtml_parser_state::MODE_XXX (HTML - default or XHTML)
     load_mode_t                             d_loadMode; // one of LOAD_MODE_XXX constants LOAD_MODE_TEXT - default
+    boost::unordered_map< uint32_t, std::string > d_docTitleMap; 
+    
+    void setDocTitle( uint32_t docId, const std::string& s ) 
+        { d_docTitleMap[ docId ] = s; }
+    const std::string getDocTitle( uint32_t docId ) const
+        { const auto i = d_docTitleMap.find( docId ); return (i == d_docTitleMap.end() ?  std::string() : i->second ); }
+
+    DocFeatureLoader( DocFeatureIndex& index, const barzer::StoredUniverse& u );
+    virtual ~DocFeatureLoader();
 
     PhraseBreaker& phraser() { return d_phraser; }
     const PhraseBreaker& phraser() const  { return d_phraser; }
+    
+    DocFeatureLink::Weight_t setCurrentWeight(DocFeatureLink::Weight_t weight)
+	{
+		auto old = m_curWeight;
+		m_curWeight = weight;
+		return old;
+	}
+	DocFeatureLink::Weight_t getCurrentWeight() const { return m_curWeight; }
 
     enum { MAX_QUERY_LEN = 1024*64, MAX_NUM_TOKENS = 1024*32 };
      
@@ -205,8 +364,6 @@ public:
     barzer::QParser& parser() { return d_parser; }
     barzer::QuestionParm& qparm() { return d_qparm; }
     const barzer::QuestionParm& qparm() const { return d_qparm; }
-    DocFeatureLoader( DocFeatureIndex& index, const barzer::StoredUniverse& u );
-    virtual ~DocFeatureLoader();
     size_t getBufSz() const { return d_bufSz; }
     void setBufSz( size_t x ) { d_bufSz = x; }
 
@@ -220,6 +377,13 @@ public:
         DocStats() : numPhrases(0) , numBeads(0), numFeatureBeads(0) {} 
 
         std::ostream& print( std::ostream& ) const;
+        DocStats& operator+=( const DocStats& o ) 
+        {
+            numPhrases+=o.numPhrases;
+            numBeads+=o.numBeads;
+            numFeatureBeads+=o.numFeatureBeads;
+            return *this;
+        }
     };
     size_t addDocFromStream( uint32_t docId, std::istream&, DocStats&  );
 
@@ -289,25 +453,7 @@ public:
     void addAllFilesAtPath( const char* path ) { loader->addAllFilesAtPath(path); }
 };
 
-// CB must have operator()( Barz& )
-struct BarzTokPrintCB {
-    std::ostream& fp;
-    size_t count;
-    BarzTokPrintCB(std::ostream& f ) : fp(f), count(0) {}
-    void operator() ( barzer::Barz& barz ) {
-        const auto& ttVec = barz.getTtVec();
-        fp << "[" << count++ << "]:" << "(" << ttVec.size()/2+1 << ")";
-        for( auto ti = ttVec.begin(); ti != ttVec.end(); ++ti )  {
-            if( ti != ttVec.begin() )
-                fp << " ";
-            fp << ti->first.buf;
-        }
-        fp << std::endl;
-    }
-};
-template <typename CB>
-struct BarzerTokenizerCB {
-    CB& callback;
+struct BarzerTokenizerCB_data {
     barzer::QParser& parser;
     barzer::Barz& barz;
     const barzer::QuestionParm& qparm;
@@ -315,13 +461,32 @@ struct BarzerTokenizerCB {
     size_t count;
     std::string queryBuf; 
 
-    BarzerTokenizerCB( CB& cb, barzer::QParser& p, barzer::Barz& b, const barzer::QuestionParm& qp ) : callback(cb), parser(p), barz(b), qparm(qp), count(0) {}
-    void operator()( const char* s, size_t s_len, const PhraseBreakerState& state) { 
-        ++count;
-        queryBuf.assign( s, s_len );
-        barz.clear();
-        parser.tokenize_only( barz, queryBuf.c_str(), qparm );
-        callback( barz );
+    BarzerTokenizerCB_data( barzer::QParser& p, barzer::Barz& b, const barzer::QuestionParm& qp ) : 
+        parser(p), barz(b), qparm(qp), count(0) {}
+};
+
+// CB must have operator()( Barz& )
+struct BarzTokPrintCB {
+    std::ostream& fp;
+    size_t count;
+    BarzTokPrintCB(std::ostream& f ) : fp(f), count(0) {}
+    void operator() ( BarzerTokenizerCB_data& dta, PhraseBreaker& phraser, barzer::Barz& barz );
+};
+
+template <typename CB>
+struct BarzerTokenizerCB {
+    BarzerTokenizerCB_data dta;
+    CB& callback;
+
+    BarzerTokenizerCB( CB& cb, barzer::QParser& p, barzer::Barz& b, const barzer::QuestionParm& qp ) : 
+        dta(p,b,qp), callback(cb) {}
+
+    void operator()( PhraseBreaker& phraser, const char* s, size_t s_len ) { 
+        ++dta.count;
+        dta.queryBuf.assign( s, s_len );
+        dta.barz.clear();
+        dta.parser.tokenize_only( dta.barz, dta.queryBuf.c_str(), dta.qparm );
+        callback( dta, phraser, dta.barz );
     }
 };
 typedef BarzerTokenizerCB<BarzTokPrintCB> PrintStringCB;

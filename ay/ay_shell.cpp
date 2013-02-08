@@ -21,13 +21,13 @@ std::ostream& Shell::CmdData::print( std::ostream& fp ) const
 	return( fp << name << " - " << desc );
 }
 
-int Shell::cmd_set( Shell* sh, char_cp cmd, std::istream& in )
+int Shell::cmd_set( Shell* sh, char_cp cmd, std::istream& in, const std::string&argStr  )
 {
 	std::cerr << "Shell::cmd_set unimplemented\n";
 	return 0;
 }
 
-int Shell::cmd_run( Shell* sh, char_cp cmd, std::istream& in )
+int Shell::cmd_run( Shell* sh, char_cp cmd, std::istream& in, const std::string&argStr )
 {
 	std::string fName;
 	if( !(in >> fName) ) {
@@ -48,7 +48,7 @@ int Shell::cmd_run( Shell* sh, char_cp cmd, std::istream& in )
 
 	return rc;
 }
-int Shell::cmd_help( Shell* sh, char_cp cmd, std::istream& in )
+int Shell::cmd_help( Shell* sh, char_cp cmd, std::istream& in, const std::string&argStr )
 {
 	std::string srchStr;
 	std::getline( in, srchStr );
@@ -63,8 +63,8 @@ int Shell::cmd_help( Shell* sh, char_cp cmd, std::istream& in )
 	return 0;
 }
 
-int Shell::cmd_quit( Shell*, char_cp cmd, std::istream& in ) { return -1; }
-int Shell::cmd_exit( Shell*, char_cp cmd, std::istream& in ) { return -1; }
+int Shell::cmd_quit( Shell*, char_cp cmd, std::istream& in, const std::string&argStr ) { return -1; }
+int Shell::cmd_exit( Shell*, char_cp cmd, std::istream& in, const std::string&argStr ) { return -1; }
 
 int Shell::printPrompt()
 {
@@ -140,14 +140,14 @@ int Shell::init()
 	context = mkContext();
 	return rc;
 }
-int Shell::cmdInvoke( int& rc, char_cp cmd, std::istream& in )
+int Shell::cmdInvoke( int& rc, char_cp cmd, std::istream& in, const std::string& argStr )
 {
 	const CmdData* cd = getCmdDta( cmd );
 	if( cd ) {
-		return( (rc=cd->func( this, cmd, in ), 0) );
+		return( (rc=cd->func( this, cmd, in, argStr ), 0) );
 	} else {
 		*errStream << "command " << cmd << " not found. Run 'help [text]' for help. Falling back to `process`.\n";
-		return cmdInvoke(rc, "help", in);
+		return cmdInvoke(rc, "help", in, argStr );
 	}
 }
 
@@ -166,12 +166,17 @@ int Shell::runCmdLoop(std::istream* fp )
 		if( isScript ) {
 			std::cerr << curStr << std::endl; 
 		}
+        std::string argStr;
+        const char* spc = strchr( curStr.c_str(), ' ' );
+        if( spc ) 
+            argStr.assign( ++spc );
+
 		sstr<< curStr;
 		std::string cmdStr;
 		std::getline( sstr, cmdStr, ' ');
 		// sstr >> cmdStr;
 		// int cmdRc = 0;
-		cmdInvoke( rc, cmdStr.c_str(), sstr );
+		cmdInvoke( rc, cmdStr.c_str(), sstr, argStr );
 		if( rc ) 
 			break;
 		if( !isScript ) 

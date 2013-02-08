@@ -640,6 +640,9 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 				m_featuredSC->getBestMatch(str, str_len, lang, levMax, *this ) :
 				FeaturedSpellCorrector::FeaturedMatchInfo());
 	
+	if (d_universe.checkBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT_ONLY))
+		return featuredCmp(0xffffffff);
+	
 	if( lang == LANG_ENGLISH) {
 
         if( str_len>= MAX_WORD_LEN )
