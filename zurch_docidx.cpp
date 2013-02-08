@@ -400,7 +400,7 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, con
 {
 }
 
-void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, const ExtractedDocFeature::Vec_t& fVec ) const
+void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, const ExtractedDocFeature::Vec_t& fVec, size_t maxBack ) const
 {
 	std::map<uint32_t, double> doc2score;
 	
@@ -443,6 +443,7 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, con
 	std::sort(out.begin(), out.end(),
 			[] (const DocWithScore_t& l, const DocWithScore_t& r)
 				{ return l.second > r.second; });
+    out.resize( maxBack );
 }
 
 namespace {
