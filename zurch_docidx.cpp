@@ -661,7 +661,7 @@ struct DocAdderCB {
         }
         docLoader.parseTokenized();
 
-        stats.numFeatureBeads = docLoader.index().appendDocument( docId, docLoader.barz(), stats.numBeads, docLoader.getCurrentWeight() );
+        stats.numFeatureBeads += docLoader.index().appendDocument( docId, docLoader.barz(), stats.numBeads, docLoader.getCurrentWeight() );
         stats.numBeads += docLoader.barz().getBeads().getList().size();
     }
 };
