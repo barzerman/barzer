@@ -443,7 +443,8 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, con
 	std::sort(out.begin(), out.end(),
 			[] (const DocWithScore_t& l, const DocWithScore_t& r)
 				{ return l.second > r.second; });
-    out.resize( maxBack );
+	if (out.size() > maxBack)
+		out.resize(maxBack);
 }
 
 namespace {
