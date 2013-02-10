@@ -170,12 +170,13 @@ static int bshf_srvroute( BarzerShell* shell, char_cp cmd, std::istream& in, con
             sstr << "<" << theTag << " " << argStr << ">" << bufStr << "</" << theTag <<">";
             q = strdup( sstr.str().c_str() );
             std::cerr << "QUERY:" << q << std::endl;
+	        ay::stopwatch tmpTimer;
             int rc = request::route( gp, q, strlen(q), os );
             if( rc != request::ROUTE_ERROR_OK ) {
                 os << " ERROR " << rc;
             } else
                 os << " success ";
-            std::cerr << std::endl;
+            std::cerr << "\n done in " << tmpTimer.calcTime()  << std::endl;
             free(q);
         }
     } else {
