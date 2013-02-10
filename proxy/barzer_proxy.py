@@ -52,7 +52,7 @@ def application(env, start_response):
         ct, error, add = 'application/json', error_json, ' ret="{}"'.format(typ)
     else:
         ct, error, add = 'text/xml', error_xml, ''
-    start_response('200 OK', [('Content-Type', ct)])
+    start_response('200 OK', [('Content-Type', ct + '; charset=utf-8')])
 
     query = ''
     uid = 0
