@@ -6,21 +6,16 @@ extern "C" {
 
 static int begin_request_handler(struct mg_connection *conn) 
 {
-
     const struct mg_request_info *request_info = mg_get_request_info(conn);
-    char content[1024];
-    
-    // Prepare the message we're going to send
-    int content_length = snprintf(content, sizeof(content),
-                                "Mongoose test. Hello from mongoose! Remote port: %s",
-                                request_info->uri);
+    if( !request_info || !request_info->uri || !request_info->query_string )
+        return 1;
     
     const barzer::BarzerHttpServer& httpServ = barzer::BarzerHttpServer::instance();
     barzer::GlobalPools& gp = httpServ.gp; /// gp must not be changed - constant onsistency is hard to achieve but gp is const
     
     std::stringstream outSstr;
     barzer::BarzerRequestParser reqParser(gp,outSstr);
-    if( !reqParser.initFromUri( request_info->uri, strlen(request_info->uri) ) ) 
+    if( !reqParser.initFromUri( request_info->uri, strlen(request_info->uri), request_info->query_string, strlen(request_info->query_string) ) ) 
         reqParser.parse();
 
     // Send HTTP reply to the client
@@ -77,6 +72,7 @@ int BarzerHttpServer::run(const ay::CommandLineArgs& cmd, int argc, char* argv[]
     // Start the web server.
     ctx = mg_start(&callbacks, NULL, options);
     
+    while( getchar() != '.' ) ;
     // Stop the server.
     mg_stop(ctx);
 

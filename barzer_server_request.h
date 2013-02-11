@@ -91,7 +91,7 @@ public:
     std::ostream& printError( const char* err );
 
     // instead of parsing input XML initializes everything from a URI string
-    int initFromUri( const char* uri, size_t uri_len );
+    int initFromUri( const char* uri, size_t uri_len, const char* query, size_t query_len );
     // should be used together with initFromUri - query will be taken from d_query
     int parse() ; 
 

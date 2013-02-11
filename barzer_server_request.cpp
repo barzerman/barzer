@@ -165,14 +165,14 @@ BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s ) :
     ret(XML_TYPE),
     d_zurchDocIdxId(0xffffffff),
     d_queryType(QType::BARZER)
-{}
+{parser = 0;}
 
-int BarzerRequestParser::initFromUri( const char* u, size_t u_len ) 
+int BarzerRequestParser::initFromUri( const char* u, size_t u_len, const char* query, size_t query_len ) 
 {
     ay::uri_parse uri;
-    uri.parse( u, u_len );
+    uri.parse( query, query_len );
 
-    if( uri.prefix == "/zurch" ) {
+    if( !strncmp( u, "/zurch", u_len ) ) {
         setQueryType( QType::ZURCH );
         d_zurchDocIdxId = 0;
     } else
