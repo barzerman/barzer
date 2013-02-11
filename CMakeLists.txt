@@ -97,7 +97,7 @@ else()
 	set(EXTRA_LIBS ${EXTRA_LIBS} ${EXPAT_LIBRARIES})
 endif()
 
-set(SOURCES barzer_universe.cpp 
+set(SOURCES mongoose/mongoose.c barzer_universe.cpp  barzer_http.cpp
             barzer_global_pools.cpp 
             barzer_json_output.cpp 
             barzer_el_cast.cpp

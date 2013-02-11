@@ -149,6 +149,95 @@ static void charDataHandle( void * ud, const XML_Char *str, int len)
 
 namespace barzer {
 
+BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s ) :
+    m_internStrings(false),
+    gpools(gp), 
+    settings(gp.getSettings()), 
+    userId(0xffffffff),
+    d_universe(0),
+    os(s),
+    d_aggressiveStem(false),
+    d_tagCount(0),
+    d_xmlIsInvalid(false),
+    d_barzXMLParser(0),
+    d_queryId( std::numeric_limits<uint64_t>::max() ),
+    d_simplified(false),
+    ret(XML_TYPE),
+    d_zurchDocIdxId(0xffffffff),
+    d_queryType(QType::BARZER)
+{}
+
+int BarzerRequestParser::initFromUri( const char* u, size_t u_len ) 
+{
+    ay::uri_parse uri;
+    uri.parse( u, u_len );
+
+    if( uri.prefix == "/zurch" ) {
+        setQueryType( QType::ZURCH );
+        d_zurchDocIdxId = 0;
+    } else
+        setQueryType(QType::BARZER);
+
+    d_query.clear();
+    ret = ( d_queryType == QType::BARZER ? XML_TYPE : JSON_TYPE );
+
+    for( auto i = uri.theVec.begin(); i!= uri.theVec.end(); ++i )  {
+        if( !i->first.length() ) 
+            continue;
+        switch( i->first[0] ) {
+        case 'd':
+            if( i->first == "docidx" )  { // zurch docid 
+                d_zurchDocIdxId= atoi( i->second.c_str() );  
+            }
+            break;
+        case 'q':
+            if( i->first == "q" ) 
+                d_query = i->second;
+            break;
+        case 'r':
+            if( i->first == "ret" )  {
+                if( i->second == "json" ) {
+                    d_simplified = false;
+                    ret = JSON_TYPE;
+                } else 
+                if( i->second == "sjson" ) {
+                    d_simplified = true;
+                    ret = JSON_TYPE;
+                } else
+                if( i->second == "xml" ) {
+                    ret = XML_TYPE;
+                }
+            }
+            break;
+        case 'u': 
+            if( i->first =="u" ) {
+                userId = static_cast<uint32_t>( atoi(i->second.c_str() ) );
+	            setUniverse(gpools.getUniverse(userId));
+                if( !d_universe ) 
+                    return 1;
+            }
+            break;
+        }
+    }
+    return 0;
+}
+int BarzerRequestParser::parse()
+{
+    if( !d_universe ) {
+        printError( "User not found" );
+        return 0;
+    }
+    switch( d_queryType ) {
+    case QType::BARZER:
+        raw_query_parse( d_query.c_str() );
+        break;
+    case QType::ZURCH:
+        raw_query_parse_zurch( d_query.c_str(), *d_universe );
+        break;
+    }
+    return 0;
+}
+
 BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s, uint32_t uid ) : 
     m_internStrings(false),
     gpools(gp), 
@@ -174,8 +263,10 @@ BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s, uint3
 
 BarzerRequestParser::~BarzerRequestParser()
 {
-	XML_ParserFree(parser);
-    delete d_barzXMLParser;
+    if( parser )
+	    XML_ParserFree(parser);
+    if( d_barzXMLParser )
+        delete d_barzXMLParser;
 }
 
 typedef boost::function<void(BarzerRequestParser*, BarzerRequestParser::RequestTag&)> ReqTagFunc;
@@ -380,6 +471,20 @@ void BarzerRequestParser::raw_autoc_parse( const char* query, QuestionParm& qpar
 	autoc.parse(query);
     /// doing this just in case barz is reused 
     barz.clearWithTraceAndTopics();
+}
+
+std::ostream& BarzerRequestParser::printError( const char* err )
+{
+    if( ret == XML_TYPE ) {
+		os << "<error>";
+        xmlEscape(err, os);
+		os << "</error>";
+    } else if( ret == JSON_TYPE ) {
+		ay::jsonEscape( err, os<< "{ error: ", "\"" );
+    } else {
+        os << err ;
+    }
+    return os;
 }
 
 void BarzerRequestParser::raw_query_parse_zurch( const char* query, const StoredUniverse& u )

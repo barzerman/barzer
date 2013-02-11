@@ -12,6 +12,8 @@
 #include <barzer_universe.h>
 #include <barzer_server_response.h>
 #include <barzer_relbits.h>
+#include <barzer_http.h>
+
 
 #if  defined(_WINDOWS_)
 extern "C" void block_ctrlc () 
@@ -128,6 +130,9 @@ int main( int argc, char * argv[] ) {
             	return run_shell(globPool, cmdlProc);
             } else if (strcasecmp(argv[1], "server") == 0) {
                 return barzer::run_server(globPool, ( argc>2 ? std::atoi(argv[2]):  SERVER_PORT) );
+            } else if (strcasecmp(argv[1], "http") == 0) {
+                barzer::BarzerHttpServer::mkInstance( globPool );
+                return barzer::BarzerHttpServer::run(cmdlProc, argc, argv );
             } else if (strcasecmp(argv[1], "test") == 0) {
             	return run_test(globPool.produceUniverse(0), cmdlProc);
             }

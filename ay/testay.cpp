@@ -20,7 +20,7 @@
 #include <string>
 #include <ay_statistics.h>
 #endif 
-#include <ay/ay_tag_markup_parser.h>
+#include <ay_parse.h>
 #include <fstream>
 #include <sstream>
 
@@ -244,8 +244,6 @@ int test_ay_statistics(int argc, char* argv[])
     }
     return 0;
 }
-#endif /// DONTCOMMENTALLOUT
-namespace {
 
 struct xhtml_cb {
     size_t counter, maxStackDepth;
@@ -286,6 +284,28 @@ int test_ay_xhtml_parser(int argc,char* argv[])
     std::cerr << cb.counter << "," << cb.maxStackDepth << "@" << cb.longestPath << std::endl;
     return 0;
 }
+#endif /// DONTCOMMENTALLOUT
+namespace {
+int test_ay_uri(int argc,char* argv[])
+{
+    while(true) {
+        std::string l;
+
+        std::cout << "enter string::";
+        std::getline( std::cin, l );
+        
+        ay::uri_parse uri;
+        uri.parse( l );
+        
+        std::cerr << "PREFIX:" << uri.prefix << std::endl;
+        for( auto i = uri.theVec.begin(); i!= uri.theVec.end(); ++i )  {
+            std::cerr << i->first << "=" << i->second << std::endl;
+        }
+
+    }
+    return 0;
+}
+
 } // anonymous namespace 
 int main(int argc, char* argv[]) {
 	// testLogger();
@@ -295,5 +315,5 @@ int main(int argc, char* argv[]) {
     // testXMLEscape(argc,argv);
     // test_ay_strcasecmp(argc,argv);
 
-    return test_ay_xhtml_parser(argc,argv);
+    return test_ay_uri(argc,argv);
 }

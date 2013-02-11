@@ -36,6 +36,46 @@ struct separated_string_to_set {
         { parse_separator( *this, str, str+strlen(str), sep ) ; }
 };
 
+/// parses  /prefix?x=a&y=b&...
+// prefix goes to prefix, and parameter pairs go into the vector
+struct uri_parse {
+    std::string prefix;
+    std::vector< std::pair< std::string, std::string > > theVec;
+    
+    void clear() { prefix.clear(); theVec.clear(); }
+
+    bool operator()( size_t tok_num, const char* tok, const char* tok_end )
+    {
+        const char* s = tok;
+        for( ; s< tok_end; ++s ) {
+            if( *s== '=' ) {
+                theVec.push_back( std::make_pair<std::string,std::string>( 
+                    std::string(tok,(s-tok)),
+                    std::string(++s, (tok_end-s)) 
+                ) );
+                return false;
+            }
+        }
+        return false;
+    }
+    
+    void parse(const char* s, size_t s_len)
+    { 
+        size_t x_len = s_len;
+        for( const char* x=s, *s_end=s+s_len; x< s_end; ++x, --x_len ) {
+            if( *x == '?' ) {
+                prefix.assign( s, (x-s) );
+                parse_separator( *this, x+1, x+x_len, '&' ) ; 
+                break;
+            }
+        }
+    }
+    void parse( const std::string & s ) 
+    {
+        parse( s.c_str(), s.length() );
+    }
+};
+
 class string_tokenizer_iter  {
 public:
     typedef std::pair< const char*, const char* > string_range;

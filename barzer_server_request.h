@@ -87,9 +87,17 @@ private:
     uint64_t       d_queryId;
     
     bool           d_simplified;
+public:
+    std::ostream& printError( const char* err );
+
+    // instead of parsing input XML initializes everything from a URI string
+    int initFromUri( const char* uri, size_t uri_len );
+    // should be used together with initFromUri - query will be taken from d_query
+    int parse() ; 
+
 	ReturnType ret;
     
-public:
+    
     uint32_t d_zurchDocIdxId; /// which zurch index to use - this  id is used to get a specific ZurchIUndex from global Pools
 
     /// zurch doc indices uniquely correspond to the pair (userId,zurchDocIdxId)
@@ -123,6 +131,7 @@ public:
 	const Barz& getBarz() const { return barz; }
 	XML_Parser parser;
 
+    BarzerRequestParser(GlobalPools &gp, std::ostream &s );
 	BarzerRequestParser(GlobalPools&, std::ostream &s, uint32_t uid );
 	~BarzerRequestParser();
 
