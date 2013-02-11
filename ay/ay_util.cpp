@@ -624,6 +624,52 @@ std::ostream& jsonEscape(const char* tokname, std::ostream& os, const char* surr
     return os;
 }
 
+inline uint8_t two_char_to_hex( char c1, char c2 )
+{
+    uint8_t x =0;
+    if(c1 >= 'A' && c1 <= 'F') {
+        x= ((uint8_t)(10+c1-'A')<<4);
+    } else 
+    if( c1 >= 'a' && c1 <= 'f'  ) {
+        x= ((uint8_t)(10+c1-'a') <<4);
+    } else 
+    if( c1>='0' && c1<='9' ) {
+        x= ((uint8_t)(c1-'0') << 4 );
+    } else 
+        return x;
+    if(c2 >= 'A' && c2 <= 'F') {
+        x+= (uint8_t)(10+c2-'A');
+    } else 
+    if( c2 >= 'a' && c2 <= 'f'  ) {
+        x+= (uint8_t)(10+c2-'a');
+    } else 
+    if( c2>='0' && c2<='9' ) {
+        x+= (uint8_t)(c2-'0');
+    } 
+    return x;
+}
+
+
+int url_encode( std::string& str, const char* s, size_t s_len ) 
+{
+    str.clear();
+    str.reserve( s_len );
+    for( const char* x = s, *s_end = s+s_len, *s_end_2 = s_end-2; x< s_end; ++x ) {
+        if( *x == '%' ) {
+            if( x< s_end_2 ) {
+                uint8_t xx = two_char_to_hex( x[1], x[2] );
+                if( xx ) 
+                    str.push_back( (char)xx );
+                x+=2;
+            } else {
+                return 1;
+            }
+        } else 
+            str.push_back(*x);
+    }
+    return 0;
+}
+
 } // end of ay namespace 
 #ifdef AY_UTIL_TEST_MAIN
 namespace {

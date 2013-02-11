@@ -310,6 +310,7 @@ bool set_intersection_nonempty( Iter b1, Iter e1, Iter b2, Iter e2 )
 }
 
 std::ostream& jsonEscape(const char* tokname, std::ostream& os, const char* surroundWith=0 );
+int url_encode( std::string& str, const char* s, size_t s_len );
 
 } // ay namespace
 

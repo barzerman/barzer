@@ -15,7 +15,11 @@ static int begin_request_handler(struct mg_connection *conn)
     
     std::stringstream outSstr;
     barzer::BarzerRequestParser reqParser(gp,outSstr);
-    if( !reqParser.initFromUri( request_info->uri, strlen(request_info->uri), request_info->query_string, strlen(request_info->query_string) ) ) 
+    std::string uri;
+    ay::url_encode( uri, request_info->uri, strlen(request_info->uri) );
+    std::string query;
+    ay::url_encode( query, request_info->query_string, strlen(request_info->query_string) );
+    if( !reqParser.initFromUri( uri.c_str(), uri.length(), query.c_str(), query.length() ) )
         reqParser.parse();
 
     // Send HTTP reply to the client
