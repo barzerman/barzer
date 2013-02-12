@@ -48,10 +48,10 @@ struct uri_parse {
         const char* s = tok;
         for( ; s< tok_end; ++s ) {
             if( *s== '=' ) {
-                theVec.push_back( std::make_pair<std::string,std::string>( 
-                    std::string(tok,(s-tok)),
-                    std::string(++s, (tok_end-s)) 
-                ) );
+				const std::string name(tok, s - tok);
+				++s;
+				const std::string value(s, tok_end - s);
+                theVec.push_back(std::make_pair(name, value));
                 return false;
             }
         }
