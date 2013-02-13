@@ -246,6 +246,17 @@ public:
             raii.startFieldNoindent( "lo" ) << i.first;
             raii.startFieldNoindent( "hi" ) << i.second;
 		}
+		void operator() ( const BarzerRange::Literal& i ) 
+		{
+            if( !i.first.isNull() ) {
+				if( const char *cstr = bvis.universe.getStringPool().resolveId(i.first.getId()) )
+                    ay::jsonEscape( cstr, raii.startFieldNoindent("lo"), "\"" );
+            }
+            if( !i.second.isNull() ) {
+				if( const char *cstr = bvis.universe.getStringPool().resolveId(i.second.getId()) )
+                    ay::jsonEscape( cstr, raii.startFieldNoindent("hi"), "\"" );
+            }
+		}
 		void operator() ( const BarzerRange::None& i ) {}
 
 		template <typename T>

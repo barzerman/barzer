@@ -303,6 +303,15 @@ public:
 		}
 		void operator() ( const BarzerRange::None& i ) {}
 
+		void operator() ( const BarzerRange::Literal& d ) 
+		{
+            if( !d.first.isNull() ) {
+			    bvis.os << "<lo>"; bvis.operator()( d.first ); bvis.os << "</lo>";
+            }
+            if( !d.second.isNull() ) {
+			    bvis.os << "<hi>"; bvis.operator()( d.second ); bvis.os << "</hi>";
+            }
+        }
 		template <typename T>
 		void operator()( const T& d ) 
 		{ 

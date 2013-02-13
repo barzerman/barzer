@@ -1158,42 +1158,76 @@ struct BELFunctionStorage_holder {
 
         const char* d_funcName;
         BarzelEvalContext& d_ctxt;
+        bool d_isEscaped, d_attrSet;
 
 	RangePacker(const GlobalPools &u, BarzerRange &r, BarzelEvalContext& ctxt, const char* funcName) :
             globPools(u), range(r),
             isAutoOrder(true),
             cnt(0),
             d_funcName(funcName),
-            d_ctxt(ctxt)
+            d_ctxt(ctxt),
+            d_isEscaped(false),
+            d_attrSet(false)
         {}
+
+        void setArgStr( const char* s ) 
+        {
+            d_isEscaped = d_attrSet = false;
+            if( !s ) 
+                return; 
+            std::vector< std::string > vc;
+            ay::separated_string_to_vec parser(vc,'|');
+            parser( s ); 
+            for( auto i = vc.begin();i!= vc.end(); ++i ) {
+			    if (*i == "DESC") 
+				   range.setDesc();
+			    else if (*i == "ASC") 
+				   range.setAsc();
+                else if (*i == "NOHI") 
+                   range.setNoHI();
+			    else if (*i == "NOLO") 
+                   range.setNoLO();
+			    else if (*i == "FULLRANGE") 
+                   range.setFullRange();
+                else if (*i == "AUTO") 
+                   isAutoOrder = true;
+                d_attrSet = true;
+            }
+        }
 
 		bool operator()(const BarzerLiteral &ltrl) {
 			// const ay::UniqueCharPool &spool = globPools.stringPool;
-			if (ltrl.getId() == globPools.string_getId("DESC")) {
-				range.setDesc();
-				return true;
-			} else if (ltrl.getId() == globPools.string_getId("ASC")) {
-				return true;
-                        } else if (ltrl.getId() == globPools.string_getId("NOHI")) {
-                            range.setNoHI();
-                            return true;
-			} else if (ltrl.getId() == globPools.string_getId("NOLO")) {
-                            range.setNoLO();
-                            return true;
-			} else if (ltrl.getId() == globPools.string_getId("FULLRANGE")) {
-                            range.setFullRange();
-                            return true;
-                        } else if (ltrl.getId() == globPools.string_getId("AUTO")) {
-                            isAutoOrder = true;
-                            return true;
-                        } else {
-                                pushFuncError( d_ctxt, d_funcName,
-                                               boost::format("Invalid modifier: `%1%`. Expected (ASC|DESC|NOHI|NOLO|FULLRANGE|AUTO)") 
-                                                % globPools.string_resolve(ltrl.getId()) );
-                                AYLOG(ERROR) << "Invalid modifier: `"
-                                                   << globPools.string_resolve(ltrl.getId()) << "`";
-				return false;
-			}
+            if( !d_isEscaped && !d_attrSet ) {
+                bool leave = true;
+			    if (ltrl.getId() == globPools.string_getId("DESC")) {
+				    range.setDesc();
+			    } else if (ltrl.getId() == globPools.string_getId("ASC")) {
+				    range.setAsc();
+                } else if (ltrl.getId() == globPools.string_getId("NOHI")) {
+                    range.setNoHI();
+			    } else if (ltrl.getId() == globPools.string_getId("NOLO")) {
+                    range.setNoLO();
+			    } else if (ltrl.getId() == globPools.string_getId("FULLRANGE")) {
+                    range.setFullRange();
+                } else if (ltrl.getId() == globPools.string_getId("AUTO")) {
+                    isAutoOrder = true;
+                } else if (ltrl.getId() == globPools.string_getId("\\")) {
+                    d_isEscaped = true;
+                } else
+                    leave = false;
+                if( leave )
+                    return true;
+            } 
+
+            if( cnt ) {
+                if( BarzerRange::Literal* er = range.get<BarzerRange::Literal>() ) 
+                    er->second = ltrl;
+            } else 
+                range.set<BarzerRange::Literal>()->first = ltrl;
+            if( d_isEscaped )
+                d_isEscaped= false;
+
+            return true;
 		}
 
 		template<class T> void setSecond(std::pair<T,T> &p, const T &v) {
@@ -1281,27 +1315,10 @@ struct BELFunctionStorage_holder {
                     bestEntIndex= ( (maxRel=rel), (i-elist.begin()) );
             }
             return (*this)( elist[bestEntIndex] );
-
-
-		    /*
-            if( cnt ) {
-                BarzerRange::Entity* er = range.get<BarzerRange::Entity>() ;
-                if( er && e.size() ) {
-
-                    er->second = e[0];
-                } else 
-                    return false;
-            } else if( e.size() ) {
-                range.setData( BarzerRange::Entity( e[0], e[0] ) );
-            } else 
-                return false;
-            return true;
-            */
         }
 		bool operator()(const BarzerEntity &e) {
             if( cnt ) {
-                BarzerRange::Entity* er = range.get<BarzerRange::Entity>() ;
-                if( er ) 
+                if( BarzerRange::Entity* er = range.get<BarzerRange::Entity>() ) 
                     er->second = e;
                 else 
                     return false;
@@ -1384,10 +1401,12 @@ struct BELFunctionStorage_holder {
 	STFUN(mkRange)
 	{
         SETFUNCNAME(mkRange);
+        const char* argStr = GETARGSTR();
+
 		BarzerRange br;
 		RangePacker rp(gpools, br,ctxt,func_name);
-		for (BarzelEvalResultVec::const_iterator ri = rvec.begin();
-								ri != rvec.end(); ++ri)
+        rp.setArgStr(argStr);
+		for (BarzelEvalResultVec::const_iterator ri = rvec.begin(); ri != rvec.end(); ++ri)
 			if (!boost::apply_visitor(rp, ri->getBeadData())) return false;
 
 		setResult(result, br);

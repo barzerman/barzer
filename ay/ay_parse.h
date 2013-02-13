@@ -21,6 +21,20 @@ void parse_separator( CB&cb, const char* s, const char* s_end, char sep='|' )
     for( ; b &&(b<s_end) && !cb( tok_num++, b, (pipe?pipe:s_end) ); b= (pipe?pipe+1:0), (pipe = (b? std::find(b,s_end,sep):0)) );
 }
 
+struct separated_string_to_vec {
+    std::vector< std::string >& theVec;
+    char sep;
+
+    explicit separated_string_to_vec( std::vector< std::string >& vc, char s=',' ) : theVec(vc), sep(s) {}
+
+    bool operator()( size_t tok_num, const char* tok, const char* tok_end ) 
+        { theVec.push_back( std::string( tok, tok_end-tok ) ); return false;}
+    
+    void operator()( const std::string& str )
+        { parse_separator( *this, str.c_str(), str.c_str()+str.length(), sep ) ; }
+    void operator()( const char* str )
+        { parse_separator( *this, str, str+strlen(str), sep ) ; }
+};
 struct separated_string_to_set {
     std::set< std::string >& theSet;
     char sep;

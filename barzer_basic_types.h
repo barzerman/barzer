@@ -399,6 +399,15 @@ public:
 
 	inline bool isEqual( const BarzerLiteral& r ) const
 		{  return( type == r.type && theId == r.theId ); }
+	inline bool isLess( const BarzerLiteral& r ) const
+		{  
+            if( type < r.type ) 
+                return true;
+            else if( r.type < type )
+                return false;
+            else 
+                return theId < r.theId;
+        }
 
     bool isMysteryString()  const   { return (stringType & 1);  }
     void setMysteryString()         { stringType |= (1); }
@@ -407,6 +416,8 @@ public:
 
     std::pair< const char*, size_t>  toString( const StoredUniverse& u ) const;
 };
+inline bool operator < ( const BarzerLiteral& l, const BarzerLiteral& r )
+    { return l.isLess(r); }
 inline bool operator == ( const BarzerLiteral& l, const BarzerLiteral& r )
 { return l.isEqual(r); }
 
@@ -419,6 +430,7 @@ struct BarzerRange {
 	typedef std::pair< BarzerDate, BarzerDate > Date;
 	typedef std::pair< BarzerDateTime, BarzerDateTime > DateTime;
 	typedef std::pair< BarzerEntity, BarzerEntity > Entity;
+	typedef std::pair< BarzerLiteral, BarzerLiteral > Literal;
 
 	typedef boost::variant<
 		None,
@@ -427,7 +439,8 @@ struct BarzerRange {
 		TimeOfDay,
 		Date,
 		DateTime,
-		Entity
+		Entity,
+        Literal
 	> Data;
 
 	enum {
@@ -437,7 +450,8 @@ struct BarzerRange {
 		TimeOfDay_TYPE,
 		Date_TYPE,
 		DateTime_TYPE,
-		Entity_TYPE
+		Entity_TYPE,
+		Literal_TYPE
 	};
 
 	Data dta;
@@ -455,6 +469,7 @@ struct BarzerRange {
 		case Date_TYPE:  return "date";
 		case DateTime_TYPE: return "timestamp";
 		case Entity_TYPE: return "entity";
+		case Literal_TYPE: return "literal";
         default: return "none";
         }
     }
@@ -467,6 +482,7 @@ struct BarzerRange {
 	bool isDate( ) const {return (dta.which() ==Date_TYPE); }
 	bool isDateTime( ) const {return (dta.which() ==DateTime_TYPE); }
 	bool isEntity( ) const {return (dta.which() ==Entity_TYPE); }
+	bool isLiteral( ) const {return (dta.which() ==Literal_TYPE); }
 
     const BarzerRange& promote_toReal( );
 
@@ -477,6 +493,7 @@ struct BarzerRange {
 	const Date* getDate( ) const {return boost::get<Date>( &dta ); }
 	const DateTime* getDateTime( ) const {return boost::get<DateTime>( &dta ); }
 	const Entity* getEntity( ) const {return boost::get<Entity>( &dta ); }
+	const Literal* getLiteral( ) const {return boost::get<Literal>( &dta ); }
 
 	uint8_t order;  // ASC/DESC
 	enum {
@@ -592,6 +609,8 @@ struct BarzerRange {
 	Entity& setEntity( ) { return( boost::get<Entity>(dta = Entity())); }
 
 	Entity& setEntity( const StoredEntityUniqId& euid1, const StoredEntityUniqId& euid2 ) { return boost::get<Entity>( dta = Entity(euid1,euid2)); }
+
+	Literal& setLiteral( const BarzerLiteral& ltrl1, const BarzerLiteral& ltrl2 ) { return boost::get<Literal>( dta = Literal(ltrl1,ltrl2)); }
 };
 inline bool operator== ( const BarzerRange& l, const BarzerRange& r ) { return l.isEqual(r); }
 inline bool operator< ( const BarzerRange& l, const BarzerRange& r ) { return l.lessThan(r); }
