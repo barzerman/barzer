@@ -635,18 +635,26 @@ FeaturesStatItem DocFeatureIndex::getImportantFeatures(size_t count, double skip
 	return item;
 }
 
-DocFeatureLoader::~DocFeatureLoader() {}
 DocFeatureLoader::DocFeatureLoader( DocFeatureIndex& index, const barzer::StoredUniverse& u ) : 
     d_universe(u),
     d_parser(u),
     d_index(index),
     m_curWeight(0),
+    m_storeParsed(false),
     d_bufSz( DEFAULT_BUF_SZ ),
     d_xhtmlMode(ay::xhtml_parser_state::MODE_HTML),
     d_loadMode(LOAD_MODE_TEXT)
 {
     d_barz.setUniverse( &d_universe );
 }
+
+DocFeatureLoader::~DocFeatureLoader() {}
+
+void DocFeatureLoader::setStoreParsed (bool store)
+{
+	m_storeParsed = store;
+}
+
 void DocFeatureLoader::addPieceOfDoc( uint32_t docId, const char* str )
 {
     d_parser.parse( d_barz, str, d_qparm );
@@ -677,10 +685,15 @@ struct DocAdderCB {
 };
 
 struct DocAdderXhtmlCB {
+	const uint32_t m_docId;
     DocFeatureLoader& loader;
     BarzerTokenizerCB<DocAdderCB>& docAdderCB;
 
-    DocAdderXhtmlCB( DocFeatureLoader& ldr, BarzerTokenizerCB<DocAdderCB>& dacb ) : loader(ldr), docAdderCB(dacb) {}
+	DocAdderXhtmlCB( DocFeatureLoader& ldr, BarzerTokenizerCB<DocAdderCB>& dacb, uint32_t docId )
+	: m_docId(docId)
+	, loader(ldr)
+	, docAdderCB(dacb)
+	{}
 
     void operator()( const ay::xhtml_parser_state& state, const char* s, size_t s_sz )
     {
@@ -689,6 +702,8 @@ struct DocAdderXhtmlCB {
 
         if( state.isCallbackText() ) 
             loader.phraser().breakBuf( docAdderCB, s, s_sz );
+		
+		loader.addParsedDocContents(m_docId, std::string(s, s_sz) + " ");
     }
 };
 
@@ -716,7 +731,7 @@ size_t DocFeatureLoader::addDocFromStream( uint32_t docId, std::istream& fp, Doc
         d_phraser.breakStream( cb, fp );
     else 
     if( d_loadMode== LOAD_MODE_XHTML ) {
-        DocAdderXhtmlCB xhtmlCb( *this, cb );
+        DocAdderXhtmlCB xhtmlCb( *this, cb, docId );
         ay::xhtml_parser<DocAdderXhtmlCB> parser( fp , xhtmlCb );
 
         parser.setMode( d_xhtmlMode );
@@ -742,6 +757,18 @@ void DocFeatureLoader::addDocContents(uint32_t docId, const std::string& content
 		pos->second += contents;
 }
 
+void DocFeatureLoader::addParsedDocContents (uint32_t docId, const std::string& parsed)
+{
+	if (!m_storeParsed)
+		return;
+	
+	auto pos = m_parsedDocs.find(docId);
+	if (pos == m_parsedDocs.end())
+		m_parsedDocs.insert({ docId, parsed });
+	else
+		pos->second += parsed;
+}
+
 namespace
 {
 	uint32_t computeWeight(const std::vector<uint32_t>& positions, uint32_t pos, size_t chunkLength)
@@ -756,8 +783,8 @@ namespace
 
 void DocFeatureLoader::getBestChunks(uint32_t docId, const std::vector<uint32_t>& positions, size_t chunkLength, size_t count, std::vector<std::string>& chunks)
 {
-	const auto pos = m_docs.find(docId);
-	if (pos == m_docs.end())
+	const auto pos = m_parsedDocs.find(docId);
+	if (pos == m_parsedDocs.end())
 		return;
 	
 	typedef std::pair<uint32_t, uint32_t> WPos_t;

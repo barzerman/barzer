@@ -325,6 +325,9 @@ class DocFeatureLoader {
 	DocFeatureLink::Weight_t m_curWeight;
 	
 	std::map<uint32_t, std::string> m_docs;
+	
+	bool m_storeParsed;
+	std::map<uint32_t, std::string> m_parsedDocs;
 public:
     enum : size_t  { DEFAULT_BUF_SZ = 1024*128 };
     typedef enum { 
@@ -343,6 +346,8 @@ public:
         { d_docTitleMap[ docId ] = s; }
     const std::string getDocTitle( uint32_t docId ) const
         { const auto i = d_docTitleMap.find( docId ); return (i == d_docTitleMap.end() ?  std::string() : i->second ); }
+        
+	void setStoreParsed(bool);
 
     DocFeatureLoader( DocFeatureIndex& index, const barzer::StoredUniverse& u );
     virtual ~DocFeatureLoader();
@@ -393,6 +398,7 @@ public:
     size_t addDocFromStream( uint32_t docId, std::istream&, DocStats&  );
 	
 	void addDocContents(uint32_t docId, const std::string& contents);
+	void addParsedDocContents(uint32_t docId, const std::string& parsed);
 	void getBestChunks(uint32_t docId, const std::vector<uint32_t>& positions, size_t chunkLength, size_t count, std::vector<std::string>& chunks);
 
     void parseTokenized() 
