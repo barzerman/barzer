@@ -222,6 +222,9 @@ namespace
 		featureVec.reserve(barz.getBeadList().size() * maxGramSize);
 
 		for( auto i = barz.getBeadList().begin(); i!= barz.getBeadList().end(); ++i, ++curOffset ) {
+			const auto& ctoks = i->getCTokens();
+			const uint32_t pos = ctoks.empty() ? static_cast<uint32_t>(-1) : ctoks.front().second;
+			
 			if( const barzer::BarzerLiteral* x = i->get<barzer::BarzerLiteral>() ) {
 				const auto& pair = x->toString(*universe);
 				if (!x->isPunct() && pair.second && !(pair.second == 1 && (isspace(pair.first[0]) || ispunct(pair.first[0]))))
@@ -230,7 +233,7 @@ namespace
 					featureVec.push_back( 
 						ExtractedDocFeature( 
 							DocFeature( DocFeature::CLASS_TOKEN, strId ), 
-							FeatureDocPosition(curOffset)
+							FeatureDocPosition(pos)
 						) 
 					);
 				}
@@ -239,7 +242,7 @@ namespace
 				featureVec.push_back( 
 					ExtractedDocFeature( 
 						DocFeature( DocFeature::CLASS_ENTITY, entId ), 
-						FeatureDocPosition(curOffset)
+						FeatureDocPosition(pos)
 					) 
 				);
 			} else if( const barzer::BarzerEntityList* x = i->getEntityList() ) {
@@ -248,7 +251,7 @@ namespace
 					featureVec.push_back( 
 						ExtractedDocFeature( 
 							DocFeature( DocFeature::CLASS_ENTITY, entId ), 
-							FeatureDocPosition(curOffset)
+							FeatureDocPosition(pos)
 						) 
 					);
 				}
@@ -261,14 +264,14 @@ namespace
 					featureVec.push_back(
 						ExtractedDocFeature(
 							DocFeature( DocFeature::CLASS_SYNGROUP, wm.first->id ),
-							FeatureDocPosition(curOffset)
+							FeatureDocPosition(pos)
 						)
 					);
 				else
 					featureVec.push_back( 
 						ExtractedDocFeature( 
 							DocFeature( DocFeature::CLASS_STEM, strId ), 
-							FeatureDocPosition(curOffset)
+							FeatureDocPosition(pos)
 						) 
 					);
 			}
@@ -330,7 +333,7 @@ int DocFeatureIndex::getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec
 			featureVec, barz);
 }
 
-size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz, size_t numBeads, DocFeatureLink::Weight_t weight )
+size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz, size_t offset, DocFeatureLink::Weight_t weight )
 {
     ExtractedDocFeature::Vec_t featureVec;
     if( !getFeaturesFromBarz(featureVec, barz, internStems()) ) 
@@ -339,7 +342,7 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz
 	for (auto& f : featureVec)
 		f.docPos.weight = weight;
     
-    return appendDocument( docId, featureVec, numBeads );
+    return appendDocument( docId, featureVec, offset );
 }
 
 /** This function keeps only one link per given doc ID, feature ID and weight,
@@ -351,7 +354,7 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz
  * weight then the word deep in the text). This makes sense since we also take
  * link count in the example later in findDocument().
  */
-size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t& features, size_t numBeads )
+size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t& features, size_t offset )
 {
 	std::map<NGram<DocFeature>, size_t> sumFCount;
 	for (const auto& f : features)
@@ -373,6 +376,7 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeatur
 		}
 		
 		++linkPos->count;
+		linkPos->addPos(offset + f.docPos.offset.first);
 		
 		auto sfci = sumFCount.find(f.feature);
 		if (sfci == sumFCount.end())
@@ -657,13 +661,13 @@ struct DocAdderCB {
         docLoader(dl), 
         qparm(qp) 
     {}
-    void operator() ( BarzerTokenizerCB_data& dta, PhraseBreaker& phraser, barzer::Barz& /* same as docLoader.barz() */ ) {
+    void operator() ( BarzerTokenizerCB_data& dta, PhraseBreaker& phraser, barzer::Barz&, size_t offset /* same as docLoader.barz() */ ) {
         if( !(++stats.numPhrases % 10000) ) {
             std::cerr << ".";
         }
         docLoader.parseTokenized();
 
-        stats.numFeatureBeads += docLoader.index().appendDocument( docId, docLoader.barz(), stats.numBeads, docLoader.getCurrentWeight() );
+        stats.numFeatureBeads += docLoader.index().appendDocument( docId, docLoader.barz(), offset, docLoader.getCurrentWeight() );
         stats.numBeads += docLoader.barz().getBeads().getList().size();
     }
 };
@@ -770,7 +774,7 @@ void DocIndexAndLoader::init(const barzer::StoredUniverse& u)
     loader  = new DocIndexLoaderNamedDocs(*index, u );
 }
 
-void BarzTokPrintCB::operator() ( BarzerTokenizerCB_data& dta, PhraseBreaker& phraser, barzer::Barz& barz )
+void BarzTokPrintCB::operator() ( BarzerTokenizerCB_data& dta, PhraseBreaker& phraser, barzer::Barz& barz, size_t )
 {
     const auto& ttVec = barz.getTtVec();
     fp << "[" << count++ << "]:" << "(" << ttVec.size()/2+1 << ")";
