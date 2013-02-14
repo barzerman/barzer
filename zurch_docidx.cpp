@@ -215,13 +215,11 @@ namespace
 		if( !universe ) 
 			return 0;
 		
-		size_t curOffset =0;
-		
 		const size_t maxGramSize = 3;
 		
 		featureVec.reserve(barz.getBeadList().size() * maxGramSize);
 
-		for( auto i = barz.getBeadList().begin(); i!= barz.getBeadList().end(); ++i, ++curOffset ) {
+		for( auto i = barz.getBeadList().begin(); i!= barz.getBeadList().end(); ++i ) {
 			const auto& ctoks = i->getCTokens();
 			const uint32_t pos = ctoks.empty() ? static_cast<uint32_t>(-1) : ctoks.front().second;
 			
@@ -400,11 +398,9 @@ void DocFeatureIndex::sortAll()
         std::sort( i->second.begin(), i->second.end() ) ;
 }
 
-void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, const char* query, const barzer::QuestionParm& qparm ) const 
-{
-}
-
-void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, const ExtractedDocFeature::Vec_t& fVec, size_t maxBack ) const
+void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out,
+		const ExtractedDocFeature::Vec_t& fVec, size_t maxBack,
+		std::map<uint32_t, std::vector<uint32_t>> *doc2pos ) const
 {
 	std::map<uint32_t, double> doc2score;
 	
@@ -431,6 +427,14 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out, con
 			// dumb safeguard, but I think we don't want to fuck up later in logarithm.
 			if (link.count <= 0)
 				continue;
+			
+			if (doc2pos)
+			{
+				auto ppos = doc2pos->find(link.docId);
+				if (ppos == doc2pos->end())
+					ppos = doc2pos->insert({ link.docId, std::vector<uint32_t>() }).first;
+				ppos->second.push_back(link.position);
+			}
 			
 			auto pos = doc2score.find(link.docId);
 			if (pos == doc2score.end())

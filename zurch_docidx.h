@@ -298,9 +298,7 @@ public:
     typedef std::pair< uint32_t, double > DocWithScore_t;
     typedef std::vector< DocWithScore_t > DocWithScoreVec_t;
 
-    void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f, size_t maxBack = 16 ) const;
-
-    void findDocument( DocWithScoreVec_t&, const char* query, const barzer::QuestionParm& qparm ) const;
+	void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f, size_t maxBack = 16, std::map<uint32_t, std::vector<uint32_t>>* pos = 0 ) const;
 
     int serialize( std::ostream& fp ) const;
     int deserialize( std::istream& fp ); 
