@@ -733,6 +733,15 @@ size_t DocFeatureLoader::addDocFromStream( uint32_t docId, std::istream& fp, Doc
     return stats.numBeads;
 }
 
+void DocFeatureLoader::addDocContents (uint32_t docId, const std::string& contents)
+{
+	auto pos = m_docs.find(docId);
+	if (pos == m_docs.end())
+		m_docs.insert({ docId, contents });
+	else
+		pos->second += contents;
+}
+
 DocIndexLoaderNamedDocs::~DocIndexLoaderNamedDocs( ){}
 DocIndexLoaderNamedDocs::DocIndexLoaderNamedDocs( DocFeatureIndex& index, const barzer::StoredUniverse& u ) :
     DocFeatureLoader(index,u)

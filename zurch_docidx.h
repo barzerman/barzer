@@ -323,7 +323,8 @@ class DocFeatureLoader {
     PhraseBreaker                         d_phraser;
 	
 	DocFeatureLink::Weight_t m_curWeight;
-
+	
+	std::map<uint32_t, std::string> m_docs;
 public:
     enum : size_t  { DEFAULT_BUF_SZ = 1024*128 };
     typedef enum { 
@@ -390,6 +391,8 @@ public:
         }
     };
     size_t addDocFromStream( uint32_t docId, std::istream&, DocStats&  );
+	
+	void addDocContents(uint32_t docId, const std::string& contents);
 
     void parseTokenized() 
     {
