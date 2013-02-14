@@ -733,13 +733,49 @@ size_t DocFeatureLoader::addDocFromStream( uint32_t docId, std::istream& fp, Doc
     return stats.numBeads;
 }
 
-void DocFeatureLoader::addDocContents (uint32_t docId, const std::string& contents)
+void DocFeatureLoader::addDocContents(uint32_t docId, const std::string& contents)
 {
 	auto pos = m_docs.find(docId);
 	if (pos == m_docs.end())
 		m_docs.insert({ docId, contents });
 	else
 		pos->second += contents;
+}
+
+namespace
+{
+	uint32_t computeWeight(const std::vector<uint32_t>& positions, uint32_t pos, size_t chunkLength)
+	{
+		uint32_t result = 0;
+		for (uint32_t other : positions)
+			if (std::abs(other - pos) < chunkLength / 2)
+				++result;
+		return --result;
+	}
+}
+
+void DocFeatureLoader::getBestChunks(uint32_t docId, const std::vector<uint32_t>& positions, size_t chunkLength, size_t count, std::vector<std::string>& chunks)
+{
+	const auto pos = m_docs.find(docId);
+	if (pos == m_docs.end())
+		return;
+	
+	typedef std::pair<uint32_t, uint32_t> WPos_t;
+	std::vector<WPos_t> weightedPositions;
+	for (uint32_t pos : positions)
+		weightedPositions.push_back({ pos, computeWeight (positions, pos, chunkLength) });
+	std::sort(weightedPositions.begin(), weightedPositions.end(),
+			[](const WPos_t& left, const WPos_t& right)
+				{ return left.second > right.second; });
+	
+	const std::string& doc = pos->second;
+	
+	for (auto i = weightedPositions.begin(), end = std::min(weightedPositions.end(), weightedPositions.begin() + count);
+				i < end; ++i)
+	{
+		const auto pos = i->first;
+		chunks.push_back(doc.substr(std::max(static_cast<size_t>(0), pos - chunkLength / 2), chunkLength));
+	}
 }
 
 DocIndexLoaderNamedDocs::~DocIndexLoaderNamedDocs( ){}
