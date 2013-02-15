@@ -662,7 +662,7 @@ void DocFeatureLoader::addPieceOfDoc( uint32_t docId, const char* str )
 namespace {
 /// this callback is invoked for every phrase in a document 
 struct DocAdderCB {
-    uint32_t docId;
+    const uint32_t docId;
     DocFeatureLoader::DocStats stats;
 
     DocFeatureLoader& docLoader;
@@ -673,7 +673,7 @@ struct DocAdderCB {
         docLoader(dl), 
         qparm(qp) 
     {}
-    void operator() ( BarzerTokenizerCB_data& dta, PhraseBreaker& phraser, barzer::Barz&, size_t offset /* same as docLoader.barz() */ ) {
+    void operator() ( BarzerTokenizerCB_data& dta, PhraseBreaker& phraser, barzer::Barz&, size_t offset, const char *s, size_t sLen ) {
         if( !(++stats.numPhrases % 10000) ) {
             std::cerr << ".";
         }
@@ -681,6 +681,8 @@ struct DocAdderCB {
 
         stats.numFeatureBeads += docLoader.index().appendDocument( docId, docLoader.barz(), offset, docLoader.getCurrentWeight() );
         stats.numBeads += docLoader.barz().getBeads().getList().size();
+		
+		docLoader.addParsedDocContents(docId, std::string(s, sLen));
     }
 };
 
@@ -702,8 +704,6 @@ struct DocAdderXhtmlCB {
 
         if( state.isCallbackText() ) 
             loader.phraser().breakBuf( docAdderCB, s, s_sz );
-		
-		loader.addParsedDocContents(m_docId, std::string(s, s_sz) + " ");
     }
 };
 
@@ -786,7 +786,10 @@ void DocFeatureLoader::getBestChunks(uint32_t docId, const std::vector<uint32_t>
 {
 	const auto pos = m_parsedDocs.find(docId);
 	if (pos == m_parsedDocs.end())
+	{
+		AYLOG(ERROR) << "no doc for " << docId;
 		return;
+	}
 	
 	typedef std::pair<uint32_t, uint32_t> WPos_t;
 	std::vector<WPos_t> weightedPositions;
@@ -851,7 +854,7 @@ void DocIndexAndLoader::init(const barzer::StoredUniverse& u)
     loader  = new DocIndexLoaderNamedDocs(*index, u );
 }
 
-void BarzTokPrintCB::operator() ( BarzerTokenizerCB_data& dta, PhraseBreaker& phraser, barzer::Barz& barz, size_t )
+void BarzTokPrintCB::operator() ( BarzerTokenizerCB_data& dta, PhraseBreaker& phraser, barzer::Barz& barz, size_t, const char*, size_t )
 {
     const auto& ttVec = barz.getTtVec();
     fp << "[" << count++ << "]:" << "(" << ttVec.size()/2+1 << ")";

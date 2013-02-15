@@ -484,7 +484,7 @@ struct BarzTokPrintCB {
     std::ostream& fp;
     size_t count;
     BarzTokPrintCB(std::ostream& f ) : fp(f), count(0) {}
-    void operator() ( BarzerTokenizerCB_data& dta, PhraseBreaker& phraser, barzer::Barz& barz, size_t );
+    void operator() ( BarzerTokenizerCB_data& dta, PhraseBreaker& phraser, barzer::Barz& barz, size_t, const char*, size_t );
 };
 
 template <typename CB>
@@ -497,15 +497,16 @@ struct BarzerTokenizerCB {
     BarzerTokenizerCB( CB& cb, barzer::QParser& p, barzer::Barz& b, const barzer::QuestionParm& qp ) : 
         dta(p,b,qp), callback(cb), currentPos(0) {}
 
-    void operator()( PhraseBreaker& phraser, const char* s, size_t s_len ) { 
-        ++dta.count;
-        dta.queryBuf.assign( s, s_len );
-        dta.barz.clear();
-        dta.parser.tokenize_only( dta.barz, dta.queryBuf.c_str(), dta.qparm );
-        callback( dta, phraser, dta.barz, currentPos );
-		
+    void operator()( PhraseBreaker& phraser, const char* s, size_t s_len )
+	{
+		++dta.count;
+		dta.queryBuf.assign( s, s_len );
+		dta.barz.clear();
+		dta.parser.tokenize_only( dta.barz, dta.queryBuf.c_str(), dta.qparm );
+		callback( dta, phraser, dta.barz, currentPos, s, s_len );
+
 		currentPos += s_len;
-    }
+	}
 };
 typedef BarzerTokenizerCB<BarzTokPrintCB> PrintStringCB;
 
