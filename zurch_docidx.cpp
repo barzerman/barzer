@@ -404,6 +404,9 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out,
 {
 	std::map<uint32_t, double> doc2score;
 	
+	typedef std::pair<uint32_t, double> ScoredFeature_t;
+	std::map<uint32_t, std::vector<ScoredFeature_t>> weightedPos;
+	
 	for (const auto& ngram : fVec)
 	{
 		const auto invertedPos = d_invertedIdx.find(ngram.feature);
@@ -428,19 +431,21 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out,
 			if (link.count <= 0)
 				continue;
 			
+			const auto scoreAdd = sizeBoost * classBoost * ((1 + link.weight) * (1 + std::log(link.count))) / numSources;
+			
 			if (doc2pos)
 			{
-				auto ppos = doc2pos->find(link.docId);
-				if (ppos == doc2pos->end())
-					ppos = doc2pos->insert({ link.docId, std::vector<uint32_t>() }).first;
-				ppos->second.push_back(link.position);
+				auto ppos = weightedPos.find(link.docId);
+				if (ppos == weightedPos.end())
+					ppos = weightedPos.insert({ link.docId, std::vector<ScoredFeature_t>() }).first;
+				ppos->second.push_back({ link.position, scoreAdd });
 			}
 			
 			auto pos = doc2score.find(link.docId);
 			if (pos == doc2score.end())
 				pos = doc2score.insert({ link.docId, 0 }).first;
 			
-			pos->second += sizeBoost * classBoost * ((1 + link.weight) * (1 + std::log(link.count))) / numSources;
+			pos->second += scoreAdd;
 		}
 	}
 	
@@ -453,6 +458,22 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out,
 				{ return l.second > r.second; });
 	if (out.size() > maxBack)
 		out.resize(maxBack);
+	
+	if (doc2pos)
+	{
+		bool first = true;
+		for (const auto& docPair : out)
+		{
+			const auto docId = docPair.first;
+			auto scored = weightedPos[docId];
+			std::sort(scored.begin(), scored.end(),
+					[](const ScoredFeature_t& l, const ScoredFeature_t& r) { return l.second > r.second; });
+			
+			auto pos = doc2pos->insert({ docId, std::vector<uint32_t>() }).first;
+			for (const auto& score : scored)
+				pos->second.push_back(score.first);
+		}
+	}
 }
 
 namespace {
