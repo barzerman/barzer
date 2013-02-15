@@ -794,7 +794,10 @@ void DocFeatureLoader::getBestChunks(uint32_t docId, const std::vector<uint32_t>
 	typedef std::pair<uint32_t, uint32_t> WPos_t;
 	std::vector<WPos_t> weightedPositions;
 	for (uint32_t pos : positions)
-		weightedPositions.push_back({ pos, computeWeight (positions, pos, chunkLength) });
+		if (std::find_if(weightedPositions.begin(), weightedPositions.end(),
+				[&pos](const WPos_t& other) { return other.first == pos; }) == weightedPositions.end())
+			weightedPositions.push_back({ pos, computeWeight (positions, pos, chunkLength) });
+	
 	std::sort(weightedPositions.begin(), weightedPositions.end(),
 			[](const WPos_t& left, const WPos_t& right)
 				{ return left.second > right.second; });
