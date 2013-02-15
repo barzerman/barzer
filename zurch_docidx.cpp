@@ -433,7 +433,9 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out,
 				auto ppos = doc2pos->find(link.docId);
 				if (ppos == doc2pos->end())
 					ppos = doc2pos->insert({ link.docId, std::vector<uint32_t>() }).first;
-				ppos->second.push_back(link.position);
+				
+				if (std::find(ppos->second.begin(), ppos->second.end(), link.position) == ppos->second.end())
+					ppos->second.push_back(link.position);
 			}
 			
 			auto pos = doc2score.find(link.docId);
