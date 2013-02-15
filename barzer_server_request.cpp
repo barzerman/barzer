@@ -513,15 +513,17 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
 	
     zurch::ExtractedDocFeature::Vec_t featureVec;
 	zurch::DocFeatureIndex::DocWithScoreVec_t docVec;  
+	
+	std::map<uint32_t, std::vector<uint32_t>> positions;
     if( index->fillFeatureVecFromQueryBarz( featureVec, barz ) ) 
-        index->findDocument( docVec, featureVec );
+        index->findDocument( docVec, featureVec, 16, &positions );
 
     if( ret == XML_TYPE ) {
         zurch::DocIdxSearchResponseXML response( *ixl, barz ); 
-        response.print(os, docVec);
+        response.print(os, docVec, positions);
     } else if ( ret == JSON_TYPE ) {
         zurch::DocIdxSearchResponseJSON response( *ixl, barz ); 
-        response.print(os, docVec);
+        response.print(os, docVec, positions);
     }
 }
 
