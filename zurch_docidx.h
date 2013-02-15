@@ -147,7 +147,7 @@ inline size_t hash_value(const NGram<DocFeature>& gram)
 
 //// position  and weight of feature in the document
 struct FeatureDocPosition {
-    std::pair<uint32_t, uint8_t> offset;
+    std::pair<uint32_t, uint16_t> offset;
     int weight;  /// weight of this feature doc
     FeatureDocPosition() : offset(0, 0), weight(0) {}
     FeatureDocPosition(uint32_t o) : offset(o, 0), weight(0) {}
