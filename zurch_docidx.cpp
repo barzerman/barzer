@@ -806,8 +806,8 @@ void DocFeatureLoader::getBestChunks(uint32_t docId, const std::vector<uint32_t>
 	for (auto i = weightedPositions.begin(), end = std::min(weightedPositions.end(), weightedPositions.begin() + count);
 				i < end; ++i)
 	{
-		const auto pos = i->first;
-		chunks.push_back(doc.substr(std::max(static_cast<size_t>(0), pos - chunkLength / 2), chunkLength));
+		const size_t pos = i->first;
+		chunks.push_back(doc.substr(pos - std::min(pos, chunkLength / 2), chunkLength));
 	}
 }
 
