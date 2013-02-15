@@ -147,10 +147,10 @@ inline size_t hash_value(const NGram<DocFeature>& gram)
 
 //// position  and weight of feature in the document
 struct FeatureDocPosition {
-    std::pair< uint32_t, uint32_t > offset; /// begin and end byte offsets
+    std::pair<uint32_t, uint8_t> offset;
     int weight;  /// weight of this feature doc
-    FeatureDocPosition() : offset(0,0), weight(0) {}
-    FeatureDocPosition( uint32_t o ) : offset(o,o), weight(0) {}
+    FeatureDocPosition() : offset(0, 0), weight(0) {}
+    FeatureDocPosition(uint32_t o) : offset(o, 0), weight(0) {}
 
     int serialize( std::ostream& ) const;
     int deserialize( std::istream& );
@@ -178,18 +178,24 @@ struct DocFeatureLink {
     Weight_t weight; /// negative means disassociation , 0 - neutral association, positive - boost
     
     // we don't use it yet, and if we'd use we'd still need something more advanced
-    //uint32_t position;  /// some 1 dimensional positional number for feature within doc (can be middle between begin and end offset, or phrase number) 
+    uint32_t position;  /// some 1 dimensional positional number for feature within doc (can be middle between begin and end offset, or phrase number) 
     uint16_t count; /// count of the feature in the doc 
     
-    DocFeatureLink() : docId(0xffffffff), weight(0), count(0) {}
-    DocFeatureLink(uint32_t i) : docId(i), weight(0),count(0) {}
-    DocFeatureLink(uint32_t i, uint16_t w ) : docId(i), weight(w), count(0) {}
+    DocFeatureLink() : docId(0xffffffff), weight(0), position(-1), count(0) {}
+    DocFeatureLink(uint32_t i) : docId(i), weight(0), position(-1), count(0) {}
+    DocFeatureLink(uint32_t i, uint16_t w ) : docId(i), weight(w), position(-1), count(0) {}
     
     typedef std::vector< DocFeatureLink > Vec_t;
 	typedef boost::unordered_set< DocFeatureLink > Set_t;
 
     int serialize( std::ostream& ) const;
     int deserialize( std::istream& );
+	
+	void addPos(uint32_t newPos)
+	{
+		if (newPos < position)
+			position = newPos;
+	}
 };
 #pragma pack(pop)
 
@@ -292,9 +298,7 @@ public:
     typedef std::pair< uint32_t, double > DocWithScore_t;
     typedef std::vector< DocWithScore_t > DocWithScoreVec_t;
 
-    void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f, size_t maxBack=16 ) const;
-
-    void findDocument( DocWithScoreVec_t&, const char* query, const barzer::QuestionParm& qparm ) const;
+	void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f, size_t maxBack = 16, std::map<uint32_t, std::vector<uint32_t>>* pos = 0 ) const;
 
     int serialize( std::ostream& fp ) const;
     int deserialize( std::istream& fp ); 
@@ -319,7 +323,11 @@ class DocFeatureLoader {
     PhraseBreaker                         d_phraser;
 	
 	DocFeatureLink::Weight_t m_curWeight;
-
+	
+	std::map<uint32_t, std::string> m_docs;
+	
+	bool m_storeParsed;
+	std::map<uint32_t, std::string> m_parsedDocs;
 public:
     enum : size_t  { DEFAULT_BUF_SZ = 1024*128 };
     typedef enum { 
@@ -338,6 +346,8 @@ public:
         { d_docTitleMap[ docId ] = s; }
     const std::string getDocTitle( uint32_t docId ) const
         { const auto i = d_docTitleMap.find( docId ); return (i == d_docTitleMap.end() ?  std::string() : i->second ); }
+        
+	void setStoreParsed(bool);
 
     DocFeatureLoader( DocFeatureIndex& index, const barzer::StoredUniverse& u );
     virtual ~DocFeatureLoader();
@@ -386,6 +396,10 @@ public:
         }
     };
     size_t addDocFromStream( uint32_t docId, std::istream&, DocStats&  );
+	
+	void addDocContents(uint32_t docId, const std::string& contents);
+	void addParsedDocContents(uint32_t docId, const std::string& parsed);
+	void getBestChunks(uint32_t docId, const std::vector<uint32_t>& positions, size_t chunkLength, size_t count, std::vector<std::string>& chunks);
 
     void parseTokenized() 
     {
@@ -470,23 +484,27 @@ struct BarzTokPrintCB {
     std::ostream& fp;
     size_t count;
     BarzTokPrintCB(std::ostream& f ) : fp(f), count(0) {}
-    void operator() ( BarzerTokenizerCB_data& dta, PhraseBreaker& phraser, barzer::Barz& barz );
+    void operator() ( BarzerTokenizerCB_data& dta, PhraseBreaker& phraser, barzer::Barz& barz, size_t );
 };
 
 template <typename CB>
 struct BarzerTokenizerCB {
     BarzerTokenizerCB_data dta;
     CB& callback;
+	
+	size_t currentPos;
 
     BarzerTokenizerCB( CB& cb, barzer::QParser& p, barzer::Barz& b, const barzer::QuestionParm& qp ) : 
-        dta(p,b,qp), callback(cb) {}
+        dta(p,b,qp), callback(cb), currentPos(0) {}
 
     void operator()( PhraseBreaker& phraser, const char* s, size_t s_len ) { 
         ++dta.count;
         dta.queryBuf.assign( s, s_len );
         dta.barz.clear();
         dta.parser.tokenize_only( dta.barz, dta.queryBuf.c_str(), dta.qparm );
-        callback( dta, phraser, dta.barz );
+        callback( dta, phraser, dta.barz, currentPos );
+		
+		currentPos += s_len;
     }
 };
 typedef BarzerTokenizerCB<BarzTokPrintCB> PrintStringCB;

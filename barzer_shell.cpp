@@ -375,7 +375,7 @@ PhraserStatsCB() :
     sumLength(0.0) ,
     maxLength(0), numPhrases(0)
 {}
-void operator() ( zurch::BarzerTokenizerCB_data& dta, zurch::PhraseBreaker& phraser, barzer::Barz& barz )
+void operator() ( zurch::BarzerTokenizerCB_data& dta, zurch::PhraseBreaker& phraser, barzer::Barz& barz, size_t )
 {
     ++numPhrases;
     if( !(numPhrases%10000) )
