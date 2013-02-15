@@ -778,6 +778,18 @@ void DocFeatureLoader::addDocContents(uint32_t docId, const std::string& content
 		pos->second += contents;
 }
 
+bool DocFeatureLoader::getDocContents (uint32_t docId, std::string& out) const
+{
+	auto pos = m_docs.find(docId);
+	if (pos == m_docs.end())
+		return false;
+	else
+	{
+		out = pos->second;
+		return true;
+	}
+}
+
 void DocFeatureLoader::addParsedDocContents (uint32_t docId, const std::string& parsed)
 {
 	if (!m_storeParsed)
