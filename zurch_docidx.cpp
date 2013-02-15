@@ -781,7 +781,8 @@ namespace
 	}
 }
 
-void DocFeatureLoader::getBestChunks(uint32_t docId, const std::vector<uint32_t>& positions, size_t chunkLength, size_t count, std::vector<std::string>& chunks)
+void DocFeatureLoader::getBestChunks(uint32_t docId, const std::vector<uint32_t>& positions,
+		size_t chunkLength, size_t count, std::vector<std::string>& chunks) const
 {
 	const auto pos = m_parsedDocs.find(docId);
 	if (pos == m_parsedDocs.end())

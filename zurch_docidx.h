@@ -399,7 +399,7 @@ public:
 	
 	void addDocContents(uint32_t docId, const std::string& contents);
 	void addParsedDocContents(uint32_t docId, const std::string& parsed);
-	void getBestChunks(uint32_t docId, const std::vector<uint32_t>& positions, size_t chunkLength, size_t count, std::vector<std::string>& chunks);
+	void getBestChunks(uint32_t docId, const std::vector<uint32_t>& positions, size_t chunkLength, size_t count, std::vector<std::string>& chunks) const;
 
     void parseTokenized() 
     {
