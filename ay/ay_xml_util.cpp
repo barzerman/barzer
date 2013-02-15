@@ -30,4 +30,9 @@ std::ostream& XMLStream::escape(const char *s, size_t s_sz )
 	return os;
 }
 
+std::ostream& XMLStream::escape(const std::string& str)
+{
+	return escape(str.c_str(), str.size());
+}
+
 } // ay namespace ends 

@@ -11,6 +11,8 @@ struct XMLStream {
 
     std::ostream& escape(const char *s );
     std::ostream& escape(const char *s, size_t s_sz );
+	std::ostream& escape(const std::string&);
+	
     XMLStream( std::ostream& o ) : os(o) {}
     template <typename T>
     XMLStream& print( const T& x)
