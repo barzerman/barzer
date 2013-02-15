@@ -50,6 +50,7 @@ std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocFeatur
 {
     json_raii raii( os, false, 0 );
     json_raii allDocsRaii( raii.startField("docs"), true, 1 );
+	std::vector<std::string> chunks;
     for( auto i= docVec.begin(); i!= docVec.end() ; ++i ) {
         allDocsRaii.startField("");
         json_raii docRaii( os, false, 2 );
@@ -63,6 +64,22 @@ std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocFeatur
             ay::jsonEscape( title.c_str() , docRaii.startField( "title" ), "\"" );
 
         docRaii.startField( "w" ) << i->second;
+		
+		std::string content;
+		if (d_ixl.getLoader()->getDocContents(docId, content))
+			ay::jsonEscape(content, docRaii.startField("content"), "\"");
+		
+		chunks.clear();
+		auto pos = positions.find(docId);
+		if (pos != positions.end())
+			d_ixl.getLoader()->getBestChunks(docId, pos->second, 200, 5, chunks);
+		if (!chunks.empty())
+		{
+			docRaii.startField("chunks");
+			json_raii chunksRaii(os, true, 2);
+			for (const auto& str : chunks)
+				ay::jsonEscape(str, chunksRaii.startField(""), "\"");
+		}
     }
     return os;
 }
