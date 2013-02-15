@@ -834,13 +834,15 @@ void DocFeatureLoader::getBestChunks(uint32_t docId, const std::vector<uint32_t>
 }
 
 DocIndexLoaderNamedDocs::~DocIndexLoaderNamedDocs( ){}
-DocIndexLoaderNamedDocs::DocIndexLoaderNamedDocs( DocFeatureIndex& index, const barzer::StoredUniverse& u ) :
-    DocFeatureLoader(index,u)
+DocIndexLoaderNamedDocs::DocIndexLoaderNamedDocs( DocFeatureIndex& index, const barzer::StoredUniverse& u )
+: DocFeatureLoader(index,u)
+, m_storeFullDocs(false)
 {}
 namespace fs = boost::filesystem;
 void DocIndexLoaderNamedDocs::addAllFilesAtPath( const char* path )
 {
     fs_iter_callback cb( *this );
+	cb.storeFullDocs = m_storeFullDocs;
     ay::dir_regex_iterate( cb, path, d_loaderOpt.regex.c_str(), d_loaderOpt.d_bits.checkBit(LoaderOptions::BIT_DIR_RECURSE) );
 }
 
@@ -861,9 +863,19 @@ bool DocIndexLoaderNamedDocs::fs_iter_callback::operator()( boost::filesystem::d
 		
         size_t totalNumBeads = index.addDocFromStream( docId, fp, stats );
 
-		const auto ksize = boost::filesystem::file_size(di->path()) / 1024.0;
+		const auto size = boost::filesystem::file_size(di->path());
+		const auto ksize = size / 1024.0;
 		const auto time = timer.calcTimeAsDouble();
         stats.print( std::cerr << "ADDED DOC[" << docId << "]|" << docName << "|\t" ) << "\t\t nt: " << ksize / time << " KiB/sec" << "\n";
+		
+		if (storeFullDocs)
+		{
+			fp.seekg(0);
+			auto buf = new char [size + 1];
+			fp.get(buf, size + 1, 0);
+			index.addDocContents(docId, std::string(buf));
+			delete buf;
+		}
     } else 
         std::cerr << "cant open " << di->path() << std::endl;
     return true;

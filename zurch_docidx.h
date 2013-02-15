@@ -412,6 +412,7 @@ public:
 
 class DocIndexLoaderNamedDocs : public DocFeatureLoader {
     ay::UniqueCharPool d_docnamePool; // both internal strings and literals will be in the pool 
+    bool m_storeFullDocs;
 public: 
     DocIndexLoaderNamedDocs( DocFeatureIndex& index, const barzer::StoredUniverse& u  );
     ~DocIndexLoaderNamedDocs( );
@@ -433,11 +434,14 @@ public:
     const LoaderOptions& loaderOpt() const { return d_loaderOpt; }
 
     void addAllFilesAtPath( const char* path );
+	
+	void setStoreFullDocs(bool store) { m_storeFullDocs = store; }
     
     /// filesystem iterator callback 
     struct fs_iter_callback {
         DocIndexLoaderNamedDocs& index;
         bool usePureFileNames; /// when true (default) only file name (no path) is used. this is good when all file names are unique
+        bool storeFullDocs;
 
         fs_iter_callback( DocIndexLoaderNamedDocs& idx ) : index(idx), usePureFileNames(true) {}
 
