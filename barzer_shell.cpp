@@ -375,7 +375,7 @@ PhraserStatsCB() :
     sumLength(0.0) ,
     maxLength(0), numPhrases(0)
 {}
-void operator() ( zurch::BarzerTokenizerCB_data& dta, zurch::PhraseBreaker& phraser, barzer::Barz& barz, size_t )
+void operator() ( zurch::BarzerTokenizerCB_data& dta, zurch::PhraseBreaker& phraser, barzer::Barz& barz, size_t, const char*, size_t )
 {
     ++numPhrases;
     if( !(numPhrases%10000) )
@@ -501,7 +501,9 @@ static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in, const 
 		zurch::ExtractedDocFeature::Vec_t extracted;
 		index.fillFeatureVecFromQueryBarz(extracted, barz);
 		zurch::DocFeatureIndex::DocWithScoreVec_t scores;
-		index.findDocument(scores, extracted);
+		
+		std::map<uint32_t, std::vector<uint32_t>> positions;
+		index.findDocument(scores, extracted, 16, &positions);
 		
 		std::cout << "found " << scores.size() << " documents" << std::endl;
 		
@@ -510,6 +512,16 @@ static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in, const 
 			const auto& doc = scores[i];
 			const char *docName = loader->getDocNameById(doc.first);
 			std::cout << (docName ? docName : "<no name>") << ": " << doc.second << std::endl;
+			
+			auto pos = positions.find(doc.first);
+			if (pos != positions.end())
+			{
+				std::vector<std::string> chunks;
+				loader->getBestChunks(doc.first, pos->second, 200, 5, chunks);
+				std::cout << "\t" << chunks.size() << " chunks for " << pos->second.size() << " positions:\n";
+				for (const auto& chunk : chunks)
+					std::cout << "\t\t..." << chunk << "..." << std::endl;
+			}
 		}
 	}
 
@@ -552,6 +564,7 @@ static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in , const s
     zurch::DocFeatureIndex& index = *(context->d_zurchFS.getIndex());
     index.setInternStems();
     zurch::DocIndexLoaderNamedDocs& fsIndex = *(context->d_zurchFS.getLoader());
+	fsIndex.setStoreParsed(true);
 	fsIndex.d_loaderOpt.d_bits.set(zurch::DocIndexLoaderNamedDocs::LoaderOptions::BIT_DIR_RECURSE);
     fsIndex.addAllFilesAtPath( fileName.c_str() );
 	

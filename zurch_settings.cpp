@@ -37,6 +37,13 @@ bool ZurchSettings::loadIndex( const boost::property_tree::ptree& pt )
 	if (const auto x = pt.get_child_optional("synonyms"))
 		dixl->getIndex()->loadSynonyms(x->data(), universe);
 
+	if (const boost::optional<std::string> x = attr.get().get_optional<std::string>("storeDocs")) {
+		if (x.get() == "yes") {
+			loader->setStoreParsed(true);
+			loader->setStoreFullDocs(true);
+		}
+	}
+	
     if( const boost::optional< std::string > x = attr.get().get_optional<std::string>("dir") )   {
         loader->d_loadMode = DocFeatureLoader::LOAD_MODE_TEXT;
         dixl->addAllFilesAtPath(x.get().c_str());
@@ -49,6 +56,7 @@ bool ZurchSettings::loadIndex( const boost::property_tree::ptree& pt )
         parser.readFromFile( x.get().c_str() );
         stats.print( std::cerr << "\n" ) << std::endl;
     }
+    
     return true;
 }
 

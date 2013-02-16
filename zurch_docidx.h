@@ -147,7 +147,7 @@ inline size_t hash_value(const NGram<DocFeature>& gram)
 
 //// position  and weight of feature in the document
 struct FeatureDocPosition {
-    std::pair<uint32_t, uint8_t> offset;
+    std::pair<uint32_t, uint16_t> offset;
     int weight;  /// weight of this feature doc
     FeatureDocPosition() : offset(0, 0), weight(0) {}
     FeatureDocPosition(uint32_t o) : offset(o, 0), weight(0) {}
@@ -398,8 +398,10 @@ public:
     size_t addDocFromStream( uint32_t docId, std::istream&, DocStats&  );
 	
 	void addDocContents(uint32_t docId, const std::string& contents);
+	bool getDocContents(uint32_t docId, std::string& out) const;
+	
 	void addParsedDocContents(uint32_t docId, const std::string& parsed);
-	void getBestChunks(uint32_t docId, const std::vector<uint32_t>& positions, size_t chunkLength, size_t count, std::vector<std::string>& chunks);
+	void getBestChunks(uint32_t docId, const std::vector<uint32_t>& positions, size_t chunkLength, size_t count, std::vector<std::string>& chunks) const;
 
     void parseTokenized() 
     {
@@ -412,6 +414,7 @@ public:
 
 class DocIndexLoaderNamedDocs : public DocFeatureLoader {
     ay::UniqueCharPool d_docnamePool; // both internal strings and literals will be in the pool 
+    bool m_storeFullDocs;
 public: 
     DocIndexLoaderNamedDocs( DocFeatureIndex& index, const barzer::StoredUniverse& u  );
     ~DocIndexLoaderNamedDocs( );
@@ -433,11 +436,14 @@ public:
     const LoaderOptions& loaderOpt() const { return d_loaderOpt; }
 
     void addAllFilesAtPath( const char* path );
+	
+	void setStoreFullDocs(bool store) { m_storeFullDocs = store; }
     
     /// filesystem iterator callback 
     struct fs_iter_callback {
         DocIndexLoaderNamedDocs& index;
         bool usePureFileNames; /// when true (default) only file name (no path) is used. this is good when all file names are unique
+        bool storeFullDocs;
 
         fs_iter_callback( DocIndexLoaderNamedDocs& idx ) : index(idx), usePureFileNames(true) {}
 
@@ -484,7 +490,7 @@ struct BarzTokPrintCB {
     std::ostream& fp;
     size_t count;
     BarzTokPrintCB(std::ostream& f ) : fp(f), count(0) {}
-    void operator() ( BarzerTokenizerCB_data& dta, PhraseBreaker& phraser, barzer::Barz& barz, size_t );
+    void operator() ( BarzerTokenizerCB_data& dta, PhraseBreaker& phraser, barzer::Barz& barz, size_t, const char*, size_t );
 };
 
 template <typename CB>
@@ -497,15 +503,16 @@ struct BarzerTokenizerCB {
     BarzerTokenizerCB( CB& cb, barzer::QParser& p, barzer::Barz& b, const barzer::QuestionParm& qp ) : 
         dta(p,b,qp), callback(cb), currentPos(0) {}
 
-    void operator()( PhraseBreaker& phraser, const char* s, size_t s_len ) { 
-        ++dta.count;
-        dta.queryBuf.assign( s, s_len );
-        dta.barz.clear();
-        dta.parser.tokenize_only( dta.barz, dta.queryBuf.c_str(), dta.qparm );
-        callback( dta, phraser, dta.barz, currentPos );
-		
+    void operator()( PhraseBreaker& phraser, const char* s, size_t s_len )
+	{
+		++dta.count;
+		dta.queryBuf.assign( s, s_len );
+		dta.barz.clear();
+		dta.parser.tokenize_only( dta.barz, dta.queryBuf.c_str(), dta.qparm );
+		callback( dta, phraser, dta.barz, currentPos, s, s_len );
+
 		currentPos += s_len;
-    }
+	}
 };
 typedef BarzerTokenizerCB<BarzTokPrintCB> PrintStringCB;
 

@@ -404,6 +404,9 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out,
 {
 	std::map<uint32_t, double> doc2score;
 	
+	typedef std::pair<uint32_t, double> ScoredFeature_t;
+	std::map<uint32_t, std::vector<ScoredFeature_t>> weightedPos;
+	
 	for (const auto& ngram : fVec)
 	{
 		const auto invertedPos = d_invertedIdx.find(ngram.feature);
@@ -428,19 +431,21 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out,
 			if (link.count <= 0)
 				continue;
 			
+			const auto scoreAdd = sizeBoost * classBoost * ((1 + link.weight) * (1 + std::log(link.count))) / numSources;
+			
 			if (doc2pos)
 			{
-				auto ppos = doc2pos->find(link.docId);
-				if (ppos == doc2pos->end())
-					ppos = doc2pos->insert({ link.docId, std::vector<uint32_t>() }).first;
-				ppos->second.push_back(link.position);
+				auto ppos = weightedPos.find(link.docId);
+				if (ppos == weightedPos.end())
+					ppos = weightedPos.insert({ link.docId, std::vector<ScoredFeature_t>() }).first;
+				ppos->second.push_back({ link.position, scoreAdd });
 			}
 			
 			auto pos = doc2score.find(link.docId);
 			if (pos == doc2score.end())
 				pos = doc2score.insert({ link.docId, 0 }).first;
 			
-			pos->second += sizeBoost * classBoost * ((1 + link.weight) * (1 + std::log(link.count))) / numSources;
+			pos->second += scoreAdd;
 		}
 	}
 	
@@ -453,6 +458,22 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out,
 				{ return l.second > r.second; });
 	if (out.size() > maxBack)
 		out.resize(maxBack);
+	
+	if (doc2pos)
+	{
+		bool first = true;
+		for (const auto& docPair : out)
+		{
+			const auto docId = docPair.first;
+			auto scored = weightedPos[docId];
+			std::sort(scored.begin(), scored.end(),
+					[](const ScoredFeature_t& l, const ScoredFeature_t& r) { return l.second > r.second; });
+			
+			auto pos = doc2pos->insert({ docId, std::vector<uint32_t>() }).first;
+			for (const auto& score : scored)
+				pos->second.push_back(score.first);
+		}
+	}
 }
 
 namespace {
@@ -662,7 +683,7 @@ void DocFeatureLoader::addPieceOfDoc( uint32_t docId, const char* str )
 namespace {
 /// this callback is invoked for every phrase in a document 
 struct DocAdderCB {
-    uint32_t docId;
+    const uint32_t docId;
     DocFeatureLoader::DocStats stats;
 
     DocFeatureLoader& docLoader;
@@ -673,7 +694,7 @@ struct DocAdderCB {
         docLoader(dl), 
         qparm(qp) 
     {}
-    void operator() ( BarzerTokenizerCB_data& dta, PhraseBreaker& phraser, barzer::Barz&, size_t offset /* same as docLoader.barz() */ ) {
+    void operator() ( BarzerTokenizerCB_data& dta, PhraseBreaker& phraser, barzer::Barz&, size_t offset, const char *s, size_t sLen ) {
         if( !(++stats.numPhrases % 10000) ) {
             std::cerr << ".";
         }
@@ -681,6 +702,8 @@ struct DocAdderCB {
 
         stats.numFeatureBeads += docLoader.index().appendDocument( docId, docLoader.barz(), offset, docLoader.getCurrentWeight() );
         stats.numBeads += docLoader.barz().getBeads().getList().size();
+		
+		docLoader.addParsedDocContents(docId, std::string(s, sLen));
     }
 };
 
@@ -702,8 +725,6 @@ struct DocAdderXhtmlCB {
 
         if( state.isCallbackText() ) 
             loader.phraser().breakBuf( docAdderCB, s, s_sz );
-		
-		loader.addParsedDocContents(m_docId, std::string(s, s_sz) + " ");
     }
 };
 
@@ -757,6 +778,18 @@ void DocFeatureLoader::addDocContents(uint32_t docId, const std::string& content
 		pos->second += contents;
 }
 
+bool DocFeatureLoader::getDocContents (uint32_t docId, std::string& out) const
+{
+	auto pos = m_docs.find(docId);
+	if (pos == m_docs.end())
+		return false;
+	else
+	{
+		out = pos->second;
+		return true;
+	}
+}
+
 void DocFeatureLoader::addParsedDocContents (uint32_t docId, const std::string& parsed)
 {
 	if (!m_storeParsed)
@@ -781,16 +814,23 @@ namespace
 	}
 }
 
-void DocFeatureLoader::getBestChunks(uint32_t docId, const std::vector<uint32_t>& positions, size_t chunkLength, size_t count, std::vector<std::string>& chunks)
+void DocFeatureLoader::getBestChunks(uint32_t docId, const std::vector<uint32_t>& positions,
+		size_t chunkLength, size_t count, std::vector<std::string>& chunks) const
 {
 	const auto pos = m_parsedDocs.find(docId);
 	if (pos == m_parsedDocs.end())
+	{
+		AYLOG(ERROR) << "no doc for " << docId;
 		return;
+	}
 	
 	typedef std::pair<uint32_t, uint32_t> WPos_t;
 	std::vector<WPos_t> weightedPositions;
 	for (uint32_t pos : positions)
-		weightedPositions.push_back({ pos, computeWeight (positions, pos, chunkLength) });
+		if (std::find_if(weightedPositions.begin(), weightedPositions.end(),
+				[&pos](const WPos_t& other) { return other.first == pos; }) == weightedPositions.end())
+			weightedPositions.push_back({ pos, computeWeight (positions, pos, chunkLength) });
+	
 	std::sort(weightedPositions.begin(), weightedPositions.end(),
 			[](const WPos_t& left, const WPos_t& right)
 				{ return left.second > right.second; });
@@ -800,19 +840,21 @@ void DocFeatureLoader::getBestChunks(uint32_t docId, const std::vector<uint32_t>
 	for (auto i = weightedPositions.begin(), end = std::min(weightedPositions.end(), weightedPositions.begin() + count);
 				i < end; ++i)
 	{
-		const auto pos = i->first;
-		chunks.push_back(doc.substr(std::max(static_cast<size_t>(0), pos - chunkLength / 2), chunkLength));
+		const size_t pos = i->first;
+		chunks.push_back(doc.substr(pos - std::min(pos, chunkLength / 2), chunkLength));
 	}
 }
 
 DocIndexLoaderNamedDocs::~DocIndexLoaderNamedDocs( ){}
-DocIndexLoaderNamedDocs::DocIndexLoaderNamedDocs( DocFeatureIndex& index, const barzer::StoredUniverse& u ) :
-    DocFeatureLoader(index,u)
+DocIndexLoaderNamedDocs::DocIndexLoaderNamedDocs( DocFeatureIndex& index, const barzer::StoredUniverse& u )
+: DocFeatureLoader(index,u)
+, m_storeFullDocs(false)
 {}
 namespace fs = boost::filesystem;
 void DocIndexLoaderNamedDocs::addAllFilesAtPath( const char* path )
 {
     fs_iter_callback cb( *this );
+	cb.storeFullDocs = m_storeFullDocs;
     ay::dir_regex_iterate( cb, path, d_loaderOpt.regex.c_str(), d_loaderOpt.d_bits.checkBit(LoaderOptions::BIT_DIR_RECURSE) );
 }
 
@@ -833,9 +875,19 @@ bool DocIndexLoaderNamedDocs::fs_iter_callback::operator()( boost::filesystem::d
 		
         size_t totalNumBeads = index.addDocFromStream( docId, fp, stats );
 
-		const auto ksize = boost::filesystem::file_size(di->path()) / 1024.0;
+		const auto size = boost::filesystem::file_size(di->path());
+		const auto ksize = size / 1024.0;
 		const auto time = timer.calcTimeAsDouble();
         stats.print( std::cerr << "ADDED DOC[" << docId << "]|" << docName << "|\t" ) << "\t\t nt: " << ksize / time << " KiB/sec" << "\n";
+		
+		if (storeFullDocs)
+		{
+			fp.seekg(0);
+			auto buf = new char [size + 1];
+			fp.get(buf, size + 1, 0);
+			index.addDocContents(docId, std::string(buf));
+			delete buf;
+		}
     } else 
         std::cerr << "cant open " << di->path() << std::endl;
     return true;
@@ -850,7 +902,7 @@ void DocIndexAndLoader::init(const barzer::StoredUniverse& u)
     loader  = new DocIndexLoaderNamedDocs(*index, u );
 }
 
-void BarzTokPrintCB::operator() ( BarzerTokenizerCB_data& dta, PhraseBreaker& phraser, barzer::Barz& barz, size_t )
+void BarzTokPrintCB::operator() ( BarzerTokenizerCB_data& dta, PhraseBreaker& phraser, barzer::Barz& barz, size_t, const char*, size_t )
 {
     const auto& ttVec = barz.getTtVec();
     fp << "[" << count++ << "]:" << "(" << ttVec.size()/2+1 << ")";
