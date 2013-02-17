@@ -564,7 +564,6 @@ static int bshf_doc( BarzerShell* shell, char_cp cmd, std::istream& in , const s
     zurch::DocFeatureIndex& index = *(context->d_zurchFS.getIndex());
     index.setInternStems();
     zurch::DocIndexLoaderNamedDocs& fsIndex = *(context->d_zurchFS.getLoader());
-	fsIndex.setStoreParsed(true);
 	fsIndex.d_loaderOpt.d_bits.set(zurch::DocIndexLoaderNamedDocs::LoaderOptions::BIT_DIR_RECURSE);
     fsIndex.addAllFilesAtPath( fileName.c_str() );
 	

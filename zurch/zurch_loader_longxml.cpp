@@ -216,6 +216,9 @@ int ZurchLongXMLParser_DocLoader::callback()
     sstr << d_data.d_Content;
     d_loader.setCurrentWeight(WEIGHT_BOOST_NONE);
     d_loader.addDocFromStream( docId, sstr, d_loadStats );
+    if( d_loader.hasContent() ) {
+        d_loader.addDocContents( docId, d_data.d_Content );
+    }
     
     sstr << d_data.d_DocName;
     d_loader.setCurrentWeight(WEIGHT_BOOST_NAME);

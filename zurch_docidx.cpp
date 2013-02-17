@@ -661,7 +661,6 @@ DocFeatureLoader::DocFeatureLoader( DocFeatureIndex& index, const barzer::Stored
     d_parser(u),
     d_index(index),
     m_curWeight(0),
-    m_storeParsed(false),
     d_bufSz( DEFAULT_BUF_SZ ),
     d_xhtmlMode(ay::xhtml_parser_state::MODE_HTML),
     d_loadMode(LOAD_MODE_TEXT)
@@ -670,11 +669,6 @@ DocFeatureLoader::DocFeatureLoader( DocFeatureIndex& index, const barzer::Stored
 }
 
 DocFeatureLoader::~DocFeatureLoader() {}
-
-void DocFeatureLoader::setStoreParsed (bool store)
-{
-	m_storeParsed = store;
-}
 
 void DocFeatureLoader::addPieceOfDoc( uint32_t docId, const char* str )
 {
@@ -792,7 +786,7 @@ bool DocFeatureLoader::getDocContents (uint32_t docId, std::string& out) const
 
 void DocFeatureLoader::addParsedDocContents (uint32_t docId, const std::string& parsed)
 {
-	if (!m_storeParsed)
+	if (noChunks())
 		return;
 	
 	auto pos = m_parsedDocs.find(docId);
@@ -858,13 +852,12 @@ void DocFeatureLoader::getBestChunks(uint32_t docId, const std::vector<uint32_t>
 DocIndexLoaderNamedDocs::~DocIndexLoaderNamedDocs( ){}
 DocIndexLoaderNamedDocs::DocIndexLoaderNamedDocs( DocFeatureIndex& index, const barzer::StoredUniverse& u )
 : DocFeatureLoader(index,u)
-, m_storeFullDocs(false)
 {}
 namespace fs = boost::filesystem;
 void DocIndexLoaderNamedDocs::addAllFilesAtPath( const char* path )
 {
     fs_iter_callback cb( *this );
-	cb.storeFullDocs = m_storeFullDocs;
+	cb.storeFullDocs = hasContent();
     ay::dir_regex_iterate( cb, path, d_loaderOpt.regex.c_str(), d_loaderOpt.d_bits.checkBit(LoaderOptions::BIT_DIR_RECURSE) );
 }
 
@@ -890,8 +883,7 @@ bool DocIndexLoaderNamedDocs::fs_iter_callback::operator()( boost::filesystem::d
 		const auto time = timer.calcTimeAsDouble();
         stats.print( std::cerr << "ADDED DOC[" << docId << "]|" << docName << "|\t" ) << "\t\t nt: " << ksize / time << " KiB/sec" << "\n";
 		
-		if (storeFullDocs)
-		{
+		if (storeFullDocs) {
 			fp.seekg(0);
 			auto buf = new char [size + 1];
 			fp.get(buf, size + 1, 0);
