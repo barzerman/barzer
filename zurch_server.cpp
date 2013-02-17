@@ -67,7 +67,7 @@ std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocFeatur
 		
 		std::string content;
 		if (d_ixl.getLoader()->getDocContents(docId, content))
-			ay::jsonEscape(content, docRaii.startField("content"), "\"");
+			ay::jsonEscape(content.c_str(), docRaii.startField("content"), "\"");
 		
 		chunks.clear();
 		auto pos = positions.find(docId);
@@ -78,7 +78,7 @@ std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocFeatur
 			docRaii.startField("chunks");
 			json_raii chunksRaii(os, true, 2);
 			for (const auto& str : chunks)
-				ay::jsonEscape(str, chunksRaii.startField(""), "\"");
+				ay::jsonEscape(str.c_str(), chunksRaii.startField(""), "\"");
 		}
     }
     return os;

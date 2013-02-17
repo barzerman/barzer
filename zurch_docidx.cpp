@@ -808,7 +808,7 @@ namespace
 	{
 		uint32_t result = 0;
 		for (uint32_t other : positions)
-			if (std::abs(other - pos) < chunkLength / 2)
+			if ( ( other>pos ? other - pos: pos-other) < chunkLength / 2)
 				++result;
 		return --result;
 	}
