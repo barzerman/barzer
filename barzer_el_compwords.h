@@ -1,6 +1,8 @@
-#ifndef BARZER_EL_COMPWORDS_H
-#define BARZER_EL_COMPWORDS_H
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <boost/unordered_map.hpp> 
 
 /// compounded words support for BARZEL 
@@ -62,5 +64,4 @@ public:
 	}
 };
 
-}
-#endif // BARZER_EL_COMPWORDS_H
+} // namespace barzer

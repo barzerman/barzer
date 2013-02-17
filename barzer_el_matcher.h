@@ -1,6 +1,7 @@
-#ifndef BARZER_EL_MATCHER_H
-#define BARZER_EL_MATCHER_H
-
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <barzer_el_chain.h>
 #include <barzer_el_variable.h>
 #include <barzer_el_trie.h>
@@ -444,5 +445,4 @@ public:
     }
 };
 
-}
-#endif // BARZER_EL_MATCHER_H
+} // namespace barzer

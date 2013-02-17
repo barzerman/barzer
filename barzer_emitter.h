@@ -1,6 +1,7 @@
-#ifndef BARZER_EMITTER_H
-#define BARZER_EMITTER_H
-
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <barzer_el_parser.h>
 #include <barzer_el_btnd.h>
 
@@ -119,5 +120,4 @@ public:
     size_t  maxConsidered() const { return d_maxConsidered; }
 };
 
-}
-#endif //BARZER_EMITTER_H
+} // namespace barzer

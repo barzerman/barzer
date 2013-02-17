@@ -1,3 +1,7 @@
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
 #pragma once
 
 #include <vector>
@@ -110,4 +114,4 @@ namespace ay
 		inline const T* getRawBuf() const { return isEx() ? &(*cont())[0] : m_u.m_objs; }
 		inline T* getRawBuf() { return isEx() ? &(*cont())[0] : m_u.m_objs; }
 	};
-}
+} // namespace ay

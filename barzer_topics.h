@@ -1,7 +1,4 @@
-#ifndef BARZER_TOPICS_H
-#define BARZER_TOPICS_H
-
-// #include <boost/unordered_map.hpp> 
+#pragma once
 #include <map>
 #include <barzer_entity.h>
 
@@ -237,4 +234,3 @@ struct TopicEntLinkage {
 }; // TopicEntLinkage
 
 } // namespace barzer
-#endif // BARZER_TOPICS_H

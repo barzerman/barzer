@@ -1,3 +1,7 @@
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
 #include <lg_ru/barzer_ru_lex.h>
 #include <barzer_bzspell.h>
 #include <barzer_ru_stemmer.h>

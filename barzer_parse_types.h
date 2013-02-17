@@ -1,6 +1,8 @@
-#ifndef BARZER_PARSE_TYPES_H
-#define BARZER_PARSE_TYPES_H
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <ay/ay_headers.h>
 #include <vector>
 #include <map>
@@ -399,4 +401,3 @@ public:
 inline std::ostream& operator <<( std::ostream& fp, const BarzerString& x )
 	{ return( x.print(fp) ); }
 } // barzer  namespace 
-#endif // BARZER_PARSE_TYPES_H

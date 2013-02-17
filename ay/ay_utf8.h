@@ -1,6 +1,8 @@
-#ifndef AY_UTF8_H
-#define AY_UTF8_H
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <vector>
 #include <iterator>
 #include <cstddef>
@@ -536,5 +538,3 @@ namespace ay
 int unicode_normalize_punctuation( std::string& outStr, const char* srcStr, size_t srcStr_sz ) ;
 int unicode_normalize_punctuation( std::string& qstr ) ;
 } // ay namespace
-
-#endif

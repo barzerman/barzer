@@ -1,5 +1,4 @@
-#ifndef BARZER_BZSPELL_H 
-#define BARZER_BZSPELL_H 
+#pragma once
 
 #include <ay_evovec.h>
 #include <boost/unordered_map.hpp>
@@ -209,6 +208,4 @@ public:
     const StoredToken* tryGetStoredTokenFromLinkedWords( uint32_t ) const;
 };
 
-}
-
-#endif // BARZER_BZSPELL_H 
+} // namespace barzer

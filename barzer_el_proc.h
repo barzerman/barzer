@@ -1,6 +1,8 @@
-#ifndef BARZER_EL_PROC_H
-#define BARZER_EL_PROC_H
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <map>
 #include <barzer_el_rewriter.h>
 
@@ -66,5 +68,3 @@ public:
 };
 
 } // barzer namespace ends 
-
-#endif // BARZER_EL_PROC_H

@@ -1,6 +1,7 @@
-#ifndef AY_PARSE_H
-#define AY_PARSE_H
-
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <iostream>
 #include <cstdio>
 #include <cstring>
@@ -208,6 +209,3 @@ int parse_separator_tupple( T&t , const char* s, char outerSep, char innerSep  )
 }
 
 } // ay namespace 
-
-
-#endif //  AY_PARSE_H

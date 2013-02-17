@@ -1,5 +1,8 @@
-#ifndef BARZER_RU_LEX_H 
-#define BARZER_RU_LEX_H 
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <barzer_language.h>
 namespace barzer {
 
@@ -17,5 +20,4 @@ struct Russian_Stemmer {
     static bool stem( std::string& out, const char* s ) ;
 };
 
-}
-#endif // BARZER_RU_LEX_H 
+} // namespace barzer

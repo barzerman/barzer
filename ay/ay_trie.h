@@ -1,6 +1,8 @@
-#ifndef AY_TRIE_H
-#define AY_TRIE_H
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include "ay_vector.h"
 #include <stack>
 #include <iterator>
@@ -201,4 +203,3 @@ struct char_trie {
 
 
 } // namespace ay
-#endif // AY_TRIE_H

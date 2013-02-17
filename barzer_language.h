@@ -1,6 +1,8 @@
-#ifndef BARZER_LANGUAGE_H  
-#define BARZER_LANGUAGE_H  
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <arch/barzer_arch.h>
 #include <ay/ay_headers.h>
 #include <ay/ay_char.h>
@@ -167,5 +169,4 @@ QSingleLangLexer_UTF8() : QSingleLangLexer (LANG_UNKNOWN_UTF8) {}
 int lex( CTWPVec& , const TTWPVec&, const QuestionParm& );
 };
 
-}
-#endif // BARZER_LANGUAGE_H  
+} // namespace barzer

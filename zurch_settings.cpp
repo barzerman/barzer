@@ -1,3 +1,7 @@
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
 #include <zurch_settings.h>
 #include <boost/foreach.hpp>
 #include <barzer_universe.h>

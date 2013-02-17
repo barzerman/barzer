@@ -1,6 +1,7 @@
-#ifndef AY_STRING_POOL_H 
-#define AY_STRING_POOL_H 
-
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 /// alllocation pool functionality 
 #include <ay_headers.h>
 #include <vector>
@@ -184,5 +185,4 @@ public:
 
 };
 
-}
-#endif // AY_STRING_POOL_H 
+} // namespace ay

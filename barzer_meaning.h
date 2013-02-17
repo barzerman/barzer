@@ -1,6 +1,8 @@
-#ifndef BARZER_MEANING_H
-#define BARZER_MEANING_H
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once 
 #include <boost/unordered_map.hpp>
 #include <ay/ay_stackvec.h>
 #include <vector>
@@ -145,5 +147,3 @@ struct MeaningsXMLParser {
 };
 
 } // namespace barzer 
-
-#endif //  BARZER_MEANING_H

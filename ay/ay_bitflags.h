@@ -1,5 +1,8 @@
-#ifndef AY_BITFLAGS_H
-#define AY_BITFLAGS_H
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <ay_headers.h>
 #include <ay_debug.h>
 #include <stdlib.h>
@@ -177,4 +180,3 @@ inline std::ostream& operator<< ( std::ostream& os, const named_bits<B>& b )
 
 
 } // namespace ay 
-#endif // AY_BITFLAGS_H

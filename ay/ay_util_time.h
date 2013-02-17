@@ -1,5 +1,8 @@
-#ifndef AY_UTIL_TIME_H
-#define AY_UTIL_TIME_H
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <ay_headers.h>
 
 #include <arch/barzer_arch.h>
@@ -47,5 +50,4 @@ inline std::ostream& operator <<( std::ostream& fp, const stopwatch& sw )
 	return sw.print(fp);
 }
 
-}
-#endif // AY_UTIL_TIME_H
+} // namesapce ay

@@ -1,5 +1,8 @@
-#ifndef BARZER_AUTOCOMPLETE_H
-#define BARZER_AUTOCOMPLETE_H
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <iostream>
 namespace barzer {
 
@@ -19,5 +22,4 @@ public:
     int parse( const char* q );
 };
 
-}
-#endif // BARZER_AUTOCOMPLETE_H
+} // namespace barzer

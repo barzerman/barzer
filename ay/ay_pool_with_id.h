@@ -1,6 +1,8 @@
-#ifndef AY_POOL_WITH_ID_H
-#define AY_POOL_WITH_ID_H
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <vector>
 #include <map>
 
@@ -167,6 +169,4 @@ public:
 };
 
 
-}
-
-#endif // AY_POOL_WITH_ID_H
+} // namespace ay

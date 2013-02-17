@@ -1,6 +1,7 @@
-#ifndef BARZER_EL_CHAIN_H
-#define BARZER_EL_CHAIN_H
-
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <barzer_storage_types.h>
 #include <barzer_parse_types.h>
 #include <barzer_basic_types.h>
@@ -563,5 +564,4 @@ struct BarzelBeadData_FieldBinder {
     static void listFields( std::vector< std::string > & , const BarzelBeadData&  ) ;
 };
 
-}
-#endif // BARZER_EL_CHAIN_H
+} // namespace barzer

@@ -1,6 +1,4 @@
-#ifndef BARZER_BARZ_h
-#define BARZER_BARZ_h
-
+#pragma once
 #include <barzer_el_chain.h>
 #include <barzer_parse_types.h>
 #include <barzer_topics.h>
@@ -349,5 +347,4 @@ public:
     
     int         extraNormalization( const QuestionParm& qparm );
 };
-}
-#endif // BARZER_BARZ_h
+} // namespace barzer

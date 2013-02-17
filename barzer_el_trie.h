@@ -1,5 +1,4 @@
-#ifndef BARZER_EL_TRIE_H
-#define BARZER_EL_TRIE_H
+#pragma once
 #include <barzer_el_rewriter.h>
 #include <barzer_el_variable.h>
 #include <barzer_el_entcol.h>
@@ -748,7 +747,4 @@ struct BELPrintContext {
 	std::ostream& printRewriterByteCode( std::ostream& fp, const BarzelTranslation& ) const;
 };
 
-}
-
-#endif // BARZER_EL_TRIE_H
-
+} // namespace barzer

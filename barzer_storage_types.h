@@ -1,6 +1,8 @@
-#ifndef BARZER_STORAGE_TYPES_H
-#define BARZER_STORAGE_TYPES_H
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <ay/ay_headers.h>
 #include <barzer_token.h>
 #include <vector>
@@ -221,5 +223,4 @@ inline std::ostream& operator <<( std::ostream& fp, const StoredEntity& e )
 }
 
 
-}
-#endif // BARZER_STORAGE_TYPES_H
+} // namespace barzer

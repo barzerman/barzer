@@ -1,5 +1,8 @@
-#ifndef BARZER_EL_REWRITE_CONTROL_H
-#define BARZER_EL_REWRITE_CONTROL_H
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 //// evaluation of control statements for rewrite  
 class BarzelEvalResultVec;
 namespace barzer {
@@ -25,4 +28,3 @@ public:
 };
 
 } // namespace barzer
-#endif //  BARZER_EL_REWRITE_CONTROL_H

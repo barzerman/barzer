@@ -1,3 +1,6 @@
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
 #include <barzer_emitter.h>
 #include <barzer_universe.h>
 #include <ay/ay_debug.h>

@@ -1,5 +1,8 @@
-#ifndef AY_UTIL_H
-#define AY_UTIL_H
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <ay_headers.h>
 
 #include <map>
@@ -314,4 +317,3 @@ int url_encode( std::string& str, const char* s, size_t s_len );
 
 } // ay namespace
 
-#endif

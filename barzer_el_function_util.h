@@ -1,6 +1,7 @@
-#ifndef  BARZER_EL_FUNCTION_UTIL_H
-#define  BARZER_EL_FUNCTION_UTIL_H
-
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <ay/ay_util_char.h>
 namespace barzer {
 class BarzerNumber;
@@ -28,6 +29,4 @@ inline bool operator<= ( const BarzelEvalResult& l, class BarzelEvalResult& r)
 inline bool operator>= ( const BarzelEvalResult& l, class BarzelEvalResult& r)
     { return( l> r || l==r ); }
 
-}
-
-#endif //  BARZER_EL_FUNCTION_UTIL_H
+} // barzer namespace

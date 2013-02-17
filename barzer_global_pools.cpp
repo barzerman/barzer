@@ -1,3 +1,6 @@
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
 #include <barzer_global_pools.h>
 
 #include <barzer_universe.h>

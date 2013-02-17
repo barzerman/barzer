@@ -1,5 +1,8 @@
-#ifndef BARZER_TOKEN_H
-#define BARZER_TOKEN_H
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <ay/ay_headers.h>
 #include <ay/ay_bitflags.h>
 /// Various low level constants and utilities 
@@ -163,4 +166,3 @@ inline std::ostream& operator <<( std::ostream& fp, const TokenLinguisticInfo& t
 { return t.print(fp); }
 
 } // barzer namespace ends
-#endif // BARZER_TOKEN_H

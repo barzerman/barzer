@@ -1,3 +1,7 @@
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
 /*
  * barzer_el_function.h
  *
@@ -5,8 +9,7 @@
  *      Author: polter
  */
 
-#ifndef BARZER_EL_FUNCTION_H_
-#define BARZER_EL_FUNCTION_H_
+#pragma once
 
 #include <boost/unordered_map.hpp>
 #include <boost/function.hpp>
@@ -58,9 +61,4 @@ public:
 			  const StoredUniverse &u ) const;
 
 };
-
-
-}
-
-
-#endif /* BARZER_EL_FUNCTION_H_ */
+} // namespace barzer

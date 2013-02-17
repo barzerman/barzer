@@ -1,5 +1,8 @@
-#ifndef BARZER_PARSE_H
-#define BARZER_PARSE_H
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <ay/ay_headers.h>
 #include <barzer_lexer.h>
 #include <barzer_el_matcher.h>
@@ -92,5 +95,3 @@ public:
 };
 
 } // barzer namespace ends 
-
-#endif // BARZER_PARSE_H

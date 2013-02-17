@@ -1,3 +1,6 @@
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
 #include <boost/shared_ptr.hpp>
 #include <barzer_autocomplete.h>
 #include <barzer_barz.h>

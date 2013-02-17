@@ -1,13 +1,14 @@
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
 /*
  * barzer_server_request.h
  *
  *  Created on: Apr 21, 2011
  *      Author: polter
  */
-
-#ifndef BARZER_SERVER_REQUEST_H_
-#define BARZER_SERVER_REQUEST_H_
-
+#pragma once
 #include <map>
 #include <vector>
 #include <ay/ay_logger.h>
@@ -198,6 +199,4 @@ public:
 inline BarzerRequestParser::RequestTag& BarzerRequestParser::getTag()
 	{ return tagStack.back(); }
 
-}
-
-#endif /* BARZER_SERVER_REQUEST_H_ */
+} // namespace barzer

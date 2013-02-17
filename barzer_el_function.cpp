@@ -1,3 +1,6 @@
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
 /*
  * barzer_el_function.cpp
  *
@@ -581,7 +584,7 @@ struct BELFunctionStorage_holder {
     /// get bead source tokens 
     STFUN(getBeadSrcTok)
     {
-        SETFUNCNAME(getLeftBead);
+        SETFUNCNAME(getBeadSrcTok);
         if( ctxt.matchInfo.isSubstitutionBeadRangeEmpty() ) {
             setResult(result,BarzerString());
             return true;

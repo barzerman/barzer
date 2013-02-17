@@ -1,5 +1,8 @@
-#ifndef BARZER_ENTITY_H 
-#define BARZER_ENTITY_H 
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once 
 #include <map>
 #include <boost/unordered_map.hpp>
 #include <ay/ay_logger.h>
@@ -305,6 +308,4 @@ public:
         { EntPropDtaMap::iterator i = d_autocDtaMap.find( euid ); return ( i==d_autocDtaMap.end()? 0 : &(i->second) ); }
     size_t readFromFile( GlobalPools& gp, const char* fname ) ;
 };
-} // namespace
-
-#endif // BARZER_ENTITY_H 
+} // namespace barzer

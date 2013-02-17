@@ -1,3 +1,7 @@
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
 /*
  * barzer_date_util.h
  *
@@ -5,9 +9,7 @@
  *      Author: polter
  */
 
-#ifndef BARZER_DATE_UTIL_H_
-#define BARZER_DATE_UTIL_H_
-
+#pragma once
 
 #include <boost/unordered_map.hpp>
 #include <vector>
@@ -43,4 +45,3 @@ public:
 
 } // namespace barzer
 
-#endif /* BARZER_DATE_UTIL_H_ */

@@ -1,5 +1,8 @@
-#ifndef AY_LANGUTIL_H
-#define AY_LANGUTIL_H
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 namespace ay {
 
 namespace utf8 {
@@ -13,4 +16,3 @@ inline bool isRussianString( const char* s )
 } // namespace utf8
 
 }
-#endif // AY_LANGUTIL_H

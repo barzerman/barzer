@@ -1,5 +1,8 @@
-#ifndef BARZER_LEXER_H
-#define BARZER_LEXER_H
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <ay/ay_headers.h>
 #include <ay/ay_utf8.h>
 #include <barzer_parse_types.h>
@@ -124,6 +127,4 @@ public:
 	int lex( Barz& barz, const TokenizerStrategy& strat, QTokenizer& tokenizer, const char* q, const QuestionParm& qparm );
 	virtual ~QLexParser() {}
 };
-}
-
-#endif // BARZER_LEXER_H
+} // namespace barzer

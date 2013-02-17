@@ -1,6 +1,8 @@
-#ifndef BARZER_EL_WILDCARD_H
-#define BARZER_EL_WILDCARD_H
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <barzer_el_trie.h>
 #include <ay/ay_pool_with_id.h>
 #include <ay/ay_debug.h>
@@ -139,6 +141,4 @@ public:
 	template <>  
 	inline const BTND_Pattern_Wildcard* BarzelWildcardPool::get_BTND_Pattern<BTND_Pattern_Wildcard>( uint32_t id ) const 
 		{ return pool_Wildcard.getObjById( id ); }
-}
-
-#endif // BARZER_EL_WILDCARD_H
+} // namespace barzer

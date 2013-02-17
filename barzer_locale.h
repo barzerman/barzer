@@ -1,3 +1,7 @@
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
 /*
  * barzer_date_util.h
  *
@@ -5,8 +9,7 @@
  *      Author: 0xd34df00d
  */
 
-#ifndef BARZER_LOCALE_H_
-#define BARZER_LOCALE_H_
+#pragma once 
 #include <vector>
 #include <boost/shared_ptr.hpp>
 #include <string>
@@ -29,6 +32,4 @@ namespace barzer
 		virtual char realSeparator() const = 0;
 		virtual std::string dateTimeFormat() const = 0;
 	};
-}
-
-#endif
+} // namespace barzer

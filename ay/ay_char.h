@@ -1,6 +1,4 @@
-#ifndef AY_CHAR_H
-#define AY_CHAR_H
-
+#pragma once
 #include <cstring>
 #include <cstdlib>
 #include <stdlib.h>
@@ -323,4 +321,3 @@ struct Char2B_accessor {
 
 
 } // ay namespace ends 
-#endif // AY_CHAR_H

@@ -1,6 +1,7 @@
-#ifndef BARZER_LOADER_XML_H
-#define BARZER_LOADER_XML_H
-
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <ay/ay_headers.h>
 #include <stack>
 #include <ay/ay_util_char.h>
@@ -116,5 +117,3 @@ struct EntityLoader_XML {
 };
 
 } // namespace barzer
-
-#endif // BARZER_LOADER_XML_H

@@ -1,3 +1,7 @@
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
 #pragma once
 
 #include <boost/unordered_map.hpp>
@@ -118,4 +122,4 @@ public:
 				ent->getSubclass() == m_esc;
 	}
 };
-}
+} // namespace barzer

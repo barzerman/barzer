@@ -1,3 +1,7 @@
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
 #include <barzer_storage_types.h>
 #include <iomanip>
 namespace barzer {

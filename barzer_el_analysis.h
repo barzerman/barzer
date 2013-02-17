@@ -1,5 +1,8 @@
-#ifndef BARZER_EL_ANALYSIS_H
-#define BARZER_EL_ANALYSIS_H
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 
 #include <barzer_universe.h>
 #include <barzer_el_trie_walker.h>
@@ -161,4 +164,3 @@ struct TANameProducer {
 };
 
 } // barzer namespace 
-#endif // BARZER_EL_ANALYSIS_H

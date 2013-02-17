@@ -1,6 +1,8 @@
-#ifndef BARZER_SERVER_H
-#define BARZER_SERVER_H
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <cstdlib>
 #include <iostream>
 
@@ -132,7 +134,4 @@ int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os );
 
 } // request namespace ends
 
-}
-
-#endif
-
+} // namespace barzer

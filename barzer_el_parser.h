@@ -1,6 +1,8 @@
-#ifndef BARZER_EL_PARSER_H
-#define BARZER_EL_PARSER_H
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <iostream>
 #include <vector>
 #include <cstdio>
@@ -382,6 +384,4 @@ struct BarzXMLErrorStream {
         { os.os << "</error>\n"; }
 };
 
-}
-
-#endif // BARZER_EL_PARSER_H
+} // namespace barzer 

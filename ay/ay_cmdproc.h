@@ -1,5 +1,8 @@
-#ifndef AY_CMDPROC_H
-#define AY_CMDPROC_H
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once 
 #include <ay_headers.h>
 
 
@@ -35,5 +38,3 @@ struct CommandLineArgs {
 };
 
 } // end of namespace
-
-#endif

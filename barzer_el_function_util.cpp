@@ -1,3 +1,6 @@
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
 #include <barzer_el_function_util.h>
 #include <barzer_number.h>
 #include <ay/ay_util.h>

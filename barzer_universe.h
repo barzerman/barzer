@@ -1,6 +1,8 @@
-#ifndef BARZER_UNIVERSE_H
-#define BARZER_UNIVERSE_H
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <ay_string_pool.h>
 #include <ay_snowball.h>
 #include <ay_ngrams.h>
@@ -386,5 +388,4 @@ inline StoredUniverse& GlobalPools::produceUniverse( uint32_t id )
 	return *p;
 }
 
-}
-#endif // BARZER_UNIVERSE_H
+} // namespace barzer

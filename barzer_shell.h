@@ -1,6 +1,8 @@
-#ifndef BARZER_SHELL_H
-#define BARZER_SHELL_H
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <ay/ay_headers.h>
 #include <ay/ay_shell.h>
 #include <barzer_dtaindex.h>
@@ -105,6 +107,4 @@ struct BarzerShell : public ay::Shell {
     void syncQuestionParm( QuestionParm& qparm );
 };
 
-}
-
-#endif
+} // namespace barzer

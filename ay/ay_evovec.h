@@ -1,6 +1,8 @@
-#ifndef AY_EVOVEC_H
-#define AY_EVOVEC_H
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <vector>
 #include <map>
 namespace ay {
@@ -118,5 +120,4 @@ public:
 
 typedef evovec< uint32_t > evovec_uint32;
 
-}
-#endif // AY_EVOVEC_H
+} // namespace ay

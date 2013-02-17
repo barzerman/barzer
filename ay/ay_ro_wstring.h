@@ -1,3 +1,8 @@
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <ay_headers.h>
 #include <wchar.h>
 #include <iostream>
@@ -59,7 +64,7 @@ inline std::ostream& operator<<( std::ostream& fp, const ro_wstring& s )
 inline bool operator <( const ro_wstring& l, const ro_wstring& r )
 { 
 	ro_wstring::const_iterator l_end = l.end();
-	return( std::lexicographical_compare( l.begin(), l_end, r.begin(), r.end() ); 
+	return( std::lexicographical_compare( l.begin(), l_end, r.begin(), r.end() ) );
 }
 inline bool operator ==( const ro_wstring& l, const ro_wstring& r )
 { 
@@ -67,4 +72,4 @@ inline bool operator ==( const ro_wstring& l, const ro_wstring& r )
 	return std::equal( l.begin(), l_end, r.begin() ); 
 }
 
-}
+} // namespace ay

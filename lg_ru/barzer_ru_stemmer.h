@@ -1,6 +1,8 @@
-#ifndef BARZER_RU_STEMMER_H
-#define BARZER_RU_STEMMER_H
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <string> 
 /// implementation of stemmers / normalizers for Russian language 
 /// utf8 strings 
@@ -14,4 +16,3 @@ bool normalize( std::string& out, const char* s, size_t* len=0 ) ;
 } // namespace Russian
 
 } // namespace barzer
-#endif // BARZER_RU_STEMMER_H

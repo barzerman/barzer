@@ -1,5 +1,8 @@
-#ifndef BARZER_EL_VARIABLE_H
-#define BARZER_EL_VARIABLE_H
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <stdint.h>
 #include <vector>
 #include <map>
@@ -48,5 +51,4 @@ public:
     void clear() { d_tranIdMap.clear(); d_pathInterner.clear(); }
 };
 
-}
-#endif // BARZER_EL_VARIABLE_H
+} // namespace barzer

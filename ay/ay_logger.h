@@ -1,12 +1,14 @@
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 /*
  * ay_logger.h
  *
  *  Created on: Apr 11, 2011
  *      Author: polter
  */
-
-#ifndef AY_LOGGER_H_
-#define AY_LOGGER_H_
 
 #include <iostream>
 #include <fstream>
@@ -135,7 +137,4 @@ private:
 /// if fileName is not an absolute path deduces current directory and prints it
 std::ostream& print_absolute_file_path( std::ostream& , const char* fileName );
 } // namespace ay
-
-
-#endif /* AY_LOGGER_H_ */
 

@@ -1,5 +1,8 @@
-#ifndef BARZER_EL_REWRITER_H
-#define BARZER_EL_REWRITER_H
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <stack>
 //#include <barzer_emitter.h>
 #include <barzer_el_parser.h>
@@ -438,5 +441,3 @@ struct BRBCPrintCB {
 };
 	
 } // barzer namespace 
-
-#endif // BARZER_EL_REWRITER_H

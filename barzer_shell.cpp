@@ -1,3 +1,7 @@
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
 #include <barzer_shell.h>
 #include <barzer_server.h>
 #include <ay_util_time.h>

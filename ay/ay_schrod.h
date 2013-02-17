@@ -1,6 +1,8 @@
-#ifndef AY_SCHROD_H
-#define AY_SCHROD_H
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 // this implements a Schroedinger Object - a wrapper over a type 
 // which takes construction argument alongside the boolean telling it whether or not the actual object
 // should be constructed on stack
@@ -31,5 +33,4 @@ public:
 	~Schrod() { if( d_exists ) (static_cast<Actual*>(d_buf))->Actual::~Actual(); }
 };
 
-}
-#endif // AY_SCHROD_H
+} // namespace ay

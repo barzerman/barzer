@@ -1,3 +1,7 @@
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
 #pragma once
 
 #include <vector>
@@ -123,4 +127,4 @@ inline const char* ru_to_ascii( const char* s )
 
     inline bool is_not_russian_consonant( const char *s ) { return (is_russian_vowel(s) ||  is_russian_znak(s)); }
 }
-}
+} // namespace ay

@@ -1,3 +1,6 @@
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
 #include <barzer_barz.h>
 #include <barzer_parse.h>
 #include <barzer_el_chain.h>

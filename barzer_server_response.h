@@ -1,13 +1,14 @@
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
 /*
  * barzer_server_response.h
  *
  *  Created on: Apr 20, 2011
  *      Author: polter
  */
-
-#ifndef BARZ_SERVER_RESPONSE_H_
-#define BARZ_SERVER_RESPONSE_H_
-
+#pragma once
 #include <barzer_barz.h>
 #include <ay/ay_logger.h>
 #include <ay/ay_bitflags.h>
@@ -89,4 +90,3 @@ std::ostream& xmlEscape(const char *src,  std::ostream &os) ;
 
 
 } // barzer namespace 
-#endif /* BARZ_SERVER_RESPONSE_H_ */

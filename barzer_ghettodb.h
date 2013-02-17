@@ -1,6 +1,8 @@
-#ifndef BARZER_GHETTODB_H 
-#define BARZER_GHETTODB_H 
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <ay/ay_string_pool.h>
 #include <ay/ay_util_char.h>
 #include <barzer_entity.h>
@@ -86,5 +88,4 @@ public:
 };
 
 
-}
-#endif //  BARZER_GHETTODB_H 
+} // namespace barzer

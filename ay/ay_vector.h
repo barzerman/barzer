@@ -1,6 +1,8 @@
-#ifndef AY_VECTOR_H
-#define AY_VECTOR_H
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include "ay_headers.h"
 #include <vector>
 #include <boost/variant.hpp>
@@ -235,5 +237,4 @@ struct skippedvector {
     size_t getSkip() const { return d_skip; }
 };
 
-}
-#endif // AY_VECTOR_H
+} // namespace ay

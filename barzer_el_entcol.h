@@ -1,5 +1,9 @@
-#ifndef BARZER_EL_ENTCOL_H
-#define BARZER_EL_ENTCOL_H
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
+
 #include <ay/ay_pool_with_id.h>
 
 namespace barzer {
@@ -27,4 +31,3 @@ public:
 };
 
 } // namespace barzer 
-#endif // BARZER_EL_ENTCOL_H

@@ -1,5 +1,8 @@
-#ifndef AY_HEADERS_H
-#define AY_HEADERS_H
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 // standard headers 
 
 #include <algorithm>
@@ -13,4 +16,3 @@
 #include <sys/types.h>
 #include <typeinfo>
 
-#endif //AY_HEADERS_H

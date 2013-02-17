@@ -1,6 +1,8 @@
-#ifndef BARZER_EL_XML_H
-#define BARZER_EL_XML_H
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once 
 #include <barzer_el_parser.h>
 
 #include <ay/ay_bitflags.h>
@@ -328,5 +330,4 @@ public:
 	int parse( std::istream& );
 };
 
-}
-#endif // BARZER_EL_XML_H
+} // namespace barzer

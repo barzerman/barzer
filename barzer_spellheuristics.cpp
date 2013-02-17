@@ -1,3 +1,7 @@
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
 #include <barzer_spellheuristics.h>
 #include <barzer_universe.h>
 #include <ay_translit_ru.h>

@@ -1,6 +1,4 @@
-#ifndef BARZER_BARZXML_H
-#define BARZER_BARZXML_H
-
+#pragma once
 #include <barzer_parse_types.h>
 namespace barzer {
 
@@ -48,5 +46,5 @@ private:
     void setLiteral( BarzelBead&, const char*, size_t, bool isFluff );
 };
 
-}
-#endif // BARZER_BARZXML_H
+} // namespace barzer
+

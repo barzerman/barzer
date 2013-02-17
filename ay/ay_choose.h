@@ -1,6 +1,8 @@
-#ifndef AY_CHOOSE_H
-#define AY_CHOOSE_H
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <iostream>
 #include <vector>
 #include <stack>
@@ -163,4 +165,3 @@ int main( int argc, char *argv[] )
 }
 #endif // TEST_AY_CHOOSE_CPP
 
-#endif // AY_CHOOSE_H

@@ -1,5 +1,4 @@
-#ifndef BARZER_SUBCLASS_SUBCLASS_H
-#define BARZER_SUBCLASS_SUBCLASS_H
+#pragma once
 #include <ay/ay_headers.h>
 namespace barzer {
 
@@ -37,4 +36,3 @@ enum {
 
 } // ling namespace
 } // barzer namespace 
-#endif // BARZER_FLAG_SUBCLASS_H

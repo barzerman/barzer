@@ -1,6 +1,8 @@
-#ifndef AY_UTIL_CHAR_H
-#define AY_UTIL_CHAR_H
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <arch/barzer_arch.h>
 #include <ay_headers.h>
 #include <vector>
@@ -185,4 +187,3 @@ struct char_cp_hash_nocase {
 
 } // namespace ay
 
-#endif // AY_UTIL_CHAR_H

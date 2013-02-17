@@ -1,6 +1,8 @@
-#ifndef AY_RAII_H
-#define AY_RAII_H
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 /// a few RAII primitives 
 
 namespace ay {
@@ -18,5 +20,4 @@ struct valkeep {
 	~valkeep() { underlying= oldVal; }
 };
 
-}
-#endif // AY_RAII_H
+} // namespace ay

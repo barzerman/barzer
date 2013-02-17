@@ -1,6 +1,8 @@
-#ifndef BARZER_NUMBER_H
-#define BARZER_NUMBER_H
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <limits>
 #include <iostream>
 #include <stdint.h>
@@ -221,6 +223,4 @@ namespace std
 		static const bool tinyness_before = std::numeric_limits<double>::tinyness_before;
 		static const float_round_style round_style = std::numeric_limits<double>::round_style;
 	};
-}
-
-#endif //  BARZER_NUMBER_H
+} // namespace barzer

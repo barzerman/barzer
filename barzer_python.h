@@ -1,6 +1,8 @@
-#ifndef BARZER_PYTHON_H
-#define BARZER_PYTHON_H
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <string>
 #include <vector>
 #include <ay/ay_cmdproc.h>
@@ -85,5 +87,4 @@ public:
 };
 
 
-}
-#endif // BARZER_PYTHON_H 
+} // namespace barzer

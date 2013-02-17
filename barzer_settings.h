@@ -1,3 +1,7 @@
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
 /*
  * barzer_settings.h
  *
@@ -5,10 +9,7 @@
  *      Author: polter
  */
 
-#ifndef BARZER_SETTINGS_H_
-#define BARZER_SETTINGS_H_
-
-
+#pragma once
 #include <map>
 
 #include <boost/property_tree/ptree.hpp>
@@ -183,5 +184,4 @@ public:
 
 };
 
-}
-#endif /* BARZER_SETTINGS_H_ */
+} // namespace barzer

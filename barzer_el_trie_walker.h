@@ -1,3 +1,7 @@
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
 /*
  * bel_trie_walker.h
  *
@@ -5,8 +9,7 @@
  *      Author: polter
  */
 
-#ifndef BEL_TRIE_WALKER_H_
-#define BEL_TRIE_WALKER_H_
+#pragma once
 
 #include <barzer_el_trie.h>
 #include <barzer_el_wildcard.h>
@@ -241,5 +244,4 @@ struct BarzelTrieStatsCounter {
 inline std::ostream& operator<<( std::ostream& fp, const BarzelTrieStatsCounter& c )
 { return c.print(fp); }
 
-}
-#endif /* BEL_TRIE_WALKER_H_ */
+} // namespace barzer

@@ -1,6 +1,8 @@
-#ifndef BARZER_TOKENIZER_H
-#define BARZER_TOKENIZER_H
 
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <barzer_parse_types.h>
 namespace barzer {
 
@@ -69,4 +71,3 @@ public:
 };
 
 } // namespace barzer
-#endif //  BARZER_TOKENIZER_H

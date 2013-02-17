@@ -1,5 +1,4 @@
-#ifndef BARZER_BASIC_TYPES_H
-#define BARZER_BASIC_TYPES_H
+#pragma once
 #include <iostream>
 #include <limits>
 #include <list>
@@ -789,4 +788,3 @@ struct BarzerCast {
 
 } // namespace barzer ends
 
-#endif // BARZER_BASIC_TYPES_H

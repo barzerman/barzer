@@ -1,3 +1,7 @@
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
 #include <zurch_python.h>
 #include <zurch_tokenizer.h>
 #include <zurch_classifier.h>

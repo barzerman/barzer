@@ -1,5 +1,8 @@
-#ifndef BARZER_DATEMANIP_H
-#define BARZER_DATEMANIP_H
+
+/// Copyright Barzer LLC 2012
+/// Code is property Barzer for authorized use only
+/// 
+#pragma once
 #include <barzer_basic_types.h>
 #include <ay/ay_logger.h>
 /// barzer date calculators (BDM) for relative date overrides
@@ -105,6 +108,5 @@ struct BarzerTime_calc {
 /// seasonal references 
 /// - middle/end summer/fall/...
 
-};
+} //namespace barzer
 
-#endif // BARZER_DATEMANIP_H
