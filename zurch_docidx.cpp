@@ -841,7 +841,17 @@ void DocFeatureLoader::getBestChunks(uint32_t docId, const std::vector<uint32_t>
 				i < end; ++i)
 	{
 		const size_t pos = i->first;
-		chunks.push_back(doc.substr(pos - std::min(pos, chunkLength / 2), chunkLength));
+		
+		auto startIdx = pos - std::min(pos, chunkLength / 2);
+		while (startIdx && !isspace(doc[startIdx])) --startIdx;
+		if (isspace(doc[startIdx]))
+			++startIdx;
+		
+		auto shift = 0;
+		auto endIdx = startIdx + chunkLength;
+		while (endIdx != doc.size() && !isspace(doc[endIdx])) ++endIdx, ++shift;
+		
+		chunks.push_back(doc.substr(startIdx, chunkLength + shift));
 	}
 }
 
