@@ -37,11 +37,15 @@ bool ZurchSettings::loadIndex( const boost::property_tree::ptree& pt )
 	if (const auto x = pt.get_child_optional("synonyms"))
 		dixl->getIndex()->loadSynonyms(x->data(), universe);
 
-	if (const boost::optional<std::string> x = attr.get().get_optional<std::string>("storeDocs")) {
-		if (x.get() == "yes") {
-			loader->setStoreParsed(true);
-			loader->setStoreFullDocs(true);
-		}
+	if (const boost::optional<std::string> x = attr.get().get_optional<std::string>("flags")) {
+        for( auto c = x.get().begin(), c_end = x.get().end(); c != c_end; ++c ) {
+            switch( *c ) {
+	        case 'c': loader->setNoChunks( true ); break;
+	        case 'd': loader->setNoContent( true ); break;
+	        case 'C': loader->setNoChunks( false ); break;
+	        case 'D': loader->setNoContent( false ); break;
+            }
+        }
 	}
 	
     if( const boost::optional< std::string > x = attr.get().get_optional<std::string>("dir") )   {

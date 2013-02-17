@@ -326,9 +326,18 @@ class DocFeatureLoader {
 	
 	std::map<uint32_t, std::string> m_docs;
 	
-	bool m_storeParsed;
+	// bool m_storeParsed; // when true stores chunks
+    
 	std::map<uint32_t, std::string> m_parsedDocs;
+
 public:
+    enum {
+        BIT_NO_PARSE_CHUNKS, // when set doesnt store /output chunks (parse info)
+        BIT_NO_STORE_CONTENT, // when set doesnt store / output doc content 
+
+        BIT_MAX
+    };
+    ay::bitflags<BIT_MAX> d_bits;
     enum : size_t  { DEFAULT_BUF_SZ = 1024*128 };
     typedef enum { 
         LOAD_MODE_TEXT, // plain text
@@ -347,7 +356,13 @@ public:
     const std::string getDocTitle( uint32_t docId ) const
         { const auto i = d_docTitleMap.find( docId ); return (i == d_docTitleMap.end() ?  std::string() : i->second ); }
         
-	void setStoreParsed(bool);
+	void setNoContent(bool x) { d_bits.set( BIT_NO_STORE_CONTENT, x ); }
+    bool hasContent() const { return !d_bits.check( BIT_NO_STORE_CONTENT ); }
+
+	void setNoChunks(bool x) { d_bits.set( BIT_NO_PARSE_CHUNKS, x ); }
+    bool hasChunks() const { return !d_bits.check(BIT_NO_PARSE_CHUNKS); }
+    bool noChunks() const { return d_bits.check(BIT_NO_PARSE_CHUNKS); }
+
 
     DocFeatureLoader( DocFeatureIndex& index, const barzer::StoredUniverse& u );
     virtual ~DocFeatureLoader();
@@ -414,7 +429,6 @@ public:
 
 class DocIndexLoaderNamedDocs : public DocFeatureLoader {
     ay::UniqueCharPool d_docnamePool; // both internal strings and literals will be in the pool 
-    bool m_storeFullDocs;
 public: 
     DocIndexLoaderNamedDocs( DocFeatureIndex& index, const barzer::StoredUniverse& u  );
     ~DocIndexLoaderNamedDocs( );
@@ -437,8 +451,6 @@ public:
 
     void addAllFilesAtPath( const char* path );
 	
-	void setStoreFullDocs(bool store) { m_storeFullDocs = store; }
-    
     /// filesystem iterator callback 
     struct fs_iter_callback {
         DocIndexLoaderNamedDocs& index;
@@ -463,6 +475,7 @@ public:
     const DocFeatureIndex* getIndex() const { return index; }
     DocIndexLoaderNamedDocs* getLoader() { return loader; }
     const DocIndexLoaderNamedDocs* getLoader() const { return loader; }
+
 
     const char* getDocName ( uint32_t id ) const
         { return loader->getDocNameById( id ); }
