@@ -52,7 +52,18 @@ public:
     zurch::DocIndexAndLoader* getZurchIndex( uint32_t idxId );
     const zurch::DocIndexAndLoader* getZurchIndex( uint32_t idxId ) const;
     
-    std::map< uint32_t, std::string > d_subclassNameMap;
+    std::map< StoredEntityClass, std::string > d_subclassNameMap;
+    
+    void setSubclassName( const StoredEntityClass& x, const std::string& n ) 
+    { 
+        d_subclassNameMap[ x ] = n;
+        gp.setSubclassName( x, n );
+    }
+    const std::string getSubclassName( const StoredEntityClass& x ) const 
+    {
+        auto i = d_subclassNameMap.find( x );
+        return( i == d_subclassNameMap.end() ? gp.getSubclassName(x) : i->second );
+    }
 private:
 	UniverseTrieCluster          trieCluster;
 	UniverseTrieCluster          topicTrieCluster;

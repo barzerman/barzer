@@ -589,17 +589,19 @@ int User::readClassNames( const ptree& node )
 
         if( const boost::optional< uint32_t > classIdOpt = optNode.get().get_optional<uint32_t>( "<xmlattr>.class_id" ) ) 
         {
+            uint32_t eclass = classIdOpt.get();
             if( const boost::optional< std::string > classNameOpt = optNode.get().get_optional<std::string>("<xmlattr>.class_name") ) 
-                universe.getGlobalPools().d_entClassToNameMap[ classIdOpt.get() ] = classNameOpt.get();
-        }
-        BOOST_FOREACH(const ptree::value_type &i, optNode.get() ) {
-            if( i.first == "subclass" ) {
-		        const ptree attrs = i.second.get_child("<xmlattr>");
-    
-                if( const boost::optional<std::string> idOpt = attrs.get_optional<std::string>("id") ) {
-                    if( const boost::optional<std::string> nameOpt = attrs.get_optional<std::string>("name") ) {
-                        universe.d_subclassNameMap[atoi( idOpt.get().c_str() )] = nameOpt.get();
-                        ++numSubclasses;
+                universe.getGlobalPools().d_entClassToNameMap[ eclass ] = classNameOpt.get();
+            BOOST_FOREACH(const ptree::value_type &i, optNode.get() ) {
+                if( i.first == "subclass" ) {
+		            const ptree attrs = i.second.get_child("<xmlattr>");
+     
+                    if( const boost::optional<std::string> idOpt = attrs.get_optional<std::string>("id") ) {
+                        if( const boost::optional<std::string> nameOpt = attrs.get_optional<std::string>("name") ) {
+                            uint32_t subclass = atoi( idOpt.get().c_str() ) ;
+                            universe.setSubclassName( StoredEntityClass(eclass,subclass),  nameOpt.get() );
+                            ++numSubclasses;
+                        }
                     }
                 }
             }

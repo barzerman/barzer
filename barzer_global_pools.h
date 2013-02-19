@@ -156,6 +156,16 @@ class GlobalPools {
 
     EntityData entData; // canonic names and relevance
 public:
+
+    std::map< StoredEntityClass, std::string > d_subclassNameMap;
+    
+    void setSubclassName( const StoredEntityClass& x, const std::string& n ) 
+        { d_subclassNameMap[ x ] = n; }
+    const std::string getSubclassName( const StoredEntityClass& x ) const 
+    {
+        auto i = d_subclassNameMap.find( x );
+        return( i == d_subclassNameMap.end() ? std::string() : (i->second) );
+    }
     std::map< uint32_t, std::string > d_entClassToNameMap;
 
     const char* getEntClassName( uint32_t eclass ) const

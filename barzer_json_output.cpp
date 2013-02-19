@@ -316,9 +316,9 @@ public:
 
         ay::jsonEscape( universe.getGlobalPools().getEntClassName(euid.eclass.ec), theRaii->startFieldNoindent("scope"), "\"" );
         {
-            const auto& i = universe.d_subclassNameMap.find(euid.eclass.subclass);
-            if( i!= universe.d_subclassNameMap.end() ) 
-                ay::jsonEscape( i->second.c_str(), theRaii->startFieldNoindent("category") , "\"" );
+            const std::string subclassName = universe.getSubclassName(euid.eclass);
+            if( subclassName.length() )
+                ay::jsonEscape( subclassName.c_str() , theRaii->startFieldNoindent("category") , "\"" );
         }
         if( !d_streamer.isSimplified() )
             theRaii->startFieldNoindent("subclass") << euid.eclass.subclass;
