@@ -518,7 +518,7 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
     zurch::ExtractedDocFeature::Vec_t featureVec;
 	zurch::DocFeatureIndex::DocWithScoreVec_t docVec;  
 	
-	std::map<uint32_t, std::vector<uint32_t>> positions;
+	std::map<uint32_t, zurch::DocFeatureIndex::PosInfos_t> positions;
     if( index->fillFeatureVecFromQueryBarz( featureVec, barz ) ) 
         index->findDocument( docVec, featureVec, 16, &positions );
 

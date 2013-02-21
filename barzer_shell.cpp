@@ -506,7 +506,7 @@ static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in, const 
 		index.fillFeatureVecFromQueryBarz(extracted, barz);
 		zurch::DocFeatureIndex::DocWithScoreVec_t scores;
 		
-		std::map<uint32_t, std::vector<uint32_t>> positions;
+		std::map<uint32_t, zurch::DocFeatureIndex::PosInfos_t> positions;
 		index.findDocument(scores, extracted, 16, &positions);
 		
 		std::cout << "found " << scores.size() << " documents" << std::endl;
@@ -520,11 +520,22 @@ static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in, const 
 			auto pos = positions.find(doc.first);
 			if (pos != positions.end())
 			{
-				std::vector<std::string> chunks;
+				std::vector<zurch::DocIndexLoaderNamedDocs::Chunk_t> chunks;
 				loader->getBestChunks(doc.first, pos->second, 200, 5, chunks);
 				std::cout << "\t" << chunks.size() << " chunks for " << pos->second.size() << " positions:\n";
 				for (const auto& chunk : chunks)
-					std::cout << "\t\t..." << chunk << "..." << std::endl;
+				{
+					std::cout << "\t\t...";
+					for (const auto& item : chunk)
+					{
+						if (item.m_isMatch)
+							std::cout << " <m>";
+						std::cout << item.m_contents;
+						if (item.m_isMatch)
+							std::cout << "</m> ";
+					}
+					std::cout << "..." << std::endl;
+				}
 			}
 		}
 	}

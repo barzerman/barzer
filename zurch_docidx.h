@@ -154,7 +154,7 @@ struct FeatureDocPosition {
 	std::pair<uint32_t, uint16_t> offset;
     int weight;  /// weight of this feature doc
     FeatureDocPosition() : offset(0, 0), weight(0) {}
-    FeatureDocPosition(uint32_t o) : offset(o, 0), weight(0) {}
+    FeatureDocPosition(uint32_t pos, uint16_t length = 0) : offset(pos, length), weight(0) {}
 
     int serialize( std::ostream& ) const;
     int deserialize( std::istream& );
@@ -253,7 +253,8 @@ class DocFeatureIndex {
 	
 	barzer::MeaningsStorage m_meanings;
 public:
-	typedef std::vector<uint32_t> PosInfos_t;
+	typedef std::vector<std::pair<uint32_t, uint16_t>> PosInfos_t;
+	
 	int   getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz, bool needToInternStems );
 	
     enum {
@@ -425,7 +426,28 @@ public:
 	bool getDocContents(uint32_t docId, std::string& out) const;
 	
 	void addParsedDocContents(uint32_t docId, const std::string& parsed);
-	void getBestChunks(uint32_t docId, const DocFeatureIndex::PosInfos_t& positions, size_t chunkLength, size_t count, std::vector<std::string>& chunks) const;
+	
+	struct ChunkItem
+	{
+		std::string m_contents;
+		bool m_isMatch;
+		
+		ChunkItem()
+		: m_isMatch(false)
+		{
+		}
+		
+		ChunkItem(const std::string& contents, bool isMatch)
+		: m_contents(contents)
+		, m_isMatch(isMatch)
+		{
+		}
+	};
+	
+	typedef std::vector<ChunkItem> Chunk_t;
+	
+	void getBestChunks(uint32_t docId, const DocFeatureIndex::PosInfos_t& positions,
+			size_t chunkLength, size_t count, std::vector<Chunk_t>& chunks) const;
 
     void parseTokenized() 
     {
