@@ -404,7 +404,7 @@ void DocFeatureIndex::sortAll()
 
 void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out,
 		const ExtractedDocFeature::Vec_t& fVec, size_t maxBack,
-		std::map<uint32_t, std::vector<uint32_t>> *doc2pos ) const
+		std::map<uint32_t, PosInfos_t> *doc2pos ) const
 {
 	std::map<uint32_t, double> doc2score;
 	
@@ -802,7 +802,7 @@ void DocFeatureLoader::addParsedDocContents (uint32_t docId, const std::string& 
 
 namespace
 {
-	uint32_t computeWeight(const std::vector<uint32_t>& positions, uint32_t pos, size_t chunkLength)
+	uint32_t computeWeight(const DocFeatureIndex::PosInfos_t& positions, uint32_t pos, size_t chunkLength)
 	{
 		uint32_t result = 0;
 		for (uint32_t other : positions)
@@ -812,7 +812,7 @@ namespace
 	}
 }
 
-void DocFeatureLoader::getBestChunks(uint32_t docId, const std::vector<uint32_t>& positions,
+void DocFeatureLoader::getBestChunks(uint32_t docId, const DocFeatureIndex::PosInfos_t& positions,
 		size_t chunkLength, size_t count, std::vector<std::string>& chunks) const
 {
 	const auto pos = m_parsedDocs.find(docId);

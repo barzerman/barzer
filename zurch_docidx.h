@@ -249,6 +249,7 @@ class DocFeatureIndex {
 	
 	barzer::MeaningsStorage m_meanings;
 public:
+	typedef std::vector<uint32_t> PosInfos_t;
 	int   getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz, bool needToInternStems );
 	
     enum {
@@ -302,7 +303,7 @@ public:
     typedef std::pair< uint32_t, double > DocWithScore_t;
     typedef std::vector< DocWithScore_t > DocWithScoreVec_t;
 
-	void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f, size_t maxBack = 16, std::map<uint32_t, std::vector<uint32_t>>* pos = 0 ) const;
+	void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f, size_t maxBack = 16, std::map<uint32_t, PosInfos_t>* pos = 0 ) const;
 
     int serialize( std::ostream& fp ) const;
     int deserialize( std::istream& fp ); 
@@ -420,7 +421,7 @@ public:
 	bool getDocContents(uint32_t docId, std::string& out) const;
 	
 	void addParsedDocContents(uint32_t docId, const std::string& parsed);
-	void getBestChunks(uint32_t docId, const std::vector<uint32_t>& positions, size_t chunkLength, size_t count, std::vector<std::string>& chunks) const;
+	void getBestChunks(uint32_t docId, const DocFeatureIndex::PosInfos_t& positions, size_t chunkLength, size_t count, std::vector<std::string>& chunks) const;
 
     void parseTokenized() 
     {
