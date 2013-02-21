@@ -25,7 +25,6 @@ class Barz ;
 
 struct TToken {
 	uint16_t  d_utf8beg, d_utf8len; // starting glyphs and num of following glyphs for utf8  the string assumed to be elsewhere
-    
     uint32_t  d_origOffset, d_origLength;  // offset and length in the original question 
 
 	std::string buf;
