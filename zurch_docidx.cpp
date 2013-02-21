@@ -378,7 +378,10 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeatur
 		}
 		
 		++linkPos->count;
-		linkPos->addPos(offset + f.docPos.offset.first);
+		
+		auto pos = f.docPos;
+		pos.offset.first += offset;
+		linkPos->addPos(pos);
 		
 		auto sfci = sumFCount.find(f.feature);
 		if (sfci == sumFCount.end())

@@ -151,7 +151,7 @@ inline size_t hash_value(const NGram<DocFeature>& gram)
 
 //// position  and weight of feature in the document
 struct FeatureDocPosition {
-    std::pair<uint32_t, uint16_t> offset;
+	std::pair<uint32_t, uint16_t> offset;
     int weight;  /// weight of this feature doc
     FeatureDocPosition() : offset(0, 0), weight(0) {}
     FeatureDocPosition(uint32_t o) : offset(o, 0), weight(0) {}
@@ -183,11 +183,12 @@ struct DocFeatureLink {
     
     // we don't use it yet, and if we'd use we'd still need something more advanced
     uint32_t position;  /// some 1 dimensional positional number for feature within doc (can be middle between begin and end offset, or phrase number) 
+    uint16_t length;
     uint16_t count; /// count of the feature in the doc 
     
-    DocFeatureLink() : docId(0xffffffff), weight(0), position(-1), count(0) {}
-    DocFeatureLink(uint32_t i) : docId(i), weight(0), position(-1), count(0) {}
-    DocFeatureLink(uint32_t i, uint16_t w ) : docId(i), weight(w), position(-1), count(0) {}
+    DocFeatureLink() : docId(0xffffffff), weight(0), position(-1), length(0), count(0) {}
+    DocFeatureLink(uint32_t i) : docId(i), weight(0), position(-1), length(0), count(0) {}
+    DocFeatureLink(uint32_t i, uint16_t w ) : docId(i), weight(w), position(-1), length(0), count(0) {}
     
     typedef std::vector< DocFeatureLink > Vec_t;
 	typedef boost::unordered_set< DocFeatureLink > Set_t;
@@ -195,10 +196,13 @@ struct DocFeatureLink {
     int serialize( std::ostream& ) const;
     int deserialize( std::istream& );
 	
-	void addPos(uint32_t newPos)
+	void addPos(const FeatureDocPosition& newPos)
 	{
-		if (newPos < position)
-			position = newPos;
+		if (newPos.offset.first < position)
+		{
+			position = newPos.offset.first;
+			length = newPos.offset.second;
+		}
 	}
 };
 #pragma pack(pop)
