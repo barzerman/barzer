@@ -249,6 +249,10 @@ public:
 		os << "</num>";
 		return true;
 	}
+	bool operator()(const BarzerAtomTupleArray &data) {
+        #warning operator()(const BarzerAtomTupleArray &data)
+        return true;
+    }
 	bool operator()(const BarzerDate &data) {
 		//printTo(os << "<date>", data) << "</date>";
 		// tag_raii td(os,"date");

@@ -98,6 +98,7 @@ else()
 endif()
 
 set(SOURCES 
+            barzer_basic_types_range.cpp
             barzer_el_pattern_range.cpp
             barzer_el_rewrite_types.cpp
             barzer_el_pattern.cpp

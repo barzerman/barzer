@@ -415,6 +415,7 @@ public:
 
     std::pair< const char*, size_t>  toString( const StoredUniverse& u ) const;
 };
+inline std::ostream& operator<< ( std::ostream& fp, const BarzerLiteral& ltrl ) { return ltrl.print( fp ); }
 inline bool operator < ( const BarzerLiteral& l, const BarzerLiteral& r )
     { return l.isLess(r); }
 inline bool operator == ( const BarzerLiteral& l, const BarzerLiteral& r )

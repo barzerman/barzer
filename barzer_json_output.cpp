@@ -135,6 +135,10 @@ public:
             }
         }
 	}
+	bool operator()(const BarzerAtomTupleArray &data) {
+		#warning BarzerAtomTupleArray unimplemented
+        return true;
+    }
 	bool operator()(const BarzerLiteral &data) {
 		//AYLOG(DEBUG) << "BarzerLiteral";
 		switch(data.getType()) {

@@ -5,6 +5,7 @@
 #include <barzer_storage_types.h>
 #include <barzer_parse_types.h>
 #include <barzer_basic_types.h>
+#include <barzer_basic_types_range.h>
 #include <ay/ay_logger.h>
 #include <ay/ay_util.h>
 #include <list>
@@ -37,7 +38,8 @@ typedef boost::variant<
 	BarzerEntityList,
 	BarzerEntity,
 	BarzerEntityRangeCombo,
-	BarzerERCExpr
+	BarzerERCExpr,
+    BarzerAtomTupleArray
 > BarzelBeadAtomic_var;
 typedef enum {
 	BarzerLiteral_TYPE,
@@ -51,6 +53,7 @@ typedef enum {
 	BarzerEntity_TYPE,
 	BarzerEntityRangeCombo_TYPE,
 	BarzerERCExpr_TYPE,
+	BarzerAtomTupleArray_TYPE,
     /// new atomic types above this line only
     BarzelBeadAtomic_type_MAX
 } BarzelBeadAtomic_type_t;

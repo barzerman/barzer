@@ -3,6 +3,7 @@
 /// 
 #pragma once
 #include <barzer_basic_types.h>
+#include <barzer_basic_types_range.h>
 
 namespace barzer {
 

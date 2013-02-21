@@ -1,5 +1,7 @@
 #pragma once 
 #include <barzer_basic_types.h>
+#include <boost/variant/recursive_variant.hpp>
+#include <barzer_parse_types.h>
 namespace barzer {
 
 /// range of continuous values (int,real,date,time ...)
@@ -200,6 +202,7 @@ inline std::ostream& operator <<( std::ostream& fp, const BarzerRange& x )
 
 /// combination
 
+
 struct BarzerEntityRangeCombo {
 	BarzerEntity d_entId; // main entity id
 	BarzerEntity d_unitEntId; // unit entity id
@@ -262,11 +265,11 @@ struct BarzerEntityRangeCombo {
 };
 typedef BarzerEntityRangeCombo BarzerERC;
 
-inline bool operator ==( const BarzerEntityRangeCombo& l, const BarzerEntityRangeCombo& r )
-{ return l.isEqual(r); }
+inline bool operator ==( const BarzerEntityRangeCombo& l, const BarzerEntityRangeCombo& r ) { return l.isEqual(r); }
 
-inline bool operator <( const BarzerEntityRangeCombo& l, const BarzerEntityRangeCombo& r )
-{ return l.lessThan(r); }
+inline bool operator <( const BarzerEntityRangeCombo& l, const BarzerEntityRangeCombo& r ) { return l.lessThan(r); }
+inline std::ostream& operator <<( std::ostream& fp, const BarzerEntityRangeCombo& l ) { return l.print(fp); }
+
 /// ERC expression for example (ERC and ERC ... )
 struct BarzerERCExpr {
 	typedef boost::variant<
@@ -346,5 +349,32 @@ inline bool operator< ( const BarzerERCExpr& l, const BarzerERCExpr& r )
 	{ return l.lessThan(r); }
 inline bool operator== ( const BarzerERCExpr& l, const BarzerERCExpr& r )
 	{ return l.isEqual(r);}
+
+struct BarzerAtomTupleArray {
+    typedef boost::variant< 
+        BarzerLiteral, 
+        BarzerString,
+        BarzerNumber,
+        BarzerDate,
+        BarzerTimeOfDay,
+        BarzerDateTime,
+        BarzerRange,
+        BarzerEntityList,
+        BarzerEntity,
+        BarzerEntityRangeCombo,
+        BarzerERCExpr
+    > Atom;
+
+    typedef std::vector< Atom > AtomTupple;
+    std::map< std::string, AtomTupple > d_dta;
+
+    bool isEqual( const BarzerAtomTupleArray& o ) const { return d_dta == o.d_dta; }
+    bool isLessThan( const BarzerAtomTupleArray& o ) const { return d_dta < o.d_dta; }
+    void print( std::ostream& fp ) const;
+};
+inline std::ostream& operator<<( std::ostream& fp, const BarzerERCExpr& x  ){ return x.print(fp); }
+
+inline bool operator==( const BarzerAtomTupleArray& x, const BarzerAtomTupleArray& y ) { return x.isEqual(y); }
+inline bool operator<( const BarzerAtomTupleArray& x, const BarzerAtomTupleArray& y ) { return x.isLessThan(y); }
 } // namespace barzer 
 

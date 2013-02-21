@@ -357,6 +357,9 @@ class BarzerString {
     };
     int d_type;
 public:
+    bool isEqual( const BarzerString& o ) const { return (d_type == o.d_type && o.d_stemStr == o.d_stemStr); }
+    bool isLessThan( const BarzerString& o ) const { return (d_type < o.d_type && o.d_stemStr < o.d_stemStr); }
+
 	BarzerString() : d_stemStringId(0xffffffff), d_type(T_NORMAL) {}
 	BarzerString(const char* s) : str(s), d_stemStringId(0xffffffff), d_type(T_NORMAL)  {}
 	BarzerString(const char* s,size_t s_len) : str(s,s_len), d_stemStringId(0xffffffff), d_type(T_NORMAL)  {}
@@ -396,7 +399,14 @@ public:
 		{ return ( fp << "\"" <<str<< "\"" ); }
     void setStemStringId( uint32_t i ) { d_stemStringId = i; }
     uint32_t getStemStringId() const { return d_stemStringId; }
+    
+    
 };
+inline bool operator<( const BarzerString& l, const BarzerString& r )
+    { return l.isLessThan(r); }
+inline bool operator==( const BarzerString& l, const BarzerString& r )
+    { return l.isEqual(r); }
+
 inline std::ostream& operator <<( std::ostream& fp, const BarzerString& x )
 	{ return( x.print(fp) ); }
 } // barzer  namespace 
