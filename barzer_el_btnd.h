@@ -43,7 +43,8 @@ typedef boost::variant<
 		BTND_Pattern_ERCExpr,			// 11
 		BTND_Pattern_ERC,			    // 12
 		BTND_Pattern_Range,				// 13
-		BTND_Pattern_Meaning			// 14
+		BTND_Pattern_Meaning,			// 14
+		BTND_Pattern_EVR			    // 15
 > BTND_PatternData;
 
 /// these enums MUST mirror the order of the types in BTND_PatternData
@@ -65,6 +66,7 @@ enum {
 	BTND_Pattern_ERC_TYPE,          // 12
 	BTND_Pattern_Range_TYPE,          // 13
 	BTND_Pattern_Meaning_TYPE,          // 14
+	BTND_Pattern_Meaning_EVR,          // 15
 
 
 	/// end of wildcard types - add new ones ONLY ABOVE THIS LINE

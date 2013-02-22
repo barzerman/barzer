@@ -1,6 +1,21 @@
 #include <barzer_basic_types_range.h>
 namespace barzer {
 
+namespace { // testers
+
+void BarzerEVR_compile_tester( )
+{
+    BarzerEVR evr;
+    BarzerDate date;
+    BarzerEntity ent;
+    BarzerERC erc;
+    evr.appendVar( "hello", date );
+    evr.appendVar( ent );
+    evr.appendVarUnique( "hello", erc );
+}
+
+}
+
 namespace {
 struct BarzerRange_print_visitor : public boost::static_visitor<> 
 {
@@ -134,7 +149,7 @@ struct TuplePrintVisitor : public boost::static_visitor<> {
         { fp << t; }
 };
 }
-void BarzerAtomTupleArray::print( std::ostream& fp ) const
+void BarzerEVR::print( std::ostream& fp ) const
 {
     fp << "{";
     for( auto i = d_dta.begin(); i!= d_dta.end(); ++i ) {

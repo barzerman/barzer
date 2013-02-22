@@ -147,16 +147,16 @@ inline bool operator<( const BTND_Pattern_ERCExpr& l, const BTND_Pattern_ERCExpr
 { return l.lessThan(r); }
 
 /// Entity Attachement pattern is similar to ERC - there's an entity with a list of Beads and or things
-struct BTND_Pattern_EntityVariant : public BTND_Pattern_Base {
+struct BTND_Pattern_EVR : public BTND_Pattern_Base {
 	BarzerEntity d_ent;
 
-    bool isLessThan( const BTND_Pattern_EntityVariant& o ) const { return ( d_ent < o.d_ent ); }
-    bool isEqualTo( const BTND_Pattern_EntityVariant& o )  const { return ( d_ent == o.d_ent ); }
+    bool isLessThan( const BTND_Pattern_EVR& o ) const { return ( d_ent < o.d_ent ); }
+    bool isEqualTo( const BTND_Pattern_EVR& o )  const { return ( d_ent == o.d_ent ); }
 };
 
-inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_EntityVariant& x )
+inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_EVR& x )
 	{ return( fp << x.d_ent ); }
-inline bool operator <( const BTND_Pattern_EntityVariant& l, const BTND_Pattern_EntityVariant& r ) { return l.isLessThan( r ); }
-inline bool operator ==( const BTND_Pattern_EntityVariant& l, const BTND_Pattern_EntityVariant& r ) { return l.isLessThan( r ); }
+inline bool operator <( const BTND_Pattern_EVR& l, const BTND_Pattern_EVR& r ) { return l.isLessThan( r ); }
+inline bool operator ==( const BTND_Pattern_EVR& l, const BTND_Pattern_EVR& r ) { return l.isLessThan( r ); }
 
 } // namespace barzer

@@ -39,7 +39,7 @@ typedef boost::variant<
 	BarzerEntity,
 	BarzerEntityRangeCombo,
 	BarzerERCExpr,
-    BarzerAtomTupleArray
+    BarzerEVR
 > BarzelBeadAtomic_var;
 typedef enum {
 	BarzerLiteral_TYPE,
@@ -53,7 +53,7 @@ typedef enum {
 	BarzerEntity_TYPE,
 	BarzerEntityRangeCombo_TYPE,
 	BarzerERCExpr_TYPE,
-	BarzerAtomTupleArray_TYPE,
+	BarzerEVR_TYPE,
     /// new atomic types above this line only
     BarzelBeadAtomic_type_MAX
 } BarzelBeadAtomic_type_t;
