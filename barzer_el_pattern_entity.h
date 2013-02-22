@@ -153,7 +153,7 @@ struct BTND_Pattern_EVR : public BTND_Pattern_Base {
     bool isLessThan( const BTND_Pattern_EVR& o ) const { return ( d_ent < o.d_ent ); }
     bool isEqualTo( const BTND_Pattern_EVR& o )  const { return ( d_ent == o.d_ent ); }
     bool operator()( const BarzerEVR& evr ) const
-        { return d_ent == evr.getEntity(); }
+        { return d_ent.matchOther( evr.getEntity() ); }
 };
 
 inline std::ostream& operator <<( std::ostream& fp, const BTND_Pattern_EVR& x )
