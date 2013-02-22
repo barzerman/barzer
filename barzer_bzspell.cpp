@@ -1325,7 +1325,8 @@ size_t BZSpell::loadExtra( const char* fileName )
 			++sep;
 			freq = (uint32_t)atoi( sep );
 		}
-		uint32_t strId = d_universe.internString( buf, true, freq );
+		int lang = 0;
+		uint32_t strId = d_universe.stemAndIntern(lang, buf, buf_last, 0);
 		addExtraWordToDictionary( strId, freq );
 		++numWords;
 	}
