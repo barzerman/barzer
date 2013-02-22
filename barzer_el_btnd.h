@@ -66,7 +66,7 @@ enum {
 	BTND_Pattern_ERC_TYPE,          // 12
 	BTND_Pattern_Range_TYPE,          // 13
 	BTND_Pattern_Meaning_TYPE,          // 14
-	BTND_Pattern_Meaning_EVR,          // 15
+	BTND_Pattern_EVR_TYPE,              // 15
 
 
 	/// end of wildcard types - add new ones ONLY ABOVE THIS LINE
@@ -95,6 +95,7 @@ template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_Ent
 template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_Range> ( ) const { return  BTND_Pattern_Range_TYPE; }
 template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_ERCExpr> ( ) const { return  BTND_Pattern_ERCExpr_TYPE; }
 template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_ERC> ( ) const { return  BTND_Pattern_ERC_TYPE; }
+template <>inline  int BTND_Pattern_TypeId_Resolve::operator()< BTND_Pattern_EVR> ( ) const { return  BTND_Pattern_EVR_TYPE; }
 
 /// pattern tyepe number getter visitor 
 

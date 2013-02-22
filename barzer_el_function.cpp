@@ -386,6 +386,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(mkRange);
 		ADDFN(mkEnt);
 		ADDFN(mkERC);
+		ADDFN(mkEVR);
 		ADDFN(mkErcExpr);
 		ADDFN(mkFluff);
 		// ADDFN(mkLtrl);
@@ -1572,8 +1573,48 @@ struct BELFunctionStorage_holder {
 		}
 
 	};
+	struct EVRPacker : public boost::static_visitor<bool> {
+        std::string tuppleName;
+        BarzerEVR& evr;
+        EVRPacker( BarzerEVR& e ) : evr(e) {}
+		bool operator()(const BarzelBeadAtomic &data) 
+            { return boost::apply_visitor(*this, data.getData()); }
+		bool operator()(const BarzelBeadBlank& v) 
+            { return false; }
+		bool operator()(const BarzelBeadExpression& v) 
+            { return false; }
+		bool operator()(const BarzerEVR& v) 
+            { return false; }
+
+        template <typename T>
+        bool operator()(const T& t) { evr.appendVarUnique( tuppleName, t ); return true;}
+
+    };
 
 
+	STFUN(mkEVR) // makes EVR
+    {
+        SETFUNCNAME(mkEVR);
+        const char* argStr = GETARGSTR();
+        BarzerEVR evr;
+        if( !rvec.size() ) 
+            return true;
+
+		BarzelEvalResultVec::const_iterator ri = rvec.begin(); 
+        const BarzerEVR* srcEvr = getAtomicPtr<BarzerEVR>(*ri);
+        if( srcEvr ) {
+            evr = *srcEvr;
+        } else if( const BarzerEntity* ent = getAtomicPtr<BarzerEntity>(*ri) ) {
+            evr.setEntity( *ent );
+        } 
+        EVRPacker packer( evr );
+        if( argStr ) packer.tuppleName.assign(argStr);
+		for (; ri != rvec.end(); ++ri ) {
+            boost::apply_visitor( packer, ri->getBeadData() );
+        }
+		setResult(result, evr);
+        return true;
+    }
 	STFUN(mkERC) // makes EntityRangeCombo
 	{
 		//AYLOGDEBUG(rvec.size());
