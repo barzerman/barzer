@@ -151,10 +151,10 @@ inline size_t hash_value(const NGram<DocFeature>& gram)
 
 //// position  and weight of feature in the document
 struct FeatureDocPosition {
-    std::pair<uint32_t, uint16_t> offset;
+	std::pair<uint32_t, uint16_t> offset;
     int weight;  /// weight of this feature doc
     FeatureDocPosition() : offset(0, 0), weight(0) {}
-    FeatureDocPosition(uint32_t o) : offset(o, 0), weight(0) {}
+    FeatureDocPosition(uint32_t pos, uint16_t length = 0) : offset(pos, length), weight(0) {}
 
     int serialize( std::ostream& ) const;
     int deserialize( std::istream& );
@@ -183,11 +183,12 @@ struct DocFeatureLink {
     
     // we don't use it yet, and if we'd use we'd still need something more advanced
     uint32_t position;  /// some 1 dimensional positional number for feature within doc (can be middle between begin and end offset, or phrase number) 
+    uint16_t length;
     uint16_t count; /// count of the feature in the doc 
     
-    DocFeatureLink() : docId(0xffffffff), weight(0), position(-1), count(0) {}
-    DocFeatureLink(uint32_t i) : docId(i), weight(0), position(-1), count(0) {}
-    DocFeatureLink(uint32_t i, uint16_t w ) : docId(i), weight(w), position(-1), count(0) {}
+    DocFeatureLink() : docId(0xffffffff), weight(0), position(-1), length(0), count(0) {}
+    DocFeatureLink(uint32_t i) : docId(i), weight(0), position(-1), length(0), count(0) {}
+    DocFeatureLink(uint32_t i, uint16_t w ) : docId(i), weight(w), position(-1), length(0), count(0) {}
     
     typedef std::vector< DocFeatureLink > Vec_t;
 	typedef boost::unordered_set< DocFeatureLink > Set_t;
@@ -195,10 +196,13 @@ struct DocFeatureLink {
     int serialize( std::ostream& ) const;
     int deserialize( std::istream& );
 	
-	void addPos(uint32_t newPos)
+	void addPos(const FeatureDocPosition& newPos)
 	{
-		if (newPos < position)
-			position = newPos;
+		if (newPos.offset.first < position)
+		{
+			position = newPos.offset.first;
+			length = newPos.offset.second;
+		}
 	}
 };
 #pragma pack(pop)
@@ -249,6 +253,8 @@ class DocFeatureIndex {
 	
 	barzer::MeaningsStorage m_meanings;
 public:
+	typedef std::vector<std::pair<uint32_t, uint16_t>> PosInfos_t;
+	
 	int   getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz, bool needToInternStems );
 	
     enum {
@@ -302,7 +308,7 @@ public:
     typedef std::pair< uint32_t, double > DocWithScore_t;
     typedef std::vector< DocWithScore_t > DocWithScoreVec_t;
 
-	void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f, size_t maxBack = 16, std::map<uint32_t, std::vector<uint32_t>>* pos = 0 ) const;
+	void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f, size_t maxBack = 16, std::map<uint32_t, PosInfos_t>* pos = 0 ) const;
 
     int serialize( std::ostream& fp ) const;
     int deserialize( std::istream& fp ); 
@@ -420,7 +426,28 @@ public:
 	bool getDocContents(uint32_t docId, std::string& out) const;
 	
 	void addParsedDocContents(uint32_t docId, const std::string& parsed);
-	void getBestChunks(uint32_t docId, const std::vector<uint32_t>& positions, size_t chunkLength, size_t count, std::vector<std::string>& chunks) const;
+	
+	struct ChunkItem
+	{
+		std::string m_contents;
+		bool m_isMatch;
+		
+		ChunkItem()
+		: m_isMatch(false)
+		{
+		}
+		
+		ChunkItem(const std::string& contents, bool isMatch)
+		: m_contents(contents)
+		, m_isMatch(isMatch)
+		{
+		}
+	};
+	
+	typedef std::vector<ChunkItem> Chunk_t;
+	
+	void getBestChunks(uint32_t docId, const DocFeatureIndex::PosInfos_t& positions,
+			size_t chunkLength, size_t count, std::vector<Chunk_t>& chunks) const;
 
     void parseTokenized() 
     {

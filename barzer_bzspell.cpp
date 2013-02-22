@@ -1314,7 +1314,7 @@ size_t BZSpell::loadExtra( const char* fileName )
 	size_t numWords = 0;
 
 	while( fgets( buf, sizeof(buf)-1, fp ) ) {
-		uint32_t freq = 0;
+		uint32_t freq = 1;
 		size_t buf_last = strlen(buf)-1;
 		if( buf[buf_last] == '\n' )
 			buf[ buf_last ] = 0;
@@ -1325,7 +1325,8 @@ size_t BZSpell::loadExtra( const char* fileName )
 			++sep;
 			freq = (uint32_t)atoi( sep );
 		}
-		uint32_t strId = d_universe.internString( buf, true, freq );
+		int lang = 0;
+		uint32_t strId = d_universe.stemAndIntern(lang, buf, buf_last, 0);
 		addExtraWordToDictionary( strId, freq );
 		++numWords;
 	}

@@ -208,6 +208,22 @@ void DocFeatureIndex::setStopWords(const std::vector<std::string>& words)
 
 namespace
 {
+	FeatureDocPosition getPosFromCToks(const barzer::CTWPVec& ctoks)
+	{
+		FeatureDocPosition pos(-1);
+		for (const auto& ctok : ctoks)
+		{
+			const auto& ttoks = ctok.first.getTTokens();
+			for (const auto& ttok : ttoks)
+			{
+				if (pos.offset.first == static_cast<uint32_t>(-1))
+					pos.offset.first = ttok.first.d_origOffset;
+				pos.offset.second += ttok.first.d_origLength;
+			}
+		}
+		return pos;
+	}
+	
 	template<typename IndexType, typename EntGetter, typename StringGetter, typename RawStringGetter>
 	int vecFiller(IndexType idx,
 			EntGetter getEnt, StringGetter getStr, RawStringGetter getRawStr,
@@ -224,8 +240,7 @@ namespace
 		featureVec.reserve(barz.getBeadList().size() * maxGramSize);
 
 		for( auto i = barz.getBeadList().begin(); i!= barz.getBeadList().end(); ++i ) {
-			const auto& ctoks = i->getCTokens();
-			const uint32_t pos = ctoks.empty() ? static_cast<uint32_t>(-1) : ctoks.front().second;
+			const auto& fdp = getPosFromCToks(i->getCTokens());
 			
 			if( const barzer::BarzerLiteral* x = i->get<barzer::BarzerLiteral>() ) {
 				const auto& pair = x->toString(*universe);
@@ -235,7 +250,7 @@ namespace
 					featureVec.push_back( 
 						ExtractedDocFeature( 
 							DocFeature( DocFeature::CLASS_TOKEN, strId ), 
-							FeatureDocPosition(pos)
+							fdp
 						) 
 					);
 				}
@@ -244,7 +259,7 @@ namespace
 				featureVec.push_back( 
 					ExtractedDocFeature( 
 						DocFeature( DocFeature::CLASS_ENTITY, entId ), 
-						FeatureDocPosition(pos)
+						fdp
 					) 
 				);
 			} else if( const barzer::BarzerEntityList* x = i->getEntityList() ) {
@@ -253,7 +268,7 @@ namespace
 					featureVec.push_back( 
 						ExtractedDocFeature( 
 							DocFeature( DocFeature::CLASS_ENTITY, entId ), 
-							FeatureDocPosition(pos)
+							fdp
 						) 
 					);
 				}
@@ -266,14 +281,14 @@ namespace
 					featureVec.push_back(
 						ExtractedDocFeature(
 							DocFeature( DocFeature::CLASS_SYNGROUP, wm.first->id ),
-							FeatureDocPosition(pos)
+							fdp
 						)
 					);
 				else
 					featureVec.push_back( 
 						ExtractedDocFeature( 
 							DocFeature( DocFeature::CLASS_STEM, strId ), 
-							FeatureDocPosition(pos)
+							fdp
 						) 
 					);
 			}
@@ -292,8 +307,13 @@ namespace
 					const auto& source = featureVec[i];
 					
 					ExtractedDocFeature gram(source.feature[0], source.docPos);
+					gram.docPos.offset = source.docPos.offset;
 					for (size_t gc = 1; gc < gramSize; ++gc)
-						gram.feature.add(featureVec[i + gc].feature[0]);
+					{
+						const auto& f = featureVec[i + gc];
+						gram.feature.add(f.feature[0]);
+						gram.docPos.offset.second += f.docPos.offset.second;
+					}
 					featureVec.push_back(gram);
 				}
 		}
@@ -378,7 +398,10 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeatur
 		}
 		
 		++linkPos->count;
-		linkPos->addPos(offset + f.docPos.offset.first);
+		
+		auto pos = f.docPos;
+		pos.offset.first += offset;
+		linkPos->addPos(pos);
 		
 		auto sfci = sumFCount.find(f.feature);
 		if (sfci == sumFCount.end())
@@ -404,11 +427,11 @@ void DocFeatureIndex::sortAll()
 
 void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out,
 		const ExtractedDocFeature::Vec_t& fVec, size_t maxBack,
-		std::map<uint32_t, std::vector<uint32_t>> *doc2pos ) const
+		std::map<uint32_t, PosInfos_t> *doc2pos ) const
 {
 	std::map<uint32_t, double> doc2score;
 	
-	typedef std::pair<uint32_t, double> ScoredFeature_t;
+	typedef std::pair<PosInfos_t::value_type, double> ScoredFeature_t;
 	std::map<uint32_t, std::vector<ScoredFeature_t>> weightedPos;
 	
 	for (const auto& ngram : fVec)
@@ -442,7 +465,7 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out,
 				auto ppos = weightedPos.find(link.docId);
 				if (ppos == weightedPos.end())
 					ppos = weightedPos.insert({ link.docId, std::vector<ScoredFeature_t>() }).first;
-				ppos->second.push_back({ link.position, scoreAdd });
+				ppos->second.push_back({ { link.position, link.length }, scoreAdd });
 			}
 			
 			auto pos = doc2score.find(link.docId);
@@ -473,7 +496,7 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out,
 			std::sort(scored.begin(), scored.end(),
 					[](const ScoredFeature_t& l, const ScoredFeature_t& r) { return l.second > r.second; });
 			
-			auto pos = doc2pos->insert({ docId, std::vector<uint32_t>() }).first;
+			auto pos = doc2pos->insert({ docId, PosInfos_t() }).first;
 			for (const auto& score : scored)
 				pos->second.push_back(score.first);
 		}
@@ -800,20 +823,108 @@ void DocFeatureLoader::addParsedDocContents (uint32_t docId, const std::string& 
 		pos->second += parsed;
 }
 
+	typedef std::pair<DocFeatureIndex::PosInfos_t::value_type, uint32_t> WPos_t;
+	
 namespace
 {
-	uint32_t computeWeight(const std::vector<uint32_t>& positions, uint32_t pos, size_t chunkLength)
+	template<typename T>
+	T dist (T t1, T t2)
+	{
+		return t1 > t2 ? t1 - t2 : t2 - t1;
+	}
+	
+	uint32_t computeWeight(const DocFeatureIndex::PosInfos_t& positions, uint32_t pos, size_t chunkLength)
 	{
 		uint32_t result = 0;
-		for (uint32_t other : positions)
-			if ( ( other>pos ? other - pos: pos-other) < chunkLength / 2)
+		for (const auto& pair : positions)
+			if (dist (pair.first, pos) < chunkLength / 2)
 				++result;
 		return --result;
 	}
+	
+	std::vector<WPos_t> getKeyPoints(const DocFeatureIndex::PosInfos_t& positions, size_t chunkLength)
+	{
+		std::vector<WPos_t> weightedPositions;
+		for (const auto& pair : positions)
+		{
+			const auto pos = pair.first;
+			if (std::find_if(weightedPositions.begin(), weightedPositions.end(),
+					[&pos](const WPos_t& other) { return other.first.first == pos; }) == weightedPositions.end())
+				weightedPositions.push_back({ pair, computeWeight (positions, pos, chunkLength) });
+		}
+		
+		std::sort(weightedPositions.begin(), weightedPositions.end(),
+				[](const WPos_t& left, const WPos_t& right)
+					{ return left.second > right.second; });
+		
+		for (auto i = weightedPositions.begin(); i < weightedPositions.end(); ++i)
+		{
+			const auto pos = i->first.first;
+			auto other = i + 1;
+			while (other < weightedPositions.end())
+			{
+				if (dist(other->first.first, pos) <= chunkLength)
+					other = weightedPositions.erase(other);
+				else
+					++other;
+			}
+		}
+		return weightedPositions;
+	}
+	
+	DocFeatureIndex::PosInfos_t findInRange(size_t begin, size_t end, const DocFeatureIndex::PosInfos_t& positions)
+	{
+		DocFeatureIndex::PosInfos_t result;
+		std::copy_if(positions.begin(), positions.end(), std::back_inserter(result),
+				[begin, end](const DocFeatureIndex::PosInfos_t::value_type& pair)
+					{ return pair.first >= begin && pair.first + pair.second <= end; });
+		
+		if (result.empty())
+			return result;
+		
+		/** Chunks compaction pass.
+		for (auto i = result.begin(); i < result.end() - 1; )
+		{
+			auto next = *(i + 1);
+			if (i->first + i->second + 2 > next.first)
+			{
+				next.second += next.first - i->first;
+				next.first = i->first;
+				i = result.erase(i);
+			}
+			else
+				++i;
+		}
+		*/
+		return result;
+	}
+	
+	void filterOverlaps(DocFeatureIndex::PosInfos_t& positions)
+	{
+		typedef DocFeatureIndex::PosInfos_t::value_type PosPair_t;
+		std::sort(positions.begin(), positions.end(),
+				[](const PosPair_t& l, const PosPair_t& r)
+				{
+					return l.first == r.first ? l.second > r.second : l.first < r.first;
+				});
+		for (auto i = positions.begin(); i < positions.end(); ++i)
+		{
+			const auto pos = i->first;
+			const auto length = i->second;
+			auto next = i + 1;
+			while (next < positions.end ())
+			{
+				if (dist(next->first, pos) <= length)
+					next = positions.erase(next);
+				else
+					++next;
+			}
+		}
+	}
 }
 
-void DocFeatureLoader::getBestChunks(uint32_t docId, const std::vector<uint32_t>& positions,
-		size_t chunkLength, size_t count, std::vector<std::string>& chunks) const
+void DocFeatureLoader::getBestChunks(uint32_t docId, const DocFeatureIndex::PosInfos_t& positions,
+		size_t chunkLength, size_t count, std::vector<Chunk_t>& chunks) const
 {
 	const auto pos = m_parsedDocs.find(docId);
 	if (pos == m_parsedDocs.end())
@@ -822,34 +933,46 @@ void DocFeatureLoader::getBestChunks(uint32_t docId, const std::vector<uint32_t>
 		return;
 	}
 	
-	typedef std::pair<uint32_t, uint32_t> WPos_t;
-	std::vector<WPos_t> weightedPositions;
-	for (uint32_t pos : positions)
-		if (std::find_if(weightedPositions.begin(), weightedPositions.end(),
-				[&pos](const WPos_t& other) { return other.first == pos; }) == weightedPositions.end())
-			weightedPositions.push_back({ pos, computeWeight (positions, pos, chunkLength) });
-	
-	std::sort(weightedPositions.begin(), weightedPositions.end(),
-			[](const WPos_t& left, const WPos_t& right)
-				{ return left.second > right.second; });
+	const auto& weightedPositions = getKeyPoints(positions, chunkLength);
 	
 	const std::string& doc = pos->second;
+	
+	auto expandToSpace = [&doc] (size_t& endIdx) -> void
+	{
+		while (endIdx != doc.size() && !isspace(doc[endIdx])) ++endIdx;
+	};
 	
 	for (auto i = weightedPositions.begin(), end = std::min(weightedPositions.end(), weightedPositions.begin() + count);
 				i < end; ++i)
 	{
-		const size_t pos = i->first;
+		const size_t pos = i->first.first;
 		
 		auto startIdx = pos - std::min(pos, chunkLength / 2);
 		while (startIdx && !isspace(doc[startIdx])) --startIdx;
 		if (isspace(doc[startIdx]))
 			++startIdx;
 		
-		auto shift = 0;
 		auto endIdx = startIdx + chunkLength;
-		while (endIdx != doc.size() && !isspace(doc[endIdx])) ++endIdx, ++shift;
+		expandToSpace(endIdx);
 		
-		chunks.push_back(doc.substr(startIdx, chunkLength + shift));
+		auto inRange = findInRange(startIdx, endIdx, positions);
+		filterOverlaps(inRange);
+		
+		Chunk_t chunk;
+		auto prev = startIdx;
+		for (auto& item : inRange)
+		{
+			if (item.first != prev)
+				chunk.push_back({ doc.substr(prev, item.first - prev), false });
+			size_t end = item.second + item.first;
+			expandToSpace(end);
+			chunk.push_back({ doc.substr(item.first, end - item.first), true });
+			prev = end;
+		}
+		
+		if (prev != endIdx)
+			chunk.push_back({ doc.substr(prev, endIdx - prev), false });
+		chunks.push_back(chunk);
 	}
 }
 
