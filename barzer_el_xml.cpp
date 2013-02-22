@@ -902,6 +902,23 @@ DEFINE_BELParserXML_taghandle(EVR)
 {
 	if( close ) { statement.popNode(); return; }
 	BTND_Pattern_EVR pat; 
+	for( size_t i=0; i< attr_sz; i+=2 ) {
+		const char* n = attr[i]; // attr name
+		const char* v = attr[i+1]; // attr value
+		switch( n[0] ) {
+		case 'c': // entity class - c="1"
+			pat.d_ent.setClass( atoi(v) ); 
+			break;
+		case 's': // entity subclass - s="1"
+			pat.d_ent.setSubclass( atoi(v) ); 
+			break;
+		case 'i': // entity id token - t="ABCD011"
+		case 't': // entity id token - t="ABCD011"
+			// erc.getEntity().setTokenId( internString(v,true).getStringId() );
+			pat.d_ent.setTokenId( reader->getGlobalPools().internString_internal(v) );
+			break;
+        }
+    }
 	statement.pushNode( BTND_PatternData(pat) );
 }
 DEFINE_BELParserXML_taghandle(ERC)
@@ -1948,6 +1965,7 @@ int BELParserXML::getTag( const char* s ) const
 		break;
 	case 'e':
 	CHECK_3CW("nt",TAG_ENTITY) // <ent>
+	CHECK_3CW("vr",TAG_EVR) // <evr>
 	CHECK_3CW("rc",TAG_ERC) // <erc>
 	CHECK_6CW("rcexp",TAG_ERCEXPR) // <ercexp>
 	CHECK_6CW("xpand",TAG_EXPAND) // <expand>

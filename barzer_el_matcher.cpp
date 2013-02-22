@@ -759,6 +759,10 @@ bool BTMIterator::evalWildcard( const BarzelWCKey& wcKey, BeadList::iterator fro
 		const BTND_Pattern_ERC* p = wcPool.get_BTND_Pattern_ERC(wcKey.wcId);
 		return( p ?  boost::apply_visitor( evalWildcard_vis<BTND_Pattern_ERC>(*p), atomic->dta ) : false );
 	}
+	case BTND_Pattern_EVR_TYPE: {
+		const BTND_Pattern_EVR* p = wcPool.get_BTND_Pattern_EVR(wcKey.wcId);
+		return( p ?  boost::apply_visitor( evalWildcard_vis<BTND_Pattern_EVR>(*p), atomic->dta ) : false );
+	}
 	case BTND_Pattern_Range_TYPE: {
 		const BTND_Pattern_Range* p = wcPool.get_BTND_Pattern_Range(wcKey.wcId);
 		return( p ?  boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Range>(*p), atomic->dta ) : false );
