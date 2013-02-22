@@ -898,6 +898,29 @@ namespace
 		*/
 		return result;
 	}
+	
+	void filterOverlaps(DocFeatureIndex::PosInfos_t& positions)
+	{
+		typedef DocFeatureIndex::PosInfos_t::value_type PosPair_t;
+		std::sort(positions.begin(), positions.end(),
+				[](const PosPair_t& l, const PosPair_t& r)
+				{
+					return l.first == r.first ? l.second > r.second : l.first < r.first;
+				});
+		for (auto i = positions.begin(); i < positions.end(); ++i)
+		{
+			const auto pos = i->first;
+			const auto length = i->second;
+			auto next = i + 1;
+			while (next < positions.end ())
+			{
+				if (dist(next->first, pos) <= length)
+					next = positions.erase(next);
+				else
+					++next;
+			}
+		}
+	}
 }
 
 void DocFeatureLoader::getBestChunks(uint32_t docId, const DocFeatureIndex::PosInfos_t& positions,
@@ -933,6 +956,7 @@ void DocFeatureLoader::getBestChunks(uint32_t docId, const DocFeatureIndex::PosI
 		expandToSpace(endIdx);
 		
 		auto inRange = findInRange(startIdx, endIdx, positions);
+		filterOverlaps(inRange);
 		
 		Chunk_t chunk;
 		auto prev = startIdx;
