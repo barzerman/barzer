@@ -57,6 +57,7 @@ public:
 		TAG_RANGE, 	// entity or erc matched on entity 
 		TAG_ERCEXPR, 	// expression made of ERCs
 		TAG_ERC, 	// single ERC
+		TAG_EVR, 	// single EVR
 		TAG_EXPAND, // expands pre-defined macro
 		TAG_TIME, 	// time
 
@@ -292,6 +293,7 @@ public:
 	void DECL_BELParserXML_taghandle(RANGE);
 	void DECL_BELParserXML_taghandle(ENTITY);
 	void DECL_BELParserXML_taghandle(ERC);
+	void DECL_BELParserXML_taghandle(EVR);
 	void DECL_BELParserXML_taghandle(ERCEXPR);
 	void DECL_BELParserXML_taghandle(EXPAND);
 	void DECL_BELParserXML_taghandle(TIME);

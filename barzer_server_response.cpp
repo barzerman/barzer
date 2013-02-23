@@ -434,14 +434,32 @@ public:
 		return true;
 	}
 
+	bool operator()(const BarzerEVR &data) {
+		tag_raii erctag(os, "evr");
+        {
+		    (*this)(data.getEntity());
+            for( auto i = data.data().begin(), i_end= data.data().end(); i!= i_end; ++i ) {
+                std::string attr = i->first;
+                if( i->first.length() ) {
+                    std::stringstream sstr; 
+                    sstr << "n=\"";
+                    xmlEscape( i->first.c_str(), sstr ) << "\"";
+                    attr = sstr.str();
+                }
+                tag_raii erctag(os, "variant", attr.c_str());
+                for( auto j =i->second.begin(), j_end = i->second.end(); j!= j_end; ++j ) {
+                    boost::apply_visitor( (*this), *j );
+                }
+            }
+        }
+        return true;
+    }
 	bool operator()(const BarzerEntityRangeCombo &data) {
 		const StoredEntityUniqId &ent = data.getEntity(),
 						         &unit = data.getUnitEntity();
 
-		//os << "<erc>";
 		tag_raii erctag(os, "erc");
 		{ /// block 
-		//ay::valkeep<bool> vk( d_printTtok, false );
 		(*this)(ent);
 		if (unit.isValid()) {
 			//os << "<unit>";

@@ -97,6 +97,7 @@ template <> struct BeadToPattern_convert<BarzerDateTime> { typedef BTND_Pattern_
 template <> struct BeadToPattern_convert<BarzerEntityList> { typedef BTND_Pattern_Entity PatternType; };
 template <> struct BeadToPattern_convert<BarzerEntity> { typedef BTND_Pattern_Entity PatternType; };
 template <> struct BeadToPattern_convert<BarzerEntityRangeCombo> { typedef BTND_Pattern_ERC PatternType; };
+template <> struct BeadToPattern_convert<BarzerEVR> { typedef BTND_Pattern_EVR PatternType; };
 template <> struct BeadToPattern_convert<BarzerERCExpr> { typedef BTND_Pattern_ERCExpr PatternType; };
 template <> struct BeadToPattern_convert<BarzerRange> { typedef BTND_Pattern_Range PatternType; };
 
@@ -123,18 +124,10 @@ struct evalWildcard_vis<BTND_Pattern_Wildcard> : public boost::static_visitor<bo
 		/// for all types except for the specialized wildcard wont match
         return !d_pattern.isType( BTND_Pattern_Wildcard::WT_ENT );
 	}
-    bool operator()( const BarzerEntityList& dta )
-    {
-        return true;
-    }
-    bool operator()( const BarzerEntity& dta )
-    {
-        return true;
-    }
-    bool operator()( const BarzerEntityRangeCombo& dta )
-    {
-        return true;
-    }
+    bool operator()( const BarzerEntityList& dta ) { return true; }
+    bool operator()( const BarzerEntity& dta ) { return true; }
+    bool operator()( const BarzerEVR& dta ) { return true; }
+    bool operator()( const BarzerEntityRangeCombo& dta ) { return true; }
 };
 
 /// number templates
@@ -178,6 +171,9 @@ inline bool evalWildcard_vis<BTND_Pattern_Entity>::operator()<BarzerEntity> ( co
 
 template <> template <>
 inline bool evalWildcard_vis<BTND_Pattern_ERC>::operator()<BarzerEntityRangeCombo> ( const BarzerEntityRangeCombo& dta )  const
+{ return d_pattern( dta ); }
+template <> template <>
+inline bool evalWildcard_vis<BTND_Pattern_EVR>::operator()<BarzerEVR> ( const BarzerEVR& dta )  const
 { return d_pattern( dta ); }
 
 //// end of other template matching
@@ -656,6 +652,11 @@ public:
 		return doFirmMatch_default( fcmap, dta, allowBlanks );
 	}
 	template <>
+	bool findMatchingChildren_visitor::doFirmMatch<BarzerEVR>( const BarzelFCMap& fcmap, const BarzerEVR& dta, bool allowBlanks)
+	{
+		return doFirmMatch_default( fcmap, dta, allowBlanks );
+	}
+	template <>
 	bool findMatchingChildren_visitor::doFirmMatch<BarzerERCExpr>( const BarzelFCMap& fcmap, const BarzerERCExpr& dta, bool allowBlanks)
 	{
 		BarzelTrieFirmChildKey firmKey((uint8_t)(BTND_Pattern_ERCExpr_TYPE),0xffffffff);
@@ -757,6 +758,10 @@ bool BTMIterator::evalWildcard( const BarzelWCKey& wcKey, BeadList::iterator fro
 	case BTND_Pattern_ERC_TYPE: {
 		const BTND_Pattern_ERC* p = wcPool.get_BTND_Pattern_ERC(wcKey.wcId);
 		return( p ?  boost::apply_visitor( evalWildcard_vis<BTND_Pattern_ERC>(*p), atomic->dta ) : false );
+	}
+	case BTND_Pattern_EVR_TYPE: {
+		const BTND_Pattern_EVR* p = wcPool.get_BTND_Pattern_EVR(wcKey.wcId);
+		return( p ?  boost::apply_visitor( evalWildcard_vis<BTND_Pattern_EVR>(*p), atomic->dta ) : false );
 	}
 	case BTND_Pattern_Range_TYPE: {
 		const BTND_Pattern_Range* p = wcPool.get_BTND_Pattern_Range(wcKey.wcId);

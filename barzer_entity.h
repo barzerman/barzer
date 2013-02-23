@@ -139,6 +139,9 @@ private:
 	StoredEntityClass d_class;
 	
 public:
+    bool isEqual( const BarzerEntityList& o ) const { return ( d_class == o.d_class && d_lst == o.d_lst ) ; } 
+    bool isLessThan( const BarzerEntityList& o ) const { return ( d_class < o.d_class && d_lst < o.d_lst ) ; } 
+
     const StoredEntityClass& getClass() const { return d_class; }
 
     void setClass( const StoredEntityClass& cl ) 
@@ -188,6 +191,11 @@ public:
     }
 	std::ostream& print( std::ostream& fp ) const;
 };
+
+inline std::ostream& operator << ( std::ostream& fp, const BarzerEntityList& e ) 
+    { return e.print( fp ); }
+inline bool operator< ( const BarzerEntityList& l, const BarzerEntityList& r ) { return l.isLessThan(r); }
+inline bool operator== ( const BarzerEntityList& l, const BarzerEntityList& r ) { return l.isEqual(r); }
 
 typedef std::pair< BarzerEntity*, BarzerEntityList* >  EntityOrListPair;
 typedef std::pair< const BarzerEntity*, const BarzerEntityList* >  const_EntityOrListPair;

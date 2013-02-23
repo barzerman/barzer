@@ -46,6 +46,11 @@ namespace barzer {
 		key.wcType = BTND_Pattern_ERCExpr_TYPE;
 		key.wcId = pool_ERCExpr.produceIdByObj( x );
 	}
+	void BarzelWildcardPool::produceWCKey( BarzelWCKey& key, const BTND_Pattern_EVR& x )
+	{
+		key.wcType = BTND_Pattern_EVR_TYPE;
+		key.wcId = pool_EVR.produceIdByObj( x );
+	}
 	void BarzelWildcardPool::produceWCKey( BarzelWCKey& key, const BTND_Pattern_ERC& x )
 	{
 		key.wcType = BTND_Pattern_ERC_TYPE;

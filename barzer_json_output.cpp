@@ -414,11 +414,47 @@ public:
     }
 
 
+	bool operator()(const BarzerEVR &data) {
+        raii.addKeyVal( "type", "evr" );
+        (*this)( data.getEntity() );
+        {
+        raii.startField("ent");
+        json_raii eraii( os , false, raii.getDepth()+1 );
+        printEntity(data.getEntity(),false,&eraii);
+        }
+
+        if( data.data().size() ==1 && data.data().begin()->first.length()==0 ) { // default tupple
+            json_raii listRaii( raii.startField("variant"), true, raii.getDepth()+1 );
+            for( auto i = data.data().begin()->second.begin(), i_end=data.data().begin()->second.end(); i!= i_end; ++i ) {
+                listRaii.startField("");
+                BeadVisitor arrVis(*this,false);
+                boost::apply_visitor(arrVis, *i );
+            }
+        } else {
+            raii.startField( "variant" );
+            json_raii tuppleRaii( os , false, raii.getDepth()+1 );
+            for( auto i = data.data().begin(), i_end= data.data().end(); i!= i_end; ++i ) {
+                std::string nameStr = i->first;
+                if( !nameStr.length() ) { /// if theres more than one tupple then tupple name cant be blank - we force _blank_
+                    nameStr= "_blank_";
+                } else {
+                    std::stringstream sstr;
+                    ay::jsonEscape( nameStr.c_str(), sstr, "\"" );
+                    nameStr = sstr.str();
+                } 
+                {
+                    json_raii listRaii( tuppleRaii.startField(nameStr.c_str()), true, tuppleRaii.getDepth()+1 );
+                    for( auto j = i->second.begin(), j_end=i->second.end(); j!= j_end; ++j )  {
+                        listRaii.startField("");
+                        BeadVisitor arrVis(*this,false);
+                        boost::apply_visitor(arrVis, *j );
+                    }
+                }
+            }
+        }
+        return true;
+    }
 	bool operator()(const BarzerEntityRangeCombo &data) {
-        /*
-		const StoredEntityUniqId &ent = data.getEntity(),
-						         &unit = data.getUnitEntity();
-        */
         raii.addKeyVal("type","erc") ;
 
         {
