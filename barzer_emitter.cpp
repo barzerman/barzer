@@ -233,11 +233,14 @@ struct Tail: public IntermediateNode {
     Tail(const BELParseTreeNode::ChildrenVec& children, VarVec &v)
         : IntermediateNode(children, v)
     {
-        endPosition = ( childs.size() ? childs.begin() + 1 : childs.end() );
+        endPosition = ( !childs.empty() ? childs.begin() + 1 : childs.end() );
     }
     
     bool step()
     {
+        if( childs.empty() )
+            return false;
+
         for(ChildVec::const_iterator it=childs.begin(); it != endPosition; ++it) {
             if((*it)->step())
                 return true;
@@ -254,6 +257,8 @@ struct Tail: public IntermediateNode {
     
     void yield(BTND_PatternDataVec& vec, BELVarInfo &vinfo) const
     {
+        if( childs.empty() ) 
+            return;
         for(ChildVec::const_iterator it=childs.begin(); it != endPosition; ++it)
             (*it)->yield(vec, vinfo);
     }
