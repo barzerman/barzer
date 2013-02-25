@@ -12,10 +12,12 @@
 #include <boost/unordered_map.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <zurch_phrasebreaker.h>
+#include <zurch_barzer.h>
 #include <ay/ay_tag_markup_parser.h>
 
 
 namespace zurch {
+using barzer::BarzerEntity;
 
 class DocFeatureIndex; /// main object that links features to documents. the inverted index
 
@@ -163,6 +165,10 @@ struct FeatureDocPosition {
 struct ExtractedDocFeature {
     NGram<DocFeature> feature;
     FeatureDocPosition docPos;
+
+    ExtractedDocFeature( const DocFeature& f ) :
+        feature(f) 
+    {}
     ExtractedDocFeature( const DocFeature& f, const FeatureDocPosition& p ) : 
         feature(f), docPos(p) {}
 
@@ -284,6 +290,7 @@ public:
 
     /// place external entity into the pool (add all relevant strings to pool as well)
     uint32_t storeExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u );
+    uint32_t storeOwnedEntity( const barzer::BarzerEntity& ent);
 
     uint32_t storeExternalString( const char*);
     uint32_t storeExternalString( const barzer::BarzerLiteral&, const barzer::StoredUniverse& u );
@@ -299,6 +306,7 @@ public:
 
     int   fillFeatureVecFromQueryBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz ) const;
 
+    size_t appendOwnedEntity( uint32_t docId, const BarzerEntity& ent ); 
     size_t appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t&, size_t posOffset );
     size_t appendDocument( uint32_t docId, const barzer::Barz&, size_t posOffset, DocFeatureLink::Weight_t weight );
 	
@@ -332,14 +340,12 @@ class DocFeatureLoader {
     barzer::Barz                          d_barz;
     PhraseBreaker                         d_phraser;
 	
-	DocFeatureLink::Weight_t m_curWeight;
-	
-	std::map<uint32_t, std::string> m_docs;
+	DocFeatureLink::Weight_t              m_curWeight;
+	std::map<uint32_t, std::string>       m_docs;
 	
 	// bool m_storeParsed; // when true stores chunks
     
 	std::map<uint32_t, std::string> m_parsedDocs;
-
 public:
     enum {
         BIT_NO_PARSE_CHUNKS, // when set doesnt store /output chunks (parse info)
@@ -461,6 +467,8 @@ public:
 class DocIndexLoaderNamedDocs : public DocFeatureLoader {
     ay::UniqueCharPool d_docnamePool; // both internal strings and literals will be in the pool 
 public: 
+    BarzerEntityDocLinkIndex d_entDocLinkIdx;
+
     DocIndexLoaderNamedDocs( DocFeatureIndex& index, const barzer::StoredUniverse& u  );
     ~DocIndexLoaderNamedDocs( );
     
@@ -476,6 +484,8 @@ public:
         };
         ay::bitflags<BIT_MAX> d_bits;
     } d_loaderOpt;
+
+    void loadEntLinks( const char* fname );
 
     LoaderOptions& loaderOpt() { return d_loaderOpt; }
     const LoaderOptions& loaderOpt() const { return d_loaderOpt; }
@@ -493,6 +503,7 @@ public:
         bool operator()( boost::filesystem::directory_iterator& di, size_t depth );
     };
     friend class ZurchSettings;    
+    
     // virtual bool loadProperties( const boost::property_tree::ptree& );
 };
 

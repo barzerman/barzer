@@ -25,7 +25,7 @@ class StoredTokenPool;
 class StoredEntityPool {
 	ay::slogrovector<StoredEntity> storEnt;
 public:
-	typedef std::map< StoredEntityUniqId, StoredEntityId > UniqIdToEntIdMap;
+	typedef std::map< BarzerEntity, StoredEntityId > UniqIdToEntIdMap;
 	typedef std::map< StoredEntityClass, uint32_t > EclassStatsMap;
 private:
 	UniqIdToEntIdMap euidMap;
@@ -56,13 +56,13 @@ public:
 
     const UniqIdToEntIdMap& getEuidMap() const { return euidMap; }
 
-    // CB must take StoredEntityUniqId and return bool . when callback returns true 
+    // CB must take BarzerEntity and return bool . when callback returns true 
     // the iteration will be terminated
     template <typename CB> 
     size_t iterateSubclass( CB& cb, const StoredEntityClass& eclass ) const
     {
-        StoredEntityUniqId id( eclass, 0 );
-        // std::pair< StoredEntityUniqId, unsigned int> id( StoredEntityUniqId( eclass, 0 ), 0 );
+        BarzerEntity id( eclass, 0 );
+        // std::pair< BarzerEntity, unsigned int> id( BarzerEntity( eclass, 0 ), 0 );
         size_t count = 0;
         for( UniqIdToEntIdMap::const_iterator i = euidMap.lower_bound( id ); 
              i!= euidMap.end() && i->first.eclass == eclass; ++i )
@@ -78,8 +78,8 @@ public:
     template <typename CB,typename F>
     size_t iterateSubclassFilter( CB& cb, F& filter, const StoredEntityClass& eclass ) const
     {
-        StoredEntityUniqId id( eclass, 0 );
-        // std::pair< StoredEntityUniqId, unsigned int> id( StoredEntityUniqId( eclass, 0 ), 0 );
+        BarzerEntity id( eclass, 0 );
+        // std::pair< BarzerEntity, unsigned int> id( BarzerEntity( eclass, 0 ), 0 );
         size_t count = 0;
         for( UniqIdToEntIdMap::const_iterator i = euidMap.lower_bound( id ); 
              i!= euidMap.end() && i->first.eclass == eclass; ++i )
@@ -92,14 +92,14 @@ public:
     }
 
 
-	inline const StoredEntityId getEntIdByEuid( const StoredEntityUniqId& euid ) const
+	inline const StoredEntityId getEntIdByEuid( const BarzerEntity& euid ) const
 	{
 		UniqIdToEntIdMap::const_iterator i = euidMap.find( euid );
 
 		return( i== euidMap.end() ?  INVALID_STORED_ID : i->second ) ;
 	}
 	
-	inline const StoredEntity* getEntByEuid( const StoredEntityUniqId& euid ) const
+	inline const StoredEntity* getEntByEuid( const BarzerEntity& euid ) const
 	{
 		UniqIdToEntIdMap::const_iterator i = euidMap.find( euid );
 
@@ -110,7 +110,7 @@ public:
 	}
 	/// first argument is set to true if new StoredEntity was created 
 	/// otherwise it's set to false
-	StoredEntity& addOneEntity( bool&, const StoredEntityUniqId& );
+	StoredEntity& addOneEntity( bool&, const BarzerEntity& );
 
 	const StoredEntity& getEnt( StoredEntityId id ) const { return storEnt.vec[ id ]; }
 	bool isEntityIdValid( const StoredEntityId entId )  const
@@ -269,7 +269,7 @@ public:
 	/// reads token, eclass, subclass from stream and constructs Euid if and only iff
 	/// all three could be read and the token could be resolved
 	/// Returns false if fails to read all three components or resolve the token 
-	bool buildEuidFromStream( StoredEntityUniqId& euid, std::istream& ) const;
+	bool buildEuidFromStream( BarzerEntity& euid, std::istream& ) const;
 
 	// these two methods add token and entity honoring ordering info and link info (teli) 
 	// as they get references to one another. Modifies both token and entity objects 
@@ -285,26 +285,16 @@ public:
 		const TokenEntityLinkInfo& teli,
 		bool unique=false );
 
-	/*
-	void addTokenToEntity(
-		StoredToken& stok,
-		StoredEntity& ent, 
-		const EntTokenOrderInfo& ord, 
-		const TokenEntityLinkInfo& teli,
-		bool unique=false );
-		*/
-
 	void clear() ;
 	~DtaIndex();
 	DtaIndex( GlobalPools&, ay::UniqueCharPool* ); // must be a global pool
 
 	int loadEntities_XML( const char* fileName, StoredUniverse* universe );
 
-	inline const StoredEntityId getEntIdByEuid( const StoredEntityUniqId& euid ) const
-    {
-        return entPool.getEntIdByEuid(euid);
-    }
-	inline const StoredEntity* getEntByEuid( const StoredEntityUniqId& euid ) const
+	inline const StoredEntityId getEntIdByEuid( const BarzerEntity& euid ) const
+        { return entPool.getEntIdByEuid(euid); }
+
+	inline const StoredEntity* getEntByEuid( const BarzerEntity& euid ) const
 		{ return entPool.getEntByEuid(euid); }
 	inline const StoredToken* getTokByString( const char* s ) const
 		{ return tokPool.getTokByString(s); }
@@ -328,7 +318,7 @@ public:
 		return ( t ? resolveStoredTokenStr(*t) : "" );
 	}
 	void printStoredToken( std::ostream& fp, const StoredTokenId ) const;
-	void printEuid( std::ostream& fp, const StoredEntityUniqId& euid ) const
+	void printEuid( std::ostream& fp, const BarzerEntity& euid ) const
 	{ fp << euid << '|' << resolveStoredTokenStr(euid.tokId ); }
 	
 	StoredToken& addToken( int lang, bool& wasNew, const char* t ) {
@@ -358,13 +348,13 @@ public:
 	/// add generic entity does not link storedtoken and the newly minted entity
 	StoredEntity& addGenericEntity( uint32_t cl, uint32_t scl )
 	{
-		const StoredEntityUniqId euid( 0xffffffff, cl, scl );
+		const BarzerEntity euid( 0xffffffff, cl, scl );
 		bool isNew = false;
 		return entPool.addOneEntity( isNew, euid );
 	}
 	StoredEntity& addGenericEntity( uint32_t t, uint32_t cl, uint32_t scl )
 	{
-		const StoredEntityUniqId euid( t, cl, scl );
+		const BarzerEntity euid( t, cl, scl );
 
 		bool isNew = false;
 		return entPool.addOneEntity( isNew, euid );
@@ -442,24 +432,24 @@ struct StoredEntityPrinter {
 ///   4. Euid          <----> Prop Euid   (example (1,1,abc) <----> (10,10,fgh) )
 
 class EntPropCompatibility {
-	typedef std::pair< StoredEntityUniqId, StoredEntityUniqId > EntPropPair;
+	typedef std::pair< BarzerEntity, BarzerEntity > EntPropPair;
 	typedef std::set< EntPropPair > EntPropPairSet;
 
 	EntPropPairSet d_entPropPairSet;
 	
 public:
-	bool entPropPairs( const StoredEntityUniqId& l, const StoredEntityUniqId& r ) const 
+	bool entPropPairs( const BarzerEntity& l, const BarzerEntity& r ) const 
 	{
 		{ // rule type 1 
-		if( d_entPropPairSet.find( EntPropPair( StoredEntityUniqId(l.eclass), StoredEntityUniqId(r.eclass)) ) != d_entPropPairSet.end() ) 
+		if( d_entPropPairSet.find( EntPropPair( BarzerEntity(l.eclass), BarzerEntity(r.eclass)) ) != d_entPropPairSet.end() ) 
 			return true;
 		}	
 		{ // rule type 2
-		if( d_entPropPairSet.find( EntPropPair( StoredEntityUniqId(l.eclass), r ) ) != d_entPropPairSet.end() ) 
+		if( d_entPropPairSet.find( EntPropPair( BarzerEntity(l.eclass), r ) ) != d_entPropPairSet.end() ) 
 			return true;
 		}	
 		{ // rule type 3
-		if( d_entPropPairSet.find( EntPropPair( l, StoredEntityUniqId(r.eclass) ) ) != d_entPropPairSet.end() ) 
+		if( d_entPropPairSet.find( EntPropPair( l, BarzerEntity(r.eclass) ) ) != d_entPropPairSet.end() ) 
 			return true;
 		}	
 		{ // rule type 4
@@ -469,14 +459,14 @@ public:
 		return false;
 	}
 
-	void addRule( const StoredEntityUniqId& l, const StoredEntityClass& ec ) 
-		{ d_entPropPairSet.insert( EntPropPair(l,StoredEntityUniqId(ec)) ) ; }
-	void addRule( const StoredEntityUniqId& e, const StoredEntityUniqId& p ) 
+	void addRule( const BarzerEntity& l, const StoredEntityClass& ec ) 
+		{ d_entPropPairSet.insert( EntPropPair(l,BarzerEntity(ec)) ) ; }
+	void addRule( const BarzerEntity& e, const BarzerEntity& p ) 
 		{ d_entPropPairSet.insert( EntPropPair(e,p) ); }
-	void addRule( const StoredEntityClass& e, const StoredEntityUniqId& p ) 
-		{ d_entPropPairSet.insert( EntPropPair(StoredEntityUniqId(e),p) ); }
+	void addRule( const StoredEntityClass& e, const BarzerEntity& p ) 
+		{ d_entPropPairSet.insert( EntPropPair(BarzerEntity(e),p) ); }
 	void addRule( const StoredEntityClass& e, const StoredEntityClass& p ) 
-		{ d_entPropPairSet.insert( EntPropPair(StoredEntityUniqId(e),StoredEntityUniqId(p)) ); }
+		{ d_entPropPairSet.insert( EntPropPair(BarzerEntity(e),BarzerEntity(p)) ); }
 };
 
 } // namespace barzer
