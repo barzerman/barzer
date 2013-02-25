@@ -242,8 +242,8 @@ void BarzerEntityDocLinkIndex::addLink( const BarzerEntity& ent, const std::stri
 {
     uint32_t docId = d_zurchLoader.addDocName( s.c_str() );
     d_zurchLoader.index().appendOwnedEntity( docId, ent );
-    d_ent2DocId.insert( Ent2DocIdMap::value_type(ent,docId) );
-    d_docId2Ent.insert( Docid2EntMap::value_type(docId,ent) );
+    //d_ent2DocId.insert( Ent2DocIdMap::value_type(ent,docId) );
+    //d_docId2Ent.insert( Docid2EntMap::value_type(docId,ent) );
 }
 
 int BarzerEntityDocLinkIndex::loadFromFile( const std::string& fname )
