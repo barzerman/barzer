@@ -24,6 +24,8 @@ std::ostream& DocIdxSearchResponseXML::print( std::ostream& os, const DocFeature
     for( auto i= docVec.begin(); i!= docVec.end() ; ++i ) {
         uint32_t docId = i->first;
         const char* docName = d_ixl.getDocName(docId);
+        if( i==docVec.begin() )
+            os << "\n";
 		os << "<doc n=\"";
         if( docName ) 
             ay::XMLStream(os).escape(docName);
@@ -34,9 +36,10 @@ std::ostream& DocIdxSearchResponseXML::print( std::ostream& os, const DocFeature
             ay::XMLStream(os << " title=\"").escape(title.c_str());
             os << "\"";
         }
-        os << " s=\"" << i->second << "\">\n";
+        os << " s=\"" << i->second << "\">";
 		
-        if( hasChunks ) {
+        if( hasChunks && !d_qparm.d_biflags.checkBit( barzer::QuestionParm::QPBIT_ZURCH_NO_CHUNKS ) ) {
+            os << "\n";
 		    chunks.clear();
 		    auto pos = positions.find(docId);
 		    if (pos != positions.end())
@@ -62,7 +65,7 @@ std::ostream& DocIdxSearchResponseXML::print( std::ostream& os, const DocFeature
 		    }
         }
 		
-        if( hasContent) {
+        if( hasContent && d_qparm.d_biflags.checkBit(barzer::QuestionParm::QPBIT_ZURCH_FULLTEXT) ) {
             std::string content;
             if (loader.getDocContents(docId, content))
                 ay::XMLStream(os << "\t<content>\n").escape(content) << "\t</content>\n";
@@ -100,7 +103,7 @@ std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocFeatur
 		    auto pos = positions.find(docId);
 		    if (pos != positions.end())
 			    loader.getBestChunks(docId, pos->second, 200, 5, chunks);
-		    if (!chunks.empty())
+		    if (!chunks.empty() && !d_qparm.d_biflags.checkBit(barzer::QuestionParm::QPBIT_ZURCH_NO_CHUNKS) )
 		    {
 			    docRaii.startField("chunks");
 			    json_raii chunksRaii(os, true, 2);
@@ -112,7 +115,7 @@ std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocFeatur
 				}
 		    }
         }
-        if( hasContent ) {
+        if( hasContent && d_qparm.d_biflags.checkBit(barzer::QuestionParm::QPBIT_ZURCH_FULLTEXT) ) {
             std::string content;
             if (loader.getDocContents(docId, content))
                 ay::jsonEscape(content.c_str(), docRaii.startField("content"), "\"");

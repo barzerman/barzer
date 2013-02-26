@@ -506,6 +506,8 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
     barz.clear();
 
 	QuestionParm qparm;
+    if( !d_queryFlags.empty() )
+        qparm.setZurchFlags( d_queryFlags.c_str() );
     QParser qparser(u);
 
 	std::cout << "handling '" << query << "'" << std::endl;
@@ -523,10 +525,10 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
         index->findDocument( docVec, featureVec, 16, &positions );
 
     if( ret == XML_TYPE ) {
-        zurch::DocIdxSearchResponseXML response( *ixl, barz ); 
+        zurch::DocIdxSearchResponseXML response( qparm, *ixl, barz ); 
         response.print(os, docVec, positions);
     } else if ( ret == JSON_TYPE ) {
-        zurch::DocIdxSearchResponseJSON response( *ixl, barz ); 
+        zurch::DocIdxSearchResponseJSON response( qparm, *ixl, barz ); 
         response.print(os, docVec, positions);
     }
 }
@@ -901,14 +903,13 @@ void BarzerRequestParser::tag_nameval(RequestTag &tag) {
 
 void BarzerRequestParser::tag_query(RequestTag &tag) {
 	AttrList &attrs = tag.attrs;
-
-
     AttrList::iterator it;
     if( !d_universe ) {
 	    it = attrs.find("u");
 		setUniverseId(it != attrs.end() ? atoi(it->second.c_str()) : 0);
     }
     d_simplified = false;
+    d_queryFlags.clear();
     //ReturnType t = XML_TYPE;
     for( auto i = attrs.begin(); i!= attrs.end(); ++i ) {
         if( i->first == "qid" ) 
@@ -926,8 +927,12 @@ void BarzerRequestParser::tag_query(RequestTag &tag) {
             if( RequestEnvironment* env = barz.getServerReqEnv() )
                 env->setNow( i->second );
         } else if( i->first == "zurch" ) {
-            setQueryType( QType::ZURCH );
+            /// value of zurch attributes QuestionParm::setZurchFlags 
+            /// (see the code for values - this is a string of single character flags)
+            setQueryType(QType::ZURCH);
             d_zurchDocIdxId = atoi(i->second.c_str());
+        } else if( i->first =="flag" ) {
+            d_queryFlags = i->second;
         }
     }
 

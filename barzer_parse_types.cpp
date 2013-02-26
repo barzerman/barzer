@@ -116,4 +116,16 @@ void BarzerString::setFromTTokens( const TTWPVec& v )
 	}
 }
 
+void QuestionParm::setZurchFlags( const char* str )
+{
+    /// general principle - upper case value is what is set by default
+    for( const char* c = str; *c; ++c ) {
+        switch(*c) {
+        case 'D': d_biflags.set(QPBIT_ZURCH_FULLTEXT,false); break; /// do not print zurch full document text
+        case 'd': d_biflags.set(QPBIT_ZURCH_FULLTEXT); break; /// print zurch full document text
+        case 'c': d_biflags.set(QPBIT_ZURCH_NO_CHUNKS); break; /// dont print zurch chunks
+        case 'C': d_biflags.set(QPBIT_ZURCH_NO_CHUNKS,false); break; /// print zurch chunks
+        }
+    }
+}
 } // barzer namespace 
