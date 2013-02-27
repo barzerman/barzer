@@ -12,6 +12,7 @@
 #include <string>
 #include <expat.h>
 #include <ay_logger.h>
+#include <ay_util_time.h>
 #include <barzer_universe.h>
 #include <zurch_docidx.h>
 
@@ -28,6 +29,7 @@ struct ay_xml_parser {
     XML_ParserStruct* expat;
 	std::ostream& d_os;
 
+    size_t d_entCount;
     // current stack of tags - see .cpp file for tag codes 
     std::vector< int > tagStack;
 
@@ -49,7 +51,8 @@ struct ay_xml_parser {
 	ay_xml_parser( BarzerEntityDocLinkIndex& idx, std::ostream& os) :
         d_index(idx),
         expat(0),
-	    d_os(os)
+	    d_os(os),
+        d_entCount(0)
 	{ }
 
 };
@@ -122,6 +125,9 @@ DECL_TAGHANDLE(D) {
                 break;
 	    ALS_END
     } else { // closing D - time to process
+        if( ! ((++parser.d_entCount)%100) ) {
+            std::cerr << ".";
+        }
     }
     return TAGHANDLE_ERROR_OK;
 } 
@@ -141,15 +147,18 @@ inline void tagRouter( ay_xml_parser& parser, const char* t, const char** attr, 
     }
 
     if( tagId != TAG_INVALID ) {
+        if( !open ) { /// closing tag
+            if( parser.tagStack.size() ) {
+                parser.tagStack.pop_back();
+            } else {
+                // maybe we will report an error (however silent non reporting is safer) 
+            }
+        }
         if( handler )
             handler(parser,tagId,t,attr,attr_sz,open);
 
         if( open ) {
             parser.tagStack.push_back( tagId );
-        } else if( parser.tagStack.size()  ) {
-            parser.tagStack.pop_back();
-        } else { // closing tag mismatch
-            // maybe we will report an error (however silent non reporting is safer) 
         }
     }
 }
@@ -248,14 +257,17 @@ void BarzerEntityDocLinkIndex::addLink( const BarzerEntity& ent, const std::stri
 
 int BarzerEntityDocLinkIndex::loadFromFile( const std::string& fname )
 {
+    ay::stopwatch timer;
     std::fstream fp;
     
+    std::cerr << "loading zurch entity document links from " << fname << " ";
     fp.open( fname.c_str() );
     if( !fp.is_open() ) 
         std::cerr << "Cant load " << fname << std::endl;
      
     ay_xml_parser parser( *this, std::cerr );
     parser.init().parse( fp );
+    std::cerr << parser.d_entCount << " links created " << " in " << timer.calcTime() << " seconds " << std::endl;
 
     return 0;
 }

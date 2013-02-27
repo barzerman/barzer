@@ -65,7 +65,8 @@ bool ZurchSettings::loadIndex( const boost::property_tree::ptree& pt )
         stats.print( std::cerr << "\n" ) << std::endl;
     }
     if( const boost::optional< std::string > x = attr.get().get_optional<std::string>("ent") ) {
-        loader->loadEntLinks( x.get().c_str() );
+        std::string fname = x.get();
+        loader->loadEntLinks( fname.c_str() );
     }
     
     return true;

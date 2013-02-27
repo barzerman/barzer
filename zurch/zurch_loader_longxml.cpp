@@ -1,5 +1,6 @@
 #include <zurch/zurch_loader_longxml.h>
 #include <ay/ay_logger.h>
+#include <ay/ay_util_time.h>
 extern "C" {
 #include <expat.h>
 }
@@ -155,12 +156,13 @@ DECL_TAGHANDLE(TABLE) {
                 CASEIF(SortName)
                 break;
         ALS_END  // end of attributes
-    }
-    ++parser.d_numCallbacks;
+        ++parser.d_numCallbacks;
 
-    if( !(parser.d_numCallbacks%500) )
-        std::cerr << "."; // trace
-    parser.callback();
+        if( !(parser.d_numCallbacks%500) )
+            std::cerr << "."; // trace
+        parser.callback();
+    } else { /// closing TABLE
+    }
 
     return TAGHANDLE_ERROR_OK;
 }
@@ -177,15 +179,15 @@ void tagRouter( ZurchLongXMLParser& parser, const char* t, const char** attr, si
     case 'R': if( !strcasecmp(t,"root") )     SETTAG(ROOT); break;
     }
     if( tagId != TAG_INVALID ) {
+        if( !open ) {
+            if( parser.tagStack.size() )
+                parser.tagStack.pop_back();
+        } 
         if( handler )
             handler(parser,tagId,t,attr,attr_sz,open);
 
         if( open ) {
             parser.tagStack.push_back( tagId );
-        } else if( parser.tagStack.size()  ) {
-            parser.tagStack.pop_back();
-        } else { // closing tag mismatch
-            // maybe we will report an error (however silent non reporting is safer) 
         }
     }
 }
@@ -232,11 +234,14 @@ int ZurchLongXMLParser_DocLoader::callback()
 
 void ZurchLongXMLParser::readFromFile( const char* fname )
 {
+    ay::stopwatch timer;
+    std::cerr << "zurch indexing data in " << fname << " ";
     std::ifstream fp;
     fp.open( fname );
     if( fp.is_open() ) {
         ZurchLongXMLParser_anon prs(*this);
         prs.init().parse(fp);
+        std::cerr << prs.parser.d_numCallbacks << " documents loaded in " << timer.calcTime() << " seconds " << std::endl;
     } else {
         ay::print_absolute_file_path( (std::cerr << "ERROR: ZurchLongXMLParser cant open file \"" ), fname ) << "\"\n";
     }
