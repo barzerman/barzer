@@ -45,7 +45,7 @@ class StoredUniverse {
     std::string d_userName;
 public:
 	GlobalPools& gp;
-
+    
     boost::unordered_map< uint32_t, zurch::DocIndexAndLoader* > d_zurchIndexPool;
     
     zurch::DocIndexAndLoader* initZurchIndex( uint32_t idxId ); 
@@ -71,10 +71,9 @@ private:
 	BZSpell*             bzSpell;
     Ghettodb*            d_ghettoDb;
 
-	BarzHints m_hints;
+	BarzHints            m_hints;
 
 	typedef boost::unordered_map< uint32_t, bool > StringIdSet;
-
 	///
 	StringIdSet userSpecificStringSet;
 	// bool  d_stemByDefault;

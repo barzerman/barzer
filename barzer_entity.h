@@ -37,6 +37,23 @@ struct StoredEntityClass {
 		if( !ec ) return true;
 		else return ( (ec == other.ec) && (!subclass || subclass == other.subclass) );
 	}
+    void init( const char* str, char delim =',' )
+    {
+        if( !str ) { 
+            ec = subclass = 0;
+            return;
+        }
+        ec = atoi(str);
+        if( const char *s = strchr(str,delim) ) {
+            subclass = atoi( s+1 );
+        } else
+            subclass = 0;
+    }
+    void init( const char* c, const char* sc ) 
+    {
+        ec = ( c ? atoi(c) : 0 ) ;
+        subclass = ( sc ? atoi(sc) : 0 ) ;
+    }
     bool lowerClass( uint32_t c ) const { return ( ec< c); }
 };
 
