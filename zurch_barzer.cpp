@@ -48,6 +48,7 @@ struct ay_xml_parser {
 	~ay_xml_parser();
 	ay_xml_parser( BarzerEntityDocLinkIndex& idx, std::ostream& os) :
         d_index(idx),
+        expat(0),
 	    d_os(os)
 	{ }
 
@@ -72,13 +73,13 @@ enum {
 #define IS_PARENT_TAG3(X,Y,Z) ( parser.tagStack.size() && (parser.tagStack.back()== TAG_##X || \
     parser.tagStack.back()== TAG_##Y || parser.tagStack.back()== TAG_##Z) )
 
-#define ALS_BEGIN    const char** attr_end = attr+ attr_sz;\
+#define ALS_BEGIN    {const char** attr_end = attr+ attr_sz;\
 	for( const char** a=attr; a< attr_end; a+=2 ) {\
-        const char* n = 0[ a ];\
-        const char* v = 1[ a ]; \
-        switch(n[1]) {
+        const char* n = a[0];\
+        const char* v = a[1]; \
+        switch(n[0]) {
 
-#define ALS_END }}
+#define ALS_END }}}
 
 enum {
     TAGHANDLE_ERROR_OK,
@@ -97,12 +98,11 @@ DECL_TAGHANDLE(E) {
     std::string idStr;
     if( open ) {
         /// loops over all atributes
-	    ALS_BEGIN 
-            case 'c': eclass.ec = atoi(v); break;
-            case 's': eclass.subclass = atoi(v); break;
-            case 'i': idStr.assign(v); break;
-	    ALS_END
-        
+        ALS_BEGIN
+                case 'c': eclass.ec = atoi(v); break;
+                case 's': eclass.subclass = atoi(v); break;
+                case 'i': idStr.assign(v); break;
+        ALS_END
         if( !idStr.empty() && eclass.isValid() ) 
             parser.setEntity(eclass,idStr.c_str());
     } else { // closing E - time to process
@@ -135,9 +135,9 @@ inline void tagRouter( ay_xml_parser& parser, const char* t, const char** attr, 
     TAGHANDLE handler = 0;
     int       tagId   =  TAG_INVALID;
     switch( c0 ) {
-    case 'd': SETTAG(D); break;
-    case 'e': SETTAG(E); break;
-    case 'z': SETTAG(ZURCHENT); break;
+    case 'D': SETTAG(D); break;
+    case 'E': SETTAG(E); break;
+    case 'Z': SETTAG(ZURCHENT); break;
     }
 
     if( tagId != TAG_INVALID ) {
@@ -255,7 +255,7 @@ int BarzerEntityDocLinkIndex::loadFromFile( const std::string& fname )
         std::cerr << "Cant load " << fname << std::endl;
      
     ay_xml_parser parser( *this, std::cerr );
-    parser.parse( fp );
+    parser.init().parse( fp );
 
     return 0;
 }

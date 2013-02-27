@@ -935,6 +935,10 @@ namespace
 void DocFeatureLoader::getBestChunks(uint32_t docId, const DocFeatureIndex::PosInfos_t& positions,
 		size_t chunkLength, size_t count, std::vector<Chunk_t>& chunks) const
 {
+    if( noChunks() ) 
+        return;
+
+    std::cerr << "SHITFUCK:" << m_parsedDocs.size() << std::endl;
 	const auto pos = m_parsedDocs.find(docId);
 	if (pos == m_parsedDocs.end())
 	{

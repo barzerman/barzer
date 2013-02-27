@@ -57,9 +57,9 @@ enum {
 
 #define ALS_BEGIN    const char** attr_end = attr+ attr_sz;\
 	for( const char** a=attr; a< attr_end; a+=2 ) {\
-        const char* n = 0[ a ];\
-        const char* v = 1[ a ]; \
-        switch(n[1]) {
+        const char* n = a[0];\
+        const char* v = a[1]; \
+        switch(n[0]) {
 
 #define ALS_END }}
 

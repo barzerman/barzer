@@ -17,8 +17,8 @@ static int begin_request_handler(struct mg_connection *conn)
     
     std::stringstream outSstr;
 
+    barzer::BarzerRequestParser reqParser(gp,outSstr);
     if( !invalidInput ) {
-        barzer::BarzerRequestParser reqParser(gp,outSstr);
         std::string uri;
         ay::url_encode( uri, request_info->uri, strlen(request_info->uri) );
         std::string query;
@@ -26,11 +26,7 @@ static int begin_request_handler(struct mg_connection *conn)
         if( !reqParser.initFromUri( uri.c_str(), uri.length(), query.c_str(), query.length() ) )
             reqParser.parse();
     } else {
-        if( reqParser.ret == barzer::BarzerRequestParser::XML_TYPE ) {
-            outSstr << "<error>Invalid Input</error>";
-        } else {
-            outSstr << "{}"; 
-        }
+        outSstr << "{}";
     }
     // Send HTTP reply to the client
     std::string contentStr = outSstr.str();
