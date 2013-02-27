@@ -65,16 +65,21 @@ BarzerHttpServer& BarzerHttpServer::mkInstance(GlobalPools& g)
     g_httpServer = new BarzerHttpServer(g);
     return *g_httpServer;
 }
-
 int BarzerHttpServer::run(const ay::CommandLineArgs& cmd, int argc, char* argv[] )
 {
     struct mg_context *ctx;
     struct mg_callbacks callbacks;
 
     // List of options. Last element must be NULL.
-    const char *options[] = {"listening_ports", "8080", NULL};
+    const char *options[3] = {"listening_ports", "8080", NULL};
+    bool hasArg = false;
+    std::string portString = cmd.getArgVal(hasArg, "-p", 0);
+    if( hasArg )  {
+        options[1] = portString.c_str();
+    }
+    // const char *options[] = {"listening_ports", "8080", NULL};
 
-    std::cerr << "RUNNING HTTP SERVER \n"; 
+    std::cerr << "RUNNING HTTP SERVER on port " << options[1] << std::endl; 
     // Prepare callbacks structure. We have only one callback, the rest are NULL.
     memset(&callbacks, 0, sizeof(callbacks));
     callbacks.begin_request = begin_request_handler;
