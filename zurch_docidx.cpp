@@ -938,11 +938,10 @@ void DocFeatureLoader::getBestChunks(uint32_t docId, const DocFeatureIndex::PosI
     if( noChunks() ) 
         return;
 
-    std::cerr << "SHITFUCK:" << m_parsedDocs.size() << std::endl;
 	const auto pos = m_parsedDocs.find(docId);
 	if (pos == m_parsedDocs.end())
 	{
-		AYLOG(ERROR) << "no doc for " << docId;
+		// AYLOG(ERROR) << "no doc for " << docId;
 		return;
 	}
 	
