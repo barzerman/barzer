@@ -875,10 +875,10 @@ namespace
 	DocFeatureIndex::PosInfos_t findInRange(size_t begin, size_t end, const DocFeatureIndex::PosInfos_t& positions)
 	{
 		DocFeatureIndex::PosInfos_t result;
-		std::copy_if(positions.begin(), positions.end(), std::back_inserter(result),
-				[begin, end](const DocFeatureIndex::PosInfos_t::value_type& pair)
-					{ return pair.first >= begin && pair.first + pair.second <= end; });
-		
+		for (const auto& pair : positions)
+			if (pair.first >= begin && pair.first + pair.second <= end)
+				result.push_back(pair);
+			
 		if (result.empty())
 			return result;
 		

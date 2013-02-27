@@ -4,6 +4,8 @@
 /// 
 #include <zurch_server.h>
 #include <ay_xml_util.h>
+#include <barzer_server_response.h>
+#include <barzer_json_output.h>
 
 namespace zurch {
 
@@ -17,6 +19,13 @@ std::ostream& DocIdxSearchResponseXML::print( std::ostream& os, const DocFeature
         return os << "<error>Internal Error</error>";
     }
     ay::tag_raii zurchRaii( os, "zurch" );
+	
+	if (d_barz.getUniverse())
+	{
+		barzer::BarzStreamerXML streamer(d_barz, *d_barz.getUniverse());
+		streamer.print(os);
+	}
+	    
 	std::vector<DocIndexLoaderNamedDocs::Chunk_t> chunks;
     const DocIndexLoaderNamedDocs& loader = *d_ixl.getLoader();
     bool hasChunks = loader.hasChunks() ;
@@ -66,7 +75,8 @@ std::ostream& DocIdxSearchResponseXML::print( std::ostream& os, const DocFeature
             std::string content;
             if (loader.getDocContents(docId, content))
                 ay::XMLStream(os << "\t<content>\n").escape(content) << "\t</content>\n";
-	    }	
+	    }
+	    
 		os << "</doc>\n";
     }
     return os;
@@ -76,7 +86,16 @@ std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocFeatur
 		const std::map<uint32_t, DocFeatureIndex::PosInfos_t>& positions ) const 
 {
     json_raii raii( os, false, 0 );
+	
+	if (d_barz.getUniverse())
+	{
+		os << "\nbarz: ";
+		barzer::BarzStreamerJSON streamer(d_barz, *d_barz.getUniverse());
+		streamer.print(os) << ",";
+	}
+	
     json_raii allDocsRaii( raii.startField("docs"), true, 1 );
+	
 	std::vector<DocIndexLoaderNamedDocs::Chunk_t> chunks;
     const DocIndexLoaderNamedDocs& loader = *d_ixl.getLoader();
     bool hasChunks = loader.hasChunks() ;
