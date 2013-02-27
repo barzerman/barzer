@@ -88,7 +88,9 @@ private:
     uint64_t       d_queryId;
     
     bool           d_simplified;
+    
 public:
+    std::string    d_queryFlags;
     std::ostream& printError( const char* err );
 
     // instead of parsing input XML initializes everything from a URI string
@@ -109,7 +111,9 @@ public:
 
     bool isQueryTypeBarzer() const { return (d_queryType == QType::BARZER); }
     bool isQueryTypeZurch() const { return (d_queryType == QType::ZURCH); }
-    void     setQueryType( QType qt ){ d_queryType = qt; }
+
+    void     setQueryType( QType qt )
+        { d_queryType = qt; }
     QType getQueryType( ) const { return d_queryType; }
 
     bool isQueryIdValid() const { return std::numeric_limits<uint64_t>::max() != d_queryId; }

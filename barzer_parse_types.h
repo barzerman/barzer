@@ -280,12 +280,22 @@ class LexParser;
 struct QuestionParm {
 	int lang;  // a valid LANG ID see barzer_language.h
     bool isAutoc; // when true this is an autocomplete query rather than a standard barzer one
-    enum {
+    enum : uint8_t {
         STEMMODE_NORMAL,    // standard cautious stemming mode for unmatched tokens during classification
         STEMMODE_AGGRESSIVE // after conservative correction stems until 3 characters are left or anything is matched 
     };
-    int  stemMode;
+    uint8_t  stemMode;
+    
+    enum {
+        QPBIT_ZURCH_FULLTEXT,
+        QPBIT_ZURCH_NO_CHUNKS,
 
+        /// add new bits above this line only
+        QPBIT_MAX
+    };
+    ay::bitflags<QPBIT_MAX> d_biflags;
+    
+    void setZurchFlags( const char* str );
     struct AutocParm {
         uint32_t trieClass, trieId;
         

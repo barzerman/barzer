@@ -10,21 +10,24 @@ extern "C" {
 static int begin_request_handler(struct mg_connection *conn) 
 {
     const struct mg_request_info *request_info = mg_get_request_info(conn);
-    if( !request_info || !request_info->uri || !request_info->query_string )
-        return 1;
-    
+    bool invalidInput = ( !request_info || !request_info->uri || !request_info->query_string );
+
     const barzer::BarzerHttpServer& httpServ = barzer::BarzerHttpServer::instance();
     barzer::GlobalPools& gp = httpServ.gp; /// gp must not be changed - constant onsistency is hard to achieve but gp is const
     
     std::stringstream outSstr;
-    barzer::BarzerRequestParser reqParser(gp,outSstr);
-    std::string uri;
-    ay::url_encode( uri, request_info->uri, strlen(request_info->uri) );
-    std::string query;
-    ay::url_encode( query, request_info->query_string, strlen(request_info->query_string) );
-    if( !reqParser.initFromUri( uri.c_str(), uri.length(), query.c_str(), query.length() ) )
-        reqParser.parse();
 
+    barzer::BarzerRequestParser reqParser(gp,outSstr);
+    if( !invalidInput ) {
+        std::string uri;
+        ay::url_encode( uri, request_info->uri, strlen(request_info->uri) );
+        std::string query;
+        ay::url_encode( query, request_info->query_string, strlen(request_info->query_string) );
+        if( !reqParser.initFromUri( uri.c_str(), uri.length(), query.c_str(), query.length() ) )
+            reqParser.parse();
+    } else {
+        outSstr << "{}";
+    }
     // Send HTTP reply to the client
     std::string contentStr = outSstr.str();
     mg_printf(conn,

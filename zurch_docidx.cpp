@@ -171,6 +171,8 @@ void DocFeatureIndex::loadSynonyms(const std::string& filename, const barzer::St
 	std::cout << std::endl;
 }
 
+uint32_t DocFeatureIndex::storeOwnedEntity( const barzer::BarzerEntity& ent )
+    { return d_entPool.produceIdByObj( ent ); }
 uint32_t DocFeatureIndex::storeExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u )
 {
     barzer::BarzerEntity newEnt;
@@ -355,6 +357,13 @@ int DocFeatureIndex::getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec
 			featureVec, barz);
 }
 
+size_t DocFeatureIndex::appendOwnedEntity( uint32_t docId, const BarzerEntity& ent )
+{
+    ExtractedDocFeature::Vec_t featureVec;
+    uint32_t eid = storeOwnedEntity(ent);
+    featureVec.push_back( ExtractedDocFeature(DocFeature(DocFeature::CLASS_ENTITY,eid)) );
+    return appendDocument( docId, featureVec, 0 );
+}
 size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz, size_t offset, DocFeatureLink::Weight_t weight )
 {
     ExtractedDocFeature::Vec_t featureVec;
@@ -926,10 +935,13 @@ namespace
 void DocFeatureLoader::getBestChunks(uint32_t docId, const DocFeatureIndex::PosInfos_t& positions,
 		size_t chunkLength, size_t count, std::vector<Chunk_t>& chunks) const
 {
+    if( noChunks() ) 
+        return;
+
 	const auto pos = m_parsedDocs.find(docId);
 	if (pos == m_parsedDocs.end())
 	{
-		AYLOG(ERROR) << "no doc for " << docId;
+		// AYLOG(ERROR) << "no doc for " << docId;
 		return;
 	}
 	
@@ -976,11 +988,15 @@ void DocFeatureLoader::getBestChunks(uint32_t docId, const DocFeatureIndex::PosI
 	}
 }
 
-DocIndexLoaderNamedDocs::~DocIndexLoaderNamedDocs( ){}
+DocIndexLoaderNamedDocs::~DocIndexLoaderNamedDocs( ) {}
 DocIndexLoaderNamedDocs::DocIndexLoaderNamedDocs( DocFeatureIndex& index, const barzer::StoredUniverse& u )
-: DocFeatureLoader(index,u)
+: DocFeatureLoader(index,u),d_entDocLinkIdx(*this)
 {}
 namespace fs = boost::filesystem;
+void DocIndexLoaderNamedDocs::loadEntLinks( const char* fname )
+{
+    d_entDocLinkIdx.loadFromFile( fname );
+}
 void DocIndexLoaderNamedDocs::addAllFilesAtPath( const char* path )
 {
     fs_iter_callback cb( *this );
