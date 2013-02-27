@@ -744,8 +744,10 @@ struct DocAdderXhtmlCB {
         /// ATTENTION!!! here using state we can see whats in the tagStack  and boost confidence if needed etc
         /// we update loader.phraser().state with that
 
+        std::string tmp(s, s_sz);
+		ay::unicode_normalize_punctuation(tmp);
         if( state.isCallbackText() ) 
-            loader.phraser().breakBuf( docAdderCB, s, s_sz );
+            loader.phraser().breakBuf( docAdderCB, tmp.c_str(), tmp.size() );
     }
 };
 
