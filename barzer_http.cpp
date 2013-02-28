@@ -26,7 +26,16 @@ static int begin_request_handler(struct mg_connection *conn)
         if( !reqParser.initFromUri( uri.c_str(), uri.length(), query.c_str(), query.length() ) )
             reqParser.parse();
     } else {
-        outSstr << "{}";
+        const char* blank = "{ \"error\" : \"invalid query string\" }";
+        mg_printf(conn,
+        "HTTP/1.1 200 OK\r\n"
+            "Content-Type: application/json; charset=utf-8\r\n"
+            "Content-Length: %ld\r\n"        // Always set Content-Length
+            "\r\n"
+            "%s",
+
+        strlen(blank), blank );
+        return 1;
     }
     // Send HTTP reply to the client
     std::string contentStr = outSstr.str();
@@ -73,9 +82,9 @@ int BarzerHttpServer::run(const ay::CommandLineArgs& cmd, int argc, char* argv[]
     // List of options. Last element must be NULL.
     const char *options[3] = {"listening_ports", "8080", NULL};
     bool hasArg = false;
-    std::string portString = cmd.getArgVal(hasArg, "-p", 0);
-    if( hasArg )  {
-        options[1] = portString.c_str();
+    const char* portString = cmd.getArgVal(hasArg, "-p", 0);
+    if( hasArg && portString )  {
+        options[1] = portString;
     }
     // const char *options[] = {"listening_ports", "8080", NULL};
 

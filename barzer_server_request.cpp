@@ -510,7 +510,7 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
         qparm.setZurchFlags( d_queryFlags.c_str() );
     QParser qparser(u);
 
-	std::cout << "handling '" << query << "'" << std::endl;
+	// std::cout << "handling '" << query << "'" << std::endl;
 	qparser.tokenize_only( barz, query, qparm );
 	qparser.lex_only( barz, qparm );
 	qparser.semanticize_only( barz, qparm );
