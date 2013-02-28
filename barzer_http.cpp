@@ -42,17 +42,6 @@ static int begin_request_handler(struct mg_connection *conn)
     } else {
         print_json_error(conn, "bad query string" );
         return 1;
-        const char* blank = "{ \"error\" : \"invalid query string\" }";
-
-        mg_printf(conn,
-        "HTTP/1.1 200 OK\r\n"
-            "Content-Type: application/json; charset=utf-8\r\n"
-            "Content-Length: %ld\r\n"        // Always set Content-Length
-            "\r\n"
-            "%s",
-
-        strlen(blank), blank );
-        return 1;
     }
     // Send HTTP reply to the client
     std::string contentStr = outSstr.str();
