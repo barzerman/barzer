@@ -92,7 +92,7 @@ std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocFeatur
 	
 	if (d_barz.getUniverse())
 	{
-		os << "\nbarz: ";
+		os << "\n\"barz\": ";
 		barzer::BarzStreamerJSON streamer(d_barz, *d_barz.getUniverse());
 		streamer.print(os) << ",";
 	}
