@@ -977,7 +977,12 @@ void DocFeatureLoader::getBestChunks(uint32_t docId, const DocFeatureIndex::PosI
 		for (auto& item : inRange)
 		{
 			if (item.first != prev)
-				chunk.push_back({ doc.substr(prev, item.first - prev), false });
+			{
+				auto substr = doc.substr(prev, item.first - prev);
+				if (!substr.empty() && !isspace(substr[substr.size() - 1]))
+					substr.push_back(' ');
+				chunk.push_back({ substr, false });
+			}
 			size_t end = item.second + item.first;
 			expandToSpace(end);
 			chunk.push_back({ doc.substr(item.first, end - item.first), true });
@@ -985,7 +990,12 @@ void DocFeatureLoader::getBestChunks(uint32_t docId, const DocFeatureIndex::PosI
 		}
 		
 		if (prev != endIdx)
-			chunk.push_back({ doc.substr(prev, endIdx - prev), false });
+		{
+			auto substr = doc.substr(prev, endIdx - prev);
+			if (!isspace(substr[0]))
+				substr.insert(0, " ");
+			chunk.push_back({ substr, false });
+		}
 		chunks.push_back(chunk);
 	}
 }

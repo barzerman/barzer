@@ -64,9 +64,9 @@ std::ostream& DocIdxSearchResponseXML::print( std::ostream& os, const DocFeature
 						os << "\t\t\t<item";
 						if (item.m_isMatch)
 							os << " m='1'";
-						os << ">\n";
+						os << ">";
 						
-						ay::XMLStream(os).escape(item.m_contents) << "\n\t\t\t</item>\n";
+						ay::XMLStream(os).escape(item.m_contents) << "</item>\n";
 					}
 					os << "\t\t</chunk>";
 				}
