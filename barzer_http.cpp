@@ -73,9 +73,9 @@ int BarzerHttpServer::run(const ay::CommandLineArgs& cmd, int argc, char* argv[]
     // List of options. Last element must be NULL.
     const char *options[3] = {"listening_ports", "8080", NULL};
     bool hasArg = false;
-    std::string portString = cmd.getArgVal(hasArg, "-p", 0);
-    if( hasArg )  {
-        options[1] = portString.c_str();
+    const char* portString = cmd.getArgVal(hasArg, "-p", 0);
+    if( hasArg && portString )  {
+        options[1] = portString;
     }
     // const char *options[] = {"listening_ports", "8080", NULL};
 
