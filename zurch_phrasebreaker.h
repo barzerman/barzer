@@ -96,7 +96,8 @@ struct PhraseBreaker {
     {
         ++d_numBuffers;
         const char *s_to = str;
-        for( const char* s_from=str, *s_end = str+str_sz; s_to <= s_end && s_from< s_end; ) {
+		const char *s_from = str;
+        for( const char *s_end = str + str_sz; s_to <= s_end && s_from< s_end; ) {
             char c = *s_to;
             const char* newTo = 0;
             if( c=='\n' || (isspace(c) && c!=' ')|| 
@@ -111,7 +112,9 @@ struct PhraseBreaker {
             } else
                 ++s_to;
         }
-        return s_to-str;
+        if (str == s_from)
+			cb(*this, s_from, s_to - s_from);
+        return s_to - str;
     }
 
     template <typename CB>
