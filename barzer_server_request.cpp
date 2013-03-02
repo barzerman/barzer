@@ -183,6 +183,7 @@ int BarzerRequestParser::initFromUri( const char* u, size_t u_len, const char* q
         setQueryType(QType::BARZER);
 
     d_query.clear();
+    d_queryFlags.clear();
     ret = ( d_queryType == QType::BARZER ? XML_TYPE : JSON_TYPE );
 
     for( auto i = uri.theVec.begin(); i!= uri.theVec.end(); ++i )  {
@@ -197,6 +198,11 @@ int BarzerRequestParser::initFromUri( const char* u, size_t u_len, const char* q
         case 'q':
             if( i->first == "q" ) 
                 d_query = i->second;
+            break;
+        case 'f': /// flag
+            if( i->first == "flag" ) {
+                d_queryFlags = i->second;
+            }
             break;
         case 'r':
             if( i->first == "ret" )  {

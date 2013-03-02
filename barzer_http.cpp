@@ -7,6 +7,20 @@
 extern "C" {
 #include <mongoose/mongoose.h>
 
+void print_json_error( struct mg_connection *conn, const char* errStr )
+{
+        std::stringstream  sstr;
+        ay::jsonEscape(errStr, sstr<< "{ \"error\" : \"" ) << "\" }";
+        std::string s= sstr.str();
+        mg_printf(conn,
+        "HTTP/1.1 200 OK\r\n"
+            "Content-Type: application/json; charset=utf-8\r\n"
+            "Content-Length: %ld\r\n"        // Always set Content-Length
+            "\r\n"
+            "%s",
+
+        s.length() , s.c_str() );
+}
 static int begin_request_handler(struct mg_connection *conn) 
 {
     const struct mg_request_info *request_info = mg_get_request_info(conn);
@@ -26,15 +40,7 @@ static int begin_request_handler(struct mg_connection *conn)
         if( !reqParser.initFromUri( uri.c_str(), uri.length(), query.c_str(), query.length() ) )
             reqParser.parse();
     } else {
-        const char* blank = "{ \"error\" : \"invalid query string\" }";
-        mg_printf(conn,
-        "HTTP/1.1 200 OK\r\n"
-            "Content-Type: application/json; charset=utf-8\r\n"
-            "Content-Length: %ld\r\n"        // Always set Content-Length
-            "\r\n"
-            "%s",
-
-        strlen(blank), blank );
+        print_json_error(conn, "bad query string" );
         return 1;
     }
     // Send HTTP reply to the client
