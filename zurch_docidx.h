@@ -42,16 +42,20 @@ struct DocFeature {
 
         CLASS_MAX
     } class_t;
+
     class_t featureClass;
 
     DocFeature( ): featureId(0xffffffff), featureClass(CLASS_ENTITY) {}
     DocFeature( class_t c, uint32_t i ): featureId(i), featureClass(c) {}
+
 
     int serialize( std::ostream& ) const;
     int deserialize( std::istream& );
     
     bool isClassValid() const { return ( featureClass >= CLASS_ENTITY && featureClass < CLASS_MAX ); }
     bool isValid() const { return (featureId!= 0xffffffff || isClassValid() ); }
+
+    std::ostream& print( std::ostream& fp, const barzer::StoredUniverse& ) const;
 };
 #pragma pack(pop)
 
@@ -259,6 +263,8 @@ class DocFeatureIndex {
 	
 	barzer::MeaningsStorage m_meanings;
 public:
+
+    void print( std::ostream& ) const;
 	typedef std::vector<std::pair<uint32_t, uint16_t>> PosInfos_t;
 	
 	int   getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz, bool needToInternStems );
@@ -297,7 +303,7 @@ public:
     uint32_t resolveExternalString( const char* str ) const { return d_stringPool.getId(str); }
     uint32_t resolveExternalString( const barzer::BarzerLiteral&, const barzer::StoredUniverse& u ) const;
 
-    DocFeatureIndex();
+    DocFeatureIndex(const barzer::StoredUniverse&);
     ~DocFeatureIndex();
     
     /// returns the number of counted features 
@@ -329,6 +335,7 @@ public:
 
     friend class ZurchSettings;    
     // bool loadProperties( const boost::property_tree::ptree& );
+    std::ostream& printNgram( std::ostream& fp, const NGram<DocFeature>& ngram ) const;
 };
 
 /// objects to process actual documents and load them into an index

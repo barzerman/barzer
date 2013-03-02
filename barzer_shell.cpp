@@ -438,43 +438,24 @@ static int bshf_phrase( BarzerShell* shell, char_cp cmd, std::istream& in, const
 
     return 0;
 }
-static int bshf_zurch_old( BarzerShell* shell, char_cp cmd, std::istream& in, const std::string& argStr )
+
+static int bshf_zdump( BarzerShell* shell, char_cp cmd, std::istream& in, const std::string& argStr )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
-	Barz& barz = context->barz;
-	QParser& parser = context->parser;
 	const StoredUniverse &uni = context->getUniverse();
-
-    RequestEnvironment& reqEnv = context->reqEnv;
-    RequestVariableMap& reqEnvVar = reqEnv.getReqVar();
+    uint32_t idxId = 0;
+    const zurch::DocIndexAndLoader* ixl = uni.getZurchIndex( idxId );
     
-    const BarzerString* tokenMode = reqEnv.getVarVal<BarzerString>( "tokmode" );
-    const char* sepString = ( tokenMode ?  tokenMode->c_str() : 0 );
-
-    zurch::ZurchTokenizer zt( sepString );
-    
-    /// 
-    zurch::ZurchTokenVec tokVec;
-    char buf[ 1024 ];
-    RuBastardizeHeuristic      bastardizer( &context->getUniverse().getGlobalPools() );
-    zurch::ZurchWordNormalizer::NormalizerEnvironment normEnv(&bastardizer);
-    zurch::ZurchWordNormalizer znorm(context->getUniverse().getBZSpell());
-
-    std::string normStr;
-    while( fgets( buf,sizeof(buf)-1,stdin) && buf[0] != '\n') {
-        size_t buf_sz = strlen(buf)-1;
-        buf[ buf_sz ] =0;
-        tokVec.clear();
-        zt.tokenize( tokVec, buf, buf_sz );
-        for( auto i = tokVec.begin(); i!= tokVec.end(); ++i ) {
-            normEnv.clear();
-            znorm.normalize( normStr, i->str.c_str(), normEnv );
-            std::cerr<< (i-tokVec.begin()) << ":" << *i << " norm \"" << normStr << "\"" << std::endl;
-        }
+    const char* fname = "zurch_fump.out";
+    std::ofstream fileFP;
+    fileFP.open( fname );
+    if( !fileFP.is_open() ) {
+        std::cerr << "coiuldnt open " << fname << std::endl;
+        return 0;
     }
+    ixl->getIndex()->print(fileFP);
     return 0;
 }
-
 static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in, const std::string& argStr )
 {
 	BarzerShellContext * context = shell->getBarzerContext();
@@ -618,7 +599,7 @@ static int bshf_zstat(BarzerShell *shell, char_cp cmd, std::istream& in, const s
 	return 0;
 }
 
-static int bshf_zdump(BarzerShell *shell, char_cp cmd, std::istream& in, const std::string& argStr)
+static int bshf_zdump_old(BarzerShell *shell, char_cp cmd, std::istream& in, const std::string& argStr)
 {
 	auto context = shell->getBarzerContext();
 	const auto& index = *context->d_zurchFS.getIndex();
@@ -1962,7 +1943,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)(bshf_phrase), "phrase", "breaks file into phrases - test driver for phrasebreaker" ),
 	CmdData( (ay::Shell_PROCF)(bshf_doc), "doc", "doc loader doc filename" ),
 	CmdData( (ay::Shell_PROCF)(bshf_zstat), "zstat", "zurch indexer stats [count] [percentage]" ),
-	CmdData( (ay::Shell_PROCF)(bshf_zdump), "zdump", "dump zurch indexer ngrams data into file. Usage: zdump [filename]" ),
+	CmdData( (ay::Shell_PROCF)(bshf_zdump), "zdump", "dump zurch index into zurch_fump.out" ),
 	CmdData( (ay::Shell_PROCF)(bshf_instance), "instance", "lists all users in the instance" ),
 	CmdData( (ay::Shell_PROCF)(bshf_inspect), "inspect", "inspects types as well as the actual content" ),
 	CmdData( (ay::Shell_PROCF)(bshf_grammar), "grammar", "sets trie for given grammar. use 'user' to list grammars" ),
