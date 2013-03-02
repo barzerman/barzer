@@ -36,6 +36,11 @@ struct PosedVec {
     const T& vec() const { return d_vec; }
 };
 
+/*
+template typename<>
+inline PosedVec<CTWPVec>::pos() const { return d_pos; }
+*/
+
 struct SpellCorrectResult;
 
 // internal parameters 
@@ -50,15 +55,10 @@ class QLexParser {
 	const DtaIndex* dtaIdx;
 	const StoredUniverse& d_universe;
 	
-public:
-    enum : uint16_t {
-        DOSPELL_NOT=0,
-        DOSPELL_REGULAR /// check spelling use d_maxLevDist
-    } ;
-    uint16_t d_doSpell;
+	bool m_dontSpell;
 
-    size_t d_maxLevDist; 
 	void collapseCTokens( CTWPVec::iterator beg, CTWPVec::iterator end );
+public:
 	enum {
 		/// discarded
 		MAX_EDIT_DIST_FROM_SPELL = 2,
@@ -112,9 +112,9 @@ private:
 	bool tryClassify_integer( CToken&, const TToken&  ) const;
 	
 public:
-	void setDoSpell( uint16_t x) { d_doSpell = x; }
+	void setDontSpell(bool dont) { m_dontSpell = dont; }
 	
-	QLexParser( const StoredUniverse& u, const DtaIndex * di=0);
+	QLexParser( const StoredUniverse& u, const DtaIndex * di=0) : dtaIdx(di), d_universe(u), m_dontSpell(false), d_maxCtokensPerQuery(MAX_CTOKENS_PER_QUERY) {}
     void setMaxCTokensPerQuery( size_t sz ) { d_maxCtokensPerQuery= sz; }
 
 	enum {

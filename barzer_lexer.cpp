@@ -11,13 +11,6 @@
 #include <ay_utf8.h>
 
 namespace barzer {
-QLexParser::QLexParser( const StoredUniverse& u, const DtaIndex * di) :
-    dtaIdx(di), 
-    d_universe(u), 
-    d_doSpell(DOSPELL_REGULAR), 
-    d_maxLevDist(BZSpell::LEV_DIST_UNLIMITED), 
-    d_maxCtokensPerQuery(MAX_CTOKENS_PER_QUERY) 
-{}
 bool QLexParser::tryClassify_number( CToken& ctok, const TToken& ttok ) const
 {
 	const char* beg = ttok.buf.c_str();
@@ -920,7 +913,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 	}
 
 	if( !isUsersWord ) {
-		strId = (d_doSpell== DOSPELL_REGULAR ? bzSpell->getSpellCorrection( theString, true, lang, d_maxLevDist ) : 0xffffffff );
+		strId = m_dontSpell ? 0xffffffff : bzSpell->getSpellCorrection( theString, true, lang );
 		if( strId != 0xffffffff ) {
 			 correctedStr = gp.string_resolve( strId ) ;
 		} else { // trying stemming
@@ -928,9 +921,9 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 			strId = bzSpell->getStemCorrection( stemmedStr, theString, lang, BZSpell::CORRECTION_MODE_NORMAL );
 			if( strId != 0xffffffff ) {
 				correctedStr = gp.string_resolve( strId ) ;
-			} else if( d_doSpell && (stemmedStr.length() > MIN_SPELL_CORRECT_LEN) && strlen(theString) != stemmedStr.length() ) {
+			} else if( !m_dontSpell && (stemmedStr.length() > MIN_SPELL_CORRECT_LEN) && strlen(theString) != stemmedStr.length() ) {
                 // spelling correction failed but the string got stemmed
-                strId = bzSpell->getSpellCorrection( stemmedStr.c_str(), true, lang, d_maxLevDist );
+                strId = bzSpell->getSpellCorrection( stemmedStr.c_str(), true, lang );
                 if( strId != 0xffffffff )
                     correctedStr = gp.string_resolve( strId ) ;
             }
@@ -961,7 +954,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
             SpellCorrectResult corrResult;
             QLexParser_LocalParms lparm(cPosVec, tPosVec, qparm, t_len, strId, lang,theString,bzSpell,ctok,ttok,t);
 
-            if( d_doSpell && trySplitCorrect (corrResult, lparm, qparm.isAutoc ) ) 
+            if( !m_dontSpell && trySplitCorrect (corrResult, lparm, qparm.isAutoc ) ) 
                 return corrResult;
         }
         //// end of split correction attempt

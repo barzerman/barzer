@@ -90,7 +90,7 @@ int DocFeatureLink::deserialize( std::istream& fp )
     return 0;
 }
 
-DocFeatureIndex::DocFeatureIndex(const barzer::StoredUniverse& u) 
+DocFeatureIndex::DocFeatureIndex() 
 : m_meaningsCounter(0)
 , d_classBoosts{ 0.5, 0.5, 1, 5 }
 {}
@@ -376,33 +376,6 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz
     return appendDocument( docId, featureVec, offset );
 }
 
-
-std::ostream& DocFeatureIndex::printNgram( std::ostream& fp, const NGram<DocFeature>& ngram ) const 
-{
-    DocFeature::class_t theClass = DocFeature::CLASS_MAX;
-    for( size_t i = 0, i_end = ngram.size(); i< i_end; ++i ) {
-        if( theClass == DocFeature::CLASS_MAX )
-                theClass = ngram[i].featureClass;
-        else if( ngram[i].featureClass != theClass ) {
-            theClass = DocFeature::CLASS_MAX;
-            break;
-        }
-    }
-    
-    fp << "C" << theClass; 
-    for( size_t i = 0, i_end = ngram.size(); i< i_end; ++i ) {
-        std::string s = resolveFeature( ngram[i] );
-        fp << "|" << s;
-    }
-    return fp;
-}
-
-void DocFeatureIndex::print( std::ostream& fp ) const 
-{
-    for( auto i = d_invertedIdx.begin(); i != d_invertedIdx.end(); ++i ) {
-        printNgram( fp, i->first ) << std::endl;
-    }
-}
 /** This function keeps only one link per given doc ID, feature ID and weight,
  * increasing the link count when it encounters the same link another time.
  * 
@@ -804,10 +777,6 @@ size_t DocFeatureLoader::addDocFromStream( uint32_t docId, std::istream& fp, Doc
     parser().tokenizer.setMax( MAX_QUERY_LEN, MAX_NUM_TOKENS );
     parser().lexer.setMaxCTokensPerQuery( MAX_NUM_TOKENS/2 );
 
-    #warning VERY SENSITIVE setDontSpell 
-    parser().lexer.setDoSpell(barzer::QLexParser::DOSPELL_REGULAR);
-    parser().lexer.d_maxLevDist = 2;
-
     BarzerTokenizerCB<DocAdderCB> cb( adderCb, parser(), barz(), qparm() );
 
     if( d_loadMode== LOAD_MODE_TEXT )
@@ -1083,7 +1052,7 @@ void DocIndexAndLoader::init(const barzer::StoredUniverse& u)
     delete loader;
     delete index;
 
-    index   = new DocFeatureIndex(u);
+    index   = new DocFeatureIndex();
     loader  = new DocIndexLoaderNamedDocs(*index, u );
 }
 
@@ -1098,4 +1067,5 @@ void BarzTokPrintCB::operator() ( BarzerTokenizerCB_data& dta, PhraseBreaker& ph
     }
     fp << std::endl;
 }
+
 } // namespace zurch
