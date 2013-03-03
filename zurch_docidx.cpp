@@ -832,7 +832,10 @@ void DocFeatureLoader::addParsedDocContents (uint32_t docId, const std::string& 
 	if (pos == m_parsedDocs.end())
 		m_parsedDocs.insert({ docId, parsed });
 	else
+	{
+		pos->second.push_back(' ');
 		pos->second += parsed;
+	}
 }
 
 	typedef std::pair<DocFeatureIndex::PosInfos_t::value_type, uint32_t> WPos_t;
