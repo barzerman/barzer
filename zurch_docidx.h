@@ -286,7 +286,10 @@ public:
 	void loadSynonyms(const std::string&, const barzer::StoredUniverse&);
 
     uint32_t resolveExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u ) const 
-        { return d_entPool.getIdByObj(translateExternalEntity(ent,u)); }
+        { 
+            barzer::BarzerEntity internalEnt = translateExternalEntity(ent,u);
+            return d_entPool.getIdByObj(internalEnt); 
+        }
 
     /// place external entity into the pool (add all relevant strings to pool as well)
     uint32_t storeExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u );

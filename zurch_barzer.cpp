@@ -104,7 +104,10 @@ DECL_TAGHANDLE(E) {
         ALS_BEGIN
                 case 'c': eclass.ec = atoi(v); break;
                 case 's': eclass.subclass = atoi(v); break;
-                case 'i': idStr.assign(v); break;
+                case 'i': {
+                    idStr.assign(v); 
+                    }
+                    break;
         ALS_END
         if( !idStr.empty() && eclass.isValid() ) 
             parser.setEntity(eclass,idStr.c_str());
