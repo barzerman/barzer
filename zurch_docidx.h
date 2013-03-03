@@ -461,13 +461,11 @@ public:
     struct ChunkPositions {
     };
 
-	void getBestChunks(
-        uint32_t docId, 
-        const DocFeatureIndex::PosInfos_t& positions,
-
-	    size_t chunkLength, 
-        size_t count, 
-        std::vector<Chunk_t>& chunks) const;
+	void getBestChunks(uint32_t docId, 
+			const DocFeatureIndex::PosInfos_t& positions,
+			size_t chunkLength, 
+			size_t count, 
+			std::vector<Chunk_t>& chunks) const;
 
     void parseTokenized() 
     {
