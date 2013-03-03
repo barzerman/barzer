@@ -44,6 +44,12 @@ struct DocFeature {
     } class_t;
     class_t featureClass;
 
+    /// where this feature is located 
+    typedef enum : uint8_t {
+        LOC_CONTENT, 
+        LOC_TITLE,
+    };
+
     DocFeature( ): featureId(0xffffffff), featureClass(CLASS_ENTITY) {}
     DocFeature( class_t c, uint32_t i ): featureId(i), featureClass(c) {}
 
@@ -452,8 +458,16 @@ public:
 	
 	typedef std::vector<ChunkItem> Chunk_t;
 	
-	void getBestChunks(uint32_t docId, const DocFeatureIndex::PosInfos_t& positions,
-			size_t chunkLength, size_t count, std::vector<Chunk_t>& chunks) const;
+    struct ChunkPositions {
+    };
+
+	void getBestChunks(
+        uint32_t docId, 
+        const DocFeatureIndex::PosInfos_t& positions,
+
+	    size_t chunkLength, 
+        size_t count, 
+        std::vector<Chunk_t>& chunks) const;
 
     void parseTokenized() 
     {
