@@ -116,7 +116,6 @@ struct AutocNodeVisotor_Callback {
                             if( d_bestEnt ) {
                                 const EntityData::EntProp* edata = universe.getEntPropData( euid );
                                 uint32_t relevance;
-                                // std::cerr << "SHITFUCK:" << euid << ":" << &(universe.gp) << "\n";
                                 if( edata ) 
                                     relevance = edata->relevance;
                                 else 
@@ -145,7 +144,6 @@ struct AutocNodeVisotor_Callback {
                                     if( d_bestEnt ) {
                                         const EntityData::EntProp* edata = universe.getEntPropData( euid );
                                         uint32_t relevance ;
-                                        // std::cerr << "SHITFUCK 87:" << euid << "\n";
                                         if( edata ) {
                                             relevance = edata->relevance;
                                         } else 

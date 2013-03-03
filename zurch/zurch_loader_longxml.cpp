@@ -213,22 +213,26 @@ int ZurchLongXMLParser_DocLoader::callback()
         WEIGHT_BOOST_KEYWORD=2000
     };
     
-    std::stringstream sstr;
-
-    sstr << d_data.d_Content;
-    d_loader.setCurrentWeight(WEIGHT_BOOST_NONE);
-    d_loader.addDocFromStream( docId, sstr, d_loadStats );
-    if( d_loader.hasContent() ) {
-        d_loader.addDocContents( docId, d_data.d_Content );
+    { // NAME
+        std::stringstream sstr;
+        sstr << d_data.d_DocName;
+        d_loader.setCurrentWeight(WEIGHT_BOOST_NAME);
+        d_loader.addDocFromStream( docId, sstr, d_loadStats );
     }
-    
-    sstr << d_data.d_DocName;
-    d_loader.setCurrentWeight(WEIGHT_BOOST_NAME);
-    d_loader.addDocFromStream( docId, sstr, d_loadStats );
-
-    sstr << d_data.d_Keywords;
-    d_loader.setCurrentWeight(WEIGHT_BOOST_KEYWORD);
-    d_loader.addDocFromStream( docId, sstr, d_loadStats );
+    { // KEYWORDS
+        std::stringstream sstr;
+        sstr << d_data.d_Keywords;
+        d_loader.setCurrentWeight(WEIGHT_BOOST_KEYWORD);
+        d_loader.addDocFromStream( docId, sstr, d_loadStats );
+    }
+    { /// CONTENT
+        std::stringstream sstr;
+        sstr << d_data.d_Content;
+        d_loader.setCurrentWeight(WEIGHT_BOOST_NONE);
+        d_loader.addDocFromStream( docId, sstr, d_loadStats );
+        if( d_loader.hasContent() ) 
+            d_loader.addDocContents( docId, d_data.d_Content );
+    }
     return 0;
 }
 

@@ -38,6 +38,7 @@ struct xhtml_parser_state {
     std::vector< char > d_buf; /// always contains txt between the tags 
     size_t d_bufOffset, d_readOffset;
     bool d_endReached;
+    size_t d_numTagsSeen;
     enum : size_t {
         DEFAULT_BUF_SZ = 256*1024
     };
@@ -95,9 +96,10 @@ struct xhtml_parser_state {
         d_buf(bufSz), 
         d_bufOffset(0), d_readOffset(0),
         d_endReached(false),
+        d_numTagsSeen(0),
         d_cbReason(CB_UNKNOWN),
         d_mode(MODE_HTML)
-        { d_buf.back()=0; }
+    { d_buf.back()=0; }
 };
 
 /// CB( const xhtml_parser_state&, const char* s`, size_t sz )
@@ -161,6 +163,7 @@ public:
     {
         /// buffer to drain starts at d_bufOffset
         std::string tag;
+        
         while( d_bufOffset< d_buf.size() ) {
             // finding next tag
             const char* buf_start = &(d_buf[0]);
@@ -168,6 +171,7 @@ public:
             const char* lt = strchr( buf_offset, '<' );
             const char* gt = ( lt ? strchr( lt, '>' ) : 0 );
             if( gt ) { /// complete tag has been detected
+                ++d_numTagsSeen;
                 if( textIsGood(buf_offset, lt) )
                     d_cbTxt(  state(CB_TEXT), buf_offset, lt-buf_offset ); 
                 if( lt[1] == '/' ) {  /// this is a closing tag 
@@ -223,6 +227,7 @@ public:
                        ++d_bufOffset;
                 }
             } else if( !d_endReached ) { // we havent reached a tag at all yet theres soemthing else left in the stream 
+                d_numTagsSeen=0;
                 if( d_bufOffset > 0 ) { // we'll try to move filled buffer back and then read the remaining piece
                     if( d_buf.size()> d_bufOffset ) {
                         size_t old_sz = d_buf.size()- d_bufOffset;
@@ -230,13 +235,22 @@ public:
                         d_bufOffset=0;
                         d_readOffset=old_sz;
                     }
-                } else { /// d_bufOffset is 0 so our entire buffer doesnt fit the stuff 
+                } else { /// d_bufOffset is 0 so either our entire buffer doesnt fit the stuff 
                     if( textIsGood(buf_offset, lt ) )
                         d_cbTxt( state(CB_TEXT), buf_offset, d_buf.size()-d_bufOffset );
                     d_readOffset= 0;
                     d_bufOffset=0;
                     return;
                 }
+            } else if( !d_numTagsSeen ) {
+                if( d_bufOffset < d_buf.size() ) {
+                    size_t theLen = strlen(buf_offset);
+                    if( theLen > 0 )
+                    d_cbTxt( state(CB_TEXT), buf_offset, theLen );
+                }
+                d_readOffset= 0;
+                d_bufOffset=0;
+                return;
             } else
                 break;
         }
@@ -245,7 +259,7 @@ public:
     {
         d_endReached = false;
         size_t offs = 0, bytesRead = 0;
-        
+        d_numTagsSeen = 0; 
         do {
             size_t bytesToRead = d_buf.size()-d_readOffset;
             d_stream.read( &(d_buf[0]) + d_readOffset, bytesToRead );

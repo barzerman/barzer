@@ -94,7 +94,7 @@ if(WIN32)
 			libws2_32.a
 	        	${EXPAT_LIBRARIES}/libexpat.lib)
 else()
-	set(EXTRA_LIBS ${EXTRA_LIBS} ${EXPAT_LIBRARIES})
+	set(EXTRA_LIBS ${EXTRA_LIBS} ${EXPAT_LIBRARIES} dl)
 endif()
 
 set(SOURCES 
