@@ -189,9 +189,9 @@ uint32_t DocFeatureIndex::storeExternalString( const char* s )
 
 uint32_t DocFeatureIndex::storeExternalString( const barzer::BarzerLiteral& l, const barzer::StoredUniverse& u )
 {
-    if( const char* s = l.toString(u).first ) 
+    if( const char* s = l.toString(u).first ) {
         return d_stringPool.internIt(s);
-    else 
+    } else 
         return 0xffffffff;
 }
 uint32_t DocFeatureIndex::resolveExternalString( const barzer::BarzerLiteral& l, const barzer::StoredUniverse& u ) const
@@ -246,7 +246,7 @@ namespace
 			
 			if( const barzer::BarzerLiteral* x = i->get<barzer::BarzerLiteral>() ) {
 				const auto& pair = x->toString(*universe);
-				if (!x->isPunct() && pair.second && !(pair.second == 1 && (isspace(pair.first[0]) || ispunct(pair.first[0]))))
+				if (!x->isStop() && !x->isPunct() && pair.second && !(pair.second == 1 && (isspace(pair.first[0]) || ispunct(pair.first[0]))))
 				{
 					uint32_t strId = (idx->*getStr)( *x, *universe );
 					featureVec.push_back( 
@@ -276,6 +276,7 @@ namespace
 				}
 			} else if (const barzer::BarzerString* s = i->get<barzer::BarzerString>()) { 
 				const char *theString = (s->stemStr().length() ? s->stemStr().c_str(): s->getStr().c_str());
+
 				uint32_t strId = (idx->*getRawStr)(theString);//d_stringPool.getId(theString); 
 				
 				const auto& wm = meanings.getMeanings(strId);
@@ -892,20 +893,6 @@ namespace
 		if (result.empty())
 			return result;
 		
-		/** Chunks compaction pass.
-		for (auto i = result.begin(); i < result.end() - 1; )
-		{
-			auto next = *(i + 1);
-			if (i->first + i->second + 2 > next.first)
-			{
-				next.second += next.first - i->first;
-				next.first = i->first;
-				i = result.erase(i);
-			}
-			else
-				++i;
-		}
-		*/
 		return result;
 	}
 	
