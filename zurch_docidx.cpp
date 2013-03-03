@@ -243,15 +243,16 @@ namespace
 
 		for( auto i = barz.getBeadList().begin(); i!= barz.getBeadList().end(); ++i ) {
 			const auto& fdp = getPosFromCToks(i->getCTokens());
+			const auto stemId = i->getStemStringId();
 			
 			if( const barzer::BarzerLiteral* x = i->get<barzer::BarzerLiteral>() ) {
 				const auto& pair = x->toString(*universe);
 				if (!x->isStop() && !x->isPunct() && pair.second && !(pair.second == 1 && (isspace(pair.first[0]) || ispunct(pair.first[0]))))
 				{
-					uint32_t strId = (idx->*getStr)( *x, *universe );
+					uint32_t strId = stemId == 0xffffffff ? (idx->*getStr)( *x, *universe ) : stemId;
 					featureVec.push_back( 
 						ExtractedDocFeature( 
-							DocFeature( DocFeature::CLASS_TOKEN, strId ), 
+							DocFeature( DocFeature::CLASS_STEM, strId ), 
 							fdp
 						) 
 					);
