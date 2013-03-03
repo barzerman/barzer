@@ -720,22 +720,28 @@ struct DocAdderCB {
 
     DocFeatureLoader& docLoader;
     const barzer::QuestionParm& qparm;
+	
+	const size_t baseOffset;
+	size_t bytesHandled;
     
-    DocAdderCB( uint32_t did , DocFeatureLoader& dl, const barzer::QuestionParm& qp ) : 
+    DocAdderCB( uint32_t did, uint32_t offset, DocFeatureLoader& dl, const barzer::QuestionParm& qp ) : 
         docId(did),
         docLoader(dl), 
-        qparm(qp) 
+        qparm(qp),
+        baseOffset(offset),
+        bytesHandled(0)
     {}
+
     void operator() ( BarzerTokenizerCB_data& dta, PhraseBreaker& phraser, barzer::Barz&, size_t offset, const char *s, size_t sLen ) {
         if( !(++stats.numPhrases % 10000) ) {
             std::cerr << ".";
         }
         docLoader.parseTokenized();
 
-        stats.numFeatureBeads += docLoader.index().appendDocument( docId, docLoader.barz(), offset, docLoader.getCurrentWeight() );
+        stats.numFeatureBeads += docLoader.index().appendDocument( docId, docLoader.barz(), offset + baseOffset, docLoader.getCurrentWeight() );
         stats.numBeads += docLoader.barz().getBeads().getList().size();
 		
-		docLoader.addParsedDocContents(docId, std::string(s, sLen));
+		bytesHandled += docLoader.addParsedDocContents(docId, std::string(s, sLen));
     }
 };
 
@@ -774,7 +780,12 @@ std::ostream& DocFeatureLoader::DocStats::print( std::ostream& fp ) const
 size_t DocFeatureLoader::addDocFromStream( uint32_t docId, std::istream& fp, DocFeatureLoader::DocStats& stats )
 {
     d_phraser.clear();
-    DocAdderCB adderCb( docId, *this, qparm() );
+	
+	auto lastOffsetPos = m_lastOffset.find(docId);
+	if (lastOffsetPos == m_lastOffset.end())
+		lastOffsetPos = m_lastOffset.insert({ docId, 0 }).first;
+	
+    DocAdderCB adderCb( docId, lastOffsetPos->second, *this, qparm() );
 
     parser().tokenizer.setMax( MAX_QUERY_LEN, MAX_NUM_TOKENS );
     parser().lexer.setMaxCTokensPerQuery( MAX_NUM_TOKENS/2 );
@@ -798,6 +809,8 @@ size_t DocFeatureLoader::addDocFromStream( uint32_t docId, std::istream& fp, Doc
     }
         
     stats += adderCb.stats;
+	
+	lastOffsetPos->second += adderCb.bytesHandled;
 
     return stats.numBeads;
 }
@@ -823,18 +836,22 @@ bool DocFeatureLoader::getDocContents (uint32_t docId, std::string& out) const
 	}
 }
 
-void DocFeatureLoader::addParsedDocContents (uint32_t docId, const std::string& parsed)
+size_t DocFeatureLoader::addParsedDocContents(uint32_t docId, const std::string& parsed)
 {
 	if (noChunks())
-		return;
+		return 0;
 	
 	auto pos = m_parsedDocs.find(docId);
 	if (pos == m_parsedDocs.end())
+	{
 		m_parsedDocs.insert({ docId, parsed });
+		return parsed.size();
+	}
 	else
 	{
 		pos->second.push_back(' ');
 		pos->second += parsed;
+		return parsed.size() + 1;
 	}
 }
 

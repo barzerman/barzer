@@ -44,12 +44,6 @@ struct DocFeature {
     } class_t;
     class_t featureClass;
 
-    /// where this feature is located 
-    typedef enum : uint8_t {
-        LOC_CONTENT, 
-        LOC_TITLE,
-    };
-
     DocFeature( ): featureId(0xffffffff), featureClass(CLASS_ENTITY) {}
     DocFeature( class_t c, uint32_t i ): featureId(i), featureClass(c) {}
 
@@ -352,6 +346,8 @@ class DocFeatureLoader {
 	// bool m_storeParsed; // when true stores chunks
     
 	std::map<uint32_t, std::string> m_parsedDocs;
+	
+	std::map<uint32_t, size_t> m_lastOffset;
 public:
     enum {
         BIT_NO_PARSE_CHUNKS, // when set doesnt store /output chunks (parse info)
@@ -437,7 +433,10 @@ public:
 	void addDocContents(uint32_t docId, const std::string& contents);
 	bool getDocContents(uint32_t docId, std::string& out) const;
 	
-	void addParsedDocContents(uint32_t docId, const std::string& parsed);
+	/** Returns the amount of bytes that where actually appended. This may
+	 * include some extra markup.
+	 */
+	size_t addParsedDocContents(uint32_t docId, const std::string& parsed);
 	
 	struct ChunkItem
 	{
