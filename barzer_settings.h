@@ -46,6 +46,7 @@ struct User {
 	typedef uint32_t Id;
 	typedef std::vector<TriePath> TrieVec;
 	Id id;
+    std::string extraDictFileName;
 	// TrieVec tries;
 	BarzerSettings &settings;
 	StoredUniverse &universe;
@@ -65,12 +66,17 @@ struct User {
 	StoredUniverse* getUniversePtr() { return &universe; }
 	const StoredUniverse* getUniversePtr() const { return &universe; }
     int readClassNames( const boost::property_tree::ptree& node ) ;
+
+    int loadExtraDictionary();
 };
 
 struct Rulefile {
-	TriePath trie;
-	const char *fname;
-	Rulefile(const char *fn, const std::string &tclass = "", const std::string &tid = "")
+	TriePath trie; /// pair(string,string)
+    std::string extraDictionaryPath; // dict attribute in the file tag within rules
+
+	std::string fname;
+    Rulefile() {}
+	Rulefile(const std::string fn, const std::string &tclass = "", const std::string &tid = "")
 		: trie(TriePath(tclass, tid)), fname(fn) {}
 };
 

@@ -308,6 +308,7 @@ public:
 	BELTrie& getTrie() { return *trie ; }
 	const BELTrie& getTrie() const { return *trie ; }
 	const BELTrie* getTriePtr() const { return trie ; }
+	BELTrie* getTriePtr() { return trie ; }
 
 	GlobalPools& getGlobalPools() { return gp; }
 	const GlobalPools& getGlobalPools() const { return gp; }
