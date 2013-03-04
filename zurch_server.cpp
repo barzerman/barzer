@@ -68,7 +68,7 @@ std::ostream& DocIdxSearchResponseXML::print( std::ostream& os, const DocFeature
 						
 						ay::XMLStream(os).escape(item.m_contents) << "</item>\n";
 					}
-					os << "\t\t</chunk>";
+					os << "\t\t</chunk>\n";
 				}
 			    os << "\t</chunks>\n";
 		    }
