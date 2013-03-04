@@ -243,7 +243,13 @@ namespace
 
 		for( auto i = barz.getBeadList().begin(); i!= barz.getBeadList().end(); ++i ) {
 			const auto& fdp = getPosFromCToks(i->getCTokens());
-			const auto stemId = i->getStemStringId();
+			auto stemId = i->getStemStringId();
+			if (stemId != 0xffffffff)
+			{
+				auto stemStr = universe->getStringPool().resolveId(stemId);
+				if (stemStr)
+					stemId = (idx->*getRawStr)(stemStr);
+			}
 			
 			if( const barzer::BarzerLiteral* x = i->get<barzer::BarzerLiteral>() ) {
 				const auto& pair = x->toString(*universe);
