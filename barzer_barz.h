@@ -339,6 +339,7 @@ public:
 
 
     const       std::string& getOrigQuestion() const { return questionOrig; }
+    std::string getPositionalQuestion() const;
     const ay::StrUTF8& getQuestionOrigUTF8() const { return questionOrigUTF8; } /// our utf8 representation of questionOrig
 
     uint64_t    getQueryId() const { return d_origQuestionId; }

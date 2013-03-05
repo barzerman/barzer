@@ -632,4 +632,13 @@ int Barz::extraNormalization( const QuestionParm& qparm )
 {
     return ay::unicode_normalize_punctuation( questionOrig );
 }
+
+std::string Barz::getPositionalQuestion() const
+{
+	std::string result;
+	result.reserve(question.size());
+	std::copy(question.begin(), question.end(), std::back_inserter(result));
+	return result;
+}
+
 } // barzer namepace ends
