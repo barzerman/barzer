@@ -37,7 +37,7 @@ typedef boost::variant<
 	BarzerRange,
 	BarzerEntityList,
 	BarzerEntity,
-	BarzerEntityRangeCombo,
+	BarzerERC,
 	BarzerERCExpr,
     BarzerEVR
 > BarzelBeadAtomic_var;

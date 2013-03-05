@@ -101,7 +101,7 @@ DECL_TAGHANDLE(ENTITY) {
 			}break;
 	ALS_END
 
-    BarzerEntityRangeCombo* erc = parser.barz.getLastBead().get<BarzerEntityRangeCombo>();
+    BarzerERC* erc = parser.barz.getLastBead().get<BarzerERC>();
     if( erc ) {
         erc->setEntity( ent );
     } else if( parser.isCurTag(TAG_BEAD)  ) {
@@ -119,7 +119,7 @@ DECL_TAGHANDLE(ERC) {
     if( parser.barz.isListEmpty() || !IS_PARENT_TAG(BEAD) ) 
         return TAGHANDLE_ERROR_PARENT;
 
-    parser.barz.getLastBead().setAtomicData( BarzerEntityRangeCombo() );
+    parser.barz.getLastBead().setAtomicData( BarzerERC() );
     return TAGHANDLE_ERROR_OK;
 }
 DECL_TAGHANDLE(FLUFF) { 
@@ -164,7 +164,7 @@ DECL_TAGHANDLE(DATE) {
             break;
     ALS_END
 
-    BarzerEntityRangeCombo* erc = parser.barz.getLastBead().get<BarzerEntityRangeCombo>();
+    BarzerERC* erc = parser.barz.getLastBead().get<BarzerERC>();
     BarzerRange* range = ( erc ?  &(erc->getRange()) : parser.barz.getLastBead().get<BarzerRange>() );
 
     if( range ) {
@@ -214,7 +214,7 @@ DECL_TAGHANDLE(TIMESTAMP) {
     if( hh||mm||ss ) 
         tstamp.timeOfDay.setHHMMSS( hh, mm, ss );
 
-    BarzerEntityRangeCombo* erc = parser.barz.getLastBead().get<BarzerEntityRangeCombo>();
+    BarzerERC* erc = parser.barz.getLastBead().get<BarzerERC>();
     BarzerRange* range = ( erc ?  &(erc->getRange()) : parser.barz.getLastBead().get<BarzerRange>() );
 
     if( range ) {
@@ -254,7 +254,7 @@ DECL_TAGHANDLE(TIME) {
     if( hh||mm||ss ) 
         theTime.setHHMMSS( hh, mm, ss );
 
-    BarzerEntityRangeCombo* erc = parser.barz.getLastBead().get<BarzerEntityRangeCombo>();
+    BarzerERC* erc = parser.barz.getLastBead().get<BarzerERC>();
     BarzerRange* range = ( erc ?  &(erc->getRange()) : parser.barz.getLastBead().get<BarzerRange>() );
 
     if( range ) {
@@ -287,7 +287,7 @@ DECL_TAGHANDLE(NUM) {
             break;
     ALS_END
 
-    BarzerEntityRangeCombo* erc = parser.barz.getLastBead().get<BarzerEntityRangeCombo>();
+    BarzerERC* erc = parser.barz.getLastBead().get<BarzerERC>();
     BarzerRange* range = ( erc ?  &(erc->getRange()) : parser.barz.getLastBead().get<BarzerRange>() );
 
     if( range ) {

@@ -350,7 +350,7 @@ struct DateGetter_vis : public boost::static_visitor<const BarzerDate*>  {
         const BarzerRange::Date* p = d.getDate();
         return ( p ? &(p->first) : 0);
     }
-    const BarzerDate* operator()( const BarzerEntityRangeCombo& d ) const { return (*this)( d.getRange() ); }
+    const BarzerDate* operator()( const BarzerERC& d ) const { return (*this)( d.getRange() ); }
 };
 inline const BarzerDate* getBarzerDateFromAtomic( const BarzelBeadAtomic* atomic )
 {
@@ -713,14 +713,14 @@ struct BELFunctionStorage_holder {
                 setResult(result, evr->getEntity() );
                 return true;
             } else { 
-                const BarzerEntityRangeCombo* erc  = getAtomicPtr<BarzerEntityRangeCombo>(rvec[0]);
+                const BarzerERC* erc  = getAtomicPtr<BarzerERC>(rvec[0]);
                 const BarzerEntity* ent  = ( erc ? &(erc->getEntity()) : getAtomicPtr<BarzerEntity>(rvec[0]) );
                 if( ent ) {
                     if( rvec.size() == 1 ) { /// this is a getter
                         setResult(result, *ent );
                         return true;
                     } else if( rvec.size() == 2 ) { // this is a setter
-                        const BarzerEntityRangeCombo* r_erc  = getAtomicPtr<BarzerEntityRangeCombo>(rvec[1]);
+                        const BarzerERC* r_erc  = getAtomicPtr<BarzerERC>(rvec[1]);
                         const BarzerEntity* r_ent  = ( r_erc ? &(r_erc->getEntity()) : getAtomicPtr<BarzerEntity>(rvec[1]) );
     
                         if( r_ent ) {
@@ -738,14 +738,14 @@ struct BELFunctionStorage_holder {
     STFUN(getRange){
         SETFUNCNAME(getRange);
         if(rvec.size() )  {
-            const BarzerEntityRangeCombo* erc  = getAtomicPtr<BarzerEntityRangeCombo>(rvec[0]);
+            const BarzerERC* erc  = getAtomicPtr<BarzerERC>(rvec[0]);
             const BarzerRange* range  = ( erc ? &(erc->getRange()) : getAtomicPtr<BarzerRange>(rvec[0]) );
             if( range ) {
                 if( rvec.size() == 1 ) { /// this is a getter
                     setResult(result, *range );
                     return true;
                 } else if( rvec.size() == 2 ) { // this is a setter
-                    const BarzerEntityRangeCombo* r_erc  = getAtomicPtr<BarzerEntityRangeCombo>(rvec[1]);
+                    const BarzerERC* r_erc  = getAtomicPtr<BarzerERC>(rvec[1]);
                     const BarzerRange* r_range  = ( r_erc ? &(r_erc->getRange()) : getAtomicPtr<BarzerRange>(rvec[1]) );
 
                     if( r_range ) {
@@ -765,7 +765,7 @@ struct BELFunctionStorage_holder {
             const BarzerRange* range  = getAtomicPtr<BarzerRange>(rvec[0]);
 
             if( !range ) {
-                const BarzerEntityRangeCombo* erc  = getAtomicPtr<BarzerEntityRangeCombo>(rvec[0]);
+                const BarzerERC* erc  = getAtomicPtr<BarzerERC>(rvec[0]);
 
                 if( erc )
                     range = &(erc->getRange());
@@ -1387,7 +1387,7 @@ struct BELFunctionStorage_holder {
 			return false;
 		}
 
-		bool operator()(const BarzerEntityRangeCombo &combo) {
+		bool operator()(const BarzerERC &combo) {
 			return operator()(combo.getRange());
 		}
 
@@ -1516,8 +1516,8 @@ struct BELFunctionStorage_holder {
         const char* d_funcName;
         BarzelEvalContext& d_ctxt;
 
-		BarzerEntityRangeCombo &erc;
-		ERCPacker(BarzerEntityRangeCombo &e, BarzelEvalContext& ctxt, const char* funcName ) :
+		BarzerERC &erc;
+		ERCPacker(BarzerERC &e, BarzelEvalContext& ctxt, const char* funcName ) :
             num(0), d_funcName(funcName), d_ctxt(ctxt), erc(e) {}
 
 		bool operator()(const BarzerEntityList &el) {
@@ -1543,7 +1543,7 @@ struct BELFunctionStorage_holder {
 			return true;
 		}
 		// merges N ERC together. Tries to select the best entity/unit
-		bool operator()(const BarzerEntityRangeCombo &other) {
+		bool operator()(const BarzerERC &other) {
 			if (num) {
 				const BarzerEntity &e = other.getEntity(),
 								   &u = other.getUnitEntity();
@@ -1633,7 +1633,7 @@ struct BELFunctionStorage_holder {
 		//AYLOG(DEBUG) << rvec[0].getBeadData().which();
         SETFUNCNAME(mkERC);
 
-		BarzerEntityRangeCombo erc;
+		BarzerERC erc;
 		ERCPacker v(erc,ctxt,func_name);
 		for (BarzelEvalResultVec::const_iterator ri = rvec.begin();
 						ri != rvec.end(); ++ri)
@@ -1677,7 +1677,7 @@ struct BELFunctionStorage_holder {
 			}
 			return true;
 		}
-		bool operator()(const BarzerEntityRangeCombo &erc) {
+		bool operator()(const BarzerERC &erc) {
 			expr.addToExpr(erc, expr.d_type);
 			return true;
 		}
@@ -2166,7 +2166,7 @@ struct BELFunctionStorage_holder {
 			{ return set(pos ? dt.second : dt.first); }
 		bool operator()(const BarzerRange &r)
 			{ return boost::apply_visitor(*this, r.getData()); }
-		bool operator()(const BarzerEntityRangeCombo &erc)
+		bool operator()(const BarzerERC &erc)
 			{ return operator()(erc.getRange()); }
 		bool operator()(const BarzelBeadAtomic &data)
 			{ return boost::apply_visitor(*this, data.getData()); }
@@ -2231,13 +2231,13 @@ struct BELFunctionStorage_holder {
                         return true;
                     }
                 } else {
-                    const BarzerEntityRangeCombo* erc = getAtomicPtr<BarzerEntityRangeCombo>(arg0);
+                    const BarzerERC* erc = getAtomicPtr<BarzerERC>(arg0);
                     if( erc ) {
                         BarzerRange newR(erc->getRange());
                         if( !newR.scale(*n,mode) ) 
                             FERROR("failed to scale the range");
                          else {
-                            BarzerEntityRangeCombo berc;
+                            BarzerERC berc;
                             berc.setRange(newR);  
                             berc.setEntity(erc->getEntity());                             
 		            setResult(result, berc);
@@ -2260,13 +2260,13 @@ struct BELFunctionStorage_holder {
                         return true;
                     }
                 } else {
-                    const BarzerEntityRangeCombo* erc = getAtomicPtr<BarzerEntityRangeCombo>(rvec[0]);
+                    const BarzerERC* erc = getAtomicPtr<BarzerERC>(rvec[0]);
                     if( erc ) {
                         BarzerRange newR(erc->getRange());
                         if( !newR.scale(*n1, *n2,mode) ) 
                             FERROR("failed to scale the range");
                         else {
-                            BarzerEntityRangeCombo berc;
+                            BarzerERC berc;
                             berc.setRange(newR);  
                             berc.setEntity(erc->getEntity());                             
                             setResult(result, berc);

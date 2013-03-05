@@ -10,7 +10,7 @@
 
 namespace barzer {
 
-/// this pattern is used to match BarzerEntityList as well as BarzerEntityRangeCombo
+/// this pattern is used to match BarzerEntityList as well as BarzerERC
 class BTND_Pattern_Entity : public BTND_Pattern_Base {
 	BarzerEntity d_ent;
 	BarzerRange d_range;
@@ -42,7 +42,7 @@ public:
 	const BarzerEntity& getEntity() const { return d_ent; }
 	BarzerEntity& getEntity() { return d_ent; }
 
-	bool operator() ( const BarzerEntityRangeCombo& erc ) const {
+	bool operator() ( const BarzerERC& erc ) const {
 		return ( d_ent.matchOther( erc.getEntity() ) );
 	}
 	bool operator() ( const BarzerEntity& ent ) const { return ( d_ent.matchOther( ent ) ); }
@@ -70,7 +70,7 @@ inline bool operator< ( const BTND_Pattern_Entity& l, const BTND_Pattern_Entity&
 
 
 class BTND_Pattern_ERC: public BTND_Pattern_Base {
-	BarzerEntityRangeCombo d_erc;
+	BarzerERC d_erc;
 
 	uint8_t d_matchBlankRange, d_matchBlankEntity;
 public:
@@ -87,9 +87,9 @@ public:
 	void setMatchBlankRange() { d_matchBlankRange= 1; }
 	void setMatchBlankEntity() { d_matchBlankEntity = 1; }
 
-	const BarzerEntityRangeCombo& getERC() const { return d_erc; }
-	BarzerEntityRangeCombo& getERC() { return d_erc; }
-	bool operator()( const BarzerEntityRangeCombo& e) const 
+	const BarzerERC& getERC() const { return d_erc; }
+	BarzerERC& getERC() { return d_erc; }
+	bool operator()( const BarzerERC& e) const 
 		{ 
 			return d_erc.matchOtherWithBlanks(e, isMatchBlankRange(), isMatchBlankEntity() );
 		} 

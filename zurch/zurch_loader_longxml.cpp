@@ -215,13 +215,13 @@ int ZurchLongXMLParser_DocLoader::callback()
     
     { // NAME
         std::stringstream sstr;
-        sstr << d_data.d_DocName;
+        sstr << d_data.d_DocName << " ";
         d_loader.setCurrentWeight(WEIGHT_BOOST_NAME);
         d_loader.addDocFromStream( docId, sstr, d_loadStats );
     }
     { // KEYWORDS
         std::stringstream sstr;
-        sstr << d_data.d_Keywords;
+        sstr << d_data.d_Keywords << " ";
         d_loader.setCurrentWeight(WEIGHT_BOOST_KEYWORD);
         d_loader.addDocFromStream( docId, sstr, d_loadStats );
     }

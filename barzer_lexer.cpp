@@ -1046,8 +1046,10 @@ int QLexParser::singleTokenClassify_space( Barz& barz, const QuestionParm& qparm
 		    /// stemming
 		    if( (!isNumber && bzSpell) ) {
 
+                // bool gotStemmed = bzSpell->stem(ctok.stem, t, lang) ;
 			    // std::string stem;
                 const StoredToken* stemTok = bzSpell->stem_utf8_punct( ctok.stem, barz.getQuestionOrigUTF8(), ttok );
+
 				if( stemTok ) 
 				{
 					if (d_universe.checkBit(StoredUniverse::UBIT_LEX_STEMPUNCT))

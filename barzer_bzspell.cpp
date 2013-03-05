@@ -1298,7 +1298,7 @@ BZSpell::~BZSpell()
 	delete m_featuredSC;
 }
 
-size_t BZSpell::loadExtra( const char* fileName )
+size_t BZSpell::loadExtra( const char* fileName, BELTrie* trie )
 {
 	if( !fileName )
 		return 0;
@@ -1326,7 +1326,7 @@ size_t BZSpell::loadExtra( const char* fileName )
 			freq = (uint32_t)atoi( sep );
 		}
 		int lang = 0;
-		uint32_t strId = d_universe.stemAndIntern(lang, buf, buf_last, 0);
+		uint32_t strId = d_universe.stemAndIntern(lang, buf, buf_last, trie);
 		addExtraWordToDictionary( strId, freq );
 		++numWords;
 	}

@@ -77,13 +77,21 @@ void BarzerSettings::addRulefile(BELReader& reader, const Rulefile &f)
 {
 	const std::string &tclass = f.trie.first,
 					  &tid = f.trie.second;
-	const char *fname = f.fname;
+	const char *fname = f.fname.c_str();
 	reader.setCurrentUniverse( getCurrentUniverse() );
 
     uint32_t trieClass = gpools.internString_internal(tclass.c_str()) ;
     uint32_t trieId = gpools.internString_internal(tid.c_str()) ;
 
 	reader.setTrie(trieClass, trieId );
+    if( !f.extraDictionaryPath.empty() ) {
+	    BZSpell* bzs = d_currentUniverse->initBZSpell(0);
+        if( bzs ) {
+            bzs->loadExtra( f.extraDictionaryPath.c_str(), reader.getTriePtr() );
+        } else {
+            std::cerr << "INTERNAL ERROR in addRulefile\n";
+        }
+    }
 
 	size_t num = reader.loadFromFile(fname, BELReader::INPUT_FMT_XML);
 	std::cout << num << " statements (-" << reader.getNumSkippedStatements() << ")";
@@ -203,15 +211,18 @@ void BarzerSettings::loadRules(BELReader& reader, const boost::property_tree::pt
 	BOOST_FOREACH(const ptree::value_type &v, rules) {
 		if (v.first == "file") {
 			const ptree &file = v.second;
-			const char *fname =  file.data().c_str();
+            Rulefile ruleFile( file.data() );
 			try {
 				const ptree &attrs = file.get_child("<xmlattr>");
                 const boost::optional<std::string> noCanonicalNames = attrs.get_optional<std::string>("nonames");
+                if( const auto p = attrs.get_optional<std::string>("dict") ) 
+                    ruleFile.extraDictionaryPath = *p;
 
-				const std::string &cl = attrs.get<std::string>("class"),
-			                  	  &id = attrs.get<std::string>("name");
-                uint32_t trieClass = gpools.internString_internal(cl.c_str()) ;
-                uint32_t trieId = gpools.internString_internal(id.c_str()) ;
+				ruleFile.trie.first  = attrs.get<std::string>("class"),
+			    ruleFile.trie.second = attrs.get<std::string>("name");
+
+                uint32_t trieClass = gpools.internString_internal(ruleFile.trie.first.c_str()) ;
+                uint32_t trieId = gpools.internString_internal(ruleFile.trie.second.c_str()) ;
 
                 const boost::optional<std::string> tagsToFilter = attrs.get_optional<std::string>("tag");
                 if( tagsToFilter ) {
@@ -224,10 +235,11 @@ void BarzerSettings::loadRules(BELReader& reader, const boost::property_tree::pt
                     reader.set_noCanonicalNames();
                 } else 
                     reader.set_canonicalNames();
-				addRulefile(reader, Rulefile(fname, cl, id));
+
+				addRulefile(reader, ruleFile );
 			} catch (boost::property_tree::ptree_bad_path&) {
 				reader.clearCurTrieId();
-				addRulefile(reader,Rulefile(fname));
+				addRulefile(reader,ruleFile);
 			}
 
 		} else {
@@ -396,9 +408,9 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 		BOOST_FOREACH(const ptree::value_type &v, spell) {
 			const std::string& tagName = v.first;
 			const char* tagVal = v.second.data().c_str();
-			if( tagName == "extra" ) 
-				bzs->loadExtra( tagVal );
-            else if( tagName == "lang" ) {
+			if( tagName == "extra" ) {
+				u.extraDictFileName = tagVal;
+            } else if( tagName == "lang" ) {
 				int lang = ay::StemWrapper::getLangFromString( tagVal );
 				if( lang != ay::StemWrapper::LG_INVALID )
 				{
@@ -581,6 +593,18 @@ void load_ent_segregate_info(BELReader& reader, User& u, const ptree &node)
 
 } // anonymous namespace ends
 
+int User::loadExtraDictionary()
+{
+    if( !extraDictFileName.empty() ) {
+        BZSpell* bzs = universe.getBZSpell();
+        if( bzs ) {
+            std::cerr << "LOADING EXTRA DICTIONARY from " <<  extraDictFileName << std::endl;
+            return bzs->loadExtra( extraDictFileName.c_str(), 0 );
+        } else 
+            std::cerr << "INTERNAL ERROR: loadExtraDictionary failed for " << extraDictFileName <<std::endl;
+    }
+    return 0;
+}
 int User::readClassNames( const ptree& node )
 {
     int numSubclasses = 0;
@@ -645,8 +669,9 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 	loadLocale(reader, u, children);
 
 	StoredUniverse& uni = u.getUniverse();
-	uni.initBZSpell(0);
-	uni.getBarzHints().initFromUniverse(&uni);
+	u.getUniverse().initBZSpell(0);
+    u.loadExtraDictionary();
+	u.getUniverse().getBarzHints().initFromUniverse(&uni);
     return 1;
 }
 

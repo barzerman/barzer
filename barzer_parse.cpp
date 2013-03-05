@@ -30,7 +30,7 @@ struct TopicAnalyzer {
                             barz.topicInfo.addTopic( *ei );
                         }
                     } else {
-                        const BarzerEntityRangeCombo* erc = i->get<BarzerEntityRangeCombo>();
+                        const BarzerERC* erc = i->get<BarzerERC>();
                         if( erc ) {
                             barz.topicInfo.addTopic( erc->getEntity(), (int)(erc->getInt(BarzTopics::MIN_TOPIC_WEIGHT)) );
                         }

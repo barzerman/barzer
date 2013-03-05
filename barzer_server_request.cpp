@@ -547,7 +547,7 @@ void BarzerRequestParser::raw_query_parse( const char* query)
         if( ret == XML_TYPE ) 
 		    os << "<error>invalid user id " << userId << "</error>\n";
         else  if( ret == JSON_TYPE ) 
-            os<< "{ error: 'invalid user id'" << userId << "'}" ;
+            os<< "{ \"error\": \"invalid user id " << userId << "\"}" ;
             
 		return;
 	}

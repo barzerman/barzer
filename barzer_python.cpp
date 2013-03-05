@@ -483,12 +483,12 @@ inline BarzerRange::BarzerRange( const barzer::BarzerRange& r, const StoredUnive
 }
 
 
-struct BarzerEntityRangeCombo {
+struct BarzerERC {
     BarzerEntity mainEntity;
     BarzerEntity unitEntity;
     BarzerRange  range;
 
-    BarzerEntityRangeCombo( const barzer::BarzerEntityRangeCombo& erc, const StoredUniverse& u ) :
+    BarzerERC( const barzer::BarzerERC& erc, const StoredUniverse& u ) :
         mainEntity(erc.mainEntity(),u),
         unitEntity(erc.unitEntity(),u),
         range(erc.range(),u)
@@ -502,7 +502,7 @@ struct BarzerEntityRangeCombo {
             .fp;
     }
 };
-std::ostream& operator<<( std::ostream& fp, const BarzerEntityRangeCombo& erc ) { return erc.print(fp); }
+std::ostream& operator<<( std::ostream& fp, const BarzerERC& erc ) { return erc.print(fp); }
 
 struct TraceInfo {
     const barzer::BarzelTrace::SingleFrameTrace frameTrace;
@@ -557,8 +557,8 @@ struct bead_list : public static_visitor<bool> {
         { return (d_list.append(exposed::BarzerTimeOfDay(r,d_universe)),true); }
     bool operator()( const BarzerDate& r ) 
         { return (d_list.append(exposed::BarzerDate(r,d_universe)),true); }
-    bool operator()( const BarzerEntityRangeCombo& r ) 
-        { return (d_list.append( exposed::BarzerEntityRangeCombo(r,d_universe) ),true); }
+    bool operator()( const BarzerERC& r ) 
+        { return (d_list.append( exposed::BarzerERC(r,d_universe) ),true); }
     bool operator()( const BarzerRange& r )
         { return ( d_list.append(exposed::BarzerRange(r,d_universe)), true ); }
     bool operator()( const BarzerEntityList& l )
@@ -872,12 +872,12 @@ BOOST_PYTHON_MODULE(pybarzer)
 	    .def( "isAsc", &barzer::exposed::BarzerRange::isAsc )
 	    .def( "isDesc", &barzer::exposed::BarzerRange::isDesc )
         ;
-    boost::python::class_<barzer::exposed::BarzerEntityRangeCombo>( "ERC", no_init )
+    boost::python::class_<barzer::exposed::BarzerERC>( "ERC", no_init )
         .def( self_ns::repr(self_ns::self))
         .def( self_ns::str(self_ns::self))
-        .def_readonly( "ent", &barzer::exposed::BarzerEntityRangeCombo::mainEntity )
-        .def_readonly( "unit", &barzer::exposed::BarzerEntityRangeCombo::unitEntity )
-        .def_readonly( "rng", &barzer::exposed::BarzerEntityRangeCombo::range )
+        .def_readonly( "ent", &barzer::exposed::BarzerERC::mainEntity )
+        .def_readonly( "unit", &barzer::exposed::BarzerERC::unitEntity )
+        .def_readonly( "rng", &barzer::exposed::BarzerERC::range )
     ;
     boost::python::class_<barzer::exposed::TraceInfo>( "Trace", no_init )
         .def( self_ns::repr(self_ns::self))
