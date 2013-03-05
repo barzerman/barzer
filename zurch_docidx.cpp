@@ -282,8 +282,10 @@ namespace
 					);
 				}
 			} else if (const barzer::BarzerString* s = i->get<barzer::BarzerString>()) { 
+				if (s->isFluff ())
+					continue;
+				
 				const char *theString = (s->stemStr().length() ? s->stemStr().c_str(): s->getStr().c_str());
-
 				uint32_t strId = (idx->*getRawStr)(theString);//d_stringPool.getId(theString); 
 				
 				const auto& wm = meanings.getMeanings(strId);
@@ -855,9 +857,8 @@ size_t DocFeatureLoader::addParsedDocContents(uint32_t docId, const std::string&
 	}
 	else
 	{
-		pos->second.push_back(' ');
 		pos->second += parsed;
-		return parsed.size() + 1;
+		return parsed.size();
 	}
 }
 
