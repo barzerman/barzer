@@ -857,9 +857,8 @@ size_t DocFeatureLoader::addParsedDocContents(uint32_t docId, const std::string&
 	}
 	else
 	{
-		pos->second.push_back(' ');
 		pos->second += parsed;
-		return parsed.size() + 1;
+		return parsed.size();
 	}
 }
 
