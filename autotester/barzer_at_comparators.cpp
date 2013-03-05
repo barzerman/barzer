@@ -296,7 +296,7 @@ namespace autotester
 				return score;
 			}
 
-			uint16_t operator()(const BarzerEntityRangeCombo& erc1, const BarzerEntityRangeCombo& erc2) const
+			uint16_t operator()(const BarzerERC& erc1, const BarzerERC& erc2) const
 			{
 				uint16_t score = 0;
 				score += (*this)(erc1.getEntity(), erc2.getEntity()) * Scores::ERCEntityMultiplier;

@@ -203,7 +203,7 @@ inline std::ostream& operator <<( std::ostream& fp, const BarzerRange& x )
 /// combination
 
 
-struct BarzerEntityRangeCombo {
+struct BarzerERC {
 	BarzerEntity d_entId; // main entity id
 	BarzerEntity d_unitEntId; // unit entity id
 	BarzerRange  d_range;
@@ -232,9 +232,9 @@ struct BarzerEntityRangeCombo {
 
 	std::ostream& print( std::ostream& fp ) const
 		{ return ( d_range.print( fp )<<"("  << d_entId << ":" << d_unitEntId << ")" ); }
-	bool isEqual( const BarzerEntityRangeCombo& r ) const
+	bool isEqual( const BarzerERC& r ) const
 	{ return( (d_entId == r.d_entId) && (d_unitEntId == r.d_unitEntId) && (d_range == r.d_range) ); }
-	bool lessThan( const BarzerEntityRangeCombo& r ) const
+	bool lessThan( const BarzerERC& r ) const
 	{
 		return ay::range_comp( ).less_than(
 			d_entId, d_unitEntId, d_range,
@@ -242,7 +242,7 @@ struct BarzerEntityRangeCombo {
 		);
 	}
 	// only range type is checked if at all
-	bool matchOther( const BarzerEntityRangeCombo& other, bool checkRange=false ) const {
+	bool matchOther( const BarzerERC& other, bool checkRange=false ) const {
 		return (
 			d_entId.matchOther( other.d_entId )  &&
 			d_unitEntId.matchOther( other.d_unitEntId ) &&
@@ -251,7 +251,7 @@ struct BarzerEntityRangeCombo {
 	}
 
 	bool matchOtherWithBlanks(
-		const BarzerEntityRangeCombo& other, bool matchBlankRange, bool matchBlankEnt
+		const BarzerERC& other, bool matchBlankRange, bool matchBlankEnt
 	) const {
 		return (
 			d_entId.matchOther( other.d_entId, matchBlankEnt )  &&
@@ -263,17 +263,16 @@ struct BarzerEntityRangeCombo {
     const BarzerEntity& unitEntity() const { return d_unitEntId; }
     const BarzerRange& range() const { return d_range; }
 };
-typedef BarzerEntityRangeCombo BarzerERC;
 
-inline bool operator ==( const BarzerEntityRangeCombo& l, const BarzerEntityRangeCombo& r ) { return l.isEqual(r); }
+inline bool operator ==( const BarzerERC& l, const BarzerERC& r ) { return l.isEqual(r); }
 
-inline bool operator <( const BarzerEntityRangeCombo& l, const BarzerEntityRangeCombo& r ) { return l.lessThan(r); }
-inline std::ostream& operator <<( std::ostream& fp, const BarzerEntityRangeCombo& l ) { return l.print(fp); }
+inline bool operator <( const BarzerERC& l, const BarzerERC& r ) { return l.lessThan(r); }
+inline std::ostream& operator <<( std::ostream& fp, const BarzerERC& l ) { return l.print(fp); }
 
 /// ERC expression for example (ERC and ERC ... )
 struct BarzerERCExpr {
 	typedef boost::variant<
-		BarzerEntityRangeCombo,
+		BarzerERC,
 		boost::recursive_wrapper<BarzerERCExpr>
 	> Data;
 
@@ -308,7 +307,7 @@ struct BarzerERCExpr {
 	void setEclass(uint16_t t ) { d_eclass=t; }
 	void setType( uint16_t t ) { d_type=t; }
 
-	void addToExpr( const BarzerEntityRangeCombo& erc, uint16_t type = T_LOGIC_AND, uint16_t eclass = EC_LOGIC)
+	void addToExpr( const BarzerERC& erc, uint16_t type = T_LOGIC_AND, uint16_t eclass = EC_LOGIC)
 	{
 		if( eclass != EC_LOGIC ) {
 			d_data.push_back( Data(erc) );
@@ -362,7 +361,7 @@ struct BarzerEVR {
         BarzerRange,
         BarzerEntityList,
         BarzerEntity,
-        BarzerEntityRangeCombo,
+        BarzerERC,
         BarzerERCExpr
     > Atom;
 

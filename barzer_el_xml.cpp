@@ -925,7 +925,7 @@ DEFINE_BELParserXML_taghandle(ERC)
 {
 	if( close ) { statement.popNode(); return; }
 	BTND_Pattern_ERC pat; 
-	BarzerEntityRangeCombo& erc = pat.getERC();
+	BarzerERC& erc = pat.getERC();
 
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name

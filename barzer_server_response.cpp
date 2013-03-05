@@ -454,7 +454,7 @@ public:
         }
         return true;
     }
-	bool operator()(const BarzerEntityRangeCombo &data) {
+	bool operator()(const BarzerERC &data) {
 		const StoredEntityUniqId &ent = data.getEntity(),
 						         &unit = data.getUnitEntity();
 
