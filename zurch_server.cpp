@@ -58,7 +58,7 @@ std::ostream& DocIdxSearchResponseXML::print( std::ostream& os, const DocFeature
 			    os << "  <chunks>\n";
 			    for (const auto& chunk : chunks)
 				{
-					os << "        <chunk>\n";
+					os << "    <chunk>\n";
 					for (const auto& item : chunk)
 					{
 						os << "      <item";
