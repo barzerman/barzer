@@ -55,29 +55,29 @@ std::ostream& DocIdxSearchResponseXML::print( std::ostream& os, const DocFeature
 			    loader.getBestChunks(docId, pos->second, 200, 5, chunks);
 		    if (!chunks.empty())
 		    {
-			    os << "\t<chunks>\n";
+			    os << "  <chunks>\n";
 			    for (const auto& chunk : chunks)
 				{
-					os << "\t\t<chunk>\n";
+					os << "        <chunk>\n";
 					for (const auto& item : chunk)
 					{
-						os << "\t\t\t<item";
+						os << "      <item";
 						if (item.m_isMatch)
 							os << " m='1'";
 						os << ">";
 						
 						ay::XMLStream(os).escape(item.m_contents) << "</item>\n";
 					}
-					os << "\t\t</chunk>\n";
+					os << "    </chunk>\n";
 				}
-			    os << "\t</chunks>\n";
+			    os << "  </chunks>\n";
 		    }
         }
 		
         if( hasContent && d_qparm.d_biflags.checkBit(barzer::QuestionParm::QPBIT_ZURCH_FULLTEXT) ) {
             std::string content;
             if (loader.getDocContents(docId, content))
-                ay::XMLStream(os << "\t<content>\n").escape(content) << "\t</content>\n";
+                ay::XMLStream(os << "  <content>\n").escape(content) << "  </content>\n";
 	    }
 	    
 		os << "</doc>\n";
