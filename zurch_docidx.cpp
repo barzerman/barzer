@@ -979,6 +979,19 @@ namespace
 		if (result.empty())
 			return result;
 		
+		for (auto i = result.begin(); i < result.end() - 1; )
+		{
+			auto next = *(i + 1);
+			if (i->first + i->second > next.first)
+			{
+				next.second += next.first - i->first;
+				next.first = i->first;
+				i = result.erase(i);
+			}
+			else
+				++i;
+		}
+		
 		return result;
 	}
 	
