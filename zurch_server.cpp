@@ -128,9 +128,11 @@ std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocFeatur
 			    json_raii chunksRaii(os, true, 2);
 			    for (const auto& chunk : chunks)
 				{
+			        chunksRaii.startField("");
 					json_raii singleRaii(os, true, 2);
-					for (const auto& item : chunk)
+					for (const auto& item : chunk) {
 						ay::jsonEscape(item.m_contents.c_str(), singleRaii.startField(""), "\"");
+                    }
 				}
 		    }
         }
