@@ -310,7 +310,7 @@ namespace
 		for (size_t gramSize = 2; gramSize <= maxGramSize; ++gramSize)
 		{
 			if (unigramCount + 1 > gramSize)
-				for (size_t i = 0; i < unigramCount - gramSize + 1; ++i)
+				for (size_t i = 0; i < unigramCount - 1; ++i)
 				{
 					const auto& last = featureVec[i + gramSize - 1].feature[0];
 					if (last.featureClass == DocFeature::CLASS_STEM && stopWords.find(last.featureId) != stopWords.end())
@@ -320,7 +320,7 @@ namespace
 					
 					ExtractedDocFeature gram(source.feature[0], source.docPos);
 					gram.docPos.offset = source.docPos.offset;
-					for (size_t gc = 1; gc < gramSize; ++gc)
+					for (size_t gc = 1; gc < std::min(gramSize, unigramCount - i); ++gc)
 					{
 						const auto& f = featureVec[i + gc];
 						gram.feature.add(f.feature[0]);
