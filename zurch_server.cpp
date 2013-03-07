@@ -131,7 +131,14 @@ std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocFeatur
 			        chunksRaii.startField("");
 					json_raii singleRaii(os, true, 2);
 					for (const auto& item : chunk) {
-						ay::jsonEscape(item.m_contents.c_str(), singleRaii.startField(""), "\"");
+						if (item.m_isMatch) {
+                            // json_raii hlraii(os, false, 2);
+                            singleRaii.startField("");
+					        json_raii hlraii(os, false, 2);
+                            ay::jsonEscape(item.m_contents.c_str(), hlraii.startField("hilite"), "\"" );
+                        } else {
+						    ay::jsonEscape(item.m_contents.c_str(), singleRaii.startField(""), "\"");
+                        }
                     }
 				}
 		    }
