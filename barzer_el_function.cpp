@@ -1517,9 +1517,10 @@ struct BELFunctionStorage_holder {
         BarzelEvalContext& d_ctxt;
 
 		BarzerERC &erc;
-		ERCPacker(BarzerERC &e, BarzelEvalContext& ctxt, const char* funcName ) :
-            num(0), d_funcName(funcName), d_ctxt(ctxt), erc(e) {}
-
+		ERCPacker(BarzerERC &e, BarzelEvalContext& ctxt, const char* funcName, bool entitySet = false ) :
+            num(entitySet? 1: 0), d_funcName(funcName), d_ctxt(ctxt), erc(e) {}
+        
+        
 		bool operator()(const BarzerEntityList &el) {
             if( !el.getList().size() )
                 return false;
@@ -1632,17 +1633,37 @@ struct BELFunctionStorage_holder {
 		//AYLOGDEBUG(rvec.size());
 		//AYLOG(DEBUG) << rvec[0].getBeadData().which();
         SETFUNCNAME(mkERC);
-
-		BarzerERC erc;
-		ERCPacker v(erc,ctxt,func_name);
-		for (BarzelEvalResultVec::const_iterator ri = rvec.begin();
-						ri != rvec.end(); ++ri)
-			if (!boost::apply_visitor(v, ri->getBeadData())) {
-                    FERROR("ERC failed");
-                    return false;
-			}
-
-		setResult(result, erc);
+            
+        if( !rvec.size() ) {
+		    setResult(result, BarzerERC());
+            return true;
+        }
+        /// if first parameter is ent list
+        if( const BarzerEntityList* entList  = getAtomicPtr<BarzerEntityList>(rvec[0]) ) {
+            if( entList->getList().size() ) {
+                result.getBeadDataVec().reserve( entList->getList().size() );
+                for( const auto& i: entList->getList() )  {
+		            BarzelEvalResultVec::const_iterator ri = rvec.begin();
+		            for (++ri; ri != rvec.end(); ++ri) {
+		                BarzerERC erc(i);
+                        ERCPacker v(erc,ctxt,func_name,true);
+                        boost::apply_visitor(v, ri->getBeadData());
+                        result.pushBeadData( erc );
+                    }
+                }
+            } else
+                setResult(result, BarzerERC());
+        } else {
+		    BarzerERC erc;
+		    ERCPacker v(erc,ctxt,func_name);
+		    for (BarzelEvalResultVec::const_iterator ri = rvec.begin(); ri != rvec.end(); ++ri) {
+			    if (!boost::apply_visitor(v, ri->getBeadData())) {
+                        FERROR("ERC failed");
+                        return false;
+			    }
+            } 
+		    setResult(result, erc);
+        }
 		return true;
 	}
 

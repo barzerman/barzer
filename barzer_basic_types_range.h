@@ -207,6 +207,9 @@ struct BarzerERC {
 	BarzerEntity d_entId; // main entity id
 	BarzerEntity d_unitEntId; // unit entity id
 	BarzerRange  d_range;
+    
+    BarzerERC() {}
+    explicit BarzerERC( const BarzerEntity& e ) : d_entId(e) {}
 
 	const BarzerEntity& getEntity() const { return d_entId; }
 	const BarzerEntity& getUnitEntity() const { return d_unitEntId; }

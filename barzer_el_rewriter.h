@@ -133,8 +133,11 @@ public:
             d_val.resize(1);
         d_val[0] = t; 
     }
+	template <typename T> void pushBeadData( const T& t ) { 
+        d_val.push_back( BarzelBeadData( BarzelBeadAtomic()) );
+        boost::get<BarzelBeadAtomic>(d_val.back()).setData(t);
+    }
     
-
     std::ostream& print( std::ostream& fp ) const
     {
         return ( fp << getBeadData() );
