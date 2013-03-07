@@ -324,7 +324,7 @@ namespace
 					{
 						const auto& f = featureVec[i + gc];
 						gram.feature.add(f.feature[0]);
-						gram.docPos.offset.second += f.docPos.offset.second;
+						gram.docPos.offset.second = f.docPos.offset.second + f.docPos.offset.first - gram.docPos.offset.first;
 					}
 					featureVec.push_back(gram);
 				}
