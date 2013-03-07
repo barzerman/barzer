@@ -603,8 +603,12 @@ namespace {
 void print_conf_leftovers( std::ostream& os, const std::vector<std::string>& vec, const char* attr  ) 
 {
         os << "<leftover t=\"" << attr << "\">\n";
-        for( auto i = vec.begin(); i!= vec.end(); ++i ) {
-            xmlEscape( *i, (os << "    <text s=\"")) << "\"/>\n";
+        std::set< std::string > tmp;
+        for( const auto& i : vec ) {
+            if( tmp.find(i) == tmp.end() ) {
+                xmlEscape( i, (os << "    <text s=\"")) << "\"/>\n";
+                tmp.insert(i);
+            }
         }
         os << "</leftover>\n" ;
 }

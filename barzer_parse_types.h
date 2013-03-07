@@ -35,6 +35,10 @@ struct TToken {
     size_t getFirstGlyph() const { return d_utf8beg; }
     size_t getNumGlyphs() const { return d_utf8len; }
     
+    bool equal( const TToken& o ) const
+    {
+        return( d_origOffset == o.d_origOffset  && d_origLength == o.d_origLength );
+    }
 	TToken( ) : d_utf8beg(0xffff), d_utf8len(0xffff), d_origOffset(0), d_origLength(0), buf("") {}
 	TToken( const char* s ) : d_utf8beg(0xffff), d_utf8len(0xffff), d_origOffset(0), d_origLength(0), buf(s) {}
 	// watch out for data consistency
@@ -110,6 +114,17 @@ struct CToken {
 	/// this may be blank 
 	std::string correctedStr;
 
+    bool equal( const CToken& o ) const
+    {
+        if( qtVec.size() == o.qtVec.size() )  {
+            for( size_t i = 0; i< qtVec.size(); ++i ) {
+                if( ! qtVec[i].first.equal( o.qtVec[i].first ) ) 
+                    return false;
+            }
+            return true;
+        }
+        return false;
+    }
     const StoredToken*  getStemTok() const { return stemTok; }
     void                setStemTok(const StoredToken* t) { stemTok=t; }
     bool                stemTokSameAsStored() const { return (storedTok == stemTok); }

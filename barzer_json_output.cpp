@@ -383,7 +383,16 @@ public:
             std::stringstream sstr;
             if( data.getClass().isValid() ) {
                 raii.startField( "class") << data.getClass().ec;
+                { // scope (class name)
+                    if( const char* x = universe.getGlobalPools().getEntClassName(data.getClass().ec) ) 
+                        ay::jsonEscape( x, raii.startField("scope"), "\"" );
+                }
                 raii.startField( "subclass") << data.getClass().subclass;
+                { // category (subclass name)
+                    const std::string subclassName = universe.getSubclassName(data.getClass());
+                    if( subclassName.length() )
+                        ay::jsonEscape( subclassName.c_str() , raii.startFieldNoindent("category") , "\"" );
+                }
             }
          
             {
@@ -518,9 +527,13 @@ public:
 
 void print_conf_leftovers( json_raii&& raii, const std::vector<std::string>& vec )
 {
-        for( auto i = vec.begin(); i!= vec.end(); ++i ) {
-            ay::jsonEscape( i->c_str(), raii.startField(""), "\"") ;
+    std::set< std::string > tmp;
+    for( const auto& i : vec ) {
+        if( tmp.find(i) == tmp.end() ) {
+            ay::jsonEscape( i.c_str(), raii.startField(""), "\"") ;
+            tmp.insert(i);
         }
+    }
 }
 } // anon namespace
 

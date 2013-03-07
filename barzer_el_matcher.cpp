@@ -1285,6 +1285,25 @@ bool BarzelMatcher::match( Barz& barz, RewriteUnit& ru, BarzelBeadChain& beadCha
 	}
 }
 
+namespace {
+void fillUniqueMatchCTokens( CTWPVec& outVec, const BeadRange& range ) 
+{
+    for( BeadList::iterator i = range.first; i != range.second; ++i ) {
+        const CTWPVec& v = i->getCTokens();
+        for( const auto& ct : v ) {
+            bool needIt = true;
+            for( const auto& outCt : outVec ) {
+                if( ct.first.equal( outCt.first ) ) {
+                    needIt = false;
+                    break;
+                }
+            }
+            if( needIt ) 
+                outVec.push_back( ct );
+        }
+    }
+}
+} // anonymous namespace 
 ///
 int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 {
@@ -1370,9 +1389,16 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 		const BarzelEvalResult::BarzelBeadDataVec& bbdv = transResult.getBeadDataVec();
 		BeadList::iterator bi = range.first;
 		BarzelEvalResult::BarzelBeadDataVec::const_iterator di = bbdv.begin();
+
+        CTWPVec matchUniqueCTokens;
+        // this must only put tokens unique for all beads in the range  into matchUniqueCTokens
+        fillUniqueMatchCTokens( matchUniqueCTokens, range );
+
 		for( ; di != bbdv.end() && bi!= range.second; )  {
 			//bi->print( std::cerr );
 			bi->setData( *di );
+            bi->setCTokens( matchUniqueCTokens );
+
             if( unmatchability )
                 bi->setBeadUnmatchability(unmatchability);
             if( confidenceBoost )
@@ -1397,8 +1423,7 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 			for( ; di != bbdv.end(); ++di ) {
 				BeadList::iterator nbi = chain.insertBead( range.second, *di );
                 if( nbi != chain.getLstEnd() ) {
-                    if( tmpCt ) 
-                        nbi->getCTokens() = *tmpCt;
+                    nbi->setCTokens( matchUniqueCTokens );
                     if( unmatchability ) 
                         nbi->setBeadUnmatchability(unmatchability);
                     if( confidenceBoost ) 

@@ -6,23 +6,17 @@
     </dictionaries>
     <users>
         <user id="0">
+            <!-- 
             <zurch>
-                <!--
-                <index dir="/Users/yanis/barzer/data/ukrf"/>
-                -->
                 <index xml="/Users/yanis/barzer/data/ArtDocExport.xml"/>
             </zurch>
-            <!-- 
             <spell soundslike="yes"><tokenizer strat="SPACE_DEFAULT"/></spell>
-            -->
-            <!-- 
             -->
             <flags value="c"/>
             <spell dictcorr="yes"><tokenizer strat="SPACE_DEFAULT"/></spell>
 
             <rules> <file class="" name="shit">dev/shit.xml</file> </rules>
             <trieset>
-                <!-- explicitly adding basic default fluff trie  -->
                 <trie class="" name="shit" />
             </trieset>
 		</user>

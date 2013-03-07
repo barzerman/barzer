@@ -386,6 +386,7 @@ public:
 
 		return true;
 	}
+    void setCTokens( const CTWPVec& v) {  ctokOrigVec= v; }
 	const CTWPVec& getCTokens() const
 		{ return ctokOrigVec; }
 	CTWPVec& getCTokens()
