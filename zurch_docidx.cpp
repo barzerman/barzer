@@ -253,16 +253,19 @@ namespace
 			
 			if( const barzer::BarzerLiteral* x = i->get<barzer::BarzerLiteral>() ) {
 				const auto& pair = x->toString(*universe);
-				if (!x->isStop() && !x->isPunct() && pair.second && !(pair.second == 1 && (isspace(pair.first[0]) || ispunct(pair.first[0]))))
-				{
-					uint32_t strId = stemId == 0xffffffff ? (idx->*getStr)( *x, *universe ) : stemId;
-					featureVec.push_back( 
-						ExtractedDocFeature( 
-							DocFeature( DocFeature::CLASS_STEM, strId ), 
-							fdp
-						) 
-					);
-				}
+				if (x->isStop() || x->isPunct() || x->isBlank())
+					continue;
+				
+				if (!pair.second)
+					continue;
+				
+				uint32_t strId = stemId == 0xffffffff ? (idx->*getStr)( *x, *universe ) : stemId;
+				featureVec.push_back( 
+					ExtractedDocFeature( 
+						DocFeature( DocFeature::CLASS_STEM, strId ), 
+						fdp
+					) 
+				);
 			} else if( const barzer::BarzerEntity* x = i->getEntity() ) {
 				uint32_t entId = (idx->*getEnt)( *x, *universe );
 				featureVec.push_back( 
