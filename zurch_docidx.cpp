@@ -976,23 +976,23 @@ namespace
 			if (pair.first >= begin && pair.first + pair.second <= end)
 				result.push_back(pair);
 			
-		if (result.empty())
-			return result;
-		
-		for (auto i = result.begin(); i < result.end() - 1; )
+		return result;
+	}
+	
+	void compactify(DocFeatureIndex::PosInfos_t& positions)
+	{
+		for (auto i = positions.begin(); i < positions.end() - 1; )
 		{
 			auto next = *(i + 1);
 			if (i->first + i->second > next.first)
 			{
 				next.second += next.first - i->first;
 				next.first = i->first;
-				i = result.erase(i);
+				i = positions.erase(i);
 			}
 			else
 				++i;
 		}
-		
-		return result;
 	}
 	
 	void filterOverlaps(DocFeatureIndex::PosInfos_t& positions)
