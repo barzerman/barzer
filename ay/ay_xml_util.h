@@ -106,4 +106,8 @@ struct json_raii {
         { return startFieldNoindent(k) << "\"" << v << "\""; }
     size_t getDepth() const { return d_depth; }
 };
+
+namespace html {
+void unescape_in_place( std::string& s );
+}
 } // ay namespace ends 
