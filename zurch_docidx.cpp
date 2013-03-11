@@ -472,7 +472,7 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out,
 		
 		const auto& sources = invertedPos->second;
 		
-		const auto numSources = sources.size() * sources.size();
+		const auto numSources = 1 + std::log(sources.size());
 		
 		for (const auto& link : sources)
 		{
@@ -480,7 +480,7 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out,
 			if (link.count <= 0)
 				continue;
 			
-			const auto scoreAdd = sizeBoost * classBoost * ((1 + link.weight) * (1 + std::log(link.count))) / numSources;
+			const auto scoreAdd = sizeBoost * classBoost * (1 + link.weight) * (1 + std::log(link.count)) / numSources;
 			
 			if (doc2pos)
 			{
