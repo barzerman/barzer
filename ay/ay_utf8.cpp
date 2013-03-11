@@ -213,6 +213,8 @@ int unicode_normalize_punctuation( std::string& outStr, const char* srcStr, size
                 case 0xc2:  // double quotes russian style
                     if( (uint8_t)(s[1]) == 0xab || (uint8_t)(s[1]) == 0xbb ) {
                         ++s; c='"';
+                    } else if( (uint8_t)(s[1]) == 0xa0 ) { // space (russian) 
+                        ++s; c=' ';
                     }
                     break;
                 }

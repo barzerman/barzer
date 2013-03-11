@@ -39,7 +39,24 @@ struct ZurchLongXMLParser {
 struct ZurchLongXMLParser_DocLoader : public ZurchLongXMLParser {
     DocIndexLoaderNamedDocs& d_loader;
     DocFeatureLoader::DocStats& d_loadStats;
-    ZurchLongXMLParser_DocLoader(DocFeatureLoader::DocStats& ds, DocIndexLoaderNamedDocs& ldr) : d_loader(ldr), d_loadStats(ds){}
+
+    ZurchLongXMLParser_DocLoader(DocFeatureLoader::DocStats& ds, DocIndexLoaderNamedDocs& ldr) : 
+        d_loader(ldr), 
+        d_loadStats(ds)
+    {}
     virtual int callback();
 };
+
+struct ZurchLongXMLParser_Phraserizer : public ZurchLongXMLParser {
+    std::ostream& d_outFP;
+    PhraseBreaker d_phraser;
+
+    ZurchLongXMLParser_Phraserizer( std::ostream& fp ) : 
+        d_outFP(fp)
+    {}
+    virtual int callback();
+
+    void printCurrentRecord();
+};
+
 } // namespace barzer 

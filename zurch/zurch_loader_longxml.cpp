@@ -199,6 +199,102 @@ int ZurchLongXMLParser::callback()
     std::cout << d_data.d_ModuleID << ":" << d_data.d_ID << "|" << d_data.d_DocName << std::endl;
     return 0;
 }
+
+namespace {
+
+struct PhraseizerCB {
+    std::ostream& d_fp;
+    PhraseBreaker& d_phraser;
+    std::string d_docId;
+
+    typedef enum { 
+        TXT_CONTENT=0,
+        TXT_NAME=1,
+        TXT_KEYWORDS=2
+    } txt_type_t;
+    txt_type_t d_txtType; // TXT_XX
+    size_t d_fragment;
+    std::string d_tmp;
+
+    PhraseizerCB( std::ostream& fp, PhraseBreaker& pb) : 
+        d_fp(fp), d_phraser(pb), d_txtType(TXT_CONTENT), d_fragment(0)  {}
+    PhraseizerCB( std::ostream& fp, PhraseBreaker& pb, const std::string& docId, txt_type_t tt ) : 
+        d_fp(fp), d_phraser(pb), d_txtType(tt), d_fragment(0) {}
+
+    void operator()( const ay::xhtml_parser_state& state, const char* s, size_t s_sz )
+    {
+        std::string tmp(s, s_sz);
+
+        if( state.isCallbackText() ) {
+            ay::unicode_normalize_punctuation(tmp);
+            ay::html::unescape_in_place(tmp);
+            d_phraser.breakBuf( *this, tmp.c_str(), tmp.length() );
+        }
+
+    }
+    void operator()( PhraseBreaker& pz, const char* str, size_t sz )
+    {
+
+        size_t numNonJunk = 0;
+        const char* cleanS = str;
+        bool sawGoodChar = false;
+        for( const char* s = str, *s_end = str+sz; numNonJunk< 4 && s< s_end; ++s ) {
+            if( isspace(*s) || ispunct(*s) || (isascii(*s) && !isprint(*s)) ) {
+                if( !sawGoodChar )
+                    ++cleanS;
+            } else  if( isascii(*s) ) {
+                sawGoodChar= true;
+                numNonJunk+=2;
+            } else {
+                sawGoodChar= true;
+                ++numNonJunk;
+            }
+        }
+        if( numNonJunk< 4) 
+            return;
+        /*
+        if( const char* shitfuck = strstr( cleanS, "     ш") ) {
+            if( shitfuck < str+sz ) 
+                std::cerr << "SHITFUCK\n";
+        }
+        */
+        
+        (d_fp << d_docId << "|T" << d_txtType << "|" << d_fragment++ << "|").write( cleanS, (sz - (cleanS-str)) ) << std::endl;
+    }
+
+    void setTextType( txt_type_t t ) 
+    {
+        d_txtType = t;
+        d_fragment = 0;
+    }
+    void parseText( const std::string& str , txt_type_t t, const char* spc=0 ) 
+    {
+        std::stringstream sstr;
+        sstr << str;
+        if( spc ) 
+            sstr << spc;
+
+        ay::xhtml_parser<PhraseizerCB> parser( sstr , *this );
+        setTextType( t );
+        parser.setMode(ay::xhtml_parser_state::MODE_HTML);
+        parser.parse();
+    }
+};
+
+} // anonymous namespace 
+
+int ZurchLongXMLParser_Phraserizer::callback()
+{
+    PhraseizerCB pz( d_outFP, d_phraser );
+    pz.d_docId = d_data.d_ModuleID + "." + d_data.d_ID;
+    
+    // NAME
+    pz.parseText( d_data.d_DocName , PhraseizerCB::TXT_NAME,     " " );
+    pz.parseText( d_data.d_Content , PhraseizerCB::TXT_CONTENT );
+    pz.parseText( d_data.d_Keywords, PhraseizerCB::TXT_KEYWORDS, " " );
+    return 0;
+}
+
 int ZurchLongXMLParser_DocLoader::callback()
 {
     std::string docName = d_data.d_ModuleID + "." + d_data.d_ID;

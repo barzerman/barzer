@@ -107,7 +107,7 @@ template <typename CB>
 class xhtml_parser : public xhtml_parser_state {
 public:
 
-    CB& d_cbTagOpen, d_cbTagClose, d_cbTxt; 
+    CB& d_cbTagOpen, &d_cbTagClose, &d_cbTxt; 
 
     xhtml_parser_state& state(int cbReason) { return ( d_cbReason=cbReason, *(static_cast<xhtml_parser*>(this))); }
     const xhtml_parser_state& state() const { return *(static_cast<xhtml_parser*>(this)); }

@@ -32,6 +32,7 @@
 
 #include <zurch_docidx.h>
 #include <zurch_phrasebreaker.h>
+#include <zurch/zurch_loader_longxml.h>
 #include <ay_filesystem.h>
 
 #include <boost/regex.hpp>
@@ -398,7 +399,7 @@ static int bshf_phrase( BarzerShell* shell, char_cp cmd, std::istream& in, const
 {
     std::string fileName;
     if( !(in >> fileName ) ) {
-        std::cerr << "must specify file name file \n";
+        std::cerr << "usage <infile> [<outfile>]\n";
         return 0;
     }
     std::ifstream inFile;
@@ -407,35 +408,17 @@ static int bshf_phrase( BarzerShell* shell, char_cp cmd, std::istream& in, const
         std::cerr << "couldnt open file " << fileName << std::endl;
         return 0;
     }
-    zurch::PhraseBreaker phraser; 
-	QuestionParm qparm;
-
-	BarzerShellContext * context = shell->getBarzerContext();
-	Barz& barz = context->barz;
-
-    if( false ) { // actually prints out hrased stuff 
-        zurch::BarzTokPrintCB printCb( std::cerr );
-        zurch::PrintStringCB cb( printCb, context->parser, barz, qparm );
-        phraser.addSingleCharDelimiters( "?!;.,", true );
-        zurch::PhraseDelimiterData* dd = phraser.getDelimiterData(".");
-        if( dd ) {
-            dd->addNoPreceed( "тов" );
-        }
-        phraser.breakStream( cb, inFile );
-    } else { // prints out phraser stats 
-        PhraserStatsCB statsCb;
-        zurch::BarzerTokenizerCB<PhraserStatsCB> cb( statsCb, context->parser, barz, qparm );
-
-        ay::stopwatch localTimer;
-        phraser.breakStream( cb, inFile );
-
-	    std::cerr << phraser.d_numBuffers << " buffers, " <<
-        phraser.d_numPhrases << " phrases, " <<
-        statsCb.getAvg() << " average, " <<
-        statsCb.maxLength << " max " <<
-        "phrased in " << localTimer.calcTime() << " seconds\n";
+    std::string outFileName;
+    std::ostream* fp = &(std::cout);
+    std::ofstream outFile;
+    if( in >> outFileName ) {
+        outFile.open( outFileName.c_str() );
+        fp = &outFile;
     }
-
+    zurch::ZurchLongXMLParser_Phraserizer phraseizer( *fp );
+    ay::stopwatch localTimer;
+    phraseizer.readFromFile( fileName.c_str() );
+    std::cerr <<     "phrased in " << localTimer.calcTime() << " seconds\n";
     return 0;
 }
 static int bshf_zurch_old( BarzerShell* shell, char_cp cmd, std::istream& in, const std::string& argStr )
@@ -1959,7 +1942,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)(bshf_env), "env", "set request environment parameter. usage: env [name [value]]" ),
 	CmdData( (ay::Shell_PROCF)(bshf_dtaan), "dtaan", "data set analyzer. runs through the trie" ),
 	CmdData( (ay::Shell_PROCF)(bshf_dir), "dir", "dir listing" ),
-	CmdData( (ay::Shell_PROCF)(bshf_phrase), "phrase", "breaks file into phrases - test driver for phrasebreaker" ),
+	CmdData( (ay::Shell_PROCF)(bshf_phrase), "phrase", "breaks file into phrases output into files" ),
 	CmdData( (ay::Shell_PROCF)(bshf_doc), "doc", "doc loader doc filename" ),
 	CmdData( (ay::Shell_PROCF)(bshf_zstat), "zstat", "zurch indexer stats [count] [percentage]" ),
 	CmdData( (ay::Shell_PROCF)(bshf_zdump), "zdump", "dump zurch indexer ngrams data into file. Usage: zdump [filename]" ),
