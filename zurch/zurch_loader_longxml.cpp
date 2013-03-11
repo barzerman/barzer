@@ -208,9 +208,9 @@ struct PhraseizerCB {
     std::string d_docId;
 
     typedef enum { 
-        TXT_CONTENT,
-        TXT_NAME,
-        TXT_KEYWORDS
+        TXT_CONTENT=0,
+        TXT_NAME=1,
+        TXT_KEYWORDS=2
     } txt_type_t;
     txt_type_t d_txtType; // TXT_XX
     size_t d_fragment;
@@ -225,18 +225,41 @@ struct PhraseizerCB {
     {
         std::string tmp(s, s_sz);
 
-        ay::unicode_normalize_punctuation(tmp);
         if( state.isCallbackText() ) {
-            d_phraser.breakBuf( *this, s, s_sz );
+            ay::unicode_normalize_punctuation(tmp);
+            ay::html::unescape_in_place(tmp);
+            d_phraser.breakBuf( *this, tmp.c_str(), tmp.length() );
         }
 
     }
     void operator()( PhraseBreaker& pz, const char* str, size_t sz )
     {
-        d_tmp.assign(str,sz);
-        ay::html::unescape_in_place(d_tmp);
 
-        (d_fp << d_docId << "|T" << d_txtType << "|" << d_fragment++ << "|").write( d_tmp.c_str(), d_tmp.length() ) << std::endl;
+        size_t numNonJunk = 0;
+        const char* cleanS = str;
+        bool sawGoodChar = false;
+        for( const char* s = str, *s_end = str+sz; numNonJunk< 4 && s< s_end; ++s ) {
+            if( isspace(*s) || ispunct(*s) || (isascii(*s) && !isprint(*s)) ) {
+                if( !sawGoodChar )
+                    ++cleanS;
+            } else  if( isascii(*s) ) {
+                sawGoodChar= true;
+                numNonJunk+=2;
+            } else {
+                sawGoodChar= true;
+                ++numNonJunk;
+            }
+        }
+        if( numNonJunk< 4) 
+            return;
+        /*
+        if( const char* shitfuck = strstr( cleanS, "     ш") ) {
+            if( shitfuck < str+sz ) 
+                std::cerr << "SHITFUCK\n";
+        }
+        */
+        
+        (d_fp << d_docId << "|T" << d_txtType << "|" << d_fragment++ << "|").write( cleanS, (sz - (cleanS-str)) ) << std::endl;
     }
 
     void setTextType( txt_type_t t ) 

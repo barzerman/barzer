@@ -36,7 +36,49 @@ std::ostream& XMLStream::escape(const std::string& str)
 }
 
 namespace html {
+void unescape( std::string& out, const char* str, size_t sz )
+{
+#define PUSH_BACK_IF( x, c ) if( !strncmp((s+1),x,sizeof(x)-1) ) { s+=sizeof(x); out.append( c ); }
+    for( const char* s = str, *s_end = str+sz; s< s_end; ++s ) {
+        if( *s == '&' ) {
+             PUSH_BACK_IF("nbsp;", " ")
+             else PUSH_BACK_IF("lt", "<")
+             else PUSH_BACK_IF("gt", ">")
+             else PUSH_BACK_IF("amp", "&")
+             else PUSH_BACK_IF("cent", "¢")
+             else PUSH_BACK_IF("pound", "£")
+             else PUSH_BACK_IF("yen", "¥")
+             else PUSH_BACK_IF("euro", "€")
+             else PUSH_BACK_IF("sect", "§")
+             else PUSH_BACK_IF("copy", "©")
+             else PUSH_BACK_IF("reg", "®")
+             else PUSH_BACK_IF("trade", "™")
+             else PUSH_BACK_IF("apos", "'")
+             else PUSH_BACK_IF("ndash", "-")
+             else PUSH_BACK_IF("quot", "\"")
+             else if( s[1] == '#' ) {
+                const bool isHex = (s[2] == 'x' );
+                char *end = 0;
+                const uint8_t val = strtol(s+ (isHex ? 3 : 2), &end, isHex ? 16 : 10);
+                if (val)
+                    out.push_back( static_cast<char>(val) ) ; 
+                if( end ) 
+                    s= end;
+             }
+        } else {
+            out.push_back(*s);
+        }
+    }
+}
 void unescape_in_place( std::string& str )
+{
+    if( !strchr( str.c_str(), '&' ) ) 
+        return ;
+    std::string newStr;
+    unescape( newStr, str.c_str(), str.length() );
+    str.swap( newStr );
+}
+void unescape_in_place_old( std::string& str )
 {
     size_t pos = 0;
     
@@ -69,7 +111,8 @@ void unescape_in_place( std::string& str )
             if (val)
                 str.replace(pos, end - (str.c_str() + pos) + 1, 1, static_cast<char>(val));
         }
-			else if (knownFixer("nbsp;", " ") ||
+			else if (
+                 knownFixer("nbsp;", " ") ||
                  knownFixer("lt;", "<") ||
                  knownFixer("gt;", ">") ||
                  knownFixer("amp;", "&") ||
@@ -83,7 +126,6 @@ void unescape_in_place( std::string& str )
                  knownFixer("trade;", "™") ||
                  knownFixer("apos;", "'") ||
                  knownFixer("ndash;", "-") ||
-                 knownFixer("quot", "\"") ||
                  knownFixer("quot;", "\""))
             ;
         else

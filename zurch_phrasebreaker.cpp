@@ -70,16 +70,39 @@ void PhraseBreaker::addSingleCharDelimiters( const char * delim, bool spaceMustF
     }
 }
 
+namespace {
+
+inline bool isDotBreakable( const char* s , const char* s_beg, const char* s_end ) 
+{
+    const size_t LENGTH_BEFORE_DOT = 4;
+    if( *s == '.' && isspace(s[1]) ) {
+        if( s_beg + LENGTH_BEFORE_DOT > s ) 
+            return false;
+
+        for( const char* i = s-1, *i_end = i-LENGTH_BEFORE_DOT; i>= i_end; --i ) {
+            if( isspace(*i) ) 
+                return false;
+        }
+        return true;
+    } else
+        return false;
+}
+
+}
+
 const char* PhraseBreaker::whereToBreak( const char* s, const char* s_beg, const char* s_end )  const
 {    
+    if( s_beg +6 >= s || s+6 >= s_end ) 
+        return 0;
     char c=*s;
     if( 
         (c==' ' && s[1]==' ') || 
         (c==' ' && s[1] == 0xb7) || 
-        c  == '\n' || c == '\r' || c=='(' || c=='|' || c==')' || c=='\t' || c ==';' || (c ==' '&&s[1]=='.'&&s[2]==' ') )
+        c  == '\n' || c == '\r' || c=='(' || c=='|' || c==')' || c=='\t' || c ==';' || (isspace(c)&&s[1]=='.'&& isspace(s[2]))
+    ) 
         return s;
-        
-    if( d_extraSingleCharDelim.length() && strchr( d_extraSingleCharDelim.c_str(), c ) ) 
+     
+    if( isDotBreakable(s,s_beg,s_end) || (d_extraSingleCharDelim.length() && strchr( d_extraSingleCharDelim.c_str(),c)) ) 
         return s;
 
     std::string tmp;
