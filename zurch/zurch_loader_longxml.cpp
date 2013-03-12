@@ -201,7 +201,23 @@ int ZurchLongXMLParser::callback()
 }
 
 namespace {
-
+inline const char* string_has_junk( const char* str, size_t s_sz ) 
+{
+    for( const char*s =str, *s_end = str+s_sz; s< s_end; ++s ) {
+        uint8_t c = static_cast<uint8_t>( *s );
+        if( !isascii(c) ) {
+            if( s +1 == s_end ) 
+                return s;
+            if( c == 0xd0 || c== 0xd1 ) {
+                if( isascii(s[1]) ) 
+                    return s;
+                ++s;
+            } else if( !isascii(c) ) 
+                return s;
+        }
+    }
+    return 0;
+}
 struct PhraseizerCB {
     std::ostream& d_fp;
     PhraseBreaker& d_phraser;
@@ -226,8 +242,8 @@ struct PhraseizerCB {
         std::string tmp(s, s_sz);
 
         if( state.isCallbackText() ) {
-            ay::unicode_normalize_punctuation(tmp);
             ay::html::unescape_in_place(tmp);
+            ay::unicode_normalize_punctuation(tmp);
             d_phraser.breakBuf( *this, tmp.c_str(), tmp.length() );
         }
 
@@ -252,14 +268,10 @@ struct PhraseizerCB {
         }
         if( numNonJunk< 4) 
             return;
-        /*
-        if( const char* shitfuck = strstr( cleanS, "     ш") ) {
-            if( shitfuck < str+sz ) 
-                std::cerr << "SHITFUCK\n";
-        }
-        */
-        
-        (d_fp << d_docId << "|T" << d_txtType << "|" << d_fragment++ << "|").write( cleanS, (sz - (cleanS-str)) ) << std::endl;
+
+        size_t cleanS_sz = sz - (cleanS-str); 
+
+        (d_fp << d_docId << "|T" << d_txtType << "|" << d_fragment++ << "|").write( cleanS, cleanS_sz) << std::endl;
     }
 
     void setTextType( txt_type_t t ) 

@@ -41,7 +41,7 @@ void unescape( std::string& out, const char* str, size_t sz )
 #define PUSH_BACK_IF( x, c ) if( !strncmp((s+1),x,sizeof(x)-1) ) { s+=sizeof(x); out.append( c ); }
     for( const char* s = str, *s_end = str+sz; s< s_end; ++s ) {
         if( *s == '&' ) {
-             PUSH_BACK_IF("nbsp;", " ")
+             PUSH_BACK_IF("nbsp", " ")
              else PUSH_BACK_IF("lt", "<")
              else PUSH_BACK_IF("gt", ">")
              else PUSH_BACK_IF("amp", "&")

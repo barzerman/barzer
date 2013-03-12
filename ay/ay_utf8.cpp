@@ -161,6 +161,13 @@ namespace ay
 
 		return changed;
 	}
+namespace {
+void vecAppend( std::vector<char>& v, const char* s ) 
+{
+    for( ; *s; ++s ) 
+        v.push_back( *s);
+}
+} // anon namespace
 
 int unicode_normalize_punctuation( std::string& outStr, const char* srcStr, size_t srcStr_sz ) 
 {
@@ -177,50 +184,109 @@ int unicode_normalize_punctuation( std::string& outStr, const char* srcStr, size
             case '`': c = '\''; break;
             }
         } else if( !(uc == 0xd0 || uc == 0xd1 ) ) { // non russian chars
-            if( uc == 0xe2 && s< s_end_2 ) {  // 3 byte punctuation
-                switch( uc ) {
-                case 0xe2: 
-                    switch( (uint8_t)(s[1]) ) {
-                    case 0x80:
-                        switch( (uint8_t)(s[2]) ) {
-                            // single quote
-                            case 0x98: case 0x99: case 0x9b: case 0x9a: case 0xb2: case 0xb5:
-                                s+=2; c = '\''; break;
-                            // double quote
-                            case 0x9c: case 0x9d: case 0x9e: case 0x9f: case 0xb3: case 0xb6:
-                                s+=2; c = '"'; break;
-                            // hyphens
-                            case 0x90: case 0x91: case 0x92: case 0x93: case 0x94: case 0x95:
+            switch((int)(uc)) {
+            case 160: c=' '; break;
+            case 161: c='!'; break; 
+            case 162: c=' '; break; //cent;  cent
+            case 163: c=' '; break; //pound; pound
+            case 164: c=' '; break; //curren;    currency
+            case 165: c='Y'; break; //yen;   yen
+            case 166: c=':'; break; //brvbar;    broken vertical bar
+            case 167: c=';'; break; //sect;  section
+            case 168: c=' '; break; //uml;   spacing diaeresis
+            case 169: vecAppend( tmp, "(c"); c=')'; break; //copy;  copyright
+            case 170: c=';'; break;//ordf;  feminine ordinal indicator
+            case 171: c='"'; break; //laquo; angle quotation mark (left)
+            case 172: c='!'; break; //not;   negation
+            case 173: c='-'; break; //shy;   soft hyphen
+            case 174: vecAppend( tmp, "(tm" ); c=')'; break; //reg;   registered trademark
+            case 175: c=' '; break; //macr;  spacing macron
+            case 176: c=' '; break; //deg;   degree
+            case 177: tmp.push_back('+'); c='-'; break;  //plusmn;    plus-or-minus 
+            case 178:  c='2'; break;//sup2;  superscript 2
+            case 179:  c='3'; break;//sup3;  superscript 3
+            case 180:  c=' '; break; //acute; spacing acute
+            case 181:  c=' '; break; //micro; micro
+            case 182:  c='\n'; break;//para;  paragraph
+            case 183:  c='.'; break; //middot;    middle dot
+            case 184:  c=' '; break; //cedil; spacing cedilla
+            case 185:  c='1'; break; //sup1;  superscript 1
+            case 186:  c=' '; break; //ordm;  masculine ordinal indicator
+            case 187:  c='"'; break; //raquo; angle quotation mark (right)
+            case 188:  vecAppend( tmp, " 1/"); c='4'; break; //frac14;    fraction 1/4
+            case 189:  vecAppend( tmp, " 1/"); c='2'; break;//frac12;    fraction 1/2
+            case 190:  vecAppend( tmp, " 3/"); c='4'; break;//frac34;    fraction 3/4
+            case 191:  c='"'; break;//iquest;    inverted question mark
+            case 215:  c='*'; break;//times; multiplication
+            case 247:  c='/'; break; //divide;    division
+            default: {
+                auto oldS = s;
+                if( uc == 0xe2 && s< s_end_2 ) {  // 3 byte punctuation
+                    switch( uc ) {
+                    case 0xe2: 
+                        switch( (uint8_t)(s[1]) ) {
+                        case 0x80:
+                            switch( (uint8_t)(s[2]) ) {
+                                // single quote
+                                case 0x98: case 0x99: case 0x9b: case 0x9a: case 0xb2: case 0xb5:
+                                    s+=2; c = '\''; break;
+                                // double quote
+                                case 0x9c: case 0x9d: case 0x9e: case 0x9f: case 0xb3: case 0xb6:
+                                    s+=2; c = '"'; break;
+                                // hyphens
+                                case 0x90: case 0x91: case 0x92: case 0x93: case 0x94: case 0x95:
+                                    s+=2; c = '-'; break;
+                                // dots
+                                case 0xa4: case 0xa7: case 0xa6:
+                                    s+=2; c = '.'; break;
+                                case 0x3a: 
+                                    s+=2; c = ' '; break;
+                            }
+                            break;
+                        case 0x81:
+                            switch( (uint8_t)(s[2]) ) {
+                            case 0x83:
                                 s+=2; c = '-'; break;
-                            // dots
-                            case 0xa4: case 0xa7:
-                                s+=2; c = '.'; break;
+                            case 0x8f:
+                                s+=2; c = ';'; break;
+                            }
+                            break;
+                        case 0x84:
+                            switch( (uint8_t)(s[2]) ) {
+                            case 0x96:
+                                s+=2; c='#'; break;
+                                break;
+                            }
+                            break;
+                        }
+                    }
+                } 
+                if( (s == oldS) && s< s_end_1 ) { // two byte 
+                    switch( uc ) {
+                    case 0xc2:  // double quotes russian style
+                        if( (uint8_t)(s[1]) == 0xab || (uint8_t)(s[1]) == 0xbb ) {
+                            ++s; c='"';
+                        } else if( (uint8_t)(s[1]) == 0x98 ) { // dash
+                            ++s; c='-';
+                        } else if( (uint8_t)(s[1]) == 0xa0 ) { // space (russian) 
+                            ++s; c=' ';
                         }
                         break;
                     }
-                    case 0x81:
-                        switch( (uint8_t)(s[2]) ) {
-                        case 0x83:
-                            s+=2; c = '-'; break;
-                        case 0x8f:
-                            s+=2; c = ';'; break;
-                        }
-                    break;
-                }
-
-            } else if( s< s_end_1 ) { // two byte 
-                switch( uc ) {
-                case 0xc2:  // double quotes russian style
-                    if( (uint8_t)(s[1]) == 0xab || (uint8_t)(s[1]) == 0xbb ) {
-                        ++s; c='"';
-                    } else if( (uint8_t)(s[1]) == 0xa0 ) { // space (russian) 
-                        ++s; c=' ';
-                    }
-                    break;
-                }
+                } 
+            } // end of default
+                break;
             }
+        } else {
+            tmp.push_back( s[0] );
+            tmp.push_back( s[1] );
+            if( s< s_end ) {
+                ++s;
+                continue;
+            }
+            else 
+                break;
         }
-
         tmp.push_back( c );
     }
     outStr.assign( &(tmp[0]), tmp.size() );
