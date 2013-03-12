@@ -515,37 +515,31 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
 
 		return;
     }
-    if( d_zurchSearchById ) { /// in this case query must contain document name
-        const char * docText = ixl->getDocContentsByDocName( query );
-        if( !docText ) docText = "NULL";
-        if( ret == XML_TYPE ) {
-            xmlEscape( docText, os << "<content>" ) << "</content>";
-        } else if( ret == JSON_TYPE ) {
-            ay::jsonEscape( docText, os << "{ \"content\" : \"" ) << "\"}";
-        }
-        return;
-    }
     const zurch::DocFeatureIndex* index = ixl->getIndex();
     barz.clear();
 
 	QuestionParm qparm;
-    if( !d_queryFlags.empty() )
-        qparm.setZurchFlags( d_queryFlags.c_str() );
     QParser qparser(u);
 
-	// std::cout << "handling '" << query << "'" << std::endl;
-	qparser.tokenize_only( barz, query, qparm );
-	qparser.lex_only( barz, qparm );
-	qparser.semanticize_only( barz, qparm );
-    
-	
     zurch::ExtractedDocFeature::Vec_t featureVec;
-	zurch::DocFeatureIndex::DocWithScoreVec_t docVec;  
-	
+    zurch::DocFeatureIndex::DocWithScoreVec_t docVec;  
 	std::map<uint32_t, zurch::DocFeatureIndex::PosInfos_t> positions;
-    if( index->fillFeatureVecFromQueryBarz( featureVec, barz ) ) 
-        index->findDocument( docVec, featureVec, 16, &positions );
-
+	// std::cout << "handling '" << query << "'" << std::endl;
+    if( !d_queryFlags.empty() )
+        qparm.setZurchFlags( d_queryFlags.c_str() );
+    if( d_zurchSearchById ) { /// in this case query must contain document name
+        uint32_t docId  = ixl->getDocIdByName( query );
+        if( docId != 0xffffffff )
+            docVec.push_back( std::pair<uint32_t,double>(docId, 1.0) );
+    } else {
+	    qparser.tokenize_only( barz, query, qparm );
+	    qparser.lex_only( barz, qparm );
+	    qparser.semanticize_only( barz, qparm );
+     
+    	
+        if( index->fillFeatureVecFromQueryBarz( featureVec, barz ) ) 
+            index->findDocument( docVec, featureVec, 16, &positions );
+    }
     if( ret == XML_TYPE ) {
         zurch::DocIdxSearchResponseXML response( qparm, *ixl, barz ); 
         response.print(os, docVec, positions);

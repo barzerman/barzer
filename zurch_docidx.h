@@ -536,6 +536,7 @@ public:
 
 
     const char* getDocContentsByDocName( const char* s ) const;
+    uint32_t getDocIdByName( const char* s ) const { return loader->getDocIdByName(s); }
     const char* getDocName ( uint32_t id ) const
         { return loader->getDocNameById( id ); }
     
