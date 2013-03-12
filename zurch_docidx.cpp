@@ -836,6 +836,12 @@ void DocFeatureLoader::addDocContents(uint32_t docId, const std::string& content
 		pos->second += contents;
 }
 
+const char* DocFeatureLoader::getDocContentsStrptr(uint32_t docId) const
+{
+    auto pos = m_docs.find(docId);
+    return( pos == m_docs.end() ? 0 : pos->second.c_str() );
+}
+
 bool DocFeatureLoader::getDocContents (uint32_t docId, std::string& out) const
 {
 	auto pos = m_docs.find(docId);
@@ -1079,6 +1085,15 @@ bool DocIndexLoaderNamedDocs::fs_iter_callback::operator()( boost::filesystem::d
     } else 
         std::cerr << "cant open " << di->path() << std::endl;
     return true;
+}
+
+const char* DocIndexAndLoader::getDocContentsByDocName(const char* n) const
+{
+    uint32_t docId = loader->getDocIdByName(n);
+    if( docId == 0xffffffff ) 
+        return 0;
+    else 
+        return loader->getDocContentsStrptr( docId );
 }
 
 void DocIndexAndLoader::init(const barzer::StoredUniverse& u)

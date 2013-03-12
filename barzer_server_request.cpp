@@ -179,6 +179,7 @@ int BarzerRequestParser::initFromUri( const char* u, size_t u_len, const char* q
     if( !strncmp( u, "/zurch", u_len ) ) {
         setQueryType( QType::ZURCH );
         d_zurchDocIdxId = 0;
+        d_zurchSearchById = false;
     } else
         setQueryType(QType::BARZER);
 
@@ -190,6 +191,11 @@ int BarzerRequestParser::initFromUri( const char* u, size_t u_len, const char* q
         if( !i->first.length() ) 
             continue;
         switch( i->first[0] ) {
+        case 'b':
+            if( i->first == "byid" ) {
+                d_zurchSearchById = ( i->second != "no" );
+            }
+            break;
         case 'd':
             if( i->first == "docidx" )  { // zurch docid 
                 d_zurchDocIdxId= atoi( i->second.c_str() );  
@@ -263,6 +269,7 @@ BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s, uint3
     d_simplified(false),
     ret(XML_TYPE),
     d_zurchDocIdxId(0xffffffff),
+    d_zurchSearchById(false),
     d_queryType(QType::BARZER)
 {
     parser = XML_ParserCreate(NULL);
@@ -508,7 +515,17 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
 
 		return;
     }
-    
+    if( d_zurchSearchById ) { /// in this case query must contain document name
+        const char * docText = ixl->getDocContentsByDocName( query );
+        if( !docText ) docText = "NULL";
+        if( ret == XML_TYPE ) {
+            xmlEscape( docText, os << "<content>" ) << "</content>";
+        } else if( ret == JSON_TYPE ) {
+            ay::jsonEscape( docText, os << "{ \"content\" : \"" ) << "\"}";
+        }
+        return;
+    }
+    const zurch::DocFeatureIndex* index = ixl->getIndex();
     barz.clear();
 
 	QuestionParm qparm;
@@ -521,7 +538,6 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
 	qparser.lex_only( barz, qparm );
 	qparser.semanticize_only( barz, qparm );
     
-    const zurch::DocFeatureIndex* index = ixl->getIndex();
 	
     zurch::ExtractedDocFeature::Vec_t featureVec;
 	zurch::DocFeatureIndex::DocWithScoreVec_t docVec;  

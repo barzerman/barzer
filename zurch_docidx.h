@@ -435,6 +435,7 @@ public:
 	
 	void addDocContents(uint32_t docId, const std::string& contents);
 	bool getDocContents(uint32_t docId, std::string& out) const;
+	const char* getDocContentsStrptr(uint32_t ) const;
 	
 	/** Returns the amount of bytes that where actually appended. This may
 	 * include some extra markup.
@@ -533,6 +534,8 @@ public:
     const DocIndexLoaderNamedDocs* getLoader() const { return loader; }
 
 
+
+    const char* getDocContentsByDocName( const char* s ) const;
     const char* getDocName ( uint32_t id ) const
         { return loader->getDocNameById( id ); }
     

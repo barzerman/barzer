@@ -102,6 +102,7 @@ public:
     
     
     uint32_t d_zurchDocIdxId; /// which zurch index to use - this  id is used to get a specific ZurchIUndex from global Pools
+    bool     d_zurchSearchById; /// which zurch index to use - this  id is used to get a specific ZurchIUndex from global Pools
 
     /// zurch doc indices uniquely correspond to the pair (userId,zurchDocIdxId)
     enum class QType {
