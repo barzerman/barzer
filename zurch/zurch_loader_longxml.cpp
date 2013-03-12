@@ -157,7 +157,6 @@ DECL_TAGHANDLE(TABLE) {
                 break;
         ALS_END  // end of attributes
         ++parser.d_numCallbacks;
-
         if( !(parser.d_numCallbacks%500) )
             std::cerr << "."; // trace
         parser.callback();
@@ -239,9 +238,9 @@ struct PhraseizerCB {
 
     void operator()( const ay::xhtml_parser_state& state, const char* s, size_t s_sz )
     {
-        std::string tmp(s, s_sz);
 
         if( state.isCallbackText() ) {
+            std::string tmp(s, s_sz);
             ay::html::unescape_in_place(tmp);
             ay::unicode_normalize_punctuation(tmp);
             d_phraser.breakBuf( *this, tmp.c_str(), tmp.length() );

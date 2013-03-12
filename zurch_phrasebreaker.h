@@ -112,7 +112,7 @@ struct PhraseBreaker {
             } else
                 ++s_to;
         }
-        if (str == s_from)
+        if (s_from< s_to )
 			cb(*this, s_from, s_to - s_from);
         return s_to - str;
     }
