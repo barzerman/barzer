@@ -11,9 +11,56 @@ namespace zurch {
 
 /// zurch (docidx) service interface 
 
+std::ostream& DocIdxSearchResponseXML::printHTML( std::ostream& os, const DocFeatureIndex::DocWithScoreVec_t& docVec,
+		const std::map<uint32_t, DocFeatureIndex::PosInfos_t>& positions ) const 
+{
+    // return
+    ay::tag_raii tag_raii( os, "html");
+    tag_raii.push( "body" );
+    if( !d_ixl.getLoader() ) {
+        AYLOG(ERROR) << "FATAL: loader is NULL";
+        tag_raii.text( "Internal Error", "p" );
+        return os;
+    }
+    tag_raii.text( "Question:", "tt" );
+    tag_raii.text( d_barz.getOrigQuestion(), "b" );
+    os << "<hr/>";
+	
+	std::vector<DocIndexLoaderNamedDocs::Chunk_t> chunks;
+    const DocIndexLoaderNamedDocs& loader = *d_ixl.getLoader();
+    bool hasChunks = loader.hasChunks() ;
+    bool hasContent = loader.hasContent() ;
+    for( auto i= docVec.begin(); i!= docVec.end() ; ++i ) {
+        uint32_t docId = i->first;
+        const char* docName = d_ixl.getDocName(docId);
+        if( docName ) {
+            os << "ID(";
+            tag_raii.text(docName,"small");
+            os << "), SCORE:(" << i->second << ")" << std::endl;
+        }
+        std::string title = loader.getDocTitle(docId);
+
+        if( title.length() ) 
+            tag_raii.text(title, "b");
+        os<< "<br/>" << std::endl;
+
+		
+        if( hasContent && d_qparm.d_biflags.checkBit(barzer::QuestionParm::QPBIT_ZURCH_FULLTEXT) ) {
+            std::string content;
+            if (loader.getDocContents(docId, content))
+                os<< content << std::endl;
+	    }
+        os<< "<hr/>" << std::endl;
+	    
+    }
+    return os;
+}
 std::ostream& DocIdxSearchResponseXML::print( std::ostream& os, const DocFeatureIndex::DocWithScoreVec_t& docVec,
 		const std::map<uint32_t, DocFeatureIndex::PosInfos_t>& positions ) const 
 {
+    if( d_qparm.d_biflags.checkBit(barzer::QuestionParm::QPBIT_ZURCH_HTML) ) {
+        return printHTML(os,docVec,positions) ;
+    }
     if( !d_ixl.getLoader() ) {
         AYLOG(ERROR) << "FATAL: loader is NULL";
         return os << "<error>Internal Error</error>";

@@ -51,18 +51,33 @@ struct tag_raii {
         { push(tag,attr); }
 	operator std::ostream&() { return os; }
 
-	void push(const char *tag, const char* attr=0 ) {
+	tag_raii& push(const char *tag, const char* attr=0 ) {
 		os << "<" << tag << ( attr ? attr : "" ) << ">";
 		tags.push_back(tag);
+        return *this;
 	}
-
-	~tag_raii() {
-		size_t i = tags.size();
-		while(i--) {
+    size_t pop()
+    {
+		if( tags.size() ) {
 			os << "</" << tags.back() << ">";
 			tags.pop_back();
 		}
-	}
+        return tags.size();
+    }
+    tag_raii& text( const char* s, const char* tag=0, const char* attr=0 ) 
+    {
+        if( tag )
+            push(tag,attr);
+        XMLStream(os).print(s);
+        if( tag )
+            pop();
+        return *this;
+    }
+    tag_raii& text( const std::string& s, const char* tag=0, const char* attr=0  )
+        { return text( s.c_str(),tag,attr ); }
+
+	~tag_raii() 
+        { do {} while( pop() ); }
 };
 
 struct json_raii {

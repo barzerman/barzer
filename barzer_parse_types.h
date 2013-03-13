@@ -303,6 +303,7 @@ struct QuestionParm {
     
     enum {
         QPBIT_ZURCH_FULLTEXT,
+        QPBIT_ZURCH_HTML,
         QPBIT_ZURCH_NO_CHUNKS,
 
         /// add new bits above this line only

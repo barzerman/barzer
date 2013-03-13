@@ -100,7 +100,23 @@ public:
 
 	ReturnType ret;
     
-    
+    const char* httpContentTypeString() const
+    {
+        switch( ret ) {
+        case XML_TYPE:
+            return(
+                strchr( d_queryFlags.c_str(), 'H') ? 
+                    "text/html; charset=utf-8" : "text/xml; charset=utf-8"
+            );
+            break;
+        case JSON_TYPE:
+            return "application/json; charset=utf-8";
+            break;
+        default:
+            return "text/plain; charset=utf-8";
+        }
+    }
+
     uint32_t d_zurchDocIdxId; /// which zurch index to use - this  id is used to get a specific ZurchIUndex from global Pools
     bool     d_zurchSearchById; /// which zurch index to use - this  id is used to get a specific ZurchIUndex from global Pools
 

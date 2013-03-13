@@ -23,6 +23,7 @@ public:
     DocIdxSearchResponseXML( const barzer::QuestionParm& qparm, const DocIndexAndLoader& ixl, const barzer::Barz& barz ) : 
         DocIdxSearchResponse(qparm,ixl,barz){}
     std::ostream& print( std::ostream& os, const DocFeatureIndex::DocWithScoreVec_t&, const std::map<uint32_t, DocFeatureIndex::PosInfos_t>& ) const ;
+    std::ostream& printHTML( std::ostream& os, const DocFeatureIndex::DocWithScoreVec_t&, const std::map<uint32_t, DocFeatureIndex::PosInfos_t>& ) const ;
 };
 
 class DocIdxSearchResponseJSON : public DocIdxSearchResponse {

@@ -51,9 +51,12 @@ static int begin_request_handler(struct mg_connection *conn)
             "Content-Length: %ld\r\n"        // Always set Content-Length
             "\r\n"
             "%s",
+            reqParser.httpContentTypeString(),
+            /*
             ( reqParser.ret == barzer::BarzerRequestParser::XML_TYPE ? "text/xml; charset=utf-8" :
                 (reqParser.ret == barzer::BarzerRequestParser::JSON_TYPE ? "application/json; charset=utf-8" : "text/plain; charset=utf-8")
             ), 
+            */
 
         contentStr.length(), contentStr.c_str());
 
