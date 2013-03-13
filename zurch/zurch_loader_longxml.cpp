@@ -305,7 +305,13 @@ int ZurchLongXMLParser_Phraserizer::callback()
     pz.parseText( d_data.d_Keywords, PhraseizerCB::TXT_KEYWORDS, " " );
     return 0;
 }
-
+namespace {
+    enum : DocFeatureLink::Weight_t {
+        WEIGHT_BOOST_NONE=0, 
+        WEIGHT_BOOST_NAME=1000,
+        WEIGHT_BOOST_KEYWORD=2000
+    };
+}
 int ZurchLongXMLParser_DocLoader::callback()
 {
     std::string docName = d_data.d_ModuleID + "." + d_data.d_ID;
@@ -314,11 +320,6 @@ int ZurchLongXMLParser_DocLoader::callback()
     if(d_data.d_DocName.length() )
         d_loader.setDocTitle( docId, d_data.d_DocName ); 
 
-    enum : DocFeatureLink::Weight_t {
-        WEIGHT_BOOST_NONE=0, 
-        WEIGHT_BOOST_NAME=1000,
-        WEIGHT_BOOST_KEYWORD=2000
-    };
     
     { // NAME
         std::stringstream sstr;
@@ -342,6 +343,132 @@ int ZurchLongXMLParser_DocLoader::callback()
     }
     return 0;
 }
+
+namespace {
+
+struct phrase_fields_t {
+    DocFeatureLink::Weight_t weight;
+    char* name;
+    char* text;
+
+    phrase_fields_t(): weight(WEIGHT_BOOST_NONE), name(0), text(0) {}
+    void clear() 
+    {
+        weight = WEIGHT_BOOST_NONE;
+        name = text = 0;
+    }
+}; 
+
+
+int phrase_fmt_get_fields( phrase_fields_t& flds, char* buf, size_t buf_sz )
+{
+    flds.clear();
+    const char* buf_end = buf+buf_sz;
+    char* tok = buf;
+    char* pipe = strchr( tok, '|' );
+    if( !pipe ) 
+        return 1;
+    *pipe = 0;
+    flds.name = tok;
+
+    /// weight 
+    tok = ( pipe < buf_end ? pipe +1 : 0 );
+    pipe = ( tok < buf_end ? strchr( tok, '|' ) : 0 );
+    if( !pipe ) return 1;
+    if( tok[0] =='T' ) {
+        switch( tok[1] ) {
+        case '0': flds.weight = WEIGHT_BOOST_NONE; break;
+        case '1': flds.weight = WEIGHT_BOOST_NAME; break;
+        case '2': flds.weight = WEIGHT_BOOST_KEYWORD; break;
+        }
+    } 
+
+    /// phrase number
+    tok = ( pipe < buf_end ? pipe +1 : 0 );
+    pipe = ( tok < buf_end ? strchr( tok, '|' ) : 0 );
+    if( !pipe ) return 1;
+
+    /// phrase text
+    tok = ( pipe < buf_end ? pipe +1 : 0 );
+
+    flds.text = tok;
+    
+    return 0;
+}
+}
+
+void ZurchPhrase_DocLoader::readDocContentFromFile( const char* fn )
+{
+    FILE* fp = fopen( fn, "r" );
+    if( !fp ) {
+        std::cerr << "Phrase Loader cant open " << fn << std::endl;
+        return;
+    }
+    const size_t BUF_SZ = 16*1024*1024;
+    char buf[ BUF_SZ ];
+    phrase_fields_t flds;
+    std::string docName;
+    uint32_t docId = 0xffffffff; 
+    size_t totalSz = 0, docCount = 0;
+    std::cerr << "reading document contents" ;
+    ay::stopwatch timer;
+    while( fgets(buf, sizeof(buf)-1, fp ) ) {
+        buf[ sizeof(buf)-1 ] = 0;
+        size_t buf_sz = strlen(buf);
+        buf[ buf_sz ] = 0;
+        if( buf_sz ) --buf_sz;
+        
+        char* pipe = strchr( buf, '|' );
+        if( pipe && pipe-buf< buf_sz) 
+            *pipe = 0;
+        else
+            continue;
+        docId = d_loader.addDocName( buf );
+        d_loader.addDocContents( docId, pipe+1 );
+        if( ! ((++docCount)%1000 ) ) 
+            std::cerr << ".";
+        totalSz += buf_sz- strlen(pipe);
+    }
+    std::cerr << " done. " << docCount << 
+    " docs totaling " << 
+    ((double)totalSz)/1000000.0 << 
+    "MB in " << timer.calcTime() << " seconds" << std::endl;
+}
+void ZurchPhrase_DocLoader::readFromFile( const char* fn )
+{
+    FILE* fp = fopen( fn, "r" );
+    if( !fp ) {
+        std::cerr << "Phrase Loader cant open " << fn << std::endl;
+        return;
+    }
+    const size_t BUF_SZ = 64*1024;
+    char buf[ BUF_SZ ];
+    phrase_fields_t flds;
+    std::string docName;
+    uint32_t docId = 0xffffffff; 
+    while( fgets(buf, sizeof(buf)-1, fp ) ) {
+        buf[ sizeof(buf)-1 ] = 0;
+        size_t buf_sz = strlen(buf);
+        buf[ buf_sz ] = 0;
+        if( buf_sz ) --buf_sz;
+        phrase_fmt_get_fields( flds, buf, buf_sz );
+        
+        if( flds.name && flds.text ) {
+            if( docName != flds.name ) {
+                docName.assign( flds.name );
+                docId = d_loader.addDocName( docName.c_str() );
+            }
+
+            if( flds.weight == WEIGHT_BOOST_NAME ) 
+                d_loader.setDocTitle( docId, flds.name );
+
+            d_loader.setCurrentWeight(flds.weight);
+            d_loader.addDocFromString( docId, flds.text, d_loadStats );
+        }
+    }
+    fclose(fp);
+}
+
 
 void ZurchLongXMLParser::readFromFile( const char* fname )
 {

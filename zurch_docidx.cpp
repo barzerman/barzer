@@ -789,20 +789,44 @@ std::ostream& DocFeatureLoader::DocStats::print( std::ostream& fp ) const
     );
 }
 
+std::map<uint32_t, size_t>::iterator DocFeatureLoader::getLastOffset(uint32_t docId) 
+{
+	auto lastOffsetPos = m_lastOffset.find(docId);
+	if (lastOffsetPos == m_lastOffset.end())
+		lastOffsetPos = m_lastOffset.insert({ docId, 0 }).first;
+
+    return lastOffsetPos;
+}
+void DocFeatureLoader::parserSetup()
+{
+    d_parser.tokenizer.setMax( MAX_QUERY_LEN, MAX_NUM_TOKENS );
+    d_parser.lexer.setMaxCTokensPerQuery( MAX_NUM_TOKENS/2 );
+    d_parser.lexer.setDontSpell(true);
+}
+size_t DocFeatureLoader::addDocFromString( uint32_t docId, const char* str, DocFeatureLoader::DocStats& stats )
+{
+    parserSetup();
+
+    d_barz.clear();
+    d_parser.tokenize_only( d_barz, str, d_qparm );
+    parseTokenized();
+
+    auto lastOffsetPos = getLastOffset( docId ); // lastOffsetPos guaranteed to be valid
+    stats.numFeatureBeads += d_index.appendDocument( docId, d_barz, lastOffsetPos->second, getCurrentWeight() );
+    stats.numBeads += d_barz.getBeads().getList().size();
+		
+	lastOffsetPos->second += addParsedDocContents(docId, std::string(str, strlen(str)) );
+    return stats.numBeads;
+}
 size_t DocFeatureLoader::addDocFromStream( uint32_t docId, std::istream& fp, DocFeatureLoader::DocStats& stats )
 {
     d_phraser.clear();
 	
-	auto lastOffsetPos = m_lastOffset.find(docId);
-	if (lastOffsetPos == m_lastOffset.end())
-		lastOffsetPos = m_lastOffset.insert({ docId, 0 }).first;
+    auto lastOffsetPos = getLastOffset( docId );
 	
     DocAdderCB adderCb( docId, lastOffsetPos->second, *this, qparm() );
 
-    parser().tokenizer.setMax( MAX_QUERY_LEN, MAX_NUM_TOKENS );
-    parser().lexer.setMaxCTokensPerQuery( MAX_NUM_TOKENS/2 );
-    
-    parser().lexer.setDontSpell(true);
+    parserSetup();
 
     BarzerTokenizerCB<DocAdderCB> cb( adderCb, parser(), barz(), qparm() );
 
@@ -825,6 +849,11 @@ size_t DocFeatureLoader::addDocFromStream( uint32_t docId, std::istream& fp, Doc
 	lastOffsetPos->second += adderCb.bytesHandled;
 
     return stats.numBeads;
+}
+
+void DocFeatureLoader::addDocContents(uint32_t docId, const char* contents )
+{
+    m_docs[ docId ] = contents;
 }
 
 void DocFeatureLoader::addDocContents(uint32_t docId, const std::string& contents)

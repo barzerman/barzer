@@ -57,6 +57,20 @@ bool ZurchSettings::loadIndex( const boost::property_tree::ptree& pt )
         dixl->addAllFilesAtPath(x.get().c_str());
     }
 
+    bool isPhraseMode = false;
+    if( const boost::optional< std::string > x = attr.get().get_optional<std::string>("phr") ) {
+        isPhraseMode = true;
+        DocFeatureLoader::DocStats stats;
+        loader->d_loadMode = DocFeatureLoader::LOAD_MODE_PHRASE;
+        ZurchPhrase_DocLoader parser( stats, *loader );
+        parser.readFromFile( x.get().c_str() );
+        stats.print( std::cerr << "\n" ) << std::endl;
+    }
+    if( const boost::optional< std::string > x = attr.get().get_optional<std::string>("content") ) {
+        DocFeatureLoader::DocStats stats;
+        ZurchPhrase_DocLoader parser( stats, *loader );
+        parser.readDocContentFromFile( x.get().c_str() );
+    }
     if( const boost::optional< std::string > x = attr.get().get_optional<std::string>("xml") ) {
         DocFeatureLoader::DocStats stats;
         loader->d_loadMode = DocFeatureLoader::LOAD_MODE_XHTML;

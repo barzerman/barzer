@@ -363,6 +363,7 @@ public:
     typedef enum { 
         LOAD_MODE_TEXT, // plain text
         LOAD_MODE_XHTML, // something tagged (XHTML or HTML)
+        LOAD_MODE_PHRASE, // zurch phrase format
         LOAD_MODE_AUTO // UNIMPLEMENTED tries to automatically decide between txt and tags  
     } load_mode_t;
 private:
@@ -372,6 +373,8 @@ public:
     load_mode_t                             d_loadMode; // one of LOAD_MODE_XXX constants LOAD_MODE_TEXT - default
     boost::unordered_map< uint32_t, std::string > d_docTitleMap; 
     
+    void setDocTitle( uint32_t docId, const char* s )
+        { d_docTitleMap[ docId ] = s; }
     void setDocTitle( uint32_t docId, const std::string& s ) 
         { d_docTitleMap[ docId ] = s; }
     const std::string getDocTitle( uint32_t docId ) const
@@ -431,9 +434,14 @@ public:
             return *this;
         }
     };
+    std::map<uint32_t, size_t>::iterator getLastOffset(uint32_t docId);
+
+    void parserSetup();
+    size_t addDocFromString( uint32_t docId, const char*, DocStats&  );
     size_t addDocFromStream( uint32_t docId, std::istream&, DocStats&  );
 	
 	void addDocContents(uint32_t docId, const std::string& contents);
+	void addDocContents(uint32_t docId, const char* contents );
 	bool getDocContents(uint32_t docId, std::string& out) const;
 	const char* getDocContentsStrptr(uint32_t ) const;
 	

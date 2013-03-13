@@ -28,6 +28,7 @@ struct ZurchLongXMLParser {
 
     /// tag functions are needed for external connectivity so that this object can be invoked from other XML parsers
     void readFromFile( const char* fname );
+    // docid|content (conent up to 16MB)
     void clear() { tagStack.clear(); }
 
     virtual int callback();
@@ -40,9 +41,14 @@ struct ZurchLongXMLParser_DocLoader : public ZurchLongXMLParser {
     DocIndexLoaderNamedDocs& d_loader;
     DocFeatureLoader::DocStats& d_loadStats;
 
+    bool d_onlyTitlesAndContents; 
+
+    void setLoadOnlyTitlesAndContents( bool x ) { d_onlyTitlesAndContents = x; }
+
     ZurchLongXMLParser_DocLoader(DocFeatureLoader::DocStats& ds, DocIndexLoaderNamedDocs& ldr) : 
         d_loader(ldr), 
-        d_loadStats(ds)
+        d_loadStats(ds),
+        d_onlyTitlesAndContents(false)
     {}
     virtual int callback();
 };
@@ -57,6 +63,17 @@ struct ZurchLongXMLParser_Phraserizer : public ZurchLongXMLParser {
     virtual int callback();
 
     void printCurrentRecord();
+};
+struct ZurchPhrase_DocLoader {
+    DocIndexLoaderNamedDocs& d_loader;
+    DocFeatureLoader::DocStats& d_loadStats;
+
+    ZurchPhrase_DocLoader( DocFeatureLoader::DocStats& ds, DocIndexLoaderNamedDocs& ldr ) :
+        d_loader(ldr), d_loadStats(ds) 
+    {}
+    void readFromFile( const char* fn );
+    void readDocContentFromFile( const char* fn );
+    /// line is pipe seaprated DOCNAME|TX|PHRASENUM|TEXT
 };
 
 } // namespace barzer 
