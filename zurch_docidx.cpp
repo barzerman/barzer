@@ -171,6 +171,14 @@ void DocFeatureIndex::loadSynonyms(const std::string& filename, const barzer::St
 	std::cout << std::endl;
 }
 
+bool DocFeatureIndex::hasTokenString (const char *str) const
+{
+	const auto id = resolveExternalString(str);
+	const DocFeature f(DocFeature::CLASS_TOKEN, id);
+	
+	return d_invertedIdx.find(NGram<DocFeature>(f)) != d_invertedIdx.end();
+}
+
 uint32_t DocFeatureIndex::storeOwnedEntity( const barzer::BarzerEntity& ent )
     { return d_entPool.produceIdByObj( ent ); }
 uint32_t DocFeatureIndex::storeExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u )
@@ -236,8 +244,6 @@ namespace
 	template<typename IndexType, typename EntGetter, typename StringGetter, typename RawStringGetter>
 	int vecFiller(IndexType idx,
 			EntGetter getEnt, StringGetter getStr, RawStringGetter getRawStr,
-			const std::set<uint32_t>& stopWords,
-			const barzer::MeaningsStorage& meanings,
 			ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz)
 	{
 		const barzer::StoredUniverse* universe = barz.getUniverse() ;
@@ -245,6 +251,9 @@ namespace
 			return 0;
 		
 		const size_t maxGramSize = 3;
+		
+		const auto& stopWords = idx->getStopWords();
+		const auto& meanings = idx->getMeaningsStorage();
 		
 		featureVec.reserve(barz.getBeadList().size() * maxGramSize);
 
@@ -362,8 +371,6 @@ int DocFeatureIndex::fillFeatureVecFromQueryBarz( ExtractedDocFeature::Vec_t& fe
 			&DocFeatureIndex::resolveExternalEntity,
 			static_cast<uint32_t (DocFeatureIndex::*)(const barzer::BarzerLiteral&, const barzer::StoredUniverse&) const>(&DocFeatureIndex::resolveExternalString),
 			static_cast<uint32_t (DocFeatureIndex::*)(const char*) const>(&DocFeatureIndex::resolveExternalString),
-			m_stopWords,
-			m_meanings,
 			featureVec, barz);
 }
 int DocFeatureIndex::getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz, bool needToInternStems ) 
@@ -372,8 +379,6 @@ int DocFeatureIndex::getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec
 			&DocFeatureIndex::storeExternalEntity,
 			static_cast<uint32_t (DocFeatureIndex::*)(const barzer::BarzerLiteral&, const barzer::StoredUniverse&)>(&DocFeatureIndex::storeExternalString),
 			static_cast<uint32_t (DocFeatureIndex::*)(const char*)>(&DocFeatureIndex::storeExternalString),
-			m_stopWords,
-			m_meanings,
 			featureVec, barz);
 }
 

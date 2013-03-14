@@ -284,6 +284,10 @@ public:
 	void addSynonyms(const barzer::StoredUniverse& universe);
 	void addSynonymsGroup(const std::vector<std::string>&);
 	void loadSynonyms(const std::string&, const barzer::StoredUniverse&);
+	
+	const barzer::MeaningsStorage& getMeaningsStorage() const { return m_meanings; }
+	
+	bool hasTokenString(const char*) const;
 
     uint32_t resolveExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u ) const 
         { 
@@ -306,6 +310,7 @@ public:
     /// returns the number of counted features 
 
 	void setStopWords(const std::vector<std::string>&);
+	std::set<uint32_t> getStopWords() const { return m_stopWords; }
 
     int   fillFeatureVecFromQueryBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz ) const;
 
