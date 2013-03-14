@@ -62,6 +62,7 @@ static void startElement(void* ud, const XML_Char *n, const XML_Char **a)
 	if( attrCount <=0 || (attrCount & 1) )
 		attrCount = 0; // odd number of attributes is invalid
 
+    size_t lineNumber = XML_GetCurrentLineNumber(loader->expat);
 	tagRouter( loader->parser, name, atts, attrCount, true );
 }
 
@@ -159,6 +160,7 @@ DECL_TAGHANDLE(TABLE) {
         ++parser.d_numCallbacks;
         if( !(parser.d_numCallbacks%500) )
             std::cerr << "."; // trace
+
         parser.callback();
     } else { /// closing TABLE
     }
