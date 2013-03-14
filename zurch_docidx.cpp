@@ -210,6 +210,13 @@ void DocFeatureIndex::setStopWords(const std::vector<std::string>& words)
 
 namespace
 {
+    size_t getLevenshteynDistFromSource( const barzer::BarzelBead& bead, const char* str, size_t str_sz ) 
+    {
+        std::string srcTok = bead.getSrcTokensString();
+        ay::LevenshteinEditDistance lev; 
+        return barzer::Lang::getLevenshteinDistance( lev, srcTok.c_str(), srcTok.length(), str, str_sz );
+    }
+
 	FeatureDocPosition getPosFromCToks(const barzer::CTWPVec& ctoks)
 	{
 		FeatureDocPosition pos(-1);

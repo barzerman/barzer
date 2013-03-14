@@ -400,6 +400,13 @@ public:
 
     size_t streamSrcTokens( std::ostream& fp ) const;
 
+    std::string getSrcTokensString( ) const
+    {
+        std::stringstream sstr; 
+        streamSrcTokens(sstr);
+        return sstr.str();
+    }
+    
     int  computeBeadConfidence( const StoredUniverse* u=0 ) const;
     void setBeadConfidence( int x ) { d_confidence = x; }
     int getConfidence( ) const { return d_confidence; }

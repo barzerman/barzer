@@ -391,7 +391,10 @@ public:
 	bool isString() const { return ( type == T_STRING && theId != 0xffffffff ); }
 	bool isNull() const { return ( type == T_STRING && theId == 0xffffffff ); }
 	bool isBlank() const { return type == T_BLANK; }
+
 	bool isStop() const { return type == T_STOP; }
+	bool isFluff() const { return isStop(); }
+
 	bool isPunct() const { return type == T_PUNCT; }
 	bool isCompound() const { return type == T_COMPOUND; }
 	bool isMeaning() const { return type == T_MEANING; }
