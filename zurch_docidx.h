@@ -261,7 +261,7 @@ class DocFeatureIndex {
 public:
 	typedef std::vector<std::pair<uint32_t, uint16_t>> PosInfos_t;
 	
-	int   getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz, bool needToInternStems );
+	int   getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, barzer::Barz& barz, bool needToInternStems );
 	
     enum {
         BIT_INTERN_STEMS,  /// interns all stems ergardless of whether or not they had been stored as literals in barzer Universe
@@ -287,6 +287,7 @@ public:
 	
 	const barzer::MeaningsStorage& getMeaningsStorage() const { return m_meanings; }
 	
+	bool hasTokenString(uint32_t) const;
 	bool hasTokenString(const char*) const;
 
     uint32_t resolveExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u ) const 
@@ -312,11 +313,11 @@ public:
 	void setStopWords(const std::vector<std::string>&);
 	std::set<uint32_t> getStopWords() const { return m_stopWords; }
 
-    int   fillFeatureVecFromQueryBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz ) const;
+    int   fillFeatureVecFromQueryBarz( ExtractedDocFeature::Vec_t& featureVec, barzer::Barz& barz ) const;
 
     size_t appendOwnedEntity( uint32_t docId, const BarzerEntity& ent ); 
     size_t appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t&, size_t posOffset );
-    size_t appendDocument( uint32_t docId, const barzer::Barz&, size_t posOffset, DocFeatureLink::Weight_t weight );
+    size_t appendDocument( uint32_t docId, barzer::Barz&, size_t posOffset, DocFeatureLink::Weight_t weight );
 	
     /// should be called after the last doc has been appended . 
     void sortAll();

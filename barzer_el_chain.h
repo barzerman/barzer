@@ -406,6 +406,15 @@ public:
         streamSrcTokens(sstr);
         return sstr.str();
     }
+    void cancelCorrections() 
+    {
+        for(  auto&i : ctokOrigVec ) i.first.spellCorrections.clear() ; 
+    }
+    bool hasSpellCorrections() const
+    {
+        for(  const auto&i : ctokOrigVec ) { if( !i.first.spellCorrections.empty() ) return true; }
+        return false;
+    }
     
     int  computeBeadConfidence( const StoredUniverse* u=0 ) const;
     void setBeadConfidence( int x ) { d_confidence = x; }

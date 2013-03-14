@@ -171,6 +171,12 @@ void DocFeatureIndex::loadSynonyms(const std::string& filename, const barzer::St
 	std::cout << std::endl;
 }
 
+bool DocFeatureIndex::hasTokenString (uint32_t id) const
+{
+	const DocFeature f(DocFeature::CLASS_STEM, id);
+	
+	return d_invertedIdx.find(NGram<DocFeature>(f)) != d_invertedIdx.end();
+}
 bool DocFeatureIndex::hasTokenString (const char *str) const
 {
 	const auto id = resolveExternalString(str);
@@ -222,7 +228,8 @@ namespace
     {
         std::string srcTok = bead.getSrcTokensString();
         ay::LevenshteinEditDistance lev; 
-        return barzer::Lang::getLevenshteinDistance( lev, srcTok.c_str(), srcTok.length(), str, str_sz );
+        size_t dist = barzer::Lang::getLevenshteinDistance( lev, srcTok.c_str(), srcTok.length(), str, str_sz );
+        return dist;
     }
 
 	FeatureDocPosition getPosFromCToks(const barzer::CTWPVec& ctoks)
@@ -244,7 +251,7 @@ namespace
 	template<typename IndexType, typename EntGetter, typename StringGetter, typename RawStringGetter>
 	int vecFiller(IndexType idx,
 			EntGetter getEnt, StringGetter getStr, RawStringGetter getRawStr,
-			ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz)
+			ExtractedDocFeature::Vec_t& featureVec, barzer::Barz& barz)
 	{
 		const barzer::StoredUniverse* universe = barz.getUniverse() ;
 		if( !universe ) 
@@ -260,22 +267,49 @@ namespace
 		for( auto i = barz.getBeadList().begin(); i!= barz.getBeadList().end(); ++i ) {
 			const auto& fdp = getPosFromCToks(i->getCTokens());
 			auto stemId = i->getStemStringId();
+		    auto stemStr = universe->getStringPool().resolveId(stemId);
 			if (stemId != 0xffffffff)
 			{
-				auto stemStr = universe->getStringPool().resolveId(stemId);
+				stemStr = universe->getStringPool().resolveId(stemId);
 				if (stemStr)
 					stemId = (idx->*getRawStr)(stemStr);
 			}
 			
 			if( const barzer::BarzerLiteral* x = i->get<barzer::BarzerLiteral>() ) {
-				const auto& pair = x->toString(*universe);
-				if (x->isStop() || x->isPunct() || x->isBlank())
-					continue;
-				
-				if (!pair.second)
-					continue;
-				
+				const auto& ltrlStr = x->toString(*universe);
+                if( !ltrlStr.first ) 
+                    continue;
 				uint32_t strId = stemId == 0xffffffff ? (idx->*getStr)( *x, *universe ) : stemId;
+                bool correctionCancelled = false;
+
+                if( i->hasSpellCorrections() ) {
+                    size_t ltrlLev = getLevenshteynDistFromSource( *i, ltrlStr.first, ltrlStr.second );
+                    std::string srcString = i->getSrcTokensString();
+
+                    if( !strchr( srcString.c_str(), ' ' ) ) {
+                        std::string stem; 
+                        ay::LevenshteinEditDistance lev;
+
+                        barz.getUniverse()->stem( stem, srcString.c_str() );
+                        
+                        if( stem.empty() ) 
+                            stem = srcString;
+
+                        uint32_t stemStrId  = idx->resolveExternalString(stem.c_str());    
+                        if( stemStrId!= 0xffffffff && idx->hasTokenString( stemStrId) ) {
+                            size_t stemLev = barzer::Lang::getLevenshteinDistance( lev, stem.c_str(), stem.length(), srcString.c_str(), srcString.length()) ;
+                            if( stemLev <= ltrlLev ) { // if stem is close enough to the original string we go with stem
+                                strId = stemStrId;
+                                correctionCancelled = true;
+                                i->setAtomicData( barzer::BarzerString(srcString) );
+                                i->cancelCorrections();
+                            }
+                        }
+                    }
+                }
+				if ( !correctionCancelled && ( x->isStop() || x->isPunct() || x->isBlank() || !ltrlStr.second) )
+					continue;
+                
 				featureVec.push_back( 
 					ExtractedDocFeature( 
 						DocFeature( DocFeature::CLASS_STEM, strId ), 
@@ -365,7 +399,7 @@ namespace
 	}
 }
 
-int DocFeatureIndex::fillFeatureVecFromQueryBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz ) const
+int DocFeatureIndex::fillFeatureVecFromQueryBarz( ExtractedDocFeature::Vec_t& featureVec, barzer::Barz& barz ) const
 {
 	return vecFiller(this,
 			&DocFeatureIndex::resolveExternalEntity,
@@ -373,7 +407,7 @@ int DocFeatureIndex::fillFeatureVecFromQueryBarz( ExtractedDocFeature::Vec_t& fe
 			static_cast<uint32_t (DocFeatureIndex::*)(const char*) const>(&DocFeatureIndex::resolveExternalString),
 			featureVec, barz);
 }
-int DocFeatureIndex::getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, const barzer::Barz& barz, bool needToInternStems ) 
+int DocFeatureIndex::getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, barzer::Barz& barz, bool needToInternStems ) 
 {
 	return vecFiller(this,
 			&DocFeatureIndex::storeExternalEntity,
@@ -389,7 +423,7 @@ size_t DocFeatureIndex::appendOwnedEntity( uint32_t docId, const BarzerEntity& e
     featureVec.push_back( ExtractedDocFeature(DocFeature(DocFeature::CLASS_ENTITY,eid)) );
     return appendDocument( docId, featureVec, 0 );
 }
-size_t DocFeatureIndex::appendDocument( uint32_t docId, const barzer::Barz& barz, size_t offset, DocFeatureLink::Weight_t weight )
+size_t DocFeatureIndex::appendDocument( uint32_t docId, barzer::Barz& barz, size_t offset, DocFeatureLink::Weight_t weight )
 {
     ExtractedDocFeature::Vec_t featureVec;
     if( !getFeaturesFromBarz(featureVec, barz, internStems()) ) 

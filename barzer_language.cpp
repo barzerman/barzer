@@ -127,7 +127,7 @@ size_t Lang::getLevenshteinDistance( ay::LevenshteinEditDistance& lev, const cha
 
         return  lev.utf8( u1, u2 );
     } else if( isTwoByteLang(lang1) ) {
-        return lev.twoByte(s1, s1_len / 2, s1, s2_len / 2);
+        return lev.twoByte(s1, s1_len / 2, s2, s2_len / 2);
     } else 
         return lev.ascii_no_case(s1, s2);
 }
