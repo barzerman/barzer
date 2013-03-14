@@ -421,7 +421,7 @@ void ZurchPhrase_DocLoader::readDocContentFromFile( const char* fn )
         if( buf_sz ) --buf_sz;
         
         char* pipe = strchr( buf, '|' );
-        if( pipe && pipe-buf< buf_sz) 
+        if( pipe && pipe< buf+buf_sz) 
             *pipe = 0;
         else
             continue;

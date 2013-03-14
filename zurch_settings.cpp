@@ -57,9 +57,9 @@ bool ZurchSettings::loadIndex( const boost::property_tree::ptree& pt )
         dixl->addAllFilesAtPath(x.get().c_str());
     }
 
-    bool isPhraseMode = false;
+    //bool isPhraseMode = false;
     if( const boost::optional< std::string > x = attr.get().get_optional<std::string>("phr") ) {
-        isPhraseMode = true;
+        //isPhraseMode = true;
         DocFeatureLoader::DocStats stats;
         loader->d_loadMode = DocFeatureLoader::LOAD_MODE_PHRASE;
         ZurchPhrase_DocLoader parser( stats, *loader );
