@@ -47,6 +47,11 @@ class StoredUniverse {
     //// search entities by names using this object
     BarzerEntityNameIndex* d_entNameIdx;
 public:
+
+    void indexEntityNames( const StoredEntityClass& ec ) ;
+
+    void searchEntitiesByName( std::vector<std::pair< BarzerEntity, size_t >>& out, const char* str ) const;
+
 	GlobalPools& gp;
 
     boost::unordered_map< uint32_t, zurch::DocIndexAndLoader* > d_zurchIndexPool;
@@ -117,6 +122,7 @@ public:
 
         /// extra normalization includes single quotes, utf8 punctuation etc.
         UBIT_NO_EXTRA_NORMALIZATION, /// when set no extra normalization is performed
+        UBIT_USE_BENI_VANILLA, /// BarzerEntityNameIndex search will be used if final bead chain    
         /// add new bits above this line only 
         UBIT_MAX
     };

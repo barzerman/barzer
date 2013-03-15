@@ -672,6 +672,21 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 	u.getUniverse().initBZSpell(0);
     u.loadExtraDictionary();
 	u.getUniverse().getBarzHints().initFromUniverse(&uni);
+
+    if( boost::optional< const ptree& > x = children.get_child_optional("beni") ) {
+        u.getUniverse().setBit( StoredUniverse::UBIT_USE_BENI_VANILLA );
+        BOOST_FOREACH(const ptree::value_type &i, x.get() ) {
+            if( i.first == "benient" ) {
+                const ptree attrs = i.second.get_child("<xmlattr>");
+                if( const boost::optional<uint32_t> cOpt = attrs.get_optional<uint32_t>("c") ) {
+                    if( const boost::optional<uint32_t> sOpt = attrs.get_optional<uint32_t>("s") ) {
+                        StoredEntityClass ec( cOpt.get(), sOpt.get() );
+                        u.getUniverse().indexEntityNames( ec );
+                    }
+                }
+            }
+        }
+    }
     return 1;
 }
 

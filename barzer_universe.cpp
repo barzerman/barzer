@@ -44,6 +44,19 @@ StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	m_hints.initFromUniverse(this);
 }
 
+void StoredUniverse::searchEntitiesByName( std::vector<std::pair< BarzerEntity, size_t >>& out, const char* str ) const
+{
+    if( d_entNameIdx ) 
+        d_entNameIdx->search( out, str );
+}
+
+void StoredUniverse::indexEntityNames( const StoredEntityClass& ec ) 
+{
+    if( !d_entNameIdx )  
+        d_entNameIdx = new BarzerEntityNameIndex( *this );
+    d_entNameIdx->addEntityClass(ec);
+}
+
 StoredUniverse::~StoredUniverse()
 {
     // cleaning zurch 
