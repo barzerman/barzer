@@ -8,6 +8,7 @@
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
 #include <boost/variant.hpp>
+#include <boost/concept_check.hpp>
 #include <ay/ay_char.h>
 #include <ay/ay_string_pool.h>
 #include <barzer_universe.h>
@@ -192,6 +193,22 @@ struct FeatureCorrectorWordData {
     bool hasStem() const { return stemStrId!= 0xffffffff; }
 };
 
+template<typename T>
+class DataStorage
+{
+	boost::unordered_map<uint32_t, T> m_storage;
+public:
+	void add(uint32_t id, const T& t) { m_storage.insert({ id, t }); }
+	T* get(uint32_t id) const
+	{
+		auto pos = m_storage.find(id);
+		if (pos != m_storage.end())
+			return &pos->second;
+		else
+			return nullptr;
+	}
+};
+
 class FeaturedSpellCorrector
 {
 	InvertedIdxVarVec m_storages;
@@ -237,7 +254,7 @@ public:
 		m_storages.push_back(var);
 	}
 	
-	void addWord(uint32_t strId, const char *str, int lang,BZSpell& bzSpell);
+	void addWord(uint32_t strId, const char *str, int lang, BZSpell& bzSpell);
 	
 	struct FeaturedMatchInfo
 	{
@@ -257,6 +274,98 @@ public:
 		}
 	};
 	FeaturedMatchInfo getBestMatch(const char *str, size_t strLen, int lang, size_t maxLevDist);
+};
+
+template<typename T>
+class NGramStorage
+{
+	TFE_storage<TFE_ngram> m_gram;
+	
+	boost::unordered_map<uint32_t, T> m_storage;
+	
+	StoredStringFeatureVec m_storedVec;
+	ExtractedStringFeatureVec m_extractedVec;
+	TFE_TmpBuffers m_bufs;
+public:
+	NGramStorage(ay::UniqueCharPool& p)
+	: m_gram(p)
+	, m_bufs(m_storedVec, m_extractedVec)
+	{
+	}
+	
+	void addWord(uint32_t strId, const char *str, const T& data)
+	{
+		m_bufs.clear();
+		m_gram.extractAndStore(m_bufs, strId, str, 0);
+		m_storage.insert({ strId, data });
+	}
+	
+	struct FindInfo
+	{
+		uint32_t m_strId;
+		T *m_data;
+		size_t m_relevance;
+		size_t m_levDist;
+	};
+	
+	void getMatches(const char *str, size_t strLen, std::vector<FindInfo>& out, size_t max = 16, size_t topLev = 4)
+	{
+		m_bufs.clear();
+		m_gram.extractSTF(m_bufs, str, strLen, 0);
+		
+		typedef std::map<uint32_t, double> CounterMap_t;
+		CounterMap_t counterMap;
+		for (const auto& feature : m_storedVec)
+		{
+			const auto srcs = m_gram.getSrcsForFeature(feature);
+			if (!srcs)
+				continue;
+			
+			for (uint32_t source : *srcs)
+			{
+				auto pos = counterMap.find(source);
+				if (pos == counterMap.end())
+					pos = counterMap.insert(std::make_pair(source, 0)).first;
+				pos->second += 1. / (srcs->size() * srcs->size());
+			}
+		}
+		
+		if (counterMap.empty())
+			return;
+		
+		std::vector<std::pair<uint32_t, double>> sorted;
+		sorted.reserve(counterMap.size());
+		std::copy(counterMap.begin(), counterMap.end(), std::back_inserter(sorted));
+		
+		std::sort(sorted.begin(), sorted.end(),
+				[](const CounterMap_t::value_type& v1, const CounterMap_t::value_type& v2)
+					{ return v1.second > v2.second; });
+		
+		if (sorted.size() > max)
+			sorted.resize(max);
+		
+		out.reserve(sorted.size());
+		
+		size_t curItem = 0;
+		ay::LevenshteinEditDistance lev;
+		for (const auto& item : sorted)
+		{
+			auto dataPos = m_storage.find(item.first);
+			
+			auto resolvedResult = m_gram.d_pool->resolveId(item.first);
+			
+			const auto dist = ++curItem > topLev ?
+				0 :
+				barzer::Lang::getLevenshteinDistance(lev, str, strLen, resolvedResult, std::strlen(resolvedResult));
+			
+			out.push_back({
+					item.first,
+					dataPos == m_storage.end() ? 0 : &dataPos->second,
+					item.second,
+					dist
+				});
+		}
+	}
 };
 
 } // namespace barzer
