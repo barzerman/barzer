@@ -365,6 +365,10 @@ public:
 					dist
 				});
 		}
+		
+		std::sort(out.begin(), std::min(out.end(), out.begin() + topLev),
+				[](const FindInfo& f1, const FindInfo& f2)
+					{ return f1.m_levDist < f2.m_levDist; });
 	}
 };
 
