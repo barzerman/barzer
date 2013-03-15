@@ -235,6 +235,10 @@ int QParser::barz_parse( Barz& barz, const QuestionParm& qparm )
     if( universe.checkBit(StoredUniverse::UBIT_NEED_CONFIDENCE))  
         barz.computeConfidence( universe, qparm, 0 );
     
+    if( universe.checkBit(StoredUniverse::UBIT_USE_BENI_VANILLA)) {
+        barz.beniSearch( universe, qparm );
+    }
+
 	return 0;
 }
 

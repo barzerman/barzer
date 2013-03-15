@@ -6,12 +6,15 @@ void BarzerEntityNameIndex::addEntityClass( const StoredEntityClass& ec )
     /// iterate over entities of ec 
     const auto& theMap = d_universe.getDtaIdx().entPool.getEuidMap();
     BarzerEntity id( ec, 0 );
+    size_t numNames =0;
     for( auto i = theMap.lower_bound( id );i!= theMap.end() && i->first.eclass == ec; ++i ) {
         const EntityData::EntProp* edata = d_universe.getEntPropData( i->first );
         if( edata && !edata->canonicName.empty() ) {
             d_storage.addWord( i->second, edata->canonicName.c_str(), i->first );
+            ++numNames;
         }
     }
+    std::cerr << "BENI: " << numNames << " names for " << ec << std::endl;
 }
 
 void BarzerEntityNameIndex::search( EntityLevDistVec& out, const char* query ) const

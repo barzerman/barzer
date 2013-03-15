@@ -123,6 +123,7 @@ public:
         /// extra normalization includes single quotes, utf8 punctuation etc.
         UBIT_NO_EXTRA_NORMALIZATION, /// when set no extra normalization is performed
         UBIT_USE_BENI_VANILLA, /// BarzerEntityNameIndex search will be used if final bead chain    
+        UBIT_USE_BENI_IDS, /// when using beni will try to only invoke for ids 
         /// add new bits above this line only 
         UBIT_MAX
     };
@@ -171,6 +172,7 @@ public:
 
     void setUBits( const char* ) ;
     void setBit(size_t bit) { d_biflags.set(bit); }
+    void setBit(size_t bit, bool v) { d_biflags.set(bit,v); }
     bool checkBit(size_t b ) const { return d_biflags.checkBit(b); }
     const BZSpell::char_cp_to_strid_map* getValidWordMapPtr() const 
         { return bzSpell->getValidWordMapPtr(); }
