@@ -688,7 +688,9 @@ inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexPa
 
                 uint32_t right = 0xffffffff;
                 if( !tmpTok ) {
-                    if( leftCorrected || t_len - step- i < MIN_SPELL_CORRECT_LEN*step )
+                    if( leftCorrected || t_len - step- i < MIN_SPELL_CORRECT_LEN*step 
+                    || (step>1 && i< 2*step)  // if it's russian or something and left is less than 2 characters long we don't want to correct
+                    )
                         continue;
                     else {
                         if( i< 4*step || ((t_len - step -i) < 4*step) ) {
@@ -954,7 +956,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
             SpellCorrectResult corrResult;
             QLexParser_LocalParms lparm(cPosVec, tPosVec, qparm, t_len, strId, lang,theString,bzSpell,ctok,ttok,t);
 
-            if( !m_dontSpell && trySplitCorrect (corrResult, lparm, qparm.isAutoc ) ) 
+            if( !m_dontSpell && !qparm.isSplitCorrectionOff() && trySplitCorrect (corrResult, lparm, qparm.isAutoc ) ) 
                 return corrResult;
         }
         //// end of split correction attempt

@@ -302,6 +302,7 @@ struct QuestionParm {
     uint8_t  stemMode;
     
     enum {
+        QPBIT_SPELL_NO_SPLITCORRECT,
         QPBIT_ZURCH_FULLTEXT,
         QPBIT_ZURCH_HTML,
         QPBIT_ZURCH_NO_CHUNKS,
@@ -311,6 +312,8 @@ struct QuestionParm {
     };
     ay::bitflags<QPBIT_MAX> d_biflags;
     
+    bool isSplitCorrectionOff( ) const { return d_biflags.checkBit(QPBIT_SPELL_NO_SPLITCORRECT); }
+    void turnSplitCorrectionOff( bool x=true ) { d_biflags.set(QPBIT_SPELL_NO_SPLITCORRECT,x); }
     void setZurchFlags( const char* str );
     struct AutocParm {
         uint32_t trieClass, trieId;
