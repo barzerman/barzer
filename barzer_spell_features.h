@@ -112,7 +112,11 @@ struct TFE_storage {
     StringSet d_strSet;
 
     TFE_storage( ay::UniqueCharPool&  p) : d_pool(&p) {}
-    
+    void clear()
+    {
+        d_fm.clear();
+        d_strSet.clear();
+    }
     const InvertedFeatureMap::mapped_type* getSrcsForFeature(const StoredStringFeature& f) const
     {
 		const auto pos = d_fm.find(f);
@@ -287,6 +291,14 @@ class NGramStorage
 	ExtractedStringFeatureVec m_extractedVec;
 	TFE_TmpBuffers m_bufs;
 public:
+    void clear() 
+    {
+        m_gram.clear();
+        m_storage.clear();
+        m_storedVec.clear();
+        m_extractedVec.clear();
+    }
+
 	NGramStorage(ay::UniqueCharPool& p)
 	: m_gram(p)
 	, m_bufs(m_storedVec, m_extractedVec)
@@ -304,7 +316,7 @@ public:
 	{
 		uint32_t m_strId;
 		T *m_data;
-		size_t m_relevance;
+		double m_relevance;
 		size_t m_levDist;
 	};
 	
