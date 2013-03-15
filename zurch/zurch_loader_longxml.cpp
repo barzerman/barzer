@@ -153,6 +153,14 @@ DECL_TAGHANDLE(TABLE) {
             case 'M': 
                 CASEIF(ModuleID)
                 break;
+				/* there is some bullshit with the new keywords in the file so we don't parse it for now
+            case 'N': 
+                CASEIF(NewKeywords)
+                break;
+				*/
+            case 'R': 
+                CASEIF(Rubrics)
+                break;
             case 'S': 
                 CASEIF(SortName)
                 break;
@@ -224,11 +232,13 @@ struct PhraseizerCB {
     PhraseBreaker& d_phraser;
     std::string d_docId;
 
-    typedef enum { 
-        TXT_CONTENT=0,
-        TXT_NAME=1,
-        TXT_KEYWORDS=2
-    } txt_type_t;
+    enum txt_type_t { 
+        TXT_CONTENT,
+        TXT_NAME,
+        TXT_KEYWORDS,
+		TXT_NEWKEYWORDS,
+		TXT_RUBRICS
+    };
     txt_type_t d_txtType; // TXT_XX
     size_t d_fragment;
     std::string d_tmp;
@@ -305,13 +315,16 @@ int ZurchLongXMLParser_Phraserizer::callback()
     pz.parseText( d_data.d_DocName , PhraseizerCB::TXT_NAME,     " " );
     pz.parseText( d_data.d_Content , PhraseizerCB::TXT_CONTENT );
     pz.parseText( d_data.d_Keywords, PhraseizerCB::TXT_KEYWORDS, " " );
+    pz.parseText( d_data.d_NewKeywords, PhraseizerCB::TXT_NEWKEYWORDS, " " );
+    pz.parseText( d_data.d_Rubrics, PhraseizerCB::TXT_RUBRICS, " " );
     return 0;
 }
 namespace {
     enum : DocFeatureLink::Weight_t {
         WEIGHT_BOOST_NONE=0, 
         WEIGHT_BOOST_NAME=1000,
-        WEIGHT_BOOST_KEYWORD=2000
+        WEIGHT_BOOST_KEYWORD=2000,
+        WEIGHT_BOOST_RUBRIC=700
     };
 }
 int ZurchLongXMLParser_DocLoader::callback()
@@ -333,6 +346,12 @@ int ZurchLongXMLParser_DocLoader::callback()
         std::stringstream sstr;
         sstr << d_data.d_Keywords << " ";
         d_loader.setCurrentWeight(WEIGHT_BOOST_KEYWORD);
+        d_loader.addDocFromStream( docId, sstr, d_loadStats );
+    }
+    { // KEYWORDS
+        std::stringstream sstr;
+        sstr << d_data.d_Rubrics << " ";
+        d_loader.setCurrentWeight(WEIGHT_BOOST_RUBRIC);
         d_loader.addDocFromStream( docId, sstr, d_loadStats );
     }
     { /// CONTENT
