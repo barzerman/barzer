@@ -515,10 +515,13 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out,
 		
 		const double classBoost = d_classBoosts[maxClass];
 		const int sizeBoost = ngram.feature.size() * ngram.feature.size();
+		const int length = ngram.docPos.offset.second;
+		
+		const double lengthBoost = std::log(1 + length);
 		
 		const auto& sources = invertedPos->second;
 		
-		const auto numSources = 1 + std::log(sources.size());
+		const auto numSources = 1 + sources.size();
 		
 		for (const auto& link : sources)
 		{
@@ -526,7 +529,7 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out,
 			if (link.count <= 0)
 				continue;
 			
-			const auto scoreAdd = sizeBoost * classBoost * (1 + link.weight) * (1 + std::log(link.count)) / numSources;
+			const auto scoreAdd = lengthBoost * sizeBoost * classBoost * (1 + link.weight) * (1 + std::log(link.count)) / numSources;
 			
 			if (doc2pos)
 			{
