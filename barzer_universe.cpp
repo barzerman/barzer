@@ -11,6 +11,7 @@
 #include <ay/ay_ngrams.h>
 #include <boost/filesystem.hpp>
 #include <zurch_docidx.h>
+#include <barzer_universe.h>
 
 namespace barzer {
 
@@ -30,6 +31,7 @@ uint32_t StoredUniverse::recordLangWord( int16_t lang )
 }
 StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	d_userId(id),
+    d_entNameIdx(0),
 	gp(g),
 	trieCluster(g.globalTriePool,*this),
 	topicTrieCluster(g.globalTriePool,*this),
@@ -100,6 +102,8 @@ void StoredUniverse::clear()
     d_ghettoDb->clear();
     d_biflags.clear();
 	m_hints.initFromUniverse(this);
+    delete d_entNameIdx;
+    d_entNameIdx = 0;
 }
 
 StoredToken& StoredUniverse::internString( int lang, const char* t, BELTrie* triePtr, const char* unstemmed)

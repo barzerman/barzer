@@ -39,13 +39,16 @@ class BZSpell;
 class Ghettodb;
 class MeaningsStorage;
 class BarzerGeo;
+class BarzerEntityNameIndex;
 
 class StoredUniverse {
 	uint32_t d_userId;
     std::string d_userName;
+    //// search entities by names using this object
+    BarzerEntityNameIndex* d_entNameIdx;
 public:
 	GlobalPools& gp;
-    
+
     boost::unordered_map< uint32_t, zurch::DocIndexAndLoader* > d_zurchIndexPool;
     
     zurch::DocIndexAndLoader* initZurchIndex( uint32_t idxId ); 

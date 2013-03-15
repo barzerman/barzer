@@ -14,7 +14,7 @@ void BarzerEntityNameIndex::addEntityClass( const StoredEntityClass& ec )
     }
 }
 
-void BarzerEntityNameIndex::search( EntityLevDistVec& out, const char* query )
+void BarzerEntityNameIndex::search( EntityLevDistVec& out, const char* query ) const
 {
 
     std::vector< NGramStorage<BarzerEntity>::FindInfo > vec;

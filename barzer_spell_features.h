@@ -281,15 +281,15 @@ public:
 };
 
 template<typename T>
-class NGramStorage
-{
+class NGramStorage {
 	TFE_storage<TFE_ngram> m_gram;
 	
 	boost::unordered_map<uint32_t, T> m_storage;
 	
+    //// this is temporary junk
 	StoredStringFeatureVec m_storedVec;
 	ExtractedStringFeatureVec m_extractedVec;
-	TFE_TmpBuffers m_bufs;
+    /// end of 
 public:
     void clear() 
     {
@@ -301,33 +301,36 @@ public:
 
 	NGramStorage(ay::UniqueCharPool& p)
 	: m_gram(p)
-	, m_bufs(m_storedVec, m_extractedVec)
 	{
 	}
 	
 	void addWord(uint32_t strId, const char *str, const T& data)
 	{
-		m_bufs.clear();
-		m_gram.extractAndStore(m_bufs, strId, str, 0);
+	    TFE_TmpBuffers bufs( m_storedVec, m_extractedVec );
+		bufs.clear();
+		m_gram.extractAndStore(bufs, strId, str, 0);
 		m_storage.insert({ strId, data });
 	}
 	
 	struct FindInfo
 	{
 		uint32_t m_strId;
-		T *m_data;
+		const T *m_data;
 		double m_relevance;
 		size_t m_levDist;
 	};
 	
-	void getMatches(const char *str, size_t strLen, std::vector<FindInfo>& out, size_t max = 16, size_t topLev = 4)
+	void getMatches(const char *str, size_t strLen, std::vector<FindInfo>& out, size_t max = 16, size_t topLev = 4) const
 	{
-		m_bufs.clear();
-		m_gram.extractSTF(m_bufs, str, strLen, 0);
+        StoredStringFeatureVec storedVec;
+        ExtractedStringFeatureVec extractedVec;
+        TFE_TmpBuffers bufs( storedVec, extractedVec );
+		
+		m_gram.extractSTF(bufs, str, strLen, 0);
 		
 		typedef std::map<uint32_t, double> CounterMap_t;
 		CounterMap_t counterMap;
-		for (const auto& feature : m_storedVec)
+		for (const auto& feature : storedVec)
 		{
 			const auto srcs = m_gram.getSrcsForFeature(feature);
 			if (!srcs)
@@ -372,7 +375,7 @@ public:
 			
 			out.push_back({
 					item.first,
-					dataPos == m_storage.end() ? 0 : &dataPos->second,
+					(dataPos == m_storage.end() ? 0 : &dataPos->second),
 					item.second,
 					dist
 				});
