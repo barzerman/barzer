@@ -256,7 +256,7 @@ public:
 		{
 		}
 	};
-	FeaturedMatchInfo getBestMatch(const char *str, size_t strLen, int lang, size_t maxLevDist, const BZSpell& spell );
+	FeaturedMatchInfo getBestMatch(const char *str, size_t strLen, int lang, size_t maxLevDist);
 };
 
 } // namespace barzer

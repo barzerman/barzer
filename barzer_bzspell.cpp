@@ -641,7 +641,7 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
 	const bool useFeaturedSC = true; /*d_universe.checkBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT);*/
 	const FeaturedMatchComparator featuredCmp(str, d_universe, lang,
 			useFeaturedSC ?
-				m_featuredSC->getBestMatch(str, str_len, lang, levMax, *this ) :
+				m_featuredSC->getBestMatch(str, str_len, lang, levMax) :
 				FeaturedSpellCorrector::FeaturedMatchInfo());
 	
 	if (d_universe.checkBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT_ONLY))
