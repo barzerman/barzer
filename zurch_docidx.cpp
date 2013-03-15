@@ -517,7 +517,18 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out,
 		const int sizeBoost = ngram.feature.size() * ngram.feature.size();
 		const int length = ngram.docPos.offset.second;
 		
-		const double lengthBoost = std::log(1 + length);
+		double lengthPenalty = 1;
+		if (ngram.feature.size() == 1 && maxClass == DocFeature::CLASS_TOKEN)
+		{
+			if (ngram.docPos.offset.second == 1)
+				lengthPenalty = 0.125;
+			else if (ngram.docPos.offset.second == 2)
+			{
+				auto str = d_stringPool.resolveId(ngram.feature[0].featureId);
+				if (str && (str[0] == 0xd0 || str[0] == 0xd1))
+					lengthPenalty = 0.125;
+			}
+		}
 		
 		const auto& sources = invertedPos->second;
 		
@@ -529,7 +540,7 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out,
 			if (link.count <= 0)
 				continue;
 			
-			const auto scoreAdd = lengthBoost * sizeBoost * classBoost * (1 + link.weight) * (1 + std::log(link.count)) / numSources;
+			const auto scoreAdd = lengthPenalty * sizeBoost * classBoost * (1 + link.weight) * (1 + std::log(link.count)) / numSources;
 			
 			if (doc2pos)
 			{
