@@ -511,7 +511,7 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
         if( ret == XML_TYPE )
 		os << "<error>invalid zurch index id " << d_zurchDocIdxId << " for universe " << userId << "</error>\n";
         else if( ret == JSON_TYPE ) 
-            os<< "{ error: 'invalid zurch index id'" << d_zurchDocIdxId << "'}" ;
+            os<< "{ \"error\": \"invalid zurch index id " << d_zurchDocIdxId << "\"}" ;
 
 		return;
     }
