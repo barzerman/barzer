@@ -664,6 +664,8 @@ int url_encode( std::string& str, const char* s, size_t s_len )
             } else {
                 return 1;
             }
+        } else if( *x == '+' ) {
+            str.push_back(' ');
         } else 
             str.push_back(*x);
     }
