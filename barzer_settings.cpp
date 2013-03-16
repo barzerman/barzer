@@ -660,9 +660,6 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
     load_ent_segregate_info(reader, u, children);
     load_user_flags(reader, u, children);
 
-    if( boost::optional< const ptree& > zurchChild = children.get_child_optional("zurch") )
-        load_zurch( reader, u, zurchChild.get() );
-
     load_user_flags(reader, u, children);
 	loadUserRules(reader, u, children);
 	loadTrieset(reader, u, children);
@@ -672,6 +669,10 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 	u.getUniverse().initBZSpell(0);
     u.loadExtraDictionary();
 	u.getUniverse().getBarzHints().initFromUniverse(&uni);
+
+    if( boost::optional< const ptree& > zurchChild = children.get_child_optional("zurch") )
+        load_zurch( reader, u, zurchChild.get() );
+
     return 1;
 }
 
