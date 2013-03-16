@@ -14,6 +14,8 @@ struct Zurch_Moedelo_Doc_FAQ {
     std::string d_DocName;
     std::string d_ID;
     std::string d_Keywords;
+	std::string d_NewKeywords;
+	std::string d_Rubrics;
     std::string d_ModuleID;
     std::string d_SortName;
 };
