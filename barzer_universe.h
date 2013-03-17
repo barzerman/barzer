@@ -39,13 +39,13 @@ class BZSpell;
 class Ghettodb;
 class MeaningsStorage;
 class BarzerGeo;
-class BarzerEntityNameIndex;
+class BENI;
 
 class StoredUniverse {
 	uint32_t d_userId;
     std::string d_userName;
     //// search entities by names using this object
-    BarzerEntityNameIndex* d_entNameIdx;
+    BENI* d_entNameIdx;
 public:
 
     void indexEntityNames( const StoredEntityClass& ec ) ;
@@ -122,7 +122,7 @@ public:
 
         /// extra normalization includes single quotes, utf8 punctuation etc.
         UBIT_NO_EXTRA_NORMALIZATION, /// when set no extra normalization is performed
-        UBIT_USE_BENI_VANILLA, /// BarzerEntityNameIndex search will be used if final bead chain    
+        UBIT_USE_BENI_VANILLA, /// BENI search will be used if final bead chain    
         UBIT_USE_BENI_IDS, /// when using beni will try to only invoke for ids 
         /// add new bits above this line only 
         UBIT_MAX

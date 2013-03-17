@@ -1,7 +1,7 @@
 #include <barzer_entity_name_index.h>
 
 namespace barzer {
-void BarzerEntityNameIndex::addEntityClass( const StoredEntityClass& ec )
+void BENI::addEntityClass( const StoredEntityClass& ec )
 {
     /// iterate over entities of ec 
     const auto& theMap = d_universe.getDtaIdx().entPool.getEuidMap();
@@ -17,7 +17,7 @@ void BarzerEntityNameIndex::addEntityClass( const StoredEntityClass& ec )
     std::cerr << "BENI: " << numNames << " names for " << ec << std::endl;
 }
 
-void BarzerEntityNameIndex::search( EntityLevDistVec& out, const char* query ) const
+void BENI::search( EntityLevDistVec& out, const char* query ) const
 {
 
     std::vector< NGramStorage<BarzerEntity>::FindInfo > vec;

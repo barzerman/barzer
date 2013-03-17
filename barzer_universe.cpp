@@ -53,7 +53,7 @@ void StoredUniverse::searchEntitiesByName( std::vector<std::pair< BarzerEntity, 
 void StoredUniverse::indexEntityNames( const StoredEntityClass& ec ) 
 {
     if( !d_entNameIdx )  
-        d_entNameIdx = new BarzerEntityNameIndex( *this );
+        d_entNameIdx = new BENI( *this );
     d_entNameIdx->addEntityClass(ec);
 }
 

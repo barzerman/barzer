@@ -6,7 +6,7 @@ namespace barzer {
 
 class StoredUniverse;
 
-class BarzerEntityNameIndex {
+class BENI {
     ay::UniqueCharPool d_charPool;
 public:
     NGramStorage<BarzerEntity> d_storage;
@@ -19,7 +19,7 @@ public:
     void search( EntityLevDistVec&, const char* str ) const;
 
     void clear() { d_storage.clear(); }
-    BarzerEntityNameIndex( StoredUniverse& u ) : 
+    BENI( StoredUniverse& u ) : 
         d_storage(d_charPool), d_universe(u) {}
 };
 
