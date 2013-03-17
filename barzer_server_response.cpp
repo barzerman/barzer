@@ -703,6 +703,7 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
             std::stringstream sstr;
             sstr << "lev=\"" << i.second << "\"";
             v.printEntity( i.first, sstr.str().c_str() );
+            os << std::endl;
         }
     }
 	/// printing spell corrections  if any 

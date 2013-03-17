@@ -670,7 +670,6 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
     u.loadExtraDictionary();
 	u.getUniverse().getBarzHints().initFromUniverse(&uni);
 
-<<<<<<< HEAD
     if( boost::optional< const ptree& > x = children.get_child_optional("beni") ) {
         u.getUniverse().setBit( StoredUniverse::UBIT_USE_BENI_VANILLA );
          
