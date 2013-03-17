@@ -185,7 +185,6 @@ namespace
 		size_t m_maxLevDist;
 		size_t m_glyphCount;
         FeaturedSpellCorrector& d_corrector;
-        const BZSpell& d_spell;
         std::string m_stem;
         bool m_gotStemmed;
 		ay::StrUTF8 m_stemStrUtf8;
@@ -202,7 +201,7 @@ namespace
                 return m_levDist.utf8(strUtf8, str1Utf8 ) ; 
             }
         }
-		MatchVisitor(const char *str, size_t strLen, int lang, size_t maxLevDist,FeaturedSpellCorrector& corrector, const BZSpell& spell )
+		MatchVisitor(const char *str, size_t strLen, int lang, size_t maxLevDist, FeaturedSpellCorrector& corrector)
 			: m_str(str)
 			, m_strLen(strLen)
 			, m_strUtf8(m_str, m_strLen)
@@ -211,8 +210,7 @@ namespace
 			, m_maxLevDist(maxLevDist)
 			, m_glyphCount(m_strUtf8.getGlyphCount())
 			, d_corrector(corrector)
-            , d_spell(spell)
-            , m_gotStemmed( spell.stem(m_stem,str,lang) )
+            , m_gotStemmed(BZSpell::stem(m_stem, str, lang, 3))
 		{
             if( m_gotStemmed )
                 m_stemStrUtf8= ay::StrUTF8(m_stem.c_str(),m_stem.length());
@@ -322,7 +320,7 @@ namespace
 	};
 }
 
-FeaturedSpellCorrector::FeaturedMatchInfo FeaturedSpellCorrector::getBestMatch(const char *str, size_t strLen, int lang, size_t maxLevDist,const BZSpell& spell)
+FeaturedSpellCorrector::FeaturedMatchInfo FeaturedSpellCorrector::getBestMatch(const char *str, size_t strLen, int lang, size_t maxLevDist)
 {
 	if (lang < 0 || lang >= LANG_MAX)
 	{
@@ -330,7 +328,7 @@ FeaturedSpellCorrector::FeaturedMatchInfo FeaturedSpellCorrector::getBestMatch(c
 		return FeaturedMatchInfo();
 	}
 	
-	MatchVisitor vis(str, strLen, lang, maxLevDist,*this,spell);
+	MatchVisitor vis(str, strLen, lang, maxLevDist, *this);
 	if (m_matchStrategy == MatchStrategy::FirstWins)
 	{
 		for (const auto& storage : m_storages)

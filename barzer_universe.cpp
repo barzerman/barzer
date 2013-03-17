@@ -11,6 +11,7 @@
 #include <ay/ay_ngrams.h>
 #include <boost/filesystem.hpp>
 #include <zurch_docidx.h>
+#include <barzer_entity_name_index.h>
 
 namespace barzer {
 
@@ -30,6 +31,7 @@ uint32_t StoredUniverse::recordLangWord( int16_t lang )
 }
 StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	d_userId(id),
+    d_entNameIdx(0),
 	gp(g),
 	trieCluster(g.globalTriePool,*this),
 	topicTrieCluster(g.globalTriePool,*this),
@@ -40,6 +42,19 @@ StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	m_soundsLike(false)
 {
 	m_hints.initFromUniverse(this);
+}
+
+void StoredUniverse::searchEntitiesByName( std::vector<std::pair< BarzerEntity, size_t >>& out, const char* str ) const
+{
+    if( d_entNameIdx ) 
+        d_entNameIdx->search( out, str );
+}
+
+void StoredUniverse::indexEntityNames( const StoredEntityClass& ec ) 
+{
+    if( !d_entNameIdx )  
+        d_entNameIdx = new BarzerEntityNameIndex( *this );
+    d_entNameIdx->addEntityClass(ec);
 }
 
 StoredUniverse::~StoredUniverse()
@@ -100,6 +115,8 @@ void StoredUniverse::clear()
     d_ghettoDb->clear();
     d_biflags.clear();
 	m_hints.initFromUniverse(this);
+    delete d_entNameIdx;
+    d_entNameIdx = 0;
 }
 
 StoredToken& StoredUniverse::internString( int lang, const char* t, BELTrie* triePtr, const char* unstemmed)

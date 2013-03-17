@@ -176,6 +176,14 @@ struct  BarzConfidenceData {
     void fillString( std::vector<std::string>& dest, const std::string& src, int conf ) const;
 };
 
+struct BENIResult {
+    std::vector< std::pair<BarzerEntity, size_t> > d_entVec;
+
+    bool empty() const { return d_entVec.empty(); }
+
+    void clear() { d_entVec.clear(); }
+};
+
 // collection of punits and the original question
 class Barz {
 	/// original question with 0-s terminating tokens
@@ -208,6 +216,7 @@ class Barz {
     RequestEnvironment* d_serverReqEnv;
     const char* getReqVarAsChars( const char* ) const;
 public:
+    BENIResult d_beni;
     BarzConfidenceData confidenceData;
 
     /// given offset and length in bytes in the original quesstion 
@@ -316,6 +325,7 @@ public:
     int segregateEntities( const StoredUniverse& u, const QuestionParm& qparm, const char* q );
     int sortEntitiesByRelevance( const StoredUniverse& u, const QuestionParm& qparm, const char* q );
     int computeConfidence( const StoredUniverse& u, const QuestionParm& qparm, const char* q );
+    int beniSearch( const StoredUniverse& u, const QuestionParm& qparm );
 
 	/// returns pair. first is the number of units which have been modified semantically
 	/// mening - fluff, date, entity, erc, expression etc

@@ -162,7 +162,7 @@ std::ostream& StoredEntityPrinter::print(const StoredEntityClass& ec )
     universe.getGlobalPools().getDtaIdx().entPool.iterateSubclass( *this, ec );
     return fp;
 }
-bool StoredEntityRegexFilter::operator()( const BarzerEntity& ent ) const
+bool StoredEntityRegexFilter::operator()( const BarzerEntity& ent) const
 {
     if( entFilterMode == ENT_FILTER_MODE_ID )  { // looking for pattern in id 
         if( const char* id = universe.getGlobalPools().internalString_resolve(ent.tokId) )

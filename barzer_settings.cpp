@@ -670,6 +670,31 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
     u.loadExtraDictionary();
 	u.getUniverse().getBarzHints().initFromUniverse(&uni);
 
+    if( boost::optional< const ptree& > x = children.get_child_optional("beni") ) {
+        u.getUniverse().setBit( StoredUniverse::UBIT_USE_BENI_VANILLA );
+         
+        u.getUniverse().setBit( StoredUniverse::UBIT_USE_BENI_IDS );
+        if( const boost::optional<const ptree&> xAttr = x.get().get_child_optional("<xmlattr>") ) {
+            if( const boost::optional<std::string> cOpt = xAttr.get().get_optional<std::string>("noids") ) {
+                u.getUniverse().setBit( StoredUniverse::UBIT_USE_BENI_IDS, false );
+            }
+        } 
+
+        u.getUniverse().setBit( StoredUniverse::UBIT_NEED_CONFIDENCE );
+
+        BOOST_FOREACH(const ptree::value_type &i, x.get() ) {
+            if( i.first == "benient" ) {
+                if( const boost::optional<const ptree&> optAttr = i.second.get_child_optional("<xmlattr>") ) {
+                    if( const boost::optional<uint32_t> cOpt = optAttr.get().get_optional<uint32_t>("c") ) {
+                        if( const boost::optional<uint32_t> sOpt = optAttr.get().get_optional<uint32_t>("s") ) {
+                            StoredEntityClass ec( cOpt.get(), sOpt.get() );
+                            u.getUniverse().indexEntityNames( ec );
+                        }
+                    }
+                }
+            }
+        }
+    }
     if( boost::optional< const ptree& > zurchChild = children.get_child_optional("zurch") )
         load_zurch( reader, u, zurchChild.get() );
 
