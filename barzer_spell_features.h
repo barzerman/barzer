@@ -304,13 +304,13 @@ public:
 	{
 	}
 	
-	void addWord(uint32_t strId, const char *str, const T& data)
+	void addWord(const char *str, const T& data)
 	{
 	    TFE_TmpBuffers bufs( m_storedVec, m_extractedVec );
 		bufs.clear();
 		
-		auto localStr = m_gram.d_pool->internIt(str);
-		m_gram.extractAndStore(bufs, localStr, str, 0);
+		auto strId = m_gram.d_pool->internIt(str);
+		m_gram.extractAndStore(bufs, strId, str, 0);
 		m_storage.insert({ strId, data });
 	}
 	

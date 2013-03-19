@@ -10,7 +10,7 @@ void BENI::addEntityClass( const StoredEntityClass& ec )
     for( auto i = theMap.lower_bound( id );i!= theMap.end() && i->first.eclass == ec; ++i ) {
         const EntityData::EntProp* edata = d_universe.getEntPropData( i->first );
         if( edata && !edata->canonicName.empty() ) {
-            d_storage.addWord( i->second, edata->canonicName.c_str(), i->first );
+            d_storage.addWord( edata->canonicName.c_str(), i->first );
             ++numNames;
         }
     }
