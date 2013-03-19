@@ -173,10 +173,11 @@ void DocFeatureIndex::loadSynonyms(const std::string& filename, const barzer::St
 
 bool DocFeatureIndex::hasTokenString (uint32_t id) const
 {
-	const DocFeature f(DocFeature::CLASS_STEM, id);
+	const DocFeature f(DocFeature::CLASS_TOKEN, id);
 	
 	return d_invertedIdx.find(NGram<DocFeature>(f)) != d_invertedIdx.end();
 }
+
 bool DocFeatureIndex::hasTokenString (const char *str) const
 {
 	const auto id = resolveExternalString(str);
