@@ -308,7 +308,9 @@ public:
 	{
 	    TFE_TmpBuffers bufs( m_storedVec, m_extractedVec );
 		bufs.clear();
-		m_gram.extractAndStore(bufs, strId, str, 0);
+		
+		auto localStr = m_gram.d_pool->internIt(str);
+		m_gram.extractAndStore(bufs, localStr, str, 0);
 		m_storage.insert({ strId, data });
 	}
 	
