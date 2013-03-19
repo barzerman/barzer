@@ -14,36 +14,15 @@
 
 namespace zurch {
 
-namespace {
-
-inline const char* decodeFeatureClassSerializationId( int x ) {
-    if( x == DocFeature::CLASS_ENTITY ) return "e";
-    else if( x == DocFeature::CLASS_TOKEN ) return "t";
-    else if( x == DocFeature::CLASS_STEM ) return "s";
-    else return "s";
-}
-DocFeature::class_t encodeFeatureClassSerializationId( const char c )
-{
-    if( c == 'e' ) return DocFeature::CLASS_ENTITY;
-    else if( c == 't' ) return DocFeature::CLASS_TOKEN;
-    else if( c == 's' ) return DocFeature::CLASS_STEM;
-    else return DocFeature::CLASS_STEM;
-}
-
-}
-
 /// feature we keep track off (can be an entity or a token - potentially we will add more classes to it)
 int DocFeature::serialize( std::ostream& fp ) const
 {
-    fp << decodeFeatureClassSerializationId( featureClass ) << " " << std::hex << featureId;
+	// TODO
     return 0;
 }
 int DocFeature::deserialize( std::istream& fp )
 {
-    char s;
-    fp >> s;
-    featureClass = encodeFeatureClassSerializationId(s);
-    fp >> std::hex >> featureId;
+	// TODO
     return 0;
 }
 
@@ -92,7 +71,7 @@ int DocFeatureLink::deserialize( std::istream& fp )
 
 DocFeatureIndex::DocFeatureIndex() 
 : m_meaningsCounter(0)
-, d_classBoosts{ 0.5, 0.5, 1, 5 }
+, d_classBoosts{ 0.5, 0.5, 0.5, 1, 2, 5 }
 {}
 
 DocFeatureIndex::~DocFeatureIndex() {}
@@ -171,14 +150,14 @@ void DocFeatureIndex::loadSynonyms(const std::string& filename, const barzer::St
 	std::cout << std::endl;
 }
 
-bool DocFeatureIndex::hasTokenString (uint32_t id) const
+bool DocFeatureIndex::hasTokenString(uint32_t id) const
 {
 	const DocFeature f(DocFeature::CLASS_TOKEN, id);
 	
 	return d_invertedIdx.find(NGram<DocFeature>(f)) != d_invertedIdx.end();
 }
 
-bool DocFeatureIndex::hasTokenString (const char *str) const
+bool DocFeatureIndex::hasTokenString(const char *str) const
 {
 	const auto id = resolveExternalString(str);
 	const DocFeature f(DocFeature::CLASS_TOKEN, id);
@@ -357,6 +336,14 @@ namespace
 							fdp
 						) 
 					);
+			} else if (auto dt = i->get<barzer::BarzerDate>()) {
+				featureVec.push_back(DocFeature(DocFeature::CLASS_DATETIME, dt->getTime_t()));
+			} else if (auto dt = i->get<barzer::BarzerTimeOfDay>()) {
+				featureVec.push_back(DocFeature(DocFeature::CLASS_DATETIME, dt->getSeconds()));
+			} else if (auto dt = i->get<barzer::BarzerDateTime>()) {
+				featureVec.push_back(DocFeature(DocFeature::CLASS_DATETIME, dt->getDate().getTime_t() + dt->getTime().getSeconds()));
+			} else if (auto num = i->get<barzer::BarzerNumber>()) {
+				featureVec.push_back(DocFeature(DocFeature::CLASS_NUMBER, num->getRealWiden() * 1000));
 			}
 		}
 		
@@ -717,6 +704,31 @@ std::string DocFeatureIndex::resolveFeature(const DocFeature& f) const
 	{
 		auto ent = d_entPool.getObjById(f.featureId);
 		return ent ? d_stringPool.resolveId(ent->tokId) : "<no entity>";
+	}
+	case DocFeature::CLASS_DATETIME:
+	{
+		const auto secs = f.featureId % 86400;
+		const auto datePart = f.featureId / 86400;
+		barzer::BarzerDateTime dt;
+		dt.date.setTime_t(datePart);
+		dt.timeOfDay = barzer::BarzerTimeOfDay(secs);
+		
+		std::ostringstream sstr;
+		sstr << dt;
+		return sstr.str();
+	}
+	case DocFeature::CLASS_NUMBER:
+	{
+		const auto real = f.featureId / 1000.;
+		const auto diff = real - f.featureId / 1000;
+		
+		std::ostringstream sstr;
+		if (diff < std::numeric_limits<double>::epsilon())
+			sstr << (f.featureId / 1000);
+		else
+			sstr << real;
+		
+		return sstr.str();
 	}
 	default:
 		AYLOG(ERROR) << "unknown feature class " << f.featureClass;

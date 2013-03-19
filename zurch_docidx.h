@@ -37,7 +37,9 @@ struct DocFeature {
     typedef enum : uint8_t {
         CLASS_STEM, /// low grade token stem not known to barzer Universe 
 		CLASS_SYNGROUP, /// a group of synonyms
+		CLASS_NUMBER, /// a number
         CLASS_TOKEN, /// legitimate token known to the barzer Universe
+		CLASS_DATETIME, /// something datey
         CLASS_ENTITY,
 
         CLASS_MAX
@@ -50,7 +52,7 @@ struct DocFeature {
     int serialize( std::ostream& ) const;
     int deserialize( std::istream& );
     
-    bool isClassValid() const { return ( featureClass >= CLASS_ENTITY && featureClass < CLASS_MAX ); }
+    bool isClassValid() const { return ( featureClass >= CLASS_STEM && featureClass < CLASS_MAX ); }
     bool isValid() const { return (featureId!= 0xffffffff || isClassValid() ); }
 };
 #pragma pack(pop)
