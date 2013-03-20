@@ -69,7 +69,8 @@ bool ZurchSettings::loadIndex( const boost::property_tree::ptree& pt )
     if( const boost::optional< std::string > x = attr.get().get_optional<std::string>("content") ) {
         DocFeatureLoader::DocStats stats;
         ZurchPhrase_DocLoader parser( stats, *loader );
-        parser.readDocContentFromFile( x.get().c_str() );
+        std::string fname = x.get();
+        parser.readDocContentFromFile( fname.c_str() );
     }
     if( const boost::optional< std::string > x = attr.get().get_optional<std::string>("xml") ) {
         DocFeatureLoader::DocStats stats;

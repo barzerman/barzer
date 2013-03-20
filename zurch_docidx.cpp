@@ -851,8 +851,7 @@ void DocFeatureLoader::parserSetup()
 }
 size_t DocFeatureLoader::addDocFromString( uint32_t docId, const char* str, DocFeatureLoader::DocStats& stats )
 {
-    parserSetup();
-
+    // parserSetup();
     d_barz.clear();
     d_parser.tokenize_only( d_barz, str, d_qparm );
     parseTokenized();

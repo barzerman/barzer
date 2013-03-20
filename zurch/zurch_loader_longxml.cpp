@@ -375,7 +375,7 @@ int phrase_fmt_get_fields( phrase_fields_t& flds, char* buf, size_t buf_sz )
     tok = ( pipe < buf_end ? pipe +1 : 0 );
     pipe = ( tok < buf_end ? strchr( tok, '|' ) : 0 );
     if( !pipe ) return 1;
-    if( tok[0] =='T' ) {
+    if( toupper(tok[0]) =='T' ) {
         switch( tok[1] ) {
         case '0': flds.weight = WEIGHT_BOOST_NONE; break;
         case '1': flds.weight = WEIGHT_BOOST_NAME; break;
@@ -404,7 +404,7 @@ void ZurchPhrase_DocLoader::readDocContentFromFile( const char* fn )
         std::cerr << "Phrase Loader cant open " << fn << std::endl;
         return;
     }
-    const size_t BUF_SZ = 16*1024*1024;
+    const size_t BUF_SZ = 256*1024;
     char buf[ BUF_SZ ];
     phrase_fields_t flds;
     std::string docName;
@@ -415,8 +415,8 @@ void ZurchPhrase_DocLoader::readDocContentFromFile( const char* fn )
     while( fgets(buf, sizeof(buf)-1, fp ) ) {
         buf[ sizeof(buf)-1 ] = 0;
         size_t buf_sz = strlen(buf);
-        buf[ buf_sz ] = 0;
         if( buf_sz ) --buf_sz;
+        buf[ buf_sz ] = 0;
         
         char* pipe = strchr( buf, '|' );
         if( pipe && pipe-buf< buf_sz) 
@@ -446,11 +446,13 @@ void ZurchPhrase_DocLoader::readFromFile( const char* fn )
     phrase_fields_t flds;
     std::string docName;
     uint32_t docId = 0xffffffff; 
+    size_t numPhrase = 0;
+    d_loader.parserSetup();
     while( fgets(buf, sizeof(buf)-1, fp ) ) {
         buf[ sizeof(buf)-1 ] = 0;
         size_t buf_sz = strlen(buf);
-        buf[ buf_sz ] = 0;
         if( buf_sz ) --buf_sz;
+        buf[ buf_sz ] = 0;
         phrase_fmt_get_fields( flds, buf, buf_sz );
         
         if( flds.name && flds.text ) {
@@ -464,6 +466,10 @@ void ZurchPhrase_DocLoader::readFromFile( const char* fn )
 
             d_loader.setCurrentWeight(flds.weight);
             d_loader.addDocFromString( docId, flds.text, d_loadStats );
+            ++numPhrase;
+            if( !(numPhrase%10000) ) {
+                std::cerr << ".";
+            }
         }
     }
     fclose(fp);
