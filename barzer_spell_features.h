@@ -310,7 +310,7 @@ public:
 		bufs.clear();
 		
 		auto strId = m_gram.d_pool->internIt(str);
-		m_gram.extractAndStore(bufs, strId, str, 0);
+		m_gram.extractAndStore(bufs, strId, str, LANG_UNKNOWN);
 		m_storage.insert({ strId, data });
 	}
 	
@@ -329,7 +329,7 @@ public:
         ExtractedStringFeatureVec extractedVec;
         TFE_TmpBuffers bufs( storedVec, extractedVec );
 		
-		m_gram.extractSTF(bufs, str, strLen, 0);
+		m_gram.extractSTF(bufs, str, strLen, LANG_UNKNOWN);
 		
 		const double srcFCnt = storedVec.size();
 		

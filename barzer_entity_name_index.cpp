@@ -12,10 +12,8 @@ void BENI::addEntityClass( const StoredEntityClass& ec )
     for( auto i = theMap.lower_bound( id );i!= theMap.end() && i->first.eclass == ec; ++i ) {
         const EntityData::EntProp* edata = d_universe.getEntPropData( i->first );
         if( edata && !edata->canonicName.empty() ) {
-            d_storage.addWord( edata->canonicName.c_str(), i->first );
-
-            if( Lang::stringToLower( tmpBuf, dest, edata->canonicName ) ) 
-                d_storage.addWord( dest.c_str(), i->first );
+            Lang::stringToLower( tmpBuf, dest, edata->canonicName );
+			d_storage.addWord( dest.c_str(), i->first );
 
             
             ++numNames;
@@ -28,7 +26,12 @@ void BENI::search( BENIFindResults_t& out, const char* query ) const
 {
 
     std::vector< NGramStorage<BarzerEntity>::FindInfo > vec;
-    d_storage.getMatches( query, strlen(query), vec );
+	
+    std::vector<char> tmpBuf;
+    std::string dest;
+	Lang::stringToLower( tmpBuf, dest, std::string(query) );
+    d_storage.getMatches( dest.c_str(), dest.size(), vec );
+	
     if( !vec.empty() ) 
         out.reserve( vec.size() );
 
