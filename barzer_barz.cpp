@@ -173,6 +173,7 @@ void Barz::clear()
 	question.clear();
 	questionOrig.clear();
 	questionOrigUTF8.clear();
+    d_beni.clear();
 }
 
 
@@ -540,6 +541,41 @@ int Barz::sortEntitiesByRelevance( const StoredUniverse& u, const QuestionParm& 
                 ay::zerosort( entList->theList().rbegin(), entList->theList().rend(), EntityRelevanceEstimator(u) );
             }
         }
+    }
+    return 0;
+}
+
+namespace {
+
+inline bool beni_string_likely_isid( const std::string& s, size_t numGlyphs ) 
+{
+    if( numGlyphs < 12 )
+        return true;
+    size_t num_spaces  = 1;
+    for( const auto& i : s ) {
+        if( isdigit(i) ) 
+            return true;
+        else if( i =='.' || i=='/' || i== '-' )
+            return true;
+        else if( isspace(i) ) 
+            ++num_spaces;
+    }
+    return ( num_spaces * 4 > numGlyphs ) ;
+}
+
+}
+int Barz::beniSearch( const StoredUniverse& u, const QuestionParm& qparm )
+{
+    enum { MAX_BENI_LENGTH = 34 };
+
+    size_t numGlyphs = questionOrigUTF8.length() ;
+    if( numGlyphs  < MAX_BENI_LENGTH ) {
+        d_beni.d_entVec.clear();
+        if( u.checkBit(StoredUniverse::UBIT_USE_BENI_IDS) ) {
+            if( !beni_string_likely_isid( questionOrig, numGlyphs ) ) 
+                return 1;
+        }
+        u.searchEntitiesByName( d_beni.d_entVec, questionOrig.c_str() );
     }
     return 0;
 }

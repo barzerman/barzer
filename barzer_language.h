@@ -81,6 +81,8 @@ struct Lang {
 
     static bool hasTwoByteUpperCase( const char* s, size_t s_len, int lang );
     static bool hasUpperCase( const char* s, size_t s_len, int lang );
+    static bool stringToLower( std::vector<char>& buf, std::string& dest, const std::string& src );
+
     static bool stringToLower( char* s, size_t s_len, int lang );
     static bool convertToLower( char* s, size_t s_len, int lang )
         { return stringToLower(s,s_len,lang); }

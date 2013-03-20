@@ -9,6 +9,7 @@
 #include <ay/ay_logger.h>
 #include <ay/ay_util.h>
 #include <list>
+#include <sstream>
 
 /// Barzel chain is the sequence manipulated during rewriting
 /// Barzer gets a chain of CToken-s (see barzer_parse_types.h) converts it into

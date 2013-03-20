@@ -150,6 +150,23 @@ void Lang::lowLevelNormalization( char* d, size_t d_len, const char* s, size_t s
     if( d< d_end )
         *d=0;
 }
+
+bool Lang::stringToLower( std::vector<char>& buf, std::string& dest, const std::string& src )
+{
+    size_t buf_sz = src.length();
+    buf.resize( buf_sz + 1) ;
+    memcpy( &(buf[0]), src.c_str(), buf_sz );
+    buf[ buf_sz ] = 0;
+    int lang = getLangNoUniverse( &(buf[0]), buf_sz );
+
+    if( bool hasLowerCase = stringToLower( &(buf[0]), buf_sz, lang ) ) {
+        dest.assign( &(buf[0]) );
+        return true;
+    } else {
+        dest = src;
+        return false;
+    }
+}
 bool Lang::stringToLower( char* s, size_t s_len, int lang )
 {
     if( lang == LANG_ENGLISH ) {

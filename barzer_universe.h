@@ -39,13 +39,21 @@ class BZSpell;
 class Ghettodb;
 class MeaningsStorage;
 class BarzerGeo;
+class BENI;
 
 class StoredUniverse {
 	uint32_t d_userId;
     std::string d_userName;
+    //// search entities by names using this object
+    BENI* d_entNameIdx;
 public:
+
+    void indexEntityNames( const StoredEntityClass& ec ) ;
+
+    void searchEntitiesByName( BENIFindResults_t& out, const char* str ) const;
+
 	GlobalPools& gp;
-    
+
     boost::unordered_map< uint32_t, zurch::DocIndexAndLoader* > d_zurchIndexPool;
     
     zurch::DocIndexAndLoader* initZurchIndex( uint32_t idxId ); 
@@ -114,6 +122,8 @@ public:
 
         /// extra normalization includes single quotes, utf8 punctuation etc.
         UBIT_NO_EXTRA_NORMALIZATION, /// when set no extra normalization is performed
+        UBIT_USE_BENI_VANILLA, /// BENI search will be used if final bead chain    
+        UBIT_USE_BENI_IDS, /// when using beni will try to only invoke for ids 
         /// add new bits above this line only 
         UBIT_MAX
     };
@@ -162,6 +172,7 @@ public:
 
     void setUBits( const char* ) ;
     void setBit(size_t bit) { d_biflags.set(bit); }
+    void setBit(size_t bit, bool v) { d_biflags.set(bit,v); }
     bool checkBit(size_t b ) const { return d_biflags.checkBit(b); }
     const BZSpell::char_cp_to_strid_map* getValidWordMapPtr() const 
         { return bzSpell->getValidWordMapPtr(); }

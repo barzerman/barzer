@@ -67,7 +67,7 @@ public:
         for( UniqIdToEntIdMap::const_iterator i = euidMap.lower_bound( id ); 
              i!= euidMap.end() && i->first.eclass == eclass; ++i )
          {
-            if( cb(i->first) )
+            if( cb(i->first,i->second) )
                 break;
             ++count;
          }
@@ -84,12 +84,13 @@ public:
         for( UniqIdToEntIdMap::const_iterator i = euidMap.lower_bound( id ); 
              i!= euidMap.end() && i->first.eclass == eclass; ++i )
          {
-            if( filter(i->first) && cb(i->first) )
+            if( filter(i->first) && cb(i->first,i->second) )
                 break;
             ++count;
          }
         return count;
     }
+
 
 
 	inline const StoredEntityId getEntIdByEuid( const BarzerEntity& euid ) const
@@ -409,7 +410,7 @@ struct StoredEntityPrinter {
         fmt(fm)
     {}
 
-    bool operator()( const BarzerEntity& ent ) 
+    bool operator()( const BarzerEntity& ent, uint32_t entId ) 
     {
         ent.print( fp, universe, fmt );
         fp << std::endl;

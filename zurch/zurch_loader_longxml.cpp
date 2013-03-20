@@ -62,6 +62,7 @@ static void startElement(void* ud, const XML_Char *n, const XML_Char **a)
 	if( attrCount <=0 || (attrCount & 1) )
 		attrCount = 0; // odd number of attributes is invalid
 
+    size_t lineNumber = XML_GetCurrentLineNumber(loader->expat);
 	tagRouter( loader->parser, name, atts, attrCount, true );
 }
 
@@ -152,6 +153,14 @@ DECL_TAGHANDLE(TABLE) {
             case 'M': 
                 CASEIF(ModuleID)
                 break;
+				/* there is some bullshit with the new keywords in the file so we don't parse it for now
+            case 'N': 
+                CASEIF(NewKeywords)
+                break;
+				*/
+            case 'R': 
+                CASEIF(Rubrics)
+                break;
             case 'S': 
                 CASEIF(SortName)
                 break;
@@ -159,6 +168,7 @@ DECL_TAGHANDLE(TABLE) {
         ++parser.d_numCallbacks;
         if( !(parser.d_numCallbacks%500) )
             std::cerr << "."; // trace
+
         parser.callback();
     } else { /// closing TABLE
     }
@@ -222,11 +232,13 @@ struct PhraseizerCB {
     PhraseBreaker& d_phraser;
     std::string d_docId;
 
-    typedef enum { 
-        TXT_CONTENT=0,
-        TXT_NAME=1,
-        TXT_KEYWORDS=2
-    } txt_type_t;
+    enum txt_type_t { 
+        TXT_CONTENT,
+        TXT_NAME,
+        TXT_KEYWORDS,
+		TXT_NEWKEYWORDS,
+		TXT_RUBRICS
+    };
     txt_type_t d_txtType; // TXT_XX
     size_t d_fragment;
     std::string d_tmp;
@@ -303,13 +315,16 @@ int ZurchLongXMLParser_Phraserizer::callback()
     pz.parseText( d_data.d_DocName , PhraseizerCB::TXT_NAME,     " " );
     pz.parseText( d_data.d_Content , PhraseizerCB::TXT_CONTENT );
     pz.parseText( d_data.d_Keywords, PhraseizerCB::TXT_KEYWORDS, " " );
+    pz.parseText( d_data.d_NewKeywords, PhraseizerCB::TXT_NEWKEYWORDS, " " );
+    pz.parseText( d_data.d_Rubrics, PhraseizerCB::TXT_RUBRICS, " " );
     return 0;
 }
 namespace {
     enum : DocFeatureLink::Weight_t {
         WEIGHT_BOOST_NONE=0, 
         WEIGHT_BOOST_NAME=1000,
-        WEIGHT_BOOST_KEYWORD=2000
+        WEIGHT_BOOST_KEYWORD=2000,
+        WEIGHT_BOOST_RUBRIC=700
     };
 }
 int ZurchLongXMLParser_DocLoader::callback()
@@ -331,6 +346,12 @@ int ZurchLongXMLParser_DocLoader::callback()
         std::stringstream sstr;
         sstr << d_data.d_Keywords << " ";
         d_loader.setCurrentWeight(WEIGHT_BOOST_KEYWORD);
+        d_loader.addDocFromStream( docId, sstr, d_loadStats );
+    }
+    { // KEYWORDS
+        std::stringstream sstr;
+        sstr << d_data.d_Rubrics << " ";
+        d_loader.setCurrentWeight(WEIGHT_BOOST_RUBRIC);
         d_loader.addDocFromStream( docId, sstr, d_loadStats );
     }
     { /// CONTENT
@@ -419,7 +440,7 @@ void ZurchPhrase_DocLoader::readDocContentFromFile( const char* fn )
         buf[ buf_sz ] = 0;
         
         char* pipe = strchr( buf, '|' );
-        if( pipe && pipe-buf< buf_sz) 
+        if( pipe && pipe< buf+buf_sz) 
             *pipe = 0;
         else
             continue;

@@ -511,7 +511,7 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
         if( ret == XML_TYPE )
 		os << "<error>invalid zurch index id " << d_zurchDocIdxId << " for universe " << userId << "</error>\n";
         else if( ret == JSON_TYPE ) 
-            os<< "{ error: 'invalid zurch index id'" << d_zurchDocIdxId << "'}" ;
+            os<< "{ \"error\": \"invalid zurch index id " << d_zurchDocIdxId << "\"}" ;
 
 		return;
     }
@@ -525,6 +525,8 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
     zurch::DocFeatureIndex::DocWithScoreVec_t docVec;  
 	std::map<uint32_t, zurch::DocFeatureIndex::PosInfos_t> positions;
 	// std::cout << "handling '" << query << "'" << std::endl;
+    qparm.turnSplitCorrectionOff();
+
     if( !d_queryFlags.empty() )
         qparm.setZurchFlags( d_queryFlags.c_str() );
     if( d_zurchSearchById ) { /// in this case query must contain document name

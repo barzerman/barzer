@@ -695,7 +695,18 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
         os << "\n</topics>\n";
     }
 
-
+    if( !barz.d_beni.empty() ) {
+	    tag_raii tok(os, "beni");
+        BarzelBead fakeBead;
+	    BeadVisitor v(os, universe, fakeBead, barz, *this  );
+        for( const auto&i : barz.d_beni.d_entVec ) {
+            std::stringstream sstr;
+            sstr << "lev=\"" << i.lev << "\" ";
+			sstr << "cov=\"" << i.coverage << "\"";
+            v.printEntity( i.ent, sstr.str().c_str() );
+            os << std::endl;
+        }
+    }
 	/// printing spell corrections  if any 
 	if( spellCorrections.size( ) ) {
 		os << "<spell>\n";

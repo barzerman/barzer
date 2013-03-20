@@ -660,7 +660,7 @@ struct BELFunctionStorage_holder {
                     struct SubclassCB {
                         BarzerEntityList lst;
 
-                        bool operator()( const StoredEntityUniqId& ent ) { lst.theList().push_back( ent ); return false; }
+                        bool operator()( const StoredEntityUniqId& ent, uint32_t entId ) { lst.theList().push_back( ent ); return false; }
                     } cb;
 
                     gpools.getDtaIdx().entPool.iterateSubclassFilter( cb, filter, ent->getClass() );
