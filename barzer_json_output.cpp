@@ -309,10 +309,9 @@ public:
         if( needType )
 		    theRaii->startField("type") << "\"entity\"";
         if( levDist )
-		    theRaii->startField("lev") << "\"" << *levDist << "\"";
-        if( levDist && coverage) {
-		    theRaii->startField("cover") << "\"" << *coverage << "\"";
-        }
+		    theRaii->startField("lev") << *levDist ;
+        if( coverage) 
+		    theRaii->startField("cover") << *coverage ;
         const char* tokname = universe.getGlobalPools().internalString_resolve(euid.tokId);
 
         if( !d_streamer.isSimplified() )
