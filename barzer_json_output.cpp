@@ -310,7 +310,7 @@ public:
 		    theRaii->startField("type") << "\"entity\"";
         if( levDist )
 		    theRaii->startField("lev") << "\"" << *levDist << "\"";
-        if( levDist ) {
+        if( levDist && coverage) {
 		    theRaii->startField("cover") << "\"" << *coverage << "\"";
         }
         const char* tokname = universe.getGlobalPools().internalString_resolve(euid.tokId);
@@ -584,7 +584,7 @@ std::ostream& BarzStreamerJSON::print(std::ostream &os)
 	        beniRaii.startField("");
             BarzelBead fakeBead;
 	        BeadVisitor v(os, universe, fakeBead, barz, *this, 2 );
-            v.printEntity(i.ent, true, 0, &(i.lev));
+            v.printEntity(i.ent, true, 0, &(i.lev), &(i.coverage));
         }
     }
     /// printing topics 
