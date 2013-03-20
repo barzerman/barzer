@@ -44,7 +44,7 @@ StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	m_hints.initFromUniverse(this);
 }
 
-void StoredUniverse::searchEntitiesByName( std::vector<std::pair< BarzerEntity, size_t >>& out, const char* str ) const
+void StoredUniverse::searchEntitiesByName( BENIFindResults_t& out, const char* str ) const
 {
     if( d_entNameIdx ) 
         d_entNameIdx->search( out, str );

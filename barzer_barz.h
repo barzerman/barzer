@@ -177,7 +177,7 @@ struct  BarzConfidenceData {
 };
 
 struct BENIResult {
-    std::vector< std::pair<BarzerEntity, size_t> > d_entVec;
+    BENIFindResults_t d_entVec;
 
     bool empty() const { return d_entVec.empty(); }
 

@@ -320,6 +320,7 @@ public:
 		const T *m_data;
 		double m_relevance;
 		size_t m_levDist;
+		double m_coverage;
 	};
 	
 	void getMatches(const char *str, size_t strLen, std::vector<FindInfo>& out, size_t max = 16, size_t topLev = 4) const
@@ -330,20 +331,31 @@ public:
 		
 		m_gram.extractSTF(bufs, str, strLen, 0);
 		
+		const double srcFCnt = storedVec.size();
+		
+		std::cout << "!!!BENI " << storedVec.size() << std::endl;
+		
 		typedef std::map<uint32_t, double> CounterMap_t;
 		CounterMap_t counterMap;
+		std::map<uint32_t, uint32_t> doc2fCnt;
 		for (const auto& feature : storedVec)
 		{
 			const auto srcs = m_gram.getSrcsForFeature(feature);
 			if (!srcs)
 				continue;
 			
+			std::set<uint32_t> set;
 			for (uint32_t source : *srcs)
 			{
 				auto pos = counterMap.find(source);
 				if (pos == counterMap.end())
-					pos = counterMap.insert(std::make_pair(source, 0)).first;
+					pos = counterMap.insert({ source, 0 }).first;
 				pos->second += 1. / (srcs->size() * srcs->size());
+				
+				auto docPos = doc2fCnt.find(source);
+				if (docPos == doc2fCnt.end())
+					docPos = doc2fCnt.insert({ source, 0 }).first;
+				++docPos->second;
 			}
 		}
 		
@@ -369,17 +381,19 @@ public:
 		{
 			auto dataPos = m_storage.find(item.first);
 			
-			auto resolvedResult = m_gram.d_pool->resolveId(item.first);
+			const auto resolvedResult = m_gram.d_pool->resolveId(item.first);
+			const auto resolvedLength = std::strlen(resolvedResult);
 			
 			const auto dist = ++curItem > topLev ?
 				0 :
-				barzer::Lang::getLevenshteinDistance(lev, str, strLen, resolvedResult, std::strlen(resolvedResult));
+				barzer::Lang::getLevenshteinDistance(lev, str, strLen, resolvedResult, resolvedLength);
 			
 			out.push_back({
 					item.first,
 					(dataPos == m_storage.end() ? 0 : &dataPos->second),
 					item.second,
-					dist
+					dist,
+					doc2fCnt[item.first] / srcFCnt
 				});
 		}
 	}
