@@ -306,6 +306,7 @@ public:
 	NGramStorage(ay::UniqueCharPool& p)
 	: m_gram(p)
 	{
+		m_gram.d_extractor.m_makeSideGrams = false;
 	}
 	
 	void addWord(const char *str, const T& data)
