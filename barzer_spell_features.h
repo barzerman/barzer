@@ -152,6 +152,8 @@ struct TFE_storage {
 		if (d_strSet.find(strId) != d_strSet.end())
 			return;
 		
+		d_strSet.insert(strId);
+		
 		tmp.clear();
 		extractOnly(tmp, str, strlen(str), lang);
 		
@@ -338,8 +340,6 @@ public:
 		
 		const double srcFCnt = storedVec.size();
 		
-		std::cout << "!!!BENI " << storedVec.size() << std::endl;
-		
 		typedef std::map<uint32_t, double> CounterMap_t;
 		CounterMap_t counterMap;
 		std::map<uint32_t, uint32_t> doc2fCnt;
@@ -349,7 +349,6 @@ public:
 			if (!srcs)
 				continue;
 			
-			std::set<uint32_t> set;
 			for (uint32_t source : *srcs)
 			{
 				auto pos = counterMap.find(source);
