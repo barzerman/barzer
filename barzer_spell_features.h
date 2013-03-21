@@ -5,10 +5,10 @@
 #pragma once
 
 #include <vector>
+#include <algorithm>
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
 #include <boost/variant.hpp>
-#include <boost/concept_check.hpp>
 #include <ay/ay_char.h>
 #include <ay/ay_string_pool.h>
 #include <barzer_universe.h>
@@ -78,6 +78,10 @@ typedef std::vector<StoredStringFeature>    StoredStringFeatureVec;
 /// void operator()( StringFeatureVec&, const char* str, size_t str_len, int lang );
 
 struct TFE_ngram {
+	bool m_makeSideGrams;
+	
+	TFE_ngram() : m_makeSideGrams(true) {}
+	
     void operator()( ExtractedStringFeatureVec&, const char* str, size_t str_len, int lang ) const;
 };
 
@@ -128,6 +132,15 @@ struct TFE_storage {
 	void extractOnly(TFE_TmpBuffers& tmp, const char *str, size_t strLen, int lang) const
 	{
 		d_extractor(tmp.extractedVec, str, strlen(str), lang);
+		
+		std::sort(tmp.extractedVec.begin(), tmp.extractedVec.end(),
+				[](const ExtractedStringFeature& left, const ExtractedStringFeature& right)
+					{ return left.m_str < right.m_str; });
+		
+		const auto newEnd = std::unique(tmp.extractedVec.begin(), tmp.extractedVec.end(),
+				[](const ExtractedStringFeature& left, const ExtractedStringFeature& right)
+					{ return left.m_str == right.m_str; });
+		tmp.extractedVec.erase(newEnd, tmp.extractedVec.end());
 	}
 	
 	void extractSTF(TFE_TmpBuffers& bufs, const char *str, size_t strLen, int lang) const
@@ -147,6 +160,8 @@ struct TFE_storage {
     {
 		if (d_strSet.find(strId) != d_strSet.end())
 			return;
+		
+		d_strSet.insert(strId);
 		
 		tmp.clear();
 		extractOnly(tmp, str, strlen(str), lang);
@@ -302,6 +317,7 @@ public:
 	NGramStorage(ay::UniqueCharPool& p)
 	: m_gram(p)
 	{
+		m_gram.d_extractor.m_makeSideGrams = false;
 	}
 	
 	void addWord(const char *str, const T& data)
@@ -333,8 +349,6 @@ public:
 		
 		const double srcFCnt = storedVec.size();
 		
-		std::cout << "!!!BENI " << storedVec.size() << std::endl;
-		
 		typedef std::map<uint32_t, double> CounterMap_t;
 		CounterMap_t counterMap;
 		std::map<uint32_t, uint32_t> doc2fCnt;
@@ -344,7 +358,6 @@ public:
 			if (!srcs)
 				continue;
 			
-			std::set<uint32_t> set;
 			for (uint32_t source : *srcs)
 			{
 				auto pos = counterMap.find(source);
