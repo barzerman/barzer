@@ -37,7 +37,7 @@ void TFE_ngram::operator()(ExtractedStringFeatureVec& outVec, const char *str, s
 				outVec.push_back(ExtractedStringFeature(tmp, i / step + 1));
 			}
 		
-		if (str_len >= gramSize - 1)
+		if (m_makeSideGrams && str_len >= gramSize - 1)
 		{
 			tmp = ' ';
 			tmp.append(str, gramSize - 1);
@@ -62,7 +62,7 @@ void TFE_ngram::operator()(ExtractedStringFeatureVec& outVec, const char *str, s
 			for (size_t i = 0, end = utf8.size() - nGramSymbs + 1; i < end; ++i)
 				outVec.push_back(ExtractedStringFeature(utf8.getSubstring(i, nGramSymbs), i + 1));
 			
-		if (utf8.size() >= nGramSymbs - 1)
+		if (m_makeSideGrams && utf8.size() >= nGramSymbs - 1)
 		{
 			std::string tmp(" ");
 			tmp.append(utf8.getSubstring(0, nGramSymbs - 1));

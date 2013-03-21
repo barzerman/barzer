@@ -78,6 +78,10 @@ typedef std::vector<StoredStringFeature>    StoredStringFeatureVec;
 /// void operator()( StringFeatureVec&, const char* str, size_t str_len, int lang );
 
 struct TFE_ngram {
+	bool m_makeSideGrams;
+	
+	TFE_ngram() : m_makeSideGrams(true) {}
+	
     void operator()( ExtractedStringFeatureVec&, const char* str, size_t str_len, int lang ) const;
 };
 
