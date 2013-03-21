@@ -5,10 +5,10 @@
 #pragma once
 
 #include <vector>
+#include <algorithm>
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
 #include <boost/variant.hpp>
-#include <boost/concept_check.hpp>
 #include <ay/ay_char.h>
 #include <ay/ay_string_pool.h>
 #include <barzer_universe.h>
@@ -132,6 +132,15 @@ struct TFE_storage {
 	void extractOnly(TFE_TmpBuffers& tmp, const char *str, size_t strLen, int lang) const
 	{
 		d_extractor(tmp.extractedVec, str, strlen(str), lang);
+		
+		std::sort(tmp.extractedVec.begin(), tmp.extractedVec.end(),
+				[](const ExtractedStringFeature& left, const ExtractedStringFeature& right)
+					{ return left.m_str < right.m_str; });
+		
+		const auto newEnd = std::unique(tmp.extractedVec.begin(), tmp.extractedVec.end(),
+				[](const ExtractedStringFeature& left, const ExtractedStringFeature& right)
+					{ return left.m_str == right.m_str; });
+		tmp.extractedVec.erase(newEnd, tmp.extractedVec.end());
 	}
 	
 	void extractSTF(TFE_TmpBuffers& bufs, const char *str, size_t strLen, int lang) const
