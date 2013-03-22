@@ -466,6 +466,7 @@ void ZurchPhrase_DocLoader::readFromFile( const char* fn )
     char buf[ BUF_SZ ];
     phrase_fields_t flds;
     std::string docName;
+    std::string text;
     uint32_t docId = 0xffffffff; 
     size_t numPhrase = 0;
     d_loader.parserSetup();
@@ -486,7 +487,12 @@ void ZurchPhrase_DocLoader::readFromFile( const char* fn )
                 d_loader.setDocTitle( docId, flds.name );
 
             d_loader.setCurrentWeight(flds.weight);
-            d_loader.addDocFromString( docId, flds.text, d_loadStats );
+            bool reuseBarz = (text == flds.text);
+            if( !reuseBarz ) 
+                text = flds.text;
+
+            d_loader.addDocFromString( docId, text + " ", d_loadStats, reuseBarz );
+            
             ++numPhrase;
             if( !(numPhrase%10000) ) {
                 std::cerr << ".";

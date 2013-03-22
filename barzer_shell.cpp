@@ -1729,7 +1729,7 @@ static int bshf_stexpand( BarzerShell* shell, char_cp cmd, std::istream& in , co
 		const char *fname = sin.c_str();
 		//AYLOG(DEBUG) << "Loading " << fname;
 		int numsts = reader.loadFromFile(fname);
-		std::cout << numsts << " statements read. in "  << totalTimer.calcTime() << std::endl;
+		std::cerr << numsts << " statements read. in "  << totalTimer.calcTime() << std::endl;
 	} else {
 		//AYLOG(ERROR) << "no filename";
 	}
