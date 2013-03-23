@@ -19,6 +19,8 @@ public:
     void clear() { d_storage.clear(); }
     BENI( StoredUniverse& u ) : 
         d_storage(d_charPool), d_universe(u) {}
+    
+    static bool normalize( std::string& out, const std::string& in ) ;
 };
 
 } // namespace barzer
