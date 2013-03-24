@@ -59,9 +59,18 @@ struct ZurchLongXMLParser_Phraserizer : public ZurchLongXMLParser {
     std::ostream& d_outFP;
     PhraseBreaker d_phraser;
 
+    enum {
+        MODE_PHRASER,  // phrases
+        MODE_EXTRACTOR // extracts content and titles
+    };
+    int d_mode;
     ZurchLongXMLParser_Phraserizer( std::ostream& fp ) : 
-        d_outFP(fp)
+        d_outFP(fp),
+        d_mode(MODE_PHRASER)
     {}
+
+    void setPhraserMode() { d_mode=MODE_PHRASER; }
+    void setExtractorMode() { d_mode=MODE_EXTRACTOR; }
     virtual int callback();
 
     void printCurrentRecord();
@@ -73,8 +82,8 @@ struct ZurchPhrase_DocLoader {
     ZurchPhrase_DocLoader( DocFeatureLoader::DocStats& ds, DocIndexLoaderNamedDocs& ldr ) :
         d_loader(ldr), d_loadStats(ds) 
     {}
-    void readFromFile( const char* fn );
-    void readDocContentFromFile( const char* fn );
+    void readPhrasesFromFile( const char* fn );
+    void readDocContentFromFile( const char* fn, size_t maxLineLen = 8*1024*1024 );
     /// line is pipe seaprated DOCNAME|TX|PHRASENUM|TEXT
 };
 

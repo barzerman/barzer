@@ -310,13 +310,18 @@ int ZurchLongXMLParser_Phraserizer::callback()
 {
     PhraseizerCB pz( d_outFP, d_phraser );
     pz.d_docId = d_data.d_ModuleID + "." + d_data.d_ID;
-    
-    // NAME
-    pz.parseText( d_data.d_DocName , PhraseizerCB::TXT_NAME,     " " );
-    pz.parseText( d_data.d_Content , PhraseizerCB::TXT_CONTENT );
-    pz.parseText( d_data.d_Keywords, PhraseizerCB::TXT_KEYWORDS, " " );
-    pz.parseText( d_data.d_NewKeywords, PhraseizerCB::TXT_NEWKEYWORDS, " " );
-    pz.parseText( d_data.d_Rubrics, PhraseizerCB::TXT_RUBRICS, " " );
+    if( d_mode==MODE_PHRASER ) {
+        // NAME
+        pz.parseText( d_data.d_DocName , PhraseizerCB::TXT_NAME,     " " );
+        pz.parseText( d_data.d_Content , PhraseizerCB::TXT_CONTENT );
+        pz.parseText( d_data.d_Keywords, PhraseizerCB::TXT_KEYWORDS, " " );
+        pz.parseText( d_data.d_NewKeywords, PhraseizerCB::TXT_NEWKEYWORDS, " " );
+        pz.parseText( d_data.d_Rubrics, PhraseizerCB::TXT_RUBRICS, " " );
+    } else if( d_mode==MODE_EXTRACTOR ) {
+        d_outFP << "TITLE|" << pz.d_docId << "|" << d_data.d_DocName << std::endl;
+        d_outFP << "C_BEGIN|" << pz.d_docId << std::endl << d_data.d_Content << std::endl;
+        d_outFP << "C_END|" << pz.d_docId <<std::endl ;
+    }
     return 0;
 }
 namespace {
@@ -418,44 +423,75 @@ int phrase_fmt_get_fields( phrase_fields_t& flds, char* buf, size_t buf_sz )
 }
 }
 
-void ZurchPhrase_DocLoader::readDocContentFromFile( const char* fn )
+void ZurchPhrase_DocLoader::readDocContentFromFile( const char* fn, size_t maxLineLen )
 {
     FILE* fp = fopen( fn, "r" );
     if( !fp ) {
         std::cerr << "Phrase Loader cant open " << fn << std::endl;
         return;
     }
-    const size_t BUF_SZ = 256*1024;
-    char buf[ BUF_SZ ];
+    std::vector<char> bufVec;
+    bufVec.resize( maxLineLen );
+
+    char* buf = &(bufVec[0]);
     phrase_fields_t flds;
     std::string docName;
     uint32_t docId = 0xffffffff; 
     size_t totalSz = 0, docCount = 0;
     std::cerr << "reading document contents" ;
     ay::stopwatch timer;
-    while( fgets(buf, sizeof(buf)-1, fp ) ) {
-        buf[ sizeof(buf)-1 ] = 0;
+
+    std::string docContentStr;
+    docContentStr.reserve( maxLineLen );
+    
+    #define BUF_BEGINSWITH( x ) !strncmp( x, buf, sizeof(x)-1 ) 
+    std::string docIdStr;
+
+    while( fgets(buf, bufVec.size()-1, fp ) ) {
+        bufVec.back()=0;
         size_t buf_sz = strlen(buf);
         if( buf_sz ) --buf_sz;
         buf[ buf_sz ] = 0;
         
-        char* pipe = strchr( buf, '|' );
-        if( pipe && pipe< buf+buf_sz) 
-            *pipe = 0;
-        else
-            continue;
-        docId = d_loader.addDocName( buf );
-        d_loader.addDocContents( docId, pipe+1 );
-        if( ! ((++docCount)%1000 ) ) 
+        if( BUF_BEGINSWITH("C_BEGIN|")) { // C_BEGIN|XXX.YYY
+            const char* n = buf+sizeof("C_BEGIN|");
+            docIdStr.assign( n );
+            docId = d_loader.addDocName( docIdStr.c_str() );
+        } else
+        if( BUF_BEGINSWITH("C_END|")) { // C_END|XXX.YYY
+            if( docId != 0xffffffff ) {
+                d_loader.addDocContents( docId, docContentStr.c_str() );
+            }
+            ++docCount;
+
+            docIdStr.clear();
+            docContentStr.clear();
+            docId = 0xffffffff;
+            totalSz += docContentStr.length();
+        } else 
+        if( BUF_BEGINSWITH("TITLE|")) { // TITLE|XXX.YYY|Title text
+            const char* n = buf+sizeof("TITLE|");
+            char* pipe = strchr( n, '|' ); 
+            if( pipe ) {
+                *pipe =0;
+                docId = d_loader.addDocName( n );
+                const char* title = pipe+1;
+                d_loader.setDocTitle( docId, title );
+            }
+        } else { /// regular text - must be content
+            if( docId != 0xffffffff ) { /// only if a document is currently open
+                docContentStr.append( buf );
+            }
+        }
+        if( ! ((docCount)%1000 ) ) 
             std::cerr << ".";
-        totalSz += buf_sz- strlen(pipe);
     }
     std::cerr << " done. " << docCount << 
     " docs totaling " << 
     ((double)totalSz)/1000000.0 << 
     "MB in " << timer.calcTime() << " seconds" << std::endl;
 }
-void ZurchPhrase_DocLoader::readFromFile( const char* fn )
+void ZurchPhrase_DocLoader::readPhrasesFromFile( const char* fn )
 {
     FILE* fp = fopen( fn, "r" );
     if( !fp ) {

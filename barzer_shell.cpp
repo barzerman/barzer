@@ -416,6 +416,9 @@ static int bshf_phrase( BarzerShell* shell, char_cp cmd, std::istream& in, const
         fp = &outFile;
     }
     zurch::ZurchLongXMLParser_Phraserizer phraseizer( *fp );
+    if( !strcmp(cmd,"zextract") ) {
+        phraseizer.setExtractorMode();
+    }
     ay::stopwatch localTimer;
     phraseizer.readFromFile( fileName.c_str() );
     std::cerr <<     "phrased in " << localTimer.calcTime() << " seconds\n";
@@ -1943,6 +1946,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)(bshf_dtaan), "dtaan", "data set analyzer. runs through the trie" ),
 	CmdData( (ay::Shell_PROCF)(bshf_dir), "dir", "dir listing" ),
 	CmdData( (ay::Shell_PROCF)(bshf_phrase), "phrase", "breaks file into phrases output into files" ),
+	CmdData( (ay::Shell_PROCF)(bshf_phrase), "zextract", "extracts contents and titles from zurch XML" ),
 	CmdData( (ay::Shell_PROCF)(bshf_doc), "doc", "doc loader doc filename" ),
 	CmdData( (ay::Shell_PROCF)(bshf_zstat), "zstat", "zurch indexer stats [count] [percentage]" ),
 	CmdData( (ay::Shell_PROCF)(bshf_zdump), "zdump", "dump zurch indexer ngrams data into file. Usage: zdump [filename]" ),
