@@ -470,7 +470,7 @@ void ZurchPhrase_DocLoader::readDocContentFromFile( const char* fn, size_t maxLi
             totalSz += docContentStr.length();
         } else 
         if( BUF_BEGINSWITH("TITLE|")) { // TITLE|XXX.YYY|Title text
-            const char* n = buf+sizeof("TITLE|");
+            char* n = buf+sizeof("TITLE|");
             char* pipe = strchr( n, '|' ); 
             if( pipe ) {
                 *pipe =0;
