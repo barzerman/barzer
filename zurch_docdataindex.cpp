@@ -11,10 +11,7 @@ void DocDataIndex::addInfo(uint32_t docId, const DocInfo::value_type& value)
 {
 	auto docPos = m_index.find(docId);
 	if (docPos == m_index.end())
-	{
-		m_index.insert({ docId, { value } }).first;
-		return;
-	}
+		docPos = m_index.insert({ docId, DocInfo() }).first;
 	
 	docPos->second.insert(value);
 }
