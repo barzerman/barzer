@@ -951,7 +951,7 @@ size_t DocFeatureLoader::addParsedDocContents(uint32_t docId, const std::string&
 	auto pos = m_parsedDocs.find(docId);
 	if (pos == m_parsedDocs.end())
 	{
-		auto iter  = m_parsedDocs.insert({ docId, parsed }).first;
+		m_parsedDocs.insert({ docId, parsed });
 		return parsed.size();
 	}
 	else

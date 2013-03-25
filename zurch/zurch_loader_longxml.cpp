@@ -454,7 +454,7 @@ void ZurchPhrase_DocLoader::readDocContentFromFile( const char* fn, size_t maxLi
         buf[ buf_sz ] = 0;
         
         if( BUF_BEGINSWITH("C_BEGIN|")) { // C_BEGIN|XXX.YYY
-            const char* n = buf+sizeof("C_BEGIN|");
+            const char* n = buf+sizeof("C_BEGIN|")-1;
             docIdStr.assign( n );
             docId = d_loader.addDocName( docIdStr.c_str() );
         } else
@@ -470,7 +470,7 @@ void ZurchPhrase_DocLoader::readDocContentFromFile( const char* fn, size_t maxLi
             totalSz += docContentStr.length();
         } else 
         if( BUF_BEGINSWITH("TITLE|")) { // TITLE|XXX.YYY|Title text
-            char* n = buf+sizeof("TITLE|");
+            char* n = buf+sizeof("TITLE|")-1;
             char* pipe = strchr( n, '|' ); 
             if( pipe ) {
                 *pipe =0;
@@ -520,7 +520,7 @@ void ZurchPhrase_DocLoader::readPhrasesFromFile( const char* fn )
             }
 
             if( flds.weight == WEIGHT_BOOST_NAME ) 
-                d_loader.setDocTitle( docId, flds.name );
+                d_loader.setDocTitle( docId, flds.text );
 
             d_loader.setCurrentWeight(flds.weight);
             bool reuseBarz = (text == flds.text);
