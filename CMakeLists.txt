@@ -166,6 +166,7 @@ set(SOURCES
             zurch_docidx.cpp
             zurch_phrasebreaker.cpp
             zurch_tokenizer.cpp
+            zurch_docdataindex.cpp
 			autotester/barzer_at_autotester.cpp
 			autotester/barzer_at_comparators.cpp
             "${EN_DIR}/barzer_en_date_util.cpp"
