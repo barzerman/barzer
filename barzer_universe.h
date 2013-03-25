@@ -50,7 +50,7 @@ public:
 
     void indexEntityNames( const StoredEntityClass& ec ) ;
 
-    void searchEntitiesByName( std::vector<std::pair< BarzerEntity, size_t >>& out, const char* str ) const;
+    void searchEntitiesByName( BENIFindResults_t& out, const char* str ) const;
 
 	GlobalPools& gp;
 

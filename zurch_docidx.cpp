@@ -876,19 +876,19 @@ void DocFeatureLoader::parserSetup()
     d_parser.lexer.setMaxCTokensPerQuery( MAX_NUM_TOKENS/2 );
     d_parser.lexer.setDontSpell(true);
 }
-size_t DocFeatureLoader::addDocFromString( uint32_t docId, const char* str, DocFeatureLoader::DocStats& stats )
+size_t DocFeatureLoader::addDocFromString( uint32_t docId, const std::string& str, DocFeatureLoader::DocStats& stats, bool reuseBarz )
 {
-    parserSetup();
-
-    d_barz.clear();
-    d_parser.tokenize_only( d_barz, str, d_qparm );
-    parseTokenized();
+    if( !reuseBarz ) {
+        d_barz.clear();
+        d_parser.tokenize_only( d_barz, str.c_str(), d_qparm );
+        parseTokenized();
+    }
 
     auto lastOffsetPos = getLastOffset( docId ); // lastOffsetPos guaranteed to be valid
     stats.numFeatureBeads += d_index.appendDocument( docId, d_barz, lastOffsetPos->second, getCurrentWeight() );
     stats.numBeads += d_barz.getBeads().getList().size();
 		
-	lastOffsetPos->second += addParsedDocContents(docId, std::string(str, strlen(str)) );
+	lastOffsetPos->second += addParsedDocContents(docId, str);
     return stats.numBeads;
 }
 size_t DocFeatureLoader::addDocFromStream( uint32_t docId, std::istream& fp, DocFeatureLoader::DocStats& stats )
@@ -956,7 +956,7 @@ bool DocFeatureLoader::getDocContents (uint32_t docId, std::string& out) const
 	}
 }
 
-size_t DocFeatureLoader::addParsedDocContents(uint32_t docId, const std::string& parsed)
+size_t DocFeatureLoader::addParsedDocContents(uint32_t docId, const std::string& parsed )
 {
 	if (noChunks())
 		return 0;

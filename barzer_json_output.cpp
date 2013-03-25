@@ -303,14 +303,15 @@ public:
         return printRange(data);
 	}
     // levDist is for entities only
-	void printEntity(const BarzerEntity &euid, bool needType, json_raii* otherRaii =0, const size_t *levDist = 0 ) 
+	void printEntity(const BarzerEntity &euid, bool needType, json_raii* otherRaii =0, const size_t *levDist = 0, const double *coverage = 0 ) 
     {
         json_raii* theRaii = ( otherRaii ? otherRaii: &raii );
         if( needType )
 		    theRaii->startField("type") << "\"entity\"";
-        if( levDist ) {
-		    theRaii->startField("lev") << "\"" << *levDist << "\"";
-        }
+        if( levDist )
+		    theRaii->startField("lev") << *levDist ;
+        if( coverage) 
+		    theRaii->startField("cover") << *coverage ;
         const char* tokname = universe.getGlobalPools().internalString_resolve(euid.tokId);
 
         if( !d_streamer.isSimplified() )
@@ -582,7 +583,7 @@ std::ostream& BarzStreamerJSON::print(std::ostream &os)
 	        beniRaii.startField("");
             BarzelBead fakeBead;
 	        BeadVisitor v(os, universe, fakeBead, barz, *this, 2 );
-            v.printEntity(i.first, true, 0, &(i.second));
+            v.printEntity(i.ent, true, 0, &(i.lev), &(i.coverage));
         }
     }
     /// printing topics 

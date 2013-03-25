@@ -5,10 +5,10 @@
 #pragma once
 
 #include <vector>
+#include <algorithm>
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
 #include <boost/variant.hpp>
-#include <boost/concept_check.hpp>
 #include <ay/ay_char.h>
 #include <ay/ay_string_pool.h>
 #include <barzer_universe.h>
@@ -78,6 +78,10 @@ typedef std::vector<StoredStringFeature>    StoredStringFeatureVec;
 /// void operator()( StringFeatureVec&, const char* str, size_t str_len, int lang );
 
 struct TFE_ngram {
+	bool m_makeSideGrams;
+	
+	TFE_ngram() : m_makeSideGrams(true) {}
+	
     void operator()( ExtractedStringFeatureVec&, const char* str, size_t str_len, int lang ) const;
 };
 
@@ -128,6 +132,15 @@ struct TFE_storage {
 	void extractOnly(TFE_TmpBuffers& tmp, const char *str, size_t strLen, int lang) const
 	{
 		d_extractor(tmp.extractedVec, str, strlen(str), lang);
+		
+		std::sort(tmp.extractedVec.begin(), tmp.extractedVec.end(),
+				[](const ExtractedStringFeature& left, const ExtractedStringFeature& right)
+					{ return left.m_str < right.m_str; });
+		
+		const auto newEnd = std::unique(tmp.extractedVec.begin(), tmp.extractedVec.end(),
+				[](const ExtractedStringFeature& left, const ExtractedStringFeature& right)
+					{ return left.m_str == right.m_str; });
+		tmp.extractedVec.erase(newEnd, tmp.extractedVec.end());
 	}
 	
 	void extractSTF(TFE_TmpBuffers& bufs, const char *str, size_t strLen, int lang) const
@@ -147,6 +160,8 @@ struct TFE_storage {
     {
 		if (d_strSet.find(strId) != d_strSet.end())
 			return;
+		
+		d_strSet.insert(strId);
 		
 		tmp.clear();
 		extractOnly(tmp, str, strlen(str), lang);
@@ -302,13 +317,16 @@ public:
 	NGramStorage(ay::UniqueCharPool& p)
 	: m_gram(p)
 	{
+		m_gram.d_extractor.m_makeSideGrams = false;
 	}
 	
-	void addWord(uint32_t strId, const char *str, const T& data)
+	void addWord(const char *str, const T& data)
 	{
 	    TFE_TmpBuffers bufs( m_storedVec, m_extractedVec );
 		bufs.clear();
-		m_gram.extractAndStore(bufs, strId, str, 0);
+		
+		auto strId = m_gram.d_pool->internIt(str);
+		m_gram.extractAndStore(bufs, strId, str, LANG_UNKNOWN);
 		m_storage.insert({ strId, data });
 	}
 	
@@ -318,6 +336,7 @@ public:
 		const T *m_data;
 		double m_relevance;
 		size_t m_levDist;
+		double m_coverage;
 	};
 	
 	void getMatches(const char *str, size_t strLen, std::vector<FindInfo>& out, size_t max = 16, size_t topLev = 4) const
@@ -326,10 +345,13 @@ public:
         ExtractedStringFeatureVec extractedVec;
         TFE_TmpBuffers bufs( storedVec, extractedVec );
 		
-		m_gram.extractSTF(bufs, str, strLen, 0);
+		m_gram.extractSTF(bufs, str, strLen, LANG_UNKNOWN);
+		
+		const double srcFCnt = storedVec.size();
 		
 		typedef std::map<uint32_t, double> CounterMap_t;
 		CounterMap_t counterMap;
+		std::map<uint32_t, uint32_t> doc2fCnt;
 		for (const auto& feature : storedVec)
 		{
 			const auto srcs = m_gram.getSrcsForFeature(feature);
@@ -340,8 +362,13 @@ public:
 			{
 				auto pos = counterMap.find(source);
 				if (pos == counterMap.end())
-					pos = counterMap.insert(std::make_pair(source, 0)).first;
+					pos = counterMap.insert({ source, 0 }).first;
 				pos->second += 1. / (srcs->size() * srcs->size());
+				
+				auto docPos = doc2fCnt.find(source);
+				if (docPos == doc2fCnt.end())
+					docPos = doc2fCnt.insert({ source, 0 }).first;
+				++docPos->second;
 			}
 		}
 		
@@ -367,23 +394,21 @@ public:
 		{
 			auto dataPos = m_storage.find(item.first);
 			
-			auto resolvedResult = m_gram.d_pool->resolveId(item.first);
+			const auto resolvedResult = m_gram.d_pool->resolveId(item.first);
+			const auto resolvedLength = std::strlen(resolvedResult);
 			
 			const auto dist = ++curItem > topLev ?
 				0 :
-				barzer::Lang::getLevenshteinDistance(lev, str, strLen, resolvedResult, std::strlen(resolvedResult));
+				barzer::Lang::getLevenshteinDistance(lev, str, strLen, resolvedResult, resolvedLength);
 			
 			out.push_back({
 					item.first,
 					(dataPos == m_storage.end() ? 0 : &dataPos->second),
 					item.second,
-					dist
+					dist,
+					doc2fCnt[item.first] / srcFCnt
 				});
 		}
-		
-		std::sort(out.begin(), std::min(out.end(), out.begin() + topLev),
-				[](const FindInfo& f1, const FindInfo& f2)
-					{ return f1.m_levDist < f2.m_levDist; });
 	}
 };
 

@@ -69,7 +69,7 @@ int Shell::cmd_exit( Shell*, char_cp cmd, std::istream& in, const std::string&ar
 int Shell::printPrompt()
 {
 	if( outStream == & std::cout )
-		std::cout << "cmd>";
+		std::cerr << "cmd>";
 	return 0;
 }
 

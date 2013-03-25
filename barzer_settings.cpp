@@ -787,7 +787,7 @@ void BarzerSettings::load(BELReader& reader, const char *fname) {
 	//AYLOGDEBUG(fname);
     ay::stopwatch totalTimer;
 
-	std::cout << "Loading config file: " << fname << std::endl;
+	std::cerr << "Loading config file: " << fname << std::endl;
 	fs::path oldPath = fs::current_path();
 
 	try {

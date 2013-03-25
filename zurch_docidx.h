@@ -445,7 +445,7 @@ public:
     std::map<uint32_t, size_t>::iterator getLastOffset(uint32_t docId);
 
     void parserSetup();
-    size_t addDocFromString( uint32_t docId, const char*, DocStats&  );
+    size_t addDocFromString( uint32_t docId, const std::string& str, DocStats&, bool reuseBarz = false  );
     size_t addDocFromStream( uint32_t docId, std::istream&, DocStats&  );
 	
 	void addDocContents(uint32_t docId, const std::string& contents);
@@ -456,7 +456,7 @@ public:
 	/** Returns the amount of bytes that where actually appended. This may
 	 * include some extra markup.
 	 */
-	size_t addParsedDocContents(uint32_t docId, const std::string& parsed);
+	size_t addParsedDocContents(uint32_t docId, const std::string& parsed );
 	
 	struct ChunkItem
 	{

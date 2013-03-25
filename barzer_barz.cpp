@@ -549,6 +549,8 @@ namespace {
 
 inline bool beni_string_likely_isid( const std::string& s, size_t numGlyphs ) 
 {
+    if( numGlyphs < 18 )
+        return true;
     size_t num_spaces  = 1;
     for( const auto& i : s ) {
         if( isdigit(i) ) 

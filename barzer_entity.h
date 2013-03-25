@@ -147,6 +147,14 @@ inline size_t hash_value(const StoredEntityUniqId& t)
 
 typedef StoredEntityUniqId BarzerEntity;
 
+struct BENIFindResult
+{
+	BarzerEntity ent;
+	size_t lev;
+	double coverage;
+};
+typedef std::vector<BENIFindResult> BENIFindResults_t; 
+
 //// generic type used by Barzel among other things
 class BarzerEntityList {
 public:
