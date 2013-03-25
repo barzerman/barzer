@@ -23,7 +23,7 @@
 #include <ay_parse.h>
 #include <fstream>
 #include <sstream>
-
+#include <boost/variant.hpp>
 
 #ifdef DONTCOMMENTALLOUT
 void testLogger() {
@@ -284,7 +284,6 @@ int test_ay_xhtml_parser(int argc,char* argv[])
     std::cerr << cb.counter << "," << cb.maxStackDepth << "@" << cb.longestPath << std::endl;
     return 0;
 }
-#endif /// DONTCOMMENTALLOUT
 namespace {
 int test_ay_uri(int argc,char* argv[])
 {
@@ -297,7 +296,7 @@ int test_ay_uri(int argc,char* argv[])
         ay::uri_parse uri;
         uri.parse( l );
         
-        std::cerr << "PREFIX:" << uri.prefix << std::endl;
+        // std::cerr << "PREFIX:" << uri.prefix << std::endl;
         for( auto i = uri.theVec.begin(); i!= uri.theVec.end(); ++i )  {
             std::cerr << i->first << "=" << i->second << std::endl;
         }
@@ -307,6 +306,92 @@ int test_ay_uri(int argc,char* argv[])
 }
 
 } // anonymous namespace 
+#endif /// DONTCOMMENTALLOUT
+
+namespace {
+
+template<typename PL, typename... T>
+struct VecVar {
+    typedef std::vector< VecVar > Vec_t;
+    typedef boost::variant< Vec_t, T... > Var_t;
+    Var_t d_dta;
+    PL    d_payload;
+
+    VecVar() {}
+
+    template <class X>
+    VecVar( const X& i ) : d_dta(i) {}
+
+    template <class X>
+    VecVar( const X& i, const PL& pl  ) : d_dta(i), d_payload(pl) {}
+    
+    Vec_t& vec() 
+    {
+        if( d_dta.which() ) 
+            d_dta = Vec_t();
+        return boost::get<Vec_t>(d_dta);
+    }
+    
+    template <typename X>
+    const X* getPtr() const { return boost::get<X>( &d_dta ); }
+    
+    // CB should accept Var_t
+    template <typename CB>
+    void visit( const CB& cb ) const
+    {
+        if( const Vec_t* x = getPtr<Vec_t>() ) {
+            cb(*this);
+            for( const auto& i : *x ) 
+                i.visit(cb);
+        } else
+            cb( *this );
+    }
+};
+
+struct Payload {
+    std::string stuff;
+};
+
+int test_variadic(int argc, char* argv[]) 
+{
+    typedef VecVar<std::string, int,std::string> Type;
+    Type y;
+    Type::Vec_t v;
+    
+    y.d_dta = Type::Vec_t();
+    y.vec().push_back( Type(100) );
+    y.vec().push_back( Type("shit") );
+
+    v.push_back( Type("lalala") );
+    v.push_back( Type(333) );
+    y.vec().push_back( Type(v,"AND"));
+    
+    /*
+    for( const auto& i: y.vec() ) {
+        if( const int* tmp = i.getPtr<int>() ) {
+            std::cerr << *tmp << std::endl;
+        } else 
+        if( const std::string* tmp = i.getPtr<std::string>() ) {
+            std::cerr << *tmp << std::endl;
+        }
+    }
+    */
+    
+    auto func = [&]( const Type& i) { 
+        if( i.d_payload.length() ) 
+            std::cerr << "PAYLOAD:" << i.d_payload<< std::endl;
+        if( const int* tmp = i.getPtr<int>() ) {
+            std::cerr << *tmp << std::endl;
+        } else 
+        if( const std::string* tmp = i.getPtr<std::string>() ) {
+            std::cerr << *tmp << std::endl;
+        }
+    };
+    y.visit( func );
+    return 0;
+}
+
+}
 int main(int argc, char* argv[]) {
 	// testLogger();
     //testUTF8(argc,argv);
@@ -314,6 +399,5 @@ int main(int argc, char* argv[]) {
     // testStripDiacritics(argc,argv);
     // testXMLEscape(argc,argv);
     // test_ay_strcasecmp(argc,argv);
-
-    return test_ay_uri(argc,argv);
+    return test_variadic(argc,argv);
 }
