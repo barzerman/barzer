@@ -8,6 +8,10 @@
 #include <functional>
 #include <boost/variant.hpp>
 #include <boost/unordered_map.hpp>
+#include <boost/unordered_set.hpp>
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/insert_range.hpp>
+#include <boost/mpl/transform.hpp>
 
 namespace zurch
 {
@@ -59,12 +63,12 @@ namespace Filters
 		bool operator()(const T& t) const { return t(m_di); }
 	};
 
-	template<template<typename Data> class Op>
-	struct LogicalBinary;
-	
+	template<template<typename Data> class Op> struct LogicalBinary;
+	template<typename T> struct InSet;
 	struct Not;
 	struct Between;
 
+	/*
 	typedef boost::variant<
 			Ord<std::equal_to>,
 			Ord<std::greater>,
@@ -72,8 +76,38 @@ namespace Filters
 			boost::recursive_wrapper<LogicalBinary<std::logical_or>>,
 			boost::recursive_wrapper<LogicalBinary<std::logical_and>>,
 			boost::recursive_wrapper<Not>,
+			boost::recursive_wrapper<InSet<int>>,
+			boost::recursive_wrapper<InSet<double>>,
+			boost::recursive_wrapper<InSet<std::string>>,
 			boost::recursive_wrapper<Between>
 		> Filter_t;
+		*/
+	
+	typedef boost::mpl::vector<
+			Ord<std::equal_to>,
+			Ord<std::greater>,
+			Ord<std::less>,
+			boost::recursive_wrapper<LogicalBinary<std::logical_or>>,
+			boost::recursive_wrapper<LogicalBinary<std::logical_and>>,
+			boost::recursive_wrapper<Not>,
+			boost::recursive_wrapper<Between>
+		> _PreFilterTypesVec_1;
+	
+	template<template<typename U> class Templ>
+	struct InstTemplate
+	{
+		template<typename T>
+		struct Inst
+		{
+			typedef boost::recursive_wrapper<Templ<T>> type;
+		};
+	};
+	
+	typedef boost::mpl::insert_range<_PreFilterTypesVec_1,
+			boost::mpl::end<_PreFilterTypesVec_1>::type,
+			boost::mpl::transform<DataType_t::types, InstTemplate<InSet>::Inst<boost::mpl::_1>>::type>::type FilterTypesVec_t;
+	
+	typedef boost::make_variant_over<FilterTypesVec_t>::type Filter_t;
 
 	template<template<typename Data> class Op>
 	struct LogicalBinary
@@ -98,7 +132,7 @@ namespace Filters
 		
 		bool operator()(const DocInfo& di) const
 		{
-			return boost::apply_visitor(FilterTApplier(di), m_f);
+			return !boost::apply_visitor(FilterTApplier(di), m_f);
 		}
 	};
 	
@@ -107,6 +141,41 @@ namespace Filters
 		Between(const std::string& prop, const DataType_t& lower, const DataType_t& upper)
 		: LogicalBinary(Ord<std::greater>(prop, lower), Ord<std::less>(prop, upper))
 		{
+		}
+	};
+	
+	template<typename T>
+	struct SetFinder : public boost::static_visitor<bool>
+	{
+		const boost::unordered_set<T>& m_set;
+		
+		SetFinder(const boost::unordered_set<T>& set) : m_set(set) {}
+		
+		bool operator()(const T& t) const { return m_set.find(t) != m_set.end(); }
+		
+		template<typename U>
+		bool operator()(const U&) const { return false; }
+	};
+	
+	template<typename T>
+	struct InSet
+	{
+		const std::string m_prop;
+		const boost::unordered_set<T> m_set;
+		
+		InSet(const std::string& prop, const boost::unordered_set<T>& set)
+		: m_prop(prop)
+		, m_set(set)
+		{
+		}
+		
+		bool operator()(const DocInfo& di) const
+		{
+			auto pos = di.find(m_prop);
+			if (pos == di.end())
+				return false;
+			
+			return boost::apply_visitor(SetFinder<T>(m_set), pos->second);
 		}
 	};
 	
