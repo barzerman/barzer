@@ -78,9 +78,13 @@ typedef std::vector<StoredStringFeature>    StoredStringFeatureVec;
 /// void operator()( StringFeatureVec&, const char* str, size_t str_len, int lang );
 
 struct TFE_ngram {
+	bool m_stem;
 	bool m_makeSideGrams;
 	
-	TFE_ngram() : m_makeSideGrams(true) {}
+	size_t m_minGrams;
+	size_t m_maxGrams;
+	
+	TFE_ngram() : m_stem(true), m_makeSideGrams(true), m_minGrams(3), m_maxGrams(3) {}
 	
     void operator()( ExtractedStringFeatureVec&, const char* str, size_t str_len, int lang ) const;
 };
@@ -318,6 +322,9 @@ public:
 	: m_gram(p)
 	{
 		m_gram.d_extractor.m_makeSideGrams = false;
+		m_gram.d_extractor.m_stem = false;
+		m_gram.d_extractor.m_minGrams = 3;
+		m_gram.d_extractor.m_maxGrams = 3;
 	}
 	
 	void addWord(const char *str, const T& data)
