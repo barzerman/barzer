@@ -12,6 +12,8 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/insert_range.hpp>
 #include <boost/mpl/transform.hpp>
+#include <boost/mpl/transform.hpp>
+#include <ay/ay_index.h>
 
 namespace zurch
 {
@@ -186,10 +188,32 @@ namespace Filters
 	typedef LogicalBinary<std::logical_and> AND;
 }
 
+struct SimpleIdx {
+    ay::IdPropValIndex<int>         Int;
+    ay::IdPropValIndex<double>      Double;
+    ay::IdPropValIndex<std::string> String;
+
+    typedef ay::IdPropValIndex<int>::IdxType_t int_t;
+    typedef ay::IdPropValIndex<double>::IdxType_t double_t;
+    typedef ay::IdPropValIndex<std::string>::IdxType_t string_t;
+
+    const int_t*    ix_int( const std::string& propName ) const { return Int.getPropIdx( propName ); }
+    const double_t* ix_double( const std::string& propName ) const { return Double.getPropIdx( propName ); }
+    const string_t* ix_string( const std::string& propName ) const { return String.getPropIdx( propName ); }
+
+    int_t*    ix_int( const std::string& propName ) { return Int.getPropIdx( propName ); }
+    double_t* ix_double( const std::string& propName ) { return Double.getPropIdx( propName ); }
+    string_t* ix_string( const std::string& propName ) { return String.getPropIdx( propName ); }
+};
+
 class DocDataIndex
 {
 	boost::unordered_map<uint32_t, DocInfo> m_index;
+    SimpleIdx d_simpleIdx;
 public:
+          SimpleIdx& simpleIdx()       { return d_simpleIdx; }
+    const SimpleIdx& simpleIdx() const { return d_simpleIdx; }
+
 	void addInfo(uint32_t, const DocInfo::value_type&);
 	
     /// lets not call t () operator 

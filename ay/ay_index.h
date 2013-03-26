@@ -102,11 +102,16 @@ public:
         auto i = d_idxMap.find( propName );
         return( i == d_idxMap.end() ? 0: &(i->second) );
     }
+    IdValIndex<T>* getPropIdx( const std::string& propName ) 
+    {
+        auto i = d_idxMap.find( propName );
+        return( i == d_idxMap.end() ? 0: &(i->second) );
+    }
     IdValIndex<T>& producePropIdx( const std::string& propName )
     {
         auto i = d_idxMap.find( propName );
         if( i == d_idxMap.end() ) 
-            i = d_idxMap.insert( { propName, IdValIndex<T>()} ).first;
+            i = d_idxMap.insert( {propName, IdValIndex<T>()} ).first;
         return i->second;
     }
 

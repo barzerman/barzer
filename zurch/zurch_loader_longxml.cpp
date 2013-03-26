@@ -367,6 +367,11 @@ int ZurchLongXMLParser_DocLoader::callback()
         if( d_loader.hasContent() ) 
             d_loader.addDocContents( docId, d_data.d_Content );
     }
+    /// adding module info
+    {
+        int module = atoi( d_data.d_ModuleID.c_str() );
+        d_loader.d_docDataIdx.simpleIdx().Int.append( "module", docId, module );
+    }
     return 0;
 }
 
