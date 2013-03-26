@@ -192,7 +192,8 @@ class DocDataIndex
 public:
 	void addInfo(uint32_t, const DocInfo::value_type&);
 	
-	bool operator()(uint32_t, const Filters::Filter_t&) const;
+    /// lets not call t () operator 
+	bool fancyFilter(uint32_t, const Filters::Filter_t&) const;
 };
 
 }

@@ -16,7 +16,7 @@ void DocDataIndex::addInfo(uint32_t docId, const DocInfo::value_type& value)
 	docPos->second.insert(value);
 }
 
-bool DocDataIndex::operator()(uint32_t docId, const Filters::Filter_t& f) const
+bool DocDataIndex::fancyFilter(uint32_t docId, const Filters::Filter_t& f) const
 {
 	auto docPos = m_index.find(docId);
 	if (docPos == m_index.end())

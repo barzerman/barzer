@@ -24,6 +24,7 @@
 #include <fstream>
 #include <sstream>
 #include <boost/variant.hpp>
+#include <ay_index.h>
 
 #ifdef DONTCOMMENTALLOUT
 void testLogger() {
@@ -391,6 +392,38 @@ int test_variadic(int argc, char* argv[])
     return 0;
 }
 
+int test_ay_index(int argc, char* argv[]) {
+    typedef ay::IdPropValIndex<double> IdxType;
+    IdxType idx;
+
+    idx.append( "stuff", 0, 1.50 );
+    idx.append( "stuff", 1, 2.50 );
+
+    idx.sort();
+    std::vector< double > vec;
+    vec.push_back( 3.0 );
+    vec.push_back( 3.5 );
+
+    std::sort( vec.begin(), vec.end() );
+
+    size_t numIters = 0;
+    if( auto p = idx.getPropIdx( "stuff" ) ) {
+        if( bool i =p->isInRange( 0, .50, 10 ) ) {
+            std::cerr << "in range YES\n";
+        } 
+        if( bool i = p->isOneOf( 1, vec  ) ) {
+            std::cerr << "one of YES\n";
+        }
+        p->iterateValue( [&] ( const IdxType::ValIdPair_t & i) -> bool { 
+            std::cerr << "SHIT:" << i.first << "," << i.second << std::endl;
+            return true;
+        }, 2.2, 3 );
+        // std::cerr << "SHIT " << numIters << std::endl;
+    }
+
+
+    return 0;
+}
 }
 int main(int argc, char* argv[]) {
 	// testLogger();
@@ -399,5 +432,5 @@ int main(int argc, char* argv[]) {
     // testStripDiacritics(argc,argv);
     // testXMLEscape(argc,argv);
     // test_ay_strcasecmp(argc,argv);
-    return test_variadic(argc,argv);
+    return test_ay_index(argc,argv);
 }
