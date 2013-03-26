@@ -40,7 +40,7 @@ void BENI::search( BENIFindResults_t& out, const char* query ) const
 
     for( const auto& i : vec ) {
         if( i.m_data ) {
-            out.push_back({ *(i.m_data), i.m_levDist, i.m_coverage });
+            out.push_back({ *(i.m_data), i.m_levDist, i.m_coverage, i.m_relevance });
         }
     }
 }

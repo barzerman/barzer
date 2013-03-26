@@ -702,7 +702,8 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
         for( const auto&i : barz.d_beni.d_entVec ) {
             std::stringstream sstr;
             sstr << "lev=\"" << i.lev << "\" ";
-			sstr << "cov=\"" << i.coverage << "\"";
+			sstr << "cov=\"" << i.coverage << "\" ";
+			sstr << "rel=\"" << i.relevance << "\"";
             v.printEntity( i.ent, sstr.str().c_str() );
             os << std::endl;
         }
