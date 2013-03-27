@@ -12,65 +12,67 @@ namespace barzer
 {
 void TFE_ngram::operator()(ExtractedStringFeatureVec& outVec, const char *str, size_t str_len, int lang) const
 {
-	const size_t nGramSymbs = 3;
 	const size_t stemThreshold = 4;
 	
-	outVec.reserve(outVec.size() + str_len - nGramSymbs + 3);
-	
-	std::string tmp;
-	if (lang == LANG_ENGLISH || lang == LANG_RUSSIAN)
+	for (size_t nGramSymbs = m_minGrams; nGramSymbs <= m_maxGrams; ++nGramSymbs)
 	{
-		const size_t step = lang == LANG_ENGLISH ? 1 : 2;
-		const size_t gramSize = step * nGramSymbs;
+		outVec.reserve(outVec.size() + str_len - nGramSymbs + 3);
 		
-		std::string stemmed;
-		if (str_len / step >= stemThreshold)
+		std::string tmp;
+		if (lang == LANG_ENGLISH || lang == LANG_RUSSIAN)
 		{
-			if (BZSpell::stem(stemmed, str, lang, stemThreshold))
-				str = stemmed.c_str();
-		}
-		
-		if (str_len >= gramSize)
-			for (size_t i = 0, end = str_len - gramSize + 1; i < end; i += step)
-			{
-				tmp.assign(str + i, gramSize);
-				outVec.push_back(ExtractedStringFeature(tmp, i / step + 1));
-			}
-		
-		if (m_makeSideGrams && str_len >= gramSize - 1)
-		{
-			tmp = ' ';
-			tmp.append(str, gramSize - 1);
-			outVec.push_back(ExtractedStringFeature(tmp, 0));
+			const size_t step = lang == LANG_ENGLISH ? 1 : 2;
+			const size_t gramSize = step * nGramSymbs;
 			
-			tmp.assign(str + str_len - gramSize, gramSize - 1);
-			tmp.append(" ");
-			outVec.push_back(ExtractedStringFeature(tmp, 2 + (str_len - gramSize + 1) / step));
-		}
-	}
-	else
-	{
-		ay::StrUTF8 utf8(str, str_len);
-		if (utf8.size() >= stemThreshold)
-		{
 			std::string stemmed;
-			if (BZSpell::stem(stemmed, str, lang, stemThreshold))
-				utf8.assign(stemmed.c_str());
+			if (m_stem && str_len / step >= stemThreshold)
+			{
+				if (BZSpell::stem(stemmed, str, lang, stemThreshold))
+					str = stemmed.c_str();
+			}
+			
+			if (str_len >= gramSize)
+				for (size_t i = 0, end = str_len - gramSize + 1; i < end; i += step)
+				{
+					tmp.assign(str + i, gramSize);
+					outVec.push_back(ExtractedStringFeature(tmp, i / step + 1));
+				}
+			
+			if (m_makeSideGrams && str_len >= gramSize - 1)
+			{
+				tmp = ' ';
+				tmp.append(str, gramSize - 1);
+				outVec.push_back(ExtractedStringFeature(tmp, 0));
+				
+				tmp.assign(str + str_len - gramSize, gramSize - 1);
+				tmp.append(" ");
+				outVec.push_back(ExtractedStringFeature(tmp, 2 + (str_len - gramSize + 1) / step));
+			}
 		}
-		
-		if (utf8.size() >= nGramSymbs)
-			for (size_t i = 0, end = utf8.size() - nGramSymbs + 1; i < end; ++i)
-				outVec.push_back(ExtractedStringFeature(utf8.getSubstring(i, nGramSymbs), i + 1));
-			
-		if (m_makeSideGrams && utf8.size() >= nGramSymbs - 1)
+		else
 		{
-			std::string tmp(" ");
-			tmp.append(utf8.getSubstring(0, nGramSymbs - 1));
-			outVec.push_back(ExtractedStringFeature(tmp, 0));
+			ay::StrUTF8 utf8(str, str_len);
+			if (m_stem && utf8.size() >= stemThreshold)
+			{
+				std::string stemmed;
+				if (BZSpell::stem(stemmed, str, lang, stemThreshold))
+					utf8.assign(stemmed.c_str());
+			}
 			
-			tmp.assign(utf8.getSubstring(utf8.size() - nGramSymbs + 1, nGramSymbs - 1));
-			tmp.append(" ");
-			outVec.push_back(ExtractedStringFeature(tmp, utf8.size() - nGramSymbs + 2));
+			if (utf8.size() >= nGramSymbs)
+				for (size_t i = 0, end = utf8.size() - nGramSymbs + 1; i < end; ++i)
+					outVec.push_back(ExtractedStringFeature(utf8.getSubstring(i, nGramSymbs), i + 1));
+				
+			if (m_makeSideGrams && utf8.size() >= nGramSymbs - 1)
+			{
+				std::string tmp(" ");
+				tmp.append(utf8.getSubstring(0, nGramSymbs - 1));
+				outVec.push_back(ExtractedStringFeature(tmp, 0));
+				
+				tmp.assign(utf8.getSubstring(utf8.size() - nGramSymbs + 1, nGramSymbs - 1));
+				tmp.append(" ");
+				outVec.push_back(ExtractedStringFeature(tmp, utf8.size() - nGramSymbs + 2));
+			}
 		}
 	}
 }
@@ -234,8 +236,9 @@ namespace
 				if (!srcs)
 					continue;
 				
-				for (uint32_t source : *srcs)
+				for (const auto& sourceFeature : *srcs)
 				{
+					const auto source = sourceFeature.docId;
 					auto pos = counterMap.find(source);
 					if (pos == counterMap.end())
 						pos = counterMap.insert(std::make_pair(source, 0)).first;

@@ -534,9 +534,23 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
     if( !d_queryFlags.empty() )
         qparm.setZurchFlags( d_queryFlags.c_str() );
     if( d_zurchSearchById ) { /// in this case query must contain document name
-        uint32_t docId  = ixl->getDocIdByName( query );
-        if( docId != 0xffffffff )
-            docVec.push_back( std::pair<uint32_t,double>(docId, 1.0) );
+        std::vector< std::string > docIdStrVec;
+        ay::parse_separator( 
+            [&] (size_t tok_num, const char* tok, const char* tok_end) -> bool {
+                if( tok_end<= tok ) 
+                    return false;
+
+                docIdStrVec.push_back( std::string(tok, tok_end-tok) );
+                return false;
+            },
+            query, query+strlen(query) 
+
+        );
+        for( const auto& i: docIdStrVec ) {
+            uint32_t docId  = ixl->getDocIdByName( i.c_str() );
+            if( docId != 0xffffffff )
+                docVec.push_back( std::pair<uint32_t,double>(docId, 1.0) );
+        }
     } else {
 	    qparser.tokenize_only( barz, query, qparm );
 	    qparser.lex_only( barz, qparm );
