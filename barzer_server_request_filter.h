@@ -116,6 +116,20 @@ public:
         }
         return false;
     }
+    struct sort_visitor : public boost::static_visitor<void> {
+        template <typename T>
+        void operator()( std::vector<T>& v ) const
+        {
+            std::sort( v.begin(), v.end() );
+        }
+        template <typename T>
+        void operator()( T& v ) const
+        {
+            return;
+        }
+    };
+    void sort()
+        { boost::apply_visitor( sort_visitor(), filterData ); }
 };
 
 struct ReqFilterCascade {

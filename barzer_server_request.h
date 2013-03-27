@@ -94,6 +94,8 @@ private:
     
 public:
     std::string    d_queryFlags;
+    size_t d_maxResults; // max number of docs to return (32 default)
+
     std::ostream& printError( const char* err );
 
     // instead of parsing input XML initializes everything from a URI string

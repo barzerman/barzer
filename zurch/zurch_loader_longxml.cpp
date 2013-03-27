@@ -332,6 +332,10 @@ namespace {
         WEIGHT_BOOST_RUBRIC=700
     };
 }
+void ZurchLongXMLParser_DocLoader::loadingDoneCallback()
+{
+    d_loader.index().d_docDataIdx.simpleIdx().sort();
+}
 int ZurchLongXMLParser_DocLoader::callback()
 {
     std::string docName = d_data.d_ModuleID + "." + d_data.d_ID;
@@ -561,6 +565,7 @@ void ZurchLongXMLParser::readFromFile( const char* fname )
     } else {
         ay::print_absolute_file_path( (std::cerr << "ERROR: ZurchLongXMLParser cant open file \"" ), fname ) << "\"\n";
     }
+    loadingDoneCallback();
 }
 
 } // namespace zurch 

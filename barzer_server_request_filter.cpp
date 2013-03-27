@@ -25,14 +25,16 @@ void ReqFilterCascade::parse( const char* str, const char* str_end )
             default: 
                 filter.push_back( std::string( tok, tok_end-tok ) );
             }
-            return true;
+            return false;
         },
         str,              // buffer
         str_end, /// end of buffer
         ',' /// separator
     );
-    if( !propName.empty() && !filter.empty() ) 
+    if( !propName.empty() && !filter.empty() ) {
+        filter.sort();
         addFilter( propName, filter );
+    }
 }
 
 } // namespace barzer

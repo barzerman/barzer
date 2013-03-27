@@ -166,6 +166,7 @@ BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s ) :
     d_barzXMLParser(0),
     d_queryId( std::numeric_limits<uint64_t>::max() ),
     d_simplified(false),
+    d_maxResults(32),
     ret(XML_TYPE),
     d_zurchDocIdxId(0xffffffff),
     d_queryType(QType::BARZER)
@@ -210,6 +211,11 @@ int BarzerRequestParser::initFromUri( const char* u, size_t u_len, const char* q
                 d_queryFlags = i->second;
             } else if( i->first == "flt" ) {
                 fitlerCascade.parse( i->second.c_str(), i->second.c_str()+i->second.length() );
+            }
+            break;
+        case 'm': /// max count
+            if( i->first == "max" ) {
+                d_maxResults = atoi( i->second.c_str() );
             }
             break;
         case 'r':
@@ -269,6 +275,7 @@ BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s, uint3
     d_barzXMLParser(0),
     d_queryId( std::numeric_limits<uint64_t>::max() ),
     d_simplified(false),
+    d_maxResults(32),
     ret(XML_TYPE),
     d_zurchDocIdxId(0xffffffff),
     d_zurchSearchById(false),
@@ -558,7 +565,7 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
      
     	
         if( index->fillFeatureVecFromQueryBarz( featureVec, barz ) )  {
-            zurch::DocFeatureIndex::SearchParm parm( 16, (fitlerCascade.empty()? 0: &fitlerCascade), &positions );
+            zurch::DocFeatureIndex::SearchParm parm( d_maxResults, (fitlerCascade.empty()? 0: &fitlerCascade), &positions );
             index->findDocument( docVec, featureVec, parm );
         }
     }
@@ -976,6 +983,8 @@ void BarzerRequestParser::tag_query(RequestTag &tag)
                 d_simplified = true;
         	    ret = JSON_TYPE;
             }
+        } else if (i->first == "max" ) { // max results
+            d_maxResults = atoi(i->second.c_str());
         } else if (i->first == "now" ) {
             if( RequestEnvironment* env = barz.getServerReqEnv() )
                 env->setNow( i->second );

@@ -34,6 +34,7 @@ struct ZurchLongXMLParser {
     void clear() { tagStack.clear(); }
 
     virtual int callback();
+    virtual void loadingDoneCallback() {}
     ZurchLongXMLParser() : d_numCallbacks(0){}
     virtual ~ZurchLongXMLParser() {}
 };
@@ -53,6 +54,7 @@ struct ZurchLongXMLParser_DocLoader : public ZurchLongXMLParser {
         d_onlyTitlesAndContents(false)
     {}
     virtual int callback();
+    virtual void loadingDoneCallback();
 };
 
 struct ZurchLongXMLParser_Phraserizer : public ZurchLongXMLParser {
