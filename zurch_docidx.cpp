@@ -481,9 +481,11 @@ void DocFeatureIndex::sortAll()
         std::sort( i->second.begin(), i->second.end() ) ;
 }
 
-void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out,
-		const ExtractedDocFeature::Vec_t& fVec, size_t maxBack,
-		std::map<uint32_t, PosInfos_t> *doc2pos ) const
+void DocFeatureIndex::findDocument( 
+    DocFeatureIndex::DocWithScoreVec_t& out,
+    const ExtractedDocFeature::Vec_t& fVec, 
+    DocFeatureIndex::SearchParm& parm
+) const
 {
 	std::map<uint32_t, double> doc2score;
 	
@@ -530,7 +532,7 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out,
 			
 			const auto scoreAdd = lengthPenalty * sizeBoost * classBoost * (1 + link.weight) * (1 + std::log(link.count)) / numSources;
 			
-			if (doc2pos)
+			if (parm.doc2pos)
 			{
 				auto ppos = weightedPos.find(link.docId);
 				if (ppos == weightedPos.end())
@@ -553,10 +555,10 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out,
 	std::sort(out.begin(), out.end(),
 			[] (const DocWithScore_t& l, const DocWithScore_t& r)
 				{ return l.second > r.second; });
-	if (out.size() > maxBack)
-		out.resize(maxBack);
+	if (out.size() > parm.maxBack)
+		out.resize(parm.maxBack);
 	
-	if (doc2pos)
+	if (parm.doc2pos)
 	{
 		bool first = true;
 		for (const auto& docPair : out)
@@ -566,7 +568,7 @@ void DocFeatureIndex::findDocument( DocFeatureIndex::DocWithScoreVec_t& out,
 			std::sort(scored.begin(), scored.end(),
 					[](const ScoredFeature_t& l, const ScoredFeature_t& r) { return l.second > r.second; });
 			
-			auto pos = doc2pos->insert({ docId, PosInfos_t() }).first;
+			auto pos = parm.doc2pos->insert({ docId, PosInfos_t() }).first;
 			for (const auto& score : scored)
 				pos->second.push_back(score.first);
 		}

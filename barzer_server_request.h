@@ -16,6 +16,7 @@
 #include <barzer_barz.h>
 #include <barzer_parse.h>
 #include <barzer_settings.h>
+#include <barzer_server_request_filter.h>
 
 extern "C" {
 #include <expat.h>
@@ -52,6 +53,8 @@ typedef std::vector<CmdArg> CmdArgList;
 class BarzerRequestParser {
 public:
 	typedef std::map<const std::string, const std::string> AttrList;
+    ReqFilterCascade fitlerCascade;
+
 	struct RequestTag {
 		std::string tagName;
 		AttrList attrs;
@@ -194,6 +197,10 @@ public:
 	void tag_findents(RequestTag&);
 
 	void tag_qblock(RequestTag&);
+
+	void tag_prop(RequestTag&); // parent must be qblock or autoc
+	void tag_pf(RequestTag&); // parent must be prop 
+
 	void tag_query(RequestTag&);
 	void tag_cmd(RequestTag&);
 

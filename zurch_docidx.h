@@ -16,7 +16,9 @@
 #include <ay/ay_tag_markup_parser.h>
 #include <zurch_docdataindex.h>
 
-
+namespace barzer {
+    struct ReqFilterCascade;
+}
 namespace zurch {
 using barzer::BarzerEntity;
 
@@ -327,8 +329,25 @@ public:
 
     typedef std::pair< uint32_t, double > DocWithScore_t;
     typedef std::vector< DocWithScore_t > DocWithScoreVec_t;
+    
+    struct SearchParm {
+        size_t maxBack; 
+        const barzer::ReqFilterCascade* filterCascade;
+        std::map<uint32_t, PosInfos_t>* doc2pos;
 
-	void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f, size_t maxBack = 16, std::map<uint32_t, PosInfos_t>* pos = 0 ) const;
+        SearchParm() : 
+            maxBack(16),
+            filterCascade(0),
+            doc2pos(0)
+        {}
+        SearchParm( size_t mb, const barzer::ReqFilterCascade* fl, std::map<uint32_t, PosInfos_t>* p =0 ) : 
+            maxBack(mb),
+            filterCascade(fl),
+            doc2pos(p)
+        {}
+    };
+
+	void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f, SearchParm& ) const;
 
     int serialize( std::ostream& fp ) const;
     int deserialize( std::istream& fp ); 

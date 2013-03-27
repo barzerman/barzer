@@ -208,6 +208,8 @@ int BarzerRequestParser::initFromUri( const char* u, size_t u_len, const char* q
         case 'f': /// flag
             if( i->first == "flag" ) {
                 d_queryFlags = i->second;
+            } else if( i->first == "flt" ) {
+                fitlerCascade.parse( i->second.c_str(), i->second.c_str()+i->second.length() );
             }
             break;
         case 'r':
@@ -295,6 +297,8 @@ static const ReqTagFunc* getCmdFunc(std::string &name) {
 	static TagFunMap funmap = boost::assign::map_list_of
 			CMDFUN(autoc) // autocomplete query (can be contained in qblock)
 			CMDFUN(findents) // find nearest entities query
+			CMDFUN(prop) // property filter block
+			CMDFUN(pf) // property filter child of prop
 			CMDFUN(qblock) // can envelop various tags (query/autoc/var/nameval) 
 			CMDFUN(query)  // traditional barer query (semantic search)
 			CMDFUN(nameval) // request for a ghettodb value
@@ -539,8 +543,10 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
 	    qparser.semanticize_only( barz, qparm );
      
     	
-        if( index->fillFeatureVecFromQueryBarz( featureVec, barz ) ) 
-            index->findDocument( docVec, featureVec, 16, &positions );
+        if( index->fillFeatureVecFromQueryBarz( featureVec, barz ) )  {
+            zurch::DocFeatureIndex::SearchParm parm( 16, (fitlerCascade.empty()? 0: &fitlerCascade), &positions );
+            index->findDocument( docVec, featureVec, parm );
+        }
     }
     if( ret == XML_TYPE ) {
         zurch::DocIdxSearchResponseXML response( qparm, *ixl, barz ); 
@@ -918,8 +924,23 @@ void BarzerRequestParser::tag_nameval(RequestTag &tag) {
         }
     }
 }
+void BarzerRequestParser::tag_pf(RequestTag &tag) 
+{
+    if( !isParentTag("prop") )
+        return;
+    for( const auto & i : tag.attrs ) {
+        if( i.first == "v" ) 
+            fitlerCascade.parse( i.second.c_str(), i.second.c_str()+i.second.length() );
+    }
+}
+void BarzerRequestParser::tag_prop(RequestTag &tag) 
+{
+    if( !isParentTag("qblock") && !isParentTag("autoc")) 
+        return;
+}
 
-void BarzerRequestParser::tag_query(RequestTag &tag) {
+void BarzerRequestParser::tag_query(RequestTag &tag) 
+{
 	AttrList &attrs = tag.attrs;
     AttrList::iterator it;
     if( !d_universe ) {
@@ -951,6 +972,8 @@ void BarzerRequestParser::tag_query(RequestTag &tag) {
             d_zurchDocIdxId = atoi(i->second.c_str());
         } else if( i->first =="flag" ) {
             d_queryFlags = i->second;
+        } else if( i->first.length() > 2 && i->first[0] == 'v' ) {  /// value filter 
+            /// value filter vi.
         }
     }
 

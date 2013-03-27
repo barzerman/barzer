@@ -493,7 +493,8 @@ static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in, const 
 		zurch::DocFeatureIndex::DocWithScoreVec_t scores;
 		
 		std::map<uint32_t, zurch::DocFeatureIndex::PosInfos_t> positions;
-		index.findDocument(scores, extracted, 16, &positions);
+        zurch::DocFeatureIndex::SearchParm srchParm( 16, 0, &positions );
+		index.findDocument(scores, extracted, srchParm );
 		
 		std::cout << "found " << scores.size() << " documents" << std::endl;
 		

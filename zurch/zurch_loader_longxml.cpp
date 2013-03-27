@@ -524,8 +524,11 @@ void ZurchPhrase_DocLoader::readPhrasesFromFile( const char* fn )
                 docId = d_loader.addDocName( docName.c_str() );
             }
 
-            if( flds.weight == WEIGHT_BOOST_NAME ) 
+            if( flds.weight == WEIGHT_BOOST_NAME )  {
                 d_loader.setDocTitle( docId, flds.text );
+                int module = atoi( docName.c_str() );
+                d_loader.d_docDataIdx.simpleIdx().Int.append( "module", docId, module );
+            }
 
             d_loader.setCurrentWeight(flds.weight);
             bool reuseBarz = (text == flds.text);
