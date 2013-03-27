@@ -1,5 +1,6 @@
 #include <barzer_server_request_filter.h>
 #include <ay/ay_parse.h>
+#include <zurch_docidx.h>
 
 namespace barzer {
 

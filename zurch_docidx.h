@@ -264,6 +264,7 @@ class DocFeatureIndex {
 	
 	barzer::MeaningsStorage m_meanings;
 public:
+    DocDataIndex d_docDataIdx;
 	typedef std::vector<std::pair<uint32_t, uint16_t>> PosInfos_t;
 	
 	int   getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, barzer::Barz& barz, bool needToInternStems );
@@ -401,8 +402,9 @@ public:
     load_mode_t                             d_loadMode; // one of LOAD_MODE_XXX constants LOAD_MODE_TEXT - default
     boost::unordered_map< uint32_t, std::string > d_docTitleMap; 
 
-    DocDataIndex d_docDataIdx;
     
+    bool testFilter( uint32_t docId, const barzer::ReqFilterCascade& filter ) const; 
+
     void setDocTitle( uint32_t docId, const char* s )
         { d_docTitleMap[ docId ] = s; }
     void setDocTitle( uint32_t docId, const std::string& s ) 

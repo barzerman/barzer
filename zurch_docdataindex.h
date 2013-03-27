@@ -204,6 +204,11 @@ struct SimpleIdx {
     int_t*    ix_int( const std::string& propName ) { return Int.getPropIdx( propName ); }
     double_t* ix_double( const std::string& propName ) { return Double.getPropIdx( propName ); }
     string_t* ix_string( const std::string& propName ) { return String.getPropIdx( propName ); }
+    void sort() { 
+        Int.sort();
+        Double.sort();
+        String.sort();
+    }
 };
 
 class DocDataIndex

@@ -11,8 +11,81 @@
 #include <ay/ay_util_time.h>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/concept_check.hpp>
+#include <barzer_server_request_filter.h>
 
 namespace zurch {
+
+namespace {
+
+template <typename T>
+struct PropFilter {
+    std::string            propName;
+    const barzer::ReqFilter*   filter;
+    const ay::IdValIndex<T>*      index;
+
+    PropFilter( const std::string& pn, const barzer::ReqFilter* f, const ay::IdValIndex<T>* i ) : 
+        propName(pn),
+        filter(f), 
+        index(i)
+    {}
+    PropFilter( ): 
+        filter(0), 
+        index(0)
+    {}
+
+    bool operator()( uint32_t docId ) const
+        { return ( index && filter && (*filter)(docId, *index) ); }
+};
+
+typedef boost::variant<
+    PropFilter<int>,        // 0
+    PropFilter<double>,     // 1
+    PropFilter<std::string> // 2
+> PropFilterVar;
+
+struct Filter_visitor : public boost::static_visitor<bool> {
+    uint32_t docId;
+    Filter_visitor( uint32_t di ) : docId( di ) {}
+    template <typename T>
+    bool operator() ( const T& pf ) const 
+        { return pf( docId ); }
+};
+
+typedef std::vector< PropFilterVar > PropFilterVarVec;
+
+bool matchPropFilterVarVec( uint32_t docId, const PropFilterVarVec& vvec )
+{
+    Filter_visitor vis( docId );
+    for( const auto& i : vvec ) {
+        if( !boost::apply_visitor( vis, i ) ) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void formPropFilterVarVec( PropFilterVarVec& vvec, const barzer::ReqFilterCascade& filter, const SimpleIdx& simpleIdx  )
+{
+    for( const auto& i : filter.filterMap ) {
+        if( auto x = i.second.get<int>() ) {
+            const SimpleIdx::int_t* ix = simpleIdx.ix_int( i.first );
+            if( ix ) 
+                vvec.push_back( PropFilterVar( PropFilter<int>(i.first, &(i.second),ix) ) );
+        } else 
+        if( auto x = i.second.get<double>() ) {
+            const SimpleIdx::double_t* ix = simpleIdx.ix_double( i.first );
+            if( ix ) 
+                vvec.push_back( PropFilterVar( PropFilter<double>(i.first, &(i.second),ix) ) );
+        } else
+        if( auto x = i.second.get<std::string>() ) {
+            const SimpleIdx::string_t* ix = simpleIdx.ix_string( i.first );
+            if( ix ) 
+                vvec.push_back( PropFilterVar( PropFilter<std::string>(i.first, &(i.second),ix) ) );
+        }
+    }
+}
+
+}
 
 /// feature we keep track off (can be an entity or a token - potentially we will add more classes to it)
 int DocFeature::serialize( std::ostream& fp ) const
@@ -487,6 +560,11 @@ void DocFeatureIndex::findDocument(
     DocFeatureIndex::SearchParm& parm
 ) const
 {
+    PropFilterVarVec pfvv;
+    if( parm.filterCascade ) {
+        formPropFilterVarVec( pfvv, *(parm.filterCascade), d_docDataIdx.simpleIdx()  ) ;
+    }
+
 	std::map<uint32_t, double> doc2score;
 	
 	typedef std::pair<PosInfos_t::value_type, double> ScoredFeature_t;
@@ -526,6 +604,8 @@ void DocFeatureIndex::findDocument(
 		
 		for (const auto& link : sources)
 		{
+            if( !pfvv.empty()  &&  !matchPropFilterVarVec( link.docId, pfvv ) )
+                continue;
 			// dumb safeguard, but I think we don't want to fuck up later in logarithm.
 			if (link.count <= 0)
 				continue;
@@ -793,6 +873,7 @@ DocFeatureLoader::DocFeatureLoader( DocFeatureIndex& index, const barzer::Stored
 }
 
 DocFeatureLoader::~DocFeatureLoader() {}
+
 
 void DocFeatureLoader::addPieceOfDoc( uint32_t docId, const char* str )
 {

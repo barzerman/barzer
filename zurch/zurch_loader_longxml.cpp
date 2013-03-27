@@ -370,7 +370,7 @@ int ZurchLongXMLParser_DocLoader::callback()
     /// adding module info
     {
         int module = atoi( d_data.d_ModuleID.c_str() );
-        d_loader.d_docDataIdx.simpleIdx().Int.append( "module", docId, module );
+        d_loader.index().d_docDataIdx.simpleIdx().Int.append( "module", docId, module );
     }
     return 0;
 }
@@ -527,7 +527,7 @@ void ZurchPhrase_DocLoader::readPhrasesFromFile( const char* fn )
             if( flds.weight == WEIGHT_BOOST_NAME )  {
                 d_loader.setDocTitle( docId, flds.text );
                 int module = atoi( docName.c_str() );
-                d_loader.d_docDataIdx.simpleIdx().Int.append( "module", docId, module );
+                d_loader.index().d_docDataIdx.simpleIdx().Int.append( "module", docId, module );
             }
 
             d_loader.setCurrentWeight(flds.weight);
@@ -544,6 +544,7 @@ void ZurchPhrase_DocLoader::readPhrasesFromFile( const char* fn )
         }
     }
     fclose(fp);
+    d_loader.index().d_docDataIdx.simpleIdx().sort();
 }
 
 

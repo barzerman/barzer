@@ -3,7 +3,11 @@
 #include <string>
 #include <vector>
 #include <boost/variant.hpp>
+#include <ay/ay_index.h>
 
+namespace zurch { 
+    class DocDataIndex; 
+}
 namespace barzer {
 
 class ReqFilter {
@@ -38,8 +42,8 @@ public:
     bool          positive; // when false this is interpreted as a negation
     filter_type_t filterType;
     
-    template <typename T> std::vector<T>* get( ) { return boost::get<T>(&filterData); }
-    template <typename T> const std::vector<T>* get( ) const { return boost::get<T>(&filterData); }
+    template <typename T> std::vector<T>* get( ) { return boost::get<std::vector<T>>(&filterData); }
+    template <typename T> const std::vector<T>* get( ) const { return boost::get<std::vector<T>>(&filterData); }
     
     void setFilterType( filter_type_t x ) { filterType = x; }
     bool isFilter_oneof() const { return filterType == FILTER_TYPE_ONEOF; }
@@ -97,6 +101,20 @@ public:
             default: filterType=FILTER_TYPE_ONEOF;    break;
             }
         }
+    }
+    
+    template <typename T>
+    bool operator()( uint32_t docId, const ay::IdValIndex<T>& ix ) const
+    {
+        if( const std::vector<T>* x  = get<T>() ) { /// strictly typed 
+            if( isFilter_oneof() ) {
+                return ix.isOneOf( docId, *x );
+            } else 
+            if( isFilter_range_full() && x->size() > 1 ) {
+                return ix.isInRange( docId, (*x)[0], (*x)[1] );
+            }
+        }
+        return false;
     }
 };
 
