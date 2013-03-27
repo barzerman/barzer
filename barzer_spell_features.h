@@ -337,6 +337,9 @@ public:
 	    TFE_TmpBuffers bufs( m_storedVec, m_extractedVec );
 		bufs.clear();
 		
+		if (std::string(str).find("pcv40") != std::string::npos)
+			std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!! SHITFUCK !!!!!!!!!! " << str << std::endl;
+		
 		auto strId = m_gram.d_pool->internIt(str);
 		m_gram.extractAndStore(bufs, strId, str, LANG_UNKNOWN);
 		m_storage.insert({ strId, data });
@@ -416,6 +419,7 @@ public:
 		
 		size_t curItem = 0;
 		ay::LevenshteinEditDistance lev;
+		const auto utfLength = ay::StrUTF8::glyphCount(str, str + strLen);
 		for (const auto& item : sorted)
 		{
 			auto dataPos = m_storage.find(item.first);
@@ -427,12 +431,16 @@ public:
 				0 :
 				barzer::Lang::getLevenshteinDistance(lev, str, strLen, resolvedResult, resolvedLength);
 			
+			const auto& info = doc2fCnt[item.first];
+			const auto substrLength = info.lastFeature - info.firstFeature;
+			// here we use logistic curve as penalty; 1 / (1 + e ** (x - 5)) where x is length difference.
+			const double lengthPenalty = 1. / (1 + std::pow (std::exp (1), static_cast<int>(substrLength) - static_cast<int>(utfLength) - 5));
 			out.push_back({
 					item.first,
 					(dataPos == m_storage.end() ? 0 : &dataPos->second),
 					item.second,
 					dist,
-					doc2fCnt[item.first] / srcFCnt
+					info.fCount / srcFCnt * lengthPenalty
 				});
 		}
 	}
