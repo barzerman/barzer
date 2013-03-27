@@ -236,8 +236,9 @@ namespace
 				if (!srcs)
 					continue;
 				
-				for (uint32_t source : *srcs)
+				for (const auto& sourceFeature : *srcs)
 				{
+					const auto source = sourceFeature.docId;
 					auto pos = counterMap.find(source);
 					if (pos == counterMap.end())
 						pos = counterMap.insert(std::make_pair(source, 0)).first;
