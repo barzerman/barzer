@@ -15,10 +15,6 @@
 
 namespace barzer {
 
-typedef std::vector< uint32_t > FeatureStrIdVec;
-
-class FeaturedSpellCorrector;
-
 struct ExtractedStringFeature {
     std::string m_str;
     uint16_t m_offset;
@@ -35,6 +31,7 @@ struct ExtractedStringFeature {
 ///
 /// for our string features m_strId is the string ID, m_u41 is string length
 /// and m_u42 is string offset.
+#pragma pack(push, 1)
 struct StoredStringFeature {
 	uint32_t m_strId;
 	uint16_t m_u41;
@@ -54,6 +51,7 @@ struct StoredStringFeature {
 	{
 	}
 };
+#pragma pack(pop)
 
 inline bool operator<(const StoredStringFeature& left, const StoredStringFeature& right)
 {
@@ -72,15 +70,18 @@ inline size_t hash_value(const StoredStringFeature& f)
 
 typedef std::vector<ExtractedStringFeature> ExtractedStringFeatureVec;
 typedef std::vector<StoredStringFeature>    StoredStringFeatureVec;
-
 /// feature extractor classes
 /// every class must have the following operator defined:
 /// void operator()( StringFeatureVec&, const char* str, size_t str_len, int lang );
 
 struct TFE_ngram {
+	bool m_stem;
 	bool m_makeSideGrams;
 	
-	TFE_ngram() : m_makeSideGrams(true) {}
+	size_t m_minGrams;
+	size_t m_maxGrams;
+	
+	TFE_ngram() : m_stem(true), m_makeSideGrams(true), m_minGrams(3), m_maxGrams(3) {}
 	
     void operator()( ExtractedStringFeatureVec&, const char* str, size_t str_len, int lang ) const;
 };
@@ -90,7 +91,15 @@ struct TFE_bastard {
 };
 /// end of feature extractor classes
 
-typedef std::map<StoredStringFeature, std::vector<uint32_t>> InvertedFeatureMap;
+#pragma pack(push, 1)
+struct FeatureInfo
+{
+	uint32_t docId;
+	uint16_t pos;
+};
+#pragma pack(pop)
+
+typedef std::map<StoredStringFeature, std::vector<FeatureInfo>> InvertedFeatureMap;
 
 struct TFE_TmpBuffers {
     StoredStringFeatureVec& storedVec;
@@ -170,7 +179,7 @@ struct TFE_storage {
 		for (const auto& feature : tmp.extractedVec)
 		{
 			featureConvert(stf, feature);
-			d_fm[stf].push_back(strId);
+			d_fm[stf].push_back({ strId, stf.m_u42 });
 		}
     }
 
@@ -318,12 +327,18 @@ public:
 	: m_gram(p)
 	{
 		m_gram.d_extractor.m_makeSideGrams = false;
+		m_gram.d_extractor.m_stem = false;
+		m_gram.d_extractor.m_minGrams = 3;
+		m_gram.d_extractor.m_maxGrams = 3;
 	}
 	
 	void addWord(const char *str, const T& data)
 	{
 	    TFE_TmpBuffers bufs( m_storedVec, m_extractedVec );
 		bufs.clear();
+		
+		if (std::string(str).find("pcv40") != std::string::npos)
+			std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!! SHITFUCK !!!!!!!!!! " << str << std::endl;
 		
 		auto strId = m_gram.d_pool->internIt(str);
 		m_gram.extractAndStore(bufs, strId, str, LANG_UNKNOWN);
@@ -351,15 +366,24 @@ public:
 		
 		typedef std::map<uint32_t, double> CounterMap_t;
 		CounterMap_t counterMap;
-		std::map<uint32_t, uint32_t> doc2fCnt;
+		
+		struct FeatureStatInfo
+		{
+			uint16_t fCount;
+			uint16_t firstFeature;
+			uint16_t lastFeature;
+		};
+		std::map<uint32_t, FeatureStatInfo> doc2fCnt;
 		for (const auto& feature : storedVec)
 		{
 			const auto srcs = m_gram.getSrcsForFeature(feature);
 			if (!srcs)
 				continue;
 			
-			for (uint32_t source : *srcs)
+			for (const auto& sourceFeature : *srcs)
 			{
+				const auto source = sourceFeature.docId;
+				
 				auto pos = counterMap.find(source);
 				if (pos == counterMap.end())
 					pos = counterMap.insert({ source, 0 }).first;
@@ -367,8 +391,13 @@ public:
 				
 				auto docPos = doc2fCnt.find(source);
 				if (docPos == doc2fCnt.end())
-					docPos = doc2fCnt.insert({ source, 0 }).first;
-				++docPos->second;
+					docPos = doc2fCnt.insert({ source, { 0, static_cast<uint16_t>(-1), 0 } }).first;
+				++docPos->second.fCount;
+				
+				if (docPos->second.firstFeature > sourceFeature.pos)
+					docPos->second.firstFeature = sourceFeature.pos;
+				if (docPos->second.lastFeature < sourceFeature.pos)
+					docPos->second.lastFeature = sourceFeature.pos;
 			}
 		}
 		
@@ -390,6 +419,7 @@ public:
 		
 		size_t curItem = 0;
 		ay::LevenshteinEditDistance lev;
+		const auto utfLength = ay::StrUTF8::glyphCount(str, str + strLen);
 		for (const auto& item : sorted)
 		{
 			auto dataPos = m_storage.find(item.first);
@@ -401,12 +431,16 @@ public:
 				0 :
 				barzer::Lang::getLevenshteinDistance(lev, str, strLen, resolvedResult, resolvedLength);
 			
+			const auto& info = doc2fCnt[item.first];
+			const auto substrLength = info.lastFeature - info.firstFeature;
+			// here we use logistic curve as penalty; 1 / (1 + e ** (x - 5)) where x is length difference.
+			const double lengthPenalty = 1. / (1 + std::pow (std::exp (1), static_cast<int>(substrLength) - static_cast<int>(utfLength) - 5));
 			out.push_back({
 					item.first,
 					(dataPos == m_storage.end() ? 0 : &dataPos->second),
 					item.second,
 					dist,
-					doc2fCnt[item.first] / srcFCnt
+					info.fCount / srcFCnt * lengthPenalty
 				});
 		}
 	}

@@ -152,6 +152,7 @@ struct BENIFindResult
 	BarzerEntity ent;
 	size_t lev;
 	double coverage;
+	double relevance;
 };
 typedef std::vector<BENIFindResult> BENIFindResults_t; 
 
