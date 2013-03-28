@@ -251,6 +251,12 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 
 }
 
+#define REPORT_ATTR \
+		{ \
+			BarzXMLErrorStream errStream( *reader, statement.stmt.getStmtNumber()); \
+			errStream.os << "unknown attribute name/value: " << n << " -> " << v; \
+		}
+
 #define DEFINE_BELParserXML_taghandle( X )  void BELParserXML::taghandle_##X(int tid, const char_cp * attr, size_t attr_sz, bool close )
 DEFINE_BELParserXML_taghandle(STMSET)
 {
@@ -284,6 +290,16 @@ DEFINE_BELParserXML_taghandle(STMSET)
         case 't':
             reader->setTagFilter(v);
             break;
+		case 'x':
+			// xmlns stuff
+			if (n[1] == 'm' && n[2] == 'l' && n[3] == 'n' && n[4] == 's')
+				;
+			else
+				REPORT_ATTR
+			break;
+		default:
+			REPORT_ATTR
+			break;
 		}
 	}
 
@@ -349,17 +365,24 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 		case 'n':  // statement number
             if( !n[1] )
 			    stmtNumber = atoi(v);
+			else if (n[1] == 'a' && n[2] == 'm' && n[3] == 'e')
+				;
+			else
+				REPORT_ATTR
             // name - is for barsted names 
 			break;
 		case 'd':
 			if( v && (v[0] == 'y'|| v[0]=='Y') ) {
 				statement.setDisabled();
 				return;
-			}
+			} else
+				REPORT_ATTR
 			break;
         case 'o':
             if( v && v[0] != 'n'&&v[0]!='N' ) 
                 statement.stmt.setRuleClashOverride();
+			else
+				REPORT_ATTR
             break;
 		case 'x':  // pipe separated tags
             if( !*v )
@@ -374,10 +397,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
             }
 			break;
 		default:
-            {
-			BarzXMLErrorStream errStream(reader->getErrStreamRef(),statement.stmt.getStmtNumber());
-            errStream.os << "unknown statement attribute " << n << ": " << v;
-            }
+			REPORT_ATTR
 			break;
 		}
 	}
@@ -447,7 +467,12 @@ DEFINE_BELParserXML_taghandle(TRANSLATION)
 		const char* v = attr[i+1]; // attr value
         if(!n) continue;
         switch( n[0] ) {
-        case 'u': if( v && v[0] == 'y' ) statement.stmt.setTranUnmatchable(); break;
+        case 'u':
+			if( v && v[0] == 'y' )
+				statement.stmt.setTranUnmatchable();
+			else
+				REPORT_ATTR
+			break;
         case 'c': // confidence boost
             {
             int  cBoost = atoi(v);
@@ -459,6 +484,9 @@ DEFINE_BELParserXML_taghandle(TRANSLATION)
             statement.stmt.setTranConfidenceBoost(cBoost); 
             break;
             }
+		default:
+			REPORT_ATTR
+			break;
         }
     }
 }
@@ -754,6 +782,9 @@ DEFINE_BELParserXML_taghandle(T)
 			case 's': // stop (t="s" or t="stop") 
 				isStop = true;
 				break;
+			default:
+				REPORT_ATTR
+				break;
 			}
 			break;
 		case 's':  // s="n" - no stemming
@@ -767,6 +798,9 @@ DEFINE_BELParserXML_taghandle(T)
 			meaningId = getGlobalPools().internalString_getId(v);
 			if (meaningId == 0xffffffff)
 				AYLOG(ERROR) << "unknown meaning " << v;
+			break;
+		default:
+			REPORT_ATTR
 			break;
 		}
 	}
@@ -866,10 +900,14 @@ DEFINE_BELParserXML_taghandle(N)
 		case 'r':
 			if( !isReal ) isReal = true;
 			break;
-		case 'w':{
+		case 'w':
+		{
 			int width = atoi(v);
 			pat.setAsciiLen( width );
+			break;
 		}
+		default:
+			REPORT_ATTR
 			break;
 		}
 	}
@@ -917,6 +955,9 @@ DEFINE_BELParserXML_taghandle(EVR)
 			// erc.getEntity().setTokenId( internString(v,true).getStringId() );
 			pat.d_ent.setTokenId( reader->getGlobalPools().internString_internal(v) );
 			break;
+		default:
+			REPORT_ATTR
+			break;
         }
     }
 	statement.pushNode( BTND_PatternData(pat) );
@@ -938,6 +979,9 @@ DEFINE_BELParserXML_taghandle(ERC)
 				break;
 			case 'e': // be="y" - match blank entity id
 				pat.setMatchBlankEntity();
+				break;
+			default:
+				REPORT_ATTR
 				break;
 			}
 			break;
@@ -962,6 +1006,9 @@ DEFINE_BELParserXML_taghandle(ERC)
 			case 't': // unit entity id token - ut="ABCD011"
 				// erc.getUnitEntity().setTokenId( internString(v,true).getStringId() ); break;
 				erc.getUnitEntity().setTokenId( reader->getGlobalPools().internString_internal(v) );
+			default:
+				REPORT_ATTR
+				break;
 			}
 			break;
 		case 'r': // range type setting 
@@ -987,11 +1034,17 @@ DEFINE_BELParserXML_taghandle(ERC)
 			case 'e':  // r=e - entity
 				erc.getRange().setData( BarzerRange::Entity() );
 				break;
+			default:
+				REPORT_ATTR
+				break;
 			}
 			break;
         case 'x': 
             pat.setMatchModeFromAttribute(v);
             break;
+		default:
+			REPORT_ATTR
+			break;
 		}
 	}
 
@@ -1011,6 +1064,9 @@ DEFINE_BELParserXML_taghandle(ERCEXPR)
         case 'x': 
             pat.setMatchModeFromAttribute(v);
             break;
+		default:
+			REPORT_ATTR
+			break;
 		}
 	}
 	statement.pushNode( BTND_PatternData(pat) );
@@ -1044,6 +1100,7 @@ DEFINE_BELParserXML_taghandle(RANGE)
 			case 'm': pat.range().dta = BarzerRange::DateTime(); break;
 			case 'd': pat.range().dta = BarzerRange::Date(); break;
 			case 'e': if( !isEntity ) isEntity= true; break;
+			default: REPORT_ATTR break;
 			}
 			break;
 		case 'n':
@@ -1060,12 +1117,18 @@ DEFINE_BELParserXML_taghandle(RANGE)
 					id1Str = v;
 				} else if( n[2] == '2' ) { 					  // i2=id - second entity id
 					id2Str = v;
-				}
+				} else REPORT_ATTR
+			default:
+				REPORT_ATTR
+				break;
 			}
 			break;
         case 'x': 
             pat.setMatchModeFromAttribute(v);
             break;
+		default:
+			REPORT_ATTR
+			break;
 		}
 	}
 	if( isEntity ){
@@ -1108,6 +1171,8 @@ DEFINE_BELParserXML_taghandle(ENTITY)
 		case 'e': // class - ec="1" (same as c)
             if( n[1] == 'c' ) 
 			    pat.setEntityClass( atoi(v) ); 
+			else
+				REPORT_ATTR
             break;
 		case 'c': // class - c="1"
 			pat.setEntityClass( atoi(v) ); 
@@ -1126,6 +1191,9 @@ DEFINE_BELParserXML_taghandle(ENTITY)
         case 'x': // match mode 
             pat.setMatchModeFromAttribute(v);    
             break;
+		default:
+			REPORT_ATTR
+			break;
 		}
 	}
 	statement.pushNode( BTND_PatternData( pat));
@@ -1146,7 +1214,7 @@ DEFINE_BELParserXML_taghandle(DATETIME)
 				pat.setLoDate( atoi(v) );
 			} else if( n[1] == 'h' ) { // dh="YYYYMMDD" date hi
 				pat.setHiDate( atoi(v) );
-			}
+			} else REPORT_ATTR
 			break;
 		case 'f':  // f="y" - future
 			pat.setFuture();
@@ -1159,11 +1227,14 @@ DEFINE_BELParserXML_taghandle(DATETIME)
 				pat.setLoTime( atoi(v) );
 			} else if( n[1] == 'h' ) { // th="hhmmss" time hi
 				pat.setHiTime( atoi(v) );
-			}
+			} else REPORT_ATTR
 			break;
         case 'x': 
             pat.setMatchModeFromAttribute(v);
             break;
+		default:
+			REPORT_ATTR
+			break;
 		}
 	}
 	statement.pushNode( BTND_PatternData( pat));
@@ -1196,6 +1267,9 @@ DEFINE_BELParserXML_taghandle(DATE)
         case 'x': 
             pat.setMatchModeFromAttribute(v);
             break;
+		default:
+			REPORT_ATTR
+			break;
 		}
 	}	
 	statement.pushNode( BTND_PatternData( pat));
@@ -1223,6 +1297,9 @@ DEFINE_BELParserXML_taghandle(TIME)
         case 'x': 
             pat.setMatchModeFromAttribute(v);
             break;
+		default:
+			REPORT_ATTR
+			break;
 		}
 	}
 	statement.pushNode( BTND_PatternData( pat));
@@ -1254,6 +1331,9 @@ DEFINE_BELParserXML_taghandle(W)
         case 'm':  // mode 
             modeStr= v;
             break;
+		default:
+			REPORT_ATTR
+			break;
         }
     }
     pat.setFromAttr(modeStr);
@@ -1269,6 +1349,9 @@ void BELParserXML::processAttrForStructTag( BTND_StructData& dta, const char_cp 
 		case 'v': 
 			dta.setVarId( internString_internal(v) );
 			return;
+		default:
+			REPORT_ATTR
+			break;
 		}
 	}
 }
@@ -1291,6 +1374,9 @@ DEFINE_BELParserXML_taghandle(EXPAND)
 		case 'c': trieClassName= v; break; // trie class 
 		case 'n': macroName= v; break;
         case 't': trieName = v; break;     // trie name
+		default:
+			REPORT_ATTR
+			break;
 		}
 	}
      
@@ -1379,9 +1465,13 @@ DEFINE_BELParserXML_taghandle(PERM)
                 if( v[0] == 'f' ) {
                     if( !v[1] || !strcasecmp(v,"flip")  ) 
                         structType = BTND_StructData::T_FLIP;
-                }
-            }
+					else REPORT_ATTR
+                } else REPORT_ATTR
+            } else REPORT_ATTR
             break;
+		default:
+			REPORT_ATTR
+			break;
         }
     }
 
@@ -1434,11 +1524,17 @@ DEFINE_BELParserXML_taghandle(LITERAL)
 				literal.setCompound(tokId);
                 }
 				break;
+			default:
+				REPORT_ATTR
+				break;
 			}
 			break;
         case 'i': // INTERNAL ONLY STRING
             literal.setInternalString();
             break;
+		default:
+			REPORT_ATTR
+			break;
 		}
 	}
 	statement.pushNode( BTND_RewriteData(literal) );
@@ -1461,6 +1557,9 @@ DEFINE_BELParserXML_taghandle(NV)
         case 'v':
             value = v;
             break;
+		default:
+			REPORT_ATTR
+			break;
         }
     }
     if( name && value ) {
@@ -1528,10 +1627,14 @@ DEFINE_BELParserXML_taghandle(MKENT)
                 case 'n': topicCanonicName = v; break;
                 case 'r': topicRelevance = atoi(v); break;
                 case 's': topicSubclass =  atoi(v); break;
+				default: REPORT_ATTR break;
             }
             break;
         }
 		case 'p': rawCoord = v; break;
+		default:
+			REPORT_ATTR
+			break;
 		} // n[0] switch
 	}
 
@@ -1624,19 +1727,26 @@ DEFINE_BELParserXML_taghandle(BLOCK)
                     break;
                 case 'v': // var
                     ctrl.setCtrl( BTND_Rewrite_Control::RWCTLT_VAR_GET );
+					break;
+				default:
+					REPORT_ATTR
+					break;
                 }
             }
             break;
         case 'r':{ /// variable
             if( *v == 'y' ) 
                 ctrl.setVarModeRequest();
-            }
+            else REPORT_ATTR
+				}
             break;
         case 'v':{ /// variable
             uint32_t varId = reader->getGlobalPools().internString_internal(v) ;
             ctrl.setVarId( varId );
             }break;
-            
+		default:
+			REPORT_ATTR
+			break;
         }
     }
 	statement.pushNode( BTND_RewriteData(ctrl));
@@ -1659,6 +1769,9 @@ DEFINE_BELParserXML_taghandle(RNUMBER)
 				num.set( atoi( v ) );
 			}
 		}
+			break;
+		default:
+			REPORT_ATTR
 			break;
 		}
 	}
@@ -1730,7 +1843,9 @@ DEFINE_BELParserXML_taghandle(VAR)
 			}
 		}
 			break;
-
+		default:
+			REPORT_ATTR
+			break;
 		}
 	}
     if( isReqVar && varName ) {
@@ -1757,7 +1872,8 @@ DEFINE_BELParserXML_taghandle(SET)
             f.setArgStrId( reader->getGlobalPools().internString_internal(v) );
         } else if( *n == 'v' ) { // variable 
             f.setVarId( reader->getGlobalPools().internString_internal(v) );
-        }
+        } else
+			REPORT_ATTR
 	}
 
     statement.pushNode( BTND_RewriteData(f));
@@ -1783,7 +1899,7 @@ DEFINE_BELParserXML_taghandle(FUNC)
         } else if( *n == 'r' ) { // request variable RequestEnvironment::d_reqVar
             if( *v == 'y' ) 
                 f.setVarModeRequest();
-        }
+        } else REPORT_ATTR
 	}
     if( funcNameId != 0xffffffff ) 
 	    statement.pushNode( BTND_RewriteData( f));
@@ -1810,6 +1926,9 @@ DEFINE_BELParserXML_taghandle(SELECT)
         case 'v':
             varId = internVariable(v);
             break;
+		default:
+			REPORT_ATTR
+			break;
         }
     }
     statement.pushNode( BTND_RewriteData(BTND_Rewrite_Select(varId)) );
@@ -1832,6 +1951,9 @@ DEFINE_BELParserXML_taghandle(CASE)
         case 'p':
             caseId = (uint32_t)v[0]; // this is a hack really
             break;
+		default:
+			REPORT_ATTR
+			break;
         }
     }
     statement.pushNode( BTND_RewriteData(BTND_Rewrite_Case(caseId)) );
