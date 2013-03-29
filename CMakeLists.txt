@@ -70,6 +70,7 @@ link_directories (  ${BOOST_LIBRARYDIR}
 include_directories("${PROJECT_BINARY_DIR}"
                     "${PROJECT_SOURCE_DIR}"
                     "${PROJECT_SOURCE_DIR}/ay"
+                    "${PROJECT_SOURCE_DIR}/zurch"
                     "${PROJECT_SOURCE_DIR}/util"
                     "${PROJECT_SOURCE_DIR}/${EN_DIR}"
                     "${PROJECT_SOURCE_DIR}/${RU_DIR}"

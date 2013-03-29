@@ -9,6 +9,7 @@
 #include <boost/filesystem.hpp>
 #include <ay/ay_filesystem.h>
 #include <ay/ay_util_time.h>
+#include <ay_tag_markup_parser.h>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/concept_check.hpp>
 #include <barzer_server_request_filter.h>
@@ -866,7 +867,7 @@ DocFeatureLoader::DocFeatureLoader( DocFeatureIndex& index, const barzer::Stored
     d_index(index),
     m_curWeight(0),
     d_bufSz( DEFAULT_BUF_SZ ),
-    d_xhtmlMode(ay::xhtml_parser_state::MODE_HTML),
+    d_xhtmlMode(ay::XHTML_MODE_HTML),
     d_loadMode(LOAD_MODE_TEXT)
 {
     d_barz.setUniverse( &d_universe );

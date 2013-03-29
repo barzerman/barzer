@@ -96,7 +96,7 @@ bool ZurchSettings::loadIndex( const boost::property_tree::ptree& pt )
         ZurchLongXMLParser_DocLoader parser( stats, *loader );
         ay::stopwatch localTimer;
         std::string fname = x.get();
-        std::cerr << "Loading doc contents from" << fname << std::endl;
+        // std::cerr << "Loading doc contents from" << fname << std::endl;
         parser.readFromFile( fname.c_str() );
         std::cerr <<     " done in " << localTimer.calcTime() << " seconds\n";
         stats.print( std::cerr << "\n" ) << std::endl;

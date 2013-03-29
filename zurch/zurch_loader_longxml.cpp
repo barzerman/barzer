@@ -1,6 +1,7 @@
 #include <zurch/zurch_loader_longxml.h>
 #include <ay/ay_logger.h>
 #include <ay/ay_util_time.h>
+#include <ay/ay_tag_markup_parser.h>
 extern "C" {
 #include <expat.h>
 }
@@ -299,7 +300,7 @@ struct PhraseizerCB {
 
         ay::xhtml_parser<PhraseizerCB> parser( sstr , *this );
         setTextType( t );
-        parser.setMode(ay::xhtml_parser_state::MODE_HTML);
+        parser.setMode(ay::XHTML_MODE_HTML);
         parser.parse();
     }
 };

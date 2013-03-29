@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <ay_tag_markup_parser_types.h>
 
 /// this parses generic markup 
 namespace ay {
@@ -37,7 +38,7 @@ struct xhtml_parser_state {
 
     std::vector< char > d_buf; /// always contains txt between the tags 
     size_t d_bufOffset, d_readOffset;
-    bool d_endReached;
+    bool d_endReached, d_isInCData, d_isInComment;
     size_t d_numTagsSeen;
     enum : size_t {
         DEFAULT_BUF_SZ = 256*1024
@@ -50,18 +51,13 @@ struct xhtml_parser_state {
         CB_TEXT
     };
     int d_cbReason;
-
-    typedef enum {
-        MODE_HTML,
-        MODE_XHTML
-    } xhtml_mode_t;
-    xhtml_mode_t d_mode; // MODE_HTML 
+    xhtml_mode_t d_mode; // XHTML_MODE_HTML 
 
     xhtml_parser_state& setMode( xhtml_mode_t m) { return (d_mode = m,*this); }
-    void setModeHtml() { d_mode = MODE_HTML; }
-    bool isModeHtml() const { return d_mode == MODE_HTML; }
-    void setModeXhtml() { d_mode = MODE_XHTML; }
-    bool isModeXhtml() const { return d_mode == MODE_XHTML; }
+    void setModeHtml() { d_mode = XHTML_MODE_HTML; }
+    bool isModeHtml() const { return d_mode == XHTML_MODE_HTML; }
+    void setModeXhtml() { d_mode = XHTML_MODE_XHTML; }
+    bool isModeXhtml() const { return d_mode == XHTML_MODE_XHTML; }
     
     bool isCallbackText( ) const { return d_cbReason ==CB_TEXT ; }
     inline static bool isHtmlTagAlwaysComplete( const char* lt, const char* gt ) 
@@ -96,9 +92,11 @@ struct xhtml_parser_state {
         d_buf(bufSz), 
         d_bufOffset(0), d_readOffset(0),
         d_endReached(false),
+        d_isInCData(false),
+        d_isInComment(false),
         d_numTagsSeen(0),
         d_cbReason(CB_UNKNOWN),
-        d_mode(MODE_HTML)
+        d_mode(XHTML_MODE_HTML) 
     { d_buf.back()=0; }
 };
 
@@ -164,12 +162,57 @@ public:
         /// buffer to drain starts at d_bufOffset
         std::string tag;
         
+        const char* buf_start = &(d_buf[0]);
+        const char* buf_offset = buf_start + d_bufOffset;
+        if( d_isInCData || d_isInComment) {
+            const char* terminator = strstr( buf_offset, ( d_isInCData? "]]>": "-->") );
+            // std::cerr << "SHITFUCK: " << (terminator!= 0 ? "YES":"NO" ) << " " << d_bufOffset << " " << d_buf.size() << std::endl;
+            if( terminator ) { /// found end of CDATA or COMMENT 
+                d_bufOffset+=  terminator+3-buf_offset;
+                d_isInCData= false;
+                d_isInComment= false;
+            } else { // we're still in CDATA, no end in sight - skipping it 
+                d_readOffset= 0;
+                d_bufOffset=0;
+                return;
+            }
+        }
         while( d_bufOffset< d_buf.size()-1 ) {
             // finding next tag
-            const char* buf_start = &(d_buf[0]);
-            const char* buf_offset = buf_start + d_bufOffset;
+            buf_start = &(d_buf[0]);
+            buf_offset = buf_start + d_bufOffset;
             const char* lt = strchr( buf_offset, '<' );
             const char* gt = ( lt ? strchr( lt, '>' ) : 0 );
+            
+            if( lt && lt[1] == '!' ) {
+                if( lt[2] == '[' && !strncmp( (lt+3),"CDATA[",6) ) {
+                    const char* cdataStart = lt+9;
+                    const char* terminator = strstr( cdataStart, "]]>" );
+                    if( terminator ) {
+                        // std::string shitfuck( cdataStart, terminator-cdataStart );
+                        // std::cerr << "SHITFUCK193:" << shitfuck << std::endl;
+                        d_bufOffset = terminator+3-buf_start;
+                        continue;
+                    } else {
+                        d_readOffset= 0;
+                        d_bufOffset=0;
+                        d_isInCData= true;
+                        return;
+                    }
+                } if( lt[3] == '-' && lt[4] == '-' ) {
+                    const char* cdataStart = lt+5;
+                    const char* terminator = strstr( cdataStart, "-->" );
+                    if( terminator ) {
+                        d_bufOffset = terminator+3-buf_start;
+                        continue;
+                    } else {
+                        d_readOffset= 0;
+                        d_bufOffset=0;
+                        d_isInComment= true;
+                        return;
+                    }
+                }
+            }
             if( gt ) { /// complete tag has been detected
                 ++d_numTagsSeen;
                 if( textIsGood(buf_offset, lt) )

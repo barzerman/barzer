@@ -13,7 +13,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <zurch_phrasebreaker.h>
 #include <zurch_barzer.h>
-#include <ay/ay_tag_markup_parser.h>
+#include <ay/ay_tag_markup_parser_types.h>
 #include <zurch_docdataindex.h>
 
 namespace barzer {
@@ -398,7 +398,7 @@ public:
 private:
     size_t d_bufSz;
 public:
-    ay::xhtml_parser_state::xhtml_mode_t    d_xhtmlMode; // ay::xhtml_parser_state::MODE_XXX (HTML - default or XHTML)
+    ay::xhtml_mode_t    d_xhtmlMode; // ay::xhtml_parser_state::MODE_XXX (HTML - default or XHTML)
     load_mode_t                             d_loadMode; // one of LOAD_MODE_XXX constants LOAD_MODE_TEXT - default
     boost::unordered_map< uint32_t, std::string > d_docTitleMap; 
 
