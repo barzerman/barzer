@@ -487,6 +487,9 @@ void ZurchPhrase_DocLoader::readDocContentFromFile( const char* fn, size_t maxLi
                 docId = d_loader.addDocName( n );
                 const char* title = pipe+1;
                 d_loader.setDocTitle( docId, title );
+
+                int module = atoi( n );
+                d_loader.index().d_docDataIdx.simpleIdx().Int.append( "module", docId, module );
             }
         } else { /// regular text - must be content
             if( docId != 0xffffffff ) { /// only if a document is currently open
@@ -530,9 +533,11 @@ void ZurchPhrase_DocLoader::readPhrasesFromFile( const char* fn )
             }
 
             if( flds.weight == WEIGHT_BOOST_NAME )  {
+                /*
                 d_loader.setDocTitle( docId, flds.text );
                 int module = atoi( docName.c_str() );
                 d_loader.index().d_docDataIdx.simpleIdx().Int.append( "module", docId, module );
+                */
             }
 
             d_loader.setCurrentWeight(flds.weight);
