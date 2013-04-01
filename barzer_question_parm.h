@@ -30,7 +30,7 @@ struct QuestionParm {
         BENI_BENI_ENSURE, // barz and beni beni always used regardless of heuristics
         BENI_NO_BENI // no beni no matter what
     };
-    bool beniMust() const { 
+    bool mustBeni() const { 
         return ( 
             d_beniMode == BENI_BENI_ONLY_DEFAULT ||
             d_beniMode == BENI_BENI_ENSURE );
