@@ -245,6 +245,12 @@ int QParser::barz_parse( Barz& barz, const QuestionParm& qparm )
 int QParser::parse( Barz& barz, const char* q, const QuestionParm& qparm )
 {
 	barz.clear();
+    if( qparm.d_beniMode == QuestionParm::BENI_BENI_ONLY_DEFAULT ) {
+        barz.questionOrig.assign(q);
+        barz.questionOrigUTF8.assign(q);
+        barz.beniSearch( universe, qparm );
+        return 0;
+    }
 
     if( universe.getTokenizerStrategy().isDefault() ) {
 	    tokenize_only( barz, q, qparm );

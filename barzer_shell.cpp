@@ -1092,6 +1092,44 @@ static int bshf_smf( BarzerShell* shell, char_cp cmd, std::istream& in , const s
     return 0;
 }
 
+static int bshf_http( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
+{
+    std::stringstream outSstr;
+    GlobalPools & gp = shell->gp;
+
+    std::string bufStr;
+    char buf[ 64*1024 ];
+    std::ostream& outFP = shell->getOutStream() ;
+    while( fgets( buf,sizeof(buf)-1,stdin) && buf[0] != '\n') {
+        buf[ sizeof(buf)-1 ] =0;
+        strip_newline( buf );
+
+        barzer::BarzerRequestParser reqParser(gp,outSstr);
+        char* firstSlash = strchr( buf, '/' );
+        std::string uriStr, queryStr;
+        if( firstSlash ) {
+            char* firstQuestionMark = strchr( firstSlash, '?' );
+            if( firstQuestionMark ) {
+                uriStr= std::string( firstSlash, firstQuestionMark-firstSlash );
+                queryStr = std::string( firstQuestionMark+1, strlen(firstQuestionMark+1) );
+            } 
+        }
+        if( !uriStr.length() || !queryStr.length() ) {
+            std::cerr << "INVALID QUERY\n";
+        }
+            
+        std::string uri;
+        ay::url_encode( uri, uriStr.c_str(), uriStr.length() );
+        std::string query;
+        ay::url_encode( query, queryStr.c_str(), queryStr.length() );
+        if( !reqParser.initFromUri( uri.c_str(), uri.length(), query.c_str(), query.length() ) )
+            reqParser.parse();
+        
+        outFP << "QUERY|" << buf << std::endl;
+        outFP << outSstr.str() << std::endl;
+    }
+    return 0;
+}
 static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
     BarzerShellContext * context = shell->getBarzerContext();
@@ -1989,6 +2027,8 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)(bshf_stexpand), "stexpand", "expand and print all statements in a file" ),
 	CmdData( (ay::Shell_PROCF)(bshf_strid), "strid", "resolve string id (usage strid id)" ),
 
+	CmdData( (ay::Shell_PROCF)(bshf_http), "h", "process an input strings as if they're http" ),
+	CmdData( (ay::Shell_PROCF)(bshf_http), "http", "process an input strings as if they're http" ),
 	CmdData( (ay::Shell_PROCF)(bshf_process), "q", "process an input string" ),
 	CmdData( (ay::Shell_PROCF)(bshf_process), "process", "process an input string" ),
 	CmdData( (ay::Shell_PROCF)(bshf_process), "proc", "process an input string" ),

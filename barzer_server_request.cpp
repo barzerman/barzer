@@ -161,6 +161,7 @@ BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s ) :
     d_universe(0),
     os(s),
     d_aggressiveStem(false),
+    d_beniMode(QuestionParm::BENI_DEFAULT),
     d_tagCount(0),
     d_xmlIsInvalid(false),
     d_barzXMLParser(0),
@@ -195,6 +196,9 @@ int BarzerRequestParser::initFromUri( const char* u, size_t u_len, const char* q
         case 'b':
             if( i->first == "byid" ) {
                 d_zurchSearchById = ( i->second != "no" );
+            } else if( i->first == "beni" ) 
+            {
+                d_beniMode = QuestionParm::parseBeniFlag( i->second.c_str() );
             }
             break;
         case 'd':
@@ -270,6 +274,7 @@ BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s, uint3
     d_universe(0),
     os(s),
     d_aggressiveStem(false),
+    d_beniMode(QuestionParm::BENI_DEFAULT),
     d_tagCount(0),
     d_xmlIsInvalid(false),
     d_barzXMLParser(0),
@@ -508,7 +513,7 @@ std::ostream& BarzerRequestParser::printError( const char* err )
         xmlEscape(err, os);
 		os << "</error>";
     } else if( ret == JSON_TYPE ) {
-		ay::jsonEscape( err, os<< "{ error: ", "\"" );
+		ay::jsonEscape( err, os<< "{ error: ", "\"" ) << "}";
     } else {
         os << err ;
     }
@@ -601,6 +606,7 @@ void BarzerRequestParser::raw_query_parse( const char* query)
 	QuestionParm qparm;
     if( d_aggressiveStem ) 
         qparm.setStemMode_Aggressive();
+    qparm.d_beniMode = d_beniMode;
 
 	//qparser.parse( barz, getTag().body.c_str(), qparm );
     if( !barz.topicInfo.getTopicMap().empty() ) {
@@ -694,6 +700,7 @@ struct AutocTopicParseCB {
         return 0;
     }
 };
+
 }
 
 void BarzerRequestParser::tag_autoc(RequestTag &tag) 
@@ -976,7 +983,9 @@ void BarzerRequestParser::tag_query(RequestTag &tag)
             barz.setQueryId( atoi( i->second.c_str() ) );
         else if( i->first == "as" ) 
             d_aggressiveStem = true;
-        else if (i->first == "ret" ) { 
+        else if (i->first == "beni" ) { 
+            d_beniMode=QuestionParm::parseBeniFlag(i->second.c_str());
+        } else if (i->first == "ret" ) { 
             if( i->second == "json") {
         	    ret = JSON_TYPE;
             } else if( i->second == "sjson" ) {
