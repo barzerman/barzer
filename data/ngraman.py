@@ -1,72 +1,108 @@
-#!/opt/local/bin/python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 
-import fileinput,codecs, sys, re
+import fileinput, codecs, sys, re,pybarzer
 from collections import defaultdict
+from itertools import imap, ifilter
+barzer=pybarzer.Barzer()
+TOK_RE = re.compile(u'\W+', re.UNICODE)
 
-tokenizer_re = re.compile(r'[\n;.\-,|()\[\]\'" ]')
-nonpure_unigram_re = re.compile(r'[^ a-z]')
+MAX_NGRAM = 3
+STOP_BEGIN = {u'и',u'или',u'а',u'ли',u'либо',u'нибудь',u'котором'}
+STOP_END = {u'в',u'на',u'из',u'под',u'перед',u'за',u'над',u'через',u'и',u'не',
+            u'или',u'без',u'а',u'по',u'с',u'со',u'от',u'для',u'до',u'к',
+            u'котором'}
 
-out_re = re.compile('\d')
+prestemNgram={}
 
-engwords=set()
-synonyms=dict()
+def stem(s):
+    return s
 
-def normalize(xs):
-    def filt(s):
-        return not (s in {'in', '', 'of', 'on', 'for', 'and', 'or', '&'} or out_re.search(s))
-    return filter(filt, xs)
+NORM_DIGIT_RE = re.compile('[\d\.\,]+')
+def normalize(s):
+    s = NORM_DIGIT_RE.sub(' N ', s)
+    return s
 
-class boo(object):
+def tokenize(s):
+    s = normalize(s)
+    xs = TOK_RE.split(s)
+    return map(stem, ifilter(bool, xs))
+
+def ngramize(lst):
+    l = len(lst)
+    for i in xrange(l):
+        xs = []
+        if lst[i] in STOP_BEGIN: continue
+        for j in xrange(i, min(i+MAX_NGRAM, l)):
+            w = lst[j]
+            xs.append(w)
+            if w in STOP_END: continue
+            yield tuple(xs)
+
+
+class Stat(object):
     def __init__(self):
-        self.ids = set()
-        self.cnt = 0
-    def push(self, i):
-        #self.ids.add(str(i))
-        self.cnt += 1
+        self.word_cnt = 0
+        self.stat = defaultdict(int)
+    def add_chunk(self, phrase):
+        self.word_cnt += len(phrase)
+    def add_ngram(self, ngram):
+        self.stat[ngram] += 1
+    def get_stat(self):
+        for k, v in self.stat.iteritems():
+            yield [unicode(len(k)), unicode(v), u','.join(k)]
 
-class EntInfo(object):
-    def __init__(self):
-        self.freq = 0
-        self.names = []
-    def __init__(self,f):
-        self.freq = f
-        self.names = []
-    def push(self, i):
-        self.names.append(i)
+def read_file(fd):
+    docs = defaultdict(Stat)
+    corpus = Stat()
     
-entities=defaultdict(dict)
+    for line in fd:
+        line = line.strip().decode('utf-8')
+        if not line: continue
+        docid, t, chunk_n, txt = line.split('|', 3)
+        doc = docs[docid]
+        lst = tokenize(txt)
+        doc.add_chunk(lst)
+        for n in ngramize(lst):
+            stemN=tuple( barzer.stem(x.encode('utf-8')) for x in n )
+            if stemN not in prestemNgram :
+                prestemNgram[ stemN ] = n
+                newTuple=n
+            else:
+                newTuple=prestemNgram[ stemN ]
+            corpus.add_ngram(newTuple)
+            doc.add_ngram(newTuple)
+            #corpus.add_ngram(n)
+            #doc.add_ngram(n)
+    
+    return docs, corpus
+    
 
-with open( "spell/english_words.txt" ) as f:
-    for i in f:
-        engwords.add(i.strip())
-print>>sys.stderr, len(engwords),"words"
+def render(fd, l):
+    fd.write(u"{}\n".format(u'|'.join(l)).encode('utf-8'))
+
+def main():
+    docs, corpus = read_file(fileinput.input())
+
+    
+    with open('doc_out.txt', 'wb') as do, open('corp_out.txt', 'wb') as co:
+        for l in corpus.get_stat():
+            render(co, l)
+        
+        for docid, doc in docs.iteritems():
+            for l in doc.get_stat():
+                render(do, [docid]+l)
 
 if __name__ == '__main__':
-    s = defaultdict(boo)
-    for line in fileinput.input():
-        idd, _, n = line.partition(',')
-        b = tokenizer_re.split(n)
+    sys.exit(main())
+    
         
-        l = len(b)        
-        for i in xrange(l):
-            if  b[i] in {'b','di','lb','+', 'e', 'c','any','with','at','en','a','if','/','an','in', '', 'of', 'on', 'de','s','y','for', 'and', 'or', '&'}:
-                continue
-            xs = []
-            for j in xrange(i, min(i+4, l)):
-                xs.append(b[j])
-                if len(b[j]) > 1 and b[j] not in {'di','s','e','lb','t','c','foo','al','la','lo','de','any','with','the','to','at','a','if','an','in', '', 'of', 'on', 'for', 'and', 'or', '&'}:
-                    s[tuple(xs)].push(idd)
+
     #l = [(','.join(k), v.cnt, ','.join(v.ids)) for k, v in s.iteritems()]
+    """
     l = [(len(k),v.cnt,  ' '.join(k),k) for k, v in s.iteritems()]
     l.sort(lambda x,y: y[1] - x[1])
     l.sort(lambda x,y: y[0] - x[0])
+    """
 
-    for v in l:
-        if v[0] ==1: 
-            if nonpure_unigram_re.search(v[2]) or (v[1] < 1) or (v[2] in engwords and v[1] < 1) or (v[1] < 1 and (len(v[2])<4)):
-                print>>sys.stderr,v[2]
-                continue
-        if v[0] ==1 or (v[0] == 3 and v[1]>1) or (v[0]==2) or (v[0]==4 and v[1]>1):
-            print '|'.join(map(str, v[:-1]))
