@@ -361,7 +361,8 @@ namespace
                         }
                     }
                 }
-				if ( !correctionCancelled && ( x->isStop() || x->isPunct() || x->isBlank() || !ltrlStr.second) )
+                const bool isPunct = x->isPunct() || (ltrlStr.second == 1 && ispunct(ltrlStr.first[0]));
+				if ( !correctionCancelled && ( x->isStop() || isPunct || x->isBlank() || !ltrlStr.second) )
 					continue;
                 
 				featureVec.push_back( 

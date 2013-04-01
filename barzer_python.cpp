@@ -154,10 +154,22 @@ std::string BarzerPython::bzstem(const std::string& s)
         else 
             return s;
     } else {
-        std::cerr << "No Universe set\n";
-        const char message[] = "No Universe set"; 
-        PyErr_SetString(PyExc_ValueError, message); 
-        throw error_already_set(); 
+        std::string stem;
+        std::string cleanS;
+        for( const auto& i : s ) {
+            if( ispunct(i) || isspace(i) ) 
+                break;
+            cleanS.push_back( i );
+        }
+        
+        int lang = barzer::LANG_UNKNOWN;
+        size_t minWordLength = 4;
+
+        BZSpell::stem(stem, cleanS.c_str(), lang, minWordLength );
+        if( stem.length() ) 
+            return stem;
+        else 
+            return cleanS;
     }
     return s;
 }
