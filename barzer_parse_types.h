@@ -13,6 +13,7 @@
 #include <barzer_number.h>
 #include <barzer_entity.h>
 #include <barzer_storage_types.h>
+#include <barzer_question_parm.h>
 
 namespace barzer {
 struct StoredToken;
@@ -290,90 +291,6 @@ typedef std::vector< PUnitWithPos > PUWPVec;
 
 class QTokenizer;
 class LexParser;
-
-//// comes with every question and is passed to lexers and semanticizers 
-struct QuestionParm {
-	int lang;  // a valid LANG ID see barzer_language.h
-    bool isAutoc; // when true this is an autocomplete query rather than a standard barzer one
-    enum : uint8_t {
-        STEMMODE_NORMAL,    // standard cautious stemming mode for unmatched tokens during classification
-        STEMMODE_AGGRESSIVE // after conservative correction stems until 3 characters are left or anything is matched 
-    };
-    uint8_t  stemMode;
-    
-    enum {
-        QPBIT_SPELL_NO_SPLITCORRECT,
-        QPBIT_ZURCH_FULLTEXT,
-        QPBIT_ZURCH_HTML,
-        QPBIT_ZURCH_NO_CHUNKS,
-
-        /// add new bits above this line only
-        QPBIT_MAX
-    };
-    ay::bitflags<QPBIT_MAX> d_biflags;
-    
-    bool isSplitCorrectionOff( ) const { return d_biflags.checkBit(QPBIT_SPELL_NO_SPLITCORRECT); }
-    void turnSplitCorrectionOff( bool x=true ) { d_biflags.set(QPBIT_SPELL_NO_SPLITCORRECT,x); }
-    void setZurchFlags( const char* str );
-    struct AutocParm {
-        uint32_t trieClass, trieId;
-        
-        enum {
-            TOPICMODE_RULES_ONLY,
-            TOPICMODE_TOPICS_ONLY,
-            TOPICMODE_RULES_AND_TOPICS
-        };
-        uint32_t topicMode;
-
-        /// when this is not empty only entities whose class/subclass match anything in the vector, will 
-        /// be reported by autocomplete - this vector will be very small 
-        std::vector< StoredEntityClass > ecVec;
-		
-		uint32_t numResults;
-
-        bool hasSpecificTrie() const { return( trieClass != 0xffffffff && trieId != 0xffffffff ); }
-        bool needOnlyTopic() const { return ( topicMode == TOPICMODE_TOPICS_ONLY ); }
-        bool needOnlyRules() const { return ( topicMode == TOPICMODE_RULES_ONLY ); }
-        bool needTopic() const { return ( topicMode == TOPICMODE_TOPICS_ONLY || topicMode == TOPICMODE_RULES_AND_TOPICS ); }
-        bool needRules() const { return ( topicMode == TOPICMODE_RULES_ONLY || topicMode == TOPICMODE_RULES_AND_TOPICS ); }
-
-        bool needBoth() const { return ( topicMode == TOPICMODE_RULES_AND_TOPICS ); }
-
-        void clear() { trieClass= 0xffffffff; trieId= 0xffffffff;  topicMode=TOPICMODE_RULES_ONLY; }
-
-        bool entFilter( const StoredEntityUniqId& euid ) const 
-            {
-              if( ecVec.size() ) {
-                for( std::vector< StoredEntityClass >::const_iterator i = ecVec.begin(); i!= ecVec.end(); ++i ) { 
-                    if( i->matchOther(euid.eclass) )
-                        return true;
-                }
-                return false;
-              } else 
-                return true; 
-            }
-        /// parses a string "c1,s1|..."
-        void parseEntClassList( const char* s)
-        {
-            const char* b = s, *pipe = strchr(b,'|'), *b_end = b+ strlen(b);
-            StoredEntityClass ec;
-            for( ; b &&*b; b= (pipe?pipe+1:0), (pipe = (b? strchr(b,'|'):0)) ) {
-                ec.ec = atoi(b);
-                const char *find_end = (pipe?pipe: b_end), *comma = std::find( b, find_end, ',' );
-                ec.subclass = ( comma!= find_end ? atoi(comma+1): 0 );
-                if( ec.isValid() ) ecVec.push_back( ec );
-            }
-        }
-
-        AutocParm() : trieClass(0xffffffff), trieId(0xffffffff), topicMode(TOPICMODE_RULES_ONLY), numResults(10)  {}
-    } autoc;
-
-    void setStemMode_Aggressive() { stemMode= STEMMODE_AGGRESSIVE; }
-    bool isStemMode_Aggressive() const { return (stemMode==STEMMODE_AGGRESSIVE); }
-
-    void clear() { autoc.clear(); }
-	QuestionParm() : lang(0), isAutoc(false), stemMode(STEMMODE_NORMAL) {}
-};
 
 /// non constant string - it's different from barzer literal as the value may not be 
 /// among the permanently stored but rather something constructed by barzel

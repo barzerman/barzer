@@ -566,12 +566,14 @@ inline bool beni_string_likely_isid( const std::string& s, size_t numGlyphs )
 }
 int Barz::beniSearch( const StoredUniverse& u, const QuestionParm& qparm )
 {
+    if( qparm.d_beniMode == QuestionParm::BENI_NO_BENI ) 
+        return 0;
     enum { MAX_BENI_LENGTH = 34 };
 
     size_t numGlyphs = questionOrigUTF8.length() ;
-    if( numGlyphs  < MAX_BENI_LENGTH ) {
+    if( qparm.d_beniMode != QuestionParm::BENI_BENI_ENSURE || numGlyphs  < MAX_BENI_LENGTH ) {
         d_beni.d_entVec.clear();
-        if( u.checkBit(StoredUniverse::UBIT_USE_BENI_IDS) ) {
+        if( qparm.d_beniMode != QuestionParm::BENI_BENI_ENSURE && u.checkBit(StoredUniverse::UBIT_USE_BENI_IDS) ) {
             if( !beni_string_likely_isid( questionOrig, numGlyphs ) ) 
                 return 1;
         }

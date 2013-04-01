@@ -17,6 +17,7 @@
 #include <barzer_parse.h>
 #include <barzer_settings.h>
 #include <barzer_server_request_filter.h>
+#include <barzer_question_parm.h>
 
 extern "C" {
 #include <expat.h>
@@ -83,6 +84,10 @@ private:
 	std::ostream &os;
     std::string d_query; // for query block 
     bool d_aggressiveStem;
+    // barzer mode (BENI)
+
+    int16_t d_beniMode;  // QuestionParm::parseBeniFlag should be used to fill
+
     size_t  d_tagCount; // number of tags parsed  
     // when the tag barz is encountered the mode is set to on
     bool d_xmlIsInvalid; /// when this is true no tags/cdata will be processed

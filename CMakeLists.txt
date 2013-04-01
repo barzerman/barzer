@@ -99,6 +99,7 @@ else()
 endif()
 
 set(SOURCES 
+            barzer_question_parm.cpp
             barzer_server_request_filter.cpp
             barzer_entity_name_index.cpp
             barzer_basic_types_range.cpp

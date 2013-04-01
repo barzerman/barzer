@@ -337,9 +337,6 @@ public:
 	    TFE_TmpBuffers bufs( m_storedVec, m_extractedVec );
 		bufs.clear();
 		
-		if (std::string(str).find("pcv40") != std::string::npos)
-			std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!! SHITFUCK !!!!!!!!!! " << str << std::endl;
-		
 		auto strId = m_gram.d_pool->internIt(str);
 		m_gram.extractAndStore(bufs, strId, str, LANG_UNKNOWN);
 		m_storage.insert({ strId, data });
