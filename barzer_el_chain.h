@@ -119,7 +119,13 @@ struct BarzelBeadAtomic {
     bool isComplexType() const
     {
         switch(dta.which() ) {
-        case BarzerLiteral_TYPE: return false;
+        case BarzerLiteral_TYPE: 
+            if( auto i = getLiteral() ) {
+                if( i->isStop() ) 
+                    return true;
+            }
+            return false;
+
         case BarzerString_TYPE: return false;
         case BarzerNumber_TYPE: return false;
         case BarzerDate_TYPE: return true;
