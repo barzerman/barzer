@@ -257,15 +257,20 @@ namespace
 			
 			//std::cout << __PRETTY_FUNCTION__ << " got num words: " << sorted.size() << std::endl;
 			
-			typedef std::pair<uint32_t, int> LevInfo_t;
-			std::vector<LevInfo_t> levInfos;
+			struct LevInfo
+			{
+				uint32_t strId;
+				int levDist;
+				size_t numGlyphs;
+			};
+			std::vector<LevInfo> levInfos;
 			const size_t topNum = 2048;
             bool langIsTwoByte = Lang::isTwoByteLang(m_lang);
             ay::StrUTF8 currentStem;
 			for (size_t i = 0, takenCnt = 0, max = sorted.size(); i < max && takenCnt < topNum; ++i)
 			{
                 uint32_t strId = sorted[i].first;
-                const FeatureCorrectorWordData* wd = d_corrector.getWordData( strId );
+                const auto wd = d_corrector.getWordData( strId );
                 if( !wd ) { // this should never happen
                     AYLOG(ERROR) << "wd is null\n";
                     continue;
@@ -308,16 +313,18 @@ namespace
                     if (stemDist > maxDist || (stemDist == 2 && wd->numGlyphsInStem <= 5) || (stemDist == 3 && wd->numGlyphsInStem <= 7))
                         continue;
                 }
-				levInfos.push_back(LevInfo_t(sorted[i].first, dist));
+				levInfos.push_back({ sorted[i].first, dist, wd->numGlyphs });
 			}
-			std::sort(levInfos.begin(), levInfos.end(), PairSortOrderer<LevInfo_t>());
+			std::sort(levInfos.begin(), levInfos.end(),
+					[](const LevInfo& l1, const LevInfo& l2)
+						{ return l1.levDist == l2.levDist ? l1.numGlyphs > l2.numGlyphs : l1.levDist < l2.levDist; });
 			/*
 			for (const auto& info : levInfos)
 				std::cout << storage.getPool()->resolveId(info.first) << " " << info.second << std::endl;
 			*/
 			
 			return !levInfos.empty() ?
-					MatchResult(levInfos[0].first, levInfos[0].second, 1 / static_cast<double>(sorted.size())) :
+					MatchResult(levInfos[0].strId, levInfos[0].levDist, 1 / static_cast<double>(sorted.size())) :
 					MatchResult();
 		}
 	};
