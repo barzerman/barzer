@@ -92,6 +92,32 @@ bool  BarzelRewriterPool::isRewriteFallible( const BarzelRewriterPool::BufAndSiz
 	return fallible.isThatSo;
 }
 
+int  BarzelRewriterPool::encodeParseTreeNode( BarzelEvalNode& evNode, const BELParseTreeNode& ptn ) 
+{
+    if( const BTND_RewriteData* rd = ptn.getRewriteData() ) {
+        evNode.setBtnd( *rd );
+        evNode.getChild().reserve( ptn.child.size() );
+
+        if (rd->which() == BTND_Rewrite_Select_TYPE) {
+	        BELParseTreeNode::ChildrenVec child = ptn.child;
+            std::stable_sort(child.begin(), child.end(), CaseComparator());
+            for( const auto& ch : child ) { 
+                if( auto rc = encodeParseTreeNode( evNode.addChild(), ch ) )
+                    return rc;
+            }
+        } else {
+            for( const auto& ch : ptn.child ) {
+                if( auto rc = encodeParseTreeNode( evNode.addChild(), ch ) ) 
+                    return rc;
+            }
+        }
+	    return ERR_OK;
+    } else 
+        return ERR_ENCODING_FAILED;
+
+    return 0;
+}
+
 int  BarzelRewriterPool::encodeParseTreeNode( BarzelRewriterPool::byte_vec& trans, const BELParseTreeNode& ptn ) 
 {
 	// for every node push node_start_byte, then BTND_Rewrite (the whole variant) (otn.getNodeData() ) - memcpy, then node end byte
@@ -109,11 +135,6 @@ int  BarzelRewriterPool::encodeParseTreeNode( BarzelRewriterPool::byte_vec& tran
 
 	BELParseTreeNode::ChildrenVec child = ptn.child;
 	if (rd->which() == BTND_Rewrite_Select_TYPE) {
-	    /*size_t len = child.size();
-	    std::vector<const BELParseTreeNode*> v(len, 0);
-	    for (size_t i = 0, s = child.size(); i < s; ++i)
-	        v[i] = &child[i]; */
-	    // this is probably insanely inefficient, will need to correct
 	    std::stable_sort(child.begin(), child.end(), CaseComparator());
 	}
 
@@ -129,8 +150,25 @@ int  BarzelRewriterPool::encodeParseTreeNode( BarzelRewriterPool::byte_vec& tran
 	return ERR_OK;
 }
 
+BarzelEvalNode* BarzelRewriterPool::getRawNode( const BarzelTranslation& trans ) 
+{
+    return (  (trans.isRawTree() && trans.getRewriterId( )< rawNodesVec.size()) ? 
+        &(rawNodesVec[ trans.getRewriterId( ) ]) : 0
+    );
+}
+
+const BarzelEvalNode* BarzelRewriterPool::getRawNode( const BarzelTranslation& trans ) const
+{
+    return (  (trans.isRawTree() && trans.getRewriterId( )< rawNodesVec.size()) ? 
+        &(rawNodesVec[ trans.getRewriterId( ) ]) : 0
+    );
+}
 bool BarzelRewriterPool::resolveTranslation( BarzelRewriterPool::BufAndSize& bas, const BarzelTranslation& trans ) const
 {
+    if( !trans.isRewriter() ) {
+        return ( bas = BarzelRewriterPool::BufAndSize(0,0), false );
+    }
+        
 	uint32_t rid = trans.getRewriterId( );
 	if( rid < encVec.size() ) 
 		return ( bas = encVec[rid], true );
@@ -139,7 +177,21 @@ bool BarzelRewriterPool::resolveTranslation( BarzelRewriterPool::BufAndSize& bas
 		
 }
 
-int BarzelRewriterPool::produceTranslation( BarzelTranslation& trans, const BELParseTreeNode& ptn )
+uint32_t BarzelRewriterPool::poolNewRawNode( const BarzelEvalNode& evn )
+{
+    rawNodesVec.push_back( evn ); 
+    return rawNodesVec.size()-1; 
+}
+
+uint32_t BarzelRewriterPool::poolNewBuf( const uint8_t* s, uint32_t sz )
+{
+    uint8_t* buf = (uint8_t*)malloc(sz);
+    memcpy( buf, s,sz);
+    encVec.push_back( BufAndSize( buf, sz) );
+    return (encVec.size() -1);
+}
+
+int BarzelRewriterPool::produceTranslation_old( BarzelTranslation& trans, const BELParseTreeNode& ptn )
 {
 	byte_vec enc;
 	if( !encodeParseTreeNode(enc,ptn) ) {
@@ -151,6 +203,16 @@ int BarzelRewriterPool::produceTranslation( BarzelTranslation& trans, const BELP
 			AYTRACE( "inconsistent encoding produced");
 			return ERR_ENCODING_INCONSISTENT;
 		}
+	} else
+			return ERR_ENCODING_FAILED;
+}
+int BarzelRewriterPool::produceTranslation( BarzelTranslation& trans, const BELParseTreeNode& ptn )
+{
+    BarzelEvalNode evNode;
+	if( !encodeParseTreeNode(evNode,ptn) ) {
+        uint32_t rawTreeId = poolNewRawNode( evNode );
+        trans.setRawTree( rawTreeId );
+        return ERR_OK;
 	} else
 			return ERR_ENCODING_FAILED;
 }
@@ -597,6 +659,27 @@ bool BarzelEvalNode::eval(BarzelEvalResult& val, BarzelEvalContext&  ctxt ) cons
 	
 	return ret;
 
+}
+
+bool BarzelEvalNode::isSubstitutionParm( size_t& pos ) const
+{
+    if( d_btnd.which()  == BTND_Rewrite_Variable_TYPE ) {
+        const BTND_Rewrite_Variable& var = boost::get< BTND_Rewrite_Variable >( d_btnd );
+        return ( var.isPosArg() ? (pos = var.getVarId(), true) : false );
+    } else 
+        return ( false );
+}
+
+const BTND_Rewrite_Control* BarzelEvalNode::isComma( ) const
+{
+    const BTND_Rewrite_Control* ctrl = getControl();
+    return( (ctrl && ctrl->isComma()) ? ctrl:0 ); 
+}
+
+bool BarzelEvalNode::growTree( const BarzelRewriterPool::BufAndSize& bas, int& ctxtErr )
+{
+    ByteRange brng( bas.first, bas.first+ bas.second );
+    return( growTree_recursive( brng, ctxtErr ) !=0 ) ;
 }
 
 const uint8_t* BarzelEvalNode::growTree_recursive( BarzelEvalNode::ByteRange& brng, int& ctxtErr )

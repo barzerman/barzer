@@ -579,14 +579,8 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELSta
 {
 	BarzelTranslation* tran = getBarzelTranslation(*n);
 	if( tran ) {
-        if( stmt.ruleClashOverride() ) {
+        if( stmt.ruleClashOverride() == BELStatementParsed::CLASH_OVERRIDE_TAKELAST) {
             n->setTranslation( id );
-            /*
-            std::ostream& os = stmt.getErrStream();
-            os << "<warning type=\"rule clash overridden\"> <rule>" << stmt.getSourceName() << ':' << stmt.getStmtNumber()  << '.' << emitterSeqNo <<
-            " </rule><rule> " ;
-            printTanslationTraceInfo( stmt.getErrStream(), tran->traceInfo ) << "</rule></warning>\n";
-            */
             return true;
         }
 
@@ -605,12 +599,17 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELSta
 			break;
 		default: { // CLASH 
             if( !(stmt.getSourceNameStrId()== tran->traceInfo.source && stmt.getStmtNumber() == tran->traceInfo.statementNum) ) {
+                if( tran->isRawTree() && stmt.ruleClashOverride() == BELStatementParsed::CLASH_OVERRIDE_APPEND ) {
+                    if( BarzelEvalNode* evNode = getRewriterPool().getRawNode( *tran ) ) {
+                        if( !getRewriterPool().encodeParseTreeNode( evNode->addChild(), stmt.translation ) )
+                            return true;
+                    }
+                } 
                 std::ostream& os = stmt.getErrStream();
 			    os << "<error type=\"RULE CLASH\"> <rule>" << stmt.getSourceName() << ':' << stmt.getStmtNumber()  << '.' << emitterSeqNo <<
 			    " </rule><rule> " ;
 			    printTanslationTraceInfo( stmt.getErrStream(), tran->traceInfo ) << "</rule></error>\n";
 		    }	
-
 		}
 			return false;
 		}

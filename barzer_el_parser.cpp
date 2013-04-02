@@ -384,5 +384,49 @@ int BELReader::loadFromFile( const char* fileName, BELReader::InputFormat fmt )
 	return 0;
 }
 
+size_t BELStatementParsed::setStmtNumber( size_t num ) 
+{
+    if( num )
+        d_stmtNumber = num;
+    else
+        ++d_stmtNumber;
+    return d_stmtNumber;
+}
+void BELStatementParsed::clear()
+{
+    d_tranUnmatchable= 0;
+    d_confidenceBoost=0;
+    d_execMode=EXEC_MODE_REWRITE;
+    pattern.clear(); 
+    translation.clear(); 
+    d_ruleClashOverride=CLASH_OVERRIDE_NONE;
+}
+void BELStatementParsed::setRuleClashOverride( const char* str )
+{
+    if( !str ) {
+        d_ruleClashOverride= CLASH_OVERRIDE_NONE;
+        return;
+    }
+    switch( *str ) {
+    case 'a':
+        d_ruleClashOverride= CLASH_OVERRIDE_APPEND;
+        break;
+    case 'y':
+    case 'Y':
+    default:
+        d_ruleClashOverride= CLASH_OVERRIDE_TAKELAST;
+        break;
+    }
+}
+
+BELStatementParsed::BELStatementParsed() :
+		d_execMode(EXEC_MODE_REWRITE), 
+        d_stmtNumber(0), 
+        d_sourceNameStrId(0xffffffff), 
+        d_ruleClashOverride(CLASH_OVERRIDE_NONE), 
+        d_reader(0), 
+        d_tranUnmatchable(0),
+        d_confidenceBoost(0)
+{ }
 
 } // namespace barzer

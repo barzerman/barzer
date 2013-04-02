@@ -28,6 +28,7 @@ struct RequestEnvironment;
 /// these buffers are used to build BarzelRewriteTree objects on the fly 
 class BarzelRewriterPool {
 public:
+	// typedef BELParseTreeNode BufAndSize;
 	typedef std::pair<const uint8_t*, uint32_t> BufAndSize;
 	typedef std::vector<uint8_t> byte_vec;
 	typedef std::vector< BufAndSize > BufAndSizeVec;
@@ -39,17 +40,15 @@ public:
 	}
 private:
 	BufAndSizeVec encVec;
-
-	uint32_t poolNewBuf( const uint8_t* s, uint32_t sz )
-	{
-		uint8_t* buf = (uint8_t*)malloc(sz);
-		memcpy( buf, s,sz);
-		encVec.push_back( BufAndSize( buf, sz) );
-		return (encVec.size() -1);
-	}
-
+    std::vector< BarzelEvalNode > rawNodesVec;
+    
+    
+	uint32_t poolNewRawNode( const BarzelEvalNode& evn );
+	uint32_t poolNewBuf( const uint8_t* s, uint32_t sz );
 public:
 	static int  encodeParseTreeNode( BarzelRewriterPool::byte_vec& trans, const BELParseTreeNode& ptn );
+	static int  encodeParseTreeNode( BarzelEvalNode& evNode, const BELParseTreeNode& ptn );
+
 	void clear();
 	~BarzelRewriterPool();
 	BarzelRewriterPool( size_t reserveSz ) 
@@ -63,6 +62,10 @@ public:
 	};
 	// returns one of the ERR_XXX enums
 	int produceTranslation( BarzelTranslation& , const BELParseTreeNode& ptn );
+	int produceTranslation_old( BarzelTranslation& , const BELParseTreeNode& ptn );
+
+    const BarzelEvalNode* getRawNode( const BarzelTranslation& trans ) const;
+    BarzelEvalNode* getRawNode( const BarzelTranslation& trans );
 
 	/// when translation contained valid rewriter buffer returns true
 	/// otherwise 0
@@ -330,30 +333,29 @@ protected:
 	BTND_RewriteData d_btnd;
 
 	ChildVec d_child;
-
-
 	//// will recursively add nodes 
 public:
 	typedef std::pair< const uint8_t*, const uint8_t* > ByteRange;
 private:
 	const uint8_t* growTree_recursive( ByteRange& brng, int& ctxtErr );
 	
-	bool isSubstitutionParm( size_t& pos ) const
-	{
-		if( d_btnd.which()  == BTND_Rewrite_Variable_TYPE ) {
-			const BTND_Rewrite_Variable& var = boost::get< BTND_Rewrite_Variable >( d_btnd );
-			return ( var.isPosArg() ? (pos = var.getVarId(), true) : false );
-		} else 
-			return ( false );
-	}
+	bool isSubstitutionParm( size_t& pos ) const;
 	bool eval_comma(BarzelEvalResult&, BarzelEvalContext& ctxt ) const;
 public:
     // returns true if this node if this is a LET node - let node assigns a variable 
     const BTND_Rewrite_Control* getControl() const 
         { return boost::get<BTND_Rewrite_Control>(&d_btnd); }
-
+    void setBtnd( const BTND_RewriteData& rd ) 
+        { d_btnd= rd; }
 	BTND_RewriteData& getBtnd() { return d_btnd; }
 	ChildVec& getChild() { return d_child; }
+
+    BarzelEvalNode& addChild() 
+    {
+        d_child.resize( d_child.size()+1 );
+        return d_child.back();
+    }
+
 	const ChildVec& getChild() const { return d_child; }
 
 	const BTND_RewriteData& getBtnd() const { return d_btnd; }
@@ -363,19 +365,11 @@ public:
 
 	/// construct the tree from the byte buffer created in encode ... 
 	/// returns true is tree was constructed successfully
-	bool growTree( const BarzelRewriterPool::BufAndSize& bas, int& ctxtErr )
-	{
-		ByteRange brng( bas.first, bas.first+ bas.second );
-		return( growTree_recursive( brng, ctxtErr ) !=0 ) ;
-	}
+	bool growTree( const BarzelRewriterPool::BufAndSize& bas, int& ctxtErr );
 	/// returns true if evaluation is successful 
 	bool eval(BarzelEvalResult&, BarzelEvalContext& ctxt ) const;
 
-    const BTND_Rewrite_Control* isComma( ) const 
-    {
-        const BTND_Rewrite_Control* ctrl = getControl();
-        return( (ctrl && ctrl->isComma()) ? ctrl:0 ); 
-    }
+    const BTND_Rewrite_Control* isComma( ) const ;
 };
 //// T must have methods:
 ////   bool T::nodeStart()

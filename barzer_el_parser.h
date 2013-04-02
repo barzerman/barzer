@@ -25,7 +25,6 @@ class BELReader;
 struct BELParseTreeNode_PatternEmitter;
 //// !!!!!!!!!!! NEVER REORDER ANY OF THE ENUMS
 
-
 /// statement parse tree represents a single BarzEL  statement as parsed on load
 /// this tree is evaluated and resulting paths are added to a barzel trie by the parser
 struct BELStatementParsed {
@@ -39,24 +38,20 @@ struct BELStatementParsed {
 	size_t d_stmtNumber;
 	std::string d_sourceName;
 	uint32_t d_sourceNameStrId;
-    bool     d_ruleClashOverride; // when true will override the ruleclash and se the latest translation (stmt attribute "o")
+    enum {
+        CLASH_OVERRIDE_NONE,   // n (default)
+        CLASH_OVERRIDE_APPEND, // a - tries to ambiguate by appending translation result
+        CLASH_OVERRIDE_TAKELAST // y last wins
+    };
+    int     d_ruleClashOverride; // when true will override the ruleclash and se the latest translation (stmt attribute "o")
 
     BELReader* d_reader;
     int d_tranUnmatchable;
     int d_confidenceBoost;
 
-	BELStatementParsed() :
-		d_execMode(EXEC_MODE_REWRITE), 
-        d_stmtNumber(0), 
-        d_sourceNameStrId(0xffffffff), 
-        d_ruleClashOverride(false), 
-        d_reader(0), 
-        d_tranUnmatchable(0),
-        d_confidenceBoost(0)
-	{}
+	BELStatementParsed();
 	BELParseTreeNode pattern; // points at the node under statement
 	BELParseTreeNode translation; // points at the node under statement
-
 
     void setExecImperative( bool pre )
         { d_execMode = ( pre ? EXEC_MODE_IMPERATIVE_PRE : EXEC_MODE_IMPERATIVE_POST ); }
@@ -65,14 +60,7 @@ struct BELStatementParsed {
 
     int getExecMode() const { return d_execMode; }
     bool isImperativeExec() const { return d_execMode!= EXEC_MODE_REWRITE; }
-	void clear()
-    { 
-        d_tranUnmatchable= 0;
-        d_confidenceBoost=0;
-        d_execMode=EXEC_MODE_REWRITE;
-        pattern.clear(); 
-        translation.clear(); 
-    }
+	void clear();
     BELReader* getReader() const { return const_cast<BELReader*>(d_reader); }
     std::ostream& getErrStream() const;
 
@@ -84,18 +72,12 @@ struct BELStatementParsed {
 		d_sourceName.assign( srcName );
 	}
 
-    void setRuleClashOverride( bool x = true ) { d_ruleClashOverride=x; }
-    bool ruleClashOverride( ) const { return (d_ruleClashOverride); }
+    void setRuleClashOverride( const char* str ) ;
+    int ruleClashOverride( ) const { return (d_ruleClashOverride); }
 
 	void stmtNumberIncrement() { ++d_stmtNumber; }
 
-	size_t setStmtNumber( size_t num = 0) {
-		if( num )
-			d_stmtNumber = num;
-		else
-			++d_stmtNumber;
-		return d_stmtNumber;
-	}
+	size_t setStmtNumber( size_t num = 0);
 
 	uint32_t getSourceNameStrId()  const { return d_sourceNameStrId; }
 	size_t getStmtNumber() const { return d_stmtNumber; }

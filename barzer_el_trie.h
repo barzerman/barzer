@@ -248,8 +248,10 @@ public:
 		T_COMPWORD, // compounded word
 		T_NUMBER_INT, // integer
 		T_NUMBER_REAL, // real number (float)
+        
 		/// this one is very special - this actually creates a tree
 		T_REWRITER, // interpreted sequence
+		T_RAWTREE, // BELParseTreeNode as is (faster to compute)   
 
 		T_BLANK,    // blank literal
 		T_PUNCT,    // punctuation
@@ -304,6 +306,11 @@ public:
         return 1;
 	}
 
+	void setRawTree( uint32_t rid )
+	{
+		type = T_RAWTREE;
+		id = rid;
+	}
 	void setRewriter( uint32_t rid )
 	{
 		type = T_REWRITER;
@@ -326,6 +333,7 @@ public:
 	bool isMkEntList() const  { return ( type == T_MKENTLIST ); }
     bool isEntity() const { return ( isMkEntSingle() || isMkEntList() ); }
 	bool isRewriter() const  { return ( type == T_REWRITER ); }
+	bool isRawTree() const  { return ( type == T_RAWTREE ); }
 
 	// returns if evaluation may theoretically fail - theoretically some rewrites may
 	// contain things such as entity searches or other operations resulting in entity lists

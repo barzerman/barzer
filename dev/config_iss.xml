@@ -6,12 +6,6 @@
     </dictionaries>
     <users>
         <user id="0">
-            <!-- 
-            <zurch>
-                <index xml="/Users/yanis/barzer/data/ArtDocExport.xml"/>
-            </zurch>
-            <spell soundslike="yes"><tokenizer strat="SPACE_DEFAULT"/></spell>
-            -->
             <flags value="c"/>
             <spell dictcorr="yes"><tokenizer strat="SPACE_DEFAULT"/></spell>
 
@@ -20,19 +14,5 @@
                 <trie class="" name="shit" />
             </trieset>
 		</user>
-        <!--
-        <user id="1">
-			<rules>
-				<file class="class1" name="sepulka" >data/vendor/sepulka/rules/sepulka.xml</file>
-				<file class="class1" name="sepulka_auto" >data/vendor/sepulka/rules/sepulka_auto.xml</file>
-			</rules>
-            <trieset>
-                <trie class="" name="" />
-                <trie class="class1" name="sepulka" />
-                <trie class="class1" name="sepulka_auto" />
-                <trie class="" name="fluff" />
-            </trieset>
-        </user>
-        -->
     </users>
 </config>

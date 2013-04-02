@@ -1331,7 +1331,7 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 
 	BarzelEvalResult transResult;
 	BarzelEvalNode evalNode;
-
+    const BarzelEvalNode* evalNodePtr = &evalNode;
 	//AYDEBUG( matchInfo.getSubstitutionBeadRange() );
 	BarzelEvalContext ctxt( matchInfo, universe, d_trie, barz );
     
@@ -1354,6 +1354,14 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 			return 0;
 		}
 		/// end of custom rewriter handling
+	} else if( translation.isRawTree() ){  /// raw tree (no byte encoding) 
+        if( const BarzelEvalNode* rawNode = d_trie.getRewriterPool().getRawNode(translation) ) {
+            evalNodePtr = rawNode;
+        } else {
+			AYLOG(ERROR) << "raw node not found" << std::endl;
+			theBead.setStopLiteral();
+			return 0;
+        }
 	} else {  /// trivial translation (non-rewrite - no bytecode there)
 
 		// creating a childless evalNode
@@ -1362,7 +1370,7 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
     if( lastFrameLoop )
         barz.setError( "loop detected" );
 
-	if( !evalNode.eval( transResult, ctxt ) ) {
+	if( !evalNodePtr->eval( transResult, ctxt ) ) {
         barz.setError( "evaluation failed" );
 		// d_trie.printTanslationTraceInfo( AYLOG(ERROR) << "evaluation failed:" , transP->traceInfo );
         if( translation.makeUnmatchable )

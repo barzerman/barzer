@@ -379,10 +379,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 				REPORT_ATTR
 			break;
         case 'o':
-            if( v && v[0] != 'n'&&v[0]!='N' ) 
-                statement.stmt.setRuleClashOverride();
-			else
-				REPORT_ATTR
+            statement.stmt.setRuleClashOverride(v);
             break;
 		case 'x':  // pipe separated tags
             if( !*v )
