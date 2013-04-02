@@ -16,8 +16,7 @@ namespace barzer {
 
 void BarzelRewriterPool::clear()
 {
-	for( BufAndSizeVec::iterator i = encVec.begin(); i!= encVec.end(); ++i ) 
-		free((uint8_t*)(i->first));
+    rawNodesVec.clear();
 }
 
 BarzelRewriterPool::~BarzelRewriterPool()
@@ -85,13 +84,6 @@ template<> bool CaseFinder::operator()<BTND_Rewrite_Case>(const BTND_Rewrite_Cas
 
 } // anon namespace ends 
 
-bool  BarzelRewriterPool::isRewriteFallible( const BarzelRewriterPool::BufAndSize& bas ) const 
-{
-	Fallible fallible;
-	BarzelRewriteByteCodeProcessor<Fallible> processor(fallible,bas);
-	return fallible.isThatSo;
-}
-
 int  BarzelRewriterPool::encodeParseTreeNode( BarzelEvalNode& evNode, const BELParseTreeNode& ptn ) 
 {
     if( const BTND_RewriteData* rd = ptn.getRewriteData() ) {
@@ -118,38 +110,6 @@ int  BarzelRewriterPool::encodeParseTreeNode( BarzelEvalNode& evNode, const BELP
     return 0;
 }
 
-int  BarzelRewriterPool::encodeParseTreeNode( BarzelRewriterPool::byte_vec& trans, const BELParseTreeNode& ptn ) 
-{
-	// for every node push node_start_byte, then BTND_Rewrite (the whole variant) (otn.getNodeData() ) - memcpy, then node end byte
-
-	trans.push_back( (uint8_t)barzel::RWR_NODE_START );
-	//std::cerr << "(";
-	const BTND_RewriteData* rd = ptn.getRewriteData();
-	if( !rd ) 
-		return ERR_ENCODING_FAILED;
-
-	const uint8_t* rdBuf = (const uint8_t*) rd;
-	size_t dta_sz = sizeof(BTND_RewriteData);
-	trans.insert( trans.end(), rdBuf, rdBuf+dta_sz);
-	//std::cerr << "BTND_RewriteData[" << rd->which() << ":" << dta_sz << "]";
-
-	BELParseTreeNode::ChildrenVec child = ptn.child;
-	if (rd->which() == BTND_Rewrite_Select_TYPE) {
-	    std::stable_sort(child.begin(), child.end(), CaseComparator());
-	}
-
-	for( BELParseTreeNode::ChildrenVec::const_iterator ch = child.begin(),
-	                                                       chend = child.end();
-	                                                ch != chend; ++ch ) {
-		int rc =encodeParseTreeNode( trans, *ch );
-		if( rc ) 
-			return rc; // error
-	}
-	trans.push_back( (uint8_t)barzel::RWR_NODE_END );
-	//std::cerr << ")";
-	return ERR_OK;
-}
-
 BarzelEvalNode* BarzelRewriterPool::getRawNode( const BarzelTranslation& trans ) 
 {
     return (  (trans.isRawTree() && trans.getRewriterId( )< rawNodesVec.size()) ? 
@@ -163,19 +123,6 @@ const BarzelEvalNode* BarzelRewriterPool::getRawNode( const BarzelTranslation& t
         &(rawNodesVec[ trans.getRewriterId( ) ]) : 0
     );
 }
-bool BarzelRewriterPool::resolveTranslation( BarzelRewriterPool::BufAndSize& bas, const BarzelTranslation& trans ) const
-{
-    if( !trans.isRewriter() ) {
-        return ( bas = BarzelRewriterPool::BufAndSize(0,0), false );
-    }
-        
-	uint32_t rid = trans.getRewriterId( );
-	if( rid < encVec.size() ) 
-		return ( bas = encVec[rid], true );
-	else 
-		return ( bas = BarzelRewriterPool::BufAndSize(0,0), false );
-		
-}
 
 uint32_t BarzelRewriterPool::poolNewRawNode( const BarzelEvalNode& evn )
 {
@@ -183,28 +130,12 @@ uint32_t BarzelRewriterPool::poolNewRawNode( const BarzelEvalNode& evn )
     return rawNodesVec.size()-1; 
 }
 
-uint32_t BarzelRewriterPool::poolNewBuf( const uint8_t* s, uint32_t sz )
-{
-    uint8_t* buf = (uint8_t*)malloc(sz);
-    memcpy( buf, s,sz);
-    encVec.push_back( BufAndSize( buf, sz) );
-    return (encVec.size() -1);
-}
 
-int BarzelRewriterPool::produceTranslation_old( BarzelTranslation& trans, const BELParseTreeNode& ptn )
+bool BarzelEvalNode::equal( const BarzelEvalNode& o )  const
 {
-	byte_vec enc;
-	if( !encodeParseTreeNode(enc,ptn) ) {
-		if( enc.size() ) {
-			uint32_t rewrId = poolNewBuf( &(enc[0]), enc.size() );
-			trans.setRewriter( rewrId );
-			return ERR_OK;
-		} else {
-			AYTRACE( "inconsistent encoding produced");
-			return ERR_ENCODING_INCONSISTENT;
-		}
-	} else
-			return ERR_ENCODING_FAILED;
+    if( BTND_RewriteData_equal(d_btnd, o.d_btnd) )
+        return true;
+    return false;
 }
 int BarzelRewriterPool::produceTranslation( BarzelTranslation& trans, const BELParseTreeNode& ptn )
 {
@@ -676,41 +607,6 @@ const BTND_Rewrite_Control* BarzelEvalNode::isComma( ) const
     return( (ctrl && ctrl->isComma()) ? ctrl:0 ); 
 }
 
-bool BarzelEvalNode::growTree( const BarzelRewriterPool::BufAndSize& bas, int& ctxtErr )
-{
-    ByteRange brng( bas.first, bas.first+ bas.second );
-    return( growTree_recursive( brng, ctxtErr ) !=0 ) ;
-}
-
-const uint8_t* BarzelEvalNode::growTree_recursive( BarzelEvalNode::ByteRange& brng, int& ctxtErr )
-{
-	const uint8_t* buf = brng.first;
-	const uint16_t childStep_sz = 1 + sizeof(BTND_RewriteData);
-	for( ; buf < brng.second; ++buf) {
-
-		switch( *buf ) {
-		case barzel::RWR_NODE_START: {
-			if( buf + childStep_sz >= brng.second ) 
-				return ( ctxtErr = BarzelEvalContext::EVALERR_GROW, (const uint8_t*)0 );
-
-			BTND_RewriteData *rdp = (BTND_RewriteData*)(buf+1);
-			d_child.push_back(*rdp);
-
-			BarzelEvalNode::ByteRange childRange( (buf + childStep_sz ), brng.second);
-			buf = d_child.back().growTree_recursive( childRange, ctxtErr );
-			if( !buf ) 
-				return ( ctxtErr = BarzelEvalContext::EVALERR_GROW, (const uint8_t*)0 );
-		}
-			break;
-		case barzel::RWR_NODE_END:
-			return ( ctxtErr = BarzelEvalContext::EVALERR_OK, buf );
-		default:
-			return ( ctxtErr = BarzelEvalContext::EVALERR_GROW, (const uint8_t*)0 );
-		}
-	}
-	return ( ctxtErr = BarzelEvalContext::EVALERR_OK, buf ); 
-}
-
 namespace {
 
 struct BTND_RewriteData_printer : public boost::static_visitor<> {
@@ -728,27 +624,6 @@ template <> void BTND_RewriteData_printer::operator()<BTND_Rewrite_DateTime>( co
 template <> void BTND_RewriteData_printer::operator()<BTND_Rewrite_EntitySearch>( const BTND_Rewrite_EntitySearch& t ) const 
 { fp << "EntSearch"; }
 } // anon namespace 
-
-	bool BRBCPrintCB::nodeData( const BTND_RewriteData& d )
-	{
-		BTND_RewriteData_printer printer(fp, ctxt);
-		boost::apply_visitor( printer, d );
-		return true;
-	}
-
-	bool BRBCPrintCB::nodeStart() 
-	{
-		fp << prefix << "(\n"; 
-		prefix.append( 4, ' ' );
-		return true;
-	}
-	bool BRBCPrintCB::nodeEnd() 
-	{
-		fp << prefix << ")\n"; 
-		if( prefix.length() >= 4 )  prefix.resize(prefix.size()-4); 
-		return true; 
-	}
-
 
 const RequestEnvironment* BarzelEvalContext::getRequestEnvironment() { return d_barz.getServerReqEnv(); }
 BarzelEvalContext& BarzelEvalContext::pushBarzelError( const char* err )

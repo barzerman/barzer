@@ -14,6 +14,10 @@ namespace barzer {
 struct BTND_Rewrite_Literal : public  BarzerLiteral {
 	std::ostream& print( std::ostream& fp, const BELPrintContext& ctxt ) const
 		{ return BarzerLiteral::print( fp, ctxt ); }
+    bool isEqual( const BTND_Rewrite_Literal& o ) const 
+        { return static_cast<const BarzerLiteral*>(this)->isEqual( *(static_cast<const BarzerLiteral*>(&o)) ); }
+    
+    bool operator==( const BTND_Rewrite_Literal& o ) const { return isEqual(o); }
 };
 
 struct BTND_Rewrite_Number : public BarzerNumber {
@@ -38,11 +42,17 @@ struct BTND_Rewrite_Number : public BarzerNumber {
 	{
 		x = *(static_cast<const BarzerNumber*>(this));
 	}
+    bool isEqual( const BTND_Rewrite_Number& o ) const 
+        { return (isConst == o.isConst && static_cast<const BarzerNumber*>(this)->isEqual( *(static_cast<const BarzerNumber*>(&o))) ); }
+    bool operator==( const BTND_Rewrite_Number& o ) const { return isEqual(o); }
 };
 /// this is a runtime rewrite - potentially large type 
 /// it's not stored but constructed on the fly in the matcher
 struct BTND_Rewrite_RuntimeEntlist {
     BarzerEntityList lst;
+    bool isEqual( const BTND_Rewrite_RuntimeEntlist& o ) const 
+        { return lst.isEqual( o.lst ); }
+    bool operator==( const BTND_Rewrite_RuntimeEntlist& o ) const { return isEqual(o); }
 };
 struct BTND_Rewrite_MkEnt {
 	uint32_t d_entId;
@@ -54,7 +64,9 @@ struct BTND_Rewrite_MkEnt {
 	};
 	uint8_t  d_mode;
 
-
+    bool isEqual( const BTND_Rewrite_MkEnt& o ) const
+        { return (d_entId == o.d_entId && d_mode == o.d_mode ); }
+    bool operator==( const BTND_Rewrite_MkEnt& o ) const { return isEqual(o); }
 	BTND_Rewrite_MkEnt() : d_entId(0xffffffff), d_mode(MODE_SINGLE_ENT) {}
 	
 	bool isValid() const { return (d_entId != 0xffffffff); }
@@ -119,6 +131,9 @@ struct BTND_Rewrite_Variable {
 		idMode(MODE_WC_NUMBER), 
 		varId(0xffffffff) 
 	{}
+    bool isEqual(  const BTND_Rewrite_Variable& o ) const 
+        { return( idMode == o.idMode && varId == o.varId); }
+    bool operator==( const BTND_Rewrite_Variable& o ) const { return isEqual(o); }
 };
 
 struct RewriteVariableMode {
@@ -136,6 +151,9 @@ struct BTND_Rewrite_Function {
 
     uint8_t  d_varMode; // VARMODE_XXX 
 
+    bool isEqual( const BTND_Rewrite_Function & o ) const 
+        { return (nameId == o.nameId && argStrId == o.argStrId && varId == o.varId); }
+    bool operator==( const BTND_Rewrite_Function& o ) const { return isEqual(o); }
 	void setNameId( uint32_t i ) { nameId = i ; }
 	uint32_t getNameId() const { return nameId; }
 
@@ -179,6 +197,9 @@ struct BTND_Rewrite_Select {
         : varId(vid) {}
 
     std::ostream& print( std::ostream&, const BELPrintContext& ) const;
+    bool isEqual( const BTND_Rewrite_Select& o )  const 
+        { return varId == o.varId; }
+    bool operator==( const BTND_Rewrite_Select& o ) const { return isEqual(o); }
 };
 
 
@@ -187,6 +208,9 @@ struct BTND_Rewrite_Case {
     BTND_Rewrite_Case(uint32_t id = 0xffffffff) : ltrlId(id) {}
 
     std::ostream& print( std::ostream&, const BELPrintContext& ) const;
+    bool isEqual( const BTND_Rewrite_Case& o ) const 
+        { return ltrlId == o.ltrlId; }
+    bool operator==( const BTND_Rewrite_Case& o ) const { return isEqual(o); }
 };
 
 struct BTND_Rewrite_Logic {
@@ -197,6 +221,9 @@ struct BTND_Rewrite_Logic {
         { type = t; }
     BTND_Rewrite_Logic(): type(AND) {}
     std::ostream& print( std::ostream&, const BELPrintContext& ) const;
+    
+    bool isEqual( const BTND_Rewrite_Logic& o ) const { return type == o.type; }
+    bool operator==( const BTND_Rewrite_Logic& o ) const { return isEqual(o); }
 };
 
 // blank rewrite data type
@@ -204,17 +231,28 @@ struct BTND_Rewrite_None {
 	std::ostream& print( std::ostream&, const BELPrintContext& ) const;
 	int dummy;
 	BTND_Rewrite_None() : dummy(0) {}
+    bool isEqual( const BTND_Rewrite_None& o ) const { return true; }
+    bool operator==( const BTND_Rewrite_None& o ) const { return isEqual(o); }
 };
+
+
 /// absolute date will always default to today
 /// if it has child nodes it will be 
 struct BTND_Rewrite_AbsoluteDate : public BarzerDate {
 	std::ostream& print( std::ostream& fp, const BELPrintContext& ) const
 		{ return BarzerDate::print( fp ); }
+
+    bool isEqual( const BTND_Rewrite_AbsoluteDate& o ) const
+        { return static_cast<const BarzerDate*>(this)->isEqual( *(static_cast<const BarzerDate*>(&o)) ); }
+    bool operator==( const BTND_Rewrite_AbsoluteDate& o ) const { return isEqual(o); }
 };
 
 struct BTND_Rewrite_TimeOfDay : public BarzerTimeOfDay {
 	std::ostream& print( std::ostream& fp, const BELPrintContext& ) const
 		{ return BarzerTimeOfDay::print( fp ); }
+    bool isEqual( const BTND_Rewrite_TimeOfDay& o ) const
+        { return static_cast<const BarzerTimeOfDay*>(this)->isEqual( *(static_cast<const BarzerTimeOfDay*>(&o)) ); }
+    bool operator==( const BTND_Rewrite_TimeOfDay& o ) const { return isEqual(o); }
 };
 
 enum {
@@ -227,6 +265,9 @@ enum {
 struct BTND_Rewrite_Range : public BarzerRange {
 	std::ostream& print( std::ostream& fp, const BELPrintContext& ) const
 		{ return BarzerRange::print( fp ); }
+    bool isEqual( const BTND_Rewrite_Range& o ) const
+        { return static_cast<const BarzerRange*>(this)->isEqual( *(static_cast<const BarzerRange*>(&o)) ); }
+    bool operator==( const BTND_Rewrite_Range& o ) const { return isEqual(o); }
 };
 
 /// only makes sense when it's underneath BTND_Rewrite_EntitySearch_Srch
@@ -244,6 +285,9 @@ struct BTND_Rewrite_EntitySearch_ClassFilter {
 		{ return fp << std::hex << d_entClass << ":" << std::hex << d_entSubclass; }
 	std::ostream& print( std::ostream& fp, const BELPrintContext& ) const
 		{ return print(fp); }
+    bool isEqual( const BTND_Rewrite_EntitySearch_ClassFilter& o ) const 
+        { return (d_entClass==o.d_entClass && d_entSubclass == o.d_entSubclass); }
+    bool operator==( const BTND_Rewrite_EntitySearch_ClassFilter& o ) const { return isEqual(o); }
 };
 
 /// runs entity search based on subordinate BTND_Rewrite_EntitySearch_Arg_XXX nodes
@@ -252,6 +296,8 @@ struct BTND_Rewrite_EntitySearch_Srch {
 		{ return fp << "EntSearch"; }
 	std::ostream& print( std::ostream& fp, const BELPrintContext& ) const
 		{ return print(fp); }
+    bool isEqual( const BTND_Rewrite_EntitySearch_Srch& o ) const { return true; }
+    bool operator==( const BTND_Rewrite_EntitySearch_Srch& o ) const { return isEqual(o); }
 };
 
 typedef boost::variant<
@@ -282,6 +328,14 @@ struct BTND_Rewrite_Control {
     uint16_t d_rwctlt; // RWCTLT_XXXX
     uint32_t d_varId;  //  default 0xffffffff - when set results will be also added to the variable 
     uint8_t  d_varMode;
+    
+    bool isEqual( const BTND_Rewrite_Control& o ) const 
+    {
+        return( d_rwctlt == d_rwctlt &&
+        d_varId == d_varId &&
+        d_varMode == d_varMode);
+    }
+    bool operator==( const BTND_Rewrite_Control& o ) const { return isEqual(o); }
 
     void setVarModeRequest( ) { d_varMode=VARMODE_REQUEST; }
     bool isReqVar() const    { return (d_varMode== VARMODE_REQUEST); }
@@ -326,6 +380,8 @@ typedef boost::variant<
     BTND_Rewrite_Control,
     BTND_Rewrite_RuntimeEntlist
 > BTND_RewriteData;
+
+bool BTND_RewriteData_equal( const BTND_RewriteData& l, const BTND_RewriteData& r );
 
 enum {
 	BTND_Rewrite_None_TYPE,

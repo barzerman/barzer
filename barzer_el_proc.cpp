@@ -21,30 +21,10 @@ int BarzelProcs::generateStoredProc( uint32_t nameStrId, const BELParseTreeNode&
 	if( !wasNew ) 
 		return ERR_DUP;
 
-	BarzelTranslation tran;
-	BarzelRewriterPool::byte_vec enc;
-
-	int encRc = tran.encodeIt( enc, d_trie, ptn );
-	switch( encRc ) {
-	case BarzelTranslation::ENCOD_REWRITER:
-	{
-		if( enc.size() ) {
-			BarzelRewriterPool::BufAndSize bas;
-			BarzelRewriterPool::byte_vec2bas( bas, enc );
-			int ctxtErr = BarzelEvalContext::EVALERR_OK;
-			ben.growTree( bas, ctxtErr );
-		} else {
-			AYLOG(ERROR) << "encoder inconsistency\n";
-			return ERR_INTERNAL;
-		}
-	}
-		break;
-	case BarzelTranslation::ENCOD_TRIVIAL:
-		// proc cannot consist of a trivial operator 
-		return ERR_TRIVIAL;
-	default:
-		return ERR_INTERNAL;
-	}
+    if( BarzelRewriterPool::encodeParseTreeNode( ben, ptn ) != BarzelRewriterPool::ERR_OK ) {
+        AYLOG(ERROR) << "encoder inconsistency\n";
+        return ERR_INTERNAL;
+    }
 	
 	return ERR_OK;
 }

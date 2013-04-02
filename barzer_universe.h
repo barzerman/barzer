@@ -329,16 +329,8 @@ public:
 	const char* printableStringById( uint32_t id )  const
 		{ return gp.stringPool.printableStr(id); }
 
-	bool getBarzelRewriter( const BELTrie& trie, BarzelRewriterPool::BufAndSize& bas, const BarzelTranslation& tran ) const
-	{
-		if( tran.isRewriter() )
-			return getRewriterPool(trie).resolveTranslation( bas, tran );
-		else
-			return ( bas = BarzelRewriterPool::BufAndSize(), false );
-	}
-
 	bool isBarzelTranslationFallible( const BELTrie& trie, const BarzelTranslation& tran ) const {
-		return tran.isFallible( getRewriterPool(trie) );
+		return trie.isTranslationFallible( tran );
 	}
 
 	const BELFunctionStorage& getFunctionStorage() const { return gp.funSt; }

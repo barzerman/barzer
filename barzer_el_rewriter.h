@@ -27,32 +27,19 @@ struct RequestEnvironment;
 /// the pool stores binary buffers with barzel rewrite instructions
 /// these buffers are used to build BarzelRewriteTree objects on the fly 
 class BarzelRewriterPool {
-public:
-	// typedef BELParseTreeNode BufAndSize;
-	typedef std::pair<const uint8_t*, uint32_t> BufAndSize;
-	typedef std::vector<uint8_t> byte_vec;
-	typedef std::vector< BufAndSize > BufAndSizeVec;
-	
-	inline static void byte_vec2bas( BufAndSize& bas, byte_vec& bv ) 
-	{
-		bas.first = &(bv[0]);
-		bas.second = bv.size();
-	}
 private:
-	BufAndSizeVec encVec;
+	// BufAndSizeVec encVec;
     std::vector< BarzelEvalNode > rawNodesVec;
     
     
 	uint32_t poolNewRawNode( const BarzelEvalNode& evn );
-	uint32_t poolNewBuf( const uint8_t* s, uint32_t sz );
 public:
-	static int  encodeParseTreeNode( BarzelRewriterPool::byte_vec& trans, const BELParseTreeNode& ptn );
 	static int  encodeParseTreeNode( BarzelEvalNode& evNode, const BELParseTreeNode& ptn );
 
 	void clear();
 	~BarzelRewriterPool();
 	BarzelRewriterPool( size_t reserveSz ) 
-		{ encVec.reserve( reserveSz ) ; }
+		{ rawNodesVec.reserve( reserveSz ) ; }
 
 
 	enum {
@@ -62,19 +49,9 @@ public:
 	};
 	// returns one of the ERR_XXX enums
 	int produceTranslation( BarzelTranslation& , const BELParseTreeNode& ptn );
-	int produceTranslation_old( BarzelTranslation& , const BELParseTreeNode& ptn );
 
     const BarzelEvalNode* getRawNode( const BarzelTranslation& trans ) const;
     BarzelEvalNode* getRawNode( const BarzelTranslation& trans );
-
-	/// when translation contained valid rewriter buffer returns true
-	/// otherwise 0
-	bool resolveTranslation( BufAndSize&, const BarzelTranslation& trans ) const;
-	/// returns true if any EntitySearch rewrites are encountered anywhere 
-	/// in the encoding - this performs a linear scan 
-	/// of the rewrite bytecode . even if this function returns true the rewrite 
-	/// may still never fail. this is a quick way to check though during matching 
-	bool isRewriteFallible( const BufAndSize& bas ) const;
 };
 
 
@@ -337,8 +314,6 @@ protected:
 public:
 	typedef std::pair< const uint8_t*, const uint8_t* > ByteRange;
 private:
-	const uint8_t* growTree_recursive( ByteRange& brng, int& ctxtErr );
-	
 	bool isSubstitutionParm( size_t& pos ) const;
 	bool eval_comma(BarzelEvalResult&, BarzelEvalContext& ctxt ) const;
 public:
@@ -350,6 +325,11 @@ public:
 	BTND_RewriteData& getBtnd() { return d_btnd; }
 	ChildVec& getChild() { return d_child; }
 
+    BarzelEvalNode& addChild(const BarzelEvalNode& o) 
+    {
+        d_child.push_back(o);
+        return d_child.back();
+    }
     BarzelEvalNode& addChild() 
     {
         d_child.resize( d_child.size()+1 );
@@ -363,78 +343,30 @@ public:
 	BarzelEvalNode() {}
 	BarzelEvalNode( const BTND_RewriteData& b ) : d_btnd(b) {}
 
-	/// construct the tree from the byte buffer created in encode ... 
-	/// returns true is tree was constructed successfully
-	bool growTree( const BarzelRewriterPool::BufAndSize& bas, int& ctxtErr );
 	/// returns true if evaluation is successful 
 	bool eval(BarzelEvalResult&, BarzelEvalContext& ctxt ) const;
 
     const BTND_Rewrite_Control* isComma( ) const ;
-};
-//// T must have methods:
-////   bool T::nodeStart()
-////   bool T::nodeEnd()
-////   bool T::nodeData( const BTND_RewriteData& ) 
-////   false returned from any of these functions aborts processing
 
-template <typename T>
-struct BarzelRewriteByteCodeProcessor {
-	
-	BarzelEvalNode::ByteRange d_rng;
-	T& d_cb;
+    bool equal( const BarzelEvalNode& other ) const;
 
-	BarzelRewriteByteCodeProcessor( T& cb, const BarzelRewriterPool::BufAndSize& bas ) :
-		d_rng(bas.first, bas.first+bas.second),
-		d_cb(cb)
-	{}
-	BarzelRewriteByteCodeProcessor( T& cb, const BarzelEvalNode::ByteRange r ) :
-		d_rng(r),
-		d_cb(cb)
-	{}
-	
-	const uint8_t* run( ){
-		const uint8_t* buf = d_rng.first;
-		const uint16_t childStep_sz = 1 + sizeof(BTND_RewriteData);
-		//uint8_t tmp[ sizeof(BTND_RewriteData) ];
-		for( ; buf < d_rng.second; ++buf ) {
-	
-			switch( *buf ) {
-			case barzel::RWR_NODE_START: {
-				if( buf + childStep_sz >= d_rng.second ) 
-					return 0;
-				if( !d_cb.nodeStart() )
-					return 0;
+    const BarzelEvalNode* getSameChild( const BarzelEvalNode& other ) const
+    {
+        for( const auto& i : d_child ) {
+            if( i.equal(other) )
+                return &(i);
+        }
+        return 0;
+    }
+    BarzelEvalNode* getSameChild( const BarzelEvalNode& other ) 
+    {
+        for( auto& i : d_child ) {
+            if( i.equal(other) )
+                return &(i);
+        }
+        return 0;
+    }
 
-				//memcpy( tmp, buf+1, sizeof(tmp) );
-				//if( !d_cb.nodeData( *(new(tmp) BTND_RewriteData()) ) )
-					//return 0;
-				if( !d_cb.nodeData( *(BTND_RewriteData*)(buf+1) )) return 0;
-	
-				BarzelEvalNode::ByteRange childRange( (buf + childStep_sz ), d_rng.second);
-				BarzelRewriteByteCodeProcessor proc( d_cb, childRange );
-				buf = proc.run();
-				if( !buf ) 
-					return 0;
-			}
-				break;
-			case barzel::RWR_NODE_END:
-				return( d_cb.nodeEnd() ? buf : 0 ) ;
-			default:
-				return 0;
-			}
-		}
-		return 0;
-	}
-};
-struct BRBCPrintCB {
-	mutable std::string   prefix;
-	std::ostream& fp;
-	const BELPrintContext& ctxt;
-
-	BRBCPrintCB( std::ostream& f, const BELPrintContext& c ) : fp(f),ctxt(c) {}
-	bool nodeStart();
-	bool nodeEnd();
-	bool nodeData( const BTND_RewriteData& d );
 };
 	
 } // barzer namespace 

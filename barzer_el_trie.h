@@ -250,7 +250,6 @@ public:
 		T_NUMBER_REAL, // real number (float)
         
 		/// this one is very special - this actually creates a tree
-		T_REWRITER, // interpreted sequence
 		T_RAWTREE, // BELParseTreeNode as is (faster to compute)   
 
 		T_BLANK,    // blank literal
@@ -288,12 +287,9 @@ public:
 
 	enum {
 		ENCOD_FAILED = -1,
-		ENCOD_REWRITER=0,
+		ENCOD_RAWTREE=0,
 		ENCOD_TRIVIAL
 	};
-	/// returns one of th ENCOD_XXX constants
-	int encodeIt( BarzelRewriterPool::byte_vec& enc, BELTrie& trie, const BELParseTreeNode& );
-
 	int set( BELTrie& trie, const BELParseTreeNode& );
 
 	void setStop() { type = T_STOP; }
@@ -311,15 +307,10 @@ public:
 		type = T_RAWTREE;
 		id = rid;
 	}
-	void setRewriter( uint32_t rid )
-	{
-		type = T_REWRITER;
-		id = rid;
-	}
 
 	uint8_t getType() const { return type; }
 	uint32_t getRewriterId() const
-        { return ( (type==T_RAWTREE||type == T_REWRITER) ? boost::get<uint32_t>(id) : 0xffffffff ); }
+        { return ( (type==T_RAWTREE) ? boost::get<uint32_t>(id) : 0xffffffff ); }
 
 	uint32_t getId_uint32() const { return ( id.which() ==0 ? boost::get<uint32_t>(id) : 0xffffffff ); }
 	int64_t getId_int() const { return ( id.which() ==2  ? boost::get<int64_t>(id) : 0 ); }
@@ -331,22 +322,11 @@ public:
 	bool isMkEntSingle() const  { return ( type == T_MKENT ); }
 	bool isMkEntList() const  { return ( type == T_MKENTLIST ); }
     bool isEntity() const { return ( isMkEntSingle() || isMkEntList() ); }
-	bool isRewriter() const  { return ( type == T_REWRITER ); }
 	bool isRawTree() const  { return ( type == T_RAWTREE ); }
-
-	// returns if evaluation may theoretically fail - theoretically some rewrites may
-	// contain things such as entity searches or other operations resulting in entity lists
-	// as well as potentially fail conditions - post check may be more complicated than the
-	// initial wildcard matching check
-	// this function answers in principle whether the right side may theoretically fail
-	// this check is very cheap because no actual evaluation is performed
-	bool isFallible(const BarzelRewriterPool& rwrPool) const
-		{ return( type != T_REWRITER ? false : isRewriteFallible( rwrPool ) ); }
 
 	/// resolves
 	void fillRewriteData( BTND_RewriteData& ) const;
 
-	bool isRewriteFallible( const BarzelRewriterPool& pool ) const;
 	bool nonEmpty() const
 		{ return ( type != T_NONE ); }
 	BarzelTranslation() : id( 0xffffffff ) , type(T_NONE), makeUnmatchable(0), argStrId(0xffffffff), confidenceBoost(0) {}
@@ -640,6 +620,9 @@ public:
 	const BarzelTranslation* getBarzelTranslation( const BarzelTrieNode& node ) const { return d_tranPool->getObjById(node.getTranslationId()); }
 		  BarzelTranslation* getBarzelTranslation( const BarzelTrieNode& node ) 	   { return d_tranPool->getObjById(node.getTranslationId()); }
 
+    // for future use if we ever have "fallible" translations - the ones that we know may fail
+    bool isTranslationFallible( const BarzelTranslation& tran ) const
+        { return false; }
 	/// tries to add another translation to the existing one.
 	/// initially this will only work for entity lists
 	bool tryAddingTranslation( BarzelTrieNode* n, uint32_t tranId, const BELStatementParsed& stmt, uint32_t emitterSeqNo );
@@ -750,7 +733,6 @@ struct BELPrintContext {
 
 	std::ostream& printBarzelWCLookupKey( std::ostream& fp, const BarzelWCLookupKey& key ) const;
 
-	// std::ostream& printRewriterByteCode( std::ostream& fp, const BarzelRewriterPool::BufAndSize& );
 	std::ostream& printRewriterByteCode( std::ostream& fp, const BarzelTranslation& ) const;
 };
 

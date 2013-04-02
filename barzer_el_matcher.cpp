@@ -13,7 +13,7 @@ namespace barzer {
 
 void BarzelMatchAmbiguities::addEntity( const BELTrie& trie, const BarzelTranslation& translation )
 {
-	if( !translation.isRewriter() ) { /// translation is trivial non-rewriter 
+	if( !translation.isRawTree() ) { /// translation is trivial non-rewriter 
         BTND_RewriteData rwr;
 		translation.fillRewriteData( rwr );
         if( rwr.which() == BTND_Rewrite_MkEnt_TYPE ) {
@@ -1339,21 +1339,6 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
         BTND_Rewrite_RuntimeEntlist rtEntList;
         rtEntList.lst = ru.first.ambiguities().getEntList();
         evalNode.getBtnd() =rtEntList;
-    } else if( translation.isRewriter() ) { /// translation is a rewriter
-		BarzelRewriterPool::BufAndSize bas;
-		if( !universe.getBarzelRewriter( d_trie,bas, translation )) {
-			AYLOG(ERROR) << "no bytecode in rewriter" << std::endl;
-			theBead.setStopLiteral();
-			return 0;
-		}
-
-		/// constructing eval tree
-		if( !evalNode.growTree( bas, ctxt.err ) ) {
-			AYLOG(ERROR) << "eval tree construction failed" << std::endl;
-			theBead.setStopLiteral();
-			return 0;
-		}
-		/// end of custom rewriter handling
 	} else if( translation.isRawTree() ){  /// raw tree (no byte encoding) 
         if( const BarzelEvalNode* rawNode = d_trie.getRewriterPool().getRawNode(translation) ) {
             evalNodePtr = rawNode;
@@ -1470,28 +1455,22 @@ int BarzelMatcher::imperativeRewrite(Barz& barz, const BELTrieImperative& impera
 
 	BarzelEvalResult transResult;
 	BarzelEvalNode evalNode;
+    const BarzelEvalNode* evalNodePtr = &evalNode;
 
 	BarzelEvalContext ctxt( matchInfo, universe, d_trie, barz );
     
-    if( translation.isRewriter() ) { /// translation is a rewriter
-		BarzelRewriterPool::BufAndSize bas;
-		if( !universe.getBarzelRewriter( d_trie,bas, translation )) {
-			AYLOG(ERROR) << "no bytecode in rewriter" << std::endl;
+    if( translation.isRawTree() ) { /// translation is a raw tree rewriter
+        if( const BarzelEvalNode* rawNode = d_trie.getRewriterPool().getRawNode(translation) ) {
+            evalNodePtr = rawNode;
+        } else {
+			AYLOG(ERROR) << "raw node not found" << std::endl;
 			theBead.setStopLiteral();
 			return 0;
-		}
-
-		/// constructing eval tree
-		if( !evalNode.growTree( bas, ctxt.err ) ) {
-			AYLOG(ERROR) << "eval tree construction failed" << std::endl;
-			theBead.setStopLiteral();
-			return 0;
-		}
-		/// end of custom rewriter handling
+        }
 	} else /// trivial translation (non-rewrite - no bytecode there)
 		translation.fillRewriteData( evalNode.getBtnd() );
 
-	if( !evalNode.eval( transResult, ctxt ) ) {
+	if( !evalNodePtr->eval( transResult, ctxt ) ) {
         barz.setError( "evaluation failed" );
 		theBead.setStopLiteral();
 		return 0;

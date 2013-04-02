@@ -12,17 +12,6 @@
 namespace barzer {
 ///// output operators 
 
-namespace {
-std::ostream& glob_printRewriterByteCode( std::ostream& fp, const BarzelRewriterPool::BufAndSize& bas, const BELPrintContext& ctxt )
-{
-	BRBCPrintCB printer( fp, ctxt );
-	BarzelRewriteByteCodeProcessor<BRBCPrintCB> processor(printer,bas);
-	processor.run();
-	return fp;
-}
-} // end of anon namespace 
-
-
 void BELTrie::addStemSrc ( uint32_t stemId, uint32_t srcId ) 
 { 
     d_stemSrcs [stemId].insert(srcId); 
@@ -115,16 +104,6 @@ std::ostream& BELTrie::printVariableName( std::ostream& fp, uint32_t varId ) con
 			const char* s = gp.internalString_resolve( *i );
 			if( s ) fp << s;
 		}
-	}
-	return fp;
-}
-std::ostream& BELPrintContext::printRewriterByteCode( std::ostream& fp, const BarzelTranslation& t ) const
-{
-	BarzelRewriterPool::BufAndSize bas;
-	if( trie.getRewriterPool().resolveTranslation( bas, t ) ) {
-		return glob_printRewriterByteCode( fp, bas, *this );
-	} else {
-		AYDEBUG( "NO BYTE CODE" );
 	}
 	return fp;
 }
@@ -601,7 +580,11 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELSta
             if( !(stmt.getSourceNameStrId()== tran->traceInfo.source && stmt.getStmtNumber() == tran->traceInfo.statementNum) ) {
                 if( tran->isRawTree() && stmt.ruleClashOverride() == BELStatementParsed::CLASH_OVERRIDE_APPEND ) {
                     if( BarzelEvalNode* evNode = getRewriterPool().getRawNode( *tran ) ) {
-                        if( !getRewriterPool().encodeParseTreeNode( evNode->addChild(), stmt.translation ) ) {
+                        BarzelEvalNode newEvNode;
+                        bool encodeSuccess = !BarzelRewriterPool::encodeParseTreeNode( newEvNode, stmt.translation );
+
+                        if( encodeSuccess && !evNode->getSameChild(newEvNode) ) {
+                            evNode->addChild(newEvNode);
                             if( stmt.getSourceNameStrId() != tran->traceInfo.source || tran->traceInfo.statementNum != stmt.getStmtNumber() ) 
                                 linkTraceInfo( tran->traceInfo, BarzelTranslationTraceInfo(stmt.getSourceNameStrId(), stmt.getStmtNumber(),0) );
                             return true;
@@ -652,23 +635,6 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELSta
 	
 }
 //// BarzelTranslation methods
-
-bool BarzelTranslation::isRewriteFallible( const BarzelRewriterPool& pool ) const
-{
-	BarzelRewriterPool::BufAndSize rwr; // rewrite bytecode
-	if( !pool.resolveTranslation( rwr, *this ) ) {
-		AYLOG(ERROR) << "failed to retrieve rewrite\n";
-		return false; // 
-	} else {
-		/// here we need to evaluate rewrite for fallibility (do NOT confuse with rewrite evaluation
-		/// which would ned the matched data. for now we assume that nothing is fallible
-		BarzelRewriterPool::BufAndSize bas;
-		if( pool.resolveTranslation( bas, *this ))
-			return pool.isRewriteFallible( bas );
-		
-		return false;
-	}
-}
 
 void BarzelTranslation::set(BELTrie& ,const BTND_Rewrite_Variable& x )
 {
@@ -778,25 +744,6 @@ struct BarzelTranslation_set_visitor : public boost::static_visitor<int> {
 
 } // anon namespace ends 
 
-int BarzelTranslation::encodeIt( BarzelRewriterPool::byte_vec& enc, BELTrie& trie, const BELParseTreeNode& tn ) 
-{
-	const BTND_RewriteData* rwrDta = tn.getTrivialRewriteData();    
-	if( rwrDta ) {
-		BarzelTranslation_set_visitor vis( trie, *this  );
-		boost::apply_visitor( vis, *rwrDta );
-		return ENCOD_TRIVIAL;
-	} else { // non trivial rewrite 
-		if( !BarzelRewriterPool::encodeParseTreeNode(enc,tn) ) {
-			if( !enc.size() ) {
-				AYTRACE( "inconsistent encoding produced");
-				return ENCOD_FAILED;
-			} else
-				return ENCOD_REWRITER;
-		} 
-	}
-	return ENCOD_FAILED;
-}
-
 int BarzelTranslation::set( BELTrie& trie, const BELParseTreeNode& tn ) 
 {
 	/// diagnosing trivial rewrite usually root will have one childless child
@@ -851,10 +798,9 @@ std::ostream& BarzelTranslation::print( std::ostream& fp, const BELPrintContext&
 	CASEPRINT(NUMBER_INT)
 	CASEPRINT(NUMBER_REAL)
 
-	case T_REWRITER:
+	case T_RAWTREE:
 	{
-		BarzelRewriterPool::BufAndSize bas; 
-		ctxt.printRewriterByteCode( fp << "RWR{", *this ) << "}";
+        fp << "RAWTREE";
 	}
 		return fp;
 	CASEPRINT(BLANK)
