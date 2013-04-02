@@ -601,8 +601,15 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELSta
             if( !(stmt.getSourceNameStrId()== tran->traceInfo.source && stmt.getStmtNumber() == tran->traceInfo.statementNum) ) {
                 if( tran->isRawTree() && stmt.ruleClashOverride() == BELStatementParsed::CLASH_OVERRIDE_APPEND ) {
                     if( BarzelEvalNode* evNode = getRewriterPool().getRawNode( *tran ) ) {
-                        if( !getRewriterPool().encodeParseTreeNode( evNode->addChild(), stmt.translation ) )
+                        if( !getRewriterPool().encodeParseTreeNode( evNode->addChild(), stmt.translation ) ) {
+                            if( stmt.getSourceNameStrId() != tran->traceInfo.source || tran->traceInfo.statementNum != stmt.getStmtNumber() ) 
+                                linkTraceInfo( tran->traceInfo, BarzelTranslationTraceInfo(stmt.getSourceNameStrId(), stmt.getStmtNumber(),0) );
                             return true;
+                        } else {
+                            stmt.getErrStream() << "<error type=\"RULE APPEND\"><rule>" << stmt.getSourceName() << ':' << stmt.getStmtNumber()  << '.' << emitterSeqNo <<
+                            " </rule><rule> " ;
+                            return false;
+                        }
                     }
                 } 
                 std::ostream& os = stmt.getErrStream();

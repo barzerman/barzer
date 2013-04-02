@@ -319,9 +319,8 @@ public:
 
 	uint8_t getType() const { return type; }
 	uint32_t getRewriterId() const
-	{
-		return ( type == T_REWRITER ? boost::get<uint32_t>(id) : 0xffffffff );
-	}
+        { return ( (type==T_RAWTREE||type == T_REWRITER) ? boost::get<uint32_t>(id) : 0xffffffff ); }
+
 	uint32_t getId_uint32() const { return ( id.which() ==0 ? boost::get<uint32_t>(id) : 0xffffffff ); }
 	int64_t getId_int() const { return ( id.which() ==2  ? boost::get<int64_t>(id) : 0 ); }
 	double getId_double() const { return ( id.which() ==1  ? boost::get<double>(id) : 0.0 ); }
