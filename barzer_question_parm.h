@@ -30,6 +30,12 @@ struct QuestionParm {
         BENI_BENI_ENSURE, // barz and beni beni always used regardless of heuristics
         BENI_NO_BENI // no beni no matter what
     };
+    bool mustBeni() const { 
+        return ( 
+            d_beniMode == BENI_BENI_ONLY_DEFAULT ||
+            d_beniMode == BENI_BENI_ENSURE );
+
+    }
     int16_t d_beniMode;
     static int16_t parseBeniFlag(const char* s);
     ay::bitflags<QPBIT_MAX> d_biflags;

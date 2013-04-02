@@ -571,9 +571,9 @@ int Barz::beniSearch( const StoredUniverse& u, const QuestionParm& qparm )
     enum { MAX_BENI_LENGTH = 34 };
 
     size_t numGlyphs = questionOrigUTF8.length() ;
-    if( qparm.d_beniMode != QuestionParm::BENI_BENI_ENSURE || numGlyphs  < MAX_BENI_LENGTH ) {
+    if( qparm.mustBeni() || numGlyphs  < MAX_BENI_LENGTH ) {
         d_beni.d_entVec.clear();
-        if( qparm.d_beniMode != QuestionParm::BENI_BENI_ENSURE && u.checkBit(StoredUniverse::UBIT_USE_BENI_IDS) ) {
+        if( !qparm.mustBeni() && u.checkBit(StoredUniverse::UBIT_USE_BENI_IDS) ) {
             if( !beni_string_likely_isid( questionOrig, numGlyphs ) ) 
                 return 1;
         }
