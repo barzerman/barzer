@@ -740,6 +740,12 @@ void BarzerRequestParser::tag_autoc(RequestTag &tag)
         case 'e':
             qparm.autoc.parseEntClassList(a->second.c_str());
             break;
+        case 'm':
+            if( a->first == "max" ) {
+                int num = atoi( a->second.c_str() );
+                qparm.autoc.numResults = num;
+            }
+            break;
         }
     }
     d_query = tag.body.c_str();
