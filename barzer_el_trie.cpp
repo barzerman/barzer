@@ -578,23 +578,39 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELSta
 			break;
 		default: { // CLASH 
             if( !(stmt.getSourceNameStrId()== tran->traceInfo.source && stmt.getStmtNumber() == tran->traceInfo.statementNum) ) {
-                if( tran->isRawTree() && stmt.ruleClashOverride() == BELStatementParsed::CLASH_OVERRIDE_APPEND ) {
+                if( tran->isRawTree() ) {
                     if( BarzelEvalNode* evNode = getRewriterPool().getRawNode( *tran ) ) {
                         BarzelEvalNode newEvNode;
                         bool encodeSuccess = !BarzelRewriterPool::encodeParseTreeNode( newEvNode, stmt.translation );
 
-                        if( encodeSuccess && !evNode->getSameChild(newEvNode) ) {
-                            evNode->addChild(newEvNode);
-                            if( stmt.getSourceNameStrId() != tran->traceInfo.source || tran->traceInfo.statementNum != stmt.getStmtNumber() ) 
-                                linkTraceInfo( tran->traceInfo, BarzelTranslationTraceInfo(stmt.getSourceNameStrId(), stmt.getStmtNumber(),0) );
-                            return true;
-                        } else {
-                            stmt.getErrStream() << "<error type=\"RULE APPEND\"><rule>" << stmt.getSourceName() << ':' << stmt.getStmtNumber()  << '.' << emitterSeqNo <<
+                        if( !encodeSuccess ) {
+                            stmt.getErrStream() << 
+                            "<error type=\"RULE APPEND\"><rule>" << stmt.getSourceName() << 
+                            ':' << stmt.getStmtNumber()  << '.' << emitterSeqNo <<
                             " </rule><rule> " ;
+
                             return false;
                         }
+                        if( stmt.ruleClashOverride() == BELStatementParsed::CLASH_OVERRIDE_APPEND ) {
+                            size_t numChildrenAdded = evNode->addNodesChildren( newEvNode );
+                            if( numChildrenAdded ) {
+                                if( stmt.getSourceNameStrId() != tran->traceInfo.source || 
+                                    tran->traceInfo.statementNum != stmt.getStmtNumber() 
+                                ) {
+                                    linkTraceInfo( 
+                                        tran->traceInfo, 
+                                        BarzelTranslationTraceInfo(stmt.getSourceNameStrId(), 
+                                        stmt.getStmtNumber(),0) 
+                                    );
+                                }
+                            }
+                            return true;
+                        } else if( newEvNode.hasSameChildren(*evNode) )
+                            return true;
                     }
                 } 
+                /// if we're here it means we have raw tree with *different* children from the ones in the stmt.translation
+                /// in this case we report a clash
                 std::ostream& os = stmt.getErrStream();
 			    os << "<error type=\"RULE CLASH\"> <rule>" << stmt.getSourceName() << ':' << stmt.getStmtNumber()  << '.' << emitterSeqNo <<
 			    " </rule><rule> " ;

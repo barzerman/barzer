@@ -131,11 +131,54 @@ uint32_t BarzelRewriterPool::poolNewRawNode( const BarzelEvalNode& evn )
 }
 
 
+const BarzelEvalNode* BarzelEvalNode::getSameChild( const BarzelEvalNode& other ) const
+{
+    for( const auto& i : d_child ) {
+        if( i.equal(other) )
+            return &(i);
+    }
+    return 0;
+}
+bool BarzelEvalNode::hasSameChildren(const BarzelEvalNode& o) const
+{
+    if( d_child.size() != o.d_child.size() ) 
+        return false;
+    for( size_t i =0, i_sz = d_child.size(); i< i_sz; ++i ) {
+        if( ! d_child[i].equal( o.d_child[i] ) )
+            return false;
+    }
+    return true;
+}
+size_t BarzelEvalNode::addNodesChildren(const BarzelEvalNode& o)
+{
+    size_t numAdded = 0;
+    for( const auto& c : o.getChild() ) {
+        if( !getSameChild(c) ) {
+            addChild(c);
+            ++numAdded;
+        }
+    }
+    return numAdded;
+}
+
+BarzelEvalNode* BarzelEvalNode::getSameChild( const BarzelEvalNode& other ) 
+{
+    for( auto& i : d_child ) {
+        if( i.equal(other) )
+            return &(i);
+    }
+    return 0;
+}
 bool BarzelEvalNode::equal( const BarzelEvalNode& o )  const
 {
-    if( BTND_RewriteData_equal(d_btnd, o.d_btnd) )
+    if( BTND_RewriteData_equal(d_btnd, o.d_btnd) && d_child.size() == o.d_child.size() ) {
+        for( size_t i =0, i_sz = d_child.size(); i< i_sz; ++i ) {
+            if( ! d_child[i].equal( o.d_child[i] ) )
+                return false;
+        }
         return true;
-    return false;
+    } else
+        return false;
 }
 int BarzelRewriterPool::produceTranslation( BarzelTranslation& trans, const BELParseTreeNode& ptn )
 {

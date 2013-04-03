@@ -325,6 +325,15 @@ public:
 	BTND_RewriteData& getBtnd() { return d_btnd; }
 	ChildVec& getChild() { return d_child; }
 
+    /// takes o's children and adds the ones that are new as children
+    /// children of o which already appear in d_child are not added.
+    /// returns the number of actual children added
+    size_t addNodesChildren(const BarzelEvalNode& o) ;
+
+    /// returns true if o's children are the same as this node's children  
+    bool hasSameChildren( const BarzelEvalNode& o) const;
+    
+    // adds this node as a child
     BarzelEvalNode& addChild(const BarzelEvalNode& o) 
     {
         d_child.push_back(o);
@@ -350,23 +359,8 @@ public:
 
     bool equal( const BarzelEvalNode& other ) const;
 
-    const BarzelEvalNode* getSameChild( const BarzelEvalNode& other ) const
-    {
-        for( const auto& i : d_child ) {
-            if( i.equal(other) )
-                return &(i);
-        }
-        return 0;
-    }
-    BarzelEvalNode* getSameChild( const BarzelEvalNode& other ) 
-    {
-        for( auto& i : d_child ) {
-            if( i.equal(other) )
-                return &(i);
-        }
-        return 0;
-    }
-
+    const BarzelEvalNode* getSameChild( const BarzelEvalNode& other ) const;
+    BarzelEvalNode* getSameChild( const BarzelEvalNode& other ) ;
 };
 	
 } // barzer namespace 
