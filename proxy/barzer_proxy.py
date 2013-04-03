@@ -73,8 +73,8 @@ def application(env, start_response):
             except ValueError:
                 yield error("Invalid `ver' parameter")
                 return
-        elif k == 'now':
-            add += ' now='+ quoteattr(unquote(v.replace('+', ' ')))
+        elif k in ('now', 'beni', 'zurch'):
+            add += ' {}={}'.format(k, quoteattr(unquote(v.replace('+', ' '))))
             
     if not uid:
         yield error("Invalid key")

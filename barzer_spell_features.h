@@ -391,10 +391,6 @@ public:
 					docPos = doc2fCnt.insert({ source, { 0, static_cast<uint16_t>(-1), 0 } }).first;
 				++docPos->second.fCount;
 				
-				if (docPos->second.firstFeature > sourceFeature.pos)
-					docPos->second.firstFeature = sourceFeature.pos;
-				if (docPos->second.lastFeature < sourceFeature.pos)
-					docPos->second.lastFeature = sourceFeature.pos;
 			}
 		}
 		
@@ -429,15 +425,12 @@ public:
 				barzer::Lang::getLevenshteinDistance(lev, str, strLen, resolvedResult, resolvedLength);
 			
 			const auto& info = doc2fCnt[item.first];
-			const auto substrLength = info.lastFeature - info.firstFeature;
-			// here we use logistic curve as penalty; 1 / (1 + e ** (x - 5)) where x is length difference.
-			const double lengthPenalty = 1. / (1 + std::pow (std::exp (1), static_cast<int>(substrLength) - static_cast<int>(utfLength) - 5));
 			out.push_back({
 					item.first,
 					(dataPos == m_storage.end() ? 0 : &dataPos->second),
 					item.second,
 					dist,
-					info.fCount / srcFCnt * lengthPenalty
+					info.fCount / srcFCnt
 				});
 		}
 	}
