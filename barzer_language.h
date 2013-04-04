@@ -83,6 +83,11 @@ struct Lang {
     static bool hasUpperCase( const char* s, size_t s_len, int lang );
     static bool stringToLower( std::vector<char>& buf, std::string& dest, const std::string& src );
 
+    static bool stringToLower( std::string& dest, const std::string& src );
+
+    /// converts both to lower case and returns strcmp
+    static int stringNoCaseCmp( const std::string& l, const std::string& r );
+
     static bool stringToLower( char* s, size_t s_len, int lang );
     static bool convertToLower( char* s, size_t s_len, int lang )
         { return stringToLower(s,s_len,lang); }

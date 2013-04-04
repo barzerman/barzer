@@ -45,7 +45,37 @@ int  BarzelBead::computeBeadConfidence( const StoredUniverse* u ) const
         }
     }
     int conf = CONFIDENCE_HIGH;
-
+    if( numTokens && numTokens <=2 && u ) {
+        if( const BarzerEntity* ent = getEntity() ) { /// single entity
+            /// single token match for bead containing entity  
+            /// if canonical name == source tokens
+            if( const EntityData::EntProp* edata = u->getEntPropData( *ent ) ) {
+                if( !Lang::stringNoCaseCmp( getSrcTokensString(), edata->canonicName ) ) {
+                    return CONFIDENCE_HIGH;
+                }
+            }
+        } else 
+        if( const BarzerEntityList* entList = getEntityList() ) { /// entity list
+            /// if canonical name == source tokens for every entity in the list
+            std::string srcTok = getSrcTokensString();
+            bool allGood = false;
+            for( const auto& e : entList->getList() ) {
+                if( const EntityData::EntProp* edata = u->getEntPropData( e ) ) {
+                    if( !Lang::stringNoCaseCmp( srcTok, edata->canonicName ) ) {
+                        allGood= true;
+                    } else {
+                        allGood = false;
+                        break;
+                    }
+                } else {
+                    allGood = false;
+                    break;
+                }
+            }
+            if( allGood ) 
+                return CONFIDENCE_HIGH;
+        }
+    }
     if( !numSpellCorr )
         return ( (numTokens>1 || d_confidenceBoost) ? CONFIDENCE_HIGH : CONFIDENCE_MEDIUM );
 

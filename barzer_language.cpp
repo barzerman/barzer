@@ -151,6 +151,21 @@ void Lang::lowLevelNormalization( char* d, size_t d_len, const char* s, size_t s
         *d=0;
 }
 
+int Lang::stringNoCaseCmp( const std::string& l, const std::string& r )
+{
+    std::vector<char> buf;
+    std::string ll, lr;
+
+    stringToLower( buf, ll, l );
+    stringToLower( buf, lr, r );
+    return strcmp( ll.c_str(), lr.c_str() );
+}
+
+bool Lang::stringToLower( std::string& dest, const std::string& src )
+{
+    std::vector<char> buf;
+    return stringToLower(buf,dest,src);
+}
 bool Lang::stringToLower( std::vector<char>& buf, std::string& dest, const std::string& src )
 {
     size_t buf_sz = src.length();
