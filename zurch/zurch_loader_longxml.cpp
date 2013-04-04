@@ -353,7 +353,9 @@ int ZurchLongXMLParser_DocLoader::callback()
         std::stringstream sstr;
         sstr << d_data.d_DocName << " ";
         d_loader.setCurrentWeight(WEIGHT_BOOST_NAME);
+		d_loader.index().setConsiderFeatureCount(false);
         d_loader.addDocFromStream( docId, sstr, d_loadStats );
+		d_loader.index().setConsiderFeatureCount(true);
     }
     { // KEYWORDS
         std::stringstream sstr;
