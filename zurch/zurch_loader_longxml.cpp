@@ -397,7 +397,7 @@ struct phrase_fields_t {
         REC_TYPE_MAX
     };
     int recType;
-    size_t phraseNum = 0;
+    size_t phraseNum;
     DocFeatureLink::Weight_t weight;
     char* name;
     char* text;
