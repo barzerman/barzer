@@ -329,8 +329,11 @@ namespace {
     enum : DocFeatureLink::Weight_t {
         WEIGHT_BOOST_NONE=0, 
         WEIGHT_BOOST_NAME=1000,
-        WEIGHT_BOOST_KEYWORD=2000,
-        WEIGHT_BOOST_RUBRIC=700
+        WEIGHT_BOOST_KEYWORD=10,
+        WEIGHT_BOOST_RUBRIC=10,
+
+        WEIGHT_BOOST_FIRST_PHRASE=20
+
     };
 }
 void ZurchLongXMLParser_DocLoader::loadingDoneCallback()
@@ -383,13 +386,29 @@ int ZurchLongXMLParser_DocLoader::callback()
 namespace {
 
 struct phrase_fields_t {
+    enum {
+        REC_TYPE_UNKNOWN,
+        REC_TYPE_CONTENT,
+        REC_TYPE_TITLE,
+        REC_TYPE_KEYWORD,
+        REC_TYPE_RUBRIC,
+
+        /// add new types above
+        REC_TYPE_MAX
+    };
+    int recType;
+    size_t phraseNum = 0;
     DocFeatureLink::Weight_t weight;
     char* name;
     char* text;
 
-    phrase_fields_t(): weight(WEIGHT_BOOST_NONE), name(0), text(0) {}
+    phrase_fields_t(): 
+        recType(REC_TYPE_UNKNOWN), phraseNum(0),
+        weight(WEIGHT_BOOST_NONE), name(0), text(0) {}
     void clear() 
     {
+        phraseNum = 0;
+        recType= REC_TYPE_UNKNOWN;
         weight = WEIGHT_BOOST_NONE;
         name = text = 0;
     }
@@ -413,9 +432,22 @@ int phrase_fmt_get_fields( phrase_fields_t& flds, char* buf, size_t buf_sz )
     if( !pipe ) return 1;
     if( toupper(tok[0]) =='T' ) {
         switch( tok[1] ) {
-        case '0': flds.weight = WEIGHT_BOOST_NONE; break;
-        case '1': flds.weight = WEIGHT_BOOST_NAME; break;
-        case '2': flds.weight = WEIGHT_BOOST_KEYWORD; break;
+        case '0': 
+            flds.weight = WEIGHT_BOOST_NONE; 
+            flds.recType = phrase_fields_t::REC_TYPE_CONTENT; 
+            break;
+        case '1': 
+            flds.weight = WEIGHT_BOOST_NAME; 
+            flds.recType = phrase_fields_t::REC_TYPE_TITLE; 
+            break;
+        case '2': 
+            flds.weight = WEIGHT_BOOST_KEYWORD; 
+            flds.recType = phrase_fields_t::REC_TYPE_KEYWORD; 
+            break;
+        case '4': 
+            flds.weight = WEIGHT_BOOST_RUBRIC; 
+            flds.recType = phrase_fields_t::REC_TYPE_RUBRIC; 
+            break;
         }
     } 
 
@@ -423,6 +455,12 @@ int phrase_fmt_get_fields( phrase_fields_t& flds, char* buf, size_t buf_sz )
     tok = ( pipe < buf_end ? pipe +1 : 0 );
     pipe = ( tok < buf_end ? strchr( tok, '|' ) : 0 );
     if( !pipe ) return 1;
+    *pipe= 0;
+    flds.phraseNum = atoi(tok);
+
+    if( flds.phraseNum == 0 && flds.recType == phrase_fields_t::REC_TYPE_TITLE ) {
+        flds.weight+=WEIGHT_BOOST_FIRST_PHRASE;
+    }
 
     /// phrase text
     tok = ( pipe < buf_end ? pipe +1 : 0 );
