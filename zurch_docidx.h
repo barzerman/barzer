@@ -263,6 +263,10 @@ class DocFeatureIndex {
 	std::set<uint32_t> m_stopWords;
 	
 	barzer::MeaningsStorage m_meanings;
+	
+	std::map<uint32_t, size_t> m_titleLengths;
+	
+	bool m_considerFCount;
 public:
     DocDataIndex d_docDataIdx;
 	typedef std::vector<std::pair<uint32_t, uint16_t>> PosInfos_t;
@@ -324,6 +328,9 @@ public:
     size_t appendOwnedEntity( uint32_t docId, const BarzerEntity& ent ); 
     size_t appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t&, size_t posOffset );
     size_t appendDocument( uint32_t docId, barzer::Barz&, size_t posOffset, DocFeatureLink::Weight_t weight );
+	
+	void setTitleLength(uint32_t docId, size_t titleLength);
+	void setConsiderFeatureCount(bool);
 	
     /// should be called after the last doc has been appended . 
     void sortAll();
@@ -406,9 +413,9 @@ public:
     bool testFilter( uint32_t docId, const barzer::ReqFilterCascade& filter ) const; 
 
     void setDocTitle( uint32_t docId, const char* s )
-        { d_docTitleMap[ docId ] = s; }
+        { setDocTitle(docId, std::string(s)); }
     void setDocTitle( uint32_t docId, const std::string& s ) 
-        { d_docTitleMap[ docId ] = s; }
+        { d_docTitleMap[ docId ] = s; d_index.setTitleLength(docId, s.size()); }
     const std::string getDocTitle( uint32_t docId ) const
         { const auto i = d_docTitleMap.find( docId ); return (i == d_docTitleMap.end() ?  std::string() : i->second ); }
         
