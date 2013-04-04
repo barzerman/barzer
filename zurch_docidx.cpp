@@ -146,6 +146,7 @@ int DocFeatureLink::deserialize( std::istream& fp )
 DocFeatureIndex::DocFeatureIndex() 
 : m_meaningsCounter(0)
 , d_classBoosts{ 0.5, 0.5, 0.5, 1, 2, 5 }
+, m_considerFCount(true)
 {}
 
 DocFeatureIndex::~DocFeatureIndex() {}
@@ -528,7 +529,10 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeatur
 			linkPos = vec.end() - 1;
 		}
 		
-		++linkPos->count;
+		if (m_considerFCount)
+			++linkPos->count;
+		else
+			linkPos->count = 1;
 		
 		auto pos = f.docPos;
 		pos.offset.first += offset;
@@ -547,6 +551,18 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeatur
 			pos->second = pair;
 	
     return features.size();
+}
+
+void DocFeatureIndex::setTitleLength(uint32_t docId, size_t titleLength)
+{
+	if (!titleLength)
+		return;
+	m_titleLengths[docId] = titleLength;
+}
+
+void DocFeatureIndex::setConsiderFeatureCount(bool consider)
+{
+	m_considerFCount = consider;
 }
 
 /// should be called after the last doc has been appended . 
