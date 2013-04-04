@@ -401,16 +401,18 @@ struct phrase_fields_t {
     DocFeatureLink::Weight_t weight;
     char* name;
     char* text;
+	bool considerCount;
 
     phrase_fields_t(): 
         recType(REC_TYPE_UNKNOWN), phraseNum(0),
-        weight(WEIGHT_BOOST_NONE), name(0), text(0) {}
+        weight(WEIGHT_BOOST_NONE), name(0), text(0), considerCount(true) {}
     void clear() 
     {
         phraseNum = 0;
         recType= REC_TYPE_UNKNOWN;
         weight = WEIGHT_BOOST_NONE;
         name = text = 0;
+		considerCount = true;
     }
 }; 
 
@@ -435,18 +437,22 @@ int phrase_fmt_get_fields( phrase_fields_t& flds, char* buf, size_t buf_sz )
         case '0': 
             flds.weight = WEIGHT_BOOST_NONE; 
             flds.recType = phrase_fields_t::REC_TYPE_CONTENT; 
+			flds.considerCount = true;
             break;
         case '1': 
             flds.weight = WEIGHT_BOOST_NAME; 
             flds.recType = phrase_fields_t::REC_TYPE_TITLE; 
+			flds.considerCount = false;
             break;
         case '2': 
             flds.weight = WEIGHT_BOOST_KEYWORD; 
             flds.recType = phrase_fields_t::REC_TYPE_KEYWORD; 
+			flds.considerCount = true;
             break;
         case '4': 
             flds.weight = WEIGHT_BOOST_RUBRIC; 
             flds.recType = phrase_fields_t::REC_TYPE_RUBRIC; 
+			flds.considerCount = true;
             break;
         }
     } 
@@ -583,6 +589,7 @@ void ZurchPhrase_DocLoader::readPhrasesFromFile( const char* fn )
             if( !reuseBarz ) 
                 text = flds.text;
 
+			d_loader.index().setConsiderFeatureCount(flds.considerCount);
             d_loader.addDocFromString( docId, text + " ", d_loadStats, reuseBarz );
             
             ++numPhrase;
