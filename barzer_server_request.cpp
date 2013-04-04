@@ -571,7 +571,7 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
     	
         if( index->fillFeatureVecFromQueryBarz( featureVec, barz ) )  {
             zurch::DocFeatureIndex::SearchParm parm( d_maxResults, (fitlerCascade.empty()? 0: &fitlerCascade), &positions );
-            index->findDocument( docVec, featureVec, parm );
+            index->findDocument( docVec, featureVec, parm, barz );
         }
     }
     if( ret == XML_TYPE ) {

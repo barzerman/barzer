@@ -575,7 +575,8 @@ void DocFeatureIndex::sortAll()
 void DocFeatureIndex::findDocument( 
     DocFeatureIndex::DocWithScoreVec_t& out,
     const ExtractedDocFeature::Vec_t& fVec, 
-    DocFeatureIndex::SearchParm& parm
+    DocFeatureIndex::SearchParm& parm,
+	const barzer::Barz& barz
 ) const
 {
     PropFilterVarVec pfvv;

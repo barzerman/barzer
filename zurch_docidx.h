@@ -355,7 +355,7 @@ public:
         {}
     };
 
-	void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f, SearchParm& ) const;
+	void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f, SearchParm&, const barzer::Barz& ) const;
 
     int serialize( std::ostream& fp ) const;
     int deserialize( std::istream& fp ); 
