@@ -145,7 +145,7 @@ int DocFeatureLink::deserialize( std::istream& fp )
 
 DocFeatureIndex::DocFeatureIndex() 
 : m_meaningsCounter(0)
-, d_classBoosts{ 0.5, 0.5, 0.5, 1, 2, 5 }
+, d_classBoosts{ 0.5, 0.5, 0.5, 1, 1.5, 3 }
 , m_considerFCount(true)
 {}
 
