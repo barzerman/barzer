@@ -601,7 +601,7 @@ void DocFeatureIndex::findDocument(
 				maxClass = f.featureClass;
 		
 		const double classBoost = d_classBoosts[maxClass];
-		const int sizeBoost = ngram.feature.size() * ngram.feature.size();
+		const int sizeBoost = ngram.feature.size();
 		const int length = ngram.docPos.offset.second;
 		
 		double lengthPenalty = 1;
