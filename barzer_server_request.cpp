@@ -540,6 +540,7 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
     zurch::ExtractedDocFeature::Vec_t featureVec;
     zurch::DocFeatureIndex::DocWithScoreVec_t docVec;  
 	std::map<uint32_t, zurch::DocFeatureIndex::PosInfos_t> positions;
+	zurch::DocFeatureIndex::TraceInfoMap_t barzTrace;
 	// std::cout << "handling '" << query << "'" << std::endl;
     qparm.turnSplitCorrectionOff();
 
@@ -570,16 +571,16 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
      
     	
         if( index->fillFeatureVecFromQueryBarz( featureVec, barz ) )  {
-            zurch::DocFeatureIndex::SearchParm parm( d_maxResults, (fitlerCascade.empty()? 0: &fitlerCascade), &positions );
+            zurch::DocFeatureIndex::SearchParm parm( d_maxResults, (fitlerCascade.empty()? 0: &fitlerCascade), &positions, &barzTrace );
             index->findDocument( docVec, featureVec, parm, barz );
         }
     }
     if( ret == XML_TYPE ) {
         zurch::DocIdxSearchResponseXML response( qparm, *ixl, barz ); 
-        response.print(os, docVec, positions);
+        response.print(os, docVec, positions); // TODO add barzTrace
     } else if ( ret == JSON_TYPE ) {
         zurch::DocIdxSearchResponseJSON response( qparm, *ixl, barz ); 
-        response.print(os, docVec, positions);
+        response.print(os, docVec, positions, barzTrace);
     }
 }
 

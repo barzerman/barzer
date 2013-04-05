@@ -639,6 +639,23 @@ void DocFeatureIndex::findDocument(
 				ppos->second.push_back({ { link.position, link.length }, scoreAdd });
 			}
 			
+			if (parm.f2trace)
+			{
+				auto fpos = parm.f2trace->find(link.docId);
+				if (fpos == parm.f2trace->end())
+					fpos = parm.f2trace->insert({ link.docId, TraceInfoMap_t::mapped_type() }).first;
+				
+				std::string resolved = "{";
+				for (size_t i = 0; i < ngram.feature.size(); ++i)
+				{
+					if (i)
+						resolved += ", ";
+					resolved += resolveFeature(ngram.feature[i]);
+				}
+				resolved += "}";
+				fpos->second.push_back({ ngram.feature, resolved, scoreAdd, link.weight, link.count, sources.size() });
+			}
+			
 			auto pos = doc2score.find(link.docId);
 			if (pos == doc2score.end())
 				pos = doc2score.insert({ link.docId, 0 }).first;

@@ -30,7 +30,8 @@ class DocIdxSearchResponseJSON : public DocIdxSearchResponse {
 public:
     DocIdxSearchResponseJSON( const barzer::QuestionParm& qparm, const DocIndexAndLoader& ixl, const barzer::Barz& barz ) : 
         DocIdxSearchResponse(qparm,ixl,barz){}
-    std::ostream& print( std::ostream& os, const DocFeatureIndex::DocWithScoreVec_t&, const std::map<uint32_t, DocFeatureIndex::PosInfos_t>& ) const ;
+    std::ostream& print( std::ostream& os, const DocFeatureIndex::DocWithScoreVec_t&,
+			const std::map<uint32_t, DocFeatureIndex::PosInfos_t>&, const DocFeatureIndex::TraceInfoMap_t&) const ;
    
 };
 } // namespace zurch
