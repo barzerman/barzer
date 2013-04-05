@@ -572,6 +572,11 @@ void DocFeatureIndex::sortAll()
         std::sort( i->second.begin(), i->second.end() ) ;
 }
 
+namespace
+{
+	template<typename T> T pow2 (T t) { return t * t; }
+}
+
 void DocFeatureIndex::findDocument( 
     DocFeatureIndex::DocWithScoreVec_t& out,
     const ExtractedDocFeature::Vec_t& fVec, 
@@ -667,6 +672,18 @@ void DocFeatureIndex::findDocument(
 	out.clear();
 	out.reserve(doc2score.size());
 	std::copy(doc2score.begin(), doc2score.end(), std::back_inserter(out));
+	
+	/*
+	const auto& origLength = barz.getOrigQuestion().size();
+	for (auto& pair : out)
+	{
+		const auto titleLenPos = m_titleLengths.find(pair.first);
+		if (titleLenPos == m_titleLengths.end())
+			continue;
+		
+		pair.second *= 1. / (1. + pow2 ((origLength - titleLenPos->second) / (origLength + titleLenPos->second)));
+	}
+	*/
 	
 	std::sort(out.begin(), out.end(),
 			[] (const DocWithScore_t& l, const DocWithScore_t& r)
