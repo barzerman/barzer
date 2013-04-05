@@ -49,24 +49,28 @@ const char* verb_45_sch[]     = { "щая","щую","щей","щие","щих","
 const char* verb_45_truevowel[]     = {
 "лось" ,"лась","лись","лися","лося","ться","тесь",0};
 
-const char* verb_4[]        = {"айся","ейся","ойся","уйся"};
-const char* noun_34_truevowel[]        = {"ами","ями",0};
-const char* verb_34_truevowel[] = {"лся","тся",0 };
+const char* verb_4[]        = {"ется", "ится", "айся","ейся","ойся","уйся", 0};
+const char* noun_3_truevowel[]        = {"ами","ями",0};
+const char* verb_3_truevowel[] = {"лся","тся",0 };
 
 const char* adj_3_novowel[]     = {"ает","ают","ому","ого","ыми","ими","аму","аго","его",0};
 const char* adj_3_vowel[]       = {"ями", 0 };
 // 2 == л or т 
 const char* verb_3_a[]  = { "ает","ают", "ала" ,"али" ,"ало" ,"ать",0 }; 
-const char* verb_3_e[]  = { "ела" ,"ели" ,"ело" ,"еть",0 };
-const char* verb_3_i[]  = { "ила" ,"или" ,"ило" ,"ить",0 };
+const char* verb_3_e[]  = { "еет", "еют", "ела" ,"ели" ,"ело" ,"еть",0 };
+const char* verb_3_i[]  = { "ите", "ись", "ила" ,"или" ,"ило" ,"ить",0 };
 const char* verb_3_u[]  = { "ула" ,"ули" ,"уло" ,"уть",0 };
-const char* verb_3_ja[] = { "яла" ,"яли" ,"яло" ,"ять",0 };
+const char* verb_3_ja[] = { "яет", "яют", "яла" ,"яли" ,"яло" ,"ять",0 };
 const char* verb_3_y[]  = { "ыла" ,"ыли" ,"ыло" ,"ыть",0 };
 const char* verb_3[]        = {"ишь" ,"ись", "ешь" ,"ься",0};
 
 const char* noun_23_truevowel[]        = {"ом","ой","ою","ах","ов","ам", "ем", "ей", "ью", "ию","ье","ья","ее", "ии", "ие","ия", "ая", "ую", 0};
-const char* verb_2[]        = {"ил" ,"ят", "ит", "ал" ,"ол","ел","ыл","ул","ся","им","ет", "ут","ёт",  0};
-const char* adj_2[]         = {"ий" ,"ое" , "ых", "ые","ый","ым","ой","ие","их","им","ыя","ия", "ая",0};
+const char* noun_21_truevowel[]        = {"ию","ии","ия", 0};
+const char* noun_32_truevowel[]        = {"ией","иям","иях", 0};
+const char* noun_43_truevowel[]        = {"иями", 0};
+
+const char* verb_2[]        = {"ил" ,"ят", "ял", "ит", "ал" ,"ол","ел","ыл","ул","ся","им","ет", "ут","ёт",  0};
+const char* adj_2[]         = {"ий" ,"ое" , "ых", "ые","ый","ым","ой","ую", "юю","ие","их","им","яя", "ая",0};
 
 inline const char* get_exception_stem( const char* s )
 {
@@ -84,6 +88,20 @@ namespace {
 // this function is essentially a macro used by Russian::stem
 inline bool chop_into_string( std::string& out, size_t toChop, const char* s, size_t s_len )
     { return( out.assign( s, (s_len-2*toChop) ), true ); }
+inline bool suffix_3char_compatible( const char* suffix, const char* w, size_t w_sz )
+{
+    if( !suffix || w_sz < 5*2 ) 
+        return false;
+
+    if( !strcmp(suffix,"ели") ) {
+        ay::Char2B_accessor l4( w, w_sz-2*4), l5( w, w_sz-5*2 );
+        if( l5.isChar( "у" ) || l5.isChar( "о" ) )
+            return true;
+        else 
+            return false;
+    }
+    return true;
+}
 
 } // anonymous namespace 
 using namespace ay;
@@ -130,31 +148,58 @@ bool Russian::normalize( std::string& out, const char* s, size_t* len )
             if( l4(verb_4) ) 
                 return( chop_into_string( out, 4, s, s_len ) );
         }
-        if(l3(noun_34_truevowel) || l3(verb_34_truevowel)) 
-            return( chop_into_string( out, (is_truevowel(l4.c_str()) ? 4:3 ), s, s_len ) );
     }
-    if( 
-        numLetters > 5 && (
-        l3(adj_3_novowel) ||
-        l3(adj_3_vowel) ||
-        // 2 == л   (а е и ю я ы)
+    /// trying 3 letter noun suffixes
+    if( numLetters > 5 ) {
+        if( l4(noun_43_truevowel) )
+            return( chop_into_string( out, 3, s, s_len ) );
+        if( numLetters>5 ) {
+            if(l3(noun_3_truevowel))
+                return( chop_into_string( out, (is_truevowel(l4.c_str())&& numLetters>6 ? 4:3 ), s, s_len ) );
+        }
+    }
+    if( numLetters > 4 ) {
+        if( l3(noun_32_truevowel) )
+            return( chop_into_string( out, 2, s, s_len ) );
+    }
+    if( numLetters > 3 ) {
+        if( l2(noun_21_truevowel) )
+            return( chop_into_string( out, 1, s, s_len ) );
+    }
+    
+    /// trying verb 3 letter suffixes
+    if( numLetters > 5 && 
         (
-            (l2("т") || l2("л")) && (
-                (l3("а")&& l3(verb_3_a)) ||
-                (l3("е")&& l3(verb_3_e)) ||
-                (l3("и")&& l3(verb_3_i)) ||
-                (l3("ю")&& l3(verb_3_u)) ||
-                (l3("я")&& l3(verb_3_ja)) ||
-                (l3("ы")&& l3(verb_3_y)) 
-            )
-        ) ||
-        l3(verb_3) )
+        suffix_3char_compatible( l3(verb_3_a), s, s_len)  ||
+        suffix_3char_compatible( l3(verb_3_e), s, s_len)  ||
+        suffix_3char_compatible( l3(verb_3_i), s, s_len)  ||
+        suffix_3char_compatible( l3(verb_3_u), s, s_len)  ||
+        suffix_3char_compatible( l3(verb_3_ja), s, s_len) ||
+        suffix_3char_compatible( l3(verb_3_y), s, s_len)  ||
+        suffix_3char_compatible( l3(verb_3_y), s, s_len)  ||
+        suffix_3char_compatible( l3(verb_3), s, s_len) ||
+        suffix_3char_compatible( l3(verb_3_truevowel), s, s_len)
+        )
+    ) {
+        return( chop_into_string( out, 3, s, s_len ) );
+    }
+    if( numLetters > 4 ) {
+        if( l2(verb_2) )
+            return( chop_into_string( out, 2, s, s_len ) );
+    }
+
+
+    if( 
+        numLetters > 6 && (
+        l3(noun_3_truevowel) ||
+        l3(adj_3_novowel) ||
+        l3(adj_3_vowel) )
     ) {
         return( chop_into_string( out, 3, s, s_len ) );
     } else {
         if(numLetters > 4 && l2(noun_23_truevowel))
             return( chop_into_string( out, (is_truevowel(l3.c_str()) ? 3:2 ), s, s_len ) );
-        else if(numLetters > 3 &&(l2(verb_2) || l2(adj_2)) )
+        else if(numLetters > 3 &&(l2(adj_2)) )
             return( chop_into_string( out, 2, s, s_len ) );
         else if( is_vowel(l1.c_str() ) )  
             return( chop_into_string( out, 1, s, s_len ) ); // generic terminal vowel chop
