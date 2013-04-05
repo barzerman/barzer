@@ -112,9 +112,12 @@ bool ZurchSettings::loadIndex( const boost::property_tree::ptree& pt )
 bool ZurchSettings::operator()( const boost::property_tree::ptree& pt )
 {
     d_indexCounter= 0;
+    if( boost::optional< const ptree& > zurchChild = pt.get_child_optional("model") ) {
+    }
     BOOST_FOREACH(const ptree::value_type &v, pt) {
-        if( v.first == "index" )  
+        if( v.first == "index" )  {
             loadIndex(v.second );
+        }
     }
     if( !d_indexCounter ) {
         d_errFP << "<error>ZURCH in user " << universe.getUserId() << " has no index tags</error>" << std::endl;
@@ -128,6 +131,20 @@ bool ZurchSettings::operator()( PhraseBreaker& phraser, const boost::property_tr
 bool ZurchSettings::operator()( DocIndexLoaderNamedDocs::LoaderOptions& loaderOpt, const boost::property_tree::ptree& pt )
 {
     return true;
+}
+
+ZurchModelParms* ZurchSettings::d_modelParms = 0;
+
+
+bool ZurchModelParms::loadPropertyTree( const boost::property_tree::ptree& )
+{
+    return true;
+}
+
+void ZurchSettings::initModelParms()
+{
+    if( !d_modelParms ) 
+        d_modelParms= new ZurchModelParms();
 }
 
 } // namespace zurch 
