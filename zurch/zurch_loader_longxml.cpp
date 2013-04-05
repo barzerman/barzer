@@ -332,7 +332,7 @@ namespace {
         WEIGHT_BOOST_KEYWORD=10,
         WEIGHT_BOOST_RUBRIC=10,
 
-        WEIGHT_BOOST_FIRST_PHRASE=20
+        WEIGHT_BOOST_FIRST_PHRASE=0
 
     };
 }
