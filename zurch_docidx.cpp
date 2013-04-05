@@ -629,7 +629,7 @@ void DocFeatureIndex::findDocument(
 			if (link.count <= 0)
 				continue;
 			
-			const auto scoreAdd = lengthPenalty * sizeBoost * classBoost * (1 + link.weight) * (1 + std::log(link.count)) / numSources;
+			const auto scoreAdd = lengthPenalty * sizeBoost * classBoost * (1 + link.weight) * (1 + std::log(link.count)) / std::log(1 + numSources);
 			
 			if (parm.doc2pos)
 			{
