@@ -7,6 +7,7 @@
 #include <barzer_universe.h>
 #include <zurch/zurch_loader_longxml.h>
 #include <ay_util_time.h>
+#include <ay_boost.h>
 
 
 
@@ -112,9 +113,12 @@ bool ZurchSettings::loadIndex( const boost::property_tree::ptree& pt )
 bool ZurchSettings::operator()( const boost::property_tree::ptree& pt )
 {
     d_indexCounter= 0;
+    if( boost::optional< const ptree& > zurchChild = pt.get_child_optional("model") ) {
+    }
     BOOST_FOREACH(const ptree::value_type &v, pt) {
-        if( v.first == "index" )  
+        if( v.first == "index" )  {
             loadIndex(v.second );
+        }
     }
     if( !d_indexCounter ) {
         d_errFP << "<error>ZURCH in user " << universe.getUserId() << " has no index tags</error>" << std::endl;
@@ -128,6 +132,121 @@ bool ZurchSettings::operator()( PhraseBreaker& phraser, const boost::property_tr
 bool ZurchSettings::operator()( DocIndexLoaderNamedDocs::LoaderOptions& loaderOpt, const boost::property_tree::ptree& pt )
 {
     return true;
+}
+
+ZurchModelParms* ZurchModelParms::d_modelParms = 0;
+
+namespace {
+
+int load_model_parms_feature_weight( const boost::property_tree::ptree& node )
+{
+    BOOST_FOREACH(const ptree::value_type &v,node) {
+        
+    }
+    return 0;
+}
+int load_model_parms_class_weight( const boost::property_tree::ptree& node )
+{
+    return 0;
+}
+
+} // end of anon namespace 
+
+int ZurchModelParms::setFeatureBoost( const std::string& n, const std::string& v )
+{
+    double x = atof( v.c_str() );
+    if( n == "stem" ) 
+        return( d_classBoosts[DocFeature::CLASS_STEM] = x, 0 );
+    else if( n == "syngroup" ) 
+        return( d_classBoosts[DocFeature::CLASS_SYNGROUP] = x, 0 );
+    else if( n == "number" )
+        return (d_classBoosts[DocFeature::CLASS_NUMBER] = x, 0 );
+    else if( n == "token" )
+        return (d_classBoosts[DocFeature::CLASS_TOKEN] = x, 0 );
+    else if( n == "datetime" ) 
+        return( d_classBoosts[DocFeature::CLASS_DATETIME] = x, 0 );
+    else if( n == "entity" )
+        return (d_classBoosts[DocFeature::CLASS_ENTITY] = x, 0 );
+
+    return 1;
+}
+
+std::ostream& ZurchModelParms::print( std::ostream& fp ) const
+{
+    fp << "Zurch Model: { " << 
+    "\n\t" << "Sections: { " << 
+        "\t\t" << "NONE=" << d_section.d_WEIGHT_BOOST_NONE << "," <<  std::endl << 
+        "\t\t" << "NAME=" << d_section.d_WEIGHT_BOOST_NAME << "," <<  std::endl << 
+        "\t\t" << "KEYWORD=" << d_section.d_WEIGHT_BOOST_KEYWORD << "," <<  std::endl << 
+        "\t\t" << "RUBRIC=" << d_section.d_WEIGHT_BOOST_RUBRIC << "," <<  std::endl << 
+        "\t\t" << "PHRASE=" << d_section.d_WEIGHT_BOOST_FIRST_PHRASE << "," <<  std::endl << 
+    "\t" << "}" << std::endl;
+
+    fp << "\n\t" << "Feature: { " << std::endl <<
+        "\t\t" << "STEM=" << d_classBoosts[DocFeature::CLASS_STEM] << "," << std::endl << 
+		"\t\t" << "SYNGROUP=" << d_classBoosts[DocFeature::CLASS_SYNGROUP] << "," << std::endl << 
+		"\t\t" << "NUMBER=" << d_classBoosts[DocFeature::CLASS_NUMBER] << "," << std::endl << 
+        "\t\t" << "TOKEN=" << d_classBoosts[DocFeature::CLASS_TOKEN] << "," << std::endl << 
+		"\t\t" << "DATETIME=" << d_classBoosts[DocFeature::CLASS_DATETIME] << "," << std::endl << 
+        "\t\t" << "ENTITY=" << d_classBoosts[DocFeature::CLASS_ENTITY] <<  std::endl << 
+    "\t" << "}" << std::endl;
+    return fp;
+}
+
+int ZurchModelParms::setSectionBoost( const std::string& n, const std::string& v )
+{
+    int x = atoi( v.c_str() );
+    if( n == "none" ) 
+        return (d_section.d_WEIGHT_BOOST_NONE = x, 0 );
+    else if( n == "name" ) 
+        return (d_section.d_WEIGHT_BOOST_NAME = x, 0 );
+    else if( n == "keyword" ) 
+        return (d_section.d_WEIGHT_BOOST_KEYWORD=x, 0 );
+    else if( n == "rubric" ) 
+        return (d_section.d_WEIGHT_BOOST_RUBRIC=x, 0 );
+    else if ( n == "first_phrase" ) 
+        return (d_section.d_WEIGHT_BOOST_FIRST_PHRASE=x, 0 );
+
+    return 1;
+}
+
+int ZurchModelParms::load( const boost::property_tree::ptree& node)
+{
+    ay::iterate_name_value_attr attrIter;
+    BOOST_FOREACH(const ptree::value_type &v,node) {
+        if( v.first == "feature_weight" ) {
+            attrIter( 
+                [&]( const std::string& n, const std::string& v ) {
+                   setFeatureBoost( n, v );
+                },
+                v.second,
+                "pair"
+            );
+        } else 
+        if( v.first == "section_weight" ) 
+        {
+            attrIter( 
+                [&]( const std::string& n, const std::string& v ) {
+                   setSectionBoost( n, v );
+                },
+                v.second,
+                "pair"
+            );
+        }
+    }
+    return false;
+}
+void ZurchModelParms::init( bool reinit  )
+{
+    if( reinit ) {
+        if( d_modelParms ) {
+            delete d_modelParms;
+            d_modelParms=0;
+        }
+    }
+        
+    if( !d_modelParms )
+        d_modelParms = new ZurchModelParms();
 }
 
 } // namespace zurch 

@@ -133,7 +133,7 @@ std::ostream& DocIdxSearchResponseXML::print( std::ostream& os, const DocFeature
 }
 using ay::json_raii;
 std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocFeatureIndex::DocWithScoreVec_t& docVec,
-		const std::map<uint32_t, DocFeatureIndex::PosInfos_t>& positions ) const 
+		const std::map<uint32_t, DocFeatureIndex::PosInfos_t>& positions, const DocFeatureIndex::TraceInfoMap_t& traceMap) const 
 {
     json_raii raii( os, false, 0 );
 	
@@ -195,6 +195,26 @@ std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocFeatur
             if (loader.getDocContents(docId, content))
                 ay::jsonEscape(content.c_str(), docRaii.startField("content"), "\"");
         }
+
+        if (d_qparm.d_biflags.checkBit(barzer::QuestionParm::QPBIT_ZURCH_TRACE))
+		{
+			const auto docTracePos = traceMap.find(docId);
+			if (docTracePos != traceMap.end())
+			{
+				docRaii.startField("scoreTrace");
+				json_raii scoreTraceRaii(os, true, 2);
+				for (const auto& feature : docTracePos->second)
+				{
+					scoreTraceRaii.startField("");
+					json_raii singleRaii(os, false, 2);
+					ay::jsonEscape(feature.resolvedFeature.c_str(), singleRaii.startField("f"), "\"");
+					singleRaii.startField("add") << feature.scoreAdd;
+					singleRaii.startField("linkWeight") << feature.linkWeight;
+					singleRaii.startField("count") << feature.linkCount;
+					singleRaii.startField("numSrc") << feature.numSources;
+				}
+			}
+		}
     }
     return os;
 }

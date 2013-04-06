@@ -258,8 +258,6 @@ class DocFeatureIndex {
 
     DocFeatureIndexHeuristics d_heuristics; // /never 0 - guaranteed too be initialized in constructor
     
-    const double d_classBoosts[DocFeature::CLASS_MAX];
-
 	std::set<uint32_t> m_stopWords;
 	
 	barzer::MeaningsStorage m_meanings;
@@ -337,25 +335,42 @@ public:
 
     typedef std::pair< uint32_t, double > DocWithScore_t;
     typedef std::vector< DocWithScore_t > DocWithScoreVec_t;
+	
+	struct FeatureTraceInfo
+	{
+		NGram<DocFeature> feature;
+		std::string resolvedFeature;
+		
+		double scoreAdd;
+		
+		uint32_t linkWeight;
+		uint32_t linkCount;
+		size_t numSources;
+	};
+	typedef std::map<uint32_t, std::vector<FeatureTraceInfo>> TraceInfoMap_t;
     
     struct SearchParm {
         size_t maxBack; 
         const barzer::ReqFilterCascade* filterCascade;
         std::map<uint32_t, PosInfos_t>* doc2pos;
+		
+		TraceInfoMap_t *f2trace;
 
         SearchParm() : 
             maxBack(16),
             filterCascade(0),
-            doc2pos(0)
+            doc2pos(0),
+            f2trace(0)
         {}
-        SearchParm( size_t mb, const barzer::ReqFilterCascade* fl, std::map<uint32_t, PosInfos_t>* p =0 ) : 
+        SearchParm( size_t mb, const barzer::ReqFilterCascade* fl, std::map<uint32_t, PosInfos_t>* p = 0, TraceInfoMap_t *f = 0 ) : 
             maxBack(mb),
             filterCascade(fl),
-            doc2pos(p)
+            doc2pos(p),
+            f2trace(f)
         {}
     };
 
-	void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f, SearchParm& ) const;
+	void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f, SearchParm&, const barzer::Barz& ) const;
 
     int serialize( std::ostream& fp ) const;
     int deserialize( std::istream& fp ); 

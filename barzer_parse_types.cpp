@@ -124,7 +124,9 @@ void QuestionParm::setZurchFlags( const char* str )
         case 'D': d_biflags.set(QPBIT_ZURCH_FULLTEXT,false); break; /// do not print zurch full document text
         case 'd': d_biflags.set(QPBIT_ZURCH_FULLTEXT); break; /// print zurch full document text
         case 'c': d_biflags.set(QPBIT_ZURCH_NO_CHUNKS); break; /// dont print zurch chunks
-        case 'C': d_biflags.set(QPBIT_ZURCH_NO_CHUNKS,false); break; /// print zurch chunks
+        case 'C': d_biflags.set(QPBIT_ZURCH_NO_CHUNKS, false); break; /// print zurch chunks
+		case 't': d_biflags.set(QPBIT_ZURCH_TRACE, false); break;
+		case 'T': d_biflags.set(QPBIT_ZURCH_TRACE, true); break;
         case 'H': d_biflags.set(QPBIT_ZURCH_HTML,true); break; /// stream HTML
         }
     }

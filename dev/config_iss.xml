@@ -4,6 +4,8 @@
     <dictionaries>
         <file>data/spell/english_words.txt</file>
     </dictionaries>
+    <zurchmodel>
+    </zurchmodel>
     <users>
         <user id="0">
             <flags value="c"/>

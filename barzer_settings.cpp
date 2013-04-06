@@ -545,6 +545,16 @@ void BarzerSettings::loadUserRules(BELReader& reader, User& u, const ptree &node
 	}
 }
 namespace {
+void load_global_zurch_model_settings( const ptree &node )
+{
+    zurch::ZurchModelParms::init();
+
+    zurch::ZurchModelParms& zp = zurch::ZurchModelParms::getNonconst();
+    if( boost::optional< const ptree& > optNode = node.get_child_optional("config.zurchmodel") ) {
+        zurch::ZurchModelParms::getNonconst().load( optNode.get() );
+        zurch::ZurchModelParms::get().print( std::cerr );
+    }
+}
 void load_zurch(BELReader& reader, User& u, const ptree &node)
 {
     zurch::ZurchSettings zs(u.universe,reader.getErrStreamRef());
@@ -815,6 +825,8 @@ void BarzerSettings::load(BELReader& reader, const char *fname) {
 
 
 		loadInstanceSettings();
+        load_global_zurch_model_settings(pt);
+
 		loadParseSettings();
 		loadEntities();
 		loadDictionaries();

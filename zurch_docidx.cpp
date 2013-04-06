@@ -145,9 +145,8 @@ int DocFeatureLink::deserialize( std::istream& fp )
 
 DocFeatureIndex::DocFeatureIndex() 
 : m_meaningsCounter(0)
-, d_classBoosts{ 0.5, 0.5, 0.5, 1, 2, 5 }
 , m_considerFCount(true)
-{}
+{ }
 
 DocFeatureIndex::~DocFeatureIndex() {}
 
@@ -572,10 +571,16 @@ void DocFeatureIndex::sortAll()
         std::sort( i->second.begin(), i->second.end() ) ;
 }
 
+namespace
+{
+	template<typename T> T pow2 (T t) { return t * t; }
+}
+
 void DocFeatureIndex::findDocument( 
     DocFeatureIndex::DocWithScoreVec_t& out,
     const ExtractedDocFeature::Vec_t& fVec, 
-    DocFeatureIndex::SearchParm& parm
+    DocFeatureIndex::SearchParm& parm,
+	const barzer::Barz& barz
 ) const
 {
     PropFilterVarVec pfvv;
@@ -599,8 +604,9 @@ void DocFeatureIndex::findDocument(
 			if (f.featureClass > maxClass)
 				maxClass = f.featureClass;
 		
-		const double classBoost = d_classBoosts[maxClass];
-		const int sizeBoost = ngram.feature.size() * ngram.feature.size();
+		const double classBoost = ZurchModelParms::get().getClassBoost( maxClass );
+
+		const int sizeBoost = ngram.feature.size();
 		const int length = ngram.docPos.offset.second;
 		
 		double lengthPenalty = 1;
@@ -618,7 +624,7 @@ void DocFeatureIndex::findDocument(
 		
 		const auto& sources = invertedPos->second;
 		
-		const auto numSources = 1 + sources.size();
+		const size_t numSources = 1 + sources.size();
 		
 		for (const auto& link : sources)
 		{
@@ -628,7 +634,8 @@ void DocFeatureIndex::findDocument(
 			if (link.count <= 0)
 				continue;
 			
-			const auto scoreAdd = lengthPenalty * sizeBoost * classBoost * (1 + link.weight) * (1 + std::log(link.count)) / numSources;
+			const auto scoreAdd = (lengthPenalty * sizeBoost * classBoost) * 
+                (1 + link.weight) * (1 + std::log(link.count)) / std::log(1 + numSources);
 			
 			if (parm.doc2pos)
 			{
@@ -636,6 +643,23 @@ void DocFeatureIndex::findDocument(
 				if (ppos == weightedPos.end())
 					ppos = weightedPos.insert({ link.docId, std::vector<ScoredFeature_t>() }).first;
 				ppos->second.push_back({ { link.position, link.length }, scoreAdd });
+			}
+			
+			if (parm.f2trace)
+			{
+				auto fpos = parm.f2trace->find(link.docId);
+				if (fpos == parm.f2trace->end())
+					fpos = parm.f2trace->insert({ link.docId, TraceInfoMap_t::mapped_type() }).first;
+				
+				std::string resolved = "{";
+				for (size_t i = 0; i < ngram.feature.size(); ++i)
+				{
+					if (i)
+						resolved += ", ";
+					resolved += resolveFeature(ngram.feature[i]);
+				}
+				resolved += "}";
+				fpos->second.push_back({ ngram.feature, resolved, scoreAdd, link.weight, link.count, sources.size() });
 			}
 			
 			auto pos = doc2score.find(link.docId);
@@ -649,6 +673,18 @@ void DocFeatureIndex::findDocument(
 	out.clear();
 	out.reserve(doc2score.size());
 	std::copy(doc2score.begin(), doc2score.end(), std::back_inserter(out));
+	
+	/*
+	const auto& origLength = barz.getOrigQuestion().size();
+	for (auto& pair : out)
+	{
+		const auto titleLenPos = m_titleLengths.find(pair.first);
+		if (titleLenPos == m_titleLengths.end())
+			continue;
+		
+		pair.second *= 1. / (1. + pow2 ((origLength - titleLenPos->second) / (origLength + titleLenPos->second)));
+	}
+	*/
 	
 	std::sort(out.begin(), out.end(),
 			[] (const DocWithScore_t& l, const DocWithScore_t& r)
