@@ -84,7 +84,7 @@ struct ZurchPhrase_DocLoader {
     ZurchPhrase_DocLoader( DocFeatureLoader::DocStats& ds, DocIndexLoaderNamedDocs& ldr ) :
         d_loader(ldr), d_loadStats(ds) 
     {}
-    void readPhrasesFromFile( const char* fn );
+    void readPhrasesFromFile( const char* fn, bool noSort = false );
     void readDocContentFromFile( const char* fn, size_t maxLineLen = 8*1024*1024 );
     /// line is pipe seaprated DOCNAME|TX|PHRASENUM|TEXT
 };
