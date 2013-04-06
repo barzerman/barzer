@@ -84,10 +84,25 @@ bool ZurchSettings::loadIndex( const boost::property_tree::ptree& pt )
         DocFeatureLoader::DocStats stats;
         loader->d_loadMode = DocFeatureLoader::LOAD_MODE_PHRASE;
         ZurchPhrase_DocLoader parser( stats, *loader );
-        ay::stopwatch localTimer;
-        std::cerr << "Loading zurch doc phrases from" << fname << std::endl;
-        parser.readPhrasesFromFile( fname.c_str() );
-        std::cerr <<     " done in " << localTimer.calcTime() << " seconds\n";
+        if( !fname.empty() ) 
+            parser.readPhrasesFromFile( fname.c_str(), true );
+
+        /// index tag may have child phr tags. child phr tags will be iterated . <phr file="another_phrase_file.txt"/>
+        /// and all files contained will be read 
+        BOOST_FOREACH(const ptree::value_type &v, pt) {
+            if( v.first != "phr" ) 
+                continue;
+            if( const boost::optional<const ptree&> phrAttr = v.second.get_child_optional("<xmlattr>") ) {
+                if( const boost::optional<std::string> optFile = phrAttr.get().get_optional<std::string>("file") ) {
+                    fname = optFile.get();
+                    if( !fname.empty() ) 
+                        parser.readPhrasesFromFile( fname.c_str(), true ); // reads without sorting
+                }
+            }
+        }
+        /// all phrase files have been read. now we must sort
+        loader->index().d_docDataIdx.simpleIdx().sort();
+
         stats.print( std::cerr << "\n" ) << std::endl;
     }
 

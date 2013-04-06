@@ -542,13 +542,15 @@ void ZurchPhrase_DocLoader::readDocContentFromFile( const char* fn, size_t maxLi
     ((double)totalSz)/1000000.0 << 
     "MB in " << timer.calcTime() << " seconds" << std::endl;
 }
-void ZurchPhrase_DocLoader::readPhrasesFromFile( const char* fn )
+void ZurchPhrase_DocLoader::readPhrasesFromFile( const char* fn, bool noSort )
 {
     FILE* fp = fopen( fn, "r" );
     if( !fp ) {
         std::cerr << "Phrase Loader cant open " << fn << std::endl;
         return;
     }
+    ay::stopwatch localTimer;
+    std::cerr << "Loading zurch doc phrases from " << fn << std::endl;
     const size_t BUF_SZ = 64*1024;
     char buf[ BUF_SZ ];
     phrase_fields_t flds;
@@ -593,7 +595,9 @@ void ZurchPhrase_DocLoader::readPhrasesFromFile( const char* fn )
         }
     }
     fclose(fp);
-    d_loader.index().d_docDataIdx.simpleIdx().sort();
+    if( !noSort )
+        d_loader.index().d_docDataIdx.simpleIdx().sort();
+    std::cerr << numPhrase<<     " phrases done in " << localTimer.calcTime() << " seconds\n";
 }
 
 
