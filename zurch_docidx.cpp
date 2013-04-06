@@ -145,9 +145,8 @@ int DocFeatureLink::deserialize( std::istream& fp )
 
 DocFeatureIndex::DocFeatureIndex() 
 : m_meaningsCounter(0)
-, d_classBoosts{ 0.5, 0.5, 0.5, 1, 1.5, 3 }
 , m_considerFCount(true)
-{}
+{ }
 
 DocFeatureIndex::~DocFeatureIndex() {}
 
@@ -605,7 +604,8 @@ void DocFeatureIndex::findDocument(
 			if (f.featureClass > maxClass)
 				maxClass = f.featureClass;
 		
-		const double classBoost = d_classBoosts[maxClass];
+		const double classBoost = ZurchModelParms::get().getClassBoost( maxClass );
+
 		const int sizeBoost = ngram.feature.size();
 		const int length = ngram.docPos.offset.second;
 		
@@ -624,7 +624,7 @@ void DocFeatureIndex::findDocument(
 		
 		const auto& sources = invertedPos->second;
 		
-		const auto numSources = 1 + sources.size();
+		const size_t numSources = 1 + sources.size();
 		
 		for (const auto& link : sources)
 		{
@@ -634,7 +634,8 @@ void DocFeatureIndex::findDocument(
 			if (link.count <= 0)
 				continue;
 			
-			const auto scoreAdd = lengthPenalty * sizeBoost * classBoost * (1 + link.weight) * (1 + std::log(link.count)) / std::log(1 + numSources);
+			const auto scoreAdd = (lengthPenalty * sizeBoost * classBoost) * 
+                (1 + link.weight) * (1 + std::log(link.count)) / std::log(1 + numSources);
 			
 			if (parm.doc2pos)
 			{

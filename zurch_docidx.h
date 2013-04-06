@@ -258,8 +258,6 @@ class DocFeatureIndex {
 
     DocFeatureIndexHeuristics d_heuristics; // /never 0 - guaranteed too be initialized in constructor
     
-    const double d_classBoosts[DocFeature::CLASS_MAX];
-
 	std::set<uint32_t> m_stopWords;
 	
 	barzer::MeaningsStorage m_meanings;

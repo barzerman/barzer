@@ -1,4 +1,5 @@
 #include <zurch/zurch_loader_longxml.h>
+#include <zurch_settings.h>
 #include <ay/ay_logger.h>
 #include <ay/ay_util_time.h>
 #include <ay/ay_tag_markup_parser.h>
@@ -325,17 +326,8 @@ int ZurchLongXMLParser_Phraserizer::callback()
     }
     return 0;
 }
-namespace {
-    enum : DocFeatureLink::Weight_t {
-        WEIGHT_BOOST_NONE=0, 
-        WEIGHT_BOOST_NAME=1000,
-        WEIGHT_BOOST_KEYWORD=10,
-        WEIGHT_BOOST_RUBRIC=10,
+#define WEIGHT_BOOST(x) ZurchModelParms::get().d_section.d_WEIGHT_BOOST_##x
 
-        WEIGHT_BOOST_FIRST_PHRASE=0
-
-    };
-}
 void ZurchLongXMLParser_DocLoader::loadingDoneCallback()
 {
     d_loader.index().d_docDataIdx.simpleIdx().sort();
@@ -352,7 +344,7 @@ int ZurchLongXMLParser_DocLoader::callback()
     { // NAME
         std::stringstream sstr;
         sstr << d_data.d_DocName << " ";
-        d_loader.setCurrentWeight(WEIGHT_BOOST_NAME);
+        d_loader.setCurrentWeight(WEIGHT_BOOST(NAME));
 		d_loader.index().setConsiderFeatureCount(false);
         d_loader.addDocFromStream( docId, sstr, d_loadStats );
 		d_loader.index().setConsiderFeatureCount(true);
@@ -360,19 +352,19 @@ int ZurchLongXMLParser_DocLoader::callback()
     { // KEYWORDS
         std::stringstream sstr;
         sstr << d_data.d_Keywords << " ";
-        d_loader.setCurrentWeight(WEIGHT_BOOST_KEYWORD);
+        d_loader.setCurrentWeight(WEIGHT_BOOST(KEYWORD));
         d_loader.addDocFromStream( docId, sstr, d_loadStats );
     }
     { // KEYWORDS
         std::stringstream sstr;
         sstr << d_data.d_Rubrics << " ";
-        d_loader.setCurrentWeight(WEIGHT_BOOST_RUBRIC);
+        d_loader.setCurrentWeight(WEIGHT_BOOST(RUBRIC));
         d_loader.addDocFromStream( docId, sstr, d_loadStats );
     }
     { /// CONTENT
         std::stringstream sstr;
         sstr << d_data.d_Content;
-        d_loader.setCurrentWeight(WEIGHT_BOOST_NONE);
+        d_loader.setCurrentWeight(WEIGHT_BOOST(NONE));
         d_loader.addDocFromStream( docId, sstr, d_loadStats );
         if( d_loader.hasContent() ) 
             d_loader.addDocContents( docId, d_data.d_Content );
@@ -407,12 +399,12 @@ struct phrase_fields_t {
 
     phrase_fields_t(): 
         recType(REC_TYPE_UNKNOWN), phraseNum(0),
-        weight(WEIGHT_BOOST_NONE), name(0), text(0), considerCount(true) {}
+        weight(WEIGHT_BOOST(NONE)), name(0), text(0), considerCount(true) {}
     void clear() 
     {
         phraseNum = 0;
         recType= REC_TYPE_UNKNOWN;
-        weight = WEIGHT_BOOST_NONE;
+        weight = WEIGHT_BOOST(NONE);
         name = text = 0;
 		considerCount = true;
     }
@@ -437,22 +429,22 @@ int phrase_fmt_get_fields( phrase_fields_t& flds, char* buf, size_t buf_sz )
     if( toupper(tok[0]) =='T' ) {
         switch( tok[1] ) {
         case '0': 
-            flds.weight = WEIGHT_BOOST_NONE; 
+            flds.weight = WEIGHT_BOOST(NONE); 
             flds.recType = phrase_fields_t::REC_TYPE_CONTENT; 
 			flds.considerCount = true;
             break;
         case '1': 
-            flds.weight = WEIGHT_BOOST_NAME; 
+            flds.weight = WEIGHT_BOOST(NAME); 
             flds.recType = phrase_fields_t::REC_TYPE_TITLE; 
 			flds.considerCount = false;
             break;
         case '2': 
-            flds.weight = WEIGHT_BOOST_KEYWORD; 
+            flds.weight = WEIGHT_BOOST(KEYWORD); 
             flds.recType = phrase_fields_t::REC_TYPE_KEYWORD; 
 			flds.considerCount = true;
             break;
         case '4': 
-            flds.weight = WEIGHT_BOOST_RUBRIC; 
+            flds.weight = WEIGHT_BOOST(RUBRIC); 
             flds.recType = phrase_fields_t::REC_TYPE_RUBRIC; 
 			flds.considerCount = true;
             break;
@@ -467,7 +459,7 @@ int phrase_fmt_get_fields( phrase_fields_t& flds, char* buf, size_t buf_sz )
     flds.phraseNum = atoi(tok);
 
     if( flds.phraseNum == 0 && flds.recType == phrase_fields_t::REC_TYPE_TITLE ) {
-        flds.weight+=WEIGHT_BOOST_FIRST_PHRASE;
+        flds.weight+=WEIGHT_BOOST(FIRST_PHRASE);
     }
 
     /// phrase text
@@ -578,7 +570,7 @@ void ZurchPhrase_DocLoader::readPhrasesFromFile( const char* fn )
                 docId = d_loader.addDocName( docName.c_str() );
             }
 
-            if( flds.weight == WEIGHT_BOOST_NAME )  {
+            if( flds.weight == WEIGHT_BOOST(NAME) )  {
                 /*
                 d_loader.setDocTitle( docId, flds.text );
                 int module = atoi( docName.c_str() );

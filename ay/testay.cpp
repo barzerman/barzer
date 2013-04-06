@@ -20,11 +20,13 @@
 #include <string>
 #include <ay_statistics.h>
 #endif 
-#include <ay_parse.h>
+//#include <ay_parse.h>
 #include <fstream>
 #include <sstream>
 #include <boost/variant.hpp>
+#include <boost/property_tree/xml_parser.hpp>
 #include <ay_index.h>
+#include <ay_boost.h>
 
 #ifdef DONTCOMMENTALLOUT
 void testLogger() {
@@ -306,11 +308,6 @@ int test_ay_uri(int argc,char* argv[])
     return 0;
 }
 
-} // anonymous namespace 
-#endif /// DONTCOMMENTALLOUT
-
-namespace {
-
 template<typename PL, typename... T>
 struct VecVar {
     typedef std::vector< VecVar > Vec_t;
@@ -424,6 +421,29 @@ int test_ay_index(int argc, char* argv[]) {
 
     return 0;
 }
+} // anonymous namespace 
+#endif /// DONTCOMMENTALLOUT
+
+namespace {
+int test_ay_boost(int argc, char* argv[]) 
+{
+    ay::iterate_name_value_attr iter;
+    std::vector< std::pair<std::string, std::string> > vec;
+    boost::property_tree::ptree node;
+    try {
+    boost::property_tree::read_xml( "shit.xml",node);
+    } catch( boost::property_tree::xml_parser_error &e ) {
+        std::cerr << e.what() << std::endl;
+    }
+    BOOST_FOREACH(const boost::property_tree::ptree::value_type &v,node) {
+        iter.get_pairvec( vec, v.second, "sometag" );
+        for( const auto& i: vec ) {
+            std::cout << i.first << "=" << i.second << std::endl;
+        }
+    }
+    return 0;
+}
+
 }
 int main(int argc, char* argv[]) {
 	// testLogger();
@@ -432,5 +452,5 @@ int main(int argc, char* argv[]) {
     // testStripDiacritics(argc,argv);
     // testXMLEscape(argc,argv);
     // test_ay_strcasecmp(argc,argv);
-    return test_ay_index(argc,argv);
+    return test_ay_boost(argc,argv);
 }
