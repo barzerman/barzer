@@ -170,12 +170,18 @@ struct FeatureDocPosition {
 struct ExtractedDocFeature {
     NGram<DocFeature> feature;
     FeatureDocPosition docPos;
+    size_t numTokensInFeature;
 
-    ExtractedDocFeature( const DocFeature& f ) :
-        feature(f) 
+    size_t getRealTokenSize() const 
+        { return ( numTokensInFeature> feature.size() ? numTokensInFeature: feature.size() ); }
+        
+    ExtractedDocFeature( const DocFeature& f, size_t numTok ) :
+        feature(f) ,
+        numTokensInFeature(numTok)
     {}
-    ExtractedDocFeature( const DocFeature& f, const FeatureDocPosition& p ) : 
-        feature(f), docPos(p) {}
+    ExtractedDocFeature( const DocFeature& f, const FeatureDocPosition& p, size_t numTok ) : 
+        feature(f), docPos(p), numTokensInFeature(numTok) 
+    {}
 
     typedef std::vector< ExtractedDocFeature > Vec_t;
 
@@ -424,7 +430,11 @@ public:
     load_mode_t                             d_loadMode; // one of LOAD_MODE_XXX constants LOAD_MODE_TEXT - default
     boost::unordered_map< uint32_t, std::string > d_docTitleMap; 
 
+    size_t d_title_avgLength;
     
+    double getTitleLengthAdjustment( uint32_t docId ) const;
+    void computeTitleStats();
+
     bool testFilter( uint32_t docId, const barzer::ReqFilterCascade& filter ) const; 
 
     void setDocTitle( uint32_t docId, const char* s )
@@ -433,6 +443,8 @@ public:
         { d_docTitleMap[ docId ] = s; d_index.setTitleLength(docId, s.size()); }
     const std::string getDocTitle( uint32_t docId ) const
         { const auto i = d_docTitleMap.find( docId ); return (i == d_docTitleMap.end() ?  std::string() : i->second ); }
+    const size_t getDocTitleLength( uint32_t docId ) const
+        { const auto i = d_docTitleMap.find( docId ); return (i == d_docTitleMap.end() ?  0  : i->second.length() ); }
         
 	void setNoContent(bool x) { d_bits.set( BIT_NO_STORE_CONTENT, x ); }
     bool hasContent() const { return !d_bits.check( BIT_NO_STORE_CONTENT ); }

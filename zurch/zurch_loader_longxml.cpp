@@ -411,7 +411,7 @@ struct phrase_fields_t {
 }; 
 
 
-int phrase_fmt_get_fields( phrase_fields_t& flds, char* buf, size_t buf_sz )
+int phrase_fmt_get_fields( ZurchPhrase_DocLoader& loader, phrase_fields_t& flds, char* buf, size_t buf_sz, const std::string & docTitle )
 {
     flds.clear();
     const char* buf_end = buf+buf_sz;
@@ -425,6 +425,7 @@ int phrase_fmt_get_fields( phrase_fields_t& flds, char* buf, size_t buf_sz )
     /// weight 
     tok = ( pipe < buf_end ? pipe +1 : 0 );
     pipe = ( tok < buf_end ? strchr( tok, '|' ) : 0 );
+    double adjFactor = 1.0;
     if( !pipe ) return 1;
     if( toupper(tok[0]) =='T' ) {
         switch( tok[1] ) {
@@ -433,11 +434,26 @@ int phrase_fmt_get_fields( phrase_fields_t& flds, char* buf, size_t buf_sz )
             flds.recType = phrase_fields_t::REC_TYPE_CONTENT; 
 			flds.considerCount = true;
             break;
-        case '1': 
+        case '1':  {
             flds.weight = WEIGHT_BOOST(NAME); 
+            if( loader.d_loader.d_title_avgLength ) {
+                size_t titleLength = docTitle.length();
+                if( !titleLength ) {
+                    uint32_t docId = loader.d_loader.getDocIdByName( flds.name ) ;
+                    if( docId != 0xffffffff ) {
+                        titleLength = loader.d_loader.getDocTitleLength(docId);
+                    }
+                }
+                if( titleLength ) {
+                    double toAvg = (double)( titleLength ) / (double) ( loader.d_loader.d_title_avgLength );
+                    adjFactor = std::sqrt( 2.0/( 1.0+ std::sqrt(toAvg) ) );
+                    flds.weight*= adjFactor;
+                }
+            }
             flds.recType = phrase_fields_t::REC_TYPE_TITLE; 
 			flds.considerCount = false;
             break;
+        }
         case '2': 
             flds.weight = WEIGHT_BOOST(KEYWORD); 
             flds.recType = phrase_fields_t::REC_TYPE_KEYWORD; 
@@ -459,7 +475,7 @@ int phrase_fmt_get_fields( phrase_fields_t& flds, char* buf, size_t buf_sz )
     flds.phraseNum = atoi(tok);
 
     if( flds.phraseNum == 0 && flds.recType == phrase_fields_t::REC_TYPE_TITLE ) {
-        flds.weight+=WEIGHT_BOOST(FIRST_PHRASE);
+        flds.weight+=( adjFactor* WEIGHT_BOOST(FIRST_PHRASE) );
     }
 
     /// phrase text
@@ -559,27 +575,22 @@ void ZurchPhrase_DocLoader::readPhrasesFromFile( const char* fn, bool noSort )
     uint32_t docId = 0xffffffff; 
     size_t numPhrase = 0;
     d_loader.parserSetup();
+    std::string docTitle;
+    
     while( fgets(buf, sizeof(buf)-1, fp ) ) {
         buf[ sizeof(buf)-1 ] = 0;
         size_t buf_sz = strlen(buf);
         if( buf_sz ) --buf_sz;
         buf[ buf_sz ] = 0;
-        phrase_fmt_get_fields( flds, buf, buf_sz );
+        phrase_fmt_get_fields( *this, flds, buf, buf_sz, docTitle );
         
         if( flds.name && flds.text ) {
             if( docName != flds.name ) {
                 docName.assign( flds.name );
                 docId = d_loader.addDocName( docName.c_str() );
+                docTitle = d_loader.getDocTitle(docId);
             }
-
-            if( flds.weight == WEIGHT_BOOST(NAME) )  {
-                /*
-                d_loader.setDocTitle( docId, flds.text );
-                int module = atoi( docName.c_str() );
-                d_loader.index().d_docDataIdx.simpleIdx().Int.append( "module", docId, module );
-                */
-            }
-
+            
             d_loader.setCurrentWeight(flds.weight);
             bool reuseBarz = (text == flds.text);
             if( !reuseBarz ) 

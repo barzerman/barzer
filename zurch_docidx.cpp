@@ -328,7 +328,8 @@ namespace
 				if (stemStr)
 					stemId = (idx->*getRawStr)(stemStr);
 			}
-			
+		    uint8_t numTokensInFeature = i->getCTokens().size(); 	
+
 			if( const barzer::BarzerLiteral* x = i->get<barzer::BarzerLiteral>() ) {
 				const auto& ltrlStr = x->toString(*universe);
                 if( !ltrlStr.first ) 
@@ -368,7 +369,8 @@ namespace
 				featureVec.push_back( 
 					ExtractedDocFeature( 
 						DocFeature( DocFeature::CLASS_STEM, strId ), 
-						fdp
+						fdp,
+                        numTokensInFeature
 					) 
 				);
 			} else if( const barzer::BarzerEntity* x = i->getEntity() ) {
@@ -376,7 +378,8 @@ namespace
 				featureVec.push_back( 
 					ExtractedDocFeature( 
 						DocFeature( DocFeature::CLASS_ENTITY, entId ), 
-						fdp
+						fdp,
+                        numTokensInFeature
 					) 
 				);
 			} else if( const barzer::BarzerEntityList* x = i->getEntityList() ) {
@@ -385,7 +388,8 @@ namespace
 					featureVec.push_back( 
 						ExtractedDocFeature( 
 							DocFeature( DocFeature::CLASS_ENTITY, entId ), 
-							fdp
+							fdp,
+                            numTokensInFeature
 						) 
 					);
 				}
@@ -401,24 +405,46 @@ namespace
 					featureVec.push_back(
 						ExtractedDocFeature(
 							DocFeature( DocFeature::CLASS_SYNGROUP, wm.first->id ),
-							fdp
+							fdp,
+                            numTokensInFeature
 						)
 					);
 				else
 					featureVec.push_back( 
 						ExtractedDocFeature( 
 							DocFeature( DocFeature::CLASS_STEM, strId ), 
-							fdp
+							fdp,
+                            numTokensInFeature
 						) 
 					);
 			} else if (auto dt = i->get<barzer::BarzerDate>()) {
-				featureVec.push_back(DocFeature(DocFeature::CLASS_DATETIME, dt->getTime_t()));
+				featureVec.push_back(
+                    ExtractedDocFeature(
+                        DocFeature(DocFeature::CLASS_DATETIME, dt->getTime_t()),
+                        numTokensInFeature
+                    )
+                );
 			} else if (auto dt = i->get<barzer::BarzerTimeOfDay>()) {
-				featureVec.push_back(DocFeature(DocFeature::CLASS_DATETIME, dt->getSeconds()));
+				featureVec.push_back(
+                    ExtractedDocFeature(
+                        DocFeature(DocFeature::CLASS_DATETIME, dt->getSeconds()),
+                        numTokensInFeature
+                    )
+                );
 			} else if (auto dt = i->get<barzer::BarzerDateTime>()) {
-				featureVec.push_back(DocFeature(DocFeature::CLASS_DATETIME, dt->getDate().getTime_t() + dt->getTime().getSeconds()));
+				featureVec.push_back(
+                    ExtractedDocFeature(
+                        DocFeature(DocFeature::CLASS_DATETIME, dt->getDate().getTime_t() + dt->getTime().getSeconds()),
+                        numTokensInFeature
+                    )
+                );
 			} else if (auto num = i->get<barzer::BarzerNumber>()) {
-				featureVec.push_back(DocFeature(DocFeature::CLASS_NUMBER, num->getRealWiden() * 1000));
+				featureVec.push_back(
+                    ExtractedDocFeature(
+                        DocFeature(DocFeature::CLASS_NUMBER, num->getRealWiden() * 1000),
+                        numTokensInFeature
+                    )
+                );
 			}
 		}
 		
@@ -434,7 +460,7 @@ namespace
 					
 					const auto& source = featureVec[i];
 					
-					ExtractedDocFeature gram(source.feature[0], source.docPos);
+					ExtractedDocFeature gram(source.feature[0], source.docPos, 1);
 					gram.docPos.offset = source.docPos.offset;
 					for (size_t gc = 1; gc < std::min(gramSize, unigramCount - i); ++gc)
 					{
@@ -483,7 +509,7 @@ size_t DocFeatureIndex::appendOwnedEntity( uint32_t docId, const BarzerEntity& e
 {
     ExtractedDocFeature::Vec_t featureVec;
     uint32_t eid = storeOwnedEntity(ent);
-    featureVec.push_back( ExtractedDocFeature(DocFeature(DocFeature::CLASS_ENTITY,eid)) );
+    featureVec.push_back( ExtractedDocFeature(DocFeature(DocFeature::CLASS_ENTITY,eid),1) );
     return appendDocument( docId, featureVec, 0 );
 }
 size_t DocFeatureIndex::appendDocument( uint32_t docId, barzer::Barz& barz, size_t offset, DocFeatureLink::Weight_t weight )
@@ -519,14 +545,22 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeatur
 		auto& vec = fi->second;
 
 		const DocFeatureLink link(docId, f.docPos.weight);
+
+        /* DONT ERASE YET ! this is find for same weight,docId 
 		auto linkPos = std::find_if(vec.begin(), vec.end(),
 				[&link] (const DocFeatureLink& other)
 				{ return link.weight == other.weight && link.docId == other.docId; });
+        */
+		auto linkPos = std::find_if(vec.begin(), vec.end(),
+				[&link] (const DocFeatureLink& other)
+				{ return link.docId == other.docId; });
 		if (linkPos == vec.end())
 		{
 			vec.push_back(link);
 			linkPos = vec.end() - 1;
-		}
+		} else if( linkPos->weight < link.weight ) {
+            linkPos->weight= link.weight;
+        }
 		
 		if (m_considerFCount)
 			++linkPos->count;
@@ -606,7 +640,7 @@ void DocFeatureIndex::findDocument(
 		
 		const double classBoost = ZurchModelParms::get().getClassBoost( maxClass );
 
-		const int sizeBoost = ngram.feature.size();
+		const int sizeBoost = ngram.getRealTokenSize();
 		const int length = ngram.docPos.offset.second;
 		
 		double lengthPenalty = 1;
@@ -635,7 +669,7 @@ void DocFeatureIndex::findDocument(
 				continue;
 			
 			const auto scoreAdd = (lengthPenalty * sizeBoost * classBoost) * 
-                (1 + link.weight) * (1 + std::log(link.count)) / std::log(1 + numSources);
+                (1 + link.weight) * (std::log(128+link.count)) / std::log(1 + numSources);
 			
 			if (parm.doc2pos)
 			{
@@ -913,7 +947,24 @@ FeaturesStatItem DocFeatureIndex::getImportantFeatures(size_t count, double skip
 	
 	return item;
 }
+double DocFeatureLoader::getTitleLengthAdjustment( uint32_t docId ) const
+{
+    if( !d_title_avgLength )
+        return 1;
+    auto i = d_docTitleMap.find( docId );
 
+    return ( 2.0/(1.0+std::sqrt(i->second.length())) );
+}
+void DocFeatureLoader::computeTitleStats()
+{
+    if( d_docTitleMap.empty() )
+        return;
+    double totalLength= 0;
+    for( const auto& i : d_docTitleMap ) {
+        totalLength+= i.second.length();
+    }
+    d_title_avgLength = (size_t) ( totalLength/ d_docTitleMap.size() );
+}
 DocFeatureLoader::DocFeatureLoader( DocFeatureIndex& index, const barzer::StoredUniverse& u ) : 
     d_universe(u),
     d_parser(u),
@@ -921,7 +972,8 @@ DocFeatureLoader::DocFeatureLoader( DocFeatureIndex& index, const barzer::Stored
     m_curWeight(0),
     d_bufSz( DEFAULT_BUF_SZ ),
     d_xhtmlMode(ay::XHTML_MODE_HTML),
-    d_loadMode(LOAD_MODE_TEXT)
+    d_loadMode(LOAD_MODE_TEXT),
+    d_title_avgLength(0)
 {
     d_barz.setUniverse( &d_universe );
 }

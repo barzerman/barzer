@@ -73,6 +73,7 @@ bool ZurchSettings::loadIndex( const boost::property_tree::ptree& pt )
         ay::stopwatch localTimer;
         std::cerr << "Loading zurch doc contents from" << fname << std::endl;
         parser.readDocContentFromFile( fname.c_str()  );
+        parser.d_loader.computeTitleStats();
         std::cerr <<     " done in " << localTimer.calcTime() << " seconds\n";
     }
     //bool isPhraseMode = false;
