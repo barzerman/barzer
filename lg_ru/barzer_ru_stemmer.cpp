@@ -40,7 +40,15 @@ namespace suffix {
 
 /// for _truevowel suffixes: one of these vowels is also chopped if its preceding the suffix, otherwise just the suffix is chopped
 // 6 - ньк ( 6 or 7 characters to chop)
-const char* adj_67_nk_truevowel[]   = {"нькими", "нького",0 };
+const char* verb_6[] = {
+    "вшаяся", "вшаяся", "вшуюся", "вшийся", "вшимся", "вшемся","вшиеся","вшихся",
+    "ущаяся", "ущаяся", "ущуюся", "ущийся", "ущимся", "ущемся","ущиеся","ущихся",
+    "ющаяся", "ющаяся", "ющуюся", "ющийся", "ющимся", "ющемся","ющиеся","ющихся",
+    "ящаяся", "ящаяся", "ящуюся", "ящийся", "ящимся", "ящемся","ящиеся","ящихся", 
+    0
+};
+const char* adj_67_nk_truevowel[]   = {
+    "нькими", "нького",0 };
 // 5 == ньк (6 characters to chop)
 const char* adj_56_nk_truevowel[]    = {"нький","нькое","нькой","нькие","ньким","ньких","нькая",0 };
 // 4 = л (4 or 5 charcters to be chopped)
@@ -49,7 +57,20 @@ const char* verb_45_sch[]     = { "щая","щую","щей","щие","щих","
 const char* verb_45_truevowel[]     = {
 "лось" ,"лась","лись","лися","лося","ться","тесь",0};
 
-const char* verb_4[]        = {"ется", "ится", "айся","ейся","ойся","уйся", 0};
+const char* verb_5[]        = {
+    "емого", "имого",
+    "емому", "емыми",
+    "имому", "имыми",
+    0
+};
+const char* verb_4[]        = {
+    "ящий", "ящая", "ящее", "ящие", 
+    "ющий", "ющая", "ющее", "ющие", 
+    "утся", "ются", 
+    "емый", "емые", "емое", "емая", "емся", 
+    "ется", "ится", "айся","ейся","ойся","уйся", 0
+
+};
 const char* noun_3_truevowel[]        = {"ами","ями",0};
 const char* verb_3_truevowel[] = {"лся","тся",0 };
 
@@ -133,10 +154,17 @@ bool Russian::normalize( std::string& out, const char* s, size_t* len )
         Char2B_accessor l5( l4.prev()) , l6( l5.prev() );
         if( numLetters >= 8 ) { // 67 suffix
             Char2B_accessor l7(l6.prev());
-            if( numLetters > 9 && l6(adj_67_nk_truevowel) ) 
-                return( chop_into_string( out, (is_truevowel(l7.c_str()) ? 7:6 ), s, s_len ) );
+            if( numLetters > 9 ) {
+                if( l6(adj_67_nk_truevowel) ) 
+                    return( chop_into_string( out, (is_truevowel(l7.c_str()) ? 7:6 ), s, s_len ) );
+                else if( l6(verb_6) )
+                    return( chop_into_string( out, (is_truevowel(l7.c_str()) ? 7:6 ), s, s_len ) );
+            }
             bool l5_isVowel = is_truevowel(l5.c_str()),
                  l4_isVowel = is_truevowel(l4.c_str());
+            if( numLetters >= 9 && l5(verb_5) )
+                return( chop_into_string( out, (is_truevowel(l6.c_str()) ? 6:5 ), s, s_len ) );
+
             if( l5_isVowel && l4(verb_56_sch) )
                 return( chop_into_string( out, (is_truevowel(l6.c_str()) ? 6:5 ), s, s_len ) );
             if( l5("ньк") && l5(adj_56_nk_truevowel) ) 
@@ -146,7 +174,7 @@ bool Russian::normalize( std::string& out, const char* s, size_t* len )
             if( l4(verb_45_truevowel) ) 
                 return( chop_into_string(out, (l5_isVowel ? 5:4 ), s, s_len) );
             if( l4(verb_4) ) 
-                return( chop_into_string( out, 4, s, s_len ) );
+                return( chop_into_string( out, (l5_isVowel ? 5:4 ), s, s_len ) );
         }
     }
     /// trying 3 letter noun suffixes
