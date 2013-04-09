@@ -217,6 +217,8 @@ class Barz {
     const char* getReqVarAsChars( const char* ) const;
 public:
     BENIResult d_beni;
+    const BENIFindResults_t& getBeniResults() const 
+        { return d_beni.d_entVec; }
     BarzConfidenceData confidenceData;
 
     /// given offset and length in bytes in the original quesstion 

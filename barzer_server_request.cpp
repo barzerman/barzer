@@ -741,6 +741,10 @@ void BarzerRequestParser::tag_autoc(RequestTag &tag)
         case 'e':
             qparm.autoc.parseEntClassList(a->second.c_str());
             break;
+        case 'b':
+            if (a->first == "beni" ) 
+                d_beniMode=QuestionParm::parseBeniFlag(a->second.c_str());
+            break;
         case 'm':
             if( a->first == "max" ) {
                 int num = atoi( a->second.c_str() );
@@ -761,6 +765,7 @@ void BarzerRequestParser::tag_autoc(RequestTag &tag)
     }
     
     qparm.isAutoc = true;
+    qparm.d_beniMode = d_beniMode;
     raw_autoc_parse( d_query.c_str(), qparm );
     d_query.clear();
 }

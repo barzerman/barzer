@@ -14,7 +14,7 @@ public:
 
     /// add all entities by name for given class 
     void addEntityClass( const StoredEntityClass& ec );
-    void search( BENIFindResults_t&, const char* str ) const;
+    void search( BENIFindResults_t&, const char* str, double minCov) const;
 
     void clear() { d_storage.clear(); }
     BENI( StoredUniverse& u ) : 

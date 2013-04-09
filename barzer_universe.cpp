@@ -47,7 +47,7 @@ StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 void StoredUniverse::searchEntitiesByName( BENIFindResults_t& out, const char* str ) const
 {
     if( d_entNameIdx ) 
-        d_entNameIdx->search( out, str );
+        d_entNameIdx->search( out, str, d_settings.d_beni_Cutoff );
 }
 
 void StoredUniverse::indexEntityNames( const StoredEntityClass& ec ) 

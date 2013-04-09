@@ -230,6 +230,14 @@ int BarzerAutocomplete::parse( const char* q )
     MatcherCallbackGeneric< AutocCallback<AutocNodeVisotor_Callback> > cb(acCB);
 	AutocStreamerJSON autocStreamer(bestEnt, d_universe );
     parser.autocomplete( cb, d_barz, q, d_qparm );
+
+    if(  d_qparm.canHaveBeni()  && !bestEnt.isFull() && d_universe.d_settings.hasEnoughGlyphsForAutoc(d_barz.getQuestionOrigUTF8().length()) ) {
+        d_barz.beniSearch( d_universe, d_qparm );
+        for( const auto& i : d_barz.getBeniResults() ) {
+            if( d_universe.d_settings.isBeniCoverageGoodForAutoc(i.coverage) ) 
+                bestEnt.addEntity( i.ent, 1, static_cast<uint32_t>(i.coverage*100) );
+        }
+    }
     autocStreamer.print( d_os );
     return 0;
 }

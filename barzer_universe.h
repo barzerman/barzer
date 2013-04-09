@@ -131,6 +131,22 @@ private:
     EntityData entData; // canonic names and relevance
     ay::bitflags<UBIT_MAX> d_biflags;
 public:
+    struct Settings {
+        double d_beni_Cutoff; // default beni cutoff 
+        double d_beni_AutocCutoff; // cut off for autoc
+        size_t d_beni_MinAutocCount; // min number of glyphs to be passed to beni for autoc
+        Settings() : 
+            d_beni_Cutoff( 0.5 ),
+            d_beni_AutocCutoff( 0.7 ),
+            d_beni_MinAutocCount(3)
+        {}
+        bool isBeniCoverageGoodForAutoc( double c ) const 
+            { return c> d_beni_AutocCutoff; }
+        bool hasEnoughGlyphsForAutoc( size_t n ) const
+            { return (n>= d_beni_MinAutocCount); }
+    };
+    Settings d_settings;
+
     EntityData::EntProp*  setEntPropData( const StoredEntityUniqId& euid, const char* name, uint32_t rel, bool overrideName=false ) 
         { return entData.setEntPropData(euid, name,rel, overrideName); }
 

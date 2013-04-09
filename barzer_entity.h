@@ -268,44 +268,9 @@ private:
     EntIdMap d_entMap;
 public:
     BestEntities( uint32_t mxe = DEFAULT_MAX_ENT ) : d_maxEnt(mxe) {}
-    void addEntity( const StoredEntityUniqId& euid, uint32_t pathLen, uint32_t relevance=0 )
-    {
-        EntIdMap::iterator i = d_entMap.find( euid );
-
-        BestEntities_EntWeight wght( pathLen, relevance );
-
-        /// if the set is full
-        if( d_weightMap.size() >= d_maxEnt ) { 
-            // check that wght is better than the worst weight in the set 
-            EntWeightMap::reverse_iterator revI = d_weightMap.rbegin();
-            if( !(wght < revI->first) ) 
-                return;
-        }
-        if( i == d_entMap.end() ) { // this entity is not stored 
-            EntWeightMap::iterator wi = d_weightMap.insert( EntWeightMap::value_type(wght, euid) );
-            d_entMap[ euid ] = wi;
-        } else {  // entity is already here
-            if( wght < i->second->first )  { // if this occurence has higher weight 
-                d_weightMap.erase( i->second );
-                EntWeightMap::iterator wi = d_weightMap.insert( EntWeightMap::value_type(wght, euid) );
-                i->second = wi;
-            } else { // else we skip it
-                return;
-            }
-            
-        }
-        if( d_weightMap.size() > d_maxEnt ) {
-            EntWeightMap::iterator fwdIter = d_weightMap.end();
-            --fwdIter;
-            EntIdMap::iterator idMapIter = d_entMap.find( fwdIter->second );
-            if( idMapIter->second != fwdIter ) { // should never happen
-                AYLOG(ERROR) << "BestEntities inconsistency";
-            } else {
-                d_entMap.erase(idMapIter);
-                d_weightMap.erase(fwdIter);
-            }
-        }
-    }
+    void addEntity( const StoredEntityUniqId& euid, uint32_t pathLen, uint32_t relevance=0 );
+    bool isFull() const
+        { return (d_weightMap.size() >= d_maxEnt); }
     const EntWeightMap& getEntitiesAndWeights() const 
         { return d_weightMap; }
     void clear() { 

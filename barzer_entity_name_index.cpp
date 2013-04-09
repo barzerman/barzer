@@ -23,7 +23,7 @@ void BENI::addEntityClass( const StoredEntityClass& ec )
     std::cerr << "BENI: " << numNames << " names for " << ec << std::endl;
 }
 
-void BENI::search( BENIFindResults_t& out, const char* query ) const
+void BENI::search( BENIFindResults_t& out, const char* query, double minCov ) const
 {
     out.clear();
     std::vector< NGramStorage<BarzerEntity>::FindInfo > vec;
@@ -39,8 +39,16 @@ void BENI::search( BENIFindResults_t& out, const char* query ) const
         out.reserve( vec.size() );
 
     for( const auto& i : vec ) {
-        if( i.m_data ) {
-            out.push_back({ *(i.m_data), i.m_levDist, i.m_coverage, i.m_relevance });
+        if( i.m_data && i.m_coverage>= minCov ) {
+            bool isNew = true;
+            for( const auto& x : out ) {
+                if( *(i.m_data) == x.ent ) {
+                    isNew = false;
+                    break;
+                }
+            }
+            if( isNew )
+                out.push_back({ *(i.m_data), i.m_levDist, i.m_coverage, i.m_relevance });
         }
     }
 }
