@@ -252,7 +252,7 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 }
 
 #define REPORT_ATTR \
-		{ \
+		if( !strcmp(n,"xmlns") ) { \
 			BarzXMLErrorStream errStream( *reader, statement.stmt.getStmtNumber()); \
 			errStream.os << "unknown attribute name/value: " << n << " -> " << v; \
 		}

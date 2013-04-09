@@ -1405,12 +1405,12 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 		if( di != bbdv.end() ) { // vector is longer than the bead range
              
             // const BarzelMatchInfo& matchInfo = ctxt.matchInfo;
-            const CTWPVec* tmpCt = 0;
+            // const CTWPVec* tmpCt = 0;
             if( range.second != range.first ) {
                 BeadList::const_iterator bsi = range.first;
                 if( ++bsi == range.second ) {
                     /// this means matched range is 1 bead long 
-                    tmpCt = &( range.first->getCTokens() );
+                    // tmpCt = &( range.first->getCTokens() );
                 }
             }
 			for( ; di != bbdv.end(); ++di ) {
