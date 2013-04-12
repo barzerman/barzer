@@ -314,6 +314,8 @@ class NGramStorage {
 	StoredStringFeatureVec m_storedVec;
 	ExtractedStringFeatureVec m_extractedVec;
     /// end of 
+	
+	bool m_soundsLikeEnabled;
 public:
     void clear() 
     {
@@ -325,6 +327,7 @@ public:
 
 	NGramStorage(ay::UniqueCharPool& p)
 	: m_gram(p)
+	, m_soundsLikeEnabled(true)
 	{
 		m_gram.d_extractor.m_makeSideGrams = false;
 		m_gram.d_extractor.m_stem = false;
@@ -332,13 +335,21 @@ public:
 		m_gram.d_extractor.m_maxGrams = 3;
 	}
 	
-	void addWord(const char *str, const T& data)
+	void addWord(const char *srcStr, const T& data)
 	{
+		std::string str(srcStr);
+		if (m_soundsLikeEnabled)
+		{
+			std::string tmp;
+			EnglishSLHeuristic(0).transform(srcStr, str.size(), tmp);
+			str = std::move(tmp);
+		}
+		
 	    TFE_TmpBuffers bufs( m_storedVec, m_extractedVec );
 		bufs.clear();
 		
-		auto strId = m_gram.d_pool->internIt(str);
-		m_gram.extractAndStore(bufs, strId, str, LANG_UNKNOWN);
+		auto strId = m_gram.d_pool->internIt(str.c_str());
+		m_gram.extractAndStore(bufs, strId, str.c_str(), LANG_UNKNOWN);
 		m_storage.insert({ strId, data });
 	}
 	
@@ -351,13 +362,21 @@ public:
 		double m_coverage;
 	};
 	
-	void getMatches(const char *str, size_t strLen, std::vector<FindInfo>& out, size_t max = 16, size_t topLev = 4) const
+	void getMatches(const char *origStr, size_t origStrLen, std::vector<FindInfo>& out, size_t max = 16, size_t topLev = 4) const
 	{
+		std::string str(origStr, origStrLen);
+		if (m_soundsLikeEnabled)
+		{
+			std::string tmp;
+			EnglishSLHeuristic(0).transform(origStr, origStrLen, tmp);
+			str = std::move(tmp);
+		}
+		
         StoredStringFeatureVec storedVec;
         ExtractedStringFeatureVec extractedVec;
         TFE_TmpBuffers bufs( storedVec, extractedVec );
 		
-		m_gram.extractSTF(bufs, str, strLen, LANG_UNKNOWN);
+		m_gram.extractSTF(bufs, str.c_str(), str.size(), LANG_UNKNOWN);
 		
 		const double srcFCnt = storedVec.size();
 		
@@ -412,7 +431,7 @@ public:
 		
 		size_t curItem = 0;
 		ay::LevenshteinEditDistance lev;
-		const auto utfLength = ay::StrUTF8::glyphCount(str, str + strLen);
+		const auto utfLength = ay::StrUTF8::glyphCount(str.c_str(), str.c_str() + str.size());
 		for (const auto& item : sorted)
 		{
 			auto dataPos = m_storage.find(item.first);
@@ -422,7 +441,7 @@ public:
 			
 			const auto dist = ++curItem > topLev ?
 				0 :
-				barzer::Lang::getLevenshteinDistance(lev, str, strLen, resolvedResult, resolvedLength);
+				barzer::Lang::getLevenshteinDistance(lev, str.c_str(), str.size(), resolvedResult, resolvedLength);
 			
 			const auto& info = doc2fCnt[item.first];
 			out.push_back({
