@@ -335,6 +335,8 @@ public:
 		m_gram.d_extractor.m_maxGrams = 3;
 	}
 	
+	void setSLEnabled(bool enabled) { m_soundsLikeEnabled = enabled; }
+	
 	void addWord(const char *srcStr, const T& data)
 	{
 		std::string str(srcStr);
