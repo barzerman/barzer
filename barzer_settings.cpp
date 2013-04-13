@@ -688,6 +688,10 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
             if( const boost::optional<std::string> cOpt = xAttr.get().get_optional<std::string>("noids") ) {
                 u.getUniverse().setBit( StoredUniverse::UBIT_USE_BENI_IDS, false );
             }
+            if( const boost::optional<std::string> cOpt = xAttr.get().get_optional<std::string>("sl") ) {
+                if( cOpt.get() != "no" )
+                    u.getUniverse().setBit( StoredUniverse::UBIT_BENI_SOUNDSLIKE, true );
+            }
         } 
 
         u.getUniverse().setBit( StoredUniverse::UBIT_NEED_CONFIDENCE );

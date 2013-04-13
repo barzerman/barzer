@@ -35,7 +35,7 @@ public:
 		m_gram.d_extractor.m_maxGrams = 3;
 	}
 	
-	void setSLEnabled(bool enabled) { m_soundsLikeEnabled = enabled; }
+	void setSLEnabled(bool enabled=true) { m_soundsLikeEnabled = enabled; }
 	
 	void addWord(const char *srcStr, const T& data)
 	{
@@ -169,8 +169,7 @@ public:
     void search( BENIFindResults_t&, const char* str, double minCov) const;
 
     void clear() { d_storage.clear(); }
-    BENI( StoredUniverse& u ) : 
-        d_storage(d_charPool), d_universe(u) {}
+    BENI( StoredUniverse& u );
     
     static bool normalize( std::string& out, const std::string& in ) ;
 };

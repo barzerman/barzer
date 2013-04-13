@@ -1,6 +1,13 @@
 #include <barzer_beni.h>
 
 namespace barzer {
+BENI::BENI( StoredUniverse& u ) : 
+    d_storage(d_charPool),
+    d_universe(u)
+{
+    d_storage.setSLEnabled( u.checkBit( StoredUniverse::UBIT_BENI_SOUNDSLIKE) );
+}
+
 void BENI::addEntityClass( const StoredEntityClass& ec )
 {
     /// iterate over entities of ec 
