@@ -11,7 +11,7 @@
 #include <ay/ay_ngrams.h>
 #include <boost/filesystem.hpp>
 #include <zurch_docidx.h>
-#include <barzer_entity_name_index.h>
+#include <barzer_beni.h>
 
 namespace barzer {
 
