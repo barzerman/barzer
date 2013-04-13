@@ -327,7 +327,7 @@ public:
 
 	NGramStorage(ay::UniqueCharPool& p)
 	: m_gram(p)
-	, m_soundsLikeEnabled(true)
+	, m_soundsLikeEnabled(false)
 	{
 		m_gram.d_extractor.m_makeSideGrams = false;
 		m_gram.d_extractor.m_stem = false;
@@ -344,7 +344,7 @@ public:
 		{
 			std::string tmp;
 			EnglishSLHeuristic(0).transform(srcStr, str.size(), tmp);
-			str = std::move(tmp);
+			str = tmp;
 		}
 		
 	    TFE_TmpBuffers bufs( m_storedVec, m_extractedVec );
@@ -371,7 +371,7 @@ public:
 		{
 			std::string tmp;
 			EnglishSLHeuristic(0).transform(origStr, origStrLen, tmp);
-			str = std::move(tmp);
+			str = tmp;
 		}
 		
         StoredStringFeatureVec storedVec;
