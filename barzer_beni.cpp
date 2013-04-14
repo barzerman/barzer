@@ -1,12 +1,73 @@
 #include <barzer_beni.h>
 
 namespace barzer {
+
+SmartBENI::SmartBENI( StoredUniverse& u ) : 
+    d_beniStraight(u),
+    d_beniSl(u),
+    d_isSL(u.checkBit( StoredUniverse::UBIT_BENI_SOUNDSLIKE))
+{
+    if( d_isSL ) {
+        d_beniSl.setSL( true );
+        d_beniStraight.setSL( false );
+    }
+}
+void SmartBENI::addEntityClass( const StoredEntityClass& ec )
+{
+    /// iterate over entities of ec 
+    const auto& theMap = d_beniStraight.d_universe.getDtaIdx().entPool.getEuidMap();
+    BarzerEntity id( ec, 0 );
+    size_t numNames =0;
+    std::vector<char> tmpBuf;
+    std::string dest;
+    std::string normDest;
+    for( auto i = theMap.lower_bound( id );i!= theMap.end() && i->first.eclass == ec; ++i ) {
+        const EntityData::EntProp* edata = d_beniStraight.d_universe.getEntPropData( i->first );
+        if( edata && !edata->canonicName.empty() ) {
+            Lang::stringToLower( tmpBuf, dest, edata->canonicName );
+            BENI::normalize( normDest, dest );
+			d_beniStraight.d_storage.addWord( normDest.c_str(), i->first );
+            if( d_isSL ) 
+			    d_beniSl.d_storage.addWord( normDest.c_str(), i->first );
+            
+            ++numNames;
+        }
+    }
+    std::cerr << "BENI: " << numNames << " names for " << ec << std::endl;
+}
+void SmartBENI::search( BENIFindResults_t& out, const char* query, double minCov ) const
+{
+    double maxCov = d_beniStraight.search( out, query, minCov );
+    const double SL_COV_THRESHOLD= 0.7;
+
+    if( d_isSL ) {
+        if( maxCov< SL_COV_THRESHOLD || out.empty() ) {
+            BENIFindResults_t slOut;
+            double maxCov = d_beniSl.search( slOut, query, minCov );
+            for( const auto& i: slOut ) {
+                if( out.end() == std::find_if(out.begin(), out.end(), [&]( const BENIFindResult& x ) { return ( x.ent == i.ent ) ; }) ) {
+                    out.push_back( i );
+                }
+            }
+        }
+    }
+}
+
+void SmartBENI::clear()
+{
+    d_beniSl.clear();
+    d_beniStraight.clear();
+}
+
+void BENI::setSL( bool x )
+{
+    d_storage.setSLEnabled( x );
+}
+
 BENI::BENI( StoredUniverse& u ) : 
     d_storage(d_charPool),
     d_universe(u)
-{
-    d_storage.setSLEnabled( u.checkBit( StoredUniverse::UBIT_BENI_SOUNDSLIKE) );
-}
+{}
 
 void BENI::addEntityClass( const StoredEntityClass& ec )
 {
@@ -21,7 +82,7 @@ void BENI::addEntityClass( const StoredEntityClass& ec )
         const EntityData::EntProp* edata = d_universe.getEntPropData( i->first );
         if( edata && !edata->canonicName.empty() ) {
             Lang::stringToLower( tmpBuf, dest, edata->canonicName );
-            normalize( normDest, dest );
+            BENI::normalize( normDest, dest );
 			d_storage.addWord( normDest.c_str(), i->first );
             
             ++numNames;
@@ -30,8 +91,9 @@ void BENI::addEntityClass( const StoredEntityClass& ec )
     std::cerr << "BENI: " << numNames << " names for " << ec << std::endl;
 }
 
-void BENI::search( BENIFindResults_t& out, const char* query, double minCov ) const
+double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) const
 {
+    double maxCov = 0.0;
     out.clear();
     std::vector< NGramStorage<BarzerEntity>::FindInfo > vec;
 	
@@ -46,7 +108,12 @@ void BENI::search( BENIFindResults_t& out, const char* query, double minCov ) co
         out.reserve( vec.size() );
 
     for( const auto& i : vec ) {
-        if( i.m_data && i.m_coverage>= minCov ) {
+        if( !i.m_data )
+            continue;
+        if( i.m_coverage > maxCov )
+            maxCov = i.m_coverage;
+
+        if( i.m_coverage>= minCov ) {
             bool isNew = true;
             for( const auto& x : out ) {
                 if( *(i.m_data) == x.ent ) {
@@ -58,6 +125,7 @@ void BENI::search( BENIFindResults_t& out, const char* query, double minCov ) co
                 out.push_back({ *(i.m_data), i.m_levDist, i.m_coverage, i.m_relevance });
         }
     }
+    return maxCov;
 }
 
 bool BENI::normalize( std::string& out, const std::string& in ) 
@@ -94,5 +162,7 @@ bool BENI::normalize( std::string& out, const std::string& in )
     }
     return altered;
 }
+
+
 
 } // namespace barzer

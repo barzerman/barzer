@@ -53,7 +53,7 @@ void StoredUniverse::searchEntitiesByName( BENIFindResults_t& out, const char* s
 void StoredUniverse::indexEntityNames( const StoredEntityClass& ec ) 
 {
     if( !d_entNameIdx )  
-        d_entNameIdx = new BENI( *this );
+        d_entNameIdx = new SmartBENI( *this );
     d_entNameIdx->addEntityClass(ec);
 }
 

@@ -161,17 +161,34 @@ class StoredUniverse;
 class BENI {
     ay::UniqueCharPool d_charPool;
 public:
+    ay::UniqueCharPool& charPool() { return d_charPool; }
+    const ay::UniqueCharPool& charPool() const { return d_charPool; }
+
     NGramStorage<BarzerEntity> d_storage;
     StoredUniverse& d_universe;
 
     /// add all entities by name for given class 
     void addEntityClass( const StoredEntityClass& ec );
-    void search( BENIFindResults_t&, const char* str, double minCov) const;
+    /// returns max coverage
+    double search( BENIFindResults_t&, const char* str, double minCov) const;
 
     void clear() { d_storage.clear(); }
     BENI( StoredUniverse& u );
     
     static bool normalize( std::string& out, const std::string& in ) ;
+    void setSL( bool );
+};
+class SmartBENI {
+    BENI d_beniStraight,  // beni without soundslike normalization
+         d_beniSl;        // beni with sounds like normalization
+    /// if d_isSL == true d_beniSl has sounds like processed ngrams .. otherwise it's blank
+    bool d_isSL;
+public:
+    void clear();
+    SmartBENI( StoredUniverse& u );
+
+    void addEntityClass( const StoredEntityClass& ec );
+    void search( BENIFindResults_t&, const char* str, double minCov) const;
 };
 
 } // namespace barzer
