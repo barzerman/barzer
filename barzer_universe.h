@@ -39,13 +39,13 @@ class BZSpell;
 class Ghettodb;
 class MeaningsStorage;
 class BarzerGeo;
-class BENI;
+class SmartBENI;
 
 class StoredUniverse {
 	uint32_t d_userId;
     std::string d_userName;
     //// search entities by names using this object
-    BENI* d_entNameIdx;
+    SmartBENI* d_entNameIdx;
 public:
 
     void indexEntityNames( const StoredEntityClass& ec ) ;
