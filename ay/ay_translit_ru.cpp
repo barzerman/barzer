@@ -560,9 +560,8 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                 } else if( s[1] =='v' && s[2] == 'e' && s[3] == 'r' && s[4] == 'y' ) {
                     russian.append("эври");
                     s+=4;
-                } else 
-                if( terminating_char(s[1]) && !isVowel(c_prev) && (s-beg>2 || isVowel(*(s-2))) ) {
-                } else if( c1 == 'a' && s[2] == 'r' && terminating_char(s[3]) ) {
+                } else if ( terminating_char(s[1]) && !isVowel(c_prev) ) {
+				} else if( c1 == 'a' && s[2] == 'r' && terminating_char(s[3]) ) {
                     russian.append("иа");
                     s+=3;
                 } else if( s[1] =='w'  ) {
