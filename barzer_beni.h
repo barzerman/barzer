@@ -64,7 +64,7 @@ public:
 		double m_coverage;
 	};
 	
-	void getMatches(const char *origStr, size_t origStrLen, std::vector<FindInfo>& out, size_t max = 16, size_t topLev = 4) const
+	void getMatches(const char *origStr, size_t origStrLen, std::vector<FindInfo>& out, size_t max, double minCov ) const
 	{
 		std::string str(origStr, origStrLen);
 		if (m_soundsLikeEnabled)
@@ -126,14 +126,10 @@ public:
 				[](const CounterMap_t::value_type& v1, const CounterMap_t::value_type& v2)
 					{ return v1.second > v2.second; });
 		
-		if (sorted.size() > max)
-			sorted.resize(max);
-		
-		out.reserve(sorted.size());
-		
 		size_t curItem = 0;
 		ay::LevenshteinEditDistance lev;
 		const auto utfLength = ay::StrUTF8::glyphCount(str.c_str(), str.c_str() + str.size());
+        size_t countAdded = 0;
 		for (const auto& item : sorted)
 		{
 			auto dataPos = m_storage.find(item.first);
@@ -141,18 +137,21 @@ public:
 			const auto resolvedResult = m_gram.d_pool->resolveId(item.first);
 			const auto resolvedLength = std::strlen(resolvedResult);
 			
-			const auto dist = ++curItem > topLev ?
-				0 :
-				barzer::Lang::getLevenshteinDistance(lev, str.c_str(), str.size(), resolvedResult, resolvedLength);
-			
+            const  size_t dist = 1; // we shouldnt need to compute levenshtein
 			const auto& info = doc2fCnt[item.first];
-			out.push_back({
-					item.first,
-					(dataPos == m_storage.end() ? 0 : &dataPos->second),
-					item.second,
-					dist,
-					info.fCount / srcFCnt
+            const double cover = info.fCount / srcFCnt;
+            if( cover >= minCov && dataPos != m_storage.end()) {
+			    out.push_back({
+					    item.first,
+					    &(dataPos->second),
+					    item.second,
+					    dist,
+					    cover
 				});
+                
+                if( ++countAdded  >= max )
+                    break;
+            }
 		}
 	}
 };

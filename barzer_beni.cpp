@@ -91,6 +91,24 @@ void BENI::addEntityClass( const StoredEntityClass& ec )
     std::cerr << "BENI: " << numNames << " names for " << ec << std::endl;
 }
 
+namespace {
+
+size_t compute_cutoff_by_coverage( std::vector< NGramStorage<BarzerEntity>::FindInfo >& vec )
+{
+    if( vec.empty() ) 
+        return 0;
+    double topCov = vec[0].m_coverage;
+
+    double diff = 0;
+    size_t i = 1;
+    for( ; i< vec.size(); ++i ) {
+        if( vec[i].m_coverage + 0.1 < topCov ) 
+            return i;
+    }
+    return i;
+}
+
+} //end of anon namespace 
 double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) const
 {
     double maxCov = 0.0;
@@ -102,10 +120,14 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) 
     std::string normDest;
 	Lang::stringToLower( tmpBuf, dest, std::string(query) );
     normalize( normDest, dest );
-    d_storage.getMatches( normDest.c_str(), normDest.length(), vec );
+    enum { MAX_BENI_RESULTS = 64 };
+    d_storage.getMatches( normDest.c_str(), normDest.length(), vec, MAX_BENI_RESULTS, minCov );
 	
     if( !vec.empty() ) 
         out.reserve( vec.size() );
+    size_t cutOffSz = compute_cutoff_by_coverage( vec );
+    if( cutOffSz< vec.size() ) 
+        vec.resize( cutOffSz );
 
     for( const auto& i : vec ) {
         if( !i.m_data )
