@@ -1,8 +1,6 @@
-find_package(Boost COMPONENTS system python REQUIRED)
+find_package(Boost COMPONENTS system REQUIRED)
 
 link_directories ( ${boost_LIBRARY_DIRS} )
-
-find_package(PythonLibs REQUIRED)
 
 
 include_directories("${PROJECT_BINARY_DIR}"
@@ -17,9 +15,6 @@ set(EXTRA_LIBS ${EXTRA_LIBS}
                ay)
 
                    
-add_library(butil pybarzer.cpp)
-target_link_libraries (butil ${EXTRA_LIBS})
-
 #SET_TARGET_PROPERTIES(butil PROPERTIES PREFIX "")
 
 

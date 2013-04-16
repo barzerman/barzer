@@ -53,13 +53,12 @@ ADD_DEFINITIONS (-DBARZER_VERSION_STR="${BARZER_VERSION}")
 
 IF(WIN32)
 	SET(Boost_USE_STATIC_LIBS   ON)
-	add_definitions(-DBOOST_THREAD_USE_LIB -DBOOST_PYTHON_STATIC_LIB)
-	MESSAGE("-- Linking boost thread and python libs statically")
+	add_definitions(-DBOOST_THREAD_USE_LIB)
+	MESSAGE("-- Linking boost libs statically")
 ENDIF()
 
-find_package(Boost COMPONENTS system python thread regex filesystem REQUIRED)
+find_package(Boost COMPONENTS system thread regex filesystem REQUIRED)
 find_package(EXPAT REQUIRED)
-find_package(PythonLibs REQUIRED)
 
 
 
@@ -75,7 +74,6 @@ include_directories("${PROJECT_BINARY_DIR}"
                     "${PROJECT_SOURCE_DIR}/${EN_DIR}"
                     "${PROJECT_SOURCE_DIR}/${RU_DIR}"
                      ${Boost_INCLUDE_DIRS}
-                     ${PYTHON_INCLUDE_DIRS}
 		     ${EXPAT_INCLUDE_DIRS})
 add_subdirectory (ay)
 add_subdirectory (util)
