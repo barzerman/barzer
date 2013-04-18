@@ -1221,7 +1221,7 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
                 {
 			        std::string strToStem( ttok.normBuf.length() ? ttok.normBuf : ttok.buf ); 
 			        // std::string stem;
-                    int lang = LANG_UNKNOWN;
+                    int lang = LANG_UNKNOWN, stemLang = LANG_UNKNOWN;
                     const StoredToken* partialWordTok = dtaIdx->getStoredToken( strToStem.c_str() );
                     bool gotStemmed = bzSpell->stem(tmpCtok.stem, strToStem.c_str(), lang) ;
 
@@ -1235,7 +1235,7 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
                                 const char* x = d_universe.resolveStoredTok( *(tmpCtok.getStoredTok()) );
                                 if( x ) {
                                     strToStem.assign( x );
-                                    gotStemmed = bzSpell->stem(tmpCtok.stem, strToStem.c_str(), lang) ;
+                                    gotStemmed = bzSpell->stem(tmpCtok.stem, strToStem.c_str(),stemLang);
                                     if( gotStemmed )
                                         stemTok = dtaIdx->getStoredToken( tmpCtok.stem.c_str() );
                                 }
@@ -1250,7 +1250,7 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
                         std::string dedupeStr;
                         enum { MIN_DEDUPE_LENGTH = 5 };
                         std::string dedupedStem;
-                        if( bzSpell->dedupeChars( dedupeStr, strToStem.c_str(), strToStem.length(), lang, MIN_DEDUPE_LENGTH ) && dedupeStr.length() ) { 
+                        if( bzSpell->dedupeChars( dedupeStr, strToStem.c_str(), strToStem.length(), stemLang, MIN_DEDUPE_LENGTH ) && dedupeStr.length() ) { 
                             stemTok = dtaIdx->getStoredToken( dedupeStr.c_str() ) ;
                             if( stemTok && stemTok != tmpCtok.getStemTok() )
                                 tmpCtok.setStemTok( stemTok );

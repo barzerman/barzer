@@ -1,16 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
-
-    <dictionaries>
-        <file>data/spell/english_words.txt</file>
-    </dictionaries>
-    <zurchmodel>
-    </zurchmodel>
     <users>
         <user id="0">
             <flags value="c"/>
-            <spell dictcorr="yes"><tokenizer strat="SPACE_DEFAULT"/></spell>
-
             <rules> <file class="" name="shit">dev/shit.xml</file> </rules>
             <trieset>
                 <trie class="" name="shit" />
