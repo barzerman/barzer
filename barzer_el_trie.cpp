@@ -154,15 +154,13 @@ std::ostream& BarzelTrieNode::print( std::ostream& fp , BELPrintContext& ctxt ) 
 		print_firmChildren( fp, ctxt );
 		fp << "\n";
 		needNewline = false;
-	} else 
-		fp << "[no firm]";
+	} 
 	
 	if( hasWildcardChildren() ) {
 		print_wcChildren(fp, ctxt );
 		fp << "\n";
 		needNewline = false;
-	} else 
-		fp << "[no wildcards]";
+	} 
 
 	if( isLeaf() ) 
 		print_translation( (fp << " *LEAF*=> ["), ctxt) << "]";
@@ -803,8 +801,19 @@ void BarzelTranslation::fillRewriteData( BTND_RewriteData& d ) const
 	default: d = BTND_Rewrite_None(); return;
 	}
 }
+namespace {
+
+std::ostream& print_BarzerEntity( std::ostream& fp, const BarzerEntity& ent, const BELPrintContext& ctxt ) 
+{
+    const char* idstr = ctxt.gp().internalString_resolve(ent.getTokId());
+    if( !idstr) idstr = "";
+    return (fp << ent.eclass.ec << "," << ent.eclass.subclass << ","<<  idstr );
+}
+
+} // anon namespace ends
 std::ostream& BarzelTranslation::print( std::ostream& fp, const BELPrintContext& ctxt) const
 {
+    ctxt.gp().printTanslationTraceInfo( fp, traceInfo ) << " ~ ";
 #define CASEPRINT(x) case T_##x: return( fp << #x );
 	switch(type ) {
 	CASEPRINT(NONE)
@@ -813,6 +822,17 @@ std::ostream& BarzelTranslation::print( std::ostream& fp, const BELPrintContext&
 	CASEPRINT(COMPWORD)
 	CASEPRINT(NUMBER_INT)
 	CASEPRINT(NUMBER_REAL)
+	case T_MKENT: {
+            fp << "MKENT(";
+            if( const StoredEntity * se = ctxt.gp().getDtaIdx().getEntById( getId_uint32() ) ) 
+                return print_BarzerEntity( fp, se->euid, ctxt )  << ")";
+            else
+               return ( fp << "null)" );
+        }
+        break;
+
+	CASEPRINT(MKENTLIST)
+	CASEPRINT(FUNCTION)
 
 	case T_RAWTREE:
 	{
