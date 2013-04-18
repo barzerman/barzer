@@ -1519,6 +1519,18 @@ static int bshf_dtaan( BarzerShell* shell, char_cp cmd, std::istream& in , const
 	return 0;
 }
 
+static int bshf_ls( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
+{
+	BarzerShellContext *context = shell->getBarzerContext();
+	StoredUniverse &uni = context->getUniverse();
+	const BELTrie &trie = context->getTrie();
+	ay::UniqueCharPool &stringPool = uni.getStringPool();
+	BELPrintFormat fmt;
+	BELPrintContext prnContext( trie, stringPool, fmt );
+    
+    trie.print( std::cerr, prnContext );
+    return 0;
+}
 static int bshf_trls( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	BarzerShellContext *context = shell->getBarzerContext();
@@ -1676,7 +1688,17 @@ static int bshf_trieset( BarzerShell* shell, char_cp cmd, std::istream& in , con
 	BarzerShellContext * context = shell->getBarzerContext();
 	GlobalPools &globalPools = context->getGLobalPools();
 	std::string trieClass, trieId;
-	in >> trieClass >> trieId;
+    std::string tmpClass;
+    in >> tmpClass;
+    const char* semiCol = strchr( tmpClass.c_str(), ':' );
+    if( semiCol ) {
+        trieId.assign( semiCol+1 );
+        trieClass.assign( tmpClass.c_str(), semiCol-tmpClass.c_str() );
+    } else {
+        std::cerr << "assuming blank class name\n";
+        trieId = tmpClass;
+    }
+
 	BELTrie* trie = globalPools.getTrie( trieClass.c_str(), trieId.c_str() );
     if( trie ) {
         context->setTrie( trie );
@@ -2017,6 +2039,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)(bshf_trie), "trie", "trie commands" ),
 	CmdData( (ay::Shell_PROCF)(bshf_trieclear), "trieclear", "out the current trie (trieset to set current trie)" ),
 	CmdData( (ay::Shell_PROCF)(bshf_trieset), "trieset", " [trieclass] [trieid] - sets current trie trie" ),
+	CmdData( (ay::Shell_PROCF)(bshf_ls), "ls", "lists current trie node children recursively" ),
 	CmdData( (ay::Shell_PROCF)(bshf_trls), "trls", "lists current trie node children" ),
 	CmdData( (ay::Shell_PROCF)(bshf_trcd), "trcd", "changes current trie node to the firm child by number" ),
 	CmdData( (ay::Shell_PROCF)(bshf_trcdw), "trcdw", "changes current trie node to the wildcard child by number" ),

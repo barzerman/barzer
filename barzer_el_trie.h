@@ -734,6 +734,7 @@ struct BELPrintContext {
 	std::ostream& printBarzelWCLookupKey( std::ostream& fp, const BarzelWCLookupKey& key ) const;
 
 	std::ostream& printRewriterByteCode( std::ostream& fp, const BarzelTranslation& ) const;
+    const GlobalPools& gp() const { return trie.getGlobalPools(); }
 };
 
 } // namespace barzer

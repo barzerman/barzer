@@ -11,6 +11,26 @@
 
 namespace barzer {
 
+namespace {
+
+bool get_single_entity( BarzerEntity& ent, const BELTrie& trie, const BarzelTranslation& translation )
+{
+    if( !translation.isRawTree()  ) {
+        BTND_RewriteData rwr;
+		translation.fillRewriteData( rwr );
+        if( rwr.which() == BTND_Rewrite_MkEnt_TYPE ) {
+            BTND_Rewrite_MkEnt& mkent = boost::get<BTND_Rewrite_MkEnt>(rwr);
+            if( mkent.isSingleEnt() ) {
+                auto p = trie.getGlobalPools().getDtaIdx().getEntById( mkent.getEntId() );
+                if( p ) return(ent=p->euid,true);
+            }
+        }
+    }
+    return false;
+}
+
+}
+
 void BarzelMatchAmbiguities::addEntity( const BELTrie& trie, const BarzelTranslation& translation )
 {
 	if( !translation.isRawTree() ) { /// translation is trivial non-rewriter 
@@ -205,6 +225,15 @@ struct findMatchingChildren_visitor : public boost::static_visitor<bool> {
 	BTMIterator& 			d_btmi;
 private: // making sure nobody ever uses this directly
 	NodeAndBeadVec& 		d_mtChild;
+
+    void d_mtChild_push_back( const NodeAndBeadVec::value_type& v )
+    {
+        for( const auto& i : d_mtChild ) {
+            if( i == v ) 
+                return;
+        }
+        d_mtChild.push_back( v );
+    }
 	const StoredUniverse&	d_uni;
 public:
 	const BeadRange&		d_rng; // full range
@@ -280,7 +309,7 @@ public:
 			BarzelBeadChain::Range goodRange(d_rng.first,iter);
 			//BarzelBeadChain::trimBlanksFromRange( goodRange );
 			//AYDEBUG(goodRange);
-			d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+			d_mtChild_push_back( NodeAndBeadVec::value_type(ch,goodRange) );
 		}
 	}
 	/// iterates over all matching subordinate wildcards
@@ -371,12 +400,12 @@ public:
 			if( i->first.id == 0xffffffff ) {
 				const BarzelTrieNode* ch = &(i->second);
 				BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);
-				d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+				d_mtChild_push_back( NodeAndBeadVec::value_type(ch,goodRange) );
 			} else {
 				const PatternType* dpat = wcPool.get_BTND_Pattern< PatternType > ( i->first.id );
 				if( !dpat ) return false;
 				if( evalWildcard_vis< PatternType >(*dpat)( dta )  ) {
-					d_mtChild.push_back( NodeAndBeadVec::value_type(
+					d_mtChild_push_back( NodeAndBeadVec::value_type(
 						&(i->second),
 						BarzelBeadChain::Range(d_rng.first,d_rng.first)) );
 				}
@@ -393,20 +422,20 @@ public:
                 if( i->first.type != patternTypeId ) {
                     const BarzelTrieNode* ch = &(i->second);
                     BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);
-                    d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+                    d_mtChild_push_back( NodeAndBeadVec::value_type(ch,goodRange) );
                 }
             } else {
 				const PatternType* dpat = ( (i->first.type == patternTypeId) ? wcPool.get_BTND_Pattern< PatternType > ( i->first.id ) : 0 );
                 if( dpat ) {
                     if( !evalWildcard_vis< PatternType >(*dpat)( dta )  ) {
-                        d_mtChild.push_back( NodeAndBeadVec::value_type(
+                        d_mtChild_push_back( NodeAndBeadVec::value_type(
                             &(i->second),
                             BarzelBeadChain::Range(d_rng.first,d_rng.first)) );
                     }
                 } else {
                     const BarzelTrieNode* ch = &(i->second);
                     BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);
-                    d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+                    d_mtChild_push_back( NodeAndBeadVec::value_type(ch,goodRange) );
                 }
 
             }
@@ -450,7 +479,7 @@ public:
 		if( ch ) {
 			BeadList::iterator endIt = d_rng.first;
 			BarzelBeadChain::Range goodRange(d_rng.first,endIt);
-			d_mtChild.push_back( NodeAndBeadVec::value_type(ch, goodRange ) );
+			d_mtChild_push_back( NodeAndBeadVec::value_type(ch, goodRange ) );
 		}
 		
 		if( dta.isString() ) {
@@ -461,7 +490,7 @@ public:
                     meaningKey.setMeaning(m->id, d_followsBlank);
                     const BarzelTrieNode* ch = d_tn->getFirmChild( meaningKey, fcmap );
                     if( ch ) 
-                        d_mtChild.push_back( NodeAndBeadVec::value_type(ch, BarzelBeadChain::Range(d_rng.first,d_rng.first) ) );
+                        d_mtChild_push_back( NodeAndBeadVec::value_type(ch, BarzelBeadChain::Range(d_rng.first,d_rng.first) ) );
                 }
             }
 		}
@@ -477,14 +506,14 @@ public:
                 if( i_key.type != BTND_Pattern_Token_TYPE ) {
                     const BarzelTrieNode* ch = &(i->second);
                     BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);
-                    d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+                    d_mtChild_push_back( NodeAndBeadVec::value_type(ch,goodRange) );
                 }
             } else {
                 if( i_key.type == BTND_Pattern_Token_TYPE ) {
                     if( dta.isMysteryString() || (theId != 0xffffffff && i_key.id != theId) ) {
                         const BarzelTrieNode* ch = &(i->second);
                         BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);
-                        d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+                        d_mtChild_push_back( NodeAndBeadVec::value_type(ch,goodRange) );
                     }
                 }
             }
@@ -545,7 +574,7 @@ public:
                 //++endIt;
                 BarzelBeadChain::Range goodRange(d_rng.first,endIt);
                 // AYDEBUG(goodRange);
-                d_mtChild.push_back( NodeAndBeadVec::value_type(ch, goodRange ) );
+                d_mtChild_push_back( NodeAndBeadVec::value_type(ch, goodRange ) );
             }
         }
 		BarzelTrieFirmChildKey firmKey((uint8_t)(BTND_Pattern_Number_TYPE),0xffffffff);
@@ -559,13 +588,13 @@ public:
 			if( i->first.id == 0xffffffff ) {
 				const BarzelTrieNode* ch = &(i->second);
 				BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);
-				d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+				d_mtChild_push_back( NodeAndBeadVec::value_type(ch,goodRange) );
 			} else {
 				const BTND_Pattern_Number* dpat = wcPool.get_BTND_Pattern_Number( i->first.id );
 				if( !dpat ) return false;
 				if( evalWildcard_vis<BTND_Pattern_Number>(*dpat)( dta )  ) {
 				//if( boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Number>(*dpat), dta ) ) {}
-					d_mtChild.push_back( NodeAndBeadVec::value_type(
+					d_mtChild_push_back( NodeAndBeadVec::value_type(
 						&(i->second),
 						BarzelBeadChain::Range(d_rng.first,d_rng.first)) );
 				}
@@ -587,13 +616,13 @@ public:
 			if( i->first.id == 0xffffffff ) {
 				const BarzelTrieNode* ch = &(i->second);
 				BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);
-				d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+				d_mtChild_push_back( NodeAndBeadVec::value_type(ch,goodRange) );
 			} else {
 				const BTND_Pattern_Date* dpat = wcPool.get_BTND_Pattern_Date( i->first.id );
 				if( !dpat ) return false;
 				if( evalWildcard_vis<BTND_Pattern_Date>(*dpat)( dta )  ) {
 				//if( boost::apply_visitor( evalWildcard_vis<BTND_Pattern_Date>(*dpat), dta ) ) {}
-					d_mtChild.push_back( NodeAndBeadVec::value_type(
+					d_mtChild_push_back( NodeAndBeadVec::value_type(
 						&(i->second),
 						BarzelBeadChain::Range(d_rng.first,d_rng.first)) );
 				}
@@ -615,13 +644,13 @@ public:
 			if( i->first.id == 0xffffffff ) {
 				const BarzelTrieNode* ch = &(i->second);
 				BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);
-				d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+				d_mtChild_push_back( NodeAndBeadVec::value_type(ch,goodRange) );
 			} else {
 				const BTND_Pattern_DateTime* dpat = wcPool.get_BTND_Pattern_DateTime( i->first.id );
 				if( !dpat ) return false;
 				if( evalWildcard_vis<BTND_Pattern_DateTime>(*dpat)( dta )  ) {
 				//if( boost::apply_visitor( evalWildcard_vis<BTND_Pattern_DateTime>(*dpat), dta ) ) {}
-					d_mtChild.push_back( NodeAndBeadVec::value_type(
+					d_mtChild_push_back( NodeAndBeadVec::value_type(
 						&(i->second),
 						BarzelBeadChain::Range(d_rng.first,d_rng.first)) );
 				}
@@ -670,13 +699,13 @@ public:
 			if( i->first.id == 0xffffffff ) {
 				const BarzelTrieNode* ch = &(i->second);
 				BarzelBeadChain::Range goodRange(d_rng.first,d_rng.first);
-				d_mtChild.push_back( NodeAndBeadVec::value_type(ch,goodRange) );
+				d_mtChild_push_back( NodeAndBeadVec::value_type(ch,goodRange) );
 			} else {
 				const BTND_Pattern_ERCExpr* dpat = wcPool.get_BTND_Pattern_ERCExpr( i->first.id );
 				if( !dpat ) return false;
 				if( evalWildcard_vis<BTND_Pattern_ERCExpr>(*dpat)( dta )  ) {
 				//if( boost::apply_visitor( evalWildcard_vis<BTND_Pattern_ERCExpr>(*dpat), dta ) ) {}
-					d_mtChild.push_back( NodeAndBeadVec::value_type(
+					d_mtChild_push_back( NodeAndBeadVec::value_type(
 						&(i->second),
 						BarzelBeadChain::Range(d_rng.first,d_rng.first)) );
 				}
@@ -1003,18 +1032,29 @@ std::pair< bool, int > BTMBestPaths::scorePath( const NodeAndBeadVec& nb ) const
 
 void BTMBestPaths::addPath(const NodeAndBeadVec& nb, const NodeAndBead& lastNB )
 {
+    /*
+    if( const BarzelTranslation* x = getTranslation(lastNB) ) {
+        BarzerEntity e;
+        if(get_single_entity( e, d_trie, *x) ) {
+            std::cerr << "SHITFUCK:" << e << std::endl;
+        }
+    }
+    */
 	// ghetto
 	std::pair< bool, int > score = scorePath( nb );
 	if( score.second < d_bestInfallibleScore ) {
         /// if score is smaller than best score we ignore this match. 
         /// soon we will need to add some fuzziness here and replace < with a "much smaller" operator
         return;
-    } else if( score.second == d_bestInfallibleScore && d_bestInfalliblePath.size() ) { /// new score same as old and we already have something
+    } else if( score.second == d_bestInfallibleScore && !d_bestInfalliblePath.empty() ) { /// new score same as old and we already have something
         // path with the same or lower score found - ignoring it 
         // we should add ambiguation here whenever paths resolve to entities for example 
         // this is especially needed for meanings
 
-        const BarzelTranslation* newTran = getTranslation(nb); // new translation
+        const BarzelTranslation* newTran = getTranslation(lastNB); // new translation
+        if( !newTran )
+            newTran = getTranslation(nb);
+
         if( newTran && newTran->isEntity() ) {
             if( isAmbiguous() ) {
                 ambiguities().addEntity( d_trie, *newTran );

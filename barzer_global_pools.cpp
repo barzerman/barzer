@@ -220,7 +220,7 @@ std::ostream& GlobalPools::printTanslationTraceInfo( std::ostream& fp, const Bar
 {
 	const char* srcName = internalString_resolve( traceInfo.source );
 
-	return ( fp << ( srcName ? srcName : "(null)" ) << ':' << traceInfo.statementNum << '.' <<
+	return ( fp << ( srcName ? srcName : "(null)" ) << std::dec << ':' << traceInfo.statementNum << '.' <<
 	traceInfo.emitterSeqNo );
 }
 
