@@ -86,7 +86,7 @@ const char* verb_3_y[]  = { "ыла" ,"ыли" ,"ыло" ,"ыть",0 };
 const char* verb_3[]        = {"ишь" ,"ись", "ешь" ,"ься",0};
 
 const char* noun_23_truevowel[]        = {"ом","ой","ою","ах","ов","ам", "ем", "ей", "ью", "ию","ье","ья","ее", "ии", "ие","ия", "ая", "ую", 0};
-const char* noun_21_truevowel[]        = {"ию","ии","ия", 0};
+const char* noun_21_truevowel[]        = { /*"ию","ии","ия",*/ 0};
 const char* noun_32_truevowel[]        = {"ией","иям","иях", 0};
 const char* noun_43_truevowel[]        = {"иями", 0};
 
