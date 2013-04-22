@@ -44,10 +44,14 @@ void SmartBENI::search( BENIFindResults_t& out, const char* query, double minCov
         if( maxCov< SL_COV_THRESHOLD || out.empty() ) {
             BENIFindResults_t slOut;
             double maxCov = d_beniSl.search( slOut, query, minCov );
+            size_t numAdded = 0;
             for( const auto& i: slOut ) {
-                if( out.end() == std::find_if(out.begin(), out.end(), [&]( const BENIFindResult& x ) { return ( x.ent == i.ent ) ; }) ) {
+                BENIFindResults_t::iterator outIter = std::find_if(out.begin(), out.end(), [&]( const BENIFindResult& x ) { return ( x.ent == i.ent ) ; });
+                if( out.end() == outIter ) {
                     out.push_back( i );
-                }
+                    ++numAdded;
+                } else
+                    outIter->coverage = i.coverage;
             }
         }
     }
