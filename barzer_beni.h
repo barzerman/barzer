@@ -36,7 +36,8 @@ public:
 	}
 	
 	void setSLEnabled(bool enabled=true) { m_soundsLikeEnabled = enabled; }
-	
+    
+
 	void addWord(const char *srcStr, const T& data)
 	{
 		std::string str(srcStr);
@@ -44,7 +45,13 @@ public:
 		{
 			std::string tmp;
 			EnglishSLHeuristic(0).transform(srcStr, str.size(), tmp);
-			str = tmp;
+
+		    const auto utfLength = ay::StrUTF8::glyphCount(tmp.c_str(), tmp.c_str() + tmp.size());
+            if( utfLength > 4 ) {
+                str.clear();
+                for( auto i : tmp ) { if( !isspace(i) ) str.push_back(i); }
+            } else
+			    str = tmp;
 		}
 		
 	    TFE_TmpBuffers bufs( m_storedVec, m_extractedVec );
@@ -71,7 +78,12 @@ public:
 		{
 			std::string tmp;
 			EnglishSLHeuristic(0).transform(origStr, origStrLen, tmp);
-			str = tmp;
+		    const auto utfLength = ay::StrUTF8::glyphCount(tmp.c_str(), tmp.c_str() + tmp.size());
+            if( tmp.length() > 4 ) {
+                str.clear();
+                for( auto i : tmp ) { if( !isspace(i) ) str.push_back(i); }
+            } else 
+			    str = tmp;
 		}
 		
         StoredStringFeatureVec storedVec;
@@ -128,7 +140,7 @@ public:
 		
 		size_t curItem = 0;
 		ay::LevenshteinEditDistance lev;
-		const auto utfLength = ay::StrUTF8::glyphCount(str.c_str(), str.c_str() + str.size());
+		// const auto utfLength = ay::StrUTF8::glyphCount(str.c_str(), str.c_str() + str.size());
         size_t countAdded = 0;
 		for (const auto& item : sorted)
 		{
@@ -139,7 +151,9 @@ public:
 			
             const  size_t dist = 1; // we shouldnt need to compute levenshtein
 			const auto& info = doc2fCnt[item.first];
-            const double cover = info.fCount / srcFCnt;
+            double cover = info.fCount / srcFCnt;
+            if( m_soundsLikeEnabled) 
+                cover *= 0.95;
             if( cover >= minCov && dataPos != m_storage.end()) {
 			    out.push_back({
 					    item.first,
