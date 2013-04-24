@@ -124,7 +124,7 @@ namespace tl
 			}
 		}
 		inline bool isNonVowel(char c)
-            { return ( c && !isVowel(c)); }
+            { return ( isalpha(c) && !isVowel(c)); }
 	}
 
 namespace {
@@ -410,7 +410,7 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                     russian.append((s+=2,"эни"));
                 } else if( s[1] == 'n' && s[2] =='t' && s[3] =='e') {
                     russian.append("а");
-                } else if( s[1] && !isVowel(s[1]) && s[2] =='i' && s[3]=='n' && s[4] =='g' && terminating_char(s[5]) ) {
+                } else if( s[1] && isNonVowel(s[1]) && s[2] =='i' && s[3]=='n' && s[4] =='g' && terminating_char(s[5]) ) {
                     russian.append("ей");
                 } else if( s[1] == 'n' && s[2] =='g' && (s[3] =='e'||s[3]=='i') ) {
                     russian.append("эй"); 
@@ -432,14 +432,14 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                     russian.append("о");
                 } else if( s[1] =='r' && !isVowel(s[2]) ) {
                     russian.append("а");
-                } else if( s[1] && !isVowel(s[1]) && s[1] != 'r' && (s[2]=='e') ) {
+                } else if( s[1] && isNonVowel(s[1]) && s[1] != 'r' && (s[2]=='e') ) {
                     russian.append(!strchr("cxhk",s[1])?"эй":"ей"); 
                 } else if ( isNonVowel(c_prev) && s[1]=='l' &&s[2]=='k' ) {
                     russian.append("ок");
                     s+=2;
                 } else if ( isNonVowel(c_prev) && s[1]=='l' && (s[2]=='t'||s[2]=='d') ) {
                     russian.append("о");
-                } else if( s[1] && !isVowel(s[1]) && s[2] && !isVowel(s[2])) {
+                } else if( s[1] && isNonVowel(s[1]) && s[2] && !isVowel(s[2])) {
                     russian.append("э"); 
                 } else if( s[1] == 'u'  ) {
                     russian.append((++s,"ау"));
