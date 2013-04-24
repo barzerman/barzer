@@ -79,7 +79,7 @@ public:
 			std::string tmp;
 			EnglishSLHeuristic(0).transform(origStr, origStrLen, tmp);
 		    const auto utfLength = ay::StrUTF8::glyphCount(tmp.c_str(), tmp.c_str() + tmp.size());
-            if( tmp.length() > 4 ) {
+            if( utfLength > 4 ) {
                 str.clear();
                 for( auto i : tmp ) { if( !isspace(i) ) str.push_back(i); }
             } else 

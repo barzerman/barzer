@@ -53,6 +53,9 @@ void SmartBENI::search( BENIFindResults_t& out, const char* query, double minCov
                 } else
                     outIter->coverage = i.coverage;
             }
+            if( numAdded ) { // need to sort
+                std::sort( out.begin(), out.end(), []( const BENIFindResults_t::value_type& l, const BENIFindResults_t::value_type& r ) { return (l.coverage > r.coverage); } );
+            }
         }
     }
 }
