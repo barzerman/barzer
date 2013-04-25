@@ -92,7 +92,7 @@ public:
 		if( i == d_child.end() ) 
 			return std::pair< const trie*, FI>( found, start );
 		else
-			return i->second.getTerminatedLongestPath( ++start, end, &(i->second) );
+			return i->second.get().getTerminatedLongestPath( ++start, end, &(i->second.get()) );
 	}
 
 	/// FI must be an iterator such that *FI is pair<key_type,data_type>
@@ -190,7 +190,7 @@ struct trie_visitor {
 /// char trie 
 
 template <typename D>
-struct char_trie {
+struct char_trie_funcs {
 	typedef trie<char, D> Trie;
 	static void add( Trie& trie, const char* s, const D& d, const D& dfltV= D() )
 		{ trie.addTerminatedKeyPath( s, ((char)0), dfltV ).data() = d; }
@@ -201,5 +201,19 @@ struct char_trie {
 	}
 };
 
+template<typename D>
+class char_trie : public trie<char, D>
+{
+public:
+	void add(const char *s, const D& d, const D& defValue = D())
+	{
+		char_trie_funcs<D>::add(*this, s, d, defValue);
+	}
+	
+	std::pair<const trie<char, D>*, const char*> matchString(const char *s) const
+	{
+		return char_trie_funcs<D>::matchString(*this, s);
+	}
+};
 
 } // namespace ay
