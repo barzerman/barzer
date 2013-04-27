@@ -538,7 +538,7 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
     QParser qparser(u);
 
     zurch::ExtractedDocFeature::Vec_t featureVec;
-    zurch::DocFeatureIndex::DocWithScoreVec_t docVec;  
+    zurch::DocWithScoreVec_t docVec;  
 	std::map<uint32_t, zurch::DocFeatureIndex::PosInfos_t> positions;
 	zurch::DocFeatureIndex::TraceInfoMap_t barzTrace;
 	// std::cout << "handling '" << query << "'" << std::endl;

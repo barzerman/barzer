@@ -192,6 +192,41 @@ bool BENI::normalize( std::string& out, const std::string& in )
     return altered;
 }
 
+size_t SmartBENI::getZurchEntities( BENIFindResults_t& out, const zurch::DocWithScoreVec_t& vec ) const
+{
+    std::map< BarzerEntity, double > resultMap;
+    for( const auto& i : vec ) {
+        getEntLinkedToZurchDoc(
+            [&]( const BarzerEntity& ent ) {
+                auto x = resultMap.find( ent );
+                if( x == resultMap.end() ) 
+                    resultMap.insert( {ent,i.second} );
+                else 
+                    x->second += i.second;
+            },
+            i.first
+        );
+    }
+    if( resultMap.empty() ) 
+        return 0;
 
+    double minScore = 0, maxScore = 0;
+    for( const auto& i : resultMap ) {
+        if( i.second > maxScore )
+            maxScore= i.second;
+        if( minScore == 0.0 || minScore > i.second ) 
+            minScore = i.second;
+
+        out.push_back( {i.first, 1, i.second, 0 } );
+    }
+    std::sort( out.begin(), out.end(), []( const BENIFindResult& l, const BENIFindResult& r ){ return (l.coverage> r.coverage); } );
+    // normalizing doc scores to 1
+    double minToMax = maxScore-minScore;
+    if( minToMax > 0.00000001 ) {
+        for( auto& i : out ) 
+            i.coverage = (i.coverage-minScore)/minToMax;
+    }
+    return resultMap.size();
+}
 
 } // namespace barzer

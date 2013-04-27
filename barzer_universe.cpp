@@ -50,6 +50,19 @@ void StoredUniverse::searchEntitiesByName( BENIFindResults_t& out, const char* s
         d_entNameIdx->search( out, str, d_settings.d_beni_Cutoff );
 }
 
+void StoredUniverse::beniInit( )
+{
+    delete d_entNameIdx;
+    d_entNameIdx = new SmartBENI(*this);
+}
+
+SmartBENI& StoredUniverse::beni( )
+{
+    if( !d_entNameIdx )
+        beniInit();
+    return *d_entNameIdx;
+}
+
 void StoredUniverse::indexEntityNames( const StoredEntityClass& ec ) 
 {
     if( !d_entNameIdx )  
