@@ -586,6 +586,15 @@ std::ostream& BarzStreamerJSON::print(std::ostream &os)
             v.printEntity(i.ent, true, 0, &(i.lev), &(i.coverage));
         }
     }
+    if( !barz.d_beni.zurchResultEmpty() ) { // beni zurch context
+        json_raii beniRaii( raii.startField("zurch"), true, 1 );
+        for( const auto& i : barz.d_beni.d_zurchEntVec ) {
+	        beniRaii.startField("");
+            BarzelBead fakeBead;
+	        BeadVisitor v(os, universe, fakeBead, barz, *this, 2 );
+            v.printEntity(i.ent, true, 0, &(i.lev), &(i.coverage));
+        }
+    }
     /// printing topics 
     const BarzTopics::TopicMap& topicMap = barz.topicInfo.getTopicMap();
     if( !topicMap.empty() ) {

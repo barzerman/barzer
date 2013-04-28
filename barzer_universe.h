@@ -46,14 +46,17 @@ class StoredUniverse {
     std::string d_userName;
     //// search entities by names using this object
     SmartBENI* d_entNameIdx;
+    
 public:
     void beniInit();
     SmartBENI& beni();
     const SmartBENI* getBeni() const { return d_entNameIdx; }
 
     void indexEntityNames( const StoredEntityClass& ec ) ;
+    void searchEntitiesInZurch( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) const;
+    void searchEntitiesByName( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) const;
+    void zurchEntities( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) ;
 
-    void searchEntitiesByName( BENIFindResults_t& out, const char* str ) const;
 
 	GlobalPools& gp;
 

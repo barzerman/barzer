@@ -3,6 +3,18 @@
     <users>
         <user id="0">
             <flags value="c"/>
+            <zurch>
+                <index xml="data/moedelo_100.xml" ent="data/moedelo_links.xml"/>
+            </zurch>
+            <rules> <file class="" name="shit">dev/shit.xml</file> </rules>
+            <trieset>
+                <trie class="" name="shit" />
+            </trieset>
+		</user>
+        <user id="1">
+            <beni zurch="0">
+            </beni>
+            <flags value="c"/>
             <rules> <file class="" name="shit">dev/shit.xml</file> </rules>
             <trieset>
                 <trie class="" name="shit" />

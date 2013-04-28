@@ -197,6 +197,8 @@ class SmartBENI {
          d_beniSl;        // beni with sounds like normalization
     /// if d_isSL == true d_beniSl has sounds like processed ngrams .. otherwise it's blank
     bool d_isSL;
+    StoredUniverse& d_universe;
+    StoredUniverse* d_zurchUniverse;
 public:
     typedef boost::unordered_multimap< uint32_t, BarzerEntity > Doc2EntMap;
     Doc2EntMap d_zurchDoc2Ent;
@@ -209,6 +211,8 @@ public:
 
     void linkEntToZurch( const BarzerEntity& ent, uint32_t docId )
         { d_zurchDoc2Ent.insert( { docId, ent } ); }
+    void clearZurchLinks() 
+        { d_zurchDoc2Ent.clear(); }
 
     template <typename CB>
     void getEntLinkedToZurchDoc( const CB& cb, uint32_t docId ) const
@@ -220,6 +224,12 @@ public:
     
     // returns the number of entities added to out
     size_t getZurchEntities( BENIFindResults_t& out, const zurch::DocWithScoreVec_t& vec ) const;
+
+    void setZurchUniverse( StoredUniverse* u ) { d_zurchUniverse= u; }
+
+    StoredUniverse* getZurchUniverse() { return d_zurchUniverse; }
+    const StoredUniverse* getZurchUniverse() const { return d_zurchUniverse; }
+    void zurchEntities( BENIFindResults_t& out, const char* str, const QuestionParm& qparm );
 };
 
 } // namespace barzer

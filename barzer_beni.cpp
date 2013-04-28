@@ -1,11 +1,14 @@
 #include <barzer_beni.h>
+#include <zurch_docidx.h>
 
 namespace barzer {
 
 SmartBENI::SmartBENI( StoredUniverse& u ) : 
     d_beniStraight(u),
     d_beniSl(u),
-    d_isSL(u.checkBit( StoredUniverse::UBIT_BENI_SOUNDSLIKE))
+    d_isSL(u.checkBit( StoredUniverse::UBIT_BENI_SOUNDSLIKE)),
+    d_universe(u),
+    d_zurchUniverse(0)
 {
     if( d_isSL ) {
         d_beniSl.setSL( true );
@@ -43,7 +46,7 @@ void SmartBENI::search( BENIFindResults_t& out, const char* query, double minCov
     if( d_isSL ) {
         if( maxCov< SL_COV_THRESHOLD || out.empty() ) {
             BENIFindResults_t slOut;
-            double maxCov = d_beniSl.search( slOut, query, minCov );
+            maxCov = d_beniSl.search( slOut, query, minCov );
             size_t numAdded = 0;
             for( const auto& i: slOut ) {
                 BENIFindResults_t::iterator outIter = std::find_if(out.begin(), out.end(), [&]( const BENIFindResult& x ) { return ( x.ent == i.ent ) ; });
@@ -54,7 +57,8 @@ void SmartBENI::search( BENIFindResults_t& out, const char* query, double minCov
                     outIter->coverage = i.coverage;
             }
             if( numAdded ) { // need to sort
-                std::sort( out.begin(), out.end(), []( const BENIFindResults_t::value_type& l, const BENIFindResults_t::value_type& r ) { return (l.coverage > r.coverage); } );
+                std::sort( out.begin(), out.end(), 
+                    []( const BENIFindResults_t::value_type& l, const BENIFindResults_t::value_type& r ) { return (l.coverage > r.coverage); } );
             }
         }
     }
@@ -229,4 +233,30 @@ size_t SmartBENI::getZurchEntities( BENIFindResults_t& out, const zurch::DocWith
     return resultMap.size();
 }
 
+void SmartBENI::zurchEntities( BENIFindResults_t& out, const char* str, const QuestionParm& qparm )
+{
+    if( !d_zurchUniverse ) 
+        return;
+
+    if( const zurch::DocIndexAndLoader* zurch = d_zurchUniverse->getZurchIndex() ) {
+        zurch::ExtractedDocFeature::Vec_t featureVec;
+        zurch::DocWithScoreVec_t docVec;
+        std::map<uint32_t, zurch::DocFeatureIndex::PosInfos_t> positions;
+        zurch::DocFeatureIndex::TraceInfoMap_t barzTrace;
+
+        Barz barz;
+        QParser qparser( *d_zurchUniverse );
+
+        qparser.tokenize_only( barz, str, qparm );
+        qparser.lex_only( barz, qparm );
+        qparser.semanticize_only( barz, qparm );
+
+        auto index = zurch->getIndex();
+        if( index->fillFeatureVecFromQueryBarz( featureVec, barz ) )  {
+            zurch::DocFeatureIndex::SearchParm parm( qparm.d_maxResults, 0, &positions, &barzTrace );
+            index->findDocument( docVec, featureVec, parm, barz );
+        }
+        getZurchEntities( out, docVec );
+    }
+}
 } // namespace barzer
