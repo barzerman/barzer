@@ -245,6 +245,7 @@ void SmartBENI::zurchEntities( BENIFindResults_t& out, const char* str, const Qu
         zurch::DocFeatureIndex::TraceInfoMap_t barzTrace;
 
         Barz barz;
+        barz.setUniverse( d_zurchUniverse );
         QParser qparser( *d_zurchUniverse );
 
         qparser.tokenize_only( barz, str, qparm );

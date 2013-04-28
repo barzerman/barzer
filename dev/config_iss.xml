@@ -2,14 +2,7 @@
 <config>
     <users>
         <user id="0">
-            <flags value="c"/>
-            <zurch>
-                <index xml="data/moedelo_100.xml" ent="data/moedelo_links.xml"/>
-            </zurch>
-            <rules> <file class="" name="shit">dev/shit.xml</file> </rules>
-            <trieset>
-                <trie class="" name="shit" />
-            </trieset>
+            <zurch> <index phr="dev/shit_phrases.txt"/> </zurch>
 		</user>
         <user id="1">
             <beni zurch="0">

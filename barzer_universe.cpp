@@ -46,11 +46,8 @@ StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 
 void StoredUniverse::searchEntitiesInZurch( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) const
 {
-    const double NONEED_ZURCH_COVERAGE = 0.7;
-    if( !out.empty() && out[0].coverage >= NONEED_ZURCH_COVERAGE ) 
-        return;
-    BENIFindResults_t zout;
-    d_entNameIdx->zurchEntities( out, str, qparm );
+    if( d_entNameIdx )
+        d_entNameIdx->zurchEntities( out, str, qparm );
 }
 void StoredUniverse::searchEntitiesByName( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) const
 {
