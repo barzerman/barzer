@@ -490,7 +490,7 @@ static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in, const 
 		
 		zurch::ExtractedDocFeature::Vec_t extracted;
 		index.fillFeatureVecFromQueryBarz(extracted, barz);
-		zurch::DocFeatureIndex::DocWithScoreVec_t scores;
+		zurch::DocWithScoreVec_t scores;
 		
 		std::map<uint32_t, zurch::DocFeatureIndex::PosInfos_t> positions;
         zurch::DocFeatureIndex::SearchParm srchParm( 16, 0, &positions );

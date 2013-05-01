@@ -44,7 +44,7 @@ const char* ZurchWordNormalizer::normalize( std::string& dest, const char* src, 
 
 void ZurchTokenizer::config( const boost::property_tree::ptree& pt )
 {
-#warning implement ZurchTokenizer::config
+// #warning implement ZurchTokenizer::config
 /// we'll have configurable separators
 }
 

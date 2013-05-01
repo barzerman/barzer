@@ -16,6 +16,8 @@
 #include <ay/ay_tag_markup_parser_types.h>
 #include <zurch_docdataindex.h>
 
+#include <zurch_docidx_types.h>
+
 namespace barzer {
     struct ReqFilterCascade;
 }
@@ -339,9 +341,6 @@ public:
     /// should be called after the last doc has been appended . 
     void sortAll();
 
-    typedef std::pair< uint32_t, double > DocWithScore_t;
-    typedef std::vector< DocWithScore_t > DocWithScoreVec_t;
-	
 	struct FeatureTraceInfo
 	{
 		NGram<DocFeature> feature;

@@ -179,9 +179,14 @@ struct  BarzConfidenceData {
 struct BENIResult {
     BENIFindResults_t d_entVec;
 
-    bool empty() const { return d_entVec.empty(); }
+    BENIFindResults_t d_zurchEntVec;
 
-    void clear() { d_entVec.clear(); }
+    bool empty()            const { return d_entVec.empty(); }
+    bool zurchResultEmpty() const { return d_zurchEntVec.empty(); }
+    void clear() { 
+        d_entVec.clear(); 
+        d_zurchEntVec.clear();
+    }
 };
 
 // collection of punits and the original question
