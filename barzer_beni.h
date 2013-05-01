@@ -8,7 +8,7 @@ template<typename T>
 class NGramStorage {
 	TFE_storage<TFE_ngram> m_gram;
 	
-	boost::unordered_map<uint32_t, T> m_storage;
+	boost::unordered_multimap<uint32_t, T> m_storage;
 	
     //// this is temporary junk
 	StoredStringFeatureVec m_storedVec;
@@ -144,7 +144,9 @@ public:
         size_t countAdded = 0;
 		for (const auto& item : sorted)
 		{
-			auto dataPos = m_storage.find(item.first);
+            auto dataPosRange = m_storage.equal_range(item.first);
+            if( dataPosRange.first == m_storage.end() ) 
+                continue;
 			
 			const auto resolvedResult = m_gram.d_pool->resolveId(item.first);
 			const auto resolvedLength = std::strlen(resolvedResult);
@@ -154,17 +156,20 @@ public:
             double cover = info.fCount / srcFCnt;
             if( m_soundsLikeEnabled) 
                 cover *= 0.95;
-            if( cover >= minCov && dataPos != m_storage.end()) {
-			    out.push_back({
-					    item.first,
-					    &(dataPos->second),
-					    item.second,
-					    dist,
-					    cover
-				});
-                
-                if( ++countAdded  >= max )
-                    break;
+
+            if( cover >= minCov) {
+                for( auto dataPos = dataPosRange.first; dataPos != dataPosRange.second; ++dataPos ) {
+			        out.push_back({
+					        item.first,
+					        &(dataPos->second),
+					        item.second,
+					        dist,
+					        cover
+				    });
+                 
+                    if( ++countAdded  >= max )
+                        break;
+                }
             }
 		}
 	}
