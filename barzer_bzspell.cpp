@@ -1025,7 +1025,7 @@ bool BZSpell::stem(std::string& out, const char *s, int& lang, size_t minWordLen
 
 void BZSpell::loadStemExceptions(const std::string& path)
 {
-	std::ifstream istr(path);
+	std::ifstream istr(path.c_str());
 	while (istr)
 	{
 		std::string str;
