@@ -1,6 +1,7 @@
 #pragma once
 #include <barzer_entity.h>
 #include <barzer_spell_features.h>
+#include <boost/range/iterator_range.hpp>
 
 namespace barzer {
 
@@ -71,28 +72,10 @@ public:
 		double m_coverage;
 	};
 	
-	void getMatches(const char *origStr, size_t origStrLen, std::vector<FindInfo>& out, size_t max, double minCov ) const
+	void getMatchesRange(StoredStringFeatureVec::const_iterator begin, StoredStringFeatureVec::const_iterator end,
+			std::vector<FindInfo>& out, size_t max, double minCov) const
 	{
-		std::string str(origStr, origStrLen);
-		if (m_soundsLikeEnabled)
-		{
-			std::string tmp;
-			EnglishSLHeuristic(0).transform(origStr, origStrLen, tmp);
-		    const auto utfLength = ay::StrUTF8::glyphCount(tmp.c_str(), tmp.c_str() + tmp.size());
-            if( utfLength > 4 ) {
-                str.clear();
-                for( auto i : tmp ) { if( !isspace(i) ) str.push_back(i); }
-            } else 
-			    str = tmp;
-		}
-		
-        StoredStringFeatureVec storedVec;
-        ExtractedStringFeatureVec extractedVec;
-        TFE_TmpBuffers bufs( storedVec, extractedVec );
-		
-		m_gram.extractSTF(bufs, str.c_str(), str.size(), LANG_UNKNOWN);
-		
-		const double srcFCnt = storedVec.size();
+		const double srcFCnt = std::distance(begin, end);
 		
 		typedef std::map<uint32_t, double> CounterMap_t;
 		CounterMap_t counterMap;
@@ -104,7 +87,7 @@ public:
 			uint16_t lastFeature;
 		};
 		std::map<uint32_t, FeatureStatInfo> doc2fCnt;
-		for (const auto& feature : storedVec)
+		for (const auto& feature : boost::make_iterator_range(begin, end))
 		{
 			const auto srcs = m_gram.getSrcsForFeature(feature);
 			if (!srcs)
@@ -173,7 +156,167 @@ public:
             }
 		}
 	}
+	
+	void getMatches(const char *origStr, size_t origStrLen, std::vector<FindInfo>& out, size_t max, double minCov ) const
+	{
+		std::string str(origStr, origStrLen);
+		if (m_soundsLikeEnabled)
+		{
+			std::string tmp;
+			EnglishSLHeuristic(0).transform(origStr, origStrLen, tmp);
+		    const auto utfLength = ay::StrUTF8::glyphCount(tmp.c_str(), tmp.c_str() + tmp.size());
+            if( utfLength > 4 ) {
+                str.clear();
+                for( auto i : tmp ) { if( !isspace(i) ) str.push_back(i); }
+            } else 
+			    str = tmp;
+		}
+		
+        StoredStringFeatureVec storedVec;
+        ExtractedStringFeatureVec extractedVec;
+        TFE_TmpBuffers bufs( storedVec, extractedVec );
+		
+		m_gram.extractSTF(bufs, str.c_str(), str.size(), LANG_UNKNOWN);
+		
+		getMatchesRange(storedVec.begin(), storedVec.end(), out, max, minCov);
+	}
+	
+	std::pair<StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_iterator>
+		getIslands(const char *origStr, size_t origStrLen) const;
+private:
+	std::pair<StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_iterator>
+		searchRange4Island(StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_iterator);
 };
+
+template<typename T>
+std::pair<StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_iterator>
+	NGramStorage<T>::getIslands(const char* origStr, size_t origStrLen) const
+{
+	std::string str(origStr, origStrLen);
+	if (m_soundsLikeEnabled)
+	{
+		std::string tmp;
+		EnglishSLHeuristic(0).transform(origStr, origStrLen, tmp);
+		const auto utfLength = ay::StrUTF8::glyphCount(tmp.c_str(), tmp.c_str() + tmp.size());
+		if( utfLength > 4 ) {
+			str.clear();
+			for( auto i : tmp ) { if( !isspace(i) ) str.push_back(i); }
+		} else 
+			str = tmp;
+	}
+	
+	StoredStringFeatureVec storedVec;
+	ExtractedStringFeatureVec extractedVec;
+	TFE_TmpBuffers bufs( storedVec, extractedVec );
+	m_gram.extractSTF(bufs, str.c_str(), str.size(), LANG_UNKNOWN);
+	return searchRange4Island(storedVec.begin(), storedVec.end());
+}
+
+namespace
+{
+	template<typename T>
+	std::vector<T> intersectVectors(std::vector<T> smaller, const std::vector<T>& bigger)
+	{
+		for (auto i = smaller.begin(); i != smaller.end(); )
+		{
+			if (std::find(bigger.begin(), bigger.end(), *i) != bigger.end())
+				++i;
+			else
+				i = smaller.erase(i);
+		}
+		return smaller;
+	}
+}
+
+template<typename T>
+std::pair<StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_iterator>
+	NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator begin, StoredStringFeatureVec::const_iterator end)
+{
+	const size_t fuckupLength = 1;
+	
+	const auto rarestGram = std::min_element (begin, end,
+			[this](const StoredStringFeature& l, const StoredStringFeature& r) -> bool
+			{
+				const auto leftPos = m_gram.d_fm.find(l);
+				if (leftPos == m_gram.d_fm.end())
+					return false;
+				const auto rightPos = m_gram.d_fm.find(r);
+				if (rightPos == m_gram.d_fm.end())
+					return true;
+				return leftPos->second.size() < rightPos->second.size();
+			});
+	if (rarestGram == end)
+		return { end, end };
+	
+	auto currentDocs = m_gram.d_fm.find(*rarestGram)->second;
+	
+	auto curLeft = rarestGram,
+		 curRight = rarestGram,
+		 bestLeft = rarestGram,
+		 bestRight = rarestGram;
+		 
+	size_t curLeftFuckups = 0,
+		   curRightFuckups = 0;
+	
+	bool growLeft = curLeft != begin;
+	bool growRight = curRight + 1 != end;
+	
+	while (growLeft || growRight)
+	{
+		if (curLeft == begin)
+			growLeft = false;
+		if (curRight + 1 == end)
+			growRight = false;
+		
+		if (growLeft)
+		{
+			--curLeft;
+			const auto& leftDocs = m_gram.d_fm.find(curLeft)->second;
+			auto xSect = intersectVectors(currentDocs, leftDocs);
+			
+			if (xSect.empty())
+			{
+				if (++curLeftFuckups > fuckupLength)
+					growLeft = false;
+			}
+			else
+			{
+				bestLeft = curLeft;
+				std::swap(currentDocs, xSect);
+			}
+		}
+		if (growRight)
+		{
+			++curRight;
+			const auto& rightDocs = m_gram.d_fm.find(curLeft)->second;
+			auto xSect = intersectVectors(currentDocs, rightDocs);
+			
+			if (xSect.empty())
+			{
+				if (++curRightFuckups > fuckupLength)
+					growRight = false;
+			}
+			else
+			{
+				bestRight = curRight;
+				std::swap(currentDocs, xSect);
+			}
+		}
+	}
+	
+	auto lefterIsland = searchRange4Island(begin, bestLeft); // or maybe till rarestGram, needs discussion
+	auto righterIsland = searchRange4Island(bestRight + 1, end); // or maybe till rarestGram, needs discussion
+	
+	const auto thisDist = std::distance(bestLeft, bestRight);
+	const auto leftDist = std::distance(lefterIsland.first, lefterIsland.second);
+	const auto rightDist = std::distance(righterIsland.first, righterIsland.second);
+	
+	auto bestRecursiveDist = std::max(leftDist, rightDist);
+	auto bestRecursive = leftDist > rightDist ? lefterIsland : righterIsland;
+	
+	return bestRecursiveDist > thisDist ? bestRecursive  : std::make_pair(bestLeft, bestRight);
+}
+
 class StoredUniverse;
 
 class BENI {
