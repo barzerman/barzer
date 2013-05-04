@@ -232,7 +232,7 @@ template<typename T>
 std::pair<StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_iterator>
 	NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator begin, StoredStringFeatureVec::const_iterator end)
 {
-	const size_t fuckupLength = 1;
+	const size_t degradationLength = 1;
 	
 	const auto rarestGram = std::min_element (begin, end,
 			[this](const StoredStringFeature& l, const StoredStringFeature& r) -> bool
@@ -255,8 +255,8 @@ std::pair<StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_
 		 bestLeft = rarestGram,
 		 bestRight = rarestGram;
 		 
-	size_t curLeftFuckups = 0,
-		   curRightFuckups = 0;
+	size_t curLeftDegradations = 0,
+		   curRightDegradations = 0;
 	
 	bool growLeft = curLeft != begin;
 	bool growRight = curRight + 1 != end;
@@ -276,7 +276,7 @@ std::pair<StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_
 			
 			if (xSect.empty())
 			{
-				if (++curLeftFuckups > fuckupLength)
+				if (++curLeftDegradations > degradationLength)
 					growLeft = false;
 			}
 			else
@@ -293,7 +293,7 @@ std::pair<StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_
 			
 			if (xSect.empty())
 			{
-				if (++curRightFuckups > fuckupLength)
+				if (++curRightDegradations > degradationLength)
 					growRight = false;
 			}
 			else
