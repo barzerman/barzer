@@ -238,17 +238,20 @@ namespace
 template<typename T>
 auto NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator begin, StoredStringFeatureVec::const_iterator end) const -> Islands_t
 {
+	const uint16_t minLength = 3;
 	std::cout << "searching " << std::distance(begin, end) << std::endl;
-	if (std::distance(begin, end) < 4)
+	if (std::distance(begin, end) < minLength)
 		return {};
 	
 	const size_t degradationLength = 1;
 	
-	const auto startGram = begin + (std::distance (begin, end)) / 2;
-	std::cout << "starting at " << std::distance(begin, startGram) << std::endl;
+	const auto startGram = begin + std::distance(begin, end) / 2;
+	std::cout << "starting at " << std::distance(begin, startGram) << " " << m_gram.resolveFeature(*startGram) << std::endl;
 	
 	const auto pos = m_gram.d_fm.find(*startGram);
-	auto currentDocs = pos == m_gram.d_fm.end() ? std::vector<FeatureInfo>() : pos->second;
+	auto currentDocs = pos == m_gram.d_fm.end() ?
+			std::vector<FeatureInfo>() :
+			pos->second;
 	std::cout << "found current " << currentDocs.size() << std::endl;
 	
 	auto curLeft = startGram,
@@ -274,9 +277,12 @@ auto NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator 
 		if (growLeft)
 		{
 			--curLeft;
-			const auto& leftDocs = m_gram.d_fm.find(*curLeft)->second;
+			const auto leftDocsPos = m_gram.d_fm.find(*curLeft);
+			const auto& leftDocs = leftDocsPos == m_gram.d_fm.end() ?
+					std::vector<FeatureInfo>() :
+					leftDocsPos->second;
 			auto xSect = intersectVectors(currentDocs, leftDocs);
-			std::cout << "l " << xSect.empty() << std::endl;
+			std::cout << "l " << xSect.empty() << " " << leftDocs.size() << " for " << m_gram.resolveFeature(*curLeft) << std::endl;
 			
 			if (xSect.empty())
 			{
@@ -292,9 +298,12 @@ auto NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator 
 		if (growRight)
 		{
 			++curRight;
-			const auto& rightDocs = m_gram.d_fm.find(*curRight)->second;
+			const auto rightDocsPos = m_gram.d_fm.find(*curRight);
+			const auto& rightDocs = rightDocsPos == m_gram.d_fm.end() ?
+					std::vector<FeatureInfo>() :
+					rightDocsPos->second;
+			std::cout << "r " << xSect.empty() << " " <<  rightDocs.size() << " for " << m_gram.resolveFeature(*curRight) << std::endl;
 			auto xSect = intersectVectors(currentDocs, rightDocs);
-			std::cout << "r " << xSect.empty() << std::endl;
 			
 			if (xSect.empty())
 			{
@@ -330,7 +339,7 @@ auto NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator 
 				righterIslands.begin(), righterIslands.end(),
 				std::back_inserter(sum), compareIslands);
 	
-	if (std::distance(bestLeft, bestRight) < 4)
+	if (std::distance(bestLeft, bestRight) < minLength)
 		return sum;
 		
 	const auto toInsert = std::lower_bound(sum.begin(), sum.end(), thisResult, compareIslands);
