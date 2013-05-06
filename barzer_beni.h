@@ -350,6 +350,8 @@ public:
 
     void addEntityClass( const StoredEntityClass& ec );
     void search( BENIFindResults_t&, const char* str, double minCov) const;
+	
+	BENI& getPrimaryBENI();
 };
 
 } // namespace barzer
