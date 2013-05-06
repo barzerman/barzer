@@ -34,6 +34,7 @@
 #include <zurch_phrasebreaker.h>
 #include <zurch/zurch_loader_longxml.h>
 #include <ay_filesystem.h>
+#include "barzer_beni.h"
 
 #include <boost/regex.hpp>
 
@@ -1185,6 +1186,40 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in , con
     return 0;
 }
 
+static int bshf_benisland(BarzerShell *shell, char_cp cmd, std::istream& in, const std::string& argStr)
+{
+    auto context = shell->getBarzerContext();
+	
+	auto smartBeni = context->d_universe->getSmartBeni();
+	const auto& primary = smartBeni->getPrimaryBENI();
+	
+    ay::InputLineReader reader(in);
+	while (reader.nextLine() && !reader.str.empty())
+	{
+		const auto& islands = primary.d_storage.getIslands(reader.str.c_str(), reader.str.size());
+		std::cout << "found " << islands.size() << " islands" << std::endl;
+		
+		for (const auto& island : islands)
+		{
+			std::cout << "island: '";
+			bool isFirst = true;
+			for (const auto& item : boost::make_iterator_range(island.first, island.second))
+			{
+				if (isFirst)
+					isFirst = false;
+				else
+					std::cout << "', '";
+				const char *str = primary.d_storage.resolveGram(item.m_strId);
+				std::cout << (str ? str : "<no str>");
+			}
+			std::cout << "'" << std::endl;
+		}
+		std::cout << std::endl;
+	}
+	
+	return 0;
+}
+
 static int bshf_anlqry( BarzerShell* shell, char_cp cmd, std::istream& in , const std::string& argStr)
 {
 	BarzerShellContext * context = shell->getBarzerContext();
@@ -2056,6 +2091,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)(bshf_process), "process", "process an input string" ),
 	CmdData( (ay::Shell_PROCF)(bshf_process), "proc", "process an input string" ),
 	CmdData( (ay::Shell_PROCF)(bshf_process), "проц", "process an input string" ),
+	CmdData( (ay::Shell_PROCF)(bshf_benisland), "benisland", "test BENI's Islands" ),
 	CmdData( (ay::Shell_PROCF)(bshf_greed), "greed", "non rewriting full match" ),
 	CmdData( (ay::Shell_PROCF)(bshf_querytest), "querytest", "peforms given number of queries" ),
 	CmdData( (ay::Shell_PROCF)(bshf_userstats), "userstats", "trie stats for a given user" ),
