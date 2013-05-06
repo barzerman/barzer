@@ -34,6 +34,7 @@ public:
 		m_gram.d_extractor.m_stem = false;
 		m_gram.d_extractor.m_minGrams = 3;
 		m_gram.d_extractor.m_maxGrams = 3;
+		m_gram.m_removeDuplicates = false;
 	}
 	
 	void setSLEnabled(bool enabled=true) { m_soundsLikeEnabled = enabled; }

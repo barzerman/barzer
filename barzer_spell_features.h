@@ -125,8 +125,10 @@ struct TFE_storage {
 
     typedef boost::unordered_set< uint32_t > StringSet;
     StringSet d_strSet;
+	
+	bool m_removeDuplicates;
 
-    TFE_storage( ay::UniqueCharPool&  p) : d_pool(&p) {}
+    TFE_storage( ay::UniqueCharPool&  p) : d_pool(&p), m_removeDuplicates(true) {}
     void clear()
     {
         d_fm.clear();
@@ -139,19 +141,28 @@ struct TFE_storage {
 	}
 	
 	ay::UniqueCharPool* getPool() const { return d_pool; }
+	
+	const char* resolveFeature(const StoredStringFeature& f) const
+	{
+		auto str = d_pool->resolveId(f.m_strId);
+		return str ? str : "<no str>";
+	}
 
 	void extractOnly(TFE_TmpBuffers& tmp, const char *str, size_t strLen, int lang) const
 	{
 		d_extractor(tmp.extractedVec, str, strlen(str), lang);
 		
-		std::sort(tmp.extractedVec.begin(), tmp.extractedVec.end(),
-				[](const ExtractedStringFeature& left, const ExtractedStringFeature& right)
-					{ return left.m_str < right.m_str; });
-		
-		const auto newEnd = std::unique(tmp.extractedVec.begin(), tmp.extractedVec.end(),
-				[](const ExtractedStringFeature& left, const ExtractedStringFeature& right)
-					{ return left.m_str == right.m_str; });
-		tmp.extractedVec.erase(newEnd, tmp.extractedVec.end());
+		if (m_removeDuplicates)
+		{
+			std::sort(tmp.extractedVec.begin(), tmp.extractedVec.end(),
+					[](const ExtractedStringFeature& left, const ExtractedStringFeature& right)
+						{ return left.m_str < right.m_str; });
+			
+			const auto newEnd = std::unique(tmp.extractedVec.begin(), tmp.extractedVec.end(),
+					[](const ExtractedStringFeature& left, const ExtractedStringFeature& right)
+						{ return left.m_str == right.m_str; });
+			tmp.extractedVec.erase(newEnd, tmp.extractedVec.end());
+		}
 	}
 	
 	void extractSTF(TFE_TmpBuffers& bufs, const char *str, size_t strLen, int lang) const
