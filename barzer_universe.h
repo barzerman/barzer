@@ -51,6 +51,8 @@ public:
     void indexEntityNames( const StoredEntityClass& ec ) ;
 
     void searchEntitiesByName( BENIFindResults_t& out, const char* str ) const;
+	
+	SmartBENI* getSmartBeni() const { return d_entNameIdx; }
 
 	GlobalPools& gp;
 
