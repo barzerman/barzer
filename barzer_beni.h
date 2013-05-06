@@ -63,6 +63,11 @@ public:
 		m_storage.insert({ strId, data });
 	}
 	
+	const char* resolveGram(uint32_t id) const
+	{
+		return m_gram.getPool()->resolveId(id);
+	}
+	
 	struct FindInfo
 	{
 		uint32_t m_strId;
@@ -181,16 +186,16 @@ public:
 		getMatchesRange(storedVec.begin(), storedVec.end(), out, max, minCov);
 	}
 	
-	std::pair<StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_iterator>
-		getIslands(const char *origStr, size_t origStrLen) const;
+	typedef std::pair<StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_iterator> Island_t;
+	typedef std::vector<Island_t> Islands_t;
+	
+	Islands_t getIslands(const char *origStr, size_t origStrLen) const;
 private:
-	std::pair<StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_iterator>
-		searchRange4Island(StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_iterator);
+	Islands_t searchRange4Island(StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_iterator) const;
 };
 
 template<typename T>
-std::pair<StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_iterator>
-	NGramStorage<T>::getIslands(const char* origStr, size_t origStrLen) const
+auto NGramStorage<T>::getIslands(const char* origStr, size_t origStrLen) const -> Islands_t
 {
 	std::string str(origStr, origStrLen);
 	if (m_soundsLikeEnabled)
@@ -209,6 +214,7 @@ std::pair<StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_
 	ExtractedStringFeatureVec extractedVec;
 	TFE_TmpBuffers bufs( storedVec, extractedVec );
 	m_gram.extractSTF(bufs, str.c_str(), str.size(), LANG_UNKNOWN);
+	
 	return searchRange4Island(storedVec.begin(), storedVec.end());
 }
 
@@ -219,7 +225,7 @@ namespace
 	{
 		for (auto i = smaller.begin(); i != smaller.end(); )
 		{
-			if (std::find(bigger.begin(), bigger.end(), *i) != bigger.end())
+			if (std::find_if(bigger.begin(), bigger.end(), [i](const FeatureInfo& f) { return f.docId == i->docId; }) != bigger.end())
 				++i;
 			else
 				i = smaller.erase(i);
@@ -229,31 +235,25 @@ namespace
 }
 
 template<typename T>
-std::pair<StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_iterator>
-	NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator begin, StoredStringFeatureVec::const_iterator end)
+auto NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator begin, StoredStringFeatureVec::const_iterator end) const -> Islands_t
 {
+	std::cout << "searching " << std::distance(begin, end) << std::endl;
+	if (std::distance(begin, end) < 4)
+		return {};
+	
 	const size_t degradationLength = 1;
 	
-	const auto rarestGram = std::min_element (begin, end,
-			[this](const StoredStringFeature& l, const StoredStringFeature& r) -> bool
-			{
-				const auto leftPos = m_gram.d_fm.find(l);
-				if (leftPos == m_gram.d_fm.end())
-					return false;
-				const auto rightPos = m_gram.d_fm.find(r);
-				if (rightPos == m_gram.d_fm.end())
-					return true;
-				return leftPos->second.size() < rightPos->second.size();
-			});
-	if (rarestGram == end)
-		return { end, end };
+	const auto startGram = begin + (std::distance (begin, end)) / 2;
+	std::cout << "starting at " << std::distance(begin, startGram) << std::endl;
 	
-	auto currentDocs = m_gram.d_fm.find(*rarestGram)->second;
+	const auto pos = m_gram.d_fm.find(*startGram);
+	auto currentDocs = pos == m_gram.d_fm.end() ? std::vector<FeatureInfo>() : pos->second;
+	std::cout << "found current " << currentDocs.size() << std::endl;
 	
-	auto curLeft = rarestGram,
-		 curRight = rarestGram,
-		 bestLeft = rarestGram,
-		 bestRight = rarestGram;
+	auto curLeft = startGram,
+		 curRight = startGram,
+		 bestLeft = startGram,
+		 bestRight = startGram;
 		 
 	size_t curLeftDegradations = 0,
 		   curRightDegradations = 0;
@@ -268,11 +268,14 @@ std::pair<StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_
 		if (curRight + 1 == end)
 			growRight = false;
 		
+		std::cout << "grow? l " << growLeft << " r " << growRight << std::endl;
+		
 		if (growLeft)
 		{
 			--curLeft;
-			const auto& leftDocs = m_gram.d_fm.find(curLeft)->second;
+			const auto& leftDocs = m_gram.d_fm.find(*curLeft)->second;
 			auto xSect = intersectVectors(currentDocs, leftDocs);
+			std::cout << "l " << xSect.empty() << std::endl;
 			
 			if (xSect.empty())
 			{
@@ -288,8 +291,9 @@ std::pair<StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_
 		if (growRight)
 		{
 			++curRight;
-			const auto& rightDocs = m_gram.d_fm.find(curLeft)->second;
+			const auto& rightDocs = m_gram.d_fm.find(*curRight)->second;
 			auto xSect = intersectVectors(currentDocs, rightDocs);
+			std::cout << "r " << xSect.empty() << std::endl;
 			
 			if (xSect.empty())
 			{
@@ -304,17 +308,33 @@ std::pair<StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_
 		}
 	}
 	
-	auto lefterIsland = searchRange4Island(begin, bestLeft); // or maybe till rarestGram, needs discussion
-	auto righterIsland = searchRange4Island(bestRight + 1, end); // or maybe till rarestGram, needs discussion
+	std::cout << "done with island of length " << std::distance(bestLeft, bestRight) << std::endl;
 	
-	const auto thisDist = std::distance(bestLeft, bestRight);
-	const auto leftDist = std::distance(lefterIsland.first, lefterIsland.second);
-	const auto rightDist = std::distance(righterIsland.first, righterIsland.second);
+	auto lefterIslands = searchRange4Island(begin, bestLeft);
+	auto righterIslands = searchRange4Island(bestRight + 1, end);
+	std::cout << "done recursing" << std::endl;
 	
-	auto bestRecursiveDist = std::max(leftDist, rightDist);
-	auto bestRecursive = leftDist > rightDist ? lefterIsland : righterIsland;
+	auto compareIslands = [] (const Island_t& left, const Island_t& right)
+		{ return std::distance (left.first, left.second) < std::distance (right.first, right.second); };
 	
-	return bestRecursiveDist > thisDist ? bestRecursive  : std::make_pair(bestLeft, bestRight);
+	Island_t thisResult { bestLeft, bestRight };
+	
+	Islands_t sum;
+	if (lefterIslands.empty())
+		std::swap(sum, righterIslands);
+	else if (righterIslands.empty())
+		std::swap(sum, lefterIslands);
+	else
+		std::merge(lefterIslands.begin(), lefterIslands.end(),
+				righterIslands.begin(), righterIslands.end(),
+				std::back_inserter(sum), compareIslands);
+	
+	if (std::distance(bestLeft, bestRight) < 4)
+		return sum;
+		
+	const auto toInsert = std::lower_bound(sum.begin(), sum.end(), thisResult, compareIslands);
+	sum.insert(toInsert, thisResult);
+	return sum;
 }
 
 class StoredUniverse;
@@ -339,6 +359,7 @@ public:
     static bool normalize( std::string& out, const std::string& in ) ;
     void setSL( bool );
 };
+
 class SmartBENI {
     BENI d_beniStraight,  // beni without soundslike normalization
          d_beniSl;        // beni with sounds like normalization
