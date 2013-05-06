@@ -635,6 +635,26 @@ inline bool QLexParser::trySplitCorrectUTF8 ( SpellCorrectResult& corrResult, QL
     }
     return false;
 }
+namespace {
+
+/// yes i know it's an ugly hack with language specific stuff but there are so few such prefixes in all languages we can possibly 
+/// support (AY)
+inline bool is_negative_prefix( const char* s, size_t step )
+{
+    switch( step ) {
+    case 1:
+        if( !strcmp(s,"un"))
+            return true;
+        break;
+    case 2:
+        if( !strcmp(s,"не"))
+            return true;
+        break;
+    }
+    return false;
+}
+
+} // end of anonymous namespace 
 inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexParser_LocalParms& parm, bool isAutoc )
 {
     PosedVec<CTWPVec>& cPosVec      = parm.cPosVec;
@@ -661,7 +681,8 @@ inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexPa
             if( step ==2 && theString_numChar < 6 ) 
                 return false;
 
-            for (size_t i = step; i < t_len - step; i += step)
+            size_t leftLen = 1;
+            for (size_t i = step; i < t_len - step; i += step, ++leftLen)
             {
                 std::memcpy (dirty, theString, i);
                 dirty [i] = 0;
@@ -694,6 +715,8 @@ inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexPa
                         continue;
                     else {
                         if( i< 4*step || ((t_len - step -i) < 4*step) ) {
+                            if( leftLen == 2 && !is_negative_prefix(dirty,step) ) 
+                                continue;
                             std::string stemmedStr;
                             right = bzSpell->getStemCorrection( stemmedStr, rightDirty, lang, BZSpell::CORRECTION_MODE_CAUTIOUS );
                         } else 
