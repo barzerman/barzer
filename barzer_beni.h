@@ -64,9 +64,9 @@ public:
 		m_storage.insert({ strId, data });
 	}
 	
-	const char* resolveGram(uint32_t id) const
+	const char* resolveFeature(const StoredStringFeature& f) const
 	{
-		return m_gram.getPool()->resolveId(id);
+		return m_gram.resolveFeature(f);
 	}
 	
 	struct FindInfo
@@ -190,13 +190,13 @@ public:
 	typedef std::pair<StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_iterator> Island_t;
 	typedef std::vector<Island_t> Islands_t;
 	
-	Islands_t getIslands(const char *origStr, size_t origStrLen) const;
+	Islands_t getIslands(const char *origStr, size_t origStrLen, StoredStringFeatureVec&) const;
 private:
 	Islands_t searchRange4Island(StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_iterator) const;
 };
 
 template<typename T>
-auto NGramStorage<T>::getIslands(const char* origStr, size_t origStrLen) const -> Islands_t
+auto NGramStorage<T>::getIslands(const char* origStr, size_t origStrLen, StoredStringFeatureVec& storedVec) const -> Islands_t
 {
 	std::string str(origStr, origStrLen);
 	if (m_soundsLikeEnabled)
@@ -211,7 +211,6 @@ auto NGramStorage<T>::getIslands(const char* origStr, size_t origStrLen) const -
 			str = tmp;
 	}
 	
-	StoredStringFeatureVec storedVec;
 	ExtractedStringFeatureVec extractedVec;
 	TFE_TmpBuffers bufs( storedVec, extractedVec );
 	m_gram.extractSTF(bufs, str.c_str(), str.size(), LANG_UNKNOWN);
@@ -239,20 +238,17 @@ template<typename T>
 auto NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator begin, StoredStringFeatureVec::const_iterator end) const -> Islands_t
 {
 	const uint16_t minLength = 3;
-	std::cout << "searching " << std::distance(begin, end) << std::endl;
 	if (std::distance(begin, end) < minLength)
 		return {};
 	
 	const size_t degradationLength = 1;
 	
 	const auto startGram = begin + std::distance(begin, end) / 2;
-	std::cout << "starting at " << std::distance(begin, startGram) << " " << m_gram.resolveFeature(*startGram) << std::endl;
 	
 	const auto pos = m_gram.d_fm.find(*startGram);
 	auto currentDocs = pos == m_gram.d_fm.end() ?
 			std::vector<FeatureInfo>() :
 			pos->second;
-	std::cout << "found current " << currentDocs.size() << std::endl;
 	
 	auto curLeft = startGram,
 		 curRight = startGram,
@@ -272,8 +268,6 @@ auto NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator 
 		if (curRight + 1 == end)
 			growRight = false;
 		
-		std::cout << "grow? l " << growLeft << " r " << growRight << std::endl;
-		
 		if (growLeft)
 		{
 			--curLeft;
@@ -282,7 +276,6 @@ auto NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator 
 					std::vector<FeatureInfo>() :
 					leftDocsPos->second;
 			auto xSect = intersectVectors(currentDocs, leftDocs);
-			std::cout << "l " << xSect.empty() << " " << leftDocs.size() << " for " << m_gram.resolveFeature(*curLeft) << std::endl;
 			
 			if (xSect.empty())
 			{
@@ -302,7 +295,6 @@ auto NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator 
 			const auto& rightDocs = rightDocsPos == m_gram.d_fm.end() ?
 					std::vector<FeatureInfo>() :
 					rightDocsPos->second;
-			std::cout << "r " << xSect.empty() << " " <<  rightDocs.size() << " for " << m_gram.resolveFeature(*curRight) << std::endl;
 			auto xSect = intersectVectors(currentDocs, rightDocs);
 			
 			if (xSect.empty())
@@ -318,11 +310,8 @@ auto NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator 
 		}
 	}
 	
-	std::cout << "done with island of length " << std::distance(bestLeft, bestRight) << std::endl;
-	
 	auto lefterIslands = searchRange4Island(begin, bestLeft);
 	auto righterIslands = searchRange4Island(bestRight + 1, end);
-	std::cout << "done recursing" << std::endl;
 	
 	auto compareIslands = [] (const Island_t& left, const Island_t& right)
 		{ return std::distance (left.first, left.second) < std::distance (right.first, right.second); };

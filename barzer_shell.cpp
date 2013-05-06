@@ -1196,21 +1196,22 @@ static int bshf_benisland(BarzerShell *shell, char_cp cmd, std::istream& in, con
     ay::InputLineReader reader(in);
 	while (reader.nextLine() && !reader.str.empty())
 	{
-		const auto& islands = primary.d_storage.getIslands(reader.str.c_str(), reader.str.size());
+		StoredStringFeatureVec vec;
+		const auto& islands = primary.d_storage.getIslands(reader.str.c_str(), reader.str.size(), vec);
 		std::cout << "found " << islands.size() << " islands" << std::endl;
 		
 		for (const auto& island : islands)
 		{
 			std::cout << "island: '";
 			bool isFirst = true;
-			for (const auto& item : boost::make_iterator_range(island.first, island.second))
+			for (const auto& item : boost::make_iterator_range(island.first, island.second + 1))
 			{
 				if (isFirst)
 					isFirst = false;
 				else
 					std::cout << "', '";
-				const char *str = primary.d_storage.resolveGram(item.m_strId);
-				std::cout << (str ? str : "<no str>");
+				std::cout << primary.d_storage.resolveFeature(item);
+				std::cout << " " << item.m_strId;
 			}
 			std::cout << "'" << std::endl;
 		}
