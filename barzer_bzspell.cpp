@@ -441,6 +441,9 @@ bool stem_depluralize( std::string& out, const char* s, size_t s_len )
                 return true;
             }
         } else if( s3[2] == 's' ) {
+            if( s3[1] == 'u' ) // us
+                return false;
+
             out.assign( s, s_len-1 );
             return true;
         }
@@ -997,7 +1000,6 @@ bool BZSpell::stem(std::string& out, const char *s, int& lang, size_t minWordLen
 
 	if( lang == LANG_ENGLISH)
 	{
-		size_t s_len = strlen(s);
 		if( s_len > minWordLength ) {
 			if( ascii::stem_depluralize( out, s, s_len ) ) {
 				return true;
