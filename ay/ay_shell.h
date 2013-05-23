@@ -5,6 +5,7 @@
 #pragma once
 #include <ay_headers.h>
 #include <ay_util.h>
+#include <ay_bitflags.h>
 #include <string>
 namespace ay {
 
@@ -23,10 +24,29 @@ protected:
 	std::ostream *outStream;
 	std::ostream *errStream;
 	std::istream *inStream;
-	ShellContext* context;
 
+	ShellContext* context;
+    
 	int setupStreams();
 public:
+    enum {
+        SHBIT_NOPROMPT, // when on neither prompt nor help is not printed 
+        SHBIT_MAX
+    };
+    ay::bitflags< SHBIT_MAX > d_bit;
+
+    const std::string& outFileName() const { return outF; }
+    const std::string& inFileName() const { return inF; }
+    const std::string& errFileName() const { return errF; }
+    
+    std::ostream& printStreamState( std::ostream& fp ) const;
+    // default stdin
+    std::istream& setInFile( const char* fn=0 );
+    // default stdout
+    std::ostream& setOutFile( const char* fn=0 );
+    // default stderr
+    std::ostream& setErrFile( const char* fn=0 );
+
 	bool echo; /// when on prints commands to std:cerr 
 	/// individual commands 
 	static int cmd_set( Shell*, char_cp cmd, std::istream& in, const std::string&  );
@@ -105,8 +125,11 @@ public:
         std::ostream* oldStream = outStream;
         return( p ? ( outStream=p, oldStream) : 0 );
     }
+	std::ostream* getOutStreamPtr() { return outStream; }
 	std::ostream& getOutStream() { return *outStream; }
+	std::ostream* getErrStreamPtr() { return errStream; }
 	std::ostream& getErrStream() { return *errStream; }
+	std::istream* getInStreamPtr() { return inStream; }
 	std::istream& getInStream() { return *inStream; }
 
 	// generally overloading this shouldn't be needed

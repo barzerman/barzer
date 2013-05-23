@@ -106,5 +106,9 @@ struct BarzerShell : public ay::Shell {
 	BarzerShellContext* getBarzerContext() ;
     void syncQuestionParm( QuestionParm& qparm );
 };
+/// shell extension interface 
+/// the original file barzer_shell.cpp was too long so we're just 
+/// adding shell_01 for now 
+std::pair<const ay::Shell::CmdData*, const ay::Shell::CmdData*>  shell_get_cmd01() ;
 
 } // namespace barzer

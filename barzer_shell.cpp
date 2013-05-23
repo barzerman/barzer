@@ -23,8 +23,8 @@
 #include <boost/function.hpp>
 
 #include <barzer_server_request.h>
-#include "barzer_geoindex.h"
-#include "zurch_tokenizer.h"
+#include <barzer_geoindex.h>
+#include <zurch_tokenizer.h>
 //
 #include <sstream>
 #include <fstream>
@@ -2096,9 +2096,11 @@ int BarzerShell::setUser( uint32_t uid, bool forceCreate )
 int BarzerShell::init( )
 {
 	int rc = 0;
-	if( !cmdMap.size() )
-		rc = indexCmdDataRange(ay::Shell::CmdDataRange( ARR_BEGIN(g_cmd),ARR_END(g_cmd)));
-
+	if( !cmdMap.size() ) { 
+		indexCmdDataRange(ay::Shell::CmdDataRange( ARR_BEGIN(g_cmd),ARR_END(g_cmd)));
+        auto r = shell_get_cmd01();
+		indexCmdDataRange(ay::Shell::CmdDataRange( r.first, r.second ) ) ;
+    }
 	if( context )
 		delete context;
 

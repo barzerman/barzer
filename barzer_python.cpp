@@ -66,7 +66,7 @@ PythonCmdLine&  PythonCmdLine::init( boost_python_list& ns )
         argv.push_back( i->c_str() );
     }
     /// dirty hack - ay cmdline processor wants char** ...
-    d_cmdlProc->init(argv.size(), (char**)(&(argv[0])) );
+    d_cmdlProc->init(argv.size(), (char **)(&(argv[0])) );
     
     return *this;
 }

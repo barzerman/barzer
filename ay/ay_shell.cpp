@@ -68,11 +68,80 @@ int Shell::cmd_exit( Shell*, char_cp cmd, std::istream& in, const std::string&ar
 
 int Shell::printPrompt()
 {
-	if( outStream == & std::cout )
-		std::cerr << "cmd>";
+    if( !d_bit.check( SHBIT_NOPROMPT ) ) 
+	    getErrStream() << "cmd>";
 	return 0;
 }
 
+std::istream& Shell::setInFile( const char* fn)
+{
+	if( inStream && inStream != &std::cin ) {
+		delete inStream;
+		inStream = &std::cin;
+	} 
+	
+    if( fn ) {
+        inF.assign(fn);
+	    if( inF.length() ) {
+		    std::ifstream* tmp = new std::ifstream();
+		    tmp->open( inF.c_str() );
+            if( !tmp->is_open() ) {
+                getErrStream() << "failed to open input file " << fn << std::endl;
+            } else
+		        inStream = tmp;
+	    }
+    }
+    return *inStream;
+}
+std::ostream& Shell::setOutFile( const char* fn)
+{
+	if( outStream && outStream != & std::cout )  {
+		delete outStream;
+		outStream = &std::cout;
+	} 
+	
+    if( fn ) {
+        outF.assign(fn);
+	    if( outF.length() ) {
+		    std::ofstream* tmp = new std::ofstream();
+		    tmp->open( outF.c_str() );
+            if( !tmp->is_open() ) 
+                getErrStream() << "failed to open output file " << fn << std::endl;
+            else 
+		        outStream = tmp;
+	    }
+    }
+    return *outStream;
+}
+std::ostream& Shell::setErrFile(const char* fn)
+{
+	if( errStream && errStream != & std::cerr ) {
+		delete errStream;
+		errStream = &std::cerr;
+	}
+    if( fn ) {
+        errF.assign(fn);
+	    if( errF.length() ) {
+		    std::ofstream* tmp = new std::ofstream();
+		    tmp->open( errF.c_str() );
+            if( !tmp->is_open() ) 
+                getErrStream() << "failed to open error file " << fn << std::endl;
+            else 
+		        errStream = tmp;
+	    }
+    }
+    return *errStream;
+}
+
+std::ostream& Shell::printStreamState( std::ostream& fp ) const
+{
+    return (
+	    fp << "OUT: " << ( outStream == (&std::cout) ? "<stdout>": outF ) << std::endl <<
+	    "ERR: " << ( errStream == (&std::cerr) ? "<stderr>": errF ) << std::endl <<
+	    "IN: " << ( inStream == (&std::cin) ? "<stdin>": inF ) << std::endl
+    );
+
+}
 int Shell::setupStreams()
 {
 	/// input stream 
