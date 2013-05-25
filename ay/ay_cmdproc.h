@@ -16,7 +16,7 @@ const int CMDLINE_ARG_NOTFOUND=-1;
 struct CommandLineArgs {
 	typedef const char* char_cp;
 	int argc;
-	const const char_cp* argv;
+	const char_cp* argv;
 
 	const char* getArgVal( bool& hasArg, const char* an, int*argPos=0 ) const;
 	bool 		hasArg( const char* an ) const;
