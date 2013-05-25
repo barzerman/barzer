@@ -113,6 +113,8 @@ class BarzelMatchInfo {
 public:
     void setBarz( const Barz* b ) { d_barz=b; }
     const Barz* getBarz() const { return d_barz; }
+    const BeadList& getBeadList() const ;
+    
     const BarzelBeadAtomic*  getClosestAtomicFromLeft( BarzelBeadAtomic_type_t typ, bool& found ) const;
     const BarzelMatchAmbiguities& ambiguities() const   { return d_ambiguities; }
           BarzelMatchAmbiguities& ambiguities()         { return d_ambiguities; }

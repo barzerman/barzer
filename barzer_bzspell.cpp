@@ -4,6 +4,7 @@
 /// 
 #include <barzer_universe.h>
 #include <barzer_bzspell.h>
+#include <boost/algorithm/string.hpp>
 #include <ay/ay_choose.h>
 #include <ay_char.h>
 #include <ay_utf8.h>
@@ -427,6 +428,8 @@ bool stem_depluralize( std::string& out, const char* s, size_t s_len )
 	if( s_len > 5 ) {
 		const char* s4 = s+s_len-4;
 		const char* s3 = (s4+1);
+        char l4 = s4[0], l3 = s4[1], l2 = s4[2], l1 = s4[3],
+            l5 = *(s4-1), l6=*(s4-2);
         if( s3[1] =='e' && s3[2] =='s' ) { // es
 		    if( s4[0] =='c' && s4[1] == 'h'  ) { /// XXXches ---> XXXch
 			    out.assign( s, s_len-2 );
@@ -436,10 +439,18 @@ bool stem_depluralize( std::string& out, const char* s, size_t s_len )
                 *(out.rbegin()) = 'y';
                 return true;
             } else {
-                out.assign( s, s_len-1 );
+                if( l4 == 'u' && l3 == 's' && 
+                    ( l5 == 'p'|| (l5== 'l' && l6 =='l') )  // puses / luses
+                )  
+                    out.assign( s, s_len-2 );
+                else
+                    out.assign( s, s_len-1 );
                 return true;
             }
         } else if( s3[2] == 's' ) {
+            if( s3[1] == 'u' ) // us
+                return false;
+
             out.assign( s, s_len-1 );
             return true;
         }
@@ -976,18 +987,26 @@ bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
     if( lang == LANG_UNKNOWN )
         lang = Lang::getLang(  d_universe, s, s_len );
 	
-	return stem(out, s, lang, d_minWordLengthToCorrect, d_universe.getBarzHints().getUtf8Languages());
+	return stem(out, s, lang, d_minWordLengthToCorrect, d_universe.getBarzHints().getUtf8Languages(), m_stemExceptions);
 }
 
-bool BZSpell::stem(std::string& out, const char *s, int& lang, size_t minWordLength, const BarzHints::LangArray& langs)
+bool BZSpell::stem(std::string& out, const char *s, int& lang, size_t minWordLength,
+		const BarzHints::LangArray& langs,
+		const ay::char_trie<std::string>& exceptions)
 {
+	const auto& match = exceptions.matchString(s);
+	if (match.first && !match.first->data().empty())
+	{
+		out = match.first->data();
+		return true;
+	}
+	
 	size_t s_len = strlen( s );
     if( lang == LANG_UNKNOWN || lang == LANG_UNKNOWN_UTF8)
         lang = Lang::getLangNoUniverse(s, s_len);
 
 	if( lang == LANG_ENGLISH)
 	{
-		size_t s_len = strlen(s);
 		if( s_len > minWordLength ) {
 			if( ascii::stem_depluralize( out, s, s_len ) ) {
 				return true;
@@ -1011,6 +1030,35 @@ bool BZSpell::stem(std::string& out, const char *s, int& lang, size_t minWordLen
 	}
 
     return false;
+}
+
+void BZSpell::loadStemExceptions(const std::string& path)
+{
+	std::ifstream istr(path.c_str());
+	while (istr)
+	{
+		std::string str;
+		std::getline(istr, str);
+		
+		if (str.empty())
+			continue;
+		
+		std::vector<std::string> split;
+		boost::split(split, str, boost::is_any_of("|"));
+		if (split.size() != 3)
+		{
+			AYLOG(ERROR) << "incorrect string format for '" << str << "'";
+			continue;
+		}
+		
+		if (split[0] != "B")
+		{
+			AYLOG(ERROR) << "stem exceptions other than beginning (B|stuffy|stuff) aren't supported";
+			continue;
+		}
+		
+		m_stemExceptions.add(split[1].c_str(), split[2]);
+	}
 }
 
 bool BZSpell::stem( std::string& out, const char* s ) const

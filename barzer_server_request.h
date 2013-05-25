@@ -54,7 +54,7 @@ typedef std::vector<CmdArg> CmdArgList;
 class BarzerRequestParser {
 public:
 	typedef std::map<const std::string, const std::string> AttrList;
-    ReqFilterCascade fitlerCascade;
+    ReqFilterCascade filterCascade;
 
 	struct RequestTag {
 		std::string tagName;

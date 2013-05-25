@@ -7,7 +7,7 @@
 #include "ay_trie.h"
 
 typedef ay::trie<int, int > Trie;
-typedef ay::char_trie<uint32_t> CharTrie;
+typedef ay::char_trie_funcs<uint32_t> CharTrie;
 struct CB_crap {
 	ay::trie_visitor_continue_t operator()( const Trie::Path& p)
 

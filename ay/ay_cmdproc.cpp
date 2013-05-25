@@ -70,6 +70,47 @@ int CommandLineArgs::getArgVal_list( bool& hasArg, std::vector<std::string>& out
 {
 	return 0;
 }
+std::ostream&  CommandLineArgs::print( std::ostream& fp ) const 
+{
+    for( int i = 0; i< argc; ++i ) {
+        fp<< argv[i] << std::endl;
+    }
+    return fp;
+}
+
+CmdLineArgsContainer::CmdLineArgsContainer( const char* argv0, std::istream& str )
+{
+    strVec.push_back( std::string(argv0) );
+    appendArg(str);
+}
+
+void CmdLineArgsContainer::syncPtr()
+{
+    argV.clear();
+    cmd.clear();
+
+    if( strVec.empty() ) 
+        return;
+
+    argV.reserve( strVec.size() );
+    for( const auto& i : strVec ) 
+        argV.push_back( i.c_str() );
+
+    cmd.init( argV.size(), (char**)(&(argV[0])) );
+}
+void CmdLineArgsContainer::appendArg( const std::string& str ) 
+{
+    strVec.push_back( str );
+    syncPtr();
+}
+void CmdLineArgsContainer::appendArg( std::istream& str )
+{
+    std::string tmp;
+    while( str >>tmp ) 
+        strVec.push_back( tmp );
+    syncPtr();
+}
+
 
 
 }

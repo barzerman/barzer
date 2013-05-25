@@ -11,7 +11,7 @@ namespace zurch {
 
 /// zurch (docidx) service interface 
 
-std::ostream& DocIdxSearchResponseXML::printHTML( std::ostream& os, const DocFeatureIndex::DocWithScoreVec_t& docVec,
+std::ostream& DocIdxSearchResponseXML::printHTML( std::ostream& os, const DocWithScoreVec_t& docVec,
 		const std::map<uint32_t, DocFeatureIndex::PosInfos_t>& positions ) const 
 {
     // return
@@ -55,7 +55,7 @@ std::ostream& DocIdxSearchResponseXML::printHTML( std::ostream& os, const DocFea
     }
     return os;
 }
-std::ostream& DocIdxSearchResponseXML::print( std::ostream& os, const DocFeatureIndex::DocWithScoreVec_t& docVec,
+std::ostream& DocIdxSearchResponseXML::print( std::ostream& os, const DocWithScoreVec_t& docVec,
 		const std::map<uint32_t, DocFeatureIndex::PosInfos_t>& positions ) const 
 {
     if( d_qparm.d_biflags.checkBit(barzer::QuestionParm::QPBIT_ZURCH_HTML) ) {
@@ -132,7 +132,7 @@ std::ostream& DocIdxSearchResponseXML::print( std::ostream& os, const DocFeature
     return os;
 }
 using ay::json_raii;
-std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocFeatureIndex::DocWithScoreVec_t& docVec,
+std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocWithScoreVec_t& docVec,
 		const std::map<uint32_t, DocFeatureIndex::PosInfos_t>& positions, const DocFeatureIndex::TraceInfoMap_t& traceMap) const 
 {
     json_raii raii( os, false, 0 );

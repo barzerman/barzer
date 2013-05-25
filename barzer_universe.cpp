@@ -44,10 +44,28 @@ StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	m_hints.initFromUniverse(this);
 }
 
-void StoredUniverse::searchEntitiesByName( BENIFindResults_t& out, const char* str ) const
+void StoredUniverse::searchEntitiesInZurch( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) const
+{
+    if( d_entNameIdx )
+        d_entNameIdx->zurchEntities( out, str, qparm );
+}
+void StoredUniverse::searchEntitiesByName( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) const
 {
     if( d_entNameIdx ) 
         d_entNameIdx->search( out, str, d_settings.d_beni_Cutoff );
+}
+
+void StoredUniverse::beniInit( )
+{
+    delete d_entNameIdx;
+    d_entNameIdx = new SmartBENI(*this);
+}
+
+SmartBENI& StoredUniverse::beni( )
+{
+    if( !d_entNameIdx )
+        beniInit();
+    return *d_entNameIdx;
 }
 
 void StoredUniverse::indexEntityNames( const StoredEntityClass& ec ) 

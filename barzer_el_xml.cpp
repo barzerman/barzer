@@ -10,8 +10,10 @@
 #include <ay_xml_util.h>
 #include <ay_translit_ru.h>
 #include <barzer_relbits.h>
-#include "barzer_spellheuristics.h"
-#include "barzer_geoindex.h"
+#include <barzer_spellheuristics.h>
+#include <barzer_geoindex.h>
+#include <barzer_beni.h>
+#include <zurch_docidx.h>
 extern "C" {
 #include <expat.h>
 
@@ -1606,6 +1608,7 @@ DEFINE_BELParserXML_taghandle(MKENT)
 	const char *canonicName = 0, *topicCanonicName = 0;
 	const char *rawCoord = 0;
     uint32_t topicStrength = 0;
+    std::vector< std::string > zurchDocIdVec;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
@@ -1629,6 +1632,17 @@ DEFINE_BELParserXML_taghandle(MKENT)
             break;
         }
 		case 'p': rawCoord = v; break;
+		case 'z':  
+            if( n[1] == 'd' && !n[2] ) { // zd zurch doc id list linked to this entity 
+                ay::parse_separator(
+                    [&]( size_t tok_num, const char* tok, const char* tok_end ) -> bool { 
+                        zurchDocIdVec.push_back( std::string( tok, tok_end-tok ) ); 
+                        return false;
+                    },
+                    v, v+strlen(v), '|'
+                );
+            }
+            break;
 		default:
 			REPORT_ATTR
 			break;
@@ -1641,6 +1655,7 @@ DEFINE_BELParserXML_taghandle(MKENT)
 	const StoredEntity& ent  = gp.getDtaIdx().addGenericEntity( idStrId, eclass, subclass );
     StoredUniverse* universe = getReader()->getCurrentUniverse();
     const uint32_t curUserId = universe->getUserId();
+
 
 	if (rawCoord)
 	{
@@ -1662,6 +1677,18 @@ DEFINE_BELParserXML_taghandle(MKENT)
 	universe->getEntRevLookup().add(StoredEntityUniqId(idStrId, eclass, subclass), traceInfo);
     
 	mkent.setEntId( ent.entId );
+    /// ZURCH LINKAGE
+    if( !zurchDocIdVec.empty() ) {
+        zurch::DocIndexAndLoader* zurchLoader = universe->getZurchIndex();
+        if( !zurchLoader ) 
+            zurchLoader = universe->initZurchIndex();
+        
+        /// zurchLoader here CANNOT be null
+        for( const auto& n : zurchDocIdVec ) {
+            uint32_t docId = zurchLoader->getLoader()->addDocName(n.c_str());
+            universe->beni().linkEntToZurch( ent.getEuid(), docId );
+        }
+    } 
     statement.setCurEntity( ent.getEuid() );
     if( statement.hasPattern() || statement.isProc() ) {
         /// 

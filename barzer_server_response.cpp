@@ -237,7 +237,7 @@ public:
 		return false;
 	}
 	bool operator()(const BarzerString &data) {
-	    tag_raii tok(os, "token");
+	    tag_raii tok(os, ( data.isFluff() ? "fluff" : "token" ));
 		//xmlEscape(data.getStr(), os << "<token>");
 	    xmlEscape(data.getStr(), tok.os);
 		//os << "</token>";

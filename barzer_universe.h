@@ -46,19 +46,27 @@ class StoredUniverse {
     std::string d_userName;
     //// search entities by names using this object
     SmartBENI* d_entNameIdx;
+    
 public:
+    void beniInit();
+    SmartBENI& beni();
+    const SmartBENI* getBeni() const { return d_entNameIdx; }
 
     void indexEntityNames( const StoredEntityClass& ec ) ;
+    void searchEntitiesInZurch( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) const;
+    void searchEntitiesByName( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) const;
+    void zurchEntities( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) ;
 
-    void searchEntitiesByName( BENIFindResults_t& out, const char* str ) const;
 
 	GlobalPools& gp;
 
     boost::unordered_map< uint32_t, zurch::DocIndexAndLoader* > d_zurchIndexPool;
     
-    zurch::DocIndexAndLoader* initZurchIndex( uint32_t idxId ); 
-    zurch::DocIndexAndLoader* getZurchIndex( uint32_t idxId );
-    const zurch::DocIndexAndLoader* getZurchIndex( uint32_t idxId ) const;
+    // technically there can be many zurch indices . by default 0 is used 
+    enum { ZURCH_INDEX_DEFAULT =0 };
+    zurch::DocIndexAndLoader* initZurchIndex( uint32_t idxId = ZURCH_INDEX_DEFAULT); 
+    zurch::DocIndexAndLoader* getZurchIndex( uint32_t idxId = ZURCH_INDEX_DEFAULT);
+    const zurch::DocIndexAndLoader* getZurchIndex( uint32_t idxId = ZURCH_INDEX_DEFAULT) const;
     
     std::map< StoredEntityClass, std::string > d_subclassNameMap;
     

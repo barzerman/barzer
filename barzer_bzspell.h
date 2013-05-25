@@ -7,6 +7,7 @@
 #include <ay_stackvec.h>
 #include <barzer_spellheuristics.h>
 #include "barzer_barz.h"
+#include "ay/ay_trie.h"
 
 namespace barzer {
 class StoredUniverse;
@@ -102,6 +103,8 @@ public:
 	size_t d_minWordLengthToCorrect;
 
 	enum { MAX_WORD_LEN = 128 };
+	
+	ay::char_trie<std::string> m_stemExceptions;
 private: 
 	strid_wordinfo_hmap d_wordinfoMap;	// from actual words to universe specific word info 
 	strid_evovec_hmap  	d_linkedWordsMap;  // words linked to partial word
@@ -175,12 +178,16 @@ public:
 
     bool isPureStem( const char* str ) const;
     bool isPureStem( uint32_t strId ) const;
+	
+	void loadStemExceptions(const std::string&);
 
 	/// stems (currently only de-pluralizes) word . returns true if stemming was 
 	/// successful
 	bool stem( std::string& out, const char* word ) const;
 	bool stem( std::string& out, const char* word, int& lang ) const;
-	static bool stem(std::string& out, const char *word, int& lang, size_t minWordLength, const BarzHints::LangArray& = BarzHints::LangArray());
+	static bool stem(std::string& out, const char *word, int& lang,
+			size_t minWordLength, const BarzHints::LangArray& = BarzHints::LangArray(),
+			const ay::char_trie<std::string>& exceptions = ay::char_trie<std::string>());
 
     /// punctuation based stemming (for space-default tokenizer)
     /// will use tok.getGlyphXXX  / END for glyphs in word
