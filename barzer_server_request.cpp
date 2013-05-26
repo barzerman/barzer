@@ -214,7 +214,7 @@ int BarzerRequestParser::initFromUri( const char* u, size_t u_len, const char* q
             if( i->first == "flag" ) {
                 d_queryFlags = i->second;
             } else if( i->first == "flt" ) {
-                fitlerCascade.parse( i->second.c_str(), i->second.c_str()+i->second.length() );
+                filterCascade.parse( i->second.c_str(), i->second.c_str()+i->second.length() );
             }
             break;
         case 'm': /// max count
@@ -538,7 +538,7 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
     QParser qparser(u);
 
     zurch::ExtractedDocFeature::Vec_t featureVec;
-    zurch::DocFeatureIndex::DocWithScoreVec_t docVec;  
+    zurch::DocWithScoreVec_t docVec;  
 	std::map<uint32_t, zurch::DocFeatureIndex::PosInfos_t> positions;
 	zurch::DocFeatureIndex::TraceInfoMap_t barzTrace;
 	// std::cout << "handling '" << query << "'" << std::endl;
@@ -571,7 +571,7 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
      
     	
         if( index->fillFeatureVecFromQueryBarz( featureVec, barz ) )  {
-            zurch::DocFeatureIndex::SearchParm parm( d_maxResults, (fitlerCascade.empty()? 0: &fitlerCascade), &positions, &barzTrace );
+            zurch::DocFeatureIndex::SearchParm parm( d_maxResults, (filterCascade.empty()? 0: &filterCascade), &positions, &barzTrace );
             index->findDocument( docVec, featureVec, parm, barz );
         }
     }
@@ -970,7 +970,7 @@ void BarzerRequestParser::tag_pf(RequestTag &tag)
         return;
     for( const auto & i : tag.attrs ) {
         if( i.first == "v" ) 
-            fitlerCascade.parse( i.second.c_str(), i.second.c_str()+i.second.length() );
+            filterCascade.parse( i.second.c_str(), i.second.c_str()+i.second.length() );
     }
 }
 void BarzerRequestParser::tag_prop(RequestTag &tag) 

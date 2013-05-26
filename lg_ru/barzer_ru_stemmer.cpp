@@ -218,7 +218,7 @@ bool Russian::normalize( std::string& out, const char* s, size_t* len )
 
 
     if( 
-        numLetters > 6 && (
+        numLetters > 5 && (
         l3(noun_3_truevowel) ||
         l3(adj_3_novowel) ||
         l3(adj_3_vowel) )

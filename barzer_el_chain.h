@@ -365,8 +365,6 @@ public:
         const BarzelBeadAtomic* atomic = getAtomic();
         if( atomic ) { const T* t = atomic->get<T>(); return t; } else return 0;
     }
-
-
 	size_t getFullNumTokens() const
     {
         size_t n = 0;

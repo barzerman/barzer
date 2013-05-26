@@ -40,6 +40,8 @@ struct QuestionParm {
 
     }
     int16_t d_beniMode;
+    enum { MAX_RESULTS_INLIST_DEFAULT= 256 };
+    uint32_t d_maxResults;
     static int16_t parseBeniFlag(const char* s);
     ay::bitflags<QPBIT_MAX> d_biflags;
     
@@ -83,6 +85,6 @@ struct QuestionParm {
 
     void clear() { autoc.clear(); }
 	QuestionParm() : 
-        lang(0), isAutoc(false), stemMode(STEMMODE_NORMAL), d_beniMode(BENI_DEFAULT) {}
+        lang(0), isAutoc(false), stemMode(STEMMODE_NORMAL), d_beniMode(BENI_DEFAULT), d_maxResults(MAX_RESULTS_INLIST_DEFAULT) {}
 };
 } // namespace barzer 

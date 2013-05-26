@@ -21,8 +21,9 @@
 #include <time.h>
 #include <cstdlib>
 #include <barzer_bzspell.h>
-#include "barzer_relbits.h"
-#include "zurch_settings.h"
+#include <barzer_relbits.h>
+#include <zurch_settings.h>
+#include <barzer_beni.h>
 
 using boost::property_tree::ptree;
 namespace fs = boost::filesystem;
@@ -694,6 +695,16 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
             if( const boost::optional<std::string> cOpt = xAttr.get().get_optional<std::string>("sl") ) {
                 if( cOpt.get() != "no" )
                     u.getUniverse().setBit( StoredUniverse::UBIT_BENI_SOUNDSLIKE, true );
+            }
+            /// beni tag zurch attribute . value is id of the zurch universe
+            if( const boost::optional<uint32_t> cOpt = xAttr.get().get_optional<uint32_t>("zurch") ) {
+                uint32_t zurchUserId = cOpt.get();
+                StoredUniverse* zurchUniverse = gpools.getUniverse(zurchUserId);
+                if( !zurchUniverse ) {
+	                User &u = createUser(zurchUserId);
+                    zurchUniverse = gpools.getUniverse(zurchUserId);
+                }
+                u.getUniverse().beni().setZurchUniverse(zurchUniverse);
             }
         } 
 

@@ -428,6 +428,8 @@ bool stem_depluralize( std::string& out, const char* s, size_t s_len )
 	if( s_len > 5 ) {
 		const char* s4 = s+s_len-4;
 		const char* s3 = (s4+1);
+        char l4 = s4[0], l3 = s4[1], l2 = s4[2], l1 = s4[3],
+            l5 = *(s4-1), l6=*(s4-2);
         if( s3[1] =='e' && s3[2] =='s' ) { // es
 		    if( s4[0] =='c' && s4[1] == 'h'  ) { /// XXXches ---> XXXch
 			    out.assign( s, s_len-2 );
@@ -437,10 +439,18 @@ bool stem_depluralize( std::string& out, const char* s, size_t s_len )
                 *(out.rbegin()) = 'y';
                 return true;
             } else {
-                out.assign( s, s_len-1 );
+                if( l4 == 'u' && l3 == 's' && 
+                    ( l5 == 'p'|| (l5== 'l' && l6 =='l') )  // puses / luses
+                )  
+                    out.assign( s, s_len-2 );
+                else
+                    out.assign( s, s_len-1 );
                 return true;
             }
         } else if( s3[2] == 's' ) {
+            if( s3[1] == 'u' ) // us
+                return false;
+
             out.assign( s, s_len-1 );
             return true;
         }
@@ -997,7 +1007,6 @@ bool BZSpell::stem(std::string& out, const char *s, int& lang, size_t minWordLen
 
 	if( lang == LANG_ENGLISH)
 	{
-		size_t s_len = strlen(s);
 		if( s_len > minWordLength ) {
 			if( ascii::stem_depluralize( out, s, s_len ) ) {
 				return true;

@@ -1,11 +1,14 @@
 #include <barzer_beni.h>
+#include <zurch_docidx.h>
 
 namespace barzer {
 
 SmartBENI::SmartBENI( StoredUniverse& u ) : 
     d_beniStraight(u),
     d_beniSl(u),
-    d_isSL(u.checkBit( StoredUniverse::UBIT_BENI_SOUNDSLIKE))
+    d_isSL(u.checkBit( StoredUniverse::UBIT_BENI_SOUNDSLIKE)),
+    d_universe(u),
+    d_zurchUniverse(0)
 {
     if( d_isSL ) {
         d_beniSl.setSL( true );
@@ -43,7 +46,7 @@ void SmartBENI::search( BENIFindResults_t& out, const char* query, double minCov
     if( d_isSL ) {
         if( maxCov< SL_COV_THRESHOLD || out.empty() ) {
             BENIFindResults_t slOut;
-            double maxCov = d_beniSl.search( slOut, query, minCov );
+            maxCov = d_beniSl.search( slOut, query, minCov );
             size_t numAdded = 0;
             for( const auto& i: slOut ) {
                 BENIFindResults_t::iterator outIter = std::find_if(out.begin(), out.end(), [&]( const BENIFindResult& x ) { return ( x.ent == i.ent ) ; });
@@ -197,6 +200,68 @@ bool BENI::normalize( std::string& out, const std::string& in )
     return altered;
 }
 
+size_t SmartBENI::getZurchEntities( BENIFindResults_t& out, const zurch::DocWithScoreVec_t& vec ) const
+{
+    std::map< BarzerEntity, double > resultMap;
+    for( const auto& i : vec ) {
+        getEntLinkedToZurchDoc(
+            [&]( const BarzerEntity& ent ) {
+                auto x = resultMap.find( ent );
+                if( x == resultMap.end() ) 
+                    resultMap.insert( {ent,i.second} );
+                else 
+                    x->second += i.second;
+            },
+            i.first
+        );
+    }
+    if( resultMap.empty() ) 
+        return 0;
 
+    double minScore = 0, maxScore = 0;
+    for( const auto& i : resultMap ) {
+        if( i.second > maxScore )
+            maxScore= i.second;
+        if( minScore == 0.0 || minScore > i.second ) 
+            minScore = i.second;
 
+        out.push_back( {i.first, 1, i.second, 0 } );
+    }
+    std::sort( out.begin(), out.end(), []( const BENIFindResult& l, const BENIFindResult& r ){ return (l.coverage> r.coverage); } );
+    // normalizing doc scores to 1
+    double minToMax = maxScore-minScore;
+    if( minToMax > 0.00000001 ) {
+        for( auto& i : out ) 
+            i.coverage = (i.coverage-minScore)/minToMax;
+    }
+    return resultMap.size();
+}
+
+void SmartBENI::zurchEntities( BENIFindResults_t& out, const char* str, const QuestionParm& qparm )
+{
+    if( !d_zurchUniverse ) 
+        return;
+
+    if( const zurch::DocIndexAndLoader* zurch = d_zurchUniverse->getZurchIndex() ) {
+        zurch::ExtractedDocFeature::Vec_t featureVec;
+        zurch::DocWithScoreVec_t docVec;
+        std::map<uint32_t, zurch::DocFeatureIndex::PosInfos_t> positions;
+        zurch::DocFeatureIndex::TraceInfoMap_t barzTrace;
+
+        Barz barz;
+        barz.setUniverse( d_zurchUniverse );
+        QParser qparser( *d_zurchUniverse );
+
+        qparser.tokenize_only( barz, str, qparm );
+        qparser.lex_only( barz, qparm );
+        qparser.semanticize_only( barz, qparm );
+
+        auto index = zurch->getIndex();
+        if( index->fillFeatureVecFromQueryBarz( featureVec, barz ) )  {
+            zurch::DocFeatureIndex::SearchParm parm( qparm.d_maxResults, 0, &positions, &barzTrace );
+            index->findDocument( docVec, featureVec, parm, barz );
+        }
+        getZurchEntities( out, docVec );
+    }
+}
 } // namespace barzer

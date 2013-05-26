@@ -577,7 +577,12 @@ int Barz::beniSearch( const StoredUniverse& u, const QuestionParm& qparm )
             if( !beni_string_likely_isid( questionOrig, numGlyphs ) ) 
                 return 1;
         }
-        u.searchEntitiesByName( d_beni.d_entVec, questionOrig.c_str() );
+        u.searchEntitiesByName( d_beni.d_entVec, questionOrig.c_str(), qparm );
+
+        const double NONEED_ZURCH_COVERAGE = 0.7;
+        if( !d_beni.d_zurchEntVec.empty() && d_beni.d_zurchEntVec[0].coverage >= NONEED_ZURCH_COVERAGE ) 
+            return 0;
+        u.searchEntitiesInZurch( d_beni.d_zurchEntVec, questionOrig.c_str(), qparm );
     }
     return 0;
 }
