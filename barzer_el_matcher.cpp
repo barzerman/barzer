@@ -11,6 +11,7 @@
 
 namespace barzer {
 
+const BeadList& BarzelMatchInfo::getBeadList() const { return d_barz->getBeads().getList(); }
 namespace {
 
 bool get_single_entity( BarzerEntity& ent, const BELTrie& trie, const BarzelTranslation& translation )
@@ -1426,7 +1427,7 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
         CTWPVec matchUniqueCTokens;
         // this must only put tokens unique for all beads in the range  into matchUniqueCTokens
         fillUniqueMatchCTokens( matchUniqueCTokens, range );
-
+        
 		for( ; di != bbdv.end() && bi!= range.second; )  {
 			//bi->print( std::cerr );
 			bi->setData( *di );

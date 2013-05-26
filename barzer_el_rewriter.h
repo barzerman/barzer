@@ -79,8 +79,8 @@ private:
 
     int d_unmatchable;
     int d_confidenceBoost;
+    
 public:
-
 	BarzelEvalResult() : 
         d_val(1), 
         d_unmatchable(0),
@@ -113,15 +113,20 @@ public:
             d_val.resize(1);
         d_val[0] = t; 
     }
+
 	template <typename T> void pushBeadData( const T& t ) { 
         d_val.push_back( BarzelBeadData( BarzelBeadAtomic()) );
         boost::get<BarzelBeadAtomic>(d_val.back()).setData(t);
     }
+	template <typename T> void pushOrSetBeadData( size_t j, const T& t ) { 
+        if( !j ) 
+            d_val[0] = BarzelBeadAtomic(t);
+        else 
+            pushBeadData(t);
+    }
     
     std::ostream& print( std::ostream& fp ) const
-    {
-        return ( fp << getBeadData() );
-    }
+        { return ( fp << getBeadData() ); }
 };
 inline std::ostream& operator<< ( std::ostream& fp, const BarzelEvalResult& x )
 {

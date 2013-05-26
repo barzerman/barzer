@@ -1806,27 +1806,32 @@ struct BELFunctionStorage_holder {
 	STFUN(mkFluff)
 	{
         SETFUNCNAME(mkFluff);
-		try {
-			BarzerLiteral &ltrl = setResult(result, BarzerLiteral());
-			ltrl.setStop();
-			for (BarzelEvalResultVec::const_iterator rvit = rvec.begin();
-													 rvit != rvec.end();
-													 ++rvit) {
-				const BarzelBeadDataVec &vec = rvit->getBeadDataVec();
-				for (BarzelBeadDataVec::const_iterator bdit = vec.begin();
-													   bdit != vec.end();
-													   ++bdit) {
-					const BarzerLiteral &fl = getAtomic<BarzerLiteral>(*bdit);
-					if (fl.isString() || fl.isCompound()) {
-						ltrl.setId(fl.getId());
-						return true;
-					}
-				}
-			}
-		} catch (boost::bad_get&) {
-                  // AYLOG(ERROR) << "mkFluff(BarzerLiteral): Wrong argument type";
-                  FERROR("Wrong argument type");
-		}
+        BarzerLiteral &ltrl = setResult(result, BarzerLiteral());
+        ltrl.setStop();
+        for ( const auto& rvit : rvec ) {
+            const auto& beadList = ctxt.matchInfo.getBeadList();
+
+            const BarzelBeadDataVec &vec = rvit.getBeadDataVec();
+            result.boostConfidence();
+            size_t j = 0;
+
+            for (const auto& i : vec ) {
+                if( const BarzerLiteral *x = getAtomicPtr<BarzerLiteral>(i) ) {
+                    if( x->isString() || x->isCompound() ) {
+                        BarzerLiteral ltrl;
+                        ltrl.setStop();
+                        ltrl.setId( x->getId());
+                        result.pushOrSetBeadData( j++, ltrl );
+                    }
+                } if( const BarzerNumber *x = getAtomicPtr<BarzerNumber>(i) ) {
+                    BarzerString bs;
+                    x->convert(bs);
+                    bs.setFluff();
+                    result.pushOrSetBeadData( j++, bs );
+                } 
+            }
+            return true;
+        }
 	    return true;
 	}
 

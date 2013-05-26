@@ -315,7 +315,7 @@ public:
 
     void clear() { d_type= T_NORMAL; d_stemStringId=0xffffffff; str.clear(); }
     bool isFluff() const { return (d_type == T_FLUFF); }
-    void setFluff()     { d_type = T_FLUFF; }
+    BarzerString& setFluff()     { d_type = T_FLUFF; return *this; }
     void setNormal()    { d_type = T_NORMAL; }
 
 	void setFromTTokens( const TTWPVec& v );

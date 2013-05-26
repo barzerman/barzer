@@ -7,7 +7,10 @@
 #include <iostream>
 #include <stdint.h>
 #include <stdlib.h>
+
 namespace barzer {
+
+class BarzerString; 
 /// pure numbers
 class BarzerNumber {
 public:
@@ -111,72 +114,27 @@ public:
 	inline bool cal_canbe_Quarter() const { return( isInt() ? (n.i>=1 && n.i<=4): false ) ; }
 	/// rough check for day of the month
 	inline bool cal_canbe_Day() const { return( isInt() ? (n.i>=1 && n.i<=31): false ) ; }
-	inline std::ostream& print( std::ostream& fp ) const
-	{
-		if( isInt() )
-			return fp << n.i ;
-		else  if( isReal() )
-			return fp << std::fixed << n.real ;
-		else
-			return fp << "NaN";
-	}
-	bool isEqual( const BarzerNumber& r ) const
-	{
-		if( type != r.type )
-			return false;
-		else {
-			switch(type) {
-			case NTYPE_NAN: return true;
-			case NTYPE_INT: return ( n.i == r.n.i );
-			case NTYPE_REAL: return ( n.real == r.n.real );
-			default: return false; // should never be the case
-			}
-		}
-	}
+	std::ostream& print( std::ostream& fp ) const;
+	bool isEqual( const BarzerNumber& r ) const;
 
     void        setStringId( uint32_t stringId ) { d_stringId = stringId; }
     uint32_t    getStringId( ) const { return d_stringId; }
     bool        hasValidStringId() const { return (d_stringId!= 0xffffffff); }
+
+    void  convert( BarzerString& str ) const;
 };
 
 inline bool operator == ( const BarzerNumber& l, const BarzerNumber& r )
 	{ return l.isEqual(r); }
 
 inline bool operator< (const BarzerNumber& l, const BarzerNumber& r)
-{
-	return l.getRealWiden() < r.getRealWiden();
-}
+    { return l.getRealWiden() < r.getRealWiden(); }
 
-inline BarzerNumber operator+ (const BarzerNumber& b1, const BarzerNumber& b2)
-{
-	BarzerNumber res = b1;
-	res += b2;
-	return res;
-}
-
-inline BarzerNumber operator- (const BarzerNumber& b1, const BarzerNumber& b2)
-{
-	BarzerNumber res = b1;
-	res -= b2;
-	return res;
-}
-
-inline BarzerNumber operator* (const BarzerNumber& b1, const BarzerNumber& b2)
-{
-	BarzerNumber res = b1;
-	res *= b2;
-	return res;
-}
-
-inline BarzerNumber operator/ (const BarzerNumber& b1, const BarzerNumber& b2)
-{
-	BarzerNumber res = b1;
-	res /= b2;
-	return res;
-}
-
-inline std::ostream& operator <<( std::ostream& fp, const BarzerNumber& n )
-{ return n.print(fp); }
+BarzerNumber operator+ (const BarzerNumber& b1, const BarzerNumber& b2);
+BarzerNumber operator- (const BarzerNumber& b1, const BarzerNumber& b2);
+BarzerNumber operator* (const BarzerNumber& b1, const BarzerNumber& b2);
+BarzerNumber operator/ (const BarzerNumber& b1, const BarzerNumber& b2);
+std::ostream& operator <<( std::ostream& fp, const BarzerNumber& n );
 
 } // barzer namespace
 
