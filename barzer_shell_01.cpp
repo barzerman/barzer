@@ -4,6 +4,17 @@
 namespace barzer {
 static int bshf_test01( BarzerShell* shell, ay::char_cp cmd, std::istream& in , const std::string& argStr)
 {
+    std::string buf;
+    std::string stem;
+    ay::file_istream inFile( shell->getInStreamPtr() );
+    while( std::getline(inFile.fp(),buf) ) {
+        if( buf.empty() )
+            break;
+        std::string out;
+        ay::unicode_normalize_punctuation( out, buf.c_str(), buf.length() );
+        shell->getOutStream() << buf << ":" << "\"" << out << "\"" << std::endl;
+        
+    }
     std::cerr << "test01\n";
     return 0;
 }
