@@ -179,11 +179,12 @@ int unicode_normalize_punctuation( std::string& outStr, const char* srcStr, size
     for( const char* s = s_beg; s< s_end; ++s ) {
         char c= *s;
         const uint8_t uc = (uint8_t)(c);
+        const uint8_t lastUc = ( tmp.empty() ? 0 : tmp.back() );
         if( isascii(c) ) {
             switch(c) {
             case '`': c = '\''; break;
             }
-        } else if( !(uc == 0xd0 || uc == 0xd1 || uc == 0xc3) ) { // non russian chars
+        } else if( !(uc == 0xd0 || uc == 0xd1 ) && !(lastUc>=0xc0 && lastUc<=0xd6) ) { // non russian chars
             switch((int)(uc)) {
             case 160: c=' '; break;
             case 161: c='!'; break; 
