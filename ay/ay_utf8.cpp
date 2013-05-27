@@ -183,7 +183,7 @@ int unicode_normalize_punctuation( std::string& outStr, const char* srcStr, size
             switch(c) {
             case '`': c = '\''; break;
             }
-        } else if( !(uc == 0xd0 || uc == 0xd1 ) ) { // non russian chars
+        } else if( !(uc == 0xd0 || uc == 0xd1 || uc == 0xc3) ) { // non russian chars
             switch((int)(uc)) {
             case 160: c=' '; break;
             case 161: c='!'; break; 
