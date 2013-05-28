@@ -252,9 +252,7 @@ public:
 	void init(const CTWPVec::value_type&) ;
     void initFromCTok( const CToken& ct );
 	/// implement:
-	void absorbBead( const BarzelBead& bead )
-	{ ctokOrigVec.insert( ctokOrigVec.end(), bead.ctokOrigVec.begin(), bead.ctokOrigVec.end() ); }
-
+	void absorbBead( const BarzelBead& bead );
 
 	template <typename T> void become( const T& t ) { dta = t; }
 
@@ -440,22 +438,7 @@ struct BarzelBeadChain {
 		const BarzelBeadAtomic* atomic = i->getAtomic();
 		return( atomic && atomic->isBlankLiteral() );
 	}
-	static inline void 	trimBlanksFromRange( Range& rng )
-	{
-		while( rng.first != rng.second ) {
-			BeadList::iterator lastElem = rng.second;
-			--lastElem;
-			if( lastElem == rng.first )
-				break;
-			if( BarzelBeadChain::iteratorAtBlank(lastElem) )
-				rng.second= lastElem;
-			else if( BarzelBeadChain::iteratorAtBlank(rng.first) )
-				++rng.first;
-			else
-				break;
-		}
-	}
-
+	static void 	trimBlanksFromRange( Range& rng );
 
 	BeadList lst;
 	/// implement

@@ -5,6 +5,7 @@
 #include <barzer_number.h>
 #include <string.h>
 #include <barzer_parse_types.h>
+#include <sstream>
 
 namespace barzer
 {

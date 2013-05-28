@@ -19,6 +19,22 @@ std::ostream& operator<< ( std::ostream& fp, const BarzelBeadData& x)
     return fp;
 }
 
+void  BarzelBead::absorbBead( const BarzelBead& bead )
+{
+    for( const auto& i : bead.ctokOrigVec ) {
+        bool isDuplicate = false;
+        for( const auto& j : ctokOrigVec ) {
+            if( j.first.equal(i.first) ) {
+                isDuplicate = true;
+                break;
+            }   
+        }
+        if( !isDuplicate )
+            ctokOrigVec.push_back(i);
+    }
+    // ctokOrigVec.insert( ctokOrigVec.end(), bead.ctokOrigVec.begin(), bead.ctokOrigVec.end() );
+}
+
 int  BarzelBead::computeBeadConfidence( const StoredUniverse* u ) const
 {
     if( !isComplexAtomicType() || d_confidenceBoost > 1 )
@@ -242,6 +258,22 @@ std::ostream& BarzerERCExpr::print( std::ostream& fp ) const
 	return fp << "}";
 }
 ///// BarzelBeadChain
+
+void BarzelBeadChain::trimBlanksFromRange( Range& rng )
+{
+    while( rng.first != rng.second ) {
+        BeadList::iterator lastElem = rng.second;
+        --lastElem;
+        if( lastElem == rng.first )
+            break;
+        if( BarzelBeadChain::iteratorAtBlank(lastElem) )
+            rng.second= lastElem;
+        else if( BarzelBeadChain::iteratorAtBlank(rng.first) )
+            ++rng.first;
+        else
+            break;
+    }
+}
 
 void BarzelBeadChain::collapseRangeLeft( BeadList::iterator origin, Range r ) {
 	BeadList::iterator nonStringI = r.second;
