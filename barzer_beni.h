@@ -240,7 +240,7 @@ auto NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator 
 {
 	const uint16_t minLength = 3;
 	if (std::distance(begin, end) < minLength)
-		return {};
+		return Islands_t ();
 	
 	const size_t degradationLength = 1;
 	
