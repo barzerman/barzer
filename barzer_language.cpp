@@ -74,6 +74,11 @@ bool Lang::twoByteStripDiacritics( std::string& dest, const char* str, size_t st
                     if( !hasDiacritics )
                         hasDiacritics= true;
                     continue;
+                } else if( (uint8_t)(s[1]) == 0x8a ) { // ъ
+                    dest.push_back( (char)(0xd1) );
+                    dest.push_back( (char)(0x8c) );
+                    if( !hasDiacritics )
+                        hasDiacritics= true;
                 }
             }
 
@@ -91,7 +96,7 @@ bool Lang::convertTwoByteToLower( char* s, size_t s_len, int lang )
         char* s_end = s+s_len;
         for( char* ss=s; ss< s_end; ss+=2 ) {
             uint8_t b1= (uint8_t)(ss[1]);
-            if( (b1 >=0x90 && b1 <=0xaf) ) {
+            if( !((uint8_t)(ss[0]) == 0xd1 && b1==0x91) && (b1 >=0x90 && b1 <=0xaf) ) {
                 const char* lc = rus_letter[ (b1-0x90) ];
                 hasUpperCase = true;
                 ss[0] = lc[0];
