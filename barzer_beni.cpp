@@ -63,6 +63,11 @@ void SmartBENI::search( BENIFindResults_t& out, const char* query, double minCov
         out.resize(128);
 }
 
+BENI& SmartBENI::getPrimaryBENI()
+{
+	return d_beniStraight;
+}
+
 void SmartBENI::clear()
 {
     d_beniSl.clear();
