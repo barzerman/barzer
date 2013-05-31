@@ -136,15 +136,22 @@ static int bshf_tok( BarzerShell* shell, char_cp cmd, std::istream& in, const st
 	BarzerShellContext * context = shell->getBarzerContext();
 	DtaIndex* dtaIdx = context->obtainDtaIdx();
 	std::string tmp;
-	ay::stopwatch totalTimer;
-	in >> tmp;
-	const StoredToken* token = dtaIdx->getTokByString( tmp.c_str() );
-	if( !token ) {
-		std::cerr << "no such token \"" << tmp << "\"\n";
-		return 0;
-	}
-	std::ostream& fp = shell->getOutStream();
-	fp << *token << std::endl;
+
+    bool lastEmpty = false;
+    while( std::getline(std::cin,tmp) ) {
+        if( tmp.empty() ) {
+            if( lastEmpty )
+                break;
+            else 
+                lastEmpty=true;
+        }
+	    if( const StoredToken* token = dtaIdx->getTokByString( tmp.c_str() ) ) {
+            std::ostream& fp = shell->getOutStream();
+            fp << *token << std::endl;
+	    } else {
+		    std::cerr << "no such token \"" << tmp << "\"\n";
+        }
+    }
 
 	return 0;
 }
@@ -1766,10 +1773,10 @@ static int bshf_strid( BarzerShell* shell, char_cp cmd, std::istream& in , const
 	std::string tmp;
     uint32_t strId = 0xffffffff;
 
-    while( in >> strId ) {
-    const char* str = gp.string_resolve( strId ) ;
-    const char* internalStr = gp.internalString_resolve( strId ) ;
-    std::cerr << std::hex << strId << ":" << ( str ? str : "<null>" ) << ":" << (internalStr ? internalStr : "<null>" ) << std::endl;
+    while(  in >> strId ) {
+        const char* str = gp.string_resolve( strId ) ;
+        const char* internalStr = gp.internalString_resolve( strId ) ;
+        std::cerr << std::hex << strId << ":" << ( str ? str : "<null>" ) << ":" << (internalStr ? internalStr : "<null>" ) << std::endl;
     }
     return 0;
 }

@@ -951,7 +951,6 @@ DEFINE_BELParserXML_taghandle(EVR)
 			break;
 		case 'i': // entity id token - t="ABCD011"
 		case 't': // entity id token - t="ABCD011"
-			// erc.getEntity().setTokenId( internString(v,true).getStringId() );
 			pat.d_ent.setTokenId( reader->getGlobalPools().internString_internal(v) );
 			break;
 		default:
@@ -992,7 +991,6 @@ DEFINE_BELParserXML_taghandle(ERC)
 			break;
 		case 'i': // entity id token - t="ABCD011"
 		case 't': // entity id token - t="ABCD011"
-			// erc.getEntity().setTokenId( internString(v,true).getStringId() );
 			erc.getEntity().setTokenId( reader->getGlobalPools().internString_internal(v) );
 			break;
 		case 'u': // unit fields
@@ -1003,7 +1001,6 @@ DEFINE_BELParserXML_taghandle(ERC)
 				erc.getUnitEntity().setSubclass( atoi(v) ); break;
 			case 'i': // unit entity id token - ut="ABCD011"
 			case 't': // unit entity id token - ut="ABCD011"
-				// erc.getUnitEntity().setTokenId( internString(v,true).getStringId() ); break;
 				erc.getUnitEntity().setTokenId( reader->getGlobalPools().internString_internal(v) );
 			default:
 				REPORT_ATTR
@@ -1185,7 +1182,6 @@ DEFINE_BELParserXML_taghandle(ENTITY)
             uint32_t idStrId = reader->getGlobalPools().internString_internal(v) ;
 			pat.setTokenId(idStrId);
             }
-			// pat.setTokenId( internString(v,true).getStringId() );
 			break;
         case 'x': // match mode 
             pat.setMatchModeFromAttribute(v);    
@@ -1970,7 +1966,7 @@ DEFINE_BELParserXML_taghandle(CASE)
         const char* v = attr[i+1]; // attr value
         switch(n[0]) {
         case 'l':
-            caseId = internString(LANG_UNKNOWN,v,true,0).getStringId();
+            caseId = reader->getGlobalPools().internString_internal(v);
             break;
         case 'p':
             caseId = (uint32_t)v[0]; // this is a hack really
