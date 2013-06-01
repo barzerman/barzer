@@ -56,7 +56,8 @@ public:
     void searchEntitiesInZurch( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) const;
     void searchEntitiesByName( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) const;
     void zurchEntities( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) ;
-
+	
+	SmartBENI* getSmartBeni() const { return d_entNameIdx; }
 
 	GlobalPools& gp;
 

@@ -143,9 +143,25 @@ StoredToken& StoredUniverse::internString( int lang, const char* t, BELTrie* tri
 	// to reflect the fact that this thing is actually in the trie
 	bool wasNew = false;
 
+    uint32_t priorId = gp.string_getId( t );
+
+    char w[ BZSpell::MAX_WORD_LEN ]; 
+    size_t t_len = strlen(t);
+    if( t_len >= BZSpell::MAX_WORD_LEN )
+        t_len = BZSpell::MAX_WORD_LEN-1;
+
+    if( priorId == 0xffffffff ) { // this is a brand new word - de-casing it
+        wasNew = true;
+        memcpy( w,t, t_len );
+        w[ t_len ] = 0;
+        Lang::stringToLower( w, t_len, lang );
+        t= w;
+    }
+
+    /// at this point t is GUARANTEED TO BE LOWER CASE 
+    uint32_t       internId = gp.string_intern( t );
 	StoredToken& sTok =  gp.getDtaIdx().addToken( lang, wasNew, t );
 	const uint32_t origId = sTok.getStringId();
-    uint32_t       caseSensitiveId = gp.string_intern( t );
 
 	if (!unstemmed)
 		sTok.setStemmed(false);
@@ -154,7 +170,7 @@ StoredToken& StoredUniverse::internString( int lang, const char* t, BELTrie* tri
 
     BZSpell* bzSpell= getBZSpell();
     
-    if( wasNew && (sTok.getLength()  < BZSpell::MAX_WORD_LEN) ) {
+    if( wasNew && (internId != origId) && (sTok.getLength()  < BZSpell::MAX_WORD_LEN) ) {
         char w[ BZSpell::MAX_WORD_LEN ]; 
         strncpy( w, t, BZSpell::MAX_WORD_LEN-1 );
         w[ BZSpell::MAX_WORD_LEN-1 ] = 0;
@@ -173,12 +189,16 @@ StoredToken& StoredUniverse::internString( int lang, const char* t, BELTrie* tri
         if( !unstemmed ) {
             if( bzSpell ) {
                 bzSpell->addExtraWordToDictionary( sTok.getStringId() );
-                if( caseSensitiveId != sTok.getStringId()  ) {
-                    bzSpell->addExtraWordToDictionary( caseSensitiveId );
+                if( internId != sTok.getStringId()  ) {
+                    bzSpell->addExtraWordToDictionary( internId );
                 }
             }
         } else {
-            const uint32_t unstmId = gp.getDtaIdx().addToken(unstemmed).getStringId();
+            strncpy( w, unstemmed, BZSpell::MAX_WORD_LEN-1 );
+            w[ BZSpell::MAX_WORD_LEN-1 ] = 0;
+            Lang::stringToLower( w, sTok.getLength(), lang );
+
+            const uint32_t unstmId = gp.getDtaIdx().addToken(w).getStringId();
             trie.addStemSrc( origId, unstmId);
         }
 	}

@@ -248,6 +248,7 @@ int Barz::semanticParse( QSemanticParser& sem, const QuestionParm& qparm, bool n
             clearBeads(); // we don't need to tokenize again really - just purge the beads  
         }
 	    beadChain.init(ctVec);
+        // AYDEBUG( beadChain.getFullRange() );
     }
 
 	return sem.semanticize( *this, qparm );
