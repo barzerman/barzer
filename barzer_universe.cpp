@@ -194,7 +194,11 @@ StoredToken& StoredUniverse::internString( int lang, const char* t, BELTrie* tri
                 }
             }
         } else {
-            const uint32_t unstmId = gp.getDtaIdx().addToken(unstemmed).getStringId();
+            strncpy( w, unstemmed, BZSpell::MAX_WORD_LEN-1 );
+            w[ BZSpell::MAX_WORD_LEN-1 ] = 0;
+            Lang::stringToLower( w, sTok.getLength(), lang );
+
+            const uint32_t unstmId = gp.getDtaIdx().addToken(w).getStringId();
             trie.addStemSrc( origId, unstmId);
         }
 	}
