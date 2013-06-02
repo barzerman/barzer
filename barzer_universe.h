@@ -40,17 +40,21 @@ class Ghettodb;
 class MeaningsStorage;
 class BarzerGeo;
 class SmartBENI;
+class RuleIdx;
 
 class StoredUniverse {
 	uint32_t d_userId;
     std::string d_userName;
     //// search entities by names using this object
     SmartBENI* d_entNameIdx;
-    
+	RuleIdx *m_ruleIdx;
 public:
     void beniInit();
     SmartBENI& beni();
     const SmartBENI* getBeni() const { return d_entNameIdx; }
+
+    const RuleIdx* getRuleIdx() const { return m_ruleIdx; }
+    RuleIdx* getRuleIdx() { return m_ruleIdx; }
 
     void indexEntityNames( const StoredEntityClass& ec ) ;
     void searchEntitiesInZurch( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) const;

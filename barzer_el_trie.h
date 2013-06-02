@@ -625,7 +625,7 @@ public:
         { return false; }
 	/// tries to add another translation to the existing one.
 	/// initially this will only work for entity lists
-	bool tryAddingTranslation( BarzelTrieNode* n, uint32_t tranId, const BELStatementParsed& stmt, uint32_t emitterSeqNo );
+	bool tryAddingTranslation( BarzelTrieNode* n, uint32_t tranId, const BELStatementParsed& stmt, uint32_t emitterSeqNo, StoredUniverse* );
 
 	BarzelFCMap*  makeNewBarzelFCMap( uint32_t& id )
 		{ return d_fcPool->addObj( id ); }
@@ -639,7 +639,8 @@ public:
     void addImperative( const BELStatementParsed& stmt, bool pre );
 
 	/// adds a new path to the  trie
-	const BarzelTrieNode* addPath( const BELStatementParsed& stmt, const BTND_PatternDataVec& path, uint32_t tranId, const BELVarInfo& varInfo, uint32_t emitterSeqNo );
+	const BarzelTrieNode* addPath( const BELStatementParsed& stmt,
+			const BTND_PatternDataVec& path, uint32_t tranId, const BELVarInfo& varInfo, uint32_t emitterSeqNo, StoredUniverse* );
 	void setTanslationTraceInfo( BarzelTranslation& tran, const BELStatementParsed& stmt, uint32_t emitterSeqNo );
 	std::ostream& printTanslationTraceInfo( std::ostream& , const BarzelTranslationTraceInfo& traceInfo ) const;
 	BarzelWildcardPool&  getWCPool() { return *d_wcPool; }

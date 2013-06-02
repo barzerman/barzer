@@ -12,6 +12,7 @@
 #include <boost/filesystem.hpp>
 #include <zurch_docidx.h>
 #include <barzer_beni.h>
+#include <barzer_ruleidx.h>
 
 namespace barzer {
 
@@ -32,6 +33,7 @@ uint32_t StoredUniverse::recordLangWord( int16_t lang )
 StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	d_userId(id),
     d_entNameIdx(0),
+    m_ruleIdx(new RuleIdx),
 	gp(g),
 	trieCluster(g.globalTriePool,*this),
 	topicTrieCluster(g.globalTriePool,*this),
@@ -83,7 +85,8 @@ StoredUniverse::~StoredUniverse()
         i->second = 0;
     }
     d_zurchIndexPool.clear();
-        
+
+	delete m_ruleIdx;
     delete bzSpell;
     delete d_ghettoDb;
     delete m_meanings;

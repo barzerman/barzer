@@ -7,7 +7,7 @@
 #include <list>
 #include <ay/ay_logger.h>
 #include <barzer_universe.h>
-
+#include <barzer_ruleidx.h>
 
 namespace barzer {
 ///// output operators 
@@ -459,7 +459,8 @@ const BarzelTrieNode* BELTrie::addPath(
 	const BTND_PatternDataVec& path, 
 	uint32_t transId, 
 	const BELVarInfo& varInfo,
-	uint32_t emitterSeqNo )
+	uint32_t emitterSeqNo,
+	StoredUniverse *uni )
 {
 	BarzelTrieNode* n = &root;
 
@@ -530,12 +531,15 @@ const BarzelTrieNode* BELTrie::addPath(
 	}
 	if( n ) {
 		if( n->hasValidTranslation() && n->getTranslationId() != transId ) {
-			if( !tryAddingTranslation(n,transId,stmt,emitterSeqNo) ) {
+			if( !tryAddingTranslation(n, transId, stmt, emitterSeqNo, uni) ) {
 				//std::cerr << "\nBARZEL TRANSLATION CLASH:" << stmt.getSourceName() << ":" << stmt.getStmtNumber() << "\n";
 			}
 		} else
+		{
 			n->setTranslation( transId );
-	} else 
+			uni->getRuleIdx()->addNode({ stmt.d_sourceNameStrId, stmt.d_stmtNumber }, n);
+		}
+	} else
 		AYTRACE("inconsistent state for setTranslation");
 	return n;
 }
@@ -552,7 +556,7 @@ void BELTrie::addImperative( const BELStatementParsed& stmt, bool pre )
     imperativeVec->back().translation.set(*this, stmt.translation) ;
     imperativeVec->back().trace.set( stmt.getSourceNameStrId(), stmt.getStmtNumber(), 0 );
 }
-bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELStatementParsed& stmt, uint32_t emitterSeqNo )
+bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELStatementParsed& stmt, uint32_t emitterSeqNo, StoredUniverse *uni )
 {
 	BarzelTranslation* tran = getBarzelTranslation(*n);
 	if( tran ) {
