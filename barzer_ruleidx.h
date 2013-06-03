@@ -33,15 +33,22 @@ namespace detail
 	{
 		BarzelTrieNode *m_node;
 		size_t m_pos;
+		
+		enum class Type : uint8_t
+		{
+			EList,
+			Subtree
+		} m_type;
 
-		PosInfo(BarzelTrieNode *n = 0, size_t p = 0)
+		PosInfo(BarzelTrieNode *n = 0, Type t = Type::EList, size_t p = 0)
 		: m_node(n)
 		, m_pos(p)
+		, m_type(t)
 		{
 		}
 	};
 
-	inline bool operator== (const PosInfo& p1, const PosInfo& p2)
+	inline bool operator==(const PosInfo& p1, const PosInfo& p2)
 	{
 		return p1.m_node == p2.m_node && p1.m_pos == p2.m_pos;
 	}
@@ -50,26 +57,11 @@ namespace detail
 	{
 		return pi.m_pos + boost::hash_value(pi.m_node);
 	}
-
-	struct CountedPosInfo : PosInfo
-	{
-		size_t m_refcount;
-
-		CountedPosInfo(BarzelTrieNode *n = 0, size_t p = 0)
-		: PosInfo(n, p)
-		, m_refcount(1)
-		{
-		}
-	};
 }
 
 class RuleIdx
 {
-	boost::unordered_map<RulePath, std::vector<detail::CountedPosInfo>> m_path2nodes;
-
-	/** Inverted index, is useful to properly update positional info on rules removal.
-	 */
-	boost::unordered_map<BarzelTrieNode*, std::vector<RulePath>> m_node2rules;
+	boost::unordered_map<RulePath, std::vector<detail::PosInfo>> m_path2nodes;
 public:
 	/** @brief Adds the given node as associated with the rule identified by path.
 	 *
@@ -81,7 +73,5 @@ public:
 	void addNode(const RulePath& path, BarzelTrieNode *node, uint32_t position = 0);
 
 	void removeNode(const RulePath& path);
-private:
-	void handleRuleRemovedFrom(const RulePath& path, const detail::CountedPosInfo& ruleInfo);
 };
 }
