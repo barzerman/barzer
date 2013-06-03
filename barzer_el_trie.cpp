@@ -617,8 +617,8 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELSta
                             return false;
                         }
                         if( stmt.ruleClashOverride() == BELStatementParsed::CLASH_OVERRIDE_APPEND ) {
-                            size_t numChildrenAdded = evNode->addNodesChildren( newEvNode );
-                            if( numChildrenAdded ) {
+                            const auto& addedChildren = evNode->addNodesChildren( newEvNode );
+                            if( !addedChildren.empty() ) {
                                 if( stmt.getSourceNameStrId() != tran->traceInfo.source || 
                                     tran->traceInfo.statementNum != stmt.getStmtNumber() 
                                 ) {
