@@ -8,7 +8,7 @@
 
 namespace barzer
 {
-void RuleIdx::addNode(const RulePath& path, BarzelTrieNode *node, uint32_t position)
+void RuleIdx::addNode(const RulePath& path, BarzelTrieNode *node, uint32_t position, NodeType type)
 {
 	auto pos = m_path2nodes.find(path);
 	if (pos == m_path2nodes.end())
@@ -19,7 +19,7 @@ void RuleIdx::addNode(const RulePath& path, BarzelTrieNode *node, uint32_t posit
 			[node, position](const detail::PosInfo& info)
 				{ return info.m_node == node && info.m_pos == position; });
 	if (nodePos  == vec.end())
-		vec.push_back({ node, detail::PosInfo::Type::EList, position });
+		vec.push_back({ node, type, position });
 	node->ref();
 }
 
@@ -34,8 +34,14 @@ void RuleIdx::removeNode (const RulePath& path)
 		if (info.m_node->deref())
 			continue;
 
-		BarzelTrieNode *node = info.m_node;
-		// node removal algo goes here
+		auto node = info.m_node;
+		switch (info.m_type)
+		{
+		case NodeType::EList:
+			break;
+		case NodeType::Subtree:
+			break;
+		}
 	}
 
 	m_path2nodes.erase(pos);

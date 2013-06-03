@@ -27,20 +27,21 @@ inline uint64_t hash_value(const RulePath& r)
 	return (static_cast<uint64_t>(r.m_source) << 32) + r.m_stId;
 }
 
+enum class NodeType : uint8_t
+{
+	EList,		// the default, seems like anything is potentially an entlist (or won't be added anyway)
+	Subtree
+};
+
 namespace detail
 {
 	struct PosInfo
 	{
 		BarzelTrieNode *m_node;
 		size_t m_pos;
+		NodeType m_type;
 		
-		enum class Type : uint8_t
-		{
-			EList,
-			Subtree
-		} m_type;
-
-		PosInfo(BarzelTrieNode *n = 0, Type t = Type::EList, size_t p = 0)
+		PosInfo(BarzelTrieNode *n = 0, NodeType t = NodeType::EList, size_t p = 0)
 		: m_node(n)
 		, m_pos(p)
 		, m_type(t)
@@ -70,7 +71,7 @@ public:
 	 * @param[in] position The position of an entity (or smth) in the entlist (or
 	 * smth) in the \em node.
 	 */
-	void addNode(const RulePath& path, BarzelTrieNode *node, uint32_t position = 0);
+	void addNode(const RulePath& path, BarzelTrieNode *node, uint32_t position, NodeType type);
 
 	void removeNode(const RulePath& path);
 };

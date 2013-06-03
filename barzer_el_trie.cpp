@@ -537,7 +537,23 @@ const BarzelTrieNode* BELTrie::addPath(
 		} else
 		{
 			n->setTranslation( transId );
-			uni->getRuleIdx()->addNode({ stmt.d_sourceNameStrId, stmt.d_stmtNumber }, n);
+			
+			size_t pos = 0;
+			auto tran = getBarzelTranslation(*n);
+			NodeType type = NodeType::EList;
+			if (tran)
+			{
+				if (tran->getType() == BarzelTranslation::T_MKENT ||
+					 tran->getType() == BarzelTranslation::T_MKENTLIST)
+					pos = tran->getId_uint32();
+				else if (tran->isRawTree())
+				{
+					pos = getRewriterPool().getRawNode(*tran)->getSiblingId();
+					type = NodeType::Subtree;
+				}
+			}
+			
+			uni->getRuleIdx()->addNode({ stmt.d_sourceNameStrId, stmt.d_stmtNumber }, n, pos, type);
 		}
 	} else
 		AYTRACE("inconsistent state for setTranslation");
@@ -567,17 +583,24 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELSta
 
 		EntityGroup* entGrp = 0;
 		switch( tran->getType() ) {
-		case BarzelTranslation::T_MKENT: {
+		case BarzelTranslation::T_MKENT:
+		{
 			uint32_t entId = tran->getId_uint32();
 			uint32_t grpId = 0;
 			entGrp = getEntityCollection().addEntGroup( grpId );
 			tran->setMkEntList( grpId );
 			entGrp->addEntity( entId );
+			
+			uni->getRuleIdx()->addNode({ stmt.d_sourceNameStrId, stmt.d_stmtNumber }, n, entId, NodeType::EList);
+			break;
 		}
-			break;
 		case BarzelTranslation::T_MKENTLIST:
-			entGrp = getEntityCollection().getEntGroup( tran->getId_uint32() );
+		{
+			const auto entId = tran->getId_uint32();
+			entGrp = getEntityCollection().getEntGroup(entId);
+			uni->getRuleIdx()->addNode({ stmt.d_sourceNameStrId, stmt.d_stmtNumber }, n, entId, NodeType::EList);
 			break;
+		}
 		default: { // CLASH 
             if( !(stmt.getSourceNameStrId()== tran->traceInfo.source && stmt.getStmtNumber() == tran->traceInfo.statementNum) ) {
                 if( tran->isRawTree() ) {

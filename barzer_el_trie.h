@@ -371,8 +371,7 @@ class BarzelTrieNode {
 	ay::bitflags<B_MAX> d_flags;
 	
 	uint16_t m_refcount;
-
-
+	
 	/// methods
 	void clearFirmMap();
 	void clearWCMap();
