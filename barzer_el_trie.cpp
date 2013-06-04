@@ -253,15 +253,6 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<bool> {
 		key.id=0xffffffff;
         return false;
 	}
-    /*
-	bool operator()( const  BTND_Pattern_Wildcard& p ) 
-	{
-		key.type = (uint8_t)BTND_Pattern_Wildcard_TYPE;
-		key.id = p.getType();	
-        key.d_matchMode = p.d_matchMode;
-        return true;
-	}
-    */
 	bool operator()( const  BTND_Pattern_StopToken& p ) 
 	{
 		key.type = (uint8_t)BTND_Pattern_StopToken_TYPE;
@@ -548,7 +539,7 @@ const BarzelTrieNode* BELTrie::addPath(
 					pos = tran->getId_uint32();
 				else if (tran->isRawTree())
 				{
-					pos = getRewriterPool().getRawNode(*tran)->getSiblingId();
+					pos = getRewriterPool().getRawNode(*tran)->getNodeId();
 					type = NodeType::Subtree;
 				}
 			}
@@ -642,7 +633,7 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELSta
 						{
                             auto idx = uni->getRuleIdx();
 							for (const auto& c : evNode->getChild())
-								idx->addNode(rp, n, c.getSiblingId(), NodeType::Subtree);
+								idx->addNode(rp, n, c.getNodeId(), NodeType::Subtree);
                             return true;
 						}
                     }
@@ -889,6 +880,12 @@ std::ostream& BarzelTranslation::print( std::ostream& fp, const BELPrintContext&
 		return ( fp << "unknown translation" );
 	}
 #undef CASEPRINT
+}
+
+AmbiguousTraceInfo& AmbiguousTranslationReference::addData( uint32_t tranId, const BarzelTranslationTraceInfo& ti, const AmbiguousTraceId& )
+{
+    static AmbiguousTraceInfo shit;
+    return shit;
 }
 
 } // end namespace barzer

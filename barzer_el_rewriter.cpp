@@ -155,7 +155,7 @@ std::vector<BarzelEvalNode::NodeID_t> BarzelEvalNode::addNodesChildren(const Bar
 	std::vector<NodeID_t> result;
     for( const auto& c : o.getChild() ) {
         if( !getSameChild(c) ) {
-            result.push_back(addChild(c).getSiblingId());
+            result.push_back(addChild(c).getNodeId());
         }
     }
     return result;

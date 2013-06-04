@@ -108,4 +108,55 @@ template <> inline int BarzelTranslation::setBtnd<BTND_Rewrite_Number>( BELTrie&
 template <> inline int BarzelTranslation::setBtnd<BTND_Rewrite_Variable>( BELTrie& trie, const BTND_Rewrite_Variable& x ) { set(trie,x); return 0; }
 template <> inline int BarzelTranslation::setBtnd<BTND_Rewrite_MkEnt>( BELTrie& trie, const BTND_Rewrite_MkEnt& x ) { set(trie,x); return 0; }
 
+/// AmbiguousTraceXXX is needed for rules deletion in cases when the same pattern in different statements maps 
+/// into different translations. This type of ambiguity is resolved in one of the two ways:
+///  - entity list is formed for simple mkent translations (TYPE_ENTITY)
+///  - extra nodes are added for all other kinds (especially mkERC) (TYPE_SUBTREE)
+/// for both ways 32 bit unsigned ingteger ids are used
+struct AmbiguousTraceId {
+    typedef enum : uint8_t{ 
+        TYPE_ENTITY,
+        TYPE_SUBTREE
+    } Type;
+    uint8_t  type; // 
+    uint32_t id;
+
+    AmbiguousTraceId() : type(TYPE_ENTITY), id(0xffffffff) {}
+    AmbiguousTraceId( uint32_t i) : type(TYPE_ENTITY), id(i) {}
+        
+    AmbiguousTraceId& setEntity( uint32_t i ) { 
+        id = i;
+        type=TYPE_ENTITY;
+        return ( *this ); 
+    }
+    AmbiguousTraceId& setSubtree( uint32_t  i ) { 
+        id = i;
+        type=TYPE_SUBTREE;
+        return ( *this ); 
+    }
+    bool isEntity() const { return type==TYPE_ENTITY; }
+    bool isSubtree() const { return type==TYPE_SUBTREE; }
+    uint32_t getId() const { return id; }
+};
+
+class AmbiguousTraceInfo : public AmbiguousTraceId {
+public:
+    uint32_t refCount;
+public:
+    AmbiguousTraceInfo( const AmbiguousTraceId& i ) : AmbiguousTraceId(i), refCount(0) {}
+    AmbiguousTraceInfo( ) : refCount(0) {}
+    AmbiguousTraceInfo( uint32_t i ) : AmbiguousTraceId(i), refCount(0) {}
+
+    AmbiguousTraceInfo& setEntity( uint32_t i ) { return ( AmbiguousTraceId::setEntity(i), *this ); }
+    AmbiguousTraceInfo& setSubtree( uint32_t  i ) { return ( AmbiguousTraceId::setSubtree(i), *this ); }
+
+    AmbiguousTraceInfo& lock() { ++id; return *this; }
+    // when returns true no references left
+    AmbiguousTraceInfo& unlock() {
+        if( id ) --id;
+        return *this;
+    }
+    uint32_t getRefCount() const { return refCount; }
+};
+
 } // namespace barzer 

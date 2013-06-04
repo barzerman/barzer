@@ -39,6 +39,7 @@ struct BarzelTranslationTraceInfo {
     bool sameStatement(const BarzelTranslationTraceInfo& o ) const
     { return (source==o.source && statementNum==o.statementNum ); }
 };
+
 inline bool operator== ( const BarzelTranslationTraceInfo& l, const BarzelTranslationTraceInfo& r )
     { return ( l.source == r.source && l.statementNum == r.statementNum && l.emitterSeqNo == r.emitterSeqNo); }
 inline bool operator!= ( const BarzelTranslationTraceInfo& l, const BarzelTranslationTraceInfo& r )

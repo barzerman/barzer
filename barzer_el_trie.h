@@ -374,47 +374,15 @@ struct BELTrieImperative {
 
 typedef std::vector< BELTrieImperative > BELTrieImperativeVec;
 
-/// 
-class AmbiguousTraceInfo {
-    enum { 
-        TYPE_ENTITY,
-        TYPE_SUBTREE
-    };
-    uint8_t  type; // 
-    int16_t  refCount; 
-    uint32_t id;
-    
+/// stores links for ambiguous translations
+class AmbiguousTranslationReference {
 public:
-    AmbiguousTraceInfo( ) : 
-        type(TYPE_ENTITY),
-        refCount(0),
-        id(0xffffffff)
-    {}
-    AmbiguousTraceInfo( uint32_t i ) : 
-        type(TYPE_ENTITY),
-        refCount(0),
-        id(i)
-    {}
-    AmbiguousTraceInfo& setEntity( uint32_t i ) { 
-        id = i;
-        type=TYPE_ENTITY;
-        return ( *this ); 
-    }
-    AmbiguousTraceInfo& setSubtree( uint32_t  i ) { 
-        id = i;
-        type=TYPE_SUBTREE;
-        return ( *this ); 
-    }
-    AmbiguousTraceInfo& lock() { ++id; return *this; }
-    // when returns true no references left
-    AmbiguousTraceInfo& unlock() {
-        if( id ) --id;
-        return *this;
-    }
-    uint32_t getRefCount() const { return refCount; }
-    bool isEntity() const { return type==TYPE_ENTITY; }
-    bool isSubtree() const { return type==TYPE_SUBTREE; }
-    uint32_t getId() const { return id; }
+    typedef std::vector< std::pair<BarzelTranslationTraceInfo, AmbiguousTraceInfo> > Data;
+private:
+    boost::unordered_map< uint32_t, Data > d_dataMap;
+public:
+    /// links (translation traceinfo, ambiguity id) pair to translation
+    AmbiguousTraceInfo& addData( uint32_t tranId, const BarzelTranslationTraceInfo&, const AmbiguousTraceId& );
 };
 
 class BELTrie {
@@ -439,7 +407,7 @@ class BELTrie {
 
     typedef std::map< BarzelTranslationTraceInfo, BarzelTranslationTraceInfo::Vec > LinkedTranInfoMap;
     LinkedTranInfoMap d_linkedTranInfoMap;
-
+    
 	BELTrie( const BELTrie& a );
 public:
     void linkTraceInfo( const BarzelTranslationTraceInfo& key, const BarzelTranslationTraceInfo& v ) 
