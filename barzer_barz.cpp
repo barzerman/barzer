@@ -569,7 +569,7 @@ int Barz::beniSearch( const StoredUniverse& u, const QuestionParm& qparm )
 {
     if( qparm.d_beniMode == QuestionParm::BENI_NO_BENI ) 
         return 0;
-    enum { MAX_BENI_LENGTH = 34 };
+    enum { MAX_BENI_LENGTH = 50 };
 
     size_t numGlyphs = questionOrigUTF8.length() ;
     if( qparm.mustBeni() || numGlyphs  < MAX_BENI_LENGTH ) {
