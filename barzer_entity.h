@@ -153,6 +153,7 @@ struct BENIFindResult
 	size_t lev;
 	double coverage;
 	double relevance;
+	size_t maxSubstrLength;
 };
 typedef std::vector<BENIFindResult> BENIFindResults_t; 
 
