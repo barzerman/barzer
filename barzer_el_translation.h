@@ -157,6 +157,8 @@ public:
         return *this;
     }
     uint32_t getRefCount() const { return refCount; }
+    bool equal( const AmbiguousTraceId& o ) const
+        { return ( o.type == type && o.id == id ); }
 };
 
 } // namespace barzer 

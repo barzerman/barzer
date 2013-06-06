@@ -382,7 +382,9 @@ private:
     boost::unordered_map< uint32_t, Data > d_dataMap;
 public:
     /// links (translation traceinfo, ambiguity id) pair to translation
-    AmbiguousTraceInfo& addData( uint32_t tranId, const BarzelTranslationTraceInfo&, const AmbiguousTraceId& );
+    AmbiguousTraceInfo& link( uint32_t tranId, const BarzelTranslationTraceInfo&, const AmbiguousTraceId& );
+    void unlink( uint32_t tranId, const BarzelTranslationTraceInfo& );
+    void clear() { d_dataMap.clear(); }
 };
 
 class BELTrie {
@@ -407,6 +409,8 @@ class BELTrie {
 
     typedef std::map< BarzelTranslationTraceInfo, BarzelTranslationTraceInfo::Vec > LinkedTranInfoMap;
     LinkedTranInfoMap d_linkedTranInfoMap;
+
+    AmbiguousTranslationReference d_ambTranRef;
     
 	BELTrie( const BELTrie& a );
 public:

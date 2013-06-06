@@ -171,7 +171,6 @@ static int bshf_srvroute( BarzerShell* shell, char_cp cmd, std::istream& in, con
     std::string attrStr;
 
     std::string theTag;
-    std::string shit; 
     if( argStr.length() ) {
         theTag = "query";
         std::string bufStr;
@@ -1926,7 +1925,6 @@ static int bshf_env( BarzerShell* shell, char_cp cmd, std::istream& in , const s
                 buf[ sizeof(buf)-1 ] =0;
                 strip_newline(buf);
                 reqEnvVar.setValue( varName.c_str(), BarzelBeadAtomic_var( BarzerString(buf) ) );
-                BarzerString shitString(buf);
             }
         }
     } else { // get mode 

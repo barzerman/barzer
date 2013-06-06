@@ -466,7 +466,6 @@ const BarzelTrieNode* BELTrie::addPath(
 	BarzelTrieFirmChildKey_form keyFormer( firmKey, *this ) ;
     
 	for( BTND_PatternDataVec::const_iterator i = path.begin(); i!= path.end(); ++i ) {
-		//BarzelTrieFirmChildKey shitKey(*i);
 		bool isFirm = boost::apply_visitor( keyFormer, *i );
 
 		firmKey.noLeftBlanks = 0;
@@ -882,10 +881,30 @@ std::ostream& BarzelTranslation::print( std::ostream& fp, const BELPrintContext&
 #undef CASEPRINT
 }
 
-AmbiguousTraceInfo& AmbiguousTranslationReference::addData( uint32_t tranId, const BarzelTranslationTraceInfo& ti, const AmbiguousTraceId& )
+void AmbiguousTranslationReference::unlink( uint32_t tranId, const BarzelTranslationTraceInfo& ti )
 {
-    static AmbiguousTraceInfo shit;
-    return shit;
+    auto dtaI = d_dataMap.find( tranId ) ;
+    if( dtaI != d_dataMap.end() ) {
+        auto foundI = std::find_if(dtaI->second.begin(),dtaI->second.end(),
+            [&]( const AmbiguousTranslationReference::Data::value_type& d ) { return (d.first == ti) ; } );
+        if( foundI != dtaI->second.end() ) {
+            if( !foundI->second.unlock().getRefCount() ) 
+                dtaI->second.erase( foundI );
+        }
+    }
+}
+AmbiguousTraceInfo& AmbiguousTranslationReference::link( uint32_t tranId, const BarzelTranslationTraceInfo& ti, const AmbiguousTraceId& atId )
+{
+    auto dtaI = d_dataMap.find( tranId ) ;
+    if( dtaI == d_dataMap.end() ) 
+        dtaI = d_dataMap.insert( { tranId, AmbiguousTranslationReference::Data() } ).first;
+
+    auto foundI = std::find_if(dtaI->second.begin(),dtaI->second.end(),
+        [&]( const AmbiguousTranslationReference::Data::value_type& d ) { return (d.first == ti) ; } );
+    if( foundI == dtaI->second.end() ) 
+        foundI = dtaI->second.insert( foundI, { ti, AmbiguousTraceInfo(atId)} );
+
+    return foundI->second.lock();
 }
 
 } // end namespace barzer
