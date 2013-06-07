@@ -77,7 +77,6 @@ public:
 		double m_relevance;
 		size_t m_levDist;
 		double m_coverage;
-		size_t m_maxSubstr;
 	};
 	
 	void getMatchesRange(StoredStringFeatureVec::const_iterator begin, StoredStringFeatureVec::const_iterator end,
@@ -91,20 +90,16 @@ public:
 		struct FeatureStatInfo
 		{
 			uint16_t fCount;
-			
-			size_t lastPos;
-			uint16_t maxSeq;
+			uint16_t firstFeature;
+			uint16_t lastFeature;
 		};
 		std::map<uint32_t, FeatureStatInfo> doc2fCnt;
-		for (auto it = begin; it != end; ++it)
+		for (const auto& feature : boost::make_iterator_range(begin, end))
 		{
-			const auto& feature = *it;
-			
 			const auto srcs = m_gram.getSrcsForFeature(feature);
 			if (!srcs)
 				continue;
 			
-			const auto curIdx = static_cast<size_t>(std::distance(begin, it));
 			for (const auto& sourceFeature : *srcs)
 			{
 				const auto source = sourceFeature.docId;
@@ -116,17 +111,9 @@ public:
 				
 				auto docPos = doc2fCnt.find(source);
 				if (docPos == doc2fCnt.end())
-					docPos = doc2fCnt.insert({ source, { 1, curIdx, 1 } }).first;
-				else
-				{
-					auto& stat = docPos->second;
-					++stat.fCount;
-					if (stat.lastPos == curIdx - 1)
-						++stat.maxSeq;
-					else
-						stat.maxSeq = 1;
-					stat.lastPos = curIdx;
-				}
+					docPos = doc2fCnt.insert({ source, { 0, static_cast<uint16_t>(-1), 0 } }).first;
+				++docPos->second.fCount;
+				
 			}
 		}
 		
@@ -167,8 +154,7 @@ public:
 					        &(dataPos->second),
 					        item.second,
 					        dist,
-					        cover,
-							info.maxSeq
+					        cover
 				    });
                  
                     if( ++countAdded  >= max )
