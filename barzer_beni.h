@@ -93,7 +93,6 @@ public:
 			uint16_t fCount;
 			
 			size_t lastPos;
-			uint16_t curSeq;
 			uint16_t maxSeq;
 		};
 		std::map<uint32_t, FeatureStatInfo> doc2fCnt;
@@ -117,18 +116,15 @@ public:
 				
 				auto docPos = doc2fCnt.find(source);
 				if (docPos == doc2fCnt.end())
-					docPos = doc2fCnt.insert({ source, { 1, curIdx, 1, 1 } }).first;
+					docPos = doc2fCnt.insert({ source, { 1, curIdx, 1 } }).first;
 				else
 				{
 					auto& stat = docPos->second;
 					++stat.fCount;
 					if (stat.lastPos == curIdx - 1)
-						++stat.curSeq;
+						++stat.maxSeq;
 					else
-					{
-						stat.maxSeq = std::max(stat.maxSeq, stat.curSeq);
-						stat.curSeq = 1;
-					}
+						stat.maxSeq = 1;
 					stat.lastPos = curIdx;
 				}
 			}
@@ -172,7 +168,7 @@ public:
 					        item.second,
 					        dist,
 					        cover,
-							std::max(info.maxSeq, info.curSeq)
+							info.maxSeq
 				    });
                  
                     if( ++countAdded  >= max )
