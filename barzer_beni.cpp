@@ -159,7 +159,7 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) 
                 }
             }
             if( isNew )
-                out.push_back({ *(i.m_data), i.m_levDist, i.m_coverage, i.m_relevance, i.m_maxSubstr });
+                out.push_back({ *(i.m_data), i.m_levDist, i.m_coverage, i.m_relevance });
         }
     }
     return maxCov;

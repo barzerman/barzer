@@ -703,7 +703,6 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
             std::stringstream sstr;
             sstr << "lev=\"" << i.lev << "\" ";
 			sstr << "cov=\"" << i.coverage << "\" ";
-			sstr << "maxlength=\"" << i.maxSubstrLength << "\" ";
 			sstr << "rel=\"" << i.relevance << "\"";
             v.printEntity( i.ent, sstr.str().c_str() );
             os << std::endl;
