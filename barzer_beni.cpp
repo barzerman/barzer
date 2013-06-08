@@ -187,6 +187,9 @@ namespace
 				result.push_back({ rStart, rEnd });
 			}
 		}
+		std::sort(result.begin(), result.end(),
+				[](const typename RangesVec<T>::value_type& l, const typename RangesVec<T>::value_type& r)
+					{ return std::distance(l.first, l.second) > std::distance(r.first, r.second); });
 		return result;
 	}
 } //end of anon namespace 
