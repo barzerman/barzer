@@ -1,9 +1,12 @@
 #pragma once 
+#include <barzer_basic_types.h>
 namespace barzer {
 
 /// right side of the pattern
 class BarzelTranslation {
 public:
+    uint32_t tranId; // id of this translation as it's known to the owner trie
+    
 	typedef enum {
 		T_NONE,   // blank translation
 		T_STOP, // translates into stop token
@@ -92,11 +95,10 @@ public:
 
 	bool nonEmpty() const
 		{ return ( type != T_NONE ); }
-	BarzelTranslation() : id( 0xffffffff ) , type(T_NONE), makeUnmatchable(0), argStrId(0xffffffff), confidenceBoost(0) {}
+	BarzelTranslation() : tranId(0xffffffff), id( 0xffffffff ) , type(T_NONE), makeUnmatchable(0), argStrId(0xffffffff), confidenceBoost(0) {}
 	// BarzelTranslation(Type_t t , uint32_t i ) : id(i),type((uint8_t)t), makeUnmatchable(0), argStrId(0xffffffff) {}
 
 	std::ostream& print( std::ostream& , const BELPrintContext& ) const;
-
 };
 template <>
 inline int BarzelTranslation::setBtnd<BTND_Rewrite_Function>( BELTrie& trie, const BTND_Rewrite_Function& x ) {
@@ -113,31 +115,6 @@ template <> inline int BarzelTranslation::setBtnd<BTND_Rewrite_MkEnt>( BELTrie& 
 ///  - entity list is formed for simple mkent translations (TYPE_ENTITY)
 ///  - extra nodes are added for all other kinds (especially mkERC) (TYPE_SUBTREE)
 /// for both ways 32 bit unsigned ingteger ids are used
-struct AmbiguousTraceId {
-    typedef enum : uint8_t{ 
-        TYPE_ENTITY,
-        TYPE_SUBTREE
-    } Type;
-    uint8_t  type; // 
-    uint32_t id;
-
-    AmbiguousTraceId() : type(TYPE_ENTITY), id(0xffffffff) {}
-    AmbiguousTraceId( uint32_t i) : type(TYPE_ENTITY), id(i) {}
-        
-    AmbiguousTraceId& setEntity( uint32_t i ) { 
-        id = i;
-        type=TYPE_ENTITY;
-        return ( *this ); 
-    }
-    AmbiguousTraceId& setSubtree( uint32_t  i ) { 
-        id = i;
-        type=TYPE_SUBTREE;
-        return ( *this ); 
-    }
-    bool isEntity() const { return type==TYPE_ENTITY; }
-    bool isSubtree() const { return type==TYPE_SUBTREE; }
-    uint32_t getId() const { return id; }
-};
 
 class AmbiguousTraceInfo : public AmbiguousTraceId {
 public:

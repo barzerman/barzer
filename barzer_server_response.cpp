@@ -539,13 +539,13 @@ public:
 static void printTraceInfo(std::ostream &os, const Barz &barz, const StoredUniverse &uni)
 {
     static const char *tmpl = "<match gram=\"%4%\" file=\"%1%\" stmt=\"%2%\" emit=\"%3%\"";
-    static const char *linkedTmpl = "<linkedmatch file=\"%1%\" stmt=\"%2%\" emit=\"%3%\"";
 
     const BarzelTrace::TraceVec &tvec = barz.barzelTrace.getTraceVec();
     const GlobalPools &gp = uni.getGlobalPools();
     if( tvec.size() ) {
         tag_raii ti(os, "traceinfo");
         os << "\n";
+        BarzelTranslationTraceInfo::Vec btiVec;
         for( BarzelTrace::TraceVec::const_iterator ti = tvec.begin(),
                                                   tend = tvec.end();
                     ti != tend; ++ti ) 
@@ -556,24 +556,20 @@ static void printTraceInfo(std::ostream &os, const Barz &barz, const StoredUnive
                                       % ti->tranInfo.emitterSeqNo
                                       % ti->grammarSeqNo;
             const BELTrie* trie = gp.getTriePool().getTrie_byGlobalId(ti->globalTriePoolId) ;
-            const BarzelTranslationTraceInfo::Vec* btiVec = 0;
             if( trie ) {
-                btiVec = trie->getLinkedTraceInfo(ti->tranInfo);
-                if( btiVec ) {
+                btiVec.clear();
+                if( trie->getLinkedTraceInfo(btiVec,ti->tranId) ) {
                     os << ">";
-                    for( BarzelTranslationTraceInfo::Vec::const_iterator i= btiVec->begin(); i!= btiVec->end(); ++i) {
-                        const char *linkedName = gp.internalString_resolve( i->source );
-                        os << "\n  " << boost::format(linkedTmpl) % (linkedName ? linkedName : "")
-                                                  % i->statementNum
-                                                  % i->emitterSeqNo
-                                                  << "/>";
-
-
+                    for( const auto& x: btiVec ) {
+                        const auto& i = x.first;
+                        const char *linkedName = gp.internalString_resolve_safe( i.source );
+                        xmlEscape( linkedName, os << "\n  <linkedmatch file=\"" ) << 
+                            "stmt=\"" << i.statementNum << "\" emit=\"" << i.emitterSeqNo << "\"/>";
                     }
                 }
             }
             if( ti->errVec.size()) {
-                os << ( btiVec ? "\n" : ">" );
+                os << "\n";
                     
                 os << " <error>";
                 for( std::vector< std::string >::const_iterator ei = ti->errVec.begin(); ei!= ti->errVec.end(); ++ei ) {
@@ -581,7 +577,7 @@ static void printTraceInfo(std::ostream &os, const Barz &barz, const StoredUnive
                 }
                 os << " </error></match>\n";
             } else {
-                os << ( btiVec ? "\n</match>": "/>" );
+                os << "\n</match>";
             }
             os << "\n";
         }

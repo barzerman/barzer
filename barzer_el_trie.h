@@ -377,18 +377,28 @@ typedef std::vector< BELTrieImperative > BELTrieImperativeVec;
 /// stores links for ambiguous translations
 class AmbiguousTranslationReference {
 public:
-    typedef std::vector< std::pair<BarzelTranslationTraceInfo, AmbiguousTraceInfo> > Data;
+    typedef std::pair<BarzelTranslationTraceInfo, AmbiguousTraceInfo> DataUnit;
+    typedef std::vector<DataUnit> Data;
 private:
     boost::unordered_map< uint32_t, Data > d_dataMap;
 public:
     /// links (translation traceinfo, ambiguity id) pair to translation
-    AmbiguousTraceInfo& link( uint32_t tranId, const BarzelTranslationTraceInfo&, const AmbiguousTraceId& );
+    void link( uint32_t tranId, const BarzelTranslationTraceInfo&, const AmbiguousTraceId& );
     void unlink( uint32_t tranId, const BarzelTranslationTraceInfo& );
     void clear() { d_dataMap.clear(); }
+    const AmbiguousTranslationReference::Data* data(uint32_t tranId) const
+        { auto i = d_dataMap.find( tranId ); return( i == d_dataMap.end() ? 0 : &(i->second) ); }
+
+    // iterates over all matching traceinfos and invokes the CB
+    template <typename CB>
+    void getTraceInfos( const CB& cb, uint32_t tranId ) const
+    {
+        auto i = d_dataMap.find( tranId );
+        if( i != d_dataMap.end() ) for( const auto& x : i->second ) cb( x );
+    }
 };
 
 class BELTrie {
-
 	GlobalPools& globalPools;
 	/// trie shouldnt be copyable
 	BarzelRewriterPool* d_rewrPool;
@@ -407,20 +417,22 @@ class BELTrie {
 	strid_to_triewordinfo_map d_wordInfoMap;
 	stem_to_srcs_map d_stemSrcs;
 
-    typedef std::map< BarzelTranslationTraceInfo, BarzelTranslationTraceInfo::Vec > LinkedTranInfoMap;
-    LinkedTranInfoMap d_linkedTranInfoMap;
+    // ERASE SHIT
+    // typedef std::map< BarzelTranslationTraceInfo, BarzelTranslationTraceInfo::Vec > LinkedTranInfoMap;
+    // LinkedTranInfoMap d_linkedTranInfoMap;
 
     AmbiguousTranslationReference d_ambTranRef;
     
 	BELTrie( const BELTrie& a );
 public:
-    void linkTraceInfo( const BarzelTranslationTraceInfo& key, const BarzelTranslationTraceInfo& v ) 
-        { d_linkedTranInfoMap[ key ].push_back( v ); }
-    const BarzelTranslationTraceInfo::Vec* getLinkedTraceInfo( const BarzelTranslationTraceInfo& key ) const
-    { 
-        LinkedTranInfoMap::const_iterator i = d_linkedTranInfoMap.find(key); 
-        return ( i== d_linkedTranInfoMap.end() ? 0 : &(i->second) ); 
-    }
+    // ERASE SHIT
+    // void linkTraceInfo( const BarzelTranslationTraceInfo& key, const BarzelTranslationTraceInfo& v ) 
+        // { d_linkedTranInfoMap[ key ].push_back( v ); }
+
+    void linkTraceInfoNodes( uint32_t tranId, const BarzelTranslationTraceInfo& trInfo, const BarzelTranslationTraceInfo& v, const std::vector<BarzelEvalNode::NodeID_t>& );
+    void linkTraceInfoEnt( uint32_t tranId, const BarzelTranslationTraceInfo& trInfo, const BarzelTranslationTraceInfo& v, uint32_t );
+
+    bool getLinkedTraceInfo( BarzelTranslationTraceInfo::Vec&, uint32_t tranId ) const;
     const TopicEntLinkage& getTopicEntLinkage() const { return d_topicEnt; }
     const TopicEntLinkage::BarzerEntitySet* getTopicEntities( const BarzerEntity& t ) const
     {
@@ -527,7 +539,12 @@ public:
 	std::ostream& printVariableName( std::ostream& fp, uint32_t varId ) const;
 
 	BarzelTranslation*  makeNewBarzelTranslation( uint32_t& id )
-		{ return d_tranPool->addObj( id ); }
+		{ 
+            BarzelTranslation* tran =  d_tranPool->addObj( id ); 
+            tran->tranId = id;
+            return tran;
+        }
+	const BarzelTranslation* getBarzelTranslation( uint32_t tranId ) const { return d_tranPool->getObjById(tranId); }
 	const BarzelTranslation* getBarzelTranslation( const BarzelTrieNode& node ) const { return d_tranPool->getObjById(node.getTranslationId()); }
 		  BarzelTranslation* getBarzelTranslation( const BarzelTrieNode& node ) 	   { return d_tranPool->getObjById(node.getTranslationId()); }
 
