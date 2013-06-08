@@ -515,13 +515,14 @@ namespace ay
 		bool normalize();
 
         struct const_iterator {
-            const StrUTF8& m_str;
+            const StrUTF8 *m_str;
             size_t   m_pos;
 
-            const_iterator( const StrUTF8& str, size_t p ) : m_str(str), m_pos(p) {}
+            const_iterator( const StrUTF8& str, size_t p ) : m_str(&str), m_pos(p) {}
 
             const_iterator& operator ++() { return( ++m_pos, *this ); }
             const_iterator operator +( int i ) const { return( const_iterator(m_str,m_pos+i) ); }
+            const_iterator operator +( int i ) const { return( const_iterator(*m_str, m_pos+i) ); }
             const_iterator operator -( int i ) const { return (*this + (-i)); }
             size_t operator -( const const_iterator& o ) const { return( m_pos-o.m_pos); }
 
@@ -529,7 +530,7 @@ namespace ay
             bool operator<( const const_iterator& c ) const { return c.m_pos < m_pos; }
             bool operator==( const const_iterator& c ) const { return c.m_pos == m_pos; }
 			inline CharUTF8 operator* () const
-                { return m_str.getGlyph (m_pos); }
+                { return m_str->getGlyph (m_pos); }
         };
         const_iterator begin() const { return const_iterator(*this,0); }
         const_iterator end() const { return const_iterator(*this,size()); }
@@ -538,3 +539,16 @@ namespace ay
 int unicode_normalize_punctuation( std::string& outStr, const char* srcStr, size_t srcStr_sz ) ;
 int unicode_normalize_punctuation( std::string& qstr ) ;
 } // ay namespace
+
+namespace std
+{
+	template<>
+	struct iterator_traits<ay::StrUTF8::const_iterator>
+	{
+		typedef random_access_iterator_tag	iterator_category;
+		typedef ay::CharUTF8				value_type;
+		typedef ptrdiff_t					difference_type;
+		typedef ay::CharUTF8*				pointer;
+		typedef ay::CharUTF8&				reference;
+	};
+}
