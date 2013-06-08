@@ -343,6 +343,7 @@ class BENI {
     ay::UniqueCharPool d_charPool;
 	
     NGramStorage<BarzerEntity> d_storage;
+	std::map<BarzerEntity, std::string> d_backIdx;
 public:
     ay::UniqueCharPool& charPool() { return d_charPool; }
     const ay::UniqueCharPool& charPool() const { return d_charPool; }
