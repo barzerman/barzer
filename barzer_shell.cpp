@@ -1204,7 +1204,7 @@ static int bshf_benisland(BarzerShell *shell, char_cp cmd, std::istream& in, con
 	while (reader.nextLine() && !reader.str.empty())
 	{
 		StoredStringFeatureVec vec;
-		const auto& islands = primary.d_storage.getIslands(reader.str.c_str(), reader.str.size(), vec);
+		const auto& islands = primary.getStorage().getIslands(reader.str.c_str(), reader.str.size(), vec);
 		std::cout << "found " << islands.size() << " islands" << std::endl;
 		
 		for (const auto& island : islands)
@@ -1217,7 +1217,7 @@ static int bshf_benisland(BarzerShell *shell, char_cp cmd, std::istream& in, con
 					isFirst = false;
 				else
 					std::cout << "', '";
-				std::cout << primary.d_storage.resolveFeature(item);
+				std::cout << primary.getStorage().resolveFeature(item);
 				std::cout << " " << item.m_strId;
 			}
 			std::cout << "'" << std::endl;

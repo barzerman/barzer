@@ -29,9 +29,9 @@ void SmartBENI::addEntityClass( const StoredEntityClass& ec )
         if( edata && !edata->canonicName.empty() ) {
             Lang::stringToLower( tmpBuf, dest, edata->canonicName );
             BENI::normalize( normDest, dest );
-			d_beniStraight.d_storage.addWord( normDest.c_str(), i->first );
+			d_beniStraight.addWord(normDest, i->first);
             if( d_isSL ) 
-			    d_beniSl.d_storage.addWord( normDest.c_str(), i->first );
+			    d_beniSl.addWord(normDest, i->first);
             
             ++numNames;
         }
@@ -84,6 +84,17 @@ BENI::BENI( StoredUniverse& u ) :
     d_universe(u)
 {}
 
+const NGramStorage<BarzerEntity>& BENI::getStorage() const
+{
+	return d_storage;
+}
+
+void BENI::addWord(const std::string& str, const BarzerEntity& ent)
+{
+	d_storage.addWord( str.c_str(), ent );
+	d_backIdx.insert({ ent, str });
+}
+
 void BENI::addEntityClass( const StoredEntityClass& ec )
 {
     /// iterate over entities of ec 
@@ -98,7 +109,7 @@ void BENI::addEntityClass( const StoredEntityClass& ec )
         if( edata && !edata->canonicName.empty() ) {
             Lang::stringToLower( tmpBuf, dest, edata->canonicName );
             BENI::normalize( normDest, dest );
-			d_storage.addWord( normDest.c_str(), i->first );
+			addWord(normDest, i->first);
             
             ++numNames;
         }

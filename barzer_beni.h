@@ -341,12 +341,17 @@ class StoredUniverse;
 
 class BENI {
     ay::UniqueCharPool d_charPool;
+	
+    NGramStorage<BarzerEntity> d_storage;
 public:
     ay::UniqueCharPool& charPool() { return d_charPool; }
     const ay::UniqueCharPool& charPool() const { return d_charPool; }
 
-    NGramStorage<BarzerEntity> d_storage;
     StoredUniverse& d_universe;
+	
+	const NGramStorage<BarzerEntity>& getStorage() const;
+	
+	void addWord(const std::string& str, const BarzerEntity&);
 
     /// add all entities by name for given class 
     void addEntityClass( const StoredEntityClass& ec );
