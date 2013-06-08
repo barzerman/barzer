@@ -548,7 +548,7 @@ namespace std
 		typedef random_access_iterator_tag	iterator_category;
 		typedef ay::CharUTF8				value_type;
 		typedef ptrdiff_t					difference_type;
-		typedef ay::CharUTF8*				pointer;
-		typedef ay::CharUTF8&				reference;
+		typedef const ay::CharUTF8*			pointer;
+		typedef const ay::CharUTF8&			reference;
 	};
 }
