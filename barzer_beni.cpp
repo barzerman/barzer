@@ -1,5 +1,6 @@
 #include <barzer_beni.h>
 #include <zurch_docidx.h>
+#include <ay/ay_sets.h>
 
 namespace barzer {
 
@@ -133,65 +134,6 @@ namespace
 		}
 		return i;
 	}
-	
-	template<typename T>
-	using RangesVec = std::vector<std::pair<T, T>>;
-	
-	template<typename T>
-	RangesVec<T> findXSections(T hayStart, T hayEnd, T neeStart, T neeEnd, size_t minLength = 0)
-	{
-		if (neeStart == neeEnd || hayStart == hayEnd)
-			return {};
-		
-		const auto cols = static_cast<size_t>(std::distance(neeStart, neeEnd));
-		const auto rows = static_cast<size_t>(std::distance(hayStart, hayEnd));
-		std::vector<std::vector<bool>> matrix(cols, std::vector<bool>(rows, false));
-		for (auto n = neeStart; n != neeEnd; ++n)
-		{
-			const auto c = *n;
-			
-			auto& col = matrix[std::distance(neeStart, n)];
-			
-			auto pos = std::find(hayStart, hayEnd, c);
-			while (pos != hayEnd)
-			{
-				col[std::distance(hayStart, pos)] = true;
-				
-				std::advance(pos, 1);
-				pos = std::find(pos, hayEnd, c);
-			}
-		}
-		
-		RangesVec<T> result;
-		for (size_t c = 0; c < cols - minLength; ++c)
-		{
-			for (size_t r = 0; r < rows - minLength; ++r)
-			{
-				if (!matrix[c][r])
-					continue;
-				
-				size_t nc = c, nr = r;
-				while (nc < cols && nr < rows && matrix[nc][nr])
-				{
-					matrix[nc][nr] = false;
-					++nc;
-					++nr;
-				}
-				
-				if (nc - c < minLength)
-					continue;
-				
-				auto rStart = neeStart, rEnd = neeStart;
-				std::advance(rStart, c);
-				std::advance(rEnd, nc);
-				result.push_back({ rStart, rEnd });
-			}
-		}
-		std::sort(result.begin(), result.end(),
-				[](const typename RangesVec<T>::value_type& l, const typename RangesVec<T>::value_type& r)
-					{ return std::distance(l.first, l.second) > std::distance(r.first, r.second); });
-		return result;
-	}
 } //end of anon namespace 
 
 double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) const
@@ -236,7 +178,7 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) 
 					const auto& str = strPos->second;
 					const ay::StrUTF8 strUtf8(str.c_str(), str.size());
 					const ay::StrUTF8 normUtf8(normDest.c_str(), normDest.size());
-					findXSections(strUtf8.begin(), strUtf8.end(), normUtf8.begin(), normUtf8.end(), 4);
+					ay::findXSections(strUtf8.begin(), strUtf8.end(), normUtf8.begin(), normUtf8.end(), 4);
 				}
 				out.push_back({ *(i.m_data), i.m_levDist, i.m_coverage, i.m_relevance });
 			}
