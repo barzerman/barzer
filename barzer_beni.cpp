@@ -178,7 +178,7 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) 
 					const auto& str = strPos->second;
 					const ay::StrUTF8 strUtf8(str.c_str(), str.size());
 					const ay::StrUTF8 normUtf8(normDest.c_str(), normDest.size());
-					ay::findXSections(strUtf8.begin(), strUtf8.end(), normUtf8.begin(), normUtf8.end(), 4);
+					//ay::findXSections(strUtf8.begin(), strUtf8.end(), normUtf8.begin(), normUtf8.end(), 4);
 				}
 				out.push_back({ *(i.m_data), i.m_levDist, i.m_coverage, i.m_relevance });
 			}

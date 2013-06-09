@@ -11,23 +11,25 @@
 
 namespace ay
 {
-
-struct SetXSection {
+struct SetXSection
+{
 	template<typename T>
 	struct Range
 	{
 		T first;
 		T second;
-		size_t skip;
+		double skip;
 	};
     
     size_t skipLength, minLength;
+	
     SetXSection() : skipLength(0), minLength(0) {}
+    
 	template<typename T>
 	using RangesVec = std::vector<Range<T>>;
 
 	template<typename T>
-	RangesVec<T> compute(T hayStart, T hayEnd, T neeStart, T neeEnd ) const
+	RangesVec<T> compute(T hayStart, T hayEnd, T neeStart, T neeEnd) const
 	{ 
 		if (neeStart == neeEnd || hayStart == hayEnd)
 			return {};
@@ -102,7 +104,8 @@ struct SetXSection {
 		return result;
 	}
     
-    typedef std::pair<size_t, double > FindLongestResult;
+    typedef std::pair<size_t, double> FindLongestResult;
+	
 	template<typename T>
 	FindLongestResult findLongest(T hayStart, T hayEnd, T neeStart, T neeEnd) const 
 	{
@@ -119,9 +122,9 @@ struct SetXSection {
     FindLongestResult findLongest( const std::string& s1, const std::string& s2 ) const 
         { return findLongest( s1.begin(), s1.end(), s2.begin(), s2.end() ); }
 
-    FindLongestResult findLongest( const char*s1, const char* s2 ) const
+    FindLongestResult findLongest( const char *s1, const char *s2 ) const
     {
-        const char* s1_end = s1+strlen(s1), *s2_end = s2+strlen(s2);
+        const char *s1_end = s1+strlen(s1), *s2_end = s2+strlen(s2);
         return findLongest( s1, s1_end, s2, s2_end );
     }
 };
