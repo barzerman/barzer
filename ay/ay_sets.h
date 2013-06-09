@@ -11,6 +11,8 @@
 
 namespace ay
 {
+
+struct SetXSection {
 	template<typename T>
 	struct Range
 	{
@@ -18,13 +20,15 @@ namespace ay
 		T second;
 		size_t skip;
 	};
-	
+    
+    size_t skipLength, minLength;
+    SetXSection() : skipLength(0), minLength(0) {}
 	template<typename T>
 	using RangesVec = std::vector<Range<T>>;
 
 	template<typename T>
-	RangesVec<T> findXSections(T hayStart, T hayEnd, T neeStart, T neeEnd, size_t minLength = 0, size_t skipLength = 0)
-	{
+	RangesVec<T> compute(T hayStart, T hayEnd, T neeStart, T neeEnd ) const
+	{ 
 		if (neeStart == neeEnd || hayStart == hayEnd)
 			return {};
 
@@ -97,12 +101,13 @@ namespace ay
 					{ return std::distance(l.first, l.second) > std::distance(r.first, r.second); });
 		return result;
 	}
-	
+    
+    typedef std::pair<size_t, double > FindLongestResult;
 	template<typename T>
-	std::pair<size_t, size_t> findBiggestXSection(T hayStart, T hayEnd, T neeStart, T neeEnd, size_t minLength = 0, size_t skipLength = 0)
+	FindLongestResult findLongest(T hayStart, T hayEnd, T neeStart, T neeEnd) const 
 	{
-		const auto& res = findBiggestXSection(hayStart, hayEnd, neeStart, neeEnd, minLength, skipLength);
-		std::pair<size_t, size_t> result { 0, 0 };
+		const auto& res = compute(hayStart, hayEnd, neeStart, neeEnd );
+		FindLongestResult result { 0, 0 };
 		if (!res.empty())
 		{
 			result.first = std::distance(res[0].first, res[0].second);
@@ -110,4 +115,15 @@ namespace ay
 		}
 		return result;
 	}
-}
+    
+    FindLongestResult findLongest( const std::string& s1, const std::string& s2 ) const 
+        { return findLongest( s1.begin(), s1.end(), s2.begin(), s2.end() ); }
+
+    FindLongestResult findLongest( const char*s1, const char* s2 ) const
+    {
+        const char* s1_end = s1+strlen(s1), *s2_end = s2+strlen(s2);
+        return findLongest( s1, s1_end, s2, s2_end );
+    }
+};
+
+} // anon namespace 

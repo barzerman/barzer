@@ -20,6 +20,7 @@
 #include <string>
 #include <ay_statistics.h>
 #endif 
+#include <ay_sets.h>
 //#include <ay_parse.h>
 #include <fstream>
 #include <sstream>
@@ -443,6 +444,13 @@ int test_ay_boost(int argc, char* argv[])
     }
     return 0;
 }
+int test_ay_sets(int argc, char* argv[]) 
+{
+    ay::SetXSection xsec;
+
+    auto x = xsec.findLongest( "hello", "goodbye" );
+    return 0;
+}
 
 }
 int main(int argc, char* argv[]) {
@@ -452,5 +460,6 @@ int main(int argc, char* argv[]) {
     // testStripDiacritics(argc,argv);
     // testXMLEscape(argc,argv);
     // test_ay_strcasecmp(argc,argv);
-    return test_ay_boost(argc,argv);
+    // return test_ay_boost(argc,argv);
+    return test_ay_sets(argc,argv);
 }
