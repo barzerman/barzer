@@ -115,6 +115,13 @@ struct SetXSection
 		}
 		return result;
 	}
+	
+	FindLongestResult findLongest(const ay::StrUTF8& s1, const ay::StrUTF8& s2) const
+	{
+		const auto& chars1 = s1.getChars();
+		const auto& chars2 = s2.getChars();
+		return findLongest(chars1.begin(), chars1.end(), chars2.begin(), chars2.end());
+	}
     
     FindLongestResult findLongest( const std::string& s1, const std::string& s2 ) const 
         { return findLongest( s1.begin(), s1.end(), s2.begin(), s2.end() ); }
