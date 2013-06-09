@@ -57,7 +57,7 @@ struct SetXSection
 		for (size_t c = 0; c < cols - minLength; ++c)
 		{
 			size_t currentSkip = 0;
-			size_t totalSkip = 0;
+			double totalSkip = 0;
 			for (size_t r = 0; r < rows - minLength; ++r)
 			{
 				if (!matrix[c][r])
