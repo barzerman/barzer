@@ -20,6 +20,7 @@
 #include <string>
 #include <ay_statistics.h>
 #endif 
+#include <ay_util_time.h>
 #include <ay_sets.h>
 #include <ay_utf8.h>
 //#include <ay_parse.h>
@@ -460,8 +461,13 @@ int test_ay_sets(int argc, char* argv[])
         
         ay::StrUTF8 u1( s1.c_str()), u2( s2.c_str() ); 
         auto x = xsec.findLongest( u1.begin(), u1.end(), u2.begin(), u2.end() );
+        
+        ay::stopwatch localTimer;
+        for( size_t i =0; i< 100000; ++i ) {
+            x = xsec.findLongest( u1.begin(), u1.end(), u2.begin(), u2.end() );
+        }
     
-        std::cerr << x.first << "," << x.second << std::endl;
+        std::cerr << localTimer.calcTime() << ":" << x.first << "," << x.second << std::endl;
     }
     return 0;
 }
