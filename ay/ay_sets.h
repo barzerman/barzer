@@ -8,6 +8,7 @@
 #include <iterator>
 #include <algorithm>
 #include <vector>
+#include "ay_utf8.h"
 
 namespace ay
 {
