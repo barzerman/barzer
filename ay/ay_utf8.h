@@ -83,6 +83,10 @@ namespace ay
             );
         }
         
+        bool operator!= (const CharUTF8& o) const { return !(*this == o); }
+        bool operator!= (char o) const { return !(*this == o); }
+        bool operator!= (const char *o) const { return !(*this == o); }
+        
         bool isInStr( const char* s ) const { return ( strstr(s,c_str())!=0 ); }
         bool isPunct() const { return( ispunct(d_data.c4[0]) || isApostrophe() ); }
 
