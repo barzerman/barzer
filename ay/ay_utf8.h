@@ -534,14 +534,18 @@ namespace ay
             const_iterator( const StrUTF8& str, size_t p ) : m_str(&str), m_pos(p) {}
 
             const_iterator& operator++() { ++m_pos; return *this; }
+            const_iterator& operator--() { --m_pos; return *this; }
             const_iterator& operator+=(ptrdiff_t diff) { m_pos += diff; return *this; }
             const_iterator operator +( int i ) const { return( const_iterator(*m_str, m_pos+i) ); }
             const_iterator operator -( int i ) const { return (*this + (-i)); }
             ptrdiff_t operator -( const const_iterator& o ) const { return( m_pos-o.m_pos); }
 
-            bool operator!=( const const_iterator& c ) const { return c.m_pos != m_pos; }
-            bool operator<( const const_iterator& c ) const { return c.m_pos < m_pos; }
-            bool operator==( const const_iterator& c ) const { return c.m_pos == m_pos; }
+            bool operator==(const const_iterator& c) const { return c.m_pos == m_pos; }
+            bool operator!=(const const_iterator& c) const { return !(*this == c); }
+            bool operator<(const const_iterator& c) const { return m_pos < c.m_pos; }
+            bool operator<=(const const_iterator& c) const { return m_pos <= c.m_pos; }
+            bool operator>(const const_iterator& c) const { return m_pos > c.m_pos; }
+            bool operator>=(const const_iterator& c) const { return m_pos >= c.m_pos; }
 			inline CharUTF8 operator* () const
                 { return m_str->getGlyph (m_pos); }
         };
