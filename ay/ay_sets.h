@@ -97,4 +97,17 @@ namespace ay
 					{ return std::distance(l.first, l.second) > std::distance(r.first, r.second); });
 		return result;
 	}
+	
+	template<typename T>
+	std::pair<size_t, size_t> findBiggestXSection(T hayStart, T hayEnd, T neeStart, T neeEnd, size_t minLength = 0, size_t skipLength = 0)
+	{
+		const auto& res = findBiggestXSection(hayStart, hayEnd, neeStart, neeEnd, minLength, skipLength);
+		std::pair<size_t, size_t> result { 0, 0 };
+		if (!res.empty())
+		{
+			result.first = std::distance(res[0].first, res[0].second);
+			result.second = res[0].skip;
+		}
+		return result;
+	}
 }
