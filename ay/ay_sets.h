@@ -33,7 +33,7 @@ struct SetXSection
 
 		const auto cols = static_cast<size_t>(std::distance(neeStart, neeEnd));
 		const auto rows = static_cast<size_t>(std::distance(hayStart, hayEnd));
-		std::vector<std::vector<bool>> matrix(cols, std::vector<bool>(rows, false));
+		std::vector<std::vector<uint8_t>> matrix(cols, std::vector<uint8_t>(rows, false));
 		for (auto n = neeStart; n != neeEnd; ++n)
 		{
 			const auto c = *n;
