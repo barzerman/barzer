@@ -241,6 +241,15 @@ namespace ay
             { return &m_buf[ m_positions[g] ]; }
         const char* getGlyphEnd( size_t g ) const
             { return ( (g+1)< m_positions.size() ? &(m_buf[ m_positions[g+1]]): ( (&(m_buf[0])) +m_buf.size()) ); }
+            
+		std::vector<CharUTF8> getChars() const
+		{
+			std::vector<CharUTF8> res;
+			res.reserve(size());
+			for (const auto& c : *this)
+				res.push_back(c);
+			return res;
+		}
         
         // substring from len glyphs starting with i-th glyph 
         std::string getSubstring( size_t i, size_t len ) const
