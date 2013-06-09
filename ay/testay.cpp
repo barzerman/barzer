@@ -21,6 +21,7 @@
 #include <ay_statistics.h>
 #endif 
 #include <ay_sets.h>
+#include <ay_utf8.h>
 //#include <ay_parse.h>
 #include <fstream>
 #include <sstream>
@@ -448,7 +449,20 @@ int test_ay_sets(int argc, char* argv[])
 {
     ay::SetXSection xsec;
 
-    auto x = xsec.findLongest( "hello", "goodbye" );
+
+    std::string s1, s2;
+    while(true) {
+        std::cerr << "enter s1:";
+        std::cin >> s1;
+
+        std::cerr << "enter s2:";
+        std::cin >> s2;
+        
+        ay::StrUTF8 u1( s1.c_str()), u2( s2.c_str() ); 
+        auto x = xsec.findLongest( u1.begin(), u1.end(), u2.begin(), u2.end() );
+    
+        std::cerr << x.first << "," << x.second << std::endl;
+    }
     return 0;
 }
 
@@ -461,5 +475,6 @@ int main(int argc, char* argv[]) {
     // testXMLEscape(argc,argv);
     // test_ay_strcasecmp(argc,argv);
     // return test_ay_boost(argc,argv);
+    std::cerr << "HELLO\n";
     return test_ay_sets(argc,argv);
 }
