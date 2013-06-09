@@ -26,10 +26,7 @@ struct SetXSection
     SetXSection() : skipLength(0), minLength(0) {}
     
 	template<typename T>
-	using RangesVec = std::vector<Range<T>>;
-
-	template<typename T>
-	RangesVec<T> compute(T hayStart, T hayEnd, T neeStart, T neeEnd) const
+	std::vector<Range<T>> compute(T hayStart, T hayEnd, T neeStart, T neeEnd) const
 	{ 
 		if (neeStart == neeEnd || hayStart == hayEnd)
 			return {};
@@ -53,7 +50,7 @@ struct SetXSection
 			}
 		}
 
-		RangesVec<T> result;
+		std::vector<Range<T>> result;
 		for (size_t c = 0; c < cols - minLength; ++c)
 		{
 			size_t currentSkip = 0;
@@ -99,7 +96,7 @@ struct SetXSection
 		}
 		
 		std::sort(result.begin(), result.end(),
-				[](const typename RangesVec<T>::value_type& l, const typename RangesVec<T>::value_type& r)
+				[](const Range<T>& l, const Range<T>& r)
 					{ return std::distance(l.first, l.second) > std::distance(r.first, r.second); });
 		return result;
 	}
