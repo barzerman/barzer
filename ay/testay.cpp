@@ -460,12 +460,18 @@ int test_ay_sets(int argc, char* argv[])
         std::cin >> s2;
         
         ay::StrUTF8 u1( s1.c_str()), u2( s2.c_str() ); 
+        auto x = xsec.findLongest( s1, s2 );
+        ay::stopwatch localTimer;
+        for( size_t i =0; i< 100000; ++i ) {
+            x = xsec.findLongest( s1, s2 );
+        }
+        /*
         auto x = xsec.findLongest( u1.begin(), u1.end(), u2.begin(), u2.end() );
-        
         ay::stopwatch localTimer;
         for( size_t i =0; i< 100000; ++i ) {
             x = xsec.findLongest( u1.begin(), u1.end(), u2.begin(), u2.end() );
         }
+        */
     
         std::cerr << localTimer.calcTime() << ":" << x.first << "," << x.second << std::endl;
     }
