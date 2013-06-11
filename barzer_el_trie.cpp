@@ -7,7 +7,7 @@
 #include <list>
 #include <ay/ay_logger.h>
 #include <barzer_universe.h>
-#include <barzer_ruleidx.h>
+#include <barzer_el_trie_ruleidx.h>
 
 namespace barzer {
 ///// output operators 

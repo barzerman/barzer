@@ -3,7 +3,7 @@
 /// Code is property Barzer for authorized use only
 ///
 
-#include "barzer_ruleidx.h"
+#include <barzer_el_trie_ruleidx.h>
 #include "barzer_el_trie.h"
 
 namespace barzer

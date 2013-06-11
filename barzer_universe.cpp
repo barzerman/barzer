@@ -12,7 +12,7 @@
 #include <boost/filesystem.hpp>
 #include <zurch_docidx.h>
 #include <barzer_beni.h>
-#include <barzer_ruleidx.h>
+#include <barzer_el_trie_ruleidx.h>
 
 namespace barzer {
 

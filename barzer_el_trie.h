@@ -435,9 +435,7 @@ public:
     bool getLinkedTraceInfo( BarzelTranslationTraceInfo::Vec&, uint32_t tranId ) const;
     const TopicEntLinkage& getTopicEntLinkage() const { return d_topicEnt; }
     const TopicEntLinkage::BarzerEntitySet* getTopicEntities( const BarzerEntity& t ) const
-    {
-        return d_topicEnt.getTopicEntities( t );
-    }
+        { return d_topicEnt.getTopicEntities( t ); }
     void linkEntToTopic( const BarzerEntity& topicEnt, const BarzerEntity&ent, uint32_t strength ) { d_topicEnt.link( topicEnt, ent, strength ); }
 
 	// must be called from BELParser::internString
@@ -584,13 +582,9 @@ public:
 };
 
 inline BarzelTranslation* BarzelTrieNode::getTranslation(BELTrie& trie)
-{
-	return trie.getBarzelTranslation( *this );
-}
+    { return trie.getBarzelTranslation( *this ); }
 inline const BarzelTranslation* BarzelTrieNode::getTranslation(const BELTrie& trie) const
-{
-	return trie.getBarzelTranslation( *this );
-}
+    { return trie.getBarzelTranslation( *this ); }
 
 /// object necessary for meaningful printing
 struct BELPrintFormat {
