@@ -8,7 +8,7 @@
 
 namespace barzer
 {
-void RuleIdx::addNode(const RulePath& path, BarzelTrieNode *node, uint32_t position, NodeType type)
+void TrieRuleIdx::addNode(const RulePath& path, BarzelTrieNode *node, uint32_t position, NodeType type)
 {
 	auto pos = m_path2nodes.find(path);
 	if (pos == m_path2nodes.end())
@@ -23,7 +23,7 @@ void RuleIdx::addNode(const RulePath& path, BarzelTrieNode *node, uint32_t posit
 	node->ref();
 }
 
-void RuleIdx::removeNode (const RulePath& path)
+void TrieRuleIdx::removeNode (const RulePath& path)
 {
 	const auto pos = m_path2nodes.find(path);
 	if (pos == m_path2nodes.end())

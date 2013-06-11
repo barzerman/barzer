@@ -544,7 +544,7 @@ const BarzelTrieNode* BELTrie::addPath(
 				}
 			}
 			
-			uni->getRuleIdx()->addNode({ stmt.d_sourceNameStrId, stmt.d_stmtNumber }, n, pos, type);
+			uni->ruleIdx().addNode({ stmt.d_sourceNameStrId, stmt.d_stmtNumber, getTrieClass_strId(), getTrieId_strId() }, n, pos, type);
 		}
 	} else
 		AYTRACE("inconsistent state for setTranslation");
@@ -597,7 +597,7 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELSta
             return true;
         }
         
-        const RulePath rp { stmt.d_sourceNameStrId, stmt.d_stmtNumber };
+        const RulePath rp { stmt.d_sourceNameStrId, stmt.d_stmtNumber, getTrieClass_strId(), getTrieId_strId() };
 
 		EntityGroup* entGrp = 0;
 		switch( tran->getType() ) {
@@ -609,14 +609,14 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELSta
 			tran->setMkEntList( grpId );
 			entGrp->addEntity( entId );
 			
-			uni->getRuleIdx()->addNode(rp, n, entId, NodeType::EList);
+			uni->ruleIdx().addNode(rp, n, entId, NodeType::EList);
 			break;
 		}
 		case BarzelTranslation::T_MKENTLIST:
 		{
 			const auto entId = tran->getId_uint32();
 			entGrp = getEntityCollection().getEntGroup(entId);
-			uni->getRuleIdx()->addNode(rp, n, entId, NodeType::EList);
+			uni->ruleIdx().addNode(rp, n, entId, NodeType::EList);
 			break;
 		}
 		default: { // CLASH 
@@ -650,17 +650,17 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELSta
                                 }
                             }
 
-                            auto idx = uni->getRuleIdx();
+                            TrieRuleIdx& idx = uni->ruleIdx();
                             for (auto id : addedChildren)
-								idx->addNode(rp, n, id, NodeType::Subtree);
+								idx.addNode(rp, n, id, NodeType::Subtree);
 							
                             return true;
                         }
                         else if( newEvNode.hasSameChildren(*evNode) )
 						{
-                            auto idx = uni->getRuleIdx();
+                            TrieRuleIdx& idx = uni->ruleIdx();
 							for (const auto& c : evNode->getChild())
-								idx->addNode(rp, n, c.getNodeId(), NodeType::Subtree);
+								idx.addNode(rp, n, c.getNodeId(), NodeType::Subtree);
                             return true;
 						}
                     }
