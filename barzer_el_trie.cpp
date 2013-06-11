@@ -576,6 +576,7 @@ void BELTrie::linkTraceInfoNodes( uint32_t tranId, const BarzelTranslationTraceI
 void BELTrie::linkTraceInfoEnt( uint32_t tranId, const BarzelTranslationTraceInfo& trInfo, const BarzelTranslationTraceInfo& v, uint32_t entId )
 {
     d_ambTranRef.link( tranId, trInfo, AmbiguousTraceId(entId,AmbiguousTraceId::TYPE_ENTITY));
+    d_ambTranRef.link( tranId, v, AmbiguousTraceId(entId,AmbiguousTraceId::TYPE_ENTITY));
 
     // d_linkedTranInfoMap[ trInfo ].push_back( v );
 }

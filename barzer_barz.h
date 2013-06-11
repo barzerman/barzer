@@ -38,7 +38,7 @@ struct BarzelTrace {
                 tranInfo = ti;
             }
         SingleFrameTrace( ) : grammarSeqNo(0),globalTriePoolId(0xffffffff), tranId(0xffffffff) {}
-        SingleFrameTrace( const BarzelTranslationTraceInfo& ti, size_t n, uint32_t trieId, uint32_t tranId ) : grammarSeqNo(n), tranInfo(ti),globalTriePoolId(trieId) {}
+        SingleFrameTrace( const BarzelTranslationTraceInfo& ti, size_t n, uint32_t trieId, uint32_t trId ) : grammarSeqNo(n), tranInfo(ti),globalTriePoolId(trieId), tranId(trId) {}
     };
 
     typedef std::vector< SingleFrameTrace > TraceVec;

@@ -546,10 +546,7 @@ static void printTraceInfo(std::ostream &os, const Barz &barz, const StoredUnive
         tag_raii ti(os, "traceinfo");
         os << "\n";
         BarzelTranslationTraceInfo::Vec btiVec;
-        for( BarzelTrace::TraceVec::const_iterator ti = tvec.begin(),
-                                                  tend = tvec.end();
-                    ti != tend; ++ti ) 
-        {
+        for( BarzelTrace::TraceVec::const_iterator ti = tvec.begin(), tend = tvec.end(); ti != tend; ++ti ) {
             const char *name = gp.internalString_resolve( ti->tranInfo.source );
             os << boost::format(tmpl) % (name ? name : "")
                                       % ti->tranInfo.statementNum
@@ -560,11 +557,14 @@ static void printTraceInfo(std::ostream &os, const Barz &barz, const StoredUnive
                 btiVec.clear();
                 if( trie->getLinkedTraceInfo(btiVec,ti->tranId) ) {
                     os << ">";
+
                     for( const auto& x: btiVec ) {
                         const auto& i = x.first;
-                        const char *linkedName = gp.internalString_resolve_safe( i.source );
-                        xmlEscape( linkedName, os << "\n  <linkedmatch file=\"" ) << 
-                            "stmt=\"" << i.statementNum << "\" emit=\"" << i.emitterSeqNo << "\"/>";
+                        if( !(ti->tranInfo.statementNum== i.statementNum && i.source== ti->tranInfo.source ) ) {
+                            const char *linkedName = gp.internalString_resolve_safe( i.source );
+                            xmlEscape( linkedName, os << "\n  <linkedmatch file=\"" ) << 
+                                "\" stmt=\"" << i.statementNum << "\" emit=\"" << i.emitterSeqNo << "\"/>";
+                        }
                     }
                 }
             }
@@ -577,7 +577,7 @@ static void printTraceInfo(std::ostream &os, const Barz &barz, const StoredUnive
                 }
                 os << " </error></match>\n";
             } else {
-                os << "\n</match>";
+                os << "/>";
             }
             os << "\n";
         }
