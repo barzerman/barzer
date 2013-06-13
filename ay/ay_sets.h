@@ -13,22 +13,30 @@
 
 namespace ay
 {
+template<typename T>
+struct SetRange
+{
+	T first;
+	T second;
+	double skip;
+};
+
+template<typename t>
+inline bool operator< (const SetRange<t>& r1, const SetRange<t>& r2)
+{
+	const auto d1 = std::distance(r1.first, r1.second);
+	const auto d2 = std::distance(r2.first, r2.second);
+	return d1 == d2 ? r1.skip < r2.skip : d1 < d2;
+}
+
 struct SetXSection
 {
-	template<typename T>
-	struct Range
-	{
-		T first;
-		T second;
-		double skip;
-	};
-    
     size_t skipLength, minLength;
 	
     SetXSection() : skipLength(0), minLength(0) {}
     
 	template<typename T>
-	std::vector<Range<T>> compute(T hayStart, T hayEnd, T neeStart, T neeEnd) const
+	std::vector<SetRange<T>> compute(T hayStart, T hayEnd, T neeStart, T neeEnd) const
 	{ 
 		if (neeStart == neeEnd || hayStart == hayEnd)
 			return {};
@@ -51,7 +59,7 @@ struct SetXSection
 			}
 		}
 
-		std::vector<Range<T>> result;
+		std::vector<SetRange<T>> result;
 		for (size_t c = 0; c < cols - minLength; ++c)
 		{
 			size_t currentSkip = 0;
@@ -96,14 +104,12 @@ struct SetXSection
 			}
 		}
 		
-		std::sort(result.begin(), result.end(),
-				[](const Range<T>& l, const Range<T>& r)
-					{ return std::distance(l.first, l.second) > std::distance(r.first, r.second); });
+		std::sort(result.rbegin(), result.rend());
 		return result;
 	}
 private:
 	template<typename T>
-	std::vector<Range<T>> compute2neePos(T hayStart, T hayEnd, T neeStart, T neeEnd, T neePos) const
+	std::vector<SetRange<T>> compute2neePos(T hayStart, T hayEnd, T neeStart, T neeEnd, T neePos) const
 	{
 		if (std::distance(neeStart, neeEnd) <= static_cast<ptrdiff_t>(minLength) ||
 				std::distance(hayStart, hayEnd) <= static_cast<ptrdiff_t>(minLength))
@@ -168,7 +174,7 @@ private:
 	}
 public:
 	template<typename T>
-	std::vector<Range<T>> compute2(T hayStart, T hayEnd, T neeStart, T neeEnd) const
+	std::vector<SetRange<T>> compute2(T hayStart, T hayEnd, T neeStart, T neeEnd) const
 	{
 		if (static_cast<size_t>(std::distance(neeStart, neeEnd)) <= minLength ||
 				static_cast<size_t>(std::distance(hayStart, hayEnd)) <= minLength)
