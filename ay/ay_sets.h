@@ -176,8 +176,8 @@ public:
 	template<typename T>
 	std::vector<SetRange<T>> compute2(T hayStart, T hayEnd, T neeStart, T neeEnd) const
 	{
-		if (static_cast<size_t>(std::distance(neeStart, neeEnd)) <= minLength ||
-				static_cast<size_t>(std::distance(hayStart, hayEnd)) <= minLength)
+		if (std::distance(neeStart, neeEnd) <= static_cast<ptrdiff_t>(minLength) ||
+				std::distance(hayStart, hayEnd) <= static_cast<ptrdiff_t>(minLength))
 			return {};
 
 		const auto neeCenter = neeStart + std::distance(neeStart, neeEnd) / 2;
