@@ -27,10 +27,12 @@ void TrieRuleIdx::removeNode (const RulePath& path)
 {
 	const auto pos = m_path2nodes.find(path);
 	if (pos == m_path2nodes.end())
-		return;				// TODO shit bricks
+		return;				
 
 	for (auto& info : pos->second)
 	{
+        // info is detail::PosInfo (barzer_el_trie_ruleidx.h)
+
 		if (info.m_node->deref())
 			continue;
 

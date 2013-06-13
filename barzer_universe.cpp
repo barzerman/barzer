@@ -33,7 +33,7 @@ uint32_t StoredUniverse::recordLangWord( int16_t lang )
 StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	d_userId(id),
     d_entNameIdx(0),
-    m_ruleIdx(new TrieRuleIdx),
+    m_ruleIdx(new TrieRuleIdx(*this)),
 	gp(g),
 	trieCluster(g.globalTriePool,*this),
 	topicTrieCluster(g.globalTriePool,*this),

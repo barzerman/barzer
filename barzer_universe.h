@@ -398,15 +398,15 @@ public:
     bool needEntitySegregation() const { return !(d_entSeg.empty()); }
     void addEntClassToSegregate( const StoredEntityClass& ec ) { d_entSeg.add(ec); }
 
-    const BELTrie* getRuleTrieByUniqueId( const BELTrie::UniqueTrieId& tid ) const
+    const BELTrie* getRuleTrieByUniqueId( const UniqueTrieId& tid ) const
         { return trieCluster.getTrieByUniqueId(tid); }
-    const BELTrie* getTopicTrieByUniqueId( const BELTrie::UniqueTrieId& tid ) const
+    const BELTrie* getTopicTrieByUniqueId( const UniqueTrieId& tid ) const
         { return topicTrieCluster.getTrieByUniqueId(tid); }
 
-    const BELTrie* getTrieByUniqueId( const BELTrie::UniqueTrieId& tid, bool topic = false )
+    const BELTrie* getTrieByUniqueId( const UniqueTrieId& tid, bool topic = false )
         { return( topic ? getTopicTrieByUniqueId(tid) : getRuleTrieByUniqueId(tid) ); }
     const BELTrie* getTrieByUniqueId( uint32_t tc, uint32_t tid ) const
-        { return getRuleTrieByUniqueId( BELTrie::UniqueTrieId(tc, tid)); }
+        { return getRuleTrieByUniqueId( UniqueTrieId(tc, tid)); }
     
     Ghettodb&       getGhettodb()       { return *d_ghettoDb; }
     const Ghettodb& getGhettodb() const { return *d_ghettoDb; }

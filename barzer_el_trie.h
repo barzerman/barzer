@@ -1,4 +1,5 @@
 #pragma once
+#include <barzer_elementary_types.h>
 #include <barzer_el_rewriter.h>
 #include <barzer_el_variable.h>
 #include <barzer_el_entcol.h>
@@ -466,7 +467,6 @@ private:
 
     uint32_t d_trieClass_strId, d_trieId_strId;
 public:
-    typedef  std::pair< uint32_t , uint32_t > UniqueTrieId;
     UniqueTrieId getUniqueTrieId() const
         { return UniqueTrieId( d_trieClass_strId, d_trieId_strId ); }
 

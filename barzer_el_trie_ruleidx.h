@@ -5,20 +5,24 @@
 
 #pragma once
 
+#include <barzer_elementary_types.h>
 #include <vector>
 #include <map>
 
 namespace barzer
 {
 class BarzelTrieNode;
+class StoredUniverse;
 
 struct RulePath
 {
-    typedef std::pair< uint32_t, uint32_t > TrieId;
-    TrieId m_trieId;
+    UniqueTrieId m_trieId;
 
 	uint32_t m_source;
 	uint32_t m_stId;
+
+    void setTrieId( uint32_t cid, uint32_t tid ) 
+        { m_trieId = { cid, tid }; }
 
     RulePath( ) : 
         m_trieId( { 0xffffffff, 0xffffffff } ),
@@ -28,14 +32,11 @@ struct RulePath
         m_trieId( { trieClassId, trieId } ),
         m_source(srcid),m_stId(stid)
     {}
-    RulePath( uint32_t srcid, uint32_t stid, const TrieId& tid ) :
+    RulePath( uint32_t srcid, uint32_t stid, const UniqueTrieId& tid ) :
         m_trieId(tid),
         m_source(srcid), m_stId(stid)
     {}
 };
-
-inline bool operator<(const RulePath::TrieId& l, const RulePath::TrieId& r)
-    { return( l.first < r.first ? true : ( r.first < l.first ? false : (l.second < r.second) )); }
 
 inline bool operator<(const RulePath& l, const RulePath& r)
 {
@@ -86,6 +87,7 @@ namespace detail
 
 class TrieRuleIdx {
 	std::map<RulePath, std::vector<detail::PosInfo>> m_path2nodes;
+    StoredUniverse& d_universe;
 public:
 	/** @brief Adds the given node as associated with the rule identified by path.
 	 *
@@ -97,8 +99,15 @@ public:
 	void addNode(const RulePath& path, BarzelTrieNode *node, uint32_t position, NodeType type);
 
 	void removeNode(const RulePath& path);
-     
+    
+    void removeNode( 
+        const char* trieClass, const char* trieId , 
+        const char* source, 
+        uint32_t statementId 
+    );
+
     void clear();
+    TrieRuleIdx( StoredUniverse& u) : d_universe(u) {}
 };
 
 }
