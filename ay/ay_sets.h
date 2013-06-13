@@ -109,62 +109,61 @@ private:
 				std::distance(hayStart, hayEnd) <= static_cast<ptrdiff_t>(minLength))
 			return {};
 
-		const auto hayPos = std::find(hayStart, hayEnd, *neePos);
-		auto curLeft = hayPos, curRight = hayPos;
-		auto curNeeLeft = neePos, curNeeRight = neePos;
-		
-		uint curLeftDegrads = 0, curRightDegrads = 0;
-		uint totalDegrads = 0;
-		
-		bool growLeft = curLeft != hayStart && curNeeLeft != neeStart;
-		bool growRight = curRight + 1 < hayEnd && curNeeRight + 1 < neeEnd;
-		
-		while (growLeft || growRight)
+		std::vector<SetRange<T>> result;
+
+		auto hayPos = std::find(hayStart, hayEnd, *neePos);
+		while (hayPos != hayEnd)
 		{
-			if (curLeft == hayStart)
-				growLeft = false;
-			if (curRight + 1 == hayEnd)
-				growRight = false;
-			
-			if (growLeft)
+			auto curLeft = hayPos, curRight = hayPos;
+			auto curNeeLeft = neePos, curNeeRight = neePos;
+
+			uint curLeftDegrads = 0, curRightDegrads = 0;
+			uint totalDegrads = 0;
+
+			bool growLeft = curLeft != hayStart && curNeeLeft != neeStart;
+			bool growRight = curRight + 1 < hayEnd && curNeeRight + 1 < neeEnd;
+
+			while (growLeft || growRight)
 			{
-				if (*(--curLeft) != *(--curNeeLeft))
+				if (curLeft == hayStart)
+					growLeft = false;
+				if (curRight + 1 == hayEnd)
+					growRight = false;
+
+				if (growLeft)
 				{
-					++totalDegrads;
-					if (++curLeftDegrads > skipLength)
-						growLeft = false;
+					if (*(--curLeft) != *(--curNeeLeft))
+					{
+						++totalDegrads;
+						if (++curLeftDegrads > skipLength)
+							growLeft = false;
+					}
+					else
+						curLeftDegrads = 0;
 				}
-				else
-					curLeftDegrads = 0;
+				if (growRight)
+				{
+					if (*(++curRight) != *(++curNeeRight))
+					{
+						++totalDegrads;
+						if (++curRightDegrads > skipLength)
+							growRight = false;
+					}
+					else
+						curRightDegrads = 0;
+				}
 			}
-			if (growRight)
+
+			if (std::distance(curNeeLeft, curNeeRight) > static_cast<ptrdiff_t>(curLeftDegrads + curRightDegrads + 1 + minLength))
 			{
-				if (*(++curRight) != *(++curNeeRight))
-				{
-					++totalDegrads;
-					if (++curRightDegrads > skipLength)
-						growRight = false;
-				}
-				else
-					curRightDegrads = 0;
+				std::advance(curNeeLeft, curLeftDegrads);
+				std::advance(curNeeRight, -curRightDegrads);
+				result.push_back({ curNeeLeft, curNeeRight, static_cast<double>(totalDegrads - curLeftDegrads - curRightDegrads) });
 			}
+
+			std::advance(hayPos, 1);
+			hayPos = std::find(hayPos, hayEnd, *neePos);
 		}
-		
-		std::vector<Range<T>> result;
-		if (std::distance(curNeeLeft, curNeeRight) - curLeftDegrads - curRightDegrads > 0)
-		{
-			std::advance(curNeeLeft, curLeftDegrads);
-			std::advance(curNeeRight, -curRightDegrads);
-			result.push_back({ curNeeLeft, curNeeRight, static_cast<double>(totalDegrads - curLeftDegrads - curRightDegrads) });
-		}
-		
-		std::advance(curLeft, curLeftDegrads);
-		std::advance(curRight, -curRightDegrads + 1);
-		
-		//const auto& leftVec = compute2neePos(hayStart, curLeft, neeStart, neeEnd, neePos);
-		const auto& rightVec = compute2neePos(curRight, hayEnd, neeStart, neeEnd, neePos);
-		//std::copy(leftVec.begin(), leftVec.end(), std::back_inserter(result));
-		std::copy(rightVec.begin(), rightVec.end(), std::back_inserter(result));
 		return result;
 	}
 public:
