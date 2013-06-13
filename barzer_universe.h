@@ -280,7 +280,7 @@ public:
     uint32_t getEntClass() const { return ( GENERIC_CLASS_RANGE_MAX+ d_userId); }
 
 	bool stemByDefault() const { return gp.parseSettings().stemByDefault(); }
-	// UniverseTrieCluster& getTrieCluster() { return trieCluster; }
+	UniverseTrieCluster& getTrieCluster() { return trieCluster; }
 
 	const UniverseTrieCluster& getTopicTrieCluster() const { return topicTrieCluster; }
     bool hasTopics() const { return !(topicTrieCluster.getTrieList().empty()); }

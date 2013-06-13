@@ -123,7 +123,7 @@ public:
     
     BELTrie* getTrieByClassAndId( const char* trieClass, const char* trieId ) ;
     const BELTrie* getTrieByClassAndId( const char* trieClass, const char* trieId ) const;
-
+    UniqueTrieId getUniqueTrieId ( const char* trieClass, const char* trieId ) const ;
     void clearTries();
 };
 

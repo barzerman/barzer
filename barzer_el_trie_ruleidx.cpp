@@ -4,7 +4,8 @@
 ///
 
 #include <barzer_el_trie_ruleidx.h>
-#include "barzer_el_trie.h"
+#include <barzer_el_trie.h>
+#include <barzer_universe.h>
 
 namespace barzer
 {
@@ -23,11 +24,24 @@ void TrieRuleIdx::addNode(const RulePath& path, BarzelTrieNode *node, uint32_t p
 	node->ref();
 }
 
-void TrieRuleIdx::removeNode (const RulePath& path)
+bool TrieRuleIdx::removeNode( const char* trieClass, const char* trieId , const char* source, uint32_t statementId )
+{
+    if( BELTrie* trie = d_universe.getTrieCluster().getTrieByClassAndId( trieClass, trieId ) ) {
+        uint32_t sourceId = d_universe.getGlobalPools().internalString_getId( source );
+
+        RulePath path( statementId, sourceId, d_universe.getTrieCluster().getUniqueTrieId(trieClass,trieId) );
+        return removeNode(path) ;
+    } else
+        return false;
+    
+    return true;
+}
+
+bool TrieRuleIdx::removeNode (const RulePath& path)
 {
 	const auto pos = m_path2nodes.find(path);
 	if (pos == m_path2nodes.end())
-		return;				
+		return false;
 
 	for (auto& info : pos->second)
 	{
@@ -47,5 +61,7 @@ void TrieRuleIdx::removeNode (const RulePath& path)
 	}
 
 	m_path2nodes.erase(pos);
+    return true;
 }
-}
+
+} // namespace barzer 

@@ -98,9 +98,9 @@ public:
 	 */
 	void addNode(const RulePath& path, BarzelTrieNode *node, uint32_t position, NodeType type);
 
-	void removeNode(const RulePath& path);
+	bool removeNode(const RulePath& path);
     
-    void removeNode( 
+    bool removeNode( 
         const char* trieClass, const char* trieId , 
         const char* source, 
         uint32_t statementId 

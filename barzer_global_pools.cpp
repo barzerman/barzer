@@ -259,20 +259,16 @@ BELTrie& UniverseTrieCluster::appendTrie( const char* tc, const char* tid, Gramm
 
 
 const BELTrie* UniverseTrieCluster::getTrieByClassAndId( const char* trieClass, const char* trieId ) const
-{
-    UniqueTrieId tid = { 
-        d_universe.getGlobalPools().internalString_getId(trieClass),
-        d_universe.getGlobalPools().internalString_getId(trieId)
-    };
-    return getTrieByUniqueId( tid );
-}
+    { return getTrieByUniqueId( getUniqueTrieId(trieClass, trieId) ); }
 BELTrie* UniverseTrieCluster::getTrieByClassAndId( const char* trieClass, const char* trieId ) 
+    { return const_cast<BELTrie*>(getTrieByUniqueId( getUniqueTrieId(trieClass, trieId) )); }
+
+UniqueTrieId UniverseTrieCluster::getUniqueTrieId ( const char* trieClass, const char* trieId ) const 
 {
-    UniqueTrieId tid = { 
-        d_universe.getGlobalPools().internalString_getId(trieClass),
-        d_universe.getGlobalPools().internalString_getId(trieId)
+    return {    
+        d_universe.getGlobalPools().internalString_getId(trieClass), 
+        d_universe.getGlobalPools().internalString_getId(trieId) 
     };
-    return const_cast<BELTrie*>(getTrieByUniqueId( tid ));
 }
 
 } // namespace barzer 
