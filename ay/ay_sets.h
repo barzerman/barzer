@@ -13,22 +13,30 @@
 
 namespace ay
 {
+template<typename T>
+struct SetRange
+{
+	T first;
+	T second;
+	double skip;
+};
+
+template<typename t>
+inline bool operator< (const SetRange<t>& r1, const SetRange<t>& r2)
+{
+	const auto d1 = std::distance(r1.first, r1.second);
+	const auto d2 = std::distance(r2.first, r2.second);
+	return d1 == d2 ? r1.skip < r2.skip : d1 < d2;
+}
+
 struct SetXSection
 {
-	template<typename T>
-	struct Range
-	{
-		T first;
-		T second;
-		double skip;
-	};
-    
     size_t skipLength, minLength;
 	
     SetXSection() : skipLength(0), minLength(0) {}
     
 	template<typename T>
-	std::vector<Range<T>> compute(T hayStart, T hayEnd, T neeStart, T neeEnd) const
+	std::vector<SetRange<T>> compute(T hayStart, T hayEnd, T neeStart, T neeEnd) const
 	{ 
 		if (neeStart == neeEnd || hayStart == hayEnd)
 			return {};
@@ -51,7 +59,7 @@ struct SetXSection
 			}
 		}
 
-		std::vector<Range<T>> result;
+		std::vector<SetRange<T>> result;
 		for (size_t c = 0; c < cols - minLength; ++c)
 		{
 			size_t currentSkip = 0;
@@ -96,83 +104,80 @@ struct SetXSection
 			}
 		}
 		
-		std::sort(result.begin(), result.end(),
-				[](const Range<T>& l, const Range<T>& r)
-					{ return std::distance(l.first, l.second) > std::distance(r.first, r.second); });
+		std::sort(result.rbegin(), result.rend());
 		return result;
 	}
 private:
 	template<typename T>
-	std::vector<Range<T>> compute2neePos(T hayStart, T hayEnd, T neeStart, T neeEnd, T neePos) const
+	std::vector<SetRange<T>> compute2neePos(T hayStart, T hayEnd, T neeStart, T neeEnd, T neePos) const
 	{
 		if (std::distance(neeStart, neeEnd) <= static_cast<ptrdiff_t>(minLength) ||
 				std::distance(hayStart, hayEnd) <= static_cast<ptrdiff_t>(minLength))
 			return {};
 
-		const auto hayPos = std::find(hayStart, hayEnd, *neePos);
-		auto curLeft = hayPos, curRight = hayPos;
-		auto curNeeLeft = neePos, curNeeRight = neePos;
-		
-		uint curLeftDegrads = 0, curRightDegrads = 0;
-		uint totalDegrads = 0;
-		
-		bool growLeft = curLeft != hayStart && curNeeLeft != neeStart;
-		bool growRight = curRight + 1 < hayEnd && curNeeRight + 1 < neeEnd;
-		
-		while (growLeft || growRight)
+		std::vector<SetRange<T>> result;
+
+		auto hayPos = std::find(hayStart, hayEnd, *neePos);
+		while (hayPos != hayEnd)
 		{
-			if (curLeft == hayStart)
-				growLeft = false;
-			if (curRight + 1 == hayEnd)
-				growRight = false;
-			
-			if (growLeft)
+			auto curLeft = hayPos, curRight = hayPos;
+			auto curNeeLeft = neePos, curNeeRight = neePos;
+
+			uint curLeftDegrads = 0, curRightDegrads = 0;
+			uint totalDegrads = 0;
+
+			bool growLeft = curLeft != hayStart && curNeeLeft != neeStart;
+			bool growRight = curRight + 1 < hayEnd && curNeeRight + 1 < neeEnd;
+
+			while (growLeft || growRight)
 			{
-				if (*(--curLeft) != *(--curNeeLeft))
+				if (curLeft == hayStart)
+					growLeft = false;
+				if (curRight + 1 == hayEnd)
+					growRight = false;
+
+				if (growLeft)
 				{
-					++totalDegrads;
-					if (++curLeftDegrads > skipLength)
-						growLeft = false;
+					if (*(--curLeft) != *(--curNeeLeft))
+					{
+						++totalDegrads;
+						if (++curLeftDegrads > skipLength)
+							growLeft = false;
+					}
+					else
+						curLeftDegrads = 0;
 				}
-				else
-					curLeftDegrads = 0;
+				if (growRight)
+				{
+					if (*(++curRight) != *(++curNeeRight))
+					{
+						++totalDegrads;
+						if (++curRightDegrads > skipLength)
+							growRight = false;
+					}
+					else
+						curRightDegrads = 0;
+				}
 			}
-			if (growRight)
+
+			if (std::distance(curNeeLeft, curNeeRight) > static_cast<ptrdiff_t>(curLeftDegrads + curRightDegrads + 1 + minLength))
 			{
-				if (*(++curRight) != *(++curNeeRight))
-				{
-					++totalDegrads;
-					if (++curRightDegrads > skipLength)
-						growRight = false;
-				}
-				else
-					curRightDegrads = 0;
+				std::advance(curNeeLeft, curLeftDegrads);
+				std::advance(curNeeRight, -curRightDegrads);
+				result.push_back({ curNeeLeft, curNeeRight, static_cast<double>(totalDegrads - curLeftDegrads - curRightDegrads) });
 			}
+
+			std::advance(hayPos, 1);
+			hayPos = std::find(hayPos, hayEnd, *neePos);
 		}
-		
-		std::vector<Range<T>> result;
-		if (std::distance(curNeeLeft, curNeeRight) - curLeftDegrads - curRightDegrads > 0)
-		{
-			std::advance(curNeeLeft, curLeftDegrads);
-			std::advance(curNeeRight, -curRightDegrads);
-			result.push_back({ curNeeLeft, curNeeRight, static_cast<double>(totalDegrads - curLeftDegrads - curRightDegrads) });
-		}
-		
-		std::advance(curLeft, curLeftDegrads);
-		std::advance(curRight, -curRightDegrads + 1);
-		
-		//const auto& leftVec = compute2neePos(hayStart, curLeft, neeStart, neeEnd, neePos);
-		const auto& rightVec = compute2neePos(curRight, hayEnd, neeStart, neeEnd, neePos);
-		//std::copy(leftVec.begin(), leftVec.end(), std::back_inserter(result));
-		std::copy(rightVec.begin(), rightVec.end(), std::back_inserter(result));
 		return result;
 	}
 public:
 	template<typename T>
-	std::vector<Range<T>> compute2(T hayStart, T hayEnd, T neeStart, T neeEnd) const
+	std::vector<SetRange<T>> compute2(T hayStart, T hayEnd, T neeStart, T neeEnd) const
 	{
-		if (static_cast<size_t>(std::distance(neeStart, neeEnd)) <= minLength ||
-				static_cast<size_t>(std::distance(hayStart, hayEnd)) <= minLength)
+		if (std::distance(neeStart, neeEnd) <= static_cast<ptrdiff_t>(minLength) ||
+				std::distance(hayStart, hayEnd) <= static_cast<ptrdiff_t>(minLength))
 			return {};
 
 		const auto neeCenter = neeStart + std::distance(neeStart, neeEnd) / 2;
@@ -191,11 +196,16 @@ public:
 		}
 		
 		std::advance(maxRight, 1);
-		
+
+		const auto resSize = result.size();
+
 		const auto& leftVec = compute2(hayStart, hayEnd, neeStart, maxLeft);
 		const auto& rightVec = compute2(hayStart, hayEnd, maxRight, neeEnd);
+
 		std::copy(leftVec.begin(), leftVec.end(), std::back_inserter(result));
+		std::inplace_merge(result.begin(), result.begin() + resSize, result.end());
 		std::copy(rightVec.begin(), rightVec.end(), std::back_inserter(result));
+		std::inplace_merge(result.begin(), result.begin() + resSize + leftVec.size(), result.end());
 		
 		return result;
 	}

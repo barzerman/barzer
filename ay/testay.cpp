@@ -450,14 +450,13 @@ int test_ay_sets(int argc, char* argv[])
 {
     ay::SetXSection xsec;
 
-
     std::string s1, s2;
     while(true) {
         std::cerr << "enter s1:";
-        std::cin >> s1;
+		std::getline(std::cin, s1);
 
         std::cerr << "enter s2:";
-        std::cin >> s2;
+		std::getline(std::cin, s2);
         
         ay::StrUTF8 u1( s1.c_str()), u2( s2.c_str() ); 
         auto x = xsec.findLongest( s1, s2 );
