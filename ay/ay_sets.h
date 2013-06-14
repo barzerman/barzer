@@ -109,7 +109,7 @@ struct SetXSection
 	}
 private:
 	template<typename T>
-	std::vector<SetRange<T>> compute2neePos(T hayStart, T hayEnd, T neeStart, T neeEnd, T neePos) const
+	std::vector<SetRange<T>> compute2neePos(const T hayStart, const T hayEnd, const T neeStart, const T neeEnd, const T neePos) const
 	{
 		if (std::distance(neeStart, neeEnd) <= static_cast<ptrdiff_t>(minLength) ||
 				std::distance(hayStart, hayEnd) <= static_cast<ptrdiff_t>(minLength))
@@ -174,7 +174,7 @@ private:
 	}
 public:
 	template<typename T>
-	std::vector<SetRange<T>> compute2(T hayStart, T hayEnd, T neeStart, T neeEnd) const
+	std::vector<SetRange<T>> compute2(const T hayStart, const T hayEnd, const T neeStart, const T neeEnd) const
 	{
 		if (std::distance(neeStart, neeEnd) <= static_cast<ptrdiff_t>(minLength) ||
 				std::distance(hayStart, hayEnd) <= static_cast<ptrdiff_t>(minLength))
