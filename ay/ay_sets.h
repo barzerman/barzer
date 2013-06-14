@@ -202,10 +202,16 @@ public:
 		const auto& leftVec = compute2(hayStart, hayEnd, neeStart, maxLeft);
 		const auto& rightVec = compute2(hayStart, hayEnd, maxRight, neeEnd);
 
-		std::copy(leftVec.begin(), leftVec.end(), std::back_inserter(result));
-		std::inplace_merge(result.begin(), result.begin() + resSize, result.end());
-		std::copy(rightVec.begin(), rightVec.end(), std::back_inserter(result));
-		std::inplace_merge(result.begin(), result.begin() + resSize + leftVec.size(), result.end());
+		if (!leftVec.empty())
+		{
+			std::copy(leftVec.begin(), leftVec.end(), std::back_inserter(result));
+			std::inplace_merge(result.begin(), result.begin() + resSize, result.end());
+		}
+		if (!rightVec.empty())
+		{
+			std::copy(rightVec.begin(), rightVec.end(), std::back_inserter(result));
+			std::inplace_merge(result.begin(), result.begin() + resSize + leftVec.size(), result.end());
+		}
 		
 		return result;
 	}
