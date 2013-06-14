@@ -31,7 +31,8 @@ inline bool operator< (const SetRange<t>& r1, const SetRange<t>& r2)
 
 struct SetXSection
 {
-    size_t skipLength, minLength;
+    int32_t skipLength;
+	int32_t minLength;
 	
     SetXSection() : skipLength(0), minLength(0) {}
     
@@ -104,12 +105,12 @@ struct SetXSection
 			}
 		}
 		
-		std::sort(result.rbegin(), result.rend());
+		std::sort(result.begin(), result.end());
 		return result;
 	}
 private:
 	template<typename T>
-	std::vector<SetRange<T>> compute2neePos(T hayStart, T hayEnd, T neeStart, T neeEnd, T neePos) const
+	std::vector<SetRange<T>> compute2neePos(const T hayStart, const T hayEnd, const T neeStart, const T neeEnd, const T neePos) const
 	{
 		if (std::distance(neeStart, neeEnd) <= static_cast<ptrdiff_t>(minLength) ||
 				std::distance(hayStart, hayEnd) <= static_cast<ptrdiff_t>(minLength))
@@ -123,17 +124,17 @@ private:
 			auto curLeft = hayPos, curRight = hayPos;
 			auto curNeeLeft = neePos, curNeeRight = neePos;
 
-			uint curLeftDegrads = 0, curRightDegrads = 0;
-			uint totalDegrads = 0;
+			int curLeftDegrads = 0, curRightDegrads = 0;
+			int totalDegrads = 0;
 
 			bool growLeft = curLeft != hayStart && curNeeLeft != neeStart;
 			bool growRight = curRight + 1 < hayEnd && curNeeRight + 1 < neeEnd;
 
 			while (growLeft || growRight)
 			{
-				if (curLeft == hayStart)
+				if (curLeft == hayStart || curNeeLeft == neeStart)
 					growLeft = false;
-				if (curRight + 1 == hayEnd)
+				if (curRight + 1 == hayEnd || curNeeRight + 1 == neeEnd)
 					growRight = false;
 
 				if (growLeft)
@@ -170,11 +171,12 @@ private:
 			std::advance(hayPos, 1);
 			hayPos = std::find(hayPos, hayEnd, *neePos);
 		}
+		std::sort(result.begin(), result.end());
 		return result;
 	}
 public:
 	template<typename T>
-	std::vector<SetRange<T>> compute2(T hayStart, T hayEnd, T neeStart, T neeEnd) const
+	std::vector<SetRange<T>> compute2(const T hayStart, const T hayEnd, const T neeStart, const T neeEnd) const
 	{
 		if (std::distance(neeStart, neeEnd) <= static_cast<ptrdiff_t>(minLength) ||
 				std::distance(hayStart, hayEnd) <= static_cast<ptrdiff_t>(minLength))
@@ -202,10 +204,16 @@ public:
 		const auto& leftVec = compute2(hayStart, hayEnd, neeStart, maxLeft);
 		const auto& rightVec = compute2(hayStart, hayEnd, maxRight, neeEnd);
 
-		std::copy(leftVec.begin(), leftVec.end(), std::back_inserter(result));
-		std::inplace_merge(result.begin(), result.begin() + resSize, result.end());
-		std::copy(rightVec.begin(), rightVec.end(), std::back_inserter(result));
-		std::inplace_merge(result.begin(), result.begin() + resSize + leftVec.size(), result.end());
+		if (!leftVec.empty())
+		{
+			std::copy(leftVec.begin(), leftVec.end(), std::back_inserter(result));
+			std::inplace_merge(result.begin(), result.begin() + resSize, result.end());
+		}
+		if (!rightVec.empty())
+		{
+			std::copy(rightVec.begin(), rightVec.end(), std::back_inserter(result));
+			std::inplace_merge(result.begin(), result.begin() + resSize + leftVec.size(), result.end());
+		}
 		
 		return result;
 	}
@@ -219,8 +227,9 @@ public:
 		FindLongestResult result { 0, 0 };
 		if (!res.empty())
 		{
-			result.first = std::distance(res[0].first, res[0].second);
-			result.second = res[0].skip;
+			const auto& item = res.back();
+			result.first = std::distance(item.first, item.second);
+			result.second = item.skip;
 		}
 		return result;
 	}
