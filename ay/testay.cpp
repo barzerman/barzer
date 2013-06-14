@@ -461,7 +461,7 @@ int test_ay_sets(int argc, char* argv[])
         ay::StrUTF8 u1( s1.c_str()), u2( s2.c_str() ); 
         auto x = xsec.findLongest( s1, s2 );
         ay::stopwatch localTimer;
-        for( size_t i =0; i< 100000; ++i ) {
+        for( size_t i =0; i< 4000; ++i ) {
             x = xsec.findLongest( s1, s2 );
         }
         /*
