@@ -104,7 +104,7 @@ struct SetXSection
 			}
 		}
 		
-		std::sort(result.rbegin(), result.rend());
+		std::sort(result.begin(), result.end());
 		return result;
 	}
 private:
@@ -170,6 +170,7 @@ private:
 			std::advance(hayPos, 1);
 			hayPos = std::find(hayPos, hayEnd, *neePos);
 		}
+		std::sort(result.begin(), result.end());
 		return result;
 	}
 public:
@@ -225,8 +226,9 @@ public:
 		FindLongestResult result { 0, 0 };
 		if (!res.empty())
 		{
-			result.first = std::distance(res[0].first, res[0].second);
-			result.second = res[0].skip;
+			const auto& item = res.back();
+			result.first = std::distance(item.first, item.second);
+			result.second = item.skip;
 		}
 		return result;
 	}
