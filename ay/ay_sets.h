@@ -123,8 +123,8 @@ private:
 			auto curLeft = hayPos, curRight = hayPos;
 			auto curNeeLeft = neePos, curNeeRight = neePos;
 
-			uint curLeftDegrads = 0, curRightDegrads = 0;
-			uint totalDegrads = 0;
+			int curLeftDegrads = 0, curRightDegrads = 0;
+			int totalDegrads = 0;
 
 			bool growLeft = curLeft != hayStart && curNeeLeft != neeStart;
 			bool growRight = curRight + 1 < hayEnd && curNeeRight + 1 < neeEnd;
