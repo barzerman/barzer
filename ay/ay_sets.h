@@ -31,7 +31,8 @@ inline bool operator< (const SetRange<t>& r1, const SetRange<t>& r2)
 
 struct SetXSection
 {
-    size_t skipLength, minLength;
+    int32_t skipLength;
+	int32_t minLength;
 	
     SetXSection() : skipLength(0), minLength(0) {}
     
