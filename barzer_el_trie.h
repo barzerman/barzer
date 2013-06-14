@@ -261,8 +261,6 @@ class BarzelTrieNode {
 	};
 	ay::bitflags<B_MAX> d_flags;
 	
-	uint16_t m_refcount;
-	
 	/// methods
 	void clearFirmMap();
 	void clearWCMap();
@@ -282,15 +280,13 @@ public:
 		d_parent(0),
 		d_firmMapId(0xffffffff),
 		d_wcLookupId(0xffffffff) ,
-		d_translationId(0xffffffff),
-		m_refcount(0)
+		d_translationId(0xffffffff)
 	{}
 	BarzelTrieNode(const BarzelTrieNode* p ):
 		d_parent(p),
 		d_firmMapId(0xffffffff) ,
 		d_wcLookupId(0xffffffff) ,
-		d_translationId(0xffffffff),
-		m_refcount(0)
+		d_translationId(0xffffffff)
 	{}
 
 	const BarzelTrieNode* getParent() const { return d_parent; }
@@ -312,10 +308,6 @@ public:
 
 	/// makes node leaf and sets translation
 	void setTranslation(uint32_t tranId ) { d_translationId = tranId; }
-
-	uint16_t ref() { return ++m_refcount; }
-	uint16_t deref() { return --m_refcount; }
-	uint16_t getRefcount() const { return m_refcount; }
 
 	// locates a child node or creates a new one and returns a reference to it. non-leaf by default
 	// if pattern data cant be translated into a valid key the same node is returned
@@ -381,7 +373,7 @@ public:
     typedef std::pair<BarzelTranslationTraceInfo, AmbiguousTraceInfo> DataUnit;
     typedef std::vector<DataUnit> Data;
 private:
-    boost::unordered_map< uint32_t, Data > d_dataMap;
+    std::map< uint32_t, Data > d_dataMap;
 public:
     /// links (translation traceinfo, ambiguity id) pair to translation
     void link( uint32_t tranId, const BarzelTranslationTraceInfo&, const AmbiguousTraceId& );

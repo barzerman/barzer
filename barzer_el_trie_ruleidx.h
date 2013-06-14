@@ -59,44 +59,18 @@ inline bool operator==(const RulePath& r1, const RulePath& r2)
 
 enum class NodeType : uint8_t
 {
-	EList,		// the default, seems like anything is potentially an entlist (or won't be added anyway)
+	EList,		
 	Subtree
 };
 
-namespace detail
-{
-	struct PosInfo
-	{
-		BarzelTrieNode *m_node;
-		uint32_t m_pos;
-		NodeType m_type;
-		
-		PosInfo(BarzelTrieNode *n = 0, NodeType t = NodeType::EList, size_t p = 0)
-		: m_node(n)
-		, m_pos(p)
-		, m_type(t)
-		{ }
-	};
-
-	inline bool operator==(const PosInfo& p1, const PosInfo& p2)
-	{
-		return p1.m_node == p2.m_node && p1.m_pos == p2.m_pos;
-	}
-
-}
-
 class TrieRuleIdx {
-	std::map<RulePath, std::vector<detail::PosInfo>> m_path2nodes;
+public:
+    typedef std::vector<BarzelTrieNode*> TrieNodeInfo;
+private:
+	std::map<RulePath, TrieNodeInfo> m_path2nodes;
     StoredUniverse& d_universe;
 public:
-	/** @brief Adds the given node as associated with the rule identified by path.
-	 *
-	 * @param[in] path The path of the rule as the source ID and statement ID.
-	 * @param[in] node The node modified as the result of the rule parsing.
-	 * @param[in] position The position of an entity (or smth) in the entlist (or
-	 * smth) in the \em node.
-	 */
-	void addNode(const RulePath& path, BarzelTrieNode *node, uint32_t position, NodeType type);
+	void addNode(const RulePath& path, BarzelTrieNode *node );
 
 	bool removeNode(const RulePath& path);
     

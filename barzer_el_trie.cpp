@@ -544,7 +544,10 @@ const BarzelTrieNode* BELTrie::addPath(
 				}
 			}
 			
-			uni->ruleIdx().addNode({ stmt.d_sourceNameStrId, stmt.d_stmtNumber, getTrieClass_strId(), getTrieId_strId() }, n, pos, type);
+			uni->ruleIdx().addNode(
+                RulePath(stmt.d_sourceNameStrId, stmt.d_stmtNumber, getTrieClass_strId(), getTrieId_strId()), 
+                n
+            );
 		}
 	} else
 		AYTRACE("inconsistent state for setTranslation");
@@ -609,14 +612,14 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELSta
 			tran->setMkEntList( grpId );
 			entGrp->addEntity( entId );
 			
-			uni->ruleIdx().addNode(rp, n, entId, NodeType::EList);
+			uni->ruleIdx().addNode(rp, n);
 			break;
 		}
 		case BarzelTranslation::T_MKENTLIST:
 		{
 			const auto entId = tran->getId_uint32();
 			entGrp = getEntityCollection().getEntGroup(entId);
-			uni->ruleIdx().addNode(rp, n, entId, NodeType::EList);
+			uni->ruleIdx().addNode(rp, n);
 			break;
 		}
 		default: { // CLASH 
@@ -650,17 +653,14 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELSta
                                 }
                             }
 
-                            TrieRuleIdx& idx = uni->ruleIdx();
                             for (auto id : addedChildren)
-								idx.addNode(rp, n, id, NodeType::Subtree);
+								uni->ruleIdx().addNode(rp, n);
 							
                             return true;
-                        }
-                        else if( newEvNode.hasSameChildren(*evNode) )
-						{
+                        } else if( newEvNode.hasSameChildren(*evNode) ) {
                             TrieRuleIdx& idx = uni->ruleIdx();
 							for (const auto& c : evNode->getChild())
-								idx.addNode(rp, n, c.getNodeId(), NodeType::Subtree);
+								uni->ruleIdx().addNode(rp, n);
                             return true;
 						}
                     }
