@@ -132,9 +132,9 @@ private:
 
 			while (growLeft || growRight)
 			{
-				if (curLeft == hayStart)
+				if (curLeft == hayStart || curNeeLeft == neeStart)
 					growLeft = false;
-				if (curRight + 1 == hayEnd)
+				if (curRight + 1 == hayEnd || curNeeRight + 1 == neeEnd)
 					growRight = false;
 
 				if (growLeft)
