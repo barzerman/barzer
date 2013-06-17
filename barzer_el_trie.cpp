@@ -530,21 +530,6 @@ const BarzelTrieNode* BELTrie::addPath(
 		{
 			n->setTranslation( transId );
 			
-			size_t pos = 0;
-			auto tran = getBarzelTranslation(*n);
-			NodeType type = NodeType::EList;
-			if (tran)
-			{
-				if (tran->getType() == BarzelTranslation::T_MKENT ||
-					 tran->getType() == BarzelTranslation::T_MKENTLIST)
-					pos = tran->getId_uint32();
-				else if (tran->isRawTree())
-				{
-					pos = getRewriterPool().getRawNode(*tran)->getNodeId();
-					type = NodeType::Subtree;
-				}
-			}
-			
 			uni->ruleIdx().addNode(
                 RulePath(stmt.d_sourceNameStrId, stmt.d_stmtNumber, getTrieClass_strId(), getTrieId_strId()), 
                 n
