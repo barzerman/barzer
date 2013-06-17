@@ -38,6 +38,7 @@ struct RulePath
         m_trieId(tid),
         m_source(srcid), m_stId(stid)
     {}
+    
 };
 
 inline bool operator<(const RulePath& l, const RulePath& r)
@@ -81,6 +82,9 @@ public:
         const char* source, 
         uint32_t statementId 
     );
+
+    /// trieclass|trieid|source|statement id
+    bool removeNode( const char* str );
 
     void clear();
     TrieRuleIdx( StoredUniverse& u) : d_universe(u) {}

@@ -6,6 +6,7 @@
 #include <barzer_el_trie_ruleidx.h>
 #include <barzer_el_trie.h>
 #include <barzer_universe.h>
+#include <ay/ay_parse.h>
 
 namespace barzer
 {
@@ -34,6 +35,26 @@ bool TrieRuleIdx::removeNode( const char* trieClass, const char* trieId , const 
         return false;
     
     return true;
+}
+
+bool TrieRuleIdx::removeNode(const char* str)
+{
+    std::vector< std::string > arg;
+    ay::separated_string_to_vec( arg, '|' )( str );
+    if( arg.size() < 4 ) 
+        return false;
+    enum {
+        XX_TRIE_CLASS,
+        XX_TRIE_ID,
+        XX_SOURCE,
+        XX_STATEMENT
+    };
+    return removeNode( 
+        arg[XX_TRIE_CLASS].c_str() ,
+        arg[XX_TRIE_ID].c_str() ,
+        arg[XX_SOURCE].c_str() ,
+        atoi(arg[XX_STATEMENT].c_str())
+    );
 }
 
 bool TrieRuleIdx::removeNode (const RulePath& path)
