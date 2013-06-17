@@ -308,6 +308,7 @@ public:
 
 	/// makes node leaf and sets translation
 	void setTranslation(uint32_t tranId ) { d_translationId = tranId; }
+	void clearTranslation() { setTranslation(0xffffffff); }
 
 	// locates a child node or creates a new one and returns a reference to it. non-leaf by default
 	// if pattern data cant be translated into a valid key the same node is returned
@@ -377,7 +378,10 @@ private:
 public:
     /// links (translation traceinfo, ambiguity id) pair to translation
     void link( uint32_t tranId, const BarzelTranslationTraceInfo&, const AmbiguousTraceId& );
-    void unlink( uint32_t tranId, const BarzelTranslationTraceInfo& );
+    /// returns the number of ambiguous rules still linked to this translation after the removal
+    size_t unlink( uint32_t tranId, const BarzelTranslationTraceInfo& );
+    size_t unlink( uint32_t tranId, uint32_t source, uint32_t statementId ) 
+        { return unlink( tranId, BarzelTranslationTraceInfo(source,statementId)); }
     void clear() { d_dataMap.clear(); }
     const AmbiguousTranslationReference::Data* data(uint32_t tranId) const
         { auto i = d_dataMap.find( tranId ); return( i == d_dataMap.end() ? 0 : &(i->second) ); }
@@ -418,6 +422,8 @@ class BELTrie {
     
 	BELTrie( const BELTrie& a );
 public:
+    AmbiguousTranslationReference& getAmbiguousTranslationReference() { return d_ambTranRef; }
+    const AmbiguousTranslationReference& getAmbiguousTranslationReference() const { return d_ambTranRef; }
     // ERASE SHIT
     // void linkTraceInfo( const BarzelTranslationTraceInfo& key, const BarzelTranslationTraceInfo& v ) 
         // { d_linkedTranInfoMap[ key ].push_back( v ); }
@@ -571,6 +577,7 @@ public:
 	std::ostream& print( std::ostream&, BELPrintContext& ctxt ) const;
 
 	void clear();
+    void removeNode( BarzelTrieNode* );
 };
 
 inline BarzelTranslation* BarzelTrieNode::getTranslation(BELTrie& trie)

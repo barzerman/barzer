@@ -21,6 +21,8 @@ struct RulePath
 	uint32_t m_source;
 	uint32_t m_stId;
 
+    uint32_t source() const { return m_source; }
+    uint32_t statementId() const { return m_stId; }
     void setTrieId( uint32_t cid, uint32_t tid ) 
         { m_trieId = { cid, tid }; }
 

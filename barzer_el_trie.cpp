@@ -110,7 +110,7 @@ std::ostream& BELTrie::printVariableName( std::ostream& fp, uint32_t varId ) con
 
 const BarzelWCLookup*  BELPrintContext::getWildcardLookup( uint32_t id ) const
 {
-return( trie.getWCPool().getWCLookup( id ));
+    return( trie.getWCPool().getWCLookup( id ));
 }
 
 void BarzelTrieNode::clearFirmMap()
@@ -406,6 +406,7 @@ BarzelTrieNode* BarzelTrieNode::addFirmPattern( BELTrie& trie, const BarzelTrieF
 }
 
 
+
 BarzelTrieNode* BarzelTrieNode::addWildcardPattern( BELTrie& trie, const BTND_PatternData& p, const BarzelTrieFirmChildKey& fk  )
 {
 	if( !hasValidWcLookup() ) 
@@ -590,6 +591,30 @@ void BELTrie::addImperative( const BELStatementParsed& stmt, bool pre )
 
     imperativeVec->back().translation.set(*this, stmt.translation) ;
     imperativeVec->back().trace.set( stmt.getSourceNameStrId(), stmt.getStmtNumber(), 0 );
+}
+void BELTrie::removeNode(BarzelTrieNode* node) 
+{
+    for( const BarzelTrieNode* n = node->getParent(); n; n= n->getParent() ) {
+        if( BarzelFCMap* fm=  getBarzelFCMap(*n) ) {
+            for( BarzelFCMap::iterator i = fm->begin(); i!= fm->end(); ++i ) {
+                if( &(i->second) == n ) {
+                    fm->erase( i );
+                    break;
+                }
+            }
+        }
+        if( d_wcPool ) {
+            if( BarzelWCLookup*  wcl = d_wcPool->getWCLookup(n->getWCLookupId()) )  {
+                for( BarzelWCLookup::iterator i = wcl->begin(); i!= wcl->end(); ++i ) {
+                    if( &(i->second) == n ) {
+                        wcl->erase( i );
+                        break;
+                     }
+                }
+             
+            }
+        }
+    }
 }
 bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELStatementParsed& stmt, uint32_t emitterSeqNo, StoredUniverse *uni )
 {
@@ -909,7 +934,7 @@ std::ostream& BarzelTranslation::print( std::ostream& fp, const BELPrintContext&
 #undef CASEPRINT
 }
 
-void AmbiguousTranslationReference::unlink( uint32_t tranId, const BarzelTranslationTraceInfo& ti )
+size_t AmbiguousTranslationReference::unlink( uint32_t tranId, const BarzelTranslationTraceInfo& ti )
 {
     auto dtaI = d_dataMap.find( tranId ) ;
     if( dtaI != d_dataMap.end() ) {
@@ -917,14 +942,20 @@ void AmbiguousTranslationReference::unlink( uint32_t tranId, const BarzelTransla
             [&]( const AmbiguousTranslationReference::Data::value_type& d ) { return (d.first.sameStatementAs(ti) ) ; } );
         
         if( foundI== dtaI->second.end() ) 
-            return;
+            return dtaI->second.size();
 
         Data tmpData;
         tmpData.reserve( dtaI->second.size()-1 );
 
         for( auto& i : dtaI->second ) if( !i.first.sameStatementAs(ti) ) tmpData.push_back( i );
         dtaI->second.swap( tmpData );
-    }
+
+        size_t vecSize = dtaI->second.size();
+        if( !vecSize ) 
+            d_dataMap.erase(dtaI);
+        return vecSize;
+    } else
+        return 0;
 }
 void AmbiguousTranslationReference::link( uint32_t tranId, const BarzelTranslationTraceInfo& ti, const AmbiguousTraceId& atId )
 {

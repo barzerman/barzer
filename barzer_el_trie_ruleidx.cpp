@@ -42,14 +42,24 @@ bool TrieRuleIdx::removeNode (const RulePath& path)
 	if (pos == m_path2nodes.end())
 		return false;
 
-    #warning IMPLEMENT THIS FOLLOW INSTRUCTIONS IN THE COMMENTS 
-    //// 1. get trie 
-    //// 2. try removing it from ambiguous info of that trie 
-    //// 3. if lock count on ambiguous info for the translation is off - remove this node
-    ///      * removing the node :
-    ///       - go to the parent remove this child from appropriate map 
-    ////      - if this node has no children - zap it
-    ////      - take parent of parent if parent has no children nor a valid translation - zap it 
+    if( BELTrie* trie = d_universe.getTrieCluster().getTrieByUniqueId(path.m_trieId) ) {
+        AmbiguousTranslationReference& ambTranRef = trie->getAmbiguousTranslationReference();
+        for( auto& trieNode : pos->second ) { // iterating over all nodes for this rule path
+            size_t numAmbiguousTranslations = !ambTranRef.unlink( trieNode->getTranslationId(), path.source(), path.statementId() );
+            
+            if( numAmbiguousTranslations )
+                continue;
+            /// this translation is no longer ambiguous 
+            trieNode->clearTranslation();
+            /// this node doesnt have a translation anymore 
+            /// now if it's childless we remove it and go up the trie 
+            if( !trieNode->hasChildren() ) 
+                trie->removeNode( trieNode );
+        }
+
+    } else 
+        return false;
+
 
 	for (auto& info : pos->second)
 	{
