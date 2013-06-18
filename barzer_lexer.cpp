@@ -878,7 +878,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 		    return SpellCorrectResult (-1, ++cPosVec, ++tPosVec);
         }
     }
-	char buf[ BZSpell::MAX_WORD_LEN ] ;
+	char buf[ BZSpell::MAX_WORD_LEN + 1 ] ;
     buf[0] = 0;
 	// trying lower case
 	if( !isUsersWord ) {

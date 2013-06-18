@@ -255,8 +255,9 @@ struct Char2B_iterator {
 inline int operator -( const Char2B_iterator& l, const Char2B_iterator& r ) 
     { return ( (l.d_s - r.d_s)/2 ); }
 
-inline int operator != (const Char2B_iterator& l, const Char2B_iterator& r ) { return ( l.d_s != r.d_s); }
-inline int operator == (const Char2B_iterator& l, const Char2B_iterator& r ) { return ( l.d_s == r.d_s); }
+inline bool operator!= (const Char2B_iterator& l, const Char2B_iterator& r ) { return ( l.d_s != r.d_s); }
+inline bool operator== (const Char2B_iterator& l, const Char2B_iterator& r ) { return ( l.d_s == r.d_s); }
+inline bool operator< (const Char2B_iterator& l, const Char2B_iterator& r ) { return ( l.d_s < r.d_s); }
 
 /// prefix matcher  - pfx should be an array of const char* terminated by 0
 /// 
