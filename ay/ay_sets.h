@@ -34,7 +34,7 @@ struct SetXSection
     int32_t skipLength;
 	int32_t minLength;
 	
-    SetXSection() : skipLength(0), minLength(0) {}
+    SetXSection() : skipLength(0), minLength(4) {}
     
 	template<typename T>
 	std::vector<SetRange<T>> compute(T hayStart, T hayEnd, T neeStart, T neeEnd) const
