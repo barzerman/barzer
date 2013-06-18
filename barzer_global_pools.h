@@ -85,7 +85,8 @@ private:
 	TheGrammarList d_trieList;
 	friend class UniverseTrieClusterIterator;
 
-    typedef std::map< UniqueTrieId, const BELTrie* > UniqIdTrieMap;
+    // we do not own these pointers (theyre owned by the global pool)
+    typedef std::map< UniqueTrieId, BELTrie* > UniqIdTrieMap;
     UniqIdTrieMap d_ownTrieMap;
 public:
 	const TheGrammarList& getTrieList() const { return d_trieList; }
@@ -119,9 +120,14 @@ public:
         return ( i == d_ownTrieMap.end() ? i->second : 0 );
     }
     BELTrie* getTrieByUniqueId( const UniqueTrieId& tid ) 
-        { return const_cast<BELTrie*>(getTrieByUniqueId(tid)); }
+        { 
+            UniqIdTrieMap::iterator i = d_ownTrieMap.find(tid);
+            return ( i == d_ownTrieMap.end() ? i->second : 0 );
+        }
     BELTrie* getTrieByUniqueId( uint32_t tc, uint32_t tid ) const
-        { return const_cast<BELTrie*>(getTrieByUniqueId( UniqueTrieId(tc,tid) )); }
+        { 
+            return const_cast<BELTrie*>(getTrieByUniqueId( UniqueTrieId(tc,tid) )); 
+        }
     
     BELTrie* getTrieByClassAndId( const char* trieClass, const char* trieId ) ;
     const BELTrie* getTrieByClassAndId( const char* trieClass, const char* trieId ) const;

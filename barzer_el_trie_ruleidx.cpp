@@ -29,7 +29,7 @@ bool TrieRuleIdx::removeNode( const char* trieClass, const char* trieId , const 
     if( BELTrie* trie = d_universe.getTrieCluster().getTrieByClassAndId( trieClass, trieId ) ) {
         uint32_t sourceId = d_universe.getGlobalPools().internalString_getId( source );
 
-        RulePath path( statementId, sourceId, d_universe.getTrieCluster().getUniqueTrieId(trieClass,trieId) );
+        RulePath path( sourceId, statementId, d_universe.getTrieCluster().getUniqueTrieId(trieClass,trieId) );
         return removeNode(path) ;
     } else
         return false;
@@ -66,6 +66,8 @@ bool TrieRuleIdx::removeNode (const RulePath& path)
     if( BELTrie* trie = d_universe.getTrieCluster().getTrieByUniqueId(path.m_trieId) ) {
         AmbiguousTranslationReference& ambTranRef = trie->getAmbiguousTranslationReference();
         for( auto& trieNode : pos->second ) { // iterating over all nodes for this rule path
+            if( !trieNode )
+                continue;
             size_t numAmbiguousTranslations = !ambTranRef.unlink( trieNode->getTranslationId(), path.source(), path.statementId() );
             
             if( numAmbiguousTranslations )
@@ -74,20 +76,21 @@ bool TrieRuleIdx::removeNode (const RulePath& path)
             trieNode->clearTranslation();
             /// this node doesnt have a translation anymore 
             /// now if it's childless we remove it and go up the trie 
-            if( !trieNode->hasChildren() ) 
+            if( !trieNode->hasChildren() )  {
                 trie->removeNode( trieNode );
+                trieNode = 0;
+            }
         }
 
     } else 
         return false;
 
 
-	for (auto& info : pos->second)
-	{
-		BarzelTrieNode* node = info;
-	}
+    size_t numNonNulls = 0;
+	for (auto& info : pos->second) { if( info ) ++numNonNulls; }
 
-	m_path2nodes.erase(pos);
+    if( !numNonNulls )
+	    m_path2nodes.erase(pos);
     return true;
 }
 
