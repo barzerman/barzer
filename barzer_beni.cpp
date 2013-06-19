@@ -137,13 +137,13 @@ namespace
 
 	// for =zero length val isn't changed, for bigger lengths
 	// val goes to threshold
-	double calcPenalty(double val, size_t length)
+	double calcPenalty(double val, double length)
 	{
 		// val → y
 		// length → x
-		const size_t threshold = 30;
-		const double smoothness = 5;
-		const double affect = 0.5;
+		const double threshold = 0.5;
+		const double smoothness = 0.1;
+		const double affect = 0.7;
 
 		return val * ((1 - affect) + affect / (1 + exp ((length - threshold) / smoothness)));
 	}
@@ -197,8 +197,11 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) 
 					const ay::StrUTF8 normUtf8(normDest.c_str(), normDest.size());
 					const auto& longest = xsect.findLongest(strUtf8, normUtf8);
 
+					const double maxLength = std::min(strUtf8.size(), normUtf8.size());
+					const double relLength = longest.first / maxLength;
+
 					// here we compute the penalty for the difference between coverage and 1
-					cov = 1 - calcPenalty(1 - cov, longest.first);
+					cov = 1 - calcPenalty(1 - cov, relLength);
 				}
 				out.push_back({ *(i.m_data), i.m_levDist, cov, i.m_relevance });
 			}
