@@ -246,6 +246,12 @@ BELTrie& UniverseTrieCluster::appendTrie( uint32_t trieClass, uint32_t trieId, G
 {
     BELTrie* tr = d_triePool.produceTrie(trieClass,trieId);
     d_trieList.push_back( TheGrammar(tr,gi) );
+    auto uniqId = tr->getUniqueTrieId();
+
+    auto i = d_ownTrieMap.find(uniqId);
+    if( i == d_ownTrieMap.end() )
+        d_ownTrieMap.insert( UniqIdTrieMap::value_type( uniqId, tr));
+
     tr->registerUser( d_universe.getUserId() );
     return *tr;
 }

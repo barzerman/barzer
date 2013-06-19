@@ -122,7 +122,7 @@ public:
     BELTrie* getTrieByUniqueId( const UniqueTrieId& tid ) 
         { 
             UniqIdTrieMap::iterator i = d_ownTrieMap.find(tid);
-            return ( i == d_ownTrieMap.end() ? i->second : 0 );
+            return ( i == d_ownTrieMap.end() ? 0 :i->second );
         }
     BELTrie* getTrieByUniqueId( uint32_t tc, uint32_t tid ) const
         { 
