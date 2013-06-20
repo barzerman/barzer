@@ -604,9 +604,9 @@ void BELTrie::removeNode(BarzelTrieNode* node)
 bool BELTrie::removeFromAmbiguousTranslation( const BarzelTranslation& tran, const AmbiguousTraceId& traceId )
 {
     if( traceId.isEntity() ) { // this is entity list
-        const auto entId = tran.getId_uint32();
-        if( EntityGroup* entGrp = getEntityCollection().getEntGroup(entId) )
-            return entGrp->removeEntity( entId );
+        const auto tranId = tran.getId_uint32();
+        if( EntityGroup* entGrp = getEntityCollection().getEntGroup(tranId) )
+            return entGrp->removeEntity( traceId.getId() );
     } else 
     if( traceId.isSubtree() ) { // this is a subtree
         if( BarzelEvalNode* evNode = getRewriterPool().getRawNode( tran ) ) {
@@ -636,7 +636,7 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELSta
 			entGrp = getEntityCollection().addEntGroup( grpId );
 			tran->setMkEntList( grpId );
 			entGrp->addEntity( entId );
-			
+		    d_ambTranRef.link( n->getTranslationId(), tran->traceInfo, AmbiguousTraceId(entId,AmbiguousTraceId::TYPE_ENTITY));	
 			uni->ruleIdx().addNode(rp, n);
 			break;
 		}
