@@ -54,11 +54,15 @@ public:
         return n;
     }
     bool getNodeId() const { return d_nodeId; } 
-    void deleteChildById(NodeID_t id) {
+    bool deleteChildById(NodeID_t id) {
         auto i = std::find_if( d_child.begin(), d_child.end(), 
             [&]( const BarzelEvalNode& o ) { return o.getNodeId() == id; } );
-        if( i != d_child.end() )
+        if( i != d_child.end() ) {
             d_child.erase(i);
+            return true;
+        }
+
+        return false;
     }
 	const ChildVec& getChild() const { return d_child; }
     

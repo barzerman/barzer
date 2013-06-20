@@ -379,9 +379,9 @@ public:
     /// links (translation traceinfo, ambiguity id) pair to translation
     void link( uint32_t tranId, const BarzelTranslationTraceInfo&, const AmbiguousTraceId& );
     /// returns the number of ambiguous rules still linked to this translation after the removal
-    size_t unlink( uint32_t tranId, const BarzelTranslationTraceInfo& );
-    size_t unlink( uint32_t tranId, uint32_t source, uint32_t statementId ) 
-        { return unlink( tranId, BarzelTranslationTraceInfo(source,statementId)); }
+    size_t unlink( uint32_t tranId, const BarzelTranslationTraceInfo&, BELTrie& trie );
+    size_t unlink( uint32_t tranId, uint32_t source, uint32_t statementId, BELTrie& trie ) 
+        { return unlink( tranId, BarzelTranslationTraceInfo(source,statementId), trie); }
     void clear() { d_dataMap.clear(); }
     const AmbiguousTranslationReference::Data* data(uint32_t tranId) const
         { auto i = d_dataMap.find( tranId ); return( i == d_dataMap.end() ? 0 : &(i->second) ); }
@@ -550,6 +550,10 @@ public:
 	/// tries to add another translation to the existing one.
 	/// initially this will only work for entity lists
 	bool tryAddingTranslation( BarzelTrieNode* n, uint32_t tranId, const BELStatementParsed& stmt, uint32_t emitterSeqNo, StoredUniverse* );
+
+    /// called to remove an ellement of an ambiguous translation
+    /// returns true if successful
+	bool removeFromAmbiguousTranslation( const BarzelTranslation& tran, const AmbiguousTraceId& traceId );
 
 	BarzelFCMap*  makeNewBarzelFCMap( uint32_t& id )
 		{ return d_fcPool->addObj( id ); }

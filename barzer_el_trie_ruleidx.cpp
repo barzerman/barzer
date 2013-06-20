@@ -68,12 +68,14 @@ bool TrieRuleIdx::removeNode (const RulePath& path)
         for( auto& trieNode : pos->second ) { // iterating over all nodes for this rule path
             if( !trieNode )
                 continue;
-            size_t numAmbiguousTranslations = !ambTranRef.unlink( trieNode->getTranslationId(), path.source(), path.statementId() );
+            size_t numAmbiguousTranslations = ambTranRef.unlink( trieNode->getTranslationId(), path.source(), path.statementId(), *trie );
             
-            if( numAmbiguousTranslations )
+            if( numAmbiguousTranslations ) {
                 continue;
-            /// this translation is no longer ambiguous 
-            trieNode->clearTranslation();
+            } else { 
+                /// this translation is no longer ambiguous 
+                trieNode->clearTranslation();
+            }
             /// this node doesnt have a translation anymore 
             /// now if it's childless we remove it and go up the trie 
             if( !trieNode->hasChildren() )  {

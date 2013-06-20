@@ -601,6 +601,21 @@ void BELTrie::removeNode(BarzelTrieNode* node)
         }
     }
 }
+bool BELTrie::removeFromAmbiguousTranslation( const BarzelTranslation& tran, const AmbiguousTraceId& traceId )
+{
+    if( traceId.isEntity() ) { // this is entity list
+        const auto entId = tran.getId_uint32();
+        if( EntityGroup* entGrp = getEntityCollection().getEntGroup(entId) )
+            return entGrp->removeEntity( entId );
+    } else 
+    if( traceId.isSubtree() ) { // this is a subtree
+        if( BarzelEvalNode* evNode = getRewriterPool().getRawNode( tran ) ) {
+            return evNode->deleteChildById( traceId.getId() );
+        }
+    }
+
+    return false;
+}
 bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELStatementParsed& stmt, uint32_t emitterSeqNo, StoredUniverse *uni )
 {
 	BarzelTranslation* tran = getBarzelTranslation(*n);
@@ -919,21 +934,21 @@ std::ostream& BarzelTranslation::print( std::ostream& fp, const BELPrintContext&
 #undef CASEPRINT
 }
 
-size_t AmbiguousTranslationReference::unlink( uint32_t tranId, const BarzelTranslationTraceInfo& ti )
+size_t AmbiguousTranslationReference::unlink( uint32_t tranId, const BarzelTranslationTraceInfo& ti, BELTrie& trie )
 {
     auto dtaI = d_dataMap.find( tranId ) ;
     if( dtaI != d_dataMap.end() ) {
         auto foundI = std::find_if(dtaI->second.begin(),dtaI->second.end(),
             [&]( const AmbiguousTranslationReference::Data::value_type& d ) { return (d.first.sameStatementAs(ti) ) ; } );
         
-        if( foundI== dtaI->second.end() ) 
+        if( foundI== dtaI->second.end() || dtaI->second.empty() ) 
             return dtaI->second.size();
-
-        Data tmpData;
-        tmpData.reserve( dtaI->second.size()-1 );
-
-        for( auto& i : dtaI->second ) if( !i.first.sameStatementAs(ti) ) tmpData.push_back( i );
-        dtaI->second.swap( tmpData );
+        if( !foundI->second.unlock().getRefCount() ) {
+            AmbiguousTraceInfo ti = foundI->second;
+            dtaI->second.erase( foundI );
+            if( const BarzelTranslation* tran = trie.getBarzelTranslation(tranId) ) 
+                trie.removeFromAmbiguousTranslation( *tran, ti );
+        }
 
         size_t vecSize = dtaI->second.size();
         if( !vecSize ) 
