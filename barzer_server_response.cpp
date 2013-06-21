@@ -573,7 +573,7 @@ static void printTraceInfo(std::ostream &os, const Barz &barz, const StoredUnive
                                       % ti->tranInfo.statementNum
                                       % ti->tranInfo.emitterSeqNo
                                       % ti->grammarSeqNo;
-                    os << ">";
+                    os << "/>";
                 }
             }
             if( ti->errVec.size()) {
@@ -583,9 +583,7 @@ static void printTraceInfo(std::ostream &os, const Barz &barz, const StoredUnive
                     os << *ei << " ";
                 }
                 os << " </error></match>\n";
-            } else if( btiVec.empty() ) {
-                os << "/>";
-            } else {
+            } else if( !btiVec.empty() ) {
                 os << "\n</match>";
             }
             os << "\n";
