@@ -564,7 +564,7 @@ void BELTrie::linkTraceInfoNodes( uint32_t tranId, const BarzelTranslationTraceI
 }
 void BELTrie::linkTraceInfoEnt( uint32_t tranId, const BarzelTranslationTraceInfo& trInfo, const BarzelTranslationTraceInfo& v, uint32_t entId )
 {
-    d_ambTranRef.link( tranId, trInfo, AmbiguousTraceId(entId,AmbiguousTraceId::TYPE_ENTITY));
+    // d_ambTranRef.link( tranId, trInfo, AmbiguousTraceId(entId,AmbiguousTraceId::TYPE_ENTITY));
     d_ambTranRef.link( tranId, v, AmbiguousTraceId(entId,AmbiguousTraceId::TYPE_ENTITY));
 
     // d_linkedTranInfoMap[ trInfo ].push_back( v );
@@ -938,16 +938,17 @@ size_t AmbiguousTranslationReference::unlink( uint32_t tranId, const BarzelTrans
 {
     auto dtaI = d_dataMap.find( tranId ) ;
     if( dtaI != d_dataMap.end() ) {
-        auto foundI = std::find_if(dtaI->second.begin(),dtaI->second.end(),
-            [&]( const AmbiguousTranslationReference::Data::value_type& d ) { return (d.first.sameStatementAs(ti) ) ; } );
-        
+        auto& traceInfoVec = dtaI->second;
+        auto foundI = traceInfoVec.begin();
+        for( ; foundI!= traceInfoVec.end(); ++foundI ) { if( foundI->first.sameStatementAs(ti) ) break; }
+
         if( foundI== dtaI->second.end() || dtaI->second.empty() ) 
             return dtaI->second.size();
         if( !foundI->second.unlock().getRefCount() ) {
-            AmbiguousTraceInfo ti = foundI->second;
+            AmbiguousTraceInfo x = foundI->second;
             dtaI->second.erase( foundI );
             if( const BarzelTranslation* tran = trie.getBarzelTranslation(tranId) ) 
-                trie.removeFromAmbiguousTranslation( *tran, ti );
+                trie.removeFromAmbiguousTranslation( *tran, x );
         }
 
         size_t vecSize = dtaI->second.size();

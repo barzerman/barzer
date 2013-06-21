@@ -221,7 +221,7 @@ int proc_CLEAR_USER( RequestEnvironment& reqEnv, GlobalPools& gp, const char* st
 
 namespace {
 
-const char*  read_pipe_sep( std::ostream& os, std::string& dest, const char * buf, size_t maxLen = 32 ) 
+const char*  read_pipe_sep( std::ostream& os, std::string& dest, const char * buf, size_t maxLen = 256 ) 
 {
     const char* pipe = strchr( buf , '|' );
     if( pipe ) {

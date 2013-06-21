@@ -548,17 +548,19 @@ static void printTraceInfo(std::ostream &os, const Barz &barz, const StoredUnive
         BarzelTranslationTraceInfo::Vec btiVec;
         for( BarzelTrace::TraceVec::const_iterator ti = tvec.begin(), tend = tvec.end(); ti != tend; ++ti ) {
             const char *name = gp.internalString_resolve( ti->tranInfo.source );
-            os << boost::format(tmpl) % (name ? name : "")
-                                      % ti->tranInfo.statementNum
-                                      % ti->tranInfo.emitterSeqNo
-                                      % ti->grammarSeqNo;
+            if( !name ) name ="";
+
             const BELTrie* trie = gp.getTriePool().getTrie_byGlobalId(ti->globalTriePoolId) ;
             if( trie ) {
                 btiVec.clear();
-                if( trie->getLinkedTraceInfo(btiVec,ti->tranId) ) {
-                    os << ">";
+                if( trie->getLinkedTraceInfo(btiVec,ti->tranId) && !btiVec.empty() ) {
+                    os << "<match gram=\"" << ti->grammarSeqNo << "\" " ;
+                    xmlEscape( name, os << "file=\"" ) << "\" " <<
+                    "stmt=\"" << btiVec[0].first.statementNum  << "\" " <<
+                    "emit=\"" << btiVec[0].first.emitterSeqNo  << "\">";
 
-                    for( const auto& x: btiVec ) {
+                    for( size_t j = 1; j< btiVec.size(); ++j ) {
+                        const auto& x = btiVec[j];
                         const auto& i = x.first;
                         if( !(ti->tranInfo.statementNum== i.statementNum && i.source== ti->tranInfo.source ) ) {
                             const char *linkedName = gp.internalString_resolve_safe( i.source );
@@ -566,18 +568,25 @@ static void printTraceInfo(std::ostream &os, const Barz &barz, const StoredUnive
                                 "\" stmt=\"" << i.statementNum << "\" emit=\"" << i.emitterSeqNo << "\"/>";
                         }
                     }
+                } else {
+                    os << boost::format(tmpl) % (name ? name : "")
+                                      % ti->tranInfo.statementNum
+                                      % ti->tranInfo.emitterSeqNo
+                                      % ti->grammarSeqNo;
+                    os << ">";
                 }
             }
             if( ti->errVec.size()) {
                 os << "\n";
-                    
                 os << " <error>";
                 for( std::vector< std::string >::const_iterator ei = ti->errVec.begin(); ei!= ti->errVec.end(); ++ei ) {
                     os << *ei << " ";
                 }
                 os << " </error></match>\n";
-            } else {
+            } else if( btiVec.empty() ) {
                 os << "/>";
+            } else {
+                os << "\n</match>";
             }
             os << "\n";
         }
