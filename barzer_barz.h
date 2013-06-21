@@ -18,7 +18,7 @@ struct RequestEnvironment; // server request environment
 
 struct BarzelTrace {
     enum { 
-        MAX_TAIL_REPEAT = 16  // if more than this many consecutive occurrences are detected its a loop
+        MAX_TAIL_REPEAT = 64  // if more than this many consecutive occurrences are detected its a loop
     }; 
     struct SingleFrameTrace {
         size_t grammarSeqNo; // grammar sequence number
