@@ -40,17 +40,21 @@ class Ghettodb;
 class MeaningsStorage;
 class BarzerGeo;
 class SmartBENI;
+class TrieRuleIdx;
 
 class StoredUniverse {
 	uint32_t d_userId;
     std::string d_userName;
     //// search entities by names using this object
     SmartBENI* d_entNameIdx;
-    
+	TrieRuleIdx *m_ruleIdx;
 public:
     void beniInit();
     SmartBENI& beni();
     const SmartBENI* getBeni() const { return d_entNameIdx; }
+
+    const TrieRuleIdx& ruleIdx() const { return *m_ruleIdx; }
+    TrieRuleIdx& ruleIdx() { return *m_ruleIdx; }
 
     void indexEntityNames( const StoredEntityClass& ec ) ;
     void searchEntitiesInZurch( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) const;
@@ -276,7 +280,7 @@ public:
     uint32_t getEntClass() const { return ( GENERIC_CLASS_RANGE_MAX+ d_userId); }
 
 	bool stemByDefault() const { return gp.parseSettings().stemByDefault(); }
-	// UniverseTrieCluster& getTrieCluster() { return trieCluster; }
+	UniverseTrieCluster& getTrieCluster() { return trieCluster; }
 
 	const UniverseTrieCluster& getTopicTrieCluster() const { return topicTrieCluster; }
     bool hasTopics() const { return !(topicTrieCluster.getTrieList().empty()); }
@@ -394,15 +398,15 @@ public:
     bool needEntitySegregation() const { return !(d_entSeg.empty()); }
     void addEntClassToSegregate( const StoredEntityClass& ec ) { d_entSeg.add(ec); }
 
-    const BELTrie* getRuleTrieByUniqueId( const BELTrie::UniqueTrieId& tid ) const
+    const BELTrie* getRuleTrieByUniqueId( const UniqueTrieId& tid ) const
         { return trieCluster.getTrieByUniqueId(tid); }
-    const BELTrie* getTopicTrieByUniqueId( const BELTrie::UniqueTrieId& tid ) const
+    const BELTrie* getTopicTrieByUniqueId( const UniqueTrieId& tid ) const
         { return topicTrieCluster.getTrieByUniqueId(tid); }
 
-    const BELTrie* getTrieByUniqueId( const BELTrie::UniqueTrieId& tid, bool topic = false )
+    const BELTrie* getTrieByUniqueId( const UniqueTrieId& tid, bool topic = false )
         { return( topic ? getTopicTrieByUniqueId(tid) : getRuleTrieByUniqueId(tid) ); }
     const BELTrie* getTrieByUniqueId( uint32_t tc, uint32_t tid ) const
-        { return getRuleTrieByUniqueId( BELTrie::UniqueTrieId(tc, tid)); }
+        { return getRuleTrieByUniqueId( UniqueTrieId(tc, tid)); }
     
     Ghettodb&       getGhettodb()       { return *d_ghettoDb; }
     const Ghettodb& getGhettodb() const { return *d_ghettoDb; }

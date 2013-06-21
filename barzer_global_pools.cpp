@@ -246,6 +246,12 @@ BELTrie& UniverseTrieCluster::appendTrie( uint32_t trieClass, uint32_t trieId, G
 {
     BELTrie* tr = d_triePool.produceTrie(trieClass,trieId);
     d_trieList.push_back( TheGrammar(tr,gi) );
+    auto uniqId = tr->getUniqueTrieId();
+
+    auto i = d_ownTrieMap.find(uniqId);
+    if( i == d_ownTrieMap.end() )
+        d_ownTrieMap.insert( UniqIdTrieMap::value_type( uniqId, tr));
+
     tr->registerUser( d_universe.getUserId() );
     return *tr;
 }
@@ -255,6 +261,20 @@ BELTrie& UniverseTrieCluster::appendTrie( const char* tc, const char* tid, Gramm
     uint32_t trieId = d_universe.getGlobalPools().internString_internal( tid );
     return appendTrie( trieClass, trieId, gi );
 
+}
+
+
+const BELTrie* UniverseTrieCluster::getTrieByClassAndId( const char* trieClass, const char* trieId ) const
+    { return getTrieByUniqueId( getUniqueTrieId(trieClass, trieId) ); }
+BELTrie* UniverseTrieCluster::getTrieByClassAndId( const char* trieClass, const char* trieId ) 
+    { return const_cast<BELTrie*>(getTrieByUniqueId( getUniqueTrieId(trieClass, trieId) )); }
+
+UniqueTrieId UniverseTrieCluster::getUniqueTrieId ( const char* trieClass, const char* trieId ) const 
+{
+    return {    
+        d_universe.getGlobalPools().internalString_getId(trieClass), 
+        d_universe.getGlobalPools().internalString_getId(trieId) 
+    };
 }
 
 } // namespace barzer 

@@ -12,7 +12,8 @@ namespace barzer {
 class BELTrie;
 struct BELParseTreeNode;
 class BarzelEvalResult;
-struct BarzelEvalContext;
+class BarzelEvalNode;
+class BarzelEvalContext;
 
 class BarzelProcs {
 	typedef std::map< uint32_t, BarzelEvalNode > InternalStrIdToEvalNodeMap;
@@ -20,31 +21,9 @@ class BarzelProcs {
 	BELTrie& d_trie;
 public:
 	BarzelProcs( BELTrie& trie ) : d_trie(trie) {}
-	inline BarzelEvalNode& produceNewEvalNode( bool& wasNew, uint32_t strId )
-	{
-		InternalStrIdToEvalNodeMap::iterator i = d_evalNodeMap.find( strId );
-		if( i != d_evalNodeMap.end() ) 
-			return ( wasNew= false, i->second );
-		else {	
-			return (
-				wasNew= true,
-				d_evalNodeMap.insert( InternalStrIdToEvalNodeMap::value_type(
-					strId, BarzelEvalNode()
-				)).first->second
-			);
-		}
-	}
-	inline const BarzelEvalNode* getEvalNode( uint32_t strId ) const
-	{ 
-		InternalStrIdToEvalNodeMap::const_iterator i = d_evalNodeMap.find( strId );
-		return( i == d_evalNodeMap.end() ? 0 : &(i->second) );
-	}
-	inline BarzelEvalNode* getEvalNode( uint32_t strId ) 
-	{
-		return const_cast<BarzelEvalNode*>( 
-			const_cast<const BarzelProcs*>(this)->getEvalNode( strId )
-		);
-	}
+	BarzelEvalNode& produceNewEvalNode( bool& wasNew, uint32_t strId );
+	const BarzelEvalNode* getEvalNode( uint32_t strId ) const;
+	BarzelEvalNode* getEvalNode( uint32_t strId ) ;
 
 	enum {
 		ERR_OK, // no error

@@ -149,16 +149,16 @@ bool BarzelEvalNode::hasSameChildren(const BarzelEvalNode& o) const
     }
     return true;
 }
-size_t BarzelEvalNode::addNodesChildren(const BarzelEvalNode& o)
+
+std::vector<BarzelEvalNode::NodeID_t> BarzelEvalNode::addNodesChildren(const BarzelEvalNode& o)
 {
-    size_t numAdded = 0;
+	std::vector<NodeID_t> result;
     for( const auto& c : o.getChild() ) {
         if( !getSameChild(c) ) {
-            addChild(c);
-            ++numAdded;
+            result.push_back(addChild(c).getNodeId());
         }
     }
-    return numAdded;
+    return result;
 }
 
 BarzelEvalNode* BarzelEvalNode::getSameChild( const BarzelEvalNode& other ) 

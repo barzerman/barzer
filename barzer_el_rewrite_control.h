@@ -7,7 +7,7 @@
 class BarzelEvalResultVec;
 namespace barzer {
 
-struct BarzelEvalContext;
+class BarzelEvalContext;
 class GlobalPools;
 
 class BarzelEvalResult;

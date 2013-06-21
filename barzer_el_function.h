@@ -22,7 +22,7 @@ namespace barzer {
 class GlobalPools;
 class BELFunctionStorage;
 struct BELFunctionStorage_holder;
-struct BarzelEvalContext;
+class BarzelEvalContext;
 
 // these names are for making your eyes bleed
 

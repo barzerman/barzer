@@ -282,7 +282,7 @@ void BELReader::addStatement( const BELStatementParsed& sp )
                     tran->makeUnmatchable = 1;
                 tran->confidenceBoost = sp.getTranConfidenceBoost();
 			}
-			trie->addPath( sp, seq, tranId, varInfo, i );
+			trie->addPath( sp, seq, tranId, varInfo, i, d_currentUniverse );
 		}
 		i++;
 		//AYLOG(DEBUG) << "path added";
