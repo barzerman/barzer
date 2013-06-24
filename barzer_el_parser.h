@@ -35,7 +35,7 @@ struct BELStatementParsed {
     };
     int    d_execMode; // EXEC_MODE_XXXX
 
-	size_t d_stmtNumber;
+	uint32_t d_stmtNumber;
 	std::string d_sourceName;
 	uint32_t d_sourceNameStrId;
     enum {

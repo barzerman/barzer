@@ -1,6 +1,7 @@
 #include <barzer_el_proc.h>
 #include <barzer_el_trie.h>
 #include <barzer_el_matcher.h>
+#include <barzer_el_eval.h>
 
 namespace barzer {
 
@@ -29,4 +30,29 @@ int BarzelProcs::generateStoredProc( uint32_t nameStrId, const BELParseTreeNode&
 	return ERR_OK;
 }
 
+	BarzelEvalNode* BarzelProcs::getEvalNode( uint32_t strId ) 
+	{
+		return const_cast<BarzelEvalNode*>( 
+			const_cast<const BarzelProcs*>(this)->getEvalNode( strId )
+		);
+	}
+	const BarzelEvalNode* BarzelProcs::getEvalNode( uint32_t strId ) const
+	{ 
+		InternalStrIdToEvalNodeMap::const_iterator i = d_evalNodeMap.find( strId );
+		return( i == d_evalNodeMap.end() ? 0 : &(i->second) );
+	}
+	BarzelEvalNode& BarzelProcs::produceNewEvalNode( bool& wasNew, uint32_t strId )
+	{
+		InternalStrIdToEvalNodeMap::iterator i = d_evalNodeMap.find( strId );
+		if( i != d_evalNodeMap.end() ) 
+			return ( wasNew= false, i->second );
+		else {	
+			return (
+				wasNew= true,
+				d_evalNodeMap.insert( InternalStrIdToEvalNodeMap::value_type(
+					strId, BarzelEvalNode()
+				)).first->second
+			);
+		}
+	}
 } // barzer namespace ends

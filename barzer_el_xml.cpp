@@ -289,6 +289,11 @@ DEFINE_BELParserXML_taghandle(STMSET)
             else if( v[0] =='s' ) 
                 reader->setDefaultExecMode( BELStatementParsed::EXEC_MODE_IMPERATIVE_POST );
             break;
+        case 's': {// source name override
+            if( !n[1] )
+	            statement.stmt.setSrcInfo(v, reader->getGlobalPools().internString_internal(v) );
+            break;
+        }
         case 't':
             reader->setTagFilter(v);
             break;
