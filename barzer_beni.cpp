@@ -178,6 +178,7 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) 
     enum { MIN_MATCH_BOOST_QLEN = 10 };
     size_t queryGlyphCount = ay::StrUTF8::glyphCount(query, query+ query_len) ; 
 
+    bool doBoost = d_universe.checkBit( StoredUniverse::UBIT_BENI_NO_BOOST_MATCH_LEN );
     for( const auto& i : vec ) {
         if( !i.m_data )
             continue;

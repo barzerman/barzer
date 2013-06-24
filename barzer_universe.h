@@ -138,6 +138,7 @@ public:
         UBIT_USE_BENI_VANILLA, /// BENI search will be used if final bead chain    
         UBIT_USE_BENI_IDS, /// when using beni will try to only invoke for ids 
         UBIT_BENI_SOUNDSLIKE, /// if on BENI stores converts all ngrams using sounds like 
+        UBIT_BENI_NO_BOOST_MATCH_LEN, /// when set there is no boost by match length
         /// add new bits above this line only 
         UBIT_MAX
     };

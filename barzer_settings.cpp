@@ -696,6 +696,9 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
                 if( cOpt.get() != "no" )
                     u.getUniverse().setBit( StoredUniverse::UBIT_BENI_SOUNDSLIKE, true );
             }
+            if( const boost::optional<std::string> cOpt = xAttr.get().get_optional<std::string>("noboost") ) {
+                u.getUniverse().setBit( StoredUniverse::UBIT_BENI_NO_BOOST_MATCH_LEN, (cOpt.get() == "yes") );
+            }
             /// beni tag zurch attribute . value is id of the zurch universe
             if( const boost::optional<uint32_t> cOpt = xAttr.get().get_optional<uint32_t>("zurch") ) {
                 uint32_t zurchUserId = cOpt.get();
