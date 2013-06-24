@@ -205,11 +205,14 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) 
 						const ay::StrUTF8 normUtf8(normDest.c_str(), normDest.size());
 						const auto& longest = xsect.findLongest(strUtf8, normUtf8);
 
-						const double minLength = std::min(strUtf8.size(), normUtf8.size());
-						const double relLength = longest.first / minLength;
+						if (longest.second < 3)
+						{
+							const double minLength = std::min(strUtf8.size(), normUtf8.size());
+							const double relLength = longest.first / minLength;
 
-						// here we compute the penalty for the difference between coverage and 1
-						cov = 1 - calcPenalty(1 - cov, relLength);
+							// here we compute the penalty for the difference between coverage and 1
+							cov = 1 - calcPenalty(1 - cov, relLength);
+						}
 					}
 				}
 				out.push_back({ *(i.m_data), i.m_levDist, cov, i.m_relevance });
