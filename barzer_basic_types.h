@@ -17,6 +17,37 @@ namespace barzer {
 struct BELPrintContext;
 class StoredUniverse;
 
+/// AmbiguousTraceXXX is needed for rules deletion in cases when the same pattern in different statements maps 
+/// into different translations. This type of ambiguity is resolved in one of the two ways:
+///  - entity list is formed for simple mkent translations (TYPE_ENTITY)
+///  - extra nodes are added for all other kinds (especially mkERC) (TYPE_SUBTREE)
+/// for both ways 32 bit unsigned ingteger ids are used
+struct AmbiguousTraceId {
+    typedef enum : uint8_t{ 
+        TYPE_ENTITY,
+        TYPE_SUBTREE
+    } Type;
+    uint8_t  type; // 
+    uint32_t id;
+
+    AmbiguousTraceId() : type(TYPE_ENTITY), id(0xffffffff) {}
+    AmbiguousTraceId( uint32_t i) : type(TYPE_ENTITY), id(i) {}
+    AmbiguousTraceId( uint32_t i, Type t ) : type(t), id(i) {}
+        
+    AmbiguousTraceId& setEntity( uint32_t i ) { 
+        id = i;
+        type=TYPE_ENTITY;
+        return ( *this ); 
+    }
+    AmbiguousTraceId& setSubtree( uint32_t  i ) { 
+        id = i;
+        type=TYPE_SUBTREE;
+        return ( *this ); 
+    }
+    bool isEntity() const { return type==TYPE_ENTITY; }
+    bool isSubtree() const { return type==TYPE_SUBTREE; }
+    uint32_t getId() const { return id; }
+};
 struct BarzelTranslationTraceInfo {
 	// string id of the source name
 	// its not stoed in the maain string pool but in the per trie pool for internal names only
@@ -32,13 +63,16 @@ struct BarzelTranslationTraceInfo {
 	{ source = s; statementNum = st; emitterSeqNo = em; }
 
     bool eq( const BarzelTranslationTraceInfo& o ) const
-    {
-        return ( source == o.source && statementNum == o.statementNum && emitterSeqNo == o.emitterSeqNo );
-    }
-    typedef std::vector< BarzelTranslationTraceInfo > Vec;
+        { return ( source == o.source && statementNum == o.statementNum && emitterSeqNo == o.emitterSeqNo ); }
+    bool sameStatementAs( const BarzelTranslationTraceInfo& o ) const
+        { return ( source == o.source && statementNum == o.statementNum ); }
+
+    typedef std::pair<BarzelTranslationTraceInfo,AmbiguousTraceId> TraceDataUnit;
+    typedef std::vector<TraceDataUnit> Vec;
     bool sameStatement(const BarzelTranslationTraceInfo& o ) const
     { return (source==o.source && statementNum==o.statementNum ); }
 };
+
 inline bool operator== ( const BarzelTranslationTraceInfo& l, const BarzelTranslationTraceInfo& r )
     { return ( l.source == r.source && l.statementNum == r.statementNum && l.emitterSeqNo == r.emitterSeqNo); }
 inline bool operator!= ( const BarzelTranslationTraceInfo& l, const BarzelTranslationTraceInfo& r )

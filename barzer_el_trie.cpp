@@ -7,7 +7,7 @@
 #include <list>
 #include <ay/ay_logger.h>
 #include <barzer_universe.h>
-
+#include <barzer_el_trie_ruleidx.h>
 
 namespace barzer {
 ///// output operators 
@@ -110,7 +110,7 @@ std::ostream& BELTrie::printVariableName( std::ostream& fp, uint32_t varId ) con
 
 const BarzelWCLookup*  BELPrintContext::getWildcardLookup( uint32_t id ) const
 {
-return( trie.getWCPool().getWCLookup( id ));
+    return( trie.getWCPool().getWCLookup( id ));
 }
 
 void BarzelTrieNode::clearFirmMap()
@@ -132,7 +132,8 @@ void BELTrie::clear()
 	root.clear();
     macros.clear();
     procs.clear();
-    d_linkedTranInfoMap.clear();
+    // d_linkedTranInfoMap.clear();
+    d_ambTranRef.clear();
 	initPools();
 }
 
@@ -253,15 +254,6 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<bool> {
 		key.id=0xffffffff;
         return false;
 	}
-    /*
-	bool operator()( const  BTND_Pattern_Wildcard& p ) 
-	{
-		key.type = (uint8_t)BTND_Pattern_Wildcard_TYPE;
-		key.id = p.getType();	
-        key.d_matchMode = p.d_matchMode;
-        return true;
-	}
-    */
 	bool operator()( const  BTND_Pattern_StopToken& p ) 
 	{
 		key.type = (uint8_t)BTND_Pattern_StopToken_TYPE;
@@ -414,6 +406,7 @@ BarzelTrieNode* BarzelTrieNode::addFirmPattern( BELTrie& trie, const BarzelTrieF
 }
 
 
+
 BarzelTrieNode* BarzelTrieNode::addWildcardPattern( BELTrie& trie, const BTND_PatternData& p, const BarzelTrieFirmChildKey& fk  )
 {
 	if( !hasValidWcLookup() ) 
@@ -459,7 +452,8 @@ const BarzelTrieNode* BELTrie::addPath(
 	const BTND_PatternDataVec& path, 
 	uint32_t transId, 
 	const BELVarInfo& varInfo,
-	uint32_t emitterSeqNo )
+	uint32_t emitterSeqNo,
+	StoredUniverse *uni )
 {
 	BarzelTrieNode* n = &root;
 
@@ -474,7 +468,6 @@ const BarzelTrieNode* BELTrie::addPath(
 	BarzelTrieFirmChildKey_form keyFormer( firmKey, *this ) ;
     
 	for( BTND_PatternDataVec::const_iterator i = path.begin(); i!= path.end(); ++i ) {
-		//BarzelTrieFirmChildKey shitKey(*i);
 		bool isFirm = boost::apply_visitor( keyFormer, *i );
 
 		firmKey.noLeftBlanks = 0;
@@ -530,12 +523,19 @@ const BarzelTrieNode* BELTrie::addPath(
 	}
 	if( n ) {
 		if( n->hasValidTranslation() && n->getTranslationId() != transId ) {
-			if( !tryAddingTranslation(n,transId,stmt,emitterSeqNo) ) {
+			if( !tryAddingTranslation(n, transId, stmt, emitterSeqNo, uni) ) {
 				//std::cerr << "\nBARZEL TRANSLATION CLASH:" << stmt.getSourceName() << ":" << stmt.getStmtNumber() << "\n";
 			}
 		} else
+		{
 			n->setTranslation( transId );
-	} else 
+			
+			uni->ruleIdx().addNode(
+                RulePath(stmt.d_sourceNameStrId, stmt.d_stmtNumber, getTrieClass_strId(), getTrieId_strId()), 
+                n
+            );
+		}
+	} else
 		AYTRACE("inconsistent state for setTranslation");
 	return n;
 }
@@ -543,6 +543,31 @@ const BarzelTrieNode* BELTrie::addPath(
 std::ostream& BELTrie::printTanslationTraceInfo( std::ostream& fp, const BarzelTranslationTraceInfo& traceInfo ) const
 {
 	return globalPools.printTanslationTraceInfo( fp, traceInfo );
+}
+
+bool BELTrie::getLinkedTraceInfo( BarzelTranslationTraceInfo::Vec& out, uint32_t tranId ) const
+{
+    size_t count = 0;
+    d_ambTranRef.getTraceInfos( [&]( const AmbiguousTranslationReference::DataUnit& x ) {
+        ++count;
+        out.push_back( x );
+    }, tranId );
+    return count;
+}
+void BELTrie::linkTraceInfoNodes( uint32_t tranId, const BarzelTranslationTraceInfo& trInfo, const BarzelTranslationTraceInfo& v, const std::vector<BarzelEvalNode::NodeID_t>& nodeIdVec )
+{
+
+    for( const auto& i : nodeIdVec ) 
+        d_ambTranRef.link( tranId, trInfo, AmbiguousTraceId(i,AmbiguousTraceId::TYPE_SUBTREE));
+
+    // d_linkedTranInfoMap[ trInfo ].push_back( v );
+}
+void BELTrie::linkTraceInfoEnt( uint32_t tranId, const BarzelTranslationTraceInfo& trInfo, const BarzelTranslationTraceInfo& v, uint32_t entId )
+{
+    // d_ambTranRef.link( tranId, trInfo, AmbiguousTraceId(entId,AmbiguousTraceId::TYPE_ENTITY));
+    d_ambTranRef.link( tranId, v, AmbiguousTraceId(entId,AmbiguousTraceId::TYPE_ENTITY));
+
+    // d_linkedTranInfoMap[ trInfo ].push_back( v );
 }
 void BELTrie::addImperative( const BELStatementParsed& stmt, bool pre )
 {
@@ -552,7 +577,46 @@ void BELTrie::addImperative( const BELStatementParsed& stmt, bool pre )
     imperativeVec->back().translation.set(*this, stmt.translation) ;
     imperativeVec->back().trace.set( stmt.getSourceNameStrId(), stmt.getStmtNumber(), 0 );
 }
-bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELStatementParsed& stmt, uint32_t emitterSeqNo )
+void BELTrie::removeNode(BarzelTrieNode* node) 
+{
+    for( const BarzelTrieNode* n = node->getParent(); n; n= n->getParent() ) {
+        if( BarzelFCMap* fm=  getBarzelFCMap(*n) ) {
+            for( BarzelFCMap::iterator i = fm->begin(); i!= fm->end(); ++i ) {
+                if( &(i->second) == n ) {
+                    fm->erase( i );
+                    break;
+                }
+            }
+        }
+        if( d_wcPool ) {
+            if( BarzelWCLookup*  wcl = d_wcPool->getWCLookup(n->getWCLookupId()) )  {
+                for( BarzelWCLookup::iterator i = wcl->begin(); i!= wcl->end(); ++i ) {
+                    if( &(i->second) == n ) {
+                        wcl->erase( i );
+                        break;
+                     }
+                }
+             
+            }
+        }
+    }
+}
+bool BELTrie::removeFromAmbiguousTranslation( const BarzelTranslation& tran, const AmbiguousTraceId& traceId )
+{
+    if( traceId.isEntity() ) { // this is entity list
+        const auto tranId = tran.getId_uint32();
+        if( EntityGroup* entGrp = getEntityCollection().getEntGroup(tranId) )
+            return entGrp->removeEntity( traceId.getId() );
+    } else 
+    if( traceId.isSubtree() ) { // this is a subtree
+        if( BarzelEvalNode* evNode = getRewriterPool().getRawNode( tran ) ) {
+            return evNode->deleteChildById( traceId.getId() );
+        }
+    }
+
+    return false;
+}
+bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELStatementParsed& stmt, uint32_t emitterSeqNo, StoredUniverse *uni )
 {
 	BarzelTranslation* tran = getBarzelTranslation(*n);
 	if( tran ) {
@@ -560,20 +624,29 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELSta
             n->setTranslation( id );
             return true;
         }
+        
+        const RulePath rp { stmt.d_sourceNameStrId, stmt.d_stmtNumber, getTrieClass_strId(), getTrieId_strId() };
 
 		EntityGroup* entGrp = 0;
 		switch( tran->getType() ) {
-		case BarzelTranslation::T_MKENT: {
+		case BarzelTranslation::T_MKENT:
+		{
 			uint32_t entId = tran->getId_uint32();
 			uint32_t grpId = 0;
 			entGrp = getEntityCollection().addEntGroup( grpId );
 			tran->setMkEntList( grpId );
 			entGrp->addEntity( entId );
+		    d_ambTranRef.link( n->getTranslationId(), tran->traceInfo, AmbiguousTraceId(entId,AmbiguousTraceId::TYPE_ENTITY));	
+			uni->ruleIdx().addNode(rp, n);
+			break;
 		}
-			break;
 		case BarzelTranslation::T_MKENTLIST:
-			entGrp = getEntityCollection().getEntGroup( tran->getId_uint32() );
+		{
+			const auto entId = tran->getId_uint32();
+			entGrp = getEntityCollection().getEntGroup(entId);
+			uni->ruleIdx().addNode(rp, n);
 			break;
+		}
 		default: { // CLASH 
             if( !(stmt.getSourceNameStrId()== tran->traceInfo.source && stmt.getStmtNumber() == tran->traceInfo.statementNum) ) {
                 if( tran->isRawTree() ) {
@@ -590,21 +663,31 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELSta
                             return false;
                         }
                         if( stmt.ruleClashOverride() == BELStatementParsed::CLASH_OVERRIDE_APPEND ) {
-                            size_t numChildrenAdded = evNode->addNodesChildren( newEvNode );
-                            if( numChildrenAdded ) {
+                            const auto addedChildren = evNode->addNodesChildren( newEvNode );
+                            if( !addedChildren.empty() ) {
                                 if( stmt.getSourceNameStrId() != tran->traceInfo.source || 
                                     tran->traceInfo.statementNum != stmt.getStmtNumber() 
                                 ) {
-                                    linkTraceInfo( 
+                                    linkTraceInfoNodes( 
+                                        n->getTranslationId(),
                                         tran->traceInfo, 
                                         BarzelTranslationTraceInfo(stmt.getSourceNameStrId(), 
-                                        stmt.getStmtNumber(),0) 
+                                        stmt.getStmtNumber(),0) ,
+                                        addedChildren
                                     );
                                 }
                             }
+
+                            for (auto id : addedChildren)
+								uni->ruleIdx().addNode(rp, n);
+							
                             return true;
-                        } else if( newEvNode.hasSameChildren(*evNode) )
+                        } else if( newEvNode.hasSameChildren(*evNode) ) {
+                            TrieRuleIdx& idx = uni->ruleIdx();
+							for (const auto& c : evNode->getChild())
+								uni->ruleIdx().addNode(rp, n);
                             return true;
+						}
                     }
                 } 
                 /// if we're here it means we have raw tree with *different* children from the ones in the stmt.translation
@@ -625,7 +708,7 @@ bool BELTrie::tryAddingTranslation( BarzelTrieNode* n, uint32_t id, const BELSta
 
 				entGrp->addEntity( newEntId );
                 if( tran && !tran->traceInfo.sameStatement(newTran->traceInfo) )
-                    linkTraceInfo( tran->traceInfo, newTran->traceInfo );
+                    linkTraceInfoEnt( n->getTranslationId(), tran->traceInfo, newTran->traceInfo, newEntId );
 				return true;
 			} else {
 				// std::cerr <<"\n" <<  __FILE__ << ":" << __LINE__ << "translation clash: " << " types: " << 
@@ -849,6 +932,73 @@ std::ostream& BarzelTranslation::print( std::ostream& fp, const BELPrintContext&
 		return ( fp << "unknown translation" );
 	}
 #undef CASEPRINT
+}
+
+size_t AmbiguousTranslationReference::unlink( uint32_t tranId, const BarzelTranslationTraceInfo& ti, BELTrie& trie )
+{
+    auto dtaI = d_dataMap.find( tranId ) ;
+    if( dtaI != d_dataMap.end() ) {
+        auto& traceInfoVec = dtaI->second;
+        auto foundI = traceInfoVec.begin();
+        for( ; foundI!= traceInfoVec.end(); ++foundI ) { if( foundI->first.sameStatementAs(ti) ) break; }
+
+        if( foundI== dtaI->second.end() || dtaI->second.empty() ) 
+            return dtaI->second.size();
+        if( !foundI->second.unlock().getRefCount() ) {
+            AmbiguousTraceInfo x = foundI->second;
+            dtaI->second.erase( foundI );
+            if( const BarzelTranslation* tran = trie.getBarzelTranslation(tranId) ) 
+                trie.removeFromAmbiguousTranslation( *tran, x );
+        }
+
+        size_t vecSize = dtaI->second.size();
+        if( !vecSize ) 
+            d_dataMap.erase(dtaI);
+        return vecSize;
+    } else
+        return 0;
+}
+void AmbiguousTranslationReference::link( uint32_t tranId, const BarzelTranslationTraceInfo& ti, const AmbiguousTraceId& atId )
+{
+    auto dtaI = d_dataMap.find( tranId ) ;
+    if( dtaI == d_dataMap.end() ) 
+        dtaI = d_dataMap.insert( { tranId, AmbiguousTranslationReference::Data() } ).first;
+
+    auto foundI = std::find_if(dtaI->second.begin(),dtaI->second.end(),
+        [&]( const AmbiguousTranslationReference::Data::value_type& d ) { return (d.first.sameStatementAs(ti) ) ; } );
+
+    if( foundI == dtaI->second.end() ) {
+        foundI = dtaI->second.insert( foundI, { ti, AmbiguousTraceInfo(atId)} );
+        foundI->second.lock();
+    } else {
+        for( size_t i = (foundI-dtaI->second.begin()); i< dtaI->second.size(); ++i ) {
+            auto& d = dtaI->second[i];
+            if( d.first.sameStatementAs(ti) ) {
+                if( atId.isEntity() ) {
+                    if( d.second.isEntity() ) 
+                        d.second.lock();
+                    else { // this should never happen: the case when ambiguity contains both entlist and an expression
+                            // should never be created 
+                        AYLOG(ERROR) << "entity ambiguity clashes with subexpression " << std::endl;
+                    }
+                } else { // this is a subtree (subexpression) ambiguity
+                    if( d.second.getId() != atId.getId() ) {
+                        dtaI->second.push_back( { 
+                            ti, 
+                            AmbiguousTraceInfo(
+                                AmbiguousTraceId(atId.getId(),AmbiguousTraceId::TYPE_SUBTREE)
+                            ) 
+                        } );
+                        /// previous operator invalidated d 
+                        dtaI->second.back().second.lock();
+                    } 
+                }
+                return;
+            } // same statement 
+        } // for
+    }
+
+    return ;
 }
 
 } // end namespace barzer

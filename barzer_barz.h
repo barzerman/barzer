@@ -18,12 +18,14 @@ struct RequestEnvironment; // server request environment
 
 struct BarzelTrace {
     enum { 
-        MAX_TAIL_REPEAT = 16  // if more than this many consecutive occurrences are detected its a loop
+        MAX_TAIL_REPEAT = 64  // if more than this many consecutive occurrences are detected its a loop
     }; 
     struct SingleFrameTrace {
         size_t grammarSeqNo; // grammar sequence number
         BarzelTranslationTraceInfo tranInfo; // translation trace info for the rule that was hit
         uint32_t globalTriePoolId; /// global trie pool id of the trie that was hit 
+        uint32_t tranId;  // translation id
+
         std::vector< std::string > errVec;
         
         bool eq( const SingleFrameTrace& o )  const
@@ -35,8 +37,8 @@ struct BarzelTrace {
                 grammarSeqNo=gn;
                 tranInfo = ti;
             }
-        SingleFrameTrace( ) : grammarSeqNo(0),globalTriePoolId(0xffffffff) {}
-        SingleFrameTrace( const BarzelTranslationTraceInfo& ti, size_t n, uint32_t trieId ) : grammarSeqNo(n), tranInfo(ti),globalTriePoolId(trieId) {}
+        SingleFrameTrace( ) : grammarSeqNo(0),globalTriePoolId(0xffffffff), tranId(0xffffffff) {}
+        SingleFrameTrace( const BarzelTranslationTraceInfo& ti, size_t n, uint32_t trieId, uint32_t trId ) : grammarSeqNo(n), tranInfo(ti),globalTriePoolId(trieId), tranId(trId) {}
     };
 
     typedef std::vector< SingleFrameTrace > TraceVec;
@@ -67,9 +69,9 @@ struct BarzelTrace {
     bool checkErrBit( int b ) const { return d_errBit.checkBit( b ); }
 
     size_t size() const { return d_tvec.size(); }
-    void push_back( const BarzelTranslationTraceInfo& traceInfo, uint32_t trieId ) 
+    void push_back( const BarzelTranslationTraceInfo& traceInfo, uint32_t trieId, uint32_t tranId  ) 
     {
-        d_tvec.push_back( SingleFrameTrace( traceInfo, d_grammarSeqNo, trieId ) );
+        d_tvec.push_back( SingleFrameTrace( traceInfo, d_grammarSeqNo, trieId, tranId ) );
         if( d_lastFrame.eq( d_grammarSeqNo, traceInfo ) ) 
             ++d_lastFrame_count;
         else {
@@ -295,9 +297,9 @@ public:
             return barzelTrace.detectLoop();
     }
 
-	void pushTrace( const BarzelTranslationTraceInfo& trace, uint32_t trieId ) { 
+	void pushTrace( const BarzelTranslationTraceInfo& trace, uint32_t trieId, uint32_t tranId ) { 
 		if( barzelTrace.size() < MAX_TRACE_LEN ) 
-			barzelTrace.push_back( trace, trieId ) ; 
+			barzelTrace.push_back( trace, trieId, tranId ) ; 
 	}
 
 	TTWPVec& getTtVec() { return  ttVec; }

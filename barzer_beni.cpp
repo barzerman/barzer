@@ -134,6 +134,19 @@ namespace
 		}
 		return i;
 	}
+
+	// for =zero length val isn't changed, for bigger lengths
+	// val goes to threshold
+	double calcPenalty(double val, double length)
+	{
+		// val → y
+		// length → x
+		const double threshold = 0.5;
+		const double smoothness = 0.1;
+		const double affect = 0.7;
+
+		return val * ((1 - affect) + affect / (1 + exp ((length - threshold) / smoothness)));
+	}
 } //end of anon namespace 
 
 double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) const
@@ -156,6 +169,9 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) 
     if( cutOffSz< vec.size() ) 
         vec.resize( cutOffSz );
 
+	ay::SetXSection xsect;
+	xsect.minLength = 10;
+	xsect.skipLength = 1;
     for( const auto& i : vec ) {
         if( !i.m_data )
             continue;
@@ -172,15 +188,22 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) 
             }
             if( isNew )
 			{
+				auto cov = i.m_coverage;
 				const auto strPos = d_backIdx.find(*(i.m_data));
 				if (strPos != d_backIdx.end())
 				{
 					const auto& str = strPos->second;
 					const ay::StrUTF8 strUtf8(str.c_str(), str.size());
 					const ay::StrUTF8 normUtf8(normDest.c_str(), normDest.size());
-					//ay::findXSections(strUtf8.begin(), strUtf8.end(), normUtf8.begin(), normUtf8.end(), 4);
+					const auto& longest = xsect.findLongest(strUtf8, normUtf8);
+
+					const double maxLength = std::min(strUtf8.size(), normUtf8.size());
+					const double relLength = longest.first / maxLength;
+
+					// here we compute the penalty for the difference between coverage and 1
+					cov = 1 - calcPenalty(1 - cov, relLength);
 				}
-				out.push_back({ *(i.m_data), i.m_levDist, i.m_coverage, i.m_relevance });
+				out.push_back({ *(i.m_data), i.m_levDist, cov, i.m_relevance });
 			}
         }
     }

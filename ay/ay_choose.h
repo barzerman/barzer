@@ -72,9 +72,9 @@ struct choose_n {
 	template <typename Iter>
 	void doAllWithoutOne( Iter fromI, Iter toI) 
 	{
-		for( Iter i = fromI; i!= toI; ++i ) {
+		for( Iter i = fromI; i < toI; ++i ) {
 			d_result.clear();
-			for( Iter j = fromI; j!= toI; ++j ) {
+			for( Iter j = fromI; j < toI; ++j ) {
 				if( j!= i ) 
 					d_result.push_back( *j );
 			}
@@ -123,7 +123,7 @@ struct unique_chars {
 	template <typename Iter>
 	void operator()( Iter fromI, Iter toI ) {
 		clear();
-        for( Iter i=fromI; i!= toI; ++i ) {
+        for( Iter i=fromI; i < toI; ++i ) {
             if( d_result.size() ) {
                 if( (*d_result.rbegin()) == *i ) {
                     ++d_numDups;

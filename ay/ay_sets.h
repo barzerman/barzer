@@ -31,10 +31,12 @@ inline bool operator< (const SetRange<t>& r1, const SetRange<t>& r2)
 
 struct SetXSection
 {
+    typedef std::pair<size_t, double> FindLongestResult;
+
     int32_t skipLength;
 	int32_t minLength;
 	
-    SetXSection() : skipLength(0), minLength(0) {}
+    SetXSection() : skipLength(0), minLength(4) {}
     
 	template<typename T>
 	std::vector<SetRange<T>> compute(T hayStart, T hayEnd, T neeStart, T neeEnd) const
@@ -174,7 +176,7 @@ private:
 		std::sort(result.begin(), result.end());
 		return result;
 	}
-public:
+
 	template<typename T>
 	std::vector<SetRange<T>> compute2(const T hayStart, const T hayEnd, const T neeStart, const T neeEnd) const
 	{
@@ -217,9 +219,7 @@ public:
 		
 		return result;
 	}
-
-    typedef std::pair<size_t, double> FindLongestResult;
-	
+public:
 	template<typename T>
 	FindLongestResult findLongest(T hayStart, T hayEnd, T neeStart, T neeEnd) const 
 	{

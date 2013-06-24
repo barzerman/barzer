@@ -18,6 +18,15 @@ struct EntityGroup {
 	void addEntity( uint32_t i ) { 
 		d_vec.push_back( i ); 
 	} 
+    bool removeEntity( uint32_t i )
+    {
+        auto x = std::find( d_vec.begin(), d_vec.end(), i );
+        if( x != d_vec.end() ) {
+            d_vec.erase(x);
+            return true;
+        } else
+            return false;
+    }
 };
 //// pool of entity groups
 class EntityCollection {
