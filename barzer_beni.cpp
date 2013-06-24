@@ -158,7 +158,9 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) 
     std::vector<char> tmpBuf;
     std::string dest;
     std::string normDest;
-	Lang::stringToLower( tmpBuf, dest, std::string(query) );
+    size_t query_len = strlen(query);
+    std::string queryStr(query);
+	Lang::stringToLower( tmpBuf, dest, queryStr );
     normalize( normDest, dest );
     enum { MAX_BENI_RESULTS = 64 };
     d_storage.getMatches( normDest.c_str(), normDest.length(), vec, MAX_BENI_RESULTS, minCov );
@@ -172,6 +174,10 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) 
 	ay::SetXSection xsect;
 	xsect.minLength = 10;
 	xsect.skipLength = 1;
+
+    enum { MIN_MATCH_BOOST_QLEN = 10 };
+    size_t queryGlyphCount = ay::StrUTF8::glyphCount(query, query+ query_len) ; 
+
     for( const auto& i : vec ) {
         if( !i.m_data )
             continue;
@@ -190,8 +196,7 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) 
 			{
 				auto cov = i.m_coverage;
 				const auto strPos = d_backIdx.find(*(i.m_data));
-				if (strPos != d_backIdx.end())
-				{
+				if (strPos != d_backIdx.end() && queryGlyphCount >=MIN_MATCH_BOOST_QLEN ) {
 					const auto& str = strPos->second;
 					const ay::StrUTF8 strUtf8(str.c_str(), str.size());
 					const ay::StrUTF8 normUtf8(normDest.c_str(), normDest.size());
