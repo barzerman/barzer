@@ -6,6 +6,7 @@
 		</user>
         <user id="1">
             <beni zurch="0">
+                <benifile f="dev/benishit.txt"/>
             </beni>
             <flags value="c"/>
             <rules> <file class="" name="shit">dev/shit.xml</file> </rules>

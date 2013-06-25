@@ -16,6 +16,87 @@ SmartBENI::SmartBENI( StoredUniverse& u ) :
         d_beniStraight.setSL( false );
     }
 }
+size_t SmartBENI::addEntityFile( const char* path )
+{
+    FILE* fp= 0;
+    if( path ) {
+        fp = fopen( path, "r" );
+        if( !fp ) {
+            AYLOG(ERROR) << "cant open file " << path << std::endl;
+            return 0;
+        }
+        std::cerr << "reading BENI entities from " << path << std::endl;
+    } else 
+        fp = stdin;
+
+    char buf[ 1024 ];
+    size_t entsRead = 0;
+    std::string name;
+    std::string id;
+    
+    enum {
+        TOK_CLASS,
+        TOK_SUBCLASS,
+        TOK_ID,
+        TOK_RELEVANCE,
+        TOK_NAME,
+        TOK_MAX
+    };
+    std::string tmp,  normName, lowerCase;
+    std::vector<char> tmpBuf;
+    while( fgets( buf, sizeof(buf)-1, fp ) ) {
+        buf[ sizeof(buf)-1 ] = 0;
+        size_t len = strlen( buf );
+        if( !len ) 
+            continue;
+        len--;
+        if( buf[ len ]  == '\n' ) buf[ len ]=0;
+
+        if( buf[0] == '#' ) continue;
+
+        tmpBuf.clear();
+        id.clear();
+        name.clear();
+        normName.clear();
+        int relevance = 0;
+        StoredEntityUniqId euid;
+
+        size_t numTokRead = 0;
+        ay::parse_separator( 
+            [&]( size_t tokNum, const char* s_beg, const char* s_end ) -> int {
+                numTokRead= tokNum;
+                if( tokNum >= TOK_MAX ) return 1;
+                switch( tokNum ) {
+                case TOK_CLASS:     tmp.assign(s_beg,(s_end-s_beg)); euid.eclass.ec = atoi(tmp.c_str()); break;
+                case TOK_SUBCLASS:  tmp.assign(s_beg,(s_end-s_beg)); euid.eclass.subclass = atoi(tmp.c_str()); break;
+                case TOK_ID:        id.assign( s_beg, (s_end - s_beg ) ); break;
+                case TOK_RELEVANCE: tmp.assign(s_beg,(s_end-s_beg)); relevance = atoi(tmp.c_str()); break;
+                case TOK_NAME:      name.assign( s_beg, (s_end - s_beg ) ); break;
+                default: return 1;
+                }
+                return 0;
+            },
+            buf, 
+            buf+len
+        );
+        if( numTokRead < TOK_NAME ) continue;
+        
+        euid.tokId = d_universe.getGlobalPools().internString_internal( id.c_str() );
+
+        StoredEntity& ent = d_universe.getGlobalPools().getDtaIdx().addGenericEntity( euid.tokId, euid.eclass.ec, euid.eclass.subclass );
+
+        Lang::stringToLower( tmpBuf, lowerCase, name.c_str() );
+        BENI::normalize( normName, lowerCase );
+        d_universe.setEntPropData( ent.getEuid(), name.c_str(), relevance, true );
+        d_beniStraight.addWord(normName, ent.getEuid() );
+        if( d_isSL ) 
+            d_beniSl.addWord(normName, ent.getEuid());
+    }
+
+    std::cerr << entsRead << " entities loaded\n";
+    return entsRead;    
+}
+
 void SmartBENI::addEntityClass( const StoredEntityClass& ec )
 {
     /// iterate over entities of ec 

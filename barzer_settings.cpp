@@ -723,6 +723,13 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
                         }
                     }
                 }
+            } else 
+            if( i.first == "benifile" ) {
+                if( const boost::optional<const ptree&> optAttr = i.second.get_child_optional("<xmlattr>") ) {
+                    if( const boost::optional<std::string> fnam = optAttr.get().get_optional<std::string>("f") ) {
+                        u.getUniverse().beni().addEntityFile( fnam.get().c_str() );
+                    }
+                }
             }
         }
     }
