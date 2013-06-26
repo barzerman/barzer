@@ -83,17 +83,18 @@ public:
 			std::vector<FindInfo>& out, size_t max, double minCov) const
 	{
 		const double srcFCnt = std::distance(begin, end);
-		
-		typedef std::map<uint32_t, double> CounterMap_t;
-		CounterMap_t counterMap;
-		
+
 		struct FeatureStatInfo
 		{
+			double counter;
 			uint16_t fCount;
 			uint16_t firstFeature;
 			uint16_t lastFeature;
 		};
-		std::map<uint32_t, FeatureStatInfo> doc2fCnt;
+		
+		typedef std::map<uint32_t, FeatureStatInfo> CounterMap_t;
+		CounterMap_t counterMap;
+
 		for (const auto& feature : boost::make_iterator_range(begin, end))
 		{
 			const auto srcs = m_gram.getSrcsForFeature(feature);
@@ -106,27 +107,24 @@ public:
 				
 				auto pos = counterMap.find(source);
 				if (pos == counterMap.end())
-					pos = counterMap.insert({ source, 0 }).first;
-				pos->second += 1. / (srcs->size() * srcs->size());
-				
-				auto docPos = doc2fCnt.find(source);
-				if (docPos == doc2fCnt.end())
-					docPos = doc2fCnt.insert({ source, { 0, static_cast<uint16_t>(-1), 0 } }).first;
-				++docPos->second.fCount;
-				
+					pos = counterMap.insert({ source, { 0, 0, static_cast<uint16_t>(-1), 0 } }).first;
+
+				auto& info = pos->second;
+				info.counter += 1. / (srcs->size() * srcs->size());
+				++info.fCount;
 			}
 		}
 		
 		if (counterMap.empty())
 			return;
 		
-		std::vector<std::pair<uint32_t, double>> sorted;
+		std::vector<std::pair<uint32_t, FeatureStatInfo>> sorted;
 		sorted.reserve(counterMap.size());
 		std::copy(counterMap.begin(), counterMap.end(), std::back_inserter(sorted));
 		
 		std::sort(sorted.begin(), sorted.end(),
-				[](const CounterMap_t::value_type& v1, const CounterMap_t::value_type& v2)
-					{ return v1.second > v2.second; });
+				[](const typename CounterMap_t::value_type& v1, const typename CounterMap_t::value_type& v2)
+					{ return v1.second.counter > v2.second.counter; });
 		
 		size_t curItem = 0;
 		ay::LevenshteinEditDistance lev;
@@ -142,8 +140,7 @@ public:
 			const auto resolvedLength = std::strlen(resolvedResult);
 			
             const  size_t dist = 1; // we shouldnt need to compute levenshtein
-			const auto& info = doc2fCnt[item.first];
-            double cover = info.fCount / srcFCnt;
+            double cover = item.second.fCount / srcFCnt;
             if( m_soundsLikeEnabled) 
                 cover *= 0.95;
 
@@ -152,7 +149,7 @@ public:
 			        out.push_back({
 					        item.first,
 					        &(dataPos->second),
-					        item.second,
+					        item.second.counter,
 					        dist,
 					        cover
 				    });
