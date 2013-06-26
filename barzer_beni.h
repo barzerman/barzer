@@ -126,9 +126,6 @@ public:
 				[](const typename CounterMap_t::value_type& v1, const typename CounterMap_t::value_type& v2)
 					{ return v1.second.counter > v2.second.counter; });
 		
-		size_t curItem = 0;
-		ay::LevenshteinEditDistance lev;
-		// const auto utfLength = ay::StrUTF8::glyphCount(str.c_str(), str.c_str() + str.size());
         size_t countAdded = 0;
 		for (const auto& item : sorted)
 		{
