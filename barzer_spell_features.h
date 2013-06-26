@@ -107,7 +107,7 @@ struct FeatureInfo
 
 inline bool operator==(const FeatureInfo& f1, const FeatureInfo& f2) { return f1.docId == f2.docId && f1.pos == f2.pos; }
 
-typedef std::map<StoredStringFeature, std::vector<FeatureInfo>> InvertedFeatureMap;
+typedef boost::unordered_map<StoredStringFeature, std::vector<FeatureInfo>> InvertedFeatureMap;
 
 struct TFE_TmpBuffers {
     StoredStringFeatureVec& storedVec;
