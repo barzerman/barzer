@@ -92,8 +92,9 @@ public:
 			uint16_t lastFeature;
 		};
 		
-		typedef std::map<uint32_t, FeatureStatInfo> CounterMap_t;
+		typedef boost::unordered_map<uint32_t, FeatureStatInfo> CounterMap_t;
 		CounterMap_t counterMap;
+		counterMap.reserve(1e6);
 
 		for (const auto& feature : boost::make_iterator_range(begin, end))
 		{
