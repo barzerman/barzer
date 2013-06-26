@@ -71,7 +71,7 @@ inline bool operator==(const StoredStringFeature& f1, const StoredStringFeature&
 
 inline size_t hash_value(const StoredStringFeature& f)
 {
-	return f.m_strId + (f.m_u42 << 16);
+	return (f.m_strId << 9) + f.m_u42;
 }
 
 typedef std::vector<ExtractedStringFeature> ExtractedStringFeatureVec;
