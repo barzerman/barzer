@@ -88,8 +88,6 @@ public:
 		{
 			double counter;
 			uint16_t fCount;
-			uint16_t firstFeature;
-			uint16_t lastFeature;
 		};
 		
 		typedef boost::unordered_map<uint32_t, FeatureStatInfo> CounterMap_t;
@@ -108,7 +106,7 @@ public:
 				
 				auto pos = counterMap.find(source);
 				if (pos == counterMap.end())
-					pos = counterMap.insert({ source, { 0, 0, static_cast<uint16_t>(-1), 0 } }).first;
+					pos = counterMap.insert({ source, { 0, 0 } }).first;
 
 				auto& info = pos->second;
 				info.counter += 1. / (srcs->size() * srcs->size());
