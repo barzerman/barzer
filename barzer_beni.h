@@ -133,9 +133,6 @@ public:
             if( dataPosRange.first == m_storage.end() ) 
                 continue;
 			
-			const auto resolvedResult = m_gram.d_pool->resolveId(item.first);
-			const auto resolvedLength = std::strlen(resolvedResult);
-			
             const  size_t dist = 1; // we shouldnt need to compute levenshtein
             double cover = item.second.fCount / srcFCnt;
             if( m_soundsLikeEnabled) 
