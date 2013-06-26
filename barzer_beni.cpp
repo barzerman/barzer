@@ -1,6 +1,7 @@
 #include <barzer_beni.h>
 #include <zurch_docidx.h>
 #include <ay/ay_sets.h>
+#include <ay/ay_util_time.h>
 
 namespace barzer {
 
@@ -44,6 +45,8 @@ size_t SmartBENI::addEntityFile( const char* path )
     };
     std::string tmp,  normName, lowerCase;
     std::vector<char> tmpBuf;
+    ay::stopwatch timer;
+
     while( fgets( buf, sizeof(buf)-1, fp ) ) {
         buf[ sizeof(buf)-1 ] = 0;
         size_t len = strlen( buf );
@@ -91,9 +94,10 @@ size_t SmartBENI::addEntityFile( const char* path )
         d_beniStraight.addWord(normName, ent.getEuid() );
         if( d_isSL ) 
             d_beniSl.addWord(normName, ent.getEuid());
+        ++entsRead;
     }
 
-    std::cerr << entsRead << " entities loaded\n";
+    std::cerr << entsRead << " entities loaded in " << timer.calcTime() << " seconds" << std::endl;
     return entsRead;    
 }
 
