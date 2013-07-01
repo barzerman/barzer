@@ -1017,7 +1017,7 @@ bool BZSpell::stem(std::string& out, const char *s, int& lang, size_t minWordLen
 		}
 	}
 	else if (lang == LANG_RUSSIAN)
-		return Russian_Stemmer::stem( out, s );
+		return Russian_Stemmer::stem( out, s, (const Russian_StemmerSettings*)0 );
 	else
 	{
 		const ay::MultilangStem *stem = ay::StemThreadPool::inst().getThreadStemmer();
