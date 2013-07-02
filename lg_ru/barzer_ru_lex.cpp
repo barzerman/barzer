@@ -22,9 +22,9 @@ uint32_t Russian_Stemmer::getStemCorrection( std::string& out, const BZSpell& bz
     return 0xffffffff;
 }
 
-bool Russian_Stemmer::stem( std::string& out, const char* s ) 
+bool Russian_Stemmer::stem( std::string& out, const char* s, const Russian_StemmerSettings* settings ) 
 {
-    return Russian::normalize(out,s);
+    return Russian::normalize(out,s,0,settings);
 }
 
 }

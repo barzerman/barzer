@@ -7,6 +7,7 @@
 #include <ay_string_pool.h>
 #include <ay_snowball.h>
 #include <ay_ngrams.h>
+#include <barzer_elementary_types.h>
 #include <barzer_el_rewriter.h>
 #include <barzer_el_wildcard.h>
 #include <barzer_el_trie.h>
@@ -84,7 +85,8 @@ private:
 	TheGrammarList d_trieList;
 	friend class UniverseTrieClusterIterator;
 
-    typedef std::map< BELTrie::UniqueTrieId, const BELTrie* > UniqIdTrieMap;
+    // we do not own these pointers (theyre owned by the global pool)
+    typedef std::map< UniqueTrieId, BELTrie* > UniqIdTrieMap;
     UniqIdTrieMap d_ownTrieMap;
 public:
 	const TheGrammarList& getTrieList() const { return d_trieList; }
@@ -112,13 +114,24 @@ public:
         d_trieList.push_back( TheGrammar(trie,gi) );
         d_ownTrieMap.insert( UniqIdTrieMap::value_type( trie->getUniqueTrieId(), trie));
     }
-    const BELTrie* getTrieByUniqueId( const BELTrie::UniqueTrieId& tid ) const
+    const BELTrie* getTrieByUniqueId( const UniqueTrieId& tid ) const
     {
         UniqIdTrieMap::const_iterator i = d_ownTrieMap.find(tid);
         return ( i == d_ownTrieMap.end() ? i->second : 0 );
     }
-    const BELTrie* getTrieByUniqueId( uint32_t tc, uint32_t tid ) const
-        { return getTrieByUniqueId( BELTrie::UniqueTrieId(tc,tid) ); }
+    BELTrie* getTrieByUniqueId( const UniqueTrieId& tid ) 
+        { 
+            UniqIdTrieMap::iterator i = d_ownTrieMap.find(tid);
+            return ( i == d_ownTrieMap.end() ? 0 :i->second );
+        }
+    BELTrie* getTrieByUniqueId( uint32_t tc, uint32_t tid ) const
+        { 
+            return const_cast<BELTrie*>(getTrieByUniqueId( UniqueTrieId(tc,tid) )); 
+        }
+    
+    BELTrie* getTrieByClassAndId( const char* trieClass, const char* trieId ) ;
+    const BELTrie* getTrieByClassAndId( const char* trieClass, const char* trieId ) const;
+    UniqueTrieId getUniqueTrieId ( const char* trieClass, const char* trieId ) const ;
     void clearTries();
 };
 
@@ -248,8 +261,10 @@ public:
 	const char* internalString_resolve( uint32_t id ) const { return internalStringPool.resolveId( id ); }
 
 	const char* internalString_resolve_safe( uint32_t id ) const { 
-        const char* s = internalStringPool.resolveId( id );
-        return ( s ? s: "" );
+        if( const char* s = internalStringPool.resolveId( id ) )
+            return s;
+        else 
+            return "";
     }
 
 	size_t getMaxAnalyticalModeMaxSeqLength() const { return d_maxAnalyticalModeMaxSeqLength; }

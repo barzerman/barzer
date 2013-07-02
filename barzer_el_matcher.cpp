@@ -1075,7 +1075,7 @@ void BTMBestPaths::addPath(const NodeAndBeadVec& nb, const NodeAndBead& lastNB )
                     }
                 } else { // old best path didnt resolve to entity - this is a bug in the ruleset 
                     if( bestTran ) { 
-	                    d_barz.pushTrace( newTran->traceInfo, d_trie.getGlobalTriePoolId() );
+	                    d_barz.pushTrace( newTran->traceInfo, d_trie.getGlobalTriePoolId(), newTran->tranId );
                         d_barz.setError( "ambiguity between entity and nonentity" );
                     }
                     /// the else here is impossible
@@ -1366,7 +1366,7 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
 
 	const BarzelTranslation& translation = *transP;
 
-	barz.pushTrace( transP->traceInfo, d_trie.getGlobalTriePoolId() );
+	barz.pushTrace( transP->traceInfo, d_trie.getGlobalTriePoolId(), transP->tranId );
     // circuitbreaker
     bool lastFrameLoop = barz.lastFrameLoop();
 

@@ -25,6 +25,12 @@ struct ExtractedStringFeature {
 	{
 	}
 };
+
+inline bool operator<(const ExtractedStringFeature& left, const ExtractedStringFeature& right)
+{
+	return left.m_str < right.m_str;
+}
+
 /// we assume that any kind of feature is possible to epres with 3 values
 /// for example - uint32_t for substring id , and two other 16bit numbers for position and length
 /// or if the feature is a double we can store something else in these 8 bytes
@@ -154,14 +160,17 @@ struct TFE_storage {
 		
 		if (m_removeDuplicates)
 		{
-			std::sort(tmp.extractedVec.begin(), tmp.extractedVec.end(),
-					[](const ExtractedStringFeature& left, const ExtractedStringFeature& right)
-						{ return left.m_str < right.m_str; });
-			
-			const auto newEnd = std::unique(tmp.extractedVec.begin(), tmp.extractedVec.end(),
-					[](const ExtractedStringFeature& left, const ExtractedStringFeature& right)
-						{ return left.m_str == right.m_str; });
-			tmp.extractedVec.erase(newEnd, tmp.extractedVec.end());
+			std::set<ExtractedStringFeature> encountered;
+			for (auto it = tmp.extractedVec.begin(); it != tmp.extractedVec.end(); )
+			{
+				if (encountered.find(*it) != encountered.end())
+					it = tmp.extractedVec.erase(it);
+				else
+				{
+					encountered.insert(*it);
+					++it;
+				}
+			}
 		}
 	}
 	

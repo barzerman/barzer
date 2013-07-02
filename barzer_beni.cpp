@@ -1,5 +1,7 @@
 #include <barzer_beni.h>
 #include <zurch_docidx.h>
+#include <ay/ay_sets.h>
+#include <ay/ay_util_time.h>
 
 namespace barzer {
 
@@ -15,6 +17,90 @@ SmartBENI::SmartBENI( StoredUniverse& u ) :
         d_beniStraight.setSL( false );
     }
 }
+size_t SmartBENI::addEntityFile( const char* path )
+{
+    FILE* fp= 0;
+    if( path ) {
+        fp = fopen( path, "r" );
+        if( !fp ) {
+            AYLOG(ERROR) << "cant open file " << path << std::endl;
+            return 0;
+        }
+        std::cerr << "reading BENI entities from " << path << std::endl;
+    } else 
+        fp = stdin;
+
+    char buf[ 1024 ];
+    size_t entsRead = 0;
+    std::string name;
+    std::string id;
+    
+    enum {
+        TOK_CLASS,
+        TOK_SUBCLASS,
+        TOK_ID,
+        TOK_RELEVANCE,
+        TOK_NAME,
+        TOK_MAX
+    };
+    std::string tmp,  normName, lowerCase;
+    std::vector<char> tmpBuf;
+    ay::stopwatch timer;
+
+    while( fgets( buf, sizeof(buf)-1, fp ) ) {
+        buf[ sizeof(buf)-1 ] = 0;
+        size_t len = strlen( buf );
+        if( !len ) 
+            continue;
+        len--;
+        if( buf[ len ]  == '\n' ) buf[ len ]=0;
+
+        if( buf[0] == '#' ) continue;
+
+        tmpBuf.clear();
+        id.clear();
+        name.clear();
+        normName.clear();
+        int relevance = 0;
+        StoredEntityUniqId euid;
+
+        size_t numTokRead = 0;
+        ay::parse_separator( 
+            [&]( size_t tokNum, const char* s_beg, const char* s_end ) -> int {
+                numTokRead= tokNum;
+                if( tokNum >= TOK_MAX ) return 1;
+                switch( tokNum ) {
+                case TOK_CLASS:     tmp.assign(s_beg,(s_end-s_beg)); euid.eclass.ec = atoi(tmp.c_str()); break;
+                case TOK_SUBCLASS:  tmp.assign(s_beg,(s_end-s_beg)); euid.eclass.subclass = atoi(tmp.c_str()); break;
+                case TOK_ID:        id.assign( s_beg, (s_end - s_beg ) ); break;
+                case TOK_RELEVANCE: tmp.assign(s_beg,(s_end-s_beg)); relevance = atoi(tmp.c_str()); break;
+                case TOK_NAME:      name.assign( s_beg, (s_end - s_beg ) ); break;
+                default: return 1;
+                }
+                return 0;
+            },
+            buf, 
+            buf+len
+        );
+        if( numTokRead < TOK_NAME ) continue;
+        
+        euid.tokId = d_universe.getGlobalPools().internString_internal( id.c_str() );
+
+        StoredEntity& ent = d_universe.getGlobalPools().getDtaIdx().addGenericEntity( euid.tokId, euid.eclass.ec, euid.eclass.subclass );
+
+        Lang::stringToLower( tmpBuf, lowerCase, name.c_str() );
+        BENI::normalize( normName, lowerCase );
+        d_universe.setEntPropData( ent.getEuid(), name.c_str(), relevance, true );
+        d_beniStraight.addWord(normName, ent.getEuid() );
+        if( d_isSL ) 
+            d_beniSl.addWord(normName, ent.getEuid());
+        ++entsRead;
+    }
+
+    std::cerr << entsRead << " entities loaded in " << timer.calcTime() << " seconds" << std::endl;
+    return entsRead;    
+}
+
 void SmartBENI::addEntityClass( const StoredEntityClass& ec )
 {
     /// iterate over entities of ec 
@@ -29,9 +115,9 @@ void SmartBENI::addEntityClass( const StoredEntityClass& ec )
         if( edata && !edata->canonicName.empty() ) {
             Lang::stringToLower( tmpBuf, dest, edata->canonicName );
             BENI::normalize( normDest, dest );
-			d_beniStraight.d_storage.addWord( normDest.c_str(), i->first );
+			d_beniStraight.addWord(normDest, i->first);
             if( d_isSL ) 
-			    d_beniSl.d_storage.addWord( normDest.c_str(), i->first );
+			    d_beniSl.addWord(normDest, i->first);
             
             ++numNames;
         }
@@ -84,6 +170,17 @@ BENI::BENI( StoredUniverse& u ) :
     d_universe(u)
 {}
 
+const NGramStorage<BarzerEntity>& BENI::getStorage() const
+{
+	return d_storage;
+}
+
+void BENI::addWord(const std::string& str, const BarzerEntity& ent)
+{
+	d_storage.addWord( str.c_str(), ent );
+	d_backIdx.insert({ ent, str });
+}
+
 void BENI::addEntityClass( const StoredEntityClass& ec )
 {
     /// iterate over entities of ec 
@@ -98,7 +195,7 @@ void BENI::addEntityClass( const StoredEntityClass& ec )
         if( edata && !edata->canonicName.empty() ) {
             Lang::stringToLower( tmpBuf, dest, edata->canonicName );
             BENI::normalize( normDest, dest );
-			d_storage.addWord( normDest.c_str(), i->first );
+			addWord(normDest, i->first);
             
             ++numNames;
         }
@@ -106,24 +203,37 @@ void BENI::addEntityClass( const StoredEntityClass& ec )
     std::cerr << "BENI: " << numNames << " names for " << ec << std::endl;
 }
 
-namespace {
-
-size_t compute_cutoff_by_coverage( std::vector< NGramStorage<BarzerEntity>::FindInfo >& vec )
+namespace
 {
-    if( vec.empty() ) 
-        return 0;
-    double topCov = vec[0].m_coverage;
+	size_t compute_cutoff_by_coverage( std::vector< NGramStorage<BarzerEntity>::FindInfo >& vec )
+	{
+		if( vec.empty() ) 
+			return 0;
+		double topCov = vec[0].m_coverage;
 
-    double diff = 0;
-    size_t i = 1;
-    for( ; i< vec.size(); ++i ) {
-        if( vec[i].m_coverage + 0.1 < topCov ) 
-            return i;
-    }
-    return i;
-}
+		double diff = 0;
+		size_t i = 1;
+		for( ; i< vec.size(); ++i ) {
+			if( vec[i].m_coverage + 0.1 < topCov ) 
+				return i;
+		}
+		return i;
+	}
 
+	// for =zero length val isn't changed, for bigger lengths
+	// val goes to threshold
+	double calcPenalty(double val, double length)
+	{
+		// val → y
+		// length → x
+		const double threshold = 0.5;
+		const double smoothness = 0.1;
+		const double affect = 0.7;
+
+		return val * ((1 - affect) + affect / (1 + exp ((length - threshold) / smoothness)));
+	}
 } //end of anon namespace 
+
 double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) const
 {
     double maxCov = 0.0;
@@ -133,7 +243,9 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) 
     std::vector<char> tmpBuf;
     std::string dest;
     std::string normDest;
-	Lang::stringToLower( tmpBuf, dest, std::string(query) );
+    size_t query_len = strlen(query);
+    std::string queryStr(query);
+	Lang::stringToLower( tmpBuf, dest, queryStr );
     normalize( normDest, dest );
     enum { MAX_BENI_RESULTS = 64 };
     d_storage.getMatches( normDest.c_str(), normDest.length(), vec, MAX_BENI_RESULTS, minCov );
@@ -144,6 +256,14 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) 
     if( cutOffSz< vec.size() ) 
         vec.resize( cutOffSz );
 
+	ay::SetXSection xsect;
+	xsect.minLength = 10;
+	xsect.skipLength = 1;
+
+    enum { MIN_MATCH_BOOST_QLEN = 10 };
+    size_t queryGlyphCount = ay::StrUTF8::glyphCount(query, query+ query_len) ; 
+
+    bool doBoost = d_universe.checkBit( StoredUniverse::UBIT_BENI_NO_BOOST_MATCH_LEN );
     for( const auto& i : vec ) {
         if( !i.m_data )
             continue;
@@ -159,7 +279,30 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) 
                 }
             }
             if( isNew )
-                out.push_back({ *(i.m_data), i.m_levDist, i.m_coverage, i.m_relevance });
+			{
+				auto cov = i.m_coverage;
+				if (queryGlyphCount >= MIN_MATCH_BOOST_QLEN)
+				{
+					const auto strPos = d_backIdx.find(*(i.m_data));
+					if (strPos != d_backIdx.end())
+					{
+						const auto& str = strPos->second;
+						const ay::StrUTF8 strUtf8(str.c_str(), str.size());
+						const ay::StrUTF8 normUtf8(normDest.c_str(), normDest.size());
+						const auto& longest = xsect.findLongest(strUtf8, normUtf8);
+
+						if (longest.second < 3)
+						{
+							const double minLength = std::min(strUtf8.size(), normUtf8.size());
+							const double relLength = longest.first / minLength;
+
+							// here we compute the penalty for the difference between coverage and 1
+							cov = 1 - calcPenalty(1 - cov, relLength);
+						}
+					}
+				}
+				out.push_back({ *(i.m_data), i.m_levDist, cov, i.m_relevance });
+			}
         }
     }
     return maxCov;

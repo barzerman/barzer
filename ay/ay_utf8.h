@@ -83,6 +83,10 @@ namespace ay
             );
         }
         
+        bool operator!= (const CharUTF8& o) const { return !(*this == o); }
+        bool operator!= (char o) const { return !(*this == o); }
+        bool operator!= (const char *o) const { return !(*this == o); }
+        
         bool isInStr( const char* s ) const { return ( strstr(s,c_str())!=0 ); }
         bool isPunct() const { return( ispunct(d_data.c4[0]) || isApostrophe() ); }
 
@@ -241,6 +245,15 @@ namespace ay
             { return &m_buf[ m_positions[g] ]; }
         const char* getGlyphEnd( size_t g ) const
             { return ( (g+1)< m_positions.size() ? &(m_buf[ m_positions[g+1]]): ( (&(m_buf[0])) +m_buf.size()) ); }
+            
+		std::vector<CharUTF8> getChars() const
+		{
+			std::vector<CharUTF8> res;
+			res.reserve(size());
+			for (const auto& c : *this)
+				res.push_back(c);
+			return res;
+		}
         
         // substring from len glyphs starting with i-th glyph 
         std::string getSubstring( size_t i, size_t len ) const
@@ -515,21 +528,26 @@ namespace ay
 		bool normalize();
 
         struct const_iterator {
-            const StrUTF8& m_str;
+            const StrUTF8 *m_str;
             size_t   m_pos;
 
-            const_iterator( const StrUTF8& str, size_t p ) : m_str(str), m_pos(p) {}
+            const_iterator( const StrUTF8& str, size_t p ) : m_str(&str), m_pos(p) {}
 
-            const_iterator& operator ++() { return( ++m_pos, *this ); }
-            const_iterator operator +( int i ) const { return( const_iterator(m_str,m_pos+i) ); }
+            const_iterator& operator++() { ++m_pos; return *this; }
+            const_iterator& operator--() { --m_pos; return *this; }
+            const_iterator& operator+=(ptrdiff_t diff) { m_pos += diff; return *this; }
+            const_iterator operator +( int i ) const { return( const_iterator(*m_str, m_pos+i) ); }
             const_iterator operator -( int i ) const { return (*this + (-i)); }
-            size_t operator -( const const_iterator& o ) const { return( m_pos-o.m_pos); }
+            ptrdiff_t operator -( const const_iterator& o ) const { return( m_pos-o.m_pos); }
 
-            bool operator!=( const const_iterator& c ) const { return c.m_pos != m_pos; }
-            bool operator<( const const_iterator& c ) const { return c.m_pos < m_pos; }
-            bool operator==( const const_iterator& c ) const { return c.m_pos == m_pos; }
+            bool operator==(const const_iterator& c) const { return c.m_pos == m_pos; }
+            bool operator!=(const const_iterator& c) const { return !(*this == c); }
+            bool operator<(const const_iterator& c) const { return m_pos < c.m_pos; }
+            bool operator<=(const const_iterator& c) const { return m_pos <= c.m_pos; }
+            bool operator>(const const_iterator& c) const { return m_pos > c.m_pos; }
+            bool operator>=(const const_iterator& c) const { return m_pos >= c.m_pos; }
 			inline CharUTF8 operator* () const
-                { return m_str.getGlyph (m_pos); }
+                { return m_str->getGlyph (m_pos); }
         };
         const_iterator begin() const { return const_iterator(*this,0); }
         const_iterator end() const { return const_iterator(*this,size()); }
@@ -538,3 +556,16 @@ namespace ay
 int unicode_normalize_punctuation( std::string& outStr, const char* srcStr, size_t srcStr_sz ) ;
 int unicode_normalize_punctuation( std::string& qstr ) ;
 } // ay namespace
+
+namespace std
+{
+	template<>
+	struct iterator_traits<ay::StrUTF8::const_iterator>
+	{
+		typedef random_access_iterator_tag	iterator_category;
+		typedef ay::CharUTF8				value_type;
+		typedef ptrdiff_t					difference_type;
+		typedef const ay::CharUTF8*			pointer;
+		typedef const ay::CharUTF8&			reference;
+	};
+}

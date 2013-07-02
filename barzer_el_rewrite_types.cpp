@@ -53,8 +53,6 @@ std::ostream&  BTND_Rewrite_None::print( std::ostream& fp , const BELPrintContex
 
 namespace {
 
-typedef boost::variant<int,std::string> shit_var_t;
-
 struct BTND_RewriteData_equal_vis : public boost::static_visitor<bool> 
 {
     const BTND_RewriteData& dta;

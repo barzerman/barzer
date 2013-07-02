@@ -341,12 +341,18 @@ class StoredUniverse;
 
 class BENI {
     ay::UniqueCharPool d_charPool;
+	
+    NGramStorage<BarzerEntity> d_storage;
+	std::map<BarzerEntity, std::string> d_backIdx;
 public:
     ay::UniqueCharPool& charPool() { return d_charPool; }
     const ay::UniqueCharPool& charPool() const { return d_charPool; }
 
-    NGramStorage<BarzerEntity> d_storage;
     StoredUniverse& d_universe;
+	
+	const NGramStorage<BarzerEntity>& getStorage() const;
+	
+	void addWord(const std::string& str, const BarzerEntity&);
 
     /// add all entities by name for given class 
     void addEntityClass( const StoredEntityClass& ec );
@@ -375,6 +381,12 @@ public:
     SmartBENI( StoredUniverse& u );
 
     void addEntityClass( const StoredEntityClass& ec );
+    /// reads info from path . if path ==0 - from stdin 
+    /// assumes the format as class|subclass|id|searchable name
+    /// one netity per line. line cant be longer than 1024 bytes 
+    /// lines with leading # are skipped as comments
+    size_t addEntityFile( const char* path=0 ); 
+
     void search( BENIFindResults_t&, const char* str, double minCov) const;
 	
 	BENI& getPrimaryBENI();

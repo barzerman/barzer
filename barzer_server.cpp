@@ -13,6 +13,7 @@
 #include <autotester/barzer_at_comparators.h>
 #include <ay_translit_ru.h>
 #include <barzer_relbits.h>
+#include <barzer_el_trie_ruleidx.h>
 
 
 extern "C" {
@@ -220,7 +221,7 @@ int proc_CLEAR_USER( RequestEnvironment& reqEnv, GlobalPools& gp, const char* st
 
 namespace {
 
-const char*  read_pipe_sep( std::ostream& os, std::string& dest, const char * buf, size_t maxLen = 32 ) 
+const char*  read_pipe_sep( std::ostream& os, std::string& dest, const char * buf, size_t maxLen = 256 ) 
 {
     const char* pipe = strchr( buf , '|' );
     if( pipe ) {
@@ -262,6 +263,32 @@ int proc_ADD_TRIE( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  str
     return 0;
 }
 
+int proc_STMT_REMOVE( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  str )
+{
+    std::string useridStr, trieClass, trieId, source, statementId;
+    if(     
+        (str= read_pipe_sep(reqEnv.outStream,useridStr,str))    !=0  &&
+        (str= read_pipe_sep(reqEnv.outStream,trieClass,str))    !=0  &&
+        (str= read_pipe_sep(reqEnv.outStream,trieId,str))       !=0  &&
+        (str= read_pipe_sep(reqEnv.outStream,source,str))       !=0  &&
+        (str= read_pipe_sep(reqEnv.outStream,statementId,str))  !=0 
+    ) {
+        uint32_t userId = (uint32_t)( atoi(useridStr.c_str() ) );
+        if( StoredUniverse* uni = gp.getUniverse( userId ) ) {
+            StoredUniverse::WriteLock universe_lock( uni->getMutex() );
+            uni->ruleIdx().removeNode( 
+                trieClass.c_str()    ,
+                trieId.c_str(),
+                source.c_str(),
+                atoi(statementId.c_str())
+            );
+        } else {
+            reqEnv.outStream << "<error>no valid universe for user id " << userId << " doesnt exist</error>\n";
+            return 0;
+        }
+    }
+    return 0;
+}
 /// format is !!ADD_STMSET:userid|trieClass|trieId|<stmset> ... </stmset>
 int proc_ADD_STMSET( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  str )
 {
@@ -462,6 +489,7 @@ int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os )
 		IFHEADER_ROUTE(CHKBIT)
 		IFHEADER_ROUTE(EN2RU)
 		IFHEADER_ROUTE(ADD_STMSET)
+		IFHEADER_ROUTE(STMT_REMOVE)
 		IFHEADER_ROUTE(CLEAR_TRIE)
 		IFHEADER_ROUTE(CLEAR_USER)
 		IFHEADER_ROUTE(LOAD_CONFIG)

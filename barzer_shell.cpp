@@ -171,7 +171,6 @@ static int bshf_srvroute( BarzerShell* shell, char_cp cmd, std::istream& in, con
     std::string attrStr;
 
     std::string theTag;
-    std::string shit; 
     if( argStr.length() ) {
         theTag = "query";
         std::string bufStr;
@@ -1204,7 +1203,7 @@ static int bshf_benisland(BarzerShell *shell, char_cp cmd, std::istream& in, con
 	while (reader.nextLine() && !reader.str.empty())
 	{
 		StoredStringFeatureVec vec;
-		const auto& islands = primary.d_storage.getIslands(reader.str.c_str(), reader.str.size(), vec);
+		const auto& islands = primary.getStorage().getIslands(reader.str.c_str(), reader.str.size(), vec);
 		std::cout << "found " << islands.size() << " islands" << std::endl;
 		
 		for (const auto& island : islands)
@@ -1217,7 +1216,7 @@ static int bshf_benisland(BarzerShell *shell, char_cp cmd, std::istream& in, con
 					isFirst = false;
 				else
 					std::cout << "', '";
-				std::cout << primary.d_storage.resolveFeature(item);
+				std::cout << primary.getStorage().resolveFeature(item);
 				std::cout << " " << item.m_strId;
 			}
 			std::cout << "'" << std::endl;
@@ -1926,7 +1925,6 @@ static int bshf_env( BarzerShell* shell, char_cp cmd, std::istream& in , const s
                 buf[ sizeof(buf)-1 ] =0;
                 strip_newline(buf);
                 reqEnvVar.setValue( varName.c_str(), BarzelBeadAtomic_var( BarzerString(buf) ) );
-                BarzerString shitString(buf);
             }
         }
     } else { // get mode 
