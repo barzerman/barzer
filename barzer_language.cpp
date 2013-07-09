@@ -96,15 +96,27 @@ bool Lang::convertTwoByteToLower( char* s, size_t s_len, int lang )
         char* s_end = s+s_len;
         for( char* ss=s; ss< s_end; ss+=2 ) {
             uint8_t b1= (uint8_t)(ss[1]);
-            if( !((uint8_t)(ss[0]) == 0xd1 && b1==0x91) && (b1 >=0x90 && b1 <=0xaf) ) {
+            if( (uint8_t)(ss[0]) == 0xd0 ) {
+                if( b1 == 0x81 ) {// Ё
+                    ss[0] = 0xd1;ss[1] = 0x91; continue;
+                } else
+                if( b1 == 0xac ) {  // Ь
+                    ss[0] = 0xd1; ss[1] = 0x8c; continue;
+                } else
+                if( b1 == 0xac ) {  // Ъ
+                    ss[0] = 0xd1; ss[1] = 0x8a; continue;
+                } else
+                if( b1 == 0x99 ) {  // Й
+                    ss[0] = 0xd0; ss[1] = 0xb9; continue;
+                }
+            } 
+            
+            if( !((uint8_t)(ss[0]) == 0xd1 && b1==0x91) && (b1 >=0x90 && b1 <=0xaf ) ) {
                 const char* lc = rus_letter[ (b1-0x90) ];
                 hasUpperCase = true;
                 ss[0] = lc[0];
                 ss[1] = lc[1];
-            } else if( (uint8_t)(ss[0]) == 0xd0 && b1 == 0x81 ) { // Ё
-                ss[0] = 0xd1;
-                ss[1] = 0x91;
-            }
+            } 
         }
 
         return hasUpperCase;
