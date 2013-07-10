@@ -94,7 +94,8 @@ size_t SmartBENI::addEntityFile( const char* path )
         d_beniStraight.addWord(normName, ent.getEuid() );
         if( d_isSL ) 
             d_beniSl.addWord(normName, ent.getEuid());
-        ++entsRead;
+        if (!(++entsRead % 100000))
+			std::cerr << entsRead << " entities loaded (in " << timer.calcTime() << " seconds)..." << std::endl;
     }
 
     std::cerr << entsRead << " entities loaded in " << timer.calcTime() << " seconds" << std::endl;
