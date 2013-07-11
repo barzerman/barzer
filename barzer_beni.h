@@ -3,6 +3,7 @@
 #include <barzer_spell_features.h>
 #include <boost/range/iterator_range.hpp>
 #include <zurch_docidx_types.h>
+#include <ay_util_time.h>
 
 namespace barzer {
 
@@ -100,6 +101,7 @@ public:
 			if (!srcs)
 				continue;
 			
+			const auto imp = 1. / (srcs->size() * srcs->size());
 			for (const auto& sourceFeature : *srcs)
 			{
 				const auto source = sourceFeature.docId;
@@ -109,22 +111,22 @@ public:
 					pos = counterMap.insert({ source, { 0, 0 } }).first;
 
 				auto& info = pos->second;
-				info.counter += 1. / (srcs->size() * srcs->size());
-				++info.fCount;
+				info.counter += imp * sourceFeature.counter;
+				info.fCount += sourceFeature.counter;
 			}
 		}
 		
 		if (counterMap.empty())
 			return;
-		
+
 		std::vector<std::pair<uint32_t, FeatureStatInfo>> sorted;
 		sorted.reserve(counterMap.size());
 		std::copy(counterMap.begin(), counterMap.end(), std::back_inserter(sorted));
-		
+
 		std::sort(sorted.begin(), sorted.end(),
 				[](const typename CounterMap_t::value_type& v1, const typename CounterMap_t::value_type& v2)
 					{ return v1.second.counter > v2.second.counter; });
-		
+
         size_t countAdded = 0;
 		for (const auto& item : sorted)
 		{
@@ -211,12 +213,13 @@ auto NGramStorage<T>::getIslands(const char* origStr, size_t origStrLen, StoredS
 
 namespace
 {
-	template<typename T>
-	std::vector<T> intersectVectors(std::vector<T> smaller, const std::vector<T>& bigger)
+	template<typename Cont>
+	Cont intersectVectors(Cont smaller, const Cont& bigger)
 	{
 		for (auto i = smaller.begin(); i != smaller.end(); )
 		{
-			if (std::find_if(bigger.begin(), bigger.end(), [i](const FeatureInfo& f) { return f.docId == i->docId; }) != bigger.end())
+			if (std::find_if(bigger.begin(), bigger.end(),
+					[i](const typename Cont::value_type& f) { return f.docId == i->docId; }) != bigger.end())
 				++i;
 			else
 				i = smaller.erase(i);
@@ -238,7 +241,7 @@ auto NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator 
 	
 	const auto pos = m_gram.d_fm.find(*startGram);
 	auto currentDocs = pos == m_gram.d_fm.end() ?
-			std::vector<FeatureInfo>() :
+			FeaturesDict_t() :
 			pos->second;
 	
 	auto curLeft = startGram,
@@ -264,7 +267,7 @@ auto NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator 
 			--curLeft;
 			const auto leftDocsPos = m_gram.d_fm.find(*curLeft);
 			const auto& leftDocs = leftDocsPos == m_gram.d_fm.end() ?
-					std::vector<FeatureInfo>() :
+					FeaturesDict_t() :
 					leftDocsPos->second;
 			auto xSect = intersectVectors(currentDocs, leftDocs);
 			
@@ -284,7 +287,7 @@ auto NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator 
 			++curRight;
 			const auto rightDocsPos = m_gram.d_fm.find(*curRight);
 			const auto& rightDocs = rightDocsPos == m_gram.d_fm.end() ?
-					std::vector<FeatureInfo>() :
+					FeaturesDict_t() :
 					rightDocsPos->second;
 			auto xSect = intersectVectors(currentDocs, rightDocs);
 			
