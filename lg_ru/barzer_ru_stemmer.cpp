@@ -126,7 +126,7 @@ inline bool suffix_3char_compatible( const char* suffix, const char* w, size_t w
 
 } // anonymous namespace 
 using namespace ay;
-bool Russian::normalize( std::string& out, const char* s, size_t* len ) 
+bool Russian::normalize( std::string& out, const char* s, size_t* len, const Russian_StemmerSettings* settings ) 
 {
     using namespace suffix;
     size_t s_len = strlen( s );
@@ -212,7 +212,7 @@ bool Russian::normalize( std::string& out, const char* s, size_t* len )
         return( chop_into_string( out, 3, s, s_len ) );
     }
     if( numLetters > 4 ) {
-        if( l2(verb_2) )
+        if( settings && l2(verb_2) )
             return( chop_into_string( out, 2, s, s_len ) );
     }
 
