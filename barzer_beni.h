@@ -31,7 +31,7 @@ public:
 	: m_gram(p)
 	, m_soundsLikeEnabled(false)
 	{
-		m_gram.d_extractor.m_makeSideGrams = false;
+		m_gram.d_extractor.m_makeSideGrams = true;
 		m_gram.d_extractor.m_stem = false;
 		m_gram.d_extractor.m_minGrams = 3;
 		m_gram.d_extractor.m_maxGrams = 3;
