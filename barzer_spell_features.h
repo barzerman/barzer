@@ -129,18 +129,21 @@ struct TFE_storage {
     InvertedFeatureMap d_fm;
     ay::UniqueCharPool *d_pool;
     FE d_extractor;
+	uint32_t d_max;
 
     typedef boost::unordered_set< uint32_t > StringSet;
     StringSet d_strSet;
 	
 	bool m_removeDuplicates;
 
-    TFE_storage( ay::UniqueCharPool&  p) : d_pool(&p), m_removeDuplicates(true) {}
+    TFE_storage( ay::UniqueCharPool&  p) : d_pool(&p), d_max(0), m_removeDuplicates(true) {}
     void clear()
     {
         d_fm.clear();
         d_strSet.clear();
+		d_max = 0;
     }
+
     const InvertedFeatureMap::mapped_type* getSrcsForFeature(const StoredStringFeature& f) const
     {
 		const auto pos = d_fm.find(f);
@@ -211,11 +214,7 @@ struct TFE_storage {
 			if (pos == set.end() || pos->docId != strId)
 				pos = set.insert(pos, { strId, 0 });
 
-			/*
-			auto pos = set.find(strId);
-			if (pos == set.end())
-				pos = set.insert({ strId, { 0 } }).first;
-			*/
+			d_max = std::max(d_max, strId);
 
 			++pos->counter;
 		}
