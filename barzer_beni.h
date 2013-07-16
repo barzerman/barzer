@@ -83,6 +83,7 @@ public:
 	void getMatchesRange(StoredStringFeatureVec::const_iterator begin, StoredStringFeatureVec::const_iterator end,
 			std::vector<FindInfo>& out, size_t max, double minCov) const
 	{
+		std::cout << "max id: " << m_gram.d_max << std::endl;
 		const double srcFCnt = std::distance(begin, end);
 
 		struct FeatureStatInfo
@@ -91,9 +92,7 @@ public:
 			uint16_t fCount;
 		};
 		
-		typedef boost::unordered_map<uint32_t, FeatureStatInfo> CounterMap_t;
-		CounterMap_t counterMap;
-		counterMap.reserve(1e6);
+		std::vector<FeatureStatInfo> counterMap(m_gram.d_max);
 
 		for (const auto& feature : boost::make_iterator_range(begin, end))
 		{
@@ -106,11 +105,7 @@ public:
 			{
 				const auto source = sourceFeature.docId;
 				
-				auto pos = counterMap.find(source);
-				if (pos == counterMap.end())
-					pos = counterMap.insert({ source, { 0, 0 } }).first;
-
-				auto& info = pos->second;
+				auto& info = counterMap[source];
 				info.counter += imp * sourceFeature.counter;
 				info.fCount += sourceFeature.counter;
 			}
@@ -119,12 +114,20 @@ public:
 		if (counterMap.empty())
 			return;
 
-		std::vector<std::pair<uint32_t, FeatureStatInfo>> sorted;
+		typedef std::vector<std::pair<uint32_t, FeatureStatInfo>> Sorted_t;
+		Sorted_t sorted;
 		sorted.reserve(counterMap.size());
-		std::copy(counterMap.begin(), counterMap.end(), std::back_inserter(sorted));
+		const auto normalizedMinCov = minCov * srcFCnt;
+
+		for (size_t i = 0; i < counterMap.size(); ++i)
+		{
+			const auto& info = counterMap[i];
+			if (info.fCount >= normalizedMinCov)
+				sorted.push_back({ i, info });
+		}
 
 		std::sort(sorted.begin(), sorted.end(),
-				[](const typename CounterMap_t::value_type& v1, const typename CounterMap_t::value_type& v2)
+				[](const typename Sorted_t::value_type& v1, const typename Sorted_t::value_type& v2)
 					{ return v1.second.counter > v2.second.counter; });
 
         size_t countAdded = 0;
