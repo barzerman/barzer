@@ -318,9 +318,11 @@ bool BENI::normalize( std::string& out, const std::string& in )
     enum {
         CT_CHAR, //  everything that's not a digit or pucntspace is considered a char 
         CT_DIGIT , // isdigit
-        CT_PUNCTSPACE //ispunct or isspace
+        CT_PUNCTSPACE, //ispunct or isspace
+        CT_2BYTEJUNK // ® and such
     };
-    #define GET_CT(c) ( (!c || ispunct(c)||isspace(c))? CT_PUNCTSPACE: (isdigit(c)? CT_DIGIT: CT_CHAR)  )
+    #define GET_CT(c) ( (!c || ispunct(c)||isspace(c))? CT_PUNCTSPACE: (isdigit(c)? CT_DIGIT: \
+        ((uint8_t)(c) ==0xc2 ? CT_2BYTEJUNK : CT_CHAR) )  )
     bool altered = false;
     for( size_t i = 0; i< in_length; ++i ) {
         char prevC = ( i>0 ? in[i-1] : 0 );
@@ -330,7 +332,11 @@ bool BENI::normalize( std::string& out, const std::string& in )
         int ct_prev = GET_CT(prevC); 
         int ct_next = GET_CT(nextC);
         int ct = GET_CT(c);
-
+        
+        if( ct == CT_2BYTEJUNK ) { // absorbing "funny chars"
+            if( i< in_length-1 ) ++i;
+            ct= CT_PUNCTSPACE;
+        }
         if( ct == CT_PUNCTSPACE ) {
             if( ct_prev != CT_PUNCTSPACE && ct_prev== ct_next )
                 out.push_back( ' ' );

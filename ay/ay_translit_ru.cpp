@@ -985,7 +985,7 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                 } else 
 				if (s + 2 < end && c1 == 'c' && s[2] == 'h')
 				{
-					russian.append("щ");
+					russian.append("ш");
 					s += 2;
 				} else 
 				if (isVowel(prev) && isVowel(c1))
@@ -1258,7 +1258,12 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
 				break;
 			}
 			default:
-				russian.push_back(c0);
+                if( c1 == 0x89 && c0 == 0xd1 ) { // щ --> ш
+				    russian.push_back(c0);
+				    russian.push_back(0x88);
+                    ++s;
+                }  else
+				    russian.push_back(c0);
 				break;
 			}
 
