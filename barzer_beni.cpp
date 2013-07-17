@@ -319,10 +319,10 @@ bool BENI::normalize( std::string& out, const std::string& in )
         CT_CHAR, //  everything that's not a digit or pucntspace is considered a char 
         CT_DIGIT , // isdigit
         CT_PUNCTSPACE, //ispunct or isspace
-        CT_2BYTEJUNK // ® and such
+        CT_2BYTEJUNK // ® and such stripping off this junk
     };
     #define GET_CT(c) ( (!c || ispunct(c)||isspace(c))? CT_PUNCTSPACE: (isdigit(c)? CT_DIGIT: \
-        ((uint8_t)(c) ==0xc2 ? CT_2BYTEJUNK : CT_CHAR) )  )
+        ((uint8_t)(c) ==0xc2 ? CT_2BYTEJUNK : CT_CHAR) )  ) 
     bool altered = false;
     for( size_t i = 0; i< in_length; ++i ) {
         char prevC = ( i>0 ? in[i-1] : 0 );
