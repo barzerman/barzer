@@ -17,7 +17,7 @@ SmartBENI::SmartBENI( StoredUniverse& u ) :
         d_beniStraight.setSL( false );
     }
 }
-size_t SmartBENI::addEntityFile( const char* path )
+size_t SmartBENI::addEntityFile( const char* path, const char* modeStr )
 {
     FILE* fp= 0;
     if( path ) {
@@ -34,7 +34,15 @@ size_t SmartBENI::addEntityFile( const char* path )
     size_t entsRead = 0;
     std::string name;
     std::string id;
-    
+    // name mode
+    enum {
+        NAME_MODE_OVERRIDE,
+        NAME_MODE_SKIP
+    };
+    int mode = NAME_MODE_OVERRIDE;
+    if( modeStr ) {
+        if( strchr(modeStr,'s') ) mode=NAME_MODE_SKIP;
+    }
     enum {
         TOK_CLASS,
         TOK_SUBCLASS,
@@ -90,7 +98,10 @@ size_t SmartBENI::addEntityFile( const char* path )
 
         Lang::stringToLower( tmpBuf, lowerCase, name.c_str() );
         BENI::normalize( normName, lowerCase );
-        d_universe.setEntPropData( ent.getEuid(), name.c_str(), relevance, true );
+        if( mode == NAME_MODE_OVERRIDE )
+            d_universe.setEntPropData( ent.getEuid(), name.c_str(), relevance, true );
+        else if( mode == NAME_MODE_SKIP )
+            d_universe.setEntPropData( ent.getEuid(), name.c_str(), relevance, false );
         d_beniStraight.addWord(normName, ent.getEuid() );
         if( d_isSL ) 
             d_beniSl.addWord(normName, ent.getEuid());
@@ -144,7 +155,10 @@ void SmartBENI::search( BENIFindResults_t& out, const char* query, double minCov
             }
         }
     }
-    std::sort( out.begin(), out.end(), []( const BENIFindResults_t::value_type& l, const BENIFindResults_t::value_type& r ) { return (l.coverage > r.coverage); } );
+    std::sort( out.begin(), out.end(), 
+        []( const BENIFindResult& l, const BENIFindResult& r ) 
+            { return (l.coverage> r.coverage?  true:(r.coverage>l.coverage ? false: l.popRank>r.popRank)  ); } 
+        );
     if( out.size() > 128 ) 
         out.resize(128);
 }
@@ -301,7 +315,14 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) 
 						}
 					}
 				}
-				out.push_back({ *(i.m_data), i.m_levDist, cov, i.m_relevance });
+                const BarzerEntity& theEnt = *(i.m_data);
+                int popRank =0;
+                if( const const EntityData::EntProp* edata = d_universe.getEntPropData( theEnt ) ) 
+                    popRank = edata->relevance;
+
+				out.push_back(
+                    BENIFindResult( theEnt, popRank, cov, i.m_relevance ) 
+                );
 			}
         }
     }
@@ -324,26 +345,49 @@ bool BENI::normalize( std::string& out, const std::string& in )
     #define GET_CT(c) ( (!c || ispunct(c)||isspace(c))? CT_PUNCTSPACE: (isdigit(c)? CT_DIGIT: \
         ((uint8_t)(c) ==0xc2 ? CT_2BYTEJUNK : CT_CHAR) )  ) 
     bool altered = false;
+
+    int lastOutNonspaceCT = CT_CHAR;
+
     for( size_t i = 0; i< in_length; ++i ) {
         char prevC = ( i>0 ? in[i-1] : 0 );
-        char nextC = ( i< in_length_1 ? in[i+1] : 0 );
+        char c1 = ( i< in_length_1 ? in[i+1] : 0 );
         char c = in[i];
 
         int ct_prev = GET_CT(prevC); 
-        int ct_next = GET_CT(nextC);
+        int ct_next = GET_CT(c1);
         int ct = GET_CT(c);
         
+        if( c == '&' && c1 == '#' ) {
+            const char* tmp = in.c_str()+i+2, *tmp_end = in.c_str()+in_length; 
+            size_t tmpI = i+2;
+            for( ; tmp < tmp_end && *tmp>='0' && *tmp<='9'; ++tmp ) 
+                ++tmpI;
+            
+            if( tmp < tmp_end && *tmp == ';' ) {
+                i= tmpI;
+                if( out.empty() || *(out.rbegin()) != ' ' ) 
+                    out.push_back( ' ' );
+                if( !altered )
+                    altered = true;
+                continue;
+            }
+        }
+
         if( ct == CT_2BYTEJUNK ) { // absorbing "funny chars"
             if( i< in_length-1 ) ++i;
             ct= CT_PUNCTSPACE;
         }
         if( ct == CT_PUNCTSPACE ) {
-            if( ct_prev != CT_PUNCTSPACE && ct_prev== ct_next )
+            if( (out.empty() || *(out.rbegin()) != ' ') )
                 out.push_back( ' ' );
             else if( !altered )
                 altered = true;
         } else {
-            out.push_back( c );
+            if( lastOutNonspaceCT != ct && (!out.empty() && *(out.rbegin()) == ' ') ) {
+                *(out.rbegin()) = c;
+            } else
+                out.push_back( c );
+            lastOutNonspaceCT = ct;
         }
     }
     return altered;
@@ -376,7 +420,10 @@ size_t SmartBENI::getZurchEntities( BENIFindResults_t& out, const zurch::DocWith
 
         out.push_back( {i.first, 1, i.second, 0 } );
     }
-    std::sort( out.begin(), out.end(), []( const BENIFindResult& l, const BENIFindResult& r ){ return (l.coverage> r.coverage); } );
+    std::sort( out.begin(), out.end(), 
+        []( const BENIFindResult& l, const BENIFindResult& r ) 
+            { return (l.coverage> r.coverage?  true:(r.coverage>l.coverage ? false: l.popRank>r.popRank)  ); } 
+    );
     // normalizing doc scores to 1
     double minToMax = maxScore-minScore;
     if( minToMax > 0.00000001 ) {
