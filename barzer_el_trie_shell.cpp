@@ -84,8 +84,6 @@ DEF_TFUN(help) {
 
 #undef DEF_TFUN
 
-// but i really want some static directory service for storing this kind of shit
-
 
 typedef std::map<std::string,TrieShellFun> FunMap;
 

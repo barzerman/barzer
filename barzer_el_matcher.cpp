@@ -542,7 +542,6 @@ public:
                 if( stemSet ) {
 				    for (strIds_set::const_iterator i = stemSet->begin(), set_end= stemSet->end(); i != set_end; ++i) {
                         if( *i != dta.getId() ) {
-                            // const char* shit = d_btmi.universe.getGlobalPools().decodeStringById( *i );
 					        stemmedLiteral.setId(*i);
 					        if( doFirmMatch_literal( fcmap, stemmedLiteral, allowBlanks ) ) {
                                 if( !rc ) rc = true;
@@ -883,12 +882,7 @@ void BTMIterator::matchBeadChain( const BeadRange& rng, const BarzelTrieNode* tr
 				//AYDEBUG( BarzelBeadChain::makeInclusiveRange(ch->second,rng.second) );
 				addTerminalPath( *ch );
 			}
-			//BarzelBeadChain::trimBlanksFromRange( d_matchPath.back().second );
 
-			//const BeadRange& shitRange = d_matchPath.back().second;
-			//std::cerr << "************* SHIT recursion\n";
-			//AYDEBUG( nextRange );
-			// advancing to the next bead and starting new recursion from there
 			BeadRange nextRange( nextBead, rng.second );
 			++nextRange.first;
 			matchBeadChain( nextRange, tn );
@@ -949,19 +943,6 @@ size_t BTMIterator::matchBeadChain_Autocomplete( MatcherCallback& mcb, const Bea
 			if( pathRange.second != rng.second )
 				++pathRange.second;
 
-            /*
-			if( tn->isLeaf() ) {
-				//AYDEBUG( BarzelBeadChain::makeInclusiveRange(ch->second,rng.second) );
-				addTerminalPath_Autocomplete( mcb, *ch );
-                ++pathCount;
-			}
-            */
-			//BarzelBeadChain::trimBlanksFromRange( d_matchPath.back().second );
-
-			//const BeadRange& shitRange = d_matchPath.back().second;
-			//std::cerr << "************* SHIT recursion\n";
-			//AYDEBUG( nextRange );
-			// advancing to the next bead and starting new recursion from there
 			BeadRange nextRange( nextBead, rng.second );
 			++nextRange.first;
             size_t recursionSuccess = matchBeadChain_Autocomplete( mcb, nextRange, tn );
@@ -1033,14 +1014,6 @@ std::pair< bool, int > BTMBestPaths::scorePath( const NodeAndBeadVec& nb ) const
 
 void BTMBestPaths::addPath(const NodeAndBeadVec& nb, const NodeAndBead& lastNB )
 {
-    /*
-    if( const BarzelTranslation* x = getTranslation(lastNB) ) {
-        BarzerEntity e;
-        if(get_single_entity( e, d_trie, *x) ) {
-            std::cerr << "SHITFUCK:" << e << std::endl;
-        }
-    }
-    */
 	// ghetto
 	std::pair< bool, int > score = scorePath( nb );
 	if( score.second < d_bestInfallibleScore ) {
@@ -1579,12 +1552,6 @@ int BarzelMatcher::matchAndRewrite( Barz& barz )
 
 
 	for( ; ; ++ matchCount ) {
-        /*
-		std::cerr << "**************** SHIT BEFORE {\n";
-		AYDEBUG( beads.getFullRange() );
-		std::cerr << "} **************** end SHIT BEFORE {\n";
-        */
-
 		if( matchCount> MAX_MATCH_COUNT ) {
 			d_err.setCode( Error::ERR_CRCBRK_MATCH );
 			AYLOG(ERROR) << "Match count circuit breaker hit .." << std::endl;
@@ -1604,12 +1571,6 @@ int BarzelMatcher::matchAndRewrite( Barz& barz )
 		}
 
 		int rewrRc = rewriteUnit( rewrUnit, barz );
-
-        /*
-		std::cerr << "**************** SHIT AFTER {\n";
-		AYDEBUG( beads.getFullRange() );
-		std::cerr << "} **************** end SHIT AFTER {\n";
-        */
 
 		if( rewrRc ) { // should never be the case
 			d_err.setFlag( Error::EF_RWRFAILS );

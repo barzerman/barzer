@@ -147,12 +147,23 @@ inline size_t hash_value(const StoredEntityUniqId& t)
 
 typedef StoredEntityUniqId BarzerEntity;
 
-struct BENIFindResult
-{
+struct BENIFindResult {
 	BarzerEntity ent;
-	size_t lev;
+	int popRank; // entity popularity rank
 	double coverage;
 	double relevance;
+    BENIFindResult() :
+        popRank(0),
+        coverage(0),
+        relevance(0)
+    {}
+    BENIFindResult( const BarzerEntity& e, int pr, double c, double r ) : 
+        ent(e), 
+        popRank(pr),
+        coverage(c),
+        relevance(r)
+    {}
+
 };
 typedef std::vector<BENIFindResult> BENIFindResults_t; 
 

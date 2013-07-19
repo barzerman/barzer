@@ -867,7 +867,7 @@ struct BELFunctionStorage_holder {
         SETFUNCNAME(mkDateRange);
 
 		int day = 0, month = 0, year = 0;
-		// Holy shit ... what is this stuf?!??!  (AY)
+		// what is this stuf?!??!  (AY)
 		try {
 			switch(rvec.size()) {
 			case 4: year = getAtomic<BarzerNumber>(rvec[3]).getInt();

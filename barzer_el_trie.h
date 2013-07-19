@@ -414,19 +414,12 @@ class BELTrie {
 	strid_to_triewordinfo_map d_wordInfoMap;
 	stem_to_srcs_map d_stemSrcs;
 
-    // ERASE SHIT
-    // typedef std::map< BarzelTranslationTraceInfo, BarzelTranslationTraceInfo::Vec > LinkedTranInfoMap;
-    // LinkedTranInfoMap d_linkedTranInfoMap;
-
     AmbiguousTranslationReference d_ambTranRef;
     
 	BELTrie( const BELTrie& a );
 public:
     AmbiguousTranslationReference& getAmbiguousTranslationReference() { return d_ambTranRef; }
     const AmbiguousTranslationReference& getAmbiguousTranslationReference() const { return d_ambTranRef; }
-    // ERASE SHIT
-    // void linkTraceInfo( const BarzelTranslationTraceInfo& key, const BarzelTranslationTraceInfo& v ) 
-        // { d_linkedTranInfoMap[ key ].push_back( v ); }
 
     void linkTraceInfoNodes( uint32_t tranId, const BarzelTranslationTraceInfo& trInfo, const BarzelTranslationTraceInfo& v, const std::vector<BarzelEvalNode::NodeID_t>& );
     void linkTraceInfoEnt( uint32_t tranId, const BarzelTranslationTraceInfo& trInfo, const BarzelTranslationTraceInfo& v, uint32_t );

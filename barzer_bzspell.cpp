@@ -680,7 +680,7 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
             }
         }
 
-        // this is nasty - lang specific shit shouldnt be here 
+        // this is nasty - lang specific stuff shouldnt be here 
         if( d_universe.getLangInfo().hasLang(LANG_RUSSIAN) ) { // keyboard  mapping and translit
 		    std::string translit;
 		    if (ay::km::engToRus(str, str_len, translit))
@@ -721,9 +721,6 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
                     if( stemStrId == 0xffffffff ) {
                         doStemCorrect = false;
                     } else {
-                        //std::cerr << "SHIT " << stemStr << ":" << stemStrId << std::endl;
-                        /// if stem is less than 3 chars shorter than the original we are going to try
-                        /// stem correction before any other types of correction
                         if( stemStr.length() > 2*2 && str_len > stemStr.length() && (str_len-stemStr.length()<3*2) ) {
                             uint32_t correctedId = get2ByteLangStemCorrection( lang, str, doStemCorrect, stemStr.c_str(), BZSpell::CORRECTION_MODE_NORMAL );
                             if( correctedId != 0xffffffff )
