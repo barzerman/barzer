@@ -507,7 +507,7 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
 					russian.append("ш");
                 } else if( s[1] =='o' && s[2] =='u' && s[3] =='n' && s[4] =='t' && s[5] == 'r' && s[6] =='y' ) { // country
 					russian.append((s+=2,"ка"));
-                } else if( s[1] =='o' && s[2] =='m' && strchr("ei",s[3]) ) {
+                } else if( s[1] =='o' && s[2] =='m' && s[3] && strchr("ei",s[3]) ) {
 					russian.append((s+=2,"кам"));
                 } else {
 				switch (c1)
@@ -1068,7 +1068,7 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                 } else if ( s[1] =='i' ) { // ui
                     ++s;
                     russian.append((c_prev=='q'||c_prev=='s') ? "уи":"и"); 
-                } else if( s[2]=='e' && s[3]=='s' && strchr("lkvnbmptd", s[1]) && terminating_char(s[4]) ) { // uXes
+                } else if( s[1] && strchr("lkvnbmptd", s[1]) && s[2]=='e' && s[3]=='s' && terminating_char(s[4]) ) { // uXes
                     russian.append("ю");
                     if( const char* tmp = getSingleEnCharTranslit(s[1]) ) 
                         russian.append(tmp);
@@ -1104,7 +1104,7 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                 } else if ( s[1] && s[1] == s[2] ) {
 					russian.append( (c_prev=='r'||c_prev=='p')&&(s[1]=='s'||s[1]=='d') ? "а":"у");
                 } else if ( s[1]!='r' && isNonVowel(s[1]) && isNonVowel(s[2])  ) {
-                    if( strchr("gbs",s[1]) ) 
+                    if( s[1] && strchr("gbs",s[1]) )
                         russian.append("а");
                     else 
                         russian.append("у");
