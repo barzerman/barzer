@@ -391,7 +391,7 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                 if( s[1] == 't' && s[2] == 'i' && s[3] =='o' && s[4] =='n' ) {
                     russian.append("ейшен");
                     s+=4;
-                } else if( s[2]=='e' && s[3]=='s' && strchr("lkvnbmptd", s[1]) && terminating_char(s[4]) ) { // aXes
+                } else if( s[1] && strchr("lkvnbmptd", s[1]) && s[2]=='e' && s[3]=='s' && terminating_char(s[4]) ) { // aXes
                     russian.append("эй");
                     if( const char* tmp = getSingleEnCharTranslit(s[1]) ) 
                         russian.append(tmp);
