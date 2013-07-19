@@ -51,7 +51,7 @@ void RuBastardizeHeuristic::transform(const char *src, size_t srcLen, std::strin
 	char prev1 = 0;
 	char prev2 = 0;
 	out.reserve (srcLen);
-	for (const char *pos = src, *end = src + srcLen; pos < end; pos += 2)
+	for (const char *pos = src, *end = src + srcLen - 1; pos < end; pos += 2)
 	{
 		if (pos == src)
 		{
