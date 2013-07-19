@@ -643,7 +643,7 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                     russian.append((s+=2,"г"));
                 } else if( s[1] =='i' || s[1]=='y' ) {
 					russian.append((++s,"джи"));
-                } else if( s[1] =='e' && (s[2] =='t' || s[3] =='h') ) {
+                } else if( s[1] =='e' && (s[2] =='t' || s[2] =='h') ) {
 					russian.append((s+=1,"ге"));
                 } else if( s[1] =='e' ) {
 					russian.append(isVowel(s[2]) ? "г":"дж");
