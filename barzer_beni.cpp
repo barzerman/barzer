@@ -317,7 +317,7 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) 
 				}
                 const BarzerEntity& theEnt = *(i.m_data);
                 int popRank =0;
-                if( const const EntityData::EntProp* edata = d_universe.getEntPropData( theEnt ) ) 
+                if( const EntityData::EntProp* edata = d_universe.getEntPropData( theEnt ) ) 
                     popRank = edata->relevance;
 
 				out.push_back(
