@@ -349,8 +349,9 @@ PatternEmitterNode* PatternEmitterNode::make(const BELParseTreeNode& node, VarVe
 void BELReaderXMLEmit::addStatement(const barzer::BELStatementParsed& sp)
 {
     BELParseTreeNode_PatternEmitter emitter( sp.pattern );
-    int i =0;
+    size_t i =0;
     d_outStream << "<rule n=\"" <<  sp.getStmtNumber() <<"\">\n";
+    const size_t MAX_EMIT=256*16;
     do {
         const BTND_PatternDataVec& seq = emitter.getCurSequence();
         if( !seq.size() ) 
@@ -360,6 +361,11 @@ void BELReaderXMLEmit::addStatement(const barzer::BELStatementParsed& sp)
             btnd_xml_print( d_outStream , getTrie(), *pi );
         d_outStream << "</pat>\n";
         i++;
+        if( i> MAX_EMIT ) {
+            // std::cerr << "Too many emits\n";
+            d_outStream << "<pat n=\"" << i << "\" err=\"too many emits\"><t>TOO MANY EMITS ...</t></pat>\n";
+            break;
+        }
         //AYLOG(DEBUG) << "path added";
     } while( emitter.produceSequence() );
     d_outStream << "</rule>" << std::endl;

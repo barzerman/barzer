@@ -337,7 +337,7 @@ int BELReader::loadFromStream( std::istream& fp )
 		return 0;
 	}
 	parser->parse( fp );
-    std::cerr << "Total Number of Emits: " << numEmits << std::endl;
+    // std::cerr << "Total Number of Emits: " << numEmits << std::endl;
 	return numStatements;
 }
 void BELReader::computeImplicitTrieSpellPriority( uint32_t tc, uint32_t tid )
