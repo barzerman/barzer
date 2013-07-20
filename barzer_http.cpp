@@ -37,8 +37,9 @@ static int begin_request_handler(struct mg_connection *conn)
         ay::url_encode( uri, request_info->uri, strlen(request_info->uri) );
         std::string query;
         ay::url_encode( query, request_info->query_string, strlen(request_info->query_string) );
-        if( !reqParser.initFromUri( uri.c_str(), uri.length(), query.c_str(), query.length() ) )
-            reqParser.parse();
+        barzer::QuestionParm qparm;
+        if( !reqParser.initFromUri( qparm, uri.c_str(), uri.length(), query.c_str(), query.length() ) )
+            reqParser.parse(qparm);
     } else {
         print_json_error(conn, "bad query string" );
         return 1;
