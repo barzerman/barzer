@@ -351,7 +351,7 @@ void BELReaderXMLEmit::addStatement(const barzer::BELStatementParsed& sp)
     BELParseTreeNode_PatternEmitter emitter( sp.pattern );
     size_t i =0;
     d_outStream << "<rule n=\"" <<  sp.getStmtNumber() <<"\">\n";
-    const size_t MAX_EMIT=256*16;
+    const size_t MAX_EMIT=1024;
     do {
         const BTND_PatternDataVec& seq = emitter.getCurSequence();
         if( !seq.size() ) 
