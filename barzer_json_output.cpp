@@ -61,8 +61,8 @@ class BeadVisitor : public boost::static_visitor<bool> {
 	bool d_printTtok;
     const BarzStreamerJSON& d_streamer;
 
-    json_raii raii;
 public:
+    json_raii raii;
     const json_raii& getRaii() const { return raii; }
     json_raii& getRaii() { return raii; }
 	BeadVisitor(std::ostream &s, const StoredUniverse &u, const BarzelBead& b, const Barz& barz, const BarzStreamerJSON& streamer, size_t depth ) : 
@@ -302,14 +302,14 @@ public:
 	bool operator()(const BarzerRange &data) {
         return printRange(data);
 	}
-    // levDist is for entities only
-	void printEntity(const BarzerEntity &euid, bool needType, json_raii* otherRaii =0, const size_t *levDist = 0, const double *coverage = 0 ) 
+    // popRank is for entities only
+	void printEntity(const BarzerEntity &euid, bool needType, json_raii* otherRaii =0, const int *popRank = 0, const double *coverage = 0 ) 
     {
         json_raii* theRaii = ( otherRaii ? otherRaii: &raii );
         if( needType )
 		    theRaii->startField("type") << "\"entity\"";
-        if( levDist )
-		    theRaii->startField("lev") << *levDist ;
+        if( popRank )
+		    theRaii->startField("rank") << *popRank ;
         if( coverage) 
 		    theRaii->startField("cover") << *coverage ;
         const char* tokname = universe.getGlobalPools().internalString_resolve(euid.tokId);
@@ -583,7 +583,7 @@ std::ostream& BarzStreamerJSON::print(std::ostream &os)
 	        beniRaii.startField("");
             BarzelBead fakeBead;
 	        BeadVisitor v(os, universe, fakeBead, barz, *this, 2 );
-            v.printEntity(i.ent, true, 0, &(i.lev), &(i.coverage));
+            v.printEntity(i.ent, true, 0, &(i.popRank), &(i.coverage));
         }
     }
     if( !barz.d_beni.zurchResultEmpty() ) { // beni zurch context
@@ -592,7 +592,7 @@ std::ostream& BarzStreamerJSON::print(std::ostream &os)
 	        beniRaii.startField("");
             BarzelBead fakeBead;
 	        BeadVisitor v(os, universe, fakeBead, barz, *this, 2 );
-            v.printEntity(i.ent, true, 0, &(i.lev), &(i.coverage));
+            v.printEntity(i.ent, true, 0, &(i.popRank), &(i.coverage));
         }
     }
     /// printing topics 
@@ -601,9 +601,11 @@ std::ostream& BarzStreamerJSON::print(std::ostream &os)
         json_raii topicsRaii( raii.startField("topics"), true, 1 );
 
         BarzelBead fakeBead;
-	    BeadVisitor v(os, universe, fakeBead, barz, *this, 2  );
         for( BarzTopics::TopicMap::const_iterator topI = topicMap.begin(); topI != topicMap.end(); ++topI ) {
-            topicsRaii.startField( "strength" ) << topI->second ;
+            topicsRaii.startField( "");
+	        BeadVisitor v(os, universe, fakeBead, barz, *this, 2  );
+            // json_raii traii( topicsRaii.startField(""),false, 2 );
+            v.raii.startField( "strength" ) << topI->second ;
             v.printEntity( topI->first,true,0 );
         }
     }

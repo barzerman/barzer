@@ -707,7 +707,7 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 	    BeadVisitor v(os, universe, fakeBead, barz, *this  );
         for( const auto&i : barz.d_beni.d_entVec ) {
             std::stringstream sstr;
-            sstr << "lev=\"" << i.lev << "\" ";
+            sstr << "rank=\"" << i.popRank << "\" ";
 			sstr << "cov=\"" << i.coverage << "\" ";
 			sstr << "rel=\"" << i.relevance << "\"";
             v.printEntity( i.ent, sstr.str().c_str() );

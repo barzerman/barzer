@@ -1706,9 +1706,9 @@ DEFINE_BELParserXML_taghandle(MKENT)
                 if( statement.hasPattern() ) {
                     statement.stmt.pattern.getDescriptiveNameFromPattern_simple( theName, gp ) ;
                 }
-            } else 
+            } else {
                 theName.assign(canonicName);
-            
+            } 
             if( universe&& curUserId )
                 eprop= universe->setEntPropData( ent.getEuid(), theName.c_str(), relevance, (canonicName!=0) );
             else 

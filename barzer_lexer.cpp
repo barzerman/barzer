@@ -579,7 +579,6 @@ inline bool QLexParser::trySplitCorrectUTF8 ( SpellCorrectResult& corrResult, QL
     for( size_t i = 0; i< lastGlyph; ++i ) {
         left.assign( fullStr, 0, i );
         right.assign( fullStr, i+1, lastGlyph );
-        // std::cerr << "SHIT:\"" << (const char*)left << "\", \"" << (const char*)right << std::endl;
 
         const char* leftCorr=left.c_str(), * rightCorr = right.c_str();
         const StoredToken* rightTok = getStoredToken( rightCorr );

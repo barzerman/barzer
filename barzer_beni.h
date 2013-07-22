@@ -385,7 +385,7 @@ public:
     /// assumes the format as class|subclass|id|searchable name
     /// one netity per line. line cant be longer than 1024 bytes 
     /// lines with leading # are skipped as comments
-    size_t addEntityFile( const char* path=0 ); 
+    size_t addEntityFile( const char* path=0, const char* modeStr=0 ); 
 
     void search( BENIFindResults_t&, const char* str, double minCov) const;
 	

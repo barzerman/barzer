@@ -1,6 +1,7 @@
 /// barzer_shell.cpp extension - the original file is too long 
 #include <barzer_shell.h>
 #include <ay/ay_cmdproc.h>
+#include <barzer_beni.h>
 namespace barzer {
 static int bshf_test01( BarzerShell* shell, ay::char_cp cmd, std::istream& in , const std::string& argStr)
 {
@@ -35,12 +36,25 @@ static int bshf_file( BarzerShell* shell, ay::char_cp cmd, std::istream& in , co
     else if( status ) shell->setInFile();
     return 0;
 }
+static int bshf_normalize( BarzerShell* shell, ay::char_cp cmd, std::istream& in , const std::string& argStr)
+{
+    ay::file_istream inFile( shell->getInStreamPtr() );
+    ay::file_ostream outFile(shell->getOutStreamPtr()), errFile( shell->getErrStreamPtr() );
+    std::string buf;
+    std::string stem;
+    while( std::getline(inFile.fp(),buf) ) {
+        if( buf.empty() ) 
+            break;
+        BENI::normalize( stem, buf );
+        outFile.fp() << stem << std::endl;
+    }
+    return 0;
+}
 static int bshf_morph( BarzerShell* shell, ay::char_cp cmd, std::istream& in , const std::string& argStr)
 {
     ay::CmdLineArgsContainer arg( cmd, in );
 
-    ay::file_ostream outFile(shell->getOutStreamPtr()), 
-        errFile( shell->getErrStreamPtr() );
+    ay::file_ostream outFile(shell->getOutStreamPtr()), errFile( shell->getErrStreamPtr() );
     ay::file_istream inFile( shell->getInStreamPtr() );
 
     arg.getFileFromArg( outFile, "-o" );
@@ -70,6 +84,7 @@ static int bshf_morph( BarzerShell* shell, ay::char_cp cmd, std::istream& in , c
 static const ay::Shell::CmdData g_cmd[] = {
 ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_test01), "test01", "placeholder" ),
 ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_morph), "morph", "morphological normalization" ),
+ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_normalize), "beninorm", "morphological normalization" ),
 ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_file), "file", "-o out file -e err file -i input file. no arguments prints current names" )   
 
 };

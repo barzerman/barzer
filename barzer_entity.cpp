@@ -25,7 +25,6 @@ struct EntityDataReaderCB {
         uint32_t  relevance = fr.getTok_int( T_RELEVANCE );
 
         StoredEntityUniqId euid( strId, cl, sc );
-        // std::cerr << "FUCKSHIT:" << euid << ":" << &d_gp << "\n";
         d_ed.setEntPropData( euid, name, relevance ); 
         return 0;
     }

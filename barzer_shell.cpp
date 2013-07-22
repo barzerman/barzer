@@ -1129,8 +1129,9 @@ static int bshf_http( BarzerShell* shell, char_cp cmd, std::istream& in , const 
         ay::url_encode( uri, uriStr.c_str(), uriStr.length() );
         std::string query;
         ay::url_encode( query, queryStr.c_str(), queryStr.length() );
-        if( !reqParser.initFromUri( uri.c_str(), uri.length(), query.c_str(), query.length() ) )
-            reqParser.parse();
+        barzer::QuestionParm qparm;
+        if( !reqParser.initFromUri( qparm, uri.c_str(), uri.length(), query.c_str(), query.length() ) )
+            reqParser.parse(qparm);
         
         outFP << "QUERY|" << buf << std::endl;
         outFP << outSstr.str() << std::endl;
