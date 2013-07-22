@@ -13,6 +13,7 @@
             <flags value="c"/>
             <rules> <file class="" name="shit">dev/shit.xml</file> </rules>
             <trieset>
+                <trie class="" name="shit" topic="yes"/>
                 <trie class="" name="shit" />
             </trieset>
 		</user>

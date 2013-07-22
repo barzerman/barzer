@@ -61,8 +61,8 @@ class BeadVisitor : public boost::static_visitor<bool> {
 	bool d_printTtok;
     const BarzStreamerJSON& d_streamer;
 
-    json_raii raii;
 public:
+    json_raii raii;
     const json_raii& getRaii() const { return raii; }
     json_raii& getRaii() { return raii; }
 	BeadVisitor(std::ostream &s, const StoredUniverse &u, const BarzelBead& b, const Barz& barz, const BarzStreamerJSON& streamer, size_t depth ) : 
@@ -601,9 +601,11 @@ std::ostream& BarzStreamerJSON::print(std::ostream &os)
         json_raii topicsRaii( raii.startField("topics"), true, 1 );
 
         BarzelBead fakeBead;
-	    BeadVisitor v(os, universe, fakeBead, barz, *this, 2  );
         for( BarzTopics::TopicMap::const_iterator topI = topicMap.begin(); topI != topicMap.end(); ++topI ) {
-            topicsRaii.startField( "strength" ) << topI->second ;
+            topicsRaii.startField( "");
+	        BeadVisitor v(os, universe, fakeBead, barz, *this, 2  );
+            // json_raii traii( topicsRaii.startField(""),false, 2 );
+            v.raii.startField( "strength" ) << topI->second ;
             v.printEntity( topI->first,true,0 );
         }
     }
