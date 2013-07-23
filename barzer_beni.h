@@ -362,6 +362,7 @@ public:
     void clear() { d_storage.clear(); }
     BENI( StoredUniverse& u );
     
+    static bool normalize_old( std::string& out, const std::string& in ) ;
     static bool normalize( std::string& out, const std::string& in ) ;
     void setSL( bool );
 };
