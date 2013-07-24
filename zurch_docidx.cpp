@@ -615,7 +615,7 @@ const DocFeatureIndex::DocInfo* DocFeatureIndex::getDocInfo (uint32_t docId) con
 	auto pos = m_docInfos.find(docId);
 	return pos == m_docInfos.end() ? nullptr : &pos->second;
 }
-DocFeatureIndex::DocInfo* DocFeatureIndex::getDocInfo (uint32_t docId) 
+DocFeatureIndex::DocInfo* DocFeatureIndex::getDocInfo (uint32_t docId)
 {
 	auto pos = m_docInfos.find(docId);
 	return pos == m_docInfos.end() ? nullptr : &pos->second;
@@ -722,6 +722,10 @@ void DocFeatureIndex::findDocumentDumb(DocWithScoreVec_t& out,
 				{ return l.second > r.second; });
 	if (out.size() > parm.maxBack)
 		out.resize(parm.maxBack);
+
+	std::sort(out.begin(), out.end(),
+			[this] (const DocWithScore_t& l, const DocWithScore_t& r) -> bool
+				{ return getExtWeight(l.first) < getExtWeight(r.first); });
 
 	if (parm.doc2pos)
 	{
