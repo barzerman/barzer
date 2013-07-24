@@ -672,7 +672,7 @@ void DocFeatureIndex::findDocumentDumb(DocWithScoreVec_t& out,
             if( !pfvv.empty()  &&  !matchPropFilterVarVec( link.docId, pfvv ) )
                 continue;
 
-			const auto scoreAdd = sizeBoost * classBoost * (1 + link.weight) / std::log(1 + numSources);
+			const auto scoreAdd = sizeBoost * classBoost / std::log(1 + numSources);
 
 			if (parm.doc2pos)
 			{
