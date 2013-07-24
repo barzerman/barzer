@@ -270,11 +270,30 @@ class DocFeatureIndex {
 	
 	barzer::MeaningsStorage m_meanings;
 	
-	std::map<uint32_t, size_t> m_titleLengths;
-	
 	bool m_considerFCount;
 public:
-    DocDataIndex d_docDataIdx;
+	struct DocInfo
+	{
+		size_t titleLength;
+
+		size_t extWeight;
+
+		DocInfo ()
+		: titleLength (0)
+		, extWeight (0)
+		{
+		}
+
+		DocInfo (size_t length, size_t w)
+		: titleLength (length)
+		, extWeight (w)
+		{
+		}
+	};
+private:
+	std::map<uint32_t, DocInfo> m_docInfos;
+public:
+	DocDataIndex d_docDataIdx;
 	typedef std::vector<std::pair<uint32_t, uint16_t>> PosInfos_t;
 	
 	int   getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, barzer::Barz& barz, bool needToInternStems );
@@ -336,6 +355,10 @@ public:
     size_t appendDocument( uint32_t docId, barzer::Barz&, size_t posOffset, DocFeatureLink::Weight_t weight );
 	
 	void setTitleLength(uint32_t docId, size_t titleLength);
+	void setExtWeight(uint32_t docId, size_t weight);
+	void setDocInfo(uint32_t docId, const DocInfo&);
+	DocInfo* getDocInfo(uint32_t docId) const;
+
 	void setConsiderFeatureCount(bool);
 	
     /// should be called after the last doc has been appended . 
