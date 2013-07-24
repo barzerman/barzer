@@ -36,11 +36,13 @@ char* CharPool::addNewChunk( )
 
 const char* CharPool::addStringToPool( const char* s, size_t len )
 {
-	if( len > chunkCapacity ) 
-		chunkCapacity = len;
-	if( chunkCapacity < chunkSz + len ) {
+	if( chunkCapacity < chunkSz + len )
+	{
+		if( chunkCapacity < len)
+			chunkCapacity = len;
 		addNewChunk();
 	}
+
 	char* backVec = chunk.back();
 	
 	size_t loc = chunkSz;
