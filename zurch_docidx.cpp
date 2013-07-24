@@ -632,7 +632,7 @@ namespace
 	template<typename T> T pow2 (T t) { return t * t; }
 }
 
-void DocFeatureIndex::findDocumentDumb (DocWithScoreVec_t& out,
+void DocFeatureIndex::findDocumentDumb(DocWithScoreVec_t& out,
 		const ExtractedDocFeature::Vec_t& fVec,
 		DocFeatureIndex::SearchParm& parm,
 		const barzer::Barz& barz) const
@@ -741,6 +741,10 @@ void DocFeatureIndex::findDocument(
 	const barzer::Barz& barz
 ) const
 {
+    if(!d_bitflags.checkBit( DocFeatureIndex::ZBIT_SMART_SCORING) ) {
+        findDocumentDumb(out,fVec,parm,barz);
+        return;
+    }
     PropFilterVarVec pfvv;
     if( parm.filterCascade ) {
         formPropFilterVarVec( pfvv, *(parm.filterCascade), d_docDataIdx.simpleIdx()  ) ;

@@ -290,6 +290,13 @@ public:
 		{
 		}
 	};
+    enum {
+        ZBIT_SMART_SCORING,
+        /// add new bits above this line only
+        ZBIT_MAX
+    };
+
+    ay::bitflags<ZBIT_MAX> d_bitflags;
 private:
 	std::map<uint32_t, DocInfo> m_docInfos;
 public:

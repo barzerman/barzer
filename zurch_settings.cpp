@@ -51,6 +51,8 @@ bool ZurchSettings::loadIndex( const boost::property_tree::ptree& pt )
 	        case 'd': loader->setNoContent( true ); break;
 	        case 'C': loader->setNoChunks( false ); break;
 	        case 'D': loader->setNoContent( false ); break;
+	        case 'S': dixl->getIndex()->d_bitflags.set( DocFeatureIndex::ZBIT_SMART_SCORING ); break;
+	        case 's': dixl->getIndex()->d_bitflags.set( DocFeatureIndex::ZBIT_SMART_SCORING, false ); break;
             }
         }
 	}
