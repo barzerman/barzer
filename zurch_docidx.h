@@ -399,6 +399,8 @@ public:
         {}
     };
 
+	void findDocumentDumb( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f, SearchParm&, const barzer::Barz& ) const;
+
 	void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f, SearchParm&, const barzer::Barz& ) const;
 
     int serialize( std::ostream& fp ) const;
