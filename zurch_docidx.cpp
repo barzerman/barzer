@@ -599,6 +599,12 @@ void DocFeatureIndex::setExtWeight (uint32_t docId, int32_t weight)
 	m_docInfos[docId].extWeight = weight;
 }
 
+int32_t DocFeatureIndex::getExtWeight (uint32_t docId) const
+{
+	auto pos = m_docInfos.find(docId);
+	return pos == m_docInfos.end() ? 0 : pos->second.extWeight;
+}
+
 void DocFeatureIndex::setDocInfo (uint32_t docId, const DocInfo& info)
 {
 	m_docInfos[docId] = info;

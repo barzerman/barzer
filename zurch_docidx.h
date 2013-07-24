@@ -363,6 +363,10 @@ public:
 	
 	void setTitleLength(uint32_t docId, size_t titleLength);
 	void setExtWeight(uint32_t docId, int32_t weight);
+
+	// returns the weight for the docId or 0 if not set
+	int32_t getExtWeight(uint32_t docId) const;
+
 	void setDocInfo(uint32_t docId, const DocInfo&);
 	DocInfo* getDocInfo(uint32_t docId) ;
 	const DocInfo* getDocInfo(uint32_t docId) const;
