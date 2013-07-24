@@ -590,7 +590,24 @@ void DocFeatureIndex::setTitleLength(uint32_t docId, size_t titleLength)
 {
 	if (!titleLength)
 		return;
-	m_titleLengths[docId] = titleLength;
+
+	m_docInfos[docId].titleLength = titleLength;
+}
+
+void DocFeatureIndex::setExtWeight (uint32_t docId, size_t weight)
+{
+	m_docInfos[docId].extWeight = weight;
+}
+
+void DocFeatureIndex::setDocInfo (uint32_t docId, const DocInfo& info)
+{
+	m_docInfos[docId] = info;
+}
+
+DocFeatureIndex::DocInfo* DocFeatureIndex::getDocInfo (uint32_t docId) const
+{
+	const auto pos = m_docInfos.find(docId);
+	return pos == m_docInfos.end() ? nullptr : &pos->second;
 }
 
 void DocFeatureIndex::setConsiderFeatureCount(bool consider)
