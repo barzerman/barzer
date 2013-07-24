@@ -510,8 +510,9 @@ void ZurchPhrase_DocLoader::readDocContentFromFile( const char* fn, size_t maxLi
     
     #define BUF_BEGINSWITH( x ) !strncmp( x, buf, sizeof(x)-1 ) 
     std::string docIdStr;
-
+    size_t lineNum = 0;
     while( fgets(buf, bufVec.size()-1, fp ) ) {
+        ++lineNum;
         bufVec.back()=0;
         size_t buf_sz = strlen(buf);
         if( buf_sz ) --buf_sz;
@@ -544,6 +545,19 @@ void ZurchPhrase_DocLoader::readDocContentFromFile( const char* fn, size_t maxLi
 
                 int module = atoi( n );
                 d_loader.index().d_docDataIdx.simpleIdx().Int.append( "module", docId, module );
+            } else {
+                std::cerr << "Zurch Doc Contents Reader Error, Malformed TITLE  at line " <<  lineNum << std::endl;
+            }
+        } else if( BUF_BEGINSWITH("POP.WEIGHT|")) { /// popularity weight
+            char* n = buf+sizeof("POP.WEIGHT|")-1;
+            char* pipe = strchr( n, '|' ); 
+            if( pipe ) {
+                *pipe=0;
+                const char* wStr = pipe+1;
+                int32_t weight = atoi( wStr );
+                d_loader.index().setExtWeight(docId, weight );
+            } else {
+                std::cerr << "Zurch Doc Contents Reader Error. Malformed POP.WEIGHT at line " <<  lineNum << std::endl;
             }
         } else { /// regular text - must be content
             if( docId != 0xffffffff ) { /// only if a document is currently open

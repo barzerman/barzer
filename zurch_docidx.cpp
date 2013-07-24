@@ -604,9 +604,14 @@ void DocFeatureIndex::setDocInfo (uint32_t docId, const DocInfo& info)
 	m_docInfos[docId] = info;
 }
 
-DocFeatureIndex::DocInfo* DocFeatureIndex::getDocInfo (uint32_t docId) const
+const DocFeatureIndex::DocInfo* DocFeatureIndex::getDocInfo (uint32_t docId) const
 {
-	const auto pos = m_docInfos.find(docId);
+	auto pos = m_docInfos.find(docId);
+	return pos == m_docInfos.end() ? nullptr : &pos->second;
+}
+DocFeatureIndex::DocInfo* DocFeatureIndex::getDocInfo (uint32_t docId) 
+{
+	auto pos = m_docInfos.find(docId);
 	return pos == m_docInfos.end() ? nullptr : &pos->second;
 }
 

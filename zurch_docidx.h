@@ -276,7 +276,7 @@ public:
 	{
 		size_t titleLength;
 
-		size_t extWeight;
+		int32_t extWeight;
 
 		DocInfo ()
 		: titleLength (0)
@@ -284,7 +284,7 @@ public:
 		{
 		}
 
-		DocInfo (size_t length, size_t w)
+		DocInfo (size_t length, int32_t w)
 		: titleLength (length)
 		, extWeight (w)
 		{
@@ -357,7 +357,8 @@ public:
 	void setTitleLength(uint32_t docId, size_t titleLength);
 	void setExtWeight(uint32_t docId, size_t weight);
 	void setDocInfo(uint32_t docId, const DocInfo&);
-	DocInfo* getDocInfo(uint32_t docId) const;
+	DocInfo* getDocInfo(uint32_t docId) ;
+	const DocInfo* getDocInfo(uint32_t docId) const;
 
 	void setConsiderFeatureCount(bool);
 	
