@@ -594,7 +594,7 @@ void DocFeatureIndex::setTitleLength(uint32_t docId, size_t titleLength)
 	m_docInfos[docId].titleLength = titleLength;
 }
 
-void DocFeatureIndex::setExtWeight (uint32_t docId, size_t weight)
+void DocFeatureIndex::setExtWeight (uint32_t docId, int32_t weight)
 {
 	m_docInfos[docId].extWeight = weight;
 }

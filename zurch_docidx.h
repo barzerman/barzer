@@ -362,7 +362,7 @@ public:
     size_t appendDocument( uint32_t docId, barzer::Barz&, size_t posOffset, DocFeatureLink::Weight_t weight );
 	
 	void setTitleLength(uint32_t docId, size_t titleLength);
-	void setExtWeight(uint32_t docId, size_t weight);
+	void setExtWeight(uint32_t docId, int32_t weight);
 	void setDocInfo(uint32_t docId, const DocInfo&);
 	DocInfo* getDocInfo(uint32_t docId) ;
 	const DocInfo* getDocInfo(uint32_t docId) const;
