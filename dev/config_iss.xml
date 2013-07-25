@@ -2,7 +2,7 @@
 <config>
     <users>
         <user id="0">
-            <zurch> <index phr="dev/shit_phrases.txt"/> </zurch>
+            <zurch> <index phr="dev/shit_phrases.txt" content="dev/zurch_shit_content.txt"/> </zurch>
 		</user>
         <user id="1">
             <!--
