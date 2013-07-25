@@ -725,7 +725,7 @@ void DocFeatureIndex::findDocumentDumb(DocWithScoreVec_t& out,
 
 	std::sort(out.begin(), out.end(),
 			[this] (const DocWithScore_t& l, const DocWithScore_t& r) -> bool
-				{ return getExtWeight(l.first) < getExtWeight(r.first); });
+				{ return getExtWeight(l.first) > getExtWeight(r.first); });
 
 	if (parm.doc2pos)
 	{
