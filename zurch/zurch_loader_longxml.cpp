@@ -553,6 +553,10 @@ void ZurchPhrase_DocLoader::readDocContentFromFile( const char* fn, size_t maxLi
             char* pipe = strchr( n, '|' ); 
             if( pipe ) {
                 *pipe=0;
+
+				docIdStr.assign( n );
+				docId = d_loader.addDocName( docIdStr.c_str() );
+
                 const char* wStr = pipe+1;
                 int32_t weight = atoi( wStr );
                 d_loader.index().setExtWeight(docId, weight );
