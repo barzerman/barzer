@@ -718,14 +718,10 @@ void DocFeatureIndex::findDocumentDumb(DocWithScoreVec_t& out,
 	std::copy(doc2score.begin(), doc2score.end(), std::back_inserter(out));
 
 	std::sort(out.begin(), out.end(),
-			[] (const DocWithScore_t& l, const DocWithScore_t& r)
-				{ return l.second > r.second; });
+			[this] (const DocWithScore_t& l, const DocWithScore_t& r) -> bool
+				{ return l.second == r.second ? getExtWeight(l.first) > getExtWeight(r.first) : l.second > r.second; });
 	if (out.size() > parm.maxBack)
 		out.resize(parm.maxBack);
-
-	std::sort(out.begin(), out.end(),
-			[this] (const DocWithScore_t& l, const DocWithScore_t& r) -> bool
-				{ return getExtWeight(l.first) > getExtWeight(r.first); });
 
 	if (parm.doc2pos)
 	{
