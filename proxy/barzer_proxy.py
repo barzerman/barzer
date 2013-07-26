@@ -73,7 +73,7 @@ def application(env, start_response):
             except ValueError:
                 yield error("Invalid `ver' parameter")
                 return
-        elif k in ('now', 'beni', 'zurch', 'flag'):
+        elif k in ('now', 'beni', 'zurch', 'flag', 'route', 'extra'):
             add += ' {}={}'.format(k, quoteattr(unquote(v.replace('+', ' '))))
             
     if not uid:
