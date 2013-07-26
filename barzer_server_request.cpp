@@ -359,7 +359,7 @@ int BarzerRequestParser::parse(QuestionParm& qparm)
     case QType::AUTOCOMPLETE: {
         raw_autoc_parse( d_query.c_str(), qparm );
         break;
-        }
+    }
     }
     return 0;
 }
@@ -1003,36 +1003,65 @@ void BarzerRequestParser::tag_query(RequestTag &tag)
     d_queryFlags.clear();
     //ReturnType t = XML_TYPE;
     for( auto i = attrs.begin(); i!= attrs.end(); ++i ) {
-        if( i->first == "qid" ) 
-            barz.setQueryId( atoi( i->second.c_str() ) );
-        else if( i->first == "as" ) 
+        if( i->first.length() == 0 ) 
+            continue;
+        char c = i->first[0];
+
+        switch(c) {
+        case 'a':
+        if( i->first == "as" ) 
             d_aggressiveStem = true;
-        else if (i->first == "beni" ) { 
-            d_beniMode=QuestionParm::parseBeniFlag(i->second.c_str());
-        } else if (i->first == "ret" ) { 
-            if( i->second == "json") {
-        	    ret = JSON_TYPE;
-            } else if( i->second == "sjson" ) {
-                d_simplified = true;
-        	    ret = JSON_TYPE;
+            break;
+        case 'b':
+            if (i->first == "beni" ) 
+                d_beniMode=QuestionParm::parseBeniFlag(i->second.c_str());
+            break;
+        case 'e':
+            if( i->first =="extra" ) {
+                d_extra = i->second;
             }
-        } else if (i->first == "max" ) { // max results
-            d_maxResults = atoi(i->second.c_str());
-        } else if (i->first == "now" ) {
-            if( RequestEnvironment* env = barz.getServerReqEnv() )
-                env->setNow( i->second );
-        } else if( i->first == "zurch" ) {
-            /// value of zurch attributes QuestionParm::setZurchFlags 
-            /// (see the code for values - this is a string of single character flags)
-            setQueryType(QType::ZURCH);
-            d_zurchDocIdxId = atoi(i->second.c_str());
-        } else if( i->first =="flag" ) {
-            d_queryFlags = i->second;
-        } else if( i->first.length() > 2 && i->first[0] == 'v' ) {  /// value filter 
-            /// value filter vi.
+            break;
+        case 'f':
+            if( i->first =="flag" ) 
+                d_queryFlags = i->second;
+            break;
+        case 'm':
+            if (i->first == "max" ) // max results
+                d_maxResults = atoi(i->second.c_str());
+            break;
+        case 'n':
+            if (i->first == "now" ) {
+                if( RequestEnvironment* env = barz.getServerReqEnv() )
+                    env->setNow( i->second );
+            }
+            break;
+        case 'q':
+            if( i->first == "qid" ) 
+                barz.setQueryId( atoi( i->second.c_str() ) );
+            break;
+        case 'r':
+            if (i->first == "ret" ) { 
+                if( i->second == "json") {
+                    ret = JSON_TYPE;
+                } else if( i->second == "sjson" ) {
+                    d_simplified = true;
+                    ret = JSON_TYPE;
+                }
+            } else if( i->first == "route" ) {
+                if( !i->second.empty() ) 
+                    d_route = i->second;
+            }
+            break;
+        case 'z':
+            if( i->first == "zurch" ) {
+                /// value of zurch attributes QuestionParm::setZurchFlags 
+                /// (see the code for values - this is a string of single character flags)
+                setQueryType(QType::ZURCH);
+                d_zurchDocIdxId = atoi(i->second.c_str());
+            }
+            break;
         }
     }
-
     if( isParentTag("qblock") ) {
         d_query = tag.body.c_str();
     } else {

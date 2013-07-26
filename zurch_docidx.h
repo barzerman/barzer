@@ -23,6 +23,7 @@ namespace barzer {
 }
 namespace zurch {
 using barzer::BarzerEntity;
+class ZurchRoute;
 
 class DocFeatureIndex; /// main object that links features to documents. the inverted index
 
@@ -432,6 +433,8 @@ public:
     std::ostream& printStats( std::ostream& ) const ;
 	
 	std::string resolveFeature(const DocFeature&) const;
+    std::ostream& streamFeature(std::ostream& fp, const DocFeature& f, ZurchRoute&) const;
+
 	
 	FeaturesStatItem getImportantFeatures(size_t count, double skipPerc) const;
 

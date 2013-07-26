@@ -1018,6 +1018,10 @@ std::ostream& DocFeatureIndex::printStats( std::ostream& fp ) const
     return fp << "Inverse index size: " << d_invertedIdx.size() << std::endl;
 }
 
+std::ostream& DocFeatureIndex::streamFeature(std::ostream& fp, const DocFeature& f, ZurchRoute& route ) const
+{
+    return fp;
+}
 std::string DocFeatureIndex::resolveFeature(const DocFeature& f) const
 {
 	switch (f.featureClass)
