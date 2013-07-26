@@ -270,6 +270,32 @@ uint32_t DocFeatureIndex::resolveExternalString( const barzer::BarzerLiteral& l,
         return 0xffffffff;
 }
 
+void DocFeatureIndex::getUniqueFeatures(std::vector<NGram<DocFeature>>& out, uint32_t docId, uint32_t uniqueness) const
+{
+	for (const auto& pair : d_invertedIdx)
+	{
+		if (pair.second.size() > uniqueness)
+			continue;
+
+		if (docId != static_cast<uint32_t>(-1) &&
+			std::find_if(pair.second.begin(), pair.second.end(),
+					[docId] (const DocFeatureLink& l) { return l.docId == docId; }) == pair.second.end())
+			continue;
+
+		out.push_back(pair.first);
+	}
+}
+
+void DocFeatureIndex::getDocs4Feature (std::vector<uint32_t>& docIds, const NGram<DocFeature>& f) const
+{
+	const auto pos = d_invertedIdx.find(f);
+	if (pos == d_invertedIdx.end())
+		return;
+
+	for (const auto& link : pos->second)
+		docIds.push_back(link.docId);
+}
+
 void DocFeatureIndex::setStopWords(const std::vector<std::string>& words)
 {
 	for (const auto& word : words)
