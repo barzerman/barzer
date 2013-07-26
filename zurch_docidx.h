@@ -347,6 +347,18 @@ public:
     uint32_t resolveExternalString( const char* str ) const { return d_stringPool.getId(str); }
     uint32_t resolveExternalString( const barzer::BarzerLiteral&, const barzer::StoredUniverse& u ) const;
 
+	/** @brief Returns all unique features for the given docId.
+	 *
+	 * uniquness defines how unique should be the feature, in other words
+	 * how many sources should it have including the docId.
+	 *
+	 * Passing <code>static_cast<uint32_t>(-1)</code> as docId will disable
+	 * the by-doc-id check and return all the rarest features for all
+	 * documents.
+	 */
+	void getUniqueFeatures(std::vector<NGram<DocFeature>>& out, uint32_t docId, uint32_t uniqueness = 1) const;
+	void getDocs4Feature(std::vector<uint32_t>& docIds, const NGram<DocFeature>& f) const;
+
     DocFeatureIndex();
     ~DocFeatureIndex();
     
