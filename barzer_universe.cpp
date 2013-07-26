@@ -196,8 +196,12 @@ StoredToken& StoredUniverse::internString( int lang, const char* t, BELTrie* tri
                 }
             }
         } else {
-            strncpy( w, unstemmed, t_len );
-            w[ t_len ] = 0;
+			auto unstemmedLen = strlen(unstemmed);
+			if (unstemmedLen >= BZSpell::MAX_WORD_LEN)
+				unstemmedLen = BZSpell::MAX_WORD_LEN - 1;
+
+            strncpy( w, unstemmed, unstemmedLen );
+            w[ unstemmedLen ] = 0;
             Lang::stringToLower( w, sTok.getLength(), lang );
 
             const uint32_t unstmId = gp.getDtaIdx().addToken(w).getStringId();
