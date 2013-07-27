@@ -301,6 +301,10 @@ public:
 private:
 	std::map<uint32_t, DocInfo> m_docInfos;
 public:
+    const char*         resolve_token( uint32_t strId ) const;
+    
+    const BarzerEntity  resolve_entity( std::string& entIdStr, uint32_t entId, const barzer::StoredUniverse& u ) const;
+
 	DocDataIndex d_docDataIdx;
 	typedef std::vector<std::pair<uint32_t, uint16_t>> PosInfos_t;
 	
@@ -357,7 +361,9 @@ public:
 	 * the by-doc-id check and return all the rarest features for all
 	 * documents.
 	 */
-	void getUniqueFeatures(std::vector<NGram<DocFeature>>& out, uint32_t docId, uint32_t uniqueness = 1) const;
+	void getUniqueUnigrams(std::vector<std::pair<NGram<DocFeature>, uint32_t>>& out, uint32_t docId) const;
+
+	void getUniqueFeatures(std::vector<std::pair<NGram<DocFeature>, uint32_t>>& out, uint32_t docId) const;
 	void getDocs4Feature(std::vector<uint32_t>& docIds, const NGram<DocFeature>& f) const;
 
     DocFeatureIndex();
@@ -460,6 +466,7 @@ class DocFeatureLoader {
 	
 	std::map<uint32_t, size_t> m_lastOffset;
 public:
+    const barzer::StoredUniverse* getUniverse() const{ return &d_universe; }
     enum {
         BIT_NO_PARSE_CHUNKS, // when set doesnt store /output chunks (parse info)
         BIT_NO_STORE_CONTENT, // when set doesnt store / output doc content 
@@ -651,6 +658,8 @@ class DocIndexAndLoader {
     DocFeatureIndex*           index;
     DocIndexLoaderNamedDocs* loader;
 public:
+    const barzer::StoredUniverse* getUniverse() const 
+        { return ( loader ? loader->getUniverse() : 0 ); }
     DocIndexAndLoader() : index(0), loader(0) {}
 
     DocFeatureIndex* getIndex() { return index; }

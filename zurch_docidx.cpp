@@ -270,19 +270,29 @@ uint32_t DocFeatureIndex::resolveExternalString( const barzer::BarzerLiteral& l,
         return 0xffffffff;
 }
 
-void DocFeatureIndex::getUniqueFeatures(std::vector<NGram<DocFeature>>& out, uint32_t docId, uint32_t uniqueness) const
+void DocFeatureIndex::getUniqueUnigrams(std::vector<std::pair<NGram<DocFeature>, uint32_t>>& out, uint32_t docId) const
 {
-	for (const auto& pair : d_invertedIdx)
-	{
-		if (pair.second.size() > uniqueness)
-			continue;
-
+	for (const auto& pair : d_invertedIdx) {
+        if( pair.first.size() > 1 ) 
+            continue;
 		if (docId != static_cast<uint32_t>(-1) &&
 			std::find_if(pair.second.begin(), pair.second.end(),
 					[docId] (const DocFeatureLink& l) { return l.docId == docId; }) == pair.second.end())
 			continue;
 
-		out.push_back(pair.first);
+		out.push_back({ pair.first, pair.second.size() });
+	}
+}
+void DocFeatureIndex::getUniqueFeatures(std::vector<std::pair<NGram<DocFeature>, uint32_t>>& out, uint32_t docId) const
+{
+	for (const auto& pair : d_invertedIdx)
+	{
+		if (docId != static_cast<uint32_t>(-1) &&
+			std::find_if(pair.second.begin(), pair.second.end(),
+					[docId] (const DocFeatureLink& l) { return l.docId == docId; }) == pair.second.end())
+			continue;
+
+		out.push_back({ pair.first, pair.second.size() });
 	}
 }
 
@@ -1018,9 +1028,22 @@ std::ostream& DocFeatureIndex::printStats( std::ostream& fp ) const
     return fp << "Inverse index size: " << d_invertedIdx.size() << std::endl;
 }
 
-std::ostream& DocFeatureIndex::streamFeature(std::ostream& fp, const DocFeature& f, ZurchRoute& route ) const
+const char*         DocFeatureIndex::resolve_token( uint32_t strId ) const
+    { return d_stringPool.resolveId(strId); }
+
+const BarzerEntity  DocFeatureIndex::resolve_entity( std::string& entIdStr, uint32_t entId, const barzer::StoredUniverse& u  ) const
 {
-    return fp;
+    BarzerEntity uEnt;
+    if( const BarzerEntity* ent = d_entPool.getObjById(entId) ) {
+        if( const char* tokStr = d_stringPool.resolveId(ent->tokId) ) {
+            entIdStr.assign( tokStr );
+            uEnt = *ent; 
+            uEnt.tokId = u.getGlobalPools().internalString_getId( tokStr );
+        }
+    }
+
+    return uEnt;
+>>>>>>> issue_599_zurchview
 }
 std::string DocFeatureIndex::resolveFeature(const DocFeature& f) const
 {

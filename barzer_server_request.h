@@ -83,6 +83,12 @@ private:
 
 	std::ostream &os;
     std::string d_query; // for query block 
+    /// request subtype
+    /// zurch: 
+    ///   doc.features - features for a given doc
+    ///   feature.docs - docs linked to a specific feature
+    std::string d_route; // subtype of request . 
+    std::string d_extra; // extra parameters (can be used by route)
     bool d_aggressiveStem;
     // barzer mode (BENI)
 
@@ -237,6 +243,11 @@ public:
             const char* s = getParentTag();
             return (s && !strcmp(s,t));
         }
+    const std::string& getExtra() const { return d_extra;} 
+
+    const std::string& getRoute() const { return d_route;} 
+    bool isRoute( const std::string& r ) const { return ( r == d_route ); }
+    bool isRoute( const char* r  ) const { return ( d_route==r ); }
 };
 
 inline BarzerRequestParser::RequestTag& BarzerRequestParser::getTag()

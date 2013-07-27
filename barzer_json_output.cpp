@@ -539,6 +539,21 @@ void print_conf_leftovers( json_raii&& raii, const std::vector<std::string>& vec
     }
 }
 } // anon namespace
+std::ostream& BarzStreamerJSON::print_entity_fields(std::ostream& os, const BarzerEntity &euid, const StoredUniverse& universe )
+{
+
+    os << "\"cl\": " << euid.eclass.ec << ", \"sc\": " << euid.eclass.subclass;
+    if( const char* tokname = universe.getGlobalPools().internalString_resolve(euid.tokId) )
+        ay::jsonEscape(tokname, (os<< ", \"id\": "), "\"" );
+
+    if( const EntityData::EntProp* edata = universe.getEntPropData( euid ) ) {
+        if( !edata->canonicName.empty() )  {
+            ay::jsonEscape( edata->canonicName.c_str(), (os << ", \"name\":" ), "\"" );
+        }
+        os << ", \"rel\": "  << edata->relevance;
+    }
+    return os;
+}
 
 std::ostream& BarzStreamerJSON::print(std::ostream &os)
 {
