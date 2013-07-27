@@ -270,14 +270,23 @@ uint32_t DocFeatureIndex::resolveExternalString( const barzer::BarzerLiteral& l,
         return 0xffffffff;
 }
 
-void DocFeatureIndex::getUniqueFeatures(std::vector<std::pair<NGram<DocFeature>, uint32_t>>& out,
-		uint32_t docId, uint32_t uniqueness) const
+void DocFeatureIndex::getUniqueUnigrams(std::vector<std::pair<NGram<DocFeature>, uint32_t>>& out, uint32_t docId) const
+{
+	for (const auto& pair : d_invertedIdx) {
+        if( pair.first.size() > 1 ) 
+            continue;
+		if (docId != static_cast<uint32_t>(-1) &&
+			std::find_if(pair.second.begin(), pair.second.end(),
+					[docId] (const DocFeatureLink& l) { return l.docId == docId; }) == pair.second.end())
+			continue;
+
+		out.push_back({ pair.first, pair.second.size() });
+	}
+}
+void DocFeatureIndex::getUniqueFeatures(std::vector<std::pair<NGram<DocFeature>, uint32_t>>& out, uint32_t docId) const
 {
 	for (const auto& pair : d_invertedIdx)
 	{
-		if (pair.second.size() > uniqueness)
-			continue;
-
 		if (docId != static_cast<uint32_t>(-1) &&
 			std::find_if(pair.second.begin(), pair.second.end(),
 					[docId] (const DocFeatureLink& l) { return l.docId == docId; }) == pair.second.end())
@@ -1029,7 +1038,7 @@ const BarzerEntity  DocFeatureIndex::resolve_entity( std::string& entIdStr, uint
         if( const char* tokStr = d_stringPool.resolveId(ent->tokId) ) {
             entIdStr.assign( tokStr );
             uEnt = *ent; 
-            uEnt.tokId = u.getDtaIdx().getStrPool( )->getId( tokStr );
+            uEnt.tokId = u.getGlobalPools().internalString_getId( tokStr );
         }
     }
 
