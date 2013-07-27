@@ -360,7 +360,8 @@ public:
 	 * the by-doc-id check and return all the rarest features for all
 	 * documents.
 	 */
-	void getUniqueFeatures(std::vector<NGram<DocFeature>>& out, uint32_t docId, uint32_t uniqueness = 1) const;
+	void getUniqueFeatures(std::vector<std::pair<NGram<DocFeature>, uint32_t>>& out,
+			uint32_t docId, uint32_t uniqueness = 1) const;
 	void getDocs4Feature(std::vector<uint32_t>& docIds, const NGram<DocFeature>& f) const;
 
     DocFeatureIndex();

@@ -16,7 +16,7 @@ int getter_feature_docs( ZurchRoute& route, const char* q )
 }
 int getter_doc_features( ZurchRoute& route, const char* q ) 
 {
-    std::vector<NGram<DocFeature>> feat;
+    std::vector<std::pair<NGram<DocFeature>, uint32_t>> feat;
     const auto& idx = *(route.d_ixl.getIndex());
     uint32_t docId = route.d_ixl.getLoader()->getDocIdByName( q );
     idx.getUniqueFeatures( feat, docId );
@@ -34,7 +34,8 @@ int getter_doc_features( ZurchRoute& route, const char* q )
 
     size_t numPrinted = 0;
     os << "\"entity\" : [\n";
-    for( const auto& ngram : feat ) {
+    for( const auto& pair : feat ) {
+		const auto& ngram = pair.first;
         for( size_t j = 0, j_end = ngram.size(); j < j_end; ++j ) {
             const DocFeature& f = ngram[ j ];
             if( f.featureClass == DocFeature::CLASS_ENTITY ) {
@@ -52,7 +53,8 @@ int getter_doc_features( ZurchRoute& route, const char* q )
     os << "],\n";
     numPrinted=0;
     os << "\"token\" : [\n";
-    for( const auto& ngram : feat ) {
+    for( const auto& pair : feat ) {
+		const auto& ngram = pair.first;
         for( size_t j = 0, j_end = ngram.size(); j < j_end; ++j ) {
             const DocFeature& f = ngram[ j ];
             if( f.featureClass == DocFeature::CLASS_STEM ) {
