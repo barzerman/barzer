@@ -934,92 +934,10 @@ struct EntSerializer {
 } // anonymous namespace 
 int DocFeatureIndex::serialize( std::ostream& fp ) const
 {
-	/*
-    fp << "BEGIN_STRINGPOOL\n";
-    d_stringPool.serialize(fp);
-    fp << "END_STRINGPOOL\n";
-
-    fp << "BEGIN_ENTPOOL\n";
-    {
-    EntSerializer srlzr;
-    d_entPool.serialize(srlzr,fp);
-    }
-    fp << "END_ENTPOOL\n";
-
-    /// inverted index
-    fp << "BEGIN_IDX\n";
-    for( auto i = d_invertedIdx.begin(); i!= d_invertedIdx.end(); ++i ) {
-        //i->first.serialize( fp << "F " << std::dec << i->second.size() << " ");
-        fp << " [ ";
-        /// serializing the vector for this feature
-        const DocFeatureLink::Vec_t& vec = i->second; 
-        for( auto j = vec.begin(); j!= vec.end(); ++j ) {
-            if( j!= vec.begin() ) 
-                fp << "\n";
-            j->serialize(fp);
-        }
-        fp << " ]";
-    }
-    fp << "END_IDX\n";
-	*/
     return 0;
 }
 int DocFeatureIndex::deserialize( std::istream& fp )
 {
-	/*
-    std::string tmp;
-    if( !(fp>> tmp) || tmp != "BEGIN_STRINGPOOL" ) return 1;
-    d_stringPool.deserialize(fp);
-    if( !(fp>> tmp) || tmp != "END_STRINGPOOL" ) return 1;
-
-    if( !(fp>> tmp) || tmp != "BEGIN_ENTPOOL" ) return 1;
-    {
-    EntSerializer entSerializer;
-    d_entPool.deserialize(entSerializer,fp);
-    }
-    if( !(fp>> tmp) || tmp != "END_ENTPOOL" ) return 1;
-
-    if( !(fp>> tmp) || tmp != "BEGIN_IDX" ) return 1;
-    size_t errCount = 0;
-    DocFeature feature;
-    while( fp >> tmp ) {
-        if( tmp== "END_IDX" ) 
-            break;
-        if( tmp =="]" )  /// end of feature links vec ends (end of feature as well)
-            continue;
-
-        if( tmp =="[" ){ /// feature links vec starts
-            
-        } else if( tmp =="F" ) {  /// feature begins
-            size_t sz = 0;
-            fp >> sz ;
-            if( !sz  ) {
-                ++errCount;
-                continue;
-            }
-            if( feature.deserialize( fp ) || !feature.isValid() ) {
-                ++errCount;
-                continue;
-            }
-            InvertedIdx_t::iterator fi = d_invertedIdx.find(feature);
-            if( fi == d_invertedIdx.end() ) {
-                fi = d_invertedIdx.insert( 
-                    std::pair<DocFeature,DocFeatureLink::Vec_t>(
-                        feature,
-                        DocFeatureLink::Vec_t()
-                    )
-                ).first;
-            }
-            /// this could simply reserve sz but in case this is an artificially produced file with the same feature 
-            /// spread across 
-            size_t oldSz = fi->second.size();
-            fi->second.resize( oldSz + sz );
-            for( auto i = fi->second.begin()+oldSz, end = fi->second.end(); i!= end; ++i ) 
-                i->deserialize( fp );
-        }
-    }
-    return errCount;
-	*/
 	return 0;
 }
 
