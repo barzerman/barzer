@@ -35,33 +35,35 @@ int getter_doc_features( ZurchRoute& route, const char* q )
     size_t numPrinted = 0;
     os << "\"entity\" : [\n";
     for( const auto& ngram : feat ) {
-        for( size_t j = 0, j_end = ngram.size(); j < j_end; ++j ) {
-            const DocFeature& f = ngram[ j ];
-            if( f.featureClass == DocFeature::CLASS_ENTITY ) {
+        if( ngram.size() == 1 && ngram[ 0 ].featureClass == DocFeature::CLASS_ENTITY) {
                 entIdStr.clear();
                 if( numPrinted++ ) os << ",\n";
-                barzer::BarzerEntity ent = idx.resolve_entity( entIdStr, f.featureId, universe );
+                barzer::BarzerEntity ent = idx.resolve_entity( entIdStr, ngram[0].featureId, universe );
                 barzer::BarzStreamerJSON::print_entity_fields( 
                     (os << "    {"), 
                     ent, 
                     universe 
                 ) << "}";
-            }
         }
     }
     os << "],\n";
     numPrinted=0;
     os << "\"token\" : [\n";
     for( const auto& ngram : feat ) {
+        size_t ngramElement = 0;
+        if( numPrinted++ ) os << ",\n";
+        os << "[ ";
         for( size_t j = 0, j_end = ngram.size(); j < j_end; ++j ) {
+
             const DocFeature& f = ngram[ j ];
             if( f.featureClass == DocFeature::CLASS_STEM ) {
                 if( const char* t = idx.resolve_token(f.featureId) ) {
-                    if( numPrinted++ ) os << ", ";
+                    if( ngramElement++ ) os << ", ";
                     ay::jsonEscape( t, os, "\"" );
                 }
             }
         }
+        os << "]";
     }
     os << "]\n";
     os << "}\n";
