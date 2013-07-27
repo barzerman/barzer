@@ -1044,7 +1044,6 @@ void BarzerRequestParser::tag_query(RequestTag &tag)
                     env->setNow( i->second );
             }
             break;
->>>>>>> issue_599_zurchview
         case 'q':
             if( i->first == "qid" ) 
                 barz.setQueryId( atoi( i->second.c_str() ) );
@@ -1057,15 +1056,8 @@ void BarzerRequestParser::tag_query(RequestTag &tag)
                     d_simplified = true;
                     ret = JSON_TYPE;
                 }
-<<<<<<< HEAD
-            } else if( i->first == "route" ) {
-                if( !i->second.empty() ) 
-                    d_route = i->second;
-            }
-=======
             } else if( i->first == "route" ) 
                 d_route = i->second;
->>>>>>> issue_599_zurchview
             break;
         case 'z':
             if( i->first == "zurch" ) {
@@ -1073,15 +1065,9 @@ void BarzerRequestParser::tag_query(RequestTag &tag)
                 /// (see the code for values - this is a string of single character flags)
                 setQueryType(QType::ZURCH);
                 d_zurchDocIdxId = atoi(i->second.c_str());
-<<<<<<< HEAD
             }
             break;
-        }
-=======
-            } 
-            break;
         } // switch
->>>>>>> issue_599_zurchview
     }
     if( isParentTag("qblock") ) {
         d_query = tag.body.c_str();

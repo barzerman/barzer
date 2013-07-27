@@ -1043,7 +1043,6 @@ const BarzerEntity  DocFeatureIndex::resolve_entity( std::string& entIdStr, uint
     }
 
     return uEnt;
->>>>>>> issue_599_zurchview
 }
 std::string DocFeatureIndex::resolveFeature(const DocFeature& f) const
 {
