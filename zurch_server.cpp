@@ -40,10 +40,6 @@ std::ostream& DocIdxSearchResponseXML::printHTML( std::ostream& os, const DocWit
             os << "), SCORE:(" << i->second << ")" << std::endl;
         }
         std::string title = loader.getDocTitle(docId);
-        int docWeight = 0;
-        if( const DocFeatureIndex::DocInfo * docInfo = theIndex.getDocInfo(docId) ) 
-            docWeight = docInfo->extWeight;
-
 
         if( title.length() ) 
             tag_raii.text(title, "b");
