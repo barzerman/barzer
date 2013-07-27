@@ -1,9 +1,9 @@
-#pragma 
+#pragma once
 #include <string>
 #include <iostream>
 namespace barzer {
     class BarzerRequestParser;
-    class QuestionParm;
+    struct QuestionParm;
 }
 namespace zurch {
 

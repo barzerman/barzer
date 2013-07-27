@@ -542,9 +542,9 @@ void print_conf_leftovers( json_raii&& raii, const std::vector<std::string>& vec
 std::ostream& BarzStreamerJSON::print_entity_fields(std::ostream& os, const BarzerEntity &euid, const StoredUniverse& universe )
 {
 
-    os << "\"cl\": " << euid.eclass.ec << ", "; << "\"sc\": " << euid.eclass.subclass;
+    os << "\"cl\": " << euid.eclass.ec << ", \"sc\": " << euid.eclass.subclass;
     if( const char* tokname = universe.getGlobalPools().internalString_resolve(euid.tokId) )
-        ay::jsonEscape(tokname, ", \"id\": ", "\"" );
+        ay::jsonEscape(tokname, (os<< ", \"id\": "), "\"" );
 
     if( const EntityData::EntProp* edata = universe.getEntPropData( euid ) ) {
         if( !edata->canonicName.empty() )  {

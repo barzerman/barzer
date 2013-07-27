@@ -1021,12 +1021,12 @@ std::ostream& DocFeatureIndex::printStats( std::ostream& fp ) const
 const char*         DocFeatureIndex::resolve_token( uint32_t strId ) const
     { return d_stringPool.resolveId(strId); }
 
-const BarzerEntity  DocFeatureIndex::resolve_entity( std::string& s, uint32_t entId, const StoredUniverse& u  ) const
+const BarzerEntity  DocFeatureIndex::resolve_entity( std::string& entIdStr, uint32_t entId, const barzer::StoredUniverse& u  ) const
 {
     BarzerEntity uEnt;
     if( const BarzerEntity* ent = d_entPool.getObjById(entId) ) {
         if( const char* tokStr = d_stringPool.resolveId(ent->tokId) ) {
-            s.assign( tokStr );
+            entIdStr.assign( tokStr );
             uEnt = *ent; 
             uEnt.tokId = u.getDtaIdx().getStrPool( )->getId( tokStr );
         }
