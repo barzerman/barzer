@@ -628,6 +628,10 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
             os<< "{ \"error\": \"invalid zurch index id " << d_zurchDocIdxId << "\"}" ;
 
 		return;
+    } else if( !d_route.empty() ) {
+        ZurchRoute route( *ixl, *this  );
+        route( query );
+        return;
     }
     const zurch::DocFeatureIndex* index = ixl->getIndex();
     barz.clear();

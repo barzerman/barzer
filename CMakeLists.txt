@@ -164,6 +164,7 @@ set(SOURCES
 			barzer_spell_features.cpp
 			barzer_el_trie_ruleidx.cpp
             zurch/zurch_loader_longxml.cpp
+            zurch_route.cpp
             zurch_barzer.cpp
             zurch_server.cpp
             zurch_settings.cpp
