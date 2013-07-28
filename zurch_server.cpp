@@ -28,6 +28,7 @@ std::ostream& DocIdxSearchResponseXML::printHTML( std::ostream& os, const DocWit
 	
 	std::vector<DocIndexLoaderNamedDocs::Chunk_t> chunks;
     const DocIndexLoaderNamedDocs& loader = *d_ixl.getLoader();
+    const DocFeatureIndex& theIndex = *d_ixl.getIndex();
     bool hasChunks = loader.hasChunks() ;
     bool hasContent = loader.hasContent() ;
     for( auto i= docVec.begin(); i!= docVec.end() ; ++i ) {
@@ -75,6 +76,7 @@ std::ostream& DocIdxSearchResponseXML::print( std::ostream& os, const DocWithSco
 	    
 	std::vector<DocIndexLoaderNamedDocs::Chunk_t> chunks;
     const DocIndexLoaderNamedDocs& loader = *d_ixl.getLoader();
+    const DocFeatureIndex& theIndex = *d_ixl.getIndex();
     bool hasChunks = loader.hasChunks() ;
     bool hasContent = loader.hasContent() ;
     for( auto i= docVec.begin(); i!= docVec.end() ; ++i ) {
@@ -148,6 +150,7 @@ std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocWithSc
 	
 	std::vector<DocIndexLoaderNamedDocs::Chunk_t> chunks;
     const DocIndexLoaderNamedDocs& loader = *d_ixl.getLoader();
+    const DocFeatureIndex& theIndex = *d_ixl.getIndex();
     bool hasChunks = loader.hasChunks() ;
     bool hasContent = loader.hasContent() ;
     for( auto i= docVec.begin(); i!= docVec.end() ; ++i ) {
@@ -159,10 +162,14 @@ std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocWithSc
         ay::jsonEscape( docName , docRaii.startField( "n" ), "\"" );
 
         std::string title = loader.getDocTitle(docId);
+        int docWeight = 0;
+        if( const DocFeatureIndex::DocInfo * docInfo = theIndex.getDocInfo(docId) ) 
+            docWeight = docInfo->extWeight;
         if( title.length()) 
             ay::jsonEscape( title.c_str() , docRaii.startField( "title" ), "\"" );
 
         docRaii.startField( "w" ) << i->second;
+        docRaii.startField( "ew" ) << docWeight;
 		
         if( hasChunks ) {
 		    chunks.clear();
