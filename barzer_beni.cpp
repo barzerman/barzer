@@ -158,7 +158,7 @@ void SmartBENI::search( BENIFindResults_t& out, const char* query, double minCov
     }
     std::sort( out.begin(), out.end(), 
         []( const BENIFindResult& l, const BENIFindResult& r ) 
-            { return (l.coverage> r.coverage?  true:(r.coverage>l.coverage ? false: l.popRank>r.popRank)  ); } 
+            { return (l.coverage> r.coverage?  true:(r.coverage>l.coverage ? false: (l.popRank>r.popRank ? true: l.nameLen< r.nameLen))  ); } 
         );
     if( out.size() > 128 ) 
         out.resize(128);
@@ -318,11 +318,13 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) 
 				}
                 const BarzerEntity& theEnt = *(i.m_data);
                 int popRank =0;
-                if( const const EntityData::EntProp* edata = d_universe.getEntPropData( theEnt ) ) 
+                size_t nameLen = 0;
+                if( const EntityData::EntProp* edata = d_universe.getEntPropData( theEnt ) )  {
                     popRank = edata->relevance;
-
+                    nameLen = edata->canonicName.length();
+                }
 				out.push_back(
-                    BENIFindResult( theEnt, popRank, cov, i.m_relevance ) 
+                    BENIFindResult( theEnt, popRank, cov, i.m_relevance, nameLen ) 
                 );
 			}
         }
@@ -331,6 +333,71 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) 
 }
 
 bool BENI::normalize( std::string& out, const std::string& in ) 
+{
+    out.clear();
+    out.reserve( 2*in.length() );
+
+    size_t in_length = in.length(), in_length_1 = ( in_length ? in_length -1 : 0 );
+    
+    enum {
+        CT_CHAR, //  everything that's not a digit or pucntspace is considered a char 
+        CT_DIGIT , // isdigit
+        CT_PUNCTSPACE, //ispunct or isspace
+        CT_2BYTEJUNK // ® and such stripping off this junk
+    };
+    #define GET_CT(c) ( (!c || ispunct(c)||isspace(c))? CT_PUNCTSPACE: (isdigit(c)? CT_DIGIT: \
+        ((uint8_t)(c) ==0xc2 ? CT_2BYTEJUNK : CT_CHAR) )  ) 
+    bool altered = false;
+
+    int lastOutNonspaceCT = CT_CHAR;
+
+    for( size_t i = 0; i< in_length; ++i ) {
+        char prevC = ( i>0 ? in[i-1] : 0 );
+        char c1 = ( i< in_length_1 ? in[i+1] : 0 );
+        char c = in[i];
+
+        int ct_prev = GET_CT(prevC); 
+        int ct_next = GET_CT(c1);
+        int ct = GET_CT(c);
+        
+        if( c == '&' && c1 == '#' ) {
+            const char* tmp = in.c_str()+i+2, *tmp_end = in.c_str()+in_length; 
+            size_t tmpI = i+2;
+            for( ; tmp < tmp_end && *tmp>='0' && *tmp<='9'; ++tmp ) 
+                ++tmpI;
+            
+            if( tmp < tmp_end && *tmp == ';' ) {
+                i= tmpI;
+                if( out.empty() || *(out.rbegin()) != ' ' ) 
+                    out.push_back( ' ' );
+                if( !altered )
+                    altered = true;
+                continue;
+            }
+        }
+
+        if( ct == CT_2BYTEJUNK ) { // absorbing "funny chars"
+            if( i< in_length-1 ) ++i;
+            ct= CT_PUNCTSPACE;
+        }
+        if( ct == CT_PUNCTSPACE ) {
+            if( (!out.empty() && *(out.rbegin()) != ' ') )
+                out.push_back( ' ' );
+            else if( !altered )
+                altered = true;
+        } else {
+            if( lastOutNonspaceCT != ct ) {
+                if( !out.empty() && *(out.rbegin()) != ' ' ) 
+                    out.push_back(' ' );
+                out.push_back( c );
+            } else
+                out.push_back( c );
+            lastOutNonspaceCT = ct;
+        }
+    }
+    return altered;
+}
+bool BENI::normalize_old( std::string& out, const std::string& in ) 
 {
     out.clear();
     out.reserve( in.length() );
@@ -419,11 +486,13 @@ size_t SmartBENI::getZurchEntities( BENIFindResults_t& out, const zurch::DocWith
         if( minScore == 0.0 || minScore > i.second ) 
             minScore = i.second;
 
-        out.push_back( {i.first, 1, i.second, 0 } );
+        // here entity name length is irrelevant as is the weight - this is zurch
+
+        out.push_back( {i.first, 1, i.second, 0, 0 } ); 
     }
     std::sort( out.begin(), out.end(), 
         []( const BENIFindResult& l, const BENIFindResult& r ) 
-            { return (l.coverage> r.coverage?  true:(r.coverage>l.coverage ? false: l.popRank>r.popRank)  ); } 
+            { return (l.coverage> r.coverage?  true:(r.coverage>l.coverage ? false: (l.popRank>r.popRank ? true: l.nameLen<r.nameLen))  ); } 
     );
     // normalizing doc scores to 1
     double minToMax = maxScore-minScore;

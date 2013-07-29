@@ -152,16 +152,20 @@ struct BENIFindResult {
 	int popRank; // entity popularity rank
 	double coverage;
 	double relevance;
+    size_t nameLen;
+
     BENIFindResult() :
         popRank(0),
         coverage(0),
-        relevance(0)
+        relevance(0),
+        nameLen(0)
     {}
-    BENIFindResult( const BarzerEntity& e, int pr, double c, double r ) : 
+    BENIFindResult( const BarzerEntity& e, int pr, double c, double r, size_t nl ) : 
         ent(e), 
         popRank(pr),
         coverage(c),
-        relevance(r)
+        relevance(r),
+        nameLen(nl)
     {}
 
 };

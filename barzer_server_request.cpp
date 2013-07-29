@@ -26,6 +26,7 @@
 #include <barzer_server.h>
 #include <zurch_docidx.h>
 #include <zurch_server.h>
+#include <zurch_route.h>
 
 extern "C" {
 
@@ -173,7 +174,98 @@ BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s ) :
     d_queryType(QType::BARZER)
 {parser = 0;}
 
-int BarzerRequestParser::initFromUri( const char* u, size_t u_len, const char* query, size_t query_len ) 
+namespace {
+struct AutocTopicParseCB {
+    BarzerRequestParser& brp;
+    AutocTopicParseCB( BarzerRequestParser& p ) : brp(p) {}
+    
+    int operator()( size_t num, const char* t, const char* t_end )
+    {
+        ay::string_tokenizer_iter ti( t, t_end, '.' );
+        StoredEntityUniqId euid;
+        std::string str; 
+        if( ti ) {
+            ti.get_string( str );
+            euid.eclass.ec = atoi( str.c_str() );
+            ++ti;
+        } 
+        if( ti ) {
+            ti.get_string( str );
+            euid.eclass.subclass = atoi( str.c_str() );
+            ++ti;
+        } 
+        if( ti ) {
+            ti.get_string( str );
+            ++ti;
+            euid.tokId = brp.getGlobalPools().dtaIdx.getTokIdByString(str.c_str());
+        } 
+        
+        if( euid.eclass.isValid() && euid.tokId != 0xffffffff ) {
+            brp.getBarz().topicInfo.addTopic( euid );
+            brp.getBarz().topicInfo.setTopicFilterMode_Strict(); 
+        }
+
+        return 0;
+    }
+};
+
+} // anon namespace 
+
+int BarzerRequestParser::autoc_nameval_process( QuestionParm& qparm, const std::string& n, const std::string& v )
+{
+    switch( n[0] ) {
+    case 'u': 
+        if( !d_universe ) 
+            setUniverseId(atoi(v.c_str()));
+        if( !d_universe ) 
+            return 1;
+        break;
+    case 't':
+        switch( n[1] ) {
+        case 'c': // tc trie class (optional)
+            qparm.autoc.trieClass = gpools.internalString_getId( v.c_str());
+            break;
+        case 'i': // ti trie id (optional)
+            qparm.autoc.trieId = gpools.internalString_getId( v.c_str());
+            break;
+        case 'o': // to - topic 
+            {
+                AutocTopicParseCB cb(*this);
+                ay::parse_separator( cb, v.c_str(), v.c_str()+v.length(), '|' );
+            }
+            break;
+        }
+        break;
+    case 'e':
+        qparm.autoc.parseEntClassList(v.c_str());
+        break;
+    case 'b':
+        if (n == "beni" ) 
+            d_beniMode=QuestionParm::parseBeniFlag(v.c_str());
+        break;
+    case 'm':
+        if( n == "max" ) {
+            int num = atoi( v.c_str() );
+            qparm.autoc.numResults = num;
+        }
+        break;
+    }
+    return 0;
+}
+
+int BarzerRequestParser::initAutocFromUri( QuestionParm& qparm, const ay::uri_parse& uri )
+{
+    setQueryType(QType::AUTOCOMPLETE);
+    uint32_t userId= 0xffffffff;
+    qparm.isAutoc = true;
+    for( auto a = uri.theVec.begin(); a!= uri.theVec.end(); ++a )  {
+        if( autoc_nameval_process( qparm, a->first, a->second ) )
+            return 1;
+    }
+    qparm.d_beniMode = d_beniMode;
+    return 0;
+}
+int BarzerRequestParser::initFromUri( QuestionParm& qparm, const char* u, size_t u_len, const char* query, size_t query_len ) 
 {
     ay::uri_parse uri;
     uri.parse( query, query_len );
@@ -182,9 +274,12 @@ int BarzerRequestParser::initFromUri( const char* u, size_t u_len, const char* q
         setQueryType( QType::ZURCH );
         d_zurchDocIdxId = 0;
         d_zurchSearchById = false;
-    } else
+    } else if( !strncmp( u, "/autoc", u_len ) ) {
+        if( initAutocFromUri( qparm, uri ) )
+            return 1;
+    } else {
         setQueryType(QType::BARZER);
-
+    }
     d_query.clear();
     d_queryFlags.clear();
     ret = ( d_queryType == QType::BARZER ? XML_TYPE : JSON_TYPE );
@@ -200,6 +295,10 @@ int BarzerRequestParser::initFromUri( const char* u, size_t u_len, const char* q
             {
                 d_beniMode = QuestionParm::parseBeniFlag( i->second.c_str() );
             }
+            break;
+        case 'e':
+            if( i->first == "extra" ) 
+                d_extra = i->second ;
             break;
         case 'd':
             if( i->first == "docidx" )  { // zurch docid 
@@ -235,6 +334,8 @@ int BarzerRequestParser::initFromUri( const char* u, size_t u_len, const char* q
                 if( i->second == "xml" ) {
                     ret = XML_TYPE;
                 }
+            } else if( i->first == "route" ) {
+                d_route = i->second;
             }
             break;
         case 'u': 
@@ -249,7 +350,7 @@ int BarzerRequestParser::initFromUri( const char* u, size_t u_len, const char* q
     }
     return 0;
 }
-int BarzerRequestParser::parse()
+int BarzerRequestParser::parse(QuestionParm& qparm)
 {
     if( !d_universe ) {
         printError( "User not found" );
@@ -262,6 +363,10 @@ int BarzerRequestParser::parse()
     case QType::ZURCH:
         raw_query_parse_zurch( d_query.c_str(), *d_universe );
         break;
+    case QType::AUTOCOMPLETE: {
+        raw_autoc_parse( d_query.c_str(), qparm );
+        break;
+    }
     }
     return 0;
 }
@@ -530,6 +635,10 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
             os<< "{ \"error\": \"invalid zurch index id " << d_zurchDocIdxId << "\"}" ;
 
 		return;
+    } else if( !d_route.empty() ) {
+        zurch::ZurchRoute route( *ixl, *this  );
+        route( query );
+        return;
     }
     const zurch::DocFeatureIndex* index = ixl->getIndex();
     barz.clear();
@@ -667,42 +776,6 @@ void BarzerRequestParser::tag_topic(RequestTag &tag) {
     barz.topicInfo.setTopicFilterMode_Strict(); 
 }
 
-namespace {
-struct AutocTopicParseCB {
-    BarzerRequestParser& brp;
-    AutocTopicParseCB( BarzerRequestParser& p ) : brp(p) {}
-    
-    int operator()( size_t num, const char* t, const char* t_end )
-    {
-        ay::string_tokenizer_iter ti( t, t_end, '.' );
-        StoredEntityUniqId euid;
-        std::string str; 
-        if( ti ) {
-            ti.get_string( str );
-            euid.eclass.ec = atoi( str.c_str() );
-            ++ti;
-        } 
-        if( ti ) {
-            ti.get_string( str );
-            euid.eclass.subclass = atoi( str.c_str() );
-            ++ti;
-        } 
-        if( ti ) {
-            ti.get_string( str );
-            ++ti;
-            euid.tokId = brp.getGlobalPools().dtaIdx.getTokIdByString(str.c_str());
-        } 
-        
-        if( euid.eclass.isValid() && euid.tokId != 0xffffffff ) {
-            brp.getBarz().topicInfo.addTopic( euid );
-            brp.getBarz().topicInfo.setTopicFilterMode_Strict(); 
-        }
-
-        return 0;
-    }
-};
-
-}
 
 void BarzerRequestParser::tag_autoc(RequestTag &tag) 
 {
@@ -711,59 +784,9 @@ void BarzerRequestParser::tag_autoc(RequestTag &tag)
 
 	QuestionParm qparm;
     for( AttrList::const_iterator a = attrs.begin(); a!= attrs.end(); ++a ) {
-        const std::string& v = a->second;
-        switch( a->first[0] ) {
-        case 'u': 
-            if( !d_universe ) {
-                setUniverseId(atoi(a->second.c_str()));
-            }
-            if( !d_universe ) {
-                os << "<error>invalid user id " << userId << "</error>\n";
-                return;
-            }
-            break;
-        case 't':
-            switch( a->first[1] ) {
-            case 'c': // tc trie class (optional)
-                qparm.autoc.trieClass = gp.internalString_getId( a->second.c_str());
-                break;
-            case 'i': // ti trie id (optional)
-                qparm.autoc.trieId = gp.internalString_getId( a->second.c_str());
-                break;
-            case 'o': // to - topic 
-                {
-                    AutocTopicParseCB cb(*this);
-                    ay::parse_separator( cb, v.c_str(), v.c_str()+v.length(), '|' );
-                }
-                break;
-            }
-            break;
-        case 'e':
-            qparm.autoc.parseEntClassList(a->second.c_str());
-            break;
-        case 'b':
-            if (a->first == "beni" ) 
-                d_beniMode=QuestionParm::parseBeniFlag(a->second.c_str());
-            break;
-        case 'm':
-            if( a->first == "max" ) {
-                int num = atoi( a->second.c_str() );
-                qparm.autoc.numResults = num;
-            }
-            break;
-        }
+        if( autoc_nameval_process( qparm, a->first, a->second ) )
+            return;
     }
-    d_query = tag.body.c_str();
-	
-    if( barz.hasReqVar("numResults") ) {
-	    const auto numResVar = barz.getReqVarValue("numResults");
-	    if (numResVar) {
-		    BarzerNumber num;
-		    if (BarzerAtomicCast(d_universe).convert(num, *numResVar) == BarzerAtomicCast::CASTERR_OK)
-			    qparm.autoc.numResults = num.getInt();
-	    }
-    }
-    
     qparm.isAutoc = true;
     qparm.d_beniMode = d_beniMode;
     raw_autoc_parse( d_query.c_str(), qparm );
@@ -991,36 +1014,61 @@ void BarzerRequestParser::tag_query(RequestTag &tag)
     d_queryFlags.clear();
     //ReturnType t = XML_TYPE;
     for( auto i = attrs.begin(); i!= attrs.end(); ++i ) {
-        if( i->first == "qid" ) 
-            barz.setQueryId( atoi( i->second.c_str() ) );
-        else if( i->first == "as" ) 
-            d_aggressiveStem = true;
-        else if (i->first == "beni" ) { 
-            d_beniMode=QuestionParm::parseBeniFlag(i->second.c_str());
-        } else if (i->first == "ret" ) { 
-            if( i->second == "json") {
-        	    ret = JSON_TYPE;
-            } else if( i->second == "sjson" ) {
-                d_simplified = true;
-        	    ret = JSON_TYPE;
+        if( i->first.empty() ) 
+            continue;
+        char c = i->first[0];
+        switch(c) {
+        case 'a':
+            if( i->first == "as" ) 
+                d_aggressiveStem = true;
+            break;
+        case 'b':
+            if (i->first == "beni" )
+                d_beniMode=QuestionParm::parseBeniFlag(i->second.c_str());
+            break;
+        case 'e':
+            if( i->first == "extra" ) 
+                d_extra = i->second;
+            break;
+        case 'f':
+            if( i->first =="flag" )
+                d_queryFlags = i->second;
+            break;
+        case 'm':
+            if (i->first == "max" ) // max results
+                d_maxResults = atoi(i->second.c_str());
+            break;
+        case 'n':
+            if (i->first == "now" ) {
+                if( RequestEnvironment* env = barz.getServerReqEnv() )
+                    env->setNow( i->second );
             }
-        } else if (i->first == "max" ) { // max results
-            d_maxResults = atoi(i->second.c_str());
-        } else if (i->first == "now" ) {
-            if( RequestEnvironment* env = barz.getServerReqEnv() )
-                env->setNow( i->second );
-        } else if( i->first == "zurch" ) {
-            /// value of zurch attributes QuestionParm::setZurchFlags 
-            /// (see the code for values - this is a string of single character flags)
-            setQueryType(QType::ZURCH);
-            d_zurchDocIdxId = atoi(i->second.c_str());
-        } else if( i->first =="flag" ) {
-            d_queryFlags = i->second;
-        } else if( i->first.length() > 2 && i->first[0] == 'v' ) {  /// value filter 
-            /// value filter vi.
-        }
+            break;
+        case 'q':
+            if( i->first == "qid" ) 
+                barz.setQueryId( atoi( i->second.c_str() ) );
+            break;
+        case 'r':
+            if (i->first == "ret" ) { 
+                if( i->second == "json") {
+                    ret = JSON_TYPE;
+                } else if( i->second == "sjson" ) {
+                    d_simplified = true;
+                    ret = JSON_TYPE;
+                }
+            } else if( i->first == "route" ) 
+                d_route = i->second;
+            break;
+        case 'z':
+            if( i->first == "zurch" ) {
+                /// value of zurch attributes QuestionParm::setZurchFlags 
+                /// (see the code for values - this is a string of single character flags)
+                setQueryType(QType::ZURCH);
+                d_zurchDocIdxId = atoi(i->second.c_str());
+            }
+            break;
+        } // switch
     }
-
     if( isParentTag("qblock") ) {
         d_query = tag.body.c_str();
     } else {

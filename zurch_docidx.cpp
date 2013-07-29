@@ -270,6 +270,42 @@ uint32_t DocFeatureIndex::resolveExternalString( const barzer::BarzerLiteral& l,
         return 0xffffffff;
 }
 
+void DocFeatureIndex::getUniqueUnigrams(std::vector<std::pair<NGram<DocFeature>, uint32_t>>& out, uint32_t docId) const
+{
+	for (const auto& pair : d_invertedIdx) {
+        if( pair.first.size() > 1 ) 
+            continue;
+		if (docId != static_cast<uint32_t>(-1) &&
+			std::find_if(pair.second.begin(), pair.second.end(),
+					[docId] (const DocFeatureLink& l) { return l.docId == docId; }) == pair.second.end())
+			continue;
+
+		out.push_back({ pair.first, pair.second.size() });
+	}
+}
+void DocFeatureIndex::getUniqueFeatures(std::vector<std::pair<NGram<DocFeature>, uint32_t>>& out, uint32_t docId) const
+{
+	for (const auto& pair : d_invertedIdx)
+	{
+		if (docId != static_cast<uint32_t>(-1) &&
+			std::find_if(pair.second.begin(), pair.second.end(),
+					[docId] (const DocFeatureLink& l) { return l.docId == docId; }) == pair.second.end())
+			continue;
+
+		out.push_back({ pair.first, pair.second.size() });
+	}
+}
+
+void DocFeatureIndex::getDocs4Feature (std::vector<uint32_t>& docIds, const NGram<DocFeature>& f) const
+{
+	const auto pos = d_invertedIdx.find(f);
+	if (pos == d_invertedIdx.end())
+		return;
+
+	for (const auto& link : pos->second)
+		docIds.push_back(link.docId);
+}
+
 void DocFeatureIndex::setStopWords(const std::vector<std::string>& words)
 {
 	for (const auto& word : words)
@@ -590,7 +626,35 @@ void DocFeatureIndex::setTitleLength(uint32_t docId, size_t titleLength)
 {
 	if (!titleLength)
 		return;
-	m_titleLengths[docId] = titleLength;
+
+	m_docInfos[docId].titleLength = titleLength;
+}
+
+void DocFeatureIndex::setExtWeight (uint32_t docId, int32_t weight)
+{
+	m_docInfos[docId].extWeight = weight;
+}
+
+int32_t DocFeatureIndex::getExtWeight (uint32_t docId) const
+{
+	auto pos = m_docInfos.find(docId);
+	return pos == m_docInfos.end() ? 0 : pos->second.extWeight;
+}
+
+void DocFeatureIndex::setDocInfo (uint32_t docId, const DocInfo& info)
+{
+	m_docInfos[docId] = info;
+}
+
+const DocFeatureIndex::DocInfo* DocFeatureIndex::getDocInfo (uint32_t docId) const
+{
+	auto pos = m_docInfos.find(docId);
+	return pos == m_docInfos.end() ? nullptr : &pos->second;
+}
+DocFeatureIndex::DocInfo* DocFeatureIndex::getDocInfo (uint32_t docId)
+{
+	auto pos = m_docInfos.find(docId);
+	return pos == m_docInfos.end() ? nullptr : &pos->second;
 }
 
 void DocFeatureIndex::setConsiderFeatureCount(bool consider)
@@ -610,6 +674,108 @@ namespace
 	template<typename T> T pow2 (T t) { return t * t; }
 }
 
+void DocFeatureIndex::findDocumentDumb(DocWithScoreVec_t& out,
+		const ExtractedDocFeature::Vec_t& fVec,
+		DocFeatureIndex::SearchParm& parm,
+		const barzer::Barz& barz) const
+{
+    PropFilterVarVec pfvv;
+    if( parm.filterCascade ) {
+        formPropFilterVarVec( pfvv, *(parm.filterCascade), d_docDataIdx.simpleIdx()  ) ;
+    }
+
+	std::map<uint32_t, double> doc2score;
+
+	typedef std::pair<PosInfos_t::value_type, double> ScoredFeature_t;
+	std::map<uint32_t, std::vector<ScoredFeature_t>> weightedPos;
+
+	for (const auto& ngram : fVec)
+	{
+		const auto invertedPos = d_invertedIdx.find(ngram.feature);
+		if (invertedPos == d_invertedIdx.end())
+			continue;
+
+		auto maxClass = DocFeature::CLASS_STEM;
+		for (const auto& f : ngram.feature.getFeatures())
+			if (f.featureClass > maxClass)
+				maxClass = f.featureClass;
+
+		const double classBoost = ZurchModelParms::get().getClassBoost( maxClass );
+
+		const int sizeBoost = ngram.getRealTokenSize();
+		const int length = ngram.docPos.offset.second;
+
+		const auto& sources = invertedPos->second;
+
+		const size_t numSources = 1 + sources.size();
+
+		for (const auto& link : sources)
+		{
+            if( !pfvv.empty()  &&  !matchPropFilterVarVec( link.docId, pfvv ) )
+                continue;
+
+			const auto scoreAdd = sizeBoost * classBoost / std::log(1 + numSources);
+
+			if (parm.doc2pos)
+			{
+				auto ppos = weightedPos.find(link.docId);
+				if (ppos == weightedPos.end())
+					ppos = weightedPos.insert({ link.docId, std::vector<ScoredFeature_t>() }).first;
+				ppos->second.push_back({ { link.position, link.length }, scoreAdd });
+			}
+
+			if (parm.f2trace)
+			{
+				auto fpos = parm.f2trace->find(link.docId);
+				if (fpos == parm.f2trace->end())
+					fpos = parm.f2trace->insert({ link.docId, TraceInfoMap_t::mapped_type() }).first;
+
+				std::string resolved = "{";
+				for (size_t i = 0; i < ngram.feature.size(); ++i)
+				{
+					if (i)
+						resolved += ", ";
+					resolved += resolveFeature(ngram.feature[i]);
+				}
+				resolved += "}";
+				fpos->second.push_back({ ngram.feature, resolved, scoreAdd, link.weight, link.count, sources.size() });
+			}
+
+			auto pos = doc2score.find(link.docId);
+			if (pos == doc2score.end())
+				pos = doc2score.insert({ link.docId, 0 }).first;
+
+			pos->second += scoreAdd;
+		}
+	}
+
+	out.clear();
+	out.reserve(doc2score.size());
+	std::copy(doc2score.begin(), doc2score.end(), std::back_inserter(out));
+
+	std::sort(out.begin(), out.end(),
+			[this] (const DocWithScore_t& l, const DocWithScore_t& r) -> bool
+				{ return l.second == r.second ? getExtWeight(l.first) > getExtWeight(r.first) : l.second > r.second; });
+	if (out.size() > parm.maxBack)
+		out.resize(parm.maxBack);
+
+	if (parm.doc2pos)
+	{
+		bool first = true;
+		for (const auto& docPair : out)
+		{
+			const auto docId = docPair.first;
+			auto scored = weightedPos[docId];
+			std::sort(scored.begin(), scored.end(),
+					[](const ScoredFeature_t& l, const ScoredFeature_t& r) { return l.second > r.second; });
+
+			auto pos = parm.doc2pos->insert({ docId, PosInfos_t() }).first;
+			for (const auto& score : scored)
+				pos->second.push_back(score.first);
+		}
+	}
+}
+
 void DocFeatureIndex::findDocument( 
     DocWithScoreVec_t& out,
     const ExtractedDocFeature::Vec_t& fVec, 
@@ -617,6 +783,10 @@ void DocFeatureIndex::findDocument(
 	const barzer::Barz& barz
 ) const
 {
+    if(!d_bitflags.checkBit( DocFeatureIndex::ZBIT_SMART_SCORING) ) {
+        findDocumentDumb(out,fVec,parm,barz);
+        return;
+    }
     PropFilterVarVec pfvv;
     if( parm.filterCascade ) {
         formPropFilterVarVec( pfvv, *(parm.filterCascade), d_docDataIdx.simpleIdx()  ) ;
@@ -764,92 +934,10 @@ struct EntSerializer {
 } // anonymous namespace 
 int DocFeatureIndex::serialize( std::ostream& fp ) const
 {
-	/*
-    fp << "BEGIN_STRINGPOOL\n";
-    d_stringPool.serialize(fp);
-    fp << "END_STRINGPOOL\n";
-
-    fp << "BEGIN_ENTPOOL\n";
-    {
-    EntSerializer srlzr;
-    d_entPool.serialize(srlzr,fp);
-    }
-    fp << "END_ENTPOOL\n";
-
-    /// inverted index
-    fp << "BEGIN_IDX\n";
-    for( auto i = d_invertedIdx.begin(); i!= d_invertedIdx.end(); ++i ) {
-        //i->first.serialize( fp << "F " << std::dec << i->second.size() << " ");
-        fp << " [ ";
-        /// serializing the vector for this feature
-        const DocFeatureLink::Vec_t& vec = i->second; 
-        for( auto j = vec.begin(); j!= vec.end(); ++j ) {
-            if( j!= vec.begin() ) 
-                fp << "\n";
-            j->serialize(fp);
-        }
-        fp << " ]";
-    }
-    fp << "END_IDX\n";
-	*/
     return 0;
 }
 int DocFeatureIndex::deserialize( std::istream& fp )
 {
-	/*
-    std::string tmp;
-    if( !(fp>> tmp) || tmp != "BEGIN_STRINGPOOL" ) return 1;
-    d_stringPool.deserialize(fp);
-    if( !(fp>> tmp) || tmp != "END_STRINGPOOL" ) return 1;
-
-    if( !(fp>> tmp) || tmp != "BEGIN_ENTPOOL" ) return 1;
-    {
-    EntSerializer entSerializer;
-    d_entPool.deserialize(entSerializer,fp);
-    }
-    if( !(fp>> tmp) || tmp != "END_ENTPOOL" ) return 1;
-
-    if( !(fp>> tmp) || tmp != "BEGIN_IDX" ) return 1;
-    size_t errCount = 0;
-    DocFeature feature;
-    while( fp >> tmp ) {
-        if( tmp== "END_IDX" ) 
-            break;
-        if( tmp =="]" )  /// end of feature links vec ends (end of feature as well)
-            continue;
-
-        if( tmp =="[" ){ /// feature links vec starts
-            
-        } else if( tmp =="F" ) {  /// feature begins
-            size_t sz = 0;
-            fp >> sz ;
-            if( !sz  ) {
-                ++errCount;
-                continue;
-            }
-            if( feature.deserialize( fp ) || !feature.isValid() ) {
-                ++errCount;
-                continue;
-            }
-            InvertedIdx_t::iterator fi = d_invertedIdx.find(feature);
-            if( fi == d_invertedIdx.end() ) {
-                fi = d_invertedIdx.insert( 
-                    std::pair<DocFeature,DocFeatureLink::Vec_t>(
-                        feature,
-                        DocFeatureLink::Vec_t()
-                    )
-                ).first;
-            }
-            /// this could simply reserve sz but in case this is an artificially produced file with the same feature 
-            /// spread across 
-            size_t oldSz = fi->second.size();
-            fi->second.resize( oldSz + sz );
-            for( auto i = fi->second.begin()+oldSz, end = fi->second.end(); i!= end; ++i ) 
-                i->deserialize( fp );
-        }
-    }
-    return errCount;
-	*/
 	return 0;
 }
 
@@ -858,6 +946,22 @@ std::ostream& DocFeatureIndex::printStats( std::ostream& fp ) const
     return fp << "Inverse index size: " << d_invertedIdx.size() << std::endl;
 }
 
+const char*         DocFeatureIndex::resolve_token( uint32_t strId ) const
+    { return d_stringPool.resolveId(strId); }
+
+const BarzerEntity  DocFeatureIndex::resolve_entity( std::string& entIdStr, uint32_t entId, const barzer::StoredUniverse& u  ) const
+{
+    BarzerEntity uEnt;
+    if( const BarzerEntity* ent = d_entPool.getObjById(entId) ) {
+        if( const char* tokStr = d_stringPool.resolveId(ent->tokId) ) {
+            entIdStr.assign( tokStr );
+            uEnt = *ent; 
+            uEnt.tokId = u.getGlobalPools().internalString_getId( tokStr );
+        }
+    }
+
+    return uEnt;
+}
 std::string DocFeatureIndex::resolveFeature(const DocFeature& f) const
 {
 	switch (f.featureClass)

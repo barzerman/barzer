@@ -83,6 +83,12 @@ private:
 
 	std::ostream &os;
     std::string d_query; // for query block 
+    /// request subtype
+    /// zurch: 
+    ///   doc.features - features for a given doc
+    ///   feature.docs - docs linked to a specific feature
+    std::string d_route; // subtype of request . 
+    std::string d_extra; // extra parameters (can be used by route)
     bool d_aggressiveStem;
     // barzer mode (BENI)
 
@@ -97,16 +103,19 @@ private:
     
     bool           d_simplified;
     
+    int autoc_nameval_process( QuestionParm& qparm, const std::string& n, const std::string& v );
 public:
     std::string    d_queryFlags;
     size_t d_maxResults; // max number of docs to return (32 default)
 
     std::ostream& printError( const char* err );
 
+    int initAutocFromUri( QuestionParm& qparm, const ay::uri_parse& uri );
+
     // instead of parsing input XML initializes everything from a URI string
-    int initFromUri( const char* uri, size_t uri_len, const char* query, size_t query_len );
+    int initFromUri( QuestionParm& qparm, const char* uri, size_t uri_len, const char* query, size_t query_len );
     // should be used together with initFromUri - query will be taken from d_query
-    int parse() ; 
+    int parse(QuestionParm& qparm) ; 
 
 	ReturnType ret;
     
@@ -133,11 +142,13 @@ public:
     /// zurch doc indices uniquely correspond to the pair (userId,zurchDocIdxId)
     enum class QType {
         BARZER, /// default
-        ZURCH
+        ZURCH,
+        AUTOCOMPLETE
     } d_queryType; /// 
 
     bool isQueryTypeBarzer() const { return (d_queryType == QType::BARZER); }
     bool isQueryTypeZurch() const { return (d_queryType == QType::ZURCH); }
+    bool isQueryTypeAutocomplete() const { return (d_queryType == QType::AUTOCOMPLETE); }
 
     void     setQueryType( QType qt )
         { d_queryType = qt; }
@@ -229,6 +240,11 @@ public:
             const char* s = getParentTag();
             return (s && !strcmp(s,t));
         }
+    const std::string& getExtra() const { return d_extra;} 
+
+    const std::string& getRoute() const { return d_route;} 
+    bool isRoute( const std::string& r ) const { return ( r == d_route ); }
+    bool isRoute( const char* r  ) const { return ( d_route==r ); }
 };
 
 inline BarzerRequestParser::RequestTag& BarzerRequestParser::getTag()

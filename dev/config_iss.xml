@@ -2,14 +2,6 @@
 <config>
     <users>
         <user id="0">
-            <zurch> <index phr="dev/shit_phrases.txt"/> </zurch>
-		</user>
-        <user id="1">
-            <!--
-            <beni zurch="0">
-                <benifile f="dev/beni_isbn_1m.txt"/>
-            </beni>
-            -->
             <flags value="c"/>
             <rules> <file class="" name="shit">dev/shit.xml</file> </rules>
             <trieset>

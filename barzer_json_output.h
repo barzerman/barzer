@@ -11,6 +11,7 @@
 namespace barzer {
 
 using ay::json_raii ;
+class StoredUniverse;
 
 class BarzStreamerJSON : public BarzResponseStreamer {
 public:
@@ -20,6 +21,8 @@ public:
     {}
 
 	std::ostream& print(std::ostream&);
+    static std::ostream& print_entity_fields(std::ostream& os, const BarzerEntity &euid, const StoredUniverse& universe );
+
 };
 
 

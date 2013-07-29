@@ -23,6 +23,7 @@ namespace barzer {
 }
 namespace zurch {
 using barzer::BarzerEntity;
+class ZurchRoute;
 
 class DocFeatureIndex; /// main object that links features to documents. the inverted index
 
@@ -270,11 +271,41 @@ class DocFeatureIndex {
 	
 	barzer::MeaningsStorage m_meanings;
 	
-	std::map<uint32_t, size_t> m_titleLengths;
-	
 	bool m_considerFCount;
 public:
-    DocDataIndex d_docDataIdx;
+	struct DocInfo
+	{
+		size_t titleLength;
+
+		int32_t extWeight;
+
+		DocInfo ()
+		: titleLength (0)
+		, extWeight (0)
+		{
+		}
+
+		DocInfo (size_t length, int32_t w)
+		: titleLength (length)
+		, extWeight (w)
+		{
+		}
+	};
+    enum {
+        ZBIT_SMART_SCORING,
+        /// add new bits above this line only
+        ZBIT_MAX
+    };
+
+    ay::bitflags<ZBIT_MAX> d_bitflags;
+private:
+	std::map<uint32_t, DocInfo> m_docInfos;
+public:
+    const char*         resolve_token( uint32_t strId ) const;
+    
+    const BarzerEntity  resolve_entity( std::string& entIdStr, uint32_t entId, const barzer::StoredUniverse& u ) const;
+
+	DocDataIndex d_docDataIdx;
 	typedef std::vector<std::pair<uint32_t, uint16_t>> PosInfos_t;
 	
 	int   getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, barzer::Barz& barz, bool needToInternStems );
@@ -321,6 +352,20 @@ public:
     uint32_t resolveExternalString( const char* str ) const { return d_stringPool.getId(str); }
     uint32_t resolveExternalString( const barzer::BarzerLiteral&, const barzer::StoredUniverse& u ) const;
 
+	/** @brief Returns all unique features for the given docId.
+	 *
+	 * uniquness defines how unique should be the feature, in other words
+	 * how many sources should it have including the docId.
+	 *
+	 * Passing <code>static_cast<uint32_t>(-1)</code> as docId will disable
+	 * the by-doc-id check and return all the rarest features for all
+	 * documents.
+	 */
+	void getUniqueUnigrams(std::vector<std::pair<NGram<DocFeature>, uint32_t>>& out, uint32_t docId) const;
+
+	void getUniqueFeatures(std::vector<std::pair<NGram<DocFeature>, uint32_t>>& out, uint32_t docId) const;
+	void getDocs4Feature(std::vector<uint32_t>& docIds, const NGram<DocFeature>& f) const;
+
     DocFeatureIndex();
     ~DocFeatureIndex();
     
@@ -336,6 +381,15 @@ public:
     size_t appendDocument( uint32_t docId, barzer::Barz&, size_t posOffset, DocFeatureLink::Weight_t weight );
 	
 	void setTitleLength(uint32_t docId, size_t titleLength);
+	void setExtWeight(uint32_t docId, int32_t weight);
+
+	// returns the weight for the docId or 0 if not set
+	int32_t getExtWeight(uint32_t docId) const;
+
+	void setDocInfo(uint32_t docId, const DocInfo&);
+	DocInfo* getDocInfo(uint32_t docId) ;
+	const DocInfo* getDocInfo(uint32_t docId) const;
+
 	void setConsiderFeatureCount(bool);
 	
     /// should be called after the last doc has been appended . 
@@ -375,6 +429,8 @@ public:
         {}
     };
 
+	void findDocumentDumb( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f, SearchParm&, const barzer::Barz& ) const;
+
 	void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f, SearchParm&, const barzer::Barz& ) const;
 
     int serialize( std::ostream& fp ) const;
@@ -383,6 +439,8 @@ public:
     std::ostream& printStats( std::ostream& ) const ;
 	
 	std::string resolveFeature(const DocFeature&) const;
+    std::ostream& streamFeature(std::ostream& fp, const DocFeature& f, ZurchRoute&) const;
+
 	
 	FeaturesStatItem getImportantFeatures(size_t count, double skipPerc) const;
 
@@ -408,6 +466,7 @@ class DocFeatureLoader {
 	
 	std::map<uint32_t, size_t> m_lastOffset;
 public:
+    const barzer::StoredUniverse* getUniverse() const{ return &d_universe; }
     enum {
         BIT_NO_PARSE_CHUNKS, // when set doesnt store /output chunks (parse info)
         BIT_NO_STORE_CONTENT, // when set doesnt store / output doc content 
@@ -599,6 +658,8 @@ class DocIndexAndLoader {
     DocFeatureIndex*           index;
     DocIndexLoaderNamedDocs* loader;
 public:
+    const barzer::StoredUniverse* getUniverse() const 
+        { return ( loader ? loader->getUniverse() : 0 ); }
     DocIndexAndLoader() : index(0), loader(0) {}
 
     DocFeatureIndex* getIndex() { return index; }

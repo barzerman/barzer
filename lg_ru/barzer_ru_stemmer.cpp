@@ -89,6 +89,7 @@ const char* noun_23_truevowel[]        = {"ом","ой","ою","ах","ов","а
 const char* noun_21_truevowel[]        = { /*"ию","ии","ия",*/ 0};
 const char* noun_32_truevowel[]        = {"ией","иям","иях", 0};
 const char* noun_43_truevowel[]        = {"иями", 0};
+const char* noun_4_1_truevowel[]       = {"ация", "ации", "ацию", 0};
 
 const char* verb_2[]        = {"ил" ,"ят", "ял", "ит", "ал" ,"ол","ел","ыл","ул","ся","им","ет", "ут","ёт",  0};
 const char* adj_2[]         = {"ий" ,"ое" , "ых", "ые","ый","ым","ой","ую", "юю","ие","их","им","яя", "ая",0};
@@ -181,6 +182,8 @@ bool Russian::normalize( std::string& out, const char* s, size_t* len, const Rus
     if( numLetters > 5 ) {
         if( l4(noun_43_truevowel) )
             return( chop_into_string( out, 3, s, s_len ) );
+        if( l4(noun_4_1_truevowel) )
+            return( chop_into_string( out, 1, s, s_len ) );
         if( numLetters>5 ) {
             if(l3(noun_3_truevowel))
                 return( chop_into_string( out, (is_truevowel(l4.c_str())&& numLetters>6 ? 4:3 ), s, s_len ) );

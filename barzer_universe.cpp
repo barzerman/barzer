@@ -174,9 +174,8 @@ StoredToken& StoredUniverse::internString( int lang, const char* t, BELTrie* tri
     BZSpell* bzSpell= getBZSpell();
     
     if( wasNew && (internId != origId) && (sTok.getLength()  < BZSpell::MAX_WORD_LEN) ) {
-        char w[ BZSpell::MAX_WORD_LEN ]; 
-        strncpy( w, t, BZSpell::MAX_WORD_LEN-1 );
-        w[ BZSpell::MAX_WORD_LEN-1 ] = 0;
+        strncpy( w, t, t_len );
+        w[ t_len ] = 0;
 
         //bool tolowerWasNew = false;
         if( Lang::stringToLower( w, sTok.getLength(), lang ) ) {
@@ -197,8 +196,12 @@ StoredToken& StoredUniverse::internString( int lang, const char* t, BELTrie* tri
                 }
             }
         } else {
-            strncpy( w, unstemmed, BZSpell::MAX_WORD_LEN-1 );
-            w[ BZSpell::MAX_WORD_LEN-1 ] = 0;
+			auto unstemmedLen = strlen(unstemmed);
+			if (unstemmedLen >= BZSpell::MAX_WORD_LEN)
+				unstemmedLen = BZSpell::MAX_WORD_LEN - 1;
+
+            strncpy( w, unstemmed, unstemmedLen );
+            w[ unstemmedLen ] = 0;
             Lang::stringToLower( w, sTok.getLength(), lang );
 
             const uint32_t unstmId = gp.getDtaIdx().addToken(w).getStringId();
