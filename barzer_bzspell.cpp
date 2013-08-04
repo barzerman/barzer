@@ -619,7 +619,7 @@ namespace
 		{
 		}
 		
-		uint32_t operator()(uint32_t dumbRes) const
+		uint32_t operator()(uint32_t dumbRes, bool preferDumb = false) const
 		{
 			if (dumbRes == 0xffffffff)
 				return m_featuredRes.m_strId;
@@ -636,7 +636,9 @@ namespace
 			else
 				dist = m_levDist.utf8(ay::StrUTF8(m_srcStr), ay::StrUTF8(str));
 			
-			return dist < m_featuredRes.m_levDist ? dumbRes : m_featuredRes.m_strId;
+			return (dist < m_featuredRes.m_levDist || (preferDumb && dist == m_featuredRes.m_levDist)) ?
+					dumbRes :
+					m_featuredRes.m_strId;
 		}
 	};
 }
