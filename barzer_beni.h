@@ -83,7 +83,6 @@ public:
 	void getMatchesRange(StoredStringFeatureVec::const_iterator begin, StoredStringFeatureVec::const_iterator end,
 			std::vector<FindInfo>& out, size_t max, double minCov) const
 	{
-		std::cout << "max id: " << m_gram.d_max << std::endl;
 		const double srcFCnt = std::distance(begin, end);
 
 		struct FeatureStatInfo
