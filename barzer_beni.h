@@ -410,26 +410,22 @@ public:
     void zurchEntities( BENIFindResults_t& out, const char* str, const QuestionParm& qparm );
 };
 
-typedef std::shared_ptr<BENI> BENI_ptr;
-
 class SCBENI
 {
 	StoredUniverse& m_universe;
 
-	std::map<StoredEntityClass, BENI_ptr> m_benies;
+	std::map<StoredEntityClass, BENI> m_benies;
 public:
 	SCBENI (StoredUniverse& uni)
 	: m_universe (uni)
 	{
 	}
 
-	void clear()
-	{
-		m_benies.clear();
-	}
+	void clear();
 
 	void addSubclass(const StoredEntityClass&);
-	BENI_ptr getBENI(const StoredEntityClass&) const;
+	const BENI* getBENI(const StoredEntityClass&) const;
+	BENI* getBENI(const StoredEntityClass&);
 };
 
 } // namespace barzer

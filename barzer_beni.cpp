@@ -137,13 +137,18 @@ void SmartBENI::addEntityClass( const StoredEntityClass& ec )
     std::cerr << "BENI: " << numNames << " names for " << ec << std::endl;
 }
 
+void SCBENI::clear()
+{
+	m_benies.clear();
+}
+
 void SCBENI::addSubclass(const StoredEntityClass& sec)
 {
 	auto pos = m_benies.find(sec);
 	if (pos == m_benies.end())
-		pos = m_benies.insert({ sec, BENI_ptr (new BENI(m_universe)) }).first;
+		pos = m_benies.insert({ sec, { m_universe } }).first;
 
-	const auto& beni = pos->second;
+	auto& beni = pos->second;
 
 	const auto& theMap = m_universe.getDtaIdx().entPool.getEuidMap();
 	std::vector<char> tmpBuf;
@@ -158,14 +163,20 @@ void SCBENI::addSubclass(const StoredEntityClass& sec)
 		Lang::stringToLower(tmpBuf, dest, str);
 		BENI::normalize(normDest, dest);
 
-		beni->addWord(str, i->first);
+		beni.addWord(str, i->first);
 	}
 }
 
-BENI_ptr SCBENI::getBENI(const StoredEntityClass& sec) const
+const BENI* SCBENI::getBENI(const StoredEntityClass& sec) const
 {
 	const auto pos = m_benies.find(sec);
-	return pos == m_benies.end() ? nullptr : pos->second;
+	return pos == m_benies.end() ? nullptr : &pos->second;
+}
+
+BENI* SCBENI::getBENI(const StoredEntityClass& sec)
+{
+	const auto pos = m_benies.find(sec);
+	return pos == m_benies.end() ? nullptr : &pos->second;
 }
 
 void SmartBENI::search( BENIFindResults_t& out, const char* query, double minCov ) const
