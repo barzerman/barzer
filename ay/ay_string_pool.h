@@ -23,6 +23,7 @@ class CharPool {
 protected:
 	char* addNewChunk( ) ;
 public:
+    CharPool( const CharPool& o ) {}
 	// len should include terminal 0
 	const char* addStringToPool( const char* s, size_t len );
 	// pushes new string into the pool 

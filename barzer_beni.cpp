@@ -155,8 +155,9 @@ void SubclassBENI::clear()
 void SubclassBENI::addSubclassIds(const StoredEntityClass& sec, const char *pattern, const char *replace)
 {
 	auto pos = m_benies.find(sec);
-	if (pos == m_benies.end())
+	if (pos == m_benies.end()) {
 		pos = m_benies.insert({ sec, { m_universe } }).first;
+    }
 
 	auto& beni = pos->second;
 
@@ -233,6 +234,10 @@ void BENI::setSL( bool x )
     d_storage.setSLEnabled( x );
 }
 
+BENI::BENI( const BENI& b ) : 
+    d_storage(d_charPool),
+    d_universe(b.d_universe)
+{}
 BENI::BENI( StoredUniverse& u ) : 
     d_storage(d_charPool),
     d_universe(u)

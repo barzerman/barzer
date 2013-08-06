@@ -732,6 +732,26 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
                         u.getUniverse().beni().addEntityFile( modeStr.get().c_str() );
                     }
                 }
+            } else if( i.first == "beniids" ) {
+                if( const boost::optional<const ptree&> optAttr = i.second.get_child_optional("<xmlattr>") ) {
+                    if( const boost::optional<uint32_t> cOpt = optAttr.get().get_optional<uint32_t>("c") ) {
+                        if( const boost::optional<uint32_t> sOpt = optAttr.get().get_optional<uint32_t>("s") ) {
+                            std::string repat, rerep;
+                            const char* repatStr = 0, *rerepStr = 0;
+                            if( boost::optional<std::string> repatOpt = optAttr.get().get_optional<std::string>("repat") )  { // regex search pat
+                                if( boost::optional<std::string> rerepOpt = optAttr.get().get_optional<std::string>("rerep") ) { // regex replace expression
+                                    repat = repatOpt.get();
+                                    repatStr = repat.c_str();
+                                    rerep = rerepOpt.get();
+                                    rerepStr = rerep.c_str();
+                                }
+                            }
+                            StoredEntityClass ec( cOpt.get(), sOpt.get() );
+
+                            u.getUniverse().entLookupBENIAddSubclass( ec, repatStr, rerepStr );
+                        }
+                    }
+                }
             }
         }
     }

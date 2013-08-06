@@ -33,6 +33,7 @@ uint32_t StoredUniverse::recordLangWord( int16_t lang )
 StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	d_userId(id),
     d_entNameIdx(0),
+    d_entIdLookupBENI(0),
     m_ruleIdx(new TrieRuleIdx(*this)),
 	gp(g),
 	trieCluster(g.globalTriePool,*this),
@@ -44,6 +45,7 @@ StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	m_soundsLike(false)
 {
 	m_hints.initFromUniverse(this);
+    d_entIdLookupBENI = new SubclassBENI( *this );
 }
 
 void StoredUniverse::searchEntitiesInZurch( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) const
@@ -91,6 +93,9 @@ StoredUniverse::~StoredUniverse()
     delete d_ghettoDb;
     delete m_meanings;
 	delete m_geo;
+
+    delete d_entNameIdx;
+    delete d_entIdLookupBENI;
 }
 
 size_t   StoredUniverse::internString( const char* s, bool asUserSpecific, uint8_t frequency )
@@ -136,8 +141,12 @@ void StoredUniverse::clear()
     d_ghettoDb->clear();
     d_biflags.clear();
 	m_hints.initFromUniverse(this);
+
     delete d_entNameIdx;
     d_entNameIdx = 0;
+
+    delete d_entIdLookupBENI;
+    d_entIdLookupBENI=new SubclassBENI( *this );
 }
 
 StoredToken& StoredUniverse::internString( int lang, const char* t, BELTrie* triePtr, const char* unstemmed)
@@ -287,4 +296,13 @@ const zurch::DocIndexAndLoader* StoredUniverse::getZurchIndex( uint32_t idxId ) 
 }
 //// end of generic entities
 
+void StoredUniverse::entLookupBENIAddSubclass( const StoredEntityClass& ec, const char* pat, const char* rep ) 
+{
+    d_entIdLookupBENI->addSubclassIds( ec, pat, rep );
+}
+int StoredUniverse::entLookupBENISearch( BENIFindResults_t& out, const char* query, const StoredEntityClass& ec, const QuestionParm& qparm ) const
+{
+    int rc = d_entIdLookupBENI->search( out, query, ec );
+    return rc;
+}
 } // namespace barzer ends
