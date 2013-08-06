@@ -450,9 +450,21 @@ public:
 
 	void clear();
 
-	void addSubclass(const StoredEntityClass&);
-	const BENI* getBENI(const StoredEntityClass&) const;
-	BENI* getBENI(const StoredEntityClass&);
+	void addSubclassIds(const StoredEntityClass&);
+	const BENI* getBENI(const StoredEntityClass& x) const
+    {
+	    const auto pos = m_benies.find(x);
+	    return pos == m_benies.end() ? nullptr : &pos->second;
+    }
+    
+    enum {
+        ERR_OK,
+        ERR_NO_BENI, /// beni for subclass not found
+
+        ERR_MAX
+    };
+    // returns ERR_XXX 
+    int search( BENIFindResults_t& out, const char* query, const StoredEntityClass& sc, double minCov=.1 ) const;  
 };
 
 } // namespace barzer
