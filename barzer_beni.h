@@ -449,7 +449,7 @@ public:
 
 	void clear();
 
-	void addSubclassIds(const StoredEntityClass&, const char* chopPfx = 0);
+	void addSubclassIds(const StoredEntityClass&, const char *pattern = 0, const char *replace = 0);
 	const BENI* getBENI(const StoredEntityClass& x) const
     {
 	    const auto pos = m_benies.find(x);

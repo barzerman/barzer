@@ -2,6 +2,7 @@
 #include <zurch_docidx.h>
 #include <ay/ay_sets.h>
 #include <ay/ay_util_time.h>
+#include <boost/regex.hpp>
 
 namespace barzer {
 
@@ -151,7 +152,7 @@ void SubclassBENI::clear()
 	m_benies.clear();
 }
 
-void SubclassBENI::addSubclassIds(const StoredEntityClass& sec, const char* chopPfx)
+void SubclassBENI::addSubclassIds(const StoredEntityClass& sec, const char *pattern, const char *replace)
 {
 	auto pos = m_benies.find(sec);
 	if (pos == m_benies.end())
@@ -164,6 +165,14 @@ void SubclassBENI::addSubclassIds(const StoredEntityClass& sec, const char* chop
 	std::string dest;
 	std::string normDest;
 
+	boost::regex rxObj;
+	if (pattern)
+	{
+		rxObj = boost::regex(pattern, boost::regex::perl);
+		if (!replace)
+			replace = "";
+	}
+
 	for (auto i = theMap.lower_bound(StoredEntityUniqId (sec, 0)), end = theMap.end(); i != end && i->first.eclass == sec; ++i)
 	{
 		const auto tokId = i->first.getTokId();
@@ -171,6 +180,9 @@ void SubclassBENI::addSubclassIds(const StoredEntityClass& sec, const char* chop
 
 		Lang::stringToLower(tmpBuf, dest, str);
 		BENI::normalize(normDest, dest);
+
+		if (pattern)
+			normDest = boost::regex_replace(normDest, rxObj, replace);
 
 		beni.addWord(str, i->first);
 	}
