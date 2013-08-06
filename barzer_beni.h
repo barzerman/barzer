@@ -410,20 +410,19 @@ public:
     void zurchEntities( BENIFindResults_t& out, const char* str, const QuestionParm& qparm );
 };
 
-class SCBENI
-{
+class SubclassBENI {
 	StoredUniverse& m_universe;
 
 	std::map<StoredEntityClass, BENI> m_benies;
 public:
-	SCBENI (StoredUniverse& uni)
+	SubclassBENI (StoredUniverse& uni)
 	: m_universe (uni)
 	{
 	}
 
 	void clear();
 
-	void addSubclassIds(const StoredEntityClass&);
+	void addSubclassIds(const StoredEntityClass&, const char* chopPfx = 0);
 	const BENI* getBENI(const StoredEntityClass& x) const
     {
 	    const auto pos = m_benies.find(x);
@@ -437,7 +436,7 @@ public:
         ERR_MAX
     };
     // returns ERR_XXX 
-    int search( BENIFindResults_t& out, const char* query, const StoredEntityClass& sc, double minCov=.1 ) const;  
+    int search( BENIFindResults_t& out, const char* query, const StoredEntityClass& sc, double minCov=.3 ) const;  
 };
 
 } // namespace barzer

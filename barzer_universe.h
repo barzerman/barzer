@@ -40,6 +40,7 @@ class Ghettodb;
 class MeaningsStorage;
 class BarzerGeo;
 class SmartBENI;
+class SubclassBENI;
 class TrieRuleIdx;
 
 class StoredUniverse {
@@ -47,6 +48,8 @@ class StoredUniverse {
     std::string d_userName;
     //// search entities by names using this object
     SmartBENI* d_entNameIdx;
+    SubclassBENI* d_entIdLookupBENI;
+
 	TrieRuleIdx *m_ruleIdx;
 public:
     void beniInit();
