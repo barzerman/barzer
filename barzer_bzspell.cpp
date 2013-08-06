@@ -723,7 +723,9 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
                     if( stemStrId == 0xffffffff ) {
                         doStemCorrect = false;
                     } else {
-                        if( stemStr.length() > 2*2 && str_len > stemStr.length() && (str_len-stemStr.length() <= 3*2) ) {
+						const auto lenDiff = str_len - stemStr.length();
+                        if( stemStr.length() > 2*2 && str_len > stemStr.length() &&
+								(lenDiff < 3 * 2 || (stemStr.length() > 4 * 2 && lenDiff == 3 * 2)) ) {
                             uint32_t correctedId = get2ByteLangStemCorrection( lang, str, doStemCorrect, stemStr.c_str(), BZSpell::CORRECTION_MODE_NORMAL );
                             if( correctedId != 0xffffffff )
                                 return featuredCmp(correctedId, true);
