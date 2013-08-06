@@ -8,7 +8,8 @@
 namespace barzer {
 
 template<typename T>
-class NGramStorage {
+class NGramStorage
+{
 	TFE_storage<TFE_ngram> m_gram;
 	
 	boost::unordered_multimap<uint32_t, T> m_storage;
@@ -20,6 +21,8 @@ class NGramStorage {
 	
 	bool m_soundsLikeEnabled;
 public:
+	typedef boost::function<bool (T)> SearchFilter_f;
+
     void clear() 
     {
         m_gram.clear();
@@ -81,7 +84,7 @@ public:
 	};
 	
 	void getMatchesRange(StoredStringFeatureVec::const_iterator begin, StoredStringFeatureVec::const_iterator end,
-			std::vector<FindInfo>& out, size_t max, double minCov) const
+			std::vector<FindInfo>& out, size_t max, double minCov, const SearchFilter_f& filter = SearchFilter_f()) const
 	{
 		const double srcFCnt = std::distance(begin, end);
 
@@ -121,8 +124,28 @@ public:
 		for (size_t i = 0; i < counterMap.size(); ++i)
 		{
 			const auto& info = counterMap[i];
-			if (info.fCount >= normalizedMinCov)
-				sorted.push_back({ i, info });
+			if (info.fCount < normalizedMinCov)
+				continue;
+
+			if (filter)
+			{
+				const auto data = m_storage.equal_range(i);
+				if (data.first == m_storage.end())
+					continue;
+
+				bool found = false;
+				for (const auto& d : boost::make_iterator_range(data.first, data.second))
+					if (filter (d.second))
+					{
+						found = true;
+						break;
+					}
+
+				if (!found)
+					continue;
+			}
+
+			sorted.push_back({ i, info });
 		}
 
 		std::sort(sorted.begin(), sorted.end(),
@@ -158,7 +181,8 @@ public:
 		}
 	}
 	
-	void getMatches(const char *origStr, size_t origStrLen, std::vector<FindInfo>& out, size_t max, double minCov ) const
+	void getMatches(const char *origStr, size_t origStrLen, std::vector<FindInfo>& out,
+			size_t max, double minCov, const SearchFilter_f& filter = SearchFilter_f()) const
 	{
 		std::string str(origStr, origStrLen);
 		if (m_soundsLikeEnabled)
@@ -179,7 +203,7 @@ public:
 		
 		m_gram.extractSTF(bufs, str.c_str(), str.size(), LANG_UNKNOWN);
 		
-		getMatchesRange(storedVec.begin(), storedVec.end(), out, max, minCov);
+		getMatchesRange(storedVec.begin(), storedVec.end(), out, max, minCov, filter);
 	}
 	
 	typedef std::pair<StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_iterator> Island_t;
@@ -334,6 +358,9 @@ auto NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator 
 
 class StoredUniverse;
 
+
+typedef boost::function<bool (BarzerEntity)> BENIFilter_f;
+
 class BENI {
     ay::UniqueCharPool d_charPool;
 	
@@ -352,7 +379,7 @@ public:
     /// add all entities by name for given class 
     void addEntityClass( const StoredEntityClass& ec );
     /// returns max coverage
-    double search( BENIFindResults_t&, const char* str, double minCov) const;
+    double search( BENIFindResults_t&, const char* str, double minCov, const BENIFilter_f& = BENIFilter_f ()) const;
 
     void clear() { d_storage.clear(); }
     BENI( StoredUniverse& u );
@@ -383,7 +410,7 @@ public:
     /// lines with leading # are skipped as comments
     size_t addEntityFile( const char* path=0, const char* modeStr=0 ); 
 
-    void search( BENIFindResults_t&, const char* str, double minCov) const;
+    void search( BENIFindResults_t&, const char* str, double minCov, const BENIFilter_f& = BENIFilter_f ()) const;
 	
 	BENI& getPrimaryBENI();
 

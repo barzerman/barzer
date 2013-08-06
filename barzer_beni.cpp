@@ -176,15 +176,16 @@ void SubclassBENI::addSubclassIds(const StoredEntityClass& sec, const char* chop
 	}
 }
 
-void SmartBENI::search( BENIFindResults_t& out, const char* query, double minCov ) const
+void SmartBENI::search( BENIFindResults_t& out, const char* query,
+		double minCov, const BENIFilter_f& filter) const
 {
-    double maxCov = d_beniStraight.search( out, query, minCov );
+    double maxCov = d_beniStraight.search( out, query, minCov, filter);
     const double SL_COV_THRESHOLD= 0.7;
 
     if( d_isSL ) {
         if( maxCov< SL_COV_THRESHOLD || out.empty() ) {
             BENIFindResults_t slOut;
-            maxCov = d_beniSl.search( slOut, query, minCov );
+            maxCov = d_beniSl.search( slOut, query, minCov, filter);
             size_t numAdded = 0;
             for( const auto& i: slOut ) {
                 BENIFindResults_t::iterator outIter = std::find_if(out.begin(), out.end(), [&]( const BENIFindResult& x ) { return ( x.ent == i.ent ) ; });
@@ -289,7 +290,7 @@ namespace
 	}
 } //end of anon namespace 
 
-double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) const
+double BENI::search( BENIFindResults_t& out, const char* query, double minCov, const BENIFilter_f& filter) const
 {
     double maxCov = 0.0;
     out.clear();
@@ -303,7 +304,7 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) 
 	Lang::stringToLower( tmpBuf, dest, queryStr );
     normalize( normDest, dest );
     enum { MAX_BENI_RESULTS = 64 };
-    d_storage.getMatches( normDest.c_str(), normDest.length(), vec, MAX_BENI_RESULTS, minCov );
+    d_storage.getMatches( normDest.c_str(), normDest.length(), vec, MAX_BENI_RESULTS, minCov, filter);
 	
     if( !vec.empty() ) 
         out.reserve( vec.size() );
