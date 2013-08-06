@@ -137,6 +137,15 @@ void SmartBENI::addEntityClass( const StoredEntityClass& ec )
     std::cerr << "BENI: " << numNames << " names for " << ec << std::endl;
 }
 
+int SCBENI::search( BENIFindResults_t& out, const char* query, const StoredEntityClass& sc , double minCov ) const
+{
+    if( const BENI* b = getBENI(sc) ) {
+        b->search( out, query, minCov );
+        return ERR_OK;
+    } else
+        return ERR_NO_BENI;
+}
+
 void SCBENI::clear()
 {
 	m_benies.clear();
