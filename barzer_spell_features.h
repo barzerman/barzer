@@ -34,26 +34,18 @@ inline bool operator<(const ExtractedStringFeature& left, const ExtractedStringF
 /// we assume that any kind of feature is possible to epres with 3 values
 /// for example - uint32_t for substring id , and two other 16bit numbers for position and length
 /// or if the feature is a double we can store something else in these 8 bytes
-///
-/// for our string features m_strId is the string ID, m_u41 is string length
-/// and m_u42 is string offset.
 #pragma pack(push, 1)
 struct StoredStringFeature {
 	uint32_t m_strId;
-	uint16_t m_u41;
-	uint16_t m_u42;
+	uint32_t m_padding;
 	
 	StoredStringFeature()
 	: m_strId(0xffffffff)
-	, m_u41(0)
-	, m_u42(0)
 	{
 	}
 	
-	StoredStringFeature(uint32_t id, uint16_t u41, uint16_t u42)
+	StoredStringFeature(uint32_t id)
 	: m_strId(id)
-	, m_u41(u41)
-	, m_u42(u42)
 	{
 	}
 };
@@ -71,7 +63,7 @@ inline bool operator==(const StoredStringFeature& f1, const StoredStringFeature&
 
 inline size_t hash_value(const StoredStringFeature& f)
 {
-	return f.m_strId + (f.m_u42 << 16);
+	return f.m_strId;
 }
 
 typedef std::vector<ExtractedStringFeature> ExtractedStringFeatureVec;
@@ -101,13 +93,22 @@ struct TFE_bastard {
 struct FeatureInfo
 {
 	uint32_t docId;
-	uint16_t pos;
+	uint16_t counter;
 };
 #pragma pack(pop)
 
-inline bool operator==(const FeatureInfo& f1, const FeatureInfo& f2) { return f1.docId == f2.docId && f1.pos == f2.pos; }
+/*
+inline bool operator<(const FeatureInfo& f1, const FeatureInfo& f2) { return f1.docId < f2.docId; }
+inline bool operator==(const FeatureInfo& f1, const FeatureInfo& f2) { return f1.docId == f2.docId; }
 
-typedef std::map<StoredStringFeature, std::vector<FeatureInfo>> InvertedFeatureMap;
+inline size_t hash_value(const FeatureInfo& f)
+{
+	return f.docId;
+}
+*/
+
+typedef std::vector<FeatureInfo> FeaturesDict_t;
+typedef boost::unordered_map<StoredStringFeature, FeaturesDict_t> InvertedFeatureMap;
 
 struct TFE_TmpBuffers {
     StoredStringFeatureVec& storedVec;
@@ -128,18 +129,21 @@ struct TFE_storage {
     InvertedFeatureMap d_fm;
     ay::UniqueCharPool *d_pool;
     FE d_extractor;
+	uint32_t d_max;
 
     typedef boost::unordered_set< uint32_t > StringSet;
     StringSet d_strSet;
 	
 	bool m_removeDuplicates;
 
-    TFE_storage( ay::UniqueCharPool&  p) : d_pool(&p), m_removeDuplicates(true) {}
+    TFE_storage( ay::UniqueCharPool&  p) : d_pool(&p), d_max(0), m_removeDuplicates(true) {}
     void clear()
     {
         d_fm.clear();
         d_strSet.clear();
+		d_max = 0;
     }
+
     const InvertedFeatureMap::mapped_type* getSrcsForFeature(const StoredStringFeature& f) const
     {
 		const auto pos = d_fm.find(f);
@@ -179,9 +183,10 @@ struct TFE_storage {
 		bufs.extractedVec.clear();
 		extractOnly(bufs, str, strLen, lang);
 		StoredStringFeature stf;
+		uint16_t offset;
 		for (const auto& feature : bufs.extractedVec)
 		{
-			featureConvert(stf, feature);
+			featureConvert(stf, offset, feature);
 			bufs.storedVec.push_back(stf);
 		}
 	}
@@ -198,23 +203,28 @@ struct TFE_storage {
 		extractOnly(tmp, str, strlen(str), lang);
 		
 		StoredStringFeature stf;
+		uint16_t offset = 0;
 		for (const auto& feature : tmp.extractedVec)
 		{
-			featureConvert(stf, feature);
-			d_fm[stf].push_back({ strId, stf.m_u42 });
+			featureConvert(stf, offset, feature);
+
+			auto& set = d_fm[stf];
+			auto pos = std::lower_bound(set.begin(), set.end(), strId,
+					[] (const FeaturesDict_t::value_type& pair, uint32_t strId) { return pair.docId < strId; });
+			if (pos == set.end() || pos->docId != strId)
+				pos = set.insert(pos, { strId, 0 });
+
+			d_max = std::max(d_max, strId);
+
+			++pos->counter;
 		}
     }
 
 	/// performs simple lookup
-	void featureConvert(StoredStringFeature& stf, const ExtractedStringFeature& feature) const
+	void featureConvert(StoredStringFeature& stf, uint16_t& offset, const ExtractedStringFeature& feature) const
 	{
-		const auto id = d_pool->internIt(feature.m_str.c_str(), feature.m_str.size());
-		stf = StoredStringFeature
-		{
-			id,
-			static_cast<uint16_t>(feature.m_str.size()),
-			static_cast<uint16_t>(feature.m_offset)
-		};
+		stf.m_strId = d_pool->internIt(feature.m_str.c_str(), feature.m_str.size());
+		offset = feature.m_offset;
 	}
 
     FE& extractor() { return d_extractor; }

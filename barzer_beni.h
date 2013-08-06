@@ -3,6 +3,7 @@
 #include <barzer_spell_features.h>
 #include <boost/range/iterator_range.hpp>
 #include <zurch_docidx_types.h>
+#include <ay_util_time.h>
 
 namespace barzer {
 
@@ -82,77 +83,71 @@ public:
 	void getMatchesRange(StoredStringFeatureVec::const_iterator begin, StoredStringFeatureVec::const_iterator end,
 			std::vector<FindInfo>& out, size_t max, double minCov) const
 	{
+		std::cout << "max id: " << m_gram.d_max << std::endl;
 		const double srcFCnt = std::distance(begin, end);
-		
-		typedef std::map<uint32_t, double> CounterMap_t;
-		CounterMap_t counterMap;
-		
+
 		struct FeatureStatInfo
 		{
+			double counter;
 			uint16_t fCount;
-			uint16_t firstFeature;
-			uint16_t lastFeature;
 		};
-		std::map<uint32_t, FeatureStatInfo> doc2fCnt;
+		
+		std::vector<FeatureStatInfo> counterMap(m_gram.d_max);
+
 		for (const auto& feature : boost::make_iterator_range(begin, end))
 		{
 			const auto srcs = m_gram.getSrcsForFeature(feature);
 			if (!srcs)
 				continue;
 			
+			const auto imp = 1. / (srcs->size() * srcs->size());
 			for (const auto& sourceFeature : *srcs)
 			{
 				const auto source = sourceFeature.docId;
 				
-				auto pos = counterMap.find(source);
-				if (pos == counterMap.end())
-					pos = counterMap.insert({ source, 0 }).first;
-				pos->second += 1. / (srcs->size() * srcs->size());
-				
-				auto docPos = doc2fCnt.find(source);
-				if (docPos == doc2fCnt.end())
-					docPos = doc2fCnt.insert({ source, { 0, static_cast<uint16_t>(-1), 0 } }).first;
-				++docPos->second.fCount;
-				
+				auto& info = counterMap[source];
+				info.counter += imp * sourceFeature.counter;
+				info.fCount += sourceFeature.counter;
 			}
 		}
 		
 		if (counterMap.empty())
 			return;
-		
-		std::vector<std::pair<uint32_t, double>> sorted;
+
+		typedef std::vector<std::pair<uint32_t, FeatureStatInfo>> Sorted_t;
+		Sorted_t sorted;
 		sorted.reserve(counterMap.size());
-		std::copy(counterMap.begin(), counterMap.end(), std::back_inserter(sorted));
-		
+		const auto normalizedMinCov = minCov * srcFCnt;
+
+		for (size_t i = 0; i < counterMap.size(); ++i)
+		{
+			const auto& info = counterMap[i];
+			if (info.fCount >= normalizedMinCov)
+				sorted.push_back({ i, info });
+		}
+
 		std::sort(sorted.begin(), sorted.end(),
-				[](const CounterMap_t::value_type& v1, const CounterMap_t::value_type& v2)
-					{ return v1.second > v2.second; });
-		
-		size_t curItem = 0;
-		ay::LevenshteinEditDistance lev;
-		// const auto utfLength = ay::StrUTF8::glyphCount(str.c_str(), str.c_str() + str.size());
+				[](const typename Sorted_t::value_type& v1, const typename Sorted_t::value_type& v2)
+					{ return v1.second.counter > v2.second.counter; });
+
         size_t countAdded = 0;
 		for (const auto& item : sorted)
 		{
-            auto dataPosRange = m_storage.equal_range(item.first);
-            if( dataPosRange.first == m_storage.end() ) 
-                continue;
-			
-			const auto resolvedResult = m_gram.d_pool->resolveId(item.first);
-			const auto resolvedLength = std::strlen(resolvedResult);
-			
-            const  size_t dist = 1; // we shouldnt need to compute levenshtein
-			const auto& info = doc2fCnt[item.first];
-            double cover = info.fCount / srcFCnt;
+            const size_t dist = 1; // we shouldnt need to compute levenshtein
+            double cover = item.second.fCount / srcFCnt;
             if( m_soundsLikeEnabled) 
                 cover *= 0.95;
 
             if( cover >= minCov) {
+				const auto dataPosRange = m_storage.equal_range(item.first);
+				if( dataPosRange.first == m_storage.end() )
+					continue;
+
                 for( auto dataPos = dataPosRange.first; dataPos != dataPosRange.second; ++dataPos ) {
 			        out.push_back({
 					        item.first,
 					        &(dataPos->second),
-					        item.second,
+					        item.second.counter,
 					        dist,
 					        cover
 				    });
@@ -221,12 +216,13 @@ auto NGramStorage<T>::getIslands(const char* origStr, size_t origStrLen, StoredS
 
 namespace
 {
-	template<typename T>
-	std::vector<T> intersectVectors(std::vector<T> smaller, const std::vector<T>& bigger)
+	template<typename Cont>
+	Cont intersectVectors(Cont smaller, const Cont& bigger)
 	{
 		for (auto i = smaller.begin(); i != smaller.end(); )
 		{
-			if (std::find_if(bigger.begin(), bigger.end(), [i](const FeatureInfo& f) { return f.docId == i->docId; }) != bigger.end())
+			if (std::find_if(bigger.begin(), bigger.end(),
+					[i](const typename Cont::value_type& f) { return f.docId == i->docId; }) != bigger.end())
 				++i;
 			else
 				i = smaller.erase(i);
@@ -248,7 +244,7 @@ auto NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator 
 	
 	const auto pos = m_gram.d_fm.find(*startGram);
 	auto currentDocs = pos == m_gram.d_fm.end() ?
-			std::vector<FeatureInfo>() :
+			FeaturesDict_t() :
 			pos->second;
 	
 	auto curLeft = startGram,
@@ -274,7 +270,7 @@ auto NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator 
 			--curLeft;
 			const auto leftDocsPos = m_gram.d_fm.find(*curLeft);
 			const auto& leftDocs = leftDocsPos == m_gram.d_fm.end() ?
-					std::vector<FeatureInfo>() :
+					FeaturesDict_t() :
 					leftDocsPos->second;
 			auto xSect = intersectVectors(currentDocs, leftDocs);
 			
@@ -294,7 +290,7 @@ auto NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator 
 			++curRight;
 			const auto rightDocsPos = m_gram.d_fm.find(*curRight);
 			const auto& rightDocs = rightDocsPos == m_gram.d_fm.end() ?
-					std::vector<FeatureInfo>() :
+					FeaturesDict_t() :
 					rightDocsPos->second;
 			auto xSect = intersectVectors(currentDocs, rightDocs);
 			

@@ -242,7 +242,7 @@ namespace
 					auto pos = counterMap.find(source);
 					if (pos == counterMap.end())
 						pos = counterMap.insert(std::make_pair(source, 0)).first;
-					pos->second += 1. / (srcs->size() * srcs->size());
+					pos->second += sourceFeature.counter * 1. / (srcs->size() * srcs->size());
 				}
 			}
 			
