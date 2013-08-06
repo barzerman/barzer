@@ -423,9 +423,12 @@ public:
 
 	void clear();
 
-	void addSubclass(const StoredEntityClass&);
-	const BENI* getBENI(const StoredEntityClass&) const;
-	BENI* getBENI(const StoredEntityClass&);
+	void addSubclassIds(const StoredEntityClass&);
+	const BENI* getBENI(const StoredEntityClass& x) const
+    {
+	    const auto pos = m_benies.find(x);
+	    return pos == m_benies.end() ? nullptr : &pos->second;
+    }
 };
 
 } // namespace barzer
