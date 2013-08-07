@@ -94,7 +94,7 @@ public:
 			uint16_t fCount;
 		};
 		
-		std::vector<FeatureStatInfo> counterMap(m_gram.d_max);
+		std::vector<FeatureStatInfo> counterMap(m_gram.d_max + 1);
 
 		for (const auto& feature : boost::make_iterator_range(begin, end))
 		{
@@ -445,10 +445,13 @@ class SubclassBENI {
 
 	std::map<StoredEntityClass, BENI*> m_benies;
 public:
-	SubclassBENI (StoredUniverse& uni)
+	SubclassBENI(StoredUniverse& uni)
 	: m_universe (uni)
 	{
 	}
+
+	SubclassBENI(const SubclassBENI&) = delete;
+	SubclassBENI& operator=(const SubclassBENI&) = delete;
 
 	~SubclassBENI();
 
