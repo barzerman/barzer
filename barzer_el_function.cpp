@@ -1573,11 +1573,10 @@ struct BELFunctionStorage_holder {
 
             BENIFindResults_t beniResult;
             QuestionParm qparm;
-            size_t maxEnt = ( argStr ? atoi(argStr) : 1 );
-            if( !maxEnt )
-                 maxEnt = 1;
+            size_t maxEnt = ( argStr ? atoi(argStr) : 0 );
             q_universe.entLookupBENISearch( beniResult, idStr.c_str(), ec, qparm );
-            if( beniResult.size() > maxEnt )
+
+            if( maxEnt && beniResult.size() > maxEnt )
                 beniResult.resize( maxEnt );
             if( beniResult.empty() ) {
 		        setResult(result, BarzerEntity() );
