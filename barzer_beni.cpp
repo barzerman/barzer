@@ -189,7 +189,7 @@ void SubclassBENI::addSubclassIds(const StoredEntityClass& sec, const char *patt
 		if (pattern)
 			normDest = boost::regex_replace(normDest, rxObj, replace);
 
-		pos->second.addWord(normDest, i->first);
+		pos->second->addWord(normDest, i->first);
 	}
 }
 
