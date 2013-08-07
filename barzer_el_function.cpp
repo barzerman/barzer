@@ -112,6 +112,19 @@ template<class T> const T* getAtomicPtr(const BarzelEvalResult &res)
     return getAtomicPtr<T>( res.getBeadData() );
 }
 
+void getString(std::string& str, const BarzelEvalResult &r, const StoredUniverse& u)
+{
+
+    if( const BarzerNumber *x = getAtomicPtr<BarzerNumber>(r) ) {
+        x->toString( str );
+    } else if( const BarzerLiteral* x = getAtomicPtr<BarzerLiteral>(r) ) {
+       if( const char* y = u.getGlobalPools().string_resolve(x->getId()) )
+        str.assign( y );
+    } else if( const BarzerString* x = getAtomicPtr<BarzerString>(r) ) {
+        str = x->getStr();
+    }
+}
+
 template<class T> const BarzerNumber& getNumber(const T &v)
 {
     return getAtomic<BarzerNumber>(v);
@@ -386,6 +399,7 @@ struct BELFunctionStorage_holder {
 		ADDFN(mkDateTime);
 		ADDFN(mkRange);
 		ADDFN(mkEnt);
+		ADDFN(lookupEnt);
 		ADDFN(mkERC);
 		ADDFN(mkEVR);
 		ADDFN(mkErcExpr);
@@ -1537,6 +1551,51 @@ struct BELFunctionStorage_holder {
 			return false;
 		}
 	};
+
+	STFUN(lookupEnt) // similar to mkEnt except entities of given class are looked up by id
+    {
+        SETFUNCNAME(lookupEnt);
+        const char* argStr = GETARGSTR();
+        if( rvec.size() == 3 ) { 
+            StoredEntityClass ec;
+            if( const BarzerNumber *x = getAtomicPtr<BarzerNumber>(rvec[0]) ) 
+                ec.ec = (uint32_t) x->getInt();
+            else 
+                FERROR("first arg must be a number" );
+
+            if( const BarzerNumber *x = getAtomicPtr<BarzerNumber>(rvec[1]) ) 
+                ec.subclass = (uint32_t) x->getInt();
+            else 
+                FERROR("second arg must be a number" );
+
+            std::string idStr;
+            getString( idStr, rvec[2], q_universe );
+
+            BENIFindResults_t beniResult;
+            QuestionParm qparm;
+            size_t maxEnt = ( argStr ? atoi(argStr) : 1 );
+            if( !maxEnt )
+                 maxEnt = 1;
+            q_universe.entLookupBENISearch( beniResult, idStr.c_str(), ec, qparm );
+            if( beniResult.size() > maxEnt )
+                beniResult.resize( maxEnt );
+            if( beniResult.empty() ) {
+		        setResult(result, BarzerEntity() );
+                return true;
+            }
+
+            if( beniResult.size() == 1 )
+		        setResult(result, beniResult.front().ent);
+            else {
+                BarzerEntityList& newEntList = setResult(result, BarzerEntityList() );
+                for( const auto& i : beniResult ) {
+                    newEntList.addEntity( i.ent );
+                }
+            }
+        }  else
+            FERROR( "must have 3 args: class, subclass, idStr" );
+        return true;
+    }
 
 	STFUN(mkEnt) // makes Entity
 	{

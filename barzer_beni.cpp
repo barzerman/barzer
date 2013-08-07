@@ -159,8 +159,6 @@ void SubclassBENI::addSubclassIds(const StoredEntityClass& sec, const char *patt
 		pos = m_benies.insert({ sec, { m_universe } }).first;
     }
 
-	auto& beni = pos->second;
-
 	const auto& theMap = m_universe.getDtaIdx().entPool.getEuidMap();
 	std::vector<char> tmpBuf;
 	std::string dest;
@@ -185,7 +183,7 @@ void SubclassBENI::addSubclassIds(const StoredEntityClass& sec, const char *patt
 		if (pattern)
 			normDest = boost::regex_replace(normDest, rxObj, replace);
 
-		beni.addWord(str, i->first);
+		pos->second.addWord(normDest, i->first);
 	}
 }
 

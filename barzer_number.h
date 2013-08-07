@@ -5,6 +5,7 @@
 #pragma once
 #include <limits>
 #include <iostream>
+#include <sstream>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -115,6 +116,12 @@ public:
 	/// rough check for day of the month
 	inline bool cal_canbe_Day() const { return( isInt() ? (n.i>=1 && n.i<=31): false ) ; }
 	std::ostream& print( std::ostream& fp ) const;
+    void toString( std::string& s ) const
+    {
+        std::stringstream sstr;
+        print( sstr );
+        s = sstr.str();
+    }
 	bool isEqual( const BarzerNumber& r ) const;
 
     void        setStringId( uint32_t stringId ) { d_stringId = stringId; }
