@@ -270,23 +270,14 @@ uint32_t DocFeatureIndex::resolveExternalString( const barzer::BarzerLiteral& l,
         return 0xffffffff;
 }
 
-void DocFeatureIndex::getUniqueUnigrams(std::vector<std::pair<NGram<DocFeature>, uint32_t>>& out, uint32_t docId) const
-{
-	for (const auto& pair : d_invertedIdx) {
-        if( pair.first.size() > 1 ) 
-            continue;
-		if (docId != static_cast<uint32_t>(-1) &&
-			std::find_if(pair.second.begin(), pair.second.end(),
-					[docId] (const DocFeatureLink& l) { return l.docId == docId; }) == pair.second.end())
-			continue;
-
-		out.push_back({ pair.first, pair.second.size() });
-	}
-}
-void DocFeatureIndex::getUniqueFeatures(std::vector<std::pair<NGram<DocFeature>, uint32_t>>& out, uint32_t docId) const
+void DocFeatureIndex::getUniqueFeatures(std::vector<std::pair<NGram<DocFeature>, uint32_t>>& out,
+		uint32_t docId, size_t maxGramSize) const
 {
 	for (const auto& pair : d_invertedIdx)
 	{
+		if (pair.first.size() > maxGramSize)
+			continue;
+
 		if (docId != static_cast<uint32_t>(-1) &&
 			std::find_if(pair.second.begin(), pair.second.end(),
 					[docId] (const DocFeatureLink& l) { return l.docId == docId; }) == pair.second.end())

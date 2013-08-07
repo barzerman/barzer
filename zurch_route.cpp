@@ -57,7 +57,7 @@ int getter_doc_features( ZurchRoute& route, const char* q )
     std::vector<std::pair<NGram<DocFeature>, uint32_t>> feat;
     const auto& idx = *(route.d_ixl.getIndex());
     uint32_t docId = route.d_ixl.getLoader()->getDocIdByName( q );
-    idx.getUniqueUnigrams( feat, docId );
+    idx.getUniqueFeatures( feat, docId );
 
     const barzer::StoredUniverse& universe = *(route.d_ixl.getUniverse());
     std::string entIdStr;
