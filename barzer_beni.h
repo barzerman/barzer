@@ -94,7 +94,7 @@ public:
 			uint16_t fCount;
 		};
 		
-		std::vector<FeatureStatInfo> counterMap(m_gram.d_max);
+		std::vector<FeatureStatInfo> counterMap(m_gram.d_max + 1);
 
 		for (const auto& feature : boost::make_iterator_range(begin, end))
 		{
