@@ -1587,7 +1587,10 @@ struct BELFunctionStorage_holder {
 		        setResult(result, beniResult.front().ent);
             else {
                 BarzerEntityList& newEntList = setResult(result, BarzerEntityList() );
+                double maxCov = beniResult.front().coverage;
                 for( const auto& i : beniResult ) {
+                    if( maxCov> i.coverage ) 
+                        break;
                     newEntList.addEntity( i.ent );
                 }
             }
