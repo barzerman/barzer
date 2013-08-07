@@ -306,6 +306,8 @@ public:
 	const GlobalPools& getGlobalPools() const { return gp; }
 
 	explicit StoredUniverse(GlobalPools& gp, uint32_t id );
+	StoredUniverse(const StoredUniverse&) = delete;
+	StoredUniverse& operator=(const StoredUniverse&) = delete;
     ~StoredUniverse();
 
 	const DtaIndex& getDtaIdx() const { return gp.dtaIdx; }
