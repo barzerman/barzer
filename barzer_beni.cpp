@@ -147,19 +147,25 @@ int SubclassBENI::search( BENIFindResults_t& out, const char* query, const Store
         return ERR_NO_BENI;
 }
 
+SubclassBENI::~SubclassBENI()
+{
+	clear();
+}
+
 void SubclassBENI::clear()
 {
+	for (const auto& pair : m_benies)
+		delete pair.second;
 	m_benies.clear();
 }
 
 void SubclassBENI::addSubclassIds(const StoredEntityClass& sec, const char *pattern, const char *replace)
 {
 	auto pos = m_benies.find(sec);
-	if (pos == m_benies.end()) {
-		pos = m_benies.insert({ sec, { m_universe } }).first;
-    }
+	if (pos == m_benies.end())
+		pos = m_benies.insert({ sec, new BENI(m_universe) }).first;
 
-	auto& beni = pos->second;
+	const auto beni = pos->second;
 
 	const auto& theMap = m_universe.getDtaIdx().entPool.getEuidMap();
 	std::vector<char> tmpBuf;
@@ -185,7 +191,7 @@ void SubclassBENI::addSubclassIds(const StoredEntityClass& sec, const char *patt
 		if (pattern)
 			normDest = boost::regex_replace(normDest, rxObj, replace);
 
-		beni.addWord(str, i->first);
+		beni->addWord(str, i->first);
 	}
 }
 
@@ -234,10 +240,6 @@ void BENI::setSL( bool x )
     d_storage.setSLEnabled( x );
 }
 
-BENI::BENI( const BENI& b ) : 
-    d_storage(d_charPool),
-    d_universe(b.d_universe)
-{}
 BENI::BENI( StoredUniverse& u ) : 
     d_storage(d_charPool),
     d_universe(u)
