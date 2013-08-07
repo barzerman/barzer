@@ -484,7 +484,7 @@ static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in, const 
     }
 	
 	// here we want a copy since we modify/etc it
-	auto index = loader->index();
+	const auto& index = loader->index();
 	
 	ay::InputLineReader reader(in);
 	while (reader.nextLine() && !reader.str.empty())

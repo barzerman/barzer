@@ -383,7 +383,9 @@ public:
 
     void clear() { d_storage.clear(); }
     BENI( StoredUniverse& u );
-    BENI( const BENI& b) ;
+
+	BENI(const BENI&) = delete;
+	BENI& operator=(const BENI&) = delete;
     
     static bool normalize_old( std::string& out, const std::string& in ) ;
     static bool normalize( std::string& out, const std::string& in ) ;
@@ -441,12 +443,14 @@ public:
 class SubclassBENI {
 	StoredUniverse& m_universe;
 
-	std::map<StoredEntityClass, BENI> m_benies;
+	std::map<StoredEntityClass, BENI*> m_benies;
 public:
 	SubclassBENI (StoredUniverse& uni)
 	: m_universe (uni)
 	{
 	}
+
+	~SubclassBENI();
 
 	void clear();
 
@@ -454,7 +458,7 @@ public:
 	const BENI* getBENI(const StoredEntityClass& x) const
     {
 	    const auto pos = m_benies.find(x);
-	    return pos == m_benies.end() ? nullptr : &pos->second;
+	    return pos == m_benies.end() ? nullptr : pos->second;
     }
     
     enum {
