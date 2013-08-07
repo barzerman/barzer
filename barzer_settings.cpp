@@ -732,7 +732,11 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
                         u.getUniverse().beni().addEntityFile( modeStr.get().c_str() );
                     }
                 }
-            } else if( i.first == "beniids" ) {
+            }
+        }
+        /// to ensure beniids is processed after all entiteis have been loaded
+        BOOST_FOREACH(const ptree::value_type &i, x.get() ) {
+            if( i.first == "beniids" ) {
                 if( const boost::optional<const ptree&> optAttr = i.second.get_child_optional("<xmlattr>") ) {
                     if( const boost::optional<uint32_t> cOpt = optAttr.get().get_optional<uint32_t>("c") ) {
                         if( const boost::optional<uint32_t> sOpt = optAttr.get().get_optional<uint32_t>("s") ) {

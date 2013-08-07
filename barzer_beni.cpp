@@ -177,17 +177,16 @@ void SubclassBENI::addSubclassIds(const StoredEntityClass& sec, const char *patt
 		if (!replace)
 			replace = "";
 	}
-
 	for (auto i = theMap.lower_bound(StoredEntityUniqId (sec, 0)), end = theMap.end(); i != end && i->first.eclass == sec; ++i)
 	{
 		const auto tokId = i->first.getTokId();
 		const auto str = m_universe.getGlobalPools().internalString_resolve(tokId);
 
+        dest = str;
+		if (pattern)
+			dest = boost::regex_replace(dest, rxObj, replace);
 		Lang::stringToLower(tmpBuf, dest, str);
 		BENI::normalize(normDest, dest);
-
-		if (pattern)
-			normDest = boost::regex_replace(normDest, rxObj, replace);
 
 		pos->second->addWord(normDest, i->first);
 	}
