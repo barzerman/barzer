@@ -146,6 +146,7 @@ int DocFeatureLink::deserialize( std::istream& fp )
 DocFeatureIndex::DocFeatureIndex() 
 : m_meaningsCounter(0)
 , m_considerFCount(true)
+, m_keepDetailedPositions(false)
 { }
 
 DocFeatureIndex::~DocFeatureIndex() {}
@@ -285,6 +286,12 @@ void DocFeatureIndex::getUniqueFeatures(std::vector<FeaturesQueryResult>& out,
 
 		out.push_back({ pair.first, pair.second.size() });
 	}
+}
+
+const DocFeatureIndex::Gram2DetailedPosList_t* DocFeatureIndex::getDetailedFeaturesPositions (uint32_t docId) const
+{
+	const auto pos = m_detailedPositions.find(docId);
+	return pos == m_detailedPositions.end() ? nullptr : &pos->second;
 }
 
 void DocFeatureIndex::getDocs4Feature (std::vector<uint32_t>& docIds, const NGram<DocFeature>& f) const
@@ -560,9 +567,14 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, barzer::Barz& barz, size
  * weight then the word deep in the text). This makes sense since we also take
  * link count in the example later in findDocument().
  */
-size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t& features, size_t offset )
+size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t& features, size_t offsetStart )
 {
 	std::map<NGram<DocFeature>, size_t> sumFCount;
+
+	auto fdpos = m_detailedPositions.find(docId);
+	if (m_keepDetailedPositions && fdpos == m_detailedPositions.end())
+		fdpos = m_detailedPositions.insert({ docId, Gram2DetailedPosList_t() }).first;
+
 	for (const auto& f : features)
 	{
         InvertedIdx_t::iterator fi = d_invertedIdx.find( f.feature );
@@ -595,13 +607,23 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeatur
 			linkPos->count = 1;
 		
 		auto pos = f.docPos;
-		pos.offset.first += offset;
+		pos.offset.first += offsetStart;
 		linkPos->addPos(pos);
 		
 		auto sfci = sumFCount.find(f.feature);
 		if (sfci == sumFCount.end())
 			sfci = sumFCount.insert({ f.feature, 0 }).first;
 		++sfci->second;
+
+		if (m_keepDetailedPositions)
+		{
+			auto& gram2detailed = fdpos->second;
+			auto detailedPos = gram2detailed.find(f.feature);
+			if (detailedPos == gram2detailed.end())
+				detailedPos = gram2detailed.insert({ f.feature, DetailedPosList_t() }).first;
+
+			detailedPos->second.push_back({ f.docPos.offset });
+		}
     }
     
     auto pos = d_doc2topFeature.insert({ docId, { NGram<DocFeature> (), 0 } }).first;

@@ -272,6 +272,15 @@ class DocFeatureIndex {
 	barzer::MeaningsStorage m_meanings;
 	
 	bool m_considerFCount;
+
+	bool m_keepDetailedPositions;
+public:
+	typedef std::pair<uint32_t, uint16_t> DetailedPos_t;
+	typedef std::vector<DetailedPos_t> DetailedPosList_t;
+	typedef std::map<NGram<DocFeature>, DetailedPosList_t> Gram2DetailedPosList_t;
+	typedef std::map<uint32_t, Gram2DetailedPosList_t> Doc2Gram2DetailedPosList_t;
+private:
+	Doc2Gram2DetailedPosList_t m_detailedPositions;
 public:
 	struct DocInfo
 	{
@@ -360,10 +369,13 @@ public:
 
 	void getUniqueFeatures(std::vector<FeaturesQueryResult>& out,
 			uint32_t docId, size_t maxGramSize = 1) const;
+	const Gram2DetailedPosList_t* getDetailedFeaturesPositions(uint32_t docId) const;
 	void getDocs4Feature(std::vector<uint32_t>& docIds, const NGram<DocFeature>& f) const;
 
     DocFeatureIndex();
     ~DocFeatureIndex();
+
+	void setKeepDetailedPositions(bool set) { m_keepDetailedPositions = set; }
     
     /// returns the number of counted features 
 
