@@ -1025,6 +1025,8 @@ void BarzerRequestParser::tag_query(RequestTag &tag)
         case 'b':
             if (i->first == "beni" )
                 d_beniMode=QuestionParm::parseBeniFlag(i->second.c_str());
+            else if( i->first == "byid" )
+                d_zurchSearchById = ( i->second != "no" );
             break;
         case 'e':
             if( i->first == "extra" ) 
