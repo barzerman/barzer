@@ -352,7 +352,13 @@ public:
     uint32_t resolveExternalString( const char* str ) const { return d_stringPool.getId(str); }
     uint32_t resolveExternalString( const barzer::BarzerLiteral&, const barzer::StoredUniverse& u ) const;
 
-	void getUniqueFeatures(std::vector<std::pair<NGram<DocFeature>, uint32_t>>& out,
+	struct FeaturesQueryResult
+	{
+		NGram<DocFeature> m_gram;
+		size_t m_uniqueness;
+	};
+
+	void getUniqueFeatures(std::vector<FeaturesQueryResult>& out,
 			uint32_t docId, size_t maxGramSize = 1) const;
 	void getDocs4Feature(std::vector<uint32_t>& docIds, const NGram<DocFeature>& f) const;
 

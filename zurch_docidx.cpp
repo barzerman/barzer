@@ -270,7 +270,7 @@ uint32_t DocFeatureIndex::resolveExternalString( const barzer::BarzerLiteral& l,
         return 0xffffffff;
 }
 
-void DocFeatureIndex::getUniqueFeatures(std::vector<std::pair<NGram<DocFeature>, uint32_t>>& out,
+void DocFeatureIndex::getUniqueFeatures(std::vector<FeaturesQueryResult>& out,
 		uint32_t docId, size_t maxGramSize) const
 {
 	for (const auto& pair : d_invertedIdx)
@@ -280,7 +280,7 @@ void DocFeatureIndex::getUniqueFeatures(std::vector<std::pair<NGram<DocFeature>,
 
 		if (docId != static_cast<uint32_t>(-1) &&
 			std::find_if(pair.second.begin(), pair.second.end(),
-					[docId] (const DocFeatureLink& l) { return l.docId == docId; }) == pair.second.end())
+					[docId](const DocFeatureLink& l) { return l.docId == docId; }) == pair.second.end())
 			continue;
 
 		out.push_back({ pair.first, pair.second.size() });

@@ -54,7 +54,7 @@ int getter_doc_byid( ZurchRoute& route, const char* query )
 }
 int getter_doc_features( ZurchRoute& route, const char* q ) 
 {
-    std::vector<std::pair<NGram<DocFeature>, uint32_t>> feat;
+    std::vector<DocFeatureIndex::FeaturesQueryResult> feat;
     const auto& idx = *(route.d_ixl.getIndex());
     uint32_t docId = route.d_ixl.getLoader()->getDocIdByName( q );
     idx.getUniqueFeatures( feat, docId );
@@ -72,14 +72,14 @@ int getter_doc_features( ZurchRoute& route, const char* q )
 
     size_t numPrinted = 0;
     os << "\"entity\" : [\n";
-    for( const auto& ngram : feat ) {
+    for( const auto& featureInfo : feat ) {
 
-        for( size_t j = 0; j< ngram.first.size(); ++j ) {
-            if( ngram.first[ j ].featureClass == DocFeature::CLASS_ENTITY) { 
+        for( size_t j = 0; j< featureInfo.m_gram.size(); ++j ) {
+            if( featureInfo.m_gram[j].featureClass == DocFeature::CLASS_ENTITY) {
                 entIdStr.clear();
                 if( numPrinted++ ) os << ",\n";
-                os << "    { \"uniq\": " << ngram.second << ", ";
-                barzer::BarzerEntity ent = idx.resolve_entity( entIdStr, ngram.first[j].featureId, universe );
+                os << "    { \"uniq\": " << featureInfo.m_uniqueness << ", ";
+                barzer::BarzerEntity ent = idx.resolve_entity( entIdStr, featureInfo.m_gram[j].featureId, universe );
                 barzer::BarzStreamerJSON::print_entity_fields( 
                     os,
                     ent, 
@@ -91,13 +91,13 @@ int getter_doc_features( ZurchRoute& route, const char* q )
     os << "],\n";
     numPrinted=0;
     os << "\"token\" : [\n";
-    for( const auto& pair : feat ) {
-		const auto& ngram = pair.first;
+    for( const auto& info : feat ) {
+		const auto& ngram = info.m_gram;
         if( ngram[0].featureClass != DocFeature::CLASS_STEM ) 
             continue;
         if( numPrinted++ ) os << ",\n";
             
-        os << "{ \"c\":" << pair.second << ", \"t\": [";
+        os << "{ \"c\":" << info.m_uniqueness << ", \"t\": [";
         size_t ngramElement = 0;
         for( size_t j = 0, j_end = ngram.size(); j < j_end; ++j ) {
 
