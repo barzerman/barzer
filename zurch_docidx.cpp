@@ -272,11 +272,13 @@ uint32_t DocFeatureIndex::resolveExternalString( const barzer::BarzerLiteral& l,
 }
 
 void DocFeatureIndex::getUniqueFeatures(std::vector<FeaturesQueryResult>& out,
-		uint32_t docId, size_t maxGramSize) const
+		uint32_t docId, size_t maxGramSize, size_t uniqueness) const
 {
 	for (const auto& pair : d_invertedIdx)
 	{
 		if (pair.first.size() > maxGramSize)
+			continue;
+		if (pair.second.size() > uniqueness)
 			continue;
 
 		if (docId != static_cast<uint32_t>(-1) &&

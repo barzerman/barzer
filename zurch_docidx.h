@@ -368,7 +368,7 @@ public:
 	};
 
 	void getUniqueFeatures(std::vector<FeaturesQueryResult>& out,
-			uint32_t docId, size_t maxGramSize = 1) const;
+			uint32_t docId, size_t maxGramSize = 1, size_t uniqueness = 1) const;
 	const Gram2DetailedPosList_t* getDetailedFeaturesPositions(uint32_t docId) const;
 	void getDocs4Feature(std::vector<uint32_t>& docIds, const NGram<DocFeature>& f) const;
 
