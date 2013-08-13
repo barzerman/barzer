@@ -89,6 +89,7 @@ private:
     ///   feature.docs - docs linked to a specific feature
     std::string d_route; // subtype of request . 
     std::string d_extra; // extra parameters (can be used by route)
+    std::map<std::string, std::string> d_extraMap;	// more extra parameters that got unparsed by the rest of the stuff
     bool d_aggressiveStem;
     // barzer mode (BENI)
 
@@ -241,6 +242,7 @@ public:
             return (s && !strcmp(s,t));
         }
     const std::string& getExtra() const { return d_extra;} 
+    const std::map<std::string, std::string>& getExtraMap() const { return d_extraMap; }
 
     const std::string& getRoute() const { return d_route;} 
     bool isRoute( const std::string& r ) const { return ( r == d_route ); }

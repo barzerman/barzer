@@ -287,38 +287,53 @@ int BarzerRequestParser::initFromUri( QuestionParm& qparm, const char* u, size_t
     for( auto i = uri.theVec.begin(); i!= uri.theVec.end(); ++i )  {
         if( !i->first.length() ) 
             continue;
+
+		bool handled = false;
+
         switch( i->first[0] ) {
         case 'b':
             if( i->first == "byid" ) {
                 d_zurchSearchById = ( i->second != "no" );
+				handled = true;
             } else if( i->first == "beni" ) 
             {
                 d_beniMode = QuestionParm::parseBeniFlag( i->second.c_str() );
+				handled = true;
             }
             break;
         case 'e':
             if( i->first == "extra" ) 
+			{
                 d_extra = i->second ;
+				handled = true;
+			}
             break;
         case 'd':
             if( i->first == "docidx" )  { // zurch docid 
                 d_zurchDocIdxId= atoi( i->second.c_str() );  
+				handled = true;
             }
             break;
         case 'q':
             if( i->first == "q" ) 
+			{
                 d_query = i->second;
+				handled = true;
+			}
             break;
         case 'f': /// flag
             if( i->first == "flag" ) {
                 d_queryFlags = i->second;
+				handled = true;
             } else if( i->first == "flt" ) {
                 filterCascade.parse( i->second.c_str(), i->second.c_str()+i->second.length() );
+				handled = true;
             }
             break;
         case 'm': /// max count
             if( i->first == "max" ) {
                 d_maxResults = atoi( i->second.c_str() );
+				handled = true;
             }
             break;
         case 'r':
@@ -334,19 +349,25 @@ int BarzerRequestParser::initFromUri( QuestionParm& qparm, const char* u, size_t
                 if( i->second == "xml" ) {
                     ret = XML_TYPE;
                 }
+				handled = true;
             } else if( i->first == "route" ) {
                 d_route = i->second;
+				handled = true;
             }
             break;
         case 'u': 
             if( i->first =="u" ) {
                 userId = static_cast<uint32_t>( atoi(i->second.c_str() ) );
 	            setUniverse(gpools.getUniverse(userId));
+				handled = true;
                 if( !d_universe ) 
                     return 1;
             }
             break;
         }
+
+        if (!handled)
+			d_extraMap [i->first] = i->second;
     }
     return 0;
 }
