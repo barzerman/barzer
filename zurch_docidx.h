@@ -376,6 +376,7 @@ public:
     ~DocFeatureIndex();
 
 	void setKeepDetailedPositions(bool set) { m_keepDetailedPositions = set; }
+	bool isKeepDetailedPositionsEnabled() const { return m_keepDetailedPositions; }
     
     /// returns the number of counted features 
 

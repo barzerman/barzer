@@ -19,6 +19,7 @@ struct QuestionParm {
         QPBIT_ZURCH_FULLTEXT,
         QPBIT_ZURCH_HTML,
         QPBIT_ZURCH_NO_CHUNKS,
+        QPBIT_ZURCH_NO_DETAILED,
 		QPBIT_ZURCH_TRACE,
 
         /// add new bits above this line only
