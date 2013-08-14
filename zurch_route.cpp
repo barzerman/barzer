@@ -151,10 +151,10 @@ int getter_doc_features( ZurchRoute& route, const char* q )
 				os << ",";
 			isFirst = false;
 
-			os << "\t{\n";
-			os << "\t\t\"size\": " << gramSize << ",\n";
-			os << "\t\t\"uniq\": " << info.m_uniqueness << ",\n";
-			os << "\t\t\"grams\": [ {";
+			os << "    {\n";
+			os << "        \"size\": " << gramSize << ",\n";
+			os << "        \"uniq\": " << info.m_uniqueness << ",\n";
+			os << "        \"grams\": [ {";
 
 			bool isFirstUGram = true;
 			for (size_t j = 0; j < gramSize; ++j)
@@ -179,7 +179,7 @@ int getter_doc_features( ZurchRoute& route, const char* q )
 			}
 
 			os << " ]\n";
-			os << "\t}\n";
+			os << "    }\n";
 		}
 	};
 

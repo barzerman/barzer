@@ -282,6 +282,7 @@ int BarzerRequestParser::initFromUri( QuestionParm& qparm, const char* u, size_t
     }
     d_query.clear();
     d_queryFlags.clear();
+    d_extraMap.clear();
     ret = ( d_queryType == QType::BARZER ? XML_TYPE : JSON_TYPE );
 
     for( auto i = uri.theVec.begin(); i!= uri.theVec.end(); ++i )  {
