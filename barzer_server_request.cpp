@@ -811,6 +811,7 @@ void BarzerRequestParser::tag_autoc(RequestTag &tag)
     }
     qparm.isAutoc = true;
     qparm.d_beniMode = d_beniMode;
+    d_query= tag.body;
     raw_autoc_parse( d_query.c_str(), qparm );
     d_query.clear();
 }
