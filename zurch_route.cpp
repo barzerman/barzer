@@ -96,7 +96,10 @@ int getter_doc_features( ZurchRoute& route, const char* q )
 	}
 	catch (...)
 	{
+		os << "{ \"error\": \"invalid options passed\" }\n";
+		return 0;
 	}
+
 
     std::vector<DocFeatureIndex::FeaturesQueryResult> feat;
     const auto& idx = *(route.d_ixl.getIndex());
