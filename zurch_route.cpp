@@ -141,6 +141,8 @@ int getter_doc_features( ZurchRoute& route, const char* q )
 			entless.push_back(info);
 	}
 
+	const auto positions = idx.getDetailedFeaturesPositions(docId);
+
 	auto printFeatList = [&](const std::vector<DocFeatureIndex::FeaturesQueryResult>& feats) -> void
 	{
 		bool isFirst = true;
@@ -179,6 +181,27 @@ int getter_doc_features( ZurchRoute& route, const char* q )
 			}
 
 			os << " ]\n";
+
+			if (positions)
+			{
+				const auto& thisFeaturePos = positions->find(info.m_gram);
+				if (thisFeaturePos != positions->end())
+				{
+					const auto& vec = thisFeaturePos->second;
+					bool isFirstPos = true;
+					os << "        ,\"poslist\": [ {";
+					for (const auto& pair : vec)
+					{
+						if (!isFirstPos)
+							os << ", {";
+						isFirstPos = false;
+
+						os << " \"pos\": " << pair.first << ", \"len\": " << pair.second << " }";
+					}
+					os << " ]\n";
+				}
+			}
+
 			os << "    }\n";
 		}
 	};
