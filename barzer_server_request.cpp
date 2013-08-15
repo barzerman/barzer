@@ -1038,39 +1038,63 @@ void BarzerRequestParser::tag_query(RequestTag &tag)
     for( auto i = attrs.begin(); i!= attrs.end(); ++i ) {
         if( i->first.empty() ) 
             continue;
+
+		bool handled = false;
         char c = i->first[0];
         switch(c) {
         case 'a':
             if( i->first == "as" ) 
+			{
                 d_aggressiveStem = true;
+				handled = true;
+			}
             break;
         case 'b':
             if (i->first == "beni" )
+			{
                 d_beniMode=QuestionParm::parseBeniFlag(i->second.c_str());
+				handled = true;
+			}
             else if( i->first == "byid" )
+			{
                 d_zurchSearchById = ( i->second != "no" );
+				handled = true;
+			}
             break;
         case 'e':
             if( i->first == "extra" ) 
+			{
                 d_extra = i->second;
+				handled = true;
+			}
             break;
         case 'f':
             if( i->first =="flag" )
+			{
                 d_queryFlags = i->second;
+				handled = true;
+			}
             break;
         case 'm':
             if (i->first == "max" ) // max results
+			{
                 d_maxResults = atoi(i->second.c_str());
+				handled = true;
+			}
             break;
         case 'n':
             if (i->first == "now" ) {
+				handled = true;
                 if( RequestEnvironment* env = barz.getServerReqEnv() )
                     env->setNow( i->second );
             }
             break;
         case 'q':
             if( i->first == "qid" ) 
+			{
                 barz.setQueryId( atoi( i->second.c_str() ) );
+				handled = true;
+			}
             break;
         case 'r':
             if (i->first == "ret" ) { 
@@ -1080,8 +1104,13 @@ void BarzerRequestParser::tag_query(RequestTag &tag)
                     d_simplified = true;
                     ret = JSON_TYPE;
                 }
+
+				handled = true;
             } else if( i->first == "route" ) 
+			{
                 d_route = i->second;
+				handled = true;
+			}
             break;
         case 'z':
             if( i->first == "zurch" ) {
@@ -1089,9 +1118,14 @@ void BarzerRequestParser::tag_query(RequestTag &tag)
                 /// (see the code for values - this is a string of single character flags)
                 setQueryType(QType::ZURCH);
                 d_zurchDocIdxId = atoi(i->second.c_str());
+
+				handled = true;
             }
             break;
         } // switch
+
+        if (!handled)
+			d_extraMap[i->first] = i->second;
     }
     if( isParentTag("qblock") ) {
         d_query = tag.body.c_str();
