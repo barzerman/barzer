@@ -61,6 +61,8 @@ int getter_doc_features( ZurchRoute& route, const char* q )
 	size_t maxGramSize = std::numeric_limits<size_t>::max();
 	bool allEnts = false;
 
+    std::ostream& os = route.d_rqp.stream();
+
 	try
 	{
 		const auto& extraMap = route.d_rqp.getExtraMap();
@@ -98,12 +100,19 @@ int getter_doc_features( ZurchRoute& route, const char* q )
 
     std::vector<DocFeatureIndex::FeaturesQueryResult> feat;
     const auto& idx = *(route.d_ixl.getIndex());
-    uint32_t docId = route.d_ixl.getLoader()->getDocIdByName( q );
+
+	const bool empty = !std::strlen(q) || (q[0] == ' ' && q[1] == 0);
+	const uint32_t docId = route.d_ixl.getLoader()->getDocIdByName(q);
+	if (docId == static_cast<uint32_t>(-1) && !empty)
+	{
+		os << "{ \"error\": \"unknown document ID is passed\", \"id\": \"" << q << "\" }\n";
+		return 0;
+	}
+
     idx.getUniqueFeatures( feat, docId, maxGramSize, uniqueness );
 
     const auto& universe = *(route.d_ixl.getUniverse());
     std::string entIdStr;
-    std::ostream& os = route.d_rqp.stream();
     
     barzer::BarzerRequestParser::ReturnType ret = route.d_rqp.ret;
     bool isJson = ( ret == barzer::BarzerRequestParser::JSON_TYPE || ret == barzer::BarzerRequestParser::XML_TYPE );
