@@ -227,18 +227,64 @@ int getter_doc_features( ZurchRoute& route, const char* q )
 	return 0;
 }
 
+int list_funcs(ZurchRoute& route, const char *q)
+{
+	auto& os = route.d_rqp.stream();
+
+	os << "[\n";
+
+	const struct
+	{
+		const char *name;
+		const char *desc;
+		const char *params;
+	} infos[] =
+	{
+		{ "doc.features", "Returns the features of the given document.", nullptr },
+		{ "feature.docs", "Returns the list of the documents matching the given feature.", "uniq,maxgramsize,mingramsize,allents" },
+		{ "docid", "Retrieves a document by its ID.", nullptr }
+	};
+	bool isFirst = true;
+	for (auto info : infos)
+	{
+		if (!isFirst)
+			os << ",";
+		isFirst = false;
+		os << "    {\n";
+		os << "        \"name\": \"" << info.name << "\",\n";
+		os << "        \"desc\": \"" << info.desc << "\"\n";
+		if (info.params)
+			os << "        ,\"params\": \"" << info.params << "\"\n";
+		os << "    }\n";
+	}
+	os << "]\n";
+
+	return 0;
+}
+
+int defhandler(ZurchRoute& route, const char *q)
+{
+	auto& os = route.d_rqp.stream();
+
+	os << "{ \"error\": \"unknown route is passed, try `listfuncs` for the list of the routes\" }\n";
+
+	return 0;
+}
+
 } // anonymous namespace 
 
 int ZurchRoute::operator()( const char* q )
 {
     if( d_rqp.isRoute("doc.features") ) 
         return getter_doc_features( *this, q );
-    else
-    if( d_rqp.isRoute("feature.docs") ) 
+    else if( d_rqp.isRoute("feature.docs") )
         return getter_doc_features( *this, q );
-    else 
-    if( d_rqp.isRoute("docid") ) 
+    else if( d_rqp.isRoute("docid") )
         return getter_doc_byid( *this, q );
+	else if (d_rqp.isRoute("listfuncs"))
+		return list_funcs(*this, q);
+	else
+		return defhandler(*this, q);
 
     return 0;
 }
