@@ -112,6 +112,7 @@ int getter_doc_features( ZurchRoute& route, const char* q )
 		return 0;
 	}
 
+	const auto& entLinks = route.d_ixl.getLoader()->d_entDocLinkIdx;
     idx.getUniqueFeatures( feat, docId, maxGramSize, uniqueness );
 
     const auto& universe = *(route.d_ixl.getUniverse());
@@ -122,11 +123,22 @@ int getter_doc_features( ZurchRoute& route, const char* q )
 
     os << "{\n";
 
-	decltype(feat) ents, entless;
+	decltype(feat) mislinked, ents, entless;
 	for (const auto& info : feat)
 	{
-		if (info.m_gram.size() < minGramSize)
+		const auto gsize = info.m_gram.size();
+		if (gsize < minGramSize)
 			continue;
+
+		if (gsize == 1 &&
+				docId != static_cast<uint32_t>(-1) &&
+				info.m_gram[0].featureClass == DocFeature::CLASS_ENTITY)
+			if (auto vec = entLinks.getLinkedEnts(docId))
+				if (std::find(vec->begin(), vec->end(), info.m_gram[0].featureId) != vec->end())
+				{
+					mislinked.push_back(info);
+					continue;
+				}
 
 		bool hasEnts = false;
 		if (allEnts)
@@ -218,7 +230,9 @@ int getter_doc_features( ZurchRoute& route, const char* q )
 		}
 	};
 
-	os << "\"ents\" : [\n";
+	os << "\"mislinked\" : [\n";
+	printFeatList(mislinked);
+	os << "],\n" << "\"ents\" : [\n";
 	printFeatList(ents);
 	os << "],\n" << "\"entless\" : [\n";
 	printFeatList(entless);
