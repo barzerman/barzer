@@ -386,6 +386,8 @@ public:
     int   fillFeatureVecFromQueryBarz( ExtractedDocFeature::Vec_t& featureVec, barzer::Barz& barz ) const;
 
     size_t appendOwnedEntity( uint32_t docId, const BarzerEntity& ent ); 
+	uint32_t getOwnedEntId(const BarzerEntity&) const;
+
     size_t appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t&, size_t posOffset );
     size_t appendDocument( uint32_t docId, barzer::Barz&, size_t posOffset, DocFeatureLink::Weight_t weight );
 	
