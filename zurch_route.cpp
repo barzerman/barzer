@@ -123,7 +123,7 @@ int getter_doc_features( ZurchRoute& route, const char* q )
 
     os << "{\n";
 
-	decltype(feat) mislinked, ents, entless;
+	decltype(feat) linked, ents, entless;
 	for (const auto& info : feat)
 	{
 		const auto gsize = info.m_gram.size();
@@ -136,7 +136,7 @@ int getter_doc_features( ZurchRoute& route, const char* q )
 			if (auto vec = entLinks.getLinkedEnts(docId))
 				if (std::find(vec->begin(), vec->end(), info.m_gram[0].featureId) != vec->end())
 				{
-					mislinked.push_back(info);
+					linked.push_back(info);
 					continue;
 				}
 
@@ -230,8 +230,8 @@ int getter_doc_features( ZurchRoute& route, const char* q )
 		}
 	};
 
-	os << "\"mislinked\" : [\n";
-	printFeatList(mislinked);
+	os << "\"linked\" : [\n";
+	printFeatList(linked);
 	os << "],\n" << "\"ents\" : [\n";
 	printFeatList(ents);
 	os << "],\n" << "\"entless\" : [\n";
