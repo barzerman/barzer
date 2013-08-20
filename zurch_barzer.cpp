@@ -256,6 +256,14 @@ void BarzerEntityDocLinkIndex::addLink( const BarzerEntity& ent, const std::stri
     d_zurchLoader.index().appendOwnedEntity( docId, ent );
     //d_ent2DocId.insert( Ent2DocIdMap::value_type(ent,docId) );
     //d_docId2Ent.insert( Docid2EntMap::value_type(docId,ent) );
+
+	m_doc2linkedEnts[docId].push_back(d_zurchLoader.index().getOwnedEntId(ent));
+}
+
+const std::vector<uint32_t>* BarzerEntityDocLinkIndex::getLinkedEnts(uint32_t docId) const
+{
+	const auto pos = m_doc2linkedEnts.find(docId);
+	return pos == m_doc2linkedEnts.end() ? nullptr : &pos->second;
 }
 
 int BarzerEntityDocLinkIndex::loadFromFile( const std::string& fname )
