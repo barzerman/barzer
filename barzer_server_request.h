@@ -105,6 +105,8 @@ private:
     bool           d_simplified;
     
     int autoc_nameval_process( QuestionParm& qparm, const std::string& n, const std::string& v );
+    
+    void processGhettodbFields( const std::string& );
 public:
     std::string    d_queryFlags;
     size_t d_maxResults; // max number of docs to return (32 default)

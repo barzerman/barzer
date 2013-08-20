@@ -132,22 +132,41 @@ void BarzerSettings::init() {
 
 }
 
-namespace
+namespace {
+template<typename T>
+void feedStream(T &model, std::istream& istr)
 {
-	template<typename T>
-	void feedStream(T &model, std::istream& istr)
-	{
-		int stringsCount = 0;
-		while (istr.good())
-		{
-			std::string str;
-			istr >> str;
-			model.addWord(str.c_str());
-			++stringsCount;
-		}
-		std::cout << "Language classifier " << stringsCount << " words from " << std::endl;
-	}
+    int stringsCount = 0;
+    while (istr.good()) {
+        std::string str;
+        istr >> str;
+        model.addWord(str.c_str());
+        ++stringsCount;
+    }
+    std::cout << "Language classifier " << stringsCount << " words from " << std::endl;
 }
+
+template <typename T>
+inline bool getAttrByEitherName( T& v, const ptree & attrs, const char* n1, const char* n2=0 )
+{
+    if( const boost::optional<std::string> x = attrs.get_optional<std::string>(n1) ) {
+        return( v = x.get(), true );
+    } else if( n2 ) {
+        if( const boost::optional<std::string> x = attrs.get_optional<std::string>(n2)) 
+            return( v= x.get(), true );
+    }
+    return false;
+}
+
+inline boost::optional<const ptree&> getNodeByEitherName( const ptree & node, const char* n1, const char* n2 )
+{
+    auto optNode = node.get_child_optional(n1);
+    if( !optNode )
+        optNode = node.get_child_optional(n2);
+    return optNode;
+}
+
+} // anon namespace 
 
 void BarzerSettings::loadLangNGrams()
 {
@@ -209,6 +228,8 @@ void BarzerSettings::loadRules(BELReader& reader, const boost::property_tree::pt
 		// warning goes here
 		return;
 	}
+    std::string defaultClass = getDefaultClassName();
+
 	BOOST_FOREACH(const ptree::value_type &v, rules) {
 		if (v.first == "file") {
 			const ptree &file = v.second;
@@ -216,11 +237,21 @@ void BarzerSettings::loadRules(BELReader& reader, const boost::property_tree::pt
 			try {
 				const ptree &attrs = file.get_child("<xmlattr>");
                 const boost::optional<std::string> noCanonicalNames = attrs.get_optional<std::string>("nonames");
+
+                if( const auto p = attrs.get_optional<std::string>("fn") )
+                    ruleFile.fname = p.get();    
+
                 if( const auto p = attrs.get_optional<std::string>("dict") ) 
                     ruleFile.extraDictionaryPath = *p;
 
-				ruleFile.trie.first  = attrs.get<std::string>("class"),
-			    ruleFile.trie.second = attrs.get<std::string>("name");
+                if( auto x = attrs.get_optional<std::string>("class")) 
+				    ruleFile.trie.first  = x.get();
+                else {
+                    ruleFile.trie.first = defaultClass;
+                }
+
+                if( !getAttrByEitherName( ruleFile.trie.second, attrs, "name", "rewriter") ) 
+                    continue;
 
                 uint32_t trieClass = gpools.internString_internal(ruleFile.trie.first.c_str()) ;
                 uint32_t trieId = gpools.internString_internal(ruleFile.trie.second.c_str()) ;
@@ -449,14 +480,40 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 	}
 }
 
-void BarzerSettings::loadTrieset(BELReader& reader, User &u, const ptree &node) {
-	BOOST_FOREACH(const ptree::value_type &v, node.get_child("trieset", empty_ptree())) {
-		if (v.first == "trie") {
+std::string BarzerSettings::getDefaultClassName() const 
+{
+    std::string defaultClass;
+    {
+        std::stringstream sstr;
+        sstr << getCurrentUniverse()->getUserId() ;
+        defaultClass = sstr.str() ; 
+    }
+    return defaultClass;
+}
+
+void BarzerSettings::loadTrieset(BELReader& reader, User &u, const ptree &node) 
+{
+    auto optNode = getNodeByEitherName( node, "trieset", "rwrchain" );
+    if( !optNode )
+        return;
+
+    std::string defaultClass = getDefaultClassName();
+	BOOST_FOREACH(const ptree::value_type &v, optNode.get() ) {
+		if (v.first == "trie" || v.first == "rewriter") {
 			const ptree &trieNode = v.second;
 			try {
 				const ptree &attrs = trieNode.get_child("<xmlattr>");
-				const std::string &cl = attrs.get<std::string>("class"),
-								  &name = attrs.get<std::string>("name");
+
+				std::string cl;
+                if( auto x = attrs.get_optional<std::string>("class") ) 
+                    cl = x.get();
+                else {
+                    cl = defaultClass;
+                }
+                std::string name ;
+                if( !getAttrByEitherName( name, attrs, "name", "rewriter" )  )
+                    continue;
+
                 const boost::optional<std::string> optTopic = attrs.get_optional<std::string>("topic");
 
                 // noac - autocomplete doesnt apply . optional attribute. when set

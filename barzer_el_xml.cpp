@@ -1610,6 +1610,8 @@ DEFINE_BELParserXML_taghandle(MKENT)
 	const char *rawCoord = 0;
     uint32_t topicStrength = 0;
     std::vector< std::string > zurchDocIdVec;
+
+    std::vector<std::pair< std::string, std::string>> ghettodbNameValueVec;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
@@ -1642,6 +1644,13 @@ DEFINE_BELParserXML_taghandle(MKENT)
                     },
                     v, v+strlen(v), '|'
                 );
+            }
+            break;
+        case 'v': 
+            if( n[1] == '.' ) { /// implicit ghettodb attributes for v.name=value .. name=value will be stored
+                if( n[2] ) 
+                    ghettodbNameValueVec.push_back( { n+2, v } );
+                    // universe->getGhettodb().store( statement.getCurEntity(), n+2, value );
             }
             break;
 		default:
@@ -1729,6 +1738,10 @@ DEFINE_BELParserXML_taghandle(MKENT)
             if( topicCanonicName && eprop ) 
                 eprop->set_nameExplicit();
         }
+    }
+    /// processing ghettodb values from implicit attributes (if any)
+    for( const auto& i : ghettodbNameValueVec ) {
+        universe->getGhettodb().store( ent.getEuid(), i.first.c_str(), i.second.c_str() );
     }
 }
         

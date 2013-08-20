@@ -138,6 +138,8 @@ public:
 	const ParseSettings& parseSettings() const { return d_parseSettings; }
 		  ParseSettings& parseSettings() 	    { return d_parseSettings; }
 
+	const StoredUniverse* getCurrentUniverse() const
+        { return d_currentUniverse; }
 	StoredUniverse* getCurrentUniverse() ;
 	StoredUniverse* setCurrentUniverse( User& u );
 
@@ -161,6 +163,8 @@ public:
 	void loadSpell(User&, const boost::property_tree::ptree&);
 
 	void loadTrieset(BELReader&, User&, const boost::property_tree::ptree&);
+    std::string getDefaultClassName() const ;
+        
 	void loadLocale(BELReader&, User&, const boost::property_tree::ptree&);
 	void loadUserRules(BELReader& reader, User&, const boost::property_tree::ptree&);
 

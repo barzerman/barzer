@@ -982,6 +982,38 @@ void BarzerRequestParser::tag_var(RequestTag &tag) {
 	    stream() << "<error>var: request environment not set</error>\n";
 }
 
+void BarzerRequestParser::processGhettodbFields(const std::string& fieldStr )
+{
+    ay::parse_separator( 
+        [&]( size_t num, const char* t, const char* t_end ) -> bool {
+            std::string propName( t, t_end-t );
+            uint32_t n = d_universe->getGhettodb().getStringId(propName.c_str());
+            if( n!= 0xffffffff ) {
+                barz.topicInfo.addPropName(n);
+                return false;
+            } else {
+                /// implementing fall through into universe 0
+                uint32_t userId = d_universe->getUserId();
+                if( userId ) {
+                    const StoredUniverse* zeroUniverse = gpools.getUniverse(0);
+                    n = ( zeroUniverse ? zeroUniverse->getGhettodb().getStringId(propName.c_str()) : 0xffffffff );
+
+                    if( n!= 0xffffffff ) {
+                        barz.topicInfo.addPropNameZeroUniverse( n );
+                        return false;
+                    }
+                }
+            }
+            std::stringstream sstr;
+            sstr << "field " << propName << " is not known\n";
+            barz.setError( sstr.str().c_str() );
+            return false;
+        }, 
+        fieldStr.c_str(),
+        fieldStr.c_str()+fieldStr.length(),
+        '|' 
+    );
+}
 void BarzerRequestParser::tag_nameval(RequestTag &tag) {
 	AttrList &attrs = tag.attrs;
 	AttrList::iterator it = attrs.find("n");
@@ -1041,8 +1073,8 @@ void BarzerRequestParser::tag_query(RequestTag &tag)
             continue;
 
 		bool handled = false;
-        char c = i->first[0];
-        switch(c) {
+        const char* n = i->first.c_str();
+        switch(n[0]) {
         case 'a':
             if( i->first == "as" ) 
 			{
@@ -1112,6 +1144,13 @@ void BarzerRequestParser::tag_query(RequestTag &tag)
                 d_route = i->second;
 				handled = true;
 			}
+            break;
+        case 'v': /// extra values (implicit) such as ghettodb etc to save on fancy tags
+            if( n[1] == '.' ) {
+                if( !strcmp( n+2, "field" )) { /// ghettodb fields (pipe separated list) 
+                    processGhettodbFields( i->second );
+                }
+            }
             break;
         case 'z':
             if( i->first == "zurch" ) {
