@@ -548,7 +548,7 @@ int run_server_mt(GlobalPools &gp, uint16_t port) {
 	boost::asio::io_service::work work(io_service);
 
   	boost::thread_group threads;
-    for (std::size_t i = 0; i < gp.settings.getNumThreads(); ++i)
+    for (std::size_t i = 0; i < gp.getSettings().getNumThreads(); ++i)
 	{
 		boost::thread *thread = threads.create_thread(boost::bind(&boost::asio::io_service::run, &io_service));
 		ay::StemThreadPool::inst().createThreadStemmer(thread->native_handle());
@@ -563,7 +563,7 @@ int run_server_mt(GlobalPools &gp, uint16_t port) {
 }
 
 int run_server(GlobalPools &gp, uint16_t port) {
-	if( gp.settings.getNumThreads() ) {
+	if( gp.getSettings().getNumThreads() ) {
 		
 		return run_server_mt(gp,port);
 	}
