@@ -378,7 +378,7 @@ inline const BarzerDate* getBarzerDateFromAtomic( const BarzelBeadAtomic* atomic
 
 
 struct BELFunctionStorage_holder {
-	const GlobalPools &gpools;
+	GlobalPools &gpools;
 	BELStoredFunMap funmap;
 	std::vector<BELFuncInfo> funcInfos;
 
@@ -481,8 +481,8 @@ struct BELFunctionStorage_holder {
     
 	void addFun(const char *fname, const char *desc, BELStoredFunction fun) {
 		// const uint32_t fid = gpools.internString_internal(fname);
-		const uint32_t fid = (const_cast<GlobalPools*>(&gpools))->internString_internal(fname);
-		const uint32_t descid = (const_cast<GlobalPools*>(&gpools))->internString_internal(desc);
+		const uint32_t fid = gpools.internString_internal(fname);
+		const uint32_t descid = gpools.internString_internal(desc);
 		//AYLOG(DEBUG) << "adding function(" << fname << ":" << fid << ")";
 		addFun(fid, descid, fun);
 	}
