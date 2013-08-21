@@ -38,6 +38,12 @@ typedef boost::unordered_map<uint32_t,BELStoredFunction> BELStoredFunMap;
 //typedef std::pair<uint32_t,BELStoredFunction> BELStoredFunRec;
 typedef BELStoredFunMap::value_type BELStoredFunRec;
 
+struct BELFuncInfo
+{
+	uint32_t nameId;
+	uint32_t descId;
+};
+
 class BELFunctionStorage {
 	GlobalPools &globPools;
 	BELFunctionStorage_holder *holder;
@@ -45,6 +51,8 @@ public:
 
 	BELFunctionStorage(GlobalPools &u);
 	~BELFunctionStorage();
+
+	std::vector<BELFuncInfo> getFuncInfos() const;
 
     /*
 	bool call(
