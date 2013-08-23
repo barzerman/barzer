@@ -81,6 +81,7 @@ struct FilterParams
 	std::vector<uint32_t> m_subclasses;
 	
 	FilterParams() : m_valid(false) {}
+
 	FilterParams(const BarzerGeo::Point_t& point, BarzerGeo::Coord_t dist, const std::vector<uint32_t>& sc)
 	: m_valid(true)
 	, m_point(point)
@@ -90,9 +91,11 @@ struct FilterParams
 	}
 	
 	static FilterParams fromBarz(const Barz& barz);
+	static FilterParams fromExtraMap(const std::map<std::string, std::string>&);
 };
 
-void proximityFilter(Barz& barz, const StoredUniverse& geo);
+void proximityFilter(Barz& barz, const StoredUniverse& uni);
+void proximityFilter(Barz& barz, const StoredUniverse& uni, const FilterParams&);
 
 class DumbPred
 {

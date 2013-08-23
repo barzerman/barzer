@@ -747,7 +747,13 @@ void BarzerRequestParser::raw_query_parse( const char* query)
 	qparser.parse( barz, query, qparm );
 
     if( barz.hasReqVarNotEqualTo("geo::enableFilter","false") )
-		    proximityFilter(barz, *up);
+		proximityFilter(barz, *up);
+	else
+	{
+		const auto& fp = FilterParams::fromExtraMap(d_extraMap);
+		if (fp.m_valid)
+			proximityFilter(barz, *up, fp);
+	}
 
     switch(ret) {
     case XML_TYPE: {
