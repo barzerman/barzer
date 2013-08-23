@@ -468,21 +468,6 @@ int proc_MATCH_XML(RequestEnvironment& reqEnv, GlobalPools& gp, const char *str)
     return 0;
 }
 
-int proc_LIST_FUNCS(RequestEnvironment& reqEnv, GlobalPools& gp, const char*)
-{
-	auto& os = reqEnv.outStream;
-
-	for (const auto& funcInfo : gp.funSt.getFuncInfos())
-	{
-		os << "  <cmd>\n";
-		os << "    <name>" << gp.internalString_resolve_safe(funcInfo.nameId) << "</name>\n";
-		os << "    <desc>" << gp.internalString_resolve_safe(funcInfo.descId) << "</desc>\n";
-		os << "  </cmd>\n";
-	}
-
-	return 0;
-}
-
 int proc_RUN_SCRIPT( RequestEnvironment& reqEnv, GlobalPools& gp, const char* cfgfile  );
 
 int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os )
@@ -511,7 +496,6 @@ int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os )
 		IFHEADER_ROUTE(LOAD_USRCFG)
 		IFHEADER_ROUTE(RUN_SCRIPT)
 		IFHEADER_ROUTE(MATCH_XML)
-		IFHEADER_ROUTE(LIST_FUNCS)
 
 		AYLOG(ERROR) << "UNKNOWN header: " << std::string( buf, (len>6 ? 6: len) ) << std::endl;
         return ROUTE_ERROR_UNKNOWN_COMMAND;
