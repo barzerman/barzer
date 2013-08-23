@@ -262,6 +262,29 @@ int list_funcs(ZurchRoute& route, const char *q)
 	return 0;
 }
 
+int barzel_funcs(ZurchRoute& route, const char *q)
+{
+	auto& os = route.d_rqp.stream();
+	auto& gp = route.d_rqp.getGlobalPools();
+
+	os << "[\n";
+	bool isFirst = true;
+	for (const auto& funcInfo : gp.funSt.getFuncInfos())
+	{
+		if (!isFirst)
+			os << ",";
+		isFirst = false;
+
+		os << "  {\n";
+		os << "    \"name\": \"" << gp.internalString_resolve_safe(funcInfo.nameId) << "\",\n";
+		ay::jsonEscape(gp.internalString_resolve_safe(funcInfo.descId), os << "    \"desc\": ", "\"") << "\n";
+		os << "  }\n";
+	}
+	os << "]\n";
+
+	return 0;
+}
+
 int defhandler(ZurchRoute& route, const char *q)
 {
 	auto& os = route.d_rqp.stream();
@@ -281,8 +304,10 @@ int ZurchRoute::operator()( const char* q )
         return getter_doc_features( *this, q );
     else if( d_rqp.isRoute("docid") )
         return getter_doc_byid( *this, q );
-	else if (d_rqp.isRoute("listfuncs"))
+	else if (d_rqp.isRoute("help.zurchroutes"))
 		return list_funcs(*this, q);
+	else if (d_rqp.isRoute("help.barzelfuncs"))
+		return barzel_funcs(*this, q);
 	else
 		return defhandler(*this, q);
 
