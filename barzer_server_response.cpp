@@ -583,8 +583,9 @@ static void printTraceInfo(std::ostream &os, const Barz &barz, const StoredUnive
                 os << "\n";
                 os << " <error>";
                 for( std::vector< std::string >::const_iterator ei = ti->errVec.begin(); ei!= ti->errVec.end(); ++ei ) {
-                    os << *ei << " ";
+                    os << *ei << " / ";
                 }
+
                 os << " </error></match>\n";
             } else if( !btiVec.empty() ) {
                 os << "\n</match>";

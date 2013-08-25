@@ -46,6 +46,20 @@ bool BarzHints::testHint(BarzHints::HintsFlag flag) const
 
 /// end of BarzHints 
 
+void BarzelTrace::pushError( const char* err ) 
+{
+    if( d_tvec.size() ) {
+        if( d_tvec.back().errVec.size() < BARZEL_TRACE_MAX_ERR )  
+            d_tvec.back().errVec.push_back( err );
+        else if( d_tvec.back().errVec.size() < BARZEL_TRACE_MAX_ERR+1 ) {
+            d_tvec.back().errVec.push_back( "Too many errors to report..." );
+        }
+    }
+}
+void BarzelTrace::setError( const char* err )
+{
+    return pushError(err);
+}
 bool BarzelTrace::detectLoop( ) const
 {
     if( !d_tvec.size() ) 

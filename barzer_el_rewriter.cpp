@@ -468,12 +468,21 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Select>
 
         const BarzelEvalNode::ChildVec &child = d_evalNode.getChild();
 
-        CaseFinder cf(ltrl.getId());
+        const auto& gp =  ctxt.getUniverse().getGlobalPools();
+        const char* caseStr = gp.string_resolve(ltrl.getId());
+        uint32_t strId = gp.internalString_getId( caseStr ? caseStr: "");
 
-        BarzelEvalNode::ChildVec::const_iterator it =
-                std::lower_bound(child.begin(), child.end(), 0, cf);
+        CaseFinder cf(strId);
+
+        BarzelEvalNode::ChildVec::const_iterator it = std::lower_bound(child.begin(), child.end(), 0, cf);
+
         if (it != child.end()) {
             return it->eval(d_val, ctxt );
+        } else {
+            std::stringstream sstr;
+            sstr << "case \"" << ( caseStr ? caseStr: "" ) << "\" not found" ;
+
+            ctxt.pushBarzelError( sstr.str().c_str() );
         }
     }
     return false;
