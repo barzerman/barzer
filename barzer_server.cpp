@@ -468,8 +468,8 @@ int proc_MATCH_XML(RequestEnvironment& reqEnv, GlobalPools& gp, const char *str)
     return 0;
 }
 
-
 int proc_RUN_SCRIPT( RequestEnvironment& reqEnv, GlobalPools& gp, const char* cfgfile  );
+
 int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os )
 {
     #define IFHEADER_ROUTE(x) if( !strncmp(buf+2, #x":", sizeof( #x) ) ) {\

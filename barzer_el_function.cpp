@@ -378,111 +378,113 @@ inline const BarzerDate* getBarzerDateFromAtomic( const BarzelBeadAtomic* atomic
 
 
 struct BELFunctionStorage_holder {
-	const GlobalPools &gpools;
+	GlobalPools &gpools;
 	BELStoredFunMap funmap;
+	std::vector<BELFuncInfo> funcInfos;
 
-	#define ADDFN(n) addFun(#n, boost::mem_fn(&BELFunctionStorage_holder::stfun_##n))
+	#define ADDFN(n,d) addFun(#n, d, boost::mem_fn(&BELFunctionStorage_holder::stfun_##n))
 	BELFunctionStorage_holder(GlobalPools &u) : gpools(u) {
 		// makers
-		ADDFN(test);
+		ADDFN(test, "test function");
 
-		ADDFN(mkDate);
-		ADDFN(mkDateRange);
-		ADDFN(mkDay);
-		ADDFN(mkWday);
-		ADDFN(mkWeekRange);
-		ADDFN(mkMonthRange);
-		ADDFN(mkMonth);
-        ADDFN(mkWdayEnt);
-        ADDFN(mkMonthEnt);
-		ADDFN(mkTime);
-		ADDFN(mkDateTime);
-		ADDFN(mkRange);
-		ADDFN(mkEnt);
-		ADDFN(lookupEnt);
-		ADDFN(mkERC);
-		ADDFN(mkEVR);
-		ADDFN(mkErcExpr);
-		ADDFN(mkFluff);
+		ADDFN(mkDate, "makes a date");
+		ADDFN(mkDateRange, "");
+		ADDFN(mkDay, "");
+		ADDFN(mkWday, "");
+		ADDFN(mkWeekRange, "");
+		ADDFN(mkMonthRange, "");
+		ADDFN(mkMonth, "");
+        ADDFN(mkWdayEnt, "");
+        ADDFN(mkMonthEnt, "");
+		ADDFN(mkTime, "");
+		ADDFN(mkDateTime, "");
+		ADDFN(mkRange, "");
+		ADDFN(mkEnt, "");
+		ADDFN(lookupEnt, "");
+		ADDFN(mkERC, "");
+		ADDFN(mkEVR, "");
+		ADDFN(mkErcExpr, "");
+		ADDFN(mkFluff, "");
 		// ADDFN(mkLtrl);
-		ADDFN(mkExprTag);
-		ADDFN(mkExprAttrs);
+		ADDFN(mkExprTag, "");
+		ADDFN(mkExprAttrs, "");
 
 
 		// caller
-		ADDFN(call); 
+		ADDFN(call, "");
 
         //setter
-        ADDFN(set);
+        ADDFN(set, "");
                 
 		// getters
-		ADDFN(getWeekday);      // getWeekday(BarzerDate)
-		ADDFN(getTokId);        // (BarzerLiteral|BarzerEntity)
-		ADDFN(getTime);         // getTime(DateTime)
-		ADDFN(getDate);         // getDate(DateTime)
-		ADDFN(getMDay);         
-		ADDFN(setMDay);
-		ADDFN(getMonth);         
-		ADDFN(getYear);
-		ADDFN(getLow); // (BarzerRange)
-		ADDFN(getHigh); // (BarzerRange)
-		ADDFN(isRangeEmpty); // (BarzerRange or ERC) - returns true if range.lo == range.hi
+		ADDFN(getWeekday, "");      // getWeekday(BarzerDate)
+		ADDFN(getTokId, "");        // (BarzerLiteral|BarzerEntity)
+		ADDFN(getTime, "");         // getTime(DateTime)
+		ADDFN(getDate, "");         // getDate(DateTime)
+		ADDFN(getMDay, "");
+		ADDFN(setMDay, "");
+		ADDFN(getMonth, "");
+		ADDFN(getYear, "");
+		ADDFN(getLow, ""); // (BarzerRange)
+		ADDFN(getHigh, ""); // (BarzerRange)
+		ADDFN(isRangeEmpty, ""); // (BarzerRange or ERC) - returns true if range.lo == range.hi
 
-        ADDFN(getLeftBead);  // returns closest bead on the left of the type matching arg . null otherwise
-        ADDFN(getBeadSrcTok);  // a string contactenated with spaces from scrtokens of all beads in substitution sequence
+        ADDFN(getLeftBead, "");  // returns closest bead on the left of the type matching arg . null otherwise
+        ADDFN(getBeadSrcTok, "");  // a string contactenated with spaces from scrtokens of all beads in substitution sequence
 		// arith
-		ADDFN(textToNum);
-		ADDFN(opPlus);
-		ADDFN(opAdd);
-		ADDFN(opMinus);
-		ADDFN(opSub);
-		ADDFN(opMult);
-		ADDFN(opDiv);
+		ADDFN(textToNum, "");
+		ADDFN(opPlus, "");
+		ADDFN(opAdd, "");
+		ADDFN(opMinus, "");
+		ADDFN(opSub, "");
+		ADDFN(opMult, "");
+		ADDFN(opDiv, "");
 		//logic
-		ADDFN(opLt);
-		ADDFN(opGt);
-		ADDFN(opEq);
-		ADDFN(opDateCalc);
-        ADDFN(opTimeCalc);
+		ADDFN(opLt, "");
+		ADDFN(opGt, "");
+		ADDFN(opEq, "");
+		ADDFN(opDateCalc, "");
+        ADDFN(opTimeCalc, "");
 		// string
-		ADDFN(strConcat);
+		ADDFN(strConcat, "");
 		// lookup
-		ADDFN(lookupMonth);
-		ADDFN(lookupWday);
+		ADDFN(lookupMonth, "");
+		ADDFN(lookupWday, "");
 
         /// array
-		ADDFN(arrSz);
-		ADDFN(arrIndex);
-		ADDFN(typeFilter);
-		ADDFN(filterRegex);
-		ADDFN(setUnmatch); // bead
+		ADDFN(arrSz, "");
+		ADDFN(arrIndex, "");
+		ADDFN(typeFilter, "");
+		ADDFN(filterRegex, "");
+		ADDFN(setUnmatch, ""); // bead
 
 		// --
-		ADDFN(filterEList); // filters entity list by class/subclass (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
-        ADDFN(hasTopics);
-        ADDFN(topicFilterEList);
-		ADDFN(mkEntList); // (BarzerEntity, ..., BarzerEntity) will also accept BarzerEntityList
+		ADDFN(filterEList, ""); // filters entity list by class/subclass (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
+        ADDFN(hasTopics, "");
+        ADDFN(topicFilterEList, "");
+		ADDFN(mkEntList, ""); // (BarzerEntity, ..., BarzerEntity) will also accept BarzerEntityList
 
         // ent properties
-		ADDFN(entClass); // (Entity)
-		ADDFN(entSubclass); // (Entity)
-		ADDFN(entId); // (Entity)
-		ADDFN(entSetSubclass); // (Entity,new subclass)
+		ADDFN(entClass, ""); // (Entity)
+		ADDFN(entSubclass, ""); // (Entity)
+		ADDFN(entId, ""); // (Entity)
+		ADDFN(entSetSubclass, ""); // (Entity,new subclass)
 
         // erc properties
-		ADDFN(getEnt); // ((EVR|ERC|Entity)[,entity]) -- when second parm passed replaces entity with it
-		ADDFN(getRange); // ((ERC|Entity)[,range]) -- when second parm passed replaces range with it
+		ADDFN(getEnt, ""); // ((EVR|ERC|Entity)[,entity]) -- when second parm passed replaces entity with it
+		ADDFN(getRange, ""); // ((ERC|Entity)[,range]) -- when second parm passed replaces range with it
         
         /// generic getter 
-        ADDFN(get);
+        ADDFN(get, "");
 	}
 	#undef ADDFN
     
-	void addFun(const char *fname, BELStoredFunction fun) {
+	void addFun(const char *fname, const char *desc, BELStoredFunction fun) {
 		// const uint32_t fid = gpools.internString_internal(fname);
-		const uint32_t fid = ( const_cast<GlobalPools*>( &gpools ) )->internString_internal(fname);
+		const uint32_t fid = gpools.internString_internal(fname);
+		const uint32_t descid = gpools.internString_internal(desc);
 		//AYLOG(DEBUG) << "adding function(" << fname << ":" << fid << ")";
-		addFun(fid, fun);
+		addFun(fid, descid, fun);
 	}
 
     const BarzerLiteral* getRvecLiteral( const BarzelEvalResultVec& rvec, size_t i ) const
@@ -508,8 +510,12 @@ struct BELFunctionStorage_holder {
         } 
         return 0;
     }
-	void addFun(const uint32_t fid, BELStoredFunction fun) 
-        { funmap.insert(BELStoredFunRec(fid, fun)); }
+	void addFun(const uint32_t fid, const uint32_t descid, BELStoredFunction fun)
+	{
+		funmap.insert(BELStoredFunRec(fid, fun));
+
+		funcInfos.push_back({ fid, descid });
+	}
 
 
 	//enum { P_WEEK = 1, P_MONTH, P_YEAR, P_DECADE, P_CENTURY };
@@ -3076,6 +3082,11 @@ BELFunctionStorage::BELFunctionStorage(GlobalPools &u) : globPools(u),
 BELFunctionStorage::~BELFunctionStorage()
 {
 	delete holder;
+}
+
+std::vector<BELFuncInfo> BELFunctionStorage::getFuncInfos() const
+{
+	return holder->funcInfos;
 }
 
 bool BELFunctionStorage::call(BarzelEvalContext& ctxt, const BTND_Rewrite_Function& fr, BarzelEvalResult &er,
