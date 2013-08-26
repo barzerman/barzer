@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include <stdint.h>
+#include <cstring>
 
 namespace bson
 {
@@ -58,12 +58,23 @@ class Encoder
     int32_t encodeName( const char* n )
     {
         if( n ) {
-            size_t addSz = strlen(n) +1 ;  
-            memcpy( newBytes(addSz), n, addSz );
+            size_t addSz = std::strlen(n) +1 ;
+            std::memcpy( newBytes(addSz), n, addSz );
             return addSz;
         } else 
             return 0;
     }
+
+    template<typename T>
+    void encode_type(T t, uint8_t typeId, const char *name)
+	{
+		d_buf->push_back(typeId);
+
+		const int32_t sz = 1 + encodeName(name) + sizeof(T);
+
+		*(static_cast<T*>(newBytes(sizeof(T)))) = t;
+		stackIncrementSz(sz);
+	}
 public:
     Encoder() : d_buf(0) {}
     Encoder(std::vector< uint8_t >& buf) : d_buf(&buf) 
@@ -80,35 +91,32 @@ public:
 
     void encode_double( double i, const char* name = 0 ) 
     {
-        d_buf->push_back( 0x01 );
-        int32_t sz = 1 + encodeName(name) + sizeof(double);
-
-        *( (double*)newBytes( sizeof(double) ) ) = i;
-        stackIncrementSz(sz);
+		static_assert(sizeof(double) == 8, "we don't support non-8-bytes-doubles yet");
+		encode_type(i, 0x01, name);
     }
     void encode_int32( int32_t i, const char* name = 0 ) 
     {
-        d_buf->push_back( 0x10 );
-        int32_t sz = 1 + encodeName(name) + 4;
-
-        *( (int32_t*)newBytes(4) ) = i;
-        stackIncrementSz(sz);
+		encode_type(i, 0x10, name);
     }
     void encode_bool( bool i, const char* name = 0 ) 
     {
-        d_buf->push_back( 0x8 );
-        int32_t sz = 1 + encodeName(name) + 4;
-
-        *( (uint8_t*)newBytes(1) ) = ( i ? 0x1: 0x0 );
-        stackIncrementSz(sz);
+		encode_type(static_cast<uint8_t>(i), 0x08, name);
     }
-    void encode_string( const char* i, const char* name = 0 ) 
+
+    void encode_string( const char *str, const char* name = 0 )
     {
         d_buf->push_back( 0x2 );
-        int32_t sz = 1 + encodeName(name) + 4;
 
-        *( (uint8_t*)newBytes(1) ) = ( i ? 0x1: 0x0 );
-        stackIncrementSz(sz);
+		const auto strlen = static_cast<int32_t>(std::strlen(str));
+        const int32_t sumSz = 1 + encodeName(name) + 4 + strlen + 1;
+
+		auto mem = newBytes(4 + strlen + 1);
+		*static_cast<uint32_t*>(mem) = strlen;
+		mem = static_cast<char*>(mem) + 4;
+		memcpy(mem, str, strlen);
+		mem = static_cast<char*>(mem) + strlen;
+		*static_cast<uint8_t*>(mem) = 0;
+        stackIncrementSz(sumSz);
     }
     void document_start( bool isArr=false, const char* name = 0 ) 
     {
