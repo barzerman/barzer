@@ -68,5 +68,9 @@ public:
 			  const ay::skippedvector<BarzelEvalResult>&,
 			  const StoredUniverse &u ) const;
 
+    
+    static void help_list_funcs_json( std::ostream&, const GlobalPools& gp );
 };
+
+
 } // namespace barzer

@@ -717,7 +717,15 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
 
 void BarzerRequestParser::raw_query_parse( const char* query)
 {
+
 	const GlobalPools& gp = gpools;
+
+    if( !d_route.empty() && !strncmp(d_route.c_str(), "help.", 5) ) {
+        if( d_route== "help.barzelfuncs" ) {
+            BELFunctionStorage::help_list_funcs_json( os, gp );
+            return;
+        }
+    }
 	const StoredUniverse * up = gp.getUniverse(userId);
 	if( !up ) {
         if( ret == XML_TYPE ) 

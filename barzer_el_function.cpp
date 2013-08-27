@@ -3106,6 +3106,24 @@ bool BELFunctionStorage::call(BarzelEvalContext& ctxt, const BTND_Rewrite_Functi
 
 }
 
+void BELFunctionStorage::help_list_funcs_json( std::ostream& os, const GlobalPools& gp ) 
+{
+	os << "[\n";
+	bool isFirst = true;
+	for (const auto& funcInfo : gp.funSt.getFuncInfos())
+	{
+		if (!isFirst)
+			os << ",";
+		isFirst = false;
+
+		os << "  {\n";
+		os << "    \"name\": \"" << gp.internalString_resolve_safe(funcInfo.nameId) << "\",\n";
+		ay::jsonEscape(gp.internalString_resolve_safe(funcInfo.descId), os << "    \"desc\": ", "\"") << "\n";
+		os << "  }\n";
+	}
+	os << "]\n";
+}
+
 }
 
 
