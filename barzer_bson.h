@@ -1,9 +1,7 @@
 #pragma once 
-
 #include <string>
 #include <vector>
 #include <cstring>
-
 namespace bson
 {
 class Encoder
@@ -16,10 +14,7 @@ class Encoder
         StackFrame() : size(0), sizeOffset(0) {}
         StackFrame( int32_t sz, size_t szOffs) : size(sz), sizeOffset(szOffs) {}
     };
-
-    // vector is faster than stack 
     std::vector< StackFrame > d_stk;
-
     std::vector< uint8_t > * d_buf;
     
     void* bufAtOffset( size_t offs ) { return &( (*d_buf)[ offs ] ); }
@@ -69,20 +64,15 @@ class Encoder
     void encode_type(T t, uint8_t typeId, const char *name)
 	{
 		d_buf->push_back(typeId);
-
 		const int32_t sz = 1 + encodeName(name) + sizeof(T);
-
 		*(static_cast<T*>(newBytes(sizeof(T)))) = t;
 		stackIncrementSz(sz);
 	}
 public:
     Encoder() : d_buf(0) {}
-    Encoder(std::vector< uint8_t >& buf) : d_buf(&buf) 
-        {}
+    Encoder(std::vector< uint8_t >& buf) : d_buf(&buf) {}
 
-    void init() { 
-        d_stk.clear(); 
-    }
+    void init() { d_stk.clear(); }
     void setBuf( std::vector< uint8_t >*  buf ) 
     { 
         d_buf = buf; 
@@ -94,14 +84,9 @@ public:
 		static_assert(sizeof(double) == 8, "we don't support non-8-bytes-doubles yet");
 		encode_type(i, 0x01, name);
     }
-    void encode_int32( int32_t i, const char* name = 0 ) 
-    {
-		encode_type(i, 0x10, name);
-    }
-    void encode_bool( bool i, const char* name = 0 ) 
-    {
-		encode_type(static_cast<uint8_t>(i), 0x08, name);
-    }
+
+    void encode_int32( int32_t i, const char* name = 0 ) { encode_type(i, 0x10, name); }
+    void encode_bool( bool i, const char* name = 0 )     { encode_type(static_cast<uint8_t>(i), 0x08, name); }
 
     void encode_string( const char *str, const char* name = 0 )
     {
@@ -126,5 +111,4 @@ public:
     }
     void document_end( ) { stackPop(); }
 };
-
 } // namespace bson
