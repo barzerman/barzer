@@ -181,7 +181,8 @@ void SubclassBENI::addSubclassIds(const StoredEntityClass& sec, const char *patt
 	{
 		const auto tokId = i->first.getTokId();
 		const auto str = m_universe.getGlobalPools().internalString_resolve(tokId);
-
+        if( !str )
+            continue;
         dest = str;
 		if (pattern)
 			dest = boost::regex_replace(dest, rxObj, replace);
