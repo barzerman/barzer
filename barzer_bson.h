@@ -21,12 +21,19 @@ class Encoder
     void stackIncrementSz( int32_t sz ) { d_stk.back().size+= sz; }
     void stackPop() 
     {
-        if( d_stk.empty() ) return;
-        int32_t sz = d_stk.back().size;
-        *((int32_t*)bufAtOffset(d_stk.back().sizeOffset)) = sz; // updating the size in the buffer
-        d_stk.resize( d_stk.size()-1 );
+		if (d_stk.empty())
+			return;
 
-        if( !d_stk.empty() ) d_stk.back().size+= sz; // incrementing size on stack
+		*static_cast<uint8_t*>(newBytes(1)) = 0;
+		stackIncrementSz(1);
+
+		const int32_t sz = d_stk.back().size;
+
+		*((int32_t*)bufAtOffset(d_stk.back().sizeOffset)) = sz; // updating the size in the buffer
+		d_stk.resize(d_stk.size() - 1);
+
+		if (!d_stk.empty())
+			d_stk.back().size += sz; // incrementing size on stack
     }
     void stackPush( bool isArr) 
     {
