@@ -279,7 +279,7 @@ struct BarzerERCExpr {
 		boost::recursive_wrapper<BarzerERCExpr>
 	> Data;
 
-	typedef std::list< Data > DataList;
+	typedef std::vector< Data > DataList;
 	DataList d_data;
 
 	enum {
@@ -289,8 +289,9 @@ struct BarzerERCExpr {
 		T_LOGIC_CUSTOM
 	};
 	uint16_t d_type; // one of T_XXX values
+    // EC stands for Expression Type
 	enum {
-		EC_LOGIC,
+		EC_LOGIC, /// default - logical expressions 
 		EC_ARBITRARY=0xffff
 	};
 	uint16_t d_eclass; // for custom types only currently unused. default 0
@@ -310,7 +311,13 @@ struct BarzerERCExpr {
 	void setEclass(uint16_t t ) { d_eclass=t; }
 	void setType( uint16_t t ) { d_type=t; }
 
-	void addToExpr( const BarzerERC& erc, uint16_t type = T_LOGIC_AND, uint16_t eclass = EC_LOGIC)
+    /// s in (or,and) - case insensitive. if s null - AND is default
+	void setLogic( const char* s );
+
+    template <typename T> void addClause( const T& e ) { d_data.push_back( Data(e) ); }
+
+    template <typename T=BarzerERC>
+	void addToExpr( const T& erc, uint16_t type = T_LOGIC_AND, uint16_t eclass = EC_LOGIC)
 	{
 		if( eclass != EC_LOGIC ) {
 			d_data.push_back( Data(erc) );
@@ -323,15 +330,12 @@ struct BarzerERCExpr {
 				d_type = type;
 				d_data.push_back( Data(erc) );
 			} else {
-				DataList::iterator end = d_data.end();
+				DataList newList;
+                newList.push_back( Data(*this) ) ;
+                d_type = type;
+                newList.push_back( Data(erc) );
 
-				d_data.push_back( Data() );
-				d_data.back() = *this;
-				d_type = type;
-				d_data.push_back( Data() );
-				d_data.back() = erc;
-
-				d_data.erase( d_data.begin(), end );
+                d_data.swap( newList );
 			}
 		}
 	}

@@ -97,6 +97,7 @@ template<class T> const T& getAtomic(const BarzelBeadData &dta) {
 			boost::get<BarzelBeadAtomic>(dta).getData());
 }
 
+
 template<class T> const T* getAtomicPtr(const BarzelBeadData &dta)
 {
     if( is_BarzelBeadAtomic(dta) ) {
@@ -107,10 +108,11 @@ template<class T> const T* getAtomicPtr(const BarzelBeadData &dta)
     } else
         return 0;
 }
-template<class T> const T* getAtomicPtr(const BarzelEvalResult &res)
-{
-    return getAtomicPtr<T>( res.getBeadData() );
-}
+template<class T> bool isAtomic(const BarzelBeadData &dta) { return (getAtomicPtr<T>(dta) != nullptr); }
+
+template<class T> const T* getAtomicPtr(const BarzelEvalResult &res) { return getAtomicPtr<T>( res.getBeadData() ); }
+
+template<class T> bool isAtomic(const BarzelEvalResult &res) { return isAtomic<T>( res.getBeadData() ); }
 
 void getString(std::string& str, const BarzelEvalResult &r, const StoredUniverse& u)
 {
@@ -1779,67 +1781,42 @@ struct BELFunctionStorage_holder {
 		return true;
 	}
 
-	struct ErcExprPacker : public boost::static_visitor<bool> {
-		BarzerERCExpr expr;
-		const GlobalPools &gpools;
-        const char* d_funcName;
-        BarzelEvalContext& d_ctxt;
-		ErcExprPacker(const GlobalPools &gp, BarzelEvalContext& ctxt, const char* funcName ) :
-            gpools(gp), d_funcName(funcName), d_ctxt(ctxt)
-        {}
-
-
-		bool operator()(const BarzerLiteral &ltrl) {
-			const ay::UniqueCharPool &sp = gpools.stringPool;
-			if (ltrl.getId() == sp.getId("and")) {
-				//AYLOG(DEBUG) << "AND";
-				expr.setType(BarzerERCExpr::T_LOGIC_AND);
-			} else if (ltrl.getId() == sp.getId("or")) {
-				//AYLOG(DEBUG) << "OR";
-				expr.setType(BarzerERCExpr::T_LOGIC_OR);
-			} else {
-
-                std::stringstream sstr;
-				sstr << "mkErcExpr(Literal,ERC,ERC ...):"
-							 << "Unknown literal: " << sp.resolveId(ltrl.getId());
-
-                pushFuncError(d_ctxt, d_funcName, sstr.str().c_str() );
-				// AYLOG(ERROR) << "mkErcExpr(Literal,ERC,ERC ...):"
-							 // << "Unknown literal: " << sp.resolveId(ltrl.getId());
-				return false;
-			}
-			return true;
-		}
-		bool operator()(const BarzerERC &erc) {
-			expr.addToExpr(erc, expr.d_type);
-			return true;
-		}
-		bool operator()(const BarzelBeadAtomic &data) {
-			return boost::apply_visitor(*this, data.getData());
-		}
-		// not applicable
-		template<class T> bool operator()(const T& v) {
-            pushFuncError(d_ctxt, d_funcName, "Type mismatch" );
-			// AYLOG(ERROR) << "mkErcExpr(Literal,ERC,ERC ...): Type mismatch";
-			return false;
-		}
-	};
-
 	STFUN(mkErcExpr)
 	{
         SETFUNCNAME(mkErcExpr);
-		if (rvec.size() < 3) {
-            FERROR("needs at least 3 arguments");
+        const char* argStr = GETARGSTR();
+		if (rvec.size() < 2) {
+            FERROR("needs at least 2 arguments");
 			return false;
 		}
+    
+        BarzerRange defaultRange;
+        if( const BarzerRange* r = getAtomicPtr<BarzerRange>(rvec[0]) ) { // special case range, ent, ent
+            defaultRange = *r;
+        }
 
-		ErcExprPacker p(gpools,ctxt,func_name);
+        BarzerERCExpr expr;
+        expr.setLogic( argStr );
+        for( auto j = rvec.begin(); j!= rvec.end(); ++j ) {
+            const auto& i = *j;
 
-		for(BarzelEvalResultVec::const_iterator it = rvec.begin();
-											    it != rvec.end(); ++it) {
-			if (!boost::apply_visitor(p, it->getBeadData())) return false;
-		}
-		setResult(result, p.expr);
+            if( const BarzerERC *x = getAtomicPtr<BarzerERC>(i) )
+                expr.addClause( *x );
+            else if( const BarzerERCExpr *x = getAtomicPtr<BarzerERCExpr>(i) )
+                expr.addClause( *x );
+            else if( const BarzerEntity *x = getAtomicPtr<BarzerEntity>(i) ) {
+                BarzerERC erc;
+                erc.setRange( defaultRange );
+                erc.setEntity(*x);
+                expr.addClause( erc );
+            } else if( j != rvec.begin() || !isAtomic<BarzerRange>(i) ) {
+                std::stringstream sstr;
+                sstr << "parameter " << j-rvec.begin() << " has invalid type";
+                FERROR( sstr.str().c_str() );
+            }
+        }
+        setResult(result, expr);
+
 		return true;
 	}
 

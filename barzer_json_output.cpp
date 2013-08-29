@@ -466,30 +466,61 @@ public:
         }
         return true;
     }
-	bool operator()(const BarzerERC &data) {
-        raii.addKeyVal("type","erc") ;
+
+    bool printERC( json_raii& locRaii, const BarzerERC &data ) 
+    {
+        locRaii.addKeyVal("type","erc") ;
 
         {
-        raii.startField("ent");
-        json_raii eraii( os , false, raii.getDepth()+1 );
+        locRaii.startField("ent");
+        json_raii eraii( os , false, locRaii.getDepth()+1 );
         printEntity(data.getEntity(),false,&eraii);
         }
-        {
-        raii.startField("unit");
-        json_raii eraii( os , false, raii.getDepth()+1 );
-        printEntity(data.getUnitEntity(),false,&eraii);
+        if( data.getUnitEntity().isValid() ) {
+            locRaii.startField("unit");
+            json_raii eraii( os , false, locRaii.getDepth()+1 );
+            printEntity(data.getUnitEntity(),false,&eraii);
         }
         {
-        raii.startField("range");
-        json_raii eraii( os , false, raii.getDepth()+1 );
+        locRaii.startField("range");
+        json_raii eraii( os , false, locRaii.getDepth()+1 );
         printRange(data.getRange(),&eraii) ; 
         }
 		return true;
-	}
+    }
+    bool printERCExpr( json_raii& locRaii, const BarzerERCExpr &exp ) 
+    {
+        locRaii.addKeyVal( "type", "ercexpr" );
+
+        {
+        locRaii.startField( exp.d_type == BarzerERCExpr::T_LOGIC_OR ? "OR" : "AND" );
+        json_raii x( os , true, locRaii.getDepth()+1 );
+            for( auto& i :  exp.d_data ) {
+                switch( i.which() ) {
+                case 0: // ERC
+                    {
+                    x.startField("");
+                    json_raii y( os , false, x.getDepth()+1 );
+                    printERC( y, boost::get<BarzerERC>( i ) );
+                    }
+                    break;
+                case 1: // ERCExpr
+                    {
+                    x.startField("");
+                    json_raii y( os , false, x.getDepth()+1 );
+                    printERCExpr( y, boost::get<BarzerERCExpr>( i ) );
+                    }
+                    break;
+                }
+            }
+        }
+        return true;
+    }
 	bool operator()(const BarzerERCExpr &exp) {
-        raii.addKeyVal( "type", "ercexpr" );
-        raii.startField("value") << "\"UNSUPPORTED_TYPE\"";
-		return true;
+        return printERCExpr( raii, exp );
+	}
+	bool operator()(const BarzerERC & erc) {
+        return printERC( raii, erc );
 	}
 	bool operator()(const BarzelBeadBlank&)
 	    { return false; }
