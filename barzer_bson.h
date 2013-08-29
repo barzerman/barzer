@@ -96,7 +96,7 @@ public:
         const int32_t sumSz = 1 + encodeName(name) + 4 + strlen + 1;
 
 		auto mem = newBytes(4 + strlen + 1);
-		*static_cast<uint32_t*>(mem) = strlen;
+		*static_cast<uint32_t*>(mem) = (strlen + 1);
 		mem = static_cast<char*>(mem) + 4;
 		memcpy(mem, str, strlen);
 		mem = static_cast<char*>(mem) + strlen;
