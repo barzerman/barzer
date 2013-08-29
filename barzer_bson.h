@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 #include <cstring>
+#include <iostream>
+
 namespace bson
 {
 class Encoder
@@ -35,19 +37,19 @@ class Encoder
 		if (!d_stk.empty())
 			d_stk.back().size += sz; // incrementing size on stack
     }
+
     void stackPush( bool isArr) 
     {
-        int32_t newSz;
-        size_t  szOffset;
-        if( d_stk.empty() ) {
-            newSz = 4;
-        } else {
-            newSz = 1+4;
-            d_buf->push_back( isArr? 0x4 : 0x3 );
+        int32_t newSz = 4;
+        if (!d_stk.empty())
+		{
+			++newSz;
+            d_buf->push_back(isArr ? 0x4 : 0x3);
         }
-        szOffset = d_buf->size();
-        d_stk.push_back( { newSz, d_buf->size() } );
+        d_stk.push_back({ newSz, d_buf->size() });
+		newBytes(sizeof(uint32_t));
     }
+
     Encoder( const Encoder& ) = delete;
 
     void* newBytes( size_t addSz ) 
@@ -60,7 +62,8 @@ class Encoder
     int32_t encodeName( const char* n )
     {
         if( n ) {
-            size_t addSz = std::strlen(n) +1 ;
+            const size_t addSz = std::strlen(n) +1 ;
+
             std::memcpy( newBytes(addSz), n, addSz );
             return addSz;
         } else 
@@ -97,7 +100,7 @@ public:
 
     void encode_string( const char *str, const char* name = 0 )
     {
-        d_buf->push_back( 0x2 );
+		d_buf->push_back(0x2);
 
 		const auto strlen = static_cast<int32_t>(std::strlen(str));
         const int32_t sumSz = 1 + encodeName(name) + 4 + strlen + 1;
@@ -108,7 +111,7 @@ public:
 		memcpy(mem, str, strlen);
 		mem = static_cast<char*>(mem) + strlen;
 		*static_cast<uint8_t*>(mem) = 0;
-        stackIncrementSz(sumSz);
+		stackIncrementSz(sumSz);
     }
     void document_start( bool isArr=false, const char* name = 0 ) 
     {
