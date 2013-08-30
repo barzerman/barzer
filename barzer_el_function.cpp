@@ -901,7 +901,10 @@ struct BELFunctionStorage_holder {
                 c.setNowPtr ( ctxt.getNowPtr() ) ;
 				c.set(date.year + year, date.month + month, date.day + day);
 				BarzerRange range;
-				range.setData(BarzerRange::Date(date, c.d_date));
+                if( date < c.d_date )
+				    range.setData(BarzerRange::Date(date, c.d_date));
+                else 
+				    range.setData(BarzerRange::Date(c.d_date,date));
 				setResult(result, range);
 				return true;
 			}
