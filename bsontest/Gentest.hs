@@ -11,6 +11,13 @@ import Control.Monad
 import System.IO
 import qualified Data.ByteString.Lazy as BS
 
+toBool :: String -> Bool
+toBool "true" = True
+toBool "1" = True
+toBool "false" = False
+toBool "0" = False
+toBool v = error $ "cannot convert `" ++ v ++ "` to Bool"
+
 toBSON :: X.Content -> B.Field
 toBSON e@(X.Elem (X.Element n a c _)) = toBSON' (X.qName n) (pack $ v "name") (v "value") c
     where v s = fromMaybe "" $ liftM X.attrVal $ find ((s ==) . X.qName . X.attrKey) a
@@ -18,7 +25,7 @@ toBSON e = error $ "expected XML element, got: " ++ show e
 
 toBSON' :: String -> Text -> String -> [X.Content] -> B.Field
 toBSON' "int32" n v _ = n := (B.Int32 $ read v)
-toBSON' "bool" n v _ = n := (B.Bool $ read v)
+toBSON' "bool" n v _ = n := (B.Bool $ toBool v)
 toBSON' "double" n v _ = n := (B.Float $ read v)
 toBSON' "str" n v _ = n := (B.String $ pack v)
 toBSON' "doc" n _ xs = n := (B.Doc $ map toBSON $ maybeToList $ find isElem xs)
