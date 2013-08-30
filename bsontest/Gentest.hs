@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 import qualified Text.XML.Light.Types as X
 import Text.XML.Light.Input
 import qualified Data.Bson as B
