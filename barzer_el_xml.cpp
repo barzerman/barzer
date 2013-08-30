@@ -1462,10 +1462,8 @@ DEFINE_BELParserXML_taghandle(PERM)
 		switch( n[0] ) {
 		case 't': // t or type (optional attribute can be FLIP, other types to come)
             if( !n[1] ) {
-                if( v[0] == 'f' ) {
-                    if( !v[1] )  // t="f"
-                        structType = BTND_StructData::T_FLIP;
-                }
+                if( v[0] == 'f' && !v[1] ) 
+                    structType = BTND_StructData::T_FLIP;
             }
             break;
 		default:
