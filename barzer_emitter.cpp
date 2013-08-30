@@ -459,6 +459,7 @@ size_t BELStatementParsed_EmitCounter::power(const barzer::BELParseTreeNode& nod
             case BTND_StructData::T_ANY:    /*nothing*/;                            break;
             case BTND_StructData::T_OPT:    p++;                                    break;  
             case BTND_StructData::T_PERM:   p *= factorial(node.child.size());      break;
+            case BTND_StructData::T_FLIP:   p *= 2 ;      break;
             case BTND_StructData::T_TAIL:   /*nothing*/;                            break;
             case BTND_StructData::T_SUBSET: p--;                                    break;
             default:

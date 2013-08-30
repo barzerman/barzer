@@ -1350,7 +1350,6 @@ void BELParserXML::processAttrForStructTag( BTND_StructData& dta, const char_cp 
 			dta.setVarId( internString_internal(v) );
 			return;
 		default:
-			REPORT_ATTR
 			break;
 		}
 	}
