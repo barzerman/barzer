@@ -1461,13 +1461,12 @@ DEFINE_BELParserXML_taghandle(PERM)
 		const char* v = attr[i+1]; // attr value
 		switch( n[0] ) {
 		case 't': // t or type (optional attribute can be FLIP, other types to come)
-            if( !n[1] || !strcasecmp(n,"type") ) {
+            if( !n[1] ) {
                 if( v[0] == 'f' ) {
-                    if( !v[1] || !strcasecmp(v,"flip")  ) 
+                    if( !v[1] )  // t="f"
                         structType = BTND_StructData::T_FLIP;
-					else REPORT_ATTR
-                } else REPORT_ATTR
-            } else REPORT_ATTR
+                }
+            }
             break;
 		default:
 			REPORT_ATTR
