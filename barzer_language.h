@@ -10,6 +10,7 @@
 #include <barzer_parse_types.h>
 
 /// language specific logic 
+namespace ay { class LevenshteinEditDistance; }
 namespace barzer {
 
 #undef LANG_ENGLISH

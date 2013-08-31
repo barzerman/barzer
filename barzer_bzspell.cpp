@@ -7,6 +7,7 @@
 #include <boost/algorithm/string.hpp>
 #include <ay/ay_choose.h>
 #include <ay_char.h>
+#include <ay_levenshtein.h>
 #include <ay_utf8.h>
 #include <ay_keymaps.h>
 #include <ay_translit_ru.h>
@@ -109,7 +110,7 @@ namespace {
 
 struct CorrectCallback
 {
-	bool d_tryTranslit;
+	bool d_lev0;
 
 	const BZSpell& d_bzSpell;
 	typedef BZSpell::WordInfoAndDepth CorrectionQualityInfo;
@@ -136,7 +137,7 @@ struct CorrectCallback
 	}
 
 	CorrectCallback( const BZSpell& bzs, size_t str_len ) :
-		d_tryTranslit(true),
+		d_lev0(true),
 		d_bzSpell(bzs) ,
 		d_bestMatch(0,0),
 		d_bestStrId(0xffffffff),
@@ -146,7 +147,11 @@ struct CorrectCallback
 	void tryUpdateBestMatch( const char* str )
 	{
 		CorrectionQualityInfo wid(0, 0);
-		uint32_t strId = d_bzSpell.getBestWordByString( str, wid);
+        uint32_t strId = 0xffffffff;
+        if( d_lev0 && !d_bzSpell.isUsersWord( strId, str ) ) 
+            return;
+        
+		strId = d_bzSpell.getBestWordByString( str, wid);
 		if( (0xffffffff != strId) && widLess(d_bestMatch,wid) ) {
             //uint32_t uwId = 0xffffffff;
             //if( d_bzSpell.isUsersWord( uwId, str ) ) {
@@ -195,12 +200,6 @@ struct CorrectCallback
 
 		tryUpdateBestMatch( str );
 
-		if (d_tryTranslit)
-		{
-			std::string translit;
-			if (ay::km::engToRus(str, v.size(), translit))
-				tryUpdateBestMatch(translit.c_str());
-		}
 		return 0;
 	}
 

@@ -8,6 +8,7 @@
 #include <barzer_universe.h>
 #include <boost/filesystem.hpp>
 #include <ay/ay_filesystem.h>
+#include <ay/ay_levenshtein.h>
 #include <ay/ay_util_time.h>
 #include <ay_tag_markup_parser.h>
 #include <boost/filesystem/fstream.hpp>

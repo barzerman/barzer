@@ -8,6 +8,7 @@
 #include <lg_ru/barzer_ru_lex.h>
 #include <lg_en/barzer_en_lex.h>
 #include <ay/ay_utf8.h>
+#include <ay/ay_levenshtein.h>
 #include "barzer_universe.h"
 
 namespace barzer {
