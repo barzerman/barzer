@@ -28,6 +28,8 @@ void addDoc(const pt::ptree& pt, bson::Encoder& enc)
 			addDoc(child.second, enc);
 			enc.document_end();
 		}
+		else if (child.first == "root")
+			addDoc(child.second, enc);
 		else if (child.first == "int32")
 			enc.encode_int32(boost::lexical_cast<int32_t>(value), name);
 		else if (child.first == "bool")
