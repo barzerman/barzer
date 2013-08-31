@@ -78,8 +78,9 @@ class Encoder
 		stackIncrementSz(sz);
 	}
 public:
-    Encoder()
+    Encoder(size_t reserve = 100000)
 	{
+		d_buf.reserve(reserve);
         stackPush(false);
 	}
 
