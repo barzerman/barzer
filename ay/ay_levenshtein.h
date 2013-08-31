@@ -168,7 +168,7 @@ inline int LevenshteinEditDistance::ascii(const char *s,const char*t, const T& c
     enum { MAX_NUM_DIFF = 2 };
     size_t diff[ MAX_NUM_DIFF ];
     size_t numDiff = 0;
-    for( size_t i = 0; i< n; ++i ) {
+    for( int i = 0; i< n; ++i ) {
         if( s[i] != t[i] ) {
             if( numDiff < MAX_NUM_DIFF ) diff[ numDiff ] = i;
             ++numDiff;
