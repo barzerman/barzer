@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <iterator>
+#include <chrono>
 #include <boost/lexical_cast.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
@@ -43,6 +44,81 @@ void addDoc(const pt::ptree& pt, bson::Encoder& enc)
 	}
 }
 
+void perfTest()
+{
+	std::function<void ()> funcs[]
+	{
+		[] () -> void
+		{
+			bson::Encoder enc;
+			for (size_t i = 0; i < 1000; ++i)
+				enc.encode_string("this is a dumb and long string", "strname");
+			enc.finalize();
+		}
+	};
+	/*
+	std::function<void ()> funcs[]
+	{
+		[] () -> void
+		{
+			bson::Encoder enc;
+			enc.encode_int32(100, "test");
+			enc.finalize();
+		},
+		[] () -> void
+		{
+			bson::Encoder enc;
+			enc.encode_int32(100, "test");
+			enc.encode_int32(200, "rest");
+			enc.encode_string("this is a dumb and long string", "strname");
+			enc.finalize();
+		},
+		[] () -> void
+		{
+			bson::Encoder enc;
+			for (size_t i = 0; i < 1000; ++i)
+				enc.encode_string("this is a dumb and long string", "strname");
+			enc.finalize();
+		},
+		[] () -> void
+		{
+			bson::Encoder enc;
+			for (size_t i = 0; i < 1000; ++i)
+			{
+				enc.encode_int32(100, "test");
+				enc.encode_int32(200, "rest");
+				enc.encode_string("this is a dumb and long string", "strname");
+			}
+			enc.finalize();
+		},
+		[] () -> void
+		{
+			bson::Encoder enc;
+			for (size_t i = 0; i < 1000; ++i)
+				enc.document_start(false, "doc");
+			enc.encode_string("some typical string", "strname");
+			for (size_t i = 0; i < 1000; ++i)
+				enc.document_end();
+			enc.finalize();
+		}
+	};
+	*/
+
+	std::cout << "testing performance..." << std::endl;
+	const size_t iter = 100000;
+	for (auto f : funcs)
+	{
+		const auto start = std::chrono::system_clock::now();
+		for (size_t i = 0; i < iter; ++i)
+			f();
+		const auto end = std::chrono::system_clock::now();
+
+		std::cout << "got " << iter << " iterations in "
+				<< std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
+				<< " ms" << std::endl;
+	}
+}
+
 std::vector<uint8_t> genBSON(const pt::ptree& pt)
 {
 	bson::Encoder crapson;
@@ -52,9 +128,6 @@ std::vector<uint8_t> genBSON(const pt::ptree& pt)
 
 int main(int argc, char **argv)
 {
-	if (argc == 1)
-		return 1;
-
 	std::vector<Sample> samples;
 
 	for (int i = 1; i < argc; ++i)
@@ -95,4 +168,6 @@ int main(int argc, char **argv)
 				ostr2 << c;
 		}
 	}
+
+	perfTest();
 }
