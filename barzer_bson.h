@@ -8,7 +8,7 @@ namespace bson
 {
 namespace detail
 {
-	template<typename T>
+	template<typename T, typename Alloc = std::allocator<T>>
 	class uninit_vector
 	{
 		T *m_data = nullptr;
@@ -133,11 +133,11 @@ namespace detail
 	};
 }
 
-template<typename BufType = detail::uninit_vector<uint8_t>>
+template<template<typename, typename> class BufType = detail::uninit_vector>
 class EncoderT
 {
 public:
-	typedef BufType BufType_t;
+	typedef BufType<uint8_t, std::allocator<uint8_t>> BufType_t;
 private:
     struct StackFrame
     {
