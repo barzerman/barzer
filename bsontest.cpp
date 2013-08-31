@@ -153,7 +153,7 @@ int main(int argc, char **argv)
 		std::cout << "testing " << s.m_name << "... ";
 
 		const auto& data = genBSON(s.m_xml);
-		bool same = data.size() == s.m_binary.size();
+		bool same = data == s.m_binary;
 		std::cout << (same ? "PASSED" : "FAILED");
 		std::cout << std::endl;
 
