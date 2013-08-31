@@ -119,7 +119,7 @@ void perfTest()
 	}
 }
 
-std::vector<uint8_t> genBSON(const pt::ptree& pt)
+bson::Encoder::BufType_t genBSON(const pt::ptree& pt)
 {
 	bson::Encoder crapson;
 	addDoc(pt, crapson);

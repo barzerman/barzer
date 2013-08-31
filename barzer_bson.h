@@ -6,8 +6,139 @@
 
 namespace bson
 {
-class Encoder
+namespace detail
 {
+	template<typename T>
+	class uninit_vector
+	{
+		T *m_data = nullptr;
+		size_t m_capacity = 0;
+		size_t m_size = 0;
+	public:
+		typedef uint8_t value_type;
+
+		uninit_vector()
+		{
+		}
+
+		~uninit_vector()
+		{
+			delete [] m_data;
+		}
+
+		uninit_vector(const uninit_vector<T>& other)
+		{
+			reserve(other.m_size);
+			memcpy(m_data, other.m_data, other.m_size * sizeof(T));
+		}
+
+		uninit_vector(uninit_vector<T>&& other)
+		{
+			swap(other);
+		}
+
+		uninit_vector& operator=(const uninit_vector<T>& other)
+		{
+			reserve(other.m_size);
+			memcpy(m_data, other.m_data, other.m_size * sizeof(T));
+		}
+
+		uninit_vector& operator=(uninit_vector<T>&& other)
+		{
+			swap(other);
+		}
+
+		const T* begin() const
+		{
+			return m_data;
+		}
+
+		const T* end() const
+		{
+			return m_data + m_size;
+		}
+
+		void swap(uninit_vector& other)
+		{
+			std::swap(other.m_data, m_data);
+			std::swap(other.m_capacity, m_capacity);
+			std::swap(other.m_size, m_size);
+		}
+
+		void reserve(size_t capacity)
+		{
+			if (capacity <= m_capacity)
+				return;
+
+			uninit_vector<T> other;
+			other.m_data = new T[capacity];
+			other.m_capacity = capacity;
+			other.m_size = m_size;
+
+			if (m_data)
+				memcpy(other.m_data, m_data, sizeof(T) * m_size);
+
+			swap(other);
+		}
+
+		void resize(size_t size)
+		{
+			reserve(size);
+			m_size = size;
+		}
+
+		void push_back(const T& t)
+		{
+			if (m_size == m_capacity)
+				reserve(m_capacity * 2);
+
+			m_data[m_size++] = t;
+		}
+
+		const T& operator[](size_t p) const
+		{
+			return m_data[p];
+		}
+
+		T& operator[](size_t p)
+		{
+			return m_data[p];
+		}
+
+		size_t size() const
+		{
+			return m_size;
+		}
+
+		std::vector<T> to_std_vector() const
+		{
+			std::vector<T> result;
+			result.resize(size());
+			memcpy(&result[0], m_data, sizeof(T) * size());
+			return result;
+		}
+
+		bool operator==(const uninit_vector<T>& other) const
+		{
+			return m_size == other.m_size &&
+					m_capacity == other.m_capacity &&
+					!memcmp(m_data, other.m_data, m_size * sizeof(T));
+		}
+
+		bool operator==(const std::vector<T>& other) const
+		{
+			return m_size == other.size() &&
+					!memcmp(m_data, &other[0], m_size * sizeof(T));
+		}
+	};
+}
+
+template<typename BufType = detail::uninit_vector<uint8_t>>
+class EncoderT
+{
+public:
+	typedef BufType BufType_t;
+private:
     struct StackFrame
     {
         int32_t   size; // cumulative size
@@ -17,7 +148,8 @@ class Encoder
         StackFrame( int32_t sz, size_t szOffs) : size(sz), sizeOffset(szOffs) {}
     };
     std::vector<StackFrame> d_stk;
-    std::vector<uint8_t> d_buf;
+
+    BufType_t d_buf;
     
     void* bufAtOffset( size_t offs ) { return &(d_buf[offs]); }
     void stackIncrementSz( int32_t sz ) { d_stk.back().size+= sz; }
@@ -50,8 +182,6 @@ class Encoder
 		newBytes(sizeof(uint32_t));
     }
 
-    Encoder( const Encoder& ) = delete;
-
     void* newBytes( size_t addSz ) 
     {
         size_t offs = d_buf.size();
@@ -78,13 +208,15 @@ class Encoder
 		stackIncrementSz(sz);
 	}
 public:
-    Encoder(size_t reserve = 100000)
+    EncoderT(size_t reserve = 100000)
 	{
 		d_buf.reserve(reserve);
         stackPush(false);
 	}
 
-	const std::vector<uint8_t>& finalize()
+    EncoderT(const EncoderT&) = delete;
+
+	const BufType_t& finalize()
 	{
 		stackPop();
 		return d_buf;
@@ -121,4 +253,6 @@ public:
     }
     void document_end( ) { stackPop(); }
 };
+
+typedef EncoderT<> Encoder;
 } // namespace bson
