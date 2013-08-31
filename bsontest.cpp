@@ -1,6 +1,7 @@
 #include "barzer_bson.h"
 #include <fstream>
 #include <string>
+#include <iterator>
 #include <boost/lexical_cast.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
@@ -66,17 +67,11 @@ int main(int argc, char **argv)
 		pt::xml_parser::read_xml(xmlFile, pt);
 
 		std::ifstream binIstr(name + ".bson", std::ios_base::in | std::ios_base::binary);
-		binIstr.seekg(0, std::ios_base::end);
-		const size_t sz = binIstr.tellg();
-		binIstr.seekg(0, std::ios_base::beg);
+		binIstr.unsetf(std::ios::skipws);
 
 		Sample s { name, pt, {} };
-		for (size_t i = 0; i < sz && binIstr.good(); ++i)
-		{
-			uint8_t c;
-			binIstr >> c;
-			s.m_binary.push_back(c);
-		}
+		std::copy(std::istream_iterator<uint8_t>(binIstr), std::istream_iterator<uint8_t>(),
+				std::back_inserter(s.m_binary));
 
 		samples.push_back(s);
 	}
