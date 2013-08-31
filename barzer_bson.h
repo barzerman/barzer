@@ -16,10 +16,10 @@ class Encoder
         StackFrame() : size(0), sizeOffset(0) {}
         StackFrame( int32_t sz, size_t szOffs) : size(sz), sizeOffset(szOffs) {}
     };
-    std::vector< StackFrame > d_stk;
-    std::vector< uint8_t > * d_buf;
+    std::vector<StackFrame> d_stk;
+    std::vector<uint8_t> d_buf;
     
-    void* bufAtOffset( size_t offs ) { return &( (*d_buf)[ offs ] ); }
+    void* bufAtOffset( size_t offs ) { return &(d_buf[offs]); }
     void stackIncrementSz( int32_t sz ) { d_stk.back().size+= sz; }
     void stackPop() 
     {
@@ -44,9 +44,9 @@ class Encoder
         if (!d_stk.empty())
 		{
 			++newSz;
-            d_buf->push_back(isArr ? 0x4 : 0x3);
+            d_buf.push_back(isArr ? 0x4 : 0x3);
         }
-        d_stk.push_back({ newSz, d_buf->size() });
+        d_stk.push_back({ newSz, d_buf.size() });
 		newBytes(sizeof(uint32_t));
     }
 
@@ -54,40 +54,40 @@ class Encoder
 
     void* newBytes( size_t addSz ) 
     {
-        size_t offs = d_buf->size(); 
-        d_buf->resize( d_buf->size() + addSz ) ;
+        size_t offs = d_buf.size();
+        d_buf.resize( d_buf.size() + addSz ) ;
         return bufAtOffset(offs);
     }
 
     int32_t encodeName( const char* n )
     {
-        if( n ) {
-            const size_t addSz = std::strlen(n) +1 ;
+		if (!n)
+			n = "";
 
-            std::memcpy( newBytes(addSz), n, addSz );
-            return addSz;
-        } else 
-            return 0;
+		const size_t addSz = std::strlen(n) +1 ;
+		std::memcpy( newBytes(addSz), n, addSz );
+		return addSz;
     }
 
     template<typename T>
     void encode_type(T t, uint8_t typeId, const char *name)
 	{
-		d_buf->push_back(typeId);
+		d_buf.push_back(typeId);
 		const int32_t sz = 1 + encodeName(name) + sizeof(T);
 		*(static_cast<T*>(newBytes(sizeof(T)))) = t;
 		stackIncrementSz(sz);
 	}
 public:
-    Encoder() : d_buf(0) {}
-    Encoder(std::vector< uint8_t >& buf) : d_buf(&buf) {}
+    Encoder()
+	{
+        stackPush(false);
+	}
 
-    void init() { d_stk.clear(); }
-    void setBuf( std::vector< uint8_t >*  buf ) 
-    { 
-        d_buf = buf; 
-        init();
-    }
+	const std::vector<uint8_t>& finalize()
+	{
+		stackPop();
+		return d_buf;
+	}
 
     void encode_double( double i, const char* name = 0 ) 
     {
@@ -100,7 +100,7 @@ public:
 
     void encode_string( const char *str, const char* name = 0 )
     {
-		d_buf->push_back(0x2);
+		d_buf.push_back(0x2);
 
 		const auto strlen = static_cast<int32_t>(std::strlen(str));
         const int32_t sumSz = 1 + encodeName(name) + 4 + strlen + 1;
@@ -113,11 +113,10 @@ public:
 		*static_cast<uint8_t*>(mem) = 0;
 		stackIncrementSz(sumSz);
     }
-    void document_start( bool isArr=false, const char* name = 0 ) 
+    void document_start(bool isArr=false, const char* name = 0)
     {
         stackPush(isArr);
-        if( name ) 
-            d_stk.back().size += encodeName(name);
+		d_stk.back().size += encodeName(name);
     }
     void document_end( ) { stackPop(); }
 };

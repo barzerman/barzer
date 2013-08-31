@@ -45,12 +45,9 @@ void addDoc(const pt::ptree& pt, bson::Encoder& enc)
 
 std::vector<uint8_t> genBSON(const pt::ptree& pt)
 {
-	std::vector<uint8_t> buf;
-	bson::Encoder crapson(buf);
-
+	bson::Encoder crapson;
 	addDoc(pt, crapson);
-
-	return buf;
+	return crapson.finalize();
 }
 
 int main(int argc, char **argv)
