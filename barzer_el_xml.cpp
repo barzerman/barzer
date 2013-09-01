@@ -14,6 +14,78 @@
 #include <barzer_geoindex.h>
 #include <barzer_beni.h>
 #include <zurch_docidx.h>
+
+enum {
+		TAG_UNDEFINED,
+		/// control tags 
+		TAG_STATEMENT, // <stmt> doesnt have a pair in the node type realm - the whole statement
+		
+		TAG_PATTERN, // <pat> no pair in the node type - represents the whole left side 
+
+		TAG_RANGE_ELEMENT, // no pair in the node type - represents the whole left side 
+					 // BEL_PATTERN_XXX = TAG_XXX - TAG_PATTERN
+
+		TAG_T,		// token
+		TAG_TG,		// tg
+		TAG_P, 		// punctuation
+		TAG_SPC, 	// SPACE
+		/// <n> . valid attributes
+		/// l - low value, h - high, r - real .. no attributes means "any integer"
+		TAG_N, 		// number
+		TAG_RX, 	// token regexp
+		TAG_TDRV, 	// token derivaive
+		TAG_WCLS, 	// word class
+		TAG_W, 		// token wildcard
+		TAG_DATE, 	// date
+		TAG_DATETIME, 	// date
+		TAG_ENTITY, 	// entity or erc matched on entity 
+		TAG_RANGE, 	// entity or erc matched on entity 
+		TAG_ERCEXPR, 	// expression made of ERCs
+		TAG_ERC, 	// single ERC
+		TAG_EVR, 	// single EVR
+		TAG_EXPAND, // expands pre-defined macro
+		TAG_TIME, 	// time
+
+		TAG_RANGE_STRUCT, // not a real tag used for translation
+						// BEL_STRUCT_XXX = TAG_XXX-TAG_RANGE_STRUCT
+		
+		TAG_LIST, // sequence of elements
+		TAG_ANY,  // any element 
+		TAG_OPT,  // optional subtree
+		TAG_PERM, // permutation of children
+		TAG_TAIL, // if children are A,B,C this translates into A,AB,ABC
+		TAG_SUBSET, // if children are A,B,C this translates into A,B,C,AB,AC,BC,ABC
+
+		TAG_TRANSLATION, // <trans> no pair in the node type - represents the whole left side 
+		TAG_REWRITE_STRUCT, // not a real tag used for translation
+						// BEL_REWRITE_XXX = TAG_XXX-TAG_REWRITE_STRUCT
+
+		// <ltlr> valid attribute 
+		// 
+		TAG_LITERAL, // <ltrl>
+		TAG_RNUMBER, // <rn>
+		TAG_MKENT, // <mkent c="class" sc="subclass" id="UNIQID"> 
+		TAG_NV, // <nv n="somename" v="somevalue">
+
+		TAG_VAR, // <var>
+		TAG_FUNC, // function
+		TAG_GET, // getter function
+		TAG_SET, // setter function
+		TAG_SELECT,
+		TAG_CASE,
+		TAG_AND,
+		TAG_OR,
+		TAG_NOT,
+		TAG_TEST,
+		TAG_COND,
+		TAG_BLOCK, // rewrite control structure (comma, variable let and get and more - extendable)
+
+		TAG_STMSET, // document element
+		
+		TAG_MAX
+
+};
+
 extern "C" {
 #include <expat.h>
 
@@ -54,6 +126,81 @@ static void charDataHandle( void * ud, const XML_Char *str, int len)
 namespace barzer {
 
 namespace {
+
+const char* g_tag_name[TAG_MAX] = {
+		"UNDEFINED",
+		"STATEMENT",
+		
+		"PATTERN",
+
+		"RANGE_ELEMENT",
+		"T",
+		"TG",
+		"P",
+		"SPC",
+		"N",
+		"RX",
+		"TDRV",
+		"WCLS",
+		"W",
+		"DATE",
+		"DATETIME",
+		"ENTITY",
+		"RANGE",
+		"ERCEXPR",
+		"ERC",
+		"EVR",
+		"EXPAND",
+		"TIME",
+
+		"RANGE_STRUCT",
+		
+		"LIST",
+		"ANY",
+		"OPT",
+		"PERM",
+		"TAIL",
+		"SUBSET",
+
+		"TRANSLATION",
+		"REWRITE_STRUCT",
+		"LITERAL",
+		"RNUMBER",
+		"MKENT",
+		"NV",
+
+		"VAR",
+		"FUNC",
+		"GET",
+		"SET",
+		"SELECT",
+		"CASE",
+		"AND",
+		"OR",
+		"NOT",
+		"TEST",
+		"COND",
+		"BLOCK",
+
+		"STMSET"
+        // new tags must be all added above this line
+};
+
+const char* getTagNameById( int tagId )
+{
+    if( tagId >=0 && tagId <= ARR_SZ(g_tag_name) )
+        return g_tag_name[ tagId ];
+    else
+        return "UNKNOWN";
+}
+void report_bad_attribute( int tid, const char* n, const char* v, BELReader& reader, BELParserXML::CurStatementData& statement )
+{
+    BarzXMLErrorStream errStream( reader, statement.stmt.getStmtNumber());
+    if( strcmp(n,"xmlns") )
+        errStream.os << "tag:" << getTagNameById(tid) << " has unknown attribute \"" << n << "\"=\"" << v << "\"";
+}
+
+#define REPORT_ATTR report_bad_attribute( (tid), (n), (v), *reader, statement )
 
 void escapeForXmlAndIntern( GlobalPools& gp, uint32_t& srcNameStrId, std::string& s, const char* cs ) 
 {
@@ -253,11 +400,6 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 
 }
 
-#define REPORT_ATTR \
-		if( strcmp(n,"xmlns") ) { \
-			BarzXMLErrorStream errStream( *reader, statement.stmt.getStmtNumber()); \
-			errStream.os << "unknown attribute name/value: " << n << " -> " << v; \
-		}
 
 #define DEFINE_BELParserXML_taghandle( X )  void BELParserXML::taghandle_##X(int tid, const char_cp * attr, size_t attr_sz, bool close )
 DEFINE_BELParserXML_taghandle(STMSET)
@@ -302,10 +444,10 @@ DEFINE_BELParserXML_taghandle(STMSET)
 			if (n[1] == 'm' && n[2] == 'l' && n[3] == 'n' && n[4] == 's')
 				;
 			else
-				REPORT_ATTR
+				REPORT_ATTR;
 			break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -375,7 +517,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 			else if (n[1] == 'a' && n[2] == 'm' && n[3] == 'e')
 				;
 			else
-				REPORT_ATTR
+				REPORT_ATTR;
             // name - is for barsted names 
 			break;
 		case 'd':
@@ -383,7 +525,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 				statement.setDisabled();
 				return;
 			} else
-				REPORT_ATTR
+				REPORT_ATTR;
 			break;
         case 'o':
             statement.stmt.setRuleClashOverride(v);
@@ -401,7 +543,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
             }
 			break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -475,7 +617,7 @@ DEFINE_BELParserXML_taghandle(TRANSLATION)
 			if( v && v[0] == 'y' )
 				statement.stmt.setTranUnmatchable();
 			else
-				REPORT_ATTR
+				REPORT_ATTR;
 			break;
         case 'c': // confidence boost
             {
@@ -489,7 +631,7 @@ DEFINE_BELParserXML_taghandle(TRANSLATION)
             break;
             }
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
         }
     }
@@ -787,7 +929,7 @@ DEFINE_BELParserXML_taghandle(T)
 				isStop = true;
 				break;
 			default:
-				REPORT_ATTR
+				REPORT_ATTR;
 				break;
 			}
 			break;
@@ -804,7 +946,7 @@ DEFINE_BELParserXML_taghandle(T)
 				AYLOG(ERROR) << "unknown meaning " << v;
 			break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -911,7 +1053,7 @@ DEFINE_BELParserXML_taghandle(N)
 			break;
 		}
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -959,7 +1101,7 @@ DEFINE_BELParserXML_taghandle(EVR)
 			pat.d_ent.setTokenId( reader->getGlobalPools().internString_internal(v) );
 			break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
         }
     }
@@ -984,7 +1126,7 @@ DEFINE_BELParserXML_taghandle(ERC)
 				pat.setMatchBlankEntity();
 				break;
 			default:
-				REPORT_ATTR
+				REPORT_ATTR;
 				break;
 			}
 			break;
@@ -1008,7 +1150,7 @@ DEFINE_BELParserXML_taghandle(ERC)
 			case 't': // unit entity id token - ut="ABCD011"
 				erc.getUnitEntity().setTokenId( reader->getGlobalPools().internString_internal(v) );
 			default:
-				REPORT_ATTR
+				REPORT_ATTR;
 				break;
 			}
 			break;
@@ -1036,7 +1178,7 @@ DEFINE_BELParserXML_taghandle(ERC)
 				erc.getRange().setData( BarzerRange::Entity() );
 				break;
 			default:
-				REPORT_ATTR
+				REPORT_ATTR;
 				break;
 			}
 			break;
@@ -1044,7 +1186,7 @@ DEFINE_BELParserXML_taghandle(ERC)
             pat.setMatchModeFromAttribute(v);
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -1066,7 +1208,7 @@ DEFINE_BELParserXML_taghandle(ERCEXPR)
             pat.setMatchModeFromAttribute(v);
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -1101,7 +1243,7 @@ DEFINE_BELParserXML_taghandle(RANGE)
 			case 'm': pat.range().dta = BarzerRange::DateTime(); break;
 			case 'd': pat.range().dta = BarzerRange::Date(); break;
 			case 'e': if( !isEntity ) isEntity= true; break;
-			default: REPORT_ATTR break;
+			default: REPORT_ATTR; break;
 			}
 			break;
 		case 'n':
@@ -1118,9 +1260,9 @@ DEFINE_BELParserXML_taghandle(RANGE)
 					id1Str = v;
 				} else if( n[2] == '2' ) { 					  // i2=id - second entity id
 					id2Str = v;
-				} else REPORT_ATTR
+				} else REPORT_ATTR;
 			default:
-				REPORT_ATTR
+				REPORT_ATTR;
 				break;
 			}
 			break;
@@ -1128,7 +1270,7 @@ DEFINE_BELParserXML_taghandle(RANGE)
             pat.setMatchModeFromAttribute(v);
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -1173,7 +1315,7 @@ DEFINE_BELParserXML_taghandle(ENTITY)
             if( n[1] == 'c' ) 
 			    pat.setEntityClass( atoi(v) ); 
 			else
-				REPORT_ATTR
+				REPORT_ATTR;
             break;
 		case 'c': // class - c="1"
 			pat.setEntityClass( atoi(v) ); 
@@ -1192,7 +1334,7 @@ DEFINE_BELParserXML_taghandle(ENTITY)
             pat.setMatchModeFromAttribute(v);    
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -1214,7 +1356,7 @@ DEFINE_BELParserXML_taghandle(DATETIME)
 				pat.setLoDate( atoi(v) );
 			} else if( n[1] == 'h' ) { // dh="YYYYMMDD" date hi
 				pat.setHiDate( atoi(v) );
-			} else REPORT_ATTR
+			} else REPORT_ATTR;
 			break;
 		case 'f':  // f="y" - future
 			pat.setFuture();
@@ -1227,13 +1369,13 @@ DEFINE_BELParserXML_taghandle(DATETIME)
 				pat.setLoTime( atoi(v) );
 			} else if( n[1] == 'h' ) { // th="hhmmss" time hi
 				pat.setHiTime( atoi(v) );
-			} else REPORT_ATTR
+			} else REPORT_ATTR;
 			break;
         case 'x': 
             pat.setMatchModeFromAttribute(v);
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -1268,7 +1410,7 @@ DEFINE_BELParserXML_taghandle(DATE)
             pat.setMatchModeFromAttribute(v);
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}	
@@ -1298,7 +1440,7 @@ DEFINE_BELParserXML_taghandle(TIME)
             pat.setMatchModeFromAttribute(v);
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -1332,7 +1474,7 @@ DEFINE_BELParserXML_taghandle(W)
             modeStr= v;
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
         }
     }
@@ -1374,7 +1516,7 @@ DEFINE_BELParserXML_taghandle(EXPAND)
 		case 'n': macroName= v; break;
         case 't': trieName = v; break;     // trie name
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -1466,7 +1608,7 @@ DEFINE_BELParserXML_taghandle(PERM)
             }
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
         }
     }
@@ -1521,7 +1663,7 @@ DEFINE_BELParserXML_taghandle(LITERAL)
                 }
 				break;
 			default:
-				REPORT_ATTR
+				REPORT_ATTR;
 				break;
 			}
 			break;
@@ -1529,7 +1671,7 @@ DEFINE_BELParserXML_taghandle(LITERAL)
             literal.setInternalString();
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -1554,7 +1696,7 @@ DEFINE_BELParserXML_taghandle(NV)
             value = v;
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
         }
     }
@@ -1626,7 +1768,7 @@ DEFINE_BELParserXML_taghandle(MKENT)
                 case 'n': topicCanonicName = v; break;
                 case 'r': topicRelevance = atoi(v); break;
                 case 's': topicSubclass =  atoi(v); break;
-				default: REPORT_ATTR break;
+				default: REPORT_ATTR; break;
             }
             break;
         }
@@ -1650,7 +1792,7 @@ DEFINE_BELParserXML_taghandle(MKENT)
             }
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		} // n[0] switch
 	}
@@ -1763,7 +1905,7 @@ DEFINE_BELParserXML_taghandle(BLOCK)
                     ctrl.setCtrl( BTND_Rewrite_Control::RWCTLT_VAR_GET );
 					break;
 				default:
-					REPORT_ATTR
+					REPORT_ATTR;
 					break;
                 }
             }
@@ -1771,7 +1913,7 @@ DEFINE_BELParserXML_taghandle(BLOCK)
         case 'r':{ /// variable
             if( *v == 'y' ) 
                 ctrl.setVarModeRequest();
-            else REPORT_ATTR
+            else REPORT_ATTR;
 				}
             break;
         case 'v':{ /// variable
@@ -1779,7 +1921,7 @@ DEFINE_BELParserXML_taghandle(BLOCK)
             ctrl.setVarId( varId );
             }break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
         }
     }
@@ -1805,7 +1947,7 @@ DEFINE_BELParserXML_taghandle(RNUMBER)
 		}
 			break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -1878,7 +2020,7 @@ DEFINE_BELParserXML_taghandle(VAR)
 		}
 			break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -1907,7 +2049,7 @@ DEFINE_BELParserXML_taghandle(SET)
         } else if( *n == 'v' ) { // variable 
             f.setVarId( reader->getGlobalPools().internString_internal(v) );
         } else
-			REPORT_ATTR
+			REPORT_ATTR;
 	}
 
     statement.pushNode( BTND_RewriteData(f));
@@ -1933,7 +2075,7 @@ DEFINE_BELParserXML_taghandle(FUNC)
         } else if( *n == 'r' ) { // request variable RequestEnvironment::d_reqVar
             if( *v == 'y' ) 
                 f.setVarModeRequest();
-        } else REPORT_ATTR
+        } else REPORT_ATTR;
 	}
     if( funcNameId != 0xffffffff ) 
 	    statement.pushNode( BTND_RewriteData( f));
@@ -1961,7 +2103,7 @@ DEFINE_BELParserXML_taghandle(SELECT)
             varId = internVariable(v);
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
         }
     }
@@ -1986,7 +2128,7 @@ DEFINE_BELParserXML_taghandle(CASE)
             caseId = (uint32_t)v[0]; // this is a hack really
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
         }
     }

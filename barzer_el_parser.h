@@ -361,7 +361,8 @@ struct BarzXMLErrorStream {
     BarzXMLErrorStream( BELReader& reader, size_t stmtNum ) : 
         os(reader.getErrStreamRef())
     {
-        os.os << "<error file=\"" << reader.getInputFileName() << "\" class=\"" << reader.getTrieClassName() << "\" trie=\"" << reader.getTrieName() << "\">";
+        os.os << "<error file=\"" << reader.getInputFileName() << "\" class=\"" << reader.getTrieClassName() << "\" trie=\"" << reader.getTrieName() << "\""
+        << " stmt=\""<< stmtNum << "\">";
     }
     ~BarzXMLErrorStream()
         { os.os << "</error>\n"; }
