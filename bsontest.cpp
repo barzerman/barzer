@@ -1,3 +1,7 @@
+/** Compile with
+ * g++-4.8.1 -g -pthread -O3 -march=native -fomit-frame-pointer -std=c++11 -Wall -Wextra ../bsontest.cpp -lmongoclient -lcrypto -lssl -lboost_system -lboost_thread -lboost_filesystem -o bsontest
+ */
+
 #include "barzer_bson.h"
 #include <fstream>
 #include <string>
@@ -5,6 +9,10 @@
 #include <chrono>
 #include <boost/lexical_cast.hpp>
 #include <boost/property_tree/xml_parser.hpp>
+
+#ifndef WITHOUT_MONGO
+#include <mongo/bson/bson.h>
+#endif
 
 namespace pt = boost::property_tree;
 
@@ -51,17 +59,6 @@ void perfTest()
 		[] () -> void
 		{
 			bson::Encoder enc;
-			for (size_t i = 0; i < 1000; ++i)
-				enc.encode_string("this is a dumb and long string", "strname");
-			enc.finalize();
-		}
-	};
-	/*
-	std::function<void ()> funcs[]
-	{
-		[] () -> void
-		{
-			bson::Encoder enc;
 			enc.encode_int32(100, "test");
 			enc.finalize();
 		},
@@ -95,16 +92,17 @@ void perfTest()
 		{
 			bson::Encoder enc;
 			for (size_t i = 0; i < 1000; ++i)
+			{
 				enc.document_start(false, "doc");
-			enc.encode_string("some typical string", "strname");
+				enc.encode_string("some typical string", "strname");
+			}
 			for (size_t i = 0; i < 1000; ++i)
 				enc.document_end();
 			enc.finalize();
 		}
 	};
-	*/
 
-	std::cout << "testing performance..." << std::endl;
+	std::cout << "testing ours performance..." << std::endl;
 	const size_t iter = 100000;
 	for (auto f : funcs)
 	{
@@ -118,6 +116,83 @@ void perfTest()
 				<< " ms" << std::endl;
 	}
 }
+
+#ifndef WITHOUT_MONGO
+void mongoTest()
+{
+	std::function<void ()> funcs[]
+	{
+		[] () -> void
+		{
+			mongo::BSONObjBuilder b;
+			b << "test" << 100;
+			if (!b.obj().valid())
+				throw 0;
+		},
+		[] () -> void
+		{
+			mongo::BSONObjBuilder b;
+			b << "test" << 100 << "rest" << 200 << "strname" << "this is a dumb and long string";
+			if (!b.obj().valid())
+				throw 0;
+		},
+		[] () -> void
+		{
+			mongo::BSONObjBuilder b;
+			for (size_t i = 0; i < 1000; ++i)
+				b << "strname" << "this is a dumb and long string";;
+			if (!b.obj().valid())
+				throw 0;
+		},
+		[] () -> void
+		{
+			mongo::BSONObjBuilder b;
+			for (size_t i = 0; i < 1000; ++i)
+			{
+				b << "test" << 100;
+				b << "rest" << 200;
+				b << "strname" << "this is a dumb and long string";;
+			}
+			if (!b.obj().valid())
+				throw 0;
+		},
+		[] () -> void
+		{
+			const size_t count = 1000;
+
+			std::vector<std::unique_ptr<mongo::BSONObjBuilder>> subs;
+			subs.reserve(count);
+			subs.emplace_back(new mongo::BSONObjBuilder);
+			(*subs.back()) << "strname" << "some typical string";
+
+			for (size_t i = 0; i < count; ++i)
+			{
+				subs.emplace_back(new mongo::BSONObjBuilder(subs.back()->subobjStart("doc")));
+				(*subs.back()) << "strname" << "some typical string";
+			}
+			for (size_t i = subs.size() - 1; i >= 1; --i)
+				subs[i]->done();
+
+			if (!subs.front()->obj().valid())
+				throw 0;
+		}
+	};
+
+	std::cout << "testing mongo performance..." << std::endl;
+	const size_t iter = 100000;
+	for (auto f : funcs)
+	{
+		const auto start = std::chrono::system_clock::now();
+		for (size_t i = 0; i < iter; ++i)
+			f();
+		const auto end = std::chrono::system_clock::now();
+
+		std::cout << "got " << iter << " iterations in "
+				<< std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
+				<< " ms" << std::endl;
+	}
+}
+#endif
 
 bson::Encoder::BufType_t genBSON(const pt::ptree& pt)
 {
@@ -170,4 +245,8 @@ int main(int argc, char **argv)
 	}
 
 	perfTest();
+
+#ifndef WITHOUT_MONGO
+	mongoTest();
+#endif
 }
