@@ -121,7 +121,6 @@ namespace detail
 		bool operator==(const uninit_vector<T>& other) const
 		{
 			return m_size == other.m_size &&
-					m_capacity == other.m_capacity &&
 					!memcmp(m_data, other.m_data, m_size * sizeof(T));
 		}
 
