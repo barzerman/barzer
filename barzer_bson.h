@@ -170,14 +170,13 @@ private:
 			d_stk.back().size += sz; // incrementing size on stack
     }
 
-    void stackPush( bool isArr) 
+    void stackPush()
     {
         int32_t newSz = 4;
+		/*
         if (!d_stk.empty())
-		{
 			++newSz;
-            d_buf.push_back(isArr ? 0x4 : 0x3);
-        }
+		*/
         d_stk.push_back({ newSz, d_buf.size() });
 		newBytes(sizeof(uint32_t));
     }
@@ -211,7 +210,7 @@ public:
     EncoderT(size_t reserve = 100000)
 	{
 		d_buf.reserve(reserve);
-        stackPush(false);
+        stackPush();
 	}
 
     EncoderT(const EncoderT&) = delete;
@@ -248,8 +247,9 @@ public:
     }
     void document_start(bool isArr=false, const char* name = 0)
     {
-        stackPush(isArr);
-		d_stk.back().size += encodeName(name);
+		d_buf.push_back(isArr ? 0x4 : 0x3);
+		d_stk.back().size += encodeName(name) + 1;
+        stackPush();
     }
     void document_end( ) { stackPop(); }
 };
