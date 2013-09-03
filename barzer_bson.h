@@ -29,6 +29,7 @@ namespace detail
 		uninit_vector(const uninit_vector<T>& other)
 		{
 			reserve(other.m_size);
+			m_size = other.m_size;
 			memcpy(m_data, other.m_data, other.m_size * sizeof(T));
 		}
 
