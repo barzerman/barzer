@@ -43,8 +43,10 @@ implements most common types (not all)
 #include <cstring>
 #include <iostream>
 
-namespace ebson11 {
-namespace detail {
+namespace ebson11
+{
+namespace detail
+{
 	/** @brief A service class to be used in place of std::vector for performance reasons.
 	 *
 	 * It doesn't initialize vector values (especially on resize()), thus cutting Encoder
@@ -64,8 +66,7 @@ namespace detail {
 	public:
 		typedef uint8_t value_type;
 
-		uninit_vector() { }
-
+		uninit_vector() {}
 		~uninit_vector() { delete [] m_data; }
 
 		uninit_vector(const uninit_vector<T>& other)
@@ -85,9 +86,8 @@ namespace detail {
 
 		uninit_vector& operator=(uninit_vector<T>&& other) { swap(other); }
 
-		const T* begin()    const { return m_data; }
-
-		const T* end()      const { return m_data + m_size; }
+		const T* begin() const { return m_data; }
+		const T* end() const { return m_data + m_size; }
 
 		void swap(uninit_vector& other)
 		{
@@ -177,87 +177,108 @@ namespace detail {
 } // namespace detail
 
 template<template<typename, typename> class BufType = detail::uninit_vector>
-class EncoderT {
+class EncoderT
+{
 public:
 	typedef BufType<uint8_t, std::allocator<uint8_t>> BufType_t;
 private:
-    struct StackFrame
-    {
-        int32_t   size          = 0; // cumulative size
-        size_t    sizeOffset    = 0;      // &buf[sizeOffset] - size of the document 
+	struct StackFrame
+	{
+		int32_t size = 0;			// cumulative size
+		size_t sizeOffset = 0;		// &buf[sizeOffset] - size of the document
 
-        StackFrame() {}
-        StackFrame( int32_t sz, size_t szOffs) : size(sz), sizeOffset(szOffs) {}
-    };
-    std::vector<StackFrame> d_stk;
+		StackFrame() {}
+		StackFrame(int32_t sz, size_t szOffs) : size(sz), sizeOffset(szOffs) {}
+	};
+	std::vector<StackFrame> d_stk;
 
-    BufType_t d_buf;
-    
-    void* bufAtOffset( size_t offs ) { return &(d_buf[offs]); }
-    void stackIncrementSz( int32_t sz ) { d_stk.back().size+= sz; }
+	BufType_t d_buf;
 
-    void* newBytes( size_t addSz ) 
-    {
-        size_t offs = d_buf.size();
-        d_buf.resize( d_buf.size() + addSz ) ;
-        return bufAtOffset(offs);
-    }
-    void stackPop() 
-    {
+	void* buf_at_offset(size_t offs) { return &(d_buf[offs]); }
+	void stack_increment_sz(int32_t sz) { d_stk.back().size+= sz; }
+
+	void* new_bytes(size_t addSz)
+	{
+		const size_t offs = d_buf.size();
+		d_buf.resize(d_buf.size() + addSz);
+		return buf_at_offset(offs);
+	}
+
+	void stack_pop()
+	{
 		if (d_stk.empty())
 			return;
 
-		*static_cast<uint8_t*>(newBytes(1)) = 0;
-		stackIncrementSz(1);
+		*static_cast<uint8_t*>(new_bytes(1)) = 0;
+		stack_increment_sz(1);
 
 		const int32_t sz = d_stk.back().size;
 
-		*((int32_t*)bufAtOffset(d_stk.back().sizeOffset)) = sz; // updating the size in the buffer
+		*static_cast<int32_t*>(buf_at_offset(d_stk.back().sizeOffset)) = sz; // updating the size in the buffer
 		d_stk.resize(d_stk.size() - 1);
 
 		if (!d_stk.empty())
 			d_stk.back().size += sz; // incrementing size on stack
-    }
-    void    stackPush()
-    {
-        int32_t newSz = 4; // length is always there
-        d_stk.push_back({ newSz, d_buf.size() });
-		newBytes(sizeof(uint32_t));
-    }
+	}
 
-    int32_t encodeName( const char* n )
-    {
-		if (!n) n = "";
+	void stack_push()
+	{
+		int32_t newSz = 4;
+		d_stk.push_back({ newSz, d_buf.size() });
+		new_bytes(sizeof(uint32_t));
+	}
+
+	int32_t encode_name(const char *n)
+	{
+		if (!n)
+			n = "";
 
 		const size_t addSz = std::strlen(n) +1 ;
-		std::memcpy( newBytes(addSz), n, addSz );
+		std::memcpy(new_bytes(addSz), n, addSz);
 		return addSz;
-    }
+	}
 
-    template<typename T>
-    void encode_type(T t, uint8_t typeId, const char *name)
+	template<typename T>
+	void encode_type(T t, uint8_t typeId, const char *name)
 	{
 		d_buf.push_back(typeId);
-		const int32_t sz = 1 + encodeName(name) + sizeof(T);
-		*(static_cast<T*>(newBytes(sizeof(T)))) = t;
-		stackIncrementSz(sz);
+
+		const int32_t sz = 1 + encode_name(name) + sizeof(T);
+		*static_cast<T*>(new_bytes(sizeof(T))) = t;
+		stack_increment_sz(sz);
 	}
-    EncoderT(const EncoderT&) = delete;
 public:
-    enum { DEFAULT_RESERVE_SZ = 1024*64 };
+	enum { DEFAULT_RESERVE_SZ = 1024*64 };
 
-    EncoderT(size_t reserve = DEFAULT_RESERVE_SZ)
-        { d_buf.reserve(reserve); stackPush(); }
+	EncoderT(size_t reserve = DEFAULT_RESERVE_SZ)
+	{
+		d_buf.reserve(reserve);
+		stack_push();
+	}
 
-    void start() 
-    {
-        d_buf.resize(0);
-        d_stk.clear();
-        stackPush();
-    }
+	EncoderT(const EncoderT&) = delete;
+	EncoderT(EncoderT&&) = delete;
 
-    const BufType_t& finalize() { return ( stackPop(), d_buf ); }
+	EncoderT& operator=(const EncoderT&) = delete;
+	EncoderT& operator=(EncoderT&&) = delete;
 
+	void restart()
+	{
+		d_buf.resize(0);
+		d_stk.clear();
+		stack_push();
+	}
+
+	/** @brief Finalizes the document and returns the buffer.
+	 *
+	 * This function returns the reference to the buffer, potentially requiring to copy it.
+	 * Please see the other finalize() overload if you worry about the performance.
+	 */
+	const BufType_t& finalize()
+	{
+		stack_pop();
+		return d_buf;
+	}
 
 	/** @brief Finalizes the document and moves the buffer to \em out.
 	 *
@@ -273,40 +294,42 @@ public:
 		d_buf.swap(out);
 	}
 
-    // individual value encoders
-    void encode_double( double i, const char* name = 0 ) 
-    {
+	// individual value encoders
+	void encode_double(double i, const char *name = 0)
+	{
 		static_assert(sizeof(double) == 8, "we don't support non-8-bytes-doubles yet");
 		encode_type(i, 0x01, name);
-    }
+	}
 
-    void encode_int32( int32_t i, const char* name = 0 ) { encode_type(i, 0x10, name); }
-    void encode_bool( bool i, const char* name = 0 )     { encode_type(static_cast<uint8_t>(i), 0x08, name); }
+	void encode_int32(int32_t i, const char *name = 0) { encode_type(i, 0x10, name); }
+	void encode_bool(bool i, const char *name = 0) { encode_type(static_cast<uint8_t>(i), 0x08, name); }
 
-    void encode_string( const char *str, const char* name = 0 )
-    {
+	void encode_string(const char *str, const char *name = 0)
+	{
 		d_buf.push_back(0x2);
 
 		const auto strlen = static_cast<int32_t>(std::strlen(str));
-        const int32_t sumSz = 1 + encodeName(name) + 4 + strlen + 1;
+		const int32_t sumSz = 1 + encode_name(name) + 4 + strlen + 1;
 
-		auto mem = newBytes(4 + strlen + 1);
+		auto mem = new_bytes(4 + strlen + 1);
 		*static_cast<uint32_t*>(mem) = (strlen + 1);
 		mem = static_cast<char*>(mem) + 4;
 		memcpy(mem, str, strlen);
 		mem = static_cast<char*>(mem) + strlen;
 		*static_cast<uint8_t*>(mem) = 0;
-		stackIncrementSz(sumSz);
-    }
-    // document or array begin (pushes the stack)
-    void document_start(bool isArr=false, const char* name = 0)
-    {
+		stack_increment_sz(sumSz);
+	}
+
+	// document or array begin (pushes the stack)
+	void document_start(bool isArr = false, const char *name = 0)
+	{
 		d_buf.push_back(isArr ? 0x4 : 0x3);
-		d_stk.back().size += encodeName(name) + 1;
-        stackPush();
-    }
-    // document or array end (pops the stack)
-    void document_end( ) { stackPop(); }
+		d_stk.back().size += encode_name(name) + 1;
+		stack_push();
+	}
+
+	// document or array end (pops the stack)
+	void document_end() { stack_pop(); }
 };
 
 typedef EncoderT<> Encoder;
