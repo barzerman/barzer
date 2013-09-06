@@ -400,7 +400,8 @@ struct BELFunctionStorage_holder {
         ADDFN(mkMonthEnt, "");
 		ADDFN(mkTime, "");
 		ADDFN(mkDateTime, "");
-		ADDFN(mkRange, "");
+		ADDFN(mkRange, "makes range (1 or 2 parms - number, date etc.)");
+		ADDFN(rangeFuzz, "fuzzes range by given percentage (argstr)");
 		ADDFN(mkEnt, "");
 		ADDFN(lookupEnt, "");
 		ADDFN(mkERC, "");
@@ -1477,6 +1478,51 @@ struct BELFunctionStorage_holder {
 
 	};
 
+	STFUN(rangeFuzz)
+    {
+        SETFUNCNAME(rangeFuzz);
+        
+        if( rvec.size() != 1 ) {
+            FERROR( "expect 1 parameters: numeric range (fuzz factor in argStr, default 20%)" );
+            return false;
+        }
+        const char* argStr = GETARGSTR();
+        double fuzzFactor = ( argStr ? fabs( (atof(argStr)/100.0) ) : .2 );
+
+        const BarzerRange *x = getAtomicPtr<BarzerRange>(rvec[0]);
+        const BarzerERC* erc = 0;
+        
+        if( !x ) {
+            if( (erc = getAtomicPtr<BarzerERC>(rvec[0])) != nullptr ) 
+                x = erc->getRangePtr();
+        }
+        if( !x || !x->isNumeric() ) {
+            FERROR( "can only fuzz numeric ranges or ERC with num range" );
+            return false;
+        }
+
+        BarzerRange newRange(*x);
+        BarzerRange::Real* rr = newRange.set<BarzerRange::Real>() ;
+        if( const BarzerRange::Integer* r = x->getInteger() ) {
+            if( x->hasHi()) 
+                rr->second = ( (double)(r->second) * ( 1+fuzzFactor ) );
+            if( x->hasLo()) 
+                rr->first = ( (double)(r->first) * ( 1-fuzzFactor ) );
+        } else 
+        if( const BarzerRange::Real* r = x->getReal() ) {
+            if( x->hasHi()) 
+                rr->second = ( (r->second) * ( 1.0+fuzzFactor ) );
+            if( x->hasLo()) 
+                rr->first = ( (r->first) * ( 1.0-fuzzFactor ) );
+        }
+        if( erc ) {
+            BarzerERC newErc( *erc );
+            newErc.setRange( newRange );
+            setResult( result, newErc );
+        }  else 
+            setResult( result, newRange );
+        return true;
+    }
 	STFUN(mkRange)
 	{
         SETFUNCNAME(mkRange);

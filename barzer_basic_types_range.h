@@ -218,6 +218,9 @@ struct BarzerERC {
 	BarzerEntity& getUnitEntity() { return d_unitEntId; }
 	BarzerRange&  getRange() { return d_range; }
 
+	BarzerRange*  getRangePtr() { return &d_range; }
+	const BarzerRange*  getRangePtr() const { return &d_range; }
+
     int64_t getInt( int64_t dfVal ) const
     {
         if( d_range.hasLo() ) {
