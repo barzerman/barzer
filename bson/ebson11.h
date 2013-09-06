@@ -151,6 +151,28 @@ namespace detail {
 			return m_size == other.size() &&
 					!memcmp(m_data, &other[0], m_size * sizeof(T));
 		}
+
+		template<typename U>
+		bool operator!=(const U& other) const
+		{
+			return !(*this == other);
+		}
+
+		bool operator<(const uninit_vector<T>& other) const
+		{
+			if (m_size != other.size())
+				return m_size < other.size();
+
+			return memcmp(m_data, other.m_data) < 0;
+		}
+
+		bool operator<(const std::vector<T>& other) const
+		{
+			if (m_size != other.size())
+				return m_size < other.size();
+
+			return memcmp(m_data, &other[0]) < 0;
+		}
 	};
 } // namespace detail
 
