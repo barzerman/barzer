@@ -188,7 +188,7 @@ const char* g_tag_name[TAG_MAX] = {
 
 const char* getTagNameById( int tagId )
 {
-    if( tagId >=0 && tagId <= ARR_SZ(g_tag_name) )
+    if( tagId >=0 && (size_t)tagId <= ARR_SZ(g_tag_name) )
         return g_tag_name[ tagId ];
     else
         return "UNKNOWN";
