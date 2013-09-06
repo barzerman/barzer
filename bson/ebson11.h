@@ -259,6 +259,20 @@ public:
     const BufType_t& finalize() { return ( stackPop(), d_buf ); }
 
 
+	/** @brief Finalizes the document and moves the buffer to \em out.
+	 *
+	 * This function can be used instead of the other finalize() overload to return the
+	 * buffer by swapping it with another one. Swapping is cheap and doesn't induce copying,
+	 * buf it destroys the contents of the encoder.
+	 *
+	 * restart() should be called after this method if the encoder is to be used again.
+	 */
+	void finalize(BufType_t& out)
+	{
+		stack_pop();
+		d_buf.swap(out);
+	}
+
     // individual value encoders
     void encode_double( double i, const char* name = 0 ) 
     {
