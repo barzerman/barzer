@@ -296,13 +296,26 @@ public:
 };
 
 typedef EncoderT<> Encoder;
-struct EncoderRaii {
-    Encoder& encoder;
-    EncoderRaii( const EncoderRaii& ) = delete;
-    EncoderRaii( Encoder& e, bool isArr=false, const char* name = 0 ) : encoder(e) 
-        { encoder.document_start(isArr, name ); }
-    ~EncoderRaii()
-        { encoder.document_end(); }
-};
 
+struct DocumentGuard
+{
+	Encoder& encoder;
+
+	DocumentGuard(const DocumentGuard&) = delete;
+	DocumentGuard(DocumentGuard&&) = delete;
+
+	DocumentGuard& operator=(const DocumentGuard&) = delete;
+	DocumentGuard& operator=(DocumentGuard&&) = delete;
+
+	DocumentGuard(Encoder& e, bool isArr = false, const char *name = 0)
+	: encoder(e)
+	{
+		encoder.document_start(isArr, name );
+	}
+
+	~DocumentGuard()
+	{
+		encoder.document_end();
+	}
+};
 } // namespace ebson11
