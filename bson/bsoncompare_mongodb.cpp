@@ -1,12 +1,13 @@
+/// performance comparision tool between native mongoDB BSONObjectBuilder and ebson11
 /** Compile with
  * g++-4.8.1 -g -pthread -O3 -march=native -fomit-frame-pointer -std=c++11 -Wall -Wextra ../bsontest.cpp -lmongoclient -lcrypto -lssl -lboost_system -lboost_thread -lboost_filesystem -o bsontest
  */
 
-#include "barzer_bson.h"
+#include "ebson11.h"
 #include <fstream>
 #include <string>
 #include <iterator>
-#include <chrono>
+#include <boost/chrono/chrono.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
@@ -23,7 +24,7 @@ struct Sample
 	std::vector<uint8_t> m_binary;
 };
 
-void addDoc(const pt::ptree& pt, bson::Encoder& enc)
+void addDoc(const pt::ptree& pt, ebson11::Encoder& enc)
 {
 	for (const auto& child : pt)
 	{
@@ -58,13 +59,13 @@ void perfTest()
 	{
 		[] () -> void
 		{
-			bson::Encoder enc;
+			ebson11::Encoder enc;
 			enc.encode_int32(100, "test");
 			enc.finalize();
 		},
 		[] () -> void
 		{
-			bson::Encoder enc;
+			ebson11::Encoder enc;
 			enc.encode_int32(100, "test");
 			enc.encode_int32(200, "rest");
 			enc.encode_string("this is a dumb and long string", "strname");
@@ -72,14 +73,14 @@ void perfTest()
 		},
 		[] () -> void
 		{
-			bson::Encoder enc;
+			ebson11::Encoder enc;
 			for (size_t i = 0; i < 1000; ++i)
 				enc.encode_string("this is a dumb and long string", "strname");
 			enc.finalize();
 		},
 		[] () -> void
 		{
-			bson::Encoder enc;
+			ebson11::Encoder enc;
 			for (size_t i = 0; i < 1000; ++i)
 			{
 				enc.encode_int32(100, "test");
@@ -90,7 +91,7 @@ void perfTest()
 		},
 		[] () -> void
 		{
-			bson::Encoder enc;
+			ebson11::Encoder enc;
 			for (size_t i = 0; i < 1000; ++i)
 			{
 				enc.document_start(false, "doc");
@@ -194,9 +195,9 @@ void mongoTest()
 }
 #endif
 
-bson::Encoder::BufType_t genBSON(const pt::ptree& pt)
+ebson11::Encoder::BufType_t genBSON(const pt::ptree& pt)
 {
-	bson::Encoder crapson;
+	ebson11::Encoder crapson;
 	addDoc(pt, crapson);
 	return crapson.finalize();
 }
