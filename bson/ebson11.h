@@ -45,8 +45,16 @@ implements most common types (not all)
 
 namespace ebson11 {
 namespace detail {
-    /// this is a service type to be used in place of std::vector for performance reasons 
-    /// it doesnt initialize the vector (especially on resize()) - about 50% performance gain
+	/** @brief A service class to be used in place of std::vector for performance reasons.
+	 *
+	 * It doesn't initialize vector values (especially on resize()), thus cutting Encoder
+	 * run time roughly in two. It also uses memcpy for copying.
+	 *
+	 * @note This vector should be only used with POD types.
+	 *
+	 * @param Alloc Isn't used internally, it is present to keep type signature compatible
+	 * with std::vector.
+	 */
 	template<typename T, typename Alloc = std::allocator<T>>
 	class uninit_vector
 	{
