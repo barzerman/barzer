@@ -7,6 +7,7 @@
 #include <fstream>
 #include <string>
 #include <iterator>
+#include <chrono>
 #include <boost/chrono/chrono.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/property_tree/xml_parser.hpp>
