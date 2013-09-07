@@ -31,11 +31,7 @@ void encode_sample(ebson11::Encoder& encoder)
 
             // adding a bunch of integers to the nested_array
             for( int i=0; i< 10; ++i ) 
-            {
-                std::stringstream sstr;
-                sstr << i;
-                encoder.encode_int32(i, sstr.str().c_str());
-            }
+                raii.encode_int32(i);
         }
     }
 }
