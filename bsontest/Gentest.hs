@@ -34,6 +34,9 @@ toBSON' "root" n _ xs = concatMap toBSON $ filter isElem xs
 toBSON' "doc" n _ xs = [n := (B.Doc $ concatMap toBSON $ filter isElem xs)]
     where isElem (X.Elem _) = True
           isElem _ = False
+toBSON' "arr" n _ xs = [n := (B.Array $ map value $ concatMap toBSON $ filter isElem xs)]
+    where isElem (X.Elem _) = True
+          isElem _ = False
 toBSON' e n v c = error $ "unexpected XML element; elem = `" ++ e ++ "`; name = `" ++ (unpack n) ++ "`; value = `" ++ v ++ "`; contents = `" ++ show c ++ "`"
 
 main' = mapM handleFile

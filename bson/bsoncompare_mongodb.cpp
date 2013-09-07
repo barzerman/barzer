@@ -7,6 +7,7 @@
 #include <fstream>
 #include <string>
 #include <iterator>
+#include <chrono>
 #include <boost/chrono/chrono.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/property_tree/xml_parser.hpp>
@@ -38,6 +39,12 @@ void addDoc(const pt::ptree& pt, ebson11::Encoder& enc)
 			addDoc(child.second, enc);
 			enc.document_end();
 		}
+		else if (child.first == "arr")
+		{
+			enc.document_start(true, nameStr.empty() ? nullptr : name);
+			addDoc(child.second, enc);
+			enc.document_end();
+		}
 		else if (child.first == "root")
 			addDoc(child.second, enc);
 		else if (child.first == "int32")
@@ -48,7 +55,7 @@ void addDoc(const pt::ptree& pt, ebson11::Encoder& enc)
 			enc.encode_double(boost::lexical_cast<double>(value), name);
 		else if (child.first == "str")
 			enc.encode_string(value, name);
-		else
+		else if (child.first != "<xmlattr>")
 			throw std::runtime_error("unknown type: " + child.first);
 	}
 }
