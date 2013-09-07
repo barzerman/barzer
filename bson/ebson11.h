@@ -240,6 +240,29 @@ private:
 		*static_cast<T*>(new_bytes(sizeof(T))) = t;
 		stack_increment_sz(sz);
 	}
+
+	template<int PreSize, int PostSize>
+	void encode_bytes(const char *bytes, int32_t bytesLength,
+			const char *pre, const char *post,
+			uint8_t typeId, const char *name)
+	{
+		d_buf.push_back(typeId);
+
+		const int32_t sumSz = 1 + encode_name(name) + PreSize + bytesLength + PostSize;
+
+		auto mem = new_bytes(PreSize + bytesLength + PostSize);
+		if (PreSize)
+		{
+			memcpy(mem, pre, PreSize);
+			mem = static_cast<char*>(mem) + PreSize;
+		}
+		memcpy(mem, bytes, bytesLength);
+		mem = static_cast<char*>(mem) + bytesLength;
+		if (PostSize)
+			std::memcpy(mem, post, PostSize);
+
+		stack_increment_sz(sumSz);
+	}
 public:
 	enum { DEFAULT_RESERVE_SZ = 1024*64 };
 
@@ -273,6 +296,20 @@ public:
 		return d_buf;
 	}
 
+	void encode_string(const char *str, const char *name = 0)
+	{
+		char pre[4] = { 0 };
+		const auto strlenp = static_cast<int32_t>(std::strlen(str)) + 1;
+
+		pre[3] = strlenp & 0xff000000;
+		pre[2] = strlenp & 0x00ff0000;
+		pre[1] = strlenp & 0x0000ff00;
+		pre[0] = strlenp & 0x000000ff;
+
+		char post = 0;
+		encode_bytes<4, 1> (str, strlenp - 1, pre, &post, 0x2, name);
+	}
+
 	/** @brief Finalizes the document and moves the buffer to \em out.
 	 *
 	 * This function can be used instead of the other finalize() overload to return the
@@ -296,22 +333,6 @@ public:
 
 	void encode_int32(int32_t i, const char *name = 0) { encode_type(i, 0x10, name); }
 	void encode_bool(bool i, const char *name = 0) { encode_type(static_cast<uint8_t>(i), 0x08, name); }
-
-	void encode_string(const char *str, const char *name = 0)
-	{
-		d_buf.push_back(0x2);
-
-		const auto strlen = static_cast<int32_t>(std::strlen(str));
-		const int32_t sumSz = 1 + encode_name(name) + 4 + strlen + 1;
-
-		auto mem = new_bytes(4 + strlen + 1);
-		*static_cast<uint32_t*>(mem) = (strlen + 1);
-		mem = static_cast<char*>(mem) + 4;
-		memcpy(mem, str, strlen);
-		mem = static_cast<char*>(mem) + strlen;
-		*static_cast<uint8_t*>(mem) = 0;
-		stack_increment_sz(sumSz);
-	}
 
 	// document or array begin (pushes the stack)
 	void document_start(bool isArr = false, const char *name = 0)
