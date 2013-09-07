@@ -35,6 +35,7 @@
 #include <vector>
 #include <cstring>
 #include <iostream>
+#include "stringnum.h"
 
 namespace ebson11
 {
@@ -167,11 +168,45 @@ namespace detail
 			return memcmp(m_data, &other[0]) < 0;
 		}
 	};
+
+	template<typename Impl>
+	struct TypeInterface
+	{
+	public:
+		// individual value encoders
+		void encode_double(double i, const char *name = 0)
+		{
+			static_assert(sizeof(double) == 8, "we don't support non-8-bytes-doubles yet");
+			static_cast<Impl*>(this)->encode_type(i, 0x01, name);
+		}
+
+		void encode_int32(int32_t i, const char *name = 0) { static_cast<Impl*>(this)->encode_type(i, 0x10, name); }
+		void encode_bool(bool i, const char *name = 0) { static_cast<Impl*>(this)->encode_type(static_cast<uint8_t>(i), 0x08, name); }
+
+		void encode_string(const char *str, const char *name = 0)
+		{
+			char pre[4] = { 0 };
+			const auto strlenp = static_cast<int32_t>(std::strlen(str)) + 1;
+
+			pre[0] = strlenp & 0x000000ff;
+			pre[1] = strlenp & 0x0000ff00;
+			pre[2] = strlenp & 0x00ff0000;
+			pre[3] = strlenp & 0xff000000;
+
+			char post = 0;
+
+			static_cast<Impl*>(this)->template encode_bytes<4, 1>(str, strlenp - 1, pre, &post, 0x2, name);
+		}
+	};
 } // namespace detail
 
+class DocumentGuard;
+
 template<template<typename, typename> class BufType = detail::uninit_vector>
-class EncoderT
+class EncoderT : public detail::TypeInterface<EncoderT<BufType>>
 {
+	friend struct detail::TypeInterface<EncoderT<BufType>>;
+	friend class DocumentGuard;
 public:
 	typedef BufType<uint8_t, std::allocator<uint8_t>> BufType_t;
 private:
@@ -296,20 +331,6 @@ public:
 		return d_buf;
 	}
 
-	void encode_string(const char *str, const char *name = 0)
-	{
-		char pre[4] = { 0 };
-		const auto strlenp = static_cast<int32_t>(std::strlen(str)) + 1;
-
-		pre[3] = strlenp & 0xff000000;
-		pre[2] = strlenp & 0x00ff0000;
-		pre[1] = strlenp & 0x0000ff00;
-		pre[0] = strlenp & 0x000000ff;
-
-		char post = 0;
-		encode_bytes<4, 1> (str, strlenp - 1, pre, &post, 0x2, name);
-	}
-
 	/** @brief Finalizes the document and moves the buffer to \em out.
 	 *
 	 * This function can be used instead of the other finalize() overload to return the
@@ -323,16 +344,6 @@ public:
 		stack_pop();
 		d_buf.swap(out);
 	}
-
-	// individual value encoders
-	void encode_double(double i, const char *name = 0)
-	{
-		static_assert(sizeof(double) == 8, "we don't support non-8-bytes-doubles yet");
-		encode_type(i, 0x01, name);
-	}
-
-	void encode_int32(int32_t i, const char *name = 0) { encode_type(i, 0x10, name); }
-	void encode_bool(bool i, const char *name = 0) { encode_type(static_cast<uint8_t>(i), 0x08, name); }
 
 	// document or array begin (pushes the stack)
 	void document_start(bool isArr = false, const char *name = 0)
@@ -348,10 +359,41 @@ public:
 
 typedef EncoderT<> Encoder;
 
-struct DocumentGuard
+class DocumentGuard : public detail::TypeInterface<DocumentGuard>
 {
-	Encoder& encoder;
+	friend struct detail::TypeInterface<DocumentGuard>;
 
+	Encoder& m_encoder;
+
+	const bool m_isArr;
+	StrRepDecimal m_arrIdx;
+
+	template<typename T>
+	void encode_type(T t, uint8_t typeId, const char *name)
+	{
+		if (!m_isArr)
+			m_encoder.encode_type(t, typeId, name);
+		else
+		{
+			m_encoder.encode_type(t, typeId, m_arrIdx.c_str());
+			++m_arrIdx;
+		}
+	}
+
+	template<int PreSize, int PostSize>
+	void encode_bytes(const char *bytes, int32_t bytesLength,
+			const char *pre, const char *post,
+			uint8_t typeId, const char *name)
+	{
+		if (!m_isArr)
+			m_encoder.encode_bytes<PreSize, PostSize>(bytes, bytesLength, pre, post, typeId, name);
+		else
+		{
+			m_encoder.encode_bytes<PreSize, PostSize>(bytes, bytesLength, pre, post, typeId, m_arrIdx.c_str());
+			++m_arrIdx;
+		}
+	}
+public:
 	DocumentGuard(const DocumentGuard&) = delete;
 	DocumentGuard(DocumentGuard&&) = delete;
 
@@ -359,14 +401,15 @@ struct DocumentGuard
 	DocumentGuard& operator=(DocumentGuard&&) = delete;
 
 	DocumentGuard(Encoder& e, bool isArr = false, const char *name = 0)
-	: encoder(e)
+	: m_encoder(e)
+	, m_isArr(isArr)
 	{
-		encoder.document_start(isArr, name );
+		m_encoder.document_start(isArr, name );
 	}
 
 	~DocumentGuard()
 	{
-		encoder.document_end();
+		m_encoder.document_end();
 	}
 };
 } // namespace ebson11
