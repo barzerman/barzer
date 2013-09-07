@@ -47,9 +47,18 @@ int main( int argc, char* argv[])
     ebson11::Encoder encoder;
     encode_sample(encoder);
     const auto& b = encoder.finalize();
-    for( const uint8_t* i = b.begin(), *i_end = b.end(); i< i_end; ++i ) {
-        printf( "0x%x", *i );
+	const auto begin = b.begin();
+	printf("%04x  ", 0);
+    for( const uint8_t* i = begin, *i_end = b.end(); i< i_end; ++i ) {
+		printf( "%02x ", *i );
+
+		const int pos = i - begin + 1;
+		if (!(pos % 16))
+			printf("\n%04x  ", pos);
+		else if (!(pos % 8))
+			printf(" ");
     }
+    printf("\n");
 
     return 0;
 }
