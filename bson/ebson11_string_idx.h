@@ -28,9 +28,7 @@ public:
                 return;
             }
         }
-        if( d_first == d_buf )
-            return;
-        else
+        if( d_first > d_buf )
             *(--d_first) = '1';
     }
 
