@@ -1,7 +1,7 @@
 <root>
     <arr>
-        <int32 value="100"/>
-        <int32 value="200"/>
-        <int32 value="300"/>
+        <int32 value="100" name="0"/>
+        <int32 value="200" name="1"/>
+        <int32 value="300" name="2"/>
     </arr>
 </root>
