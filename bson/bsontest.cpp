@@ -24,7 +24,7 @@ void encode_sample(ebson11::Encoder& encoder)
     
     { // nested object 
         ebson11::DocumentGuard raii(encoder, false, "nested_obj"); // starting nested non-array object by the name "nested_obj"
-        encoder.encode_string( "my name", "name" ); // adding field string "name" to the "nested_obj"
+        encoder.encode_string( "My Name", "name" ); // adding field string "name" to the "nested_obj"
         
         { // adding an array field
             ebson11::DocumentGuard raii( encoder, true, "ints" ); // adding an array field "ints" to "nested_obj"
