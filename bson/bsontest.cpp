@@ -1,4 +1,5 @@
 #include "ebson11.h"
+#include <sstream>
 
 namespace {
 
@@ -27,9 +28,14 @@ void encode_sample(ebson11::Encoder& encoder)
         
         { // adding an array field
             ebson11::DocumentGuard raii( encoder, true, "ints" ); // adding an array field "ints" to "nested_obj"
+
             // adding a bunch of integers to the nested_array
             for( int i=0; i< 10; ++i ) 
-                encoder.encode_int32( i );
+            {
+                std::stringstream sstr;
+                sstr << i;
+                encoder.encode_int32(i, sstr.str().c_str());
+            }
         }
     }
 }
