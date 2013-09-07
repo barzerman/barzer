@@ -1,45 +1,40 @@
 #pragma 
 
-/// implements an incrementable string representation of 15 digit decimal integer (999,999,999,999,999)
+/// implements an incrementable string representation of 20 digit decimals (max int 64 is 18,446,744,073,709,551,615)
 /// the intended use is this: you start with an index and increment it by 1
 /// 32bit unsigned is practically enough 
 #include <stdint.h>
 #include <stdio.h>
 namespace ebson11 {
 
-class StrRepDecimalU32 {
-    char d_buf[ 16 ];
-    int d_last;
-    
+class StrRepDecimal {
+    char d_buf[ 21 ];
+    char* d_first;
 public:
-    StrRepDecimalU32() : d_last(0) {  d_buf[0] = '0'; d_buf[1] = 0; }
+    StrRepDecimal() : 
+        d_first(d_buf+sizeof(d_buf)-2)
+        { 
+            *d_first= '0';
+            d_first[1]=0;
+        }
 
     void slowInit( uint32_t i ) { snprintf( d_buf, sizeof(d_buf), "%u", i ); }
     inline void increment() {
-        if( d_buf[ d_last ] < '9' ) {
-            ++d_buf[ d_last ];
-            return;
-        }
-            
-        for( int last = d_last; last >=0; --last ) {
-            if( d_buf[ last ] == '9' )
-                d_buf[ last ] = '0';
+        for( char* p = (d_buf+sizeof(d_buf)-2); p >=d_first; --p ) {
+            if( *p>= '9' )
+                *p= '0';
             else {
-                ++d_buf[ last ];
+                ++(*p);
                 return;
             }
         }
-        if( d_last == sizeof(d_buf) )
+        if( d_first == d_buf )
             return;
-        // if we're here we need to carry one and add a digit
-        for( size_t i = d_last+1; i> 0; --i ) 
-            d_buf[i]= d_buf[i-1];
-        d_buf[0] = '1';
-        ++d_last;
-        d_buf[ d_last+1 ] =0;
+        else
+            *(--d_first) = '1';
     }
 
-    const char* c_str() const {  return d_buf; }
+    const char* c_str() const {  return d_first; }
 };
 
 }
