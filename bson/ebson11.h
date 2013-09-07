@@ -1,10 +1,3 @@
-/* 2013 Barzer 
-
-EBSON11 v1.0 - Encoder of BSON in c++11 
-
-http://bsonspec.org/#/specification
-implements most common types (not all)
-*/
 /**********************************************************************
  * eBSON11 — BSON encoder in C++11.
  *
