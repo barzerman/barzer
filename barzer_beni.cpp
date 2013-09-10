@@ -28,8 +28,8 @@ size_t SmartBENI::addEntityFile( const char* path, const char* modeStr )
             return 0;
         }
         std::cerr << "reading BENI entities from " << path << std::endl;
-    } else 
-        fp = stdin;
+    } else
+        return( (std::cerr << "0 path specified\n"), 0 );
 
     char buf[ 1024 ];
     size_t entsRead = 0;
@@ -55,6 +55,8 @@ size_t SmartBENI::addEntityFile( const char* path, const char* modeStr )
     std::string tmp,  normName, lowerCase;
     std::vector<char> tmpBuf;
     ay::stopwatch timer;
+    
+    size_t reportEvery = 10000, timesReported = 0;
 
     while( fgets( buf, sizeof(buf)-1, fp ) ) {
         buf[ sizeof(buf)-1 ] = 0;
@@ -106,8 +108,13 @@ size_t SmartBENI::addEntityFile( const char* path, const char* modeStr )
         d_beniStraight.addWord(normName, ent.getEuid() );
         if( d_isSL ) 
             d_beniSl.addWord(normName, ent.getEuid());
-        if (!(++entsRead % 100000))
+        if (!(++entsRead % reportEvery)) {
 			std::cerr << entsRead << " entities loaded (in " << timer.calcTime() << " seconds)..." << std::endl;
+            ++timesReported;
+            if( entsRead > 100000 ) reportEvery = 40000;
+            else if( entsRead> 200000 )
+                reportEvery = 100000;
+        }
     }
 
     std::cerr << entsRead << " entities loaded in " << timer.calcTime() << " seconds" << std::endl;

@@ -784,9 +784,11 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
             if( i.first == "benifile" ) {
                 if( const boost::optional<const ptree&> optAttr = i.second.get_child_optional("<xmlattr>") ) {
                     if( const boost::optional<std::string> fnam = optAttr.get().get_optional<std::string>("f") ) {
-                        const char* mode = 0;
-                        if( const boost::optional<std::string> modeStr = optAttr.get().get_optional<std::string>("m") ) 
-                        u.getUniverse().beni().addEntityFile( modeStr.get().c_str() );
+                        std::string mode;
+                        if( const boost::optional<std::string> x = optAttr.get().get_optional<std::string>("m") ) 
+                            mode = x.get();
+
+                        u.getUniverse().beni().addEntityFile( fnam.get().c_str(), mode.empty() ? 0 : mode.c_str() );
                     }
                 }
             }

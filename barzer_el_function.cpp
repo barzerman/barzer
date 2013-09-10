@@ -1613,8 +1613,36 @@ struct BELFunctionStorage_holder {
     {
         SETFUNCNAME(lookupEnt);
         const char* argStr = GETARGSTR();
-        if( rvec.size() == 3 ) { 
-            StoredEntityClass ec;
+
+        enum {  
+            LKUPMODE_ID,     // by entity id
+            LKUPMODE_NAME,   // by entity name
+            LKUPMODE_NAME_ID // both
+        } lkMode= LKUPMODE_ID;
+        
+        size_t maxEnt = 0;
+        if( argStr ) {
+            if( const char* x = strstr( argStr, "NAME" ) ){
+                if( !strncmp( x, "NAME_ID", (sizeof("NAME_ID")-1) ) ) 
+                    lkMode = LKUPMODE_NAME_ID;
+                else
+                    lkMode = LKUPMODE_NAME;
+            }
+            size_t maxEnt = atoi(argStr);
+        } 
+
+        QuestionParm qparm;
+        StoredEntityClass ec;
+        std::string idStr;
+        if( rvec.size() == 2 ) {
+            ec.ec = q_universe.getUserId();
+            if( const BarzerNumber *x = getAtomicPtr<BarzerNumber>(rvec[0]) ) 
+                ec.subclass = (uint32_t) x->getInt();
+            else 
+                FERROR("first arg must be a number" );
+
+            getString( idStr, rvec[1], q_universe );
+        } else if( rvec.size() == 3 ) { 
             if( const BarzerNumber *x = getAtomicPtr<BarzerNumber>(rvec[0]) ) 
                 ec.ec = (uint32_t) x->getInt();
             else 
@@ -1624,35 +1652,44 @@ struct BELFunctionStorage_holder {
                 ec.subclass = (uint32_t) x->getInt();
             else 
                 FERROR("second arg must be a number" );
-
-            std::string idStr;
             getString( idStr, rvec[2], q_universe );
+        }  else
+            FERROR( "must have 2 or 3 args: [class,] subclass, idStr" );
 
-            BENIFindResults_t beniResult;
-            QuestionParm qparm;
-            size_t maxEnt = ( argStr ? atoi(argStr) : 0 );
+        BENIFindResults_t beniResult;
+
+        if( lkMode == LKUPMODE_ID || lkMode == LKUPMODE_NAME_ID ) {
             q_universe.entLookupBENISearch( beniResult, idStr.c_str(), ec, qparm );
 
             if( maxEnt && beniResult.size() > maxEnt )
                 beniResult.resize( maxEnt );
-            if( beniResult.empty() ) {
-		        setResult(result, BarzerEntity() );
-                return true;
-            }
-
-            if( beniResult.size() == 1 )
-		        setResult(result, beniResult.front().ent);
-            else {
-                BarzerEntityList& newEntList = setResult(result, BarzerEntityList() );
-                double maxCov = beniResult.front().coverage;
-                for( const auto& i : beniResult ) {
-                    if( maxCov> i.coverage ) 
-                        break;
-                    newEntList.addEntity( i.ent );
+        } 
+        if( lkMode == LKUPMODE_NAME || lkMode == LKUPMODE_NAME_ID ) {
+            BENIFindResults_t beniResultName;
+            q_universe.searchEntitiesByName( beniResultName, idStr.c_str(), qparm); 
+            if( !maxEnt || beniResult.size() < maxEnt ) {
+                for( auto i = beniResultName.begin(); i!= beniResultName.end(); ++i ) {
+                    if( !maxEnt || beniResult.size() < maxEnt ) 
+                        beniResult.push_back( *i );
                 }
             }
-        }  else
-            FERROR( "must have 3 args: class, subclass, idStr" );
+        }
+        
+        if( beniResult.empty() ) {
+            setResult(result, BarzerEntity() );
+            return true;
+        } else 
+        if( beniResult.size() == 1 )
+            setResult(result, beniResult.front().ent);
+        else {
+            BarzerEntityList& newEntList = setResult(result, BarzerEntityList() );
+            double maxCov = beniResult.front().coverage;
+            for( const auto& i : beniResult ) {
+                if( maxCov> i.coverage ) 
+                    break;
+                newEntList.addEntity( i.ent );
+            }
+        }
         return true;
     }
 
