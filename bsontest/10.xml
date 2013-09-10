@@ -1,0 +1,28 @@
+<root>
+    <arr>
+        <int32 value="100" name="0"/>
+        <int32 value="200" name="1"/>
+        <int32 value="300" name="2"/>
+    </arr>
+    <doc>
+        <int32 value="100"/>
+    </doc>
+    <doc>
+        <doc>
+            <int32 value="100"/>
+        </doc>
+    </doc>
+    <doc name="bigdoc">
+        <int32 value="100" />
+        <str name="hello" value="world" />
+        <bool value="1" />
+        <bool name="bsonsucks" value="0" />
+        <double name="wantedsalary" value="150" />
+    </doc>
+    <arr name="test">
+        <int32 value="400" name="0"/>
+        <int32 value="500" name="1"/>
+        <int32 value="600" name="2"/>
+    </arr>
+</root>
+

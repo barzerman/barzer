@@ -1,0 +1,50 @@
+<root>
+    <arr>
+        <doc name="0">
+            <str value="My Name" name="name"/>
+            <arr name="ints">
+                <int32 value="0" name="0" />
+                <int32 value="1" name="1" />
+                <int32 value="2" name="2" />
+                <int32 value="3" name="3" />
+                <int32 value="4" name="4" />
+                <int32 value="5" name="5" />
+                <int32 value="6" name="6" />
+                <int32 value="7" name="7" />
+                <int32 value="8" name="8" />
+                <int32 value="9" name="9" />
+            </arr>
+        </doc>
+        <doc name="1">
+            <str value="My Name" name="name"/>
+            <arr name="ints">
+                <int32 value="0" name="0" />
+                <int32 value="1" name="1" />
+                <int32 value="2" name="2" />
+                <int32 value="3" name="3" />
+                <int32 value="4" name="4" />
+                <int32 value="5" name="5" />
+                <int32 value="6" name="6" />
+                <int32 value="7" name="7" />
+                <int32 value="8" name="8" />
+                <int32 value="9" name="9" />
+            </arr>
+        </doc>
+        <doc name="2">
+            <str value="My Name" name="name"/>
+            <arr name="ints">
+                <int32 value="0" name="0" />
+                <int32 value="1" name="1" />
+                <int32 value="2" name="2" />
+                <int32 value="3" name="3" />
+                <int32 value="4" name="4" />
+                <int32 value="5" name="5" />
+                <int32 value="6" name="6" />
+                <int32 value="7" name="7" />
+                <int32 value="8" name="8" />
+                <int32 value="9" name="9" />
+            </arr>
+        </doc>
+    </arr>
+</root>
+
