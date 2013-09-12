@@ -58,6 +58,7 @@ def application(env, start_response):
     uid = 0
     ver = 1.0
     qs = env['QUERY_STRING']
+    user_set = False
     for kv in (s2 for s1 in qs.split('&') for s2 in s1.split(';')):
         parts = kv.split('=', 1)
         if len(parts) != 2:
@@ -67,17 +68,20 @@ def application(env, start_response):
             query = escape(unquote(v.replace('+', ' ')))
         elif k == 'key':
             uid = cache_get(v)
+            user_set = bool(uid)
         elif k == 'ver':
             try:
                 ver = float(v)
             except ValueError:
                 yield error("Invalid `ver' parameter")
                 return
-        elif k in ('now', 'beni', 'zurch', 'flag', 'route', 'extra'):
+        elif k in {'now', 'beni', 'zurch', 'flag', 'route', 'extra', 'u', 'uname'}:
+            if k in ('u', 'uname'):
+                user_set = True
             add += ' {}={}'.format(k, quoteattr(unquote(v.replace('+', ' '))))
             
-    if not uid:
-        yield error("Invalid key")
+    if not user_set:
+        yield error("Invalid user")
         return
     elif not query:
         yield error("Invalid query")
