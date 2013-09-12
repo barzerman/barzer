@@ -68,7 +68,9 @@ def application(env, start_response):
             query = escape(unquote(v.replace('+', ' ')))
         elif k == 'key':
             uid = cache_get(v)
-            user_set = bool(uid)
+            if uid:
+                user_set = True
+                add += ' u="{}"'.format(uid)
         elif k == 'ver':
             try:
                 ver = float(v)
@@ -101,7 +103,7 @@ def application(env, start_response):
         yield error("Unable to connect")
         uwsgi.close(fd)
         return
-    qry = '<query u="{}"{}>{}</query>\r\n.\r\n'.format(uid, add, query)
+    qry = '<query{}>{}</query>\r\n.\r\n'.format(add, query)
     #print qry
     uwsgi.send(fd, qry)
     while True:
