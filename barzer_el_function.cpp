@@ -21,6 +21,7 @@
 #include <barzer_el_function_util.h>
 #include <boost/format.hpp>
 #include <barzer_el_matcher.h>
+#include <barzer_beni.h>
 
 namespace barzer {
 
@@ -1665,12 +1666,15 @@ struct BELFunctionStorage_holder {
                 beniResult.resize( maxEnt );
         } 
         if( lkMode == LKUPMODE_NAME || lkMode == LKUPMODE_NAME_ID ) {
-            BENIFindResults_t beniResultName;
-            q_universe.searchEntitiesByName( beniResultName, idStr.c_str(), qparm); 
             if( !maxEnt || beniResult.size() < maxEnt ) {
-                for( auto i = beniResultName.begin(); i!= beniResultName.end(); ++i ) {
-                    if( !maxEnt || beniResult.size() < maxEnt ) 
-                        beniResult.push_back( *i );
+                if( const SmartBENI*  beni = q_universe.getBeni() ) {
+                    BENIFindResults_t beniResultName;
+                    size_t maxCount = ( maxEnt ? (maxEnt-beniResult.size()) : 128 );
+                    beni->search( beniResultName, idStr.c_str(), 0.3, [&] (const BarzerEntity& i ) { return (ec == i.eclass); }, maxCount ); 
+                    for( auto i = beniResultName.begin(); i!= beniResultName.end(); ++i ) {
+                        if( !maxEnt || beniResult.size() < maxEnt ) 
+                            beniResult.push_back( *i );
+                     }
                 }
             }
         }

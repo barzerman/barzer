@@ -379,7 +379,7 @@ public:
     /// add all entities by name for given class 
     void addEntityClass( const StoredEntityClass& ec );
     /// returns max coverage
-    double search( BENIFindResults_t&, const char* str, double minCov, const BENIFilter_f& = BENIFilter_f ()) const;
+    double search( BENIFindResults_t&, const char* str, double minCov, const BENIFilter_f& = BENIFilter_f (), maxCount=128) const;
 
     void clear() { d_storage.clear(); }
     BENI( StoredUniverse& u );
