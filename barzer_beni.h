@@ -379,7 +379,7 @@ public:
     /// add all entities by name for given class 
     void addEntityClass( const StoredEntityClass& ec );
     /// returns max coverage
-    double search( BENIFindResults_t&, const char* str, double minCov, const BENIFilter_f& = BENIFilter_f (), maxCount=128) const;
+    double search( BENIFindResults_t&, const char* str, double minCov, const BENIFilter_f& = BENIFilter_f ()) const;
 
     void clear() { d_storage.clear(); }
     BENI( StoredUniverse& u );
@@ -413,7 +413,7 @@ public:
     /// lines with leading # are skipped as comments
     size_t addEntityFile( const char* path=0, const char* modeStr=0 ); 
 
-    void search( BENIFindResults_t&, const char* str, double minCov, const BENIFilter_f& = BENIFilter_f ()) const;
+    void search( BENIFindResults_t&, const char* str, double minCov, const BENIFilter_f& = BENIFilter_f (), size_t maxCount=128) const;
 	
 	BENI& getPrimaryBENI();
 

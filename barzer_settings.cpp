@@ -870,8 +870,11 @@ void BarzerSettings::loadUsers(BELReader& reader ) {
             if( loadedUsers && userNameOpt ) {
                 StoredUniverse* uniPtr = reader.getCurrentUniverse();
 
-                if( uniPtr ) 
-                    uniPtr->setUserName( userNameOpt.get().c_str() );
+                if( uniPtr )  {
+                    const std::string uname = userNameOpt.get();
+                    uniPtr->setUserName( uname.c_str() );
+                    gpools.setUserNameForId( uname.c_str(), uniPtr->getUserId() );    
+                }
             } else 
                 reader.setCurrentUniverse(0);
         }

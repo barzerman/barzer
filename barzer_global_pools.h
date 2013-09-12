@@ -243,6 +243,16 @@ public:
 	typedef boost::unordered_map< uint32_t, StoredUniverse* > UniverseMap;
 
 	UniverseMap d_uniMap;
+
+    std::map< std::string, uint32_t > d_userName2UserIdMap;
+
+    uint32_t getUserIdByUserName( const char* x ) const
+    {
+        auto i = d_userName2UserIdMap.find( x );
+        return( i != d_userName2UserIdMap.end() ? i->second : 0xffffffff );
+    }
+    void setUserNameForId( const std::string& name, uint32_t id )
+        { d_userName2UserIdMap[ name ] = id; }
     const UniverseMap& getUniverseMap() const { return d_uniMap; }
 
 	BarzerSettings* settings; /// guaranteed to never be 0 

@@ -363,6 +363,12 @@ int BarzerRequestParser::initFromUri( QuestionParm& qparm, const char* u, size_t
 				handled = true;
                 if( !d_universe ) 
                     return 1;
+            } else if( i->first == "uname" ) { // un
+                userId = gpools.getUserIdByUserName( i->second.c_str() );
+                setUniverse( gpools.getUniverse(userId) );
+				handled = true;
+                if( !d_universe ) 
+                    return 1;
             }
             break;
         }
@@ -1076,8 +1082,19 @@ void BarzerRequestParser::tag_query(RequestTag &tag)
 	AttrList &attrs = tag.attrs;
     AttrList::iterator it;
     if( !d_universe ) {
+        uint32_t userId = 0;
 	    it = attrs.find("u");
-		setUniverseId(it != attrs.end() ? atoi(it->second.c_str()) : 0);
+        if( it == attrs.end() ) {
+
+            if( (it = attrs.find("uname" )) != attrs.end()  ) {
+                uint32_t x = gpools.getUserIdByUserName( it->second.c_str() );
+                if( x != 0xffffffff ) 
+                    userId = x;
+            }
+        } else
+            userId = atoi(it->second.c_str());
+
+		setUniverseId( userId );
     }
     d_simplified = false;
     d_queryFlags.clear();
