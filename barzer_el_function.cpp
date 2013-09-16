@@ -1152,7 +1152,9 @@ struct BELFunctionStorage_holder {
 			}
 			case 0: {
 				std::time_t t = std::time(0);
-				std::tm *tm = std::localtime(&t);
+
+                struct tm tmpTm = {0};
+				struct tm *tm = localtime_r(&t, &tmpTm);
 				hh = tm->tm_hour;
 				mm = tm->tm_min;
 				ss = tm->tm_sec;
