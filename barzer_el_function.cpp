@@ -19,6 +19,7 @@
 #include <boost/assign.hpp>
 #include <barzer_barz.h>
 #include <barzer_el_function_util.h>
+#include <barzer_el_function_holder.h>
 #include <boost/format.hpp>
 #include <barzer_el_matcher.h>
 #include <barzer_beni.h>
@@ -26,144 +27,14 @@
 namespace barzer {
 
 struct BTND_Rewrite_Function;
+
+using namespace funcHolder;
+
 namespace {
-    uint32_t   getInternalStringIdFromLiteral( const GlobalPools& g, const BarzerLiteral* ltrl ) {
-        if( !ltrl ) 
-            return 0xffffffff;
-        const char* str = g.string_resolve(ltrl->getId());
-        if( !str ) 
-            return 0xffffffff;
-        uint32_t internalStrId = g.internalString_getId(str);
-        return internalStrId;
-    }
-    uint32_t   getInternalStringIdFromLiteral( const StoredUniverse& u, const BarzerLiteral* ltrl ) {
-        if( !ltrl ) 
-            return 0xffffffff;
-        const char* str = u.getGlobalPools().string_resolve(ltrl->getId());
-        if( !str ) 
-            return 0xffffffff;
-        uint32_t internalStrId = u.getGlobalPools().internalString_getId(str);
-        return internalStrId;
-    }
-
-
-    // sig is the function's signature
-    void pushFuncError( BarzelEvalContext& ctxt, const char* funcName, const char* error, const char* sig=0 )
-    {
-        std::stringstream ss;
-        ss << "<funcerr func=\"" << ( funcName ? funcName: "" ) << "\">" << ( error ? error: "" ) ;
-        if( sig ) {
-            ss << "<sig>" << sig << "</sig>";
-        }
-        ss << "</funcerr>";
-
-        ctxt.getBarz().barzelTrace.pushError( ss.str().c_str() );
-    }
-    
-    void pushFuncError( BarzelEvalContext& ctxt, const char* funcName, boost::basic_format<char>& error, const char* sig=0 )
-    {
-      pushFuncError(ctxt, funcName, error.str().c_str(), sig);
-    }
-// some utility stuff
-
-
-// extracts a string from BarzerString or BarzerLiteral
-struct StringExtractor : public boost::static_visitor<const char*> {
-	const GlobalPools &globPools;
-	StringExtractor(const GlobalPools &u) : globPools(u) {}
-	const char* operator()( const BarzerLiteral &dt ) const {
-		return globPools.getStringPool().resolveId(dt.getId());
-	}
-	const char* operator()( const BarzerString &dt ) const
-		{ return dt.getStr().c_str(); }
-	const char* operator()( const BarzelBeadAtomic &dt ) const
-		{ return boost::apply_visitor(*this, dt.dta); }
-	template <typename T> const char* operator()( const T& ) const
-		{ return 0;	}
-};
-
-const char* extractString(const GlobalPools &u, const BarzelEvalResult &result)
-{
-	return boost::apply_visitor(StringExtractor(u), result.getBeadData());
-}
-
-// throwing version. only call it when catching boost::bad_get
-template<class T> const T& getAtomic(const BarzelEvalResult &result) {
-	return boost::get<T>(
-			boost::get<BarzelBeadAtomic>(result.getBeadData()).getData());
-}
-
-template<class T> const T& getAtomic(const BarzelBeadData &dta) {
-	return boost::get<T>(
-			boost::get<BarzelBeadAtomic>(dta).getData());
-}
-
-
-template<class T> const T* getAtomicPtr(const BarzelBeadData &dta)
-{
-    if( is_BarzelBeadAtomic(dta) ) {
-        const BarzelBeadAtomic& atomic = boost::get<BarzelBeadAtomic>(dta);
-        const BarzelBeadAtomic_var& atDta = atomic.getData();
-
-        return boost::get<T>( &atDta );
-    } else
-        return 0;
-}
-template<class T> bool isAtomic(const BarzelBeadData &dta) { return (getAtomicPtr<T>(dta) != nullptr); }
-
-template<class T> const T* getAtomicPtr(const BarzelEvalResult &res) { return getAtomicPtr<T>( res.getBeadData() ); }
-
-template<class T> bool isAtomic(const BarzelEvalResult &res) { return isAtomic<T>( res.getBeadData() ); }
-
-void getString(std::string& str, const BarzelEvalResult &r, const StoredUniverse& u)
-{
-
-    if( const BarzerNumber *x = getAtomicPtr<BarzerNumber>(r) ) {
-        x->toString( str );
-    } else if( const BarzerLiteral* x = getAtomicPtr<BarzerLiteral>(r) ) {
-       if( const char* y = u.getGlobalPools().string_resolve(x->getId()) )
-        str.assign( y );
-    } else if( const BarzerString* x = getAtomicPtr<BarzerString>(r) ) {
-        str = x->getStr();
-    }
-}
-
-template<class T> const BarzerNumber& getNumber(const T &v)
-{
-    return getAtomic<BarzerNumber>(v);
-}
-
-//template<class T> void setResult(BarzelEvalResult&, const T&);
-
-
-
-template<class T> T& setResult(BarzelEvalResult &result, const T &data) {
-	result.setBeadData(BarzelBeadAtomic());
-	boost::get<BarzelBeadAtomic>(result.getBeadData()).setData(data);
-	BarzelBeadAtomic &a = boost::get<BarzelBeadAtomic>(result.getBeadData());
-	return boost::get<T>(a.getData());
-}
-
-bool setResult(BarzelEvalResult &result, bool data) {
-    if (data) {
-        setResult(result, BarzerNumber(1));
-    } else {
-        result.setBeadData(BarzelBeadBlank());
-    }
-    return data;
-}
-
-
 // probably can replace it by something from stl
-struct plus {
-	template <class T> T operator()(T v1, T v2) { return v1 + v2; }
-};
-struct minus {
-	template <class T> T operator()(T v1, T v2) { return v1 - v2; }
-};
-struct mult {
-	template <class T> T operator()(T v1, T v2) { return v1 * v2; }
-};
+struct plus { template <class T> T operator()(T v1, T v2) { return v1 + v2; } };
+struct minus { template <class T> T operator()(T v1, T v2) { return v1 - v2; } };
+struct mult { template <class T> T operator()(T v1, T v2) { return v1 * v2; } };
 struct div {
 	template <class T> T operator()(T v1, T v2)
 	{
@@ -201,8 +72,6 @@ template<class U> struct ArithVisitor : public boost::static_visitor<bool> {
 		return false;
 	}
 };
-
-
 // concats N strings into one using std::stringstream
 
 struct StrConcatVisitor : public boost::static_visitor<bool> {
@@ -334,209 +203,106 @@ bool mergeRanges(BarzerRange &r1, const BarzerRange &r2) {
 	return true;
 }
 
+} // anon namespace
 
-uint32_t getTokId(const char* tokStr, const StoredUniverse &u)
+namespace {
+
+bool tryScaleRange( BarzelEvalResult &result, const ay::skippedvector<BarzelEvalResult> &rvec,
+                        const StoredUniverse &q_universe, BarzelEvalContext& ctxt, const BTND_Rewrite_Function& fr, int mode /*RANGE_MOD_XXX*/ ) 
 {
-	const StoredToken *tok = u.getDtaIdx().getTokByString(tokStr);
-
-	if (!tok) {
-		AYLOG(ERROR) << "Invalid token: " << tokStr;
-		return 0xffffffff;
-	}
-	return tok->getId();
-}
-
-uint32_t getTokId(const BarzerLiteral &l, const StoredUniverse &u)
-{
-	const char *tokStr = u.getStringPool().resolveId(l.getId());
-
-	if (!tokStr) {
-		AYLOG(ERROR) << "Invalid literal ID: " << l.getId();
-		return 0xffffffff;
-	}
-	return getTokId(tokStr, u);
-}
-struct DateGetter_vis : public boost::static_visitor<const BarzerDate*>  {
-    template <typename T>
-    const BarzerDate* operator()( const T& d ) const { return 0; }
-
-    const BarzerDate* operator()( const BarzerDate& d )     const { return &d; }
-    const BarzerDate* operator()( const BarzerDateTime& d ) const { return &(d.date); }
-    const BarzerDate* operator()( const BarzerRange& d )    const {
-        const BarzerRange::Date* p = d.getDate();
-        return ( p ? &(p->first) : 0);
-    }
-    const BarzerDate* operator()( const BarzerERC& d ) const { return (*this)( d.getRange() ); }
-};
-inline const BarzerDate* getBarzerDateFromAtomic( const BarzelBeadAtomic* atomic )
-{
-    return boost::apply_visitor(DateGetter_vis(), atomic->getData());
-}
-
-}
-// Stores map ay::UniqueCharPool::StrId -> BELFunctionStorage::function
-// the function names are using format "stfun_*function name*"
-// ADDFN(fname) macro is used add new functions in the constructor
-// so we never have to debug typing mistakes
-
-
-struct BELFunctionStorage_holder {
-	GlobalPools &gpools;
-	BELStoredFunMap funmap;
-	std::vector<BELFuncInfo> funcInfos;
-
-	#define ADDFN(n,d) addFun(#n, d, boost::mem_fn(&BELFunctionStorage_holder::stfun_##n))
-	BELFunctionStorage_holder(GlobalPools &u) : gpools(u) {
-		// makers
-		ADDFN(test, "test function");
-
-		ADDFN(mkDate, "makes a date");
-		ADDFN(mkDateRange, "");
-		ADDFN(mkDay, "");
-		ADDFN(mkWday, "");
-		ADDFN(mkWeekRange, "");
-		ADDFN(mkMonthRange, "");
-		ADDFN(mkMonth, "");
-        ADDFN(mkWdayEnt, "");
-        ADDFN(mkMonthEnt, "");
-		ADDFN(mkTime, "");
-		ADDFN(mkDateTime, "");
-		ADDFN(mkRange, "makes range (1 or 2 parms - number, date etc.)");
-		ADDFN(rangeFuzz, "fuzzes range by given percentage (argstr)");
-		ADDFN(mkEnt, "");
-		ADDFN(lookupEnt, "");
-		ADDFN(mkERC, "");
-		ADDFN(mkEVR, "");
-		ADDFN(mkErcExpr, "");
-		ADDFN(mkFluff, "");
-		// ADDFN(mkLtrl);
-		ADDFN(mkExprTag, "");
-		ADDFN(mkExprAttrs, "");
-
-
-		// caller
-		ADDFN(call, "");
-
-        //setter
-        ADDFN(set, "");
-                
-		// getters
-		ADDFN(getWeekday, "");      // getWeekday(BarzerDate)
-		ADDFN(getTokId, "");        // (BarzerLiteral|BarzerEntity)
-		ADDFN(getTime, "");         // getTime(DateTime)
-		ADDFN(getDate, "");         // getDate(DateTime)
-		ADDFN(getMDay, "");
-		ADDFN(setMDay, "");
-		ADDFN(getMonth, "");
-		ADDFN(getYear, "");
-		ADDFN(getLow, ""); // (BarzerRange)
-		ADDFN(getHigh, ""); // (BarzerRange)
-		ADDFN(isRangeEmpty, ""); // (BarzerRange or ERC) - returns true if range.lo == range.hi
-
-        ADDFN(getLeftBead, "");  // returns closest bead on the left of the type matching arg . null otherwise
-        ADDFN(getBeadSrcTok, "");  // a string contactenated with spaces from scrtokens of all beads in substitution sequence
-		// arith
-		ADDFN(textToNum, "");
-		ADDFN(opPlus, "");
-		ADDFN(opAdd, "");
-		ADDFN(opMinus, "");
-		ADDFN(opSub, "");
-		ADDFN(opMult, "");
-		ADDFN(opDiv, "");
-		//logic
-		ADDFN(opLt, "");
-		ADDFN(opGt, "");
-		ADDFN(opEq, "");
-		ADDFN(opDateCalc, "");
-        ADDFN(opTimeCalc, "");
-		// string
-		ADDFN(strConcat, "");
-		// lookup
-		ADDFN(lookupMonth, "");
-		ADDFN(lookupWday, "");
-
-        /// array
-		ADDFN(arrSz, "");
-		ADDFN(arrIndex, "");
-		ADDFN(typeFilter, "");
-		ADDFN(filterRegex, "");
-		ADDFN(setUnmatch, ""); // bead
-
-		// --
-		ADDFN(filterEList, ""); // filters entity list by class/subclass (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
-        ADDFN(hasTopics, "");
-        ADDFN(topicFilterEList, "");
-		ADDFN(mkEntList, ""); // (BarzerEntity, ..., BarzerEntity) will also accept BarzerEntityList
-
-        // ent properties
-		ADDFN(entClass, ""); // (Entity)
-		ADDFN(entSubclass, ""); // (Entity)
-		ADDFN(entId, ""); // (Entity)
-		ADDFN(entSetSubclass, ""); // (Entity,new subclass)
-
-        // erc properties
-		ADDFN(getEnt, ""); // ((EVR|ERC|Entity)[,entity]) -- when second parm passed replaces entity with it
-		ADDFN(getRange, ""); // ((ERC|Entity)[,range]) -- when second parm passed replaces range with it
-        
-        /// generic getter 
-        ADDFN(get, "");
-	}
-	#undef ADDFN
-    
-	void addFun(const char *fname, const char *desc, BELStoredFunction fun) {
-		// const uint32_t fid = gpools.internString_internal(fname);
-		const uint32_t fid = gpools.internString_internal(fname);
-		const uint32_t descid = gpools.internString_internal(desc);
-		//AYLOG(DEBUG) << "adding function(" << fname << ":" << fid << ")";
-		addFun(fid, descid, fun);
-	}
-
-    const BarzerLiteral* getRvecLiteral( const BarzelEvalResultVec& rvec, size_t i ) const
-    { return ( i < rvec.size() ? getAtomicPtr<BarzerLiteral>( rvec[i] ) : 0 ) ; }
-    
-    inline const char* literalToCString( const BarzerLiteral& ltrl ) const
-    {
-        return(
-            ltrl.isInternalString() ? 
-            gpools.internalString_resolve(ltrl.getId()) :
-            gpools.string_resolve(ltrl.getId())
-        );
-    }
-    const char* getCharPtr( const BarzelEvalResultVec& rvec, size_t i ) const
-    {
-        if( i >= rvec.size() )
-            return 0;
-        if( const BarzerLiteral* x = getRvecLiteral(rvec,i) ) {
-            if( x )
-                return literalToCString(*x);
-        } else if( const BarzerString* x = getAtomicPtr<BarzerString>( rvec[i] )  ) {
-            return x->c_str();
+    const char* func_name = (mode == BarzerRange::RANGE_MOD_SCALE_MULT ? "opMult" :
+                        mode == BarzerRange::RANGE_MOD_SCALE_DIV ? "opDiv" :
+                        mode == BarzerRange::RANGE_MOD_SCALE_PLUS ? "opPlus":
+                        mode == BarzerRange::RANGE_MOD_SCALE_MINUS ?"opMinus" : "<Unknown>");
+    if( rvec.size() == 2 ) { // trying to scale range 
+        const BarzelEvalResult& arg0 = rvec[0];
+        const BarzelEvalResult& arg1 = rvec[1];
+        const BarzerNumber* n = getAtomicPtr<BarzerNumber>(arg1);
+        if( n ) {
+            const BarzerRange* r = getAtomicPtr<BarzerRange>(arg0);
+            if( r ) {
+                BarzerRange newR(*r);                    
+                if( !newR.scale(*n, mode) ) 
+                    FERROR("failed to scale the range");
+                 else {
+            setResult(result, newR);
+                    return true;
+                }
+            } else {
+                const BarzerERC* erc = getAtomicPtr<BarzerERC>(arg0);
+                if( erc ) {
+                    BarzerRange newR(erc->getRange());
+                    if( !newR.scale(*n,mode) ) 
+                        FERROR("failed to scale the range");
+                     else {
+                        BarzerERC berc;
+                        berc.setRange(newR);  
+                        berc.setEntity(erc->getEntity());                             
+                setResult(result, berc);
+                        return true;
+                    }
+                } 
+            } 
         } 
-        return 0;
-    }
-	void addFun(const uint32_t fid, const uint32_t descid, BELStoredFunction fun)
-	{
-		funmap.insert(BELStoredFunRec(fid, fun));
+    } else  if( rvec.size() == 3 ) { // trying to scale range 
+        const BarzerNumber* n1 = getAtomicPtr<BarzerNumber>(rvec[1]);
+        const BarzerNumber* n2 = getAtomicPtr<BarzerNumber>(rvec[2]);            
+        if( n1 && n2 ) {
+            const BarzerRange* r = getAtomicPtr<BarzerRange>(rvec[0]);
+            if( r ) {
+                BarzerRange newR(*r);
+                if( !newR.scale(*n1, *n2, mode) ) 
+                    FERROR("failed to scale the range");
+                else {
+                    setResult(result, newR);
+                    return true;
+                }
+            } else {
+                const BarzerERC* erc = getAtomicPtr<BarzerERC>(rvec[0]);
+                if( erc ) {
+                    BarzerRange newR(erc->getRange());
+                    if( !newR.scale(*n1, *n2,mode) ) 
+                        FERROR("failed to scale the range");
+                    else {
+                        BarzerERC berc;
+                        berc.setRange(newR);  
+                        berc.setEntity(erc->getEntity());                             
+                        setResult(result, berc);
+                        return true;
+                    }
+                } 
+            }
+        } 
+    }      
+    return false;
+} // tryScaleRange
 
-		funcInfos.push_back({ fid, descid });
-	}
+struct lt { template <class T> bool operator()(T v1, T v2) { return v1 < v2; } };
+struct gt { template <class T> bool operator()(T v1, T v2) { return !(v1 < v2); } };
+struct eq { template <class T> bool operator()(T v1, T v2) { return v1 == v2; } };
 
+template <typename Op>    
+bool cmpr(BarzelEvalResult &result,
+            const ay::skippedvector<BarzelEvalResult> &rvec,
+            BarzelEvalContext& ctxt,
+            const char* func_name)
+{
+    Op op;
+    if (rvec.size() < 2) return (FERROR("At least two arguments are needed"), false);
+    BarzelEvalResultVec::const_iterator end = rvec.end(),
+                                        it = rvec.begin()+1;                    
+    bool res = true;
+    for (; res && it != end; ++it) 
+        res = op(*(it-1), *it);
+    setResult(result, res);
+    return true;
+}
 
+/// ACTUAL FUNCTIONS
 	//enum { P_WEEK = 1, P_MONTH, P_YEAR, P_DECADE, P_CENTURY };
 	// stored functions
-	#define GETARGSTR() (q_universe.getGlobalPools().internalString_resolve(fr.getArgStrId()))
-	#define GETRVECSTR(i) (q_universe.getGlobalPools().string_resolve( getRvecLiteral(rvec,i) ))
 
-	#define STFUN(n) bool stfun_##n( BarzelEvalResult &result,\
-							        const ay::skippedvector<BarzelEvalResult> &rvec,\
-							        const StoredUniverse &q_universe, BarzelEvalContext& ctxt, const BTND_Rewrite_Function& fr ) const
-
-    #define SETSIG(x) const char *sig = #x
-    #define SETFUNCNAME(x) const char *func_name = #x
-
-	#define FERROR(x) pushFuncError( ctxt, func_name, x )
-
-	STFUN(test) {
+	FUNC_DECL(test) {
 		AYLOGDEBUG(rvec.size());
 		AYLOGDEBUG(rvec[0].getBeadData().which());
 
@@ -544,13 +310,13 @@ struct BELFunctionStorage_holder {
 		return true;
 	}
     /// generic getter
-    STFUN(get) {
+    FUNC_DECL(get) {
         SETFUNCNAME(call);
         const char* argStr = GETARGSTR();
         if( !argStr && rvec.size()>1) {
             const BarzerLiteral* ltrl = getAtomicPtr<BarzerLiteral>( rvec[1] ) ;
             if( ltrl ) {
-                argStr =  literalToCString(*ltrl) ; 
+                argStr =  h->literalToCString(*ltrl) ; 
             } else {
                 const BarzerString* bs = getAtomicPtr<BarzerString>( rvec[1] ) ;
                 if( bs ) 
@@ -566,7 +332,7 @@ struct BELFunctionStorage_holder {
         FERROR( "expects arg to be set and at least one argument" );
         return false;
     }
-    STFUN(set) {
+    FUNC_DECL(set) {
         SETFUNCNAME(set);
         const char* argStr = GETARGSTR();
         if( fr.isReqVar() ){ 
@@ -608,7 +374,7 @@ struct BELFunctionStorage_holder {
         }
     }
     /// get bead source tokens 
-    STFUN(getBeadSrcTok)
+    FUNC_DECL(getBeadSrcTok)
     {
         SETFUNCNAME(getBeadSrcTok);
         if( ctxt.matchInfo.isSubstitutionBeadRangeEmpty() ) {
@@ -622,7 +388,7 @@ struct BELFunctionStorage_holder {
         setResult(result,BarzerString(sstr.str())) ;
         return true;
     }
-    STFUN(getLeftBead)
+    FUNC_DECL(getLeftBead)
     {
         SETFUNCNAME(getLeftBead);
         const char* argStr = GETARGSTR();
@@ -650,7 +416,7 @@ struct BELFunctionStorage_holder {
         }
         return true;
     }
-    STFUN(filterRegex)
+    FUNC_DECL(filterRegex)
     {
         /// parms: 0 - regex
         ///        1 - whats being filtered  - either a list of entities or an id-less entity (class/subclass) 
@@ -659,7 +425,7 @@ struct BELFunctionStorage_holder {
         const char* argStr = GETARGSTR();
         /// argstr - can be 0, name, id, ... 
         if( rvec.size() > 1 ) {
-            const char* rex = getCharPtr(rvec.vec(),0);
+            const char* rex = h->getCharPtr(rvec.vec(),0);
             if( !rex )
                 return true;
             
@@ -688,7 +454,7 @@ struct BELFunctionStorage_holder {
                         bool operator()( const StoredEntityUniqId& ent, uint32_t entId ) { lst.theList().push_back( ent ); return false; }
                     } cb;
 
-                    gpools.getDtaIdx().entPool.iterateSubclassFilter( cb, filter, ent->getClass() );
+                    h->gpools.getDtaIdx().entPool.iterateSubclassFilter( cb, filter, ent->getClass() );
                     setResult( result, cb.lst );
                 }
                 return true;
@@ -704,11 +470,12 @@ struct BELFunctionStorage_holder {
         }
         return true;
     }
-    STFUN(call) {
+    FUNC_DECL(call) {
         SETFUNCNAME(call);
         if( rvec.size() ) {
-            uint32_t fid = getInternalStringIdFromLiteral( q_universe,getRvecLiteral(rvec.vec(),0) );
-	        const BELStoredFunMap::const_iterator frec = funmap.find(fid);
+            uint32_t fid = getInternalStringIdFromLiteral( q_universe, getRvecLiteral(rvec.vec(),0) );
+            const auto& funmap = h->funmap;
+	        const FuncMap::const_iterator frec = funmap.find(fid);
 	        if (frec == funmap.end()) {
 		        std::stringstream strstr;
 		        const char *str = q_universe.getGlobalPools().internalString_resolve(fid);
@@ -718,20 +485,20 @@ struct BELFunctionStorage_holder {
 		        return true;
 	        }
             // const char* argStr = GETARGSTR();
-            uint32_t argStrId = getInternalStringIdFromLiteral( q_universe,getRvecLiteral(rvec.vec(),1) );
+            uint32_t argStrId = getInternalStringIdFromLiteral( q_universe, getRvecLiteral(rvec.vec(),1) );
 
             BTND_Rewrite_Function rwrFunc;
             rwrFunc.setNameId(fid);
             if( argStrId )
                 rwrFunc.setArgStrId(argStrId);
 
-	        return frec->second(this, result, ay::skippedvector<BarzelEvalResult>(rvec.vec(),2), q_universe, ctxt, rwrFunc );
+	        return frec->second.first(h, result, ay::skippedvector<BarzelEvalResult>(rvec.vec(),2), q_universe, ctxt, rwrFunc );
         }
 
         FERROR( "expects (ltrl:functionName ltrl:arg ... ). There must be arg literal (blank or non literal ok for default)" );
         return true;
     }
-    STFUN(getEnt) {
+    FUNC_DECL(getEnt) {
         SETFUNCNAME(getEnt);
         if(rvec.size() )  {
             if( const BarzerEVR* evr  = getAtomicPtr<BarzerEVR>(rvec[0]) ) {
@@ -760,7 +527,7 @@ struct BELFunctionStorage_holder {
         FERROR( "expects ( (ERC|Entity) [,entity] ) to get/set entity for erc or bypass" );
         return true;
     }
-    STFUN(getRange){
+    FUNC_DECL(getRange){
         SETFUNCNAME(getRange);
         if(rvec.size() )  {
             const BarzerERC* erc  = getAtomicPtr<BarzerERC>(rvec[0]);
@@ -783,7 +550,7 @@ struct BELFunctionStorage_holder {
         FERROR("expects: (ERC|Range) [,(range|ERC)] to get/set range");
         return true;
     }
-    STFUN(isRangeEmpty)
+    FUNC_DECL(isRangeEmpty)
     {
         SETFUNCNAME(isRangeEmpty);
         if( rvec.size() == 1 ) {
@@ -809,7 +576,7 @@ struct BELFunctionStorage_holder {
 
         return true;
     }
-	STFUN(textToNum) {
+	FUNC_DECL(textToNum) {
         SETFUNCNAME(text2Num);
         int langId = 0; // language id . 0 means english
         ay::char_cp_vec tok;
@@ -818,7 +585,7 @@ struct BELFunctionStorage_holder {
 		for (BarzelEvalResultVec::const_iterator ri = rvec.begin(); ri != rvec.end(); ++ri) {
             const BarzerLiteral* ltrl = getAtomicPtr<BarzerLiteral>( *ri ) ;
             if( ltrl )  {
-                const char * str =  literalToCString(*ltrl);
+                const char * str =  h->literalToCString(*ltrl);
                 if( str ) {
                     tok.push_back( str );
                 } else {
@@ -842,7 +609,7 @@ struct BELFunctionStorage_holder {
         return true;
     }
 	// makers
-	STFUN(mkDate) //(d) | (d,m) | (d,m,y) where m can be both number or entity
+	FUNC_DECL(mkDate) //(d) | (d,m) | (d,m,y) where m can be both number or entity
 	{
         SETFUNCNAME(mkDate);
 
@@ -859,7 +626,7 @@ struct BELFunctionStorage_holder {
             case 3: y = getNumber(rvec[2]);
             case 2: { // Do we need to check if ent is ent(1,3) or not ?
                 const BarzerEntity* be = getAtomicPtr<BarzerEntity>(rvec[1]);
-                m = (be? BarzerNumber(gpools.dateLookup.resolveMonthID(q_universe,be->getTokId())) :getNumber(rvec[1]));
+                m = (be? BarzerNumber(h->gpools.dateLookup.resolveMonthID(q_universe,be->getTokId())) :getNumber(rvec[1]));
             }
             case 1: d = getNumber(rvec[0]);
             case 0: break; // 0 arguments = today
@@ -885,7 +652,7 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 
-	STFUN(mkDateRange)
+	FUNC_DECL(mkDateRange)
 	{
 		// SETSIG(mkDateRange(Date, Number, [Number, [Number]]));
         SETFUNCNAME(mkDateRange);
@@ -919,7 +686,7 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 
-	STFUN(mkDay) {
+	FUNC_DECL(mkDay) {
 		// SETSIG(mkDay(Number));
         SETFUNCNAME(mkDay);
 
@@ -940,7 +707,7 @@ struct BELFunctionStorage_holder {
 		return true;
 	}
 
-	STFUN(mkWday)
+	FUNC_DECL(mkWday)
 	{
         SETFUNCNAME(mkWday);
 
@@ -963,7 +730,7 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 	
-	STFUN(mkWeekRange)
+	FUNC_DECL(mkWeekRange)
 	{
 		SETFUNCNAME(mkWeekRange);
 		
@@ -1002,7 +769,7 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 	
-	STFUN(mkMonthRange)
+	FUNC_DECL(mkMonthRange)
 	{
 		SETFUNCNAME(mkMonthRange);
 		
@@ -1043,7 +810,7 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 
-    STFUN(mkMonth)
+    FUNC_DECL(mkMonth)
     {
         SETFUNCNAME(mkMonth);
         if (rvec.size() < 2) {
@@ -1065,7 +832,7 @@ struct BELFunctionStorage_holder {
         return false;
     }
 
-    STFUN(mkWdayEnt)
+    FUNC_DECL(mkWdayEnt)
     {
         SETFUNCNAME(mkWdayEnt);
         uint wnum(BarzerDate().getWeekday()); // that can be done softer, YANIS
@@ -1074,8 +841,8 @@ struct BELFunctionStorage_holder {
                         const BarzerLiteral* bl = getAtomicPtr<BarzerLiteral>(rvec[0]);
                         const BarzerString* bs = getAtomicPtr<BarzerString>(rvec[0]);
                         const BarzerNumber* n = getAtomicPtr<BarzerNumber>(rvec[0]);
-                        if (bl) wnum = gpools.dateLookup.lookupWeekday(q_universe,*bl);
-                        else if (bs) wnum = gpools.dateLookup.lookupWeekday(q_universe,bs->getStr().c_str());
+                        if (bl) wnum = h->gpools.dateLookup.lookupWeekday(q_universe,*bl);
+                        else if (bs) wnum = h->gpools.dateLookup.lookupWeekday(q_universe,bs->getStr().c_str());
                         else if (n) wnum = ((n->isInt() && n->getInt() > 0 && n->getInt() < 8 )? n->getInt(): 0 );
                         else {  
                                 FERROR("Wrong argument type");
@@ -1086,7 +853,7 @@ struct BELFunctionStorage_holder {
                                 return false;
                         }                      
                 }    
-            uint32_t mid = gpools.dateLookup.getWdayID(q_universe,wnum);
+            uint32_t mid = h->gpools.dateLookup.getWdayID(q_universe,wnum);
             //check if mid exists
             const StoredEntityUniqId euid( mid, 1, 4);//put constants somewhere! c1;s4 == weekdays
             setResult(result, euid);
@@ -1097,7 +864,7 @@ struct BELFunctionStorage_holder {
         return false;
     }    
     
-    STFUN(mkMonthEnt)
+    FUNC_DECL(mkMonthEnt)
     {
         SETFUNCNAME(mkMonthEnt);
         uint mnum(BarzerDate::thisMonth);
@@ -1106,8 +873,8 @@ struct BELFunctionStorage_holder {
                         const BarzerLiteral* bl = getAtomicPtr<BarzerLiteral>(rvec[0]);
                         const BarzerString* bs = getAtomicPtr<BarzerString>(rvec[0]);
                         const BarzerNumber* n = getAtomicPtr<BarzerNumber>(rvec[0]);
-                        if (bl) mnum = gpools.dateLookup.lookupMonth(q_universe,*bl);
-                        else if (bs) mnum = gpools.dateLookup.lookupMonth(q_universe,bs->getStr().c_str());
+                        if (bl) mnum = h->gpools.dateLookup.lookupMonth(q_universe,*bl);
+                        else if (bs) mnum = h->gpools.dateLookup.lookupMonth(q_universe,bs->getStr().c_str());
                         else if (n) mnum = ((n->isInt() && n->getInt() > 0 && n->getInt() < 13 )? n->getInt(): 0 );
                         else {  
                                 FERROR("Wrong argument type");
@@ -1118,7 +885,7 @@ struct BELFunctionStorage_holder {
                                 return false;
                         }                      
                 }    
-            uint32_t mid = gpools.dateLookup.getMonthID(q_universe,mnum);
+            uint32_t mid = h->gpools.dateLookup.getMonthID(q_universe,mnum);
             //check if mid exists
             const StoredEntityUniqId euid( mid, 1, 3);//put constants somewhere! c1;s3 == months
             setResult(result, euid);
@@ -1130,7 +897,7 @@ struct BELFunctionStorage_holder {
     }
 
 
-	STFUN(mkTime)
+	FUNC_DECL(mkTime)
 	{
         SETFUNCNAME(mkTime);
 		BarzerTimeOfDay &time = setResult(result, BarzerTimeOfDay());
@@ -1207,7 +974,7 @@ struct BELFunctionStorage_holder {
 
 	};
 
-	STFUN(mkDateTime) {
+	FUNC_DECL(mkDateTime) {
 		SETFUNCNAME(mkDateTime);
 		BarzerDateTime dtim;
 		DateTimePacker v(dtim,ctxt,func_name);
@@ -1223,7 +990,7 @@ struct BELFunctionStorage_holder {
 		return true;
 	}
 
-	STFUN(mkEnityList) {
+	FUNC_DECL(mkEnityList) {
 		SETFUNCNAME(mkDateTime);
         FERROR("Unimplemented");
 		return false;
@@ -1481,7 +1248,7 @@ struct BELFunctionStorage_holder {
 
 	};
 
-	STFUN(rangeFuzz)
+	FUNC_DECL(rangeFuzz)
     {
         SETFUNCNAME(rangeFuzz);
         
@@ -1526,13 +1293,13 @@ struct BELFunctionStorage_holder {
             setResult( result, newRange );
         return true;
     }
-	STFUN(mkRange)
+	FUNC_DECL(mkRange)
 	{
         SETFUNCNAME(mkRange);
         const char* argStr = GETARGSTR();
 
 		BarzerRange br;
-		RangePacker rp(gpools, br,ctxt,func_name);
+		RangePacker rp(h->gpools, br,ctxt,func_name);
         rp.setArgStr(argStr);
 		for (BarzelEvalResultVec::const_iterator ri = rvec.begin(); ri != rvec.end(); ++ri)
 			if (!boost::apply_visitor(rp, ri->getBeadData())) return false;
@@ -1540,16 +1307,6 @@ struct BELFunctionStorage_holder {
 		setResult(result, br);
 		return true;
 	}
-
-
-
-	const StoredEntity* fetchEntity(uint32_t tokId,
-									const uint16_t cl, const uint16_t scl) const
-	{
-		const StoredEntityUniqId euid(tokId, cl, scl);
-		return gpools.dtaIdx.getEntByEuid(euid);
-	}
-
 
 	struct EntityPacker : public boost::static_visitor<bool> {
 		//const char *tokStr;
@@ -1612,7 +1369,7 @@ struct BELFunctionStorage_holder {
 		}
 	};
 
-	STFUN(lookupEnt) // similar to mkEnt except entities of given class are looked up by id
+	FUNC_DECL(lookupEnt) // similar to mkEnt except entities of given class are looked up by id
     {
         SETFUNCNAME(lookupEnt);
         const char* argStr = GETARGSTR();
@@ -1699,7 +1456,7 @@ struct BELFunctionStorage_holder {
         return true;
     }
 
-	STFUN(mkEnt) // makes Entity
+	FUNC_DECL(mkEnt) // makes Entity
 	{
         SETFUNCNAME(mkEnt);
 		EntityPacker ep(q_universe,ctxt,func_name);
@@ -1811,7 +1568,7 @@ struct BELFunctionStorage_holder {
     };
 
 
-	STFUN(mkEVR) // makes EVR
+	FUNC_DECL(mkEVR) // makes EVR
     {
         SETFUNCNAME(mkEVR);
         const char* argStr = GETARGSTR();
@@ -1834,7 +1591,7 @@ struct BELFunctionStorage_holder {
 		setResult(result, evr);
         return true;
     }
-	STFUN(mkERC) // makes EntityRangeCombo
+	FUNC_DECL(mkERC) // makes EntityRangeCombo
 	{
 		//AYLOGDEBUG(rvec.size());
 		//AYLOG(DEBUG) << rvec[0].getBeadData().which();
@@ -1873,7 +1630,7 @@ struct BELFunctionStorage_holder {
 		return true;
 	}
 
-	STFUN(mkErcExpr)
+	FUNC_DECL(mkErcExpr)
 	{
         SETFUNCNAME(mkErcExpr);
         const char* argStr = GETARGSTR();
@@ -1912,34 +1669,15 @@ struct BELFunctionStorage_holder {
 		return true;
 	}
 
-	STFUN(mkLtrl)
+	FUNC_DECL(mkLtrl)
 	{
         SETFUNCNAME(mkLtrl);
         FERROR("mkLtrl deprecated and disabled");
-        /*
-		if (!rvec.size()) {
-            FERROR("Argument is required");
-			return false;
-		}
-
-		const char* str = extractString(gpools, rvec[0]);
-		if (!str) {
-			// AYLOG(ERROR) << "Need a string";
-                        FERROR("Need a string");
-			return false;
-		}
-
-		uint32_t id = gpools.stringPool.internIt(str);
-		BarzerLiteral lt;
-		lt.setString(id);
-
-		setResult(result, lt);
-        */
 		return false;
 	}
 
 	// set "stop" type on the incoming literal.
-	STFUN(mkFluff)
+	FUNC_DECL(mkFluff)
 	{
         SETFUNCNAME(mkFluff);
         BarzerLiteral &ltrl = setResult(result, BarzerLiteral());
@@ -1990,7 +1728,7 @@ struct BELFunctionStorage_holder {
 		}
 	};
 
-	STFUN(mkExprTag) {
+	FUNC_DECL(mkExprTag) {
         SETFUNCNAME(mkExprTag);
 		if (rvec.size()) {
 			try {
@@ -2015,7 +1753,7 @@ struct BELFunctionStorage_holder {
 	}
 
 	#define GETID(x) getAtomic<BarzerLiteral>(x).getId()
-	STFUN(mkExprAttrs) {
+	FUNC_DECL(mkExprAttrs) {
         SETFUNCNAME(mkExprAttrs);
 		if (rvec.size()) {
 			try {
@@ -2041,7 +1779,7 @@ struct BELFunctionStorage_holder {
 
 	// getters
 
-	STFUN(getWeekday) {
+	FUNC_DECL(getWeekday) {
         SETFUNCNAME(getWeekday);
 		BarzerDate bd;
 		try {
@@ -2058,7 +1796,7 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 
-	STFUN(getMDay) {
+	FUNC_DECL(getMDay) {
         SETFUNCNAME(getMDay);
 		BarzerDate bd;
 		try {
@@ -2074,7 +1812,7 @@ struct BELFunctionStorage_holder {
 	}
 
 
-    STFUN(setMDay) {
+    FUNC_DECL(setMDay) {
         SETFUNCNAME(setMDay);
         BarzerDate bd;
         BarzerNumber n;
@@ -2096,7 +1834,7 @@ struct BELFunctionStorage_holder {
         return true;
     }
 
-	STFUN(getMonth) {
+	FUNC_DECL(getMonth) {
         SETFUNCNAME(getMonth);
 		BarzerDate bd;
 		try {
@@ -2111,7 +1849,7 @@ struct BELFunctionStorage_holder {
             return true;
         }
 	}
-	STFUN(getYear) {
+	FUNC_DECL(getYear) {
         SETFUNCNAME(getYear);
 		BarzerDate bd;
 		try {
@@ -2152,7 +1890,7 @@ struct BELFunctionStorage_holder {
 		}
 	};
 
-	STFUN(entId)
+	FUNC_DECL(entId)
     {
         SETFUNCNAME(entId);
 
@@ -2174,7 +1912,7 @@ struct BELFunctionStorage_holder {
         }
         return false;
     }
-	STFUN(entClass)
+	FUNC_DECL(entClass)
     {
         SETFUNCNAME(entClass);
         uint32_t entClass = 0;
@@ -2191,7 +1929,7 @@ struct BELFunctionStorage_holder {
         setResult(result, BarzerNumber(entClass) );
         return true;
     }
-	STFUN(entSetSubclass)
+	FUNC_DECL(entSetSubclass)
     {
         // SETFUNCNAME(entSetSubclass);
         if( rvec.size() < 2 ) {
@@ -2265,7 +2003,7 @@ struct BELFunctionStorage_holder {
         }
         return true;
     }
-	STFUN(entSubclass)
+	FUNC_DECL(entSubclass)
     {
         SETFUNCNAME(entSubclass);
         if( !rvec.size() ) {
@@ -2283,7 +2021,7 @@ struct BELFunctionStorage_holder {
         return true;
     }
 
-	STFUN(getTokId)
+	FUNC_DECL(getTokId)
 	{
         SETFUNCNAME(getTokId);
 		if (!rvec.size()) {
@@ -2296,7 +2034,7 @@ struct BELFunctionStorage_holder {
 		return true;
 	}
 
-	STFUN(getTime)
+	FUNC_DECL(getTime)
         {
             SETFUNCNAME(getTime);
             if (rvec.size()) {
@@ -2313,7 +2051,7 @@ struct BELFunctionStorage_holder {
             return true;
         }
    
-        STFUN(getDate)
+        FUNC_DECL(getDate)
         {
             SETFUNCNAME(getDate);
             if (rvec.size()) {
@@ -2385,7 +2123,7 @@ struct BELFunctionStorage_holder {
 
 	};
 
-	STFUN(getLow)
+	FUNC_DECL(getLow)
 	{
 		// SETSIG(getLow(BarzerRange));
         SETFUNCNAME(getLow);
@@ -2399,7 +2137,7 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 
-	STFUN(getHigh)
+	FUNC_DECL(getHigh)
 	{
 		// SETSIG(getLow(BarzerRange));
         SETFUNCNAME(getHigh);
@@ -2416,76 +2154,7 @@ struct BELFunctionStorage_holder {
 	// arith
 
 ///        mode =  BarzerRange::RANGE_MOD_SCALE_(MULT|DIV|PLUS|MINUS)  
-    bool tryScaleRange( BarzelEvalResult &result, const ay::skippedvector<BarzelEvalResult> &rvec,
-                        const StoredUniverse &q_universe, BarzelEvalContext& ctxt, const BTND_Rewrite_Function& fr, int mode /*RANGE_MOD_XXX*/ ) const
-    {
-        const char* func_name = (mode == BarzerRange::RANGE_MOD_SCALE_MULT ? "opMult" :
-                            mode == BarzerRange::RANGE_MOD_SCALE_DIV ? "opDiv" :
-                            mode == BarzerRange::RANGE_MOD_SCALE_PLUS ? "opPlus":
-                            mode == BarzerRange::RANGE_MOD_SCALE_MINUS ?"opMinus" : "<Unknown>");
-        if( rvec.size() == 2 ) { // trying to scale range 
-            const BarzelEvalResult& arg0 = rvec[0];
-            const BarzelEvalResult& arg1 = rvec[1];
-            const BarzerNumber* n = getAtomicPtr<BarzerNumber>(arg1);
-            if( n ) {
-                const BarzerRange* r = getAtomicPtr<BarzerRange>(arg0);
-                if( r ) {
-                    BarzerRange newR(*r);                    
-                    if( !newR.scale(*n, mode) ) 
-                        FERROR("failed to scale the range");
-                     else {
-		        setResult(result, newR);
-                        return true;
-                    }
-                } else {
-                    const BarzerERC* erc = getAtomicPtr<BarzerERC>(arg0);
-                    if( erc ) {
-                        BarzerRange newR(erc->getRange());
-                        if( !newR.scale(*n,mode) ) 
-                            FERROR("failed to scale the range");
-                         else {
-                            BarzerERC berc;
-                            berc.setRange(newR);  
-                            berc.setEntity(erc->getEntity());                             
-		            setResult(result, berc);
-                            return true;
-                        }
-                    } 
-                } 
-            } 
-        } else  if( rvec.size() == 3 ) { // trying to scale range 
-            const BarzerNumber* n1 = getAtomicPtr<BarzerNumber>(rvec[1]);
-            const BarzerNumber* n2 = getAtomicPtr<BarzerNumber>(rvec[2]);            
-            if( n1 && n2 ) {
-                const BarzerRange* r = getAtomicPtr<BarzerRange>(rvec[0]);
-                if( r ) {
-                    BarzerRange newR(*r);
-                    if( !newR.scale(*n1, *n2, mode) ) 
-                        FERROR("failed to scale the range");
-                    else {
-                        setResult(result, newR);
-                        return true;
-                    }
-                } else {
-                    const BarzerERC* erc = getAtomicPtr<BarzerERC>(rvec[0]);
-                    if( erc ) {
-                        BarzerRange newR(erc->getRange());
-                        if( !newR.scale(*n1, *n2,mode) ) 
-                            FERROR("failed to scale the range");
-                        else {
-                            BarzerERC berc;
-                            berc.setRange(newR);  
-                            berc.setEntity(erc->getEntity());                             
-                            setResult(result, berc);
-                            return true;
-                        }
-                    } 
-                }
-            } 
-        }      
-        return false;
-    }
-    STFUN(opPlus)
+    FUNC_DECL(opPlus)
     {
         if ( tryScaleRange( result, rvec, q_universe, ctxt, fr, BarzerRange::RANGE_MOD_SCALE_PLUS ) )
             return true;
@@ -2503,9 +2172,9 @@ struct BELFunctionStorage_holder {
         }
         return false;
     }
-    STFUN(opAdd) { return stfun_opPlus(result,rvec,q_universe,ctxt,fr ); }
+    FUNC_DECL(opAdd) { return stfun_opPlus(h,result,rvec,q_universe,ctxt,fr ); }
 
-    STFUN(opMinus)
+    FUNC_DECL(opMinus)
     {
         if ( tryScaleRange( result, rvec, q_universe, ctxt, fr, BarzerRange::RANGE_MOD_SCALE_MINUS ) )
             return true;
@@ -2530,9 +2199,9 @@ struct BELFunctionStorage_holder {
         //setResult(result, bn); // most likely NaN if something went wrong
         return false;
     }
-    STFUN(opSub) { return stfun_opMinus(result,rvec,q_universe,ctxt,fr ); }
+    FUNC_DECL(opSub) { return stfun_opMinus(h,result,rvec,q_universe,ctxt,fr ); }
     
-    STFUN(opMult)
+    FUNC_DECL(opMult)
     {
         if ( tryScaleRange( result, rvec, q_universe, ctxt, fr, BarzerRange::RANGE_MOD_SCALE_MULT ) )
             return true;
@@ -2552,7 +2221,7 @@ struct BELFunctionStorage_holder {
 
     }
 
-    STFUN(opDiv) // no checks for division by zero yet
+    FUNC_DECL(opDiv) // no checks for division by zero yet
     {
         if ( tryScaleRange( result, rvec, q_universe, ctxt, fr, BarzerRange::RANGE_MOD_SCALE_DIV ) )
             return true;
@@ -2575,41 +2244,13 @@ struct BELFunctionStorage_holder {
         }
         //setResult(result, bn); // most likely NaN if something went wrong
         return false;
-
     }
     
-    struct lt {
-        template <class T> bool operator()(T v1, T v2) { return v1 < v2; }
-    };
-    struct gt {
-        template <class T> bool operator()(T v1, T v2) { return !(v1 < v2); }
-    };
-    struct eq {
-        template <class T> bool operator()(T v1, T v2) { return v1 == v2; }
-    };
-    
-    template <typename Op>    
-    bool cmpr(BarzelEvalResult &result,
-                const ay::skippedvector<BarzelEvalResult> &rvec,
-                BarzelEvalContext& ctxt,
-                const char* func_name) const
-    {
-        Op op;
-        if (rvec.size() < 2) return (FERROR("At least two arguments are needed"), false);
-        BarzelEvalResultVec::const_iterator end = rvec.end(),
-                                            it = rvec.begin()+1;                    
-        bool res = true;
-        for (; res && it != end; ++it) 
-            res = op(*(it-1), *it);
-        setResult(result, res);
-        return true;
-    }
+	FUNC_DECL(opLt) { SETFUNCNAME(opLt); return cmpr<lt>(result, rvec,ctxt,func_name); }
+        FUNC_DECL(opGt) { SETFUNCNAME(opGt); return cmpr<gt>(result, rvec,ctxt,func_name); }
+	FUNC_DECL(opEq) { SETFUNCNAME(opGt); return cmpr<eq>(result, rvec,ctxt,func_name); }
 
-	STFUN(opLt) { SETFUNCNAME(opLt); return cmpr<lt>(result, rvec,ctxt,func_name); }
-        STFUN(opGt) { SETFUNCNAME(opGt); return cmpr<gt>(result, rvec,ctxt,func_name); }
-	STFUN(opEq) { SETFUNCNAME(opGt); return cmpr<eq>(result, rvec,ctxt,func_name); }
-
-	STFUN(opDateCalc)
+	FUNC_DECL(opDateCalc)
 	{
         SETFUNCNAME(opDateCalc);
 		// const char *sig = "opDateCalc(Date ,Number[, Number[, Number]]):";
@@ -2640,7 +2281,7 @@ struct BELFunctionStorage_holder {
 	}
 
 /// opTimeCalc(Time,HoursOffset[,MinOffset[,SecOffset]])	
-    STFUN(opTimeCalc)   
+    FUNC_DECL(opTimeCalc)   
     {
         SETFUNCNAME(opTimeCalc);
         try {
@@ -2666,7 +2307,7 @@ struct BELFunctionStorage_holder {
         return false;
     }
     // concatenates all parameters as one list
-	STFUN(listCat) { //
+	FUNC_DECL(listCat) { //
         BarzelBeadDataVec& resultVec = result.getBeadDataVec();
         for( BarzelEvalResultVec::const_iterator i = rvec.begin(); i!= rvec.end(); ++i ) {
             const BarzelBeadDataVec& v = i->getBeadDataVec();
@@ -2675,7 +2316,7 @@ struct BELFunctionStorage_holder {
         }
         return true;
     }
-	STFUN(setUnmatch) { //
+	FUNC_DECL(setUnmatch) { //
         BarzelBeadDataVec& resultVec = result.getBeadDataVec();
         for( BarzelEvalResultVec::const_iterator i = rvec.begin(); i!= rvec.end(); ++i ) {
             const BarzelBeadDataVec& v = i->getBeadDataVec();
@@ -2687,7 +2328,7 @@ struct BELFunctionStorage_holder {
     }
     // typeFilter( sample, arg1, arg2, ..., argN )
     // filters out everything from arg1-N of the same type as the sample
-	STFUN(typeFilter) { //
+	FUNC_DECL(typeFilter) { //
         SETFUNCNAME(typeFilter);
         if( rvec.size() <2 ) {
             FERROR("need at least 2 arguments. Usage (sample, a1,...,aN)");
@@ -2706,7 +2347,7 @@ struct BELFunctionStorage_holder {
         return true;
     }
     /// arrIndex( variable, Index )
-	STFUN(arrIndex) { //
+	FUNC_DECL(arrIndex) { //
         SETFUNCNAME(arrIndex);
         if( rvec.size() < 2 ) {
             FERROR( "must have at least 2 arguments: variable, index" );
@@ -2730,7 +2371,7 @@ struct BELFunctionStorage_holder {
         return true;
     }
     // array size
-    STFUN(arrSz) {
+    FUNC_DECL(arrSz) {
         BarzerNumber bn;
         setResult(result, BarzerNumber(
             (int)( rvec.size() ? rvec[0].getBeadDataVec().size() : 0 )
@@ -2738,10 +2379,10 @@ struct BELFunctionStorage_holder {
         return true;
     }
 	// string
-	STFUN(strConcat) { // strfun_strConcat(&result, &rvec)
+	FUNC_DECL(strConcat) { // strfun_strConcat(&result, &rvec)
         SETFUNCNAME(strConcat);
 		if (rvec.size()) {
-			StrConcatVisitor scv(gpools,ctxt,func_name);
+			StrConcatVisitor scv(h->gpools,ctxt,func_name);
 			for (BarzelEvalResultVec::const_iterator ri = rvec.begin();
 													 ri != rvec.end(); ++ri) {
 
@@ -2764,7 +2405,7 @@ struct BELFunctionStorage_holder {
 
 	// lookup
 
-	STFUN(lookupMonth)
+	FUNC_DECL(lookupMonth)
 	{
            SETFUNCNAME(lookupMonth);
 		if (!rvec.size()) {
@@ -2776,8 +2417,8 @@ struct BELFunctionStorage_holder {
 			const BarzerLiteral* bl = getAtomicPtr<BarzerLiteral>(rvec[0]);
                         const BarzerString* bs = getAtomicPtr<BarzerString>(rvec[0]);
                         const BarzerNumber* n = getAtomicPtr<BarzerNumber>(rvec[0]);
-                        if (bl) mnum = gpools.dateLookup.lookupMonth(q_universe,bl->getId());
-                        else if (bs) mnum = gpools.dateLookup.lookupMonth(q_universe,bs->getStr().c_str());
+                        if (bl) mnum = h->gpools.dateLookup.lookupMonth(q_universe,bl->getId());
+                        else if (bs) mnum = h->gpools.dateLookup.lookupMonth(q_universe,bs->getStr().c_str());
                         else if (n) mnum = ((n->isInt() && n->getInt() > 0 && n->getInt() < 13 )? n->getInt(): 0 );
                         else {  
                                 FERROR("Wrong argument type");
@@ -2796,7 +2437,7 @@ struct BELFunctionStorage_holder {
 		return false;
 	}
 
-	STFUN(lookupWday)
+	FUNC_DECL(lookupWday)
 	{
            SETFUNCNAME(lookupWday);
 		if (!rvec.size()) {
@@ -2807,8 +2448,8 @@ struct BELFunctionStorage_holder {
                         const BarzerLiteral* bl = getAtomicPtr<BarzerLiteral>(rvec[0]);
                         const BarzerString* bs = getAtomicPtr<BarzerString>(rvec[0]);
 			uint8_t mnum = 0;
-                        if (bl) mnum = gpools.dateLookup.lookupWeekday(q_universe,bl->getId());
-                        else if (bs)  mnum = gpools.dateLookup.lookupWeekday(q_universe,bs->getStr().c_str());
+                        if (bl) mnum = h->gpools.dateLookup.lookupWeekday(q_universe,bl->getId());
+                        else if (bs)  mnum = h->gpools.dateLookup.lookupWeekday(q_universe,bs->getStr().c_str());
                         else {
                             FERROR("Wrong argument type");
                             return false;
@@ -2825,19 +2466,8 @@ struct BELFunctionStorage_holder {
 		}
 		return false;
 	}
-
-
-	typedef boost::function<bool(const BarzerEntity&, uint32_t, uint32_t, uint32_t)> ELCheckFn;
-
-	inline static bool checkClass(const BarzerEntity& ent, uint32_t cl, uint32_t scl = 0, uint32_t id = 0)
-		{ return ent.eclass.ec == (uint32_t)cl; }
-	inline static bool checkSC(const BarzerEntity& ent, uint32_t cl, uint32_t scl, uint32_t id = 0)
-		{ return ent.eclass.subclass == (uint32_t)scl && checkClass(ent, cl); }
-	inline static bool checkId(const BarzerEntity& ent, uint32_t cl, uint32_t scl, uint32_t id)
-		{ return ent.tokId == id && checkSC(ent, cl, scl); }
-
     /// mkEntList( entities and entity lists in any order )
-	STFUN(mkEntList) // (BarzerEntityList, EntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
+	FUNC_DECL(mkEntList) // (BarzerEntityList, EntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
     {
         SETFUNCNAME(mkEntList);
         BarzerEntityList outlst;
@@ -2874,9 +2504,9 @@ struct BELFunctionStorage_holder {
     }
     // hasTopics [number - topicThreshold ] topic1 [, ..., topicN ]
     // returns total weight of all topics in barz, whose weight is > topicThreshold
-	STFUN(hasTopics)
+	FUNC_DECL(hasTopics)
     {
-        //SETFUNCNAME(hasTopic);
+        SETFUNCNAME(hasTopic);
 
         int totalWeight = 0;
         
@@ -2906,9 +2536,9 @@ struct BELFunctionStorage_holder {
         return true;
     }
     /// list, {class,subclass, filterClass, filterSubclass}[N]
-	STFUN(topicFilterEList) //
+	FUNC_DECL(topicFilterEList) //
     {
-        //SETFUNCNAME(topicFilterEList);
+        SETFUNCNAME(topicFilterEList);
 
         /// first parm is the list we're filtering
         /// followed by list of pairs of class/subclass of topics we want to filter on
@@ -3102,7 +2732,7 @@ struct BELFunctionStorage_holder {
         return true;
     }
 
-	STFUN(filterEList) // (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
+	FUNC_DECL(filterEList) // (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
 	{
         SETFUNCNAME(filterEList);
 		//static const char *sig =
@@ -3140,30 +2770,133 @@ struct BELFunctionStorage_holder {
 		}
 		return false;
 	}
-	#undef FERROR
-    #undef SETSIG
-	#undef STFUN
+
+BELFunctionStorage_holder::DeclInfo g_funcs[] = {
+
+    FUNC_DECLINFO_INIT(test, "test function"),
+
+    FUNC_DECLINFO_INIT(mkDate, "makes a date"),
+    FUNC_DECLINFO_INIT(mkDateRange, ""),
+    FUNC_DECLINFO_INIT(mkDay, ""),
+    FUNC_DECLINFO_INIT(mkWday, ""),
+    FUNC_DECLINFO_INIT(mkWeekRange, ""),
+    FUNC_DECLINFO_INIT(mkMonthRange, ""),
+    FUNC_DECLINFO_INIT(mkMonth, ""),
+    FUNC_DECLINFO_INIT(mkWdayEnt, ""),
+    FUNC_DECLINFO_INIT(mkMonthEnt, ""),
+    FUNC_DECLINFO_INIT(mkTime, ""),
+    FUNC_DECLINFO_INIT(mkDateTime, ""),
+    FUNC_DECLINFO_INIT(mkRange, "makes range (1 or 2 parms - number, date etc.)"),
+    FUNC_DECLINFO_INIT(rangeFuzz, "fuzzes range by given percentage (argstr)"),
+    FUNC_DECLINFO_INIT(mkEnt, ""),
+    FUNC_DECLINFO_INIT(lookupEnt, ""),
+    FUNC_DECLINFO_INIT(mkERC, ""),
+    FUNC_DECLINFO_INIT(mkEVR, ""),
+    FUNC_DECLINFO_INIT(mkErcExpr, ""),
+    FUNC_DECLINFO_INIT(mkFluff, ""),
+    // FUNC_DECLINFO_INIT(mkLtrl),
+    FUNC_DECLINFO_INIT(mkExprTag, ""),
+    FUNC_DECLINFO_INIT(mkExprAttrs, ""),
+    // caller
+    FUNC_DECLINFO_INIT(call, ""),
+
+    //setter
+    FUNC_DECLINFO_INIT(set, ""),
+            
+    // getters
+    FUNC_DECLINFO_INIT(getWeekday, ""),      // getWeekday(BarzerDate)
+    FUNC_DECLINFO_INIT(getTokId, ""),        // (BarzerLiteral|BarzerEntity)
+    FUNC_DECLINFO_INIT(getTime, ""),         // getTime(DateTime)
+    FUNC_DECLINFO_INIT(getDate, ""),         // getDate(DateTime)
+    FUNC_DECLINFO_INIT(getMDay, ""),
+    FUNC_DECLINFO_INIT(setMDay, ""),
+    FUNC_DECLINFO_INIT(getMonth, ""),
+    FUNC_DECLINFO_INIT(getYear, ""),
+    FUNC_DECLINFO_INIT(getLow, ""), // (BarzerRange)
+    FUNC_DECLINFO_INIT(getHigh, ""), // (BarzerRange)
+    FUNC_DECLINFO_INIT(isRangeEmpty, ""), // (BarzerRange or ERC) - returns true if range.lo == range.hi
+
+    FUNC_DECLINFO_INIT(getLeftBead, ""),  // returns closest bead on the left of the type matching arg . null otherwise
+    FUNC_DECLINFO_INIT(getBeadSrcTok, ""),  // a string contactenated with spaces from scrtokens of all beads in substitution sequence
+    // arith
+    FUNC_DECLINFO_INIT(textToNum, ""),
+    FUNC_DECLINFO_INIT(opPlus, ""),
+    FUNC_DECLINFO_INIT(opAdd, ""),
+    FUNC_DECLINFO_INIT(opMinus, ""),
+    FUNC_DECLINFO_INIT(opSub, ""),
+    FUNC_DECLINFO_INIT(opMult, ""),
+    FUNC_DECLINFO_INIT(opDiv, ""),
+    //logic
+    FUNC_DECLINFO_INIT(opLt, ""),
+    FUNC_DECLINFO_INIT(opGt, ""),
+    FUNC_DECLINFO_INIT(opEq, ""),
+    FUNC_DECLINFO_INIT(opDateCalc, ""),
+    FUNC_DECLINFO_INIT(opTimeCalc, ""),
+    // string
+    FUNC_DECLINFO_INIT(strConcat, ""),
+    // lookup
+    FUNC_DECLINFO_INIT(lookupMonth, ""),
+    FUNC_DECLINFO_INIT(lookupWday, ""),
+
+    /// array
+    FUNC_DECLINFO_INIT(arrSz, ""),
+    FUNC_DECLINFO_INIT(arrIndex, ""),
+    FUNC_DECLINFO_INIT(typeFilter, ""),
+    FUNC_DECLINFO_INIT(filterRegex, ""),
+    FUNC_DECLINFO_INIT(setUnmatch, ""), // bead
+
+    // --
+    FUNC_DECLINFO_INIT(filterEList, ""), // filters entity list by class/subclass (BarzerEntityList, BarzerNumber[, BarzerNumber[, BarzerNumber]])
+    FUNC_DECLINFO_INIT(hasTopics, ""),
+    FUNC_DECLINFO_INIT(topicFilterEList, ""),
+    FUNC_DECLINFO_INIT(mkEntList, ""), // (BarzerEntity, ..., BarzerEntity) will also accept BarzerEntityList
+
+    // ent properties
+    FUNC_DECLINFO_INIT(entClass, ""), // (Entity)
+    FUNC_DECLINFO_INIT(entSubclass, ""), // (Entity)
+    FUNC_DECLINFO_INIT(entId, ""), // (Entity)
+    FUNC_DECLINFO_INIT(entSetSubclass, ""), // (Entity,new subclass)
+
+    // erc properties
+    FUNC_DECLINFO_INIT(getEnt, ""), // ((EVR|ERC|Entity)[,entity]) -- when second parm passed replaces entity with it
+    FUNC_DECLINFO_INIT(getRange, ""), // ((ERC|Entity)[,range]) -- when second parm passed replaces range with it
+    
+    /// generic getter 
+    FUNC_DECLINFO_INIT(get, "")
 };
 
+    //// END OF ACTUAL FUNCTIONS
+	#undef FERROR
+    #undef SETSIG
+	#undef FUNC_DECL
+} /// anon namespace 
+
+
+void BELFunctionStorage::loadAllFunctions()
+{
+    for( const auto& i : g_funcs ) {
+        holder->addFun( i );
+    }
+}
 BELFunctionStorage::BELFunctionStorage(GlobalPools &u) : globPools(u),
-		holder(new BELFunctionStorage_holder(u)) { }
+		holder(new BELFunctionStorage_holder(u)) 
+        { 
+            loadAllFunctions( );
+        }
 
 BELFunctionStorage::~BELFunctionStorage()
 {
 	delete holder;
 }
 
-std::vector<BELFuncInfo> BELFunctionStorage::getFuncInfos() const
-{
-	return holder->funcInfos;
-}
-
+const FuncMap& BELFunctionStorage::getFuncMap() const
+    { return holder->getFuncMap(); }
 bool BELFunctionStorage::call(BarzelEvalContext& ctxt, const BTND_Rewrite_Function& fr, BarzelEvalResult &er,
 									              const ay::skippedvector<BarzelEvalResult> &ervec,
 									              const StoredUniverse &u) const
 {
     uint32_t fid = fr.getNameId();
-	const BELStoredFunMap::const_iterator frec = holder->funmap.find(fid);
+	const FuncMap::const_iterator frec = holder->funmap.find(fid);
 	if (frec == holder->funmap.end()) {
 		std::stringstream strstr;
 		const char *str = u.getGlobalPools().internalString_resolve(fid);
@@ -3171,7 +2904,7 @@ bool BELFunctionStorage::call(BarzelEvalContext& ctxt, const BTND_Rewrite_Functi
                 pushFuncError(ctxt, "", strstr.str().c_str() );
 		return false;
 	}
-	return frec->second(holder, er, ervec, u, ctxt, fr );
+	return frec->second.first(holder, er, ervec, u, ctxt, fr );
 
 }
 
@@ -3179,15 +2912,16 @@ void BELFunctionStorage::help_list_funcs_json( std::ostream& os, const GlobalPoo
 {
 	os << "[\n";
 	bool isFirst = true;
-	for (const auto& funcInfo : gp.funSt.getFuncInfos())
+	for (const auto& i : gp.funSt.getFuncMap())
 	{
+        const auto& funcInfo = i.second.second;
 		if (!isFirst)
 			os << ",";
 		isFirst = false;
 
 		os << "  {\n";
-		os << "    \"name\": \"" << gp.internalString_resolve_safe(funcInfo.nameId) << "\",\n";
-		ay::jsonEscape(gp.internalString_resolve_safe(funcInfo.descId), os << "    \"desc\": ", "\"") << "\n";
+		os << "    \"name\": \"" << funcInfo.name << "\",\n";
+		ay::jsonEscape(funcInfo.descr.c_str(), os << "    \"desc\": ", "\"") << "\n";
 		os << "  }\n";
 	}
 	os << "]\n";
