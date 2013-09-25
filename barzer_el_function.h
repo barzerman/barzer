@@ -38,14 +38,14 @@ struct FuncInfo {
 };
 
 /// built in stored function 
-typedef boost::function<bool(
+typedef bool (*Func)(
     const BELFunctionStorage_holder*,
     BarzelEvalResult&,
     const ay::skippedvector<BarzelEvalResult>&,
     const StoredUniverse&, 
     BarzelEvalContext&, 
-    const BTND_Rewrite_Function&)
-> Func;
+    const BTND_Rewrite_Function&);
+
 typedef std::pair< Func,  FuncInfo > FuncData;
 typedef boost::unordered_map<uint32_t,FuncData> FuncMap;
 typedef FuncMap::value_type FuncMapRec;

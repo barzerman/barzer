@@ -99,6 +99,8 @@ else()
 endif()
 
 set(SOURCES 
+            function/barzer_el_function_topic.cpp
+            function/barzer_el_function_date.cpp
             barzer_el_function_holder.cpp
             barzer_shell_01.cpp
             barzer_question_parm.cpp

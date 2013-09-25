@@ -1,6 +1,7 @@
 #pragma once
 
 #include <barzer_el_function.h>
+#include <barzer_global_pools.h>
 #include <boost/format.hpp>
 
 
@@ -110,6 +111,11 @@ inline static bool checkSC(const BarzerEntity& ent, uint32_t cl, uint32_t scl, u
     { return ent.eclass.subclass == (uint32_t)scl && checkClass(ent, cl); }
 inline static bool checkId(const BarzerEntity& ent, uint32_t cl, uint32_t scl, uint32_t id)
     { return ent.tokId == id && checkSC(ent, cl, scl); }
+
+//// function flavor loaders
+void loadAllFunc_date(BELFunctionStorage_holder* holder); // body in barzer_el_function_date.cpp
+void loadAllFunc_topic(BELFunctionStorage_holder* holder); // body in barzer_el_function_topic.cpp
+
 } // namespace funcHolder
 
 } // namespace barzer
