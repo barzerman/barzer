@@ -181,7 +181,7 @@ GlobalPools::GlobalPools(bool fullMode) :
 	m_utf8langModelMgr(new ay::UTF8TopicModelMgr),
 	m_asciiLangModelMgr(new ay::ASCIITopicModelMgr),
 	dtaIdx( *this, &stringPool),
-	funSt(*this),
+	funSt(*this, fullMode),
 	dateLookup(*this),
 	globalTriePool( *this ),
 	settings( new BarzerSettings(*this,0) ),

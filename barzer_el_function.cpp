@@ -474,7 +474,7 @@ bool cmpr(BarzelEvalResult &result,
         SETFUNCNAME(call);
         if( rvec.size() ) {
             uint32_t fid = getInternalStringIdFromLiteral( q_universe, getRvecLiteral(rvec.vec(),0) );
-            const auto& funmap = h->funmap;
+            const auto& funmap = *(h->funmap);
 	        const FuncMap::const_iterator frec = funmap.find(fid);
 	        if (frec == funmap.end()) {
 		        std::stringstream strstr;
@@ -2255,12 +2255,14 @@ void BELFunctionStorage::loadAllFunctions()
         holder->addFun( i );
     }
 }
-BELFunctionStorage::BELFunctionStorage(GlobalPools &u) : globPools(u),
-		holder(new BELFunctionStorage_holder(u)) 
+BELFunctionStorage::BELFunctionStorage(GlobalPools &gp, bool initFunctions) : globPools(gp),
+		holder(new BELFunctionStorage_holder(gp)) 
 { 
-    loadAllFunctions( );
-    funcHolder::loadAllFunc_date(holder);
-    funcHolder::loadAllFunc_topic(holder);
+    if( initFunctions ) {
+        loadAllFunctions( );
+        funcHolder::loadAllFunc_date(holder);
+        funcHolder::loadAllFunc_topic(holder);
+    }
 }
 
 BELFunctionStorage::~BELFunctionStorage()
@@ -2275,8 +2277,8 @@ bool BELFunctionStorage::call(BarzelEvalContext& ctxt, const BTND_Rewrite_Functi
 									              const StoredUniverse &u) const
 {
     uint32_t fid = fr.getNameId();
-	const FuncMap::const_iterator frec = holder->funmap.find(fid);
-	if (frec == holder->funmap.end()) {
+	const FuncMap::const_iterator frec = holder->funmap->find(fid);
+	if (frec == holder->funmap->end()) {
 		std::stringstream strstr;
 		const char *str = u.getGlobalPools().internalString_resolve(fid);
                 strstr << "No such function: " << (str ? str : "<unknown/>") ;//<< " (id: " << fid << ")";
@@ -2291,17 +2293,18 @@ void BELFunctionStorage::help_list_funcs_json( std::ostream& os, const GlobalPoo
 {
 	os << "[\n";
 	bool isFirst = true;
-	for (const auto& i : gp.funSt.getFuncMap())
-	{
-        const auto& funcInfo = i.second.second;
+    const auto& funmap = gp.funSt.holder->getFuncMap();
+	for( auto i = funmap.begin(); i!= funmap.end(); ++i ) {
+        const auto& funcInfo = i->second.second;
 		if (!isFirst)
-			os << ",";
+			os << ",\n";
 		isFirst = false;
 
-		os << "  {\n";
-		os << "    \"name\": \"" << funcInfo.name << "\",\n";
-		ay::jsonEscape(funcInfo.descr.c_str(), os << "    \"desc\": ", "\"") << "\n";
-		os << "  }\n";
+		os << "{ ";
+		os << "\"name\": \"" << funcInfo.name << "\"";
+        if( !funcInfo.descr.empty() )
+		    ay::jsonEscape(funcInfo.descr.c_str(), os << ", \"desc\": ", "\"") << " ";
+		os << "}";
 	}
 	os << "]\n";
 }

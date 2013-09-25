@@ -20,10 +20,10 @@ struct BELFunctionStorage_holder {
             f(x), name(n), descr(d? d: "") {}
     };
 
-	FuncMap funmap;
+	static FuncMap *funmap;
     void addAllFunctions( std::pair< const DeclInfo*, const DeclInfo*> range );
 
-    const FuncMap& getFuncMap() const { return funmap; }
+    const FuncMap& getFuncMap() const { return *funmap; }
 
 	BELFunctionStorage_holder(GlobalPools &u);
     
