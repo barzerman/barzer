@@ -32,8 +32,7 @@ struct FuncInfo {
     std::string name; // function name
     std::string descr; // function description
     
-
-    FuncInfo( const char* n, const char*d = 0 ) :
+    FuncInfo( const char* n, const char*d ) :
         name(n), descr(d? d: "") {}
 };
 
@@ -47,14 +46,14 @@ typedef bool (*Func)(
     const BTND_Rewrite_Function&);
 
 typedef std::pair< Func,  FuncInfo > FuncData;
-typedef boost::unordered_map<uint32_t,FuncData> FuncMap;
+typedef std::map<uint32_t,FuncData> FuncMap;
 typedef FuncMap::value_type FuncMapRec;
 
 class BELFunctionStorage {
 	GlobalPools &globPools;
 	BELFunctionStorage_holder *holder;
 public:
-	BELFunctionStorage(GlobalPools &u);
+	BELFunctionStorage(GlobalPools &u, bool initFunctions );
 	~BELFunctionStorage();
     const FuncMap& getFuncMap() const;
 

@@ -155,19 +155,22 @@ const char* BELFunctionStorage_holder::getCharPtr( const BarzelEvalResultVec& rv
     } 
     return 0;
 }
+FuncMap* BELFunctionStorage_holder::funmap = 0;
 void BELFunctionStorage_holder::addFun(const uint32_t fid, const char* fname, const char* descr, Func fun)
 {
-    if( !funmap.insert(
+    if( !funmap )
+        funmap = new FuncMap;
+
+    FuncInfo funcInfo( fname,descr );
+    FuncData fdata( fun, funcInfo );
+    auto x = funmap->insert(
         std::make_pair(
             fid, 
-            std::make_pair( 
-                fun,
-                FuncInfo(fname,descr)
-            )
+            fdata
         )
-    ).second ) {
+    );
+    if( !x.second ) {
         std::cerr << fname << " already exists.. aborting execution\n";
-        exit(1);
     }
 }
 const StoredEntity* BELFunctionStorage_holder::fetchEntity(uint32_t tokId, const uint16_t cl, const uint16_t scl) const
