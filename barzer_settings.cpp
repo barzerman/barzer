@@ -94,14 +94,16 @@ void BarzerSettings::addRulefile(BELReader& reader, const Rulefile &f)
         }
     }
 
-	size_t num = reader.loadFromFile(fname, BELReader::INPUT_FMT_XML);
-	std::cout << num << " statements (-" << reader.getNumSkippedStatements() << ")";
-        if (num) std::cout <<"(" << reader.getNumMacros() << " macros, " <<
-                reader.getNumProcs() << " procs)";
-        std::cout << " loaded from `" << fname ;
-	if (!(tclass.empty() || tid.empty()))
-		std::cout << " into the trie `" << tclass << "." << tid << "'";
-	std::cout << "\n";
+	int num = reader.loadFromFile(fname, BELReader::INPUT_FMT_XML);
+    if( num>=0 ) {
+	    std::cout << num << " statements (-" << reader.getNumSkippedStatements() << ")";
+            if (num) std::cout <<"(" << reader.getNumMacros() << " macros, " <<
+                    reader.getNumProcs() << " procs)";
+            std::cout << " loaded from `" << fname ;
+	    if (!(tclass.empty() || tid.empty()))
+		    std::cout << " into the trie `" << tclass << "." << tid << "'";
+	    std::cout << "\n";
+    }
 }
 
 void BarzerSettings::addDictionaryFile(const char *fname)

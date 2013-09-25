@@ -354,18 +354,10 @@ inline std::ostream& BELStatementParsed::getErrStream() const
 
 struct BarzXMLErrorStream {
     ay::XMLStream os;
-    BarzXMLErrorStream( std::ostream& o ) : os(o) 
-        { os.os << "<error>"; }
-    BarzXMLErrorStream( std::ostream& o, size_t stmtNum ) : os(o) 
-        { os.os << "<error stmt=\""<< stmtNum << "\">"; }
-    BarzXMLErrorStream( BELReader& reader, size_t stmtNum ) : 
-        os(reader.getErrStreamRef())
-    {
-        os.os << "<error file=\"" << reader.getInputFileName() << "\" class=\"" << reader.getTrieClassName() << "\" trie=\"" << reader.getTrieName() << "\""
-        << " stmt=\""<< stmtNum << "\">";
-    }
-    ~BarzXMLErrorStream()
-        { os.os << "</error>\n"; }
+    BarzXMLErrorStream( std::ostream& o );
+    BarzXMLErrorStream( std::ostream& o, size_t stmtNum );
+    BarzXMLErrorStream( BELReader& reader, size_t stmtNum );
+    ~BarzXMLErrorStream();
 };
 
 } // namespace barzer 

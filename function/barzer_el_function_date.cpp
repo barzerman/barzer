@@ -4,41 +4,41 @@
 
 namespace barzer {
 using namespace funcHolder;
+
 namespace {
-	// applies  BarzerDate/BarzerTimeOfDay/BarzerDateTime to BarzerDateTime
-	// to construct a timestamp
-	struct DateTimePacker : public boost::static_visitor<bool> {
-		BarzerDateTime &dtim;
-        BarzelEvalContext& d_ctxt;
-        const char* d_funcName;
-		DateTimePacker(BarzerDateTime &d,BarzelEvalContext& ctxt,const char* funcName):
-            dtim(d),d_ctxt(ctxt),d_funcName(funcName) {}
+// applies  BarzerDate/BarzerTimeOfDay/BarzerDateTime to BarzerDateTime
+// to construct a timestamp
+struct DateTimePacker : public boost::static_visitor<bool> {
+    BarzerDateTime &dtim;
+    BarzelEvalContext& d_ctxt;
+    const char* d_funcName;
+    DateTimePacker(BarzerDateTime &d,BarzelEvalContext& ctxt,const char* funcName):
+        dtim(d),d_ctxt(ctxt),d_funcName(funcName) {}
 
-		bool operator()(const BarzerDate &data) {
-			dtim.setDate(data);
-			return true;
-		}
-		bool operator()(const BarzerTimeOfDay &data) {
-			dtim.setTime(data);
-			return true;
-		}
-		bool operator()(const BarzerDateTime &data) {
-			if (data.hasDate()) dtim.setDate(data.getDate());
-			if (data.hasTime()) dtim.setTime(data.getTime());
-			return true;
-		}
-		bool operator()(const BarzelBeadAtomic &data) {
-			return boost::apply_visitor(*this, data.getData());
-		}
-		// not applicable
-		template<class T> bool operator()(const T&)
-		{
-            pushFuncError(d_ctxt,d_funcName, "Wrong argument type" );
-			return false;
-		}
+    bool operator()(const BarzerDate &data) {
+        dtim.setDate(data);
+        return true;
+    }
+    bool operator()(const BarzerTimeOfDay &data) {
+        dtim.setTime(data);
+        return true;
+    }
+    bool operator()(const BarzerDateTime &data) {
+        if (data.hasDate()) dtim.setDate(data.getDate());
+        if (data.hasTime()) dtim.setTime(data.getTime());
+        return true;
+    }
+    bool operator()(const BarzelBeadAtomic &data) {
+        return boost::apply_visitor(*this, data.getData());
+    }
+    // not applicable
+    template<class T> bool operator()(const T&)
+    {
+        pushFuncError(d_ctxt,d_funcName, "Wrong argument type" );
+        return false;
+    }
 
-	};
-} // anon namespace
+};
 
 FUNC_DECL(mkDate) //(d) | (d,m) | (d,m,y) where m can be both number or entity
 {
@@ -71,8 +71,6 @@ FUNC_DECL(mkDate) //(d) | (d,m) | (d,m,y) where m can be both number or entity
         }
         date.setDayMonthYear(d,m,y);
 
-        //date.print(AYLOG(DEBUG) << "date formed: ");
-        //setResult(result, date);
         return true;
     } catch (boost::bad_get) {
         FERROR( "Wrong argument type"  );
@@ -385,8 +383,201 @@ FUNC_DECL(mkDateTime) {
     return true;
 }
 
-namespace {
+FUNC_DECL(getWeekday) {
+    SETFUNCNAME(getWeekday);
+    BarzerDate bd;
+    try {
+        if (rvec.size())
+            bd = getAtomic<BarzerDate>(rvec[0]);
+        else bd.setToday();
+
+        BarzerNumber n(bd.getWeekday());
+        setResult(result, n);
+        return true;
+    } catch (boost::bad_get) {
+        FERROR("wrong argument type, date expected");
+    }
+    return false;
+}
+
+FUNC_DECL(getMDay) {
+    SETFUNCNAME(getMDay);
+    BarzerDate bd;
+    try {
+        if (rvec.size())
+            bd = getAtomic<BarzerDate>(rvec[0]);
+        else bd.setToday();
+        setResult(result, BarzerNumber(bd.day));
+        return true;
+    } catch (boost::bad_get) {
+        FERROR("wrong argument type");
+    }
+    return false;
+}
+
+FUNC_DECL(setMDay) {
+    SETFUNCNAME(setMDay);
+    BarzerDate bd;
+    BarzerNumber n;
+    try {
+        switch (rvec.size()) {
+        case 2: n = getAtomic<BarzerNumber>(rvec[1]);
+        case 1: bd = getAtomic<BarzerDate>(rvec[0]); break;
+        case 0:
+            bd.setToday();
+            n.set(1);
+        }
+        bd.setDay(n);
+        setResult(result, bd);
+        return true;
+    } catch (boost::bad_get) {
+        FERROR("wrong argument type");
+        setResult(result, bd);
+    }
+    return true;
+}
+
+FUNC_DECL(getMonth) {
+    SETFUNCNAME(getMonth);
+    BarzerDate bd;
+    try {
+        if (rvec.size())
+            bd = getAtomic<BarzerDate>(rvec[0]);
+        else bd.setToday();
+        setResult(result, BarzerNumber(bd.month));
+        return true;
+    } catch (boost::bad_get) {
+        FERROR("wrong argument type");
+        setResult(result,BarzerNumber(0));
+        return true;
+    }
+}
+FUNC_DECL(getYear) {
+    SETFUNCNAME(getYear);
+    BarzerDate bd;
+    try {
+        if (rvec.size())
+            bd = getAtomic<BarzerDate>(rvec[0]);
+        else bd.setToday();
+        setResult(result, BarzerNumber(bd.year));
+        return true;
+    } catch (boost::bad_get) {
+        FERROR("wrong argument type");
+        setResult(result,BarzerNumber(0));
+        return true;
+    }
+}
+
+FUNC_DECL(getTime)
+{
+    SETFUNCNAME(getTime);
+    if (rvec.size()) {
+        const BarzerDateTime* dt = getAtomicPtr<BarzerDateTime>(rvec[0]);
+        if (dt) {
+            BarzerTimeOfDay t(dt->getTime());
+            setResult(result, t);
+            return true;
+        } else {
+            FERROR("Wrong argument type. DateTime expected");
+            return false;
+        }
+    } else { FERROR("At least one argument is needed"); }
+    return true;
+}
+
+FUNC_DECL(getDate)
+{
+    SETFUNCNAME(getDate);
+    if (rvec.size()) {
+        const BarzerDateTime* dt = getAtomicPtr<BarzerDateTime>(rvec[0]);
+        if (dt) {
+            BarzerDate d(dt->getDate());
+            setResult(result, d);
+            return true;
+        } else {
+            FERROR("Wrong argument type. DateTime expected");
+            return false;
+        }
+    } else { 
+        BarzerDate_calc calc;
+        calc.setNowPtr ( ctxt.getNowPtr() ) ;
+        calc.setToday();
+        setResult(result,calc.getDate());
+    }
+    return true;
+}
+
+FUNC_DECL(opDateCalc)
+{
+    SETFUNCNAME(opDateCalc);
+    // const char *sig = "opDateCalc(Date ,Number[, Number[, Number]]):";
+    try {
+
+        int month = 0, year = 0, day = 0;
+        switch (rvec.size()) {
+        case 4: year = getAtomic<BarzerNumber>(rvec[3]).getInt();
+        case 3: month = getAtomic<BarzerNumber>(rvec[2]).getInt();
+        case 2: {
+            day = getAtomic<BarzerNumber>(rvec[1]).getInt();
+            const BarzerDate &date = getAtomic<BarzerDate>(rvec[0]);
+            BarzerDate_calc c;
+            c.setNowPtr ( ctxt.getNowPtr() ) ;
+            c.set(date.year + year,
+                  date.month + month,
+                  date.day + day);
+            setResult(result, c.d_date);
+            return true;
+        }
+        default:
+                FERROR("Need 2-4 arguments" );
+        }
+    } catch (boost::bad_get) {
+        FERROR("Type mismatch");
+    }
+    return false;
+}
+
+/// opTimeCalc(Time,HoursOffset[,MinOffset[,SecOffset]])	
+FUNC_DECL(opTimeCalc)   
+{
+    SETFUNCNAME(opTimeCalc);
+    try {
+        int h = 0, m = 0, s = 0;
+        switch (rvec.size()) {
+        case 4:
+            s = getAtomic<BarzerNumber>(rvec[3]).getInt();
+        case 3:
+            m = getAtomic<BarzerNumber>(rvec[2]).getInt();
+        case 2: {
+            h = getAtomic<BarzerNumber>(rvec[1]).getInt();
+            const BarzerTimeOfDay &time = getAtomic<BarzerTimeOfDay>(rvec[0]);
+            BarzerTimeOfDay out(time.getHH() + h, time.getMM() + m, time.getSS() + s);
+            setResult(result, out);
+            return true;
+        }
+        default:
+            FERROR("Need 2-4 arguments" );
+        }
+    } catch (boost::bad_get) {
+        FERROR("Type mismatch");
+    }
+    return false;
+}
+    
+
 BELFunctionStorage_holder::DeclInfo g_funcs[] = {
+
+    FUNC_DECLINFO_INIT(opDateCalc, ""),
+    FUNC_DECLINFO_INIT(opTimeCalc, ""),
+
+    FUNC_DECLINFO_INIT(getWeekday, ""),      // getWeekday( [BarzerDate] )
+    FUNC_DECLINFO_INIT(getTime, ""),         // getTime(DateTime)
+    FUNC_DECLINFO_INIT(getDate, ""),         // getDate(DateTime)
+    FUNC_DECLINFO_INIT(getMDay, ""),
+    FUNC_DECLINFO_INIT(setMDay, ""),
+    FUNC_DECLINFO_INIT(getMonth, ""),
+    FUNC_DECLINFO_INIT(getYear, ""),
+
     FUNC_DECLINFO_INIT(mkDate, "makes a date"),
     FUNC_DECLINFO_INIT(mkDateRange, ""),
     FUNC_DECLINFO_INIT(mkDay, ""),

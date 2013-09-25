@@ -4,18 +4,13 @@
 /// 
 #pragma once
 #include <ay_string_pool.h>
-#include <ay_snowball.h>
 #include <ay_ngrams.h>
-#include <barzer_el_rewriter.h>
-#include <barzer_el_wildcard.h>
 #include <barzer_el_trie.h>
 #include <barzer_dtaindex.h>
-#include <barzer_el_function.h>
 #include <barzer_date_util.h>
 #include <barzer_settings.h>
 #include <barzer_config.h>
 #include <barzer_bzspell.h>
-#include <barzer_el_compwords.h>
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
 #include <boost/thread/thread.hpp>
@@ -162,38 +157,18 @@ public:
             d_beni_AutocCutoff( 0.7 ),
             d_beni_MinAutocCount(3)
         {}
-        bool isBeniCoverageGoodForAutoc( double c ) const 
-            { return c> d_beni_AutocCutoff; }
-        bool hasEnoughGlyphsForAutoc( size_t n ) const
-            { return (n>= d_beni_MinAutocCount); }
+        bool isBeniCoverageGoodForAutoc( double c ) const { return c> d_beni_AutocCutoff; }
+        bool hasEnoughGlyphsForAutoc( size_t n ) const { return (n>= d_beni_MinAutocCount); }
     };
     Settings d_settings;
 
     EntityData::EntProp*  setEntPropData( const StoredEntityUniqId& euid, const char* name, uint32_t rel, bool overrideName=false ) 
         { return entData.setEntPropData(euid, name,rel, overrideName); }
 
-    const EntityData::EntProp* getEntPropData( const BarzerEntity& ent ) const 
-    {
-        if( const EntityData::EntProp* eprop = entData.getEntPropData(ent) ) 
-            return eprop;
-        else if( gp.isGenericEntity(ent) ) 
-            return gp.getEntPropData(ent);
-        else
-            return 0;
-    }
-    EntityData::EntProp* getEntPropData( const BarzerEntity& ent ) 
-        { 
-            return const_cast<EntityData::EntProp*>( const_cast<const StoredUniverse*>(this)->getEntPropData(ent) );
-        }
-    uint32_t getEntityRelevance( const BarzerEntity& ent ) const
-    {
-        if( const EntityData::EntProp* eprop = entData.getEntPropData(ent) ) {
-            return eprop->relevance;
-        } else if( gp.isGenericEntity(ent) ) {
-            return gp.getEntityRelevance(ent);
-        } else 
-            return 0;
-    }
+    const EntityData::EntProp* getEntPropData( const BarzerEntity& ent ) const ;
+    EntityData::EntProp* getEntPropData( const BarzerEntity& ent ) ;
+    uint32_t getEntityRelevance( const BarzerEntity& ent ) const;
+
     const char* getEntIdString(const BarzerEntity& euid ) const { return getGlobalPools().internalString_resolve(euid.tokId); }
 
     const std::string& userName() const { return d_userName; }
@@ -259,10 +234,7 @@ public:
 	// returns stringId of corrected word or 0xffffffff
 	uint32_t stemCorrect( std::string& out, const char* word) const
 		{ return ( bzSpell ? bzSpell->getStemCorrection( out, word, LANG_UNKNOWN, BZSpell::CORRECTION_MODE_NORMAL) : 0 ); }
-    bool stem( std::string& out, const char* word ) const
-    {
-        return ( bzSpell ? bzSpell->stem( out, word ) : false );
-    }
+    bool stem( std::string& out, const char* word ) const { return ( bzSpell ? bzSpell->stem( out, word ) : false ); }
 	bool isWordValidInUniverse( uint32_t word ) const
 		{ return ( bzSpell ? bzSpell->isWordValidInUniverse( word ) : true ); }
 	bool isWordValidInUniverse( const char* word ) const
@@ -273,14 +245,8 @@ public:
 	/// adds uer specific strings from extra file
 	///
 	size_t   internString( const char*, bool asUserSpecific, uint8_t frequency );
-	bool 	 isStringUserSpecific( uint32_t id ) const
-        { return( id == 0xffffffff ? false : (userSpecificStringSet.find(id) != userSpecificStringSet.end()) ); }
-	bool 	 isStringUserSpecific( const char* s ) const
-		{
-			uint32_t id = gp.string_getId( s );
-			if( id == 0xffffffff ) return false;
-			return userSpecificStringSet.find(id) != userSpecificStringSet.end();
-		}
+	bool 	 isStringUserSpecific( uint32_t id ) const;
+	bool 	 isStringUserSpecific( const char* s ) const;
 
     enum { GENERIC_CLASS_RANGE_MAX= 100 };
 
@@ -340,14 +306,8 @@ public:
 
 	// had to add it in order to be able to create BELPrintContext
     // for custom trie printing
-	ay::UniqueCharPool& getStringPool() {
-		return gp.stringPool;
-	}
-
-	const ay::UniqueCharPool& getStringPool() const {
-		return gp.stringPool;
-	}
-
+	ay::UniqueCharPool& getStringPool() { return gp.stringPool; }
+	const ay::UniqueCharPool& getStringPool() const { return gp.stringPool; }
 
 	// clears all tries
 	// void clearTries();
@@ -356,24 +316,15 @@ public:
 	// purges everything
 	void clear();
 
-    const StoredToken* getStoredToken( const char* s ) const
-        { return getDtaIdx().getStoredToken(s); }
-    const char* printableTokenByid( uint32_t tokId ) const
-    {
-        const StoredToken *tok = gp.dtaIdx.tokPool.getTokByIdSafe(tokId);
-        return( tok ? printableTokenByid(tok->stringId): "" );
-    }
-    const char* printableEntityId( const BarzerEntity& euid ) const
-        { return printableTokenByid(euid.getTokId()); }
+    const StoredToken* getStoredToken( const char* s ) const { return getDtaIdx().getStoredToken(s); }
+    const char* printableTokenByid( uint32_t tokId ) const;
+    const char* printableEntityId( const BarzerEntity& euid ) const { return printableTokenByid(euid.getTokId()); }
 
-	const char* printableStringById( uint32_t id )  const
-		{ return gp.stringPool.printableStr(id); }
+	const char* printableStringById( uint32_t id )  const { return gp.stringPool.printableStr(id); }
 
-	bool isBarzelTranslationFallible( const BELTrie& trie, const BarzelTranslation& tran ) const {
-		return trie.isTranslationFallible( tran );
-	}
+	bool isBarzelTranslationFallible( const BELTrie& trie, const BarzelTranslation& tran ) const { return trie.isTranslationFallible( tran ); }
 
-	const BELFunctionStorage& getFunctionStorage() const { return gp.funSt; }
+	const BELFunctionStorage* getFunctionStorage() const { return gp.funSt; }
 	const DateLookup& getDateLookup() const { return gp.dateLookup; }
 
 	//const char* getGenericSubclassName( uint16_t subcl ) const;
@@ -381,37 +332,20 @@ public:
 	const char* decodeStringById( uint32_t strId ) const
 		{ return getDtaIdx().resolveStringById( strId ); }
 
-    void appendTriePtr( BELTrie* trie, GrammarInfo* gi ) {
-        trieCluster.appendTriePtr(trie,gi);
-        d_topicEntLinkage.append( trie->getTopicEntLinkage() );
-    }
-	BELTrie& appendTopicTrie( uint32_t trieClass, uint32_t trieId, GrammarInfo* gi )
-        { return topicTrieCluster.appendTrie( trieClass, trieId, gi ); }
-	BELTrie& appendTopicTrie( const char* trieClass, const char* trieId, GrammarInfo* gi )
-        { return topicTrieCluster.appendTrie( trieClass, trieId, gi ); }
+    void appendTriePtr( BELTrie* trie, GrammarInfo* gi );
+	BELTrie& appendTopicTrie( uint32_t trieClass, uint32_t trieId, GrammarInfo* gi );
+	BELTrie& appendTopicTrie( const char* trieClass, const char* trieId, GrammarInfo* gi );
 
-	BELTrie& appendTrie( uint32_t trieClass, uint32_t trieId, GrammarInfo* gi )
-    {
-	    BELTrie& t = trieCluster.appendTrie( trieClass, trieId, gi );
-        d_topicEntLinkage.append( t.getTopicEntLinkage() );
-        return t;
-    }
-	BELTrie& appendTrie( const char* trieClass, const char* trieId, GrammarInfo* gi )
-    {
-	    BELTrie& t = trieCluster.appendTrie( trieClass, trieId, gi );
-        d_topicEntLinkage.append( t.getTopicEntLinkage() );
-        return t;
-    }
+	BELTrie& appendTrie( uint32_t trieClass, uint32_t trieId, GrammarInfo* gi );
+	BELTrie& appendTrie( const char* trieClass, const char* trieId, GrammarInfo* gi );
 
     // entity segregation
     const EntitySegregatorData& geEntSeg() const { return d_entSeg; }
     bool needEntitySegregation() const { return !(d_entSeg.empty()); }
     void addEntClassToSegregate( const StoredEntityClass& ec ) { d_entSeg.add(ec); }
 
-    const BELTrie* getRuleTrieByUniqueId( const UniqueTrieId& tid ) const
-        { return trieCluster.getTrieByUniqueId(tid); }
-    const BELTrie* getTopicTrieByUniqueId( const UniqueTrieId& tid ) const
-        { return topicTrieCluster.getTrieByUniqueId(tid); }
+    const BELTrie* getRuleTrieByUniqueId( const UniqueTrieId& tid ) const { return trieCluster.getTrieByUniqueId(tid); }
+    const BELTrie* getTopicTrieByUniqueId( const UniqueTrieId& tid ) const { return topicTrieCluster.getTrieByUniqueId(tid); }
 
     const BELTrie* getTrieByUniqueId( const UniqueTrieId& tid, bool topic = false )
         { return( topic ? getTopicTrieByUniqueId(tid) : getRuleTrieByUniqueId(tid) ); }
@@ -423,12 +357,9 @@ public:
 
 	const BarzerGeo* getGeo() const { return m_geo; }
 	BarzerGeo* getGeo() { return m_geo; }
-    const char* resolveLiteral( const BarzerLiteral& l ) const
-        { return gp.resolveLiteral(l);}
-    const char* resolveStoredTok( const StoredToken& stok ) const
-    {
-        return gp.string_resolve( stok.getStringId() );
-    }
+
+    const char* resolveLiteral( const BarzerLiteral& l ) const { return gp.resolveLiteral(l);}
+    const char* resolveStoredTok( const StoredToken& stok ) const { return gp.string_resolve( stok.getStringId() ); }
 };
 
 inline StoredUniverse& GlobalPools::produceUniverse( uint32_t id )

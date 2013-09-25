@@ -27,6 +27,7 @@
 #include <zurch_docidx.h>
 #include <zurch_server.h>
 #include <zurch_route.h>
+#include <barzer_el_function.h>
 
 extern "C" {
 

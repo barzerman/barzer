@@ -12,9 +12,7 @@
 #include <barzer_el_wildcard.h>
 #include <barzer_el_trie.h>
 #include <barzer_dtaindex.h>
-#include <barzer_el_function.h>
 #include <barzer_date_util.h>
-// #include <barzer_settings.h>
 #include <barzer_config.h>
 #include <barzer_bzspell.h>
 #include <barzer_el_compwords.h>
@@ -28,6 +26,7 @@
 #include <barzer_global_pools.h>
 namespace ay { struct CommandLineArgs; }
 namespace barzer {
+class BELFunctionStorage;
 class BarzerSettings;
 struct ParseSettings;
 class StoredUniverse;
@@ -234,7 +233,7 @@ public:
 	DtaIndex dtaIdx; // entity-token links
 
 	BarzelCompWordPool compWordPool; /// compounded words pool
-	BELFunctionStorage funSt;
+	BELFunctionStorage* funSt;
 	DateLookup dateLookup;
 
 	GlobalTriePool globalTriePool;

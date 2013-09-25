@@ -2,6 +2,7 @@
 #include <barzer_shell.h>
 #include <ay/ay_cmdproc.h>
 #include <barzer_beni.h>
+#include <barzer_el_function.h>
 namespace barzer {
 static int bshf_test01( BarzerShell* shell, ay::char_cp cmd, std::istream& in , const std::string& argStr)
 {

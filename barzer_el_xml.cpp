@@ -195,9 +195,10 @@ const char* getTagNameById( int tagId )
 }
 void report_bad_attribute( int tid, const char* n, const char* v, BELReader& reader, BELParserXML::CurStatementData& statement )
 {
-    BarzXMLErrorStream errStream( reader, statement.stmt.getStmtNumber());
-    if( strcmp(n,"xmlns") )
+    if( strcmp(n,"xmlns") ) {
+        BarzXMLErrorStream errStream( reader, statement.stmt.getStmtNumber());
         errStream.os << "tag:" << getTagNameById(tid) << " has unknown attribute \"" << n << "\"=\"" << v << "\"";
+    }
 }
 
 #define REPORT_ATTR report_bad_attribute( (tid), (n), (v), *reader, statement )
@@ -553,9 +554,6 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
         return;
     }
         
-    if( stmtNumber == 145705 ) {
-        std::cerr << 145705 << " reached\n";
-    }
     if( needAbort ) {
 	    statement.stmt.setStmtNumber( stmtNumber ) ;
         BarzXMLErrorStream  errStream(reader->getErrStreamRef(),stmtNumber);
