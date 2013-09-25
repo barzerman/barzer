@@ -1,0 +1,9 @@
+built in barzel functions are split among a few files 
+core low level functions are in barzer_el_function.cpp
+
+Specialized ones are stored as follows
+barzer_el_function_date.cpp - date functions
+barzer_el_function_topic.cpp - topic filtering functions
+
+to see lists:
+grep FUNC_DECLINFO_INIT ../barzer_el_function.cpp *.cpp
