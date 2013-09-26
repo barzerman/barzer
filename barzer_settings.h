@@ -169,11 +169,11 @@ public:
 	void loadUserRules(BELReader& reader, User&, const boost::property_tree::ptree&);
 
 	void loadUsers(BELReader& reader );
-	int loadUser(BELReader& reader, const boost::property_tree::ptree::value_type &);
+	int loadUser(BELReader& reader, const boost::property_tree::ptree::value_type &, const char* uname=0 );
 
-    int loadUserConfig( BELReader&, const char* cfgFileName );
+    int loadUserConfig( BELReader&, const char* cfgFileName, const char* uname=0 );
 
-	User& createUser(User::Id id);
+	User& createUser(User::Id id, const char* uname =0);
 	User* getUser(User::Id id);
 
 	void addRulefile(BELReader&, const Rulefile &f);
