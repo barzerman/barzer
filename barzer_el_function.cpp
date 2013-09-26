@@ -1396,94 +1396,6 @@ bool cmpr(BarzelEvalResult &result,
 	}
 	#undef GETID
 
-	// getters
-
-	FUNC_DECL(getWeekday) {
-        SETFUNCNAME(getWeekday);
-		BarzerDate bd;
-		try {
-            if (rvec.size())
-                bd = getAtomic<BarzerDate>(rvec[0]);
-            else bd.setToday();
-
-            BarzerNumber n(bd.getWeekday());
-            setResult(result, n);
-            return true;
-		} catch (boost::bad_get) {
-            FERROR("wrong argument type, date expected");
-		}
-		return false;
-	}
-
-	FUNC_DECL(getMDay) {
-        SETFUNCNAME(getMDay);
-		BarzerDate bd;
-		try {
-            if (rvec.size())
-                bd = getAtomic<BarzerDate>(rvec[0]);
-            else bd.setToday();
-            setResult(result, BarzerNumber(bd.day));
-            return true;
-		} catch (boost::bad_get) {
-            FERROR("wrong argument type");
-        }
-		return false;
-	}
-
-
-    FUNC_DECL(setMDay) {
-        SETFUNCNAME(setMDay);
-        BarzerDate bd;
-        BarzerNumber n;
-        try {
-            switch (rvec.size()) {
-            case 2: n = getAtomic<BarzerNumber>(rvec[1]);
-            case 1: bd = getAtomic<BarzerDate>(rvec[0]); break;
-            case 0:
-                bd.setToday();
-                n.set(1);
-            }
-            bd.setDay(n);
-            setResult(result, bd);
-            return true;
-        } catch (boost::bad_get) {
-            FERROR("wrong argument type");
-            setResult(result, bd);
-        }
-        return true;
-    }
-
-	FUNC_DECL(getMonth) {
-        SETFUNCNAME(getMonth);
-		BarzerDate bd;
-		try {
-            if (rvec.size())
-                bd = getAtomic<BarzerDate>(rvec[0]);
-            else bd.setToday();
-            setResult(result, BarzerNumber(bd.month));
-            return true;
-		} catch (boost::bad_get) {
-            FERROR("wrong argument type");
-            setResult(result,BarzerNumber(0));
-            return true;
-        }
-	}
-	FUNC_DECL(getYear) {
-        SETFUNCNAME(getYear);
-		BarzerDate bd;
-		try {
-            if (rvec.size())
-                bd = getAtomic<BarzerDate>(rvec[0]);
-            else bd.setToday();
-            setResult(result, BarzerNumber(bd.year));
-            return true;
-		} catch (boost::bad_get) {
-            FERROR("wrong argument type");
-            setResult(result,BarzerNumber(0));
-            return true;
-        }
-	}
-
 	struct TokIdGetter : boost::static_visitor<bool> {
 		const StoredUniverse &universe;
 		uint32_t tokId;
@@ -1653,44 +1565,6 @@ bool cmpr(BarzelEvalResult &result,
 		return true;
 	}
 
-	FUNC_DECL(getTime)
-        {
-            SETFUNCNAME(getTime);
-            if (rvec.size()) {
-                const BarzerDateTime* dt = getAtomicPtr<BarzerDateTime>(rvec[0]);
-                if (dt) {
-                    BarzerTimeOfDay t(dt->getTime());
-                    setResult(result, t);
-                    return true;
-                } else {
-                    FERROR("Wrong argument type. DateTime expected");
-                    return false;
-                }
-            } else { FERROR("At least one argument is needed"); }
-            return true;
-        }
-   
-        FUNC_DECL(getDate)
-        {
-            SETFUNCNAME(getDate);
-            if (rvec.size()) {
-                const BarzerDateTime* dt = getAtomicPtr<BarzerDateTime>(rvec[0]);
-                if (dt) {
-                    BarzerDate d(dt->getDate());
-                    setResult(result, d);
-                    return true;
-                } else {
-                    FERROR("Wrong argument type. DateTime expected");
-                    return false;
-                }
-            } else { 
-                BarzerDate_calc calc;
-                calc.setNowPtr ( ctxt.getNowPtr() ) ;
-                calc.setToday();
-                setResult(result,calc.getDate());
-            }
-            return true;
-        }
         
 	struct RangeGetter : public boost::static_visitor<bool> {
 		BarzelEvalResult &result;
@@ -1869,62 +1743,6 @@ bool cmpr(BarzelEvalResult &result,
         FUNC_DECL(opGt) { SETFUNCNAME(opGt); return cmpr<gt>(result, rvec,ctxt,func_name); }
 	FUNC_DECL(opEq) { SETFUNCNAME(opGt); return cmpr<eq>(result, rvec,ctxt,func_name); }
 
-	FUNC_DECL(opDateCalc)
-	{
-        SETFUNCNAME(opDateCalc);
-		// const char *sig = "opDateCalc(Date ,Number[, Number[, Number]]):";
-		try {
-
-			int month = 0, year = 0, day = 0;
-			switch (rvec.size()) {
-			case 4: year = getAtomic<BarzerNumber>(rvec[3]).getInt();
-			case 3: month = getAtomic<BarzerNumber>(rvec[2]).getInt();
-			case 2: {
-				day = getAtomic<BarzerNumber>(rvec[1]).getInt();
-				const BarzerDate &date = getAtomic<BarzerDate>(rvec[0]);
-				BarzerDate_calc c;
-                c.setNowPtr ( ctxt.getNowPtr() ) ;
-				c.set(date.year + year,
-				      date.month + month,
-				      date.day + day);
-				setResult(result, c.d_date);
-				return true;
-			}
-			default:
-                FERROR("Need 2-4 arguments" );
-			}
-		} catch (boost::bad_get) {
-            FERROR("Type mismatch");
-		}
-		return false;
-	}
-
-/// opTimeCalc(Time,HoursOffset[,MinOffset[,SecOffset]])	
-    FUNC_DECL(opTimeCalc)   
-    {
-        SETFUNCNAME(opTimeCalc);
-        try {
-            int h = 0, m = 0, s = 0;
-            switch (rvec.size()) {
-            case 4:
-                s = getAtomic<BarzerNumber>(rvec[3]).getInt();
-            case 3:
-                m = getAtomic<BarzerNumber>(rvec[2]).getInt();
-            case 2: {
-                h = getAtomic<BarzerNumber>(rvec[1]).getInt();
-                const BarzerTimeOfDay &time = getAtomic<BarzerTimeOfDay>(rvec[0]);
-                BarzerTimeOfDay out(time.getHH() + h, time.getMM() + m, time.getSS() + s);
-                setResult(result, out);
-                return true;
-            }
-            default:
-                FERROR("Need 2-4 arguments" );
-            }
-        } catch (boost::bad_get) {
-            FERROR("Type mismatch");
-        }
-        return false;
-    }
     // concatenates all parameters as one list
 	FUNC_DECL(listCat) { //
         BarzelBeadDataVec& resultVec = result.getBeadDataVec();
@@ -2173,7 +1991,7 @@ BELFunctionStorage_holder::DeclInfo g_funcs[] = {
     FUNC_DECLINFO_INIT(mkEVR, ""),
     FUNC_DECLINFO_INIT(mkErcExpr, ""),
     FUNC_DECLINFO_INIT(mkFluff, ""),
-    // FUNC_DECLINFO_INIT(mkLtrl),
+
     FUNC_DECLINFO_INIT(mkExprTag, ""),
     FUNC_DECLINFO_INIT(mkExprAttrs, ""),
     // caller
@@ -2183,15 +2001,8 @@ BELFunctionStorage_holder::DeclInfo g_funcs[] = {
     FUNC_DECLINFO_INIT(set, ""),
             
     // getters
-    FUNC_DECLINFO_INIT(getWeekday, ""),      // getWeekday(BarzerDate)
-    FUNC_DECLINFO_INIT(getTokId, ""),        // (BarzerLiteral|BarzerEntity)
-    FUNC_DECLINFO_INIT(getTime, ""),         // getTime(DateTime)
-    FUNC_DECLINFO_INIT(getDate, ""),         // getDate(DateTime)
-    FUNC_DECLINFO_INIT(getMDay, ""),
-    FUNC_DECLINFO_INIT(setMDay, ""),
-    FUNC_DECLINFO_INIT(getMonth, ""),
-    FUNC_DECLINFO_INIT(getYear, ""),
     FUNC_DECLINFO_INIT(getLow, ""), // (BarzerRange)
+    FUNC_DECLINFO_INIT(getTokId, ""),        // (BarzerLiteral|BarzerEntity)
     FUNC_DECLINFO_INIT(getHigh, ""), // (BarzerRange)
     FUNC_DECLINFO_INIT(isRangeEmpty, ""), // (BarzerRange or ERC) - returns true if range.lo == range.hi
 
@@ -2209,8 +2020,6 @@ BELFunctionStorage_holder::DeclInfo g_funcs[] = {
     FUNC_DECLINFO_INIT(opLt, ""),
     FUNC_DECLINFO_INIT(opGt, ""),
     FUNC_DECLINFO_INIT(opEq, ""),
-    FUNC_DECLINFO_INIT(opDateCalc, ""),
-    FUNC_DECLINFO_INIT(opTimeCalc, ""),
     // string
     FUNC_DECLINFO_INIT(strConcat, ""),
     // lookup
@@ -2256,9 +2065,9 @@ void BELFunctionStorage::loadAllFunctions()
     }
 }
 BELFunctionStorage::BELFunctionStorage(GlobalPools &gp, bool initFunctions) : globPools(gp),
-		holder(new BELFunctionStorage_holder(gp)) 
+		holder(initFunctions ? new BELFunctionStorage_holder(gp):0) 
 { 
-    if( initFunctions ) {
+    if( holder ) {
         loadAllFunctions( );
         funcHolder::loadAllFunc_date(holder);
         funcHolder::loadAllFunc_topic(holder);
@@ -2291,9 +2100,11 @@ bool BELFunctionStorage::call(BarzelEvalContext& ctxt, const BTND_Rewrite_Functi
 
 void BELFunctionStorage::help_list_funcs_json( std::ostream& os, const GlobalPools& gp ) 
 {
+    if( !gp.funSt )
+        return;
 	os << "[\n";
 	bool isFirst = true;
-    const auto& funmap = gp.funSt.holder->getFuncMap();
+    const auto& funmap = gp.funSt->holder->getFuncMap();
 	for( auto i = funmap.begin(); i!= funmap.end(); ++i ) {
         const auto& funcInfo = i->second.second;
 		if (!isFirst)

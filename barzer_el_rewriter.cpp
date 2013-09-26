@@ -336,14 +336,17 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const B
 		return ret;
 	}
 	const StoredUniverse &u = ctxt.universe;
-	const BELFunctionStorage &fs = u.getFunctionStorage();
+	if( const BELFunctionStorage *x = u.getFunctionStorage() ) {
+	    const BELFunctionStorage &fs = *x;
 
-	bool ret = fs.call(ctxt, data, d_val, ay::skippedvector<BarzelEvalResult>(d_childValVec), u );
-    if( ret && data.isValidVar() ) {
-        // ctxt.bindVar(data.getVarId()) = d_val;
-        ctxt.bindVar(data.getVarId(), d_val );
-    }
-	return ret;
+	    bool ret = fs.call(ctxt, data, d_val, ay::skippedvector<BarzelEvalResult>(d_childValVec), u );
+        if( ret && data.isValidVar() ) {
+            // ctxt.bindVar(data.getVarId()) = d_val;
+            ctxt.bindVar(data.getVarId(), d_val );
+        }
+	    return ret;
+    } else
+        return false;
 }
 
 template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_RuntimeEntlist>( const BTND_Rewrite_RuntimeEntlist& n ) 

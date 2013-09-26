@@ -4,6 +4,7 @@
 #include <boost/range/iterator_range.hpp>
 #include <zurch_docidx_types.h>
 #include <ay_util_time.h>
+#include <boost/function.hpp>
 
 namespace barzer {
 

@@ -12,6 +12,7 @@
 #include <ay/ay_cmdproc.h>
 #include <ay/ay_ngrams.h>
 #include <boost/filesystem.hpp>
+#include <barzer_el_function.h>
 
 namespace barzer {
 
@@ -181,7 +182,7 @@ GlobalPools::GlobalPools(bool fullMode) :
 	m_utf8langModelMgr(new ay::UTF8TopicModelMgr),
 	m_asciiLangModelMgr(new ay::ASCIITopicModelMgr),
 	dtaIdx( *this, &stringPool),
-	funSt(*this, fullMode),
+	funSt( fullMode ? new BELFunctionStorage(*this, fullMode):0 ),
 	dateLookup(*this),
 	globalTriePool( *this ),
 	settings( new BarzerSettings(*this,0) ),

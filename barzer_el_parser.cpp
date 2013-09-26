@@ -372,9 +372,8 @@ int BELReader::loadFromFile( const char* fileName, BELReader::InputFormat fmt )
 			computeRulesetSpellPriority( fileName );
 			return loadFromStream( fp );
 		}else {
-			// std::cerr << "ERROR: BELReader cant open file \"" << fileName << "\"\n";
             ay::print_absolute_file_path( (std::cerr << "ERROR: BELReader cant open file \"" ), fileName ) << "\"\n";
-			return 0;
+			return -1;
 		}
 	} else {
 		return loadFromStream( std::cin );
@@ -429,4 +428,17 @@ BELStatementParsed::BELStatementParsed() :
         d_confidenceBoost(0)
 { }
 
+
+    BarzXMLErrorStream::BarzXMLErrorStream( std::ostream& o ) : os(o) 
+        { os.os << "<error>"; }
+    BarzXMLErrorStream::BarzXMLErrorStream( std::ostream& o, size_t stmtNum ) : os(o) 
+        { os.os << "<error stmt=\""<< stmtNum << "\">"; }
+    BarzXMLErrorStream::BarzXMLErrorStream( BELReader& reader, size_t stmtNum ) : 
+        os(reader.getErrStreamRef())
+    {
+        os.os << "<error file=\"" << reader.getInputFileName() << "\" class=\"" << reader.getTrieClassName() << "\" trie=\"" << reader.getTrieName() << "\""
+        << " stmt=\""<< stmtNum << "\">";
+    }
+    BarzXMLErrorStream::~BarzXMLErrorStream()
+        { os.os << "</error>\n"; }
 } // namespace barzer
