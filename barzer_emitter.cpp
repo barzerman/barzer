@@ -17,10 +17,6 @@ bool BELParseTreeNode_PatternEmitter::produceSequence()
         curVec.clear();
         varVec.clear();
     }
-    //if(ret)
-        //patternTree->yield(curVec);
-    //bool ret = patternTree->step();
-    //return ret;
     return ret;
 }
 
@@ -53,12 +49,9 @@ struct Leaf: public PatternEmitterNode {
 struct IntermediateNode : public PatternEmitterNode {
     IntermediateNode(const BELParseTreeNode::ChildrenVec& children, VarVec &vars)
     {
-        //AYLOGDEBUG(children.size());
-
         childs.reserve(children.size());
         for(BELParseTreeNode::ChildrenVec::const_iterator it=children.begin(); it != children.end(); ++it)
             childs.push_back(make(*it, vars));
-        //AYLOG(DEBUG) << "done";
     }
     
     virtual ~IntermediateNode()

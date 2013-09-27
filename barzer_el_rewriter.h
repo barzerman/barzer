@@ -4,7 +4,6 @@
 /// 
 #pragma once
 #include <stack>
-//#include <barzer_emitter.h>
 #include <barzer_el_parser.h>
 #include <barzer_el_chain.h>
 #include <barzer_el_eval.h>

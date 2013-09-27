@@ -8,7 +8,6 @@
 #include <cstdio>
 #include <set>
 #include <string>
-//#include <barzer_emitter.h>
 #include <barzer_el_btnd.h>
 #include <ay/ay_pool_with_id.h>
 #include <ay/ay_xml_util.h>
@@ -143,6 +142,7 @@ public:
 ///  resulting barzel statements to the trie
 ///
 class BarzelTrieNode;
+struct User;
 class BELReader {
 protected:
 	BELTrie* trie ;
@@ -221,7 +221,9 @@ public:
 	} InputFormat;
 	InputFormat inputFmt;
 private:
-	StoredUniverse *d_currentUniverse;
+	StoredUniverse *d_currentUniverse = 0;
+	User           *d_currentUser = 0;
+
 	/// false by deault, when true takes trie name and class id from
 	bool d_trieIdSet;
 	uint32_t d_curTrieId, d_curTrieClass;
@@ -309,13 +311,19 @@ public:
 		delete parser;
 	}
 
-	void setCurrentUniverse( StoredUniverse* u ) { d_currentUniverse=u; }
+	void setCurrentUniverse( StoredUniverse* uni, User* user ) { 
+        d_currentUniverse=uni; 
+        d_currentUser=user; 
+    }
+
     /// initializes current universe to universe for user 0 
     /// this fucntion is ONLY needed for EMITTER. do NOT call it anywhere else
     void initCurrentUniverseToZero();
     //// 
 	StoredUniverse* getCurrentUniverse() { return d_currentUniverse; }
 	const StoredUniverse* getCurrentUniverse() const { return d_currentUniverse; }
+	User* getCurrentUser() { return d_currentUser; }
+	const User* getCurrentUser() const { return d_currentUser; }
 
 	/// this method is called by the parser for every statement tree
 	virtual void addStatement( const BELStatementParsed& );

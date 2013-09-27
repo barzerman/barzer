@@ -81,6 +81,7 @@ struct StoredEntityUniqId {
 	StoredEntityClass eclass;
     
     uint32_t getEntityClass() const { return eclass.ec; }
+    void setClass( const StoredEntityClass& e ) { eclass= e; }
 	void setClass( uint32_t c ) { eclass.setClass( c ); }
 	void setSubclass( uint32_t c ) { eclass.setSubclass( c ); }
 	void setTokenId( uint32_t i ) { tokId = i; }

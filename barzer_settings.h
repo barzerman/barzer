@@ -50,7 +50,25 @@ struct User {
 	// TrieVec tries;
 	BarzerSettings &settings;
 	StoredUniverse &universe;
+    
+    /// optional map for translating entity class/subclass
+    /// notice: neither subclasses for this user's class nor 
+    /// for the 0 (root) user are translated
+    std::map< StoredEntityClass, StoredEntityClass > d_entTranslationMap;
+    
+    /// returns 0 if translation was successful 
+    int addEntTranslation( const char* src, const char* dest ) ;
+    void addEntTranslation( StoredEntityClass from, StoredEntityClass to ) 
+        { d_entTranslationMap[ from ] = to; }
+    StoredEntityClass getEntTranslation( const StoredEntityClass & from ) const
+    {
+        const auto x = d_entTranslationMap.find( from );
+        return ( x== d_entTranslationMap.end() ? from: x->second );
+    }
 
+    uint32_t getDefaultEntityClass() const 
+        { return id; }
+    
 	User(Id i, BarzerSettings &s);
 
 	// TrieVec& getTries() { return tries; }
