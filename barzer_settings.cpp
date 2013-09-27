@@ -1034,5 +1034,4 @@ const std::string BarzerSettings::get(const char *key) const {
 const std::string BarzerSettings::get(const std::string &key) const {
 	return get(key.c_str());
 }
-#error SHIT
 }
