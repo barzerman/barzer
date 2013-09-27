@@ -501,6 +501,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 	size_t stmtNumber = 0;
     bool needAbort = false;
     std::stringstream errStrStr ;
+    std::string errTypeStr;
     bool tagsPassFilter = false;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
@@ -512,6 +513,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 				statement.setMacro(macroStrId); // m="MACROXXX"
 			} else {
 				errStrStr << "attempt to REDEFINE MACRO " << v  << " ignored";
+                errTypeStr = "type=\"REDEFINE MACRO\"";
                 needAbort  = true;
 			}
             break;
@@ -523,6 +525,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 				statement.setProc(procNameStrId); // p="PROCXXX"
 			} else {
 				errStrStr << "attempt to REDEFINE Procedure " << v  << " ignored";
+                errTypeStr = "type=\"REDEFINE PROCEDURE\"";
 				needAbort  = true;
 			}
 			}  // end of block
@@ -571,7 +574,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
         
     if( needAbort ) {
 	    statement.stmt.setStmtNumber( stmtNumber ) ;
-        BarzXMLErrorStream  errStream(reader->getErrStreamRef(),stmtNumber);
+        BarzXMLErrorStream  errStream(reader->getErrStreamRef(),stmtNumber, errTypeStr.c_str());
         errStream.os << errStrStr.str();
         return;
     }

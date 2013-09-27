@@ -430,15 +430,28 @@ BELStatementParsed::BELStatementParsed() :
 { }
 
 
-    BarzXMLErrorStream::BarzXMLErrorStream( std::ostream& o ) : os(o) 
-        { os.os << "<error>"; }
-    BarzXMLErrorStream::BarzXMLErrorStream( std::ostream& o, size_t stmtNum ) : os(o) 
-        { os.os << "<error stmt=\""<< stmtNum << "\">"; }
-    BarzXMLErrorStream::BarzXMLErrorStream( BELReader& reader, size_t stmtNum ) : 
+    BarzXMLErrorStream::BarzXMLErrorStream( std::ostream& o, const char* extraAttr ) : os(o) 
+        { 
+            os.os << "<error"; 
+            if( extraAttr ) 
+                os.os << " " << extraAttr;
+            os.os << ">";
+        }
+    BarzXMLErrorStream::BarzXMLErrorStream( std::ostream& o, size_t stmtNum, const char* extraAttr ) : os(o) 
+        { 
+            os.os << "<error stmt=\""<< stmtNum << "\"" ;
+            if( extraAttr ) 
+                os.os << " " << extraAttr;
+            os.os << ">"; 
+        }
+    BarzXMLErrorStream::BarzXMLErrorStream( BELReader& reader, size_t stmtNum, const char* extraAttr ) : 
         os(reader.getErrStreamRef())
     {
         os.os << "<error file=\"" << reader.getInputFileName() << "\" class=\"" << reader.getTrieClassName() << "\" trie=\"" << reader.getTrieName() << "\""
-        << " stmt=\""<< stmtNum << "\">";
+        << " stmt=\""<< stmtNum << "\"";
+            if( extraAttr ) 
+                os.os << " " << extraAttr;
+        os.os << ">"; 
     }
     BarzXMLErrorStream::~BarzXMLErrorStream()
         { os.os << "</error>\n"; }

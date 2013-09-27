@@ -362,9 +362,9 @@ inline std::ostream& BELStatementParsed::getErrStream() const
 
 struct BarzXMLErrorStream {
     ay::XMLStream os;
-    BarzXMLErrorStream( std::ostream& o );
-    BarzXMLErrorStream( std::ostream& o, size_t stmtNum );
-    BarzXMLErrorStream( BELReader& reader, size_t stmtNum );
+    BarzXMLErrorStream( std::ostream& o, const char* extraAttr=0 );
+    BarzXMLErrorStream( std::ostream& o, size_t stmtNum, const char* extraAttr = 0 );
+    BarzXMLErrorStream( BELReader& reader, size_t stmtNum, const char* extraAttr= 0 );
     ~BarzXMLErrorStream();
 };
 
