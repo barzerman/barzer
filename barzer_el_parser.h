@@ -221,8 +221,8 @@ public:
 	} InputFormat;
 	InputFormat inputFmt;
 private:
-	StoredUniverse *d_currentUniverse = 0;
-	User           *d_currentUser = 0;
+	StoredUniverse *d_currentUniverse;
+	User           *d_currentUser;
 
 	/// false by deault, when true takes trie name and class id from
 	bool d_trieIdSet;

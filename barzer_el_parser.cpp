@@ -136,6 +136,7 @@ BELReader::BELReader( BELTrie* t, GlobalPools &g, std::ostream* errStream ) :
     d_liveCommand(false),
     inputFmt(INPUT_FMT_XML),
     d_currentUniverse(0),
+    d_currentUser(0),
     d_curTrieId(g.internString_internal("")),
     d_curTrieClass(g.internString_internal("")),
     d_errStream(errStream? errStream: &(std::cerr)),
