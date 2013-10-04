@@ -1210,10 +1210,6 @@ DEFINE_BELParserXML_taghandle(ERC)
         erc.getEntity().eclass.ec = reader->getCurrentUniverse()->getUserId();
     try_entity_class_translation( erc.getEntity().eclass, *reader );
 
-    if( erc.getUnitEntity().eclass.ec == 0 ) 
-        erc.getUnitEntity().eclass.ec = reader->getCurrentUniverse()->getUserId();
-    try_entity_class_translation( erc.getUnitEntity().eclass, *reader );
-
 	statement.pushNode( BTND_PatternData(pat) );
 }
 DEFINE_BELParserXML_taghandle(ERCEXPR)
