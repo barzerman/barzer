@@ -1316,7 +1316,7 @@ bool cmpr(BarzelEvalResult &result,
                         ltrl.setId( x->getId());
                         result.pushOrSetBeadData( j++, ltrl );
                     }
-                } if( const BarzerNumber *x = getAtomicPtr<BarzerNumber>(i) ) {
+                } else if( const BarzerNumber *x = getAtomicPtr<BarzerNumber>(i) ) {
                     BarzerString bs;
                     x->convert(bs);
                     bs.setFluff();
