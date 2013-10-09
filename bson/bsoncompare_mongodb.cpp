@@ -133,23 +133,25 @@ void mongoTest()
 		[] () -> void
 		{
 			mongo::BSONObjBuilder b;
-			b << "test" << 100;
-			if (!b.obj().valid())
+			b.append("test", 100);
+			if (!b.obj().isValid())
 				throw 0;
 		},
 		[] () -> void
 		{
 			mongo::BSONObjBuilder b;
-			b << "test" << 100 << "rest" << 200 << "strname" << "this is a dumb and long string";
-			if (!b.obj().valid())
+			b.append("test", 100);
+			b.append("rest", 200);
+			b.append("strname", "this is a dumb and long string");
+			if (!b.obj().isValid())
 				throw 0;
 		},
 		[] () -> void
 		{
 			mongo::BSONObjBuilder b;
 			for (size_t i = 0; i < 1000; ++i)
-				b << "strname" << "this is a dumb and long string";;
-			if (!b.obj().valid())
+				b.append("strname", "this is a dumb and long string");
+			if (!b.obj().isValid())
 				throw 0;
 		},
 		[] () -> void
@@ -157,11 +159,11 @@ void mongoTest()
 			mongo::BSONObjBuilder b;
 			for (size_t i = 0; i < 1000; ++i)
 			{
-				b << "test" << 100;
-				b << "rest" << 200;
-				b << "strname" << "this is a dumb and long string";;
+				b.append("test", 100);
+				b.append("rest", 200);
+				b.append("strname", "this is a dumb and long string");
 			}
-			if (!b.obj().valid())
+			if (!b.obj().isValid())
 				throw 0;
 		},
 		[] () -> void
@@ -171,17 +173,17 @@ void mongoTest()
 			std::vector<std::unique_ptr<mongo::BSONObjBuilder>> subs;
 			subs.reserve(count);
 			subs.emplace_back(new mongo::BSONObjBuilder);
-			(*subs.back()) << "strname" << "some typical string";
+			subs.back()->append("strname", "some typical string");
 
 			for (size_t i = 0; i < count; ++i)
 			{
 				subs.emplace_back(new mongo::BSONObjBuilder(subs.back()->subobjStart("doc")));
-				(*subs.back()) << "strname" << "some typical string";
+				subs.back()->append("strname", "some typical string");
 			}
 			for (size_t i = subs.size() - 1; i >= 1; --i)
 				subs[i]->done();
 
-			if (!subs.front()->obj().valid())
+			if (!subs.front()->obj().isValid())
 				throw 0;
 		}
 	};
