@@ -4,6 +4,7 @@
 #include <boost/range/iterator_range.hpp>
 #include <zurch_docidx_types.h>
 #include <ay_util_time.h>
+#include <boost/function.hpp>
 
 namespace barzer {
 
@@ -413,7 +414,7 @@ public:
     /// lines with leading # are skipped as comments
     size_t addEntityFile( const char* path=0, const char* modeStr=0 ); 
 
-    void search( BENIFindResults_t&, const char* str, double minCov, const BENIFilter_f& = BENIFilter_f ()) const;
+    void search( BENIFindResults_t&, const char* str, double minCov, const BENIFilter_f& = BENIFilter_f (), size_t maxCount=128) const;
 	
 	BENI& getPrimaryBENI();
 

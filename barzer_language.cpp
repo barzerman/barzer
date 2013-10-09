@@ -474,7 +474,7 @@ int16_t LangInfoArray::getDominantLanguage() const
     const uint32_t threshold = 5;
     if (totalCnt && 100 * maxCnt / totalCnt < threshold)
 	{
-		AYLOG(WARNING) << "detected garbage language, falling back to English";
+		// AYLOG(WARNING) << "detected garbage language, falling back to English";
 		bestLang = LANG_ENGLISH;
 	}
 	// AYLOG(DEBUG) << "detected dominant language: " << bestLang;

@@ -2,6 +2,7 @@
 #include <barzer_shell.h>
 #include <ay/ay_cmdproc.h>
 #include <barzer_beni.h>
+#include <barzer_el_function.h>
 namespace barzer {
 static int bshf_test01( BarzerShell* shell, ay::char_cp cmd, std::istream& in , const std::string& argStr)
 {
@@ -80,12 +81,19 @@ static int bshf_morph( BarzerShell* shell, ay::char_cp cmd, std::istream& in , c
 
     return 0;
 }
+static int bshf_func( BarzerShell* shell, ay::char_cp cmd, std::istream& in , const std::string& argStr)
+{
+    ay::file_ostream outFile(shell->getOutStreamPtr()), errFile( shell->getErrStreamPtr() );
+    BELFunctionStorage::help_list_funcs_json( outFile.fp(), shell->getBarzerContext()->gp );
+    return 0;
+}
 
 static const ay::Shell::CmdData g_cmd[] = {
 ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_test01), "test01", "placeholder" ),
 ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_morph), "morph", "morphological normalization" ),
 ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_normalize), "beninorm", "morphological normalization" ),
-ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_file), "file", "-o out file -e err file -i input file. no arguments prints current names" )   
+ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_file), "file", "-o out file -e err file -i input file. no arguments prints current names" ),
+ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_func), "func", "lists all built in barzel functions" )   
 
 };
 std::pair<const ay::Shell::CmdData*, const ay::Shell::CmdData*>  shell_get_cmd01() { 

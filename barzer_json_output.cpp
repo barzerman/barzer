@@ -161,10 +161,7 @@ public:
 					const char *cstr = universe.getStringPool().resolveId(data.getId());
 					if (cstr) {
                         raii.addKeyVal( "type", "fluff" ) ;
-                        if( !ispunct(*cstr) ) {
-                            ay::jsonEscape(cstr, raii.startField( "value"), "\"");
-                        } 
-                            
+                        ay::jsonEscape(cstr, raii.startField( "value"), "\"");
 					} 
 				}
 			}

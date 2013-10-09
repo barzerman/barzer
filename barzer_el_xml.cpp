@@ -195,9 +195,10 @@ const char* getTagNameById( int tagId )
 }
 void report_bad_attribute( int tid, const char* n, const char* v, BELReader& reader, BELParserXML::CurStatementData& statement )
 {
-    BarzXMLErrorStream errStream( reader, statement.stmt.getStmtNumber());
-    if( strcmp(n,"xmlns") )
+    if( strcmp(n,"xmlns") ) {
+        BarzXMLErrorStream errStream( reader, statement.stmt.getStmtNumber());
         errStream.os << "tag:" << getTagNameById(tid) << " has unknown attribute \"" << n << "\"=\"" << v << "\"";
+    }
 }
 
 #define REPORT_ATTR report_bad_attribute( (tid), (n), (v), *reader, statement )
@@ -401,6 +402,21 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 }
 
 
+namespace {
+    // resolving class defaults and translating subclass if needed 
+void try_entity_class_translation( StoredEntityClass& eclass, const BELReader& reader ) 
+{
+    if( eclass.ec == 0 ) {
+        eclass.ec= reader.getCurrentUniverse()->getUserId();
+    } else if( eclass.ec != 1 && eclass.ec != reader.getCurrentUniverse()->getUserId() ) {
+        if( const User* user = reader.getCurrentUser() ) {
+            eclass = user->getEntTranslation( eclass );
+        }
+    }
+}
+
+} // anonymous namespace
+
 #define DEFINE_BELParserXML_taghandle( X )  void BELParserXML::taghandle_##X(int tid, const char_cp * attr, size_t attr_sz, bool close )
 DEFINE_BELParserXML_taghandle(STMSET)
 {
@@ -485,6 +501,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 	size_t stmtNumber = 0;
     bool needAbort = false;
     std::stringstream errStrStr ;
+    std::string errTypeStr;
     bool tagsPassFilter = false;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
@@ -496,6 +513,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 				statement.setMacro(macroStrId); // m="MACROXXX"
 			} else {
 				errStrStr << "attempt to REDEFINE MACRO " << v  << " ignored";
+                errTypeStr = "type=\"REDEFINE MACRO\"";
                 needAbort  = true;
 			}
             break;
@@ -507,6 +525,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 				statement.setProc(procNameStrId); // p="PROCXXX"
 			} else {
 				errStrStr << "attempt to REDEFINE Procedure " << v  << " ignored";
+                errTypeStr = "type=\"REDEFINE PROCEDURE\"";
 				needAbort  = true;
 			}
 			}  // end of block
@@ -553,12 +572,9 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
         return;
     }
         
-    if( stmtNumber == 145705 ) {
-        std::cerr << 145705 << " reached\n";
-    }
     if( needAbort ) {
 	    statement.stmt.setStmtNumber( stmtNumber ) ;
-        BarzXMLErrorStream  errStream(reader->getErrStreamRef(),stmtNumber);
+        BarzXMLErrorStream  errStream(reader->getErrStreamRef(),stmtNumber, errTypeStr.c_str());
         errStream.os << errStrStr.str();
         return;
     }
@@ -1190,6 +1206,9 @@ DEFINE_BELParserXML_taghandle(ERC)
 			break;
 		}
 	}
+    if( erc.getEntity().eclass.ec == 0 ) 
+        erc.getEntity().eclass.ec = reader->getCurrentUniverse()->getUserId();
+    try_entity_class_translation( erc.getEntity().eclass, *reader );
 
 	statement.pushNode( BTND_PatternData(pat) );
 }
@@ -1277,13 +1296,16 @@ DEFINE_BELParserXML_taghandle(RANGE)
 	if( isEntity ){
 		pat.range().dta = BarzerRange::Entity();
 
-		if( euid.eclass.isValid() ) {
+		if( euid.eclass.ec == 0 ) {
+            euid.eclass.ec = reader->getCurrentUniverse()->getUserId();
+        }  
+        {
+            try_entity_class_translation( euid.eclass, *reader );
 			BarzerRange::Entity& entRange = pat.range().setEntityClass( euid.eclass ); 
 	
 			if( id1Str ) {
                 uint32_t id1StrId = reader->getGlobalPools().internString_internal(id1Str) ;
 				const StoredEntity& ent1  = 
-					//reader->getUniverse().getDtaIdx().addGenericEntity( id1Str, euid.eclass.ec, euid.eclass.subclass );
 					reader->getGlobalPools().getDtaIdx().addGenericEntity( id1StrId, euid.eclass.ec, euid.eclass.subclass );
 				entRange.first = ent1.getEuid();
 			}
@@ -1291,7 +1313,6 @@ DEFINE_BELParserXML_taghandle(RANGE)
 
                 uint32_t id2StrId = reader->getGlobalPools().internString_internal(id2Str) ;
 				const StoredEntity& ent2  = 
-					//reader->getUniverse().getDtaIdx().addGenericEntity( id2Str, euid.eclass.ec, euid.eclass.subclass );
 					reader->getGlobalPools().getDtaIdx().addGenericEntity( id2StrId, euid.eclass.ec, euid.eclass.subclass );
 				entRange.first = ent2.getEuid();
 			}
@@ -1307,21 +1328,23 @@ DEFINE_BELParserXML_taghandle(ENTITY)
 	if( close ) { statement.popNode(); return; }
 	BTND_Pattern_Entity pat; 
     
+    StoredEntityClass eclass;
+
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
 		switch( n[0] ) {
 		case 'e': // class - ec="1" (same as c)
-            if( n[1] == 'c' ) 
-			    pat.setEntityClass( atoi(v) ); 
-			else
+            if( n[1] == 'c' ) {
+                eclass.setClass( atoi(v) );
+			} else
 				REPORT_ATTR;
             break;
 		case 'c': // class - c="1"
-			pat.setEntityClass( atoi(v) ); 
+            eclass.setClass( atoi(v) );
 			break;
 		case 's': // subclass - s="1"
-			pat.setEntitySubclass( atoi(v) ); 
+			eclass.setSubclass( atoi(v) ); 
 			break;
 		case 'i': // 
 		case 't': // id string - t="ABCD011"
@@ -1338,6 +1361,9 @@ DEFINE_BELParserXML_taghandle(ENTITY)
 			break;
 		}
 	}
+    // resolving class defaults and translating subclass if needed 
+    try_entity_class_translation( eclass, *reader );
+    pat.setEntityClass( eclass );
 	statement.pushNode( BTND_PatternData( pat));
 }
 DEFINE_BELParserXML_taghandle(DATETIME)
@@ -1740,7 +1766,8 @@ DEFINE_BELParserXML_taghandle(MKENT)
 		return;
 	}
 	BTND_Rewrite_MkEnt mkent;
-	uint32_t eclass = 0, subclass = 0, topicClass = 0, topicSubclass=0;
+    StoredEntityClass eclass, topicEclass;
+    bool hasTopic = false;
 	const char *idStr = 0;
 	const char *topicIdStr = 0;
     int relevance = 0, topicRelevance = 0;
@@ -1754,20 +1781,21 @@ DEFINE_BELParserXML_taghandle(MKENT)
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
 		switch( n[0] ) {
-		case 'c': eclass =  atoi(v); break;
-		case 's': subclass =  atoi(v); break;
+		case 'c': eclass.setClass(atoi(v)); break;
+		case 's': eclass.setSubclass(atoi(v)); break;
 		case 'i': idStr = v; break;
         
 		case 'n': canonicName = v; break;       // canonic name of the entity if its an empty string getDescriptiveNameFromPattern_simple will be used
 		case 'r': relevance = atoi(v); break;   // relevance of the entity 
 		case 't': {
+            if( !hasTopic ) hasTopic = true;
             switch(n[1]) {
-                case 'c': topicClass =  atoi(v); break;
+                case 'c': topicEclass.setClass( atoi(v) ); break;
                 case 'g': topicStrength = atoi(v); break;
                 case 'i': topicIdStr = v; break;
                 case 'n': topicCanonicName = v; break;
                 case 'r': topicRelevance = atoi(v); break;
-                case 's': topicSubclass =  atoi(v); break;
+                case 's': topicEclass.setSubclass( atoi(v) ); break;
 				default: REPORT_ATTR; break;
             }
             break;
@@ -1796,17 +1824,19 @@ DEFINE_BELParserXML_taghandle(MKENT)
 			break;
 		} // n[0] switch
 	}
+    if( eclass.ec ==0 ) 
+        eclass.ec = reader->getCurrentUniverse()->getUserId();
+    else 
+        try_entity_class_translation( eclass, *reader );
 
 	//const StoredEntity& ent  = reader->getUniverse().getDtaIdx().addGenericEntity( idStr, eclass, subclass );
     GlobalPools& gp = reader->getGlobalPools();
     uint32_t idStrId = ( idStr ? reader->getGlobalPools().internString_internal(idStr) : 0xffffffff );
-	const StoredEntity& ent  = gp.getDtaIdx().addGenericEntity( idStrId, eclass, subclass );
+	const StoredEntity& ent  = gp.getDtaIdx().addGenericEntity( idStrId, eclass.ec, eclass.subclass );
     StoredUniverse* universe = getReader()->getCurrentUniverse();
     const uint32_t curUserId = universe->getUserId();
 
-
-	if (rawCoord)
-	{
+	if (rawCoord) {
 		std::pair<double, double> coords;
 		if (parseCoord(rawCoord, coords)) {
 			if( universe ) 
@@ -1822,7 +1852,8 @@ DEFINE_BELParserXML_taghandle(MKENT)
 	traceInfo.source = statement.stmt.getSourceNameStrId();
 	traceInfo.statementNum = statement.stmt.getStmtNumber();
 	traceInfo.emitterSeqNo = 0;
-	universe->getEntRevLookup().add(StoredEntityUniqId(idStrId, eclass, subclass), traceInfo);
+
+	universe->getEntRevLookup().add(StoredEntityUniqId(idStrId, eclass.ec, eclass.subclass), traceInfo);
     
 	mkent.setEntId( ent.entId );
     /// ZURCH LINKAGE
@@ -1865,9 +1896,14 @@ DEFINE_BELParserXML_taghandle(MKENT)
                 eprop->set_nameExplicit();
         }
     }
-    if( topicClass ) {
+    if( hasTopic ) {
+        if( topicEclass.ec == 0 ) 
+            topicEclass.ec = reader->getCurrentUniverse()->getUserId();
+        else 
+            try_entity_class_translation( topicEclass, *reader );
+
         uint32_t topicIdStrId = reader->getGlobalPools().internString_internal(topicIdStr) ;
-	    const StoredEntity& topicEnt  = gp.getDtaIdx().addGenericEntity( topicIdStrId, topicClass, topicSubclass);
+	    const StoredEntity& topicEnt  = gp.getDtaIdx().addGenericEntity( topicIdStrId, topicEclass.ec, topicEclass.subclass);
 
         BELTrie& trie = reader->getTrie();
         trie.linkEntToTopic( topicEnt.getEuid(), ent.getEuid(), topicStrength );

@@ -50,7 +50,25 @@ struct User {
 	// TrieVec tries;
 	BarzerSettings &settings;
 	StoredUniverse &universe;
+    
+    /// optional map for translating entity class/subclass
+    /// notice: neither subclasses for this user's class nor 
+    /// for the 0 (root) user are translated
+    std::map< StoredEntityClass, StoredEntityClass > d_entTranslationMap;
+    
+    /// returns 0 if translation was successful 
+    int addEntTranslation( const char* src, const char* dest ) ;
+    void addEntTranslation( StoredEntityClass from, StoredEntityClass to ) 
+        { d_entTranslationMap[ from ] = to; }
+    StoredEntityClass getEntTranslation( const StoredEntityClass & from ) const
+    {
+        const auto x = d_entTranslationMap.find( from );
+        return ( x== d_entTranslationMap.end() ? from: x->second );
+    }
 
+    uint32_t getDefaultEntityClass() const 
+        { return id; }
+    
 	User(Id i, BarzerSettings &s);
 
 	// TrieVec& getTries() { return tries; }
@@ -169,11 +187,11 @@ public:
 	void loadUserRules(BELReader& reader, User&, const boost::property_tree::ptree&);
 
 	void loadUsers(BELReader& reader );
-	int loadUser(BELReader& reader, const boost::property_tree::ptree::value_type &);
+	int loadUser(BELReader& reader, const boost::property_tree::ptree::value_type &, const char* uname=0 );
 
-    int loadUserConfig( BELReader&, const char* cfgFileName );
+    int loadUserConfig( BELReader&, const char* cfgFileName, const char* uname=0 );
 
-	User& createUser(User::Id id);
+	User& createUser(User::Id id, const char* uname =0);
 	User* getUser(User::Id id);
 
 	void addRulefile(BELReader&, const Rulefile &f);

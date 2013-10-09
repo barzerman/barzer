@@ -321,7 +321,7 @@ int proc_ADD_STMSET( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  s
         BELTrie::WriteLock trie_lock(trie->getThreadLock());
 
         BELReader  reader( trie, gp, &(reqEnv.outStream)  );
-        reader.setCurrentUniverse( uni );
+        reader.setCurrentUniverse( uni, gp.getSettings().getUser(uni->getUserId()) );
         reader.setLiveCommandMode();
 	    std::stringstream is( str );
 	   

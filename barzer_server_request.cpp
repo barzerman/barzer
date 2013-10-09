@@ -27,6 +27,7 @@
 #include <zurch_docidx.h>
 #include <zurch_server.h>
 #include <zurch_route.h>
+#include <barzer_el_function.h>
 
 extern "C" {
 
@@ -360,6 +361,12 @@ int BarzerRequestParser::initFromUri( QuestionParm& qparm, const char* u, size_t
             if( i->first =="u" ) {
                 userId = static_cast<uint32_t>( atoi(i->second.c_str() ) );
 	            setUniverse(gpools.getUniverse(userId));
+				handled = true;
+                if( !d_universe ) 
+                    return 1;
+            } else if( i->first == "uname" ) { // un
+                userId = gpools.getUserIdByUserName( i->second.c_str() );
+                setUniverse( gpools.getUniverse(userId) );
 				handled = true;
                 if( !d_universe ) 
                     return 1;
@@ -1076,8 +1083,19 @@ void BarzerRequestParser::tag_query(RequestTag &tag)
 	AttrList &attrs = tag.attrs;
     AttrList::iterator it;
     if( !d_universe ) {
+        uint32_t userId = 0;
 	    it = attrs.find("u");
-		setUniverseId(it != attrs.end() ? atoi(it->second.c_str()) : 0);
+        if( it == attrs.end() ) {
+
+            if( (it = attrs.find("uname" )) != attrs.end()  ) {
+                uint32_t x = gpools.getUserIdByUserName( it->second.c_str() );
+                if( x != 0xffffffff ) 
+                    userId = x;
+            }
+        } else
+            userId = atoi(it->second.c_str());
+
+		setUniverseId( userId );
     }
     d_simplified = false;
     d_queryFlags.clear();

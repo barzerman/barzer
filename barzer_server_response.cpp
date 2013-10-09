@@ -205,11 +205,8 @@ public:
 				} else {
 					const char *cstr = universe.getStringPool().resolveId(data.getId());
 					if (cstr) {
-                        if( !ispunct(*cstr) ) {
-                            xmlEscape(cstr, os << "<fluff>");
-                            os << "</fluff>";
-                        } else 
-                            os << "<fluff/>";
+                        xmlEscape(cstr, os << "<fluff>");
+                        os << "</fluff>";
 					} 
 					else AYLOG(ERROR) << "Illegal literal(STOP) ID: " << std::hex << data.getId();
 				}
