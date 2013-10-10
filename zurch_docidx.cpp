@@ -546,7 +546,11 @@ size_t DocFeatureIndex::appendOwnedEntity( uint32_t docId, const BarzerEntity& e
 {
     ExtractedDocFeature::Vec_t featureVec;
     uint32_t eid = storeOwnedEntity(ent);
-    featureVec.push_back( ExtractedDocFeature(DocFeature(DocFeature::CLASS_ENTITY,eid),1) );
+
+	ExtractedDocFeature f(DocFeature(DocFeature::CLASS_ENTITY,eid),1);
+	//f.docPos.weight = ;
+
+    featureVec.push_back(f);
     return appendDocument( docId, featureVec, 0 );
 }
 
