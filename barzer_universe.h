@@ -131,7 +131,7 @@ public:
         UBIT_CORRECT_FROM_DICTIONARY, // when 1 will correct words away from generic dictionary otherwise leaves those words intact
 		UBIT_LEX_STEMPUNCT, // when 1, space_default token classifier will consider <term>'s (and other similar) as <term> if <term> is valid
 		UBIT_FEATURED_SPELLCORRECT, // when 1, feature extraction-based spell corrector will be active
-		UBIT_NEED_CONFIDENCE, // when 1 output will contain confidence info(which needs to be separately computed)
+		UBIT_NEED_CONFIDENCE, // when 1 output will contain confidence info(which needs to be separately computed) user:flags[value] has 'c'
 		UBIT_FEATURED_SPELLCORRECT_ONLY, // when 1, old not-feature-extraction-based spell corrector will be disabled
 
         /// extra normalization includes single quotes, utf8 punctuation etc.
@@ -141,6 +141,11 @@ public:
         UBIT_BENI_SOUNDSLIKE, /// if on BENI stores converts all ngrams using sounds like 
         UBIT_BENI_NO_BOOST_MATCH_LEN, /// when set there is no boost by match length
 
+        /// number lexing
+        UBIT_NC_LEADING_ZERO_ISNUMBER, /// if bit set will interpret 00500 as 500, otherwise only 0X (2 digits are perceived as numbers)
+                                       /// controlled by user:flags[value] has 'z'
+        UBIT_NC_NO_SEPARATORS, /// all separators and floating point numbers are ignored. 1.1 is parsed as 1 / . / 1 (2 ints nd a dot)
+                               /// controlled by user:flags[value] has 's'
         /// add new bits above this line only 
         UBIT_MAX
     };

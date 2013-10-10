@@ -22,6 +22,8 @@ void StoredUniverse::setUBits( const char* str )
     for( const char* s = str; *s; ++s ) {
         switch( *s ) {
         case 'c': setBit(StoredUniverse::UBIT_NEED_CONFIDENCE); break;
+        case 's': setBit(StoredUniverse::UBIT_NC_NO_SEPARATORS); break;
+        case 'z': setBit(StoredUniverse::UBIT_NC_LEADING_ZERO_ISNUMBER); break;
         }
     }
 }

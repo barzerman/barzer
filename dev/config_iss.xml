@@ -2,7 +2,7 @@
 <config>
     <users>
         <user id="200">
-            <flags value="c"/>
+            <flags value="cs"/>
             <enttrans>
                 <subclass src="100,10" dest="200,20"/>
             </enttrans>
