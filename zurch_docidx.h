@@ -622,7 +622,6 @@ class DocIndexLoaderNamedDocs : public DocFeatureLoader {
     ay::UniqueCharPool d_docnamePool; // both internal strings and literals will be in the pool 
 public: 
     BarzerEntityDocLinkIndex d_entDocLinkIdx;
-    BarzerEntityDocLinkIndex d_entDocIgnoreLinkIdx;
 
     DocIndexLoaderNamedDocs( DocFeatureIndex& index, const barzer::StoredUniverse& u  );
     ~DocIndexLoaderNamedDocs( );
@@ -641,8 +640,6 @@ public:
     } d_loaderOpt;
 
     void loadEntLinks( const char* fname );
-
-    void loadEntIgnoreLinks( const char* fname );
 
     LoaderOptions& loaderOpt() { return d_loaderOpt; }
     const LoaderOptions& loaderOpt() const { return d_loaderOpt; }

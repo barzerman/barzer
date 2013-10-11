@@ -126,11 +126,6 @@ bool ZurchSettings::loadIndex( const boost::property_tree::ptree& pt )
         std::string fname = x.get();
         loader->loadEntLinks( fname.c_str() );
     }
-    if( const boost::optional< std::string > x = attr.get().get_optional<std::string>("entignore") ) {
-        std::string fname = x.get();
-        loader->loadEntIgnoreLinks( fname.c_str() );
-    }
-    
     return true;
 }
 

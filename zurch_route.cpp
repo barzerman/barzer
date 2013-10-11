@@ -111,8 +111,6 @@ int getter_doc_features( ZurchRoute& route, const char* q )
 		return 0;
 	}
 
-	const auto& ignoreLinks = route.d_ixl.getLoader()->d_entDocIgnoreLinkIdx;
-
     idx.getUniqueFeatures( feat, docId, maxGramSize, uniqueness );
 
     const auto& universe = *(route.d_ixl.getUniverse());
