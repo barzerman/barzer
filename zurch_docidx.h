@@ -613,11 +613,7 @@ public:
 			size_t count, 
 			std::vector<Chunk_t>& chunks) const;
 
-    void parseTokenized() 
-    {
-        d_parser.lex_only( d_barz, d_qparm );
-        d_parser.semanticize_only( d_barz, d_qparm );
-    }
+    void parseTokenized() ;
     friend class ZurchSettings;    
     // virtual bool loadProperties( const boost::property_tree::ptree& );
 };
@@ -626,6 +622,7 @@ class DocIndexLoaderNamedDocs : public DocFeatureLoader {
     ay::UniqueCharPool d_docnamePool; // both internal strings and literals will be in the pool 
 public: 
     BarzerEntityDocLinkIndex d_entDocLinkIdx;
+    BarzerEntityDocLinkIndex d_entDocIgnoreLinkIdx;
 
     DocIndexLoaderNamedDocs( DocFeatureIndex& index, const barzer::StoredUniverse& u  );
     ~DocIndexLoaderNamedDocs( );
@@ -644,6 +641,8 @@ public:
     } d_loaderOpt;
 
     void loadEntLinks( const char* fname );
+
+    void loadEntIgnoreLinks( const char* fname );
 
     LoaderOptions& loaderOpt() { return d_loaderOpt; }
     const LoaderOptions& loaderOpt() const { return d_loaderOpt; }

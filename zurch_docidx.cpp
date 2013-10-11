@@ -1195,6 +1195,11 @@ void DocFeatureLoader::parserSetup()
     d_parser.lexer.setMaxCTokensPerQuery( MAX_NUM_TOKENS/2 );
     d_parser.lexer.setDontSpell(true);
 }
+void DocFeatureLoader::parseTokenized()
+{
+    d_parser.lex_only( d_barz, d_qparm );
+    d_parser.semanticize_only( d_barz, d_qparm );
+}
 size_t DocFeatureLoader::addDocFromString( uint32_t docId, const std::string& str, DocFeatureLoader::DocStats& stats, bool reuseBarz )
 {
     if( !reuseBarz ) {
@@ -1460,13 +1465,14 @@ void DocFeatureLoader::getBestChunks(uint32_t docId, const DocFeatureIndex::PosI
 
 DocIndexLoaderNamedDocs::~DocIndexLoaderNamedDocs( ) {}
 DocIndexLoaderNamedDocs::DocIndexLoaderNamedDocs( DocFeatureIndex& index, const barzer::StoredUniverse& u )
-: DocFeatureLoader(index,u),d_entDocLinkIdx(*this)
+: DocFeatureLoader(index,u),d_entDocLinkIdx(*this), d_entDocIgnoreLinkIdx(*this)
 {}
 namespace fs = boost::filesystem;
+
+void DocIndexLoaderNamedDocs::loadEntIgnoreLinks( const char* fname )
+    { d_entDocIgnoreLinkIdx.loadFromFile( fname ); }
 void DocIndexLoaderNamedDocs::loadEntLinks( const char* fname )
-{
-    d_entDocLinkIdx.loadFromFile( fname );
-}
+    { d_entDocLinkIdx.loadFromFile( fname ); }
 void DocIndexLoaderNamedDocs::addAllFilesAtPath( const char* path )
 {
     fs_iter_callback cb( *this );
