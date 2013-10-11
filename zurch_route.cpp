@@ -111,7 +111,6 @@ int getter_doc_features( ZurchRoute& route, const char* q )
 		return 0;
 	}
 
-	const auto& entLinks = route.d_ixl.getLoader()->d_entDocLinkIdx;
 	const auto& ignoreLinks = route.d_ixl.getLoader()->d_entDocIgnoreLinkIdx;
 
     idx.getUniqueFeatures( feat, docId, maxGramSize, uniqueness );
@@ -135,6 +134,7 @@ int getter_doc_features( ZurchRoute& route, const char* q )
 				docId != static_cast<uint32_t>(-1) &&
 				info.m_gram[0].featureClass == DocFeature::CLASS_ENTITY)
         {
+	        const auto& entLinks = route.d_ixl.getLoader()->d_entDocLinkIdx;
 			if (auto vec = entLinks.getLinkedEnts(docId)) {
                 bool foundId = false;
                 const auto theId = info.m_gram[0].featureId;
