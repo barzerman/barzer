@@ -63,8 +63,7 @@ int getter_doc_features( ZurchRoute& route, const char* q )
 
     std::ostream& os = route.d_rqp.stream();
 
-	try
-	{
+	try {
 		const auto& extraMap = route.d_rqp.getExtraMap();
 
 		{
@@ -135,13 +134,21 @@ int getter_doc_features( ZurchRoute& route, const char* q )
 		if (gsize == 1 &&
 				docId != static_cast<uint32_t>(-1) &&
 				info.m_gram[0].featureClass == DocFeature::CLASS_ENTITY)
-			if (auto vec = entLinks.getLinkedEnts(docId))
-				if (std::find(vec->begin(), vec->end(), info.m_gram[0].featureId) != vec->end())
-				{
-					linked.push_back(info);
-					continue;
-				}
-
+        {
+			if (auto vec = entLinks.getLinkedEnts(docId)) {
+                bool foundId = false;
+                const auto theId = info.m_gram[0].featureId;
+                for( const auto& i : *vec ) {
+                    if( i.first == theId ) {
+                        foundId = true;
+                        linked.push_back(info);
+                        break;
+                    }
+                }
+                if( foundId ) 
+                    continue;
+            }
+        }
 		bool hasEnts = false;
 		if (allEnts)
 		{

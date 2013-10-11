@@ -542,13 +542,13 @@ int DocFeatureIndex::getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec
 			featureVec, barz);
 }
 
-size_t DocFeatureIndex::appendOwnedEntity( uint32_t docId, const BarzerEntity& ent )
+size_t DocFeatureIndex::appendOwnedEntity( uint32_t docId, const BarzerEntity& ent, float w )
 {
     ExtractedDocFeature::Vec_t featureVec;
     uint32_t eid = storeOwnedEntity(ent);
 
 	ExtractedDocFeature f(DocFeature(DocFeature::CLASS_ENTITY,eid),1);
-	//f.docPos.weight = ;
+	f.docPos.weight = w;
 
     featureVec.push_back(f);
     return appendDocument( docId, featureVec, 0 );

@@ -354,7 +354,7 @@ public:
 
     /// place external entity into the pool (add all relevant strings to pool as well)
     uint32_t storeExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u );
-    uint32_t storeOwnedEntity( const barzer::BarzerEntity& ent);
+    uint32_t storeOwnedEntity( const barzer::BarzerEntity& ent );
 
     uint32_t storeExternalString( const char*);
     uint32_t storeExternalString( const barzer::BarzerLiteral&, const barzer::StoredUniverse& u );
@@ -385,7 +385,7 @@ public:
 
     int   fillFeatureVecFromQueryBarz( ExtractedDocFeature::Vec_t& featureVec, barzer::Barz& barz ) const;
 
-    size_t appendOwnedEntity( uint32_t docId, const BarzerEntity& ent ); 
+    size_t appendOwnedEntity( uint32_t docId, const BarzerEntity& ent, float w ); 
 	uint32_t getOwnedEntId(const BarzerEntity&) const;
 
     size_t appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t&, size_t posOffset );
