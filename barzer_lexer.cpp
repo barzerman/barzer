@@ -399,7 +399,7 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 		}
 
 		if (tIsANumber) {
-			const bool is3Group = ttok.is3Digits() ;
+			const bool is3Group = ( ttok.is3Digits() || (awaitingFrac && ttok.isAllDigits() ) );
 			hadSep = false;
 			if (tokens.size() > 1 && !awaitingFrac && !is3Group)
 			{
