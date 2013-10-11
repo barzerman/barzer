@@ -596,7 +596,9 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeatur
 		
 		auto& vec = fi->second;
 
-		const DocFeatureLink link(docId, f.docPos.weight);
+        auto w = f.docPos.weight;
+        if( w< 0 )  w= 0.0;
+		const DocFeatureLink link(docId, w );
 
         /* DONT ERASE YET ! this is find for same weight,docId 
 		auto linkPos = std::find_if(vec.begin(), vec.end(),
@@ -610,7 +612,9 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeatur
 		{
 			vec.push_back(link);
 			linkPos = vec.end() - 1;
-		} else if( linkPos->weight < link.weight ) {
+		} else if( link.weight < 1.0 ) { /// depressed link
+            linkPos->weight = -link.weight;
+        } else {
             linkPos->weight= link.weight;
         }
 		
