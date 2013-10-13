@@ -274,7 +274,7 @@ namespace zurch {
 
 void BarzerEntityDocLinkIndex::addLink( const BarzerEntity& ent, uint32_t docId, float w )
 {
-    d_zurchLoader.index().appendOwnedEntity( docId, ent, (w*ZurchModelParms::Section::WEIGHT_BOOST_NAME) );
+    d_zurchLoader.index().appendOwnedEntity( docId, ent, (w*d_zurchLoader.getCurrentWeight()) );
 	m_doc2linkedEnts[docId].push_back( { d_zurchLoader.index().getOwnedEntId(ent),w });
 }
 void BarzerEntityDocLinkIndex::addLink( const BarzerEntity& ent, const std::string& s, float w )

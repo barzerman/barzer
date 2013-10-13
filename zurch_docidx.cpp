@@ -1211,6 +1211,7 @@ size_t DocFeatureLoader::addDocFromString( uint32_t docId, const std::string& st
     }
 
     auto lastOffsetPos = getLastOffset( docId ); // lastOffsetPos guaranteed to be valid
+    
     stats.numFeatureBeads += d_index.appendDocument( docId, d_barz, lastOffsetPos->second, getCurrentWeight() );
     stats.numBeads += d_barz.getBeads().getList().size();
 		

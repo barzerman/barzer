@@ -310,6 +310,8 @@ public:
 private:
 	std::map<uint32_t, DocInfo> m_docInfos;
 public:
+    bool isDumbScoring() const { return !d_bitflags.checkBit( DocFeatureIndex::ZBIT_SMART_SCORING) ; }
+
     const char*         resolve_token( uint32_t strId ) const;
     
     const BarzerEntity  resolve_entity( std::string& entIdStr, uint32_t entId, const barzer::StoredUniverse& u ) const;
@@ -477,6 +479,7 @@ class DocFeatureLoader {
 	
 	std::map<uint32_t, size_t> m_lastOffset;
 public:
+    bool isDumbScoring() const { return d_index.isDumbScoring(); }
     const barzer::StoredUniverse* getUniverse() const{ return &d_universe; }
     enum {
         BIT_NO_PARSE_CHUNKS, // when set doesnt store /output chunks (parse info)
@@ -535,7 +538,7 @@ public:
 		m_curWeight = weight;
 		return old;
 	}
-	DocFeatureLink::Weight_t getCurrentWeight() const { return m_curWeight; }
+	DocFeatureLink::Weight_t getCurrentWeight() const { return ( isDumbScoring() ? 10:m_curWeight ); }
 
     enum { MAX_QUERY_LEN = 1024*64, MAX_NUM_TOKENS = 1024*32 };
      
