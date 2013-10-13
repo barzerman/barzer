@@ -198,7 +198,7 @@ struct ExtractedDocFeature {
 struct DocFeatureLink {
     uint32_t docId; 
 	
-	typedef uint16_t Weight_t;
+	typedef int16_t Weight_t;
     Weight_t weight; /// negative means disassociation , 0 - neutral association, positive - boost
     
     // we don't use it yet, and if we'd use we'd still need something more advanced
@@ -208,7 +208,7 @@ struct DocFeatureLink {
     
     DocFeatureLink() : docId(0xffffffff), weight(0), position(-1), length(0), count(0) {}
     DocFeatureLink(uint32_t i) : docId(i), weight(0), position(-1), length(0), count(0) {}
-    DocFeatureLink(uint32_t i, uint16_t w ) : docId(i), weight(w), position(-1), length(0), count(0) {}
+    DocFeatureLink(uint32_t i, int16_t w ) : docId(i), weight(w), position(-1), length(0), count(0) {}
     
     typedef std::vector< DocFeatureLink > Vec_t;
 	typedef boost::unordered_set< DocFeatureLink > Set_t;
@@ -388,7 +388,7 @@ public:
     size_t appendOwnedEntity( uint32_t docId, const BarzerEntity& ent, float w ); 
 	uint32_t getOwnedEntId(const BarzerEntity&) const;
 
-    size_t appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t&, size_t posOffset );
+    size_t appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t&, size_t posOffset, bool weightOverride );
     size_t appendDocument( uint32_t docId, barzer::Barz&, size_t posOffset, DocFeatureLink::Weight_t weight );
 	
 	void setTitleLength(uint32_t docId, size_t titleLength);

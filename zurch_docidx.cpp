@@ -272,8 +272,7 @@ uint32_t DocFeatureIndex::resolveExternalString( const barzer::BarzerLiteral& l,
         return 0xffffffff;
 }
 
-void DocFeatureIndex::getUniqueFeatures(std::vector<FeaturesQueryResult>& out,
-		uint32_t docId, size_t maxGramSize, size_t uniqueness) const
+void DocFeatureIndex::getUniqueFeatures(std::vector<FeaturesQueryResult>& out, uint32_t docId, size_t maxGramSize, size_t uniqueness) const
 {
 	for (const auto& pair : d_invertedIdx)
 	{
@@ -551,7 +550,7 @@ size_t DocFeatureIndex::appendOwnedEntity( uint32_t docId, const BarzerEntity& e
 	f.docPos.weight = w;
 
     featureVec.push_back(f);
-    return appendDocument( docId, featureVec, 0 );
+    return appendDocument( docId, featureVec, 0, true );
 }
 
 uint32_t DocFeatureIndex::getOwnedEntId(const BarzerEntity& ent) const
@@ -568,7 +567,7 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, barzer::Barz& barz, size
 	for (auto& f : featureVec)
 		f.docPos.weight = weight;
     
-    return appendDocument( docId, featureVec, offset );
+    return appendDocument( docId, featureVec, offset, false );
 }
 
 /** This function keeps only one link per given doc ID, feature ID and weight,
@@ -580,7 +579,7 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, barzer::Barz& barz, size
  * weight then the word deep in the text). This makes sense since we also take
  * link count in the example later in findDocument().
  */
-size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t& features, size_t offsetStart )
+size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t& features, size_t offsetStart, bool weightOverride )
 {
 	std::map<NGram<DocFeature>, size_t> sumFCount;
 
@@ -591,13 +590,12 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeatur
 	for (const auto& f : features)
 	{
         InvertedIdx_t::iterator fi = d_invertedIdx.find( f.feature );
-        if( fi == d_invertedIdx.end() ) 
+        if( fi == d_invertedIdx.end() )  
             fi = d_invertedIdx.insert({ f.feature, InvertedIdx_t::mapped_type() }).first;
 		
 		auto& vec = fi->second;
 
-        auto w = f.docPos.weight;
-        if( w< 0 )  w= 0.0;
+        int w = f.docPos.weight;
 		const DocFeatureLink link(docId, w );
 
         /* DONT ERASE YET ! this is find for same weight,docId 
@@ -612,10 +610,9 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeatur
 		{
 			vec.push_back(link);
 			linkPos = vec.end() - 1;
-		} else if( link.weight < 1.0 ) { /// depressed link
-            linkPos->weight = -link.weight;
-        } else {
-            linkPos->weight= link.weight;
+		} else {
+            if( weightOverride || link.weight > linkPos->weight )
+                linkPos->weight= link.weight;
         }
 		
 		if (m_considerFCount)
@@ -739,12 +736,13 @@ void DocFeatureIndex::findDocumentDumb(DocWithScoreVec_t& out,
 
 		const size_t numSources = 1 + sources.size();
 
+        double adjFactor = sizeBoost * classBoost / std::log(1 + numSources);
 		for (const auto& link : sources)
 		{
             if( !pfvv.empty()  &&  !matchPropFilterVarVec( link.docId, pfvv ) )
                 continue;
 
-			const auto scoreAdd = sizeBoost * classBoost / std::log(1 + numSources);
+			const auto scoreAdd = static_cast<double>(link.weight) * adjFactor;
 
 			if (parm.doc2pos)
 			{
