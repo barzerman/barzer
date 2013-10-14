@@ -1185,12 +1185,13 @@ void BarzerRequestParser::tag_query(RequestTag &tag)
             }
             break;
         case 'z':
-            if( i->first == "zurch" ) {
+            if( i->first == "zurch" && !i->second.empty() ) {
                 /// value of zurch attributes QuestionParm::setZurchFlags 
                 /// (see the code for values - this is a string of single character flags)
-                setQueryType(QType::ZURCH);
-                d_zurchDocIdxId = atoi(i->second.c_str());
-
+                if( i->second == "yes" || isdigit( i->second[0] ) ) {
+                    setQueryType(QType::ZURCH);
+                    d_zurchDocIdxId = atoi(i->second.c_str());
+                }
 				handled = true;
             }
             break;
