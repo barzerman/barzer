@@ -317,11 +317,12 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 	const char groupSeps[] = " .,'";
 
 	char fracSeps[4] = { 0 };
-	if (barz.getHints().testHint(barzer::BarzHints::BHB_DECIMAL_COMMA))
-		strcpy(fracSeps, ".,");
-	else
-		strcpy(fracSeps, ".");
-
+	if (barz.getHints().testHint(barzer::BarzHints::BHB_DECIMAL_COMMA)) {
+		fracSeps[0] = '.';
+		fracSeps[1] = ',';
+	} else {
+		fracSeps[0] = '.';
+    }
 	std::vector<CToken*> tokens;
 	std::vector<CToken*> allTokens;
 	char sep = 0;
@@ -343,7 +344,7 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 
 			BarzerNumber res;
 			if (numDec == 2 &&
-					frac.isNan() &&
+					!(frac.isNan()) &&
 					m_mayBeFrac &&
 					m_tokens[1]->number().getInt())
 				res = makeReal(m_tokens[0]->number(), m_tokens[1]->number());
@@ -386,12 +387,14 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 		}
 	} flush = { tokens, allTokens, sep, awaitingFrac, hadSep, mayBeFrac, buildNum };
 
+
 	for (size_t i = 0; i < cvec.size(); ++i)
 	{
 		CToken& t = cvec[i].first;
         bool tIsANumber = t.trySetBNum();
 		const TTWPVec& ttokens = t.getTTokens();
 		const TToken& ttok = ttokens[0].first;
+
 		if (ttokens.size() != 1)
 		{
 			flush();
@@ -459,6 +462,7 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 		if (strchr(groupSeps, tSep))
 		{
 			mayBeFrac = strchr(fracSeps, tSep);
+
 			if (sep && tSep == sep)
 			{
 				allTokens.push_back(&t);
@@ -468,6 +472,8 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 			{
 				allTokens.push_back(&t);
 				sep = tSep;
+                if( mayBeFrac && !awaitingFrac)
+                    awaitingFrac= true;
 				continue;
 			}
 		}

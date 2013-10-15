@@ -217,6 +217,7 @@ struct CToken {
 
 	bool isSpace() const { return cInfo.theClass == CTokenClassInfo::CLASS_SPACE; }
 	bool isPunct(char c) const { return ( (isPunct() ||(c==' ' && isSpace()) )  && qtVec.size() == 1 && qtVec[0].first.buf[0] == c ); }
+    char isChar() const { return ( qtVec.size() == 1 && qtVec[0].first.buf.size() == 1 ? qtVec[0].first.buf[0] : 0 ); }
 	
 	void setSpellCorrected( bool v = true ) { cInfo.setSpellCorrected(v); }
 	void addSpellingCorrection(const char* wrong, const char*  correct, const StoredUniverse& uni);
@@ -238,11 +239,15 @@ struct CToken {
 		bNum.set(x);
 	}
 
-    bool isAllDigits() const { return ( cInfo.theClass==CTokenClassInfo::CLASS_NUMBER || (qtVec.size() ==1 && qtVec.front().first.isAllDigits() ) ); }
+    size_t isAllDigits() const { 
+        return ( cInfo.theClass==CTokenClassInfo::CLASS_NUMBER || (qtVec.size() ==1 && qtVec.front().first.isAllDigits() ) ); 
+    }
+    bool is3Digits() const { return ( (qtVec.size() ==1 && qtVec.front().first.is3Digits() ) ); }
     bool trySetBNum( ) { 
         if( cInfo.theClass != CTokenClassInfo::CLASS_NUMBER ) {
             if( qtVec.size() ==1 && qtVec.front().first.isAllDigits() ) {
                 bNum.set( atoi(qtVec.front().first.buf.c_str()) ); 
+                bNum.setAsciiLen( qtVec.front().first.buf.length() );
                 return true;
             }
             return false;
