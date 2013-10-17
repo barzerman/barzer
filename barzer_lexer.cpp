@@ -23,7 +23,7 @@ bool QLexParser::tryClassify_number( CToken& ctok, const TToken& ttok, const TTW
 	const char* beg = ttok.buf.c_str();
 	const char* end = ttok.buf.c_str()+ttok.buf.length();
 	bool hasDot = false, hasDigit = false;
-    if( !d_universe.checkBit(StoredUniverse::UBIT_NC_LEADING_ZERO_ISNUMBER) ) {
+    if( !d_universe.checkBit(UBIT_NC_LEADING_ZERO_ISNUMBER) ) {
         if( ttok.buf.empty() )
             return false;
         if( ttok.buf[0] == '0' && ttok.buf.length() > 2 && ttok.buf[1] != '.' ) {
@@ -61,7 +61,7 @@ bool QLexParser::tryClassify_integer( CToken& ctok, const TToken& ttok, bool& al
             return ( allDigits= false, false);
     }
     allDigits = true;
-    if( !d_universe.checkBit(StoredUniverse::UBIT_NC_LEADING_ZERO_ISNUMBER) ) {
+    if( !d_universe.checkBit(UBIT_NC_LEADING_ZERO_ISNUMBER) ) {
         switch( ttok.buf.length() ) {
         case 0: return false;
         case 1: 
@@ -307,7 +307,7 @@ namespace
 
 int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 {
-    if( d_universe.checkBit(StoredUniverse::UBIT_NC_NO_SEPARATORS)  ) 
+    if( d_universe.checkBit(UBIT_NC_NO_SEPARATORS)  ) 
         return 0;
 
 	CTWPVec& cvec = barz.getCtVec();
@@ -865,7 +865,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
         /// this will strip euro language accents
         if( isTwoByteLang ) {
             ascifiedT.assign( t );
-        } else if( !d_universe.checkBit(StoredUniverse::UBIT_NOSTRIP_DIACTITICS) && ay::umlautsToAscii(ascifiedT,t) ) {
+        } else if( !d_universe.checkBit(UBIT_NOSTRIP_DIACTITICS) && ay::umlautsToAscii(ascifiedT,t) ) {
 			correctedStr = ascifiedT.c_str();
         } else
             ascifiedT.assign( t );
@@ -936,7 +936,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
                     if( isUsersWord )
                         theString = correctedStr;
                 }
-			} else if(!d_universe.checkBit(StoredUniverse::UBIT_CORRECT_FROM_DICTIONARY) ) {
+			} else if(!d_universe.checkBit(UBIT_CORRECT_FROM_DICTIONARY) ) {
 		        ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
 		        return SpellCorrectResult (0, ++cPosVec, ++tPosVec);
             }
@@ -963,7 +963,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
                 }
                 theString = buf;
             } else { /// normal utf8 (variable length utf8 chars)
-                if(d_universe.checkBit(StoredUniverse::UBIT_NOSTRIP_DIACTITICS)) {
+                if(d_universe.checkBit(UBIT_NOSTRIP_DIACTITICS)) {
                     strncpy( buf, t, BZSpell::MAX_WORD_LEN );
                     buf[ sizeof(buf)-1 ] = 0;
                     buf_len = strlen(buf);
@@ -1118,7 +1118,7 @@ int QLexParser::singleTokenClassify_space( Barz& barz, const QuestionParm& qparm
 
 				if( stemTok ) 
 				{
-					if (d_universe.checkBit(StoredUniverse::UBIT_LEX_STEMPUNCT))
+					if (d_universe.checkBit(UBIT_LEX_STEMPUNCT))
 					{
 						ctok.storedTok = stemTok;
 						ctok.setClass(CTokenClassInfo::CLASS_WORD);

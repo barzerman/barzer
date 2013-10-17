@@ -68,6 +68,18 @@ public:
     /// figures out from string and sets 
     BarzerNumber& set( const char* s ); 
 
+	BarzerNumber& operator+= ( double i );
+	BarzerNumber& operator+= ( int x );
+
+	BarzerNumber& operator*= ( double i );
+	BarzerNumber& operator*= ( int x );
+
+	BarzerNumber& operator-= ( double i );
+	BarzerNumber& operator-= ( int x );
+
+	BarzerNumber& operator/= ( double i );
+	BarzerNumber& operator/= ( int x );
+
 	BarzerNumber& operator+= (const BarzerNumber& num);
 	BarzerNumber& operator-= (const BarzerNumber& num);
 	BarzerNumber& operator*= (const BarzerNumber& num);

@@ -698,7 +698,7 @@ template <> void BTND_Rewrite_Text_visitor::operator()<BTND_Rewrite_Literal>(BTN
 			    t.setId( i );
 		    }
             const StoredUniverse* uverse = d_parser.getReader()->getCurrentUniverse();
-            if( uverse && !uverse->checkBit( StoredUniverse::UBIT_NO_EXTRA_NORMALIZATION ) ) {
+            if( uverse && !uverse->checkBit( UBIT_NO_EXTRA_NORMALIZATION ) ) {
                 std::string tmpStr;
                 ay::unicode_normalize_punctuation( tmpStr, theStr, d_len );
                 d_parser.getGlobalPools().internString_internal( tmpStr.c_str(), tmpStr.length() );
@@ -749,7 +749,7 @@ template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTN
     const char* str = ( d_str[d_len] ? (d_parser.setTmpText(d_str,d_len)) : d_str );
     std::string tmpString;
     if( const StoredUniverse* uverse = d_parser.getReader()->getCurrentUniverse() ) {
-        if( !uverse->checkBit(StoredUniverse::UBIT_NO_EXTRA_NORMALIZATION) ) {
+        if( !uverse->checkBit(UBIT_NO_EXTRA_NORMALIZATION) ) {
             ay::unicode_normalize_punctuation( tmpString, str, strlen(str) );
             str = tmpString.c_str();
             d_len = tmpString.length();
@@ -793,7 +793,7 @@ template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Punct> (BTND
 { 
     std::string tmpString;
     if( const StoredUniverse* uverse = d_parser.getReader()->getCurrentUniverse() ) {
-        if( !uverse->checkBit(StoredUniverse::UBIT_NO_EXTRA_NORMALIZATION) ) {
+        if( !uverse->checkBit(UBIT_NO_EXTRA_NORMALIZATION) ) {
             ay::unicode_normalize_punctuation( tmpString, d_str, d_len );
             d_str = tmpString.c_str();
             d_len = tmpString.length();

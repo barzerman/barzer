@@ -732,7 +732,7 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
     }
 
     /// confidence
-    if( universe.checkBit(StoredUniverse::UBIT_NEED_CONFIDENCE) ) 
+    if( universe.checkBit(UBIT_NEED_CONFIDENCE) ) 
         printConfidence(os);
 
 	os << "</barz>\n";

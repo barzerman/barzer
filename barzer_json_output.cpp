@@ -673,32 +673,32 @@ std::ostream& BarzStreamerJSON::print(std::ostream &os)
         ay::jsonEscape( barz.getOrigQuestion().c_str(),  raii.startField( "query" ), "\"" );
 
     /// confidence
-    if( universe.checkBit(StoredUniverse::UBIT_NEED_CONFIDENCE) )  {
-    const BarzConfidenceData& confidenceData = barz.confidenceData; 
-    if( !confidenceData.hasAnyConfidence() ) 
-        return os;
-
-    {
-        json_raii confidenceRaii( raii.startField("confidence"), false, 1 );
-        if( confidenceData.d_loCnt ) {
-            std::vector< std::string > tmp ;
-            confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_LOW );
-            if( tmp.size() ) 
-                print_conf_leftovers( json_raii(confidenceRaii.startField("nolo"),true,2), tmp );
-        }
-        if( confidenceData.d_medCnt ) {
-            std::vector< std::string > tmp ;
-            confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_MEDIUM );
-            if( tmp.size() )
-                print_conf_leftovers( json_raii(confidenceRaii.startField("nomed"),true,2), tmp );
-        }
-        if( confidenceData.d_hiCnt ) {
-            std::vector< std::string > tmp ;
-            confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_HIGH );
-            if( tmp.size() )
-                print_conf_leftovers( json_raii(confidenceRaii.startField("nohi"),true,2), tmp );
-        }
-    } // confidence block ends
+    if( universe.checkBit(UBIT_NEED_CONFIDENCE) )  {
+        const BarzConfidenceData& confidenceData = barz.confidenceData; 
+        if( !confidenceData.hasAnyConfidence() ) 
+            return os;
+    
+        {
+            json_raii confidenceRaii( raii.startField("confidence"), false, 1 );
+            if( confidenceData.d_loCnt ) {
+                std::vector< std::string > tmp ;
+                confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_LOW );
+                if( tmp.size() ) 
+                    print_conf_leftovers( json_raii(confidenceRaii.startField("nolo"),true,2), tmp );
+            }
+            if( confidenceData.d_medCnt ) {
+                std::vector< std::string > tmp ;
+                confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_MEDIUM );
+                if( tmp.size() )
+                    print_conf_leftovers( json_raii(confidenceRaii.startField("nomed"),true,2), tmp );
+            }
+            if( confidenceData.d_hiCnt ) {
+                std::vector< std::string > tmp ;
+                confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_HIGH );
+                if( tmp.size() )
+                    print_conf_leftovers( json_raii(confidenceRaii.startField("nohi"),true,2), tmp );
+            }
+        } // confidence block ends
     }
     raii.addKeyVal( "ver", g_version );
 	return os;

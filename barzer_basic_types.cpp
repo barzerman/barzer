@@ -48,15 +48,32 @@ uint8_t BarzerDate::getWeekday() const
 
 time_t BarzerDate::getTime_t() const
 {
-	time_t t = time(0);
-	tm tmdate;
-	LOCALTIME_R(&t, &tmdate);
+	tm tmdate={0};
 	tmdate.tm_year = year - 1900;
 	tmdate.tm_mon = month - 1;
 	tmdate.tm_mday = day;
 	return mktime(&tmdate);
 }
 
+
+	void BarzerDate::setDayMonthYear(const BarzerNumber& d, const BarzerNumber& m, const BarzerNumber& y ) 
+    {
+		day = (uint8_t) d.getInt();
+		month = (uint8_t) m.getInt();
+		year = (int16_t) y.getInt();
+
+        tm tmdate={0};
+	    time_t t = time(0);
+        tmdate.tm_year = year - 1900;
+        tmdate.tm_mon = month - 1;
+        tmdate.tm_mday = day;
+
+        mktime(&tmdate);
+        
+        day = tmdate.tm_mday;
+        month = tmdate.tm_mon + 1;
+        year = tmdate.tm_year + 1900;
+	}
 void BarzerDate::setTime_t(time_t t)
 {
 	struct tm tmdate;
@@ -82,6 +99,35 @@ void BarzerDate::setDayMonth(const BarzerNumber& d, const BarzerNumber& m)
 	year = thisYear;
 }
 
+	void BarzerDate::setYYYYMMDD( int x )
+	{
+		year  = x/10000;
+		month = (x%10000)/100;
+		day = x%100;
+	}
+	std::ostream& BarzerDate::print( std::ostream& fp ) const
+		{ return ( fp << std::dec << (int)month << '/' << (int)day << '/' << year ); }
+    
+    std::istream& BarzerDate::deserialize( std::istream& fp ) 
+    {
+        char c;
+        int y, m, d;
+        fp >> y >> c >> m>> c >> d ;
+        year = y;
+        month = m;
+        day = d;
+         
+        return fp;
+    }
+	bool BarzerDate::lessThan( const BarzerDate& r ) const
+	{
+		return ay::range_comp( ).less_than(
+			year,	month, day,
+			r.year,	r.month, r.day
+		);
+	}
+	bool BarzerDate::isEqual( const BarzerDate& r ) const
+	    { return( (year == r.year) && (month == r.month) && (day  == r.day )); }
 namespace {
 
 static const char* g_BarzerLiteral_typeName[] = {

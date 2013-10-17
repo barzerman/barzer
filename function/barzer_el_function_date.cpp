@@ -1,6 +1,7 @@
 #include <barzer_el_function.h>
 #include <barzer_el_function_holder.h>
 #include <barzer_datelib.h>
+#include <barzer_universe.h>
 
 namespace barzer {
 using namespace funcHolder;
@@ -49,17 +50,23 @@ FUNC_DECL(mkDate) //(d) | (d,m) | (d,m,y) where m can be both number or entity
                  d(BarzerDate::thisDay),
                  y(BarzerDate::thisYear),
                  tmp;
-
     BarzerDate &date = setResult(result, BarzerDate());
+
+    bool explicit_Month = false, explicit_Year = false, explicit_Day = false;
     // changes fields to whatever was set
     try {
         switch (rvec.size()) {
-        case 3: y = getNumber(rvec[2]);
+        case 3: 
+            y = getNumber(rvec[2]);
+            explicit_Year = true;
         case 2: { // Do we need to check if ent is ent(1,3) or not ?
             const BarzerEntity* be = getAtomicPtr<BarzerEntity>(rvec[1]);
             m = (be? BarzerNumber(h->gpools.dateLookup.resolveMonthID(q_universe,be->getTokId())) :getNumber(rvec[1]));
+            explicit_Month = true;
         }
-        case 1: d = getNumber(rvec[0]);
+        case 1: 
+            d = getNumber(rvec[0]);
+            explicit_Day= true;
         case 0: break; // 0 arguments = today
 
         default: // size > 3
@@ -68,6 +75,15 @@ FUNC_DECL(mkDate) //(d) | (d,m) | (d,m,y) where m can be both number or entity
             m = getNumber(rvec[1]);
             d = getNumber(rvec[0]);
             break;
+        }
+        if( bool futureBias = q_universe.checkBit( UBIT_DATE_FUTURE_BIAS ) ) {
+            if( explicit_Month ) { // month day were set  
+                if( m.getInt() <= BarzerDate::thisMonth ) 
+                    y+=1;
+            } else if( explicit_Day ) { // only day was set
+                if( d.getInt() <= BarzerDate::thisDay )
+                    m+=1;
+            }
         }
         date.setDayMonthYear(d,m,y);
 

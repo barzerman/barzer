@@ -21,9 +21,9 @@ void StoredUniverse::setUBits( const char* str )
     /// setting ubits from FLAG
     for( const char* s = str; *s; ++s ) {
         switch( *s ) {
-        case 'c': setBit(StoredUniverse::UBIT_NEED_CONFIDENCE); break;
-        case 's': setBit(StoredUniverse::UBIT_NC_NO_SEPARATORS); break;
-        case 'z': setBit(StoredUniverse::UBIT_NC_LEADING_ZERO_ISNUMBER); break;
+        case 'c': setBit(UBIT_NEED_CONFIDENCE); break;
+        case 's': setBit(UBIT_NC_NO_SEPARATORS); break;
+        case 'z': setBit(UBIT_NC_LEADING_ZERO_ISNUMBER); break;
         }
     }
 }

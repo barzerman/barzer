@@ -9,7 +9,7 @@ namespace barzer {
 SmartBENI::SmartBENI( StoredUniverse& u ) : 
     d_beniStraight(u),
     d_beniSl(u),
-    d_isSL(u.checkBit( StoredUniverse::UBIT_BENI_SOUNDSLIKE)),
+    d_isSL(u.checkBit( UBIT_BENI_SOUNDSLIKE)),
     d_universe(u),
     d_zurchUniverse(0)
 {
@@ -347,7 +347,7 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov, c
     enum { MIN_MATCH_BOOST_QLEN = 10 };
     size_t queryGlyphCount = ay::StrUTF8::glyphCount(query, query+ query_len) ; 
 
-    bool doBoost = d_universe.checkBit( StoredUniverse::UBIT_BENI_NO_BOOST_MATCH_LEN );
+    bool doBoost = d_universe.checkBit( UBIT_BENI_NO_BOOST_MATCH_LEN );
     for( const auto& i : vec ) {
         if( !i.m_data )
             continue;

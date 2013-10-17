@@ -428,22 +428,22 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
             const ptree& attrs = optAttrs.get();
 
             if( const auto p = attrs.get_optional<std::string>("utf8") ) 
-                if( *p== "yes" ) u.getUniverse().setBit( StoredUniverse::UBIT_NOSTRIP_DIACTITICS );
+                if( *p== "yes" ) u.getUniverse().setBit( UBIT_NOSTRIP_DIACTITICS );
 
             if( const auto p = attrs.get_optional<std::string>("soundslike") ) 
                 u.getUniverse().setSoundsLike( *p !="no" );
             
             if( const auto p = attrs.get_optional<std::string>("dictcorr") ) 
-                if( *p== "yes" ) u.getUniverse().setBit( StoredUniverse::UBIT_CORRECT_FROM_DICTIONARY );
+                if( *p== "yes" ) u.getUniverse().setBit( UBIT_CORRECT_FROM_DICTIONARY );
 
 			if( const auto p = attrs.get_optional<std::string>("stempunct") )
-				if (*p == "yes") u.getUniverse().setBit(StoredUniverse::UBIT_LEX_STEMPUNCT);
+				if (*p == "yes") u.getUniverse().setBit(UBIT_LEX_STEMPUNCT);
 				
 			if (const auto p = attrs.get_optional<std::string>("featuredsc"))
-				if (*p == "yes") u.getUniverse().setBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT);
+				if (*p == "yes") u.getUniverse().setBit(UBIT_FEATURED_SPELLCORRECT);
 				
 			if (const auto p = attrs.get_optional<std::string>("fsconly"))
-				if (*p == "yes") u.getUniverse().setBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT_ONLY);
+				if (*p == "yes") u.getUniverse().setBit(UBIT_FEATURED_SPELLCORRECT_ONLY);
 			
 			if (const auto p = attrs.get_optional<std::string>("stemex"))
 				u.getUniverse().getBZSpell()->loadStemExceptions(*p);
@@ -807,19 +807,19 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user, c
 	u.getUniverse().getBarzHints().initFromUniverse(&uni);
 
     if( boost::optional< const ptree& > x = children.get_child_optional("beni") ) {
-        u.getUniverse().setBit( StoredUniverse::UBIT_USE_BENI_VANILLA );
+        u.getUniverse().setBit( UBIT_USE_BENI_VANILLA );
          
-        u.getUniverse().setBit( StoredUniverse::UBIT_USE_BENI_IDS );
+        u.getUniverse().setBit( UBIT_USE_BENI_IDS );
         if( const boost::optional<const ptree&> xAttr = x.get().get_child_optional("<xmlattr>") ) {
             if( const boost::optional<std::string> cOpt = xAttr.get().get_optional<std::string>("noids") ) {
-                u.getUniverse().setBit( StoredUniverse::UBIT_USE_BENI_IDS, false );
+                u.getUniverse().setBit( UBIT_USE_BENI_IDS, false );
             }
             if( const boost::optional<std::string> cOpt = xAttr.get().get_optional<std::string>("sl") ) {
                 if( cOpt.get() != "no" )
-                    u.getUniverse().setBit( StoredUniverse::UBIT_BENI_SOUNDSLIKE, true );
+                    u.getUniverse().setBit( UBIT_BENI_SOUNDSLIKE, true );
             }
             if( const boost::optional<std::string> cOpt = xAttr.get().get_optional<std::string>("noboost") ) {
-                u.getUniverse().setBit( StoredUniverse::UBIT_BENI_NO_BOOST_MATCH_LEN, (cOpt.get() == "yes") );
+                u.getUniverse().setBit( UBIT_BENI_NO_BOOST_MATCH_LEN, (cOpt.get() == "yes") );
             }
             /// beni tag zurch attribute . value is id of the zurch universe
             if( const boost::optional<uint32_t> cOpt = xAttr.get().get_optional<uint32_t>("zurch") ) {
@@ -833,7 +833,7 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user, c
             }
         } 
 
-        u.getUniverse().setBit( StoredUniverse::UBIT_NEED_CONFIDENCE );
+        u.getUniverse().setBit( UBIT_NEED_CONFIDENCE );
 
         BOOST_FOREACH(const ptree::value_type &i, x.get() ) {
             if( i.first == "benient" ) {

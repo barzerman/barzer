@@ -124,7 +124,7 @@ int Barz::tokenize( const TokenizerStrategy& strat, QTokenizer& tokenizer, const
 	ctVec.clear();
 	ttVec.clear();
 	questionOrig.assign(q);
-    if( !tokenizer.universe().checkBit( StoredUniverse::UBIT_NO_EXTRA_NORMALIZATION ) )
+    if( !tokenizer.universe().checkBit( UBIT_NO_EXTRA_NORMALIZATION ) )
         extraNormalization(qparm);
 	questionOrigUTF8.assign(questionOrig.c_str());
 
@@ -141,7 +141,7 @@ int Barz::tokenize( QTokenizer& tokenizer, const char* q, const QuestionParm& qp
 
 	questionOrig.assign(q);
 
-    if( !tokenizer.universe().checkBit( StoredUniverse::UBIT_NO_EXTRA_NORMALIZATION ) )
+    if( !tokenizer.universe().checkBit( UBIT_NO_EXTRA_NORMALIZATION ) )
         extraNormalization(qparm);
 	questionOrigUTF8.assign(questionOrig.c_str());
 
@@ -588,7 +588,7 @@ int Barz::beniSearch( const StoredUniverse& u, const QuestionParm& qparm )
     size_t numGlyphs = questionOrigUTF8.length() ;
     if( qparm.mustBeni() || numGlyphs  < MAX_BENI_LENGTH ) {
         d_beni.d_entVec.clear();
-        if( !qparm.mustBeni() && u.checkBit(StoredUniverse::UBIT_USE_BENI_IDS) ) {
+        if( !qparm.mustBeni() && u.checkBit(UBIT_USE_BENI_IDS) ) {
             if( !beni_string_likely_isid( questionOrig, numGlyphs ) ) 
                 return 1;
         }

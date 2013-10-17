@@ -650,13 +650,13 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
     if( lang == LANG_UNKNOWN || lang == LANG_UNKNOWN_UTF8 )
         lang = Lang::getLang(d_universe, str, str_len);
 
-	const bool useFeaturedSC = true; /*d_universe.checkBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT);*/
+	const bool useFeaturedSC = true; /*d_universe.checkBit(UBIT_FEATURED_SPELLCORRECT);*/
 	const FeaturedMatchComparator featuredCmp(str, d_universe, lang,
 			useFeaturedSC ?
 				m_featuredSC->getBestMatch(str, str_len, lang, levMax) :
 				FeaturedSpellCorrector::FeaturedMatchInfo());
 	
-	if (d_universe.checkBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT_ONLY))
+	if (d_universe.checkBit(UBIT_FEATURED_SPELLCORRECT_ONLY))
 		return featuredCmp(0xffffffff);
 	
 	if( lang == LANG_ENGLISH) {
