@@ -415,7 +415,7 @@ public:
 		
 		double scoreAdd;
 		
-		uint32_t linkWeight;
+		DocFeatureLink::Weight_t linkWeight;
 		uint32_t linkCount;
 		size_t numSources;
 	};
