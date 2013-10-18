@@ -78,10 +78,10 @@ FUNC_DECL(mkDate) //(d) | (d,m) | (d,m,y) where m can be both number or entity
         }
         if( bool futureBias = q_universe.checkBit( UBIT_DATE_FUTURE_BIAS ) ) {
             if( explicit_Month ) { // month day were set  
-                if( m.getInt() <= BarzerDate::thisMonth ) 
+                if( m.getInt() < BarzerDate::thisMonth ) 
                     y+=1;
             } else if( explicit_Day ) { // only day was set
-                if( d.getInt() <= BarzerDate::thisDay )
+                if( d.getInt() < BarzerDate::thisDay )
                     m+=1;
             }
         }
