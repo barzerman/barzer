@@ -23,7 +23,7 @@ endif
 #ifeq ($(CX),yes)
 #    C11=-std=c++0x
 #endif
-C11=-std=c++0x
+C11=-std=c++11
 ifeq ($(CC),clang++)
     CLANG_WARNSUPPRESS=-Wno-array-bounds
 endif
@@ -40,69 +40,92 @@ libs = -Lay -Lsnowball -lay -lsnowlib -L/usr/local/lib -L/opt/local/lib -L/usr/l
 	$(BOOST_SYSLIB) $(BOOST_THREADLIB) -lexpat -lstdc++
 ECHO = echo
 lib_objects = \
+function/barzer_el_function_topic.o \
+function/barzer_el_function_date.o \
+barzer_el_function_holder.o \
+barzer_shell_01.o \
+barzer_question_parm.o \
+barzer_server_request_filter.o \
+barzer_beni.o \
+barzer_basic_types_range.o \
+barzer_el_pattern_range.o \
+barzer_el_rewrite_types.o \
+barzer_el_pattern.o \
+barzer_el_pattern_token.o \
+barzer_el_pattern_datetime.o \
+barzer_el_pattern_entity.o \
+barzer_el_pattern_number.o \
+barzer_el_pattern_entity.o \
+mongoose/mongoose.o \
+barzer_universe.o \
+barzer_http.o \
 barzer_global_pools.o \
 barzer_json_output.o \
-barzer_spell_features.o \
-zurch_server.o \
-zurch_settings.o \
-zurch_phrasebreaker.o \
-zurch_docidx.o \
-zurch_classifier.o \
-zurch_tokenizer.o \
-barzer_geoindex.o \
 barzer_el_cast.o \
 barzer_meaning.o \
-barzer_relbits.o \
-autotester/barzer_at_autotester.o \
-autotester/barzer_at_comparators.o \
 barzer_tokenizer.o \
-barzer_barzxml.o \
-barzer_el_rewrite_control.o \
-barzer_locale.o \
-barzer_number.o \
-lg_ru/barzer_ru_stemmer.o \
-barzer_entity.o \
-barzer_autocomplete.o \
-barzer_el_function_util.o \
-barzer_bzspell.o \
-barzer_el_proc.o \
-barzer_el_analysis.o \
-barzer_server_response.o \
-barzer_server_request.o \
 barzer_barz.o \
-barzer_el_matcher.o \
-barzer_el_chain.o \
-barzer_universe.o \
-barzer_el_wildcard.o \
-barzer_el_rewriter.o \
+barzer_entity.o \
+barzer_basic_types.o \
+barzer_datelib.o \
+barzer_date_util.o \
+barzer_dtaindex.o \
+barzer_el_analysis.o \
 barzer_el_btnd.o \
+barzer_el_chain.o \
+barzer_el_function.o \
+barzer_el_function_util.o \
+barzer_el_matcher.o \
 barzer_el_parser.o \
+barzer_el_rewriter.o \
 barzer_el_trie.o \
 barzer_el_trie_processor.o \
 barzer_el_trie_shell.o \
 barzer_el_trie_walker.o \
+barzer_el_wildcard.o \
 barzer_el_xml.o \
-barzer_emitter.o \
-barzer_el_function.o \
-barzer_basic_types.o \
-barzer_storage_types.o \
-barzer_loader_xml.o \
-barzer_shell.o\
-barzer_parse_types.o \
-barzer_lexer.o \
-barzer_parse.o \
+barzer_el_proc.o \
 barzer_language.o \
-barzer_dtaindex.o \
+barzer_lexer.o \
+barzer_loader_xml.o \
+barzer_parse.o \
+barzer_parse_types.o \
 barzer_server.o \
-barzer_token.o \
-barzer_date_util.o \
-barzer_datelib.o \
+barzer_server_request.o \
+barzer_server_response.o \
 barzer_settings.o \
+barzer_shell.o \
+barzer_storage_types.o \
+barzer_token.o \
+barzer_bzspell.o \
+barzer_autocomplete.o \
+barzer_emitter.o \
+barzer_locale.o \
+barzer_number.o \
+barzer_barzxml.o \
+barzer_el_rewrite_control.o \
+barzer_relbits.o \
 barzer_spellheuristics.o \
-lg_en/barzer_en_lex.o \
-lg_ru/barzer_ru_lex.o \
+barzer_geoindex.o \
+barzer_spell_features.o \
+barzer_el_trie_ruleidx.o \
+zurch/zurch_loader_longxml.o \
+zurch_route.o \
+zurch_barzer.o \
+zurch_server.o \
+zurch_settings.o \
+zurch_classifier.o \
+zurch_docidx.o \
+zurch_phrasebreaker.o \
+zurch_tokenizer.o \
+zurch_docdataindex.o \
+autotester/barzer_at_autotester.o \
+autotester/barzer_at_comparators.o \
 lg_en/barzer_en_date_util.o \
+lg_en/barzer_en_lex.o \
 lg_ru/barzer_ru_date_util.o \
+lg_ru/barzer_ru_lex.o \
+lg_ru/barzer_ru_stemmer.o
 
 objects = $(lib_objects) barzer.o
 objects_python=zurch_python.o barzer_python.o util/pybarzer.o
@@ -116,9 +139,9 @@ all: snowball/libsnowlib.a ay/libay.a $(LIBNAME).a $(BARZEREXE_OBJ)
 lib: ay/libay.a $(LIBNAME).a $(lib_bjects)
 	$(AR) -r $(LIBNAME).a $(lib_objects) ay/libay.a
 sharedlib: ay/libay.a $(lib_objects)
-	$(CC) $(C11LIB) -shared -Wl -dylib -o $(LIBNAME).so $(lib_objects) $(libs)
+	$(CC) $(C11LIB) -shared -dylib -o $(LIBNAME).so $(lib_objects) $(libs)
 pybarzer: $(objects_python) $(LIBNAME).a
-	$(CC) $(C11LIB) -shared -Wl -o pybarzer.so -l$(BOOST_LIB) $(objects_python) $(LIBNAME).a $(libs)  -l$(BOOST_LIB) $(PYLIBS) 
+	$(CC) $(C11LIB) -shared -o pybarzer.so -l$(BOOST_LIB) $(objects_python) $(LIBNAME).a $(libs)  -l$(BOOST_LIB) $(PYLIBS) 
 barzer_python.o: barzer_python.cpp
     $(CC) -DBARZER_HOME=$(INSTALL_DIR) -c $(CFLAGS) $< -o $@
 $(LIBNAME).a: ay/libay.a $(lib_objects)

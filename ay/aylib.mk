@@ -11,8 +11,9 @@ endif
 ifeq ($(UNAME),Darwin)
     C11LIB_SHIT=-stdlib=libc++
 endif
-C0X=-std=c++0x
-CFLAGS := $(OPT) $(C0X) $(C11LIB) $(BITMODE) $(FLAGS) -Wall -Wno-unneeded-internal-declaration -Wno-unused-variable -g -I. -fpic -I../ -I/usr/local/include -I/opt/local/include -Wno-parentheses
+C11=-std=c++11
+#CC=/opt/local/bin/gcc-mp-4.7
+CFLAGS := $(OPT) $(C11) $(C11LIB) $(BITMODE) $(FLAGS) -Wall -Wno-unneeded-internal-declaration -Wno-unused-variable -g -I. -fpic -I../ -I/usr/local/include -I/opt/local/include -Wno-parentheses
 LIBNAME=libay.a
 SHARED_LIBNAME=libay.so
 
@@ -21,12 +22,12 @@ objects=ay_geo.o ay_translit_ru.o ay_keymaps.o ay_ngrams.o ay_xml_util.o ay_snow
 all: $(objects)
 	$(AR) -r  $(LIBNAME) $(objects)
 shared: $(objects)
-	$(CC) $(C0X) $(C11LIB) -shared -Wl,-soname,$(SHARED_LIBNAME) -o $(SHARED_LIBNAME) $(objects)
+	$(CC) $(C11) $(C11LIB) -shared -Wl,-soname,$(SHARED_LIBNAME) -o $(SHARED_LIBNAME) $(objects)
 test: $(LIBNAME)
 	$(CC) -o testay testay.cpp $(CFLAGS) -lstdc++ -L. -lay $(C11LIB)
-clean: 
-	rm -f $(objects) $(LIBNAME)
-
 .cpp.o:
 	$(CC) -c $(CFLAGS) $< -o $@
 rebuild: clean all
+clean : 
+	rm -f $(objects) $(LIBNAME)
+

@@ -1,0 +1,2 @@
+#!/bin/ksh
+make -f barzer.mk CC=/opt/local/bin/gcc-mp-4.7 $*

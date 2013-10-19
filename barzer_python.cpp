@@ -790,6 +790,11 @@ namespace
 	}
 }
 
+namespace {
+    char const* greet() {
+        return "hello, world";
+    }
+}
 BOOST_PYTHON_MODULE(pybarzer)
 {
     AYLOGINIT(DEBUG);
