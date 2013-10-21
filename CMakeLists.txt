@@ -99,6 +99,7 @@ else()
 endif()
 
 set(SOURCES 
+            batch/barzer_batch_processor.cpp
             function/barzer_el_function_topic.cpp
             function/barzer_el_function_date.cpp
             barzer_el_function_holder.cpp

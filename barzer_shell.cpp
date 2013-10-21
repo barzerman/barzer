@@ -42,12 +42,7 @@ namespace barzer {
 
 namespace {
 bool is_all_digits( const char* s )
-{
-    for( const char* x = s; *x; ++x )
-        if( !isdigit(*x) )
-            return false;
-    return true;
-}
+    { return ay::is_all_digits(s); }
 
 void strip_newline( char* buf ) 
 {

@@ -3,6 +3,7 @@
 #include <ay/ay_cmdproc.h>
 #include <barzer_beni.h>
 #include <barzer_el_function.h>
+#include <batch/barzer_batch_processor.h>
 namespace barzer {
 static int bshf_test01( BarzerShell* shell, ay::char_cp cmd, std::istream& in , const std::string& argStr)
 {
@@ -18,6 +19,47 @@ static int bshf_test01( BarzerShell* shell, ay::char_cp cmd, std::istream& in , 
         
     }
     std::cerr << "test01\n";
+    return 0;
+}
+
+static int bshf_batchparse( BarzerShell* shell, ay::char_cp cmd, std::istream& in , const std::string& argStr)
+{
+    BatchProcessorSettings settings( shell->gp );
+    std::string tmp;
+    uint32_t uniId = 0;
+    if( in >> tmp ) {
+        ay::uri_parse argParser;
+        argParser.parse( tmp );
+        for( const auto& i : argParser.theVec ) {
+            if( i.first == "id" ) {
+                uniId = atoi( i.second.c_str() ) ;
+                if( !settings.setUniverseById( uniId ) ) {
+                    std::cerr << "invalid universe \"" << i.second << std::endl;
+                    return 0;
+                }
+            } else 
+            if( i.first == "in" ) {
+                if( auto fp = settings.setInFP(i.second.c_str()) ) {
+                    if( !fp->is_open() )  {
+                        std::cerr << "cant open input file \"" << i.second << "\"" << std::endl;
+                        return 0;
+                    }
+                }
+            } else
+            if( i.first == "out" ) {
+                if( auto fp = settings.setOutFP(i.second.c_str()) ) {
+                    if( !fp->is_open() )  {
+                        std::cerr << "cant open output file \"" << i.second << "\"" << std::endl;
+                        return 0;
+                    }
+                }
+            }
+        }
+    }
+    Barz barz;
+    BatchProcessorZurchPhrases processor( barz );
+    processor.run(settings);
+
     return 0;
 }
 static int bshf_file( BarzerShell* shell, ay::char_cp cmd, std::istream& in , const std::string& argStr)
@@ -92,6 +134,7 @@ static const ay::Shell::CmdData g_cmd[] = {
 ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_test01), "test01", "placeholder" ),
 ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_morph), "morph", "morphological normalization" ),
 ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_normalize), "beninorm", "morphological normalization" ),
+ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_batchparse), "batchparse", "[parms.xml] parses bulk input. params.xml contains parsing parameters" ),
 ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_file), "file", "-o out file -e err file -i input file. no arguments prints current names" ),
 ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_func), "func", "lists all built in barzel functions" )   
 

@@ -40,6 +40,7 @@ libs = -Lay -Lsnowball -lay -lsnowlib -L/usr/local/lib -L/opt/local/lib -L/usr/l
 	$(BOOST_SYSLIB) $(BOOST_THREADLIB) -lexpat -lstdc++
 ECHO = echo
 lib_objects = \
+batch/barzer_batch_processor.o \
 function/barzer_el_function_topic.o \
 function/barzer_el_function_date.o \
 barzer_el_function_holder.o \

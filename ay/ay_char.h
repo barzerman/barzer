@@ -140,6 +140,13 @@ struct Char2B_accessor {
     char operator *( ) const { return *d_s; }
 }; // Char2B_accessor
 
+inline bool is_all_digits( const char* s )
+{
+    for( const char* x = s; *x; ++x )
+        if( !isdigit(*x) )
+            return false;
+    return true;
+}
 
 //// end of 2 byte char 
 
