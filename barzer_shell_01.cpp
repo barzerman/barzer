@@ -4,6 +4,7 @@
 #include <barzer_beni.h>
 #include <barzer_el_function.h>
 #include <batch/barzer_batch_processor.h>
+#include <barzer_shellsrv_shared.h>
 namespace barzer {
 static int bshf_test01( BarzerShell* shell, ay::char_cp cmd, std::istream& in , const std::string& argStr)
 {
@@ -24,41 +25,11 @@ static int bshf_test01( BarzerShell* shell, ay::char_cp cmd, std::istream& in , 
 
 static int bshf_batchparse( BarzerShell* shell, ay::char_cp cmd, std::istream& in , const std::string& argStr)
 {
-    BatchProcessorSettings settings( shell->gp );
-    std::string tmp;
-    uint32_t uniId = 0;
-    if( in >> tmp ) {
-        ay::uri_parse argParser;
-        argParser.parse( tmp );
-        for( const auto& i : argParser.theVec ) {
-            if( i.first == "id" ) {
-                uniId = atoi( i.second.c_str() ) ;
-                if( !settings.setUniverseById( uniId ) ) {
-                    std::cerr << "invalid universe \"" << i.second << std::endl;
-                    return 0;
-                }
-            } else 
-            if( i.first == "in" ) {
-                if( auto fp = settings.setInFP(i.second.c_str()) ) {
-                    if( !fp->is_open() )  {
-                        std::cerr << "cant open input file \"" << i.second << "\"" << std::endl;
-                        return 0;
-                    }
-                }
-            } else
-            if( i.first == "out" ) {
-                if( auto fp = settings.setOutFP(i.second.c_str()) ) {
-                    if( !fp->is_open() )  {
-                        std::cerr << "cant open output file \"" << i.second << "\"" << std::endl;
-                        return 0;
-                    }
-                }
-            }
-        }
-    }
     Barz barz;
-    BatchProcessorZurchPhrases processor( barz );
-    processor.run(settings);
+    std::string tmp;
+    in >> tmp;
+    BarzerShellSrvShared srvShared( shell->gp );
+    srvShared.batch_parse( barz, tmp, std::string(), true );
 
     return 0;
 }

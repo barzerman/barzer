@@ -315,6 +315,15 @@ bool set_intersection_nonempty( Iter b1, Iter e1, Iter b2, Iter e2 )
 std::ostream& jsonEscape(const char* tokname, std::ostream& os, const char* surroundWith=0 );
 int url_encode( std::string& str, const char* s, size_t s_len );
 
+/// s is a 0-terminated string /<URI>?<URL>
+inline int get_uri_url( std::string& uri, std::string& url, const char* s )
+{
+    if( const char* qMark = strchr( s, '?' ) ) 
+        return ( uri.assign( s, qMark-s ), url.assign( qMark+1 ), 0 );
+    else 
+        return ( uri.assign( s ), 1 );
+}
+
 inline void strip_newline( char* buf ) 
     { if( size_t len = strlen(buf) ) if( buf[ len-1 ] == '\n' ) buf[ len-1 ] = 0; }
 

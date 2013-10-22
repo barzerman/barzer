@@ -14,6 +14,7 @@
 #include <ay_translit_ru.h>
 #include <barzer_relbits.h>
 #include <barzer_el_trie_ruleidx.h>
+#include <barzer_shellsrv_shared.h>
 
 
 extern "C" {
@@ -118,6 +119,27 @@ void sanitize_russian_ya( char* s, size_t& s_len )
             *i = *j;
     }
     s_len= j-(unsigned char*)s;
+}
+
+int url_route( const std::string& uri, const std::string& url, RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* str )
+{
+    if( uri.empty() ) 
+        return 0;
+    switch( uri[0] ) {
+    case 'k': 
+        if( uri == "keyword" ) {
+            Barz barz;
+            BarzerShellSrvShared srvShared( realGlobalPools );
+            int rc = srvShared.batch_parse( barz, url, std::string(), false );
+            if( rc ) {
+                reqEnv.outStream << "<error> batch parse returned " << rc << "</error>" << std::endl;
+            } else {
+                reqEnv.outStream << "<info> batch parse completed successfully </info>" << std::endl;
+            }
+        }
+        break;
+    }
+    return 0;
 }
 
 }
@@ -367,6 +389,12 @@ int proc_EN2RU( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, 
 	}
     return 0;
 }
+int proc_URL( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* str )
+{
+    std::string uri, url;
+    ay::get_uri_url( uri, url, str );
+    return url_route( uri, url, reqEnv, realGlobalPools, str );
+}
 int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* str )
 {
 	GlobalPools gp(false);
@@ -485,6 +513,7 @@ int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os )
         if (cut) *cut = 0;
 		IFHEADER_ROUTE(COUNT_EMIT)
 		IFHEADER_ROUTE(EMIT)
+		IFHEADER_ROUTE(URL)
 		IFHEADER_ROUTE(ENTRULES)
 		IFHEADER_ROUTE(CHKBIT)
 		IFHEADER_ROUTE(EN2RU)

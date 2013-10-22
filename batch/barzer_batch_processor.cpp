@@ -55,14 +55,32 @@ int BatchProcessorZurchPhrases::run( BatchProcessorSettings& settings )
     size_t numIterations = 1;
     auto& in   = settings.inFP();
     auto& ostr = settings.outFP();
-    ay::InputLineReader reader( in );
 
     QuestionParm&  qparm = settings.qparm();
 
     ay::stopwatch totalTimer;
-    while( reader.nextLine() && reader.str.length() ) {
+    std::string buf;
+    /// parsing phrase format DOCID|TXTTYPE|Phrase #|Phrase Text
+    /// we will output 0 for Phrase # , preserve DOCID and TXT Type 
+    /// but the phrase will be broken into a bunch of smaller subphrases (nohi)
+    enum {
+        COL_DOCID, 
+        COL_TXTTYPE,
+        COL_PHRASE_NO,
+        COL_PHRASE_TXT,
+
+        COL_MAX
+    };
+    std::string col[ COL_MAX ];
+    while( std::getline(in,buf) ) {
         ay::stopwatch localTimer;
-        const char* q = reader.str.c_str();
+        ay::parse_separator(
+            [&] ( size_t tokN, const char* s, const char* s_end ) 
+                { return ( tokN< COL_MAX ?  (col[ tokN ].assign( s, s_end-s ), false): true ); },
+            buf.c_str(),
+            buf.c_str()+buf.length()
+        );
+        const char* q = col[ COL_PHRASE_TXT ].c_str();
         ostr << "parsing: " << q << "\n";
 
         parser.parse( d_barz, q, qparm );

@@ -17,7 +17,6 @@
 #include <barzer_server.h>
 #include <zurch_docidx.h>
 
-
 #include <iostream>
 namespace barzer {
 
