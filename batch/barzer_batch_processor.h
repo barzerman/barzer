@@ -14,6 +14,7 @@ class BatchProcessorSettings_Base {
 protected:
     const StoredUniverse* d_universe;
     QuestionParm          d_qparm;
+
 public:
     BatchProcessorSettings_Base(): d_universe(0) {}
     virtual ~BatchProcessorSettings_Base() {}
@@ -77,14 +78,14 @@ public:
     const Barz& barz() const { return d_barz; }
           Barz& barz()       { return d_barz; }
 
-    virtual int run( BatchProcessorSettings& ) = 0;
+    virtual int run( BatchProcessorSettings&, const char* tail, bool fromShell ) = 0;
 };
 
 class BatchProcessorZurchPhrases : public BatchProcessor {
 public:
     ~BatchProcessorZurchPhrases() {}
     BatchProcessorZurchPhrases( Barz& b ) : BatchProcessor(b) {}
-    int run( BatchProcessorSettings& );
+    int run( BatchProcessorSettings&, const char* tail, bool fromShell);
 };
 
 

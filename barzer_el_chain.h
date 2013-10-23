@@ -337,11 +337,11 @@ public:
         } else
             return false;
     }
-	bool isEntity() const {
+	const BarzerEntity* isEntity() const {
         if( const BarzelBeadAtomic* atomic = getAtomic() ) 
             return atomic->getEntity();
         else 
-            return false;
+            return 0;
     }
 
     /// true if bead is range, ent, erc, date , time or date time

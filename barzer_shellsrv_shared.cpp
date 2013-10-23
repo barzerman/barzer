@@ -53,7 +53,7 @@ int BarzerShellSrvShared::batch_parse( Barz& barz, const std::string& url, const
         }
     }
     BatchProcessorZurchPhrases processor( barz );
-    processor.run(settings);
+    processor.run(settings, uri.c_str(), fromShell );
     return 0;
 }
 

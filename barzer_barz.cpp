@@ -500,17 +500,23 @@ void BarzConfidenceData::fillString( std::vector<std::string>& dest, const std::
         }
     }
 }
-int Barz::computeConfidence( const StoredUniverse& u, const QuestionParm& qparm, const char* q )
+int Barz::computeConfidence( const StoredUniverse& u, const QuestionParm& qparm, const char* q, const ConfidenceMode& mode )
 {
 	BeadRange rng = beadChain.getFullRange();
     for( BeadList::iterator i = rng.first; i!= rng.second; ++i ) {
         if( !i->isComplexAtomicType() ) 
             continue;
         int conf = i->computeBeadConfidence( &u );
+        if( mode.mode == ConfidenceMode::MODE_ENTITY ) {
+            if( const BarzerEntity* ent = i->isEntity() ){
+                if( !mode.eclass.ec || (ent->eclass.ec == mode.eclass.ec && ( !mode.eclass.subclass || (ent->eclass.subclass == mode.eclass.subclass) )) ) {
+                }
+            }
+        }
         i->setBeadConfidence( conf );
 
         const CTWPVec& ctoks = i->getCTokens();
-        for( CTWPVec::const_iterator ci = ctoks.begin() /*, ci_before_last = ( ctoks.size() ? ci+ctoks.size()-1: ctoks.end())*/; ci != ctoks.end(); ++ci ) {
+        for( CTWPVec::const_iterator ci = ctoks.begin(), ci_end = ctoks.end(); ci != ci_end; ++ci ) {
             const TTWPVec& ttv = ci->first.getTTokens();
 
             for( TTWPVec::const_iterator ti = ttv.begin(); ti!= ttv.end() ; ++ti ) {

@@ -316,7 +316,19 @@ public:
 
     int segregateEntities( const StoredUniverse& u, const QuestionParm& qparm, const char* q );
     int sortEntitiesByRelevance( const StoredUniverse& u, const QuestionParm& qparm, const char* q );
-    int computeConfidence( const StoredUniverse& u, const QuestionParm& qparm, const char* q );
+
+    struct ConfidenceMode {
+        enum {
+            MODE_CONFIDENCE, 
+            MODE_ENTITY
+        };
+        int mode; 
+
+        StoredEntityClass eclass;
+        ConfidenceMode() : mode(MODE_CONFIDENCE) {}
+        ConfidenceMode( const StoredEntityClass& ec ) : mode(MODE_ENTITY), eclass(ec) {}
+    };
+    int computeConfidence( const StoredUniverse& u, const QuestionParm& qparm, const char* q, const ConfidenceMode& mode =ConfidenceMode());
     int beniSearch( const StoredUniverse& u, const QuestionParm& qparm );
 
 	/// returns pair. first is the number of units which have been modified semantically

@@ -392,7 +392,7 @@ int proc_EN2RU( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, 
 int proc_URL( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* str )
 {
     std::string uri, url;
-    ay::get_uri_url( uri, url, str );
+    ay::get_uri_url( uri, url, ( *str == '/' ? str+1: str ) );
     return url_route( uri, url, reqEnv, realGlobalPools, str );
 }
 int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* str )
