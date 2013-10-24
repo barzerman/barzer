@@ -10,6 +10,7 @@ import Data.Ord
 import NLP.Snowball
 
 gramCount = 3
+maxLength = 2
 markers = map T.pack ["a", "the"]
 endShit = map T.pack ["a", "the", "in", "on", "to", "from", "of", "for", "until", "and", "or", "but", "of", "if", "i", "we", "us", "you"]
 bothShit = map T.pack ["and", "or", "but", "of", "if", "i", "we", "us", "you"]
@@ -48,17 +49,19 @@ reduce m = foldr foldrer m $ M.keys m
                                   | otherwise = jc
           f' _ _ = Nothing
 
-filterShit :: RevMap -> RevMap
 filterShit = M.filterWithKey (\g c -> stemmed (head g) `notElem` bothShit && stemmed (last g) `notElem` endShit)
 
-articlesHeur :: RevMap -> RevMap
+filterPop = M.filter (< popThreshold)
+
+filterLength = M.filterWithKey (\g _ -> maxLength >= length (filter ((`notElem` markers) . stemmed) g))
+
 articlesHeur = M.filterWithKey (\g c -> c <= popThreshold && stemmed (head g) `elem` markers)
 
 process :: String -> RevMap
-process = articlesHeur . prepare
+process = prepare
 
 prepare :: String -> RevMap 
-prepare = filterShit . reduce . toStats . invert . grammize . parse2map
+prepare = filterLength . filterShit . filterPop . reduce . toStats . invert . grammize . parse2map
 
 format :: RevMap -> String
 format = unlines . map T.unpack . map (T.intercalate $ T.singleton ' ') . map (map (\t' -> let t = origText t' in if t `elem` markers then T.pack "opt(" `T.append` t `T.append` T.singleton ')' else t)) . M.keys
