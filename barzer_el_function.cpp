@@ -1299,6 +1299,53 @@ bool cmpr(BarzelEvalResult &result,
 	FUNC_DECL(mkFluff)
 	{
         SETFUNCNAME(mkFluff);
+        const char* argStr = GETARGSTR();
+        if( argStr && !strcmp( argStr, "concat" ) ) {
+            BarzerString outBarzerStr ;
+            std::string& outStr = outBarzerStr.getStr();
+            bool prevWasBlank = false;
+            for ( const auto& rvit : rvec ) {
+                const auto& beadList = ctxt.matchInfo.getBeadList();
+
+                const BarzelBeadDataVec &vec = rvit.getBeadDataVec();
+                result.boostConfidence();
+                size_t j = 0;
+                for (const auto& i : vec ) {
+                    if( const BarzerLiteral *x = getAtomicPtr<BarzerLiteral>(i) ) {
+                        if( x->isBlank())  {
+                            prevWasBlank= true;
+                            continue;
+                        }
+			            const char* str = q_universe.getGlobalPools().string_resolve(x->getId());
+                        if(str) {
+                            if( prevWasBlank )
+                                outStr.push_back( ' ' );
+                            outStr.append( str );
+                        }
+                        
+                    } else 
+                    if( const BarzerNumber *x = getAtomicPtr<BarzerNumber>(i) ) {
+                        BarzerString ns;
+                        x->convert(ns);
+                        if( prevWasBlank ) {
+                            outStr.push_back( ' ' );
+                            prevWasBlank = false;
+                        }
+                        outStr.append(ns.getStr());
+                    } else
+                    if( const BarzerString *x = getAtomicPtr<BarzerString>(i) ) {
+                        outStr.append(x->getStr());
+                        if( prevWasBlank ) {
+                            outStr.push_back( ' ' );
+                            prevWasBlank = false;
+                        }
+                    } else 
+                        prevWasBlank = true;
+                }
+            }
+            setResult(result, outBarzerStr.setFluff() );
+            return true;
+        }
         BarzerLiteral &ltrl = setResult(result, BarzerLiteral());
         ltrl.setStop();
         for ( const auto& rvit : rvec ) {
@@ -1316,6 +1363,8 @@ bool cmpr(BarzelEvalResult &result,
                         ltrl.setId( x->getId());
                         result.pushOrSetBeadData( j++, ltrl );
                     }
+                } else if( const BarzerString *x = getAtomicPtr<BarzerString>(i) ) {
+                    result.pushOrSetBeadData( j++, BarzerString(*x).setFluff() );
                 } else if( const BarzerNumber *x = getAtomicPtr<BarzerNumber>(i) ) {
                     BarzerString bs;
                     x->convert(bs);

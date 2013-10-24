@@ -496,7 +496,8 @@ void BarzConfidenceData::fillString( std::vector<std::string>& dest, const std::
     for( OffsetAndLengthPairVec::const_iterator i = vec->begin(); i!= vec->end(); ++i ) {
         if( i->second && i->first< src.length() && i->first+i->second <= src.length() ) {
             std::string tmp= src.substr(i->first, i->second );
-            dest.push_back( tmp );
+            if( dest.empty() || dest.back() != tmp )
+               dest.push_back( tmp );
         }
     }
 }
@@ -510,7 +511,11 @@ int Barz::computeConfidence( const StoredUniverse& u, const QuestionParm& qparm,
         if( mode.mode == ConfidenceMode::MODE_ENTITY ) {
             if( const BarzerEntity* ent = i->isEntity() ){
                 if( !mode.eclass.ec || (ent->eclass.ec == mode.eclass.ec && ( !mode.eclass.subclass || (ent->eclass.subclass == mode.eclass.subclass) )) ) {
+                    conf = BarzelBead::CONFIDENCE_HIGH;
                 }
+            } else if( const BarzerLiteral* l = i->getLiteral() ) {
+                if( l->isStop() ) 
+                    conf = BarzelBead::CONFIDENCE_HIGH;
             }
         }
         i->setBeadConfidence( conf );
