@@ -101,7 +101,7 @@ int BatchProcessorZurchPhrases::run( BatchProcessorSettings& settings, const cha
             std::vector< std::string > tmp ;
             confidenceData.fillString( tmp, d_barz.getOrigQuestion(), BarzelBead::CONFIDENCE_HIGH );
             if( tmp.size() ) {
-                for( int i =0; i< tmp.size(); ++i ) {
+                for( size_t i =0; i< tmp.size(); ++i ) {
                     ostr << 
                         col[ COL_DOCID ] << '|' <<
                         col[ COL_TXTTYPE ] << '|' <<
