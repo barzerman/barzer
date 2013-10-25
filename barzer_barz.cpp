@@ -501,6 +501,7 @@ void BarzConfidenceData::fillString( std::vector<std::string>& dest, const std::
         }
     }
 }
+
 int Barz::computeConfidence( const StoredUniverse& u, const QuestionParm& qparm, const char* q, const ConfidenceMode& mode )
 {
 	BeadRange rng = beadChain.getFullRange();
@@ -804,16 +805,49 @@ void Barz::getContinuousOrigOffsets( const BarzelBead& bead, std::vector< std::p
     }
 }
 
-void Barz::getAllButSrctok( std::vector<std::string>& vec,  std::vector< std::pair<size_t, size_t> > posVec ) const
+namespace {
+
+inline bool string_has_content( const std::string& s ) {
+    for( const auto& i: s ) {
+        if( !isspace(i) && !ispunct(i) ) {
+            return true;
+        }
+    } 
+    return false;
+}
+
+inline std::string& left_strip( std::string& s )
+{
+    const char* x = s.c_str();
+    for( ; *x && isspace(*x); ++x ) ;
+    if( x != s.c_str() ) 
+        s.assign( x );
+    auto i = s.rbegin(); 
+    size_t newSz = s.size();
+    for( ; i != s.rend() && (isspace(*i)||ispunct(*i)) ; ++i ) --newSz ;
+    if( newSz != s.size() )
+        s.resize( newSz );
+    return s;
+}
+
+}
+
+void Barz::getAllButSrctok( std::vector<std::string>& vec,  const std::vector<std::pair<size_t, size_t>>& posVec ) const
 {
     size_t from = 0;
     for( const auto& x : posVec ) {
-        if( (x.first > from) && (x.first<= questionOrig.size()) )
-            vec.push_back( questionOrig.substr( from, (x.first-from) ) );
+        if( (x.first > from) && (x.first<= questionOrig.size()) ) {
+            
+            std::string s = questionOrig.substr( from, (x.first-from) );
+            if( string_has_content(s) ) 
+                vec.push_back( left_strip(s) );
+        }
         from = x.second;
     }
     if( from< questionOrig.size() ) {
-        vec.push_back( questionOrig.substr( from, (questionOrig.size()-from) ) );
+        std::string s = questionOrig.substr( from, (questionOrig.size()-from) );
+        if( string_has_content(s) )  
+            vec.push_back( left_strip(s) );
     }
 }
 std::string Barz::getBeadSrcTok( const BarzelBead& bead ) const

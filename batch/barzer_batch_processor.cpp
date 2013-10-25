@@ -42,6 +42,49 @@ const StoredUniverse* BatchProcessorSettings::setUniverseById( uint32_t id )
     return u;
 }
 
+void BatchProcessorZurchPhrases::computeSubtract( const BatchProcessorSettings& settings, std::vector< std::string>& text) const
+{
+    std::vector<std::pair<size_t, size_t>> chunk;
+    const auto universe = settings.universePtr();
+
+    std::vector< const BarzelBead* > beadsToCut;
+
+    for( const auto& bead : d_barz.getBeads().lst ) {
+        bool cutOut = false;
+        bool flushCut = false;
+
+        if( const BarzerEntity* ent = bead.isEntity() ){
+            cutOut= true;
+            flushCut = true;
+        } else if( const BarzerLiteral* l = bead.getLiteral() ) {
+            if( l->isStop() ) 
+                beadsToCut.push_back( &bead );
+            else if( !l->isBlank() )
+                flushCut = true;
+        } else if( const BarzerString* l = bead.getString() ) {
+            if( l->isFluff() )
+                beadsToCut.push_back( &bead );
+            else if( !l->getStr().empty() )
+                flushCut = true;
+        } else if( !bead.isBlank() ) {
+            flushCut = true;
+        }
+
+        /// flushing 
+        if( flushCut && !beadsToCut.empty() ) {
+            for( const auto& i : beadsToCut )
+                    d_barz.getContinuousOrigOffsets( *i, chunk );
+            beadsToCut.clear();
+        }
+        if( cutOut )
+            d_barz.getContinuousOrigOffsets( bead, chunk );
+    }
+    if( !beadsToCut.empty() ) {
+        for( const auto& i : beadsToCut ) 
+            d_barz.getContinuousOrigOffsets( *i, chunk );
+    }
+    d_barz.getAllButSrctok( text, chunk );
+}
 int BatchProcessorZurchPhrases::run( BatchProcessorSettings& settings, const char* tail, bool fromShell )
 {
     const StoredUniverse* universe =  settings.universePtr();
@@ -89,24 +132,20 @@ int BatchProcessorZurchPhrases::run( BatchProcessorSettings& settings, const cha
             buf.c_str()+buf.length()
         );
         const char* q = col[ COL_PHRASE_TXT ].c_str();
-        if( fromShell )
-            ostr << "parsing: " << q << "\n";
 
         parser.parse( d_barz, q, qparm );
         if( processingMode == PROCESSING_MODE_KEYWORDS ) {
-            if( !universe->checkBit(UBIT_NEED_CONFIDENCE) ) 
-                d_barz.computeConfidence( *universe, qparm, 0, Barz::ConfidenceMode( StoredEntityClass()) );
+            std::vector<std::string> text;
+            computeSubtract( settings, text );
 
-            const BarzConfidenceData& confidenceData = d_barz.confidenceData;
-            std::vector< std::string > tmp ;
-            confidenceData.fillString( tmp, d_barz.getOrigQuestion(), BarzelBead::CONFIDENCE_HIGH );
-            if( tmp.size() ) {
-                for( int i =0; i< tmp.size(); ++i ) {
+            if( text.size() ) {
+                size_t i = 0;
+                for( const auto& t : text ) {
                     ostr << 
                         col[ COL_DOCID ] << '|' <<
                         col[ COL_TXTTYPE ] << '|' <<
-                        col[ COL_PHRASE_NO ] << '.' << i  << '|' << 
-                    tmp[i] << std::endl;
+                        col[ COL_PHRASE_NO ] << '.' << i++  << '|' << 
+                    t << std::endl;
                 }
             }
         }

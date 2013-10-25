@@ -29,7 +29,7 @@ public:
     QuestionParm& qparm() { return d_qparm; }
     const QuestionParm& qparm() const { return d_qparm; }
 
-    const StoredUniverse* universePtr() { return d_universe; }
+    const StoredUniverse* universePtr() const { return d_universe; }
 };
 class BatchProcessorSettings : public BatchProcessorSettings_Base {
     const GlobalPools& d_gp;
@@ -85,6 +85,7 @@ class BatchProcessorZurchPhrases : public BatchProcessor {
 public:
     ~BatchProcessorZurchPhrases() {}
     BatchProcessorZurchPhrases( Barz& b ) : BatchProcessor(b) {}
+    void computeSubtract( const BatchProcessorSettings&,std::vector< std::string>& text) const;
     int run( BatchProcessorSettings&, const char* tail, bool fromShell);
 };
 

@@ -258,7 +258,7 @@ public:
 
     /// returns an array of continuous offsets constructed from all offsets in all ttokens 
     void getSrctok( std::vector<std::string>&, const std::vector<std::pair<size_t,size_t>>& ) const;
-    void getAllButSrctok( std::vector<std::string>& vec,  std::vector< std::pair<size_t, size_t> > posVec ) const;
+    void getAllButSrctok( std::vector<std::string>& vec,  const std::vector<std::pair<size_t, size_t>>& posVec ) const;
     std::string getBeadSrcTok( const BarzelBead& bead ) const;
     void getContinuousOrigOffsets( const BarzelBead& bead, std::vector< std::pair<size_t, size_t> >& vec ) const;
 };
