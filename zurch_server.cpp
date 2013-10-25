@@ -145,6 +145,28 @@ std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocWithSc
 		os << "\n\"barz\": ";
 		barzer::BarzStreamerJSON streamer(d_barz, *d_barz.getUniverse());
 		streamer.print(os) << ",";
+
+		barzer::CToken::SpellCorrections corrs;
+
+		const auto& bc = d_barz.getBeads();
+		for (const auto& item : bc.getList())
+		{
+			for (const auto& v : item.getCTokens())
+			{
+				const auto& corr = v.first.getSpellCorrections(); 
+				corrs.insert(corrs.end(), corr.begin(), corr.end());
+			}
+		}
+
+		json_raii spellRaii(raii.startField("spell"), true, 1);
+		for (const auto& corr : corrs)
+		{
+			spellRaii.startField("");
+			json_raii itemRaii(os, false, 2);
+
+			ay::jsonEscape(corr.first.c_str(), itemRaii.startField("before"), "\"");
+			ay::jsonEscape(corr.second.c_str(), itemRaii.startField("after"), "\"");
+		}
 	}
 	
     json_raii allDocsRaii( raii.startField("docs"), true, 1 );
