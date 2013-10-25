@@ -710,4 +710,132 @@ std::string Barz::getPositionalQuestion() const
 	return result;
 }
 
+std::pair<size_t,size_t> Barz::getBeadCount() const
+{
+    std::pair< size_t, size_t > rv(0,0);
+    for( BeadList::const_iterator i = beadChain.getLstBegin(); i!= beadChain.getLstEnd(); ++i ) {
+        ++(rv.second);
+        if( i->isSemantical() ) ++(rv.first);
+    }
+    return rv;
+}
+Barz::Barz() : 
+    d_origQuestionId(std::numeric_limits<uint64_t>::max()),
+    d_serverReqEnv(0)
+{}
+bool Barz::shouldTerminate() const
+{
+    if( barzelTrace.size() < MAX_TRACE_LEN ) 
+        return false;
+    else 
+        return barzelTrace.detectLoop();
+}
+void Barz::pushTrace( const BarzelTranslationTraceInfo& trace, uint32_t trieId, uint32_t tranId ) { 
+    if( barzelTrace.size() < MAX_TRACE_LEN ) 
+        barzelTrace.push_back( trace, trieId, tranId ) ; 
+}
+std::pair<size_t,size_t> Barz::getGlyphFromOffsets( size_t offset, size_t length ) const
+{
+    size_t o = questionOrigUTF8.getGlyphFromOffset(offset);
+    size_t end_o = questionOrigUTF8.getGlyphFromOffset(offset+length);
+    if( end_o> o ) {
+        return std::pair<size_t,size_t>(o,end_o-o);
+    } else
+        return std::pair<size_t,size_t>(o,0);
+}
+
+void Barz::getContinuousOrigOffsets( const BarzelBead& bead, std::vector< std::pair<size_t, size_t> >& vec ) const
+{
+    for( const auto& ctok : bead.getCTokens() ) {
+        for( const auto& ttok : ctok.first.getTTokens() ) {
+            const auto& x = ttok.first.getOrigOffsetAndLength();
+            size_t x_end = x.second+x.first;
+            if( vec.empty() ) 
+                vec.push_back( { x.first, x.first+x.second } );
+            else {
+                auto& last = vec.back();
+                if( x.first == last.second ) { // this continues the last chunk - stretching it 
+                    last.second+= x.second;
+                } else {  // this doesnt continue the last chunk and we need to revisit all intervals
+                    int overlap = 0; // can be -1 (right overlap) , 0 - no overlap, 1 - left overlap
+
+                    for( size_t i = 0; i< vec.size(); ++i )  {
+                        auto& v = vec[i]; 
+                        if( (x.first >=  v.first && x.first <= v.second)  ) { /// left edge of the chunk caught (left overlap)
+                            overlap = 1;
+                            if( x_end > v.second)
+                                v.second = x_end;
+                        } else if( x_end >= v.first && x.first <= v.second)  { // right edge of the chunk caught (right overlap)
+                            overlap = -1;
+                            if( x.first < v.first ) 
+                                v.first = x.first;
+                        }
+                        if( overlap > 0 ) { // 
+                            if( i+1< vec.size() ) { 
+                                // this is not the last chunk and we're making sure this chunk doesn't overlap 
+                                const auto& nextI = vec[ i+1 ];
+                                if( v.second>= nextI.first ) { // if it overlaps 
+                                    // we extend this chunk to include the next and remove the next chunk
+                                    v.second = std::max( v.second, nextI.second );
+                                    vec.erase( vec.begin() + (i+1) ) ;
+                                }
+                            }
+                            break;
+                        } else if( overlap < 0 ) {
+                            if( i>0 ) {
+                                /// overlapped chunk isnt first 
+                                const auto& prevI = vec[ i-1 ];
+                                if( v.first< prevI.second ) { /// we will absorb the prev chunk into it and then remove the prev
+                                    if( prevI.first< v.first ) 
+                                        v.first = prevI.first;
+                                    vec.erase( vec.begin() + (i-1) ) ;
+                                }
+                            }
+                        } else if( x_end < v.first ) {
+                            vec.insert( vec.begin() +i, { x.first, x_end } );
+                        }
+                    }
+                    if( !overlap ) { // applicable chunk not found 
+                        vec.push_back( { x.first, x.first + x.second } );
+                    }
+                }
+            }
+        }
+    }
+}
+
+void Barz::getAllButSrctok( std::vector<std::string>& vec,  std::vector< std::pair<size_t, size_t> > posVec ) const
+{
+    size_t from = 0;
+    for( const auto& x : posVec ) {
+        if( (x.first > from) && (x.first<= questionOrig.size()) )
+            vec.push_back( questionOrig.substr( from, (x.first-from) ) );
+        from = x.second;
+    }
+    if( from< questionOrig.size() ) {
+        vec.push_back( questionOrig.substr( from, (questionOrig.size()-from) ) );
+    }
+}
+std::string Barz::getBeadSrcTok( const BarzelBead& bead ) const
+{
+    std::vector< std::pair<size_t, size_t> > pv;
+    getContinuousOrigOffsets( bead, pv );
+    std::vector<std::string> sv;
+    getSrctok( sv, pv );
+
+    std::stringstream sstr;
+    for( size_t i = 0; i< sv.size(); ++i ) {
+        if( i ) sstr << ",";
+        sstr << sv[i];
+    }
+    return sstr.str();
+}
+void Barz::getSrctok( std::vector<std::string>& vec,  const std::vector<std::pair<size_t,size_t>>& posVec ) const
+{
+    for( const auto& x : posVec ) {
+        if( (x.second > x.first) && (x.second<= questionOrig.size()) )
+            vec.push_back( questionOrig.substr( x.first, (x.second-x.first) ) );
+    }
+}
+
 } // barzer namepace ends

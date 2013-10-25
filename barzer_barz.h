@@ -3,6 +3,7 @@
 #include <barzer_parse_types.h>
 #include <barzer_topics.h>
 #include <barzer_tokenizer.h>
+#include <barzer_el_trace.h>
 #include <ay/ay_utf8.h>
 
 namespace barzer {
@@ -15,86 +16,6 @@ struct MatcherCallback;
 
 struct RequestVariableMap;
 struct RequestEnvironment; // server request environment
-
-struct BarzelTrace {
-    enum { 
-        MAX_TAIL_REPEAT = 64  // if more than this many consecutive occurrences are detected its a loop
-    }; 
-    struct SingleFrameTrace {
-        size_t grammarSeqNo; // grammar sequence number
-        BarzelTranslationTraceInfo tranInfo; // translation trace info for the rule that was hit
-        uint32_t globalTriePoolId; /// global trie pool id of the trie that was hit 
-        uint32_t tranId;  // translation id
-
-        std::vector< std::string > errVec;
-        
-        bool eq( const SingleFrameTrace& o )  const
-            { return (grammarSeqNo == o.grammarSeqNo && tranInfo.eq(o.tranInfo)); }
-        bool eq( size_t gn, const BarzelTranslationTraceInfo& ti ) const 
-            { return ( grammarSeqNo== gn && tranInfo.eq(ti)) ; }
-        void set( size_t gn, const BarzelTranslationTraceInfo& ti ) 
-            { 
-                grammarSeqNo=gn;
-                tranInfo = ti;
-            }
-        SingleFrameTrace( ) : grammarSeqNo(0),globalTriePoolId(0xffffffff), tranId(0xffffffff) {}
-        SingleFrameTrace( const BarzelTranslationTraceInfo& ti, size_t n, uint32_t trieId, uint32_t trId ) : grammarSeqNo(n), tranInfo(ti),globalTriePoolId(trieId), tranId(trId) {}
-    };
-
-    typedef std::vector< SingleFrameTrace > TraceVec;
-    
-    size_t d_grammarSeqNo; // current grammar sequence number 
-
-    SingleFrameTrace d_lastFrame;
-    size_t d_lastFrame_count;
-
-    enum : int {
-        ERRBIT_TRUNCATED_LENGTH, /// 
-        ERRBIT_TRUNCATED_TOKENS, /// 
-        /// add new error bits above this
-        ERRBIT_MAX
-    };
-    ay::bitflags< ERRBIT_MAX > d_errBit;
-
-    TraceVec d_tvec;
-    std::string skippedTriesString;
-
-    void clear() { 
-        d_tvec.clear(); 
-        skippedTriesString.clear();  
-        d_lastFrame_count=0;
-        d_errBit.clear();
-    }
-    void setErrBit( int b ) { if( b< ERRBIT_MAX ) d_errBit.set( b ); }
-    bool checkErrBit( int b ) const { return d_errBit.checkBit( b ); }
-
-    size_t size() const { return d_tvec.size(); }
-    void push_back( const BarzelTranslationTraceInfo& traceInfo, uint32_t trieId, uint32_t tranId  ) 
-    {
-        d_tvec.push_back( SingleFrameTrace( traceInfo, d_grammarSeqNo, trieId, tranId ) );
-        if( d_lastFrame.eq( d_grammarSeqNo, traceInfo ) ) 
-            ++d_lastFrame_count;
-        else {
-            d_lastFrame_count= 0;
-            d_lastFrame.set( d_grammarSeqNo, traceInfo );
-        }
-    }
-    void setGrammarSeqNo( size_t gs ) { d_grammarSeqNo= gs; };
-
-    const TraceVec& getTraceVec() const { return d_tvec; }
-
-    BarzelTrace() : d_grammarSeqNo(0), d_lastFrame_count(0) { }
-
-    SingleFrameTrace& getTopFrameTrace() { return d_tvec.back(); }
-    const SingleFrameTrace& getTopFrameTrace() const { return d_tvec.back(); }
-    
-    void setError( const char* err ) ;
-    // max number of errors to report per trace
-    enum { BARZEL_TRACE_MAX_ERR=8 };
-    void pushError( const char* err ) ;
-    bool detectLoop() const;
-    bool lastFrameLoop() const { return (d_lastFrame_count>= MAX_TAIL_REPEAT); }
-}; 
 
 /// hints store information which may affect classification strategy (for instance russian classification woiuld treat ',' as a decimal separator 
 class BarzHints {
@@ -207,21 +128,12 @@ class Barz {
     const char* getReqVarAsChars( const char* ) const;
 public:
     BENIResult d_beni;
-    const BENIFindResults_t& getBeniResults() const 
-        { return d_beni.d_entVec; }
+    const BENIFindResults_t& getBeniResults() const { return d_beni.d_entVec; }
     BarzConfidenceData confidenceData;
 
     /// given offset and length in bytes in the original quesstion 
     /// returns a pair(glyph, lengthinGlyphs) - for utf8
-    std::pair<size_t,size_t> getGlyphFromOffsets( size_t offset, size_t length ) const
-    {
-        size_t o = questionOrigUTF8.getGlyphFromOffset(offset);
-        size_t end_o = questionOrigUTF8.getGlyphFromOffset(offset+length);
-        if( end_o> o ) {
-            return std::pair<size_t,size_t>(o,end_o-o);
-        } else
-            return std::pair<size_t,size_t>(o,0);
-    }
+    std::pair<size_t,size_t> getGlyphFromOffsets( size_t offset, size_t length ) const;
 
 	enum { 
         MAX_TRACE_LEN = 256, 
@@ -231,16 +143,12 @@ public:
 	BarzelTrace barzelTrace;
     BarzTopics  topicInfo;
     const StoredUniverse* getUniverse() const { return m_hints.getUniverse(); } 
-    Barz() : 
-        d_origQuestionId(std::numeric_limits<uint64_t>::max()),
-        d_serverReqEnv(0)
-    {}
+    Barz();
 
     void setServerReqEnv( RequestEnvironment* env ) { d_serverReqEnv = env; }
     RequestEnvironment* getServerReqEnv() { return d_serverReqEnv; }
     const BarzerDateTime*  getNowPtr() const;
     const RequestEnvironment* getServerReqEnv() const { return d_serverReqEnv; }
-
 
     /// working with request variables - these variables reside in the top level request context. they live through the whole request
     /// and aren't tied to any one rewrite
@@ -272,18 +180,9 @@ public:
     bool hasZeroUniverseProperties() const { return topicInfo.hasZeroUniverseProperties(); }
 
     // analyzing trace to determine whether something is wrong and we're in a rewriting loop
-    bool shouldTerminate() const
-    {
-        if( barzelTrace.size() < MAX_TRACE_LEN ) 
-            return false;
-        else 
-            return barzelTrace.detectLoop();
-    }
+    bool shouldTerminate() const;
 
-	void pushTrace( const BarzelTranslationTraceInfo& trace, uint32_t trieId, uint32_t tranId ) { 
-		if( barzelTrace.size() < MAX_TRACE_LEN ) 
-			barzelTrace.push_back( trace, trieId, tranId ) ; 
-	}
+	void pushTrace( const BarzelTranslationTraceInfo& trace, uint32_t trieId, uint32_t tranId );
 
 	TTWPVec& getTtVec() { return  ttVec; }
 	CTWPVec& getCtVec() { return ctVec; }
@@ -334,15 +233,7 @@ public:
 	/// returns pair. first is the number of units which have been modified semantically
 	/// mening - fluff, date, entity, erc, expression etc
 	// second - number of beads in the barz 
-	std::pair<size_t,size_t> getBeadCount() const
-	{
-		std::pair< size_t, size_t > rv(0,0);
-		for( BeadList::const_iterator i = beadChain.getLstBegin(); i!= beadChain.getLstEnd(); ++i ) {
-			++(rv.second);
-			if( i->isSemantical() ) ++(rv.first);
-		}
-		return rv;
-	}
+	std::pair<size_t,size_t> getBeadCount() const;
     const BeadList& getBeadList() const { return beadChain.lst; }
     BeadList& getBeadList() { return beadChain.lst; }
     BarzelBead& appendBlankBead() { return beadChain.appendBlankBead(); }
@@ -361,5 +252,14 @@ public:
     bool        isQueryIdValid() const { return std::numeric_limits<uint64_t>::max() != d_origQuestionId; }
     
     int         extraNormalization( const QuestionParm& qparm );
+
+    /// returns contiguous areas as separate strings
+    void getSourceStrings( std::vector<std::string>& vec, std::vector<std::pair<size_t, size_t>>& ) const;
+
+    /// returns an array of continuous offsets constructed from all offsets in all ttokens 
+    void getSrctok( std::vector<std::string>&, const std::vector<std::pair<size_t,size_t>>& ) const;
+    void getAllButSrctok( std::vector<std::string>& vec,  std::vector< std::pair<size_t, size_t> > posVec ) const;
+    std::string getBeadSrcTok( const BarzelBead& bead ) const;
+    void getContinuousOrigOffsets( const BarzelBead& bead, std::vector< std::pair<size_t, size_t> >& vec ) const;
 };
 } // namespace barzer
