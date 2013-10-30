@@ -48,21 +48,29 @@ void BatchProcessorZurchPhrases::computeSubtract( const BatchProcessorSettings& 
     const auto universe = settings.universePtr();
 
     std::vector< const BarzelBead* > beadsToCut;
-
+    const char* meaningfulPunct = "-.!,";
     for( const auto& bead : d_barz.getBeads().lst ) {
         bool cutOut = false;
         bool flushCut = false;
-
-        if( const BarzerEntity* ent = bead.isEntity() ){
+        size_t numTok = bead.getFullNumTokens();
+        bool hasSpellCorrections = bead.hasSpellCorrections();
+        if( numTok < 2 && hasSpellCorrections  ) {
+            flushCut = true;
+        } else if( const BarzerEntity* ent = bead.isEntity() ){
             cutOut= true;
             flushCut = true;
         } else if( const BarzerLiteral* l = bead.getLiteral() ) {
-            if( l->isStop() ) 
+            if( l->isStop() && !l->isPunct() )
+                beadsToCut.push_back( &bead );
+            else if( l->isPunct() || !strchr( meaningfulPunct,l->getPunct()) ) 
                 beadsToCut.push_back( &bead );
             else if( !l->isBlank() )
                 flushCut = true;
+        } else if( const auto* x = bead.get<BarzerNumber>() )  {
+            beadsToCut.push_back( &bead );
         } else if( const BarzerString* l = bead.getString() ) {
-            if( l->isFluff() )
+                const std::string& theS = l->getStr();
+            if( l->isFluff() && ( !beadsToCut.empty() || theS.length() > 1 || (theS.length()==1 && !strchr(meaningfulPunct ,theS[0]) ) ) )
                 beadsToCut.push_back( &bead );
             else if( !l->getStr().empty() )
                 flushCut = true;
