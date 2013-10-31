@@ -101,7 +101,7 @@ def includes_subngram_idx(ngram):
             return False
     return True
 
-def print_ngram( n ):
+def print_ngram( n,env ):
     
     i=g_ngram[n]['prestem']
     f=env['outfile']['file']
@@ -165,11 +165,11 @@ def process_ngrams(env):
     print >>sys.stderr, 'Before processing:', len(g3),'3grams, ', len(g2), '2grams ,', len(g1), ' 1grams'
     print >>sys.stderr, 'After processing:', len(good_g3),'3grams, ', len(good_g2), '2grams ,', len(good_g1), ' 1grams'
     for i in good_g3:
-        print_ngram(i)
+        print_ngram(i,env)
     for i in good_g2:
-        print_ngram(i)
+        print_ngram(i,env)
     for i in good_g1:
-        print_ngram(i)
+        print_ngram(i,env)
         
 
 def main():
