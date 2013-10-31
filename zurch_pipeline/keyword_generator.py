@@ -172,10 +172,10 @@ def process_ngrams(env):
         print_ngram(i)
         
 
-parser = argparse.ArgumentParser(description='autmated keyword extraction')
-
-env=init_env(parser)
 def main():
+    parser = argparse.ArgumentParser(description='autmated keyword extraction')
+
+    env=init_env(parser)
     if 'success' in env:
         process_phrases(env)
         process_ngrams(env)
