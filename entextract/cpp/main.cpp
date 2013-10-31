@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <unordered_map>
+#include <map>
 #include <boost/tokenizer.hpp>
 #include <boost/concept_check.hpp>
 #include <boost/algorithm/string/join.hpp>
@@ -14,8 +14,8 @@ const size_t MaxLength = 2;
 const size_t PopThreshold = 1;
 
 const std::vector<std::string> Markers = { "a", "the" };
-const std::vector<std::string> EndShit = { "a", "the", "in", "on", "to", "from", "of", "for", "until", "and", "or", "but", "of", "if", "i", "we", "us", "you" };
-const std::vector<std::string> BothShit = { "and", "or", "but", "of", "if", "i", "we", "us", "you" };
+const std::vector<std::string> EndJunk = { "a", "the", "in", "on", "to", "from", "of", "for", "until", "and", "or", "but", "of", "if", "i", "we", "us", "you" };
+const std::vector<std::string> BothJunk = { "and", "or", "but", "of", "if", "i", "we", "us", "you" };
 
 namespace
 {
@@ -68,10 +68,10 @@ namespace std
 	};
 }
 
-typedef std::unordered_map<std::string, std::string> FileMap_t;
-typedef std::unordered_map<std::string, std::vector<std::vector<LinkedText>>> GramsMap_t;
-typedef std::unordered_map<std::vector<LinkedText>, std::vector<std::string>> RevMap_t;
-typedef std::unordered_map<std::vector<LinkedText>, size_t> RevStatMap_t;
+typedef std::map<std::string, std::string> FileMap_t;
+typedef std::map<std::string, std::vector<std::vector<LinkedText>>> GramsMap_t;
+typedef std::map<std::vector<LinkedText>, std::vector<std::string>> RevMap_t;
+typedef std::map<std::vector<LinkedText>, size_t> RevStatMap_t;
 
 FileMap_t ReadFile (const std::string& fname)
 {
@@ -181,15 +181,15 @@ namespace
 	}
 }
 
-RevStatMap_t FilterShit (RevStatMap_t map)
+RevStatMap_t FilterJunk (RevStatMap_t map)
 {
 	for (auto i = map.begin (); i != map.end (); )
 	{
 		const auto& gram = i->first;
 
-		if (Contains (EndShit, *gram.rbegin ()) ||
+		if (Contains (EndJunk, *gram.rbegin ()) ||
 				std::all_of (gram.begin (), gram.end (),
-						[] (const LinkedText& t) { return Contains (BothShit, t); }))
+						[] (const LinkedText& t) { return Contains (BothJunk, t); }))
 			i = map.erase (i);
 		else
 			++i;
@@ -261,7 +261,7 @@ int main (int argc, char **argv)
 	if (argc < 2)
 		std::cerr << "Usage: " << argv [0] << " datafile.txt" << std::endl;
 
-	Print (Reduce (FilterLength (FilterShit (FilterPop (ToStats (Invert (Grammize (ReadFile (argv [1])))))))));
+	Print (Reduce (FilterLength (FilterJunk (FilterPop (ToStats (Invert (Grammize (ReadFile (argv [1])))))))));
 
 	return 0;
 }
