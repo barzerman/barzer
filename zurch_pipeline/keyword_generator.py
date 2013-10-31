@@ -175,7 +175,9 @@ def process_ngrams(env):
 parser = argparse.ArgumentParser(description='autmated keyword extraction')
 
 env=init_env(parser)
-
-if 'success' in env:
-    process_phrases(env)
-    process_ngrams(env)
+def main():
+    if 'success' in env:
+        process_phrases(env)
+        process_ngrams(env)
+if __name__ == '__main__':
+   sys.exit(main())
