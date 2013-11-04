@@ -11,8 +11,10 @@ import argparse, re, sys
 tokenizer_re = re.compile(r'[\n;.,|()\[\]\" ]')
 stemmer=Stemmer.Stemmer('english')
 
+"""
 g_phrase=[]
 g_ngram = {}
+"""
 
 def subgram_generator(a):
     l=len(a)
@@ -22,34 +24,36 @@ def subgram_generator(a):
             u=1+i+j
             yield (a[i]) if u==i+1 else a[i:1+i+j]
 
-def update_ngram(pidx, tup, stup):
+def update_ngram(env, pidx, tup, stup):
+    g_ngram = env['g_ngram']
     if tup in g_ngram:
         g_ngram[ tup ]['phrase'].add( pidx );
     else:
         g_ngram[ tup ] = { 'phrase' : set([pidx]), 'prestem': stup };
 
-def generate_ngrams(pidx,tok):
+def generate_ngrams(env, pidx,tok):
     l=len(tok)
     l_1=l-1
     l_2=l-2
 
     for i in range(0,l):
         t=tok[i]
-        update_ngram( pidx,t[0],t[1] ) 
+        update_ngram(env, pidx,t[0],t[1] ) 
         if i < l_1:
             t_1=tok[i+1]
-            update_ngram( pidx, (t[0],t_1[0]), (t[1],t_1[1]) )
+            update_ngram(env, pidx, (t[0],t_1[0]), (t[1],t_1[1]) )
             if i < l_2:
                 t_2=tok[i+2]
-                update_ngram( pidx, (t[0],t_1[0],t_2[0]), (t[1],t_1[1],t_2[1]) )
+                update_ngram(env, pidx, (t[0],t_1[0],t_2[0]), (t[1],t_1[1],t_2[1]) )
      
-def read_phrase(docid,phrase):
+def read_phrase(env, docid, phrase):
+    g_phrase = env['g_phrase']
     pidx=len(g_phrase)
     prestemTok=tokenizer_re.split(phrase)
     stemTok=stemmer.stemWords( prestemTok )
     tok=zip( stemTok, prestemTok )
 
-    generate_ngrams(pidx,tok)
+    generate_ngrams(env, pidx,tok)
     g_phrase.append(
         {
             'orig': phrase,
@@ -65,7 +69,7 @@ def init_env(parser):
     args=parser.parse_args()
 
     try:
-        env = {}
+        env = {'g_phrase': [], 'g_ngram': {}}
         if 'infile' in args and args.infile != None:
             env[ 'infile' ] = { 'file': open( args.infile, 'r' ), 'name': args.infile  }
         else:
@@ -88,13 +92,14 @@ def process_phrases(env):
         lineCnt = lineCnt+1
         try:
             (docid,d1,d2,phrase)= tuple(l.strip().split('|'))
-            read_phrase(docid,phrase)
+            read_phrase(env, docid,phrase)
         except:
             errCnt=errCnt+1
     
     print >>sys.stderr, '{0} lines read with {1} errors'.format( lineCnt, errCnt )
 
-def includes_subngram_idx(ngram):
+def includes_subngram_idx(env, ngram):
+    g_ngram = env['g_ngram']
     ps=g_ngram[ ngram ][ 'phrase' ]
     for i in subgram_generator(ngram):
         if not g_ngram[i]['phrase'] <= ps:
@@ -102,7 +107,7 @@ def includes_subngram_idx(ngram):
     return True
 
 def print_ngram( n,env ):
-    
+    g_ngram = env['g_ngram']
     i=g_ngram[n]['prestem']
     f=env['outfile']['file']
     if isinstance(i, basestring):
@@ -120,6 +125,7 @@ def process_ngrams(env):
     g3=[]
     g2=[]
     g1=[]
+    g_ngram = env['g_ngram']
     for i in g_ngram:
         if not isinstance(i, basestring):
             if len(i) == 3:
@@ -131,14 +137,14 @@ def process_ngrams(env):
 
     good_g3= set()
     for i in g3:
-        if includes_subngram_idx(i):
+        if includes_subngram_idx(env, i):
             good_g3.add(i)
 
     good_g2= set()
     for i in g2:
         i0=i[0]
         i1=i[1]
-        if includes_subngram_idx(i):
+        if includes_subngram_idx(env, i):
             shouldAdd=True
             for j in good_g3:
                 if ( (i[0] == j[0] and i[1]== j[1]) or (i[0] == j[1] and i[1] == j[2]) ):
