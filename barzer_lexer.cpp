@@ -1162,6 +1162,7 @@ size_t QLexParser::retokenize( Barz& barz, const QuestionParm& qparm )
                 /// updating positions
                 for( TTWPVec::iterator ti = tmpVec.begin(); ti!= tmpVec.end(); ++ti ) {
                     ti->second+= i;
+                    ti->first.d_origOffset+=ttok.d_origOffset; 
                 }
                 cVecInserts.push_back( std::pair< size_t, TTWPVec >(i, tmpVec) );
             } else if( tmpVec.size()==1 ) {
