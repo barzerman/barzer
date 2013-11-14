@@ -59,7 +59,7 @@ int Instance::processUri( std::ostream& outFP, const char* x )
     const char* firstSlash = strchr( buf, '/' );
     std::string uriStr, queryStr;
     if( firstSlash ) {
-        char* firstQuestionMark = strchr( firstSlash, '?' );
+        const char* firstQuestionMark = strchr( firstSlash, '?' );
         if( firstQuestionMark ) {
             uriStr= std::string( firstSlash, firstQuestionMark-firstSlash );
             queryStr = std::string( firstQuestionMark+1, strlen(firstQuestionMark+1) );
