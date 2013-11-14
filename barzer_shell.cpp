@@ -37,6 +37,7 @@
 #include "barzer_beni.h"
 
 #include <boost/regex.hpp>
+#include <barzer_lib.h>
 
 namespace barzer {
 

@@ -75,8 +75,8 @@ private:
 
 	Barz barz;
 
-	GlobalPools &gpools;
-	BarzerSettings &settings;
+	const GlobalPools &gpools;
+	const BarzerSettings &settings;
 	uint32_t userId;
     /// potentially changes with every query 
     const StoredUniverse* d_universe;
@@ -177,8 +177,8 @@ public:
 	const Barz& getBarz() const { return barz; }
 	XML_Parser parser;
 
-    BarzerRequestParser(GlobalPools &gp, std::ostream &s );
-	BarzerRequestParser(GlobalPools&, std::ostream &s, uint32_t uid );
+    BarzerRequestParser(const GlobalPools &gp, std::ostream &s );
+	BarzerRequestParser(const GlobalPools&, std::ostream &s, uint32_t uid );
 	~BarzerRequestParser();
 
 	void setInternStrings(bool);
@@ -205,8 +205,8 @@ public:
 
 	void setBody(const std::string &s);
 
-	GlobalPools& getGlobalPools() { return  gpools; }
 	const GlobalPools& getGlobalPools() const { return  gpools; }
+	GlobalPools& getGlobalPools() { return  *(const_cast<GlobalPools*>(&gpools)); }
 
 	void process(const char *name);
 	/// query is already stripped of the 
@@ -233,7 +233,8 @@ public:
 	void tag_topic(RequestTag&);
 	void tag_trie(RequestTag&);
 
-	BarzerSettings& getSettings() { return settings; }
+	const BarzerSettings& getSettings() const { return settings; }
+	BarzerSettings& getSettings() { return *(const_cast<BarzerSettings*>(&settings)); }
 	std::ostream& stream() { return os; }
     const char* getParentTag() const 
         { return( (tagStack.size() > 1) ?  tagStack[ tagStack.size() -2 ].tagName.c_str() : 0); }

@@ -94,7 +94,7 @@ DECL_TAGHANDLE(ENTITY) {
 		case 'c': ent.setClass(atoi(v));    break;
 		case 'i':{
 			uint32_t strId = parser.internStrings() ?
-					parser.gpools.internString_internal(v) :
+					parser.getGP_nonconst().internString_internal(v) :
 					GLOBALPOOLS.internalString_getId(v);
 			if( strId != 0xffffffff ) 
 				ent.setId(strId);
@@ -336,7 +336,7 @@ DECL_TAGHANDLE(TOKEN) {
     ALS_BEGIN
         case 's': {
             uint32_t strId = parser.internStrings() ?
-					parser.gpools.string_intern(v) :
+					parser.getGP_nonconst().string_intern(v) :
 					GLOBALPOOLS.string_getId(v);
             if( strId != 0xffffffff ) 
                 parser.barz.getLastBead().setStemStringId( strId );
