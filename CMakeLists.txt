@@ -259,6 +259,8 @@ endif (ENABLE_PYBARZER)
 
 ### binary
 add_executable(barzer.exe barzer.cpp)
+add_executable(barzerlibtest.exe test/barzerlibtest.cpp)
+target_link_libraries (barzerlibtest.exe  barzer_static)
 target_link_libraries (barzer.exe  barzer_static)
 IF (WIN32)
     SET_TARGET_PROPERTIES(barzer.exe PROPERTIES SUFFIX "")

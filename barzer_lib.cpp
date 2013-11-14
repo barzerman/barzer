@@ -47,8 +47,11 @@ Instance& Instance::run_server(uint16_t port)
     return *this;
 }
 
-int Instance::processUri( std::ostream& outFP, const char* buf )
+int Instance::processUri( std::ostream& outFP, const char* x )
 {
+    std::string bufStr;
+    ay::url_encode( bufStr, x, strlen(x) ); 
+    const char* buf = bufStr.c_str();
     std::stringstream outSstr;
     const Instance_Internal& internal = static_cast<Instance_Internal*>(d_data)[ 0 ];
     const GlobalPools& gp = internal.gp;
