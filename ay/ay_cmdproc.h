@@ -37,6 +37,17 @@ struct CommandLineArgs {
 		argc = ac; 
 		argv = av;
 	}
+
+    void init( const std::vector< std::string >& argv )
+    {
+        /*
+        argc = argv.length();
+        size_t i= 0;
+        std::for_each( argv.begin(), argv.end(), [&] ( const std::string& s ) {
+            
+        } );
+        */
+    }
     void clear() { argc = 0; argv= 0; }
     
     std::ostream& print( std::ostream& ) const;

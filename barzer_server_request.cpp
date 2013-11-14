@@ -155,7 +155,7 @@ static void charDataHandle( void * ud, const XML_Char *str, int len)
 
 namespace barzer {
 
-BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s ) :
+BarzerRequestParser::BarzerRequestParser(const GlobalPools &gp, std::ostream &s ) :
     m_internStrings(false),
     gpools(gp), 
     settings(gp.getSettings()), 
@@ -400,7 +400,7 @@ int BarzerRequestParser::parse(QuestionParm& qparm)
     return 0;
 }
 
-BarzerRequestParser::BarzerRequestParser(GlobalPools &gp, std::ostream &s, uint32_t uid ) : 
+BarzerRequestParser::BarzerRequestParser(const GlobalPools &gp, std::ostream &s, uint32_t uid ) : 
     m_internStrings(false),
     gpools(gp), 
     settings(gp.getSettings()), 

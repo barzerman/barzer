@@ -99,6 +99,7 @@ else()
 endif()
 
 set(SOURCES 
+            barzer_lib.cpp
             barzer_shellsrv_shared.cpp
             batch/barzer_batch_processor.cpp
             function/barzer_el_function_topic.cpp
@@ -258,6 +259,8 @@ endif (ENABLE_PYBARZER)
 
 ### binary
 add_executable(barzer.exe barzer.cpp)
+add_executable(barzerlibtest.exe test/barzerlibtest.cpp)
+target_link_libraries (barzerlibtest.exe  barzer_static)
 target_link_libraries (barzer.exe  barzer_static)
 IF (WIN32)
     SET_TARGET_PROPERTIES(barzer.exe PROPERTIES SUFFIX "")
