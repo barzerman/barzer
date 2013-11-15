@@ -385,6 +385,8 @@ int BarzerRequestParser::parse(QuestionParm& qparm)
         printError( "User not found" );
         return 0;
     }
+    StoredUniverse::ReadLock universe_lock( d_universe->d_theMutex );
+
     switch( d_queryType ) {
     case QType::BARZER:
         raw_query_parse( d_query.c_str() );
