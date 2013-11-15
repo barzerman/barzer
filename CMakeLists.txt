@@ -60,7 +60,6 @@ ENDIF()
 find_package(Boost COMPONENTS system python thread regex filesystem REQUIRED)
 find_package(EXPAT REQUIRED)
 find_package(PythonLibs REQUIRED)
-find_package(Threads REQUIRED )
 
 
 link_directories (  ${BOOST_LIBRARYDIR}
@@ -95,7 +94,7 @@ if(WIN32)
 			libws2_32.a
 	        	${EXPAT_LIBRARIES}/libexpat.lib)
 else()
-	set(EXTRA_LIBS ${EXTRA_LIBS} ${EXPAT_LIBRARIES} dl ${CMAKE_THREAD_LIBS_INIT})
+	set(EXTRA_LIBS ${EXTRA_LIBS} ${EXPAT_LIBRARIES} dl)
 endif()
 
 set(SOURCES 
