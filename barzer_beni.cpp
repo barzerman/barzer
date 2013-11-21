@@ -2,13 +2,14 @@
 #include <zurch_docidx.h>
 #include <ay/ay_sets.h>
 #include <ay/ay_util_time.h>
+#include <boost/regex.hpp>
 
 namespace barzer {
 
 SmartBENI::SmartBENI( StoredUniverse& u ) : 
     d_beniStraight(u),
     d_beniSl(u),
-    d_isSL(u.checkBit( StoredUniverse::UBIT_BENI_SOUNDSLIKE)),
+    d_isSL(u.checkBit( UBIT_BENI_SOUNDSLIKE)),
     d_universe(u),
     d_zurchUniverse(0)
 {
@@ -27,8 +28,8 @@ size_t SmartBENI::addEntityFile( const char* path, const char* modeStr )
             return 0;
         }
         std::cerr << "reading BENI entities from " << path << std::endl;
-    } else 
-        fp = stdin;
+    } else
+        return( (std::cerr << "0 path specified\n"), 0 );
 
     char buf[ 1024 ];
     size_t entsRead = 0;
@@ -54,6 +55,8 @@ size_t SmartBENI::addEntityFile( const char* path, const char* modeStr )
     std::string tmp,  normName, lowerCase;
     std::vector<char> tmpBuf;
     ay::stopwatch timer;
+    
+    size_t reportEvery = 10000, timesReported = 0;
 
     while( fgets( buf, sizeof(buf)-1, fp ) ) {
         buf[ sizeof(buf)-1 ] = 0;
@@ -105,7 +108,13 @@ size_t SmartBENI::addEntityFile( const char* path, const char* modeStr )
         d_beniStraight.addWord(normName, ent.getEuid() );
         if( d_isSL ) 
             d_beniSl.addWord(normName, ent.getEuid());
-        ++entsRead;
+        if (!(++entsRead % reportEvery)) {
+			std::cerr << entsRead << " entities loaded (in " << timer.calcTime() << " seconds)..." << std::endl;
+            ++timesReported;
+            if( entsRead > 100000 ) reportEvery = 40000;
+            else if( entsRead> 200000 )
+                reportEvery = 100000;
+        }
     }
 
     std::cerr << entsRead << " entities loaded in " << timer.calcTime() << " seconds" << std::endl;
@@ -135,15 +144,76 @@ void SmartBENI::addEntityClass( const StoredEntityClass& ec )
     }
     std::cerr << "BENI: " << numNames << " names for " << ec << std::endl;
 }
-void SmartBENI::search( BENIFindResults_t& out, const char* query, double minCov ) const
+
+int SubclassBENI::search( BENIFindResults_t& out, const char* query, const StoredEntityClass& sc , double minCov ) const
 {
-    double maxCov = d_beniStraight.search( out, query, minCov );
+    if( const BENI* b = getBENI(sc) ) {
+        b->search( out, query, minCov );
+        return ERR_OK;
+    } else
+        return ERR_NO_BENI;
+}
+
+SubclassBENI::~SubclassBENI()
+{
+	clear();
+}
+
+void SubclassBENI::clear()
+{
+	for (const auto& pair : m_benies)
+		delete pair.second;
+	m_benies.clear();
+}
+
+void SubclassBENI::addSubclassIds(const StoredEntityClass& sec, const char *pattern, const char *replace)
+{
+	auto pos = m_benies.find(sec);
+	if (pos == m_benies.end())
+		pos = m_benies.insert({ sec, new BENI(m_universe) }).first;
+
+	const auto& theMap = m_universe.getDtaIdx().entPool.getEuidMap();
+	std::vector<char> tmpBuf;
+	std::string dest;
+	std::string normDest;
+
+	boost::regex rxObj;
+	if (pattern)
+	{
+		rxObj = boost::regex(pattern, boost::regex::perl);
+		if (!replace)
+			replace = "";
+	}
+	for (auto i = theMap.lower_bound(StoredEntityUniqId (sec, 0)), end = theMap.end(); i != end && i->first.eclass == sec; ++i)
+	{
+		const auto tokId = i->first.getTokId();
+		const auto str = m_universe.getGlobalPools().internalString_resolve(tokId);
+        if( !str )
+            continue;
+        dest = str;
+		if (pattern)
+			dest = boost::regex_replace(dest, rxObj, replace);
+		Lang::stringToLower(tmpBuf, dest, str);
+		BENI::normalize(normDest, dest);
+
+		pos->second->addWord(normDest, i->first);
+	}
+}
+
+void SmartBENI::search( 
+    BENIFindResults_t& out, 
+    const char* query,
+    double minCov, 
+    const BENIFilter_f& filter,
+    size_t maxCount) const
+{
+    double maxCov = d_beniStraight.search( out, query, minCov, filter);
     const double SL_COV_THRESHOLD= 0.7;
 
     if( d_isSL ) {
         if( maxCov< SL_COV_THRESHOLD || out.empty() ) {
             BENIFindResults_t slOut;
-            maxCov = d_beniSl.search( slOut, query, minCov );
+            maxCov = d_beniSl.search( slOut, query, minCov, filter);
             size_t numAdded = 0;
             for( const auto& i: slOut ) {
                 BENIFindResults_t::iterator outIter = std::find_if(out.begin(), out.end(), [&]( const BENIFindResult& x ) { return ( x.ent == i.ent ) ; });
@@ -159,8 +229,8 @@ void SmartBENI::search( BENIFindResults_t& out, const char* query, double minCov
         []( const BENIFindResult& l, const BENIFindResult& r ) 
             { return (l.coverage> r.coverage?  true:(r.coverage>l.coverage ? false: (l.popRank>r.popRank ? true: l.nameLen< r.nameLen))  ); } 
         );
-    if( out.size() > 128 ) 
-        out.resize(128);
+    if( out.size() > maxCount ) 
+        out.resize(maxCount);
 }
 
 BENI& SmartBENI::getPrimaryBENI()
@@ -248,7 +318,7 @@ namespace
 	}
 } //end of anon namespace 
 
-double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) const
+double BENI::search( BENIFindResults_t& out, const char* query, double minCov, const BENIFilter_f& filter) const
 {
     double maxCov = 0.0;
     out.clear();
@@ -262,7 +332,7 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) 
 	Lang::stringToLower( tmpBuf, dest, queryStr );
     normalize( normDest, dest );
     enum { MAX_BENI_RESULTS = 64 };
-    d_storage.getMatches( normDest.c_str(), normDest.length(), vec, MAX_BENI_RESULTS, minCov );
+    d_storage.getMatches( normDest.c_str(), normDest.length(), vec, MAX_BENI_RESULTS, minCov, filter);
 	
     if( !vec.empty() ) 
         out.reserve( vec.size() );
@@ -277,7 +347,7 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov ) 
     enum { MIN_MATCH_BOOST_QLEN = 10 };
     size_t queryGlyphCount = ay::StrUTF8::glyphCount(query, query+ query_len) ; 
 
-    bool doBoost = d_universe.checkBit( StoredUniverse::UBIT_BENI_NO_BOOST_MATCH_LEN );
+    bool doBoost = d_universe.checkBit( UBIT_BENI_NO_BOOST_MATCH_LEN );
     for( const auto& i : vec ) {
         if( !i.m_data )
             continue;

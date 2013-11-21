@@ -47,13 +47,13 @@ void User::addTrie(const TriePath &tp, bool isTopicTrie, GrammarInfo* gramInfo )
 }
 
 
-User& BarzerSettings::createUser(User::Id id) {
+User& BarzerSettings::createUser(User::Id id, const char* uname ) {
 	UserMap::iterator it = umap.find(id);
 	if (it == umap.end()) {
-		std::cout << "Adding user id(" << id << ")\n";
+		std::cerr << "Adding user id(" << id << ")\n";
         if( !gpools.getUniverse(id) ) {
             std::cerr << "Creating universe for " << id << std::endl;
-            gpools.produceUniverse( id );
+            gpools.produceUniverse( id ).setUserName( uname ? uname: "");
         } else
             std::cerr << "Pre-existing universe for " << id << std::endl;
 		return umap.insert(UserMap::value_type(id, User(id, *this))).first->second;
@@ -79,7 +79,7 @@ void BarzerSettings::addRulefile(BELReader& reader, const Rulefile &f)
 	const std::string &tclass = f.trie.first,
 					  &tid = f.trie.second;
 	const char *fname = f.fname.c_str();
-	reader.setCurrentUniverse( getCurrentUniverse() );
+	reader.setCurrentUniverse( d_currentUniverse, getUser(d_currentUniverse->getUserId()) );
 
     uint32_t trieClass = gpools.internString_internal(tclass.c_str()) ;
     uint32_t trieId = gpools.internString_internal(tid.c_str()) ;
@@ -94,14 +94,22 @@ void BarzerSettings::addRulefile(BELReader& reader, const Rulefile &f)
         }
     }
 
-	size_t num = reader.loadFromFile(fname, BELReader::INPUT_FMT_XML);
-	std::cout << num << " statements (-" << reader.getNumSkippedStatements() << ")";
-        if (num) std::cout <<"(" << reader.getNumMacros() << " macros, " <<
-                reader.getNumProcs() << " procs)";
-        std::cout << " loaded from `" << fname ;
-	if (!(tclass.empty() || tid.empty()))
-		std::cout << " into the trie `" << tclass << "." << tid << "'";
-	std::cout << "\n";
+	int num = reader.loadFromFile(fname, BELReader::INPUT_FMT_XML);
+    if( num>=0 ) {
+	    std::cerr << "PROCESSOR FILE ";
+        if( d_currentUniverse->userName().empty() )
+            std::cerr << tclass;
+        else
+            std::cerr << d_currentUniverse->userName();
+	    std::cerr <<  "::" << tid << "\t " << fname << " " << " rules (" << num << ")" ;
+        if( reader.getNumSkippedStatements() )
+            std::cerr << " skipped(" << reader.getNumSkippedStatements() << ")";
+        if (reader.getNumMacros()) 
+            std::cerr <<" macro(" << reader.getNumMacros() << ")";
+        if (reader.getNumProcs() ) 
+            std::cerr << ", proc(" << reader.getNumProcs() << ")";
+        std::cerr << "\n";
+    }
 }
 
 void BarzerSettings::addDictionaryFile(const char *fname)
@@ -132,22 +140,41 @@ void BarzerSettings::init() {
 
 }
 
-namespace
+namespace {
+template<typename T>
+void feedStream(T &model, std::istream& istr)
 {
-	template<typename T>
-	void feedStream(T &model, std::istream& istr)
-	{
-		int stringsCount = 0;
-		while (istr.good())
-		{
-			std::string str;
-			istr >> str;
-			model.addWord(str.c_str());
-			++stringsCount;
-		}
-		std::cout << "Language classifier " << stringsCount << " words from " << std::endl;
-	}
+    int stringsCount = 0;
+    while (istr.good()) {
+        std::string str;
+        istr >> str;
+        model.addWord(str.c_str());
+        ++stringsCount;
+    }
+    std::cerr << "Language classifier " << stringsCount << " words from " << std::endl;
 }
+
+template <typename T>
+inline bool getAttrByEitherName( T& v, const ptree & attrs, const char* n1, const char* n2=0 )
+{
+    if( const boost::optional<std::string> x = attrs.get_optional<std::string>(n1) ) {
+        return( v = x.get(), true );
+    } else if( n2 ) {
+        if( const boost::optional<std::string> x = attrs.get_optional<std::string>(n2)) 
+            return( v= x.get(), true );
+    }
+    return false;
+}
+
+inline boost::optional<const ptree&> getNodeByEitherName( const ptree & node, const char* n1, const char* n2 )
+{
+    auto optNode = node.get_child_optional(n1);
+    if( !optNode )
+        optNode = node.get_child_optional(n2);
+    return optNode;
+}
+
+} // anon namespace 
 
 void BarzerSettings::loadLangNGrams()
 {
@@ -209,6 +236,8 @@ void BarzerSettings::loadRules(BELReader& reader, const boost::property_tree::pt
 		// warning goes here
 		return;
 	}
+    std::string defaultClass = getDefaultClassName();
+
 	BOOST_FOREACH(const ptree::value_type &v, rules) {
 		if (v.first == "file") {
 			const ptree &file = v.second;
@@ -216,11 +245,21 @@ void BarzerSettings::loadRules(BELReader& reader, const boost::property_tree::pt
 			try {
 				const ptree &attrs = file.get_child("<xmlattr>");
                 const boost::optional<std::string> noCanonicalNames = attrs.get_optional<std::string>("nonames");
+
+                if( const auto p = attrs.get_optional<std::string>("fn") )
+                    ruleFile.fname = p.get();    
+
                 if( const auto p = attrs.get_optional<std::string>("dict") ) 
                     ruleFile.extraDictionaryPath = *p;
 
-				ruleFile.trie.first  = attrs.get<std::string>("class"),
-			    ruleFile.trie.second = attrs.get<std::string>("name");
+                if( auto x = attrs.get_optional<std::string>("class")) 
+				    ruleFile.trie.first  = x.get();
+                else {
+                    ruleFile.trie.first = defaultClass;
+                }
+
+                if( !getAttrByEitherName( ruleFile.trie.second, attrs, "name", "rewriter") ) 
+                    continue;
 
                 uint32_t trieClass = gpools.internString_internal(ruleFile.trie.first.c_str()) ;
                 uint32_t trieId = gpools.internString_internal(ruleFile.trie.second.c_str()) ;
@@ -389,22 +428,22 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
             const ptree& attrs = optAttrs.get();
 
             if( const auto p = attrs.get_optional<std::string>("utf8") ) 
-                if( *p== "yes" ) u.getUniverse().setBit( StoredUniverse::UBIT_NOSTRIP_DIACTITICS );
+                if( *p== "yes" ) u.getUniverse().setBit( UBIT_NOSTRIP_DIACTITICS );
 
             if( const auto p = attrs.get_optional<std::string>("soundslike") ) 
                 u.getUniverse().setSoundsLike( *p !="no" );
             
             if( const auto p = attrs.get_optional<std::string>("dictcorr") ) 
-                if( *p== "yes" ) u.getUniverse().setBit( StoredUniverse::UBIT_CORRECT_FROM_DICTIONARY );
+                if( *p== "yes" ) u.getUniverse().setBit( UBIT_CORRECT_FROM_DICTIONARY );
 
 			if( const auto p = attrs.get_optional<std::string>("stempunct") )
-				if (*p == "yes") u.getUniverse().setBit(StoredUniverse::UBIT_LEX_STEMPUNCT);
+				if (*p == "yes") u.getUniverse().setBit(UBIT_LEX_STEMPUNCT);
 				
 			if (const auto p = attrs.get_optional<std::string>("featuredsc"))
-				if (*p == "yes") u.getUniverse().setBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT);
+				if (*p == "yes") u.getUniverse().setBit(UBIT_FEATURED_SPELLCORRECT);
 				
 			if (const auto p = attrs.get_optional<std::string>("fsconly"))
-				if (*p == "yes") u.getUniverse().setBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT_ONLY);
+				if (*p == "yes") u.getUniverse().setBit(UBIT_FEATURED_SPELLCORRECT_ONLY);
 			
 			if (const auto p = attrs.get_optional<std::string>("stemex"))
 				u.getUniverse().getBZSpell()->loadStemExceptions(*p);
@@ -418,7 +457,7 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 				int lang = ay::StemWrapper::getLangFromString( tagVal );
 				if( lang != ay::StemWrapper::LG_INVALID )
 				{
-					std::cout << "Adding language: " << tagVal << "(" << lang << ")" << std::endl;
+					std::cerr << "Adding language: " << tagVal << "(" << lang << ")" << std::endl;
 					u.getUniverse().getBarzHints().addUtf8Language(lang);
 					ay::StemThreadPool::inst().addLang(lang);
 				}
@@ -449,21 +488,47 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 	}
 }
 
-void BarzerSettings::loadTrieset(BELReader& reader, User &u, const ptree &node) {
-	BOOST_FOREACH(const ptree::value_type &v, node.get_child("trieset", empty_ptree())) {
-		if (v.first == "trie") {
+std::string BarzerSettings::getDefaultClassName() const 
+{
+    std::string defaultClass;
+    {
+        std::stringstream sstr;
+        sstr << getCurrentUniverse()->getUserId() ;
+        defaultClass = sstr.str() ; 
+    }
+    return defaultClass;
+}
+
+void BarzerSettings::loadTrieset(BELReader& reader, User &u, const ptree &node) 
+{
+    auto optNode = getNodeByEitherName( node, "trieset", "rwrchain" );
+    if( !optNode )
+        return;
+
+    std::string defaultClass = getDefaultClassName();
+	BOOST_FOREACH(const ptree::value_type &v, optNode.get() ) {
+		if (v.first == "trie" || v.first == "rewriter") {
 			const ptree &trieNode = v.second;
 			try {
 				const ptree &attrs = trieNode.get_child("<xmlattr>");
-				const std::string &cl = attrs.get<std::string>("class"),
-								  &name = attrs.get<std::string>("name");
+
+				std::string cl;
+                if( auto x = attrs.get_optional<std::string>("class") ) 
+                    cl = x.get();
+                else {
+                    cl = defaultClass;
+                }
+                std::string name ;
+                if( !getAttrByEitherName( name, attrs, "name", "rewriter" )  )
+                    continue;
+
                 const boost::optional<std::string> optTopic = attrs.get_optional<std::string>("topic");
 
                 // noac - autocomplete doesnt apply . optional attribute. when set
                 // when this attribute is set the grammar wont be used in autocomplete
                 const boost::optional<std::string> optNoAutoc = attrs.get_optional<std::string>("noac");
 
-				std::cerr << "user " << u.getId() << " added trie (" << cl << ":" << name << ") " << (optTopic? "TOPIC" :"") << "\n";
+				std::cerr << "ADDED PROCESSOR\t\"" << ( u.getUniverse().userName().empty() ? cl : u.getUniverse().userName() ) << "::" << name << "\"" << (optTopic? " TOPIC" :"") << "\n";
 
                 GrammarInfo* gramInfo = 0;
                 /// extracting topic info
@@ -497,7 +562,7 @@ void BarzerSettings::loadTrieset(BELReader& reader, User &u, const ptree &node) 
 		}
 	}
 	const UniverseTrieCluster& tcluster = u.getUniverse().getTrieCluster();
-	std::cerr << "user " << u.getId() << ":" << tcluster.getTrieList().size()	 << " tries loaded\n";
+	std::cerr << "user " << u.getUniverse().userName() << "[" << u.getId() << "] " << tcluster.getTrieList().size()	 << " processors loaded\n";
 }
 
 void BarzerSettings::loadLocale(BELReader& reader, User& u, const ptree& node)
@@ -581,32 +646,74 @@ void load_user_flags(BELReader& reader, User& u, const ptree &node)
         std::cerr << "load_user_flags exception\n";
     }
 }
-void load_ent_segregate_info(BELReader& reader, User& u, const ptree &node)
+void load_ent_info(BELReader& reader, User& u, const ptree &node)
 {
-    try {
-        const ptree &entseg = node.get_child("entseg", empty_ptree());
-        if( entseg.empty() )
-            return;
-        BOOST_FOREACH(const ptree::value_type &v, entseg ) {
-            StoredEntityClass eclass;
-            StoredUniverse& uni = u.universe;
-            const boost::optional<uint32_t> ec = v.second.get_optional<uint32_t>("c"),
-                                sc = v.second.get_optional<uint32_t>("sc");
-            if( ec ) {
-                eclass.setClass(*ec);
-                if( sc )
-                    eclass.setSubclass(*sc);
+    {  // entity subclass translation 
+    /// <enttrans>
+    ///   <subclass src="class[,subclass]" dest="class[,subclass]"/>
+    /// </enttrans>
+    const ptree &enttrans = node.get_child("enttrans", empty_ptree());
+    if( enttrans.empty() )
+        return;
+
+    BOOST_FOREACH(const ptree::value_type &v, enttrans ) {
+		if (v.first == "subclass") {
+            StoredEntityClass fromEc, toEc;
+            if( boost::optional< const ptree& > optAttr = v.second.get_child_optional("<xmlattr>") ) {
+                if( const boost::optional<std::string> optSrc = optAttr.get().get_optional<std::string>("src"))  {
+                    if( const boost::optional<std::string> optDest = optAttr.get().get_optional<std::string>("dest"))  {
+                        std::string src = optSrc.get(), dest= optDest.get();
+                        if( !u.addEntTranslation( src.c_str(), dest.c_str() ) )
+                            std::cerr << "ERROR setting entity translation subclass src=\"" << src << "\", dest=\"" << dest << "\"" << std::endl;
+                    }
+                }
+            }
+        }
+    }
+
+    }  // end of entity subclass translation
+    
+    {  // entity segmentation settings processing 
+    const ptree &entseg = node.get_child("entseg", empty_ptree());
+    if( entseg.empty() )
+        return;
+    BOOST_FOREACH(const ptree::value_type &v, entseg ) {
+        StoredEntityClass eclass;
+        StoredUniverse& uni = u.universe;
+        const boost::optional<uint32_t> ec = v.second.get_optional<uint32_t>("c"),
+                            sc = v.second.get_optional<uint32_t>("sc");
+        if( ec ) {
+            eclass.setClass(*ec);
+            if( sc )
+                eclass.setSubclass(*sc);
 
                 uni.addEntClassToSegregate( eclass );
-            }
-        } // foreach
-    } catch(...) {
-        std::cerr << "load_ent_segregate_info exception\n";
-    }
+        }
+    } // foreach
+    } // end of entity segmentation setings processing 
 }
 
 } // anonymous namespace ends
 
+int User::addEntTranslation( const char* src, const char* dest ) 
+{
+    StoredEntityClass srcClass, destClass;
+    const char* srcComma=strchr(src, ',');
+    const char* destComma = strchr(dest,',');
+    if( !(src && dest ) ) 
+        return -1;
+    if( srcComma && destComma ) { /// src has a comma
+        srcClass.setClass( atoi(src));
+        srcClass.setSubclass(atoi(srcComma+1));
+
+        destClass.setClass( atoi(dest));
+        destClass.setSubclass(atoi(destComma+1));
+        addEntTranslation( srcClass, destClass );
+
+        return 0; // success
+    } else
+        return -1; // failure
+}
 int User::loadExtraDictionary()
 {
     if( !extraDictFileName.empty() ) {
@@ -648,7 +755,23 @@ int User::readClassNames( const ptree& node )
     } 
     return numSubclasses;
 }
-int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
+
+namespace {
+
+std::string& updateTrueUserName( std::string & trueUserName, const char* uname, uint32_t userId )
+{
+    if( !uname || !(*uname) ) {
+        std::stringstream sstr;
+        sstr << "user" << userId;
+        trueUserName = sstr.str();
+    } else
+        trueUserName.assign( uname );
+    return trueUserName;
+}
+
+} // end of anon namespace
+
+int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user, const char* uname )
 {
 	const ptree &children = user.second;
 	const boost::optional<uint32_t> userIdOpt
@@ -659,10 +782,11 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 		return 0;
 	}
     uint32_t userId = userIdOpt.get();
+    std::string trueUserName;
+    uname = updateTrueUserName( trueUserName, uname, userId ).c_str();
 
-	User &u = createUser(userId);
-
-	std::cout << "Loading user id: " << userId << "\n";
+	User &u = createUser(userId, uname);
+	std::cerr << "Loading user id: " << userId << "\n";
 
 	u.readClassNames(children);
 
@@ -670,10 +794,8 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 	loadMeanings(u, children);
 
     reader.setRespectLimits( userId );
-    reader.setCurrentUniverse( u.getUniversePtr() );
-    load_ent_segregate_info(reader, u, children);
-    load_user_flags(reader, u, children);
-
+    reader.setCurrentUniverse( u.getUniversePtr(), &u );
+    load_ent_info(reader, u, children);
     load_user_flags(reader, u, children);
 	loadUserRules(reader, u, children);
 	loadTrieset(reader, u, children);
@@ -685,19 +807,19 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
 	u.getUniverse().getBarzHints().initFromUniverse(&uni);
 
     if( boost::optional< const ptree& > x = children.get_child_optional("beni") ) {
-        u.getUniverse().setBit( StoredUniverse::UBIT_USE_BENI_VANILLA );
+        u.getUniverse().setBit( UBIT_USE_BENI_VANILLA );
          
-        u.getUniverse().setBit( StoredUniverse::UBIT_USE_BENI_IDS );
+        u.getUniverse().setBit( UBIT_USE_BENI_IDS );
         if( const boost::optional<const ptree&> xAttr = x.get().get_child_optional("<xmlattr>") ) {
             if( const boost::optional<std::string> cOpt = xAttr.get().get_optional<std::string>("noids") ) {
-                u.getUniverse().setBit( StoredUniverse::UBIT_USE_BENI_IDS, false );
+                u.getUniverse().setBit( UBIT_USE_BENI_IDS, false );
             }
             if( const boost::optional<std::string> cOpt = xAttr.get().get_optional<std::string>("sl") ) {
                 if( cOpt.get() != "no" )
-                    u.getUniverse().setBit( StoredUniverse::UBIT_BENI_SOUNDSLIKE, true );
+                    u.getUniverse().setBit( UBIT_BENI_SOUNDSLIKE, true );
             }
             if( const boost::optional<std::string> cOpt = xAttr.get().get_optional<std::string>("noboost") ) {
-                u.getUniverse().setBit( StoredUniverse::UBIT_BENI_NO_BOOST_MATCH_LEN, (cOpt.get() == "yes") );
+                u.getUniverse().setBit( UBIT_BENI_NO_BOOST_MATCH_LEN, (cOpt.get() == "yes") );
             }
             /// beni tag zurch attribute . value is id of the zurch universe
             if( const boost::optional<uint32_t> cOpt = xAttr.get().get_optional<uint32_t>("zurch") ) {
@@ -711,7 +833,7 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
             }
         } 
 
-        u.getUniverse().setBit( StoredUniverse::UBIT_NEED_CONFIDENCE );
+        u.getUniverse().setBit( UBIT_NEED_CONFIDENCE );
 
         BOOST_FOREACH(const ptree::value_type &i, x.get() ) {
             if( i.first == "benient" ) {
@@ -727,9 +849,35 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
             if( i.first == "benifile" ) {
                 if( const boost::optional<const ptree&> optAttr = i.second.get_child_optional("<xmlattr>") ) {
                     if( const boost::optional<std::string> fnam = optAttr.get().get_optional<std::string>("f") ) {
-                        const char* mode = 0;
-                        if( const boost::optional<std::string> modeStr = optAttr.get().get_optional<std::string>("m") ) 
-                        u.getUniverse().beni().addEntityFile( modeStr.get().c_str() );
+                        std::string mode;
+                        if( const boost::optional<std::string> x = optAttr.get().get_optional<std::string>("m") ) 
+                            mode = x.get();
+
+                        u.getUniverse().beni().addEntityFile( fnam.get().c_str(), mode.empty() ? 0 : mode.c_str() );
+                    }
+                }
+            }
+        }
+        /// to ensure beniids is processed after all entiteis have been loaded
+        BOOST_FOREACH(const ptree::value_type &i, x.get() ) {
+            if( i.first == "beniids" ) {
+                if( const boost::optional<const ptree&> optAttr = i.second.get_child_optional("<xmlattr>") ) {
+                    if( const boost::optional<uint32_t> cOpt = optAttr.get().get_optional<uint32_t>("c") ) {
+                        if( const boost::optional<uint32_t> sOpt = optAttr.get().get_optional<uint32_t>("s") ) {
+                            std::string repat, rerep;
+                            const char* repatStr = 0, *rerepStr = 0;
+                            if( boost::optional<std::string> repatOpt = optAttr.get().get_optional<std::string>("repat") )  { // regex search pat
+                                if( boost::optional<std::string> rerepOpt = optAttr.get().get_optional<std::string>("rerep") ) { // regex replace expression
+                                    repat = repatOpt.get();
+                                    repatStr = repat.c_str();
+                                    rerep = rerepOpt.get();
+                                    rerepStr = rerep.c_str();
+                                }
+                            }
+                            StoredEntityClass ec( cOpt.get(), sOpt.get() );
+
+                            u.getUniverse().entLookupBENIAddSubclass( ec, repatStr, rerepStr );
+                        }
                     }
                 }
             }
@@ -741,9 +889,9 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user)
     return 1;
 }
 
-int BarzerSettings::loadUserConfig( BELReader& reader, const char* cfgFileName ) {
+int BarzerSettings::loadUserConfig( BELReader& reader, const char* cfgFileName, const char* uname ) {
     if( !gpools.getUniverse(0) ) {
-        User &u = createUser(0);
+        User &u = createUser(0,"root");
         BZSpell* bzs = u.getUniverse().initBZSpell( 0 );
         bzs->init( 0 );
     }
@@ -753,7 +901,7 @@ int BarzerSettings::loadUserConfig( BELReader& reader, const char* cfgFileName )
         read_xml(cfgFileName, userPt);
         BOOST_FOREACH(const ptree::value_type &userV, userPt.get_child("config.users")) {
             if (userV.first == "user") {
-                loadUser( reader, userV );
+                loadUser( reader, userV, uname );
                 ++numUsersLoaded;
             }
         }
@@ -778,19 +926,25 @@ void BarzerSettings::loadUsers(BELReader& reader ) {
 		    const boost::optional<std::string> userNameOpt = v.second.get_optional<std::string>("<xmlattr>.username");
 
             int loadedUsers = 0;
-            if (cfgFileName.empty()) {
-                loadedUsers = loadUser(reader,v);
-            } else {
-                loadedUsers = loadUserConfig( reader, cfgFileName.c_str() );
-            }
+            std::string uname;
+            if( userNameOpt ) 
+                uname = userNameOpt.get();
+
+            if (cfgFileName.empty()) 
+                loadedUsers = loadUser(reader,v, uname.c_str());
+            else
+                loadedUsers = loadUserConfig( reader, cfgFileName.c_str(), uname.c_str() );
 
             if( loadedUsers && userNameOpt ) {
                 StoredUniverse* uniPtr = reader.getCurrentUniverse();
 
-                if( uniPtr ) 
-                    uniPtr->setUserName( userNameOpt.get().c_str() );
+                if( uniPtr )  {
+                    const std::string uname = userNameOpt.get();
+                    uniPtr->setUserName( uname.c_str() );
+                    gpools.setUserNameForId( uname.c_str(), uniPtr->getUserId() );    
+                }
             } else 
-                reader.setCurrentUniverse(0);
+                reader.setCurrentUniverse(0, getUser(0) );
         }
 	}
 }
@@ -880,5 +1034,4 @@ const std::string BarzerSettings::get(const char *key) const {
 const std::string BarzerSettings::get(const std::string &key) const {
 	return get(key.c_str());
 }
-
 }

@@ -75,8 +75,8 @@ private:
 
 	Barz barz;
 
-	GlobalPools &gpools;
-	BarzerSettings &settings;
+	const GlobalPools &gpools;
+	const BarzerSettings &settings;
 	uint32_t userId;
     /// potentially changes with every query 
     const StoredUniverse* d_universe;
@@ -89,6 +89,7 @@ private:
     ///   feature.docs - docs linked to a specific feature
     std::string d_route; // subtype of request . 
     std::string d_extra; // extra parameters (can be used by route)
+    std::map<std::string, std::string> d_extraMap;	// more extra parameters that got unparsed by the rest of the stuff
     bool d_aggressiveStem;
     // barzer mode (BENI)
 
@@ -104,6 +105,8 @@ private:
     bool           d_simplified;
     
     int autoc_nameval_process( QuestionParm& qparm, const std::string& n, const std::string& v );
+    
+    void processGhettodbFields( const std::string& );
 public:
     std::string    d_queryFlags;
     size_t d_maxResults; // max number of docs to return (32 default)
@@ -174,8 +177,8 @@ public:
 	const Barz& getBarz() const { return barz; }
 	XML_Parser parser;
 
-    BarzerRequestParser(GlobalPools &gp, std::ostream &s );
-	BarzerRequestParser(GlobalPools&, std::ostream &s, uint32_t uid );
+    BarzerRequestParser(const GlobalPools &gp, std::ostream &s );
+	BarzerRequestParser(const GlobalPools&, std::ostream &s, uint32_t uid );
 	~BarzerRequestParser();
 
 	void setInternStrings(bool);
@@ -202,8 +205,8 @@ public:
 
 	void setBody(const std::string &s);
 
-	GlobalPools& getGlobalPools() { return  gpools; }
 	const GlobalPools& getGlobalPools() const { return  gpools; }
+	GlobalPools& getGlobalPools() { return  *(const_cast<GlobalPools*>(&gpools)); }
 
 	void process(const char *name);
 	/// query is already stripped of the 
@@ -230,7 +233,8 @@ public:
 	void tag_topic(RequestTag&);
 	void tag_trie(RequestTag&);
 
-	BarzerSettings& getSettings() { return settings; }
+	const BarzerSettings& getSettings() const { return settings; }
+	BarzerSettings& getSettings() { return *(const_cast<BarzerSettings*>(&settings)); }
 	std::ostream& stream() { return os; }
     const char* getParentTag() const 
         { return( (tagStack.size() > 1) ?  tagStack[ tagStack.size() -2 ].tagName.c_str() : 0); }
@@ -241,6 +245,7 @@ public:
             return (s && !strcmp(s,t));
         }
     const std::string& getExtra() const { return d_extra;} 
+    const std::map<std::string, std::string>& getExtraMap() const { return d_extraMap; }
 
     const std::string& getRoute() const { return d_route;} 
     bool isRoute( const std::string& r ) const { return ( r == d_route ); }

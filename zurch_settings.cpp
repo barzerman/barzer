@@ -53,6 +53,8 @@ bool ZurchSettings::loadIndex( const boost::property_tree::ptree& pt )
 	        case 'D': loader->setNoContent( false ); break;
 	        case 'S': dixl->getIndex()->d_bitflags.set( DocFeatureIndex::ZBIT_SMART_SCORING ); break;
 	        case 's': dixl->getIndex()->d_bitflags.set( DocFeatureIndex::ZBIT_SMART_SCORING, false ); break;
+			case 'P': dixl->getIndex()->setKeepDetailedPositions(true); break;
+			case 'p': dixl->getIndex()->setKeepDetailedPositions(false); break;
             }
         }
 	}
@@ -124,7 +126,6 @@ bool ZurchSettings::loadIndex( const boost::property_tree::ptree& pt )
         std::string fname = x.get();
         loader->loadEntLinks( fname.c_str() );
     }
-    
     return true;
 }
 

@@ -8,6 +8,7 @@
 #include <barzer_universe.h>
 #include <boost/filesystem.hpp>
 #include <ay/ay_filesystem.h>
+#include <ay/ay_levenshtein.h>
 #include <ay/ay_util_time.h>
 #include <ay_tag_markup_parser.h>
 #include <boost/filesystem/fstream.hpp>
@@ -146,6 +147,7 @@ int DocFeatureLink::deserialize( std::istream& fp )
 DocFeatureIndex::DocFeatureIndex() 
 : m_meaningsCounter(0)
 , m_considerFCount(true)
+, m_keepDetailedPositions(false)
 { }
 
 DocFeatureIndex::~DocFeatureIndex() {}
@@ -270,30 +272,28 @@ uint32_t DocFeatureIndex::resolveExternalString( const barzer::BarzerLiteral& l,
         return 0xffffffff;
 }
 
-void DocFeatureIndex::getUniqueUnigrams(std::vector<std::pair<NGram<DocFeature>, uint32_t>>& out, uint32_t docId) const
+void DocFeatureIndex::getUniqueFeatures(std::vector<FeaturesQueryResult>& out, uint32_t docId, size_t maxGramSize, size_t uniqueness) const
 {
-	for (const auto& pair : d_invertedIdx) {
-        if( pair.first.size() > 1 ) 
-            continue;
+	for (const auto& pair : d_invertedIdx)
+	{
+		if (pair.first.size() > maxGramSize)
+			continue;
+		if (pair.second.size() > uniqueness)
+			continue;
+
 		if (docId != static_cast<uint32_t>(-1) &&
 			std::find_if(pair.second.begin(), pair.second.end(),
-					[docId] (const DocFeatureLink& l) { return l.docId == docId; }) == pair.second.end())
+					[docId](const DocFeatureLink& l) { return l.docId == docId; }) == pair.second.end())
 			continue;
 
 		out.push_back({ pair.first, pair.second.size() });
 	}
 }
-void DocFeatureIndex::getUniqueFeatures(std::vector<std::pair<NGram<DocFeature>, uint32_t>>& out, uint32_t docId) const
-{
-	for (const auto& pair : d_invertedIdx)
-	{
-		if (docId != static_cast<uint32_t>(-1) &&
-			std::find_if(pair.second.begin(), pair.second.end(),
-					[docId] (const DocFeatureLink& l) { return l.docId == docId; }) == pair.second.end())
-			continue;
 
-		out.push_back({ pair.first, pair.second.size() });
-	}
+const DocFeatureIndex::Gram2DetailedPosList_t* DocFeatureIndex::getDetailedFeaturesPositions (uint32_t docId) const
+{
+	const auto pos = m_detailedPositions.find(docId);
+	return pos == m_detailedPositions.end() ? nullptr : &pos->second;
 }
 
 void DocFeatureIndex::getDocs4Feature (std::vector<uint32_t>& docIds, const NGram<DocFeature>& f) const
@@ -541,13 +541,23 @@ int DocFeatureIndex::getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec
 			featureVec, barz);
 }
 
-size_t DocFeatureIndex::appendOwnedEntity( uint32_t docId, const BarzerEntity& ent )
+size_t DocFeatureIndex::appendOwnedEntity( uint32_t docId, const BarzerEntity& ent, float w )
 {
     ExtractedDocFeature::Vec_t featureVec;
     uint32_t eid = storeOwnedEntity(ent);
-    featureVec.push_back( ExtractedDocFeature(DocFeature(DocFeature::CLASS_ENTITY,eid),1) );
-    return appendDocument( docId, featureVec, 0 );
+
+	ExtractedDocFeature f(DocFeature(DocFeature::CLASS_ENTITY,eid),1);
+	f.docPos.weight = w;
+
+    featureVec.push_back(f);
+    return appendDocument( docId, featureVec, 0, true );
 }
+
+uint32_t DocFeatureIndex::getOwnedEntId(const BarzerEntity& ent) const
+{
+	return d_entPool.getIdByObj(ent);
+}
+
 size_t DocFeatureIndex::appendDocument( uint32_t docId, barzer::Barz& barz, size_t offset, DocFeatureLink::Weight_t weight )
 {
     ExtractedDocFeature::Vec_t featureVec;
@@ -557,7 +567,7 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, barzer::Barz& barz, size
 	for (auto& f : featureVec)
 		f.docPos.weight = weight;
     
-    return appendDocument( docId, featureVec, offset );
+    return appendDocument( docId, featureVec, offset, false );
 }
 
 /** This function keeps only one link per given doc ID, feature ID and weight,
@@ -569,18 +579,24 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, barzer::Barz& barz, size
  * weight then the word deep in the text). This makes sense since we also take
  * link count in the example later in findDocument().
  */
-size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t& features, size_t offset )
+size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t& features, size_t offsetStart, bool weightOverride )
 {
 	std::map<NGram<DocFeature>, size_t> sumFCount;
+
+	auto fdpos = m_detailedPositions.find(docId);
+	if (m_keepDetailedPositions && fdpos == m_detailedPositions.end())
+		fdpos = m_detailedPositions.insert({ docId, Gram2DetailedPosList_t() }).first;
+
 	for (const auto& f : features)
 	{
         InvertedIdx_t::iterator fi = d_invertedIdx.find( f.feature );
-        if( fi == d_invertedIdx.end() ) 
+        if( fi == d_invertedIdx.end() )  
             fi = d_invertedIdx.insert({ f.feature, InvertedIdx_t::mapped_type() }).first;
 		
 		auto& vec = fi->second;
 
-		const DocFeatureLink link(docId, f.docPos.weight);
+        int w = f.docPos.weight;
+		const DocFeatureLink link(docId, w );
 
         /* DONT ERASE YET ! this is find for same weight,docId 
 		auto linkPos = std::find_if(vec.begin(), vec.end(),
@@ -594,8 +610,9 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeatur
 		{
 			vec.push_back(link);
 			linkPos = vec.end() - 1;
-		} else if( linkPos->weight < link.weight ) {
-            linkPos->weight= link.weight;
+		} else {
+            if( weightOverride || link.weight > linkPos->weight )
+                linkPos->weight= link.weight;
         }
 		
 		if (m_considerFCount)
@@ -604,13 +621,23 @@ size_t DocFeatureIndex::appendDocument( uint32_t docId, const ExtractedDocFeatur
 			linkPos->count = 1;
 		
 		auto pos = f.docPos;
-		pos.offset.first += offset;
+		pos.offset.first += offsetStart;
 		linkPos->addPos(pos);
 		
 		auto sfci = sumFCount.find(f.feature);
 		if (sfci == sumFCount.end())
 			sfci = sumFCount.insert({ f.feature, 0 }).first;
 		++sfci->second;
+
+		if (m_keepDetailedPositions)
+		{
+			auto& gram2detailed = fdpos->second;
+			auto detailedPos = gram2detailed.find(f.feature);
+			if (detailedPos == gram2detailed.end())
+				detailedPos = gram2detailed.insert({ f.feature, DetailedPosList_t() }).first;
+
+			detailedPos->second.push_back({ f.docPos.offset });
+		}
     }
     
     auto pos = d_doc2topFeature.insert({ docId, { NGram<DocFeature> (), 0 } }).first;
@@ -709,12 +736,13 @@ void DocFeatureIndex::findDocumentDumb(DocWithScoreVec_t& out,
 
 		const size_t numSources = 1 + sources.size();
 
+        double adjFactor = sizeBoost * classBoost / std::log(1 + numSources);
 		for (const auto& link : sources)
 		{
             if( !pfvv.empty()  &&  !matchPropFilterVarVec( link.docId, pfvv ) )
                 continue;
 
-			const auto scoreAdd = sizeBoost * classBoost / std::log(1 + numSources);
+			const auto scoreAdd = static_cast<double>(link.weight) * adjFactor;
 
 			if (parm.doc2pos)
 			{
@@ -1169,6 +1197,11 @@ void DocFeatureLoader::parserSetup()
     d_parser.lexer.setMaxCTokensPerQuery( MAX_NUM_TOKENS/2 );
     d_parser.lexer.setDontSpell(true);
 }
+void DocFeatureLoader::parseTokenized()
+{
+    d_parser.lex_only( d_barz, d_qparm );
+    d_parser.semanticize_only( d_barz, d_qparm );
+}
 size_t DocFeatureLoader::addDocFromString( uint32_t docId, const std::string& str, DocFeatureLoader::DocStats& stats, bool reuseBarz )
 {
     if( !reuseBarz ) {
@@ -1178,6 +1211,7 @@ size_t DocFeatureLoader::addDocFromString( uint32_t docId, const std::string& st
     }
 
     auto lastOffsetPos = getLastOffset( docId ); // lastOffsetPos guaranteed to be valid
+    
     stats.numFeatureBeads += d_index.appendDocument( docId, d_barz, lastOffsetPos->second, getCurrentWeight() );
     stats.numBeads += d_barz.getBeads().getList().size();
 		
@@ -1437,10 +1471,9 @@ DocIndexLoaderNamedDocs::DocIndexLoaderNamedDocs( DocFeatureIndex& index, const 
 : DocFeatureLoader(index,u),d_entDocLinkIdx(*this)
 {}
 namespace fs = boost::filesystem;
+
 void DocIndexLoaderNamedDocs::loadEntLinks( const char* fname )
-{
-    d_entDocLinkIdx.loadFromFile( fname );
-}
+    { d_entDocLinkIdx.loadFromFile( fname ); }
 void DocIndexLoaderNamedDocs::addAllFilesAtPath( const char* path )
 {
     fs_iter_callback cb( *this );

@@ -1,0 +1,4 @@
+<root>
+    <int32 value="100" />
+    <str name="hello" value="world" />
+</root>

@@ -14,6 +14,78 @@
 #include <barzer_geoindex.h>
 #include <barzer_beni.h>
 #include <zurch_docidx.h>
+
+enum {
+		TAG_UNDEFINED,
+		/// control tags 
+		TAG_STATEMENT, // <stmt> doesnt have a pair in the node type realm - the whole statement
+		
+		TAG_PATTERN, // <pat> no pair in the node type - represents the whole left side 
+
+		TAG_RANGE_ELEMENT, // no pair in the node type - represents the whole left side 
+					 // BEL_PATTERN_XXX = TAG_XXX - TAG_PATTERN
+
+		TAG_T,		// token
+		TAG_TG,		// tg
+		TAG_P, 		// punctuation
+		TAG_SPC, 	// SPACE
+		/// <n> . valid attributes
+		/// l - low value, h - high, r - real .. no attributes means "any integer"
+		TAG_N, 		// number
+		TAG_RX, 	// token regexp
+		TAG_TDRV, 	// token derivaive
+		TAG_WCLS, 	// word class
+		TAG_W, 		// token wildcard
+		TAG_DATE, 	// date
+		TAG_DATETIME, 	// date
+		TAG_ENTITY, 	// entity or erc matched on entity 
+		TAG_RANGE, 	// entity or erc matched on entity 
+		TAG_ERCEXPR, 	// expression made of ERCs
+		TAG_ERC, 	// single ERC
+		TAG_EVR, 	// single EVR
+		TAG_EXPAND, // expands pre-defined macro
+		TAG_TIME, 	// time
+
+		TAG_RANGE_STRUCT, // not a real tag used for translation
+						// BEL_STRUCT_XXX = TAG_XXX-TAG_RANGE_STRUCT
+		
+		TAG_LIST, // sequence of elements
+		TAG_ANY,  // any element 
+		TAG_OPT,  // optional subtree
+		TAG_PERM, // permutation of children
+		TAG_TAIL, // if children are A,B,C this translates into A,AB,ABC
+		TAG_SUBSET, // if children are A,B,C this translates into A,B,C,AB,AC,BC,ABC
+
+		TAG_TRANSLATION, // <trans> no pair in the node type - represents the whole left side 
+		TAG_REWRITE_STRUCT, // not a real tag used for translation
+						// BEL_REWRITE_XXX = TAG_XXX-TAG_REWRITE_STRUCT
+
+		// <ltlr> valid attribute 
+		// 
+		TAG_LITERAL, // <ltrl>
+		TAG_RNUMBER, // <rn>
+		TAG_MKENT, // <mkent c="class" sc="subclass" id="UNIQID"> 
+		TAG_NV, // <nv n="somename" v="somevalue">
+
+		TAG_VAR, // <var>
+		TAG_FUNC, // function
+		TAG_GET, // getter function
+		TAG_SET, // setter function
+		TAG_SELECT,
+		TAG_CASE,
+		TAG_AND,
+		TAG_OR,
+		TAG_NOT,
+		TAG_TEST,
+		TAG_COND,
+		TAG_BLOCK, // rewrite control structure (comma, variable let and get and more - extendable)
+
+		TAG_STMSET, // document element
+		
+		TAG_MAX
+
+};
+
 extern "C" {
 #include <expat.h>
 
@@ -54,6 +126,82 @@ static void charDataHandle( void * ud, const XML_Char *str, int len)
 namespace barzer {
 
 namespace {
+
+const char* g_tag_name[TAG_MAX] = {
+		"UNDEFINED",
+		"STATEMENT",
+		
+		"PATTERN",
+
+		"RANGE_ELEMENT",
+		"T",
+		"TG",
+		"P",
+		"SPC",
+		"N",
+		"RX",
+		"TDRV",
+		"WCLS",
+		"W",
+		"DATE",
+		"DATETIME",
+		"ENTITY",
+		"RANGE",
+		"ERCEXPR",
+		"ERC",
+		"EVR",
+		"EXPAND",
+		"TIME",
+
+		"RANGE_STRUCT",
+		
+		"LIST",
+		"ANY",
+		"OPT",
+		"PERM",
+		"TAIL",
+		"SUBSET",
+
+		"TRANSLATION",
+		"REWRITE_STRUCT",
+		"LITERAL",
+		"RNUMBER",
+		"MKENT",
+		"NV",
+
+		"VAR",
+		"FUNC",
+		"GET",
+		"SET",
+		"SELECT",
+		"CASE",
+		"AND",
+		"OR",
+		"NOT",
+		"TEST",
+		"COND",
+		"BLOCK",
+
+		"STMSET"
+        // new tags must be all added above this line
+};
+
+const char* getTagNameById( int tagId )
+{
+    if( tagId >=0 && (size_t)tagId <= ARR_SZ(g_tag_name) )
+        return g_tag_name[ tagId ];
+    else
+        return "UNKNOWN";
+}
+void report_bad_attribute( int tid, const char* n, const char* v, BELReader& reader, BELParserXML::CurStatementData& statement )
+{
+    if( strcmp(n,"xmlns") ) {
+        BarzXMLErrorStream errStream( reader, statement.stmt.getStmtNumber());
+        errStream.os << "tag:" << getTagNameById(tid) << " has unknown attribute \"" << n << "\"=\"" << v << "\"";
+    }
+}
+
+#define REPORT_ATTR report_bad_attribute( (tid), (n), (v), *reader, statement )
 
 void escapeForXmlAndIntern( GlobalPools& gp, uint32_t& srcNameStrId, std::string& s, const char* cs ) 
 {
@@ -253,11 +401,21 @@ void BELParserXML::elementHandleRouter( int tid, const char_cp * attr, size_t at
 
 }
 
-#define REPORT_ATTR \
-		if( strcmp(n,"xmlns") ) { \
-			BarzXMLErrorStream errStream( *reader, statement.stmt.getStmtNumber()); \
-			errStream.os << "unknown attribute name/value: " << n << " -> " << v; \
-		}
+
+namespace {
+    // resolving class defaults and translating subclass if needed 
+void try_entity_class_translation( StoredEntityClass& eclass, const BELReader& reader ) 
+{
+    if( eclass.ec == 0 ) {
+        eclass.ec= reader.getCurrentUniverse()->getUserId();
+    } else if( eclass.ec != 1 && eclass.ec != reader.getCurrentUniverse()->getUserId() ) {
+        if( const User* user = reader.getCurrentUser() ) {
+            eclass = user->getEntTranslation( eclass );
+        }
+    }
+}
+
+} // anonymous namespace
 
 #define DEFINE_BELParserXML_taghandle( X )  void BELParserXML::taghandle_##X(int tid, const char_cp * attr, size_t attr_sz, bool close )
 DEFINE_BELParserXML_taghandle(STMSET)
@@ -302,10 +460,10 @@ DEFINE_BELParserXML_taghandle(STMSET)
 			if (n[1] == 'm' && n[2] == 'l' && n[3] == 'n' && n[4] == 's')
 				;
 			else
-				REPORT_ATTR
+				REPORT_ATTR;
 			break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -343,6 +501,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 	size_t stmtNumber = 0;
     bool needAbort = false;
     std::stringstream errStrStr ;
+    std::string errTypeStr;
     bool tagsPassFilter = false;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
@@ -354,6 +513,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 				statement.setMacro(macroStrId); // m="MACROXXX"
 			} else {
 				errStrStr << "attempt to REDEFINE MACRO " << v  << " ignored";
+                errTypeStr = "type=\"REDEFINE MACRO\"";
                 needAbort  = true;
 			}
             break;
@@ -365,6 +525,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 				statement.setProc(procNameStrId); // p="PROCXXX"
 			} else {
 				errStrStr << "attempt to REDEFINE Procedure " << v  << " ignored";
+                errTypeStr = "type=\"REDEFINE PROCEDURE\"";
 				needAbort  = true;
 			}
 			}  // end of block
@@ -375,7 +536,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 			else if (n[1] == 'a' && n[2] == 'm' && n[3] == 'e')
 				;
 			else
-				REPORT_ATTR
+				REPORT_ATTR;
             // name - is for barsted names 
 			break;
 		case 'd':
@@ -383,7 +544,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 				statement.setDisabled();
 				return;
 			} else
-				REPORT_ATTR
+				REPORT_ATTR;
 			break;
         case 'o':
             statement.stmt.setRuleClashOverride(v);
@@ -401,7 +562,7 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
             }
 			break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -411,12 +572,9 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
         return;
     }
         
-    if( stmtNumber == 145705 ) {
-        std::cerr << 145705 << " reached\n";
-    }
     if( needAbort ) {
 	    statement.stmt.setStmtNumber( stmtNumber ) ;
-        BarzXMLErrorStream  errStream(reader->getErrStreamRef(),stmtNumber);
+        BarzXMLErrorStream  errStream(reader->getErrStreamRef(),stmtNumber, errTypeStr.c_str());
         errStream.os << errStrStr.str();
         return;
     }
@@ -475,7 +633,7 @@ DEFINE_BELParserXML_taghandle(TRANSLATION)
 			if( v && v[0] == 'y' )
 				statement.stmt.setTranUnmatchable();
 			else
-				REPORT_ATTR
+				REPORT_ATTR;
 			break;
         case 'c': // confidence boost
             {
@@ -489,7 +647,7 @@ DEFINE_BELParserXML_taghandle(TRANSLATION)
             break;
             }
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
         }
     }
@@ -540,7 +698,7 @@ template <> void BTND_Rewrite_Text_visitor::operator()<BTND_Rewrite_Literal>(BTN
 			    t.setId( i );
 		    }
             const StoredUniverse* uverse = d_parser.getReader()->getCurrentUniverse();
-            if( uverse && !uverse->checkBit( StoredUniverse::UBIT_NO_EXTRA_NORMALIZATION ) ) {
+            if( uverse && !uverse->checkBit( UBIT_NO_EXTRA_NORMALIZATION ) ) {
                 std::string tmpStr;
                 ay::unicode_normalize_punctuation( tmpStr, theStr, d_len );
                 d_parser.getGlobalPools().internString_internal( tmpStr.c_str(), tmpStr.length() );
@@ -591,7 +749,7 @@ template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Token>  (BTN
     const char* str = ( d_str[d_len] ? (d_parser.setTmpText(d_str,d_len)) : d_str );
     std::string tmpString;
     if( const StoredUniverse* uverse = d_parser.getReader()->getCurrentUniverse() ) {
-        if( !uverse->checkBit(StoredUniverse::UBIT_NO_EXTRA_NORMALIZATION) ) {
+        if( !uverse->checkBit(UBIT_NO_EXTRA_NORMALIZATION) ) {
             ay::unicode_normalize_punctuation( tmpString, str, strlen(str) );
             str = tmpString.c_str();
             d_len = tmpString.length();
@@ -635,7 +793,7 @@ template <> void BTND_Pattern_Text_visitor::operator()<BTND_Pattern_Punct> (BTND
 { 
     std::string tmpString;
     if( const StoredUniverse* uverse = d_parser.getReader()->getCurrentUniverse() ) {
-        if( !uverse->checkBit(StoredUniverse::UBIT_NO_EXTRA_NORMALIZATION) ) {
+        if( !uverse->checkBit(UBIT_NO_EXTRA_NORMALIZATION) ) {
             ay::unicode_normalize_punctuation( tmpString, d_str, d_len );
             d_str = tmpString.c_str();
             d_len = tmpString.length();
@@ -787,7 +945,7 @@ DEFINE_BELParserXML_taghandle(T)
 				isStop = true;
 				break;
 			default:
-				REPORT_ATTR
+				REPORT_ATTR;
 				break;
 			}
 			break;
@@ -804,7 +962,7 @@ DEFINE_BELParserXML_taghandle(T)
 				AYLOG(ERROR) << "unknown meaning " << v;
 			break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -911,7 +1069,7 @@ DEFINE_BELParserXML_taghandle(N)
 			break;
 		}
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -959,7 +1117,7 @@ DEFINE_BELParserXML_taghandle(EVR)
 			pat.d_ent.setTokenId( reader->getGlobalPools().internString_internal(v) );
 			break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
         }
     }
@@ -984,7 +1142,7 @@ DEFINE_BELParserXML_taghandle(ERC)
 				pat.setMatchBlankEntity();
 				break;
 			default:
-				REPORT_ATTR
+				REPORT_ATTR;
 				break;
 			}
 			break;
@@ -1008,7 +1166,7 @@ DEFINE_BELParserXML_taghandle(ERC)
 			case 't': // unit entity id token - ut="ABCD011"
 				erc.getUnitEntity().setTokenId( reader->getGlobalPools().internString_internal(v) );
 			default:
-				REPORT_ATTR
+				REPORT_ATTR;
 				break;
 			}
 			break;
@@ -1036,7 +1194,7 @@ DEFINE_BELParserXML_taghandle(ERC)
 				erc.getRange().setData( BarzerRange::Entity() );
 				break;
 			default:
-				REPORT_ATTR
+				REPORT_ATTR;
 				break;
 			}
 			break;
@@ -1044,10 +1202,13 @@ DEFINE_BELParserXML_taghandle(ERC)
             pat.setMatchModeFromAttribute(v);
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
+    if( erc.getEntity().eclass.ec == 0 ) 
+        erc.getEntity().eclass.ec = reader->getCurrentUniverse()->getUserId();
+    try_entity_class_translation( erc.getEntity().eclass, *reader );
 
 	statement.pushNode( BTND_PatternData(pat) );
 }
@@ -1066,7 +1227,7 @@ DEFINE_BELParserXML_taghandle(ERCEXPR)
             pat.setMatchModeFromAttribute(v);
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -1101,7 +1262,7 @@ DEFINE_BELParserXML_taghandle(RANGE)
 			case 'm': pat.range().dta = BarzerRange::DateTime(); break;
 			case 'd': pat.range().dta = BarzerRange::Date(); break;
 			case 'e': if( !isEntity ) isEntity= true; break;
-			default: REPORT_ATTR break;
+			default: REPORT_ATTR; break;
 			}
 			break;
 		case 'n':
@@ -1118,9 +1279,9 @@ DEFINE_BELParserXML_taghandle(RANGE)
 					id1Str = v;
 				} else if( n[2] == '2' ) { 					  // i2=id - second entity id
 					id2Str = v;
-				} else REPORT_ATTR
+				} else REPORT_ATTR;
 			default:
-				REPORT_ATTR
+				REPORT_ATTR;
 				break;
 			}
 			break;
@@ -1128,20 +1289,23 @@ DEFINE_BELParserXML_taghandle(RANGE)
             pat.setMatchModeFromAttribute(v);
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
 	if( isEntity ){
 		pat.range().dta = BarzerRange::Entity();
 
-		if( euid.eclass.isValid() ) {
+		if( euid.eclass.ec == 0 ) {
+            euid.eclass.ec = reader->getCurrentUniverse()->getUserId();
+        }  
+        {
+            try_entity_class_translation( euid.eclass, *reader );
 			BarzerRange::Entity& entRange = pat.range().setEntityClass( euid.eclass ); 
 	
 			if( id1Str ) {
                 uint32_t id1StrId = reader->getGlobalPools().internString_internal(id1Str) ;
 				const StoredEntity& ent1  = 
-					//reader->getUniverse().getDtaIdx().addGenericEntity( id1Str, euid.eclass.ec, euid.eclass.subclass );
 					reader->getGlobalPools().getDtaIdx().addGenericEntity( id1StrId, euid.eclass.ec, euid.eclass.subclass );
 				entRange.first = ent1.getEuid();
 			}
@@ -1149,7 +1313,6 @@ DEFINE_BELParserXML_taghandle(RANGE)
 
                 uint32_t id2StrId = reader->getGlobalPools().internString_internal(id2Str) ;
 				const StoredEntity& ent2  = 
-					//reader->getUniverse().getDtaIdx().addGenericEntity( id2Str, euid.eclass.ec, euid.eclass.subclass );
 					reader->getGlobalPools().getDtaIdx().addGenericEntity( id2StrId, euid.eclass.ec, euid.eclass.subclass );
 				entRange.first = ent2.getEuid();
 			}
@@ -1165,21 +1328,23 @@ DEFINE_BELParserXML_taghandle(ENTITY)
 	if( close ) { statement.popNode(); return; }
 	BTND_Pattern_Entity pat; 
     
+    StoredEntityClass eclass;
+
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
 		switch( n[0] ) {
 		case 'e': // class - ec="1" (same as c)
-            if( n[1] == 'c' ) 
-			    pat.setEntityClass( atoi(v) ); 
-			else
-				REPORT_ATTR
+            if( n[1] == 'c' ) {
+                eclass.setClass( atoi(v) );
+			} else
+				REPORT_ATTR;
             break;
 		case 'c': // class - c="1"
-			pat.setEntityClass( atoi(v) ); 
+            eclass.setClass( atoi(v) );
 			break;
 		case 's': // subclass - s="1"
-			pat.setEntitySubclass( atoi(v) ); 
+			eclass.setSubclass( atoi(v) ); 
 			break;
 		case 'i': // 
 		case 't': // id string - t="ABCD011"
@@ -1192,10 +1357,13 @@ DEFINE_BELParserXML_taghandle(ENTITY)
             pat.setMatchModeFromAttribute(v);    
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
+    // resolving class defaults and translating subclass if needed 
+    try_entity_class_translation( eclass, *reader );
+    pat.setEntityClass( eclass );
 	statement.pushNode( BTND_PatternData( pat));
 }
 DEFINE_BELParserXML_taghandle(DATETIME)
@@ -1214,7 +1382,7 @@ DEFINE_BELParserXML_taghandle(DATETIME)
 				pat.setLoDate( atoi(v) );
 			} else if( n[1] == 'h' ) { // dh="YYYYMMDD" date hi
 				pat.setHiDate( atoi(v) );
-			} else REPORT_ATTR
+			} else REPORT_ATTR;
 			break;
 		case 'f':  // f="y" - future
 			pat.setFuture();
@@ -1227,13 +1395,13 @@ DEFINE_BELParserXML_taghandle(DATETIME)
 				pat.setLoTime( atoi(v) );
 			} else if( n[1] == 'h' ) { // th="hhmmss" time hi
 				pat.setHiTime( atoi(v) );
-			} else REPORT_ATTR
+			} else REPORT_ATTR;
 			break;
         case 'x': 
             pat.setMatchModeFromAttribute(v);
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -1268,7 +1436,7 @@ DEFINE_BELParserXML_taghandle(DATE)
             pat.setMatchModeFromAttribute(v);
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}	
@@ -1298,7 +1466,7 @@ DEFINE_BELParserXML_taghandle(TIME)
             pat.setMatchModeFromAttribute(v);
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -1332,7 +1500,7 @@ DEFINE_BELParserXML_taghandle(W)
             modeStr= v;
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
         }
     }
@@ -1350,7 +1518,6 @@ void BELParserXML::processAttrForStructTag( BTND_StructData& dta, const char_cp 
 			dta.setVarId( internString_internal(v) );
 			return;
 		default:
-			REPORT_ATTR
 			break;
 		}
 	}
@@ -1375,7 +1542,7 @@ DEFINE_BELParserXML_taghandle(EXPAND)
 		case 'n': macroName= v; break;
         case 't': trieName = v; break;     // trie name
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -1461,16 +1628,13 @@ DEFINE_BELParserXML_taghandle(PERM)
 		const char* v = attr[i+1]; // attr value
 		switch( n[0] ) {
 		case 't': // t or type (optional attribute can be FLIP, other types to come)
-            if( !n[1] || !strcasecmp(n,"type") ) {
-                if( v[0] == 'f' ) {
-                    if( !v[1] || !strcasecmp(v,"flip")  ) 
-                        structType = BTND_StructData::T_FLIP;
-					else REPORT_ATTR
-                } else REPORT_ATTR
-            } else REPORT_ATTR
+            if( !n[1] ) {
+                if( v[0] == 'f' && !v[1] ) 
+                    structType = BTND_StructData::T_FLIP;
+            }
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
         }
     }
@@ -1525,7 +1689,7 @@ DEFINE_BELParserXML_taghandle(LITERAL)
                 }
 				break;
 			default:
-				REPORT_ATTR
+				REPORT_ATTR;
 				break;
 			}
 			break;
@@ -1533,7 +1697,7 @@ DEFINE_BELParserXML_taghandle(LITERAL)
             literal.setInternalString();
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -1558,7 +1722,7 @@ DEFINE_BELParserXML_taghandle(NV)
             value = v;
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
         }
     }
@@ -1602,7 +1766,8 @@ DEFINE_BELParserXML_taghandle(MKENT)
 		return;
 	}
 	BTND_Rewrite_MkEnt mkent;
-	uint32_t eclass = 0, subclass = 0, topicClass = 0, topicSubclass=0;
+    StoredEntityClass eclass, topicEclass;
+    bool hasTopic = false;
 	const char *idStr = 0;
 	const char *topicIdStr = 0;
     int relevance = 0, topicRelevance = 0;
@@ -1610,25 +1775,28 @@ DEFINE_BELParserXML_taghandle(MKENT)
 	const char *rawCoord = 0;
     uint32_t topicStrength = 0;
     std::vector< std::string > zurchDocIdVec;
+
+    std::vector<std::pair< std::string, std::string>> ghettodbNameValueVec;
 	for( size_t i=0; i< attr_sz; i+=2 ) {
 		const char* n = attr[i]; // attr name
 		const char* v = attr[i+1]; // attr value
 		switch( n[0] ) {
-		case 'c': eclass =  atoi(v); break;
-		case 's': subclass =  atoi(v); break;
+		case 'c': eclass.setClass(atoi(v)); break;
+		case 's': eclass.setSubclass(atoi(v)); break;
 		case 'i': idStr = v; break;
         
 		case 'n': canonicName = v; break;       // canonic name of the entity if its an empty string getDescriptiveNameFromPattern_simple will be used
 		case 'r': relevance = atoi(v); break;   // relevance of the entity 
 		case 't': {
+            if( !hasTopic ) hasTopic = true;
             switch(n[1]) {
-                case 'c': topicClass =  atoi(v); break;
+                case 'c': topicEclass.setClass( atoi(v) ); break;
                 case 'g': topicStrength = atoi(v); break;
                 case 'i': topicIdStr = v; break;
                 case 'n': topicCanonicName = v; break;
                 case 'r': topicRelevance = atoi(v); break;
-                case 's': topicSubclass =  atoi(v); break;
-				default: REPORT_ATTR break;
+                case 's': topicEclass.setSubclass( atoi(v) ); break;
+				default: REPORT_ATTR; break;
             }
             break;
         }
@@ -1644,22 +1812,31 @@ DEFINE_BELParserXML_taghandle(MKENT)
                 );
             }
             break;
+        case 'v': 
+            if( n[1] == '.' ) { /// implicit ghettodb attributes for v.name=value .. name=value will be stored
+                if( n[2] ) 
+                    ghettodbNameValueVec.push_back( { n+2, v } );
+                    // universe->getGhettodb().store( statement.getCurEntity(), n+2, value );
+            }
+            break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		} // n[0] switch
 	}
+    if( eclass.ec ==0 ) 
+        eclass.ec = reader->getCurrentUniverse()->getUserId();
+    else 
+        try_entity_class_translation( eclass, *reader );
 
 	//const StoredEntity& ent  = reader->getUniverse().getDtaIdx().addGenericEntity( idStr, eclass, subclass );
     GlobalPools& gp = reader->getGlobalPools();
     uint32_t idStrId = ( idStr ? reader->getGlobalPools().internString_internal(idStr) : 0xffffffff );
-	const StoredEntity& ent  = gp.getDtaIdx().addGenericEntity( idStrId, eclass, subclass );
+	const StoredEntity& ent  = gp.getDtaIdx().addGenericEntity( idStrId, eclass.ec, eclass.subclass );
     StoredUniverse* universe = getReader()->getCurrentUniverse();
     const uint32_t curUserId = universe->getUserId();
 
-
-	if (rawCoord)
-	{
+	if (rawCoord) {
 		std::pair<double, double> coords;
 		if (parseCoord(rawCoord, coords)) {
 			if( universe ) 
@@ -1675,7 +1852,8 @@ DEFINE_BELParserXML_taghandle(MKENT)
 	traceInfo.source = statement.stmt.getSourceNameStrId();
 	traceInfo.statementNum = statement.stmt.getStmtNumber();
 	traceInfo.emitterSeqNo = 0;
-	universe->getEntRevLookup().add(StoredEntityUniqId(idStrId, eclass, subclass), traceInfo);
+
+	universe->getEntRevLookup().add(StoredEntityUniqId(idStrId, eclass.ec, eclass.subclass), traceInfo);
     
 	mkent.setEntId( ent.entId );
     /// ZURCH LINKAGE
@@ -1718,9 +1896,14 @@ DEFINE_BELParserXML_taghandle(MKENT)
                 eprop->set_nameExplicit();
         }
     }
-    if( topicClass ) {
+    if( hasTopic ) {
+        if( topicEclass.ec == 0 ) 
+            topicEclass.ec = reader->getCurrentUniverse()->getUserId();
+        else 
+            try_entity_class_translation( topicEclass, *reader );
+
         uint32_t topicIdStrId = reader->getGlobalPools().internString_internal(topicIdStr) ;
-	    const StoredEntity& topicEnt  = gp.getDtaIdx().addGenericEntity( topicIdStrId, topicClass, topicSubclass);
+	    const StoredEntity& topicEnt  = gp.getDtaIdx().addGenericEntity( topicIdStrId, topicEclass.ec, topicEclass.subclass);
 
         BELTrie& trie = reader->getTrie();
         trie.linkEntToTopic( topicEnt.getEuid(), ent.getEuid(), topicStrength );
@@ -1729,6 +1912,10 @@ DEFINE_BELParserXML_taghandle(MKENT)
             if( topicCanonicName && eprop ) 
                 eprop->set_nameExplicit();
         }
+    }
+    /// processing ghettodb values from implicit attributes (if any)
+    for( const auto& i : ghettodbNameValueVec ) {
+        universe->getGhettodb().store( ent.getEuid(), i.first.c_str(), i.second.c_str() );
     }
 }
         
@@ -1754,7 +1941,7 @@ DEFINE_BELParserXML_taghandle(BLOCK)
                     ctrl.setCtrl( BTND_Rewrite_Control::RWCTLT_VAR_GET );
 					break;
 				default:
-					REPORT_ATTR
+					REPORT_ATTR;
 					break;
                 }
             }
@@ -1762,7 +1949,7 @@ DEFINE_BELParserXML_taghandle(BLOCK)
         case 'r':{ /// variable
             if( *v == 'y' ) 
                 ctrl.setVarModeRequest();
-            else REPORT_ATTR
+            else REPORT_ATTR;
 				}
             break;
         case 'v':{ /// variable
@@ -1770,7 +1957,7 @@ DEFINE_BELParserXML_taghandle(BLOCK)
             ctrl.setVarId( varId );
             }break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
         }
     }
@@ -1796,7 +1983,7 @@ DEFINE_BELParserXML_taghandle(RNUMBER)
 		}
 			break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -1869,7 +2056,7 @@ DEFINE_BELParserXML_taghandle(VAR)
 		}
 			break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
 		}
 	}
@@ -1898,7 +2085,7 @@ DEFINE_BELParserXML_taghandle(SET)
         } else if( *n == 'v' ) { // variable 
             f.setVarId( reader->getGlobalPools().internString_internal(v) );
         } else
-			REPORT_ATTR
+			REPORT_ATTR;
 	}
 
     statement.pushNode( BTND_RewriteData(f));
@@ -1924,7 +2111,7 @@ DEFINE_BELParserXML_taghandle(FUNC)
         } else if( *n == 'r' ) { // request variable RequestEnvironment::d_reqVar
             if( *v == 'y' ) 
                 f.setVarModeRequest();
-        } else REPORT_ATTR
+        } else REPORT_ATTR;
 	}
     if( funcNameId != 0xffffffff ) 
 	    statement.pushNode( BTND_RewriteData( f));
@@ -1952,7 +2139,7 @@ DEFINE_BELParserXML_taghandle(SELECT)
             varId = internVariable(v);
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
         }
     }
@@ -1977,7 +2164,7 @@ DEFINE_BELParserXML_taghandle(CASE)
             caseId = (uint32_t)v[0]; // this is a hack really
             break;
 		default:
-			REPORT_ATTR
+			REPORT_ATTR;
 			break;
         }
     }

@@ -6,6 +6,7 @@
 #include <ay_xml_util.h>
 #include <barzer_server_response.h>
 #include <barzer_json_output.h>
+#include <boost/lexical_cast.hpp>
 
 namespace zurch {
 
@@ -144,6 +145,28 @@ std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocWithSc
 		os << "\n\"barz\": ";
 		barzer::BarzStreamerJSON streamer(d_barz, *d_barz.getUniverse());
 		streamer.print(os) << ",";
+
+		barzer::CToken::SpellCorrections corrs;
+
+		const auto& bc = d_barz.getBeads();
+		for (const auto& item : bc.getList())
+		{
+			for (const auto& v : item.getCTokens())
+			{
+				const auto& corr = v.first.getSpellCorrections(); 
+				corrs.insert(corrs.end(), corr.begin(), corr.end());
+			}
+		}
+
+		json_raii spellRaii(raii.startField("spell"), true, 1);
+		for (const auto& corr : corrs)
+		{
+			spellRaii.startField("");
+			json_raii itemRaii(os, false, 2);
+
+			ay::jsonEscape(corr.first.c_str(), itemRaii.startField("before"), "\"");
+			ay::jsonEscape(corr.second.c_str(), itemRaii.startField("after"), "\"");
+		}
 	}
 	
     json_raii allDocsRaii( raii.startField("docs"), true, 1 );
@@ -197,6 +220,57 @@ std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocWithSc
 				}
 		    }
         }
+
+		if (theIndex.isKeepDetailedPositionsEnabled() &&
+				!d_qparm.d_biflags.checkBit(barzer::QuestionParm::QPBIT_ZURCH_NO_DETAILED))
+		{
+			const auto& detailed = theIndex.getDetailedFeaturesPositions(docId);
+			if (detailed)
+			{
+				docRaii.startField("detailed");
+				json_raii detailedRaii(os, true, 2);
+				for (const auto& pair : *detailed)
+				{
+					const auto& ngram = pair.first;
+					const auto& poslist = pair.second;
+
+					detailedRaii.startField("");
+
+					json_raii singleRaii(os, false, 2);
+
+					{
+						singleRaii.startField("gram");
+						json_raii nameRaii(os, true, 2);
+						for (size_t i = 0, size = ngram.size(); i < size; ++i)
+							ay::jsonEscape(theIndex.resolveFeature(ngram[i]).c_str(), nameRaii.startField(""), "\"");
+					}
+
+					{
+						singleRaii.startField("poslist");
+						json_raii listRaii(os, true, 2);
+						for (const auto& pair : poslist)
+						{
+							try
+							{
+								const auto& posStr = boost::lexical_cast<std::string>(pair.first);
+								const auto& lengthStr = boost::lexical_cast<std::string>(pair.second);
+
+								listRaii.startField("");
+
+								json_raii pairRaii (os, false, 2);
+								pairRaii.startField("pos") << posStr;
+								pairRaii.startField("length") << lengthStr;
+							}
+							catch (...)
+							{
+								listRaii.startField("error") << "cannot write strings";
+							}
+						}
+					}
+				}
+			}
+		}
+
         if( hasContent && d_qparm.d_biflags.checkBit(barzer::QuestionParm::QPBIT_ZURCH_FULLTEXT) ) {
             std::string content;
             if (loader.getDocContents(docId, content))

@@ -35,6 +35,8 @@ public:
 	const BarzerRange& getRange() const { return d_range; }
 
 	void setEntity( const BarzerEntity& e ) { d_ent=e; }
+
+	void setEntityClass( const StoredEntityClass& ec ) { d_ent.setClass( ec ); }
 	void setEntityClass( int c ) { d_ent.setClass( c ); }
 	void setEntitySubclass( int c ) { d_ent.setSubclass( c ); }
 	void setTokenId( uint32_t c ) { d_ent.setTokenId( c ); }

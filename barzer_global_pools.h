@@ -12,9 +12,7 @@
 #include <barzer_el_wildcard.h>
 #include <barzer_el_trie.h>
 #include <barzer_dtaindex.h>
-#include <barzer_el_function.h>
 #include <barzer_date_util.h>
-#include <barzer_settings.h>
 #include <barzer_config.h>
 #include <barzer_bzspell.h>
 #include <barzer_el_compwords.h>
@@ -28,7 +26,9 @@
 #include <barzer_global_pools.h>
 namespace ay { struct CommandLineArgs; }
 namespace barzer {
-
+class BELFunctionStorage;
+class BarzerSettings;
+struct ParseSettings;
 class StoredUniverse;
 /// holds all tries in the system keyed by 2 strings
 /// TrieClass and  TrieId
@@ -158,7 +158,7 @@ public:
 /// Barzel, DataIndex and everything else
 
 class GlobalPools {
-	GlobalPools(GlobalPools&);
+	GlobalPools(GlobalPools&) = delete;
 	GlobalPools& operator=(GlobalPools&);
 	typedef boost::unordered_set< uint32_t > DictionaryMap;
 	DictionaryMap d_dictionary;
@@ -233,7 +233,7 @@ public:
 	DtaIndex dtaIdx; // entity-token links
 
 	BarzelCompWordPool compWordPool; /// compounded words pool
-	BELFunctionStorage funSt;
+	BELFunctionStorage* funSt;
 	DateLookup dateLookup;
 
 	GlobalTriePool globalTriePool;
@@ -242,9 +242,19 @@ public:
 	typedef boost::unordered_map< uint32_t, StoredUniverse* > UniverseMap;
 
 	UniverseMap d_uniMap;
+
+    std::map< std::string, uint32_t > d_userName2UserIdMap;
+
+    uint32_t getUserIdByUserName( const char* x ) const
+    {
+        auto i = d_userName2UserIdMap.find( x );
+        return( i != d_userName2UserIdMap.end() ? i->second : 0xffffffff );
+    }
+    void setUserNameForId( const std::string& name, uint32_t id )
+        { d_userName2UserIdMap[ name ] = id; }
     const UniverseMap& getUniverseMap() const { return d_uniMap; }
 
-	BarzerSettings settings;
+	BarzerSettings* settings; /// guaranteed to never be 0 
 
 	bool d_isAnalyticalMode;
 	size_t d_maxAnalyticalModeMaxSeqLength;
@@ -282,8 +292,8 @@ public:
 		UniverseMap::const_iterator i = d_uniMap.find( id );
 		return ( i == d_uniMap.end() ? 0 : i->second );
 	}
-	ParseSettings& parseSettings() { return settings.parseSettings(); }
-	const ParseSettings& parseSettings() const { return settings.parseSettings(); }
+	ParseSettings& parseSettings();
+	const ParseSettings& parseSettings() const;
 
 	StoredUniverse* getUniverse( uint32_t id )
 		{ return const_cast<StoredUniverse*>( ((const GlobalPools*)this)->getUniverse(id) ); }
@@ -298,8 +308,8 @@ public:
 	DtaIndex& getDtaIdx() { return dtaIdx; }
 	const DtaIndex& getDtaIdx() const { return dtaIdx; }
 
-	const BarzerSettings& getSettings() const { return settings; }
-	BarzerSettings& getSettings() { return settings; }
+	const BarzerSettings& getSettings() const { return *settings; }
+	BarzerSettings& getSettings() { return *settings; }
 
 	const DtaIndex& getDtaIndex() const { return dtaIdx; }
 	DtaIndex& getDtaIndex() { return dtaIdx; }

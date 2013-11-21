@@ -59,7 +59,8 @@ ENDIF()
 
 find_package(Boost COMPONENTS system thread regex filesystem REQUIRED)
 find_package(EXPAT REQUIRED)
-
+#find_package(PythonLibs REQUIRED)
+#find_package(Threads REQUIRED )
 
 
 link_directories (  ${BOOST_LIBRARYDIR}
@@ -93,10 +94,16 @@ if(WIN32)
 			libws2_32.a
 	        	${EXPAT_LIBRARIES}/libexpat.lib)
 else()
-	set(EXTRA_LIBS ${EXTRA_LIBS} ${EXPAT_LIBRARIES} dl)
+	set(EXTRA_LIBS ${EXTRA_LIBS} ${EXPAT_LIBRARIES} dl ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
 set(SOURCES 
+            barzer_lib.cpp
+            barzer_shellsrv_shared.cpp
+            batch/barzer_batch_processor.cpp
+            function/barzer_el_function_topic.cpp
+            function/barzer_el_function_date.cpp
+            barzer_el_function_holder.cpp
             barzer_shell_01.cpp
             barzer_question_parm.cpp
             barzer_server_request_filter.cpp
@@ -251,6 +258,8 @@ endif (ENABLE_PYBARZER)
 
 ### binary
 add_executable(barzer.exe barzer.cpp)
+add_executable(barzerlibtest.exe test/barzerlibtest.cpp)
+target_link_libraries (barzerlibtest.exe  barzer_static)
 target_link_libraries (barzer.exe  barzer_static)
 IF (WIN32)
     SET_TARGET_PROPERTIES(barzer.exe PROPERTIES SUFFIX "")
@@ -269,7 +278,7 @@ GET_TARGET_PROPERTY(BARZER_LIBNAME barzer LOCATION)
 SET(CMAKE_INSTALL_RPATH "${INSTALL_DIR}")
 #SET(CMAKE_INSTALL_NAME_DIR "${INSTALL_DIR}")
 
-install(TARGETS barzer.exe
+install(TARGETS barzer.exe 
         DESTINATION "${INSTALL_DIR}")
 if (ENABLE_BARZ_SHARED)
 	install(TARGETS barzer
@@ -281,5 +290,5 @@ if (ENABLE_PYBARZER)
 endif (ENABLE_PYBARZER)
 install(DIRECTORY "data/configs" "data/entities" "data/rules" "data/spell"
         DESTINATION ${INSTALL_DATA_DIR})
-install(DIRECTORY "proxy"
+install(DIRECTORY "proxy" "zurch_pipeline"
         DESTINATION ${INSTALL_DIR})

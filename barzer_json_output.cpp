@@ -90,14 +90,16 @@ public:
         bool needOffsetLengthVec = !d_streamer.checkBit( BarzResponseStreamer::BF_NO_ORIGOFFSETS );
         std::vector< std::pair<uint32_t,uint32_t> >  offsetLengthVec; 
         
-        std::stringstream sstrBody;
+        // std::stringstream sstrBody;
 
         std::string lastTokBuf;
 		for( CTWPVec::const_iterator ci = ctoks.begin(), ci_before_last = ( ctoks.size() ? ci+ctoks.size()-1: ctoks.end()); ci != ctoks.end(); ++ci ) {
 			const TTWPVec& ttv = ci->first.getTTokens();
 
+            /*
             if( ci != ctoks.begin() && ci != ci_before_last) 
                 sstrBody << " ";
+            */
 			for( TTWPVec::const_iterator ti = ttv.begin(); ti!= ttv.end() ; ++ti ) {
 				const TToken& ttok = ti->first;
                 if( lastTokBuf == ttok.buf ) 
@@ -106,20 +108,24 @@ public:
                     lastTokBuf = ttok.buf.c_str();
 
 				if( ttok.buf.length() ) {
+                    /*
                     if( ttok.buf[0] !=' ' && (ti != ttv.begin() || ci != ctoks.begin() )) 
                         sstrBody << " ";
                     if( ttok.buf[0] !=' ' ) {
                         std::string tokStr( ttok.buf.c_str(), ttok.buf.length() );
                         sstrBody << tokStr;
                     }
+                    */
 
                     if( needOffsetLengthVec ) 
                         offsetLengthVec.push_back( ttok.getOrigOffsetAndLength() );
 				}
 			}
 		}	
+		// ay::jsonEscape( sstrBody.str().c_str(), raii.startField("src"), "\"" );
+        std::string srcTok = d_barz.getBeadSrcTok( d_bead );
+		ay::jsonEscape( srcTok.c_str(), raii.startField("src"), "\"" );
 
-		ay::jsonEscape( sstrBody.str().c_str(), raii.startField("src"), "\"" );
         if( needOffsetLengthVec ) {
             raii.startField( "origmarkup" );
 
@@ -161,10 +167,7 @@ public:
 					const char *cstr = universe.getStringPool().resolveId(data.getId());
 					if (cstr) {
                         raii.addKeyVal( "type", "fluff" ) ;
-                        if( !ispunct(*cstr) ) {
-                            ay::jsonEscape(cstr, raii.startField( "value"), "\"");
-                        } 
-                            
+                        ay::jsonEscape(cstr, raii.startField( "value"), "\"");
 					} 
 				}
 			}
@@ -466,30 +469,61 @@ public:
         }
         return true;
     }
-	bool operator()(const BarzerERC &data) {
-        raii.addKeyVal("type","erc") ;
+
+    bool printERC( json_raii& locRaii, const BarzerERC &data ) 
+    {
+        locRaii.addKeyVal("type","erc") ;
 
         {
-        raii.startField("ent");
-        json_raii eraii( os , false, raii.getDepth()+1 );
+        locRaii.startField("ent");
+        json_raii eraii( os , false, locRaii.getDepth()+1 );
         printEntity(data.getEntity(),false,&eraii);
         }
-        {
-        raii.startField("unit");
-        json_raii eraii( os , false, raii.getDepth()+1 );
-        printEntity(data.getUnitEntity(),false,&eraii);
+        if( data.getUnitEntity().isValid() ) {
+            locRaii.startField("unit");
+            json_raii eraii( os , false, locRaii.getDepth()+1 );
+            printEntity(data.getUnitEntity(),false,&eraii);
         }
         {
-        raii.startField("range");
-        json_raii eraii( os , false, raii.getDepth()+1 );
+        locRaii.startField("range");
+        json_raii eraii( os , false, locRaii.getDepth()+1 );
         printRange(data.getRange(),&eraii) ; 
         }
 		return true;
-	}
+    }
+    bool printERCExpr( json_raii& locRaii, const BarzerERCExpr &exp ) 
+    {
+        locRaii.addKeyVal( "type", "ercexpr" );
+
+        {
+        locRaii.startField( exp.d_type == BarzerERCExpr::T_LOGIC_OR ? "OR" : "AND" );
+        json_raii x( os , true, locRaii.getDepth()+1 );
+            for( auto& i :  exp.d_data ) {
+                switch( i.which() ) {
+                case 0: // ERC
+                    {
+                    x.startField("");
+                    json_raii y( os , false, x.getDepth()+1 );
+                    printERC( y, boost::get<BarzerERC>( i ) );
+                    }
+                    break;
+                case 1: // ERCExpr
+                    {
+                    x.startField("");
+                    json_raii y( os , false, x.getDepth()+1 );
+                    printERCExpr( y, boost::get<BarzerERCExpr>( i ) );
+                    }
+                    break;
+                }
+            }
+        }
+        return true;
+    }
 	bool operator()(const BarzerERCExpr &exp) {
-        raii.addKeyVal( "type", "ercexpr" );
-        raii.startField("value") << "\"UNSUPPORTED_TYPE\"";
-		return true;
+        return printERCExpr( raii, exp );
+	}
+	bool operator()(const BarzerERC & erc) {
+        return printERC( raii, erc );
 	}
 	bool operator()(const BarzelBeadBlank&)
 	    { return false; }
@@ -645,32 +679,32 @@ std::ostream& BarzStreamerJSON::print(std::ostream &os)
         ay::jsonEscape( barz.getOrigQuestion().c_str(),  raii.startField( "query" ), "\"" );
 
     /// confidence
-    if( universe.checkBit(StoredUniverse::UBIT_NEED_CONFIDENCE) )  {
-    const BarzConfidenceData& confidenceData = barz.confidenceData; 
-    if( !confidenceData.hasAnyConfidence() ) 
-        return os;
-
-    {
-        json_raii confidenceRaii( raii.startField("confidence"), false, 1 );
-        if( confidenceData.d_loCnt ) {
-            std::vector< std::string > tmp ;
-            confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_LOW );
-            if( tmp.size() ) 
-                print_conf_leftovers( json_raii(confidenceRaii.startField("nolo"),true,2), tmp );
-        }
-        if( confidenceData.d_medCnt ) {
-            std::vector< std::string > tmp ;
-            confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_MEDIUM );
-            if( tmp.size() )
-                print_conf_leftovers( json_raii(confidenceRaii.startField("nomed"),true,2), tmp );
-        }
-        if( confidenceData.d_hiCnt ) {
-            std::vector< std::string > tmp ;
-            confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_HIGH );
-            if( tmp.size() )
-                print_conf_leftovers( json_raii(confidenceRaii.startField("nohi"),true,2), tmp );
-        }
-    } // confidence block ends
+    if( universe.checkBit(UBIT_NEED_CONFIDENCE) )  {
+        const BarzConfidenceData& confidenceData = barz.confidenceData; 
+        if( !confidenceData.hasAnyConfidence() ) 
+            return os;
+    
+        {
+            json_raii confidenceRaii( raii.startField("confidence"), false, 1 );
+            if( confidenceData.d_loCnt ) {
+                std::vector< std::string > tmp ;
+                confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_LOW );
+                if( tmp.size() ) 
+                    print_conf_leftovers( json_raii(confidenceRaii.startField("nolo"),true,2), tmp );
+            }
+            if( confidenceData.d_medCnt ) {
+                std::vector< std::string > tmp ;
+                confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_MEDIUM );
+                if( tmp.size() )
+                    print_conf_leftovers( json_raii(confidenceRaii.startField("nomed"),true,2), tmp );
+            }
+            if( confidenceData.d_hiCnt ) {
+                std::vector< std::string > tmp ;
+                confidenceData.fillString( tmp, barz.getOrigQuestion(), BarzelBead::CONFIDENCE_HIGH );
+                if( tmp.size() )
+                    print_conf_leftovers( json_raii(confidenceRaii.startField("nohi"),true,2), tmp );
+            }
+        } // confidence block ends
     }
     raii.addKeyVal( "ver", g_version );
 	return os;

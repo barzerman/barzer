@@ -37,17 +37,13 @@
 #include "barzer_beni.h"
 
 #include <boost/regex.hpp>
+#include <barzer_lib.h>
 
 namespace barzer {
 
 namespace {
 bool is_all_digits( const char* s )
-{
-    for( const char* x = s; *x; ++x )
-        if( !isdigit(*x) )
-            return false;
-    return true;
-}
+    { return ay::is_all_digits(s); }
 
 void strip_newline( char* buf ) 
 {
@@ -484,7 +480,7 @@ static int bshf_zurch( BarzerShell* shell, char_cp cmd, std::istream& in, const 
     }
 	
 	// here we want a copy since we modify/etc it
-	auto index = loader->index();
+	const auto& index = loader->index();
 	
 	ay::InputLineReader reader(in);
 	while (reader.nextLine() && !reader.str.empty())

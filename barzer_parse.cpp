@@ -229,13 +229,13 @@ int QParser::barz_parse( Barz& barz, const QuestionParm& qparm )
     
     if( universe.needEntitySegregation() ) 
         barz.segregateEntities( universe, qparm, 0 );
-    if( !universe.checkBit(StoredUniverse::UBIT_NO_ENTRELEVANCE_SORT))  
+    if( !universe.checkBit(UBIT_NO_ENTRELEVANCE_SORT))  
         barz.sortEntitiesByRelevance( universe, qparm, 0 );
 
-    if( universe.checkBit(StoredUniverse::UBIT_NEED_CONFIDENCE))  
+    if( universe.checkBit(UBIT_NEED_CONFIDENCE))  
         barz.computeConfidence( universe, qparm, 0 );
     
-    if( universe.checkBit(StoredUniverse::UBIT_USE_BENI_VANILLA)) {
+    if( universe.checkBit(UBIT_USE_BENI_VANILLA)) {
         barz.beniSearch( universe, qparm );
     }
 
@@ -266,13 +266,13 @@ int QParser::parse( Barz& barz, const char* q, const QuestionParm& qparm )
     
     if( universe.needEntitySegregation() ) 
         barz.segregateEntities( universe, qparm, q );
-    if( !universe.checkBit(StoredUniverse::UBIT_NO_ENTRELEVANCE_SORT))  
+    if( !universe.checkBit(UBIT_NO_ENTRELEVANCE_SORT))  
         barz.sortEntitiesByRelevance( universe, qparm, q );
     
-    if( universe.checkBit(StoredUniverse::UBIT_NEED_CONFIDENCE))  
+    if( universe.checkBit(UBIT_NEED_CONFIDENCE))  
         barz.computeConfidence( universe, qparm, 0 );
 
-    if( universe.checkBit(StoredUniverse::UBIT_USE_BENI_VANILLA)) {
+    if( universe.checkBit(UBIT_USE_BENI_VANILLA)) {
         barz.beniSearch( universe, qparm );
     }
 

@@ -50,7 +50,9 @@ struct TToken {
 	
 	int getPunct() const
 		{ return( buf.length() ? buf[0] : ((int)'|') ); }
-    
+
+    char isChar( ) { return ( buf.length() ==1 ? buf[0]:0 ); }
+
     TToken& setOrigOffsetAndLength( uint32_t offset, uint32_t length ) { return( d_origOffset=offset, d_origLength=length, *this ); }
     TToken& setOrigOffset( uint32_t offset) { return( d_origOffset=offset, *this ); }
     std::pair< uint32_t , uint32_t > getOrigOffsetAndLength() const { return std::make_pair(d_origOffset,d_origLength); }
@@ -58,6 +60,19 @@ struct TToken {
     uint32_t getOrigLength() const { return d_origLength; }
 
     size_t getLen() const { return buf.length(); }
+
+    bool is3Digits() const { return (buf.length() ==3 && isdigit(buf[0]) && isdigit(buf[1]) && isdigit(buf[2]) ); }
+    bool is2Digits() const { return (buf.length() ==2 && isdigit(buf[0]) && isdigit(buf[1]) ); }
+    bool is1Digit() const { return (buf.length() ==1 && isdigit(buf[0])); }
+
+    bool is3OrLessDigits() const {  return( is3Digits() || is2Digits() || is1Digit() ); }
+    bool isAllDigits() const {  
+        for( const auto& i : buf ) { 
+            if( !isdigit(i) ) return false; 
+        }
+        return true;
+    }
+    bool isSpace() const { return (buf.length() == 1&& isspace(buf[0]) ); }
     const char*  getBuf() const { return buf.c_str(); }
 	std::ostream& print( FILE* fp ) const;
 	std::ostream& print( std::ostream& fp ) const;
@@ -183,6 +198,8 @@ struct CToken {
 
 	int getCTokenClass( ) const { return cInfo.theClass; }
 
+    bool mayBeANumber() const 
+        { return (cInfo.theClass == CTokenClassInfo::CLASS_NUMBER|| (qtVec.size() == 1 && qtVec.front().first.is3OrLessDigits())); }
 	bool isBlank() const { return cInfo.theClass == CTokenClassInfo::CLASS_BLANK; }
 	bool isNumber() const { return cInfo.theClass == CTokenClassInfo::CLASS_NUMBER; }
 	bool isMysteryWord() const { return cInfo.theClass == CTokenClassInfo::CLASS_MYSTERY_WORD; }
@@ -200,6 +217,7 @@ struct CToken {
 
 	bool isSpace() const { return cInfo.theClass == CTokenClassInfo::CLASS_SPACE; }
 	bool isPunct(char c) const { return ( (isPunct() ||(c==' ' && isSpace()) )  && qtVec.size() == 1 && qtVec[0].first.buf[0] == c ); }
+    char isChar() const { return ( qtVec.size() == 1 && qtVec[0].first.buf.size() == 1 ? qtVec[0].first.buf[0] : 0 ); }
 	
 	void setSpellCorrected( bool v = true ) { cInfo.setSpellCorrected(v); }
 	void addSpellingCorrection(const char* wrong, const char*  correct, const StoredUniverse& uni);
@@ -220,6 +238,24 @@ struct CToken {
 		cInfo.theClass = CTokenClassInfo::CLASS_NUMBER;
 		bNum.set(x);
 	}
+
+    size_t isAllDigits() const { 
+        return ( cInfo.theClass==CTokenClassInfo::CLASS_NUMBER || (qtVec.size() ==1 && qtVec.front().first.isAllDigits() ) ); 
+    }
+    bool is3Digits() const { return ( (qtVec.size() ==1 && qtVec.front().first.is3Digits() ) ); }
+    bool trySetBNum( ) { 
+        if( cInfo.theClass != CTokenClassInfo::CLASS_NUMBER ) {
+            if( qtVec.size() ==1 && qtVec.front().first.isAllDigits() ) {
+                bNum.set( atoi(qtVec.front().first.buf.c_str()) ); 
+                bNum.setAsciiLen( qtVec.front().first.buf.length() );
+                return true;
+            }
+            return false;
+        } else 
+            return true;
+    }
+    void setBNum_int( const char* x ) { bNum.set( atoi(x) ); }
+
 	const StoredToken* getStoredTok() const { return storedTok; }
 	/// 
 	/*

@@ -11,11 +11,25 @@
 #include <ay_utf8.h>
 
 namespace barzer {
-bool QLexParser::tryClassify_number( CToken& ctok, const TToken& ttok ) const
+namespace {
+
+inline char get_tpos_char( const TTWPVec& tVec, size_t tPos )
+    { return ( tPos < tVec.size() ? (tVec[tPos].first.buf[0] ): 0 ); }
+
+}
+
+bool QLexParser::tryClassify_number( CToken& ctok, const TToken& ttok, const TTWPVec& tVec, size_t tPos, const CTWPVec& cVec, size_t cPos ) const
 {
 	const char* beg = ttok.buf.c_str();
 	const char* end = ttok.buf.c_str()+ttok.buf.length();
 	bool hasDot = false, hasDigit = false;
+    if( !d_universe.checkBit(UBIT_NC_LEADING_ZERO_ISNUMBER) ) {
+        if( ttok.buf.empty() )
+            return false;
+        if( ttok.buf[0] == '0' && ttok.buf.length() > 2 && ttok.buf[1] != '.' ) {
+            return false;
+        }
+    }
 	for( const char* s = beg; s!= end; ++s ) {
 		switch( *s ) {
 		case '.':
@@ -38,14 +52,33 @@ bool QLexParser::tryClassify_number( CToken& ctok, const TToken& ttok ) const
 	}
 	return false;
 }
-bool QLexParser::tryClassify_integer( CToken& ctok, const TToken& ttok ) const
+bool QLexParser::tryClassify_integer( CToken& ctok, const TToken& ttok, bool& allDigits, const TTWPVec& tVec, size_t tPos, const CTWPVec& cVec, size_t cPos ) const
 {
 	const char* beg = ttok.buf.c_str();
 	const char* end = ttok.buf.c_str()+ttok.buf.length();
-	for( const char* s = beg; s!= end; ++s ) {
-		if( *s < '0' || *s > '9' )
-			return false;
-	}
+    for( const char* s = beg; s!= end; ++s ) {
+        if( *s < '0' || *s > '9' )
+            return ( allDigits= false, false);
+    }
+    allDigits = true;
+    if( !d_universe.checkBit(UBIT_NC_LEADING_ZERO_ISNUMBER) ) {
+        switch( ttok.buf.length() ) {
+        case 0: return false;
+        case 1: 
+            if( !isdigit(ttok.buf[0]) )
+                return false;
+            break;
+        case 2:
+            if( !isdigit(ttok.buf[0]) || !isdigit(ttok.buf[1]) ) 
+                return false;
+            break;
+        default:  // longer than 2 chars 
+            if( !isdigit(ttok.buf[0]) || ttok.buf[0] == '0' )
+                return false;
+            for( const auto& i : ttok.buf ) { if( i < '0' || i > '9' ) return false; }
+            break;
+        }
+    }
 	ctok.setClass( CTokenClassInfo::CLASS_NUMBER );
 	ctok.number().setInt( ttok.buf.c_str() );
 	ctok.number().setAsciiLen( ttok.buf.length() );
@@ -98,7 +131,7 @@ bool is_comma_delimited_int( const CTWPVec& cvec, size_t fromPos, size_t& endPos
 {
 	{ // first token
 	const CToken& ctok1 = cvec[fromPos].first;
-	if( !ctok1.isNumber() || !ctok_number_can_be_in_commadelim(true,ctok1) || fromPos+2>= cvec.size() )
+	if( !ctok1.mayBeANumber() || !ctok_number_can_be_in_commadelim(true,ctok1) || fromPos+2>= cvec.size() )
 		return false;
 	} // end of first process
 	size_t lastCommaEnd = cvec.size()-1;
@@ -274,6 +307,9 @@ namespace
 
 int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 {
+    if( d_universe.checkBit(UBIT_NC_NO_SEPARATORS)  ) 
+        return 0;
+
 	CTWPVec& cvec = barz.getCtVec();
 
 	BarzerNumber barzNum;
@@ -281,11 +317,12 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 	const char groupSeps[] = " .,'";
 
 	char fracSeps[4] = { 0 };
-	if (barz.getHints().testHint(barzer::BarzHints::BHB_DECIMAL_COMMA))
-		strcpy(fracSeps, ".,");
-	else
-		strcpy(fracSeps, ".");
-
+	if (barz.getHints().testHint(barzer::BarzHints::BHB_DECIMAL_COMMA)) {
+		fracSeps[0] = '.';
+		fracSeps[1] = ',';
+	} else {
+		fracSeps[0] = '.';
+    }
 	std::vector<CToken*> tokens;
 	std::vector<CToken*> allTokens;
 	char sep = 0;
@@ -307,7 +344,7 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 
 			BarzerNumber res;
 			if (numDec == 2 &&
-					frac.isNan() &&
+					!(frac.isNan()) &&
 					m_mayBeFrac &&
 					m_tokens[1]->number().getInt())
 				res = makeReal(m_tokens[0]->number(), m_tokens[1]->number());
@@ -320,7 +357,7 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 			for (size_t i = 1, size = m_allTokens.size(); i < size; ++i)
 			{
 				CToken *curTok = m_allTokens [i];
-				if (i == size - 1 && !curTok->isNumber())
+				if (i == size - 1 && !curTok->isAllDigits())
 					break;
 				resTok->qtVec.insert(resTok->qtVec.end(),
 						curTok->qtVec.begin(), curTok->qtVec.end());
@@ -350,20 +387,22 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 		}
 	} flush = { tokens, allTokens, sep, awaitingFrac, hadSep, mayBeFrac, buildNum };
 
+
 	for (size_t i = 0; i < cvec.size(); ++i)
 	{
 		CToken& t = cvec[i].first;
+        bool tIsANumber = t.trySetBNum();
 		const TTWPVec& ttokens = t.getTTokens();
 		const TToken& ttok = ttokens[0].first;
+
 		if (ttokens.size() != 1)
 		{
 			flush();
 			continue;
 		}
 
-		if (t.isNumber())
-		{
-			const bool is3Group = !(ttok.getLen() % 3);
+		if (tIsANumber) {
+			const bool is3Group = ( ttok.is3Digits() || (awaitingFrac && ttok.isAllDigits() ) );
 			hadSep = false;
 			if (tokens.size() > 1 && !awaitingFrac && !is3Group)
 			{
@@ -423,6 +462,7 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 		if (strchr(groupSeps, tSep))
 		{
 			mayBeFrac = strchr(fracSeps, tSep);
+
 			if (sep && tSep == sep)
 			{
 				allTokens.push_back(&t);
@@ -432,6 +472,8 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 			{
 				allTokens.push_back(&t);
 				sep = tSep;
+                if( mayBeFrac && !awaitingFrac)
+                    awaitingFrac= true;
 				continue;
 			}
 		}
@@ -823,7 +865,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
         /// this will strip euro language accents
         if( isTwoByteLang ) {
             ascifiedT.assign( t );
-        } else if( !d_universe.checkBit(StoredUniverse::UBIT_NOSTRIP_DIACTITICS) && ay::umlautsToAscii(ascifiedT,t) ) {
+        } else if( !d_universe.checkBit(UBIT_NOSTRIP_DIACTITICS) && ay::umlautsToAscii(ascifiedT,t) ) {
 			correctedStr = ascifiedT.c_str();
         } else
             ascifiedT.assign( t );
@@ -894,7 +936,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
                     if( isUsersWord )
                         theString = correctedStr;
                 }
-			} else if(!d_universe.checkBit(StoredUniverse::UBIT_CORRECT_FROM_DICTIONARY) ) {
+			} else if(!d_universe.checkBit(UBIT_CORRECT_FROM_DICTIONARY) ) {
 		        ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
 		        return SpellCorrectResult (0, ++cPosVec, ++tPosVec);
             }
@@ -921,7 +963,7 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
                 }
                 theString = buf;
             } else { /// normal utf8 (variable length utf8 chars)
-                if(d_universe.checkBit(StoredUniverse::UBIT_NOSTRIP_DIACTITICS)) {
+                if(d_universe.checkBit(UBIT_NOSTRIP_DIACTITICS)) {
                     strncpy( buf, t, BZSpell::MAX_WORD_LEN );
                     buf[ sizeof(buf)-1 ] = 0;
                     buf_len = strlen(buf);
@@ -1039,7 +1081,7 @@ int QLexParser::singleTokenClassify_space( Barz& barz, const QuestionParm& qparm
         bool keepClasifying = qparm.isAutoc;
         bool isNumber=false;
         if( !keepClasifying ) {
-            isNumber = tryClassify_number(ctok,ttok);
+            isNumber = tryClassify_number(ctok,ttok, tVec,tPos, cVec, cPos);
             if( isNumber ) {
 			    uint32_t usersWordStrId = 0xffffffff;
                 const StoredToken* storedTok = ( bzSpell->isUsersWord( usersWordStrId, t ) ?
@@ -1076,7 +1118,7 @@ int QLexParser::singleTokenClassify_space( Barz& barz, const QuestionParm& qparm
 
 				if( stemTok ) 
 				{
-					if (d_universe.checkBit(StoredUniverse::UBIT_LEX_STEMPUNCT))
+					if (d_universe.checkBit(UBIT_LEX_STEMPUNCT))
 					{
 						ctok.storedTok = stemTok;
 						ctok.setClass(CTokenClassInfo::CLASS_WORD);
@@ -1120,6 +1162,7 @@ size_t QLexParser::retokenize( Barz& barz, const QuestionParm& qparm )
                 /// updating positions
                 for( TTWPVec::iterator ti = tmpVec.begin(); ti!= tmpVec.end(); ++ti ) {
                     ti->second+= i;
+                    ti->first.d_origOffset+=ttok.d_origOffset; 
                 }
                 cVecInserts.push_back( std::pair< size_t, TTWPVec >(i, tmpVec) );
             } else if( tmpVec.size()==1 ) {
@@ -1184,7 +1227,8 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
         bool shouldStem = false;
         bool wasSplitCorrected = false;
         if( !keepClasifying ) {
-            bool isInteger = tryClassify_integer(ctok,ttok);
+            bool allDigits = false;
+            bool isInteger = tryClassify_integer(ctok,ttok,allDigits, tVec, tPos, cVec, cPos);
             if( isInteger ) {
 			    uint32_t usersWordStrId = 0xffffffff;
                 const StoredToken* storedTok = ( bzSpell->isUsersWord( usersWordStrId, t ) ?
@@ -1200,7 +1244,7 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 
 			const StoredToken* storedTok = ( isUsersWord  ?  dtaIdx->getStoredToken( t ): 0 );
 
-            bool isNumber = ( !qparm.isAutoc && tryClassify_number(ctok,ttok)); // this should probably always be false
+            bool isNumber = ( !qparm.isAutoc && tryClassify_number(ctok,ttok, tVec,tPos, cVec,cPos)); // this should probably always be false
             bool probablyWasCorrected = false;
 			if( storedTok ) { ///
 				///

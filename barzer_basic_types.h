@@ -179,40 +179,13 @@ struct BarzerDate {
     void setYear(int y) { year = (int16_t)y; }
 
 	void setDayMonth(const BarzerNumber& d, const BarzerNumber& m) ;
-	void setDayMonthYear(const BarzerNumber& d, const BarzerNumber& m, const BarzerNumber& y ) {
-		day = (uint8_t) d.getInt();
-		month = (uint8_t) m.getInt();
-		year = (int16_t) y.getInt();
-	}
-	void setYYYYMMDD( int x )
-	{
-		year  = x/10000;
-		month = (x%10000)/100;
-		day = x%100;
-	}
-	std::ostream& print( std::ostream& fp ) const
-		{ return ( fp << std::dec << (int)month << '/' << (int)day << '/' << year ); }
+	void setDayMonthYear(const BarzerNumber& d, const BarzerNumber& m, const BarzerNumber& y );
+	void setYYYYMMDD( int x );
+	std::ostream& print( std::ostream& fp ) const;
     
-    std::istream& deserialize( std::istream& fp ) 
-    {
-        char c;
-        int y, m, d;
-        fp >> y >> c >> m>> c >> d ;
-        year = y;
-        month = m;
-        day = d;
-         
-        return fp;
-    }
-	bool lessThan( const BarzerDate& r ) const
-	{
-		return ay::range_comp( ).less_than(
-			year,	month, day,
-			r.year,	r.month, r.day
-		);
-	}
-	bool isEqual( const BarzerDate& r ) const
-	{ return( (year == r.year) && (month == r.month) && (day  == r.day )); }
+    std::istream& deserialize( std::istream& fp ) ;
+	bool lessThan( const BarzerDate& r ) const;
+	bool isEqual( const BarzerDate& r ) const;
 };
 inline std::ostream&  operator<<( std::ostream& fp, const BarzerDate& d )
 { return ( d.print(fp) ); }
@@ -429,6 +402,7 @@ public:
 	bool isBlank() const { return type == T_BLANK; }
 
 	bool isStop() const { return type == T_STOP; }
+    char getPunct() const { return( (type == T_PUNCT) ? *((const char*)(&theId)): 0 ); }
 	bool isFluff() const { return isStop(); }
 
 	bool isPunct() const { return type == T_PUNCT; }

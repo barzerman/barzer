@@ -73,7 +73,7 @@ int QTokenizer::tokenize( Barz& barz, const TokenizerStrategy& strat, const Ques
 {
     if( strat.isDefault() ) {
         /*
-        if( !d_universe.checkBit( StoredUniverse::UBIT_NO_EXTRA_NORMALIZATION ) )
+        if( !d_universe.checkBit( UBIT_NO_EXTRA_NORMALIZATION ) )
             barz.extraNormalization(qparm);
         */
         return tokenize(barz.getTtVec(), barz.getOrigQuestion().c_str(), qparm );

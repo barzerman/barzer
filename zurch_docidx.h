@@ -198,7 +198,7 @@ struct ExtractedDocFeature {
 struct DocFeatureLink {
     uint32_t docId; 
 	
-	typedef uint16_t Weight_t;
+	typedef int16_t Weight_t;
     Weight_t weight; /// negative means disassociation , 0 - neutral association, positive - boost
     
     // we don't use it yet, and if we'd use we'd still need something more advanced
@@ -208,7 +208,7 @@ struct DocFeatureLink {
     
     DocFeatureLink() : docId(0xffffffff), weight(0), position(-1), length(0), count(0) {}
     DocFeatureLink(uint32_t i) : docId(i), weight(0), position(-1), length(0), count(0) {}
-    DocFeatureLink(uint32_t i, uint16_t w ) : docId(i), weight(w), position(-1), length(0), count(0) {}
+    DocFeatureLink(uint32_t i, int16_t w ) : docId(i), weight(w), position(-1), length(0), count(0) {}
     
     typedef std::vector< DocFeatureLink > Vec_t;
 	typedef boost::unordered_set< DocFeatureLink > Set_t;
@@ -272,6 +272,15 @@ class DocFeatureIndex {
 	barzer::MeaningsStorage m_meanings;
 	
 	bool m_considerFCount;
+
+	bool m_keepDetailedPositions;
+public:
+	typedef std::pair<uint32_t, uint16_t> DetailedPos_t;
+	typedef std::vector<DetailedPos_t> DetailedPosList_t;
+	typedef std::map<NGram<DocFeature>, DetailedPosList_t> Gram2DetailedPosList_t;
+	typedef std::map<uint32_t, Gram2DetailedPosList_t> Doc2Gram2DetailedPosList_t;
+private:
+	Doc2Gram2DetailedPosList_t m_detailedPositions;
 public:
 	struct DocInfo
 	{
@@ -301,6 +310,8 @@ public:
 private:
 	std::map<uint32_t, DocInfo> m_docInfos;
 public:
+    bool isDumbScoring() const { return !d_bitflags.checkBit( DocFeatureIndex::ZBIT_SMART_SCORING) ; }
+
     const char*         resolve_token( uint32_t strId ) const;
     
     const BarzerEntity  resolve_entity( std::string& entIdStr, uint32_t entId, const barzer::StoredUniverse& u ) const;
@@ -345,29 +356,29 @@ public:
 
     /// place external entity into the pool (add all relevant strings to pool as well)
     uint32_t storeExternalEntity( const barzer::BarzerEntity& ent, const barzer::StoredUniverse& u );
-    uint32_t storeOwnedEntity( const barzer::BarzerEntity& ent);
+    uint32_t storeOwnedEntity( const barzer::BarzerEntity& ent );
 
     uint32_t storeExternalString( const char*);
     uint32_t storeExternalString( const barzer::BarzerLiteral&, const barzer::StoredUniverse& u );
     uint32_t resolveExternalString( const char* str ) const { return d_stringPool.getId(str); }
     uint32_t resolveExternalString( const barzer::BarzerLiteral&, const barzer::StoredUniverse& u ) const;
 
-	/** @brief Returns all unique features for the given docId.
-	 *
-	 * uniquness defines how unique should be the feature, in other words
-	 * how many sources should it have including the docId.
-	 *
-	 * Passing <code>static_cast<uint32_t>(-1)</code> as docId will disable
-	 * the by-doc-id check and return all the rarest features for all
-	 * documents.
-	 */
-	void getUniqueUnigrams(std::vector<std::pair<NGram<DocFeature>, uint32_t>>& out, uint32_t docId) const;
+	struct FeaturesQueryResult
+	{
+		NGram<DocFeature> m_gram;
+		size_t m_uniqueness;
+	};
 
-	void getUniqueFeatures(std::vector<std::pair<NGram<DocFeature>, uint32_t>>& out, uint32_t docId) const;
+	void getUniqueFeatures(std::vector<FeaturesQueryResult>& out,
+			uint32_t docId, size_t maxGramSize = 1, size_t uniqueness = 1) const;
+	const Gram2DetailedPosList_t* getDetailedFeaturesPositions(uint32_t docId) const;
 	void getDocs4Feature(std::vector<uint32_t>& docIds, const NGram<DocFeature>& f) const;
 
     DocFeatureIndex();
     ~DocFeatureIndex();
+
+	void setKeepDetailedPositions(bool set) { m_keepDetailedPositions = set; }
+	bool isKeepDetailedPositionsEnabled() const { return m_keepDetailedPositions; }
     
     /// returns the number of counted features 
 
@@ -376,8 +387,10 @@ public:
 
     int   fillFeatureVecFromQueryBarz( ExtractedDocFeature::Vec_t& featureVec, barzer::Barz& barz ) const;
 
-    size_t appendOwnedEntity( uint32_t docId, const BarzerEntity& ent ); 
-    size_t appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t&, size_t posOffset );
+    size_t appendOwnedEntity( uint32_t docId, const BarzerEntity& ent, float w ); 
+	uint32_t getOwnedEntId(const BarzerEntity&) const;
+
+    size_t appendDocument( uint32_t docId, const ExtractedDocFeature::Vec_t&, size_t posOffset, bool weightOverride );
     size_t appendDocument( uint32_t docId, barzer::Barz&, size_t posOffset, DocFeatureLink::Weight_t weight );
 	
 	void setTitleLength(uint32_t docId, size_t titleLength);
@@ -402,7 +415,7 @@ public:
 		
 		double scoreAdd;
 		
-		uint32_t linkWeight;
+		DocFeatureLink::Weight_t linkWeight;
 		uint32_t linkCount;
 		size_t numSources;
 	};
@@ -466,6 +479,7 @@ class DocFeatureLoader {
 	
 	std::map<uint32_t, size_t> m_lastOffset;
 public:
+    bool isDumbScoring() const { return d_index.isDumbScoring(); }
     const barzer::StoredUniverse* getUniverse() const{ return &d_universe; }
     enum {
         BIT_NO_PARSE_CHUNKS, // when set doesnt store /output chunks (parse info)
@@ -524,7 +538,7 @@ public:
 		m_curWeight = weight;
 		return old;
 	}
-	DocFeatureLink::Weight_t getCurrentWeight() const { return m_curWeight; }
+	DocFeatureLink::Weight_t getCurrentWeight() const { return ( isDumbScoring() ? 10:m_curWeight ); }
 
     enum { MAX_QUERY_LEN = 1024*64, MAX_NUM_TOKENS = 1024*32 };
      
@@ -602,11 +616,7 @@ public:
 			size_t count, 
 			std::vector<Chunk_t>& chunks) const;
 
-    void parseTokenized() 
-    {
-        d_parser.lex_only( d_barz, d_qparm );
-        d_parser.semanticize_only( d_barz, d_qparm );
-    }
+    void parseTokenized() ;
     friend class ZurchSettings;    
     // virtual bool loadProperties( const boost::property_tree::ptree& );
 };

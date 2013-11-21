@@ -32,7 +32,7 @@ DEF_TFUN(load) {
 
 	BELReader reader(&trie, uni.getGlobalPools(), 0 );
 	reader.initParser(BELReader::INPUT_FMT_XML);
-    reader.setCurrentUniverse( &uni );
+    reader.setCurrentUniverse( &uni, uni.getGlobalPools().getSettings().getUser(uni.getUserId()) );
 
 	ay::stopwatch totalTimer;
 

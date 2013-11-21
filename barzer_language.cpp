@@ -8,6 +8,7 @@
 #include <lg_ru/barzer_ru_lex.h>
 #include <lg_en/barzer_en_lex.h>
 #include <ay/ay_utf8.h>
+#include <ay/ay_levenshtein.h>
 #include "barzer_universe.h"
 
 namespace barzer {
@@ -473,7 +474,7 @@ int16_t LangInfoArray::getDominantLanguage() const
     const uint32_t threshold = 5;
     if (totalCnt && 100 * maxCnt / totalCnt < threshold)
 	{
-		AYLOG(WARNING) << "detected garbage language, falling back to English";
+		// AYLOG(WARNING) << "detected garbage language, falling back to English";
 		bestLang = LANG_ENGLISH;
 	}
 	// AYLOG(DEBUG) << "detected dominant language: " << bestLang;

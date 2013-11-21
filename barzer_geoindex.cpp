@@ -4,6 +4,7 @@
 #include "barzer_geoindex.h"
 #include "barzer_server.h"
 #include "barzer_el_cast.h"
+#include <boost/lexical_cast.hpp>
 
 namespace barzer
 {
@@ -87,30 +88,29 @@ namespace
 				-1;
 	}
 
-	double GetDist(const BarzelBeadAtomic_var *distVar, const BarzelBeadAtomic_var *unitVar)
+	double GetDist(double dist, const std::string& unitStr)
 	{
-		double dist = String2Double(distVar);
-
 		auto unit = ay::geo::Unit::Kilometre;
-		if (unitVar && unitVar->which() == BarzerString_TYPE)
-		{
-			const auto& unitStr = boost::get<BarzerString>(*unitVar).getStr();
-			const auto parsedUnit = ay::geo::unitFromString(unitStr);
-			if (parsedUnit < ay::geo::Unit::MAX)
-				unit = parsedUnit;
-		}
+		const auto parsedUnit = ay::geo::unitFromString(unitStr);
+		if (parsedUnit < ay::geo::Unit::MAX)
+			unit = parsedUnit;
 
 		dist = ay::geo::convertUnit(dist, unit, ay::geo::Unit::Degree);
 		return dist;
 	}
 
-	std::vector<uint32_t> ParseEntSC(const BarzelBeadAtomic_var *escVar)
+	double GetDist(const BarzelBeadAtomic_var *distVar, const BarzelBeadAtomic_var *unitVar)
+	{
+		std::string unitStr;
+		if (unitVar && unitVar->which() == BarzerString_TYPE)
+			unitStr = boost::get<BarzerString>(*unitVar).getStr();
+
+		return GetDist(String2Double(distVar), unitStr);
+	}
+
+	std::vector<uint32_t> ParseEntSC(const std::string& str)
 	{
 		std::vector<uint32_t> result;
-		if (!escVar || escVar->which() != BarzerString_TYPE)
-			return result;
-
-		const auto& str = boost::get<BarzerString>(*escVar).getStr();
 		std::istringstream istr(str);
 		while (istr.good())
 		{
@@ -119,6 +119,15 @@ namespace
 			result.push_back(sc);
 		}
 		return result;
+	}
+
+	std::vector<uint32_t> ParseEntSC(const BarzelBeadAtomic_var *escVar)
+	{
+		if (!escVar || escVar->which() != BarzerString_TYPE)
+			return {};
+
+		const auto& str = boost::get<BarzerString>(*escVar).getStr();
+		return ParseEntSC(str);
 	}
 
 	struct FilterResult
@@ -248,9 +257,49 @@ FilterParams FilterParams::fromBarz(const Barz& barz)
 			ParseEntSC(reqMap->getValue("geo::subclasses")));
 }
 
+FilterParams FilterParams::fromExtraMap (const std::map<std::string, std::string>& extraMap)
+{
+	const auto enablePos = extraMap.find("geo.filter");
+	if (enablePos == extraMap.end() ||
+			(enablePos->second != "yes" && enablePos->second != "true"))
+		return {};
+
+	const auto lonPos = extraMap.find("geo.lon");
+	const auto latPos = extraMap.find("geo.lat");
+	const auto distPos = extraMap.find("geo.dist");
+	if (lonPos == extraMap.end() ||
+			latPos == extraMap.end() ||
+			distPos == extraMap.end())
+		return {};
+
+	const auto unitPos = extraMap.find("geo.unit");
+	const auto& unitStr = unitPos == extraMap.end() ? std::string() : unitPos->second;
+
+	const auto scPos = extraMap.find("geo.subclasses");
+	const auto& scStr = scPos == extraMap.end() ? std::string() : scPos->second;
+
+	try
+	{
+		return
+		{
+			{ boost::lexical_cast<double>(lonPos->second), boost::lexical_cast<double>(latPos->second) },
+			GetDist(boost::lexical_cast<double>(distPos->second), unitStr),
+			ParseEntSC(scStr)
+		};
+	}
+	catch (...)
+	{
+		return {};
+	}
+}
+
 void proximityFilter(Barz& barz, const StoredUniverse& uni)
 {
-	const auto& params = FilterParams::fromBarz(barz);
+	proximityFilter(barz, uni, FilterParams::fromBarz(barz));
+}
+
+void proximityFilter(Barz& barz, const StoredUniverse& uni, const FilterParams& params)
+{
 	if (!params.m_valid)
 		return;
 

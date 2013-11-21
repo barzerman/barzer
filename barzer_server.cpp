@@ -14,6 +14,7 @@
 #include <ay_translit_ru.h>
 #include <barzer_relbits.h>
 #include <barzer_el_trie_ruleidx.h>
+#include <barzer_shellsrv_shared.h>
 
 
 extern "C" {
@@ -118,6 +119,27 @@ void sanitize_russian_ya( char* s, size_t& s_len )
             *i = *j;
     }
     s_len= j-(unsigned char*)s;
+}
+
+int url_route( const std::string& uri, const std::string& url, RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* str )
+{
+    if( uri.empty() ) 
+        return 0;
+    switch( uri[0] ) {
+    case 'k': 
+        if( uri == "keyword" ) {
+            Barz barz;
+            BarzerShellSrvShared srvShared( realGlobalPools );
+            int rc = srvShared.batch_parse( barz, url, std::string(), false );
+            if( rc ) {
+                reqEnv.outStream << "<error> batch parse returned " << rc << "</error>" << std::endl;
+            } else {
+                reqEnv.outStream << "<info> batch parse completed successfully </info>" << std::endl;
+            }
+        }
+        break;
+    }
+    return 0;
 }
 
 }
@@ -321,7 +343,7 @@ int proc_ADD_STMSET( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  s
         BELTrie::WriteLock trie_lock(trie->getThreadLock());
 
         BELReader  reader( trie, gp, &(reqEnv.outStream)  );
-        reader.setCurrentUniverse( uni );
+        reader.setCurrentUniverse( uni, gp.getSettings().getUser(uni->getUserId()) );
         reader.setLiveCommandMode();
 	    std::stringstream is( str );
 	   
@@ -366,6 +388,12 @@ int proc_EN2RU( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, 
 		}
 	}
     return 0;
+}
+int proc_URL( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* str )
+{
+    std::string uri, url;
+    ay::get_uri_url( uri, url, ( *str == '/' ? str+1: str ) );
+    return url_route( uri, url, reqEnv, realGlobalPools, str );
 }
 int proc_EMIT( RequestEnvironment& reqEnv, const GlobalPools& realGlobalPools, const char* str )
 {
@@ -468,8 +496,8 @@ int proc_MATCH_XML(RequestEnvironment& reqEnv, GlobalPools& gp, const char *str)
     return 0;
 }
 
-
 int proc_RUN_SCRIPT( RequestEnvironment& reqEnv, GlobalPools& gp, const char* cfgfile  );
+
 int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os )
 {
     #define IFHEADER_ROUTE(x) if( !strncmp(buf+2, #x":", sizeof( #x) ) ) {\
@@ -485,6 +513,7 @@ int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os )
         if (cut) *cut = 0;
 		IFHEADER_ROUTE(COUNT_EMIT)
 		IFHEADER_ROUTE(EMIT)
+		IFHEADER_ROUTE(URL)
 		IFHEADER_ROUTE(ENTRULES)
 		IFHEADER_ROUTE(CHKBIT)
 		IFHEADER_ROUTE(EN2RU)
@@ -548,7 +577,7 @@ int run_server_mt(GlobalPools &gp, uint16_t port) {
 	boost::asio::io_service::work work(io_service);
 
   	boost::thread_group threads;
-    for (std::size_t i = 0; i < gp.settings.getNumThreads(); ++i)
+    for (std::size_t i = 0; i < gp.getSettings().getNumThreads(); ++i)
 	{
 		boost::thread *thread = threads.create_thread(boost::bind(&boost::asio::io_service::run, &io_service));
 		ay::StemThreadPool::inst().createThreadStemmer(thread->native_handle());
@@ -563,7 +592,7 @@ int run_server_mt(GlobalPools &gp, uint16_t port) {
 }
 
 int run_server(GlobalPools &gp, uint16_t port) {
-	if( gp.settings.getNumThreads() ) {
+	if( gp.getSettings().getNumThreads() ) {
 		
 		return run_server_mt(gp,port);
 	}

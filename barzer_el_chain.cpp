@@ -6,6 +6,8 @@
 #include <barzer_universe.h>
 #include <barzer_server_response.h>
 #include <ay/ay_char.h>
+#include <ay/ay_levenshtein.h>
+#include <boost/function.hpp>
 
 namespace barzer {
 std::ostream& operator<< ( std::ostream& fp, const BarzelBeadData& x)

@@ -336,14 +336,17 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Function>(const B
 		return ret;
 	}
 	const StoredUniverse &u = ctxt.universe;
-	const BELFunctionStorage &fs = u.getFunctionStorage();
+	if( const BELFunctionStorage *x = u.getFunctionStorage() ) {
+	    const BELFunctionStorage &fs = *x;
 
-	bool ret = fs.call(ctxt, data, d_val, ay::skippedvector<BarzelEvalResult>(d_childValVec), u );
-    if( ret && data.isValidVar() ) {
-        // ctxt.bindVar(data.getVarId()) = d_val;
-        ctxt.bindVar(data.getVarId(), d_val );
-    }
-	return ret;
+	    bool ret = fs.call(ctxt, data, d_val, ay::skippedvector<BarzelEvalResult>(d_childValVec), u );
+        if( ret && data.isValidVar() ) {
+            // ctxt.bindVar(data.getVarId()) = d_val;
+            ctxt.bindVar(data.getVarId(), d_val );
+        }
+	    return ret;
+    } else
+        return false;
 }
 
 template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_RuntimeEntlist>( const BTND_Rewrite_RuntimeEntlist& n ) 
@@ -468,12 +471,21 @@ template <> bool Eval_visitor_compute::operator()<BTND_Rewrite_Select>
 
         const BarzelEvalNode::ChildVec &child = d_evalNode.getChild();
 
-        CaseFinder cf(ltrl.getId());
+        const auto& gp =  ctxt.getUniverse().getGlobalPools();
+        const char* caseStr = gp.string_resolve(ltrl.getId());
+        uint32_t strId = gp.internalString_getId( caseStr ? caseStr: "");
 
-        BarzelEvalNode::ChildVec::const_iterator it =
-                std::lower_bound(child.begin(), child.end(), 0, cf);
+        CaseFinder cf(strId);
+
+        BarzelEvalNode::ChildVec::const_iterator it = std::lower_bound(child.begin(), child.end(), 0, cf);
+
         if (it != child.end()) {
             return it->eval(d_val, ctxt );
+        } else {
+            std::stringstream sstr;
+            sstr << "case \"" << ( caseStr ? caseStr: "" ) << "\" not found" ;
+
+            ctxt.pushBarzelError( sstr.str().c_str() );
         }
     }
     return false;

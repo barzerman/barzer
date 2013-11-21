@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
     <users>
-        <user id="0">
-            <flags value="c"/>
-            <rules> <file class="" name="shit">dev/shit.xml</file> </rules>
-            <trieset>
-                <trie class="" name="shit" />
-            </trieset>
+        <user id="200">
+            <flags value="cs"/>
+            <enttrans>
+                <subclass src="100,10" dest="200,20"/>
+            </enttrans>
+            <rules> <file rewriter="shit">dev/ent_trans.xml</file> </rules>
+            <rwrchain>
+                <rewriter name="shit" />
+            </rwrchain>
 		</user>
     </users>
 </config>

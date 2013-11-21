@@ -21,18 +21,74 @@ void StoredUniverse::setUBits( const char* str )
     /// setting ubits from FLAG
     for( const char* s = str; *s; ++s ) {
         switch( *s ) {
-        case 'c': setBit(StoredUniverse::UBIT_NEED_CONFIDENCE); break;
+        case 'c': setBit(UBIT_NEED_CONFIDENCE); break;
+        case 'f': setBit(UBIT_DATE_FUTURE_BIAS); break;
+        case 's': setBit(UBIT_NC_NO_SEPARATORS); break;
+        case 'z': setBit(UBIT_NC_LEADING_ZERO_ISNUMBER); break;
         }
     }
 }
 
+    const EntityData::EntProp* StoredUniverse::getEntPropData( const BarzerEntity& ent ) const 
+    {
+        if( const EntityData::EntProp* eprop = entData.getEntPropData(ent) ) 
+            return eprop;
+        else if( gp.isGenericEntity(ent) ) 
+            return gp.getEntPropData(ent);
+        else
+            return 0;
+    }
+    EntityData::EntProp* StoredUniverse::getEntPropData( const BarzerEntity& ent ) 
+        { 
+            return const_cast<EntityData::EntProp*>( const_cast<const StoredUniverse*>(this)->getEntPropData(ent) );
+        }
+    uint32_t StoredUniverse::getEntityRelevance( const BarzerEntity& ent ) const
+    {
+        if( const EntityData::EntProp* eprop = entData.getEntPropData(ent) ) {
+            return eprop->relevance;
+        } else if( gp.isGenericEntity(ent) ) {
+            return gp.getEntityRelevance(ent);
+        } else 
+            return 0;
+    }
 uint32_t StoredUniverse::recordLangWord( int16_t lang )
 {
     return d_langInfo.incrementLangCounter( lang );
 }
+
+void StoredUniverse::appendTriePtr( BELTrie* trie, GrammarInfo* gi ) {
+    trieCluster.appendTriePtr(trie,gi);
+    d_topicEntLinkage.append( trie->getTopicEntLinkage() );
+}
+BELTrie& StoredUniverse::appendTopicTrie( uint32_t trieClass, uint32_t trieId, GrammarInfo* gi )
+    { return topicTrieCluster.appendTrie( trieClass, trieId, gi ); }
+BELTrie& StoredUniverse::appendTopicTrie( const char* trieClass, const char* trieId, GrammarInfo* gi )
+    { return topicTrieCluster.appendTrie( trieClass, trieId, gi ); }
+
+BELTrie& StoredUniverse::appendTrie( uint32_t trieClass, uint32_t trieId, GrammarInfo* gi )
+{
+    BELTrie& t = trieCluster.appendTrie( trieClass, trieId, gi );
+    d_topicEntLinkage.append( t.getTopicEntLinkage() );
+    return t;
+}
+BELTrie& StoredUniverse::appendTrie( const char* trieClass, const char* trieId, GrammarInfo* gi )
+{
+    BELTrie& t = trieCluster.appendTrie( trieClass, trieId, gi );
+    d_topicEntLinkage.append( t.getTopicEntLinkage() );
+    return t;
+}
+
+    const char* StoredUniverse::printableTokenByid( uint32_t tokId ) const
+    {
+        if( const StoredToken *tok = gp.dtaIdx.tokPool.getTokByIdSafe(tokId) )
+            return printableTokenByid(tok->stringId);
+        else
+            return "";
+    }
 StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	d_userId(id),
     d_entNameIdx(0),
+    d_entIdLookupBENI(0),
     m_ruleIdx(new TrieRuleIdx(*this)),
 	gp(g),
 	trieCluster(g.globalTriePool,*this),
@@ -44,6 +100,7 @@ StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	m_soundsLike(false)
 {
 	m_hints.initFromUniverse(this);
+    d_entIdLookupBENI = new SubclassBENI( *this );
 }
 
 void StoredUniverse::searchEntitiesInZurch( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) const
@@ -91,6 +148,9 @@ StoredUniverse::~StoredUniverse()
     delete d_ghettoDb;
     delete m_meanings;
 	delete m_geo;
+
+    delete d_entNameIdx;
+    delete d_entIdLookupBENI;
 }
 
 size_t   StoredUniverse::internString( const char* s, bool asUserSpecific, uint8_t frequency )
@@ -136,8 +196,12 @@ void StoredUniverse::clear()
     d_ghettoDb->clear();
     d_biflags.clear();
 	m_hints.initFromUniverse(this);
+
     delete d_entNameIdx;
     d_entNameIdx = 0;
+
+    delete d_entIdLookupBENI;
+    d_entIdLookupBENI=new SubclassBENI( *this );
 }
 
 StoredToken& StoredUniverse::internString( int lang, const char* t, BELTrie* triePtr, const char* unstemmed)
@@ -287,4 +351,23 @@ const zurch::DocIndexAndLoader* StoredUniverse::getZurchIndex( uint32_t idxId ) 
 }
 //// end of generic entities
 
+void StoredUniverse::entLookupBENIAddSubclass( const StoredEntityClass& ec, const char* pat, const char* rep ) 
+{
+    d_entIdLookupBENI->addSubclassIds( ec, pat, rep );
+}
+int StoredUniverse::entLookupBENISearch( BENIFindResults_t& out, const char* query, const StoredEntityClass& ec, const QuestionParm& qparm ) const
+{
+    int rc = d_entIdLookupBENI->search( out, query, ec );
+    return rc;
+}
+
+
+	bool 	 StoredUniverse::isStringUserSpecific( uint32_t id ) const
+        { return( id == 0xffffffff ? false : (userSpecificStringSet.find(id) != userSpecificStringSet.end()) ); }
+	bool 	 StoredUniverse::isStringUserSpecific( const char* s ) const
+		{
+			uint32_t id = gp.string_getId( s );
+			if( id == 0xffffffff ) return false;
+			return userSpecificStringSet.find(id) != userSpecificStringSet.end();
+		}
 } // namespace barzer ends

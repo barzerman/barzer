@@ -123,4 +123,64 @@ std::ostream& operator <<( std::ostream& fp, const BarzerNumber& n )
 			set (getRealWiden() / num.getRealWiden());
 		return *this;
 	}
+
+
+	BarzerNumber& BarzerNumber::operator+= ( double x )
+    {
+        if(isNan()) return *this;
+
+        if(isInt())         set( static_cast<double>(n.i) +x );
+        else if( isReal() ) n.real+= x;
+        return *this;
+    }
+	BarzerNumber& BarzerNumber::operator+= ( int x )
+    {
+        if(isNan()) return *this;
+        if( isInt() ) n.i+= x; else if( isReal() ) n.real += x;
+        return *this;
+    }
+
+	BarzerNumber& BarzerNumber::operator*= ( double x )
+    {
+        if(isNan()) return *this;
+
+        if( isReal() ) n.real *= x;
+        else if( isInt() ) set( x* static_cast<double>(n.i) );
+
+        return *this;
+    }
+	BarzerNumber& BarzerNumber::operator*= ( int x )
+    {
+        if(isNan()) return *this;
+        if( isInt() ) n.i*= x; else if( isReal() ) n.real *= static_cast<double>(x);
+        return *this;
+    }
+
+	BarzerNumber& BarzerNumber::operator-= ( double x )
+    {
+        if(isNan()) return *this;
+        if( isReal() ) n.real -= x;
+        else if( isInt() ) set( static_cast<double>(n.i)-x );
+        return *this;
+    }
+	BarzerNumber& BarzerNumber::operator-= ( int x )
+    {
+        if(isNan()) return *this;
+        if( isInt() ) n.i-= x; else if( isReal() ) n.real -= x;
+        return *this;
+    }
+
+	BarzerNumber& BarzerNumber::operator/= ( double x )
+    {
+        if(isNan()) return *this;
+        if( isReal() ) n.real /= x;
+        else if( isInt() ) set( static_cast<double>(n.i)/x );
+        return *this;
+    }
+	BarzerNumber& BarzerNumber::operator/= ( int x )
+    {
+        if(isNan()) return *this;
+        if( isInt() ) n.i/= x; else if( isReal() ) n.real /= x;
+        return *this;
+    }
 }

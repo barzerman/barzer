@@ -7,6 +7,7 @@
 #include <boost/algorithm/string.hpp>
 #include <ay/ay_choose.h>
 #include <ay_char.h>
+#include <ay_levenshtein.h>
 #include <ay_utf8.h>
 #include <ay_keymaps.h>
 #include <ay_translit_ru.h>
@@ -109,7 +110,7 @@ namespace {
 
 struct CorrectCallback
 {
-	bool d_tryTranslit;
+	bool d_lev0;
 
 	const BZSpell& d_bzSpell;
 	typedef BZSpell::WordInfoAndDepth CorrectionQualityInfo;
@@ -136,7 +137,7 @@ struct CorrectCallback
 	}
 
 	CorrectCallback( const BZSpell& bzs, size_t str_len ) :
-		d_tryTranslit(true),
+		d_lev0(true),
 		d_bzSpell(bzs) ,
 		d_bestMatch(0,0),
 		d_bestStrId(0xffffffff),
@@ -146,7 +147,11 @@ struct CorrectCallback
 	void tryUpdateBestMatch( const char* str )
 	{
 		CorrectionQualityInfo wid(0, 0);
-		uint32_t strId = d_bzSpell.getBestWordByString( str, wid);
+        uint32_t strId = 0xffffffff;
+        if( d_lev0 && !d_bzSpell.isUsersWord( strId, str ) ) 
+            return;
+        
+		strId = d_bzSpell.getBestWordByString( str, wid);
 		if( (0xffffffff != strId) && widLess(d_bestMatch,wid) ) {
             //uint32_t uwId = 0xffffffff;
             //if( d_bzSpell.isUsersWord( uwId, str ) ) {
@@ -195,12 +200,6 @@ struct CorrectCallback
 
 		tryUpdateBestMatch( str );
 
-		if (d_tryTranslit)
-		{
-			std::string translit;
-			if (ay::km::engToRus(str, v.size(), translit))
-				tryUpdateBestMatch(translit.c_str());
-		}
 		return 0;
 	}
 
@@ -619,7 +618,7 @@ namespace
 		{
 		}
 		
-		uint32_t operator()(uint32_t dumbRes) const
+		uint32_t operator()(uint32_t dumbRes, bool preferDumb = false) const
 		{
 			if (dumbRes == 0xffffffff)
 				return m_featuredRes.m_strId;
@@ -636,7 +635,9 @@ namespace
 			else
 				dist = m_levDist.utf8(ay::StrUTF8(m_srcStr), ay::StrUTF8(str));
 			
-			return dist < m_featuredRes.m_levDist ? dumbRes : m_featuredRes.m_strId;
+			return (dist < m_featuredRes.m_levDist || (preferDumb && dist == m_featuredRes.m_levDist)) ?
+					dumbRes :
+					m_featuredRes.m_strId;
 		}
 	};
 }
@@ -649,13 +650,13 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
     if( lang == LANG_UNKNOWN || lang == LANG_UNKNOWN_UTF8 )
         lang = Lang::getLang(d_universe, str, str_len);
 
-	const bool useFeaturedSC = true; /*d_universe.checkBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT);*/
+	const bool useFeaturedSC = true; /*d_universe.checkBit(UBIT_FEATURED_SPELLCORRECT);*/
 	const FeaturedMatchComparator featuredCmp(str, d_universe, lang,
 			useFeaturedSC ?
 				m_featuredSC->getBestMatch(str, str_len, lang, levMax) :
 				FeaturedSpellCorrector::FeaturedMatchInfo());
 	
-	if (d_universe.checkBit(StoredUniverse::UBIT_FEATURED_SPELLCORRECT_ONLY))
+	if (d_universe.checkBit(UBIT_FEATURED_SPELLCORRECT_ONLY))
 		return featuredCmp(0xffffffff);
 	
 	if( lang == LANG_ENGLISH) {
@@ -721,10 +722,12 @@ uint32_t BZSpell::getSpellCorrection( const char* str, bool doStemCorrect, int l
                     if( stemStrId == 0xffffffff ) {
                         doStemCorrect = false;
                     } else {
-                        if( stemStr.length() > 2*2 && str_len > stemStr.length() && (str_len-stemStr.length()<3*2) ) {
+						const auto lenDiff = str_len - stemStr.length();
+                        if( stemStr.length() > 2*2 && str_len > stemStr.length() &&
+								(lenDiff < 3 * 2 || (stemStr.length() > 4 * 2 && lenDiff == 3 * 2)) ) {
                             uint32_t correctedId = get2ByteLangStemCorrection( lang, str, doStemCorrect, stemStr.c_str(), BZSpell::CORRECTION_MODE_NORMAL );
                             if( correctedId != 0xffffffff )
-                                return featuredCmp(correctedId);
+                                return featuredCmp(correctedId, true);
                             else
                                 doStemCorrect= false;
                         }

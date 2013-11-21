@@ -124,14 +124,16 @@ public:
         bool needOffsetLengthVec = !d_streamer.checkBit( BarzResponseStreamer::BF_NO_ORIGOFFSETS );
         std::vector< std::pair<uint32_t,uint32_t> >  offsetLengthVec; 
         
-        std::stringstream sstrBody;
+        // std::stringstream sstrBody;
 
         std::string lastTokBuf;
 		for( CTWPVec::const_iterator ci = ctoks.begin(), ci_before_last = ( ctoks.size() ? ci+ctoks.size()-1: ctoks.end()); ci != ctoks.end(); ++ci ) {
 			const TTWPVec& ttv = ci->first.getTTokens();
 
+            /*
             if( ci != ctoks.begin() && ci != ci_before_last) 
                 sstrBody << " ";
+            */
 			for( TTWPVec::const_iterator ti = ttv.begin(); ti!= ttv.end() ; ++ti ) {
 				const TToken& ttok = ti->first;
                 if( lastTokBuf == ttok.buf ) 
@@ -140,11 +142,13 @@ public:
                     lastTokBuf = ttok.buf.c_str();
 
 				if( ttok.buf.length() ) {
+                    /*
                     if( ttok.buf[0] !=' ' && (ti != ttv.begin() || ci != ctoks.begin() )) 
                         sstrBody << " ";
+                    */
                     if( ttok.buf[0] !=' ' ) {
                         std::string tokStr( ttok.buf.c_str(), ttok.buf.length() );
-                        xmlEscape(tokStr, sstrBody);
+                        // xmlEscape(tokStr, sstrBody);
                     }
 
                     if( needOffsetLengthVec ) 
@@ -172,7 +176,9 @@ public:
         } else {
             os << ">";
         }
-		os << sstrBody.str() << "</srctok>";
+        std::string srcTok = d_barz.getBeadSrcTok( d_bead );
+		xmlEscape( srcTok, os ) << "</srctok>";
+		// os << sstrBody.str() << "</srctok>";
 	}
 	bool operator()(const BarzerLiteral &data) {
 		//AYLOG(DEBUG) << "BarzerLiteral";
@@ -205,11 +211,8 @@ public:
 				} else {
 					const char *cstr = universe.getStringPool().resolveId(data.getId());
 					if (cstr) {
-                        if( !ispunct(*cstr) ) {
-                            xmlEscape(cstr, os << "<fluff>");
-                            os << "</fluff>";
-                        } else 
-                            os << "<fluff/>";
+                        xmlEscape(cstr, os << "<fluff>");
+                        os << "</fluff>";
 					} 
 					else AYLOG(ERROR) << "Illegal literal(STOP) ID: " << std::hex << data.getId();
 				}
@@ -583,8 +586,9 @@ static void printTraceInfo(std::ostream &os, const Barz &barz, const StoredUnive
                 os << "\n";
                 os << " <error>";
                 for( std::vector< std::string >::const_iterator ei = ti->errVec.begin(); ei!= ti->errVec.end(); ++ei ) {
-                    os << *ei << " ";
+                    os << *ei << " / ";
                 }
+
                 os << " </error></match>\n";
             } else if( !btiVec.empty() ) {
                 os << "\n</match>";
@@ -734,7 +738,7 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
     }
 
     /// confidence
-    if( universe.checkBit(StoredUniverse::UBIT_NEED_CONFIDENCE) ) 
+    if( universe.checkBit(UBIT_NEED_CONFIDENCE) ) 
         printConfidence(os);
 
 	os << "</barz>\n";

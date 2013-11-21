@@ -108,8 +108,8 @@ private:
 
     int separatorNumberGuess (Barz&, const QuestionParm&);
 
-	bool tryClassify_number( CToken&, const TToken&  ) const;
-	bool tryClassify_integer( CToken&, const TToken&  ) const;
+	bool tryClassify_number( CToken&, const TToken&, const TTWPVec& tVec, size_t tPos, const CTWPVec& cVec, size_t cPos  ) const;
+	bool tryClassify_integer( CToken&, const TToken&, bool& allDigits, const TTWPVec& tVec, size_t tPos, const CTWPVec& cVec, size_t cPos ) const;
 	
 public:
 	void setDontSpell(bool dont) { m_dontSpell = dont; }

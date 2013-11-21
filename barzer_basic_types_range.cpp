@@ -173,4 +173,11 @@ void BarzerEVR::print( std::ostream& fp ) const
     }
     fp << "}";
 }
+
+void BarzerERCExpr::setLogic( const char* s ) { 
+    if( !s || (tolower(s[0]) == 'a' && tolower(s[1]) == 'n' && tolower(s[2]) == 'd' && !s[3]) ) // AND 
+        d_type=T_LOGIC_AND; 
+    else if( (tolower(s[0]) == 'o' && tolower(s[1]) == 'r' &&!s[2] ) )
+        d_type=T_LOGIC_OR;
+}
 } // namespace barzer 

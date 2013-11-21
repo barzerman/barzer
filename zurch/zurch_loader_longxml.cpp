@@ -446,7 +446,7 @@ int phrase_fmt_get_fields( ZurchPhrase_DocLoader& loader, phrase_fields_t& flds,
                 }
                 if( titleLength ) {
                     double toAvg = (double)( titleLength ) / (double) ( loader.d_loader.d_title_avgLength );
-                    adjFactor = std::sqrt( 2.0/( 1.0+ std::sqrt(toAvg) ) );
+                    // adjFactor = std::sqrt( 2.0/( 1.0+ std::sqrt(toAvg) ) );
                     flds.weight*= adjFactor;
                 }
             }

@@ -1,5 +1,6 @@
 #include <zurch_barzer.h>
 #include <zurch_docidx.h>
+#include <zurch_settings.h>
 
 /// Copyright Barzer LLC 2012
 /// Code is property Barzer for authorized use only
@@ -21,9 +22,14 @@ namespace {
 using namespace barzer;
 using namespace zurch;
 
+const float WEIGHT_BOOST=2.0;
+const float WEIGHT_IDENTITY=1.0;
+const float WEIGHT_ZERO=0.0;
+
 struct ay_xml_parser {
     /// set by E tag. cleared upon close  
     BarzerEntity  d_curEntity; // the loader is entity centric. 
+    float         d_curWeight;  
 
     BarzerEntityDocLinkIndex& d_index;
     XML_ParserStruct* expat;
@@ -33,8 +39,11 @@ struct ay_xml_parser {
     // current stack of tags - see .cpp file for tag codes 
     std::vector< int > tagStack;
 
-    void setEntity( const StoredEntityClass& ec , const char* s )
-        { d_curEntity = BarzerEntity(ec,d_index.d_zurchLoader.index().storeExternalString(s)); }
+    void setEntity( const StoredEntityClass& ec , const char* s, float w  )
+    { 
+        d_curEntity = BarzerEntity(ec,d_index.d_zurchLoader.index().storeExternalString(s)); 
+        d_curWeight = w;
+    }
 
     void takeTag( const char* tag, const char** attr, size_t attr_sz, bool open=true );
     void takeCData( const char* dta, size_t dta_len );
@@ -99,6 +108,7 @@ DECL_TAGHANDLE(E) {
         return TAGHANDLE_ERROR_PARENT;
     StoredEntityClass eclass;
     std::string idStr;
+    float weight= WEIGHT_BOOST;
     if( open ) {
         /// loops over all atributes
         ALS_BEGIN
@@ -108,9 +118,13 @@ DECL_TAGHANDLE(E) {
                     idStr.assign(v); 
                     }
                     break;
+                case 'w': {
+                    weight = atof(v); 
+                    break;
+                }
         ALS_END
         if( !idStr.empty() && eclass.isValid() ) 
-            parser.setEntity(eclass,idStr.c_str());
+            parser.setEntity(eclass,idStr.c_str(),weight);
     } else { // closing E - time to process
     }
     return TAGHANDLE_ERROR_OK;
@@ -118,15 +132,23 @@ DECL_TAGHANDLE(E) {
 DECL_TAGHANDLE(D) { 
     if( !IS_PARENT_TAG(E) ) 
         return TAGHANDLE_ERROR_PARENT;
+    std::string docStr;
+    float weight = WEIGHT_BOOST;
     if( open ) {
         /// loops over all atributes
 	    ALS_BEGIN 
             case 'i': {
-                if( parser.d_curEntity.isValid() )
-                    parser.d_index.addLink( parser.d_curEntity, std::string(v) );
+                docStr.assign(v);
+            }
+            case 'w': {
+                weight = atof(v); 
+                break;
             }
                 break;
 	    ALS_END
+        
+        if( parser.d_curEntity.isValid()  )
+            parser.d_index.addLink( parser.d_curEntity, docStr, weight );
     } else { // closing D - time to process
         if( ! ((++parser.d_entCount)%100) ) {
             std::cerr << ".";
@@ -250,12 +272,21 @@ void  ay_xml_parser::parse( std::istream& fp )
 
 namespace zurch {
 
-void BarzerEntityDocLinkIndex::addLink( const BarzerEntity& ent, const std::string& s )
+void BarzerEntityDocLinkIndex::addLink( const BarzerEntity& ent, uint32_t docId, float w )
+{
+    d_zurchLoader.index().appendOwnedEntity( docId, ent, (w*d_zurchLoader.getCurrentWeight()) );
+	m_doc2linkedEnts[docId].push_back( { d_zurchLoader.index().getOwnedEntId(ent),w });
+}
+void BarzerEntityDocLinkIndex::addLink( const BarzerEntity& ent, const std::string& s, float w )
 {
     uint32_t docId = d_zurchLoader.addDocName( s.c_str() );
-    d_zurchLoader.index().appendOwnedEntity( docId, ent );
-    //d_ent2DocId.insert( Ent2DocIdMap::value_type(ent,docId) );
-    //d_docId2Ent.insert( Docid2EntMap::value_type(docId,ent) );
+    addLink(ent, docId, w );
+}
+
+const std::vector<BarzerEntityDocLinkIndex::DocIdData>* BarzerEntityDocLinkIndex::getLinkedEnts(uint32_t docId) const
+{
+	const auto pos = m_doc2linkedEnts.find(docId);
+	return pos == m_doc2linkedEnts.end() ? nullptr : &pos->second;
 }
 
 int BarzerEntityDocLinkIndex::loadFromFile( const std::string& fname )

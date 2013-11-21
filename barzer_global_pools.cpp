@@ -8,9 +8,11 @@
 #include <barzer_ghettodb.h>
 #include <barzer_meaning.h>
 #include <barzer_geoindex.h>
+#include <barzer_settings.h>
 #include <ay/ay_cmdproc.h>
 #include <ay/ay_ngrams.h>
 #include <boost/filesystem.hpp>
+#include <barzer_el_function.h>
 
 namespace barzer {
 
@@ -80,6 +82,7 @@ GlobalPools::~GlobalPools()
 
 	delete m_utf8langModelMgr;
 	delete m_asciiLangModelMgr;
+    delete settings;
 }
 
 BELTrie* GlobalTriePool::mkNewTrie()
@@ -172,14 +175,17 @@ BELTrie* GlobalTriePool::produceTrie( uint32_t trieClass, uint32_t trieId )
 		return( i->second );
 }
 
+ParseSettings& GlobalPools::parseSettings() { return settings->parseSettings(); }
+const ParseSettings& GlobalPools::parseSettings() const { return settings->parseSettings(); }
+
 GlobalPools::GlobalPools(bool fullMode) :
 	m_utf8langModelMgr(new ay::UTF8TopicModelMgr),
 	m_asciiLangModelMgr(new ay::ASCIITopicModelMgr),
 	dtaIdx( *this, &stringPool),
-	funSt(*this),
+	funSt( fullMode ? new BELFunctionStorage(*this, fullMode):0 ),
 	dateLookup(*this),
 	globalTriePool( *this ),
-	settings(*this,0),
+	settings( new BarzerSettings(*this,0) ),
 	d_isAnalyticalMode(false),
 	d_maxAnalyticalModeMaxSeqLength(5)
 {

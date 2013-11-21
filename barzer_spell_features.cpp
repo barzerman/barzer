@@ -2,11 +2,12 @@
 /// Copyright Barzer LLC 2012
 /// Code is property Barzer for authorized use only
 /// 
-#include "barzer_spell_features.h"
-#include "barzer_universe.h"
-#include "barzer_spellheuristics.h"
-#include "barzer_language.h"
-#include "ay/ay_char.h"
+#include <barzer_spell_features.h>
+#include <barzer_universe.h>
+#include <barzer_spellheuristics.h>
+#include <barzer_language.h>
+#include <ay/ay_char.h>
+#include <ay/ay_levenshtein.h>
 
 namespace barzer
 {
@@ -242,7 +243,7 @@ namespace
 					auto pos = counterMap.find(source);
 					if (pos == counterMap.end())
 						pos = counterMap.insert(std::make_pair(source, 0)).first;
-					pos->second += 1. / (srcs->size() * srcs->size());
+					pos->second += sourceFeature.counter * 1. / (srcs->size() * srcs->size());
 				}
 			}
 			

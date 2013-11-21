@@ -27,38 +27,46 @@ class BarzelEvalContext;
 // these names are for making your eyes bleed
 
 
-typedef boost::function<bool(
-                            const BELFunctionStorage_holder*,
-		                    BarzelEvalResult&,
-		                    const ay::skippedvector<BarzelEvalResult>&,
-		                    const StoredUniverse&, BarzelEvalContext&, 
-                            const BTND_Rewrite_Function&)> BELStoredFunction;
 
-typedef boost::unordered_map<uint32_t,BELStoredFunction> BELStoredFunMap;
-//typedef std::pair<uint32_t,BELStoredFunction> BELStoredFunRec;
-typedef BELStoredFunMap::value_type BELStoredFunRec;
+struct FuncInfo {
+    std::string name; // function name
+    std::string descr; // function description
+    
+    FuncInfo( const char* n, const char*d ) :
+        name(n), descr(d? d: "") {}
+};
+
+/// built in stored function 
+typedef bool (*Func)(
+    const BELFunctionStorage_holder*,
+    BarzelEvalResult&,
+    const ay::skippedvector<BarzelEvalResult>&,
+    const StoredUniverse&, 
+    BarzelEvalContext&, 
+    const BTND_Rewrite_Function&);
+
+typedef std::pair< Func,  FuncInfo > FuncData;
+typedef std::map<uint32_t,FuncData> FuncMap;
+typedef FuncMap::value_type FuncMapRec;
 
 class BELFunctionStorage {
 	GlobalPools &globPools;
 	BELFunctionStorage_holder *holder;
 public:
-
-	BELFunctionStorage(GlobalPools &u);
+	BELFunctionStorage(GlobalPools &u, bool initFunctions );
 	~BELFunctionStorage();
+    const FuncMap& getFuncMap() const;
 
-    /*
-	bool call(
-              BarzelEvalContext& ctxt,
-              const char *fname, 
-              BarzelEvalResult&,
-			  const BarzelEvalResultVec&,
-			  const StoredUniverse& ) const;
-    */
 	bool call(
               BarzelEvalContext& ctxt,
               const BTND_Rewrite_Function&, BarzelEvalResult&,
 			  const ay::skippedvector<BarzelEvalResult>&,
 			  const StoredUniverse &u ) const;
 
+    
+    static void help_list_funcs_json( std::ostream&, const GlobalPools& gp );
+    void loadAllFunctions( );
 };
+
+
 } // namespace barzer

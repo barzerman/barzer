@@ -58,6 +58,7 @@ def application(env, start_response):
     uid = 0
     ver = 1.0
     qs = env['QUERY_STRING']
+    user_set = False
     for kv in (s2 for s1 in qs.split('&') for s2 in s1.split(';')):
         parts = kv.split('=', 1)
         if len(parts) != 2:
@@ -67,17 +68,23 @@ def application(env, start_response):
             query = escape(unquote(v.replace('+', ' ')))
         elif k == 'key':
             uid = cache_get(v)
+            if uid:
+                user_set = True
+                add += ' u="{}"'.format(uid)
         elif k == 'ver':
             try:
                 ver = float(v)
             except ValueError:
                 yield error("Invalid `ver' parameter")
                 return
-        elif k in ('now', 'beni', 'zurch', 'flag', 'route', 'extra'):
+        elif k in {'now','beni','zurch','flag','route','extra',
+                   'u','uname','byid'}:
+            if k in ('u', 'uname'):
+                user_set = True
             add += ' {}={}'.format(k, quoteattr(unquote(v.replace('+', ' '))))
             
-    if not uid:
-        yield error("Invalid key")
+    if not user_set:
+        yield error("Invalid user")
         return
     elif not query:
         yield error("Invalid query")
@@ -97,7 +104,7 @@ def application(env, start_response):
         yield error("Unable to connect")
         uwsgi.close(fd)
         return
-    qry = '<query u="{}"{}>{}</query>\r\n.\r\n'.format(uid, add, query)
+    qry = '<query{}>{}</query>\r\n.\r\n'.format(add, query)
     #print qry
     uwsgi.send(fd, qry)
     while True:

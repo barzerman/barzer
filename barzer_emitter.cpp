@@ -17,10 +17,6 @@ bool BELParseTreeNode_PatternEmitter::produceSequence()
         curVec.clear();
         varVec.clear();
     }
-    //if(ret)
-        //patternTree->yield(curVec);
-    //bool ret = patternTree->step();
-    //return ret;
     return ret;
 }
 
@@ -53,12 +49,9 @@ struct Leaf: public PatternEmitterNode {
 struct IntermediateNode : public PatternEmitterNode {
     IntermediateNode(const BELParseTreeNode::ChildrenVec& children, VarVec &vars)
     {
-        //AYLOGDEBUG(children.size());
-
         childs.reserve(children.size());
         for(BELParseTreeNode::ChildrenVec::const_iterator it=children.begin(); it != children.end(); ++it)
             childs.push_back(make(*it, vars));
-        //AYLOG(DEBUG) << "done";
     }
     
     virtual ~IntermediateNode()
@@ -459,6 +452,7 @@ size_t BELStatementParsed_EmitCounter::power(const barzer::BELParseTreeNode& nod
             case BTND_StructData::T_ANY:    /*nothing*/;                            break;
             case BTND_StructData::T_OPT:    p++;                                    break;  
             case BTND_StructData::T_PERM:   p *= factorial(node.child.size());      break;
+            case BTND_StructData::T_FLIP:   p *= 2 ;      break;
             case BTND_StructData::T_TAIL:   /*nothing*/;                            break;
             case BTND_StructData::T_SUBSET: p--;                                    break;
             default:

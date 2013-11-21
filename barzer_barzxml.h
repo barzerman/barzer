@@ -9,7 +9,7 @@ struct BarzXMLParser {
 
     Barz& barz;
 	std::ostream& ostream;
-	GlobalPools& gpools;
+	const GlobalPools& gpools;
     QuestionParm qparm;
 
     // current stack of tags - see .cpp file for tag codes 
@@ -27,7 +27,8 @@ struct BarzXMLParser {
             return ( tagStack.size() > 1 && (*(tagStack.rbegin()+1)) == tid );
         }
 
-	BarzXMLParser( Barz& b, std::ostream& os, GlobalPools& gp, const StoredUniverse& u )
+    GlobalPools& getGP_nonconst() { return *(const_cast<GlobalPools*>(&gpools)); }
+	BarzXMLParser( Barz& b, std::ostream& os, const GlobalPools& gp, const StoredUniverse& u )
 	: m_shouldInternStrings(false)
 	, m_performCleanup(true)
 	, barz(b)
