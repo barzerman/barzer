@@ -24,7 +24,10 @@ struct ExtractedStringFeature {
 	, m_offset(off)
 	{
 	}
+    std::ostream& print( std::ostream& fp ) const
+        { return (fp<< "\"" << m_str << "\""); }
 };
+inline std::ostream& operator<<( std::ostream& fp, const ExtractedStringFeature& x ) { return x.print(fp); }
 
 inline bool operator<(const ExtractedStringFeature& left, const ExtractedStringFeature& right)
 {
@@ -177,7 +180,6 @@ struct TFE_storage {
 			}
 		}
 	}
-	
 	void extractSTF(TFE_TmpBuffers& bufs, const char *str, size_t strLen, int lang) const
 	{
 		bufs.extractedVec.clear();

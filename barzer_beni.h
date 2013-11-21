@@ -151,7 +151,7 @@ public:
 
 		std::sort(sorted.begin(), sorted.end(),
 				[](const typename Sorted_t::value_type& v1, const typename Sorted_t::value_type& v2)
-					{ return v1.second.counter > v2.second.counter; });
+					{ return v1.second.fCount > v2.second.fCount; });
 
         size_t countAdded = 0;
 		for (const auto& item : sorted)
