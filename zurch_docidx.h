@@ -316,7 +316,9 @@ public:
     
     const BarzerEntity  resolve_entity( std::string& entIdStr, uint32_t entId, const barzer::StoredUniverse& u ) const;
 
-	DocDataIndex d_docDataIdx;
+	DocDataIndex            d_docDataIdx;
+    ay::tagindex<uint32_t>  d_docTags;
+
 	typedef std::vector<std::pair<uint32_t, uint16_t>> PosInfos_t;
 	
 	int   getFeaturesFromBarz( ExtractedDocFeature::Vec_t& featureVec, barzer::Barz& barz, bool needToInternStems );
@@ -424,6 +426,9 @@ public:
     struct SearchParm {
         size_t maxBack; 
         const barzer::ReqFilterCascade* filterCascade;
+
+        std::vector< std::string >      docTags;
+
         std::map<uint32_t, PosInfos_t>* doc2pos;
 		
 		TraceInfoMap_t *f2trace;
@@ -440,11 +445,20 @@ public:
             doc2pos(p),
             f2trace(f)
         {}
+        SearchParm( size_t mb, const barzer::ReqFilterCascade* fl, const std::vector< std::string >& tags ) :
+            maxBack(mb),
+            filterCascade(fl),
+            docTags(tags),
+            doc2pos(0),
+            f2trace(0)
+        {}
     };
 
 	void findDocumentDumb( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f, SearchParm&, const barzer::Barz& ) const;
 
 	void findDocument( DocWithScoreVec_t&, const ExtractedDocFeature::Vec_t& f, SearchParm&, const barzer::Barz& ) const;
+
+	void getDocsByTags( DocWithScoreVec_t&, const SearchParm& ) const;
 
     int serialize( std::ostream& fp ) const;
     int deserialize( std::istream& fp ); 

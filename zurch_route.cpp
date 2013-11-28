@@ -296,16 +296,24 @@ int defhandler(ZurchRoute& route, const char *q)
 
 int ZurchRoute::operator()( const char* q )
 {
-    if( d_rqp.isRoute("doc.features") ) 
-        return getter_doc_features( *this, q );
-    else if( d_rqp.isRoute("feature.docs") )
-        return getter_doc_features( *this, q );
-    else if( d_rqp.isRoute("docid") )
-        return getter_doc_byid( *this, q );
-	else if (d_rqp.isRoute("help.zurchroutes"))
-		return list_funcs(*this, q);
-	else
-		return defhandler(*this, q);
+    const char* r = d_rqp.getRoute().c_str();
+    switch( r[0] ) {
+    case 'd':
+        if( d_rqp.isRoute("doc.features") ) 
+            return getter_doc_features( *this, q );
+        else if( d_rqp.isRoute("docid") )
+            return getter_doc_byid( *this, q );
+        break;
+    case 'f':
+        if( d_rqp.isRoute("feature.docs") )
+            return getter_doc_features( *this, q );
+        break;
+    case 'h':
+	    if (d_rqp.isRoute("help.zurchroutes"))
+            return list_funcs(*this, q);
+        break;
+    }
+    return defhandler(*this, q);
 
     return 0;
 }

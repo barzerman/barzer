@@ -274,7 +274,7 @@ int BarzerRequestParser::initFromUri( QuestionParm& qparm, const char* u, size_t
     if( !strncmp( u, "/zurch", u_len ) ) {
         setQueryType( QType::ZURCH );
         d_zurchDocIdxId = 0;
-        d_zurchSearchById = false;
+        d_zurchMode = ZURCH_MODE_STANDARD;
     } else if( !strncmp( u, "/autoc", u_len ) ) {
         if( initAutocFromUri( qparm, uri ) )
             return 1;
@@ -295,7 +295,10 @@ int BarzerRequestParser::initFromUri( QuestionParm& qparm, const char* u, size_t
         switch( i->first[0] ) {
         case 'b':
             if( i->first == "byid" ) {
-                d_zurchSearchById = ( i->second != "no" );
+                if( i->second =="yes" ) 
+                    d_zurchMode = ZURCH_MODE_BYID;
+                else if( i->second == "all" ) 
+                    d_zurchMode = ZURCH_MODE_ALL;
 				handled = true;
             } else if( i->first == "beni" ) 
             {
@@ -372,6 +375,10 @@ int BarzerRequestParser::initFromUri( QuestionParm& qparm, const char* u, size_t
                     return 1;
             }
             break;
+        case 'z':
+            if(i->first == "zdtag" && !i->second.empty())
+                ay::separated_string_to_vec( docTags )( i->second ); 
+            break;
         }
 
         if (!handled)
@@ -419,7 +426,7 @@ BarzerRequestParser::BarzerRequestParser(const GlobalPools &gp, std::ostream &s,
     d_maxResults(32),
     ret(XML_TYPE),
     d_zurchDocIdxId(0xffffffff),
-    d_zurchSearchById(false),
+    d_zurchMode(ZURCH_MODE_STANDARD),
     d_queryType(QType::BARZER)
 {
     parser = XML_ParserCreate(NULL);
@@ -686,7 +693,7 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
 
     if( !d_queryFlags.empty() )
         qparm.setZurchFlags( d_queryFlags.c_str() );
-    if( d_zurchSearchById ) { /// in this case query must contain document name
+    if( d_zurchMode == ZURCH_MODE_BYID) { /// in this case query must contain document name
         std::vector< std::string > docIdStrVec;
         ay::parse_separator( 
             [&] (size_t tok_num, const char* tok, const char* tok_end) -> bool {
@@ -704,7 +711,7 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
             if( docId != 0xffffffff )
                 docVec.push_back( std::pair<uint32_t,double>(docId, 1.0) );
         }
-    } else {
+    } else if( d_zurchMode == ZURCH_MODE_STANDARD ) { /// regular document search
 	    qparser.tokenize_only( barz, query, qparm );
 	    qparser.lex_only( barz, qparm );
 	    qparser.semanticize_only( barz, qparm );
@@ -712,8 +719,12 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
     	
         if( index->fillFeatureVecFromQueryBarz( featureVec, barz ) )  {
             zurch::DocFeatureIndex::SearchParm parm( d_maxResults, (filterCascade.empty()? 0: &filterCascade), &positions, &barzTrace );
+            parm.docTags = docTags;
             index->findDocument( docVec, featureVec, parm, barz );
         }
+    } else if( d_zurchMode == ZURCH_MODE_ALL ) {
+        zurch::DocFeatureIndex::SearchParm parm( d_maxResults, (filterCascade.empty()? 0: &filterCascade), docTags );
+        index->getDocsNoSearch( docVec, featureVec, parm );
     }
     if( ret == XML_TYPE ) {
         zurch::DocIdxSearchResponseXML response( qparm, *ixl, barz ); 
@@ -1124,7 +1135,10 @@ void BarzerRequestParser::tag_query(RequestTag &tag)
 			}
             else if( i->first == "byid" )
 			{
-                d_zurchSearchById = ( i->second != "no" );
+                if( i->second == "all" )
+                    d_zurchMode = ZURCH_MODE_ALL;
+                else if (i->second == "yes" ) 
+                    d_zurchMode = ZURCH_MODE_BYID;
 				handled = true;
 			}
             break;
@@ -1140,7 +1154,10 @@ void BarzerRequestParser::tag_query(RequestTag &tag)
 			{
                 d_queryFlags = i->second;
 				handled = true;
-			}
+			} else if( i->first =="flt" ) {
+                filterCascade.parse( i->second.c_str(), i->second.c_str()+i->second.length() );
+				handled = true;
+            }
             break;
         case 'm':
             if (i->first == "max" ) // max results
@@ -1187,14 +1204,22 @@ void BarzerRequestParser::tag_query(RequestTag &tag)
             }
             break;
         case 'z':
-            if( i->first == "zurch" && !i->second.empty() ) {
-                /// value of zurch attributes QuestionParm::setZurchFlags 
-                /// (see the code for values - this is a string of single character flags)
-                if( i->second == "yes" || isdigit( i->second[0] ) ) {
-                    setQueryType(QType::ZURCH);
-                    d_zurchDocIdxId = atoi(i->second.c_str());
+            switch( n[1] ) {
+            case 'u': 
+                if( i->first == "zurch" && !i->second.empty() ) {
+                    /// value of zurch attributes QuestionParm::setZurchFlags 
+                    /// (see the code for values - this is a string of single character flags)
+                    if( i->second == "yes" || isdigit( i->second[0] ) ) {
+                        setQueryType(QType::ZURCH);
+                        d_zurchDocIdxId = atoi(i->second.c_str());
+                    }
+				    handled = true;
                 }
-				handled = true;
+                break;
+            case 'd':
+                if(i->first == "zdtag" && !i->second.empty())
+                    ay::separated_string_to_vec( docTags )( i->second ); 
+                break;
             }
             break;
         } // switch

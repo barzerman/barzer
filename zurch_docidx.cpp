@@ -55,7 +55,7 @@ struct Filter_visitor : public boost::static_visitor<bool> {
 
 typedef std::vector< PropFilterVar > PropFilterVarVec;
 
-bool matchPropFilterVarVec( uint32_t docId, const PropFilterVarVec& vvec )
+inline bool matchPropFilterVarVec( uint32_t docId, const PropFilterVarVec& vvec )
 {
     Filter_visitor vis( docId );
     for( const auto& i : vvec ) {
@@ -70,18 +70,15 @@ void formPropFilterVarVec( PropFilterVarVec& vvec, const barzer::ReqFilterCascad
 {
     for( const auto& i : filter.filterMap ) {
         if( auto x = i.second.get<int>() ) {
-            const SimpleIdx::int_t* ix = simpleIdx.ix_int( i.first );
-            if( ix ) 
+            if( const SimpleIdx::int_t* ix = simpleIdx.ix_int( i.first ) )
                 vvec.push_back( PropFilterVar( PropFilter<int>(i.first, &(i.second),ix) ) );
         } else 
         if( auto x = i.second.get<double>() ) {
-            const SimpleIdx::double_t* ix = simpleIdx.ix_double( i.first );
-            if( ix ) 
+            if( const SimpleIdx::double_t* ix = simpleIdx.ix_double( i.first ) )
                 vvec.push_back( PropFilterVar( PropFilter<double>(i.first, &(i.second),ix) ) );
         } else
         if( auto x = i.second.get<std::string>() ) {
-            const SimpleIdx::string_t* ix = simpleIdx.ix_string( i.first );
-            if( ix ) 
+            if( const SimpleIdx::string_t* ix = simpleIdx.ix_string( i.first ) )
                 vvec.push_back( PropFilterVar( PropFilter<std::string>(i.first, &(i.second),ix) ) );
         }
     }
@@ -711,6 +708,13 @@ void DocFeatureIndex::findDocumentDumb(DocWithScoreVec_t& out,
         formPropFilterVarVec( pfvv, *(parm.filterCascade), d_docDataIdx.simpleIdx()  ) ;
     }
 
+    boost::scoped_ptr<ay::tagindex_checker<uint32_t>>  tagChecker;
+    if( !parm.docTags.empty() ) {
+        tagChecker.setIdx( &d_docTags );
+        for( const auto& x : parm.docTags )
+            tagChecker.addTag( x.c_str() );
+    }
+
 	std::map<uint32_t, double> doc2score;
 
 	typedef std::pair<PosInfos_t::value_type, double> ScoredFeature_t;
@@ -739,9 +743,11 @@ void DocFeatureIndex::findDocumentDumb(DocWithScoreVec_t& out,
         double adjFactor = sizeBoost * classBoost / std::log(1 + numSources);
 		for (const auto& link : sources)
 		{
+            if( tagChecker.empty() && !tagChecker.hasAllTags(link.docId) )
+                continue;
             if( !pfvv.empty()  &&  !matchPropFilterVarVec( link.docId, pfvv ) )
                 continue;
-
+            
 			const auto scoreAdd = static_cast<double>(link.weight) * adjFactor;
 
 			if (parm.doc2pos)

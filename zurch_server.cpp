@@ -135,11 +135,18 @@ std::ostream& DocIdxSearchResponseXML::print( std::ostream& os, const DocWithSco
     return os;
 }
 using ay::json_raii;
-std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocWithScoreVec_t& docVec,
-		const std::map<uint32_t, DocFeatureIndex::PosInfos_t>& positions, const DocFeatureIndex::TraceInfoMap_t& traceMap) const 
+std::ostream& DocIdxSearchResponseJSON::print( 
+    std::ostream& os, const DocWithScoreVec_t& docVec,
+    const std::map<uint32_t, 
+    DocFeatureIndex::PosInfos_t>& positions, const DocFeatureIndex::TraceInfoMap_t& traceMap, const std::vector<std::string>* tagVec=0) const 
 {
     json_raii raii( os, false, 0 );
 	
+    if( tagVec ) {
+        for( const auto& i: docVec ) goodDocSet.insert( i.first );
+        ay::tagindex_checker<uint32_t> checker( ixl.d_tagIndex );
+    }
+
 	if (d_barz.getUniverse())
 	{
 		os << "\n\"barz\": ";
@@ -299,4 +306,5 @@ std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocWithSc
     }
     return os;
 }
+
 } // namespace zurch
