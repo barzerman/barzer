@@ -56,6 +56,8 @@ public:
 	typedef std::map<const std::string, const std::string> AttrList;
     ReqFilterCascade filterCascade;
 
+    std::vector<std::string> docTags;
+
 	struct RequestTag {
 		std::string tagName;
 		AttrList attrs;
@@ -140,7 +142,12 @@ public:
     }
 
     uint32_t d_zurchDocIdxId; /// which zurch index to use - this  id is used to get a specific ZurchIUndex from global Pools
-    bool     d_zurchSearchById; /// which zurch index to use - this  id is used to get a specific ZurchIUndex from global Pools
+    enum {
+        ZURCH_MODE_STANDARD,
+        ZURCH_MODE_BYID,
+        ZURCH_MODE_ALL // no search is performed docs retrieved by tags only
+    };
+    int     d_zurchMode; /// which zurch index to use - this  id is used to get a specific ZurchIUndex from global Pools
 
     /// zurch doc indices uniquely correspond to the pair (userId,zurchDocIdxId)
     enum class QType {

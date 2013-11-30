@@ -15,7 +15,7 @@ namespace ay {
 // CB must have the following prototype 
 /// int operator()( size_t tok_num, const char* tok, const char* tok_end ) 
 template <typename CB>
-void parse_separator( CB&cb, const char* s, const char* s_end, char sep='|' )
+inline void parse_separator( CB&cb, const char* s, const char* s_end, char sep='|' )
 {
     const char* b = s, *pipe = strchr(b,sep);
     size_t tok_num = 0;
@@ -23,12 +23,16 @@ void parse_separator( CB&cb, const char* s, const char* s_end, char sep='|' )
 
 }
 template <typename CB>
-void parse_separator( const CB&cb, const char* s, const char* s_end, char sep='|' )
+inline void parse_separator( const CB&cb, const char* s, const char* s_end, char sep='|' )
 {
     const char* b = s, *pipe = strchr(b,sep);
     size_t tok_num = 0;
     for( ; b &&(b<s_end) && !cb( tok_num++, b, (pipe?pipe:s_end) ); b= (pipe?pipe+1:0), (pipe = (b? std::find(b,s_end,sep):0)) );
 }
+
+template <typename CB>
+inline void parse_separator( const CB&cb, const std::string& s, char sep='|' )
+    { parse_separator(cb, s.c_str(), s.c_str() + s.length(), sep ); }
 
 struct separated_string_to_vec {
     std::vector< std::string >& theVec;

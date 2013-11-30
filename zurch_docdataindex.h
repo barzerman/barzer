@@ -14,6 +14,7 @@
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/transform.hpp>
 #include <ay/ay_index.h>
+#include <ay/ay_tagindex.h>
 
 namespace zurch
 {
@@ -215,6 +216,8 @@ class DocDataIndex
 {
 	boost::unordered_map<uint32_t, DocInfo> m_index;
     SimpleIdx d_simpleIdx;
+
+    ay::tagindex<uint32_t>  d_tagIdx;
 public:
           SimpleIdx& simpleIdx()       { return d_simpleIdx; }
     const SimpleIdx& simpleIdx() const { return d_simpleIdx; }

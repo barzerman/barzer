@@ -553,7 +553,6 @@ void ZurchPhrase_DocLoader::readDocContentFromFile( const char* fn, size_t maxLi
             char* pipe = strchr( n, '|' ); 
             if( pipe ) {
                 *pipe=0;
-
 				docIdStr.assign( n );
 				docId = d_loader.addDocName( docIdStr.c_str() );
 
@@ -562,6 +561,20 @@ void ZurchPhrase_DocLoader::readDocContentFromFile( const char* fn, size_t maxLi
                 d_loader.index().setExtWeight(docId, weight );
             } else {
                 std::cerr << "Zurch Doc Contents Reader Error. Malformed POP.WEIGHT at line " <<  lineNum << std::endl;
+            }
+        } else if( BUF_BEGINSWITH("DOC_TAGID|")) { /// document tag
+            char* n = buf+sizeof("DOC_TAGID|")-1;
+            char* pipe = strchr( n, '|' ); 
+            if( pipe ) {
+                *pipe=0;
+                docIdStr.assign( n );
+				docId = d_loader.addDocName( docIdStr.c_str() );
+                const char* tagStr = pipe+1;
+                if( *tagStr ) {
+                    d_loader.index().d_docTags.addTag( docId, tagStr );
+                }
+            } else {
+                std::cerr << "Malformed DOC_TAGID at line " <<  lineNum << std::endl;
             }
         } else { /// regular text - must be content
             if( docId != 0xffffffff ) { /// only if a document is currently open
