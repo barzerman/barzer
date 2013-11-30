@@ -21,6 +21,7 @@ class tagindex {
     typedef std::set<typename TagMap::const_iterator,SetIter_comp_less> TagMapIterVec;
     std::map< I, TagMapIterVec> d_id2TagIter;
 public:
+    typedef I id_type;
     const IdSet* getTagIdSetPtr( const char* t ) const
     {
         auto x = d_theMap.find(t);
@@ -93,11 +94,13 @@ public:
     tagindex_checker( ) : d_idx(0) {}
     tagindex_checker( const tagindex<I>* i ) : d_idx(i) {}
 
+
     void setIdx(const tagindex<I>* i ) { 
         d_idx = i; 
         d_setVec.clear();
     }
     bool empty() const { return ( !d_idx || d_setVec.empty() ); }
+    const tagindex<I>& getIndex() { return *d_idx; }
     bool addTag( const char* t ) 
     {
         if( !d_idx ) return false;
@@ -106,6 +109,8 @@ public:
             d_setVec.push_back( x );
         return true;
     }
+    bool addTag( const std::string& t ) { return addTag( t.c_str()) ; }
+
     bool hasAnyTags( const I& id ) 
     {
         if( empty() ) return false;
@@ -115,7 +120,7 @@ public:
         }
         return false;
     }
-    bool hasAllTags( const I& id ) 
+    bool hasAllTags( const I& id ) const
     {
         if( empty() ) return false;
         for( const auto& s : d_setVec ) {
@@ -124,10 +129,10 @@ public:
         }
         return true;
     }
-    /// callback cb will be invoked for every id linked to all of the Tags as many times as there are tags this id is linked to 
+    /// callback cb will be invoked for every id linked to all of the Tags
     /// call is cb( id, tag )
     template <typename CB>
-    size_t visitAllIds( const CB& cb )
+    size_t visitAllIds( const CB& cb ) const
     {
         if( empty() ) return 0;
         auto shortVecI = d_setVec.begin();
@@ -145,11 +150,19 @@ public:
                 }
             }
             if( goodForCallback ) {
-                d_idx->visitAllTagsOfId( [&]( const std::string& tag ) { cb( *i, tag );}, *i );
+                cb( *i );
                 ++count;
             }
         }
         return count;
+    }
+    /// visits all applicable id,tag pairs    
+    template <typename CB>
+    size_t visitAllIdsAndTags( const CB& cb ) const
+    {
+        return visitAllIds( [&]( const I& id ) {
+            d_idx->visitAllTagsOfId( []( const std::string& tag ) { cb( id, tag );}, id );
+        });
     }
 };
 

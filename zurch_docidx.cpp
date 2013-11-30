@@ -708,7 +708,7 @@ void DocFeatureIndex::findDocumentDumb(DocWithScoreVec_t& out,
         formPropFilterVarVec( pfvv, *(parm.filterCascade), d_docDataIdx.simpleIdx()  ) ;
     }
 
-    boost::scoped_ptr<ay::tagindex_checker<uint32_t>>  tagChecker;
+    ay::tagindex_checker<uint32_t>  tagChecker;
     if( !parm.docTags.empty() ) {
         tagChecker.setIdx( &d_docTags );
         for( const auto& x : parm.docTags )

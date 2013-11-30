@@ -14,6 +14,7 @@
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/transform.hpp>
 #include <ay/ay_index.h>
+#include <ay/ay_tagindex.h>
 
 namespace zurch
 {

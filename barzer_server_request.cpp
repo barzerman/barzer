@@ -376,8 +376,10 @@ int BarzerRequestParser::initFromUri( QuestionParm& qparm, const char* u, size_t
             }
             break;
         case 'z':
-            if(i->first == "zdtag" && !i->second.empty())
-                ay::separated_string_to_vec( docTags )( i->second ); 
+            if(i->first == "zdtag" && !i->second.empty()) {
+                ay::separated_string_to_vec p( docTags );
+                p( i->second ); 
+            }
             break;
         }
 
@@ -723,14 +725,23 @@ void BarzerRequestParser::raw_query_parse_zurch( const char* query, const Stored
             index->findDocument( docVec, featureVec, parm, barz );
         }
     } else if( d_zurchMode == ZURCH_MODE_ALL ) {
-        zurch::DocFeatureIndex::SearchParm parm( d_maxResults, (filterCascade.empty()? 0: &filterCascade), docTags );
-        index->getDocsNoSearch( docVec, featureVec, parm );
+        zurch::DocIdxSearchResponseJSON response( qparm, *ixl, barz ); 
+        const auto& tagidx = index->d_docTags;
+        ay::tagindex_checker<uint32_t> idxChecker( &tagidx );
+        for( const auto&i : docTags ) idxChecker.addTag( i.c_str() );
+        idxChecker.visitAllIds( [&]( uint32_t i ) {
+            docVec.push_back( std::pair<uint32_t,double>(i, 1.0) );
+        });
     }
     if( ret == XML_TYPE ) {
         zurch::DocIdxSearchResponseXML response( qparm, *ixl, barz ); 
+        if( d_zurchMode == ZURCH_MODE_ALL || !docTags.empty() )
+            response.d_biflags.set( zurch::DocIdxSearchResponse::RSPBIT_NEED_DOCTAGS );
         response.print(os, docVec, positions); // TODO add barzTrace
     } else if ( ret == JSON_TYPE ) {
         zurch::DocIdxSearchResponseJSON response( qparm, *ixl, barz ); 
+        if( d_zurchMode == ZURCH_MODE_ALL || !docTags.empty() )
+            response.d_biflags.set( zurch::DocIdxSearchResponse::RSPBIT_NEED_DOCTAGS );
         response.print(os, docVec, positions, barzTrace);
     }
 }
@@ -1217,8 +1228,10 @@ void BarzerRequestParser::tag_query(RequestTag &tag)
                 }
                 break;
             case 'd':
-                if(i->first == "zdtag" && !i->second.empty())
-                    ay::separated_string_to_vec( docTags )( i->second ); 
+                if(i->first == "zdtag" && !i->second.empty()) {
+                    ay::separated_string_to_vec p( docTags );
+                    p( i->second ); 
+                }
                 break;
             }
             break;
