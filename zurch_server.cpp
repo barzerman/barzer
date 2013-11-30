@@ -197,14 +197,14 @@ std::ostream& DocIdxSearchResponseJSON::print(
         docRaii.startField( "w" ) << i->second;
         docRaii.startField( "ew" ) << docWeight;
 
-        if( d_biflags.checkBit(RSPBIT_NEED_DOCTAGS) ) {
+        if( d_qparm.d_biflags.checkBit(barzer::QuestionParm::QPBIT_ZURCH_TAGS) ) {
             std::vector< std::string > tagz;
             theIndex.d_docTags.visitAllTagsOfId( [&](const std::string& tag ) { tagz.push_back(tag); }, docId );
             if( !tagz.empty() ) {
                 docRaii.startField( "tags" );
                 json_raii itemRaii( os, true, 2 );
                 for( const auto& t : tagz ) 
-			        ay::jsonEscape(t.c_str(), itemRaii.startField(""), "\"");
+			        ay::jsonEscape(t.c_str(), itemRaii.startField("",true), "\"");
             }
         }
 		

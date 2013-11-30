@@ -17,12 +17,6 @@ public:
     const barzer::Barz&      d_barz;
     typedef ay::tagindex_checker<uint32_t> TagIndexChecker_t;
 
-    enum { 
-        RSPBIT_NEED_DOCTAGS,
-        RSPBIT_MAX
-    };
-    ay::bitflags<RSPBIT_MAX> d_biflags;
-
     const TagIndexChecker_t * d_tagIdxChecker;
 
     void setTagIndexChecker( const TagIndexChecker_t * checker ) { d_tagIdxChecker= checker; }

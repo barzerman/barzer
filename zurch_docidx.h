@@ -310,6 +310,15 @@ public:
 private:
 	std::map<uint32_t, DocInfo> m_docInfos;
 public:
+    template <typename CB> 
+    size_t visitAllDocs( const CB& cb) const {
+        size_t count = 0;
+        for( const auto& i : m_docInfos ) {
+            cb( i.first );
+            ++count;
+        }
+        return count;
+    }
     bool isDumbScoring() const { return !d_bitflags.checkBit( DocFeatureIndex::ZBIT_SMART_SCORING) ; }
 
     const char*         resolve_token( uint32_t strId ) const;

@@ -122,7 +122,7 @@ public:
     }
     bool hasAllTags( const I& id ) const
     {
-        if( empty() ) return false;
+        if( empty() ) return true;
         for( const auto& s : d_setVec ) {
             if( s->find(id) == s->end() )
                 return false;
