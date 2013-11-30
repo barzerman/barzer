@@ -743,7 +743,7 @@ void DocFeatureIndex::findDocumentDumb(DocWithScoreVec_t& out,
         double adjFactor = sizeBoost * classBoost / std::log(1 + numSources);
 		for (const auto& link : sources)
 		{
-            if( tagChecker.empty() && !tagChecker.hasAllTags(link.docId) )
+            if( !tagChecker.empty() && !tagChecker.hasAllTags(link.docId) )
                 continue;
             if( !pfvv.empty()  &&  !matchPropFilterVarVec( link.docId, pfvv ) )
                 continue;
