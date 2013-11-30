@@ -64,7 +64,7 @@ def application(env, start_response):
         if len(parts) != 2:
             continue
         k, v = parts
-        if k == 'query':
+        if k in ('query', 'q'):
             query = escape(unquote(v.replace('+', ' ')))
         elif k == 'key':
             uid = cache_get(v)
@@ -78,17 +78,18 @@ def application(env, start_response):
                 yield error("Invalid `ver' parameter")
                 return
         elif k in {'now','beni','zurch','flag','route','extra',
-                   'u','uname','byid'}:
+                   'u','uname','byid','zdtag'}:
             if k in ('u', 'uname'):
                 user_set = True
             add += ' {}={}'.format(k, quoteattr(unquote(v.replace('+', ' '))))
+
             
     if not user_set:
         yield error("Invalid user")
         return
-    elif not query:
-        yield error("Invalid query")
-        return
+#    elif not (query or byid):
+#        yield error("Invalid query")
+#        return
     elif int(ver) != 1:
         yield error("Version not supported")
         return
