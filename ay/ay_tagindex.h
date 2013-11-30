@@ -161,7 +161,7 @@ public:
     size_t visitAllIdsAndTags( const CB& cb ) const
     {
         return visitAllIds( [&]( const I& id ) {
-            d_idx->visitAllTagsOfId( []( const std::string& tag ) { cb( id, tag );}, id );
+            d_idx->visitAllTagsOfId( [&]( const std::string& tag ) { cb( id, tag );}, id );
         });
     }
 };
