@@ -108,7 +108,8 @@ DECL_TAGHANDLE(E) {
         return TAGHANDLE_ERROR_PARENT;
     StoredEntityClass eclass;
     std::string idStr;
-    float weight= WEIGHT_BOOST;
+    // float weight= WEIGHT_BOOST;
+    float weight= WEIGHT_IDENTITY;
     if( open ) {
         /// loops over all atributes
         ALS_BEGIN
