@@ -5,6 +5,8 @@
 #include <barzer_spell_features.h>
 #include <barzer_universe.h>
 #include <barzer_spellheuristics.h>
+#include <barzer_ru_lex.h>
+
 #include <barzer_language.h>
 #include <ay/ay_char.h>
 #include <ay/ay_levenshtein.h>
@@ -292,6 +294,11 @@ namespace
 				if (m_lang == LANG_ENGLISH) {
 					dist = m_levDist.ascii_no_case(str, m_str);
 				} else if (langIsTwoByte) {
+                    if( m_lang == LANG_RUSSIAN ) {
+                        // extra russian correctional heuristics
+                        if( ru_spell::heuristic_correction_not_allowed( m_str, str ) )
+                            continue;
+                    }
 					dist = m_levDist.twoByte(str, strLen / 2, m_str, m_strLen / 2);
 				} else {
 					dist = m_levDist.utf8(m_strUtf8, ay::StrUTF8(str, strLen));
