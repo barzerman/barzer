@@ -148,7 +148,16 @@ inline bool is_all_digits( const char* s )
     return true;
 }
 
-//// end of 2 byte char 
+inline bool is_2bchar_prefix_1( const char* x, const char* p )
+    { return ( x[0] == p[0] && x[1] == p[1] ); }
 
+inline bool is_2bchar_prefix_2( const char* x, const char* p )
+    { return ( is_2bchar_prefix_1(x,p) && is_2bchar_prefix_1( x+2, p+2 ) ); }
+inline bool is_2bchar_prefix_3( const char* x, const char* p )
+    { return ( is_2bchar_prefix_2(x,p) && is_2bchar_prefix_1( x+4, p+4 ) ); }
+inline bool is_2bchar_prefix_4( const char* x, const char* p )
+    { return ( is_2bchar_prefix_2(x,p) && is_2bchar_prefix_2( x+4, p+4 ) ); }
+
+//// end of 2 byte char 
 
 } // ay namespace ends 
