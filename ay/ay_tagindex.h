@@ -105,9 +105,11 @@ public:
     {
         if( !d_idx ) return false;
         auto x = d_idx->getTagIdSetPtr( t );
-        if( x )
+        if( x ) {
             d_setVec.push_back( x );
-        return true;
+            return true;
+        } else
+            return false;
     }
     bool addTag( const std::string& t ) { return addTag( t.c_str()) ; }
 
