@@ -52,8 +52,14 @@ struct DocFeature {
     } class_t;
     class_t featureClass;
 
-    DocFeature( ): featureId(0xffffffff), featureClass(CLASS_ENTITY) {}
-    DocFeature( class_t c, uint32_t i ): featureId(i), featureClass(c) {}
+    // extra classification info 
+    // for entities this is subordinate weight 0 - means no changes are needed, negative subweight means 
+    // means that the feature needs to be suppressed relative to the feature of the same class 
+    // positive subweight means it needs to be boosted
+    int8_t  extraClass; /// not used in comparisons 
+
+    DocFeature( ): featureId(0xffffffff), featureClass(CLASS_ENTITY), extraClass(0) {}
+    DocFeature( class_t c, uint32_t i, int8_t sw=0 ): featureId(i), featureClass(c), extraClass(sw)  {}
 
     int serialize( std::ostream& ) const;
     int deserialize( std::istream& );
