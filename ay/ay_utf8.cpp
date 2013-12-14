@@ -175,7 +175,6 @@ int unicode_normalize_punctuation( std::string& outStr, const char* srcStr, size
     tmp.reserve( srcStr_sz+16 );
 
     const char * s_beg = srcStr, *s_end =srcStr+ srcStr_sz, *s_end_2= ( s_end > s_beg+2 ? s_end -2: 0), *s_end_1 = (s_end > s_beg ? s_end -1: 0);
-
     for( const char* s = s_beg; s< s_end; ++s ) {
         char c= *s;
         const uint8_t uc = (uint8_t)(c);
@@ -254,12 +253,20 @@ int unicode_normalize_punctuation( std::string& outStr, const char* srcStr, size
                             break;
                         case 0x84:
                             switch( (uint8_t)(s[2]) ) {
+                            case 0xa2: // (tm)
+                                tmp.push_back( s[0] );
+                                tmp.push_back( s[1] );
+                                tmp.push_back( s[2] );
+                                s+= 2;
+                                continue;
                             case 0x96:
                                 s+=2; c='#'; break;
                                 break;
                             }
                             break;
                         }
+                    default: 
+                        break;
                     }
                 } 
                 if( (s == oldS) && s< s_end_1 ) { // two byte 
@@ -272,6 +279,8 @@ int unicode_normalize_punctuation( std::string& outStr, const char* srcStr, size
                         } else if( (uint8_t)(s[1]) == 0xa0 ) { // space (russian) 
                             ++s; c=' ';
                         }
+                        break;
+                    default: 
                         break;
                     }
                 } 
