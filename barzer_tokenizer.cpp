@@ -87,7 +87,7 @@ int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qpar
 	err.clear();
 
 	size_t origSize = ttwp.size();
-	char lc = 0;
+	char lc = 0, lc_1 = 0;
 	const char* tok = 0;
 	enum {
 		CHAR_UNKNOWN=0,
@@ -105,6 +105,7 @@ int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qpar
 		q_len = d_maxQueryLen;
 	
 	const char* s_end = q+ q_len;
+    const char* s_end_1 = s_end-1;
 	const char* s = q;
 	for( ; s!= s_end; ++s ) {
 
@@ -140,7 +141,8 @@ int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qpar
 			prevChar = CHAR_UNKNOWN;
 		} else if( isalnum(c) ) {
 			if( (isalpha(c) && (PREVCHAR_NOT(ALPHA)&&PREVCHAR_NOT(UTF8)) ) ||
-				(isdigit(c) && PREVCHAR_NOT(DIGIT) )
+				(isdigit(c) && PREVCHAR_NOT(DIGIT) ) ||
+                (AY_MAYBE_RUSSIAN_CHAR(lc_1) && !isascii(lc) )
 			) {
 				if( tok ) {
 					ttwp.push_back( TTWPVec::value_type( TToken(tok,s-tok).setOrigOffsetAndLength(tok-q,s-tok), ttwp.size() ));
@@ -157,6 +159,8 @@ int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qpar
 			}
 		} else
 			prevChar = CHAR_ALPHA;
+
+        lc_1=lc;
 	    lc=c;
 	}
 	if( tok ) {

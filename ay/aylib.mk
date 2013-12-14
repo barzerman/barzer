@@ -22,11 +22,11 @@ objects=ay_geo.o ay_translit_ru.o ay_keymaps.o ay_ngrams.o ay_xml_util.o ay_snow
 all: $(objects)
 	$(AR) -r  $(LIBNAME) $(objects)
 shared: $(objects)
-	$(CC) $(C11) $(C11LIB) -shared -Wl,-soname,$(SHARED_LIBNAME) -o $(SHARED_LIBNAME) $(objects)
-test: $(LIBNAME)
-	$(CC) -o testay testay.cpp $(CFLAGS) -lstdc++ -L. -lay $(C11LIB)
+	$(CC) -std=c++0x -I. $(C11) $(C11LIB) -shared -Wl,-soname,$(SHARED_LIBNAME) -o $(SHARED_LIBNAME) $(objects)
+testay: $(LIBNAME)
+	$(CC) -o testay -I. testay.cpp $(CFLAGS) -lstdc++ -L. -lay $(C11LIB)
 .cpp.o:
-	$(CC) -c $(CFLAGS) $< -o $@
+	$(CC) -c -std=c++0x $(CFLAGS) $< -o $@
 rebuild: clean all
 clean : 
 	rm -f $(objects) $(LIBNAME)

@@ -15,6 +15,7 @@ namespace ay {
 typedef const char* char_cp;
 typedef char* char_p;
 
+#define AY_MAYBE_RUSSIAN_CHAR(c) ((static_cast<uint8_t>(c)==0xd0) || (static_cast<uint8_t>(c)==0xd1))
 #define AY_MAYBE_RUSSIAN(s) ((static_cast<uint8_t>((s)[0])==0xd0) || (static_cast<uint8_t>((s)[0])==0xd1))
 #define AY_TOUPPER(c) ( ('a'<=(c) && 'z'>=(c)) ? ((c)-32) : (c) )
 #define AY_TOLOWER(c) ( ('A'<=(c) && 'Z'>=(c)) ? ((c)+32) : (c) )
