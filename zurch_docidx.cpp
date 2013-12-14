@@ -55,7 +55,7 @@ struct Filter_visitor : public boost::static_visitor<bool> {
 
 typedef std::vector< PropFilterVar > PropFilterVarVec;
 
-bool matchPropFilterVarVec( uint32_t docId, const PropFilterVarVec& vvec )
+inline bool matchPropFilterVarVec( uint32_t docId, const PropFilterVarVec& vvec )
 {
     Filter_visitor vis( docId );
     for( const auto& i : vvec ) {
@@ -70,18 +70,15 @@ void formPropFilterVarVec( PropFilterVarVec& vvec, const barzer::ReqFilterCascad
 {
     for( const auto& i : filter.filterMap ) {
         if( auto x = i.second.get<int>() ) {
-            const SimpleIdx::int_t* ix = simpleIdx.ix_int( i.first );
-            if( ix ) 
+            if( const SimpleIdx::int_t* ix = simpleIdx.ix_int( i.first ) )
                 vvec.push_back( PropFilterVar( PropFilter<int>(i.first, &(i.second),ix) ) );
         } else 
         if( auto x = i.second.get<double>() ) {
-            const SimpleIdx::double_t* ix = simpleIdx.ix_double( i.first );
-            if( ix ) 
+            if( const SimpleIdx::double_t* ix = simpleIdx.ix_double( i.first ) )
                 vvec.push_back( PropFilterVar( PropFilter<double>(i.first, &(i.second),ix) ) );
         } else
         if( auto x = i.second.get<std::string>() ) {
-            const SimpleIdx::string_t* ix = simpleIdx.ix_string( i.first );
-            if( ix ) 
+            if( const SimpleIdx::string_t* ix = simpleIdx.ix_string( i.first ) )
                 vvec.push_back( PropFilterVar( PropFilter<std::string>(i.first, &(i.second),ix) ) );
         }
     }
@@ -337,7 +334,13 @@ namespace
 		}
 		return pos;
 	}
-	
+inline int8_t get_ent_extra_class( uint32_t ownEntClass, uint32_t eclass, size_t sz = 1 ) 
+{
+    return( eclass == ownEntClass ? 0 :
+        (eclass <= barzer::StoredUniverse::GENERIC_CLASS_RANGE_MAX ? ( (sz< 5? sz:5 )*(-1)) : 0 )
+    );
+}
+
 	template<typename IndexType, typename EntGetter, typename StringGetter, typename RawStringGetter>
 	int vecFiller(IndexType idx,
 			EntGetter getEnt, StringGetter getStr, RawStringGetter getRawStr,
@@ -353,6 +356,8 @@ namespace
 		const auto& meanings = idx->getMeaningsStorage();
 		
 		featureVec.reserve(barz.getBeadList().size() * maxGramSize);
+
+        auto ownEntClass = universe->getUserId();
 
 		for( auto i = barz.getBeadList().begin(); i!= barz.getBeadList().end(); ++i ) {
 			const auto& fdp = getPosFromCToks(i->getCTokens());
@@ -404,7 +409,7 @@ namespace
                 
 				featureVec.push_back( 
 					ExtractedDocFeature( 
-						DocFeature( DocFeature::CLASS_STEM, strId ), 
+						DocFeature( DocFeature::CLASS_STEM, strId),
 						fdp,
                         numTokensInFeature
 					) 
@@ -413,7 +418,10 @@ namespace
 				uint32_t entId = (idx->*getEnt)( *x, *universe );
 				featureVec.push_back( 
 					ExtractedDocFeature( 
-						DocFeature( DocFeature::CLASS_ENTITY, entId ), 
+						DocFeature( 
+                            DocFeature::CLASS_ENTITY, 
+                            entId, 
+                            get_ent_extra_class(ownEntClass, x->getEntityClass()) ),
 						fdp,
                         numTokensInFeature
 					) 
@@ -423,7 +431,8 @@ namespace
 					uint32_t entId = (idx->*getEnt)( *li, *universe );
 					featureVec.push_back( 
 						ExtractedDocFeature( 
-							DocFeature( DocFeature::CLASS_ENTITY, entId ), 
+							DocFeature( DocFeature::CLASS_ENTITY, entId,
+                                get_ent_extra_class(ownEntClass, li->getEntityClass(), x->getList().size() ) ), 
 							fdp,
                             numTokensInFeature
 						) 
@@ -448,7 +457,7 @@ namespace
 				else
 					featureVec.push_back( 
 						ExtractedDocFeature( 
-							DocFeature( DocFeature::CLASS_STEM, strId ), 
+							DocFeature( DocFeature::CLASS_STEM, strId ),
 							fdp,
                             numTokensInFeature
 						) 
@@ -456,7 +465,7 @@ namespace
 			} else if (auto dt = i->get<barzer::BarzerDate>()) {
 				featureVec.push_back(
                     ExtractedDocFeature(
-                        DocFeature(DocFeature::CLASS_DATETIME, dt->getTime_t()),
+                        DocFeature(DocFeature::CLASS_DATETIME, dt->getTime_t() ),
                         numTokensInFeature
                     )
                 );
@@ -701,6 +710,18 @@ namespace
 	template<typename T> T pow2 (T t) { return t * t; }
 }
 
+namespace {
+
+inline void scale_extra_boost_by_extraClass( double& extraBoost, const DocFeature& f )
+{
+    if( f.featureClass == DocFeature::CLASS_ENTITY ) {
+        if( f.extraClass< 0 )
+            extraBoost*= pow( 0.9, std::abs( std::min( static_cast<int>(f.extraClass),-4) ) ); 
+    }
+}
+
+}
+
 void DocFeatureIndex::findDocumentDumb(DocWithScoreVec_t& out,
 		const ExtractedDocFeature::Vec_t& fVec,
 		DocFeatureIndex::SearchParm& parm,
@@ -709,6 +730,13 @@ void DocFeatureIndex::findDocumentDumb(DocWithScoreVec_t& out,
     PropFilterVarVec pfvv;
     if( parm.filterCascade ) {
         formPropFilterVarVec( pfvv, *(parm.filterCascade), d_docDataIdx.simpleIdx()  ) ;
+    }
+
+    ay::tagindex_checker<uint32_t>  tagChecker;
+    if( !parm.docTags.empty() ) {
+        tagChecker.setIdx( &d_docTags );
+        for( const auto& x : parm.docTags )
+            tagChecker.addTag( x.c_str() );
     }
 
 	std::map<uint32_t, double> doc2score;
@@ -723,10 +751,14 @@ void DocFeatureIndex::findDocumentDumb(DocWithScoreVec_t& out,
 			continue;
 
 		auto maxClass = DocFeature::CLASS_STEM;
-		for (const auto& f : ngram.feature.getFeatures())
+        double extraFeatureBoost = 1.0;
+
+		for (const auto& f : ngram.feature.getFeatures()) {
 			if (f.featureClass > maxClass)
 				maxClass = f.featureClass;
-
+            if( f.featureClass == DocFeature::CLASS_ENTITY )
+                scale_extra_boost_by_extraClass( extraFeatureBoost, f );
+        }
 		const double classBoost = ZurchModelParms::get().getClassBoost( maxClass );
 
 		const int sizeBoost = ngram.getRealTokenSize();
@@ -736,12 +768,14 @@ void DocFeatureIndex::findDocumentDumb(DocWithScoreVec_t& out,
 
 		const size_t numSources = 1 + sources.size();
 
-        double adjFactor = sizeBoost * classBoost / std::log(1 + numSources);
+        double adjFactor = extraFeatureBoost * sizeBoost * classBoost / std::log(1 + numSources);
 		for (const auto& link : sources)
 		{
+            if( !tagChecker.empty() && !tagChecker.hasAllTags(link.docId) )
+                continue;
             if( !pfvv.empty()  &&  !matchPropFilterVarVec( link.docId, pfvv ) )
                 continue;
-
+            
 			const auto scoreAdd = static_cast<double>(link.weight) * adjFactor;
 
 			if (parm.doc2pos)

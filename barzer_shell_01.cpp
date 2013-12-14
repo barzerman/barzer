@@ -50,6 +50,22 @@ static int bshf_file( BarzerShell* shell, ay::char_cp cmd, std::istream& in , co
     else if( status ) shell->setInFile();
     return 0;
 }
+static int bshf_benix( BarzerShell* shell, ay::char_cp cmd, std::istream& in , const std::string& argStr)
+{
+    ay::file_istream inFile( shell->getInStreamPtr() );
+    ay::file_ostream outFile(shell->getOutStreamPtr()), errFile( shell->getErrStreamPtr() );
+
+    std::string buf;
+    while( std::getline(inFile.fp(),buf) ) {
+        TFE_ngram xtractor;
+        ExtractedStringFeatureVec fv;
+        xtractor( fv, buf.c_str(), buf.length(), LANG_UNKNOWN );
+        for( const auto& i : fv ) {
+            outFile.fp() << i << std::endl;
+        }
+    }
+    return 0;
+}
 static int bshf_normalize( BarzerShell* shell, ay::char_cp cmd, std::istream& in , const std::string& argStr)
 {
     ay::file_istream inFile( shell->getInStreamPtr() );
@@ -104,6 +120,7 @@ static int bshf_func( BarzerShell* shell, ay::char_cp cmd, std::istream& in , co
 static const ay::Shell::CmdData g_cmd[] = {
 ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_test01), "test01", "placeholder" ),
 ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_morph), "morph", "morphological normalization" ),
+ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_benix), "benix", "extract beni features" ),
 ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_normalize), "beninorm", "morphological normalization" ),
 ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_batchparse), "batchparse", "[parms.xml] parses bulk input. params.xml contains parsing parameters" ),
 ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_file), "file", "-o out file -e err file -i input file. no arguments prints current names" ),

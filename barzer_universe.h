@@ -233,7 +233,7 @@ public:
     enum { GENERIC_CLASS_RANGE_MAX= 100 };
 
 	uint32_t getUserId() const { return d_userId; }
-    uint32_t getEntClass() const { return ( GENERIC_CLASS_RANGE_MAX+ d_userId); }
+    uint32_t getEntClass() const { return ( d_userId); }
 
 	bool stemByDefault() const { return gp.parseSettings().stemByDefault(); }
 	UniverseTrieCluster& getTrieCluster() { return trieCluster; }

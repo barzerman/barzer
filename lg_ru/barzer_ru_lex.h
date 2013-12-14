@@ -33,4 +33,28 @@ public:
     };
     ay::bitflags< BIT_MAX > d_bit;
 };
+
+namespace ru_spell {
+
+#define ONE_HAS_PREFIX_DECL(n) inline bool one_has_prefix_##n( const char* x, const char* y, const char* p ) \
+{\
+    return ( \
+        (ay::is_2bchar_prefix_##n( x, p ) && !ay::is_2bchar_prefix_##n(y,p)) ||\
+        (!ay::is_2bchar_prefix_##n( x, p ) && ay::is_2bchar_prefix_##n(y,p))\
+    );\
+}
+
+ONE_HAS_PREFIX_DECL(1) // one_has_prefix_1 - only one of the strings has the 1 char prefix
+ONE_HAS_PREFIX_DECL(2) // one_has_prefix_2 - only one of the strings has the 2 char prefix
+ONE_HAS_PREFIX_DECL(3) // one_has_prefix_3 - only one of the strings has the 3 char prefix
+ONE_HAS_PREFIX_DECL(4) // one_has_prefix_4 - only one of the strings has the 4 char prefix
+
+/// returns tue if src cannot be corrected to corr for some language specific reason
+inline bool heuristic_correction_not_allowed( const char* src, const char* corr )
+{
+    return( one_has_prefix_2(src, corr, "не") );
+}
+
+} // namespace ru_spell
+
 } // namespace barzer

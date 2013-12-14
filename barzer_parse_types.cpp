@@ -130,6 +130,7 @@ void QuestionParm::setZurchFlags( const char* str )
 		case 't': d_biflags.set(QPBIT_ZURCH_TRACE, false); break;
 		case 'T': d_biflags.set(QPBIT_ZURCH_TRACE, true); break;
         case 'H': d_biflags.set(QPBIT_ZURCH_HTML,true); break; /// stream HTML
+        case 'g': d_biflags.set(QPBIT_ZURCH_TAGS,true); break; /// stream document tags 
         }
     }
 }

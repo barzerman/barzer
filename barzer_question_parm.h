@@ -21,6 +21,7 @@ struct QuestionParm {
         QPBIT_ZURCH_NO_CHUNKS,
         QPBIT_ZURCH_NO_DETAILED,
 		QPBIT_ZURCH_TRACE,
+		QPBIT_ZURCH_TAGS,
 
         /// add new bits above this line only
         QPBIT_MAX

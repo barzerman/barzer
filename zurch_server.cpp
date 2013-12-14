@@ -57,8 +57,7 @@ std::ostream& DocIdxSearchResponseXML::printHTML( std::ostream& os, const DocWit
     }
     return os;
 }
-std::ostream& DocIdxSearchResponseXML::print( std::ostream& os, const DocWithScoreVec_t& docVec,
-		const std::map<uint32_t, DocFeatureIndex::PosInfos_t>& positions ) const 
+std::ostream& DocIdxSearchResponseXML::print( std::ostream& os, const DocWithScoreVec_t& docVec, const std::map<uint32_t, DocFeatureIndex::PosInfos_t>& positions ) const 
 {
     if( d_qparm.d_biflags.checkBit(barzer::QuestionParm::QPBIT_ZURCH_HTML) ) {
         return printHTML(os,docVec,positions) ;
@@ -135,12 +134,14 @@ std::ostream& DocIdxSearchResponseXML::print( std::ostream& os, const DocWithSco
     return os;
 }
 using ay::json_raii;
-std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocWithScoreVec_t& docVec,
-		const std::map<uint32_t, DocFeatureIndex::PosInfos_t>& positions, const DocFeatureIndex::TraceInfoMap_t& traceMap) const 
+std::ostream& DocIdxSearchResponseJSON::print( 
+    std::ostream& os, const DocWithScoreVec_t& docVec,
+    const std::map<uint32_t, 
+    DocFeatureIndex::PosInfos_t>& positions, const DocFeatureIndex::TraceInfoMap_t& traceMap) const 
 {
     json_raii raii( os, false, 0 );
 	
-	if (d_barz.getUniverse())
+	if (d_barz.getUniverse() && !d_barz.getTtVec().empty())
 	{
 		os << "\n\"barz\": ";
 		barzer::BarzStreamerJSON streamer(d_barz, *d_barz.getUniverse());
@@ -177,9 +178,11 @@ std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocWithSc
     bool hasChunks = loader.hasChunks() ;
     bool hasContent = loader.hasContent() ;
     for( auto i= docVec.begin(); i!= docVec.end() ; ++i ) {
+        uint32_t docId = i->first;
+        if( d_tagIdxChecker && !d_tagIdxChecker->hasAllTags(docId) )
+            continue;
         allDocsRaii.startField("");
         json_raii docRaii( os, false, 2 );
-        uint32_t docId = i->first;
         const char* docName = d_ixl.getDocName(docId);
         if( !docName ) docName= "";
         ay::jsonEscape( docName , docRaii.startField( "n" ), "\"" );
@@ -193,6 +196,17 @@ std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocWithSc
 
         docRaii.startField( "w" ) << i->second;
         docRaii.startField( "ew" ) << docWeight;
+
+        if( d_qparm.d_biflags.checkBit(barzer::QuestionParm::QPBIT_ZURCH_TAGS) ) {
+            std::vector< std::string > tagz;
+            theIndex.d_docTags.visitAllTagsOfId( [&](const std::string& tag ) { tagz.push_back(tag); }, docId );
+            if( !tagz.empty() ) {
+                docRaii.startField( "tags" );
+                json_raii itemRaii( os, true, 2 );
+                for( const auto& t : tagz ) 
+			        ay::jsonEscape(t.c_str(), itemRaii.startField("",true), "\"");
+            }
+        }
 		
         if( hasChunks ) {
 		    chunks.clear();
@@ -299,4 +313,5 @@ std::ostream& DocIdxSearchResponseJSON::print( std::ostream& os, const DocWithSc
     }
     return os;
 }
+
 } // namespace zurch

@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
     <users>
-        <user id="200">
-            <flags value="cs"/>
-            <enttrans>
-                <subclass src="100,10" dest="200,20"/>
-            </enttrans>
-            <rules> <file rewriter="shit">dev/ent_trans.xml</file> </rules>
+        <user id="0">
+            <rules> <file rewriter="shit">dev/shit.xml</file> </rules>
             <rwrchain>
                 <rewriter name="shit" />
             </rwrchain>

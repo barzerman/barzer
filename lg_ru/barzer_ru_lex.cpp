@@ -27,4 +27,4 @@ bool Russian_Stemmer::stem( std::string& out, const char* s, const Russian_Stemm
     return Russian::normalize(out,s,0,settings);
 }
 
-}
+} // namespace barzer
