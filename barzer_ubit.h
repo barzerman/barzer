@@ -23,6 +23,7 @@ namespace barzer {
                                        /// controlled by user:flags[value] has 'z'
         UBIT_NC_NO_SEPARATORS, /// all separators and floating point numbers are ignored. 1.1 is parsed as 1 / . / 1 (2 ints nd a dot)
                                /// controlled by user:flags[value] has 's'
+        UBIT_NO_SPLIT_DOTDATE, // 
 
         /// date processing 
         UBIT_DATE_FUTURE_BIAS,
