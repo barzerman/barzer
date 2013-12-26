@@ -110,7 +110,6 @@ struct CToken {
 	TTWPVec qtVec; // input question tokens corresponding to this CToken 
 	CTokenClassInfo cInfo;
 	TokenLinguisticInfo ling; 
-    
 
 	typedef std::pair< std::string, std::string > StringPair;
 	typedef std::vector< StringPair > SpellCorrections;
