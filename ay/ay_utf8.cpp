@@ -167,6 +167,12 @@ void vecAppend( std::vector<char>& v, const char* s )
     for( ; *s; ++s ) 
         v.push_back( *s);
 }
+void vecAppend( std::vector<char>& v, const char* s, size_t s_len )
+{
+    for( const char* s_end = s+s_len; s< s_end; ++s ) 
+        v.push_back( *s);
+}
+
 } // anon namespace
 
 int unicode_normalize_punctuation( std::string& outStr, const char* srcStr, size_t srcStr_sz ) 
@@ -251,12 +257,16 @@ int unicode_normalize_punctuation( std::string& outStr, const char* srcStr, size
                                 s+=2; c = ';'; break;
                             }
                             break;
+                        case 0x82:
+                            if( !isascii(s[2]) ) {
+                                vecAppend( tmp, s, 3 );
+                                s+= 2;
+                            }
+                                continue;
                         case 0x84:
                             switch( (uint8_t)(s[2]) ) {
                             case 0xa2: // (tm)
-                                tmp.push_back( s[0] );
-                                tmp.push_back( s[1] );
-                                tmp.push_back( s[2] );
+                                vecAppend( tmp, s, 3 );
                                 s+= 2;
                                 continue;
                             case 0x96:
