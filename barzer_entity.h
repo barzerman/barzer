@@ -257,10 +257,7 @@ struct BestEntities_EntWeight {
 
 inline bool operator <( const BestEntities_EntWeight& l, const BestEntities_EntWeight& r ) 
 {
-    return ( l.pathLen < r.pathLen ?
-        true :
-        r.relevance < l.relevance 
-    );
+    return ( l.pathLen+r.relevance < r.pathLen + l.relevance );
 }
 
 struct StoredEntityUniqId_Hash {

@@ -130,6 +130,7 @@ void SmartBENI::addEntityClass( const StoredEntityClass& ec )
     std::vector<char> tmpBuf;
     std::string dest;
     std::string normDest;
+    std::cerr << "Creating BENI for " << d_beniStraight.d_universe.getSubclassName(ec) ;
     for( auto i = theMap.lower_bound( id );i!= theMap.end() && i->first.eclass == ec; ++i ) {
         const EntityData::EntProp* edata = d_beniStraight.d_universe.getEntPropData( i->first );
         if( edata && !edata->canonicName.empty() ) {
@@ -140,9 +141,10 @@ void SmartBENI::addEntityClass( const StoredEntityClass& ec )
 			    d_beniSl.addWord(normDest, i->first);
             
             ++numNames;
+            if( !(numNames%5000) ) std::cerr << ".";
         }
     }
-    std::cerr << "BENI: " << numNames << " names for " << ec << std::endl;
+    std::cerr << " done " << numNames << " names for " << ec << std::endl;
 }
 
 int SubclassBENI::search( BENIFindResults_t& out, const char* query, const StoredEntityClass& sc , double minCov ) const

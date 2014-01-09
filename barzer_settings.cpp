@@ -96,7 +96,7 @@ void BarzerSettings::addRulefile(BELReader& reader, const Rulefile &f)
 
 	int num = reader.loadFromFile(fname, BELReader::INPUT_FMT_XML);
     if( num>=0 ) {
-	    std::cerr << "PROCESSOR FILE ";
+	    std::cerr << " PROCESSOR FILE ";
         if( d_currentUniverse->userName().empty() )
             std::cerr << tclass;
         else
@@ -663,7 +663,7 @@ void load_ent_info(BELReader& reader, User& u, const ptree &node)
                 if( const boost::optional<std::string> optSrc = optAttr.get().get_optional<std::string>("src"))  {
                     if( const boost::optional<std::string> optDest = optAttr.get().get_optional<std::string>("dest"))  {
                         std::string src = optSrc.get(), dest= optDest.get();
-                        if( !u.addEntTranslation( src.c_str(), dest.c_str() ) )
+                        if( u.addEntTranslation( src.c_str(), dest.c_str() ) )
                             std::cerr << "ERROR setting entity translation subclass src=\"" << src << "\", dest=\"" << dest << "\"" << std::endl;
                     }
                 }
@@ -793,7 +793,12 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user, c
 	loadSpell(u, children);
 	loadMeanings(u, children);
 
-    reader.setRespectLimits( userId );
+	const boost::optional<std::string> respectLimitsOpt
+		= children.get_optional<std::string>("<xmlattr>.limits");
+    if( !respectLimitsOpt || respectLimitsOpt.get() != "no" ) 
+        reader.setRespectLimits( userId );
+    else
+        std::cerr << "Emit counts and all other LIMITS will be ignored\n";
     reader.setCurrentUniverse( u.getUniversePtr(), &u );
     load_ent_info(reader, u, children);
     load_user_flags(reader, u, children);
