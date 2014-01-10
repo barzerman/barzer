@@ -286,6 +286,10 @@ public:
         { return (d_weightMap.size() >= d_maxEnt); }
     const EntWeightMap& getEntitiesAndWeights() const 
         { return d_weightMap; }
+
+    uint32_t getNumEnt() const { return d_weightMap.size(); }
+    uint32_t getMaxNumEnt() const { return d_maxEnt; }
+
     void clear() { 
         d_entMap.clear();
         d_weightMap.clear();

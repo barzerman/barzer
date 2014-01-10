@@ -137,7 +137,7 @@ public:
         Settings() : 
             d_beni_Cutoff( 0.5 ),
             d_beni_AutocCutoff( 0.7 ),
-            d_beni_MinAutocCount(3)
+            d_beni_MinAutocCount(6)
         {}
         bool isBeniCoverageGoodForAutoc( double c ) const { return c> d_beni_AutocCutoff; }
         bool hasEnoughGlyphsForAutoc( size_t n ) const { return (n>= d_beni_MinAutocCount); }
