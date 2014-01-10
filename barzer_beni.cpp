@@ -229,7 +229,11 @@ void SmartBENI::search(
     }
     std::sort( out.begin(), out.end(), 
         []( const BENIFindResult& l, const BENIFindResult& r ) 
-            { return (l.coverage> r.coverage?  true:(r.coverage>l.coverage ? false: (l.popRank>r.popRank ? true: l.nameLen< r.nameLen))  ); } 
+            { 
+                const auto ll = l.coverage*(1+l.popRank), rr=r.coverage*(1+r.popRank);
+                return ( rr < ll ? true : ( ll<rr ? false : l.nameLen< r.nameLen) );
+                // return (l.coverage> r.coverage?  true:(r.coverage>l.coverage ? false: (l.popRank>r.popRank ? true: l.nameLen< r.nameLen))  ); 
+            } 
         );
     if( out.size() > maxCount ) 
         out.resize(maxCount);
