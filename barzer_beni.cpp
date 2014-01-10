@@ -100,7 +100,7 @@ size_t SmartBENI::addEntityFile( const char* path, const char* modeStr )
         StoredEntity& ent = d_universe.getGlobalPools().getDtaIdx().addGenericEntity( euid.tokId, euid.eclass.ec, euid.eclass.subclass );
 
         Lang::stringToLower( tmpBuf, lowerCase, name.c_str() );
-        BENI::normalize( normName, lowerCase );
+        BENI::normalize( normName, lowerCase, &d_universe );
         if( mode == NAME_MODE_OVERRIDE )
             d_universe.setEntPropData( ent.getEuid(), name.c_str(), relevance, true );
         else if( mode == NAME_MODE_SKIP )
@@ -135,7 +135,7 @@ void SmartBENI::addEntityClass( const StoredEntityClass& ec )
         const EntityData::EntProp* edata = d_beniStraight.d_universe.getEntPropData( i->first );
         if( edata && !edata->canonicName.empty() ) {
             Lang::stringToLower( tmpBuf, dest, edata->canonicName );
-            BENI::normalize( normDest, dest );
+            BENI::normalize( normDest, dest, &d_universe );
 			d_beniStraight.addWord(normDest, i->first);
             if( d_isSL ) 
 			    d_beniSl.addWord(normDest, i->first);
@@ -196,7 +196,7 @@ void SubclassBENI::addSubclassIds(const StoredEntityClass& sec, const char *patt
 		if (pattern)
 			dest = boost::regex_replace(dest, rxObj, replace);
 		Lang::stringToLower(tmpBuf, dest, str);
-		BENI::normalize(normDest, dest);
+		BENI::normalize(normDest, dest, &m_universe);
 
 		pos->second->addWord(normDest, i->first);
 	}
@@ -228,7 +228,7 @@ void SmartBENI::search(
         }
     }
     std::sort( out.begin(), out.end(), 
-        []( const BENIFindResult& l, const BENIFindResult& r ) 
+        []( const BENIFindResult& l, const BENIFindResult& r ) -> bool
             { 
                 const auto ll = l.coverage*(1+l.popRank), rr=r.coverage*(1+r.popRank);
                 return ( rr < ll ? true : ( ll<rr ? false : l.nameLen< r.nameLen) );
@@ -284,7 +284,7 @@ void BENI::addEntityClass( const StoredEntityClass& ec )
         const EntityData::EntProp* edata = d_universe.getEntPropData( i->first );
         if( edata && !edata->canonicName.empty() ) {
             Lang::stringToLower( tmpBuf, dest, edata->canonicName );
-            BENI::normalize( normDest, dest );
+            BENI::normalize( normDest, dest, &d_universe );
 			addWord(normDest, i->first);
             
             ++numNames;
@@ -336,7 +336,7 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov, c
     size_t query_len = strlen(query);
     std::string queryStr(query);
 	Lang::stringToLower( tmpBuf, dest, queryStr );
-    normalize( normDest, dest );
+    normalize( normDest, dest, &d_universe );
     enum { MAX_BENI_RESULTS = 64 };
     d_storage.getMatches( normDest.c_str(), normDest.length(), vec, MAX_BENI_RESULTS, minCov, filter);
 	
@@ -407,7 +407,7 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov, c
     return maxCov;
 }
 
-bool BENI::normalize( std::string& out, const std::string& in ) 
+bool BENI::normalize( std::string& out, const std::string& in, const StoredUniverse* uni ) 
 {
     out.clear();
     out.reserve( 2*in.length() );
@@ -427,27 +427,38 @@ bool BENI::normalize( std::string& out, const std::string& in )
     int lastOutNonspaceCT = CT_CHAR;
 
     for( size_t i = 0; i< in_length; ++i ) {
+        const char* inStr = in.c_str()+i;
         char prevC = ( i>0 ? in[i-1] : 0 );
         char c1 = ( i< in_length_1 ? in[i+1] : 0 );
         char c = in[i];
+        char c_1 = ( i>0 ? in[i-1] : 0 );
 
         int ct_prev = GET_CT(prevC); 
         int ct_next = GET_CT(c1);
         int ct = GET_CT(c);
         
-        if( c == '&' && c1 == '#' ) {
-            const char* tmp = in.c_str()+i+2, *tmp_end = in.c_str()+in_length; 
-            size_t tmpI = i+2;
-            for( ; tmp < tmp_end && *tmp>='0' && *tmp<='9'; ++tmp ) 
-                ++tmpI;
-            
-            if( tmp < tmp_end && *tmp == ';' ) {
-                i= tmpI;
-                if( out.empty() || *(out.rbegin()) != ' ' ) 
-                    out.push_back( ' ' );
-                if( !altered )
-                    altered = true;
-                continue;
+        if( c == '&' ) {
+            if( c1 == '#' ) {
+                const char* tmp = in.c_str()+i+2, *tmp_end = in.c_str()+in_length; 
+                size_t tmpI = i+2;
+                for( ; tmp < tmp_end && *tmp>='0' && *tmp<='9'; ++tmp ) 
+                    ++tmpI;
+             
+                if( tmp < tmp_end && *tmp == ';' ) {
+                    i= tmpI;
+                    if( out.empty() || *(out.rbegin()) != ' ' ) 
+                        out.push_back( ' ' );
+                    if( !altered )
+                        altered = true;
+                    continue;
+                }
+            }
+        } else if( c =='a' && ( !c_1||isspace(c_1)) ) { // normalizing AND to & 
+            if( !uni || !uni->checkBit( UBIT_BENI_NORM_KEEPANDS ) ) {
+                if( c1 == 'n' && inStr[2] == 'd' && (isspace(inStr[3]) || !inStr[3]) ) { 
+                    i+=2;
+                    continue;
+                }
             }
         }
 
@@ -472,7 +483,7 @@ bool BENI::normalize( std::string& out, const std::string& in )
     }
     return altered;
 }
-bool BENI::normalize_old( std::string& out, const std::string& in ) 
+bool BENI::normalize_old( std::string& out, const std::string& in, const StoredUniverse* uni )
 {
     out.clear();
     out.reserve( in.length() );

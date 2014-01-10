@@ -388,8 +388,8 @@ public:
 	BENI(const BENI&) = delete;
 	BENI& operator=(const BENI&) = delete;
     
-    static bool normalize_old( std::string& out, const std::string& in ) ;
-    static bool normalize( std::string& out, const std::string& in ) ;
+    static bool normalize_old( std::string& out, const std::string& in, const StoredUniverse* ) ;
+    static bool normalize( std::string& out, const std::string& in, const StoredUniverse* ) ;
     void setSL( bool );
 };
 

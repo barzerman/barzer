@@ -72,10 +72,13 @@ static int bshf_normalize( BarzerShell* shell, ay::char_cp cmd, std::istream& in
     ay::file_ostream outFile(shell->getOutStreamPtr()), errFile( shell->getErrStreamPtr() );
     std::string buf;
     std::string stem;
+    const auto context = shell->getBarzerContext();
+
+    const StoredUniverse &uni = context->getUniverse();
     while( std::getline(inFile.fp(),buf) ) {
         if( buf.empty() ) 
             break;
-        BENI::normalize( stem, buf );
+        BENI::normalize( stem, buf, &uni );
         outFile.fp() << stem << std::endl;
     }
     return 0;

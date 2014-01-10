@@ -17,6 +17,7 @@ namespace barzer {
         UBIT_USE_BENI_IDS, /// when using beni will try to only invoke for ids 
         UBIT_BENI_SOUNDSLIKE, /// if on BENI stores converts all ngrams using sounds like 
         UBIT_BENI_NO_BOOST_MATCH_LEN, /// when set there is no boost by match length
+        UBIT_BENI_NORM_KEEPANDS, /// doesnt remove "ands" 
 
         /// number lexing
         UBIT_NC_LEADING_ZERO_ISNUMBER, /// if bit set will interpret 00500 as 500, otherwise only 0X (2 digits are perceived as numbers)
