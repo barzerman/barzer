@@ -48,18 +48,15 @@ public:
 
 	void addWord(const char *srcStr, const T& data)
 	{
+        if( ! *srcStr ) return;
+
 		std::string str(srcStr);
 		if (m_soundsLikeEnabled)
 		{
 			std::string tmp;
 			EnglishSLHeuristic(0).transform(srcStr, str.size(), tmp);
 
-		    const auto utfLength = ay::StrUTF8::glyphCount(tmp.c_str(), tmp.c_str() + tmp.size());
-            if( utfLength > 4 ) {
-                str.clear();
-                for( auto i : tmp ) { if( !isspace(i) ) str.push_back(i); }
-            } else
-			    str = tmp;
+            str = tmp;
 		}
 		
 	    TFE_TmpBuffers bufs( m_storedVec, m_extractedVec );
@@ -159,7 +156,7 @@ public:
             const size_t dist = 1; // we shouldnt need to compute levenshtein
             double cover = item.second.fCount / srcFCnt;
             if( m_soundsLikeEnabled) 
-                cover *= 0.95;
+                cover *= 0.98;
 
             if( cover >= minCov) {
 				const auto dataPosRange = m_storage.equal_range(item.first);
@@ -190,12 +187,7 @@ public:
 		{
 			std::string tmp;
 			EnglishSLHeuristic(0).transform(origStr, origStrLen, tmp);
-		    const auto utfLength = ay::StrUTF8::glyphCount(tmp.c_str(), tmp.c_str() + tmp.size());
-            if( utfLength > 4 ) {
-                str.clear();
-                for( auto i : tmp ) { if( !isspace(i) ) str.push_back(i); }
-            } else 
-			    str = tmp;
+            str = tmp;
 		}
 		
         StoredStringFeatureVec storedVec;
@@ -400,6 +392,8 @@ class SmartBENI {
     bool d_isSL;
     StoredUniverse& d_universe;
     StoredUniverse* d_zurchUniverse;
+
+    std::vector< std::pair<boost::regex, std::string> > d_mandatoryRegex;
 public:
     typedef boost::unordered_multimap< uint32_t, BarzerEntity > Doc2EntMap;
     Doc2EntMap d_zurchDoc2Ent;
@@ -409,10 +403,17 @@ public:
 
     void addEntityClass( const StoredEntityClass& ec );
     /// reads info from path . if path ==0 - from stdin 
-    /// assumes the format as class|subclass|id|searchable name
+    /// assumes the format as class|subclass|id|searchable name[|topic class|topic subclass|topic id]
+    /// when class or subclass are blank the value is taken from defaults
     /// one netity per line. line cant be longer than 1024 bytes 
     /// lines with leading # are skipped as comments
-    size_t addEntityFile( const char* path=0, const char* modeStr=0 ); 
+    /// if searchable name is blank this line will be used only for entity topic linkage 
+    /// if topic id is blank nothing will be done with topics 
+    size_t addEntityFile( const char* path, const char* modeStr, const StoredEntityClass& /*entity defaults*/, const StoredEntityClass& /* topic defaults */ ); 
+
+    bool hasMandatoryRegex() const {return !d_mandatoryRegex.empty(); }
+    void applyMandatoryRegex( std::string& dest ) const;
+    void addMandatoryRegex( const std::string& find, const std::string& replace );
 
     void search( BENIFindResults_t&, const char* str, double minCov, const BENIFilter_f& = BENIFilter_f (), size_t maxCount=128) const;
 	

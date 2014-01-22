@@ -857,9 +857,32 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user, c
                         std::string mode;
                         if( const boost::optional<std::string> x = optAttr.get().get_optional<std::string>("m") ) 
                             mode = x.get();
+                        StoredEntityClass ec, topicEc;
+                        if( const boost::optional<uint32_t> x = optAttr.get().get_optional<uint32_t>("cl") )  // default entity class
+                            ec.ec = x.get();
+                        if( const boost::optional<uint32_t> x = optAttr.get().get_optional<uint32_t>("sc") )  // default entity subclass
+                            ec.subclass = x.get();
 
-                        u.getUniverse().beni().addEntityFile( fnam.get().c_str(), mode.empty() ? 0 : mode.c_str() );
+                        if( const boost::optional<uint32_t> x = optAttr.get().get_optional<uint32_t>("tcl") )  // default topic entity class
+                            topicEc.ec = x.get();
+                        else 
+                            topicEc.ec= ec.ec;
+
+                        if( const boost::optional<uint32_t> x = optAttr.get().get_optional<uint32_t>("tsc") )  // default topic entity subclass
+                            topicEc.ec = x.get();
+                        else 
+                            topicEc.ec= ec.ec;
+
+                        u.getUniverse().beni().addEntityFile( fnam.get().c_str(), mode.empty() ? 0 : mode.c_str(), ec, topicEc );
                     }
+                }
+            } else 
+            if( i.first == "replace" ) { /// attributes f - find, r - replace 
+                if( const boost::optional<const ptree&> optAttr = i.second.get_child_optional("<xmlattr>") ) {
+                    std::string regexFind, regexReplace;
+                    if( const boost::optional<std::string> x = optAttr.get().get_optional<std::string>("f") ) { regexFind= x.get(); }
+                    if( const boost::optional<std::string> x = optAttr.get().get_optional<std::string>("r") ) { regexReplace= x.get(); }
+                    u.getUniverse().beni().addMandatoryRegex( regexFind, regexReplace );
                 }
             }
         }

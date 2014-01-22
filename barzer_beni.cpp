@@ -18,7 +18,22 @@ SmartBENI::SmartBENI( StoredUniverse& u ) :
         d_beniStraight.setSL( false );
     }
 }
-size_t SmartBENI::addEntityFile( const char* path, const char* modeStr )
+
+void  SmartBENI::applyMandatoryRegex( std::string& dest ) const
+{
+    for( const auto& p : d_mandatoryRegex )
+        dest = boost::regex_replace(dest, p.first, p.second.c_str());
+}
+void  SmartBENI::addMandatoryRegex( const std::string& pattern, const std::string& replace ) 
+{
+    d_mandatoryRegex.resize( d_mandatoryRegex.size() +1 );
+
+    d_mandatoryRegex.back().first= boost::regex(pattern, boost::regex::perl);
+    if( !replace.empty() )
+        d_mandatoryRegex.back().second = replace;
+}
+
+size_t SmartBENI::addEntityFile( const char* path, const char* modeStr, const StoredEntityClass& dfec, const StoredEntityClass& dfTopicEc )
 {
     FILE* fp= 0;
     if( path ) {
@@ -27,7 +42,7 @@ size_t SmartBENI::addEntityFile( const char* path, const char* modeStr )
             AYLOG(ERROR) << "cant open file " << path << std::endl;
             return 0;
         }
-        std::cerr << "reading BENI entities from " << path << std::endl;
+        std::cerr << "reading BENI entities from " << path << " ";
     } else
         return( (std::cerr << "0 path specified\n"), 0 );
 
@@ -35,14 +50,24 @@ size_t SmartBENI::addEntityFile( const char* path, const char* modeStr )
     size_t entsRead = 0;
     std::string name;
     std::string id;
-    // name mode
+    std::string topicId;
+    StoredEntityClass topicEc;
+
+    // name mode s - name skip
     enum {
         NAME_MODE_OVERRIDE,
         NAME_MODE_SKIP
     };
+    bool overrideEc = false, overrideSc = false; // endity class/subclass override with default
     int mode = NAME_MODE_OVERRIDE;
     if( modeStr ) {
-        if( strchr(modeStr,'s') ) mode=NAME_MODE_SKIP;
+        for( const char* x = modeStr; *x; ++x )  {
+            switch( *x ) {
+            case 's': mode=NAME_MODE_SKIP; break;
+            case 'c': overrideEc = overrideSc = true; break; 
+            case 'C': overrideEc = true; break;
+            }
+        }
     }
     enum {
         TOK_CLASS,
@@ -50,13 +75,17 @@ size_t SmartBENI::addEntityFile( const char* path, const char* modeStr )
         TOK_ID,
         TOK_RELEVANCE,
         TOK_NAME,
+        /// 
+        TOK_TOPIC_CLASS, 
+        TOK_TOPIC_SUBCLASS,
+        TOK_TOPIC_ID,
         TOK_MAX
     };
     std::string tmp,  normName, lowerCase;
     std::vector<char> tmpBuf;
     ay::stopwatch timer;
     
-    size_t reportEvery = 10000, timesReported = 0;
+    size_t reportEvery = 500, timesReported = 0;
 
     while( fgets( buf, sizeof(buf)-1, fp ) ) {
         buf[ sizeof(buf)-1 ] = 0;
@@ -81,11 +110,33 @@ size_t SmartBENI::addEntityFile( const char* path, const char* modeStr )
                 numTokRead= tokNum;
                 if( tokNum >= TOK_MAX ) return 1;
                 switch( tokNum ) {
-                case TOK_CLASS:     tmp.assign(s_beg,(s_end-s_beg)); euid.eclass.ec = atoi(tmp.c_str()); break;
-                case TOK_SUBCLASS:  tmp.assign(s_beg,(s_end-s_beg)); euid.eclass.subclass = atoi(tmp.c_str()); break;
+                case TOK_CLASS:     
+                    if( overrideEc || s_end == s_beg ) {
+                        euid.eclass.ec = dfec.ec;
+                    } else {
+                        tmp.assign(s_beg,(s_end-s_beg)); euid.eclass.ec = atoi(tmp.c_str()); 
+                    }
+                    break;
+                case TOK_SUBCLASS:  
+                    if( overrideSc || s_end == s_beg ) {
+                        euid.eclass.subclass = dfec.subclass;
+                    } else {
+                        tmp.assign(s_beg,(s_end-s_beg)); euid.eclass.subclass = atoi(tmp.c_str()); 
+                    }
+                    break;
                 case TOK_ID:        id.assign( s_beg, (s_end - s_beg ) ); break;
                 case TOK_RELEVANCE: tmp.assign(s_beg,(s_end-s_beg)); relevance = atoi(tmp.c_str()); break;
                 case TOK_NAME:      name.assign( s_beg, (s_end - s_beg ) ); break;
+                case TOK_TOPIC_CLASS: 
+                    if( s_end == s_beg ) { topicEc.ec = dfTopicEc.ec; } else { tmp.assign(s_beg,(s_end-s_beg)); topicEc.ec = atoi(tmp.c_str()); }
+                    break;
+                case TOK_TOPIC_SUBCLASS: 
+                    if( s_end == s_beg ) { topicEc.subclass = dfTopicEc.subclass; } else { tmp.assign(s_beg,(s_end-s_beg)); topicEc.subclass = atoi(tmp.c_str()); }
+                    break;
+                case TOK_TOPIC_ID: 
+                    if( s_end != s_beg ) 
+                        topicId.assign( s_beg, (s_end - s_beg ) );
+                    break;
                 default: return 1;
                 }
                 return 0;
@@ -94,10 +145,27 @@ size_t SmartBENI::addEntityFile( const char* path, const char* modeStr )
             buf+len
         );
         if( numTokRead < TOK_NAME ) continue;
-        
-        euid.tokId = d_universe.getGlobalPools().internString_internal( id.c_str() );
+        if( id.empty() )
+            continue;
 
+        euid.tokId = d_universe.getGlobalPools().internString_internal( id.c_str() );
         StoredEntity& ent = d_universe.getGlobalPools().getDtaIdx().addGenericEntity( euid.tokId, euid.eclass.ec, euid.eclass.subclass );
+        if( name.empty() ) { // empty name - it's topic linkage or trash
+            if( !topicEc.isValid() )
+                continue;
+        } 
+
+        if( topicEc.isValid() ) { // trying to link topic
+            StoredEntityUniqId topicEuid;
+            topicEuid.eclass = topicEc;
+            if( !topicId.empty() )
+                topicEuid.tokId = d_universe.getGlobalPools().internString_internal( topicId.c_str() );
+
+            d_universe.linkEntTotopic( topicEuid, euid );
+
+            if( name.empty() )
+                continue;
+        }
 
         Lang::stringToLower( tmpBuf, lowerCase, name.c_str() );
         BENI::normalize( normName, lowerCase, &d_universe );
@@ -109,15 +177,15 @@ size_t SmartBENI::addEntityFile( const char* path, const char* modeStr )
         if( d_isSL ) 
             d_beniSl.addWord(normName, ent.getEuid());
         if (!(++entsRead % reportEvery)) {
-			std::cerr << entsRead << " entities loaded (in " << timer.calcTime() << " seconds)..." << std::endl;
-            ++timesReported;
-            if( entsRead > 100000 ) reportEvery = 40000;
-            else if( entsRead> 200000 )
-                reportEvery = 100000;
+            char repChar = ( reportEvery>= 10000 ? 'O' : (reportEvery>=3000 ? 'o': '.') );
+            if( entsRead> 2000 )
+                reportEvery = entsRead> 50000 ? 10000 : 4000;
+
+			std::cerr << repChar;
         }
     }
 
-    std::cerr << entsRead << " entities loaded in " << timer.calcTime() << " seconds" << std::endl;
+    std::cerr << " " << entsRead << " entities loaded in " << timer.calcTime() << " seconds" << std::endl;
     return entsRead;    
 }
 
@@ -209,8 +277,14 @@ void SmartBENI::search(
     const BENIFilter_f& filter,
     size_t maxCount) const
 {
+    std::string processedStr;
+    if( hasMandatoryRegex() ) {
+        processedStr.assign(query);
+        applyMandatoryRegex(processedStr);
+        query = processedStr.c_str();
+    }
     double maxCov = d_beniStraight.search( out, query, minCov, filter);
-    const double SL_COV_THRESHOLD= 0.7;
+    const double SL_COV_THRESHOLD= 0.85;
 
     if( d_isSL ) {
         if( maxCov< SL_COV_THRESHOLD || out.empty() ) {
@@ -235,6 +309,22 @@ void SmartBENI::search(
                 // return (l.coverage> r.coverage?  true:(r.coverage>l.coverage ? false: (l.popRank>r.popRank ? true: l.nameLen< r.nameLen))  ); 
             } 
         );
+
+    if( out.size() > 1 && !d_universe.checkBit( UBIT_BENI_NO_COVDROPCUT ) ) { // coverage cut drop
+        const double MAX_COVDROP_FROMTOP = 0.15; // max coverage difference with best result before cut off
+        const double MAX_COVDROP_ADJ = 0.8; // max adjacent coverage results coverage drop before cut off
+        
+        double bestCov = out.front().coverage;
+        size_t i = 1;
+        for( size_t i_max = out.size(); i< i_max; ++i ) {
+            double curCov = out[i].coverage;
+            if( bestCov> curCov + MAX_COVDROP_FROMTOP ||out[i-1].coverage > curCov + MAX_COVDROP_ADJ ) 
+                break;
+        }
+        if( i< out.size() )
+            out.resize(i);
+    }
+
     if( out.size() > maxCount ) 
         out.resize(maxCount);
 }

@@ -714,7 +714,7 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
                 } else if( s[1]=='e' && s[2] == 'r' )  {
                     russian.append((s+=1,"ие"));
                 } else if( s[1] == 'a' && isNonVowel(s[2]) )  {
-                    russian.append((s+=1,"иа"));
+                    russian.append((s+=1, !s[2] ? "ия" : "иа"));
                 } else if( s[1]=='v' && s[2] == 'e' && (terminating_char(s[3])||s[3]=='l'))  {
                     if( c_prev =='e' ) 
                         russian.append((s+=2,"ив"));
@@ -1187,7 +1187,10 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
 				switch (c1)
 				{
 				default:
-					russian.append("кс");
+                    if( !c_prev || isspace(c_prev) )
+                        russian.append("икс");
+                    else
+                        russian.append("кс");
 					break;
 				}
 

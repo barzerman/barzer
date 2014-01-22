@@ -57,6 +57,8 @@ static int bshf_benix( BarzerShell* shell, ay::char_cp cmd, std::istream& in , c
 
     std::string buf;
     while( std::getline(inFile.fp(),buf) ) {
+        if( buf.empty() || buf[0] == '\n' )
+            break;
         TFE_ngram xtractor;
         ExtractedStringFeatureVec fv;
         xtractor( fv, buf.c_str(), buf.length(), LANG_UNKNOWN );
