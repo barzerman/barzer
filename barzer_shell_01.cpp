@@ -57,6 +57,8 @@ static int bshf_benix( BarzerShell* shell, ay::char_cp cmd, std::istream& in , c
 
     std::string buf;
     while( std::getline(inFile.fp(),buf) ) {
+        if( buf.empty() || buf[0] == '\n' )
+            break;
         TFE_ngram xtractor;
         ExtractedStringFeatureVec fv;
         xtractor( fv, buf.c_str(), buf.length(), LANG_UNKNOWN );
@@ -72,10 +74,13 @@ static int bshf_normalize( BarzerShell* shell, ay::char_cp cmd, std::istream& in
     ay::file_ostream outFile(shell->getOutStreamPtr()), errFile( shell->getErrStreamPtr() );
     std::string buf;
     std::string stem;
+    const auto context = shell->getBarzerContext();
+
+    const StoredUniverse &uni = context->getUniverse();
     while( std::getline(inFile.fp(),buf) ) {
         if( buf.empty() ) 
             break;
-        BENI::normalize( stem, buf );
+        BENI::normalize( stem, buf, &uni );
         outFile.fp() << stem << std::endl;
     }
     return 0;

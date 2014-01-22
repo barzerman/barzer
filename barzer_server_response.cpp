@@ -766,7 +766,7 @@ std::ostream& AutocStreamerJSON::print(std::ostream &os) const
             const EntityData::EntProp* edata = universe.getEntPropData( euid );
             uint32_t eclass = euid.eclass.ec, esubclass = euid.eclass.subclass;
             os << ",\"cl\":\"" << std::dec << eclass<< "\"," << "\"sc\":\"" << esubclass << 
-            "\",\"ord\":\"" << eweight.pathLen << "." << eweight.relevance << "\"";
+            "\",\"ord\":\"" << /*eweight.pathLen << "." <<*/ eweight.relevance << "\"";
             if( edata ) {
                 os << ",\"n\":\"" << edata->canonicName.c_str() << "\"";
             }

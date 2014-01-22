@@ -175,7 +175,8 @@ static int bshf_srvroute( BarzerShell* shell, char_cp cmd, std::istream& in, con
             if( ! bufStr.length() ) 
                 break;
             std::stringstream sstr;
-            sstr << "<" << theTag << " " << argStr << ">" << bufStr << "</" << theTag <<">";
+            xmlEscape( bufStr.c_str(), sstr << "<" << theTag << " " << argStr << ">" ) << "</" << theTag <<">";
+
             q = strdup( sstr.str().c_str() );
             std::cerr << "QUERY:" << q << std::endl;
 	        ay::stopwatch tmpTimer;

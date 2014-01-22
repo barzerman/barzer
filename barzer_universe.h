@@ -137,7 +137,7 @@ public:
         Settings() : 
             d_beni_Cutoff( 0.5 ),
             d_beni_AutocCutoff( 0.7 ),
-            d_beni_MinAutocCount(3)
+            d_beni_MinAutocCount(6)
         {}
         bool isBeniCoverageGoodForAutoc( double c ) const { return c> d_beni_AutocCutoff; }
         bool hasEnoughGlyphsForAutoc( size_t n ) const { return (n>= d_beni_MinAutocCount); }
@@ -180,6 +180,8 @@ public:
         { return d_topicEntLinkage.getTopicEntities( t ); }
 
     const TopicEntLinkage& getTopicEntLinkage() const { return  d_topicEntLinkage; }
+    void linkEntTotopic( const BarzerEntity& topic, const BarzerEntity& ent, uint32_t strength = 0 ) 
+        { d_topicEntLinkage.link( topic, ent, strength ); }
     // doesnt destroy the actual tries
     void clearTrieList() {
         trieCluster.clearList();

@@ -257,10 +257,7 @@ struct BestEntities_EntWeight {
 
 inline bool operator <( const BestEntities_EntWeight& l, const BestEntities_EntWeight& r ) 
 {
-    return ( l.pathLen < r.pathLen ?
-        true :
-        r.relevance < l.relevance 
-    );
+    return ( l.pathLen+r.relevance < r.pathLen + l.relevance );
 }
 
 struct StoredEntityUniqId_Hash {
@@ -289,6 +286,10 @@ public:
         { return (d_weightMap.size() >= d_maxEnt); }
     const EntWeightMap& getEntitiesAndWeights() const 
         { return d_weightMap; }
+
+    uint32_t getNumEnt() const { return d_weightMap.size(); }
+    uint32_t getMaxNumEnt() const { return d_maxEnt; }
+
     void clear() { 
         d_entMap.clear();
         d_weightMap.clear();
