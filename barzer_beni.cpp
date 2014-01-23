@@ -274,6 +274,7 @@ void SmartBENI::search(
     BENIFindResults_t& out, 
     const char* query,
     double minCov, 
+    Barz* barz,
     const BENIFilter_f& filter,
     size_t maxCount) const
 {
@@ -300,6 +301,20 @@ void SmartBENI::search(
                     outIter->coverage = i.coverage;
             }
         }
+    }
+    /// trying to filter by the topics
+    if( barz && d_universe.checkBit( UBIT_BENI_TOPIC_FILTER ) && barz->topicInfo.hasTopics() ) {
+        TopicFilter topicFilter( d_universe.getTopicEntLinkage() );
+        for( const auto& i: out ) { topicFilter.addFilteredEntClass(i.ent.eclass); }
+        for( const auto& i : barz->topicInfo.getTopicMap() ) { topicFilter.addTopic( i.first ); }
+        topicFilter.optimize();
+        BENIFindResults_t newOut;
+        for( const auto& i: out ) {
+            if( topicFilter.isEntityGood( i.ent ) ) 
+                newOut.push_back( i );
+        }
+        if( out.size() != newOut.size() ) 
+            out.swap( newOut );
     }
     std::sort( out.begin(), out.end(), 
         []( const BENIFindResult& l, const BENIFindResult& r ) -> bool

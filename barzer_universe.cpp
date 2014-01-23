@@ -25,32 +25,33 @@ void StoredUniverse::setUBits( const char* str )
         case 'f': setBit(UBIT_DATE_FUTURE_BIAS); break;
         case 's': setBit(UBIT_NC_NO_SEPARATORS); break;
         case 'z': setBit(UBIT_NC_LEADING_ZERO_ISNUMBER); break;
+        case 'B': setBit(UBIT_BENI_TOPIC_FILTER); break;
         }
     }
 }
 
-    const EntityData::EntProp* StoredUniverse::getEntPropData( const BarzerEntity& ent ) const 
-    {
-        if( const EntityData::EntProp* eprop = entData.getEntPropData(ent) ) 
-            return eprop;
-        else if( gp.isGenericEntity(ent) ) 
-            return gp.getEntPropData(ent);
-        else
-            return 0;
+const EntityData::EntProp* StoredUniverse::getEntPropData( const BarzerEntity& ent ) const 
+{
+    if( const EntityData::EntProp* eprop = entData.getEntPropData(ent) ) 
+        return eprop;
+    else if( gp.isGenericEntity(ent) ) 
+        return gp.getEntPropData(ent);
+    else
+        return 0;
+}
+EntityData::EntProp* StoredUniverse::getEntPropData( const BarzerEntity& ent ) 
+    { 
+        return const_cast<EntityData::EntProp*>( const_cast<const StoredUniverse*>(this)->getEntPropData(ent) );
     }
-    EntityData::EntProp* StoredUniverse::getEntPropData( const BarzerEntity& ent ) 
-        { 
-            return const_cast<EntityData::EntProp*>( const_cast<const StoredUniverse*>(this)->getEntPropData(ent) );
-        }
-    uint32_t StoredUniverse::getEntityRelevance( const BarzerEntity& ent ) const
-    {
-        if( const EntityData::EntProp* eprop = entData.getEntPropData(ent) ) {
-            return eprop->relevance;
-        } else if( gp.isGenericEntity(ent) ) {
-            return gp.getEntityRelevance(ent);
-        } else 
-            return 0;
-    }
+uint32_t StoredUniverse::getEntityRelevance( const BarzerEntity& ent ) const
+{
+    if( const EntityData::EntProp* eprop = entData.getEntPropData(ent) ) {
+        return eprop->relevance;
+    } else if( gp.isGenericEntity(ent) ) {
+        return gp.getEntityRelevance(ent);
+    } else 
+        return 0;
+}
 uint32_t StoredUniverse::recordLangWord( int16_t lang )
 {
     return d_langInfo.incrementLangCounter( lang );
@@ -87,7 +88,7 @@ BELTrie& StoredUniverse::appendTrie( const char* trieClass, const char* trieId, 
     }
 StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	d_userId(id),
-    d_entNameIdx(0),
+    d_beni(0),
     d_entIdLookupBENI(0),
     m_ruleIdx(new TrieRuleIdx(*this)),
 	gp(g),
@@ -105,33 +106,33 @@ StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 
 void StoredUniverse::searchEntitiesInZurch( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) const
 {
-    if( d_entNameIdx )
-        d_entNameIdx->zurchEntities( out, str, qparm );
+    if( d_beni )
+        d_beni->zurchEntities( out, str, qparm );
 }
-void StoredUniverse::searchEntitiesByName( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) const
+void StoredUniverse::searchEntitiesByName( BENIFindResults_t& out, const char* str, const QuestionParm& qparm, Barz* barz ) const
 {
-    if( d_entNameIdx ) 
-        d_entNameIdx->search( out, str, d_settings.d_beni_Cutoff );
+    if( d_beni ) 
+        d_beni->search( out, str, d_settings.d_beni_Cutoff, barz );
 }
 
 void StoredUniverse::beniInit( )
 {
-    delete d_entNameIdx;
-    d_entNameIdx = new SmartBENI(*this);
+    delete d_beni;
+    d_beni = new SmartBENI(*this);
 }
 
 SmartBENI& StoredUniverse::beni( )
 {
-    if( !d_entNameIdx )
+    if( !d_beni )
         beniInit();
-    return *d_entNameIdx;
+    return *d_beni;
 }
 
 void StoredUniverse::indexEntityNames( const StoredEntityClass& ec ) 
 {
-    if( !d_entNameIdx )  
-        d_entNameIdx = new SmartBENI( *this );
-    d_entNameIdx->addEntityClass(ec);
+    if( !d_beni )  
+        d_beni = new SmartBENI( *this );
+    d_beni->addEntityClass(ec);
 }
 
 StoredUniverse::~StoredUniverse()
@@ -149,7 +150,7 @@ StoredUniverse::~StoredUniverse()
     delete m_meanings;
 	delete m_geo;
 
-    delete d_entNameIdx;
+    delete d_beni;
     delete d_entIdLookupBENI;
 }
 
@@ -197,8 +198,8 @@ void StoredUniverse::clear()
     d_biflags.clear();
 	m_hints.initFromUniverse(this);
 
-    delete d_entNameIdx;
-    d_entNameIdx = 0;
+    delete d_beni;
+    d_beni = 0;
 
     delete d_entIdLookupBENI;
     d_entIdLookupBENI=new SubclassBENI( *this );

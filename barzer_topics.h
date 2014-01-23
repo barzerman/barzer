@@ -76,36 +76,7 @@ public:
     const PropertyNameSet& getPropNamesZeroUniverse() const { return d_zeroUniversePropNames; }
 };
 inline bool operator<( const BarzTopics::EntWeight& l, const BarzTopics::EntWeight& r )
-{ return ( l.second > r.second ); }
-
-
-inline BarzTopics::EntWeightVec& BarzTopics::computeTopTopics( ) 
-{
-    if( !d_topics.empty() ) {
-        for( BarzTopics::TopicMap::const_iterator i = d_topics.begin(); i!= d_topics.end(); ++i ) {
-            d_vec.push_back( *i );
-        }
-        /// sorting by weight for processing 
-        std::sort( d_vec.begin(), d_vec.end() );
-        /// now we have a vector sorted in descending order 
-        /// we will trim it 
-      
-        size_t newSize = 1;
-        int weight = d_vec.front().second;
-        for( ;newSize< d_vec.size(); ++newSize ) {
-            if( d_vec[newSize].second < weight ) 
-                break;
-        }
-        if( newSize< d_vec.size() ) {
-            d_vec.resize( newSize );
-            d_topics.clear();
-            for( EntWeightVec::const_iterator i = d_vec.begin(); i!= d_vec.end(); ++i ) {
-                d_topics.insert( *i );
-            }
-        }
-    }
-    return d_vec;
-}
+    { return ( l.second > r.second ); }
 
 /// this object is stored with every "grammar" (pointer to trie) in the UniverseTrieCluster
 class TrieTopics {
@@ -113,26 +84,9 @@ class TrieTopics {
 public:    
     TrieTopics() : d_entWeight( BarzerEntity(), BarzTopics::DEFAULT_TOPIC_WEIGHT) {}
 
-    void mustHave( const BarzerEntity& ent, int minWeight = BarzTopics::DEFAULT_TOPIC_WEIGHT )
-    {
-        d_entWeight.first = ent;
-        d_entWeight.second = minWeight;
-    }
-
-    bool goodToGo( const BarzTopics& barzTopics ) const
-    {
-        if( !d_entWeight.first.eclass.isValid() ) 
-            return true;
-        else {
-            const BarzerEntity& ent = d_entWeight.first;
-
-            int w = barzTopics.getTopicWeight(ent);
-            return( w>= d_entWeight.second ) ;
-        }
-        return false;
-    }
+    void mustHave( const BarzerEntity& ent, int minWeight = BarzTopics::DEFAULT_TOPIC_WEIGHT );
+    bool goodToGo( const BarzTopics& barzTopics ) const;
 };
-
 
 struct GrammarInfo {
     TrieTopics trieTopics;
@@ -167,9 +121,7 @@ public:
     const GrammarInfo* grammarInfo() const { return d_grammarInfo; } 
     GrammarInfo* grammarInfo() { return d_grammarInfo; } 
     
-    GrammarInfo& setGrammarInfo( GrammarInfo* gi ) {
-        return( d_grammarInfo = gi, *d_grammarInfo );
-    }
+    GrammarInfo& setGrammarInfo( GrammarInfo* gi ) { return( d_grammarInfo = gi, *d_grammarInfo ); }
 }; 
 /// entity segregator is important for post semantical phase 
 /// it holds information used for grouping
@@ -184,7 +136,7 @@ public:
     void clear() { d_classToSeg.clear(); }
 };
 //// topic entity linkage object is responsible for relations between different 
-//// entities
+//// entities. stored with every Universe 
 struct TopicEntLinkage {
     struct EntityData {
         BarzerEntity ent;
@@ -195,42 +147,48 @@ struct TopicEntLinkage {
 
     typedef std::set< EntityData, EntityData_comp_less > BarzerEntitySet;
     typedef std::map< BarzerEntity, BarzerEntitySet  > BarzerEntitySetMap;
-    BarzerEntitySetMap topicToEnt;
-    
-    void link( const BarzerEntity& t, const EntityData& e )
-    {
-        BarzerEntitySetMap::iterator i = topicToEnt.find( t );
-        if( i == topicToEnt.end() ) 
-            i = topicToEnt.insert( BarzerEntitySetMap::value_type( t, BarzerEntitySet() ) ).first; 
-        i->second.insert(e);
-    }
 
-    void link( const BarzerEntity& t, const BarzerEntity& e, uint32_t strength ) 
-    {
-        BarzerEntitySetMap::iterator i = topicToEnt.find( t );
-        if( i == topicToEnt.end() ) 
-            i = topicToEnt.insert( BarzerEntitySetMap::value_type( t, BarzerEntitySet() ) ).first; 
-        i->second.insert( EntityData(e,strength) );
-    }
+    BarzerEntitySetMap topicToEnt;
+
+    /// {topicType to entityType} map - all existing type pares (topic,entity) stored here 
+    std::vector< std::pair<StoredEntityClass,StoredEntityClass> > d_filterTypePairs;
     
+    void updateFilterTypePairs( const StoredEntityClass& topicClass, const StoredEntityClass& entClass );
+    bool topicTypeAppliesToEntClass( const StoredEntityClass& topicClass, const StoredEntityClass& entClass ) const;
+
+    void link( const BarzerEntity& t, const EntityData& e );
+    void link( const BarzerEntity& t, const BarzerEntity& e, uint32_t strength ) ;
+
     const BarzerEntitySet* getTopicEntities( const BarzerEntity& t ) const
     {
         BarzerEntitySetMap::const_iterator i = topicToEnt.find( t );
         return( i == topicToEnt.end() ? 0: &(i->second) );
     }
 
-    void append( const TopicEntLinkage& lkg ) 
-    {
-        for( BarzerEntitySetMap::const_iterator i = lkg.topicToEnt.begin(); i!= lkg.topicToEnt.end(); ++i ) {
-            const BarzerEntity& topic = i->first;
-            const BarzerEntitySet& linkedSet = i->second;
-            for( BarzerEntitySet::const_iterator lei = linkedSet.begin(); lei != linkedSet.end(); ++lei ) {
-                link( topic, *lei );
-            }
-        }
-    }
-
-    void clear() { topicToEnt.clear(); }
+    void append( const TopicEntLinkage& lkg ) ;
+    void clear();
 }; // TopicEntLinkage
+
+/// object filtering for a given list of topics
+/// usage: 
+///     - addFilteredEntClass() for all entities in the result set
+///     - addTopic() for all topics
+///     - optimize() - to order filters in an optimal way
+class TopicFilter {
+    const TopicEntLinkage& d_topicLinks;
+    typedef std::vector<std::pair<BarzerEntity,const TopicEntLinkage::BarzerEntitySet*>> Ent2EntSetVec;
+    std::vector< Ent2EntSetVec > d_filterVec;
+
+    std::vector< StoredEntityClass > d_filteredEntClasses; 
+public:
+    TopicFilter( const TopicEntLinkage& linkage ) : d_topicLinks(linkage) {}
+
+    bool addFilteredEntClass( const StoredEntityClass& ec );
+    bool isFilterApplicable( const StoredEntityClass& ec ) const ;
+    void clear();
+    bool addTopic( const BarzerEntity& t );
+    void optimize();
+    bool isEntityGood( const BarzerEntity& e ) const ;
+};
 
 } // namespace barzer

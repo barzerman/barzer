@@ -43,27 +43,27 @@ class StoredUniverse {
 	uint32_t d_userId;
     std::string d_userName;
     //// search entities by names using this object
-    SmartBENI* d_entNameIdx;
+    SmartBENI* d_beni;
     SubclassBENI* d_entIdLookupBENI;
 
 	TrieRuleIdx *m_ruleIdx;
 public:
     void beniInit();
     SmartBENI& beni();
-    const SmartBENI* getBeni() const { return d_entNameIdx; }
+    const SmartBENI* getBeni() const { return d_beni; }
 
     const TrieRuleIdx& ruleIdx() const { return *m_ruleIdx; }
     TrieRuleIdx& ruleIdx() { return *m_ruleIdx; }
 
     void indexEntityNames( const StoredEntityClass& ec ) ;
     void searchEntitiesInZurch( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) const;
-    void searchEntitiesByName( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) const;
+    void searchEntitiesByName( BENIFindResults_t& out, const char* str, const QuestionParm& qparm, Barz*  ) const;
     void zurchEntities( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) ;
     
     void    entLookupBENIAddSubclass( const StoredEntityClass& ec, const char* pat = 0, const char* rep=0 ) ;
     int     entLookupBENISearch( BENIFindResults_t& out, const char* query, const StoredEntityClass& ec, const QuestionParm& qparm ) const;
 
-	SmartBENI* getSmartBeni() const { return d_entNameIdx; }
+	SmartBENI* getSmartBeni() const { return d_beni; }
 
 	GlobalPools& gp;
 
