@@ -48,10 +48,6 @@ size_t SmartBENI::addEntityFile( const char* path, const char* modeStr, const St
 
     char buf[ 1024 ];
     size_t entsRead = 0;
-    std::string name;
-    std::string id;
-    std::string topicId;
-    StoredEntityClass topicEc;
 
     // name mode s - name skip
     enum {
@@ -81,13 +77,15 @@ size_t SmartBENI::addEntityFile( const char* path, const char* modeStr, const St
         TOK_TOPIC_ID,
         TOK_MAX
     };
-    std::string tmp,  normName, lowerCase;
-    std::vector<char> tmpBuf;
     ay::stopwatch timer;
     
     size_t reportEvery = 500, timesReported = 0;
 
     while( fgets( buf, sizeof(buf)-1, fp ) ) {
+        std::vector<char> tmpBuf;
+        std::string name, tmp,  normName, lowerCase, id, topicId;
+        StoredEntityClass topicEc;
+
         buf[ sizeof(buf)-1 ] = 0;
         size_t len = strlen( buf );
         if( !len ) 
@@ -97,10 +95,6 @@ size_t SmartBENI::addEntityFile( const char* path, const char* modeStr, const St
 
         if( buf[0] == '#' ) continue;
 
-        tmpBuf.clear();
-        id.clear();
-        name.clear();
-        normName.clear();
         int relevance = 0;
         StoredEntityUniqId euid;
 
@@ -155,7 +149,9 @@ size_t SmartBENI::addEntityFile( const char* path, const char* modeStr, const St
                 continue;
         } 
 
-        if( topicEc.isValid() ) { // trying to link topic
+        if( topicEc.subclass !=0 && !topicId.empty() ) { // trying to link topic
+            if( !topicEc.ec )
+                topicEc.ec = euid.eclass.ec;
             StoredEntityUniqId topicEuid;
             topicEuid.eclass = topicEc;
             if( !topicId.empty() )
@@ -274,6 +270,7 @@ void SmartBENI::search(
     BENIFindResults_t& out, 
     const char* query,
     double minCov, 
+    Barz* barz,
     const BENIFilter_f& filter,
     size_t maxCount) const
 {
@@ -300,6 +297,25 @@ void SmartBENI::search(
                     outIter->coverage = i.coverage;
             }
         }
+    }
+    /// trying to filter by the topics
+    if( barz && d_universe.checkBit( UBIT_BENI_TOPIC_FILTER ) && (barz->topicInfo.hasTopics() || d_universe.getTopicEntLinkage().hasImplicitTopics()) ) {
+        TopicFilter topicFilter( d_universe.getTopicEntLinkage() );
+        for( const auto& i: out ) { topicFilter.addFilteredEntClass(i.ent.eclass); }
+        if( barz->topicInfo.hasTopics() ) {
+            for( const auto& i : barz->topicInfo.getTopicMap() ) { topicFilter.addTopic( i.first ); }
+        } else { // taking implicit topics 
+            for( const auto& i : d_universe.getTopicEntLinkage().getImplicitTopics() ) { topicFilter.addTopic(i); }
+        }
+
+        topicFilter.optimize();
+        BENIFindResults_t newOut;
+        for( const auto& i: out ) {
+            if( topicFilter.isEntityGood( i.ent ) ) 
+                newOut.push_back( i );
+        }
+        if( !newOut.empty() && out.size() != newOut.size() ) 
+            out.swap( newOut );
     }
     std::sort( out.begin(), out.end(), 
         []( const BENIFindResult& l, const BENIFindResult& r ) -> bool

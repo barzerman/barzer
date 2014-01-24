@@ -415,7 +415,7 @@ public:
     void applyMandatoryRegex( std::string& dest ) const;
     void addMandatoryRegex( const std::string& find, const std::string& replace );
 
-    void search( BENIFindResults_t&, const char* str, double minCov, const BENIFilter_f& = BENIFilter_f (), size_t maxCount=128) const;
+    void search( BENIFindResults_t&, const char* str, double minCov, Barz* barz, const BENIFilter_f& = BENIFilter_f (), size_t maxCount=128) const;
 	
 	BENI& getPrimaryBENI();
 
