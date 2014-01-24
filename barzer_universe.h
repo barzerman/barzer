@@ -180,6 +180,7 @@ public:
         { return d_topicEntLinkage.getTopicEntities( t ); }
 
     const TopicEntLinkage& getTopicEntLinkage() const { return  d_topicEntLinkage; }
+    TopicEntLinkage& topicEntLinkage() { return  d_topicEntLinkage; }
     void linkEntTotopic( const BarzerEntity& topic, const BarzerEntity& ent, uint32_t strength = 0 ) 
         { d_topicEntLinkage.link( topic, ent, strength ); }
     // doesnt destroy the actual tries

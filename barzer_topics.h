@@ -148,7 +148,15 @@ struct TopicEntLinkage {
     typedef std::set< EntityData, EntityData_comp_less > BarzerEntitySet;
     typedef std::map< BarzerEntity, BarzerEntitySet  > BarzerEntitySetMap;
 
+    /// topics from this set are takn when no topics have been naturally extracted 
+    std::set< BarzerEntity > d_implicitTopics;
+
+
     BarzerEntitySetMap topicToEnt;
+
+    void addImplicitTopic( const BarzerEntity& t ) { d_implicitTopics.insert(t); }
+    const std::set< BarzerEntity >& getImplicitTopics() const { return d_implicitTopics; }
+    bool hasImplicitTopics() const { return !d_implicitTopics.empty(); }
 
     /// {topicType to entityType} map - all existing type pares (topic,entity) stored here 
     std::vector< std::pair<StoredEntityClass,StoredEntityClass> > d_filterTypePairs;

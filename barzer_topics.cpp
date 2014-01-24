@@ -46,6 +46,7 @@ void TopicEntLinkage::clear()
 {
     topicToEnt.clear();
     d_filterTypePairs.clear(); 
+    d_implicitTopics.clear(); 
 }
     
 BarzTopics::EntWeightVec& BarzTopics::computeTopTopics( ) 
@@ -115,9 +116,6 @@ void TopicFilter::clear()
 
 bool TopicFilter::addTopic( const BarzerEntity& t )
 {
-    if( std::find( d_filteredEntClasses.begin(), d_filteredEntClasses.end(), t.eclass ) == d_filteredEntClasses.end() ) 
-        return false;
-    
     for( auto& i : d_filterVec ) {
         if( i.front().first.eclass == t.eclass ) {
             for( auto& p : i ) {

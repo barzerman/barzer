@@ -79,13 +79,13 @@ BELTrie& StoredUniverse::appendTrie( const char* trieClass, const char* trieId, 
     return t;
 }
 
-    const char* StoredUniverse::printableTokenByid( uint32_t tokId ) const
-    {
-        if( const StoredToken *tok = gp.dtaIdx.tokPool.getTokByIdSafe(tokId) )
-            return printableTokenByid(tok->stringId);
-        else
-            return "";
-    }
+const char* StoredUniverse::printableTokenByid( uint32_t tokId ) const
+{
+    if( const StoredToken *tok = gp.dtaIdx.tokPool.getTokByIdSafe(tokId) )
+        return printableTokenByid(tok->stringId);
+    else
+        return "";
+}
 StoredUniverse::StoredUniverse(GlobalPools& g, uint32_t id ) :
 	d_userId(id),
     d_beni(0),
