@@ -91,12 +91,7 @@ void Barz::setUniverse (const StoredUniverse *u)
 		m_hints = u->getBarzHints();
 }
 
-
-std::string Barz::chain2string() const
-{
-    if( !getUniverse() ) return std::string(); 
-    const StoredUniverse& universe = *getUniverse();
-    
+namespace {
     struct BeadVisitor : public boost::static_visitor<bool> {
         const StoredUniverse& universe;
         const Barz& barz;
@@ -150,6 +145,13 @@ std::string Barz::chain2string() const
         bool operator()(const BarzerNumber &) { return ( sstr << bead.getSrcTokensString() , true ); }
         template <typename T> bool operator()( const T& ) { return( sstr << " SHIT ", false ); }
     };
+}
+
+std::string Barz::chain2string() const
+{
+    if( !getUniverse() ) return std::string(); 
+    const StoredUniverse& universe = *getUniverse();
+    
     std::stringstream sstr;
     for( const auto& b : getBeadList() ) {
         BeadVisitor v( universe, *this, b, sstr );
