@@ -275,8 +275,13 @@ void SmartBENI::search(
     size_t maxCount) const
 {
     std::string processedStr;
+    if( barz && d_universe.checkBit( UBIT_BENI_POSTBARZER ) ) {
+        processedStr = barz->chain2string();
+        query = processedStr.c_str();
+    }
     if( hasMandatoryRegex() ) {
-        processedStr.assign(query);
+        if( query != processedStr.c_str() )
+            processedStr.assign(query);
         applyMandatoryRegex(processedStr);
         query = processedStr.c_str();
     }

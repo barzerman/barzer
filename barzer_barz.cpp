@@ -144,8 +144,11 @@ std::string Barz::chain2string() const
             } else 
                 return false;
         }
+        bool operator()(const BarzelBeadAtomic &data)
+            { return boost::apply_visitor(*this, data.getData()); }
+
         bool operator()(const BarzerNumber &) { return ( sstr << bead.getSrcTokensString() , true ); }
-        template <typename T> bool operator()( const T& ) { return( sstr << " ", false ); }
+        template <typename T> bool operator()( const T& ) { return( sstr << " SHIT ", false ); }
     };
     std::stringstream sstr;
     for( const auto& b : getBeadList() ) {
