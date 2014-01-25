@@ -91,6 +91,70 @@ void Barz::setUniverse (const StoredUniverse *u)
 		m_hints = u->getBarzHints();
 }
 
+
+std::string Barz::chain2string() const
+{
+    if( !getUniverse() ) return std::string(); 
+    const StoredUniverse& universe = *getUniverse();
+    
+    struct BeadVisitor : public boost::static_visitor<bool> {
+        const StoredUniverse& universe;
+        const Barz& barz;
+        const BarzelBead& bead;
+        std::stringstream& sstr;
+        BeadVisitor(const StoredUniverse& u, const Barz& brz, const BarzelBead& bd, std::stringstream& ss ) : 
+            universe(u), barz(brz), bead(bd), sstr(ss) {}
+        bool operator()(const BarzerLiteral &data)  
+        {
+            switch(data.getType()) {
+            case BarzerLiteral::T_STRING:
+            case BarzerLiteral::T_COMPOUND:
+                {
+                    if( const char *cstr = universe.getStringPool().resolveId(data.getId()) ) {
+                        return (sstr<< cstr, true );
+                    } else
+                        return false;
+                }
+                break;
+            case BarzerLiteral::T_STOP: // skipping fluff
+                return false;
+            case BarzerLiteral::T_PUNCT:
+                { // need to somehow make this localised
+                    const char str[] = { (char)data.getId(), '\0' };
+                    sstr << str;
+                }
+                return true;
+            case BarzerLiteral::T_BLANK:
+                sstr << " ";
+                return true;
+            default:
+                return false;
+            }
+        }
+        bool operator()(const BarzerString &data)
+        {
+            return ( sstr << data.getStr(), true );
+        }
+        bool operator()(const BarzerEntity &euid)
+        {
+            if( !universe.entClassHasSynonymDesignation( euid.eclass ) ) 
+                return false;
+            if( const EntityData::EntProp* edata = universe.getEntPropData( euid ) ) {
+                return ( sstr << edata->canonicName, true );
+            } else 
+                return false;
+        }
+        bool operator()(const BarzerNumber &) { return ( sstr << bead.getSrcTokensString() , true ); }
+        template <typename T> bool operator()( const T& ) { return( sstr << " ", false ); }
+    };
+    std::stringstream sstr;
+    for( const auto& b : getBeadList() ) {
+        BeadVisitor v( universe, *this, b, sstr );
+        boost::apply_visitor( v,  b.getBeadData() );
+    }
+    return sstr.str();
+}
+
 const BarzHints& Barz::getHints() const
 {
 	return m_hints;

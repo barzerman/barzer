@@ -203,6 +203,7 @@ void StoredUniverse::clear()
 
     delete d_entIdLookupBENI;
     d_entIdLookupBENI=new SubclassBENI( *this );
+    d_synDesignatedEntClassSet.clear();
 }
 
 StoredToken& StoredUniverse::internString( int lang, const char* t, BELTrie* triePtr, const char* unstemmed)

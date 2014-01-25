@@ -692,6 +692,13 @@ void load_ent_info(BELReader& reader, User& u, const ptree &node)
         }
     } // foreach
     } // end of entity segmentation setings processing 
+
+    // synonym designation
+    if( boost::optional< const ptree& > x = node.get_child_optional("synent") ) {
+        StoredEntityClass ec;
+        if( optAttr_assign( ec.ec,oa,"c") && optAttr_assign( ec.subclass,oa,"s") )
+            u.getUniverse().addEntClassToSynonymDesignation( ec );
+    }
 }
 
 } // anonymous namespace ends

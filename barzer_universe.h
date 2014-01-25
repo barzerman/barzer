@@ -129,6 +129,8 @@ public:
 private:
     EntityData entData; // canonic names and relevance
     ay::bitflags<UBIT_MAX> d_biflags;
+
+    std::set< StoredEntityClass > d_synDesignatedEntClassSet;
 public:
     struct Settings {
         double d_beni_Cutoff; // default beni cutoff 
@@ -143,6 +145,11 @@ public:
         bool hasEnoughGlyphsForAutoc( size_t n ) const { return (n>= d_beni_MinAutocCount); }
     };
     Settings d_settings;
+
+    bool entClassHasSynonymDesignation( const StoredEntityClass& ec ) const
+        { return d_synDesignatedEntClassSet.find(ec) != d_synDesignatedEntClassSet.end() ; }
+    void addEntClassToSynonymDesignation( const StoredEntityClass& ec )
+        {  d_synDesignatedEntClassSet.insert(ec); }
 
     EntityData::EntProp*  setEntPropData( const StoredEntityUniqId& euid, const char* name, uint32_t rel, bool overrideName=false ) 
         { return entData.setEntPropData(euid, name,rel, overrideName); }
