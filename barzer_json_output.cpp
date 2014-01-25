@@ -90,16 +90,10 @@ public:
         bool needOffsetLengthVec = !d_streamer.checkBit( BarzResponseStreamer::BF_NO_ORIGOFFSETS );
         std::vector< std::pair<uint32_t,uint32_t> >  offsetLengthVec; 
         
-        // std::stringstream sstrBody;
-
         std::string lastTokBuf;
-		for( CTWPVec::const_iterator ci = ctoks.begin(), ci_before_last = ( ctoks.size() ? ci+ctoks.size()-1: ctoks.end()); ci != ctoks.end(); ++ci ) {
+		for( CTWPVec::const_iterator ci = ctoks.begin(); ci != ctoks.end(); ++ci ) {
 			const TTWPVec& ttv = ci->first.getTTokens();
 
-            /*
-            if( ci != ctoks.begin() && ci != ci_before_last) 
-                sstrBody << " ";
-            */
 			for( TTWPVec::const_iterator ti = ttv.begin(); ti!= ttv.end() ; ++ti ) {
 				const TToken& ttok = ti->first;
                 if( lastTokBuf == ttok.buf ) 
@@ -108,21 +102,11 @@ public:
                     lastTokBuf = ttok.buf.c_str();
 
 				if( ttok.buf.length() ) {
-                    /*
-                    if( ttok.buf[0] !=' ' && (ti != ttv.begin() || ci != ctoks.begin() )) 
-                        sstrBody << " ";
-                    if( ttok.buf[0] !=' ' ) {
-                        std::string tokStr( ttok.buf.c_str(), ttok.buf.length() );
-                        sstrBody << tokStr;
-                    }
-                    */
-
                     if( needOffsetLengthVec ) 
                         offsetLengthVec.push_back( ttok.getOrigOffsetAndLength() );
 				}
 			}
 		}	
-		// ay::jsonEscape( sstrBody.str().c_str(), raii.startField("src"), "\"" );
         std::string srcTok = d_barz.getBeadSrcTok( d_bead );
 		ay::jsonEscape( srcTok.c_str(), raii.startField("src"), "\"" );
 

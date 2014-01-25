@@ -26,6 +26,7 @@ void StoredUniverse::setUBits( const char* str )
         case 's': setBit(UBIT_NC_NO_SEPARATORS); break;
         case 'z': setBit(UBIT_NC_LEADING_ZERO_ISNUMBER); break;
         case 'B': setBit(UBIT_BENI_TOPIC_FILTER); break;
+        case 'p': setBit(UBIT_BENI_POSTBARZER); break;
         }
     }
 }
@@ -203,6 +204,7 @@ void StoredUniverse::clear()
 
     delete d_entIdLookupBENI;
     d_entIdLookupBENI=new SubclassBENI( *this );
+    d_synDesignatedEntClassSet.clear();
 }
 
 StoredToken& StoredUniverse::internString( int lang, const char* t, BELTrie* triePtr, const char* unstemmed)

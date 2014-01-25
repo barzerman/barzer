@@ -261,5 +261,11 @@ public:
     void getAllButSrctok( std::vector<std::string>& vec,  const std::vector<std::pair<size_t, size_t>>& posVec ) const;
     std::string getBeadSrcTok( const BarzelBead& bead ) const;
     void getContinuousOrigOffsets( const BarzelBead& bead, std::vector< std::pair<size_t, size_t> >& vec ) const;
+    
+    /// returns the chain where numbers are reported as source tokens
+    /// tokens are as is 
+    /// entities from classes designated as beni synonyms - entity strings 
+    /// everything else - skipped
+    std::string chain2string() const;
 };
 } // namespace barzer
