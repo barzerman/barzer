@@ -27,7 +27,7 @@
                 <!--
                 <benifile m="c" f="dev/svz_benient.txt" ec="200" sc="1"/>
                 -->
-                <benifile m="c" f="dev/svz_benient_iphone.txt" cl="200" sc="1"/>
+                <benifile m="c" f="dev/svz_benient.txt" cl="200" sc="1"/>
                 <implicit_topic c="200" s="2" i="device"/>
             </beni>
 
