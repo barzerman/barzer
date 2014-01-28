@@ -685,11 +685,8 @@ void load_ent_info(BELReader& reader, User& u, const ptree &node)
     ///   <subclass src="class[,subclass]" dest="class[,subclass]"/>
     /// </enttrans>
     const ptree &enttrans = node.get_child("enttrans", empty_ptree());
-    if( enttrans.empty() )
-        return;
-
     BOOST_FOREACH(const ptree::value_type &v, enttrans ) {
-		if (v.first == "subclass") {
+        if (v.first == "subclass") {
             StoredEntityClass fromEc, toEc;
             if( boost::optional< const ptree& > oa = v.second.get_child_optional("<xmlattr>") ) {
                 if( const boost::optional<std::string> optSrc = oa.get().get_optional<std::string>("src"))  {
