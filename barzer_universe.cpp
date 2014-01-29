@@ -180,10 +180,16 @@ void StoredUniverse::clearGeo()
 {
     m_geo->clear();
 }
+void StoredUniverse::clearTrieList()
+{
+    trieCluster.clearList();
+    d_topicEntLinkage.clear();
+}
 void StoredUniverse::clear()
 {
-    topicTrieCluster.clearTries();
     clearTrieList();
+    // used to be topicTrieCluster.clearTries();
+    topicTrieCluster.clearList();
     m_hints.clear();
     clearMeanings();
 	clearSpelling();
