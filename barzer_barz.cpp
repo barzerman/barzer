@@ -151,13 +151,41 @@ std::string Barz::chain2string() const
 {
     if( !getUniverse() ) return std::string(); 
     const StoredUniverse& universe = *getUniverse();
-    
-    std::stringstream sstr;
-    for( const auto& b : getBeadList() ) {
-        BeadVisitor v( universe, *this, b, sstr );
-        boost::apply_visitor( v,  b.getBeadData() );
+
+    if( getBeads().hasAtomicType( BarzerEntityList_TYPE ) ) {
+        std::vector< std::string > sv;
+
+        ay::vsi_state_vec entListState;
+
+        typedef std::pair< int, std::string > FragVec;
+        FragVec frag;
+        for( const auto& b : getBeadList() ) {
+
+            if(const BarzerEntityList* el = b.get<BarzerEntityList>()) {
+                #error entListState addState ( sizeof entity list )
+                frag.push_back( {frag.size(), std::string() } );
+            } else {
+                std::stringstream sstr;
+                BeadVisitor v( universe, *this, b, sstr );
+                boost::apply_visitor( v,  b.getBeadData() );
+                frag.push_back( {-1, sstr.str()} );
+            }
+            #error iterate 
+        }
+
+        for( const auto& b : getBeadList() ) {
+            std::stringstream sstr;
+            BeadVisitor v( universe, *this, b, sstr );
+            boost::apply_visitor( v,  b.getBeadData() );
+        }
+    } else {
+        std::stringstream sstr;
+        for( const auto& b : getBeadList() ) {
+            BeadVisitor v( universe, *this, b, sstr );
+            boost::apply_visitor( v,  b.getBeadData() );
+        }
+        return sstr.str();
     }
-    return sstr.str();
 }
 
 const BarzHints& Barz::getHints() const
