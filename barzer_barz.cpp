@@ -147,9 +147,9 @@ namespace {
     };
 }
 
-std::string Barz::chain2string() const
+std::vector< std::string > Barz::chain2string(size_t chainMax) const
 {
-    if( !getUniverse() ) return std::string(); 
+    if( !getUniverse() ) return {};
     const StoredUniverse& universe = *getUniverse();
 
     if( getBeads().hasAtomicType( BarzerEntityList_TYPE ) ) {
@@ -178,13 +178,14 @@ std::string Barz::chain2string() const
             BeadVisitor v( universe, *this, b, sstr );
             boost::apply_visitor( v,  b.getBeadData() );
         }
+        return sv;
     } else {
         std::stringstream sstr;
         for( const auto& b : getBeadList() ) {
             BeadVisitor v( universe, *this, b, sstr );
             boost::apply_visitor( v,  b.getBeadData() );
         }
-        return sstr.str();
+        return { sstr.str() };
     }
 }
 

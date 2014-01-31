@@ -394,10 +394,20 @@ class SmartBENI {
     StoredUniverse* d_zurchUniverse;
 
     std::vector< std::pair<boost::regex, std::string> > d_mandatoryRegex;
+
+    template <typename TCACHE>
+    void SmartBENI::search_single_query(
+        BENIFindResults_t& out, 
+        const char* query,
+        double minCov, 
+        Barz* barz,
+        const BENIFilter_f& filter,
+        size_t maxCount,
+        TCACHE*  );
 public:
     typedef boost::unordered_multimap< uint32_t, BarzerEntity > Doc2EntMap;
     Doc2EntMap d_zurchDoc2Ent;
-public:
+    
     void clear();
     SmartBENI( StoredUniverse& u );
 

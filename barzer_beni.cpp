@@ -266,19 +266,34 @@ void SubclassBENI::addSubclassIds(const StoredEntityClass& sec, const char *patt
 	}
 }
 
-void SmartBENI::search( 
+
+namespace {
+
+struct EntityCache {
+    /// stores entity and its highest coverage 
+    std::map<BarzerEntity,double> ecovMap;
+    bool noSort = true;
+    
+    void operator()( const BarzerEntity& e, double cov ) 
+    {
+        auto i = ecovMap.find( e );
+    }
+};
+
+} /// anon namespace 
+
+template <typename TCACHE>
+inline void SmartBENI::search_single_query( 
     BENIFindResults_t& out, 
     const char* query,
     double minCov, 
     Barz* barz,
     const BENIFilter_f& filter,
-    size_t maxCount) const
+    size_t maxCount,
+    TCACHE* ecache 
+    ) const
 {
     std::string processedStr;
-    if( barz && d_universe.checkBit( UBIT_BENI_POSTBARZER ) ) {
-        processedStr = barz->chain2string();
-        query = processedStr.c_str();
-    }
     if( hasMandatoryRegex() ) {
         if( query != processedStr.c_str() )
             processedStr.assign(query);
@@ -348,6 +363,24 @@ void SmartBENI::search(
 
     if( out.size() > maxCount ) 
         out.resize(maxCount);
+}
+
+void SmartBENI::search( 
+    BENIFindResults_t& out, 
+    const char* query,
+    double minCov, 
+    Barz* barz,
+    const BENIFilter_f& filter,
+    size_t maxCount) const
+{
+    if( barz && d_universe.checkBit( UBIT_BENI_POSTBARZER ) ) {
+        for( const auto& i: barz->chain2string() ) {
+        }
+        processedStr = barz->chain2string();
+        query = processedStr.c_str();
+    } else {
+        search_single_query<EntityCache>( out, query, minCov, barz, filter, maxCount, 0 );
+    }
 }
 
 BENI& SmartBENI::getPrimaryBENI()
