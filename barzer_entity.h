@@ -237,6 +237,7 @@ inline std::ostream& operator << ( std::ostream& fp, const BarzerEntityList& e )
     { return e.print( fp ); }
 inline bool operator< ( const BarzerEntityList& l, const BarzerEntityList& r ) { return l.isLessThan(r); }
 inline bool operator== ( const BarzerEntityList& l, const BarzerEntityList& r ) { return l.isEqual(r); }
+inline bool operator!= ( const BarzerEntityList& l, const BarzerEntityList& r ) { return !l.isEqual(r); }
 
 typedef std::pair< BarzerEntity*, BarzerEntityList* >  EntityOrListPair;
 typedef std::pair< const BarzerEntity*, const BarzerEntityList* >  const_EntityOrListPair;

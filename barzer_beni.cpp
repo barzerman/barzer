@@ -282,42 +282,13 @@ struct EntityCache {
 
 } /// anon namespace 
 
-template <typename TCACHE>
-inline void SmartBENI::search_single_query( 
+inline void SmartBENI::search_post_processing( 
     BENIFindResults_t& out, 
-    const char* query,
     double minCov, 
     Barz* barz,
     const BENIFilter_f& filter,
-    size_t maxCount,
-    TCACHE* ecache 
-    ) const
+    size_t maxCount ) const
 {
-    std::string processedStr;
-    if( hasMandatoryRegex() ) {
-        if( query != processedStr.c_str() )
-            processedStr.assign(query);
-        applyMandatoryRegex(processedStr);
-        query = processedStr.c_str();
-    }
-    double maxCov = d_beniStraight.search( out, query, minCov, filter);
-    const double SL_COV_THRESHOLD= 0.85;
-
-    if( d_isSL ) {
-        if( maxCov< SL_COV_THRESHOLD || out.empty() ) {
-            BENIFindResults_t slOut;
-            maxCov = d_beniSl.search( slOut, query, minCov, filter);
-            size_t numAdded = 0;
-            for( const auto& i: slOut ) {
-                BENIFindResults_t::iterator outIter = std::find_if(out.begin(), out.end(), [&]( const BENIFindResult& x ) { return ( x.ent == i.ent ) ; });
-                if( out.end() == outIter ) {
-                    out.push_back( i );
-                    ++numAdded;
-                } else
-                    outIter->coverage = i.coverage;
-            }
-        }
-    }
     /// trying to filter by the topics
     if( barz && d_universe.checkBit( UBIT_BENI_TOPIC_FILTER ) && (barz->topicInfo.hasTopics() || d_universe.getTopicEntLinkage().hasImplicitTopics()) ) {
         TopicFilter topicFilter( d_universe.getTopicEntLinkage() );
@@ -364,6 +335,42 @@ inline void SmartBENI::search_single_query(
     if( out.size() > maxCount ) 
         out.resize(maxCount);
 }
+    
+inline void SmartBENI::search_single_query( 
+    BENIFindResults_t& out, 
+    const char* query,
+    double minCov, 
+    Barz* barz,
+    const BENIFilter_f& filter,
+    size_t maxCount
+) const
+{
+    std::string processedStr;
+    if( hasMandatoryRegex() ) {
+        if( query != processedStr.c_str() )
+            processedStr.assign(query);
+        applyMandatoryRegex(processedStr);
+        query = processedStr.c_str();
+    }
+    double maxCov = d_beniStraight.search( out, query, minCov, filter);
+    const double SL_COV_THRESHOLD= 0.85;
+
+    if( d_isSL ) {
+        if( maxCov< SL_COV_THRESHOLD || out.empty() ) {
+            BENIFindResults_t slOut;
+            maxCov = d_beniSl.search( slOut, query, minCov, filter);
+            size_t numAdded = 0;
+            for( const auto& i: slOut ) {
+                BENIFindResults_t::iterator outIter = std::find_if(out.begin(), out.end(), [&]( const BENIFindResult& x ) { return ( x.ent == i.ent ) ; });
+                if( out.end() == outIter ) {
+                    out.push_back( i );
+                    ++numAdded;
+                } else
+                    outIter->coverage = i.coverage;
+            }
+        }
+    }
+}
 
 void SmartBENI::search( 
     BENIFindResults_t& out, 
@@ -374,12 +381,22 @@ void SmartBENI::search(
     size_t maxCount) const
 {
     if( barz && d_universe.checkBit( UBIT_BENI_POSTBARZER ) ) {
-        for( const auto& i: barz->chain2string() ) {
+        for( const auto& i: barz->chain2string() )
+            search_single_query( out, i.c_str(), minCov, barz, filter, maxCount );
+        std::sort( out.begin(), out.end(), []( const BENIFindResult& l, const BENIFindResult& r ) { 
+            return ( l.ent < r.ent ? true : ( r.ent < l.ent ? false : r.coverage < l.coverage ) );
+        });
+        BENIFindResults_t tmpOut;
+        tmpOut.reserve( out.size()+1 );
+        for( auto i = out.begin(); i!= out.end(); ++i ) {
+            if( i == out.begin() || !(i->ent == (i-1)->ent ) )
+                tmpOut.push_back( *i );
         }
-        processedStr = barz->chain2string();
-        query = processedStr.c_str();
+        out.swap( tmpOut );
+        search_post_processing( out, minCov, barz, filter, maxCount );
     } else {
-        search_single_query<EntityCache>( out, query, minCov, barz, filter, maxCount, 0 );
+        search_single_query( out, query, minCov, barz, filter, maxCount );
+        search_post_processing( out, minCov, barz, filter, maxCount );
     }
 }
 
