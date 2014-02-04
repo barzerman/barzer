@@ -180,11 +180,32 @@ int unicode_normalize_punctuation( std::string& outStr, const char* srcStr, size
     std::vector<char> tmp;
     tmp.reserve( srcStr_sz+16 );
 
-    const char * s_beg = srcStr, *s_end =srcStr+ srcStr_sz, *s_end_2= ( s_end > s_beg+2 ? s_end -2: 0), *s_end_1 = (s_end > s_beg ? s_end -1: 0);
+    const char * s_beg = srcStr, *s_end =srcStr+ srcStr_sz, *s_end_2= ( s_end > s_beg+2 ? s_end -2: 0), *s_end_1 = (s_end > s_beg ? s_end -1: 0),
+        *s_end_3= ( s_end > s_beg+3 ? s_end -3: 0);
     for( const char* s = s_beg; s< s_end; ++s ) {
         char c= *s;
         const uint8_t uc = (uint8_t)(c);
         const uint8_t lastUc = ( tmp.empty() ? 0 : tmp.back() );
+        if( (uc >= 0xf0 && uc <= 0xff) ) { // 4 character unicode 
+            if(  s< s_end_3 ) {
+                tmp.push_back( s[0] );
+                tmp.push_back( s[1] );
+                tmp.push_back( s[2] );
+                tmp.push_back( s[3] );
+                s+= 3;
+            } else {
+                s= s_end_1;
+            }
+            continue;
+        }
+        if( uc == 0xd7 ) { // hedbrew
+            if( s< s_end_1 ) { 
+                tmp.push_back( s[0] );
+                tmp.push_back( s[1] );
+                s+=1;
+            }
+            continue;
+        }
         if( isascii(c) ) {
             switch(c) {
             case '`': c = '\''; break;
@@ -227,7 +248,7 @@ int unicode_normalize_punctuation( std::string& outStr, const char* srcStr, size
             case 247:  c='/'; break; //divide;    division
             default: {
                 auto oldS = s;
-                if( uc == 0xe2 && s< s_end_2 ) {  // 3 byte punctuation
+                if( (uc >= 0xe0 && uc <= 0xef) && s< s_end_2 ) { // 3 char unicode 
                     switch( uc ) {
                     case 0xe2: 
                         switch( (uint8_t)(s[1]) ) {
@@ -276,9 +297,13 @@ int unicode_normalize_punctuation( std::string& outStr, const char* srcStr, size
                             break;
                         }
                     default: 
-                        break;
+                        tmp.push_back( s[0] );
+                        tmp.push_back( s[1] );
+                        tmp.push_back( s[2] );
+                        s+= 2;
+                        continue;
                     }
-                } 
+                }
                 if( (s == oldS) && s< s_end_1 ) { // two byte 
                     switch( uc ) {
                     case 0xc2:  // double quotes russian style
