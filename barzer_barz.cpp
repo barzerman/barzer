@@ -173,7 +173,8 @@ std::vector< std::string > Barz::chain2string(size_t chainMax) const
         for( const auto& b : getBeadList() ) {
             if(const BarzerEntityList* el = b.get<BarzerEntityList>()) {
                 frag.push_back( StrFrag( el, entListState.size() ) );
-                entListState.addState( el->size() );
+                if( el->size() ) 
+                    entListState.addState( el->size()-1 );
             } else {
                 std::stringstream sstr;
                 BeadVisitor v( universe, *this, b, sstr );

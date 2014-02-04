@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
     <users>
-        <user id="0">
-            <rules> <file rewriter="shit">dev/shit.xml</file> </rules>
+        <user id="200">
+            <flags value="csBp"/>
+            <synent> <subclass s="3"/> </synent>
+            <beni sl="yes">
+                <benient c="200" s="1"/>
+                <benifile m="c" f="dev/shit_benient.txt" cl="200" sc="1"/>
+            </beni>
+            <rules> <file rewriter="defrules">dev/iss_defrules.xml</file> </rules>
+
             <rwrchain>
-                <rewriter name="shit" />
+                <rewriter name="defrules" />
             </rwrchain>
 		</user>
     </users>

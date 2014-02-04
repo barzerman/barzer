@@ -488,7 +488,7 @@ namespace
 double BENI::search( BENIFindResults_t& out, const char* query, double minCov, const BENIFilter_f& filter) const
 {
     double maxCov = 0.0;
-    out.clear();
+    // out.clear();
     std::vector< NGramStorage<BarzerEntity>::FindInfo > vec;
 	
     std::vector<char> tmpBuf;
