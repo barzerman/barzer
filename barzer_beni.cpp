@@ -3,6 +3,8 @@
 #include <ay/ay_sets.h>
 #include <ay/ay_util_time.h>
 #include <boost/regex.hpp>
+#include <barzer_beni_ngram_storage.h>
+#include <barzer_barz.h>
 
 namespace barzer {
 
@@ -413,22 +415,20 @@ void SmartBENI::clear()
 
 void BENI::setSL( bool x )
 {
-    d_storage.setSLEnabled( x );
+    storage().setSLEnabled( x );
 }
+
+void BENI::clear()   { storage().clear(); }
 
 BENI::BENI( StoredUniverse& u ) : 
-    d_storage(d_charPool),
+    d_storage(new BarzerEntityNgramStorage(d_charPool) ),
     d_universe(u)
 {}
-
-const NGramStorage<BarzerEntity>& BENI::getStorage() const
-{
-	return d_storage;
-}
+BENI::~BENI() { delete d_storage; }
 
 void BENI::addWord(const std::string& str, const BarzerEntity& ent)
 {
-	d_storage.addWord( str.c_str(), ent );
+	storage().addWord( str.c_str(), ent );
 	d_backIdx.insert({ ent, str });
 }
 
@@ -499,7 +499,7 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov, c
 	Lang::stringToLower( tmpBuf, dest, queryStr );
     normalize( normDest, dest, &d_universe );
     enum { MAX_BENI_RESULTS = 64 };
-    d_storage.getMatches( normDest.c_str(), normDest.length(), vec, MAX_BENI_RESULTS, minCov, filter);
+    getStorage().getMatches( normDest.c_str(), normDest.length(), vec, MAX_BENI_RESULTS, minCov, filter);
 	
     if( !vec.empty() ) 
         out.reserve( vec.size() );

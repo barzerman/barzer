@@ -4,7 +4,7 @@
 #pragma once
 #include <stdint.h>
 #include <barzer_el_pattern.h>
-#include <barzer_entity.h>
+#include <barzer_entity_basic.h>
 #include <barzer_basic_types.h>
 #include <barzer_basic_types_range.h>
 

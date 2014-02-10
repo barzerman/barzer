@@ -38,6 +38,7 @@
 
 #include <boost/regex.hpp>
 #include <barzer_lib.h>
+#include <barzer_beni_ngram_storage.h>
 
 namespace barzer {
 

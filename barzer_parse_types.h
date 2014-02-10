@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <barzer_token.h>
 #include <barzer_number.h>
-#include <barzer_entity.h>
+#include <barzer_entity_basic.h>
 #include <barzer_storage_types.h>
 #include <barzer_question_parm.h>
 

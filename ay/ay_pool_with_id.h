@@ -65,6 +65,7 @@ public:
 
 		return( (i->second = pushNewObj( &(i->first) )) );
 	}
+    inline IdType addObj( const T& t ) { return produceIdByObj(t); }
     /// ascii serializer 
     /// size object[size]
     /// both size and object are written usint SRLZR object 

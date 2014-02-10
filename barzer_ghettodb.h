@@ -5,7 +5,7 @@
 #pragma once
 #include <ay/ay_string_pool.h>
 #include <ay/ay_util_char.h>
-#include <barzer_entity.h>
+#include <barzer_entity_basic.h>
 
 namespace barzer {
 /// ghettodb is a very simple (entityid+key),value pair storage 

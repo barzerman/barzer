@@ -11,7 +11,7 @@
 #include <ay/ay_util.h>
 #include <ay/ay_bitflags.h>
 #include <ay/ay_string_pool.h>
-#include <barzer_entity.h>
+#include <barzer_entity_basic.h>
 
 /// Storage types are the types used in read-only data structures to store 
 /// tokens (both compounded and single) and Entities

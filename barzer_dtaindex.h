@@ -11,7 +11,7 @@
 #include <ay/ay_util_char.h>
 #include <boost/unordered_map.hpp>
 #include <barzer_language.h>
-#include "barzer_basic_types.h"
+#include <barzer_basic_types.h>
 #include <boost/regex.hpp>
 
 namespace barzer {

@@ -1,6 +1,7 @@
 #pragma once
 
-#include <barzer_entity.h>
+#include <barzer_entity_basic.h>
+#include <vector>
 #include <ay/ay_bitflags.h>
 namespace barzer {
 

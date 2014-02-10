@@ -1,6 +1,8 @@
 #pragma once
 #include <map>
-#include <barzer_entity.h>
+#include <set>
+#include <vector>
+#include <barzer_entity_basic.h>
 
 namespace barzer {
 class BELTrie;

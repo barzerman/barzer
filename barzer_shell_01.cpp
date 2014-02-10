@@ -5,6 +5,8 @@
 #include <barzer_el_function.h>
 #include <batch/barzer_batch_processor.h>
 #include <barzer_shellsrv_shared.h>
+#include <barzer_beni_ngram_storage.h>
+
 namespace barzer {
 namespace {
     struct Env {

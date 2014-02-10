@@ -3,7 +3,7 @@
 /// Code is property Barzer for authorized use only
 /// 
 #pragma once
-#include <barzer_entity.h>
+#include <barzer_entity_basic.h>
 #include <barzer_barz.h>
 #include <ay/ay_pool_with_id.h>
 #include <barzer_parse.h>

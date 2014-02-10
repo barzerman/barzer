@@ -2,7 +2,7 @@
 
 #include <map>
 #include <vector>
-#include <barzer_entity.h>
+#include <barzer_entity_basic.h>
 
 namespace barzer{ 
 struct StoredEntityClass;
