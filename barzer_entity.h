@@ -150,17 +150,13 @@ typedef StoredEntityUniqId BarzerEntity;
 
 struct BENIFindResult {
 	BarzerEntity ent;
-	int popRank; // entity popularity rank
-	double coverage;
-	double relevance;
-    size_t nameLen;
+	int popRank=0; // entity popularity rank
+	double coverage = 0;
+	double relevance = 0;
+    size_t nameLen=0;
 
-    BENIFindResult() :
-        popRank(0),
-        coverage(0),
-        relevance(0),
-        nameLen(0)
-    {}
+    BENIFindResult(const BarzerEntity& e ) : ent(e) {}
+    BENIFindResult() = default;
     BENIFindResult( const BarzerEntity& e, int pr, double c, double r, size_t nl ) : 
         ent(e), 
         popRank(pr),
@@ -170,6 +166,9 @@ struct BENIFindResult {
     {}
 
 };
+
+inline bool operator<( const BENIFindResult& l, const BENIFindResult& r ) 
+    { return l.ent< r.ent ; }
 typedef std::vector<BENIFindResult> BENIFindResults_t; 
 
 //// generic type used by Barzel among other things
@@ -238,6 +237,7 @@ inline std::ostream& operator << ( std::ostream& fp, const BarzerEntityList& e )
     { return e.print( fp ); }
 inline bool operator< ( const BarzerEntityList& l, const BarzerEntityList& r ) { return l.isLessThan(r); }
 inline bool operator== ( const BarzerEntityList& l, const BarzerEntityList& r ) { return l.isEqual(r); }
+inline bool operator!= ( const BarzerEntityList& l, const BarzerEntityList& r ) { return !l.isEqual(r); }
 
 typedef std::pair< BarzerEntity*, BarzerEntityList* >  EntityOrListPair;
 typedef std::pair< const BarzerEntity*, const BarzerEntityList* >  const_EntityOrListPair;

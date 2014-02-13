@@ -262,10 +262,13 @@ public:
     std::string getBeadSrcTok( const BarzelBead& bead ) const;
     void getContinuousOrigOffsets( const BarzelBead& bead, std::vector< std::pair<size_t, size_t> >& vec ) const;
     
+    /// default maximum number of expansions for chain2string
+    enum { CHAIN2STRING_MAX = 10 };
     /// returns the chain where numbers are reported as source tokens
     /// tokens are as is 
     /// entities from classes designated as beni synonyms - entity strings 
     /// everything else - skipped
-    std::string chain2string() const;
+    std::vector<std::string> chain2string( size_t combMax = CHAIN2STRING_MAX ) const;
 };
+
 } // namespace barzer

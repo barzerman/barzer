@@ -128,7 +128,9 @@ static int bshf_brzstr( BarzerShell* shell, ay::char_cp cmd, std::istream& in , 
     return env.loop( [&]( Env& env ) -> void 
         {
             parser.parse( env.barz(), env.buf.c_str(), qparm );
-            env.outFp() << env.barz().chain2string() << std::endl;
+            for( const auto& i : env.barz().chain2string() ) {
+                env.outFp() << "\"" << i << "\"" << std::endl;
+            }
             env.barz().clearWithTraceAndTopics();
         } 
     );
