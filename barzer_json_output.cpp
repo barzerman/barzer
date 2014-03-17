@@ -176,7 +176,7 @@ public:
 		return false;
 	}
 	bool operator()(const BarzerString &data) {
-        raii.addKeyVal( "type", "token" );
+        raii.addKeyVal( "type", ( data.isFluff() ? "fluff" : "token") );
         ay::jsonEscape( data.getStr().c_str(), raii.startField( "value" ), "\"" );
 	    return true;
 	}
