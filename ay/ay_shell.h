@@ -29,6 +29,9 @@ protected:
     
 	int setupStreams();
 public:
+    bool isStream_cerr( ) const { return errStream == &std::cerr; }
+    bool isStream_cout( ) const { return outStream == &std::cout; }
+    bool isStream_cin( ) const { return inStream == &std::cin; }
     enum {
         SHBIT_NOPROMPT, // when on neither prompt nor help is not printed 
         SHBIT_MAX
@@ -121,6 +124,10 @@ public:
 		delete context; // to shut valgrind up
 	}
 
+    std::istream* setInputStream( std::istream* p ) { 
+        std::istream* old = inStream;
+        return( p ? ( inStream=p, old) : 0 );
+    }
     std::ostream* setOutStream( std::ostream* p ) { 
         std::ostream* oldStream = outStream;
         return( p ? ( outStream=p, oldStream) : 0 );
