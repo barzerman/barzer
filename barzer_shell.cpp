@@ -1169,9 +1169,10 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in , con
     shell->syncQuestionParm(qparm);
 
     ay::stopwatch totalTimer;
-    while( reader.nextLine() && reader.str.length() ) {
+    size_t stringCount = 0;
+    for( std::string readerStr; std::getline( shell->getInStream(), readerStr ) && ( !shell->isStream_cin() || !readerStr.empty() ); ++stringCount ) {
         ay::stopwatch localTimer;
-        const char* q = reader.str.c_str();
+        const char* q = readerStr.c_str();
         *ostr << "parsing: " << q << "\n";
 
         for( size_t i = 0; i< numIterations; ++i ) {
@@ -1183,10 +1184,15 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in , con
             barz.clearWithTraceAndTopics();
         }
 
-        std::cerr << numIterations << " iterations done in " << localTimer.calcTime() << " seconds\n";
+        if( shell->isStream_cin() )
+            shell->getErrStream() << numIterations << " iterations done in " << localTimer.calcTime() << " seconds\n";
+        else if( !(stringCount%1000) ) 
+            std::cerr << ".";
         // << ttVec << std::endl;
     }
-    std::cerr << "All done in " << totalTimer.calcTime() << " seconds\n";
+    if( !shell->isStream_cin()) 
+        std::cerr << std::endl;
+    shell->getErrStream() << stringCount << " lines done in " << totalTimer.calcTime() << " seconds\n";
     return 0;
 }
 

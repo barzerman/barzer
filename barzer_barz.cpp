@@ -915,7 +915,8 @@ void Barz::getContinuousOrigOffsets( const BarzelBead& bead, std::vector< std::p
                                 }
                             }
                         } else if( x_end < v.first ) {
-                            vec.insert( vec.begin() +i, { x.first, x_end } );
+                            // v.first = x_end;
+                            // vec.insert( vec.begin() +i, { x.first, x_end } );
                         }
                     }
                     if( !overlap ) { // applicable chunk not found 
