@@ -497,6 +497,15 @@ struct BarzelBeadChain {
 
     /// returns the number of remaining stems
     size_t adjustStemIds( const StoredUniverse& u, const BELTrie& trie );
+
+    bool hasAtomicType( BarzelBeadAtomic_type_t t  ) const
+    {
+        for( const auto& i : lst ) {
+            if( i.isAtomicType(t) )
+                return true;
+        }
+        return false;
+    }
 };
 
 

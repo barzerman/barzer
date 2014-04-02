@@ -6,19 +6,66 @@
 #include <batch/barzer_batch_processor.h>
 #include <barzer_shellsrv_shared.h>
 namespace barzer {
+namespace {
+    struct Env {
+        BarzerShell* shell;
+        ay::CmdLineArgsContainer arg;
+        ay::file_ostream outFile,errFile;
+        ay::file_istream inFile;
+        std::string buf;
+        BarzerShellContext * context;
+
+        Env( BarzerShell* sh, ay::char_cp cmd, std::istream& in ) : 
+            shell(sh),
+            arg( cmd, in ) ,
+            outFile(shell->getOutStreamPtr()), errFile( shell->getErrStreamPtr()),
+            inFile( shell->getInStreamPtr() ),
+            context(shell->getBarzerContext())
+        {
+            arg.getFileFromArg( outFile, "-o" );
+            arg.getFileFromArg( errFile, "-e" );
+            arg.getFileFromArg( inFile, "-i" );
+        }
+        BarzerShellContext& ctxt() { return *context; }
+        const BarzerShellContext& ctxt() const { return *context; }
+        Barz& barz() { return context->barz; }
+        const Barz& barz() const { return context->barz; }
+        const StoredUniverse* universe_ptr() const { return &(context->getUniverse()); }
+        StoredUniverse* universe_ptr() { return &(context->getUniverse()); }
+
+        StoredUniverse& universe() { return (context->getUniverse()); }
+        const StoredUniverse& universe() const { return (context->getUniverse()); }
+        bool readLine() { return ( std::getline(inFile.fp(),buf)); }
+
+        template <typename T>
+        int loop( T&& cb ) 
+        {
+            while( readLine() ) {
+                if(buf.empty() ) break;
+                else 
+                    cb( *this );
+            }
+            return 0;
+        }
+        std::ostream& outFp() { return outFile.fp(); }
+        std::istream& inFp() { return inFile.fp(); }
+        std::ostream& errFp() { return errFile.fp(); }
+
+        void syncQuestionParm( QuestionParm& qp ) const {  shell->syncQuestionParm(qp) ; }
+    };
+} // namespace
 static int bshf_test01( BarzerShell* shell, ay::char_cp cmd, std::istream& in , const std::string& argStr)
 {
-    std::string buf;
     std::string stem;
-    ay::file_istream inFile( shell->getInStreamPtr() );
-    while( std::getline(inFile.fp(),buf) ) {
-        if( buf.empty() )
-            break;
-        std::string out;
-        ay::unicode_normalize_punctuation( out, buf.c_str(), buf.length() );
-        shell->getOutStream() << buf << ":" << "\"" << out << "\"" << std::endl;
-        
-    }
+    Env env( shell, cmd, in );
+    env.loop( 
+        [&]( Env& env ) -> void 
+        {
+            std::string out;
+            ay::unicode_normalize_punctuation( out, env.buf.c_str(), env.buf.length() );
+            env.outFp() << env.buf << ":" << "\"" << out << "\"" << std::endl;
+        } 
+    );
     std::cerr << "test01\n";
     return 0;
 }
@@ -52,64 +99,51 @@ static int bshf_file( BarzerShell* shell, ay::char_cp cmd, std::istream& in , co
 }
 static int bshf_benix( BarzerShell* shell, ay::char_cp cmd, std::istream& in , const std::string& argStr)
 {
-    ay::file_istream inFile( shell->getInStreamPtr() );
-    ay::file_ostream outFile(shell->getOutStreamPtr()), errFile( shell->getErrStreamPtr() );
-
-    std::string buf;
-    while( std::getline(inFile.fp(),buf) ) {
+    return Env(shell, cmd, in).loop( [&]( Env& env ) -> void {
         TFE_ngram xtractor;
         ExtractedStringFeatureVec fv;
-        xtractor( fv, buf.c_str(), buf.length(), LANG_UNKNOWN );
+        xtractor( fv, env.buf.c_str(), env.buf.length(), LANG_UNKNOWN );
         for( const auto& i : fv ) {
-            outFile.fp() << i << std::endl;
+            env.outFp() << i << std::endl;
         }
-    }
-    return 0;
+    });
 }
 static int bshf_normalize( BarzerShell* shell, ay::char_cp cmd, std::istream& in , const std::string& argStr)
 {
-    ay::file_istream inFile( shell->getInStreamPtr() );
-    ay::file_ostream outFile(shell->getOutStreamPtr()), errFile( shell->getErrStreamPtr() );
-    std::string buf;
-    std::string stem;
-    while( std::getline(inFile.fp(),buf) ) {
-        if( buf.empty() ) 
-            break;
-        BENI::normalize( stem, buf );
-        outFile.fp() << stem << std::endl;
-    }
-    return 0;
+    return Env(shell, cmd, in).loop( [&]( Env& env ) -> void {
+        std::string stem;
+        BENI::normalize( stem, env.buf, env.universe_ptr() );
+        env.outFp() << stem << std::endl;
+    });
+}
+
+static int bshf_brzstr( BarzerShell* shell, ay::char_cp cmd, std::istream& in , const std::string& argStr)
+{
+    Env env( shell, cmd, in );
+    QParser parser( env.universe() );
+
+    QuestionParm qparm;
+    env.syncQuestionParm(qparm);
+
+    return env.loop( [&]( Env& env ) -> void 
+        {
+            parser.parse( env.barz(), env.buf.c_str(), qparm );
+            for( const auto& i : env.barz().chain2string() ) {
+                env.outFp() << "\"" << i << "\"" << std::endl;
+            }
+            env.barz().clearWithTraceAndTopics();
+        } 
+    );
 }
 static int bshf_morph( BarzerShell* shell, ay::char_cp cmd, std::istream& in , const std::string& argStr)
 {
-    ay::CmdLineArgsContainer arg( cmd, in );
-
-    ay::file_ostream outFile(shell->getOutStreamPtr()), errFile( shell->getErrStreamPtr() );
-    ay::file_istream inFile( shell->getInStreamPtr() );
-
-    arg.getFileFromArg( outFile, "-o" );
-    arg.getFileFromArg( errFile, "-e" );
-    arg.getFileFromArg( inFile, "-i" );
-
-	BarzerShellContext *context = shell->getBarzerContext();
-	const StoredUniverse &uni = context->getUniverse();
-	const BZSpell* bzSpell = uni.getBZSpell();
-
-    bool stemOnly = arg.cmd.hasArg( "-c");
-    bool noBreakOnBlank = arg.cmd.hasArg( "-b");
-
-    std::string buf;
-    std::string stem;
-    while( std::getline(inFile.fp(),buf) ) {
-        stem.clear();
-        if( buf.empty() && !(noBreakOnBlank ) )
-            break;
-        if( bool stemSuccess = bzSpell->stem( stem, buf.c_str() ) ) 
-            outFile.fp() << stem << "|" << buf << std::endl;
-    }
-
-    return 0;
+    return Env( shell, cmd, in ).loop( [&]( Env& env ) -> void {
+        std::string stem;
+        if( bool stemSuccess = env.universe().getBZSpell()->stem( stem, env.buf.c_str() ) ) 
+            env.outFp() << stem << "|" << env.buf << std::endl;
+    });
 }
+
 static int bshf_func( BarzerShell* shell, ay::char_cp cmd, std::istream& in , const std::string& argStr)
 {
     ay::file_ostream outFile(shell->getOutStreamPtr()), errFile( shell->getErrStreamPtr() );
@@ -120,6 +154,7 @@ static int bshf_func( BarzerShell* shell, ay::char_cp cmd, std::istream& in , co
 static const ay::Shell::CmdData g_cmd[] = {
 ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_test01), "test01", "placeholder" ),
 ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_morph), "morph", "morphological normalization" ),
+ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_brzstr), "brzstr", "transform string using barz (fluff/entity/erc removal)" ),
 ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_benix), "benix", "extract beni features" ),
 ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_normalize), "beninorm", "morphological normalization" ),
 ay::Shell::CmdData( (ay::Shell_PROCF)(bshf_batchparse), "batchparse", "[parms.xml] parses bulk input. params.xml contains parsing parameters" ),

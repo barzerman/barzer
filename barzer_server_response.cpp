@@ -127,13 +127,9 @@ public:
         // std::stringstream sstrBody;
 
         std::string lastTokBuf;
-		for( CTWPVec::const_iterator ci = ctoks.begin(), ci_before_last = ( ctoks.size() ? ci+ctoks.size()-1: ctoks.end()); ci != ctoks.end(); ++ci ) {
+		for( CTWPVec::const_iterator ci = ctoks.begin(); ci != ctoks.end(); ++ci ) {
 			const TTWPVec& ttv = ci->first.getTTokens();
 
-            /*
-            if( ci != ctoks.begin() && ci != ci_before_last) 
-                sstrBody << " ";
-            */
 			for( TTWPVec::const_iterator ti = ttv.begin(); ti!= ttv.end() ; ++ti ) {
 				const TToken& ttok = ti->first;
                 if( lastTokBuf == ttok.buf ) 
@@ -142,13 +138,8 @@ public:
                     lastTokBuf = ttok.buf.c_str();
 
 				if( ttok.buf.length() ) {
-                    /*
-                    if( ttok.buf[0] !=' ' && (ti != ttv.begin() || ci != ctoks.begin() )) 
-                        sstrBody << " ";
-                    */
                     if( ttok.buf[0] !=' ' ) {
                         std::string tokStr( ttok.buf.c_str(), ttok.buf.length() );
-                        // xmlEscape(tokStr, sstrBody);
                     }
 
                     if( needOffsetLengthVec ) 
@@ -775,7 +766,7 @@ std::ostream& AutocStreamerJSON::print(std::ostream &os) const
             const EntityData::EntProp* edata = universe.getEntPropData( euid );
             uint32_t eclass = euid.eclass.ec, esubclass = euid.eclass.subclass;
             os << ",\"cl\":\"" << std::dec << eclass<< "\"," << "\"sc\":\"" << esubclass << 
-            "\",\"ord\":\"" << eweight.pathLen << "." << eweight.relevance << "\"";
+            "\",\"ord\":\"" << /*eweight.pathLen << "." <<*/ eweight.relevance << "\"";
             if( edata ) {
                 os << ",\"n\":\"" << edata->canonicName.c_str() << "\"";
             }

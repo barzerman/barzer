@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <users>
+        <user id="200" limits="no">
+            <flags value="csBp"/>
+            <!-- entity: subclass id translation -->
+            <enttrans>
+                <subclass src="888,1" dest="200,1"/>
+            </enttrans>
+            <!-- entity: subclass names -->
+            <entseg/>
+            <entity class_name="svyaznoy" class_id="200">
+                <subclass name="company" id="1"/>
+            </entity>
+            <synent>
+                <subclass s="3"/>
+            </synent>
+            <!-- adding subclasses to BENI -->
+            <beni sl="yes">
+                <replace f="Найти|найти"/>
+                <replace f="^(купить|Купить)"/>
+                <replace f="(купить|Купить)$"/>
+                <replace f="онлайн$"/>
+                <replace f="в москве$"/>
+                <replace f="в связном$"/>
+                <benient c="200" s="1"/>
+                <!--
+                <benifile m="c" f="dev/svz_benient.txt" ec="200" sc="1"/>
+                -->
+                <benifile m="c" f="dev/svz_benient.txt" cl="200" sc="1"/>
+                <implicit_topic c="200" s="2" i="device"/>
+            </beni>
+
+            <!-- loading rule files -->
+            <rules>
+                <file rewriter="synonym">dev/svyaznoy_synonym.xml</file> 
+                <file rewriter="svztopic">dev/svyaznoy_topic.xml</file> 
+            </rules>
+            <!-- loading rewriters -->
+            <rwrchain>
+                <topicdetect name="svztopic" />
+                <rewriter name="synonym" />
+            </rwrchain>
+		</user>
+    </users>
+</config>

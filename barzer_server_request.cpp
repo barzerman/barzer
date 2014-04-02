@@ -1134,7 +1134,12 @@ void BarzerRequestParser::tag_query(RequestTag &tag)
 			{
                 d_aggressiveStem = true;
 				handled = true;
-			}
+			} else if( i->first =="autoc" ) {
+                if( i->second != "no" ) {
+                    tag_autoc(tag);
+                    return;
+                }
+            }
             break;
         case 'b':
             if (i->first == "beni" )

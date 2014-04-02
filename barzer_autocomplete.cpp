@@ -234,11 +234,19 @@ int BarzerAutocomplete::parse( const char* q )
     if(  d_qparm.canHaveBeni()  && !bestEnt.isFull() && d_universe.d_settings.hasEnoughGlyphsForAutoc(d_barz.getQuestionOrigUTF8().length()) ) {
         d_barz.beniSearch( d_universe, d_qparm );
         for( const auto& i : d_barz.getBeniResults() ) {
+            if( bestEnt.isFull() )
+                break;
             if( d_universe.d_settings.isBeniCoverageGoodForAutoc(i.coverage) ) {
-                if( d_qparm.autoc.entFilter(i.ent) )
-                    bestEnt.addEntity( i.ent, 1, static_cast<uint32_t>(i.coverage*100) );
+                if( d_qparm.autoc.entFilter(i.ent) ) {
+                    uint32_t relevance = 0;
+                    if( const EntityData::EntProp* edata = d_universe.getEntPropData( i.ent ) )
+                        relevance= edata->relevance;
+
+                    bestEnt.addEntity( i.ent, 1, relevance*i.coverage );
+                }
             }
         }
+
     }
     autocStreamer.print( d_os );
     return 0;

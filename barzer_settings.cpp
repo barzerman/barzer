@@ -96,7 +96,7 @@ void BarzerSettings::addRulefile(BELReader& reader, const Rulefile &f)
 
 	int num = reader.loadFromFile(fname, BELReader::INPUT_FMT_XML);
     if( num>=0 ) {
-	    std::cerr << "PROCESSOR FILE ";
+	    std::cerr << " PROCESSOR FILE ";
         if( d_currentUniverse->userName().empty() )
             std::cerr << tclass;
         else
@@ -174,6 +174,37 @@ inline boost::optional<const ptree&> getNodeByEitherName( const ptree & node, co
     return optNode;
 }
 
+template <typename T>
+inline bool optAttr_assign( T& dest, const boost::optional<const ptree&>& oa, const char* name, const T& def  ) 
+{ 
+    if( const boost::optional<T> x = oa.get().get_optional<T>(name) ) { 
+        dest = x.get(); 
+    } else 
+        dest=def;
+    return true;
+}
+/// if attribute exists assigns dest, otherwise doesnt alter dest
+template <typename T>
+inline bool optAttr_assign( T& dest, const boost::optional<const ptree&>& oa, const char* name ) 
+{ 
+    if( const boost::optional<T> x = oa.get().get_optional<T>(name) ) { 
+        dest = x.get(); 
+        return true;
+    } else 
+        return false;
+}
+
+template <typename T>
+inline T optAttr_getval( const boost::optional<const ptree&>& oa, const char* name, T defVal=0 ) 
+    { if( const boost::optional<T> x = oa.get().get_optional<T>(name) ) { return x.get(); } else return defVal; }
+
+inline uint32_t optAttr_intern_internal( GlobalPools& gpools, const boost::optional<const ptree&>& oa, const char* name ) 
+{
+    if( const boost::optional<std::string> x = oa.get().get_optional<std::string>(name) ) 
+        return gpools.internString_internal(x.get().c_str());
+    else
+        return 0xffffffff;
+}
 } // anon namespace 
 
 void BarzerSettings::loadLangNGrams()
@@ -507,7 +538,7 @@ void BarzerSettings::loadTrieset(BELReader& reader, User &u, const ptree &node)
 
     std::string defaultClass = getDefaultClassName();
 	BOOST_FOREACH(const ptree::value_type &v, optNode.get() ) {
-		if (v.first == "trie" || v.first == "rewriter") {
+		if (v.first == "trie" || v.first == "rewriter" || v.first=="topicdetect") {
 			const ptree &trieNode = v.second;
 			try {
 				const ptree &attrs = trieNode.get_child("<xmlattr>");
@@ -522,13 +553,14 @@ void BarzerSettings::loadTrieset(BELReader& reader, User &u, const ptree &node)
                 if( !getAttrByEitherName( name, attrs, "name", "rewriter" )  )
                     continue;
 
-                const boost::optional<std::string> optTopic = attrs.get_optional<std::string>("topic");
+                bool isTopic = ( attrs.get_optional<std::string>("topic") || v.first=="topicdetect" );
+                // const boost::optional<std::string> optTopic = attrs.get_optional<std::string>("topic");
 
                 // noac - autocomplete doesnt apply . optional attribute. when set
                 // when this attribute is set the grammar wont be used in autocomplete
                 const boost::optional<std::string> optNoAutoc = attrs.get_optional<std::string>("noac");
 
-				std::cerr << "ADDED PROCESSOR\t\"" << ( u.getUniverse().userName().empty() ? cl : u.getUniverse().userName() ) << "::" << name << "\"" << (optTopic? " TOPIC" :"") << "\n";
+				std::cerr << "ADDED PROCESSOR\t\"" << ( u.getUniverse().userName().empty() ? cl : u.getUniverse().userName() ) << "::" << name << "\"" << (isTopic? " TOPIC" :"") << "\n";
 
                 GrammarInfo* gramInfo = 0;
                 /// extracting topic info
@@ -554,7 +586,7 @@ void BarzerSettings::loadTrieset(BELReader& reader, User &u, const ptree &node)
                 if( gramInfo && optNoAutoc) {
                     gramInfo->set_autocDontApply();
                 }
-				u.addTrie(TriePath(cl, name), optTopic, gramInfo);
+				u.addTrie(TriePath(cl, name), isTopic, gramInfo);
 
 			} catch (boost::property_tree::ptree_bad_path &e) {
 				AYLOG(ERROR) << "Can't get " << e.what();
@@ -653,17 +685,14 @@ void load_ent_info(BELReader& reader, User& u, const ptree &node)
     ///   <subclass src="class[,subclass]" dest="class[,subclass]"/>
     /// </enttrans>
     const ptree &enttrans = node.get_child("enttrans", empty_ptree());
-    if( enttrans.empty() )
-        return;
-
     BOOST_FOREACH(const ptree::value_type &v, enttrans ) {
-		if (v.first == "subclass") {
+        if (v.first == "subclass") {
             StoredEntityClass fromEc, toEc;
-            if( boost::optional< const ptree& > optAttr = v.second.get_child_optional("<xmlattr>") ) {
-                if( const boost::optional<std::string> optSrc = optAttr.get().get_optional<std::string>("src"))  {
-                    if( const boost::optional<std::string> optDest = optAttr.get().get_optional<std::string>("dest"))  {
+            if( boost::optional< const ptree& > oa = v.second.get_child_optional("<xmlattr>") ) {
+                if( const boost::optional<std::string> optSrc = oa.get().get_optional<std::string>("src"))  {
+                    if( const boost::optional<std::string> optDest = oa.get().get_optional<std::string>("dest"))  {
                         std::string src = optSrc.get(), dest= optDest.get();
-                        if( !u.addEntTranslation( src.c_str(), dest.c_str() ) )
+                        if( u.addEntTranslation( src.c_str(), dest.c_str() ) )
                             std::cerr << "ERROR setting entity translation subclass src=\"" << src << "\", dest=\"" << dest << "\"" << std::endl;
                     }
                 }
@@ -675,8 +704,6 @@ void load_ent_info(BELReader& reader, User& u, const ptree &node)
     
     {  // entity segmentation settings processing 
     const ptree &entseg = node.get_child("entseg", empty_ptree());
-    if( entseg.empty() )
-        return;
     BOOST_FOREACH(const ptree::value_type &v, entseg ) {
         StoredEntityClass eclass;
         StoredUniverse& uni = u.universe;
@@ -691,6 +718,24 @@ void load_ent_info(BELReader& reader, User& u, const ptree &node)
         }
     } // foreach
     } // end of entity segmentation setings processing 
+
+    {
+    // synonym designation
+    const ptree &synent = node.get_child("synent", empty_ptree());
+    BOOST_FOREACH(const ptree::value_type &v, synent ) {
+        std::cerr << "synonym entity classes:";
+		if (v.first == "subclass") {
+            if( boost::optional< const ptree& > oa = v.second.get_child_optional("<xmlattr>") ) {
+                StoredEntityClass ec;
+                if( optAttr_assign( ec.subclass,oa,"s") && optAttr_assign( ec.ec,oa,"c",u.getId()) ) {
+                    u.getUniverse().addEntClassToSynonymDesignation( ec );
+                    std::cerr << " " << ec;
+                }
+            }
+        }
+        std::cerr << std::endl;
+    }
+    }
 }
 
 } // anonymous namespace ends
@@ -730,7 +775,7 @@ int User::readClassNames( const ptree& node )
 {
     int numSubclasses = 0;
     if( boost::optional< const ptree& > optNode = node.get_child_optional("entity") ) {
-	    boost::optional< const ptree& > optAttr = optNode.get().get_child_optional("<xmlattr>");
+	    boost::optional< const ptree& > oa = optNode.get().get_child_optional("<xmlattr>");
 
         if( const boost::optional< uint32_t > classIdOpt = optNode.get().get_optional<uint32_t>( "<xmlattr>.class_id" ) ) 
         {
@@ -769,6 +814,7 @@ std::string& updateTrueUserName( std::string & trueUserName, const char* uname, 
     return trueUserName;
 }
 
+
 } // end of anon namespace
 
 int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user, const char* uname )
@@ -793,7 +839,12 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user, c
 	loadSpell(u, children);
 	loadMeanings(u, children);
 
-    reader.setRespectLimits( userId );
+	const boost::optional<std::string> respectLimitsOpt
+		= children.get_optional<std::string>("<xmlattr>.limits");
+    if( !respectLimitsOpt || respectLimitsOpt.get() != "no" ) 
+        reader.setRespectLimits( userId );
+    else
+        std::cerr << "Emit counts and all other LIMITS will be ignored\n";
     reader.setCurrentUniverse( u.getUniversePtr(), &u );
     load_ent_info(reader, u, children);
     load_user_flags(reader, u, children);
@@ -837,47 +888,67 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user, c
 
         BOOST_FOREACH(const ptree::value_type &i, x.get() ) {
             if( i.first == "benient" ) {
-                if( const boost::optional<const ptree&> optAttr = i.second.get_child_optional("<xmlattr>") ) {
-                    if( const boost::optional<uint32_t> cOpt = optAttr.get().get_optional<uint32_t>("c") ) {
-                        if( const boost::optional<uint32_t> sOpt = optAttr.get().get_optional<uint32_t>("s") ) {
-                            StoredEntityClass ec( cOpt.get(), sOpt.get() );
-                            u.getUniverse().indexEntityNames( ec );
-                        }
-                    }
+                if( const boost::optional<const ptree&> oa = i.second.get_child_optional("<xmlattr>") ) {
+                    StoredEntityClass ec;
+                    if( optAttr_assign( ec.ec,oa,"c") && optAttr_assign( ec.subclass,oa,"s") )
+                        u.getUniverse().indexEntityNames( ec );
                 }
             } else 
             if( i.first == "benifile" ) {
-                if( const boost::optional<const ptree&> optAttr = i.second.get_child_optional("<xmlattr>") ) {
-                    if( const boost::optional<std::string> fnam = optAttr.get().get_optional<std::string>("f") ) {
+                if( const boost::optional<const ptree&> oa = i.second.get_child_optional("<xmlattr>") ) {
+                    if( const boost::optional<std::string> fnam = oa.get().get_optional<std::string>("f") ) {
                         std::string mode;
-                        if( const boost::optional<std::string> x = optAttr.get().get_optional<std::string>("m") ) 
-                            mode = x.get();
 
-                        u.getUniverse().beni().addEntityFile( fnam.get().c_str(), mode.empty() ? 0 : mode.c_str() );
+                        optAttr_assign( mode, oa, "m" ); // default entity class
+
+                        StoredEntityClass ec, topicEc;
+                        optAttr_assign( ec.ec,       oa, "cl" ); // default entity class
+                        optAttr_assign( ec.subclass, oa, "sc" ); // default entity subclass
+
+                        topicEc.ec      = optAttr_getval<uint32_t>(oa, "tsc", ec.ec); // default topic entity class
+                        topicEc.subclass= optAttr_getval<uint32_t>(oa, "tsc", ec.subclass); // default topic entity subclass
+
+                        u.getUniverse().beni().addEntityFile( fnam.get().c_str(), mode.empty() ? 0 : mode.c_str(), ec, topicEc );
                     }
+                }
+            } else 
+            if( i.first == "replace" ) { /// attributes f - find, r - replace 
+                if( const boost::optional<const ptree&> oa = i.second.get_child_optional("<xmlattr>") ) {
+                    std::string regexFind, regexReplace;
+                    optAttr_assign( regexFind,oa,   "f" );
+                    optAttr_assign( regexReplace,oa,"r" );
+                    u.getUniverse().beni().addMandatoryRegex( regexFind, regexReplace );
+                }
+            } else 
+            if( i.first == "implicit_topic" ) {
+                if( const boost::optional<const ptree&> oa = i.second.get_child_optional("<xmlattr>") ) {
+                    BarzerEntity tent( 
+                        optAttr_intern_internal( gpools, oa, "i" ) ,
+                        optAttr_getval<uint32_t>(oa, "c"), 
+                        optAttr_getval<uint32_t>(oa, "s")
+                    );
+
+                    u.getUniverse().topicEntLinkage().addImplicitTopic( tent ) ;
                 }
             }
         }
         /// to ensure beniids is processed after all entiteis have been loaded
         BOOST_FOREACH(const ptree::value_type &i, x.get() ) {
             if( i.first == "beniids" ) {
-                if( const boost::optional<const ptree&> optAttr = i.second.get_child_optional("<xmlattr>") ) {
-                    if( const boost::optional<uint32_t> cOpt = optAttr.get().get_optional<uint32_t>("c") ) {
-                        if( const boost::optional<uint32_t> sOpt = optAttr.get().get_optional<uint32_t>("s") ) {
-                            std::string repat, rerep;
-                            const char* repatStr = 0, *rerepStr = 0;
-                            if( boost::optional<std::string> repatOpt = optAttr.get().get_optional<std::string>("repat") )  { // regex search pat
-                                if( boost::optional<std::string> rerepOpt = optAttr.get().get_optional<std::string>("rerep") ) { // regex replace expression
-                                    repat = repatOpt.get();
-                                    repatStr = repat.c_str();
-                                    rerep = rerepOpt.get();
-                                    rerepStr = rerep.c_str();
-                                }
+                if( const boost::optional<const ptree&> oa = i.second.get_child_optional("<xmlattr>") ) {
+                    StoredEntityClass ec;
+                    if( optAttr_assign( ec.ec,oa,"c") && optAttr_assign( ec.subclass,oa,"s") ) {
+                        std::string repat, rerep;
+                        const char* repatStr = 0, *rerepStr = 0;
+                        if( boost::optional<std::string> repatOpt = oa.get().get_optional<std::string>("repat") )  { // regex search pat
+                            if( boost::optional<std::string> rerepOpt = oa.get().get_optional<std::string>("rerep") ) { // regex replace expression
+                                repat = repatOpt.get();
+                                repatStr = repat.c_str();
+                                rerep = rerepOpt.get();
+                                rerepStr = rerep.c_str();
                             }
-                            StoredEntityClass ec( cOpt.get(), sOpt.get() );
-
-                            u.getUniverse().entLookupBENIAddSubclass( ec, repatStr, rerepStr );
                         }
+                        u.getUniverse().entLookupBENIAddSubclass( ec, repatStr, rerepStr );
                     }
                 }
             }

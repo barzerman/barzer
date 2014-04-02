@@ -212,8 +212,7 @@ int proc_CLEAR_TRIE( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  s
         trieClass.assign( str, pipe-str );
         trieId.assign( pipe+1 );
     }
-    BELTrie* trie = gp.getTrie( trieClass.c_str(), trieId.c_str() );
-    if( trie ) {
+    if( BELTrie* trie = gp.getTrie( trieClass.c_str(), trieId.c_str() ) )  {
         BELTrie::WriteLock trie_lock( trie->getThreadLock() );
         trie->clear();
     } else{

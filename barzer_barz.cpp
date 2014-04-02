@@ -8,6 +8,7 @@
 #include <barzer_server.h>
 #include <barzer_el_cast.h>
 #include <barzer_server.h>
+#include <ay/ay_vector_state_iter.h>
 
 namespace barzer {
 
@@ -89,6 +90,127 @@ void Barz::setUniverse (const StoredUniverse *u)
 	m_hints.clear();
 	if (u)
 		m_hints = u->getBarzHints();
+}
+
+namespace {
+    struct BeadVisitor : public boost::static_visitor<bool> {
+        const StoredUniverse& universe;
+        const Barz& barz;
+        const BarzelBead& bead;
+        std::stringstream& sstr;
+        BeadVisitor(const StoredUniverse& u, const Barz& brz, const BarzelBead& bd, std::stringstream& ss ) : 
+            universe(u), barz(brz), bead(bd), sstr(ss) {}
+        bool operator()(const BarzerLiteral &data)  
+        {
+            switch(data.getType()) {
+            case BarzerLiteral::T_STRING:
+            case BarzerLiteral::T_COMPOUND:
+                {
+                    if( const char *cstr = universe.getStringPool().resolveId(data.getId()) ) {
+                        return (sstr<< cstr, true );
+                    } else
+                        return false;
+                }
+                break;
+            case BarzerLiteral::T_STOP: // skipping fluff
+                return false;
+            case BarzerLiteral::T_PUNCT:
+                { // need to somehow make this localised
+                    const char str[] = { (char)data.getId(), '\0' };
+                    sstr << str;
+                }
+                return true;
+            case BarzerLiteral::T_BLANK:
+                sstr << " ";
+                return true;
+            default:
+                return false;
+            }
+        }
+        bool operator()(const BarzerString &data)
+        {
+            return ( sstr << data.getStr(), true );
+        }
+        bool operator()(const BarzerEntity &euid)
+        {
+            if( !universe.entClassHasSynonymDesignation( euid.eclass ) ) 
+                return false;
+            if( const EntityData::EntProp* edata = universe.getEntPropData( euid ) ) {
+                return ( sstr << edata->canonicName, true );
+            } else 
+                return false;
+        }
+        bool operator()(const BarzelBeadAtomic &data)
+            { return boost::apply_visitor(*this, data.getData()); }
+
+        bool operator()(const BarzerNumber &) { return ( sstr << bead.getSrcTokensString() , true ); }
+        template <typename T> bool operator()( const T& ) { return( sstr << " SHIT ", false ); }
+    };
+}
+
+namespace {
+struct StrFrag {
+    const BarzerEntityList * elist = 0;
+    int stateId = -1; // valid state id is > 0
+    std::string str;
+    StrFrag( const BarzerEntityList * e, int sid ) : 
+        elist(e), stateId(sid) {}
+    StrFrag( const std::string& x ) : 
+        str(x) {}
+};
+} // anonuymous namespace 
+
+std::vector< std::string > Barz::chain2string(size_t chainMax) const
+{
+    if( !getUniverse() ) return {};
+    const StoredUniverse& universe = *getUniverse();
+
+    if( getBeads().hasAtomicType( BarzerEntityList_TYPE ) ) {
+
+        ay::vsi_state_vec entListState;
+
+        std::vector< StrFrag > frag;
+        for( const auto& b : getBeadList() ) {
+            if(const BarzerEntityList* el = b.get<BarzerEntityList>()) {
+                frag.push_back( StrFrag( el, entListState.size() ) );
+                if( el->size() ) 
+                    entListState.addState( el->size()-1 );
+            } else {
+                std::stringstream sstr;
+                BeadVisitor v( universe, *this, b, sstr );
+                boost::apply_visitor( v,  b.getBeadData() );
+                frag.push_back( StrFrag( sstr.str() ) );
+            }
+        }
+        std::set< std::string > strSet;
+        const BarzelBead fakeBead;
+        for( ; entListState; ++entListState ) {
+            std::stringstream sstr;
+            for( auto& i: frag ) {
+                if( i.stateId>=0 ) { // ent list
+                    size_t eNum = entListState[i.stateId];
+                    const BarzerEntity& curEnt = (*(i.elist))[ eNum ];
+                    BeadVisitor( universe, *this, fakeBead, sstr )( curEnt );
+                } else { // string
+                    sstr << i.str;
+                }
+            }
+            strSet.insert( sstr.str() );
+        }
+        std::vector< std::string > sv;
+        for( const auto& i: strSet )
+            sv.push_back( i );
+        return sv;
+    } else {
+        std::stringstream sstr;
+        for( const auto& b : getBeadList() ) {
+            BeadVisitor v( universe, *this, b, sstr );
+            boost::apply_visitor( v,  b.getBeadData() );
+        }
+        std::vector<std::string> x;
+        x.push_back( sstr.str() ) ;
+        return x;
+    }
 }
 
 const BarzHints& Barz::getHints() const
@@ -604,7 +726,7 @@ int Barz::beniSearch( const StoredUniverse& u, const QuestionParm& qparm )
             if( !beni_string_likely_isid( questionOrig, numGlyphs ) ) 
                 return 1;
         }
-        u.searchEntitiesByName( d_beni.d_entVec, questionOrig.c_str(), qparm );
+        u.searchEntitiesByName( d_beni.d_entVec, questionOrig.c_str(), qparm, this );
 
         const double NONEED_ZURCH_COVERAGE = 0.7;
         if( !d_beni.d_zurchEntVec.empty() && d_beni.d_zurchEntVec[0].coverage >= NONEED_ZURCH_COVERAGE ) 
@@ -793,7 +915,8 @@ void Barz::getContinuousOrigOffsets( const BarzelBead& bead, std::vector< std::p
                                 }
                             }
                         } else if( x_end < v.first ) {
-                            vec.insert( vec.begin() +i, { x.first, x_end } );
+                            // v.first = x_end;
+                            // vec.insert( vec.begin() +i, { x.first, x_end } );
                         }
                     }
                     if( !overlap ) { // applicable chunk not found 

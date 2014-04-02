@@ -11,7 +11,7 @@ endif
 ifeq ($(UNAME),Darwin)
     C11LIB_SHIT=-stdlib=libc++
 endif
-C11=-std=c++11
+C11=-std=c++0x
 #CC=/opt/local/bin/gcc-mp-4.7
 CFLAGS := $(OPT) $(C11) $(C11LIB) $(BITMODE) $(FLAGS) -Wall -Wno-unneeded-internal-declaration -Wno-unused-variable -g -I. -fpic -I../ -I/usr/local/include -I/opt/local/include -Wno-parentheses
 LIBNAME=libay.a

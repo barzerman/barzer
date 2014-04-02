@@ -268,6 +268,7 @@ public:
 
 	uint32_t internString_internal( const char* str, size_t s_len ) { return internalStringPool.internIt( str, s_len ); }
 	uint32_t internString_internal( const char* str ) { return internalStringPool.internIt( str ); }
+	uint32_t internString_internal( const std::string& str ) { return internString_internal( str.c_str() ); }
 	const char* internalString_resolve( uint32_t id ) const { return internalStringPool.resolveId( id ); }
 
 	const char* internalString_resolve_safe( uint32_t id ) const { 

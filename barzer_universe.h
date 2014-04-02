@@ -43,27 +43,27 @@ class StoredUniverse {
 	uint32_t d_userId;
     std::string d_userName;
     //// search entities by names using this object
-    SmartBENI* d_entNameIdx;
+    SmartBENI* d_beni;
     SubclassBENI* d_entIdLookupBENI;
 
 	TrieRuleIdx *m_ruleIdx;
 public:
     void beniInit();
     SmartBENI& beni();
-    const SmartBENI* getBeni() const { return d_entNameIdx; }
+    const SmartBENI* getBeni() const { return d_beni; }
 
     const TrieRuleIdx& ruleIdx() const { return *m_ruleIdx; }
     TrieRuleIdx& ruleIdx() { return *m_ruleIdx; }
 
     void indexEntityNames( const StoredEntityClass& ec ) ;
     void searchEntitiesInZurch( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) const;
-    void searchEntitiesByName( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) const;
+    void searchEntitiesByName( BENIFindResults_t& out, const char* str, const QuestionParm& qparm, Barz*  ) const;
     void zurchEntities( BENIFindResults_t& out, const char* str, const QuestionParm& qparm ) ;
     
     void    entLookupBENIAddSubclass( const StoredEntityClass& ec, const char* pat = 0, const char* rep=0 ) ;
     int     entLookupBENISearch( BENIFindResults_t& out, const char* query, const StoredEntityClass& ec, const QuestionParm& qparm ) const;
 
-	SmartBENI* getSmartBeni() const { return d_entNameIdx; }
+	SmartBENI* getSmartBeni() const { return d_beni; }
 
 	GlobalPools& gp;
 
@@ -129,6 +129,8 @@ public:
 private:
     EntityData entData; // canonic names and relevance
     ay::bitflags<UBIT_MAX> d_biflags;
+
+    std::set< StoredEntityClass > d_synDesignatedEntClassSet;
 public:
     struct Settings {
         double d_beni_Cutoff; // default beni cutoff 
@@ -137,12 +139,17 @@ public:
         Settings() : 
             d_beni_Cutoff( 0.5 ),
             d_beni_AutocCutoff( 0.7 ),
-            d_beni_MinAutocCount(3)
+            d_beni_MinAutocCount(6)
         {}
         bool isBeniCoverageGoodForAutoc( double c ) const { return c> d_beni_AutocCutoff; }
         bool hasEnoughGlyphsForAutoc( size_t n ) const { return (n>= d_beni_MinAutocCount); }
     };
     Settings d_settings;
+
+    bool entClassHasSynonymDesignation( const StoredEntityClass& ec ) const
+        { return d_synDesignatedEntClassSet.find(ec) != d_synDesignatedEntClassSet.end() ; }
+    void addEntClassToSynonymDesignation( const StoredEntityClass& ec )
+        {  d_synDesignatedEntClassSet.insert(ec); }
 
     EntityData::EntProp*  setEntPropData( const StoredEntityUniqId& euid, const char* name, uint32_t rel, bool overrideName=false ) 
         { return entData.setEntPropData(euid, name,rel, overrideName); }
@@ -180,11 +187,11 @@ public:
         { return d_topicEntLinkage.getTopicEntities( t ); }
 
     const TopicEntLinkage& getTopicEntLinkage() const { return  d_topicEntLinkage; }
+    TopicEntLinkage& topicEntLinkage() { return  d_topicEntLinkage; }
+    void linkEntTotopic( const BarzerEntity& topic, const BarzerEntity& ent, uint32_t strength = 0 ) 
+        { d_topicEntLinkage.link( topic, ent, strength ); }
     // doesnt destroy the actual tries
-    void clearTrieList() {
-        trieCluster.clearList();
-        d_topicEntLinkage.clear();
-    }
+    void clearTrieList();
 
     typedef boost::shared_mutex Mutex;
     mutable Mutex d_theMutex;

@@ -582,8 +582,12 @@ DEFINE_BELParserXML_taghandle(STATEMENT)
 	// const BELParseTreeNode* macroNode = getMacroByName(macroName);
 
 	statement.stmt.setStmtNumber( stmtNumber ) ;
-	if( !reader->isSilentMode() && !(statement.stmt.getStmtNumber() % 512)  ) {
-		std::cerr << '.';
+    size_t numStatements = reader->getNumStatements();
+    size_t dotModder = ( numStatements< 1000 ? 256 : (numStatements< 10000? 1000: 4000) );
+    if( numStatements > dotModder * 100 ) 
+        dotModder *=1.5;
+	if( !reader->isSilentMode() && !(numStatements % dotModder)  ) {
+		std::cerr << ( dotModder < 500 ? '.' : ( dotModder< 2000 ? 'o':'O' ) );
 	}
 	if( statement.isMacro() ) {
 	} else {
