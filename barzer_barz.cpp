@@ -936,22 +936,20 @@ void Barz::getContinuousOrigOffsets( const BarzelBead& bead, std::vector< std::p
     getContinuousOrigOffsets_old( bead, vec );
     return;
     */
+    bool needSorted = false;
     for( const auto& ctok : bead.getCTokens() ) {
         for( const auto& ttok : ctok.first.getTTokens() ) {
             const auto& x = ttok.first.getOrigOffsetAndLength();
             size_t x_end = x.second+x.first;
             vec.push_back( { x.first, x.first+x.second } );
+            if( !needSorted && vec.size() > 1 && (vec.rbegin()->first < (vec.rbegin()+1)->first) ) 
+                needSorted = true;
         }
     }
     
-    // seeing if we need to sort the vector 
     if( vec.size() > 1 ) {
-        for( auto i = vec.begin()+1; i!= vec.end(); ++i ) {
-            if( i->first < (i-1)->first ) { // found something out of order - sorting the entire vector
-                std::sort( vec.begin(), vec.end(), []( const std::pair<size_t, size_t>& l, const std::pair<size_t, size_t>& r) { return l.first< r.first;});
-                break;
-            }
-        }
+        if( needSorted ) 
+            std::sort( vec.begin(), vec.end(), []( const std::pair<size_t, size_t>& l, const std::pair<size_t, size_t>& r) { return l.first< r.first;});
         // merging ranges - at this point vec is guaranteed to be ordered by i->first 
         std::vector<std::pair<size_t,size_t>> tmpVec;
         tmpVec.push_back( vec.front() );
