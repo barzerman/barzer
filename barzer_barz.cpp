@@ -867,7 +867,8 @@ std::pair<size_t,size_t> Barz::getGlyphFromOffsets( size_t offset, size_t length
         return std::pair<size_t,size_t>(o,0);
 }
 
-void Barz::getContinuousOrigOffsets( const BarzelBead& bead, std::vector< std::pair<size_t, size_t> >& vec ) const
+namespace {
+void getContinuousOrigOffsets_old( const BarzelBead& bead, std::vector< std::pair<size_t, size_t> >& vec ) 
 {
     for( const auto& ctok : bead.getCTokens() ) {
         for( const auto& ttok : ctok.first.getTTokens() ) {
@@ -925,6 +926,43 @@ void Barz::getContinuousOrigOffsets( const BarzelBead& bead, std::vector< std::p
                 }
             }
         }
+    }
+}
+
+} // end of anon namespace 
+void Barz::getContinuousOrigOffsets( const BarzelBead& bead, std::vector< std::pair<size_t, size_t> >& vec ) const
+{
+    /*
+    getContinuousOrigOffsets_old( bead, vec );
+    return;
+    */
+    for( const auto& ctok : bead.getCTokens() ) {
+        for( const auto& ttok : ctok.first.getTTokens() ) {
+            const auto& x = ttok.first.getOrigOffsetAndLength();
+            size_t x_end = x.second+x.first;
+            vec.push_back( { x.first, x.first+x.second } );
+        }
+    }
+    
+    // seeing if we need to sort the vector 
+    if( vec.size() > 1 ) {
+        for( auto i = vec.begin()+1; i!= vec.end(); ++i ) {
+            if( i->first < (i-1)->first ) { // found something out of order - sorting the entire vector
+                std::sort( vec.begin(), vec.end(), []( const std::pair<size_t, size_t>& l, const std::pair<size_t, size_t>& r) { return l.first< r.first;});
+                break;
+            }
+        }
+        // merging ranges - at this point vec is guaranteed to be ordered by i->first 
+        std::vector<std::pair<size_t,size_t>> tmpVec;
+        tmpVec.push_back( vec.front() );
+        for( auto i = vec.begin()+1; i != vec.end(); ++i ) {
+            if( i->first <= tmpVec.back().second ) { // i range overlaps with the current tmpBack range or touches it immediately on the right
+                if( i->second > tmpVec.back().second )
+                    tmpVec.back().second = i->second;
+            }  else 
+                tmpVec.push_back( *i );
+        }
+        vec.swap(tmpVec);
     }
 }
 
