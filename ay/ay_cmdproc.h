@@ -123,6 +123,8 @@ public:
         else 
             return status;
     }
+
+    auto argv() const -> const decltype(argV)& { return argV; }
 };
 
 } // end of namespace

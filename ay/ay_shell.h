@@ -7,6 +7,8 @@
 #include <ay_util.h>
 #include <ay_bitflags.h>
 #include <string>
+#include <boost/thread.hpp>
+
 namespace ay {
 
 class Shell;
@@ -28,7 +30,11 @@ protected:
 	ShellContext* context;
     
 	int setupStreams();
+    std::vector< boost::thread* > d_bgThreadvec;
 public:
+    auto bgThreads( ) -> decltype(d_bgThreadvec)& { return d_bgThreadvec; }
+    auto bgThreads( ) const -> const decltype(d_bgThreadvec)& { return d_bgThreadvec; }
+
     bool isStream_cerr( ) const { return errStream == &std::cerr; }
     bool isStream_cout( ) const { return outStream == &std::cout; }
     bool isStream_cin( ) const { return inStream == &std::cin; }
@@ -77,28 +83,31 @@ public:
 protected:
 
 	// invoked from run . initializes cmdMap
-	virtual int indexCmdDataRange( const CmdDataRange& rng );
+	virtual int indexCmdDataRange( const CmdDataRange& rng, bool reportDups = false );
 
 	inline const CmdData* getCmdDta( char_cp cmd ) const
 	{
 		CmdDataMap::const_iterator i = cmdMap.find( cmd );
 		return( i!= cmdMap.end() ? i->second : 0 );
 	}
-	inline int cmdInvoke( int& rc, char_cp cmd, std::istream& in, const std::string& argStr );
+    // background - if true command is launched in its own thread, shell is cloned 
+	inline int cmdInvoke( int& rc, char_cp cmd, std::istream& in, const std::string& argStr, bool background );
 
 	CmdDataRange getProcs() const; // own procedures and fallback ones (BaseProcs)
 	virtual int printPrompt();
 private:
 	// generally overloading this shouldn't be needed
 	// when fp is 0 inStream is assumed
-	virtual int runCmdLoop(std::istream* fp =0);
+	virtual int runCmdLoop(std::istream* fp =0, const char* runScript = 0);
+
+	virtual ShellContext* mkContext() { return 0; }
+	virtual ShellContext* cloneContext() { return 0; }
+public:
+    int indexDefaultCommands();
 
 	// *OVERLOAD this to run indexCmdDataRange with the right parms
 	// by default called from run
 	virtual int init();
-	virtual ShellContext* mkContext() { return 0; }
-	virtual ShellContext* cloneContext() { return 0; }
-public:
 	Shell& setContext( ShellContext* ctxt ) { if( context ) delete context; context = ctxt; return *this;}
 
 	int processOneCmd( std::istream& in );
@@ -120,9 +129,7 @@ public:
 	{}
 	virtual Shell* cloneShell() { return new Shell(*this); }
 
-	virtual ~Shell() {
-		delete context; // to shut valgrind up
-	}
+	virtual ~Shell();
 
     std::istream* setInputStream( std::istream* p ) { 
         std::istream* old = inStream;
@@ -140,7 +147,8 @@ public:
 	std::istream& getInStream() { return *inStream; }
 
 	// generally overloading this shouldn't be needed
-	virtual int run();
+    // if exec runScript !=0 tries to load file from 'runScript' and run commands in it
+	virtual int run( const char* runScript = 0);
 };
 
 inline std::ostream& operator <<( std::ostream& fp, const Shell::CmdData& d )

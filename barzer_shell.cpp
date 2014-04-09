@@ -2036,11 +2036,6 @@ static int bshf_querytest( BarzerShell* shell, char_cp cmd, std::istream& in , c
 
 /// end of specific shell routines
 static const CmdData g_cmd[] = {
-	CmdData( ay::Shell::cmd_help, "help", "get help on a barzer function" ),
-	// CmdData( ay::Shell::cmd_set, "set", "sets parameters" ),
-	CmdData( ay::Shell::cmd_exit, "exit", "exit all barzer shells" ),
-	CmdData( ay::Shell::cmd_quit, "quit", "exit the current barzer shell" ),
-	CmdData( ay::Shell::cmd_run, "run", "execute script(s)" ),
 	//commented test to reduce the bloat
 	CmdData( (ay::Shell_PROCF)(bshf_test), "test", "just a test" ),
 	CmdData( (ay::Shell_PROCF)(bshf_anlqry), "anlqry", "<filename> analyzes query set" ),
@@ -2143,6 +2138,7 @@ int BarzerShell::init( )
 {
 	int rc = 0;
 	if( !cmdMap.size() ) { 
+        indexDefaultCommands();
 		indexCmdDataRange(ay::Shell::CmdDataRange( ARR_BEGIN(g_cmd),ARR_END(g_cmd)));
         auto r = shell_get_cmd01();
 		indexCmdDataRange(ay::Shell::CmdDataRange( r.first, r.second ) ) ;
