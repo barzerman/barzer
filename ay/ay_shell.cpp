@@ -25,6 +25,11 @@ int Shell_cmd_echo( Shell* sh, char_cp cmd, std::istream& in, const std::string&
     sh->getOutStream()  << argStr << std::endl;
     return 0;
 }
+int Shell_cmd_system( Shell* sh, char_cp cmd, std::istream& in, const std::string&argStr )
+{
+    system( argStr.c_str() );
+    return 0;
+}
 
 } // end of anon namespace
 
@@ -35,6 +40,8 @@ static const CmdData g_cmd[] = {
 	CmdData( Shell::cmd_run, "run", "run scripts" ),
 	CmdData( Shell_cmd_wait, "wait", "waits for all background processes to complete (joins them)" ),
 	CmdData( Shell::cmd_set, "set", "sets parameters" ),
+
+	CmdData( Shell_cmd_system, "!", "runs command in system shell" ),
 	CmdData( Shell_cmd_echo, "echo", "echo-s a string" )
 };
 
@@ -280,9 +287,8 @@ int Shell::cmdInvoke( int& rc, char_cp cmd, std::istream& in, const std::string&
         } else {
 		    return( (rc=cd->func( this, cmd, in, argStr ), 0) );
         }
-	} else if( inStream == &std::cin ) {
+	} else if( inStream == &std::cin && *cmd ) {
 		*errStream << "command " << cmd << " not found. Run 'help [text]' for help. Falling back to `process`.\n";
-		return cmdInvoke(rc, "help", in, argStr, false );
 	}
     return 0;
 }
@@ -315,7 +321,7 @@ int Shell::runCmdLoop(std::istream* fp, const char* runScript )
         std::getline( *fp, curStr );
 	do {
 		std::stringstream sstr;
-		if( isScript ) {
+		if( echo ) {
 			std::cerr << curStr << std::endl; 
 		}
         std::string argStr;

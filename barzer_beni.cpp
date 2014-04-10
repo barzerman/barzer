@@ -380,7 +380,8 @@ void SmartBENI::search(
     const BENIFilter_f& filter,
     size_t maxCount) const
 {
-    if( barz && d_universe.checkBit( UBIT_BENI_POSTBARZER ) ) {
+    if( barz && d_universe.checkBit( UBIT_BENI_POSTBARZER ) ) { 
+        // beni searches against a string transformed by barzer 
         for( const auto& i: barz->chain2string() )
             search_single_query( out, i.c_str(), minCov, barz, filter, maxCount );
         std::sort( out.begin(), out.end(), []( const BENIFindResult& l, const BENIFindResult& r ) { 
