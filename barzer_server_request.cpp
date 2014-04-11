@@ -212,14 +212,14 @@ struct AutocTopicParseCB {
 
 } // anon namespace 
 
-int BarzerRequestParser::autoc_nameval_process( QuestionParm& qparm, const std::string& n, const std::string& v )
+auto BarzerRequestParser::autoc_nameval_process( QuestionParm& qparm, const std::string& n, const std::string& v ) -> ErrInit
 {
     switch( n[0] ) {
     case 'u': 
         if( !d_universe ) 
             setUniverseId(atoi(v.c_str()));
         if( !d_universe ) 
-            return 1;
+            return ERR_INIT_BADUSER;
         break;
     case 't':
         switch( n[1] ) {
@@ -251,22 +251,22 @@ int BarzerRequestParser::autoc_nameval_process( QuestionParm& qparm, const std::
         }
         break;
     }
-    return 0;
+    return ERR_INIT_OK;
 }
 
-int BarzerRequestParser::initAutocFromUri( QuestionParm& qparm, const ay::uri_parse& uri )
+auto BarzerRequestParser::initAutocFromUri( QuestionParm& qparm, const ay::uri_parse& uri ) -> ErrInit
 {
     setQueryType(QType::AUTOCOMPLETE);
     uint32_t userId= 0xffffffff;
     qparm.isAutoc = true;
     for( auto a = uri.theVec.begin(); a!= uri.theVec.end(); ++a )  {
-        if( autoc_nameval_process( qparm, a->first, a->second ) )
-            return 1;
+        if( auto rc = autoc_nameval_process( qparm, a->first, a->second ) )
+            return rc;
     }
     qparm.d_beniMode = d_beniMode;
-    return 0;
+    return ERR_INIT_OK;
 }
-int BarzerRequestParser::initFromUri( QuestionParm& qparm, const char* u, size_t u_len, const char* query, size_t query_len ) 
+auto BarzerRequestParser::initFromUri( QuestionParm& qparm, const char* u, size_t u_len, const char* query, size_t query_len ) -> ErrInit
 {
     ay::uri_parse uri;
     uri.parse( query, query_len );
@@ -276,8 +276,8 @@ int BarzerRequestParser::initFromUri( QuestionParm& qparm, const char* u, size_t
         d_zurchDocIdxId = 0;
         d_zurchMode = ZURCH_MODE_STANDARD;
     } else if( !strncmp( u, "/autoc", u_len ) ) {
-        if( initAutocFromUri( qparm, uri ) )
-            return 1;
+        if( auto rc = initAutocFromUri( qparm, uri ) )
+            return rc;
     } else {
         setQueryType(QType::BARZER);
     }
@@ -365,14 +365,10 @@ int BarzerRequestParser::initFromUri( QuestionParm& qparm, const char* u, size_t
                 userId = static_cast<uint32_t>( atoi(i->second.c_str() ) );
 	            setUniverse(gpools.getUniverse(userId));
 				handled = true;
-                if( !d_universe ) 
-                    return 1;
             } else if( i->first == "uname" ) { // un
                 userId = gpools.getUserIdByUserName( i->second.c_str() );
                 setUniverse( gpools.getUniverse(userId) );
 				handled = true;
-                if( !d_universe ) 
-                    return 1;
             }
             break;
         case 'z':
@@ -386,8 +382,20 @@ int BarzerRequestParser::initFromUri( QuestionParm& qparm, const char* u, size_t
         if (!handled)
 			d_extraMap [i->first] = i->second;
     }
-    return 0;
+    if( !d_universe )
+        return ERR_INIT_BADUSER;
+    return ERR_INIT_OK;
 }
+const char* BarzerRequestParser::getErrInitText( ErrInit e ) 
+{
+    switch(e) {
+    case ERR_INIT_OK: return "no error";
+    case ERR_INIT_BADUSER: return "no such user";
+    case ERR_PROC_INTERNAL: return "query processing error";
+    default: return "unknown error";
+    }
+}
+
 int BarzerRequestParser::parse(QuestionParm& qparm)
 {
     if( !d_universe ) {

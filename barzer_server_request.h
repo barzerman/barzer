@@ -106,7 +106,17 @@ private:
     
     bool           d_simplified;
     
-    int autoc_nameval_process( QuestionParm& qparm, const std::string& n, const std::string& v );
+public:
+    // instead of parsing input XML initializes everything from a URI string
+    typedef enum : int {
+        ERR_INIT_OK=0,
+        ERR_INIT_BADUSER,
+        ERR_PROC_INTERNAL
+    } ErrInit;
+    static const char* getErrInitText( ErrInit );
+
+private:
+    auto autoc_nameval_process( QuestionParm& qparm, const std::string& n, const std::string& v ) -> ErrInit;
     
     void processGhettodbFields( const std::string& );
 public:
@@ -115,10 +125,9 @@ public:
 
     std::ostream& printError( const char* err );
 
-    int initAutocFromUri( QuestionParm& qparm, const ay::uri_parse& uri );
+    auto initAutocFromUri( QuestionParm& qparm, const ay::uri_parse& uri ) -> ErrInit;
 
-    // instead of parsing input XML initializes everything from a URI string
-    int initFromUri( QuestionParm& qparm, const char* uri, size_t uri_len, const char* query, size_t query_len );
+    auto initFromUri( QuestionParm& qparm, const char* uri, size_t uri_len, const char* query, size_t query_len ) -> ErrInit;
     // should be used together with initFromUri - query will be taken from d_query
     int parse(QuestionParm& qparm) ; 
 
