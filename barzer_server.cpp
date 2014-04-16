@@ -589,21 +589,36 @@ int run_server_mt(GlobalPools &gp, uint16_t port) {
 
 	return 0;
 }
+namespace {
+int try_svc_run(GlobalPools &gp, uint16_t port) {
+    if( gp.getSettings().getNumThreads() ) {
+            
+        return run_server_mt(gp,port);
+    }
+    ay::Logger::getLogger()->setFile("barzer_server.log");
+    std::cerr << "Running barzer search server on port " << port << "..." << std::endl;
+
+    boost::asio::io_service io_service;
+
+    AsyncServer s(gp, io_service, port);
+    s.init();
+    io_service.run();
+    return 0;
+}
+
+} // anon namespace
 
 int run_server(GlobalPools &gp, uint16_t port) {
-	if( gp.getSettings().getNumThreads() ) {
-		
-		return run_server_mt(gp,port);
-	}
-	ay::Logger::getLogger()->setFile("barzer_server.log");
-	std::cerr << "Running barzer search server on port " << port << "..." << std::endl;
-
-	boost::asio::io_service io_service;
-
-	AsyncServer s(gp, io_service, port);
-	s.init();
-	io_service.run();
-
+    
+    while( true ) {
+        try {
+            return try_svc_run( gp, port );
+        } catch(std::exception& e ) {
+            std::cerr <<"Port busy ..";
+            sleep(1);
+            std::cerr <<" retrying...\n";
+        }
+    }
 	return 0;
 }
 std::ostream& RequestVariableMap::print( std::ostream& fp ) const
