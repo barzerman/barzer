@@ -110,7 +110,11 @@ public:
     // instead of parsing input XML initializes everything from a URI string
     typedef enum : int {
         ERR_INIT_OK=0,
-        ERR_INIT_BADUSER,
+        ERR_INIT_BAD_USER,
+        ERR_INIT_BAD_USERID,
+        ERR_INIT_BAD_USER_NAME,
+        ERR_INIT_BAD_USER_KEY,
+
         ERR_PROC_INTERNAL
     } ErrInit;
     static const char* getErrInitText( ErrInit );

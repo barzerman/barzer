@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
     <users>
-        <user id="200">
+        <authkeys file="auth_keys.txt"/>
+        <authkeys file="auth_keys2.txt"/>
+        <user id="200" username="yanis" >
             <flags value="csBp"/>
             <synent> <subclass s="3"/> </synent>
             <beni sl="yes">

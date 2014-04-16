@@ -219,7 +219,7 @@ auto BarzerRequestParser::autoc_nameval_process( QuestionParm& qparm, const std:
         if( !d_universe ) 
             setUniverseId(atoi(v.c_str()));
         if( !d_universe ) 
-            return ERR_INIT_BADUSER;
+            return ERR_INIT_BAD_USER;
         break;
     case 't':
         switch( n[1] ) {
@@ -286,7 +286,10 @@ auto BarzerRequestParser::initFromUri( QuestionParm& qparm, const char* u, size_
     d_extraMap.clear();
     ret = ( d_queryType == QType::BARZER ? XML_TYPE : JSON_TYPE );
 
-    for( auto i = uri.theVec.begin(); i!= uri.theVec.end(); ++i )  {
+    auto err = ERR_INIT_OK;
+    bool retWasSet = false;
+
+    for( auto i = uri.theVec.begin(); i!= uri.theVec.end() && (!err || !retWasSet); ++i )  {
         if( !i->first.length() ) 
             continue;
 
@@ -354,23 +357,45 @@ auto BarzerRequestParser::initFromUri( QuestionParm& qparm, const char* u, size_
                 if( i->second == "xml" ) {
                     ret = XML_TYPE;
                 }
+                retWasSet = true;
 				handled = true;
             } else if( i->first == "route" ) {
                 d_route = i->second;
 				handled = true;
             }
             break;
-        case 'u': 
-            if( i->first =="u" ) {
-                userId = static_cast<uint32_t>( atoi(i->second.c_str() ) );
-	            setUniverse(gpools.getUniverse(userId));
-				handled = true;
-            } else if( i->first == "uname" ) { // un
-                userId = gpools.getUserIdByUserName( i->second.c_str() );
-                setUniverse( gpools.getUniverse(userId) );
-				handled = true;
-            }
-            break;
+        case 'u': {
+            switch( i->first[1] ) {
+            case 0: 
+                if( i->first =="u" ) {
+                    userId = static_cast<uint32_t>( atoi(i->second.c_str() ) );
+                    setUniverse(gpools.getUniverse(userId));
+                    handled = true;
+                    if( userId == 0xffffffff )
+                        err = ERR_INIT_BAD_USERID;
+                }
+                break;
+            case 'n': 
+                if( i->first == "uname" ) { // un
+                    userId = gpools.getUserIdByUserName( i->second.c_str() );
+                    setUniverse( gpools.getUniverse(userId) );
+				    handled = true;
+                    if( userId == 0xffffffff )
+                        err = ERR_INIT_BAD_USER_NAME;
+                }
+                break;
+            case 'k': 
+                if( i->first == "ukey" ) { // uk
+                    userId = gpools.getUserIdByUserKey( i->second.c_str() );
+                    setUniverse( gpools.getUniverse(userId) );
+				    handled = true;
+                    if( userId == 0xffffffff )
+                        err = ERR_INIT_BAD_USER_KEY;
+                }
+                break;
+
+            } 
+            } break;
         case 'z':
             if(i->first == "zdtag" && !i->second.empty()) {
                 ay::separated_string_to_vec p( docTags );
@@ -378,19 +403,25 @@ auto BarzerRequestParser::initFromUri( QuestionParm& qparm, const char* u, size_
             }
             break;
         }
-
+        
         if (!handled)
 			d_extraMap [i->first] = i->second;
     }
-    if( !d_universe )
-        return ERR_INIT_BADUSER;
-    return ERR_INIT_OK;
+    if( err ) 
+        return err;
+    else if( !d_universe )
+        return ERR_INIT_BAD_USER;
+    else
+        return ERR_INIT_OK;
 }
 const char* BarzerRequestParser::getErrInitText( ErrInit e ) 
 {
     switch(e) {
     case ERR_INIT_OK: return "no error";
-    case ERR_INIT_BADUSER: return "no such user";
+    case ERR_INIT_BAD_USER: return "unknown user";
+    case ERR_INIT_BAD_USERID: return "unknown user id (u attribute)";
+    case ERR_INIT_BAD_USER_NAME: return "unknown user name (uname attribute)";
+    case ERR_INIT_BAD_USER_KEY: return "unknown user key (ukey attribute)";
     case ERR_PROC_INTERNAL: return "query processing error";
     default: return "unknown error";
     }
@@ -1119,6 +1150,10 @@ void BarzerRequestParser::tag_query(RequestTag &tag)
 
             if( (it = attrs.find("uname" )) != attrs.end()  ) {
                 uint32_t x = gpools.getUserIdByUserName( it->second.c_str() );
+                if( x != 0xffffffff ) 
+                    userId = x;
+            } else if( (it = attrs.find("ukey" )) != attrs.end()  ) {
+                uint32_t x = gpools.getUserIdByUserKey( it->second.c_str() );
                 if( x != 0xffffffff ) 
                     userId = x;
             }
