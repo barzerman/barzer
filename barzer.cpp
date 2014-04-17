@@ -32,7 +32,9 @@ extern "C" void block_ctrlc ()
 #endif
 int run_shell(barzer::GlobalPools & globPool,  ay::CommandLineArgs &cmdlProc) {
 	barzer::BarzerShell shell(0,globPool);
-	if (int rc = shell.run()) {
+    bool hasArg = false;
+    const char* runScript = cmdlProc.getArgVal(hasArg, "-exec", 0);
+	if (int rc = shell.run(runScript)) {
 		std::cerr  << "FATAL: Execution failed\n";
 		exit(rc);
 	}

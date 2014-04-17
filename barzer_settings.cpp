@@ -1001,6 +1001,8 @@ void BarzerSettings::loadUsers(BELReader& reader ) {
             if( userNameOpt ) 
                 uname = userNameOpt.get();
 
+            
+
             if (cfgFileName.empty()) 
                 loadedUsers = loadUser(reader,v, uname.c_str());
             else
@@ -1012,12 +1014,36 @@ void BarzerSettings::loadUsers(BELReader& reader ) {
                 if( uniPtr )  {
                     const std::string uname = userNameOpt.get();
                     uniPtr->setUserName( uname.c_str() );
-                    gpools.setUserNameForId( uname.c_str(), uniPtr->getUserId() );    
+
+                    gpools.setUserNameForId( uname, uniPtr->getUserId() );    
+                    if( const boost::optional<std::string> userKeyOpt = v.second.get_optional<std::string>("<xmlattr>.userkey") ) {
+                        gpools.setUserKeyForId( userKeyOpt.get(), uniPtr->getUserId() );
+                    }
                 }
             } else 
                 reader.setCurrentUniverse(0, getUser(0) );
         }
 	}
+    BOOST_FOREACH(ptree::value_type &v, pt.get_child("config.users.authkeys.<xmlattr>", empty_ptree())) {
+        if( v.first == "file" ) {
+            std::string fname = v.second.data();
+            std::ifstream fp(fname.c_str());
+            if( fp.is_open() ) {
+                size_t numKeys = 0;
+                for( std::string s, k; getline(fp, s); ) {
+                    if( s.empty() || s[0] == '#' ) 
+                        continue;
+                    std::stringstream sstr(s);
+                    uint32_t id=0;
+                    if( getline( sstr, k, '|' ) && sstr >> id && gpools.getUniverse(id) ) {
+                        gpools.setUserKeyForId( k, id );
+                        ++numKeys;
+                    }
+                }
+                reader.getErrStreamRef() << "Loaded " << numKeys << " authentication keys from " << fname << std::endl;
+            }
+        }
+    }
 }
 
 

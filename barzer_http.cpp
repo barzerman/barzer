@@ -7,7 +7,7 @@
 extern "C" {
 #include <mongoose/mongoose.h>
 
-void print_json_error( struct mg_connection *conn, const char* errStr )
+int print_json_error( struct mg_connection *conn, const char* errStr )
 {
         std::stringstream  sstr;
         ay::jsonEscape(errStr, sstr<< "{ \"error\" : \"" ) << "\" }";
@@ -20,7 +20,56 @@ void print_json_error( struct mg_connection *conn, const char* errStr )
             "%s",
 
         s.length() , s.c_str() );
+        return 1;
 }
+int send_json_string( struct mg_connection *conn, const std::string& s )
+{
+        mg_printf(conn,
+        "HTTP/1.1 200 OK\r\n"
+            "Content-Type: application/json; charset=utf-8\r\n"
+            "Content-Length: %ld\r\n"        // Always set Content-Length
+            "\r\n"
+            "%s",
+
+        s.length() , s.c_str() );
+        return 1;
+}
+/// this sends back XML / HTML or plain text depending on contentTypeStr
+int send_xml_string( struct mg_connection *conn, const char* contentTypeStr, const std::string& s )
+{
+        mg_printf(conn,
+            "HTTP/1.1 200 OK\r\n"
+                "Content-Type: %s\r\n"
+                "Content-Length: %ld\r\n"        // Always set Content-Length
+                "\r\n"
+                "%s",
+                contentTypeStr,
+            s.length(), s.c_str());
+        return 1;
+}
+
+int send_error_response( struct mg_connection *conn, const barzer::BarzerRequestParser& reqParser, const char* query, barzer::BarzerRequestParser::ErrInit err )
+{
+    const char* errStr = barzer::BarzerRequestParser::getErrInitText(err);
+    std::stringstream sstr;
+    switch(reqParser.ret) {
+    case barzer::BarzerRequestParser::XML_TYPE:
+        ay::XMLStream(sstr << "<error text=\"").escape(errStr) << "\"";
+        ay::XMLStream(sstr << " query=\"").escape(query) << "\"/>";
+        return send_xml_string( conn, reqParser.httpContentTypeString(), sstr.str() );
+    case barzer::BarzerRequestParser::JSON_TYPE:
+        ay::jsonEscape( query,
+            ay::jsonEscape(errStr, sstr << "{ \"error\" : \"" ) << 
+            "\", \"query\" : \""
+        ) << "\" }";
+        return send_json_string( conn, sstr.str() );
+    default:
+        sstr << "error:" << errStr << std::endl << 
+        "query: \"" << query << "\"" << std::endl;
+        return send_xml_string( conn, "text/plain; charset=utf-8", sstr.str() );
+    }
+}
+
 static int begin_request_handler(struct mg_connection *conn) 
 {
     const struct mg_request_info *request_info = mg_get_request_info(conn);
@@ -32,20 +81,26 @@ static int begin_request_handler(struct mg_connection *conn)
     std::stringstream outSstr;
 
     barzer::BarzerRequestParser reqParser(gp,outSstr);
+    barzer::BarzerRequestParser::ErrInit err = barzer::BarzerRequestParser::ERR_INIT_OK;
+
+    std::string query;
     if( !invalidInput ) {
         std::string uri;
         ay::url_encode( uri, request_info->uri, strlen(request_info->uri) );
-        std::string query;
         ay::url_encode( query, request_info->query_string, strlen(request_info->query_string) );
         barzer::QuestionParm qparm;
-        if( !reqParser.initFromUri( qparm, uri.c_str(), uri.length(), query.c_str(), query.length() ) )
+        if( auto err = reqParser.initFromUri( qparm, uri.c_str(), uri.length(), query.c_str(), query.length() ) ) {
+            return send_error_response( conn, reqParser, query.c_str(), err );
+        } else 
             reqParser.parse(qparm);
-    } else {
-        print_json_error(conn, "bad query string" );
-        return 1;
-    }
+    } else 
+        return print_json_error(conn, "bad query string" );
     // Send HTTP reply to the client
     std::string contentStr = outSstr.str();
+
+    if( contentStr.empty() )
+        return send_error_response( conn, reqParser, query.c_str(), barzer::BarzerRequestParser::ERR_PROC_INTERNAL );
+
     mg_printf(conn,
         "HTTP/1.1 200 OK\r\n"
             "Content-Type: %s\r\n"
@@ -53,12 +108,6 @@ static int begin_request_handler(struct mg_connection *conn)
             "\r\n"
             "%s",
             reqParser.httpContentTypeString(),
-            /*
-            ( reqParser.ret == barzer::BarzerRequestParser::XML_TYPE ? "text/xml; charset=utf-8" :
-                (reqParser.ret == barzer::BarzerRequestParser::JSON_TYPE ? "application/json; charset=utf-8" : "text/plain; charset=utf-8")
-            ), 
-            */
-
         contentStr.length(), contentStr.c_str());
 
     // Returning non-zero tells mongoose that our function has replied to

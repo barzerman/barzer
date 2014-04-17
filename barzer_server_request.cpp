@@ -212,14 +212,14 @@ struct AutocTopicParseCB {
 
 } // anon namespace 
 
-int BarzerRequestParser::autoc_nameval_process( QuestionParm& qparm, const std::string& n, const std::string& v )
+auto BarzerRequestParser::autoc_nameval_process( QuestionParm& qparm, const std::string& n, const std::string& v ) -> ErrInit
 {
     switch( n[0] ) {
     case 'u': 
         if( !d_universe ) 
             setUniverseId(atoi(v.c_str()));
         if( !d_universe ) 
-            return 1;
+            return ERR_INIT_BAD_USER;
         break;
     case 't':
         switch( n[1] ) {
@@ -251,22 +251,22 @@ int BarzerRequestParser::autoc_nameval_process( QuestionParm& qparm, const std::
         }
         break;
     }
-    return 0;
+    return ERR_INIT_OK;
 }
 
-int BarzerRequestParser::initAutocFromUri( QuestionParm& qparm, const ay::uri_parse& uri )
+auto BarzerRequestParser::initAutocFromUri( QuestionParm& qparm, const ay::uri_parse& uri ) -> ErrInit
 {
     setQueryType(QType::AUTOCOMPLETE);
     uint32_t userId= 0xffffffff;
     qparm.isAutoc = true;
     for( auto a = uri.theVec.begin(); a!= uri.theVec.end(); ++a )  {
-        if( autoc_nameval_process( qparm, a->first, a->second ) )
-            return 1;
+        if( auto rc = autoc_nameval_process( qparm, a->first, a->second ) )
+            return rc;
     }
     qparm.d_beniMode = d_beniMode;
-    return 0;
+    return ERR_INIT_OK;
 }
-int BarzerRequestParser::initFromUri( QuestionParm& qparm, const char* u, size_t u_len, const char* query, size_t query_len ) 
+auto BarzerRequestParser::initFromUri( QuestionParm& qparm, const char* u, size_t u_len, const char* query, size_t query_len ) -> ErrInit
 {
     ay::uri_parse uri;
     uri.parse( query, query_len );
@@ -276,8 +276,8 @@ int BarzerRequestParser::initFromUri( QuestionParm& qparm, const char* u, size_t
         d_zurchDocIdxId = 0;
         d_zurchMode = ZURCH_MODE_STANDARD;
     } else if( !strncmp( u, "/autoc", u_len ) ) {
-        if( initAutocFromUri( qparm, uri ) )
-            return 1;
+        if( auto rc = initAutocFromUri( qparm, uri ) )
+            return rc;
     } else {
         setQueryType(QType::BARZER);
     }
@@ -286,7 +286,10 @@ int BarzerRequestParser::initFromUri( QuestionParm& qparm, const char* u, size_t
     d_extraMap.clear();
     ret = ( d_queryType == QType::BARZER ? XML_TYPE : JSON_TYPE );
 
-    for( auto i = uri.theVec.begin(); i!= uri.theVec.end(); ++i )  {
+    auto err = ERR_INIT_OK;
+    bool retWasSet = false;
+
+    for( auto i = uri.theVec.begin(); i!= uri.theVec.end() && (!err || !retWasSet); ++i )  {
         if( !i->first.length() ) 
             continue;
 
@@ -354,27 +357,45 @@ int BarzerRequestParser::initFromUri( QuestionParm& qparm, const char* u, size_t
                 if( i->second == "xml" ) {
                     ret = XML_TYPE;
                 }
+                retWasSet = true;
 				handled = true;
             } else if( i->first == "route" ) {
                 d_route = i->second;
 				handled = true;
             }
             break;
-        case 'u': 
-            if( i->first =="u" ) {
-                userId = static_cast<uint32_t>( atoi(i->second.c_str() ) );
-	            setUniverse(gpools.getUniverse(userId));
-				handled = true;
-                if( !d_universe ) 
-                    return 1;
-            } else if( i->first == "uname" ) { // un
-                userId = gpools.getUserIdByUserName( i->second.c_str() );
-                setUniverse( gpools.getUniverse(userId) );
-				handled = true;
-                if( !d_universe ) 
-                    return 1;
-            }
-            break;
+        case 'u': {
+            switch( i->first[1] ) {
+            case 0: 
+                if( i->first =="u" ) {
+                    userId = static_cast<uint32_t>( atoi(i->second.c_str() ) );
+                    setUniverse(gpools.getUniverse(userId));
+                    handled = true;
+                    if( userId == 0xffffffff )
+                        err = ERR_INIT_BAD_USERID;
+                }
+                break;
+            case 'n': 
+                if( i->first == "uname" ) { // un
+                    userId = gpools.getUserIdByUserName( i->second.c_str() );
+                    setUniverse( gpools.getUniverse(userId) );
+				    handled = true;
+                    if( userId == 0xffffffff )
+                        err = ERR_INIT_BAD_USER_NAME;
+                }
+                break;
+            case 'k': 
+                if( i->first == "ukey" ) { // uk
+                    userId = gpools.getUserIdByUserKey( i->second.c_str() );
+                    setUniverse( gpools.getUniverse(userId) );
+				    handled = true;
+                    if( userId == 0xffffffff )
+                        err = ERR_INIT_BAD_USER_KEY;
+                }
+                break;
+
+            } 
+            } break;
         case 'z':
             if(i->first == "zdtag" && !i->second.empty()) {
                 ay::separated_string_to_vec p( docTags );
@@ -382,12 +403,30 @@ int BarzerRequestParser::initFromUri( QuestionParm& qparm, const char* u, size_t
             }
             break;
         }
-
+        
         if (!handled)
 			d_extraMap [i->first] = i->second;
     }
-    return 0;
+    if( err ) 
+        return err;
+    else if( !d_universe )
+        return ERR_INIT_BAD_USER;
+    else
+        return ERR_INIT_OK;
 }
+const char* BarzerRequestParser::getErrInitText( ErrInit e ) 
+{
+    switch(e) {
+    case ERR_INIT_OK: return "no error";
+    case ERR_INIT_BAD_USER: return "unknown user";
+    case ERR_INIT_BAD_USERID: return "unknown user id (u attribute)";
+    case ERR_INIT_BAD_USER_NAME: return "unknown user name (uname attribute)";
+    case ERR_INIT_BAD_USER_KEY: return "unknown user key (ukey attribute)";
+    case ERR_PROC_INTERNAL: return "query processing error";
+    default: return "unknown error";
+    }
+}
+
 int BarzerRequestParser::parse(QuestionParm& qparm)
 {
     if( !d_universe ) {
@@ -1111,6 +1150,10 @@ void BarzerRequestParser::tag_query(RequestTag &tag)
 
             if( (it = attrs.find("uname" )) != attrs.end()  ) {
                 uint32_t x = gpools.getUserIdByUserName( it->second.c_str() );
+                if( x != 0xffffffff ) 
+                    userId = x;
+            } else if( (it = attrs.find("ukey" )) != attrs.end()  ) {
+                uint32_t x = gpools.getUserIdByUserKey( it->second.c_str() );
                 if( x != 0xffffffff ) 
                     userId = x;
             }

@@ -2,18 +2,47 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <ay/ay_cmdproc.h>
 
 
 namespace ay {
 
 typedef Shell::CmdData CmdData;
 
+namespace {
+
+int Shell_cmd_wait( Shell* sh, char_cp cmd, std::istream& in, const std::string&argStr )
+{
+    for(auto &i : sh->bgThreads()) { 
+        i->join();
+        delete i;
+    }
+    sh->bgThreads().clear();
+    return 0;
+}
+int Shell_cmd_echo( Shell* sh, char_cp cmd, std::istream& in, const std::string&argStr )
+{
+    sh->getOutStream()  << argStr << std::endl;
+    return 0;
+}
+int Shell_cmd_system( Shell* sh, char_cp cmd, std::istream& in, const std::string&argStr )
+{
+    system( argStr.c_str() );
+    return 0;
+}
+
+} // end of anon namespace
+
 static const CmdData g_cmd[] = {
 	CmdData( Shell::cmd_help, "help", "get help on a function" ),
 	CmdData( Shell::cmd_exit, "exit", "exit the shell" ),
 	CmdData( Shell::cmd_quit, "quit", "exit current barzer shell" ),
 	CmdData( Shell::cmd_run, "run", "run scripts" ),
+	CmdData( Shell_cmd_wait, "wait", "waits for all background processes to complete (joins them)" ),
 	CmdData( Shell::cmd_set, "set", "sets parameters" ),
+
+	CmdData( Shell_cmd_system, "!", "runs command in system shell" ),
+	CmdData( Shell_cmd_echo, "echo", "echo-s a string" )
 };
 
 std::ostream& Shell::CmdData::print( std::ostream& fp ) const
@@ -27,13 +56,16 @@ int Shell::cmd_set( Shell* sh, char_cp cmd, std::istream& in, const std::string&
 	return 0;
 }
 
+
 int Shell::cmd_run( Shell* sh, char_cp cmd, std::istream& in, const std::string&argStr )
 {
-	std::string fName;
-	if( !(in >> fName) ) {
+    ay::CmdLineArgsContainer arg( cmd, in );
+
+	if( arg.argv().size() < 2) {
 		std::cerr << "must specify valid file name\n";
 		return 0;
 	}
+	std::string fName( arg.argv()[1] );
 	std::ifstream fp;
 	fp.open( fName.c_str() ) ;
 	if( !fp.is_open() )  {
@@ -181,18 +213,22 @@ int Shell::setupStreams()
 	return 0;
 }
 
-int Shell::indexCmdDataRange( const CmdDataRange& rng )
+int Shell::indexCmdDataRange( const CmdDataRange& rng, bool reportDups )
 {
 	for( const CmdData* i = rng.first; i != rng.second; ++i ) {
 		CmdDataMap::iterator mi = cmdMap.find( i->name );
 		if( mi == cmdMap.end() ) {
 			cmdMap.insert( CmdDataMap::value_type( i->name, i ) );
-		} else {
+		} else if( reportDups ) {
 			std::cerr << "command #" << i-rng.first << " name " << 
 			i->name << " is duplicate" << std::endl;
 		}
 	}
 	return 0;
+}
+int Shell::indexDefaultCommands()
+{
+    return indexCmdDataRange(CmdDataRange( ARR_BEGIN(g_cmd),ARR_END(g_cmd)));
 }
 
 int Shell::init()
@@ -209,30 +245,83 @@ int Shell::init()
 	context = mkContext();
 	return rc;
 }
-int Shell::cmdInvoke( int& rc, char_cp cmd, std::istream& in, const std::string& argStr )
+
+namespace {
+struct CmdCallable {
+    const CmdData* cd;
+    Shell* shell;
+    char_cp cmd; 
+    std::istream& in; 
+    const std::string& argStr;
+    int rc; 
+
+    CmdCallable( const CmdData* cd, Shell* sh, char_cp cmd, std::istream& in, const std::string& argStr, int rc=0) : 
+        cd(cd),
+        shell(0),
+        cmd(cmd),
+        in(in),
+        argStr(argStr),
+        rc(rc)
+    {
+        shell = sh->cloneShell();
+        shell->init();
+    }
+    ~CmdCallable() { };
+
+    void operator()( ) { 
+        cd->func( shell, cmd, in, argStr ); 
+        delete shell;
+        shell =0;
+    }
+};
+} // anon namespace
+
+int Shell::cmdInvoke( int& rc, char_cp cmd, std::istream& in, const std::string& argStr, bool background )
 {
 	const CmdData* cd = getCmdDta( cmd );
 	if( cd ) {
-		return( (rc=cd->func( this, cmd, in, argStr ), 0) );
-	} else {
+        if( background ) {
+            CmdCallable callable( cd, this, cmd, in, argStr );
+            bgThreads().push_back( new boost::thread(callable) );
+		    return (rc=0);
+        } else {
+		    return( (rc=cd->func( this, cmd, in, argStr ), 0) );
+        }
+	} else if( inStream == &std::cin && *cmd ) {
 		*errStream << "command " << cmd << " not found. Run 'help [text]' for help. Falling back to `process`.\n";
-		return cmdInvoke(rc, "help", in, argStr );
 	}
+    return 0;
 }
 
-int Shell::runCmdLoop(std::istream* fp )
+Shell::~Shell()
+{
+    for(auto &i : bgThreads()) { 
+         i->join(); 
+         delete i; 
+    }
+
+    delete context;
+}
+
+int Shell::runCmdLoop(std::istream* fp, const char* runScript )
 {
 	int rc = 0;
 
-	std::string curStr;
-	bool isScript = fp; 
+	bool isScript = (fp!= &std::cin );
 	if( !isScript ) {
 		fp = inStream;
 		printPrompt();
 	}	
-	while( std::getline( *fp, curStr ) ) {
+
+	std::string curStr;
+    if( runScript ) {
+        std::cerr << "executing script " << runScript << std::endl;
+        curStr = std::string("run ") + runScript;
+    } else
+        std::getline( *fp, curStr );
+	do {
 		std::stringstream sstr;
-		if( isScript ) {
+		if( echo ) {
 			std::cerr << curStr << std::endl; 
 		}
         std::string argStr;
@@ -243,21 +332,20 @@ int Shell::runCmdLoop(std::istream* fp )
 		sstr<< curStr;
 		std::string cmdStr;
 		std::getline( sstr, cmdStr, ' ');
-		// sstr >> cmdStr;
-		// int cmdRc = 0;
-		cmdInvoke( rc, cmdStr.c_str(), sstr, argStr );
+        bool background = ( *(cmdStr.rbegin()) == '&' );
+		cmdInvoke( rc, cmdStr.c_str(), sstr, argStr, background );
 		if( rc ) 
 			break;
 		if( !isScript ) 
 			printPrompt();
-	}
+	} while( std::getline( *fp, curStr ) );
 	return ( rc < 0 ? rc: 0 );
 }
-int Shell::run()
+int Shell::run( const char* runScript )
 {
 	int rc = init();
 	rc = setupStreams();
-	rc = runCmdLoop();
+	rc = runCmdLoop(&std::cin, runScript);
 	return ( rc < -1 ? rc : 0 );
 }
 
