@@ -15,7 +15,7 @@ void DocDataIndex::addInfo(uint32_t docId, const DocInfo::value_type& value)
 	
 	docPos->second.insert(value);
 }
-
+#ifndef DONOT_REMOVE_FILTERS_SHITFUCK // {
 bool DocDataIndex::fancyFilter(uint32_t docId, const Filters::Filter_t& f) const
 {
 	auto docPos = m_index.find(docId);
@@ -25,4 +25,5 @@ bool DocDataIndex::fancyFilter(uint32_t docId, const Filters::Filter_t& f) const
 	const auto& map = docPos->second;
 	return boost::apply_visitor(Filters::FilterTApplier(map), f);
 }
+#endif // }
 }
