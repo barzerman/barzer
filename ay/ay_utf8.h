@@ -345,6 +345,28 @@ namespace ay
 
 		inline CharUTF8 operator[] (size_t glyphNum) const { return getGlyph(glyphNum); }
 
+        /// compares i-th glyph to oi-th glyph in o string
+        inline bool equalsGlyph( size_t i, const StrUTF8& o, size_t oi ) const
+        {
+			const size_t pos = m_positions[i], sz = m_positions[i+1]-pos;
+			const size_t opos = o.m_positions[oi], osz = o.m_positions[oi+1]-opos;
+
+            if( sz != osz ) return false;
+            else {
+                auto auto buf = &m_buf[pos], obuf = &(o.m_buf[opos]);
+                if( sz == 1 ) {
+                    return buf[0] == obuf[0];
+                } else if( sz == 2 ) {
+                    return ( buf[1] == obuf[1] && buf[0] == obuf[0] );
+                } else if( sz == 3 ) {
+                    return ( buf[1] == obuf[1] && buf[2] == obuf[2] && buf[0] == obuf[0] );
+                } else if ( sz == 4 ) {
+                    return ( buf[3] == obuf[3] && buf[1] == obuf[1] && buf[2] == obuf[2] && buf[0] == obuf[0] );
+                } else
+                    return false;
+            }
+        }
+
 		inline CharUTF8 getGlyph(size_t glyphNum) const
 		{
 			const size_t pos = m_positions[glyphNum];
@@ -548,6 +570,12 @@ namespace ay
             bool operator>=(const const_iterator& c) const { return m_pos >= c.m_pos; }
 			inline CharUTF8 operator* () const
                 { return m_str->getGlyph (m_pos); }
+
+            inline bool equalsGlyph( size_t i, const const_iterator o, size_t oi ) const
+                { return m_str->equalsGlyph(i, *(o->m_str), oi ); }
+
+            inline bool equalsGlyph( const const_iterator o ) const
+                { return m_str->equalsGlyph(m_pos, *(o->m_str), o->m_pos ); }
         };
         const_iterator begin() const { return const_iterator(*this,0); }
         const_iterator end() const { return const_iterator(*this,size()); }

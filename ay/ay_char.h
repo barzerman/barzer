@@ -63,8 +63,20 @@ struct Char2B_iterator {
     Char2B_iterator& operator-( int i) { d_s -= (2*i); return *this; }
 
     Char2B operator *() { return Char2B(d_s); }
+    
+    bool eq_char( const Char2B_iterator& o ) const { return ( d_s[1] == o->d_s[1] && d_s[0] == o->d_s[0]; }
 
-    const char* operator[]( size_t i ) const { return ( d_s + (i*2) ); }
+    bool eq_char( const Char2B_iterator& o, size_t i ) const { 
+        auto d = d_s + i + i, od = o->d_s + i + i ;
+        return ( d[1] == od[1] && d[0] == od[0]; 
+    }
+    bool eq_char( const Char2B_iterator& o, size_t i, size_t j ) const { 
+        auto d = d_s + i + i, od = o->d_s + j + j ;
+        return ( d[1] == od[1] && d[0] == od[0]; 
+    }
+
+    const char* operator[]( size_t i ) const { return ( d_s + (i+i) ); }
+    operator const char* () const { return d_s; }
 };
 inline int operator -( const Char2B_iterator& l, const Char2B_iterator& r ) 
     { return ( (l.d_s - r.d_s)/2 ); }
