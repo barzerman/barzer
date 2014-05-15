@@ -415,7 +415,6 @@ public:
 
 	bool operator()(const BarzerEVR &data) {
         raii.addKeyVal( "type", "evr" );
-        (*this)( data.getEntity() );
         {
         raii.startField("ent");
         json_raii eraii( os , false, raii.getDepth()+1 );
@@ -423,14 +422,14 @@ public:
         }
 
         if( data.data().size() ==1 && data.data().begin()->first.length()==0 ) { // default tupple
-            json_raii listRaii( raii.startField("variant"), true, raii.getDepth()+1 );
+            json_raii listRaii( raii.startField("values"), true, raii.getDepth()+1 );
             for( auto i = data.data().begin()->second.begin(), i_end=data.data().begin()->second.end(); i!= i_end; ++i ) {
                 listRaii.startField("");
                 BeadVisitor arrVis(*this,false);
                 boost::apply_visitor(arrVis, *i );
             }
         } else {
-            raii.startField( "variant" );
+            raii.startField( "values" );
             json_raii tuppleRaii( os , false, raii.getDepth()+1 );
             for( auto i = data.data().begin(), i_end= data.data().end(); i!= i_end; ++i ) {
                 std::string nameStr = i->first;

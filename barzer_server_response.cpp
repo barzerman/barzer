@@ -440,7 +440,7 @@ public:
                     xmlEscape( i->first.c_str(), sstr ) << "\"";
                     attr = sstr.str();
                 }
-                tag_raii erctag(os, "variant", attr.c_str());
+                tag_raii erctag(os, "values", attr.c_str());
                 for( auto j =i->second.begin(), j_end = i->second.end(); j!= j_end; ++j ) {
                     boost::apply_visitor( (*this), *j );
                 }
