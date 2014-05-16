@@ -1171,6 +1171,12 @@ bool cmpr(BarzelEvalResult &result,
             { return false; }
 		bool operator()(const BarzelBeadExpression& v) 
             { return false; }
+        bool operator()(const BarzerEVR& v)
+        {
+            evr.appendVar( v );
+            return true;
+        }
+        /*
 		bool operator()(const BarzerEVR& v) 
             { 
                 for( auto i = v.data().begin(); i!= v.data().end(); ++i ) {
@@ -1180,6 +1186,7 @@ bool cmpr(BarzelEvalResult &result,
                 }
                 return true; 
             }
+            */
 
         template <typename T>
         bool operator()(const T& t) { evr.appendVarUnique( tuppleName, t ); return true;}

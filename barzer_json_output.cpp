@@ -452,6 +452,9 @@ public:
         }
         return true;
     }
+	bool operator()(const boost::optional<BarzerEVR> &data) {
+        return (*this)( data.get() );
+    }
 
     bool printERC( json_raii& locRaii, const BarzerERC &data ) 
     {

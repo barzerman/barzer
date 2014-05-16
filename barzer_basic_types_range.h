@@ -1,6 +1,10 @@
 #pragma once 
 #include <barzer_basic_types.h>
 #include <boost/variant/recursive_variant.hpp>
+#include <boost/optional/optional.hpp>
+#include <boost/foreach.hpp>
+
+
 #include <barzer_parse_types.h>
 namespace barzer {
 
@@ -372,7 +376,8 @@ struct BarzerEVR {
         BarzerEntityList,
         BarzerEntity,
         BarzerERC,
-        BarzerERCExpr
+        BarzerERCExpr,
+        boost::optional<BarzerEVR>
     > Atom;
 
     typedef std::vector< Atom > AtomTupple;
@@ -399,6 +404,8 @@ struct BarzerEVR {
             return d_dta.begin();
     }
     /// appends to default tupple
+    void appendVar( const BarzerEVR& t )
+        { getDefaultTuppleIter()->second.push_back( boost::optional<BarzerEVR>(t) ); }
     template <typename T> void appendVar( const T& t )
         { getDefaultTuppleIter()->second.push_back( t ); }
     ///  appends to tupple name tn

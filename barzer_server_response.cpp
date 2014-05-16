@@ -448,6 +448,9 @@ public:
         }
         return true;
     }
+	bool operator()(const boost::optional<BarzerEVR> &data) {
+        return (*this)( data.get() );
+    }
 	bool operator()(const BarzerERC &data) {
 		const StoredEntityUniqId &ent = data.getEntity(),
 						         &unit = data.getUnitEntity();
