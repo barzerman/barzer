@@ -1163,8 +1163,10 @@ bool cmpr(BarzelEvalResult &result,
 	};
 	struct EVRPacker : public boost::static_visitor<bool> {
         std::string tuppleName;
+        const BarzelEvalResult& evalResult;
         BarzerEVR& evr;
-        EVRPacker( BarzerEVR& e ) : evr(e) {}
+        EVRPacker( BarzerEVR& e, const BarzelEvalResult& evalRes ) : evalResult(evalRes), evr(e) {}
+
 		bool operator()(const BarzelBeadAtomic &data) 
             { return boost::apply_visitor(*this, data.getData()); }
 		bool operator()(const BarzelBeadBlank& v) 
@@ -1193,6 +1195,58 @@ bool cmpr(BarzelEvalResult &result,
 
     };
 
+	FUNC_DECL(evrTagExtract) // extracts tag value from the EVR 
+    {
+        SETFUNCNAME(evrTagExtract);
+        bool getAll = false;
+        if( const char* argStr = GETARGSTR() ) {
+            if( !strcmp( argStr, "ALL" ) {
+                getAll = true;
+            }
+        }
+        if( rvec.empty() )
+            return true;
+
+        const BarzerEVR* srcEvr = getAtomicPtr<BarzerEVR>(rvec[0]);
+        if( !srcEvr ) {
+            std::stringstream strstr;
+            strstr << "evr tag extraction failed: first parm must be EVR";
+            FERROR( strstr.str().c_str() );
+            return true;
+        }
+        std::string tagStr;
+        if( rvec.size() > 1 )
+            getString( tagStr, rvec[1], q_universe );
+
+        if( !getAll && tagStr.empty() ) 
+            getAll = true;
+        if( getAll ) {
+            srcEvr->iterateTag( 
+                [&] ( const BarzerEVR::Atom& atom ) { result.pushEVRAtomData( atom ); },
+                tagStr.c_str() 
+            );
+        } else {
+            if( auto x = srcEvr->getAtomByName(tagStr.c_str() ) ) {
+                result.setEVRAtomData(*x);
+            }
+        }
+        
+        return true;
+    }
+	FUNC_DECL(setTag) // sets tag to the parameters
+    {
+        SETFUNCNAME(setTag);
+        const char* argStr = GETARGSTR();
+        if(rvec.size() == 1) {
+		    setResult(result, rvec.getBeadData());
+        } else {    
+            for( auto& r: rvec ) {
+                result.pushBeadData( r.getBeadData() );
+            }
+        }
+        result.setTagStr( argStr );
+        return true;
+    }
 
 	FUNC_DECL(mkEVR) // makes EVR
     {
@@ -1209,9 +1263,8 @@ bool cmpr(BarzelEvalResult &result,
         } else if( const BarzerEntity* ent = getAtomicPtr<BarzerEntity>(*ri) ) {
             evr.setEntity( *ent );
         } 
-        EVRPacker packer( evr );
-        if( argStr ) packer.tuppleName.assign(argStr);
 		for ( ++ri; ri != rvec.end(); ++ri ) {
+            EVRPacker packer( evr, *ri );
             boost::apply_visitor( packer, ri->getBeadData() );
         }
 		setResult(result, evr);
@@ -2044,6 +2097,7 @@ BELFunctionStorage_holder::DeclInfo g_funcs[] = {
     FUNC_DECLINFO_INIT(mkEnt, ""),
     FUNC_DECLINFO_INIT(lookupEnt, ""),
     FUNC_DECLINFO_INIT(mkERC, ""),
+    FUNC_DECLINFO_INIT(setTag, "assigns tag to the bead. should be used for EVR formation"),
     FUNC_DECLINFO_INIT(mkEVR, ""),
     FUNC_DECLINFO_INIT(mkErcExpr, ""),
     FUNC_DECLINFO_INIT(mkFluff, ""),
@@ -2064,6 +2118,7 @@ BELFunctionStorage_holder::DeclInfo g_funcs[] = {
 
     FUNC_DECLINFO_INIT(getLeftBead, ""),  // returns closest bead on the left of the type matching arg . null otherwise
     FUNC_DECLINFO_INIT(getBeadSrcTok, ""),  // a string contactenated with spaces from scrtokens of all beads in substitution sequence
+    FUNC_DECLINFO_INIT(evrTagExtract, "(evr,tag) gets value of a tag from the evr. unless arg=ALL is set only gets the first value for the tag"),  // by default only the first  value for the tag is returned
     // arith
     FUNC_DECLINFO_INIT(textToNum, ""),
     FUNC_DECLINFO_INIT(opPlus, ""),
@@ -2177,7 +2232,3 @@ void BELFunctionStorage::help_list_funcs_json( std::ostream& os, const GlobalPoo
 }
 
 }
-
-
-
-

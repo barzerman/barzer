@@ -188,5 +188,14 @@ std::ostream& BarzerLiteral::print( std::ostream& fp, const BELPrintContext& ) c
 	return print( fp );
 }
 
+std::ostream& BarzerEVR::print( std::ostream& fp ) const
+{
+    fp << "evr{" << getEntity() << ": ";
+    for( auto& x: d_dta ) {
+        fp << x << ",";
+    }
+    return fp << "}";
+}
+
 } // namespace barzer 
 

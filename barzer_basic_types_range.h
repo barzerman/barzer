@@ -380,54 +380,89 @@ struct BarzerEVR {
         boost::optional<BarzerEVR>
     > Atom;
 
-    typedef std::vector< Atom > AtomTupple;
-    typedef std::map< std::string, AtomTupple > Var;
+    typedef std::vector< std::pair<std::string,Atom> > Var;
     Var d_dta;
 
     const BarzerEntity& getEntity() const { return d_ent; }
     void  setEntity(const BarzerEntity& ent) { d_ent=ent; }
     const Var&  data() const { return d_dta; } 
           Var&  data() { return d_dta; } 
-    
-    /// returns or creates tupple iterator
-    Var::iterator obtainTuppleIter( const std::string& s )
+
+    decltype(d_dta)::const_iterator getIterByName( const char* name ) const
     {
-        Var::iterator i = d_dta.find( s );
-        return( i == d_dta.end() ? d_dta.insert( Var::value_type( std::string(), AtomTupple() ) ).first : i );
+        return std::find_if( d_dta.begin(), d_dta.end(), [&]( const Var::value_type& x ) { return (x.first == name); } );
+    }
+    decltype(d_dta)::iterator getIterByName( const char* name ) 
+    {
+        return std::find_if( d_dta.begin(), d_dta.end(), [&]( const Var::value_type& x ) { return (x.first == name); } );
+    }
+    const Atom* getAtomByName( const char* name ) const
+    {
+        auto x = getIterByName(name);
+        return( x == d_dta.end()? 0: &(x->second) );
+    }
+    template <typename T>
+    const Atom* getAtomContentByName( const char* name ) const
+    {
+        if( auto x = getAtomByName(name) ) {
+            return boost::get<T>( x );
+        } else 
+            return 0;
     }
 
-    Var::iterator getDefaultTuppleIter()
-    {
-        if( d_dta.begin() == d_dta.end() ) 
-            return d_dta.insert( Var::value_type( std::string(), AtomTupple() ) ).first;
-        else
-            return d_dta.begin();
-    }
-    /// appends to default tupple
     void appendVar( const BarzerEVR& t )
-        { getDefaultTuppleIter()->second.push_back( boost::optional<BarzerEVR>(t) ); }
-    template <typename T> void appendVar( const T& t )
-        { getDefaultTuppleIter()->second.push_back( t ); }
-    ///  appends to tupple name tn
-    template <typename T> void appendVar( const std::string& tn, const T& t )
-        { obtainTuppleIter(tn)->second.push_back(t); }
+        { d_dta.push_back( { std::string(), boost::optional<BarzerEVR>(t)} ); }
 
-    /// same as appendVar except it only appends if t is not found in the tupple
-    /// this is a bit slower
-    template <typename T> void appendVarUnique( const std::string& tn, const T& t )
-        { 
-            AtomTupple& vec = obtainTuppleIter(tn)->second;
-            for( auto i = vec.begin(); i!= vec.end(); ++i ) {
-                const T* x = boost::get<T>(&(*i));
-                if( x && t == *x ) 
-                    return;
-            }
-            vec.push_back( t );
+    template <typename T> void appendVar( const T& t )
+        { d_dta.push_back( { std::string(), t } ); }
+
+    ///  appends to tupple name tn
+    template <typename T> void appendVar( const std::string& tag, const T& t )
+        { d_dta.push_back( { tag, t } ); }
+
+    template <typename T> void setTagVar( const std::string& tag, const T& t )
+    {
+        auto x = getIterByName( tag.c_str() );
+        if( x == d_dta.end() ) {
+            appendVar(tag,t);
+        } else {
+            x->second = t;
         }
+    }
+    void setTagVar( const std::string& tag, const BarzerEVR& t )
+        { setTagVar(tag,boost::optional(t) ); }
+
+
+    void combine( const BarzerEVR& o ) 
+    {
+        for( auto& x : o.d_dta ) {
+            if( !x.first.empty() ) {
+                auto i = getIterByName( x.first.c_str() );
+                if( i != d_dta.end() )  {
+                    i->second = x.second;
+                    continue;
+                }
+            } 
+            d_dta.push_back( x );
+        }
+    }
 
     bool isEqual( const BarzerEVR& o ) const { return d_dta == o.d_dta; }
     bool isLessThan( const BarzerEVR& o ) const { return d_dta < o.d_dta; }
-    void print( std::ostream& fp ) const;
+    std::ostream& print( std::ostream& fp ) const;
+    
+    template <typename CB>
+    size_t iterateTag( const CB& cb, const char* name = 0 ) const {
+        std::string s( name? name : "" );
+        size_t count = 0;
+        for( auto& i : d_dta ) {
+            if( i.first == name ) {
+                cb( i.second );
+                ++count;
+            }
+        }
+        return count;
+    }
 };
 inline std::ostream& operator<<( std::ostream& fp, const BarzerERCExpr& x  ){ return x.print(fp); }
 

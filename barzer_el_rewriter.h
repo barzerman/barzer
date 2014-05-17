@@ -81,6 +81,12 @@ private:
     int d_confidenceBoost;
     
 public:
+    std::string d_tagStr; // named result for evr 
+
+    bool hasTag() const { return !d_tagStr.empty(); }
+    void  setTagStr( const char* s ) { d_tagStr.assign(s); }
+
+    const std::string& tagStr() const { return d_tagStr; }
 	BarzelEvalResult() : 
         d_val(1), 
         d_unmatchable(0),
@@ -125,8 +131,12 @@ public:
             pushBeadData(t);
     }
     
+    void setEVRAtomData( const BarzerEVR::Atom& atom ); 
+    void pushEVRAtomData( const BarzerEVR::Atom& atom ); 
+
     std::ostream& print( std::ostream& fp ) const
         { return ( fp << getBeadData() ); }
+    
 };
 inline std::ostream& operator<< ( std::ostream& fp, const BarzelEvalResult& x )
 {
