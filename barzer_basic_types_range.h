@@ -430,7 +430,7 @@ struct BarzerEVR {
         }
     }
     void setTagVar( const std::string& tag, const BarzerEVR& t )
-        { setTagVar(tag,boost::optional(t) ); }
+        { setTagVar(tag,boost::optional<BarzerEVR>(t) ); }
 
 
     void combine( const BarzerEVR& o ) 

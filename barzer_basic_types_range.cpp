@@ -11,7 +11,7 @@ void BarzerEVR_compile_tester( )
     BarzerERC erc;
     evr.appendVar( "hello", date );
     evr.appendVar( ent );
-    evr.appendVarUnique( "hello", erc );
+    evr.setTagVar( "hello", erc );
 }
 
 }
@@ -140,38 +140,13 @@ const BarzerRange& BarzerRange::promote_toReal( )
     return *this;
 }
 
-namespace {
-struct TuplePrintVisitor : public boost::static_visitor<> {
-    std::ostream& fp;
-    TuplePrintVisitor( std::ostream& f) : fp(f) {}
-    template <typename T>
-    void operator () ( const T& t ) 
-        { fp << t; }
-};
-}
-void BarzerEVR::print( std::ostream& fp ) const
+std::ostream& BarzerEVR::print( std::ostream& fp ) const
 {
-    fp << "{";
-    for( auto i = d_dta.begin(); i!= d_dta.end(); ++i ) {
-        if( i != d_dta.begin() ) 
-            fp << ",";
-
-        fp << i->first << ":";
-        if( i->second.size() > 1 ) {
-            for( auto j = i->second.begin(); j!= i->second.end(); ++j ) {
-                if( j!= i->second.begin() )
-                    fp << ", ";
-                
-                TuplePrintVisitor vis(fp);
-                boost::apply_visitor( vis, *j );
-            }
-        } else if(i->second.size()  ==1) {
-            TuplePrintVisitor vis(fp);
-            boost::apply_visitor( vis, i->second[0] );
-        
-        }
+    fp << "evr{" << getEntity() << "==> ";
+    for( auto& x: d_dta ) {
+        fp << x.first << ":" << x.second << ",";
     }
-    fp << "}";
+    return fp << "}";
 }
 
 void BarzerERCExpr::setLogic( const char* s ) { 

@@ -1175,7 +1175,11 @@ bool cmpr(BarzelEvalResult &result,
             { return false; }
         bool operator()(const BarzerEVR& v)
         {
-            evr.appendVar( v );
+            if( tuppleName.empty() )
+                evr.appendVar( v );
+            else 
+                evr.setTagVar( tuppleName, v );
+
             return true;
         }
         /*
@@ -1191,8 +1195,13 @@ bool cmpr(BarzelEvalResult &result,
             */
 
         template <typename T>
-        bool operator()(const T& t) { evr.appendVarUnique( tuppleName, t ); return true;}
-
+        bool operator()(const T& t) { 
+            if( tuppleName.empty() )
+                evr.appendVar( t ); 
+            else 
+                evr.setTagVar( tuppleName, t ); 
+            return true;
+        }
     };
 
 	FUNC_DECL(evrTagExtract) // extracts tag value from the EVR 
@@ -1200,7 +1209,7 @@ bool cmpr(BarzelEvalResult &result,
         SETFUNCNAME(evrTagExtract);
         bool getAll = false;
         if( const char* argStr = GETARGSTR() ) {
-            if( !strcmp( argStr, "ALL" ) {
+            if( !strcmp( argStr, "ALL") ) {
                 getAll = true;
             }
         }
@@ -1238,7 +1247,7 @@ bool cmpr(BarzelEvalResult &result,
         SETFUNCNAME(setTag);
         const char* argStr = GETARGSTR();
         if(rvec.size() == 1) {
-		    setResult(result, rvec.getBeadData());
+		    result.setBeadData( rvec[0].getBeadData() );
         } else {    
             for( auto& r: rvec ) {
                 result.pushBeadData( r.getBeadData() );
@@ -1265,6 +1274,7 @@ bool cmpr(BarzelEvalResult &result,
         } 
 		for ( ++ri; ri != rvec.end(); ++ri ) {
             EVRPacker packer( evr, *ri );
+            packer.tuppleName = ri->tagStr();
             boost::apply_visitor( packer, ri->getBeadData() );
         }
 		setResult(result, evr);

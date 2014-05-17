@@ -701,25 +701,28 @@ const char* BarzelEvalContext::resolveStringInternal( uint32_t i ) const
 namespace {
 
 struct EvalResultPushCB {
-    void operator()( const BarzelEvalResult& result, const boost::optional<BarzerEVR>& t ) const
-        { result.pushBeadData( t ? t.get() : BarzerEVR()); }
-    void operator()( const BarzelEvalResult& result, const T& t ) const
+    void operator()( BarzelEvalResult& result, const boost::optional<BarzerEVR>& t ) const
+        { result.pushBeadData( t.get()); }
+    template <typename T>
+    void operator()( BarzelEvalResult& result, const T& t ) const
         { result.pushBeadData( t ); }
 };
 struct EvalResultSetCB {
-    void operator()( const BarzelEvalResult& result, const boost::optional<BarzerEVR>& t ) const
-        { result.setBeadData( t ? t.get() : BarzerEVR()); }
-    void operator()( const BarzelEvalResult& result, const T& t ) const
-        { result.setBeadData( t ); }
+    void operator()( BarzelEvalResult& result, const boost::optional<BarzerEVR>& t ) const
+        { result.setAtomicBeadData( t.get() ); }
+    template <typename T>
+    void operator()( BarzelEvalResult& result, const T& t ) const
+        { result.setAtomicBeadData( t ); }
 };
 
 template <typename CB>
 struct EVRAtomVisitor : public boost::static_visitor<void> {
     BarzelEvalResult& result;
+    CB cb;
     typedef CB callback_type;
     EVRAtomVisitor( BarzelEvalResult& r ) : result(r) {}
 
-    template <typename T> void operator()( const T& t ) { CB()(result,t); }
+    template <typename T> void operator()( const T& t ) { cb(result,t); }
 };
 
 } // end of anon namespace 
@@ -731,7 +734,7 @@ void BarzelEvalResult::setEVRAtomData( const BarzerEVR::Atom& atom )
 }
 void BarzelEvalResult::pushEVRAtomData( const BarzerEVR::Atom& atom )
 {
-    EVRAtomVisitor<EvalResulPushCB> vis(*this);
+    EVRAtomVisitor<EvalResultPushCB> vis(*this);
     boost::apply_visitor(vis, atom );
 }
 

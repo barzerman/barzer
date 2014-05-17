@@ -234,6 +234,7 @@ struct skippedvector {
     const Vector* vecPtr() const { return d_vec; }
     const Vector& vec() const { return *d_vec; }
     const size_t  size() const { return ( d_vec->size()> d_skip ? d_vec->size()-d_skip: 0 ); }
+    bool empty() const { return !size(); }
     size_t getSkip() const { return d_skip; }
 };
 
