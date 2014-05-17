@@ -1204,6 +1204,45 @@ bool cmpr(BarzelEvalResult &result,
         }
     };
 
+	FUNC_DECL(evrValExtract) // extracts tag value from the EVR 
+    {
+        SETFUNCNAME(evrTagExtract);
+        bool getAll = false;
+        if( rvec.empty() )
+            return false;
+
+        const char* argStr = GETARGSTR();
+        const BarzerEVR* srcEvr = getAtomicPtr<BarzerEVR>(rvec[0]);
+
+        if(  argStr && srcEvr && !srcEvr->data().empty()) {
+            size_t from = 0, to=0;
+            ay::parse_separator( 
+                [&]( size_t tok_num, const char* tok, const char* tok_end ) -> bool {
+                    std::string s( tok, tok_end-tok ) ;
+                    if( tok_num == 0 ) {
+                        from = atoi(s.c_str());
+                    } else if( tok_num == 1 ){
+                        to = atoi(s.c_str());
+                    }
+                    return false;
+                },
+                argStr
+            );
+
+            if( from == to ) {
+                if( to < srcEvr->data().size()) 
+                    result.setEVRAtomData( srcEvr->data()[ from ].second );
+            } else if( from < to ) {
+                if( to >= srcEvr->data().size()) 
+                    to = srcEvr->data().size()-1;
+                for( size_t i = from; i<=to; ++i ) {
+                    result.pushEVRAtomData( srcEvr->data()[i].second );
+                }
+            }
+            return true;
+        } else
+            return false;
+    }
 	FUNC_DECL(evrTagExtract) // extracts tag value from the EVR 
     {
         SETFUNCNAME(evrTagExtract);
@@ -2128,6 +2167,7 @@ BELFunctionStorage_holder::DeclInfo g_funcs[] = {
 
     FUNC_DECLINFO_INIT(getLeftBead, ""),  // returns closest bead on the left of the type matching arg . null otherwise
     FUNC_DECLINFO_INIT(getBeadSrcTok, ""),  // a string contactenated with spaces from scrtokens of all beads in substitution sequence
+    FUNC_DECLINFO_INIT(evrValExtract, "(evr) arg=n[,nmax] gets values n through nmax value from evr."),  // gets one or more values from EVR by number
     FUNC_DECLINFO_INIT(evrTagExtract, "(evr,tag) gets value of a tag from the evr. unless arg=ALL is set only gets the first value for the tag"),  // by default only the first  value for the tag is returned
     // arith
     FUNC_DECLINFO_INIT(textToNum, ""),
