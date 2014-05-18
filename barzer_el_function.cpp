@@ -1204,9 +1204,44 @@ bool cmpr(BarzelEvalResult &result,
         }
     };
 
+	FUNC_DECL(updateVal) // updates named value in the EVR
+    {
+        SETFUNCNAME(updateVal);
+        if( rvec.empty() )
+            return false;
+        auto srcEvr = getAtomicPtr<BarzerEVR>(rvec[0]);
+        const char* argStr = GETARGSTR();
+        if( srcEvr && argStr ) {
+            BarzerEVR evr(*srcEvr);
+
+            if( rvec.size() > 1 )
+                evr.setTagVar( argStr, rvec[1] );
+		    setResult(result, evr);
+            return true;
+        } else {
+            return false;
+        }
+    }
+	FUNC_DECL(insertVal) // extracts tag value from the EVR 
+    {
+        SETFUNCNAME(insertVal);
+        if( rvec.empty() )
+            return false;
+        auto srcEvr = getAtomicPtr<BarzerEVR>(rvec[0]);
+        if( srcEvr ) {
+            BarzerEVR evr(*srcEvr);
+
+            for( auto ri = rvec.begin()+1, ri_end = rvec.end(); ri!= ri_end; ++ri ) {
+                evr.appendVar( ri->tagStr(), *ri );
+            }
+		    setResult(result, evr);
+            return true;
+        } else
+            return false;
+    }
 	FUNC_DECL(evrValExtract) // extracts tag value from the EVR 
     {
-        SETFUNCNAME(evrTagExtract);
+        SETFUNCNAME(evrValExtract);
         bool getAll = false;
         if( rvec.empty() )
             return false;
@@ -2158,6 +2193,8 @@ BELFunctionStorage_holder::DeclInfo g_funcs[] = {
 
     //setter
     FUNC_DECLINFO_INIT(set, ""),
+    FUNC_DECLINFO_INIT(insertVal, "(evr,x1[,x2...]) - appends xN-s into evr's value list"),
+    FUNC_DECLINFO_INIT(updateVal, "(evr,x) - in evr sets value arg to x "),
             
     // getters
     FUNC_DECLINFO_INIT(getLow, ""), // (BarzerRange)

@@ -1,4 +1,6 @@
 #include <barzer_basic_types_range.h>
+#include <barzer_el_chain.h>
+#include <barzer_el_rewriter.h>
 namespace barzer {
 
 namespace { // testers
@@ -144,7 +146,7 @@ std::ostream& BarzerEVR::print( std::ostream& fp ) const
 {
     fp << "evr{" << getEntity() << "==> ";
     for( auto& x: d_dta ) {
-        fp << x.first << ":" << x.second << ",";
+        fp << x.first ; // << ":" << x.second << ",";
     }
     return fp << "}";
 }
@@ -155,4 +157,53 @@ void BarzerERCExpr::setLogic( const char* s ) {
     else if( (tolower(s[0]) == 'o' && tolower(s[1]) == 'r' &&!s[2] ) )
         d_type=T_LOGIC_OR;
 }
+namespace {
+
+struct BarzerEVR_setter_vis : public boost::static_visitor<> {
+    BarzerEVR& evr;
+    const std::string& tag;
+    BarzerEVR_setter_vis( BarzerEVR& evr, const std::string& tag ) : evr(evr) , tag(tag) {}
+
+
+    void operator()( const BarzelBeadBlank& ) { }
+    void operator()( const BarzelBeadExpression& ) { }
+    void operator()( const BarzelBeadAtomic& a ) 
+    { 
+        boost::apply_visitor( (*this) , a.getData() );
+    }
+    template <typename T>
+    void operator()( const T& t ) { 
+        evr.setTagVar( tag, t ); 
+    }
+};
+struct BarzerEVR_appender_vis : public boost::static_visitor<> {
+    BarzerEVR& evr;
+    const std::string& tag;
+    BarzerEVR_appender_vis( BarzerEVR& evr, const std::string& tag ) : evr(evr) , tag(tag) {}
+
+
+    void operator()( const BarzelBeadBlank& ) { }
+    void operator()( const BarzelBeadExpression& ) { }
+    void operator()( const BarzelBeadAtomic& a ) 
+    { 
+        boost::apply_visitor( (*this) , a.getData() );
+    }
+    template <typename T>
+    void operator()( const T& t ) { 
+        evr.appendVar( tag, t ); 
+    }
+};
+} // namespace
+
+void BarzerEVR::setTagVar( const std::string& tag, const BarzelEvalResult& r )
+{
+    BarzerEVR_setter_vis vis( *this, tag );
+    boost::apply_visitor( vis, r.getBeadData() );
+}
+void BarzerEVR::appendVar( const std::string& tag, const BarzelEvalResult& r )
+{
+    BarzerEVR_appender_vis vis( *this, tag );
+    boost::apply_visitor( vis, r.getBeadData() );
+}
+
 } // namespace barzer 

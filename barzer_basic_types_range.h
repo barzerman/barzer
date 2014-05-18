@@ -7,7 +7,7 @@
 
 #include <barzer_parse_types.h>
 namespace barzer {
-
+class BarzelEvalResult;
 /// range of continuous values (int,real,date,time ...)
 struct BarzerRange {
 	typedef std::pair< BarzerNone, BarzerNone > None;
@@ -417,6 +417,8 @@ struct BarzerEVR {
         { d_dta.push_back( { std::string(), t } ); }
 
     ///  appends to tupple name tn
+    void setTagVar( const std::string& tag, const BarzelEvalResult& t );
+    void appendVar( const std::string& tag, const BarzelEvalResult& d );
     template <typename T> void appendVar( const std::string& tag, const T& t )
         { d_dta.push_back( { tag, t } ); }
 
