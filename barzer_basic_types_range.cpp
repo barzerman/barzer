@@ -1,4 +1,6 @@
 #include <barzer_basic_types_range.h>
+#include <barzer_el_chain.h>
+#include <barzer_el_rewriter.h>
 namespace barzer {
 
 namespace { // testers
@@ -11,7 +13,7 @@ void BarzerEVR_compile_tester( )
     BarzerERC erc;
     evr.appendVar( "hello", date );
     evr.appendVar( ent );
-    evr.appendVarUnique( "hello", erc );
+    evr.setTagVar( "hello", erc );
 }
 
 }
@@ -140,38 +142,13 @@ const BarzerRange& BarzerRange::promote_toReal( )
     return *this;
 }
 
-namespace {
-struct TuplePrintVisitor : public boost::static_visitor<> {
-    std::ostream& fp;
-    TuplePrintVisitor( std::ostream& f) : fp(f) {}
-    template <typename T>
-    void operator () ( const T& t ) 
-        { fp << t; }
-};
-}
-void BarzerEVR::print( std::ostream& fp ) const
+std::ostream& BarzerEVR::print( std::ostream& fp ) const
 {
-    fp << "{";
-    for( auto i = d_dta.begin(); i!= d_dta.end(); ++i ) {
-        if( i != d_dta.begin() ) 
-            fp << ",";
-
-        fp << i->first << ":";
-        if( i->second.size() > 1 ) {
-            for( auto j = i->second.begin(); j!= i->second.end(); ++j ) {
-                if( j!= i->second.begin() )
-                    fp << ", ";
-                
-                TuplePrintVisitor vis(fp);
-                boost::apply_visitor( vis, *j );
-            }
-        } else if(i->second.size()  ==1) {
-            TuplePrintVisitor vis(fp);
-            boost::apply_visitor( vis, i->second[0] );
-        
-        }
+    fp << "evr{" << getEntity() << "==> ";
+    for( auto& x: d_dta ) {
+        fp << x.first ; // << ":" << x.second << ",";
     }
-    fp << "}";
+    return fp << "}";
 }
 
 void BarzerERCExpr::setLogic( const char* s ) { 
@@ -180,4 +157,53 @@ void BarzerERCExpr::setLogic( const char* s ) {
     else if( (tolower(s[0]) == 'o' && tolower(s[1]) == 'r' &&!s[2] ) )
         d_type=T_LOGIC_OR;
 }
+namespace {
+
+struct BarzerEVR_setter_vis : public boost::static_visitor<> {
+    BarzerEVR& evr;
+    const std::string& tag;
+    BarzerEVR_setter_vis( BarzerEVR& evr, const std::string& tag ) : evr(evr) , tag(tag) {}
+
+
+    void operator()( const BarzelBeadBlank& ) { }
+    void operator()( const BarzelBeadExpression& ) { }
+    void operator()( const BarzelBeadAtomic& a ) 
+    { 
+        boost::apply_visitor( (*this) , a.getData() );
+    }
+    template <typename T>
+    void operator()( const T& t ) { 
+        evr.setTagVar( tag, t ); 
+    }
+};
+struct BarzerEVR_appender_vis : public boost::static_visitor<> {
+    BarzerEVR& evr;
+    const std::string& tag;
+    BarzerEVR_appender_vis( BarzerEVR& evr, const std::string& tag ) : evr(evr) , tag(tag) {}
+
+
+    void operator()( const BarzelBeadBlank& ) { }
+    void operator()( const BarzelBeadExpression& ) { }
+    void operator()( const BarzelBeadAtomic& a ) 
+    { 
+        boost::apply_visitor( (*this) , a.getData() );
+    }
+    template <typename T>
+    void operator()( const T& t ) { 
+        evr.appendVar( tag, t ); 
+    }
+};
+} // namespace
+
+void BarzerEVR::setTagVar( const std::string& tag, const BarzelEvalResult& r )
+{
+    BarzerEVR_setter_vis vis( *this, tag );
+    boost::apply_visitor( vis, r.getBeadData() );
+}
+void BarzerEVR::appendVar( const std::string& tag, const BarzelEvalResult& r )
+{
+    BarzerEVR_appender_vis vis( *this, tag );
+    boost::apply_visitor( vis, r.getBeadData() );
+}
+
 } // namespace barzer 

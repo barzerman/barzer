@@ -698,4 +698,44 @@ const char* BarzelEvalContext::resolveStringInternal( uint32_t i ) const
     return universe.getGlobalPools().internalString_resolve(i);
 }
 
+namespace {
+
+struct EvalResultPushCB {
+    void operator()( BarzelEvalResult& result, const boost::optional<BarzerEVR>& t ) const
+        { result.pushBeadData( t.get()); }
+    template <typename T>
+    void operator()( BarzelEvalResult& result, const T& t ) const
+        { result.pushBeadData( t ); }
+};
+struct EvalResultSetCB {
+    void operator()( BarzelEvalResult& result, const boost::optional<BarzerEVR>& t ) const
+        { result.setAtomicBeadData( t.get() ); }
+    template <typename T>
+    void operator()( BarzelEvalResult& result, const T& t ) const
+        { result.setAtomicBeadData( t ); }
+};
+
+template <typename CB>
+struct EVRAtomVisitor : public boost::static_visitor<void> {
+    BarzelEvalResult& result;
+    CB cb;
+    typedef CB callback_type;
+    EVRAtomVisitor( BarzelEvalResult& r ) : result(r) {}
+
+    template <typename T> void operator()( const T& t ) { cb(result,t); }
+};
+
+} // end of anon namespace 
+
+void BarzelEvalResult::setEVRAtomData( const BarzerEVR::Atom& atom )
+{
+    EVRAtomVisitor<EvalResultSetCB> vis(*this);
+    boost::apply_visitor(vis, atom );
+}
+void BarzelEvalResult::pushEVRAtomData( const BarzerEVR::Atom& atom )
+{
+    EVRAtomVisitor<EvalResultPushCB> vis(*this);
+    boost::apply_visitor(vis, atom );
+}
+
 } /// barzer namespace ends
