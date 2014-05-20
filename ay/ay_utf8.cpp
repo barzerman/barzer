@@ -296,6 +296,7 @@ int unicode_normalize_punctuation( std::string& outStr, const char* srcStr, size
                             }
                             break;
                         }
+                        break;
                     default: 
                         tmp.push_back( s[0] );
                         tmp.push_back( s[1] );
