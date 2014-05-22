@@ -42,13 +42,14 @@ struct BZSWordInfo {
         d_freq(0)
     {}
 	void setFrequency( uint32_t f ) { d_freq= f; }
+    void bumpFrequency( uint32_t f ) { if( f> d_freq) d_freq=f; }
 	bool upgradePriority( uint8_t p ) 
 	{
 		if( p> d_priority ) {
 			d_priority= p;
 			return true;
 		} else 
-			return false;
+			return p== d_priority;
 	}
     void    setLang( int16_t lang ) { d_lang = lang; }
 	int     getLang() const { return d_lang; }
@@ -58,6 +59,7 @@ struct BZSWordInfo {
 
 	uint32_t getPriority() const { return d_priority; }
 	uint32_t getFrequency() const { return d_freq; }
+	bool isUsersWord() const { return getFrequency()>0; }
 
 	bool lessThan( const BZSWordInfo& o ) const  {
 		return ay::range_comp().less_than(
@@ -131,6 +133,7 @@ public:
     const char_cp_to_strid_map* getValidWordMapPtr() const { return &d_validTokenMap; }
     const char_cp_to_strid_map& getValidWordMap() const { return d_validTokenMap; }
 
+    const strid_wordinfo_hmap::value_type* getWordInfo( const char* str ) const;
     const BZSWordInfo* getWordInfo( uint32_t id ) const
     {
         strid_wordinfo_hmap::const_iterator i = d_wordinfoMap.find( id );

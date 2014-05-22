@@ -65,18 +65,18 @@ void BZSpell::addExtraWordToDictionary( uint32_t strId, uint32_t frequency, bool
 	BZSWordInfo& wi = wmi->second;
 
 	if( wi.upgradePriority( BZSWordInfo::WPRI_USER_EXTRA ) )
-		wi.setFrequency( frequency );
+		wi.bumpFrequency( frequency );
 }
 
 uint32_t  BZSpell::getBestWord( uint32_t strId, WordInfoAndDepth& wid ) const
 {
-	{ // checking to see whether strId represents a whole word
+	{ // checking to see whether strId represents a whole user's word
 		// whole word will always win
 		strid_wordinfo_hmap::const_iterator w= d_wordinfoMap.find( strId );
-		if( w != d_wordinfoMap.end() )
+		if( w != d_wordinfoMap.end() && w->second.isUsersWord() )
 			return ( wid.first = &(w->second), strId );
 	}
-	// looking for linked words
+	// looking for linked user's words
 	strid_evovec_hmap::const_iterator evi = d_linkedWordsMap.find( strId );
 	if( evi !=  d_linkedWordsMap.end() ) {
 		const uint32_t * evo_end = evi->second.end_ptr();
@@ -87,7 +87,8 @@ uint32_t  BZSpell::getBestWord( uint32_t strId, WordInfoAndDepth& wid ) const
 			if( w != d_wordinfoMap.end() ) {
 
 				const BZSWordInfo& curInfo = w->second;
-				if( !tmpWordInfo || *(tmpWordInfo) < curInfo ) {
+
+				if( curInfo.isUsersWord() && (!tmpWordInfo || *(tmpWordInfo) < curInfo) ) {
 					bestWordId = w->first;
 					tmpWordInfo = &(w->second);
 				}
@@ -160,12 +161,8 @@ struct CorrectCallback
         
 		strId = d_bzSpell.getBestWordByString( str, wid);
 		if( (0xffffffff != strId) && widLess(d_bestMatch,wid) ) {
-            //uint32_t uwId = 0xffffffff;
-            //if( d_bzSpell.isUsersWord( uwId, str ) ) {
-                d_bestMatch= wid;
-                d_bestStrId= strId;
-            //}
-
+            d_bestMatch= wid;
+            d_bestStrId= strId;
 		}
 	}
 
@@ -192,22 +189,24 @@ struct CorrectCallback
 		return 0;
     }
 
-	int operator()( charvec_ci fromI, charvec_ci toI )
-	{
+	void operator()( charvec_ci fromI, charvec_ci toI ) {
 		charvec v( fromI, toI );
 		v.push_back(0);
 		const char *str = &(v[0]);
 
-		if( d_str_len < 5 )
 		{
 			uint32_t id = 0xffffffff;
-			if( !d_bzSpell.isUsersWord( id, str ) )
-				return 0;
+
+            d_bzSpell.isUsersWord( id, str );
+            if( id != 0xffffffff && id != d_bestStrId ) {/// string id for str exists trying to get the best user's word linked to this string id   
+                BZSpell::WordInfoAndDepth wid;
+                auto bestLinkedId = d_bzSpell.getBestWord( id, wid );
+                if( bestLinkedId!= 0xffffffff && widLess(d_bestMatch,wid) ) {
+                    d_bestMatch= wid;
+                    d_bestStrId= bestLinkedId;
+                }
+            } 
 		}
-
-		tryUpdateBestMatch( str );
-
-		return 0;
 	}
 
 	uint32_t getBestStrId() const { return d_bestStrId; }
@@ -576,6 +575,18 @@ bool stem_depluralize( std::string& out, const char* s, size_t s_len )
 }
 
 } // ascii namespace ends
+
+
+auto BZSpell::getWordInfo( const char* str ) const -> const strid_wordinfo_hmap::value_type* 
+{
+	auto strId = d_universe.getGlobalPools().string_getId( str ) ;
+	if( strId != 0xffffffff ) {
+        auto i =d_wordinfoMap.find( strId );
+        if( i != d_wordinfoMap.end() ) 
+            return &( (*i) );
+    } 
+    return 0;
+}
 
 int BZSpell::isUsersWordById( uint32_t strId ) const
 {
@@ -1291,7 +1302,7 @@ size_t BZSpell::produceWordVariants( uint32_t strId, int lang )
 	const char* str = gp.string_resolve( strId );
 	if( !str )
 		return 0;
-    
+
     if( !d_validTokenMap.insert( char_cp_to_strid_map::value_type( str, strId ) ).second )
         return 0;
 
@@ -1424,7 +1435,7 @@ size_t BZSpell::init( const StoredUniverse* secondaryUniverse )
 			BZSWordInfo& wi = d_wordinfoMap[ strId ];
                 
 			if( wi.upgradePriority( t->trie().getSpellPriority()) )
-				wi.setFrequency( wordInfo.wordCount );
+				wi.bumpFrequency( wordInfo.wordCount );
             else if( wordInfo.wordCount && !wi.getFrequency() )
                 wi.setFrequency( wordInfo.wordCount );
 		}
