@@ -8,6 +8,9 @@ namespace barzer {
         UBIT_CORRECT_FROM_DICTIONARY, // when 1 will correct words away from generic dictionary otherwise leaves those words intact
 		UBIT_LEX_STEMPUNCT, // when 1, space_default token classifier will consider <term>'s (and other similar) as <term> if <term> is valid
 		UBIT_FEATURED_SPELLCORRECT, // when 1, feature extraction-based spell corrector will be active
+
+		UBIT_SPELL_FEATURES_4EXTRA, // spell: features indexed only for dictionary words. 
+
 		UBIT_NEED_CONFIDENCE, // when 1 output will contain confidence info(which needs to be separately computed) user:flags[value] has 'c'
 		UBIT_FEATURED_SPELLCORRECT_ONLY, // when 1, old not-feature-extraction-based spell corrector will be disabled
 

@@ -255,7 +255,7 @@ StoredToken& StoredUniverse::internString( int lang, const char* t, BELTrie* tri
             uint32_t tolowerStrId =  gp.string_intern( w );
 
             if( bzSpell ) 
-                bzSpell->addExtraWordToDictionary( tolowerStrId );
+                bzSpell->addExtraWordToDictionary( tolowerStrId, 0 );
         }
     }
 	if( triePtr ) {
@@ -263,9 +263,9 @@ StoredToken& StoredUniverse::internString( int lang, const char* t, BELTrie* tri
         trie.addWordInfo( sTok.getStringId(),unstemmed );
         if( !unstemmed ) {
             if( bzSpell ) {
-                bzSpell->addExtraWordToDictionary( sTok.getStringId() );
+                bzSpell->addExtraWordToDictionary( sTok.getStringId(), 0, !checkBit(UBIT_SPELL_FEATURES_4EXTRA) );
                 if( internId != sTok.getStringId()  ) {
-                    bzSpell->addExtraWordToDictionary( internId );
+                    bzSpell->addExtraWordToDictionary( internId, 0 );
                 }
             }
         } else {
@@ -299,7 +299,7 @@ uint32_t StoredUniverse::stemAndIntern( int& lang, const char* s, size_t len, BE
 	if( bzSpell )  {
         uint32_t i = 0xffffffff;
         if( bzSpell->isUsersWord(i,s) ) {
-			bzSpell->addExtraWordToDictionary(i);
+			bzSpell->addExtraWordToDictionary(i, 0);
             return ( storedTok? storedTok->getStringId() : i );
         }
 		std::string stem;

@@ -34,7 +34,7 @@ bool BZSpell::isWordValidInUniverse( const char* word ) const
 	uint32_t strId = d_universe.getGlobalPools().string_getId( word );
 	return ( strId == 0xffffffff ? false: (d_wordinfoMap.find( strId ) != d_wordinfoMap.end()) ) ;
 }
-void BZSpell::addExtraWordToDictionary( uint32_t strId, uint32_t frequency )
+void BZSpell::addExtraWordToDictionary( uint32_t strId, uint32_t frequency, bool addFeatures )
 {
     strid_wordinfo_hmap::iterator wmi = d_wordinfoMap.find( strId );
     if( wmi == d_wordinfoMap.end() ) {
@@ -43,16 +43,23 @@ void BZSpell::addExtraWordToDictionary( uint32_t strId, uint32_t frequency )
         )).first;
 
         // determine language here (english is always default)
-	    const char* str = d_universe.getGlobalPools().string_resolve( strId );
-	    if( str ) {
-            size_t s_len = strlen(str);
-            int16_t lang = Lang::getLang(  d_universe, str, s_len );
-	        if( lang != LANG_ENGLISH )
-                wmi->second.setLang(lang);
-			
-			m_featuredSC->addWord(strId, str, lang,*this);
+        if( addFeatures ) {
+	        const char* str = d_universe.getGlobalPools().string_resolve( strId );
+	        if( str ) {
+                size_t s_len = strlen(str);
+                int16_t lang = Lang::getLang(  d_universe, str, s_len );
+                size_t numGlyphs = s_len;
+	            if( lang != LANG_ENGLISH ) {
+                    wmi->second.setLang(lang);
+                    if( lang == LANG_RUSSIAN ) {
+                        numGlyphs/= 2;
+                    }
+		        }	
+                if( numGlyphs>= QLexParser::MIN_SPELL_CORRECT_LEN ) {
+			        m_featuredSC->addWord(strId, str, lang,*this);
+                }
+            }
         }
-
     }
 	// BZSWordInfo& wi = d_wordinfoMap[ strId ];
 	BZSWordInfo& wi = wmi->second;
@@ -1375,7 +1382,7 @@ size_t BZSpell::loadExtra( const char* fileName, BELTrie* trie )
 		}
 		int lang = 0;
 		uint32_t strId = d_universe.stemAndIntern(lang, buf, buf_last, trie);
-		addExtraWordToDictionary( strId, freq );
+		addExtraWordToDictionary( strId, freq, true );
 		++numWords;
 	}
     std::cerr << numWords << " words read\n";
@@ -1403,6 +1410,7 @@ size_t BZSpell::init( const StoredUniverse* secondaryUniverse )
 	m_featuredSC->init(d_universe.getStringPool());
 
 	const TheGrammarList& trieList = d_universe.getTrieList();
+	const bool features4DictOnly = d_universe.checkBit(UBIT_SPELL_FEATURES_4EXTRA);
 	for( TheGrammarList::const_iterator t = trieList.begin(); t!= trieList.end(); ++t ) {
 		const strid_to_triewordinfo_map& wiMap = t->trie().getWordInfoMap();
 		for( strid_to_triewordinfo_map::const_iterator w = wiMap.begin(); w != wiMap.end(); ++w ) {
@@ -1411,7 +1419,7 @@ size_t BZSpell::init( const StoredUniverse* secondaryUniverse )
 
 			if (d_wordinfoMap.find(strId) == d_wordinfoMap.end()) {
                 if( w->second.wordCount )
-				    addExtraWordToDictionary(strId, wordInfo.wordCount);
+				    addExtraWordToDictionary(strId, wordInfo.wordCount, !features4DictOnly );
             }
 			BZSWordInfo& wi = d_wordinfoMap[ strId ];
                 

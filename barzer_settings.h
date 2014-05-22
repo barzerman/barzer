@@ -46,7 +46,7 @@ struct User {
 	typedef uint32_t Id;
 	typedef std::vector<TriePath> TrieVec;
 	Id id;
-    std::string extraDictFileName;
+    std::vector< std::string > extraDictFileNameVec;
 	// TrieVec tries;
 	BarzerSettings &settings;
 	StoredUniverse &universe;

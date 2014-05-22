@@ -144,7 +144,7 @@ public:
 	StoredUniverse& getUniverse() { return d_universe; }
 	const StoredUniverse& getUniverse() const { return d_universe; }
 	void clear();
-	void addExtraWordToDictionary( uint32_t, uint32_t frequency = 0 );
+	void addExtraWordToDictionary( uint32_t, uint32_t frequency, bool addFeatures=true );
 
 	BZSpell( StoredUniverse& uni ) ;
 	~BZSpell();
