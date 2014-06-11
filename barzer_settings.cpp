@@ -470,6 +470,9 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 			if( const auto p = attrs.get_optional<std::string>("stempunct") )
 				if (*p == "yes") u.getUniverse().setBit(UBIT_LEX_STEMPUNCT);
 				
+			if (const auto p = attrs.get_optional<std::string>("f4d")) // features for dictionary words only
+				if (*p == "yes") u.getUniverse().setBit(UBIT_SPELL_FEATURES_4EXTRA);
+
 			if (const auto p = attrs.get_optional<std::string>("featuredsc"))
 				if (*p == "yes") u.getUniverse().setBit(UBIT_FEATURED_SPELLCORRECT);
 				
@@ -483,7 +486,7 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 			const std::string& tagName = v.first;
 			const char* tagVal = v.second.data().c_str();
 			if( tagName == "extra" ) {
-				u.extraDictFileName = tagVal;
+				u.extraDictFileNameVec.push_back( tagVal );
             } else if( tagName == "lang" ) {
 				int lang = ay::StemWrapper::getLangFromString( tagVal );
 				if( lang != ay::StemWrapper::LG_INVALID )
@@ -761,13 +764,16 @@ int User::addEntTranslation( const char* src, const char* dest )
 }
 int User::loadExtraDictionary()
 {
-    if( !extraDictFileName.empty() ) {
+    if( !extraDictFileNameVec.empty() ) {
         BZSpell* bzs = universe.getBZSpell();
         if( bzs ) {
-            std::cerr << "LOADING EXTRA DICTIONARY from " <<  extraDictFileName << std::endl;
-            return bzs->loadExtra( extraDictFileName.c_str(), 0 );
+            int retVal = 0;
+            for( const auto& x : extraDictFileNameVec ) {
+                std::cerr << "loading SPELLING dictionary from " <<  x << std::endl;
+                retVal+= bzs->loadExtra( x.c_str(), 0 );
+            }
         } else 
-            std::cerr << "INTERNAL ERROR: loadExtraDictionary failed for " << extraDictFileName <<std::endl;
+            std::cerr << "INTERNAL ERROR: Spell Checker uninitialized!\n";
     }
     return 0;
 }

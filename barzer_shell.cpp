@@ -657,7 +657,8 @@ static int bshf_lex( BarzerShell* shell, char_cp cmd, std::istream& in , const s
 
 	BarzerShellContext * context = shell->getBarzerContext();
 	Barz& barz = context->barz;
-	QParser& parser = context->parser;
+	// QParser& parser = context->parser;
+    QParser parser( (context->getUniverse()) );
 
     std::string parmStr;
     size_t numIterations = 1;
@@ -675,6 +676,8 @@ static int bshf_lex( BarzerShell* shell, char_cp cmd, std::istream& in , const s
 		const char* q = reader.str.c_str();
 
 		/// tokenize
+        
+	    ay::stopwatch localTimer;
         for( size_t i =0; i< numIterations; ++i ) {
 		    parser.tokenize_only( barz, q, qparm );
 		    const TTWPVec& ttVec = barz.getTtVec();
@@ -688,6 +691,7 @@ static int bshf_lex( BarzerShell* shell, char_cp cmd, std::istream& in , const s
                 outFp << "Classified Tokens:\n" << ctVec << std::endl;
             }
         }
+        std::cerr << std::dec << numIterations << " iterations done in " << localTimer.calcTime() << " seconds\n";
 	}
 	return 0;
 }
