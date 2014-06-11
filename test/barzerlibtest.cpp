@@ -6,7 +6,7 @@ int main( int argc, char* argv[])
     barzer::barzerlib::Instance barzerInstance;
     
     std::vector< std::string > bararg;
-    for( size_t i =1; i< argc; ++i ) 
+    for( int i =1; i< argc; ++i ) 
         bararg.push_back( argv[i] );
     barzerInstance.init( bararg );
     

@@ -15,7 +15,7 @@ void DocDataIndex::addInfo(uint32_t docId, const DocInfo::value_type& value)
 	
 	docPos->second.insert(value);
 }
-#ifndef DONOT_REMOVE_FILTERS_SHITFUCK // {
+#ifdef ENABLE_ZURCH_FILTERS // {
 bool DocDataIndex::fancyFilter(uint32_t docId, const Filters::Filter_t& f) const
 {
 	auto docPos = m_index.find(docId);

@@ -22,6 +22,7 @@ typedef boost::variant<int, double, std::string> DataType_t;
 
 typedef boost::unordered_map<std::string, DataType_t> DocInfo;
 
+#ifdef ENABLE_ZURCH_FILTERS
 namespace Filters
 {
 	template<template<typename Data> class Op>
@@ -71,21 +72,6 @@ namespace Filters
 	struct Not;
 	struct Between;
 
-	/*
-	typedef boost::variant<
-			Ord<std::equal_to>,
-			Ord<std::greater>,
-			Ord<std::less>,
-			boost::recursive_wrapper<LogicalBinary<std::logical_or>>,
-			boost::recursive_wrapper<LogicalBinary<std::logical_and>>,
-			boost::recursive_wrapper<Not>,
-			boost::recursive_wrapper<InSet<int>>,
-			boost::recursive_wrapper<InSet<double>>,
-			boost::recursive_wrapper<InSet<std::string>>,
-			boost::recursive_wrapper<Between>
-		> Filter_t;
-		*/
-	
 	typedef boost::mpl::vector<
 			Ord<std::equal_to>,
 			Ord<std::greater>,
@@ -188,6 +174,7 @@ namespace Filters
 	typedef LogicalBinary<std::logical_or> OR;
 	typedef LogicalBinary<std::logical_and> AND;
 }
+#endif /// ENABLE_ZURCH_FILTERS
 
 struct SimpleIdx {
     ay::IdPropValIndex<int>         Int;
@@ -225,7 +212,9 @@ public:
 	void addInfo(uint32_t, const DocInfo::value_type&);
 	
     /// lets not call t () operator 
+#ifdef ENABLE_ZURCH_FILTERS
 	bool fancyFilter(uint32_t, const Filters::Filter_t&) const;
+#endif
 };
 
 }

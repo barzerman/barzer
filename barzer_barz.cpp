@@ -393,7 +393,7 @@ int Barz::semanticParse( QSemanticParser& sem, const QuestionParm& qparm, bool n
 int Barz::postSemanticParse( QSemanticParser& sem, const QuestionParm& qparm )
 {
 	/// potprocessing the beadChain
-	typedef BarzelBeadChain::Range  BeadRange;
+	// typedef BarzelBeadChain::Range  BeadRange;
 	// BeadRange rng = beadChain.getFullRange();
 	//// collapsing consecutive entities
 	return 0;
