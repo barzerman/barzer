@@ -1,7 +1,7 @@
 runbarzer
 barzer_client_setup.py
 barzer_client.py
-barzer.exe
-pybarzer.so
 libbarzer.so
+pybarzer.so
+barzer.exe
 pybtest.py

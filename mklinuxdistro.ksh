@@ -20,6 +20,8 @@ echo "making ${OUTFILE} in ${OUTDIR}"
 rm -rf ${OUTDIR}
 mkdir -p ${OUTDIR}
 
+{
+ldd ./barzer.exe| gawk '{ print $1 }'
 for i in $(<$DISTROFILE)
 do
     if [[ $i = *.so || $i = *.exe ]]; then
@@ -27,7 +29,9 @@ do
         ${BINDIR}/getdeplibs.py $i
         strip $i
     fi
-done | sort -u > ${BINFILELIST}
+done 
+} | sort -u > ${BINFILELIST}
+
 {
     echo binary files to copy are in ${BINFILELIST}
     #cat ${BINFILELIST}

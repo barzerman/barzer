@@ -267,21 +267,6 @@ void SubclassBENI::addSubclassIds(const StoredEntityClass& sec, const char *patt
 }
 
 
-namespace {
-
-struct EntityCache {
-    /// stores entity and its highest coverage 
-    std::map<BarzerEntity,double> ecovMap;
-    bool noSort = true;
-    
-    void operator()( const BarzerEntity& e, double cov ) 
-    {
-        auto i = ecovMap.find( e );
-    }
-};
-
-} /// anon namespace 
-
 inline void SmartBENI::search_post_processing( 
     BENIFindResults_t& out, 
     double minCov, 

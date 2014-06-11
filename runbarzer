@@ -1,3 +1,4 @@
 #! /bin/sh
 
-LD_LIBRARY_PATH=$(dirname $0) $(dirname $0)/barzer.exe $@
+D=$(dirname $0)
+LD_LIBRARY_PATH=$D $D/ld-linux-x86-64.so.2 $D/barzer.exe $@

@@ -25,6 +25,7 @@ STOPLIST = {
 
 def in_stoplist(w):
     n = os.path.basename(w).split('.', 1)[0]
+
     return (n in STOPLIST['*'] or n in STOPLIST[uname])
 
 
