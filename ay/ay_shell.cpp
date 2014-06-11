@@ -27,8 +27,7 @@ int Shell_cmd_echo( Shell* sh, char_cp cmd, std::istream& in, const std::string&
 }
 int Shell_cmd_system( Shell* sh, char_cp cmd, std::istream& in, const std::string&argStr )
 {
-    system( argStr.c_str() );
-    return 0;
+    return system( argStr.c_str() );
 }
 
 } // end of anon namespace
