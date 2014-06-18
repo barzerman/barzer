@@ -556,6 +556,66 @@ std::ostream& BarzStreamerJSON::print_entity_fields(std::ostream& os, const Barz
     return os;
 }
 
+namespace {
+void printTraceInfo(json_raii& raii, const Barz& barz, const StoredUniverse& universe)
+{
+    std::ostream& os = raii.getFP();
+    int depth = 1;
+    const BarzelTrace::TraceVec &tvec = barz.barzelTrace.getTraceVec();
+
+    const auto& gp = universe.getGlobalPools();
+    BarzelTranslationTraceInfo::Vec btiVec;
+
+    if( !tvec.empty() ) {
+        json_raii traceRaii( raii.startField("trace"), true, depth );
+
+        for( BarzelTrace::TraceVec::const_iterator ti = tvec.begin(), tend = tvec.end(); ti != tend; ++ti ) {
+            json_raii mRaii(traceRaii.startField(""),false,depth+1);
+
+            const char *name = gp.internalString_resolve( ti->tranInfo.source );
+            if( !name ) name ="";
+
+            const BELTrie* trie = gp.getTriePool().getTrie_byGlobalId(ti->globalTriePoolId) ;
+            if( trie ) {
+                btiVec.clear();
+                ay::jsonEscape( name, mRaii.startField( "file" ), "\"" );
+                mRaii.startField( "gram" ) << ti->grammarSeqNo;
+
+                if( trie->getLinkedTraceInfo(btiVec,ti->tranId) && !btiVec.empty() ) {
+                    const auto & btv0 = btiVec[0].first;
+                    mRaii.startField( "stmt" ) << btv0.statementNum ;
+                    mRaii.startField( "emit" ) << btv0.emitterSeqNo;
+
+                    for( size_t j = 1; j< btiVec.size(); ++j ) {
+                        const auto& x = btiVec[j];
+                            const auto& i = x.first;
+                        if( !(ti->tranInfo.statementNum== i.statementNum && i.source== ti->tranInfo.source ) ) {
+                            json_raii lmRaii( raii.startField("linkedmatch"), true, depth+2 );
+                            if( const char *linkedName = gp.internalString_resolve_safe( i.source ) )
+                                ay::jsonEscape( linkedName, mRaii.startField( "file" ), "\"" );
+                            lmRaii.startField( "stmt" ) << i.statementNum ;
+                            lmRaii.startField( "emit" ) << i.emitterSeqNo;
+                        }
+                    }
+                } else {
+                    const auto & btv0 = btiVec[0].first;
+                    mRaii.startField( "stmt" ) << ti->tranInfo.statementNum;
+                    mRaii.startField( "emit" ) << ti->tranInfo.emitterSeqNo;
+                }
+            }
+            if( !ti->errVec.empty()) {
+                json_raii errRaii( raii.startField("error"), true, depth );
+                for( std::vector< std::string >::const_iterator ei = ti->errVec.begin(); ei!= ti->errVec.end(); ++ei ) {
+                    ay::jsonEscape( ei->c_str(), errRaii.startField( "" ), "\"" );
+                }
+            }
+        }
+    }  /// trace output
+
+}
+
+}
+
 std::ostream& BarzStreamerJSON::print(std::ostream &os)
 {
     /// BARZ header tag 
@@ -639,9 +699,10 @@ std::ostream& BarzStreamerJSON::print(std::ostream &os)
 		}
 		os << "</spell>\n";
 	}
-    if( !checkBit( BF_NOTRACE ) )
-        printTraceInfo(os, barz, universe);
     */
+    if( !checkBit( BF_NOTRACE ) ) {
+        printTraceInfo(raii, barz, universe);
+    }
     if( !checkBit( BF_ORIGQUERY ) ) 
         ay::jsonEscape( barz.getOrigQuestion().c_str(),  raii.startField( "query" ), "\"" );
 
