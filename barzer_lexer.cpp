@@ -1263,7 +1263,7 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
                 } else if( !isNumber ) {
 					/// fall thru - this is an unmatched word
 
-					if( !isQuoted /*d_universe.stemByDefault()*/ ) {
+					if( !qparm.isAutoc && !isQuoted /*d_universe.stemByDefault()*/ ) {
                         //// THIS RELOCATES cVec (potentially) 
                         size_t oldCvecSz = cVec.size();
 						SpellCorrectResult scr = trySpellCorrectAndClassify (
@@ -1274,7 +1274,7 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
                         probablyWasCorrected = true;
                         ////// ATTENTION!!! ctok is INVALID past this point
                         wasSplitCorrected = (oldCvecSz != cVec.size());
-                        shouldStem = true;
+                        shouldStem = !qparm.isAutoc;
                         if( scr.d_nextCtok < cVec.size() )
 						    cPos = scr.d_nextCtok;
                         if( scr.d_nextTtok < tVec.size() )
@@ -1285,7 +1285,7 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 						ctok.setClass( CTokenClassInfo::CLASS_MYSTERY_WORD );
 				}
 			}
-            if( !wasSplitCorrected ) { /// post processing AFTER trySpellCorrectAndClassify cVec buffer has moved 
+            if( !wasSplitCorrected && !qparm.isAutoc) { /// post processing AFTER trySpellCorrectAndClassify cVec buffer has moved 
                 CToken& tmpCtok = cVec[ctokCpos].first;
 		        /// stemming
 		        if( shouldStem || (!isNumber && bzSpell && tmpCtok.isString() && d_universe.stemByDefault() && !tmpCtok.getStemTok()) ) 
