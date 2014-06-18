@@ -86,7 +86,7 @@ set(EXTRA_LIBS ${EXTRA_LIBS}
                ${Boost_THREAD_LIBRARY}
                ${Boost_REGEX_LIBRARY}
                ay
-               snowlib)
+               snowlib pthread)
 
 if(WIN32)
 	set(EXTRA_LIBS ${EXTRA_LIBS}
