@@ -586,15 +586,17 @@ void printTraceInfo(json_raii& raii, const Barz& barz, const StoredUniverse& uni
                     mRaii.startField( "stmt" ) << btv0.statementNum ;
                     mRaii.startField( "emit" ) << btv0.emitterSeqNo;
 
+                    json_raii lmRaii( mRaii.startField("linkedmatch"), true, depth+2 );
+
                     for( size_t j = 1; j< btiVec.size(); ++j ) {
+                        json_raii xraii(lmRaii.startField(""),false,depth+3);
                         const auto& x = btiVec[j];
                             const auto& i = x.first;
                         if( !(ti->tranInfo.statementNum== i.statementNum && i.source== ti->tranInfo.source ) ) {
-                            json_raii lmRaii( raii.startField("linkedmatch"), true, depth+2 );
                             if( const char *linkedName = gp.internalString_resolve_safe( i.source ) )
-                                ay::jsonEscape( linkedName, mRaii.startField( "file" ), "\"" );
-                            lmRaii.startField( "stmt" ) << i.statementNum ;
-                            lmRaii.startField( "emit" ) << i.emitterSeqNo;
+                                ay::jsonEscape( linkedName, xraii.startField( "file" ), "\"" );
+                            xraii.startField( "stmt" ) << i.statementNum ;
+                            xraii.startField( "emit" ) << i.emitterSeqNo;
                         }
                     }
                 } else {
