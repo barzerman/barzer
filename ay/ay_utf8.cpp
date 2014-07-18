@@ -295,6 +295,16 @@ int unicode_normalize_punctuation( std::string& outStr, const char* srcStr, size
                                 break;
                             }
                             break;
+                        default: { // hit something beginning with 0xe2 - will just push it and all non-ascii following it as is
+                            auto ss = s;
+                            for( ; ss< s_end && *ss && !isascii(*ss); ++ss ) {
+                                tmp.push_back( *ss );
+                            }
+                            if( ss > s+1 ) 
+                                s+= (ss-s-1);
+                            continue;
+                        }
+                            break;
                         }
                         break;
                     default: 
