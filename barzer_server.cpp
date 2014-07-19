@@ -286,30 +286,41 @@ int proc_ADD_TRIE( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  str
 
 int proc_STMT_REMOVE( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  str )
 {
-    std::string useridStr, trieClass, trieId, source, statementId;
-    if(     
-        (str= read_pipe_sep(reqEnv.outStream,useridStr,str))    !=0  &&
-        (str= read_pipe_sep(reqEnv.outStream,trieClass,str))    !=0  &&
-        (str= read_pipe_sep(reqEnv.outStream,trieId,str))       !=0  &&
-        (str= read_pipe_sep(reqEnv.outStream,source,str))       !=0  &&
-        (str= read_pipe_sep(reqEnv.outStream,statementId,str))  !=0 
-    ) {
-        uint32_t userId = (uint32_t)( atoi(useridStr.c_str() ) );
+    enum {
+        TOK_userid,
+        TOK_trieClass,
+        TOK_trieId,
+        TOK_source,
+        TOK_statementId
+    };
+    std::vector< std::string > sv;
+    auto str_len = strlen(str);
+    ay::parse_separator( 
+        [&] (size_t tok_num, const char* tok, const char* tok_end) -> bool {
+            if( tok_end> tok ) 
+                sv.push_back( std::string(tok, tok_end-tok) );
+            return false;
+        },
+        str, str_len
+    );
+    if( sv.size() <= TOK_statementId ) {
+        auto userId = static_cast<uint32_t>( atoi(sv[TOK_userid].c_str()) );
         if( StoredUniverse* uni = gp.getUniverse( userId ) ) {
             StoredUniverse::WriteLock universe_lock( uni->getMutex() );
-            uni->ruleIdx().removeNode( 
-                trieClass.c_str()    ,
-                trieId.c_str(),
-                source.c_str(),
-                atoi(statementId.c_str())
-            );
-        } else {
+            for( auto i = sv.begin()+ TOK_statementId; i< sv.end(); ++i ) {
+                uni->ruleIdx().removeNode( 
+                    sv[ TOK_trieClass ].c_str(),
+                    sv[ TOK_trieId ].c_str(),
+                    sv[ TOK_source ].c_str(),
+                    atoi(i->c_str())
+                );
+            }
+        } else  
             reqEnv.outStream << "<error>no valid universe for user id " << userId << " doesnt exist</error>\n";
-            return 0;
-        }
     }
     return 0;
 }
+
 /// format is !!ADD_STMSET:userid|trieClass|trieId|<stmset> ... </stmset>
 int proc_ADD_STMSET( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  str )
 {
