@@ -301,19 +301,23 @@ int proc_STMT_REMOVE( RequestEnvironment& reqEnv, GlobalPools& gp, const char*  
                 sv.push_back( std::string(tok, tok_end-tok) );
             return false;
         },
-        str, str_len
+        str, str+str_len
     );
-    if( sv.size() <= TOK_statementId ) {
+    if( sv.size() >= TOK_statementId ) {
         auto userId = static_cast<uint32_t>( atoi(sv[TOK_userid].c_str()) );
         if( StoredUniverse* uni = gp.getUniverse( userId ) ) {
             StoredUniverse::WriteLock universe_lock( uni->getMutex() );
             for( auto i = sv.begin()+ TOK_statementId; i< sv.end(); ++i ) {
-                uni->ruleIdx().removeNode( 
-                    sv[ TOK_trieClass ].c_str(),
-                    sv[ TOK_trieId ].c_str(),
-                    sv[ TOK_source ].c_str(),
-                    atoi(i->c_str())
-                );
+                if( !i->empty() ) {
+                    if( !uni->ruleIdx().removeNode( 
+                        sv[ TOK_trieClass ].c_str(),
+                        sv[ TOK_trieId ].c_str(),
+                        sv[ TOK_source ].c_str(),
+                        atoi(i->c_str())
+                    ) ) {
+                        xmlEscape( str, reqEnv.outStream << "<error> failed to delete the rule" ) << "</error>\n";
+                    }
+                }
             }
         } else  
             reqEnv.outStream << "<error>no valid universe for user id " << userId << " doesnt exist</error>\n";
