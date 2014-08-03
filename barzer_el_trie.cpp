@@ -129,6 +129,7 @@ void BarzelTrieNode::clear()
 }
 void BELTrie::clear()
 {
+    d_nostemSet.clear();
 	root.clear();
     macros.clear();
     procs.clear();
