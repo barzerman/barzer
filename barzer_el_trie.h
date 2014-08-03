@@ -426,7 +426,7 @@ class BELTrie {
 	BELTrie( const BELTrie& a );
 public:
     void storeNodeAsNoStem( const BarzelTrieNode* n, uint32_t id ) { 
-        d_nostemSet.insert( std::make_pair<const BarzelTrieNode*, uint32_t>(n,id) ); 
+        d_nostemSet.insert( TrieNodeStringIdPair{ n,id} ); 
     }
     bool isNodeNoStem( const BarzelTrieNode* n, uint32_t id ) const { 
         auto x = d_nostemSet.find( TrieNodeStringIdPair{ n, id } );
