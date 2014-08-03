@@ -49,7 +49,9 @@ struct MatcherCallbackGeneric : public MatcherCallback {
 /// ambiguity
 struct BarzelMatchAmbiguities {
     BarzerEntityList                          entList;
-    std::vector< BarzelTranslationTraceInfo > traceInfoVec;
+
+    typedef std::pair< BarzelTranslationTraceInfo, uint32_t > TraceInfoTranIdPair;
+    std::vector< TraceInfoTranIdPair > traceInfoVec;
     bool                                      isAmbiguos;
     bool                                      d_makeUnmatchable;
 
@@ -88,7 +90,7 @@ struct BarzelMatchAmbiguities {
 
     void addEntity( const BELTrie& trie, const BarzelTranslation& tran );
 
-    void addTrace( const BarzelTranslationTraceInfo& t ) { traceInfoVec.push_back(t); }
+    void addTrace( const BarzelTranslationTraceInfo& t, uint32_t tranId  ) { traceInfoVec.push_back( TraceInfoTranIdPair{t,tranId} ); }
 };
 
 /// BarzelMatchInfo represents one left side of one substitution 
@@ -121,8 +123,8 @@ public:
 
     bool isAmbiguous() const { return d_ambiguities.ambiguous(); }
 
-    const std::vector< BarzelTranslationTraceInfo >&    ambiguousTraceInfo() const { return d_ambiguities.traceInfoVec; }
-    std::vector< BarzelTranslationTraceInfo >&          ambiguousTraceInfo() { return d_ambiguities.traceInfoVec; }
+    const decltype( d_ambiguities.traceInfoVec) &    ambiguousTraceInfo() const { return d_ambiguities.traceInfoVec; }
+    decltype( d_ambiguities.traceInfoVec) &          ambiguousTraceInfo() { return d_ambiguities.traceInfoVec; }
 
     const BELSingleVarPath* getVarPathByVarId( uint32_t varId, const BELTrie& trie ) const;
 

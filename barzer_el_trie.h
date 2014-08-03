@@ -13,6 +13,7 @@
 #include <set>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/unordered_map.hpp>
+#include <boost/unordered_set.hpp>
 #include <boost/thread/locks.hpp>
 #include <barzer_el_translation.h>
 
@@ -406,6 +407,12 @@ class BELTrie {
 	EntityCollection      d_entCollection;
 
     TopicEntLinkage       d_topicEnt;
+    
+    typedef std::pair< const BarzelTrieNode*, uint32_t > TrieNodeStringIdPair;
+    /// if pair (trie node, uint32_t id) is in the set this means that the id cant be matched from the trie node 
+    /// in case the id is
+    boost::unordered_set<TrieNodeStringIdPair> d_nostemSet;
+
 	/// this trie's global id in the global trie pool
 	uint32_t d_globalTriePoolId;
 	// tokens participating in this trie will have this priority in the localized spelling corrector
@@ -418,6 +425,14 @@ class BELTrie {
     
 	BELTrie( const BELTrie& a );
 public:
+    void storeNodeAsNoStem( const BarzelTrieNode* n, uint32_t id ) { 
+        d_nostemSet.insert( std::make_pair<const BarzelTrieNode*, uint32_t>(n,id) ); 
+    }
+    bool isNodeNoStem( const BarzelTrieNode* n, uint32_t id ) const { 
+        auto x = d_nostemSet.find( TrieNodeStringIdPair{ n, id } );
+        return( x != d_nostemSet.end() ); 
+    }
+
     AmbiguousTranslationReference& getAmbiguousTranslationReference() { return d_ambTranRef; }
     const AmbiguousTranslationReference& getAmbiguousTranslationReference() const { return d_ambTranRef; }
 

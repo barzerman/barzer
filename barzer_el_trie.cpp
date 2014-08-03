@@ -469,7 +469,7 @@ const BarzelTrieNode* BELTrie::addPath(
     
 	for( BTND_PatternDataVec::const_iterator i = path.begin(); i!= path.end(); ++i ) {
 		bool isFirm = boost::apply_visitor( keyFormer, *i );
-
+        
 		firmKey.noLeftBlanks = 0;
 		if( firmKey.isNull() || (!isFirm && path.begin() == i) ) { // either failed to encode firm key or this is a leading wc
 			wcpdList.push_back( WCPatDta(i,BarzelTrieFirmChildKey() ) );
@@ -504,7 +504,12 @@ const BarzelTrieNode* BELTrie::addPath(
 			if( n ) {
 				/// this visitor updates firmKey (declared at the top of this function)
 				boost::apply_visitor( keyFormer, *i );
+                auto oldN = n;
 				n = n->addFirmPattern( *this, firmKey );
+                if( isPattern_nostemLiteral( &(*i) ) ) {
+                    storeNodeAsNoStem( oldN, firmKey.id );
+                }
+
 			} else {
 				AYTRACE("addFirmPattern returned NULL") ;
 				return 0; // this is impossible

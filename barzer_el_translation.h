@@ -99,6 +99,8 @@ public:
 	// BarzelTranslation(Type_t t , uint32_t i ) : id(i),type((uint8_t)t), makeUnmatchable(0), argStrId(0xffffffff) {}
 
 	std::ostream& print( std::ostream& , const BELPrintContext& ) const;
+    
+    uint32_t getId() const { return tranId; }
 };
 template <>
 inline int BarzelTranslation::setBtnd<BTND_Rewrite_Function>( BELTrie& trie, const BTND_Rewrite_Function& x ) {

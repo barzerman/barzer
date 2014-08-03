@@ -169,21 +169,7 @@ public:
 	~BELParserXML() ;
 	BELParserXML( BELReader* r);
 
-	uint32_t internTmpText( const char* s, int len, bool stem, bool isNumeric ) 
-		{ 
-            uint32_t strId ;
-            const char* theStr =  (s[len] ? d_tmpText.assign(s,len).c_str(): s);
-            if( stem ) {
-			    strId = stemAndInternTmpText( theStr, len);
-            } else {
-                StoredToken& sTok = internString(LANG_UNKNOWN,theStr,false,0);
-                if( isNumeric && !sTok.classInfo.isNumber() ) 
-                    sTok.classInfo.setNumber();
-                
-			    strId = sTok.getStringId();
-            }
-			return strId;
-		}
+	uint32_t internTmpText( const char* s, int len, bool stem, bool isNumeric ) ;
 	const char* setTmpText( const char* s, int len ) 
 		{ return d_tmpText.assign( s, len ).c_str(); }
 

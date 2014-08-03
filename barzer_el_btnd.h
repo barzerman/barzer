@@ -305,4 +305,11 @@ public:
     void clear() { d_macroMap.clear(); }
 };
 
+inline bool isPattern_nostemLiteral( const BTND_PatternData* d ) {
+    if( const BTND_Pattern_Token* t = boost::get<BTND_Pattern_Token>(d) ) 
+        return !(t->doStem);
+    else
+        return false;
+}
+
 } // barzer namespace

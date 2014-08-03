@@ -377,8 +377,8 @@ public:
 			partialWCKeyProcess( wcLookup, key, i,tokSkip );
 		}
 	}
-
-	bool doFirmMatch_literal( const BarzelFCMap& fcmap, const BarzerLiteral& ltrl, bool allowBlanks );
+    // isStem is true when ltrl represents a stemmed string
+	bool doFirmMatch_literal( const BarzelFCMap& fcmap, const BarzerLiteral& ltrl, bool allowBlanks, bool isStem, uint32_t preStemStringId = 0xffffffff );
 
 	template <typename T>
 	bool doFirmMatch( const BarzelFCMap& fcmap, const T& dta, bool allowBlanks=false ) 
@@ -462,7 +462,7 @@ public:
 
 }; // findMatchingChildren_visitor
 
-	bool findMatchingChildren_visitor::doFirmMatch_literal( const BarzelFCMap& fcmap, const BarzerLiteral& dta, bool allowBlanks )
+	bool findMatchingChildren_visitor::doFirmMatch_literal( const BarzelFCMap& fcmap, const BarzerLiteral& dta, bool allowBlanks, bool isStem, uint32_t preStemStringId )
 	{
         if( dta.isInternalString() ) 
             return false;
@@ -475,6 +475,9 @@ public:
 			return false; // this should never happen blanks are skipped
 		}
 
+        if( isStem && d_trie.isNodeNoStem(d_tn, preStemStringId ) ) {
+            return false;
+        }
 		const BarzelTrieNode* ch = d_tn->getFirmChild( firmKey, fcmap );
 
 		if( ch ) {
@@ -526,16 +529,16 @@ public:
 	template <>
 	bool findMatchingChildren_visitor::doFirmMatch<BarzerLiteral>( const BarzelFCMap& fcmap, const BarzerLiteral& dta, bool allowBlanks)
 	{
-		bool rc = doFirmMatch_literal( fcmap, dta, allowBlanks );
+		bool rc = doFirmMatch_literal( fcmap, dta, allowBlanks, false );
 
-		if( dta.isAnyString()  ) {
+		if( dta.isAnyString() && dta.getId() != 0xffffffff ) {// processing stem if and only if it is not a wildcard text match
 			uint32_t stemId = getStemmedStringId();
-			if( stemId != 0xffffffff ) {
+			if( stemId != 0xffffffff ) { 
 				/// we have a stem to try
 				BarzerLiteral stemmedLiteral( dta );
 
 				stemmedLiteral.setId(stemId);
-				if( doFirmMatch_literal( fcmap, stemmedLiteral, allowBlanks ) ) {
+				if( doFirmMatch_literal( fcmap, stemmedLiteral, allowBlanks, true, dta.getId()) ) {
                     if( !rc ) rc = true;
                 }
 				const strIds_set* stemSet = d_trie.getStemSrcs(stemId);
@@ -543,7 +546,7 @@ public:
 				    for (strIds_set::const_iterator i = stemSet->begin(), set_end= stemSet->end(); i != set_end; ++i) {
                         if( *i != dta.getId() ) {
 					        stemmedLiteral.setId(*i);
-					        if( doFirmMatch_literal( fcmap, stemmedLiteral, allowBlanks ) ) {
+					        if( doFirmMatch_literal( fcmap, stemmedLiteral, allowBlanks, true, dta.getId() ) ) {
                                 if( !rc ) rc = true;
                             }
                         }
@@ -1034,6 +1037,7 @@ void BTMBestPaths::addPath(const NodeAndBeadVec& nb, const NodeAndBead& lastNB )
                 ambiguities().addEntity( d_trie, *newTran );
                 if( newTran->makeUnmatchable ) 
                     ambiguities().makeUnmatchable();
+                ambiguities().addTrace(newTran->traceInfo, newTran->getId() );
             } else {
                 /// previously unambiguous best path ... may need to ambiguate if it was entity 
                 const BarzelTranslation* bestTran = getTranslation(d_bestInfalliblePath); // new translation
@@ -1045,6 +1049,7 @@ void BTMBestPaths::addPath(const NodeAndBeadVec& nb, const NodeAndBead& lastNB )
                         ambiguities().addEntity( d_trie, *newTran );
                         if( newTran->makeUnmatchable )
                             ambiguities().makeUnmatchable();
+                        ambiguities().addTrace(newTran->traceInfo, newTran->getId());
                     }
                 } else { // old best path didnt resolve to entity - this is a bug in the ruleset 
                     if( bestTran ) { 
@@ -1353,6 +1358,10 @@ int BarzelMatcher::rewriteUnit( RewriteUnit& ru, Barz& barz )
         BTND_Rewrite_RuntimeEntlist rtEntList;
         rtEntList.lst = ru.first.ambiguities().getEntList();
         evalNode.getBtnd() =rtEntList;
+        for( const auto& x : ru.first.ambiguities().traceInfoVec ) {
+            if( transP->getId() != x.second ) 
+                barz.pushTrace( x.first, d_trie.getGlobalTriePoolId(), x.second );
+        }
 	} else if( translation.isRawTree() ){  /// raw tree (no byte encoding) 
         if( const BarzelEvalNode* rawNode = d_trie.getRewriterPool().getRawNode(translation) ) {
             evalNodePtr = rawNode;

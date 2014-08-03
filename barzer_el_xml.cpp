@@ -1512,6 +1512,22 @@ DEFINE_BELParserXML_taghandle(W)
 	statement.pushNode( BTND_PatternData( pat));
 }
 
+uint32_t BELParserXML::internTmpText( const char* s, int len, bool stem, bool isNumeric ) 
+{
+    uint32_t strId ;
+    const char* theStr =  (s[len] ? d_tmpText.assign(s,len).c_str(): s);
+    if( stem ) {
+        strId = stemAndInternTmpText( theStr, len);
+    } else {
+        StoredToken& sTok = internString(LANG_UNKNOWN,theStr,false,0);
+        if( isNumeric && !sTok.classInfo.isNumber() ) 
+            sTok.classInfo.setNumber();
+        
+        strId = sTok.getStringId();
+    }
+    return strId;
+}
+
 void BELParserXML::processAttrForStructTag( BTND_StructData& dta, const char_cp * attr, size_t attr_sz )
 {
 	for( size_t i=0; i< attr_sz; i+=2 ) {
