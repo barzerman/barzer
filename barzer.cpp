@@ -47,7 +47,7 @@ int process_input(barzer::StoredUniverse &u, ay::InputLineReader &reader, std::o
 	Barz barz;
 	QParser parser(u);
 	QuestionParm qparm;
-	BarzStreamerXML bs(barz, u);
+	BarzStreamerXML bs(barz, u,qparm);
 
 	out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 	out << "<testset>\n";

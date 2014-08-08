@@ -202,7 +202,7 @@ std::string BarzerPython::parse( const std::string& q )
     if ( d_universe ) {
         if ( d_parseEnv ) {
             std::stringstream sstr;
-            BarzStreamerXML xmlStreamer( d_parseEnv->barz, *d_universe );
+            BarzStreamerXML xmlStreamer( d_parseEnv->barz, *d_universe, d_parseEnv->qparm );
             d_parseEnv->parseXML( xmlStreamer, sstr, q.c_str() );
             return sstr.str();
         } else {
@@ -758,9 +758,10 @@ struct PythonQueryProcessor {
     std::string parseXML( int userNumber, const std::string& q ) 
     {
         const StoredUniverse* universe = barzeIt(userNumber, q );
+        QuestionParm qparm;
         if( universe ) {
             std::stringstream sstr;
-            BarzStreamerXML xmlStreamer( d_barz, *universe );
+            BarzStreamerXML xmlStreamer( d_barz, *universe, qparm);
             xmlStreamer.print( sstr );
             return sstr.str();
         }

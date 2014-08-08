@@ -993,7 +993,6 @@ static int bshf_greed( BarzerShell* shell, char_cp cmd, std::istream& in , const
 	QParser parser( (context->getUniverse()) );
 
 	const StoredUniverse &uni = context->getUniverse();
-	BarzStreamerXML bs(barz, context->getUniverse());
 
     const BELTrie* trie=  &(context->getTrie());
 
@@ -1006,6 +1005,7 @@ static int bshf_greed( BarzerShell* shell, char_cp cmd, std::istream& in , const
 	while( reader.nextLine() && reader.str.length() ) {
 	    QuestionParm qparm;
         shell->syncQuestionParm(qparm);
+        BarzStreamerXML bs(barz, context->getUniverse(),qparm);
 
 		const char* q = reader.str.c_str();
 		outFP << "lexing: " << q << "\n";
@@ -1150,8 +1150,6 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in , con
     // Barz barz;
     QParser parser( (context->getUniverse()) );
 
-    BarzStreamerXML bs(barz, context->getUniverse());
-    bs.setWholeMode( context->streamerModeFlags.theBits() );
 
     std::string fname;
 
@@ -1171,6 +1169,8 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in , con
 
     QuestionParm qparm;
     shell->syncQuestionParm(qparm);
+    BarzStreamerXML bs(barz, context->getUniverse(),qparm);
+    bs.setWholeMode( context->streamerModeFlags.theBits() );
 
     ay::stopwatch totalTimer;
     size_t stringCount = 0;
@@ -1242,13 +1242,11 @@ static int bshf_anlqry( BarzerShell* shell, char_cp cmd, std::istream& in , cons
 	// Barz barz;
 	QParser& parser = context->parser;
 
-	BarzStreamerXML bs(barz, context->getUniverse());
-	std::string fname;
-
 	std::ostream *ostr = &(shell->getOutStream());
 	std::ofstream ofile;
 
 	ay::InputLineReader reader( in );
+	std::string fname;
 	if (in >> fname) {
 		ofile.open(fname.c_str());
 		ostr = &ofile;
@@ -1256,6 +1254,8 @@ static int bshf_anlqry( BarzerShell* shell, char_cp cmd, std::istream& in , cons
 
 	QuestionParm qparm;
     shell->syncQuestionParm(qparm);
+	BarzStreamerXML bs(barz, context->getUniverse(),qparm);
+
 	//std::ostream &os = shell->getOutStream();
 
 	size_t numSemanticalBarzes = 0, numQueries = 0;

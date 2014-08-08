@@ -116,6 +116,15 @@ void BarzerString::setFromTTokens( const TTWPVec& v )
 	}
 }
 
+void QuestionParm::setQueryFlags( const char* str )
+{
+    for( const char* c = str; *c; ++c ) {
+        switch(*c) {
+		case 'T': d_biflags.set(QPBIT_TRACE_OFF, false); break;
+		case 't': d_biflags.set(QPBIT_TRACE_OFF, true); break;
+        }
+    }
+}
 void QuestionParm::setZurchFlags( const char* str )
 {
     /// general principle - upper case value is what is set by default

@@ -70,7 +70,7 @@ std::ostream& DocIdxSearchResponseXML::print( std::ostream& os, const DocWithSco
 	
 	if (d_barz.getUniverse())
 	{
-		barzer::BarzStreamerXML streamer(d_barz, *d_barz.getUniverse());
+		barzer::BarzStreamerXML streamer(d_barz, *d_barz.getUniverse(), d_qparm);
 		streamer.print(os);
 	}
 	    
@@ -144,7 +144,7 @@ std::ostream& DocIdxSearchResponseJSON::print(
 	if (d_barz.getUniverse() && !d_barz.getTtVec().empty())
 	{
 		os << "\n\"barz\": ";
-		barzer::BarzStreamerJSON streamer(d_barz, *d_barz.getUniverse());
+		barzer::BarzStreamerJSON streamer(d_barz, *d_barz.getUniverse(),d_qparm);
 		streamer.print(os) << ",";
 
 		barzer::CToken::SpellCorrections corrs;

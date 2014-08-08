@@ -816,6 +816,9 @@ void BarzerRequestParser::raw_query_parse( const char* query)
         qparm.setStemMode_Aggressive();
     qparm.d_beniMode = d_beniMode;
 
+    if( !d_queryFlags.empty() )
+        qparm.setQueryFlags( d_queryFlags.c_str() );
+
 	//qparser.parse( barz, getTag().body.c_str(), qparm );
     if( !barz.topicInfo.getTopicMap().empty() ) {
         barz.topicInfo.computeTopTopics();
@@ -833,12 +836,12 @@ void BarzerRequestParser::raw_query_parse( const char* query)
 
     switch(ret) {
     case XML_TYPE: {
-    	BarzStreamerXML response( barz, u );
+    	BarzStreamerXML response( barz, u, qparm );
     	response.print(os);
     }
     break;
     case JSON_TYPE: {
-    	BarzStreamerJSON response( barz, u );
+    	BarzStreamerJSON response( barz, u, qparm );
         response.setSimplified(d_simplified);
     	response.print(os);
     }

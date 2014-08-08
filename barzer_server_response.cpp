@@ -715,7 +715,7 @@ std::ostream& BarzStreamerXML::print(std::ostream &os)
 		}
 		os << "</spell>\n";
 	}
-    if( !checkBit( BF_NOTRACE ) )
+    if( !checkBit( BF_NOTRACE ) && !qparm.isTraceOff()  )
         printTraceInfo(os, barz, universe);
     if( !checkBit( BF_ORIGQUERY ) ) {
         os << "\n<query>";

@@ -15,9 +15,9 @@ class StoredUniverse;
 
 class BarzStreamerJSON : public BarzResponseStreamer {
 public:
-	BarzStreamerJSON(const Barz &b, const StoredUniverse &u) : BarzResponseStreamer(b, u) {}
-	BarzStreamerJSON(const Barz &b, const StoredUniverse &u, const ModeFlags& mf) : 
-        BarzResponseStreamer(b, u, mf)
+	BarzStreamerJSON(const Barz &b, const StoredUniverse &u, const QuestionParm& qp ) : BarzResponseStreamer(b, u, qp ) {}
+	BarzStreamerJSON(const Barz &b, const StoredUniverse &u, const ModeFlags& mf, const QuestionParm& qp ) : 
+        BarzResponseStreamer(b, u, mf, qp )
     {}
 
 	std::ostream& print(std::ostream&);

@@ -702,7 +702,7 @@ std::ostream& BarzStreamerJSON::print(std::ostream &os)
 		os << "</spell>\n";
 	}
     */
-    if( !checkBit( BF_NOTRACE ) ) {
+    if( !checkBit( BF_NOTRACE ) && !qparm.isTraceOff() ) {
         printTraceInfo(raii, barz, universe);
     }
     if( !checkBit( BF_ORIGQUERY ) ) 

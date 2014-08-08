@@ -20,6 +20,7 @@ class BarzResponseStreamer {
 protected:
 	const Barz &barz;
 	const StoredUniverse &universe;
+    const QuestionParm& qparm;
 public:
     enum { 
         BF_NOTRACE, // by default trace is printed
@@ -51,11 +52,10 @@ public:
     bool checkBit( int i ) const { return d_outputMode.checkBit( i ); }
     void setWholeMode( const ModeFlags& m ) { d_outputMode= m; }
 
-	BarzResponseStreamer(const Barz &b, const StoredUniverse &u) : barz(b), universe(u) {}
-	BarzResponseStreamer(const Barz &b, const StoredUniverse &u, const ModeFlags& mf) : 
-        barz(b), universe(u), d_outputMode(mf) 
+	BarzResponseStreamer(const Barz &b, const StoredUniverse &u, const QuestionParm& qp ) : barz(b), universe(u), qparm(qp) {}
+	BarzResponseStreamer(const Barz &b, const StoredUniverse &u, const ModeFlags& mf, const QuestionParm& qp) : 
+        barz(b), universe(u), qparm(qp), d_outputMode(mf) 
     {}
-
 	virtual std::ostream& print(std::ostream& os) { return os; }
 	virtual ~BarzResponseStreamer() {}
 };
@@ -63,9 +63,9 @@ public:
 
 class BarzStreamerXML : public BarzResponseStreamer {
 public:
-	BarzStreamerXML(const Barz &b, const StoredUniverse &u) : BarzResponseStreamer(b, u) {}
-	BarzStreamerXML(const Barz &b, const StoredUniverse &u, const ModeFlags& mf) : 
-        BarzResponseStreamer(b, u, mf)
+	BarzStreamerXML(const Barz &b, const StoredUniverse &u, const QuestionParm& qp) : BarzResponseStreamer(b, u, qp) {}
+	BarzStreamerXML(const Barz &b, const StoredUniverse &u, const ModeFlags& mf, const QuestionParm& qp) : 
+        BarzResponseStreamer(b, u, mf, qp)
     {}
 
 	std::ostream& printConfidence(std::ostream&);

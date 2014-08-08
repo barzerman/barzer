@@ -68,7 +68,7 @@ DECL_TAGHANDLE(BARZ) {
     if( open ) {
     } else { // closing BARZ - time to process
         QParser qparser(parser.universe);
-        BarzStreamerXML response(parser.barz, parser.universe);
+        BarzStreamerXML response(parser.barz, parser.universe,parser.qparm);
         qparser.barz_parse( parser.barz, parser.qparm );
         response.print(parser.ostream);
 		if (parser.shouldPerformCleanup())

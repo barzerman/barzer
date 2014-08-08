@@ -22,6 +22,7 @@ struct QuestionParm {
         QPBIT_ZURCH_NO_DETAILED,
 		QPBIT_ZURCH_TRACE,
 		QPBIT_ZURCH_TAGS,
+		QPBIT_TRACE_OFF, // no barer trace is printed when this bit is set. flags ~ t
 
         /// add new bits above this line only
         QPBIT_MAX
@@ -49,6 +50,14 @@ struct QuestionParm {
     
     bool isSplitCorrectionOff( ) const { return d_biflags.checkBit(QPBIT_SPELL_NO_SPLITCORRECT); }
     void turnSplitCorrectionOff( bool x=true ) { d_biflags.set(QPBIT_SPELL_NO_SPLITCORRECT,x); }
+
+    bool isTraceOff() const { return d_biflags.checkBit(QPBIT_TRACE_OFF); }
+    void turnTraceOff( bool x=true ) { d_biflags.set(QPBIT_TRACE_OFF,x); }
+    
+
+    /// flags for regular barzer non zurch queries
+    void setQueryFlags( const char* str );
+    // flags for zurch only
     void setZurchFlags( const char* str );
     struct AutocParm {
         uint32_t trieClass, trieId;
