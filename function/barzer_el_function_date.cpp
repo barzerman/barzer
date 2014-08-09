@@ -7,6 +7,15 @@ namespace barzer {
 using namespace funcHolder;
 
 namespace {
+
+inline int getQuarter_byMonth( int m )
+{
+    if( m<4 ) return 1;
+    else if( m< 7 ) return 2;
+    else if( m< 10 ) return 3;
+    else return 4;
+}
+
 // applies  BarzerDate/BarzerTimeOfDay/BarzerDateTime to BarzerDateTime
 // to construct a timestamp
 struct DateTimePacker : public boost::static_visitor<bool> {
@@ -97,6 +106,41 @@ FUNC_DECL(mkDate) //(d) | (d,m) | (d,m,y) where m can be both number or entity
     return false;
 }
 
+FUNC_DECL(dateDefaultYear)
+{
+    SETFUNCNAME(dateDefaultYear);
+
+    if( rvec.empty() )
+        return false;
+
+    int arg = getAtomic<BarzerNumber>(rvec[0]).getInt();
+    const char* argStr = GETARGSTR();
+    char mode = ( argStr ? *argStr : 'q' );
+    bool futureBias = q_universe.checkBit( UBIT_DATE_FUTURE_BIAS );
+
+    int curMonth= BarzerDate::thisMonth,
+        year = BarzerDate::thisYear,
+        diff = 0;
+    switch( mode ) {
+    case 'q': // quarter
+        {
+        int curQuarter = getQuarter_byMonth(curMonth);
+
+        diff = curQuarter-arg;
+        } break;
+    case 'm': // month
+        diff = curMonth - arg;
+        break;
+    }
+    if( diff < 0 ) 
+        year += ( futureBias ? 0: -1 );
+    else if( diff >0 )
+        year += ( futureBias ? 1: 0 );
+
+    BarzerNumber n( year );
+    setResult(result, n);
+    return true;
+}
 FUNC_DECL(mkDateRange)
 {
     // SETSIG(mkDateRange(Date, Number, [Number, [Number]]));
@@ -593,6 +637,7 @@ BELFunctionStorage_holder::DeclInfo g_funcs[] = {
     FUNC_DECLINFO_INIT(setMDay, ""),
     FUNC_DECLINFO_INIT(getMonth, ""),
     FUNC_DECLINFO_INIT(getYear, ""),
+    FUNC_DECLINFO_INIT(dateDefaultYear, "argstr - m for month, q - for quarter. depending on the bias (future or past) returns year given a month or a quarter"),
 
     FUNC_DECLINFO_INIT(mkDate, "makes a date"),
     FUNC_DECLINFO_INIT(mkDateRange, ""),
