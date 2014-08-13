@@ -197,8 +197,8 @@ public:
 	}
 	bool operator()(const BarzerTimeOfDay &data) {
         raii.addKeyVal( "type", "time" );
-        raii.startFieldNoindent( "value" ) << "\"" ;
-            os << "\"" << std::setw(2) << std::setfill('0') << (int)data.getHH() << ":" << 
+        raii.startFieldNoindent( "value" ) << "\"" <<
+            std::setw(2) << std::setfill('0') << (int)data.getHH() << ":" <<
             std::setw(2) << std::setfill('0') << (int)data.getMM() << ":" << 
             std::setw(2) << std::setfill('0') << (int)data.getSS()  << "\"" ;
 		return true;
