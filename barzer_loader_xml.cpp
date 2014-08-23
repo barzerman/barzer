@@ -322,7 +322,7 @@ void EntityLoader_XML::getElementText( const char* txt, int len )
 	switch( tag ) {
 	case TAG_TOKEN:
 	case TAG_NAME:
-		tokenizeAddText_TokOrName(txt,len);
+		// tokenizeAddText_TokOrName(txt,len);
 		break;
 	default: 
 		break;
