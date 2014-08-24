@@ -86,7 +86,7 @@ void BarzerSettings::addRulefile(BELReader& reader, const Rulefile &f)
 
 	reader.setTrie(trieClass, trieId );
     if( !f.extraDictionaryPath.empty() ) {
-	    BZSpell* bzs = d_currentUniverse->initBZSpell(0);
+	    BZSpell* bzs = d_currentUniverse->initBZSpell();
         if( bzs ) {
             bzs->loadExtra( f.extraDictionaryPath.c_str(), reader.getTriePtr() );
         } else {
@@ -451,7 +451,7 @@ void BarzerSettings::loadMeanings (User &u, const ptree& node)
 void BarzerSettings::loadSpell(User &u, const ptree &node)
 {
 	const ptree &spell = node.get_child("spell", empty_ptree());
-	BZSpell* bzs = u.getUniverse().initBZSpell(0);
+	BZSpell* bzs = u.getUniverse().initBZSpell();
 
 	try {
 	    const boost::optional<const ptree&> optAttrs = spell.get_child_optional("<xmlattr>");
@@ -765,8 +765,7 @@ int User::addEntTranslation( const char* src, const char* dest )
 int User::loadExtraDictionary()
 {
     if( !extraDictFileNameVec.empty() ) {
-        BZSpell* bzs = universe.getBZSpell();
-        if( bzs ) {
+        if( BZSpell* bzs = universe.getBZSpell() ) {
             int retVal = 0;
             for( const auto& x : extraDictFileNameVec ) {
                 std::cerr << "loading SPELLING dictionary from " <<  x << std::endl;
@@ -859,7 +858,7 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user, c
 	loadLocale(reader, u, children);
 
 	StoredUniverse& uni = u.getUniverse();
-	u.getUniverse().initBZSpell(0);
+	u.getUniverse().initBZSpell();
     u.loadExtraDictionary();
 	u.getUniverse().getBarzHints().initFromUniverse(&uni);
 
@@ -969,8 +968,7 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user, c
 int BarzerSettings::loadUserConfig( BELReader& reader, const char* cfgFileName, const char* uname ) {
     if( !gpools.getUniverse(0) ) {
         User &u = createUser(0,"root");
-        BZSpell* bzs = u.getUniverse().initBZSpell( 0 );
-        bzs->init( 0 );
+        BZSpell* bzs = u.getUniverse().initBZSpell();
     }
     boost::property_tree::ptree userPt;
     int numUsersLoaded = 0;
@@ -991,8 +989,7 @@ int BarzerSettings::loadUserConfig( BELReader& reader, const char* cfgFileName, 
 void BarzerSettings::loadUsers(BELReader& reader ) {
 	if( !gpools.getUniverse(0)) { // hack user 0 must be initialized
 	    User &u = createUser(0);
-	    BZSpell* bzs = u.getUniverse().initBZSpell( 0 );
-	    bzs->init( 0 );
+	    BZSpell* bzs = u.getUniverse().initBZSpell();
 	}
 
 	BOOST_FOREACH(ptree::value_type &v, pt.get_child("config.users", empty_ptree())) {

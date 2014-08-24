@@ -208,7 +208,7 @@ public:
 
 	const BZSpell* getBZSpell() const { return bzSpell; }
 	BZSpell* getBZSpell() { return bzSpell; }
-	BZSpell* initBZSpell( const StoredUniverse* secondaryUniverse = 0);
+	BZSpell* initBZSpell( );
     // clears the dictionary
     void clearSpelling();
     void clearMeanings();

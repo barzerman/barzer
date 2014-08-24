@@ -155,7 +155,7 @@ public:
 	// returns the size of strid_evovec_hmap
 	// this function should be called after the load. 
 	// specifically: after the last addExtraWordToDictionary has been called
-	size_t init( const StoredUniverse* secondaryUniverse =0 );
+	size_t init( );
 
 	/// when fails 0xffffffff is returned 
     enum { LEV_DIST_UNLIMITED = 100 };

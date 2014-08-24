@@ -271,8 +271,7 @@ public:
 	}
 };
 
-class FeaturedSpellCorrector
-{
+class FeaturedSpellCorrector {
 	InvertedIdxVarVec m_storages;
     boost::unordered_map< uint32_t, FeatureCorrectorWordData > d_wordDataMap;
 public:

@@ -318,9 +318,9 @@ uint32_t StoredUniverse::stemAndIntern( int& lang, const char* s, size_t len, BE
 	return internString( lang,s,triePtr,0).getStringId();
 }
 
-BZSpell* StoredUniverse::initBZSpell( const StoredUniverse* secondaryUniverse )
+BZSpell* StoredUniverse::initBZSpell( )
 {
-	bzSpell->init( secondaryUniverse );
+	bzSpell->init( );
 	return bzSpell;
 }
 

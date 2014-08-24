@@ -162,44 +162,72 @@ static int bshf_srvroute( BarzerShell* shell, char_cp cmd, std::istream& in, con
 	QuestionParm qparm;
     std::ostream& os = std::cerr;
 
-    char *q = 0;
-    std::string question;
-    std::string attrStr;
-
     std::string theTag;
-    if( argStr.length() ) {
-        theTag = "query";
+    bool isCmdMode = !strcmp( cmd, "cmd" );
+    int rc = 0;
+    if( isCmdMode || !argStr.empty() ) {
+        std::ifstream theFile;
+        std::istream *fp = &std::cin;
+        if(isCmdMode) {
+            if( !argStr.empty() ) {
+                theFile.open( argStr.c_str() );
+                if( !theFile.is_open() ) {
+                    std::cerr << "couldnt open the file \"" << argStr << "\"\n";
+                    return 0;
+                } 
+                fp = &theFile;
+            }
+        } else
+            theTag = "query";
+
         std::string bufStr;
+        size_t lineNo = 0;
+	    ay::stopwatch cmdTimer;
         while( true ) {
-            std::getline(std::cin,bufStr);
+            std::getline( *fp, bufStr);
             if( ! bufStr.length() ) 
                 break;
             std::stringstream sstr;
-            xmlEscape( bufStr.c_str(), sstr << "<" << theTag << " " << argStr << ">" ) << "</" << theTag <<">";
 
-            q = strdup( sstr.str().c_str() );
-            std::cerr << "QUERY:" << q << std::endl;
+            { // q scope
+            char* q = 0;
+            if( isCmdMode && bufStr[0]== '!' && bufStr[1] == '!' ) {
+                q = strdup( bufStr.c_str() );
+            } else {
+                xmlEscape( bufStr.c_str(), sstr << "<" << theTag << " " << argStr << ">" ) << "</" << theTag <<">";
+                q = strdup( sstr.str().c_str() );
+                std::cerr << "QUERY:" << q << std::endl;
+            }
 	        ay::stopwatch tmpTimer;
-            int rc = request::route( gp, q, strlen(q), os );
+            rc = request::route( gp, q, strlen(q), os );
+            free(q);
+            } // q scope
+
             if( rc != request::ROUTE_ERROR_OK ) {
                 os << " ERROR " << rc;
             } else
                 os << " success ";
-            std::cerr << "\n done in " << tmpTimer.calcTime()  << std::endl;
-            free(q);
+
+            if( fp == &std::cin ) 
+                std::cerr << "\n done in " << cmdTimer.calcTime()  << std::endl;
+            ++lineNo;
         }
+        if( isCmdMode )
+            std::cerr << lineNo << " commands run in " << cmdTimer.calcTime()  << " seconds\n";
     } else {
+        std::string question;
         while (reader.nextLine()&& reader.str.length())
             question.append(reader.str);
-        q = strdup( question.c_str() );
-        //const char* q = reader.str.c_str();
-        int rc = request::route( gp, q, strlen(q), os );
-        if( rc != request::ROUTE_ERROR_OK ) {
-            os << " ERROR " << rc;
-        } else
-            os << " success ";
-        os << "==============\n";
-        free(q);
+        { // q scope 
+            char *q = strdup( question.c_str() );
+            rc = request::route( gp, q, strlen(q), os );
+            if( rc != request::ROUTE_ERROR_OK ) {
+                os << " ERROR " << rc;
+            } else
+                os << " success ";
+            os << "==============\n";
+            free(q);
+        } // q scope
     }
     
     return 0;
@@ -2090,6 +2118,7 @@ static const CmdData g_cmd[] = {
 	CmdData( (ay::Shell_PROCF)(bshf_trup), "trup", "moves back to the parent trie node" ),
 	CmdData( (ay::Shell_PROCF)(bshf_srvroute), "sr", "same as srvroute tests server queries and routes it same way server mode would" ),
 	CmdData( (ay::Shell_PROCF)(bshf_srvroute), "srvroute", "tests server queries and routes it same way server mode would" ),
+	CmdData( (ay::Shell_PROCF)(bshf_srvroute), "cmd", "runs server commands can take in file name as parameter" ),
 	CmdData( (ay::Shell_PROCF)(bshf_smf), "smf", "streamer mode flag: smf [ NAME [ON|OFF] ]" ),
 	CmdData( (ay::Shell_PROCF)(bshf_stexpand), "stexpand", "expand and print all statements in a file" ),
 	CmdData( (ay::Shell_PROCF)(bshf_strid), "strid", "resolve string id (usage strid id)" ),

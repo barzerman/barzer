@@ -1416,7 +1416,7 @@ std::ostream& BZSpell::printStats( std::ostream& fp ) const
 	*/
 	return fp;
 }
-size_t BZSpell::init( const StoredUniverse* secondaryUniverse )
+size_t BZSpell::init( )
 {
 	m_featuredSC->init(d_universe.getStringPool());
 
