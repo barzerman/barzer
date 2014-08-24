@@ -210,7 +210,6 @@ public:
 	BZSpell* getBZSpell() { return bzSpell; }
 	BZSpell* initBZSpell( );
     // clears the dictionary
-    void clearSpelling();
     void clearMeanings();
     void clearGeo();
 	/// result of spelling correction is in out

@@ -192,7 +192,7 @@ void StoredUniverse::clear()
     topicTrieCluster.clearList();
     m_hints.clear();
     clearMeanings();
-	clearSpelling();
+	clearSpell();
     clearGeo();
     userSpecificStringSet.clear();
     d_entSeg.clear();
@@ -330,11 +330,6 @@ void StoredUniverse::addLocale (BarzerLocale_ptr locale, bool isDefault)
 		m_defLocale = locale;
 	else
 		m_otherLocales.push_back(locale);
-}
-void StoredUniverse::clearSpelling()
-{
-    if( bzSpell )
-        bzSpell->clear();
 }
 
 zurch::DocIndexAndLoader* StoredUniverse::initZurchIndex( uint32_t id )
