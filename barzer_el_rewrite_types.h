@@ -331,9 +331,9 @@ struct BTND_Rewrite_Control {
     
     bool isEqual( const BTND_Rewrite_Control& o ) const 
     {
-        return( d_rwctlt == d_rwctlt &&
-        d_varId == d_varId &&
-        d_varMode == d_varMode);
+        return( d_rwctlt == o.d_rwctlt &&
+        d_varId == o.d_varId &&
+        d_varMode == o.d_varMode);
     }
     bool operator==( const BTND_Rewrite_Control& o ) const { return isEqual(o); }
 

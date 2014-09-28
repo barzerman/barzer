@@ -1261,7 +1261,7 @@ inline bool terminating_char( char c ) { return ( !c || !(c>='a'&&c<='z') ); }
 				break;
 			}
 			default:
-                if( c1 == 0x89 && c0 == 0xd1 ) { // щ --> ш
+                if( (uint8_t)(c1) == 0x89 && (uint8_t)c0 == 0xd1 ) { // щ --> ш
 				    russian.push_back(c0);
 				    russian.push_back(0x88);
                     ++s;

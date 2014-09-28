@@ -50,9 +50,9 @@ BarzerAtomicCast::Err_t BarzerAtomicCast::convert( BarzerNumber& n , const Barze
     if( !d_universe )
         return CASTERR_UNIVERSE;
     const char* s = d_universe->resolveLiteral(l);
-    if( s ) 
+    if( s )
         return convert( n, s, strlen(s) ) ;
-    return ( n.setInt((int)0), CASTERR_OK );
+    return ( n.setInt(""), CASTERR_OK );
 }
 BarzerAtomicCast::Err_t BarzerAtomicCast::convert( BarzerString& n , const BarzerNumber& l )  const 
 {

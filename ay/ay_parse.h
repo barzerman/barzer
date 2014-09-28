@@ -12,6 +12,23 @@
 
 namespace ay {
 
+/// this parse function changes the string it parses (done for speed)
+template <typename CB>
+inline void destructive_parse_separator( const CB&cb, char* s, char sep='|' )
+{
+    size_t tok_num = 0;
+    for( char* b=s, *pipe = strchr(b,sep); b; ) {
+      if( pipe ) {
+        *pipe=0;
+        cb(tok_num++, b);
+        b = pipe +1 ;
+        pipe = strchr(b,sep);
+      } else {
+        cb(tok_num++, b);
+        break;
+      }
+    }
+}
 // CB must have the following prototype 
 /// int operator()( size_t tok_num, const char* tok, const char* tok_end ) 
 template <typename CB>
@@ -19,9 +36,10 @@ inline void parse_separator( CB&cb, const char* s, const char* s_end, char sep='
 {
     const char* b = s, *pipe = strchr(b,sep);
     size_t tok_num = 0;
-    for( ; b &&(b<s_end) && !cb( tok_num++, b, (pipe?pipe:s_end) ); b= (pipe?pipe+1:0), (pipe = (b? std::find(b,s_end,sep):0)) );
+    for( ; b &&(b<s_end) && !cb( tok_num++, b, (pipe?pipe:s_end) ); b= (pipe?pipe+1:0), (pipe = (b? strchr(b,sep):0)) );
 
 }
+
 template <typename CB>
 inline void parse_separator( const CB&cb, const char* s, const char* s_end, char sep='|' )
 {
@@ -48,6 +66,20 @@ struct separated_string_to_vec {
     void operator()( const char* str )
         { parse_separator( *this, str, str+strlen(str), sep ) ; }
 };
+
+template <typename T>
+inline size_t separated_values_to_vec( std::vector<T>& v, const std::string& s, char sep=',')
+{
+  size_t count = 0;
+  parse_separator( [&](size_t tokNum, const char* s_beg, const char* s_end ) -> int
+      { std::string s(s_beg, s_end-s_beg); v.push_back(atoi(s.c_str())); return (++count,0);},
+      s.c_str(),
+      s.c_str()+s.length(),
+      sep
+      );
+  return count;
+}
+
 struct separated_string_to_set {
     std::set< std::string >& theSet;
     char sep;

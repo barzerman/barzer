@@ -9,7 +9,7 @@ ifeq ($(IS32),yes)
 endif 
 
 ifeq ($(UNAME),Darwin)
-    C11LIB_SHIT=-stdlib=libc++
+    C11LIB_SHIT=-stdlib=libc++ -lboost_thread
 endif
 C11=-std=c++0x
 #CC=/opt/local/bin/gcc-mp-4.7
@@ -24,7 +24,7 @@ all: $(objects)
 shared: $(objects)
 	$(CC) -std=c++0x -I. $(C11) $(C11LIB) -shared -Wl,-soname,$(SHARED_LIBNAME) -o $(SHARED_LIBNAME) $(objects)
 testay: $(LIBNAME)
-	$(CC) -o testay -I. testay.cpp $(CFLAGS) -lstdc++ -L. -lay $(C11LIB)
+	$(CC) -o testay -I. testay.cpp $(CFLAGS) -lstdc++ -lboost_thread  -L. -lay $(C11LIB)
 .cpp.o:
 	$(CC) -c -std=c++0x $(CFLAGS) $< -o $@
 rebuild: clean all

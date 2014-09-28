@@ -35,7 +35,7 @@ namespace {
 
         StoredUniverse& universe() { return (context->getUniverse()); }
         const StoredUniverse& universe() const { return (context->getUniverse()); }
-        bool readLine() { return ( std::getline(inFile.fp(),buf)); }
+        bool readLine() { return ( !std::getline(inFile.fp(),buf).eof()); }
 
         template <typename T>
         int loop( T&& cb ) 

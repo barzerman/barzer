@@ -8,23 +8,50 @@
 
 namespace barzer {
 
+struct BeniEntFormat {
+      enum : size_t {
+          TOK_CLASS=0,
+          TOK_SUBCLASS,
+          TOK_ID,
+          TOK_RELEVANCE,
+          TOK_NAME,
+          ///
+          TOK_TOPIC_CLASS,
+          TOK_TOPIC_SUBCLASS,
+          TOK_TOPIC_ID,
+          TOK_MAX
+      };
+      char d_sep;
+      static const char* tokName(size_t t);
+      std::vector<size_t> d_extraNameTok; // when not blank values of offsets these tokens will be also indexed as name
+      size_t d_tokTranslation[TOK_MAX];
+      static const char* getTokName( size_t t );
+      size_t getTokOffset( size_t tok ) const { return d_tokTranslation[tok];}
+      // argument format of the benient tag
+      // format: field name - one of the (id, name, extra, relevance)
+      void initFormat( const std::string& formatStr );
+      BeniEntFormat();
+      std::ostream& print( std::ostream& fp ) const;
+      void clear();
+};
+
 template<typename T>
 class NGramStorage
 {
 	TFE_storage<TFE_ngram> m_gram;
-	
+
 	boost::unordered_multimap<uint32_t, T> m_storage;
-	
+
     //// this is temporary junk
 	StoredStringFeatureVec m_storedVec;
 	ExtractedStringFeatureVec m_extractedVec;
-    /// end of 
-	
+    /// end of
+
 	bool m_soundsLikeEnabled;
 public:
 	typedef boost::function<bool (T)> SearchFilter_f;
 
-    void clear() 
+    void clear()
     {
         m_gram.clear();
         m_storage.clear();
@@ -42,9 +69,9 @@ public:
 		m_gram.d_extractor.m_maxGrams = 3;
 		//m_gram.m_removeDuplicates = false;
 	}
-	
+
 	void setSLEnabled(bool enabled=true) { m_soundsLikeEnabled = enabled; }
-    
+
 
 	void addWord(const char *srcStr, const T& data)
 	{
@@ -58,20 +85,20 @@ public:
 
             str = tmp;
 		}
-		
+	
 	    TFE_TmpBuffers bufs( m_storedVec, m_extractedVec );
 		bufs.clear();
-		
+	
 		auto strId = m_gram.d_pool->internIt(str.c_str());
 		m_gram.extractAndStore(bufs, strId, str.c_str(), LANG_UNKNOWN);
 		m_storage.insert({ strId, data });
 	}
-	
+
 	const char* resolveFeature(const StoredStringFeature& f) const
 	{
 		return m_gram.resolveFeature(f);
 	}
-	
+
 	struct FindInfo
 	{
 		uint32_t m_strId;
@@ -80,7 +107,7 @@ public:
 		size_t m_levDist;
 		double m_coverage;
 	};
-	
+
 	void getMatchesRange(StoredStringFeatureVec::const_iterator begin, StoredStringFeatureVec::const_iterator end,
 			std::vector<FindInfo>& out, size_t max, double minCov, const SearchFilter_f& filter = SearchFilter_f()) const
 	{
@@ -91,7 +118,7 @@ public:
 			double counter;
 			uint16_t fCount;
 		};
-		
+	
 		std::vector<FeatureStatInfo> counterMap(m_gram.d_max + 1);
 
 		for (const auto& feature : boost::make_iterator_range(begin, end))
@@ -99,18 +126,18 @@ public:
 			const auto srcs = m_gram.getSrcsForFeature(feature);
 			if (!srcs)
 				continue;
-			
+		
 			const auto imp = 1. / (srcs->size() * srcs->size());
 			for (const auto& sourceFeature : *srcs)
 			{
 				const auto source = sourceFeature.docId;
-				
+			
 				auto& info = counterMap[source];
 				info.counter += imp * sourceFeature.counter;
 				info.fCount += sourceFeature.counter;
 			}
 		}
-		
+	
 		if (counterMap.empty())
 			return;
 
@@ -153,12 +180,12 @@ public:
         size_t countAdded = 0;
 		for (const auto& item : sorted)
 		{
-            const size_t dist = 1; // we shouldnt need to compute levenshtein
-            double cover = item.second.fCount / srcFCnt;
-            if( m_soundsLikeEnabled) 
-                cover *= 0.98;
+        const size_t dist = 1; // we shouldnt need to compute levenshtein
+        double cover = item.second.fCount / srcFCnt;
+        if( m_soundsLikeEnabled)
+            cover *= 0.98;
 
-            if( cover >= minCov) {
+        if( cover >= minCov) {
 				const auto dataPosRange = m_storage.equal_range(item.first);
 				if( dataPosRange.first == m_storage.end() )
 					continue;
@@ -171,14 +198,13 @@ public:
 					        dist,
 					        cover
 				    });
-                 
                     if( ++countAdded  >= max )
                         break;
                 }
             }
 		}
 	}
-	
+
 	void getMatches(const char *origStr, size_t origStrLen, std::vector<FindInfo>& out,
 			size_t max, double minCov, const SearchFilter_f& filter = SearchFilter_f()) const
 	{
@@ -189,19 +215,19 @@ public:
 			EnglishSLHeuristic(0).transform(origStr, origStrLen, tmp);
             str = tmp;
 		}
-		
+	
         StoredStringFeatureVec storedVec;
         ExtractedStringFeatureVec extractedVec;
         TFE_TmpBuffers bufs( storedVec, extractedVec );
-		
+	
 		m_gram.extractSTF(bufs, str.c_str(), str.size(), LANG_UNKNOWN);
-		
+	
 		getMatchesRange(storedVec.begin(), storedVec.end(), out, max, minCov, filter);
 	}
-	
+
 	typedef std::pair<StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_iterator> Island_t;
 	typedef std::vector<Island_t> Islands_t;
-	
+
 	Islands_t getIslands(const char *origStr, size_t origStrLen, StoredStringFeatureVec&) const;
 private:
 	Islands_t searchRange4Island(StoredStringFeatureVec::const_iterator, StoredStringFeatureVec::const_iterator) const;
@@ -219,14 +245,14 @@ auto NGramStorage<T>::getIslands(const char* origStr, size_t origStrLen, StoredS
 		if( utfLength > 4 ) {
 			str.clear();
 			for( auto i : tmp ) { if( !isspace(i) ) str.push_back(i); }
-		} else 
+		} else
 			str = tmp;
 	}
-	
+
 	ExtractedStringFeatureVec extractedVec;
 	TFE_TmpBuffers bufs( storedVec, extractedVec );
 	m_gram.extractSTF(bufs, str.c_str(), str.size(), LANG_UNKNOWN);
-	
+
 	return searchRange4Island(storedVec.begin(), storedVec.end());
 }
 
@@ -253,34 +279,34 @@ auto NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator 
 	const uint16_t minLength = 3;
 	if (std::distance(begin, end) < minLength)
 		return Islands_t ();
-	
+
 	const size_t degradationLength = 1;
-	
+
 	const auto startGram = begin + std::distance(begin, end) / 2;
-	
+
 	const auto pos = m_gram.d_fm.find(*startGram);
 	auto currentDocs = pos == m_gram.d_fm.end() ?
 			FeaturesDict_t() :
 			pos->second;
-	
+
 	auto curLeft = startGram,
 		 curRight = startGram,
 		 bestLeft = startGram,
 		 bestRight = startGram;
-		 
+	
 	size_t curLeftDegradations = 0,
 		   curRightDegradations = 0;
-	
+
 	bool growLeft = curLeft != begin;
 	bool growRight = curRight + 1 != end;
-	
+
 	while (growLeft || growRight)
 	{
 		if (curLeft == begin)
 			growLeft = false;
 		if (curRight + 1 == end)
 			growRight = false;
-		
+	
 		if (growLeft)
 		{
 			--curLeft;
@@ -289,7 +315,7 @@ auto NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator 
 					FeaturesDict_t() :
 					leftDocsPos->second;
 			auto xSect = intersectVectors(currentDocs, leftDocs);
-			
+		
 			if (xSect.empty())
 			{
 				if (++curLeftDegradations > degradationLength)
@@ -309,7 +335,7 @@ auto NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator 
 					FeaturesDict_t() :
 					rightDocsPos->second;
 			auto xSect = intersectVectors(currentDocs, rightDocs);
-			
+		
 			if (xSect.empty())
 			{
 				if (++curRightDegradations > degradationLength)
@@ -322,15 +348,15 @@ auto NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator 
 			}
 		}
 	}
-	
+
 	auto lefterIslands = searchRange4Island(begin, bestLeft);
 	auto righterIslands = searchRange4Island(bestRight + 1, end);
-	
+
 	auto compareIslands = [] (const Island_t& left, const Island_t& right)
 		{ return std::distance (left.first, left.second) < std::distance (right.first, right.second); };
-	
+
 	Island_t thisResult { bestLeft, bestRight };
-	
+
 	Islands_t sum;
 	if (lefterIslands.empty())
 		std::swap(sum, righterIslands);
@@ -340,10 +366,10 @@ auto NGramStorage<T>::searchRange4Island(StoredStringFeatureVec::const_iterator 
 		std::merge(lefterIslands.begin(), lefterIslands.end(),
 				righterIslands.begin(), righterIslands.end(),
 				std::back_inserter(sum), compareIslands);
-	
+
 	if (std::distance(bestLeft, bestRight) < minLength)
 		return sum;
-		
+	
 	const auto toInsert = std::lower_bound(sum.begin(), sum.end(), thisResult, compareIslands);
 	sum.insert(toInsert, thisResult);
 	return sum;
@@ -356,7 +382,7 @@ typedef boost::function<bool (BarzerEntity)> BENIFilter_f;
 
 class BENI {
     ay::UniqueCharPool d_charPool;
-	
+
     NGramStorage<BarzerEntity> d_storage;
 	std::map<BarzerEntity, std::string> d_backIdx;
 public:
@@ -364,12 +390,12 @@ public:
     const ay::UniqueCharPool& charPool() const { return d_charPool; }
 
     StoredUniverse& d_universe;
-	
+
 	const NGramStorage<BarzerEntity>& getStorage() const;
-	
+
 	void addWord(const std::string& str, const BarzerEntity&);
 
-    /// add all entities by name for given class 
+    /// add all entities by name for given class
     void addEntityClass( const StoredEntityClass& ec );
     /// returns max coverage
     double search( BENIFindResults_t&, const char* str, double minCov, const BENIFilter_f& = BENIFilter_f ()) const;
@@ -379,13 +405,17 @@ public:
 
 	BENI(const BENI&) = delete;
 	BENI& operator=(const BENI&) = delete;
-    
+
     static bool normalize_old( std::string& out, const std::string& in, const StoredUniverse* ) ;
     static bool normalize( std::string& out, const std::string& in, const StoredUniverse* ) ;
     void setSL( bool );
 };
 
 class SmartBENI {
+    enum {
+        NAME_MODE_OVERRIDE,
+        NAME_MODE_SKIP
+    };
     BENI d_beniStraight,  // beni without soundslike normalization
          d_beniSl;        // beni with sounds like normalization
     /// if d_isSL == true d_beniSl has sounds like processed ngrams .. otherwise it's blank
@@ -396,16 +426,16 @@ class SmartBENI {
     std::vector< std::pair<boost::regex, std::string> > d_mandatoryRegex;
 
     void search_single_query(
-        BENIFindResults_t& out, 
+        BENIFindResults_t& out,
         const char* query,
-        double minCov, 
+        double minCov,
         Barz* barz,
         const BENIFilter_f& filter,
         size_t maxCount
         ) const;
     void search_post_processing(
-        BENIFindResults_t& out, 
-        double minCov, 
+        BENIFindResults_t& out,
+        double minCov,
         Barz* barz,
         const BENIFilter_f& filter,
         size_t maxCount
@@ -413,41 +443,43 @@ class SmartBENI {
 public:
     typedef boost::unordered_multimap< uint32_t, BarzerEntity > Doc2EntMap;
     Doc2EntMap d_zurchDoc2Ent;
-    
+
     void clear();
     SmartBENI( StoredUniverse& u );
 
     void addEntityClass( const StoredEntityClass& ec );
-    /// reads info from path . if path ==0 - from stdin 
+    /// reads info from path . if path ==0 - from stdin
     /// assumes the format as class|subclass|id|searchable name[|topic class|topic subclass|topic id]
     /// when class or subclass are blank the value is taken from defaults
-    /// one netity per line. line cant be longer than 1024 bytes 
+    /// one netity per line. line cant be longer than 1024 bytes
     /// lines with leading # are skipped as comments
-    /// if searchable name is blank this line will be used only for entity topic linkage 
-    /// if topic id is blank nothing will be done with topics 
-    size_t addEntityFile( const char* path, const char* modeStr, const StoredEntityClass& /*entity defaults*/, const StoredEntityClass& /* topic defaults */ ); 
+    /// if searchable name is blank this line will be used only for entity topic linkage
+    /// if topic id is blank nothing will be done with topics
+    size_t addEntityFile( const char* path, const char* modeStr, const StoredEntityClass& /*entity defaults*/, const StoredEntityClass& /* topic defaults */ );
+
+    size_t readFormattedEntityFile( const char* path, const BeniEntFormat& format, const char* modeStr, const StoredEntityClass& /*entity defaults*/, const StoredEntityClass& /* topic defaults */ );
 
     bool hasMandatoryRegex() const {return !d_mandatoryRegex.empty(); }
     void applyMandatoryRegex( std::string& dest ) const;
     void addMandatoryRegex( const std::string& find, const std::string& replace );
 
     void search( BENIFindResults_t&, const char* str, double minCov, Barz* barz, const BENIFilter_f& = BENIFilter_f (), size_t maxCount=128) const;
-	
+
 	BENI& getPrimaryBENI();
 
     void linkEntToZurch( const BarzerEntity& ent, uint32_t docId )
         { d_zurchDoc2Ent.insert( { docId, ent } ); }
-    void clearZurchLinks() 
+    void clearZurchLinks()
         { d_zurchDoc2Ent.clear(); }
 
     template <typename CB>
     void getEntLinkedToZurchDoc( const CB& cb, uint32_t docId ) const
     {
         auto r = d_zurchDoc2Ent.equal_range(docId);
-        for( auto i = r.first; i != r.second; ++i ) 
+        for( auto i = r.first; i != r.second; ++i )
             cb( i->second );
     }
-    
+
     // returns the number of entities added to out
     size_t getZurchEntities( BENIFindResults_t& out, const zurch::DocWithScoreVec_t& vec ) const;
 
@@ -481,15 +513,15 @@ public:
 	    const auto pos = m_benies.find(x);
 	    return pos == m_benies.end() ? nullptr : pos->second;
     }
-    
+
     enum {
         ERR_OK,
         ERR_NO_BENI, /// beni for subclass not found
 
         ERR_MAX
     };
-    // returns ERR_XXX 
-    int search( BENIFindResults_t& out, const char* query, const StoredEntityClass& sc, double minCov=.3 ) const;  
+    // returns ERR_XXX
+    int search( BENIFindResults_t& out, const char* query, const StoredEntityClass& sc, double minCov=.3 ) const;
 };
 
 } // namespace barzer

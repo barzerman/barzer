@@ -357,7 +357,6 @@ public:
 
 class ZurchTrainerAndClassifier {
     ay::UniqueCharPool& stringPool;
-    const barzer::BZSpell* bzSpell;
     
     ZurchTokenizer  tokenizer;
     ZurchWordNormalizer normalizer;
@@ -367,7 +366,6 @@ class ZurchTrainerAndClassifier {
     DocSetStatsAccumulator* accumulator;
     DataSetTrainer*         trainer;
     
-    int extractor_type; /// one of the EXTRACTOR_TYPE constants (see below)
     ZurchTrainerAndClassifier( const ZurchTrainerAndClassifier& o ): 
         stringPool(o.stringPool),
         extractor(o.extractor) {}
@@ -389,8 +387,7 @@ public:
         extractor(0),
         classifier(0),
         accumulator(0),
-        trainer(0),
-        extractor_type(EXTRACTOR_TYPE_NORMALIZING) 
+        trainer(0)
     {}
     
     ~ZurchTrainerAndClassifier() ;

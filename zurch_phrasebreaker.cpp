@@ -97,7 +97,7 @@ const char* PhraseBreaker::whereToBreak( const char* s, const char* s_beg, const
     char c=*s;
     if( 
         (c==' ' && s[1]==' ') || 
-        (c==' ' && s[1] == 0xb7) || 
+        (c==' ' && (uint8_t)(s[1]) == 0xb7) || 
         c  == '\n' || c == '\r' || c=='(' || c=='|' || c==')' || c=='\t' || c ==';' || (isspace(c)&&s[1]=='.'&& isspace(s[2]))
     ) 
         return s;

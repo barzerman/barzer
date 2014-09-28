@@ -883,7 +883,7 @@ void DocFeatureIndex::findDocument(
 			else if (ngram.docPos.offset.second == 2)
 			{
 				auto str = d_stringPool.resolveId(ngram.feature[0].featureId);
-				if (str && (str[0] == 0xd0 || str[0] == 0xd1))
+				if (str && ( (uint8_t)(str[0]) == 0xd0 || (uint8_t)(str[0]) == 0xd1))
 					lengthPenalty = 0.125;
 			}
 		}

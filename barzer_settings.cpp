@@ -1,7 +1,7 @@
 
 /// Copyright Barzer LLC 2012
 /// Code is property Barzer for authorized use only
-/// 
+///
 /*
  * barzer_settings.cpp
  *
@@ -68,7 +68,7 @@ User*  BarzerSettings::getUser(User::Id id)
 	return (it == umap.end() ? 0 : &(it->second));
 }
 
-BarzerSettings::BarzerSettings(GlobalPools &gp, std::ostream* os ) : 
+BarzerSettings::BarzerSettings(GlobalPools &gp, std::ostream* os ) :
     gpools(gp), d_numThreads(0), d_currentUniverse(0),d_envPath(ENVPATH_BARZER_HOME)
 {
 	init();
@@ -104,9 +104,9 @@ void BarzerSettings::addRulefile(BELReader& reader, const Rulefile &f)
 	    std::cerr <<  "::" << tid << "\t " << fname << " " << " rules (" << num << ")" ;
         if( reader.getNumSkippedStatements() )
             std::cerr << " skipped(" << reader.getNumSkippedStatements() << ")";
-        if (reader.getNumMacros()) 
+        if (reader.getNumMacros())
             std::cerr <<" macro(" << reader.getNumMacros() << ")";
-        if (reader.getNumProcs() ) 
+        if (reader.getNumProcs() )
             std::cerr << ", proc(" << reader.getNumProcs() << ")";
         std::cerr << "\n";
     }
@@ -160,7 +160,7 @@ inline bool getAttrByEitherName( T& v, const ptree & attrs, const char* n1, cons
     if( const boost::optional<std::string> x = attrs.get_optional<std::string>(n1) ) {
         return( v = x.get(), true );
     } else if( n2 ) {
-        if( const boost::optional<std::string> x = attrs.get_optional<std::string>(n2)) 
+        if( const boost::optional<std::string> x = attrs.get_optional<std::string>(n2))
             return( v= x.get(), true );
     }
     return false;
@@ -175,37 +175,37 @@ inline boost::optional<const ptree&> getNodeByEitherName( const ptree & node, co
 }
 
 template <typename T>
-inline bool optAttr_assign( T& dest, const boost::optional<const ptree&>& oa, const char* name, const T& def  ) 
-{ 
-    if( const boost::optional<T> x = oa.get().get_optional<T>(name) ) { 
-        dest = x.get(); 
-    } else 
+inline bool optAttr_assign( T& dest, const boost::optional<const ptree&>& oa, const char* name, const T& def  )
+{
+    if( const boost::optional<T> x = oa.get().get_optional<T>(name) ) {
+        dest = x.get();
+    } else
         dest=def;
     return true;
 }
 /// if attribute exists assigns dest, otherwise doesnt alter dest
 template <typename T>
-inline bool optAttr_assign( T& dest, const boost::optional<const ptree&>& oa, const char* name ) 
-{ 
-    if( const boost::optional<T> x = oa.get().get_optional<T>(name) ) { 
-        dest = x.get(); 
+inline bool optAttr_assign( T& dest, const boost::optional<const ptree&>& oa, const char* name )
+{
+    if( const boost::optional<T> x = oa.get().get_optional<T>(name) ) {
+        dest = x.get();
         return true;
-    } else 
+    } else
         return false;
 }
 
 template <typename T>
-inline T optAttr_getval( const boost::optional<const ptree&>& oa, const char* name, T defVal=0 ) 
+inline T optAttr_getval( const boost::optional<const ptree&>& oa, const char* name, T defVal=0 )
     { if( const boost::optional<T> x = oa.get().get_optional<T>(name) ) { return x.get(); } else return defVal; }
 
-inline uint32_t optAttr_intern_internal( GlobalPools& gpools, const boost::optional<const ptree&>& oa, const char* name ) 
+inline uint32_t optAttr_intern_internal( GlobalPools& gpools, const boost::optional<const ptree&>& oa, const char* name )
 {
-    if( const boost::optional<std::string> x = oa.get().get_optional<std::string>(name) ) 
+    if( const boost::optional<std::string> x = oa.get().get_optional<std::string>(name) )
         return gpools.internString_internal(x.get().c_str());
     else
         return 0xffffffff;
 }
-} // anon namespace 
+} // anon namespace
 
 void BarzerSettings::loadLangNGrams()
 {
@@ -278,18 +278,18 @@ void BarzerSettings::loadRules(BELReader& reader, const boost::property_tree::pt
                 const boost::optional<std::string> noCanonicalNames = attrs.get_optional<std::string>("nonames");
 
                 if( const auto p = attrs.get_optional<std::string>("fn") )
-                    ruleFile.fname = p.get();    
+                    ruleFile.fname = p.get();   
 
-                if( const auto p = attrs.get_optional<std::string>("dict") ) 
+                if( const auto p = attrs.get_optional<std::string>("dict") )
                     ruleFile.extraDictionaryPath = *p;
 
-                if( auto x = attrs.get_optional<std::string>("class")) 
+                if( auto x = attrs.get_optional<std::string>("class"))
 				    ruleFile.trie.first  = x.get();
                 else {
                     ruleFile.trie.first = defaultClass;
                 }
 
-                if( !getAttrByEitherName( ruleFile.trie.second, attrs, "name", "rewriter") ) 
+                if( !getAttrByEitherName( ruleFile.trie.second, attrs, "name", "rewriter") )
                     continue;
 
                 uint32_t trieClass = gpools.internString_internal(ruleFile.trie.first.c_str()) ;
@@ -304,7 +304,7 @@ void BarzerSettings::loadRules(BELReader& reader, const boost::property_tree::pt
 				reader.setCurTrieId( trieClass, trieId );
                 if( noCanonicalNames ) {
                     reader.set_noCanonicalNames();
-                } else 
+                } else
                     reader.set_canonicalNames();
 
 				addRulefile(reader, ruleFile );
@@ -419,15 +419,15 @@ void BarzerSettings::loadMeanings (User &u, const ptree& node)
     MeaningsStorage& meanings = uni.meanings();
 
     GlobalPools& gp = uni.gp;
-    // within one user tag there may be several MEANING tags with file attributes 
-    // for each of these tags we read meanings from the file 
+    // within one user tag there may be several MEANING tags with file attributes
+    // for each of these tags we read meanings from the file
 	const boost::optional<const ptree&> optAttrs = meaningsNode.get_child_optional("<xmlattr>");
 	if (!optAttrs)
 		return;
 
 	const ptree& attrs = optAttrs.get();
 	const boost::optional<std::string> optFname = attrs.get_optional<std::string>("file");
-	if (!optFname || optFname.get().empty()) 
+	if (!optFname || optFname.get().empty())
 		return;
 	const boost::optional<std::string> mode = attrs.get_optional<std::string>("automode");
 
@@ -458,13 +458,13 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
         if( optAttrs ) {
             const ptree& attrs = optAttrs.get();
 
-            if( const auto p = attrs.get_optional<std::string>("utf8") ) 
+            if( const auto p = attrs.get_optional<std::string>("utf8") )
                 if( *p== "yes" ) u.getUniverse().setBit( UBIT_NOSTRIP_DIACTITICS );
 
-            if( const auto p = attrs.get_optional<std::string>("soundslike") ) 
+            if( const auto p = attrs.get_optional<std::string>("soundslike") )
                 u.getUniverse().setSoundsLike( *p !="no" );
-            
-            if( const auto p = attrs.get_optional<std::string>("dictcorr") ) 
+           
+            if( const auto p = attrs.get_optional<std::string>("dictcorr") )
                 if( *p== "yes" ) u.getUniverse().setBit( UBIT_CORRECT_FROM_DICTIONARY );
 
 			if( const auto p = attrs.get_optional<std::string>("stempunct") )
@@ -495,15 +495,15 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 					u.getUniverse().getBarzHints().addUtf8Language(lang);
 					ay::StemThreadPool::inst().addLang(lang);
 				}
-            } else if(tagName =="tokenizer") { /// 
+            } else if(tagName =="tokenizer") { ///
                 const boost::optional<const ptree&> optAttrs = spell.get_child_optional("tokenizer.<xmlattr>");
                 if( optAttrs ) {
                     const ptree& attrs = optAttrs.get();
                     const boost::optional<std::string> tmpOpt = attrs.get_optional<std::string>("strat");
-                    if( tmpOpt  ) { 
-                        if( !strcasecmp( tmpOpt.get().c_str(),"SPACE_DEFAULT" ) ) 
+                    if( tmpOpt  ) {
+                        if( !strcasecmp( tmpOpt.get().c_str(),"SPACE_DEFAULT" ) )
                             u.getUniverse().tokenizerStrategy().setType( TokenizerStrategy::STRAT_TYPE_SPACE_DEFAULT);
-                        else if( !strcasecmp( tmpOpt.get().c_str(),"CASCADE" ) ) 
+                        else if( !strcasecmp( tmpOpt.get().c_str(),"CASCADE" ) )
                             u.getUniverse().tokenizerStrategy().setType( TokenizerStrategy::STRAT_TYPE_CASCADE);
                         else
                             u.getUniverse().tokenizerStrategy().setType( TokenizerStrategy::STRAT_TYPE_DEFAULT);
@@ -522,18 +522,18 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 	}
 }
 
-std::string BarzerSettings::getDefaultClassName() const 
+std::string BarzerSettings::getDefaultClassName() const
 {
     std::string defaultClass;
     {
         std::stringstream sstr;
         sstr << getCurrentUniverse()->getUserId() ;
-        defaultClass = sstr.str() ; 
+        defaultClass = sstr.str() ;
     }
     return defaultClass;
 }
 
-void BarzerSettings::loadTrieset(BELReader& reader, User &u, const ptree &node) 
+void BarzerSettings::loadTrieset(BELReader& reader, User &u, const ptree &node)
 {
     auto optNode = getNodeByEitherName( node, "trieset", "rwrchain" );
     if( !optNode )
@@ -547,7 +547,7 @@ void BarzerSettings::loadTrieset(BELReader& reader, User &u, const ptree &node)
 				const ptree &attrs = trieNode.get_child("<xmlattr>");
 
 				std::string cl;
-                if( auto x = attrs.get_optional<std::string>("class") ) 
+                if( auto x = attrs.get_optional<std::string>("class") )
                     cl = x.get();
                 else {
                     cl = defaultClass;
@@ -664,7 +664,7 @@ void load_zurch(BELReader& reader, User& u, const ptree &node)
     zurch::ZurchSettings zs(u.universe,reader.getErrStreamRef());
     if( !zs( node ) )  {
         std::cerr << "ERROR LOADING ZURCH" << std::endl;
-    } 
+    }
 }
 void load_user_flags(BELReader& reader, User& u, const ptree &node)
 {
@@ -683,7 +683,7 @@ void load_user_flags(BELReader& reader, User& u, const ptree &node)
 }
 void load_ent_info(BELReader& reader, User& u, const ptree &node)
 {
-    {  // entity subclass translation 
+    {  // entity subclass translation
     /// <enttrans>
     ///   <subclass src="class[,subclass]" dest="class[,subclass]"/>
     /// </enttrans>
@@ -704,8 +704,8 @@ void load_ent_info(BELReader& reader, User& u, const ptree &node)
     }
 
     }  // end of entity subclass translation
-    
-    {  // entity segmentation settings processing 
+   
+    {  // entity segmentation settings processing
     const ptree &entseg = node.get_child("entseg", empty_ptree());
     BOOST_FOREACH(const ptree::value_type &v, entseg ) {
         StoredEntityClass eclass;
@@ -720,7 +720,7 @@ void load_ent_info(BELReader& reader, User& u, const ptree &node)
                 uni.addEntClassToSegregate( eclass );
         }
     } // foreach
-    } // end of entity segmentation setings processing 
+    } // end of entity segmentation setings processing
 
     {
     // synonym designation
@@ -743,12 +743,12 @@ void load_ent_info(BELReader& reader, User& u, const ptree &node)
 
 } // anonymous namespace ends
 
-int User::addEntTranslation( const char* src, const char* dest ) 
+int User::addEntTranslation( const char* src, const char* dest )
 {
     StoredEntityClass srcClass, destClass;
     const char* srcComma=strchr(src, ',');
     const char* destComma = strchr(dest,',');
-    if( !(src && dest ) ) 
+    if( !(src && dest ) )
         return -1;
     if( srcComma && destComma ) { /// src has a comma
         srcClass.setClass( atoi(src));
@@ -771,7 +771,7 @@ int User::loadExtraDictionary()
                 std::cerr << "loading SPELLING dictionary from " <<  x << std::endl;
                 retVal+= bzs->loadExtra( x.c_str(), 0 );
             }
-        } else 
+        } else
             std::cerr << "INTERNAL ERROR: Spell Checker uninitialized!\n";
     }
     return 0;
@@ -782,15 +782,15 @@ int User::readClassNames( const ptree& node )
     if( boost::optional< const ptree& > optNode = node.get_child_optional("entity") ) {
 	    boost::optional< const ptree& > oa = optNode.get().get_child_optional("<xmlattr>");
 
-        if( const boost::optional< uint32_t > classIdOpt = optNode.get().get_optional<uint32_t>( "<xmlattr>.class_id" ) ) 
+        if( const boost::optional< uint32_t > classIdOpt = optNode.get().get_optional<uint32_t>( "<xmlattr>.class_id" ) )
         {
             uint32_t eclass = classIdOpt.get();
-            if( const boost::optional< std::string > classNameOpt = optNode.get().get_optional<std::string>("<xmlattr>.class_name") ) 
+            if( const boost::optional< std::string > classNameOpt = optNode.get().get_optional<std::string>("<xmlattr>.class_name") )
                 universe.getGlobalPools().d_entClassToNameMap[ eclass ] = classNameOpt.get();
             BOOST_FOREACH(const ptree::value_type &i, optNode.get() ) {
                 if( i.first == "subclass" ) {
 		            const ptree attrs = i.second.get_child("<xmlattr>");
-     
+    
                     if( const boost::optional<std::string> idOpt = attrs.get_optional<std::string>("id") ) {
                         if( const boost::optional<std::string> nameOpt = attrs.get_optional<std::string>("name") ) {
                             uint32_t subclass = atoi( idOpt.get().c_str() ) ;
@@ -802,7 +802,7 @@ int User::readClassNames( const ptree& node )
             }
         }
 
-    } 
+    }
     return numSubclasses;
 }
 
@@ -846,7 +846,7 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user, c
 
 	const boost::optional<std::string> respectLimitsOpt
 		= children.get_optional<std::string>("<xmlattr>.limits");
-    if( !respectLimitsOpt || respectLimitsOpt.get() != "no" ) 
+    if( !respectLimitsOpt || respectLimitsOpt.get() != "no" )
         reader.setRespectLimits( userId );
     else
         std::cerr << "Emit counts and all other LIMITS will be ignored\n";
@@ -864,7 +864,7 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user, c
 
     if( boost::optional< const ptree& > x = children.get_child_optional("beni") ) {
         u.getUniverse().setBit( UBIT_USE_BENI_VANILLA );
-         
+        
         u.getUniverse().setBit( UBIT_USE_BENI_IDS );
         if( const boost::optional<const ptree&> xAttr = x.get().get_child_optional("<xmlattr>") ) {
             if( const boost::optional<std::string> cOpt = xAttr.get().get_optional<std::string>("noids") ) {
@@ -887,7 +887,7 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user, c
                 }
                 u.getUniverse().beni().setZurchUniverse(zurchUniverse);
             }
-        } 
+        }
 
         u.getUniverse().setBit( UBIT_NEED_CONFIDENCE );
 
@@ -898,7 +898,7 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user, c
                     if( optAttr_assign( ec.ec,oa,"c") && optAttr_assign( ec.subclass,oa,"s") )
                         u.getUniverse().indexEntityNames( ec );
                 }
-            } else 
+            } else
             if( i.first == "benifile" ) {
                 if( const boost::optional<const ptree&> oa = i.second.get_child_optional("<xmlattr>") ) {
                     if( const boost::optional<std::string> fnam = oa.get().get_optional<std::string>("f") ) {
@@ -910,26 +910,39 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user, c
                         optAttr_assign( ec.ec,       oa, "cl" ); // default entity class
                         optAttr_assign( ec.subclass, oa, "sc" ); // default entity subclass
 
-                        topicEc.ec      = optAttr_getval<uint32_t>(oa, "tsc", ec.ec); // default topic entity class
+                        topicEc.ec      = optAttr_getval<uint32_t>(oa, "tec", ec.ec); // default topic entity class
                         topicEc.subclass= optAttr_getval<uint32_t>(oa, "tsc", ec.subclass); // default topic entity subclass
 
-                        u.getUniverse().beni().addEntityFile( fnam.get().c_str(), mode.empty() ? 0 : mode.c_str(), ec, topicEc );
+                        std::string formatStr; // format id=col, name=col ...
+                        optAttr_assign( formatStr, oa, "format" );
+
+                        if( !formatStr.empty() ) {
+                            BeniEntFormat fmt;
+                            std::string sep; // separator
+                            optAttr_assign( sep, oa, "sep" );
+                            if( !sep.empty() ) fmt.d_sep = sep[0];
+                            fmt.initFormat(formatStr);
+                            fmt.print(std::cerr);
+                            u.getUniverse().beni().readFormattedEntityFile( fnam.get().c_str(), fmt, mode.empty() ? 0 : mode.c_str(), ec, topicEc );
+                        } else {
+                            u.getUniverse().beni().addEntityFile( fnam.get().c_str(), mode.empty() ? 0 : mode.c_str(), ec, topicEc );
+                        }
                     }
                 }
-            } else 
-            if( i.first == "replace" ) { /// attributes f - find, r - replace 
+            } else
+            if( i.first == "replace" ) { /// attributes f - find, r - replace
                 if( const boost::optional<const ptree&> oa = i.second.get_child_optional("<xmlattr>") ) {
                     std::string regexFind, regexReplace;
                     optAttr_assign( regexFind,oa,   "f" );
                     optAttr_assign( regexReplace,oa,"r" );
                     u.getUniverse().beni().addMandatoryRegex( regexFind, regexReplace );
                 }
-            } else 
+            } else
             if( i.first == "implicit_topic" ) {
                 if( const boost::optional<const ptree&> oa = i.second.get_child_optional("<xmlattr>") ) {
-                    BarzerEntity tent( 
+                    BarzerEntity tent(
                         optAttr_intern_internal( gpools, oa, "i" ) ,
-                        optAttr_getval<uint32_t>(oa, "c"), 
+                        optAttr_getval<uint32_t>(oa, "c"),
                         optAttr_getval<uint32_t>(oa, "s")
                     );
 
@@ -1001,12 +1014,12 @@ void BarzerSettings::loadUsers(BELReader& reader ) {
 
             int loadedUsers = 0;
             std::string uname;
-            if( userNameOpt ) 
+            if( userNameOpt )
                 uname = userNameOpt.get();
 
-            
+           
 
-            if (cfgFileName.empty()) 
+            if (cfgFileName.empty())
                 loadedUsers = loadUser(reader,v, uname.c_str());
             else
                 loadedUsers = loadUserConfig( reader, cfgFileName.c_str(), uname.c_str() );
@@ -1018,12 +1031,12 @@ void BarzerSettings::loadUsers(BELReader& reader ) {
                     const std::string uname = userNameOpt.get();
                     uniPtr->setUserName( uname.c_str() );
 
-                    gpools.setUserNameForId( uname, uniPtr->getUserId() );    
+                    gpools.setUserNameForId( uname, uniPtr->getUserId() );   
                     if( const boost::optional<std::string> userKeyOpt = v.second.get_optional<std::string>("<xmlattr>.userkey") ) {
                         gpools.setUserKeyForId( userKeyOpt.get(), uniPtr->getUserId() );
                     }
                 }
-            } else 
+            } else
                 reader.setCurrentUniverse(0, getUser(0) );
         }
 	}
@@ -1034,7 +1047,7 @@ void BarzerSettings::loadUsers(BELReader& reader ) {
             if( fp.is_open() ) {
                 size_t numKeys = 0;
                 for( std::string s, k; getline(fp, s); ) {
-                    if( s.empty() || s[0] == '#' ) 
+                    if( s.empty() || s[0] == '#' )
                         continue;
                     std::stringstream sstr(s);
                     uint32_t id=0;
@@ -1100,10 +1113,10 @@ void BarzerSettings::load(BELReader& reader, const char *fname) {
 		} else {
             if( isEnvPath_BARZER_HOME() ) {
                 reader.getErrStreamRef() << "WARNING! BARZER_HOME not set assuming current directory " <<
-                fs::current_path() << std::endl; 
+                fs::current_path() << std::endl;
             } else if( isEnvPath_AUTO() ) {
                 reader.getErrStreamRef() << "Home assumed in current directory " <<
-                fs::current_path() << std::endl; 
+                fs::current_path() << std::endl;
             }
         }
 

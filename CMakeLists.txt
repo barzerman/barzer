@@ -112,7 +112,6 @@ set(SOURCES
             barzer_basic_types_range.cpp
             barzer_el_pattern_range.cpp
             barzer_el_rewrite_types.cpp
-            barzer_el_pattern.cpp
             barzer_el_pattern_token.cpp
             barzer_el_pattern_datetime.cpp
             barzer_el_pattern_entity.cpp 
@@ -139,7 +138,6 @@ set(SOURCES
             barzer_el_parser.cpp
             barzer_el_rewriter.cpp
             barzer_el_trie.cpp
-            barzer_el_trie_processor.cpp
             barzer_el_trie_shell.cpp
             barzer_el_trie_walker.cpp
             barzer_el_wildcard.cpp
