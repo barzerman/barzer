@@ -237,7 +237,7 @@ inline size_t parse_ascii_file(const char* fileName, char sep, const CB& cb)
 // AY_PAF_BEGIN(fileName,separator)
 //     your code accessing vector<const char*> col  - vector of tokens
 // AY_PAF_END
-#define AY_PAF_BEGIN(fn,sep) ay::parse_ascii_file( fn, sep, [&](const std::vector<const char*>& col) {
+#define AY_PAF_BEGIN(fn,sep) ay::parse_ascii_file( fn, sep, [&](const std::vector<const char*>& col) -> int {
 #define AY_PAF_END });
 
 } // namespace ay ends
