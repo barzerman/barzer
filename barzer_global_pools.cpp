@@ -56,6 +56,10 @@ void GlobalPools::init_cmdline( ay::CommandLineArgs & cmdlProc)
             st.setEnvPath_ENV_IGNORE(homeArg);
         }
     }
+    if( const char *x = cmdlProc.getArgVal(hasArg, "-inst", 0) ) { // instance 
+        if( hasArg )
+            setInstanceId( atoi(x) );
+    }
     const char *fname = cmdlProc.getArgVal(hasArg, "-cfglist", 0);
     barzer::BELReader reader( *this, &(std::cerr)) ;
     if (hasArg && fname)
@@ -179,6 +183,7 @@ ParseSettings& GlobalPools::parseSettings() { return settings->parseSettings(); 
 const ParseSettings& GlobalPools::parseSettings() const { return settings->parseSettings(); }
 
 GlobalPools::GlobalPools(bool fullMode) :
+	m_utf8langModelMgr(new ay::UTF8TopicModelMgr),
 	m_utf8langModelMgr(new ay::UTF8TopicModelMgr),
 	m_asciiLangModelMgr(new ay::ASCIITopicModelMgr),
 	dtaIdx( *this, &stringPool),

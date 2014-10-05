@@ -1090,6 +1090,27 @@ int BarzerSettings::loadListOfConfigs(BELReader& reader, const char *fname) {
     return cfgCount;
 }
 
+namespace {
+
+size_t load_multiverse( GlobalPools& gp, const boost::property_tree::ptree& pt )
+{
+    boost::optional<const ptree&> mvOpt = pt.get_child_optional("config.multiverse");
+
+    if( mvOpt ) {
+        const auto& mvNode = mvOpt.get();
+
+        BOOST_FOREACH(const ptree::value_type &v, mvNode) {
+            Multiverse_BENI_Loader loader(gp);
+	        const boost::optional<const ptree&> optAttrs = mvNode.get_child_optional("<xmlattr>");
+            loader.runPropertyTreeNode(v.second);
+        }
+        return 0;
+    } else 
+        return 1;
+}
+
+} // end of anon namespace
+
 void BarzerSettings::load(BELReader& reader, const char *fname) {
 	//AYLOGDEBUG(fname);
     ay::stopwatch totalTimer;
@@ -1129,6 +1150,8 @@ void BarzerSettings::load(BELReader& reader, const char *fname) {
 		loadDictionaries();
 		loadLangNGrams();
 		loadRules(reader);
+
+        load_multiverse( gpools, pt );
 		loadUsers(reader);
 
 		fs::current_path(oldPath);

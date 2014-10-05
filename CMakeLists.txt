@@ -98,6 +98,7 @@ else()
 endif()
 
 set(SOURCES 
+            barzer_multiverse.cpp
             barzer_lib.cpp
             barzer_topics.cpp
             barzer_shellsrv_shared.cpp

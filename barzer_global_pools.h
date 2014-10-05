@@ -158,6 +158,8 @@ public:
 /// Barzel, DataIndex and everything else
 
 class GlobalPools {
+    uint32_t d_instanceId;  // externally supplied instanceId
+
 	GlobalPools(GlobalPools&) = delete;
 	GlobalPools& operator=(GlobalPools&);
 	typedef boost::unordered_set< uint32_t > DictionaryMap;
@@ -169,6 +171,8 @@ class GlobalPools {
 
     EntityData entData; // canonic names and relevance
 public:
+    uint32_t getInstanceId() const { return d_instanceId; }
+    void  setInstanceId( uint32_t id ) { d_instanceId=id; }
 
     std::map< StoredEntityClass, std::string > d_subclassNameMap;
     
