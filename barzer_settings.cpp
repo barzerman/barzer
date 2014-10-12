@@ -24,6 +24,7 @@
 #include <barzer_relbits.h>
 #include <zurch_settings.h>
 #include <barzer_beni.h>
+#include <barzer_multiverse.h>
 
 using boost::property_tree::ptree;
 namespace fs = boost::filesystem;
@@ -1102,7 +1103,7 @@ size_t load_multiverse( GlobalPools& gp, const boost::property_tree::ptree& pt )
         BOOST_FOREACH(const ptree::value_type &v, mvNode) {
             Multiverse_BENI_Loader loader(gp);
 	        const boost::optional<const ptree&> optAttrs = mvNode.get_child_optional("<xmlattr>");
-            loader.runPropertyTreeNode(v.second);
+            loader.runPropertyTreeNode(v.second, optAttrs);
         }
         return 0;
     } else 

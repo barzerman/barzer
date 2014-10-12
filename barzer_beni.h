@@ -441,6 +441,10 @@ class SmartBENI {
         size_t maxCount
         ) const;
 public:
+    bool hasSoundslike() const { return d_isSL; }
+    BENI& beniStraight() { return  d_beniStraight; }
+    BENI& beniSl()       { return d_beniSl; }
+
     typedef boost::unordered_multimap< uint32_t, BarzerEntity > Doc2EntMap;
     Doc2EntMap d_zurchDoc2Ent;
 

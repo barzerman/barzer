@@ -51,6 +51,7 @@ public:
     void beniInit();
     SmartBENI& beni();
     const SmartBENI* getBeni() const { return d_beni; }
+    SmartBENI* beniPtr() { return d_beni; }
 
     const TrieRuleIdx& ruleIdx() const { return *m_ruleIdx; }
     TrieRuleIdx& ruleIdx() { return *m_ruleIdx; }

@@ -2,8 +2,54 @@
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/foreach.hpp>
+#include <ay_util_char.h>
+#include <iostream>
 
 namespace ay {
+
+struct ptree_opt {
+    const boost::property_tree::ptree& pt;
+    bool operator()(bool& v, const char* name ) const
+    {
+        if(auto x = pt.get_optional<std::string>(name)) {
+            std::string val = x.get();
+            if((val.length() == 1 && tolower(val[0]) =='y') || ay_strcasecmp(val.c_str(), "true") || ay_strcasecmp(val.c_str(), "yes"))
+                return (v=true, true);
+            else
+            if((val.length() == 1 && tolower(val[0]) =='n') || ay_strcasecmp(val.c_str(), "false") || ay_strcasecmp(val.c_str(), "no"))
+                return (v=false, true);
+            else {
+                std::cerr << "ptree_opt: assuming \"" << val << "\" means false\n";
+                return (v=false, true);
+            }
+        } else
+            return false;
+    }
+
+    bool get(const char* name, const bool dfv = false ) const 
+    {
+        bool v = false;
+        return( (*this)(v,name)? v: dfv);
+    }
+
+    template <typename T>
+    bool operator()(T& v, const char* name) const
+    {
+        if(auto x = pt.get_optional<T>(name))
+            return (v = x.get(), true);
+        else
+            return false;
+    }
+    template <typename T>
+    T get(const char* name, const T dfv) const
+    {
+        if(auto x = pt.get_optional<T>(name))
+            return x.get();
+        else
+            return dfv;
+    }
+    ptree_opt( const boost::property_tree::ptree& p): pt(p) {}
+};
 
 struct iterate_name_value_attr {
     std::string nameName, valueName;

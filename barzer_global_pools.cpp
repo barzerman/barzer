@@ -184,7 +184,6 @@ const ParseSettings& GlobalPools::parseSettings() const { return settings->parse
 
 GlobalPools::GlobalPools(bool fullMode) :
 	m_utf8langModelMgr(new ay::UTF8TopicModelMgr),
-	m_utf8langModelMgr(new ay::UTF8TopicModelMgr),
 	m_asciiLangModelMgr(new ay::ASCIITopicModelMgr),
 	dtaIdx( *this, &stringPool),
 	funSt( fullMode ? new BELFunctionStorage(*this, fullMode):0 ),
