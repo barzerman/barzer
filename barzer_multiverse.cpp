@@ -10,7 +10,6 @@ namespace barzer {
 
 size_t Multiverse_BENI_Loader::loadFromFile( const std::string& path, const Multiverse_BENI_Loader::LoadParm& parm, const Multiverse_BENI_Loader::UniverseLoadDataMap& colMap )
 {
-    size_t recCount = 0;
     typedef std::pair<StoredUniverse*, UniverseLoadDataMap::mapped_type> UniversePtrColPair;
     std::vector<UniversePtrColPair> colLookup;
 
@@ -50,7 +49,7 @@ size_t Multiverse_BENI_Loader::loadFromFile( const std::string& path, const Mult
     }
     size_t entsRead=0;
     std::string name;
-    AY_PAF_BEGIN(path.c_str(), parm.sep) 
+    ay::parse_ascii_file( path.c_str(), parm.sep, [&](const std::vector<const char*>& col) -> int {
         if(col.empty() || tok_id >= col.size() )
           return 0;
         int relevance = (tok_relevance <col.size()? atoi(col[tok_relevance]): 0);
@@ -101,13 +100,11 @@ size_t Multiverse_BENI_Loader::loadFromFile( const std::string& path, const Mult
             }
         }
 
-        if (!(++entsRead % reportEvery)) {
+        if (!(++entsRead % reportEvery))
 			      std::cerr << '.';
-        }
         return 0;
-    AY_PAF_END
-    return 0;
-    return recCount;
+    });
+    return entsRead;
 }
 void  Multiverse_BENI_Loader::runPropertyTreeNode( const ptree& pt, const boost::optional<const ptree&> mvAttrOpt )
 {
@@ -128,6 +125,7 @@ void  Multiverse_BENI_Loader::runPropertyTreeNode( const ptree& pt, const boost:
     BOOST_FOREACH(const ptree::value_type &v, pt) {
         if( v.first != "universe")
           continue;
+
         ++universe_count;
         if( auto attrOpt = v.second.get_child_optional("<xmlattr>") ) {
             ay::ptree_opt attr(attrOpt.get());
@@ -138,6 +136,8 @@ void  Multiverse_BENI_Loader::runPropertyTreeNode( const ptree& pt, const boost:
                 continue;
             }
             StoredUniverse& uni = d_gp.produceUniverse(uid);
+            if( !uni.beniPtr() )
+              uni.beniInit();
             std::string uname;
             if( attr(uname, "name") )
               uni.setUserName(uname.c_str());
@@ -161,7 +161,7 @@ void  Multiverse_BENI_Loader::runPropertyTreeNode( const ptree& pt, const boost:
             }
         }
     }
-    if( !uColMap.empty() ) {
+    if( uColMap.empty() ) {
         std::cerr << "MULTIVERSE ERROR (" << multiverseName << "): no valid universe tags found\n";
         return;
     }
@@ -184,7 +184,7 @@ void  Multiverse_BENI_Loader::runPropertyTreeNode( const ptree& pt, const boost:
                 std::cerr << "MULTIVERSE: (" << multiverseName << ")." << file_tag << "[" << fileCount << "]: loading " << fname ;
                 ay::stopwatch load_timer;
                 auto recCount = loadFromFile( fname, mvParm, uColMap );
-                std::cerr << recCount << " records loaded in " << load_timer.calcTime() << " milliseconds " << std::endl;
+                std::cerr << " " << recCount << " records loaded in " << load_timer.calcTime() << " milliseconds " << std::endl;
             }
         }
     }

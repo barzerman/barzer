@@ -4,7 +4,7 @@
       <universe uid="200" name="username" beni-sl="y" text-col="1" store-name="y" store-relevance="y"/>
       <universe uid="201" name="email" beni-sl="y" text-col="2" skip-val="NULL"/>
       <universe uid="202" name="description" beni-sl="y" text-col="3" skip-val="NULL"/>
-      <indexfile file="data/manyusers.sql.out.shard15.test"/>
+      <indexfile file="data/manyusers.sql.out.shard15"/>
     </multiverse>
     <users>
         <user id="200" limits="no">
