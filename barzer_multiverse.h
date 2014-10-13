@@ -13,6 +13,7 @@ class Multiverse_BENI_Loader {
 public:
     struct UniverseLoadData {
         bool storeName, storeRelevance;
+        std::string skipVal;
         std::vector<size_t> textCol;
         UniverseLoadData() : storeName(false), storeRelevance(false) {}
     };
@@ -34,10 +35,9 @@ public:
             col_relevance(3)
         {}
     };
-    
+
     Multiverse_BENI_Loader( GlobalPools& gp ) : d_gp(gp) {}
     void runPropertyTreeNode( const boost::property_tree::ptree& pt, const boost::optional<const boost::property_tree::ptree&> attrOpt );
-    
     size_t loadFromFile( const std::string& fname, const LoadParm& parm, const UniverseLoadDataMap& colMap );
 };
 

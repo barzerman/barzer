@@ -279,7 +279,7 @@ void BarzerSettings::loadRules(BELReader& reader, const boost::property_tree::pt
                 const boost::optional<std::string> noCanonicalNames = attrs.get_optional<std::string>("nonames");
 
                 if( const auto p = attrs.get_optional<std::string>("fn") )
-                    ruleFile.fname = p.get();   
+                    ruleFile.fname = p.get();  
 
                 if( const auto p = attrs.get_optional<std::string>("dict") )
                     ruleFile.extraDictionaryPath = *p;
@@ -464,7 +464,7 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 
             if( const auto p = attrs.get_optional<std::string>("soundslike") )
                 u.getUniverse().setSoundsLike( *p !="no" );
-           
+          
             if( const auto p = attrs.get_optional<std::string>("dictcorr") )
                 if( *p== "yes" ) u.getUniverse().setBit( UBIT_CORRECT_FROM_DICTIONARY );
 
@@ -705,7 +705,7 @@ void load_ent_info(BELReader& reader, User& u, const ptree &node)
     }
 
     }  // end of entity subclass translation
-   
+  
     {  // entity segmentation settings processing
     const ptree &entseg = node.get_child("entseg", empty_ptree());
     BOOST_FOREACH(const ptree::value_type &v, entseg ) {
@@ -791,7 +791,7 @@ int User::readClassNames( const ptree& node )
             BOOST_FOREACH(const ptree::value_type &i, optNode.get() ) {
                 if( i.first == "subclass" ) {
 		            const ptree attrs = i.second.get_child("<xmlattr>");
-    
+   
                     if( const boost::optional<std::string> idOpt = attrs.get_optional<std::string>("id") ) {
                         if( const boost::optional<std::string> nameOpt = attrs.get_optional<std::string>("name") ) {
                             uint32_t subclass = atoi( idOpt.get().c_str() ) ;
@@ -865,7 +865,7 @@ int BarzerSettings::loadUser(BELReader& reader, const ptree::value_type &user, c
 
     if( boost::optional< const ptree& > x = children.get_child_optional("beni") ) {
         u.getUniverse().setBit( UBIT_USE_BENI_VANILLA );
-        
+       
         u.getUniverse().setBit( UBIT_USE_BENI_IDS );
         if( const boost::optional<const ptree&> xAttr = x.get().get_child_optional("<xmlattr>") ) {
             if( const boost::optional<std::string> cOpt = xAttr.get().get_optional<std::string>("noids") ) {
@@ -1018,7 +1018,7 @@ void BarzerSettings::loadUsers(BELReader& reader ) {
             if( userNameOpt )
                 uname = userNameOpt.get();
 
-           
+          
 
             if (cfgFileName.empty())
                 loadedUsers = loadUser(reader,v, uname.c_str());
@@ -1032,7 +1032,7 @@ void BarzerSettings::loadUsers(BELReader& reader ) {
                     const std::string uname = userNameOpt.get();
                     uniPtr->setUserName( uname.c_str() );
 
-                    gpools.setUserNameForId( uname, uniPtr->getUserId() );   
+                    gpools.setUserNameForId( uname, uniPtr->getUserId() );  
                     if( const boost::optional<std::string> userKeyOpt = v.second.get_optional<std::string>("<xmlattr>.userkey") ) {
                         gpools.setUserKeyForId( userKeyOpt.get(), uniPtr->getUserId() );
                     }
@@ -1099,14 +1099,10 @@ size_t load_multiverse( GlobalPools& gp, const boost::property_tree::ptree& pt )
 
     if( mvOpt ) {
         const auto& mvNode = mvOpt.get();
-
-        BOOST_FOREACH(const ptree::value_type &v, mvNode) {
-            Multiverse_BENI_Loader loader(gp);
-	        const boost::optional<const ptree&> optAttrs = mvNode.get_child_optional("<xmlattr>");
-            loader.runPropertyTreeNode(v.second, optAttrs);
-        }
+        Multiverse_BENI_Loader loader(gp);
+        loader.runPropertyTreeNode(mvNode, mvNode.get_child_optional("<xmlattr>"));
         return 0;
-    } else 
+    } else
         return 1;
 }
 
@@ -1152,7 +1148,7 @@ void BarzerSettings::load(BELReader& reader, const char *fname) {
 		loadLangNGrams();
 		loadRules(reader);
 
-        load_multiverse( gpools, pt );
+    load_multiverse( gpools, pt );
 		loadUsers(reader);
 
 		fs::current_path(oldPath);

@@ -15,12 +15,12 @@ size_t Multiverse_BENI_Loader::loadFromFile( const std::string& path, const Mult
     std::vector<UniversePtrColPair> colLookup;
 
     for( const auto& x : colMap ) {
-        if( StoredUniverse* u = d_gp.getUniverse(x.first) ) 
+        if( StoredUniverse* u = d_gp.getUniverse(x.first) ) {
             if(!x.second.textCol.empty())
                 colLookup.push_back( {u,x.second} );
             else
                 std::cerr << "MULTIVERSE ERROR invalid column list for universe #" << x.first << " ... skipping \n";
-        else {
+        } else {
             std::cerr << "MULTIVERSE ERROR invalid universe #" << x.first << " ... skipping \n";
         }
     }
@@ -69,28 +69,31 @@ size_t Multiverse_BENI_Loader::loadFromFile( const std::string& path, const Mult
         for( const auto& lkup : colLookup ) {
             auto u = lkup.first;
             if( SmartBENI* smartBeni = u->beniPtr() ) {
-                auto col_name = lkup.second.textCol.front();
+                const auto & uniData = lkup.second;
+                auto col_name = uniData.textCol.front();
 
                 name.clear();
-                if( lkup.second.textCol.size() > 1 ) {
+                if( uniData.textCol.size() > 1 ) {
                     std::stringstream sstr;
-                    sstr << lkup.second.textCol.front();
-                    for( auto i = lkup.second.textCol.begin()+1; i!= lkup.second.textCol.end(); ++i ) {
+                    sstr << uniData.textCol.front();
+                    for( auto i = uniData.textCol.begin()+1; i!= uniData.textCol.end(); ++i ) {
                         if( parm.nameJoinChar )
                             sstr << parm.nameJoinChar;
                         sstr << col[*i];
                     }
                     name = sstr.str();
                 } else { // name is in a single column 
-                    name = col[lkup.second.textCol.front()];
+                    name = col[uniData.textCol.front()];
                 }
+                if(name == uniData.skipVal)
+                  continue;
                 Lang::stringToLower( tmpBuf, lowerCase, name.c_str() );
                 BENI::normalize( normName, lowerCase, u );
-                if( lkup.second.storeRelevance || lkup.second.storeName) {
+                if( uniData.storeRelevance || uniData.storeName) {
                     if( mode == NAME_MODE_OVERRIDE )
-                        u->setEntPropData( ent.getEuid(), (lkup.second.storeName ? name.c_str():""), relevance, true );
+                        u->setEntPropData( ent.getEuid(), (uniData.storeName ? name.c_str():""), relevance, true );
                     else if( mode == NAME_MODE_SKIP )
-                        u->setEntPropData( ent.getEuid(), (lkup.second.storeName ? name.c_str():""), relevance, false );
+                        u->setEntPropData( ent.getEuid(), (uniData.storeName ? name.c_str():""), relevance, false );
                 }
                 smartBeni->beniStraight().addWord(normName, ent.getEuid() );
                 if( smartBeni->hasSoundslike() )
@@ -122,30 +125,33 @@ void  Multiverse_BENI_Loader::runPropertyTreeNode( const ptree& pt, const boost:
     }
     size_t universe_count = 0;
     UniverseLoadDataMap  uColMap;
-    auto universePtOpt = pt.get_child_optional( "universe" );
-    if( !universePtOpt ) {
-        std::cerr << "No universe tags found\n";
-        return;
-    }
-    BOOST_FOREACH(const ptree::value_type &v, universePtOpt.get()) {
+    BOOST_FOREACH(const ptree::value_type &v, pt) {
+        if( v.first != "universe")
+          continue;
         ++universe_count;
         if( auto attrOpt = v.second.get_child_optional("<xmlattr>") ) {
             ay::ptree_opt attr(attrOpt.get());
 
             uint32_t uid = 0xffffffff;
-            if( attr(uid, "uid") ) {
-                StoredUniverse& uni = d_gp.produceUniverse(uid);
-            } else {
+            if( !attr(uid, "uid") ) {
                 std::cerr << "MULTIVERSE ERROR (" << multiverseName << "): no id specificed for universe #" << universe_count << " ... skipping \n";
                 continue;
             }
+            StoredUniverse& uni = d_gp.produceUniverse(uid);
+            std::string uname;
+            if( attr(uname, "name") )
+              uni.setUserName(uname.c_str());
             uint32_t text_col = 0xffffffff;
-            if( attr(text_col, "text_col") ) {
+            if( attr.get<bool>("beni-sl", false) )
+                uni.setBit( UBIT_BENI_SOUNDSLIKE, true );
+
+            if( attr(text_col, "text-col") ) {
                 UniverseLoadData uniData;
-                attr(uniData.storeName, "store_name");
-                attr(uniData.storeRelevance, "store_relevance");
+                attr(uniData.storeName, "store-ent-name");
+                attr(uniData.storeRelevance, "store-ent-relevance");
+                attr(uniData.skipVal, "skip-val");
                 auto iter = uColMap.find(uid);
-                if( iter ==  uColMap.end() ) 
+                if( iter ==  uColMap.end() )
                     iter =  uColMap.insert({uid, UniverseLoadDataMap::mapped_type()}).first;
 
                 iter->second.textCol.push_back(text_col);
@@ -162,28 +168,28 @@ void  Multiverse_BENI_Loader::runPropertyTreeNode( const ptree& pt, const boost:
     auto thisInstanceId = d_gp.getInstanceId();
     size_t fileCount = 0;
     const char* file_tag = "indexfile";
-    if( auto filePtOpt = pt.get_child_optional( file_tag ) ) {
-        BOOST_FOREACH(const ptree::value_type &v, filePtOpt.get()) {
-            ++fileCount;
-            if( auto attrOpt = v.second.get_child_optional("<xmlattr>") ) {
-                ay::ptree_opt attr(attrOpt.get());
-                std::string fname;
-                if( !attr(fname, "file") ) {
-                    std::cerr << "MULTIVERSE ERROR (" << multiverseName << ")." << file_tag << "[" << fileCount << "]: mandatory name attribute not found ... skipping\n";
-                    continue;
-                }
-                uint32_t instanceId = 0xffffffff;
-                if( thisInstanceId == 0xffffffff || !attr( instanceId, "instance") || instanceId == thisInstanceId ) {
-                    std::cerr << "MULTIVERSE: (" << multiverseName << ")." << file_tag << "[" << fileCount << "]: loading " << fname ;
-                    ay::stopwatch load_timer;
-                    auto recCount = loadFromFile( fname, mvParm, uColMap );
-                    std::cerr << recCount << " records loaded in " << load_timer.calcTime() << " milliseconds " << std::endl;
-                }
+    BOOST_FOREACH(const ptree::value_type &v, pt) {
+        if( v.first != file_tag )
+             continue;
+        ++fileCount;
+        if( auto attrOpt = v.second.get_child_optional("<xmlattr>") ) {
+            ay::ptree_opt attr(attrOpt.get());
+            std::string fname;
+            if( !attr(fname, "file") ) {
+                std::cerr << "MULTIVERSE ERROR (" << multiverseName << ")." << file_tag << "[" << fileCount << "]: mandatory name attribute not found ... skipping\n";
+                continue;
+            }
+            uint32_t instanceId = 0xffffffff;
+            if( thisInstanceId == 0xffffffff || !attr( instanceId, "instance") || instanceId == thisInstanceId ) {
+                std::cerr << "MULTIVERSE: (" << multiverseName << ")." << file_tag << "[" << fileCount << "]: loading " << fname ;
+                ay::stopwatch load_timer;
+                auto recCount = loadFromFile( fname, mvParm, uColMap );
+                std::cerr << recCount << " records loaded in " << load_timer.calcTime() << " milliseconds " << std::endl;
             }
         }
-    } else {
-        std::cerr << "No indexfile tags found\n";
     }
+    if( !fileCount )
+      std::cerr << "No indexfile tags found\n";
 }
 
 
