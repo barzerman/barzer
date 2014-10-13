@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <multiverse col-id="0">
+      <universe uid="200" name="username" beni-sl="y" text-col="1" store-name="y" store-relevance="y"/>
+      <universe uid="201" name="email" beni-sl="y" text-col="2" skip-val="NULL"/>
+      <universe uid="202" name="description" beni-sl="y" text-col="3" skip-val="NULL"/>
+      <indexfile file="data/manyusers.sql.out.shard15.test"/>
+    </multiverse>
+    <users>
+        <user id="200" limits="no">
+            <flags value="csBp"/>
+            <!-- entity: subclass id translation -->
+            <enttrans>
+                <subclass src="888,1" dest="200,1"/>
+            </enttrans>
+            <!-- entity: subclass names -->
+            <entseg/>
+            <entity class_name="svyaznoy" class_id="200">
+                <subclass name="user" id="1"/>
+            </entity>
+            <synent>
+                <subclass s="3"/>
+            </synent>
+            <!-- adding subclasses to BENI
+            <beni sl="yes">
+                <benifile m="c" f="data/manyusers.sql.out.shard10" format="id=0;name=1;extraname=3"  cl="200" sc="1"/>
+                <implicit_topic c="200" s="2" i="device"/>
+            </beni>
+            -->
+
+            <!-- loading rule files -->
+            <rules/>
+		</user>
+    </users>
+</config>
