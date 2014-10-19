@@ -113,7 +113,7 @@ void StoredUniverse::searchEntitiesInZurch( BENIFindResults_t& out, const char* 
 void StoredUniverse::searchEntitiesByName( BENIFindResults_t& out, const char* str, const QuestionParm& qparm, Barz* barz ) const
 {
     if( d_beni ) 
-        d_beni->search( out, str, d_settings.d_beni_Cutoff, barz );
+        d_beni->search( out, qparm, str, d_settings.d_beni_Cutoff, barz );
 }
 
 void StoredUniverse::beniInit( )
@@ -361,7 +361,7 @@ void StoredUniverse::entLookupBENIAddSubclass( const StoredEntityClass& ec, cons
 }
 int StoredUniverse::entLookupBENISearch( BENIFindResults_t& out, const char* query, const StoredEntityClass& ec, const QuestionParm& qparm ) const
 {
-    int rc = d_entIdLookupBENI->search( out, query, ec );
+    int rc = d_entIdLookupBENI->search( out, qparm, query, ec );
     return rc;
 }
 

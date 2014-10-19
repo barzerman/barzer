@@ -16,7 +16,7 @@ size_t Multiverse_BENI_Loader::loadFromFile( const std::string& path, const Mult
     for( const auto& x : colMap ) {
         if( StoredUniverse* u = d_gp.getUniverse(x.first) ) {
             if(!x.second.textCol.empty())
-                colLookup.push_back( {u,x.second} );
+                colLookup.push_back( {u, x.second} );
             else
                 std::cerr << "MULTIVERSE ERROR invalid column list for universe #" << x.first << " ... skipping \n";
         } else {
@@ -150,11 +150,10 @@ void  Multiverse_BENI_Loader::runPropertyTreeNode( const ptree& pt, const boost:
                 attr(uniData.storeName, "store-ent-name");
                 attr(uniData.storeRelevance, "store-ent-relevance");
                 attr(uniData.skipVal, "skip-val");
+                uniData.textCol.push_back(text_col);
                 auto iter = uColMap.find(uid);
                 if( iter ==  uColMap.end() )
-                    iter =  uColMap.insert({uid, UniverseLoadDataMap::mapped_type()}).first;
-
-                iter->second.textCol.push_back(text_col);
+                    iter =  uColMap.insert({uid, uniData}).first;
             } else {
                 std::cerr << "MULTIVERSE ERROR (" << multiverseName << "): no text column specificed for universe #" << universe_count << " ... skipping \n";
                 continue;

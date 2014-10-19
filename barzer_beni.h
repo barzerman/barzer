@@ -398,7 +398,7 @@ public:
     /// add all entities by name for given class
     void addEntityClass( const StoredEntityClass& ec );
     /// returns max coverage
-    double search( BENIFindResults_t&, const char* str, double minCov, const BENIFilter_f& = BENIFilter_f ()) const;
+    double search( BENIFindResults_t&, const QuestionParm& qparm, const char* str, double minCov, const BENIFilter_f& = BENIFilter_f ()) const;
 
     void clear() { d_storage.clear(); }
     BENI( StoredUniverse& u );
@@ -427,6 +427,7 @@ class SmartBENI {
 
     void search_single_query(
         BENIFindResults_t& out,
+        const QuestionParm& qparm,
         const char* query,
         double minCov,
         Barz* barz,
@@ -467,7 +468,7 @@ public:
     void applyMandatoryRegex( std::string& dest ) const;
     void addMandatoryRegex( const std::string& find, const std::string& replace );
 
-    void search( BENIFindResults_t&, const char* str, double minCov, Barz* barz, const BENIFilter_f& = BENIFilter_f (), size_t maxCount=128) const;
+    void search( BENIFindResults_t&, const QuestionParm& qparm, const char* str, double minCov, Barz* barz, const BENIFilter_f& = BENIFilter_f (), size_t maxCount=128) const;
 
 	BENI& getPrimaryBENI();
 
@@ -525,7 +526,7 @@ public:
         ERR_MAX
     };
     // returns ERR_XXX
-    int search( BENIFindResults_t& out, const char* query, const StoredEntityClass& sc, double minCov=.3 ) const;
+    int search( BENIFindResults_t& out, const QuestionParm& qparm, const char* query, const StoredEntityClass& sc, double minCov=.3 ) const;
 };
 
 } // namespace barzer

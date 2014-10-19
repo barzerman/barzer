@@ -298,10 +298,10 @@ void SmartBENI::addEntityClass( const StoredEntityClass& ec )
     std::cerr << " done " << numNames << " names for " << ec << std::endl;
 }
 
-int SubclassBENI::search( BENIFindResults_t& out, const char* query, const StoredEntityClass& sc , double minCov ) const
+int SubclassBENI::search( BENIFindResults_t& out, const QuestionParm& qparm, const char* query, const StoredEntityClass& sc , double minCov ) const
 {
     if( const BENI* b = getBENI(sc) ) {
-        b->search( out, query, minCov );
+        b->search( out, qparm, query, minCov );
         return ERR_OK;
     } else
         return ERR_NO_BENI;
@@ -410,6 +410,7 @@ inline void SmartBENI::search_post_processing(
 
 inline void SmartBENI::search_single_query(
     BENIFindResults_t& out,
+    const QuestionParm& qparm,
     const char* query,
     double minCov,
     Barz* barz,
@@ -424,13 +425,13 @@ inline void SmartBENI::search_single_query(
         applyMandatoryRegex(processedStr);
         query = processedStr.c_str();
     }
-    double maxCov = d_beniStraight.search( out, query, minCov, filter);
+    double maxCov = d_beniStraight.search( out, qparm, query, minCov, filter);
     const double SL_COV_THRESHOLD= 0.85;
 
     if( d_isSL ) {
         if( maxCov< SL_COV_THRESHOLD || out.empty() ) {
             BENIFindResults_t slOut;
-            maxCov = d_beniSl.search( slOut, query, minCov, filter);
+            maxCov = d_beniSl.search( slOut, qparm, query, minCov, filter);
             size_t numAdded = 0;
             for( const auto& i: slOut ) {
                 BENIFindResults_t::iterator outIter = std::find_if(out.begin(), out.end(), [&]( const BENIFindResult& x ) { return ( x.ent == i.ent ) ; });
@@ -446,16 +447,18 @@ inline void SmartBENI::search_single_query(
 
 void SmartBENI::search(
     BENIFindResults_t& out,
+    const QuestionParm& qparm,
     const char* query,
     double minCov,
     Barz* barz,
     const BENIFilter_f& filter,
-    size_t maxCount) const
+    size_t maxCount
+    ) const
 {
-    if( barz && d_universe.checkBit( UBIT_BENI_POSTBARZER ) ) {
+    if( barz && !qparm.isBeniNoBarzer() && d_universe.checkBit( UBIT_BENI_POSTBARZER ) ) {
         // beni searches against a string transformed by barzer
         for( const auto& i: barz->chain2string() )
-            search_single_query( out, i.c_str(), minCov, barz, filter, maxCount );
+            search_single_query( out, qparm, i.c_str(), minCov, barz, filter, maxCount );
         std::sort( out.begin(), out.end(), []( const BENIFindResult& l, const BENIFindResult& r ) {
             return ( l.ent < r.ent ? true : ( r.ent < l.ent ? false : r.coverage < l.coverage ) );
         });
@@ -468,7 +471,7 @@ void SmartBENI::search(
         out.swap( tmpOut );
         search_post_processing( out, minCov, barz, filter, maxCount );
     } else {
-        search_single_query( out, query, minCov, barz, filter, maxCount );
+        search_single_query( out, qparm, query, minCov, barz, filter, maxCount );
         search_post_processing( out, minCov, barz, filter, maxCount );
     }
 }
@@ -558,7 +561,7 @@ namespace
 	}
 } //end of anon namespace
 
-double BENI::search( BENIFindResults_t& out, const char* query, double minCov, const BENIFilter_f& filter) const
+double BENI::search( BENIFindResults_t& out, const QuestionParm& qparm, const char* query, double minCov, const BENIFilter_f& filter) const
 {
     double maxCov = 0.0;
     // out.clear();
@@ -571,6 +574,9 @@ double BENI::search( BENIFindResults_t& out, const char* query, double minCov, c
 	Lang::stringToLower( tmpBuf, dest, queryStr );
     normalize( normDest, dest, &d_universe );
     enum { MAX_BENI_RESULTS = 64 };
+
+    if( normDest.empty() )
+        return 0;
     d_storage.getMatches( normDest.c_str(), normDest.length(), vec, MAX_BENI_RESULTS, minCov, filter);
 	
     if( !vec.empty() )

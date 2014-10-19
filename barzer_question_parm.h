@@ -40,8 +40,8 @@ struct QuestionParm {
         return ( 
             d_beniMode == BENI_BENI_ONLY_DEFAULT ||
             d_beniMode == BENI_BENI_ENSURE );
-
     }
+    bool isBeniNoBarzer() const { return (d_beniMode == BENI_BENI_ONLY_DEFAULT); }
     int16_t d_beniMode;
     enum { MAX_RESULTS_INLIST_DEFAULT= 256 };
     uint32_t d_maxResults;
@@ -54,7 +54,6 @@ struct QuestionParm {
     bool isTraceOff() const { return d_biflags.checkBit(QPBIT_TRACE_OFF); }
     void turnTraceOff( bool x=true ) { d_biflags.set(QPBIT_TRACE_OFF,x); }
     
-
     /// flags for regular barzer non zurch queries
     void setQueryFlags( const char* str );
     // flags for zurch only
