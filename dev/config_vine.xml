@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
+    <instances>
+        <instance host="127.0.0.1" port="5767" weight="0" />
+        <instance host="127.0.0.1" port="5768" weight="0" />
+    </instances>
     <multiverse col-id="0">
-      <universe uid="200" name="username" beni-sl="y" text-col="1" store-ent-name="y" store-ent-relevance="y" skip-val="NULL"/>
-      <universe uid="201" name="email" beni-sl="y" text-col="2" skip-val="NULL"/>
-      <universe uid="202" name="description" beni-sl="y" text-col="3" skip-val="NULL"/>
+      <universe weight="80" uid="200" name="username" beni-sl="y" text-col="1" store-ent-name="y" store-ent-relevance="y" skip-val="NULL"/>
+      <universe weight="30" uid="201" name="email" beni-sl="y" text-col="2" skip-val="NULL"/>
+      <universe weight="20" uid="202" name="description" beni-sl="y" text-col="3" skip-val="NULL"/>
       <indexfile file="data/manyusers.sql.out.shard15.test"/>
     </multiverse>
     <users>
