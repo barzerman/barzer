@@ -12,6 +12,13 @@ def kill_children():
     for c in children:
         os.kill(c, signal.SIGTERM)
 
+
+def sigint_handler(signal, frame):
+    if not len(children):
+        return
+    print "ctrl-c recieved. exiting"
+    sys.exit(0)
+
 def run(cmd, out):
     with open(out, 'wb') as fh:
         print "running", ' '.join(cmd)
@@ -41,9 +48,7 @@ def main():
     hub_dir = path.dirname(scriptname)
     barzer_dir = path.abspath(path.join(hub_dir, os.pardir))
 
-    #signal.signal(signal.SIGINT, signal_handler)
-
-    atexit.register(kill_children)
+    signal.signal(signal.SIGINT, sigint_handler)
 
     doc = ET.parse(cfg)
     for c in doc.findall('instances/instance'):
@@ -51,7 +56,7 @@ def main():
         if not pid:
             return runbarzer(barzer_dir, cfg,  c.get('id'), c.get('port'))
         children.append(pid)
-
+    atexit.register(kill_children)
     runhub(hub_dir, cfg)
     
     
