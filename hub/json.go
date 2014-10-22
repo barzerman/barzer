@@ -30,6 +30,11 @@ type JSONError struct {
 	Error string `json:"error"`
 }
 
+type JSONResult struct {
+	BarzList []*Barz    `json:"barzlist"`
+	Final    []*BeniEnt `json:"final"`
+}
+
 func WriteError(w io.Writer, estr string) {
 	jerr := JSONError{Error: estr}
 	data, err := json.Marshal(&jerr)

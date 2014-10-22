@@ -43,7 +43,7 @@ type EntList []*BeniEnt
 
 func (l EntList) Len() int           { return len(l) }
 func (l EntList) Swap(i, j int)      { l[i], l[j] = l[j], l[i] }
-func (l EntList) Less(i, j int) bool { return l[i].Score < l[j].Score }
+func (l EntList) Less(i, j int) bool { return l[i].Score <= l[j].Score }
 
 var settings = Settings{weightSum: 0}
 var END_TOKEN = []byte("\r\n.\r\n")
@@ -101,6 +101,9 @@ func query(w http.ResponseWriter, req *http.Request) {
 
 	cache := map[string]*BeniEnt{}
 	for _, barz := range results {
+		if barz == nil {
+			continue
+		}
 		for _, ent := range barz.Beni {
 			stored, ok := cache[ent.Id]
 			if !ok {
@@ -119,10 +122,11 @@ func query(w http.ResponseWriter, req *http.Request) {
 		i++
 	}
 
-	sort.Sort(sort.Reverse(final))
+	sort.Sort(sort.Reverse(EntList(final)))
+	result := JSONResult{BarzList: results, Final: final}
 
 	enc := json.NewEncoder(w)
-	if err := enc.Encode(&final); err != nil {
+	if err := enc.Encode(&result); err != nil {
 		log.Println("Error encoding result array: ", err)
 	}
 }
