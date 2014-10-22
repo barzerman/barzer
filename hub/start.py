@@ -6,6 +6,7 @@ import xml.etree.ElementTree as ET
 
 
 children = []
+ROOT=False
 
 def kill_children():
     print "killing children"
@@ -14,7 +15,7 @@ def kill_children():
 
 
 def sigint_handler(signal, frame):
-    if not len(children):
+    if not ROOT:
         return
     print "ctrl-c recieved. exiting"
     sys.exit(0)
@@ -37,6 +38,7 @@ def runhub(hub_dir, cfg):
     hub_path = path.join(hub_dir, 'barzer_hub')
     cmd = [hub_path, '-v', '-cfg', cfg]
     subprocess.call(cmd)
+    print "haha"
     #run(cmd, "hub.out")
     
 
@@ -56,7 +58,10 @@ def main():
         if not pid:
             return runbarzer(barzer_dir, cfg,  c.get('id'), c.get('port'))
         children.append(pid)
+    global ROOT
+    ROOT = True
     atexit.register(kill_children)
+    signal.signal(signal.SIGTERM, sigint_handler)
     runhub(hub_dir, cfg)
     
     
