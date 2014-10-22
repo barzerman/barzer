@@ -43,7 +43,7 @@ type EntList []*BeniEnt
 
 func (l EntList) Len() int           { return len(l) }
 func (l EntList) Swap(i, j int)      { l[i], l[j] = l[j], l[i] }
-func (l EntList) Less(i, j int) bool { return l[i].Score <= l[j].Score }
+func (l EntList) Less(i, j int) bool { return l[i].Score < l[j].Score }
 
 var settings = Settings{weightSum: 0}
 var END_TOKEN = []byte("\r\n.\r\n")
@@ -63,6 +63,7 @@ func query(w http.ResponseWriter, req *http.Request) {
 	var wg sync.WaitGroup
 
 	queryBarzer := func(i int, host *HostRec, q BarzerQuery) {
+		// connects to a particular user@instance inside a goroutine
 		defer wg.Done()
 		conn, err := net.Dial("tcp", host.addr)
 		if err != nil {
@@ -101,7 +102,7 @@ func query(w http.ResponseWriter, req *http.Request) {
 
 	cache := map[string]*BeniEnt{}
 	for _, barz := range results {
-		if barz == nil {
+		if barz == nil { // nil means we failed to get a response from barzeer
 			continue
 		}
 		for _, ent := range barz.Beni {
@@ -131,7 +132,7 @@ func query(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-// loads a user@host:port per line file
+// scrapes barzer config for instances/universes
 func loadConfig(settings *Settings) {
 	fh, err := os.Open(*cfgFile)
 	if err != nil {
@@ -148,6 +149,7 @@ func loadConfig(settings *Settings) {
 		return
 	}
 
+	// Instances * Universes hosts
 	for _, inst := range cfg.Instances {
 		for _, uni := range cfg.Universes {
 			hostRec := &HostRec{
