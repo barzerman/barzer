@@ -23,7 +23,7 @@ type BeniEnt struct {
 type Barz struct {
 	Beni   []BeniEnt `json:"beni"`
 	Uid    uint32    `json:"uid"`
-	Weight float64   `json:-`
+	Weight float64   `json:"weight"`
 }
 
 type JSONError struct {
@@ -31,8 +31,9 @@ type JSONError struct {
 }
 
 type JSONResult struct {
-	BarzList []*Barz    `json:"barzlist"`
-	Final    []*BeniEnt `json:"final"`
+	BarzList  []*Barz    `json:"barzlist"`
+	Final     []*BeniEnt `json:"final"`
+	WeightSum float64    `json:"weightsum"`
 }
 
 func WriteError(w io.Writer, estr string) {

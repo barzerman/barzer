@@ -41,10 +41,7 @@ def main():
     hub_dir = path.dirname(scriptname)
     barzer_dir = path.abspath(path.join(hub_dir, os.pardir))
 
-    #cfg = 
     #signal.signal(signal.SIGINT, signal_handler)
-
-
 
     atexit.register(kill_children)
 

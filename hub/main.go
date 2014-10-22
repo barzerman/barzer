@@ -124,7 +124,10 @@ func query(w http.ResponseWriter, req *http.Request) {
 	}
 
 	sort.Sort(sort.Reverse(EntList(final)))
-	result := JSONResult{BarzList: results, Final: final}
+	result := JSONResult{Final: final, WeightSum: settings.weightSum}
+	if *verbose {
+		result.BarzList = results
+	}
 
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(&result); err != nil {
@@ -150,8 +153,8 @@ func loadConfig(settings *Settings) {
 	}
 
 	// Instances * Universes hosts
-	for _, inst := range cfg.Instances {
-		for _, uni := range cfg.Universes {
+	for _, uni := range cfg.Universes {
+		for _, inst := range cfg.Instances {
 			hostRec := &HostRec{
 				uid:    uni.Uid,
 				addr:   fmt.Sprintf("%s:%d", inst.Host, inst.Port),
@@ -162,8 +165,8 @@ func loadConfig(settings *Settings) {
 					hostRec.uid, hostRec.addr, hostRec.weight)
 			}
 			settings.hosts = append(settings.hosts, hostRec)
-			settings.weightSum += hostRec.weight
 		}
+		settings.weightSum += uni.Weight
 	}
 }
 
