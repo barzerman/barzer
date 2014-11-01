@@ -182,7 +182,7 @@ static int bshf_srvroute( BarzerShell* shell, char_cp cmd, std::istream& in, con
 
         std::string bufStr;
         size_t lineNo = 0;
-	    ay::stopwatch cmdTimer;
+	    ay::stopwatch totalTimer;
         while( true ) {
             std::getline( *fp, bufStr);
             if( ! bufStr.length() ) 
@@ -190,30 +190,28 @@ static int bshf_srvroute( BarzerShell* shell, char_cp cmd, std::istream& in, con
             std::stringstream sstr;
 
             { // q scope
-            char* q = 0;
-            if( isCmdMode && bufStr[0]== '!' && bufStr[1] == '!' ) {
-                q = strdup( bufStr.c_str() );
-            } else {
-                xmlEscape( bufStr.c_str(), sstr << "<" << theTag << " " << argStr << ">" ) << "</" << theTag <<">";
-                q = strdup( sstr.str().c_str() );
-                std::cerr << "QUERY:" << q << std::endl;
-            }
-	        ay::stopwatch tmpTimer;
-            rc = request::route( gp, q, strlen(q), os );
-            free(q);
+                char* q = 0;
+                if( isCmdMode && bufStr[0]== '!' && bufStr[1] == '!' ) {
+                    q = strdup( bufStr.c_str() );
+                } else {
+                    xmlEscape( bufStr.c_str(), sstr << "<" << theTag << " " << argStr << ">" ) << "</" << theTag <<">";
+                    q = strdup( sstr.str().c_str() );
+                    std::cerr << "QUERY:" << q << std::endl;
+                }
+	            ay::stopwatch tmpTimer;
+                rc = request::route( gp, q, strlen(q), os );
+                free(q);
+                if( rc != request::ROUTE_ERROR_OK ) {
+                    os << " ERROR " << rc;
+                } else
+                    os << " success ";
+                if( fp == &std::cin ) 
+                    std::cerr << "\n done in " << tmpTimer.calcTime()  << " seconds" << std::endl;
             } // q scope
 
-            if( rc != request::ROUTE_ERROR_OK ) {
-                os << " ERROR " << rc;
-            } else
-                os << " success ";
-
-            if( fp == &std::cin ) 
-                std::cerr << "\n done in " << cmdTimer.calcTime()  << std::endl;
             ++lineNo;
         }
-        if( isCmdMode )
-            std::cerr << lineNo << " commands run in " << cmdTimer.calcTime()  << " seconds\n";
+        std::cerr << lineNo << " commands run in " << totalTimer.calcTime()  << " seconds\n";
     } else {
         std::string question;
         while (reader.nextLine()&& reader.str.length())
