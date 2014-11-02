@@ -497,11 +497,6 @@ BENI::BENI( StoredUniverse& u ) :
     d_universe(u)
 {}
 
-const NGramStorage<BarzerEntity>& BENI::getStorage() const
-{
-	return d_storage;
-}
-
 void BENI::addWord(const std::string& str, const BarzerEntity& ent)
 {
 	d_storage.addWord( str.c_str(), ent );
@@ -532,7 +527,7 @@ void BENI::addEntityClass( const StoredEntityClass& ec )
 
 namespace
 {
-	size_t compute_cutoff_by_coverage( std::vector< NGramStorage<BarzerEntity>::FindInfo >& vec )
+	size_t compute_cutoff_by_coverage( std::vector< NGramStorage::FindInfo >& vec )
 	{
 		if( vec.empty() )
 			return 0;
@@ -565,7 +560,7 @@ double BENI::search( BENIFindResults_t& out, const QuestionParm& qparm, const ch
 {
     double maxCov = 0.0;
     // out.clear();
-    std::vector< NGramStorage<BarzerEntity>::FindInfo > vec;
+    std::vector< NGramStorage::FindInfo > vec;
     std::vector<char> tmpBuf;
     std::string dest;
     std::string normDest;
