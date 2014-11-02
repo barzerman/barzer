@@ -12,6 +12,7 @@
 #include <boost/unordered_map.hpp>
 #include <barzer_language.h>
 #include "barzer_basic_types.h"
+#include "barzer_entity_linkage.h"
 #include <boost/regex.hpp>
 
 namespace barzer {
@@ -236,9 +237,12 @@ class GlobalPools;
 class DtaIndex {
     GlobalPools& d_gp;
 	ay::UniqueCharPool* strPool; // must be a global pool
+
 public: 
 	StoredTokenPool tokPool;
 	StoredEntityPool entPool;
+
+    GlobalEntityLinkage   entLinkage;
 private:
 	StoredToken* getStoredToken( const char* s) 
 		{ return tokPool.getTokByString( s ); }
@@ -263,7 +267,6 @@ public:
 
 	const StoredToken* getStoredTokenPtrById( StoredTokenId id ) const
 		{ return tokPool.getTokByIdSafe(id); }
-
 
 	StoredTokenId getTokIdByString( const char* t ) const
         { return tokPool.getTokIdByString(t); }
@@ -360,7 +363,6 @@ public:
 		bool isNew = false;
 		return entPool.addOneEntity( isNew, euid );
 	}
-    
 	
 	const StoredEntity* getEntById( uint32_t id ) const
 	{

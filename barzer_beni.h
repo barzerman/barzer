@@ -108,8 +108,12 @@ public:
 		double m_coverage;
 	};
 
-	void getMatchesRange(StoredStringFeatureVec::const_iterator begin, StoredStringFeatureVec::const_iterator end,
-			std::vector<FindInfo>& out, size_t max, double minCov, const SearchFilter_f& filter = SearchFilter_f()) const
+	void getMatchesRange(
+        StoredStringFeatureVec::const_iterator begin, 
+        StoredStringFeatureVec::const_iterator end,
+        std::vector<FindInfo>& out, size_t max, double minCov, 
+        const SearchFilter_f& filter = SearchFilter_f()
+    ) const
 	{
 		const double srcFCnt = std::distance(begin, end);
 
@@ -205,8 +209,14 @@ public:
 		}
 	}
 
-	void getMatches(const char *origStr, size_t origStrLen, std::vector<FindInfo>& out,
-			size_t max, double minCov, const SearchFilter_f& filter = SearchFilter_f()) const
+	void getMatches(
+        const char *origStr, 
+        size_t origStrLen, 
+        std::vector<FindInfo>& out,
+        size_t max, 
+        double minCov, 
+        const SearchFilter_f& filter = SearchFilter_f()
+    ) const
 	{
 		std::string str(origStr, origStrLen);
 		if (m_soundsLikeEnabled)

@@ -9,6 +9,32 @@ typedef std::pair<uint32_t, float> wil_link_data;
 
 inline bool operator<(const wil_link_data& l, const wil_link_data& r) { return l.first < r.first; }
 
+template <typename W=int16_t, W DefaultWeight=W(0)>
+class weighed_hash_linkage {
+    boost::unordered_map<std::pair<uint32_t,uint32_t>, W> d_map;
+public:
+    // mode - 0 - no override, >0 - max overriude=, <0 min overide
+    void link( uint32_t l, uint32_t r, W w=(DefaultWeight+1), int mode = 0) 
+        { 
+            auto x = d_map.insert({{l,r}, w});
+            if( !x.second ) {
+                if( mode > 0 ) {
+                    if( x.first->second < w ) 
+                        x.first->second = w;
+                } else if( mode < 0 ) {
+                    if( x.first->second > w ) 
+                        x.first->second = w;
+                }
+            }
+        }
+
+    W getWeight( uint32_t l, uint32_t r ) const 
+    {
+        auto i = d_map.find({l,r});
+        return( i == d_map.end()? DefaultWeight: i->second );
+    }
+};
+
 class weighed_id_linkage {
 public:
     typedef std::vector<wil_link_data> link_data_vec;
