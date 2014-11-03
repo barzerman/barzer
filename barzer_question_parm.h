@@ -2,6 +2,8 @@
 
 #include <barzer_entity.h>
 #include <ay/ay_bitflags.h>
+#include <barzer_entity_linkage.h>
+
 namespace barzer {
 
 //// comes with every question and is passed to lexers and semanticizers 
@@ -89,11 +91,16 @@ struct QuestionParm {
         void parseEntClassList( const char* s);
         AutocParm() : trieClass(0xffffffff), trieId(0xffffffff), topicMode(TOPICMODE_RULES_ONLY), numResults(10)  {}
     } autoc;
+    
+    EntityLinkageFilter d_beni_linkageFilter;
 
     void setStemMode_Aggressive() { stemMode= STEMMODE_AGGRESSIVE; }
     bool isStemMode_Aggressive() const { return (stemMode==STEMMODE_AGGRESSIVE); }
 
-    void clear() { autoc.clear(); }
+    void clear() { 
+        autoc.clear(); 
+        d_beni_linkageFilter.clear();
+    }
 	QuestionParm() : 
         lang(0), isAutoc(false), stemMode(STEMMODE_NORMAL), d_beniMode(BENI_DEFAULT), d_maxResults(MAX_RESULTS_INLIST_DEFAULT) {}
 };

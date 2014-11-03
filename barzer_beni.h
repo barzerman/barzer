@@ -1,6 +1,5 @@
 #pragma once
 #include <barzer_entity.h>
-// #include <barzer_spell_features.h>
 #include <zurch_docidx_types.h>
 #include <ay_util_time.h>
 #include <boost/function.hpp>
@@ -36,7 +35,7 @@ struct BeniEntFormat {
 };
 class StoredUniverse;
 
-typedef boost::function<bool (BarzerEntity)> BENIFilter_f;
+typedef boost::function<double (BarzerEntity, double)> BENIFilter_f;
 
 class BENI {
     ay::UniqueCharPool d_charPool;

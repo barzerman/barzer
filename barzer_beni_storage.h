@@ -21,7 +21,7 @@ class NGramStorage
 
 	bool m_soundsLikeEnabled;
 public:
-	typedef boost::function<bool (T)> SearchFilter_f;
+	typedef boost::function<double (T, double)> SearchFilter_f;
 
     void clear();
 

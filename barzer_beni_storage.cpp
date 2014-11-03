@@ -62,36 +62,41 @@ void NGramStorage::getMatchesRange(
         uint16_t fCount;
     };
 
-    std::vector<FeatureStatInfo> counterMap(m_gram.d_max + 1);
+    #warning this should be optimized: counterMap is always a vector size = total number of ngrams. can be a lot for unicode sets
+    const size_t counterMap_size = m_gram.d_max + 1;
+    if( !counterMap_size )
+        return;
+    std::vector<FeatureStatInfo> counterMap(counterMap_size);
 
-    for (const auto& feature : boost::make_iterator_range(begin, end))
-    {
+    for (const auto& feature : boost::make_iterator_range(begin, end)) {
         const auto srcs = m_gram.getSrcsForFeature(feature);
         if (!srcs)
             continue;
     
-        const auto imp = 1. / (srcs->size() * srcs->size());
-        for (const auto& sourceFeature : *srcs)
-        {
+        const double srcs_size = srcs->size();
+        if( !srcs_size ) 
+            continue;
+
+        const auto imp = 1. / (srcs_size*srcs_size);
+        for (const auto& sourceFeature : *srcs) {
             const auto source = sourceFeature.docId;
         
-            auto& info = counterMap[source];
-            info.counter += imp * sourceFeature.counter;
-            info.fCount += sourceFeature.counter;
+            if( source < counterMap_size ) {
+                auto& info = counterMap[source];
+                info.counter += imp * sourceFeature.counter;
+                info.fCount += sourceFeature.counter;
+            }
         }
     }
 
-    if (counterMap.empty())
-        return;
-
     typedef std::vector<std::pair<uint32_t, FeatureStatInfo>> Sorted_t;
     Sorted_t sorted;
-    sorted.reserve(counterMap.size());
+    sorted.reserve(counterMap_size);
     const auto normalizedMinCov = minCov * srcFCnt;
 
-    for (size_t i = 0; i < counterMap.size(); ++i)
+    for (size_t i = 0; i < counterMap_size; ++i)
     {
-        const auto& info = counterMap[i];
+        auto& info = counterMap[i];
         if (info.fCount < normalizedMinCov)
             continue;
 
@@ -103,8 +108,7 @@ void NGramStorage::getMatchesRange(
 
             bool found = false;
             for (const auto& d : boost::make_iterator_range(data.first, data.second))
-                if (filter (d.second))
-                {
+                if ((info.fCount = filter (d.second, info.fCount)) >= normalizedMinCov) {
                     found = true;
                     break;
                 }
