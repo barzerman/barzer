@@ -38,7 +38,6 @@ def runhub(hub_dir, cfg):
     hub_path = path.join(hub_dir, 'barzer_hub')
     cmd = [hub_path, '-v', '-cfg', cfg]
     subprocess.call(cmd)
-    print "haha"
     #run(cmd, "hub.out")
     
 
