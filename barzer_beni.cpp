@@ -500,7 +500,9 @@ BENI::BENI( StoredUniverse& u ) :
 void BENI::addWord(const std::string& str, const BarzerEntity& ent)
 {
 	d_storage.addWord( str.c_str(), ent );
+    #ifndef BENI_YES_BACK_IDX
 	d_backIdx.insert({ ent, str });
+    #endif
 }
 
 void BENI::addEntityClass( const StoredEntityClass& ec )
