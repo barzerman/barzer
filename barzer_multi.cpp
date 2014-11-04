@@ -66,9 +66,13 @@ void MultiQueryHandler::gen_input(uint32_t user_id, std::string &out) {
 void MultiQueryHandler::process() {
     std::vector<uint32_t> children = { 200, 201, 202 };
     if (!children.size()) return;
-    std::vector<std::ostringstream> outputs;
     uint32_t wlen = children.size() - 1;
+
+    std::vector<std::shared_ptr<std::ostringstream> > outputs;
     outputs.resize(wlen);
+    for (auto &ptr : outputs) {
+        ptr.reset(new std::ostringstream);
+    }
 
     auto parse = [&children, this](std::ostream &os, uint32_t i) {
         std::string w_in;
@@ -83,7 +87,7 @@ void MultiQueryHandler::process() {
 
     for (uint32_t i = 1; i < wlen; ++i) {
         wg.run_task([this, i, &left, parse, &outputs]() {
-            parse(outputs[i], i);
+            parse(*outputs[i], i);
             --left;
         });
     }
@@ -93,8 +97,8 @@ void MultiQueryHandler::process() {
     while (left > 0)
         ; // wait for all workers to finish
 
-    for (std::ostringstream &ss : outputs) {
-        os << ss.str();
+    for (auto &ss : outputs) {
+        os << ss->str();
     }
 
 
