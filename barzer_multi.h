@@ -21,5 +21,6 @@ class MultiQueryHandler {
 public:
     MultiQueryHandler(GlobalPools&, RequestEnvironment&);
     void process();
+    void gen_input(uint32_t user_id, std::string&);
 };
 }
