@@ -18,17 +18,14 @@ WorkerGroup& getWorkerGroup() {
     static WorkerGroup wg(6);
     return wg;
 }
-
-
 }
-
-
-
 
 MultiQueryHandler::MultiQueryHandler(GlobalPools& gp, RequestEnvironment& re)
     : gpools(gp), reqEnv(re), wg(getWorkerGroup()) {
     const char * buf = re.buf;
     char *bs = bufStart = new char[re.len];
+    // splits the bufer into 2 new ones. before and after <ID> in u="<ID>"
+    // cuts out multi="<anything>"
     while(*buf) {
         switch(*buf) {
         case 'u':
@@ -66,15 +63,8 @@ void MultiQueryHandler::gen_input(uint32_t user_id, std::string &out) {
 void MultiQueryHandler::process() {
     std::vector<uint32_t> children = { 200, 201, 202 };
     if (!children.size()) return;
-    uint32_t wlen = children.size() - 1;
 
-    std::vector<std::shared_ptr<std::ostringstream> > outputs;
-    outputs.resize(wlen);
-    for (auto &ptr : outputs) {
-        ptr.reset(new std::ostringstream);
-    }
-
-    auto parse = [&children, this](std::ostream &os, uint32_t i) {
+    auto parse = [&children, this](std::ostream &os, size_t i) {
         std::string w_in;
         gen_input(children[i], w_in);
         RequestEnvironment w_reqEnv(os, w_in.c_str(), w_in.size());
@@ -83,22 +73,32 @@ void MultiQueryHandler::process() {
         rp.parse(w_reqEnv.buf, w_reqEnv.len);
     };
 
-    std::atomic<int> left(wlen);
+    uint32_t wlen = children.size() - 1;
+    // makes a vector of N-1 streams for workers
+    std::vector<std::shared_ptr<std::ostringstream> > outputs;
+    outputs.reserve(wlen);
+    for (size_t i = 0; i < wlen; ++i) { // can someone please shoot me. Or at least give me a working vector<ostream>
+        outputs.push_back(std::make_shared<std::ostringstream>());
+    }
 
-    for (uint32_t i = 1; i < wlen; ++i) {
+    std::atomic<int> left(wlen);
+    for (size_t i = 1; i < wlen; ++i) { // send out the clowns
         wg.run_task([this, i, &left, parse, &outputs]() {
             parse(*outputs[i], i);
             --left;
         });
     }
 
+    // writing right into the output stream for the last one
     std::ostream &os = reqEnv.outStream;
     parse(os, wlen);
+
     while (left > 0)
         ; // wait for all workers to finish
 
+    // writing out workers results
     for (auto &ss : outputs) {
-        os << ss->str();
+        os << ss->rdbuf();
     }
 
 
