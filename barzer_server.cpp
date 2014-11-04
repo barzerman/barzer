@@ -15,7 +15,7 @@
 #include <barzer_relbits.h>
 #include <barzer_el_trie_ruleidx.h>
 #include <barzer_shellsrv_shared.h>
-
+#include "barzer_multi.h"
 
 extern "C" {
 #include <unistd.h>
@@ -181,6 +181,10 @@ void AsyncServer::handle_accept(SearchSession *new_session,
 }
 
 namespace request {
+void barze_multi(GlobalPools& gp, RequestEnvironment& reqEnv) {
+    MultiQueryHandler mqh(gp, reqEnv);
+    mqh.process();
+}
 int barze( GlobalPools& gp, RequestEnvironment& reqEnv )
 {
 	BarzerRequestParser rp(gp, reqEnv.outStream, 0 );
@@ -544,7 +548,14 @@ int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os )
         return ROUTE_ERROR_UNKNOWN_COMMAND;
 	} else {
 		RequestEnvironment reqEnv(os,buf,len);
-		request::barze( gpools, reqEnv );
+		if (len > 31
+		        && buf[1] == 'q'
+		        && strncmp(buf+2, "uery", sizeof("uery")) == 0
+		        && strstr(buf+6, "multi") != NULL) {
+
+		} else {
+		    request::barze( gpools, reqEnv );
+		}
 	}
 	return ROUTE_ERROR_OK;
 }

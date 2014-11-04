@@ -168,6 +168,7 @@ set(SOURCES
 			barzer_geoindex.cpp
 			barzer_spell_features.cpp
 			barzer_el_trie_ruleidx.cpp
+			barzer_multi.cpp
             zurch/zurch_loader_longxml.cpp
             zurch_route.cpp
             zurch_barzer.cpp
