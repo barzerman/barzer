@@ -206,7 +206,7 @@ struct AsciiFileColumns {
                 if( tok_num> d_maxNumCol )
                     return true;
                 d_col.push_back(tok);
-                return false;
+                return 0;
             },
             s,
             d_sep

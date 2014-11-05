@@ -113,7 +113,6 @@ int main( int argc, char * argv[] ) {
         relbitsFile.push_back( '/' );
     }
     relbitsFile.append( "relbits.txt" );
-    std::cerr << "loading release bits from " << relbitsFile << std::endl; 
     barzer::RelBitsMgr::inst().reparse( std::cerr, relbitsFile.c_str() );
 
 	//ay::Logger::getLogger()->setFile("barzer.log");

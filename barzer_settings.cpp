@@ -343,7 +343,6 @@ void BarzerSettings::load(BELReader& reader ) {
 	load(reader,DEFAULT_CONFIG_FILE);
 }
 
-
 void BarzerSettings::loadInstanceSettings() {
 	const ptree &rules = pt.get_child("config.instance", empty_ptree());
 	BOOST_FOREACH(const ptree::value_type &v, rules) {
@@ -1093,6 +1092,38 @@ int BarzerSettings::loadListOfConfigs(BELReader& reader, const char *fname) {
 
 namespace {
 
+size_t load_entity_linkages( GlobalPools& gp, const boost::property_tree::ptree& pt )
+{
+    if( boost::optional<const ptree&> elOpt = pt.get_child_optional("config.entlink") ) {
+        const auto& node = elOpt.get();
+        if( const auto optAttr = node.get_child_optional("<xmlattr>") ) {
+            StoredEntityClass leftClass;
+            if( !(optAttr_assign( leftClass.ec, optAttr, "cl" ) && optAttr_assign( leftClass.subclass, optAttr, "sc" )) ) {
+                std::cerr << "entlink doesnt have mandatory valid cl/sc attributes\n";
+                return 1;
+            }
+            StoredEntityClass rightClass;
+            if( !(optAttr_assign( rightClass.ec, optAttr, "cl" ) && optAttr_assign( rightClass.subclass, optAttr, "sc" )) )
+                rightClass = leftClass;
+
+            BOOST_FOREACH(const ptree::value_type &v, node) {
+                if( v.first == "linkfile" ) {
+                    std::string idxName, fileName;
+                    if( boost::optional< const ptree& > oa = v.second.get_child_optional("<xmlattr>") ) {
+                        if( optAttr_assign( idxName, oa, "idx" ) && optAttr_assign( fileName, oa, "path" ) ) {
+                            gp.dtaIdx.entLinkage.loadFile(gp, fileName.c_str(), idxName.c_str(), leftClass, rightClass);
+                            continue;
+                        }
+                    }
+                    std::cerr << "entlink has invalid attributes\n";
+                }
+            }
+        }
+        return 0;
+    } else
+        return 1;
+}
+
 size_t load_multiverse( GlobalPools& gp, const boost::property_tree::ptree& pt )
 {
     boost::optional<const ptree&> mvOpt = pt.get_child_optional("config.multiverse");
@@ -1148,7 +1179,8 @@ void BarzerSettings::load(BELReader& reader, const char *fname) {
 		loadLangNGrams();
 		loadRules(reader);
 
-    load_multiverse( gpools, pt );
+        load_entity_linkages(gpools, pt);
+        load_multiverse( gpools, pt );
 		loadUsers(reader);
 
 		fs::current_path(oldPath);

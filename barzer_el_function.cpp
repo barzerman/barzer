@@ -1048,7 +1048,7 @@ bool cmpr(BarzelEvalResult &result,
                 if( const SmartBENI*  beni = q_universe.getBeni() ) {
                     BENIFindResults_t beniResultName;
                     size_t maxCount = ( maxEnt ? (maxEnt-beniResult.size()) : 128 );
-                    beni->search( beniResultName, qparm, idStr.c_str(), 0.3, 0, [&] (const BarzerEntity& i ) { return (ec == i.eclass); }, maxCount ); 
+                    beni->search( beniResultName, qparm, idStr.c_str(), 0.3, 0, [&] (const BarzerEntity& i, double s ) { return (ec == i.eclass); }, maxCount ); 
                     for( auto i = beniResultName.begin(); i!= beniResultName.end(); ++i ) {
                         if( !maxEnt || beniResult.size() < maxEnt ) 
                             beniResult.push_back( *i );

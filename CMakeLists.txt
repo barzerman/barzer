@@ -98,6 +98,8 @@ else()
 endif()
 
 set(SOURCES 
+            barzer_beni_storage.cpp
+            barzer_entity_linkage.cpp
             barzer_multiverse.cpp
             barzer_lib.cpp
             barzer_topics.cpp
