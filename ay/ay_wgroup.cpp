@@ -7,7 +7,6 @@
 
 
 #include "ay_wgroup.h"
-#include <atomic>
 
 WorkerGroup::WorkerGroup(unsigned int n) : d_num(n), running(true) {
     while (n-- > 0) {
@@ -15,26 +14,22 @@ WorkerGroup::WorkerGroup(unsigned int n) : d_num(n), running(true) {
             while (running) {
                 get_next()();
             }
+            --d_num;
         }).detach();
     }
 }
 
 // to make sure all threads have quit before the group instance is no more
 WorkerGroup::~WorkerGroup() {
-    std::atomic<int> n(d_num-1);
     {
         std::lock_guard<std::mutex> lk(d_mut);
-        d_queue.push([this]() {
-            running = false;
-        });
-        for (unsigned int i = 1; i < d_num; ++i) {
-            d_queue.push([&n]() {
-                --n;
-            });
+        running = false;
+        for (int i = 0; i < d_num; ++i) {
+            d_queue.push([]() {});
         }
     }
     d_cv.notify_all();
-    while (n > 0)
+    while (d_num > 0)
         ; // waiting until all threads are finished
 }
 
