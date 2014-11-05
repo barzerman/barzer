@@ -160,7 +160,7 @@ public:
         char *bs = bufStart = new char[re.len];
         // splits the bufer into 2 new ones. before and after <ID> in u="<ID>"
         // cuts out multi="<anything>"
-        while(*buf) {
+        while(buf < re.buf + re.len) {
             switch(*buf) {
             case 'u':
                 if (buf[1] == '=' || isspace(buf[1])) {
@@ -175,7 +175,7 @@ public:
                 break;
             case 'm':
                 if (strncmp(buf+1, "ulti", sizeof("ulti"))
-                        && (*(buf+5) == '=' || isspace(*(buf+5)))) {
+                        && (buf[5] == '=' || isspace(buf[5]))) {
                     while(*buf++ != '"')
                         ;
                     while(*buf++ != '"')
@@ -185,6 +185,7 @@ public:
             }
             *bs++ = *buf++;
         }
+        *bs = '\0';
     }
     void gen_input(uint32_t user_id, std::string &out) {
         out.clear();
@@ -196,12 +197,11 @@ public:
     void process() {
         std::vector<uint32_t> children = { 200, 201, 202 };
         if (!children.size()) return;
-
         auto parse = [&children, this](std::ostream &os, size_t i) {
             std::string w_in;
             gen_input(children[i], w_in);
             RequestEnvironment w_reqEnv(os, w_in.c_str(), w_in.size());
-            BarzerRequestParser rp(gpools, os);
+            BarzerRequestParser rp(gpools, os, children[i]);
             rp.getBarz().setServerReqEnv( &w_reqEnv );
             rp.parse(w_reqEnv.buf, w_reqEnv.len);
         };
@@ -215,13 +215,14 @@ public:
         }
 
         std::atomic<int> left(wlen);
-        for (size_t i = 1; i < wlen; ++i) { // send out the clowns
+        for (size_t i = 0; i < wlen; ++i) { // send out the clowns
             wg.run_task([i, &left, parse, &outputs]() {
                 parse(*outputs[i], i);
                 --left;
-            });
+                //std::cout << "task " << i << " done" << std::endl;
+            }); //*/
         }
-
+         //*/
         // writing right into the output stream for the last one
         std::ostream &os = reqEnv.outStream;
         parse(os, wlen);
@@ -230,8 +231,9 @@ public:
             ; // wait for all workers to finish
 
         // writing out workers results
+
         for (auto &ss : outputs) {
-            os << ss->rdbuf();
+            os << ss->str() << "\n";
         }
     }
 };
@@ -282,7 +284,6 @@ void barze_multi(GlobalPools& gp, RequestEnvironment& reqEnv) {
 int barze( GlobalPools& gp, RequestEnvironment& reqEnv )
 {
 	BarzerRequestParser rp(gp, reqEnv.outStream, 0 );
-
     rp.getBarz().setServerReqEnv( &reqEnv );
 	rp.parse(reqEnv.buf, reqEnv.len);
 
@@ -644,9 +645,9 @@ int route( GlobalPools& gpools, char* buf, const size_t len, std::ostream& os )
 		RequestEnvironment reqEnv(os,buf,len);
 		if (len > 31
 		        && buf[1] == 'q'
-		        && strncmp(buf+2, "uery", sizeof("uery")) == 0
+		        && strncmp(buf+2, "uery", sizeof("uery")-1) == 0
 		        && strstr(buf+6, "multi") != NULL) {
-
+		    request::barze_multi(gpools, reqEnv);
 		} else {
 		    request::barze( gpools, reqEnv );
 		}

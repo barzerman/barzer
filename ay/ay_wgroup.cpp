@@ -21,13 +21,19 @@ WorkerGroup::WorkerGroup(unsigned int n) : d_num(n), running(true) {
 
 // to make sure all threads have quit before the group instance is no more
 WorkerGroup::~WorkerGroup() {
-    running = false;
-    std::atomic<int> n(d_num);
-    for (unsigned int i = 0; i < d_num; ++i) {
-        run_task([&n]() {
-            --n;
+    std::atomic<int> n(d_num-1);
+    {
+        std::lock_guard<std::mutex> lk(d_mut);
+        d_queue.push([this]() {
+            running = false;
         });
+        for (unsigned int i = 1; i < d_num; ++i) {
+            d_queue.push([&n]() {
+                --n;
+            });
+        }
     }
+    d_cv.notify_all();
     while (n > 0)
         ; // waiting until all threads are finished
 }
