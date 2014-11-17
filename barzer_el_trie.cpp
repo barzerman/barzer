@@ -289,9 +289,6 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<bool> {
 	bool operator()( const BTND_Pattern_DateTime& p ) {
 		BarzelWCKey wcKey;
 		trie.getWCPool().produceWCKey( wcKey, p );
-		if( wcKey.wcType != BTND_Pattern_DateTime_TYPE ) {
-			AYDEBUG( "TRIE PANIC" );
-		}
 		key.type=BTND_Pattern_DateTime_TYPE;
 		key.id=wcKey.wcId;
         key.d_matchMode = p.d_matchMode;
@@ -299,11 +296,12 @@ struct BarzelTrieFirmChildKey_form : public boost::static_visitor<bool> {
 	}
 	bool operator()( const BTND_Pattern_Date& p ) {
 		switch( p.type ) {
-		
 		case BTND_Pattern_Date::T_ANY_DATE:
 			key.type=BTND_Pattern_Date_TYPE; 
 			key.id=0xffffffff;
-			break;
+            key.d_matchMode = p.d_matchMode;
+			return true;
+
 		case BTND_Pattern_Date::T_ANY_FUTUREDATE:
 		case BTND_Pattern_Date::T_ANY_PASTDATE:
 		case BTND_Pattern_Date::T_DATERANGE: {
@@ -465,14 +463,15 @@ const BarzelTrieNode* BELTrie::addPath(
 	WCPatDtaList wcpdList;
 	WCPatDtaList::iterator firstWC = wcpdList.end();
 
-	BarzelTrieFirmChildKey firmKey;
-	BarzelTrieFirmChildKey_form keyFormer( firmKey, *this ) ;
     
 	for( BTND_PatternDataVec::const_iterator i = path.begin(); i!= path.end(); ++i ) {
+        BarzelTrieFirmChildKey firmKey;
+        BarzelTrieFirmChildKey_form keyFormer( firmKey, *this ) ;
+
 		bool isFirm = boost::apply_visitor( keyFormer, *i );
         
 		firmKey.noLeftBlanks = 0;
-		if( firmKey.isNull() || (!isFirm && path.begin() == i) ) { // either failed to encode firm key or this is a leading wc
+		if(!isFirm || firmKey.isNull()) { // either failed to encode firm key or this is a leading wc
 			wcpdList.push_back( WCPatDta(i,BarzelTrieFirmChildKey() ) );
             // ACHTUNG! was local
 			firstWC = wcpdList.rbegin().base();
@@ -492,6 +491,9 @@ const BarzelTrieNode* BELTrie::addPath(
 	BarzelSingleTranVarInfo* storedTranVarInfo = 0;
 
 	for( BTND_PatternDataVec::const_iterator i = path.begin(); i!= path.end(); ++i, ++vi ) {
+        BarzelTrieFirmChildKey firmKey;
+        BarzelTrieFirmChildKey_form keyFormer( firmKey, *this ) ;
+
 		const BarzelTrieNode* prevN = n;
 		if( !wcpdList.empty() && i == wcpdList.front().first ) { // we reached a wildcard
 			if( n ) 
