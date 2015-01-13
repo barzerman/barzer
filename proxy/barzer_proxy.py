@@ -46,6 +46,9 @@ def error_json(s):
 def error_html(s):
     return '<h3 style="color:red">{}</h3>'.format(s)
 
+def mk_topic(t):
+    return '<topic c="{}" s="{}" i="{}" />'.format(*t)
+
 def application(env, start_response):
     typ = env['PATH_INFO'].rsplit('/', 1)[-1] #@ReservedAssignment
     if typ in ('json', 'sjson'):
@@ -59,6 +62,7 @@ def application(env, start_response):
     ver = 1.0
     qs = env['QUERY_STRING']
     user_set = False
+    topics = []
     for kv in (s2 for s1 in qs.split('&') for s2 in s1.split(';')):
         parts = kv.split('=', 1)
         if len(parts) != 2:
@@ -77,6 +81,12 @@ def application(env, start_response):
             except ValueError:
                 yield error("Invalid `ver' parameter")
                 return
+        elif k == 'topic':
+            t = unquote(v.replace('+', ' ')).split('.', 2)
+            if len(t) != 3:
+                yield error("Invalid topic")
+                return
+            topics.append(t)
         elif k in {'now','beni','zurch','flag','route','extra',
                    'u','uname','byid','zdtag'}:
             if k in ('u', 'uname'):
@@ -105,8 +115,12 @@ def application(env, start_response):
         yield error("Unable to connect")
         uwsgi.close(fd)
         return
-    qry = '<query{}>{}</query>\r\n.\r\n'.format(add, query)
-    #print qry
+    qry = '<query{}>{}</query>'.format(add, query)
+    if topics:
+         qry = '<qblock>{}{}</qblock>'.format(
+                    ''.join(map(mk_topic, topics)), qry)
+    qry += '\r\n.\r\n'
+    print qry
     uwsgi.send(fd, qry)
     while True:
         yield uwsgi.wait_fd_read(fd, 10)
