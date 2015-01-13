@@ -198,7 +198,8 @@ struct AutocTopicParseCB {
         if( ti ) {
             ti.get_string( str );
             ++ti;
-            euid.tokId = brp.getGlobalPools().dtaIdx.getTokIdByString(str.c_str());
+            euid.tokId = brp.getGlobalPools().internalString_getId(str.c_str());
+            //euid.tokId = brp.getGlobalPools().dtaIdx.getTokIdByString(str.c_str());
         } 
         
         if( euid.eclass.isValid() && euid.tokId != 0xffffffff ) {
@@ -877,7 +878,8 @@ void BarzerRequestParser::tag_topic(RequestTag &tag) {
             break;
         }
     }
-    StoredTokenId tokId = ( topicIdStr ? gpools.dtaIdx.getTokIdByString(topicIdStr) : 0xffffffff );      
+    //StoredTokenId tokId = ( topicIdStr ? gpools.dtaIdx.getTokIdByString(topicIdStr) : 0xffffffff );
+    StoredTokenId tokId = ( topicIdStr ? gpools.internalString_getId(topicIdStr) : 0xffffffff );
     BarzerEntity topicEnt( tokId, entClass, entSubclass );
     barz.topicInfo.addTopic( topicEnt );
     barz.topicInfo.setTopicFilterMode_Strict(); 
