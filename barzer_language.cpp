@@ -5,6 +5,7 @@
 #include <barzer_language.h>
 
 #include <numeric>
+#include <unordered_map>
 #include <lg_ru/barzer_ru_lex.h>
 #include <lg_en/barzer_en_lex.h>
 #include <ay/ay_utf8.h>
@@ -392,6 +393,21 @@ const char* Lang::getLangName( int xx )
     else
         return "UNKNOWN";
 }
+
+BarzerLangEnum Lang::fromStringCode(const std::string &code) {
+    static const std::unordered_map<std::string,BarzerLangEnum> mp = {
+        {"en", LANG_ENGLISH},
+        {"ru", LANG_RUSSIAN},
+        {"es", LANG_SPANISH},
+        {"fr", LANG_FRENCH},
+        {"zh", LANG_CHINESE},
+        {"ja", LANG_JAPANESE}
+    };
+    auto it = mp.find(code);
+    return it == mp.end() ? LANG_UNKNOWN : it->second;
+}
+
+
 int QSingleLangLexer_UTF8::lex( CTWPVec& , const TTWPVec&, const QuestionParm& )
 {
     return 0;

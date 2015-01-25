@@ -28,6 +28,9 @@ enum BarzerLangEnum
 	LANG_SPANISH,
 	LANG_FRENCH,
 	/// add new language after this only
+    LANG_JAPANESE,
+    LANG_CHINESE, // simplified
+
 	LANG_MAX
 };
 
@@ -101,6 +104,7 @@ struct Lang {
     {
         return getLevenshteinDistance( lev, s1.c_str(), s1.length(), s2.c_str(), s2.length() );
     }
+    static BarzerLangEnum fromStringCode(const std::string&);
 };
 
 class QSingleLangLexer {

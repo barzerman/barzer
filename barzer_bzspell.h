@@ -12,7 +12,7 @@
 namespace barzer {
 class StoredUniverse;
 
-/// for every word visible by the user this is stored int he universe
+/// for every word visible by the user this is stored in the universe
 struct BZSWordInfo {
 	// 0 - generic fluff 
 	// 1 - user specific extra words 

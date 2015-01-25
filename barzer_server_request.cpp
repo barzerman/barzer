@@ -169,9 +169,11 @@ BarzerRequestParser::BarzerRequestParser(const GlobalPools &gp, std::ostream &s 
     d_barzXMLParser(0),
     d_queryId( std::numeric_limits<uint64_t>::max() ),
     d_simplified(false),
+    d_lang(LANG_ENGLISH),
     d_maxResults(32),
     ret(XML_TYPE),
     d_zurchDocIdxId(0xffffffff),
+    d_zurchMode(ZURCH_MODE_STANDARD),
     d_queryType(QType::BARZER)
 {parser = 0;}
 
@@ -210,6 +212,7 @@ struct AutocTopicParseCB {
         return 0;
     }
 };
+
 
 } // anon namespace 
 
@@ -465,6 +468,7 @@ BarzerRequestParser::BarzerRequestParser(const GlobalPools &gp, std::ostream &s,
     d_barzXMLParser(0),
     d_queryId( std::numeric_limits<uint64_t>::max() ),
     d_simplified(false),
+    d_lang(LANG_ENGLISH),
     d_maxResults(32),
     ret(XML_TYPE),
     d_zurchDocIdxId(0xffffffff),
@@ -820,6 +824,9 @@ void BarzerRequestParser::raw_query_parse( const char* query)
     if( !d_queryFlags.empty() )
         qparm.setQueryFlags( d_queryFlags.c_str() );
 
+
+    qparm.lang = d_lang;
+
 	//qparser.parse( barz, getTag().body.c_str(), qparm );
     if( !barz.topicInfo.getTopicMap().empty() ) {
         barz.topicInfo.computeTopTopics();
@@ -1144,6 +1151,8 @@ void BarzerRequestParser::tag_prop(RequestTag &tag)
         return;
 }
 
+
+
 void BarzerRequestParser::tag_query(RequestTag &tag) 
 {
 	AttrList &attrs = tag.attrs;
@@ -1219,6 +1228,12 @@ void BarzerRequestParser::tag_query(RequestTag &tag)
 			} else if( i->first =="flt" ) {
                 filterCascade.parse( i->second.c_str(), i->second.c_str()+i->second.length() );
 				handled = true;
+            }
+            break;
+        case 'l':
+            if (i->first == "lang") {
+                handled = true;
+                d_lang = Lang::fromStringCode(i->second);
             }
             break;
         case 'm':

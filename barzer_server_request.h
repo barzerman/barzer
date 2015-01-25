@@ -18,6 +18,7 @@
 #include <barzer_settings.h>
 #include <barzer_server_request_filter.h>
 #include <barzer_question_parm.h>
+#include "barzer_language.h"
 
 extern "C" {
 #include <expat.h>
@@ -105,6 +106,7 @@ private:
     uint64_t       d_queryId;
     
     bool           d_simplified;
+    int d_lang;
     
 public:
     // instead of parsing input XML initializes everything from a URI string
