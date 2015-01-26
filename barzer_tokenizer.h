@@ -25,7 +25,8 @@ struct TokenizerStrategy {
     enum {
         STRAT_TYPE_DEFAULT,
         STRAT_TYPE_SPACE_DEFAULT,
-        STRAT_TYPE_CASCADE
+        STRAT_TYPE_CASCADE,
+        STRAT_TYPE_UNICODE_DEFAULT
     };
     int type; // one of STRAT_TYPE_ constants
     std::vector< TokenizerRuleset > d_ruleset;
@@ -68,6 +69,7 @@ public:
 	int tokenize( Barz& barz, const TokenizerStrategy& , const QuestionParm& );
     //// special (hardcoded) strategy tokenizer
 	int tokenize_strat_space( Barz& , const QuestionParm& );
+	int tokenize_unicode_default(Barz&, const QuestionParm&);
 };
 
 } // namespace barzer

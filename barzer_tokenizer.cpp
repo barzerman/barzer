@@ -69,8 +69,33 @@ int QTokenizer::tokenize_strat_space(Barz& barz, const QuestionParm& qparm )
 
     return 0;
 }
+
+int QTokenizer::tokenize_unicode_default(Barz& barz, const QuestionParm& qparm) {
+    TTWPVec& ttwp = barz.getTtVec();
+    ttwp.clear();
+
+    /// moving thru all glyphs (utf8 chars) in qutf8 and breaking it up on spaces
+    bool lastWasSpace = false;
+    const char* prevGlyphStart = 0;
+    size_t     startGlyph = 0;
+
+    size_t questionOrigUTF8_len = barz.questionOrigUTF8.length();
+    const char* questionOrigUTF8_start = ( questionOrigUTF8_len ? barz.questionOrigUTF8.getGlyphStart(0) : 0 );
+    return 0;
+}
+
 int QTokenizer::tokenize( Barz& barz, const TokenizerStrategy& strat, const QuestionParm& qparm )
 {
+
+    switch(strat.getType()) {
+    case TokenizerStrategy::STRAT_TYPE_DEFAULT:
+        return tokenize(barz.getTtVec(), barz.getOrigQuestion().c_str(), qparm);
+    case TokenizerStrategy::STRAT_TYPE_SPACE_DEFAULT:
+        return tokenize_unicode_default(barz, qparm);
+    default:
+        return tokenize_strat_space(barz, qparm );
+    }
+
     if( strat.isDefault() ) {
         /*
         if( !d_universe.checkBit( UBIT_NO_EXTRA_NORMALIZATION ) )
