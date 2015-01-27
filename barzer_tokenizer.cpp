@@ -5,7 +5,8 @@
 #include <barzer_tokenizer.h>
 #include <barzer_barz.h>
 #include <barzer_universe.h>
-
+#include <ay/ay_utf8.h>
+#include <ay/ay_unicode_category.h>
 namespace barzer {
 
 ////////////// TOKENIZE
@@ -71,17 +72,66 @@ int QTokenizer::tokenize_strat_space(Barz& barz, const QuestionParm& qparm )
 }
 
 int QTokenizer::tokenize_unicode_default(Barz& barz, const QuestionParm& qparm) {
-    TTWPVec& ttwp = barz.getTtVec();
+	//std::cout << "executing unicode tokenizer" << std::endl;
+	enum GlyphType {
+		CHAR_DEFAULT = 0,
+		CHAR_DIGIT,
+		CHAR_SPACE,
+		CHAR_PUNCT,
+		CHAR_OTHER,
+	};
+	TTWPVec& ttwp = barz.getTtVec();
     ttwp.clear();
 
-    /// moving thru all glyphs (utf8 chars) in qutf8 and breaking it up on spaces
-    bool lastWasSpace = false;
-    const char* prevGlyphStart = 0;
-    size_t     startGlyph = 0;
+    GlyphType prevGtype = CHAR_DEFAULT, gtype = CHAR_DEFAULT;
+
 
     size_t questionOrigUTF8_len = barz.questionOrigUTF8.length();
-    const char* questionOrigUTF8_start = ( questionOrigUTF8_len ? barz.questionOrigUTF8.getGlyphStart(0) : 0 );
+    size_t prev_gi = 0, prev_i = 0, i = 0, gi = 0;
+    for ( ; gi < questionOrigUTF8_len; ++gi) {
+    	ay::CharUTF8 g = barz.questionOrigUTF8.getGlyph(gi);
+		uint32_t wchar = g.toUTF32();
+		if(ay::UnicodeClassifier::isSpace(wchar)) {
+			gtype = CHAR_SPACE;
+		} else if (ay::UnicodeClassifier::isPunct(wchar)) {
+			gtype = CHAR_PUNCT;
+		} else if (ay::UnicodeClassifier::isNumber(wchar)) {
+			gtype = CHAR_DIGIT;
+		} else {
+			gtype = CHAR_OTHER;
+		}
+
+		if (prevGtype != CHAR_DEFAULT && prevGtype != gtype) {
+			ttwp.push_back( TTWPVec::value_type(
+			            TToken(
+			            	barz.questionOrigUTF8.getGlyphStart(prev_gi),
+			                i - prev_i,
+			                prev_gi,
+			                gi - prev_gi,
+			                prev_i
+			            ),
+			            ttwp.size()
+			        ));
+			prev_i = i;
+			prev_gi = gi;
+		}
+		prevGtype = gtype;
+		i += g.size();
+    }
+    if (i > prev_i) {
+    	ttwp.push_back( TTWPVec::value_type(
+    				            TToken(
+    				            	barz.questionOrigUTF8.getGlyphStart(prev_gi),
+    				                i - prev_i,
+    				                prev_gi,
+    				                gi - prev_gi,
+    				                prev_i
+    				            ),
+    				            ttwp.size()
+    				        ));
+    }
     return 0;
+
 }
 
 int QTokenizer::tokenize( Barz& barz, const TokenizerStrategy& strat, const QuestionParm& qparm )
@@ -90,7 +140,7 @@ int QTokenizer::tokenize( Barz& barz, const TokenizerStrategy& strat, const Ques
     switch(strat.getType()) {
     case TokenizerStrategy::STRAT_TYPE_DEFAULT:
         return tokenize(barz.getTtVec(), barz.getOrigQuestion().c_str(), qparm);
-    case TokenizerStrategy::STRAT_TYPE_SPACE_DEFAULT:
+    case TokenizerStrategy::STRAT_TYPE_UNICODE_DEFAULT:
         return tokenize_unicode_default(barz, qparm);
     default:
         return tokenize_strat_space(barz, qparm );

@@ -3,9 +3,11 @@
 #include <cstring>
 #include <iostream>
 #include <algorithm>
+#include <unordered_set>
 #include "tables/u2l.cpp"
 #include "tables/l2u.cpp"
 #include "tables/decompositions.cpp"
+#include "ay_unicode_category.h"
 
 namespace ay
 {
@@ -57,6 +59,10 @@ namespace ay
 		p_t *end = tableU2L + sizeof(tableU2L) / sizeof(tableU2L[0]);
 		p_t *pair = std::lower_bound(tableU2L, end, utf32, fstComp);
 		return pair != end && (*pair)[0] == utf32;
+	}
+
+	bool CharUTF8::isPunct() const {
+		return UnicodeClassifier::isPunct(toUTF32());
 	}
 
 	// This one will most likely fail with some exotic stuff like Hangul

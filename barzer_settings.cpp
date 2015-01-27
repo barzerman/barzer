@@ -505,6 +505,8 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
                             u.getUniverse().tokenizerStrategy().setType( TokenizerStrategy::STRAT_TYPE_SPACE_DEFAULT);
                         else if( !strcasecmp( tmpOpt.get().c_str(),"CASCADE" ) )
                             u.getUniverse().tokenizerStrategy().setType( TokenizerStrategy::STRAT_TYPE_CASCADE);
+                        else if (!strcasecmp( tmpOpt.get().c_str(),"UNICODE_DEFAULT" ) )
+                            u.getUniverse().tokenizerStrategy().setType( TokenizerStrategy::STRAT_TYPE_UNICODE_DEFAULT);
                         else
                             u.getUniverse().tokenizerStrategy().setType( TokenizerStrategy::STRAT_TYPE_DEFAULT);
                     }

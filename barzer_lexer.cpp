@@ -1386,6 +1386,9 @@ int QLexParser::lex( Barz& barz, const TokenizerStrategy& strat, QTokenizer& tok
         advancedBasicClassify( barz, qparm );
 	    // langLexer.lex( barz.getCtVec(), barz.getTtVec(), qparm );
         return 0;
+    } else if (strat.getType() == TokenizerStrategy::STRAT_TYPE_UNICODE_DEFAULT) {
+    	barz.tokenize( strat , tokenizer, q, qparm );
+    	return lex(barz, qparm);
     } else if( strat.getType() == TokenizerStrategy::STRAT_TYPE_CASCADE ) {
         AYLOG(ERROR) << "cascade tokenizer strategy not implemented yet" << std::endl;
         return 0;
