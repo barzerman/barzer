@@ -62,7 +62,7 @@ namespace ay
 	}
 
 	bool CharUTF8::isPunct() const {
-		return UnicodeClassifier::isPunct(toUTF32());
+		return ispunct(d_data.c4[0]) || UnicodeClassifier::isPunct(toUTF32());
 	}
 
 	// This one will most likely fail with some exotic stuff like Hangul

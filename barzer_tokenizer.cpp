@@ -85,7 +85,6 @@ int QTokenizer::tokenize_unicode_default(Barz& barz, const QuestionParm& qparm) 
 
     GlyphType prevGtype = CHAR_DEFAULT, gtype = CHAR_DEFAULT;
 
-
     size_t questionOrigUTF8_len = barz.questionOrigUTF8.length();
     size_t prev_gi = 0, prev_i = 0, i = 0, gi = 0;
     for ( ; gi < questionOrigUTF8_len; ++gi) {
