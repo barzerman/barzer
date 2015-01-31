@@ -474,6 +474,7 @@ std::ostream& operator<< ( std::ostream& fp, const LangInfo& li )
 
 int16_t LangInfoArray::getDominantLanguage() const
 {
+    if (defaultLang != LANG_UNKNOWN) return defaultLang;
     uint32_t maxCnt = 0;
 	uint32_t totalCnt = 0;
     int16_t  bestLang = LANG_ENGLISH;
@@ -496,4 +497,5 @@ int16_t LangInfoArray::getDominantLanguage() const
 	// AYLOG(DEBUG) << "detected dominant language: " << bestLang;
     return bestLang;
 }
+
 } // barzer namespace 

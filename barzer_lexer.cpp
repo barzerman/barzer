@@ -850,7 +850,10 @@ SpellCorrectResult QLexParser::trySpellCorrectAndClassify (PosedVec<CTWPVec> cPo
 		return SpellCorrectResult (0, ++cPosVec, ++tPosVec);
 	const GlobalPools& gp = d_universe.getGlobalPools();
 
-    int16_t         lang = Lang::getLang( d_universe, ttok.getBuf(), ttok.getLen() );
+	int lang = qparm.lang;
+	if (lang == LANG_UNKNOWN) {
+	    lang = Lang::getLang( d_universe, ttok.getBuf(), ttok.getLen() );
+	}
     bool            isTwoByteLang = Lang::isTwoByteLang(lang);
 	bool            isAsciiToken = ( lang == LANG_ENGLISH );
 	std::string     ascifiedT;
@@ -1292,7 +1295,8 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
                 {
 			        std::string strToStem( ttok.normBuf.length() ? ttok.normBuf : ttok.buf ); 
 			        // std::string stem;
-                    int lang = LANG_UNKNOWN, stemLang = LANG_UNKNOWN;
+                    //int lang = LANG_UNKNOWN, stemLang = LANG_UNKNOWN;
+			        int lang = qparm.lang, stemLang = qparm.lang;
                     const StoredToken* partialWordTok = dtaIdx->getStoredToken( strToStem.c_str() );
                     bool gotStemmed = bzSpell->stem(tmpCtok.stem, strToStem.c_str(), lang) ;
 

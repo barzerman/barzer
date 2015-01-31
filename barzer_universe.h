@@ -348,6 +348,10 @@ public:
 
     const char* resolveLiteral( const BarzerLiteral& l ) const { return gp.resolveLiteral(l);}
     const char* resolveStoredTok( const StoredToken& stok ) const { return gp.string_resolve( stok.getStringId() ); }
+    void setDefaultLang(int lang) {
+        d_langInfo.setDefaultLang(lang);
+    }
+    int getDefaultLang() const { return d_langInfo.getDefaultLang(); }
 };
 
 inline StoredUniverse& GlobalPools::produceUniverse( uint32_t id )

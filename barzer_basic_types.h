@@ -402,7 +402,7 @@ public:
 	bool isBlank() const { return type == T_BLANK; }
 
 	bool isStop() const { return type == T_STOP; }
-    char getPunct() const { return( (type == T_PUNCT) ? *((const char*)(&theId)): 0 ); }
+    uint32_t getPunct() const { return( (type == T_PUNCT) ? theId: 0 ); }
 	bool isFluff() const { return isStop(); }
 
 	bool isPunct() const { return type == T_PUNCT; }

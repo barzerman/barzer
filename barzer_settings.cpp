@@ -481,6 +481,10 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 			
 			if (const auto p = attrs.get_optional<std::string>("stemex"))
 				u.getUniverse().getBZSpell()->loadStemExceptions(*p);
+
+			if (const auto p = attrs.get_optional<std::string>("lang"))
+			    u.getUniverse().setDefaultLang(Lang::fromStringCode(p.get()));
+
         }
 		BOOST_FOREACH(const ptree::value_type &v, spell) {
 			const std::string& tagName = v.first;

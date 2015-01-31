@@ -153,9 +153,10 @@ struct LangInfo {
 
 struct LangInfoArray {
     LangInfo langInfo[ LANG_MAX +1 ];
+    int defaultLang;
 public:
     size_t getMaxLang() const { return sizeof(langInfo)/(sizeof(langInfo[0])); } 
-    LangInfoArray() 
+    LangInfoArray() : defaultLang(LANG_UNKNOWN)
         { new(langInfo)(LangInfo[ LANG_MAX+1 ]); }
     bool isLangValid( int i ) const { return (i > LANG_UNKNOWN && i < LANG_MAX); }
 
@@ -172,6 +173,10 @@ public:
         for( LangInfo* i= langInfo, *i_end = i+getMaxLang(); i< i_end; ++i ) 
             i->clear();
     }
+    void setDefaultLang(int lang) {
+        defaultLang = lang;
+    }
+    int getDefaultLang() const { return defaultLang; }
 };
 std::ostream& operator<< ( std::ostream& fp, const LangInfo& );
 

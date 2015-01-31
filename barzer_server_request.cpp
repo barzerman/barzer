@@ -169,7 +169,7 @@ BarzerRequestParser::BarzerRequestParser(const GlobalPools &gp, std::ostream &s 
     d_barzXMLParser(0),
     d_queryId( std::numeric_limits<uint64_t>::max() ),
     d_simplified(false),
-    d_lang(LANG_ENGLISH),
+    d_lang(LANG_UNKNOWN),
     d_maxResults(32),
     ret(XML_TYPE),
     d_zurchDocIdxId(0xffffffff),
@@ -468,7 +468,7 @@ BarzerRequestParser::BarzerRequestParser(const GlobalPools &gp, std::ostream &s,
     d_barzXMLParser(0),
     d_queryId( std::numeric_limits<uint64_t>::max() ),
     d_simplified(false),
-    d_lang(LANG_ENGLISH),
+    d_lang(LANG_UNKNOWN),
     d_maxResults(32),
     ret(XML_TYPE),
     d_zurchDocIdxId(0xffffffff),
@@ -825,7 +825,7 @@ void BarzerRequestParser::raw_query_parse( const char* query)
         qparm.setQueryFlags( d_queryFlags.c_str() );
 
 
-    qparm.lang = d_lang;
+    qparm.lang = d_lang == LANG_UNKNOWN ? d_universe->getDefaultLang() : d_lang;
 
 	//qparser.parse( barz, getTag().body.c_str(), qparm );
     if( !barz.topicInfo.getTopicMap().empty() ) {

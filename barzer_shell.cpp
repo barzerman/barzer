@@ -1196,8 +1196,10 @@ static int bshf_process( BarzerShell* shell, char_cp cmd, std::istream& in , con
     ay::InputLineReader reader( in );
 
     QuestionParm qparm;
+    auto &universe = context->getUniverse();
+    qparm.lang = universe.getDefaultLang();
     shell->syncQuestionParm(qparm);
-    BarzStreamerXML bs(barz, context->getUniverse(),qparm);
+    BarzStreamerXML bs(barz, universe, qparm);
     bs.setWholeMode( context->streamerModeFlags.theBits() );
 
     ay::stopwatch totalTimer;
