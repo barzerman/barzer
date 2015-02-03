@@ -451,7 +451,7 @@ int QLangLexer::lex( CTWPVec& cv, const TTWPVec& tv, const QuestionParm& qparm )
 {
 	QSingleLangLexer* lexer = getLang( qparm.lang );
 	if( !lexer ) {
-		if( qparm.lang) {
+		if( qparm.lang > 0) {
 			std::cerr << "QLangLexer cant find lexer for lang " << qparm.lang << std::endl;
 			return 666;
 		} 

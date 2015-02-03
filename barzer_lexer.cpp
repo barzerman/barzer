@@ -9,6 +9,7 @@
 #include <ay_char.h>
 #include <barzer_barz.h>
 #include <ay_utf8.h>
+#include <ay_unicode_category.h>
 
 namespace barzer {
 namespace {
@@ -1213,6 +1214,8 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 		TToken& ttok = tVec[tPos].first;
 
 		const char* t = ttok.buf.c_str();
+		ay::CharUTF8 uchar(t);
+		uint32_t char32 = uchar.toUTF32();
 		// cPos->second = std::distance (cVec.begin (), cPos);
 		CToken& ctok = cVec[cPos].first;
         size_t ctokCpos = cPos;
@@ -1223,7 +1226,7 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 		++cPos;
 		++tPos;
         // const StoredToken* storedTok = 0;
-		if( !t || !*t || isspace(*t)  ) { // this should never happen
+		if( !t || !*t || isspace(*t)  || ay::UnicodeClassifier::isSpace(char32)) { // this should never happen
 			ctok.setClass( CTokenClassInfo::CLASS_SPACE );
 			continue;
 		} else if( (*t) == '.' ) {
@@ -1259,7 +1262,7 @@ int QLexParser::singleTokenClassify( Barz& barz, const QuestionParm& qparm )
 				ctok.storedTok = storedTok;
 				ctok.syncClassInfoFromSavedTok();
 			} else { /// token NOT matched in the data set
-                if( ispunct(*t)) {
+                if( ispunct(*t) || ay::UnicodeClassifier::isPunct(char32)) {
                     ctok.setClass( CTokenClassInfo::CLASS_PUNCTUATION );
                     shouldStem=false;
                     if( *t == '"' ) isQuoted = !isQuoted;

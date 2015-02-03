@@ -482,8 +482,13 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 			if (const auto p = attrs.get_optional<std::string>("stemex"))
 				u.getUniverse().getBZSpell()->loadStemExceptions(*p);
 
-			if (const auto p = attrs.get_optional<std::string>("lang"))
-			    u.getUniverse().setDefaultLang(Lang::fromStringCode(p.get()));
+			if (const auto p = attrs.get_optional<std::string>("lang")) {
+				int lang = Lang::fromStringCode(p.get());
+			    u.getUniverse().setDefaultLang(lang);
+			    int ay_lang = ay::StemWrapper::getLangFromString( p.get().c_str() );
+			    ay::StemThreadPool::inst().addLang(lang);
+				u.getUniverse().getBarzHints().addUtf8Language(ay_lang);
+			}
 
         }
 		BOOST_FOREACH(const ptree::value_type &v, spell) {

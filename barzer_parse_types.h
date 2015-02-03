@@ -14,7 +14,7 @@
 #include <barzer_entity.h>
 #include <barzer_storage_types.h>
 #include <barzer_question_parm.h>
-
+#include <ay_utf8.h>
 namespace barzer {
 struct StoredToken;
 struct StoredEntity;
@@ -48,8 +48,11 @@ struct TToken {
         d_utf8beg(bg), d_utf8len(ng), d_origOffset(o), d_origLength(l), buf(s,l) 
     {}
 	
-	int getPunct() const
-		{ return( buf.length() ? buf[0] : ((int)'|') ); }
+	int getPunct() const {
+		if (buf.length())
+			return ay::CharUTF8(buf.c_str()).toUTF32();
+		return ((int)'|');
+	}
 
     char isChar( ) { return ( buf.length() ==1 ? buf[0]:0 ); }
 
@@ -211,8 +214,16 @@ struct CToken {
             cInfo.theClass == CTokenClassInfo::CLASS_MYSTERY_WORD
         );
     }
-	bool isPunct(const char* s) const { return ( isPunct() && qtVec.size() == 1 && strchr(s,qtVec[0].first.buf[0]) ); }
-    char  getPunct() { return ( (isPunct() && qtVec.size() == 1) ? qtVec[0].first.buf[0] : 0 ) ; }
+	bool isPunct(const char* s) const {
+		return ( isPunct() && qtVec.size() == 1 && qtVec[0].first.buf == s);
+	}
+    uint32_t getPunct() {
+    	if (isPunct() && qtVec.size() == 1) {
+    		ay::CharUTF8 uchar(qtVec[0].first.buf.c_str());
+    		return uchar.toUTF32();
+    	}
+    	return 0;
+    }
 
 	bool isSpace() const { return cInfo.theClass == CTokenClassInfo::CLASS_SPACE; }
 	bool isPunct(char c) const { return ( (isPunct() ||(c==' ' && isSpace()) )  && qtVec.size() == 1 && qtVec[0].first.buf[0] == c ); }

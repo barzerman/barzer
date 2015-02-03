@@ -158,9 +158,11 @@ public:
 			break;
 		case BarzerLiteral::T_PUNCT:
 			{ // need to somehow make this localised
-				const char str[] = { (char)data.getId(), '\0' };
+				ay::CharUTF8 uchar;
+				uchar.setUTF32(data.getId());
+				//const char str[] = { (char)data.getId(), '\0' };
                 raii.addKeyVal( "type", "punct" ) ;
-                ay::jsonEscape(str, raii.startField( "value"), "\"");
+                ay::jsonEscape(uchar.c_str(), raii.startField( "value"), "\"");
 			}
 			break;
 		case BarzerLiteral::T_BLANK:

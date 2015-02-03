@@ -12,6 +12,7 @@
 #include <barzer_server_response.h>
 #include <ay/ay_logger.h>
 #include <ay/ay_raii.h>
+#include <ay_utf8.h>
 #include <boost/format.hpp>
 #include <barzer_universe.h>
 #include <barzer_ghettodb.h>
@@ -212,8 +213,10 @@ public:
 		case BarzerLiteral::T_PUNCT:
 			{ // need to somehow make this localised
 				os << "<punct>";
-				const char str[] = { (char)data.getId(), '\0' };
-				xmlEscape(str, os);
+				ay::CharUTF8 uchar;
+				uchar.setUTF32(data.getId());
+				//const char str[] = { (char)data.getId(), '\0' };
+				xmlEscape(uchar.c_str(), os);
 				os << "</punct>";
 			}
 			break;
