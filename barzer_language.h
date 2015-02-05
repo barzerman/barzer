@@ -129,11 +129,11 @@ class QLangLexer {
 public:
 	QLangLexer() : llVec( LANG_MAX, 0 ) {}
 	~QLangLexer();
-	QSingleLangLexer* addLang( size_t lang );
+	QSingleLangLexer* addLang( int lang );
 
-	QSingleLangLexer* getLang( size_t lang ) {
+	QSingleLangLexer* getLang( int lang ) {
 		if (lang == LANG_UNKNOWN) lang = LANG_ENGLISH;
-		return( lang<llVec.size() ? llVec[lang] : 0 );
+		return( lang >= 0 && lang<(int)llVec.size() ? llVec[lang] : 0 );
 	}
 
 	// routes lexing to an appropriate language specific lexer and lexes

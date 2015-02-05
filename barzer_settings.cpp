@@ -486,7 +486,7 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 				int lang = Lang::fromStringCode(p.get());
 			    u.getUniverse().setDefaultLang(lang);
 			    int ay_lang = ay::StemWrapper::getLangFromString( p.get().c_str() );
-			    ay::StemThreadPool::inst().addLang(lang);
+			    ay::StemThreadPool::inst().addLang(ay_lang);
 				u.getUniverse().getBarzHints().addUtf8Language(ay_lang);
 			}
 
