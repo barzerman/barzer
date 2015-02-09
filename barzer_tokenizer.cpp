@@ -100,7 +100,7 @@ int QTokenizer::tokenize_unicode_default(Barz& barz, const QuestionParm& qparm) 
 			gtype = CHAR_OTHER;
 		}
 
-		if (prevGtype != CHAR_DEFAULT && prevGtype != gtype) {
+		if (prevGtype != gtype && prevGtype != CHAR_DEFAULT) {
 			ttwp.push_back( TTWPVec::value_type(
 			            TToken(
 			            	barz.questionOrigUTF8.getGlyphStart(prev_gi),
