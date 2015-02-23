@@ -1,0 +1,84 @@
+
+/* Enable quantizing */
+#cmakedefine DISABLE_QUANTIZE @DISABLE_QUANTIZE@
+
+/* Define to 1 if you have the <boost/tr1/unordered_map.hpp> header file. */
+#define HAVE_BOOST_TR1_UNORDERED_MAP_HPP 1
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#cmakedefine HAVE_DLFCN_H @HAVE_DLFCN_H@
+
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#cmakedefine HAVE_INTTYPES_H @HAVE_INTTYPES_H@
+
+/* Define to 1 if you have the <memory.h> header file. */
+#cmakedefine HAVE_MEMORY_H @HAVE_MEMORY_H@
+
+/* Define to 1 if stdbool.h conforms to C99. */
+#cmakedefine HAVE_STDBOOL_H @HAVE_STDBOOL_H@
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#cmakedefine HAVE_STDINT_H @HAVE_STDINT_H@
+/* Define to 1 if you have the <stdint.h> header file. */
+#cmakedefine HAVE_STDINT_H @HAVE_STDINT_H@
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#cmakedefine HAVE_STDLIB_H @HAVE_STDLIB_H@
+
+/* Define to 1 if you have the <strings.h> header file. */
+#cmakedefine HAVE_STRINGS_H @HAVE_STRINGS_H@
+
+/* Define to 1 if you have the <string.h> header file. */
+#cmakedefine HAVE_STRING_H @HAVE_STRING_H@
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#cmakedefine HAVE_SYS_STAT_H @HAVE_SYS_STAT_H@
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#cmakedefine HAVE_SYS_TYPES_H @HAVE_SYS_TYPES_H@
+
+/* Define to 1 if you have the <tr1/unordered_map> header file. */
+#undef HAVE_TR1_UNORDERED_MAP
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#cmakedefine HAVE_UNISTD_H @HAVE_UNISTD_H@
+
+/* Define to 1 if the system has the type `_Bool'. */
+#define HAVE__BOOL 1
+
+/* Name of package */
+#define PACKAGE "kytea"
+
+/* Define to the address where bug reports for this package should be sent. */
+#define PACKAGE_BUGREPORT "kytea@phontron.com"
+
+/* Define to the full name of this package. */
+#define PACKAGE_NAME "kytea"
+
+/* Define to the full name and version of this package. */
+#define PACKAGE_STRING "kytea 0.4.6"
+
+/* Define to the one symbol short name of this package. */
+#define PACKAGE_TARNAME "kytea"
+
+/* Define to the home page for this package. */
+#define PACKAGE_URL ""
+
+/* Define to the version of this package. */
+#define PACKAGE_VERSION "0.4.6"
+
+/* Define to 1 if you have the ANSI C header files. */
+#define STDC_HEADERS 1
+/* Version number of package */
+#define VERSION "0.4.6"
+#cmakedefine PKGDATADIR "@PKGDATADIR@"
+
+/* Define to `__inline__' or `__inline' if that's what the C compiler
+   calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifndef __cplusplus
+#undef inline
+#endif
+
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+#undef size_t

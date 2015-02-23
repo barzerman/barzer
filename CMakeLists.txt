@@ -79,6 +79,7 @@ include_directories("${PROJECT_BINARY_DIR}"
 add_subdirectory (ay)
 add_subdirectory (util)
 add_subdirectory (snowball)
+add_subdirectory (kytea)
 
 set(EXTRA_LIBS ${EXTRA_LIBS}
                ${Boost_SYSTEM_LIBRARY}
@@ -86,7 +87,9 @@ set(EXTRA_LIBS ${EXTRA_LIBS}
                ${Boost_THREAD_LIBRARY}
                ${Boost_REGEX_LIBRARY}
                ay
-               snowlib pthread)
+               snowlib
+               kytea
+               pthread)
 
 if(WIN32)
 	set(EXTRA_LIBS ${EXTRA_LIBS}
