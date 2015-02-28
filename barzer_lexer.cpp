@@ -432,7 +432,8 @@ int QLexParser::separatorNumberGuess (Barz& barz, const QuestionParm& qparm)
 			}
 			else if (awaitingFrac)
 			{
-                if( (i< cvec.size()-1 && cvec[i+1].first.isPunct(sep)) || (i>0 && cvec[i-1].first.isPunct(sep)) ) {
+                //if( (i< cvec.size()-1 && cvec[i+1].first.isPunct(sep)) && (i>0 && cvec[i-1].first.isPunct(sep)) ) {
+			    if (i< cvec.size()-1 && cvec[i+1].first.isPunct(sep)) { // awaitingFrac already implies [i-1] == sep?
                     tokens.clear();
                     flush();
                     continue;
