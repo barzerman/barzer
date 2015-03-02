@@ -1,7 +1,7 @@
 
 /* Enable quantizing */
 #cmakedefine DISABLE_QUANTIZE @DISABLE_QUANTIZE@
-
+#define DISABLE_QUANTIZE 0
 /* Define to 1 if you have the <boost/tr1/unordered_map.hpp> header file. */
 #define HAVE_BOOST_TR1_UNORDERED_MAP_HPP 1
 

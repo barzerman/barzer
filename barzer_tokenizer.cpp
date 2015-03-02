@@ -145,16 +145,17 @@ int QTokenizer::tokenize( Barz& barz, const TokenizerStrategy& strat, const Ques
         return tokenize_strat_space(barz, qparm );
     }
 
-    if( strat.isDefault() ) {
+    //if( strat.isDefault() ) {
         /*
         if( !d_universe.checkBit( UBIT_NO_EXTRA_NORMALIZATION ) )
             barz.extraNormalization(qparm);
         */
+    /*
         return tokenize(barz.getTtVec(), barz.getOrigQuestion().c_str(), qparm );
     } else {
         ///  Barz has current question to be tokenize as well as the utf8 representation (it's up to date)
         return tokenize_strat_space(barz, qparm );
-    }
+    } //*/
 }
 int QTokenizer::tokenize( TTWPVec& ttwp, const char* q, const QuestionParm& qparm  )
 {

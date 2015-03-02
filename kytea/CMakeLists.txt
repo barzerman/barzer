@@ -24,11 +24,12 @@ CHECK_INCLUDE_FILE("unistd.h" HAVE_UNISTD_H)
 
 option (ENABLE_QUANTIZE "Build pybarzer" OFF)
 if (ENABLE_QUANTIZE)
-    set(DISABLE_QUANTIZE 0)
+    set(DISABLE_QUANTIZE "0")
 else ()
-    set(DISABLE_QUANTIZE 1)
+    set(DISABLE_QUANTIZE "1")
 endif (ENABLE_QUANTIZE)
 
+set(DISABLE_QUANTIZE 0)
 
 configure_file ("src/include/kytea/config.h.in" "src/include/kytea/config.h")
 
@@ -36,7 +37,7 @@ include_directories("src/include"
                     "src/lib/liblinear")
 add_subdirectory (src/lib/liblinear)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Isrc/include -Isrc/include/kytea -std=c++0x -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Isrc/include -Isrc/include/kytea -Wno-c++11-narrowing -Wall")
 set (SRCS
     src/lib/corpus-io.cpp
     src/lib/corpus-io-eda.cpp
@@ -60,8 +61,8 @@ set (SRCS
     src/lib/string-util.cpp
 )
 
-
+#SET(CMAKE_EXE_LINKER_FLAGS "-static")
 add_library(kytea STATIC ${SRCS})
-#add_executable(kytea.exe src/bin/run-kytea.cpp)
+add_executable(kytea.exe src/api/api-example.cpp)
 target_link_libraries (kytea  linear)
-#target_link_libraries (kytea.exe kytea)
+target_link_libraries (kytea.exe kytea)
