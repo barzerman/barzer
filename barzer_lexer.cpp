@@ -10,7 +10,7 @@
 #include <barzer_barz.h>
 #include <ay_utf8.h>
 #include <ay_unicode_category.h>
-
+#include "barzer_language.h"
 namespace barzer {
 namespace {
 
@@ -1379,6 +1379,7 @@ int QLexParser::lex( Barz& barz, const QuestionParm& qparm )
 	return 0;
 }
 
+
 int QLexParser::lex( Barz& barz, const TokenizerStrategy& strat, QTokenizer& tokenizer, const char* q, const QuestionParm& qparm )
 {
     if( strat.getType() == TokenizerStrategy::STRAT_TYPE_SPACE_DEFAULT ) {
@@ -1396,7 +1397,12 @@ int QLexParser::lex( Barz& barz, const TokenizerStrategy& strat, QTokenizer& tok
         return 0;
     } else if (strat.getType() == TokenizerStrategy::STRAT_TYPE_UNICODE_DEFAULT) {
     	barz.tokenize( strat , tokenizer, q, qparm );
-    	return lex(barz, qparm);
+    	switch (qparm.lang) {
+    	case LANG_JAPANESE:
+    		//return lex_japanese(barz, qparm);
+    	default:
+        	return lex(barz, qparm);
+    	}
     } else if( strat.getType() == TokenizerStrategy::STRAT_TYPE_CASCADE ) {
         AYLOG(ERROR) << "cascade tokenizer strategy not implemented yet" << std::endl;
         return 0;

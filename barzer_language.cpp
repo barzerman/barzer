@@ -421,6 +421,8 @@ QSingleLangLexer* 	QSingleLangLexer::mkLexer( int lg )
 		return new QSingleLangLexer_EN();
 	case LANG_RUSSIAN:
 		return new QSingleLangLexer_RU();
+	case LANG_JAPANESE:
+		//return new QSingleLangLexer_JA();
 	case LANG_UNKNOWN_UTF8:
 		return new QSingleLangLexer_UTF8();
 	}
