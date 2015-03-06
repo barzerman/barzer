@@ -37,7 +37,7 @@ include_directories("src/include"
                     "src/lib/liblinear")
 add_subdirectory (src/lib/liblinear)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Isrc/include -Isrc/include/kytea -Wno-c++11-narrowing -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Isrc/include -Isrc/include/kytea -Wno-narrowing -Wall")
 set (SRCS
     src/lib/corpus-io.cpp
     src/lib/corpus-io-eda.cpp
