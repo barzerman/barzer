@@ -15,6 +15,12 @@
 		<file>data/spell/english_words.txt</file>
 	</dictionaries>
 
+    <languages>
+        <lang id="ja" data="kytea/data/model.bin" />
+        <lang data="kytea/data/model.bin" />
+        <lang id="es" data="kytea/data/model.bin" />
+    </languages>
+    
     <logging>
         <level>DEBUG</level>
         <file>barzer.log</file>

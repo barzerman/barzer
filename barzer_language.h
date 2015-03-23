@@ -190,15 +190,19 @@ int lex( CTWPVec& , const TTWPVec&, const QuestionParm& );
 
 class LangModel {
 public:
-	virtual void loadData(const char*) = 0;
-	virtual void setParam(const char*, const char*) = 0;
+	virtual void loadData(const char*) {};
+	virtual void setParam(const char*, const char*) {};
 	virtual ~LangModel() {}
 };
 
 class LangModelMgr {
-	std::unordered_map<int,LangModel*> index;
+	LangModel* index[LANG_MAX];
 public:
-	void initLang(int);
+	LangModelMgr();
+	LangModel* initLang(int);
+	LangModel* checkLang(int);
+	const LangModel* getLang(int) const;
+	~LangModelMgr();
 };
 
 } // namespace barzer

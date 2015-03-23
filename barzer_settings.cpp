@@ -393,6 +393,43 @@ void BarzerSettings::loadDictionaries() {
 	}
 }
 
+void BarzerSettings::loadLanguages() {
+    //std::cerr << "loading languages\n";
+    try {
+        using boost::property_tree::ptree;
+        const ptree &langs = pt.get_child("config.languages", empty_ptree());
+        size_t cnt = 0;
+        for (const ptree::value_type &child : langs) {
+            ++cnt;
+            //std::cerr << "loading language " << v.first << "\n";
+            if (child.first != "lang") continue;
+            const ptree &attrs = child.second.get_child("<xmlattr>");
+            const boost::optional<std::string> id = attrs.get_optional<std::string>("id");
+            if(!id) {
+                AYLOG(ERROR) << "Unknown language id for lang#" << cnt << std::endl;
+                continue;
+            }
+            //const std::string& str_id = id.get();
+            int lang = Lang::fromStringCode(id.get());
+            LangModelMgr &mgr = gpools.getLangModelMgr();
+            LangModel *model = mgr.checkLang(lang);
+            if (model == nullptr) {
+                AYLOG(WARNING) << "Settings for language \"" << id.get()
+                               << "\" are not supported";
+                continue;
+            }
+
+            if (const auto data = attrs.get_optional<std::string>("data")) {
+                model->loadData(data.get().c_str());
+            }
+
+
+        }
+    } catch(...) {
+        AYLOG(ERROR) << "Error loading languages" << std::endl;
+    }
+}
+
 void BarzerSettings::loadEntities() {
 	using boost::property_tree::ptree;
 	const ptree &ents = pt.get_child("config.entities", empty_ptree());
@@ -1138,6 +1175,7 @@ void BarzerSettings::load(BELReader& reader, const char *fname) {
 		loadParseSettings();
 		loadEntities();
 		loadDictionaries();
+		loadLanguages();
 		loadLangNGrams();
 		loadRules(reader);
 		loadUsers(reader);

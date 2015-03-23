@@ -18,6 +18,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall -Wnon-virtual-dtor -Wno
 
 set(EN_DIR "lg_en")
 set(RU_DIR "lg_ru")
+set(JA_DIR "lg_ja")
 if (NOT WIN32)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} $ENV{OPT} -fPIC")
 endif()
@@ -65,6 +66,7 @@ find_package(PythonLibs REQUIRED)
 link_directories (  ${BOOST_LIBRARYDIR}
 		    ${EXPAT_LIBRARIES} )
 
+set(KYTEA_DIR "kytea/src/include")
 
 include_directories("${PROJECT_BINARY_DIR}"
                     "${PROJECT_SOURCE_DIR}"
@@ -75,7 +77,9 @@ include_directories("${PROJECT_BINARY_DIR}"
                     "${PROJECT_SOURCE_DIR}/${RU_DIR}"
                      ${Boost_INCLUDE_DIRS}
                      ${PYTHON_INCLUDE_DIRS}
-		     ${EXPAT_INCLUDE_DIRS})
+		             ${EXPAT_INCLUDE_DIRS}
+		             ${KYTEA_DIR}
+                    "${CMAKE_CURRENT_BINARY_DIR}/${KYTEA_DIR}")
 add_subdirectory (ay)
 add_subdirectory (util)
 add_subdirectory (snowball)
@@ -187,6 +191,7 @@ set(SOURCES
             "${RU_DIR}/barzer_ru_date_util.cpp"
             "${RU_DIR}/barzer_ru_lex.cpp"
             "${RU_DIR}/barzer_ru_stemmer.cpp"
+            "${JA_DIR}/barzer_ja_lex.cpp"
             )
 
 IF(NOT DEFINED INSTALL_DIR)

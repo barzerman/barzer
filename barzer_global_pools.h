@@ -24,6 +24,8 @@
 #include <barzer_language.h>
 #include <barzer_barz.h>
 #include <barzer_global_pools.h>
+#include <barzer_language.h>
+
 namespace ay { struct CommandLineArgs; }
 namespace barzer {
 class BELFunctionStorage;
@@ -168,6 +170,7 @@ class GlobalPools {
 	ay::ASCIITopicModelMgr *m_asciiLangModelMgr;
 
     EntityData entData; // canonic names and relevance
+    LangModelMgr langModelMgr;
 public:
 
     std::map< StoredEntityClass, std::string > d_subclassNameMap;
@@ -351,6 +354,9 @@ public:
 
     void init_cmdline( ay::CommandLineArgs & );
 	const GlobalTriePool& getTriePool() const { return  globalTriePool; }
+
+	LangModelMgr& getLangModelMgr() { return langModelMgr; }
+	const LangModelMgr& getLangModelMgr() const { return langModelMgr; }
 };
 
 class EntReverseLookup

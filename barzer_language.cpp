@@ -8,10 +8,10 @@
 #include <unordered_map>
 #include <lg_ru/barzer_ru_lex.h>
 #include <lg_en/barzer_en_lex.h>
+#include <lg_ja/barzer_ja_lex.h>
 #include <ay/ay_utf8.h>
 #include <ay/ay_levenshtein.h>
 #include "barzer_universe.h"
-
 namespace barzer {
 
 namespace {
@@ -498,6 +498,48 @@ int16_t LangInfoArray::getDominantLanguage() const
 	}
 	// AYLOG(DEBUG) << "detected dominant language: " << bestLang;
     return bestLang;
+}
+
+
+LangModelMgr::LangModelMgr() {
+    std::fill(index, index + (sizeof(index) / sizeof(index[0])), nullptr);
+}
+
+LangModelMgr::~LangModelMgr() {
+    size_t i = sizeof(index) / sizeof(index[0]);
+    while (i--) {
+        if (index[i] != 0) delete index[i];
+    }
+}
+
+LangModel* LangModelMgr::initLang(int lang) {
+    if (lang < 0 || lang >= LANG_MAX) {
+        return 0;
+    } else if (index[lang] != nullptr) {
+        delete index[lang];
+    }
+
+    LangModel *model = nullptr;
+    switch (lang) {
+    case LANG_JAPANESE:
+        model = new LangModelJa();
+        break;
+    //LANG_CHINESE:
+    //LANG_SPANISH:
+    }
+
+    index[lang] = model;
+    return model;
+}
+
+LangModel* LangModelMgr::checkLang(int lang) {
+    if (lang < 0 || lang >= LANG_MAX) return 0;
+    return index[lang] == nullptr ? initLang(lang) : index[lang];
+}
+
+const LangModel* LangModelMgr::getLang(int lang) const {
+    if (lang < 0 || lang >= LANG_MAX) return 0;
+    return index[lang];
 }
 
 } // barzer namespace 
