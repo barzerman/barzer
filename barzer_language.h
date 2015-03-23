@@ -8,7 +8,6 @@
 #include <ay/ay_char.h>
 #include <ay_snowball.h>
 #include <barzer_parse_types.h>
-#include <unordered_map>
 /// language specific logic 
 namespace ay { class LevenshteinEditDistance; }
 namespace barzer {
@@ -188,10 +187,15 @@ QSingleLangLexer_UTF8() : QSingleLangLexer (LANG_UNKNOWN_UTF8) {}
 int lex( CTWPVec& , const TTWPVec&, const QuestionParm& );
 };
 
+class QLexParser;
 class LangModel {
 public:
 	virtual void loadData(const char*) {};
 	virtual void setParam(const char*, const char*) {};
+	virtual bool willLex() const { return false; }
+	virtual int lex(Barz& b, QTokenizer &t, QLexParser &qp, const QuestionParm& qparm) const {
+		return 0;
+	}
 	virtual ~LangModel() {}
 };
 

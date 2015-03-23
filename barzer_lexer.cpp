@@ -1396,13 +1396,13 @@ int QLexParser::lex( Barz& barz, const TokenizerStrategy& strat, QTokenizer& tok
 	    // langLexer.lex( barz.getCtVec(), barz.getTtVec(), qparm );
         return 0;
     } else if (strat.getType() == TokenizerStrategy::STRAT_TYPE_UNICODE_DEFAULT) {
-    	barz.tokenize( strat , tokenizer, q, qparm );
-    	switch (qparm.lang) {
-    	case LANG_JAPANESE:
-    		//return lex_japanese(barz, qparm);
-    	default:
-        	return lex(barz, qparm);
-    	}
+    	const auto &mgr = d_universe.getGlobalPools().getLangModelMgr();
+    	const LangModel *model = mgr.getLang(qparm.lang);
+    	if (model && model->willLex()) {
+    		return model->lex(barz, tokenizer, *this, qparm);
+        }
+		barz.tokenize(strat, tokenizer, q, qparm );
+    	return lex(barz, qparm);
     } else if( strat.getType() == TokenizerStrategy::STRAT_TYPE_CASCADE ) {
         AYLOG(ERROR) << "cascade tokenizer strategy not implemented yet" << std::endl;
         return 0;

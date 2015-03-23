@@ -406,7 +406,7 @@ void BarzerSettings::loadLanguages() {
             const ptree &attrs = child.second.get_child("<xmlattr>");
             const boost::optional<std::string> id = attrs.get_optional<std::string>("id");
             if(!id) {
-                AYLOG(ERROR) << "Unknown language id for lang#" << cnt << std::endl;
+                AYLOG(ERROR) << "Unknown language id for lang#" << cnt;
                 continue;
             }
             //const std::string& str_id = id.get();
