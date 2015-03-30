@@ -59,8 +59,6 @@ int LangModelJa::lex(Barz& barz, QTokenizer &t, QLexParser &qp, const QuestionPa
         kytea.calculateTags(sentence,i);
 
 
-
-
     /*
     singleTokenClassify( barz, qparm );
     separatorNumberGuess( barz, qparm );
