@@ -514,7 +514,7 @@ LangModelMgr::~LangModelMgr() {
 
 LangModel* LangModelMgr::initLang(int lang) {
     if (lang < 0 || lang >= LANG_MAX) {
-        return 0;
+        return nullptr;
     } else if (index[lang] != nullptr) {
         delete index[lang];
     }
@@ -533,12 +533,12 @@ LangModel* LangModelMgr::initLang(int lang) {
 }
 
 LangModel* LangModelMgr::checkLang(int lang) {
-    if (lang < 0 || lang >= LANG_MAX) return 0;
+    if (lang < 0 || lang >= LANG_MAX) return nullptr;
     return index[lang] == nullptr ? initLang(lang) : index[lang];
 }
 
 const LangModel* LangModelMgr::getLang(int lang) const {
-    if (lang < 0 || lang >= LANG_MAX) return 0;
+    if (lang < 0 || lang >= LANG_MAX) return nullptr;
     return index[lang];
 }
 

@@ -18,7 +18,7 @@ class BZSpell;
 class Japanese_StemmerSettings;
 
 class LangModelJa : public LangModel {
-	kytea::Kytea kytea;
+	mutable kytea::Kytea kytea;
 public:
 	void loadData(const char*);
 	void setParam(const char*, const char*) {};
