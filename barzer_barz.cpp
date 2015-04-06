@@ -92,6 +92,16 @@ void Barz::setUniverse (const StoredUniverse *u)
 		m_hints = u->getBarzHints();
 }
 
+void Barz::assignQuery(const char* query) {
+	beadChain.clear();
+	ctVec.clear();
+	ttVec.clear();
+	questionOrig.assign(query);
+    if( !m_hints.getUniverse()->checkBit(UBIT_NO_EXTRA_NORMALIZATION) )
+        extraNormalization(qparm);
+	questionOrigUTF8.assign(questionOrig.c_str());
+}
+
 namespace {
     struct BeadVisitor : public boost::static_visitor<bool> {
         const StoredUniverse& universe;
@@ -241,7 +251,7 @@ void Barz::syncQuestionFromTokens()
 }
 
 int Barz::tokenize( const TokenizerStrategy& strat, QTokenizer& tokenizer, const char* q, const QuestionParm& qparm )
-{
+{/*
 	beadChain.clear();
 	ctVec.clear();
 	ttVec.clear();
@@ -249,6 +259,8 @@ int Barz::tokenize( const TokenizerStrategy& strat, QTokenizer& tokenizer, const
     if( !tokenizer.universe().checkBit( UBIT_NO_EXTRA_NORMALIZATION ) )
         extraNormalization(qparm);
 	questionOrigUTF8.assign(questionOrig.c_str());
+	*/
+	assignQuery(q, tokenizer.universe().checkBit( UBIT_NO_EXTRA_NORMALIZATION ));
 
 	int rc = tokenizer.tokenize( *this, strat, qparm );
     return 0;
