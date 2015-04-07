@@ -1002,7 +1002,7 @@ const StoredToken* BZSpell::stem_utf8_punct( std::string& out, const ay::StrUTF8
 bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
 {
     size_t s_len = strlen( s );
-    std::cout << "lang: " << lang <<"\n";
+    //std::cout << "lang: " << lang <<"\n";
     if( lang == LANG_UNKNOWN )
         lang = Lang::getLang(  d_universe, s, s_len );
 	
