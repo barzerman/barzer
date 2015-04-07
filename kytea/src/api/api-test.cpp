@@ -57,6 +57,16 @@ int main(int argc, char** argv) {
                         "/" << words[i].tags[j][k].second;
             }
         }
+
+
+		auto &tags = words[i].tags;
+		if (tags.size() > 0) {
+			auto &stags = tags[tags.size()-1];
+			if (stags.size() > 0) {
+				cout << " ----- " <<
+						util->showString(stags[0].first).data();
+			}
+		}
         cout << endl;
     }
     cout << endl;

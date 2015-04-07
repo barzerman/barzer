@@ -52,8 +52,9 @@ uint32_t BELParser::stemAndInternTmpText( const char* s, int len )
 	StoredUniverse* curUni = reader->getCurrentUniverse();
 	if( !curUni )
 		curUni = &(getGlobalPools().produceUniverse(0));
-    int lang = LANG_UNKNOWN;
-    uint32_t strId = curUni->stemAndIntern( lang, s, len, &(reader->getTrie()) );
+    //int lang = LANG_UNKNOWN;
+    int lang = curUni->getDefaultLang();
+	uint32_t strId = curUni->stemAndIntern( lang, s, len, &(reader->getTrie()) );
     
     if( reader->isLiveCommandMode() ) {
         if( BZSpell* bzSpell = curUni->getBZSpell() )

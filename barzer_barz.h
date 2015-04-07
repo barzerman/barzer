@@ -169,7 +169,7 @@ public:
     //// end of request variable context functions 
 
 	void setUniverse(const StoredUniverse*);
-	void assignQuery(const char*);
+	void assignQuery(const char*, const QuestionParm &qparm);
 	const BarzHints& getHints() const;
 
     bool lastFrameLoop() const { return barzelTrace.lastFrameLoop(); }

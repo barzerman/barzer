@@ -1399,6 +1399,7 @@ int QLexParser::lex( Barz& barz, const TokenizerStrategy& strat, QTokenizer& tok
     	const auto &mgr = d_universe.getGlobalPools().getLangModelMgr();
     	const LangModel *model = mgr.getLang(qparm.lang);
     	if (model && model->willLex()) {
+    		barz.assignQuery(q, qparm);
     		return model->lex(barz, tokenizer, *this, qparm);
         }
 		barz.tokenize(strat, tokenizer, q, qparm );

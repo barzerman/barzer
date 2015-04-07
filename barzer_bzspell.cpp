@@ -1002,9 +1002,19 @@ const StoredToken* BZSpell::stem_utf8_punct( std::string& out, const ay::StrUTF8
 bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
 {
     size_t s_len = strlen( s );
+    std::cout << "lang: " << lang <<"\n";
     if( lang == LANG_UNKNOWN )
         lang = Lang::getLang(  d_universe, s, s_len );
 	
+	const auto &mgr = d_universe.getGlobalPools().getLangModelMgr();
+	const LangModel *model = mgr.getLang(lang);
+	if (model) {
+		std::cout <<"stemming using model\n";
+		return model->stem(out, s);
+	} else {
+		std::cout << "model not found\n";
+	}
+
 	return stem(out, s, lang, d_minWordLengthToCorrect, d_universe.getBarzHints().getUtf8Languages(), m_stemExceptions);
 }
 

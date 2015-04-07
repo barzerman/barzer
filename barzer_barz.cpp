@@ -92,7 +92,7 @@ void Barz::setUniverse (const StoredUniverse *u)
 		m_hints = u->getBarzHints();
 }
 
-void Barz::assignQuery(const char* query) {
+void Barz::assignQuery(const char* query, const QuestionParm &qparm) {
 	beadChain.clear();
 	ctVec.clear();
 	ttVec.clear();
@@ -260,8 +260,7 @@ int Barz::tokenize( const TokenizerStrategy& strat, QTokenizer& tokenizer, const
         extraNormalization(qparm);
 	questionOrigUTF8.assign(questionOrig.c_str());
 	*/
-	assignQuery(q, tokenizer.universe().checkBit( UBIT_NO_EXTRA_NORMALIZATION ));
-
+	assignQuery(q, qparm);
 	int rc = tokenizer.tokenize( *this, strat, qparm );
     return 0;
 }

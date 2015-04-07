@@ -64,5 +64,8 @@ set (SRCS
 #SET(CMAKE_EXE_LINKER_FLAGS "-static")
 add_library(kytea STATIC ${SRCS})
 add_executable(api-test src/api/api-test.cpp)
+add_executable(stem-test src/api/stem-test.cpp)
 target_link_libraries (kytea  linear)
 target_link_libraries (api-test kytea)
+target_link_libraries (stem-test kytea)
+

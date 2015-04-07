@@ -96,6 +96,7 @@ private:
 
 	/// resolves single tokens - this is not language specific
 	size_t retokenize( Barz&, const QuestionParm& );
+public:
 	int singleTokenClassify( Barz&, const QuestionParm& );
 	int singleTokenClassify_space( Barz&, const QuestionParm& );
 	/// multitoken non-language specific hardcoded stuff
