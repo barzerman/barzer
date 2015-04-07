@@ -1009,11 +1009,10 @@ bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
 	const auto &mgr = d_universe.getGlobalPools().getLangModelMgr();
 	const LangModel *model = mgr.getLang(lang);
 	if (model) {
-		std::cout <<"stemming using model\n";
+		//std::cout <<"stemming using model\n";
 		return model->stem(out, s);
-	} else {
-		std::cout << "model not found\n";
 	}
+		//std::cout << "model not found\n";
 
 	return stem(out, s, lang, d_minWordLengthToCorrect, d_universe.getBarzHints().getUtf8Languages(), m_stemExceptions);
 }
