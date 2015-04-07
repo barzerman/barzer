@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <rules>
+        <file>data/rules/generic.xml</file>
+        <file>data/rules/barzel_prices.xml</file>
+        <file>data/rules/barzel_dates.xml</file>
+        <file>data/rules/vintage.xml</file>
+        <file>data/rules/barzel_fluff.xml</file>
+    </rules>
+    <entities>
+        <file>data/entities/time_ent.xml</file>
+    </entities>
+
+	<dictionaries>
+		<file>data/spell/english_words.txt</file>
+	</dictionaries>
+
+    <languages>
+        <lang id="ja" data="kytea/data/model.bin" />
+    </languages>
+    
+    <logging>
+        <level>DEBUG</level>
+        <file>barzer.log</file>
+    </logging>
+    <users>
+        <user id="0">
+			<spell> 
+				<extra>dev/spell/extrawords_user0.txt</extra>
+				<!-- 
+					<extra>/Users/yanis/Downloads/Unabr.dict</extra> 
+				-->
+			</spell>
+		</user>
+        <user id="1">
+        
+              <spell lang="ja" soundslike="no" dictcorr="no">
+        <extra>site/test/452/extrawords.txt</extra>
+        <tokenizer strat="UNICODE_DEFAULT"/>
+      </spell>
+			<rules>
+                <file class="1" name="moo">data/rules/ja.xml</file>
+			</rules>
+            <trieset>
+        <trie class="1" name="moo"/>
+          </trieset>
+			<spell> <extra>dev/spell/extrawords_user1.txt</extra> </spell>
+        </user>
+    </users>
+</config>
