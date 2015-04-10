@@ -41,26 +41,19 @@ int main(int argc, char** argv) {
     //kytea.calculateWS(sentence);
 
     // Find the pronunciations for each tag level
-    for(int i = 0; i < config->getNumTags(); i++)
+    /*for(int i = 0; i < config->getNumTags(); i++)
         kytea.calculateTags(sentence,i);
-
+*/
+    kytea.calculateTags(sentence,config->getNumTags() - 1);
 
     // For each word in the sentence
     const KyteaSentence::Words & words =  sentence.words;
-    for(int i = 0; i < (int)words.size(); i++) {
+    int i = 0;
+    //for(int i = 0; i < (int)words.size(); i++) {
         // Print the word
     	cout << words[i].surface.length() << ":" << util->showString(words[i].surface).size();
     	cout << "|";
         cout << util->showString(words[i].surface);
-        // For each tag level
-        for(int j = 0; j < (int)words[i].tags.size(); j++) {
-            cout << "\t";
-            // Print each of its tags
-            for(int k = 0; k < (int)words[i].tags[j].size(); k++) {
-                cout << " " << util->showString(words[i].tags[j][k].first) << 
-                        "/" << words[i].tags[j][k].second;
-            }
-        }
 
 
 		auto &tags = words[i].tags;
@@ -72,7 +65,7 @@ int main(int argc, char** argv) {
 			}
 		}
         cout << endl;
-    }
+    //}
     cout << endl;
 
 }

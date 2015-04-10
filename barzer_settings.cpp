@@ -418,6 +418,8 @@ void BarzerSettings::loadLanguages() {
                                << "\" are not supported";
                 continue;
             }
+            //std::cout << "loading language settings for: " << id.get() << ":" << lang << "\n";
+
 
             if (const auto data = attrs.get_optional<std::string>("data")) {
                 model->loadData(data.get().c_str());
@@ -489,7 +491,6 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 {
 	const ptree &spell = node.get_child("spell", empty_ptree());
 	BZSpell* bzs = u.getUniverse().initBZSpell();
-
 	try {
 	    const boost::optional<const ptree&> optAttrs = spell.get_child_optional("<xmlattr>");
         if( optAttrs ) {
@@ -522,9 +523,13 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 			if (const auto p = attrs.get_optional<std::string>("lang")) {
 				int lang = Lang::fromStringCode(p.get());
 			    u.getUniverse().setDefaultLang(lang);
+			    std::cout << "setting user " << u.id
+			    			<< " lang to: " << p.get() << ":" << lang << "\n";
 			    int ay_lang = ay::StemWrapper::getLangFromString( p.get().c_str() );
 			    ay::StemThreadPool::inst().addLang(ay_lang);
 				u.getUniverse().getBarzHints().addUtf8Language(ay_lang);
+			} else {
+				std::cout << "lang not found\n";
 			}
 
         }

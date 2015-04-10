@@ -23,6 +23,7 @@ public:
 	void loadData(const char*);
 	void setParam(const char*, const char*) {};
 	//bool willTokenize() const { return true; }
+	bool stem(std::string&, const char*) const;
 	bool willLex() const { return true; }
 	int lex(Barz&, QTokenizer &t, QLexParser&, const QuestionParm&) const;
 	//int tokenize(Barz& b, QTokenizer &t, const QuestionParm& qparm) const;

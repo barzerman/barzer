@@ -100,6 +100,28 @@ namespace {
 		return true;
 	}
 }
+
+bool LangModelJa::stem(std::string &out, const char* s) const {
+    StringUtil* util = kytea.getStringUtil();
+    KyteaConfig* config = kytea.getConfig();
+    KyteaString surface_string = util->mapString(s);
+    KyteaString norm_string = util->normalize(surface_string);
+    KyteaSentence sentence(surface_string, norm_string);
+
+    sentence.words.push_back(KyteaWord(surface_string, norm_string));
+    kytea.calculateTags(sentence,config->getNumTags() - 1);
+
+	auto &tags = sentence.words[0].tags;
+	if (tags.size() > 0) {
+		auto &stags = tags[tags.size()-1];
+		if (stags.size() > 0) {
+			out.assign(util->showString(stags[0].first).data());
+			return true;
+		}
+	}
+	return false;
+}
+
 int LangModelJa::lex(Barz& barz, QTokenizer &t, QLexParser &qp, const QuestionParm& qparm) const {
 
     CTWPVec& cVec = barz.getCtVec();
@@ -160,16 +182,13 @@ int LangModelJa::lex(Barz& barz, QTokenizer &t, QLexParser &qp, const QuestionPa
 			continue;
 		}
 
-	    uint32_t usersWordStrId = 0xffffffff;
-        const StoredToken* storedTok = ( bzSpell->isUsersWord( usersWordStrId, t ) ?
-            dtaIdx.getStoredToken( t ): 0 );
+		const StoredToken* storedTok = dtaIdx.getStoredToken( t );
 
-		bool isUsersWord = bzSpell->isUsersWord( usersWordStrId, t ) ;
-		if (isUsersWord) {
+		if (storedTok) {
 			ctok.storedTok = storedTok;
 			ctok.syncClassInfoFromSavedTok();
-			ctok.setClass(CTokenClassInfo::CLASS_WORD);
 		} else {
+			std::cout << "didn't find the word\n";
 			ctok.setClass(CTokenClassInfo::CLASS_MYSTERY_WORD);
 		}
 
@@ -182,6 +201,10 @@ int LangModelJa::lex(Barz& barz, QTokenizer &t, QLexParser &qp, const QuestionPa
 				const char *reading = util->showString(stags[0].first).data();
 				const StoredToken* rtok = dtaIdx.getStoredToken( reading );
 				if (rtok) {
+					if (!storedTok) {
+						ctok.storedTok = rtok;
+						ctok.syncClassInfoFromSavedTok();
+					}
 					const char *m = dtaIdx.getStrPool()->printableStr(rtok->stringId);
 					std::cout << "FOUND stem for " << t << ": " << m << std::endl;
 					ctok.setStemTok( rtok );
@@ -208,4 +231,7 @@ int LangModelJa::lex(Barz& barz, QTokenizer &t, QLexParser &qp, const QuestionPa
 
 
 }
+
+
+
 }

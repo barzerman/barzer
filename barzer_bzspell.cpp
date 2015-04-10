@@ -47,7 +47,10 @@ void BZSpell::addExtraWordToDictionary( uint32_t strId, uint32_t frequency, bool
 	        const char* str = d_universe.getGlobalPools().string_resolve( strId );
 	        if( str ) {
                 size_t s_len = strlen(str);
-                int16_t lang = Lang::getLang(  d_universe, str, s_len );
+                int lang = d_universe.getDefaultLang();
+                if (lang == LANG_UNKNOWN) {
+                	lang = Lang::getLang(  d_universe, str, s_len );
+                }
                 size_t numGlyphs = s_len;
 	            if( lang != LANG_ENGLISH ) {
                     wmi->second.setLang(lang);
@@ -1002,17 +1005,19 @@ const StoredToken* BZSpell::stem_utf8_punct( std::string& out, const ay::StrUTF8
 bool BZSpell::stem( std::string& out, const char* s, int& lang ) const
 {
     size_t s_len = strlen( s );
-    //std::cout << "lang: " << lang <<"\n";
     if( lang == LANG_UNKNOWN )
         lang = Lang::getLang(  d_universe, s, s_len );
-	
+
 	const auto &mgr = d_universe.getGlobalPools().getLangModelMgr();
 	const LangModel *model = mgr.getLang(lang);
 	if (model) {
-		//std::cout <<"stemming using model\n";
-		return model->stem(out, s);
+		std::cout << "stemming " << s;
+		std::cout <<" using model: ";
+		bool ret = model->stem(out, s);
+		std::cout <<" using model:" << out << "\n";
+		return ret;
 	}
-		//std::cout << "model not found\n";
+
 
 	return stem(out, s, lang, d_minWordLengthToCorrect, d_universe.getBarzHints().getUtf8Languages(), m_stemExceptions);
 }
@@ -1028,9 +1033,11 @@ bool BZSpell::stem(std::string& out, const char *s, int& lang, size_t minWordLen
 		return true;
 	}
 	
+
 	size_t s_len = strlen( s );
     if( lang == LANG_UNKNOWN || lang == LANG_UNKNOWN_UTF8)
         lang = Lang::getLangNoUniverse(s, s_len);
+
 
 	if( lang == LANG_ENGLISH)
 	{

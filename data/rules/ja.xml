@@ -1,4 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance" xmlns="http://www.barzer.net/barzel/0.1" s="452:2861:E:entities">
-<stmt x=""><pat><t>てすと</t></pat><tran><t>AHAHAHA</t></tran></stmt>
+<stmt><pat><t>てすと</t></pat><tran><mkent i="USD" c="1" s="1"/></tran></stmt>
+<stmt><pat><t>moo</t></pat><tran><mkent i="USD" c="1" s="1"/></tran></stmt>
 </stmset>

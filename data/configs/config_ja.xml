@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
     <rules>
-        <file>data/rules/generic.xml</file>
+<!--        <file>data/rules/generic.xml</file>
         <file>data/rules/barzel_prices.xml</file>
         <file>data/rules/barzel_dates.xml</file>
         <file>data/rules/vintage.xml</file>
         <file>data/rules/barzel_fluff.xml</file>
-    </rules>
+ -->   </rules>
     <entities>
         <file>data/entities/time_ent.xml</file>
     </entities>

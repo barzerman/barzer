@@ -295,7 +295,7 @@ uint32_t StoredUniverse::stemAndIntern( int& lang, const char* s, size_t len, BE
     }
     const StoredToken* storedTok = getStoredToken( s );
     
-    lang = LANG_UNKNOWN;
+    //lang = LANG_UNKNOWN;
 	if( bzSpell )  {
         uint32_t i = 0xffffffff;
         if( bzSpell->isUsersWord(i,s) ) {
