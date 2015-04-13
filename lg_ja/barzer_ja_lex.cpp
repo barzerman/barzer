@@ -54,7 +54,7 @@ namespace {
 		        kytea.calculateTags(sentence,i);
 
 		    const KyteaSentence::Words & words =  sentence.words;
-		    std::cout << "found " << words.size() << " words" << std::endl;
+		    //std::cout << "found " << words.size() << " words" << std::endl;
 		    size_t byte_offset = 0, char_offset = 0, byte_len = 0, char_len = 0;
 		    for(int i = 0; i < (int)words.size(); i++) {
 		    	auto &surf = words[i].surface;
@@ -170,6 +170,7 @@ int LangModelJa::lex(Barz& barz, QTokenizer &t, QLexParser &qp, const QuestionPa
                 dtaIdx.getStoredToken( t ): 0 );
             if( storedTok )
                 ctok.number().setStringId( storedTok->getStringId() );
+            ctok.syncClassInfoFromSavedTok();
 			continue;
 		} else if (ut.length() > 1) {
 			// space/punct can only be a single glyph
@@ -186,9 +187,10 @@ int LangModelJa::lex(Barz& barz, QTokenizer &t, QLexParser &qp, const QuestionPa
 
 		if (storedTok) {
 			ctok.storedTok = storedTok;
-			ctok.syncClassInfoFromSavedTok();
+			ctok.setClass(CTokenClassInfo::CLASS_WORD);
+			//ctok.syncClassInfoFromSavedTok();
 		} else {
-			std::cout << "didn't find the word\n";
+			//std::cout << "didn't find the word\n";
 			ctok.setClass(CTokenClassInfo::CLASS_MYSTERY_WORD);
 		}
 
@@ -203,18 +205,18 @@ int LangModelJa::lex(Barz& barz, QTokenizer &t, QLexParser &qp, const QuestionPa
 				if (rtok) {
 					if (!storedTok) {
 						ctok.storedTok = rtok;
-						ctok.syncClassInfoFromSavedTok();
+						ctok.setClass(CTokenClassInfo::CLASS_WORD);
 					}
 					const char *m = dtaIdx.getStrPool()->printableStr(rtok->stringId);
-					std::cout << "FOUND stem for " << t << ": " << m << std::endl;
+					//std::cout << "FOUND stem for " << t << ": " << m << std::endl;
 					ctok.setStemTok( rtok );
 					ctok.stem.assign(m);
 				}
 			}
 		}
-
+		ctok.syncClassInfoFromSavedTok();
 		ctok.syncStemAndStoredTok(*uni);
-		std::cout << ctok.storedTok << ":" << ctok.stemTok << std::endl;
+		//std::cout << ctok.storedTok << ":" << ctok.stemTok << std::endl;
 	}
 
     qp.separatorNumberGuess( barz, qparm );
