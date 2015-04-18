@@ -192,6 +192,7 @@ class LangModel {
 public:
 	virtual void loadData(const char*) {};
 	virtual void setParam(const char*, const char*) {};
+	virtual bool wordSplit(std::vector<std::string> &out, const char* in) const { return false; }
 	virtual bool stem(std::string &out, const char *w) const { return false; };
 	virtual bool willLex() const { return false; }
 	virtual int lex(Barz& b, QTokenizer &t, QLexParser &qp, const QuestionParm& qparm) const {

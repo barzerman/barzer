@@ -101,6 +101,25 @@ namespace {
 	}
 }
 
+bool LangModelJa::wordSplit(std::vector<std::string> &out, const char * in) const {
+    StringUtil* util = kytea.getStringUtil();
+
+    KyteaString surface_string = util->mapString(in); // why isnt' this fucking const
+    KyteaSentence sentence(surface_string, util->normalize(surface_string));
+
+    kytea.calculateWS(sentence);
+
+    const KyteaSentence::Words & words =  sentence.words;
+    size_t len = words.size();
+    //std::cout << "found " << len << " words\n";
+    if (len <= 1) return false;
+    for(int i = 0; i < len; ++i) {
+    	//std::cout << "pushing " << util->showString(words[i].surface) << "\n";
+    	out.push_back(util->showString(words[i].surface));
+    }
+	return true;
+}
+
 bool LangModelJa::stem(std::string &out, const char* s) const {
     StringUtil* util = kytea.getStringUtil();
     KyteaConfig* config = kytea.getConfig();

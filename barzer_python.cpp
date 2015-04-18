@@ -24,6 +24,8 @@
 #include <autotester/barzer_at_comparators.h>
 #include <zurch_python.h>
 
+#include <barzer_language.h>
+#include <lg_ja/barzer_ja_lex.h>
 
 using boost::python::stl_input_iterator ;
 using namespace boost::python;
@@ -549,6 +551,33 @@ struct TraceInfo {
 };
 std::ostream& operator<<( std::ostream& fp, const TraceInfo& ti ) { return ti.print(fp); }
 
+struct BarzerLang {
+	LangModelMgr lg_mgr;
+	bool init_lang(const std::string lg, const std::string data) {
+		int lang = Lang::fromStringCode(lg);
+		LangModel *model = lg_mgr.checkLang(lang);
+		if (!model) return false;
+		model->loadData(data.data());
+		return true;
+	}
+	boost_python_list tokenize(const std::string lg, const std::string input) const {
+		int lang = Lang::fromStringCode(lg);
+		const LangModel *model = lg_mgr.getLang(lang);
+		std::vector<std::string> out;
+		if (!model || !model->wordSplit(out, input.data())) {
+			out.push_back(input);
+		}
+		list lout;
+		//*
+		//std::cout << "split " << input << " into " << out.size() << " parts\n";
+		for (std::string &s : out) {
+			lout.append(str(s.data(), s.size()));
+		}
+		return lout; //*/
+		//return list(out);
+	}
+};
+
 } // exposed namespace 
 
 namespace visitor {
@@ -918,4 +947,8 @@ BOOST_PYTHON_MODULE(pybarzer)
 
 	boost::python::class_<at::CompareSettings>("CompareSettings")
 		.def("setBeadOptions", &at::CompareSettings::setBeadOption);
+
+    boost::python::class_<barzer::exposed::BarzerLang>( "Lang" )
+        .def( "init_lang", &barzer::exposed::BarzerLang::init_lang )
+        .def( "tokenize", &barzer::exposed::BarzerLang::tokenize );
 }

@@ -22,6 +22,7 @@ class LangModelJa : public LangModel {
 public:
 	void loadData(const char*);
 	void setParam(const char*, const char*) {};
+	bool wordSplit(std::vector<std::string>&, const char *) const;
 	//bool willTokenize() const { return true; }
 	bool stem(std::string&, const char*) const;
 	bool willLex() const { return true; }
