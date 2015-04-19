@@ -113,7 +113,7 @@ bool LangModelJa::wordSplit(std::vector<std::string> &out, const char * in) cons
     size_t len = words.size();
     //std::cout << "found " << len << " words\n";
     if (len <= 1) return false;
-    for(int i = 0; i < len; ++i) {
+    for(size_t i = 0; i < len; ++i) {
     	//std::cout << "pushing " << util->showString(words[i].surface) << "\n";
     	out.push_back(util->showString(words[i].surface));
     }
