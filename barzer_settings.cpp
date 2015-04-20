@@ -525,9 +525,11 @@ void BarzerSettings::loadSpell(User &u, const ptree &node)
 			    u.getUniverse().setDefaultLang(lang);
 			    std::cout << "setting user " << u.id
 			    			<< " lang to: " << p.get() << ":" << lang << "\n";
+			    /*
 			    int ay_lang = ay::StemWrapper::getLangFromString( p.get().c_str() );
 			    ay::StemThreadPool::inst().addLang(ay_lang);
 				u.getUniverse().getBarzHints().addUtf8Language(ay_lang);
+				*/
 			} else {
 				std::cout << "lang not found\n";
 			}

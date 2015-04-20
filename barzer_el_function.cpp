@@ -2047,7 +2047,7 @@ bool cmpr(BarzelEvalResult &result,
 			const BarzerLiteral* bl = getAtomicPtr<BarzerLiteral>(rvec[0]);
                         const BarzerString* bs = getAtomicPtr<BarzerString>(rvec[0]);
                         const BarzerNumber* n = getAtomicPtr<BarzerNumber>(rvec[0]);
-                        if (bl) mnum = h->gpools.dateLookup.lookupMonth(q_universe,bl->getId());
+                        if (bl) mnum = h->gpools.dateLookup.lookupMonth(q_universe,*bl);
                         else if (bs) mnum = h->gpools.dateLookup.lookupMonth(q_universe,bs->getStr().c_str());
                         else if (n) mnum = ((n->isInt() && n->getInt() > 0 && n->getInt() < 13 )? n->getInt(): 0 );
                         else {  

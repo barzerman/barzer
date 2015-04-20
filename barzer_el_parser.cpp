@@ -54,7 +54,7 @@ uint32_t BELParser::stemAndInternTmpText( const char* s, int len )
 		curUni = &(getGlobalPools().produceUniverse(0));
     //int lang = LANG_UNKNOWN;
     int lang = curUni->getDefaultLang();
-	std::cout << "parse lang:" << lang << "\n";
+	//std::cout << "parse lang:" << lang << "\n";
 	uint32_t strId = curUni->stemAndIntern( lang, s, len, &(reader->getTrie()) );
     
     if( reader->isLiveCommandMode() ) {
