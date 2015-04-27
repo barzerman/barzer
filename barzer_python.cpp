@@ -12,7 +12,7 @@
 #include <boost/python/dict.hpp>
 #include <boost/python/object.hpp>
 #include <boost/python/stl_iterator.hpp>
-
+#include <boost/function.hpp>
 #include <barzer_parse.h>
 #include <barzer_server_response.h>
 #include <barzer_el_chain.h>
@@ -551,16 +551,20 @@ struct TraceInfo {
 };
 std::ostream& operator<<( std::ostream& fp, const TraceInfo& ti ) { return ti.print(fp); }
 
+
 struct BarzerLang {
+    typedef function<list(const std::string&)> Tokenizer;
+    //typedef std::function<void(void)> Foo;
+
 	LangModelMgr lg_mgr;
-	bool init_lang(const std::string lg, const std::string data) {
+	bool init_lang(const std::string &lg, const std::string &data) {
 		int lang = Lang::fromStringCode(lg);
 		LangModel *model = lg_mgr.checkLang(lang);
 		if (!model) return false;
 		model->loadData(data.data());
 		return true;
 	}
-	boost_python_list tokenize(const std::string lg, const std::string input) const {
+	boost_python_list tokenize(const std::string &lg, const std::string &input) const {
 		int lang = Lang::fromStringCode(lg);
 		const LangModel *model = lg_mgr.getLang(lang);
 		std::vector<std::string> out;
@@ -576,6 +580,16 @@ struct BarzerLang {
 		return lout; //*/
 		//return list(out);
 	}
+    /*
+    Tokenizer get_tokenizer(const std::string lg) {
+        int lang = Lang::fromStringCode(lg);
+        const LangModel *model = lg_mgr.getLang(lang);
+        if (!model) return 0;
+        return [model](const std::string &input) -> list {
+            list lst;
+            return lst;
+        };
+    }*/
 };
 
 } // exposed namespace 
@@ -950,5 +964,7 @@ BOOST_PYTHON_MODULE(pybarzer)
 
     boost::python::class_<barzer::exposed::BarzerLang>( "Lang" )
         .def( "init_lang", &barzer::exposed::BarzerLang::init_lang )
-        .def( "tokenize", &barzer::exposed::BarzerLang::tokenize );
+        .def( "tokenize", &barzer::exposed::BarzerLang::tokenize )
+        //.def("get_tokenizer", &barzer::exposed::BarzerLang::get_tokenizer )
+            ;
 }

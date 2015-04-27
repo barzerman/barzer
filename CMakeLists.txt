@@ -218,7 +218,7 @@ MESSAGE("build type: ${CMAKE_BUILD_TYPE}")
 SET(CMAKE_CXX_FLAGS_DEBUG "-g")
 SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
 add_definitions(-DBARZER_HOME=${INSTALL_DIR})
-add_definitions("\$(OPT)")
+#add_definitions("\$(OPT)")
 
 IF(DEFINED STD)
     add_definitions("-std=${STD}")
