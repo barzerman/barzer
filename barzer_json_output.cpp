@@ -618,6 +618,15 @@ void printTraceInfo(json_raii& raii, const Barz& barz, const StoredUniverse& uni
 
 }
 
+namespace {
+
+inline bool stringPair_comp_less( const CToken::StringPair& l, const CToken::StringPair& r )
+{ return( l.first < r.first ); }
+inline bool stringPair_comp_eq( const CToken::StringPair& l, const CToken::StringPair& r )
+{ return( l.first == r.first ); }
+
+}
+
 std::ostream& BarzStreamerJSON::print(std::ostream &os)
 {
     /// BARZ header tag 
@@ -688,20 +697,28 @@ std::ostream& BarzStreamerJSON::print(std::ostream &os)
         }
     }
 
-    /*
+
+    ///*
 	/// printing spell corrections  if any 
 	if( spellCorrections.size( ) ) {
-		os << "<spell>\n";
+		//os << "<spell>\n";
+        json_raii spellRaii( raii.startField("spell"), true, 1 );
+
 
         CToken::SpellCorrections::const_iterator i_end = std::unique( 
             spellCorrections.begin(), spellCorrections.end(), stringPair_comp_eq
         );
 		for( CToken::SpellCorrections::const_iterator i = spellCorrections.begin(); i!= i_end; ++i ) {
-			os << "<correction before=\"" << i->first << "\" after=\"" << i->second << "\"/>\n";
+		    spellRaii.startField("");
+		    json_raii corrRaii(spellRaii.getFP(), false, 2);
+		    corrRaii.addKeyValNoIndent("type", "correction");
+		    corrRaii.addKeyValNoIndent("before", i->first.data());
+		    corrRaii.addKeyValNoIndent("after", i->second.data());
+			//os << "<correction before=\"" << i->first << "\" after=\"" << i->second << "\"/>\n";
 		}
-		os << "</spell>\n";
+		//os << "</spell>\n";
 	}
-    */
+    //*/
     if( !checkBit( BF_NOTRACE ) && !qparm.isTraceOff() ) {
         printTraceInfo(raii, barz, universe);
     }
