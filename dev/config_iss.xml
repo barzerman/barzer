@@ -6,14 +6,6 @@
         <user id="200" username="yanis" >
             <flags value="csBp"/>
             <synent> <subclass s="3"/> </synent>
-            <!--
-            <beni sl="yes">
-                <benient c="200" s="1"/>
-                <benifile m="c" f="dev/shit_benient.txt" cl="200" sc="1"/>
-            </beni>
-            !!STMT_REMOVE:200|200|defrules|dev/iss_defrules.xml|1
-            
-            -->
             <rules> <file rewriter="defrules">dev/iss_defrules.xml</file> </rules>
 
             <rwrchain>
