@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<stmset xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance" xmlns="http://www.barzer.net/barzel/0.1">
+  <stmt><pat><t>beef</t></pat>
+    <tran>
+      <func name="mkERC">
+        <func name="mkEnt"><rn v="1"/><rn v="1"/></func>
+        <func name="mkRange"><rn v="1"/> <rn v="10"/></func>
+     </func>
+  </tran></stmt>
+  <stmt><pat><t>pork</t></pat>
+    <tran>
+      <func name="mkERC">
+        <func name="mkEnt"><rn v="1"/><rn v="1"/></func>
+        <func name="mkRange"><rn v="10"/> <rn v="10"/></func>
+     </func>
+  </tran></stmt>
+    <stmt>
+      <pat><t>cheapest</t></pat>
+      <tran>
+          <func name="mkERC">
+          <func name="mkEnt">
+              <rn v="1"/>
+              <rn v="1"/>
+          </func>
+          <func name="mkRange"/>
+          </func>
+      </tran>
+    </stmt>
+    <stmt n="30">
+      <pat> <list v="e"> <erc c="1"/> </list> </pat>
+
+      <tran u="y">
+        <func name="rangeFuzz" a="empty"><var n="e"></var></func>
+      </tran>
+     </stmt>
+    <!--
+    <stmt n="30">
+      <pat> <list v="e"> <erc c="1"/> </list> </pat>
+
+      <tran u="y">
+        <test><cond><func name="hasRange"><var n="e"/></func><t>nonempty</t></cond>
+          <t>empty</t>
+        </test>
+      </tran>
+     </stmt>
+     -->
+</stmset>

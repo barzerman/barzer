@@ -1,6 +1,6 @@
 /// Copyright Barzer LLC 2012
 /// Code is property Barzer for authorized use only
-/// 
+///
 /*
  * barzer_el_function.cpp
  *
@@ -108,7 +108,7 @@ struct StrConcatVisitor : public boost::static_visitor<bool> {
                 } else {
 	                str = (globPools.internalString_resolve(fid));
                 }
-                if( !str ) 
+                if( !str )
                     str = globPools.stringPool.resolveId(dt.getId());
             }
             if (str) {
@@ -208,21 +208,21 @@ bool mergeRanges(BarzerRange &r1, const BarzerRange &r2) {
 namespace {
 
 bool tryScaleRange( BarzelEvalResult &result, const ay::skippedvector<BarzelEvalResult> &rvec,
-                        const StoredUniverse &q_universe, BarzelEvalContext& ctxt, const BTND_Rewrite_Function& fr, int mode /*RANGE_MOD_XXX*/ ) 
+                        const StoredUniverse &q_universe, BarzelEvalContext& ctxt, const BTND_Rewrite_Function& fr, int mode /*RANGE_MOD_XXX*/ )
 {
     const char* func_name = (mode == BarzerRange::RANGE_MOD_SCALE_MULT ? "opMult" :
                         mode == BarzerRange::RANGE_MOD_SCALE_DIV ? "opDiv" :
                         mode == BarzerRange::RANGE_MOD_SCALE_PLUS ? "opPlus":
                         mode == BarzerRange::RANGE_MOD_SCALE_MINUS ?"opMinus" : "<Unknown>");
-    if( rvec.size() == 2 ) { // trying to scale range 
+    if( rvec.size() == 2 ) { // trying to scale range
         const BarzelEvalResult& arg0 = rvec[0];
         const BarzelEvalResult& arg1 = rvec[1];
         const BarzerNumber* n = getAtomicPtr<BarzerNumber>(arg1);
         if( n ) {
             const BarzerRange* r = getAtomicPtr<BarzerRange>(arg0);
             if( r ) {
-                BarzerRange newR(*r);                    
-                if( !newR.scale(*n, mode) ) 
+                BarzerRange newR(*r);                   
+                if( !newR.scale(*n, mode) )
                     FERROR("failed to scale the range");
                  else {
             setResult(result, newR);
@@ -232,26 +232,26 @@ bool tryScaleRange( BarzelEvalResult &result, const ay::skippedvector<BarzelEval
                 const BarzerERC* erc = getAtomicPtr<BarzerERC>(arg0);
                 if( erc ) {
                     BarzerRange newR(erc->getRange());
-                    if( !newR.scale(*n,mode) ) 
+                    if( !newR.scale(*n,mode) )
                         FERROR("failed to scale the range");
                      else {
                         BarzerERC berc;
-                        berc.setRange(newR);  
-                        berc.setEntity(erc->getEntity());                             
+                        berc.setRange(newR); 
+                        berc.setEntity(erc->getEntity());                            
                 setResult(result, berc);
                         return true;
                     }
-                } 
-            } 
-        } 
-    } else  if( rvec.size() == 3 ) { // trying to scale range 
+                }
+            }
+        }
+    } else  if( rvec.size() == 3 ) { // trying to scale range
         const BarzerNumber* n1 = getAtomicPtr<BarzerNumber>(rvec[1]);
-        const BarzerNumber* n2 = getAtomicPtr<BarzerNumber>(rvec[2]);            
+        const BarzerNumber* n2 = getAtomicPtr<BarzerNumber>(rvec[2]);           
         if( n1 && n2 ) {
             const BarzerRange* r = getAtomicPtr<BarzerRange>(rvec[0]);
             if( r ) {
                 BarzerRange newR(*r);
-                if( !newR.scale(*n1, *n2, mode) ) 
+                if( !newR.scale(*n1, *n2, mode) )
                     FERROR("failed to scale the range");
                 else {
                     setResult(result, newR);
@@ -261,19 +261,19 @@ bool tryScaleRange( BarzelEvalResult &result, const ay::skippedvector<BarzelEval
                 const BarzerERC* erc = getAtomicPtr<BarzerERC>(rvec[0]);
                 if( erc ) {
                     BarzerRange newR(erc->getRange());
-                    if( !newR.scale(*n1, *n2,mode) ) 
+                    if( !newR.scale(*n1, *n2,mode) )
                         FERROR("failed to scale the range");
                     else {
                         BarzerERC berc;
-                        berc.setRange(newR);  
-                        berc.setEntity(erc->getEntity());                             
+                        berc.setRange(newR); 
+                        berc.setEntity(erc->getEntity());                            
                         setResult(result, berc);
                         return true;
                     }
-                } 
+                }
             }
-        } 
-    }      
+        }
+    }     
     return false;
 } // tryScaleRange
 
@@ -281,7 +281,7 @@ struct lt { template <class T> bool operator()(T v1, T v2) { return v1 < v2; } }
 struct gt { template <class T> bool operator()(T v1, T v2) { return !(v1 < v2); } };
 struct eq { template <class T> bool operator()(T v1, T v2) { return v1 == v2; } };
 
-template <typename Op>    
+template <typename Op>   
 bool cmpr(BarzelEvalResult &result,
             const ay::skippedvector<BarzelEvalResult> &rvec,
             BarzelEvalContext& ctxt,
@@ -290,9 +290,9 @@ bool cmpr(BarzelEvalResult &result,
     Op op;
     if (rvec.size() < 2) return (FERROR("At least two arguments are needed"), false);
     BarzelEvalResultVec::const_iterator end = rvec.end(),
-                                        it = rvec.begin()+1;                    
+                                        it = rvec.begin()+1;                   
     bool res = true;
-    for (; res && it != end; ++it) 
+    for (; res && it != end; ++it)
         res = op(*(it-1), *it);
     setResult(result, res);
     return true;
@@ -316,14 +316,14 @@ bool cmpr(BarzelEvalResult &result,
         if( !argStr && rvec.size()>1) {
             const BarzerLiteral* ltrl = getAtomicPtr<BarzerLiteral>( rvec[1] ) ;
             if( ltrl ) {
-                argStr =  h->literalToCString(*ltrl) ; 
+                argStr =  h->literalToCString(*ltrl) ;
             } else {
                 const BarzerString* bs = getAtomicPtr<BarzerString>( rvec[1] ) ;
-                if( bs ) 
+                if( bs )
                     argStr = bs->getStr().c_str();
             }
         }
-        if( argStr && rvec.size() ) { 
+        if( argStr && rvec.size() ) {
             std::stringstream os;
             BarzelBeadData_FieldBinder binder( rvec[0].getBeadData(), q_universe, os );
 
@@ -335,8 +335,8 @@ bool cmpr(BarzelEvalResult &result,
     FUNC_DECL(set) {
         SETFUNCNAME(set);
         const char* argStr = GETARGSTR();
-        if( fr.isReqVar() ){ 
-            // for now only single values are supported (no tupples yet) 
+        if( fr.isReqVar() ){
+            // for now only single values are supported (no tupples yet)
             if( rvec.size() ) {/// set<x>( rvec ) - assigns variable x to rvec[0]
                 const char * vname = ctxt.resolveStringInternal(fr.getVarId());
 
@@ -351,18 +351,18 @@ bool cmpr(BarzelEvalResult &result,
             if( argStr && rvec.size() == 2 ) {
                 const BarzelEvalResult& arg0 = rvec[0]; // objecct
                 const BarzelEvalResult& arg1 = rvec[1]; // new property value
-    
-    
+   
+   
                 const BarzelBeadAtomic* atomic = arg0.getSingleAtomic();
                 if( atomic ) {
                     std::stringstream os;
                     BarzelBeadData_FieldBinder binder( arg0.getBeadData(), q_universe, os );
-    
+   
                     std::vector< BarzelBeadData > vv;
                     vv.push_back( arg1.getBeadData() );
-    
+   
                     bool rc =  binder( result.getBeadData(), argStr, &vv );
-                    if( !rc ) 
+                    if( !rc )
                         FERROR( os.str().c_str() );
                     return rc;
                 }
@@ -373,7 +373,7 @@ bool cmpr(BarzelEvalResult &result,
             }
         }
     }
-    /// get bead source tokens 
+    /// get bead source tokens
     FUNC_DECL(getBeadSrcTok)
     {
         SETFUNCNAME(getBeadSrcTok);
@@ -383,7 +383,7 @@ bool cmpr(BarzelEvalResult &result,
         }
         std::stringstream sstr;
         const BeadRange& rng = ctxt.matchInfo.getSubstitutionBeadRange();
-        for( BeadList::const_iterator i = rng.first; i!= rng.second; ++i) 
+        for( BeadList::const_iterator i = rng.first; i!= rng.second; ++i)
             i->streamSrcTokens(sstr);
         setResult(result,BarzerString(sstr.str())) ;
         return true;
@@ -396,15 +396,15 @@ bool cmpr(BarzelEvalResult &result,
             BarzelBeadAtomic_type_t t = BarzelBeadAtomic_type_MAX;
             if( !strcmp( argStr,"date" ) ) {
                 t= BarzerDate_TYPE;
-            } 
+            }
             bool  foundAtomic = false;
             const BarzelBeadAtomic*  atomic = ( t!= BarzelBeadAtomic_type_MAX ? ctxt.matchInfo.getClosestAtomicFromLeft(t,foundAtomic) : 0 );
-            if( !atomic ) 
+            if( !atomic )
                 return true;
 
             if(t== BarzerDate_TYPE){
                 const BarzerDate * dataPtr = getBarzerDateFromAtomic( atomic );
-                if( dataPtr ) 
+                if( dataPtr )
                     setResult( result, *dataPtr );
                 else {
                     BarzerDate_calc calc;
@@ -419,16 +419,16 @@ bool cmpr(BarzelEvalResult &result,
     FUNC_DECL(filterRegex)
     {
         /// parms: 0 - regex
-        ///        1 - whats being filtered  - either a list of entities or an id-less entity (class/subclass) 
-        ///       
+        ///        1 - whats being filtered  - either a list of entities or an id-less entity (class/subclass)
+        ///      
         SETFUNCNAME(filterRegex);
         const char* argStr = GETARGSTR();
-        /// argstr - can be 0, name, id, ... 
+        /// argstr - can be 0, name, id, ...
         if( rvec.size() > 1 ) {
             const char* rex = h->getCharPtr(rvec.vec(),0);
             if( !rex )
                 return true;
-            
+           
             int entFilterMode = StoredEntityRegexFilter::ENT_FILTER_MODE_ID;
             if( argStr ) {
                 if( !strcasecmp(argStr,"name") )
@@ -441,7 +441,7 @@ bool cmpr(BarzelEvalResult &result,
 
             const BarzerEntity* ent = getAtomicPtr<BarzerEntity>(r1);
             if( ent ) {
-                /// if id is 0xffffffff we will filter all entities of the class 
+                /// if id is 0xffffffff we will filter all entities of the class
                 if( ent->isTokIdValid() ) {
                     if( filter(*ent) )
                         setResult( result, *ent );
@@ -461,10 +461,10 @@ bool cmpr(BarzelEvalResult &result,
             } else if(const BarzerEntityList* entList=getAtomicPtr<BarzerEntityList>(r1) ) {
                 BarzerEntityList outEList;
                 for( std::vector< BarzerEntity >::const_iterator i = entList->getList().begin(); i!= entList->getList().end(); ++i ) {
-                    if( filter(*i) ) 
+                    if( filter(*i) )
                         outEList.theList().push_back( *i );
                 }
-                if( outEList.theList().size() ) 
+                if( outEList.theList().size() )
                     setResult( result, outEList );
             }
         }
@@ -504,7 +504,7 @@ bool cmpr(BarzelEvalResult &result,
             if( const BarzerEVR* evr  = getAtomicPtr<BarzerEVR>(rvec[0]) ) {
                 setResult(result, evr->getEntity() );
                 return true;
-            } else { 
+            } else {
                 const BarzerERC* erc  = getAtomicPtr<BarzerERC>(rvec[0]);
                 const BarzerEntity* ent  = ( erc ? &(erc->getEntity()) : getAtomicPtr<BarzerEntity>(rvec[0]) );
                 if( ent ) {
@@ -514,7 +514,7 @@ bool cmpr(BarzelEvalResult &result,
                     } else if( rvec.size() == 2 ) { // this is a setter
                         const BarzerERC* r_erc  = getAtomicPtr<BarzerERC>(rvec[1]);
                         const BarzerEntity* r_ent  = ( r_erc ? &(r_erc->getEntity()) : getAtomicPtr<BarzerEntity>(rvec[1]) );
-    
+   
                         if( r_ent ) {
                             setResult(result, *r_ent );
                             return true;
@@ -550,6 +550,18 @@ bool cmpr(BarzelEvalResult &result,
         FERROR("expects: (ERC|Range) [,(range|ERC)] to get/set range");
         return true;
     }
+    FUNC_DECL(hasRange)
+    {
+        SETFUNCNAME(hasRange);
+        if( rvec.size() == 1 ) {
+          if(const BarzerERC* erc  = getAtomicPtr<BarzerERC>(rvec[0])) {
+            if(erc->getRange().isValid()) {
+              setResult(result, (erc->getRange()));
+            }
+          }
+        }
+        return true;
+    }
     FUNC_DECL(isRangeEmpty)
     {
         SETFUNCNAME(isRangeEmpty);
@@ -566,7 +578,6 @@ bool cmpr(BarzelEvalResult &result,
                 if( range->isEmpty())
                     result = rvec[0];
                 else {
-                    // BarzelBeadBlank blank;
                     result.setBeadData(BarzelBeadBlank());
                 }
                 return true;
@@ -639,26 +650,26 @@ bool cmpr(BarzelEvalResult &result,
             d_attrSet(false)
         {}
 
-        void setArgStr( const char* s ) 
+        void setArgStr( const char* s )
         {
             d_isEscaped = d_attrSet = false;
-            if( !s ) 
-                return; 
+            if( !s )
+                return;
             std::vector< std::string > vc;
             ay::separated_string_to_vec parser(vc,'|');
-            parser( s ); 
+            parser( s );
             for( auto i = vc.begin();i!= vc.end(); ++i ) {
-			    if (*i == "DESC") 
+			    if (*i == "DESC")
 				   range.setDesc();
-			    else if (*i == "ASC") 
+			    else if (*i == "ASC")
 				   range.setAsc();
-                else if (*i == "NOHI") 
+                else if (*i == "NOHI")
                    range.setNoHI();
-			    else if (*i == "NOLO") 
+			    else if (*i == "NOLO")
                    range.setNoLO();
-			    else if (*i == "FULLRANGE") 
+			    else if (*i == "FULLRANGE")
                    range.setFullRange();
-                else if (*i == "AUTO") 
+                else if (*i == "AUTO")
                    isAutoOrder = true;
                 d_attrSet = true;
             }
@@ -686,12 +697,12 @@ bool cmpr(BarzelEvalResult &result,
                     leave = false;
                 if( leave )
                     return true;
-            } 
+            }
 
             if( cnt ) {
-                if( BarzerRange::Literal* er = range.get<BarzerRange::Literal>() ) 
+                if( BarzerRange::Literal* er = range.get<BarzerRange::Literal>() )
                     er->second = ltrl;
-            } else 
+            } else
                 range.set<BarzerRange::Literal>()->first = ltrl;
             if( d_isEscaped )
                 d_isEscaped= false;
@@ -701,10 +712,10 @@ bool cmpr(BarzelEvalResult &result,
 
 		template<class T> void setSecond(std::pair<T,T> &p, const T &v) {
                         if (isAutoOrder) {
-                            p.second = v;                            
+                            p.second = v;                           
                             if (p.first < v) range.setAsc();
                                 else range.setDesc();
-                            return; 
+                            return;
                         }
                         if (p.first < v) {
                                 if (range.isAsc()) {p.second = v; return;}
@@ -787,11 +798,11 @@ bool cmpr(BarzelEvalResult &result,
         }
 		bool operator()(const BarzerEntity &e) {
             if( cnt ) {
-                if( BarzerRange::Entity* er = range.get<BarzerRange::Entity>() ) 
+                if( BarzerRange::Entity* er = range.get<BarzerRange::Entity>() )
                     er->second = e;
-                else 
+                else
                     return false;
-            } else 
+            } else
                 range.set<BarzerRange::Entity>()->first = e;
             return true;
         }
@@ -851,7 +862,7 @@ bool cmpr(BarzelEvalResult &result,
 			return operator()(combo.getRange());
 		}
 
-            
+           
 		bool operator()(const BarzelBeadBlank&) {
             if( cnt == 0 ) {
                range.setNoLO();
@@ -870,45 +881,57 @@ bool cmpr(BarzelEvalResult &result,
 	FUNC_DECL(rangeFuzz)
     {
         SETFUNCNAME(rangeFuzz);
-        
+
         if( rvec.size() != 1 ) {
-            FERROR( "expect 1 parameters: numeric range (fuzz factor in argStr, default 20%)" );
+            FERROR( "expect 1 or 2 parameters: erc or numeric range. ARG: pct[,empty]. when empty is specified only empty ranges are fuzzed");
             return false;
         }
         const char* argStr = GETARGSTR();
-        double fuzzFactor = ( argStr ? fabs( (atof(argStr)/100.0) ) : .2 );
+        const float DEFAULT_FUZZ = .2;
+        double fuzzFactor = ( argStr ? fabs( (atof(argStr)/100.0) ) : DEFAULT_FUZZ);
+        if(!fuzzFactor)
+          fuzzFactor = DEFAULT_FUZZ;
+        bool emptyOnly = (argStr && strstr(argStr, "empty"));
 
         const BarzerRange *x = getAtomicPtr<BarzerRange>(rvec[0]);
         const BarzerERC* erc = 0;
-        
+
         if( !x ) {
-            if( (erc = getAtomicPtr<BarzerERC>(rvec[0])) != nullptr ) 
+            if( (erc = getAtomicPtr<BarzerERC>(rvec[0])) != nullptr )
                 x = erc->getRangePtr();
         }
         if( !x || !x->isNumeric() ) {
-            FERROR( "can only fuzz numeric ranges or ERC with num range" );
-            return false;
+          if(erc) {
+            setResult( result, BarzerERC(*erc) );
+          } else if(x) {
+            setResult( result, BarzerRange(*x));
+          }
+            return true;
         }
 
+        if( emptyOnly && !x->isEmpty()) {
+          result = rvec[0];
+          return true;
+        }
         BarzerRange newRange(*x);
         BarzerRange::Real* rr = newRange.set<BarzerRange::Real>() ;
         if( const BarzerRange::Integer* r = x->getInteger() ) {
-            if( x->hasHi()) 
+            if( x->hasHi())
                 rr->second = ( (double)(r->second) * ( 1+fuzzFactor ) );
-            if( x->hasLo()) 
+            if( x->hasLo())
                 rr->first = ( (double)(r->first) * ( 1-fuzzFactor ) );
-        } else 
+        } else
         if( const BarzerRange::Real* r = x->getReal() ) {
-            if( x->hasHi()) 
+            if( x->hasHi())
                 rr->second = ( (r->second) * ( 1.0+fuzzFactor ) );
-            if( x->hasLo()) 
+            if( x->hasLo())
                 rr->first = ( (r->first) * ( 1.0-fuzzFactor ) );
         }
         if( erc ) {
             BarzerERC newErc( *erc );
             newErc.setRange( newRange );
             setResult( result, newErc );
-        }  else 
+        }  else
             setResult( result, newRange );
         return true;
     }
@@ -962,7 +985,7 @@ bool cmpr(BarzelEvalResult &result,
             if( str ) {
                 internalStrId = universe.getGlobalPools().internalString_getId(str);
                 if( internalStrId == 0xffffffff ) {
-                    /// couldnt internally resolve 
+                    /// couldnt internally resolve
                     FERROR("Couldn't internally resolve. Use &lt;mkent s=\"\" c=\"\" id=\"\"/&gt; instead");
                 }
             }
@@ -993,43 +1016,43 @@ bool cmpr(BarzelEvalResult &result,
         SETFUNCNAME(lookupEnt);
         const char* argStr = GETARGSTR();
 
-        enum {  
+        enum { 
             LKUPMODE_ID,     // by entity id
             LKUPMODE_NAME,   // by entity name
             LKUPMODE_NAME_ID // both
         } lkMode= LKUPMODE_ID;
-        
+       
         size_t maxEnt = 0;
         if( argStr ) {
             if( const char* x = strstr( argStr, "NAME" ) ){
-                if( !strncmp( x, "NAME_ID", (sizeof("NAME_ID")-1) ) ) 
+                if( !strncmp( x, "NAME_ID", (sizeof("NAME_ID")-1) ) )
                     lkMode = LKUPMODE_NAME_ID;
                 else
                     lkMode = LKUPMODE_NAME;
             }
             size_t maxEnt = atoi(argStr);
-        } 
+        }
 
         QuestionParm qparm;
         StoredEntityClass ec;
         std::string idStr;
         if( rvec.size() == 2 ) {
             ec.ec = q_universe.getUserId();
-            if( const BarzerNumber *x = getAtomicPtr<BarzerNumber>(rvec[0]) ) 
+            if( const BarzerNumber *x = getAtomicPtr<BarzerNumber>(rvec[0]) )
                 ec.subclass = (uint32_t) x->getInt();
-            else 
+            else
                 FERROR("first arg must be a number" );
 
             getString( idStr, rvec[1], q_universe );
-        } else if( rvec.size() == 3 ) { 
-            if( const BarzerNumber *x = getAtomicPtr<BarzerNumber>(rvec[0]) ) 
+        } else if( rvec.size() == 3 ) {
+            if( const BarzerNumber *x = getAtomicPtr<BarzerNumber>(rvec[0]) )
                 ec.ec = (uint32_t) x->getInt();
-            else 
+            else
                 FERROR("first arg must be a number" );
 
-            if( const BarzerNumber *x = getAtomicPtr<BarzerNumber>(rvec[1]) ) 
+            if( const BarzerNumber *x = getAtomicPtr<BarzerNumber>(rvec[1]) )
                 ec.subclass = (uint32_t) x->getInt();
-            else 
+            else
                 FERROR("second arg must be a number" );
             getString( idStr, rvec[2], q_universe );
         }  else
@@ -1042,32 +1065,32 @@ bool cmpr(BarzelEvalResult &result,
 
             if( maxEnt && beniResult.size() > maxEnt )
                 beniResult.resize( maxEnt );
-        } 
+        }
         if( lkMode == LKUPMODE_NAME || lkMode == LKUPMODE_NAME_ID ) {
             if( !maxEnt || beniResult.size() < maxEnt ) {
                 if( const SmartBENI*  beni = q_universe.getBeni() ) {
                     BENIFindResults_t beniResultName;
                     size_t maxCount = ( maxEnt ? (maxEnt-beniResult.size()) : 128 );
-                    beni->search( beniResultName, idStr.c_str(), 0.3, 0, [&] (const BarzerEntity& i ) { return (ec == i.eclass); }, maxCount ); 
+                    beni->search( beniResultName, idStr.c_str(), 0.3, 0, [&] (const BarzerEntity& i ) { return (ec == i.eclass); }, maxCount );
                     for( auto i = beniResultName.begin(); i!= beniResultName.end(); ++i ) {
-                        if( !maxEnt || beniResult.size() < maxEnt ) 
+                        if( !maxEnt || beniResult.size() < maxEnt )
                             beniResult.push_back( *i );
                      }
                 }
             }
         }
-        
+       
         if( beniResult.empty() ) {
             setResult(result, BarzerEntity() );
             return true;
-        } else 
+        } else
         if( beniResult.size() == 1 )
             setResult(result, beniResult.front().ent);
         else {
             BarzerEntityList& newEntList = setResult(result, BarzerEntityList() );
             double maxCov = beniResult.front().coverage;
             for( const auto& i : beniResult ) {
-                if( maxCov> i.coverage ) 
+                if( maxCov> i.coverage )
                     break;
                 newEntList.addEntity( i.ent );
             }
@@ -1101,8 +1124,8 @@ bool cmpr(BarzelEvalResult &result,
 		BarzerERC &erc;
 		ERCPacker(BarzerERC &e, BarzelEvalContext& ctxt, const char* funcName, bool entitySet = false ) :
             num(entitySet? 1: 0), d_funcName(funcName), d_ctxt(ctxt), erc(e) {}
-        
-        
+       
+       
 		bool operator()(const BarzerEntityList &el) {
             if( !el.getList().size() )
                 return false;
@@ -1111,10 +1134,10 @@ bool cmpr(BarzelEvalResult &result,
             size_t   bestEntIndex = 0; /// front by default
             for( auto i = el.getList().begin(); i!= el.getList().end(); ++i ) {
                 auto rel = d_ctxt.universe.getEntityRelevance(*i);
-                if( rel> maxRel ) 
+                if( rel> maxRel )
                     bestEntIndex= ( (maxRel=rel), (i-el.getList().begin()) );
             }
-			return (*this)( el.getList()[bestEntIndex] ); 
+			return (*this)( el.getList()[bestEntIndex] );
 		}
 		bool operator()(const BarzerEntity &euid) {
 			if (num) {
@@ -1167,39 +1190,39 @@ bool cmpr(BarzelEvalResult &result,
         BarzerEVR& evr;
         EVRPacker( BarzerEVR& e, const BarzelEvalResult& evalRes ) : evalResult(evalRes), evr(e) {}
 
-		bool operator()(const BarzelBeadAtomic &data) 
+		bool operator()(const BarzelBeadAtomic &data)
             { return boost::apply_visitor(*this, data.getData()); }
-		bool operator()(const BarzelBeadBlank& v) 
+		bool operator()(const BarzelBeadBlank& v)
             { return false; }
-		bool operator()(const BarzelBeadExpression& v) 
+		bool operator()(const BarzelBeadExpression& v)
             { return false; }
         bool operator()(const BarzerEVR& v)
         {
             if( tuppleName.empty() )
                 evr.appendVar( v );
-            else 
+            else
                 evr.setTagVar( tuppleName, v );
 
             return true;
         }
         /*
-		bool operator()(const BarzerEVR& v) 
-            { 
+		bool operator()(const BarzerEVR& v)
+            {
                 for( auto i = v.data().begin(); i!= v.data().end(); ++i ) {
                     for( auto j = i->second.begin(); j!= i->second.end(); ++j ) {
                     evr.appendVarUnique( i->first, *j );
                     }
                 }
-                return true; 
+                return true;
             }
             */
 
         template <typename T>
-        bool operator()(const T& t) { 
+        bool operator()(const T& t) {
             if( tuppleName.empty() )
-                evr.appendVar( t ); 
-            else 
-                evr.setTagVar( tuppleName, t ); 
+                evr.appendVar( t );
+            else
+                evr.setTagVar( tuppleName, t );
             return true;
         }
     };
@@ -1222,7 +1245,7 @@ bool cmpr(BarzelEvalResult &result,
             return false;
         }
     }
-	FUNC_DECL(insertVal) // extracts tag value from the EVR 
+	FUNC_DECL(insertVal) // extracts tag value from the EVR
     {
         SETFUNCNAME(insertVal);
         if( rvec.empty() )
@@ -1239,7 +1262,7 @@ bool cmpr(BarzelEvalResult &result,
         } else
             return false;
     }
-	FUNC_DECL(evrValExtract) // extracts tag value from the EVR 
+	FUNC_DECL(evrValExtract) // extracts tag value from the EVR
     {
         SETFUNCNAME(evrValExtract);
         bool getAll = false;
@@ -1251,7 +1274,7 @@ bool cmpr(BarzelEvalResult &result,
 
         if(  argStr && srcEvr && !srcEvr->data().empty()) {
             size_t from = 0, to=0;
-            ay::parse_separator( 
+            ay::parse_separator(
                 [&]( size_t tok_num, const char* tok, const char* tok_end ) -> bool {
                     std::string s( tok, tok_end-tok ) ;
                     if( tok_num == 0 ) {
@@ -1265,10 +1288,10 @@ bool cmpr(BarzelEvalResult &result,
             );
 
             if( from == to ) {
-                if( to < srcEvr->data().size()) 
+                if( to < srcEvr->data().size())
                     result.setEVRAtomData( srcEvr->data()[ from ].second );
             } else if( from < to ) {
-                if( to >= srcEvr->data().size()) 
+                if( to >= srcEvr->data().size())
                     to = srcEvr->data().size()-1;
                 for( size_t i = from; i<=to; ++i ) {
                     result.pushEVRAtomData( srcEvr->data()[i].second );
@@ -1278,7 +1301,7 @@ bool cmpr(BarzelEvalResult &result,
         } else
             return false;
     }
-	FUNC_DECL(evrTagExtract) // extracts tag value from the EVR 
+	FUNC_DECL(evrTagExtract) // extracts tag value from the EVR
     {
         SETFUNCNAME(evrTagExtract);
         bool getAll = false;
@@ -1301,19 +1324,19 @@ bool cmpr(BarzelEvalResult &result,
         if( rvec.size() > 1 )
             getString( tagStr, rvec[1], q_universe );
 
-        if( !getAll && tagStr.empty() ) 
+        if( !getAll && tagStr.empty() )
             getAll = true;
         if( getAll ) {
-            srcEvr->iterateTag( 
+            srcEvr->iterateTag(
                 [&] ( const BarzerEVR::Atom& atom ) { result.pushEVRAtomData( atom ); },
-                tagStr.c_str() 
+                tagStr.c_str()
             );
         } else {
             if( auto x = srcEvr->getAtomByName(tagStr.c_str() ) ) {
                 result.setEVRAtomData(*x);
             }
         }
-        
+       
         return true;
     }
 	FUNC_DECL(setTag) // sets tag to the parameters
@@ -1322,7 +1345,7 @@ bool cmpr(BarzelEvalResult &result,
         const char* argStr = GETARGSTR();
         if(rvec.size() == 1) {
 		    result.setBeadData( rvec[0].getBeadData() );
-        } else {    
+        } else {   
             for( auto& r: rvec ) {
                 result.pushBeadData( r.getBeadData() );
             }
@@ -1336,16 +1359,16 @@ bool cmpr(BarzelEvalResult &result,
         SETFUNCNAME(mkEVR);
         const char* argStr = GETARGSTR();
         BarzerEVR evr;
-        if( !rvec.size() ) 
+        if( !rvec.size() )
             return true;
 
-		BarzelEvalResultVec::const_iterator ri = rvec.begin(); 
+		BarzelEvalResultVec::const_iterator ri = rvec.begin();
         const BarzerEVR* srcEvr = getAtomicPtr<BarzerEVR>(*ri);
         if( srcEvr ) {
             evr = *srcEvr;
         } else if( const BarzerEntity* ent = getAtomicPtr<BarzerEntity>(*ri) ) {
             evr.setEntity( *ent );
-        } 
+        }
 		for ( ++ri; ri != rvec.end(); ++ri ) {
             EVRPacker packer( evr, *ri );
             packer.tuppleName = ri->tagStr();
@@ -1359,7 +1382,7 @@ bool cmpr(BarzelEvalResult &result,
 		//AYLOGDEBUG(rvec.size());
 		//AYLOG(DEBUG) << rvec[0].getBeadData().which();
         SETFUNCNAME(mkERC);
-            
+           
         if( !rvec.size() ) {
 		    setResult(result, BarzerERC());
             return true;
@@ -1387,7 +1410,7 @@ bool cmpr(BarzelEvalResult &result,
                         FERROR("ERC failed");
                         return false;
 			    }
-            } 
+            }
 		    setResult(result, erc);
         }
 		return true;
@@ -1401,7 +1424,7 @@ bool cmpr(BarzelEvalResult &result,
             FERROR("needs at least 2 arguments");
 			return false;
 		}
-    
+   
         BarzerRange defaultRange;
         if( const BarzerRange* r = getAtomicPtr<BarzerRange>(rvec[0]) ) { // special case range, ent, ent
             defaultRange = *r;
@@ -1466,8 +1489,8 @@ bool cmpr(BarzelEvalResult &result,
                                 outStr.push_back( ' ' );
                             outStr.append( str );
                         }
-                        
-                    } else 
+                       
+                    } else
                     if( const BarzerNumber *x = getAtomicPtr<BarzerNumber>(i) ) {
                         BarzerString ns;
                         x->convert(ns);
@@ -1483,7 +1506,7 @@ bool cmpr(BarzelEvalResult &result,
                             outStr.push_back( ' ' );
                             prevWasBlank = false;
                         }
-                    } else 
+                    } else
                         prevWasBlank = true;
                 }
             }
@@ -1514,7 +1537,7 @@ bool cmpr(BarzelEvalResult &result,
                     x->convert(bs);
                     bs.setFluff();
                     result.pushOrSetBeadData( j++, bs );
-                } 
+                }
             }
             return true;
         }
@@ -1758,7 +1781,6 @@ bool cmpr(BarzelEvalResult &result,
 		return true;
 	}
 
-        
 	struct RangeGetter : public boost::static_visitor<bool> {
 		BarzelEvalResult &result;
 		uint8_t pos;
@@ -1839,7 +1861,7 @@ bool cmpr(BarzelEvalResult &result,
 
 	// arith
 
-///        mode =  BarzerRange::RANGE_MOD_SCALE_(MULT|DIV|PLUS|MINUS)  
+///        mode =  BarzerRange::RANGE_MOD_SCALE_(MULT|DIV|PLUS|MINUS) 
     FUNC_DECL(opPlus)
     {
         if ( tryScaleRange( result, rvec, q_universe, ctxt, fr, BarzerRange::RANGE_MOD_SCALE_PLUS ) )
@@ -1886,7 +1908,7 @@ bool cmpr(BarzelEvalResult &result,
         return false;
     }
     FUNC_DECL(opSub) { return stfun_opMinus(h,result,rvec,q_universe,ctxt,fr ); }
-    
+   
     FUNC_DECL(opMult)
     {
         if ( tryScaleRange( result, rvec, q_universe, ctxt, fr, BarzerRange::RANGE_MOD_SCALE_MULT ) )
@@ -1931,7 +1953,7 @@ bool cmpr(BarzelEvalResult &result,
         //setResult(result, bn); // most likely NaN if something went wrong
         return false;
     }
-    
+   
 	FUNC_DECL(opLt) { SETFUNCNAME(opLt); return cmpr<lt>(result, rvec,ctxt,func_name); }
         FUNC_DECL(opGt) { SETFUNCNAME(opGt); return cmpr<gt>(result, rvec,ctxt,func_name); }
 	FUNC_DECL(opEq) { SETFUNCNAME(opGt); return cmpr<eq>(result, rvec,ctxt,func_name); }
@@ -2043,17 +2065,17 @@ bool cmpr(BarzelEvalResult &result,
 			return false;
 		}
 		try {
-                        uint mnum = 0;                       
+                        uint mnum = 0;                      
 			const BarzerLiteral* bl = getAtomicPtr<BarzerLiteral>(rvec[0]);
                         const BarzerString* bs = getAtomicPtr<BarzerString>(rvec[0]);
                         const BarzerNumber* n = getAtomicPtr<BarzerNumber>(rvec[0]);
                         if (bl) mnum = h->gpools.dateLookup.lookupMonth(q_universe,*bl);
                         else if (bs) mnum = h->gpools.dateLookup.lookupMonth(q_universe,bs->getStr().c_str());
                         else if (n) mnum = ((n->isInt() && n->getInt() > 0 && n->getInt() < 13 )? n->getInt(): 0 );
-                        else {  
+                        else { 
                                 FERROR("Wrong argument type");
                                 return false;
-                        }                       
+                        }                      
                         if (!mnum) {
                               FERROR("Unknown month name given");
                               return false;
@@ -2195,12 +2217,13 @@ BELFunctionStorage_holder::DeclInfo g_funcs[] = {
     FUNC_DECLINFO_INIT(set, ""),
     FUNC_DECLINFO_INIT(insertVal, "(evr,x1[,x2...]) - appends xN-s into evr's value list"),
     FUNC_DECLINFO_INIT(updateVal, "(evr,x) - in evr sets value arg to x "),
-            
+
     // getters
     FUNC_DECLINFO_INIT(getLow, ""), // (BarzerRange)
     FUNC_DECLINFO_INIT(getTokId, ""),        // (BarzerLiteral|BarzerEntity)
     FUNC_DECLINFO_INIT(getHigh, ""), // (BarzerRange)
     FUNC_DECLINFO_INIT(isRangeEmpty, ""), // (BarzerRange or ERC) - returns true if range.lo == range.hi
+    FUNC_DECLINFO_INIT(hasRange, ""), // (BarzerRange or ERC) - returns true if ERC has range
 
     FUNC_DECLINFO_INIT(getLeftBead, ""),  // returns closest bead on the left of the type matching arg . null otherwise
     FUNC_DECLINFO_INIT(getBeadSrcTok, ""),  // a string contactenated with spaces from scrtokens of all beads in substitution sequence
@@ -2244,8 +2267,8 @@ BELFunctionStorage_holder::DeclInfo g_funcs[] = {
     // erc properties
     FUNC_DECLINFO_INIT(getEnt, ""), // ((EVR|ERC|Entity)[,entity]) -- when second parm passed replaces entity with it
     FUNC_DECLINFO_INIT(getRange, ""), // ((ERC|Entity)[,range]) -- when second parm passed replaces range with it
-    
-    /// generic getter 
+   
+    /// generic getter
     FUNC_DECLINFO_INIT(get, "")
 };
 
@@ -2253,7 +2276,7 @@ BELFunctionStorage_holder::DeclInfo g_funcs[] = {
 	#undef FERROR
     #undef SETSIG
 	#undef FUNC_DECL
-} /// anon namespace 
+} /// anon namespace
 
 
 void BELFunctionStorage::loadAllFunctions()
@@ -2263,8 +2286,8 @@ void BELFunctionStorage::loadAllFunctions()
     }
 }
 BELFunctionStorage::BELFunctionStorage(GlobalPools &gp, bool initFunctions) : globPools(gp),
-		holder(initFunctions ? new BELFunctionStorage_holder(gp):0) 
-{ 
+		holder(initFunctions ? new BELFunctionStorage_holder(gp):0)
+{
     if( holder ) {
         loadAllFunctions( );
         funcHolder::loadAllFunc_date(holder);
@@ -2296,7 +2319,7 @@ bool BELFunctionStorage::call(BarzelEvalContext& ctxt, const BTND_Rewrite_Functi
 
 }
 
-void BELFunctionStorage::help_list_funcs_json( std::ostream& os, const GlobalPools& gp ) 
+void BELFunctionStorage::help_list_funcs_json( std::ostream& os, const GlobalPools& gp )
 {
     if( !gp.funSt )
         return;
