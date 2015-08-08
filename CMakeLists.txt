@@ -241,6 +241,8 @@ set_target_properties(barzer_static PROPERTIES OUTPUT_NAME barzer_static )
 
 option (ENABLE_BARZ_SHARED "Build shared version of barzer libraries" OFF)
 option (ENABLE_PYBARZER "Build pybarzer" ON)
+option (STATIC_BUILD "Build static barzer executable" OFF)
+
 
 ### libbarzer shared
 if (ENABLE_BARZ_SHARED)
@@ -248,6 +250,15 @@ if (ENABLE_BARZ_SHARED)
 	target_link_libraries (barzer barzer_static)
 	set_target_properties(barzer PROPERTIES OUTPUT_NAME barzer )
 endif (ENABLE_BARZ_SHARED)
+
+
+if (STATIC_BUILD) 
+    SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+    SET(BUILD_SHARED_LIBRARIES OFF)
+    SET(CMAKE_EXE_LINKER_FLAGS "-static")
+    SET(CMAKE_SKIP_RPATH ON)
+    SET(ENABLE_PYBARZER OFF)
+endif (STATIC_BUILD)
 
 ### pybarzer
 if (ENABLE_PYBARZER)
