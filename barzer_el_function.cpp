@@ -1369,12 +1369,15 @@ bool cmpr(BarzelEvalResult &result,
         } else if( const BarzerEntity* ent = getAtomicPtr<BarzerEntity>(*ri) ) {
             evr.setEntity( *ent );
         }
-		for ( ++ri; ri != rvec.end(); ++ri ) {
+
+	for ( ++ri; ri != rvec.end(); ++ri ) {
             EVRPacker packer( evr, *ri );
             packer.tuppleName = ri->tagStr();
-            boost::apply_visitor( packer, ri->getBeadData() );
+	    for(const auto &x: ri->getBeadDataVec()) {
+	    	boost::apply_visitor(packer, x);
+	    }
         }
-		setResult(result, evr);
+	setResult(result, evr);
         return true;
     }
 	FUNC_DECL(mkERC) // makes EntityRangeCombo
