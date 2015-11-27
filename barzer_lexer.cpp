@@ -16,10 +16,33 @@ namespace {
 inline char get_tpos_char( const TTWPVec& tVec, size_t tPos )
     { return ( tPos < tVec.size() ? (tVec[tPos].first.buf[0] ): 0 ); }
 
+inline bool not_a_number(const std::string& tok, const StoredUniverse& universe)
+{
+    if( tok.length() < 3)
+        return false;
+
+    int MAX_NUM_LENGTH = 10;
+    size_t first_char = 0;
+    if(tok[0] == '-') {
+        ++MAX_NUM_LENGTH;
+        first_char = 1;
+    }
+
+    if(tok.length() > MAX_NUM_LENGTH)
+        return true;
+    else if (tok.length() == MAX_NUM_LENGTH && tok[first_char] >= '3')
+        return true;
+
+    return false;
+}
+
 }
 
 bool QLexParser::tryClassify_number( CToken& ctok, const TToken& ttok, const TTWPVec& tVec, size_t tPos, const CTWPVec& cVec, size_t cPos ) const
 {
+    if(not_a_number(ttok.buf, d_universe))
+        return false;
+
 	const char* beg = ttok.buf.c_str();
 	const char* end = ttok.buf.c_str()+ttok.buf.length();
 	bool hasDot = false, hasDigit = false;
@@ -54,6 +77,9 @@ bool QLexParser::tryClassify_number( CToken& ctok, const TToken& ttok, const TTW
 }
 bool QLexParser::tryClassify_integer( CToken& ctok, const TToken& ttok, bool& allDigits, const TTWPVec& tVec, size_t tPos, const CTWPVec& cVec, size_t cPos ) const
 {
+    if(not_a_number(ttok.buf, d_universe))
+        return (allDigits=false, false);
+
 	const char* beg = ttok.buf.c_str();
 	const char* end = ttok.buf.c_str()+ttok.buf.length();
     for( const char* s = beg; s!= end; ++s ) {
@@ -792,7 +818,7 @@ inline bool QLexParser::trySplitCorrect ( SpellCorrectResult& corrResult, QLexPa
                     leftCorr_numChar = strlen(leftCorr)/step;
                     rightCorr_numChar = strlen(rightCorr)/step;
                 }
-                if( abs(leftCorr_numChar + rightCorr_numChar -theString_numChar) > 1 )
+                if((leftCorr_numChar + rightCorr_numChar) > (1 + theString_numChar))
                     continue;
                 if( 
                     (leftCorr_numChar < 4 && !getStoredToken(leftCorr)) 
