@@ -3,7 +3,8 @@ Barzel - whatever that is
 
 Building Barzel
 ---------------
-    make -f barzer.mk
+    cmake .
+    make
 
 
 Contents
